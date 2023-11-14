@@ -1,0 +1,37 @@
+{
+  "name": "api",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dynamodb:start": "cd ./mocks/dynamodb && docker compose up -d",
+    "mongodb:start": "cd ./mocks/mongodb && docker compose up -d",
+    "db:start": "npm run dynamodb:start & npm run mongodb:start",
+    "db:stop": "(cd ./mocks/dynamodb && docker compose down) & (cd ./mocks/mongodb && docker compose down)",
+    "mongo-express:start": "cd ./mocks/mongo-express && docker compose up -d",
+    "dev": "cd ./mocks/graphql-lambda && npm run dev"
+  },
+  "devDependencies": {
+    "@apollo/server": "^4.9.5",
+    "@aws-sdk/client-apigatewaymanagementapi": "^3.451.0",
+    "@aws-sdk/client-dynamodb": "^3.451.0",
+    "@aws-sdk/lib-dynamodb": "^3.451.0",
+    "@types/aws-lambda": "^8.10.126",
+    "@types/ws": "^8.5.9",
+    "aws-cdk-lib": "^2.108.1",
+    "aws-lambda": "^1.0.7",
+    "constructs": "^10.3.0",
+    "dotenv": "^16.3.1",
+    "esbuild-loader": "^4.0.2",
+    "fork-ts-checker-webpack-plugin": "^9.0.2",
+    "graphql": "^16.8.1",
+    "graphql-ws": "^5.14.2",
+    "mongodb": "^6.2.0",
+    "mongoose": "^8.0.1",
+    "nodemon-webpack-plugin": "^4.8.2",
+    "raw-loader": "^4.0.2",
+    "ts-node": "^10.9.1",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4",
+    "ws": "^8.14.2"
+  }
+}

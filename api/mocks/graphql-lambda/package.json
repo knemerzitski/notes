@@ -1,0 +1,8 @@
+{
+  "main": "./src/index.ts",
+  "scripts": {
+    "dev": "DEBUG=*:info,*:warning,*:error webpack --color --progress --watch",
+    "build": "webpack",
+    "start": "DEBUG=*:error node ./out/main.js"
+  }
+}

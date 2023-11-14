@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:6
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_DATABASE: mongo
+    networks:
+      - mongo-network
+    ports:
+      - 27017:27017
+
+networks:
+  mongo-network:

@@ -1,0 +1,37 @@
+"""
+An item for todo list.
+"""
+type Item {
+  "Item UUID"
+  id: ID!
+  "Item name"
+  name: String!
+  "Item has been completed (crossed out)"
+  done: Boolean!
+}
+
+# eslint-disable-next-line @graphql-eslint/executable-definitions
+type Query {
+  "List all items"
+  items: [Item!]!
+  "Get specific item by id"
+  item(id: ID!): Item!
+}
+
+type Mutation {
+  "Add new item to the list"
+  insertItem(name: String!): Item!
+  "Update item in the list"
+  updateItem(id: ID!, name: String, done: Boolean): Boolean!
+  "Delete item from the list"
+  deleteItem(id: ID!): Boolean!
+}
+
+type Subscription {
+  "New item has been added to the list"
+  itemCreated: Item!
+  "Item has been updated in the list"
+  itemUpdated: Item!
+  "Item has been deleted from the list"
+  itemRemoved: ID!
+}

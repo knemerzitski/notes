@@ -1,0 +1,10 @@
+"""
+The @client directive allows you to resolve client-only data alongside your server data.
+These fields are not sent to the GraphQL server.
+"""
+directive @client on FIELD
+
+extend type Item {
+  "Item is considered optimistic (temporary) guess that might change once acutal item from server is received"
+  optimistic: Boolean
+}

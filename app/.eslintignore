@@ -1,0 +1,9 @@
+__EXCLUDE
+src/__generated__
+
+dist
+
+.eslintrc.cjs
+
+commitlint.config.cjs
+commit-types.config.cjs

@@ -1,0 +1,12 @@
+{
+  "callbackWaitsForEmptyEventLoop": false,
+  "functionName": "restApiHandler",
+  "functionVersion": "0",
+  "invokedFunctionArn": "dummy",
+  "memoryLimitInMB": "1024",
+  "awsRequestId": "dymmyAwsRequestId",
+  "logGroupName": "dummyLogGroupName",
+  "logStreamName": "dummyLogStreamName",
+  "identity": null,
+  "clientContext": null
+}

@@ -1,0 +1,84 @@
+"""
+The @client directive allows you to resolve client-only data alongside your server data.
+These fields are not sent to the GraphQL server.
+"""
+directive @client on FIELD
+
+"""
+The @local directive allows you to resolve data either with local resolvers or server resolvers
+depending on user type.
+- For local users @local directive is replaced with @client directive.
+- For cloud users @local directive is removed.
+"""
+directive @local on FIELD
+
+enum ColorMode @client {
+  LIGHT
+  DARK
+}
+
+type Preferences @client {
+  colorMode: ColorMode
+}
+
+type Note {
+  "Note unique ID"
+  id: ID!
+  "Optional note title"
+  title: String!
+  "Note text contents"
+  content: String!
+}
+
+input UpdateNote {
+  "Note unique ID"
+  id: ID!
+  "Optional note title"
+  title: String!
+  "Note text contents"
+  content: String!
+}
+
+type LocalSession {
+  id: ID!
+  displayName: String!
+}
+
+type RemoteSession {
+  id: ID!
+  displayName: String!
+  email: String!
+}
+
+union Session = LocalSession | RemoteSession
+
+type Query {
+  "Get user preferences, such as color mode"
+  preferences: Preferences @client
+
+  "Get all sessions saved locally"
+  sessions: [Session!]! @client
+  "Get currently active session. If there are no previous sessions, a new local session is created."
+  activeSessionIndex: Int! @client
+
+  "Get all notes belonging to current user"
+  notes: [Note!]! @local
+  "Get note by ID belonging to current user"
+  note(id: String!): Note! @local
+}
+
+type Mutation {
+  updateColorMode(colorMode: ColorMode!): Boolean! @client
+
+  insertLocalSession(displayName: String!): LocalSession! @client
+  insertRemoteSession(id: Int!, displayName: String!, email: String!): RemoteSession
+    @client
+  switchToSession(index: Int!): Boolean! @client
+
+  "Add a new note to current user"
+  insertNote(title: String!, content: String!): Note! @local
+  "Update current user note"
+  updateNote(note: Note): Boolean! @local
+  "Delete note belonging to current user specified by ID"
+  deleteNote(id: String!): Boolean! @local
+}
