@@ -14,13 +14,15 @@ const apolloClient = new ApolloClient({
 });
 
 // Update @local directive document transform by reading the session data
-const {
-  data: { sessions, activeSessionIndex },
-} = await apolloClient.query({
-  query: GET_SESSIONS,
-});
-const session = sessions[activeSessionIndex];
-localDirectiveDocumentTransform.config.isLocalSession =
-  session.__typename === 'LocalSession';
+void (async () => {
+  const {
+    data: { sessions, activeSessionIndex },
+  } = await apolloClient.query({
+    query: GET_SESSIONS,
+  });
+  const session = sessions[activeSessionIndex];
+  localDirectiveDocumentTransform.config.isLocalSession =
+    session.__typename === 'LocalSession';
+})();
 
 export default apolloClient;
