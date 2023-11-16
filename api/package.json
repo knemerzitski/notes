@@ -3,13 +3,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dynamodb:start": "cd ./mocks/dynamodb && docker compose up -d",
-    "mongodb:start": "cd ./mocks/mongodb && docker compose up -d",
+    "dynamodb:start": "cd ./mock/dynamodb && docker compose up -d",
+    "mongodb:start": "cd ./mock/mongodb && docker compose up -d",
     "db:start": "npm run dynamodb:start & npm run mongodb:start",
-    "db:stop": "(cd ./mocks/dynamodb && docker compose down) & (cd ./mocks/mongodb && docker compose down)",
-    "mongo-express:start": "cd ./mocks/mongo-express && docker compose up -d",
-    "mongo-express:stop": "cd ./mocks/mongo-express && docker compose down",
-    "dev": "cd ./mocks/graphql-lambda-server && npm run dev"
+    "db:stop": "(cd ./mock/dynamodb && docker compose down) & (cd ./mock/mongodb && docker compose down)",
+    "mongo-express:start": "cd ./mock/mongo-express && docker compose up -d",
+    "mongo-express:stop": "cd ./mock/mongo-express && docker compose down",
+    "dev": "cd ./mock/graphql-lambda-server && npm run dev"
   },
   "dependencies": {
     "@apollo/server": "^4.9.5",

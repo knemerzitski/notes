@@ -1,5 +1,4 @@
 module.exports = {
-  root: true,
   settings: {
     react: {
       version: 'detect',
@@ -15,6 +14,7 @@ module.exports = {
     'plugin:react/jsx-runtime',
     'prettier',
   ],
+  ignorePatterns: ['.eslintrc.cjs'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 'latest',

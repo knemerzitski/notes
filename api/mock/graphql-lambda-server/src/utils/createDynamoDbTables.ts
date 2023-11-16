@@ -42,7 +42,10 @@ export async function createDynamoDbTables({
   }
 }
 
-async function deleteTableIfExists(documentClient: DynamoDBDocumentClient, TableName: string) {
+async function deleteTableIfExists(
+  documentClient: DynamoDBDocumentClient,
+  TableName: string
+) {
   try {
     await documentClient.send(
       new DeleteTableCommand({
@@ -52,11 +55,12 @@ async function deleteTableIfExists(documentClient: DynamoDBDocumentClient, Table
   } catch (err) {
     if (!(err instanceof ResourceNotFoundException)) {
       if (
-        (err as Error).message?.startsWith('AWS SDK error wrapper for Error: connect ECONNREFUSED')
+        (err as Error).message?.startsWith(
+          'AWS SDK error wrapper for Error: connect ECONNREFUSED'
+        )
       ) {
-        (
-          err as Error
-        ).message += `DynamoDB local is not running on endpoint "${documentClient.config.endpoint}"`;
+        (err as Error).message +=
+          `DynamoDB local is not running on endpoint "${documentClient.config.endpoint}"`;
       }
       throw err;
     }

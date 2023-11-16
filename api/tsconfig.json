@@ -3,21 +3,27 @@
   "compilerOptions": {
     "target": "ES6",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "allowJs": false,
-    "skipLibCheck": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "esModuleInterop": true,
     "module": "ESNext",
-    "noImplicitAny": true,
-    "noImplicitThis": true,
-    "strictNullChecks": true,
+    "skipLibCheck": true,
+
+    /* Bundler mode */
     "moduleResolution": "Node10",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "noEmit": true,
     "jsx": "preserve",
+
+    /* Linting */
+    "strict": true,
+    "strictNullChecks": true,
+
+    "allowJs": false,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
     "incremental": true,
+
     "plugins": [
       {
         "name": "next"
@@ -28,9 +34,5 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "./cypress.config.ts",
-  ]
+  "exclude": ["node_modules", "out"]
 }

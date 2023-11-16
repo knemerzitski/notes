@@ -10,7 +10,9 @@ const logger = createLogger('mock:lambda-graphql-server');
 
 logger.info('index:NODE_ENV', { NODE_ENV: process.env.NODE_ENV });
 
-const relEnvPath = `./../../../../${process.env.NODE_ENV === 'test' ? '.env.test' : '.env.local'}`;
+const relEnvPath = `./../../../../${
+  process.env.NODE_ENV === 'test' ? '.env.test' : '.env.local'
+}`;
 const envPath = path.join(__dirname, relEnvPath);
 dotenv.config({ path: envPath });
 

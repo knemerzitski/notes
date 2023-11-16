@@ -1,6 +1,10 @@
 import { isArray } from '@/utils/isArray';
 import { Logger } from '@/utils/logger';
-import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda';
+import {
+  APIGatewayProxyEvent,
+  APIGatewayProxyHandler,
+  APIGatewayProxyResult,
+} from 'aws-lambda';
 import express from 'express';
 
 import apiGatewayProxyEventFixture from '../../fixtures/apiGatewayProxyEvent.json';
@@ -40,7 +44,10 @@ function expressRequestToApiGatewayProxyEvent(
     isBase64Encoded: false,
     body: req.body,
     headers: Object.fromEntries(
-      Object.entries(req.headers).map(([key, value]) => [key, isArray(value) ? value[0] : value])
+      Object.entries(req.headers).map(([key, value]) => [
+        key,
+        isArray(value) ? value[0] : value,
+      ])
     ),
     multiValueHeaders: req.headersDistinct,
     httpMethod: req.method,
