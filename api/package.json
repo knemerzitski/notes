@@ -9,7 +9,7 @@
     "db:stop": "(cd ./mock/dynamodb && docker compose down) & (cd ./mock/mongodb && docker compose down)",
     "mongo-express:start": "cd ./mock/mongo-express && docker compose up -d",
     "mongo-express:stop": "cd ./mock/mongo-express && docker compose down",
-    "dev": "cd ./mock/graphql-lambda-server && npm run dev"
+    "dev": "cd ./mock/lambda-server && npm run dev"
   },
   "dependencies": {
     "@apollo/server": "^4.9.5",

@@ -1,4 +1,5 @@
 {
+  "name": "graphql-lambda-server",
   "scripts": {
     "build": "esbuild src/index.ts --outdir=out --loader:.graphql=text --bundle --platform=node --target=esnext --format=cjs --packages=external --sourcemap",
     "build:watch": "npm run build -- --watch=forever",

@@ -2,13 +2,18 @@
   "name": "notes",
   "workspaces": [
     "api",
-    "api/mock/graphql-lambda-server",
+    "api/mock/lambda-server",
     "app"
   ],
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "db:start": "npm run -w api db:start",
+    "db:stop": "npm run -w api db:stop",
+    "api:dev": "npm run -w api/mock/lambda-server dev",
+    "app:dev": "npm run -w app dev",
+    "dev": "npm run api:dev & npm run app:dev"
   },
   "validate-branch-name": {
     "pattern": "^main$|^[\\w]+\\/\\S+$",
