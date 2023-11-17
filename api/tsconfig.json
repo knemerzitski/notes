@@ -1,38 +1,39 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
-    "target": "ES6",
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "target": "ES2022",
+    "lib": ["ES2023"],
     "module": "ESNext",
     "skipLibCheck": true,
 
     /* Bundler mode */
-    "moduleResolution": "Node10",
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "preserve",
+    "alwaysStrict": true,
+    "removeComments": true,
+    "inlineSourceMap": true,
+    "inlineSources": true,
 
     /* Linting */
     "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowSyntheticDefaultImports": true,
     "strictNullChecks": true,
-
-    "allowJs": false,
     "forceConsistentCasingInFileNames": true,
+    "allowJs": false,
     "esModuleInterop": true,
-    "noImplicitAny": true,
-    "noImplicitThis": true,
     "incremental": true,
+    "noImplicitReturns": true,
 
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "out"]
+  "include": ["src"]
 }

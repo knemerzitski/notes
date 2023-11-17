@@ -1,7 +1,8 @@
 {
   "name": "graphql-lambda-server",
+  "version": "0.0.0",
   "scripts": {
-    "build": "esbuild src/index.ts --outdir=./out --loader:.graphql=text --bundle --platform=node --target=esnext --format=cjs --packages=external --sourcemap",
+    "build": "esbuild src/index.ts --outdir=./out --loader:.graphql=text --bundle --platform=node --packages=external --sourcemap",
     "build:watch": "npm run build -- --watch=forever",
     "start": "DEBUG=*:error node ./out/index.js",
     "start:watch": "DEBUG=*:info,*:warning,*:error nodemon ./out/index.js",
