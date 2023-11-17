@@ -7,10 +7,6 @@ import {
 } from 'aws-lambda';
 import { GraphQLSchema } from 'graphql';
 
-import { MongooseSubscriptionContext, subscriptionResolvers } from './schema/resolvers';
-import typeDefs from './schema/typedefs.graphql';
-import { Logger, createLogger } from './utils/logger';
-
 import {
   ApiGatewayContextConfig,
   WebSocketApi,
@@ -23,6 +19,9 @@ import { SubscriptionTable } from './dynamodb/subscription';
 import { connect } from './events/connect';
 import { disconnect } from './events/disconnect';
 import { message } from './events/message';
+import { MongooseSubscriptionContext, subscriptionResolvers } from './schema/resolvers';
+import typeDefs from './schema/typedefs.graphql';
+import { Logger, createLogger } from './utils/logger';
 
 export interface WebSocketSubscriptionHandlerContextConfig {
   graphQl: GraphQlContextConfig<MongooseSubscriptionContext>;
@@ -55,10 +54,13 @@ export function getDefaultConfig(): WebSocketSubscriptionHandlerContextConfig {
     dynamoDb: {
       logger,
       clientConfig: {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         region: process.env.DYNAMODB_REGION!,
       },
       tableNames: {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         connections: process.env.DYNAMODB_CONNECTIONS_TABLE_NAME!,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         subscriptions: process.env.DYNAMODB_SUBSCRIPTIONS_TABLE_NAME!,
       },
     },
@@ -67,6 +69,7 @@ export function getDefaultConfig(): WebSocketSubscriptionHandlerContextConfig {
       newClient(config) {
         return new ApiGatewayManagementApiClient({
           ...config,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           region: process.env.API_GATEWAY_MANAGEMENT_REGION!,
         });
       },
@@ -81,7 +84,7 @@ type EventType = APIGatewayEventWebsocketRequestContextV2['eventType'];
 export type EventHandler = (args: {
   context: WebSocketSubscriptionHandlerContext;
   event: APIGatewayProxyWebsocketEventV2;
-}) => Promise<APIGatewayProxyStructuredResultV2 | void>;
+}) => Promise<APIGatewayProxyStructuredResultV2 | undefined>;
 
 const eventHandlers: Record<EventType, EventHandler> = {
   CONNECT: connect,
@@ -134,4 +137,5 @@ export function createHandler(
   };
 }
 
-export const handler: APIGatewayProxyWebsocketHandlerV2 = createHandler(getDefaultConfig());
+export const handler: APIGatewayProxyWebsocketHandlerV2 =
+  createHandler(getDefaultConfig());

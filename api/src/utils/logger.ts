@@ -25,12 +25,16 @@ const logDataFormatter = process.env.NODE_ENV === 'production' ? '%j' : '%O';
 
 function createNamespaceLog(namespace: string) {
   const debugFunc = debug(namespace);
-  return (entry: LogEntry) => formatLog(debugFunc, entry);
+  return (entry: LogEntry) => {
+    formatLog(debugFunc, entry);
+  };
 }
 
 function formatLog(func: Debugger, entry: LogEntry) {
   func(
-    `${entry.level.toUpperCase()}\t${entry.message}${entry.data ? ` ${logDataFormatter}` : '%s'}`,
+    `${entry.level.toUpperCase()}\t${entry.message}${
+      entry.data ? ` ${logDataFormatter}` : '%s'
+    }`,
     entry.data ?? ''
   );
 }
@@ -74,9 +78,17 @@ export function createLogger(namespace: string): Logger {
 
 export function emptyLogger(): Logger {
   return {
-    log: () => {},
-    info: () => {},
-    warning: () => {},
-    error: () => {},
+    log: () => {
+      return;
+    },
+    info: () => {
+      return;
+    },
+    warning: () => {
+      return;
+    },
+    error: () => {
+      return;
+    },
   };
 }

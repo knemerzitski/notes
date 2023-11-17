@@ -25,7 +25,7 @@ export const complete: MessageHandler<MessageType.Complete> = async ({
 
     // TODO trigger subscribe onComplete?
 
-    context.models.subscriptions.delete({ id: `${connectionId}:${message.id}` });
+    await context.models.subscriptions.delete({ id: `${connectionId}:${message.id}` });
   } catch (err) {
     context.logger.error('message:complete', err as Error, {
       connectionId,
@@ -33,4 +33,6 @@ export const complete: MessageHandler<MessageType.Complete> = async ({
     });
     throw err;
   }
+
+  return Promise.resolve();
 };

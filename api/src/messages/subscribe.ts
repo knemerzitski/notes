@@ -1,5 +1,15 @@
-import { DocumentNode, GraphQLError, GraphQLSchema, parse, validate } from 'graphql';
-import { assertValidExecutionArguments, buildExecutionContext } from 'graphql/execution/execute';
+import {
+  DocumentNode,
+  GraphQLError,
+  GraphQLSchema,
+  OperationTypeNode,
+  parse,
+  validate,
+} from 'graphql';
+import {
+  assertValidExecutionArguments,
+  buildExecutionContext,
+} from 'graphql/execution/execute';
 import { MessageType } from 'graphql-ws';
 
 import { Subscription } from '../dynamodb/subscription';
@@ -7,7 +17,6 @@ import { MessageHandler } from '../events/message';
 import { buildSubscriptionContext } from '../graphql/buildSubscriptionContext';
 import { getResolverArgs } from '../graphql/getResolverArgs';
 import { SubscribeEvent } from '../pubsub/subscribe';
-
 import { isArray } from '../utils/isArray';
 
 export const subscribe: MessageHandler<MessageType.Subscribe> = async ({
@@ -71,9 +80,11 @@ export const subscribe: MessageHandler<MessageType.Subscribe> = async ({
     }
 
     const operation = execContext.operation.operation;
-    if (operation !== 'subscription') {
+    if (operation !== OperationTypeNode.SUBSCRIPTION) {
       // should just post error instead of throwing error?
-      throw new Error(`Invalid operation '${operation}'. Only subscriptions are supported.`);
+      throw new Error(
+        `Invalid operation '${operation}'. Only subscriptions are supported.`
+      );
     }
 
     const { field, parent, args, contextValue, info } = getResolverArgs(execContext);
@@ -125,7 +136,7 @@ function validateQuery({
 }): readonly GraphQLError[] | undefined {
   const errors = validate(schema, document);
 
-  if (errors && errors.length > 0) {
+  if (errors.length > 0) {
     return errors;
   }
 
@@ -134,4 +145,6 @@ function validateQuery({
   } catch (e) {
     return [e as GraphQLError];
   }
+
+  return;
 }

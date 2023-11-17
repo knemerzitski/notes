@@ -6,16 +6,19 @@ import { APIGatewayProxyHandler } from 'aws-lambda';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { ServerApiVersion } from 'mongodb';
 
+import { ApiGatewayContextConfig, buildApiGatewayContext } from './context/apiGateway';
+import { DynamoDbContextConfig, buildDynamoDbContext } from './context/dynamoDb';
+import { GraphQlContextConfig, buildGraphQlContext } from './context/graphQl';
+import {
+  MongoDbContext,
+  MongoDbContextConfig,
+  buildMongoDbContext,
+} from './context/mongoDb';
+import { createPublisher } from './pubsub/publish';
 import { mongooseSchema } from './schema/mongoose-schema';
 import { MongooseQueryMutationContext, queryMutationResolvers } from './schema/resolvers';
 import typeDefs from './schema/typedefs.graphql';
 import { Logger, createLogger } from './utils/logger';
-
-import { ApiGatewayContextConfig, buildApiGatewayContext } from './context/apiGateway';
-import { DynamoDbContextConfig, buildDynamoDbContext } from './context/dynamoDb';
-import { GraphQlContextConfig, buildGraphQlContext } from './context/graphQl';
-import { MongoDbContext, MongoDbContextConfig, buildMongoDbContext } from './context/mongoDb';
-import { createPublisher } from './pubsub/publish';
 
 export interface ApolloHttpRequestHandlerContextConfig {
   graphQl: GraphQlContextConfig<MongooseQueryMutationContext>;
@@ -32,6 +35,7 @@ async function fetchMongoDbAtlasRoleCredentials() {
 
   const { Credentials } = await stsClient.send(
     new AssumeRoleCommand({
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       RoleArn: process.env.MONGODB_ATLAS_ROLE_ARN!,
       RoleSessionName: 'mongodb-atlas',
     })
@@ -40,7 +44,7 @@ async function fetchMongoDbAtlasRoleCredentials() {
   if (!Credentials?.AccessKeyId || !Credentials.SecretAccessKey) {
     throw new Error('AssumeRoleCommand did not return access keys');
   }
-  if (!Credentials?.SessionToken) {
+  if (!Credentials.SessionToken) {
     throw new Error('AssumeRoleCommand did not return session token');
   }
 
@@ -51,7 +55,9 @@ export function getDefaultConfig(): ApolloHttpRequestHandlerContextConfig {
   const logger = createLogger('apollo-websocket-handler');
 
   // MongoDB
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const connectionUri = process.env.MONGODB_ATLAS_URI_SRV!;
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const databaseName = encodeURIComponent(process.env.MONGODB_ATLAS_DATABASE_NAME!);
   const mongoDbUri = `${connectionUri}/${databaseName}`;
 
@@ -91,10 +97,13 @@ export function getDefaultConfig(): ApolloHttpRequestHandlerContextConfig {
     dynamoDb: {
       logger,
       clientConfig: {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         region: process.env.DYNAMODB_REGION!,
       },
       tableNames: {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         connections: process.env.DYNAMODB_CONNECTIONS_TABLE_NAME!,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         subscriptions: process.env.DYNAMODB_SUBSCRIPTIONS_TABLE_NAME!,
       },
     },
@@ -103,6 +112,7 @@ export function getDefaultConfig(): ApolloHttpRequestHandlerContextConfig {
       newClient(config) {
         return new ApiGatewayManagementApiClient({
           ...config,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           region: process.env.API_GATEWAY_MANAGEMENT_REGION!,
         });
       },
@@ -134,6 +144,7 @@ export function createHandler(
 
   return async (event) => {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (!mongoDb) {
         mongoDb = await buildMongoDbContext(config.mongoDb);
       }
@@ -142,10 +153,11 @@ export function createHandler(
 
       const res = await apollo.executeHTTPGraphQLRequest({
         httpGraphQLRequest,
-        context: async () => ({
-          mongoose: mongoDb.connection,
-          publish,
-        }),
+        context: async () =>
+          Promise.resolve({
+            mongoose: mongoDb.connection,
+            publish,
+          }),
       });
 
       if (res.body.kind !== 'complete') {
@@ -171,7 +183,7 @@ export const handler: APIGatewayProxyHandler = createHandler(getDefaultConfig())
 
 function parseHeaders(event: APIGatewayProxyEvent) {
   const headerMap = new HeaderMap();
-  for (const [key, value] of Object.entries(event.headers ?? {})) {
+  for (const [key, value] of Object.entries(event.headers)) {
     headerMap.set(key, value ?? '');
   }
   return headerMap;
@@ -184,6 +196,7 @@ function parseBody(event: APIGatewayProxyEvent, headers: HeaderMap) {
       ? Buffer.from(event.body, 'base64').toString('utf8')
       : event.body;
     if (contentType?.startsWith('application/json')) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return JSON.parse(parsedBody);
     }
     if (contentType?.startsWith('text/plain')) {
@@ -195,7 +208,9 @@ function parseBody(event: APIGatewayProxyEvent, headers: HeaderMap) {
 
 function parseQueryParams(event: APIGatewayProxyEvent) {
   const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(event.multiValueQueryStringParameters ?? {})) {
+  for (const [key, value] of Object.entries(
+    event.multiValueQueryStringParameters ?? {}
+  )) {
     for (const v of value ?? []) {
       params.append(key, decodeURIComponent(v));
     }

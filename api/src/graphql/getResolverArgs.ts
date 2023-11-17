@@ -6,16 +6,18 @@ import {
   getArgumentValues,
 } from 'graphql';
 import { collectFields } from 'graphql/execution/collectFields';
-import { ExecutionContext, buildResolveInfo, getFieldDef } from 'graphql/execution/execute';
+import {
+  ExecutionContext,
+  buildResolveInfo,
+  getFieldDef,
+} from 'graphql/execution/execute';
 import { Maybe } from 'graphql/jsutils/Maybe';
 import { addPath } from 'graphql/jsutils/Path';
 
 interface ResolverArgs {
   field: Maybe<GraphQLField<unknown, unknown>>;
   parent: ASTNode | null;
-  args: {
-    [variable: string]: unknown;
-  };
+  args: Record<string, unknown>;
   contextValue: unknown;
   info: GraphQLResolveInfo;
 }

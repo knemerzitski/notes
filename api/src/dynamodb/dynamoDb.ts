@@ -185,9 +185,11 @@ export function newTable<
         type TItemNoKeys = Omit<TItem, keyof TKey>;
         const itemWithoutKeys = Object.entries(item)
           .filter(([key]) => !(key in Key))
-          .reduce((acc, [key, val]) => {
+          .reduce<TItemNoKeys>((acc, [key, val]) => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             acc[key as keyof TItemNoKeys] = val;
             return acc;
+            // eslint-disable-next-line @typescript-eslint/prefer-reduce-type-parameter
           }, {} as TItemNoKeys);
 
         const expression = getAsUpdateExpression(itemWithoutKeys);

@@ -1,13 +1,16 @@
 import { execute, parse } from 'graphql';
 import { MessageType, NextMessage } from 'graphql-ws';
 
-import { Logger } from '../utils/logger';
 import { ApiGatewayContext } from '../context/apiGateway';
 import { DynamoDbContext } from '../context/dynamoDb';
 import { GraphQlContext } from '../context/graphQl';
 import { buildSubscriptionContext } from '../graphql/buildSubscriptionContext';
+import { Logger } from '../utils/logger';
 
-export type Publisher = (topic: string, payload: Record<string, unknown>) => Promise<void[]>;
+export type Publisher = (
+  topic: string,
+  payload: Record<string, unknown>
+) => Promise<undefined>;
 
 interface CreatePublisherParams {
   graphQl: GraphQlContext;

@@ -16,9 +16,7 @@ export interface Subscription extends SubscriptionKey {
   requestContext: APIGatewayEventWebsocketRequestContextV2;
   subscription: {
     query: string;
-    variables?: {
-      readonly [variable: string]: unknown;
-    } | null;
+    variables?: Readonly<Record<string, unknown>> | null;
     variableValues?: unknown;
     operationName?: string | null;
   };

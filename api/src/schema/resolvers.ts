@@ -17,6 +17,7 @@ export const queryMutationResolvers = {
     async items(_parent: unknown, _args: unknown, context: MongooseQueryMutationContext) {
       const Item = context.mongoose.model('Item');
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return await Item.find();
     },
     async item(
@@ -26,6 +27,7 @@ export const queryMutationResolvers = {
     ) {
       const Item = mongoose.model('Item');
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return await Item.findById(id);
     },
   },
@@ -37,17 +39,23 @@ export const queryMutationResolvers = {
     ) {
       const Item = mongoose.model('Item');
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const newItem = new Item({ name, done: false });
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       await newItem.save();
 
       await publish('ITEM_CREATED', {
         itemCreated: {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
           id: newItem.id,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
           name: newItem.name,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
           done: newItem.done,
         },
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return newItem;
     },
     async updateItem(
@@ -57,12 +65,15 @@ export const queryMutationResolvers = {
     ): Promise<boolean> {
       const Item = mongoose.model('Item');
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const updatedItem = await Item.findByIdAndUpdate(id, { name, done });
 
       await publish('ITEM_UPDATED', {
         itemUpdated: {
           id,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
           name: name ?? updatedItem.name,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
           done: done ?? updatedItem.done,
         },
       });
@@ -90,7 +101,11 @@ export const queryMutationResolvers = {
 export const subscriptionResolvers = {
   Subscription: {
     itemCreated: {
-      subscribe(_parent: unknown, _args: unknown, { subscribe }: MongooseSubscriptionContext) {
+      subscribe(
+        _parent: unknown,
+        _args: unknown,
+        { subscribe }: MongooseSubscriptionContext
+      ) {
         return subscribe('ITEM_CREATED');
       },
       resolve(payload: unknown) {
@@ -98,7 +113,11 @@ export const subscriptionResolvers = {
       },
     },
     itemUpdated: {
-      subscribe(_parent: unknown, _args: unknown, { subscribe }: MongooseSubscriptionContext) {
+      subscribe(
+        _parent: unknown,
+        _args: unknown,
+        { subscribe }: MongooseSubscriptionContext
+      ) {
         return subscribe('ITEM_UPDATED');
       },
       resolve(payload: unknown) {
@@ -106,7 +125,11 @@ export const subscriptionResolvers = {
       },
     },
     itemRemoved: {
-      subscribe(_parent: unknown, _args: unknown, { subscribe }: MongooseSubscriptionContext) {
+      subscribe(
+        _parent: unknown,
+        _args: unknown,
+        { subscribe }: MongooseSubscriptionContext
+      ) {
         return subscribe('ITEM_REMOVED');
       },
       resolve(payload: unknown) {

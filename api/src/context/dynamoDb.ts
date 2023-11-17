@@ -1,9 +1,12 @@
 import { DynamoDBClient, DynamoDBClientConfig } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 
-import { Logger } from '../utils/logger';
 import { ConnectionTable, newModel as newConnectionModel } from '../dynamodb/connection';
-import { SubscriptionTable, newModel as newSubscriptionModel } from '../dynamodb/subscription';
+import {
+  SubscriptionTable,
+  newModel as newSubscriptionModel,
+} from '../dynamodb/subscription';
+import { Logger } from '../utils/logger';
 
 export interface DynamoDbContextConfig {
   clientConfig: DynamoDBClientConfig;

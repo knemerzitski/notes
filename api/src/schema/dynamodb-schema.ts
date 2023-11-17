@@ -80,7 +80,9 @@ export function createCdkTableConstructs(
     const props = schema[tableId as keyof Schema];
 
     const table = new Table(scope, id ? `${id}-${tableId}` : tableId, props.table);
-    props.globalSecondaryIndexes?.forEach((gsi) => table.addGlobalSecondaryIndex(gsi));
+    props.globalSecondaryIndexes?.forEach((gsi) => {
+      table.addGlobalSecondaryIndex(gsi);
+    });
 
     result[tableId] = table;
   }

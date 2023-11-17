@@ -17,7 +17,7 @@ export interface Connection extends ConnectionKey {
   ttl: number;
 }
 
-export interface ConnectionTable extends Table<ConnectionKey, Connection> {}
+export type ConnectionTable = Table<ConnectionKey, Connection>;
 
 export function newModel(newTableArgs: NewTableArgs) {
   const table = newTable<ConnectionKey, Connection>(newTableArgs);

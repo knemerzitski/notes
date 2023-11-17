@@ -22,25 +22,8 @@ module.exports = {
     project: ['./tsconfig.json', './tsconfig.node.json'],
     tsconfigRootDir: __dirname,
   },
-  plugins: ['react-refresh', 'eslint-plugin-import'],
+  plugins: ['react-refresh'],
   rules: {
     'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
-    'import/order': [
-      'warn',
-      {
-        pathGroups: [
-          {
-            pattern: '~/**',
-            group: 'external',
-            position: 'after',
-          },
-        ],
-        'newlines-between': 'always',
-        alphabetize: {
-          order: 'asc',
-          caseInsensitive: false,
-        },
-      },
-    ],
   },
 };
