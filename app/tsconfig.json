@@ -17,9 +17,6 @@
 
     /* Linting */
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
     "allowJs": false,
