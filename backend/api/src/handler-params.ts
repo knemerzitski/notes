@@ -1,0 +1,126 @@
+import { ApiGatewayManagementApiClient } from '@aws-sdk/client-apigatewaymanagementapi';
+import { STSClient, AssumeRoleCommand } from '@aws-sdk/client-sts';
+import { ServerApiVersion } from 'mongodb';
+
+import { Logger } from '~common/logger';
+import { ApiGatewayContextParams } from '~lambda-graphql/context/apigateway';
+import { DynamoDBContextParams } from '~lambda-graphql/context/dynamodb';
+import { GraphQLContextParams } from '~lambda-graphql/context/graphql';
+
+import { createMongooseContext } from './context/mongoose';
+import { applyDirectives, applySubscriptionDirectives } from './schema/directives';
+import mongooseSchema from './schema/mongooseSchema';
+import { resolvers } from './schema/resolvers.generated';
+import { typeDefs } from './schema/typeDefs.generated';
+
+export function createDefaultGraphQLParams<TContext>(
+  logger: Logger
+): GraphQLContextParams<TContext> {
+  const { Subscription, ...allExceptSubscriptionResolvers } = resolvers;
+
+  return {
+    logger,
+    typeDefs, // TODO separate typeDefs
+    resolvers: allExceptSubscriptionResolvers,
+    transform: applyDirectives,
+  };
+}
+
+export function createDefaultSubscriptionGraphQLParams<TContext>(
+  logger: Logger
+): GraphQLContextParams<TContext> {
+  // TODO only pass subscription?
+  const { Query, Mutation, ...allExceptQueryMutationResolvers } = resolvers;
+
+  return {
+    logger,
+    typeDefs, // TODO separate typeDefs
+    resolvers: allExceptQueryMutationResolvers,
+    transform: applySubscriptionDirectives,
+  };
+}
+
+async function fetchMongoDbAtlasRoleCredentials() {
+  const stsClient = new STSClient({
+    region: process.env.STS_REGION,
+  });
+
+  const { Credentials } = await stsClient.send(
+    new AssumeRoleCommand({
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      RoleArn: process.env.MONGODB_ATLAS_ROLE_ARN!,
+      RoleSessionName: 'mongodb-atlas',
+    })
+  );
+
+  if (!Credentials?.AccessKeyId || !Credentials.SecretAccessKey) {
+    throw new Error('AssumeRoleCommand did not return access keys');
+  }
+  if (!Credentials.SessionToken) {
+    throw new Error('AssumeRoleCommand did not return session token');
+  }
+
+  return Credentials;
+}
+
+export async function createDefaultMongooseContext(logger: Logger) {
+  const credentials = await fetchMongoDbAtlasRoleCredentials();
+
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const connectionUri = process.env.MONGODB_ATLAS_URI_SRV!;
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const databaseName = encodeURIComponent(process.env.MONGODB_ATLAS_DATABASE_NAME!);
+  const mongoDbUri = `${connectionUri}/${databaseName}`;
+
+  return await createMongooseContext({
+    logger,
+    schema: mongooseSchema,
+    uri: mongoDbUri,
+    options: {
+      auth: {
+        username: credentials.AccessKeyId,
+        password: credentials.SecretAccessKey,
+      },
+      authSource: '$external',
+      authMechanism: 'MONGODB-AWS',
+      authMechanismProperties: {
+        AWS_SESSION_TOKEN: credentials.SessionToken,
+      },
+      retryWrites: true,
+      serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+      },
+    },
+  });
+}
+
+export function createDefaultDynamoDBParams(logger: Logger): DynamoDBContextParams {
+  return {
+    logger,
+    clientConfig: {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      region: process.env.DYNAMODB_REGION!,
+    },
+    tableNames: {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      connections: process.env.DYNAMODB_CONNECTIONS_TABLE_NAME!,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      subscriptions: process.env.DYNAMODB_SUBSCRIPTIONS_TABLE_NAME!,
+    },
+  };
+}
+
+export function createDefaultApiGatewayParams(logger: Logger): ApiGatewayContextParams {
+  return {
+    logger,
+    newClient(config) {
+      return new ApiGatewayManagementApiClient({
+        ...config,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        region: process.env.API_GATEWAY_MANAGEMENT_REGION!,
+      });
+    },
+  };
+}

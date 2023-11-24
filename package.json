@@ -1,17 +1,26 @@
 {
   "name": "notes",
   "workspaces": [
-    "api",
-    "api/mock/lambda-server",
-    "app"
+    "backend/api",
+    "backend/lambda-graphql",
+    "backend/mocks/lambda-graphql-server",
+    "backend/common",
+    "platform/web"
   ],
   "private": true,
   "version": "0.0.0",
   "scripts": {
     "prepare": "husky install",
-    "db:start": "npm run -w api db:start",
-    "db:stop": "npm run -w api db:stop",
-    "api:dev": "npm run -w api/mock/lambda-server dev",
+    "lint": "npm run lint --workspaces --if-present",
+    "dynamodb:start": "cd ./backend/mocks/dynamodb && docker compose up -d",
+    "dynamodb:stop": "cd ./backend/mocks/dynamodb && docker compose down",
+    "mongodb:start": "cd ./backend/mocks/mongodb && docker compose up -d",
+    "mongodb:stop": "cd ./backend/mocks/mongodb && docker compose down",
+    "mongo-express:start": "cd ./backend/mocks/mongo-express && docker compose up -d",
+    "mongo-express:stop": "cd ./backend/mocks/mongo-express && docker compose down",
+    "db:start": "npm run dynamodb:start & npm run mongodb:start",
+    "db:stop": "npm run dynamodb:stop & npm run mongodb:stop",
+    "api:dev": "npm run -w mock-server dev",
     "app:dev": "npm run -w app dev",
     "dev": "npm run api:dev & npm run app:dev"
   },
@@ -23,6 +32,8 @@
     "@commitlint/config-conventional": "^18.4.2",
     "commitlint": "^18.4.2",
     "eslint": "^8.53.0",
+    "eslint-import-resolver-typescript": "^3.6.1",
+    "eslint-plugin-import": "^2.29.0",
     "husky": "^8.0.3",
     "lint-staged": "^15.1.0",
     "prettier": "^3.1.0",

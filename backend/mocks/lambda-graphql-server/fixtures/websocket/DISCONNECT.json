@@ -1,0 +1,32 @@
+{
+  "headers": {
+    "Host": "abcd1234",
+    "x-api-key": "",
+    "X-Forwarded-For": "",
+    "x-restapi": ""
+  },
+  "multiValueHeaders": {
+    "Host": ["abcd1234"],
+    "x-api-key": [""],
+    "X-Forwarded-For": [""],
+    "x-restapi": [""]
+  },
+  "requestContext": {
+    "routeKey": "$disconnect",
+    "disconnectStatusCode": 1005,
+    "eventType": "DISCONNECT",
+    "extendedRequestId": "abcd1234",
+    "requestTime": "09/Apr/2015:12:34:56 +0000",
+    "messageDirection": "IN",
+    "disconnectReason": "Client-side close frame status not set",
+    "stage": "dev",
+    "connectedAt": 1428582896000,
+    "requestTimeEpoch": 1428582896000,
+    "identity": { "sourceIp": "127.0.0.1" },
+    "requestId": "abcd1234",
+    "domainName": "localhost",
+    "connectionId": "abcd1234",
+    "apiId": "abcd1234"
+  },
+  "isBase64Encoded": false
+}

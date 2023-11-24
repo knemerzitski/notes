@@ -1,13 +1,19 @@
 module.exports = {
   root: true,
   plugins: ['eslint-plugin-import'],
+  settings: {
+    'import/resolver': {
+      typescript: {},
+    },
+  },
+  ignorePatterns: ['.eslintrc.cjs', 'node_modules'],
   rules: {
     'import/order': [
       'warn',
       {
         pathGroups: [
           {
-            pattern: '~/**',
+            pattern: '~*/**',
             group: 'external',
             position: 'after',
           },

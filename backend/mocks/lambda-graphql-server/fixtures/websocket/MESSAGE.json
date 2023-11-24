@@ -1,0 +1,20 @@
+{
+  "requestContext": {
+    "routeKey": "$default",
+    "messageId": "abcd1234",
+    "eventType": "MESSAGE",
+    "extendedRequestId": "abcd1234",
+    "requestTime": "09/Apr/2015:12:34:56 +0000",
+    "messageDirection": "IN",
+    "stage": "dev",
+    "connectedAt": 1700584201650,
+    "requestTimeEpoch": 1700584203731,
+    "identity": { "sourceIp": "127.0.0.1" },
+    "requestId": "abcd1234",
+    "domainName": "localhost",
+    "connectionId": "abcd1234",
+    "apiId": "abcd1234"
+  },
+  "body": "{\"type\":\"connection_init\"}",
+  "isBase64Encoded": false
+}

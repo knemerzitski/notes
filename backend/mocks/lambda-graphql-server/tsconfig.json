@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "~/*": ["./src/*"],
+      "~common/*": ["../../common/src/*"],
+      "~api/*": ["../../api/src/*"],
+      "~lambda-graphql/*": ["../../lambda-graphql/src/*"]
+    }
+  },
+  "include": ["src"]
+}

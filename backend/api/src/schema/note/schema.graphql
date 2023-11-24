@@ -1,0 +1,47 @@
+type Note {
+  "Note unique ID"
+  id: ID!
+  "User who owns this note"
+  userId: ID!
+
+  "Note title"
+  title: String!
+  "Note text contents"
+  content: String!
+}
+
+input CreateNoteInput {
+  title: String!
+  content: String!
+}
+
+input UpdateNoteInput {
+  id: ID!
+  title: String!
+  content: String!
+}
+
+extend type Query {
+  "Get all notes belonging to a user of active session"
+  notes: [Note!] @auth
+  "Get note by ID belonging to a user of active session"
+  note(id: String!): Note @auth
+}
+
+extend type Mutation {
+  "Create a new note belonging to a user of active session"
+  createNote(input: CreateNoteInput!): Note @auth
+  "Update note by ID belonging to a user of active session"
+  updateNote(input: UpdateNoteInput!): Boolean! @auth
+  "Delete note by ID belonging to a user of active session"
+  deleteNote(id: ID!): Boolean! @auth
+}
+
+extend type Subscription {
+  "New created note TODO subscriptions only for testing, lacking auth..."
+  noteCreated: Note!
+  "Updated note TODO subscriptions only for testing, lacking auth..."
+  noteUpdated: Note!
+  "Removed note ID TODO subscriptions only for testing, lacking auth..."
+  noteDeleted: ID!
+}

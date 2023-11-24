@@ -1,0 +1,10 @@
+type Query
+type Mutation
+type Subscription
+
+"Requires user to be authenticated and with access to specific role"
+directive @auth(requires: Role = USER) on OBJECT | FIELD_DEFINITION
+
+enum Role {
+  USER
+}

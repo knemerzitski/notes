@@ -1,0 +1,30 @@
+type Session {
+  "Session ID"
+  id: ID!
+  "User that is using this session"
+  userId: ID!
+}
+
+enum AuthProvider {
+  GOOGLE
+}
+
+input SignInInput {
+  provider: AuthProvider!
+  token: String!
+}
+
+extend type Query {
+  "Count of sessions saved in http-only cookie"
+  sessionCount: Int @auth
+  "Currently active session index saved in http-only cookie"
+  activeSessionIndex: Int @auth
+}
+
+extend type Mutation {
+  signIn(input: SignInInput!): Boolean!
+  signOut: Boolean! @auth
+
+  "Change session to new index from http-only cookie"
+  switchToSession(index: Int!): Boolean! @auth
+}
