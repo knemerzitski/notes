@@ -1,38 +1,29 @@
 import { execute, parse } from 'graphql';
 import { MessageType, NextMessage } from 'graphql-ws';
 
-import { Logger } from '~common/logger';
+import { ApolloHttpHandlerContext } from '../apollo-http-handler';
 
-import { ApiGatewayContext } from '../context/apigateway';
-import { DynamoDBContext } from '../context/dynamodb';
-import { GraphQLContext } from '../context/graphql';
-
-import { createSubscriptionContext } from './subscribe';
+import { PubSubEvent, createSubscriptionContext } from './subscribe';
 
 export type Publisher = (
-  topic: string,
-  payload: Record<string, unknown>
+  topic: PubSubEvent['topic'],
+  payload: PubSubEvent['payload']
 ) => Promise<undefined[]>;
 
-interface CreatePublisherParams<TConnectionGraphQLContex> {
-  graphQL: GraphQLContext;
-  dynamoDB: DynamoDBContext<TConnectionGraphQLContex>;
-  apiGateway: ApiGatewayContext;
-  logger: Logger;
-}
-
-export function createPublisher<TConnectionGraphQLContex>({
-  graphQL: { schema },
-  dynamoDB,
-  apiGateway: { socketApi },
+export function createPublisher<TConnectionGraphQLContext>({
   logger,
-}: CreatePublisherParams<TConnectionGraphQLContex>): Publisher {
+  models,
+  schema,
+  socketApi,
+}: ApolloHttpHandlerContext<TConnectionGraphQLContext>): Publisher {
   return async (topic, payload) => {
-    logger.info('pubsub:publish', { topic, payload });
+    logger.info('pubsub:publish', {
+      topic,
+      payload,
+    });
 
     // TODO implement subscription filtering?
-
-    const subscriptions = await dynamoDB.subscriptions.queryAllByTopic(topic);
+    const subscriptions = await models.subscriptions.queryAllByTopic(topic);
     logger.info('pubsub:publish', {
       subscriptions: subscriptions.map(({ connectionId, subscription }) => ({
         connectionId,

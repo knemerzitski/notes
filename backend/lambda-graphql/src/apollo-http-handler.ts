@@ -80,12 +80,7 @@ export function createApolloHttpHandler<TGraphQLContext, TConnectionGraphQLConte
   });
   apollo.startInBackgroundHandlingStartupErrorsByLoggingAndFailingAllRequests();
 
-  const publishToSubscribers = createPublisher<TConnectionGraphQLContext>({
-    logger,
-    graphQL,
-    apiGateway,
-    dynamoDB,
-  });
+  const publishToSubscribers = createPublisher<TConnectionGraphQLContext>(context);
 
   return async (event) => {
     try {
