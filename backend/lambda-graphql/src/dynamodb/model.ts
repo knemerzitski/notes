@@ -242,7 +242,7 @@ function getAsAttributeNotExistsExpression(names: string[]) {
 
   let counter = 0;
   for (const name of names) {
-    const namePlaceholder = `#a${counter}`;
+    const namePlaceholder = `#${counter}`;
 
     updateExpressionParts.push(`attribute_not_exists(${namePlaceholder})`);
     ExpressionAttributeNames[namePlaceholder] = name;
@@ -271,7 +271,7 @@ function getAsUpdateExpression(obj: Record<string, unknown>) {
     if (obj[key] === undefined) {
       continue;
     }
-    const namePlaceholder = `#a${counter}`;
+    const namePlaceholder = `#${counter}`;
     const valuePlaceholder = `:${counter}`;
 
     updateExpressionParts.push(`${namePlaceholder} = ${valuePlaceholder}`);
