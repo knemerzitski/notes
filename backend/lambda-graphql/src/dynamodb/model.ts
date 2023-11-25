@@ -258,8 +258,6 @@ function getAsAttributeNotExistsExpression(names: string[]) {
 
 /**
  * Ignores undefined values
- * @param obj
- * @returns
  */
 function getAsUpdateExpression(obj: Record<string, unknown>) {
   const updateExpressionParts: string[] = [];
