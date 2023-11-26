@@ -1,26 +1,16 @@
-import {
-  DocumentNode,
-  GraphQLError,
-  GraphQLSchema,
-  OperationTypeNode,
-  parse,
-  validate,
-} from 'graphql';
-import {
-  assertValidExecutionArguments,
-  buildExecutionContext,
-} from 'graphql/execution/execute';
+import { OperationTypeNode, parse } from 'graphql';
+import { buildExecutionContext } from 'graphql/execution/execute';
 import { MessageType } from 'graphql-ws';
 
 import { isArray } from '~common/isArray';
 
 import { Subscription } from '../dynamodb/models/subscription';
-import getResolverArgs from '../graphql/getResolverArgs';
+import validateQuery from '../graphql/validateQuery';
 import { MessageHandler } from '../message-handler';
 import {
   SubscriptionContext,
-  SubscriptionIterable,
   createSubscriptionContext,
+  getSubscribeResult,
 } from '../pubsub/subscribe';
 
 export function createSubscribeHandler<
@@ -97,25 +87,7 @@ export function createSubscribeHandler<
         );
       }
 
-      const { field, parent, args, contextValue, info } = getResolverArgs(execContext);
-      if (!field?.subscribe) {
-        throw new Error('No field subscribe in schema');
-      }
-
-      const subscribeFieldResult = field.subscribe(
-        parent,
-        args,
-        contextValue,
-        info
-      ) as SubscriptionIterable;
-      if (subscribeFieldResult.deny) {
-        throw new GraphQLError(`Access denied`);
-      }
-      const { topic, filter } = subscribeFieldResult;
-
-      if (!topic) {
-        throw new Error(`Topic from field resolver is undefined`);
-      }
+      const { topic, filter } = getSubscribeResult(execContext);
 
       // TODO trigger subscribe onSubscribe?
 
@@ -146,28 +118,4 @@ export function createSubscribeHandler<
       throw err;
     }
   };
-}
-
-function validateQuery({
-  schema,
-  document,
-  variables,
-}: {
-  schema: GraphQLSchema;
-  document: DocumentNode;
-  variables?: Record<string, unknown> | null;
-}): readonly GraphQLError[] | undefined {
-  const errors = validate(schema, document);
-
-  if (errors.length > 0) {
-    return errors;
-  }
-
-  try {
-    assertValidExecutionArguments(schema, document, variables);
-  } catch (e) {
-    return [e as GraphQLError];
-  }
-
-  return;
 }

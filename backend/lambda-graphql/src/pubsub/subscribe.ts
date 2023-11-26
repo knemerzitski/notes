@@ -1,3 +1,8 @@
+import { GraphQLError } from 'graphql';
+import { ExecutionContext } from 'graphql/execution/execute';
+
+import getResolverArgs from '../graphql/getResolverArgs';
+
 export interface PubSubEvent {
   topic: string;
   payload: Record<string, unknown>;
@@ -7,7 +12,7 @@ export interface SubscribeOptions<T extends PubSubEvent> {
   filter?: T['payload'];
 }
 
-interface SubscribeIterable<T extends PubSubEvent> extends SubscribeOptions<T> {
+export interface SubscriberResult<T extends PubSubEvent> extends SubscribeOptions<T> {
   topic: T['topic'];
   deny: false;
 }
@@ -17,7 +22,7 @@ type DenySubscriber = () => AsyncIterable<never> & { deny: true };
 type Subscriber<T extends PubSubEvent> = (
   topic: T['topic'],
   options?: SubscribeOptions<T>
-) => AsyncIterable<never> & SubscribeIterable<T>;
+) => AsyncIterable<never> & SubscriberResult<T>;
 
 export interface SubscriptionContext<T extends PubSubEvent = PubSubEvent> {
   /**
@@ -62,4 +67,29 @@ export function createSubscriptionContext<
       deny: true,
     }),
   };
+}
+
+export function getSubscribeResult(
+  execContext: ExecutionContext
+): SubscriberResult<PubSubEvent> {
+  const { field, parent, args, contextValue, info } = getResolverArgs(execContext);
+  if (!field?.subscribe) {
+    throw new Error('No field subscribe in schema');
+  }
+
+  const subscribeFieldResult = field.subscribe(
+    parent,
+    args,
+    contextValue,
+    info
+  ) as SubscriptionIterable;
+  if (subscribeFieldResult.deny) {
+    throw new GraphQLError(`Access denied`);
+  }
+
+  if (!subscribeFieldResult.topic) {
+    throw new Error(`Topic from field resolver is undefined`);
+  }
+
+  return subscribeFieldResult;
 }
