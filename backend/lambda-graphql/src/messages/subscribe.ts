@@ -10,7 +10,7 @@ import { MessageHandler } from '../message-handler';
 import {
   SubscriptionContext,
   createSubscriptionContext,
-  getSubscribeResult,
+  getSubscribeFieldResult,
 } from '../pubsub/subscribe';
 
 export function createSubscribeHandler<
@@ -87,7 +87,7 @@ export function createSubscribeHandler<
       }
 
       const { topic, filter, onSubscribe, onAfterSubscribe } =
-        getSubscribeResult(execContext);
+        getSubscribeFieldResult(execContext);
 
       context.logger.info('messages:subscribe:onSubscribe', {
         onSubscribe: !!onSubscribe,

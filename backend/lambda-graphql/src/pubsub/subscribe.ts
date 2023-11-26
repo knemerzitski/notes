@@ -74,7 +74,7 @@ export function createSubscriptionContext<
   };
 }
 
-export function getSubscribeResult(
+export function getSubscribeFieldResult(
   execContext: ExecutionContext
 ): SubscriberResult<PubSubEvent> {
   const { field, parent, args, contextValue, info } = getResolverArgs(execContext);

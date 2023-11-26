@@ -9,7 +9,7 @@ import { MessageHandler } from '../message-handler';
 import {
   SubscriptionContext,
   createSubscriptionContext,
-  getSubscribeResult,
+  getSubscribeFieldResult,
 } from '../pubsub/subscribe';
 
 /**
@@ -59,7 +59,7 @@ export function createCompleteHandler<
         throw new AggregateError(execContext);
       }
 
-      const { onComplete } = getSubscribeResult(execContext);
+      const { onComplete } = getSubscribeFieldResult(execContext);
 
       context.logger.info('messages:complete');
       await onComplete?.();
