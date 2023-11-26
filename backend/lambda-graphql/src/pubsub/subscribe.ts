@@ -14,6 +14,7 @@ export interface SubscribeOptions<T extends PubSubEvent> {
   filter?: T['payload'];
   onSubscribe?: () => MaybePromise<void>;
   onAfterSubscribe?: () => MaybePromise<void>;
+  onComplete?: () => MaybePromise<void>;
 }
 
 export interface SubscriberResult<T extends PubSubEvent> extends SubscribeOptions<T> {
