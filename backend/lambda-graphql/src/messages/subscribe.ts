@@ -81,15 +81,16 @@ export function createSubscribeHandler<
 
       const operation = execContext.operation.operation;
       if (operation !== OperationTypeNode.SUBSCRIPTION) {
-        // should just post error instead of throwing error?
         throw new Error(
           `Invalid operation '${operation}'. Only subscriptions are supported.`
         );
       }
 
-      const { topic, filter } = getSubscribeResult(execContext);
+      const { topic, filter, onSubscribe, onAfterSubscribe } =
+        getSubscribeResult(execContext);
 
-      // TODO trigger subscribe onSubscribe?
+      context.logger.info('onSubscribe', { onSubscribe: !!onSubscribe });
+      await onSubscribe?.();
 
       const subscription: Subscription = {
         id: `${connection.id}:${message.id}`,
@@ -109,7 +110,8 @@ export function createSubscribeHandler<
         throw new Error(`Subscriber already exists for "${message.id}"`);
       }
 
-      // TODO trigger subscribe onAfterSubscribe?
+      context.logger.info('onAfterSubscribe', { onAfterSubscribe: !!onAfterSubscribe });
+      await onAfterSubscribe?.();
     } catch (err) {
       context.logger.error('subscribe:error', err as Error, {
         connectionId,

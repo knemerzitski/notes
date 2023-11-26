@@ -1,6 +1,8 @@
 import { GraphQLError } from 'graphql';
 import { ExecutionContext } from 'graphql/execution/execute';
 
+import { MaybePromise } from '~common/types';
+
 import getResolverArgs from '../graphql/getResolverArgs';
 
 export interface PubSubEvent {
@@ -10,6 +12,8 @@ export interface PubSubEvent {
 
 export interface SubscribeOptions<T extends PubSubEvent> {
   filter?: T['payload'];
+  onSubscribe?: () => MaybePromise<void>;
+  onAfterSubscribe?: () => MaybePromise<void>;
 }
 
 export interface SubscriberResult<T extends PubSubEvent> extends SubscribeOptions<T> {
@@ -56,10 +60,10 @@ export function createSubscriptionContext<
   };
 
   return {
-    subscribe: (topic, { filter } = {}) => ({
+    subscribe: (topic, options = {}) => ({
       ...neverAsyncIteratorSymbol,
+      ...options,
       topic,
-      filter,
       deny: false,
     }),
     denySubscription: () => ({
