@@ -68,6 +68,47 @@ export interface Table<TKey, TItem> {
 
   /**
    *
+   * @param options
+   * @param filter All items that partially match filter.
+   * A nested structure with only primitive values: string, number, boolean.
+   * Cannot contain any circular references.
+   * DynamoDB maximum depth for document path is 32.
+   *
+   * E.g
+   * Queried list of names:
+   * [
+   *  {
+   *    first: 'John',
+   *    last: 'Doe
+   *  },
+   *  {
+   *    first: 'Anna',
+   *    last: 'Ann'
+   *  }
+   * ]
+   *
+   * With filter:
+   *  {
+   *    last: 'Ann'
+   *  }
+   *
+   * Will return:
+   * [
+   *  {
+   *    first: 'Anna',
+   *    last: 'Ann'
+   *  }
+   * ]
+   * @param prefix Prepened to all filter expression attribute names
+   */
+  queryAllFilter(
+    options: Omit<QueryCommandInput, 'TableName' | 'Select' | 'FilterExpression'>,
+    filter: Record<string, unknown>,
+    prefix?: string
+  ): Promise<TItem[]>;
+
+  /**
+   *
    * @param key
    * @returns Deleted item
    */
@@ -217,6 +258,26 @@ export function newModel<TKey extends object, TItem extends object>({
       }
       return result;
     },
+    async queryAllFilter(options, filter, prefix) {
+      const filterExpression = getAsFilterExpression(filter, prefix);
+
+      const result: TItem[] = [];
+      for await (const item of query({
+        ...options,
+        ExpressionAttributeNames: {
+          ...options.ExpressionAttributeNames,
+          ...filterExpression.ExpressionAttributeNames,
+        },
+        ExpressionAttributeValues: {
+          ...options.ExpressionAttributeValues,
+          ...filterExpression.ExpressionAttributeValues,
+        },
+        FilterExpression: filterExpression.FilterExpression,
+      })) {
+        result.push(item);
+      }
+      return result;
+    },
     async delete(Key: TKey): Promise<TItem | undefined> {
       logger.info('delete', { tableName, Key });
       try {
@@ -284,4 +345,116 @@ function getAsUpdateExpression(obj: Record<string, unknown>) {
     ExpressionAttributeNames,
     ExpressionAttributeValues,
   };
+}
+
+/**
+ *
+ * @param filter
+ * @param prefix Prepended to all filter expression attribute names.
+ * Can target a specific attribute of an object with a sub filter.
+ * @returns
+ */
+function getAsFilterExpression(filterObj: Record<string, unknown>, prefix?: string) {
+  const ExpressionAttributeNames: Record<string, string> = {};
+
+  const keyIndex: Record<string, number> = {};
+  let keyCounter = 0;
+  function mapKey(key: string) {
+    if (!(key in keyIndex)) {
+      keyIndex[key] = keyCounter++;
+    }
+
+    const namePlaceholder = `#${keyIndex[key]}`;
+    ExpressionAttributeNames[namePlaceholder] = key;
+
+    return namePlaceholder;
+  }
+
+  let prefixPlaceholderWithDot = '';
+  if (prefix) {
+    prefixPlaceholderWithDot =
+      prefix
+        .split('.')
+        .map((p) => mapKey(p))
+        .join('.') + '.';
+  }
+  const filter = flattenKeys(filterObj, { mapKey, separator: '.' });
+
+  const filterExpressionParts: string[] = [];
+  const ExpressionAttributeValues: Record<string, string | number | boolean> = {};
+
+  let valueCounter = 0;
+  for (const [namePlaceholder, value] of Object.entries(filter)) {
+    const valuePlaceholder = `:${valueCounter++}`;
+    ExpressionAttributeValues[valuePlaceholder] = value;
+
+    const expressionName = `${prefixPlaceholderWithDot}${namePlaceholder}`;
+
+    filterExpressionParts.push(
+      `(${expressionName} = ${valuePlaceholder} OR attribute_not_exists(${expressionName}))`
+    );
+  }
+
+  return {
+    FilterExpression: filterExpressionParts.join(' AND '),
+    ExpressionAttributeNames,
+    ExpressionAttributeValues,
+  };
+}
+
+interface FlattenKeysConfig {
+  /**
+   * Maps every key once to value returned. By default identity mapper is used.
+   * @param key
+   * @returns Mapped key
+   */
+  mapKey?: (key: string) => string;
+  /**
+   * Keys joined by separator
+   */
+  separator?: string;
+  /**
+   * Used in recursive calls to keep track which keys have been mapped.
+   */
+  keysMapped?: boolean;
+}
+
+/**
+ *
+ * @param obj A nested object
+ * @param config
+ * @returns A flattened object
+ */
+function flattenKeys(
+  obj: Record<string, unknown>,
+  config: FlattenKeysConfig | undefined = {}
+): Record<string, number | string | boolean> {
+  const { mapKey = (s) => s, separator = '.', keysMapped = false } = config;
+  const flatObj: Record<string, number | string | boolean> = {};
+
+  for (const [mightBeMappedKey, value] of Object.entries(obj)) {
+    const mappedKey = keysMapped ? mightBeMappedKey : mapKey(mightBeMappedKey);
+
+    if (
+      typeof value === 'string' ||
+      typeof value === 'number' ||
+      typeof value === 'boolean'
+    ) {
+      flatObj[mappedKey] = value;
+    } else if (value && typeof value === 'object') {
+      const innerFlatObj: Record<string, unknown> = {};
+
+      for (const [key2, value2] of Object.entries(value)) {
+        innerFlatObj[`${mappedKey}${separator}${mapKey(key2)}`] = value2;
+      }
+
+      for (const [key, value] of Object.entries(
+        flattenKeys(innerFlatObj, { mapKey, separator, keysMapped: true })
+      )) {
+        flatObj[key] = value;
+      }
+    }
+  }
+
+  return flatObj;
 }
