@@ -12,6 +12,7 @@ export interface Subscription extends SubscriptionKey {
   createdAt: number;
   connectionId: string;
   subscriptionId: string;
+  filter?: Record<string, unknown>;
   connectionInitPayload?: Record<string, unknown>;
   requestContext: APIGatewayEventWebsocketRequestContextV2;
   subscription: {
@@ -25,6 +26,10 @@ export interface Subscription extends SubscriptionKey {
 
 export interface SubscriptionTable extends Table<SubscriptionKey, Subscription> {
   queryAllByTopic(topic: string): Promise<Subscription[]>;
+  queryAllByTopicFilter(
+    topic: string,
+    filter: Record<string, unknown>
+  ): Promise<Subscription[]>;
   queryAllByConnectionId(connectionId: string): Promise<Subscription[]>;
 }
 
@@ -36,17 +41,29 @@ export function newSubscriptionModel(newTableArgs: NewModelParams): Subscription
     queryAllByTopic(topic: string) {
       return table.queryAll({
         IndexName: 'TopicIndex',
-        ExpressionAttributeNames: { '#a': 'topic' },
-        ExpressionAttributeValues: { ':1': topic },
-        KeyConditionExpression: '#a = :1',
+        ExpressionAttributeNames: { '#topic': 'topic' },
+        ExpressionAttributeValues: { ':topic': topic },
+        KeyConditionExpression: '#topic = :topic',
       });
+    },
+    queryAllByTopicFilter(topic, filter) {
+      return table.queryAllFilter(
+        {
+          IndexName: 'TopicIndex',
+          ExpressionAttributeNames: { '#topic': 'topic' },
+          ExpressionAttributeValues: { ':topic': topic },
+          KeyConditionExpression: '#topic = :topic',
+        },
+        filter,
+        'filter' // prefix
+      );
     },
     queryAllByConnectionId(connectionId: string) {
       return table.queryAll({
         IndexName: 'ConnectionIndex',
-        ExpressionAttributeNames: { '#a': 'connectionId' },
-        ExpressionAttributeValues: { ':1': connectionId },
-        KeyConditionExpression: '#a = :1',
+        ExpressionAttributeNames: { '#connectionId': 'connectionId' },
+        ExpressionAttributeValues: { ':connectionId': connectionId },
+        KeyConditionExpression: '#connectionId = :connectionId',
       });
     },
   };

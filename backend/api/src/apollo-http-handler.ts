@@ -6,7 +6,7 @@ import {
   createApolloHttpHandler,
   CreateApolloHttpHandlerParams,
 } from '~lambda-graphql/apollo-http-handler';
-import { GraphQLContext as ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
+import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
 
 import {
   createDefaultApiGatewayParams,
@@ -36,6 +36,11 @@ export function createDefaultParams(): CreateApolloHttpHandlerParams<
         mongoose,
         subscribe: () => {
           throw new Error('Subscribe should never be called in apollo-http-handler');
+        },
+        denySubscription: () => {
+          throw new Error(
+            'denySubscription should never be called in apollo-http-handler'
+          );
         },
       };
     },

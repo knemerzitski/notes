@@ -39,9 +39,9 @@ extend type Mutation {
 
 extend type Subscription {
   "New created note TODO subscriptions only for testing, lacking auth..."
-  noteCreated: Note!
+  noteCreated: Note! @auth
   "Updated note TODO subscriptions only for testing, lacking auth..."
-  noteUpdated: Note!
+  noteUpdated: Note! @auth
   "Removed note ID TODO subscriptions only for testing, lacking auth..."
-  noteDeleted: ID!
+  noteDeleted: ID! @auth
 }

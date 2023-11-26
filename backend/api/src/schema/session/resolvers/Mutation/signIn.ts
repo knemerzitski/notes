@@ -10,7 +10,7 @@ export const signIn: NonNullable<MutationResolvers['signIn']> = async (
   { auth: auth, mongoose, response }
 ) => {
   // TODO verify token by using auth provdier
-  const googleUserId = 'test-google-id';
+  const googleUserId = _arg.input.token; //'test-google-id';
 
   const UserModel = mongoose.model<UserSchema>('User');
   const SessionModel = mongoose.model<SessionSchema>('Session');

@@ -9,7 +9,7 @@ import { BaseGraphQLContext, GraphQLResolversContext } from '~api/schema/context
 import { getIdentityFromHeaders } from '~api/schema/session/identity';
 import { createLogger } from '~common/logger';
 import { createApolloHttpHandler } from '~lambda-graphql/apollo-http-handler';
-import { GraphQLContext as ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
+import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
 import { createWebSocketConnectHandler } from '~lambda-graphql/connect-handler';
 import { createWebSocketDisconnectHandler } from '~lambda-graphql/disconnect-handler';
 import { createWebSocketMessageHandler } from '~lambda-graphql/message-handler';
@@ -149,6 +149,11 @@ void (async () => {
             mongoose,
             subscribe: () => {
               throw new Error('Subscribe should never be called in apollo-http-handler');
+            },
+            denySubscription: () => {
+              throw new Error(
+                'denySubscription should never be called in apollo-http-handler'
+              );
             },
           };
         },

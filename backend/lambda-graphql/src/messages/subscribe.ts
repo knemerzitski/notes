@@ -102,15 +102,21 @@ export function createSubscribeHandler<
         throw new Error('No field subscribe in schema');
       }
 
-      const { topic } = field.subscribe(
+      const subscribeFieldResult = field.subscribe(
         parent,
         args,
         contextValue,
         info
       ) as SubscriptionIterable;
+      if (subscribeFieldResult.deny) {
+        throw new GraphQLError(`Access denied`);
+      }
+      const { topic, filter } = subscribeFieldResult;
+
       if (!topic) {
         throw new Error(`Topic from field resolver is undefined`);
       }
+
       // TODO trigger subscribe onSubscribe?
 
       const subscription: Subscription = {
@@ -118,6 +124,7 @@ export function createSubscribeHandler<
         topic,
         subscriptionId: message.id,
         subscription: message.payload,
+        filter: filter,
         connectionId: connection.id,
         connectionInitPayload: connection.payload,
         requestContext: event.requestContext,

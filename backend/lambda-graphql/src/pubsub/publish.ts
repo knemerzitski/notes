@@ -3,27 +3,29 @@ import { MessageType, NextMessage } from 'graphql-ws';
 
 import { ApolloHttpHandlerContext } from '../apollo-http-handler';
 
-import { PubSubEvent, createSubscriptionContext } from './subscribe';
+import { PubSubEvent } from './subscribe';
 
 export type Publisher = (
   topic: PubSubEvent['topic'],
   payload: PubSubEvent['payload']
 ) => Promise<undefined[]>;
 
-export function createPublisher<TConnectionGraphQLContext>({
-  logger,
-  models,
-  schema,
-  socketApi,
-}: ApolloHttpHandlerContext<TConnectionGraphQLContext>): Publisher {
+export function createPublisher<TGraphQLContext, TConnectionGraphQLContext>(
+  context: ApolloHttpHandlerContext<TConnectionGraphQLContext> & {
+    graphQLContext: TGraphQLContext;
+  }
+): Publisher {
+  const { logger, models, schema, socketApi } = context;
   return async (topic, payload) => {
     logger.info('pubsub:publish', {
       topic,
       payload,
     });
 
-    // TODO implement subscription filtering?
-    const subscriptions = await models.subscriptions.queryAllByTopic(topic);
+    const subscriptions = await models.subscriptions.queryAllByTopicFilter(
+      topic,
+      payload
+    );
     logger.info('pubsub:publish', {
       subscriptions: subscriptions.map(({ connectionId, subscription }) => ({
         connectionId,
@@ -37,7 +39,7 @@ export function createPublisher<TConnectionGraphQLContext>({
         schema: schema,
         document: parse(sub.subscription.query),
         rootValue: payload,
-        contextValue: createSubscriptionContext(),
+        contextValue: context.graphQLContext,
         variableValues: sub.subscription.variables,
         operationName: sub.subscription.operationName,
       });

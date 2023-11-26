@@ -5,7 +5,7 @@ import { isArray } from '~common/isArray';
 import { SessionSchema } from './mongoose';
 
 /**
- * Current identity/session accessing ressources.
+ * Current identity/session accessing resources.
  */
 export interface Identity {
   /**

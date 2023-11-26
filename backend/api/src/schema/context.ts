@@ -1,6 +1,6 @@
 import { Connection } from 'mongoose';
 
-import { GraphQLContext as ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
+import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
 import { SubscriptionContext } from '~lambda-graphql/pubsub/subscribe';
 
 import { Identity } from './session/identity';

@@ -1,17 +1,20 @@
-import type { MutationResolvers } from '../../../types.generated';
+import type { MutationResolvers, Note } from '../../../types.generated';
 import { NoteSchema } from '../../mongoose';
+import { publishNoteUpdated } from '../Subscription/noteUpdated';
 
 export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
   _parent,
   { input: { id, title, content } },
-  { auth, mongoose, publish }
+  ctx
 ) => {
+  const { auth, mongoose } = ctx;
+
   if (!auth) return false;
   const { userId } = auth;
 
   const NoteModel = mongoose.model<NoteSchema>('Note');
 
-  const updatedNote = await NoteModel.findOneAndUpdate(
+  const updatedNoteModel = await NoteModel.findOneAndUpdate(
     {
       _id: id,
       userId,
@@ -22,13 +25,16 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
     }
   );
 
-  await publish('NOTE_UPDATED', {
-    noteUpdated: {
-      id,
-      title,
-      content,
-    },
-  });
+  if (!updatedNoteModel) return false;
 
-  return updatedNote != null;
+  const updatedNote: Note = {
+    id,
+    userId,
+    title,
+    content,
+  };
+
+  await publishNoteUpdated(ctx, updatedNote);
+
+  return true;
 };

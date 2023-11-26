@@ -41,7 +41,7 @@ export interface ApolloHttpHandlerContext<TConnectionGraphQLContext> {
   logger: Logger;
 }
 
-export interface GraphQLContext extends BaseContext {
+export interface ApolloHttpGraphQLContext extends BaseContext {
   readonly request: {
     readonly headers: Readonly<Record<string, string | undefined>>;
     readonly multiValueHeaders: Readonly<Record<string, string[] | undefined>>;
@@ -73,37 +73,47 @@ export function createApolloHttpHandler<TGraphQLContext, TConnectionGraphQLConte
     logger: logger,
   };
 
-  const apollo = new ApolloServer<GraphQLContext & TGraphQLContext>({
+  type GraphQLContext = ApolloHttpGraphQLContext & TGraphQLContext;
+  const apollo = new ApolloServer<GraphQLContext>({
     schema: graphQL.schema,
     introspection: process.env.NODE_ENV !== 'production',
     nodeEnv: process.env.NODE_ENV,
   });
   apollo.startInBackgroundHandlingStartupErrorsByLoggingAndFailingAllRequests();
 
-  const publishToSubscribers = createPublisher<TConnectionGraphQLContext>(context);
-
   return async (event) => {
     try {
       const httpGraphQLRequest = parseGraphQLRequestEvent(event);
 
-      const responseHeadersFromResolvers: GraphQLContext['response']['headers'] = {};
-      const responseMultiValueHeadersFromResolvers: GraphQLContext['response']['multiValueHeaders'] =
+      const responseHeadersFromResolvers: ApolloHttpGraphQLContext['response']['headers'] =
         {};
+      const responseMultiValueHeadersFromResolvers: ApolloHttpGraphQLContext['response']['multiValueHeaders'] =
+        {};
+
+      const graphQLContext: GraphQLContext & { publish: Publisher } = {
+        ...(await params.createGraphQLContext(context, event)),
+        request: {
+          headers: event.headers,
+          multiValueHeaders: event.multiValueHeaders,
+        },
+        response: {
+          headers: responseHeadersFromResolvers,
+          multiValueHeaders: responseMultiValueHeadersFromResolvers,
+        },
+        publish() {
+          throw new Error('Publish has not been initialized');
+        },
+      };
+      graphQLContext.publish = createPublisher<GraphQLContext, TConnectionGraphQLContext>(
+        {
+          ...context,
+          graphQLContext,
+        }
+      );
 
       const res = await apollo.executeHTTPGraphQLRequest({
         httpGraphQLRequest,
-        context: async () => ({
-          ...(await params.createGraphQLContext(context, event)),
-          request: {
-            headers: event.headers,
-            multiValueHeaders: event.multiValueHeaders,
-          },
-          response: {
-            headers: responseHeadersFromResolvers,
-            multiValueHeaders: responseMultiValueHeadersFromResolvers,
-          },
-          publish: publishToSubscribers,
-        }),
+        context: () => Promise.resolve(graphQLContext),
       });
 
       if (res.body.kind !== 'complete') {

@@ -1,26 +1,26 @@
 import type { MutationResolvers } from '../../../types.generated';
 import { NoteSchema } from '../../mongoose';
+import { publishNoteDeleted } from '../Subscription/noteDeleted';
 
 export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
   _parent,
   { id },
-  { auth, mongoose, publish }
+  ctx
 ) => {
+  const { auth, mongoose } = ctx;
   if (!auth) return false;
   const { userId } = auth;
 
   const NoteModel = mongoose.model<NoteSchema>('Note');
 
-  const deletedNote = await NoteModel.findOneAndDelete({
+  const deletedNoteModel = await NoteModel.findOneAndDelete({
     _id: id,
     userId,
   });
 
-  if (deletedNote) {
-    await publish('NOTE_DELETED', {
-      noteDeleted: id,
-    });
-  }
+  if (!deletedNoteModel) return false;
 
-  return deletedNote != null;
+  await publishNoteDeleted(ctx, id);
+
+  return true;
 };

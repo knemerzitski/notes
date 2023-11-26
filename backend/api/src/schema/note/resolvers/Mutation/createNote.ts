@@ -1,34 +1,34 @@
 import type { MutationResolvers, Note } from '../../../types.generated';
 import { NoteSchema } from '../../mongoose';
+import { publishNoteCreated } from '../Subscription/noteCreated';
 
 export const createNote: NonNullable<MutationResolvers['createNote']> = async (
   _parent,
   { input: { title, content } },
-  { auth, mongoose, publish }
+  ctx
 ) => {
+  const { auth, mongoose } = ctx;
+
   if (!auth) return null;
   const { userId } = auth;
 
   const NoteModel = mongoose.model<NoteSchema>('Note');
 
-  const newNote = new NoteModel({
+  const newNoteModel = new NoteModel({
     userId: userId,
     title,
     content,
   });
-  await newNote.save();
+  await newNoteModel.save();
 
-  const data: Note = {
-    id: newNote._id.toString(),
-    userId: newNote.userId.toString(),
-    title: newNote.title,
-    content: newNote.content,
+  const newNote: Note = {
+    id: newNoteModel._id.toString(),
+    userId: newNoteModel.userId.toString(),
+    title: newNoteModel.title,
+    content: newNoteModel.content,
   };
 
-  // TODO filter publish by user
-  await publish('NOTE_CREATED', {
-    noteCreated: data,
-  });
+  await publishNoteCreated({ ...ctx, auth }, newNote);
 
-  return data;
+  return newNote;
 };
