@@ -19,7 +19,7 @@ export function createSubscribeHandler<
 >(): MessageHandler<MessageType.Subscribe, TGraphQLContext, TConnectionGraphQLContext> {
   return async ({ context, event, message }) => {
     const { connectionId } = event.requestContext;
-    context.logger.info('subscribe', {
+    context.logger.info('messages:subscribe', {
       connectionId,
       messageId: message.id,
       query: message.payload.query,
@@ -40,7 +40,7 @@ export function createSubscribeHandler<
         variables: message.payload.variables,
       });
       if (errors) {
-        context.logger.info('subscribe:validateQueryError', { errors });
+        context.logger.info('messages:subscribe:validateQueryError', { errors });
         return context.socketApi.post({
           ...event.requestContext,
           message: {
@@ -89,7 +89,9 @@ export function createSubscribeHandler<
       const { topic, filter, onSubscribe, onAfterSubscribe } =
         getSubscribeResult(execContext);
 
-      context.logger.info('onSubscribe', { onSubscribe: !!onSubscribe });
+      context.logger.info('messages:subscribe:onSubscribe', {
+        onSubscribe: !!onSubscribe,
+      });
       await onSubscribe?.();
 
       const subscription: Subscription = {
@@ -104,16 +106,18 @@ export function createSubscribeHandler<
         createdAt: Date.now(),
         ttl: connection.ttl,
       };
-      context.logger.info('subscribe:addSubscription', { subscription });
+      context.logger.info('messages:subscribe:addSubscription', { subscription });
 
       if (!(await context.models.subscriptions.add(['id'], subscription))) {
         throw new Error(`Subscriber already exists for "${message.id}"`);
       }
 
-      context.logger.info('onAfterSubscribe', { onAfterSubscribe: !!onAfterSubscribe });
+      context.logger.info('messages:subscribe:onAfterSubscribe', {
+        onAfterSubscribe: !!onAfterSubscribe,
+      });
       await onAfterSubscribe?.();
     } catch (err) {
-      context.logger.error('subscribe:error', err as Error, {
+      context.logger.error('messages:subscribe:error', err as Error, {
         connectionId,
         message,
       });
