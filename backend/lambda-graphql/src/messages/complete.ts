@@ -5,6 +5,7 @@ import { MessageType } from 'graphql-ws';
 
 import { isArray } from '~common/isArray';
 
+import { OnConnectGraphQLContext } from '../dynamodb/models/connection';
 import { MessageHandler } from '../message-handler';
 import {
   SubscriptionContext,
@@ -17,7 +18,7 @@ import {
  */
 export function createCompleteHandler<
   TGraphQLContext,
-  TOnConnectGraphQLContext,
+  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
 >(): MessageHandler<MessageType.Complete, TGraphQLContext, TOnConnectGraphQLContext> {
   return async ({ context, event, message }) => {
     const { connectionId } = event.requestContext;
@@ -41,9 +42,9 @@ export function createCompleteHandler<
 
       const graphQLContext: SubscriptionContext &
         TGraphQLContext &
-        TOnConnectGraphQLContext = {
+        OnConnectGraphQLContext = {
         ...context.graphQLContext,
-        ...connection.onConnectgraphQLContext,
+        ...connection.onConnectGraphQLContext,
         ...createSubscriptionContext(),
       };
 

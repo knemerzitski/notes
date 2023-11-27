@@ -2,6 +2,7 @@ import { execute, parse } from 'graphql';
 import { MessageType, NextMessage } from 'graphql-ws';
 
 import { ApolloHttpHandlerContext } from '../apollo-http-handler';
+import { OnConnectGraphQLContext } from '../dynamodb/models/connection';
 
 import { PubSubEvent } from './subscribe';
 
@@ -10,7 +11,10 @@ export type Publisher = (
   payload: PubSubEvent['payload']
 ) => Promise<undefined[]>;
 
-export function createPublisher<TGraphQLContext, TOnConnectGraphQLContext>(
+export function createPublisher<
+  TGraphQLContext,
+  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
+>(
   context: ApolloHttpHandlerContext<TOnConnectGraphQLContext> & {
     graphQLContext: TGraphQLContext;
   }

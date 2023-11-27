@@ -20,7 +20,10 @@ export type InitMessageGraphQLContext = Omit<
   keyof BaseGraphQLContext | keyof SubscriptionContext
 >;
 
-export function createDefaultParams(): WebSocketMessageHandlerParams<InitMessageGraphQLContext> {
+export function createDefaultParams(): WebSocketMessageHandlerParams<
+  InitMessageGraphQLContext,
+  BaseGraphQLContext
+> {
   const logger = createLogger('websocket-message-handler');
 
   return {

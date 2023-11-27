@@ -4,6 +4,7 @@ import { MessageType } from 'graphql-ws';
 
 import { isArray } from '~common/isArray';
 
+import { OnConnectGraphQLContext } from '../dynamodb/models/connection';
 import { Subscription } from '../dynamodb/models/subscription';
 import validateQuery from '../graphql/validateQuery';
 import { MessageHandler } from '../message-handler';
@@ -15,7 +16,7 @@ import {
 
 export function createSubscribeHandler<
   TGraphQLContext,
-  TOnConnectGraphQLContext,
+  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
 >(): MessageHandler<MessageType.Subscribe, TGraphQLContext, TOnConnectGraphQLContext> {
   return async ({ context, event, message }) => {
     const { connectionId } = event.requestContext;
@@ -53,9 +54,9 @@ export function createSubscribeHandler<
 
       const graphQLContext: SubscriptionContext &
         TGraphQLContext &
-        TOnConnectGraphQLContext = {
+        OnConnectGraphQLContext = {
         ...context.graphQLContext,
-        ...connection.onConnectgraphQLContext,
+        ...connection.onConnectGraphQLContext,
         ...createSubscriptionContext(),
       };
 
@@ -101,7 +102,6 @@ export function createSubscribeHandler<
         subscription: message.payload,
         filter: filter,
         connectionId: connection.id,
-        connectionInitPayload: connection.payload,
         requestContext: event.requestContext,
         createdAt: Date.now(),
         ttl: connection.ttl,

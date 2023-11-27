@@ -55,7 +55,7 @@ void (async () => {
       connectHandler: createWebSocketConnectHandler<BaseGraphQLContext>({
         logger: createLogger('mock:websocket-connect-handler'),
         dynamoDB: createMockDynamoDBParams(),
-        async createConnectionGraphQLContext(_context, event) {
+        async onConnect(_context, event) {
           if (!mongoose) {
             mongoose = (await createMockMongooseContext()).connection;
           }

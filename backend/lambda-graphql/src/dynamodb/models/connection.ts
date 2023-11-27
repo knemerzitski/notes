@@ -7,25 +7,24 @@ interface ConnectionKey {
   id: string;
 }
 
-export interface Connection<TOnConnectGraphQLContext = unknown> extends ConnectionKey {
+export type OnConnectGraphQLContext = Record<string, unknown>;
+
+export interface Connection<TOnConnectGraphQLContext extends OnConnectGraphQLContext>
+  extends ConnectionKey {
   createdAt: number;
   // requestContext from $connect event
   requestContext: APIGatewayEventWebsocketRequestContextV2;
-  onConnectgraphQLContext: TOnConnectGraphQLContext;
-  // ConnectionInit payload
-  payload?: Record<string, unknown>;
+  onConnectGraphQLContext?: TOnConnectGraphQLContext;
   // hasPonged: boolean
   ttl: number;
 }
 
-export type ConnectionTable<TOnConnectGraphQLContext> = Table<
-  ConnectionKey,
-  Connection<TOnConnectGraphQLContext>
->;
+export type ConnectionTable<TOnConnectGraphQLContext extends OnConnectGraphQLContext> =
+  Table<ConnectionKey, Connection<TOnConnectGraphQLContext>>;
 
-export function newConnectionModel<TOnConnectGraphQLContext>(
-  newTableArgs: NewModelParams
-): ConnectionTable<TOnConnectGraphQLContext> {
+export function newConnectionModel<
+  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
+>(newTableArgs: NewModelParams): ConnectionTable<TOnConnectGraphQLContext> {
   const table = newModel<ConnectionKey, Connection<TOnConnectGraphQLContext>>(
     newTableArgs
   );

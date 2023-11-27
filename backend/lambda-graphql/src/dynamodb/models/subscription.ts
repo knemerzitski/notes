@@ -13,7 +13,6 @@ export interface Subscription extends SubscriptionKey {
   connectionId: string;
   subscriptionId: string;
   filter?: Record<string, unknown>;
-  connectionInitPayload?: Record<string, unknown>;
   requestContext: APIGatewayEventWebsocketRequestContextV2;
   subscription: {
     query: string;

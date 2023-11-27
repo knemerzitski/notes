@@ -9,20 +9,24 @@ import {
 import { Logger } from '~common/logger';
 
 import { DynamoDBContextParams, createDynamoDbContext } from './context/dynamodb';
-import { ConnectionTable } from './dynamodb/models/connection';
+import { ConnectionTable, OnConnectGraphQLContext } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
 
-export interface WebSocketDisconnectHandlerParams {
-  dynamoDB: DynamoDBContextParams;
+interface DirectParams {
   logger: Logger;
 }
 
-export interface WebSocketDisconnectHandlerContext<TOnConnectGraphQLContext> {
+export interface WebSocketDisconnectHandlerParams extends DirectParams {
+  dynamoDB: DynamoDBContextParams;
+}
+
+export interface WebSocketDisconnectHandlerContext<
+  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
+> extends DirectParams {
   models: {
     connections: ConnectionTable<TOnConnectGraphQLContext>;
     subscriptions: SubscriptionTable;
   };
-  logger: Logger;
 }
 
 /**
@@ -43,10 +47,10 @@ const defaultResponse: APIGatewayProxyResultV2 = {
   statusCode: 200,
 };
 
-export function createWebSocketDisconnectHandler<TOnConnectGraphQLContext = unknown>(
-  params: WebSocketDisconnectHandlerParams
-): WebSocketDisconnectHandler {
-  const logger = params.logger;
+export function createWebSocketDisconnectHandler<
+  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
+>(params: WebSocketDisconnectHandlerParams): WebSocketDisconnectHandler {
+  const { logger } = params;
   logger.info('createWebSocketDisconnectHandler');
 
   const dynamoDB = createDynamoDbContext<TOnConnectGraphQLContext>(params.dynamoDB);
@@ -62,7 +66,9 @@ export function createWebSocketDisconnectHandler<TOnConnectGraphQLContext = unkn
   return webSocketDisconnectHandler(context);
 }
 
-export function webSocketDisconnectHandler<TOnConnectGraphQLContext = unknown>(
+export function webSocketDisconnectHandler<
+  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
+>(
   context: WebSocketDisconnectHandlerContext<TOnConnectGraphQLContext>
 ): WebSocketDisconnectHandler {
   return async (event) => {

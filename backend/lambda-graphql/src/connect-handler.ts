@@ -8,32 +8,46 @@ import {
 import { GRAPHQL_TRANSPORT_WS_PROTOCOL } from 'graphql-ws';
 
 import { Logger } from '~common/logger';
+import { Maybe, MaybePromise } from '~common/types';
 
 import { DynamoDBContextParams, createDynamoDbContext } from './context/dynamodb';
-import { ConnectionTable } from './dynamodb/models/connection';
+import { ConnectionTable, OnConnectGraphQLContext } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
 
-export interface WebSocketConnectHandlerParams<TOnConnectGraphQLContext> {
-  dynamoDB: DynamoDBContextParams;
-  createConnectionGraphQLContext: (
-    context: WebSocketConnectHandlerContext<TOnConnectGraphQLContext>,
-    event: WebSocketConnectEventEvent
-  ) => Promise<TOnConnectGraphQLContext> | TOnConnectGraphQLContext;
+interface DirectParams<TOnConnectGraphQLContext extends OnConnectGraphQLContext> {
   defaultTtl: () => number;
   logger: Logger;
+
+  onConnect?: (
+    context: WebSocketConnectHandlerContext<TOnConnectGraphQLContext>,
+    event: WebSocketConnectEventEvent
+  ) => Maybe<MaybePromise<TOnConnectGraphQLContext>>;
 }
 
-export interface WebSocketConnectHandlerContext<TOnConnectGraphQLContext> {
+export interface WebSocketConnectHandlerParams<
+  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
+> extends DirectParams<TOnConnectGraphQLContext> {
+  dynamoDB: DynamoDBContextParams;
+
+  /**
+   *
+   * @returns Additional GraphQL context used in resolvers.
+   * Context is persisted in DynamoDB connection table while connection is alive.
+   * Throw error to disconnect.
+   */
+  onConnect?: (
+    context: WebSocketConnectHandlerContext<TOnConnectGraphQLContext>,
+    event: WebSocketConnectEventEvent
+  ) => Maybe<MaybePromise<TOnConnectGraphQLContext>>;
+}
+
+export interface WebSocketConnectHandlerContext<
+  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
+> extends DirectParams<TOnConnectGraphQLContext> {
   models: {
     connections: ConnectionTable<TOnConnectGraphQLContext>;
     subscriptions: SubscriptionTable;
   };
-  createConnectionGraphQLContext: (
-    context: WebSocketConnectHandlerContext<TOnConnectGraphQLContext>,
-    event: WebSocketConnectEventEvent
-  ) => Promise<TOnConnectGraphQLContext> | TOnConnectGraphQLContext;
-  defaultTtl: () => number;
-  logger: Logger;
 }
 
 /**
@@ -50,28 +64,31 @@ export type WebSocketConnectHandler<T = never> = Handler<
   APIGatewayProxyResultV2<T>
 >;
 
-export function createWebSocketConnectHandler<TOnConnectGraphQLContext>(
+export function createWebSocketConnectHandler<
+  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
+>(
   params: WebSocketConnectHandlerParams<TOnConnectGraphQLContext>
 ): WebSocketConnectHandler {
-  const logger = params.logger;
+  const { logger } = params;
+
   logger.info('createWebSocketConnectHandler');
 
   const dynamoDB = createDynamoDbContext<TOnConnectGraphQLContext>(params.dynamoDB);
 
   const context: WebSocketConnectHandlerContext<TOnConnectGraphQLContext> = {
+    ...params,
     models: {
       connections: dynamoDB.connections,
       subscriptions: dynamoDB.subscriptions,
     },
-    createConnectionGraphQLContext: params.createConnectionGraphQLContext,
-    defaultTtl: params.defaultTtl,
-    logger: logger,
   };
 
   return webSocketConnectHandler(context);
 }
 
-export function webSocketConnectHandler<TOnConnectGraphQLContext>(
+export function webSocketConnectHandler<
+  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
+>(
   context: WebSocketConnectHandlerContext<TOnConnectGraphQLContext>
 ): WebSocketConnectHandler {
   return async (event) => {
@@ -86,16 +103,13 @@ export function webSocketConnectHandler<TOnConnectGraphQLContext>(
         headers: event.headers,
       });
 
-      // TODO trigger event onConnect?
+      const onConnectGraphQLContext = await context.onConnect?.(context, event);
 
       await context.models.connections.put({
         id: connectionId,
         createdAt: Date.now(),
         requestContext: event.requestContext,
-        onConnectgraphQLContext: await context.createConnectionGraphQLContext(
-          context,
-          event
-        ),
+        onConnectGraphQLContext,
         ttl: context.defaultTtl(),
       });
 
