@@ -10,8 +10,8 @@ export type Publisher = (
   payload: PubSubEvent['payload']
 ) => Promise<undefined[]>;
 
-export function createPublisher<TGraphQLContext, TConnectionGraphQLContext>(
-  context: ApolloHttpHandlerContext<TConnectionGraphQLContext> & {
+export function createPublisher<TGraphQLContext, TOnConnectGraphQLContext>(
+  context: ApolloHttpHandlerContext<TOnConnectGraphQLContext> & {
     graphQLContext: TGraphQLContext;
   }
 ): Publisher {

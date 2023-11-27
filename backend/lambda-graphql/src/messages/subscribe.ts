@@ -15,8 +15,8 @@ import {
 
 export function createSubscribeHandler<
   TGraphQLContext,
-  TConnectionGraphQLContext,
->(): MessageHandler<MessageType.Subscribe, TGraphQLContext, TConnectionGraphQLContext> {
+  TOnConnectGraphQLContext,
+>(): MessageHandler<MessageType.Subscribe, TGraphQLContext, TOnConnectGraphQLContext> {
   return async ({ context, event, message }) => {
     const { connectionId } = event.requestContext;
     context.logger.info('messages:subscribe', {
@@ -53,9 +53,9 @@ export function createSubscribeHandler<
 
       const graphQLContext: SubscriptionContext &
         TGraphQLContext &
-        TConnectionGraphQLContext = {
+        TOnConnectGraphQLContext = {
         ...context.graphQLContext,
-        ...connection.graphQLContext,
+        ...connection.onConnectgraphQLContext,
         ...createSubscriptionContext(),
       };
 

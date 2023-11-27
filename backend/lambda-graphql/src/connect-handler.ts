@@ -13,25 +13,25 @@ import { DynamoDBContextParams, createDynamoDbContext } from './context/dynamodb
 import { ConnectionTable } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
 
-export interface WebSocketConnectHandlerParams<TConnectionGraphQLContext> {
+export interface WebSocketConnectHandlerParams<TOnConnectGraphQLContext> {
   dynamoDB: DynamoDBContextParams;
   createConnectionGraphQLContext: (
-    context: WebSocketConnectHandlerContext<TConnectionGraphQLContext>,
+    context: WebSocketConnectHandlerContext<TOnConnectGraphQLContext>,
     event: WebSocketConnectEventEvent
-  ) => Promise<TConnectionGraphQLContext> | TConnectionGraphQLContext;
+  ) => Promise<TOnConnectGraphQLContext> | TOnConnectGraphQLContext;
   defaultTtl: () => number;
   logger: Logger;
 }
 
-export interface WebSocketConnectHandlerContext<TConnectionGraphQLContext> {
+export interface WebSocketConnectHandlerContext<TOnConnectGraphQLContext> {
   models: {
-    connections: ConnectionTable<TConnectionGraphQLContext>;
+    connections: ConnectionTable<TOnConnectGraphQLContext>;
     subscriptions: SubscriptionTable;
   };
   createConnectionGraphQLContext: (
-    context: WebSocketConnectHandlerContext<TConnectionGraphQLContext>,
+    context: WebSocketConnectHandlerContext<TOnConnectGraphQLContext>,
     event: WebSocketConnectEventEvent
-  ) => Promise<TConnectionGraphQLContext> | TConnectionGraphQLContext;
+  ) => Promise<TOnConnectGraphQLContext> | TOnConnectGraphQLContext;
   defaultTtl: () => number;
   logger: Logger;
 }
@@ -50,15 +50,15 @@ export type WebSocketConnectHandler<T = never> = Handler<
   APIGatewayProxyResultV2<T>
 >;
 
-export function createWebSocketConnectHandler<TConnectionGraphQLContext>(
-  params: WebSocketConnectHandlerParams<TConnectionGraphQLContext>
+export function createWebSocketConnectHandler<TOnConnectGraphQLContext>(
+  params: WebSocketConnectHandlerParams<TOnConnectGraphQLContext>
 ): WebSocketConnectHandler {
   const logger = params.logger;
   logger.info('createWebSocketConnectHandler');
 
-  const dynamoDB = createDynamoDbContext<TConnectionGraphQLContext>(params.dynamoDB);
+  const dynamoDB = createDynamoDbContext<TOnConnectGraphQLContext>(params.dynamoDB);
 
-  const context: WebSocketConnectHandlerContext<TConnectionGraphQLContext> = {
+  const context: WebSocketConnectHandlerContext<TOnConnectGraphQLContext> = {
     models: {
       connections: dynamoDB.connections,
       subscriptions: dynamoDB.subscriptions,
@@ -71,8 +71,8 @@ export function createWebSocketConnectHandler<TConnectionGraphQLContext>(
   return webSocketConnectHandler(context);
 }
 
-export function webSocketConnectHandler<TConnectionGraphQLContext>(
-  context: WebSocketConnectHandlerContext<TConnectionGraphQLContext>
+export function webSocketConnectHandler<TOnConnectGraphQLContext>(
+  context: WebSocketConnectHandlerContext<TOnConnectGraphQLContext>
 ): WebSocketConnectHandler {
   return async (event) => {
     try {
@@ -92,7 +92,10 @@ export function webSocketConnectHandler<TConnectionGraphQLContext>(
         id: connectionId,
         createdAt: Date.now(),
         requestContext: event.requestContext,
-        graphQLContext: await context.createConnectionGraphQLContext(context, event),
+        onConnectgraphQLContext: await context.createConnectionGraphQLContext(
+          context,
+          event
+        ),
         ttl: context.defaultTtl(),
       });
 

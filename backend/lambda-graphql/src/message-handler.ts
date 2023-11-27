@@ -34,12 +34,12 @@ export interface WebSocketMessageHandlerParams<TGraphQLContext> {
 
 export interface WebSocketMessageHandlerContext<
   TGraphQLContext,
-  TConnectionGraphQLContext,
+  TOnConnectGraphQLContext,
 > {
   schema: GraphQLSchema;
   graphQLContext: TGraphQLContext;
   models: {
-    connections: ConnectionTable<TConnectionGraphQLContext>;
+    connections: ConnectionTable<TOnConnectGraphQLContext>;
     subscriptions: SubscriptionTable;
   };
   socketApi: WebSocketApi;
@@ -62,34 +62,34 @@ const defaultResponse: APIGatewayProxyResultV2 = {
 export type MessageHandler<
   T extends MessageType,
   TGraphQLContext = unknown,
-  TConnectionGraphQLContext = unknown,
+  TOnConnectGraphQLContext = unknown,
 > = (args: {
-  context: WebSocketMessageHandlerContext<TGraphQLContext, TConnectionGraphQLContext>;
+  context: WebSocketMessageHandlerContext<TGraphQLContext, TOnConnectGraphQLContext>;
   event: APIGatewayProxyWebsocketEventV2;
   message: Message<T>;
 }) => Promise<APIGatewayProxyStructuredResultV2 | undefined>;
 
 export type MessageHandlers<
   TGraphQLContext = unknown,
-  TConnectionGraphQLContext = unknown,
+  TOnConnectGraphQLContext = unknown,
 > = Record<
   MessageType,
-  MessageHandler<MessageType, TGraphQLContext, TConnectionGraphQLContext>
+  MessageHandler<MessageType, TGraphQLContext, TOnConnectGraphQLContext>
 >;
 
-export function createWebSocketMessageHandler<TGraphQLContext, TConnectionGraphQLContext>(
+export function createWebSocketMessageHandler<TGraphQLContext, TOnConnectGraphQLContext>(
   params: WebSocketMessageHandlerParams<TGraphQLContext>
 ): WebSocketMessageHandler {
   const logger = params.logger;
   logger.info('createWebSocketMessageHandler');
 
   const graphQl = createGraphQlContext(params.graphQl);
-  const dynamoDB = createDynamoDbContext<TConnectionGraphQLContext>(params.dynamoDB);
+  const dynamoDB = createDynamoDbContext<TOnConnectGraphQLContext>(params.dynamoDB);
   const apiGateway = createApiGatewayContext(params.apiGateway);
 
   const context: WebSocketMessageHandlerContext<
     TGraphQLContext,
-    TConnectionGraphQLContext
+    TOnConnectGraphQLContext
   > = {
     schema: graphQl.schema,
     graphQLContext: params.graphQLContext,
@@ -101,11 +101,11 @@ export function createWebSocketMessageHandler<TGraphQLContext, TConnectionGraphQ
     logger: logger,
   };
 
-  const messageHandlers: MessageHandlers<TGraphQLContext, TConnectionGraphQLContext> = {
+  const messageHandlers: MessageHandlers<TGraphQLContext, TOnConnectGraphQLContext> = {
     [MessageType.ConnectionInit]: createConnectionInitHandler(),
     [MessageType.Subscribe]: createSubscribeHandler<
       TGraphQLContext,
-      TConnectionGraphQLContext
+      TOnConnectGraphQLContext
     >(),
     [MessageType.Complete]: createCompleteHandler(),
     [MessageType.Ping]: createPingHandler(),
@@ -121,15 +121,15 @@ export function createWebSocketMessageHandler<TGraphQLContext, TConnectionGraphQ
     },
   };
 
-  return webSocketMessageHandler<TGraphQLContext, TConnectionGraphQLContext>(
+  return webSocketMessageHandler<TGraphQLContext, TOnConnectGraphQLContext>(
     context,
     messageHandlers
   );
 }
 
-export function webSocketMessageHandler<TGraphQLContext, TConnectionGraphQLContext>(
-  context: WebSocketMessageHandlerContext<TGraphQLContext, TConnectionGraphQLContext>,
-  messageHandlers: MessageHandlers<TGraphQLContext, TConnectionGraphQLContext>
+export function webSocketMessageHandler<TGraphQLContext, TOnConnectGraphQLContext>(
+  context: WebSocketMessageHandlerContext<TGraphQLContext, TOnConnectGraphQLContext>,
+  messageHandlers: MessageHandlers<TGraphQLContext, TOnConnectGraphQLContext>
 ): WebSocketMessageHandler {
   return async (event) => {
     try {

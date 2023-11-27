@@ -17,9 +17,9 @@ export interface WebSocketDisconnectHandlerParams {
   logger: Logger;
 }
 
-export interface WebSocketDisconnectHandlerContext<TGraphQLContext> {
+export interface WebSocketDisconnectHandlerContext<TOnConnectGraphQLContext> {
   models: {
-    connections: ConnectionTable<TGraphQLContext>;
+    connections: ConnectionTable<TOnConnectGraphQLContext>;
     subscriptions: SubscriptionTable;
   };
   logger: Logger;
@@ -43,15 +43,15 @@ const defaultResponse: APIGatewayProxyResultV2 = {
   statusCode: 200,
 };
 
-export function createWebSocketDisconnectHandler<TConnectionGraphQLContext = unknown>(
+export function createWebSocketDisconnectHandler<TOnConnectGraphQLContext = unknown>(
   params: WebSocketDisconnectHandlerParams
 ): WebSocketDisconnectHandler {
   const logger = params.logger;
   logger.info('createWebSocketDisconnectHandler');
 
-  const dynamoDB = createDynamoDbContext<TConnectionGraphQLContext>(params.dynamoDB);
+  const dynamoDB = createDynamoDbContext<TOnConnectGraphQLContext>(params.dynamoDB);
 
-  const context: WebSocketDisconnectHandlerContext<TConnectionGraphQLContext> = {
+  const context: WebSocketDisconnectHandlerContext<TOnConnectGraphQLContext> = {
     models: {
       connections: dynamoDB.connections,
       subscriptions: dynamoDB.subscriptions,
@@ -62,8 +62,8 @@ export function createWebSocketDisconnectHandler<TConnectionGraphQLContext = unk
   return webSocketDisconnectHandler(context);
 }
 
-export function webSocketDisconnectHandler<TConnectionGraphQLContext = unknown>(
-  context: WebSocketDisconnectHandlerContext<TConnectionGraphQLContext>
+export function webSocketDisconnectHandler<TOnConnectGraphQLContext = unknown>(
+  context: WebSocketDisconnectHandlerContext<TOnConnectGraphQLContext>
 ): WebSocketDisconnectHandler {
   return async (event) => {
     try {

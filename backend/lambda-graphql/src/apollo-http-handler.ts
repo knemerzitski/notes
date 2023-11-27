@@ -19,10 +19,10 @@ import { Publisher, createPublisher } from './pubsub/publish';
 
 export interface CreateApolloHttpHandlerParams<
   TGraphQLContext,
-  TConnectionGraphQLContext,
+  TOnConnectGraphQLContext,
 > {
   createGraphQLContext: (
-    context: ApolloHttpHandlerContext<TConnectionGraphQLContext>,
+    context: ApolloHttpHandlerContext<TOnConnectGraphQLContext>,
     event: APIGatewayProxyEvent
   ) => Promise<TGraphQLContext> | TGraphQLContext;
   graphQL: GraphQLContextParams<TGraphQLContext>;
@@ -31,10 +31,10 @@ export interface CreateApolloHttpHandlerParams<
   logger: Logger;
 }
 
-export interface ApolloHttpHandlerContext<TConnectionGraphQLContext> {
+export interface ApolloHttpHandlerContext<TOnConnectGraphQLContext> {
   schema: GraphQLSchema;
   models: {
-    connections: ConnectionTable<TConnectionGraphQLContext>;
+    connections: ConnectionTable<TOnConnectGraphQLContext>;
     subscriptions: SubscriptionTable;
   };
   socketApi: WebSocketApi;
@@ -53,17 +53,17 @@ export interface ApolloHttpGraphQLContext extends BaseContext {
   readonly publish: Publisher;
 }
 
-export function createApolloHttpHandler<TGraphQLContext, TConnectionGraphQLContext>(
-  params: CreateApolloHttpHandlerParams<TGraphQLContext, TConnectionGraphQLContext>
+export function createApolloHttpHandler<TGraphQLContext, TOnConnectGraphQLContext>(
+  params: CreateApolloHttpHandlerParams<TGraphQLContext, TOnConnectGraphQLContext>
 ): APIGatewayProxyHandler {
   const logger = params.logger;
   logger.info('createApolloHttpHandler');
 
   const graphQL = createGraphQlContext(params.graphQL);
-  const dynamoDB = createDynamoDbContext<TConnectionGraphQLContext>(params.dynamoDB);
+  const dynamoDB = createDynamoDbContext<TOnConnectGraphQLContext>(params.dynamoDB);
   const apiGateway = createApiGatewayContext(params.apiGateway);
 
-  const context: ApolloHttpHandlerContext<TConnectionGraphQLContext> = {
+  const context: ApolloHttpHandlerContext<TOnConnectGraphQLContext> = {
     schema: graphQL.schema,
     models: {
       connections: dynamoDB.connections,
@@ -104,12 +104,10 @@ export function createApolloHttpHandler<TGraphQLContext, TConnectionGraphQLConte
           throw new Error('Publish has not been initialized');
         },
       };
-      graphQLContext.publish = createPublisher<GraphQLContext, TConnectionGraphQLContext>(
-        {
-          ...context,
-          graphQLContext,
-        }
-      );
+      graphQLContext.publish = createPublisher<GraphQLContext, TOnConnectGraphQLContext>({
+        ...context,
+        graphQLContext,
+      });
 
       const res = await apollo.executeHTTPGraphQLRequest({
         httpGraphQLRequest,
