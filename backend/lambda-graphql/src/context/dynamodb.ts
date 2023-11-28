@@ -5,6 +5,7 @@ import { Logger } from '~common/logger';
 
 import {
   ConnectionTable,
+  OnConnectGraphQLContext,
   newConnectionModel as newConnectionModel,
 } from '../dynamodb/models/connection';
 import {
@@ -21,14 +22,16 @@ export interface DynamoDBContextParams {
   logger: Logger;
 }
 
-export interface DynamoDBContext<TPartialContext> {
-  connections: ConnectionTable<TPartialContext>;
+export interface DynamoDBContext<
+  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
+> {
+  connections: ConnectionTable<TOnConnectGraphQLContext>;
   subscriptions: SubscriptionTable;
 }
 
-export function createDynamoDbContext<TPartialContext>(
-  params: DynamoDBContextParams
-): DynamoDBContext<TPartialContext> {
+export function createDynamoDbContext<
+  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
+>(params: DynamoDBContextParams): DynamoDBContext<TOnConnectGraphQLContext> {
   params.logger.info('buildDynamoDbContext:new', {
     params: params.clientConfig,
   });
