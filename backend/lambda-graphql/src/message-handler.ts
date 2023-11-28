@@ -91,6 +91,31 @@ export type MessageHandlers<
   MessageHandler<MessageType, TGraphQLContext, TOnConnectGraphQLContext>
 >;
 
+export function createMessageHandlers<
+  TGraphQLContext = unknown,
+  TOnConnectGraphQLContext extends OnConnectGraphQLContext = OnConnectGraphQLContext,
+>(): MessageHandlers<TGraphQLContext, TOnConnectGraphQLContext> {
+  return {
+    [MessageType.ConnectionInit]: createConnectionInitHandler(),
+    [MessageType.Subscribe]: createSubscribeHandler<
+      TGraphQLContext,
+      TOnConnectGraphQLContext
+    >(),
+    [MessageType.Complete]: createCompleteHandler(),
+    [MessageType.Ping]: createPingHandler(),
+    [MessageType.Pong]: createPongHandler(),
+    [MessageType.ConnectionAck]: () => {
+      throw new Error('Unsupported message type ConnectionAck');
+    },
+    [MessageType.Next]: () => {
+      throw new Error('Unsupported message type Next');
+    },
+    [MessageType.Error]: () => {
+      throw new Error('Unsupported message type Error');
+    },
+  };
+}
+
 export function createWebSocketMessageHandler<
   TGraphQLContext,
   TOnConnectGraphQLContext extends OnConnectGraphQLContext,
@@ -118,29 +143,9 @@ export function createWebSocketMessageHandler<
     socketApi: apiGateway.socketApi,
   };
 
-  const messageHandlers: MessageHandlers<TGraphQLContext, TOnConnectGraphQLContext> = {
-    [MessageType.ConnectionInit]: createConnectionInitHandler(),
-    [MessageType.Subscribe]: createSubscribeHandler<
-      TGraphQLContext,
-      TOnConnectGraphQLContext
-    >(),
-    [MessageType.Complete]: createCompleteHandler(),
-    [MessageType.Ping]: createPingHandler(),
-    [MessageType.Pong]: createPongHandler(),
-    [MessageType.ConnectionAck]: () => {
-      throw new Error('Unsupported message type ConnectionAck');
-    },
-    [MessageType.Next]: () => {
-      throw new Error('Unsupported message type Next');
-    },
-    [MessageType.Error]: () => {
-      throw new Error('Unsupported message type Error');
-    },
-  };
-
   return webSocketMessageHandler<TGraphQLContext, TOnConnectGraphQLContext>(
     context,
-    messageHandlers
+    createMessageHandlers<TGraphQLContext, TOnConnectGraphQLContext>()
   );
 }
 
