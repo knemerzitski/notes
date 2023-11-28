@@ -7,8 +7,9 @@ import {
 } from '~lambda-graphql/disconnect-handler';
 
 import { createDefaultDynamoDBParams } from './handler-params';
+import { BaseGraphQLContext } from './schema/context';
 
-export function createDefaultParams(): WebSocketDisconnectHandlerParams {
+export function createDefaultParams(): WebSocketDisconnectHandlerParams<BaseGraphQLContext> {
   const logger = createLogger('websocket-disconnect-handler');
 
   return {

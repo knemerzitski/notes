@@ -22,7 +22,7 @@ export function createDefaultParams(): WebSocketConnectHandlerParams<BaseGraphQL
   return {
     logger,
     dynamoDB: createDefaultDynamoDBParams(logger),
-    async onConnect(_context, event) {
+    async onConnect({ event }) {
       if (!mongoose) {
         mongoose = (await createDefaultMongooseContext(logger)).connection;
       }
