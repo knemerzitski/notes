@@ -93,6 +93,9 @@ export function webSocketDisconnectHandler<
         connectionId,
       });
 
+      context.logger.info('messages:disconnect:onDisconnect', {
+        onDisconnect: !!context.onDisconnect,
+      });
       await context.onDisconnect?.({ context, event });
 
       const connectionSubscriptions =

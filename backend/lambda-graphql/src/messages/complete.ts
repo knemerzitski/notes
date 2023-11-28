@@ -62,7 +62,7 @@ export function createCompleteHandler<
 
       const { onComplete } = getSubscribeFieldResult(execContext);
 
-      context.logger.info('messages:complete');
+      context.logger.info('messages:onComplete', { onComplete: !!onComplete });
       await onComplete?.();
 
       await context.models.subscriptions.delete({ id: `${connectionId}:${message.id}` });
