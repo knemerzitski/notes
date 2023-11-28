@@ -2,17 +2,21 @@ import { APIGatewayEventWebsocketRequestContextV2 } from 'aws-lambda';
 
 import { NewModelParams, Table, newModel } from '../model';
 
+import { OnConnectGraphQLContext } from './connection';
+
 interface SubscriptionKey {
   // Id format `${connectionId}:${subscriptionId}`
   id: string;
 }
 
-export interface Subscription extends SubscriptionKey {
+export interface Subscription<TOnConnectGraphQLContext extends OnConnectGraphQLContext>
+  extends SubscriptionKey {
   topic: string;
   createdAt: number;
   connectionId: string;
   subscriptionId: string;
   filter?: Record<string, unknown>;
+  connectionOnConnectGraphQLContext?: TOnConnectGraphQLContext;
   requestContext: APIGatewayEventWebsocketRequestContextV2;
   subscription: {
     query: string;
@@ -23,17 +27,25 @@ export interface Subscription extends SubscriptionKey {
   ttl: number;
 }
 
-export interface SubscriptionTable extends Table<SubscriptionKey, Subscription> {
-  queryAllByTopic(topic: string): Promise<Subscription[]>;
+export interface SubscriptionTable<
+  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
+> extends Table<SubscriptionKey, Subscription<TOnConnectGraphQLContext>> {
+  queryAllByTopic(topic: string): Promise<Subscription<TOnConnectGraphQLContext>[]>;
   queryAllByTopicFilter(
     topic: string,
     filter: Record<string, unknown>
-  ): Promise<Subscription[]>;
-  queryAllByConnectionId(connectionId: string): Promise<Subscription[]>;
+  ): Promise<Subscription<TOnConnectGraphQLContext>[]>;
+  queryAllByConnectionId(
+    connectionId: string
+  ): Promise<Subscription<TOnConnectGraphQLContext>[]>;
 }
 
-export function newSubscriptionModel(newTableArgs: NewModelParams): SubscriptionTable {
-  const table = newModel<SubscriptionKey, Subscription>(newTableArgs);
+export function newSubscriptionModel<
+  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
+>(newTableArgs: NewModelParams): SubscriptionTable<TOnConnectGraphQLContext> {
+  const table = newModel<SubscriptionKey, Subscription<TOnConnectGraphQLContext>>(
+    newTableArgs
+  );
 
   return {
     ...table,

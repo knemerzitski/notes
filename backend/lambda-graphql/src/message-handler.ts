@@ -55,7 +55,7 @@ export interface WebSocketMessageHandlerContext<
   schema: GraphQLSchema;
   models: {
     connections: ConnectionTable<TOnConnectGraphQLContext>;
-    subscriptions: SubscriptionTable;
+    subscriptions: SubscriptionTable<TOnConnectGraphQLContext>;
   };
   socketApi: WebSocketApi;
 }

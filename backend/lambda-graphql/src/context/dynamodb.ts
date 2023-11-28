@@ -26,7 +26,7 @@ export interface DynamoDBContext<
   TOnConnectGraphQLContext extends OnConnectGraphQLContext,
 > {
   connections: ConnectionTable<TOnConnectGraphQLContext>;
-  subscriptions: SubscriptionTable;
+  subscriptions: SubscriptionTable<TOnConnectGraphQLContext>;
 }
 
 export function createDynamoDbContext<
@@ -43,12 +43,12 @@ export function createDynamoDbContext<
     },
   });
   return {
-    connections: newConnectionModel({
+    connections: newConnectionModel<TOnConnectGraphQLContext>({
       documentClient,
       tableName: params.tableNames.connections,
       logger: params.logger,
     }),
-    subscriptions: newSubscriptionModel({
+    subscriptions: newSubscriptionModel<TOnConnectGraphQLContext>({
       documentClient,
       tableName: params.tableNames.subscriptions,
       logger: params.logger,

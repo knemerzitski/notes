@@ -95,12 +95,13 @@ export function createSubscribeHandler<
       });
       await onSubscribe?.();
 
-      const subscription: Subscription = {
+      const subscription: Subscription<TOnConnectGraphQLContext> = {
         id: `${connection.id}:${message.id}`,
         topic,
         subscriptionId: message.id,
         subscription: message.payload,
         filter: filter,
+        connectionOnConnectGraphQLContext: connection.onConnectGraphQLContext,
         connectionId: connection.id,
         requestContext: event.requestContext,
         createdAt: Date.now(),
