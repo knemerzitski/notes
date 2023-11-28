@@ -4,9 +4,9 @@ import dotenv from 'dotenv';
 import { Connection } from 'mongoose';
 import WebSocket from 'ws';
 
+import { handleConnectGraphQLAuth } from '~api/connect-handler';
 import { InitMessageGraphQLContext } from '~api/message-handler';
 import { BaseGraphQLContext, GraphQLResolversContext } from '~api/schema/context';
-import { getIdentityFromHeaders } from '~api/schema/session/identity';
 import { createLogger } from '~common/logger';
 import { createApolloHttpHandler } from '~lambda-graphql/apollo-http-handler';
 import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
@@ -59,14 +59,7 @@ void (async () => {
           if (!mongoose) {
             mongoose = (await createMockMongooseContext()).connection;
           }
-
-          const auth = event.headers
-            ? await getIdentityFromHeaders(mongoose, event.headers)
-            : undefined;
-
-          return {
-            auth,
-          };
+          return handleConnectGraphQLAuth(mongoose, event);
         },
         defaultTtl() {
           return Math.floor(Date.now() / 1000) + 1 * 60 * 60; // in seconds, 1 hour
