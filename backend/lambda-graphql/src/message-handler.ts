@@ -37,6 +37,11 @@ interface DirectParams<
     event: APIGatewayProxyWebsocketEventV2;
     message: ConnectionInitMessage;
   }) => MaybePromise<void>;
+  onError?: (args: {
+    error: unknown;
+    context: WebSocketMessageHandlerContext<TGraphQLContext, TOnConnectGraphQLContext>;
+    event: APIGatewayProxyWebsocketEventV2;
+  }) => MaybePromise<void>;
 }
 
 export interface WebSocketMessageHandlerParams<
@@ -178,8 +183,8 @@ export function webSocketMessageHandler<
       try {
         return (await messageHandler({ context, event, message })) ?? defaultResponse;
       } catch (err) {
+        await context.onError?.({ error: err, context, event });
         await context.socketApi.delete(event.requestContext);
-        // TODO trigger event onError?
       }
 
       return Promise.resolve(defaultResponse);
