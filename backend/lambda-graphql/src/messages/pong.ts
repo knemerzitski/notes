@@ -7,7 +7,9 @@ export function createPongHandler<
   TGraphQLContext,
   TOnConnectGraphQLContext extends OnConnectGraphQLContext,
 >(): MessageHandler<MessageType.Pong, TGraphQLContext, TOnConnectGraphQLContext> {
-  return async () => {
+  return async ({ context, event, message }) => {
+    await context.onPong?.({ context, event, message });
+
     return Promise.resolve(undefined);
   };
 }

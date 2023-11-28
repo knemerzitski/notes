@@ -5,7 +5,14 @@ import {
   Handler,
 } from 'aws-lambda';
 import { GraphQLSchema } from 'graphql';
-import { ConnectionInitMessage, Message, MessageType, validateMessage } from 'graphql-ws';
+import {
+  ConnectionInitMessage,
+  Message,
+  MessageType,
+  PingMessage,
+  PongMessage,
+  validateMessage,
+} from 'graphql-ws';
 
 import { Logger } from '~common/logger';
 import { MaybePromise } from '~common/types';
@@ -36,6 +43,16 @@ interface DirectParams<
     context: WebSocketMessageHandlerContext<TGraphQLContext, TOnConnectGraphQLContext>;
     event: APIGatewayProxyWebsocketEventV2;
     message: ConnectionInitMessage;
+  }) => MaybePromise<void>;
+  onPing?: (args: {
+    context: WebSocketMessageHandlerContext<TGraphQLContext, TOnConnectGraphQLContext>;
+    event: APIGatewayProxyWebsocketEventV2;
+    message: PingMessage;
+  }) => MaybePromise<void>;
+  onPong?: (args: {
+    context: WebSocketMessageHandlerContext<TGraphQLContext, TOnConnectGraphQLContext>;
+    event: APIGatewayProxyWebsocketEventV2;
+    message: PongMessage;
   }) => MaybePromise<void>;
   onError?: (args: {
     error: unknown;
