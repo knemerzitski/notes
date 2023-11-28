@@ -18,27 +18,22 @@ interface DirectParams<TOnConnectGraphQLContext extends OnConnectGraphQLContext>
   defaultTtl: () => number;
   logger: Logger;
 
-  onConnect?: (
-    context: WebSocketConnectHandlerContext<TOnConnectGraphQLContext>,
-    event: WebSocketConnectEventEvent
-  ) => Maybe<MaybePromise<TOnConnectGraphQLContext>>;
-}
-
-export interface WebSocketConnectHandlerParams<
-  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
-> extends DirectParams<TOnConnectGraphQLContext> {
-  dynamoDB: DynamoDBContextParams;
-
   /**
    *
    * @returns Additional GraphQL context used in resolvers.
    * Context is persisted in DynamoDB connection table while connection is alive.
    * Throw error to disconnect.
    */
-  onConnect?: (
-    context: WebSocketConnectHandlerContext<TOnConnectGraphQLContext>,
-    event: WebSocketConnectEventEvent
-  ) => Maybe<MaybePromise<TOnConnectGraphQLContext>>;
+  onConnect?: (args: {
+    context: WebSocketConnectHandlerContext<TOnConnectGraphQLContext>;
+    event: WebSocketConnectEventEvent;
+  }) => Maybe<MaybePromise<TOnConnectGraphQLContext>>;
+}
+
+export interface WebSocketConnectHandlerParams<
+  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
+> extends DirectParams<TOnConnectGraphQLContext> {
+  dynamoDB: DynamoDBContextParams;
 }
 
 export interface WebSocketConnectHandlerContext<
@@ -103,7 +98,7 @@ export function webSocketConnectHandler<
         headers: event.headers,
       });
 
-      const onConnectGraphQLContext = await context.onConnect?.(context, event);
+      const onConnectGraphQLContext = await context.onConnect?.({ context, event });
 
       await context.models.connections.put({
         id: connectionId,
