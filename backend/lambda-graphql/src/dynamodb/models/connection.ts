@@ -15,7 +15,7 @@ export interface Connection<TOnConnectGraphQLContext extends OnConnectGraphQLCon
   // requestContext from $connect event
   requestContext: APIGatewayEventWebsocketRequestContextV2;
   onConnectGraphQLContext?: TOnConnectGraphQLContext;
-  // hasPonged: boolean
+  hasPonged: boolean;
   ttl: number;
 }
 

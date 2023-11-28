@@ -24,6 +24,11 @@ import {
 } from './context/apigateway';
 import { DynamoDBContextParams, createDynamoDbContext } from './context/dynamodb';
 import { GraphQLContextParams, createGraphQlContext } from './context/graphql';
+import {
+  PingPongContext,
+  PingPongContextParams,
+  createPingPongContext,
+} from './context/pingpong';
 import { ConnectionTable, OnConnectGraphQLContext } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
 import { createCompleteHandler } from './messages/complete';
@@ -68,6 +73,7 @@ export interface WebSocketMessageHandlerParams<
   graphQl: GraphQLContextParams<TGraphQLContext>;
   dynamoDB: DynamoDBContextParams;
   apiGateway: ApiGatewayContextParams;
+  pingpong?: PingPongContextParams;
 }
 
 export interface WebSocketMessageHandlerContext<
@@ -80,6 +86,7 @@ export interface WebSocketMessageHandlerContext<
     subscriptions: SubscriptionTable<TOnConnectGraphQLContext>;
   };
   socketApi: WebSocketApi;
+  startPingPong?: PingPongContext['startPingPong'];
 }
 
 /**
@@ -151,6 +158,7 @@ export function createWebSocketMessageHandler<
   const graphQl = createGraphQlContext(params.graphQl);
   const dynamoDB = createDynamoDbContext<TOnConnectGraphQLContext>(params.dynamoDB);
   const apiGateway = createApiGatewayContext(params.apiGateway);
+  const pingpong = params.pingpong ? createPingPongContext(params.pingpong) : undefined;
 
   const context: WebSocketMessageHandlerContext<
     TGraphQLContext,
@@ -163,6 +171,7 @@ export function createWebSocketMessageHandler<
       subscriptions: dynamoDB.subscriptions,
     },
     socketApi: apiGateway.socketApi,
+    startPingPong: pingpong?.startPingPong,
   };
 
   return webSocketMessageHandler<TGraphQLContext, TOnConnectGraphQLContext>(

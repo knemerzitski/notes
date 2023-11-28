@@ -14,9 +14,11 @@ export function createConnectionInitHandler<
   return async (args) => {
     const { event, context } = args;
 
-    await context.onConnectionInit?.(args);
-
-    // TODO start pinging to detect early connection closed?
+    await context.startPingPong?.({
+      connectionId: event.requestContext.connectionId,
+      domainName: event.requestContext.domainName,
+      stage: event.requestContext.stage,
+    });
 
     // Send message connection acknowledged
     return context.socketApi.post({

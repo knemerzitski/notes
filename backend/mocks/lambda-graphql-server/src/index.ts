@@ -80,6 +80,7 @@ void (async () => {
         graphQLContext: createErrorBaseSubscriptionResolversContext(
           'mock:websocket-message-handler'
         ),
+        //pingpong: createMockPingPongParams(sockets),
       }),
       disconnectHandler: createWebSocketDisconnectHandler<
         BaseSubscriptionResolversContext,

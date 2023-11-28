@@ -10,8 +10,11 @@ import { createLogger } from '~common/logger';
 import { ApiGatewayContextParams } from '~lambda-graphql/context/apigateway';
 import { DynamoDBContextParams } from '~lambda-graphql/context/dynamodb';
 import { GraphQLContextParams } from '~lambda-graphql/context/graphql';
+import { PingPongContextParams } from '~lambda-graphql/context/pingpong';
+import { createPingPongHandler } from '~lambda-graphql/ping-pong-handler';
 
 import { MockApiGatewayManagementApiClient } from './utils/mock-apigatewaymanagementapi';
+import { MockPingPongSFNClient } from './utils/mock-pingpong-sfnclient';
 
 export function createMockGraphQLParams<TContext>(): GraphQLContextParams<TContext> {
   return createDefaultGraphQLParams<TContext>(createLogger('mock:graphql-http'));
@@ -67,6 +70,34 @@ export function createMockApiGatewayParams(
     logger: createLogger('mock:apigateway'),
     newClient() {
       return new MockApiGatewayManagementApiClient(sockets);
+    },
+  };
+}
+
+export function createMockPingPongParams(
+  sockets: Record<string, WebSocket>
+): PingPongContextParams {
+  const delay = 60;
+  const timeout = 10;
+  const logger = createLogger('mock:pingpong');
+
+  const handler = createPingPongHandler({
+    apiGateway: createMockApiGatewayParams(sockets),
+    dynamoDB: createMockDynamoDBParams(),
+    logger,
+    pingpong: {
+      delay,
+      timeout,
+    },
+  });
+
+  return {
+    delay,
+    timeout,
+    logger,
+    stateMachineArn: 'dummy-machine-arn',
+    newClient() {
+      return new MockPingPongSFNClient(handler, logger);
     },
   };
 }
