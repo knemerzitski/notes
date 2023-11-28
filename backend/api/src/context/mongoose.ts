@@ -25,7 +25,6 @@ export async function createMongooseContext(
     uri: params.uri,
   });
 
-  // TODO set correct mongoose version
   const newConn = createConnection(params.uri, params.options);
 
   try {
