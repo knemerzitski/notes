@@ -26,17 +26,10 @@ export function createCompleteHandler<
       connectionId,
     });
     try {
-      const subscriptionPromise = context.models.subscriptions.get({
+      const subscription = await context.models.subscriptions.get({
         id: `${connectionId}:${message.id}`,
       });
-      const connectionPromise = context.models.connections.get({
-        id: connectionId,
-      });
-      const [subscription, connection] = await Promise.all([
-        subscriptionPromise,
-        connectionPromise,
-      ]);
-      if (!subscription || !connection) {
+      if (!subscription) {
         return;
       }
 
@@ -44,7 +37,7 @@ export function createCompleteHandler<
         TGraphQLContext &
         OnConnectGraphQLContext = {
         ...context.graphQLContext,
-        ...connection.onConnectGraphQLContext,
+        ...subscription.connectionOnConnectGraphQLContext,
         ...createSubscriptionContext(),
       };
 
