@@ -5,8 +5,12 @@ import { Connection } from 'mongoose';
 import WebSocket from 'ws';
 
 import { handleConnectGraphQLAuth } from '~api/connect-handler';
-import { InitMessageGraphQLContext } from '~api/message-handler';
-import { BaseGraphQLContext, GraphQLResolversContext } from '~api/schema/context';
+import {
+  BaseGraphQLContext,
+  BaseSubscriptionResolversContext,
+  GraphQLResolversContext,
+  createErrorBaseSubscriptionResolversContext,
+} from '~api/schema/context';
 import { createLogger } from '~common/logger';
 import { createApolloHttpHandler } from '~lambda-graphql/apollo-http-handler';
 import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
@@ -66,66 +70,27 @@ void (async () => {
         },
       }),
       messageHandler: createWebSocketMessageHandler<
-        InitMessageGraphQLContext,
+        BaseSubscriptionResolversContext,
         BaseGraphQLContext
       >({
         logger: createLogger('mock:websocket-message-handler'),
         dynamoDB: createMockDynamoDBParams(),
         apiGateway: createMockApiGatewayParams(sockets),
         graphQl: createMockSubscriptionGraphQLParams(),
-        graphQLContext: {
-          get mongoose() {
-            return new Proxy(
-              {},
-              {
-                get() {
-                  throw new Error(
-                    'Mongoose is not available in mock:websocket-message-handler'
-                  );
-                },
-              }
-            ) as Connection;
-          },
-          get request() {
-            return new Proxy(
-              {},
-              {
-                get() {
-                  throw new Error(
-                    'Request is not available in mock:websocket-message-handler'
-                  );
-                },
-              }
-            ) as {
-              headers: Record<string, string>;
-              multiValueHeaders: Record<string, string[]>;
-            };
-          },
-          get response() {
-            return new Proxy(
-              {},
-              {
-                get() {
-                  throw new Error(
-                    'Response is not available in mock:websocket-message-handler'
-                  );
-                },
-              }
-            ) as {
-              headers: Record<string, string>;
-              multiValueHeaders: Record<string, string[]>;
-            };
-          },
-          publish() {
-            throw new Error(
-              'Publish should never be called in mock:websocket-message-handler'
-            );
-          },
-        },
+        graphQLContext: createErrorBaseSubscriptionResolversContext(
+          'mock:websocket-message-handler'
+        ),
       }),
-      disconnectHandler: createWebSocketDisconnectHandler({
+      disconnectHandler: createWebSocketDisconnectHandler<
+        BaseSubscriptionResolversContext,
+        BaseGraphQLContext
+      >({
         logger: createLogger('mock:websocket-disconnect-handler'),
         dynamoDB: createMockDynamoDBParams(),
+        graphQl: createMockSubscriptionGraphQLParams(),
+        graphQLContext: createErrorBaseSubscriptionResolversContext(
+          'mock:websocket-disconnect-handler'
+        ),
       }),
       apolloHttpHandler: createApolloHttpHandler<
         Omit<GraphQLResolversContext, keyof ApolloHttpGraphQLContext>,

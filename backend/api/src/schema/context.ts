@@ -18,3 +18,67 @@ export type GraphQLResolversContext = ApolloHttpGraphQLContext &
   BaseGraphQLContext &
   MongooseGraphQLContext &
   SubscriptionContext;
+
+/**
+ * This type is used to define everything that websocket-graphql-handlers don't
+ * define by default.
+ *
+ * MongooseGraphQLContext
+ * mongoose
+ *
+ * ApolloHttpGraphQLContext
+ * request
+ * response
+ * publish
+ *
+ */
+export type BaseSubscriptionResolversContext = Omit<
+  GraphQLResolversContext,
+  keyof BaseGraphQLContext | keyof SubscriptionContext
+>;
+
+export function createErrorBaseSubscriptionResolversContext(
+  name = 'websocket-handler'
+): BaseSubscriptionResolversContext {
+  return {
+    get mongoose() {
+      return new Proxy(
+        {},
+        {
+          get() {
+            throw new Error(`Mongoose is not available in ${name}`);
+          },
+        }
+      ) as Connection;
+    },
+    get request() {
+      return new Proxy(
+        {},
+        {
+          get() {
+            throw new Error(`Request is not available in ${name}`);
+          },
+        }
+      ) as {
+        headers: Record<string, string>;
+        multiValueHeaders: Record<string, string[]>;
+      };
+    },
+    get response() {
+      return new Proxy(
+        {},
+        {
+          get() {
+            throw new Error(`Response is not available in ${name}`);
+          },
+        }
+      ) as {
+        headers: Record<string, string>;
+        multiValueHeaders: Record<string, string[]>;
+      };
+    },
+    publish() {
+      throw new Error(`Publish should never be called in ${name}`);
+    },
+  };
+}
