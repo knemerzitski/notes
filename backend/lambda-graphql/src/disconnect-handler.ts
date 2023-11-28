@@ -7,22 +7,31 @@ import {
 } from 'aws-lambda';
 
 import { Logger } from '~common/logger';
+import { Maybe, MaybePromise } from '~common/types';
 
+import { WebSocketConnectEventEvent } from './connect-handler';
 import { DynamoDBContextParams, createDynamoDbContext } from './context/dynamodb';
 import { ConnectionTable, OnConnectGraphQLContext } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
 
-interface DirectParams {
+interface DirectParams<TOnConnectGraphQLContext extends OnConnectGraphQLContext> {
   logger: Logger;
+
+  onDisconnect?: (args: {
+    context: WebSocketDisconnectHandlerContext<TOnConnectGraphQLContext>;
+    event: WebSocketConnectEventEvent;
+  }) => Maybe<MaybePromise<TOnConnectGraphQLContext>>;
 }
 
-export interface WebSocketDisconnectHandlerParams extends DirectParams {
+export interface WebSocketDisconnectHandlerParams<
+  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
+> extends DirectParams<TOnConnectGraphQLContext> {
   dynamoDB: DynamoDBContextParams;
 }
 
 export interface WebSocketDisconnectHandlerContext<
   TOnConnectGraphQLContext extends OnConnectGraphQLContext,
-> extends DirectParams {
+> extends DirectParams<TOnConnectGraphQLContext> {
   models: {
     connections: ConnectionTable<TOnConnectGraphQLContext>;
     subscriptions: SubscriptionTable;
@@ -49,7 +58,9 @@ const defaultResponse: APIGatewayProxyResultV2 = {
 
 export function createWebSocketDisconnectHandler<
   TOnConnectGraphQLContext extends OnConnectGraphQLContext,
->(params: WebSocketDisconnectHandlerParams): WebSocketDisconnectHandler {
+>(
+  params: WebSocketDisconnectHandlerParams<TOnConnectGraphQLContext>
+): WebSocketDisconnectHandler {
   const { logger } = params;
   logger.info('createWebSocketDisconnectHandler');
 
@@ -82,7 +93,7 @@ export function webSocketDisconnectHandler<
         connectionId,
       });
 
-      // TODO trigger event onDisconnect?
+      await context.onDisconnect?.({ context, event });
 
       const connectionSubscriptions =
         await context.models.subscriptions.queryAllByConnectionId(connectionId);
