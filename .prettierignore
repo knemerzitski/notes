@@ -1,1 +1,2 @@
 backend/api/src/schema/*.generated.ts
+frontend/web/src/schema/__generated__
