@@ -14,7 +14,7 @@ export const deleteClientSession: (
   const sessions = readSessions();
   if (index >= sessions.length) return false;
 
-  saveSessions([...sessions.slice(0, index - 1), ...sessions.slice(index + 1)]);
+  saveSessions([...sessions.slice(0, index), ...sessions.slice(index + 1)]);
 
   return true;
 };
