@@ -9,6 +9,12 @@ import { GraphQLFieldConfig, GraphQLSchema, defaultFieldResolver } from 'graphql
 
 import { DirectiveResolverFn, NextResolverFn } from '../schema/types.generated';
 
+/**
+ * @param schema
+ * @param directiveName
+ * @param directiveResolver
+ * @returns A new mapped schema that has invokes {@link directiveResolver} on {@link directiveName} directive.
+ */
 export default function transformSchemaDirectiveResolver<TSource, TContext, TArgs>(
   schema: GraphQLSchema,
   directiveName: string,
