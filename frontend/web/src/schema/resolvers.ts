@@ -1,8 +1,8 @@
-import { createNote } from './notes/resolvers/Mutation/createNote';
-import { deleteNote } from './notes/resolvers/Mutation/deleteNote';
-import { updateNote } from './notes/resolvers/Mutation/updateNote';
-import { note } from './notes/resolvers/Query/note';
-import { notes } from './notes/resolvers/Query/notes';
+import { createNote } from './note/resolvers/Mutation/createNote';
+import { deleteNote } from './note/resolvers/Mutation/deleteNote';
+import { updateNote } from './note/resolvers/Mutation/updateNote';
+import { note } from './note/resolvers/Query/note';
+import { notes } from './note/resolvers/Query/notes';
 import { updateColorMode } from './preferences/resolvers/Mutation/updateColorMode';
 import { preferences } from './preferences/resolvers/Query/preferences';
 import { createLocalSession } from './session/resolvers/Mutation/createLocalSession';

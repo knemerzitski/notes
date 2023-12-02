@@ -3,8 +3,8 @@ import { useRef } from 'react';
 
 import { useSnackbarError } from '../components/feedback/SnackbarAlertProvider';
 import { Note } from '../schema/__generated__/graphql';
-import useDeleteNote from '../schema/notes/hooks/useDeleteNote';
-import useUpdateNote from '../schema/notes/hooks/useUpdateNote';
+import useDeleteNote from '../schema/note/hooks/useDeleteNote';
+import useUpdateNote from '../schema/note/hooks/useUpdateNote';
 
 import NoteEditor from './NoteEditor';
 

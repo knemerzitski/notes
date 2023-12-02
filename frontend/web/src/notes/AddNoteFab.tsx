@@ -4,7 +4,7 @@ import { startTransition } from 'react';
 
 import { useSnackbarError } from '../components/feedback/SnackbarAlertProvider';
 import { useProxyNavigate } from '../router/ProxyRoutesProvider';
-import useCreateNote from '../schema/notes/hooks/useCreateNote';
+import useCreateNote from '../schema/note/hooks/useCreateNote';
 
 export default function AddNoteFab() {
   const navigate = useProxyNavigate();

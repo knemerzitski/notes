@@ -6,7 +6,7 @@ import RouteSnackbarError from '../../components/feedback/RouteSnackbarError';
 import EditNoteDialogComponent from '../../notes/EditNoteDialog';
 import { useProxyNavigate } from '../../router/ProxyRoutesProvider';
 import usePreviousLocation from '../../router/usePreviousLocation';
-import GET_NOTE from '../../schema/notes/documents/GET_NOTE';
+import GET_NOTE from '../../schema/note/documents/GET_NOTE';
 
 export default function EditNoteDialog() {
   const navigate = useProxyNavigate();
