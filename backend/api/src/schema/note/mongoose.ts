@@ -14,11 +14,11 @@ export const Note = new Schema({
   },
   title: {
     type: Schema.Types.String,
-    required: true,
+    required: false,
   },
   content: {
     type: Schema.Types.String,
-    required: true,
+    required: false,
   },
 });
 

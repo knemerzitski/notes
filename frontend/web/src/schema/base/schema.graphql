@@ -1,0 +1,13 @@
+"""
+The @client directive allows you to resolve client-only data alongside your server data.
+These fields are not sent to the GraphQL server.
+"""
+directive @client on FIELD
+
+"""
+The @session directive allows you to resolve data either with local resolvers or server resolvers
+depending on user type.
+- For local sessions @session directive is replaced with @client directive.
+- For remote sessions @session directive is removed.
+"""
+directive @session on FIELD

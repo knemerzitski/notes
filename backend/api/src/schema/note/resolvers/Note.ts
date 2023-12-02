@@ -3,9 +3,9 @@ export const Note: NoteResolvers = {
   id(note) {
     return note.id;
   },
-  userId(note) {
-    return note.userId;
-  },
+  // userId(note) {
+  //   return note.userId;
+  // },
   title(note) {
     return note.title;
   },

@@ -19,11 +19,12 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
     title,
     content,
   });
+  // TODO order by last modified?
   await newNoteModel.save();
 
   const newNote: Note = {
     id: newNoteModel._id.toString(),
-    userId: newNoteModel.userId.toString(),
+    //userId: newNoteModel.userId.toString(),
     title: newNoteModel.title,
     content: newNoteModel.content,
   };

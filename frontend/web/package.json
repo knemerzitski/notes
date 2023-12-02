@@ -4,7 +4,6 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "prepare": "graphql-codegen",
     "lint": "eslint . --ext ts,tsx",
     "vite:dev": "vite --host",
     "build": "tsc && vite build",

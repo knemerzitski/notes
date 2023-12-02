@@ -1,14 +1,14 @@
 import AddIcon from '@mui/icons-material/Add';
 import { Fab } from '@mui/material';
+import { startTransition } from 'react';
 
 import { useSnackbarError } from '../components/feedback/SnackbarAlertProvider';
 import { useProxyNavigate } from '../router/ProxyRoutesProvider';
-
-import useInsertNote from './graphql/useInsertNote';
+import useCreateNote from '../schema/notes/hooks/useCreateNote';
 
 export default function AddNoteFab() {
   const navigate = useProxyNavigate();
-  const insertNote = useInsertNote();
+  const insertNote = useCreateNote();
   const showError = useSnackbarError();
 
   async function handleClick() {
@@ -19,10 +19,12 @@ export default function AddNoteFab() {
       return;
     }
 
-    navigate(`/note/${note.id}`, {
-      state: {
-        autoFocus: true,
-      },
+    startTransition(() => {
+      navigate(`/note/${note.id}`, {
+        state: {
+          autoFocus: true,
+        },
+      });
     });
   }
 
@@ -31,7 +33,9 @@ export default function AddNoteFab() {
       color="primary"
       size="large"
       aria-label="new note"
-      onClick={void handleClick}
+      onClick={() => {
+        void handleClick();
+      }}
       sx={(theme) => ({
         position: 'fixed',
         bottom: theme.spacing(2),

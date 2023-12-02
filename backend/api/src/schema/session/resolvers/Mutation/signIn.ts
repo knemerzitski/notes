@@ -1,13 +1,14 @@
 import type { MutationResolvers } from '../../../types.generated';
 import { UserSchema } from '../../../user/mongoose';
+import { getIdentityFromHeaders } from '../../identity';
 import { SessionSchema } from '../../mongoose';
 
-const SECURE_SET_COOKIE = process.env.NODE_ENV === 'production' ? '; Secure' : '';
+export const SECURE_SET_COOKIE = process.env.NODE_ENV === 'production' ? '; Secure' : '';
 
 export const signIn: NonNullable<MutationResolvers['signIn']> = async (
   _parent,
   _arg,
-  { auth: auth, mongoose, response }
+  { mongoose, request, response }
 ) => {
   // TODO verify token by using auth provdier
   const googleUserId = _arg.input.token; //'test-google-id';
@@ -39,6 +40,8 @@ export const signIn: NonNullable<MutationResolvers['signIn']> = async (
   await newSession.save();
   const sessionId = newSession._id.toString();
 
+  const auth = await getIdentityFromHeaders(mongoose, request.headers);
+
   const sessions = auth ? [...auth.sessions, sessionId] : [sessionId];
   const activeSessionIndex = sessions.length - 1;
 
@@ -53,5 +56,5 @@ export const signIn: NonNullable<MutationResolvers['signIn']> = async (
     `ActiveSessionIndex=${activeSessionIndex}; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}`
   );
 
-  return true;
+  return activeSessionIndex;
 };

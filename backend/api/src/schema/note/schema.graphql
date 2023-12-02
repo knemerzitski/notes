@@ -1,24 +1,22 @@
 type Note {
   "Note unique ID"
   id: ID!
-  "User who owns this note"
-  userId: ID!
 
   "Note title"
-  title: String!
+  title: String
   "Note text contents"
-  content: String!
+  content: String
 }
 
 input CreateNoteInput {
-  title: String!
-  content: String!
+  title: String
+  content: String
 }
 
 input UpdateNoteInput {
   id: ID!
-  title: String!
-  content: String!
+  title: String
+  content: String
 }
 
 extend type Query {

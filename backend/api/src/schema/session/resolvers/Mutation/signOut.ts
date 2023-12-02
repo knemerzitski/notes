@@ -1,12 +1,14 @@
 import type { MutationResolvers } from '../../../types.generated';
 import { SessionSchema } from '../../mongoose';
 
+import { SECURE_SET_COOKIE } from './signIn';
+
 export const signOut: NonNullable<MutationResolvers['signOut']> = async (
   _parent,
   _arg,
-  { auth: auth, mongoose, response }
+  { auth, mongoose, response }
 ) => {
-  if (!auth) return true;
+  if (!auth) return -1;
 
   const SessionModel = mongoose.model<SessionSchema>('Session');
 
@@ -21,20 +23,20 @@ export const signOut: NonNullable<MutationResolvers['signOut']> = async (
     // Keep Using default account
     const activeSessionIndex = 0;
     response.multiValueHeaders['Set-Cookie'].push(
-      `Sessions=${newSessions.join(',')}; HttpOnly; Secure; SameSite=Strict`
+      `Sessions=${newSessions.join(',')}; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}`
     );
     response.multiValueHeaders['Set-Cookie'].push(
-      `ActiveSessionIndex=${activeSessionIndex}; HttpOnly; Secure; SameSite=Strict`
+      `ActiveSessionIndex=${activeSessionIndex}; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}`
     );
   } else {
     // Signed out from all accounts
     response.multiValueHeaders['Set-Cookie'].push(
-      `Session=; HttpOnly; Secure; SameSite=Strict; Expires=Thu, 01 Jan 1970 00:00:00 GMT`
+      `Sessions=; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}; Expires=Thu, 01 Jan 1970 00:00:00 GMT`
     );
     response.multiValueHeaders['Set-Cookie'].push(
-      `ActiveSessionIndex=; HttpOnly; Secure; SameSite=Strict; Expires=Thu, 01 Jan 1970 00:00:00 GMT`
+      `ActiveSessionIndex=; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}; Expires=Thu, 01 Jan 1970 00:00:00 GMT`
     );
   }
 
-  return true;
+  return auth.sessionIndex;
 };

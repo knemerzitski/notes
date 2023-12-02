@@ -21,8 +21,8 @@ export type AuthProvider =
   | 'GOOGLE';
 
 export type CreateNoteInput = {
-  content: Scalars['String']['input'];
-  title: Scalars['String']['input'];
+  content?: InputMaybe<Scalars['String']['input']>;
+  title?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type Mutation = {
@@ -31,10 +31,12 @@ export type Mutation = {
   createNote?: Maybe<Note>;
   /** Delete note by ID belonging to a user of active session */
   deleteNote: Scalars['Boolean']['output'];
-  signIn: Scalars['Boolean']['output'];
-  signOut: Scalars['Boolean']['output'];
-  /** Change session to new index from http-only cookie */
-  switchToSession: Scalars['Boolean']['output'];
+  /** On successful sign in, session id is stored in a http-only cookie. Index of that id is returned. If couldn't sign in, -1 is returned instead. */
+  signIn: Scalars['Int']['output'];
+  /** Returns signed out cookie session index or -1 was not signed in. */
+  signOut: Scalars['Int']['output'];
+  /** Switch session to new index which is tied to http-only session cookie. Returns switched to session index. */
+  switchToSession: Scalars['Int']['output'];
   /** Update note by ID belonging to a user of active session */
   updateNote: Scalars['Boolean']['output'];
 };
@@ -67,13 +69,11 @@ export type MutationupdateNoteArgs = {
 export type Note = {
   __typename?: 'Note';
   /** Note text contents */
-  content: Scalars['String']['output'];
+  content?: Maybe<Scalars['String']['output']>;
   /** Note unique ID */
   id: Scalars['ID']['output'];
   /** Note title */
-  title: Scalars['String']['output'];
-  /** User who owns this note */
-  userId: Scalars['ID']['output'];
+  title?: Maybe<Scalars['String']['output']>;
 };
 
 export type Query = {
@@ -120,9 +120,9 @@ export type Subscription = {
 };
 
 export type UpdateNoteInput = {
-  content: Scalars['String']['input'];
+  content?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
-  title: Scalars['String']['input'];
+  title?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type User = {
@@ -245,17 +245,16 @@ export type authDirectiveResolver<Result, Parent, ContextType = GraphQLResolvers
 export type MutationResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   createNote?: Resolver<Maybe<ResolversTypes['Note']>, ParentType, ContextType, RequireFields<MutationcreateNoteArgs, 'input'>>;
   deleteNote?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationdeleteNoteArgs, 'id'>>;
-  signIn?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationsignInArgs, 'input'>>;
-  signOut?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  switchToSession?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationswitchToSessionArgs, 'index'>>;
+  signIn?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<MutationsignInArgs, 'input'>>;
+  signOut?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  switchToSession?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<MutationswitchToSessionArgs, 'index'>>;
   updateNote?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationupdateNoteArgs, 'input'>>;
 };
 
 export type NoteResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['Note'] = ResolversParentTypes['Note']> = {
-  content?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  content?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  userId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 

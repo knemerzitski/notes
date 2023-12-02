@@ -3,23 +3,23 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { Box, IconButton, Paper, Toolbar } from '@mui/material';
 import { useParams, useLocation, Location } from 'react-router-dom';
 
-import { Note } from '../../__generated__/graphql';
 import AppBar from '../../components/appbar/AppBar';
 import RouteSnackbarError from '../../components/feedback/RouteSnackbarError';
 import { useSnackbarError } from '../../components/feedback/SnackbarAlertProvider';
 import BorderlessTextField from '../../components/inputs/BorderlessTextField';
 import useIsScrollEnd from '../../hooks/useIsScrollEnd';
 import NoteToolbar from '../../notes/NoteToolbar';
-import GET_NOTE from '../../notes/graphql/GET_NOTE';
-import useDeleteNote from '../../notes/graphql/useDeleteNote';
-import useUpdateNote from '../../notes/graphql/useUpdateNote';
 import { useProxyNavigate } from '../../router/ProxyRoutesProvider';
+import { Note } from '../../schema/__generated__/graphql';
+import GET_NOTE from '../../schema/notes/documents/GET_NOTE';
+import useDeleteNote from '../../schema/notes/hooks/useDeleteNote';
+import useUpdateNote from '../../schema/notes/hooks/useUpdateNote';
 
 export default function EditNotePage() {
   const params = useParams<'id'>();
   const navigate = useProxyNavigate();
 
-  const location = useLocation() as Location<{ autoFocus?: boolean }>;
+  const location = useLocation() as Location<{ autoFocus?: unknown } | undefined>;
 
   const showError = useSnackbarError();
 
@@ -34,13 +34,13 @@ export default function EditNotePage() {
     },
   });
 
-  if (!params.id) {
-    return <RouteSnackbarError>Invalid route. Id not found!</RouteSnackbarError>;
+  if (!params.id || !data.note) {
+    return <RouteSnackbarError>{`Note '${params.id}' not found`}</RouteSnackbarError>;
   }
 
   const note = data.note;
 
-  const autoFocus = Boolean(location.state.autoFocus);
+  const autoFocus = Boolean(location.state?.autoFocus);
 
   async function handleNoteChange(updatedNote: Omit<Note, 'id'>) {
     if (

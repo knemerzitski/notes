@@ -3,10 +3,10 @@ import { CssBaseline, ThemeProvider, createTheme, useMediaQuery } from '@mui/mat
 import { createContext, useCallback, useContext, useMemo } from 'react';
 
 import GlobalStyles from './GlobalStyles';
-import { gql } from './__generated__';
-import { ColorMode } from './__generated__/graphql';
-import apolloClient from './graphql/apolloClient';
 import RouterProvider from './router/RouterProvider';
+import { gql } from './schema/__generated__/gql';
+import { ColorMode } from './schema/__generated__/graphql';
+import { apolloClient } from './schema/apollo-client';
 import themeOptions from './themeOptions';
 
 const ColorModeContext = createContext({

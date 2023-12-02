@@ -1,12 +1,12 @@
 import { Dialog } from '@mui/material';
 import { useRef } from 'react';
 
-import { Note } from '../__generated__/graphql';
 import { useSnackbarError } from '../components/feedback/SnackbarAlertProvider';
+import { Note } from '../schema/__generated__/graphql';
+import useDeleteNote from '../schema/notes/hooks/useDeleteNote';
+import useUpdateNote from '../schema/notes/hooks/useUpdateNote';
 
 import NoteEditor from './NoteEditor';
-import useDeleteNote from './graphql/useDeleteNote';
-import useUpdateNote from './graphql/useUpdateNote';
 
 export default function EditNoteDialog({
   note,

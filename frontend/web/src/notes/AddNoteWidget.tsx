@@ -1,12 +1,12 @@
 import { ClickAwayListener, Paper, PaperProps } from '@mui/material';
 import { useState } from 'react';
 
-import { Note } from '../__generated__/graphql';
 import { useSnackbarError } from '../components/feedback/SnackbarAlertProvider';
 import BorderlessTextField from '../components/inputs/BorderlessTextField';
+import { Note } from '../schema/__generated__/graphql';
+import useCreateNote from '../schema/notes/hooks/useCreateNote';
 
 import NoteEditor from './NoteEditor';
-import useInsertNote from './graphql/useInsertNote';
 
 const contentFieldPlaceholder = 'Take a note...';
 
@@ -16,7 +16,7 @@ export default function AddNoteWidget(props: PaperProps) {
     content: '',
   });
   const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const insertNote = useInsertNote();
+  const createNote = useCreateNote();
 
   const showError = useSnackbarError();
 
@@ -43,8 +43,9 @@ export default function AddNoteWidget(props: PaperProps) {
   }
 
   async function handleOnClose() {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (note.title || note.content) {
-      if ((await insertNote(note.title, note.content)) == null) {
+      if ((await createNote(note.title ?? '', note.content ?? '')) == null) {
         showError('Failed to create note');
         return;
       }
@@ -104,7 +105,9 @@ export default function AddNoteWidget(props: PaperProps) {
               onDelete={() => {
                 return Promise.resolve(handleDeleteNote());
               }}
-              onClose={void handleOnClose}
+              onClose={() => {
+                void handleOnClose();
+              }}
               slotProps={{
                 contentField: {
                   placeholder: contentFieldPlaceholder,

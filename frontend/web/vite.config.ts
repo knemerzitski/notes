@@ -7,4 +7,12 @@ export default defineConfig({
   build: {
     outDir: 'out',
   },
+  envDir: '../../',
+  server: {
+    proxy: {
+      '/graphql': 'http://192.168.1.80:4000/graphql',
+    },
+    // https://vitejs.dev/config/server-options.html
+    // TODO proxy ws?
+  },
 });

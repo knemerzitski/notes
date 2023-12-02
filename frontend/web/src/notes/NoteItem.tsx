@@ -1,11 +1,11 @@
 import { Paper, PaperProps, Typography, useTheme } from '@mui/material';
 import { useRef, useState } from 'react';
 
-import { Note } from '../__generated__/graphql';
 import {
   useProxyIsAbsolutePathname,
   useProxyNavigate,
 } from '../router/ProxyRoutesProvider';
+import { Note } from '../schema/__generated__/graphql';
 
 import NoteToolbar from './NoteToolbar';
 

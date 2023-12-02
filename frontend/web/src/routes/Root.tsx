@@ -31,7 +31,7 @@ function CommonRoutes({ children, ...restProps }: RoutesProps) {
       <Route path="*" element={<Main />}>
         <Route index element={<NotesMain />} />
         <Route
-          path="test"
+          path="extra"
           element={
             <>
               test content and <NotesMain />

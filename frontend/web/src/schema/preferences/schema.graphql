@@ -1,0 +1,17 @@
+enum ColorMode {
+  LIGHT
+  DARK
+}
+
+type Preferences {
+  colorMode: ColorMode
+}
+
+extend type Query {
+  "Get user preferences, such as color mode"
+  preferences: Preferences
+}
+
+extend type Mutation {
+  updateColorMode(colorMode: ColorMode!): Boolean!
+}

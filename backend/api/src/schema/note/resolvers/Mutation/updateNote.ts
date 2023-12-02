@@ -29,7 +29,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
 
   const updatedNote: Note = {
     id,
-    userId,
+    //userId,
     title,
     content,
   };

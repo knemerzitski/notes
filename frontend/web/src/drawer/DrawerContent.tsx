@@ -33,11 +33,11 @@ export function DrawerContent({ onClose, ...restProps }: DrawerContentProps) {
     },
     {
       icon: <QuizIcon />,
-      text: 'Test',
+      text: 'Extra',
       onClick: () => {
-        navigate('/test');
+        navigate('/extra');
       },
-      active: useProxyIsPathname('/test'),
+      active: useProxyIsPathname('/extra'),
     },
   ];
 

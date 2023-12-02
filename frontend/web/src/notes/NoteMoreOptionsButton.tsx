@@ -99,7 +99,11 @@ export default function NoteMoreOptionsButton({
           }}
         >
           <MenuList aria-labelledby={anchorEl?.id}>
-            <MenuItem onClick={void handleDeleteClick}>
+            <MenuItem
+              onClick={(e) => {
+                void handleDeleteClick(e);
+              }}
+            >
               <ListItemIcon>
                 <DeleteIcon fontSize="small" />
               </ListItemIcon>
@@ -127,7 +131,11 @@ export default function NoteMoreOptionsButton({
             e.stopPropagation();
           }}
         >
-          <MenuItem onClick={void handleDeleteClick}>
+          <MenuItem
+            onClick={(e) => {
+              void handleDeleteClick(e);
+            }}
+          >
             <ListItemIcon>
               <DeleteIcon fontSize="small" />
             </ListItemIcon>

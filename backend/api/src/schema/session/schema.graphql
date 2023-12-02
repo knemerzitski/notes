@@ -22,9 +22,11 @@ extend type Query {
 }
 
 extend type Mutation {
-  signIn(input: SignInInput!): Boolean!
-  signOut: Boolean! @auth
+  "On successful sign in, session id is stored in a http-only cookie. Index of that id is returned. If couldn't sign in, -1 is returned instead."
+  signIn(input: SignInInput!): Int!
+  "Returns signed out cookie session index or -1 was not signed in."
+  signOut: Int! @auth
 
-  "Change session to new index from http-only cookie"
-  switchToSession(index: Int!): Boolean! @auth
+  "Switch session to new index which is tied to http-only session cookie. Returns switched to session index."
+  switchToSession(index: Int!): Int! @auth
 }

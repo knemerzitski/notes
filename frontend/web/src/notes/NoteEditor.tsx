@@ -1,11 +1,11 @@
 import { Box, Button } from '@mui/material';
 import { useState } from 'react';
 
-import { Note } from '../__generated__/graphql';
 import BorderlessTextField, {
   BorderlessTextFieldProps,
 } from '../components/inputs/BorderlessTextField';
 import useIsElementScrollEnd from '../hooks/useIsElementScrollEnd';
+import { Note } from '../schema/__generated__/graphql';
 
 import NoteToolbar from './NoteToolbar';
 

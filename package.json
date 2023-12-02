@@ -20,7 +20,7 @@
     "mongo-express:stop": "cd ./backend/mocks/mongo-express && docker compose down",
     "db:start": "npm run dynamodb:start & npm run mongodb:start",
     "db:stop": "npm run dynamodb:stop & npm run mongodb:stop",
-    "api:dev": "npm run -w mock-server dev",
+    "api:dev": "npm run -w mock-server dev & npm run -w api graphql:watch",
     "app:dev": "npm run -w app dev",
     "dev": "npm run api:dev & npm run app:dev"
   },
