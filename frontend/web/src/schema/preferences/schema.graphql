@@ -3,7 +3,9 @@ enum ColorMode {
   DARK
 }
 
+# eslint-disable-next-line @graphql-eslint/strict-id-in-types
 type Preferences {
+  "Color mode of the app"
   colorMode: ColorMode
 }
 
@@ -13,5 +15,6 @@ extend type Query {
 }
 
 extend type Mutation {
+  "Updates user preferred color mode"
   updateColorMode(colorMode: ColorMode!): Boolean!
 }

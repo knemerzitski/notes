@@ -22,7 +22,8 @@
     "db:stop": "npm run dynamodb:stop & npm run mongodb:stop",
     "api:dev": "npm run -w mock-server dev & npm run -w api graphql:watch",
     "app:dev": "npm run -w app dev",
-    "dev": "npm run api:dev & npm run app:dev"
+    "dev": "npm run api:dev & npm run app:dev",
+    "graphql:compile": "npm run graphql:compile --workspaces --if-present"
   },
   "validate-branch-name": {
     "pattern": "^main$|^[\\w]+\\/\\S+$",
@@ -30,10 +31,12 @@
   },
   "dependencies": {
     "@commitlint/config-conventional": "^18.4.2",
+    "@graphql-eslint/eslint-plugin": "^3.20.1",
     "commitlint": "^18.4.2",
     "eslint": "^8.53.0",
     "eslint-import-resolver-typescript": "^3.6.1",
     "eslint-plugin-import": "^2.29.0",
+    "graphql": "^16.8.1",
     "husky": "^8.0.3",
     "lint-staged": "^15.1.0",
     "prettier": "^3.1.0",

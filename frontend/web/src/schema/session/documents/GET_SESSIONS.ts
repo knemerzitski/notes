@@ -1,7 +1,7 @@
 import { gql } from '../../__generated__/gql';
 
 const GET_SESSIONS = gql(`
-  query SessionQuery {
+  query ClientSessions {
 
     clientSessions @client {
       __typename

@@ -1,13 +1,17 @@
 type LocalSession {
   "Generated id for local session"
   id: ID!
+  "Displayed name"
   displayName: String!
 }
 
+# eslint-disable-next-line @graphql-eslint/strict-id-in-types
 type RemoteSession {
   "Index of session stored in http-only cookie"
   cookieIndex: Int!
+  # eslint-disable-next-line @graphql-eslint/require-description
   displayName: String!
+  "Email tied to current session"
   email: String!
 }
 

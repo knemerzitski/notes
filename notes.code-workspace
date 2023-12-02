@@ -4,5 +4,10 @@
       "path": "."
     }
   ],
-  "settings": {}
+  "settings": {
+    "search.exclude": {
+      "**/node_modules": true
+    },
+    "eslint.validate": ["graphql"]
+  }
 }

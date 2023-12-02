@@ -26,7 +26,7 @@ const documents = {
     "\n  mutation CreateLocalSession($displayName: String!)  {\n    createLocalSession(displayName: $displayName) @client\n  }\n": types.CreateLocalSessionDocument,
     "\n  mutation CreateRemoteSession($input: RemoteSessionInput!)  {\n    createRemoteSession(input: $input) @client\n  }\n": types.CreateRemoteSessionDocument,
     "\n  mutation DeleteClientSession($index: Int!)  {\n    deleteClientSession(index: $index) @client\n  }\n": types.DeleteClientSessionDocument,
-    "\n  query SessionQuery {\n\n    clientSessions @client {\n      __typename\n      ... on LocalSession {\n        id\n        displayName\n      }\n      ... on RemoteSession {\n        cookieIndex\n        displayName\n        email\n      }\n    }\n\n    activeClientSessionIndex @client\n  }\n": types.SessionQueryDocument,
+    "\n  query ClientSessions {\n\n    clientSessions @client {\n      __typename\n      ... on LocalSession {\n        id\n        displayName\n      }\n      ... on RemoteSession {\n        cookieIndex\n        displayName\n        email\n      }\n    }\n\n    activeClientSessionIndex @client\n  }\n": types.ClientSessionsDocument,
     "\n  mutation SignIn($input: SignInInput!)  {\n    signIn(input: $input)\n  }\n": types.SignInDocument,
     "\n  mutation SignOut {\n    signOut\n  }\n": types.SignOutDocument,
     "\n  mutation SwitchToClientSession($index: Int!)  {\n    switchToClientSession(index: $index) @client\n  }\n": types.SwitchToClientSessionDocument,
@@ -101,7 +101,7 @@ export function gql(source: "\n  mutation DeleteClientSession($index: Int!)  {\n
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n  query SessionQuery {\n\n    clientSessions @client {\n      __typename\n      ... on LocalSession {\n        id\n        displayName\n      }\n      ... on RemoteSession {\n        cookieIndex\n        displayName\n        email\n      }\n    }\n\n    activeClientSessionIndex @client\n  }\n"): (typeof documents)["\n  query SessionQuery {\n\n    clientSessions @client {\n      __typename\n      ... on LocalSession {\n        id\n        displayName\n      }\n      ... on RemoteSession {\n        cookieIndex\n        displayName\n        email\n      }\n    }\n\n    activeClientSessionIndex @client\n  }\n"];
+export function gql(source: "\n  query ClientSessions {\n\n    clientSessions @client {\n      __typename\n      ... on LocalSession {\n        id\n        displayName\n      }\n      ... on RemoteSession {\n        cookieIndex\n        displayName\n        email\n      }\n    }\n\n    activeClientSessionIndex @client\n  }\n"): (typeof documents)["\n  query ClientSessions {\n\n    clientSessions @client {\n      __typename\n      ... on LocalSession {\n        id\n        displayName\n      }\n      ... on RemoteSession {\n        cookieIndex\n        displayName\n        email\n      }\n    }\n\n    activeClientSessionIndex @client\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

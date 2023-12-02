@@ -3,7 +3,7 @@ module.exports = {
     project: ['./tsconfig.json'],
     tsconfigRootDir: __dirname,
   },
-  ignorePatterns: ['src/schema/*.generated.ts'],
+  ignorePatterns: ['src/schema/*.generated.ts', 'node_modules'],
   settings: {
     'import/resolver': {
       typescript: {
