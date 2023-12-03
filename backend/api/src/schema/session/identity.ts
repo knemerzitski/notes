@@ -2,7 +2,6 @@ import { Connection } from 'mongoose';
 
 import { isArray } from '~common/isArray';
 
-import { tryRefreshExpireAt } from './expire';
 import { SessionSchema } from './mongoose';
 
 /**
@@ -30,14 +29,20 @@ export interface Identity {
 
 export async function getIdentityFromHeaders(
   mongoose: Connection,
-  headers: Readonly<Record<string, string | undefined>>
+  headers: Readonly<Record<string, string | undefined>>,
+  tryRefreshExpireAt: (expireAt: Date) => boolean = () => false
 ) {
-  return getIdentityFromCookies(mongoose, parseCookiesFromHeaders(headers));
+  return getIdentityFromCookies(
+    mongoose,
+    parseCookiesFromHeaders(headers),
+    tryRefreshExpireAt
+  );
 }
 
 async function getIdentityFromCookies(
   mongoose: Connection,
-  cookies: Readonly<Record<string, string>>
+  cookies: Readonly<Record<string, string>>,
+  tryRefreshExpireAt: (expireAt: Date) => boolean = () => false
 ): Promise<Identity | undefined> {
   if (!('ActiveSessionIndex' in cookies)) {
     return; // Invalid session index

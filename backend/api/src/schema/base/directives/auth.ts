@@ -11,7 +11,11 @@ export const auth: NonNullable<DirectiveResolvers['auth']> = async (
   ctx
 ) => {
   if (!ctx.auth) {
-    ctx.auth = await getIdentityFromHeaders(ctx.mongoose, ctx.request.headers);
+    ctx.auth = await getIdentityFromHeaders(
+      ctx.mongoose,
+      ctx.request.headers,
+      ctx.session.tryRefreshExpireAt
+    );
   }
 
   return next();

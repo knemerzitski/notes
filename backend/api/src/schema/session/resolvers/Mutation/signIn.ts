@@ -1,6 +1,5 @@
 import type { MutationResolvers } from '../../../types.generated';
 import { UserSchema } from '../../../user/mongoose';
-import { newExpireAt } from '../../expire';
 import { getIdentityFromHeaders } from '../../identity';
 import { SessionSchema } from '../../mongoose';
 
@@ -9,7 +8,7 @@ export const SECURE_SET_COOKIE = process.env.NODE_ENV === 'production' ? '; Secu
 export const signIn: NonNullable<MutationResolvers['signIn']> = async (
   _parent,
   _arg,
-  { mongoose, request, response }
+  { mongoose, session, request, response }
 ) => {
   // TODO verify token by using auth provdier
   const googleUserId = _arg.input.token; //'test-google-id';
@@ -39,7 +38,7 @@ export const signIn: NonNullable<MutationResolvers['signIn']> = async (
 
   const newSession = new SessionModel({
     userId: existingUser._id,
-    expireAt: newExpireAt(),
+    expireAt: session.newExpireAt(),
   });
 
   await newSession.save();

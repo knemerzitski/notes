@@ -11,6 +11,7 @@ import {
   GraphQLResolversContext,
   createErrorBaseSubscriptionResolversContext,
 } from '~api/schema/context';
+import { newExpireAt, tryRefreshExpireAt } from '~api/schema/session/expire';
 import { createLogger } from '~common/logger';
 import { createApolloHttpHandler } from '~lambda-graphql/apollo-http-handler';
 import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
@@ -106,6 +107,10 @@ void (async () => {
 
           return {
             mongoose,
+            session: {
+              newExpireAt,
+              tryRefreshExpireAt,
+            },
             subscribe: () => {
               throw new Error('Subscribe should never be called in apollo-http-handler');
             },

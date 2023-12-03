@@ -15,6 +15,7 @@ import {
   createDefaultMongooseContext,
 } from './handler-params';
 import { BaseGraphQLContext, GraphQLResolversContext } from './schema/context';
+import { newExpireAt, tryRefreshExpireAt } from './schema/session/expire';
 
 export function createDefaultParams(): CreateApolloHttpHandlerParams<
   Omit<GraphQLResolversContext, keyof ApolloHttpGraphQLContext>,
@@ -34,6 +35,10 @@ export function createDefaultParams(): CreateApolloHttpHandlerParams<
 
       return {
         mongoose,
+        session: {
+          newExpireAt,
+          tryRefreshExpireAt,
+        },
         subscribe: () => {
           throw new Error('Subscribe should never be called in apollo-http-handler');
         },

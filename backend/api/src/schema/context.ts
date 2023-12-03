@@ -12,6 +12,18 @@ export type BaseGraphQLContext = {
 
 export interface MongooseGraphQLContext {
   mongoose: Connection;
+  session: {
+    /**
+     * @returns Fresh Date object with time set to maximum session duration
+     */
+    newExpireAt: () => Date;
+    /**
+     * Attempts to refresh if it's below threshold
+     * @param expireAt Date session instance to refresh
+     * @returns  was {@link expireAt} changed
+     */
+    tryRefreshExpireAt: (expireAt: Date) => boolean;
+  };
 }
 
 export type GraphQLResolversContext = ApolloHttpGraphQLContext &
