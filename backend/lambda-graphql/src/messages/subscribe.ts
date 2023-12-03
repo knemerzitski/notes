@@ -1,4 +1,4 @@
-import { OperationTypeNode, parse } from 'graphql';
+import { GraphQLError, OperationTypeNode, parse } from 'graphql';
 import { buildExecutionContext } from 'graphql/execution/execute';
 import { MessageType } from 'graphql-ws';
 
@@ -122,7 +122,19 @@ export function createSubscribeHandler<
         connectionId,
         message,
       });
-      throw err;
+      // Post GraphQLError
+      if (err instanceof GraphQLError) {
+        return context.socketApi.post({
+          ...event.requestContext,
+          message: {
+            type: MessageType.Error,
+            id: message.id,
+            payload: [err],
+          },
+        });
+      } else {
+        throw err;
+      }
     }
   };
 }
