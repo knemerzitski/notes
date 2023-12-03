@@ -1,4 +1,6 @@
+import transformDocument from '../../../utils/transformDocument';
 import { gql } from '../../__generated__/gql';
+import { sessionDocumentTransform } from '../../session/directives/session';
 
 const UPDATE_NOTE = gql(`
   mutation UpdateNote($input: UpdateNoteInput!)  {
@@ -6,4 +8,4 @@ const UPDATE_NOTE = gql(`
   }
 `);
 
-export default UPDATE_NOTE;
+export default () => transformDocument(sessionDocumentTransform, UPDATE_NOTE);

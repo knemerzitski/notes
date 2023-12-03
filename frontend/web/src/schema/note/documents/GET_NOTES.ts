@@ -1,4 +1,6 @@
+import transformDocument from '../../../utils/transformDocument';
 import { gql } from '../../__generated__/gql';
+import { sessionDocumentTransform } from '../../session/directives/session';
 
 const GET_NOTES = gql(`
   query Notes {
@@ -10,4 +12,4 @@ const GET_NOTES = gql(`
   }
 `);
 
-export default GET_NOTES;
+export default () => transformDocument(sessionDocumentTransform, GET_NOTES);

@@ -5,10 +5,7 @@ import { Kind, OperationTypeNode } from 'graphql';
 import { createClient } from 'graphql-ws';
 
 import { resolvers } from './resolvers';
-import { sessionDocumentTransform } from './session/directives/session';
 import typePolicies from './typePolicies';
-
-console.log(import.meta.env.MODE);
 
 const HTTP_URL =
   import.meta.env.MODE === 'production'
@@ -47,6 +44,5 @@ export const apolloClient = new ApolloClient({
   cache: new InMemoryCache({
     typePolicies,
   }),
-  documentTransform: sessionDocumentTransform,
   resolvers,
 });

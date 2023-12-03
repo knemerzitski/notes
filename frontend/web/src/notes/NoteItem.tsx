@@ -1,5 +1,5 @@
 import { Paper, PaperProps, Typography, useTheme } from '@mui/material';
-import { useRef, useState } from 'react';
+import { startTransition, useRef, useState } from 'react';
 
 import {
   useProxyIsAbsolutePathname,
@@ -38,7 +38,9 @@ export default function NoteItem({
   function handleEditNote() {
     noteBeforeEditRef.current = note;
 
-    navigate(`/note/${note.id}`);
+    startTransition(() => {
+      navigate(`/note/${note.id}`);
+    });
   }
 
   return (

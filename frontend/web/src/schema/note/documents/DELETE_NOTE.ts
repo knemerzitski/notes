@@ -1,4 +1,6 @@
+import transformDocument from '../../../utils/transformDocument';
 import { gql } from '../../__generated__/gql';
+import { sessionDocumentTransform } from '../../session/directives/session';
 
 const DELETE_NOTE = gql(`
   mutation DeleteNote($id: ID!) {
@@ -6,4 +8,4 @@ const DELETE_NOTE = gql(`
   }
 `);
 
-export default DELETE_NOTE;
+export default () => transformDocument(sessionDocumentTransform, DELETE_NOTE);

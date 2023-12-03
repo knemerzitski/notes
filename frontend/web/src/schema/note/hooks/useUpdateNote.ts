@@ -1,14 +1,12 @@
-import { useApolloClient, useMutation } from '@apollo/client';
+import { useMutation } from '@apollo/client';
 
 import { Note } from '../../__generated__/graphql';
-import transformDocument from '../../transformDocument';
 import GET_NOTE from '../documents/GET_NOTE';
 import GET_NOTES from '../documents/GET_NOTES';
 import UPDATE_NOTE from '../documents/UPDATE_NOTE';
 
 export default function useUpdateNote(): (note: Note) => Promise<boolean> {
-  const apolloClient = useApolloClient();
-  const [updateNote] = useMutation(UPDATE_NOTE);
+  const [updateNote] = useMutation(UPDATE_NOTE());
 
   return async (note) => {
     const result = await updateNote({
@@ -22,7 +20,7 @@ export default function useUpdateNote(): (note: Note) => Promise<boolean> {
         if (!data?.updateNote) return;
 
         cache.writeQuery({
-          query: transformDocument(apolloClient, GET_NOTE),
+          query: GET_NOTE(),
           data: {
             note,
           },
@@ -33,7 +31,7 @@ export default function useUpdateNote(): (note: Note) => Promise<boolean> {
 
         cache.updateQuery(
           {
-            query: transformDocument(apolloClient, GET_NOTES),
+            query: GET_NOTES(),
           },
           (cacheData) => {
             if (!cacheData?.notes) return;

@@ -14,7 +14,7 @@ import useDeleteNote from '../schema/note/hooks/useDeleteNote';
 import NoteItem from './NoteItem';
 
 export default function NotesList(props: GridProps) {
-  const { data: notesData, loading, error, subscribeToMore } = useQuery(GET_NOTES);
+  const { data: notesData, loading, error, subscribeToMore } = useQuery(GET_NOTES());
 
   const deleteNote = useDeleteNote();
 
@@ -23,14 +23,14 @@ export default function NotesList(props: GridProps) {
   useEffect(() => {
     subscribeToMore({
       document: NOTE_CREATED,
-      updateQuery(prev, { subscriptionData }) {
-        if (!prev.notes) return prev;
-        const { notes } = prev;
+      updateQuery(cache, { subscriptionData }) {
+        let { notes } = cache;
+        if (!notes) notes = [];
 
         const newNote = subscriptionData.data.noteCreated;
 
         if (notes.some((cachedNote) => cachedNote.id === newNote.id)) {
-          return prev;
+          return cache;
         }
 
         return {
@@ -42,8 +42,8 @@ export default function NotesList(props: GridProps) {
     subscribeToMore({
       document: NOTE_UPDATED,
       updateQuery(cache, { subscriptionData }) {
-        if (!cache.notes) return cache;
-        const { notes } = cache;
+        let { notes } = cache;
+        if (!notes) notes = [];
 
         const updatedNote = subscriptionData.data.noteUpdated;
 
@@ -58,8 +58,8 @@ export default function NotesList(props: GridProps) {
     subscribeToMore({
       document: NOTE_DELETED,
       updateQuery(cache, { subscriptionData }) {
-        if (!cache.notes) return cache;
-        const { notes } = cache;
+        let { notes } = cache;
+        if (!notes) notes = [];
 
         const deletedId = subscriptionData.data.noteDeleted;
 

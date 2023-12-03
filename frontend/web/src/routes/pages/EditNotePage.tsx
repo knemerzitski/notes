@@ -1,6 +1,7 @@
 import { useSuspenseQuery } from '@apollo/client';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { Box, IconButton, Paper, Toolbar } from '@mui/material';
+import { useEffect } from 'react';
 import { useParams, useLocation, Location } from 'react-router-dom';
 
 import AppBar from '../../components/appbar/AppBar';
@@ -12,6 +13,7 @@ import NoteToolbar from '../../notes/NoteToolbar';
 import { useProxyNavigate } from '../../router/ProxyRoutesProvider';
 import { Note } from '../../schema/__generated__/graphql';
 import GET_NOTE from '../../schema/note/documents/GET_NOTE';
+import NOTE_UPDATED from '../../schema/note/documents/NOTE_UPDATED';
 import useDeleteNote from '../../schema/note/hooks/useDeleteNote';
 import useUpdateNote from '../../schema/note/hooks/useUpdateNote';
 
@@ -28,11 +30,23 @@ export default function EditNotePage() {
   const updateNote = useUpdateNote();
   const deleteNote = useDeleteNote();
 
-  const { data } = useSuspenseQuery(GET_NOTE, {
+  const { data, subscribeToMore } = useSuspenseQuery(GET_NOTE(), {
     variables: {
       id: params.id ?? '',
     },
   });
+
+  useEffect(() => {
+    subscribeToMore({
+      document: NOTE_UPDATED,
+      updateQuery(_cache, { subscriptionData }) {
+        const updatedNote = subscriptionData.data.noteUpdated;
+        return {
+          note: updatedNote,
+        };
+      },
+    });
+  }, [subscribeToMore]);
 
   if (!params.id || !data.note) {
     return <RouteSnackbarError>{`Note '${params.id}' not found`}</RouteSnackbarError>;
