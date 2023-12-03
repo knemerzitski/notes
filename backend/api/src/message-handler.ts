@@ -8,6 +8,7 @@ import {
 
 import {
   createDefaultApiGatewayParams,
+  createDefaultDynamoDBConnectionTtlContext,
   createDefaultDynamoDBParams,
   createDefaultSubscriptionGraphQLParams,
 } from './handler-params';
@@ -25,6 +26,7 @@ export function createDefaultParams(): WebSocketMessageHandlerParams<
   const logger = createLogger(name);
 
   return {
+    connection: createDefaultDynamoDBConnectionTtlContext(),
     logger,
     dynamoDB: createDefaultDynamoDBParams(logger),
     apiGateway: createDefaultApiGatewayParams(logger),

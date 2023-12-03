@@ -33,6 +33,20 @@ export function createSubscribeHandler<
         throw new Error('Missing connection record in DB');
       }
 
+      // Refresh TTL if it will expire soon
+      const ttl = context.connection.tryRefreshTtl(connection.ttl);
+      const ttlRefreshPromise =
+        ttl !== connection.ttl
+          ? context.models.connections.update(
+              {
+                id: connectionId,
+              },
+              {
+                ttl,
+              }
+            )
+          : Promise.resolve();
+
       const document = parse(message.payload.query);
 
       const errors = validateQuery({
@@ -117,6 +131,9 @@ export function createSubscribeHandler<
         onAfterSubscribe: !!onAfterSubscribe,
       });
       await onAfterSubscribe?.();
+
+      // Wait for Connection TTL refresh to be done if needed
+      await ttlRefreshPromise;
     } catch (err) {
       context.logger.error('messages:subscribe:error', err as Error, {
         connectionId,

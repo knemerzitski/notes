@@ -9,6 +9,7 @@ import {
 } from '~lambda-graphql/connect-handler';
 
 import {
+  createDefaultDynamoDBConnectionTtlContext,
   createDefaultDynamoDBParams,
   createDefaultMongooseContext,
 } from './handler-params';
@@ -42,9 +43,7 @@ export function createDefaultParams(): WebSocketConnectHandlerParams<BaseGraphQL
       }
       return handleConnectGraphQLAuth(mongoose, event);
     },
-    defaultTtl() {
-      return Math.floor(Date.now() / 1000) + 1 * 60 * 60; // in seconds, 1 hour
-    },
+    connection: createDefaultDynamoDBConnectionTtlContext(),
   };
 }
 

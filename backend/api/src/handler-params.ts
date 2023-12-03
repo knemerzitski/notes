@@ -6,8 +6,10 @@ import { Logger } from '~common/logger';
 import { ApiGatewayContextParams } from '~lambda-graphql/context/apigateway';
 import { DynamoDBContextParams } from '~lambda-graphql/context/dynamodb';
 import { GraphQLContextParams } from '~lambda-graphql/context/graphql';
+import { ConnectionTtlContext } from '~lambda-graphql/dynamodb/models/connection';
 
 import { createMongooseContext } from './context/mongoose';
+import { defaultTtl, tryRefreshTtl } from './dynamodb/connection-ttl';
 import { applyDirectives, applySubscriptionDirectives } from './schema/directives';
 import mongooseSchema from './schema/mongooseSchema';
 import { resolvers } from './schema/resolvers.generated';
@@ -109,6 +111,13 @@ export function createDefaultDynamoDBParams(logger: Logger): DynamoDBContextPara
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       subscriptions: process.env.DYNAMODB_SUBSCRIPTIONS_TABLE_NAME!,
     },
+  };
+}
+
+export function createDefaultDynamoDBConnectionTtlContext(): ConnectionTtlContext {
+  return {
+    defaultTtl,
+    tryRefreshTtl,
   };
 }
 

@@ -5,6 +5,7 @@ import { Connection } from 'mongoose';
 import WebSocket from 'ws';
 
 import { handleConnectGraphQLAuth } from '~api/connect-handler';
+import { createDefaultDynamoDBConnectionTtlContext } from '~api/handler-params';
 import {
   BaseGraphQLContext,
   BaseSubscriptionResolversContext,
@@ -59,15 +60,13 @@ void (async () => {
       sockets,
       connectHandler: createWebSocketConnectHandler<BaseGraphQLContext>({
         logger: createLogger('mock:websocket-connect-handler'),
+        connection: createDefaultDynamoDBConnectionTtlContext(),
         dynamoDB: createMockDynamoDBParams(),
         async onConnect({ event }) {
           if (!mongoose) {
             mongoose = (await createMockMongooseContext()).connection;
           }
           return handleConnectGraphQLAuth(mongoose, event);
-        },
-        defaultTtl() {
-          return Math.floor(Date.now() / 1000) + 1 * 60 * 60; // in seconds, 1 hour
         },
       }),
       messageHandler: createWebSocketMessageHandler<
@@ -81,6 +80,7 @@ void (async () => {
         graphQLContext: createErrorBaseSubscriptionResolversContext(
           'mock:websocket-message-handler'
         ),
+        connection: createDefaultDynamoDBConnectionTtlContext(),
         //pingpong: createMockPingPongParams(sockets),
       }),
       disconnectHandler: createWebSocketDisconnectHandler<

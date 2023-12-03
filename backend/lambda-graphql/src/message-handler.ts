@@ -29,7 +29,11 @@ import {
   PingPongContextParams,
   createPingPongContext,
 } from './context/pingpong';
-import { ConnectionTable, OnConnectGraphQLContext } from './dynamodb/models/connection';
+import {
+  ConnectionTable,
+  ConnectionTtlContext,
+  OnConnectGraphQLContext,
+} from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
 import { createCompleteHandler } from './messages/complete';
 import { createConnectionInitHandler } from './messages/connection_init';
@@ -41,6 +45,7 @@ interface DirectParams<
   TGraphQLContext,
   TOnConnectGraphQLContext extends OnConnectGraphQLContext,
 > {
+  connection: ConnectionTtlContext;
   graphQLContext: TGraphQLContext;
   logger: Logger;
 

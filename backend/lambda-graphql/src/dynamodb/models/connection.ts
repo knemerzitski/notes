@@ -16,7 +16,13 @@ export interface Connection<TOnConnectGraphQLContext extends OnConnectGraphQLCon
   requestContext: APIGatewayEventWebsocketRequestContextV2;
   onConnectGraphQLContext?: TOnConnectGraphQLContext;
   hasPonged: boolean;
+  // Time to live in seconds, after which record is deleted
   ttl: number;
+}
+
+export interface ConnectionTtlContext {
+  defaultTtl: () => number;
+  tryRefreshTtl: (ttl: number) => number;
 }
 
 export type ConnectionTable<TOnConnectGraphQLContext extends OnConnectGraphQLContext> =

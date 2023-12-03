@@ -11,11 +11,15 @@ import { Logger } from '~common/logger';
 import { Maybe, MaybePromise } from '~common/types';
 
 import { DynamoDBContextParams, createDynamoDbContext } from './context/dynamodb';
-import { ConnectionTable, OnConnectGraphQLContext } from './dynamodb/models/connection';
+import {
+  ConnectionTable,
+  ConnectionTtlContext,
+  OnConnectGraphQLContext,
+} from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
 
 interface DirectParams<TOnConnectGraphQLContext extends OnConnectGraphQLContext> {
-  defaultTtl: () => number;
+  connection: ConnectionTtlContext;
   logger: Logger;
 
   /**
@@ -105,7 +109,8 @@ export function webSocketConnectHandler<
         createdAt: Date.now(),
         requestContext: event.requestContext,
         onConnectGraphQLContext,
-        ttl: context.defaultTtl(),
+        hasPonged: false,
+        ttl: context.connection.defaultTtl(),
       });
 
       return Promise.resolve({
