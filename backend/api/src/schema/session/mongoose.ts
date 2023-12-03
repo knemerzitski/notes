@@ -11,9 +11,11 @@ export const Session = new Schema({
     type: Schema.Types.UUID,
     required: true,
   },
-  // TODO add ttl?, and update if hasnt updated since...
-  // Otherwise session will never be deleted
-  // After every query, update ttl
+  expireAt: {
+    type: Schema.Types.Date,
+    required: true,
+    expires: 0,
+  },
 });
 
 export type SessionSchema = typeof Session;

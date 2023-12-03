@@ -2,6 +2,7 @@ import { Connection } from 'mongoose';
 
 import { isArray } from '~common/isArray';
 
+import { tryRefreshExpireAt } from './expire';
 import { SessionSchema } from './mongoose';
 
 /**
@@ -62,6 +63,13 @@ async function getIdentityFromCookies(
   const session = await Session.findById(sessionId);
   if (!session) {
     return; // Session doesn't exist
+  }
+
+  // Refresh expireAt it's too low
+  const expireAt = new Date(session.expireAt);
+  if (tryRefreshExpireAt(expireAt)) {
+    session.expireAt = expireAt;
+    await session.save();
   }
 
   return {

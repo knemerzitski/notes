@@ -1,5 +1,6 @@
 import type { MutationResolvers } from '../../../types.generated';
 import { UserSchema } from '../../../user/mongoose';
+import { newExpireAt } from '../../expire';
 import { getIdentityFromHeaders } from '../../identity';
 import { SessionSchema } from '../../mongoose';
 
@@ -36,7 +37,11 @@ export const signIn: NonNullable<MutationResolvers['signIn']> = async (
     existingUser = await newUser.save();
   }
 
-  const newSession = new SessionModel({ userId: existingUser._id });
+  const newSession = new SessionModel({
+    userId: existingUser._id,
+    expireAt: newExpireAt(),
+  });
+
   await newSession.save();
   const sessionId = newSession._id.toString();
 
