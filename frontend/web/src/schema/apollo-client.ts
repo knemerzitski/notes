@@ -8,17 +8,25 @@ import { resolvers } from './resolvers';
 import { sessionDocumentTransform } from './session/directives/session';
 import typePolicies from './typePolicies';
 
+console.log(import.meta.env.MODE);
+
+const HTTP_URL =
+  import.meta.env.MODE === 'production'
+    ? import.meta.env.VITE_GRAPHQL_HTTP_URL
+    : `${location.origin}/graphql`;
+
+const WS_URL =
+  import.meta.env.MODE === 'production'
+    ? import.meta.env.VITE_GRAPHQL_WS_URL
+    : `ws://${location.host}/graphql-ws`;
+
 const httpLink = new HttpLink({
-  // TODO add types for vite env vars
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  //uri: import.meta.env.VITE_GRAPHQL_HTTP_URL,
+  uri: HTTP_URL,
 });
 
 const wsLink = new GraphQLWsLink(
   createClient({
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    url: import.meta.env.VITE_GRAPHQL_WS_URL,
-    //url: 'ws://localhost/graphql'
+    url: WS_URL,
   })
 );
 
