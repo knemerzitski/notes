@@ -1,3 +1,4 @@
+# eslint-disable-next-line @graphql-eslint/no-unreachable-types
 type Session {
   "Session ID"
   id: ID!
@@ -11,13 +12,21 @@ enum AuthProvider {
   GOOGLE
 }
 
-type AuthToken {
+input AuthTokenInput {
   token: String!
 }
 
 input SignInInput {
   provider: AuthProvider!
-  credentials: AuthToken!
+  credentials: AuthTokenInput!
+}
+
+# eslint-disable-next-line @graphql-eslint/strict-id-in-types
+type SignInResult {
+  "Index of saved session in http-only cookie"
+  activeSessionIndex: Int!
+  "User settings"
+  userSettings: UserSettings!
 }
 
 extend type Query {
@@ -28,9 +37,9 @@ extend type Query {
 }
 
 extend type Mutation {
-  "On successful sign in, session id is stored in a http-only cookie. Index of that id is returned. If couldn't sign in, -1 is returned instead."
-  signIn(input: SignInInput!): Int!
-  "Returns signed out cookie session index or -1 was not signed in."
+  "On successful sign in, session id is stored in a http-only cookie. Returns null on failed sign in."
+  signIn(input: SignInInput!): SignInResult
+  "Returns signed out http-conly cookie session index or -1 if user was not signed in."
   signOut: Int! @auth
 
   "Switch session to new index which is tied to http-only session cookie. Returns switched to session index."

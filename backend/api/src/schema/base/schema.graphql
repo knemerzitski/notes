@@ -2,7 +2,11 @@ type Query
 type Mutation
 type Subscription
 
+"https://www.apollographql.com/docs/apollo-server/schema/custom-scalars/"
 scalar Date
+
+"int > 0"
+scalar PositiveInt
 
 "Requires user to be authenticated and with access to specific role"
 directive @auth(requires: Role = USER) on OBJECT | FIELD_DEFINITION
@@ -11,6 +15,7 @@ enum Role {
   USER
 }
 
+# eslint-disable-next-line @graphql-eslint/strict-id-in-types
 type Permission {
   "Allow reading"
   read: Boolean!
@@ -20,26 +25,37 @@ type Permission {
   delete: Boolean!
 }
 
+input PermissionInput {
+  "Allow reading"
+  read: Boolean!
+  "Allow writing"
+  write: Boolean!
+  "Allow deletion"
+  delete: Boolean!
+}
+
 interface PageInfo {
+  "Self descriptive"
   hasNextPage: Boolean!
+  "Self descriptive"
   endCursor: String!
 }
 
 interface Node {
+  "Self descriptive"
   id: ID!
 }
 
 interface Edge {
+  "Self descriptive"
   node: Node!
+  "Self descriptive"
   cursor: String!
 }
 
 interface Connection {
+  "Self descriptive"
   pageInfo: PageInfo!
+  "Self descriptive"
   edges: [Edge!]!
-}
-
-type OrderedListItem {
-  "A ordered list item order."
-  order: String!
 }

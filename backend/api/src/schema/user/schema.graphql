@@ -2,16 +2,15 @@
 type User {
   "User unique ID"
   id: ID!
-  "Offline ID to be used to distinguish notes created locally."
-  offlineId: String!
-  "User friendly way to distinguish this user. Can be anything set by the user."
-  displayName: String!
+  "User settings such as displayName"
+  settings: UserSettings!
 }
 
 """
 User information accessible by a query
 """
-type PartialUser {
+type # eslint-disable-next-line @graphql-eslint/strict-id-in-types
+UserSettings {
   "Offline ID to be used to distinguish notes created locally."
   offlineId: String!
   "User friendly way to distinguish this user. Can be anything set by the user."
@@ -20,5 +19,5 @@ type PartialUser {
 
 extend type Query {
   "Currently active user information"
-  activeUser: PartialUser @auth
+  userSettings: UserSettings @auth
 }
