@@ -1,18 +1,23 @@
-# eslint-disable-next-line @graphql-eslint/no-unreachable-types
 type Session {
   "Session ID"
   id: ID!
   "User that is using this session"
-  userId: ID!
+  user: User!
+  "When session expires. As long as user keeps using this session, it will never expire."
+  expireAt: Date!
 }
 
 enum AuthProvider {
   GOOGLE
 }
 
+type AuthToken {
+  token: String!
+}
+
 input SignInInput {
   provider: AuthProvider!
-  token: String!
+  credentials: AuthToken!
 }
 
 extend type Query {

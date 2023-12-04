@@ -2,9 +2,44 @@ type Query
 type Mutation
 type Subscription
 
+scalar Date
+
 "Requires user to be authenticated and with access to specific role"
 directive @auth(requires: Role = USER) on OBJECT | FIELD_DEFINITION
 
 enum Role {
   USER
+}
+
+type Permission {
+  "Allow reading"
+  read: Boolean!
+  "Allow writing"
+  write: Boolean!
+  "Allow deletion"
+  delete: Boolean!
+}
+
+interface PageInfo {
+  hasNextPage: Boolean!
+  endCursor: String!
+}
+
+interface Node {
+  id: ID!
+}
+
+interface Edge {
+  node: Node!
+  cursor: String!
+}
+
+interface Connection {
+  pageInfo: PageInfo!
+  edges: [Edge!]!
+}
+
+type OrderedListItem {
+  "A ordered list item order."
+  order: String!
 }

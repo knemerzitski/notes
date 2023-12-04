@@ -1,45 +1,129 @@
-type Note {
+"""
+Note preferences
+TODO add color?
+"""
+type NotePreferences {
+  list: OrderedListItem!
+}
+
+type NoteSettings {
+  "Note preferences"
+  preferences: NotePreferences!
+  "What user can do with this note."
+  permissions: Permission!
+}
+
+type Note implements Node {
   "Note unique ID"
   id: ID!
-
   "Note title"
   title: String
   "Note text contents"
   content: String
+  "Note data tied to current user"
+  personalSettings: NoteSettings
+}
+
+type NoteConnection implements Connection {
+  notes: [Note!]
+  edges: [NoteEdge!]!
+  pageInfo: PageInfo!
+}
+
+type NoteEdge implements Edge {
+  node: Note!
+  cursor: String!
 }
 
 input CreateNoteInput {
   title: String
   content: String
+  preferences: NotePreferences
 }
 
 input UpdateNoteInput {
   id: ID!
   title: String
   content: String
+  preferences: NotePreferences
+}
+
+"""
+Note shared by a signed in user. Note is accessible by a link generated from an ID.
+"""
+type SharedNote {
+  id: ID!
+  note: Note!
+  expireAt: Date
+}
+
+"Permissions to access shared note for a authenticated user"
+type SharedNoteUserAuthorization {
+  actions: Permission!
+  "How many different users can access this shared note before it becomes unavailable"
+  inviteCount: Int!
+}
+
+type SharedNoteAuthorization {
+  "Permission for a guest user. If not defined then guest is not allowed to access this note."
+  guest: Permission
+  "Permissions for any authenticated user."
+  user: SharedNoteUserAuthorization
+}
+
+input SharedNoteInput {
+  "Note ID to be used in shared link generation"
+  id: ID!
+  authorization: SharedNoteAuthorization!
+  expireAt: Date
+}
+
+"""
+Note shared by an unauthenticated user.
+This note can be edited by anyone with a link, cannot be deleted manually
+and will always eventually expire.
+"""
+type GuestSharedNote {
+  id: ID!
+  note: Note!
+  "ISO formatted expiration date. Must always expire"
+  expireAt: String!
 }
 
 extend type Query {
-  "Get all notes belonging to a user of active session"
-  notes: [Note!] @auth
-  "Get note by ID belonging to a user of active session"
-  note(id: String!): Note @auth
+  "All notes that are accessible by current user"
+  notesConnection(first: Int!, after: String): MyNoteConnection! @auth
+  "Get note by ID that is accessible by current user"
+  note(id: ID!): Note @auth
 }
 
 extend type Mutation {
-  "Create a new note belonging to a user of active session"
+  """
+  Create a new note to current user.
+  If order is not specified then it's added to the beginning.
+  """
   createNote(input: CreateNoteInput!): Note @auth
-  "Update note by ID belonging to a user of active session"
-  updateNote(input: UpdateNoteInput!): Boolean! @auth
-  "Delete note by ID belonging to a user of active session"
+  "Update note that current user has write access."
+  updateNote(input: UpdateNoteInput!): Note @auth
+  "Delete note by ID"
   deleteNote(id: ID!): Boolean! @auth
+
+  "Creates a new shareable note"
+  shareNote(input: SharedNoteInput!): SharedNote @auth
+  "Update permissions or an expiration date of an existing shared note"
+  updateSharedNote(input: SharedNoteInput!): SharedNote @auth
+  "Delete shared node by ID."
+  deleteSharedNote(id: ID!): SharedNote @auth
+
+  "Share note as an unauthenticated user"
+  guestShareNote(input: CreateNoteInput!): GuestSharedNote!
 }
 
 extend type Subscription {
-  "New created note TODO subscriptions only for testing, lacking auth..."
+  "New created note TODO subscriptions"
   noteCreated: Note! @auth
-  "Updated note TODO subscriptions only for testing, lacking auth..."
+  "Updated note TODO subscriptions"
   noteUpdated: Note! @auth
-  "Removed note ID TODO subscriptions only for testing, lacking auth..."
+  "Removed note ID TODO subscriptions"
   noteDeleted: ID! @auth
 }
