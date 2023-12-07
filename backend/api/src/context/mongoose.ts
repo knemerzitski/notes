@@ -1,11 +1,10 @@
-import { MongoClientOptions } from 'mongodb';
-import { Connection, Schema, createConnection } from 'mongoose';
+import { Connection, Schema, createConnection, ConnectOptions } from 'mongoose';
 
 import { Logger } from '~common/logger';
 
 export interface MongooseContextParams {
   uri: string;
-  options?: MongoClientOptions;
+  options?: ConnectOptions;
   schema: Record<string, Schema>;
   logger: Logger;
 }
