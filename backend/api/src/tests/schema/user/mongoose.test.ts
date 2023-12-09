@@ -83,6 +83,11 @@ describe('User', () => {
       await newUser.save();
     });
 
+    it('generates publicId', () => {
+      expect(newUser.publicId).toMatch(/^[A-Za-z0-9_-]+$/);
+      expect(newUser.publicId.length).toBeGreaterThan(15);
+    });
+
     it('generates offline.id', () => {
       expect(newUser.offline.id).toMatch(/^[A-Za-z0-9_-]+$/);
       expect(newUser.offline.id.length).toBeGreaterThan(15);

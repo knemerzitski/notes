@@ -2,6 +2,7 @@ import { HydratedDocument, Model, Schema } from 'mongoose';
 import { nanoid } from 'nanoid';
 
 export interface IUser {
+  publicId: string;
   /**
    * Any third-party related information
    */
@@ -33,6 +34,12 @@ export type UserModel = Model<IUser, object, IUserMethods>;
 export type UserDocument = HydratedDocument<IUser>;
 
 export const userSchema = new Schema<IUser, UserModel, IUserMethods>({
+  publicId: {
+    type: Schema.Types.String,
+    required: true,
+    unique: true,
+    default: () => nanoid(),
+  },
   thirdParty: {
     google: {
       id: {
