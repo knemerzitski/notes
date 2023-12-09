@@ -1,25 +1,37 @@
-import { randomUUID } from 'crypto';
+import { HydratedDocument, Model, Schema, Types } from 'mongoose';
+import { nanoid } from 'nanoid';
 
-import { Schema } from 'mongoose';
+export interface INote {
+  publicId: string;
+  ownerId: Types.ObjectId;
+  title?: string;
+  textContent?: string;
+}
 
-export const Note = new Schema({
-  _id: {
-    type: Schema.Types.UUID,
-    default: () => randomUUID(),
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface INoteMethods {}
+
+export type NoteModel = Model<INote, object, INoteMethods>;
+export type NoteDocument = HydratedDocument<INote>;
+
+export const noteSchema = new Schema<INote, NoteModel, INoteMethods>({
+  publicId: {
+    type: Schema.Types.String,
+    required: true,
+    unique: true,
+    default: () => nanoid(),
   },
-  userId: {
-    type: Schema.Types.UUID,
-    index: true,
+  ownerId: {
+    type: Schema.Types.ObjectId,
     required: true,
   },
   title: {
     type: Schema.Types.String,
     required: false,
+    trim: true,
   },
-  content: {
+  textContent: {
     type: Schema.Types.String,
     required: false,
   },
 });
-
-export type NoteSchema = typeof Note;

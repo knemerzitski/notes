@@ -8,6 +8,10 @@
     "search.exclude": {
       "**/node_modules": true
     },
-    "eslint.validate": ["graphql"]
+    "eslint.validate": ["graphql"],
+    "explorer.fileNesting.enabled": true,
+    "explorer.fileNesting.patterns": {
+      "*.ts": "${capture}.js, ${capture}.*.ts"
+    }
   }
 }

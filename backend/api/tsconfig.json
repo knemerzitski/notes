@@ -7,5 +7,5 @@
       "~lambda-graphql/*": ["../lambda-graphql/src/*"]
     }
   },
-  "include": ["src", "codegen.ts"]
+  "include": ["src", "codegen.ts", "vitest.config.*.ts"]
 }
