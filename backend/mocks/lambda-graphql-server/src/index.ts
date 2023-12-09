@@ -1,7 +1,6 @@
 import path from 'path';
 
 import dotenv from 'dotenv';
-import { Connection } from 'mongoose';
 import WebSocket from 'ws';
 
 import { handleConnectGraphQLAuth } from '~api/connect-handler';
@@ -52,7 +51,7 @@ void (async () => {
       logger,
     });
 
-    let mongoose: Connection | undefined;
+    let mongoose: Awaited<ReturnType<typeof createMockMongooseContext>> | undefined;
 
     const sockets: Record<string, WebSocket> = {};
 
@@ -64,7 +63,7 @@ void (async () => {
         dynamoDB: createMockDynamoDBParams(),
         async onConnect({ event }) {
           if (!mongoose) {
-            mongoose = (await createMockMongooseContext()).connection;
+            mongoose = await createMockMongooseContext();
           }
           return handleConnectGraphQLAuth(mongoose, event);
         },
@@ -102,7 +101,7 @@ void (async () => {
         graphQL: createMockGraphQLParams(),
         async createGraphQLContext() {
           if (!mongoose) {
-            mongoose = (await createMockMongooseContext()).connection;
+            mongoose = await createMockMongooseContext();
           }
 
           return {

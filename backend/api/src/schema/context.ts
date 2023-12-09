@@ -3,6 +3,7 @@ import { Connection } from 'mongoose';
 import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
 import { SubscriptionContext } from '~lambda-graphql/pubsub/subscribe';
 
+import { MongooseModels } from './mongoose-schemas';
 import { Identity } from './session/identity';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -11,7 +12,10 @@ export type BaseGraphQLContext = {
 };
 
 export interface MongooseGraphQLContext {
-  mongoose: Connection;
+  mongoose: {
+    connection: Connection;
+    model: MongooseModels;
+  };
   session: {
     /**
      * @returns Fresh Date object with time set to maximum session duration
@@ -37,6 +41,7 @@ export type GraphQLResolversContext = ApolloHttpGraphQLContext &
  *
  * MongooseGraphQLContext
  * mongoose
+ * session
  *
  * ApolloHttpGraphQLContext
  * request
@@ -52,42 +57,29 @@ export type BaseSubscriptionResolversContext = Omit<
 export function createErrorBaseSubscriptionResolversContext(
   name = 'websocket-handler'
 ): BaseSubscriptionResolversContext {
+  function createErrorProxy(propertyName: string) {
+    return new Proxy(
+      {},
+      {
+        get() {
+          `${propertyName} is not available in ${name}`;
+        },
+      }
+    );
+  }
+
   return {
     get mongoose() {
-      return new Proxy(
-        {},
-        {
-          get() {
-            throw new Error(`Mongoose is not available in ${name}`);
-          },
-        }
-      ) as Connection;
+      return createErrorProxy('mongoose') as MongooseGraphQLContext['mongoose'];
     },
     get request() {
-      return new Proxy(
-        {},
-        {
-          get() {
-            throw new Error(`Request is not available in ${name}`);
-          },
-        }
-      ) as {
-        headers: Record<string, string>;
-        multiValueHeaders: Record<string, string[]>;
-      };
+      return createErrorProxy('request') as ApolloHttpGraphQLContext['request'];
+    },
+    get session() {
+      return createErrorProxy('session') as MongooseGraphQLContext['session'];
     },
     get response() {
-      return new Proxy(
-        {},
-        {
-          get() {
-            throw new Error(`Response is not available in ${name}`);
-          },
-        }
-      ) as {
-        headers: Record<string, string>;
-        multiValueHeaders: Record<string, string[]>;
-      };
+      return createErrorProxy('response') as ApolloHttpGraphQLContext['response'];
     },
     publish() {
       throw new Error(`Publish should never be called in ${name}`);

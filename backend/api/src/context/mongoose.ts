@@ -1,21 +1,22 @@
-import { Connection, Schema, createConnection, ConnectOptions } from 'mongoose';
+import { Connection, createConnection, ConnectOptions } from 'mongoose';
 
 import { Logger } from '~common/logger';
 
-export interface MongooseContextParams {
+export interface MongooseContextParams<TModels> {
   uri: string;
   options?: ConnectOptions;
-  schema: Record<string, Schema>;
+  createModels: (connection: Connection) => TModels;
   logger: Logger;
 }
 
-export interface MongoDbContext {
+export interface MongoDbContext<TModels> {
   connection: Connection;
+  model: TModels;
 }
 
-export async function createMongooseContext(
-  params: MongooseContextParams | (() => Promise<MongooseContextParams>)
-): Promise<MongoDbContext> {
+export async function createMongooseContext<TModels>(
+  params: MongooseContextParams<TModels> | (() => Promise<MongooseContextParams<TModels>>)
+): Promise<MongoDbContext<TModels>> {
   if (typeof params === 'function') {
     params = await params();
   }
@@ -29,12 +30,9 @@ export async function createMongooseContext(
   try {
     const connection = await newConn.asPromise();
 
-    Object.entries(params.schema).forEach(([name, schema]) =>
-      connection.model(name, schema)
-    );
-
     return {
       connection,
+      model: params.createModels(connection),
     };
   } catch (err) {
     params.logger.error('buildMongoDbContext:connect', err as Error);

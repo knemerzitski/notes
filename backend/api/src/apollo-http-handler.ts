@@ -1,5 +1,4 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
-import { Connection } from 'mongoose';
 
 import { createLogger } from '~common/logger';
 import {
@@ -23,14 +22,14 @@ export function createDefaultParams(): CreateApolloHttpHandlerParams<
 > {
   const logger = createLogger('apollo-websocket-handler');
 
-  let mongoose: Connection | undefined;
+  let mongoose: Awaited<ReturnType<typeof createDefaultMongooseContext>> | undefined;
 
   return {
     logger,
     graphQL: createDefaultGraphQLParams(logger),
     async createGraphQLContext() {
       if (!mongoose) {
-        mongoose = (await createDefaultMongooseContext(logger)).connection;
+        mongoose = await createDefaultMongooseContext(logger);
       }
 
       return {

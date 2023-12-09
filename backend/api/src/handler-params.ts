@@ -11,7 +11,7 @@ import { ConnectionTtlContext } from '~lambda-graphql/dynamodb/models/connection
 import { createMongooseContext } from './context/mongoose';
 import { defaultTtl, tryRefreshTtl } from './dynamodb/connection-ttl';
 import { applyDirectives, applySubscriptionDirectives } from './schema/directives';
-import mongooseSchema from './schema/mongooseSchema';
+import { createMongooseModels } from './schema/mongoose-schemas';
 import { resolvers } from './schema/resolvers.generated';
 import { typeDefs } from './schema/typeDefs.generated';
 
@@ -76,7 +76,7 @@ export async function createDefaultMongooseContext(logger: Logger) {
 
   return await createMongooseContext({
     logger,
-    schema: mongooseSchema,
+    createModels: createMongooseModels,
     uri: mongoDbUri,
     options: {
       auth: {

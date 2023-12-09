@@ -5,7 +5,7 @@ import {
   createDefaultGraphQLParams,
   createDefaultSubscriptionGraphQLParams,
 } from '~api/handler-params';
-import mongooseSchema from '~api/schema/mongooseSchema';
+import { createMongooseModels } from '~api/schema/mongoose-schemas';
 import { createLogger } from '~common/logger';
 import { ApiGatewayContextParams } from '~lambda-graphql/context/apigateway';
 import { DynamoDBContextParams } from '~lambda-graphql/context/dynamodb';
@@ -35,7 +35,7 @@ export async function createMockMongooseContext() {
 
   return await createMongooseContext({
     logger: createLogger('mock:mongodb'),
-    schema: mongooseSchema,
+    createModels: createMongooseModels,
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     uri: process.env.MOCK_MONGODB_URI,
   });

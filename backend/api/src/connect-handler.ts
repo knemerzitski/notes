@@ -1,5 +1,4 @@
 import { APIGatewayProxyWebsocketHandlerV2 } from 'aws-lambda';
-import { Connection } from 'mongoose';
 
 import { createLogger } from '~common/logger';
 import {
@@ -13,11 +12,11 @@ import {
   createDefaultDynamoDBParams,
   createDefaultMongooseContext,
 } from './handler-params';
-import { BaseGraphQLContext } from './schema/context';
+import { BaseGraphQLContext, MongooseGraphQLContext } from './schema/context';
 import { getIdentityFromHeaders } from './schema/session/identity';
 
 export async function handleConnectGraphQLAuth(
-  mongoose: Connection,
+  mongoose: MongooseGraphQLContext['mongoose'],
   event: WebSocketConnectEventEvent
 ): Promise<BaseGraphQLContext> {
   const auth = event.headers
@@ -32,14 +31,14 @@ export async function handleConnectGraphQLAuth(
 export function createDefaultParams(): WebSocketConnectHandlerParams<BaseGraphQLContext> {
   const logger = createLogger('websocket-connect-handler');
 
-  let mongoose: Connection | undefined;
+  let mongoose: Awaited<ReturnType<typeof createDefaultMongooseContext>> | undefined;
 
   return {
     logger,
     dynamoDB: createDefaultDynamoDBParams(logger),
     async onConnect({ event }) {
       if (!mongoose) {
-        mongoose = (await createDefaultMongooseContext(logger)).connection;
+        mongoose = await createDefaultMongooseContext(logger);
       }
       return handleConnectGraphQLAuth(mongoose, event);
     },
