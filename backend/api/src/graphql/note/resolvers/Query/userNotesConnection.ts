@@ -3,10 +3,10 @@ import { PipelineStage, Require_id, Types } from 'mongoose';
 
 import type { QueryResolvers } from '../../../../graphql/types.generated';
 import { DBNote } from '../../../../mongoose/models/note';
-import { DBUSerNote } from '../../../../mongoose/models/user-note';
+import { DBUserNote } from '../../../../mongoose/models/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 
-type UserNoteWithoutIds = Omit<DBUSerNote, 'userId' | 'noteId'>;
+type UserNoteWithoutIds = Omit<DBUserNote, 'userId' | 'noteId'>;
 type UserNoteWithNote = UserNoteWithoutIds & { note: Require_id<DBNote> };
 
 interface AggregateResult {

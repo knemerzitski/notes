@@ -3,7 +3,7 @@ import { HydratedDocument, Model, Schema, Types } from 'mongoose';
 /**
  * How user sees a particular note. E.g how it's ordered or is it read-only.
  */
-export interface DBUSerNote {
+export interface DBUserNote {
   userId: Types.ObjectId;
   noteId: Types.ObjectId;
   /**
@@ -18,10 +18,10 @@ export interface DBUSerNote {
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface DBUserNoteMethods {}
 
-export type UserNoteModel = Model<DBUSerNote, object, DBUserNoteMethods>;
-export type UserNoteDocument = HydratedDocument<DBUSerNote>;
+export type UserNoteModel = Model<DBUserNote, object, DBUserNoteMethods>;
+export type UserNoteDocument = HydratedDocument<DBUserNote>;
 
-export const userNoteSchema = new Schema<DBUSerNote, UserNoteModel, DBUserNoteMethods>({
+export const userNoteSchema = new Schema<DBUserNote, UserNoteModel, DBUserNoteMethods>({
   userId: {
     type: Schema.Types.ObjectId,
     required: true,
