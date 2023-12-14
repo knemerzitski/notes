@@ -1,0 +1,43 @@
+type Query
+type Mutation
+type Subscription
+
+scalar Date
+"int > 0"
+scalar PositiveInt
+"int >= 0"
+scalar NonNegativeInt
+scalar HexColorCode
+
+"Requires user to be authenticated and with access to specific role"
+directive @auth(requires: Role = USER) on OBJECT | FIELD_DEFINITION
+
+enum Role {
+  USER
+}
+
+type PageInfo {
+  "Self descriptive"
+  hasNextPage: Boolean!
+  "Self descriptive"
+  endCursor: String
+}
+
+interface Node {
+  "Self descriptive"
+  id: ID!
+}
+
+interface Edge {
+  "Self descriptive"
+  node: Node!
+  "Self descriptive"
+  cursor: String!
+}
+
+interface Connection {
+  "Self descriptive"
+  pageInfo: PageInfo!
+  "Self descriptive"
+  edges: [Edge!]!
+}

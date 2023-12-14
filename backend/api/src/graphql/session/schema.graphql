@@ -1,0 +1,52 @@
+extend type Query {
+  "Count of sessions saved in http-only cookie"
+  sessionCount: PositiveInt! @auth
+  "Currently active session index saved in http-only cookie"
+  activeSessionIndex: NonNegativeInt! @auth
+}
+
+enum AuthProvider {
+  GOOGLE
+}
+
+input CredentialsInput {
+  token: String
+}
+
+input SignInInput {
+  provider: AuthProvider!
+  credentials: CredentialsInput!
+}
+type SignInPayload {
+  "Index of saved session in http-only cookie"
+  sessionIndex: NonNegativeInt!
+  "Signed in user info"
+  userInfo: UserInfo!
+}
+extend type Mutation {
+  "On successful sign in, session ID is stored in a http-only cookie. Returns null on failed sign in."
+  signIn(input: SignInInput!): SignInPayload
+}
+
+type SignOutPayload {
+  "Was user just signed out"
+  signedOut: Boolean!
+  "Session index after signing out of current account, if any sessions still exist."
+  activeSessionIndex: NonNegativeInt
+}
+extend type Mutation {
+  "Returns signed out http-conly cookie session index or null if user was not signed in."
+  signOut: SignOutPayload! @auth
+}
+
+input SwitchToSessionInput {
+  switchToSessionIndex: NonNegativeInt!
+}
+type SwitchToSessionPayload {
+  "Active session index in http-only cookie"
+  activeSessionIndex: NonNegativeInt!
+}
+extend type Mutation {
+  "Switch session to new index which is tied to http-only session cookie. Returns switched to session index."
+  switchToSession(input: SwitchToSessionInput!): SwitchToSessionPayload! @auth
+}

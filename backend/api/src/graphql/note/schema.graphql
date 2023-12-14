@@ -1,0 +1,151 @@
+type Note {
+  "Note unique ID"
+  id: ID!
+  "Note title"
+  title: String!
+  "Note text contents"
+  textContent: String!
+}
+
+type NotePatch {
+  "Note title"
+  title: String
+  "Note text"
+  textContent: String
+}
+
+input NotePatchInput {
+  title: String
+  textContent: String
+}
+
+type UserNotePreferences {
+  "Note background color for the user"
+  backgroundColor: HexColorCode
+}
+
+type UserNotePreferencesPatch {
+  "Note background color for the user"
+  backgroundColor: HexColorCode
+}
+
+input UserNotePreferencesPatchInput {
+  backgroundColor: HexColorCode
+}
+
+"""
+Note with additional user related metadata
+"""
+type UserNote implements Node {
+  "Note id. Same as in note field"
+  id: ID!
+  "Actual Note data"
+  note: Note!
+  "If not defined then note is writable"
+  readOnly: Boolean
+  "Preferences is individual to the user"
+  preferences: UserNotePreferences!
+}
+
+type UserNotePatch {
+  "Note to patch"
+  note: NotePatch
+  "Preferences to patch"
+  preferences: UserNotePreferencesPatch
+}
+
+input UserNotePatchInput {
+  note: NotePatchInput
+  preferences: UserNotePreferencesPatchInput
+}
+
+type UserNoteConnection implements Connection {
+  "Self descriptive"
+  notes: [UserNote!]!
+  "Self descriptive"
+  edges: [UserNoteEdge!]!
+  "Self descriptive"
+  pageInfo: PageInfo!
+}
+
+type UserNoteEdge implements Edge {
+  "Self descriptive"
+  node: UserNote!
+  "Self descriptive"
+  cursor: String!
+}
+
+extend type Query {
+  "Paginate current user notes"
+  userNotesConnection(first: NonNegativeInt!, after: String): UserNoteConnection! @auth
+  "Get current user note by ID"
+  userNote(id: ID!): UserNote! @auth
+}
+
+input CreateNoteInput {
+  newNote: NotePatchInput
+}
+type CreateNotePayload {
+  "Note to create"
+  note: UserNote!
+}
+extend type Mutation {
+  "Create a new note to current user"
+  createUserNote(input: CreateNoteInput!): CreateNotePayload @auth
+}
+
+input UpdateNoteInput {
+  id: ID!
+  patch: UserNotePatchInput
+}
+type UpdateNotePayload {
+  "Note to update"
+  note: UserNote!
+}
+extend type Mutation {
+  "Update note"
+  updateUserNote(input: UpdateNoteInput!): UpdateNotePayload! @auth
+}
+
+input DeleteNoteInput {
+  id: ID!
+}
+type DeleteNotePayload {
+  "Was note deleted"
+  deleted: Boolean!
+}
+extend type Mutation {
+  "Delete note"
+  deleteUserNote(input: DeleteNoteInput!): DeleteNotePayload! @auth
+}
+
+type NoteCreatedPayload {
+  "Created note info"
+  note: UserNote!
+}
+extend type Subscription {
+  "A new note was created"
+  noteCreated: NoteCreatedPayload! @auth
+}
+
+type NoteUpdatedPayload {
+  "ID of note that was updated"
+  id: ID!
+  "Changes made to the note"
+  patch: UserNotePatch!
+}
+
+extend type Subscription {
+  "An existing note was updated"
+  noteUpdated: NoteUpdatedPayload! @auth
+}
+
+type NoteDeletedPayload {
+  "ID of deleted note"
+  id: ID!
+}
+
+extend type Subscription {
+  "A note was deleted"
+  noteDeleted: NoteDeletedPayload! @auth
+}

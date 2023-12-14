@@ -7,14 +7,14 @@ import {
 } from '~lambda-graphql/apollo-http-handler';
 import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
 
+import { BaseGraphQLContext, GraphQLResolversContext } from './graphql/context';
+import { newExpireAt, tryRefreshExpireAt } from './graphql/session/expire';
 import {
   createDefaultApiGatewayParams,
   createDefaultDynamoDBParams,
   createDefaultGraphQLParams,
   createDefaultMongooseContext,
 } from './handler-params';
-import { BaseGraphQLContext, GraphQLResolversContext } from './schema/context';
-import { newExpireAt, tryRefreshExpireAt } from './schema/session/expire';
 
 export function createDefaultParams(): CreateApolloHttpHandlerParams<
   Omit<GraphQLResolversContext, keyof ApolloHttpGraphQLContext>,

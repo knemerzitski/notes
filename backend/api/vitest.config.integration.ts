@@ -1,19 +1,25 @@
 import { exec } from 'child_process';
 import { join } from 'path';
 
+import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  // @ts-expect-error
+  plugins: [tsconfigPaths()],
   envDir: '../../',
   envPrefix: 'TEST_',
   test: {
-    include: ['src/tests/**/*.test.ts'],
-    setupFiles: ['src/tests/helpers/setup.ts'],
+    include: ['src/**/*.int.test.ts', 'src/tests/**/*.test.ts'],
+    setupFiles: ['src/tests/helpers/setup.integration.ts'],
     pool: 'threads',
     poolOptions: {
       threads: {
         singleThread: true,
       },
+    },
+    benchmark: {
+      include: ['src/**/*.bench.int.test.ts', 'src/tests/**/*.bench.test.ts'],
     },
   },
 });

@@ -1,2 +1,2 @@
-backend/api/src/schema/*.generated.ts
+backend/api/src/graphql/*.generated.ts
 frontend/web/src/schema/__generated__

@@ -7,20 +7,20 @@ import {
   WebSocketConnectHandlerParams,
 } from '~lambda-graphql/connect-handler';
 
+import { BaseGraphQLContext, MongooseGraphQLContext } from './graphql/context';
+import { getSessionUserFromHeaders } from './graphql/session/parse-cookies';
 import {
   createDefaultDynamoDBConnectionTtlContext,
   createDefaultDynamoDBParams,
   createDefaultMongooseContext,
 } from './handler-params';
-import { BaseGraphQLContext, MongooseGraphQLContext } from './schema/context';
-import { getIdentityFromHeaders } from './schema/session/identity';
 
 export async function handleConnectGraphQLAuth(
   mongoose: MongooseGraphQLContext['mongoose'],
   event: WebSocketConnectEventEvent
 ): Promise<BaseGraphQLContext> {
   const auth = event.headers
-    ? await getIdentityFromHeaders(mongoose, event.headers)
+    ? await getSessionUserFromHeaders(mongoose, event.headers)
     : undefined;
 
   return {

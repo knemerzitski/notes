@@ -115,7 +115,6 @@ export function createApolloHttpHandler<
         ...context,
         graphQLContext,
       });
-
       const res = await apollo.executeHTTPGraphQLRequest({
         httpGraphQLRequest,
         context: () => Promise.resolve(graphQLContext),

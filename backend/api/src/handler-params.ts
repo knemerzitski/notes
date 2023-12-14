@@ -8,12 +8,12 @@ import { DynamoDBContextParams } from '~lambda-graphql/context/dynamodb';
 import { GraphQLContextParams } from '~lambda-graphql/context/graphql';
 import { ConnectionTtlContext } from '~lambda-graphql/dynamodb/models/connection';
 
-import { createMongooseContext } from './context/mongoose';
 import { defaultTtl, tryRefreshTtl } from './dynamodb/connection-ttl';
-import { applyDirectives, applySubscriptionDirectives } from './schema/directives';
-import { createMongooseModels } from './schema/mongoose-schemas';
-import { resolvers } from './schema/resolvers.generated';
-import { typeDefs } from './schema/typeDefs.generated';
+import { applyDirectives, applySubscriptionDirectives } from './graphql/directives';
+import { resolvers } from './graphql/resolvers.generated';
+import { typeDefs } from './graphql/typeDefs.generated';
+import { createMongooseContext } from './mongoose/lambda-context';
+import { createMongooseModels } from './mongoose/models';
 
 export function createDefaultGraphQLParams<TContext>(
   logger: Logger

@@ -7,16 +7,16 @@ import {
 } from '~lambda-graphql/message-handler';
 
 import {
+  BaseGraphQLContext,
+  BaseSubscriptionResolversContext,
+  createErrorBaseSubscriptionResolversContext,
+} from './graphql/context';
+import {
   createDefaultApiGatewayParams,
   createDefaultDynamoDBConnectionTtlContext,
   createDefaultDynamoDBParams,
   createDefaultSubscriptionGraphQLParams,
 } from './handler-params';
-import {
-  BaseGraphQLContext,
-  BaseSubscriptionResolversContext,
-  createErrorBaseSubscriptionResolversContext,
-} from './schema/context';
 
 export function createDefaultParams(): WebSocketMessageHandlerParams<
   BaseSubscriptionResolversContext,

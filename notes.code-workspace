@@ -12,6 +12,8 @@
     "explorer.fileNesting.enabled": true,
     "explorer.fileNesting.patterns": {
       "*.ts": "${capture}.js, ${capture}.*.ts"
-    }
+    },
+    // Disable VSCode vitest as it doesn't support monorepo
+    "vitest.exclude": ["**"]
   }
 }

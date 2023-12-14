@@ -7,14 +7,14 @@ import {
 } from '~lambda-graphql/disconnect-handler';
 
 import {
-  createDefaultDynamoDBParams,
-  createDefaultSubscriptionGraphQLParams,
-} from './handler-params';
-import {
   BaseGraphQLContext,
   BaseSubscriptionResolversContext,
   createErrorBaseSubscriptionResolversContext,
-} from './schema/context';
+} from './graphql/context';
+import {
+  createDefaultDynamoDBParams,
+  createDefaultSubscriptionGraphQLParams,
+} from './handler-params';
 
 export function createDefaultParams(): WebSocketDisconnectHandlerParams<
   BaseSubscriptionResolversContext,

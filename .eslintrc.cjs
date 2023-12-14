@@ -33,7 +33,7 @@ module.exports = {
     },
     {
       files: [
-        './backend/api/src/schema/**/*.graphql',
+        './backend/api/src/graphql/**/*.graphql',
         './frontend/web/src/schema/**/*.graphql',
       ],
       extends: [
@@ -51,10 +51,11 @@ module.exports = {
           },
         ],
         '@graphql-eslint/executable-definitions': 'off',
+        '@graphql-eslint/strict-id-in-types': 'off',
       },
       parserOptions: {
         schema: [
-          './backend/api/src/schema/**/schema.graphql',
+          './backend/api/src/graphql/**/schema.graphql',
           './frontend/web/src/schema/**/schema.graphql',
         ],
         operations: ['./frontend/web/src/**/*.{graphql,js,ts,jsx,tsx}'],

@@ -1,0 +1,24 @@
+type Profile {
+  "User-friendly way to distinguish this user. Can be anything set by the user."
+  displayName: String!
+}
+
+type OfflineMode {
+  "Offline ID to be used to store offline (only one device) notes."
+  id: ID!
+}
+
+"""
+User information accessible by a query
+"""
+type UserInfo {
+  "Self-descriptive"
+  offlineMode: OfflineMode!
+  "Self-descriptive"
+  profile: Profile!
+}
+
+extend type Query {
+  "Currently active user info"
+  activeUserInfo: UserInfo! @auth
+}
