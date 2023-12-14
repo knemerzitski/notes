@@ -1,9 +1,9 @@
 import { HydratedDocument, Model, Require_id, Schema, Types } from 'mongoose';
 import { nanoid } from 'nanoid';
 
-import { IUser } from './user';
+import { DBUser } from './user';
 
-export interface ISession {
+export interface DBSession {
   /**
    * ID that can be stored in a users brower cookie headers.
    * @default nanoid()
@@ -20,22 +20,22 @@ export interface ISession {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface ISessionMethods {}
+interface DBSessionMethods {}
 
 /**
  * ISession that has userId replaced with an actual user
  */
-export type ISessionWithUser = Require_id<Omit<ISession, 'userId'>> & {
-  user: Require_id<IUser>;
+export type DBSessionWithUser = Require_id<Omit<DBSession, 'userId'>> & {
+  user: Require_id<DBUser>;
 };
 
-export interface SessionModel extends Model<ISession, object, ISessionMethods> {
-  findByCookieId(cookieId: string): Promise<ISessionWithUser | undefined>;
+export interface SessionModel extends Model<DBSession, object, DBSessionMethods> {
+  findByCookieId(cookieId: string): Promise<DBSessionWithUser | undefined>;
 }
 
-export type SessionDocument = HydratedDocument<ISession>;
+export type SessionDocument = HydratedDocument<DBSession>;
 
-export const sessionSchema = new Schema<ISession, SessionModel, ISessionMethods>({
+export const sessionSchema = new Schema<DBSession, SessionModel, DBSessionMethods>({
   cookieId: {
     type: Schema.Types.String,
     required: true,
@@ -55,7 +55,7 @@ export const sessionSchema = new Schema<ISession, SessionModel, ISessionMethods>
 
 sessionSchema.static('findByCookieId', async function findByCookieId(cookieId: string) {
   return (
-    await this.aggregate<ISessionWithUser>([
+    await this.aggregate<DBSessionWithUser>([
       {
         $match: {
           cookieId,

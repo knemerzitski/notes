@@ -1,7 +1,7 @@
 import { HydratedDocument, Model, Schema, Types } from 'mongoose';
 import { nanoid } from 'nanoid';
 
-export interface IUser {
+export interface DBUser {
   publicId: string;
   /**
    * Any third-party related information
@@ -35,12 +35,12 @@ export interface IUser {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface IUserMethods {}
+interface DBUserMethods {}
 
-export type UserModel = Model<IUser, object, IUserMethods>;
-export type UserDocument = HydratedDocument<IUser>;
+export type UserModel = Model<DBUser, object, DBUserMethods>;
+export type UserDocument = HydratedDocument<DBUser>;
 
-export const userSchema = new Schema<IUser, UserModel, IUserMethods>({
+export const userSchema = new Schema<DBUser, UserModel, DBUserMethods>({
   publicId: {
     type: Schema.Types.String,
     required: true,

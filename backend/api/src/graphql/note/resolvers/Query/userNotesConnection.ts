@@ -2,12 +2,12 @@ import { ObjectId } from 'mongodb';
 import { PipelineStage, Require_id, Types } from 'mongoose';
 
 import type { QueryResolvers } from '../../../../graphql/types.generated';
-import { INote } from '../../../../mongoose/models/note';
-import { IUserNote } from '../../../../mongoose/models/user-note';
+import { DBNote } from '../../../../mongoose/models/note';
+import { DBUSerNote } from '../../../../mongoose/models/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 
-type UserNoteWithoutIds = Omit<IUserNote, 'userId' | 'noteId'>;
-type UserNoteWithNote = UserNoteWithoutIds & { note: Require_id<INote> };
+type UserNoteWithoutIds = Omit<DBUSerNote, 'userId' | 'noteId'>;
+type UserNoteWithNote = UserNoteWithoutIds & { note: Require_id<DBNote> };
 
 interface AggregateResult {
   userNotes: Require_id<UserNoteWithNote>[];

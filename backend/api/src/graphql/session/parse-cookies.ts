@@ -1,7 +1,7 @@
 import { isArray } from '~common/isArray';
 
 import { MongooseGraphQLContext } from '../../graphql/context';
-import { ISessionWithUser } from '../../mongoose/models/session';
+import { DBSessionWithUser } from '../../mongoose/models/session';
 
 /**
  * Current user defined by cookie headers
@@ -10,7 +10,7 @@ export interface CookieSessionUser {
   /**
    * MongoDB session with resolved user
    */
-  session: ISessionWithUser;
+  session: DBSessionWithUser;
 
   cookie: {
     /**
