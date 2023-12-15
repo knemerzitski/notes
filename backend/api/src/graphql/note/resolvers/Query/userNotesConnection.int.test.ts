@@ -114,7 +114,7 @@ describe('paginate userNotesConnection', async () => {
     (userKey) => {
       const userHelper = userHelperMap[userKey];
       assert(userHelper !== undefined);
-      const count = userHelper.noteEdges.length;
+      const count = userHelper.noteData.length;
       return [userKey, count];
     }
   );
@@ -148,13 +148,16 @@ describe('paginate userNotesConnection', async () => {
       it.each(paginateActions)(
         'from index %i and count %i',
         async (startIndex, count) => {
-          const slicedEdges = userHelper.noteEdges.slice(startIndex, startIndex + count);
+          const slicedEdges = userHelper.noteData
+            .map(({ edge }) => edge)
+            .slice(startIndex, startIndex + count);
 
           const result = await mockResolver(userNotesConnection)(
             {},
             {
               first: count,
-              after: startIndex > 0 ? userHelper.noteEdges[startIndex - 1]?.cursor : null,
+              after:
+                startIndex > 0 ? userHelper.noteData[startIndex - 1]?.edge.cursor : null,
             },
             mockedContext
           );
@@ -162,7 +165,7 @@ describe('paginate userNotesConnection', async () => {
           testResolverResult(
             result,
             slicedEdges,
-            startIndex + count < userHelper.noteEdges.length
+            startIndex + count < userHelper.noteData.length
           );
         }
       );
@@ -172,7 +175,9 @@ describe('paginate userNotesConnection', async () => {
       it.each(paginateActions)(
         'from index %i and count %i',
         async (startIndex, count) => {
-          const slicedEdges = userHelper.noteEdges.slice(startIndex, startIndex + count);
+          const slicedEdges = userHelper.noteData
+            .map(({ edge }) => edge)
+            .slice(startIndex, startIndex + count);
 
           const response = await apolloServer.executeOperation(
             {
@@ -180,7 +185,9 @@ describe('paginate userNotesConnection', async () => {
               variables: {
                 first: count,
                 after:
-                  startIndex > 0 ? userHelper.noteEdges[startIndex - 1]?.cursor : null,
+                  startIndex > 0
+                    ? userHelper.noteData[startIndex - 1]?.edge.cursor
+                    : null,
               },
             },
             {
@@ -197,7 +204,7 @@ describe('paginate userNotesConnection', async () => {
           testResolverResult(
             result,
             slicedEdges,
-            startIndex + count < userHelper.noteEdges.length
+            startIndex + count < userHelper.noteData.length
           );
         }
       );
