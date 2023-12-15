@@ -5,6 +5,19 @@ import UserDocumentHelper from './UserDocumentHelper';
 export default class UserModelHelper {
   users: UserDocumentHelper[] = [];
 
+  getUser(index: number) {
+    const user = this.users[index];
+    assert(user !== undefined);
+    return user;
+  }
+
+  getOrCreateUser(index: number) {
+    if (index >= this.users.length) {
+      this.createUsers(1 + index - this.users.length);
+    }
+    return this.getUser(index);
+  }
+
   createUsers(count: number) {
     this.users.push(...[...new Array(count).keys()].map(() => new UserDocumentHelper()));
   }

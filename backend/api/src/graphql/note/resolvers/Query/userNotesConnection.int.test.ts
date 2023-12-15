@@ -6,29 +6,29 @@ import { GraphQLResolversContext } from '../../../../graphql/context';
 import { UserNoteConnection, UserNoteEdge } from '../../../../graphql/types.generated';
 import { apolloServer } from '../../../../tests/helpers/apollo-server';
 import { mockResolver } from '../../../../tests/helpers/mock-resolver';
-import UserDocumentHelper from '../../../../tests/helpers/model/UserDocumentHelper';
+import UserModelHelper from '../../../../tests/helpers/model/UserModelHelper';
 import { Note, User, UserNote } from '../../../../tests/helpers/mongoose';
 
 import { userNotesConnection } from './userNotesConnection';
 
-const MAX_USER_COUNT = 3;
-const TOTAL_INSERT_COUNT = 10;
+const USER_COUNT = 3;
+const TOTAL_NOTES_COUNT = 50;
 const TOTAL_PAGINATE_COUNT = 3;
-
-function rndUserNr() {
-  return faker.number.int({ min: 0, max: MAX_USER_COUNT - 1 });
-}
 
 function rndNotesInsertCount() {
   return faker.number.int({ min: 2, max: 7 });
 }
 
 function rndStartIndex(arrayLength: number) {
-  return faker.number.int({ min: 0, max: arrayLength - 1 });
+  if (faker.number.int({ min: 0, max: 10 }) <= 1) {
+    return 0;
+  } else {
+    return faker.number.int({ min: 5, max: arrayLength - 1 });
+  }
 }
 
 function rndPaginateCount() {
-  return faker.number.int({ min: 1, max: 10 });
+  return faker.number.int({ min: 5, max: 10 });
 }
 
 const query = `#graphql
@@ -89,131 +89,121 @@ function testResolverResult(
 }
 
 describe('paginate userNotesConnection', async () => {
-  faker.seed(55);
+  faker.seed(57);
 
   await User.deleteMany();
   await Note.deleteMany();
   await UserNote.deleteMany();
 
-  const createNotesActions: [number, number][] = [
-    ...new Array(TOTAL_INSERT_COUNT).keys(),
-  ].map(() => [rndUserNr(), rndNotesInsertCount()]);
+  const userModelHelper = new UserModelHelper();
 
-  const userHelperMap: Record<string, UserDocumentHelper> = {};
-  for (const [userNr, insertCount] of createNotesActions) {
-    if (!(userNr in userHelperMap)) {
-      userHelperMap[userNr] = new UserDocumentHelper();
-    }
-    const userHelper = userHelperMap[userNr];
-    assert(userHelper !== undefined);
+  userModelHelper.createUsers(USER_COUNT);
+  await userModelHelper.createNotesRandomly(TOTAL_NOTES_COUNT, rndNotesInsertCount);
 
-    await userHelper.createNotes(insertCount);
-  }
-
-  const userKeyWithNoteCount = Object.keys(userHelperMap).map<[string, number]>(
-    (userKey) => {
-      const userHelper = userHelperMap[userKey];
-      assert(userHelper !== undefined);
-      const count = userHelper.noteData.length;
-      return [userKey, count];
+  const userIndexWithNoteCount = userModelHelper.users.map<[number, number]>(
+    (userHelper, index) => {
+      return [index, userHelper.noteData.length];
     }
   );
 
-  describe.each(userKeyWithNoteCount)('user %s with %s notes', (userKey, noteCount) => {
-    const userHelper = userHelperMap[userKey];
-    assert(userHelper !== undefined);
+  describe.each(userIndexWithNoteCount)(
+    'user %s with %s notes',
+    (userIndex, noteCount) => {
+      const userHelper = userModelHelper.getUser(userIndex);
 
-    const mockedContext = mockDeep<GraphQLResolversContext>({
-      auth: {
-        session: {
-          user: {
-            _id: userHelper.user._id,
+      const mockedContext = mockDeep<GraphQLResolversContext>({
+        auth: {
+          session: {
+            user: {
+              _id: userHelper.user._id,
+            },
           },
         },
-      },
-      mongoose: {
-        model: {
-          User,
-          UserNote,
-          Note,
+        mongoose: {
+          model: {
+            User,
+            UserNote,
+            Note,
+          },
         },
-      },
-    });
+      });
 
-    const paginateActions: [number, number][] = [
-      ...new Array(TOTAL_PAGINATE_COUNT).keys(),
-    ].map(() => [rndStartIndex(noteCount), rndPaginateCount()]);
+      const paginateActions: [number, number][] = [
+        ...new Array(TOTAL_PAGINATE_COUNT).keys(),
+      ].map(() => [rndStartIndex(noteCount), rndPaginateCount()]);
 
-    describe('directly', () => {
-      it.each(paginateActions)(
-        'from index %i and count %i',
-        async (startIndex, count) => {
-          const slicedEdges = userHelper.noteData
-            .map(({ edge }) => edge)
-            .slice(startIndex, startIndex + count);
+      describe('directly', () => {
+        it.each(paginateActions)(
+          'from index %i and count %i',
+          async (startIndex, count) => {
+            const slicedEdges = userHelper.noteData
+              .map(({ edge }) => edge)
+              .slice(startIndex, startIndex + count);
 
-          const result = await mockResolver(userNotesConnection)(
-            {},
-            {
-              first: count,
-              after:
-                startIndex > 0 ? userHelper.noteData[startIndex - 1]?.edge.cursor : null,
-            },
-            mockedContext
-          );
-
-          testResolverResult(
-            result,
-            slicedEdges,
-            startIndex + count < userHelper.noteData.length
-          );
-        }
-      );
-    });
-
-    describe('graphql server', () => {
-      it.each(paginateActions)(
-        'from index %i and count %i',
-        async (startIndex, count) => {
-          const slicedEdges = userHelper.noteData
-            .map(({ edge }) => edge)
-            .slice(startIndex, startIndex + count);
-
-          const response = await apolloServer.executeOperation(
-            {
-              query,
-              variables: {
+            const result = await mockResolver(userNotesConnection)(
+              {},
+              {
                 first: count,
                 after:
                   startIndex > 0
                     ? userHelper.noteData[startIndex - 1]?.edge.cursor
                     : null,
               },
-            },
-            {
-              contextValue: mockedContext,
-            }
-          );
+              mockedContext
+            );
 
-          assert(response.body.kind === 'single');
-          expect(response.body.singleResult.errors).toBeUndefined();
+            testResolverResult(
+              result,
+              slicedEdges,
+              startIndex + count < userHelper.noteData.length
+            );
+          }
+        );
+      });
 
-          const result = response.body.singleResult.data
-            ?.userNotesConnection as UserNoteConnection;
+      describe('graphql server', () => {
+        it.each(paginateActions)(
+          'from index %i and count %i',
+          async (startIndex, count) => {
+            const slicedEdges = userHelper.noteData
+              .map(({ edge }) => edge)
+              .slice(startIndex, startIndex + count);
 
-          testResolverResult(
-            result,
-            slicedEdges,
-            startIndex + count < userHelper.noteData.length
-          );
-        }
-      );
-    });
-  });
+            const response = await apolloServer.executeOperation(
+              {
+                query,
+                variables: {
+                  first: count,
+                  after:
+                    startIndex > 0
+                      ? userHelper.noteData[startIndex - 1]?.edge.cursor
+                      : null,
+                },
+              },
+              {
+                contextValue: mockedContext,
+              }
+            );
+
+            assert(response.body.kind === 'single');
+            expect(response.body.singleResult.errors).toBeUndefined();
+
+            const result = response.body.singleResult.data
+              ?.userNotesConnection as UserNoteConnection;
+
+            testResolverResult(
+              result,
+              slicedEdges,
+              startIndex + count < userHelper.noteData.length
+            );
+          }
+        );
+      });
+    }
+  );
 
   describe('graphql returns error', () => {
-    const userHelper = userHelperMap[0];
-    assert(userHelper !== undefined);
+    const userHelper = userModelHelper.getUser(0);
 
     const mockedContext = mockDeep<GraphQLResolversContext>({
       auth: {
