@@ -82,7 +82,7 @@ describe('createUserNote', () => {
     });
   });
 
-  it('pushes new note to the end of order', async () => {
+  it('inserts new note to the beginning of order', async () => {
     async function createNote() {
       const result = await mockResolver(createUserNote)(
         {},
@@ -111,7 +111,7 @@ describe('createUserNote', () => {
 
     const userNotes = await UserNote.find();
 
-    const expectedOrder = [note1, note2, note3].map(
+    const expectedOrder = [note3, note2, note1].map(
       (note) => userNotes.find((userNote) => userNote.notePublicId === note.id)?._id
     );
 
