@@ -18,9 +18,6 @@ export default defineConfig({
         singleThread: true,
       },
     },
-    benchmark: {
-      include: ['src/**/*.bench.int.test.ts', 'src/tests/**/*.bench.test.ts'],
-    },
   },
 });
 

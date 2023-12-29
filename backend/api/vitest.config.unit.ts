@@ -11,8 +11,5 @@ export default defineConfig({
     },
     include: ['!src/**/*.int.test.ts', '!src/tests', 'src/**/*.test.ts'],
     setupFiles: ['src/tests/helpers/setup.unit.ts'],
-    benchmark: {
-      include: ['src/**/*.bench.test.ts'],
-    },
   },
 });

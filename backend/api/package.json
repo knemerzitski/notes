@@ -9,10 +9,8 @@
     "graphql:watch": "graphql-codegen -w",
     "test:unit": "vitest run -c ./vitest.config.unit.ts",
     "test:unit:watch": "vitest watch -c ./vitest.config.unit.ts",
-    "test:unit:bench": "vitest bench -c ./vitest.config.unit.ts",
     "test:int": "vitest -c ./vitest.config.integration.ts",
-    "test:int:watch": "vitest watch -c ./vitest.config.integration.ts",
-    "test:int:bench": "vitest bench -c ./vitest.config.integration.ts"
+    "test:int:watch": "vitest watch -c ./vitest.config.integration.ts"
   },
   "dependencies": {
     "@apollo/server": "^4.9.5",
