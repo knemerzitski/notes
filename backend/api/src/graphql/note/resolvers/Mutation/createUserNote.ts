@@ -1,51 +1,57 @@
 import type { MutationResolvers } from '../../../../graphql/types.generated';
+import { assertAuthenticated } from '../../../base/directives/auth';
 
-export const createUserNote: NonNullable<MutationResolvers['createUserNote']> = () =>
-  // _parent,
-  // { input },
-  // ctx
-  {
-    throw new Error('Not implemented');
-    // const {
-    //   auth,
-    //   mongoose: { model, connection },
-    // } = ctx;
-    // assertAuthenticated(auth);
+export const createUserNote: NonNullable<MutationResolvers['createUserNote']> = async (
+  _parent,
+  { input },
+  ctx
+) => {
+  const {
+    auth,
+    mongoose: { model, connection },
+  } = ctx;
+  assertAuthenticated(auth);
 
-    // // TODO fetch first note in list???
+  const newNote = new model.Note({
+    ownerId: auth.session.user._id._id,
+    title: input.newNote?.title,
+    textContent: input.newNote?.textContent,
+  });
 
-    // const newNote = new model.Note({
-    //   ownerId: auth.session.user._id,
-    //   title: input.newNote?.title,
-    //   textContent: input.newNote?.textContent,
-    // });
-    // const newUserNote = new model.UserNote({
-    //   userId: auth.session.user._id,
-    //   noteId: newNote._id,
-    //   list: {
-    //     order: 'todo create order???, must be smallest of existing ones???',
-    //   },
-    // });
+  await connection.transaction(async (session) => {
+    const newUserNote = new model.UserNote({
+      userId: auth.session.user._id._id,
+      notePublicId: newNote.publicId,
+    });
 
-    // await connection.transaction(() => Promise.all([newNote.save(), newUserNote.save()]));
+    const updateUserPromise = model.User.updateOne(
+      {
+        _id: auth.session.user._id._id,
+      },
+      {
+        $push: {
+          'notes.category.default.order': newUserNote._id,
+        },
+      },
+      { session }
+    );
 
-    // const savedUserNote: UserNote = {
-    //   id: newNote.publicId,
-    //   note: {
-    //     id: newNote.publicId,
-    //     title: newNote.title ?? '',
-    //     textContent: newNote.textContent ?? '',
-    //   },
-    //   preferences: {
-    //     list: {
-    //       order: newUserNote.list.order,
-    //     },
-    //   },
-    // };
+    await Promise.all([
+      newNote.save({ session }),
+      newUserNote.save({ session }),
+      updateUserPromise,
+    ]);
+  });
 
-    // // TODO publish savedUserNote??
-
-    // return {
-    //   note: savedUserNote,
-    // };
+  return {
+    note: {
+      id: newNote.publicId,
+      note: {
+        id: newNote.publicId,
+        title: newNote.title ?? '',
+        textContent: newNote.textContent ?? '',
+      },
+      preferences: {},
+    },
   };
+};
