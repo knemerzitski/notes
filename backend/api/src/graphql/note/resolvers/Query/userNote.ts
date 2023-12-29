@@ -6,7 +6,7 @@ import { DBNote } from '../../../../mongoose/models/note';
 import { DBUserNote } from '../../../../mongoose/models/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 
-type UserNoteWithoutIds = Omit<DBUserNote, 'userId' | 'noteId'> & {
+type UserNoteWithoutIds = Omit<DBUserNote, 'userId' | 'notePublicId'> & {
   _id?: Types.ObjectId;
 };
 type UserNoteWithNote = UserNoteWithoutIds & { note: Require_id<DBNote> };
@@ -24,47 +24,26 @@ export const userNote: NonNullable<QueryResolvers['userNote']> = async (
   } = ctx;
   assertAuthenticated(auth);
 
-  const results = await model.Note.aggregate<AggregateResult>([
+  const results = await model.UserNote.aggregate<AggregateResult>([
     {
       $match: {
-        publicId: notePublicId,
+        userId: auth.session.user._id._id,
+        notePublicId: notePublicId,
       },
     },
     {
-      $project: { note: '$$ROOT' },
-    },
-    {
+      // Lookup Note by notePublicId
       $lookup: {
-        // all UserNotes that have notePublicId
-        from: model.UserNote.collection.collectionName,
-        foreignField: 'noteId',
-        localField: '_id',
-        as: 'userNote',
-
-        pipeline: [
-          {
-            // Ensure current user has access to notePublicId
-            $match: {
-              userId: auth.session.user._id._id,
-            },
-          },
-          { $unset: ['userId', 'noteId'] },
-        ],
+        from: model.Note.collection.collectionName,
+        foreignField: 'publicId',
+        localField: 'notePublicId',
+        as: 'note',
       },
     },
+    { $unset: ['userId', 'notePublicId'] },
     {
       $set: {
-        userNote: { $arrayElemAt: ['$userNote', 0] },
-      },
-    },
-    {
-      $addFields: {
-        'userNote.note': '$note',
-      },
-    },
-    {
-      $replaceRoot: {
-        newRoot: '$userNote',
+        note: { $arrayElemAt: ['$note', 0] },
       },
     },
   ]);

@@ -38,7 +38,7 @@ export default class UserDocumentHelper {
     const userNotes = await UserNote.insertMany(
       notes.map((note) => ({
         userId: this.user._id,
-        noteId: note._id,
+        notePublicId: note.publicId,
         readOnly: !!faker.number.int({ min: 0, max: 1 }),
         preferences: {
           backgroundColor: '#000000',
@@ -85,7 +85,7 @@ export default class UserDocumentHelper {
     const userNotes = await UserNote.insertMany(
       existingNoteData.map((noteData) => ({
         userId: this.user._id,
-        noteId: noteData.note._id,
+        notePublicId: noteData.note.publicId,
         readOnly: !!faker.number.int({ min: 0, max: 1 }),
         preferences: {
           backgroundColor: '#000000',

@@ -6,7 +6,7 @@ import { DBNote } from '../../../../mongoose/models/note';
 import { DBUserNote } from '../../../../mongoose/models/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 
-type UserNoteWithoutIds = Omit<DBUserNote, 'userId' | 'noteId'>;
+type UserNoteWithoutIds = Omit<DBUserNote, 'userId' | 'notePublicId'>;
 type UserNoteWithNote = UserNoteWithoutIds & { note: Require_id<DBNote> };
 
 interface AggregateResult {
@@ -33,7 +33,7 @@ export const userNotesConnection: NonNullable<
   ];
 
   if (!after) {
-    // Slice notes [0, first]
+    // Slice user notes ids [0, first]
     pipeline.push({
       $project: {
         order: {
@@ -45,7 +45,7 @@ export const userNotesConnection: NonNullable<
       },
     });
   } else {
-    // Slice notes [indexOf(after)+1, first]
+    // Slice user notes ids [indexOf(after)+1, first]
     pipeline.push({
       $project: {
         order: {
@@ -90,12 +90,12 @@ export const userNotesConnection: NonNullable<
             {
               $lookup: {
                 from: model.Note.collection.collectionName,
-                foreignField: '_id',
-                localField: 'noteId',
+                foreignField: 'publicId',
+                localField: 'notePublicId',
                 as: 'note',
               },
             },
-            { $unset: ['userId', 'noteId'] },
+            { $unset: ['userId', 'notePublicId'] },
             {
               $set: {
                 note: { $arrayElemAt: ['$note', 0] },

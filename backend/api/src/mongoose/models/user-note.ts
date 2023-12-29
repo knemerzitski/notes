@@ -5,7 +5,7 @@ import { HydratedDocument, Model, Schema, Types } from 'mongoose';
  */
 export interface DBUserNote {
   userId: Types.ObjectId;
-  noteId: Types.ObjectId;
+  notePublicId: string;
   /**
    * @default false
    */
@@ -26,10 +26,9 @@ export const userNoteSchema = new Schema<DBUserNote, UserNoteModel, DBUserNoteMe
     type: Schema.Types.ObjectId,
     required: true,
   },
-  noteId: {
-    type: Schema.Types.ObjectId,
+  notePublicId: {
+    type: Schema.Types.String,
     required: true,
-    index: true,
   },
   readOnly: Schema.Types.Boolean,
   preferences: {
@@ -38,7 +37,7 @@ export const userNoteSchema = new Schema<DBUserNote, UserNoteModel, DBUserNoteMe
 });
 
 userNoteSchema.index(
-  { userId: 1, noteId: 1 },
+  { userId: 1, notePublicId: 1 },
   {
     unique: true,
   }

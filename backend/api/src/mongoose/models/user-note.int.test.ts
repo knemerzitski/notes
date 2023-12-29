@@ -30,18 +30,10 @@ describe('UserNote', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const indexes = await UserNote.listIndexes();
 
-    it('noteId', () => {
+    it('(userId, notePublicId) unique', () => {
       expect(indexes).containSubset([
         {
-          key: { noteId: 1 },
-        },
-      ]);
-    });
-
-    it('(userId, noteId) unique', () => {
-      expect(indexes).containSubset([
-        {
-          key: { userId: 1, noteId: 1 },
+          key: { userId: 1, notePublicId: 1 },
           unique: true,
         },
       ]);
@@ -58,7 +50,7 @@ describe('UserNote', () => {
   it('saves with required defined', async () => {
     const userNote = new UserNote({
       userId: user._id,
-      noteId: note._id,
+      notePublicId: note.publicId,
     });
     await userNote.save();
   });
