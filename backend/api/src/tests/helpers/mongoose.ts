@@ -18,7 +18,7 @@ export const Session = testConnection.model<DBSession, SessionModel>(
 export const Note = testConnection.model('Note', noteSchema);
 export const UserNote = testConnection.model('UserNote', userNoteSchema);
 
-export async function resetDatabase() {
+export function resetDatabase() {
   return Promise.all([
     User.deleteMany(),
     Session.deleteMany(),
