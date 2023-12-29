@@ -4,9 +4,7 @@ services:
   mongo-express:
     image: mongo-express
     environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: root
-      ME_CONFIG_MONGODB_ADMINPASSWORD: example
-      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/mongo?authSource=admin
+      ME_CONFIG_MONGODB_URL: mongodb://mongo:27017/mongo?authSource=admin
     networks:
       - mongodb_mongo-network
     ports:
