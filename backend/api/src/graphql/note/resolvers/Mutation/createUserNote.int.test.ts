@@ -55,7 +55,7 @@ describe('createUserNote', () => {
     };
   });
 
-  it('creates a new note for existing user', async () => {
+  it('creates a new note', async () => {
     const newNote: NotePatchInput = {
       title: faker.string.sample(20),
       textContent: faker.string.sample(120),
@@ -80,9 +80,25 @@ describe('createUserNote', () => {
         preferences: {},
       },
     });
+    assert(result != null);
+
+    await expect(
+      Note.findOne({
+        publicId: result.note.id,
+      })
+    ).resolves.not.toBeNull();
+
+    const userNote = await UserNote.findOne({
+      userId: userHelper.user._id,
+      notePublicId: result.note.id,
+    });
+    expect(userNote).not.toBeNull();
+    assert(userNote !== null);
+
+    await expect(userHelper.getUserNotesIds()).resolves.toStrictEqual([userNote._id]);
   });
 
-  it('inserts new note to the beginning of order', async () => {
+  it('creates new note to the beginning of order', async () => {
     async function createNote() {
       const result = await mockResolver(createUserNote)(
         {},
@@ -105,16 +121,22 @@ describe('createUserNote', () => {
     const note2 = await createNote();
     const note3 = await createNote();
 
-    const user = await User.findById(userHelper.user._id);
-    assert(user !== null);
-    const actualOrder = user.notes.category.default.order;
+    // Expecting last created note to be at the beginning
+    const expectedNotesOrdered = [note3, note2, note1];
 
-    const userNotes = await UserNote.find();
+    const actualUserNotesIds = await userHelper.getUserNotesIds();
+    const acutualUserNotes = await UserNote.find({
+      _id: {
+        $in: actualUserNotesIds,
+      },
+    });
 
-    const expectedOrder = [note3, note2, note1].map(
-      (note) => userNotes.find((userNote) => userNote.notePublicId === note.id)?._id
+    const orderedUserNotes = actualUserNotesIds.map((id) =>
+      acutualUserNotes.find((userNote) => userNote._id.equals(id))
     );
 
-    expect(actualOrder).toStrictEqual(expectedOrder);
+    expect(orderedUserNotes.map((userNote) => userNote?.notePublicId)).toStrictEqual(
+      expectedNotesOrdered.map((userNote) => userNote.id)
+    );
   });
 });
