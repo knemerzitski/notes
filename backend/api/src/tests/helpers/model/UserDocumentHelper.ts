@@ -26,7 +26,7 @@ export default class UserDocumentHelper {
     });
   }
 
-  async createNotes(count: number) {
+  async createNotes(count: number, readOnly: boolean | undefined = undefined) {
     const notes = await Note.insertMany(
       [...new Array(count).keys()].map(() => ({
         ownerId: this.user._id,
@@ -39,7 +39,7 @@ export default class UserDocumentHelper {
       notes.map((note) => ({
         userId: this.user._id,
         notePublicId: note.publicId,
-        readOnly: !!faker.number.int({ min: 0, max: 1 }),
+        readOnly: readOnly ?? !!faker.number.int({ min: 0, max: 1 }),
         preferences: {
           backgroundColor: '#000000',
         },
@@ -81,12 +81,15 @@ export default class UserDocumentHelper {
     await this.user.save();
   }
 
-  async addExistingNotes(existingNoteData: NoteData[]) {
+  async addExistingNotes(
+    existingNoteData: NoteData[],
+    readOnly: boolean | undefined = undefined
+  ) {
     const userNotes = await UserNote.insertMany(
       existingNoteData.map((noteData) => ({
         userId: this.user._id,
         notePublicId: noteData.note.publicId,
-        readOnly: !!faker.number.int({ min: 0, max: 1 }),
+        readOnly: readOnly ?? !!faker.number.int({ min: 0, max: 1 }),
         preferences: {
           backgroundColor: '#000000',
         },
