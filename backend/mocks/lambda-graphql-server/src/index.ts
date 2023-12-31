@@ -4,14 +4,14 @@ import dotenv from 'dotenv';
 import WebSocket from 'ws';
 
 import { handleConnectGraphQLAuth } from '~api/connect-handler';
-import { createDefaultDynamoDBConnectionTtlContext } from '~api/handler-params';
 import {
   BaseGraphQLContext,
   BaseSubscriptionResolversContext,
   GraphQLResolversContext,
   createErrorBaseSubscriptionResolversContext,
-} from '~api/schema/context';
-import { newExpireAt, tryRefreshExpireAt } from '~api/schema/session/expire';
+} from '~api/graphql/context';
+import { newExpireAt, tryRefreshExpireAt } from '~api/graphql/session/expire';
+import { createDefaultDynamoDBConnectionTtlContext } from '~api/handler-params';
 import { createLogger } from '~common/logger';
 import { createApolloHttpHandler } from '~lambda-graphql/apollo-http-handler';
 import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';

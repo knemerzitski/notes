@@ -1,11 +1,11 @@
 import WebSocket from 'ws';
 
-import { createMongooseContext } from '~api/context/mongoose';
 import {
   createDefaultGraphQLParams,
   createDefaultSubscriptionGraphQLParams,
 } from '~api/handler-params';
-import { createMongooseModels } from '~api/schema/mongoose-schemas';
+import { createMongooseContext } from '~api/mongoose/lambda-context';
+import { createMongooseModels } from '~api/mongoose/models';
 import { createLogger } from '~common/logger';
 import { ApiGatewayContextParams } from '~lambda-graphql/context/apigateway';
 import { DynamoDBContextParams } from '~lambda-graphql/context/dynamodb';
