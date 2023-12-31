@@ -22,6 +22,10 @@ export default class UserModelHelper {
     this.users.push(...[...new Array(count).keys()].map(() => new UserDocumentHelper()));
   }
 
+  saveUsers() {
+    return Promise.all(this.users.map((user) => user.user.save()));
+  }
+
   getUserWithLeastNotes() {
     if (this.users.length === 0) return null;
 

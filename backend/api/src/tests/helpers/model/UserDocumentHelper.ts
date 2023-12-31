@@ -125,4 +125,18 @@ export default class UserDocumentHelper {
 
     await this.user.save();
   }
+
+  async find() {
+    const user = await User.findById(this.user._id);
+    assert(user !== null);
+    return user;
+  }
+
+  async getUserNotesIds() {
+    return (await this.find()).notes.category.default.order;
+  }
+
+  async getUserNotesIdsString() {
+    return (await this.getUserNotesIds()).map((objId) => String(objId));
+  }
 }

@@ -1,0 +1,212 @@
+import { faker } from '@faker-js/faker';
+import { GraphQLError } from 'graphql';
+import { assert, beforeEach, describe, expect, it } from 'vitest';
+import { mockDeep } from 'vitest-mock-extended';
+
+import { mockResolver } from '../../../../tests/helpers/mock-resolver';
+import UserDocumentHelper from '../../../../tests/helpers/model/UserDocumentHelper';
+import UserModelHelper from '../../../../tests/helpers/model/UserModelHelper';
+import {
+  resetDatabase,
+  User,
+  UserNote,
+  Note,
+  testConnection,
+} from '../../../../tests/helpers/mongoose';
+import { GraphQLResolversContext } from '../../../context';
+
+import { deleteUserNote } from './deleteUserNote';
+
+function createContext(userHelper: UserDocumentHelper) {
+  const mockContext = mockDeep<GraphQLResolversContext>({
+    auth: {
+      session: {
+        user: {
+          _id: userHelper.user._id,
+        },
+      },
+    },
+    mongoose: {
+      model: {
+        User,
+        UserNote,
+        Note,
+      },
+    },
+  });
+
+  const context: GraphQLResolversContext = {
+    ...mockContext,
+    mongoose: {
+      ...mockContext.mongoose,
+      connection: testConnection,
+    },
+  };
+  return context;
+}
+
+describe('deleteUserNote', () => {
+  faker.seed(774);
+
+  let userModelHelper: UserModelHelper;
+  let user1Helper: UserDocumentHelper;
+  let user2Helper: UserDocumentHelper;
+
+  beforeEach(async () => {
+    await resetDatabase();
+
+    userModelHelper = new UserModelHelper();
+    userModelHelper.createUsers(2);
+
+    user1Helper = userModelHelper.getUser(0);
+    user2Helper = userModelHelper.getUser(1);
+    await Promise.all([user1Helper.createNotes(3), user2Helper.createNotes(3)]);
+  });
+
+  it('deletes owner note, note is deleted for everyone', async () => {
+    const user1Note = user1Helper.noteData[1];
+    assert(user1Note !== undefined);
+    await user2Helper.addExistingNotes([user1Note]);
+    await userModelHelper.saveUsers();
+
+    const result = await mockResolver(deleteUserNote)(
+      {},
+      {
+        input: {
+          id: user1Note.note.publicId,
+        },
+      },
+      createContext(user1Helper)
+    );
+
+    expect(result).toStrictEqual({
+      deleted: true,
+    });
+
+    await expect(
+      Note.findOne({
+        publicId: user1Note.note.publicId,
+      })
+    ).resolves.toBeNull();
+
+    await expect(
+      UserNote.findOne({
+        userId: user1Helper.user._id._id,
+        publicId: user1Note.note.publicId,
+      })
+    ).resolves.toBeNull();
+
+    await expect(
+      UserNote.findOne({
+        userId: user2Helper.user._id._id,
+        publicId: user1Note.note.publicId,
+      })
+    ).resolves.toBeNull();
+
+    await expect(user1Helper.getUserNotesIds()).resolves.not.toContain(
+      user1Note.userNote._id
+    );
+    await expect(user2Helper.getUserNotesIds()).resolves.not.toContain(
+      user1Note.userNote._id
+    );
+  });
+
+  it('unlinks note if not owner, note is not deleted', async () => {
+    const user2NoteAccessibleByUser1 = user2Helper.noteData[1];
+    assert(user2NoteAccessibleByUser1 !== undefined);
+    await user1Helper.addExistingNotes([user2NoteAccessibleByUser1]);
+
+    const notePublicId = user2NoteAccessibleByUser1.note.publicId;
+
+    const result = await mockResolver(deleteUserNote)(
+      {},
+      {
+        input: {
+          id: notePublicId,
+        },
+      },
+      createContext(user1Helper)
+    );
+
+    expect(result).toStrictEqual({
+      deleted: true,
+    });
+
+    // Note still exists
+    await expect(
+      Note.findOne({
+        publicId: notePublicId,
+      })
+    ).resolves.not.toBeNull();
+
+    // user1 UserNote is deleted
+    await expect(
+      UserNote.findOne({
+        userId: user1Helper.user._id,
+        notePublicId: notePublicId,
+      })
+    ).resolves.toBeNull();
+
+    // user2 UserNote exists
+    await expect(
+      UserNote.findOne({
+        userId: user2Helper.user._id,
+        notePublicId: notePublicId,
+      })
+    ).resolves.not.toBeNull();
+
+    // user1 doesn't have deleted note in order
+    await expect(user1Helper.getUserNotesIdsString()).resolves.not.toContain(
+      user2NoteAccessibleByUser1.userNote._id.toString()
+    );
+
+    // user2 has note
+    await expect(user2Helper.getUserNotesIdsString()).resolves.toContain(
+      user2NoteAccessibleByUser1.userNote._id.toString()
+    );
+  });
+
+  it('throws error if deleting note that doesnt exist', async () => {
+    await expect(
+      mockResolver(deleteUserNote)(
+        {},
+        {
+          input: {
+            id: 'nonexistant',
+          },
+        },
+        createContext(user1Helper)
+      )
+    ).rejects.toThrow(GraphQLError);
+  });
+
+  it('throws error deleting note you dont have access to', async () => {
+    const user2Note = user2Helper.noteData[1];
+    assert(user2Note !== undefined);
+
+    await expect(
+      mockResolver(deleteUserNote)(
+        {},
+        {
+          input: {
+            id: user2Note.note.publicId,
+          },
+        },
+        createContext(user1Helper)
+      )
+    ).rejects.toThrow(GraphQLError);
+  });
+
+  /*
+  #valid
+  - OK delete own note (owner)
+  - OK delete someone elses note (not owner)
+  - delete multiple notes at once (owner)
+  - delete multiple notes at once (not owner)
+  #errs
+  - delete note by id that doesnt exist (note doesnt exist)
+  - delete note by id that you have no access to (no usernote for this user)
+  */
+
+  // TODO deletes usernote that you are not owner of...
+});
