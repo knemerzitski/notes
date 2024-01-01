@@ -5,7 +5,7 @@ import { useParams } from 'react-router-dom';
 import EditNoteDialogComponent from '../../notes/EditNoteDialog';
 import { useProxyNavigate } from '../../router/ProxyRoutesProvider';
 import usePreviousLocation from '../../router/usePreviousLocation';
-import GET_NOTE from '../../schema/note/documents/GET_NOTE';
+import GET_NOTE from '../../graphql/note/documents/GET_NOTE';
 // import NOTE_UPDATED from '../../schema/note/documents/NOTE_UPDATED';
 
 export default function EditNoteDialog() {

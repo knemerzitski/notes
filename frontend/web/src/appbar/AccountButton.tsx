@@ -18,14 +18,14 @@ import {
 import { useId, useState } from 'react';
 
 import { useSnackbarError } from '../components/feedback/SnackbarAlertProvider';
-import { AuthProvider } from '../schema/__generated__/graphql';
-import { useSwitchToSessionIndex } from '../schema/session/components/SessionSwitcherProvider';
-import CREATE_LOCAL_SESSION from '../schema/session/documents/CREATE_LOCAL_SESSION';
-import CREATE_REMOTE_SESSION from '../schema/session/documents/CREATE_REMOTE_SESSION';
-import DELETE_CLIENT_SESSION from '../schema/session/documents/DELETE_CLIENT_SESSION';
-import GET_SESSIONS from '../schema/session/documents/GET_SESSIONS';
-import SIGN_IN from '../schema/session/documents/SIGN_IN';
-import SIGN_OUT from '../schema/session/documents/SIGN_OUT';
+import { AuthProvider } from '../graphql/__generated__/graphql';
+import { useSwitchToSessionIndex } from '../graphql/session/components/SessionSwitcherProvider';
+import CREATE_LOCAL_SESSION from '../graphql/session/documents/CREATE_LOCAL_SESSION';
+import CREATE_REMOTE_SESSION from '../graphql/session/documents/CREATE_REMOTE_SESSION';
+import DELETE_CLIENT_SESSION from '../graphql/session/documents/DELETE_CLIENT_SESSION';
+import GET_SESSIONS from '../graphql/session/documents/GET_SESSIONS';
+import SIGN_IN from '../graphql/session/documents/SIGN_IN';
+import SIGN_OUT from '../graphql/session/documents/SIGN_OUT';
 
 export default function UserButton(props: IconButtonProps) {
   const buttonId = useId();

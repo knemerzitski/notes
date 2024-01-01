@@ -5,7 +5,7 @@ import BorderlessTextField, {
   BorderlessTextFieldProps,
 } from '../components/inputs/BorderlessTextField';
 import useIsElementScrollEnd from '../hooks/useIsElementScrollEnd';
-import { Note } from '../schema/__generated__/graphql';
+import { Note } from '../graphql/__generated__/graphql';
 
 import NoteToolbar from './NoteToolbar';
 

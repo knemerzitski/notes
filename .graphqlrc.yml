@@ -1,4 +1,4 @@
 schema:
   - './backend/api/src/graphql/**/schema.graphql'
-  - './frontend/web/src/schema/**/schema.graphql'
+  - './frontend/web/src/graphql/**/schema.graphql'
 documents: './frontend/web/src/**/*.{graphql,js,ts,jsx,tsx}'

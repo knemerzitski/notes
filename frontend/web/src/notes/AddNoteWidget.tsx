@@ -3,8 +3,8 @@ import { useState } from 'react';
 
 import { useSnackbarError } from '../components/feedback/SnackbarAlertProvider';
 import BorderlessTextField from '../components/inputs/BorderlessTextField';
-import { Note } from '../schema/__generated__/graphql';
-import useCreateNote from '../schema/note/hooks/useCreateNote';
+import { Note } from '../graphql/__generated__/graphql';
+import useCreateNote from '../graphql/note/hooks/useCreateNote';
 
 import NoteEditor from './NoteEditor';
 

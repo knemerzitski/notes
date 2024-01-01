@@ -4,12 +4,12 @@ import Grid, { GridProps } from '@mui/material/Grid';
 // import { useEffect } from 'react';
 
 import { useSnackbarError } from '../components/feedback/SnackbarAlertProvider';
-import { Note } from '../schema/__generated__/graphql';
-import GET_NOTES from '../schema/note/documents/GET_NOTES';
+import { Note } from '../graphql/__generated__/graphql';
+import GET_NOTES from '../graphql/note/documents/GET_NOTES';
 // import NOTE_CREATED from '../schema/note/documents/NOTE_CREATED';
 // import NOTE_DELETED from '../schema/note/documents/NOTE_DELETED';
 // import NOTE_UPDATED from '../schema/note/documents/NOTE_UPDATED';
-import useDeleteNote from '../schema/note/hooks/useDeleteNote';
+import useDeleteNote from '../graphql/note/hooks/useDeleteNote';
 
 import NoteItem from './NoteItem';
 

@@ -10,11 +10,11 @@ import BorderlessTextField from '../../components/inputs/BorderlessTextField';
 import useIsScrollEnd from '../../hooks/useIsScrollEnd';
 import NoteToolbar from '../../notes/NoteToolbar';
 import { useProxyNavigate } from '../../router/ProxyRoutesProvider';
-import { Note } from '../../schema/__generated__/graphql';
-import GET_NOTE from '../../schema/note/documents/GET_NOTE';
+import { Note } from '../../graphql/__generated__/graphql';
+import GET_NOTE from '../../graphql/note/documents/GET_NOTE';
 // import NOTE_UPDATED from '../../schema/note/documents/NOTE_UPDATED';
-import useDeleteNote from '../../schema/note/hooks/useDeleteNote';
-import useUpdateNote from '../../schema/note/hooks/useUpdateNote';
+import useDeleteNote from '../../graphql/note/hooks/useDeleteNote';
+import useUpdateNote from '../../graphql/note/hooks/useUpdateNote';
 
 export default function EditNotePage() {
   const params = useParams<'id'>();

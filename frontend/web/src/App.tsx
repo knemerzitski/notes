@@ -4,9 +4,9 @@ import { createContext, useCallback, useContext, useMemo } from 'react';
 
 import GlobalStyles from './GlobalStyles';
 import RouterProvider from './router/RouterProvider';
-import { gql } from './schema/__generated__/gql';
-import { ColorMode } from './schema/__generated__/graphql';
-import { apolloClient } from './schema/apollo-client';
+import { gql } from './graphql/__generated__/gql';
+import { ColorMode } from './graphql/__generated__/graphql';
+import { apolloClient } from './graphql/apollo-client';
 import themeOptions from './themeOptions';
 
 const ColorModeContext = createContext({

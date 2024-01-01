@@ -10,7 +10,7 @@ import {
 import SnackbarAlertProvider from '../components/feedback/SnackbarAlertProvider';
 import Root from '../routes/Root';
 import ErrorPage from '../routes/pages/ErrorPage';
-import { SessionSwitcherProvider } from '../schema/session/components/SessionSwitcherProvider';
+import { SessionSwitcherProvider } from '../graphql/session/components/SessionSwitcherProvider';
 
 import { PreviousLocationProvider } from './usePreviousLocation';
 

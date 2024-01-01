@@ -1,7 +1,7 @@
 module.exports = {
   env: { browser: true, es2020: true },
   extends: ['eslint:recommended', 'prettier'],
-  ignorePatterns: ['.eslintrc.cjs', 'src/schema/__generated__', 'out', 'node_modules'],
+  ignorePatterns: ['.eslintrc.cjs', 'src/graphql/__generated__', 'out', 'node_modules'],
   overrides: [
     {
       files: ['*.[t]s?(x)'],
