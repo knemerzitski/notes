@@ -15,20 +15,20 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
 const documents = {
     "\n  query Preferences {\n    preferences @client {\n      colorMode\n    }\n  }\n": types.PreferencesDocument,
     "\n  mutation UpdateColorMode($colorMode: ColorMode!) {\n    updateColorMode(colorMode: $colorMode) @client\n  }\n": types.UpdateColorModeDocument,
-    "\n  mutation CreateNote($input: CreateNoteInput!)  {\n    createNote(input: $input) @session {\n      id\n      title\n      content\n    }\n  }\n": types.CreateNoteDocument,
-    "\n  mutation DeleteNote($id: ID!) {\n    deleteNote(id: $id) @session\n  }\n": types.DeleteNoteDocument,
-    "\n  query Note($id: String!) {\n    note(id: $id) @session {\n      id\n      title\n      content\n    }\n  }\n": types.NoteDocument,
-    "\n  query Notes {\n    notes @session {\n      id\n      title\n      content\n    }\n  }\n": types.NotesDocument,
-    "\n  subscription OnNoteCreated  {\n    noteCreated {\n      id\n      title\n      content\n    }\n  }\n": types.OnNoteCreatedDocument,
-    "\n  subscription OnNoteDeleted  {\n    noteDeleted\n  }\n": types.OnNoteDeletedDocument,
-    "\n  subscription OnNoteUpdated  {\n    noteUpdated {\n      id\n      title\n      content\n    }\n  }\n": types.OnNoteUpdatedDocument,
-    "\n  mutation UpdateNote($input: UpdateNoteInput!)  {\n    updateNote(input: $input) @session\n  }\n": types.UpdateNoteDocument,
+    "\n  mutation CreateUserNote($input: CreateNoteInput!)  {\n    createUserNote(input: $input) @session {\n      note {\n        id\n        note {\n          id\n          title\n          textContent\n        }\n      }\n    }\n  }\n": types.CreateUserNoteDocument,
+    "\n  mutation DeleteUserNote($input: DeleteNoteInput!) {\n    deleteUserNote(input: $input) @session {\n      deleted\n    }\n  }\n": types.DeleteUserNoteDocument,
+    "\n  query UserNote($id: ID!) {\n    userNote(id: $id) @session {\n      note {\n        id\n        title\n        textContent\n      }\n    }\n  }\n": types.UserNoteDocument,
+    "\n  query UserNotesConnection($first: NonNegativeInt!, $after: String) {\n    userNotesConnection(first: $first, after: $after) @session {\n      notes {\n        note {\n          id\n          title\n          textContent\n        }\n      }\n    }\n  }\n": types.UserNotesConnectionDocument,
+    "\n  subscription OnNoteCreated  {\n    noteCreated {\n      note {\n        id\n        note {\n          id\n          title\n          textContent\n        }\n      }\n    }\n  }\n": types.OnNoteCreatedDocument,
+    "\n  subscription OnNoteDeleted  {\n    noteDeleted {\n      id\n    }\n  }\n": types.OnNoteDeletedDocument,
+    "\n  subscription OnNoteUpdated  {\n    noteUpdated {\n      id\n      patch {\n        note {\n          title\n          textContent\n        }\n        preferences {\n          backgroundColor\n        }\n      }\n    }\n  }\n": types.OnNoteUpdatedDocument,
+    "\n  mutation UpdateUserNote($input: UpdateNoteInput!)  {\n    updateUserNote(input: $input) @session{ \n      note {\n        note {\n          id\n          title\n          textContent\n        }\n      }\n    }\n  }\n": types.UpdateUserNoteDocument,
     "\n  mutation CreateLocalSession($displayName: String!)  {\n    createLocalSession(displayName: $displayName) @client\n  }\n": types.CreateLocalSessionDocument,
     "\n  mutation CreateRemoteSession($input: RemoteSessionInput!)  {\n    createRemoteSession(input: $input) @client\n  }\n": types.CreateRemoteSessionDocument,
     "\n  mutation DeleteClientSession($index: Int!)  {\n    deleteClientSession(index: $index) @client\n  }\n": types.DeleteClientSessionDocument,
     "\n  query ClientSessions {\n\n    clientSessions @client {\n      __typename\n      ... on LocalSession {\n        id\n        displayName\n      }\n      ... on RemoteSession {\n        cookieIndex\n        displayName\n        email\n      }\n    }\n\n    activeClientSessionIndex @client\n  }\n": types.ClientSessionsDocument,
-    "\n  mutation SignIn($input: SignInInput!)  {\n    signIn(input: $input)\n  }\n": types.SignInDocument,
-    "\n  mutation SignOut {\n    signOut\n  }\n": types.SignOutDocument,
+    "\n  mutation SignIn($input: SignInInput!)  {\n    signIn(input: $input) {\n      sessionIndex\n      userInfo {\n        offlineMode {\n          id\n        }\n        profile {\n          displayName\n        }\n      }\n    }\n  }\n": types.SignInDocument,
+    "\n  mutation SignOut {\n    signOut {\n      signedOut\n      activeSessionIndex\n    }\n  }\n": types.SignOutDocument,
     "\n  mutation SwitchToClientSession($index: Int!)  {\n    switchToClientSession(index: $index) @client\n  }\n": types.SwitchToClientSessionDocument,
 };
 
@@ -57,35 +57,35 @@ export function gql(source: "\n  mutation UpdateColorMode($colorMode: ColorMode!
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n  mutation CreateNote($input: CreateNoteInput!)  {\n    createNote(input: $input) @session {\n      id\n      title\n      content\n    }\n  }\n"): (typeof documents)["\n  mutation CreateNote($input: CreateNoteInput!)  {\n    createNote(input: $input) @session {\n      id\n      title\n      content\n    }\n  }\n"];
+export function gql(source: "\n  mutation CreateUserNote($input: CreateNoteInput!)  {\n    createUserNote(input: $input) @session {\n      note {\n        id\n        note {\n          id\n          title\n          textContent\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation CreateUserNote($input: CreateNoteInput!)  {\n    createUserNote(input: $input) @session {\n      note {\n        id\n        note {\n          id\n          title\n          textContent\n        }\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n  mutation DeleteNote($id: ID!) {\n    deleteNote(id: $id) @session\n  }\n"): (typeof documents)["\n  mutation DeleteNote($id: ID!) {\n    deleteNote(id: $id) @session\n  }\n"];
+export function gql(source: "\n  mutation DeleteUserNote($input: DeleteNoteInput!) {\n    deleteUserNote(input: $input) @session {\n      deleted\n    }\n  }\n"): (typeof documents)["\n  mutation DeleteUserNote($input: DeleteNoteInput!) {\n    deleteUserNote(input: $input) @session {\n      deleted\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n  query Note($id: String!) {\n    note(id: $id) @session {\n      id\n      title\n      content\n    }\n  }\n"): (typeof documents)["\n  query Note($id: String!) {\n    note(id: $id) @session {\n      id\n      title\n      content\n    }\n  }\n"];
+export function gql(source: "\n  query UserNote($id: ID!) {\n    userNote(id: $id) @session {\n      note {\n        id\n        title\n        textContent\n      }\n    }\n  }\n"): (typeof documents)["\n  query UserNote($id: ID!) {\n    userNote(id: $id) @session {\n      note {\n        id\n        title\n        textContent\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n  query Notes {\n    notes @session {\n      id\n      title\n      content\n    }\n  }\n"): (typeof documents)["\n  query Notes {\n    notes @session {\n      id\n      title\n      content\n    }\n  }\n"];
+export function gql(source: "\n  query UserNotesConnection($first: NonNegativeInt!, $after: String) {\n    userNotesConnection(first: $first, after: $after) @session {\n      notes {\n        note {\n          id\n          title\n          textContent\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  query UserNotesConnection($first: NonNegativeInt!, $after: String) {\n    userNotesConnection(first: $first, after: $after) @session {\n      notes {\n        note {\n          id\n          title\n          textContent\n        }\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n  subscription OnNoteCreated  {\n    noteCreated {\n      id\n      title\n      content\n    }\n  }\n"): (typeof documents)["\n  subscription OnNoteCreated  {\n    noteCreated {\n      id\n      title\n      content\n    }\n  }\n"];
+export function gql(source: "\n  subscription OnNoteCreated  {\n    noteCreated {\n      note {\n        id\n        note {\n          id\n          title\n          textContent\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  subscription OnNoteCreated  {\n    noteCreated {\n      note {\n        id\n        note {\n          id\n          title\n          textContent\n        }\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n  subscription OnNoteDeleted  {\n    noteDeleted\n  }\n"): (typeof documents)["\n  subscription OnNoteDeleted  {\n    noteDeleted\n  }\n"];
+export function gql(source: "\n  subscription OnNoteDeleted  {\n    noteDeleted {\n      id\n    }\n  }\n"): (typeof documents)["\n  subscription OnNoteDeleted  {\n    noteDeleted {\n      id\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n  subscription OnNoteUpdated  {\n    noteUpdated {\n      id\n      title\n      content\n    }\n  }\n"): (typeof documents)["\n  subscription OnNoteUpdated  {\n    noteUpdated {\n      id\n      title\n      content\n    }\n  }\n"];
+export function gql(source: "\n  subscription OnNoteUpdated  {\n    noteUpdated {\n      id\n      patch {\n        note {\n          title\n          textContent\n        }\n        preferences {\n          backgroundColor\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  subscription OnNoteUpdated  {\n    noteUpdated {\n      id\n      patch {\n        note {\n          title\n          textContent\n        }\n        preferences {\n          backgroundColor\n        }\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n  mutation UpdateNote($input: UpdateNoteInput!)  {\n    updateNote(input: $input) @session\n  }\n"): (typeof documents)["\n  mutation UpdateNote($input: UpdateNoteInput!)  {\n    updateNote(input: $input) @session\n  }\n"];
+export function gql(source: "\n  mutation UpdateUserNote($input: UpdateNoteInput!)  {\n    updateUserNote(input: $input) @session{ \n      note {\n        note {\n          id\n          title\n          textContent\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateUserNote($input: UpdateNoteInput!)  {\n    updateUserNote(input: $input) @session{ \n      note {\n        note {\n          id\n          title\n          textContent\n        }\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -105,11 +105,11 @@ export function gql(source: "\n  query ClientSessions {\n\n    clientSessions @c
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n  mutation SignIn($input: SignInInput!)  {\n    signIn(input: $input)\n  }\n"): (typeof documents)["\n  mutation SignIn($input: SignInInput!)  {\n    signIn(input: $input)\n  }\n"];
+export function gql(source: "\n  mutation SignIn($input: SignInInput!)  {\n    signIn(input: $input) {\n      sessionIndex\n      userInfo {\n        offlineMode {\n          id\n        }\n        profile {\n          displayName\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation SignIn($input: SignInInput!)  {\n    signIn(input: $input) {\n      sessionIndex\n      userInfo {\n        offlineMode {\n          id\n        }\n        profile {\n          displayName\n        }\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n  mutation SignOut {\n    signOut\n  }\n"): (typeof documents)["\n  mutation SignOut {\n    signOut\n  }\n"];
+export function gql(source: "\n  mutation SignOut {\n    signOut {\n      signedOut\n      activeSessionIndex\n    }\n  }\n"): (typeof documents)["\n  mutation SignOut {\n    signOut {\n      signedOut\n      activeSessionIndex\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

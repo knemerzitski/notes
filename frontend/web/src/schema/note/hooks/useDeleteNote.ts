@@ -8,13 +8,17 @@ export default function useDeleteNote(): (id: string) => Promise<boolean> {
   return async (id) => {
     const result = await deleteNote({
       variables: {
-        id,
+        input: {
+          id,
+        },
       },
       optimisticResponse: {
-        deleteNote: true,
+        deleteUserNote: {
+          deleted: true,
+        },
       },
       update(cache, { data }) {
-        if (!data?.deleteNote) return;
+        if (!data?.deleteUserNote) return;
 
         //TODO clear from notes too?
         cache.evict({ id: cache.identify({ id, __typename: 'Note' }) });
@@ -22,6 +26,6 @@ export default function useDeleteNote(): (id: string) => Promise<boolean> {
       },
     });
 
-    return result.data?.deleteNote ?? false;
+    return result.data?.deleteUserNote.deleted ?? false;
   };
 }

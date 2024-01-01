@@ -3,9 +3,14 @@ import { gql } from '../../__generated__/gql';
 const NOTE_CREATED = gql(`
   subscription OnNoteCreated  {
     noteCreated {
-      id
-      title
-      content
+      note {
+        id
+        note {
+          id
+          title
+          textContent
+        }
+      }
     }
   }
 `);

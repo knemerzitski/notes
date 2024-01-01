@@ -3,8 +3,16 @@ import { gql } from '../../__generated__/gql';
 import { sessionDocumentTransform } from '../../session/directives/session';
 
 const UPDATE_NOTE = gql(`
-  mutation UpdateNote($input: UpdateNoteInput!)  {
-    updateNote(input: $input) @session
+  mutation UpdateUserNote($input: UpdateNoteInput!)  {
+    updateUserNote(input: $input) @session{ 
+      note {
+        note {
+          id
+          title
+          textContent
+        }
+      }
+    }
   }
 `);
 

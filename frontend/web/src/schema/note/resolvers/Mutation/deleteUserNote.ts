@@ -4,7 +4,7 @@ import { Mutation, MutationDeleteNoteArgs } from '../../../__generated__/graphql
 import { readActiveSession } from '../../../session/persistence';
 import { readSessionNotes, saveSessionNotes } from '../../persistence';
 
-export const deleteNote: (
+export const deleteUserNote: (
   parent: unknown,
   args: MutationDeleteNoteArgs
 ) => Mutation['deleteNote'] = (_parent, { id }) => {

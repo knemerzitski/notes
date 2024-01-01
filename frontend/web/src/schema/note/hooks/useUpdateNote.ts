@@ -5,24 +5,42 @@ import GET_NOTE from '../documents/GET_NOTE';
 import GET_NOTES from '../documents/GET_NOTES';
 import UPDATE_NOTE from '../documents/UPDATE_NOTE';
 
-export default function useUpdateNote(): (note: Note) => Promise<boolean> {
+export default function useUpdateNote(): (note: Note) => Promise<Note | undefined> {
   const [updateNote] = useMutation(UPDATE_NOTE());
 
   return async (note) => {
     const result = await updateNote({
       variables: {
-        input: note,
+        input: {
+          id: note.id,
+          patch: {
+            note: {
+              title: note.title,
+              textContent: note.textContent,
+            },
+          },
+        },
       },
       optimisticResponse: {
-        updateNote: true,
+        updateUserNote: {
+          note: {
+            note: {
+              id: note.id,
+              title: note.title,
+              textContent: note.textContent,
+            },
+          },
+        },
       },
       update(cache, { data }) {
-        if (!data?.updateNote) return;
+        if (!data?.updateUserNote) return;
 
         cache.writeQuery({
           query: GET_NOTE(),
           data: {
-            note,
+            userNote: {
+              note: data.updateUserNote.note.note,
+            },
           },
           variables: {
             id: note.id,
@@ -34,18 +52,20 @@ export default function useUpdateNote(): (note: Note) => Promise<boolean> {
             query: GET_NOTES(),
           },
           (cacheData) => {
-            if (!cacheData?.notes) return;
+            if (!cacheData?.userNotesConnection) return;
 
             return {
-              notes: cacheData.notes.map((cacheNote) =>
-                cacheNote.id === note.id ? note : cacheNote
-              ),
+              userNotesConnection: {
+                notes: cacheData.userNotesConnection.notes.map((cacheNote) =>
+                  cacheNote.note.id === note.id ? { note } : cacheNote
+                ),
+              },
             };
           }
         );
       },
     });
 
-    return result.data?.updateNote ?? false;
+    return result.data?.updateUserNote.note.note;
   };
 }

@@ -4,8 +4,15 @@ const NOTE_UPDATED = gql(`
   subscription OnNoteUpdated  {
     noteUpdated {
       id
-      title
-      content
+      patch {
+        note {
+          title
+          textContent
+        }
+        preferences {
+          backgroundColor
+        }
+      }
     }
   }
 `);

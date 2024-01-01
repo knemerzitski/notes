@@ -3,8 +3,10 @@ import { gql } from '../../__generated__/gql';
 import { sessionDocumentTransform } from '../../session/directives/session';
 
 const DELETE_NOTE = gql(`
-  mutation DeleteNote($id: ID!) {
-    deleteNote(id: $id) @session
+  mutation DeleteUserNote($input: DeleteNoteInput!) {
+    deleteUserNote(input: $input) @session {
+      deleted
+    }
   }
 `);
 

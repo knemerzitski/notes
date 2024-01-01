@@ -3,11 +3,13 @@ import { gql } from '../../__generated__/gql';
 import { sessionDocumentTransform } from '../../session/directives/session';
 
 const GET_NOTE = gql(`
-  query Note($id: String!) {
-    note(id: $id) @session {
-      id
-      title
-      content
+  query UserNote($id: ID!) {
+    userNote(id: $id) @session {
+      note {
+        id
+        title
+        textContent
+      }
     }
   }
 `);

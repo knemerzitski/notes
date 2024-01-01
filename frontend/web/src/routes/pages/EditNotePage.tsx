@@ -1,11 +1,10 @@
 import { useSuspenseQuery } from '@apollo/client';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { Box, IconButton, Paper, Toolbar } from '@mui/material';
-import { useEffect } from 'react';
+// import { useEffect } from 'react';
 import { useParams, useLocation, Location } from 'react-router-dom';
 
 import AppBar from '../../components/appbar/AppBar';
-import RouteSnackbarError from '../../components/feedback/RouteSnackbarError';
 import { useSnackbarError } from '../../components/feedback/SnackbarAlertProvider';
 import BorderlessTextField from '../../components/inputs/BorderlessTextField';
 import useIsScrollEnd from '../../hooks/useIsScrollEnd';
@@ -13,7 +12,7 @@ import NoteToolbar from '../../notes/NoteToolbar';
 import { useProxyNavigate } from '../../router/ProxyRoutesProvider';
 import { Note } from '../../schema/__generated__/graphql';
 import GET_NOTE from '../../schema/note/documents/GET_NOTE';
-import NOTE_UPDATED from '../../schema/note/documents/NOTE_UPDATED';
+// import NOTE_UPDATED from '../../schema/note/documents/NOTE_UPDATED';
 import useDeleteNote from '../../schema/note/hooks/useDeleteNote';
 import useUpdateNote from '../../schema/note/hooks/useUpdateNote';
 
@@ -30,29 +29,25 @@ export default function EditNotePage() {
   const updateNote = useUpdateNote();
   const deleteNote = useDeleteNote();
 
-  const { data, subscribeToMore } = useSuspenseQuery(GET_NOTE(), {
+  const { data /* , subscribeToMore */ } = useSuspenseQuery(GET_NOTE(), {
     variables: {
       id: params.id ?? '',
     },
   });
 
-  useEffect(() => {
-    subscribeToMore({
-      document: NOTE_UPDATED,
-      updateQuery(_cache, { subscriptionData }) {
-        const updatedNote = subscriptionData.data.noteUpdated;
-        return {
-          note: updatedNote,
-        };
-      },
-    });
-  }, [subscribeToMore]);
+  // useEffect(() => {
+  //   subscribeToMore({
+  //     document: NOTE_UPDATED,
+  //     updateQuery(_cache, { subscriptionData }) {
+  //       const updatedNote = subscriptionData.data.noteUpdated;
+  //       return {
+  //         note: updatedNote,
+  //       };
+  //     },
+  //   });
+  // }, [subscribeToMore]);
 
-  if (!params.id || !data.note) {
-    return <RouteSnackbarError>{`Note '${params.id}' not found`}</RouteSnackbarError>;
-  }
-
-  const note = data.note;
+  const note = data.userNote.note;
 
   const autoFocus = Boolean(location.state?.autoFocus);
 
@@ -61,7 +56,7 @@ export default function EditNotePage() {
       !(await updateNote({
         id: note.id,
         title: updatedNote.title,
-        content: updatedNote.content,
+        textContent: updatedNote.textContent,
       }))
     ) {
       showError('Failed to update note');
@@ -150,11 +145,11 @@ export default function EditNotePage() {
             fullWidth
             multiline
             autoFocus={autoFocus}
-            value={note.content}
+            value={note.textContent}
             onChange={(e) => {
               void handleNoteChange({
                 ...note,
-                content: e.target.value,
+                textContent: e.target.value,
               });
             }}
             sx={{

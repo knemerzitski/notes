@@ -74,11 +74,11 @@ export default function NoteEditor({
           multiline
           autoFocus
           autoSelection="end"
-          value={note.content}
+          value={note.textContent}
           onChange={(e) => {
             onChange({
               ...note,
-              content: e.target.value,
+              textContent: e.target.value,
             });
           }}
           {...slotProps?.contentField}

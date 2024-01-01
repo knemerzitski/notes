@@ -68,19 +68,31 @@ export default function UserButton(props: IconButtonProps) {
       variables: {
         input: {
           provider: AuthProvider.Google,
-          token: 'test-google-account',
+          credentials: {
+            token: 'test-google-account',
+          },
         },
       },
     });
 
-    if (!signInResult.data || signInResult.data.signIn < 0) return;
+    if (!signInResult.data?.signIn) return;
+
+    const {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      sessionIndex,
+      userInfo: {
+        //offlineMode: { id },
+        profile: { displayName },
+      },
+    } = signInResult.data.signIn;
 
     const createSessionResult = await createRemoteSession({
       variables: {
         input: {
-          displayName: 'Test Google Account',
+          displayName: displayName,
           email: 'testaccount@gmail.com',
-          cookieIndex: signInResult.data.signIn,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          cookieIndex: sessionIndex,
         },
       },
       refetchQueries: [GET_SESSIONS],
@@ -97,7 +109,12 @@ export default function UserButton(props: IconButtonProps) {
 
     const result = await signOut();
 
-    if (!result.data || result.data.signOut < 0) return;
+    if (!result.data) return;
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const { signedOut, activeSessionIndex: newSessionIndex } = result.data.signOut;
+
+    if (!signedOut) return;
 
     await deleteClientSession({
       variables: {
@@ -106,7 +123,8 @@ export default function UserButton(props: IconButtonProps) {
       refetchQueries: [GET_SESSIONS],
     });
 
-    await switchToSession(0);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    await switchToSession(newSessionIndex ?? 0);
   }
 
   async function handleCreateNewLocalAccount() {

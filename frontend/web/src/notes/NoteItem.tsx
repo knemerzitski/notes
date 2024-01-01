@@ -103,7 +103,7 @@ export default function NoteItem({
           flexGrow: 1,
         }}
       >
-        {visibleNote.content}
+        {visibleNote.textContent}
       </Typography>
 
       <NoteToolbar

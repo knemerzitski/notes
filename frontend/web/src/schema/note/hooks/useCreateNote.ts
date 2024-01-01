@@ -6,44 +6,71 @@ import GET_NOTES from '../documents/GET_NOTES';
 
 export default function useCreateNote(): (
   title: string,
-  content: string
+  textContent: string
 ) => Promise<Note | null> {
   const [createNote] = useMutation(CREATE_NOTE());
 
-  return async (title, content) => {
+  return async (title, textContent) => {
     const result = await createNote({
       variables: {
         input: {
-          title,
-          content,
+          newNote: {
+            title,
+            textContent,
+          },
         },
       },
       optimisticResponse: {
-        createNote: {
-          id: 'Note',
-          title,
-          content,
+        createUserNote: {
+          note: {
+            id: 'Note',
+            note: {
+              id: 'Note',
+              title,
+              textContent,
+            },
+          },
         },
       },
       update(cache, { data }) {
-        if (!data?.createNote) return;
-        const createNote = data.createNote;
+        if (!data?.createUserNote) return;
+        const createNote = data.createUserNote;
         cache.updateQuery(
           {
             query: GET_NOTES(),
           },
           (cacheData) => {
-            if (!cacheData?.notes) return;
+            if (!cacheData?.userNotesConnection)
+              return {
+                userNotesConnection: {
+                  notes: [],
+                },
+              };
 
-            if (cacheData.notes.some((cachedNote) => cachedNote.id === createNote.id)) {
+            if (
+              cacheData.userNotesConnection.notes.some(
+                (cachedNote) => cachedNote.note.id === createNote.note.id
+              )
+            ) {
               return cacheData;
             }
-            return { notes: [createNote, ...cacheData.notes] };
+
+            return {
+              userNotesConnection: {
+                notes: [createNote.note, ...cacheData.userNotesConnection.notes],
+              },
+            };
           }
         );
       },
     });
 
-    return result.data?.createNote ?? null;
+    const note = result.data?.createUserNote?.note;
+
+    if (!note) return null;
+
+    console.log('ret', note);
+
+    return note.note;
   };
 }

@@ -13,18 +13,18 @@ const contentFieldPlaceholder = 'Take a note...';
 export default function AddNoteWidget(props: PaperProps) {
   const [note, setNote] = useState<Omit<Note, 'id'>>({
     title: '',
-    content: '',
+    textContent: '',
   });
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const createNote = useCreateNote();
 
   const showError = useSnackbarError();
 
-  function setContentAndOpenEditor(content = '') {
+  function setContentAndOpenEditor(textContent = '') {
     if (!isEditorOpen) {
       setNote((prev) => ({
         ...prev,
-        content,
+        textContent,
       }));
       setIsEditorOpen(true);
     }
@@ -37,15 +37,15 @@ export default function AddNoteWidget(props: PaperProps) {
   function reset() {
     setNote({
       title: '',
-      content: '',
+      textContent: '',
     });
     setIsEditorOpen(false);
   }
 
   async function handleOnClose() {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (note.title || note.content) {
-      if ((await createNote(note.title ?? '', note.content ?? '')) == null) {
+    if (note.title || note.textContent) {
+      if ((await createNote(note.title, note.textContent)) == null) {
         showError('Failed to create note');
         return;
       }
@@ -76,7 +76,7 @@ export default function AddNoteWidget(props: PaperProps) {
           placeholder={contentFieldPlaceholder}
           fullWidth
           autoFocus
-          value={note.content}
+          value={note.textContent}
           onChange={(e) => {
             setContentAndOpenEditor(e.target.value);
           }}

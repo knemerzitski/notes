@@ -28,7 +28,7 @@ export default function EditNoteDialog({
       !(await updateNote({
         id: note.id,
         title: updatedNote.title,
-        content: updatedNote.content,
+        textContent: updatedNote.textContent,
       }))
     ) {
       showError(`Failed to update note`);

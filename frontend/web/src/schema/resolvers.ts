@@ -1,6 +1,6 @@
-import { createNote } from './note/resolvers/Mutation/createNote';
-import { deleteNote } from './note/resolvers/Mutation/deleteNote';
-import { updateNote } from './note/resolvers/Mutation/updateNote';
+import { createUserNote } from './note/resolvers/Mutation/createUserNote';
+import { deleteUserNote } from './note/resolvers/Mutation/deleteUserNote';
+import { updateUserNote } from './note/resolvers/Mutation/updateUserNote';
 import { note } from './note/resolvers/Query/note';
 import { notes } from './note/resolvers/Query/notes';
 import { updateColorMode } from './preferences/resolvers/Mutation/updateColorMode';
@@ -30,8 +30,8 @@ export const resolvers = {
     switchToClientSession,
     deleteClientSession,
 
-    createNote,
-    updateNote,
-    deleteNote,
+    createNote: createUserNote,
+    updateNote: updateUserNote,
+    deleteNote: deleteUserNote,
   },
 };

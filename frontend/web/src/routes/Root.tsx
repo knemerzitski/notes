@@ -1,4 +1,5 @@
 import { Suspense, useMemo } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 import {
   Route,
   Routes,
@@ -8,6 +9,7 @@ import {
   matchRoutes,
 } from 'react-router-dom';
 
+import SnackbarErrorBoundary from '../components/feedback/SnackbarErrorBoundary';
 import useIsMobile from '../hooks/useIsMobile';
 import NotesMain from '../notes/NotesMain';
 import { useProxyTransform } from '../router/ProxyRoutesProvider';
@@ -66,9 +68,11 @@ function DesktopRoutes() {
     <>
       <MainOrBackgroundRoutes />
 
-      <Suspense fallback={null}>
-        <ModalRoutes />
-      </Suspense>
+      <ErrorBoundary FallbackComponent={SnackbarErrorBoundary}>
+        <Suspense fallback={null}>
+          <ModalRoutes />
+        </Suspense>
+      </ErrorBoundary>
     </>
   );
 }

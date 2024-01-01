@@ -1,74 +1,83 @@
 import { useQuery } from '@apollo/client';
 import { Alert, Skeleton } from '@mui/material';
 import Grid, { GridProps } from '@mui/material/Grid';
-import { useEffect } from 'react';
+// import { useEffect } from 'react';
 
 import { useSnackbarError } from '../components/feedback/SnackbarAlertProvider';
 import { Note } from '../schema/__generated__/graphql';
 import GET_NOTES from '../schema/note/documents/GET_NOTES';
-import NOTE_CREATED from '../schema/note/documents/NOTE_CREATED';
-import NOTE_DELETED from '../schema/note/documents/NOTE_DELETED';
-import NOTE_UPDATED from '../schema/note/documents/NOTE_UPDATED';
+// import NOTE_CREATED from '../schema/note/documents/NOTE_CREATED';
+// import NOTE_DELETED from '../schema/note/documents/NOTE_DELETED';
+// import NOTE_UPDATED from '../schema/note/documents/NOTE_UPDATED';
 import useDeleteNote from '../schema/note/hooks/useDeleteNote';
 
 import NoteItem from './NoteItem';
 
 export default function NotesList(props: GridProps) {
-  const { data: notesData, loading, error, subscribeToMore } = useQuery(GET_NOTES());
+  const {
+    data: notesData,
+    loading,
+    error,
+    // subscribeToMore,
+  } = useQuery(GET_NOTES(), {
+    variables: {
+      first: 20,
+    },
+  });
 
   const deleteNote = useDeleteNote();
 
   const showError = useSnackbarError();
 
-  useEffect(() => {
-    subscribeToMore({
-      document: NOTE_CREATED,
-      updateQuery(cache, { subscriptionData }) {
-        let { notes } = cache;
-        if (!notes) notes = [];
+  // useEffect(() => {
+  //   subscribeToMore({
+  //     document: NOTE_CREATED,
+  //     updateQuery(cache, { subscriptionData }) {
+  //       let { notes } = cache;
+  //       if (!notes) notes = [];
 
-        const newNote = subscriptionData.data.noteCreated;
+  //       const newNote = subscriptionData.data.noteCreated;
 
-        if (notes.some((cachedNote) => cachedNote.id === newNote.id)) {
-          return cache;
-        }
+  //       if (notes.some((cachedNote) => cachedNote.id === newNote.id)) {
+  //         return cache;
+  //       }
 
-        return {
-          notes: [newNote, ...notes],
-        };
-      },
-    });
+  //       return {
+  //         notes: [newNote, ...notes],
+  //       };
+  //     },
+  //   });
 
-    subscribeToMore({
-      document: NOTE_UPDATED,
-      updateQuery(cache, { subscriptionData }) {
-        let { notes } = cache;
-        if (!notes) notes = [];
+  //   subscribeToMore({
+  //     document: NOTE_UPDATED,
+  //     updateQuery(cache, { subscriptionData }) {
+  //       let { notes } = cache;
+  //       if (!notes) notes = [];
 
-        const updatedNote = subscriptionData.data.noteUpdated;
+  //       const updatedNote = subscriptionData.data.noteUpdated;
 
-        return {
-          notes: notes.map((cachedNote) =>
-            cachedNote.id === updatedNote.id ? updatedNote : cachedNote
-          ),
-        };
-      },
-    });
+  //       return {
+  //         notes: notes.map((cachedNote) =>
+  //           cachedNote.id === updatedNote.id ? updatedNote : cachedNote
+  //         ),
+  //       };
+  //     },
+  //   });
 
-    subscribeToMore({
-      document: NOTE_DELETED,
-      updateQuery(cache, { subscriptionData }) {
-        let { notes } = cache;
-        if (!notes) notes = [];
+  //   subscribeToMore({
+  //     document: NOTE_DELETED,
+  //     updateQuery(cache, { subscriptionData }) {
+  //       let { notes } = cache;
+  //       if (!notes) notes = [];
 
-        const deletedId = subscriptionData.data.noteDeleted;
+  //       const deletedId = subscriptionData.data.noteDeleted;
 
-        return {
-          notes: notes.filter((cachedNote) => cachedNote.id !== deletedId),
-        };
-      },
-    });
-  }, [subscribeToMore]);
+  //       return {
+  //         notes: notes.filter((cachedNote) => cachedNote.id !== deletedId),
+  //       };
+  //     },
+  //   });
+  // }, [subscribeToMore]);
 
   if (error) {
     return (
@@ -78,7 +87,8 @@ export default function NotesList(props: GridProps) {
     );
   }
 
-  const notes: Note[] = notesData?.notes ?? [];
+  const notes: Note[] =
+    notesData?.userNotesConnection.notes.map((note) => note.note) ?? [];
 
   async function handleDelete(id: string): Promise<boolean> {
     if (!(await deleteNote(id))) {
