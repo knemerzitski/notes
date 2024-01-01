@@ -1,11 +1,11 @@
 {
   "name": "notes",
   "workspaces": [
-    "backend/api",
-    "backend/lambda-graphql",
-    "backend/mocks/lambda-graphql-server",
-    "backend/common",
-    "frontend/web"
+    "packages/api",
+    "packages/api-dev-server",
+    "packages/app",
+    "packages/common",
+    "packages/lambda-graphql"
   ],
   "private": true,
   "type": "module",
@@ -13,15 +13,15 @@
   "scripts": {
     "prepare": "husky install",
     "lint": "npm run lint --workspaces --if-present",
-    "dynamodb:start": "cd ./backend/mocks/dynamodb && docker compose up -d",
-    "dynamodb:stop": "cd ./backend/mocks/dynamodb && docker compose down",
-    "mongodb:start": "cd ./backend/mocks/mongodb && docker compose up -d",
-    "mongodb:stop": "cd ./backend/mocks/mongodb && docker compose down",
-    "mongo-express:start": "cd ./backend/mocks/mongo-express && docker compose up -d",
-    "mongo-express:stop": "cd ./backend/mocks/mongo-express && docker compose down",
+    "dynamodb:start": "cd ./docker/dynamodb && docker compose up -d",
+    "dynamodb:stop": "cd ./docker/dynamodb && docker compose down",
+    "mongodb:start": "cd ./docker/mongodb && docker compose up -d",
+    "mongodb:stop": "cd ./docker/mongodb && docker compose down",
+    "mongo-express:start": "cd ./docker/mongo-express && docker compose up -d",
+    "mongo-express:stop": "cd ./docker/mongo-express && docker compose down",
     "db:start": "npm run dynamodb:start & npm run mongodb:start",
     "db:stop": "npm run dynamodb:stop & npm run mongodb:stop",
-    "api:dev": "npm run -w mock-server dev & npm run -w api graphql:watch",
+    "api:dev": "npm run -w dev-server dev & npm run -w api graphql:watch",
     "app:dev": "npm run -w app dev",
     "dev": "npm run api:dev & npm run app:dev",
     "graphql:compile": "npm run graphql:compile --workspaces --if-present"

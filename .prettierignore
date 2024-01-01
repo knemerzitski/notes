@@ -1,2 +1,2 @@
-backend/api/src/graphql/*.generated.ts
-frontend/web/src/graphql/__generated__
+packages/api/src/graphql/*.generated.ts
+packages/app/src/graphql/__generated__

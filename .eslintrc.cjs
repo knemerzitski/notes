@@ -1,6 +1,7 @@
 module.exports = {
   root: true,
   plugins: ['eslint-plugin-import'],
+  extends: ['eslint:recommended', 'prettier'],
   settings: {
     'import/resolver': {
       typescript: {},
@@ -28,13 +29,13 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['./frontend/web/src/**/*.[jt]s?(x)'],
+      files: ['./packages/app/src/**/*.[jt]s?(x)'],
       processor: '@graphql-eslint/graphql',
     },
     {
       files: [
-        './backend/api/src/graphql/**/*.graphql',
-        './frontend/web/src/graphql/**/*.graphql',
+        './packages/api/src/graphql/**/*.graphql',
+        './packages/app/src/graphql/**/*.graphql',
       ],
       extends: [
         'plugin:@graphql-eslint/schema-recommended',
@@ -55,10 +56,10 @@ module.exports = {
       },
       parserOptions: {
         schema: [
-          './backend/api/src/graphql/**/schema.graphql',
-          './frontend/web/src/graphql/**/schema.graphql',
+          './packages/api/src/graphql/**/schema.graphql',
+          './packages/app/src/graphql/**/schema.graphql',
         ],
-        operations: ['./frontend/web/src/**/*.{graphql,js,ts,jsx,tsx}'],
+        operations: ['./packages/app/src/**/*.{graphql,js,ts,jsx,tsx}'],
       },
     },
   ],

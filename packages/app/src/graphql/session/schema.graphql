@@ -1,0 +1,84 @@
+type SessionProfile {
+  "Self-descriptive"
+  displayName: String!
+  "Self-descriptive"
+  email: String!
+}
+
+input SessionProfileInput {
+  displayName: String!
+  email: String!
+}
+
+input SessionProfilePatchInput {
+  displayName: String
+  email: String
+}
+
+# eslint-disable-next-line @graphql-eslint/strict-id-in-types
+type SavedSession {
+  "Index of session stored in http-only cookie"
+  index: Int!
+  "Self-descriptive"
+  profile: SessionProfile!
+}
+
+extend type Query {
+  "All saved sessions information stored on client-side."
+  savedSessions: [SavedSession!]!
+  "Client-side current session"
+  currentSavedSession: SavedSession
+}
+
+input CreateSavedSessionInput {
+  index: Int!
+  profile: SessionProfileInput!
+}
+type CreateSavedSessionPayload {
+  "Self-descriptive"
+  savedSession: SavedSession!
+}
+extend type Mutation {
+  "Call this mutation after successful remote sign in to remember the session."
+  createSavedSession(input: CreateSavedSessionInput!): CreateSavedSessionPayload
+}
+
+input UpdateSavedSessionPatchInput {
+  index: Int!
+  patch: SessionProfilePatchInput!
+}
+type UpdateSavedSessionPayload {
+  "Self-descriptive"
+  savedSession: SavedSession!
+}
+extend type Mutation {
+  "Call this mutation after successful remote sign in to remember the session."
+  updateSavedSession(input: UpdateSavedSessionPatchInput!): UpdateSavedSessionPayload
+}
+
+input DeleteSavedSessionInput {
+  "Index of saved session to be deleted."
+  index: Int!
+}
+type DeleteSavedSessionPayload {
+  "Was saved session deletion successful."
+  deleted: Boolean!
+}
+extend type Mutation {
+  "Deletes client session and returns deleted session ID."
+  deleteSavedSession(input: DeleteSavedSessionInput!): DeleteSavedSessionPayload
+}
+
+input SwitchToSavedSessionInput {
+  "New session index"
+  index: Int!
+}
+type SwitchToSavedSessionPayload {
+  "Index of saved session to be deleted."
+  session: SavedSession!
+}
+
+extend type Mutation {
+  "Deletes client session and returns deleted session ID."
+  switchToSavedSession(input: SwitchToSavedSessionInput!): SwitchToSavedSessionPayload
+}

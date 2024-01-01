@@ -1,0 +1,34 @@
+enum ColorMode {
+  SYSTEM
+  LIGHT
+  DARK
+}
+
+# eslint-disable-next-line @graphql-eslint/strict-id-in-types
+type Preferences {
+  "Color mode of the app"
+  colorMode: ColorMode!
+}
+
+input PreferencesPatchInput {
+  colorMode: ColorMode
+}
+
+extend type Query {
+  "Get local preferences, such as interface color mode"
+  preferences: Preferences
+}
+
+input UpdatePreferencesPatchInput {
+  patch: PreferencesPatchInput!
+}
+
+type UpdatePreferencesPayload {
+  "Index of saved session to be deleted."
+  preferences: Preferences!
+}
+
+extend type Mutation {
+  "Updates user preferred color mode"
+  updatePreferences(input: UpdatePreferencesPatchInput!): UpdatePreferencesPayload
+}
