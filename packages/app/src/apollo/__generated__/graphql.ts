@@ -49,17 +49,6 @@ export type CreateNotePayload = {
   note: UserNote;
 };
 
-export type CreateSavedSessionInput = {
-  index: Scalars['Int']['input'];
-  profile: SessionProfileInput;
-};
-
-export type CreateSavedSessionPayload = {
-  __typename?: 'CreateSavedSessionPayload';
-  /** Self-descriptive */
-  savedSession: SavedSession;
-};
-
 export type CredentialsInput = {
   token?: InputMaybe<Scalars['String']['input']>;
 };
@@ -74,17 +63,6 @@ export type DeleteNotePayload = {
   deleted: Scalars['Boolean']['output'];
 };
 
-export type DeleteSavedSessionInput = {
-  /** Index of saved session to be deleted. */
-  index: Scalars['Int']['input'];
-};
-
-export type DeleteSavedSessionPayload = {
-  __typename?: 'DeleteSavedSessionPayload';
-  /** Was saved session deletion successful. */
-  deleted: Scalars['Boolean']['output'];
-};
-
 export type Edge = {
   /** Self descriptive */
   cursor: Scalars['String']['output'];
@@ -96,28 +74,20 @@ export type Mutation = {
   __typename?: 'Mutation';
   /** Create a new note that is saved in localStorage */
   createLocalNote?: Maybe<CreateNotePayload>;
-  /** Call this mutation after successful remote sign in to remember the session. */
-  createSavedSession?: Maybe<CreateSavedSessionPayload>;
   /** Create a new note to current user */
   createUserNote?: Maybe<CreateNotePayload>;
   /** Delete note in localStorage */
   deleteLocalNote?: Maybe<DeleteNotePayload>;
-  /** Deletes client session and returns deleted session ID. */
-  deleteSavedSession?: Maybe<DeleteSavedSessionPayload>;
   /** Delete note */
   deleteUserNote: DeleteNotePayload;
   /** On successful sign in, session ID is stored in a http-only cookie. Returns null on failed sign in. */
   signIn?: Maybe<SignInPayload>;
   /** Returns signed out http-conly cookie session index or null if user was not signed in. */
   signOut: SignOutPayload;
-  /** Deletes client session and returns deleted session ID. */
-  switchToSavedSession?: Maybe<SwitchToSavedSessionPayload>;
   /** Switch session to new index which is tied to http-only session cookie. Returns switched to session index. */
   switchToSession: SwitchToSessionPayload;
   /** Update note in localStorage */
   updateLocalNote?: Maybe<UpdateNotePayload>;
-  /** Call this mutation after successful remote sign in to remember the session. */
-  updateSavedSession?: Maybe<UpdateSavedSessionPayload>;
   /** Update note */
   updateUserNote: UpdateNotePayload;
 };
@@ -125,11 +95,6 @@ export type Mutation = {
 
 export type MutationCreateLocalNoteArgs = {
   input: CreateNoteInput;
-};
-
-
-export type MutationCreateSavedSessionArgs = {
-  input: CreateSavedSessionInput;
 };
 
 
@@ -143,11 +108,6 @@ export type MutationDeleteLocalNoteArgs = {
 };
 
 
-export type MutationDeleteSavedSessionArgs = {
-  input: DeleteSavedSessionInput;
-};
-
-
 export type MutationDeleteUserNoteArgs = {
   input: DeleteNoteInput;
 };
@@ -158,11 +118,6 @@ export type MutationSignInArgs = {
 };
 
 
-export type MutationSwitchToSavedSessionArgs = {
-  input: SwitchToSavedSessionInput;
-};
-
-
 export type MutationSwitchToSessionArgs = {
   input: SwitchToSessionInput;
 };
@@ -170,11 +125,6 @@ export type MutationSwitchToSessionArgs = {
 
 export type MutationUpdateLocalNoteArgs = {
   input: UpdateNoteInput;
-};
-
-
-export type MutationUpdateSavedSessionArgs = {
-  input: UpdateSavedSessionPatchInput;
 };
 
 
@@ -262,15 +212,17 @@ export type Query = {
   activeSessionIndex: Scalars['NonNegativeInt']['output'];
   /** Currently active user info */
   activeUserInfo: UserInfo;
-  /** Client-side current session */
+  /** savedSessions[currrentSavedSessionIndex] */
   currentSavedSession?: Maybe<SavedSession>;
+  /** Current session index. Cached index of session index stored in http-only cookie */
+  currentSavedSessionIndex?: Maybe<Scalars['Int']['output']>;
   /** Get note by ID from localStorage */
   localNote: UserNote;
   /** Get all notes from localStorage */
   localNotes: Array<Maybe<UserNote>>;
   /** User local preferences */
   preferences?: Maybe<Preferences>;
-  /** All saved sessions information stored on client-side. */
+  /** Client only saved session info. Server uses http-only cookie to store an array of session ids. */
   savedSessions: Array<SavedSession>;
   /** Count of sessions saved in http-only cookie */
   sessionCount: Scalars['PositiveInt']['output'];
@@ -302,28 +254,10 @@ export enum Role {
 
 export type SavedSession = {
   __typename?: 'SavedSession';
-  /** Index of session stored in http-only cookie */
-  index: Scalars['Int']['output'];
-  /** Self-descriptive */
-  profile: SessionProfile;
-};
-
-export type SessionProfile = {
-  __typename?: 'SessionProfile';
-  /** Self-descriptive */
+  /** Cached displayName of this session. */
   displayName: Scalars['String']['output'];
-  /** Self-descriptive */
+  /** Email of this session. Is stored only on client-side and not in server. */
   email: Scalars['String']['output'];
-};
-
-export type SessionProfileInput = {
-  displayName: Scalars['String']['input'];
-  email: Scalars['String']['input'];
-};
-
-export type SessionProfilePatchInput = {
-  displayName?: InputMaybe<Scalars['String']['input']>;
-  email?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type SignInInput = {
@@ -357,17 +291,6 @@ export type Subscription = {
   noteUpdated: NoteUpdatedPayload;
 };
 
-export type SwitchToSavedSessionInput = {
-  /** New session index */
-  index: Scalars['Int']['input'];
-};
-
-export type SwitchToSavedSessionPayload = {
-  __typename?: 'SwitchToSavedSessionPayload';
-  /** Index of saved session to be deleted. */
-  session: SavedSession;
-};
-
 export type SwitchToSessionInput = {
   switchToSessionIndex: Scalars['NonNegativeInt']['input'];
 };
@@ -387,17 +310,6 @@ export type UpdateNotePayload = {
   __typename?: 'UpdateNotePayload';
   /** Note to update */
   note: UserNote;
-};
-
-export type UpdateSavedSessionPatchInput = {
-  index: Scalars['Int']['input'];
-  patch: SessionProfilePatchInput;
-};
-
-export type UpdateSavedSessionPayload = {
-  __typename?: 'UpdateSavedSessionPayload';
-  /** Self-descriptive */
-  savedSession: SavedSession;
 };
 
 /** User information accessible by a query */
@@ -469,10 +381,10 @@ export type UserNotePreferencesPatchInput = {
   backgroundColor?: InputMaybe<Scalars['HexColorCode']['input']>;
 };
 
-export type PreferencesQueryVariables = Exact<{ [key: string]: never; }>;
+export type AppQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type PreferencesQuery = { __typename?: 'Query', preferences?: { __typename?: 'Preferences', colorMode: ColorMode } | null };
+export type AppQuery = { __typename?: 'Query', preferences?: { __typename?: 'Preferences', colorMode: ColorMode } | null };
 
 export type CreateUserNoteMutationVariables = Exact<{
   input: CreateNoteInput;
@@ -525,24 +437,10 @@ export type UpdateUserNoteMutationVariables = Exact<{
 
 export type UpdateUserNoteMutation = { __typename?: 'Mutation', updateUserNote: { __typename?: 'UpdateNotePayload', note: { __typename?: 'UserNote', note: { __typename?: 'Note', id: string | number, title: string, textContent: string } } } };
 
-export type CreateSavedSessionMutationVariables = Exact<{
-  input: CreateSavedSessionInput;
-}>;
+export type SessionSwitcherProviderQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type CreateSavedSessionMutation = { __typename?: 'Mutation', createSavedSession?: { __typename?: 'CreateSavedSessionPayload', savedSession: { __typename?: 'SavedSession', index: number, profile: { __typename?: 'SessionProfile', displayName: string, email: string } } } | null };
-
-export type DeleteClientSessionMutationVariables = Exact<{
-  input: DeleteSavedSessionInput;
-}>;
-
-
-export type DeleteClientSessionMutation = { __typename?: 'Mutation', deleteSavedSession?: { __typename?: 'DeleteSavedSessionPayload', deleted: boolean } | null };
-
-export type SavedSessionsQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type SavedSessionsQuery = { __typename?: 'Query', savedSessions: Array<{ __typename?: 'SavedSession', index: number, profile: { __typename?: 'SessionProfile', displayName: string, email: string } }>, currentSavedSession?: { __typename?: 'SavedSession', index: number, profile: { __typename?: 'SessionProfile', displayName: string, email: string } } | null };
+export type SessionSwitcherProviderQuery = { __typename?: 'Query', currentSavedSessionIndex?: number | null, savedSessions: Array<{ __typename?: 'SavedSession', displayName: string, email: string }> };
 
 export type SignInMutationVariables = Exact<{
   input: SignInInput;
@@ -556,15 +454,13 @@ export type SignOutMutationVariables = Exact<{ [key: string]: never; }>;
 
 export type SignOutMutation = { __typename?: 'Mutation', signOut: { __typename?: 'SignOutPayload', signedOut: boolean, activeSessionIndex?: number | null } };
 
-export type SwitchToSavedSessionMutationVariables = Exact<{
-  input: SwitchToSavedSessionInput;
-}>;
+export type AccountButtonQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type SwitchToSavedSessionMutation = { __typename?: 'Mutation', switchToSavedSession?: { __typename?: 'SwitchToSavedSessionPayload', session: { __typename?: 'SavedSession', index: number } } | null };
+export type AccountButtonQuery = { __typename?: 'Query', currentSavedSessionIndex?: number | null, savedSessions: Array<{ __typename?: 'SavedSession', displayName: string, email: string }>, currentSavedSession?: { __typename?: 'SavedSession', displayName: string, email: string } | null };
 
 
-export const PreferencesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Preferences"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"preferences"},"directives":[{"kind":"Directive","name":{"kind":"Name","value":"client"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"colorMode"}}]}}]}}]} as unknown as DocumentNode<PreferencesQuery, PreferencesQueryVariables>;
+export const AppDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"App"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"preferences"},"directives":[{"kind":"Directive","name":{"kind":"Name","value":"client"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"colorMode"}}]}}]}}]} as unknown as DocumentNode<AppQuery, AppQueryVariables>;
 export const CreateUserNoteDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateUserNote"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateNoteInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createUserNote"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"directives":[{"kind":"Directive","name":{"kind":"Name","value":"session"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"note"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"note"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"textContent"}}]}}]}}]}}]}}]} as unknown as DocumentNode<CreateUserNoteMutation, CreateUserNoteMutationVariables>;
 export const DeleteUserNoteDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteUserNote"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DeleteNoteInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteUserNote"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"directives":[{"kind":"Directive","name":{"kind":"Name","value":"session"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleted"}}]}}]}}]} as unknown as DocumentNode<DeleteUserNoteMutation, DeleteUserNoteMutationVariables>;
 export const UserNoteDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"UserNote"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"userNote"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"directives":[{"kind":"Directive","name":{"kind":"Name","value":"session"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"note"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"textContent"}}]}}]}}]}}]} as unknown as DocumentNode<UserNoteQuery, UserNoteQueryVariables>;
@@ -573,9 +469,7 @@ export const OnNoteCreatedDocument = {"kind":"Document","definitions":[{"kind":"
 export const OnNoteDeletedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"OnNoteDeleted"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"noteDeleted"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<OnNoteDeletedSubscription, OnNoteDeletedSubscriptionVariables>;
 export const OnNoteUpdatedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"OnNoteUpdated"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"noteUpdated"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"patch"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"note"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"textContent"}}]}},{"kind":"Field","name":{"kind":"Name","value":"preferences"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backgroundColor"}}]}}]}}]}}]}}]} as unknown as DocumentNode<OnNoteUpdatedSubscription, OnNoteUpdatedSubscriptionVariables>;
 export const UpdateUserNoteDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateUserNote"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateNoteInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateUserNote"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"directives":[{"kind":"Directive","name":{"kind":"Name","value":"session"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"note"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"note"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"textContent"}}]}}]}}]}}]}}]} as unknown as DocumentNode<UpdateUserNoteMutation, UpdateUserNoteMutationVariables>;
-export const CreateSavedSessionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateSavedSession"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateSavedSessionInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createSavedSession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"directives":[{"kind":"Directive","name":{"kind":"Name","value":"client"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"savedSession"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"index"}},{"kind":"Field","name":{"kind":"Name","value":"profile"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"email"}}]}}]}}]}}]}}]} as unknown as DocumentNode<CreateSavedSessionMutation, CreateSavedSessionMutationVariables>;
-export const DeleteClientSessionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteClientSession"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DeleteSavedSessionInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteSavedSession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"directives":[{"kind":"Directive","name":{"kind":"Name","value":"client"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleted"}}]}}]}}]} as unknown as DocumentNode<DeleteClientSessionMutation, DeleteClientSessionMutationVariables>;
-export const SavedSessionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"SavedSessions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"savedSessions"},"directives":[{"kind":"Directive","name":{"kind":"Name","value":"client"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"index"}},{"kind":"Field","name":{"kind":"Name","value":"profile"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"email"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"currentSavedSession"},"directives":[{"kind":"Directive","name":{"kind":"Name","value":"client"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"index"}},{"kind":"Field","name":{"kind":"Name","value":"profile"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"email"}}]}}]}}]}}]} as unknown as DocumentNode<SavedSessionsQuery, SavedSessionsQueryVariables>;
+export const SessionSwitcherProviderDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"SessionSwitcherProvider"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"savedSessions"},"directives":[{"kind":"Directive","name":{"kind":"Name","value":"client"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"email"}}]}},{"kind":"Field","name":{"kind":"Name","value":"currentSavedSessionIndex"},"directives":[{"kind":"Directive","name":{"kind":"Name","value":"client"}}]}]}}]} as unknown as DocumentNode<SessionSwitcherProviderQuery, SessionSwitcherProviderQueryVariables>;
 export const SignInDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SignIn"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SignInInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"signIn"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sessionIndex"}},{"kind":"Field","name":{"kind":"Name","value":"userInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"offlineMode"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"profile"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"displayName"}}]}}]}}]}}]}}]} as unknown as DocumentNode<SignInMutation, SignInMutationVariables>;
 export const SignOutDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SignOut"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"signOut"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"signedOut"}},{"kind":"Field","name":{"kind":"Name","value":"activeSessionIndex"}}]}}]}}]} as unknown as DocumentNode<SignOutMutation, SignOutMutationVariables>;
-export const SwitchToSavedSessionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SwitchToSavedSession"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SwitchToSavedSessionInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"switchToSavedSession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"directives":[{"kind":"Directive","name":{"kind":"Name","value":"client"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"session"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"index"}}]}}]}}]}}]} as unknown as DocumentNode<SwitchToSavedSessionMutation, SwitchToSavedSessionMutationVariables>;
+export const AccountButtonDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"AccountButton"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"savedSessions"},"directives":[{"kind":"Directive","name":{"kind":"Name","value":"client"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"email"}}]}},{"kind":"Field","name":{"kind":"Name","value":"currentSavedSessionIndex"},"directives":[{"kind":"Directive","name":{"kind":"Name","value":"client"}}]},{"kind":"Field","name":{"kind":"Name","value":"currentSavedSession"},"directives":[{"kind":"Directive","name":{"kind":"Name","value":"client"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"email"}}]}}]}}]} as unknown as DocumentNode<AccountButtonQuery, AccountButtonQueryVariables>;

@@ -17,36 +17,79 @@ import {
 } from '@mui/material';
 import { useId, useState } from 'react';
 
-import { useSnackbarError } from '../feedback/SnackbarAlertProvider';
+import { gql } from '../apollo/__generated__/gql';
 import { AuthProvider } from '../apollo/__generated__/graphql';
-import { useSwitchToSessionIndex } from '../apollo/session/context/SessionSwitcherProvider';
-import CREATE_SESSION from '../apollo/session/operations/CREATE_SESSION';
-import DELETE_SESSION from '../apollo/session/operations/DELETE_SESSION';
-import GET_SESSIONS from '../apollo/session/operations/GET_SESSIONS';
-import SIGN_IN from '../apollo/session/operations/SIGN_IN';
-import SIGN_OUT from '../apollo/session/operations/SIGN_OUT';
+import { useSwitchToSession } from '../apollo/session/context/SessionSwitcherProvider';
+import useSessions from '../apollo/session/hooks/useSessions';
+import { useSnackbarError } from '../feedback/SnackbarAlertProvider';
 
+const SIGN_IN = gql(`
+  mutation SignIn($input: SignInInput!)  {
+    signIn(input: $input) {
+      sessionIndex
+      userInfo {
+        offlineMode {
+          id
+        }
+        profile {
+          displayName
+        }
+      }
+    }
+  }
+`);
+
+const SIGN_OUT = gql(`
+  mutation SignOut {
+    signOut {
+      signedOut
+      activeSessionIndex
+    }
+  }
+`);
+
+const QUERY = gql(`
+  query AccountButton {
+    savedSessions @client {
+      displayName
+      email
+    }
+
+    currentSavedSessionIndex @client
+    
+    currentSavedSession @client {
+      displayName
+      email
+    }
+  }
+`);
 export default function AccountButton(props: IconButtonProps) {
+  const {
+    data: {
+      savedSessions: sessions,
+      currentSavedSessionIndex: currentSessionIndex,
+      currentSavedSession: currentSession,
+    },
+  } = useSuspenseQuery(QUERY);
+
+  const {
+    operations: { updateSession, deleteSession },
+  } = useSessions();
+
   const buttonId = useId();
   const menuId = useId();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-  const {
-    data: { savedSessions: sessions, currentSavedSession: currentSession },
-  } = useSuspenseQuery(GET_SESSIONS);
-
-  const switchToSession = useSwitchToSessionIndex();
+  const switchToSession = useSwitchToSession();
   const showError = useSnackbarError();
 
   const [signIn] = useMutation(SIGN_IN);
   const [signOut] = useMutation(SIGN_OUT);
-  const [createSession] = useMutation(CREATE_SESSION);
-  const [deleteSession] = useMutation(DELETE_SESSION);
 
   const menuOpen = Boolean(anchorEl);
 
   async function handleSwitchSession(index: number) {
-    if (index !== currentSession?.index) {
+    if (index !== currentSessionIndex) {
       if (!(await switchToSession(index))) {
         showError('Failed to switch session');
         return;
@@ -66,9 +109,8 @@ export default function AccountButton(props: IconButtonProps) {
         input: {
           provider: AuthProvider.Google,
           credentials: {
-            token:
-              'test-google-account' +
-              (currentSession?.index ? currentSession.index + 1 : 1),
+            // TODO use actual jwt token
+            token: 'test-google-account' + ((currentSessionIndex ?? 0) + 1),
           },
         },
       },
@@ -90,34 +132,16 @@ export default function AccountButton(props: IconButtonProps) {
       },
     } = signInPayload.data.signIn;
 
-    const createSessionPayload = await createSession({
-      variables: {
-        input: {
-          index: sessionIndex,
-          profile: {
-            displayName,
-            email: 'testaccount@gmail.com', // TODO email from google auth jwt response
-          },
-        },
-      },
-      refetchQueries: [GET_SESSIONS],
+    updateSession(sessionIndex, {
+      displayName,
+      email: 'testaccount@gmail.com', // TODO email from google auth jwt response
     });
-
-    if (!createSessionPayload.data?.createSavedSession) {
-      console.log(createSessionPayload);
-      if (createSessionPayload.errors) {
-        showError(createSessionPayload.errors.map((err) => err.message).join(';'));
-      } else {
-        showError('Failed to save session');
-      }
-      return;
-    }
 
     await switchToSession(sessionIndex);
   }
 
   async function handleSignOut() {
-    if (!currentSession) return;
+    if (currentSessionIndex == null) return;
 
     const signOutPayload = await signOut();
     if (!signOutPayload.data) return;
@@ -127,16 +151,9 @@ export default function AccountButton(props: IconButtonProps) {
 
     if (!signedOut) return;
 
-    await deleteSession({
-      variables: {
-        input: {
-          index: currentSession.index,
-        },
-      },
-      refetchQueries: [GET_SESSIONS],
-    });
+    deleteSession(currentSessionIndex);
 
-    await switchToSession(newSessionIndex ?? NaN);
+    await switchToSession(newSessionIndex ?? null);
   }
 
   return (
@@ -199,43 +216,41 @@ export default function AccountButton(props: IconButtonProps) {
           <CloseIcon />
         </IconButton>
         {currentSession && (
-          <>
-            <Typography
-              sx={{
-                textAlign: 'center',
-                fontWeight: 'bold',
-              }}
-            >
-              {currentSession.profile.email}
-            </Typography>
-            <Avatar
-              sx={{
-                alignSelf: 'center',
-                mx: 'auto',
-                mt: 3,
-                width: 64,
-                height: 64,
-                boxShadow: 3,
-              }}
-            >
-              <PersonIcon
-                sx={{
-                  fontSize: 48,
-                }}
-              />
-            </Avatar>
-            <Typography
-              sx={{
-                mt: 1,
-                textAlign: 'center',
-                fontSize: '1.3em',
-                fontWeight: 'fontWeightMedium',
-              }}
-            >
-              {currentSession.profile.displayName}
-            </Typography>
-          </>
+          <Typography
+            sx={{
+              textAlign: 'center',
+              fontWeight: 'bold',
+            }}
+          >
+            {currentSession.email}
+          </Typography>
         )}
+        <Avatar
+          sx={{
+            alignSelf: 'center',
+            mx: 'auto',
+            mt: 3,
+            width: 64,
+            height: 64,
+            boxShadow: 3,
+          }}
+        >
+          <PersonIcon
+            sx={{
+              fontSize: 48,
+            }}
+          />
+        </Avatar>
+        <Typography
+          sx={{
+            mt: 1,
+            textAlign: 'center',
+            fontSize: '1.3em',
+            fontWeight: 'fontWeightMedium',
+          }}
+        >
+          {currentSession ? currentSession.displayName : 'Local Account'}
+        </Typography>
 
         <List
           disablePadding
@@ -273,7 +288,7 @@ export default function AccountButton(props: IconButtonProps) {
                     backgroundColor: theme.palette.action.hover,
                     cursor: 'pointer',
                   },
-                  ...(index === currentSession?.index && {
+                  ...(index === currentSessionIndex && {
                     backgroundColor: 'action.selected',
                   }),
                 })}
@@ -284,13 +299,13 @@ export default function AccountButton(props: IconButtonProps) {
                   </Avatar>
                 </ListItemAvatar>
                 <ListItemText>
-                  <Typography fontWeight="bold">{session.profile.displayName}</Typography>
+                  <Typography fontWeight="bold">{session.displayName}</Typography>
                   <Typography
                     sx={{
                       fontSize: '.9em',
                     }}
                   >
-                    {session.profile.email}
+                    {session.email}
                   </Typography>
                 </ListItemText>
               </Paper>

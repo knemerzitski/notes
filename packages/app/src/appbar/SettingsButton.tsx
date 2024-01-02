@@ -9,12 +9,9 @@ import {
 } from '@mui/material';
 import { useId, useState } from 'react';
 
-import { useColorMode } from '../apollo/preferences/hooks/useColorMode';
-
-// import { useColorMode } from '../App';
+import useColorMode from '../apollo/preferences/hooks/useColorMode';
 
 export default function SettingsButton(props: IconButtonProps) {
-  // const { toggleColorMode } = useColorMode();
   const {
     operations: { toggleColorMode },
   } = useColorMode();

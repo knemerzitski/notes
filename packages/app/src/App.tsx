@@ -9,8 +9,8 @@ import { apolloClient } from './apollo/apollo-client';
 import RouterProvider from './router/RouterProvider';
 import themeOptions from './themeOptions';
 
-const GET_COLOR_MODE = gql(`
-  query Preferences {
+const QUERY = gql(`
+  query App {
     preferences @client {
       colorMode
     }
@@ -18,15 +18,16 @@ const GET_COLOR_MODE = gql(`
 `);
 
 export default function App() {
-  const { data } = useSuspenseQuery(GET_COLOR_MODE, {
-    client: apolloClient,
-  });
-
   const devicePrefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
+  const { data } = useSuspenseQuery(QUERY, {
+    client: apolloClient,
+  });
+  const preferencesColorMode = data.preferences?.colorMode ?? ColorMode.System;
+
   const prefersDarkMode =
-    data.preferences?.colorMode === ColorMode.Dark ||
-    (data.preferences?.colorMode === ColorMode.System && devicePrefersDarkMode);
+    preferencesColorMode === ColorMode.Dark ||
+    (preferencesColorMode === ColorMode.System && devicePrefersDarkMode);
   const colorMode = prefersDarkMode ? 'dark' : 'light';
 
   const theme = useMemo(() => createTheme(themeOptions(colorMode)), [colorMode]);

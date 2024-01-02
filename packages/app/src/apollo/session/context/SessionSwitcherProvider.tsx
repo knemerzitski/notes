@@ -1,4 +1,4 @@
-import { useApolloClient, useMutation, useSuspenseQuery } from '@apollo/client';
+import { useApolloClient, useSuspenseQuery } from '@apollo/client';
 import {
   ReactNode,
   createContext,
@@ -11,19 +11,27 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import ProxyRoutesProvider from '../../../router/ProxyRoutesProvider';
 import joinPathnames from '../../../utils/joinPathnames';
-import GET_SESSIONS from '../operations/GET_SESSIONS';
-import SWITCH_TO_SESSION from '../operations/SWITCH_TO_SESSION';
+import { gql } from '../../__generated__/gql';
+import useSessions from '../hooks/useSessions';
 import sessionPathnamePrefix from '../pathnamePrefix';
 
-type SwitchToSessionIndexFunction = (index: number) => Promise<boolean>;
+const QUERY = gql(`
+  query SessionSwitcherProvider {
+    savedSessions @client {
+      displayName
+      email
+    }
+    currentSavedSessionIndex @client
+  }
+`);
 
-const SwitchToSessionIndexContext = createContext<SwitchToSessionIndexFunction | null>(
-  null
-);
+type SwitchToSessionFunction = (index: number | null) => Promise<boolean>;
+
+const SwitchToSessionContext = createContext<SwitchToSessionFunction | null>(null);
 
 // eslint-disable-next-line react-refresh/only-export-components
-export function useSwitchToSessionIndex() {
-  const ctx = useContext(SwitchToSessionIndexContext);
+export function useSwitchToSession() {
+  const ctx = useContext(SwitchToSessionContext);
   if (ctx === null) {
     throw new Error(
       'Error: useSwitchToSessionIndex() may be used only in the context of a <SessionSwitcherProvider> component.'
@@ -33,74 +41,65 @@ export function useSwitchToSessionIndex() {
 }
 
 export function SessionSwitcherProvider({ children }: { children: ReactNode }) {
-  const apolloClient = useApolloClient();
-  const [switchToSession] = useMutation(SWITCH_TO_SESSION);
-
   const {
-    data: { savedSessions: sessions, currentSavedSession: currentSession },
-  } = useSuspenseQuery(GET_SESSIONS);
+    data: { savedSessions: sessions, currentSavedSessionIndex: currentSessionIndex },
+  } = useSuspenseQuery(QUERY);
 
-  const currentSessionIndex = currentSession
-    ? currentSession.index
-    : sessions.length > 0
-      ? sessions[0].index
-      : NaN;
+  const apolloClient = useApolloClient();
+  const {
+    operations: { switchToSession },
+  } = useSessions();
 
-  // Prevents duplicate session switch through ui
-  const currentSessionIndexRef = useRef(currentSessionIndex);
-  // Prevents duplicate session switch when location is changed manually
+  const navigate = useNavigate();
+
+  const params = useParams<'sessionIndex' | '*'>();
+
+  // Prevents duplicate session switch when location is being changed
   const switchingSessionRef = useRef(false);
 
   // Read session index from location
-  const params = useParams<'sessionIndex' | '*'>();
-  const locationSessionIndex = params.sessionIndex
+  const parsedLocationSessionIndex = params.sessionIndex
     ? Number.parseInt(params.sessionIndex)
     : NaN;
-  const isLocationIndexValid =
-    0 <= locationSessionIndex && locationSessionIndex < sessions.length;
+  const locationSessionIndex = !Number.isNaN(parsedLocationSessionIndex)
+    ? parsedLocationSessionIndex
+    : null;
 
-  const targetSessionIndex = !isLocationIndexValid
-    ? currentSessionIndex
-    : locationSessionIndex;
+  // Select target session index based on location and current session
+  // Prioritize reading from location, if that is not defined then restore from session index
+  let targetSessionIndex: number | null;
+  if (
+    locationSessionIndex &&
+    0 <= locationSessionIndex &&
+    locationSessionIndex < sessions.length
+  ) {
+    targetSessionIndex = locationSessionIndex;
+  } else {
+    targetSessionIndex = currentSessionIndex ?? (sessions.length > 0 ? 0 : null);
+  }
 
   const paramsRestRef = useRef(params['*'] ?? '');
   paramsRestRef.current = params['*'] ?? '';
 
-  const navigate = useNavigate();
-
+  // Switches session and updates location
   const handleSwitchToSession = useCallback(
-    async (index: number) => {
+    async (index: number | null) => {
       if (switchingSessionRef.current) return false;
       try {
         switchingSessionRef.current = true;
 
-        if (Number.isNaN(index) && !Number.isNaN(locationSessionIndex)) {
-          navigate(joinPathnames(paramsRestRef.current));
-        }
-
-        const isIndexValid = 0 <= index && index < sessions.length;
-        if (!isIndexValid) return false;
-
-        if (currentSessionIndexRef.current !== index) {
-          const result = await switchToSession({
-            variables: {
-              input: {
-                index,
-              },
-            },
-          });
-
-          if (!result.data?.switchToSavedSession) return false;
-
-          currentSessionIndexRef.current = index;
-
-          await apolloClient.resetStore();
-        }
+        if (!switchToSession(index)) return false;
 
         if (locationSessionIndex !== index) {
-          navigate(
-            joinPathnames(`/${sessionPathnamePrefix}/${index}`, paramsRestRef.current)
-          );
+          if (index == null) {
+            navigate(joinPathnames(paramsRestRef.current));
+          } else {
+            navigate(
+              joinPathnames(`/${sessionPathnamePrefix}/${index}`, paramsRestRef.current)
+            );
+          }
+
+          await apolloClient.resetStore();
         }
 
         return true;
@@ -108,7 +107,7 @@ export function SessionSwitcherProvider({ children }: { children: ReactNode }) {
         switchingSessionRef.current = false;
       }
     },
-    [apolloClient, sessions, locationSessionIndex, navigate, switchToSession]
+    [apolloClient, locationSessionIndex, navigate, switchToSession]
   );
 
   // Switch to correct session based on location
@@ -125,8 +124,8 @@ export function SessionSwitcherProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <SwitchToSessionIndexContext.Provider value={handleSwitchToSession}>
+    <SwitchToSessionContext.Provider value={handleSwitchToSession}>
       <ProxyRoutesProvider transform={transformPathname}>{children}</ProxyRoutesProvider>
-    </SwitchToSessionIndexContext.Provider>
+    </SwitchToSessionContext.Provider>
   );
 }
