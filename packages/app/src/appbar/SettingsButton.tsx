@@ -9,10 +9,15 @@ import {
 } from '@mui/material';
 import { useId, useState } from 'react';
 
-import { useColorMode } from '../App';
+import { useColorMode } from '../apollo/preferences/hooks/useColorMode';
+
+// import { useColorMode } from '../App';
 
 export default function SettingsButton(props: IconButtonProps) {
-  const { toggleColorMode } = useColorMode();
+  // const { toggleColorMode } = useColorMode();
+  const {
+    operations: { toggleColorMode },
+  } = useColorMode();
   const theme = useTheme();
 
   const buttonId = useId();
@@ -55,7 +60,7 @@ export default function SettingsButton(props: IconButtonProps) {
         <MenuItem
           onClick={() => {
             setAnchorEl(null);
-            void toggleColorMode();
+            toggleColorMode();
           }}
         >
           <ListItemText>{`${

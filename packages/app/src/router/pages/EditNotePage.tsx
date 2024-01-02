@@ -5,10 +5,10 @@ import { AppBar, Box, IconButton, Paper, Toolbar } from '@mui/material';
 import { useParams, useLocation, Location } from 'react-router-dom';
 
 import { useSnackbarError } from '../../feedback/SnackbarAlertProvider';
-import { Note } from '../../graphql/__generated__/graphql';
-import GET_NOTE from '../../graphql/note/operations/GET_NOTE';
-import useDeleteNote from '../../graphql/note/hooks/useDeleteNote';
-import useUpdateNote from '../../graphql/note/hooks/useUpdateNote';
+import { Note } from '../../apollo/__generated__/graphql';
+import GET_NOTE from '../../apollo/note/operations/GET_NOTE';
+import useDeleteNote from '../../apollo/note/hooks/useDeleteNote';
+import useUpdateNote from '../../apollo/note/hooks/useUpdateNote';
 import useIsScrollEnd from '../../hooks/useIsScrollEnd';
 import BorderlessTextField from '../../inputs/BorderlessTextField';
 import NoteToolbar from '../../notes/NoteToolbar';

@@ -116,8 +116,6 @@ export type Mutation = {
   switchToSession: SwitchToSessionPayload;
   /** Update note in localStorage */
   updateLocalNote?: Maybe<UpdateNotePayload>;
-  /** Updates user preferred color mode */
-  updatePreferences?: Maybe<UpdatePreferencesPayload>;
   /** Call this mutation after successful remote sign in to remember the session. */
   updateSavedSession?: Maybe<UpdateSavedSessionPayload>;
   /** Update note */
@@ -172,11 +170,6 @@ export type MutationSwitchToSessionArgs = {
 
 export type MutationUpdateLocalNoteArgs = {
   input: UpdateNoteInput;
-};
-
-
-export type MutationUpdatePreferencesArgs = {
-  input: UpdatePreferencesPatchInput;
 };
 
 
@@ -253,12 +246,8 @@ export type PageInfo = {
 
 export type Preferences = {
   __typename?: 'Preferences';
-  /** Color mode of the app */
+  /** App UI color mode */
   colorMode: ColorMode;
-};
-
-export type PreferencesPatchInput = {
-  colorMode?: InputMaybe<ColorMode>;
 };
 
 export type Profile = {
@@ -279,13 +268,12 @@ export type Query = {
   localNote: UserNote;
   /** Get all notes from localStorage */
   localNotes: Array<Maybe<UserNote>>;
-  /** Get local preferences, such as interface color mode */
+  /** User local preferences */
   preferences?: Maybe<Preferences>;
   /** All saved sessions information stored on client-side. */
   savedSessions: Array<SavedSession>;
   /** Count of sessions saved in http-only cookie */
   sessionCount: Scalars['PositiveInt']['output'];
-  test: Test;
   /** Get current user note by ID */
   userNote: UserNote;
   /** Paginate current user notes */
@@ -390,14 +378,6 @@ export type SwitchToSessionPayload = {
   activeSessionIndex: Scalars['NonNegativeInt']['output'];
 };
 
-export type Test = {
-  __typename?: 'Test';
-  date: Scalars['Date']['output'];
-  hexColorCode: Scalars['HexColorCode']['output'];
-  nonNegativeInt: Scalars['NonNegativeInt']['output'];
-  positiveInt: Scalars['PositiveInt']['output'];
-};
-
 export type UpdateNoteInput = {
   id: Scalars['ID']['input'];
   patch?: InputMaybe<UserNotePatchInput>;
@@ -407,16 +387,6 @@ export type UpdateNotePayload = {
   __typename?: 'UpdateNotePayload';
   /** Note to update */
   note: UserNote;
-};
-
-export type UpdatePreferencesPatchInput = {
-  patch: PreferencesPatchInput;
-};
-
-export type UpdatePreferencesPayload = {
-  __typename?: 'UpdatePreferencesPayload';
-  /** Index of saved session to be deleted. */
-  preferences: Preferences;
 };
 
 export type UpdateSavedSessionPatchInput = {
@@ -503,13 +473,6 @@ export type PreferencesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type PreferencesQuery = { __typename?: 'Query', preferences?: { __typename?: 'Preferences', colorMode: ColorMode } | null };
-
-export type UpdateColorModeMutationVariables = Exact<{
-  input: UpdatePreferencesPatchInput;
-}>;
-
-
-export type UpdateColorModeMutation = { __typename?: 'Mutation', updatePreferences?: { __typename?: 'UpdatePreferencesPayload', preferences: { __typename?: 'Preferences', colorMode: ColorMode } } | null };
 
 export type CreateUserNoteMutationVariables = Exact<{
   input: CreateNoteInput;
@@ -602,7 +565,6 @@ export type SwitchToSavedSessionMutation = { __typename?: 'Mutation', switchToSa
 
 
 export const PreferencesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Preferences"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"preferences"},"directives":[{"kind":"Directive","name":{"kind":"Name","value":"client"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"colorMode"}}]}}]}}]} as unknown as DocumentNode<PreferencesQuery, PreferencesQueryVariables>;
-export const UpdateColorModeDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateColorMode"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdatePreferencesPatchInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updatePreferences"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"directives":[{"kind":"Directive","name":{"kind":"Name","value":"client"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"preferences"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"colorMode"}}]}}]}}]}}]} as unknown as DocumentNode<UpdateColorModeMutation, UpdateColorModeMutationVariables>;
 export const CreateUserNoteDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateUserNote"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateNoteInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createUserNote"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"directives":[{"kind":"Directive","name":{"kind":"Name","value":"session"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"note"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"note"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"textContent"}}]}}]}}]}}]}}]} as unknown as DocumentNode<CreateUserNoteMutation, CreateUserNoteMutationVariables>;
 export const DeleteUserNoteDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteUserNote"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DeleteNoteInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteUserNote"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"directives":[{"kind":"Directive","name":{"kind":"Name","value":"session"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleted"}}]}}]}}]} as unknown as DocumentNode<DeleteUserNoteMutation, DeleteUserNoteMutationVariables>;
 export const UserNoteDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"UserNote"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"userNote"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"directives":[{"kind":"Directive","name":{"kind":"Name","value":"session"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"note"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"textContent"}}]}}]}}]}}]} as unknown as DocumentNode<UserNoteQuery, UserNoteQueryVariables>;

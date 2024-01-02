@@ -3,7 +3,7 @@ import { Fab } from '@mui/material';
 import { startTransition } from 'react';
 
 import { useSnackbarError } from '../feedback/SnackbarAlertProvider';
-import useCreateNote from '../graphql/note/hooks/useCreateNote';
+import useCreateNote from '../apollo/note/hooks/useCreateNote';
 import { useProxyNavigate } from '../router/ProxyRoutesProvider';
 
 export default function AddNoteFab() {

@@ -35,7 +35,7 @@ module.exports = {
     {
       files: [
         './packages/api/src/graphql/**/*.graphql',
-        './packages/app/src/graphql/**/*.graphql',
+        './packages/app/src/apollo/**/*.graphql',
       ],
       extends: [
         'plugin:@graphql-eslint/schema-recommended',
@@ -57,7 +57,7 @@ module.exports = {
       parserOptions: {
         schema: [
           './packages/api/src/graphql/**/schema.graphql',
-          './packages/app/src/graphql/**/schema.graphql',
+          './packages/app/src/apollo/**/schema.graphql',
         ],
         operations: ['./packages/app/src/**/*.{graphql,js,ts,jsx,tsx}'],
       },

@@ -8,8 +8,8 @@ import {
 } from 'react-router-dom';
 
 import SnackbarAlertProvider from '../feedback/SnackbarAlertProvider';
-import { SessionSwitcherProvider } from '../graphql/session/context/SessionSwitcherProvider';
-import sessionPathnamePrefix from '../graphql/session/pathnamePrefix';
+import { SessionSwitcherProvider } from '../apollo/session/context/SessionSwitcherProvider';
+import sessionPathnamePrefix from '../apollo/session/pathnamePrefix';
 
 import RootRoute from './RootRoute';
 import { PreviousLocationProvider } from './hooks/usePreviousLocation';

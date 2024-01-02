@@ -1,0 +1,15 @@
+enum ColorMode {
+  SYSTEM
+  LIGHT
+  DARK
+}
+
+type Preferences {
+  "App UI color mode"
+  colorMode: ColorMode!
+}
+
+extend type Query {
+  "User local preferences"
+  preferences: Preferences
+}

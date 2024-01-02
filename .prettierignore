@@ -1,2 +1,2 @@
 packages/api/src/graphql/*.generated.ts
-packages/app/src/graphql/__generated__
+packages/app/src/apollo/__generated__

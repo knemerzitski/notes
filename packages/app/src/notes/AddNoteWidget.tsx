@@ -2,8 +2,8 @@ import { ClickAwayListener, Paper, PaperProps } from '@mui/material';
 import { useState } from 'react';
 
 import { useSnackbarError } from '../feedback/SnackbarAlertProvider';
-import { Note } from '../graphql/__generated__/graphql';
-import useCreateNote from '../graphql/note/hooks/useCreateNote';
+import { Note } from '../apollo/__generated__/graphql';
+import useCreateNote from '../apollo/note/hooks/useCreateNote';
 import BorderlessTextField from '../inputs/BorderlessTextField';
 
 import NoteEditor from './NoteEditor';

@@ -5,7 +5,7 @@ import {
   useProxyIsAbsolutePathname,
   useProxyNavigate,
 } from '../router/ProxyRoutesProvider';
-import { Note } from '../graphql/__generated__/graphql';
+import { Note } from '../apollo/__generated__/graphql';
 
 import NoteToolbar from './NoteToolbar';
 

@@ -2,9 +2,9 @@ import { Dialog } from '@mui/material';
 import { useRef } from 'react';
 
 import { useSnackbarError } from '../feedback/SnackbarAlertProvider';
-import { Note } from '../graphql/__generated__/graphql';
-import useDeleteNote from '../graphql/note/hooks/useDeleteNote';
-import useUpdateNote from '../graphql/note/hooks/useUpdateNote';
+import { Note } from '../apollo/__generated__/graphql';
+import useDeleteNote from '../apollo/note/hooks/useDeleteNote';
+import useUpdateNote from '../apollo/note/hooks/useUpdateNote';
 
 import NoteEditor from './NoteEditor';
 

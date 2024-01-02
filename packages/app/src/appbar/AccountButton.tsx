@@ -18,13 +18,13 @@ import {
 import { useId, useState } from 'react';
 
 import { useSnackbarError } from '../feedback/SnackbarAlertProvider';
-import { AuthProvider } from '../graphql/__generated__/graphql';
-import { useSwitchToSessionIndex } from '../graphql/session/context/SessionSwitcherProvider';
-import CREATE_SESSION from '../graphql/session/operations/CREATE_SESSION';
-import DELETE_SESSION from '../graphql/session/operations/DELETE_SESSION';
-import GET_SESSIONS from '../graphql/session/operations/GET_SESSIONS';
-import SIGN_IN from '../graphql/session/operations/SIGN_IN';
-import SIGN_OUT from '../graphql/session/operations/SIGN_OUT';
+import { AuthProvider } from '../apollo/__generated__/graphql';
+import { useSwitchToSessionIndex } from '../apollo/session/context/SessionSwitcherProvider';
+import CREATE_SESSION from '../apollo/session/operations/CREATE_SESSION';
+import DELETE_SESSION from '../apollo/session/operations/DELETE_SESSION';
+import GET_SESSIONS from '../apollo/session/operations/GET_SESSIONS';
+import SIGN_IN from '../apollo/session/operations/SIGN_IN';
+import SIGN_OUT from '../apollo/session/operations/SIGN_OUT';
 
 export default function AccountButton(props: IconButtonProps) {
   const buttonId = useId();
@@ -61,67 +61,82 @@ export default function AccountButton(props: IconButtonProps) {
   }
 
   async function handleSignInWithGoogle() {
-    const signInResult = await signIn({
+    const signInPayload = await signIn({
       variables: {
         input: {
           provider: AuthProvider.Google,
           credentials: {
-            token: 'test-google-account',
+            token:
+              'test-google-account' +
+              (currentSession?.index ? currentSession.index + 1 : 1),
           },
         },
       },
     });
 
-    if (!signInResult.data?.signIn) return;
+    if (!signInPayload.data?.signIn) {
+      if (signInPayload.errors) {
+        showError(signInPayload.errors.map((err) => err.message).join(';'));
+      } else {
+        showError('Failed to sign in');
+      }
+      return;
+    }
 
     const {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       sessionIndex,
       userInfo: {
         profile: { displayName },
       },
-    } = signInResult.data.signIn;
+    } = signInPayload.data.signIn;
 
-    const createSessionResult = await createSession({
+    const createSessionPayload = await createSession({
       variables: {
         input: {
           index: sessionIndex,
           profile: {
             displayName,
-            email: 'testaccount@gmail.com',
+            email: 'testaccount@gmail.com', // TODO email from google auth jwt response
           },
         },
       },
       refetchQueries: [GET_SESSIONS],
     });
 
-    const index = createSessionResult.data?.createRemoteSession;
-    if (index && index >= 0) {
-      await switchToSession(index);
+    if (!createSessionPayload.data?.createSavedSession) {
+      console.log(createSessionPayload);
+      if (createSessionPayload.errors) {
+        showError(createSessionPayload.errors.map((err) => err.message).join(';'));
+      } else {
+        showError('Failed to save session');
+      }
+      return;
     }
+
+    await switchToSession(sessionIndex);
   }
 
   async function handleSignOut() {
-    if (currentSession.__typename === 'LocalSession') return;
+    if (!currentSession) return;
 
-    const result = await signOut();
+    const signOutPayload = await signOut();
+    if (!signOutPayload.data) return;
 
-    if (!result.data) return;
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const { signedOut, activeSessionIndex: newSessionIndex } = result.data.signOut;
+    const { signedOut, activeSessionIndex: newSessionIndex } =
+      signOutPayload.data.signOut;
 
     if (!signedOut) return;
 
     await deleteSession({
       variables: {
-        index: activeSessionIndex,
+        input: {
+          index: currentSession.index,
+        },
       },
       refetchQueries: [GET_SESSIONS],
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    await switchToSession(newSessionIndex ?? 0);
+    await switchToSession(newSessionIndex ?? NaN);
   }
 
   return (

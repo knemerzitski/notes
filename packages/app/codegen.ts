@@ -4,9 +4,9 @@ const config: CodegenConfig = {
   schema: '../api/src/graphql/**/schema.graphql',
   documents: ['./src/**/*.{ts,tsx}'],
   generates: {
-    './src/graphql/__generated__/': {
+    './src/apollo/__generated__/': {
       preset: 'client',
-      schema: './src/graphql/**/schema.graphql',
+      schema: './src/apollo/**/schema.graphql',
       presetConfig: {
         gqlTagName: 'gql',
       },
