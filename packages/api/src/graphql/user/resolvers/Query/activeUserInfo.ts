@@ -12,9 +12,6 @@ export const activeUserInfo: NonNullable<QueryResolvers['activeUserInfo']> = (
   const user = auth.session.user;
 
   return {
-    offlineMode: {
-      id: user.offline.id,
-    },
     profile: {
       displayName: user.profile.displayName,
     },

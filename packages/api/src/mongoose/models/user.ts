@@ -18,13 +18,6 @@ export interface DBUser {
   profile: {
     displayName: string;
   };
-  offline: {
-    /**
-     * ID used to identify users notes stored locally on the device.
-     * @default nanoid()
-     */
-    id: string;
-  };
   notes: {
     category: {
       default: {
@@ -60,13 +53,6 @@ export const userSchema = new Schema<DBUser, UserModel, DBUserMethods>({
     displayName: {
       type: Schema.Types.String,
       required: true,
-    },
-  },
-  offline: {
-    id: {
-      type: Schema.Types.String,
-      required: true,
-      default: () => nanoid(),
     },
   },
   notes: {

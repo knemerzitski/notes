@@ -12,7 +12,6 @@ import { activeUserInfo } from './activeUserInfo';
 // TODO flatten describe
 
 describe('activeUserInfo', () => {
-  const offlineId = faker.string.nanoid();
   const displayName = faker.person.firstName();
 
   const mockedNoAuthContext = mockDeep<GraphQLResolversContext>({
@@ -23,9 +22,6 @@ describe('activeUserInfo', () => {
     auth: {
       session: {
         user: {
-          offline: {
-            id: offlineId,
-          },
           profile: {
             displayName,
           },
@@ -46,13 +42,10 @@ describe('activeUserInfo', () => {
       }).rejects.toThrow(GraphQLError);
     });
 
-    it('returns offlineId and displayName', async () => {
+    it('returns displayName', async () => {
       const result = await mockResolver(activeUserInfo)({}, {}, mockedAuthContext);
 
       expect(result).toStrictEqual({
-        offlineMode: {
-          id: offlineId,
-        },
         profile: {
           displayName,
         },
@@ -66,9 +59,6 @@ describe('activeUserInfo', () => {
         activeUserInfo {
           profile {
             displayName
-          }
-          offlineMode {
-            id
           }
         }
       }
@@ -95,7 +85,7 @@ describe('activeUserInfo', () => {
       ]);
     });
 
-    it('returns user offlineId and displayName', async () => {
+    it('returns user displayName', async () => {
       const response = await apolloServer.executeOperation(
         {
           query,
@@ -109,9 +99,6 @@ describe('activeUserInfo', () => {
       expect(response.body.singleResult.errors).toBeUndefined();
       expect(response.body.singleResult.data).toEqual({
         activeUserInfo: {
-          offlineMode: {
-            id: offlineId,
-          },
           profile: {
             displayName,
           },

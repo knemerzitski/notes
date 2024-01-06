@@ -194,12 +194,6 @@ export type NoteUpdatedPayload = {
   patch: NotePatch;
 };
 
-export type OfflineMode = {
-  __typename?: 'OfflineMode';
-  /** Offline ID to be used to store offline (only one device) notes. */
-  id: Scalars['ID']['output'];
-};
-
 export type PageInfo = {
   __typename?: 'PageInfo';
   /** Self descriptive */
@@ -297,8 +291,6 @@ export type UpdateNotePayload = {
 /** User information accessible by a query */
 export type UserInfo = {
   __typename?: 'UserInfo';
-  /** Self-descriptive */
-  offlineMode: OfflineMode;
   /** Self-descriptive */
   profile: Profile;
 };
@@ -421,7 +413,6 @@ export type ResolversTypes = {
   NotePreferencesPatch: ResolverTypeWrapper<NotePreferencesPatch>;
   NotePreferencesPatchInput: NotePreferencesPatchInput;
   NoteUpdatedPayload: ResolverTypeWrapper<NoteUpdatedPayload>;
-  OfflineMode: ResolverTypeWrapper<OfflineMode>;
   PageInfo: ResolverTypeWrapper<PageInfo>;
   PositiveInt: ResolverTypeWrapper<Scalars['PositiveInt']['output']>;
   Profile: ResolverTypeWrapper<Profile>;
@@ -466,7 +457,6 @@ export type ResolversParentTypes = {
   NotePreferencesPatch: NotePreferencesPatch;
   NotePreferencesPatchInput: NotePreferencesPatchInput;
   NoteUpdatedPayload: NoteUpdatedPayload;
-  OfflineMode: OfflineMode;
   PageInfo: PageInfo;
   PositiveInt: Scalars['PositiveInt']['output'];
   Profile: Profile;
@@ -591,11 +581,6 @@ export type NoteUpdatedPayloadResolvers<ContextType = GraphQLResolversContext, P
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type OfflineModeResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['OfflineMode'] = ResolversParentTypes['OfflineMode']> = {
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
 export type PageInfoResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['PageInfo'] = ResolversParentTypes['PageInfo']> = {
   endCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   hasNextPage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -648,7 +633,6 @@ export type UpdateNotePayloadResolvers<ContextType = GraphQLResolversContext, Pa
 };
 
 export type UserInfoResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['UserInfo'] = ResolversParentTypes['UserInfo']> = {
-  offlineMode?: Resolver<ResolversTypes['OfflineMode'], ParentType, ContextType>;
   profile?: Resolver<ResolversTypes['Profile'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -672,7 +656,6 @@ export type Resolvers<ContextType = GraphQLResolversContext> = {
   NotePreferences?: NotePreferencesResolvers<ContextType>;
   NotePreferencesPatch?: NotePreferencesPatchResolvers<ContextType>;
   NoteUpdatedPayload?: NoteUpdatedPayloadResolvers<ContextType>;
-  OfflineMode?: OfflineModeResolvers<ContextType>;
   PageInfo?: PageInfoResolvers<ContextType>;
   PositiveInt?: GraphQLScalarType;
   Profile?: ProfileResolvers<ContextType>;

@@ -144,59 +144,12 @@ describe('directly', () => {
     });
   });
 
-  it('returns user offlineId', async () => {
-    const offlineId = faker.string.nanoid();
-
-    const mockedNewUser = mock<UserDocument>({
-      offline: {
-        id: offlineId,
-      },
-    });
-    // new model.User()
-    mockedContext.mongoose.model.User.mockReturnValueOnce(mockedNewUser);
-    mockedNewUser.save.mockReturnThis();
-
-    const mockedNewSession = mock<SessionDocument>({
-      cookieId: faker.string.nanoid(),
-    });
-    mockedNewSession.save.mockReturnThis();
-    // new model.Session()
-    mockedContext.mongoose.model.Session.mockReturnValueOnce(mockedNewSession);
-
-    const result = await mockResolver(signIn)(
-      {},
-      {
-        input: {
-          provider: 'GOOGLE',
-          credentials: {
-            // TODO right now auth is not implemented so any token will work
-            // Later must mock google jwt verification
-            token: faker.string.numeric(20),
-          },
-        },
-      },
-      mockedContext
-    );
-
-    expect(result).containSubset({
-      userInfo: {
-        offlineMode: {
-          id: offlineId,
-        },
-      },
-    });
-  });
-
   it('signs in with an existing google account, has no existing session', async () => {
     const signInToken = faker.string.alphanumeric();
     const cookieId = faker.string.nanoid();
-    const offlineId = faker.string.nanoid();
     const displayName = faker.person.firstName();
 
     const mockedExistingUser = mockDeep<UserDocument>({
-      offline: {
-        id: offlineId,
-      },
       profile: {
         displayName,
       },
@@ -234,9 +187,6 @@ describe('directly', () => {
         profile: {
           displayName,
         },
-        offlineMode: {
-          id: offlineId,
-        },
       },
     });
 
@@ -255,9 +205,6 @@ describe('apollo server', () => {
       signIn(input: $input) {
         sessionIndex
         userInfo {
-          offlineMode {
-            id
-          }
           profile {
             displayName
           }
@@ -269,13 +216,9 @@ describe('apollo server', () => {
   it('signs in with an existing google account, has no existing session', async () => {
     const signInToken = faker.string.alphanumeric();
     const cookieId = faker.string.nanoid();
-    const offlineId = faker.string.nanoid();
     const displayName = faker.person.firstName();
 
     const mockedExistingUser = mockDeep<UserDocument>({
-      offline: {
-        id: offlineId,
-      },
       profile: {
         displayName,
       },
@@ -318,9 +261,6 @@ describe('apollo server', () => {
         userInfo: {
           profile: {
             displayName,
-          },
-          offlineMode: {
-            id: offlineId,
           },
         },
       },

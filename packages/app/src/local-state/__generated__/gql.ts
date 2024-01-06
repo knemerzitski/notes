@@ -18,7 +18,7 @@ const documents = {
     "\n  mutation UseDeleteNote($input: DeleteNoteInput!) {\n    deleteNote(input: $input) {\n      deleted\n    }\n  }\n": types.UseDeleteNoteDocument,
     "\n  mutation UseUpdateNote($input: UpdateNoteInput!)  {\n    updateNote(input: $input) {\n      note {\n        id\n        title\n        textContent\n      }\n    }\n  }\n": types.UseUpdateNoteDocument,
     "\n  query SessionSwitcherProvider {\n    savedSessions @client {\n      displayName\n      email\n    }\n    currentSavedSessionIndex @client\n  }\n": types.SessionSwitcherProviderDocument,
-    "\n  mutation SignIn($input: SignInInput!)  {\n    signIn(input: $input) {\n      sessionIndex\n      userInfo {\n        offlineMode {\n          id\n        }\n        profile {\n          displayName\n        }\n      }\n    }\n  }\n": types.SignInDocument,
+    "\n  mutation SignIn($input: SignInInput!)  {\n    signIn(input: $input) {\n      sessionIndex\n      userInfo {\n        profile {\n          displayName\n        }\n      }\n    }\n  }\n": types.SignInDocument,
     "\n  mutation SignOut {\n    signOut {\n      signedOut\n      activeSessionIndex\n    }\n  }\n": types.SignOutDocument,
     "\n  query AccountButton {\n    savedSessions @client {\n      displayName\n      email\n    }\n\n    currentSavedSessionIndex @client\n    \n    currentSavedSession @client {\n      displayName\n      email\n    }\n  }\n": types.AccountButtonDocument,
     "\n  query DrawerContent {\n    isLoggedIn @client\n  }\n": types.DrawerContentDocument,
@@ -66,7 +66,7 @@ export function gql(source: "\n  query SessionSwitcherProvider {\n    savedSessi
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n  mutation SignIn($input: SignInInput!)  {\n    signIn(input: $input) {\n      sessionIndex\n      userInfo {\n        offlineMode {\n          id\n        }\n        profile {\n          displayName\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation SignIn($input: SignInInput!)  {\n    signIn(input: $input) {\n      sessionIndex\n      userInfo {\n        offlineMode {\n          id\n        }\n        profile {\n          displayName\n        }\n      }\n    }\n  }\n"];
+export function gql(source: "\n  mutation SignIn($input: SignInInput!)  {\n    signIn(input: $input) {\n      sessionIndex\n      userInfo {\n        profile {\n          displayName\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation SignIn($input: SignInInput!)  {\n    signIn(input: $input) {\n      sessionIndex\n      userInfo {\n        profile {\n          displayName\n        }\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

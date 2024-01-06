@@ -3,17 +3,10 @@ type Profile {
   displayName: String!
 }
 
-type OfflineMode {
-  "Offline ID to be used to store offline (only one device) notes."
-  id: ID!
-}
-
 """
 User information accessible by a query
 """
 type UserInfo {
-  "Self-descriptive"
-  offlineMode: OfflineMode!
   "Self-descriptive"
   profile: Profile!
 }

@@ -17,7 +17,6 @@ import    { NotePatch } from './note/resolvers/NotePatch';
 import    { NotePreferences } from './note/resolvers/NotePreferences';
 import    { NotePreferencesPatch } from './note/resolvers/NotePreferencesPatch';
 import    { NoteUpdatedPayload } from './note/resolvers/NoteUpdatedPayload';
-import    { OfflineMode } from './user/resolvers/OfflineMode';
 import    { PageInfo } from './base/resolvers/PageInfo';
 import    { Profile } from './user/resolvers/Profile';
 import    { activeSessionIndex as Query_activeSessionIndex } from './session/resolvers/Query/activeSessionIndex';
@@ -49,7 +48,6 @@ NotePatch: NotePatch,
 NotePreferences: NotePreferences,
 NotePreferencesPatch: NotePreferencesPatch,
 NoteUpdatedPayload: NoteUpdatedPayload,
-OfflineMode: OfflineMode,
 PageInfo: PageInfo,
 Profile: Profile,
 SignInPayload: SignInPayload,

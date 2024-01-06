@@ -28,9 +28,6 @@ const SIGN_IN = gql(`
     signIn(input: $input) {
       sessionIndex
       userInfo {
-        offlineMode {
-          id
-        }
         profile {
           displayName
         }

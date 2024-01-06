@@ -78,10 +78,7 @@ export const signIn: NonNullable<MutationResolvers['signIn']> = async (
     userInfo: {
       profile: {
         displayName: existingUser.profile.displayName,
-      },
-      offlineMode: {
-        id: existingUser.offline.id,
-      },
+      }
     },
   };
 };
