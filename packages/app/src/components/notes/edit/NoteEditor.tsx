@@ -58,7 +58,7 @@ export default function NoteEditor({
           fullWidth
           value={note.title}
           onChange={(e) => {
-            onChange({
+            void onChange({
               ...note,
               title: e.target.value,
             });
@@ -79,7 +79,7 @@ export default function NoteEditor({
           autoSelection="end"
           value={note.content}
           onChange={(e) => {
-            onChange({
+            void onChange({
               ...note,
               content: e.target.value,
             });
