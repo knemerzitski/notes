@@ -1,0 +1,19 @@
+type LocalNote {
+  "Self-descriptive"
+  id: ID!
+  "Self-descriptive"
+  title: String!
+  "Self-descriptive"
+  textContent: String!
+  "Self-descriptive"
+  backgroundColor: String
+  "Self-descriptive"
+  readOnly: Boolean
+}
+
+extend type Query {
+  "Get all notes from localStorage"
+  localNotes: [LocalNote!]!
+  "Get note by ID from localStorage"
+  localNote(id: ID!): LocalNote!
+}

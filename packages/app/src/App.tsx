@@ -3,8 +3,8 @@ import { CssBaseline, ThemeProvider, createTheme, useMediaQuery } from '@mui/mat
 import { useMemo } from 'react';
 
 import GlobalStyles from './GlobalStyles';
-import { gql } from './apollo/__generated__/gql';
-import { ColorMode } from './apollo/__generated__/graphql';
+import { gql } from './local-state/__generated__/gql';
+import { ColorMode } from './local-state/__generated__/graphql';
 import { apolloClient } from './apollo/apollo-client';
 import RouterProvider from './router/RouterProvider';
 import themeOptions from './themeOptions';

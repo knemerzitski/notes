@@ -62,7 +62,8 @@ export const createUserNote: NonNullable<MutationResolvers['createUserNote']> = 
     },
   };
 
-  await publishNoteCreated(ctx, newNotePayload);
+  // TODO fix exception Value provided in ExpressionAttributeNames unused in expressions: keys: {#4}
+  //await publishNoteCreated(ctx, newNotePayload);
 
   return newNotePayload;
 };

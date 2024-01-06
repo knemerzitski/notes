@@ -1,6 +1,6 @@
 module.exports = {
   env: { browser: true, es2020: true },
-  ignorePatterns: ['.eslintrc.cjs', 'src/apollo/__generated__', 'out', 'node_modules'],
+  ignorePatterns: ['.eslintrc.cjs', 'src/local-state/__generated__', 'out', 'node_modules'],
   settings: {
     'import/resolver': {
       typescript: {

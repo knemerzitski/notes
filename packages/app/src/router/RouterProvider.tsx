@@ -7,13 +7,14 @@ import {
   RouterProvider as DomRouterProvider,
 } from 'react-router-dom';
 
-import SnackbarAlertProvider from '../feedback/SnackbarAlertProvider';
-import { SessionSwitcherProvider } from '../apollo/session/context/SessionSwitcherProvider';
-import sessionPathnamePrefix from '../apollo/session/pathnamePrefix';
+import SnackbarAlertProvider from '../components/feedback/SnackbarAlertProvider';
+import { SessionSwitcherProvider } from '../local-state/session/context/SessionSwitcherProvider';
+import ErrorPage from '../routes/ErrorPage';
+import RoutesStructure from '../routes/RoutesStructure';
 
-import RootRoute from './RootRoute';
 import { PreviousLocationProvider } from './hooks/usePreviousLocation';
-import ErrorPage from './pages/ErrorPage';
+import sessionPrefix from './sessionPrefix';
+
 
 interface CustomIndexRouteObject extends IndexRouteObject {
   readonly backgroundPath?: string;
@@ -26,28 +27,32 @@ interface CustomNonIndexRouteObject extends NonIndexRouteObject {
 type ExtendedRouteObject = CustomIndexRouteObject | CustomNonIndexRouteObject;
 
 const router = createBrowserRouter([
-  {
-    path: `/${sessionPathnamePrefix}?/:sessionIndex?/*`,
+  ...[`/${sessionPrefix}/:sessionIndex/*`, '*'].map((path) => ({
+    path,
     element: (
       <SnackbarAlertProvider>
         <SessionSwitcherProvider>
           <PreviousLocationProvider>
-            <RootRoute />
+            <RoutesStructure />
           </PreviousLocationProvider>
         </SessionSwitcherProvider>
       </SnackbarAlertProvider>
     ),
     errorElement: <ErrorPage />,
-  },
+  })),
 ]);
 
 const modalRoutes: ExtendedRouteObject[] = [
   {
-    path: `/${sessionPathnamePrefix}?/:sessionIndex?/*`,
+    path: `/${sessionPrefix}?/:sessionIndex?/*`,
     children: [
       {
         path: 'note/:id',
         backgroundPath: '/',
+      },
+      {
+        path: 'local/note/:id',
+        backgroundPath: '/local',
       },
     ],
   },

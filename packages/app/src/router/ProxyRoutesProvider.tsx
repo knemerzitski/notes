@@ -9,24 +9,18 @@ import {
 
 import { useRouter } from './RouterProvider';
 
-const ProxyTransformContext = createContext<ProxyRoutesProviderProps['transform'] | null>(
-  null
+const ProxyRouteTransformContext = createContext<ProxyRoutesProviderProps['transform']>(
+  (s) => s
 );
 
 // eslint-disable-next-line react-refresh/only-export-components
-export function useProxyTransform() {
-  const ctx = useContext(ProxyTransformContext);
-  if (ctx === null) {
-    throw new Error(
-      'Error: useProxyTransform() may be used only in the context of a <ProxyRoutesProvider> component.'
-    );
-  }
-  return ctx;
+export function useProxyRouteTransform() {
+  return useContext(ProxyRouteTransformContext);
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function useProxyNavigate() {
-  const transform = useProxyTransform();
+  const transform = useProxyRouteTransform();
   const { router } = useRouter();
 
   const proxyNavigate: NavigateFunction = (
@@ -48,39 +42,8 @@ export function useProxyNavigate() {
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
-export function useProxyAbsoluteLocation() {
-  const transform = useProxyTransform();
-  const { router } = useRouter();
-
-  const [proxyLocation, setProxyLocation] = useState<Location | null>(null);
-
-  useEffect(() => {
-    const unsubscribe = router.subscribe((state: { location: Location }) => {
-      setProxyLocation({
-        ...state.location,
-        pathname: transform(state.location.pathname),
-      });
-    });
-    return unsubscribe;
-  }, [router, transform]);
-
-  return proxyLocation;
-}
-
-// eslint-disable-next-line react-refresh/only-export-components
-export function useProxyLocation(): Location {
-  const transform = useProxyTransform();
-  const location = useLocation();
-
-  return {
-    ...location,
-    pathname: transform(location.pathname),
-  };
-}
-
-// eslint-disable-next-line react-refresh/only-export-components
 export function useProxyIsAbsolutePathname(pathname: To) {
-  const transform = useProxyTransform();
+  const transform = useProxyRouteTransform();
   const { router } = useRouter();
   const [isPathname, setIsPathname] = useState(false);
 
@@ -105,7 +68,7 @@ export function useProxyIsAbsolutePathname(pathname: To) {
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function useProxyIsPathname(pathname: To) {
-  const transform = useProxyTransform();
+  const transform = useProxyRouteTransform();
   const location = useLocation();
 
   const testPathname = transform(
@@ -125,8 +88,8 @@ export default function ProxyRoutesProvider({
   children,
 }: ProxyRoutesProviderProps) {
   return (
-    <ProxyTransformContext.Provider value={transform}>
+    <ProxyRouteTransformContext.Provider value={transform}>
       {children}
-    </ProxyTransformContext.Provider>
+    </ProxyRouteTransformContext.Provider>
   );
 }
