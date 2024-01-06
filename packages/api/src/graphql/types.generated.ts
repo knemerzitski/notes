@@ -34,13 +34,13 @@ export type Connection = {
 };
 
 export type CreateNoteInput = {
-  newNote?: InputMaybe<NotePatchInput>;
+  note?: InputMaybe<NotePatchInput>;
 };
 
 export type CreateNotePayload = {
   __typename?: 'CreateNotePayload';
-  /** Note to create */
-  note: UserNote;
+  /** Created note */
+  note: Note;
 };
 
 export type CredentialsInput = {
@@ -66,10 +66,10 @@ export type Edge = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  /** Create a new note to current user */
-  createUserNote?: Maybe<CreateNotePayload>;
+  /** Create a new note */
+  createNote?: Maybe<CreateNotePayload>;
   /** Delete note */
-  deleteUserNote: DeleteNotePayload;
+  deleteNote: DeleteNotePayload;
   /** On successful sign in, session ID is stored in a http-only cookie. Returns null on failed sign in. */
   signIn?: Maybe<SignInPayload>;
   /** Returns signed out http-conly cookie session index or null if user was not signed in. */
@@ -77,16 +77,16 @@ export type Mutation = {
   /** Switch session to new index which is tied to http-only session cookie. Returns switched to session index. */
   switchToSession: SwitchToSessionPayload;
   /** Update note */
-  updateUserNote: UpdateNotePayload;
+  updateNote: UpdateNotePayload;
 };
 
 
-export type MutationcreateUserNoteArgs = {
+export type MutationcreateNoteArgs = {
   input: CreateNoteInput;
 };
 
 
-export type MutationdeleteUserNoteArgs = {
+export type MutationdeleteNoteArgs = {
   input: DeleteNoteInput;
 };
 
@@ -101,7 +101,7 @@ export type MutationswitchToSessionArgs = {
 };
 
 
-export type MutationupdateUserNoteArgs = {
+export type MutationupdateNoteArgs = {
   input: UpdateNoteInput;
 };
 
@@ -110,20 +110,34 @@ export type Node = {
   id: Scalars['ID']['output'];
 };
 
-export type Note = {
+export type Note = Node & {
   __typename?: 'Note';
-  /** Note unique ID */
+  /** Self-descriptive */
   id: Scalars['ID']['output'];
-  /** Note text contents */
+  /** Note preferences such as note color */
+  preferences: NotePreferences;
+  /** Is note locked in a read-only state. null => readOnly: false */
+  readOnly?: Maybe<Scalars['Boolean']['output']>;
+  /** Note plain text content */
   textContent: Scalars['String']['output'];
-  /** Note title */
+  /** Note title to summarize note contents */
   title: Scalars['String']['output'];
+};
+
+export type NoteConnection = Connection & {
+  __typename?: 'NoteConnection';
+  /** Self descriptive */
+  edges: Array<NoteEdge>;
+  /** Query notes directly without edges */
+  notes: Array<Note>;
+  /** Self descriptive */
+  pageInfo: PageInfo;
 };
 
 export type NoteCreatedPayload = {
   __typename?: 'NoteCreatedPayload';
   /** Created note info */
-  note: UserNote;
+  note: Note;
 };
 
 export type NoteDeletedPayload = {
@@ -132,17 +146,44 @@ export type NoteDeletedPayload = {
   id: Scalars['ID']['output'];
 };
 
+export type NoteEdge = Edge & {
+  __typename?: 'NoteEdge';
+  /** Self descriptive */
+  cursor: Scalars['String']['output'];
+  /** Self descriptive */
+  node: Note;
+};
+
 export type NotePatch = {
   __typename?: 'NotePatch';
-  /** Note text */
+  /** Changed preferences */
+  preferences?: Maybe<NotePreferencesPatch>;
+  /** Changed note text content */
   textContent?: Maybe<Scalars['String']['output']>;
-  /** Note title */
+  /** Changed note title */
   title?: Maybe<Scalars['String']['output']>;
 };
 
 export type NotePatchInput = {
+  preferences?: InputMaybe<NotePreferencesPatchInput>;
   textContent?: InputMaybe<Scalars['String']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type NotePreferences = {
+  __typename?: 'NotePreferences';
+  /** Note background color */
+  backgroundColor?: Maybe<Scalars['HexColorCode']['output']>;
+};
+
+export type NotePreferencesPatch = {
+  __typename?: 'NotePreferencesPatch';
+  /** Changed note background color */
+  backgroundColor?: Maybe<Scalars['HexColorCode']['output']>;
+};
+
+export type NotePreferencesPatchInput = {
+  backgroundColor?: InputMaybe<Scalars['HexColorCode']['input']>;
 };
 
 export type NoteUpdatedPayload = {
@@ -150,7 +191,7 @@ export type NoteUpdatedPayload = {
   /** ID of note that was updated */
   id: Scalars['ID']['output'];
   /** Changes made to the note */
-  patch: UserNotePatch;
+  patch: NotePatch;
 };
 
 export type OfflineMode = {
@@ -179,21 +220,21 @@ export type Query = {
   activeSessionIndex: Scalars['NonNegativeInt']['output'];
   /** Currently active user info */
   activeUserInfo: UserInfo;
+  /** Get note by ID */
+  note: Note;
+  /** Paginate notes */
+  notesConnection: NoteConnection;
   /** Count of sessions saved in http-only cookie */
   sessionCount: Scalars['PositiveInt']['output'];
-  /** Get current user note by ID */
-  userNote: UserNote;
-  /** Paginate current user notes */
-  userNotesConnection: UserNoteConnection;
 };
 
 
-export type QueryuserNoteArgs = {
+export type QuerynoteArgs = {
   id: Scalars['ID']['input'];
 };
 
 
-export type QueryuserNotesConnectionArgs = {
+export type QuerynotesConnectionArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['NonNegativeInt']['input'];
 };
@@ -244,13 +285,13 @@ export type SwitchToSessionPayload = {
 
 export type UpdateNoteInput = {
   id: Scalars['ID']['input'];
-  patch?: InputMaybe<UserNotePatchInput>;
+  patch?: InputMaybe<NotePatchInput>;
 };
 
 export type UpdateNotePayload = {
   __typename?: 'UpdateNotePayload';
-  /** Note to update */
-  note: UserNote;
+  /** Updated note */
+  note: Note;
 };
 
 /** User information accessible by a query */
@@ -260,66 +301,6 @@ export type UserInfo = {
   offlineMode: OfflineMode;
   /** Self-descriptive */
   profile: Profile;
-};
-
-/** Note with additional user related metadata */
-export type UserNote = Node & {
-  __typename?: 'UserNote';
-  /** Note id. Same as in note field */
-  id: Scalars['ID']['output'];
-  /** Actual Note data */
-  note: Note;
-  /** Preferences is individual to the user */
-  preferences: UserNotePreferences;
-  /** If not defined then note is writable */
-  readOnly?: Maybe<Scalars['Boolean']['output']>;
-};
-
-export type UserNoteConnection = Connection & {
-  __typename?: 'UserNoteConnection';
-  /** Self descriptive */
-  edges: Array<UserNoteEdge>;
-  /** Self descriptive */
-  notes: Array<UserNote>;
-  /** Self descriptive */
-  pageInfo: PageInfo;
-};
-
-export type UserNoteEdge = Edge & {
-  __typename?: 'UserNoteEdge';
-  /** Self descriptive */
-  cursor: Scalars['String']['output'];
-  /** Self descriptive */
-  node: UserNote;
-};
-
-export type UserNotePatch = {
-  __typename?: 'UserNotePatch';
-  /** Note to patch */
-  note?: Maybe<NotePatch>;
-  /** Preferences to patch */
-  preferences?: Maybe<UserNotePreferencesPatch>;
-};
-
-export type UserNotePatchInput = {
-  note?: InputMaybe<NotePatchInput>;
-  preferences?: InputMaybe<UserNotePreferencesPatchInput>;
-};
-
-export type UserNotePreferences = {
-  __typename?: 'UserNotePreferences';
-  /** Note background color for the user */
-  backgroundColor?: Maybe<Scalars['HexColorCode']['output']>;
-};
-
-export type UserNotePreferencesPatch = {
-  __typename?: 'UserNotePreferencesPatch';
-  /** Note background color for the user */
-  backgroundColor?: Maybe<Scalars['HexColorCode']['output']>;
-};
-
-export type UserNotePreferencesPatchInput = {
-  backgroundColor?: InputMaybe<Scalars['HexColorCode']['input']>;
 };
 
 
@@ -406,9 +387,9 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping of interface types */
 export type ResolversInterfaceTypes<RefType extends Record<string, unknown>> = {
-  Connection: ( UserNoteConnection & { __typename: 'UserNoteConnection' } );
-  Edge: ( UserNoteEdge & { __typename: 'UserNoteEdge' } );
-  Node: ( UserNote & { __typename: 'UserNote' } );
+  Connection: ( NoteConnection & { __typename: 'NoteConnection' } );
+  Edge: ( NoteEdge & { __typename: 'NoteEdge' } );
+  Node: ( Note & { __typename: 'Note' } );
 };
 
 /** Mapping between all available schema types and the resolvers types */
@@ -430,10 +411,15 @@ export type ResolversTypes = {
   Node: ResolverTypeWrapper<ResolversInterfaceTypes<ResolversTypes>['Node']>;
   NonNegativeInt: ResolverTypeWrapper<Scalars['NonNegativeInt']['output']>;
   Note: ResolverTypeWrapper<Note>;
+  NoteConnection: ResolverTypeWrapper<NoteConnection>;
   NoteCreatedPayload: ResolverTypeWrapper<NoteCreatedPayload>;
   NoteDeletedPayload: ResolverTypeWrapper<NoteDeletedPayload>;
+  NoteEdge: ResolverTypeWrapper<NoteEdge>;
   NotePatch: ResolverTypeWrapper<NotePatch>;
   NotePatchInput: NotePatchInput;
+  NotePreferences: ResolverTypeWrapper<NotePreferences>;
+  NotePreferencesPatch: ResolverTypeWrapper<NotePreferencesPatch>;
+  NotePreferencesPatchInput: NotePreferencesPatchInput;
   NoteUpdatedPayload: ResolverTypeWrapper<NoteUpdatedPayload>;
   OfflineMode: ResolverTypeWrapper<OfflineMode>;
   PageInfo: ResolverTypeWrapper<PageInfo>;
@@ -450,14 +436,6 @@ export type ResolversTypes = {
   UpdateNoteInput: UpdateNoteInput;
   UpdateNotePayload: ResolverTypeWrapper<UpdateNotePayload>;
   UserInfo: ResolverTypeWrapper<UserInfo>;
-  UserNote: ResolverTypeWrapper<UserNote>;
-  UserNoteConnection: ResolverTypeWrapper<UserNoteConnection>;
-  UserNoteEdge: ResolverTypeWrapper<UserNoteEdge>;
-  UserNotePatch: ResolverTypeWrapper<UserNotePatch>;
-  UserNotePatchInput: UserNotePatchInput;
-  UserNotePreferences: ResolverTypeWrapper<UserNotePreferences>;
-  UserNotePreferencesPatch: ResolverTypeWrapper<UserNotePreferencesPatch>;
-  UserNotePreferencesPatchInput: UserNotePreferencesPatchInput;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -478,10 +456,15 @@ export type ResolversParentTypes = {
   Node: ResolversInterfaceTypes<ResolversParentTypes>['Node'];
   NonNegativeInt: Scalars['NonNegativeInt']['output'];
   Note: Note;
+  NoteConnection: NoteConnection;
   NoteCreatedPayload: NoteCreatedPayload;
   NoteDeletedPayload: NoteDeletedPayload;
+  NoteEdge: NoteEdge;
   NotePatch: NotePatch;
   NotePatchInput: NotePatchInput;
+  NotePreferences: NotePreferences;
+  NotePreferencesPatch: NotePreferencesPatch;
+  NotePreferencesPatchInput: NotePreferencesPatchInput;
   NoteUpdatedPayload: NoteUpdatedPayload;
   OfflineMode: OfflineMode;
   PageInfo: PageInfo;
@@ -497,14 +480,6 @@ export type ResolversParentTypes = {
   UpdateNoteInput: UpdateNoteInput;
   UpdateNotePayload: UpdateNotePayload;
   UserInfo: UserInfo;
-  UserNote: UserNote;
-  UserNoteConnection: UserNoteConnection;
-  UserNoteEdge: UserNoteEdge;
-  UserNotePatch: UserNotePatch;
-  UserNotePatchInput: UserNotePatchInput;
-  UserNotePreferences: UserNotePreferences;
-  UserNotePreferencesPatch: UserNotePreferencesPatch;
-  UserNotePreferencesPatchInput: UserNotePreferencesPatchInput;
 };
 
 export type authDirectiveArgs = {
@@ -514,13 +489,13 @@ export type authDirectiveArgs = {
 export type authDirectiveResolver<Result, Parent, ContextType = GraphQLResolversContext, Args = authDirectiveArgs> = DirectiveResolverFn<Result, Parent, ContextType, Args>;
 
 export type ConnectionResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['Connection'] = ResolversParentTypes['Connection']> = {
-  __resolveType?: TypeResolveFn<'UserNoteConnection', ParentType, ContextType>;
+  __resolveType?: TypeResolveFn<'NoteConnection', ParentType, ContextType>;
   edges?: Resolver<Array<ResolversTypes['Edge']>, ParentType, ContextType>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
 };
 
 export type CreateNotePayloadResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['CreateNotePayload'] = ResolversParentTypes['CreateNotePayload']> = {
-  note?: Resolver<ResolversTypes['UserNote'], ParentType, ContextType>;
+  note?: Resolver<ResolversTypes['Note'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -534,7 +509,7 @@ export type DeleteNotePayloadResolvers<ContextType = GraphQLResolversContext, Pa
 };
 
 export type EdgeResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['Edge'] = ResolversParentTypes['Edge']> = {
-  __resolveType?: TypeResolveFn<'UserNoteEdge', ParentType, ContextType>;
+  __resolveType?: TypeResolveFn<'NoteEdge', ParentType, ContextType>;
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Node'], ParentType, ContextType>;
 };
@@ -544,16 +519,16 @@ export interface HexColorCodeScalarConfig extends GraphQLScalarTypeConfig<Resolv
 }
 
 export type MutationResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
-  createUserNote?: Resolver<Maybe<ResolversTypes['CreateNotePayload']>, ParentType, ContextType, RequireFields<MutationcreateUserNoteArgs, 'input'>>;
-  deleteUserNote?: Resolver<ResolversTypes['DeleteNotePayload'], ParentType, ContextType, RequireFields<MutationdeleteUserNoteArgs, 'input'>>;
+  createNote?: Resolver<Maybe<ResolversTypes['CreateNotePayload']>, ParentType, ContextType, RequireFields<MutationcreateNoteArgs, 'input'>>;
+  deleteNote?: Resolver<ResolversTypes['DeleteNotePayload'], ParentType, ContextType, RequireFields<MutationdeleteNoteArgs, 'input'>>;
   signIn?: Resolver<Maybe<ResolversTypes['SignInPayload']>, ParentType, ContextType, RequireFields<MutationsignInArgs, 'input'>>;
   signOut?: Resolver<ResolversTypes['SignOutPayload'], ParentType, ContextType>;
   switchToSession?: Resolver<ResolversTypes['SwitchToSessionPayload'], ParentType, ContextType, RequireFields<MutationswitchToSessionArgs, 'input'>>;
-  updateUserNote?: Resolver<ResolversTypes['UpdateNotePayload'], ParentType, ContextType, RequireFields<MutationupdateUserNoteArgs, 'input'>>;
+  updateNote?: Resolver<ResolversTypes['UpdateNotePayload'], ParentType, ContextType, RequireFields<MutationupdateNoteArgs, 'input'>>;
 };
 
 export type NodeResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['Node'] = ResolversParentTypes['Node']> = {
-  __resolveType?: TypeResolveFn<'UserNote', ParentType, ContextType>;
+  __resolveType?: TypeResolveFn<'Note', ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
 };
 
@@ -563,13 +538,22 @@ export interface NonNegativeIntScalarConfig extends GraphQLScalarTypeConfig<Reso
 
 export type NoteResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['Note'] = ResolversParentTypes['Note']> = {
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  preferences?: Resolver<ResolversTypes['NotePreferences'], ParentType, ContextType>;
+  readOnly?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   textContent?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type NoteConnectionResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['NoteConnection'] = ResolversParentTypes['NoteConnection']> = {
+  edges?: Resolver<Array<ResolversTypes['NoteEdge']>, ParentType, ContextType>;
+  notes?: Resolver<Array<ResolversTypes['Note']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type NoteCreatedPayloadResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['NoteCreatedPayload'] = ResolversParentTypes['NoteCreatedPayload']> = {
-  note?: Resolver<ResolversTypes['UserNote'], ParentType, ContextType>;
+  note?: Resolver<ResolversTypes['Note'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -578,15 +562,32 @@ export type NoteDeletedPayloadResolvers<ContextType = GraphQLResolversContext, P
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type NoteEdgeResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['NoteEdge'] = ResolversParentTypes['NoteEdge']> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes['Note'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type NotePatchResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['NotePatch'] = ResolversParentTypes['NotePatch']> = {
+  preferences?: Resolver<Maybe<ResolversTypes['NotePreferencesPatch']>, ParentType, ContextType>;
   textContent?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type NotePreferencesResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['NotePreferences'] = ResolversParentTypes['NotePreferences']> = {
+  backgroundColor?: Resolver<Maybe<ResolversTypes['HexColorCode']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type NotePreferencesPatchResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['NotePreferencesPatch'] = ResolversParentTypes['NotePreferencesPatch']> = {
+  backgroundColor?: Resolver<Maybe<ResolversTypes['HexColorCode']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type NoteUpdatedPayloadResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['NoteUpdatedPayload'] = ResolversParentTypes['NoteUpdatedPayload']> = {
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  patch?: Resolver<ResolversTypes['UserNotePatch'], ParentType, ContextType>;
+  patch?: Resolver<ResolversTypes['NotePatch'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -613,9 +614,9 @@ export type ProfileResolvers<ContextType = GraphQLResolversContext, ParentType e
 export type QueryResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   activeSessionIndex?: Resolver<ResolversTypes['NonNegativeInt'], ParentType, ContextType>;
   activeUserInfo?: Resolver<ResolversTypes['UserInfo'], ParentType, ContextType>;
+  note?: Resolver<ResolversTypes['Note'], ParentType, ContextType, RequireFields<QuerynoteArgs, 'id'>>;
+  notesConnection?: Resolver<ResolversTypes['NoteConnection'], ParentType, ContextType, RequireFields<QuerynotesConnectionArgs, 'first'>>;
   sessionCount?: Resolver<ResolversTypes['PositiveInt'], ParentType, ContextType>;
-  userNote?: Resolver<ResolversTypes['UserNote'], ParentType, ContextType, RequireFields<QueryuserNoteArgs, 'id'>>;
-  userNotesConnection?: Resolver<ResolversTypes['UserNoteConnection'], ParentType, ContextType, RequireFields<QueryuserNotesConnectionArgs, 'first'>>;
 };
 
 export type SignInPayloadResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['SignInPayload'] = ResolversParentTypes['SignInPayload']> = {
@@ -642,50 +643,13 @@ export type SwitchToSessionPayloadResolvers<ContextType = GraphQLResolversContex
 };
 
 export type UpdateNotePayloadResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['UpdateNotePayload'] = ResolversParentTypes['UpdateNotePayload']> = {
-  note?: Resolver<ResolversTypes['UserNote'], ParentType, ContextType>;
+  note?: Resolver<ResolversTypes['Note'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type UserInfoResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['UserInfo'] = ResolversParentTypes['UserInfo']> = {
   offlineMode?: Resolver<ResolversTypes['OfflineMode'], ParentType, ContextType>;
   profile?: Resolver<ResolversTypes['Profile'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type UserNoteResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['UserNote'] = ResolversParentTypes['UserNote']> = {
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  note?: Resolver<ResolversTypes['Note'], ParentType, ContextType>;
-  preferences?: Resolver<ResolversTypes['UserNotePreferences'], ParentType, ContextType>;
-  readOnly?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type UserNoteConnectionResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['UserNoteConnection'] = ResolversParentTypes['UserNoteConnection']> = {
-  edges?: Resolver<Array<ResolversTypes['UserNoteEdge']>, ParentType, ContextType>;
-  notes?: Resolver<Array<ResolversTypes['UserNote']>, ParentType, ContextType>;
-  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type UserNoteEdgeResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['UserNoteEdge'] = ResolversParentTypes['UserNoteEdge']> = {
-  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  node?: Resolver<ResolversTypes['UserNote'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type UserNotePatchResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['UserNotePatch'] = ResolversParentTypes['UserNotePatch']> = {
-  note?: Resolver<Maybe<ResolversTypes['NotePatch']>, ParentType, ContextType>;
-  preferences?: Resolver<Maybe<ResolversTypes['UserNotePreferencesPatch']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type UserNotePreferencesResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['UserNotePreferences'] = ResolversParentTypes['UserNotePreferences']> = {
-  backgroundColor?: Resolver<Maybe<ResolversTypes['HexColorCode']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type UserNotePreferencesPatchResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['UserNotePreferencesPatch'] = ResolversParentTypes['UserNotePreferencesPatch']> = {
-  backgroundColor?: Resolver<Maybe<ResolversTypes['HexColorCode']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -700,9 +664,13 @@ export type Resolvers<ContextType = GraphQLResolversContext> = {
   Node?: NodeResolvers<ContextType>;
   NonNegativeInt?: GraphQLScalarType;
   Note?: NoteResolvers<ContextType>;
+  NoteConnection?: NoteConnectionResolvers<ContextType>;
   NoteCreatedPayload?: NoteCreatedPayloadResolvers<ContextType>;
   NoteDeletedPayload?: NoteDeletedPayloadResolvers<ContextType>;
+  NoteEdge?: NoteEdgeResolvers<ContextType>;
   NotePatch?: NotePatchResolvers<ContextType>;
+  NotePreferences?: NotePreferencesResolvers<ContextType>;
+  NotePreferencesPatch?: NotePreferencesPatchResolvers<ContextType>;
   NoteUpdatedPayload?: NoteUpdatedPayloadResolvers<ContextType>;
   OfflineMode?: OfflineModeResolvers<ContextType>;
   PageInfo?: PageInfoResolvers<ContextType>;
@@ -715,12 +683,6 @@ export type Resolvers<ContextType = GraphQLResolversContext> = {
   SwitchToSessionPayload?: SwitchToSessionPayloadResolvers<ContextType>;
   UpdateNotePayload?: UpdateNotePayloadResolvers<ContextType>;
   UserInfo?: UserInfoResolvers<ContextType>;
-  UserNote?: UserNoteResolvers<ContextType>;
-  UserNoteConnection?: UserNoteConnectionResolvers<ContextType>;
-  UserNoteEdge?: UserNoteEdgeResolvers<ContextType>;
-  UserNotePatch?: UserNotePatchResolvers<ContextType>;
-  UserNotePreferences?: UserNotePreferencesResolvers<ContextType>;
-  UserNotePreferencesPatch?: UserNotePreferencesPatchResolvers<ContextType>;
 };
 
 export type DirectiveResolvers<ContextType = GraphQLResolversContext> = {

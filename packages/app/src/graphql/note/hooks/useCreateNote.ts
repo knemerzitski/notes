@@ -5,44 +5,40 @@ import { Note } from '../../../local-state/__generated__/graphql';
 
 const MUTATION = gql(`
   mutation UseCreateNote($input: CreateNoteInput!)  {
-    createUserNote(input: $input) {
+    createNote(input: $input) {
       note {
         id
-        note {
-          id
-          title
-          textContent
-        }
+        title
+        textContent
       }
     }
   }
 `);
 
+type PartialNote = Pick<Note, 'id' | 'title' | 'textContent'>;
+
 export default function useCreateNote(): (
   title: string,
   content: string
-) => Promise<Note | null> {
+) => Promise<PartialNote | null> {
   const [createNote] = useMutation(MUTATION);
 
   return async (title, content) => {
-    const {data} = await createNote({
+    const { data } = await createNote({
       variables: {
         input: {
-          newNote: {
+          note: {
             title,
             textContent: content,
           },
         },
       },
       optimisticResponse: {
-        createUserNote: {
+        createNote: {
           note: {
             id: 'CreateNote',
-            note: {
-              id: 'CreateNote',
-              title,
-              textContent: content,
-            },
+            title,
+            textContent: content,
           },
         },
       },
@@ -50,7 +46,7 @@ export default function useCreateNote(): (
       // TODO update cache
     });
 
-    const note = data?.createUserNote?.note.note;
+    const note = data?.createNote?.note;
 
     if (!note) return null;
 

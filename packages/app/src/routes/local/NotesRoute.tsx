@@ -2,13 +2,13 @@ import { useSuspenseQuery } from '@apollo/client';
 
 import WidgetListFabLayout from '../../components/notes/layout/WidgetListFabLayout';
 import { NotesListProps } from '../../components/notes/view/NotesList';
+import { gql } from '../../local-state/__generated__';
+import useNotes from '../../local-state/note/hooks/useNotes';
 import {
   useProxyNavigate,
   useProxyRouteTransform,
 } from '../../router/ProxyRoutesProvider';
 import { useAbsoluteLocation } from '../../router/hooks/useAbsoluteLocation';
-import { gql } from '../../local-state/__generated__';
-import useNotes from '../../local-state/note/hooks/useNotes';
 
 const QUERY = gql(`
   query LocalNotesRoute {
@@ -63,6 +63,8 @@ export default function NotesRoute() {
         autoFocus: true,
       },
     });
+
+    return Promise.resolve();
   }
 
   function handleStartEdit(noteId: string) {

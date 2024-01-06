@@ -1,24 +1,23 @@
 import { useQuery } from '@apollo/client';
-import WidgetListFabLayout from '../components/notes/layout/WidgetListFabLayout';
-import { gql } from '../local-state/__generated__/gql';
-import useDeleteNote from '../graphql/note/hooks/useDeleteNote';
-import { useSnackbarError } from '../components/feedback/SnackbarAlertProvider';
 import { Alert } from '@mui/material';
+import { startTransition } from 'react';
+
+import { useSnackbarError } from '../components/feedback/SnackbarAlertProvider';
+import WidgetListFabLayout from '../components/notes/layout/WidgetListFabLayout';
 import { NoteItemProps } from '../components/notes/view/NoteItem';
+import useCreateNote from '../graphql/note/hooks/useCreateNote';
+import useDeleteNote from '../graphql/note/hooks/useDeleteNote';
+import { gql } from '../local-state/__generated__/gql';
 import { useProxyNavigate, useProxyRouteTransform } from '../router/ProxyRoutesProvider';
 import { useAbsoluteLocation } from '../router/hooks/useAbsoluteLocation';
-import useCreateNote from '../graphql/note/hooks/useCreateNote';
-import { startTransition } from 'react';
 
 const QUERY = gql(`
   query UserNotesConnection($first: NonNegativeInt!, $after: String) {
-    userNotesConnection(first: $first, after: $after) {
+    notesConnection(first: $first, after: $after) {
       notes {
-        note {
-          id
-          title
-          textContent
-        }
+        id
+        title
+        textContent
       }
     }
   }
@@ -106,7 +105,7 @@ export default function NotesRoute() {
   }
 
   const notes: NoteItemProps['note'][] =
-    data?.userNotesConnection.notes.map(({ note: { id, title, textContent } }) => ({
+    data?.notesConnection.notes.map(({ id, title, textContent }) => ({
       id: String(id),
       title,
       content: textContent,

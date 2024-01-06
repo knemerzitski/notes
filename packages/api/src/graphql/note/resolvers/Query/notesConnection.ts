@@ -1,10 +1,11 @@
 import { ObjectId } from 'mongodb';
 import { PipelineStage, Require_id, Types } from 'mongoose';
 
-import type { QueryResolvers } from '../../../../graphql/types.generated';
 import { DBNote } from '../../../../mongoose/models/note';
 import { DBUserNote } from '../../../../mongoose/models/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
+
+import type { QueryResolvers } from './../../../types.generated';
 
 type UserNoteWithoutIds = Omit<DBUserNote, 'userId' | 'notePublicId'>;
 type UserNoteWithNote = UserNoteWithoutIds & { note: Require_id<DBNote> };
@@ -14,7 +15,11 @@ interface AggregateResult {
   lastId: Types.ObjectId;
 }
 
-export const userNotesConnection: NonNullable<QueryResolvers['userNotesConnection']> = async (_parent, { first, after }, ctx) => {
+export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = async (
+  _parent,
+  { first, after },
+  ctx
+) => {
   const {
     auth,
     mongoose: { model },
@@ -139,14 +144,11 @@ export const userNotesConnection: NonNullable<QueryResolvers['userNotesConnectio
       cursor: String(userNote._id),
       node: {
         id: note.publicId,
+        title: note.title ?? '',
+        textContent: note.textContent ?? '',
         readOnly: userNote.readOnly,
         preferences: {
           backgroundColor: userNote.preferences?.backgroundColor,
-        },
-        note: {
-          id: note.publicId,
-          title: note.title ?? '',
-          textContent: note.textContent ?? '',
         },
       },
     };

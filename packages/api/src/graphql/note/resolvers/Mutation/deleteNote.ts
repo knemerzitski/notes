@@ -1,9 +1,10 @@
 import { GraphQLError } from 'graphql';
 
-import type { MutationResolvers } from '../../../../graphql/types.generated';
 import { assertAuthenticated } from '../../../base/directives/auth';
 
-export const deleteUserNote: NonNullable<MutationResolvers['deleteUserNote']> = async (
+import type { MutationResolvers } from './../../../types.generated';
+
+export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
   _parent,
   { input: { id: notePublicId } },
   ctx

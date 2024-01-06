@@ -5,19 +5,21 @@ import { Note } from '../../../local-state/__generated__/graphql';
 
 const MUTATION = gql(`
   mutation UseUpdateNote($input: UpdateNoteInput!)  {
-    updateUserNote(input: $input) {
+    updateNote(input: $input) {
       note {
-        note {
-          id
-          title
-          textContent
-        }
+        id
+        title
+        textContent
       }
     }
   }
 `);
 
-export default function useUpdateNote(): (note: Note) => Promise<Note | undefined> {
+type PartialNote = Pick<Note, 'id' | 'title' | 'textContent'>;
+
+export default function useUpdateNote(): (
+  note: PartialNote
+) => Promise<PartialNote | undefined> {
   const [updateNote] = useMutation(MUTATION);
 
   return async (note) => {
@@ -26,27 +28,23 @@ export default function useUpdateNote(): (note: Note) => Promise<Note | undefine
         input: {
           id: String(note.id),
           patch: {
-            note: {
-              title: note.title,
-              textContent: note.textContent,
-            },
+            title: note.title,
+            textContent: note.textContent,
           },
         },
       },
       optimisticResponse: {
-        updateUserNote: {
+        updateNote: {
           note: {
-            note: {
-              id: note.id,
-              title: note.title,
-              textContent: note.textContent,
-            },
+            id: note.id,
+            title: note.title,
+            textContent: note.textContent,
           },
         },
       },
       // TODO update cache
     });
 
-    return data?.updateUserNote.note.note;
+    return data?.updateNote.note;
   };
 }

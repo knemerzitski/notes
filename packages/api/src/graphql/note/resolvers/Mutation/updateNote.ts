@@ -1,9 +1,10 @@
 import { GraphQLError } from 'graphql';
 
-import type { MutationResolvers } from '../../../../graphql/types.generated';
 import { assertAuthenticated } from '../../../base/directives/auth';
 
-export const updateUserNote: NonNullable<MutationResolvers['updateUserNote']> = async (
+import type { MutationResolvers } from './../../../types.generated';
+
+export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
   _parent,
   { input: { id: notePublicId, patch } },
   ctx
@@ -36,11 +37,8 @@ export const updateUserNote: NonNullable<MutationResolvers['updateUserNote']> = 
     return {
       note: {
         id: notePublicId,
-        note: {
-          id: notePublicId,
-          title: note.title ?? '',
-          textContent: note.textContent ?? '',
-        },
+        title: note.title ?? '',
+        textContent: note.textContent ?? '',
         preferences: {
           backgroundColor: userNote.preferences?.backgroundColor,
         },
@@ -48,7 +46,7 @@ export const updateUserNote: NonNullable<MutationResolvers['updateUserNote']> = 
     };
   }
 
-  if (patch.note && userNote.readOnly) {
+  if (userNote.readOnly) {
     throw new GraphQLError('Note is read-only and cannot be modified.', {
       extensions: {
         code: 'READONLY',
@@ -76,15 +74,15 @@ export const updateUserNote: NonNullable<MutationResolvers['updateUserNote']> = 
       );
     }
 
-    if (patch.note) {
+    if (patch.title != null || patch.textContent != null) {
       updatePromises.push(
         model.Note.updateOne(
           {
             _id: note._id,
           },
           {
-            title: patch.note.title,
-            textContent: patch.note.textContent,
+            title: patch.title,
+            textContent: patch.textContent,
           },
           {
             session,
@@ -92,17 +90,15 @@ export const updateUserNote: NonNullable<MutationResolvers['updateUserNote']> = 
         )
       );
     }
+
     await Promise.all(updatePromises);
   });
 
   return {
     note: {
       id: notePublicId,
-      note: {
-        id: notePublicId,
-        title: patch.note?.title ?? note.title ?? '',
-        textContent: patch.note?.textContent ?? note.textContent ?? '',
-      },
+      title: patch.title ?? note.title ?? '',
+      textContent: patch.textContent ?? note.textContent ?? '',
       preferences: {
         backgroundColor:
           patch.preferences?.backgroundColor ?? userNote.preferences?.backgroundColor,

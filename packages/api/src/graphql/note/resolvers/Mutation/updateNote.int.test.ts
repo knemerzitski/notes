@@ -8,9 +8,9 @@ import UserDocumentHelper from '../../../../tests/helpers/model/UserDocumentHelp
 import UserModelHelper from '../../../../tests/helpers/model/UserModelHelper';
 import { UserNote, Note, resetDatabase } from '../../../../tests/helpers/mongoose';
 
-import { updateUserNote } from './updateUserNote';
+import { updateNote } from './updateNote';
 
-describe('updateUserNote', () => {
+describe('updateNote', () => {
   faker.seed(5435);
 
   let userModelHelper: UserModelHelper;
@@ -41,16 +41,14 @@ describe('updateUserNote', () => {
     const newTitle = faker.string.sample(20);
     const newTextContent = faker.string.sample(20);
 
-    const result = await mockResolver(updateUserNote)(
+    const result = await mockResolver(updateNote)(
       {},
       {
         input: {
           id: user1Note.note.publicId,
           patch: {
-            note: {
-              title: newTitle,
-              textContent: newTextContent,
-            },
+            title: newTitle,
+            textContent: newTextContent,
           },
         },
       },
@@ -60,11 +58,8 @@ describe('updateUserNote', () => {
     expect(result).toStrictEqual({
       note: {
         id: user1Note.note.publicId,
-        note: {
-          id: user1Note.note.publicId,
-          title: newTitle,
-          textContent: newTextContent,
-        },
+        title: newTitle,
+        textContent: newTextContent,
         preferences: {
           backgroundColor: user1Note.edge.node.preferences.backgroundColor,
         },
@@ -88,15 +83,13 @@ describe('updateUserNote', () => {
   it('only textContent', async () => {
     const newTextContent = faker.string.sample(20);
 
-    const result = await mockResolver(updateUserNote)(
+    const result = await mockResolver(updateNote)(
       {},
       {
         input: {
           id: user1Note.note.publicId,
           patch: {
-            note: {
-              textContent: newTextContent,
-            },
+            textContent: newTextContent,
           },
         },
       },
@@ -106,11 +99,8 @@ describe('updateUserNote', () => {
     expect(result).toStrictEqual({
       note: {
         id: user1Note.note.publicId,
-        note: {
-          id: user1Note.note.publicId,
-          title: user1Note.note.title,
-          textContent: newTextContent,
-        },
+        title: user1Note.note.title,
+        textContent: newTextContent,
         preferences: {
           backgroundColor: user1Note.edge.node.preferences.backgroundColor,
         },
@@ -134,7 +124,7 @@ describe('updateUserNote', () => {
   it('only backgroundColor', async () => {
     const newColor = faker.color.rgb();
 
-    const result = await mockResolver(updateUserNote)(
+    const result = await mockResolver(updateNote)(
       {},
       {
         input: {
@@ -152,11 +142,8 @@ describe('updateUserNote', () => {
     expect(result).toStrictEqual({
       note: {
         id: user1Note.note.publicId,
-        note: {
-          id: user1Note.note.publicId,
-          title: user1Note.note.title,
-          textContent: user1Note.note.textContent,
-        },
+        title: user1Note.note.title,
+        textContent: user1Note.note.textContent,
         preferences: {
           backgroundColor: newColor,
         },
@@ -186,15 +173,13 @@ describe('updateUserNote', () => {
 
     const newTextContent = faker.string.sample(20);
 
-    const result = await mockResolver(updateUserNote)(
+    const result = await mockResolver(updateNote)(
       {},
       {
         input: {
           id: user2NoteAccessibleByUser1.note.publicId,
           patch: {
-            note: {
-              textContent: newTextContent,
-            },
+            textContent: newTextContent,
           },
         },
       },
@@ -204,11 +189,8 @@ describe('updateUserNote', () => {
     expect(result).toStrictEqual({
       note: {
         id: user2NoteAccessibleByUser1.note.publicId,
-        note: {
-          id: user2NoteAccessibleByUser1.note.publicId,
-          title: user2NoteAccessibleByUser1.note.title,
-          textContent: newTextContent,
-        },
+        title: user2NoteAccessibleByUser1.note.title,
+        textContent: newTextContent,
         preferences: {
           backgroundColor:
             user2NoteAccessibleByUser1.edge.node.preferences.backgroundColor,
@@ -233,7 +215,7 @@ describe('updateUserNote', () => {
   describe('throw error', () => {
     it('note that doesnt exist', async () => {
       await expect(
-        mockResolver(updateUserNote)(
+        mockResolver(updateNote)(
           {},
           {
             input: {
@@ -252,15 +234,13 @@ describe('updateUserNote', () => {
       assert(readOnlyNote.userNote.readOnly === true);
 
       await expect(
-        mockResolver(updateUserNote)(
+        mockResolver(updateNote)(
           {},
           {
             input: {
               id: readOnlyNote.note.publicId,
               patch: {
-                note: {
-                  textContent: 'impossible',
-                },
+                textContent: 'impossible',
               },
             },
           },

@@ -8,7 +8,7 @@ import UserModelHelper from '../../../../tests/helpers/model/UserModelHelper';
 import { Note, UserNote, resetDatabase } from '../../../../tests/helpers/mongoose';
 import { GraphQLResolversContext } from '../../../context';
 
-import { userNote } from './userNote';
+import { note } from './note';
 
 const USER_COUNT = 3;
 const TOTAL_NOTES_COUNT = 20;
@@ -31,7 +31,7 @@ function createUserContext(userHelper: UserDocumentHelper) {
   });
 }
 
-describe('userNote', async () => {
+describe('note', async () => {
   faker.seed(5435);
   await resetDatabase();
 
@@ -57,7 +57,7 @@ describe('userNote', async () => {
     const expectedNoteData = user1Helper.noteData[1];
     assert(expectedNoteData !== undefined);
 
-    const result = await mockResolver(userNote)(
+    const result = await mockResolver(note)(
       {},
       {
         id: String(expectedNoteData.edge.node.id),
@@ -71,7 +71,7 @@ describe('userNote', async () => {
   const user2NoteFromUser1 = user2NotesFromUser1[1];
   assert(user2NoteFromUser1 !== undefined);
   it('returns user 1 note to user 2 since user 2 has access to it', async () => {
-    const result = await mockResolver(userNote)(
+    const result = await mockResolver(note)(
       {},
       {
         id: String(user2NoteFromUser1.edge.node.id),
@@ -84,7 +84,7 @@ describe('userNote', async () => {
 
   it(`throws error when user 3 tries to access user 1 note`, async () => {
     await expect(async () => {
-      await mockResolver(userNote)(
+      await mockResolver(note)(
         {},
         {
           id: String(user2NoteFromUser1.edge.node.id),

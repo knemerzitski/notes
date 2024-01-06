@@ -15,9 +15,9 @@ import {
 import { GraphQLResolversContext } from '../../../context';
 import { NotePatchInput } from '../../../types.generated';
 
-import { createUserNote } from './createUserNote';
+import { createNote } from './createNote';
 
-describe('createUserNote', () => {
+describe('createNote', () => {
   faker.seed(774);
 
   let userHelper: UserDocumentHelper;
@@ -62,11 +62,11 @@ describe('createUserNote', () => {
       textContent: faker.string.sample(120),
     };
 
-    const result = await mockResolver(createUserNote)(
+    const result = await mockResolver(createNote)(
       {},
       {
         input: {
-          newNote,
+          note: newNote,
         },
       },
       context
@@ -74,10 +74,8 @@ describe('createUserNote', () => {
 
     expect(result).containSubset({
       note: {
-        note: {
-          title: newNote.title,
-          textContent: newNote.textContent,
-        },
+        title: newNote.title,
+        textContent: newNote.textContent,
         preferences: {},
       },
     });
@@ -100,12 +98,12 @@ describe('createUserNote', () => {
   });
 
   it('creates new note to the beginning of order', async () => {
-    async function createNote() {
-      const result = await mockResolver(createUserNote)(
+    async function newNote() {
+      const result = await mockResolver(createNote)(
         {},
         {
           input: {
-            newNote: {
+            note: {
               title: faker.string.sample(20),
               textContent: faker.string.sample(120),
             },
@@ -118,9 +116,9 @@ describe('createUserNote', () => {
       return note;
     }
 
-    const note1 = await createNote();
-    const note2 = await createNote();
-    const note3 = await createNote();
+    const note1 = await newNote();
+    const note2 = await newNote();
+    const note3 = await newNote();
 
     // Expecting last created note to be at the beginning
     const expectedNotesOrdered = [note3, note2, note1];

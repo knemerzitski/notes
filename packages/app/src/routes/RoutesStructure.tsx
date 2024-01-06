@@ -2,8 +2,8 @@ import { useSuspenseQuery } from '@apollo/client';
 import { Route, Routes, RoutesProps } from 'react-router-dom';
 
 import useIsMobile from '../hooks/useIsMobile';
-import ModalBackgroundRouting from '../router/components/ModalBackgroundRouting';
 import { gql } from '../local-state/__generated__/gql';
+import ModalBackgroundRouting from '../router/components/ModalBackgroundRouting';
 
 import AppBarDrawerLayout from './@layouts/appbar-drawer/AppBarDrawerLayout';
 import NotFoundPage from './NotFoundPage';

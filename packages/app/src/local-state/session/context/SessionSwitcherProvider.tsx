@@ -10,10 +10,10 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 
 import ProxyRoutesProvider from '../../../router/ProxyRoutesProvider';
+import sessionPrefix from '../../../router/sessionPrefix';
 import joinPathnames from '../../../utils/joinPathnames';
 import { gql } from '../../__generated__/gql';
 import useSessions from '../hooks/useSessions';
-import sessionPrefix from '../../../router/sessionPrefix';
 
 const QUERY = gql(`
   query SessionSwitcherProvider {

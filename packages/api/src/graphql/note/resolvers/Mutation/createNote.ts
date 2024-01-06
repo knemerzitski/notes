@@ -1,11 +1,8 @@
-import type {
-  MutationResolvers,
-  NoteCreatedPayload,
-} from '../../../../graphql/types.generated';
 import { assertAuthenticated } from '../../../base/directives/auth';
-import { publishNoteCreated } from '../Subscription/noteCreated';
 
-export const createUserNote: NonNullable<MutationResolvers['createUserNote']> = async (
+import type { CreateNotePayload, MutationResolvers } from './../../../types.generated';
+
+export const createNote: NonNullable<MutationResolvers['createNote']> = async (
   _parent,
   { input },
   ctx
@@ -18,8 +15,8 @@ export const createUserNote: NonNullable<MutationResolvers['createUserNote']> = 
 
   const newNote = new model.Note({
     ownerId: auth.session.user._id._id,
-    title: input.newNote?.title,
-    textContent: input.newNote?.textContent,
+    title: input.note?.title,
+    textContent: input.note?.textContent,
   });
 
   await connection.transaction(async (session) => {
@@ -50,14 +47,11 @@ export const createUserNote: NonNullable<MutationResolvers['createUserNote']> = 
     ]);
   });
 
-  const newNotePayload: NoteCreatedPayload = {
+  const newNotePayload: CreateNotePayload = {
     note: {
       id: newNote.publicId,
-      note: {
-        id: newNote.publicId,
-        title: newNote.title ?? '',
-        textContent: newNote.textContent ?? '',
-      },
+      title: newNote.title ?? '',
+      textContent: newNote.textContent ?? '',
       preferences: {},
     },
   };

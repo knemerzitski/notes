@@ -1,10 +1,11 @@
 import { GraphQLError } from 'graphql';
 import { Require_id, Types } from 'mongoose';
 
-import type { QueryResolvers } from '../../../../graphql/types.generated';
 import { DBNote } from '../../../../mongoose/models/note';
 import { DBUserNote } from '../../../../mongoose/models/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
+
+import type { QueryResolvers } from './../../../types.generated';
 
 type UserNoteWithoutIds = Omit<DBUserNote, 'userId' | 'notePublicId'> & {
   _id?: Types.ObjectId;
@@ -13,7 +14,7 @@ type UserNoteWithNote = UserNoteWithoutIds & { note: Require_id<DBNote> };
 
 type AggregateResult = UserNoteWithNote;
 
-export const userNote: NonNullable<QueryResolvers['userNote']> = async (
+export const note: NonNullable<QueryResolvers['note']> = async (
   _parent,
   { id: notePublicId },
   ctx
@@ -70,14 +71,11 @@ export const userNote: NonNullable<QueryResolvers['userNote']> = async (
 
   return {
     id: note.publicId,
+    title: note.title ?? '',
+    textContent: note.textContent ?? '',
     readOnly: userNote.readOnly,
     preferences: {
       backgroundColor: userNote.preferences?.backgroundColor,
-    },
-    note: {
-      id: note.publicId,
-      title: note.title ?? '',
-      textContent: note.textContent ?? '',
     },
   };
 };

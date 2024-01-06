@@ -1,110 +1,92 @@
-type Note {
-  "Note unique ID"
+
+type Note implements Node {
+  "Self-descriptive"
   id: ID!
-  "Note title"
+  "Note title to summarize note contents"
   title: String!
-  "Note text contents"
+  "Note plain text content"
   textContent: String!
+  "Is note locked in a read-only state. null => readOnly: false"
+  readOnly: Boolean
+  "Note preferences such as note color"
+  preferences: NotePreferences!
 }
 
 type NotePatch {
-  "Note title"
+  "Changed note title"
   title: String
-  "Note text"
+  "Changed note text content"
   textContent: String
+  "Changed preferences"
+  preferences: NotePreferencesPatch
 }
 
 input NotePatchInput {
   title: String
   textContent: String
+  preferences: NotePreferencesPatchInput
 }
 
-type UserNotePreferences {
-  "Note background color for the user"
+type NotePreferences {
+  "Note background color"
   backgroundColor: HexColorCode
 }
 
-type UserNotePreferencesPatch {
-  "Note background color for the user"
+type NotePreferencesPatch {
+  "Changed note background color"
   backgroundColor: HexColorCode
 }
 
-input UserNotePreferencesPatchInput {
+input NotePreferencesPatchInput {
   backgroundColor: HexColorCode
 }
 
-"""
-Note with additional user related metadata
-"""
-type UserNote implements Node {
-  "Note id. Same as in note field"
-  id: ID!
-  "Actual Note data"
-  note: Note!
-  "If not defined then note is writable"
-  readOnly: Boolean
-  "Preferences is individual to the user"
-  preferences: UserNotePreferences!
-}
-
-type UserNotePatch {
-  "Note to patch"
-  note: NotePatch
-  "Preferences to patch"
-  preferences: UserNotePreferencesPatch
-}
-
-input UserNotePatchInput {
-  note: NotePatchInput
-  preferences: UserNotePreferencesPatchInput
-}
-
-type UserNoteConnection implements Connection {
+type NoteConnection implements Connection {
+  "Query notes directly without edges"
+  notes: [Note!]!
   "Self descriptive"
-  notes: [UserNote!]!
-  "Self descriptive"
-  edges: [UserNoteEdge!]!
+  edges: [NoteEdge!]!
   "Self descriptive"
   pageInfo: PageInfo!
 }
 
-type UserNoteEdge implements Edge {
+type NoteEdge implements Edge {
   "Self descriptive"
-  node: UserNote!
+  node: Note!
   "Self descriptive"
   cursor: String!
 }
 
 extend type Query {
-  "Paginate current user notes"
-  userNotesConnection(first: NonNegativeInt!, after: String): UserNoteConnection! @auth
-  "Get current user note by ID"
-  userNote(id: ID!): UserNote! @auth
+  "Paginate notes"
+  notesConnection(first: NonNegativeInt!, after: String): NoteConnection! @auth
+  "Get note by ID"
+  note(id: ID!): Note! @auth
 }
 
 input CreateNoteInput {
-  newNote: NotePatchInput
+  note: NotePatchInput
 }
 type CreateNotePayload {
-  "Note to create"
-  note: UserNote!
+  "Created note"
+  note: Note!
 }
 extend type Mutation {
-  "Create a new note to current user"
-  createUserNote(input: CreateNoteInput!): CreateNotePayload @auth
+  "Create a new note"
+  createNote(input: CreateNoteInput!): CreateNotePayload @auth
 }
 
 input UpdateNoteInput {
   id: ID!
-  patch: UserNotePatchInput
+  patch: NotePatchInput
 }
 type UpdateNotePayload {
-  "Note to update"
-  note: UserNote!
+  "Updated note"
+  note: Note!
 }
 extend type Mutation {
   "Update note"
-  updateUserNote(input: UpdateNoteInput!): UpdateNotePayload! @auth
+  updateNote(input: UpdateNoteInput!): UpdateNotePayload! @auth
 }
 
 input DeleteNoteInput {
@@ -116,12 +98,12 @@ type DeleteNotePayload {
 }
 extend type Mutation {
   "Delete note"
-  deleteUserNote(input: DeleteNoteInput!): DeleteNotePayload! @auth
+  deleteNote(input: DeleteNoteInput!): DeleteNotePayload! @auth
 }
 
 type NoteCreatedPayload {
   "Created note info"
-  note: UserNote!
+  note: Note!
 }
 extend type Subscription {
   "A new note was created"
@@ -132,7 +114,7 @@ type NoteUpdatedPayload {
   "ID of note that was updated"
   id: ID!
   "Changes made to the note"
-  patch: UserNotePatch!
+  patch: NotePatch!
 }
 
 extend type Subscription {

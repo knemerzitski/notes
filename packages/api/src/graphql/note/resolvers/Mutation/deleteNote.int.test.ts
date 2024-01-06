@@ -15,7 +15,7 @@ import {
 } from '../../../../tests/helpers/mongoose';
 import { GraphQLResolversContext } from '../../../context';
 
-import { deleteUserNote } from './deleteUserNote';
+import { deleteNote } from './deleteNote';
 
 function createContext(userHelper: UserDocumentHelper) {
   const mockContext = mockDeep<GraphQLResolversContext>({
@@ -45,7 +45,7 @@ function createContext(userHelper: UserDocumentHelper) {
   return context;
 }
 
-describe('deleteUserNote', () => {
+describe('deleteNote', () => {
   faker.seed(774);
 
   let userModelHelper: UserModelHelper;
@@ -69,7 +69,7 @@ describe('deleteUserNote', () => {
     await user2Helper.addExistingNotes([user1Note]);
     await userModelHelper.saveUsers();
 
-    const result = await mockResolver(deleteUserNote)(
+    const result = await mockResolver(deleteNote)(
       {},
       {
         input: {
@@ -118,7 +118,7 @@ describe('deleteUserNote', () => {
 
     const notePublicId = user2NoteAccessibleByUser1.note.publicId;
 
-    const result = await mockResolver(deleteUserNote)(
+    const result = await mockResolver(deleteNote)(
       {},
       {
         input: {
@@ -168,7 +168,7 @@ describe('deleteUserNote', () => {
 
   it('throws error if deleting note that doesnt exist', async () => {
     await expect(
-      mockResolver(deleteUserNote)(
+      mockResolver(deleteNote)(
         {},
         {
           input: {
@@ -185,7 +185,7 @@ describe('deleteUserNote', () => {
     assert(user2Note !== undefined);
 
     await expect(
-      mockResolver(deleteUserNote)(
+      mockResolver(deleteNote)(
         {},
         {
           input: {

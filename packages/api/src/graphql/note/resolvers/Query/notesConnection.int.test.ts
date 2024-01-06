@@ -2,14 +2,14 @@ import { faker } from '@faker-js/faker';
 import { assert, describe, expect, it } from 'vitest';
 import { mockDeep } from 'vitest-mock-extended';
 
-import { GraphQLResolversContext } from '../../../../graphql/context';
-import { UserNoteConnection, UserNoteEdge } from '../../../../graphql/types.generated';
 import { apolloServer } from '../../../../tests/helpers/apollo-server';
 import { mockResolver } from '../../../../tests/helpers/mock-resolver';
 import UserModelHelper from '../../../../tests/helpers/model/UserModelHelper';
 import { Note, User, UserNote } from '../../../../tests/helpers/mongoose';
+import { GraphQLResolversContext } from '../../../context';
+import { NoteConnection, NoteEdge } from '../../../types.generated';
 
-import { userNotesConnection } from './userNotesConnection';
+import { notesConnection } from './notesConnection';
 
 const USER_COUNT = 3;
 const TOTAL_NOTES_COUNT = 50;
@@ -33,7 +33,7 @@ function rndPaginateCount() {
 
 const query = `#graphql
   query($first: NonNegativeInt!, $after: String){
-    userNotesConnection(after: $after, first: $first){
+    notesConnection(after: $after, first: $first){
       notes {
         ...UserNoteFields
       }
@@ -50,13 +50,10 @@ const query = `#graphql
     }
   }
 
-  fragment UserNoteFields on UserNote {
+  fragment UserNoteFields on Note {
     id
-    note {
-      id
-      title
-      textContent
-    }
+    title
+    textContent
     readOnly
     preferences{
       backgroundColor
@@ -66,8 +63,8 @@ const query = `#graphql
 `;
 
 function testResolverResult(
-  actual: UserNoteConnection,
-  expected: UserNoteEdge[],
+  actual: NoteConnection,
+  expected: NoteEdge[],
   expectedHasNextPage: boolean
 ) {
   const endEdge = expected[expected.length - 1];
@@ -88,7 +85,7 @@ function testResolverResult(
   });
 }
 
-describe('paginate userNotesConnection', async () => {
+describe('paginate notesConnection', async () => {
   faker.seed(57);
 
   await User.deleteMany();
@@ -140,7 +137,7 @@ describe('paginate userNotesConnection', async () => {
               .map(({ edge }) => edge)
               .slice(startIndex, startIndex + count);
 
-            const result = await mockResolver(userNotesConnection)(
+            const result = await mockResolver(notesConnection)(
               {},
               {
                 first: count,
@@ -189,7 +186,7 @@ describe('paginate userNotesConnection', async () => {
             expect(response.body.singleResult.errors).toBeUndefined();
 
             const result = response.body.singleResult.data
-              ?.userNotesConnection as UserNoteConnection;
+              ?.notesConnection as NoteConnection;
 
             testResolverResult(
               result,

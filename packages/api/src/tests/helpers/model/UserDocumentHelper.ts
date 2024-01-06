@@ -2,14 +2,14 @@ import { faker } from '@faker-js/faker';
 import { Require_id } from 'mongoose';
 import { assert } from 'vitest';
 
-import { UserNoteEdge } from '../../../graphql/types.generated';
+import { NoteEdge } from '../../../graphql/types.generated';
 import { DBNote } from '../../../mongoose/models/note';
 import { UserDocument } from '../../../mongoose/models/user';
 import { DBUserNote } from '../../../mongoose/models/user-note';
 import { User, Note, UserNote } from '../mongoose';
 
 interface NoteData {
-  edge: UserNoteEdge;
+  edge: NoteEdge;
   userNote: Require_id<DBUserNote>;
   note: Require_id<DBNote>;
 }
@@ -63,14 +63,11 @@ export default class UserDocumentHelper {
             cursor: String(userNote._id),
             node: {
               id: note.publicId,
+              title: note.title,
+              textContent: note.textContent,
               readOnly: userNote.readOnly,
               preferences: {
                 backgroundColor: userNote.preferences?.backgroundColor,
-              },
-              note: {
-                id: note.publicId,
-                title: note.title,
-                textContent: note.textContent,
               },
             },
           },

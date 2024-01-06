@@ -12,12 +12,10 @@ import { gql } from '../../../local-state/__generated__/gql';
 
 const QUERY = gql(`
   query EditNoteDialogRoute($id: ID!) {
-    userNote(id: $id) {
-      note {
-        id
-        title
-        textContent
-      }
+    note(id: $id) {
+      id
+      title
+      textContent
     }
   }
 `);
@@ -29,7 +27,7 @@ function RouteClosableEditNoteDialog({
 }: RouteClosableComponentProps) {
   const params = useParams<'id'>();
 
-  const { data/* , subscribeToMore */  } = useSuspenseQuery(QUERY, {
+  const { data /* , subscribeToMore */ } = useSuspenseQuery(QUERY, {
     variables: {
       id: params.id ?? '',
     },
@@ -50,11 +48,11 @@ function RouteClosableEditNoteDialog({
   //   });
   // }, [subscribeToMore]);
 
-  const noteId = String(data.userNote.note.id);
+  const noteId = String(data.note.id);
 
   const note: NoteEditorProps['note'] = {
-    title: data.userNote.note.title,
-    content: data.userNote.note.textContent,
+    title: data.note.title,
+    content: data.note.textContent,
   };
 
   const handleChangedNote: NoteEditorProps['onChange'] = async ({ title, content }) => {

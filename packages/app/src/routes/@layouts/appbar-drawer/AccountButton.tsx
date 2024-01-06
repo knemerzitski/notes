@@ -17,11 +17,11 @@ import {
 } from '@mui/material';
 import { useId, useState } from 'react';
 
+import { useSnackbarError } from '../../../components/feedback/SnackbarAlertProvider';
 import { gql } from '../../../local-state/__generated__/gql';
 import { AuthProvider } from '../../../local-state/__generated__/graphql';
 import { useSwitchToSession } from '../../../local-state/session/context/SessionSwitcherProvider';
 import useSessions from '../../../local-state/session/hooks/useSessions';
-import { useSnackbarError } from '../../../components/feedback/SnackbarAlertProvider';
 
 const SIGN_IN = gql(`
   mutation SignIn($input: SignInInput!)  {
