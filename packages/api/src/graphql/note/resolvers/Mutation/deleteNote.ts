@@ -1,8 +1,15 @@
 import { GraphQLError } from 'graphql';
+import { Require_id, Types } from 'mongoose';
 
+import { DBNote } from '../../../../mongoose/models/note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 
 import type { MutationResolvers } from './../../../types.generated';
+
+interface UserNoteAggregateResult {
+  userId: Types.ObjectId;
+  note?: Pick<DBNote, 'ownerId'>;
+}
 
 export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
   _parent,
@@ -16,16 +23,34 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
   assertAuthenticated(auth);
 
   // Ensure current user has access to this note
-  const userNote = await model.UserNote.findOne(
+  const [userNote] = await model.UserNote.aggregate<Require_id<UserNoteAggregateResult>>([
     {
-      userId: auth.session.user._id._id,
-      notePublicId,
+      $match: {
+        userId: auth.session.user._id._id,
+        notePublicId,
+      },
     },
     {
-      userId: 1,
-      _id: 1,
-    }
-  ).lean();
+      $lookup: {
+        from: model.Note.collection.collectionName,
+        foreignField: 'publicId',
+        localField: 'notePublicId',
+        as: 'note',
+      },
+    },
+    {
+      $set: {
+        note: { $arrayElemAt: ['$note', 0] },
+      },
+    },
+    {
+      $project: {
+        userId: 1,
+        'note.ownerId': 1,
+      },
+    },
+  ]);
+
   if (!userNote) {
     throw new GraphQLError('Note not found.', {
       extensions: {
@@ -34,22 +59,7 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
     });
   }
 
-  // Is current user owner of the note?
-  const note = await model.Note.findOne(
-    {
-      publicId: notePublicId,
-    },
-    {
-      ownerId: 1,
-    }
-  ).lean();
-
-  if (!note) {
-    return {
-      deleted: true,
-    };
-  }
-  const isCurrentUserOwner = note.ownerId.equals(userNote.userId);
+  const isCurrentUserOwner = userNote.note?.ownerId.equals(userNote.userId) ?? false;
 
   if (isCurrentUserOwner) {
     // Delete note completely

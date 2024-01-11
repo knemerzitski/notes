@@ -166,6 +166,38 @@ describe('deleteNote', () => {
     );
   });
 
+  it('deletes usernote even if db is inconsistent and note is missing', async () => {
+    const notePublicId = 'missing';
+
+    const userNote = new UserNote({
+      userId: user1Helper.user._id,
+      notePublicId,
+    });
+    await userNote.save();
+
+    const result = await mockResolver(deleteNote)(
+      {},
+      {
+        input: {
+          id: notePublicId,
+        },
+      },
+      createContext(user1Helper)
+    );
+
+    expect(result).toStrictEqual({
+      deleted: true,
+    });
+
+    // UserNote is deleted
+    await expect(
+      UserNote.findOne({
+        userId: user1Helper.user._id,
+        notePublicId,
+      })
+    ).resolves.toBeNull();
+  });
+
   it('throws error if deleting note that doesnt exist', async () => {
     await expect(
       mockResolver(deleteNote)(
@@ -196,17 +228,4 @@ describe('deleteNote', () => {
       )
     ).rejects.toThrow(GraphQLError);
   });
-
-  /*
-  #valid
-  - OK delete own note (owner)
-  - OK delete someone elses note (not owner)
-  - delete multiple notes at once (owner)
-  - delete multiple notes at once (not owner)
-  #errs
-  - delete note by id that doesnt exist (note doesnt exist)
-  - delete note by id that you have no access to (no usernote for this user)
-  */
-
-  // TODO deletes usernote that you are not owner of...
 });
