@@ -18,7 +18,7 @@ export const switchToSession: NonNullable<MutationResolvers['switchToSession']> 
   }
 
   response.multiValueHeaders['Set-Cookie'].push(
-    `ActiveSessionIndex=${input.switchToSessionIndex}; HttpOnly; Secure; SameSite=Strict`
+    `CurrentSessionIndex=${input.switchToSessionIndex}; HttpOnly; Secure; SameSite=Strict`
   );
 
   return {

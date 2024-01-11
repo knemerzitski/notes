@@ -21,18 +21,18 @@ export const signOut: NonNullable<MutationResolvers['signOut']> = async (
   );
   if (cookieNewSessions.length > 0) {
     // Keep Using default account
-    const cookieActiveSessionIndex = 0;
+    const cookieCurrentSessionIndex = 0;
     response.multiValueHeaders['Set-Cookie'].push(
       `Sessions=${cookieNewSessions.join(
         ','
       )}; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}`
     );
     response.multiValueHeaders['Set-Cookie'].push(
-      `ActiveSessionIndex=${cookieActiveSessionIndex}; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}`
+      `CurrentSessionIndex=${cookieCurrentSessionIndex}; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}`
     );
     return {
       signedOut: true,
-      currentSessionIndex: cookieActiveSessionIndex,
+      currentSessionIndex: cookieCurrentSessionIndex,
     };
   }
 
@@ -41,7 +41,7 @@ export const signOut: NonNullable<MutationResolvers['signOut']> = async (
     `Sessions=; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}; Expires=Thu, 01 Jan 1970 00:00:00 GMT`
   );
   response.multiValueHeaders['Set-Cookie'].push(
-    `ActiveSessionIndex=; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}; Expires=Thu, 01 Jan 1970 00:00:00 GMT`
+    `CurrentSessionIndex=; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}; Expires=Thu, 01 Jan 1970 00:00:00 GMT`
   );
 
   return {

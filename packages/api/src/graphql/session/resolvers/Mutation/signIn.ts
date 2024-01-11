@@ -60,7 +60,7 @@ export const signIn: NonNullable<MutationResolvers['signIn']> = async (
   const auth = await getSessionUserFromHeaders(mongoose, request.headers);
 
   const cookieSessions = auth ? [...auth.cookie.sessions, cookieId] : [cookieId];
-  const cookieActiveSessionIndex = cookieSessions.length - 1;
+  const cookieCurrentSessionIndex = cookieSessions.length - 1;
 
   // Remember session information in http-only cookie
   if (!('Set-Cookie' in response.multiValueHeaders)) {
@@ -70,15 +70,15 @@ export const signIn: NonNullable<MutationResolvers['signIn']> = async (
     `Sessions=${cookieSessions.join(',')}; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}`
   );
   response.multiValueHeaders['Set-Cookie'].push(
-    `ActiveSessionIndex=${cookieActiveSessionIndex}; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}`
+    `CurrentSessionIndex=${cookieCurrentSessionIndex}; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}`
   );
 
   return {
-    sessionIndex: cookieActiveSessionIndex,
+    sessionIndex: cookieCurrentSessionIndex,
     userInfo: {
       profile: {
         displayName: existingUser.profile.displayName,
-      }
+      },
     },
   };
 };

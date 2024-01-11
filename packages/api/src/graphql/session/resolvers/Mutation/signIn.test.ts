@@ -139,7 +139,7 @@ describe('directly', () => {
         `Sessions=${existingSessions
           .concat([newCookieId])
           .join(',')}; HttpOnly; SameSite=Strict; Secure`,
-        'ActiveSessionIndex=2; HttpOnly; SameSite=Strict; Secure',
+        'CurrentSessionIndex=2; HttpOnly; SameSite=Strict; Secure',
       ],
     });
   });
@@ -193,7 +193,7 @@ describe('directly', () => {
     expect({ ...mockedContext.response.multiValueHeaders }).toStrictEqual({
       'Set-Cookie': [
         `Sessions=${cookieId}; HttpOnly; SameSite=Strict; Secure`,
-        'ActiveSessionIndex=0; HttpOnly; SameSite=Strict; Secure',
+        'CurrentSessionIndex=0; HttpOnly; SameSite=Strict; Secure',
       ],
     });
   });

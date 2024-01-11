@@ -57,21 +57,21 @@ async function parseSessionUserFromCookies(
 ): Promise<CookieSessionUser | undefined> {
   const { model } = mongoose;
 
-  if (!('ActiveSessionIndex' in cookies)) {
-    return; // Undefined ActiveSessionIndex
+  if (!('CurrentSessionIndex' in cookies)) {
+    return; // Undefined CurrentSessionIndex
   }
 
-  const cookieActiveSessionIndex = Number.parseInt(cookies.ActiveSessionIndex);
-  if (Number.isNaN(cookieActiveSessionIndex) || cookieActiveSessionIndex < 0) {
-    return; // Invalid ActiveSessionIndex
+  const cookieCurrentSessionIndex = Number.parseInt(cookies.CurrentSessionIndex);
+  if (Number.isNaN(cookieCurrentSessionIndex) || cookieCurrentSessionIndex < 0) {
+    return; // Invalid CurrentSessionIndex
   }
 
   const cookieSessions = cookies.Sessions?.split(',') ?? [];
-  if (!isArray(cookieSessions) || cookieActiveSessionIndex >= cookieSessions.length) {
+  if (!isArray(cookieSessions) || cookieCurrentSessionIndex >= cookieSessions.length) {
     return; // Invalid Sessions or index is too high
   }
 
-  const cookieId = cookieSessions[cookieActiveSessionIndex];
+  const cookieId = cookieSessions[cookieCurrentSessionIndex];
   if (typeof cookieId !== 'string') {
     return; // cookieId is not string??
   }
@@ -92,7 +92,7 @@ async function parseSessionUserFromCookies(
   return {
     session,
     cookie: {
-      index: cookieActiveSessionIndex,
+      index: cookieCurrentSessionIndex,
       sessions: cookieSessions,
     },
   };
