@@ -32,7 +32,7 @@ export const signOut: NonNullable<MutationResolvers['signOut']> = async (
     );
     return {
       signedOut: true,
-      activeSessionIndex: cookieActiveSessionIndex,
+      currentSessionIndex: cookieActiveSessionIndex,
     };
   }
 

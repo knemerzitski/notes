@@ -40,7 +40,7 @@ const SIGN_OUT = gql(`
   mutation SignOut {
     signOut {
       signedOut
-      activeSessionIndex
+      currentSessionIndex
     }
   }
 `);
@@ -144,7 +144,7 @@ export default function AccountButton(props: IconButtonProps) {
     const signOutPayload = await signOut();
     if (!signOutPayload.data) return;
 
-    const { signedOut, activeSessionIndex: newSessionIndex } =
+    const { signedOut, currentSessionIndex: newSessionIndex } =
       signOutPayload.data.signOut;
 
     if (!signedOut) return;

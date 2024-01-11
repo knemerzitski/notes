@@ -3,13 +3,13 @@ import { GraphQLError } from 'graphql';
 import { assert, beforeEach, describe, expect, it } from 'vitest';
 import { mockDeep, mockReset } from 'vitest-mock-extended';
 
-import { GraphQLResolversContext } from '../../../../graphql/context';
 import { apolloServer } from '../../../../tests/helpers/apollo-server';
 import { mockResolver } from '../../../../tests/helpers/mock-resolver';
+import { GraphQLResolversContext } from '../../../context';
 
-import { activeSessionIndex } from './activeSessionIndex';
+import { currentSessionIndex } from './currentSessionIndex';
 
-describe('activeSessionIndex', () => {
+describe('currentSessionIndex', () => {
   const sessionIndex = faker.number.int({ min: 0, max: 8 });
 
   const mockedNoAuthContext = mockDeep<GraphQLResolversContext>({
@@ -32,12 +32,12 @@ describe('activeSessionIndex', () => {
   describe('directly', () => {
     it('throws error if not authenticated', async () => {
       await expect(async () => {
-        await mockResolver(activeSessionIndex)({}, {}, mockedNoAuthContext);
+        await mockResolver(currentSessionIndex)({}, {}, mockedNoAuthContext);
       }).rejects.toThrow(GraphQLError);
     });
 
     it('returns session index', async () => {
-      const result = await mockResolver(activeSessionIndex)({}, {}, mockedAuthContext);
+      const result = await mockResolver(currentSessionIndex)({}, {}, mockedAuthContext);
 
       expect(result).toStrictEqual(sessionIndex);
     });
@@ -46,7 +46,7 @@ describe('activeSessionIndex', () => {
   describe('graphql server', () => {
     const query = `#graphql
       query {
-        activeSessionIndex
+        currentSessionIndex
       }
     `;
 
@@ -71,7 +71,7 @@ describe('activeSessionIndex', () => {
       ]);
     });
 
-    it('returns activeSessionIndex', async () => {
+    it('returns currentSessionIndex', async () => {
       const response = await apolloServer.executeOperation(
         {
           query,
@@ -84,7 +84,7 @@ describe('activeSessionIndex', () => {
       assert(response.body.kind === 'single');
       expect(response.body.singleResult.errors).toBeUndefined();
       expect(response.body.singleResult.data).toEqual({
-        activeSessionIndex: sessionIndex,
+        currentSessionIndex: sessionIndex,
       });
     });
 

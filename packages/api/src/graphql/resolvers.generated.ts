@@ -19,7 +19,7 @@ import    { NotePreferencesPatch } from './note/resolvers/NotePreferencesPatch';
 import    { NoteUpdatedPayload } from './note/resolvers/NoteUpdatedPayload';
 import    { PageInfo } from './base/resolvers/PageInfo';
 import    { Profile } from './user/resolvers/Profile';
-import    { activeSessionIndex as Query_activeSessionIndex } from './session/resolvers/Query/activeSessionIndex';
+import    { currentSessionIndex as Query_currentSessionIndex } from './session/resolvers/Query/currentSessionIndex';
 import    { currentUserInfo as Query_currentUserInfo } from './user/resolvers/Query/currentUserInfo';
 import    { note as Query_note } from './note/resolvers/Query/note';
 import    { notesConnection as Query_notesConnection } from './note/resolvers/Query/notesConnection';
@@ -34,7 +34,7 @@ import    { UpdateNotePayload } from './note/resolvers/UpdateNotePayload';
 import    { UserInfo } from './user/resolvers/UserInfo';
 import    { DateResolver,HexColorCodeResolver,NonNegativeIntResolver,PositiveIntResolver } from 'graphql-scalars';
     export const resolvers: Resolvers = {
-      Query: { activeSessionIndex: Query_activeSessionIndex,currentUserInfo: Query_currentUserInfo,note: Query_note,notesConnection: Query_notesConnection,sessionCount: Query_sessionCount },
+      Query: { currentSessionIndex: Query_currentSessionIndex,currentUserInfo: Query_currentUserInfo,note: Query_note,notesConnection: Query_notesConnection,sessionCount: Query_sessionCount },
       Mutation: { createNote: Mutation_createNote,deleteNote: Mutation_deleteNote,signIn: Mutation_signIn,signOut: Mutation_signOut,switchToSession: Mutation_switchToSession,updateNote: Mutation_updateNote },
       Subscription: { noteCreated: Subscription_noteCreated,noteDeleted: Subscription_noteDeleted,noteUpdated: Subscription_noteUpdated },
       CreateNotePayload: CreateNotePayload,

@@ -211,7 +211,7 @@ export type Profile = {
 export type Query = {
   __typename?: 'Query';
   /** Currently active session index saved in http-only cookie */
-  activeSessionIndex: Scalars['NonNegativeInt']['output'];
+  currentSessionIndex: Scalars['NonNegativeInt']['output'];
   /** Currently active user info */
   currentUserInfo: UserInfo;
   /** Get note by ID */
@@ -252,7 +252,7 @@ export type SignInPayload = {
 export type SignOutPayload = {
   __typename?: 'SignOutPayload';
   /** Session index after signing out of current account, if any sessions still exist. */
-  activeSessionIndex?: Maybe<Scalars['NonNegativeInt']['output']>;
+  currentSessionIndex?: Maybe<Scalars['NonNegativeInt']['output']>;
   /** Was user just signed out */
   signedOut: Scalars['Boolean']['output'];
 };
@@ -274,7 +274,7 @@ export type SwitchToSessionInput = {
 export type SwitchToSessionPayload = {
   __typename?: 'SwitchToSessionPayload';
   /** Active session index in http-only cookie */
-  activeSessionIndex: Scalars['NonNegativeInt']['output'];
+  currentSessionIndex: Scalars['NonNegativeInt']['output'];
 };
 
 export type UpdateNoteInput = {
@@ -597,7 +597,7 @@ export type ProfileResolvers<ContextType = GraphQLResolversContext, ParentType e
 };
 
 export type QueryResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
-  activeSessionIndex?: Resolver<ResolversTypes['NonNegativeInt'], ParentType, ContextType>;
+  currentSessionIndex?: Resolver<ResolversTypes['NonNegativeInt'], ParentType, ContextType>;
   currentUserInfo?: Resolver<ResolversTypes['UserInfo'], ParentType, ContextType>;
   note?: Resolver<ResolversTypes['Note'], ParentType, ContextType, RequireFields<QuerynoteArgs, 'id'>>;
   notesConnection?: Resolver<ResolversTypes['NoteConnection'], ParentType, ContextType, RequireFields<QuerynotesConnectionArgs, 'first'>>;
@@ -611,7 +611,7 @@ export type SignInPayloadResolvers<ContextType = GraphQLResolversContext, Parent
 };
 
 export type SignOutPayloadResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['SignOutPayload'] = ResolversParentTypes['SignOutPayload']> = {
-  activeSessionIndex?: Resolver<Maybe<ResolversTypes['NonNegativeInt']>, ParentType, ContextType>;
+  currentSessionIndex?: Resolver<Maybe<ResolversTypes['NonNegativeInt']>, ParentType, ContextType>;
   signedOut?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -623,7 +623,7 @@ export type SubscriptionResolvers<ContextType = GraphQLResolversContext, ParentT
 };
 
 export type SwitchToSessionPayloadResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['SwitchToSessionPayload'] = ResolversParentTypes['SwitchToSessionPayload']> = {
-  activeSessionIndex?: Resolver<ResolversTypes['NonNegativeInt'], ParentType, ContextType>;
+  currentSessionIndex?: Resolver<ResolversTypes['NonNegativeInt'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 

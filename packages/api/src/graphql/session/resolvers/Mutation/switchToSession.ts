@@ -9,7 +9,7 @@ export const switchToSession: NonNullable<MutationResolvers['switchToSession']> 
 
   if (input.switchToSessionIndex >= auth.cookie.sessions.length) {
     return {
-      activeSessionIndex: auth.cookie.index,
+      currentSessionIndex: auth.cookie.index,
     };
   }
 
@@ -22,6 +22,6 @@ export const switchToSession: NonNullable<MutationResolvers['switchToSession']> 
   );
 
   return {
-    activeSessionIndex: input.switchToSessionIndex,
+    currentSessionIndex: input.switchToSessionIndex,
   };
 };

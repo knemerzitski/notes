@@ -9,7 +9,7 @@ import { mockResolver } from '../../../../tests/helpers/mock-resolver';
 
 import { sessionCount } from './sessionCount';
 
-describe('activeSessionIndex', () => {
+describe('currentSessionIndex', () => {
   const sessions = [faker.string.nanoid()];
 
   const mockedNoAuthContext = mockDeep<GraphQLResolversContext>({
@@ -64,7 +64,7 @@ describe('activeSessionIndex', () => {
       expect(response.body.singleResult.errors).toBeDefined();
     });
 
-    it('returns activeSessionIndex', async () => {
+    it('returns currentSessionIndex', async () => {
       const response = await apolloServer.executeOperation(
         {
           query,
