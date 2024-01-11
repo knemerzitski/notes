@@ -1,7 +1,8 @@
 import { assertAuthenticated } from '../../../base/directives/auth';
-import type { QueryResolvers } from '../../../types.generated';
 
-export const activeUserInfo: NonNullable<QueryResolvers['activeUserInfo']> = (
+import type { QueryResolvers } from './../../../types.generated';
+
+export const currentUserInfo: NonNullable<QueryResolvers['currentUserInfo']> = (
   _parent,
   _arg,
   ctx

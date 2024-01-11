@@ -213,7 +213,7 @@ export type Query = {
   /** Currently active session index saved in http-only cookie */
   activeSessionIndex: Scalars['NonNegativeInt']['output'];
   /** Currently active user info */
-  activeUserInfo: UserInfo;
+  currentUserInfo: UserInfo;
   /** Get note by ID */
   note: Note;
   /** Paginate notes */
@@ -598,7 +598,7 @@ export type ProfileResolvers<ContextType = GraphQLResolversContext, ParentType e
 
 export type QueryResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   activeSessionIndex?: Resolver<ResolversTypes['NonNegativeInt'], ParentType, ContextType>;
-  activeUserInfo?: Resolver<ResolversTypes['UserInfo'], ParentType, ContextType>;
+  currentUserInfo?: Resolver<ResolversTypes['UserInfo'], ParentType, ContextType>;
   note?: Resolver<ResolversTypes['Note'], ParentType, ContextType, RequireFields<QuerynoteArgs, 'id'>>;
   notesConnection?: Resolver<ResolversTypes['NoteConnection'], ParentType, ContextType, RequireFields<QuerynotesConnectionArgs, 'first'>>;
   sessionCount?: Resolver<ResolversTypes['PositiveInt'], ParentType, ContextType>;

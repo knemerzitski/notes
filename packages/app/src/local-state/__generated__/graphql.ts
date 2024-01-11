@@ -238,12 +238,12 @@ export type Query = {
   __typename?: 'Query';
   /** Currently active session index saved in http-only cookie */
   activeSessionIndex: Scalars['NonNegativeInt']['output'];
-  /** Currently active user info */
-  activeUserInfo: UserInfo;
   /** savedSessions[currrentSavedSessionIndex] */
   currentSavedSession?: Maybe<SavedSession>;
   /** Current session index. Cached index of session index stored in http-only cookie */
   currentSavedSessionIndex?: Maybe<Scalars['Int']['output']>;
+  /** Currently active user info */
+  currentUserInfo: UserInfo;
   /** Currently logged in */
   isLoggedIn: Scalars['Boolean']['output'];
   /** Get note by ID from localStorage */

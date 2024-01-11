@@ -7,11 +7,11 @@ import { apolloServer } from '../../../../tests/helpers/apollo-server';
 import { mockResolver } from '../../../../tests/helpers/mock-resolver';
 import { GraphQLResolversContext } from '../../../context';
 
-import { activeUserInfo } from './activeUserInfo';
+import { currentUserInfo } from './currentUserInfo';
 
 // TODO flatten describe
 
-describe('activeUserInfo', () => {
+describe('currentUserInfo', () => {
   const displayName = faker.person.firstName();
 
   const mockedNoAuthContext = mockDeep<GraphQLResolversContext>({
@@ -38,12 +38,12 @@ describe('activeUserInfo', () => {
   describe('directly', () => {
     it('throws error if not authenticated', async () => {
       await expect(async () => {
-        await mockResolver(activeUserInfo)({}, {}, mockedNoAuthContext);
+        await mockResolver(currentUserInfo)({}, {}, mockedNoAuthContext);
       }).rejects.toThrow(GraphQLError);
     });
 
     it('returns displayName', async () => {
-      const result = await mockResolver(activeUserInfo)({}, {}, mockedAuthContext);
+      const result = await mockResolver(currentUserInfo)({}, {}, mockedAuthContext);
 
       expect(result).toStrictEqual({
         profile: {
@@ -56,7 +56,7 @@ describe('activeUserInfo', () => {
   describe('graphql server', () => {
     const query = `#graphql
       query {
-        activeUserInfo {
+        currentUserInfo {
           profile {
             displayName
           }
@@ -98,7 +98,7 @@ describe('activeUserInfo', () => {
       assert(response.body.kind === 'single');
       expect(response.body.singleResult.errors).toBeUndefined();
       expect(response.body.singleResult.data).toEqual({
-        activeUserInfo: {
+        currentUserInfo: {
           profile: {
             displayName,
           },
