@@ -97,7 +97,7 @@ describe('createNote', () => {
     await expect(userHelper.getUserNotesIds()).resolves.toStrictEqual([userNote._id]);
   });
 
-  it('creates new note to the beginning of order', async () => {
+  it('pushes new note to the end', async () => {
     async function newNote() {
       const result = await mockResolver(createNote)(
         {},
@@ -120,8 +120,7 @@ describe('createNote', () => {
     const note2 = await newNote();
     const note3 = await newNote();
 
-    // Expecting last created note to be at the beginning
-    const expectedNotesOrdered = [note3, note2, note1];
+    const expectedNotesOrdered = [note1, note2, note3];
 
     const actualUserNotesIds = await userHelper.getUserNotesIds();
     const acutualUserNotes = await UserNote.find({

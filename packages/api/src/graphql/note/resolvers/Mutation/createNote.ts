@@ -31,10 +31,7 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
       },
       {
         $push: {
-          'notes.category.default.order': {
-            $each: [newUserNote._id],
-            $position: 0,
-          },
+          'notes.category.default.order': newUserNote._id,
         },
       },
       { session }
