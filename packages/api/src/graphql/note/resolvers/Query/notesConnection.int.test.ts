@@ -1,39 +1,17 @@
 import { faker } from '@faker-js/faker';
-import { assert, describe, expect, it } from 'vitest';
-import { mockDeep } from 'vitest-mock-extended';
+import { assert, beforeEach, describe, expect, it } from 'vitest';
+import { DeepMockProxy, mockDeep } from 'vitest-mock-extended';
 
 import { apolloServer } from '../../../../tests/helpers/apollo-server';
-import { mockResolver } from '../../../../tests/helpers/mock-resolver';
+import UserDocumentHelper from '../../../../tests/helpers/model/UserDocumentHelper';
 import UserModelHelper from '../../../../tests/helpers/model/UserModelHelper';
 import { Note, User, UserNote } from '../../../../tests/helpers/mongoose';
 import { GraphQLResolversContext } from '../../../context';
 import { NoteConnection, NoteEdge } from '../../../types.generated';
 
-import { notesConnection } from './notesConnection';
-
-const USER_COUNT = 3;
-const TOTAL_NOTES_COUNT = 50;
-const TOTAL_PAGINATE_COUNT = 3;
-
-function rndNotesInsertCount() {
-  return faker.number.int({ min: 2, max: 7 });
-}
-
-function rndStartIndex(arrayLength: number) {
-  if (faker.number.int({ min: 0, max: 10 }) <= 1) {
-    return 0;
-  } else {
-    return faker.number.int({ min: 5, max: arrayLength - 1 });
-  }
-}
-
-function rndPaginateCount() {
-  return faker.number.int({ min: 5, max: 10 });
-}
-
 const query = `#graphql
-  query($first: NonNegativeInt!, $after: String){
-    notesConnection(after: $after, first: $first){
+  query($last: NonNegativeInt, $before: String, $first: NonNegativeInt, $after: String){
+    notesConnection(last: $last, before: $before, after: $after, first: $first){
       notes {
         ...UserNoteFields
       }
@@ -44,6 +22,8 @@ const query = `#graphql
         }
       }
       pageInfo {
+        startCursor
+        hasPreviousPage
         endCursor
         hasNextPage
       }
@@ -55,186 +35,78 @@ const query = `#graphql
     title
     textContent
     readOnly
-    preferences{
+    preferences {
       backgroundColor
     }
-
   }
 `;
 
-function testResolverResult(
-  actual: NoteConnection,
-  expected: NoteEdge[],
-  expectedHasNextPage: boolean
+function testNoteConnectionExpectedToActual(
+  actualConnection: NoteConnection,
+  expectedEdges: NoteEdge[],
+  expectedHasPrevPage: boolean,
+  expectedHasNextPage: boolean,
+  customCursor: string | null = null
 ) {
-  const endEdge = expected[expected.length - 1];
+  const startEdge = expectedEdges[0];
+  const endEdge = expectedEdges[expectedEdges.length - 1];
 
-  expect(actual.notes).toHaveLength(expected.length);
-  expect(actual.edges).toHaveLength(expected.length);
+  expect(actualConnection.notes).toHaveLength(expectedEdges.length);
+  expect(actualConnection.edges).toHaveLength(expectedEdges.length);
 
-  expect(actual.edges.map((edge) => edge.cursor)).toStrictEqual(
-    expected.map((edge) => edge.cursor)
+  expect(actualConnection.edges.map((edge) => edge.cursor)).toStrictEqual(
+    expectedEdges.map((edge) => edge.cursor)
   );
 
-  expect(actual.notes).toEqual(expected.map((edge) => ({ ...edge.node })));
-  expect(actual.edges).toEqual(expected);
+  expect(actualConnection.notes).toEqual(expectedEdges.map((edge) => ({ ...edge.node })));
+  expect(actualConnection.edges).toEqual(expectedEdges);
 
-  expect(actual.pageInfo).toEqual({
-    endCursor: endEdge?.cursor,
+  expect(actualConnection.pageInfo).toEqual({
+    startCursor: startEdge?.cursor ?? customCursor,
+    hasPreviousPage: expectedHasPrevPage,
+    endCursor: endEdge?.cursor ?? customCursor,
     hasNextPage: expectedHasNextPage,
   });
 }
 
-describe('paginate notesConnection', async () => {
-  faker.seed(57);
-
-  await User.deleteMany();
-  await Note.deleteMany();
-  await UserNote.deleteMany();
-
-  const userModelHelper = new UserModelHelper();
-
-  userModelHelper.createUsers(USER_COUNT);
-  await userModelHelper.createNotesRandomly(TOTAL_NOTES_COUNT, rndNotesInsertCount);
-
-  const userIndexWithNoteCount = userModelHelper.users.map<[number, number]>(
-    (userHelper, index) => {
-      return [index, userHelper.noteData.length];
-    }
-  );
-
-  describe.each(userIndexWithNoteCount)(
-    'user %s with %s notes',
-    (userIndex, noteCount) => {
-      const userHelper = userModelHelper.getUser(userIndex);
-
-      const mockedContext = mockDeep<GraphQLResolversContext>({
-        auth: {
-          session: {
-            user: {
-              _id: userHelper.user._id,
-            },
-          },
-        },
-        mongoose: {
-          model: {
-            User,
-            UserNote,
-            Note,
-          },
-        },
-      });
-
-      const paginateActions: [number, number][] = [
-        ...new Array(TOTAL_PAGINATE_COUNT).keys(),
-      ].map(() => [rndStartIndex(noteCount), rndPaginateCount()]);
-
-      describe('directly', () => {
-        it.each(paginateActions)(
-          'from index %i and count %i',
-          async (startIndex, count) => {
-            const slicedEdges = userHelper.noteData
-              .map(({ edge }) => edge)
-              .slice(startIndex, startIndex + count);
-
-            const result = await mockResolver(notesConnection)(
-              {},
-              {
-                first: count,
-                after:
-                  startIndex > 0
-                    ? userHelper.noteData[startIndex - 1]?.edge.cursor
-                    : null,
-              },
-              mockedContext
-            );
-
-            testResolverResult(
-              result,
-              slicedEdges,
-              startIndex + count < userHelper.noteData.length
-            );
-          }
-        );
-      });
-
-      describe('graphql server', () => {
-        it.each(paginateActions)(
-          'from index %i and count %i',
-          async (startIndex, count) => {
-            const slicedEdges = userHelper.noteData
-              .map(({ edge }) => edge)
-              .slice(startIndex, startIndex + count);
-
-            const response = await apolloServer.executeOperation(
-              {
-                query,
-                variables: {
-                  first: count,
-                  after:
-                    startIndex > 0
-                      ? userHelper.noteData[startIndex - 1]?.edge.cursor
-                      : null,
-                },
-              },
-              {
-                contextValue: mockedContext,
-              }
-            );
-
-            assert(response.body.kind === 'single');
-            expect(response.body.singleResult.errors).toBeUndefined();
-
-            const result = response.body.singleResult.data
-              ?.notesConnection as NoteConnection;
-
-            testResolverResult(
-              result,
-              slicedEdges,
-              startIndex + count < userHelper.noteData.length
-            );
-          }
-        );
-      });
-    }
-  );
-
-  describe('graphql returns error', () => {
-    const userHelper = userModelHelper.getUser(0);
-
-    const mockedContext = mockDeep<GraphQLResolversContext>({
-      auth: {
-        session: {
-          user: {
-            _id: userHelper.user._id,
-          },
+function createUserGraphQLContext(userHelper: UserDocumentHelper) {
+  return mockDeep<GraphQLResolversContext>({
+    auth: {
+      session: {
+        user: {
+          _id: userHelper.user._id,
         },
       },
-      mongoose: {
-        model: {
-          User,
-          UserNote,
-          Note,
-        },
+    },
+    mongoose: {
+      model: {
+        User,
+        UserNote,
+        Note,
       },
-    });
+    },
+  });
+}
 
-    // TODO test with unauthenticated context?, or instead create a common test file where all auth resolvers are tested at once
-    // create it inside tests folder?
+describe('notesConnection', () => {
+  faker.seed(4325);
 
-    const errorInputs: [number, string | null][] = [
-      [-4, null],
-      [0, null],
-      [2, 'bad cursor'],
-    ];
+  describe('no notes', async () => {
+    await User.deleteMany();
+    await Note.deleteMany();
+    await UserNote.deleteMany();
 
-    it.each(errorInputs)('first: %i, after: %s', async (first, after) => {
+    const userModelHelper = new UserModelHelper();
+    const userHelper = userModelHelper.getOrCreateUser(0);
+
+    const mockedContext = createUserGraphQLContext(userHelper);
+
+    it('first returns []', async () => {
       const response = await apolloServer.executeOperation(
         {
           query,
           variables: {
-            first,
-            after,
+            first: 5,
           },
         },
         {
@@ -243,7 +115,798 @@ describe('paginate notesConnection', async () => {
       );
 
       assert(response.body.kind === 'single');
-      expect(response.body.singleResult.errors).toBeDefined();
+      expect(response.body.singleResult.errors).toBeUndefined();
+
+      const result = response.body.singleResult.data?.notesConnection as NoteConnection;
+
+      testNoteConnectionExpectedToActual(result, [], false, false);
+    });
+  });
+
+  describe('with notes', async () => {
+    await User.deleteMany();
+    await Note.deleteMany();
+    await UserNote.deleteMany();
+
+    const userModelHelper = new UserModelHelper();
+
+    userModelHelper.createUsers(3);
+    await userModelHelper.createNotesRandomly(
+      {
+        0: 15,
+        1: 12,
+        2: 25,
+      },
+      () => faker.number.int({ min: 2, max: 7 })
+    );
+
+    const userHelper = userModelHelper.getUser(1);
+
+    const mockedContext = createUserGraphQLContext(userHelper);
+
+    describe('forwards (first, after)', () => {
+      it('[|0,1,2,3|,4,5,6,7,8,9,10,11] first page', async () => {
+        const expectedEdges = userHelper.noteData.slice(0, 4).map(({ edge }) => edge);
+        const expectedHasPrevPage = false;
+        const expectedHasNextPage = true;
+
+        const response = await apolloServer.executeOperation(
+          {
+            query,
+            variables: {
+              first: 4,
+            },
+          },
+          {
+            contextValue: mockedContext,
+          }
+        );
+        assert(response.body.kind === 'single');
+        expect(response.body.singleResult.errors).toBeUndefined();
+
+        const result = response.body.singleResult.data?.notesConnection as NoteConnection;
+
+        testNoteConnectionExpectedToActual(
+          result,
+          expectedEdges,
+          expectedHasPrevPage,
+          expectedHasNextPage
+        );
+      });
+
+      it('[0,1,2,>3,|4,5,6,7|,8,9,10,11] middle page', async () => {
+        const expectedEdges = userHelper.noteData.slice(4, 8).map(({ edge }) => edge);
+        const expectedHasPrevPage = true;
+        const expectedHasNextPage = true;
+
+        const cursor = userHelper.noteData[3]?.edge.cursor;
+        assert(cursor !== undefined);
+
+        const response = await apolloServer.executeOperation(
+          {
+            query,
+            variables: {
+              first: 4,
+              after: cursor,
+            },
+          },
+          {
+            contextValue: mockedContext,
+          }
+        );
+        assert(response.body.kind === 'single');
+        expect(response.body.singleResult.errors).toBeUndefined();
+
+        const result = response.body.singleResult.data?.notesConnection as NoteConnection;
+
+        testNoteConnectionExpectedToActual(
+          result,
+          expectedEdges,
+          expectedHasPrevPage,
+          expectedHasNextPage
+        );
+      });
+
+      it('[0,1,2,3,4,5,6,>7,|8,9,10,11|] last page', async () => {
+        const expectedEdges = userHelper.noteData.slice(8, 12).map(({ edge }) => edge);
+        const expectedHasPrevPage = true;
+        const expectedHasNextPage = false;
+
+        const cursor = userHelper.noteData[7]?.edge.cursor;
+        assert(cursor !== undefined);
+
+        const response = await apolloServer.executeOperation(
+          {
+            query,
+            variables: {
+              first: 4,
+              after: cursor,
+            },
+          },
+          {
+            contextValue: mockedContext,
+          }
+        );
+        assert(response.body.kind === 'single');
+        expect(response.body.singleResult.errors).toBeUndefined();
+
+        const result = response.body.singleResult.data?.notesConnection as NoteConnection;
+
+        testNoteConnectionExpectedToActual(
+          result,
+          expectedEdges,
+          expectedHasPrevPage,
+          expectedHasNextPage
+        );
+      });
+
+      it('[0,1,2,3,4,5,6,7,>8,|9,10,11],_,_| handles first overflowing last element', async () => {
+        const expectedEdges = userHelper.noteData.slice(9, 12).map(({ edge }) => edge);
+        const expectedHasPrevPage = true;
+        const expectedHasNextPage = false;
+
+        const cursor = userHelper.noteData[8]?.edge.cursor;
+        assert(cursor !== undefined);
+
+        const response = await apolloServer.executeOperation(
+          {
+            query,
+            variables: {
+              first: 5,
+              after: cursor,
+            },
+          },
+          {
+            contextValue: mockedContext,
+          }
+        );
+        assert(response.body.kind === 'single');
+        expect(response.body.singleResult.errors).toBeUndefined();
+
+        const result = response.body.singleResult.data?.notesConnection as NoteConnection;
+
+        testNoteConnectionExpectedToActual(
+          result,
+          expectedEdges,
+          expectedHasPrevPage,
+          expectedHasNextPage
+        );
+      });
+
+      it('[0,1,2,3,4,5,6,7,8,9,10,>11|],_,_,_,_| returns [] after last element', async () => {
+        const expectedEdges: NoteEdge[] = [];
+        const expectedHasPrevPage = false;
+        const expectedHasNextPage = false;
+
+        const cursor = userHelper.noteData[11]?.edge.cursor;
+        assert(cursor !== undefined);
+
+        const response = await apolloServer.executeOperation(
+          {
+            query,
+            variables: {
+              first: 4,
+              after: cursor,
+            },
+          },
+          {
+            contextValue: mockedContext,
+          }
+        );
+        assert(response.body.kind === 'single');
+        expect(response.body.singleResult.errors).toBeUndefined();
+
+        const result = response.body.singleResult.data?.notesConnection as NoteConnection;
+
+        testNoteConnectionExpectedToActual(
+          result,
+          expectedEdges,
+          expectedHasPrevPage,
+          expectedHasNextPage
+        );
+      });
+
+      it('[0,1,2,3,4,>5,6,7,8,9,10,11] cursor at middle, first 0, returns [] and pageinfo ', async () => {
+        const expectedEdges: NoteEdge[] = [];
+        const expectedHasPrevPage = true;
+        const expectedHasNextPage = true;
+
+        const cursor = userHelper.noteData[5]?.edge.cursor;
+        assert(cursor !== undefined);
+
+        const response = await apolloServer.executeOperation(
+          {
+            query,
+            variables: {
+              first: 0,
+              after: cursor,
+            },
+          },
+          {
+            contextValue: mockedContext,
+          }
+        );
+        assert(response.body.kind === 'single');
+        expect(response.body.singleResult.errors).toBeUndefined();
+
+        const result = response.body.singleResult.data?.notesConnection as NoteConnection;
+
+        testNoteConnectionExpectedToActual(
+          result,
+          expectedEdges,
+          expectedHasPrevPage,
+          expectedHasNextPage,
+          cursor
+        );
+      });
+
+      it('[>0,1,2,3,4,5,6,7,8,9,10,11] cursor at start, first 0, returns [] and pageinfo ', async () => {
+        const expectedEdges: NoteEdge[] = [];
+        const expectedHasPrevPage = false;
+        const expectedHasNextPage = true;
+
+        const cursor = userHelper.noteData[0]?.edge.cursor;
+        assert(cursor !== undefined);
+
+        const response = await apolloServer.executeOperation(
+          {
+            query,
+            variables: {
+              first: 0,
+              after: cursor,
+            },
+          },
+          {
+            contextValue: mockedContext,
+          }
+        );
+        assert(response.body.kind === 'single');
+        expect(response.body.singleResult.errors).toBeUndefined();
+
+        const result = response.body.singleResult.data?.notesConnection as NoteConnection;
+
+        testNoteConnectionExpectedToActual(
+          result,
+          expectedEdges,
+          expectedHasPrevPage,
+          expectedHasNextPage,
+          cursor
+        );
+      });
+
+      it('[0,1,2,3,4,5,6,7,8,9,10,>11] cursor at last, first 0, returns [] and pageinfo ', async () => {
+        const expectedEdges: NoteEdge[] = [];
+        const expectedHasPrevPage = true;
+        const expectedHasNextPage = false;
+
+        const cursor = userHelper.noteData[11]?.edge.cursor;
+        assert(cursor !== undefined);
+
+        const response = await apolloServer.executeOperation(
+          {
+            query,
+            variables: {
+              first: 0,
+              after: cursor,
+            },
+          },
+          {
+            contextValue: mockedContext,
+          }
+        );
+        assert(response.body.kind === 'single');
+        expect(response.body.singleResult.errors).toBeUndefined();
+
+        const result = response.body.singleResult.data?.notesConnection as NoteConnection;
+
+        testNoteConnectionExpectedToActual(
+          result,
+          expectedEdges,
+          expectedHasPrevPage,
+          expectedHasNextPage,
+          cursor
+        );
+      });
+
+      it('limits first to 20', async () => {
+        const userHelper = userModelHelper.getUser(2);
+
+        const mockedContext = createUserGraphQLContext(userHelper);
+
+        const expectedEdges = userHelper.noteData.slice(0, 20).map(({ edge }) => edge);
+        const expectedHasPrevPage = false;
+        const expectedHasNextPage = true;
+
+        const response = await apolloServer.executeOperation(
+          {
+            query,
+            variables: {
+              first: 25,
+            },
+          },
+          {
+            contextValue: mockedContext,
+          }
+        );
+        assert(response.body.kind === 'single');
+        expect(response.body.singleResult.errors).toBeUndefined();
+
+        const result = response.body.singleResult.data?.notesConnection as NoteConnection;
+
+        testNoteConnectionExpectedToActual(
+          result,
+          expectedEdges,
+          expectedHasPrevPage,
+          expectedHasNextPage
+        );
+      });
+    });
+
+    describe('backwards (last, before)', () => {
+      it('[0,1,2,3,4,5,6,7,|8,9,10,11|] last page', async () => {
+        const expectedEdges = userHelper.noteData.slice(8, 12).map(({ edge }) => edge);
+        const expectedHasPrevPage = true;
+        const expectedHasNextPage = false;
+
+        const response = await apolloServer.executeOperation(
+          {
+            query,
+            variables: {
+              last: 4,
+            },
+          },
+          {
+            contextValue: mockedContext,
+          }
+        );
+        assert(response.body.kind === 'single');
+        expect(response.body.singleResult.errors).toBeUndefined();
+
+        const result = response.body.singleResult.data?.notesConnection as NoteConnection;
+
+        testNoteConnectionExpectedToActual(
+          result,
+          expectedEdges,
+          expectedHasPrevPage,
+          expectedHasNextPage
+        );
+      });
+
+      it('[0,1,2,3,|4,5,6,7|,>8,9,10,11] middle page', async () => {
+        const expectedEdges = userHelper.noteData.slice(4, 8).map(({ edge }) => edge);
+        const expectedHasPrevPage = true;
+        const expectedHasNextPage = true;
+
+        const cursor = userHelper.noteData[8]?.edge.cursor;
+        assert(cursor !== undefined);
+
+        const response = await apolloServer.executeOperation(
+          {
+            query,
+            variables: {
+              last: 4,
+              before: cursor,
+            },
+          },
+          {
+            contextValue: mockedContext,
+          }
+        );
+        assert(response.body.kind === 'single');
+        expect(response.body.singleResult.errors).toBeUndefined();
+
+        const result = response.body.singleResult.data?.notesConnection as NoteConnection;
+
+        testNoteConnectionExpectedToActual(
+          result,
+          expectedEdges,
+          expectedHasPrevPage,
+          expectedHasNextPage
+        );
+      });
+
+      it('[|0,1,2,3|,>4,5,6,7,8,9,10,11] first page', async () => {
+        const expectedEdges = userHelper.noteData.slice(0, 4).map(({ edge }) => edge);
+        const expectedHasPrevPage = false;
+        const expectedHasNextPage = true;
+
+        const cursor = userHelper.noteData[4]?.edge.cursor;
+        assert(cursor !== undefined);
+
+        const response = await apolloServer.executeOperation(
+          {
+            query,
+            variables: {
+              last: 4,
+              before: cursor,
+            },
+          },
+          {
+            contextValue: mockedContext,
+          }
+        );
+        assert(response.body.kind === 'single');
+        expect(response.body.singleResult.errors).toBeUndefined();
+
+        const result = response.body.singleResult.data?.notesConnection as NoteConnection;
+
+        testNoteConnectionExpectedToActual(
+          result,
+          expectedEdges,
+          expectedHasPrevPage,
+          expectedHasNextPage
+        );
+      });
+
+      it('|_,_,[0,1,2|,>3,4,5,6,7,8,9,10,11] handles last overflowing first element', async () => {
+        const expectedEdges = userHelper.noteData.slice(0, 3).map(({ edge }) => edge);
+        const expectedHasPrevPage = false;
+        const expectedHasNextPage = true;
+
+        const cursor = userHelper.noteData[3]?.edge.cursor;
+        assert(cursor !== undefined);
+
+        const response = await apolloServer.executeOperation(
+          {
+            query,
+            variables: {
+              last: 5,
+              before: cursor,
+            },
+          },
+          {
+            contextValue: mockedContext,
+          }
+        );
+        assert(response.body.kind === 'single');
+        expect(response.body.singleResult.errors).toBeUndefined();
+
+        const result = response.body.singleResult.data?.notesConnection as NoteConnection;
+
+        testNoteConnectionExpectedToActual(
+          result,
+          expectedEdges,
+          expectedHasPrevPage,
+          expectedHasNextPage
+        );
+      });
+
+      it('|_,_,_,_,[|>0,1,2,3,4,5,6,7,8,9,10,11] returns [] before first element', async () => {
+        const expectedEdges: NoteEdge[] = [];
+        const expectedHasPrevPage = false;
+        const expectedHasNextPage = false;
+
+        const cursor = userHelper.noteData[0]?.edge.cursor;
+        assert(cursor !== undefined);
+
+        const response = await apolloServer.executeOperation(
+          {
+            query,
+            variables: {
+              last: 4,
+              before: cursor,
+            },
+          },
+          {
+            contextValue: mockedContext,
+          }
+        );
+        assert(response.body.kind === 'single');
+        console.log(response.body.singleResult.errors);
+        expect(response.body.singleResult.errors).toBeUndefined();
+
+        const result = response.body.singleResult.data?.notesConnection as NoteConnection;
+
+        testNoteConnectionExpectedToActual(
+          result,
+          expectedEdges,
+          expectedHasPrevPage,
+          expectedHasNextPage
+        );
+      });
+
+      it('[0,1,2,3,4,>5,6,7,8,9,10,11] cursor at middle, last 0, returns [] and pageinfo ', async () => {
+        const expectedEdges: NoteEdge[] = [];
+        const expectedHasPrevPage = true;
+        const expectedHasNextPage = true;
+
+        const cursor = userHelper.noteData[5]?.edge.cursor;
+        assert(cursor !== undefined);
+
+        const response = await apolloServer.executeOperation(
+          {
+            query,
+            variables: {
+              last: 0,
+              before: cursor,
+            },
+          },
+          {
+            contextValue: mockedContext,
+          }
+        );
+        assert(response.body.kind === 'single');
+        expect(response.body.singleResult.errors).toBeUndefined();
+
+        const result = response.body.singleResult.data?.notesConnection as NoteConnection;
+
+        testNoteConnectionExpectedToActual(
+          result,
+          expectedEdges,
+          expectedHasPrevPage,
+          expectedHasNextPage,
+          cursor
+        );
+      });
+
+      it('[>0,1,2,3,4,5,6,7,8,9,10,11] cursor at start, last 0, returns [] and pageinfo ', async () => {
+        const expectedEdges: NoteEdge[] = [];
+        const expectedHasPrevPage = false;
+        const expectedHasNextPage = true;
+
+        const cursor = userHelper.noteData[0]?.edge.cursor;
+        assert(cursor !== undefined);
+
+        const response = await apolloServer.executeOperation(
+          {
+            query,
+            variables: {
+              last: 0,
+              before: cursor,
+            },
+          },
+          {
+            contextValue: mockedContext,
+          }
+        );
+        assert(response.body.kind === 'single');
+        expect(response.body.singleResult.errors).toBeUndefined();
+
+        const result = response.body.singleResult.data?.notesConnection as NoteConnection;
+
+        testNoteConnectionExpectedToActual(
+          result,
+          expectedEdges,
+          expectedHasPrevPage,
+          expectedHasNextPage,
+          cursor
+        );
+      });
+
+      it('[0,1,2,3,4,5,6,7,8,9,10,>11] cursor at last, last 0, returns [] and pageinfo ', async () => {
+        const expectedEdges: NoteEdge[] = [];
+        const expectedHasPrevPage = true;
+        const expectedHasNextPage = false;
+
+        const cursor = userHelper.noteData[11]?.edge.cursor;
+        assert(cursor !== undefined);
+
+        const response = await apolloServer.executeOperation(
+          {
+            query,
+            variables: {
+              last: 0,
+              before: cursor,
+            },
+          },
+          {
+            contextValue: mockedContext,
+          }
+        );
+        assert(response.body.kind === 'single');
+        expect(response.body.singleResult.errors).toBeUndefined();
+
+        const result = response.body.singleResult.data?.notesConnection as NoteConnection;
+
+        testNoteConnectionExpectedToActual(
+          result,
+          expectedEdges,
+          expectedHasPrevPage,
+          expectedHasNextPage,
+          cursor
+        );
+      });
+
+      it('limits last to 20', async () => {
+        const userHelper = userModelHelper.getUser(2);
+
+        const mockedContext = createUserGraphQLContext(userHelper);
+
+        const expectedEdges = userHelper.noteData.slice(5, 25).map(({ edge }) => edge);
+        const expectedHasPrevPage = true;
+        const expectedHasNextPage = false;
+
+        const response = await apolloServer.executeOperation(
+          {
+            query,
+            variables: {
+              last: 25,
+            },
+          },
+          {
+            contextValue: mockedContext,
+          }
+        );
+        assert(response.body.kind === 'single');
+        expect(response.body.singleResult.errors).toBeUndefined();
+
+        const result = response.body.singleResult.data?.notesConnection as NoteConnection;
+
+        testNoteConnectionExpectedToActual(
+          result,
+          expectedEdges,
+          expectedHasPrevPage,
+          expectedHasNextPage
+        );
+      });
+    });
+
+    describe('error', () => {
+      it('unauthenticated', async () => {
+        const response = await apolloServer.executeOperation(
+          {
+            query,
+            variables: {
+              first: 4,
+            },
+          },
+          {
+            contextValue: mockDeep<GraphQLResolversContext>({
+              mongoose: {
+                model: {
+                  User,
+                  UserNote,
+                  Note,
+                },
+              },
+            }),
+          }
+        );
+
+        assert(response.body.kind === 'single');
+        expect(response.body.singleResult.errors).toBeDefined();
+      });
+
+      describe('variables', () => {
+        it.each([
+          {},
+          { first: 5, last: 5 },
+          {
+            before: userHelper.noteData[1]?.edge.cursor,
+            after: userHelper.noteData[0]?.edge.cursor,
+          },
+          {
+            first: 5,
+            before: userHelper.noteData[1]?.edge.cursor,
+          },
+          {
+            last: 5,
+            after: userHelper.noteData[0]?.edge.cursor,
+          },
+          {
+            first: -1,
+          },
+          {
+            last: -1,
+          },
+          {
+            after: 'invalid',
+          },
+          {
+            before: 'invalid',
+          },
+          {
+            first: 0,
+          },
+          {
+            last: 0,
+          },
+        ])('%s', async (variables) => {
+          const response = await apolloServer.executeOperation(
+            {
+              query,
+              variables,
+            },
+            {
+              contextValue: mockedContext,
+            }
+          );
+
+          assert(response.body.kind === 'single');
+          expect(response.body.singleResult.errors).toBeDefined();
+        });
+      });
+    });
+  });
+
+  describe('orphaned db state', () => {
+    let userModelHelper: UserModelHelper;
+    let userHelper: UserDocumentHelper;
+
+    let mockedContext: DeepMockProxy<GraphQLResolversContext>;
+
+    beforeEach(async () => {
+      await User.deleteMany();
+      await Note.deleteMany();
+      await UserNote.deleteMany();
+
+      userModelHelper = new UserModelHelper();
+
+      userModelHelper.createUsers(1);
+
+      userHelper = userModelHelper.getUser(0);
+
+      mockedContext = createUserGraphQLContext(userHelper);
+    });
+
+    it('no usernote: entry is skipped', async () => {
+      await userHelper.createNotes(3);
+      await UserNote.findByIdAndDelete(userHelper.noteData[1]?.userNote._id);
+
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const expectedEdges = [userHelper.noteData[0]!, userHelper.noteData[2]!].map(
+        ({ edge }) => edge
+      );
+      const expectedHasPrevPage = false;
+      const expectedHasNextPage = false;
+
+      const response = await apolloServer.executeOperation(
+        {
+          query,
+          variables: {
+            first: 4,
+          },
+        },
+        {
+          contextValue: mockedContext,
+        }
+      );
+      assert(response.body.kind === 'single');
+      expect(response.body.singleResult.errors).toBeUndefined();
+
+      const result = response.body.singleResult.data?.notesConnection as NoteConnection;
+
+      testNoteConnectionExpectedToActual(
+        result,
+        expectedEdges,
+        expectedHasPrevPage,
+        expectedHasNextPage
+      );
+    });
+
+    it('no note: entry is skipped', async () => {
+      await userHelper.createNotes(3);
+      await Note.findByIdAndDelete(userHelper.noteData[1]?.note._id);
+
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const expectedEdges = [userHelper.noteData[0]!, userHelper.noteData[2]!].map(
+        ({ edge }) => edge
+      );
+      const expectedHasPrevPage = false;
+      const expectedHasNextPage = false;
+
+      const response = await apolloServer.executeOperation(
+        {
+          query,
+          variables: {
+            first: 4,
+          },
+        },
+        {
+          contextValue: mockedContext,
+        }
+      );
+      assert(response.body.kind === 'single');
+      expect(response.body.singleResult.errors).toBeUndefined();
+
+      const result = response.body.singleResult.data?.notesConnection as NoteConnection;
+
+      testNoteConnectionExpectedToActual(
+        result,
+        expectedEdges,
+        expectedHasPrevPage,
+        expectedHasNextPage
+      );
     });
   });
 });

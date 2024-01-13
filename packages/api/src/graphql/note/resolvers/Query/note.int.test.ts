@@ -10,9 +10,6 @@ import { GraphQLResolversContext } from '../../../context';
 
 import { note } from './note';
 
-const USER_COUNT = 3;
-const TOTAL_NOTES_COUNT = 20;
-
 function createUserContext(userHelper: UserDocumentHelper) {
   return mockDeep<GraphQLResolversContext>({
     auth: {
@@ -37,9 +34,14 @@ describe('note', async () => {
 
   const userModelHelper = new UserModelHelper();
 
-  userModelHelper.createUsers(USER_COUNT);
-  await userModelHelper.createNotesRandomly(TOTAL_NOTES_COUNT, () =>
-    faker.number.int({ min: 1, max: 3 })
+  userModelHelper.createUsers(3);
+  await userModelHelper.createNotesRandomly(
+    {
+      0: 7,
+      1: 5,
+      2: 8,
+    },
+    () => faker.number.int({ min: 1, max: 3 })
   );
 
   const user1Helper = userModelHelper.users[0];

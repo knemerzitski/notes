@@ -200,6 +200,10 @@ export type PageInfo = {
   endCursor?: Maybe<Scalars['String']['output']>;
   /** Self descriptive */
   hasNextPage: Scalars['Boolean']['output'];
+  /** Self descriptive */
+  hasPreviousPage: Scalars['Boolean']['output'];
+  /** Self descriptive */
+  startCursor?: Maybe<Scalars['String']['output']>;
 };
 
 export type Profile = {
@@ -230,7 +234,9 @@ export type QuerynoteArgs = {
 
 export type QuerynotesConnectionArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
-  first: Scalars['NonNegativeInt']['input'];
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['NonNegativeInt']['input']>;
+  last?: InputMaybe<Scalars['NonNegativeInt']['input']>;
 };
 
 export type Role =
@@ -584,6 +590,8 @@ export type NoteUpdatedPayloadResolvers<ContextType = GraphQLResolversContext, P
 export type PageInfoResolvers<ContextType = GraphQLResolversContext, ParentType extends ResolversParentTypes['PageInfo'] = ResolversParentTypes['PageInfo']> = {
   endCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   hasNextPage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  hasPreviousPage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  startCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -600,7 +608,7 @@ export type QueryResolvers<ContextType = GraphQLResolversContext, ParentType ext
   currentSessionIndex?: Resolver<ResolversTypes['NonNegativeInt'], ParentType, ContextType>;
   currentUserInfo?: Resolver<ResolversTypes['UserInfo'], ParentType, ContextType>;
   note?: Resolver<ResolversTypes['Note'], ParentType, ContextType, RequireFields<QuerynoteArgs, 'id'>>;
-  notesConnection?: Resolver<ResolversTypes['NoteConnection'], ParentType, ContextType, RequireFields<QuerynotesConnectionArgs, 'first'>>;
+  notesConnection?: Resolver<ResolversTypes['NoteConnection'], ParentType, ContextType, Partial<QuerynotesConnectionArgs>>;
   sessionCount?: Resolver<ResolversTypes['PositiveInt'], ParentType, ContextType>;
 };
 

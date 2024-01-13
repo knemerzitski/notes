@@ -26,38 +26,43 @@ export default class UserModelHelper {
     return Promise.all(this.users.map((user) => user.user.save()));
   }
 
-  getUserWithLeastNotes() {
-    if (this.users.length === 0) return null;
-
-    return this.users.reduce((smallestUser, newUser) =>
-      newUser.noteData.length < smallestUser.noteData.length ? newUser : smallestUser
-    );
-  }
-
-  /**
-   * Creates {@link count} notes for user with least amount of notes
-   * @param count Amount of notes created
-   */
-  async createNotesForUserWithLeastNotes(count: number) {
-    const leastNotesUser = this.getUserWithLeastNotes();
-    if (leastNotesUser) {
-      await leastNotesUser.createNotes(count);
-    }
-  }
-
   /**
    * Creates notes by random size always selecting user with least amount of notes first.
    * Notes are created until {@link totalCount} is fulfilled.
-   * @param totalCount Total amount of notes inserted to database
+   * @param countMap Total amount of notes to insert for user at index
    * @param nextCount Next insert count
    */
-  async createNotesRandomly(totalCount: number, nextCount: () => number) {
-    let remainingCount = totalCount;
-    while (remainingCount > 0) {
-      const count = nextCount();
-      assert(count > 0);
-      await this.createNotesForUserWithLeastNotes(count);
-      remainingCount -= count;
-    }
+  async createNotesRandomly(countMap: Record<number, number>, nextCount: () => number) {
+    if (this.users.length === 0) return;
+
+    let leastNotesUser: UserDocumentHelper | null = null;
+    do {
+      leastNotesUser = null;
+      let leastNotesUserMaxCount = 0;
+
+      for (let i = 0; i < this.users.length; i++) {
+        const user = this.users[i];
+        assert(user !== undefined);
+        const maxCount = countMap[i];
+        assert(maxCount !== undefined);
+
+        const notesLeftToCreate = maxCount - user.noteData.length;
+        if (notesLeftToCreate > 0) {
+          if (!leastNotesUser || user.noteData.length < leastNotesUser.noteData.length) {
+            leastNotesUser = user;
+            leastNotesUserMaxCount = maxCount;
+          }
+        }
+      }
+
+      if (leastNotesUser) {
+        const count = Math.min(
+          nextCount(),
+          leastNotesUserMaxCount - leastNotesUser.noteData.length
+        );
+        assert(count > 0);
+        await leastNotesUser.createNotes(count);
+      }
+    } while (leastNotesUser != null);
   }
 }

@@ -18,6 +18,10 @@ enum Role {
 
 type PageInfo {
   "Self descriptive"
+  hasPreviousPage: Boolean!
+  "Self descriptive"
+  startCursor: String
+  "Self descriptive"
   hasNextPage: Boolean!
   "Self descriptive"
   endCursor: String

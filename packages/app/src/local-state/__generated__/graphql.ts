@@ -220,6 +220,10 @@ export type PageInfo = {
   endCursor?: Maybe<Scalars['String']['output']>;
   /** Self descriptive */
   hasNextPage: Scalars['Boolean']['output'];
+  /** Self descriptive */
+  hasPreviousPage: Scalars['Boolean']['output'];
+  /** Self descriptive */
+  startCursor?: Maybe<Scalars['String']['output']>;
 };
 
 export type Preferences = {
@@ -275,7 +279,9 @@ export type QueryNoteArgs = {
 
 export type QueryNotesConnectionArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
-  first: Scalars['NonNegativeInt']['input'];
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['NonNegativeInt']['input']>;
+  last?: InputMaybe<Scalars['NonNegativeInt']['input']>;
 };
 
 export enum Role {

@@ -1,4 +1,3 @@
-
 type Note implements Node {
   "Self-descriptive"
   id: ID!
@@ -59,7 +58,12 @@ type NoteEdge implements Edge {
 
 extend type Query {
   "Paginate notes"
-  notesConnection(first: NonNegativeInt!, after: String): NoteConnection! @auth
+  notesConnection(
+    last: NonNegativeInt
+    before: String
+    first: NonNegativeInt
+    after: String
+  ): NoteConnection! @auth
   "Get note by ID"
   note(id: ID!): Note! @auth
 }

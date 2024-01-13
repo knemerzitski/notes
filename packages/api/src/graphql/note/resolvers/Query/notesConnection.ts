@@ -1,3 +1,4 @@
+import { GraphQLError } from 'graphql';
 import { ObjectId } from 'mongodb';
 import { PipelineStage, Require_id, Types } from 'mongoose';
 
@@ -5,19 +6,22 @@ import { DBNote } from '../../../../mongoose/models/note';
 import { DBUserNote } from '../../../../mongoose/models/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 
-import type { QueryResolvers } from './../../../types.generated';
+import type { NoteEdge, QueryResolvers } from './../../../types.generated';
 
 type UserNoteWithoutIds = Omit<DBUserNote, 'userId' | 'notePublicId'>;
-type UserNoteWithNote = UserNoteWithoutIds & { note: Require_id<DBNote> };
+type UserNoteWithNote = UserNoteWithoutIds & { note?: Require_id<DBNote> };
 
 interface AggregateResult {
   userNotes: Require_id<UserNoteWithNote>[];
-  lastId: Types.ObjectId;
+  firstId?: Types.ObjectId;
+  lastId?: Types.ObjectId;
 }
+
+const RESULT_LIMIT_COUNT = 20;
 
 export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = async (
   _parent,
-  { first, after },
+  { first, after, last, before },
   ctx
 ) => {
   const {
@@ -25,6 +29,42 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = a
     mongoose: { model },
   } = ctx;
   assertAuthenticated(auth);
+
+  const forwardsPagination = first != null || after != null;
+  const backwardsPagination = last != null || before != null;
+  if (forwardsPagination && backwardsPagination) {
+    throw new GraphQLError(
+      'Cannot mix arguments ("first", "after") with ("last", "before").',
+      {
+        extensions: {
+          code: 'ILLEGAL_ARGUMENTS',
+        },
+      }
+    );
+  }
+  if (!forwardsPagination && !backwardsPagination) {
+    throw new GraphQLError(
+      'Must provide at least one variable "first", "after", "last" or "before"',
+      {
+        extensions: {
+          code: 'ILLEGAL_ARGUMENTS',
+        },
+      }
+    );
+  }
+
+  const queryingAnyItems = !(first === 0 || last === 0);
+  const afterOrBeforeCursor = after ?? before;
+  if (!queryingAnyItems && !afterOrBeforeCursor) {
+    throw new GraphQLError(
+      '"before" or "after" is required to paginate with zero "first" or "last".',
+      {
+        extensions: {
+          code: 'ILLEGAL_ARGUMENTS',
+        },
+      }
+    );
+  }
 
   const pipeline: PipelineStage[] = [
     // Select authenticated user
@@ -35,38 +75,118 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = a
     },
   ];
 
-  if (!after) {
-    // Slice user notes ids [0, first]
-    pipeline.push({
-      $project: {
-        order: {
-          $slice: ['$notes.category.default.order', 0, first],
-        },
-        lastId: {
-          $last: '$notes.category.default.order',
-        },
-      },
-    });
-  } else {
-    // Slice user notes ids [indexOf(after)+1, first]
-    pipeline.push({
-      $project: {
-        order: {
-          $let: {
-            vars: {
-              startIndex: {
-                $add: [
-                  1,
-                  {
-                    $indexOfArray: ['$notes.category.default.order', new ObjectId(after)],
+  // TODO refactor each branch to separate function for readability
+  if (queryingAnyItems) {
+    if (forwardsPagination) {
+      first = first != null && first <= RESULT_LIMIT_COUNT ? first : RESULT_LIMIT_COUNT;
+      pipeline.push({
+        $project: {
+          order: {
+            ...(!after
+              ? {
+                  // Slice user notes ids [0, first-1]
+                  $slice: ['$notes.category.default.order', 0, first],
+                }
+              : {
+                  // Slice user notes ids [indexOf(after)+1, first-1]
+                  $let: {
+                    vars: {
+                      startIndex: {
+                        $add: [
+                          1,
+                          {
+                            $indexOfArray: [
+                              '$notes.category.default.order',
+                              new ObjectId(after),
+                            ],
+                          },
+                        ],
+                      },
+                    },
+                    in: {
+                      $slice: ['$notes.category.default.order', '$$startIndex', first],
+                    },
                   },
-                ],
-              },
-            },
-            in: {
-              $slice: ['$notes.category.default.order', '$$startIndex', first],
-            },
+                }),
           },
+          firstId: {
+            $first: '$notes.category.default.order',
+          },
+          lastId: {
+            $last: '$notes.category.default.order',
+          },
+        },
+      });
+    } else {
+      // backwardsNavigation
+      last = last != null && last <= RESULT_LIMIT_COUNT ? last : RESULT_LIMIT_COUNT;
+      pipeline.push({
+        $project: {
+          order: {
+            ...(!before
+              ? {
+                  // Slice user notes ids [-last, last]
+                  $slice: ['$notes.category.default.order', -last, last],
+                }
+              : {
+                  // Slice user notes ids [indexOf(before)-last-1, indexOf(before)-1]
+                  $let: {
+                    vars: {
+                      // startIndex might be negative
+                      startIndex: {
+                        $subtract: [
+                          {
+                            $indexOfArray: [
+                              '$notes.category.default.order',
+                              new ObjectId(before),
+                            ],
+                          },
+                          last,
+                        ],
+                      },
+                    },
+                    in: {
+                      $cond: {
+                        // ensure slice count will be positive
+                        if: { $gt: [{ $add: ['$$startIndex', last] }, 0] },
+                        then: {
+                          $slice: [
+                            '$notes.category.default.order',
+                            {
+                              $max: ['$$startIndex', 0],
+                            },
+                            {
+                              $add: [
+                                {
+                                  $min: ['$$startIndex', 0],
+                                },
+                                last,
+                              ],
+                            },
+                          ],
+                        },
+                        else: [],
+                      },
+                    },
+                  },
+                }),
+          },
+          firstId: {
+            $first: '$notes.category.default.order',
+          },
+          lastId: {
+            $last: '$notes.category.default.order',
+          },
+        },
+      });
+    }
+  } else {
+    // Select only the cursor to determine availability of next and prev page
+    pipeline.push({
+      $project: {
+        order: [new ObjectId(afterOrBeforeCursor ?? '')],
+        firstId: {
+          $first: '$notes.category.default.order',
         },
         lastId: {
           $last: '$notes.category.default.order',
@@ -115,6 +235,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = a
       {
         $group: {
           _id: '$_id',
+          firstId: { $first: '$firstId' },
           lastId: { $first: '$lastId' },
           userNotes: { $push: '$userNote' },
         },
@@ -131,31 +252,46 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = a
       notes: [],
       edges: [],
       pageInfo: {
+        startCursor: null,
+        hasPreviousPage: false,
         endCursor: null,
         hasNextPage: false,
       },
     };
   }
-  const { userNotes, lastId } = result;
+  const { userNotes, firstId, lastId } = result;
 
-  const edges = userNotes.map((userNote) => {
-    const { note } = userNote;
-    return {
-      cursor: String(userNote._id),
-      node: {
-        id: note.publicId,
-        title: note.title ?? '',
-        textContent: note.textContent ?? '',
-        readOnly: userNote.readOnly,
-        preferences: {
-          backgroundColor: userNote.preferences?.backgroundColor,
-        },
-      },
-    };
-  });
+  const edges = queryingAnyItems
+    ? userNotes
+        .map((userNote) => {
+          const { note } = userNote;
+          if (!note) return null;
 
+          return {
+            cursor: String(userNote._id),
+            node: {
+              id: note.publicId,
+              title: note.title ?? '',
+              textContent: note.textContent ?? '',
+              readOnly: userNote.readOnly,
+              preferences: {
+                backgroundColor: userNote.preferences?.backgroundColor,
+              },
+            },
+          };
+        })
+        .reduce<NoteEdge[]>((arr, item) => {
+          if (item !== null) {
+            arr.push(item);
+          }
+          return arr;
+        }, [])
+    : [];
+
+  const startCursorId = userNotes[0]?._id;
+  const hasPreviousPage = (startCursorId && !firstId?.equals(startCursorId)) ?? false;
   const endCursorId = userNotes[userNotes.length - 1]?._id;
-  const hasNextPage = (endCursorId && !lastId.equals(endCursorId)) ?? false;
+  const hasNextPage = (endCursorId && !lastId?.equals(endCursorId)) ?? false;
 
   return {
     notes: edges.map((edge) => ({
@@ -163,8 +299,10 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = a
     })),
     edges,
     pageInfo: {
-      endCursor: endCursorId?.toString(),
+      hasPreviousPage,
+      startCursor: startCursorId?.toString(),
       hasNextPage,
+      endCursor: endCursorId?.toString(),
     },
   };
 };
