@@ -5,7 +5,7 @@ import { DeepMockProxy, mockDeep } from 'vitest-mock-extended';
 import { apolloServer } from '../../../../tests/helpers/apollo-server';
 import UserDocumentHelper from '../../../../tests/helpers/model/UserDocumentHelper';
 import UserModelHelper from '../../../../tests/helpers/model/UserModelHelper';
-import { Note, User, UserNote } from '../../../../tests/helpers/mongoose';
+import { Note, User, UserNote, resetDatabase } from '../../../../tests/helpers/mongoose';
 import { GraphQLResolversContext } from '../../../context';
 import { NoteConnection, NoteEdge } from '../../../types.generated';
 
@@ -92,9 +92,7 @@ describe('notesConnection', () => {
   faker.seed(4325);
 
   describe('no notes', async () => {
-    await User.deleteMany();
-    await Note.deleteMany();
-    await UserNote.deleteMany();
+    await resetDatabase();
 
     const userModelHelper = new UserModelHelper();
     const userHelper = userModelHelper.getOrCreateUser(0);
@@ -124,9 +122,7 @@ describe('notesConnection', () => {
   });
 
   describe('with notes', async () => {
-    await User.deleteMany();
-    await Note.deleteMany();
-    await UserNote.deleteMany();
+    await resetDatabase();
 
     const userModelHelper = new UserModelHelper();
 
@@ -826,9 +822,7 @@ describe('notesConnection', () => {
     let mockedContext: DeepMockProxy<GraphQLResolversContext>;
 
     beforeEach(async () => {
-      await User.deleteMany();
-      await Note.deleteMany();
-      await UserNote.deleteMany();
+      await resetDatabase();
 
       userModelHelper = new UserModelHelper();
 
