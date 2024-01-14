@@ -17,6 +17,7 @@ const documents = {
     "\n  mutation UseCreateNote($input: CreateNoteInput!)  {\n    createNote(input: $input) {\n      note {\n        id\n        title\n        textContent\n      }\n    }\n  }\n": types.UseCreateNoteDocument,
     "\n              query CreateNoteUpdateNotesConnection {\n                notesConnection {\n                  notes {\n                    id\n                    title\n                    textContent\n                  }\n                }\n              }\n          ": types.CreateNoteUpdateNotesConnectionDocument,
     "\n  mutation UseDeleteNote($input: DeleteNoteInput!) {\n    deleteNote(input: $input) {\n      deleted\n    }\n  }\n": types.UseDeleteNoteDocument,
+    "\n              query DeleteNoteUpdateNotesConnection {\n                notesConnection {\n                  notes {\n                    id\n                    title\n                    textContent\n                  }\n                }\n              }\n          ": types.DeleteNoteUpdateNotesConnectionDocument,
     "\n  mutation UseUpdateNote($input: UpdateNoteInput!)  {\n    updateNote(input: $input) {\n      note {\n        id\n        title\n        textContent\n      }\n    }\n  }\n": types.UseUpdateNoteDocument,
     "\n  query SessionSwitcherProvider {\n    savedSessions @client {\n      displayName\n      email\n    }\n    currentSavedSessionIndex @client\n  }\n": types.SessionSwitcherProviderDocument,
     "\n  mutation SignIn($input: SignInInput!)  {\n    signIn(input: $input) {\n      sessionIndex\n      userInfo {\n        profile {\n          displayName\n        }\n      }\n    }\n  }\n": types.SignInDocument,
@@ -60,6 +61,10 @@ export function gql(source: "\n              query CreateNoteUpdateNotesConnecti
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(source: "\n  mutation UseDeleteNote($input: DeleteNoteInput!) {\n    deleteNote(input: $input) {\n      deleted\n    }\n  }\n"): (typeof documents)["\n  mutation UseDeleteNote($input: DeleteNoteInput!) {\n    deleteNote(input: $input) {\n      deleted\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n              query DeleteNoteUpdateNotesConnection {\n                notesConnection {\n                  notes {\n                    id\n                    title\n                    textContent\n                  }\n                }\n              }\n          "): (typeof documents)["\n              query DeleteNoteUpdateNotesConnection {\n                notesConnection {\n                  notes {\n                    id\n                    title\n                    textContent\n                  }\n                }\n              }\n          "];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
