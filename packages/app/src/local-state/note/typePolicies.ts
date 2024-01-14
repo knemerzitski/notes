@@ -1,7 +1,7 @@
 import { TypePolicies } from '@apollo/client';
 import { GraphQLError } from 'graphql';
 
-import { LocalNote } from '../__generated__/graphql';
+import { LocalNote } from '../../__generated__/graphql';
 
 import { notesVar } from './state';
 

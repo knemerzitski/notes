@@ -2,12 +2,12 @@ import { useQuery } from '@apollo/client';
 import { Alert } from '@mui/material';
 import { startTransition } from 'react';
 
+import { gql } from '../__generated__/gql';
 import { useSnackbarError } from '../components/feedback/SnackbarAlertProvider';
 import WidgetListFabLayout from '../components/notes/layout/WidgetListFabLayout';
 import { NoteItemProps } from '../components/notes/view/NoteItem';
 import useCreateNote from '../graphql/note/hooks/useCreateNote';
 import useDeleteNote from '../graphql/note/hooks/useDeleteNote';
-import { gql } from '../local-state/__generated__/gql';
 import { useProxyNavigate, useProxyRouteTransform } from '../router/ProxyRoutesProvider';
 import { useAbsoluteLocation } from '../router/hooks/useAbsoluteLocation';
 

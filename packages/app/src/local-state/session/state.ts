@@ -1,6 +1,6 @@
 import { makeVar } from '@apollo/client';
 
-import { SavedSession } from '../__generated__/graphql';
+import { SavedSession } from '../../__generated__/graphql';
 
 import { readCurrentSessionIndex, readSessions } from './persistence';
 

@@ -9,10 +9,13 @@ import {
   BoxProps,
 } from '@mui/material';
 
+import { gql } from '../../../__generated__/gql';
 import { useDrawerExpanded } from '../../../components/drawer/Drawer';
 import useIsMobile from '../../../hooks/useIsMobile';
-import { useProxyIsPathname, useProxyNavigate } from '../../../router/ProxyRoutesProvider';
-import { gql } from '../../../local-state/__generated__/gql';
+import {
+  useProxyIsPathname,
+  useProxyNavigate,
+} from '../../../router/ProxyRoutesProvider';
 
 interface DrawerContentProps extends BoxProps {
   onClose: () => void;

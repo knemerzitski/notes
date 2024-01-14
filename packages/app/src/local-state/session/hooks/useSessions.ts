@@ -1,4 +1,4 @@
-import { SavedSession } from '../../__generated__/graphql';
+import { SavedSession } from '../../../__generated__/graphql';
 import {
   deleteCurrentSessionIndex,
   deleteSessions,

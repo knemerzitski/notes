@@ -1,12 +1,12 @@
 import { useSuspenseQuery } from '@apollo/client';
 import { useParams } from 'react-router-dom';
 
+import { gql } from '../../../../__generated__/gql';
 import RouteClosable, {
   RouteClosableComponentProps,
 } from '../../../../components/feedback/RouteClosable';
 import EditNoteDialog from '../../../../components/notes/edit/EditNoteDialog';
 import { NoteEditorProps } from '../../../../components/notes/edit/NoteEditor';
-import { gql } from '../../../../local-state/__generated__/gql';
 import useNotes from '../../../../local-state/note/hooks/useNotes';
 
 const QUERY = gql(`

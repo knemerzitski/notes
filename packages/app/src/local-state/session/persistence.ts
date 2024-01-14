@@ -1,4 +1,4 @@
-import { SavedSession } from '../__generated__/graphql';
+import { SavedSession } from '../../__generated__/graphql';
 
 const SESSIONS_KEY = 'session_sessions';
 const CURRENT_SESSION_INDEX_KEY = 'session_currentIndex';

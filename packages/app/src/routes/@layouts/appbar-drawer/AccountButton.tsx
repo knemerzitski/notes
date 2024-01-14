@@ -17,9 +17,9 @@ import {
 } from '@mui/material';
 import { useId, useState } from 'react';
 
+import { gql } from '../../../__generated__/gql';
+import { AuthProvider } from '../../../__generated__/graphql';
 import { useSnackbarError } from '../../../components/feedback/SnackbarAlertProvider';
-import { gql } from '../../../local-state/__generated__/gql';
-import { AuthProvider } from '../../../local-state/__generated__/graphql';
 import { useSwitchToSession } from '../../../local-state/session/context/SessionSwitcherProvider';
 import useSessions from '../../../local-state/session/hooks/useSessions';
 

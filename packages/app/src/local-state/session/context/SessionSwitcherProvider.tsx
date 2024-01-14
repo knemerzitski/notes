@@ -9,10 +9,10 @@ import {
 } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { gql } from '../../../__generated__/gql';
 import ProxyRoutesProvider from '../../../router/ProxyRoutesProvider';
 import sessionPrefix from '../../../router/sessionPrefix';
 import joinPathnames from '../../../utils/joinPathnames';
-import { gql } from '../../__generated__/gql';
 import useSessions from '../hooks/useSessions';
 
 const QUERY = gql(`
@@ -94,9 +94,7 @@ export function SessionSwitcherProvider({ children }: { children: ReactNode }) {
           if (index == null) {
             navigate(joinPathnames(paramsRestRef.current));
           } else {
-            navigate(
-              joinPathnames(`/${sessionPrefix}/${index}`, paramsRestRef.current)
-            );
+            navigate(joinPathnames(`/${sessionPrefix}/${index}`, paramsRestRef.current));
           }
 
           await apolloClient.resetStore();

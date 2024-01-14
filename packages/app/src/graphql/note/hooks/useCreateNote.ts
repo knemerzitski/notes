@@ -1,7 +1,7 @@
 import { useMutation } from '@apollo/client';
 
-import { gql } from '../../../local-state/__generated__/gql';
-import { Note } from '../../../local-state/__generated__/graphql';
+import { gql } from '../../../__generated__/gql';
+import { Note } from '../../../__generated__/graphql';
 
 const MUTATION = gql(`
   mutation UseCreateNote($input: CreateNoteInput!)  {

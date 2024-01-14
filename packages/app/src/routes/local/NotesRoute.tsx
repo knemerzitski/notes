@@ -1,8 +1,8 @@
 import { useSuspenseQuery } from '@apollo/client';
 
+import { gql } from '../../__generated__/gql';
 import WidgetListFabLayout from '../../components/notes/layout/WidgetListFabLayout';
 import { NotesListProps } from '../../components/notes/view/NotesList';
-import { gql } from '../../local-state/__generated__';
 import useNotes from '../../local-state/note/hooks/useNotes';
 import {
   useProxyNavigate,

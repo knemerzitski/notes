@@ -1,6 +1,6 @@
 import { useMutation } from '@apollo/client';
 
-import { gql } from '../../../local-state/__generated__/gql';
+import { gql } from '../../../__generated__/gql';
 
 const MUTATION = gql(`
   mutation UseDeleteNote($input: DeleteNoteInput!) {

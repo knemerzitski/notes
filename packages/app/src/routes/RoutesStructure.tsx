@@ -1,8 +1,8 @@
 import { useSuspenseQuery } from '@apollo/client';
 import { Route, Routes, RoutesProps } from 'react-router-dom';
 
+import { gql } from '../__generated__/gql';
 import useIsMobile from '../hooks/useIsMobile';
-import { gql } from '../local-state/__generated__/gql';
 import ModalBackgroundRouting from '../router/components/ModalBackgroundRouting';
 
 import AppBarDrawerLayout from './@layouts/appbar-drawer/AppBarDrawerLayout';
@@ -34,7 +34,7 @@ function CommonRoutes({ children, ...restProps }: RoutesProps) {
   return (
     <Routes {...restProps}>
       <Route path="*" element={<AppBarDrawerLayout />}>
-        <Route index element={isLoggedIn ? <NotesRoute /> : <LocalNotesRoute />}/>
+        <Route index element={isLoggedIn ? <NotesRoute /> : <LocalNotesRoute />} />
         <Route path="local" element={<LocalNotesRoute />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>

@@ -1,4 +1,4 @@
-import { ColorMode } from '../../__generated__/graphql';
+import { ColorMode } from '../../../__generated__/graphql';
 import { readPreferences, savePreferences } from '../persistence';
 import { colorModeVar as defaultColorModeVar } from '../state';
 

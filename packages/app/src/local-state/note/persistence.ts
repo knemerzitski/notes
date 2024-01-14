@@ -1,4 +1,4 @@
-import { LocalNote } from '../__generated__/graphql';
+import { LocalNote } from '../../__generated__/graphql';
 
 const NOTES_LIST_KEY = 'note_list';
 const NOTE_KEY = (noteId: string | number) => `note_note:${noteId}`;

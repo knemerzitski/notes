@@ -1,6 +1,6 @@
 import { TypePolicies } from '@apollo/client';
 
-import { Preferences } from '../__generated__/graphql';
+import { Preferences } from '../../__generated__/graphql';
 
 import { colorModeVar } from './state';
 

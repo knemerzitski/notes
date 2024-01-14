@@ -1,4 +1,4 @@
-import { ColorMode, Preferences } from '../__generated__/graphql';
+import { ColorMode, Preferences } from '../../__generated__/graphql';
 
 const PREFERENCES_KEY = 'preferences';
 

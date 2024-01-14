@@ -1,2 +1,2 @@
 packages/api/src/graphql/*.generated.ts
-packages/app/src/local-state/__generated__
+packages/app/src/__generated__
