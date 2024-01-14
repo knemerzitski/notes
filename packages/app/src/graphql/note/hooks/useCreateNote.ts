@@ -42,8 +42,43 @@ export default function useCreateNote(): (
           },
         },
       },
-      // cache for notes
-      // TODO update cache
+      update(cache, { data }) {
+        if (!data?.createNote) return;
+
+        const note = data.createNote.note;
+
+        cache.updateQuery(
+          {
+            query: gql(`
+              query CreateNoteUpdateNotesConnection {
+                notesConnection {
+                  notes {
+                    id
+                    title
+                    textContent
+                  }
+                }
+              }
+          `),
+          },
+          (existing) => {
+            if (!existing) {
+              return {
+                notesConnection: {
+                  notes: [note],
+                },
+              };
+            }
+
+            return {
+              notesConnection: {
+                ...existing.notesConnection,
+                notes: [...existing.notesConnection.notes, note],
+              },
+            };
+          }
+        );
+      },
     });
 
     const note = data?.createNote?.note;

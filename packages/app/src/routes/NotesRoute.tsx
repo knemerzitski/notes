@@ -1,5 +1,5 @@
 import { useQuery } from '@apollo/client';
-import { Alert } from '@mui/material';
+import { Alert, Button } from '@mui/material';
 import { startTransition } from 'react';
 
 import { gql } from '../__generated__/gql';
@@ -12,12 +12,16 @@ import { useProxyNavigate, useProxyRouteTransform } from '../router/ProxyRoutesP
 import { useAbsoluteLocation } from '../router/hooks/useAbsoluteLocation';
 
 const QUERY = gql(`
-  query UserNotesConnection($first: NonNegativeInt!, $after: String) {
-    notesConnection(first: $first, after: $after) {
+  query NotesRouteNotesConnection($last: NonNegativeInt!, $before: String) {
+    notesConnection(last: $last, before: $before) {
       notes {
         id
         title
         textContent
+      }
+      pageInfo {
+        hasPreviousPage
+        startCursor
       }
     }
   }
@@ -27,15 +31,20 @@ function noteRoute(noteId: string) {
   return `/note/${noteId}`;
 }
 
-export default function NotesRoute() {
+interface NotesRouteProps {
+  perPageCount?: 2;
+}
+
+export default function NotesRoute({ perPageCount = 2 }: NotesRouteProps) {
   const {
     data,
     loading,
     error,
+    fetchMore,
     // subscribeToMore,
   } = useQuery(QUERY, {
     variables: {
-      first: 20,
+      last: perPageCount,
     },
   });
 
@@ -103,14 +112,23 @@ export default function NotesRoute() {
       </Alert>
     );
   }
+  if (!data) {
+    return <></>;
+  }
 
-  const notes: NoteItemProps['note'][] =
-    data?.notesConnection.notes.map(({ id, title, textContent }) => ({
+  const notes: NoteItemProps['note'][] = data.notesConnection.notes.map(
+    ({ id, title, textContent }) => ({
       id: String(id),
       title,
       content: textContent,
       editing: absoluteLocation.pathname === transform(noteRoute(String(id))),
-    })) ?? [];
+    })
+  );
+  // Notes array is ordered by newest at the end
+  // Reverse to display newest first
+  notes.reverse();
+
+  const pageInfo = data.notesConnection.pageInfo;
 
   async function handleWidgetNoteCreated(title: string, content: string) {
     if (!(await createNote(title, content))) {
@@ -151,27 +169,54 @@ export default function NotesRoute() {
     return true;
   }
 
+  async function handleFetchMore() {
+    await fetchMore({
+      variables: {
+        last: perPageCount,
+        before: pageInfo.startCursor,
+      },
+      // Merge result to existing
+      updateQuery(previousResult, { fetchMoreResult }) {
+        return {
+          notesConnection: {
+            ...fetchMoreResult.notesConnection,
+            notes: [
+              ...fetchMoreResult.notesConnection.notes,
+              ...previousResult.notesConnection.notes,
+            ],
+            pageInfo: fetchMoreResult.notesConnection.pageInfo,
+          },
+        };
+      },
+    });
+  }
+
   return (
-    <WidgetListFabLayout
-      slotProps={{
-        createNoteWidget: {
-          onCreated: handleWidgetNoteCreated,
-          slotProps: {
-            contentField: {
-              placeholder: 'Take a local note...',
+    <>
+      <WidgetListFabLayout
+        slotProps={{
+          createNoteWidget: {
+            onCreated: handleWidgetNoteCreated,
+            slotProps: {
+              contentField: {
+                placeholder: 'Take a local note...',
+              },
             },
           },
-        },
-        notesList: {
-          loading,
-          notes,
-          onStartEdit: handleStartEdit,
-          onDelete: handleDelete,
-        },
-        createNoteFab: {
-          onCreate: handleFabCreate,
-        },
-      }}
-    />
+          notesList: {
+            loading,
+            notes,
+            onStartEdit: handleStartEdit,
+            onDelete: handleDelete,
+          },
+          createNoteFab: {
+            onCreate: handleFabCreate,
+          },
+        }}
+      />
+      {pageInfo.hasPreviousPage && (
+        <Button onClick={() => void handleFetchMore()}>Fetch More</Button>
+      )}
+    </>
   );
 }
