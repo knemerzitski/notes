@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { GraphQLError } from 'graphql';
 import { assert, beforeEach, describe, expect, it } from 'vitest';
-import { mockDeep } from 'vitest-mock-extended';
+import { mockDeep, mockFn } from 'vitest-mock-extended';
 
 import { mockResolver } from '../../../../tests/helpers/mock-resolver';
 import UserDocumentHelper from '../../../../tests/helpers/model/UserDocumentHelper';
@@ -33,6 +33,7 @@ function createContext(userHelper: UserDocumentHelper) {
         Note,
       },
     },
+    publish: mockFn(),
   });
 
   const context: GraphQLResolversContext = {

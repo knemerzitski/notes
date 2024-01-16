@@ -1,4 +1,4 @@
-import { mockDeep } from 'vitest-mock-extended';
+import { mockDeep, mockFn } from 'vitest-mock-extended';
 
 import { GraphQLResolversContext } from '../../graphql/context';
 
@@ -22,6 +22,7 @@ export function createUserContext(userHelper: UserDocumentHelper) {
         Session,
       },
     },
+    publish: mockFn(),
   });
 
   const context: GraphQLResolversContext = {
