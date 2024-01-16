@@ -1,4 +1,5 @@
 import { TypePolicies } from '@apollo/client';
+import { relayStylePagination } from '@apollo/client/utilities';
 
 const notePolicies: TypePolicies = {
   Query: {
@@ -14,9 +15,7 @@ const notePolicies: TypePolicies = {
           }
         },
       },
-      notesConnection: {
-        keyArgs: false,
-      },
+      notesConnection: relayStylePagination(),
     },
   },
 };
