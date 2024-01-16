@@ -4,7 +4,7 @@ import { Preferences } from '../../__generated__/graphql';
 
 import { colorModeVar } from './state';
 
-const typePolicies: TypePolicies = {
+const preferencesPolicies: TypePolicies = {
   Query: {
     fields: {
       preferences(): Preferences {
@@ -16,4 +16,4 @@ const typePolicies: TypePolicies = {
   },
 };
 
-export default typePolicies;
+export default preferencesPolicies;

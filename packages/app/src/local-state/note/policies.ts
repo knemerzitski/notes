@@ -5,7 +5,7 @@ import { LocalNote } from '../../__generated__/graphql';
 
 import { notesVar } from './state';
 
-const typePolicies: TypePolicies = {
+const notePolicies: TypePolicies = {
   Query: {
     fields: {
       localNotes(): LocalNote[] {
@@ -33,4 +33,4 @@ const typePolicies: TypePolicies = {
   },
 };
 
-export default typePolicies;
+export default notePolicies;

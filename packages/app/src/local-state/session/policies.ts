@@ -4,7 +4,7 @@ import { SavedSession } from '../../__generated__/graphql';
 
 import { currentSessionIndexVar, sessionsVar } from './state';
 
-const typePolicies: TypePolicies = {
+const sessionPolicies: TypePolicies = {
   Query: {
     fields: {
       savedSessions(): SavedSession[] {
@@ -28,4 +28,4 @@ const typePolicies: TypePolicies = {
   },
 };
 
-export default typePolicies;
+export default sessionPolicies;

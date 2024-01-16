@@ -4,7 +4,7 @@ import { getMainDefinition } from '@apollo/client/utilities';
 import { Kind, OperationTypeNode } from 'graphql';
 import { createClient } from 'graphql-ws';
 
-import typePolicies from './typePolicies';
+import typePolicies from './policies';
 
 const HTTP_URL =
   import.meta.env.MODE === 'production'

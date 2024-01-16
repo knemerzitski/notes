@@ -1,8 +1,8 @@
 import { TypePolicies } from '@apollo/client';
 
-import localNoteTypePolicies from '../local-state/note/typePolicies';
-import localPreferencesTypePolicies from '../local-state/preferences/typePolicies';
-import localSessionTypePolicies from '../local-state/session/typePolicies';
+import localNoteTypePolicies from '../local-state/note/policies';
+import localPreferencesTypePolicies from '../local-state/preferences/policies';
+import localSessionTypePolicies from '../local-state/session/policies';
 
 import logFieldRead from './utils/logFieldRead';
 import mergeArrayTypePolicies from './utils/mergeArrayTypePolicies';
