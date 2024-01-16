@@ -14,6 +14,9 @@ const notePolicies: TypePolicies = {
           }
         },
       },
+      notesConnection: {
+        keyArgs: false,
+      },
     },
   },
 };
