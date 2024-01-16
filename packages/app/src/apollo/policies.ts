@@ -1,8 +1,9 @@
 import { TypePolicies } from '@apollo/client';
 
-import localNoteTypePolicies from '../local-state/note/policies';
-import localPreferencesTypePolicies from '../local-state/preferences/policies';
-import localSessionTypePolicies from '../local-state/session/policies';
+import localNotePolicies from '../local-state/note/policies';
+import localPreferencesPolicies from '../local-state/preferences/policies';
+import localSessionPolicies from '../local-state/session/policies';
+import notePolicies from '../policies/note/policies';
 
 import logFieldRead from './utils/logFieldRead';
 import mergeArrayTypePolicies from './utils/mergeArrayTypePolicies';
@@ -13,9 +14,11 @@ const LOG_READ = false;
  * Define all type policies here
  */
 const definedArrayTypePolicies: TypePolicies[] = [
-  localPreferencesTypePolicies,
-  localSessionTypePolicies,
-  localNoteTypePolicies,
+  notePolicies,
+
+  localPreferencesPolicies,
+  localSessionPolicies,
+  localNotePolicies,
 ];
 
 let typePolicies = mergeArrayTypePolicies(definedArrayTypePolicies);
