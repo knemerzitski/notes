@@ -312,7 +312,7 @@ function getAsAttributeNotExistsExpression(names: string[]) {
   }
 
   return {
-    ConditionExpression: `${updateExpressionParts.join(' AND ')}`,
+    ConditionExpression: updateExpressionParts.join(' AND '),
     ExpressionAttributeNames,
   };
 }
@@ -383,16 +383,28 @@ function getAsFilterExpression(filterObj: Record<string, unknown>, prefix?: stri
   const filterExpressionParts: string[] = [];
   const ExpressionAttributeValues: Record<string, string | number | boolean> = {};
 
+  const seenAttributeNames = new Set(
+    prefixPlaceholderWithDot.split('.').filter((key) => Boolean(key))
+  );
   let valueCounter = 0;
   for (const [namePlaceholder, value] of Object.entries(filter)) {
     const valuePlaceholder = `:${valueCounter++}`;
     ExpressionAttributeValues[valuePlaceholder] = value;
+    namePlaceholder.split('.').forEach((namePart) => seenAttributeNames.add(namePart));
 
     const expressionName = `${prefixPlaceholderWithDot}${namePlaceholder}`;
 
     filterExpressionParts.push(
       `(${expressionName} = ${valuePlaceholder} OR attribute_not_exists(${expressionName}))`
     );
+  }
+
+  //Delete unused ExpressionAttributeNames
+  for (const name of Object.keys(ExpressionAttributeNames)) {
+    if (!seenAttributeNames.has(name)) {
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+      delete ExpressionAttributeNames[name];
+    }
   }
 
   return {
