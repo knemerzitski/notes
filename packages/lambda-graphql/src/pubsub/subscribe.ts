@@ -36,7 +36,7 @@ export interface SubscriptionContext<T extends PubSubEvent = PubSubEvent> {
   subscribe: Subscriber<T>;
   /**
    * Call this function to not subscribe.
-   * E.g when not authentication information is not available.
+   * E.g when authentication information is not available.
    * @returns AsyncIterable that does nothing with {deny: true}
    */
   denySubscription: DenySubscriber;
