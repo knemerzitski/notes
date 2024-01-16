@@ -1,4 +1,5 @@
 import { GraphQLError } from 'graphql';
+import { ObjectId } from 'mongodb';
 
 import { assertAuthenticated } from '../../../base/directives/auth';
 
@@ -15,9 +16,11 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
   } = ctx;
   assertAuthenticated(auth);
 
+  const currentUserId = ObjectId.createFromBase64(auth.session.user._id);
+
   const [userNote, note] = await Promise.all([
     model.UserNote.findOne({
-      userId: auth.session.user._id._id,
+      userId: currentUserId,
       notePublicId,
     }).lean(),
     model.Note.findOne({

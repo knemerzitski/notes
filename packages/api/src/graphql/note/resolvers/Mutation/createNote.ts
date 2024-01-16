@@ -1,6 +1,13 @@
-import { assertAuthenticated } from '../../../base/directives/auth';
+import { ObjectId } from 'mongodb';
 
-import type { CreateNotePayload, MutationResolvers } from './../../../types.generated';
+import { assertAuthenticated } from '../../../base/directives/auth';
+import { publishNoteCreated } from '../Subscription/noteCreated';
+
+import type {
+  CreateNotePayload,
+  MutationResolvers,
+  NoteCreatedPayload,
+} from './../../../types.generated';
 
 export const createNote: NonNullable<MutationResolvers['createNote']> = async (
   _parent,
@@ -13,21 +20,23 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
   } = ctx;
   assertAuthenticated(auth);
 
+  const currentUserId = ObjectId.createFromBase64(auth.session.user._id);
+
   const newNote = new model.Note({
-    ownerId: auth.session.user._id._id,
+    ownerId: currentUserId,
     title: input.note?.title,
     textContent: input.note?.textContent,
   });
 
   await connection.transaction(async (session) => {
     const newUserNote = new model.UserNote({
-      userId: auth.session.user._id._id,
+      userId: currentUserId,
       notePublicId: newNote.publicId,
     });
 
     const updateUserPromise = model.User.updateOne(
       {
-        _id: auth.session.user._id._id,
+        _id: currentUserId,
       },
       {
         $push: {
@@ -44,7 +53,7 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
     ]);
   });
 
-  const newNotePayload: CreateNotePayload = {
+  const newNotePayload: CreateNotePayload & NoteCreatedPayload = {
     note: {
       id: newNote.publicId,
       title: newNote.title ?? '',
@@ -53,8 +62,7 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
     },
   };
 
-  // TODO fix exception Value provided in ExpressionAttributeNames unused in expressions: keys: {#4}
-  //await publishNoteCreated(ctx, newNotePayload);
+  await publishNoteCreated(ctx, newNotePayload);
 
   return newNotePayload;
 };

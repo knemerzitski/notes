@@ -7,6 +7,11 @@ import { MongooseModels } from '../mongoose/models';
 
 import { CookieSessionUser } from './session/parse-cookies';
 
+/**
+ * Must only contain primitive values so it can be marshalled properly into
+ * DynamoDB entry.
+ * Class instances are not supported.
+ */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type BaseGraphQLContext = {
   auth?: CookieSessionUser;

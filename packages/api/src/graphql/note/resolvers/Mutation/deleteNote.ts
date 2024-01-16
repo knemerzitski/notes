@@ -1,4 +1,5 @@
 import { GraphQLError } from 'graphql';
+import { ObjectId } from 'mongodb';
 import { Require_id, Types } from 'mongoose';
 
 import { DBNote } from '../../../../mongoose/models/note';
@@ -22,11 +23,13 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
   } = ctx;
   assertAuthenticated(auth);
 
+  const currentUserId = ObjectId.createFromBase64(auth.session.user._id);
+
   // Ensure current user has access to this note
   const [userNote] = await model.UserNote.aggregate<Require_id<UserNoteAggregateResult>>([
     {
       $match: {
-        userId: auth.session.user._id._id,
+        userId: currentUserId,
         notePublicId,
       },
     },

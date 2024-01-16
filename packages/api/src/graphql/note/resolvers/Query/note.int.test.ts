@@ -15,7 +15,7 @@ function createUserContext(userHelper: UserDocumentHelper) {
     auth: {
       session: {
         user: {
-          _id: userHelper.user._id,
+          _id: userHelper.user._id.toString('base64'),
         },
       },
     },

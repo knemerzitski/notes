@@ -1,4 +1,5 @@
 import { GraphQLError } from 'graphql';
+import { ObjectId } from 'mongodb';
 import { Require_id, Types } from 'mongoose';
 
 import { DBNote } from '../../../../mongoose/models/note';
@@ -25,10 +26,12 @@ export const note: NonNullable<QueryResolvers['note']> = async (
   } = ctx;
   assertAuthenticated(auth);
 
+  const currentUserId = ObjectId.createFromBase64(auth.session.user._id);
+
   const results = await model.UserNote.aggregate<AggregateResult>([
     {
       $match: {
-        userId: auth.session.user._id._id,
+        userId: currentUserId,
         notePublicId: notePublicId,
       },
     },

@@ -1,16 +1,37 @@
 import { isArray } from '~common/isArray';
 
 import { MongooseGraphQLContext } from '../../graphql/context';
-import { DBSessionWithUser } from '../../mongoose/models/session';
+import { DBSession } from '../../mongoose/models/session';
+import { DBUser } from '../../mongoose/models/user';
+
+interface SessionUser extends Omit<DBUser, 'notes'> {
+  /**
+   * base64 representation of MongoDB ObjectId
+   */
+  _id: string;
+}
+
+interface Session extends Omit<DBSession, 'userId' | 'expireAt'> {
+  /**
+   * base64 representation of MongoDB ObjectId
+   */
+  _id: string;
+  user: SessionUser;
+  /**
+   * {@link DBSession.expireAt} unix timestamp representation
+   */
+  expireAt: number;
+}
 
 /**
  * Current user defined by cookie headers
  */
 export interface CookieSessionUser {
   /**
-   * MongoDB session with resolved user
+   * Current session and it's user.
+   * userId is populated with user.
    */
-  session: DBSessionWithUser;
+  session: Session;
 
   cookie: {
     /**
@@ -76,18 +97,28 @@ async function parseSessionUserFromCookies(
     return; // cookieId is not string??
   }
 
-  const session = await model.Session.findByCookieId(cookieId);
-  if (!session) {
+  const dbSession = await model.Session.findByCookieId(cookieId);
+  if (!dbSession) {
     return; // Session doesn't exist in database
   }
 
   // Refresh expireAt it's too low
-  const expireAt = new Date(session.expireAt);
+  const expireAt = new Date(dbSession.expireAt);
   if (tryRefreshExpireAt(expireAt)) {
-    await model.Session.findByIdAndUpdate(session._id, {
+    await model.Session.findByIdAndUpdate(dbSession._id, {
       expireAt,
     });
   }
+
+  const session: CookieSessionUser['session'] = {
+    ...dbSession,
+    _id: dbSession._id.toString('base64'),
+    expireAt: expireAt.getTime(),
+    user: {
+      ...dbSession.user,
+      _id: dbSession.user._id.toString('base64'),
+    },
+  };
 
   return {
     session,

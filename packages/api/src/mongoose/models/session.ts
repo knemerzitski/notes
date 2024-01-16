@@ -26,7 +26,7 @@ interface DBSessionMethods {}
  * ISession that has userId replaced with an actual user
  */
 export type DBSessionWithUser = Require_id<Omit<DBSession, 'userId'>> & {
-  user: Require_id<DBUser>;
+  user: Require_id<Omit<DBUser, 'notes'>>;
 };
 
 export interface SessionModel extends Model<DBSession, object, DBSessionMethods> {
@@ -67,6 +67,11 @@ sessionSchema.static('findByCookieId', async function findByCookieId(cookieId: s
           foreignField: '_id',
           localField: 'userId',
           as: 'user',
+          pipeline: [
+            {
+              $unset: 'notes',
+            },
+          ],
         },
       },
       { $unset: 'userId' },

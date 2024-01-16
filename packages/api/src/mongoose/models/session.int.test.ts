@@ -101,9 +101,12 @@ describe('Session', () => {
 
     const fetchedCustomSession = await Session.findByCookieId(newSession.cookieId);
 
+    // Notes are not returned
+    const { notes, ...userNoNotes } = user.toObject();
+
     expect(fetchedCustomSession).toStrictEqual({
       ...newSessionNoUserId,
-      user: user.toObject(),
+      user: userNoNotes,
     });
   });
 });
