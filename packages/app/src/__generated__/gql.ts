@@ -21,6 +21,7 @@ const documents = {
     "\n  query SessionSwitcherProvider {\n    savedSessions @client {\n      displayName\n      email\n    }\n    currentSavedSessionIndex @client\n  }\n": types.SessionSwitcherProviderDocument,
     "\n  mutation SignIn($input: SignInInput!)  {\n    signIn(input: $input) {\n      sessionIndex\n      userInfo {\n        profile {\n          displayName\n        }\n      }\n    }\n  }\n": types.SignInDocument,
     "\n  mutation SignOut {\n    signOut {\n      signedOut\n      currentSessionIndex\n    }\n  }\n": types.SignOutDocument,
+    "\n  mutation SwitchSession($input: SwitchToSessionInput!) {\n    switchToSession(input: $input) {\n      currentSessionIndex\n    }\n  }\n": types.SwitchSessionDocument,
     "\n  query AccountButton {\n    savedSessions @client {\n      displayName\n      email\n    }\n\n    currentSavedSessionIndex @client\n    \n    currentSavedSession @client {\n      displayName\n      email\n    }\n  }\n": types.AccountButtonDocument,
     "\n  query DrawerContent {\n    isLoggedIn @client\n  }\n": types.DrawerContentDocument,
     "\n  query NotesRouteNotesConnection($last: NonNegativeInt!, $before: String) {\n    notesConnection(last: $last, before: $before) {\n      notes {\n        id\n        title\n        textContent\n      }\n      pageInfo {\n        hasPreviousPage\n        startCursor\n      }\n    }\n  }\n": types.NotesRouteNotesConnectionDocument,
@@ -79,6 +80,10 @@ export function gql(source: "\n  mutation SignIn($input: SignInInput!)  {\n    s
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(source: "\n  mutation SignOut {\n    signOut {\n      signedOut\n      currentSessionIndex\n    }\n  }\n"): (typeof documents)["\n  mutation SignOut {\n    signOut {\n      signedOut\n      currentSessionIndex\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  mutation SwitchSession($input: SwitchToSessionInput!) {\n    switchToSession(input: $input) {\n      currentSessionIndex\n    }\n  }\n"): (typeof documents)["\n  mutation SwitchSession($input: SwitchToSessionInput!) {\n    switchToSession(input: $input) {\n      currentSessionIndex\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

@@ -45,6 +45,14 @@ const SIGN_OUT = gql(`
   }
 `);
 
+const SWITCH_SESSION = gql(`
+  mutation SwitchSession($input: SwitchToSessionInput!) {
+    switchToSession(input: $input) {
+      currentSessionIndex
+    }
+  }
+`);
+
 const QUERY = gql(`
   query AccountButton {
     savedSessions @client {
@@ -78,17 +86,33 @@ export default function AccountButton(props: IconButtonProps) {
   const menuId = useId();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-  const switchToSession = useSwitchToSession();
+  const setLocalSession = useSwitchToSession();
   const showError = useSnackbarError();
 
   const [signIn] = useMutation(SIGN_IN);
   const [signOut] = useMutation(SIGN_OUT);
+  const [switchToSession] = useMutation(SWITCH_SESSION);
 
   const menuOpen = Boolean(anchorEl);
 
   async function handleSwitchSession(index: number) {
     if (index !== currentSessionIndex) {
-      if (!(await switchToSession(index))) {
+      const { data } = await switchToSession({
+        variables: {
+          input: {
+            switchToSessionIndex: index,
+          },
+        },
+      });
+
+      if (!data) {
+        showError('Failed to switch session');
+        return;
+      }
+
+      index = data.switchToSession.currentSessionIndex;
+
+      if (!(await setLocalSession(index))) {
         showError('Failed to switch session');
         return;
       }
@@ -108,7 +132,7 @@ export default function AccountButton(props: IconButtonProps) {
           provider: AuthProvider.Google,
           credentials: {
             // TODO use actual jwt token
-            token: 'test-google-account' + ((currentSessionIndex ?? 0) + 1),
+            token: 'test-google-account' + ((currentSessionIndex ?? -1) + 1),
           },
         },
       },
@@ -135,7 +159,7 @@ export default function AccountButton(props: IconButtonProps) {
       email: 'testaccount@gmail.com', // TODO email from google auth jwt response
     });
 
-    await switchToSession(sessionIndex);
+    await setLocalSession(sessionIndex);
   }
 
   async function handleSignOut() {
@@ -151,7 +175,7 @@ export default function AccountButton(props: IconButtonProps) {
 
     deleteSession(currentSessionIndex);
 
-    await switchToSession(newSessionIndex ?? null);
+    await setLocalSession(newSessionIndex ?? null);
   }
 
   return (
