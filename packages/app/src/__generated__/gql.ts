@@ -17,7 +17,6 @@ const documents = {
     "\n  mutation UseCreateNote($input: CreateNoteInput!)  {\n    createNote(input: $input) {\n      note {\n        id\n        title\n        textContent\n      }\n    }\n  }\n": types.UseCreateNoteDocument,
     "\n              query CreateNoteUpdateNotesConnection {\n                notesConnection {\n                  notes {\n                    id\n                    title\n                    textContent\n                  }\n                }\n              }\n          ": types.CreateNoteUpdateNotesConnectionDocument,
     "\n  mutation UseDeleteNote($input: DeleteNoteInput!) {\n    deleteNote(input: $input) {\n      deleted\n    }\n  }\n": types.UseDeleteNoteDocument,
-    "\n              query DeleteNoteUpdateNotesConnection {\n                notesConnection {\n                  notes {\n                    id\n                    title\n                    textContent\n                  }\n                }\n              }\n          ": types.DeleteNoteUpdateNotesConnectionDocument,
     "\n  mutation UseUpdateNote($input: UpdateNoteInput!)  {\n    updateNote(input: $input) {\n      note {\n        id\n        title\n        textContent\n      }\n    }\n  }\n": types.UseUpdateNoteDocument,
     "\n  query SessionSwitcherProvider {\n    savedSessions @client {\n      displayName\n      email\n    }\n    currentSavedSessionIndex @client\n  }\n": types.SessionSwitcherProviderDocument,
     "\n  mutation SignIn($input: SignInInput!)  {\n    signIn(input: $input) {\n      sessionIndex\n      userInfo {\n        profile {\n          displayName\n        }\n      }\n    }\n  }\n": types.SignInDocument,
@@ -25,6 +24,9 @@ const documents = {
     "\n  query AccountButton {\n    savedSessions @client {\n      displayName\n      email\n    }\n\n    currentSavedSessionIndex @client\n    \n    currentSavedSession @client {\n      displayName\n      email\n    }\n  }\n": types.AccountButtonDocument,
     "\n  query DrawerContent {\n    isLoggedIn @client\n  }\n": types.DrawerContentDocument,
     "\n  query NotesRouteNotesConnection($last: NonNegativeInt!, $before: String) {\n    notesConnection(last: $last, before: $before) {\n      notes {\n        id\n        title\n        textContent\n      }\n      pageInfo {\n        hasPreviousPage\n        startCursor\n      }\n    }\n  }\n": types.NotesRouteNotesConnectionDocument,
+    "\n  subscription NotesRouteNoteCreated {\n    noteCreated {\n      note {\n        id\n        title\n        textContent\n      }\n    }\n  }\n": types.NotesRouteNoteCreatedDocument,
+    "\n  subscription NotesRouteNoteUpdated {\n    noteUpdated {\n      id\n      patch {\n        title\n        textContent\n      }\n    }\n  }\n": types.NotesRouteNoteUpdatedDocument,
+    "\n  subscription NotesRouteNoteDeleted {\n    noteDeleted {\n      id\n    }\n  }\n": types.NotesRouteNoteDeletedDocument,
     "\n  query CommonRoutesQuery {\n    isLoggedIn @client\n  }\n": types.CommonRoutesQueryDocument,
     "\n  query LocalNotesRoute {\n    localNotes @client {\n      id\n      title\n      textContent\n    }\n  }\n": types.LocalNotesRouteDocument,
     "\n  query LocalEditNoteDialogRoute($id: ID!) {\n    localNote(id: $id) @client {\n      id\n      title\n      textContent\n    }\n  }\n": types.LocalEditNoteDialogRouteDocument,
@@ -64,10 +66,6 @@ export function gql(source: "\n  mutation UseDeleteNote($input: DeleteNoteInput!
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n              query DeleteNoteUpdateNotesConnection {\n                notesConnection {\n                  notes {\n                    id\n                    title\n                    textContent\n                  }\n                }\n              }\n          "): (typeof documents)["\n              query DeleteNoteUpdateNotesConnection {\n                notesConnection {\n                  notes {\n                    id\n                    title\n                    textContent\n                  }\n                }\n              }\n          "];
-/**
- * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
 export function gql(source: "\n  mutation UseUpdateNote($input: UpdateNoteInput!)  {\n    updateNote(input: $input) {\n      note {\n        id\n        title\n        textContent\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation UseUpdateNote($input: UpdateNoteInput!)  {\n    updateNote(input: $input) {\n      note {\n        id\n        title\n        textContent\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
@@ -93,6 +91,18 @@ export function gql(source: "\n  query DrawerContent {\n    isLoggedIn @client\n
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(source: "\n  query NotesRouteNotesConnection($last: NonNegativeInt!, $before: String) {\n    notesConnection(last: $last, before: $before) {\n      notes {\n        id\n        title\n        textContent\n      }\n      pageInfo {\n        hasPreviousPage\n        startCursor\n      }\n    }\n  }\n"): (typeof documents)["\n  query NotesRouteNotesConnection($last: NonNegativeInt!, $before: String) {\n    notesConnection(last: $last, before: $before) {\n      notes {\n        id\n        title\n        textContent\n      }\n      pageInfo {\n        hasPreviousPage\n        startCursor\n      }\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  subscription NotesRouteNoteCreated {\n    noteCreated {\n      note {\n        id\n        title\n        textContent\n      }\n    }\n  }\n"): (typeof documents)["\n  subscription NotesRouteNoteCreated {\n    noteCreated {\n      note {\n        id\n        title\n        textContent\n      }\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  subscription NotesRouteNoteUpdated {\n    noteUpdated {\n      id\n      patch {\n        title\n        textContent\n      }\n    }\n  }\n"): (typeof documents)["\n  subscription NotesRouteNoteUpdated {\n    noteUpdated {\n      id\n      patch {\n        title\n        textContent\n      }\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  subscription NotesRouteNoteDeleted {\n    noteDeleted {\n      id\n    }\n  }\n"): (typeof documents)["\n  subscription NotesRouteNoteDeleted {\n    noteDeleted {\n      id\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

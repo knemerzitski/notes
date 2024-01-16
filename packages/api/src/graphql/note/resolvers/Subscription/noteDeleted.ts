@@ -1,24 +1,27 @@
 import { GraphQLResolversContext } from '../../../../graphql/context';
-import type { SubscriptionResolvers } from '../../../../graphql/types.generated';
+import type {
+  NoteDeletedPayload,
+  SubscriptionResolvers,
+} from '../../../../graphql/types.generated';
 
 export const noteDeleted: NonNullable<SubscriptionResolvers['noteDeleted']> = {
   subscribe: (_parent, _arg, { auth, subscribe, denySubscription }) => {
     if (!auth) return denySubscription();
 
-    return subscribe(`NOTE_DELETED:${auth.userId}`);
+    return subscribe(`NOTE_DELETED:USER-${auth.session.user.publicId}`);
   },
-  resolve(id: string) {
-    return id;
+  resolve(payload: NoteDeletedPayload) {
+    return payload;
   },
 };
 
 export async function publishNoteDeleted(
   { publish, auth }: GraphQLResolversContext,
-  id: string
+  payload: NoteDeletedPayload
 ) {
   if (!auth) return;
 
-  return publish(`NOTE_DELETED:${auth.userId}`, {
-    noteDeleted: id,
+  return publish(`NOTE_DELETED:USER-${auth.session.user.publicId}`, {
+    noteDeleted: payload,
   });
 }

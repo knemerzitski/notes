@@ -1,6 +1,5 @@
 import { TypePolicies } from '@apollo/client';
 
-import noteTypePolicies from '../cache/note/typePolicies';
 import localNoteTypePolicies from '../local-state/note/typePolicies';
 import localPreferencesTypePolicies from '../local-state/preferences/typePolicies';
 import localSessionTypePolicies from '../local-state/session/typePolicies';
@@ -14,8 +13,6 @@ const LOG_READ = false;
  * Define all type policies here
  */
 const definedArrayTypePolicies: TypePolicies[] = [
-  noteTypePolicies,
-
   localPreferencesTypePolicies,
   localSessionTypePolicies,
   localNoteTypePolicies,

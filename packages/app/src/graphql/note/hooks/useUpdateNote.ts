@@ -42,7 +42,6 @@ export default function useUpdateNote(): (
           },
         },
       },
-      // TODO update cache
     });
 
     return data?.updateNote.note;

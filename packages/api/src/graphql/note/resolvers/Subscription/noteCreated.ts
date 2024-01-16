@@ -31,7 +31,7 @@ export async function publishNoteCreated(
 ) {
   assertAuthenticated(auth);
 
-  return publish(`NOTE_CREATED:${auth.session.user.publicId}`, {
+  return publish(`NOTE_CREATED:USER-${auth.session.user.publicId}`, {
     noteCreated: payload,
   });
 

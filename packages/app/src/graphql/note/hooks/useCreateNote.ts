@@ -45,7 +45,7 @@ export default function useCreateNote(): (
       update(cache, { data }) {
         if (!data?.createNote) return;
 
-        const note = data.createNote.note;
+        const newNote = data.createNote.note;
 
         cache.updateQuery(
           {
@@ -65,15 +65,19 @@ export default function useCreateNote(): (
             if (!existing) {
               return {
                 notesConnection: {
-                  notes: [note],
+                  notes: [newNote],
                 },
               };
+            }
+
+            if (existing.notesConnection.notes.some((note) => note.id === newNote.id)) {
+              return existing;
             }
 
             return {
               notesConnection: {
                 ...existing.notesConnection,
-                notes: [...existing.notesConnection.notes, note],
+                notes: [...existing.notesConnection.notes, newNote],
               },
             };
           }

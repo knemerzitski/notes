@@ -4,6 +4,7 @@ import { Require_id, Types } from 'mongoose';
 
 import { DBNote } from '../../../../mongoose/models/note';
 import { assertAuthenticated } from '../../../base/directives/auth';
+import { publishNoteDeleted } from '../Subscription/noteDeleted';
 
 import type { MutationResolvers } from './../../../types.generated';
 
@@ -115,8 +116,6 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
 
       await Promise.all([deleteNotePromise, deletedUserNotesPromise, updateUsersPromise]);
     });
-
-    return { deleted: true };
   } else {
     // Unlink note for current user
     await connection.transaction(async (session) => {
@@ -147,6 +146,10 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
       await Promise.all([deletedUserNotesPromise, updateUserPromise]);
     });
   }
+
+  await publishNoteDeleted(ctx, {
+    id: notePublicId,
+  });
 
   return { deleted: true };
 };

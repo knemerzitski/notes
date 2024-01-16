@@ -26,38 +26,9 @@ export default function useDeleteNote(): (id: string) => Promise<boolean> {
         },
       },
       update(cache, { data }) {
-        if (!data?.deleteNote) return;
+        if (!data?.deleteNote.deleted) return;
 
-        cache.updateQuery(
-          {
-            query: gql(`
-              query DeleteNoteUpdateNotesConnection {
-                notesConnection {
-                  notes {
-                    id
-                    title
-                    textContent
-                  }
-                }
-              }
-          `),
-          },
-          (existing) => {
-            if (!existing) return;
-
-            const { notesConnection } = existing;
-
-            const send = {
-              notesConnection: {
-                ...notesConnection,
-                notes: notesConnection.notes.filter((note) => note.id !== id),
-              },
-            };
-            return send;
-          }
-        );
-
-        cache.evict({ id: cache.identify({ id, __typename: 'UserNote' }) });
+        cache.evict({ id: cache.identify({ id, __typename: 'Note' }) });
         cache.gc();
       },
     });

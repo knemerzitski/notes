@@ -1,6 +1,6 @@
 import { useQuery } from '@apollo/client';
 import { Alert, Button } from '@mui/material';
-import { startTransition } from 'react';
+import { startTransition, useEffect } from 'react';
 
 import { gql } from '../__generated__/gql';
 import { useSnackbarError } from '../components/feedback/SnackbarAlertProvider';
@@ -11,7 +11,7 @@ import useDeleteNote from '../graphql/note/hooks/useDeleteNote';
 import { useProxyNavigate, useProxyRouteTransform } from '../router/ProxyRoutesProvider';
 import { useAbsoluteLocation } from '../router/hooks/useAbsoluteLocation';
 
-const QUERY = gql(`
+const QUERY_NOTES = gql(`
   query NotesRouteNotesConnection($last: NonNegativeInt!, $before: String) {
     notesConnection(last: $last, before: $before) {
       notes {
@@ -27,22 +27,47 @@ const QUERY = gql(`
   }
 `);
 
+const SUBSCRIPTION_NOTE_CREATED = gql(`
+  subscription NotesRouteNoteCreated {
+    noteCreated {
+      note {
+        id
+        title
+        textContent
+      }
+    }
+  }
+`);
+const SUBSCRIPTION_NOTE_UPDATED = gql(`
+  subscription NotesRouteNoteUpdated {
+    noteUpdated {
+      id
+      patch {
+        title
+        textContent
+      }
+    }
+  }
+`);
+
+const SUBSCRIPTION_NOTE_DELETED = gql(`
+  subscription NotesRouteNoteDeleted {
+    noteDeleted {
+      id
+    }
+  }
+`);
+
 function noteRoute(noteId: string) {
   return `/note/${noteId}`;
 }
 
 interface NotesRouteProps {
-  perPageCount?: 2;
+  perPageCount?: number;
 }
 
-export default function NotesRoute({ perPageCount = 2 }: NotesRouteProps) {
-  const {
-    data,
-    loading,
-    error,
-    fetchMore,
-    // subscribeToMore,
-  } = useQuery(QUERY, {
+export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
+  const { data, loading, error, fetchMore, subscribeToMore } = useQuery(QUERY_NOTES, {
     variables: {
       last: perPageCount,
     },
@@ -55,55 +80,91 @@ export default function NotesRoute({ perPageCount = 2 }: NotesRouteProps) {
   const transform = useProxyRouteTransform();
   const absoluteLocation = useAbsoluteLocation();
 
-  // useEffect(() => {
-  //   subscribeToMore({
-  //     document: NOTE_CREATED,
-  //     updateQuery(cache, { subscriptionData }) {
-  //       let { notes } = cache;
-  //       if (!notes) notes = [];
+  useEffect(() => {
+    subscribeToMore({
+      document: SUBSCRIPTION_NOTE_CREATED,
+      updateQuery(existing, { subscriptionData }) {
+        const { notesConnection } = existing;
+        const notes = notesConnection.notes;
 
-  //       const newNote = subscriptionData.data.noteCreated;
+        const newNote = subscriptionData.data.noteCreated.note;
 
-  //       if (notes.some((cachedNote) => cachedNote.id === newNote.id)) {
-  //         return cache;
-  //       }
+        if (notes.some((note) => note.id === newNote.id)) {
+          return existing;
+        }
 
-  //       return {
-  //         notes: [newNote, ...notes],
-  //       };
-  //     },
-  //   });
+        return {
+          notesConnection: {
+            ...notesConnection,
+            notes: [...notes, newNote],
+          },
+        };
+      },
+    });
 
-  //   subscribeToMore({
-  //     document: NOTE_UPDATED,
-  //     updateQuery(cache, { subscriptionData }) {
-  //       let { notes } = cache;
-  //       if (!notes) notes = [];
+    subscribeToMore({
+      document: SUBSCRIPTION_NOTE_UPDATED,
+      updateQuery(existing, { subscriptionData }) {
+        const { notesConnection } = existing;
+        const notes = notesConnection.notes;
 
-  //       const updatedNote = subscriptionData.data.noteUpdated;
+        const noteUpdate = subscriptionData.data.noteUpdated;
 
-  //       return {
-  //         notes: notes.map((cachedNote) =>
-  //           cachedNote.id === updatedNote.id ? updatedNote : cachedNote
-  //         ),
-  //       };
-  //     },
-  //   });
+        const existingNoteIndex = notes.findIndex((note) => note.id === noteUpdate.id);
 
-  //   subscribeToMore({
-  //     document: NOTE_DELETED,
-  //     updateQuery(cache, { subscriptionData }) {
-  //       let { notes } = cache;
-  //       if (!notes) notes = [];
+        if (existingNoteIndex) {
+          const existingNote = notes[existingNoteIndex];
+          const updatedNote = {
+            ...existingNote,
+            title: noteUpdate.patch.title ?? existingNote.title,
+            textContent: noteUpdate.patch.textContent ?? existingNote.textContent,
+          };
+          return {
+            notesConnection: {
+              ...notesConnection,
+              notes: [
+                ...notes.slice(0, existingNoteIndex),
+                updatedNote,
+                ...notes.slice(existingNoteIndex + 1),
+              ],
+            },
+          };
+        } else {
+          // A note was updated that doesn't exist in cache? Create it.
+          return {
+            notesConnection: {
+              ...notesConnection,
+              notes: [
+                ...notes,
+                {
+                  id: noteUpdate.id,
+                  title: noteUpdate.patch.title ?? '',
+                  textContent: noteUpdate.patch.textContent ?? '',
+                },
+              ],
+            },
+          };
+        }
+      },
+    });
 
-  //       const deletedId = subscriptionData.data.noteDeleted;
+    subscribeToMore({
+      document: SUBSCRIPTION_NOTE_DELETED,
+      updateQuery(existing, { subscriptionData }) {
+        const { notesConnection } = existing;
+        const notes = notesConnection.notes;
 
-  //       return {
-  //         notes: notes.filter((cachedNote) => cachedNote.id !== deletedId),
-  //       };
-  //     },
-  //   });
-  // }, [subscribeToMore]);
+        const deletedId = subscriptionData.data.noteDeleted.id;
+
+        return {
+          notesConnection: {
+            ...notesConnection,
+            notes: notes.filter((note) => note.id !== deletedId),
+          },
+        };
+      },
+    });
+  }, [subscribeToMore]);
 
   if (error) {
     return (
@@ -197,11 +258,6 @@ export default function NotesRoute({ perPageCount = 2 }: NotesRouteProps) {
         slotProps={{
           createNoteWidget: {
             onCreated: handleWidgetNoteCreated,
-            slotProps: {
-              contentField: {
-                placeholder: 'Take a local note...',
-              },
-            },
           },
           notesList: {
             loading,

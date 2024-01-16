@@ -2,8 +2,9 @@ import { GraphQLError } from 'graphql';
 import { ObjectId } from 'mongodb';
 
 import { assertAuthenticated } from '../../../base/directives/auth';
+import { publishNoteUpdated } from '../Subscription/noteUpdated';
 
-import type { MutationResolvers } from './../../../types.generated';
+import type { MutationResolvers, UpdateNotePayload } from './../../../types.generated';
 
 export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
   _parent,
@@ -97,7 +98,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
     await Promise.all(updatePromises);
   });
 
-  return {
+  const updatedNotePayload: UpdateNotePayload = {
     note: {
       id: notePublicId,
       title: patch.title ?? note.title ?? '',
@@ -108,4 +109,17 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
       },
     },
   };
+
+  await publishNoteUpdated(ctx, {
+    id: updatedNotePayload.note.id,
+    patch: {
+      title: updatedNotePayload.note.title,
+      textContent: updatedNotePayload.note.textContent,
+      preferences: {
+        backgroundColor: updatedNotePayload.note.preferences.backgroundColor,
+      },
+    },
+  });
+
+  return updatedNotePayload;
 };
