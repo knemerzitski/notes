@@ -11,7 +11,8 @@
     "eslint.validate": ["graphql"],
     "explorer.fileNesting.enabled": true,
     "explorer.fileNesting.patterns": {
-      "*.ts": "${capture}.js, ${capture}.*.ts"
+      "*.ts": "${capture}.js, ${capture}.*.ts",
+      "*.tsx": "${capture}.jsx, ${capture}.*.tsx"
     },
     // Disable VSCode vitest as it doesn't support monorepo
     "vitest.exclude": ["**"]

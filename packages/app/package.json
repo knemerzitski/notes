@@ -10,7 +10,9 @@
     "preview": "vite preview --host",
     "graphql:compile": "graphql-codegen",
     "graphql:watch": "graphql-codegen -w",
-    "dev": "npm run vite:dev & npm run graphql:watch"
+    "dev": "npm run vite:dev & npm run graphql:watch",
+    "cypress": "cypress open",
+    "test:comp": "cypress run --component"
   },
   "dependencies": {
     "@apollo/client": "^3.8.7",
@@ -26,7 +28,9 @@
     "@typescript-eslint/eslint-plugin": "^6.11.0",
     "@typescript-eslint/parser": "^6.11.0",
     "@vitejs/plugin-react-swc": "^3.3.2",
+    "cypress": "^13.6.3",
     "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-cypress": "^2.15.1",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",

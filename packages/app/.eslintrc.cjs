@@ -35,5 +35,12 @@ module.exports = {
         'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       },
     },
+    {
+      files: ['src/**/*.cy.[jt]s?(x)'],
+      extends: ['plugin:cypress/recommended'],
+      env: {
+        'cypress/globals': true,
+      },
+    },
   ],
 };
