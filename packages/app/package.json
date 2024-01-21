@@ -28,6 +28,7 @@
     "@typescript-eslint/eslint-plugin": "^6.11.0",
     "@typescript-eslint/parser": "^6.11.0",
     "@vitejs/plugin-react-swc": "^3.3.2",
+    "apollo-link-debounce": "^3.0.0",
     "cypress": "^13.6.3",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-cypress": "^2.15.1",

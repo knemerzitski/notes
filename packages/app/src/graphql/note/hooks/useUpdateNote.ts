@@ -20,7 +20,7 @@ type PartialNote = Pick<Note, 'id' | 'title' | 'textContent'>;
 export default function useUpdateNote(): (
   note: PartialNote
 ) => Promise<PartialNote | undefined> {
-  const [updateNote] = useMutation(MUTATION);
+  const [updateNote, { client }] = useMutation(MUTATION);
 
   return async (note) => {
     const { data } = await updateNote({
@@ -33,14 +33,10 @@ export default function useUpdateNote(): (
           },
         },
       },
-      optimisticResponse: {
-        updateNote: {
-          note: {
-            id: note.id,
-            title: note.title,
-            textContent: note.textContent,
-          },
-        },
+      context: {
+        debounceKey:
+          'UseUpdateNote' +
+          client.cache.identify({ id: String(note.id), __typename: 'Note' }),
       },
     });
 
