@@ -1,8 +1,8 @@
 import { SFNClient, StartExecutionCommand } from '@aws-sdk/client-sfn';
 
-import { Logger } from '~common/logger';
 import { PingPongMachineInput } from '~lambda-graphql/context/pingpong';
 import { PingPongHandler } from '~lambda-graphql/ping-pong-handler';
+import { Logger } from '~utils/logger';
 
 import { createLambdaContext } from './lambda-context';
 

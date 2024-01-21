@@ -14,8 +14,8 @@ import {
   validateMessage,
 } from 'graphql-ws';
 
-import { Logger } from '~common/logger';
-import { MaybePromise } from '~common/types';
+import { Logger } from '~utils/logger';
+import { MaybePromise } from '~utils/types';
 
 import {
   ApiGatewayContextParams,

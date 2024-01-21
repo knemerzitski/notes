@@ -30,7 +30,7 @@
     "noUncheckedIndexedAccess": true,
     "paths": {
       "~/*": ["./src/*"],
-      "~common/*": ["../common/src/*"],
+      "~utils/*": ["../utils/src/*"],
       "~api/*": ["../api/src/*"],
       "~lambda-graphql/*": ["../lambda-graphql/src/*"]
     }

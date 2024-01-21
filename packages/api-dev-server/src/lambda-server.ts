@@ -6,9 +6,9 @@ import cors from 'cors';
 import express from 'express';
 import { WebSocketServer, WebSocket } from 'ws';
 
-import { Logger } from '~common/logger';
 import { WebSocketConnectHandler } from '~lambda-graphql/connect-handler';
 import { WebSocketDisconnectHandler } from '~lambda-graphql/disconnect-handler';
+import { Logger } from '~utils/logger';
 
 import { apiGatewayProxyHandlerMiddleware } from './handler/lambda-middleware';
 import { apiGatewayProxyWebSocketHandler } from './handler/lambda-websocket';

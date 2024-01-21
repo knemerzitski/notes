@@ -1,10 +1,10 @@
 import { APIGatewayProxyWebsocketHandlerV2 } from 'aws-lambda';
 
-import { createLogger } from '~common/logger';
 import {
   createWebSocketDisconnectHandler,
   WebSocketDisconnectHandlerParams,
 } from '~lambda-graphql/disconnect-handler';
+import { createLogger } from '~utils/logger';
 
 import {
   BaseGraphQLContext,

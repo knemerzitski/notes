@@ -4,7 +4,7 @@
     "packages/api",
     "packages/api-dev-server",
     "packages/app",
-    "packages/common",
+    "packages/utils",
     "packages/lambda-graphql"
   ],
   "private": true,

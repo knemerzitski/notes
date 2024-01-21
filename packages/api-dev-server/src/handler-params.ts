@@ -6,12 +6,12 @@ import {
 } from '~api/handler-params';
 import { createMongooseContext } from '~api/mongoose/lambda-context';
 import { createMongooseModels } from '~api/mongoose/models';
-import { createLogger } from '~common/logger';
 import { ApiGatewayContextParams } from '~lambda-graphql/context/apigateway';
 import { DynamoDBContextParams } from '~lambda-graphql/context/dynamodb';
 import { GraphQLContextParams } from '~lambda-graphql/context/graphql';
 import { PingPongContextParams } from '~lambda-graphql/context/pingpong';
 import { createPingPongHandler } from '~lambda-graphql/ping-pong-handler';
+import { createLogger } from '~utils/logger';
 
 import { MockApiGatewayManagementApiClient } from './utils/mock-apigatewaymanagementapi';
 import { MockPingPongSFNClient } from './utils/mock-pingpong-sfnclient';

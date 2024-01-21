@@ -5,8 +5,8 @@ import {
 } from 'aws-lambda';
 import express from 'express';
 
-import { isArray } from '~common/isArray';
-import { Logger } from '~common/logger';
+import { isArray } from '~utils/isArray';
+import { Logger } from '~utils/logger';
 
 import apiGatewayProxyEventFixture from '../../fixtures/apiGatewayProxyEvent.json';
 import { getDistinctMultiValueHeaders } from '../utils/headers';

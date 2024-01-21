@@ -1,7 +1,7 @@
 import { IExecutableSchemaDefinition, makeExecutableSchema } from '@graphql-tools/schema';
 import { GraphQLSchema } from 'graphql';
 
-import { Logger } from '~common/logger';
+import { Logger } from '~utils/logger';
 
 export interface GraphQLContextParams<TContext> {
   typeDefs: IExecutableSchemaDefinition<TContext>['typeDefs'];

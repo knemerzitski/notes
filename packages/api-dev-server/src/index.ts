@@ -12,12 +12,12 @@ import {
 } from '~api/graphql/context';
 import { newExpireAt, tryRefreshExpireAt } from '~api/graphql/session/expire';
 import { createDefaultDynamoDBConnectionTtlContext } from '~api/handler-params';
-import { createLogger } from '~common/logger';
 import { createApolloHttpHandler } from '~lambda-graphql/apollo-http-handler';
 import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
 import { createWebSocketConnectHandler } from '~lambda-graphql/connect-handler';
 import { createWebSocketDisconnectHandler } from '~lambda-graphql/disconnect-handler';
 import { createWebSocketMessageHandler } from '~lambda-graphql/message-handler';
+import { createLogger } from '~utils/logger';
 
 import {
   createMockApiGatewayParams,

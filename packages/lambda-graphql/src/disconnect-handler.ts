@@ -8,9 +8,9 @@ import {
 import { GraphQLSchema, parse } from 'graphql';
 import { buildExecutionContext } from 'graphql/execution/execute';
 
-import { isArray } from '~common/isArray';
-import { Logger } from '~common/logger';
-import { Maybe, MaybePromise } from '~common/types';
+import { isArray } from '~utils/isArray';
+import { Logger } from '~utils/logger';
+import { Maybe, MaybePromise } from '~utils/types';
 
 import { WebSocketConnectEventEvent } from './connect-handler';
 import { DynamoDBContextParams, createDynamoDbContext } from './context/dynamodb';

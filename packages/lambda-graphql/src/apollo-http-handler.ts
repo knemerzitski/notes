@@ -3,7 +3,7 @@ import { ApolloServer } from '@apollo/server';
 import { APIGatewayProxyEvent, APIGatewayProxyHandler } from 'aws-lambda';
 import { GraphQLSchema } from 'graphql';
 
-import { Logger } from '~common/logger';
+import { Logger } from '~utils/logger';
 
 import parseGraphQLRequestEvent from './apigateway-proxy-event/parseGraphQLRequestEvent';
 import {

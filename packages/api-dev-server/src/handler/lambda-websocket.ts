@@ -8,13 +8,13 @@ import {
 } from 'aws-lambda';
 import { WebSocket } from 'ws';
 
-import { isArray } from '~common/isArray';
-import { Logger } from '~common/logger';
 import {
   WebSocketConnectEventEvent,
   WebSocketConnectHandler,
 } from '~lambda-graphql/connect-handler';
 import { WebSocketDisconnectHandler } from '~lambda-graphql/disconnect-handler';
+import { isArray } from '~utils/isArray';
+import { Logger } from '~utils/logger';
 
 import fixtureWebSocketEventConnect from '../../fixtures/websocket/CONNECT.json';
 import fixtureWebSocketEventDisconnect from '../../fixtures/websocket/DISCONNECT.json';

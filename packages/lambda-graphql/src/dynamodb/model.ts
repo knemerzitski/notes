@@ -9,7 +9,7 @@ import {
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 
-import { Logger } from '~common/logger';
+import { Logger } from '~utils/logger';
 
 // import { ReturnValue } from @aws-sdk/client-dynamodb is not available in AWS Lambda
 enum ReturnValue {

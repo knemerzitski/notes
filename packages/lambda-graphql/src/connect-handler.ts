@@ -7,8 +7,8 @@ import {
 } from 'aws-lambda';
 import { GRAPHQL_TRANSPORT_WS_PROTOCOL } from 'graphql-ws';
 
-import { Logger } from '~common/logger';
-import { Maybe, MaybePromise } from '~common/types';
+import { Logger } from '~utils/logger';
+import { Maybe, MaybePromise } from '~utils/types';
 
 import { DynamoDBContextParams, createDynamoDbContext } from './context/dynamodb';
 import {

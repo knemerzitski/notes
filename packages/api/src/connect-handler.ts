@@ -1,11 +1,11 @@
 import { APIGatewayProxyWebsocketHandlerV2 } from 'aws-lambda';
 
-import { createLogger } from '~common/logger';
 import {
   createWebSocketConnectHandler,
   WebSocketConnectEventEvent,
   WebSocketConnectHandlerParams,
 } from '~lambda-graphql/connect-handler';
+import { createLogger } from '~utils/logger';
 
 import { BaseGraphQLContext, MongooseGraphQLContext } from './graphql/context';
 import { getSessionUserFromHeaders } from './graphql/session/parse-cookies';

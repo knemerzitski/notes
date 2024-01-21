@@ -1,4 +1,4 @@
-import { isArray } from '~common/isArray';
+import { isArray } from '~utils/isArray';
 
 import { MongooseGraphQLContext } from '../../graphql/context';
 import { DBSession } from '../../mongoose/models/session';

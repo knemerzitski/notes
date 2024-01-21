@@ -1,6 +1,6 @@
 import { Connection, createConnection, ConnectOptions } from 'mongoose';
 
-import { Logger } from '~common/logger';
+import { Logger } from '~utils/logger';
 
 export interface MongooseContextParams<TModels> {
   uri: string;

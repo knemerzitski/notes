@@ -1,11 +1,11 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
 
-import { createLogger } from '~common/logger';
 import {
   createApolloHttpHandler,
   CreateApolloHttpHandlerParams,
 } from '~lambda-graphql/apollo-http-handler';
 import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
+import { createLogger } from '~utils/logger';
 
 import { BaseGraphQLContext, GraphQLResolversContext } from './graphql/context';
 import { newExpireAt, tryRefreshExpireAt } from './graphql/session/expire';

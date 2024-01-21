@@ -3,7 +3,7 @@ import { parse } from 'graphql';
 import { buildExecutionContext } from 'graphql/execution/execute';
 import { MessageType } from 'graphql-ws';
 
-import { isArray } from '~common/isArray';
+import { isArray } from '~utils/isArray';
 
 import { OnConnectGraphQLContext } from '../dynamodb/models/connection';
 import { MessageHandler } from '../message-handler';

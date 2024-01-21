@@ -6,7 +6,7 @@ import {
 } from '@aws-sdk/client-apigatewaymanagementapi';
 import { Message } from 'graphql-ws';
 
-import { Logger } from '~common/logger';
+import { Logger } from '~utils/logger';
 
 export interface ApiGatewayContextParams {
   newClient: (

@@ -1,7 +1,7 @@
 import { GraphQLError } from 'graphql';
 import { ExecutionContext } from 'graphql/execution/execute';
 
-import { MaybePromise } from '~common/types';
+import { MaybePromise } from '~utils/types';
 
 import getResolverArgs from '../graphql/getResolverArgs';
 

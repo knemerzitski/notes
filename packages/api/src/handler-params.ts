@@ -2,11 +2,11 @@ import { ApiGatewayManagementApiClient } from '@aws-sdk/client-apigatewaymanagem
 import { STSClient, AssumeRoleCommand } from '@aws-sdk/client-sts';
 import { ServerApiVersion } from 'mongodb';
 
-import { Logger } from '~common/logger';
 import { ApiGatewayContextParams } from '~lambda-graphql/context/apigateway';
 import { DynamoDBContextParams } from '~lambda-graphql/context/dynamodb';
 import { GraphQLContextParams } from '~lambda-graphql/context/graphql';
 import { ConnectionTtlContext } from '~lambda-graphql/dynamodb/models/connection';
+import { Logger } from '~utils/logger';
 
 import { defaultTtl, tryRefreshTtl } from './dynamodb/connection-ttl';
 import { applyDirectives, applySubscriptionDirectives } from './graphql/directives';
