@@ -5,7 +5,8 @@ import { useMemo } from 'react';
 import GlobalStyles from './GlobalStyles';
 import { gql } from './__generated__/gql';
 import { ColorMode } from './__generated__/graphql';
-import { apolloClient } from './apollo/apollo-client';
+import { apolloClient, statsLink } from './apollo/apollo-client';
+import { ApolloStatsLinkProvider } from './apollo/providers/StatsLinkProvider';
 import RouterProvider from './router/RouterProvider';
 import themeOptions from './themeOptions';
 
@@ -34,11 +35,13 @@ export default function App() {
 
   return (
     <ApolloProvider client={apolloClient}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <GlobalStyles />
-        <RouterProvider />
-      </ThemeProvider>
+      <ApolloStatsLinkProvider statsLink={statsLink}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <GlobalStyles />
+          <RouterProvider />
+        </ThemeProvider>
+      </ApolloStatsLinkProvider>
     </ApolloProvider>
   );
 }

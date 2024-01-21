@@ -1,4 +1,5 @@
 import { useSuspenseQuery } from '@apollo/client';
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { gql } from '../../../__generated__/gql';
@@ -20,6 +21,18 @@ const QUERY = gql(`
   }
 `);
 
+// const SUBSCRIPTION_UPDATED = gql(`
+//   subscription NotesRouteNoteUpdated {
+//     noteUpdated {
+//       id
+//       patch {
+//         title
+//         textContent
+//       }
+//     }
+//   }
+// `);
+
 function RouteClosableEditNoteDialog({
   open,
   onClosing,
@@ -27,35 +40,52 @@ function RouteClosableEditNoteDialog({
 }: RouteClosableComponentProps) {
   const params = useParams<'id'>();
 
-  const { data /* , subscribeToMore */ } = useSuspenseQuery(QUERY, {
+  const { data, client } = useSuspenseQuery(QUERY, {
     variables: {
       id: params.id ?? '',
     },
   });
 
+  const noteId = String(data.note.id);
+
+  const [note, setNote] = useState<NoteEditorProps['note']>({
+    title: data.note.title,
+    content: data.note.textContent,
+  });
+
   const updateNote = useUpdateNote();
   const deleteNote = useDeleteNote();
 
+  // TODO fix: subscription overwrites current changes
   // useEffect(() => {
   //   subscribeToMore({
-  //     document: NOTE_UPDATED,
-  //     updateQuery(_cache, { subscriptionData }) {
-  //       const updatedNote = subscriptionData.data.noteUpdated;
+  //     document: SUBSCRIPTION_UPDATED,
+  //     updateQuery(existing, { subscriptionData }) {
+  //       const existingNote = existing.note;
+  //       const noteUpdate = subscriptionData.data.noteUpdated;
+
+  //       const updatedNote = {
+  //         ...existingNote,
+  //         title: noteUpdate.patch.title ?? existingNote.title,
+  //         textContent: noteUpdate.patch.textContent ?? existingNote.textContent,
+  //       };
+  //       setNote({
+  //         title: noteUpdate.patch.title ?? note.title,
+  //         content: noteUpdate.patch.textContent ?? note.content,
+  //       });
+
   //       return {
   //         note: updatedNote,
   //       };
   //     },
   //   });
-  // }, [subscribeToMore]);
-
-  const noteId = String(data.note.id);
-
-  const note: NoteEditorProps['note'] = {
-    title: data.note.title,
-    content: data.note.textContent,
-  };
+  // }, [subscribeToMore, setNote, note]);
 
   const handleChangedNote: NoteEditorProps['onChange'] = async ({ title, content }) => {
+    setNote({
+      title,
+      content,
+    });
     await updateNote({
       id: noteId,
       title,
@@ -67,13 +97,30 @@ function RouteClosableEditNoteDialog({
     return deleteNote(noteId);
   }
 
+  function handleClosed() {
+    client.cache.writeFragment({
+      id: client.cache.identify({ id: noteId, __typename: 'Note' }),
+      fragment: gql(`
+        fragment EditNoteDialogRouteUpdateNote on Note {
+          title
+          textContent
+        }
+      `),
+      data: {
+        title: note.title,
+        textContent: note.content,
+      },
+    });
+    onClosed();
+  }
+
   return (
     <EditNoteDialog
       slotProps={{
         dialog: {
           open,
           onClose: onClosing,
-          onTransitionExited: onClosed,
+          onTransitionExited: handleClosed,
         },
         editor: {
           onClose: onClosing,

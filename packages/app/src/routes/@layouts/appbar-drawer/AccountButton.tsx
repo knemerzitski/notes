@@ -184,7 +184,6 @@ export default function AccountButton(props: IconButtonProps) {
         id={buttonId}
         color="inherit"
         aria-label="account options"
-        size="medium"
         aria-controls={menuOpen ? menuId : undefined}
         aria-haspopup={true}
         aria-expanded={menuOpen ? true : undefined}

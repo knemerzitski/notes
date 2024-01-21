@@ -29,7 +29,6 @@ export default function SettingsButton(props: IconButtonProps) {
         id={buttonId}
         color="inherit"
         aria-label="app options menu"
-        size="large"
         aria-controls={menuOpen ? menuId : undefined}
         aria-haspopup={true}
         aria-expanded={menuOpen ? true : undefined}

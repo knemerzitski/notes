@@ -32,6 +32,7 @@ const documents = {
     "\n  query LocalNotesRoute {\n    localNotes @client {\n      id\n      title\n      textContent\n    }\n  }\n": types.LocalNotesRouteDocument,
     "\n  query LocalEditNoteDialogRoute($id: ID!) {\n    localNote(id: $id) @client {\n      id\n      title\n      textContent\n    }\n  }\n": types.LocalEditNoteDialogRouteDocument,
     "\n  query EditNoteDialogRoute($id: ID!) {\n    note(id: $id) {\n      id\n      title\n      textContent\n    }\n  }\n": types.EditNoteDialogRouteDocument,
+    "\n        fragment EditNoteDialogRouteUpdateNote on Note {\n          title\n          textContent\n        }\n      ": types.EditNoteDialogRouteUpdateNoteFragmentDoc,
 };
 
 /**
@@ -124,6 +125,10 @@ export function gql(source: "\n  query LocalEditNoteDialogRoute($id: ID!) {\n   
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(source: "\n  query EditNoteDialogRoute($id: ID!) {\n    note(id: $id) {\n      id\n      title\n      textContent\n    }\n  }\n"): (typeof documents)["\n  query EditNoteDialogRoute($id: ID!) {\n    note(id: $id) {\n      id\n      title\n      textContent\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n        fragment EditNoteDialogRouteUpdateNote on Note {\n          title\n          textContent\n        }\n      "): (typeof documents)["\n        fragment EditNoteDialogRouteUpdateNote on Note {\n          title\n          textContent\n        }\n      "];
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};

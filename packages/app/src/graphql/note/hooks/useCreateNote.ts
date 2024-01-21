@@ -36,6 +36,7 @@ export default function useCreateNote(): (
       optimisticResponse: {
         createNote: {
           note: {
+            __typename: 'Note',
             id: 'CreateNote',
             title,
             textContent: content,
