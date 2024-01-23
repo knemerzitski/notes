@@ -1,11 +1,7 @@
 {
   "name": "notes",
   "workspaces": [
-    "packages/api",
-    "packages/api-dev-server",
-    "packages/app",
-    "packages/utils",
-    "packages/lambda-graphql"
+    "packages/*"
   ],
   "private": true,
   "type": "module",
