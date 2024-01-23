@@ -193,6 +193,28 @@ describe('changeset', () => {
         );
       });
     });
+
+    describe('compact', () => {
+      it.each([
+        ['concats two strings', ['hello', ' world'], ['hello world']],
+        [
+          'concats continious strips of strings between indices',
+          ['a', 'b', 10, 'c', 'd', 'ef'],
+          ['ab', 10, 'cdef'],
+        ],
+        [
+          'concats continious index, range and string',
+          [[1, 3], 4, 5, 'ab', 'cd', 6, 7, [8, 14], 'c', 11, 12],
+          [[1, 5], 'abcd', [6, 14], 'c', [11, 12]],
+        ],
+      ])('%s: %s.compact() = %s', (_msg, input, expected) => {
+        expect(
+          Strips.deserialize(...input)
+            .compact()
+            .serialize()
+        ).toStrictEqual(expected);
+      });
+    });
   });
 
   describe('Changeset', () => {

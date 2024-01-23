@@ -144,6 +144,32 @@ export class Strips<T = string> {
   }
 
   /**
+   * @returns Returns a new representation of strips that takes up the least
+   * amount of memory.
+   */
+  compact(): Strips<T> {
+    if (this.values.length <= 1) return this;
+
+    const newValues = this.values.reduce<Strip<T>[]>((compactedStrips, strip) => {
+      if (compactedStrips.length === 0) {
+        compactedStrips.push(strip);
+      } else {
+        const concatStrips = compactedStrips[compactedStrips.length - 1]?.concat(strip);
+        if (concatStrips) {
+          if (concatStrips.values.length > 1) {
+            compactedStrips.push(strip);
+          } else if (concatStrips.values[0]) {
+            compactedStrips.splice(-1, 1, concatStrips.values[0]);
+          }
+        }
+      }
+      return compactedStrips;
+    }, []);
+
+    return new Strips(...newValues);
+  }
+
+  /**
    * Create strips from primitives
    * string => StringStrip
    * number => IndexStrip
