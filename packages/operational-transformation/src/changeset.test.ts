@@ -200,8 +200,8 @@ describe('changeset', () => {
       it('serializes as [l0,l1,[...strips]]', () => {
         expect(
           new Changeset({
-            beforeLen: 2,
-            afterLen: 4,
+            requiredLength: 2,
+            length: 4,
             strips: Strips.deserialize('ab'),
           }).serialize()
         ).toStrictEqual([2, 4, ['ab']]);

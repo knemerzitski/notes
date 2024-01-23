@@ -164,8 +164,8 @@ export class Strips<T = string> {
 }
 
 interface ChangesetOptions<T = string> {
-  beforeLen?: number;
-  afterLen?: number;
+  requiredLength?: number;
+  length?: number;
   strips: Strips<T>;
 }
 
@@ -173,14 +173,23 @@ interface ChangesetOptions<T = string> {
  * Represents a change to a document.
  */
 export class Changeset<T = string> {
-  readonly beforeLen: number;
-  readonly afterLen: number;
+  /**
+   * Length of the document before the change.
+   * Required length to be able to apply to a document.
+   */
+  readonly requiredLength: number;
+
+  /**
+   * Length of the document after the change.
+   */
+  readonly length: number;
+
   readonly strips: Strips<T>;
 
   constructor(options: ChangesetOptions<T>) {
     this.strips = options.strips;
-    this.beforeLen = options.beforeLen ?? options.strips.calcMaxIndex() + 1;
-    this.afterLen = options.afterLen ?? options.strips.calcTotalLength();
+    this.requiredLength = options.requiredLength ?? options.strips.calcMaxIndex() + 1;
+    this.length = options.length ?? options.strips.calcTotalLength();
   }
 
   /**
@@ -193,10 +202,10 @@ export class Changeset<T = string> {
    */
   slice(start = 0, end?: number): Strips<T> {
     if (start < 0) {
-      start = (start % this.afterLen) + this.afterLen;
+      start = (start % this.length) + this.length;
     }
     if (end && end < 0) {
-      end = (end % this.afterLen) + this.afterLen + 1;
+      end = (end % this.length) + this.length + 1;
     }
     return this.strips.slice(start, end);
   }
@@ -221,8 +230,8 @@ export class Changeset<T = string> {
       Array.isArray(value[2])
     ) {
       return new Changeset({
-        beforeLen: value[0],
-        afterLen: value[1],
+        requiredLength: value[0],
+        length: value[1],
         strips: Strips.deserialize(value[2]),
       });
     }
@@ -231,10 +240,10 @@ export class Changeset<T = string> {
   }
 
   serialize() {
-    return [this.beforeLen, this.afterLen, this.strips.serialize()];
+    return [this.requiredLength, this.length, this.strips.serialize()];
   }
 
   toString() {
-    return `(${this.beforeLen} -> ${this.afterLen})[${String(this.strips)}]`;
+    return `(${this.requiredLength} -> ${this.length})[${String(this.strips)}]`;
   }
 }
