@@ -57,7 +57,6 @@ export abstract class Strip<T = string> {
    * [number,number] => RangeStrip
    */
   static deserialize(value: unknown) {
-    console.log(value);
     if (typeof value === 'string') {
       return new StringStrip(value);
     } else if (typeof value === 'number') {
