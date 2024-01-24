@@ -5,7 +5,7 @@ import Strips from './Strips';
 /**
  * Represents a retained character from the original document.
  */
-export default class IndexStrip<T> implements Strip<T> {
+export default class IndexStrip<T = string> implements Strip<T> {
   readonly index: number;
 
   constructor(index: number) {

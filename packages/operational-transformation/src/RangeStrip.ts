@@ -5,7 +5,7 @@ import Strips from './Strips';
 /**
  * Represents retained characters range in the original document.
  */
-export default class RangeStrip<T> implements Strip<T> {
+export default class RangeStrip<T = string> implements Strip<T> {
   readonly startIndex: number;
 
   /**
