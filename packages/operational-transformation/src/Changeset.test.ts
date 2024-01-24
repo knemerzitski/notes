@@ -57,4 +57,27 @@ describe('Changeset', () => {
       }
     });
   });
+
+  describe.only('compose', () => {
+    it.each([
+      [
+        'simple hello world',
+        [0, 5, ['hello']],
+        [5, 11, [[0, 4], ' world']],
+        [0, 11, ['hello world']],
+      ],
+      [
+        'overlap retained characters with insertions',
+        [0, 18, ['hi', [2, 5], 'after range', 6, 'c']],
+        [18, 16, [[0, 3], 'before', [11, 16], ' ', 18]],
+        [0, 16, ['hi', [2, 3], 'before range c']],
+      ],
+    ])('%s: %s.compose(%s) = %s', (_msg, left, right, expected) => {
+      const leftChangeset = Changeset.deserialize(left);
+      const rightChangeset = Changeset.deserialize(right);
+      const composedChangeset = leftChangeset.compose(rightChangeset);
+
+      expect(composedChangeset.serialize()).toStrictEqual(expected);
+    });
+  });
 });

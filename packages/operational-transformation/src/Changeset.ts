@@ -60,6 +60,35 @@ export default class Changeset<T = string> {
     return;
   }
 
+  compose(other: Changeset<T>): Changeset<T> {
+    if (this.length < other.requiredLength) {
+      throw new Error(
+        `Unable to compose: ${String(this)} * ${String(other)}. this length ${
+          this.length
+        } is less than required length ${other.requiredLength}`
+      );
+    }
+
+    return new Changeset({
+      requiredLength: this.requiredLength,
+      length: other.length,
+      strips: new Strips(
+        ...other.strips.values.flatMap((strip) => strip.reference(this.strips).values)
+      ).compact(),
+    });
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  merge(other: Changeset<T>): Changeset<T> {
+    throw new Error('Not implemented');
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  follow(other: Changeset<T>): Changeset<T> {
+    throw new Error('Not implemented');
+  }
+
+  // TODO test
   static deserialize(value: unknown) {
     if (
       Array.isArray(value) &&
@@ -70,7 +99,8 @@ export default class Changeset<T = string> {
       return new Changeset({
         requiredLength: value[0],
         length: value[1],
-        strips: Strips.deserialize(value[2]),
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        strips: Strips.deserialize(...value[2]),
       });
     }
 
