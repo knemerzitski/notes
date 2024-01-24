@@ -19,7 +19,7 @@ export function createMockStrip(str: string): MockStrip {
 }
 
 export function createMockStrips(strs: string[]): Strips {
-  return new Strips(...strs.map((str) => createMockStrip(str)));
+  return new Strips(strs.map((str) => createMockStrip(str)));
 }
 
 export function getMockStripValues(strips: Strips) {

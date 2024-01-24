@@ -17,7 +17,7 @@ export default abstract class Strip<T = string> {
       return this;
     },
     concat<U>(strip: Strip<U>) {
-      return new Strips<U>(strip);
+      return Strips.from<U>(strip);
     },
     toPOJO() {
       return;

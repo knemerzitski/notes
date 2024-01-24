@@ -10,12 +10,12 @@ import {
 
 describe('Changeset', () => {
   describe('static', () => {
-    it('serializes as [l0,l1,[...strips]]', () => {
+    it('serializes as [l0,l1,[strip,strip,...]]', () => {
       expect(
         new Changeset({
           requiredLength: 2,
           length: 4,
-          strips: Strips.fromPOJO('ab'),
+          strips: Strips.fromPOJO(['ab']),
         }).toPOJO()
       ).toStrictEqual([2, 4, ['ab']]);
     });

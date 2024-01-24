@@ -15,12 +15,12 @@ describe('IndexStrip', () => {
 
   describe('reference', () => {
     it.each([
-      [3, ['abcdef'], 'd'],
-      [2, ['ab', 'cd'], 'c'],
+      [3, ['abcdef'], ['d']],
+      [2, ['ab', 'cd'], ['c']],
     ])('%s.reference(%s) = %s', (index, stripsArr, expected) => {
-      expect(
-        new IndexStrip(index).reference(Strips.fromPOJO(...stripsArr))
-      ).toStrictEqual(Strips.fromPOJO(expected));
+      expect(new IndexStrip(index).reference(Strips.fromPOJO(stripsArr))).toStrictEqual(
+        Strips.fromPOJO(expected)
+      );
     });
   });
 
@@ -31,37 +31,37 @@ describe('IndexStrip', () => {
   describe('concat', () => {
     it('concats two adjacent increasing numbers', () => {
       expect(new IndexStrip(3).concat(new IndexStrip(4))).toStrictEqual(
-        new Strips(new RangeStrip(3, 4))
+        Strips.from(new RangeStrip(3, 4))
       );
     });
 
     it('keeps reverse order numbers separate', () => {
       expect(new IndexStrip(4).concat(new IndexStrip(3))).toStrictEqual(
-        new Strips(new IndexStrip(4), new IndexStrip(3))
+        Strips.from(new IndexStrip(4), new IndexStrip(3))
       );
     });
 
     it('keeps numbers with gap separate', () => {
       expect(new IndexStrip(4).concat(new IndexStrip(6))).toStrictEqual(
-        new Strips(new IndexStrip(4), new IndexStrip(6))
+        Strips.from(new IndexStrip(4), new IndexStrip(6))
       );
     });
 
     it('concats left adjancent index and range', () => {
       expect(new IndexStrip(4).concat(new RangeStrip(5, 6))).toStrictEqual(
-        new Strips(new RangeStrip(4, 6))
+        Strips.from(new RangeStrip(4, 6))
       );
     });
 
     it('keeps index and range with gap separate', () => {
       expect(new IndexStrip(4).concat(new RangeStrip(6, 8))).toStrictEqual(
-        new Strips(new IndexStrip(4), new RangeStrip(6, 8))
+        Strips.from(new IndexStrip(4), new RangeStrip(6, 8))
       );
     });
 
     it('keeps index next to endIndex in range separate', () => {
       expect(new IndexStrip(9).concat(new RangeStrip(6, 8))).toStrictEqual(
-        new Strips(new IndexStrip(9), new RangeStrip(6, 8))
+        Strips.from(new IndexStrip(9), new RangeStrip(6, 8))
       );
     });
   });

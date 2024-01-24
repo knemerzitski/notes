@@ -73,7 +73,7 @@ export default class Changeset<T = string> {
       requiredLength: this.requiredLength,
       length: other.length,
       strips: new Strips(
-        ...other.strips.values.flatMap((strip) => strip.reference(this.strips).values)
+        other.strips.values.flatMap((strip) => strip.reference(this.strips).values)
       ).compact(),
     });
   }
@@ -99,8 +99,7 @@ export default class Changeset<T = string> {
       return new Changeset({
         requiredLength: value[0],
         length: value[1],
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        strips: Strips.fromPOJO(...value[2]),
+        strips: Strips.fromPOJO(value[2]),
       });
     }
 

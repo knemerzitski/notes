@@ -26,7 +26,7 @@ export default class IndexStrip<T = string> implements Strip<T> {
    */
   reference(strips: Strips<T>): Strips<T> {
     const strip = strips.at(this.index);
-    return strip ? new Strips(strip) : Strips.EMPTY;
+    return strip ? Strips.from(strip) : Strips.EMPTY;
   }
 
   /**
@@ -39,13 +39,13 @@ export default class IndexStrip<T = string> implements Strip<T> {
   concat(other: Strip<T>): Strips<T> {
     if (other instanceof IndexStrip && this.index + 1 === other.index) {
       // E.g. 1 + 2 => [1,2]
-      return new Strips(new RangeStrip(this.index, other.index));
+      return Strips.from(new RangeStrip(this.index, other.index));
     } else if (other instanceof RangeStrip && this.index + 1 === other.startIndex) {
       // E.g. 1 + [2,5] => [1,5]
-      return new Strips(new RangeStrip(this.index, other.endIndex));
+      return Strips.from(new RangeStrip(this.index, other.endIndex));
     }
 
-    return new Strips(this, other);
+    return Strips.from(this, other);
   }
 
   toPOJO(): unknown {

@@ -20,7 +20,7 @@ describe('StringStrip', () => {
 
   it('returns this for reference', () => {
     expect(new StringStrip('abcde').reference()).toStrictEqual(
-      new Strips(new StringStrip('abcde'))
+      Strips.from(new StringStrip('abcde'))
     );
   });
 
@@ -33,7 +33,7 @@ describe('StringStrip', () => {
   describe('concat', () => {
     it('concats strings together: "hello" + " world" = "hello world"', () => {
       expect(new StringStrip('hello').concat(new StringStrip(' world'))).toStrictEqual(
-        new Strips(new StringStrip('hello world'))
+        Strips.from(new StringStrip('hello world'))
       );
     });
 
@@ -42,7 +42,7 @@ describe('StringStrip', () => {
       const rightStrip = mock<Strip>();
 
       expect(leftStrip.concat(rightStrip)).toStrictEqual(
-        new Strips(leftStrip, rightStrip)
+        Strips.from(leftStrip, rightStrip)
       );
     });
   });

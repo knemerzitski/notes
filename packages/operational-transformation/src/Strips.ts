@@ -6,9 +6,16 @@ import Strip from './Strip';
 export default class Strips<T = string> {
   static EMPTY = new Strips<never>();
 
+  /**
+   * Convinience method to create Strips from spread syntax
+   */
+  static from<T>(...values: Readonly<Strip<T>[]>) {
+    return new Strips<T>(values);
+  }
+
   readonly values: Readonly<Strip<T>[]>;
 
-  constructor(...values: Readonly<Strip<T>[]>) {
+  constructor(values: Readonly<Strip<T>[]> = []) {
     this.values = values;
   }
 
@@ -41,7 +48,7 @@ export default class Strips<T = string> {
       }
     }
 
-    return new Strips(...result);
+    return new Strips(result);
   }
 
   /**
@@ -89,7 +96,7 @@ export default class Strips<T = string> {
       return compactedStrips;
     }, []);
 
-    return new Strips(...newValues);
+    return new Strips(newValues);
   }
 
   /**
@@ -98,8 +105,8 @@ export default class Strips<T = string> {
    * number => IndexStrip
    * [number,number] => RangeStrip
    */
-  static fromPOJO(...arr: unknown[]): Strips {
-    return new Strips(...arr.map((value) => Strip.fromPOJO(value)));
+  static fromPOJO(arr: unknown[]): Strips {
+    return new Strips(arr.map((value) => Strip.fromPOJO(value)));
   }
 
   toPOJO() {

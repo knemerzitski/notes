@@ -47,7 +47,7 @@ describe('Strip', () => {
 
       it('returns provided strip on concat', () => {
         expect(Strip.EMPTY.concat(Strip.fromPOJO('hi'))).toStrictEqual(
-          Strips.fromPOJO('hi')
+          Strips.fromPOJO(['hi'])
         );
       });
 

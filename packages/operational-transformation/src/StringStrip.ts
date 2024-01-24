@@ -24,7 +24,7 @@ export default class StringStrip<T extends string = string> implements Strip<T> 
    * @returns Whole string {@link value}
    */
   reference(): Strips<T> {
-    return new Strips(this);
+    return Strips.from(this);
   }
 
   /**
@@ -41,9 +41,9 @@ export default class StringStrip<T extends string = string> implements Strip<T> 
    */
   concat(other: Strip<T>): Strips<T> {
     if (other instanceof StringStrip) {
-      return new Strips(new StringStrip(this.value + other.value));
+      return Strips.from(new StringStrip(this.value + other.value));
     }
-    return new Strips(this, other);
+    return Strips.from(this, other);
   }
 
   toPOJO(): unknown {

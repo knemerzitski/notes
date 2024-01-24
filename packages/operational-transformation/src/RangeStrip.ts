@@ -73,13 +73,13 @@ export default class RangeStrip<T = string> implements Strip<T> {
   concat(other: Strip<T>): Strips<T> {
     if (other instanceof IndexStrip && this.endIndex + 1 == other.index) {
       // E.g. [2,5] + 6 = [2,6]
-      return new Strips(new RangeStrip(this.startIndex, other.index));
+      return Strips.from(new RangeStrip(this.startIndex, other.index));
     } else if (other instanceof RangeStrip && this.endIndex + 1 === other.startIndex) {
       // E.g. [2,5] + [6,10] = [2,10]
-      return new Strips(new RangeStrip(this.startIndex, other.endIndex));
+      return Strips.from(new RangeStrip(this.startIndex, other.endIndex));
     }
 
-    return new Strips(this, other);
+    return Strips.from(this, other);
   }
 
   toPOJO(): unknown {

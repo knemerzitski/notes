@@ -33,8 +33,8 @@ describe('RangeStrip', () => {
       '(%s - %s).reference(%s) = %s',
       (startIndex, endIndex, strips, expected) => {
         expect(
-          new RangeStrip(startIndex, endIndex).reference(Strips.fromPOJO(...strips))
-        ).toStrictEqual(Strips.fromPOJO(...expected));
+          new RangeStrip(startIndex, endIndex).reference(Strips.fromPOJO(strips))
+        ).toStrictEqual(Strips.fromPOJO(expected));
       }
     );
   });
@@ -61,31 +61,31 @@ describe('RangeStrip', () => {
   describe('concat', () => {
     it('concats range and adjacent index', () => {
       expect(new RangeStrip(3, 5).concat(new IndexStrip(6))).toStrictEqual(
-        new Strips(new RangeStrip(3, 6))
+        Strips.from(new RangeStrip(3, 6))
       );
     });
 
     it('concats two adjacent ranges', () => {
       expect(new RangeStrip(3, 5).concat(new RangeStrip(6, 10))).toStrictEqual(
-        new Strips(new RangeStrip(3, 10))
+        Strips.from(new RangeStrip(3, 10))
       );
     });
 
     it('keeps range and index with gap separate', () => {
       expect(new RangeStrip(3, 5).concat(new IndexStrip(7))).toStrictEqual(
-        new Strips(new RangeStrip(3, 5), new IndexStrip(7))
+        Strips.from(new RangeStrip(3, 5), new IndexStrip(7))
       );
     });
 
     it('keeps two ranges with gap separate', () => {
       expect(new RangeStrip(3, 5).concat(new RangeStrip(7, 10))).toStrictEqual(
-        new Strips(new RangeStrip(3, 5), new RangeStrip(7, 10))
+        Strips.from(new RangeStrip(3, 5), new RangeStrip(7, 10))
       );
     });
 
     it('keeps two ranges overlapping separate', () => {
       expect(new RangeStrip(3, 6).concat(new RangeStrip(4, 6))).toStrictEqual(
-        new Strips(new RangeStrip(3, 6), new RangeStrip(4, 6))
+        Strips.from(new RangeStrip(3, 6), new RangeStrip(4, 6))
       );
     });
   });

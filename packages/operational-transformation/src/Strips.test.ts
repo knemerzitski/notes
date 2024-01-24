@@ -15,8 +15,8 @@ import {
 describe('Strips', () => {
   describe('static', () => {
     it('deserializes values', () => {
-      expect(Strips.fromPOJO(5, [2, 4], 'str')).toStrictEqual(
-        new Strips(new IndexStrip(5), new RangeStrip(2, 4), new StringStrip('str'))
+      expect(Strips.fromPOJO([5, [2, 4], 'str'])).toStrictEqual(
+        Strips.from(new IndexStrip(5), new RangeStrip(2, 4), new StringStrip('str'))
       );
     });
 
@@ -101,7 +101,7 @@ describe('Strips', () => {
       ['returns -1 for empty', [], -1],
       ['returns maximum', [7, 2, 4], 7],
     ])('%s: %s.calcMaxIndex() = %s', (_msg, nrs, expected) => {
-      expect(new Strips(...createStrips(nrs)).calcMaxIndex()).toStrictEqual(expected);
+      expect(new Strips(createStrips(nrs)).calcMaxIndex()).toStrictEqual(expected);
     });
   });
 
@@ -118,7 +118,7 @@ describe('Strips', () => {
       ['returns 0 for empty strip', [], 0],
       ['returns sum', [7, 2, 4], 13],
     ])('%s: %s.calcTotalLength() = %s', (_msg, nrs, expected) => {
-      expect(new Strips(...createStrips(nrs)).calcTotalLength()).toStrictEqual(expected);
+      expect(new Strips(createStrips(nrs)).calcTotalLength()).toStrictEqual(expected);
     });
   });
 
@@ -136,11 +136,7 @@ describe('Strips', () => {
         [[1, 5], 'abcd', [6, 14], 'c', [11, 12]],
       ],
     ])('%s: %s.compact() = %s', (_msg, input, expected) => {
-      expect(
-        Strips.fromPOJO(...input)
-          .compact()
-          .toPOJO()
-      ).toStrictEqual(expected);
+      expect(Strips.fromPOJO(input).compact().toPOJO()).toStrictEqual(expected);
     });
   });
 });
