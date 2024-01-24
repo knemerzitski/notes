@@ -67,10 +67,10 @@ describe('Changeset', () => {
         [0, 11, ['hello world']],
       ],
       [
-        'overlap retained characters with insertions',
-        [0, 18, ['hi', [2, 5], 'after range', 6, 'c']],
-        [18, 16, [[0, 3], 'before', [11, 16], ' ', 18]],
-        [0, 16, ['hi', [2, 3], 'before range c']],
+        'overlaps retained characters with insertions',
+        [0, 18, ['s', [2, 5], 'replace', 6, 'start']],
+        [18, 19, [[0, 3], 'new', [5, 12], ' ', 13, 'ends']],
+        [0, 19, ['s', [2, 4], 'newreplace', 6, ' sends']],
       ],
     ])('%s: %s.compose(%s) = %s', (_msg, left, right, expected) => {
       const leftChangeset = Changeset.fromPOJO(left);
