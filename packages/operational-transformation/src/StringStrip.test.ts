@@ -48,6 +48,6 @@ describe('StringStrip', () => {
   });
 
   it('serializes as string', () => {
-    expect(new StringStrip('hello world').serialize()).toStrictEqual('hello world');
+    expect(new StringStrip('hello world').toPOJO()).toStrictEqual('hello world');
   });
 });

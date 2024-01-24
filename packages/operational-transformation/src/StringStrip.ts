@@ -46,7 +46,7 @@ export default class StringStrip<T extends string = string> implements Strip<T> 
     return new Strips(this, other);
   }
 
-  serialize(): unknown {
+  toPOJO(): unknown {
     return this.value;
   }
 

@@ -48,7 +48,7 @@ export default class IndexStrip<T = string> implements Strip<T> {
     return new Strips(this, other);
   }
 
-  serialize(): unknown {
+  toPOJO(): unknown {
     return this.index;
   }
 

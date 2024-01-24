@@ -89,7 +89,7 @@ export default class Changeset<T = string> {
   }
 
   // TODO test
-  static deserialize(value: unknown) {
+  static fromPOJO(value: unknown) {
     if (
       Array.isArray(value) &&
       typeof value[0] === 'number' &&
@@ -100,15 +100,15 @@ export default class Changeset<T = string> {
         requiredLength: value[0],
         length: value[1],
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        strips: Strips.deserialize(...value[2]),
+        strips: Strips.fromPOJO(...value[2]),
       });
     }
 
-    throw new Error(`Unable to deserialize ${String(value)} as a Changeset`);
+    throw new Error(`Unable to deserialize to Changeset: ${String(value)}`);
   }
 
-  serialize() {
-    return [this.requiredLength, this.length, this.strips.serialize()];
+  toPOJO() {
+    return [this.requiredLength, this.length, this.strips.toPOJO()];
   }
 
   toString() {

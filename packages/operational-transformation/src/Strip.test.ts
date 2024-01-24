@@ -11,20 +11,20 @@ describe('Strip', () => {
   describe('static', () => {
     describe('deserialize', () => {
       it('string => StringStrip', () => {
-        expect(Strip.deserialize('a')).toStrictEqual(new StringStrip('a'));
+        expect(Strip.fromPOJO('a')).toStrictEqual(new StringStrip('a'));
       });
 
       it('number => IndexStrip', () => {
-        expect(Strip.deserialize(5)).toStrictEqual(new IndexStrip(5));
+        expect(Strip.fromPOJO(5)).toStrictEqual(new IndexStrip(5));
       });
 
       it('[number,number] => RangeStrip', () => {
-        expect(Strip.deserialize([1, 2])).toStrictEqual(new RangeStrip(1, 2));
+        expect(Strip.fromPOJO([1, 2])).toStrictEqual(new RangeStrip(1, 2));
       });
 
       it('throws error on invalid value', () => {
-        expect(() => Strip.deserialize(true)).toThrow();
-        expect(() => Strip.deserialize({})).toThrow();
+        expect(() => Strip.fromPOJO(true)).toThrow();
+        expect(() => Strip.fromPOJO({})).toThrow();
       });
     });
 
@@ -46,13 +46,13 @@ describe('Strip', () => {
       });
 
       it('returns provided strip on concat', () => {
-        expect(Strip.EMPTY.concat(Strip.deserialize('hi'))).toStrictEqual(
-          Strips.deserialize('hi')
+        expect(Strip.EMPTY.concat(Strip.fromPOJO('hi'))).toStrictEqual(
+          Strips.fromPOJO('hi')
         );
       });
 
-      it('returns undefined on serialize', () => {
-        expect(Strip.EMPTY.serialize()).toBeUndefined();
+      it('returns undefined on toPOJO', () => {
+        expect(Strip.EMPTY.toPOJO()).toBeUndefined();
       });
     });
   });

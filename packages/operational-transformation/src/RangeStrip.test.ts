@@ -33,8 +33,8 @@ describe('RangeStrip', () => {
       '(%s - %s).reference(%s) = %s',
       (startIndex, endIndex, strips, expected) => {
         expect(
-          new RangeStrip(startIndex, endIndex).reference(Strips.deserialize(...strips))
-        ).toStrictEqual(Strips.deserialize(...expected));
+          new RangeStrip(startIndex, endIndex).reference(Strips.fromPOJO(...strips))
+        ).toStrictEqual(Strips.fromPOJO(...expected));
       }
     );
   });
@@ -52,7 +52,7 @@ describe('RangeStrip', () => {
       '%s: (%s - %s).slice(%s) = %s',
       (_msg, startIndex, endIndex, [start, end], expected) => {
         expect(new RangeStrip(startIndex, endIndex).slice(start, end)).toStrictEqual(
-          Strip.deserialize(expected)
+          Strip.fromPOJO(expected)
         );
       }
     );
@@ -91,6 +91,6 @@ describe('RangeStrip', () => {
   });
 
   it('serializes to array [number,number]', () => {
-    expect(new RangeStrip(4, 6).serialize()).toStrictEqual([4, 6]);
+    expect(new RangeStrip(4, 6).toPOJO()).toStrictEqual([4, 6]);
   });
 });

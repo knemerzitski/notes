@@ -82,7 +82,7 @@ export default class RangeStrip<T = string> implements Strip<T> {
     return new Strips(this, other);
   }
 
-  serialize(): unknown {
+  toPOJO(): unknown {
     return [this.startIndex, this.endIndex];
   }
 

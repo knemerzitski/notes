@@ -19,7 +19,7 @@ export default abstract class Strip<T = string> {
     concat<U>(strip: Strip<U>) {
       return new Strips<U>(strip);
     },
-    serialize() {
+    toPOJO() {
       return;
     },
   };
@@ -54,8 +54,9 @@ export default abstract class Strip<T = string> {
    * string => StringStrip
    * number => IndexStrip
    * [number,number] => RangeStrip
+   * null | undefined => Strip.EMPTY
    */
-  static deserialize(value: unknown) {
+  static fromPOJO(value: unknown) {
     if (typeof value === 'string') {
       return new StringStrip(value);
     } else if (typeof value === 'number') {
@@ -70,8 +71,8 @@ export default abstract class Strip<T = string> {
       return Strip.EMPTY;
     }
 
-    throw new Error(`Unable to deserialize ${String(value)} as a Strip`);
+    throw new Error(`Unable to deserialize to Strip: ${String(value)}`);
   }
 
-  abstract serialize(): unknown;
+  abstract toPOJO(): unknown;
 }

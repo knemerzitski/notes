@@ -19,8 +19,8 @@ describe('IndexStrip', () => {
       [2, ['ab', 'cd'], 'c'],
     ])('%s.reference(%s) = %s', (index, stripsArr, expected) => {
       expect(
-        new IndexStrip(index).reference(Strips.deserialize(...stripsArr))
-      ).toStrictEqual(Strips.deserialize(expected));
+        new IndexStrip(index).reference(Strips.fromPOJO(...stripsArr))
+      ).toStrictEqual(Strips.fromPOJO(expected));
     });
   });
 
@@ -67,6 +67,6 @@ describe('IndexStrip', () => {
   });
 
   it('serializes to number', () => {
-    expect(new IndexStrip(2).serialize()).toStrictEqual(2);
+    expect(new IndexStrip(2).toPOJO()).toStrictEqual(2);
   });
 });

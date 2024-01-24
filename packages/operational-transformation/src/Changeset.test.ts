@@ -15,8 +15,8 @@ describe('Changeset', () => {
         new Changeset({
           requiredLength: 2,
           length: 4,
-          strips: Strips.deserialize('ab'),
-        }).serialize()
+          strips: Strips.fromPOJO('ab'),
+        }).toPOJO()
       ).toStrictEqual([2, 4, ['ab']]);
     });
   });
@@ -73,11 +73,11 @@ describe('Changeset', () => {
         [0, 16, ['hi', [2, 3], 'before range c']],
       ],
     ])('%s: %s.compose(%s) = %s', (_msg, left, right, expected) => {
-      const leftChangeset = Changeset.deserialize(left);
-      const rightChangeset = Changeset.deserialize(right);
+      const leftChangeset = Changeset.fromPOJO(left);
+      const rightChangeset = Changeset.fromPOJO(right);
       const composedChangeset = leftChangeset.compose(rightChangeset);
 
-      expect(composedChangeset.serialize()).toStrictEqual(expected);
+      expect(composedChangeset.toPOJO()).toStrictEqual(expected);
     });
   });
 });

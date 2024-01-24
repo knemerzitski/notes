@@ -15,7 +15,7 @@ import {
 describe('Strips', () => {
   describe('static', () => {
     it('deserializes values', () => {
-      expect(Strips.deserialize(5, [2, 4], 'str')).toStrictEqual(
+      expect(Strips.fromPOJO(5, [2, 4], 'str')).toStrictEqual(
         new Strips(new IndexStrip(5), new RangeStrip(2, 4), new StringStrip('str'))
       );
     });
@@ -137,9 +137,9 @@ describe('Strips', () => {
       ],
     ])('%s: %s.compact() = %s', (_msg, input, expected) => {
       expect(
-        Strips.deserialize(...input)
+        Strips.fromPOJO(...input)
           .compact()
-          .serialize()
+          .toPOJO()
       ).toStrictEqual(expected);
     });
   });

@@ -98,12 +98,12 @@ export default class Strips<T = string> {
    * number => IndexStrip
    * [number,number] => RangeStrip
    */
-  static deserialize(...arr: unknown[]): Strips {
-    return new Strips(...arr.map((value) => Strip.deserialize(value)));
+  static fromPOJO(...arr: unknown[]): Strips {
+    return new Strips(...arr.map((value) => Strip.fromPOJO(value)));
   }
 
-  serialize() {
-    return this.values.map((strip) => strip.serialize());
+  toPOJO() {
+    return this.values.map((strip) => strip.toPOJO());
   }
 
   toString() {
