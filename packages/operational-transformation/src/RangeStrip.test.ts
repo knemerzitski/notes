@@ -90,7 +90,7 @@ describe('RangeStrip', () => {
     });
   });
 
-  it('serializes to array [number,number]', () => {
+  it('POJO to array [number,number]', () => {
     expect(new RangeStrip(4, 6).toPOJO()).toStrictEqual([4, 6]);
   });
 });

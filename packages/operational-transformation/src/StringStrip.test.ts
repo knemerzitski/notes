@@ -6,16 +6,20 @@ import Strip from './Strip';
 import Strips from './Strips';
 
 describe('StringStrip', () => {
-  it('has maxIndex -1', () => {
-    expect(new StringStrip('').maxIndex).toStrictEqual(-1);
-  });
-
   it('sets value from constructor', () => {
+    expect(new StringStrip('').value).toStrictEqual('');
     expect(new StringStrip('abcde').value).toStrictEqual('abcde');
+    expect(new StringStrip('abcdef').value).toStrictEqual('abcdef');
   });
 
   it('returns string length', () => {
+    expect(new StringStrip('').length).toStrictEqual(0);
     expect(new StringStrip('abcde').length).toStrictEqual(5);
+    expect(new StringStrip('abcdefg').length).toStrictEqual(7);
+  });
+
+  it('has maxIndex -1', () => {
+    expect(new StringStrip('').maxIndex).toStrictEqual(-1);
   });
 
   it('returns this for reference', () => {
@@ -37,7 +41,7 @@ describe('StringStrip', () => {
       );
     });
 
-    it('concats separate: "msg" + unknown = ["msg", unknown]', () => {
+    it('keeps generic strip separate: "msg" + unknown = ["msg", unknown]', () => {
       const leftStrip = new StringStrip('msg');
       const rightStrip = mock<Strip>();
 
@@ -47,7 +51,7 @@ describe('StringStrip', () => {
     });
   });
 
-  it('serializes as string', () => {
+  it('returns string with toPOJO', () => {
     expect(new StringStrip('hello world').toPOJO()).toStrictEqual('hello world');
   });
 });

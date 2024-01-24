@@ -9,7 +9,7 @@ import Strips from './Strips';
 
 describe('Strip', () => {
   describe('static', () => {
-    describe('deserialize', () => {
+    describe('fromPOJO', () => {
       it('string => StringStrip', () => {
         expect(Strip.fromPOJO('a')).toStrictEqual(new StringStrip('a'));
       });
@@ -20,6 +20,14 @@ describe('Strip', () => {
 
       it('[number,number] => RangeStrip', () => {
         expect(Strip.fromPOJO([1, 2])).toStrictEqual(new RangeStrip(1, 2));
+      });
+
+      it('null => EMPTY', () => {
+        expect(Strip.fromPOJO(null)).toStrictEqual(Strip.EMPTY);
+      });
+
+      it('undefined => EMPTY', () => {
+        expect(Strip.fromPOJO(undefined)).toStrictEqual(Strip.EMPTY);
       });
 
       it('throws error on invalid value', () => {

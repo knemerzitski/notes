@@ -88,7 +88,6 @@ export default class Changeset<T = string> {
     throw new Error('Not implemented');
   }
 
-  // TODO test
   static fromPOJO(value: unknown) {
     if (
       Array.isArray(value) &&
@@ -103,7 +102,7 @@ export default class Changeset<T = string> {
       });
     }
 
-    throw new Error(`Unable to deserialize to Changeset: ${String(value)}`);
+    throw new Error(`Unable to convert to Changeset: ${String(value)}`);
   }
 
   toPOJO() {

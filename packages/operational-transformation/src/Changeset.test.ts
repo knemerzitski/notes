@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { mock } from 'vitest-mock-extended';
 
 import Changeset from './Changeset';
+import Strip from './Strip';
 import Strips from './Strips';
 import {
   createMockStrips,
@@ -10,14 +12,49 @@ import {
 
 describe('Changeset', () => {
   describe('static', () => {
-    it('serializes as [l0,l1,[strip,strip,...]]', () => {
-      expect(
+    it('fromPOJO to Changeset', () => {
+      expect(Changeset.fromPOJO([1, 2, ['a', 3, [4, 5]]])).toStrictEqual(
         new Changeset({
-          requiredLength: 2,
-          length: 4,
-          strips: Strips.fromPOJO(['ab']),
-        }).toPOJO()
-      ).toStrictEqual([2, 4, ['ab']]);
+          requiredLength: 1,
+          length: 2,
+          strips: Strips.fromPOJO(['a', 3, [4, 5]]),
+        })
+      );
+    });
+  });
+
+  describe('constructor', () => {
+    it('sets requiredLength, length, strips from args', () => {
+      const strips = Strips.from(mock<Strip>());
+
+      const changeset = new Changeset({
+        requiredLength: 4,
+        length: 10,
+        strips,
+      });
+      expect(changeset.requiredLength).toStrictEqual(4);
+      expect(changeset.length).toStrictEqual(10);
+      expect(changeset.strips).toStrictEqual(strips);
+    });
+
+    it('sets requiredLength, length from strips if not defined', () => {
+      const strips = Strips.from(
+        mock<Strip>({
+          length: 2,
+          maxIndex: 1,
+        }),
+        mock<Strip>({
+          length: 3,
+          maxIndex: 8,
+        })
+      );
+
+      const changeset = new Changeset({
+        strips,
+      });
+      expect(changeset.requiredLength).toStrictEqual(9);
+      expect(changeset.length).toStrictEqual(5);
+      expect(changeset.strips).toStrictEqual(strips);
     });
   });
 
@@ -119,5 +156,15 @@ describe('Changeset', () => {
 
       expect(fAB.toPOJO()).toStrictEqual(expectedFollowAB);
     });
+  });
+
+  it('toPOJO returned as [l0,l1,[strip,strip,...]]', () => {
+    expect(
+      new Changeset({
+        requiredLength: 2,
+        length: 4,
+        strips: Strips.fromPOJO(['ab']),
+      }).toPOJO()
+    ).toStrictEqual([2, 4, ['ab']]);
   });
 });

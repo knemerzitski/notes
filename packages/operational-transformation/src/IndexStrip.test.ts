@@ -5,12 +5,17 @@ import RangeStrip from './RangeStrip';
 import Strips from './Strips';
 
 describe('IndexStrip', () => {
-  it('maxIndex is equal to index', () => {
-    expect(new IndexStrip(8).maxIndex).toStrictEqual(8);
+  it('constructor sets index', () => {
+    expect(new IndexStrip(10).index).toStrictEqual(10);
+    expect(new IndexStrip(20).index).toStrictEqual(20);
   });
 
   it('returns length 1', () => {
     expect(new IndexStrip(5).length).toStrictEqual(1);
+  });
+
+  it('maxIndex is equal to index', () => {
+    expect(new IndexStrip(8).maxIndex).toStrictEqual(8);
   });
 
   describe('reference', () => {
@@ -66,7 +71,7 @@ describe('IndexStrip', () => {
     });
   });
 
-  it('serializes to number', () => {
+  it('POJO to number', () => {
     expect(new IndexStrip(2).toPOJO()).toStrictEqual(2);
   });
 });

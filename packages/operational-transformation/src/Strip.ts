@@ -71,7 +71,7 @@ export default abstract class Strip<T = string> {
       return Strip.EMPTY;
     }
 
-    throw new Error(`Unable to deserialize to Strip: ${String(value)}`);
+    throw new Error(`Unable to convert to Strip: ${String(value)}`);
   }
 
   abstract toPOJO(): unknown;

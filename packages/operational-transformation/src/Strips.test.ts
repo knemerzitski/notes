@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mock } from 'vitest-mock-extended';
+import { mock, mockFn } from 'vitest-mock-extended';
 
 import IndexStrip from './IndexStrip';
 import RangeStrip from './RangeStrip';
@@ -14,15 +14,25 @@ import {
 
 describe('Strips', () => {
   describe('static', () => {
-    it('deserializes values', () => {
+    it('EMPTY has no values', () => {
+      expect(Strips.EMPTY.values).toStrictEqual([]);
+    });
+
+    it('from uses spread syntax', () => {
+      const values = [mock<Strip>(), mock<Strip>(), mock<Strip>()];
+      expect(Strips.from(...values)).toStrictEqual(new Strips(values));
+    });
+
+    it('fromPOJO multiple values', () => {
       expect(Strips.fromPOJO([5, [2, 4], 'str'])).toStrictEqual(
         Strips.from(new IndexStrip(5), new RangeStrip(2, 4), new StringStrip('str'))
       );
     });
+  });
 
-    it('EMPTY has no values', () => {
-      expect(Strips.EMPTY.values).toStrictEqual([]);
-    });
+  it('sets values in constructor', () => {
+    const values = [mock<Strip>(), mock<Strip>()];
+    expect(new Strips(values).values).toStrictEqual(values);
   });
 
   describe('slice', () => {
@@ -138,5 +148,18 @@ describe('Strips', () => {
     ])('%s: %s.compact() = %s', (_msg, input, expected) => {
       expect(Strips.fromPOJO(input).compact().toPOJO()).toStrictEqual(expected);
     });
+  });
+
+  it('toPOJO maps each value toPOJO', () => {
+    const strip1 = mock<Strip>({
+      toPOJO: mockFn(),
+    });
+    strip1.toPOJO.mockReturnValueOnce('first');
+    const strip2 = mock<Strip>({
+      toPOJO: mockFn(),
+    });
+    strip2.toPOJO.mockReturnValueOnce('second');
+    const strips = Strips.from(strip1, strip2);
+    expect(strips.toPOJO()).toStrictEqual(['first', 'second']);
   });
 });
