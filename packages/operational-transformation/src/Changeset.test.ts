@@ -58,7 +58,7 @@ describe('Changeset', () => {
     });
   });
 
-  describe.only('compose', () => {
+  describe('compose', () => {
     it.each([
       [
         'simple hello world',
