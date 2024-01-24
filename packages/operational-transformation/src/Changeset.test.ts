@@ -80,4 +80,44 @@ describe('Changeset', () => {
       expect(composedChangeset.toPOJO()).toStrictEqual(expected);
     });
   });
+
+  describe('merge', () => {
+    it.fails.each([
+      [
+        'merges retained and insertion characters',
+        [8, 5, [[0, 1], 'si', 7]],
+        [8, 5, [0, 'e', 6, 'ow']],
+        [8, 6, [0, 'esiow']],
+      ],
+    ])('%s: %s.merge(%s) = %s', (_msg, A_POJO, B_POJO, expectedMergeAB) => {
+      const A = Changeset.fromPOJO(A_POJO);
+      const B = Changeset.fromPOJO(B_POJO);
+      const mAB = A.merge(B);
+
+      expect(mAB.toPOJO()).toStrictEqual(expectedMergeAB);
+    });
+  });
+
+  describe('follow', () => {
+    it.fails.each([
+      [
+        'returns for simple retained and insertion characters',
+        [8, 5, [[0, 1], 'si', 7]],
+        [8, 5, [0, 'e', 6, 'ow']],
+        [5, 6, [0, 'e', [2, 3], 'ow']],
+      ],
+      [
+        'returns for simple retained and insertion characters reverse arguments',
+        [8, 5, [0, 'e', 6, 'ow']],
+        [8, 5, [[0, 1], 'si', 7]],
+        [5, 6, [[0, 1], 'si', [3, 4]]],
+      ],
+    ])('%s: %s.follow(%s) = %s', (_msg, A_POJO, B_POJO, expectedFollowAB) => {
+      const A = Changeset.fromPOJO(A_POJO);
+      const B = Changeset.fromPOJO(B_POJO);
+      const fAB = A.follow(B);
+
+      expect(fAB.toPOJO()).toStrictEqual(expectedFollowAB);
+    });
+  });
 });
