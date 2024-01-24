@@ -1,5 +1,6 @@
 import IndexStrip from './IndexStrip';
-import { Strip, Strips } from './changeset';
+import Strip from './Strip';
+import Strips from './Strips';
 
 /**
  * Represents retained characters range in the original document.

@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import IndexStrip from './IndexStrip';
 import RangeStrip from './RangeStrip';
-import { Strip, Strips } from './changeset';
+import Strip from './Strip';
+import Strips from './Strips';
 
 describe('RangeStrip', () => {
   describe('length', () => {

@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import StringStrip from './StringStrip';
-import { Strip, Strips } from './changeset';
+import Strip from './Strip';
+import Strips from './Strips';
 
 describe('StringStrip', () => {
   it('has maxIndex -1', () => {

@@ -1,4 +1,5 @@
-import { Strip, Strips } from './changeset';
+import Strip from './Strip';
+import Strips from './Strips';
 
 /**
  * Represents string insertion in the new document.

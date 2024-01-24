@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import IndexStrip from './IndexStrip';
 import RangeStrip from './RangeStrip';
-import { Strips } from './changeset';
+import Strips from './Strips';
 
 describe('IndexStrip', () => {
   it('maxIndex is equal to index', () => {
