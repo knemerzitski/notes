@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import { StringStrip } from './string-strip';
-import Strip, { EMPTY } from './strip';
+import Strip, { EMPTY, StripType } from './strip';
 import { Strips } from './strips';
 
 describe('StringStrip', () => {
@@ -20,6 +20,10 @@ describe('StringStrip', () => {
 
   it('has maxIndex -1', () => {
     expect(new StringStrip('').maxIndex).toStrictEqual(-1);
+  });
+
+  it('has type insert', () => {
+    expect(new StringStrip('').type).toStrictEqual(StripType.Insert);
   });
 
   it('returns this for reference', () => {

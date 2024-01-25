@@ -9,7 +9,6 @@ export enum StripType {
 export const EMPTY: Strip<never> = {
   length: 0,
   maxIndex: -1,
-  // TODO test
   type: StripType.Empty,
 
   reference() {
@@ -21,7 +20,6 @@ export const EMPTY: Strip<never> = {
   concat<U>(strip: Strip<U>) {
     return Strips.from<U>(strip);
   },
-  // TODO test
   intersect() {
     return this;
   },

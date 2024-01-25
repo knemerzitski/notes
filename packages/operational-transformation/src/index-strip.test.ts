@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { IndexStrip } from './index-strip';
 import { RangeStrip } from './range-strip';
+import { StripType } from './strip';
 import { Strips } from './strips';
 import { toStrip, toStrips } from './tests/helpers/convert';
 
@@ -17,6 +18,10 @@ describe('IndexStrip', () => {
 
   it('maxIndex is equal to index', () => {
     expect(new IndexStrip(8).maxIndex).toStrictEqual(8);
+  });
+
+  it('type is retain', () => {
+    expect(new IndexStrip(8).type).toStrictEqual(StripType.Retain);
   });
 
   describe('reference', () => {

@@ -33,7 +33,6 @@ export class RangeStrip<T = string> implements Strip<T> {
     this.maxIndex = this.endIndex;
   }
 
-  // TODO test
   get type() {
     return StripType.Retain;
   }
