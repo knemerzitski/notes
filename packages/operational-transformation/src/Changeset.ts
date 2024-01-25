@@ -161,27 +161,6 @@ export default class Changeset<T = string> {
     });
   }
 
-  static fromPOJO(value: unknown) {
-    if (
-      Array.isArray(value) &&
-      typeof value[0] === 'number' &&
-      typeof value[1] === 'number' &&
-      Array.isArray(value[2])
-    ) {
-      return new Changeset({
-        requiredLength: value[0],
-        length: value[1],
-        strips: Strips.fromPOJO(value[2]),
-      });
-    }
-
-    throw new Error(`Unable to convert to Changeset: ${String(value)}`);
-  }
-
-  toPOJO() {
-    return [this.requiredLength, this.length, this.strips.toPOJO()];
-  }
-
   toString() {
     return `(${this.requiredLength} -> ${this.length})[${String(this.strips)}]`;
   }

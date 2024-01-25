@@ -99,20 +99,6 @@ export default class Strips<T = string> {
     return new Strips(newValues);
   }
 
-  /**
-   * Create strips from primitives
-   * string => StringStrip
-   * number => IndexStrip
-   * [number,number] => RangeStrip
-   */
-  static fromPOJO(arr: unknown[]): Strips {
-    return new Strips(arr.map((value) => Strip.fromPOJO(value)));
-  }
-
-  toPOJO() {
-    return this.values.map((strip) => strip.toPOJO());
-  }
-
   toString() {
     return this.values.join(', ');
   }

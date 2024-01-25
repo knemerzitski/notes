@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import IndexStrip from './IndexStrip';
 import RangeStrip from './RangeStrip';
 import Strips from './Strips';
+import { toStrips } from './tests/helpers/convert';
 
 describe('IndexStrip', () => {
   it('constructor sets index', () => {
@@ -23,8 +24,8 @@ describe('IndexStrip', () => {
       [3, ['abcdef'], ['d']],
       [2, ['ab', 'cd'], ['c']],
     ])('%s.reference(%s) = %s', (index, stripsArr, expected) => {
-      expect(new IndexStrip(index).reference(Strips.fromPOJO(stripsArr))).toStrictEqual(
-        Strips.fromPOJO(expected)
+      expect(new IndexStrip(index).reference(toStrips(stripsArr))).toStrictEqual(
+        toStrips(expected)
       );
     });
   });
@@ -69,9 +70,5 @@ describe('IndexStrip', () => {
         Strips.from(new IndexStrip(9), new RangeStrip(6, 8))
       );
     });
-  });
-
-  it('POJO to number', () => {
-    expect(new IndexStrip(2).toPOJO()).toStrictEqual(2);
   });
 });

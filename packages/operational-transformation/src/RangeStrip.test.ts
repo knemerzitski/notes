@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import IndexStrip from './IndexStrip';
 import RangeStrip from './RangeStrip';
-import Strip from './Strip';
 import Strips from './Strips';
+import { toStrip, toStrips } from './tests/helpers/convert';
 
 describe('RangeStrip', () => {
   describe('length', () => {
@@ -33,8 +33,8 @@ describe('RangeStrip', () => {
       '(%s - %s).reference(%s) = %s',
       (startIndex, endIndex, strips, expected) => {
         expect(
-          new RangeStrip(startIndex, endIndex).reference(Strips.fromPOJO(strips))
-        ).toStrictEqual(Strips.fromPOJO(expected));
+          new RangeStrip(startIndex, endIndex).reference(toStrips(strips))
+        ).toStrictEqual(toStrips(expected));
       }
     );
   });
@@ -52,7 +52,7 @@ describe('RangeStrip', () => {
       '%s: (%s - %s).slice(%s) = %s',
       (_msg, startIndex, endIndex, [start, end], expected) => {
         expect(new RangeStrip(startIndex, endIndex).slice(start, end)).toStrictEqual(
-          Strip.fromPOJO(expected)
+          toStrip(expected)
         );
       }
     );
@@ -88,9 +88,5 @@ describe('RangeStrip', () => {
         Strips.from(new RangeStrip(3, 6), new RangeStrip(4, 6))
       );
     });
-  });
-
-  it('POJO to array [number,number]', () => {
-    expect(new RangeStrip(4, 6).toPOJO()).toStrictEqual([4, 6]);
   });
 });

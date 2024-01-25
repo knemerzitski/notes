@@ -58,10 +58,6 @@ export default class IndexStrip<T = string> implements Strip<T> {
     return Strip.EMPTY;
   }
 
-  toPOJO(): unknown {
-    return this.index;
-  }
-
   toString() {
     return String(this.index);
   }

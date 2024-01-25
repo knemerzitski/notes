@@ -4,6 +4,7 @@ import { mock } from 'vitest-mock-extended';
 import Changeset from './Changeset';
 import Strip from './Strip';
 import Strips from './Strips';
+import { toChangeset, toStrips } from './tests/helpers/convert';
 import {
   createMockStrips,
   getMockStripValues,
@@ -11,18 +12,6 @@ import {
 } from './tests/helpers/strips';
 
 describe('Changeset', () => {
-  describe('static', () => {
-    it('fromPOJO to Changeset', () => {
-      expect(Changeset.fromPOJO([1, 2, ['a', 3, [4, 5]]])).toStrictEqual(
-        new Changeset({
-          requiredLength: 1,
-          length: 2,
-          strips: Strips.fromPOJO(['a', 3, [4, 5]]),
-        })
-      );
-    });
-  });
-
   describe('constructor', () => {
     it('sets requiredLength, length, strips from args', () => {
       const strips = Strips.from(mock<Strip>());
@@ -110,11 +99,11 @@ describe('Changeset', () => {
         [0, 19, ['s', [2, 4], 'newreplace', 6, ' sends']],
       ],
     ])('%s: %s.compose(%s) = %s', (_msg, left, right, expected) => {
-      const leftChangeset = Changeset.fromPOJO(left);
-      const rightChangeset = Changeset.fromPOJO(right);
+      const leftChangeset = toChangeset(left);
+      const rightChangeset = toChangeset(right);
       const composedChangeset = leftChangeset.compose(rightChangeset);
 
-      expect(composedChangeset.toPOJO()).toStrictEqual(expected);
+      expect(composedChangeset).toStrictEqual(toChangeset(expected));
     });
   });
 
@@ -132,12 +121,12 @@ describe('Changeset', () => {
         [8, 5, [[0, 1], 'si', 7]],
         [5, 6, [[0, 1], 'si', [3, 4]]],
       ],
-    ])('%s: %s.follow(%s) = %s', (_msg, A_POJO, B_POJO, expectedfAB) => {
-      const A = Changeset.fromPOJO(A_POJO);
-      const B = Changeset.fromPOJO(B_POJO);
+    ])('%s: %s.follow(%s) = %s', (_msg, objA, objB, expectedfAB) => {
+      const A = toChangeset(objA);
+      const B = toChangeset(objB);
       const fAB = A.follow(B);
 
-      expect(fAB.toPOJO()).toStrictEqual(expectedfAB);
+      expect(fAB).toStrictEqual(toChangeset(expectedfAB));
     });
   });
 
@@ -145,27 +134,17 @@ describe('Changeset', () => {
     it.each([
       ['baseball', 'basil', [[0, 1], 'si', 7], 'below', [0, 'e', 6, 'ow']],
       ['hello world', 'worlds', [[6, 10], 's'], 'really', ['rea', [2, 3], 'y']],
-    ])('%s', (initialText, textA, changeA_POJO, textB, changeB_POJO) => {
+    ])('%s', (initialText, textA, objChangeA, textB, objChangeB) => {
       const X = Changeset.fromText(initialText);
-      const A = new Changeset({ strips: Strips.fromPOJO(changeA_POJO) });
-      const B = new Changeset({ strips: Strips.fromPOJO(changeB_POJO) });
-      expect(X.compose(A).toPOJO()[2]).toStrictEqual([textA]);
-      expect(X.compose(B).toPOJO()[2]).toStrictEqual([textB]);
+      const A = new Changeset({ strips: toStrips(objChangeA) });
+      const B = new Changeset({ strips: toStrips(objChangeB) });
+      expect(X.compose(A).strips).toStrictEqual(toStrips([textA]));
+      expect(X.compose(B).strips).toStrictEqual(toStrips([textB]));
 
       const fAB = A.follow(B);
       const fBA = B.follow(A);
 
       expect(X.compose(A).compose(fAB)).toStrictEqual(X.compose(B).compose(fBA));
     });
-  });
-
-  it('toPOJO returned as [l0,l1,[strip,strip,...]]', () => {
-    expect(
-      new Changeset({
-        requiredLength: 2,
-        length: 4,
-        strips: Strips.fromPOJO(['ab']),
-      }).toPOJO()
-    ).toStrictEqual([2, 4, ['ab']]);
   });
 });

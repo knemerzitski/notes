@@ -1,11 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { mock, mockFn } from 'vitest-mock-extended';
+import { mock } from 'vitest-mock-extended';
 
-import IndexStrip from './IndexStrip';
-import RangeStrip from './RangeStrip';
-import StringStrip from './StringStrip';
 import Strip from './Strip';
 import Strips from './Strips';
+import { toStrips } from './tests/helpers/convert';
 import {
   getMockStripValues,
   createMockStrips,
@@ -21,12 +19,6 @@ describe('Strips', () => {
     it('from uses spread syntax', () => {
       const values = [mock<Strip>(), mock<Strip>(), mock<Strip>()];
       expect(Strips.from(...values)).toStrictEqual(new Strips(values));
-    });
-
-    it('fromPOJO multiple values', () => {
-      expect(Strips.fromPOJO([5, [2, 4], 'str'])).toStrictEqual(
-        Strips.from(new IndexStrip(5), new RangeStrip(2, 4), new StringStrip('str'))
-      );
     });
   });
 
@@ -146,20 +138,7 @@ describe('Strips', () => {
         [[1, 5], 'abcd', [6, 14], 'c', [11, 12]],
       ],
     ])('%s: %s.compact() = %s', (_msg, input, expected) => {
-      expect(Strips.fromPOJO(input).compact().toPOJO()).toStrictEqual(expected);
+      expect(toStrips(input).compact()).toStrictEqual(toStrips(expected));
     });
-  });
-
-  it('toPOJO maps each value toPOJO', () => {
-    const strip1 = mock<Strip>({
-      toPOJO: mockFn(),
-    });
-    strip1.toPOJO.mockReturnValueOnce('first');
-    const strip2 = mock<Strip>({
-      toPOJO: mockFn(),
-    });
-    strip2.toPOJO.mockReturnValueOnce('second');
-    const strips = Strips.from(strip1, strip2);
-    expect(strips.toPOJO()).toStrictEqual(['first', 'second']);
   });
 });

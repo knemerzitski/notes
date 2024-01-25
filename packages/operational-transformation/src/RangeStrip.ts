@@ -99,10 +99,6 @@ export default class RangeStrip<T = string> implements Strip<T> {
     return Strip.EMPTY;
   }
 
-  toPOJO(): unknown {
-    return [this.startIndex, this.endIndex];
-  }
-
   toString() {
     return `${this.startIndex} - ${this.endIndex}`;
   }

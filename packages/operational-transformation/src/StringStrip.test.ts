@@ -50,8 +50,4 @@ describe('StringStrip', () => {
       );
     });
   });
-
-  it('returns string with toPOJO', () => {
-    expect(new StringStrip('hello world').toPOJO()).toStrictEqual('hello world');
-  });
 });

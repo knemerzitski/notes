@@ -52,10 +52,6 @@ export default class StringStrip<T extends string = string> implements Strip<T> 
     return Strip.EMPTY;
   }
 
-  toPOJO(): unknown {
-    return this.value;
-  }
-
   toString() {
     return `"${this.value}"`;
   }

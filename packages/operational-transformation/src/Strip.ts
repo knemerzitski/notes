@@ -1,6 +1,3 @@
-import IndexStrip from './IndexStrip';
-import RangeStrip from './RangeStrip';
-import StringStrip from './StringStrip';
 import Strips from './Strips';
 
 export enum StripType {
@@ -31,9 +28,6 @@ export default abstract class Strip<T = string> {
     // TODO test
     intersect() {
       return this;
-    },
-    toPOJO() {
-      return;
     },
   };
 
@@ -69,31 +63,4 @@ export default abstract class Strip<T = string> {
    * E.g. ranges [2-5].intersect([3-6]) = [3-5]
    */
   abstract intersect: (strip: Strip<T>) => Strip<T>;
-
-  /**
-   * Create strip from primitives
-   * string => StringStrip
-   * number => IndexStrip
-   * [number,number] => RangeStrip
-   * null | undefined => Strip.EMPTY
-   */
-  static fromPOJO(value: unknown) {
-    if (typeof value === 'string') {
-      return new StringStrip(value);
-    } else if (typeof value === 'number') {
-      return new IndexStrip(value);
-    } else if (
-      Array.isArray(value) &&
-      typeof value[0] === 'number' &&
-      typeof value[1] === 'number'
-    ) {
-      return new RangeStrip(value[0], value[1]);
-    } else if (value == null) {
-      return Strip.EMPTY;
-    }
-
-    throw new Error(`Unable to convert to Strip: ${String(value)}`);
-  }
-
-  abstract toPOJO(): unknown;
 }
