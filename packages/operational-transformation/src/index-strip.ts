@@ -16,7 +16,7 @@ export class IndexStrip<T = string> implements Strip<T> {
   }
 
   get type() {
-    return StripType.Retained;
+    return StripType.Retain;
   }
 
   /**

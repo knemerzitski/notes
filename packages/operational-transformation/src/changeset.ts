@@ -113,7 +113,7 @@ export class Changeset<T = string> {
 
       // smaller pos checked first??
       if (stripPos < otherStripPos) {
-        if (strip && strip.type === StripType.Insertion) {
+        if (strip && strip.type === StripType.Insert) {
           // create method: strip.asRetained(pos);
           if (strip.length === 1) {
             result.push(new IndexStrip(stripPos));
@@ -121,14 +121,14 @@ export class Changeset<T = string> {
             result.push(new RangeStrip(stripPos, stripPos + strip.length - 1));
           }
         }
-        if (otherStrip && otherStrip.type === StripType.Insertion) {
+        if (otherStrip && otherStrip.type === StripType.Insert) {
           result.push(otherStrip);
         }
       } else {
-        if (otherStrip && otherStrip.type === StripType.Insertion) {
+        if (otherStrip && otherStrip.type === StripType.Insert) {
           result.push(otherStrip);
         }
-        if (strip && strip.type === StripType.Insertion) {
+        if (strip && strip.type === StripType.Insert) {
           // create method: strip.asRetained(pos);
           if (strip.length === 1) {
             result.push(new IndexStrip(stripPos));
@@ -141,8 +141,8 @@ export class Changeset<T = string> {
       if (
         strip &&
         otherStrip &&
-        strip.type === StripType.Retained &&
-        otherStrip.type === StripType.Retained
+        strip.type === StripType.Retain &&
+        otherStrip.type === StripType.Retain
       ) {
         result.push(strip.intersect(otherStrip));
       }

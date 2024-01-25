@@ -21,7 +21,7 @@ export class StringStrip<T extends string = string> implements Strip<T> {
 
   // TODO test
   get type() {
-    return StripType.Insertion;
+    return StripType.Insert;
   }
 
   /**

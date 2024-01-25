@@ -35,7 +35,7 @@ export class RangeStrip<T = string> implements Strip<T> {
 
   // TODO test
   get type() {
-    return StripType.Retained;
+    return StripType.Retain;
   }
 
   /**

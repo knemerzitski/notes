@@ -1,8 +1,8 @@
 import { Strips } from './strips';
 
 export enum StripType {
-  Retained = 'retained',
-  Insertion = 'insertion',
+  Retain = 'retain',
+  Insert = 'insert',
   Empty = 'empty',
 }
 
