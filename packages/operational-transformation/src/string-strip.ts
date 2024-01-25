@@ -7,14 +7,21 @@ import { Strips } from './strips';
 export class StringStrip<T extends string = string> implements Strip<T> {
   readonly value: T;
 
-  readonly length;
-  readonly maxIndex = -1;
-  // TODO test
-  readonly type = StripType.Insertion;
-
   constructor(value: T) {
     this.value = value;
-    this.length = this.value.length;
+  }
+
+  get length() {
+    return this.value.length;
+  }
+
+  get maxIndex() {
+    return -1;
+  }
+
+  // TODO test
+  get type() {
+    return StripType.Insertion;
   }
 
   /**

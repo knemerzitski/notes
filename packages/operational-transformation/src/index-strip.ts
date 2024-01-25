@@ -9,11 +9,14 @@ export class IndexStrip<T = string> implements Strip<T> {
   readonly index: number;
   readonly length = 1;
   readonly maxIndex;
-  readonly type = StripType.Retained;
 
   constructor(index: number) {
     this.index = index;
     this.maxIndex = this.index;
+  }
+
+  get type() {
+    return StripType.Retained;
   }
 
   /**

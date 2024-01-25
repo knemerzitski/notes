@@ -15,8 +15,6 @@ export class RangeStrip<T = string> implements Strip<T> {
 
   readonly length;
   readonly maxIndex;
-  // TODO test
-  readonly type = StripType.Retained;
 
   /**
    *
@@ -33,6 +31,11 @@ export class RangeStrip<T = string> implements Strip<T> {
     }
     this.length = this.endIndex - this.startIndex + 1;
     this.maxIndex = this.endIndex;
+  }
+
+  // TODO test
+  get type() {
+    return StripType.Retained;
   }
 
   /**
