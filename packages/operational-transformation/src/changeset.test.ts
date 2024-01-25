@@ -134,6 +134,13 @@ describe('Changeset', () => {
     it.each([
       ['baseball', 'basil', [[0, 1], 'si', 7], 'below', [0, 'e', 6, 'ow']],
       ['hello world', 'worlds', [[6, 10], 's'], 'really', ['rea', [2, 3], 'y']],
+      [
+        'long range at beginning',
+        'long ranges',
+        [[0, 9], 's'],
+        'aobngc',
+        ['a', 1, 'b', [2, 3], 'c'],
+      ],
     ])('%s', (initialText, textA, objChangeA, textB, objChangeB) => {
       const X = Changeset.fromText(initialText);
       const A = new Changeset({ strips: toStrips(objChangeA) });

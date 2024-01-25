@@ -96,48 +96,46 @@ export class Changeset<T = string> {
     });
   }
 
-  // TODO refactor
+  /**
+   * Finds follow of this and other so that following criteria is met:
+   * this.compose(this.follow(other)) = other.compose(other.follow(this))
+   * In general: Af(A, B) = Bf(B, A), where A = this, B = other, f = follow
+   */
   follow(other: Changeset<T>): Changeset<T> {
     const result: Strip<T>[] = [];
 
-    let stripIndex = 0,
-      stripPos = 0;
-    let otherStripIndex = 0,
-      otherStripPos = 0;
-    while (
-      stripIndex < this.strips.values.length ||
-      otherStripIndex < other.strips.values.length
+    let stripPos = 0;
+    let otherStripPos = 0;
+    for (
+      let i = 0;
+      i < this.strips.values.length || i < other.strips.values.length;
+      i++
     ) {
-      const strip = this.strips.values[stripIndex++];
-      const otherStrip = other.strips.values[otherStripIndex++];
+      const strip = this.strips.values[i];
+      const otherStrip = other.strips.values[i];
 
-      // smaller pos checked first??
-      if (stripPos < otherStripPos) {
-        if (strip && strip.type === StripType.Insert) {
-          // create method: strip.asRetained(pos);
-          if (strip.length === 1) {
-            result.push(new IndexStrip(stripPos));
-          } else if (strip.length > 1) {
-            result.push(new RangeStrip(stripPos, stripPos + strip.length - 1));
-          }
-        }
-        if (otherStrip && otherStrip.type === StripType.Insert) {
-          result.push(otherStrip);
-        }
-      } else {
-        if (otherStrip && otherStrip.type === StripType.Insert) {
-          result.push(otherStrip);
-        }
-        if (strip && strip.type === StripType.Insert) {
-          // create method: strip.asRetained(pos);
-          if (strip.length === 1) {
-            result.push(new IndexStrip(stripPos));
-          } else if (strip.length > 1) {
-            result.push(new RangeStrip(stripPos, stripPos + strip.length - 1));
-          }
+      const newStrips: Strip<T>[] = [];
+
+      // Insertions in this become retained characters in follow(this, other)
+      if (strip && strip.type === StripType.Insert) {
+        if (strip.length === 1) {
+          newStrips.push(new IndexStrip(stripPos));
+        } else if (strip.length > 1) {
+          newStrips.push(new RangeStrip(stripPos, stripPos + strip.length - 1));
         }
       }
+      // Insertions in other become insertions in follow(this, other)
+      if (otherStrip && otherStrip.type === StripType.Insert) {
+        newStrips.push(otherStrip);
+      }
 
+      // Decide order of previous two insertions based on strips position so far
+      if (otherStripPos <= stripPos) {
+        newStrips.reverse();
+      }
+      result.push(...newStrips);
+
+      // Retain whatever characters are retained in both this and other
       if (
         strip &&
         otherStrip &&
