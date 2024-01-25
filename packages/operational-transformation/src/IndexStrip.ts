@@ -1,5 +1,5 @@
 import RangeStrip from './RangeStrip';
-import Strip from './Strip';
+import Strip, { StripType } from './Strip';
 import Strips from './Strips';
 
 /**
@@ -7,18 +7,13 @@ import Strips from './Strips';
  */
 export default class IndexStrip<T = string> implements Strip<T> {
   readonly index: number;
+  readonly length = 1;
+  readonly maxIndex;
+  readonly type = StripType.Retained;
 
   constructor(index: number) {
     this.index = index;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/class-literal-property-style
-  get length() {
-    return 1;
-  }
-
-  get maxIndex() {
-    return this.index;
+    this.maxIndex = this.index;
   }
 
   /**
@@ -46,6 +41,21 @@ export default class IndexStrip<T = string> implements Strip<T> {
     }
 
     return Strips.from(this, other);
+  }
+
+  // TODO test
+  intersect(other: Strip<T>): Strip<T> {
+    if (other instanceof RangeStrip) {
+      if (other.startIndex <= this.index && this.index <= other.endIndex) {
+        return this;
+      }
+    } else if (other instanceof IndexStrip) {
+      if (this.index === other.index) {
+        return this;
+      }
+    }
+
+    return Strip.EMPTY;
   }
 
   toPOJO(): unknown {

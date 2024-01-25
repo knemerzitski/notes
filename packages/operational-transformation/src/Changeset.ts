@@ -1,4 +1,7 @@
-import Strip from './Strip';
+import IndexStrip from './IndexStrip';
+import RangeStrip from './RangeStrip';
+import StringStrip from './StringStrip';
+import Strip, { StripType } from './Strip';
 import Strips from './Strips';
 
 interface ChangesetOptions<T = string> {
@@ -11,6 +14,21 @@ interface ChangesetOptions<T = string> {
  * Represents a change to a document.
  */
 export default class Changeset<T = string> {
+  //static
+
+  // TODO test
+  /**
+   * Create initial changeset from text
+   * @param text
+   */
+  static fromText(text: string) {
+    return new Changeset({
+      requiredLength: 0,
+      length: text.length,
+      strips: new Strips([new StringStrip(text)]),
+    });
+  }
+
   /**
    * Length of the document before the change.
    * Required length to be able to apply to a document.
@@ -78,14 +96,69 @@ export default class Changeset<T = string> {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  merge(other: Changeset<T>): Changeset<T> {
-    throw new Error('Not implemented');
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // TODO refactor
   follow(other: Changeset<T>): Changeset<T> {
-    throw new Error('Not implemented');
+    const result: Strip<T>[] = [];
+
+    let stripIndex = 0,
+      stripPos = 0;
+    let otherStripIndex = 0,
+      otherStripPos = 0;
+    while (
+      stripIndex < this.strips.values.length ||
+      otherStripIndex < other.strips.values.length
+    ) {
+      const strip = this.strips.values[stripIndex++];
+      const otherStrip = other.strips.values[otherStripIndex++];
+
+      // smaller pos checked first??
+      if (stripPos < otherStripPos) {
+        if (strip && strip.type === StripType.Insertion) {
+          // create method: strip.asRetained(pos);
+          if (strip.length === 1) {
+            result.push(new IndexStrip(stripPos));
+          } else if (strip.length > 1) {
+            result.push(new RangeStrip(stripPos, stripPos + strip.length - 1));
+          }
+        }
+        if (otherStrip && otherStrip.type === StripType.Insertion) {
+          result.push(otherStrip);
+        }
+      } else {
+        if (otherStrip && otherStrip.type === StripType.Insertion) {
+          result.push(otherStrip);
+        }
+        if (strip && strip.type === StripType.Insertion) {
+          // create method: strip.asRetained(pos);
+          if (strip.length === 1) {
+            result.push(new IndexStrip(stripPos));
+          } else if (strip.length > 1) {
+            result.push(new RangeStrip(stripPos, stripPos + strip.length - 1));
+          }
+        }
+      }
+
+      if (
+        strip &&
+        otherStrip &&
+        strip.type === StripType.Retained &&
+        otherStrip.type === StripType.Retained
+      ) {
+        result.push(strip.intersect(otherStrip));
+      }
+
+      if (strip) {
+        stripPos += strip.length;
+      }
+      if (otherStrip) {
+        otherStripPos += otherStrip.length;
+      }
+    }
+
+    return new Changeset({
+      requiredLength: this.length,
+      strips: new Strips(result).compact(),
+    });
   }
 
   static fromPOJO(value: unknown) {

@@ -1,4 +1,4 @@
-import Strip from './Strip';
+import Strip, { StripType } from './Strip';
 import Strips from './Strips';
 
 /**
@@ -7,16 +7,14 @@ import Strips from './Strips';
 export default class StringStrip<T extends string = string> implements Strip<T> {
   readonly value: T;
 
+  readonly length;
+  readonly maxIndex = -1;
+  // TODO test
+  readonly type = StripType.Insertion;
+
   constructor(value: T) {
     this.value = value;
-  }
-
-  get length() {
-    return this.value.length;
-  }
-
-  get maxIndex() {
-    return -1;
+    this.length = this.value.length;
   }
 
   /**
@@ -44,6 +42,14 @@ export default class StringStrip<T extends string = string> implements Strip<T> 
       return Strips.from(new StringStrip(this.value + other.value));
     }
     return Strips.from(this, other);
+  }
+
+  // TODO test
+  /**
+   * String insertion never intersects with other strips.
+   */
+  intersect() {
+    return Strip.EMPTY;
   }
 
   toPOJO(): unknown {

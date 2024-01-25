@@ -118,25 +118,8 @@ describe('Changeset', () => {
     });
   });
 
-  describe('merge', () => {
-    it.fails.each([
-      [
-        'merges retained and insertion characters',
-        [8, 5, [[0, 1], 'si', 7]],
-        [8, 5, [0, 'e', 6, 'ow']],
-        [8, 6, [0, 'esiow']],
-      ],
-    ])('%s: %s.merge(%s) = %s', (_msg, A_POJO, B_POJO, expectedMergeAB) => {
-      const A = Changeset.fromPOJO(A_POJO);
-      const B = Changeset.fromPOJO(B_POJO);
-      const mAB = A.merge(B);
-
-      expect(mAB.toPOJO()).toStrictEqual(expectedMergeAB);
-    });
-  });
-
   describe('follow', () => {
-    it.fails.each([
+    it.each([
       [
         'returns for simple retained and insertion characters',
         [8, 5, [[0, 1], 'si', 7]],
@@ -149,12 +132,30 @@ describe('Changeset', () => {
         [8, 5, [[0, 1], 'si', 7]],
         [5, 6, [[0, 1], 'si', [3, 4]]],
       ],
-    ])('%s: %s.follow(%s) = %s', (_msg, A_POJO, B_POJO, expectedFollowAB) => {
+    ])('%s: %s.follow(%s) = %s', (_msg, A_POJO, B_POJO, expectedfAB) => {
       const A = Changeset.fromPOJO(A_POJO);
       const B = Changeset.fromPOJO(B_POJO);
       const fAB = A.follow(B);
 
-      expect(fAB.toPOJO()).toStrictEqual(expectedFollowAB);
+      expect(fAB.toPOJO()).toStrictEqual(expectedfAB);
+    });
+  });
+
+  describe('follow is commutative with changes', () => {
+    it.each([
+      ['baseball', 'basil', [[0, 1], 'si', 7], 'below', [0, 'e', 6, 'ow']],
+      ['hello world', 'worlds', [[6, 10], 's'], 'really', ['rea', [2, 3], 'y']],
+    ])('%s', (initialText, textA, changeA_POJO, textB, changeB_POJO) => {
+      const X = Changeset.fromText(initialText);
+      const A = new Changeset({ strips: Strips.fromPOJO(changeA_POJO) });
+      const B = new Changeset({ strips: Strips.fromPOJO(changeB_POJO) });
+      expect(X.compose(A).toPOJO()[2]).toStrictEqual([textA]);
+      expect(X.compose(B).toPOJO()[2]).toStrictEqual([textB]);
+
+      const fAB = A.follow(B);
+      const fBA = B.follow(A);
+
+      expect(X.compose(A).compose(fAB)).toStrictEqual(X.compose(B).compose(fBA));
     });
   });
 

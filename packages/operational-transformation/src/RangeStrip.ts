@@ -1,5 +1,5 @@
 import IndexStrip from './IndexStrip';
-import Strip from './Strip';
+import Strip, { StripType } from './Strip';
 import Strips from './Strips';
 
 /**
@@ -12,6 +12,11 @@ export default class RangeStrip<T = string> implements Strip<T> {
    * endIndex is inclusive
    */
   readonly endIndex: number;
+
+  readonly length;
+  readonly maxIndex;
+  // TODO test
+  readonly type = StripType.Retained;
 
   /**
    *
@@ -26,14 +31,8 @@ export default class RangeStrip<T = string> implements Strip<T> {
         `endIndex is less or equal to startIndex. Use IndexStrip for a single index`
       );
     }
-  }
-
-  get length() {
-    return this.endIndex - this.startIndex + 1;
-  }
-
-  get maxIndex() {
-    return this.endIndex;
+    this.length = this.endIndex - this.startIndex + 1;
+    this.maxIndex = this.endIndex;
   }
 
   /**
@@ -80,6 +79,24 @@ export default class RangeStrip<T = string> implements Strip<T> {
     }
 
     return Strips.from(this, other);
+  }
+
+  // TODO test
+  intersect(other: Strip<T>): Strip<T> {
+    if (other instanceof RangeStrip) {
+      if (this.endIndex >= other.startIndex && other.endIndex >= this.startIndex) {
+        return new RangeStrip(
+          Math.max(this.startIndex, other.startIndex),
+          Math.min(this.endIndex, other.endIndex)
+        );
+      }
+    } else if (other instanceof IndexStrip) {
+      if (this.startIndex <= other.index && other.index <= this.endIndex) {
+        return other;
+      }
+    }
+
+    return Strip.EMPTY;
   }
 
   toPOJO(): unknown {
