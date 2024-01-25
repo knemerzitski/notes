@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import { StringStrip } from './string-strip';
-import Strip from './strip';
+import Strip, { EMPTY } from './strip';
 import { Strips } from './strips';
 
 describe('StringStrip', () => {
@@ -49,5 +49,9 @@ describe('StringStrip', () => {
         Strips.from(leftStrip, rightStrip)
       );
     });
+  });
+
+  it('returns EMPTY on intersect', () => {
+    expect(new StringStrip('abc').intersect()).toStrictEqual(EMPTY);
   });
 });

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { IndexStrip } from './index-strip';
 import { RangeStrip } from './range-strip';
 import { Strips } from './strips';
-import { toStrips } from './tests/helpers/convert';
+import { toStrip, toStrips } from './tests/helpers/convert';
 
 describe('IndexStrip', () => {
   it('constructor sets index', () => {
@@ -69,6 +69,19 @@ describe('IndexStrip', () => {
       expect(new IndexStrip(9).concat(new RangeStrip(6, 8))).toStrictEqual(
         Strips.from(new IndexStrip(9), new RangeStrip(6, 8))
       );
+    });
+  });
+
+  describe('intersect', () => {
+    it.each([
+      [4, [3, 6], 4],
+      [9, [10, 12], null],
+      [5, [2, 4], null],
+      [2, 3, null],
+      [4, 4, 4],
+      [7, 'abc', null],
+    ])('%s.intersect(%s) = %s', (left, right, expected) => {
+      expect(toStrip(left).intersect(toStrip(right))).toStrictEqual(toStrip(expected));
     });
   });
 });

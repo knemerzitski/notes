@@ -84,7 +84,6 @@ export class RangeStrip<T = string> implements Strip<T> {
     return Strips.from(this, other);
   }
 
-  // TODO test
   intersect(other: Strip<T>): Strip<T> {
     if (other instanceof RangeStrip) {
       if (this.endIndex >= other.startIndex && other.endIndex >= this.startIndex) {

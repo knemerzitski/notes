@@ -89,4 +89,22 @@ describe('RangeStrip', () => {
       );
     });
   });
+
+  describe('intersect', () => {
+    it.each([
+      [
+        [2, 5],
+        [3, 6],
+        [3, 5],
+      ],
+      [[5, 8], [10, 12], null],
+      [[5, 8], [2, 4], null],
+      [[5, 8], 6, 6],
+      [[5, 8], 4, null],
+      [[5, 8], 9, null],
+      [[5, 8], 'abc', null],
+    ])('%s.intersect(%s) = %s', (left, right, expected) => {
+      expect(toStrip(left).intersect(toStrip(right))).toStrictEqual(toStrip(expected));
+    });
+  });
 });

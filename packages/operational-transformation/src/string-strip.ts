@@ -51,7 +51,6 @@ export class StringStrip<T extends string = string> implements Strip<T> {
     return Strips.from(this, other);
   }
 
-  // TODO test
   /**
    * String insertion never intersects with other strips.
    */

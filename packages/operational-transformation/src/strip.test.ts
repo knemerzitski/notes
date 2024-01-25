@@ -27,6 +27,11 @@ describe('Strip', () => {
         const strip = mock<Strip>();
         expect(EMPTY.concat(strip)).toStrictEqual(new Strips([strip]));
       });
+
+      it('return self on intersect', () => {
+        expect(EMPTY.intersect(EMPTY)).toStrictEqual(EMPTY);
+        expect(EMPTY.intersect(mock<Strip>())).toStrictEqual(EMPTY);
+      });
     });
   });
 });
