@@ -4,12 +4,6 @@ import { StringStrip } from './string-strip';
 import Strip, { StripType } from './strip';
 import { Strips } from './strips';
 
-interface ChangesetOptions<T = string> {
-  requiredLength?: number;
-  length?: number;
-  strips: Strips<T>;
-}
-
 /**
  * Represents a change to a document.
  */
@@ -22,30 +16,39 @@ export class Changeset<T = string> {
    * @param text
    */
   static fromText(text: string) {
-    return new Changeset({
-      requiredLength: 0,
-      length: text.length,
-      strips: new Strips([new StringStrip(text)]),
-    });
+    return new Changeset(new Strips([new StringStrip(text)]));
   }
 
   /**
-   * Length of the document before the change.
-   * Required length to be able to apply to a document.
+   * Length of the document after the change.
+   * Is total length of all strips.
    */
-  readonly requiredLength: number;
+  private _length = -1;
 
   /**
-   * Length of the document after the change.
+   * Highest index that is accessed by strips.
    */
-  readonly length: number;
+  private _maxIndex = -1;
 
   readonly strips: Strips<T>;
 
-  constructor(options: ChangesetOptions<T>) {
-    this.strips = options.strips;
-    this.requiredLength = options.requiredLength ?? options.strips.calcMaxIndex() + 1;
-    this.length = options.length ?? options.strips.calcTotalLength();
+  constructor(strips: Strips<T>) {
+    // TODO ensure changeset strips are compact
+    this.strips = strips;
+  }
+
+  get length() {
+    if (this._length === -1) {
+      this._length = this.strips.calcTotalLength();
+    }
+    return this._length;
+  }
+
+  get maxIndex() {
+    if (this._maxIndex === -1) {
+      this._maxIndex = this.strips.calcMaxIndex();
+    }
+    return this._maxIndex;
   }
 
   /**
@@ -79,21 +82,21 @@ export class Changeset<T = string> {
   }
 
   compose(other: Changeset<T>): Changeset<T> {
-    if (this.length < other.requiredLength) {
-      throw new Error(
-        `Unable to compose: ${String(this)} * ${String(other)}. this length ${
-          this.length
-        } is less than required length ${other.requiredLength}`
-      );
-    }
-
-    return new Changeset({
-      requiredLength: this.requiredLength,
-      length: other.length,
-      strips: new Strips(
-        other.strips.values.flatMap((strip) => strip.reference(this.strips).values)
-      ).compact(),
-    });
+    return new Changeset(
+      new Strips(
+        other.strips.values.flatMap((strip) => {
+          const refStrips = strip.reference(this.strips);
+          if (refStrips.calcTotalLength() !== strip.length) {
+            throw new Error(
+              `Unable to compose ${String(this.strips)} * ${String(
+                other.strips
+              )}. Cannot index '${String(strip)}' in ${String(this.strips)}.`
+            );
+          }
+          return refStrips.values;
+        })
+      ).compact()
+    );
   }
 
   /**
@@ -153,13 +156,10 @@ export class Changeset<T = string> {
       }
     }
 
-    return new Changeset({
-      requiredLength: this.length,
-      strips: new Strips(result).compact(),
-    });
+    return new Changeset(new Strips(result).compact());
   }
 
   toString() {
-    return `(${this.requiredLength} -> ${this.length})[${String(this.strips)}]`;
+    return `(${this.maxIndex} -> ${this.length})[${String(this.strips)}]`;
   }
 }

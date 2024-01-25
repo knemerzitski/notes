@@ -13,19 +13,6 @@ import {
 
 describe('Changeset', () => {
   describe('constructor', () => {
-    it('sets requiredLength, length, strips from args', () => {
-      const strips = Strips.from(mock<Strip>());
-
-      const changeset = new Changeset({
-        requiredLength: 4,
-        length: 10,
-        strips,
-      });
-      expect(changeset.requiredLength).toStrictEqual(4);
-      expect(changeset.length).toStrictEqual(10);
-      expect(changeset.strips).toStrictEqual(strips);
-    });
-
     it('sets requiredLength, length from strips if not defined', () => {
       const strips = Strips.from(
         mock<Strip>({
@@ -38,10 +25,8 @@ describe('Changeset', () => {
         })
       );
 
-      const changeset = new Changeset({
-        strips,
-      });
-      expect(changeset.requiredLength).toStrictEqual(9);
+      const changeset = new Changeset(strips);
+      expect(changeset.maxIndex).toStrictEqual(8);
       expect(changeset.length).toStrictEqual(5);
       expect(changeset.strips).toStrictEqual(strips);
     });
@@ -56,9 +41,7 @@ describe('Changeset', () => {
         ['c', 'de'],
       ],
     ])('%s: %s.slice(%s) = %s', (_msg, strs, [sliceStart, sliceEnd], expected) => {
-      const changeset = new Changeset({
-        strips: createMockStrips(strs),
-      });
+      const changeset = new Changeset(createMockStrips(strs));
 
       expect(getMockStripValues(changeset.slice(sliceStart, sliceEnd))).toStrictEqual(
         expected
@@ -71,9 +54,7 @@ describe('Changeset', () => {
       ['returns last character', ['abc', 'de'], -1, 'e'],
       ['returns undefined for out of bounds index', ['de'], 10, undefined],
     ])('%s: %s.at(%s) = %s', (_msg, strs, index, expected) => {
-      const changeset = new Changeset({
-        strips: createMockStrips(strs),
-      });
+      const changeset = new Changeset(createMockStrips(strs));
 
       const strip = getMockStripValue(changeset.at(index));
       if (expected !== undefined) {
@@ -86,17 +67,12 @@ describe('Changeset', () => {
 
   describe('compose', () => {
     it.each([
-      [
-        'simple hello world',
-        [0, 5, ['hello']],
-        [5, 11, [[0, 4], ' world']],
-        [0, 11, ['hello world']],
-      ],
+      ['simple hello world', ['hello'], [[0, 4], ' world'], ['hello world']],
       [
         'overlaps retained characters with insertions',
-        [0, 18, ['s', [2, 5], 'replace', 6, 'start']],
-        [18, 19, [[0, 3], 'new', [5, 12], ' ', 13, 'ends']],
-        [0, 19, ['s', [2, 4], 'newreplace', 6, ' sends']],
+        ['s', [2, 5], 'replace', 6, 'start'],
+        [[0, 3], 'new', [5, 12], ' ', 13, 'ends'],
+        ['s', [2, 4], 'newreplace', 6, ' sends'],
       ],
     ])('%s: %s.compose(%s) = %s', (_msg, left, right, expected) => {
       const leftChangeset = toChangeset(left);
@@ -105,21 +81,33 @@ describe('Changeset', () => {
 
       expect(composedChangeset).toStrictEqual(toChangeset(expected));
     });
+
+    it('throws error when composing changeset with length 5 to changeset which indexes 0 to 7', () => {
+      const leftChangeset = toChangeset(['hello']);
+      const rightChangeset = toChangeset([[0, 7], ' world']);
+      expect(() => leftChangeset.compose(rightChangeset)).toThrow();
+    });
+
+    it('throws error when changeset index is completely out for range', () => {
+      const leftChangeset = toChangeset(['hello']);
+      const rightChangeset = toChangeset([[12, 14], ' world']);
+      expect(() => leftChangeset.compose(rightChangeset)).toThrow();
+    });
   });
 
   describe('follow', () => {
     it.each([
       [
         'returns for simple retained and insertion characters',
-        [8, 5, [[0, 1], 'si', 7]],
-        [8, 5, [0, 'e', 6, 'ow']],
-        [5, 6, [0, 'e', [2, 3], 'ow']],
+        [[0, 1], 'si', 7],
+        [0, 'e', 6, 'ow'],
+        [0, 'e', [2, 3], 'ow'],
       ],
       [
         'returns for simple retained and insertion characters reverse arguments',
-        [8, 5, [0, 'e', 6, 'ow']],
-        [8, 5, [[0, 1], 'si', 7]],
-        [5, 6, [[0, 1], 'si', [3, 4]]],
+        [0, 'e', 6, 'ow'],
+        [[0, 1], 'si', 7],
+        [[0, 1], 'si', [3, 4]],
       ],
     ])('%s: %s.follow(%s) = %s', (_msg, objA, objB, expectedfAB) => {
       const A = toChangeset(objA);
@@ -143,8 +131,8 @@ describe('Changeset', () => {
       ],
     ])('%s', (initialText, textA, objChangeA, textB, objChangeB) => {
       const X = Changeset.fromText(initialText);
-      const A = new Changeset({ strips: toStrips(objChangeA) });
-      const B = new Changeset({ strips: toStrips(objChangeB) });
+      const A = new Changeset(toStrips(objChangeA));
+      const B = new Changeset(toStrips(objChangeB));
       expect(X.compose(A).strips).toStrictEqual(toStrips([textA]));
       expect(X.compose(B).strips).toStrictEqual(toStrips([textB]));
 

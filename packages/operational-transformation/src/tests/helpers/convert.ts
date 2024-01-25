@@ -46,17 +46,8 @@ export function toStrips(arr: unknown[]): Strips {
 }
 
 export function toChangeset(value: unknown) {
-  if (
-    Array.isArray(value) &&
-    typeof value[0] === 'number' &&
-    typeof value[1] === 'number' &&
-    Array.isArray(value[2])
-  ) {
-    return new Changeset({
-      requiredLength: value[0],
-      length: value[1],
-      strips: toStrips(value[2]),
-    });
+  if (Array.isArray(value)) {
+    return new Changeset(toStrips(value));
   }
 
   throw new Error(`Unable to convert to Changeset: ${String(value)}`);

@@ -96,10 +96,11 @@ export class Strips<T = string> {
       return compactedStrips;
     }, []);
 
+    //TODO cache compact???
     return new Strips(newValues);
   }
 
   toString() {
-    return this.values.join(', ');
+    return `[${this.values.join(', ')}]`;
   }
 }
