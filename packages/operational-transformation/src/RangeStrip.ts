@@ -1,5 +1,5 @@
 import IndexStrip from './IndexStrip';
-import Strip, { StripType } from './Strip';
+import Strip, { EMPTY, StripType } from './Strip';
 import Strips from './Strips';
 
 /**
@@ -58,7 +58,7 @@ export default class RangeStrip<T = string> implements Strip<T> {
 
     const newStartIndex = this.startIndex + start;
     if (newStartIndex > this.endIndex) {
-      return Strip.EMPTY;
+      return EMPTY;
     }
 
     const newEndIndex = Math.min(this.startIndex + end - 1, this.endIndex);
@@ -96,7 +96,7 @@ export default class RangeStrip<T = string> implements Strip<T> {
       }
     }
 
-    return Strip.EMPTY;
+    return EMPTY;
   }
 
   toString() {

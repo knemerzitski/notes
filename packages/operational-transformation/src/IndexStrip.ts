@@ -1,5 +1,5 @@
 import RangeStrip from './RangeStrip';
-import Strip, { StripType } from './Strip';
+import Strip, { EMPTY, StripType } from './Strip';
 import Strips from './Strips';
 
 /**
@@ -55,7 +55,7 @@ export default class IndexStrip<T = string> implements Strip<T> {
       }
     }
 
-    return Strip.EMPTY;
+    return EMPTY;
   }
 
   toString() {

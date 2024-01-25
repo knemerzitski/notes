@@ -6,7 +6,7 @@ import Changeset from '../../Changeset';
 import IndexStrip from '../../IndexStrip';
 import RangeStrip from '../../RangeStrip';
 import StringStrip from '../../StringStrip';
-import Strip from '../../Strip';
+import { EMPTY } from '../../Strip';
 import Strips from '../../Strips';
 
 /**
@@ -28,7 +28,7 @@ export function toStrip(value: unknown) {
   ) {
     return new RangeStrip(value[0], value[1]);
   } else if (value == null) {
-    return Strip.EMPTY;
+    return EMPTY;
   }
 
   throw new Error(`Unable to convert to Strip: ${String(value)}`);
