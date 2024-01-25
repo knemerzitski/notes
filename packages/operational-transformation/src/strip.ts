@@ -1,4 +1,4 @@
-import Strips from './Strips';
+import { Strips } from './strips';
 
 export enum StripType {
   Retained = 'retained',

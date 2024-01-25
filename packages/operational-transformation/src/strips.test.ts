@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import Strip from './Strip';
-import Strips from './Strips';
+import Strip from './strip';
+import { Strips } from './strips';
 import { toStrips } from './tests/helpers/convert';
 import {
   getMockStripValues,

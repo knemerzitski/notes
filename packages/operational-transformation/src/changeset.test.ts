@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import Changeset from './Changeset';
-import Strip from './Strip';
-import Strips from './Strips';
+import { Changeset } from './changeset';
+import Strip from './strip';
+import { Strips } from './strips';
 import { toChangeset, toStrips } from './tests/helpers/convert';
 import {
   createMockStrips,

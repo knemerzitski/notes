@@ -1,8 +1,8 @@
-import IndexStrip from './IndexStrip';
-import RangeStrip from './RangeStrip';
-import StringStrip from './StringStrip';
-import Strip, { StripType } from './Strip';
-import Strips from './Strips';
+import { IndexStrip } from './index-strip';
+import { RangeStrip } from './range-strip';
+import { StringStrip } from './string-strip';
+import Strip, { StripType } from './strip';
+import { Strips } from './strips';
 
 interface ChangesetOptions<T = string> {
   requiredLength?: number;
@@ -13,7 +13,7 @@ interface ChangesetOptions<T = string> {
 /**
  * Represents a change to a document.
  */
-export default class Changeset<T = string> {
+export class Changeset<T = string> {
   //static
 
   // TODO test

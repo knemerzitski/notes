@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import IndexStrip from './IndexStrip';
-import RangeStrip from './RangeStrip';
-import Strips from './Strips';
+import { IndexStrip } from './index-strip';
+import { RangeStrip } from './range-strip';
+import { Strips } from './strips';
 import { toStrip, toStrips } from './tests/helpers/convert';
 
 describe('RangeStrip', () => {

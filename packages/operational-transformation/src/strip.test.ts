@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import Strip, { EMPTY } from './Strip';
-import Strips from './Strips';
+import Strip, { EMPTY } from './strip';
+import { Strips } from './strips';
 
 describe('Strip', () => {
   describe('static', () => {

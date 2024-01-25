@@ -1,9 +1,9 @@
-import Strip from './Strip';
+import Strip from './strip';
 
 /**
  * A strip array with convinience methods.
  */
-export default class Strips<T = string> {
+export class Strips<T = string> {
   static EMPTY = new Strips<never>();
 
   /**

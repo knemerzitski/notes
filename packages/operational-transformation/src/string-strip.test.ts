@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import StringStrip from './StringStrip';
-import Strip from './Strip';
-import Strips from './Strips';
+import { StringStrip } from './string-strip';
+import Strip from './strip';
+import { Strips } from './strips';
 
 describe('StringStrip', () => {
   it('sets value from constructor', () => {

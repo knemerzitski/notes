@@ -1,10 +1,10 @@
-import Strip, { StripType } from './Strip';
-import Strips from './Strips';
+import Strip, { EMPTY, StripType } from './strip';
+import { Strips } from './strips';
 
 /**
  * Represents string insertion in the new document.
  */
-export default class StringStrip<T extends string = string> implements Strip<T> {
+export class StringStrip<T extends string = string> implements Strip<T> {
   readonly value: T;
 
   readonly length;
@@ -49,7 +49,7 @@ export default class StringStrip<T extends string = string> implements Strip<T> 
    * String insertion never intersects with other strips.
    */
   intersect() {
-    return Strip.EMPTY;
+    return EMPTY;
   }
 
   toString() {

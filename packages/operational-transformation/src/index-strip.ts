@@ -1,11 +1,11 @@
-import RangeStrip from './RangeStrip';
-import Strip, { EMPTY, StripType } from './Strip';
-import Strips from './Strips';
+import { RangeStrip } from './range-strip';
+import Strip, { EMPTY, StripType } from './strip';
+import { Strips } from './strips';
 
 /**
  * Represents a retained character from the original document.
  */
-export default class IndexStrip<T = string> implements Strip<T> {
+export class IndexStrip<T = string> implements Strip<T> {
   readonly index: number;
   readonly length = 1;
   readonly maxIndex;

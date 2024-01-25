@@ -1,7 +1,7 @@
 import { mock } from 'vitest-mock-extended';
 
-import Strip from '../../Strip';
-import Strips from '../../Strips';
+import Strip from '../../strip';
+import { Strips } from '../../strips';
 
 /**
  * Temporary mocked strip that uses string to validate indices

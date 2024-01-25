@@ -2,12 +2,12 @@
  * Utility functions to help defined changeset class instances from plain primitive.
  */
 
-import Changeset from '../../Changeset';
-import IndexStrip from '../../IndexStrip';
-import RangeStrip from '../../RangeStrip';
-import StringStrip from '../../StringStrip';
-import { EMPTY } from '../../Strip';
-import Strips from '../../Strips';
+import { Changeset } from '../../changeset';
+import { IndexStrip } from '../../index-strip';
+import { RangeStrip } from '../../range-strip';
+import { StringStrip } from '../../string-strip';
+import { EMPTY } from '../../strip';
+import { Strips } from '../../strips';
 
 /**
  * Create changeset class instances from primitives.
