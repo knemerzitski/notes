@@ -7,7 +7,7 @@ export class Strips<T = string> {
   static EMPTY = new Strips<never>();
 
   /**
-   * Convinience method to create Strips from spread syntax
+   * Convinience method to create Strips from spread syntax.
    */
   static from<U>(...values: Readonly<Strip<U>[]>) {
     return new Strips<U>(values);
@@ -17,7 +17,7 @@ export class Strips<T = string> {
 
   private _length = -1;
   /**
-   * Total length of all strips.
+   * Total length of all strips. Is memoized.
    */
   get length() {
     if (this._length === -1) {
@@ -28,7 +28,7 @@ export class Strips<T = string> {
 
   private _maxIndex = -1;
   /**
-   * Highest index value in strips.
+   * Highest index value in strips. Is memoized.
    */
   get maxIndex() {
     if (this._maxIndex === -1) {

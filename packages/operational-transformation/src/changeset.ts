@@ -4,13 +4,12 @@ import Strip, { StripType } from './strip';
 import { Strips } from './strips';
 
 /**
- * Represents a change to a document.
+ * Represents a change to a document (list of characters, or a string).
+ * Strips is compact.
  */
 export class Changeset<T = string> {
-  //static
-
   /**
-   * Convinience method to create Changeset from spread syntax
+   * Convinience method to create Changeset from spread syntax.
    */
   static from<U>(...strips: Readonly<Strip<U>>[]) {
     return new Changeset<U>(strips);
@@ -21,7 +20,10 @@ export class Changeset<T = string> {
    */
   readonly strips: Readonly<Strips<T>>;
 
-  // TODO test constructors
+  /**
+   * Create new Changeset from either an array of strips or Strips instance
+   * Strips will be compacted if not already.
+   */
   constructor(strips: Readonly<Strips<T>> | Readonly<Strip<T>[]>) {
     if (strips instanceof Strips) {
       this.strips = strips.compact();
@@ -32,6 +34,10 @@ export class Changeset<T = string> {
     }
   }
 
+  /**
+   * @returns A new changeset that is a compostion of this and other.
+   * E.g. ['hello'].compose([[0, 4], ' world']) = ['hello world']
+   */
   compose(other: Changeset<T>): Changeset<T> {
     return new Changeset(
       new Strips(
