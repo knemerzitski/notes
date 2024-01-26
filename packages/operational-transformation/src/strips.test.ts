@@ -17,6 +17,40 @@ describe('Strips', () => {
     });
   });
 
+  describe('calcMaxIndex', () => {
+    function createStrips(maxIndices: number[]): Strip[] {
+      return maxIndices.map((maxIndex) =>
+        mock<Strip>({
+          maxIndex,
+        })
+      );
+    }
+
+    it.each([
+      ['returns -1 for empty', [], -1],
+      ['returns maximum', [7, 2, 4], 7],
+    ])('%s: %s.calcMaxIndex() = %s', (_msg, nrs, expected) => {
+      expect(new Strips(createStrips(nrs)).maxIndex).toStrictEqual(expected);
+    });
+  });
+
+  describe('length', () => {
+    function createStrips(lengths: number[]): Strip[] {
+      return lengths.map((length) =>
+        mock<Strip>({
+          length,
+        })
+      );
+    }
+
+    it.each([
+      ['returns 0 for empty strip', [], 0],
+      ['returns sum', [7, 2, 4], 13],
+    ])('%s: %s.length = %s', (_msg, nrs, expected) => {
+      expect(new Strips(createStrips(nrs)).length).toStrictEqual(expected);
+    });
+  });
+
   it('sets values in constructor', () => {
     const values = [mock<Strip>(), mock<Strip>()];
     expect(new Strips(values).values).toStrictEqual(values);
@@ -71,6 +105,12 @@ describe('Strips', () => {
         ['ab', 'cd', 'ef'],
       ],
       ['returns empty for out of bounds index', ['abc', 'de'], [15, 20], []],
+      [
+        'returns last three characters from negative index',
+        ['abc', 'de'],
+        [-3, -1],
+        ['c', 'de'],
+      ],
     ])('%s: %s.slice(%s) = %s', (_msg, strs, [sliceStart, sliceEnd], expected) => {
       expect(toStrips(strs).slice(sliceStart, sliceEnd)).toStrictEqual(
         toStrips(expected)
@@ -79,43 +119,17 @@ describe('Strips', () => {
   });
 
   describe('at', () => {
-    it.each([[['abc', 'def'], 4, 'e']])('%s.at(%s) = %s', (strs, index, expected) => {
-      const strips = toStrips(strs);
-      expect(strips.at(index)).toStrictEqual(toStrip(expected));
-    });
-  });
-
-  describe('calcMaxIndex', () => {
-    function createStrips(maxIndices: number[]): Strip[] {
-      return maxIndices.map((maxIndex) =>
-        mock<Strip>({
-          maxIndex,
-        })
-      );
-    }
-
     it.each([
-      ['returns -1 for empty', [], -1],
-      ['returns maximum', [7, 2, 4], 7],
-    ])('%s: %s.calcMaxIndex() = %s', (_msg, nrs, expected) => {
-      expect(new Strips(createStrips(nrs)).calcMaxIndex()).toStrictEqual(expected);
-    });
-  });
-
-  describe('calcTotalLength', () => {
-    function createStrips(lengths: number[]): Strip[] {
-      return lengths.map((length) =>
-        mock<Strip>({
-          length,
-        })
-      );
-    }
-
-    it.each([
-      ['returns 0 for empty strip', [], 0],
-      ['returns sum', [7, 2, 4], 13],
-    ])('%s: %s.calcTotalLength() = %s', (_msg, nrs, expected) => {
-      expect(new Strips(createStrips(nrs)).calcTotalLength()).toStrictEqual(expected);
+      ['first character of second strip', ['abc', 'def'], 4, 'e'],
+      ['returns last character', ['abc', 'de'], -1, 'e'],
+      ['returns undefined for out of bounds index', ['de'], 10, undefined],
+    ])('%s.at(%s) = %s', (_msg, strs, index, expected) => {
+      const strip = toStrips(strs).at(index);
+      if (expected !== undefined) {
+        expect(strip).toStrictEqual(toStrip(expected));
+      } else {
+        expect(strip).toBeUndefined();
+      }
     });
   });
 

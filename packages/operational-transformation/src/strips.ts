@@ -9,11 +9,35 @@ export class Strips<T = string> {
   /**
    * Convinience method to create Strips from spread syntax
    */
-  static from<T>(...values: Readonly<Strip<T>[]>) {
-    return new Strips<T>(values);
+  static from<U>(...values: Readonly<Strip<U>[]>) {
+    return new Strips<U>(values);
   }
 
   readonly values: Readonly<Strip<T>[]>;
+
+  private _length = -1;
+  /**
+   * Total length of all strips.
+   */
+  get length() {
+    if (this._length === -1) {
+      this._length = this.values.map((strip) => strip.length).reduce((a, b) => a + b, 0);
+    }
+    return this._length;
+  }
+
+  private _maxIndex = -1;
+  /**
+   * Highest index value in strips.
+   */
+  get maxIndex() {
+    if (this._maxIndex === -1) {
+      this._maxIndex = this.values
+        .map((strip) => strip.maxIndex)
+        .reduce((a, b) => Math.max(a, b), -1);
+    }
+    return this._maxIndex;
+  }
 
   private isCompact;
 
@@ -23,14 +47,20 @@ export class Strips<T = string> {
   }
 
   /**
-   * Returns section of the Chars, slicing Char elements to fit the section.
+   * Returns a section of the strips, slicing strips elements to fit the section.
    * E.g ["ab", "cdefg", "hijklm", "no"].slice(4,9) = ["efg", "hi"]
    * @param start The index to the beginning.
    * @param end The index to the end. Is exclusive - end index is not included.
    * Unspecified value continues to the end of char.
-   * Must be Non-negative value.
    */
   slice(start = 0, end?: number): Strips<T> {
+    if (start < 0) {
+      start = (start % this.length) + this.length;
+    }
+    if (end && end < 0) {
+      end = (end % this.length) + this.length + 1;
+    }
+
     const result: Strip<T>[] = [];
     let pos = 0;
     for (const strip of this.values) {
@@ -55,8 +85,9 @@ export class Strips<T = string> {
   }
 
   /**
-   * Returns the strip singular value located at the specified index.
-   * @param index The zero-based non-negative index of the desired code unit.
+   * Returns the strip at specified index.
+   * @param index The zero-based index of the desired strip.
+   * A negative index will count back from the last strip.
    */
   at(index: number): Strip<T> | undefined {
     const { values } = this.slice(index, index + 1);
@@ -64,16 +95,6 @@ export class Strips<T = string> {
       return values[0];
     }
     return;
-  }
-
-  calcMaxIndex(): number {
-    return this.values
-      .map((strip) => strip.maxIndex)
-      .reduce((a, b) => Math.max(a, b), -1);
-  }
-
-  calcTotalLength(): number {
-    return this.values.map((strip) => strip.length).reduce((a, b) => a + b, 0);
   }
 
   /**

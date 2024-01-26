@@ -1,40 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import { Changeset } from './changeset';
-import { toChangeset, toStrip, toStrips } from './tests/helpers/convert';
+import { toChangeset, toStrips } from './tests/helpers/convert';
 
 describe('Changeset', () => {
-  describe('slice', () => {
-    it.each([
-      [
-        'returns last three characters from negative index',
-        ['abc', 'de'],
-        [-3, -1],
-        ['c', 'de'],
-      ],
-    ])('%s: %s.slice(%s) = %s', (_msg, strs, [sliceStart, sliceEnd], expected) => {
-      expect(toChangeset(strs).slice(sliceStart, sliceEnd)).toStrictEqual(
-        toStrips(expected).compact()
-      );
-    });
-  });
-
-  describe('at', () => {
-    it.each([
-      ['returns last character', ['abc', 'de'], -1, 'e'],
-      ['returns undefined for out of bounds index', ['de'], 10, undefined],
-    ])('%s: %s.at(%s) = %s', (_msg, strs, index, expected) => {
-      const changeset = toChangeset(strs);
-
-      const strip = changeset.at(index);
-      if (expected !== undefined) {
-        expect(strip).toStrictEqual(toStrip(expected));
-      } else {
-        expect(strip).toBeUndefined();
-      }
-    });
-  });
-
   describe('compose', () => {
     it.each([
       ['simple hello world', ['hello'], [[0, 4], ' world'], ['hello world']],

@@ -20,69 +20,26 @@ export class Changeset<T = string> {
   }
 
   /**
-   * Length of the document after the change.
-   * Is total length of all strips.
+   * Convinience method to create Changeset from spread syntax
    */
-  private _length = -1;
-
-  /**
-   * Highest index that is accessed by strips.
-   */
-  private _maxIndex = -1;
+  static from<U>(...strips: Readonly<Strip<U>>[]) {
+    return new Changeset<U>(strips);
+  }
 
   /**
    * Strips is always compact.
    */
   readonly strips: Readonly<Strips<T>>;
 
-  constructor(strips: Readonly<Strips<T>>) {
-    this.strips = strips.compact();
-  }
-
-  // TODO test
-  get length() {
-    if (this._length === -1) {
-      this._length = this.strips.calcTotalLength();
+  // TODO test constructors
+  constructor(strips: Readonly<Strips<T>> | Readonly<Strip<T>[]>) {
+    if (strips instanceof Strips) {
+      this.strips = strips.compact();
+    } else if (Array.isArray(strips)) {
+      this.strips = new Strips(strips).compact();
+    } else {
+      this.strips = Strips.EMPTY;
     }
-    return this._length;
-  }
-
-  // TODO test
-  get maxIndex() {
-    if (this._maxIndex === -1) {
-      this._maxIndex = this.strips.calcMaxIndex();
-    }
-    return this._maxIndex;
-  }
-
-  /**
-   * Returns section of the Changeset as Chars
-   * Negative {@link start}, {@link end} starts from end of array.
-   * from the end of the array. E.g. -1 is the last element.
-   * @param start The index to the beginning.
-   * @param end The index to the end. Is exclusive - end index is not included.
-   * Unspecified value continues to the end of char.
-   */
-  slice(start = 0, end?: number): Strips<T> {
-    if (start < 0) {
-      start = (start % this.length) + this.length;
-    }
-    if (end && end < 0) {
-      end = (end % this.length) + this.length + 1;
-    }
-    return this.strips.slice(start, end);
-  }
-
-  /**
-   * Returns the strip singular value located at the specified index.
-   * @param index The zero-based index of the desired code unit. A negative index will count back from the last strip.
-   */
-  at(index: number): Strip<T> | undefined {
-    const { values } = this.slice(index, index + 1);
-    if (values.length === 1) {
-      return values[0];
-    }
-    return;
   }
 
   compose(other: Changeset<T>): Changeset<T> {
@@ -90,7 +47,7 @@ export class Changeset<T = string> {
       new Strips(
         other.strips.values.flatMap((strip) => {
           const refStrips = strip.reference(this.strips);
-          if (refStrips.calcTotalLength() !== strip.length) {
+          if (refStrips.length !== strip.length) {
             throw new Error(
               `Unable to compose ${String(this.strips)} * ${String(
                 other.strips
@@ -99,7 +56,7 @@ export class Changeset<T = string> {
           }
           return refStrips.values;
         })
-      ).compact()
+      )
     );
   }
 
@@ -164,6 +121,6 @@ export class Changeset<T = string> {
   }
 
   toString() {
-    return `(${this.maxIndex} -> ${this.length})[${String(this.strips)}]`;
+    return `(${this.strips.maxIndex} -> ${this.strips.length})[${String(this.strips)}]`;
   }
 }
