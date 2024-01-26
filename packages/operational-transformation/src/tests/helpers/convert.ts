@@ -45,10 +45,6 @@ export function toStrips(arr: unknown[]): Strips {
   return new Strips(arr.map((value) => toStrip(value)));
 }
 
-export function toChangeset(value: unknown) {
-  if (Array.isArray(value)) {
-    return new Changeset(toStrips(value));
-  }
-
-  throw new Error(`Unable to convert to Changeset: ${String(value)}`);
+export function toChangeset(value: unknown[]) {
+  return new Changeset(toStrips(value));
 }

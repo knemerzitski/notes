@@ -3,12 +3,7 @@ import { mock } from 'vitest-mock-extended';
 
 import Strip from './strip';
 import { Strips } from './strips';
-import { toStrips } from './tests/helpers/convert';
-import {
-  getMockStripValues,
-  createMockStrips,
-  getMockStripValue,
-} from './tests/helpers/strips';
+import { toStrip, toStrips } from './tests/helpers/convert';
 
 describe('Strips', () => {
   describe('static', () => {
@@ -77,16 +72,16 @@ describe('Strips', () => {
       ],
       ['returns empty for out of bounds index', ['abc', 'de'], [15, 20], []],
     ])('%s: %s.slice(%s) = %s', (_msg, strs, [sliceStart, sliceEnd], expected) => {
-      expect(
-        getMockStripValues(createMockStrips(strs).slice(sliceStart, sliceEnd))
-      ).toStrictEqual(expected);
+      expect(toStrips(strs).slice(sliceStart, sliceEnd)).toStrictEqual(
+        toStrips(expected)
+      );
     });
   });
 
   describe('at', () => {
     it.each([[['abc', 'def'], 4, 'e']])('%s.at(%s) = %s', (strs, index, expected) => {
-      const strips = createMockStrips(strs);
-      expect(getMockStripValue(strips.at(index))).toStrictEqual(expected);
+      const strips = toStrips(strs);
+      expect(strips.at(index)).toStrictEqual(toStrip(expected));
     });
   });
 
@@ -138,7 +133,7 @@ describe('Strips', () => {
         [[1, 5], 'abcd', [6, 14], 'c', [11, 12]],
       ],
     ])('%s: %s.compact() = %s', (_msg, input, expected) => {
-      expect(toStrips(input).compact()).toStrictEqual(toStrips(expected));
+      expect(toStrips(input).compact()).toStrictEqual(toStrips(expected).compact());
     });
   });
 });

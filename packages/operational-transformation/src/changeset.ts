@@ -30,13 +30,16 @@ export class Changeset<T = string> {
    */
   private _maxIndex = -1;
 
-  readonly strips: Strips<T>;
+  /**
+   * Strips is always compact.
+   */
+  readonly strips: Readonly<Strips<T>>;
 
-  constructor(strips: Strips<T>) {
-    // TODO ensure changeset strips are compact
-    this.strips = strips;
+  constructor(strips: Readonly<Strips<T>>) {
+    this.strips = strips.compact();
   }
 
+  // TODO test
   get length() {
     if (this._length === -1) {
       this._length = this.strips.calcTotalLength();
@@ -44,6 +47,7 @@ export class Changeset<T = string> {
     return this._length;
   }
 
+  // TODO test
   get maxIndex() {
     if (this._maxIndex === -1) {
       this._maxIndex = this.strips.calcMaxIndex();

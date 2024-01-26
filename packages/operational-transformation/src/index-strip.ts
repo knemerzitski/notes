@@ -22,7 +22,7 @@ export class IndexStrip<T = string> implements Strip<T> {
   /**
    * @returns Value from strips at {@link index}
    */
-  reference(strips: Strips<T>): Strips<T> {
+  reference(strips: Readonly<Strips<T>>): Strips<T> {
     const strip = strips.at(this.index);
     return strip ? Strips.from(strip) : Strips.EMPTY;
   }

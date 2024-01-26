@@ -41,7 +41,7 @@ export default interface Strip<T = string> {
   /**
    * Returns strips that references values from a {@link strips}
    */
-  reference: (strips: Strips<T>) => Strips<T>;
+  reference: (strips: Readonly<Strips<T>>) => Strips<T>;
 
   /**
    * Returns a section of the strip.

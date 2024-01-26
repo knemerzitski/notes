@@ -15,8 +15,11 @@ export class Strips<T = string> {
 
   readonly values: Readonly<Strip<T>[]>;
 
+  private isCompact;
+
   constructor(values: Readonly<Strip<T>[]> = []) {
     this.values = values;
+    this.isCompact = values.length <= 1;
   }
 
   /**
@@ -78,7 +81,7 @@ export class Strips<T = string> {
    * amount of memory.
    */
   compact(): Strips<T> {
-    if (this.values.length <= 1) return this;
+    if (this.isCompact) return this;
 
     const newValues = this.values.reduce<Strip<T>[]>((compactedStrips, strip) => {
       if (compactedStrips.length === 0) {
@@ -96,8 +99,9 @@ export class Strips<T = string> {
       return compactedStrips;
     }, []);
 
-    //TODO cache compact???
-    return new Strips(newValues);
+    const compactStrips = new Strips(newValues);
+    compactStrips.isCompact = true;
+    return compactStrips;
   }
 
   toString() {

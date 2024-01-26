@@ -40,7 +40,7 @@ export class RangeStrip<T = string> implements Strip<T> {
   /**
    * @returns Sliced Strips from {@link startIndex} to {@link endIndex} (inclusive)
    */
-  reference(strips: Strips<T>): Strips<T> {
+  reference(strips: Readonly<Strips<T>>): Strips<T> {
     return strips.slice(this.startIndex, this.endIndex + 1);
   }
 

@@ -1,37 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { mock } from 'vitest-mock-extended';
 
 import { Changeset } from './changeset';
-import Strip from './strip';
-import { Strips } from './strips';
-import { toChangeset, toStrips } from './tests/helpers/convert';
-import {
-  createMockStrips,
-  getMockStripValues,
-  getMockStripValue,
-} from './tests/helpers/strips';
+import { toChangeset, toStrip, toStrips } from './tests/helpers/convert';
 
 describe('Changeset', () => {
-  describe('constructor', () => {
-    it('sets requiredLength, length from strips if not defined', () => {
-      const strips = Strips.from(
-        mock<Strip>({
-          length: 2,
-          maxIndex: 1,
-        }),
-        mock<Strip>({
-          length: 3,
-          maxIndex: 8,
-        })
-      );
-
-      const changeset = new Changeset(strips);
-      expect(changeset.maxIndex).toStrictEqual(8);
-      expect(changeset.length).toStrictEqual(5);
-      expect(changeset.strips).toStrictEqual(strips);
-    });
-  });
-
   describe('slice', () => {
     it.each([
       [
@@ -41,10 +13,8 @@ describe('Changeset', () => {
         ['c', 'de'],
       ],
     ])('%s: %s.slice(%s) = %s', (_msg, strs, [sliceStart, sliceEnd], expected) => {
-      const changeset = new Changeset(createMockStrips(strs));
-
-      expect(getMockStripValues(changeset.slice(sliceStart, sliceEnd))).toStrictEqual(
-        expected
+      expect(toChangeset(strs).slice(sliceStart, sliceEnd)).toStrictEqual(
+        toStrips(expected).compact()
       );
     });
   });
@@ -54,11 +24,11 @@ describe('Changeset', () => {
       ['returns last character', ['abc', 'de'], -1, 'e'],
       ['returns undefined for out of bounds index', ['de'], 10, undefined],
     ])('%s: %s.at(%s) = %s', (_msg, strs, index, expected) => {
-      const changeset = new Changeset(createMockStrips(strs));
+      const changeset = toChangeset(strs);
 
-      const strip = getMockStripValue(changeset.at(index));
+      const strip = changeset.at(index);
       if (expected !== undefined) {
-        expect(strip).toStrictEqual(expected);
+        expect(strip).toStrictEqual(toStrip(expected));
       } else {
         expect(strip).toBeUndefined();
       }
