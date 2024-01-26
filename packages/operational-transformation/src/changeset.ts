@@ -1,6 +1,5 @@
 import { IndexStrip } from './index-strip';
 import { RangeStrip } from './range-strip';
-import { StringStrip } from './string-strip';
 import Strip, { StripType } from './strip';
 import { Strips } from './strips';
 
@@ -9,15 +8,6 @@ import { Strips } from './strips';
  */
 export class Changeset<T = string> {
   //static
-
-  // TODO test
-  /**
-   * Create initial changeset from text
-   * @param text
-   */
-  static fromText(text: string) {
-    return new Changeset(new Strips([new StringStrip(text)]));
-  }
 
   /**
    * Convinience method to create Changeset from spread syntax

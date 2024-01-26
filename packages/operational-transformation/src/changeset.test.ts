@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { Changeset } from './changeset';
-import { toChangeset, toStrips } from './tests/helpers/convert';
+import { toChangeset, toStrip, toStrips } from './tests/helpers/convert';
 
 describe('Changeset', () => {
   describe('compose', () => {
@@ -69,7 +69,7 @@ describe('Changeset', () => {
         ['a', 1, 'b', [2, 3], 'c'],
       ],
     ])('%s', (initialText, textA, objChangeA, textB, objChangeB) => {
-      const X = Changeset.fromText(initialText);
+      const X = Changeset.from(toStrip(initialText));
       const A = new Changeset(toStrips(objChangeA));
       const B = new Changeset(toStrips(objChangeB));
       expect(X.compose(A).strips).toStrictEqual(toStrips([textA]));
