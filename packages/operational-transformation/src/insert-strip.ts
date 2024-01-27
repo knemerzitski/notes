@@ -1,10 +1,11 @@
-import Strip, { EMPTY, StripType } from './strip';
+import { RetainStrip } from './retain-strip';
+import { EMPTY, Strip } from './strip';
 import { Strips } from './strips';
 
 /**
  * Represents string insertion in the new document.
  */
-export class StringStrip<T extends string = string> implements Strip<T> {
+export class InsertStrip<T extends string = string> implements Strip<T> {
   readonly value: T;
 
   constructor(value: T) {
@@ -13,14 +14,6 @@ export class StringStrip<T extends string = string> implements Strip<T> {
 
   get length() {
     return this.value.length;
-  }
-
-  get maxIndex() {
-    return -1;
-  }
-
-  get type() {
-    return StripType.Insert;
   }
 
   /**
@@ -35,7 +28,7 @@ export class StringStrip<T extends string = string> implements Strip<T> {
    * @returns new StringStrip({@link value}.slice({@link start}, {@link end}))
    */
   slice(start?: number, end?: number) {
-    return new StringStrip(this.value.slice(start, end));
+    return new InsertStrip(this.value.slice(start, end));
   }
 
   /**
@@ -44,16 +37,21 @@ export class StringStrip<T extends string = string> implements Strip<T> {
    *
    */
   concat(other: Strip<T>): Strips<T> {
-    if (other instanceof StringStrip) {
-      return Strips.from(new StringStrip(this.value + other.value));
+    if (other instanceof InsertStrip) {
+      return Strips.from(new InsertStrip(this.value + other.value));
     }
     return Strips.from(this, other);
   }
 
   /**
-   * String insertion never intersects with other strips.
+   * Insert strip as retained strip
+   * @param offset Retain index offset
    */
-  intersect() {
+  retain(offset = 0): RetainStrip<T> | Strip<never> {
+    if (this.length >= 1) {
+      return new RetainStrip<T>(offset, offset + this.length - 1);
+    }
+
     return EMPTY;
   }
 

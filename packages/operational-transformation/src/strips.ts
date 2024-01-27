@@ -1,4 +1,5 @@
-import Strip from './strip';
+import { RetainStrip } from './retain-strip';
+import { Strip } from './strip';
 
 /**
  * A strip array with convinience methods.
@@ -15,35 +16,25 @@ export class Strips<T = string> {
 
   readonly values: Readonly<Strip<T>[]>;
 
-  private _length = -1;
   /**
-   * Total length of all strips. Is memoized.
+   * Total length of all strips.
    */
-  get length() {
-    if (this._length === -1) {
-      this._length = this.values.map((strip) => strip.length).reduce((a, b) => a + b, 0);
-    }
-    return this._length;
-  }
+  readonly length: number;
 
-  private _maxIndex = -1;
   /**
-   * Highest index value in strips. Is memoized.
+   * Highest index value in strips.
    */
-  get maxIndex() {
-    if (this._maxIndex === -1) {
-      this._maxIndex = this.values
-        .map((strip) => strip.maxIndex)
-        .reduce((a, b) => Math.max(a, b), -1);
-    }
-    return this._maxIndex;
-  }
+  readonly maxIndex;
 
-  private isCompact;
+  private isCompact: boolean | null;
 
   constructor(values: Readonly<Strip<T>[]> = []) {
     this.values = values;
     this.isCompact = values.length <= 1;
+    this.length = this.values.map((strip) => strip.length).reduce((a, b) => a + b, 0);
+    this.maxIndex = this.values
+      .map((strip) => (strip instanceof RetainStrip ? strip.endIndex : -1))
+      .reduce((a, b) => Math.max(a, b), -1);
   }
 
   /**

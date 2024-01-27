@@ -3,9 +3,8 @@
  */
 
 import { Changeset } from '../../changeset';
-import { IndexStrip } from '../../index-strip';
-import { RangeStrip } from '../../range-strip';
-import { StringStrip } from '../../string-strip';
+import { InsertStrip } from '../../insert-strip';
+import { RetainStrip } from '../../retain-strip';
 import { EMPTY } from '../../strip';
 import { Strips } from '../../strips';
 
@@ -18,15 +17,15 @@ import { Strips } from '../../strips';
  */
 export function toStrip(value: unknown) {
   if (typeof value === 'string') {
-    return new StringStrip(value);
+    return new InsertStrip(value);
   } else if (typeof value === 'number') {
-    return new IndexStrip(value);
+    return new RetainStrip(value, value);
   } else if (
     Array.isArray(value) &&
     typeof value[0] === 'number' &&
     typeof value[1] === 'number'
   ) {
-    return new RangeStrip(value[0], value[1]);
+    return new RetainStrip(value[0], value[1]);
   } else if (value == null) {
     return EMPTY;
   }

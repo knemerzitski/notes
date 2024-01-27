@@ -1,15 +1,7 @@
 import { Strips } from './strips';
 
-export enum StripType {
-  Retain = 'retain',
-  Insert = 'insert',
-  Empty = 'empty',
-}
-
 export const EMPTY: Strip<never> = {
   length: 0,
-  maxIndex: -1,
-  type: StripType.Empty,
 
   reference() {
     return Strips.EMPTY;
@@ -20,23 +12,16 @@ export const EMPTY: Strip<never> = {
   concat<U>(strip: Strip<U>) {
     return Strips.from<U>(strip);
   },
-  intersect() {
-    return this;
+  toString() {
+    return 'EMPTY';
   },
 };
 
 /**
  * Generic representation of a continious range of objects for changesets.
  */
-export default interface Strip<T = string> {
+export interface Strip<T = string> {
   length: number;
-  /**
-   * Max index that this Char can reference.
-   * -1 if Char uses no references.
-   */
-  maxIndex: number;
-
-  type: StripType;
 
   /**
    * Returns strips that references values from a {@link strips}
@@ -56,9 +41,5 @@ export default interface Strip<T = string> {
    */
   concat: (strip: Strip<T>) => Strips<T>;
 
-  /**
-   * Find intersection between this and other strip.
-   * E.g. ranges [2-5].intersect([3-6]) = [3-5]
-   */
-  intersect: (strip: Strip<T>) => Strip<T>;
+  toString(): string;
 }

@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { Changeset } from './changeset';
-import { toChangeset, toStrip, toStrips } from './tests/helpers/convert';
+import { toChangeset } from './tests/helpers/convert';
 
 describe('Changeset', () => {
   describe('compose', () => {
@@ -12,6 +11,18 @@ describe('Changeset', () => {
         ['s', [2, 5], 'replace', 6, 'start'],
         [[0, 3], 'new', [5, 12], ' ', 13, 'ends'],
         ['s', [2, 4], 'newreplace', 6, ' sends'],
+      ],
+      [
+        'basil, below (baseball)',
+        [[0, 1], 'si', 7],
+        [0, 'e', [2, 3], 'ow'],
+        [0, 'esiow'],
+      ],
+      [
+        'below, basil  (baseball)',
+        [0, 'e', 6, 'ow'],
+        [[0, 1], 'si', [3, 4]],
+        [0, 'esiow'],
       ],
     ])('%s: %s.compose(%s) = %s', (_msg, left, right, expected) => {
       const leftChangeset = toChangeset(left);
@@ -37,48 +48,92 @@ describe('Changeset', () => {
   describe('follow', () => {
     it.each([
       [
-        'returns for simple retained and insertion characters',
+        'basil, below (baseball)',
         [[0, 1], 'si', 7],
         [0, 'e', 6, 'ow'],
         [0, 'e', [2, 3], 'ow'],
       ],
       [
-        'returns for simple retained and insertion characters reverse arguments',
+        'below, basil (baseball)',
         [0, 'e', 6, 'ow'],
         [[0, 1], 'si', 7],
         [[0, 1], 'si', [3, 4]],
       ],
-    ])('%s: %s.follow(%s) = %s', (_msg, objA, objB, expectedfAB) => {
-      const A = toChangeset(objA);
-      const B = toChangeset(objB);
+      [
+        'insert between followed by insert at end',
+        [[0, 10], 'between', [11, 23]],
+        [[0, 23], 'end'],
+        [[0, 30], 'end'],
+      ],
+      [
+        'insert at end followed by insert between',
+        [[0, 23], 'end'],
+        [[0, 10], 'between', [11, 23]],
+        [[0, 10], 'between', [11, 26]],
+      ],
+      [
+        'insert at the same position with same text',
+        [[0, 6], 'fast', [7, 12]],
+        [[0, 6], 'fast', [7, 12]],
+        [[0, 10], 'fast', [11, 16]],
+      ],
+    ])('%s: %s.follow(%s) = %s', (_msg, changeObjA, changeObjB, expectedfAB) => {
+      const A = toChangeset(changeObjA);
+      const B = toChangeset(changeObjB);
       const fAB = A.follow(B);
-
-      expect(fAB).toStrictEqual(toChangeset(expectedfAB));
+      expect(fAB.strips).toStrictEqual(toChangeset(expectedfAB).strips);
     });
   });
 
-  describe('follow is commutative with changes', () => {
+  describe('follow with compose document', () => {
     it.each([
-      ['baseball', 'basil', [[0, 1], 'si', 7], 'below', [0, 'e', 6, 'ow']],
-      ['hello world', 'worlds', [[6, 10], 's'], 'really', ['rea', [2, 3], 'y']],
-      [
-        'long range at beginning',
-        'long ranges',
-        [[0, 9], 's'],
-        'aobngc',
-        ['a', 1, 'b', [2, 3], 'c'],
-      ],
-    ])('%s', (initialText, textA, objChangeA, textB, objChangeB) => {
-      const X = Changeset.from(toStrip(initialText));
-      const A = new Changeset(toStrips(objChangeA));
-      const B = new Changeset(toStrips(objChangeB));
-      expect(X.compose(A).strips).toStrictEqual(toStrips([textA]));
-      expect(X.compose(B).strips).toStrictEqual(toStrips([textB]));
+      {
+        msg: 'inserts at two separate lines',
+        initial: 'first line:\nsecond line:',
+        changeA: [[0, 10], ' first insert', [11, 23]], // A insert between
+        changeB: [[0, 23], ' second insert'], // B insert end
+        expectedXA: 'first line: first insert\nsecond line:',
+        expectedXB: 'first line:\nsecond line: second insert',
+        expectedResult: 'first line: first insert\nsecond line: second insert',
+      },
+      {
+        msg: 'insert same text at the same position',
+        initial: 'insert here:!!!',
+        changeA: [[0, 11], 'fast', [12, 14]], // A insert between
+        changeB: [[0, 11], 'best', [12, 14]], // B insert end
+        expectedXA: 'insert here:fast!!!',
+        expectedXB: 'insert here:best!!!',
+        expectedResult: 'insert here:bestfast!!!',
+      },
+      {
+        msg: 'insert same text at the same position reverse',
+        initial: 'insert here:!!!',
+        changeA: [[0, 11], 'best', [12, 14]], // A insert between
+        changeB: [[0, 11], 'fast', [12, 14]], // B insert end
+        expectedXA: 'insert here:best!!!',
+        expectedXB: 'insert here:fast!!!',
+        expectedResult: 'insert here:bestfast!!!', // bestfast same as above, so follow is commutative
+      },
+    ])('%s', ({ initial, changeA, changeB, expectedXA, expectedXB, expectedResult }) => {
+      const X = toChangeset([initial]);
+      const A = toChangeset(changeA);
+      const B = toChangeset(changeB);
+      const XA = X.compose(A);
+      const XB = X.compose(B);
+      expect(XA).toStrictEqual(toChangeset([expectedXA]));
+      expect(XB).toStrictEqual(toChangeset([expectedXB]));
 
       const fAB = A.follow(B);
       const fBA = B.follow(A);
+      const AfAB = A.compose(fAB);
+      const BfBA = B.compose(fBA);
+      expect(AfAB, 'follow is not commutative').toStrictEqual(BfBA);
 
-      expect(X.compose(A).compose(fAB)).toStrictEqual(X.compose(B).compose(fBA));
+      const XAfAB = XA.compose(fAB);
+      const XBfBA = XB.compose(fBA);
+
+      expect(XAfAB).toStrictEqual(toChangeset([expectedResult]));
+      expect(XAfAB).toStrictEqual(XBfBA);
     });
   });
 });

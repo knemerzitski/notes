@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import Strip from './strip';
+import { Strip } from './strip';
 import { Strips } from './strips';
 import { toStrip, toStrips } from './tests/helpers/convert';
 
@@ -14,23 +14,6 @@ describe('Strips', () => {
     it('from uses spread syntax', () => {
       const values = [mock<Strip>(), mock<Strip>(), mock<Strip>()];
       expect(Strips.from(...values)).toStrictEqual(new Strips(values));
-    });
-  });
-
-  describe('calcMaxIndex', () => {
-    function createStrips(maxIndices: number[]): Strip[] {
-      return maxIndices.map((maxIndex) =>
-        mock<Strip>({
-          maxIndex,
-        })
-      );
-    }
-
-    it.each([
-      ['returns -1 for empty', [], -1],
-      ['returns maximum', [7, 2, 4], 7],
-    ])('%s: %s.calcMaxIndex() = %s', (_msg, nrs, expected) => {
-      expect(new Strips(createStrips(nrs)).maxIndex).toStrictEqual(expected);
     });
   });
 
