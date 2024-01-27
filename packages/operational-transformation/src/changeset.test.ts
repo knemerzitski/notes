@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { IDENTITY } from './changeset';
 import { toChangeset } from './tests/helpers/convert';
 
 describe('Changeset', () => {
@@ -134,6 +135,20 @@ describe('Changeset', () => {
 
       expect(XAfAB).toStrictEqual(toChangeset([expectedResult]));
       expect(XAfAB).toStrictEqual(XBfBA);
+    });
+  });
+
+  describe('Identity', () => {
+    it('compose passes through', () => {
+      const changeset = toChangeset([[1, 2], 'abc', 3]);
+      expect(IDENTITY.compose(changeset)).toStrictEqual(changeset);
+      expect(changeset.compose(IDENTITY)).toStrictEqual(changeset);
+    });
+
+    it('follow passes through', () => {
+      const changeset = toChangeset([[1, 2], 'abc', 3]);
+      expect(IDENTITY.follow(changeset)).toStrictEqual(changeset);
+      expect(changeset.follow(IDENTITY)).toStrictEqual(changeset);
     });
   });
 });

@@ -4,6 +4,35 @@ import { Strip } from './strip';
 import { Strips } from './strips';
 
 /**
+ * Identity changeset (n -> n)[0,1,2,...,n-1]
+ */
+export const IDENTITY: Readonly<Changeset<never>> = {
+  strips: {
+    values: [],
+    length: 0,
+    maxIndex: 0,
+    slice(): Strips<never> {
+      return Strips.EMPTY;
+    },
+    at(): Strip<never> | undefined {
+      return;
+    },
+    compact(): Strips<never> {
+      return Strips.EMPTY;
+    },
+    isRetainIndexesOrdered(): boolean {
+      return true;
+    },
+  },
+  compose(other: Changeset<never>): Changeset<never> {
+    return other;
+  },
+  follow(other: Changeset<never>): Changeset<never> {
+    return other;
+  },
+};
+
+/**
  * Represents a change to a document (list of characters, or a string).
  * Changeset strips is compact and retain indexes are ordered.
  */
@@ -47,6 +76,8 @@ export class Changeset<T = string> {
    * E.g. ['hello'].compose([[0, 4], ' world']) = ['hello world']
    */
   compose(other: Changeset<T>): Changeset<T> {
+    if (other === IDENTITY) return this;
+
     return new Changeset(
       new Strips(
         other.strips.values.flatMap((strip) => {
@@ -70,6 +101,8 @@ export class Changeset<T = string> {
    * In general: Af(A, B) = Bf(B, A), where A = this, B = other, f = follow
    */
   follow(other: Changeset<T>): Changeset<T> {
+    if (other === IDENTITY) return this;
+
     const followStrips: Strip<T>[] = [];
 
     let pos = 0;
