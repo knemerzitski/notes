@@ -64,27 +64,6 @@ export class Changeset<T = string> {
     );
   }
 
-  // first common idex...
-  /*
-  !indices must be in order...
-  0p[0,10]U[5,12] = [5,10] / E|[11,12]
-  0p[0,12]U[5,10] = [5,10] / [11,12]|E
-  0p[0,10]U[12,13] = E / E|[12,13]
-  
-  X =  "document"
-  A = [4-7] "ment" (del "docu")
-  B = [0-3,0-1] "docudo" (del "ment", append "do")
-
-  from "ment" to "do"
-  f(A,B) = ["do"]
-  XA = "ment"
-  XAfAB= "do"
-
-  m(M,A) = [0-1]
-
-  "do"
-  */
-
   /**
    * Finds follow of this and other so that following criteria is met:
    * this.compose(this.follow(other)) = other.compose(other.follow(this))
@@ -92,7 +71,6 @@ export class Changeset<T = string> {
    */
   follow(other: Changeset<T>): Changeset<T> {
     const followStrips: Strip<T>[] = [];
-    let followPos = 0;
 
     let pos = 0;
     let otherPos = 0;
@@ -102,17 +80,9 @@ export class Changeset<T = string> {
     const otherStack = [...other.strips.values];
     otherStack.reverse();
 
-    console.log(
-      `>[${followStrips.join(', ')}] A(${stack.join(', ')}), B(${otherStack.join(', ')})`
-    );
     while (stack.length > 0 && otherStack.length > 0) {
       const strip = stack.pop();
       const otherStrip = otherStack.pop();
-      console.log(
-        `@${followPos},${pos},${otherPos} A(${String(strip)}) <-> B(${String(
-          otherStrip
-        )})`
-      );
       if (strip && otherStrip) {
         // Retain whatever characters are retained in both
         if (strip instanceof RetainStrip && otherStrip instanceof RetainStrip) {
@@ -125,10 +95,7 @@ export class Changeset<T = string> {
               Math.max(strip.startIndex, otherStrip.startIndex),
               Math.min(strip.endIndex, otherStrip.endIndex)
             );
-            console.log('A, B intersection retained');
-            //+1??
             followStrips.push(new RetainStrip(pos, pos + intersectionStrip.length - 1));
-            followPos += intersectionStrip.length;
 
             // Slice on right must be checked against further strips, so push it to appropriate stack
             if (intersectionStrip.endIndex < strip.endIndex) {
@@ -152,11 +119,8 @@ export class Changeset<T = string> {
 
           // Insertions in this become retained characters
           if (strip instanceof InsertStrip) {
-            console.log('A => to retained');
             tmpOrderStrips.push(strip.retain(pos));
-            followPos += strip.length;
             if (otherStrip instanceof RetainStrip) {
-              console.log('B => push back');
               // Put back other strip as it must be processed later due to strip being insertion
               otherStack.push(otherStrip);
               otherPos -= otherStrip.length;
@@ -165,11 +129,8 @@ export class Changeset<T = string> {
 
           // Insertions in other become insertions
           if (otherStrip instanceof InsertStrip) {
-            console.log('B insert');
             tmpOrderStrips.push(otherStrip);
-            followPos += otherStrip.length;
             if (strip instanceof RetainStrip) {
-              console.log('A => push back');
               // Put back strip as it must be processed later due to other strip being insertion
               stack.push(strip);
               pos -= strip.length;
@@ -193,11 +154,6 @@ export class Changeset<T = string> {
           }
           followStrips.push(...tmpOrderStrips);
         }
-        console.log(
-          `>[${followStrips.join(', ')}] A(${stack.join(', ')}), B(${otherStack.join(
-            ', '
-          )})`
-        );
 
         pos += strip.length;
         otherPos += otherStrip.length;
@@ -220,7 +176,6 @@ export class Changeset<T = string> {
     }
 
     const followChangeset = new Changeset(followStrips);
-    console.log('result', String(followChangeset));
     return followChangeset;
   }
 
