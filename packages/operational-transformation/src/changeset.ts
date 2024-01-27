@@ -5,7 +5,7 @@ import { Strips } from './strips';
 
 /**
  * Represents a change to a document (list of characters, or a string).
- * Strips is compact.
+ * Changeset strips is compact and retain indexes are ordered.
  */
 export class Changeset<T = string> {
   /**
@@ -25,13 +25,20 @@ export class Changeset<T = string> {
    * Strips will be compacted if not already.
    */
   constructor(strips: Readonly<Strips<T>> | Readonly<Strip<T>[]>) {
-    // TODO ensure strips indices are ordered correctly...
     if (strips instanceof Strips) {
       this.strips = strips.compact();
     } else if (Array.isArray(strips)) {
       this.strips = new Strips(strips).compact();
     } else {
       this.strips = Strips.EMPTY;
+    }
+
+    if (!this.strips.isRetainIndexesOrdered()) {
+      throw new Error(
+        `Changeset strips retain indexes are not ascending ordered: ${String(
+          this.strips
+        )}`
+      );
     }
   }
 
@@ -84,7 +91,7 @@ export class Changeset<T = string> {
    * In general: Af(A, B) = Bf(B, A), where A = this, B = other, f = follow
    */
   follow(other: Changeset<T>): Changeset<T> {
-    const followStrips: Strip<unknown>[] = [];
+    const followStrips: Strip<T>[] = [];
     let followPos = 0;
 
     let pos = 0;

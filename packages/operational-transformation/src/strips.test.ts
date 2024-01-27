@@ -133,4 +133,29 @@ describe('Strips', () => {
       expect(toStrips(input).compact()).toStrictEqual(toStrips(expected).compact());
     });
   });
+
+  describe('isRetainIndexesOrdered', () => {
+    it.each([
+      [['hello', ' world'], true],
+      [
+        [
+          [1, 2],
+          [4, 5],
+        ],
+        true,
+      ],
+      [
+        [
+          [5, 6],
+          [2, 4],
+        ],
+        false,
+      ],
+      [[[2, 3], 1], false],
+      [[[1, 2], 'abc', [5, 7], 'bbb'], true],
+      [['c', [5, 8], 'abc', [1, 3], 'bbb'], false],
+    ])('%s', (input, expected) => {
+      expect(toStrips(input).isRetainIndexesOrdered()).toStrictEqual(expected);
+    });
+  });
 });

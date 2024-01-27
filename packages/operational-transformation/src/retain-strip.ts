@@ -73,7 +73,7 @@ export class RetainStrip<T = string> implements Strip<T> {
   }
 
   offset(offset: number): Strip<T> {
-    return new RetainStrip(this.startIndex + offset, this.endIndex + offset);
+    return new RetainStrip<T>(this.startIndex + offset, this.endIndex + offset);
   }
 
   toString() {

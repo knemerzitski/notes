@@ -116,6 +116,22 @@ export class Strips<T = string> {
     return compactStrips;
   }
 
+  /**
+   * @returns Indices are ordered ascending.
+   */
+  isRetainIndexesOrdered() {
+    let prevEndIndex = -1;
+    for (const strip of this.values) {
+      if (strip instanceof RetainStrip) {
+        if (strip.startIndex < prevEndIndex) {
+          return false;
+        }
+        prevEndIndex = strip.endIndex;
+      }
+    }
+    return true;
+  }
+
   toString() {
     return `[${this.values.join(', ')}]`;
   }
