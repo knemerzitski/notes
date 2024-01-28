@@ -1,4 +1,4 @@
-import Strip, { EMPTY } from './strip';
+import { EMPTY, Strip } from './strip';
 import { Strips } from './strips';
 
 /**
@@ -17,7 +17,7 @@ export class RetainStrip<T = string> implements Strip<T> {
   /**
    *
    * @param startIndex
-   * @param endIndex Must be greater or equal to {@link startIndex}
+   * @param endIndex Must be greater or equal to {@link startIndex}. Is inclusive
    */
   constructor(startIndex: number, endIndex: number = startIndex) {
     this.startIndex = startIndex;
@@ -64,6 +64,9 @@ export class RetainStrip<T = string> implements Strip<T> {
   }
 
   concat(other: Strip<T>): Strips<T> {
+    // TODO test emptry returns this
+    if (other === EMPTY) return Strips.from(this);
+
     if (other instanceof RetainStrip && this.endIndex + 1 === other.startIndex) {
       // E.g. [2,5] + [6,10] = [2,10]
       return Strips.from(new RetainStrip(this.startIndex, other.endIndex));
@@ -74,6 +77,14 @@ export class RetainStrip<T = string> implements Strip<T> {
 
   offset(offset: number): Strip<T> {
     return new RetainStrip<T>(this.startIndex + offset, this.endIndex + offset);
+  }
+
+  isEqual(other: Strip<T>): boolean {
+    return (
+      other instanceof RetainStrip &&
+      other.startIndex === this.startIndex &&
+      other.endIndex === this.endIndex
+    );
   }
 
   toString() {

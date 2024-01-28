@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import { Strip } from './strip';
-import { Strips } from './strips';
+import { IDENTITY, Strips } from './strips';
 import { toStrip, toStrips } from './tests/helpers/convert';
 
 describe('Strips', () => {
@@ -156,6 +156,66 @@ describe('Strips', () => {
       [['c', [5, 8], 'abc', [1, 3], 'bbb'], false],
     ])('%s', (input, expected) => {
       expect(toStrips(input).isRetainIndexesOrdered()).toStrictEqual(expected);
+    });
+  });
+
+  describe('isEqual', () => {
+    it('returns true exact same strips', () => {
+      expect(toStrips(['abc', [1, 2]]).isEqual(toStrips(['abc', [1, 2]]))).toBeTruthy();
+      expect(
+        toStrips([4, 'c', [3, 5], 'bs', 'll']).isEqual(
+          toStrips([4, 'c', [3, 5], 'bs', 'll'])
+        )
+      ).toBeTruthy();
+    });
+
+    it('returns false for different order', () => {
+      expect(toStrips(['abc', [1, 2]]).isEqual(toStrips([[1, 2], 'abc']))).toBeFalsy();
+    });
+
+    it('returns false for different value', () => {
+      expect(toStrips(['abc', [1, 2]]).isEqual(toStrips([[1, 2], 'abcd']))).toBeFalsy();
+      expect(toStrips(['abc', [1, 2]]).isEqual(toStrips([[1, 3], 'abc']))).toBeFalsy();
+    });
+  });
+
+  describe('IDENTITY', () => {
+    it('has empty values', () => {
+      expect(IDENTITY.values).toStrictEqual([]);
+    });
+
+    it('has length 0', () => {
+      expect(IDENTITY.length).toStrictEqual(0);
+    });
+
+    it('has maxIndex 0', () => {
+      expect(IDENTITY.maxIndex).toStrictEqual(0);
+    });
+
+    it('returns empty on slice', () => {
+      expect(IDENTITY.slice()).toStrictEqual(Strips.EMPTY);
+    });
+
+    it('returns undefined on at', () => {
+      expect(IDENTITY.at(5)).toBeUndefined();
+    });
+
+    it('returns empty on compact', () => {
+      expect(IDENTITY.compact()).toStrictEqual(Strips.EMPTY);
+    });
+
+    it('returns troe on isRetainIndexesOrdered', () => {
+      expect(IDENTITY.isRetainIndexesOrdered()).toBeTruthy();
+    });
+
+    it('only identity is equal to identity', () => {
+      expect(IDENTITY.isEqual(IDENTITY)).toBeTruthy();
+
+      expect(toStrips(['abc', 1]).isEqual(IDENTITY)).toBeFalsy();
+      expect(IDENTITY.isEqual(toStrips([[2, 4], 'cc']))).toBeFalsy();
+
+      expect(toStrips([]).isEqual(IDENTITY)).toBeFalsy();
+      expect(IDENTITY.isEqual(toStrips([]))).toBeFalsy();
     });
   });
 });

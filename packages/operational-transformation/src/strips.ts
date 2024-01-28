@@ -1,5 +1,29 @@
 import { RetainStrip } from './retain-strip';
-import { Strip } from './strip';
+import { EMPTY, Strip } from './strip';
+
+export const IDENTITY: Readonly<Strips<never>> = {
+  values: [],
+  length: 0,
+  maxIndex: 0,
+  slice(): Strips<never> {
+    return Strips.EMPTY;
+  },
+  at(): Strip<never> | undefined {
+    return;
+  },
+  compact(): Strips<never> {
+    return Strips.EMPTY;
+  },
+  isRetainIndexesOrdered(): boolean {
+    return true;
+  },
+  isEqual(strips: Readonly<Strips<never>>): boolean {
+    return strips === IDENTITY;
+  },
+  toString() {
+    return 'IDENTITY';
+  },
+};
 
 /**
  * A strip array with convinience methods.
@@ -88,6 +112,7 @@ export class Strips<T = string> {
     return;
   }
 
+  // TODO test remove empties
   /**
    * @returns Returns a new representation of strips that takes up the least
    * amount of memory.
@@ -129,6 +154,18 @@ export class Strips<T = string> {
         prevEndIndex = strip.endIndex;
       }
     }
+    return true;
+  }
+
+  isEqual(other: Readonly<Strips<T>>): boolean {
+    if (other === IDENTITY) return false;
+
+    if (this.values.length !== other.values.length) return false;
+
+    for (let i = 0; i < this.values.length; i++) {
+      if (!this.values[i]?.isEqual(other.values[i] ?? EMPTY)) return false;
+    }
+
     return true;
   }
 

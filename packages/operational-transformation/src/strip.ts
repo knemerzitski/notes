@@ -12,6 +12,9 @@ export const EMPTY: Strip<never> = {
   concat<U>(strip: Strip<U>) {
     return Strips.from<U>(strip);
   },
+  isEqual(strip: Strip<never>): boolean {
+    return strip === EMPTY;
+  },
   toString() {
     return 'EMPTY';
   },
@@ -39,7 +42,9 @@ export interface Strip<T = string> {
   /**
    * Add together both strips. Effect of both strips is retained and represented in returned value.
    */
-  concat: (strip: Strip<T>) => Strips<T>;
+  concat: (other: Strip<T>) => Strips<T>;
+
+  isEqual(other: Strip<T>): boolean;
 
   toString(): string;
 }

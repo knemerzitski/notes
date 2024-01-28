@@ -4,6 +4,7 @@ import { mock } from 'vitest-mock-extended';
 import { InsertStrip } from './insert-strip';
 import { Strip } from './strip';
 import { Strips } from './strips';
+import { toStrip } from './tests/helpers/convert';
 
 describe('StringStrip', () => {
   it('sets value from constructor', () => {
@@ -44,6 +45,23 @@ describe('StringStrip', () => {
       expect(leftStrip.concat(rightStrip)).toStrictEqual(
         Strips.from(leftStrip, rightStrip)
       );
+    });
+  });
+
+  describe('isEqual', () => {
+    it('returns true for same range', () => {
+      expect(toStrip([2, 4]).isEqual(toStrip([2, 4]))).toBeTruthy();
+      expect(toStrip([5, 8]).isEqual(toStrip([5, 8]))).toBeTruthy();
+    });
+
+    it('returns false for different start index', () => {
+      expect(toStrip([2, 4]).isEqual(toStrip([3, 4]))).toBeFalsy();
+      expect(toStrip([5, 8]).isEqual(toStrip([6, 8]))).toBeFalsy();
+    });
+
+    it('returns false for different end index', () => {
+      expect(toStrip([2, 4]).isEqual(toStrip([2, 10]))).toBeFalsy();
+      expect(toStrip([5, 8]).isEqual(toStrip([5, 12]))).toBeFalsy();
     });
   });
 });

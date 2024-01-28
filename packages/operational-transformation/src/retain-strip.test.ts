@@ -81,4 +81,16 @@ describe('RangeStrip', () => {
       );
     });
   });
+
+  describe('isEqual', () => {
+    it('returns true for value', () => {
+      expect(toStrip('abc').isEqual(toStrip('abc'))).toBeTruthy();
+      expect(toStrip('dds').isEqual(toStrip('dds'))).toBeTruthy();
+    });
+
+    it('returns false for different values', () => {
+      expect(toStrip('aaa').isEqual(toStrip('bbc'))).toBeFalsy();
+      expect(toStrip('xy').isEqual(toStrip('zzzs'))).toBeFalsy();
+    });
+  });
 });

@@ -37,6 +37,9 @@ export class InsertStrip<T extends string = string> implements Strip<T> {
    *
    */
   concat(other: Strip<T>): Strips<T> {
+    // TODO test emptry returns this
+    if (other === EMPTY) return Strips.from(this);
+
     if (other instanceof InsertStrip) {
       return Strips.from(new InsertStrip(this.value + other.value));
     }
@@ -53,6 +56,10 @@ export class InsertStrip<T extends string = string> implements Strip<T> {
     }
 
     return EMPTY;
+  }
+
+  isEqual(other: Strip<T>): boolean {
+    return other instanceof InsertStrip && other.value === this.value;
   }
 
   toString() {
