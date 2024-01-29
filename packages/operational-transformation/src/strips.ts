@@ -1,44 +1,20 @@
 import { RetainStrip } from './retain-strip';
-import { EMPTY, Strip } from './strip';
-
-export const IDENTITY: Readonly<Strips<never>> = {
-  values: [],
-  length: 0,
-  maxIndex: 0,
-  slice(): Strips<never> {
-    return Strips.EMPTY;
-  },
-  at(): Strip<never> | undefined {
-    return;
-  },
-  compact(): Strips<never> {
-    return Strips.EMPTY;
-  },
-  isRetainIndexesOrdered(): boolean {
-    return true;
-  },
-  isEqual(strips: Readonly<Strips<never>>): boolean {
-    return strips === IDENTITY;
-  },
-  toString() {
-    return 'IDENTITY';
-  },
-};
+import { Strip } from './strip';
 
 /**
  * A strip array with convinience methods.
  */
-export class Strips<T = string> {
-  static EMPTY = new Strips<never>();
+export class Strips {
+  static EMPTY = new Strips();
 
   /**
    * Convinience method to create Strips from spread syntax.
    */
-  static from<U>(...values: Readonly<Strip<U>[]>) {
-    return new Strips<U>(values);
+  static from(...values: Readonly<Strip[]>) {
+    return new Strips(values);
   }
 
-  readonly values: Readonly<Strip<T>[]>;
+  readonly values: Readonly<Strip[]>;
 
   /**
    * Total length of all strips.
@@ -52,7 +28,7 @@ export class Strips<T = string> {
 
   private isCompact: boolean | null;
 
-  constructor(values: Readonly<Strip<T>[]> = []) {
+  constructor(values: Readonly<Strip[]> = []) {
     this.values = values;
     this.isCompact = values.length <= 1;
     this.length = this.values.map((strip) => strip.length).reduce((a, b) => a + b, 0);
@@ -66,9 +42,9 @@ export class Strips<T = string> {
    * E.g ["ab", "cdefg", "hijklm", "no"].slice(4,9) = ["efg", "hi"]
    * @param start The index to the beginning.
    * @param end The index to the end. Is exclusive - end index is not included.
-   * Unspecified value continues to the end of char.
+   * Unspecified value continues until the end.
    */
-  slice(start = 0, end?: number): Strips<T> {
+  slice(start = 0, end?: number): Strips {
     if (start < 0) {
       start = (start % this.length) + this.length;
     }
@@ -76,7 +52,7 @@ export class Strips<T = string> {
       end = (end % this.length) + this.length + 1;
     }
 
-    const result: Strip<T>[] = [];
+    const result: Strip[] = [];
     let pos = 0;
     for (const strip of this.values) {
       const nextPos = pos + strip.length;
@@ -96,6 +72,8 @@ export class Strips<T = string> {
       }
     }
 
+    if (result.length === 0) return Strips.EMPTY;
+
     return new Strips(result);
   }
 
@@ -104,7 +82,7 @@ export class Strips<T = string> {
    * @param index The zero-based index of the desired strip.
    * A negative index will count back from the last strip.
    */
-  at(index: number): Strip<T> | undefined {
+  at(index: number): Strip | undefined {
     const { values } = this.slice(index, index + 1);
     if (values.length === 1) {
       return values[0];
@@ -112,15 +90,14 @@ export class Strips<T = string> {
     return;
   }
 
-  // TODO test remove empties
   /**
    * @returns Returns a new representation of strips that takes up the least
    * amount of memory.
    */
-  compact(): Strips<T> {
+  compact(): Strips {
     if (this.isCompact) return this;
 
-    const newValues = this.values.reduce<Strip<T>[]>((compactedStrips, strip) => {
+    const newValues = this.values.reduce<Strip[]>((compactedStrips, strip) => {
       if (compactedStrips.length === 0) {
         compactedStrips.push(strip);
       } else {
@@ -157,13 +134,16 @@ export class Strips<T = string> {
     return true;
   }
 
-  isEqual(other: Readonly<Strips<T>>): boolean {
-    if (other === IDENTITY) return false;
-
+  isEqual(other: Readonly<Strips>): boolean {
     if (this.values.length !== other.values.length) return false;
 
     for (let i = 0; i < this.values.length; i++) {
-      if (!this.values[i]?.isEqual(other.values[i] ?? EMPTY)) return false;
+      const strip = this.values[i];
+      const otherStrip = other.values[i];
+      if (strip !== otherStrip) {
+        if (!strip || !otherStrip) return false;
+        if (!strip.isEqual(otherStrip)) return false;
+      }
     }
 
     return true;

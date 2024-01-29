@@ -1,35 +1,35 @@
 import { Strips } from './strips';
 
-export const EMPTY: Strip<never> = {
-  length: 0,
-
-  reference() {
-    return Strips.EMPTY;
-  },
-  slice() {
-    return this;
-  },
-  concat<U>(strip: Strip<U>) {
-    return Strips.from<U>(strip);
-  },
-  isEqual(strip: Strip<never>): boolean {
-    return strip === EMPTY;
-  },
-  toString() {
-    return 'EMPTY';
-  },
-};
-
 /**
- * Generic representation of a continious range of objects for changesets.
+ * Strip represents a range of similar properties in a changeset.
  */
-export interface Strip<T = string> {
-  length: number;
+export abstract class Strip {
+  static EMPTY: Strip = {
+    length: 0,
+
+    reference() {
+      return Strips.EMPTY;
+    },
+    slice() {
+      return this;
+    },
+    concat(strip: Strip) {
+      return Strips.from(strip);
+    },
+    isEqual(strip: Strip): boolean {
+      return strip === Strip.EMPTY;
+    },
+    toString() {
+      return '(EMPTY)';
+    },
+  };
+
+  abstract length: number;
 
   /**
    * Returns strips that references values from a {@link strips}
    */
-  reference: (strips: Readonly<Strips<T>>) => Strips<T>;
+  abstract reference(strips: Readonly<Strips>): Strips;
 
   /**
    * Returns a section of the strip.
@@ -37,14 +37,14 @@ export interface Strip<T = string> {
    * @param end The index to the end. Is exclusive - end index is not included.
    * Unspecified value continues to the end of strip.
    */
-  slice: (start?: number, end?: number) => Strip<T>;
+  abstract slice(start?: number, end?: number): Strip;
 
   /**
    * Add together both strips. Effect of both strips is retained and represented in returned value.
    */
-  concat: (other: Strip<T>) => Strips<T>;
+  abstract concat(other: Readonly<Strip>): Strips;
 
-  isEqual(other: Strip<T>): boolean;
+  abstract isEqual(other: Readonly<Strip>): boolean;
 
-  toString(): string;
+  abstract toString(): string;
 }

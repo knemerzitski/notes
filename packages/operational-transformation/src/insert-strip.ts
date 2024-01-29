@@ -1,14 +1,25 @@
 import { RetainStrip } from './retain-strip';
-import { EMPTY, Strip } from './strip';
+import { Strip } from './strip';
 import { Strips } from './strips';
 
 /**
  * Represents string insertion in the new document.
  */
-export class InsertStrip<T extends string = string> implements Strip<T> {
-  readonly value: T;
+export class InsertStrip implements Strip {
+  static create(value: string): InsertStrip | Strip {
+    if (value.length === 0) {
+      return Strip.EMPTY;
+    }
 
-  constructor(value: T) {
+    return new InsertStrip(value);
+  }
+
+  readonly value: string;
+
+  constructor(value: string) {
+    if (value.length === 0) {
+      throw new Error('value cannot be empty');
+    }
     this.value = value;
   }
 
@@ -20,27 +31,26 @@ export class InsertStrip<T extends string = string> implements Strip<T> {
    *
    * @returns Whole string {@link value}
    */
-  reference(): Strips<T> {
+  reference(): Strips {
     return Strips.from(this);
   }
 
   /**
-   * @returns new StringStrip({@link value}.slice({@link start}, {@link end}))
+   * @returns new InsertStrip with a sliced value.
    */
   slice(start?: number, end?: number) {
     return new InsertStrip(this.value.slice(start, end));
   }
 
   /**
-   * @returns new StringStrip({@link value} + other.value) if other is StringStrip,
-   * otherwise returns both in the same Strips
+   * @returns new InsertStrip with values concatenated.
    *
    */
-  concat(other: Strip<T>): Strips<T> {
-    // TODO test emptry returns this
-    if (other === EMPTY) return Strips.from(this);
+  concat(other: Readonly<Strip>): Strips {
+    if (other === Strip.EMPTY) return Strips.from(this);
 
     if (other instanceof InsertStrip) {
+      // "abc" + "de" = "abcde"
       return Strips.from(new InsertStrip(this.value + other.value));
     }
     return Strips.from(this, other);
@@ -50,15 +60,20 @@ export class InsertStrip<T extends string = string> implements Strip<T> {
    * Insert strip as retained strip
    * @param offset Retain index offset
    */
-  retain(offset = 0): RetainStrip<T> | Strip<never> {
+  retain(offset = 0): Strip {
     if (this.length >= 1) {
-      return new RetainStrip<T>(offset, offset + this.length - 1);
+      return new RetainStrip(offset, offset + this.length - 1);
     }
 
-    return EMPTY;
+    // Should never happen as InsertStrip with length < 1 is not allowed by constructor
+    return Strip.EMPTY;
   }
 
-  isEqual(other: Strip<T>): boolean {
+  /**
+   * Strips are equal if both are InsertStrip with same value or
+   * both strips have zero length (empty).
+   */
+  isEqual(other: Readonly<Strip>): boolean {
     return other instanceof InsertStrip && other.value === this.value;
   }
 

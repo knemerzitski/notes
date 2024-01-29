@@ -1,59 +1,32 @@
 import { InsertStrip } from './insert-strip';
 import { RetainStrip } from './retain-strip';
 import { Strip } from './strip';
-import { Strips, IDENTITY as IDENTITY_STRIPS } from './strips';
-
-/**
- * Identity changeset (n -> n)[0, 1, 2, ..., n-1]
- */
-export const IDENTITY: Readonly<Changeset<never>> = {
-  strips: IDENTITY_STRIPS,
-  compose(other: Changeset<never>): Changeset<never> {
-    return other;
-  },
-  follow(other: Changeset<never>): Changeset<never> {
-    if (other === IDENTITY) return this;
-
-    return new Changeset(
-      other.strips.values.filter((strip) => strip instanceof InsertStrip)
-    );
-  },
-  isIdentity() {
-    return true;
-  },
-  getIdentity() {
-    return this;
-  },
-  isEqual(other: Changeset<never>): boolean {
-    return other === IDENTITY;
-  },
-  toString() {
-    return 'IDENTITY';
-  },
-};
+import { Strips } from './strips';
 
 /**
  * Represents a change to a document (list of characters, or a string).
  * Changeset strips is compact and retain indexes are ordered.
  */
-export class Changeset<T = string> {
+export class Changeset {
+  static EMPTY = new Changeset();
+
   /**
    * Convinience method to create Changeset from spread syntax.
    */
-  static from<U>(...strips: Readonly<Strip<U>>[]) {
-    return new Changeset<U>(strips);
+  static from(...strips: Readonly<Strip>[]) {
+    return new Changeset(strips);
   }
 
   /**
    * Strips is always compact.
    */
-  readonly strips: Readonly<Strips<T>>;
+  readonly strips: Readonly<Strips>;
 
   /**
    * Create new Changeset from either an array of strips or Strips instance
    * Strips will be compacted if not already.
    */
-  constructor(strips: Readonly<Strips<T>> | Readonly<Strip<T>[]> = []) {
+  constructor(strips: Readonly<Strips> | Readonly<Strip[]> = []) {
     if (strips instanceof Strips) {
       this.strips = strips.compact();
     } else if (Array.isArray(strips)) {
@@ -75,9 +48,7 @@ export class Changeset<T = string> {
    * @returns A new changeset that is a compostion of this and other.
    * E.g. ['hello'].compose([[0, 4], ' world']) = ['hello world']
    */
-  compose(other: Changeset<T>): Changeset<T> {
-    if (other === IDENTITY) return this;
-
+  compose(other: Changeset): Changeset {
     return new Changeset(
       new Strips(
         other.strips.values.flatMap((strip) => {
@@ -100,8 +71,8 @@ export class Changeset<T = string> {
    * this.compose(this.follow(other)) = other.compose(other.follow(this))
    * In general: Af(A, B) = Bf(B, A), where A = this, B = other, f = follow
    */
-  follow(other: Changeset<T>): Changeset<T> {
-    const followStrips: Strip<T>[] = [];
+  follow(other: Changeset): Changeset {
+    const followStrips: Strip[] = [];
 
     let followPos = 0;
 
@@ -222,7 +193,7 @@ export class Changeset<T = string> {
    * @returns This changeset is identity to other changeset.
    * In other words {@link other}.compose(this) = other.
    */
-  isIdentity(other?: Readonly<Changeset<T>>): boolean {
+  isIdentity(other?: Readonly<Changeset>): boolean {
     if (other) {
       if (other.strips.values.length === 0) {
         return this.strips.values.length === 0;
@@ -248,13 +219,11 @@ export class Changeset<T = string> {
    * @returns changeset that is identity to this changeset
    */
   getIdentity() {
-    if (this.strips.length === 0) return EMPTY;
+    if (this.strips.length === 0) return Changeset.EMPTY;
     return new Changeset(new Strips([new RetainStrip(0, this.strips.length - 1)]));
   }
 
-  isEqual(other: Changeset<T>): boolean {
-    if (other === IDENTITY) return false;
-
+  isEqual(other: Changeset): boolean {
     return this.strips.isEqual(other.strips);
   }
 
@@ -262,5 +231,3 @@ export class Changeset<T = string> {
     return `(${this.strips.maxIndex + 1} -> ${this.strips.length})${String(this.strips)}`;
   }
 }
-
-export const EMPTY = new Changeset();

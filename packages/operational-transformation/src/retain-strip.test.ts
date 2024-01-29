@@ -1,10 +1,28 @@
 import { describe, expect, it } from 'vitest';
 
+import { createStrip, createStrips } from './create-utils';
 import { RetainStrip } from './retain-strip';
+import { Strip } from './strip';
 import { Strips } from './strips';
-import { toStrip, toStrips } from './tests/helpers/convert';
 
-describe('RangeStrip', () => {
+describe('RetainStrip', () => {
+  describe('static', () => {
+    describe('create', () => {
+      it.each([
+        [6, 10, [6, 10]],
+        [5, 5, 5],
+        [0, 1, [0, 1]],
+        [3, -1, null],
+        [3, -1, undefined],
+        [-4, -1, null],
+      ])('create(%s%s) = %s', (startIndex, endIndex, expected) => {
+        expect(RetainStrip.create(startIndex, endIndex)).toStrictEqual(
+          createStrip(expected)
+        );
+      });
+    });
+  });
+
   describe('length', () => {
     it.each([
       [0, 1, 2],
@@ -14,19 +32,24 @@ describe('RangeStrip', () => {
     });
   });
 
+  it('throws error if startIndex is less than 0', () => {
+    expect(() => new RetainStrip(-1, 4)).toThrow();
+  });
+
   it('throws error if endIndex is less than startIndex', () => {
     expect(() => new RetainStrip(5, 4)).toThrow();
   });
 
   describe('reference', () => {
-    it.each([[2, 4, ['abcdefgh'], ['cde']]])(
-      '(%s - %s).reference(%s) = %s',
-      (startIndex, endIndex, strips, expected) => {
-        expect(
-          new RetainStrip(startIndex, endIndex).reference(toStrips(strips))
-        ).toStrictEqual(toStrips(expected));
-      }
-    );
+    it.each([
+      [2, 4, ['abcdefgh'], ['cde']],
+      [3, 3, ['abcdefgh'], ['d']],
+      [1, undefined, ['abc'], ['b']],
+    ])('(%s - %s).reference(%s) = %s', (startIndex, endIndex, strips, expected) => {
+      expect(
+        new RetainStrip(startIndex, endIndex).reference(createStrips(strips))
+      ).toStrictEqual(createStrips(expected));
+    });
   });
 
   describe('slice', () => {
@@ -35,7 +58,7 @@ describe('RangeStrip', () => {
       ['returns from start', 2, 8, [3, undefined], [5, 8]],
       ['returns from middle', 2, 8, [3, 5], [5, 6]],
       ['returns second to last on end -1', 2, 8, [0, -1], [2, 7]],
-      ['returns IndexStrip with result length 1', 2, 8, [2, 3], 4],
+      ['returns single index', 2, 8, [2, 3], 4],
       ['returns last on start -1', 2, 8, [-1, undefined], 8],
       ['returns empty on out of bounds index', 2, 8, [10, 15], undefined],
       ['returns empty when start == end', 2, 8, [4, 4], undefined],
@@ -44,13 +67,19 @@ describe('RangeStrip', () => {
       '%s: (%s - %s).slice(%s) = %s',
       (_msg, startIndex, endIndex, [start, end], expected) => {
         expect(new RetainStrip(startIndex, endIndex).slice(start, end)).toStrictEqual(
-          toStrip(expected)
+          createStrip(expected)
         );
       }
     );
   });
 
   describe('concat', () => {
+    it('ignores empty', () => {
+      expect(new RetainStrip(3, 6).concat(Strip.EMPTY)).toStrictEqual(
+        Strips.from(new RetainStrip(3, 6))
+      );
+    });
+
     it('concats range and adjacent index', () => {
       expect(new RetainStrip(3, 5).concat(new RetainStrip(6))).toStrictEqual(
         Strips.from(new RetainStrip(3, 6))
@@ -84,13 +113,13 @@ describe('RangeStrip', () => {
 
   describe('isEqual', () => {
     it('returns true for value', () => {
-      expect(toStrip('abc').isEqual(toStrip('abc'))).toBeTruthy();
-      expect(toStrip('dds').isEqual(toStrip('dds'))).toBeTruthy();
+      expect(createStrip('abc').isEqual(createStrip('abc'))).toBeTruthy();
+      expect(createStrip('dds').isEqual(createStrip('dds'))).toBeTruthy();
     });
 
     it('returns false for different values', () => {
-      expect(toStrip('aaa').isEqual(toStrip('bbc'))).toBeFalsy();
-      expect(toStrip('xy').isEqual(toStrip('zzzs'))).toBeFalsy();
+      expect(createStrip('aaa').isEqual(createStrip('bbc'))).toBeFalsy();
+      expect(createStrip('xy').isEqual(createStrip('zzzs'))).toBeFalsy();
     });
   });
 });

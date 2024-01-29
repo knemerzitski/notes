@@ -1,39 +1,58 @@
-import { EMPTY, Strip } from './strip';
+import { Strip } from './strip';
 import { Strips } from './strips';
 
 /**
  * Represents retained characters range in the original document.
  */
-export class RetainStrip<T = string> implements Strip<T> {
+export class RetainStrip implements Strip {
+  static create(startIndex: number, endIndex: number): RetainStrip | Strip {
+    if (endIndex < startIndex || endIndex < 0) {
+      return Strip.EMPTY;
+    }
+
+    startIndex = Math.max(startIndex, 0);
+    endIndex = Math.max(startIndex, endIndex);
+
+    return new RetainStrip(startIndex, endIndex);
+  }
+
   readonly startIndex: number;
 
   /**
-   * endIndex is inclusive
+   * Is inclusive - this index is included in retain strip.
    */
   readonly endIndex: number;
 
-  readonly length;
+  /**
+   * Length of the strip as in how many characters are retained.
+   */
+  readonly length: number;
 
   /**
    *
-   * @param startIndex
+   * @param startIndex Start index of retained strip
    * @param endIndex Must be greater or equal to {@link startIndex}. Is inclusive
    */
   constructor(startIndex: number, endIndex: number = startIndex) {
-    this.startIndex = startIndex;
-    this.endIndex = endIndex;
-    if (this.endIndex < this.startIndex) {
+    if (startIndex < 0) {
+      throw new Error(`startIndex must be non-negative (0 <= ${startIndex})`);
+    }
+    if (endIndex < startIndex) {
       throw new Error(
         `endIndex must be greater or equal to startIndex (${startIndex} <= ${endIndex})`
       );
     }
+
+    this.startIndex = startIndex;
+    this.endIndex = endIndex;
+
     this.length = this.endIndex - this.startIndex + 1;
   }
 
   /**
-   * @returns Sliced Strips from {@link startIndex} to {@link endIndex} (inclusive)
+   * @returns Sliced Strips from {@link startIndex} to {@link endIndex} (exclusive)
    */
-  reference(strips: Readonly<Strips<T>>): Strips<T> {
+  reference(strips: Readonly<Strips>): Strips {
     return strips.slice(this.startIndex, this.endIndex + 1);
   }
 
@@ -51,11 +70,11 @@ export class RetainStrip<T = string> implements Strip<T> {
       end = (end % this.length) + this.length;
     }
 
-    if (end <= start) return EMPTY;
+    if (end <= start) return Strip.EMPTY;
 
     const newStartIndex = this.startIndex + start;
     if (newStartIndex > this.endIndex) {
-      return EMPTY;
+      return Strip.EMPTY;
     }
 
     const newEndIndex = Math.min(this.startIndex + end - 1, this.endIndex);
@@ -63,9 +82,8 @@ export class RetainStrip<T = string> implements Strip<T> {
     return new RetainStrip(newStartIndex, newEndIndex);
   }
 
-  concat(other: Strip<T>): Strips<T> {
-    // TODO test emptry returns this
-    if (other === EMPTY) return Strips.from(this);
+  concat(other: Readonly<Strip>): Strips {
+    if (other === Strip.EMPTY) return Strips.from(this);
 
     if (other instanceof RetainStrip && this.endIndex + 1 === other.startIndex) {
       // E.g. [2,5] + [6,10] = [2,10]
@@ -75,11 +93,15 @@ export class RetainStrip<T = string> implements Strip<T> {
     return new Strips([this, other]);
   }
 
-  offset(offset: number): Strip<T> {
-    return new RetainStrip<T>(this.startIndex + offset, this.endIndex + offset);
+  offset(offset: number): Strip {
+    return new RetainStrip(this.startIndex + offset, this.endIndex + offset);
   }
 
-  isEqual(other: Strip<T>): boolean {
+  /**
+   * Strips are equal is both are RetainStrip with same indexes or
+   * both strips have zero length (empty).
+   */
+  isEqual(other: Strip): boolean {
     return (
       other instanceof RetainStrip &&
       other.startIndex === this.startIndex &&
