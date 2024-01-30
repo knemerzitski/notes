@@ -72,24 +72,22 @@ export class Changeset {
    * In general: Af(A, B) = Bf(B, A), where A = this, B = other, f = follow
    */
   follow(other: Changeset): Changeset {
-    const followStrips: Strip[] = [];
+    const resultStrips: Strip[] = [];
 
-    let followPos = 0;
-
+    let index = 0;
+    let otherIndex = 0;
     let pos = 0;
     let otherPos = 0;
 
-    const stack = [...this.strips.values];
-    stack.reverse();
-    const otherStack = [...other.strips.values];
-    otherStack.reverse();
+    const strips = [...this.strips.values];
+    const otherStrips = [...other.strips.values];
 
-    while (stack.length > 0 && otherStack.length > 0) {
-      const strip = stack.pop();
-      const otherStrip = otherStack.pop();
+    while (index < strips.length && otherIndex < otherStrips.length) {
+      const strip = strips[index];
+      const otherStrip = otherStrips[otherIndex];
 
       if (strip && otherStrip) {
-        // Retain whatever characters are retained in both
+        // Retain whatever characters are retained in both, indices are translated according to this strips
         if (strip instanceof RetainStrip && otherStrip instanceof RetainStrip) {
           if (
             strip.endIndex >= otherStrip.startIndex &&
@@ -97,59 +95,68 @@ export class Changeset {
           ) {
             const leftIntersect = Math.max(strip.startIndex, otherStrip.startIndex);
             const rightIntersect = Math.min(strip.endIndex, otherStrip.endIndex);
-            const offset =
-              followPos -
-              (otherStrip.startIndex < strip.startIndex
-                ? pos - otherStrip.startIndex + strip.startIndex
-                : otherPos);
 
-            followStrips.push(
-              new RetainStrip(leftIntersect + offset, rightIntersect + offset)
+            const translateOffset = pos - strip.startIndex;
+            const intersectStrip = new RetainStrip(
+              leftIntersect + translateOffset,
+              rightIntersect + translateOffset
             );
+            resultStrips.push(intersectStrip);
 
-            followPos += rightIntersect - leftIntersect + 1;
-
-            // Slice on right must be checked against further strips, so push it to appropriate stack
+            // To intersect right remainder slice will be checked again
             if (rightIntersect < strip.endIndex) {
+              // [part otherStrip] [intersect] [part strip]<
               const sliceStrip = new RetainStrip(rightIntersect + 1, strip.endIndex);
-              stack.push(sliceStrip);
-              pos -= sliceStrip.length;
+              strips.splice(index, 1, sliceStrip);
+              pos += strip.length - sliceStrip.length;
+              otherIndex++;
+              otherPos += otherStrip.length;
             } else if (rightIntersect < otherStrip.endIndex) {
+              // [part strip] [intersect] [part otherStrip]<
               const sliceStrip = new RetainStrip(rightIntersect + 1, otherStrip.endIndex);
-              otherPos -= sliceStrip.length;
-              otherStack.push(sliceStrip);
+              otherStrips.splice(otherIndex, 1, sliceStrip);
+              index++;
+              pos += strip.length;
+              otherPos += otherStrip.length - sliceStrip.length;
+            } else {
+              // [part strip/part otherStrip] [intersect] [EMPTY]<
+              index++;
+              otherIndex++;
+              pos += strip.length;
+              otherPos += otherStrip.length;
             }
+          } else if (strip.endIndex < otherStrip.startIndex) {
+            // No intersection, strip is to the left => ignore it
+            index++;
+            pos += strip.length;
+          } else {
+            // No intersection, otherStrip is to the left => ignore it
+            otherIndex++;
+            otherPos += otherStrip.length;
           }
         } else {
-          const tmpOrderStrips = [];
+          // Use temporary array to reverse insertion order later if needed
+          const tmpInsertStrips = [];
 
           // Insertions in this become retained characters
           if (strip instanceof InsertStrip) {
-            tmpOrderStrips.push(strip.retain(pos));
-            followPos += strip.length;
-            if (otherStrip instanceof RetainStrip) {
-              // Put back other strip as it must be processed later due to strip being insertion
-              otherStack.push(otherStrip);
-              otherPos -= otherStrip.length;
-            }
+            tmpInsertStrips.push(strip.retain(pos));
+            index++;
+            pos += strip.length;
           }
 
           // Insertions in other become insertions
           if (otherStrip instanceof InsertStrip) {
-            tmpOrderStrips.push(otherStrip);
-            followPos += otherStrip.length;
-            if (strip instanceof RetainStrip) {
-              // Put back strip as it must be processed later due to other strip being insertion
-              stack.push(strip);
-              pos -= strip.length;
-            }
+            tmpInsertStrips.push(otherStrip);
+            otherIndex++;
+            otherPos += otherStrip.length;
           }
 
           if (otherPos < pos) {
-            // Other starts at a smaller index, so insert it first
-            tmpOrderStrips.reverse();
+            // otherStrip starts at a smaller index, so insert it first
+            tmpInsertStrips.reverse();
           } else if (pos === otherPos) {
-            // Since position of both insertions are same
+            // Since position of both insertions is same,
             // decide insertion by lexicographical order of values
             // This ensures follow has commutative property
             if (
@@ -157,38 +164,39 @@ export class Changeset {
               otherStrip instanceof InsertStrip &&
               otherStrip.value < strip.value
             ) {
-              tmpOrderStrips.reverse();
+              tmpInsertStrips.reverse();
             }
           }
-          followStrips.push(...tmpOrderStrips);
+          resultStrips.push(...tmpInsertStrips);
         }
-
-        pos += strip.length;
-        otherPos += otherStrip.length;
       }
     }
 
-    // Add remaining strips from stack
-    for (let i = stack.length - 1; i >= 0; i--) {
-      const strip = stack[i];
+    // Add remaining insert strips
+    for (; index < strips.length; index++) {
+      const strip = strips[index];
       if (strip) {
         if (strip instanceof InsertStrip) {
-          followStrips.push(strip.retain(pos));
+          resultStrips.push(strip.retain(pos));
         }
         pos += strip.length;
       }
     }
 
-    for (let i = otherStack.length - 1; i >= 0; i--) {
-      const otherStrip = otherStack[i];
-      if (otherStrip instanceof InsertStrip) {
-        followStrips.push(otherStrip);
+    for (; otherIndex < otherStrips.length; otherIndex++) {
+      const otherStrip = otherStrips[otherIndex];
+      if (otherStrip) {
+        if (otherStrip instanceof InsertStrip) {
+          resultStrips.push(otherStrip);
+        }
+        otherPos++;
       }
     }
 
-    const followChangeset = new Changeset(followStrips);
+    const followChangeset = new Changeset(resultStrips);
     return followChangeset;
   }
+
   /**
    * @returns This changeset is identity to other changeset.
    * In other words {@link other}.compose(this) = other.

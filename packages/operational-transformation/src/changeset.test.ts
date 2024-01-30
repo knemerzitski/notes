@@ -114,6 +114,7 @@ describe('Changeset', () => {
         [[0, 11], 'fast', [12, 14]],
         [[0, 15], 'fast', [16, 18]],
       ],
+      ['returns strips in order 2', [[0, 5], 'ab', [11, 17]], [[0, 17]], [[0, 14]]],
     ])('%s: %s.follow(%s) = %s', (_msg, changeObjA, changeObjB, expectedfAB) => {
       const A = createChangeset(changeObjA);
       const B = createChangeset(changeObjB);
