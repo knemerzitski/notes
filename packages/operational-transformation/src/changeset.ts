@@ -198,6 +198,26 @@ export class Changeset {
   }
 
   /**
+   * Index of retain strip value.
+   * Useful for getting new cursor position by giving
+   * old cursor position as input.
+   */
+  closestIndexOfRetain(retainIndex: number) {
+    let pos = 0;
+    for (const strip of this.strips.values) {
+      if (strip instanceof RetainStrip) {
+        if (strip.startIndex <= retainIndex && retainIndex <= strip.endIndex) {
+          return pos + retainIndex - strip.startIndex;
+        } else if (retainIndex < strip.startIndex) {
+          return pos;
+        }
+      }
+      pos += strip.length;
+    }
+    return -1;
+  }
+
+  /**
    * @returns This changeset is identity to other changeset.
    * In other words {@link other}.compose(this) = other.
    */

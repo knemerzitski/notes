@@ -123,6 +123,22 @@ describe('Changeset', () => {
     });
   });
 
+  describe('closestIndexOfRetain', () => {
+    it.each([
+      [[], 0, -1],
+      [[5], 0, 0],
+      [['abc'], 1, -1],
+      [[[0, 2], 'hello', [6, 10]], 6, 8],
+      [['hello', [6, 10]], 6, 5],
+      [['abc', [2, 4], 'dddsss', [8, 10]], 9, 13],
+      [['aaaddd', [8, 10]], 4, 6],
+    ])('%s.closestIndexOfRetain(%s) = %s', (changeset, cursor, expected) => {
+      expect(createChangeset(changeset).closestIndexOfRetain(cursor)).toStrictEqual(
+        expected
+      );
+    });
+  });
+
   describe('follow with compose document', () => {
     it.each([
       {
