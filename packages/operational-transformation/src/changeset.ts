@@ -198,23 +198,23 @@ export class Changeset {
   }
 
   /**
-   * Index of retain strip value.
-   * Useful for getting new cursor position by giving
-   * old cursor position as input.
+   * Finds cursor position based on {@link oldCursor}.
+   * Calculates new position based on retain strip values.
    */
-  closestIndexOfRetain(retainIndex: number) {
+  findCursorPosition(oldCursor: number) {
     let pos = 0;
     for (const strip of this.strips.values) {
       if (strip instanceof RetainStrip) {
-        if (strip.startIndex <= retainIndex && retainIndex <= strip.endIndex) {
-          return pos + retainIndex - strip.startIndex;
-        } else if (retainIndex < strip.startIndex) {
+        if (strip.startIndex <= oldCursor && oldCursor <= strip.endIndex + 1) {
+          return pos + oldCursor - strip.startIndex;
+        } else if (oldCursor < strip.startIndex) {
           return pos;
         }
       }
       pos += strip.length;
     }
-    return -1;
+
+    return pos;
   }
 
   /**

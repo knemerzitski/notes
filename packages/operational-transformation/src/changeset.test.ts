@@ -123,19 +123,103 @@ describe('Changeset', () => {
     });
   });
 
-  describe('closestIndexOfRetain', () => {
-    it.each([
-      [[], 0, -1],
-      [[5], 0, 0],
-      [['abc'], 1, -1],
-      [[[0, 2], 'hello', [6, 10]], 6, 8],
-      [['hello', [6, 10]], 6, 5],
-      [['abc', [2, 4], 'dddsss', [8, 10]], 9, 13],
-      [['aaaddd', [8, 10]], 4, 6],
-    ])('%s.closestIndexOfRetain(%s) = %s', (changeset, cursor, expected) => {
-      expect(deserializeChangeset(changeset).closestIndexOfRetain(cursor)).toStrictEqual(
-        expected
-      );
+  describe('findCursorPosition', () => {
+    describe('random', () => {
+      it.each([
+        [[], 0, 0],
+        [[5], 0, 0],
+        [['abc'], 1, 3],
+        [[[0, 2], 'hello', [6, 10]], 6, 8],
+        [['hello', [6, 10]], 6, 5],
+        [['abc', [2, 4], 'dddsss', [8, 10]], 9, 13],
+        [['aaaddd', [8, 10]], 4, 6],
+        [[[0, 16], ' end'], 6, 6],
+        [['start ', [0, 14]], 15, 21],
+        [[[0, 20], 'THREE'], 21, 21],
+      ])('%s.findCursorPosition(%s) = %s', (changeset, cursor, expected) => {
+        expect(deserializeChangeset(changeset).findCursorPosition(cursor)).toStrictEqual(
+          expected
+        );
+      });
+    });
+
+    describe('structured', () => {
+      describe('insert start +++*********', () => {
+        const changeset = deserializeChangeset(['+++', [0, 8]]);
+        it.each([
+          ['^***** ****  => +++^***** ****', 0, 3],
+          [' *****^****  => +++ *****^****', 5, 8],
+          [' ***** ****^ => +++ ***** ****^', 9, 12],
+        ])('%s, before: %s, after: %s', (_msg, beforeCursor, expectedAfterCursor) => {
+          expect(changeset.findCursorPosition(beforeCursor)).toStrictEqual(
+            expectedAfterCursor
+          );
+        });
+      });
+      describe('insert middle ****+++*****', () => {
+        const changeset = deserializeChangeset([[0, 4], '+++', [5, 8]]);
+        it.each([
+          ['^***** ****  => ^***** +++ ****', 0, 0],
+          [' *****^****  =>  *****^+++ ****', 5, 5],
+          [' ******^***  =>  ***** +++*^***', 6, 9],
+          [' ***** ****^ =>  ***** +++ ****^', 9, 12],
+        ])('%s, before: %s, after: %s', (_msg, beforeCursor, expectedAfterCursor) => {
+          expect(changeset.findCursorPosition(beforeCursor)).toStrictEqual(
+            expectedAfterCursor
+          );
+        });
+      });
+      describe('insert end, *********+++', () => {
+        const changeset = deserializeChangeset([[0, 8], '+++']);
+        it.each([
+          ['^***** ****  => ^***** **** +++', 0, 0],
+          [' *****^****  =>  *****^**** +++', 5, 5],
+          [' ***** ****^ =>  ***** ****^+++', 9, 9],
+        ])('%s, before: %s, after: %s', (_msg, beforeCursor, expectedAfterCursor) => {
+          expect(changeset.findCursorPosition(beforeCursor)).toStrictEqual(
+            expectedAfterCursor
+          );
+        });
+      });
+      describe('insert start, delete start +++----*****', () => {
+        const changeset = deserializeChangeset(['+++', [4, 8]]);
+        it.each([
+          ['^** *** ****  => +++----^* ****', 0, 3],
+          [' **^*** ****  => +++----^* ****', 2, 3],
+          [' ** ***^****  => +++---- *^****', 5, 4],
+          [' ** *** ****^ => +++---- * ****^', 9, 8],
+        ])('%s, before: %s, after: %s', (_msg, beforeCursor, expectedAfterCursor) => {
+          expect(changeset.findCursorPosition(beforeCursor)).toStrictEqual(
+            expectedAfterCursor
+          );
+        });
+      });
+      describe('insert middle, delete middle **--+++--***', () => {
+        const changeset = deserializeChangeset([[0, 1], '+++', [6, 8]]);
+        it.each([
+          ['^** *** ****  => ^**-- +++-- ***', 0, 0],
+          [' **^*** ****  =>  **--^+++-- ***', 2, 2],
+          [' ** ***^****  =>  **-- +++--^***', 5, 5],
+          [' ** *** ****^ =>  **-- +++-- ***^', 9, 8],
+        ])('%s, before: %s, after: %s', (_msg, beforeCursor, expectedAfterCursor) => {
+          expect(changeset.findCursorPosition(beforeCursor)).toStrictEqual(
+            expectedAfterCursor
+          );
+        });
+      });
+      describe('insert end, delete end *****----+++', () => {
+        const changeset = deserializeChangeset([[0, 4], '+++']);
+        it.each([
+          ['^** *** ****  => ^** ***---- +++', 0, 0],
+          [' **^*** ****  =>  **^***---- +++', 2, 2],
+          [' ** ***^****  =>  ** ***----^+++', 5, 5],
+          [' ** *** ****^ =>  ** ***---- +++^', 9, 8],
+        ])('%s, before: %s, after: %s', (_msg, beforeCursor, expectedAfterCursor) => {
+          expect(changeset.findCursorPosition(beforeCursor)).toStrictEqual(
+            expectedAfterCursor
+          );
+        });
+      });
     });
   });
 
