@@ -1,11 +1,11 @@
 import { assert, describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { createStrip } from './create-utils';
 import { InsertStrip } from './insert-strip';
 import { RetainStrip } from './retain-strip';
 import { Strip } from './strip';
 import { Strips } from './strips';
+import { deserializeStrip } from './utils/serialize';
 
 describe('InsertStrip', () => {
   describe('static', () => {
@@ -15,7 +15,7 @@ describe('InsertStrip', () => {
         ['', null],
         ['', undefined],
       ])('create(%s%s) = %s', (value, expected) => {
-        expect(InsertStrip.create(value)).toStrictEqual(createStrip(expected));
+        expect(InsertStrip.create(value)).toStrictEqual(deserializeStrip(expected));
       });
     });
   });

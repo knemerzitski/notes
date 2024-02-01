@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { createStrip, createStrips } from './create-utils';
 import { RetainStrip } from './retain-strip';
 import { Strip } from './strip';
 import { Strips } from './strips';
+import { deserializeStrip, deserializeStrips } from './utils/serialize';
 
 describe('RetainStrip', () => {
   describe('static', () => {
@@ -17,7 +17,7 @@ describe('RetainStrip', () => {
         [-4, -1, null],
       ])('create(%s%s) = %s', (startIndex, endIndex, expected) => {
         expect(RetainStrip.create(startIndex, endIndex)).toStrictEqual(
-          createStrip(expected)
+          deserializeStrip(expected)
         );
       });
     });
@@ -47,8 +47,8 @@ describe('RetainStrip', () => {
       [1, undefined, ['abc'], ['b']],
     ])('(%s - %s).reference(%s) = %s', (startIndex, endIndex, strips, expected) => {
       expect(
-        new RetainStrip(startIndex, endIndex).reference(createStrips(strips))
-      ).toStrictEqual(createStrips(expected));
+        new RetainStrip(startIndex, endIndex).reference(deserializeStrips(strips))
+      ).toStrictEqual(deserializeStrips(expected));
     });
   });
 
@@ -67,7 +67,7 @@ describe('RetainStrip', () => {
       '%s: (%s - %s).slice(%s) = %s',
       (_msg, startIndex, endIndex, [start, end], expected) => {
         expect(new RetainStrip(startIndex, endIndex).slice(start, end)).toStrictEqual(
-          createStrip(expected)
+          deserializeStrip(expected)
         );
       }
     );
@@ -113,13 +113,13 @@ describe('RetainStrip', () => {
 
   describe('isEqual', () => {
     it('returns true for value', () => {
-      expect(createStrip('abc').isEqual(createStrip('abc'))).toBeTruthy();
-      expect(createStrip('dds').isEqual(createStrip('dds'))).toBeTruthy();
+      expect(deserializeStrip('abc').isEqual(deserializeStrip('abc'))).toBeTruthy();
+      expect(deserializeStrip('dds').isEqual(deserializeStrip('dds'))).toBeTruthy();
     });
 
     it('returns false for different values', () => {
-      expect(createStrip('aaa').isEqual(createStrip('bbc'))).toBeFalsy();
-      expect(createStrip('xy').isEqual(createStrip('zzzs'))).toBeFalsy();
+      expect(deserializeStrip('aaa').isEqual(deserializeStrip('bbc'))).toBeFalsy();
+      expect(deserializeStrip('xy').isEqual(deserializeStrip('zzzs'))).toBeFalsy();
     });
   });
 });
