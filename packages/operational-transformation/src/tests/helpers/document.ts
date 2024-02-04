@@ -192,7 +192,7 @@ export class Document {
       this.value.substring(this._startCursorPos, this._endCursorPos)
     );
     const undoAfter = RetainStrip.create(
-      this._endCursorPos - 1,
+      this._endCursorPos + lenChange,
       this.value.length + lenChange - 1
     );
 
