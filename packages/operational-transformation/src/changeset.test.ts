@@ -53,6 +53,7 @@ describe('Changeset', () => {
 
   describe('follow', () => {
     it.each([
+      ['ignores empty', ['dd', null], [null, 'abc', null], [[0, 1], 'abc']],
       [
         'basil, below (baseball)',
         [[0, 1], 'si', 7],

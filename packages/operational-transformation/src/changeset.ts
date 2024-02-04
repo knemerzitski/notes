@@ -79,8 +79,10 @@ export class Changeset {
     let pos = 0;
     let otherPos = 0;
 
-    const strips = [...this.strips.values];
-    const otherStrips = [...other.strips.values];
+    const strips = [...this.strips.values.filter((strip) => !strip.isEqual(Strip.EMPTY))];
+    const otherStrips = [
+      ...other.strips.values.filter((strip) => !strip.isEqual(Strip.EMPTY)),
+    ];
 
     while (index < strips.length && otherIndex < otherStrips.length) {
       const strip = strips[index];
@@ -169,6 +171,12 @@ export class Changeset {
           }
           resultStrips.push(...tmpInsertStrips);
         }
+      } else if (!strip) {
+        index++;
+      } else if (!otherStrip) {
+        otherIndex++;
+      } else {
+        break;
       }
     }
 
