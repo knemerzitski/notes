@@ -124,7 +124,7 @@ describe('Changeset', () => {
     });
   });
 
-  describe('findCursorPosition', () => {
+  describe('followPosition', () => {
     describe('random', () => {
       it.each([
         [[], 0, 0],
@@ -137,8 +137,8 @@ describe('Changeset', () => {
         [[[0, 16], ' end'], 6, 6],
         [['start ', [0, 14]], 15, 21],
         [[[0, 20], 'THREE'], 21, 21],
-      ])('%s.findCursorPosition(%s) = %s', (changeset, cursor, expected) => {
-        expect(deserializeChangeset(changeset).findCursorPosition(cursor)).toStrictEqual(
+      ])('%s.followPosition(%s) = %s', (changeset, cursor, expected) => {
+        expect(deserializeChangeset(changeset).followPosition(cursor)).toStrictEqual(
           expected
         );
       });
@@ -152,7 +152,7 @@ describe('Changeset', () => {
           [' *****^****  => +++ *****^****', 5, 8],
           [' ***** ****^ => +++ ***** ****^', 9, 12],
         ])('%s, before: %s, after: %s', (_msg, beforeCursor, expectedAfterCursor) => {
-          expect(changeset.findCursorPosition(beforeCursor)).toStrictEqual(
+          expect(changeset.followPosition(beforeCursor)).toStrictEqual(
             expectedAfterCursor
           );
         });
@@ -165,7 +165,7 @@ describe('Changeset', () => {
           [' ******^***  =>  ***** +++*^***', 6, 9],
           [' ***** ****^ =>  ***** +++ ****^', 9, 12],
         ])('%s, before: %s, after: %s', (_msg, beforeCursor, expectedAfterCursor) => {
-          expect(changeset.findCursorPosition(beforeCursor)).toStrictEqual(
+          expect(changeset.followPosition(beforeCursor)).toStrictEqual(
             expectedAfterCursor
           );
         });
@@ -177,7 +177,7 @@ describe('Changeset', () => {
           [' *****^****  =>  *****^**** +++', 5, 5],
           [' ***** ****^ =>  ***** ****^+++', 9, 9],
         ])('%s, before: %s, after: %s', (_msg, beforeCursor, expectedAfterCursor) => {
-          expect(changeset.findCursorPosition(beforeCursor)).toStrictEqual(
+          expect(changeset.followPosition(beforeCursor)).toStrictEqual(
             expectedAfterCursor
           );
         });
@@ -190,7 +190,7 @@ describe('Changeset', () => {
           [' ** ***^****  => +++---- *^****', 5, 4],
           [' ** *** ****^ => +++---- * ****^', 9, 8],
         ])('%s, before: %s, after: %s', (_msg, beforeCursor, expectedAfterCursor) => {
-          expect(changeset.findCursorPosition(beforeCursor)).toStrictEqual(
+          expect(changeset.followPosition(beforeCursor)).toStrictEqual(
             expectedAfterCursor
           );
         });
@@ -203,7 +203,7 @@ describe('Changeset', () => {
           [' ** ***^****  =>  **-- +++--^***', 5, 5],
           [' ** *** ****^ =>  **-- +++-- ***^', 9, 8],
         ])('%s, before: %s, after: %s', (_msg, beforeCursor, expectedAfterCursor) => {
-          expect(changeset.findCursorPosition(beforeCursor)).toStrictEqual(
+          expect(changeset.followPosition(beforeCursor)).toStrictEqual(
             expectedAfterCursor
           );
         });
@@ -216,7 +216,7 @@ describe('Changeset', () => {
           [' ** ***^****  =>  ** ***----^+++', 5, 5],
           [' ** *** ****^ =>  ** ***---- +++^', 9, 8],
         ])('%s, before: %s, after: %s', (_msg, beforeCursor, expectedAfterCursor) => {
-          expect(changeset.findCursorPosition(beforeCursor)).toStrictEqual(
+          expect(changeset.followPosition(beforeCursor)).toStrictEqual(
             expectedAfterCursor
           );
         });

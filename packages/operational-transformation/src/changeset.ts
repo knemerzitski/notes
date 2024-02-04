@@ -206,16 +206,17 @@ export class Changeset {
   }
 
   /**
-   * Finds cursor position based on {@link oldCursor}.
-   * Calculates new position based on retain strip values.
+   * Finds new position based on {@link oldPosition}.
+   * @returns Position that is relative same to {@link oldPosition} after
+   * this changeset has been applied.
    */
-  findCursorPosition(oldCursor: number) {
+  followPosition(oldPosition: number) {
     let pos = 0;
     for (const strip of this.strips.values) {
       if (strip instanceof RetainStrip) {
-        if (strip.startIndex <= oldCursor && oldCursor <= strip.endIndex + 1) {
-          return pos + oldCursor - strip.startIndex;
-        } else if (oldCursor < strip.startIndex) {
+        if (strip.startIndex <= oldPosition && oldPosition <= strip.endIndex + 1) {
+          return pos + oldPosition - strip.startIndex;
+        } else if (oldPosition < strip.startIndex) {
           return pos;
         }
       }
