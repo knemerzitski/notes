@@ -6,6 +6,14 @@ export interface RevisionChangeset {
   revision: number;
   changeset: Changeset;
 }
+
+interface LocalCommand {
+  execute(): void;
+  undo(): void;
+  update(changeset: Changeset): void;
+}
+
+// TODO Rename to Editor based on Changesets
 export class Document {
   protected revision = 0;
 
@@ -13,6 +21,9 @@ export class Document {
   protected submittedChanges = Changeset.EMPTY;
   protected localChanges = Changeset.EMPTY;
   protected composedViewChangeset = Changeset.EMPTY;
+
+  private commandHistory: LocalCommand[] = [];
+  private lastExecutedCommandIndex = -1;
 
   private _value = '';
 
@@ -119,6 +130,9 @@ export class Document {
 
     const submittedFollowOther = this.submittedChanges.follow(otherChanges);
     const newLocalChangeset = submittedFollowOther.follow(this.localChanges);
+    this.commandHistory.forEach((command) => {
+      command.update(submittedFollowOther);
+    });
     const viewComposableChangeset = this.localChanges.follow(submittedFollowOther);
 
     const newCurrentViewChangeset = this.composedViewChangeset.compose(
@@ -134,12 +148,32 @@ export class Document {
 
     this.updateValueFromComposedView();
 
-    const newStartCursorPos = viewComposableChangeset.findCursorPosition(
+    const newStartCursorPos = viewComposableChangeset.followPosition(
       this._startCursorPos
     );
 
     const cursorOffset = newStartCursorPos - this._startCursorPos;
     this.offsetSelection(cursorOffset);
+  }
+
+  undo() {
+    const currentCommand = this.commandHistory[this.lastExecutedCommandIndex];
+    if (currentCommand) {
+      currentCommand.undo();
+      this.lastExecutedCommandIndex--;
+    } else {
+      throw new Error('Nothing to undo!');
+    }
+  }
+
+  redo() {
+    const nextCommand = this.commandHistory[this.lastExecutedCommandIndex + 1];
+    if (nextCommand) {
+      nextCommand.execute();
+      this.lastExecutedCommandIndex++;
+    } else {
+      throw new Error('Nothing to redo!');
+    }
   }
 
   /**
@@ -150,11 +184,41 @@ export class Document {
     const before = RetainStrip.create(0, this._startCursorPos - 1);
     const insert = new InsertStrip(text);
     const after = RetainStrip.create(this._endCursorPos, this.value.length - 1);
+    const afterOffset = RetainStrip.create(
+      this._endCursorPos + text.length,
+      this.value.length - 1 + text.length
+    );
 
-    this._startCursorPos += text.length;
-    this._endCursorPos = this._startCursorPos;
+    let cursorPos = this._startCursorPos + text.length;
+    let change = Changeset.from(before, insert, after);
+    let undoChange = Changeset.from(before, afterOffset);
+    const command: LocalCommand = {
+      execute: () => {
+        this._startCursorPos = cursorPos;
+        this._endCursorPos = cursorPos;
+        this.newLocalTyping(change);
+      },
+      undo: () => {
+        this._startCursorPos = cursorPos - text.length;
+        this._endCursorPos = cursorPos - text.length;
+        this.newLocalTyping(undoChange);
+      },
+      update: (externalChange) => {
+        cursorPos = externalChange.followPosition(cursorPos);
+        change = externalChange.follow(change);
+        undoChange = externalChange.follow(undoChange);
+      },
+    };
 
-    this.newLocalTyping(Changeset.from(before, insert, after));
+    if (this.lastExecutedCommandIndex < this.commandHistory.length - 1) {
+      this.commandHistory = this.commandHistory.slice(
+        0,
+        this.lastExecutedCommandIndex + 1
+      );
+    }
+    this.commandHistory.push(command);
+    this.lastExecutedCommandIndex++;
+    command.execute();
   }
 
   /**
@@ -171,11 +235,41 @@ export class Document {
     count = Math.min(this._startCursorPos, count);
     const before = RetainStrip.create(0, this._startCursorPos - count - 1);
     const after = RetainStrip.create(this._endCursorPos, this.value.length - 1);
+    const deleted = InsertStrip.create(
+      this.value.substring(this._startCursorPos - count, this._endCursorPos)
+    );
+    const afterOffset = RetainStrip.create(
+      this._startCursorPos - count,
+      this.value.length - count - 1
+    );
 
     this._startCursorPos -= count;
     this._endCursorPos = this._startCursorPos;
 
-    this.newLocalTyping(Changeset.from(before, after));
+    let change = Changeset.from(before, after);
+    let undoChange = Changeset.from(before, deleted, afterOffset);
+    const command: LocalCommand = {
+      execute: () => {
+        this.newLocalTyping(change);
+      },
+      undo: () => {
+        this.newLocalTyping(undoChange);
+      },
+      update: (externalChange) => {
+        change = externalChange.follow(change);
+        undoChange = externalChange.follow(undoChange);
+      },
+    };
+
+    if (this.lastExecutedCommandIndex < this.commandHistory.length - 1) {
+      this.commandHistory = this.commandHistory.slice(
+        0,
+        this.lastExecutedCommandIndex + 1
+      );
+    }
+    this.commandHistory.push(command);
+    this.lastExecutedCommandIndex++;
+    command.execute();
   }
 
   setSelection(start: number, end: number) {

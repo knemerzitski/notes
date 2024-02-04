@@ -1,3 +1,5 @@
+// import { inspect } from 'util';
+
 import { describe, expect, it } from 'vitest';
 
 import { DocumentClient } from './helpers/document-client';
@@ -253,4 +255,58 @@ describe('document-server-client', () => {
       b
     );
   });
+
+  it('handles undo, redo of local changes', () => {
+    const scheduler = new Scheduler(true);
+    const server = new DocumentServer();
+    const a = new DocumentClient(server.newSocket(scheduler));
+    const b = new DocumentClient(server.newSocket(scheduler));
+
+    a.connect();
+    b.connect();
+    a.type('hello world');
+    a.setCursorByValue('hello >world');
+    a.type('between ');
+
+    a.sendChanges();
+    scheduler.run();
+
+    expect(a.getValueWithCursors()).toStrictEqual('hello between >world');
+    a.undo();
+    expect(a.getValueWithCursors()).toStrictEqual('hello >world');
+    a.setCursor(0);
+    a.redo();
+    expect(a.getValueWithCursors()).toStrictEqual('hello between >world');
+
+    b.setCursor(0);
+    b.type('ALL: ');
+    b.sendChanges();
+    scheduler.run();
+
+    expectDocumentsConverged('ALL: <1>hello between <0>world', server, a, b);
+
+    a.setCursor(-1);
+    a.undo();
+    expect(a.getValueWithCursors()).toStrictEqual('ALL: hello >world');
+    a.undo();
+    expect(a.getValueWithCursors()).toStrictEqual('ALL: >');
+    a.redo();
+    expect(a.getValueWithCursors()).toStrictEqual('ALL: hello world>');
+    a.redo();
+    expect(a.getValueWithCursors()).toStrictEqual('ALL: hello between >world');
+  });
 });
+
+// console.log(
+//   inspect(
+//     {
+//       a: a.getState(),
+//       b: b.getState(),
+//       server: server.getState(),
+//       scheduler: scheduler.getState(),
+//     },
+//     false,
+//     null,
+//     true
+//   )
+// );
