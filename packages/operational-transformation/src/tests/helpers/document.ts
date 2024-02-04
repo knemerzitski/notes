@@ -181,30 +181,45 @@ export class Document {
    * selected is deleted.
    */
   type(text: string) {
+    const selectionLen = this._endCursorPos - this._startCursorPos;
+    const lenChange = text.length - selectionLen;
+
     const before = RetainStrip.create(0, this._startCursorPos - 1);
-    const insert = new InsertStrip(text);
+    const insert = InsertStrip.create(text);
     const after = RetainStrip.create(this._endCursorPos, this.value.length - 1);
-    const afterOffset = RetainStrip.create(
-      this._endCursorPos + text.length,
-      this.value.length - 1 + text.length
+
+    const undoInsert = InsertStrip.create(
+      this.value.substring(this._startCursorPos, this._endCursorPos)
+    );
+    const undoAfter = RetainStrip.create(
+      this._endCursorPos - 1,
+      this.value.length + lenChange - 1
     );
 
-    let cursorPos = this._startCursorPos + text.length;
+    let startCursorPos = this._startCursorPos + text.length;
+    let endCursorPos = startCursorPos;
     let change = Changeset.from(before, insert, after);
-    let undoChange = Changeset.from(before, afterOffset);
+
+    let undoChange = Changeset.from(before, undoInsert, undoAfter);
+    let undoStartCursorPos = this._startCursorPos;
+    let undoEndCursorPos = this._endCursorPos;
+
     const command: LocalCommand = {
       execute: () => {
-        this._startCursorPos = cursorPos;
-        this._endCursorPos = cursorPos;
+        this._startCursorPos = startCursorPos;
+        this._endCursorPos = endCursorPos;
         this.newLocalTyping(change);
       },
       undo: () => {
-        this._startCursorPos = cursorPos - text.length;
-        this._endCursorPos = cursorPos - text.length;
+        this._startCursorPos = undoStartCursorPos;
+        this._endCursorPos = undoEndCursorPos;
         this.newLocalTyping(undoChange);
       },
       update: (externalChange) => {
-        cursorPos = externalChange.followPosition(cursorPos);
+        startCursorPos = externalChange.followPosition(startCursorPos);
+        endCursorPos = externalChange.followPosition(endCursorPos);
+        undoStartCursorPos = externalChange.followPosition(undoStartCursorPos);
+        undoEndCursorPos = externalChange.followPosition(undoEndCursorPos);
         change = externalChange.follow(change);
         undoChange = externalChange.follow(undoChange);
       },
@@ -233,29 +248,44 @@ export class Document {
       count--;
     }
     count = Math.min(this._startCursorPos, count);
+    const selectionLen = this._endCursorPos - this._startCursorPos;
+    const lenChange = -(selectionLen + count);
+
     const before = RetainStrip.create(0, this._startCursorPos - count - 1);
     const after = RetainStrip.create(this._endCursorPos, this.value.length - 1);
-    const deleted = InsertStrip.create(
+
+    const undoDelete = InsertStrip.create(
       this.value.substring(this._startCursorPos - count, this._endCursorPos)
     );
-    const afterOffset = RetainStrip.create(
+    const undoAfter = RetainStrip.create(
       this._startCursorPos - count,
-      this.value.length - count - 1
+      this.value.length + lenChange - 1
     );
 
-    this._startCursorPos -= count;
-    this._endCursorPos = this._startCursorPos;
-
+    let startCursorPos = this._startCursorPos - count;
+    let endCursorPos = startCursorPos;
     let change = Changeset.from(before, after);
-    let undoChange = Changeset.from(before, deleted, afterOffset);
+
+    let undoChange = Changeset.from(before, undoDelete, undoAfter);
+    let undoStartCursorPos = this._startCursorPos;
+    let undoEndCursorPos = this._endCursorPos;
+
     const command: LocalCommand = {
       execute: () => {
+        this._startCursorPos = startCursorPos;
+        this._endCursorPos = endCursorPos;
         this.newLocalTyping(change);
       },
       undo: () => {
+        this._startCursorPos = undoStartCursorPos;
+        this._endCursorPos = undoEndCursorPos;
         this.newLocalTyping(undoChange);
       },
       update: (externalChange) => {
+        startCursorPos = externalChange.followPosition(startCursorPos);
+        endCursorPos = externalChange.followPosition(endCursorPos);
+        undoStartCursorPos = externalChange.followPosition(undoStartCursorPos);
+        undoEndCursorPos = externalChange.followPosition(undoEndCursorPos);
         change = externalChange.follow(change);
         undoChange = externalChange.follow(undoChange);
       },
