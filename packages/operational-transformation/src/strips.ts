@@ -1,3 +1,4 @@
+import { isInsertStrip } from './insert-strip';
 import { RetainStrip } from './retain-strip';
 import { Strip } from './strip';
 
@@ -56,7 +57,7 @@ export class Strips {
     let pos = 0;
     for (const strip of this.values) {
       const nextPos = pos + strip.length;
-      // strip is past start
+      // Strip is past start
       if (nextPos > start) {
         const absStart = Math.max(start, pos);
         const absEnd = end ? Math.min(end, nextPos) : nextPos;
@@ -67,7 +68,7 @@ export class Strips {
 
       pos = nextPos;
       if (end && pos >= end) {
-        // next strip will start past end
+        // Next strip will start past end
         break;
       }
     }
@@ -147,6 +148,13 @@ export class Strips {
     }
 
     return true;
+  }
+
+  joinInsertions() {
+    return this.values
+      .filter(isInsertStrip)
+      .map((strip) => strip.value)
+      .join('');
   }
 
   toString() {
