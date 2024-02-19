@@ -94,6 +94,7 @@ export class RetainStrip implements Strip {
   }
 
   offset(offset: number): Strip {
+    if (offset === 0) return this;
     return new RetainStrip(this.startIndex + offset, this.endIndex + offset);
   }
 
@@ -114,4 +115,8 @@ export class RetainStrip implements Strip {
       ? `${this.startIndex} - ${this.endIndex}`
       : String(this.startIndex);
   }
+}
+
+export function isRetainStrip(strip: Strip): strip is RetainStrip {
+  return strip instanceof RetainStrip;
 }
