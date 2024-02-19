@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { RetainStrip } from './retain-strip';
 import { Strip } from './strip';
 import { Strips } from './strips';
-import { deserializeStrip, deserializeStrips } from './utils/serialize';
+import { deserializeStrip as s, deserializeStrips as ss } from './utils/serialize';
 
 describe('RetainStrip', () => {
   describe('static', () => {
@@ -16,8 +16,8 @@ describe('RetainStrip', () => {
         [3, -1, undefined],
         [-4, -1, null],
       ])('create(%s%s) = %s', (startIndex, endIndex, expected) => {
-        expect(RetainStrip.create(startIndex, endIndex)).toStrictEqual(
-          deserializeStrip(expected)
+        expect(RetainStrip.create(startIndex, endIndex).toString()).toStrictEqual(
+          s(expected).toString()
         );
       });
     });
@@ -47,8 +47,8 @@ describe('RetainStrip', () => {
       [1, undefined, ['abc'], ['b']],
     ])('(%s - %s).reference(%s) = %s', (startIndex, endIndex, strips, expected) => {
       expect(
-        new RetainStrip(startIndex, endIndex).reference(deserializeStrips(strips))
-      ).toStrictEqual(deserializeStrips(expected));
+        new RetainStrip(startIndex, endIndex).reference(ss(strips)).toString()
+      ).toStrictEqual(ss(expected).toString());
     });
   });
 
@@ -66,60 +66,64 @@ describe('RetainStrip', () => {
     ])(
       '%s: (%s - %s).slice(%s) = %s',
       (_msg, startIndex, endIndex, [start, end], expected) => {
-        expect(new RetainStrip(startIndex, endIndex).slice(start, end)).toStrictEqual(
-          deserializeStrip(expected)
-        );
+        expect(
+          new RetainStrip(startIndex, endIndex).slice(start, end).toString()
+        ).toStrictEqual(s(expected).toString());
       }
     );
   });
 
   describe('concat', () => {
     it('ignores empty', () => {
-      expect(new RetainStrip(3, 6).concat(Strip.EMPTY)).toStrictEqual(
-        Strips.from(new RetainStrip(3, 6))
+      expect(new RetainStrip(3, 6).concat(Strip.EMPTY).toString()).toStrictEqual(
+        Strips.from(new RetainStrip(3, 6)).toString()
       );
     });
 
     it('concats range and adjacent index', () => {
-      expect(new RetainStrip(3, 5).concat(new RetainStrip(6))).toStrictEqual(
-        Strips.from(new RetainStrip(3, 6))
+      expect(new RetainStrip(3, 5).concat(new RetainStrip(6)).toString()).toStrictEqual(
+        Strips.from(new RetainStrip(3, 6)).toString()
       );
     });
 
     it('concats two adjacent ranges', () => {
-      expect(new RetainStrip(3, 5).concat(new RetainStrip(6, 10))).toStrictEqual(
-        Strips.from(new RetainStrip(3, 10))
-      );
+      expect(
+        new RetainStrip(3, 5).concat(new RetainStrip(6, 10)).toString()
+      ).toStrictEqual(Strips.from(new RetainStrip(3, 10)).toString());
     });
 
     it('keeps range and index with gap separate', () => {
-      expect(new RetainStrip(3, 5).concat(new RetainStrip(7))).toStrictEqual(
-        Strips.from(new RetainStrip(3, 5), new RetainStrip(7))
+      expect(new RetainStrip(3, 5).concat(new RetainStrip(7)).toString()).toStrictEqual(
+        Strips.from(new RetainStrip(3, 5), new RetainStrip(7)).toString()
       );
     });
 
     it('keeps two ranges with gap separate', () => {
-      expect(new RetainStrip(3, 5).concat(new RetainStrip(7, 10))).toStrictEqual(
-        Strips.from(new RetainStrip(3, 5), new RetainStrip(7, 10))
+      expect(
+        new RetainStrip(3, 5).concat(new RetainStrip(7, 10)).toString()
+      ).toStrictEqual(
+        Strips.from(new RetainStrip(3, 5), new RetainStrip(7, 10)).toString()
       );
     });
 
     it('keeps two ranges overlapping separate', () => {
-      expect(new RetainStrip(3, 6).concat(new RetainStrip(4, 6))).toStrictEqual(
-        Strips.from(new RetainStrip(3, 6), new RetainStrip(4, 6))
+      expect(
+        new RetainStrip(3, 6).concat(new RetainStrip(4, 6)).toString()
+      ).toStrictEqual(
+        Strips.from(new RetainStrip(3, 6), new RetainStrip(4, 6)).toString()
       );
     });
   });
 
   describe('isEqual', () => {
     it('returns true for value', () => {
-      expect(deserializeStrip('abc').isEqual(deserializeStrip('abc'))).toBeTruthy();
-      expect(deserializeStrip('dds').isEqual(deserializeStrip('dds'))).toBeTruthy();
+      expect(s('abc').isEqual(s('abc'))).toBeTruthy();
+      expect(s('dds').isEqual(s('dds'))).toBeTruthy();
     });
 
     it('returns false for different values', () => {
-      expect(deserializeStrip('aaa').isEqual(deserializeStrip('bbc'))).toBeFalsy();
-      expect(deserializeStrip('xy').isEqual(deserializeStrip('zzzs'))).toBeFalsy();
+      expect(s('aaa').isEqual(s('bbc'))).toBeFalsy();
+      expect(s('xy').isEqual(s('zzzs'))).toBeFalsy();
     });
   });
 

@@ -32,12 +32,12 @@ describe('Changeset', () => {
       ['single retained character', ['abc'], [1], ['b']],
       ['retained to retained, range to single index', [[2, 6]], [2], [4]],
       ['overlap insert and retain', ['abc', [0, 4]], [[0, 7]], ['abc', [0, 4]]],
-    ])('%s: %s.compose(%s) = %s', (_msg, left, right, expected) => {
+    ])('%s', (_msg, left, right, expected) => {
       const leftChangeset = cs(left);
       const rightChangeset = cs(right);
       const composedChangeset = leftChangeset.compose(rightChangeset);
 
-      expect(composedChangeset).toStrictEqual(cs(expected));
+      expect(composedChangeset.toString()).toStrictEqual(cs(expected).toString());
     });
 
     it('throws error when composing changeset with length 5 to changeset which indexes 0 to 7', () => {
@@ -118,11 +118,11 @@ describe('Changeset', () => {
         [[0, 15], 'fast', [16, 18]],
       ],
       ['returns strips in order 2', [[0, 5], 'ab', [11, 17]], [[0, 17]], [[0, 14]]],
-    ])('%s: %s.follow(%s) = %s', (_msg, changeObjA, changeObjB, expectedfAB) => {
+    ])('%s', (_msg, changeObjA, changeObjB, expectedfAB) => {
       const A = cs(changeObjA);
       const B = cs(changeObjB);
       const fAB = A.follow(B);
-      expect(fAB.strips).toStrictEqual(cs(expectedfAB).strips);
+      expect(fAB.toString()).toStrictEqual(cs(expectedfAB).toString());
     });
   });
 
@@ -274,17 +274,17 @@ describe('Changeset', () => {
   describe('followPosition', () => {
     describe('random', () => {
       it.each([
-        [[], 0, 0],
-        [[5], 0, 0],
-        [['abc'], 1, 3],
-        [[[0, 2], 'hello', [6, 10]], 6, 8],
-        [['hello', [6, 10]], 6, 5],
-        [['abc', [2, 4], 'dddsss', [8, 10]], 9, 13],
-        [['aaaddd', [8, 10]], 4, 6],
-        [[[0, 16], ' end'], 6, 6],
-        [['start ', [0, 14]], 15, 21],
-        [[[0, 20], 'THREE'], 21, 21],
-      ])('%s.followPosition(%s) = %s', (changeset, cursor, expected) => {
+        ['empty', [], 0, 0],
+        ['single retain', [5], 0, 0],
+        ['cursor inside insert moves cursor to end', ['abc'], 1, 3],
+        ['random 1', [[0, 2], 'hello', [6, 10]], 6, 8],
+        ['random 2', ['hello', [6, 10]], 6, 5],
+        ['random 3', ['abc', [2, 4], 'dddsss', [8, 10]], 9, 13],
+        ['random 4', ['aaaddd', [8, 10]], 4, 6],
+        ['random 5', [[0, 16], ' end'], 6, 6],
+        ['random 6', ['start ', [0, 14]], 15, 21],
+        ['random 7', [[0, 20], 'THREE'], 21, 21],
+      ])('%s', (_msg, changeset, cursor, expected) => {
         expect(cs(changeset).followPosition(cursor)).toStrictEqual(expected);
       });
     });
@@ -369,7 +369,7 @@ describe('Changeset', () => {
     });
   });
 
-  describe('follow with compose document', () => {
+  describe('merge = follow with compose document', () => {
     it.each([
       {
         msg: 'inserts at two separate lines',
@@ -404,20 +404,20 @@ describe('Changeset', () => {
       const B = cs(changeB);
       const XA = X.compose(A);
       const XB = X.compose(B);
-      expect(XA).toStrictEqual(cs([expectedXA]));
-      expect(XB).toStrictEqual(cs([expectedXB]));
+      expect(XA.toString()).toStrictEqual(cs([expectedXA]).toString());
+      expect(XB.toString()).toStrictEqual(cs([expectedXB]).toString());
 
       const fAB = A.follow(B);
       const fBA = B.follow(A);
       const AfAB = A.compose(fAB);
       const BfBA = B.compose(fBA);
-      expect(AfAB, 'follow is not commutative').toStrictEqual(BfBA);
+      expect(AfAB.toString(), 'merge is not commutative').toStrictEqual(BfBA.toString());
 
       const XAfAB = XA.compose(fAB);
       const XBfBA = XB.compose(fBA);
 
-      expect(XAfAB).toStrictEqual(cs([expectedResult]));
-      expect(XAfAB).toStrictEqual(XBfBA);
+      expect(XAfAB.toString()).toStrictEqual(cs([expectedResult]).toString());
+      expect(XAfAB.toString()).toStrictEqual(XBfBA.toString());
     });
   });
 
@@ -437,7 +437,7 @@ describe('Changeset', () => {
       [[[3, 6]], null, false],
       [[0], null, true],
       [[], null, true],
-    ])('%s.isIdentity(%s) = %s', (identityObj, changeObj, expectedIsIdentity) => {
+    ])('(%s, %s) = %s', (identityObj, changeObj, expectedIsIdentity) => {
       const I = cs(identityObj);
       const change = changeObj ? cs(changeObj) : undefined;
       if (change) {
@@ -455,13 +455,13 @@ describe('Changeset', () => {
 
   describe('getIdentity', () => {
     it.each([[[]], [['a']], [[[0, 1]]], [['abc']], [['abcdef']], [['abc', [0, 4]]]])(
-      '%s.isIdentity(%s) = %s',
+      '%s',
       (changeObj) => {
         const changeset = cs(changeObj);
         const I = changeset.getIdentity();
         expect(I.isIdentity(changeset)).toBeTruthy();
-        expect(changeset.compose(I)).toStrictEqual(changeset);
-        expect(I.compose(changeset)).toStrictEqual(changeset);
+        expect(changeset.compose(I).toString()).toStrictEqual(changeset.toString());
+        expect(I.compose(changeset).toString()).toStrictEqual(changeset.toString());
       }
     );
   });

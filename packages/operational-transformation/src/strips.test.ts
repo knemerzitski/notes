@@ -95,7 +95,9 @@ describe('Strips', () => {
         ['c', 'de'],
       ],
     ])('%s: %s.slice(%s) = %s', (_msg, strs, [sliceStart, sliceEnd], expected) => {
-      expect(ss(strs).slice(sliceStart, sliceEnd)).toStrictEqual(ss(expected));
+      expect(ss(strs).slice(sliceStart, sliceEnd).toString()).toStrictEqual(
+        ss(expected).toString()
+      );
     });
   });
 
@@ -128,7 +130,9 @@ describe('Strips', () => {
         [[1, 5], 'abcd', [6, 14], 'c', [11, 12]],
       ],
     ])('%s: %s.compact() = %s', (_msg, input, expected) => {
-      expect(ss(input).compact()).toStrictEqual(ss(expected).compact());
+      expect(ss(input).compact().toString()).toStrictEqual(
+        ss(expected).compact().toString()
+      );
     });
   });
 

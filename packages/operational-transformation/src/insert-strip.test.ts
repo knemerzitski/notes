@@ -15,7 +15,9 @@ describe('InsertStrip', () => {
         ['', null],
         ['', undefined],
       ])('create(%s%s) = %s', (value, expected) => {
-        expect(InsertStrip.create(value)).toStrictEqual(deserializeStrip(expected));
+        expect(InsertStrip.create(value).toString()).toStrictEqual(
+          deserializeStrip(expected).toString()
+        );
       });
     });
   });
