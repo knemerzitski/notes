@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { deserializeChangeset } from './utils/serialize';
+import { deserializeChangeset as cs } from './utils/serialize';
 
 describe('Changeset', () => {
   describe('compose', () => {
@@ -31,22 +31,22 @@ describe('Changeset', () => {
       ['retained to retained, range to single index', [[2, 6]], [2], [4]],
       ['overlap insert and retain', ['abc', [0, 4]], [[0, 7]], ['abc', [0, 4]]],
     ])('%s: %s.compose(%s) = %s', (_msg, left, right, expected) => {
-      const leftChangeset = deserializeChangeset(left);
-      const rightChangeset = deserializeChangeset(right);
+      const leftChangeset = cs(left);
+      const rightChangeset = cs(right);
       const composedChangeset = leftChangeset.compose(rightChangeset);
 
-      expect(composedChangeset).toStrictEqual(deserializeChangeset(expected));
+      expect(composedChangeset).toStrictEqual(cs(expected));
     });
 
     it('throws error when composing changeset with length 5 to changeset which indexes 0 to 7', () => {
-      const leftChangeset = deserializeChangeset(['hello']);
-      const rightChangeset = deserializeChangeset([[0, 7], ' world']);
+      const leftChangeset = cs(['hello']);
+      const rightChangeset = cs([[0, 7], ' world']);
       expect(() => leftChangeset.compose(rightChangeset)).toThrow();
     });
 
     it('throws error when changeset index is completely out for range', () => {
-      const leftChangeset = deserializeChangeset(['hello']);
-      const rightChangeset = deserializeChangeset([[12, 14], ' world']);
+      const leftChangeset = cs(['hello']);
+      const rightChangeset = cs([[12, 14], ' world']);
       expect(() => leftChangeset.compose(rightChangeset)).toThrow();
     });
   });
@@ -117,20 +117,20 @@ describe('Changeset', () => {
       ],
       ['returns strips in order 2', [[0, 5], 'ab', [11, 17]], [[0, 17]], [[0, 14]]],
     ])('%s: %s.follow(%s) = %s', (_msg, changeObjA, changeObjB, expectedfAB) => {
-      const A = deserializeChangeset(changeObjA);
-      const B = deserializeChangeset(changeObjB);
+      const A = cs(changeObjA);
+      const B = cs(changeObjB);
       const fAB = A.follow(B);
-      expect(fAB.strips).toStrictEqual(deserializeChangeset(expectedfAB).strips);
+      expect(fAB.strips).toStrictEqual(cs(expectedfAB).strips);
     });
   });
 
   describe('merge', () => {
     it('calls follow, then compose and returns the value', () => {
-      const a = deserializeChangeset([[1, 5], 'any']);
-      const b = deserializeChangeset(['st', [8, 10]]);
+      const a = cs([[1, 5], 'any']);
+      const b = cs(['st', [8, 10]]);
 
-      const followReturn = deserializeChangeset(['follow ret']);
-      const composeReturn = deserializeChangeset(['compose ret']);
+      const followReturn = cs(['follow ret']);
+      const composeReturn = cs(['compose ret']);
 
       const follow = vi.spyOn(a, 'follow');
       follow.mockReturnValueOnce(followReturn);
@@ -193,9 +193,9 @@ describe('Changeset', () => {
         ['START: ', [6, 15], ' WO', [20, 21]],
       ],
     ])('%s', (_msg, documentV0Obj, changeE1Obj, changeE2Obj) => {
-      const V0 = deserializeChangeset(documentV0Obj);
-      const E1 = deserializeChangeset(changeE1Obj);
-      const E2 = deserializeChangeset(changeE2Obj);
+      const V0 = cs(documentV0Obj);
+      const E1 = cs(changeE1Obj);
+      const E2 = cs(changeE2Obj);
 
       // V0 * E1 * E2 = X
       const expectedFinalDocument = V0.compose(E1).compose(E2);
@@ -259,8 +259,8 @@ describe('Changeset', () => {
       ['delete start, insert end', ['hello between world'], [[6, 18], ' end']],
       ['delete end', ['START hello between world END'], [[0, 24]]],
     ])('%s', (_msg, docObj, changeObj) => {
-      const doc = deserializeChangeset(docObj);
-      const change = deserializeChangeset(changeObj);
+      const doc = cs(docObj);
+      const change = cs(changeObj);
       const docWithChange = doc.compose(change);
       const inverseChange = change.inverse(doc);
       expect(docWithChange.compose(inverseChange).toString()).toStrictEqual(
@@ -283,15 +283,13 @@ describe('Changeset', () => {
         [['start ', [0, 14]], 15, 21],
         [[[0, 20], 'THREE'], 21, 21],
       ])('%s.followPosition(%s) = %s', (changeset, cursor, expected) => {
-        expect(deserializeChangeset(changeset).followPosition(cursor)).toStrictEqual(
-          expected
-        );
+        expect(cs(changeset).followPosition(cursor)).toStrictEqual(expected);
       });
     });
 
     describe('structured', () => {
       describe('insert start +++*********', () => {
-        const changeset = deserializeChangeset(['+++', [0, 8]]);
+        const changeset = cs(['+++', [0, 8]]);
         it.each([
           ['^***** ****  => +++^***** ****', 0, 3],
           [' *****^****  => +++ *****^****', 5, 8],
@@ -303,7 +301,7 @@ describe('Changeset', () => {
         });
       });
       describe('insert middle ****+++*****', () => {
-        const changeset = deserializeChangeset([[0, 4], '+++', [5, 8]]);
+        const changeset = cs([[0, 4], '+++', [5, 8]]);
         it.each([
           ['^***** ****  => ^***** +++ ****', 0, 0],
           [' *****^****  =>  *****^+++ ****', 5, 5],
@@ -316,7 +314,7 @@ describe('Changeset', () => {
         });
       });
       describe('insert end, *********+++', () => {
-        const changeset = deserializeChangeset([[0, 8], '+++']);
+        const changeset = cs([[0, 8], '+++']);
         it.each([
           ['^***** ****  => ^***** **** +++', 0, 0],
           [' *****^****  =>  *****^**** +++', 5, 5],
@@ -328,7 +326,7 @@ describe('Changeset', () => {
         });
       });
       describe('insert start, delete start +++----*****', () => {
-        const changeset = deserializeChangeset(['+++', [4, 8]]);
+        const changeset = cs(['+++', [4, 8]]);
         it.each([
           ['^** *** ****  => +++----^* ****', 0, 3],
           [' **^*** ****  => +++----^* ****', 2, 3],
@@ -341,7 +339,7 @@ describe('Changeset', () => {
         });
       });
       describe('insert middle, delete middle **--+++--***', () => {
-        const changeset = deserializeChangeset([[0, 1], '+++', [6, 8]]);
+        const changeset = cs([[0, 1], '+++', [6, 8]]);
         it.each([
           ['^** *** ****  => ^**-- +++-- ***', 0, 0],
           [' **^*** ****  =>  **--^+++-- ***', 2, 2],
@@ -354,7 +352,7 @@ describe('Changeset', () => {
         });
       });
       describe('insert end, delete end *****----+++', () => {
-        const changeset = deserializeChangeset([[0, 4], '+++']);
+        const changeset = cs([[0, 4], '+++']);
         it.each([
           ['^** *** ****  => ^** ***---- +++', 0, 0],
           [' **^*** ****  =>  **^***---- +++', 2, 2],
@@ -399,13 +397,13 @@ describe('Changeset', () => {
         expectedResult: 'insert here:bestfast!!!', // bestfast same as above, so follow is commutative
       },
     ])('%s', ({ initial, changeA, changeB, expectedXA, expectedXB, expectedResult }) => {
-      const X = deserializeChangeset([initial]);
-      const A = deserializeChangeset(changeA);
-      const B = deserializeChangeset(changeB);
+      const X = cs([initial]);
+      const A = cs(changeA);
+      const B = cs(changeB);
       const XA = X.compose(A);
       const XB = X.compose(B);
-      expect(XA).toStrictEqual(deserializeChangeset([expectedXA]));
-      expect(XB).toStrictEqual(deserializeChangeset([expectedXB]));
+      expect(XA).toStrictEqual(cs([expectedXA]));
+      expect(XB).toStrictEqual(cs([expectedXB]));
 
       const fAB = A.follow(B);
       const fBA = B.follow(A);
@@ -416,7 +414,7 @@ describe('Changeset', () => {
       const XAfAB = XA.compose(fAB);
       const XBfBA = XB.compose(fBA);
 
-      expect(XAfAB).toStrictEqual(deserializeChangeset([expectedResult]));
+      expect(XAfAB).toStrictEqual(cs([expectedResult]));
       expect(XAfAB).toStrictEqual(XBfBA);
     });
   });
@@ -438,8 +436,8 @@ describe('Changeset', () => {
       [[0], null, true],
       [[], null, true],
     ])('%s.isIdentity(%s) = %s', (identityObj, changeObj, expectedIsIdentity) => {
-      const I = deserializeChangeset(identityObj);
-      const change = changeObj ? deserializeChangeset(changeObj) : undefined;
+      const I = cs(identityObj);
+      const change = changeObj ? cs(changeObj) : undefined;
       if (change) {
         try {
           expect(change.compose(I).isEqual(change)).toStrictEqual(expectedIsIdentity);
@@ -457,7 +455,7 @@ describe('Changeset', () => {
     it.each([[[]], [['a']], [[[0, 1]]], [['abc']], [['abcdef']], [['abc', [0, 4]]]])(
       '%s.isIdentity(%s) = %s',
       (changeObj) => {
-        const changeset = deserializeChangeset(changeObj);
+        const changeset = cs(changeObj);
         const I = changeset.getIdentity();
         expect(I.isIdentity(changeset)).toBeTruthy();
         expect(changeset.compose(I)).toStrictEqual(changeset);
