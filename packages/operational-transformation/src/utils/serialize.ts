@@ -4,6 +4,10 @@ import { RetainStrip } from '../retain-strip';
 import { Strip } from '../strip';
 import { Strips } from '../strips';
 
+export type SerializedStrip = string | number | number[] | null;
+export type SerializedStrips = SerializedStrip[] | null;
+export type SerializedChangeset = SerializedStrips;
+
 /**
  * Single function to create a strip.
  * Will never throw an error but instead modifies provided
@@ -15,13 +19,8 @@ export function deserializeStrip(
   retainStartIndex: number,
   retainEndIndexExclusive?: number
 ): RetainStrip | Strip;
-export function deserializeStrip(
-  stripArg?: null | string | number | number[]
-): RetainStrip | Strip;
-export function deserializeStrip(
-  arg1?: null | string | number | number[],
-  arg2?: number
-): Strip {
+export function deserializeStrip(stripArg?: SerializedStrip): RetainStrip | Strip;
+export function deserializeStrip(arg1?: SerializedStrip, arg2?: number): Strip {
   if (Array.isArray(arg1) && typeof arg1[0] === 'number') {
     return RetainStrip.create(arg1[0], typeof arg1[1] === 'number' ? arg1[1] : arg1[0]);
   } else if (typeof arg1 === 'number') {
@@ -32,23 +31,19 @@ export function deserializeStrip(
   return Strip.EMPTY;
 }
 
-export function deserializeStrips(
-  values: (null | string | number | number[])[] = []
-): Strips {
-  if (values.length === 0) return Strips.EMPTY;
+export function deserializeStrips(values: SerializedChangeset = []): Strips {
+  if (!values || values.length === 0) return Strips.EMPTY;
   return new Strips(values.map((value) => deserializeStrip(value)));
 }
 
-export function deserializeChangeset(
-  values: (null | string | number | number[])[] = []
-): Changeset {
-  if (values.length === 0) return Changeset.EMPTY;
-  return new Changeset(deserializeStrips(values));
+export function deserializeChangesetSpread(...values: SerializedStrip[]): Changeset {
+  return deserializeChangeset(values);
 }
 
-export type SerializedStrip = string | number | number[] | null;
-export type SerializedStrips = SerializedStrip[];
-export type SerializedChangeset = SerializedStrips;
+export function deserializeChangeset(values: SerializedChangeset = []): Changeset {
+  if (!values || values.length === 0) return Changeset.EMPTY;
+  return new Changeset(deserializeStrips(values));
+}
 
 export function serializeStrip(strip: Strip): SerializedStrip {
   if (strip instanceof InsertStrip) {
