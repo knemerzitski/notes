@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { deserializeChangeset } from './utils/serialize';
 
@@ -53,7 +53,7 @@ describe('Changeset', () => {
 
   describe('follow', () => {
     it.each([
-      ['ignores empty', ['dd', null], [null, 'abc', null], [[0, 1], 'abc']],
+      ['ignores empty', ['dd', null], [null, 'abc', null], ['abc', [0, 1]]],
       [
         'basil, below (baseball)',
         [[0, 1], 'si', 7],
@@ -121,6 +121,151 @@ describe('Changeset', () => {
       const B = deserializeChangeset(changeObjB);
       const fAB = A.follow(B);
       expect(fAB.strips).toStrictEqual(deserializeChangeset(expectedfAB).strips);
+    });
+  });
+
+  describe('merge', () => {
+    it('calls follow, then compose and returns the value', () => {
+      const a = deserializeChangeset([[1, 5], 'any']);
+      const b = deserializeChangeset(['st', [8, 10]]);
+
+      const followReturn = deserializeChangeset(['follow ret']);
+      const composeReturn = deserializeChangeset(['compose ret']);
+
+      const follow = vi.spyOn(a, 'follow');
+      follow.mockReturnValueOnce(followReturn);
+
+      const compose = vi.spyOn(a, 'compose');
+      compose.mockReturnValueOnce(composeReturn);
+
+      const result = a.merge(b);
+
+      expect(follow).toHaveBeenCalledWith(b);
+      expect(follow).toHaveReturnedWith(followReturn);
+      expect(compose).toHaveBeenCalledWith(followReturn);
+      expect(result).toStrictEqual(composeReturn);
+    });
+  });
+
+  describe('swapChanges', () => {
+    it.each([
+      [
+        '"hello" => "between world after" (insert " world" <=> delete "hello", "between" |world| "after"',
+        ['hello'],
+        [[0, 4], ' world'],
+        ['between', [5, 10], 'after'],
+      ],
+      [
+        '"hello delme world" => "hello replaced world" (insert " delme" <=> replace "delme" with "replaced"',
+        ['hello world'],
+        [[0, 4], ' delme', [5, 10]],
+        [[0, 5], 'replaced', [11, 16]],
+      ],
+      [
+        'replace in multiple places',
+        ['hello world lorem'],
+        [[0, 4], ' delme', [5, 10], ' deltoo', [11, 16]],
+        [[0, 5], 'replaced', [11, 17], 'gone', [24, 29]],
+      ],
+      ['replace second world', ['hello'], [[0, 4], ' world'], [[0, 4], ' planet']],
+      [
+        'delete at start',
+        ['hello between world'],
+        [[0, 10], '[A]', [11, 18]],
+        [[6, 21], ' END'],
+      ],
+      [
+        'deleted at start after insertion',
+        ['hello between world'],
+        [[0, 10], '[A]', [11, 18]],
+        ['START: ', [6, 21]],
+      ],
+      [
+        'delete at start, replace in the middle',
+        ['hello between world'],
+        [[0, 10], '[A]', [11, 18]],
+        ['START: ', [6, 15], ' W', [18, 21]],
+      ],
+      [
+        'delete at start, replace partially in the middle',
+        ['hello between world'],
+        [[0, 10], '[A]', [11, 18]],
+        ['START: ', [6, 15], ' WO', [20, 21]],
+      ],
+    ])('%s', (_msg, documentV0Obj, changeE1Obj, changeE2Obj) => {
+      const V0 = deserializeChangeset(documentV0Obj);
+      const E1 = deserializeChangeset(changeE1Obj);
+      const E2 = deserializeChangeset(changeE2Obj);
+
+      // V0 * E1 * E2 = X
+      const expectedFinalDocument = V0.compose(E1).compose(E2);
+
+      // V0 * E1' * E2' = X
+      const [E1_b, E2_b] = V0.swapChanges(E1, E2);
+      expect(E1_b.toString()).not.toStrictEqual(E1.toString());
+      expect(E2_b.toString()).not.toStrictEqual(E2.toString());
+
+      const swappedFinalDocument = V0.compose(E1_b).compose(E2_b);
+      expect(swappedFinalDocument.toString()).toStrictEqual(
+        expectedFinalDocument.toString()
+      );
+
+      const [E1_a, E2_a] = V0.swapChanges(E1_b, E2_b);
+
+      // swapChanges is symmetrical for composed document
+      const swapped2FinalDocument = V0.compose(E1_a).compose(E2_a);
+      expect(swapped2FinalDocument.toString()).toStrictEqual(
+        expectedFinalDocument.toString()
+      );
+
+      // swapChanges converges to same result
+      const [E1_bb, E2_bb] = V0.swapChanges(E1_a, E2_a);
+      expect(E1_bb.toString()).toStrictEqual(E1_b.toString());
+      expect(E2_bb.toString()).toStrictEqual(E2_b.toString());
+      const [E1_aa, E2_aa] = V0.swapChanges(E1_bb, E2_bb);
+      expect(E1_aa.toString()).toStrictEqual(E1_a.toString());
+      expect(E2_aa.toString()).toStrictEqual(E2_a.toString());
+    });
+  });
+
+  describe('inverse', () => {
+    it.each([
+      [
+        'change completely overwrites and is smaller than document',
+        ['between END! Deleted [B]'],
+        ['rewrote everything'],
+      ],
+      [
+        'change completely overwrites and is larger than',
+        ['rewrote everything'],
+        ['between END! Deleted [B]'],
+      ],
+      ['replace at beginning', ['hello world'], ['new', [5, 10]]],
+      [
+        'delete in middle',
+        ['start between end'],
+        [
+          [0, 4],
+          [13, 16],
+        ],
+      ],
+      [
+        'delete start, replace middle, insert end',
+        ['start between world'],
+        ['other', [13, 18], ' end'],
+      ],
+      ['multiple strips', ['abcdefghi'], ['x', 0, 'y', 1, 3, 'z', [4, 6], 'u', 7]],
+
+      ['delete start, insert end', ['hello between world'], [[6, 18], ' end']],
+      ['delete end', ['START hello between world END'], [[0, 24]]],
+    ])('%s', (_msg, docObj, changeObj) => {
+      const doc = deserializeChangeset(docObj);
+      const change = deserializeChangeset(changeObj);
+      const docWithChange = doc.compose(change);
+      const inverseChange = change.inverse(doc);
+      expect(docWithChange.compose(inverseChange).toString()).toStrictEqual(
+        doc.toString()
+      );
     });
   });
 

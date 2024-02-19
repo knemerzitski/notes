@@ -45,8 +45,9 @@ export class Changeset {
   }
 
   /**
+   * Composition between changeset A and B is denoted as A * B
    * @returns A new changeset that is a compostion of this and other.
-   * E.g. ['hello'].compose([[0, 4], ' world']) = ['hello world']
+   * E.g. ['hello'] * [[0, 4], ' world'] = ['hello world']
    */
   compose(other: Changeset): Changeset {
     return new Changeset(
@@ -55,8 +56,8 @@ export class Changeset {
           const refStrips = strip.reference(this.strips);
           if (refStrips.length !== strip.length) {
             throw new Error(
-              `Unable to compose ${String(this.strips)} * ${String(
-                other.strips
+              `Unable to compose ${String(this)} * ${String(
+                other
               )}. Cannot index '${String(strip)}' in ${String(this.strips)}.`
             );
           }
@@ -67,8 +68,8 @@ export class Changeset {
   }
 
   /**
-   * Finds follow of this and other so that following criteria is met:
-   * this.compose(this.follow(other)) = other.compose(other.follow(this))
+   * Finds follow of this and other so that following criteria is met: \
+   * this.compose(this.follow(other)) = other.compose(other.follow(this)) \
    * In general: Af(A, B) = Bf(B, A), where A = this, B = other, f = follow
    */
   follow(other: Changeset): Changeset {
@@ -140,6 +141,16 @@ export class Changeset {
           // Use temporary array to reverse insertion order later if needed
           const tmpInsertStrips = [];
 
+          // Reverse if other insert is later or
+          // positions are same and other is lexicographically ordered smaller
+          // This ensures follow has commutative property an merge m(A,B) = m(B,A)
+          const reverseInsert =
+            otherPos < pos ||
+            (pos === otherPos &&
+              strip instanceof InsertStrip &&
+              otherStrip instanceof InsertStrip &&
+              otherStrip.value < strip.value);
+
           // Insertions in this become retained characters
           if (strip instanceof InsertStrip) {
             tmpInsertStrips.push(strip.retain(pos));
@@ -154,20 +165,8 @@ export class Changeset {
             otherPos += otherStrip.length;
           }
 
-          if (otherPos < pos) {
-            // otherStrip starts at a smaller index, so insert it first
+          if (reverseInsert) {
             tmpInsertStrips.reverse();
-          } else if (pos === otherPos) {
-            // Since position of both insertions is same,
-            // decide insertion by lexicographical order of values
-            // This ensures follow has commutative property
-            if (
-              strip instanceof InsertStrip &&
-              otherStrip instanceof InsertStrip &&
-              otherStrip.value < strip.value
-            ) {
-              tmpInsertStrips.reverse();
-            }
           }
           resultStrips.push(...tmpInsertStrips);
         }
@@ -203,6 +202,197 @@ export class Changeset {
 
     const followChangeset = new Changeset(resultStrips);
     return followChangeset;
+  }
+
+  /**
+   * Merge this and other changeset that both apply to same document.
+   * X * m(A,B)
+   */
+  merge(other: Changeset): Changeset {
+    return this.compose(this.follow(other));
+  }
+
+  /**
+   * Finds second change that is applied after the first when
+   * they're swapped. \
+   * Given that AXY = AY'X' => X' = X.{@link findSwapNewSecondChange}(Y,Y')
+   * @param this X
+   * @param oldSecond Y
+   * @param newFirst Y'
+   * @returns X'
+   */
+  findSwapNewSecondChange(oldSecond: Changeset, newFirst: Changeset): Changeset {
+    const resultStrips: Strip[] = [];
+
+    let newFirstInsertPos = 0;
+    let newFirstInsertIndex = 0;
+    let insertionSearchIndex: number | undefined = undefined;
+
+    let newFirstRetainPos = 0;
+    let newFirstRetainIndex = 0;
+
+    for (const strip of oldSecond.strips.values) {
+      if (strip instanceof InsertStrip) {
+        let foundMatch = false;
+        for (
+          ;
+          newFirstInsertIndex < newFirst.strips.values.length;
+          newFirstInsertIndex++
+        ) {
+          const insertionStrip = newFirst.strips.values[newFirstInsertIndex];
+          if (!insertionStrip) {
+            throw new Error(
+              `Unexpected missing strip in newFirst '${String(
+                newFirst
+              )}' at index ${newFirstInsertIndex}`
+            );
+          }
+
+          if (insertionStrip instanceof InsertStrip) {
+            const index = insertionStrip.value.indexOf(strip.value, insertionSearchIndex);
+            if (index !== -1) {
+              const startIndex = newFirstInsertPos + index;
+              resultStrips.push(
+                RetainStrip.create(startIndex, startIndex + strip.length - 1)
+              );
+              insertionSearchIndex = index + 1;
+              foundMatch = true;
+              break;
+            }
+          }
+
+          insertionSearchIndex = undefined;
+          newFirstInsertPos += insertionStrip.length;
+        }
+        if (!foundMatch) {
+          throw new Error(`Strip '${String(strip)}' not found in ${String(newFirst)}`);
+        }
+      } else if (strip instanceof RetainStrip) {
+        const refStrips = strip.reference(this.strips);
+        if (refStrips.length !== strip.length) {
+          throw new Error(`Cannot index '${String(strip)}' in ${String(this.strips)}.`);
+        }
+
+        for (const refStrip of refStrips.values) {
+          if (refStrip instanceof InsertStrip) {
+            resultStrips.push(refStrip);
+          } else if (refStrip instanceof RetainStrip) {
+            let foundLength = 0;
+            for (
+              ;
+              newFirstRetainIndex < newFirst.strips.values.length;
+              newFirstRetainIndex++
+            ) {
+              const retainStrip = newFirst.strips.values[newFirstRetainIndex];
+              if (!retainStrip) {
+                throw new Error(
+                  `Unexpected missing strip in newFirst '${String(
+                    newFirst
+                  )}' at index ${newFirstRetainIndex}`
+                );
+              }
+
+              if (retainStrip instanceof RetainStrip) {
+                const isLeftOuter = refStrip.endIndex < retainStrip.startIndex;
+                if (isLeftOuter) {
+                  break;
+                }
+
+                const intersectionStartIndex = Math.max(
+                  refStrip.startIndex,
+                  retainStrip.startIndex
+                );
+                const intersectionEndIndex = Math.min(
+                  refStrip.endIndex,
+                  retainStrip.endIndex
+                );
+                if (intersectionStartIndex <= intersectionEndIndex) {
+                  const offset = intersectionStartIndex - retainStrip.startIndex;
+                  const len = intersectionEndIndex - intersectionStartIndex + 1;
+
+                  const startIndex = newFirstRetainPos + offset;
+
+                  resultStrips.push(RetainStrip.create(startIndex, startIndex + len - 1));
+
+                  foundLength += len;
+                }
+
+                const hasRetainRemainder = refStrip.endIndex < retainStrip.endIndex;
+                if (hasRetainRemainder) {
+                  break;
+                }
+              }
+
+              newFirstRetainPos += retainStrip.length;
+            }
+            if (foundLength !== refStrip.length) {
+              throw new Error(
+                `Strip '${String(refStrip)}' referenced from '${String(
+                  strip
+                )}' not found in ${String(newFirst)}`
+              );
+            }
+          }
+        }
+      }
+    }
+
+    return new Changeset(resultStrips);
+  }
+
+  /**
+   * Swap order of two latest changes that have yet to be applied to this document.
+   * Given document AXY, finds changes Y' and X' so that
+   * AXY = AY'X' (final document value is same)
+   * @param this A (document)
+   * @param firstChange X - Changeset that is composable on document
+   * @param secondChange Y - Changeset that is composable on X
+   * @returns [Y', X'] Y' - is composable on document, X' - is compoable on Y'
+   */
+  swapChanges(firstChange: Changeset, secondChange: Changeset): [Changeset, Changeset] {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const A = this;
+    const X = firstChange;
+    const Y = secondChange;
+
+    const undoX = X.inverse(A);
+    const Y_ = undoX.follow(Y);
+    const X_ = X.findSwapNewSecondChange(Y, Y_);
+    return [Y_, X_];
+  }
+
+  /**
+   * Finds inverse of this changeset. \
+   * For any composable changeset A and B, following applies: \
+   * A * B = C \
+   * C * A.inverse(B) = A
+   */
+  inverse(other: Changeset) {
+    const resultStrips = [];
+    let pos = 0;
+    let lastEndIndex = -1;
+    for (const strip of this.strips.values) {
+      if (strip instanceof RetainStrip) {
+        const inverseStrip = RetainStrip.create(lastEndIndex + 1, strip.startIndex - 1);
+        resultStrips.push(...inverseStrip.reference(other.strips).values);
+
+        const existingStrip = RetainStrip.create(pos, pos + strip.length - 1);
+        resultStrips.push(existingStrip);
+
+        lastEndIndex = strip.endIndex;
+      }
+      pos += strip.length;
+    }
+
+    const lastInverseStrip = RetainStrip.create(
+      lastEndIndex + 1,
+      lastEndIndex + Math.max(this.strips.length, other.strips.length)
+    );
+    resultStrips.push(...lastInverseStrip.reference(other.strips).values);
+
+    const resultChangeset = new Changeset(resultStrips);
+
+    return resultChangeset;
   }
 
   /**
