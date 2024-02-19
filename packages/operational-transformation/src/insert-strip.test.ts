@@ -96,4 +96,10 @@ describe('InsertStrip', () => {
       expect(new InsertStrip('www').isEqual(new InsertStrip('zzz'))).toBeFalsy();
     });
   });
+
+  describe('toString', () => {
+    it.each(['one', 'third'])('wraps qoutes "%s"', (value) => {
+      expect(new InsertStrip(value).toString()).toStrictEqual(`"${value}"`);
+    });
+  });
 });

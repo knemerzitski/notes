@@ -122,4 +122,17 @@ describe('RetainStrip', () => {
       expect(deserializeStrip('xy').isEqual(deserializeStrip('zzzs'))).toBeFalsy();
     });
   });
+
+  describe('toString', () => {
+    it('returns single number for retain with length of 1', () => {
+      expect(new RetainStrip(5, 5).toString()).toStrictEqual('5');
+      expect(new RetainStrip(8).toString()).toStrictEqual('8');
+      expect(new RetainStrip(16, 16).toString()).toStrictEqual('16');
+    });
+
+    it('returns range with spaced dash between', () => {
+      expect(new RetainStrip(5, 8).toString()).toStrictEqual('5 - 8');
+      expect(new RetainStrip(13, 18).toString()).toStrictEqual('13 - 18');
+    });
+  });
 });

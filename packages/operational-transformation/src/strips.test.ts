@@ -3,7 +3,7 @@ import { mock } from 'vitest-mock-extended';
 
 import { Strip } from './strip';
 import { Strips } from './strips';
-import { deserializeStrip, deserializeStrips } from './utils/serialize';
+import { deserializeStrip as s, deserializeStrips as ss } from './utils/serialize';
 
 describe('Strips', () => {
   describe('static', () => {
@@ -95,9 +95,7 @@ describe('Strips', () => {
         ['c', 'de'],
       ],
     ])('%s: %s.slice(%s) = %s', (_msg, strs, [sliceStart, sliceEnd], expected) => {
-      expect(deserializeStrips(strs).slice(sliceStart, sliceEnd)).toStrictEqual(
-        deserializeStrips(expected)
-      );
+      expect(ss(strs).slice(sliceStart, sliceEnd)).toStrictEqual(ss(expected));
     });
   });
 
@@ -107,9 +105,9 @@ describe('Strips', () => {
       ['returns last character', ['abc', 'de'], -1, 'e'],
       ['returns undefined for out of bounds index', ['de'], 10, undefined],
     ])('%s.at(%s) = %s', (_msg, strs, index, expected) => {
-      const strip = deserializeStrips(strs).at(index);
+      const strip = ss(strs).at(index);
       if (expected !== undefined) {
-        expect(strip).toStrictEqual(deserializeStrip(expected));
+        expect(strip).toStrictEqual(s(expected));
       } else {
         expect(strip).toBeUndefined();
       }
@@ -130,9 +128,7 @@ describe('Strips', () => {
         [[1, 5], 'abcd', [6, 14], 'c', [11, 12]],
       ],
     ])('%s: %s.compact() = %s', (_msg, input, expected) => {
-      expect(deserializeStrips(input).compact()).toStrictEqual(
-        deserializeStrips(expected).compact()
-      );
+      expect(ss(input).compact()).toStrictEqual(ss(expected).compact());
     });
   });
 
@@ -157,35 +153,33 @@ describe('Strips', () => {
       [[[1, 2], 'abc', [5, 7], 'bbb'], true],
       [['c', [5, 8], 'abc', [1, 3], 'bbb'], false],
     ])('%s', (input, expected) => {
-      expect(deserializeStrips(input).isRetainIndexesOrdered()).toStrictEqual(expected);
+      expect(ss(input).isRetainIndexesOrdered()).toStrictEqual(expected);
     });
   });
 
   describe('isEqual', () => {
     it('returns true exact same strips', () => {
+      expect(ss(['abc', [1, 2]]).isEqual(ss(['abc', [1, 2]]))).toBeTruthy();
       expect(
-        deserializeStrips(['abc', [1, 2]]).isEqual(deserializeStrips(['abc', [1, 2]]))
-      ).toBeTruthy();
-      expect(
-        deserializeStrips([4, 'c', [3, 5], 'bs', 'll']).isEqual(
-          deserializeStrips([4, 'c', [3, 5], 'bs', 'll'])
-        )
+        ss([4, 'c', [3, 5], 'bs', 'll']).isEqual(ss([4, 'c', [3, 5], 'bs', 'll']))
       ).toBeTruthy();
     });
 
     it('returns false for different order', () => {
-      expect(
-        deserializeStrips(['abc', [1, 2]]).isEqual(deserializeStrips([[1, 2], 'abc']))
-      ).toBeFalsy();
+      expect(ss(['abc', [1, 2]]).isEqual(ss([[1, 2], 'abc']))).toBeFalsy();
     });
 
     it('returns false for different value', () => {
-      expect(
-        deserializeStrips(['abc', [1, 2]]).isEqual(deserializeStrips([[1, 2], 'abcd']))
-      ).toBeFalsy();
-      expect(
-        deserializeStrips(['abc', [1, 2]]).isEqual(deserializeStrips([[1, 3], 'abc']))
-      ).toBeFalsy();
+      expect(ss(['abc', [1, 2]]).isEqual(ss([[1, 2], 'abcd']))).toBeFalsy();
+      expect(ss(['abc', [1, 2]]).isEqual(ss([[1, 3], 'abc']))).toBeFalsy();
+    });
+  });
+
+  describe('toString', () => {
+    it('joins values with comma and wraps it in brackets', () => {
+      expect(ss().toString()).toStrictEqual('[]');
+      expect(ss(['one']).toString()).toStrictEqual('["one"]');
+      expect(ss(['first', 55]).toString()).toStrictEqual('["first", 55]');
     });
   });
 });

@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { Changeset } from './changeset';
+import { Strips } from './strips';
 import { deserializeChangeset as cs } from './utils/serialize';
 
 describe('Changeset', () => {
@@ -462,5 +464,31 @@ describe('Changeset', () => {
         expect(I.compose(changeset)).toStrictEqual(changeset);
       }
     );
+  });
+
+  describe('toString', () => {
+    it('uses strips maxIndex, length and toString', () => {
+      const strips = Object.assign(new Strips(), {
+        maxIndex: 89,
+        length: 55,
+      });
+      vi.spyOn(strips, 'toString').mockReturnValueOnce('anything');
+
+      const changeset = new Changeset(strips);
+
+      expect(changeset.toString()).toStrictEqual('(90 -> 55)anything');
+    });
+
+    it('uses strips maxIndex, length and toString (different values)', () => {
+      const strips = Object.assign(new Strips(), {
+        maxIndex: 3,
+        length: -4,
+      });
+      vi.spyOn(strips, 'toString').mockReturnValueOnce('[[aaa');
+
+      const changeset = new Changeset(strips);
+
+      expect(changeset.toString()).toStrictEqual('(4 -> -4)[[aaa');
+    });
   });
 });
