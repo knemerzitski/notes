@@ -81,3 +81,7 @@ export class InsertStrip implements Strip {
     return `"${this.value}"`;
   }
 }
+
+export function isInsertStrip(strip: Strip): strip is InsertStrip {
+  return strip instanceof InsertStrip;
+}
