@@ -47,7 +47,7 @@ export class InsertStrip implements Strip {
    * @returns InsertStrip with values concatenated.
    *
    */
-  concat(other: Readonly<Strip>): Strips {
+  concat(other: Strip): Strips {
     if (other === Strip.EMPTY) return Strips.from(this);
 
     if (other instanceof InsertStrip) {
@@ -74,7 +74,7 @@ export class InsertStrip implements Strip {
    * Strips are equal if both are InsertStrip with same value or
    * both strips have zero length (empty).
    */
-  isEqual(other: Readonly<Strip>): boolean {
+  isEqual(other: Strip): boolean {
     return other instanceof InsertStrip && other.value === this.value;
   }
 

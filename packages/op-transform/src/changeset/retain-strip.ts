@@ -53,7 +53,7 @@ export class RetainStrip implements Strip {
   /**
    * @returns Sliced Strips from {@link startIndex} to {@link endIndex} (exclusive)
    */
-  reference(strips: Readonly<Strips>): Strips {
+  reference(strips: Strips): Strips {
     return strips.slice(this.startIndex, this.endIndex + 1);
   }
 
@@ -83,7 +83,7 @@ export class RetainStrip implements Strip {
     return new RetainStrip(newStartIndex, newEndIndex);
   }
 
-  concat(other: Readonly<Strip>): Strips {
+  concat(other: Strip): Strips {
     if (other === Strip.EMPTY) return Strips.from(this);
 
     if (other instanceof RetainStrip && this.endIndex + 1 === other.startIndex) {

@@ -138,7 +138,7 @@ export class Strips implements Serializable<SerializedStrips> {
     return true;
   }
 
-  isEqual(other: Readonly<Strips>): boolean {
+  isEqual(other: Strips): boolean {
     if (this.values.length !== other.values.length) return false;
 
     for (let i = 0; i < this.values.length; i++) {

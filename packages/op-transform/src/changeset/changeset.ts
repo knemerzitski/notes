@@ -17,20 +17,20 @@ export class Changeset implements Serializable<SerializedChangeset> {
   /**
    * Convinience method to create Changeset from spread syntax.
    */
-  static from(...strips: Readonly<Strip>[]) {
+  static from(...strips: Readonly<Strip[]>) {
     return new Changeset(strips);
   }
 
   /**
    * Strips is always compact.
    */
-  readonly strips: Readonly<Strips>;
+  readonly strips: Strips;
 
   /**
    * Create new Changeset from either an array of strips or Strips instance
    * Strips will be compacted if not already.
    */
-  constructor(stripsOrChangeset: Changeset | Readonly<Strips> | Readonly<Strip[]> = []) {
+  constructor(stripsOrChangeset: Changeset | Strips | Readonly<Strip[]> = []) {
     if (stripsOrChangeset instanceof Changeset) {
       this.strips = stripsOrChangeset.strips;
     } else if (stripsOrChangeset instanceof Strips) {
@@ -476,7 +476,7 @@ export class Changeset implements Serializable<SerializedChangeset> {
    * @returns This changeset is identity to other changeset.
    * In other words {@link other}.compose(this) = other.
    */
-  isIdentity(other?: Readonly<Changeset>): boolean {
+  isIdentity(other?: Changeset): boolean {
     if (other) {
       if (other.strips.values.length === 0) {
         return this.strips.values.length === 0;

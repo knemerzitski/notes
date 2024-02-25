@@ -44,7 +44,7 @@ export abstract class Strip implements Serializable<SerializedStrip> {
   /**
    * Returns strips that references values from a {@link strips}
    */
-  abstract reference(strips: Readonly<Strips>): Strips;
+  abstract reference(strips: Strips): Strips;
 
   /**
    * Returns a section of the strip.
@@ -57,9 +57,9 @@ export abstract class Strip implements Serializable<SerializedStrip> {
   /**
    * Add together both strips. Effect of both strips is retained and represented in returned value.
    */
-  abstract concat(other: Readonly<Strip>): Strips;
+  abstract concat(other: Strip): Strips;
 
-  abstract isEqual(other: Readonly<Strip>): boolean;
+  abstract isEqual(other: Strip): boolean;
 
   abstract toString(): string;
 

@@ -15,10 +15,7 @@ export class RevisionChangeset implements Serializable<SerializedRevisionChanges
   readonly revision: number;
   readonly changeset: Changeset;
 
-  constructor(
-    revision: number,
-    changeset: Changeset | Readonly<Strips> | readonly Strip[]
-  ) {
+  constructor(revision: number, changeset: Changeset | Strips | Readonly<Strip[]>) {
     this.revision = revision;
 
     if (changeset instanceof Changeset) {
