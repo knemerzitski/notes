@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import { RetainStrip } from './retain-strip';
+import { deserializeStrip as s, deserializeStrips as ss } from './serialize';
 import { Strip } from './strip';
 import { Strips } from './strips';
-import { deserializeStrip as s, deserializeStrips as ss } from './utils/serialize';
 
 describe('RetainStrip', () => {
   describe('static', () => {

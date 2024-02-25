@@ -1,8 +1,8 @@
 import mitt, { Emitter } from 'mitt';
 
-import { Changeset } from '../changeset';
-import { InsertStrip } from '../insert-strip';
-import { RetainStrip } from '../retain-strip';
+import { Changeset } from '../changeset/changeset';
+import { InsertStrip } from '../changeset/insert-strip';
+import { RetainStrip } from '../changeset/retain-strip';
 
 import { SelectionRange } from './selection-range';
 

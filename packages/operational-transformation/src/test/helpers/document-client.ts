@@ -1,8 +1,8 @@
-import { CollaborativeEditor } from '../../editor/collaborative-editor';
 import {
   deserializeRevisionChangeset,
   serializeRevisionChangeset,
-} from '../../utils/serialize';
+} from '../../changeset/serialize';
+import { CollaborativeEditor } from '../../editor/collaborative-editor';
 
 import { ChangesPayload, ClientPayload, Event } from './document-server';
 import { DelayedSocket } from './socket';

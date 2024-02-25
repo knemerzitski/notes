@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { Changeset } from '../changeset';
-import { RevisionChangeset } from '../revision-changeset';
-import { deserializeChangesetVar as cs } from '../utils/serialize';
+import { Changeset } from '../changeset/changeset';
+import { RevisionChangeset } from '../changeset/revision-changeset';
+import { deserializeChangesetVar as cs } from '../changeset/serialize';
 
 import { CollaborativeEditor } from './collaborative-editor';
 

@@ -1,9 +1,9 @@
-import { Changeset } from '../changeset';
-import { InsertStrip } from '../insert-strip';
-import { RetainStrip } from '../retain-strip';
-import { RevisionChangeset } from '../revision-changeset';
-import { Strip } from '../strip';
-import { Strips } from '../strips';
+import { Changeset } from './changeset';
+import { InsertStrip } from './insert-strip';
+import { RetainStrip } from './retain-strip';
+import { RevisionChangeset } from './revision-changeset';
+import { Strip } from './strip';
+import { Strips } from './strips';
 
 export type SerializedStrip = string | number | number[] | null;
 export type SerializedStrips = SerializedStrip[] | null;

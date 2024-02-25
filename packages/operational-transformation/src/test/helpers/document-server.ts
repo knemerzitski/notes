@@ -1,11 +1,11 @@
-import { Changeset } from '../../changeset';
-import { InsertStrip } from '../../insert-strip';
-import { RevisionChangeset } from '../../revision-changeset';
+import { Changeset } from '../../changeset/changeset';
+import { InsertStrip } from '../../changeset/insert-strip';
+import { RevisionChangeset } from '../../changeset/revision-changeset';
 import {
   SerializedChangeset,
   deserializeStrips,
   serializeChangeset,
-} from '../../utils/serialize';
+} from '../../changeset/serialize';
 
 import { EventBus } from './event-bus';
 import { Scheduler } from './scheduler';

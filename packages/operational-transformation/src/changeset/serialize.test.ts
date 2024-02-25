@@ -1,11 +1,8 @@
 import { it, describe, expect } from 'vitest';
 
-import { Changeset } from '../changeset';
-import { InsertStrip } from '../insert-strip';
-import { RetainStrip } from '../retain-strip';
-import { Strip } from '../strip';
-import { Strips } from '../strips';
-
+import { Changeset } from './changeset';
+import { InsertStrip } from './insert-strip';
+import { RetainStrip } from './retain-strip';
 import {
   deserializeChangeset,
   deserializeStrip,
@@ -14,6 +11,9 @@ import {
   serializeStrip,
   serializeStrips,
 } from './serialize';
+import { Strip } from './strip';
+import { Strips } from './strips';
+
 
 describe('serialize', () => {
   describe('Strip', () => {

@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { Changeset } from './changeset';
+import { deserializeChangeset as cs } from './serialize';
 import { Strips } from './strips';
-import { deserializeChangeset as cs } from './utils/serialize';
 
 describe('Changeset', () => {
   describe('compose', () => {

@@ -1,7 +1,7 @@
 import mitt from 'mitt';
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { deserializeChangeset as cs } from '../utils/serialize';
+import { deserializeChangeset as cs } from '../changeset/serialize';
 
 import { ChangesetEditor, Events } from './changeset-editor';
 import { SelectionRange } from './selection-range';

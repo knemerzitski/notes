@@ -1,4 +1,4 @@
-import { Changeset } from '../changeset';
+import { Changeset } from '../changeset/changeset';
 
 import { DocumentClient } from './document-client';
 import {

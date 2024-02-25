@@ -1,6 +1,6 @@
 import mitt, { Emitter } from 'mitt';
 
-import { Changeset } from '../changeset';
+import { Changeset } from '../changeset/changeset';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type Events = {

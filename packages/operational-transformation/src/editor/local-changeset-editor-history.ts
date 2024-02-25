@@ -1,6 +1,6 @@
 import { Emitter } from 'mitt';
 
-import { Changeset } from '../changeset';
+import { Changeset } from '../changeset/changeset';
 import {
   DocumentClient,
   Events as DocumentClientEvents,

@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { Changeset } from '../changeset';
+import { Changeset } from '../changeset/changeset';
+import { RevisionChangeset } from '../changeset/revision-changeset';
 import { ChangeSource, DocumentClient } from '../client/document-client';
 import { DocumentClientRevisionBuffer } from '../client/document-client-revision-buffer';
-import { RevisionChangeset } from '../revision-changeset';
 
 import { ChangesetEditor } from './changeset-editor';
 import { LocalChangesetEditorHistory } from './local-changeset-editor-history';

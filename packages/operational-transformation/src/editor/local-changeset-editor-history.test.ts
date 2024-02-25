@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
+import { deserializeChangesetVar as cs } from '../changeset/serialize';
 import { ChangeSource, DocumentClient, Events } from '../client/document-client';
 import { textWithSelection } from '../test/helpers/text-with-selection';
-import { deserializeChangesetVar as cs } from '../utils/serialize';
 
 import { ChangesetEditor } from './changeset-editor';
 import { LocalChangesetEditorHistory } from './local-changeset-editor-history';

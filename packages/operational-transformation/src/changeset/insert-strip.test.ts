@@ -3,9 +3,9 @@ import { mock } from 'vitest-mock-extended';
 
 import { InsertStrip } from './insert-strip';
 import { RetainStrip } from './retain-strip';
+import { deserializeStrip } from './serialize';
 import { Strip } from './strip';
 import { Strips } from './strips';
-import { deserializeStrip } from './utils/serialize';
 
 describe('InsertStrip', () => {
   describe('static', () => {
