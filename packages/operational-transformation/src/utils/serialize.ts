@@ -1,12 +1,17 @@
 import { Changeset } from '../changeset';
 import { InsertStrip } from '../insert-strip';
 import { RetainStrip } from '../retain-strip';
+import { RevisionChangeset } from '../revision-changeset';
 import { Strip } from '../strip';
 import { Strips } from '../strips';
 
 export type SerializedStrip = string | number | number[] | null;
 export type SerializedStrips = SerializedStrip[] | null;
 export type SerializedChangeset = SerializedStrips;
+export interface SerializedRevisionChangeset {
+  revision: number;
+  changeset: SerializedChangeset;
+}
 
 /**
  * Single function to create a strip.
@@ -36,13 +41,19 @@ export function deserializeStrips(values: SerializedChangeset = []): Strips {
   return new Strips(values.map((value) => deserializeStrip(value)));
 }
 
-export function deserializeChangesetSpread(...values: SerializedStrip[]): Changeset {
+export function deserializeChangesetVar(...values: SerializedStrip[]): Changeset {
   return deserializeChangeset(values);
 }
 
 export function deserializeChangeset(values: SerializedChangeset = []): Changeset {
   if (!values || values.length === 0) return Changeset.EMPTY;
   return new Changeset(deserializeStrips(values));
+}
+
+export function deserializeRevisionChangeset(
+  value: SerializedRevisionChangeset
+): RevisionChangeset {
+  return new RevisionChangeset(value.revision, deserializeStrips(value.changeset));
 }
 
 export function serializeStrip(strip: Strip): SerializedStrip {
@@ -64,4 +75,13 @@ export function serializeStrips(strips: Readonly<Strips>): SerializedStrips {
 
 export function serializeChangeset(changeset: Readonly<Changeset>): SerializedChangeset {
   return serializeStrips(changeset.strips);
+}
+
+export function serializeRevisionChangeset(
+  changes: RevisionChangeset
+): SerializedRevisionChangeset {
+  return {
+    revision: changes.revision,
+    changeset: serializeChangeset(changes),
+  };
 }
