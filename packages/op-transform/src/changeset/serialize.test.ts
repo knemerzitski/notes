@@ -14,7 +14,6 @@ import {
 import { Strip } from './strip';
 import { Strips } from './strips';
 
-
 describe('serialize', () => {
   describe('Strip', () => {
     it.each([

@@ -164,6 +164,8 @@ export class LocalChangesetEditorHistory {
   }
 
   private updateHistoryFromExternalChange(externalChangeset: Changeset) {
+    // TODO test with history push slices server changeset so there is a gap...
+
     const entries = this.entries;
     const serverIndex = this.lastExecutedIndex.server;
 
