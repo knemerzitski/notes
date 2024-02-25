@@ -6,7 +6,7 @@ import { RetainStrip } from './retain-strip';
 import { Strip } from './strip';
 import { Strips } from './strips';
 
-const cs = Changeset.deserialize.bind(Changeset);
+const cs = Changeset.parseValue.bind(Changeset);
 
 describe('Changeset', () => {
   describe('compose', () => {
@@ -550,7 +550,7 @@ describe('Changeset', () => {
     });
   });
 
-  describe('serialization', () => {
+  describe('serialize/parseValue', () => {
     it.each([
       [[], Changeset.EMPTY, undefined],
       [[null], new Changeset([Strip.EMPTY]), undefined],
@@ -561,7 +561,7 @@ describe('Changeset', () => {
         undefined,
       ],
     ])('%s', (serialized, changeset, expectedSerialized) => {
-      expect(Changeset.deserialize(serialized)).toStrictEqual(changeset);
+      expect(Changeset.parseValue(serialized)).toStrictEqual(changeset);
       expect(changeset.serialize()).toStrictEqual(expectedSerialized ?? serialized);
     });
   });

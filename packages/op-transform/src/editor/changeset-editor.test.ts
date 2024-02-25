@@ -6,7 +6,7 @@ import { Changeset } from '../changeset/changeset';
 import { ChangesetEditor, Events } from './changeset-editor';
 import { SelectionRange } from './selection-range';
 
-const cs = Changeset.deserialize.bind(Changeset);
+const cs = Changeset.parseValue.bind(Changeset);
 
 describe('ChangesetEditor', () => {
   let selection: SelectionRange;

@@ -35,7 +35,7 @@ export class RevisionChangeset implements Serializable<SerializedRevisionChanges
     };
   }
 
-  static deserialize(value: unknown) {
+  static parseValue(value: unknown) {
     if (!value || typeof value !== 'object') {
       throw new Error(
         `'${String(
@@ -68,6 +68,6 @@ export class RevisionChangeset implements Serializable<SerializedRevisionChanges
       );
     }
 
-    return new RevisionChangeset(value.revision, Strips.deserialize(value.changeset));
+    return new RevisionChangeset(value.revision, Strips.parseValue(value.changeset));
   }
 }

@@ -106,7 +106,7 @@ export class DocumentServer {
   }
 
   private handleMessage(clientId: number, data: ServerPayload) {
-    this.handleDocumentChanges(clientId, RevisionChangeset.deserialize(data.payload));
+    this.handleDocumentChanges(clientId, RevisionChangeset.parseValue(data.payload));
   }
 
   private getNextRevisionNumber() {

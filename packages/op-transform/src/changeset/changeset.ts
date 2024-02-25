@@ -518,7 +518,7 @@ export class Changeset implements Serializable<SerializedChangeset> {
     return this.strips.serialize();
   }
 
-  static deserialize(value: unknown) {
-    return new Changeset(Strips.deserialize(value));
+  static parseValue(value: unknown) {
+    return new Changeset(Strips.parseValue(value));
   }
 }

@@ -5,7 +5,7 @@ import { RevisionChangeset } from '../changeset/revision-changeset';
 
 import { CollaborativeEditor } from './collaborative-editor';
 
-const cs = (...values: unknown[]) => Changeset.deserialize(values);
+const cs = (...values: unknown[]) => Changeset.parseValue(values);
 
 describe('CollaborativeEditor', () => {
   describe('constructor', () => {

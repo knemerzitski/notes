@@ -1,6 +1,6 @@
 import { InsertStrip } from './insert-strip';
 import { RetainStrip } from './retain-strip';
-import { Deserializable, Serializable } from './serialize.types';
+import { Parseable, Serializable } from './serialize.types';
 import { Strips } from './strips';
 
 export type SerializedStrip = unknown;
@@ -10,7 +10,7 @@ export type SerializedStrip = unknown;
  * Strip is immutable.
  */
 export abstract class Strip implements Serializable<SerializedStrip> {
-  static EMPTY: Strip & Deserializable<Strip> = {
+  static EMPTY: Strip & Parseable<Strip> = {
     length: 0,
 
     reference() {
@@ -31,14 +31,13 @@ export abstract class Strip implements Serializable<SerializedStrip> {
     serialize() {
       return null;
     },
-    deserialize(value: unknown) {
+    parseValue(value: unknown) {
       if (value == null) {
         return this;
       }
       return;
     },
   };
-  // static EMPTY = EMPTY;
 
   abstract length: number;
 
@@ -66,14 +65,14 @@ export abstract class Strip implements Serializable<SerializedStrip> {
 
   abstract serialize(): SerializedStrip;
 
-  static deserialize(value: unknown): Strip {
+  static parseValue(value: unknown): Strip {
     for (const StripKlass of [InsertStrip, RetainStrip, Strip.EMPTY]) {
-      const strip = StripKlass.deserialize(value);
+      const strip = StripKlass.parseValue(value);
       if (strip) {
         return strip;
       }
     }
 
-    throw new Error(`'${String(value)}' cannot be deserialized to a Strip.`);
+    throw new Error(`Value '${String(value)}' cannot be parsed to a Strip.`);
   }
 }

@@ -86,7 +86,7 @@ export class InsertStrip implements Strip {
     return this.value;
   }
 
-  static deserialize(value: unknown) {
+  static parseValue(value: unknown) {
     if (typeof value === 'string') {
       return InsertStrip.create(value);
     }

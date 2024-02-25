@@ -42,7 +42,7 @@ export class DocumentClient extends CollaborativeEditor {
       //   revision: data.payload.revision,
       //   changeset: deserializeChangeset(data.payload.changeset),
       // });
-      this.handleExternalChange(RevisionChangeset.deserialize(data.payload));
+      this.handleExternalChange(RevisionChangeset.parseValue(data.payload));
     } else if (data.type === Event.ChangesAcknowledged) {
       this.submittedChangesAcknowledged(data.payload.revision);
     } else {
@@ -50,7 +50,7 @@ export class DocumentClient extends CollaborativeEditor {
       //   revision: data.payload.revision,
       //   changeset: deserializeChangeset(data.payload.changeset),
       // });
-      this.handleExternalChange(RevisionChangeset.deserialize(data.payload));
+      this.handleExternalChange(RevisionChangeset.parseValue(data.payload));
     }
   }
 

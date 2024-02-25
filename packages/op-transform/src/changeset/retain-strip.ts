@@ -125,7 +125,7 @@ export class RetainStrip implements Strip {
     }
   }
 
-  static deserialize(value: unknown) {
+  static parseValue(value: unknown) {
     if (Array.isArray(value) && typeof value[0] === 'number') {
       return RetainStrip.create(
         value[0],

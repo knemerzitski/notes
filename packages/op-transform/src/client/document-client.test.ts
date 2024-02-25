@@ -7,7 +7,7 @@ import { textWithSelection } from '../test/helpers/text-with-selection';
 
 import { ChangeSource, DocumentClient, Events } from './document-client';
 
-const cs = (...values: unknown[]) => Changeset.deserialize(values);
+const cs = (...values: unknown[]) => Changeset.parseValue(values);
 
 describe('DocumentClient', () => {
   describe('constructor', () => {

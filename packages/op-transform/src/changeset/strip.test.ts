@@ -37,8 +37,8 @@ describe('strip', () => {
     });
 
     it('deserialize returns self on null or undefined', () => {
-      expect(Strip.EMPTY.deserialize(null)).toStrictEqual(Strip.EMPTY);
-      expect(Strip.EMPTY.deserialize(undefined)).toStrictEqual(Strip.EMPTY);
+      expect(Strip.EMPTY.parseValue(null)).toStrictEqual(Strip.EMPTY);
+      expect(Strip.EMPTY.parseValue(undefined)).toStrictEqual(Strip.EMPTY);
     });
   });
 });

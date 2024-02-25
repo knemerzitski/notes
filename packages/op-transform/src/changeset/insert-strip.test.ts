@@ -15,7 +15,7 @@ describe('InsertStrip', () => {
         ['', undefined],
       ])('create(%s%s) = %s', (value, expected) => {
         expect(InsertStrip.create(value).toString()).toStrictEqual(
-          Strip.deserialize(expected).toString()
+          Strip.parseValue(expected).toString()
         );
       });
     });
@@ -104,12 +104,12 @@ describe('InsertStrip', () => {
     });
   });
 
-  describe('serialization', () => {
+  describe('serialize/parseValue', () => {
     it.each([
       ['abc', new InsertStrip('abc')],
       ['abcd', new InsertStrip('abcd')],
     ])('%s', (serialized, strip) => {
-      expect(InsertStrip.deserialize(serialized)).toStrictEqual(strip);
+      expect(InsertStrip.parseValue(serialized)).toStrictEqual(strip);
       expect(strip.serialize()).toStrictEqual(serialized);
     });
   });

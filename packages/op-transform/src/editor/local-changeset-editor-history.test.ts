@@ -8,7 +8,7 @@ import { ChangesetEditor } from './changeset-editor';
 import { LocalChangesetEditorHistory } from './local-changeset-editor-history';
 import { SelectionRange } from './selection-range';
 
-const cs = (...values: unknown[]) => Changeset.deserialize(values);
+const cs = (...values: unknown[]) => Changeset.parseValue(values);
 
 describe('LocalChangesetEditorHistory', () => {
   let textValue = '';

@@ -6,8 +6,8 @@ import { RetainStrip } from './retain-strip';
 import { Strip } from './strip';
 import { Strips } from './strips';
 
-const s = Strip.deserialize.bind(Strip);
-const ss = Strips.deserialize.bind(Strips);
+const s = Strip.parseValue.bind(Strip);
+const ss = Strips.parseValue.bind(Strips);
 
 describe('Strips', () => {
   describe('static', () => {
@@ -191,13 +191,13 @@ describe('Strips', () => {
     });
   });
 
-  describe('serialization', () => {
+  describe('serialize/parseValue', () => {
     it.each([
       [[], Strips.EMPTY],
       [[null], new Strips([Strip.EMPTY])],
       [[1, 'abc'], new Strips([new RetainStrip(1, 1), new InsertStrip('abc')])],
     ])('%s', (serialized, strips) => {
-      expect(Strips.deserialize(serialized)).toStrictEqual(strips);
+      expect(Strips.parseValue(serialized)).toStrictEqual(strips);
       expect(strips.serialize()).toStrictEqual(serialized);
     });
   });
