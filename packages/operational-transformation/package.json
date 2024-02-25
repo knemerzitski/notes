@@ -8,6 +8,7 @@
     "test:watch": "vitest watch"
   },
   "dependencies": {
+    "mitt": "^3.0.1",
     "vitest": "^1.2.1",
     "vitest-mock-extended": "^1.3.1"
   }
