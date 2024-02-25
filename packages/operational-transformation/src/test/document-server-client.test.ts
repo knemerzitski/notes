@@ -2,64 +2,22 @@
 
 import { describe, expect, it } from 'vitest';
 
+import { SelectionDirection } from '../editor/selection-range';
+
 import { DocumentClient } from './helpers/document-client';
 import { DocumentServer } from './helpers/document-server';
 import { Scheduler } from './helpers/scheduler';
-
-/**
- * Eg. {@link text} = both typing<0> at the same time<1>
- * returns
- *  'both typing> at the same time',
- *  'both typing at the same time>',
- * ]
- * Returned array value is indexed by <#> where # is index
- */
-function parseCursorText(textWithCursors: string) {
-  const cursorIndexes: [number, number][] = [];
-  let text = '';
-
-  for (let i = 0, pos = 0; i < textWithCursors.length; i++) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const c = textWithCursors[i]!;
-    if (c === '<') {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const idx = Number.parseInt(textWithCursors[++i]!);
-      const val = cursorIndexes[idx];
-      if (!val) {
-        cursorIndexes[idx] = [pos, pos];
-      } else {
-        val[1] = pos;
-      }
-      i++;
-    } else {
-      text += c;
-      pos++;
-    }
-  }
-
-  return {
-    text,
-    cursorTexts: cursorIndexes.map(([pos1, pos2]) =>
-      pos1 === pos2
-        ? text.substring(0, pos1) + '>' + text.substring(pos1)
-        : text.substring(0, pos1) +
-          '>' +
-          text.substring(pos1, pos2) +
-          '<' +
-          text.substring(pos2)
-    ),
-  };
-}
+import { parseTextWithMultipleSelections } from './helpers/text-with-selection';
 
 function expectDocumentsConverged(
   textWithCursors: string,
   server: DocumentServer,
   ...clients: DocumentClient[]
 ) {
-  const { text, cursorTexts } = parseCursorText(textWithCursors);
-  expect(server.getHeadText()).toStrictEqual(text);
+  const { rawText, textWithSelection } = parseTextWithMultipleSelections(textWithCursors);
+  expect(server.getHeadText()).toStrictEqual(rawText);
   clients.forEach((client, index) => {
-    expect(client.getValueWithCursors()).toStrictEqual(cursorTexts[index]);
+    expect(client.getValueWithSelection()).toStrictEqual(textWithSelection[index]);
   });
 }
 
@@ -70,15 +28,15 @@ describe('document-server-client', () => {
     const client = new DocumentClient(server.newSocket(scheduler));
 
     client.connect();
-    expect(client.getValueWithCursors()).toStrictEqual('>');
+    expect(client.getValueWithSelection()).toStrictEqual('>');
     expect(server.getHeadText()).toStrictEqual('');
 
-    client.type('hello world');
-    expect(client.getValueWithCursors()).toStrictEqual('hello world>');
+    client.insertText('hello world');
+    expect(client.getValueWithSelection()).toStrictEqual('hello world>');
     expect(server.getHeadText()).toStrictEqual('');
 
     client.sendChanges();
-    expect(client.getValueWithCursors()).toStrictEqual('hello world>');
+    expect(client.getValueWithSelection()).toStrictEqual('hello world>');
     expect(server.getHeadText()).toStrictEqual('hello world');
   });
 
@@ -95,14 +53,14 @@ describe('document-server-client', () => {
     b.setRoundTripLatency(100);
 
     scheduler.autoRun = false;
-    a.type('both typing');
-    b.type(' at the same time');
+    a.insertText('both typing');
+    b.insertText('at the same time ');
     a.sendChanges();
     b.sendChanges();
     expect(server.getHeadText()).toStrictEqual('');
 
     scheduler.run(100);
-    expectDocumentsConverged('both typing<0> at the same time<1>', server, a, b);
+    expectDocumentsConverged('at the same time [1>]both typing[0>]', server, a, b);
   });
 
   it(`converges 3 changes at the same time'`, () => {
@@ -117,43 +75,43 @@ describe('document-server-client', () => {
     c.connect();
     scheduler.run();
 
-    a.type('initial document. A:, B:, C:');
+    a.insertText('initial document. A:, B:, C:');
     a.sendChanges();
     scheduler.run();
 
-    b.setCursorByValue('initial document. A:, B:>, C:');
-    b.type('b text');
+    b.setCaretByValue('initial document. A:, B:>, C:');
+    b.insertText('b text');
     b.sendChanges();
-    a.setCursorByValue('initial document. A:>, B:, C:');
-    a.type('a text');
+    a.setCaretByValue('initial document. A:>, B:, C:');
+    a.insertText('a text');
     a.sendChanges();
-    c.setCursorByValue('initial document. A:, B:, C:>');
-    c.type('c text');
+    c.setCaretByValue('initial document. A:, B:, C:>');
+    c.insertText('c text');
     c.sendChanges();
     scheduler.run();
 
     expectDocumentsConverged(
-      'initial document. A:a text<0>, B:b text<1>, C:c text<2>',
+      'initial document. A:a text[0>], B:b text[1>], C:c text[2>]',
       server,
       a,
       b,
       c
     );
 
-    c.setCursorByValue('initial document>. A:a text, B:b text, C:c text');
-    c.type(' extra');
+    c.setCaretByValue('initial document>. A:a text, B:b text, C:c text');
+    c.insertText(' extra');
     c.sendChanges();
-    a.backspace(4);
-    a.type('number');
+    a.deleteTextCount(4);
+    a.insertText('number');
     a.sendChanges();
-    b.setCursor(2);
-    b.backspace(2);
-    b.type('without "in" here:');
+    b.setCaretPosition(2);
+    b.deleteTextCount(2);
+    b.insertText('without "in" here:');
     b.sendChanges();
     scheduler.run();
 
     expectDocumentsConverged(
-      'without "in" here:<1>itial document extra<2>. A:a number<0>, B:b text, C:c text',
+      'without "in" here:[1>]itial document extra[2>]. A:a number[0>], B:b text, C:c text',
       server,
       a,
       b,
@@ -174,35 +132,35 @@ describe('document-server-client', () => {
     b.setRoundTripLatency(100);
     scheduler.autoRun = false;
 
-    b.type('\n\n\n');
+    b.insertText('\n\n\n');
     b.sendChanges();
     scheduler.run(100);
 
-    a.setCursor(0);
-    a.type('At start');
+    a.setCaretPosition(0);
+    a.insertText('At start');
     a.sendChanges();
     b.setRoundTripLatency(500);
     scheduler.run(100);
 
-    a.type(' typing first');
+    a.insertText(' typing first');
     a.sendChanges();
-    b.type('Somewhere in the');
+    b.insertText('Somewhere in the');
     scheduler.run(100);
 
-    a.type(' sentence.');
+    a.insertText(' sentence.');
     a.sendChanges();
-    b.type(' middle editing');
+    b.insertText(' middle editing');
     scheduler.run(100);
 
-    a.type(' Woo!');
+    a.insertText(' Woo!');
     a.sendChanges();
-    b.type(' together.');
+    b.insertText(' together.');
     scheduler.run(300);
     b.sendChanges();
 
     scheduler.run();
     expectDocumentsConverged(
-      `At start typing first sentence. Woo!<0>\n\n\nSomewhere in the middle editing together.<1>`,
+      `At start typing first sentence. Woo![0>]\n\n\nSomewhere in the middle editing together.[1>]`,
       server,
       a,
       b
@@ -222,34 +180,34 @@ describe('document-server-client', () => {
     b.setRoundTripLatency(100);
 
     scheduler.autoRun = false;
-    a.type('Do not modify what im typing.');
+    a.insertText('Do not modify what im typing.');
     a.sendChanges();
     scheduler.run(100);
 
-    a.type(' Second sentence.');
-    b.setCursorByValue('Do >not< modify what im typing.');
-    b.type('always');
+    a.insertText(' Second sentence.');
+    b.setCaretByValue('Do >not< modify what im typing.');
+    b.insertText('always');
     b.sendChanges();
     a.sendChanges();
     scheduler.run(100);
 
     expectDocumentsConverged(
-      'Do always<1> modify what im typing. Second sentence.<0>',
+      'Do always[1>] modify what im typing. Second sentence.[0>]',
       server,
       a,
       b
     );
 
-    b.setCursorByValue('>Do always modify what im typing.<');
-    b.type('Rewrote first sentence.');
-    a.setCursor(0);
-    a.type('IMPORTANT: ');
+    b.setCaretByValue('>Do always modify what im typing.<');
+    b.insertText('Rewrote first sentence.');
+    a.setCaretPosition(0);
+    a.insertText('IMPORTANT: ');
     a.sendChanges();
     b.sendChanges();
     scheduler.run(100);
 
     expectDocumentsConverged(
-      'IMPORTANT: <0>Rewrote first sentence.<1> Second sentence.',
+      'IMPORTANT: [0>]Rewrote first sentence.[1>] Second sentence.',
       server,
       a,
       b
@@ -264,49 +222,52 @@ describe('document-server-client', () => {
 
     a.connect();
     b.connect();
-    a.type('hello world');
-    a.setCursorByValue('hello >world');
-    a.type('between ');
+    a.insertText('hello world');
+    a.setCaretByValue('hello >world');
+    a.insertText('between ');
 
     a.sendChanges();
     scheduler.run();
 
-    expect(a.getValueWithCursors()).toStrictEqual('hello between >world');
+    expect(a.getValueWithSelection()).toStrictEqual('hello between >world');
     a.undo();
-    expect(a.getValueWithCursors()).toStrictEqual('hello >world');
-    a.setCursor(0);
+    expect(a.getValueWithSelection()).toStrictEqual('hello >world');
+    a.setCaretPosition(0);
     a.redo();
-    expect(a.getValueWithCursors()).toStrictEqual('hello between >world');
+    expect(a.getValueWithSelection()).toStrictEqual('hello between >world');
 
-    b.setCursor(0);
-    b.type('ALL: ');
+    b.setCaretPosition(0);
+    b.insertText('ALL: ');
     b.sendChanges();
     scheduler.run();
 
-    expectDocumentsConverged('ALL: <1>hello between <0>world', server, a, b);
+    expectDocumentsConverged('ALL: [1>]hello between [0>]world', server, a, b);
 
-    a.setCursor(-1);
+    a.setCaretPosition(-1);
     a.undo();
-    expect(a.getValueWithCursors()).toStrictEqual('ALL: hello >world');
+    expect(a.getValueWithSelection()).toStrictEqual('ALL: hello >world');
     a.undo();
-    expect(a.getValueWithCursors()).toStrictEqual('ALL: >');
+    expect(a.getValueWithSelection()).toStrictEqual('ALL: >');
     a.redo();
-    expect(a.getValueWithCursors()).toStrictEqual('ALL: hello world>');
+    expect(a.getValueWithSelection()).toStrictEqual('ALL: hello world>');
     a.redo();
-    expect(a.getValueWithCursors()).toStrictEqual('ALL: hello between >world');
+    expect(a.getValueWithSelection()).toStrictEqual('ALL: hello between >world');
+  });
+
+  it('undo, redo retains both cursor positions', () => {
+    const scheduler = new Scheduler(true);
+    const server = new DocumentServer();
+    const a = new DocumentClient(server.newSocket(scheduler));
+
+    a.connect();
+    a.insertText('hello world');
+    a.setCaretByValue('hello >world');
+    a.insertText('between ');
+    a.setCaretByValue('hello >between< world');
+    a.selectionDirection = SelectionDirection.Backward;
+    a.deleteTextCount();
+    a.selectionDirection = SelectionDirection.Forward;
+    a.undo();
+    a.redo();
   });
 });
-
-// console.log(
-//   inspect(
-//     {
-//       a: a.getState(),
-//       b: b.getState(),
-//       server: server.getState(),
-//       scheduler: scheduler.getState(),
-//     },
-//     false,
-//     null,
-//     true
-//   )
-// );

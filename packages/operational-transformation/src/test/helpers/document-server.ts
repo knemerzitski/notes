@@ -1,17 +1,20 @@
 import { Changeset } from '../../changeset';
 import { InsertStrip } from '../../insert-strip';
+import { RevisionChangeset } from '../../revision-changeset';
 import {
   SerializedChangeset,
-  deserializeChangeset,
+  deserializeStrips,
   serializeChangeset,
 } from '../../utils/serialize';
 
-import { RevisionChangeset } from './document';
 import { EventBus } from './event-bus';
 import { Scheduler } from './scheduler';
 import { DelayedSocket, Socket } from './socket';
 
-type RevisionRecord = RevisionChangeset;
+interface RevisionRecord {
+  revision: number;
+  changeset: Changeset;
+}
 
 interface Client {
   id: number;
@@ -54,7 +57,7 @@ export type ServerPayload = ChangesPayload;
 export class DocumentServer {
   private nextClientId = 1;
 
-  private headtext: RevisionChangeset = {
+  private headtext = {
     revision: 0,
     changeset: Changeset.EMPTY,
   };
@@ -108,10 +111,13 @@ export class DocumentServer {
   }
 
   private handleMessage(clientId: number, data: ServerPayload) {
-    this.handleDocumentChanges(clientId, {
-      revision: data.payload.revision,
-      changeset: deserializeChangeset(data.payload.changeset),
-    });
+    this.handleDocumentChanges(
+      clientId,
+      new RevisionChangeset(
+        data.payload.revision,
+        deserializeStrips(data.payload.changeset)
+      )
+    );
   }
 
   private getNextRevisionNumber() {
@@ -133,23 +139,23 @@ export class DocumentServer {
     );
 
     // Apply client changes according to headtext
-    let clientChangeset = clientChanges.changeset;
+    let currentClientChangeset: Changeset = clientChanges;
     for (let i = clientRevisionRecordIndex + 1; i < this.revisionRecords.length; i++) {
       const revisionRecord = this.revisionRecords[i];
       if (!revisionRecord) {
         throw new Error(
           `Missing revision record at index ${i} for client ${clientId} with revision ${clientRevision} and submitted changeset ${String(
-            clientChanges.changeset
+            clientChanges
           )}`
         );
       }
 
-      clientChangeset = revisionRecord.changeset.follow(clientChangeset);
+      currentClientChangeset = revisionRecord.changeset.follow(currentClientChangeset);
     }
 
     const newRevisionRecord: RevisionRecord = {
       revision: this.getNextRevisionNumber(),
-      changeset: clientChangeset,
+      changeset: currentClientChangeset,
     };
     this.revisionRecords.push(newRevisionRecord);
 
