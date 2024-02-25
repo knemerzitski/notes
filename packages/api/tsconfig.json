@@ -32,7 +32,8 @@
     "paths": {
       "~/*": ["./src/*"],
       "~utils/*": ["../utils/src/*"],
-      "~lambda-graphql/*": ["../lambda-graphql/src/*"]
+      "~lambda-graphql/*": ["../lambda-graphql/src/*"],
+      "~op-transform/*": ["../op-transform/src/*"]
     }
   },
   "include": ["src", "codegen.ts", "vitest.config*.ts"]

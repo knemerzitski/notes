@@ -8,6 +8,11 @@ const config: CodegenConfig = {
       // add: {
       //   './types.generated.ts': { content: '/* eslint-disable */' },
       // },
+      scalarsOverrides: {
+        Changeset: {
+          type: '~op-transform/changeset/changeset#Changeset',
+        },
+      },
       typesPluginsConfig: {
         noSchemaStitching: false,
         contextType: './context#GraphQLResolversContext',
