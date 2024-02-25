@@ -116,6 +116,26 @@ export class RetainStrip implements Strip {
       ? `${this.startIndex} - ${this.endIndex}`
       : String(this.startIndex);
   }
+
+  serialize() {
+    if (this.startIndex !== this.endIndex) {
+      return [this.startIndex, this.endIndex];
+    } else {
+      return this.startIndex;
+    }
+  }
+
+  static deserialize(value: unknown) {
+    if (Array.isArray(value) && typeof value[0] === 'number') {
+      return RetainStrip.create(
+        value[0],
+        typeof value[1] === 'number' ? value[1] : value[0]
+      );
+    } else if (typeof value === 'number') {
+      return RetainStrip.create(value, value);
+    }
+    return;
+  }
 }
 
 export function isRetainStrip(strip: Strip): strip is RetainStrip {

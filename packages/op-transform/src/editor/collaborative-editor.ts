@@ -70,7 +70,7 @@ export class CollaborativeEditor {
 
   constructor(options?: CollaborativeEditorOptions) {
     const headText = options?.headText ?? new RevisionChangeset(0, Changeset.EMPTY);
-    this._value = headText.strips.joinInsertions();
+    this._value = headText.changeset.strips.joinInsertions();
 
     // Range
     this.selection = new SelectionRange({
@@ -89,7 +89,7 @@ export class CollaborativeEditor {
 
     // Local, submitted, server changesets
     this.document = new DocumentClient({
-      initialServerChangeset: new Changeset(headText.strips),
+      initialServerChangeset: new Changeset(headText.changeset.strips),
     });
     this.document.eventBus.on('viewChanged', ({ view, change, source }) => {
       this._value = view.strips.joinInsertions();
@@ -152,7 +152,11 @@ export class CollaborativeEditor {
    * collaborative editing.
    */
   handleExternalChange(changes: RevisionChangeset) {
-    this.revisionBuffer.addRevision('externalChange', changes.revision, changes);
+    this.revisionBuffer.addRevision(
+      'externalChange',
+      changes.revision,
+      changes.changeset
+    );
   }
 
   /**

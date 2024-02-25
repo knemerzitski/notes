@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { deserializeStrip as s, deserializeStrips as ss } from './serialize';
+import { InsertStrip } from './insert-strip';
+import { RetainStrip } from './retain-strip';
 import { Strip } from './strip';
 import { Strips } from './strips';
+
+const s = Strip.deserialize.bind(Strip);
+const ss = Strips.deserialize.bind(Strips);
 
 describe('Strips', () => {
   describe('static', () => {
@@ -184,6 +188,17 @@ describe('Strips', () => {
       expect(ss().toString()).toStrictEqual('[]');
       expect(ss(['one']).toString()).toStrictEqual('["one"]');
       expect(ss(['first', 55]).toString()).toStrictEqual('["first", 55]');
+    });
+  });
+
+  describe('serialization', () => {
+    it.each([
+      [[], Strips.EMPTY],
+      [[null], new Strips([Strip.EMPTY])],
+      [[1, 'abc'], new Strips([new RetainStrip(1, 1), new InsertStrip('abc')])],
+    ])('%s', (serialized, strips) => {
+      expect(Strips.deserialize(serialized)).toStrictEqual(strips);
+      expect(strips.serialize()).toStrictEqual(serialized);
     });
   });
 });

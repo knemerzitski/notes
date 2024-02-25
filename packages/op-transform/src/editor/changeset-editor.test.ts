@@ -1,10 +1,12 @@
 import mitt from 'mitt';
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { deserializeChangeset as cs } from '../changeset/serialize';
+import { Changeset } from '../changeset/changeset';
 
 import { ChangesetEditor, Events } from './changeset-editor';
 import { SelectionRange } from './selection-range';
+
+const cs = Changeset.deserialize.bind(Changeset);
 
 describe('ChangesetEditor', () => {
   let selection: SelectionRange;

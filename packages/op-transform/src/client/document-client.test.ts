@@ -1,11 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-import { deserializeChangesetVar as cs } from '../changeset/serialize';
+import { Changeset } from '../changeset/changeset';
 import { ChangesetEditor } from '../editor/changeset-editor';
 import { SelectionRange } from '../editor/selection-range';
 import { textWithSelection } from '../test/helpers/text-with-selection';
 
 import { ChangeSource, DocumentClient, Events } from './document-client';
+
+const cs = (...values: unknown[]) => Changeset.deserialize(values);
 
 describe('DocumentClient', () => {
   describe('constructor', () => {

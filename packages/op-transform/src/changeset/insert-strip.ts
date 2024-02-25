@@ -81,6 +81,17 @@ export class InsertStrip implements Strip {
   toString() {
     return `"${this.value}"`;
   }
+
+  serialize() {
+    return this.value;
+  }
+
+  static deserialize(value: unknown) {
+    if (typeof value === 'string') {
+      return InsertStrip.create(value);
+    }
+    return;
+  }
 }
 
 export function isInsertStrip(strip: Strip): strip is InsertStrip {

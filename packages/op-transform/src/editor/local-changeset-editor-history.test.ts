@@ -1,12 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { deserializeChangesetVar as cs } from '../changeset/serialize';
+import { Changeset } from '../changeset/changeset';
 import { ChangeSource, DocumentClient, Events } from '../client/document-client';
 import { textWithSelection } from '../test/helpers/text-with-selection';
 
 import { ChangesetEditor } from './changeset-editor';
 import { LocalChangesetEditorHistory } from './local-changeset-editor-history';
 import { SelectionRange } from './selection-range';
+
+const cs = (...values: unknown[]) => Changeset.deserialize(values);
 
 describe('LocalChangesetEditorHistory', () => {
   let textValue = '';

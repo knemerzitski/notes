@@ -1,11 +1,6 @@
-import { Changeset } from '../../changeset/changeset';
+import { Changeset, SerializedChangeset } from '../../changeset/changeset';
 import { InsertStrip } from '../../changeset/insert-strip';
 import { RevisionChangeset } from '../../changeset/revision-changeset';
-import {
-  SerializedChangeset,
-  deserializeStrips,
-  serializeChangeset,
-} from '../../changeset/serialize';
 
 import { EventBus } from './event-bus';
 import { Scheduler } from './scheduler';
@@ -101,7 +96,7 @@ export class DocumentServer {
         payload: {
           clientId,
           revision: this.headtext.revision,
-          changeset: serializeChangeset(this.headtext.changeset),
+          changeset: this.headtext.changeset.serialize(),
         },
       };
       serverSocket.send(JSON.stringify(data));
@@ -111,13 +106,7 @@ export class DocumentServer {
   }
 
   private handleMessage(clientId: number, data: ServerPayload) {
-    this.handleDocumentChanges(
-      clientId,
-      new RevisionChangeset(
-        data.payload.revision,
-        deserializeStrips(data.payload.changeset)
-      )
-    );
+    this.handleDocumentChanges(clientId, RevisionChangeset.deserialize(data.payload));
   }
 
   private getNextRevisionNumber() {
@@ -139,7 +128,7 @@ export class DocumentServer {
     );
 
     // Apply client changes according to headtext
-    let currentClientChangeset: Changeset = clientChanges;
+    let currentClientChangeset: Changeset = clientChanges.changeset;
     for (let i = clientRevisionRecordIndex + 1; i < this.revisionRecords.length; i++) {
       const revisionRecord = this.revisionRecords[i];
       if (!revisionRecord) {
@@ -168,7 +157,7 @@ export class DocumentServer {
       type: Event.Changes,
       payload: {
         revision: newRevisionRecord.revision,
-        changeset: serializeChangeset(newRevisionRecord.changeset),
+        changeset: newRevisionRecord.changeset.serialize(),
       },
     };
     const serializedDocumentChangesPayload = JSON.stringify(documentChangesPayload);

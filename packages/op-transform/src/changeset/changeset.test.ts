@@ -1,8 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { Changeset } from './changeset';
-import { deserializeChangeset as cs } from './serialize';
+import { InsertStrip } from './insert-strip';
+import { RetainStrip } from './retain-strip';
+import { Strip } from './strip';
 import { Strips } from './strips';
+
+const cs = Changeset.deserialize.bind(Changeset);
 
 describe('Changeset', () => {
   describe('compose', () => {
@@ -543,6 +547,22 @@ describe('Changeset', () => {
       const changeset = new Changeset(strips);
 
       expect(changeset.toString()).toStrictEqual('(4 -> -4)[[aaa');
+    });
+  });
+
+  describe('serialization', () => {
+    it.each([
+      [[], Changeset.EMPTY, undefined],
+      [[null], new Changeset([Strip.EMPTY]), undefined],
+      [[null, null], new Changeset([Strip.EMPTY]), [null]],
+      [
+        [1, 'abc'],
+        new Changeset([new RetainStrip(1, 1), new InsertStrip('abc')]),
+        undefined,
+      ],
+    ])('%s', (serialized, changeset, expectedSerialized) => {
+      expect(Changeset.deserialize(serialized)).toStrictEqual(changeset);
+      expect(changeset.serialize()).toStrictEqual(expectedSerialized ?? serialized);
     });
   });
 });

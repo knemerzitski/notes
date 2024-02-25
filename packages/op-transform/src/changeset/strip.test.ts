@@ -14,7 +14,7 @@ describe('strip', () => {
       expect(Strip.EMPTY.reference(mock())).toStrictEqual(Strips.EMPTY);
     });
 
-    it('slice returns slef', () => {
+    it('slice returns self', () => {
       expect(Strip.EMPTY.slice()).toStrictEqual(Strip.EMPTY);
     });
 
@@ -30,6 +30,15 @@ describe('strip', () => {
 
     it('toString returns (EMPTY)', () => {
       expect(Strip.EMPTY.toString()).toStrictEqual('(EMPTY)');
+    });
+
+    it('serializes to null', () => {
+      expect(Strip.EMPTY.serialize()).toBeNull();
+    });
+
+    it('deserialize returns self on null or undefined', () => {
+      expect(Strip.EMPTY.deserialize(null)).toStrictEqual(Strip.EMPTY);
+      expect(Strip.EMPTY.deserialize(undefined)).toStrictEqual(Strip.EMPTY);
     });
   });
 });

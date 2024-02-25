@@ -1,11 +1,14 @@
 import { isInsertStrip } from './insert-strip';
 import { RetainStrip } from './retain-strip';
-import { Strip } from './strip';
+import { Serializable } from './serialize.types';
+import { SerializedStrip, Strip } from './strip';
+
+export type SerializedStrips = SerializedStrip[];
 
 /**
  * A strip array with convinience methods.
  */
-export class Strips {
+export class Strips implements Serializable<SerializedStrips> {
   static EMPTY = new Strips();
 
   /**
@@ -159,5 +162,25 @@ export class Strips {
 
   toString() {
     return `[${this.values.join(', ')}]`;
+  }
+
+  serialize(): SerializedStrips {
+    return this.values.map((strip) => strip.serialize());
+  }
+
+  static deserialize(value?: unknown): Strips {
+    if (!value) return Strips.EMPTY;
+
+    if (!Array.isArray(value)) {
+      throw new Error(
+        `'${String(value)}' cannot be deserialized to Strips. Value is not an array.`
+      );
+    }
+
+    if (value.length === 0) {
+      return Strips.EMPTY;
+    }
+
+    return new Strips(value.map((v) => Strip.deserialize(v)));
   }
 }

@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import { Changeset } from '../changeset/changeset';
 import { RevisionChangeset } from '../changeset/revision-changeset';
-import { deserializeChangesetVar as cs } from '../changeset/serialize';
 
 import { CollaborativeEditor } from './collaborative-editor';
+
+const cs = (...values: unknown[]) => Changeset.deserialize(values);
 
 describe('CollaborativeEditor', () => {
   describe('constructor', () => {
@@ -61,13 +62,13 @@ describe('CollaborativeEditor', () => {
       const changes = editor.submitChanges();
 
       expect(editor.documentServer).toStrictEqual(Changeset.EMPTY);
-      expect(editor.documentSubmitted).toStrictEqual(changes.asChangeset());
+      expect(editor.documentSubmitted).toStrictEqual(changes.changeset);
       expect(editor.documentRevision).toStrictEqual(0);
 
       editor.submittedChangesAcknowledged(1);
 
-      expect(editor.documentServer).toStrictEqual(changes.asChangeset());
-      expect(editor.documentSubmitted).toStrictEqual(changes.getIdentity());
+      expect(editor.documentServer).toStrictEqual(changes.changeset);
+      expect(editor.documentSubmitted).toStrictEqual(changes.changeset.getIdentity());
       expect(editor.documentRevision).toStrictEqual(1);
     });
 

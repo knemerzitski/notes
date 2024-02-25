@@ -3,7 +3,6 @@ import { mock } from 'vitest-mock-extended';
 
 import { InsertStrip } from './insert-strip';
 import { RetainStrip } from './retain-strip';
-import { deserializeStrip } from './serialize';
 import { Strip } from './strip';
 import { Strips } from './strips';
 
@@ -16,7 +15,7 @@ describe('InsertStrip', () => {
         ['', undefined],
       ])('create(%s%s) = %s', (value, expected) => {
         expect(InsertStrip.create(value).toString()).toStrictEqual(
-          deserializeStrip(expected).toString()
+          Strip.deserialize(expected).toString()
         );
       });
     });
@@ -102,6 +101,16 @@ describe('InsertStrip', () => {
   describe('toString', () => {
     it.each(['one', 'third'])('wraps qoutes "%s"', (value) => {
       expect(new InsertStrip(value).toString()).toStrictEqual(`"${value}"`);
+    });
+  });
+
+  describe('serialization', () => {
+    it.each([
+      ['abc', new InsertStrip('abc')],
+      ['abcd', new InsertStrip('abcd')],
+    ])('%s', (serialized, strip) => {
+      expect(InsertStrip.deserialize(serialized)).toStrictEqual(strip);
+      expect(strip.serialize()).toStrictEqual(serialized);
     });
   });
 });

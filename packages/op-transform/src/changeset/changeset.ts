@@ -1,14 +1,17 @@
 import { InsertStrip } from './insert-strip';
 import { RetainStrip } from './retain-strip';
+import { Serializable } from './serialize.types';
 import { Strip } from './strip';
-import { Strips } from './strips';
+import { SerializedStrips, Strips } from './strips';
+
+export type SerializedChangeset = SerializedStrips;
 
 /**
  * Represents a change to a document (list of characters, or a string).
  * Changeset strips is compact and retain indexes are ordered.
  * Changeset is immutable.
  */
-export class Changeset {
+export class Changeset implements Serializable<SerializedChangeset> {
   static EMPTY = new Changeset();
 
   /**
@@ -509,5 +512,13 @@ export class Changeset {
 
   toString() {
     return `(${this.strips.maxIndex + 1} -> ${this.strips.length})${String(this.strips)}`;
+  }
+
+  serialize(): SerializedChangeset {
+    return this.strips.serialize();
+  }
+
+  static deserialize(value: unknown) {
+    return new Changeset(Strips.deserialize(value));
   }
 }

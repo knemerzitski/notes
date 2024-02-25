@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { RetainStrip } from './retain-strip';
-import { deserializeStrip as s, deserializeStrips as ss } from './serialize';
 import { Strip } from './strip';
 import { Strips } from './strips';
+
+const s = Strip.deserialize.bind(Strip);
+const ss = Strips.deserialize.bind(Strips);
 
 describe('RetainStrip', () => {
   describe('static', () => {
@@ -137,6 +139,17 @@ describe('RetainStrip', () => {
     it('returns range with spaced dash between', () => {
       expect(new RetainStrip(5, 8).toString()).toStrictEqual('5 - 8');
       expect(new RetainStrip(13, 18).toString()).toStrictEqual('13 - 18');
+    });
+  });
+
+  describe('serialization', () => {
+    it.each([
+      [3, new RetainStrip(3, 3), undefined],
+      [[-4, 3], new RetainStrip(0, 3), [0, 3]],
+      [[5, 10], new RetainStrip(5, 10), undefined],
+    ])('%s', (serialized, strip, expectedSerialized) => {
+      expect(RetainStrip.deserialize(serialized)).toStrictEqual(strip);
+      expect(strip.serialize()).toStrictEqual(expectedSerialized ?? serialized);
     });
   });
 });
