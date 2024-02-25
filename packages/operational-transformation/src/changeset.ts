@@ -6,6 +6,7 @@ import { Strips } from './strips';
 /**
  * Represents a change to a document (list of characters, or a string).
  * Changeset strips is compact and retain indexes are ordered.
+ * Changeset is immutable.
  */
 export class Changeset {
   static EMPTY = new Changeset();
@@ -26,11 +27,13 @@ export class Changeset {
    * Create new Changeset from either an array of strips or Strips instance
    * Strips will be compacted if not already.
    */
-  constructor(strips: Readonly<Strips> | Readonly<Strip[]> = []) {
-    if (strips instanceof Strips) {
-      this.strips = strips.compact();
-    } else if (Array.isArray(strips)) {
-      this.strips = new Strips(strips).compact();
+  constructor(stripsOrChangeset: Changeset | Readonly<Strips> | Readonly<Strip[]> = []) {
+    if (stripsOrChangeset instanceof Changeset) {
+      this.strips = stripsOrChangeset.strips;
+    } else if (stripsOrChangeset instanceof Strips) {
+      this.strips = stripsOrChangeset.compact();
+    } else if (Array.isArray(stripsOrChangeset)) {
+      this.strips = new Strips(stripsOrChangeset).compact();
     } else {
       this.strips = Strips.EMPTY;
     }
@@ -365,7 +368,7 @@ export class Changeset {
    * Finds inverse of this changeset. \
    * For any composable changeset A and B, following applies: \
    * A * B = C \
-   * C * A.inverse(B) = A
+   * C * B.inverse(A) = A
    */
   inverse(other: Changeset) {
     const resultStrips = [];
@@ -396,17 +399,16 @@ export class Changeset {
   }
 
   /**
-   * Finds new position based on {@link oldPosition}.
-   * @returns Position that is relative same to {@link oldPosition} after
-   * this changeset has been applied.
+   * @returns New index that keeps intent of {@link oldIndex} after
+   * this changeset has been applied to a document.
    */
-  followPosition(oldPosition: number) {
+  followIndex(oldIndex: number) {
     let pos = 0;
     for (const strip of this.strips.values) {
       if (strip instanceof RetainStrip) {
-        if (strip.startIndex <= oldPosition && oldPosition <= strip.endIndex + 1) {
-          return pos + oldPosition - strip.startIndex;
-        } else if (oldPosition < strip.startIndex) {
+        if (strip.startIndex <= oldIndex && oldIndex <= strip.endIndex + 1) {
+          return pos + oldIndex - strip.startIndex;
+        } else if (oldIndex < strip.startIndex) {
           return pos;
         }
       }
@@ -414,6 +416,57 @@ export class Changeset {
     }
 
     return pos;
+  }
+
+  /**
+   * @returns Modified {@link other} changeset that has insertions replaced with retained characters if
+   * it matches this changeset.
+   */
+  insertionsToRetained(other: Changeset) {
+    const resultStrips: Strip[] = [];
+
+    for (let i = 0; i < other.strips.values.length; i++) {
+      const strip = other.strips.values[i];
+      if (strip instanceof InsertStrip) {
+        const prevStrip = other.strips.values[i - 1];
+        const nextStrip = other.strips.values[i + 1];
+
+        let sliceStart = 0;
+        let sliceEnd = -1;
+        if (prevStrip instanceof RetainStrip) {
+          sliceStart = prevStrip.endIndex + 1;
+        }
+        if (nextStrip instanceof RetainStrip) {
+          sliceEnd = nextStrip.startIndex;
+        }
+
+        const sliced = this.strips.slice(sliceStart, sliceEnd);
+
+        let pos = 0;
+        let foundMatch = false;
+        for (const thisStrip of sliced.values) {
+          if (thisStrip instanceof InsertStrip) {
+            const offset = thisStrip.value.indexOf(strip.value);
+            if (offset !== -1) {
+              const startIndex = sliceStart + pos + offset;
+              resultStrips.push(
+                RetainStrip.create(startIndex, startIndex + strip.value.length - 1)
+              );
+              foundMatch = true;
+              break;
+            }
+          }
+          pos += thisStrip.length;
+        }
+        if (!foundMatch) {
+          resultStrips.push(strip);
+        }
+      } else if (strip) {
+        resultStrips.push(strip);
+      }
+    }
+
+    return new Changeset(resultStrips);
   }
 
   /**

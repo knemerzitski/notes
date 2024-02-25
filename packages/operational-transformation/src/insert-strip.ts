@@ -4,6 +4,7 @@ import { Strips } from './strips';
 
 /**
  * Represents string insertion in the new document.
+ * InsertStrip is immutable.
  */
 export class InsertStrip implements Strip {
   static create(value: string): InsertStrip | Strip {
@@ -36,14 +37,14 @@ export class InsertStrip implements Strip {
   }
 
   /**
-   * @returns new InsertStrip with a sliced value.
+   * @returns InsertStrip with a sliced value.
    */
   slice(start?: number, end?: number) {
-    return new InsertStrip(this.value.slice(start, end));
+    return InsertStrip.create(this.value.slice(start, end));
   }
 
   /**
-   * @returns new InsertStrip with values concatenated.
+   * @returns InsertStrip with values concatenated.
    *
    */
   concat(other: Readonly<Strip>): Strips {
@@ -51,7 +52,7 @@ export class InsertStrip implements Strip {
 
     if (other instanceof InsertStrip) {
       // "abc" + "de" = "abcde"
-      return Strips.from(new InsertStrip(this.value + other.value));
+      return Strips.from(InsertStrip.create(this.value + other.value));
     }
     return Strips.from(this, other);
   }

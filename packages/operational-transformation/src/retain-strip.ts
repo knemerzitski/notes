@@ -3,6 +3,7 @@ import { Strips } from './strips';
 
 /**
  * Represents retained characters range in the original document.
+ * RetainStrip is immutable.
  */
 export class RetainStrip implements Strip {
   static create(startIndex: number, endIndex: number): RetainStrip | Strip {

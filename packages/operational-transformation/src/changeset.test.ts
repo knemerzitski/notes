@@ -194,6 +194,12 @@ describe('Changeset', () => {
         [[0, 10], '[A]', [11, 18]],
         ['START: ', [6, 15], ' WO', [20, 21]],
       ],
+      [
+        '',
+        ['[EXTERNAL][e1][e2][e3][somewhere][e4][e5][e6][e7][e8][EXTERNAL]'],
+        [[0, 10], '[A]', [11, 18]],
+        ['START: ', [6, 15], ' WO', [20, 21]],
+      ],
     ])('%s', (_msg, documentV0Obj, changeE1Obj, changeE2Obj) => {
       const V0 = cs(documentV0Obj);
       const E1 = cs(changeE1Obj);
@@ -271,7 +277,7 @@ describe('Changeset', () => {
     });
   });
 
-  describe('followPosition', () => {
+  describe('followIndex', () => {
     describe('random', () => {
       it.each([
         ['empty', [], 0, 0],
@@ -285,7 +291,7 @@ describe('Changeset', () => {
         ['random 6', ['start ', [0, 14]], 15, 21],
         ['random 7', [[0, 20], 'THREE'], 21, 21],
       ])('%s', (_msg, changeset, cursor, expected) => {
-        expect(cs(changeset).followPosition(cursor)).toStrictEqual(expected);
+        expect(cs(changeset).followIndex(cursor)).toStrictEqual(expected);
       });
     });
 
@@ -297,9 +303,7 @@ describe('Changeset', () => {
           [' *****^****  => +++ *****^****', 5, 8],
           [' ***** ****^ => +++ ***** ****^', 9, 12],
         ])('%s, before: %s, after: %s', (_msg, beforeCursor, expectedAfterCursor) => {
-          expect(changeset.followPosition(beforeCursor)).toStrictEqual(
-            expectedAfterCursor
-          );
+          expect(changeset.followIndex(beforeCursor)).toStrictEqual(expectedAfterCursor);
         });
       });
       describe('insert middle ****+++*****', () => {
@@ -310,9 +314,7 @@ describe('Changeset', () => {
           [' ******^***  =>  ***** +++*^***', 6, 9],
           [' ***** ****^ =>  ***** +++ ****^', 9, 12],
         ])('%s, before: %s, after: %s', (_msg, beforeCursor, expectedAfterCursor) => {
-          expect(changeset.followPosition(beforeCursor)).toStrictEqual(
-            expectedAfterCursor
-          );
+          expect(changeset.followIndex(beforeCursor)).toStrictEqual(expectedAfterCursor);
         });
       });
       describe('insert end, *********+++', () => {
@@ -322,9 +324,7 @@ describe('Changeset', () => {
           [' *****^****  =>  *****^**** +++', 5, 5],
           [' ***** ****^ =>  ***** ****^+++', 9, 9],
         ])('%s, before: %s, after: %s', (_msg, beforeCursor, expectedAfterCursor) => {
-          expect(changeset.followPosition(beforeCursor)).toStrictEqual(
-            expectedAfterCursor
-          );
+          expect(changeset.followIndex(beforeCursor)).toStrictEqual(expectedAfterCursor);
         });
       });
       describe('insert start, delete start +++----*****', () => {
@@ -335,9 +335,7 @@ describe('Changeset', () => {
           [' ** ***^****  => +++---- *^****', 5, 4],
           [' ** *** ****^ => +++---- * ****^', 9, 8],
         ])('%s, before: %s, after: %s', (_msg, beforeCursor, expectedAfterCursor) => {
-          expect(changeset.followPosition(beforeCursor)).toStrictEqual(
-            expectedAfterCursor
-          );
+          expect(changeset.followIndex(beforeCursor)).toStrictEqual(expectedAfterCursor);
         });
       });
       describe('insert middle, delete middle **--+++--***', () => {
@@ -348,9 +346,7 @@ describe('Changeset', () => {
           [' ** ***^****  =>  **-- +++--^***', 5, 5],
           [' ** *** ****^ =>  **-- +++-- ***^', 9, 8],
         ])('%s, before: %s, after: %s', (_msg, beforeCursor, expectedAfterCursor) => {
-          expect(changeset.followPosition(beforeCursor)).toStrictEqual(
-            expectedAfterCursor
-          );
+          expect(changeset.followIndex(beforeCursor)).toStrictEqual(expectedAfterCursor);
         });
       });
       describe('insert end, delete end *****----+++', () => {
@@ -361,11 +357,69 @@ describe('Changeset', () => {
           [' ** ***^****  =>  ** ***----^+++', 5, 5],
           [' ** *** ****^ =>  ** ***---- +++^', 9, 8],
         ])('%s, before: %s, after: %s', (_msg, beforeCursor, expectedAfterCursor) => {
-          expect(changeset.followPosition(beforeCursor)).toStrictEqual(
-            expectedAfterCursor
-          );
+          expect(changeset.followIndex(beforeCursor)).toStrictEqual(expectedAfterCursor);
         });
       });
+    });
+  });
+
+  describe('insertionsToRetained', () => {
+    it.each([
+      [
+        'retains exact insertion match into single retained range',
+        ['hello insert world'],
+        [[0, 5], 'insert', [12, 17]],
+        [[0, 17]],
+      ],
+      [
+        'it keeps different insertions as is',
+        ['hello insert world'],
+        [[0, 5], 'inserted', [12, 17]],
+        [[0, 5], 'inserted', [12, 17]],
+      ],
+      [
+        'retains insertion at start',
+        ['hello insert world'],
+        ['hello', [5, 17]],
+        [[0, 17]],
+      ],
+      ['retains insertion at end', ['hello insert world'], [[0, 12], 'world'], [[0, 17]]],
+      [
+        'retains insertion surrounded with deletion',
+        ['hello del inserted delete world'],
+        [[0, 5], 'inserted', [25, 30]],
+        [
+          [0, 5],
+          [10, 17],
+          [25, 30],
+        ],
+      ],
+      [
+        'offsets retained in document for insertions',
+        ['hello ', [0, 2], ' inserted delete world'],
+        [[0, 5], 'inserted', [25, 30]],
+        [
+          [0, 5],
+          [10, 17],
+          [25, 30],
+        ],
+      ],
+      [
+        'handles completely new insertion',
+        ['insert here:!'],
+        [[0, 11], 'value', 12],
+        [[0, 11], 'value', 12],
+      ],
+    ])('%s', (_msg, docObj, changeObj, expectedObj) => {
+      const doc = cs(docObj);
+      const change = cs(changeObj);
+      const expected = cs(expectedObj);
+      const result = doc.insertionsToRetained(change);
+
+      expect(result.toString()).toStrictEqual(expected.toString());
+      expect(doc.compose(change).toString()).toStrictEqual(
+        doc.compose(result).toString()
+      );
     });
   });
 

@@ -2,6 +2,7 @@ import { Strips } from './strips';
 
 /**
  * Strip represents a range of similar properties in a changeset.
+ * Strip is immutable.
  */
 export abstract class Strip {
   static EMPTY: Strip = {
