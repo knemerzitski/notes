@@ -1,6 +1,9 @@
-import { Changeset, SerializedChangeset } from '../../changeset/changeset';
+import {
+  Changeset,
+  RevisionChangeset,
+  SerializedChangeset,
+} from '../../changeset/changeset';
 import { InsertStrip } from '../../changeset/insert-strip';
-import { RevisionChangeset } from '../../changeset/revision-changeset';
 
 import { EventBus } from './event-bus';
 import { Scheduler } from './scheduler';
@@ -106,7 +109,10 @@ export class DocumentServer {
   }
 
   private handleMessage(clientId: number, data: ServerPayload) {
-    this.handleDocumentChanges(clientId, RevisionChangeset.parseValue(data.payload));
+    this.handleDocumentChanges(clientId, {
+      revision: data.payload.revision,
+      changeset: Changeset.parseValue(data.payload.changeset),
+    });
   }
 
   private getNextRevisionNumber() {

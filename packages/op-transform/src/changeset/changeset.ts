@@ -6,6 +6,11 @@ import { SerializedStrips, Strips } from './strips';
 
 export type SerializedChangeset = SerializedStrips;
 
+export interface RevisionChangeset {
+  revision: number;
+  changeset: Changeset;
+}
+
 /**
  * Represents a change to a document (list of characters, or a string).
  * Changeset strips is compact and retain indexes are ordered.
@@ -19,6 +24,13 @@ export class Changeset implements Serializable<SerializedChangeset> {
    */
   static from(...strips: Readonly<Strip[]>) {
     return new Changeset(strips);
+  }
+
+  /**
+   * Quickly create a text insertion changeset that replaces all previous content.
+   */
+  static fromInsertion(insertText: string) {
+    return new Changeset([new InsertStrip(insertText)]);
   }
 
   /**
@@ -504,6 +516,10 @@ export class Changeset implements Serializable<SerializedChangeset> {
   getIdentity() {
     if (this.strips.length === 0) return Changeset.EMPTY;
     return new Changeset(new Strips([new RetainStrip(0, this.strips.length - 1)]));
+  }
+
+  joinInsertions() {
+    return this.strips.joinInsertions();
   }
 
   isEqual(other: Changeset): boolean {

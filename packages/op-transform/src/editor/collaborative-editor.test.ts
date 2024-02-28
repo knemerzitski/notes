@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
 import { Changeset } from '../changeset/changeset';
-import { RevisionChangeset } from '../changeset/revision-changeset';
 
 import { CollaborativeEditor } from './collaborative-editor';
 
@@ -11,7 +10,10 @@ describe('CollaborativeEditor', () => {
   describe('constructor', () => {
     it('sets correct initial document state', () => {
       const editor = new CollaborativeEditor({
-        headText: new RevisionChangeset(4, cs('initial text')),
+        headText: {
+          revision: 4,
+          changeset: cs('initial text'),
+        },
       });
 
       expect(editor.documentRevision).toStrictEqual(4);
@@ -48,7 +50,7 @@ describe('CollaborativeEditor', () => {
 
       const changes = editor.submitChanges();
 
-      expect(changes).toStrictEqual(new RevisionChangeset(0, cs('first insert')));
+      expect(changes).toStrictEqual({ revision: 0, changeset: cs('first insert') });
       expect(editor.documentSubmitted).toStrictEqual(changeset);
       expect(editor.documentLocal).toStrictEqual(changeset.getIdentity());
     });
@@ -105,9 +107,10 @@ describe('CollaborativeEditor', () => {
       editor.insertText('; local');
       editor.insertText('; more');
 
-      editor.handleExternalChange(
-        new RevisionChangeset(2, cs('external before - ', [0, 5], ' - external after'))
-      );
+      editor.handleExternalChange({
+        revision: 2,
+        changeset: cs('external before - ', [0, 5], ' - external after'),
+      });
 
       expect(editor.documentServer.toString()).toStrictEqual(
         cs('external before - server - external after').toString()

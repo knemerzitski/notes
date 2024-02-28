@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { Changeset } from '../changeset/changeset';
-import { RevisionChangeset } from '../changeset/revision-changeset';
+import { Changeset, RevisionChangeset } from '../changeset/changeset';
 import { ChangeSource, DocumentClient } from '../client/document-client';
 import { DocumentClientRevisionBuffer } from '../client/document-client-revision-buffer';
 
@@ -69,7 +68,7 @@ export class CollaborativeEditor {
   }
 
   constructor(options?: CollaborativeEditorOptions) {
-    const headText = options?.headText ?? new RevisionChangeset(0, Changeset.EMPTY);
+    const headText = options?.headText ?? { revision: 0, changeset: Changeset.EMPTY };
     this._value = headText.changeset.strips.joinInsertions();
 
     // Range
@@ -134,10 +133,10 @@ export class CollaborativeEditor {
    */
   submitChanges() {
     this.document.submitChanges();
-    return new RevisionChangeset(
-      this.revisionBuffer.currentRevision,
-      this.document.submitted
-    );
+    return {
+      revision: this.revisionBuffer.currentRevision,
+      changeset: this.document.submitted,
+    };
   }
 
   /**
@@ -175,8 +174,8 @@ export class CollaborativeEditor {
     this.changesetEditor.deleteCount(count);
   }
 
-  setSelectionRange(start: number, end: number) {
-    this.selection.setSelectionRange(start, end);
+  setSelectionRange(start: number, end: number, direction?: SelectionDirection) {
+    this.selection.setSelectionRange(start, end, direction);
   }
 
   setCaretPosition(pos: number) {

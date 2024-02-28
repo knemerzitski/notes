@@ -1,4 +1,4 @@
-import { RevisionChangeset } from '../../changeset/revision-changeset';
+import { Changeset } from '../../changeset/changeset';
 import { CollaborativeEditor } from '../../editor/collaborative-editor';
 
 import { ChangesPayload, ClientPayload, Event } from './document-server';
@@ -42,7 +42,10 @@ export class DocumentClient extends CollaborativeEditor {
       //   revision: data.payload.revision,
       //   changeset: deserializeChangeset(data.payload.changeset),
       // });
-      this.handleExternalChange(RevisionChangeset.parseValue(data.payload));
+      this.handleExternalChange({
+        revision: data.payload.revision,
+        changeset: Changeset.parseValue(data.payload.changeset),
+      });
     } else if (data.type === Event.ChangesAcknowledged) {
       this.submittedChangesAcknowledged(data.payload.revision);
     } else {
@@ -50,7 +53,10 @@ export class DocumentClient extends CollaborativeEditor {
       //   revision: data.payload.revision,
       //   changeset: deserializeChangeset(data.payload.changeset),
       // });
-      this.handleExternalChange(RevisionChangeset.parseValue(data.payload));
+      this.handleExternalChange({
+        revision: data.payload.revision,
+        changeset: Changeset.parseValue(data.payload.changeset),
+      });
     }
   }
 
@@ -65,7 +71,10 @@ export class DocumentClient extends CollaborativeEditor {
     // };
     const data: ChangesPayload = {
       type: Event.Changes,
-      payload: changes.serialize(),
+      payload: {
+        revision: changes.revision,
+        changeset: changes.changeset.serialize(),
+      },
     };
     this.socket.send(JSON.stringify(data));
   }
