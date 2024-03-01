@@ -1,10 +1,31 @@
 import { GraphQLError } from 'graphql';
 import { ObjectId } from 'mongodb';
+import { Require_id, UpdateQuery } from 'mongoose';
 
+import { Changeset } from '~op-transform/changeset/changeset';
+
+import { DBRevisionRecord } from '../../../../mongoose/models/collaborative-document/revision-record';
+import { DBNote } from '../../../../mongoose/models/note';
 import { assertAuthenticated } from '../../../base/directives/auth';
+import type {
+  CollaborativeDocumentPatch,
+  Maybe,
+  MutationResolvers,
+  UpdateNotePayload,
+} from '../../../types.generated';
 import { publishNoteUpdated } from '../Subscription/noteUpdated';
 
-import type { MutationResolvers, UpdateNotePayload } from './../../../types.generated';
+
+type NoteWithRelevantRecords = Require_id<
+  Omit<DBNote, 'content'> & {
+    content: Omit<DBNote['content'], 'records'> & {
+      relevantRecords?: {
+        revision: DBRevisionRecord['revision'];
+        changeset: unknown;
+      }[];
+    };
+  }
+>;
 
 export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
   _parent,
@@ -19,17 +40,12 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
 
   const currentUserId = ObjectId.createFromBase64(auth.session.user._id);
 
-  const [userNote, note] = await Promise.all([
-    model.UserNote.findOne({
-      userId: currentUserId,
-      notePublicId,
-    }).lean(),
-    model.Note.findOne({
-      publicId: notePublicId,
-    }).lean(),
-  ]);
+  const userNote = await model.UserNote.findOne({
+    userId: currentUserId,
+    notePublicId,
+  }).lean();
 
-  if (!userNote || !note) {
+  if (!userNote) {
     throw new GraphQLError('Note not found.', {
       extensions: {
         code: 'NOT_FOUND',
@@ -39,14 +55,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
 
   if (!patch) {
     return {
-      note: {
-        id: notePublicId,
-        title: note.title ?? '',
-        textContent: note.textContent ?? '',
-        preferences: {
-          backgroundColor: userNote.preferences?.backgroundColor,
-        },
-      },
+      id: notePublicId,
     };
   }
 
@@ -58,6 +67,9 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
     });
   }
 
+  let backgroundColorResult: Maybe<string>;
+  let titleResult: Maybe<string>;
+  let contentResult: Maybe<CollaborativeDocumentPatch>;
   await connection.transaction(async (session) => {
     const updatePromises = [];
     if (patch.preferences) {
@@ -76,17 +88,149 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
           }
         )
       );
+      backgroundColorResult = patch.preferences.backgroundColor;
     }
 
-    if (patch.title != null || patch.textContent != null) {
+    // TODO collaborative document module
+    let contentUpdateQuery: UpdateQuery<DBNote> | undefined;
+    if (patch.content != null) {
+      // Get note info required to add next record
+      const noteAggregate = await model.Note.aggregate<NoteWithRelevantRecords>([
+        {
+          $match: {
+            publicId: notePublicId,
+          },
+        },
+        {
+          $project: {
+            publicId: 1, // TODO not relevant
+            ownerId: 1, // TODO not relevant
+            title: 1, // TODO not relevant
+            content: {
+              latestRevision: 1,
+              latestText: 1,
+              relevantRecords: {
+                $slice: [
+                  '$content.records',
+                  {
+                    $min: [
+                      0,
+                      {
+                        $subtract: [
+                          patch.content.targetRevision, // 427
+                          '$content.latestRevision', // 428
+                          // should return [428], anything after 427
+                        ],
+                        // 427 - 428 = -1, min(0,-1) => -1
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+        },
+      ]);
+      const note = noteAggregate[0];
+      if (!note) {
+        throw new GraphQLError('Note not found.', {
+          extensions: {
+            code: 'NOT_FOUND',
+          },
+        });
+      }
+
+      const latestRevision = note.content.latestRevision;
+      const clientTargetRevision = patch.content.targetRevision;
+
+      // 0 <= clientTargetRevision <= latestRevision
+      if (latestRevision < clientTargetRevision) {
+        throw new GraphQLError(
+          `Expected targetRevision to be less or equal to latest revision '${latestRevision}'`,
+          {
+            extensions: {
+              code: 'INVALID_ARGUMENT',
+            },
+          }
+        );
+      }
+
+      const clientChangeset = patch.content.changeset;
+      let updatedClientChangeset = clientChangeset;
+      const relevantRecords = note.content.relevantRecords;
+      if (relevantRecords) {
+        let expectedRevision = clientTargetRevision + 1;
+
+        for (const rawRecord of relevantRecords) {
+          if (expectedRevision !== rawRecord.revision) {
+            throw new GraphQLError(
+              `Expected revision record '${expectedRevision}' is missing.`,
+              {
+                extensions: {
+                  code: 'DOCUMENT_REVISION_NOT_FOUND',
+                },
+              }
+            );
+          }
+          const recordChangeset = Changeset.parseValue(rawRecord.changeset);
+          updatedClientChangeset = recordChangeset.follow(updatedClientChangeset);
+          expectedRevision++;
+        }
+      }
+
+      const newestRecord: DBRevisionRecord = {
+        revision: latestRevision + 1,
+        changeset: updatedClientChangeset, // TODO send this as response
+      };
+      const newLatestText = Changeset.fromInsertion(note.content.latestText)
+        .compose(newestRecord.changeset)
+        .joinInsertions();
+
+      contentUpdateQuery = {
+        $set: {
+          'content.latestRevision': newestRecord.revision,
+          'content.latestText': newLatestText,
+          'content.sourceConnectionId': ctx.request.headers['x-ws-connection-id'],
+        },
+        $push: {
+          'content.records': newestRecord,
+        },
+      };
+
+      contentResult = {
+        revision: newestRecord.revision,
+        changeset: newestRecord.changeset,
+      };
+    }
+
+    let titleUpdateQuery: UpdateQuery<DBNote> | undefined;
+    if (patch.title != null) {
+      titleUpdateQuery = {
+        $set: {
+          title: patch.title,
+        },
+      };
+
+      titleResult = patch.title;
+    }
+
+    if (contentUpdateQuery != null || titleUpdateQuery != null) {
       updatePromises.push(
         model.Note.updateOne(
           {
-            _id: note._id,
+            publicId: userNote.notePublicId,
           },
           {
-            title: patch.title,
-            textContent: patch.textContent,
+            ...titleUpdateQuery,
+            ...contentUpdateQuery,
+            $set: {
+              ...titleUpdateQuery?.$set,
+              ...contentUpdateQuery?.$set,
+            },
+            $push: {
+              ...titleUpdateQuery?.$push,
+              ...contentUpdateQuery?.$push,
+            },
           },
           {
             session,
@@ -99,24 +243,24 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
   });
 
   const updatedNotePayload: UpdateNotePayload = {
-    note: {
-      id: notePublicId,
-      title: patch.title ?? note.title ?? '',
-      textContent: patch.textContent ?? note.textContent ?? '',
+    id: notePublicId,
+    patch: {
+      title: titleResult,
+      // TODO collaborative document module
+      content: contentResult,
       preferences: {
-        backgroundColor:
-          patch.preferences?.backgroundColor ?? userNote.preferences?.backgroundColor,
+        backgroundColor: backgroundColorResult,
       },
     },
   };
 
   await publishNoteUpdated(ctx, {
-    id: updatedNotePayload.note.id,
+    id: updatedNotePayload.id,
     patch: {
-      title: updatedNotePayload.note.title,
-      textContent: updatedNotePayload.note.textContent,
+      title: updatedNotePayload.patch?.title,
+      content: updatedNotePayload.patch?.content,
       preferences: {
-        backgroundColor: updatedNotePayload.note.preferences.backgroundColor,
+        backgroundColor: updatedNotePayload.patch?.preferences?.backgroundColor,
       },
     },
   });

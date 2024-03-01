@@ -1,10 +1,8 @@
-import { ClickAwayListener, Paper, PaperProps, TextFieldProps } from '@mui/material';
+import { ClickAwayListener, InputProps, Paper, PaperProps } from '@mui/material';
 import { useState } from 'react';
 
 import { useSnackbarError } from '../../feedback/SnackbarAlertProvider';
-import BorderlessTextField from '../../inputs/BorderlessTextField';
-
-import NoteEditor from '../edit/NoteEditor';
+import PlainInput from '../../inputs/PlainInput';
 
 interface Note {
   title: string;
@@ -13,14 +11,12 @@ interface Note {
 
 export interface CreateNoteWidgetProps extends PaperProps {
   onCreated: (title: string, content: string) => Promise<boolean>;
-  slotProps?: {
-    contentField?: TextFieldProps;
-  };
+  contentFieldProps?: InputProps;
 }
 
 export default function CreateNoteWidget({
   onCreated,
-  slotProps,
+  contentFieldProps,
   ...restProps
 }: CreateNoteWidgetProps) {
   const [note, setNote] = useState<Note>({
@@ -41,9 +37,9 @@ export default function CreateNoteWidget({
     }
   }
 
-  function handleNoteChange(updatedNote: Note) {
-    setNote(updatedNote);
-  }
+  // function handleNoteChange(updatedNote: Note) {
+  //   setNote(updatedNote);
+  // }
 
   function reset() {
     setNote({
@@ -64,10 +60,10 @@ export default function CreateNoteWidget({
     reset();
   }
 
-  function handleDeleteNote() {
-    reset();
-    return true;
-  }
+  // function handleDeleteNote() {
+  //   reset();
+  //   return true;
+  // }
 
   return (
     <>
@@ -83,9 +79,9 @@ export default function CreateNoteWidget({
           ...restProps.sx,
         }}
       >
-        <BorderlessTextField
+        <PlainInput
           placeholder="Take a note..."
-          {...slotProps?.contentField}
+          {...contentFieldProps}
           fullWidth
           autoFocus
           value={note.content}
@@ -111,9 +107,10 @@ export default function CreateNoteWidget({
               ...restProps.sx,
             }}
           >
-            <NoteEditor
+            {/* TODO */}
+            {/* <NoteEditor
               note={note}
-              onChange={handleNoteChange}
+              onTitleChange={handleNoteChange}
               onDelete={() => {
                 return Promise.resolve(handleDeleteNote());
               }}
@@ -123,7 +120,7 @@ export default function CreateNoteWidget({
               slotProps={{
                 contentField: slotProps?.contentField,
               }}
-            />
+            /> */}
           </Paper>
         </ClickAwayListener>
       )}

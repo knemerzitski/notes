@@ -2,6 +2,8 @@ import { faker } from '@faker-js/faker';
 import { GraphQLError } from 'graphql';
 import { assert, beforeEach, describe, expect, it } from 'vitest';
 
+import { Changeset } from '~op-transform/changeset/changeset';
+
 import { createUserContext } from '../../../../tests/helpers/graphql-context';
 import { mockResolver } from '../../../../tests/helpers/mock-resolver';
 import UserDocumentHelper from '../../../../tests/helpers/model/UserDocumentHelper';
@@ -37,7 +39,7 @@ describe('updateNote', () => {
     user1Note = tmpUser1Note;
   });
 
-  it('both title and textContent', async () => {
+  it('updates both title and content', async () => {
     const newTitle = faker.string.sample(20);
     const newTextContent = faker.string.sample(20);
 
@@ -48,7 +50,10 @@ describe('updateNote', () => {
           id: user1Note.note.publicId,
           patch: {
             title: newTitle,
-            textContent: newTextContent,
+            content: {
+              targetRevision: 0,
+              changeset: Changeset.fromInsertion(newTextContent),
+            },
           },
         },
       },
@@ -56,12 +61,15 @@ describe('updateNote', () => {
     );
 
     expect(result).toStrictEqual({
-      note: {
-        id: user1Note.note.publicId,
+      id: user1Note.note.publicId,
+      patch: {
         title: newTitle,
-        textContent: newTextContent,
+        content: {
+          revision: 1,
+          changeset: Changeset.fromInsertion(newTextContent),
+        },
         preferences: {
-          backgroundColor: user1Note.edge.node.preferences.backgroundColor,
+          backgroundColor: undefined,
         },
       },
     });
@@ -76,11 +84,24 @@ describe('updateNote', () => {
       ownerId: user1Note.note.ownerId,
       publicId: user1Note.note.publicId,
       title: newTitle,
-      textContent: newTextContent,
+      content: {
+        latestText: newTextContent,
+        latestRevision: 1,
+        records: [
+          {
+            changeset: user1Note.note.content.records[0]?.changeset.serialize(),
+            revision: 0,
+          },
+          {
+            changeset: [newTextContent],
+            revision: 1,
+          },
+        ],
+      },
     });
   });
 
-  it('only textContent', async () => {
+  it('only content', async () => {
     const newTextContent = faker.string.sample(20);
 
     const result = await mockResolver(updateNote)(
@@ -89,7 +110,10 @@ describe('updateNote', () => {
         input: {
           id: user1Note.note.publicId,
           patch: {
-            textContent: newTextContent,
+            content: {
+              targetRevision: 0,
+              changeset: Changeset.fromInsertion(newTextContent),
+            },
           },
         },
       },
@@ -97,12 +121,15 @@ describe('updateNote', () => {
     );
 
     expect(result).toStrictEqual({
-      note: {
-        id: user1Note.note.publicId,
-        title: user1Note.note.title,
-        textContent: newTextContent,
+      id: user1Note.note.publicId,
+      patch: {
+        title: undefined,
+        content: {
+          revision: 1,
+          changeset: Changeset.fromInsertion(newTextContent),
+        },
         preferences: {
-          backgroundColor: user1Note.edge.node.preferences.backgroundColor,
+          backgroundColor: undefined,
         },
       },
     });
@@ -117,7 +144,20 @@ describe('updateNote', () => {
       ownerId: user1Note.note.ownerId,
       publicId: user1Note.note.publicId,
       title: user1Note.note.title,
-      textContent: newTextContent,
+      content: {
+        latestText: newTextContent,
+        latestRevision: 1,
+        records: [
+          {
+            changeset: user1Note.note.content.records[0]?.changeset.serialize(),
+            revision: 0,
+          },
+          {
+            changeset: [newTextContent],
+            revision: 1,
+          },
+        ],
+      },
     });
   });
 
@@ -140,10 +180,10 @@ describe('updateNote', () => {
     );
 
     expect(result).toStrictEqual({
-      note: {
-        id: user1Note.note.publicId,
-        title: user1Note.note.title,
-        textContent: user1Note.note.textContent,
+      id: user1Note.note.publicId,
+      patch: {
+        title: undefined,
+        content: undefined,
         preferences: {
           backgroundColor: newColor,
         },
@@ -179,7 +219,10 @@ describe('updateNote', () => {
         input: {
           id: user2NoteAccessibleByUser1.note.publicId,
           patch: {
-            textContent: newTextContent,
+            content: {
+              targetRevision: 0,
+              changeset: Changeset.fromInsertion(newTextContent),
+            },
           },
         },
       },
@@ -187,13 +230,15 @@ describe('updateNote', () => {
     );
 
     expect(result).toStrictEqual({
-      note: {
-        id: user2NoteAccessibleByUser1.note.publicId,
-        title: user2NoteAccessibleByUser1.note.title,
-        textContent: newTextContent,
+      id: user2NoteAccessibleByUser1.note.publicId,
+      patch: {
+        title: undefined,
+        content: {
+          revision: 1,
+          changeset: Changeset.fromInsertion(newTextContent),
+        },
         preferences: {
-          backgroundColor:
-            user2NoteAccessibleByUser1.edge.node.preferences.backgroundColor,
+          backgroundColor: undefined,
         },
       },
     });
@@ -208,7 +253,21 @@ describe('updateNote', () => {
       ownerId: user2NoteAccessibleByUser1.note.ownerId,
       publicId: user2NoteAccessibleByUser1.note.publicId,
       title: user2NoteAccessibleByUser1.note.title,
-      textContent: newTextContent,
+      content: {
+        latestText: newTextContent,
+        latestRevision: 1,
+        records: [
+          {
+            changeset:
+              user2NoteAccessibleByUser1.note.content.records[0]?.changeset.serialize(),
+            revision: 0,
+          },
+          {
+            changeset: [newTextContent],
+            revision: 1,
+          },
+        ],
+      },
     });
   });
 

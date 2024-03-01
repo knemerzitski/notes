@@ -1,5 +1,7 @@
 import { ObjectId } from 'mongodb';
 
+import { Changeset } from '~op-transform/changeset/changeset';
+
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { publishNoteCreated } from '../Subscription/noteCreated';
 
@@ -22,10 +24,23 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
 
   const currentUserId = ObjectId.createFromBase64(auth.session.user._id);
 
+  const initialText = input.note?.textContent ?? '';
+  // TODO collaborative document module
+  const initialChangeset = Changeset.fromInsertion(initialText);
+
   const newNote = new model.Note({
     ownerId: currentUserId,
     title: input.note?.title,
-    textContent: input.note?.textContent,
+    content: {
+      latestRevision: 0,
+      latestText: initialText,
+      records: [
+        {
+          revision: 0,
+          changeset: initialChangeset,
+        },
+      ],
+    },
   });
 
   await connection.transaction(async (session) => {
@@ -57,7 +72,10 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
     note: {
       id: newNote.publicId,
       title: newNote.title ?? '',
-      textContent: newNote.textContent ?? '',
+      content: {
+        revision: newNote.content.latestRevision,
+        text: newNote.content.latestText,
+      },
       preferences: {},
     },
   };

@@ -1,11 +1,16 @@
 import { HydratedDocument, Model, Schema, Types } from 'mongoose';
 import { nanoid } from 'nanoid';
 
+import {
+  DBCollaborativeDocument,
+  collaborativeDocumentSchema,
+} from './collaborative-document/collaborative-document';
+
 export interface DBNote {
   publicId: string;
   ownerId: Types.ObjectId;
   title?: string;
-  textContent?: string;
+  content: DBCollaborativeDocument;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -30,8 +35,8 @@ export const noteSchema = new Schema<DBNote, NoteModel, DBNoteMethods>({
     required: false,
     trim: true,
   },
-  textContent: {
-    type: Schema.Types.String,
-    required: false,
+  content: {
+    type: collaborativeDocumentSchema,
+    required: true,
   },
 });

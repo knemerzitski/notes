@@ -22,7 +22,8 @@
     "allowJs": false,
 
     "paths": {
-      "~/*": ["./src/*"]
+      "~/*": ["./src/*"],
+      "~op-transform/*": ["../op-transform/src/*"]
     }
   },
   "include": ["src", "cypress"],

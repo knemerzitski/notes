@@ -1,7 +1,7 @@
 import { useMutation } from '@apollo/client';
 
 import { gql } from '../../../__generated__/gql';
-import { Note } from '../../../__generated__/graphql';
+import { CreateNoteInput, CreateNotePayload } from '../../../__generated__/graphql';
 
 const MUTATION = gql(`
   mutation UseCreateNote($input: CreateNoteInput!)  {
@@ -9,28 +9,28 @@ const MUTATION = gql(`
       note {
         id
         title
-        textContent
+        content {
+          revision
+          text
+        }
+        preferences {
+          backgroundColor
+        }
       }
     }
   }
 `);
 
-type PartialNote = Pick<Note, 'id' | 'title' | 'textContent'>;
-
 export default function useCreateNote(): (
-  title: string,
-  content: string
-) => Promise<PartialNote | null> {
+  note: CreateNoteInput['note']
+) => Promise<CreateNotePayload['note'] | undefined> {
   const [createNote] = useMutation(MUTATION);
 
-  return async (title, content) => {
+  return async (note) => {
     const { data } = await createNote({
       variables: {
         input: {
-          note: {
-            title,
-            textContent: content,
-          },
+          note,
         },
       },
       optimisticResponse: {
@@ -38,8 +38,14 @@ export default function useCreateNote(): (
           note: {
             __typename: 'Note',
             id: 'CreateNote',
-            title,
-            textContent: content,
+            title: note?.title ?? '',
+            content: {
+              revision: 0,
+              text: note?.textContent ?? '',
+            },
+            preferences: {
+              backgroundColor: note?.preferences?.backgroundColor,
+            },
           },
         },
       },
@@ -56,7 +62,10 @@ export default function useCreateNote(): (
                   notes {
                     id
                     title
-                    textContent
+                    content {
+                      revision
+                      text
+                    }
                   }
                 }
               }
@@ -86,10 +95,6 @@ export default function useCreateNote(): (
       },
     });
 
-    const note = data?.createNote?.note;
-
-    if (!note) return null;
-
-    return note;
+    return data?.createNote?.note;
   };
 }

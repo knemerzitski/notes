@@ -80,10 +80,8 @@ export default function NotesRoute() {
       slotProps={{
         createNoteWidget: {
           onCreated: handleWidgetNoteCreated,
-          slotProps: {
-            contentField: {
-              placeholder: 'Take a local note...',
-            },
+          contentFieldProps: {
+            placeholder: 'Take a local note...',
           },
         },
         notesList: {

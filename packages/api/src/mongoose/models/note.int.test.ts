@@ -1,6 +1,8 @@
 import { faker } from '@faker-js/faker';
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
+import { Changeset } from '~op-transform/changeset/changeset';
+
 import { Note, User } from '../../tests/helpers/mongoose';
 
 import { NoteDocument } from './note';
@@ -139,5 +141,35 @@ describe('Note', () => {
         textContent: faker.string.sample(120),
       },
     ]);
+  });
+
+  it.only('content is a collaborative document', async () => {
+    const note = new Note({
+      ownerId: user._id,
+      content: {
+        latestText: 'initial doc',
+        latestRevision: 0,
+        records: [
+          {
+            revision: 1,
+            changeset: Changeset.parseValue([[0, 10], 'append']),
+          },
+        ],
+      },
+    });
+    await note.save();
+
+    const fetchedNote = (await Note.findById(note._id))?.toObject();
+
+    expect(fetchedNote?.content).toStrictEqual({
+      latestText: 'initial doc',
+      latestRevision: 0,
+      records: [
+        {
+          revision: 1,
+          changeset: [[0, 10], 'append'],
+        },
+      ],
+    });
   });
 });

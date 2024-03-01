@@ -1,4 +1,5 @@
 import { Dialog, DialogProps } from '@mui/material';
+import { ReactNode } from 'react';
 
 import NoteEditor, { NoteEditorProps } from './NoteEditor';
 
@@ -7,9 +8,10 @@ export interface EditNoteDialogProps {
     dialog: DialogProps;
     editor: NoteEditorProps;
   };
+  children?: ReactNode;
 }
 
-export default function EditNoteDialog({ slotProps }: EditNoteDialogProps) {
+export default function EditNoteDialog({ slotProps, children }: EditNoteDialogProps) {
   return (
     <Dialog
       maxWidth="sm"
@@ -27,19 +29,17 @@ export default function EditNoteDialog({ slotProps }: EditNoteDialogProps) {
     >
       <NoteEditor
         {...slotProps.editor}
-        slotProps={{
-          ...slotProps.editor.slotProps,
-          titleField: {
-            ...slotProps.editor.slotProps?.titleField,
-            sx: {
-              '.MuiInputBase-root': {
-                fontSize: '1.2em',
-              },
-              ...slotProps.editor.slotProps?.titleField?.sx,
+        titleFieldProps={{
+          ...slotProps.editor.titleFieldProps,
+          sx: {
+            '.MuiInputBase-root': {
+              fontSize: '1.2em',
             },
+            ...slotProps.editor.titleFieldProps?.sx,
           },
         }}
       />
+      {children}
     </Dialog>
   );
 }

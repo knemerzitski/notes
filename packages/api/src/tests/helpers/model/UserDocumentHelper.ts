@@ -2,6 +2,8 @@ import { faker } from '@faker-js/faker';
 import { Require_id } from 'mongoose';
 import { assert } from 'vitest';
 
+import { Changeset } from '~op-transform/changeset/changeset';
+
 import { NoteEdge } from '../../../graphql/types.generated';
 import { DBNote } from '../../../mongoose/models/note';
 import { UserDocument } from '../../../mongoose/models/user';
@@ -28,11 +30,23 @@ export default class UserDocumentHelper {
 
   async createNotes(count: number, readOnly: boolean | undefined = undefined) {
     const notes = await Note.insertMany(
-      [...new Array(count).keys()].map(() => ({
-        ownerId: this.user._id,
-        title: faker.string.sample(15),
-        textContent: faker.string.sample(120),
-      }))
+      [...new Array(count).keys()].map(() => {
+        const textContent = faker.string.sample(120);
+        return {
+          ownerId: this.user._id,
+          title: faker.string.sample(15),
+          content: {
+            latestRevision: 0,
+            latestText: textContent,
+            records: [
+              {
+                revision: 0,
+                changeset: Changeset.fromInsertion(textContent),
+              },
+            ],
+          },
+        };
+      })
     );
 
     const userNotes = await UserNote.insertMany(
@@ -64,7 +78,10 @@ export default class UserDocumentHelper {
             node: {
               id: note.publicId,
               title: note.title,
-              textContent: note.textContent,
+              content: {
+                revision: note.content.latestRevision,
+                text: note.content.latestText,
+              },
               readOnly: userNote.readOnly,
               preferences: {
                 backgroundColor: userNote.preferences?.backgroundColor,

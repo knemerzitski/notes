@@ -2,6 +2,7 @@ import { GraphQLError } from 'graphql';
 import { ObjectId } from 'mongodb';
 import { Require_id, Types } from 'mongoose';
 
+import { DBCollaborativeDocument } from '../../../../mongoose/models/collaborative-document/collaborative-document';
 import { DBNote } from '../../../../mongoose/models/note';
 import { DBUserNote } from '../../../../mongoose/models/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
@@ -11,7 +12,10 @@ import type { QueryResolvers } from './../../../types.generated';
 type UserNoteWithoutIds = Omit<DBUserNote, 'userId' | 'notePublicId'> & {
   _id?: Types.ObjectId;
 };
-type UserNoteWithNote = UserNoteWithoutIds & { note: Require_id<DBNote> };
+type NoteWithoutRecords = Omit<DBNote, 'content'> & {
+  content: Omit<DBCollaborativeDocument, 'records'>;
+};
+type UserNoteWithNote = UserNoteWithoutIds & { note: Require_id<NoteWithoutRecords> };
 
 type AggregateResult = UserNoteWithNote;
 
@@ -42,6 +46,11 @@ export const note: NonNullable<QueryResolvers['note']> = async (
         foreignField: 'publicId',
         localField: 'notePublicId',
         as: 'note',
+        pipeline: [
+          {
+            $unset: ['content.records'],
+          },
+        ],
       },
     },
     { $unset: ['userId', 'notePublicId'] },
@@ -75,7 +84,11 @@ export const note: NonNullable<QueryResolvers['note']> = async (
   return {
     id: note.publicId,
     title: note.title ?? '',
-    textContent: note.textContent ?? '',
+    // TODO collaborative document module
+    content: {
+      revision: note.content.latestRevision,
+      text: note.content.latestText,
+    },
     readOnly: userNote.readOnly,
     preferences: {
       backgroundColor: userNote.preferences?.backgroundColor,

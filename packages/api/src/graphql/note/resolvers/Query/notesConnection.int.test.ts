@@ -33,7 +33,10 @@ const query = `#graphql
   fragment UserNoteFields on Note {
     id
     title
-    textContent
+    content {
+      revision
+      text
+    }
     readOnly
     preferences {
       backgroundColor

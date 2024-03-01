@@ -13,7 +13,7 @@ import {
   testConnection,
 } from '../../../../tests/helpers/mongoose';
 import { GraphQLResolversContext } from '../../../context';
-import { NotePatchInput } from '../../../types.generated';
+import { CreateNotePatchInput } from '../../../types.generated';
 
 import { createNote } from './createNote';
 
@@ -57,7 +57,7 @@ describe('createNote', () => {
   });
 
   it('creates a new note', async () => {
-    const newNote: NotePatchInput = {
+    const newNote: CreateNotePatchInput = {
       title: faker.string.sample(20),
       textContent: faker.string.sample(120),
     };
@@ -75,7 +75,10 @@ describe('createNote', () => {
     expect(result).containSubset({
       note: {
         title: newNote.title,
-        textContent: newNote.textContent,
+        content: {
+          revision: 0,
+          text: newNote.textContent,
+        },
         preferences: {},
       },
     });

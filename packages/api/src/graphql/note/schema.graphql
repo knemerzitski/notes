@@ -3,8 +3,8 @@ type Note implements Node {
   id: ID!
   "Note title to summarize note contents"
   title: String!
-  "Note plain text content"
-  textContent: String!
+  "Collaborative text content"
+  content: CollaborativeDocument!
   "Is note locked in a read-only state. null => readOnly: false"
   readOnly: Boolean
   "Note preferences such as note color"
@@ -14,14 +14,22 @@ type Note implements Node {
 type NotePatch {
   "Changed note title"
   title: String
-  "Changed note text content"
-  textContent: String
+  "Changes made to note content"
+  content: CollaborativeDocumentPatch
   "Changed preferences"
   preferences: NotePreferencesPatch
 }
 
 input NotePatchInput {
   title: String
+  "Change to note content"
+  content: CollaborativeDocumentPatchInput
+  preferences: NotePreferencesPatchInput
+}
+
+input CreateNotePatchInput {
+  title: String
+  "Initial note content text value."
   textContent: String
   preferences: NotePreferencesPatchInput
 }
@@ -69,7 +77,7 @@ extend type Query {
 }
 
 input CreateNoteInput {
-  note: NotePatchInput
+  note: CreateNotePatchInput
 }
 type CreateNotePayload {
   "Created note"
@@ -85,8 +93,10 @@ input UpdateNoteInput {
   patch: NotePatchInput
 }
 type UpdateNotePayload {
-  "Updated note"
-  note: Note!
+  "ID of updated note"
+  id: ID!
+  "Response patch to input"
+  patch: NotePatch
 }
 extend type Mutation {
   "Update note"

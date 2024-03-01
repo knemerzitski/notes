@@ -17,7 +17,10 @@ const QUERY_NOTES = gql(`
       notes {
         id
         title
-        textContent
+        content {
+          revision
+          text
+        }
       }
       pageInfo {
         hasPreviousPage
@@ -33,30 +36,37 @@ const SUBSCRIPTION_NOTE_CREATED = gql(`
       note {
         id
         title
-        textContent
-      }
-    }
-  }
-`);
-const SUBSCRIPTION_NOTE_UPDATED = gql(`
-  subscription NotesRouteNoteUpdated {
-    noteUpdated {
-      id
-      patch {
-        title
-        textContent
+        content {
+          revision
+          text
+        }
       }
     }
   }
 `);
 
-const SUBSCRIPTION_NOTE_DELETED = gql(`
-  subscription NotesRouteNoteDeleted {
-    noteDeleted {
-      id
-    }
-  }
-`);
+// const SUBSCRIPTION_NOTE_UPDATED = gql(`
+//   subscription NotesRouteNoteUpdated {
+//     noteUpdated {
+//       id
+//       patch {
+//         title
+//         content {
+//           revision
+//           changeset
+//         }
+//       }
+//     }
+//   }
+// `);
+
+// const SUBSCRIPTION_NOTE_DELETED = gql(`
+//   subscription NotesRouteNoteDeleted {
+//     noteDeleted {
+//       id
+//     }
+//   }
+// `);
 
 function noteRoute(noteId: string) {
   return `/note/${noteId}`;
@@ -102,68 +112,68 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
       },
     });
 
-    subscribeToMore({
-      document: SUBSCRIPTION_NOTE_UPDATED,
-      updateQuery(existing, { subscriptionData }) {
-        const { notesConnection } = existing;
-        const notes = notesConnection.notes;
+    //   subscribeToMore({
+    //     document: SUBSCRIPTION_NOTE_UPDATED,
+    //     updateQuery(existing, { subscriptionData }) {
+    //       const { notesConnection } = existing;
+    //       const notes = notesConnection.notes;
 
-        const noteUpdate = subscriptionData.data.noteUpdated;
+    //       const noteUpdate = subscriptionData.data.noteUpdated;
 
-        const existingNoteIndex = notes.findIndex((note) => note.id === noteUpdate.id);
+    //       const existingNoteIndex = notes.findIndex((note) => note.id === noteUpdate.id);
 
-        if (existingNoteIndex) {
-          const existingNote = notes[existingNoteIndex];
-          const updatedNote = {
-            ...existingNote,
-            title: noteUpdate.patch.title ?? existingNote.title,
-            textContent: noteUpdate.patch.textContent ?? existingNote.textContent,
-          };
-          return {
-            notesConnection: {
-              ...notesConnection,
-              notes: [
-                ...notes.slice(0, existingNoteIndex),
-                updatedNote,
-                ...notes.slice(existingNoteIndex + 1),
-              ],
-            },
-          };
-        } else {
-          // A note was updated that doesn't exist in cache? Create it.
-          return {
-            notesConnection: {
-              ...notesConnection,
-              notes: [
-                ...notes,
-                {
-                  id: noteUpdate.id,
-                  title: noteUpdate.patch.title ?? '',
-                  textContent: noteUpdate.patch.textContent ?? '',
-                },
-              ],
-            },
-          };
-        }
-      },
-    });
+    //       if (existingNoteIndex) {
+    //         const existingNote = notes[existingNoteIndex];
+    //         const updatedNote = {
+    //           ...existingNote,
+    //           title: noteUpdate.patch.title ?? existingNote.title,
+    //           textContent: noteUpdate.patch.textContent ?? existingNote.textContent,
+    //         };
+    //         return {
+    //           notesConnection: {
+    //             ...notesConnection,
+    //             notes: [
+    //               ...notes.slice(0, existingNoteIndex),
+    //               updatedNote,
+    //               ...notes.slice(existingNoteIndex + 1),
+    //             ],
+    //           },
+    //         };
+    //       } else {
+    //         // A note was updated that doesn't exist in cache? Create it.
+    //         return {
+    //           notesConnection: {
+    //             ...notesConnection,
+    //             notes: [
+    //               ...notes,
+    //               {
+    //                 id: noteUpdate.id,
+    //                 title: noteUpdate.patch.title ?? '',
+    //                 textContent: noteUpdate.patch.textContent ?? '',
+    //               },
+    //             ],
+    //           },
+    //         };
+    //       }
+    //     },
+    //   });
 
-    subscribeToMore({
-      document: SUBSCRIPTION_NOTE_DELETED,
-      updateQuery(existing, { subscriptionData }) {
-        const { notesConnection } = existing;
-        const notes = notesConnection.notes;
+    //   subscribeToMore({
+    //     document: SUBSCRIPTION_NOTE_DELETED,
+    //     updateQuery(existing, { subscriptionData }) {
+    //       const { notesConnection } = existing;
+    //       const notes = notesConnection.notes;
 
-        const deletedId = subscriptionData.data.noteDeleted.id;
+    //       const deletedId = subscriptionData.data.noteDeleted.id;
 
-        return {
-          notesConnection: {
-            ...notesConnection,
-            notes: notes.filter((note) => note.id !== deletedId),
-          },
-        };
-      },
-    });
+    //       return {
+    //         notesConnection: {
+    //           ...notesConnection,
+    //           notes: notes.filter((note) => note.id !== deletedId),
+    //         },
+    //       };
+    //     },
+    //   });
   }, [subscribeToMore]);
 
   if (error) {
@@ -178,10 +188,10 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
   }
 
   const notes: NoteItemProps['note'][] = data.notesConnection.notes.map(
-    ({ id, title, textContent }) => ({
+    ({ id, title, content }) => ({
       id: String(id),
       title,
-      content: textContent,
+      content: content.text,
       editing: absoluteLocation.pathname === transform(noteRoute(String(id))),
     })
   );
@@ -192,7 +202,7 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
   const pageInfo = data.notesConnection.pageInfo;
 
   async function handleWidgetNoteCreated(title: string, content: string) {
-    if (!(await createNote(title, content))) {
+    if (!(await createNote({ title, textContent: content }))) {
       showError('Failed to create note');
       return false;
     }
@@ -200,7 +210,7 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
   }
 
   async function handleFabCreate() {
-    const note = await createNote('', '');
+    const note = await createNote({ title: '', textContent: '' });
 
     if (!note) {
       showError('Failed to create note');

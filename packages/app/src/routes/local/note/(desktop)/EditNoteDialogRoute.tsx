@@ -6,7 +6,6 @@ import RouteClosable, {
   RouteClosableComponentProps,
 } from '../../../../components/feedback/RouteClosable';
 import EditNoteDialog from '../../../../components/notes/edit/EditNoteDialog';
-import { NoteEditorProps } from '../../../../components/notes/edit/NoteEditor';
 import useNotes from '../../../../local-state/note/hooks/useNotes';
 
 const QUERY = gql(`
@@ -38,12 +37,12 @@ function RouteClosableEditNoteDialog({
 
   const noteId = String(data.localNote.id);
 
-  const note: NoteEditorProps['note'] = {
+  const note = {
     title: data.localNote.title,
     content: data.localNote.textContent,
   };
 
-  const handleChangedNote: NoteEditorProps['onChange'] = ({ title, content }) => {
+  const handleChangedNote = ({ title, content }: { title: string; content: string }) => {
     updateNote({
       id: noteId,
       title,
@@ -65,9 +64,27 @@ function RouteClosableEditNoteDialog({
           onTransitionExited: onClosed,
         },
         editor: {
+          titleFieldProps: {
+            value: note.title,
+            onChange: (e) => {
+              const newTitle = String(e.target.value);
+              void handleChangedNote({
+                title: newTitle,
+                content: note.content,
+              });
+            },
+          },
+          contentFieldProps: {
+            value: note.content,
+            onChange: (e) => {
+              const newContent = String(e.target.value);
+              void handleChangedNote({
+                title: note.title,
+                content: newContent,
+              });
+            },
+          },
           onClose: onClosing,
-          note,
-          onChange: handleChangedNote,
           onDelete: handleDeleteNote,
         },
       }}

@@ -1,34 +1,22 @@
-import { Box, Button } from '@mui/material';
+import { Box, Button, InputProps } from '@mui/material';
 import { useState } from 'react';
 
 import useIsElementScrollEnd from '../../../hooks/useIsElementScrollEnd';
-import BorderlessTextField, {
-  BorderlessTextFieldProps,
-} from '../../inputs/BorderlessTextField';
+import PlainInput from '../../inputs/PlainInput';
 import NoteToolbar from '../view/NoteToolbar';
 
-interface Note {
-  title: string;
-  content: string;
-}
-
 export interface NoteEditorProps {
-  note: Note;
-  onChange: (changedNote: Note) => Promise<void>;
   onDelete: () => Promise<boolean>;
   onClose?: () => void;
-  slotProps?: {
-    titleField?: BorderlessTextFieldProps;
-    contentField?: BorderlessTextFieldProps;
-  };
+  titleFieldProps?: InputProps;
+  contentFieldProps: InputProps;
 }
 
 export default function NoteEditor({
-  note,
-  onChange,
   onDelete,
   onClose,
-  slotProps,
+  titleFieldProps,
+  contentFieldProps,
 }: NoteEditorProps) {
   const [scrollEl, setScrollEl] = useState<HTMLElement>();
   const isScrollEnd = useIsElementScrollEnd(scrollEl);
@@ -53,41 +41,28 @@ export default function NoteEditor({
           overflow: 'auto',
         }}
       >
-        <BorderlessTextField
+        <PlainInput
           placeholder="Title"
           fullWidth
-          value={note.title}
-          onChange={(e) => {
-            void onChange({
-              ...note,
-              title: e.target.value,
-            });
-          }}
-          {...slotProps?.titleField}
+          disableUnderline
+          {...titleFieldProps}
           sx={{
             '.MuiInputBase-root': {
               fontWeight: 'bold',
             },
-            ...slotProps?.titleField?.sx,
+            ...titleFieldProps?.sx,
           }}
         />
-        <BorderlessTextField
+        <PlainInput
           placeholder="Note"
           fullWidth
           multiline
+          disableUnderline
           autoFocus
-          autoSelection="end"
-          value={note.content}
-          onChange={(e) => {
-            void onChange({
-              ...note,
-              content: e.target.value,
-            });
-          }}
-          {...slotProps?.contentField}
+          {...contentFieldProps}
           sx={{
             flexGrow: 1,
-            ...slotProps?.contentField?.sx,
+            ...contentFieldProps.sx,
           }}
         />
       </Box>

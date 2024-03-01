@@ -1,45 +1,35 @@
 import { useMutation } from '@apollo/client';
 
 import { gql } from '../../../__generated__/gql';
-import { Note } from '../../../__generated__/graphql';
+import { UpdateNoteInput, UpdateNotePayload } from '../../../__generated__/graphql';
 
 const MUTATION = gql(`
   mutation UseUpdateNote($input: UpdateNoteInput!)  {
     updateNote(input: $input) {
-      note {
-        id
+      id
+      patch{
         title
-        textContent
+        content {
+          revision
+          changeset
+        }
       }
     }
   }
 `);
 
-type PartialNote = Pick<Note, 'id' | 'title' | 'textContent'>;
-
 export default function useUpdateNote(): (
-  note: PartialNote
-) => Promise<PartialNote | undefined> {
-  const [updateNote, { client }] = useMutation(MUTATION);
+  input: UpdateNoteInput
+) => Promise<UpdateNotePayload | undefined> {
+  const [updateNote] = useMutation(MUTATION);
 
-  return async (note) => {
+  return async (input) => {
     const { data } = await updateNote({
       variables: {
-        input: {
-          id: String(note.id),
-          patch: {
-            title: note.title,
-            textContent: note.textContent,
-          },
-        },
-      },
-      context: {
-        debounceKey:
-          'UseUpdateNote' +
-          client.cache.identify({ id: String(note.id), __typename: 'Note' }),
+        input,
       },
     });
 
-    return data?.updateNote.note;
+    return data?.updateNote;
   };
 }
