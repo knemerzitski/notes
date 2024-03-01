@@ -9,6 +9,7 @@ import { SelectionDirection, SelectionRange } from './selection-range';
 
 interface CollaborativeEditorOptions {
   headText?: RevisionChangeset;
+  caretPosition?: number;
 }
 
 export class CollaborativeEditor {
@@ -77,6 +78,9 @@ export class CollaborativeEditor {
         return this._value.length;
       },
     });
+    if (options?.caretPosition) {
+      this.selection.setPosition(options.caretPosition);
+    }
 
     // Changeset editor
     this.changesetEditor = new ChangesetEditor({
