@@ -111,9 +111,19 @@ export function createApolloHttpHandler<
           throw new Error('Publish has not been initialized');
         },
       };
+
+      // TODO use constant for header name in shared package
+      const wsConnectionId = event.headers['x-ws-connection-id'];
+      const isCurrentConnection = wsConnectionId
+        ? (connectionId: string) => wsConnectionId === connectionId
+        : () => false;
+
       graphQLContext.publish = createPublisher<GraphQLContext, TOnConnectGraphQLContext>({
-        ...context,
-        graphQLContext,
+        context: {
+          ...context,
+          graphQLContext,
+        },
+        isCurrentConnection,
       });
       const res = await apollo.executeHTTPGraphQLRequest({
         httpGraphQLRequest,

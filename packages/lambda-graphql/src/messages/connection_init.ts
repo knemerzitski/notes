@@ -25,6 +25,9 @@ export function createConnectionInitHandler<
       ...event.requestContext,
       message: {
         type: MessageType.ConnectionAck,
+        payload: {
+          connectionId: event.requestContext.connectionId,
+        },
       },
     });
   };
