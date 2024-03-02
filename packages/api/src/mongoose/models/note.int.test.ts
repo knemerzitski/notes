@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import { Changeset } from '~op-transform/changeset/changeset';
+import { Changeset } from '~collab/changeset/changeset';
 
 import { Note, User } from '../../tests/helpers/mongoose';
 

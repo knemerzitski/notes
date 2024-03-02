@@ -4,9 +4,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDebouncedCallback } from 'use-debounce';
 
-import { Changeset } from '~op-transform/changeset/changeset';
-import { CollaborativeEditor } from '~op-transform/editor/collaborative-editor';
-import { SelectionDirection } from '~op-transform/editor/selection-range';
+import { Changeset } from '~collab/changeset/changeset';
+import { CollaborativeEditor } from '~collab/editor/collaborative-editor';
+import { SelectionDirection } from '~collab/editor/selection-range';
 
 import { gql } from '../../../__generated__/gql';
 import RouteClosable, {

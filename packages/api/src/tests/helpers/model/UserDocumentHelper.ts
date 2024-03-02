@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker';
 import { Require_id } from 'mongoose';
 import { assert } from 'vitest';
 
-import { Changeset } from '~op-transform/changeset/changeset';
+import { Changeset } from '~collab/changeset/changeset';
 
 import { NoteEdge } from '../../../graphql/types.generated';
 import { DBNote } from '../../../mongoose/models/note';

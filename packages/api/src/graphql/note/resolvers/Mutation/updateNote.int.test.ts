@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker';
 import { GraphQLError } from 'graphql';
 import { assert, beforeEach, describe, expect, it } from 'vitest';
 
-import { Changeset } from '~op-transform/changeset/changeset';
+import { Changeset } from '~collab/changeset/changeset';
 
 import { createUserContext } from '../../../../tests/helpers/graphql-context';
 import { mockResolver } from '../../../../tests/helpers/mock-resolver';

@@ -34,7 +34,7 @@
       "~api-app-shared/*": ["../api-app-shared/src/*"],
       "~utils/*": ["../utils/src/*"],
       "~lambda-graphql/*": ["../lambda-graphql/src/*"],
-      "~op-transform/*": ["../op-transform/src/*"]
+      "~collab/*": ["../collab/src/*"]
     }
   },
   "include": ["src", "codegen.ts", "vitest.config*.ts"]

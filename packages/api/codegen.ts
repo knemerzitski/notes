@@ -10,7 +10,7 @@ const config: CodegenConfig = {
       // },
       scalarsOverrides: {
         Changeset: {
-          type: '~op-transform/changeset/changeset#Changeset',
+          type: '~collab/changeset/changeset#Changeset',
         },
       },
       typesPluginsConfig: {

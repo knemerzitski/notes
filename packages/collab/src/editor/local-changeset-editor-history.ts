@@ -164,6 +164,7 @@ export class LocalChangesetEditorHistory {
   }
 
   private updateHistoryFromExternalChange(externalChangeset: Changeset) {
+    return; // TODO uncomment
     // TODO test with history push slices server changeset so there is a gap...
 
     const entries = this.entries;
@@ -191,6 +192,7 @@ export class LocalChangesetEditorHistory {
       followComposition = newChange;
       baseChange = newChange;
     }
+    // TOOD what if empty fux bug;
     this.serverBaseComposition = this.serverBaseComposition.compose(baseChange);
 
     // Undo before serverIndex (...,u0,u1,u2) - only calculates new selection

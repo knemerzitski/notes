@@ -1,6 +1,6 @@
 import { Schema } from 'mongoose';
 
-import { Changeset } from '~op-transform/changeset/changeset';
+import { Changeset } from '~collab/changeset/changeset';
 
 import { changesetField } from './changeset-field';
 

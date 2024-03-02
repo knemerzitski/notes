@@ -3,7 +3,7 @@ import { ObjectId } from 'mongodb';
 import { Require_id, UpdateQuery } from 'mongoose';
 
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
-import { Changeset } from '~op-transform/changeset/changeset';
+import { Changeset } from '~collab/changeset/changeset';
 
 import { DBRevisionRecord } from '../../../../mongoose/models/collaborative-document/revision-record';
 import { DBNote } from '../../../../mongoose/models/note';
