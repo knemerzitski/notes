@@ -28,14 +28,9 @@
     "incremental": true,
     "noImplicitReturns": true,
     "noUncheckedIndexedAccess": true,
-
     "paths": {
-      "~/*": ["./src/*"],
-      "~api-app-shared/*": ["../api-app-shared/src/*"],
-      "~utils/*": ["../utils/src/*"],
-      "~lambda-graphql/*": ["../lambda-graphql/src/*"],
-      "~op-transform/*": ["../op-transform/src/*"]
+      "~/*": ["./src/*"]
     }
   },
-  "include": ["src", "codegen.ts", "vitest.config*.ts"]
+  "include": ["src"]
 }

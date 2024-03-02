@@ -1,9 +1,12 @@
 import { TypePolicies } from '@apollo/client';
 import { GraphQLError } from 'graphql';
 
+import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+
 import { LocalNote } from '../../__generated__/graphql';
 
 import { notesVar } from './state';
+
 
 const notePolicies: TypePolicies = {
   Query: {
@@ -23,7 +26,7 @@ const notePolicies: TypePolicies = {
         if (!note) {
           throw new GraphQLError('Note not found', {
             extensions: {
-              code: 'NOT_FOUND',
+              code: GraphQLErrorCode.NotFound,
             },
           });
         }

@@ -2,6 +2,8 @@ import { GraphQLError } from 'graphql';
 import { ObjectId } from 'mongodb';
 import { PipelineStage, Require_id, Types } from 'mongoose';
 
+import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+
 import { DBCollaborativeDocument } from '../../../../mongoose/models/collaborative-document/collaborative-document';
 import { DBNote } from '../../../../mongoose/models/note';
 import { DBUserNote } from '../../../../mongoose/models/user-note';
@@ -42,7 +44,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = a
       'Cannot mix arguments ("first", "after") with ("last", "before").',
       {
         extensions: {
-          code: 'ILLEGAL_ARGUMENTS',
+          code: GraphQLErrorCode.InvalidInput,
         },
       }
     );
@@ -52,7 +54,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = a
       'Must provide at least one variable "first", "after", "last" or "before"',
       {
         extensions: {
-          code: 'ILLEGAL_ARGUMENTS',
+          code: GraphQLErrorCode.InvalidInput,
         },
       }
     );
@@ -65,7 +67,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = a
       '"before" or "after" is required to paginate with zero "first" or "last".',
       {
         extensions: {
-          code: 'ILLEGAL_ARGUMENTS',
+          code: GraphQLErrorCode.InvalidInput,
         },
       }
     );

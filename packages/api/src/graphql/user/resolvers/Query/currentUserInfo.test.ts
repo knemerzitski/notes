@@ -3,6 +3,8 @@ import { GraphQLError } from 'graphql';
 import { assert, beforeEach, describe, expect, it } from 'vitest';
 import { mockDeep, mockReset } from 'vitest-mock-extended';
 
+import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+
 import { apolloServer } from '../../../../tests/helpers/apollo-server';
 import { mockResolver } from '../../../../tests/helpers/mock-resolver';
 import { GraphQLResolversContext } from '../../../context';
@@ -79,7 +81,7 @@ describe('currentUserInfo', () => {
         {
           message: 'You are not authorized to perform this action.',
           extensions: {
-            code: 'UNAUTHENTICATED',
+            code: GraphQLErrorCode.Unauthenticated,
           },
         },
       ]);

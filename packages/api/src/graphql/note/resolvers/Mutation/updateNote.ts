@@ -2,6 +2,7 @@ import { GraphQLError } from 'graphql';
 import { ObjectId } from 'mongodb';
 import { Require_id, UpdateQuery } from 'mongoose';
 
+import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import { Changeset } from '~op-transform/changeset/changeset';
 
 import { DBRevisionRecord } from '../../../../mongoose/models/collaborative-document/revision-record';
@@ -14,7 +15,6 @@ import type {
   UpdateNotePayload,
 } from '../../../types.generated';
 import { publishNoteUpdated } from '../Subscription/noteUpdated';
-
 
 type NoteWithRelevantRecords = Require_id<
   Omit<DBNote, 'content'> & {
@@ -48,7 +48,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
   if (!userNote) {
     throw new GraphQLError('Note not found.', {
       extensions: {
-        code: 'NOT_FOUND',
+        code: GraphQLErrorCode.NotFound,
       },
     });
   }
@@ -62,7 +62,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
   if (userNote.readOnly) {
     throw new GraphQLError('Note is read-only and cannot be modified.', {
       extensions: {
-        code: 'READONLY',
+        code: GraphQLErrorCode.ReadOnly,
       },
     });
   }
@@ -135,7 +135,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
       if (!note) {
         throw new GraphQLError('Note not found.', {
           extensions: {
-            code: 'NOT_FOUND',
+            code: GraphQLErrorCode.NotFound,
           },
         });
       }
@@ -149,7 +149,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
           `Expected targetRevision to be less or equal to latest revision '${latestRevision}'`,
           {
             extensions: {
-              code: 'INVALID_ARGUMENT',
+              code: GraphQLErrorCode.InvalidInput,
             },
           }
         );
@@ -167,7 +167,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
               `Expected revision record '${expectedRevision}' is missing.`,
               {
                 extensions: {
-                  code: 'DOCUMENT_REVISION_NOT_FOUND',
+                  code: GraphQLErrorCode.InternalError,
                 },
               }
             );

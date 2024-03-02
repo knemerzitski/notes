@@ -1,5 +1,7 @@
 import { GraphQLError, GraphQLSchema } from 'graphql';
 
+import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+
 import type { DirectiveResolvers } from '../../../graphql/types.generated';
 import transformSchemaDirectiveResolver from '../../../graphql/utils/transformSchemaDirectiveResolver';
 import {
@@ -13,7 +15,7 @@ export function assertAuthenticated(
   if (!auth) {
     throw new GraphQLError('You are not authorized to perform this action.', {
       extensions: {
-        code: 'UNAUTHENTICATED',
+        code: GraphQLErrorCode.Unauthenticated,
       },
     });
   }

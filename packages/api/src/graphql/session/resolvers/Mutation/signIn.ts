@@ -1,5 +1,7 @@
 import { GraphQLError } from 'graphql';
 
+import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+
 import type { MutationResolvers } from '../../../../graphql/types.generated';
 import { getSessionUserFromHeaders } from '../../parse-cookies';
 
@@ -17,7 +19,7 @@ export const signIn: NonNullable<MutationResolvers['signIn']> = async (
   if (!googleUserId) {
     throw new GraphQLError('No token provided', {
       extensions: {
-        code: 'EMPTY_TOKEN',
+        code: GraphQLErrorCode.InvalidInput,
       },
     });
   }

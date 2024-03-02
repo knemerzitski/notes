@@ -2,6 +2,8 @@ import { GraphQLError } from 'graphql';
 import { ObjectId } from 'mongodb';
 import { Require_id, Types } from 'mongoose';
 
+import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+
 import { DBCollaborativeDocument } from '../../../../mongoose/models/collaborative-document/collaborative-document';
 import { DBNote } from '../../../../mongoose/models/note';
 import { DBUserNote } from '../../../../mongoose/models/user-note';
@@ -66,7 +68,7 @@ export const note: NonNullable<QueryResolvers['note']> = async (
   if (!userNote) {
     throw new GraphQLError('Note not found', {
       extensions: {
-        code: 'NOT_FOUND',
+        code: GraphQLErrorCode.NotFound,
       },
     });
   }
@@ -74,7 +76,7 @@ export const note: NonNullable<QueryResolvers['note']> = async (
   if (!userNote._id) {
     throw new GraphQLError('You are not authorized to access this note.', {
       extensions: {
-        code: 'UNAUTHORIZED',
+        code: GraphQLErrorCode.Unauthorized,
       },
     });
   }

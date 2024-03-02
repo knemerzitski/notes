@@ -23,6 +23,7 @@
 
     "paths": {
       "~/*": ["./src/*"],
+      "~api-app-shared/*": ["../api-app-shared/src/*"],
       "~op-transform/*": ["../op-transform/src/*"]
     }
   },

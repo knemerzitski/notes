@@ -2,6 +2,8 @@ import { GraphQLError } from 'graphql';
 import { ObjectId } from 'mongodb';
 import { Require_id, Types } from 'mongoose';
 
+import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+
 import { DBNote } from '../../../../mongoose/models/note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { publishNoteDeleted } from '../Subscription/noteDeleted';
@@ -58,7 +60,7 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
   if (!userNote) {
     throw new GraphQLError('Note not found.', {
       extensions: {
-        code: 'NOT_FOUND',
+        code: GraphQLErrorCode.NotFound,
       },
     });
   }
