@@ -18,6 +18,13 @@ const notePolicies: TypePolicies = {
       notesConnection: relayStylePagination(),
     },
   },
+  Note: {
+    fields: {
+      content: {
+        merge: true,
+      },
+    },
+  },
 };
 
 export default notePolicies;

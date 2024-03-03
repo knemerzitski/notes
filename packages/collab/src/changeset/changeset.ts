@@ -6,10 +6,12 @@ import { SerializedStrips, Strips } from './strips';
 
 export type SerializedChangeset = SerializedStrips;
 
-export interface RevisionChangeset {
+export interface RevisionChangeset<T = Changeset> {
   revision: number;
-  changeset: Changeset;
+  changeset: T;
 }
+
+export type SerializedRevisionChangeset = RevisionChangeset<SerializedChangeset>;
 
 /**
  * Represents a change to a document (list of characters, or a string).

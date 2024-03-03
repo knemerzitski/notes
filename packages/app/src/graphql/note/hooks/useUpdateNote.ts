@@ -7,7 +7,7 @@ const MUTATION = gql(`
   mutation UseUpdateNote($input: UpdateNoteInput!)  {
     updateNote(input: $input) {
       id
-      patch{
+      patch {
         title
         content {
           revision

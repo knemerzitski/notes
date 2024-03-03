@@ -1,12 +1,8 @@
 import { useSuspenseQuery } from '@apollo/client';
-import { Box, Button } from '@mui/material';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useDebouncedCallback } from 'use-debounce';
 
 import { Changeset } from '~collab/changeset/changeset';
-import { CollaborativeEditor } from '~collab/editor/collaborative-editor';
-import { SelectionDirection } from '~collab/editor/selection-range';
 
 import { gql } from '../../../__generated__/gql';
 import RouteClosable, {
@@ -16,8 +12,7 @@ import { useSnackbarError } from '../../../components/feedback/SnackbarAlertProv
 import EditNoteDialog from '../../../components/notes/edit/EditNoteDialog';
 import useDeleteNote from '../../../graphql/note/hooks/useDeleteNote';
 import useUpdateNote from '../../../graphql/note/hooks/useUpdateNote';
-import useControlledInputSelection from '../../../hooks/useControlledInputSelection';
-import useInputValueChange from '../../../hooks/useInputValueChange';
+import useDebounceCollaborativeInputEditor from '../../../hooks/useDebounceCollaborativeInputEditor';
 
 const QUERY = gql(`
   query EditNoteDialogRoute($id: ID!) {
@@ -46,24 +41,6 @@ const SUBSCRIPTION_UPDATED = gql(`
     }
   }
 `);
-
-function asEditorDirection(direction: HTMLInputElement['selectionDirection']) {
-  if (direction === 'forward') {
-    return SelectionDirection.Forward;
-  } else if (direction === 'backward') {
-    return SelectionDirection.Backward;
-  }
-  return SelectionDirection.None;
-}
-
-function asInputDirection(direction: SelectionDirection) {
-  if (direction === SelectionDirection.Forward) {
-    return 'forward';
-  } else if (direction === SelectionDirection.Backward) {
-    return 'backward';
-  }
-  return 'none';
-}
 
 function RouteClosableEditNoteDialog({
   open,
@@ -96,121 +73,42 @@ function RouteClosableEditNoteDialog({
     });
   };
 
-  // const contentInputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
-  const contentEditorRef = useRef(
-    new CollaborativeEditor({
-      // TODO revision as an interface
-      headText: {
-        revision: data.note.content.revision,
-        changeset: Changeset.fromInsertion(data.note.content.text),
-      },
-    })
-  );
-
-  const [content, setContent] = useState<{
-    value: string;
-    selectionStart: number;
-    selectionEnd: number;
-    selectionDirection: HTMLInputElement['selectionDirection'];
-  }>({
-    value: contentEditorRef.current.value,
-    selectionStart: contentEditorRef.current.selectionStart,
-    selectionEnd: contentEditorRef.current.selectionEnd,
-    selectionDirection: asInputDirection(contentEditorRef.current.selectionDirection),
-  });
-
-  const contentInputRef = useControlledInputSelection(content);
-
-  const { onSelect: contentOnSelect, onInput: contentOnInput } = useInputValueChange({
-    onInsert({ selectionStart, selectionEnd, selectionDirection, insertText }) {
-      const editor = contentEditorRef.current;
-      editor.setSelectionRange(
-        selectionStart,
-        selectionEnd,
-        asEditorDirection(selectionDirection)
-      );
-      editor.insertText(insertText);
-      updateContentStateFromEditor();
+  const {
+    inputRef: contentInputRef,
+    value: contentValue,
+    revision: contentRevision,
+    onInput: contentOnInput,
+    onSelect: contentOnSelect,
+    onExternalChange: contentOnExternalChange,
+  } = useDebounceCollaborativeInputEditor({
+    initialHeadText: {
+      revision: data.note.content.revision,
+      changeset: Changeset.fromInsertion(data.note.content.text),
     },
-    onDelete({ selectionStart, selectionEnd, selectionDirection }) {
-      const editor = contentEditorRef.current;
-      editor.setSelectionRange(
-        selectionStart,
-        selectionEnd,
-        asEditorDirection(selectionDirection)
-      );
-      editor.deleteTextCount(1);
-      updateContentStateFromEditor();
-    },
-    onUndo() {
-      const editor = contentEditorRef.current;
-      editor.undo();
-      updateContentStateFromEditor();
-    },
-    onRedo() {
-      const editor = contentEditorRef.current;
-      editor.redo();
-      updateContentStateFromEditor();
-    },
-  });
-
-  const submitContentDebounce = useDebouncedCallback(
-    async () => {
-      const editor = contentEditorRef.current;
-
-      // Prevent submitting more than once at a time
-      console.log('attempting to submit changes');
-      if (editor.haveSubmittedChanges()) return;
-
-      const changes = editor.submitChanges();
-
-      console.log('submitting changes:', changes.revision, changes.changeset.toString());
+    async submitChanges(changes) {
       const contentResult = await updateNote({
         id: noteId,
         patch: {
           content: {
             targetRevision: changes.revision,
-            // TODO revisionchangeset as interface
-            changeset: changes.changeset.serialize(), // TODO changeset type, add scalar in app from api
+            changeset: changes.changeset,
           },
         },
       });
 
-      // TODO guarantee response revision?
       const revision = contentResult?.patch?.content?.revision;
       if (!revision) {
-        showError('Unexpected content submission result empty revision');
+        showError('Failed to acknowledge content changes!');
         return;
       }
 
-      console.log('changes acknowledged', revision);
-      editor.submittedChangesAcknowledged(revision);
-
-      if (editor.haveLocalChanges()) {
-        console.log('have local changes, debouncing...');
-        void submitContentDebounce();
-      }
-    }
-    // TODO add debounce delay
-    // 250,
-    // { maxWait: 500 }
-  );
-
-  const updateContentStateFromEditor = useCallback(
-    (skipDebounce = false) => {
-      const editor = contentEditorRef.current;
-      setContent({
-        value: editor.value,
-        selectionStart: editor.selectionStart,
-        selectionEnd: editor.selectionEnd,
-        selectionDirection: asInputDirection(editor.selectionDirection),
-      });
-      if (!skipDebounce && !editor.haveSubmittedChanges()) {
-        void submitContentDebounce();
-      }
+      return revision;
     },
-    [submitContentDebounce]
-  );
+    debounce: {
+      wait: 150,
+      maxWait: 500,
+    },
+  });
 
   useEffect(() => {
     subscribeToMore({
@@ -225,44 +123,13 @@ function RouteClosableEditNoteDialog({
         }
 
         if (noteUpdate.patch.content) {
-          const editor = contentEditorRef.current;
-          const patchContent = noteUpdate.patch.content;
-          if (editor.documentRevision < patchContent.revision) {
-            const inputEl = contentInputRef.current;
-            if (inputEl) {
-              // Sync input selection to editor selection before processing external change
-              editor.setSelectionRange(
-                inputEl.selectionStart ?? editor.selectionStart,
-                inputEl.selectionEnd ?? editor.selectionEnd,
-                asEditorDirection(inputEl.selectionDirection)
-              );
-            }
-            editor.handleExternalChange({
-              revision: patchContent.revision,
-              changeset: Changeset.parseValue(patchContent.changeset),
-            });
-            updateContentStateFromEditor(true);
-          }
+          contentOnExternalChange(noteUpdate.patch.content);
         }
 
-        // TODO update cache too
-        // const updatedNote = {
-        //   ...existingNote,
-        //   title: noteUpdate.patch.title ?? existingNote.title,
-        //   textContent: noteUpdate.patch.textContent ?? existingNote.textContent,
-        // };
-        // setNote({
-        //   title: noteUpdate.patch.title ?? note.title,
-        //   content: noteUpdate.patch.textContent ?? note.content,
-        // });
-
-        // return {
-        //   note: updatedNote,
-        // };
         return existing;
       },
     });
-  }, [subscribeToMore, updateContentStateFromEditor, contentInputRef]);
+  }, [subscribeToMore, contentInputRef, contentOnExternalChange]);
 
   function handleDeleteNote() {
     return deleteNote(noteId);
@@ -283,12 +150,12 @@ function RouteClosableEditNoteDialog({
       data: {
         title,
         content: {
-          // TODO local changes save too?
-          revision: contentEditorRef.current.documentRevision,
-          text: contentEditorRef.current.documentServer.joinInsertions(),
+          revision: contentRevision,
+          text: contentValue,
         },
       },
     });
+
     onClosed();
   }
 
@@ -311,24 +178,13 @@ function RouteClosableEditNoteDialog({
           },
           contentFieldProps: {
             inputRef: contentInputRef,
-            value: content.value,
+            value: contentValue,
             onSelect: contentOnSelect,
             onInput: contentOnInput,
           },
         },
       }}
-    >
-      <Box sx={{ p: 3 }}>
-        <Button
-          onClick={() => {
-            const editor = contentEditorRef.current;
-            console.log(editor);
-          }}
-        >
-          log editor
-        </Button>
-      </Box>
-    </EditNoteDialog>
+    ></EditNoteDialog>
   );
 }
 
