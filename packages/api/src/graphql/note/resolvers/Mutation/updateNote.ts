@@ -1,11 +1,14 @@
 import { GraphQLError } from 'graphql';
 import { ObjectId } from 'mongodb';
-import { Require_id, UpdateQuery } from 'mongoose';
+import { UpdateQuery } from 'mongoose';
 
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
-import { Changeset } from '~collab/changeset/changeset';
+import {
+  MultiFieldDocumentServer,
+  MultiFieldDocumentServerError,
+  MultiFieldDocumentServerErrorCode,
+} from '~collab/adapters/mongodb/multi-field-document-server';
 
-import { DBRevisionRecord } from '../../../../mongoose/models/collaborative-document/revision-record';
 import { DBNote } from '../../../../mongoose/models/note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import type {
@@ -15,17 +18,6 @@ import type {
   UpdateNotePayload,
 } from '../../../types.generated';
 import { publishNoteUpdated } from '../Subscription/noteUpdated';
-
-type NoteWithRelevantRecords = Require_id<
-  Omit<DBNote, 'content'> & {
-    content: Omit<DBNote['content'], 'records'> & {
-      relevantRecords?: {
-        revision: DBRevisionRecord['revision'];
-        changeset: unknown;
-      }[];
-    };
-  }
->;
 
 export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
   _parent,
@@ -71,137 +63,27 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
   let titleResult: Maybe<string>;
   let contentResult: Maybe<CollaborativeDocumentPatch>;
   await connection.transaction(async (session) => {
-    const updatePromises = [];
+    let userNotePromise: ReturnType<typeof model.UserNote.updateOne> | undefined;
     if (patch.preferences) {
-      updatePromises.push(
-        model.UserNote.updateOne(
-          {
-            _id: userNote._id,
+      userNotePromise = model.UserNote.updateOne(
+        {
+          _id: userNote._id,
+        },
+        {
+          preferences: {
+            backgroundColor: patch.preferences.backgroundColor,
           },
-          {
-            preferences: {
-              backgroundColor: patch.preferences.backgroundColor,
-            },
-          },
-          {
-            session,
-          }
-        )
+        },
+        {
+          session,
+        }
       );
       backgroundColorResult = patch.preferences.backgroundColor;
     }
 
-    // TODO collaborative document module
-    let contentUpdateQuery: UpdateQuery<DBNote> | undefined;
-    if (patch.content != null) {
-      // Get note info required to add next record
-      const noteAggregate = await model.Note.aggregate<NoteWithRelevantRecords>([
-        {
-          $match: {
-            publicId: notePublicId,
-          },
-        },
-        {
-          $project: {
-            publicId: 1, // TODO not relevant
-            ownerId: 1, // TODO not relevant
-            title: 1, // TODO not relevant
-            content: {
-              latestRevision: 1,
-              latestText: 1,
-              relevantRecords: {
-                $slice: [
-                  '$content.records',
-                  {
-                    $min: [
-                      0,
-                      {
-                        $subtract: [
-                          patch.content.targetRevision, // 427
-                          '$content.latestRevision', // 428
-                          // should return [428], anything after 427
-                        ],
-                        // 427 - 428 = -1, min(0,-1) => -1
-                      },
-                    ],
-                  },
-                ],
-              },
-            },
-          },
-        },
-      ]);
-      const note = noteAggregate[0];
-      if (!note) {
-        throw new GraphQLError('Note not found.', {
-          extensions: {
-            code: GraphQLErrorCode.NotFound,
-          },
-        });
-      }
-
-      const latestRevision = note.content.latestRevision;
-      const clientTargetRevision = patch.content.targetRevision;
-
-      // 0 <= clientTargetRevision <= latestRevision
-      if (latestRevision < clientTargetRevision) {
-        throw new GraphQLError(
-          `Expected targetRevision to be less or equal to latest revision '${latestRevision}'`,
-          {
-            extensions: {
-              code: GraphQLErrorCode.InvalidInput,
-            },
-          }
-        );
-      }
-
-      const clientChangeset = patch.content.changeset;
-      let updatedClientChangeset = clientChangeset;
-      const relevantRecords = note.content.relevantRecords;
-      if (relevantRecords) {
-        let expectedRevision = clientTargetRevision + 1;
-
-        for (const rawRecord of relevantRecords) {
-          if (expectedRevision !== rawRecord.revision) {
-            throw new GraphQLError(
-              `Expected revision record '${expectedRevision}' is missing.`,
-              {
-                extensions: {
-                  code: GraphQLErrorCode.InternalError,
-                },
-              }
-            );
-          }
-          const recordChangeset = Changeset.parseValue(rawRecord.changeset);
-          updatedClientChangeset = recordChangeset.follow(updatedClientChangeset);
-          expectedRevision++;
-        }
-      }
-
-      const newestRecord: DBRevisionRecord = {
-        revision: latestRevision + 1,
-        changeset: updatedClientChangeset, // TODO send this as response
-      };
-      const newLatestText = Changeset.fromInsertion(note.content.latestText)
-        .compose(newestRecord.changeset)
-        .joinInsertions();
-
-      contentUpdateQuery = {
-        $set: {
-          'content.latestRevision': newestRecord.revision,
-          'content.latestText': newLatestText,
-          'content.sourceConnectionId': ctx.request.headers['x-ws-connection-id'],
-        },
-        $push: {
-          'content.records': newestRecord,
-        },
-      };
-
-      contentResult = {
-        revision: newestRecord.revision,
-        changeset: newestRecord.changeset,
-      };
-    }
+    const collabDocumentServer = new MultiFieldDocumentServer<'content'>(
+      model.Note.collection
+    );
 
     let titleUpdateQuery: UpdateQuery<DBNote> | undefined;
     if (patch.title != null) {
@@ -214,32 +96,55 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
       titleResult = patch.title;
     }
 
-    if (contentUpdateQuery != null || titleUpdateQuery != null) {
-      updatePromises.push(
-        model.Note.updateOne(
-          {
-            publicId: userNote.notePublicId,
-          },
-          {
+    if (patch.content != null) {
+      collabDocumentServer.queueChange('content', {
+        revision: patch.content.targetRevision,
+        changeset: patch.content.changeset,
+      });
+    }
+
+    let notePromise:
+      | ReturnType<typeof collabDocumentServer.updateOneWithSession>
+      | undefined;
+    if (patch.content != null || titleUpdateQuery != null) {
+      notePromise = collabDocumentServer.updateOneWithSession(
+        session,
+        {
+          publicId: notePublicId,
+        },
+        {
+          $set: {
             ...titleUpdateQuery,
-            ...contentUpdateQuery,
-            $set: {
-              ...titleUpdateQuery?.$set,
-              ...contentUpdateQuery?.$set,
-            },
-            $push: {
-              ...titleUpdateQuery?.$push,
-              ...contentUpdateQuery?.$push,
-            },
           },
-          {
-            session,
-          }
-        )
+        }
       );
     }
 
-    await Promise.all(updatePromises);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const [_, noteResult] = await Promise.all([userNotePromise, notePromise]);
+      if (noteResult) {
+        contentResult = noteResult.content[0];
+      }
+    } catch (err) {
+      if (err instanceof MultiFieldDocumentServerError) {
+        if (err.code === MultiFieldDocumentServerErrorCode.DocumentNotFound) {
+          throw new GraphQLError('Note not found.', {
+            extensions: {
+              code: GraphQLErrorCode.NotFound,
+            },
+          });
+        } else {
+          throw new GraphQLError('Required record was not found.', {
+            extensions: {
+              code: GraphQLErrorCode.InvalidInput,
+            },
+          });
+        }
+      } else {
+        throw err;
+      }
+    }
   });
 
   const updatedNotePayload: UpdateNotePayload = {

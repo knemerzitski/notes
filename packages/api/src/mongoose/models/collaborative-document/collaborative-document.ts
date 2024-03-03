@@ -1,12 +1,11 @@
 import { Schema } from 'mongoose';
 
-import { DBRevisionRecord, revisionRecordSchema } from './revision-record';
+import { DocumentValue } from '~collab/adapters/mongodb/multi-field-document-server';
+import { Changeset } from '~collab/changeset/changeset';
 
-export interface DBCollaborativeDocument {
-  latestText: string;
-  latestRevision: number;
-  records: DBRevisionRecord[];
-}
+import { revisionRecordSchema } from './revision-record';
+
+export type DBCollaborativeDocument = DocumentValue<Changeset>;
 
 export const collaborativeDocumentSchema = new Schema<DBCollaborativeDocument>(
   {
