@@ -67,6 +67,11 @@ function RouteClosableEditNoteDialog({
 
   const noteId = String(data.note.id);
 
+  const debounce = {
+    wait: 250,
+    maxWait: 600,
+  };
+
   const {
     inputRef: titleInputRef,
     value: titleValue,
@@ -80,28 +85,25 @@ function RouteClosableEditNoteDialog({
       changeset: Changeset.fromInsertion(data.note.title.latestText),
     },
     async submitChanges(changes) {
-      const contentResult = await updateNote({
+      const titleResult = await updateNote({
         id: noteId,
         patch: {
-          content: {
+          title: {
             targetRevision: changes.revision,
             changeset: changes.changeset,
           },
         },
       });
 
-      const revision = contentResult?.patch?.content?.revision;
+      const revision = titleResult?.patch?.title?.revision;
       if (!revision) {
-        showError('Failed to acknowledge content changes!');
+        showError('Failed to acknowledge title changes!');
         return;
       }
 
       return revision;
     },
-    debounce: {
-      wait: 150,
-      maxWait: 500,
-    },
+    debounce,
   });
 
   const {
@@ -135,10 +137,7 @@ function RouteClosableEditNoteDialog({
 
       return revision;
     },
-    debounce: {
-      wait: 150,
-      maxWait: 500,
-    },
+    debounce,
   });
 
   useEffect(() => {

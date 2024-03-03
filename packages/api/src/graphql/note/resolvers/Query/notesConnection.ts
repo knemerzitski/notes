@@ -146,7 +146,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = a
               id: note.publicId,
               title: {
                 latestText: note.title.latestText,
-                latestRevision: note.content.latestRevision,
+                latestRevision: note.title.latestRevision,
               },
               content: {
                 latestText: note.content.latestText,

@@ -59,7 +59,7 @@ export default function NoteEditor({
           placeholder="Title"
           {...titleFieldProps}
           sx={{
-            '.MuiInputBase-root': {
+            '.MuiInputBase-input': {
               fontWeight: 'bold',
             },
             ...titleFieldProps?.sx,
