@@ -16,10 +16,13 @@ const QUERY_NOTES = gql(`
     notesConnection(last: $last, before: $before) {
       notes {
         id
-        title
+        title {
+          latestText
+          latestRevision
+        }
         content {
-          revision
-          text
+          latestText
+          latestRevision
         }
       }
       pageInfo {
@@ -35,10 +38,13 @@ const SUBSCRIPTION_NOTE_CREATED = gql(`
     noteCreated {
       note {
         id
-        title
+        title {
+          latestText
+          latestRevision
+        }
         content {
-          revision
-          text
+          latestText
+          latestRevision
         }
       }
     }
@@ -190,8 +196,8 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
   const notes: NoteItemProps['note'][] = data.notesConnection.notes.map(
     ({ id, title, content }) => ({
       id: String(id),
-      title,
-      content: content.text,
+      title: title.latestText,
+      content: content.latestText,
       editing: absoluteLocation.pathname === transform(noteRoute(String(id))),
     })
   );
@@ -202,7 +208,7 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
   const pageInfo = data.notesConnection.pageInfo;
 
   async function handleWidgetNoteCreated(title: string, content: string) {
-    if (!(await createNote({ title, textContent: content }))) {
+    if (!(await createNote({ textTitle: title, textContent: content }))) {
       showError('Failed to create note');
       return false;
     }
@@ -210,7 +216,7 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
   }
 
   async function handleFabCreate() {
-    const note = await createNote({ title: '', textContent: '' });
+    const note = await createNote({ textTitle: '', textContent: '' });
 
     if (!note) {
       showError('Failed to create note');

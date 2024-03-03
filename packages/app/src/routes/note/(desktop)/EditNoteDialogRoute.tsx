@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from '@apollo/client';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { Changeset } from '~collab/changeset/changeset';
@@ -18,10 +18,13 @@ const QUERY = gql(`
   query EditNoteDialogRoute($id: ID!) {
     note(id: $id) {
       id
-      title
+      title {
+        latestText
+        latestRevision
+      }
       content {
-        text
-        revision
+        latestText
+        latestRevision
       }
     }
   }
@@ -32,7 +35,10 @@ const SUBSCRIPTION_UPDATED = gql(`
     noteUpdated {
       id
       patch {
-        title
+        title {
+          changeset
+          revision
+        }
         content {
           changeset
           revision
@@ -61,17 +67,42 @@ function RouteClosableEditNoteDialog({
 
   const noteId = String(data.note.id);
 
-  const [title, setTitle] = useState('');
+  const {
+    inputRef: titleInputRef,
+    value: titleValue,
+    revision: titleRevision,
+    onInput: titleOnInput,
+    onSelect: titleOnSelect,
+    onExternalChange: titleOnExternalChange,
+  } = useDebounceCollaborativeInputEditor({
+    initialHeadText: {
+      revision: data.note.title.latestRevision,
+      changeset: Changeset.fromInsertion(data.note.title.latestText),
+    },
+    async submitChanges(changes) {
+      const contentResult = await updateNote({
+        id: noteId,
+        patch: {
+          content: {
+            targetRevision: changes.revision,
+            changeset: changes.changeset,
+          },
+        },
+      });
 
-  const handleTitleChanged = async (newTitle: string) => {
-    setTitle(newTitle);
-    await updateNote({
-      id: noteId,
-      patch: {
-        title: newTitle,
-      },
-    });
-  };
+      const revision = contentResult?.patch?.content?.revision;
+      if (!revision) {
+        showError('Failed to acknowledge content changes!');
+        return;
+      }
+
+      return revision;
+    },
+    debounce: {
+      wait: 150,
+      maxWait: 500,
+    },
+  });
 
   const {
     inputRef: contentInputRef,
@@ -82,8 +113,8 @@ function RouteClosableEditNoteDialog({
     onExternalChange: contentOnExternalChange,
   } = useDebounceCollaborativeInputEditor({
     initialHeadText: {
-      revision: data.note.content.revision,
-      changeset: Changeset.fromInsertion(data.note.content.text),
+      revision: data.note.content.latestRevision,
+      changeset: Changeset.fromInsertion(data.note.content.latestText),
     },
     async submitChanges(changes) {
       const contentResult = await updateNote({
@@ -114,12 +145,10 @@ function RouteClosableEditNoteDialog({
     subscribeToMore({
       document: SUBSCRIPTION_UPDATED,
       updateQuery(existing, { subscriptionData }) {
-        // const existingNote = existing.note;
         const noteUpdate = subscriptionData.data.noteUpdated;
-        console.log('received external change', noteUpdate.patch.content?.revision);
 
         if (noteUpdate.patch.title) {
-          setTitle(noteUpdate.patch.title);
+          titleOnExternalChange(noteUpdate.patch.title);
         }
 
         if (noteUpdate.patch.content) {
@@ -129,7 +158,7 @@ function RouteClosableEditNoteDialog({
         return existing;
       },
     });
-  }, [subscribeToMore, contentInputRef, contentOnExternalChange]);
+  }, [subscribeToMore, titleOnExternalChange, contentOnExternalChange]);
 
   function handleDeleteNote() {
     return deleteNote(noteId);
@@ -140,18 +169,24 @@ function RouteClosableEditNoteDialog({
       id: client.cache.identify({ id: noteId, __typename: 'Note' }),
       fragment: gql(`
         fragment EditNoteDialogRouteUpdateNote on Note {
-          title
+          title {
+            latestText
+            latestRevision
+          }
           content {
-            revision
-            text
+            latestText
+            latestRevision
           }
         }
       `),
       data: {
-        title,
+        title: {
+          latestText: titleValue,
+          latestRevision: titleRevision,
+        },
         content: {
-          revision: contentRevision,
-          text: contentValue,
+          latestText: contentValue,
+          latestRevision: contentRevision,
         },
       },
     });
@@ -171,10 +206,10 @@ function RouteClosableEditNoteDialog({
           onClose: onClosing,
           onDelete: handleDeleteNote,
           titleFieldProps: {
-            value: title,
-            onChange: (e) => {
-              void handleTitleChanged(String(e.target.value));
-            },
+            inputRef: titleInputRef,
+            value: titleValue,
+            onSelect: titleOnSelect,
+            onInput: titleOnInput,
           },
           contentFieldProps: {
             inputRef: contentInputRef,

@@ -1,5 +1,5 @@
 import { Box, Button, InputProps } from '@mui/material';
-import { useState } from 'react';
+import { FocusEventHandler, useRef, useState } from 'react';
 
 import useIsElementScrollEnd from '../../../hooks/useIsElementScrollEnd';
 import PlainInput from '../../inputs/PlainInput';
@@ -9,7 +9,7 @@ export interface NoteEditorProps {
   onDelete: () => Promise<boolean>;
   onClose?: () => void;
   titleFieldProps?: InputProps;
-  contentFieldProps: InputProps;
+  contentFieldProps?: InputProps;
 }
 
 export default function NoteEditor({
@@ -20,6 +20,20 @@ export default function NoteEditor({
 }: NoteEditorProps) {
   const [scrollEl, setScrollEl] = useState<HTMLElement>();
   const isScrollEnd = useIsElementScrollEnd(scrollEl);
+
+  const hasFocusedRef = useRef(false);
+
+  // Move selection to end on first focus
+  const handleContentInputFocus: FocusEventHandler<
+    HTMLInputElement | HTMLTextAreaElement
+  > = (e) => {
+    if (hasFocusedRef.current) return;
+    hasFocusedRef.current = false;
+
+    const el = e.target;
+
+    el.selectionStart = el.selectionEnd = -1;
+  };
 
   return (
     <Box
@@ -43,8 +57,6 @@ export default function NoteEditor({
       >
         <PlainInput
           placeholder="Title"
-          fullWidth
-          disableUnderline
           {...titleFieldProps}
           sx={{
             '.MuiInputBase-root': {
@@ -55,14 +67,13 @@ export default function NoteEditor({
         />
         <PlainInput
           placeholder="Note"
-          fullWidth
           multiline
-          disableUnderline
           autoFocus
+          onFocus={handleContentInputFocus}
           {...contentFieldProps}
           sx={{
             flexGrow: 1,
-            ...contentFieldProps.sx,
+            ...contentFieldProps?.sx,
           }}
         />
       </Box>

@@ -8,10 +8,13 @@ const MUTATION = gql(`
     updateNote(input: $input) {
       id
       patch {
-        title
-        content {
-          revision
+        title {
           changeset
+          revision
+        }
+        content {
+          changeset
+          revision
         }
       }
     }

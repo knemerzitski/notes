@@ -6,6 +6,8 @@ import { Input, InputProps } from '@mui/material';
 export default function PlainInput(props: InputProps) {
   return (
     <Input
+      disableUnderline
+      fullWidth
       {...props}
       sx={{
         borderRadius: 0,

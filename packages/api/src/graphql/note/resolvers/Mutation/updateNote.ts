@@ -1,15 +1,13 @@
 import { GraphQLError } from 'graphql';
 import { ObjectId } from 'mongodb';
-import { UpdateQuery } from 'mongoose';
 
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import {
-  MultiFieldDocumentServer,
   MultiFieldDocumentServerError,
   MultiFieldDocumentServerErrorCode,
 } from '~collab/adapters/mongodb/multi-field-document-server';
 
-import { DBNote } from '../../../../mongoose/models/note';
+import { createDocumentServer } from '../../../../mongoose/models/note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import type {
   CollaborativeDocumentPatch,
@@ -60,7 +58,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
   }
 
   let backgroundColorResult: Maybe<string>;
-  let titleResult: Maybe<string>;
+  let titleResult: Maybe<CollaborativeDocumentPatch>;
   let contentResult: Maybe<CollaborativeDocumentPatch>;
   await connection.transaction(async (session) => {
     let userNotePromise: ReturnType<typeof model.UserNote.updateOne> | undefined;
@@ -81,50 +79,35 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
       backgroundColorResult = patch.preferences.backgroundColor;
     }
 
-    const collabDocumentServer = new MultiFieldDocumentServer<'content'>(
-      model.Note.collection
-    );
+    const documentServer = createDocumentServer(model.Note);
 
-    let titleUpdateQuery: UpdateQuery<DBNote> | undefined;
     if (patch.title != null) {
-      titleUpdateQuery = {
-        $set: {
-          title: patch.title,
-        },
-      };
-
-      titleResult = patch.title;
+      documentServer.queueChange('title', {
+        revision: patch.title.targetRevision,
+        changeset: patch.title.changeset,
+      });
     }
 
     if (patch.content != null) {
-      collabDocumentServer.queueChange('content', {
+      documentServer.queueChange('content', {
         revision: patch.content.targetRevision,
         changeset: patch.content.changeset,
       });
     }
 
-    let notePromise:
-      | ReturnType<typeof collabDocumentServer.updateOneWithSession>
-      | undefined;
-    if (patch.content != null || titleUpdateQuery != null) {
-      notePromise = collabDocumentServer.updateOneWithSession(
-        session,
-        {
-          publicId: notePublicId,
-        },
-        {
-          $set: {
-            ...titleUpdateQuery,
-          },
-        }
-      );
+    let notePromise: ReturnType<typeof documentServer.updateOneWithSession> | undefined;
+    if (documentServer.hasChanges()) {
+      notePromise = documentServer.updateOneWithSession(session, {
+        publicId: notePublicId,
+      });
     }
 
     try {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const [_, noteResult] = await Promise.all([userNotePromise, notePromise]);
       if (noteResult) {
-        contentResult = noteResult.content[0];
+        titleResult = noteResult.title?.[0];
+        contentResult = noteResult.content?.[0];
       }
     } catch (err) {
       if (err instanceof MultiFieldDocumentServerError) {
@@ -151,7 +134,6 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
     id: notePublicId,
     patch: {
       title: titleResult,
-      // TODO collaborative document module
       content: contentResult,
       preferences: {
         backgroundColor: backgroundColorResult,

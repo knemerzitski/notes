@@ -11,7 +11,7 @@ export const collaborativeDocumentSchema = new Schema<DBCollaborativeDocument>(
   {
     latestText: {
       type: Schema.Types.String,
-      required: true,
+      required: false,
     },
     latestRevision: {
       type: Schema.Types.Number,

@@ -1,8 +1,8 @@
-import { RevisionChangeset } from '../changeset/changeset';
+import { Changeset, RevisionChangeset } from '../changeset/changeset';
 
 interface DocumentServerOptions {
-  headText: RevisionChangeset;
-  records: RevisionChangeset[];
+  headText?: RevisionChangeset;
+  records?: RevisionChangeset[];
 }
 
 export class DocumentServer {
@@ -15,9 +15,12 @@ export class DocumentServer {
     return this._records;
   }
 
-  constructor({ headText, records }: DocumentServerOptions) {
-    this._headText = headText;
-    this._records = records;
+  constructor(options?: DocumentServerOptions) {
+    this._headText = options?.headText ?? {
+      revision: -1,
+      changeset: Changeset.EMPTY,
+    };
+    this._records = options?.records ?? [];
   }
 
   /**

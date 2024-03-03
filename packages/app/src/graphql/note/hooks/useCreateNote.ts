@@ -8,13 +8,13 @@ const MUTATION = gql(`
     createNote(input: $input) {
       note {
         id
-        title
-        content {
-          revision
-          text
+        title {
+          latestText
+          latestRevision
         }
-        preferences {
-          backgroundColor
+        content {
+          latestText
+          latestRevision
         }
       }
     }
@@ -38,14 +38,17 @@ export default function useCreateNote(): (
           note: {
             __typename: 'Note',
             id: 'CreateNote',
-            title: note?.title ?? '',
+            title: {
+              latestRevision: 0,
+              latestText: note?.textTitle ?? '',
+            },
             content: {
-              revision: 0,
-              text: note?.textContent ?? '',
+              latestRevision: 0,
+              latestText: note?.textContent ?? '',
             },
-            preferences: {
-              backgroundColor: note?.preferences?.backgroundColor,
-            },
+            // preferences: {
+            //   backgroundColor: note?.preferences?.backgroundColor,
+            // },
           },
         },
       },
@@ -61,10 +64,13 @@ export default function useCreateNote(): (
                 notesConnection {
                   notes {
                     id
-                    title
+                    title {
+                      latestText
+                      latestRevision
+                    }
                     content {
-                      revision
-                      text
+                      latestText
+                      latestRevision
                     }
                   }
                 }

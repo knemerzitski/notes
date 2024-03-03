@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 import { useSnackbarError } from '../../feedback/SnackbarAlertProvider';
 import PlainInput from '../../inputs/PlainInput';
+import NoteEditor from '../edit/NoteEditor';
 
 interface Note {
   title: string;
@@ -37,9 +38,9 @@ export default function CreateNoteWidget({
     }
   }
 
-  // function handleNoteChange(updatedNote: Note) {
-  //   setNote(updatedNote);
-  // }
+  function handleNoteChange(updatedNote: Note) {
+    setNote(updatedNote);
+  }
 
   function reset() {
     setNote({
@@ -60,10 +61,10 @@ export default function CreateNoteWidget({
     reset();
   }
 
-  // function handleDeleteNote() {
-  //   reset();
-  //   return true;
-  // }
+  function handleDeleteNote() {
+    reset();
+    return true;
+  }
 
   return (
     <>
@@ -107,20 +108,33 @@ export default function CreateNoteWidget({
               ...restProps.sx,
             }}
           >
-            {/* TODO */}
-            {/* <NoteEditor
-              note={note}
-              onTitleChange={handleNoteChange}
+            <NoteEditor
               onDelete={() => {
                 return Promise.resolve(handleDeleteNote());
               }}
               onClose={() => {
                 void handleOnClose();
               }}
-              slotProps={{
-                contentField: slotProps?.contentField,
+              titleFieldProps={{
+                value: note.title,
+                onChange: (e) => {
+                  handleNoteChange({
+                    title: e.target.value,
+                    content: note.content,
+                  });
+                },
               }}
-            /> */}
+              contentFieldProps={{
+                ...contentFieldProps,
+                value: note.content,
+                onChange: (e) => {
+                  handleNoteChange({
+                    title: note.title,
+                    content: e.target.value,
+                  });
+                },
+              }}
+            />
           </Paper>
         </ClickAwayListener>
       )}

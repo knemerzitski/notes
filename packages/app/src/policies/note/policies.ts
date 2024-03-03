@@ -20,6 +20,9 @@ const notePolicies: TypePolicies = {
   },
   Note: {
     fields: {
+      title: {
+        merge: true,
+      },
       content: {
         merge: true,
       },

@@ -39,9 +39,22 @@ export interface RecordValue<T = unknown> {
 }
 
 export interface DocumentValue<T = unknown> {
-  latestRevision: number;
   latestText: string;
+  latestRevision: number;
   records: RecordValue<T>[];
+}
+
+export function newDocumentInsertion(text: string): DocumentValue<Changeset> {
+  return {
+    latestText: text,
+    latestRevision: 0,
+    records: [
+      {
+        revision: 0,
+        changeset: Changeset.fromInsertion(text),
+      },
+    ],
+  };
 }
 
 type RelevantDocumentValue<T = unknown> = Omit<DocumentValue<T>, 'records'> & {
@@ -108,30 +121,35 @@ export class MultiFieldDocumentServer<
   private collection: Collection<TSchema>;
 
   private changesQueueMap = new Map<FieldName, FieldChanges<string>>();
+  private _hasChanges = false;
 
   constructor(collection: Collection<TSchema>) {
     this.collection = collection;
   }
 
-  queueChange<T extends FieldName>(fieldPath: T, change: RevisionChangeset) {
+  queueChange(fieldPath: FieldName, change: RevisionChangeset) {
     let changes = this.changesQueueMap.get(fieldPath);
     if (!changes) {
-      changes = new FieldChanges<T>(fieldPath);
+      changes = new FieldChanges(fieldPath);
       this.changesQueueMap.set(fieldPath, changes);
     }
     changes.add(change);
+    this._hasChanges = true;
   }
 
-  getChanges<T extends FieldName>(
-    fieldPath: T
-  ): Readonly<RevisionChangeset[]> | undefined {
+  getChanges(fieldPath: FieldName): Readonly<RevisionChangeset[]> | undefined {
     return this.changesQueueMap.get(fieldPath)?.changes;
+  }
+
+  hasChanges() {
+    return this._hasChanges;
   }
 
   clearChangeQueue() {
     for (const field of this.changesQueueMap.values()) {
       field.clear();
     }
+    this._hasChanges = false;
   }
 
   async findAllRelevantDocumentValues(
@@ -176,7 +194,7 @@ export class MultiFieldDocumentServer<
     filter: Filter<TSchema>,
     update?: UpdateFilter<TSchema>,
     options?: UpdateOptions | undefined
-  ): Promise<Record<FieldName, RevisionChangeset[]>> {
+  ): Promise<Record<FieldName, RevisionChangeset[] | undefined>> {
     return await client.withSession(async (session) => {
       return await session.withTransaction(async (session) => {
         return this.updateOneWithSession(session, filter, update, options);
@@ -194,7 +212,7 @@ export class MultiFieldDocumentServer<
     filter: Filter<TSchema>,
     update?: UpdateFilter<TSchema>,
     options?: UpdateOptions | undefined
-  ): Promise<Record<FieldName, RevisionChangeset[]>> {
+  ): Promise<Record<FieldName, RevisionChangeset[] | undefined>> {
     const collection = this.collection;
     const changesQueueMap = this.changesQueueMap;
 
@@ -217,12 +235,7 @@ export class MultiFieldDocumentServer<
       $push: PushOperator<TSchema>;
     };
 
-    const changesResult = Object.fromEntries(
-      [...changesQueueMap.keys()].map<[FieldName, RevisionChangeset[]]>((key) => [
-        key,
-        [],
-      ])
-    ) as Record<FieldName, RevisionChangeset[]>;
+    const changesResult = {} as Record<FieldName, RevisionChangeset[]>;
 
     for (const [path, rawRelevantDocumentValue] of Object.entries(
       rawRelevantDocumentValues
@@ -250,6 +263,9 @@ export class MultiFieldDocumentServer<
       for (const change of field.changes) {
         try {
           const latestRecord = documentServer.addChange(change);
+          if (!(fieldPath in changesResult)) {
+            changesResult[fieldPath] = [];
+          }
           changesResult[fieldPath].push(latestRecord);
         } catch (err) {
           throw new MultiFieldDocumentServerError(

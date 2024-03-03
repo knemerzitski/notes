@@ -1,14 +1,14 @@
 type CollaborativeDocument {
   "Latest revision of this document."
-  revision: NonNegativeInt!
+  latestRevision: NonNegativeInt!
   "Document latest text. Composition of all previous changes."
-  text: String!
+  latestText: String!
 }
 
 type CollaborativeDocumentPatch {
   "Revision of this changeset."
   revision: NonNegativeInt!
-  "Changes that were applied to the document."
+  "Changes to be applied to the document to get new revision."
   changeset: Changeset!
 }
 

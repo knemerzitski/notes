@@ -32,7 +32,7 @@ export class Changeset implements Serializable<SerializedChangeset> {
    * Quickly create a text insertion changeset that replaces all previous content.
    */
   static fromInsertion(insertText: string) {
-    return new Changeset([new InsertStrip(insertText)]);
+    return new Changeset([InsertStrip.create(insertText)]);
   }
 
   /**

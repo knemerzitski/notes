@@ -1,6 +1,10 @@
 import { HydratedDocument, Model, Schema, Types } from 'mongoose';
 import { nanoid } from 'nanoid';
 
+import { MultiFieldDocumentServer } from '~collab/adapters/mongodb/multi-field-document-server';
+
+import { MongooseModels } from '../models';
+
 import {
   DBCollaborativeDocument,
   collaborativeDocumentSchema,
@@ -9,7 +13,7 @@ import {
 export interface DBNote {
   publicId: string;
   ownerId: Types.ObjectId;
-  title?: string;
+  title: DBCollaborativeDocument;
   content: DBCollaborativeDocument;
 }
 
@@ -31,12 +35,15 @@ export const noteSchema = new Schema<DBNote, NoteModel, DBNoteMethods>({
     required: true,
   },
   title: {
-    type: Schema.Types.String,
-    required: false,
-    trim: true,
+    type: collaborativeDocumentSchema,
+    required: true,
   },
   content: {
     type: collaborativeDocumentSchema,
     required: true,
   },
 });
+
+export function createDocumentServer(Note: MongooseModels['Note']) {
+  return new MultiFieldDocumentServer<'title' | 'content'>(Note.collection);
+}

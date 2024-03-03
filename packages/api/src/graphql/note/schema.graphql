@@ -1,19 +1,19 @@
 type Note implements Node {
   "Self-descriptive"
   id: ID!
-  "Note title to summarize note contents"
-  title: String!
-  "Collaborative text content"
+  "Note contents summary"
+  title: CollaborativeDocument!
+  "Contents of the note"
   content: CollaborativeDocument!
-  "Is note locked in a read-only state. null => readOnly: false"
+  "Note read-only state. Default is false."
   readOnly: Boolean
-  "Note preferences such as note color"
-  preferences: NotePreferences!
+  "Note preferences such as background color"
+  preferences: NotePreferences
 }
 
 type NotePatch {
   "Changed note title"
-  title: String
+  title: CollaborativeDocumentPatch
   "Changes made to note content"
   content: CollaborativeDocumentPatch
   "Changed preferences"
@@ -21,15 +21,15 @@ type NotePatch {
 }
 
 input NotePatchInput {
-  title: String
-  "Change to note content"
+  title: CollaborativeDocumentPatchInput
   content: CollaborativeDocumentPatchInput
   preferences: NotePreferencesPatchInput
 }
 
 input CreateNotePatchInput {
-  title: String
-  "Initial note content text value."
+  "Initial note title"
+  textTitle: String
+  "Initial note content"
   textContent: String
   preferences: NotePreferencesPatchInput
 }
@@ -107,11 +107,11 @@ input DeleteNoteInput {
   id: ID!
 }
 type DeleteNotePayload {
-  "Was note deleted"
+  "Self-descriptive"
   deleted: Boolean!
 }
 extend type Mutation {
-  "Delete note"
+  "Delete note by ID"
   deleteNote(input: DeleteNoteInput!): DeleteNotePayload! @auth
 }
 

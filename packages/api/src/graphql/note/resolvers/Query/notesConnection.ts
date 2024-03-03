@@ -144,11 +144,13 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = a
             cursor: String(userNote._id),
             node: {
               id: note.publicId,
-              title: note.title ?? '',
-              // TODO collaborative document module
+              title: {
+                latestText: note.title.latestText,
+                latestRevision: note.content.latestRevision,
+              },
               content: {
-                revision: note.content.latestRevision,
-                text: note.content.latestText,
+                latestText: note.content.latestText,
+                latestRevision: note.content.latestRevision,
               },
               readOnly: userNote.readOnly,
               preferences: {

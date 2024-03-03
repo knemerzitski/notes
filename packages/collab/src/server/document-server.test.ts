@@ -5,6 +5,21 @@ import { Changeset } from '../changeset/changeset';
 import { DocumentServer } from './document-server';
 
 describe('DocumentServer', () => {
+  describe('constructor', () => {
+    it('creates empty document without arguments', () => {
+      const docServer = new DocumentServer();
+      expect(docServer.headText.revision).toStrictEqual(-1);
+      expect(docServer.headText.changeset.serialize()).toStrictEqual([]);
+
+      docServer.addChange({
+        revision: -1,
+        changeset: Changeset.fromInsertion('first'),
+      });
+      expect(docServer.headText.revision).toStrictEqual(0);
+      expect(docServer.headText.changeset.serialize()).toStrictEqual(['first']);
+    });
+  });
+
   describe('add', () => {
     let docServer: DocumentServer;
 

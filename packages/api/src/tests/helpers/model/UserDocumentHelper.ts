@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker';
 import { Require_id } from 'mongoose';
 import { assert } from 'vitest';
 
-import { Changeset } from '~collab/changeset/changeset';
+import { newDocumentInsertion } from '~collab/adapters/mongodb/multi-field-document-server';
 
 import { NoteEdge } from '../../../graphql/types.generated';
 import { DBNote } from '../../../mongoose/models/note';
@@ -31,20 +31,10 @@ export default class UserDocumentHelper {
   async createNotes(count: number, readOnly: boolean | undefined = undefined) {
     const notes = await Note.insertMany(
       [...new Array(count).keys()].map(() => {
-        const textContent = faker.string.sample(120);
         return {
           ownerId: this.user._id,
-          title: faker.string.sample(15),
-          content: {
-            latestRevision: 0,
-            latestText: textContent,
-            records: [
-              {
-                revision: 0,
-                changeset: Changeset.fromInsertion(textContent),
-              },
-            ],
-          },
+          title: newDocumentInsertion(faker.string.sample(15)),
+          content: newDocumentInsertion(faker.string.sample(120)),
         };
       })
     );
@@ -77,10 +67,13 @@ export default class UserDocumentHelper {
             cursor: String(userNote._id),
             node: {
               id: note.publicId,
-              title: note.title,
+              title: {
+                latestText: note.title.latestText,
+                latestRevision: note.title.latestRevision,
+              },
               content: {
-                revision: note.content.latestRevision,
-                text: note.content.latestText,
+                latestText: note.content.latestText,
+                latestRevision: note.content.latestRevision,
               },
               readOnly: userNote.readOnly,
               preferences: {
