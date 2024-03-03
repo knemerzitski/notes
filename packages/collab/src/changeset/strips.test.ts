@@ -122,6 +122,7 @@ describe('Strips', () => {
 
   describe('compact', () => {
     it.each([
+      ['empty strip is removed', [null], []],
       ['concats two strings', ['hello', ' world'], ['hello world']],
       [
         'concats continious strips of strings between indices',

@@ -34,7 +34,8 @@ export class Strips implements Serializable<SerializedStrips> {
 
   constructor(values: Readonly<Strip[]> = []) {
     this.values = values;
-    this.isCompact = values.length <= 1;
+    this.isCompact =
+      values.length === 0 || (values.length === 1 && values[0] !== Strip.EMPTY);
     this.length = this.values.map((strip) => strip.length).reduce((a, b) => a + b, 0);
     this.maxIndex = this.values
       .map((strip) => (strip instanceof RetainStrip ? strip.endIndex : -1))
@@ -116,6 +117,10 @@ export class Strips implements Serializable<SerializedStrips> {
       }
       return compactedStrips;
     }, []);
+
+    if (newValues.length === 1 && newValues[0] === Strip.EMPTY) {
+      return Strips.EMPTY;
+    }
 
     const compactStrips = new Strips(newValues);
     compactStrips.isCompact = true;
