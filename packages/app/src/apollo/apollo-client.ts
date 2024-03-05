@@ -2,12 +2,11 @@ import { ApolloClient, HttpLink, InMemoryCache, split } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
-// import DebounceLink from 'apollo-link-debounce';
 import { Kind, OperationTypeNode } from 'graphql';
 import { createClient, MessageType } from 'graphql-ws';
 
-import StatsLink from './links/StatsLink';
-// import WaitLink from './links/WaitLink';
+import StatsLink from './links/stats-link';
+import WaitLink from './links/wait-link';
 import typePolicies from './policies';
 
 const HTTP_URL =
@@ -95,16 +94,14 @@ const httpWsSplitLink = split(
   addWsConnectionIdLink.concat(httpLink)
 );
 
-// TODO fix statslink duplicating requests
 export const statsLink = new StatsLink();
 
-// const waitLink = new WaitLink({
-//   waitTime: 500,
-// });
+const waitLink = new WaitLink({
+  waitTime: 200,
+});
 
 export const apolloClient = new ApolloClient({
-  // link: statsLink.concat(waitLink).concat(httpWsSplitLink),
-  link: httpWsSplitLink,
+  link: statsLink.concat(waitLink).concat(httpWsSplitLink),
   cache: new InMemoryCache({
     typePolicies,
   }),

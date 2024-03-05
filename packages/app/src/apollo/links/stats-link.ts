@@ -1,5 +1,5 @@
-import { ApolloLink, Operation, NextLink } from '@apollo/client';
-import { getMainDefinition } from '@apollo/client/utilities';
+import { ApolloLink, Operation, NextLink, FetchResult } from '@apollo/client';
+import { Observable, Observer, getMainDefinition } from '@apollo/client/utilities';
 import { OperationTypeNode, Kind } from 'graphql';
 
 type OperationStats = Record<OperationTypeNode, number>;
@@ -63,13 +63,13 @@ export default class StatsLink extends ApolloLink {
     this._total[type]++;
     this.triggerListeners(type);
 
-    const observable = forward(operation);
-    observable.subscribe({
-      complete: () => {
+    return new Observable<FetchResult>((observer: Observer<FetchResult>) => {
+      const sub = forward(operation).subscribe(observer);
+      return () => {
         this._ongoing[type]--;
         this.triggerListeners(type);
-      },
+        sub.unsubscribe();
+      };
     });
-    return observable;
   }
 }

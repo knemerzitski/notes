@@ -33,18 +33,18 @@ export default class WaitLink extends ApolloLink {
   request(operation: Operation, forward: NextLink) {
     const subs = new Map<Observer<FetchResult>, Subscription | undefined>();
 
-    let observable: Observable<FetchResult> | null = null;
+    let sub: Observable<FetchResult> | null = null;
     setTimeout(() => {
-      observable = forward(operation);
-      for (const observer of subs.keys()) {
-        if (!subs.get(observer)) {
-          subs.set(observer, observable.subscribe(observer));
+      sub = forward(operation);
+      for (const existingSub of subs.keys()) {
+        if (!subs.get(existingSub)) {
+          subs.set(existingSub, sub.subscribe(existingSub));
         }
       }
     }, this.waitTime);
 
     return new Observable<FetchResult>((observer: Observer<FetchResult>) => {
-      subs.set(observer, observable?.subscribe(observer));
+      subs.set(observer, sub?.subscribe(observer));
       return () => {
         subs.get(observer)?.unsubscribe();
         subs.delete(observer);
