@@ -1,5 +1,4 @@
 import { useRef, useState } from 'react';
-import { useDebouncedCallback } from 'use-debounce';
 
 import {
   Changeset,
@@ -9,6 +8,7 @@ import {
 import { CollaborativeEditor } from '~collab/editor/collaborative-editor';
 import { SelectionDirection } from '~collab/editor/selection-range';
 
+import useClientSyncDebouncedCallback from './useClientSyncDebouncedCallback';
 import useControlledInputSelection from './useControlledInputSelection';
 import useInputValueChange from './useInputValueChange';
 
@@ -101,7 +101,7 @@ export default function useDebounceCollaborativeInputEditor({
     },
   });
 
-  const submitContentDebounce = useDebouncedCallback(
+  const submitContentDebounce = useClientSyncDebouncedCallback(
     async () => {
       const editor = editorRef.current;
 

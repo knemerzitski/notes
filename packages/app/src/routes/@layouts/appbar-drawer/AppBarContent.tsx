@@ -1,9 +1,9 @@
 import { Toolbar, Box, IconButtonProps, ToolbarProps } from '@mui/material';
 
 import AccountButton from './AccountButton';
-import CloudStatusButton from './CloudStatusButton';
 import MenuButton from './MenuButton';
 import SettingsButton from './SettingsButton';
+import SyncStatusButton from './SyncStatusButton';
 
 interface AppBarContentProps extends ToolbarProps {
   slotProps?: {
@@ -21,7 +21,7 @@ export default function AppBarContent({ slotProps, ...restProps }: AppBarContent
     <Toolbar {...restProps} sx={{ justifyContent: 'space-between', ...restProps.sx }}>
       <MenuButton edge="start" {...slotProps?.menuButton} />
       <Box>
-        <CloudStatusButton
+        <SyncStatusButton
           fontSize={buttonSizePx}
           size={buttonSize}
           sx={{ mr: gapSpacing }}

@@ -2,11 +2,11 @@ import { useApolloClient } from '@apollo/client';
 import CloudDoneIcon from '@mui/icons-material/CloudDone';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { CircularProgress, IconButton, IconButtonProps } from '@mui/material';
-import { OperationTypeNode } from 'graphql';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { useApolloClientStatsLink } from '../../../apollo/providers/StatsLinkProvider';
+import useApolloClientStatsLink from '../../../apollo/hooks/useApolloClientStatsLink';
 import CrossFade from '../../../components/utils/CrossFade';
+import useIsClientSynchronized from '../../../hooks/useIsClientSynchronized';
 
 enum Status {
   READY_TO_REFRESH = 'refresh',
@@ -28,21 +28,21 @@ interface CloudStateButtonProps extends IconButtonProps {
   cloudDuration?: number;
 }
 
-export default function CloudStatusButton({
+export default function SyncStatusButton({
   fontSize = 24,
   cloudDuration = 1500,
   ...restProps
 }: CloudStateButtonProps) {
   const client = useApolloClient();
 
+  const isClientSynchronized = useIsClientSynchronized();
+
   const statsLink = useApolloClientStatsLink();
-  const hasOngoingOperation = useCallback(() => {
-    return statsLink.ongoing.query > 0 || statsLink.ongoing.mutation > 0;
-  }, [statsLink]);
 
   const cloudIconTimeoutIdRef = useRef<NodeJS.Timeout | null>(null);
+
   const [status, setStatus] = useState(
-    hasOngoingOperation() ? Status.LOADING : Status.READY_TO_REFRESH
+    isClientSynchronized ? Status.READY_TO_REFRESH : Status.LOADING
   );
 
   const statusLoading = useCallback(() => {
@@ -76,22 +76,13 @@ export default function CloudStatusButton({
     });
   }, [cloudDuration]);
 
-  const updateStatus = useCallback(() => {
-    if (hasOngoingOperation()) {
-      statusLoading();
-    } else {
-      statusSynchronized();
-    }
-  }, [hasOngoingOperation, statusLoading, statusSynchronized]);
-
-  // Subscribe to apollo client operation count changes
   useEffect(() => {
-    return statsLink.subscribe(({ type }) => {
-      if (type === OperationTypeNode.QUERY || type === OperationTypeNode.MUTATION) {
-        updateStatus();
-      }
-    });
-  }, [statsLink, updateStatus]);
+    if (isClientSynchronized) {
+      statusSynchronized();
+    } else {
+      statusLoading();
+    }
+  }, [isClientSynchronized, statusLoading, statusSynchronized]);
 
   // Prevent refetching queries from spam click
   const fetcingQueriesRef = useRef(statsLink.ongoing.query > 0);
@@ -100,13 +91,11 @@ export default function CloudStatusButton({
     if (fetcingQueriesRef.current) return;
     try {
       fetcingQueriesRef.current = true;
-      updateStatus();
       await client.refetchQueries({
         include: 'all',
       });
     } finally {
       fetcingQueriesRef.current = false;
-      updateStatus();
     }
   }
 

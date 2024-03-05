@@ -6,7 +6,9 @@ import GlobalStyles from './GlobalStyles';
 import { gql } from './__generated__/gql';
 import { ColorMode } from './__generated__/graphql';
 import { apolloClient, statsLink } from './apollo/apollo-client';
-import { ApolloStatsLinkProvider } from './apollo/providers/StatsLinkProvider';
+import ApolloClientSynchronized from './apollo/components/ApolloClientSynchronized';
+import { ApolloStatsLinkProvider } from './apollo/hooks/useApolloClientStatsLink';
+import { ClientSyncStatusProvider } from './hooks/useIsClientSynchronized';
 import RouterProvider from './router/RouterProvider';
 import themeOptions from './themeOptions';
 
@@ -34,14 +36,17 @@ export default function App() {
   const theme = useMemo(() => createTheme(themeOptions(colorMode)), [colorMode]);
 
   return (
-    <ApolloProvider client={apolloClient}>
-      <ApolloStatsLinkProvider statsLink={statsLink}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <GlobalStyles />
-          <RouterProvider />
-        </ThemeProvider>
-      </ApolloStatsLinkProvider>
-    </ApolloProvider>
+    <ClientSyncStatusProvider>
+      <ApolloProvider client={apolloClient}>
+        <ApolloStatsLinkProvider statsLink={statsLink}>
+          <ApolloClientSynchronized />
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <GlobalStyles />
+            <RouterProvider />
+          </ThemeProvider>
+        </ApolloStatsLinkProvider>
+      </ApolloProvider>
+    </ClientSyncStatusProvider>
   );
 }
