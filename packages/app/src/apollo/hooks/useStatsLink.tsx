@@ -2,23 +2,18 @@ import { createContext, useContext, ReactNode } from 'react';
 
 import StatsLink from '../links/stats-link';
 
-// TODO move to apollo/hooks and rename to useApolloClientStatsLink
-
 const StatsLinkContext = createContext<StatsLink | null>(null);
 
-// TODO set this function as default export
 // eslint-disable-next-line react-refresh/only-export-components
-export default function useApolloClientStatsLink() {
+export default function useStatsLink() {
   const ctx = useContext(StatsLinkContext);
   if (ctx === null) {
-    throw new Error(
-      'Error: useApolloClientStatsLink() may be used only in the context of a <ApolloStatsLinkProvider> component.'
-    );
+    throw new Error('useStatsLink() requires context <ApolloStatsLinkProvider>');
   }
   return ctx;
 }
 
-export function ApolloStatsLinkProvider({
+export function StatsLinkProvider({
   children,
   statsLink,
 }: {

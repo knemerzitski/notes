@@ -4,7 +4,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import { CircularProgress, IconButton, IconButtonProps } from '@mui/material';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import useApolloClientStatsLink from '../../../apollo/hooks/useApolloClientStatsLink';
+import useStatsLink from '../../../apollo/hooks/useStatsLink';
 import CrossFade from '../../../components/utils/CrossFade';
 import useIsClientSynchronized from '../../../hooks/useIsClientSynchronized';
 
@@ -37,7 +37,7 @@ export default function SyncStatusButton({
 
   const isClientSynchronized = useIsClientSynchronized();
 
-  const statsLink = useApolloClientStatsLink();
+  const statsLink = useStatsLink();
 
   const cloudIconTimeoutIdRef = useRef<NodeJS.Timeout | null>(null);
 

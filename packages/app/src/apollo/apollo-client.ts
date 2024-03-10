@@ -5,6 +5,7 @@ import { getMainDefinition } from '@apollo/client/utilities';
 import { Kind, OperationTypeNode } from 'graphql';
 import { createClient, MessageType } from 'graphql-ws';
 
+import ErrorLink from './links/error-link';
 import StatsLink from './links/stats-link';
 import WaitLink from './links/wait-link';
 import typePolicies from './policies';
@@ -23,13 +24,12 @@ const httpLink = new HttpLink({
   uri: HTTP_URL,
 });
 
-// Send connection id with each http request to prevent receiving subscription updates from yourself
+// Send connection id with each http request to prevent receiving subscription updates from self
 let wsConnectionId: string | null = null;
 const addWsConnectionIdLink = setContext((_request, previousContext) => {
   if (!wsConnectionId) return previousContext;
   return {
     headers: {
-      // TODO header name part of shared module
       'X-Ws-Connection-Id': wsConnectionId,
     },
   };
@@ -43,7 +43,6 @@ const wsLink = new GraphQLWsLink(
         if (message.type === MessageType.ConnectionAck) {
           const payload = message.payload;
           if (payload) {
-            // TODO payload connectionId key part of shared module
             if ('connectionId' in payload) {
               const connectionId = payload.connectionId;
               if (typeof connectionId === 'string' && connectionId.length > 0) {
@@ -60,28 +59,6 @@ const wsLink = new GraphQLWsLink(
   })
 );
 
-// const debounceLink = new DebounceLink(500);
-
-// const httpWsSplitLink = split(
-//   ({ query }) => {
-//     const definition = getMainDefinition(query);
-//     return (
-//       definition.kind === Kind.OPERATION_DEFINITION &&
-//       definition.operation === OperationTypeNode.SUBSCRIPTION
-//     );
-//   },
-//   wsLink,
-//   // Delay mutations
-//   split(({ query }) => {
-//     const definition = getMainDefinition(query);
-//     return (
-//       definition.kind === Kind.OPERATION_DEFINITION &&
-//       definition.operation === OperationTypeNode.MUTATION
-//     );
-//   }, debounceLink)
-//     .concat(addWsConnectionIdLink)
-//     .concat(httpLink)
-// );
 const httpWsSplitLink = split(
   ({ query }) => {
     const definition = getMainDefinition(query);
@@ -95,13 +72,14 @@ const httpWsSplitLink = split(
 );
 
 export const statsLink = new StatsLink();
+export const errorLink = new ErrorLink();
 
 const waitLink = new WaitLink({
   waitTime: 200,
 });
 
 export const apolloClient = new ApolloClient({
-  link: statsLink.concat(waitLink).concat(httpWsSplitLink),
+  link: statsLink.concat(waitLink).concat(errorLink).concat(httpWsSplitLink),
   cache: new InMemoryCache({
     typePolicies,
   }),

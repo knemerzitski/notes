@@ -8,7 +8,7 @@ import {
 import { createLogger } from '~utils/logger';
 
 import { BaseGraphQLContext, MongooseGraphQLContext } from './graphql/context';
-import { getSessionUserFromHeaders } from './graphql/session/parse-cookies';
+import { parseAuthFromHeaders } from './graphql/session/auth-context';
 import {
   createDefaultDynamoDBConnectionTtlContext,
   createDefaultDynamoDBParams,
@@ -20,7 +20,7 @@ export async function handleConnectGraphQLAuth(
   event: WebSocketConnectEventEvent
 ): Promise<BaseGraphQLContext> {
   const auth = event.headers
-    ? await getSessionUserFromHeaders(mongoose, event.headers)
+    ? await parseAuthFromHeaders(event.headers, mongoose.model.Session)
     : undefined;
 
   return {

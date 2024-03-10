@@ -9,12 +9,10 @@ import {
 } from '@mui/material';
 import { useId, useState } from 'react';
 
-import useColorMode from '../../../local-state/preferences/hooks/useColorMode';
+import useLocalStateColorMode from '../../../local-state/preferences/hooks/useLocalStateColorMode';
 
 export default function SettingsButton(props: IconButtonProps) {
-  const {
-    operations: { toggleColorMode },
-  } = useColorMode();
+  const { toggleColorMode } = useLocalStateColorMode();
   const theme = useTheme();
 
   const buttonId = useId();

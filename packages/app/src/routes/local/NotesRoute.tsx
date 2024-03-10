@@ -3,7 +3,7 @@ import { useSuspenseQuery } from '@apollo/client';
 import { gql } from '../../__generated__/gql';
 import WidgetListFabLayout from '../../components/notes/layout/WidgetListFabLayout';
 import { NotesListProps } from '../../components/notes/view/NotesList';
-import useNotes from '../../local-state/note/hooks/useNotes';
+import useLocalStateNotes from '../../local-state/note/hooks/useLocalStateNotes';
 import {
   useProxyNavigate,
   useProxyRouteTransform,
@@ -15,7 +15,7 @@ const QUERY = gql(`
     localNotes @client {
       id
       title
-      textContent
+      content
     }
   }
 `);
@@ -27,19 +27,17 @@ function noteRoute(noteId: string) {
 export default function NotesRoute() {
   const { data } = useSuspenseQuery(QUERY);
 
-  const {
-    operations: { createNote, deleteNote },
-  } = useNotes();
+  const { createNote, deleteNote } = useLocalStateNotes();
 
   const navigate = useProxyNavigate();
   const transform = useProxyRouteTransform();
   const absoluteLocation = useAbsoluteLocation();
 
   const notes: NotesListProps['notes'] = data.localNotes.map(
-    ({ id, title, textContent }) => ({
+    ({ id, title, content }) => ({
       id: String(id),
       title,
-      content: textContent,
+      content,
       editing: absoluteLocation.pathname === transform(noteRoute(String(id))),
     })
   );
@@ -47,7 +45,7 @@ export default function NotesRoute() {
   function handleWidgetNoteCreated(title: string, content: string) {
     createNote({
       title,
-      textContent: content,
+      content,
     });
     return Promise.resolve(true);
   }
@@ -55,7 +53,7 @@ export default function NotesRoute() {
   function handleFabCreate() {
     const note = createNote({
       title: '',
-      textContent: '',
+      content: '',
     });
 
     navigate(noteRoute(note.id), {

@@ -5,7 +5,7 @@ import { DBUser } from './user';
 
 export interface DBSession {
   /**
-   * ID that can be stored in a users brower cookie headers.
+   * ID that is stored in users cookie headers.
    * @default nanoid()
    */
   cookieId: string;

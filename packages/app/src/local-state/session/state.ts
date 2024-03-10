@@ -2,8 +2,19 @@ import { makeVar } from '@apollo/client';
 
 import { SavedSession } from '../../__generated__/graphql';
 
-import { readCurrentSessionIndex, readSessions } from './persistence';
+import { readSessionContext } from './persistence';
 
-export const sessionsVar = makeVar<SavedSession[]>(readSessions());
+const sessionCtx = readSessionContext();
 
-export const currentSessionIndexVar = makeVar<number | null>(readCurrentSessionIndex());
+export const sessionsVar = makeVar<SavedSession[]>(
+  sessionCtx
+    ? Object.entries(sessionCtx.sessions).map(([key, session]) => ({
+        ...session,
+        key,
+      }))
+    : []
+);
+
+export const currentSessionVar = makeVar<SavedSession | null>(
+  sessionCtx?.currentSession ?? null
+);

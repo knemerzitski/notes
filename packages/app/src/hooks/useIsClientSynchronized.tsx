@@ -10,17 +10,29 @@ import {
 type UpdateFn = (key: unknown, synchronized: boolean) => void;
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
-const UpdateContext = createContext<UpdateFn>(() => {});
-const IsSyncContext = createContext(false);
+const UpdateContext = createContext<UpdateFn | null>(null);
+const IsSyncContext = createContext<boolean | null>(false);
 
 // eslint-disable-next-line react-refresh/only-export-components
 export default function useIsClientSynchronized() {
-  return useContext(IsSyncContext);
+  const ctx = useContext(IsSyncContext);
+  if (ctx === null) {
+    throw new Error(
+      'useIsClientSynchronized() requires context <ClientSyncStatusProvider>'
+    );
+  }
+  return ctx;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function useUpdateClientSyncStatus() {
-  return useContext(UpdateContext);
+  const ctx = useContext(UpdateContext);
+  if (ctx === null) {
+    throw new Error(
+      'useUpdateClientSyncStatus() requires context <ClientSyncStatusProvider>'
+    );
+  }
+  return ctx;
 }
 
 export function ClientSyncStatusProvider({ children }: { children: ReactNode }) {

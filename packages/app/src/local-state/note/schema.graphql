@@ -4,7 +4,7 @@ type LocalNote {
   "Self-descriptive"
   title: String!
   "Self-descriptive"
-  textContent: String!
+  content: String!
   "Self-descriptive"
   backgroundColor: String
   "Self-descriptive"

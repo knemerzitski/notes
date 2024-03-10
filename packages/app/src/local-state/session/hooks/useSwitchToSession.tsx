@@ -13,11 +13,13 @@ import { gql } from '../../../__generated__/gql';
 import ProxyRoutesProvider from '../../../router/ProxyRoutesProvider';
 import sessionPrefix from '../../../router/sessionPrefix';
 import joinPathnames from '../../../utils/joinPathnames';
-import useSessions from '../hooks/useSessions';
 
-const QUERY = gql(`
+import useLocalStateSessions from './useLocalStateSessions';
+
+const PROVIDER_QUERY = gql(`
   query SessionSwitcherProvider {
     savedSessions @client {
+      key
       displayName
       email
     }
@@ -25,17 +27,15 @@ const QUERY = gql(`
   }
 `);
 
-type SwitchToSessionFunction = (index: number | null) => Promise<boolean>;
+type SwitchToSessionFunction = (sessionKey: string | null) => Promise<boolean>;
 
 const SwitchToSessionContext = createContext<SwitchToSessionFunction | null>(null);
 
 // eslint-disable-next-line react-refresh/only-export-components
-export function useSwitchToSession() {
+export default function useSwitchToSession() {
   const ctx = useContext(SwitchToSessionContext);
   if (ctx === null) {
-    throw new Error(
-      'Error: useSwitchToSessionIndex() may be used only in the context of a <SessionSwitcherProvider> component.'
-    );
+    throw new Error('useSwitchToSession() requires context <SessionSwitcherProvider>');
   }
   return ctx;
 }
@@ -43,12 +43,10 @@ export function useSwitchToSession() {
 export function SessionSwitcherProvider({ children }: { children: ReactNode }) {
   const {
     data: { savedSessions: sessions, currentSavedSessionIndex: currentSessionIndex },
-  } = useSuspenseQuery(QUERY);
+  } = useSuspenseQuery(PROVIDER_QUERY);
 
   const apolloClient = useApolloClient();
-  const {
-    operations: { switchToSession },
-  } = useSessions();
+  const { switchToSession } = useLocalStateSessions();
 
   const navigate = useNavigate();
 
@@ -78,25 +76,40 @@ export function SessionSwitcherProvider({ children }: { children: ReactNode }) {
     targetSessionIndex = currentSessionIndex ?? (sessions.length > 0 ? 0 : null);
   }
 
+  let targetSessionKey: string | null = null;
+  if (targetSessionIndex != null) {
+    const targetSession = sessions[targetSessionIndex];
+    if (targetSession) {
+      targetSessionKey = String(targetSession.key);
+    }
+  }
+
   const paramsRestRef = useRef(params['*'] ?? '');
   paramsRestRef.current = params['*'] ?? '';
 
   // Switches session and updates location
   const handleSwitchToSession = useCallback(
-    async (index: number | null) => {
+    async (newSessionKey: string | null) => {
       if (switchingSessionRef.current) return false;
       try {
         switchingSessionRef.current = true;
 
-        if (!switchToSession(index)) return false;
+        const switchResult = switchToSession(newSessionKey);
+        const newIndex = switchResult != null ? switchResult.index : null;
 
-        if (locationSessionIndex !== index) {
-          if (index == null) {
+        // Update location if new index doesn't match
+        if (locationSessionIndex !== newIndex) {
+          if (newSessionKey == null) {
             navigate(joinPathnames(paramsRestRef.current));
           } else {
-            navigate(joinPathnames(`/${sessionPrefix}/${index}`, paramsRestRef.current));
+            navigate(
+              joinPathnames(`/${sessionPrefix}/${newIndex}`, paramsRestRef.current)
+            );
           }
+        }
 
+        // Reset store if session key changed
+        if (newSessionKey !== targetSessionKey) {
           await apolloClient.resetStore();
         }
 
@@ -105,13 +118,13 @@ export function SessionSwitcherProvider({ children }: { children: ReactNode }) {
         switchingSessionRef.current = false;
       }
     },
-    [apolloClient, locationSessionIndex, navigate, switchToSession]
+    [apolloClient, locationSessionIndex, navigate, switchToSession, targetSessionKey]
   );
 
   // Switch to correct session based on location
   useEffect(() => {
-    void handleSwitchToSession(targetSessionIndex);
-  }, [targetSessionIndex, handleSwitchToSession]);
+    void handleSwitchToSession(targetSessionKey);
+  }, [targetSessionKey, handleSwitchToSession]);
 
   const transformPathname = useCallback(
     (pathname: string) =>

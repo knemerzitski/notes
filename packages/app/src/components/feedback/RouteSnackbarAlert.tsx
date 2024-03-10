@@ -6,10 +6,8 @@ import RouteClosable, { RouteClosableComponentProps } from './RouteClosable';
 export interface RouteSnackbarAlertProps {
   onClose?: () => void;
   children: ReactNode;
-  slotProps?: {
-    snackbar?: SnackbarProps;
-    alert?: AlertProps;
-  };
+  snackBarProps?: SnackbarProps;
+  alertProps?: AlertProps;
 }
 
 function RouteClosableSnackbarAlert({
@@ -31,9 +29,9 @@ function RouteClosableSnackbarAlert({
         onExited: handleExited,
       }}
       onClose={onClosing}
-      {...props.slotProps?.snackbar}
+      {...props.snackBarProps}
     >
-      <Alert severity="error" onClose={onClosing} {...props.slotProps?.alert}>
+      <Alert severity="error" onClose={onClosing} {...props.alertProps}>
         {props.children}
       </Alert>
     </Snackbar>

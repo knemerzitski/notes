@@ -1,17 +1,21 @@
 type SavedSession {
+  "Unique key of this session."
+  key: ID!
   "Cached displayName of this session."
   displayName: String!
-  "Email of this session. Is stored only on client-side and not in server."
+  "Email of this session. This is stored only on client-side and not in the server."
   email: String!
+  "Session has expired and is unusable. Must sign in again"
+  isExpired: Boolean!
 }
 
 extend type Query {
   "Client only saved session info. Server uses http-only cookie to store an array of session ids."
   savedSessions: [SavedSession!]!
-  "Current session index. Cached index of session index stored in http-only cookie"
-  currentSavedSessionIndex: Int
-  "savedSessions[currrentSavedSessionIndex]"
+  "Current session index."
+  currentSavedSessionIndex: NonNegativeInt
+  "Current saved session. savedSessions[currentSavedSessionIndex]"
   currentSavedSession: SavedSession
-  "Currently logged in"
-  isLoggedIn: Boolean!
+  "Is currently logged in"
+  isSignedIn: Boolean!
 }

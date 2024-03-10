@@ -1,6 +1,5 @@
-import path from 'path';
+import './load-env';
 
-import dotenv from 'dotenv';
 import WebSocket from 'ws';
 
 import { handleConnectGraphQLAuth } from '~api/connect-handler';
@@ -32,14 +31,6 @@ import { createLambdaGraphQLDynamoDBTables } from './utils/lambda-graphql-dynamo
 const logger = createLogger('mock:lambda-graphql-server');
 
 logger.info('index:NODE_ENV', { NODE_ENV: process.env.NODE_ENV });
-
-const relEnvPath = `../../../${
-  process.env.NODE_ENV === 'test' ? '.env.test' : '.env.local'
-}`;
-const envPath = path.join(__dirname, relEnvPath);
-dotenv.config({ path: envPath });
-
-logger.info('index:env-load', { path: envPath.toString() });
 
 void (async () => {
   try {

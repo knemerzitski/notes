@@ -1,35 +1,102 @@
 import { SavedSession } from '../../__generated__/graphql';
 
-const SESSIONS_KEY = 'session_sessions';
-const CURRENT_SESSION_INDEX_KEY = 'session_currentIndex';
+const SESSION_CONTEXT_KEY = 'session_context';
 
-export function readSessions(): SavedSession[] {
-  const sessionsStr = localStorage.getItem(SESSIONS_KEY);
-  if (!sessionsStr) return [];
-  return JSON.parse(sessionsStr) as SavedSession[];
+interface SessionContext {
+  currentSession: SavedSession;
+  sessions: Record<string, SavedSession>;
 }
 
-export function saveSessions(sessions: SavedSession[]) {
-  localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
+export function readSessionContext(): SessionContext | null {
+  const sessionContextStr = localStorage.getItem(SESSION_CONTEXT_KEY);
+  if (!sessionContextStr) return null;
+
+  const rawSessionCtx: unknown = JSON.parse(sessionContextStr);
+  if (!rawSessionCtx || typeof rawSessionCtx !== 'object') return null;
+
+  let sessions: SessionContext['sessions'] = {};
+  if ('sessions' in rawSessionCtx) {
+    sessions = parseSavedSessions(rawSessionCtx.sessions);
+  }
+
+  if (
+    'currentKey' in rawSessionCtx &&
+    typeof rawSessionCtx.currentKey === 'string' &&
+    rawSessionCtx.currentKey.trim().length > 0
+  ) {
+    const session = sessions[rawSessionCtx.currentKey];
+    if (session) {
+      return {
+        currentSession: session,
+        sessions,
+      };
+    }
+  }
+
+  const firstKey = Object.keys(sessions)[0];
+  if (!firstKey) return null;
+  const firstSession = sessions[firstKey];
+  if (!firstSession) return null;
+
+  return {
+    currentSession: firstSession,
+    sessions,
+  };
 }
 
-export function deleteSessions() {
-  localStorage.removeItem(SESSIONS_KEY);
+function parseSavedSessions(rawObj: unknown): SessionContext['sessions'] {
+  if (!Array.isArray(rawObj)) return {};
+
+  const sessions: SessionContext['sessions'] = {};
+  for (const anyValue of rawObj) {
+    const rawValue: unknown = anyValue;
+    if (!rawValue || typeof rawValue !== 'object') continue;
+
+    if (
+      !('key' in rawValue) ||
+      typeof rawValue.key !== 'string' ||
+      rawValue.key.trim().length === 0
+    ) {
+      continue;
+    }
+
+    if (
+      !('displayName' in rawValue) ||
+      typeof rawValue.displayName !== 'string' ||
+      rawValue.displayName.trim().length === 0
+    ) {
+      continue;
+    }
+
+    if (
+      !('email' in rawValue) ||
+      typeof rawValue.email !== 'string' ||
+      rawValue.email.trim().length === 0
+    ) {
+      continue;
+    }
+
+    sessions[rawValue.key] = {
+      key: rawValue.key,
+      displayName: rawValue.displayName,
+      email: rawValue.email,
+      isExpired: 'isExpired' in rawValue && !!rawValue.isExpired,
+    };
+  }
+
+  return sessions;
 }
 
-export function readCurrentSessionIndex(): number | null {
-  const currentUserIndexStr = localStorage.getItem(CURRENT_SESSION_INDEX_KEY);
-  if (!currentUserIndexStr) return null;
-
-  const index = Number.parseInt(currentUserIndexStr);
-
-  return !Number.isNaN(index) ? index : null;
+export function saveSessionContext(ctx: SessionContext) {
+  localStorage.setItem(
+    SESSION_CONTEXT_KEY,
+    JSON.stringify({
+      currentKey: ctx.currentSession.key,
+      sessions: Object.values(ctx.sessions),
+    })
+  );
 }
 
-export function saveCurrentSessionIndex(index: number) {
-  localStorage.setItem(CURRENT_SESSION_INDEX_KEY, JSON.stringify(index));
-}
-
-export function deleteCurrentSessionIndex() {
-  localStorage.removeItem(CURRENT_SESSION_INDEX_KEY);
+export function deleteSessionContext() {
+  localStorage.removeItem(SESSION_CONTEXT_KEY);
 }

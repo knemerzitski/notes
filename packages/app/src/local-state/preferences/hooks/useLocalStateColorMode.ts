@@ -2,7 +2,7 @@ import { ColorMode } from '../../../__generated__/graphql';
 import { readPreferences, savePreferences } from '../persistence';
 import { colorModeVar as defaultColorModeVar } from '../state';
 
-export default function useColorMode(
+export default function useLocalStateColorMode(
   colorModeVar = defaultColorModeVar,
   persistence = {
     read: readPreferences,
@@ -21,8 +21,6 @@ export default function useColorMode(
   }
 
   return {
-    operations: {
-      toggleColorMode,
-    },
+    toggleColorMode,
   };
 }

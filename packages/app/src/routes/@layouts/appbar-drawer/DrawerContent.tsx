@@ -23,13 +23,13 @@ interface DrawerContentProps extends BoxProps {
 
 const QUERY = gql(`
   query DrawerContent {
-    isLoggedIn @client
+    isSignedIn @client
   }
 `);
 
 export function DrawerContent({ onClose, ...restProps }: DrawerContentProps) {
   const {
-    data: { isLoggedIn },
+    data: { isSignedIn },
   } = useSuspenseQuery(QUERY);
 
   const isMobile = useIsMobile();
@@ -49,7 +49,7 @@ export function DrawerContent({ onClose, ...restProps }: DrawerContentProps) {
     },
   ];
 
-  if (isLoggedIn) {
+  if (isSignedIn) {
     items.unshift({
       icon: <FolderIcon />,
       text: 'Notes',

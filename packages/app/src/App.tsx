@@ -5,12 +5,18 @@ import { useMemo } from 'react';
 import GlobalStyles from './GlobalStyles';
 import { gql } from './__generated__/gql';
 import { ColorMode } from './__generated__/graphql';
-import { apolloClient, statsLink } from './apollo/apollo-client';
+import { apolloClient, errorLink, statsLink } from './apollo/apollo-client';
 import ApolloClientSynchronized from './apollo/components/ApolloClientSynchronized';
-import { ApolloStatsLinkProvider } from './apollo/hooks/useApolloClientStatsLink';
+import { AddFetchResultErrorHandlerProvider } from './apollo/hooks/useAddFetchResultErrorHandler';
+import { StatsLinkProvider } from './apollo/hooks/useStatsLink';
+import { ClientScriptProvider as GoogleAuthClientScriptProvider } from './auth/google/oauth2';
+import SnackbarAlertProvider from './components/feedback/SnackbarAlertProvider';
 import { ClientSyncStatusProvider } from './hooks/useIsClientSynchronized';
 import RouterProvider from './router/RouterProvider';
 import themeOptions from './themeOptions';
+
+const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const CLIENT_SCRIPT_URL = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
 
 const QUERY = gql(`
   query App {
@@ -38,14 +44,23 @@ export default function App() {
   return (
     <ClientSyncStatusProvider>
       <ApolloProvider client={apolloClient}>
-        <ApolloStatsLinkProvider statsLink={statsLink}>
-          <ApolloClientSynchronized />
-          <ThemeProvider theme={theme}>
-            <CssBaseline />
-            <GlobalStyles />
-            <RouterProvider />
-          </ThemeProvider>
-        </ApolloStatsLinkProvider>
+        <StatsLinkProvider statsLink={statsLink}>
+          <AddFetchResultErrorHandlerProvider errorLink={errorLink}>
+            <ApolloClientSynchronized />
+            <ThemeProvider theme={theme}>
+              <SnackbarAlertProvider>
+                <CssBaseline />
+                <GlobalStyles />
+                <GoogleAuthClientScriptProvider
+                  clientId={CLIENT_ID}
+                  scriptSrc={CLIENT_SCRIPT_URL}
+                >
+                  <RouterProvider />
+                </GoogleAuthClientScriptProvider>
+              </SnackbarAlertProvider>
+            </ThemeProvider>
+          </AddFetchResultErrorHandlerProvider>
+        </StatsLinkProvider>
       </ApolloProvider>
     </ClientSyncStatusProvider>
   );

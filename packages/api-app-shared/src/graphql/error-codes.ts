@@ -24,3 +24,23 @@ export enum GraphQLErrorCode {
    */
   InternalError = 'INTERNAL_ERROR',
 }
+
+export enum AuthenticationFailedReason {
+  /**
+   * Current session key is invalid.
+   */
+  InvalidCurrentSessionKey = 'INVALID_CURRENT_SESSION_KEY',
+  /**
+   * Sessions map has an invalid key.
+   */
+  InvalidSessionsKey = 'INVALID_SESSIONS_KEY',
+
+  /**
+   * Sessions map has a invalid session ID.
+   */
+  InvalidSessionsId = 'INVALID_SESSIONS_ID',
+  /**
+   * Session was not found in database.
+   */
+  SessionExpired = 'SESSION_EXPIRED',
+}

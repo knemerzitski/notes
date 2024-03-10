@@ -5,7 +5,9 @@ import { SubscriptionContext } from '~lambda-graphql/pubsub/subscribe';
 
 import { MongooseModels } from '../mongoose/models';
 
-import { CookieSessionUser } from './session/parse-cookies';
+import { AuthenticationContext } from './session/auth-context';
+
+// import { Logger } from '~utils/logger';
 
 /**
  * Must only contain primitive values so it can be marshalled properly into
@@ -14,9 +16,10 @@ import { CookieSessionUser } from './session/parse-cookies';
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type BaseGraphQLContext = {
-  auth?: CookieSessionUser;
+  auth?: AuthenticationContext;
 };
 
+// TODO rename to ApiGraphQLContext?
 export interface MongooseGraphQLContext {
   mongoose: {
     connection: Connection;
@@ -34,6 +37,8 @@ export interface MongooseGraphQLContext {
      */
     tryRefreshExpireAt: (expireAt: Date) => boolean;
   };
+  // TODO pass logger to context?
+  //logger: Logger;
 }
 
 export type GraphQLResolversContext = ApolloHttpGraphQLContext &
@@ -88,6 +93,7 @@ export function createErrorBaseSubscriptionResolversContext(
       return createErrorProxy('response') as ApolloHttpGraphQLContext['response'];
     },
     publish() {
+      // TODO allow publish in subscriptions?
       throw new Error(`Publish should never be called in ${name}`);
     },
   };

@@ -5,17 +5,20 @@ import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import type { DirectiveResolvers } from '../../../graphql/types.generated';
 import transformSchemaDirectiveResolver from '../../../graphql/utils/transformSchemaDirectiveResolver';
 import {
-  CookieSessionUser,
-  getSessionUserFromHeaders,
-} from '../../session/parse-cookies';
+  AuthenticatedContext,
+  AuthenticationContext,
+  parseAuthFromHeaders,
+  isAuthenticated,
+} from '../../session/auth-context';
 
 export function assertAuthenticated(
-  auth: CookieSessionUser | undefined
-): asserts auth is CookieSessionUser {
-  if (!auth) {
+  auth: AuthenticationContext | undefined
+): asserts auth is AuthenticatedContext {
+  if (!isAuthenticated(auth)) {
     throw new GraphQLError('You are not authorized to perform this action.', {
       extensions: {
         code: GraphQLErrorCode.Unauthenticated,
+        reason: auth?.reason,
       },
     });
   }
@@ -28,9 +31,9 @@ export const auth: NonNullable<DirectiveResolvers['auth']> = async (
   ctx
 ) => {
   if (!ctx.auth) {
-    ctx.auth = await getSessionUserFromHeaders(
-      ctx.mongoose,
+    ctx.auth = await parseAuthFromHeaders(
       ctx.request.headers,
+      ctx.mongoose.model.Session,
       ctx.session.tryRefreshExpireAt
     );
 

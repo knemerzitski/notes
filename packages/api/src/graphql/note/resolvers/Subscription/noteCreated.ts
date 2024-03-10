@@ -4,21 +4,13 @@ import type {
   SubscriptionResolvers,
 } from '../../../../graphql/types.generated';
 import { assertAuthenticated } from '../../../base/directives/auth';
+import { isAuthenticated } from '../../../session/auth-context';
 
 export const noteCreated: NonNullable<SubscriptionResolvers['noteCreated']> = {
   subscribe: (_parent, _arg, { auth, subscribe, denySubscription }) => {
-    if (!auth) return denySubscription();
+    if (!isAuthenticated(auth)) return denySubscription();
 
-    return subscribe(`NOTE_CREATED:USER-${auth.session.user.publicId}`);
-
-    // Or can subscribe by filter
-    // return subscribe(`NOTE_CREATED`, {
-    //   filter: {
-    //     noteCreated: {
-    //       userId: auth.userId,
-    //     },
-    //   },
-    // });
+    return subscribe(`NOTE_CREATED:user-${auth.session.user.publicId}`);
   },
   resolve(payload: NoteCreatedPayload) {
     return payload;
@@ -31,12 +23,7 @@ export async function publishNoteCreated(
 ) {
   assertAuthenticated(auth);
 
-  return publish(`NOTE_CREATED:USER-${auth.session.user.publicId}`, {
+  return publish(`NOTE_CREATED:user-${auth.session.user.publicId}`, {
     noteCreated: payload,
   });
-
-  // Can publish by filter
-  // return publish(`NOTE_CREATED`, {
-  //   noteCreated: note,
-  // });
 }

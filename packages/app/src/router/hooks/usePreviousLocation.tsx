@@ -7,9 +7,7 @@ const PreviousLocationContext = createContext<Location | undefined | null>(null)
 export default function usePreviousLocation() {
   const ctx = useContext(PreviousLocationContext);
   if (ctx === null) {
-    throw new Error(
-      'Error: usePreviousLocation() may be used only in the context of a <PreviousLocationProvider> component.'
-    );
+    throw new Error('usePreviousLocation() requires context <PreviousLocationProvider>');
   }
   return ctx;
 }

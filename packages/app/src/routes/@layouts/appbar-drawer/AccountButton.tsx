@@ -1,5 +1,6 @@
 import { useMutation, useSuspenseQuery } from '@apollo/client';
 import CloseIcon from '@mui/icons-material/Close';
+import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
 import {
   IconButton,
@@ -8,29 +9,35 @@ import {
   ListItemText,
   Popover,
   Typography,
-  Paper,
   ListItemAvatar,
   List,
   ListItem,
   Box,
   Button,
+  Badge,
+  ListItemButton,
 } from '@mui/material';
 import { useId, useState } from 'react';
 
 import { gql } from '../../../__generated__/gql';
-import { AuthProvider } from '../../../__generated__/graphql';
+import { AuthProvider, SavedSession } from '../../../__generated__/graphql';
+import { SignInButton as SignInWithGoogleButton } from '../../../auth/google/oauth2';
+import BackgroundLetterAvatar from '../../../components/data/BackgroundLetterAvatar';
 import { useSnackbarError } from '../../../components/feedback/SnackbarAlertProvider';
-import { useSwitchToSession } from '../../../local-state/session/context/SessionSwitcherProvider';
-import useSessions from '../../../local-state/session/hooks/useSessions';
+import useLocalStateSessions from '../../../local-state/session/hooks/useLocalStateSessions';
+import useSwitchToSession from '../../../local-state/session/hooks/useSwitchToSession';
 
 const SIGN_IN = gql(`
   mutation SignIn($input: SignInInput!)  {
     signIn(input: $input) {
-      sessionIndex
+      currentSessionKey
       userInfo {
         profile {
           displayName
         }
+      }
+      signInUserInfo {
+        email
       }
     }
   }
@@ -40,7 +47,7 @@ const SIGN_OUT = gql(`
   mutation SignOut {
     signOut {
       signedOut
-      currentSessionIndex
+      currentSessionKey
     }
   }
 `);
@@ -48,7 +55,7 @@ const SIGN_OUT = gql(`
 const SWITCH_SESSION = gql(`
   mutation SwitchSession($input: SwitchToSessionInput!) {
     switchToSession(input: $input) {
-      currentSessionIndex
+      currentSessionKey
     }
   }
 `);
@@ -56,37 +63,35 @@ const SWITCH_SESSION = gql(`
 const QUERY = gql(`
   query AccountButton {
     savedSessions @client {
+      key
       displayName
       email
+      isExpired
     }
 
     currentSavedSessionIndex @client
-    
+
     currentSavedSession @client {
+      key
       displayName
       email
+      isExpired
     }
   }
 `);
 
 export default function AccountButton(props: IconButtonProps) {
   const {
-    data: {
-      savedSessions: sessions,
-      currentSavedSessionIndex: currentSessionIndex,
-      currentSavedSession: currentSession,
-    },
+    data: { savedSessions: sessions, currentSavedSession: currentSession },
   } = useSuspenseQuery(QUERY);
 
-  const {
-    operations: { updateSession, deleteSession },
-  } = useSessions();
+  const { updateSession, deleteSession } = useLocalStateSessions();
 
   const buttonId = useId();
   const menuId = useId();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-  const setLocalSession = useSwitchToSession();
+  const localSwitchToSession = useSwitchToSession();
   const showError = useSnackbarError();
 
   const [signIn] = useMutation(SIGN_IN);
@@ -95,12 +100,20 @@ export default function AccountButton(props: IconButtonProps) {
 
   const menuOpen = Boolean(anchorEl);
 
-  async function handleSwitchSession(index: number) {
-    if (index !== currentSessionIndex) {
+  async function handleClickSession(session: SavedSession) {
+    if (session.isExpired) {
+      session;
+    } else {
+      return handleSwitchSession(session);
+    }
+  }
+
+  async function handleSwitchSession(session: SavedSession) {
+    if (session.key !== currentSession?.key) {
       const { data } = await switchToSession({
         variables: {
           input: {
-            switchToSessionIndex: index,
+            switchToSessionKey: String(session.key),
           },
         },
       });
@@ -110,9 +123,9 @@ export default function AccountButton(props: IconButtonProps) {
         return;
       }
 
-      index = data.switchToSession.currentSessionIndex;
+      const sessionKey = data.switchToSession.currentSessionKey;
 
-      if (!(await setLocalSession(index))) {
+      if (!(await localSwitchToSession(sessionKey))) {
         showError('Failed to switch session');
         return;
       }
@@ -125,16 +138,18 @@ export default function AccountButton(props: IconButtonProps) {
     setAnchorEl(null);
   }
 
-  async function handleSignInWithGoogle() {
+  async function handleSignInWithGoogle(response: google.accounts.id.CredentialResponse) {
     const signInPayload = await signIn({
       variables: {
         input: {
           provider: AuthProvider.Google,
           credentials: {
-            // TODO use actual jwt token
-            token: 'test-google-account' + ((currentSessionIndex ?? -1) + 1),
+            token: response.credential,
           },
         },
+      },
+      context: {
+        headers: {},
       },
     });
 
@@ -148,34 +163,40 @@ export default function AccountButton(props: IconButtonProps) {
     }
 
     const {
-      sessionIndex,
+      currentSessionKey,
       userInfo: {
         profile: { displayName },
       },
+      signInUserInfo: { email },
     } = signInPayload.data.signIn;
 
-    updateSession(sessionIndex, {
+    updateSession({
+      key: currentSessionKey,
       displayName,
-      email: 'testaccount@gmail.com', // TODO email from google auth jwt response
+      email,
+      isExpired: false,
     });
 
-    await setLocalSession(sessionIndex);
+    await localSwitchToSession(currentSessionKey);
+
+    setAnchorEl(null);
   }
 
   async function handleSignOut() {
-    if (currentSessionIndex == null) return;
+    if (currentSession == null) return;
 
     const signOutPayload = await signOut();
     if (!signOutPayload.data) return;
 
-    const { signedOut, currentSessionIndex: newSessionIndex } =
-      signOutPayload.data.signOut;
+    const { signedOut, currentSessionKey: newSessionKey } = signOutPayload.data.signOut;
 
     if (!signedOut) return;
 
-    deleteSession(currentSessionIndex);
+    deleteSession(String(currentSession.key));
 
-    await setLocalSession(newSessionIndex ?? null);
+    await localSwitchToSession(newSessionKey ?? null);
+
+    setAnchorEl(null);
   }
 
   return (
@@ -193,14 +214,32 @@ export default function AccountButton(props: IconButtonProps) {
         }}
         {...props}
       >
-        <Avatar>
-          <PersonIcon />
-        </Avatar>
+        {currentSession?.isExpired ? (
+          <Badge
+            badgeContent="!"
+            color="warning"
+            sx={{
+              '& .MuiBadge-badge': {
+                right: 4,
+                top: 5,
+              },
+            }}
+          >
+            <BackgroundLetterAvatar name={currentSession.displayName} />
+          </Badge>
+        ) : currentSession ? (
+          <BackgroundLetterAvatar name={currentSession.displayName} />
+        ) : (
+          <Avatar>
+            <PersonIcon />
+          </Avatar>
+        )}
       </IconButton>
 
       <Popover
         open={menuOpen}
         anchorEl={anchorEl}
+        keepMounted
         onClose={() => {
           setAnchorEl(null);
         }}
@@ -217,8 +256,8 @@ export default function AccountButton(props: IconButtonProps) {
           paper: {
             elevation: 10,
             sx: {
-              p: 2,
-              borderRadius: 4,
+              py: 2,
+              borderRadius: 3,
               width: 'min(400px, 100vw)',
             },
           },
@@ -236,91 +275,117 @@ export default function AccountButton(props: IconButtonProps) {
         >
           <CloseIcon />
         </IconButton>
-        {currentSession && (
-          <Typography
+
+        <Box
+          sx={{
+            display: 'flex',
+            pl: 2,
+            my: 1,
+            gap: 2,
+            alignItems: 'center',
+          }}
+        >
+          {currentSession ? (
+            <BackgroundLetterAvatar
+              name={currentSession.displayName}
+              avatarProps={{
+                sx: {
+                  width: 64,
+                  height: 64,
+                  boxShadow: 3,
+                },
+              }}
+            />
+          ) : (
+            <Avatar
+              sx={{
+                width: 64,
+                height: 64,
+                boxShadow: 3,
+              }}
+            >
+              <PersonIcon
+                sx={{
+                  fontSize: 48,
+                }}
+              />
+            </Avatar>
+          )}
+          <Box
             sx={{
-              textAlign: 'center',
-              fontWeight: 'bold',
+              fontSize: '1.1em',
             }}
           >
-            {currentSession.email}
-          </Typography>
-        )}
-        <Avatar
-          sx={{
-            alignSelf: 'center',
-            mx: 'auto',
-            mt: 3,
-            width: 64,
-            height: 64,
-            boxShadow: 3,
-          }}
-        >
-          <PersonIcon
-            sx={{
-              fontSize: 48,
-            }}
-          />
-        </Avatar>
-        <Typography
-          sx={{
-            mt: 1,
-            textAlign: 'center',
-            fontSize: '1.3em',
-            fontWeight: 'fontWeightMedium',
-          }}
-        >
-          {currentSession ? currentSession.displayName : 'Local Account'}
-        </Typography>
-
+            <Typography
+              sx={{
+                // mt: 1,
+                fontSize: '1em',
+                fontWeight: 'bold',
+              }}
+            >
+              {currentSession ? currentSession.displayName : 'Local Account'}
+            </Typography>
+            {currentSession && (
+              <Typography
+                sx={{
+                  fontSize: '0.9em',
+                }}
+              >
+                {currentSession.email}
+              </Typography>
+            )}
+          </Box>
+        </Box>
         <List
           disablePadding
           sx={{
-            mt: 3,
+            my: 3,
             display: 'flex',
             flexDirection: 'column',
-            gap: 0.5,
+            borderTop: (theme) => `1px solid ${theme.palette.divider}`,
           }}
         >
-          {sessions.map((session, index) => (
+          {sessions.map((session) => (
             <ListItem
-              key={index}
+              key={session.key}
               disablePadding
-              onClick={() => void handleSwitchSession(index)}
+              onClick={() => void handleClickSession(session)}
+              divider
             >
-              <Paper
-                elevation={1}
-                sx={(theme) => ({
-                  flexGrow: 1,
-                  px: 3,
-                  py: 1,
-                  borderRadius: 1,
-                  ...(index === 0 && {
-                    borderTopLeftRadius: theme.shape.borderRadius * 4,
-                    borderTopRightRadius: theme.shape.borderRadius * 4,
-                  }),
-                  ...(index === sessions.length - 1 && {
-                    borderBottomLeftRadius: theme.shape.borderRadius * 4,
-                    borderBottomRightRadius: theme.shape.borderRadius * 4,
-                  }),
-                  display: 'flex',
-                  alignItems: 'center',
-                  '&:hover': {
-                    backgroundColor: theme.palette.action.hover,
-                    cursor: 'pointer',
-                  },
-                  ...(index === currentSessionIndex && {
+              <ListItemButton
+                sx={{
+                  ...(session.key === currentSession?.key && {
                     backgroundColor: 'action.selected',
                   }),
-                })}
+                }}
               >
                 <ListItemAvatar>
-                  <Avatar>
-                    <PersonIcon />
-                  </Avatar>
+                  <BackgroundLetterAvatar name={session.displayName} />
                 </ListItemAvatar>
                 <ListItemText>
-                  <Typography fontWeight="bold">{session.displayName}</Typography>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <Typography fontWeight="bold">{session.displayName}</Typography>
+                    {session.isExpired && (
+                      <Typography
+                        sx={{
+                          backgroundColor: 'rgba(0,0,0,0.15)',
+                          fontSize: '0.8em',
+                          lineHeight: '0.8em',
+                          p: 0.8,
+                          borderRadius: 1,
+                        }}
+                      >
+                        Session expired
+                      </Typography>
+                    )}
+                  </Box>
+
                   <Typography
                     sx={{
                       fontSize: '.9em',
@@ -329,38 +394,47 @@ export default function AccountButton(props: IconButtonProps) {
                     {session.email}
                   </Typography>
                 </ListItemText>
-              </Paper>
+              </ListItemButton>
             </ListItem>
           ))}
         </List>
 
         <Box
           sx={{
-            mt: 3,
-            pt: 2,
-            borderTop: (theme) => `1px solid ${theme.palette.divider}`,
             display: 'flex',
             flexDirection: 'column',
             gap: 1,
           }}
         >
-          <Button
-            variant="contained"
-            color="info"
-            onClick={() => {
-              void handleSignInWithGoogle();
+          <Box
+            sx={{
+              px: 2,
+              py: 1,
+              alignSelf: 'flex-start',
+              maxWidth: 192,
             }}
           >
-            Sign in with Google
-          </Button>
+            <SignInWithGoogleButton
+              onCallback={(res) => {
+                void handleSignInWithGoogle(res);
+              }}
+            />
+          </Box>
           {currentSession && (
             <Button
-              variant="contained"
-              color="info"
+              color="inherit"
+              variant="text"
               onClick={() => {
                 void handleSignOut();
               }}
+              sx={{
+                justifyContent: 'flex-start',
+                alignItems: 'flex-start',
+                px: 2,
+                py: 1,
+              }}
             >
+              <LogoutIcon />
               Sign out
             </Button>
           )}

@@ -7,14 +7,13 @@ import {
   RouterProvider as DomRouterProvider,
 } from 'react-router-dom';
 
-import SnackbarAlertProvider from '../components/feedback/SnackbarAlertProvider';
-import { SessionSwitcherProvider } from '../local-state/session/context/SessionSwitcherProvider';
+import SessionSynchronization from '../local-state/session/components/SessionSynchronization';
+import { SessionSwitcherProvider } from '../local-state/session/hooks/useSwitchToSession';
 import ErrorPage from '../routes/ErrorPage';
 import RoutesStructure from '../routes/RoutesStructure';
 
 import { PreviousLocationProvider } from './hooks/usePreviousLocation';
 import sessionPrefix from './sessionPrefix';
-
 
 interface CustomIndexRouteObject extends IndexRouteObject {
   readonly backgroundPath?: string;
@@ -30,13 +29,12 @@ const router = createBrowserRouter([
   ...[`/${sessionPrefix}/:sessionIndex/*`, '*'].map((path) => ({
     path,
     element: (
-      <SnackbarAlertProvider>
-        <SessionSwitcherProvider>
-          <PreviousLocationProvider>
-            <RoutesStructure />
-          </PreviousLocationProvider>
-        </SessionSwitcherProvider>
-      </SnackbarAlertProvider>
+      <SessionSwitcherProvider>
+        <PreviousLocationProvider>
+          <SessionSynchronization />
+          <RoutesStructure />
+        </PreviousLocationProvider>
+      </SessionSwitcherProvider>
     ),
     errorElement: <ErrorPage />,
   })),
@@ -67,9 +65,7 @@ const RouterContext = createContext<{
 export function useRouter() {
   const ctx = useContext(RouterContext);
   if (ctx === null) {
-    throw new Error(
-      'Error: useRouter() may be used only in the context of a <RouterProvider> component.'
-    );
+    throw new Error('useRouter() requires context <RouterProvider>');
   }
   return ctx;
 }

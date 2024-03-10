@@ -1,7 +1,12 @@
+import { ObjectId } from 'mongodb';
+
 import type { MutationResolvers } from '../../../../graphql/types.generated';
 import { assertAuthenticated } from '../../../base/directives/auth';
-
-import { SECURE_SET_COOKIE } from './signIn';
+import {
+  createCookieDeleteByKey,
+  headersSetCookieDeleteSessions,
+  headersSetCookieUpdateSessions,
+} from '../../auth-context';
 
 export const signOut: NonNullable<MutationResolvers['signOut']> = async (
   _parent,
@@ -10,41 +15,21 @@ export const signOut: NonNullable<MutationResolvers['signOut']> = async (
 ) => {
   assertAuthenticated(auth);
 
-  await model.Session.findByIdAndDelete(auth.session._id);
+  await model.Session.findByIdAndDelete(ObjectId.createFromBase64(auth.session._id));
 
-  if (!('Set-Cookie' in response.multiValueHeaders)) {
-    response.multiValueHeaders['Set-Cookie'] = [];
-  }
+  const sessionCookie = createCookieDeleteByKey(auth.cookie, auth.cookie.currentKey);
 
-  const cookieNewSessions = auth.cookie.sessions.filter(
-    (cookieID) => cookieID !== auth.session.cookieId
-  );
-  if (cookieNewSessions.length > 0) {
-    // Keep Using default account
-    const cookieCurrentSessionIndex = 0;
-    response.multiValueHeaders['Set-Cookie'].push(
-      `Sessions=${cookieNewSessions.join(
-        ','
-      )}; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}`
-    );
-    response.multiValueHeaders['Set-Cookie'].push(
-      `CurrentSessionIndex=${cookieCurrentSessionIndex}; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}`
-    );
+  if (sessionCookie) {
+    headersSetCookieUpdateSessions(response.multiValueHeaders, sessionCookie);
+
     return {
       signedOut: true,
-      currentSessionIndex: cookieCurrentSessionIndex,
+      currentSessionKey: sessionCookie.currentKey,
+    };
+  } else {
+    headersSetCookieDeleteSessions(response.multiValueHeaders);
+    return {
+      signedOut: true,
     };
   }
-
-  // Signed out from all accounts
-  response.multiValueHeaders['Set-Cookie'].push(
-    `Sessions=; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}; Expires=Thu, 01 Jan 1970 00:00:00 GMT`
-  );
-  response.multiValueHeaders['Set-Cookie'].push(
-    `CurrentSessionIndex=; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}; Expires=Thu, 01 Jan 1970 00:00:00 GMT`
-  );
-
-  return {
-    signedOut: true,
-  };
 };

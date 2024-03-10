@@ -6,14 +6,14 @@ import RouteClosable, {
   RouteClosableComponentProps,
 } from '../../../../components/feedback/RouteClosable';
 import EditNoteDialog from '../../../../components/notes/edit/EditNoteDialog';
-import useNotes from '../../../../local-state/note/hooks/useNotes';
+import useLocalStateNotes from '../../../../local-state/note/hooks/useLocalStateNotes';
 
 const QUERY = gql(`
   query LocalEditNoteDialogRoute($id: ID!) {
     localNote(id: $id) @client {
       id
       title
-      textContent
+      content
     }
   }
 `);
@@ -31,22 +31,20 @@ function RouteClosableEditNoteDialog({
     },
   });
 
-  const {
-    operations: { updateNote, deleteNote },
-  } = useNotes();
+  const { updateNote, deleteNote } = useLocalStateNotes();
 
   const noteId = String(data.localNote.id);
 
   const note = {
     title: data.localNote.title,
-    content: data.localNote.textContent,
+    content: data.localNote.content,
   };
 
   const handleChangedNote = ({ title, content }: { title: string; content: string }) => {
     updateNote({
       id: noteId,
       title,
-      textContent: content,
+      content,
     });
     return Promise.resolve();
   };

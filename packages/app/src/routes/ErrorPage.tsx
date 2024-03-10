@@ -10,7 +10,8 @@ export default function ErrorPage() {
       ? routeError.message
       : routeError.status + (routeError.statusText ? ' ' + routeError.statusText : '');
 
-  const stack = routeError instanceof Error ? routeError.stack : null;
+  const stack =
+    routeError instanceof Error && !import.meta.env.PROD ? routeError.stack : null;
 
   return (
     <Box

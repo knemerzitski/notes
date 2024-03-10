@@ -7,7 +7,7 @@ import { notesVar as defaultNotesVar } from '../state';
 
 interface CreateNoteInput {
   title?: string;
-  textContent?: string;
+  content?: string;
   backgroundColor?: string;
   readOnly?: boolean;
 }
@@ -16,7 +16,7 @@ interface PatchNoteInput extends Partial<CreateNoteInput> {
   id: string;
 }
 
-export default function useNotes(
+export default function useLocalStateNotes(
   notesVar = defaultNotesVar,
   persistence = {
     save: saveNote,
@@ -30,7 +30,7 @@ export default function useNotes(
     const note = {
       ...newNote,
       title: newNote.title ?? '',
-      textContent: newNote.textContent ?? '',
+      content: newNote.content ?? '',
       id,
     };
     persistence.save(note);
@@ -47,6 +47,8 @@ export default function useNotes(
     const existingNote = notes[existingNoteIndex];
 
     const updatedNote = {
+      title: '',
+      content: '',
       ...existingNote,
       ...notePatch,
     };
@@ -73,10 +75,8 @@ export default function useNotes(
   }
 
   return {
-    operations: {
-      createNote,
-      updateNote,
-      deleteNote,
-    },
+    createNote,
+    updateNote,
+    deleteNote,
   };
 }

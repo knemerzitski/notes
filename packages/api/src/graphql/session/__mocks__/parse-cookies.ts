@@ -1,7 +1,7 @@
 import { beforeEach } from 'vitest';
 import { mockFn, mockReset } from 'vitest-mock-extended';
 
-import { getSessionUserFromHeaders as _getSessionUserFromHeaders } from '../parse-cookies';
+import { parseAuthFromHeaders as _getSessionUserFromHeaders } from '../auth-context';
 
 beforeEach(() => {
   mockReset(getSessionUserFromHeaders);

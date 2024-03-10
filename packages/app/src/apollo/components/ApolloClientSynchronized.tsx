@@ -2,10 +2,10 @@ import { OperationTypeNode } from 'graphql';
 import { useEffect } from 'react';
 
 import { useUpdateClientSyncStatus } from '../../hooks/useIsClientSynchronized';
-import useApolloClientStatsLink from '../hooks/useApolloClientStatsLink';
+import useStatsLink from '../hooks/useStatsLink';
 
 export default function ApolloClientSynchronized() {
-  const statsLink = useApolloClientStatsLink();
+  const statsLink = useStatsLink();
   const updateClientSynchronized = useUpdateClientSyncStatus();
 
   // Subscribe to apollo client operation count changes and update client sync accordingly

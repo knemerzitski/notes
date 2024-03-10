@@ -2,9 +2,7 @@ import { Alert, AlertProps, Snackbar, SnackbarProps } from '@mui/material';
 import { ReactNode, createContext, useContext, useState } from 'react';
 
 type SnackbarAlertProps = AlertProps & {
-  slotProps?: {
-    snackbar: SnackbarProps;
-  };
+  snackbarProps?: SnackbarProps;
 };
 
 const SnackbarAlertContext = createContext<((props: SnackbarAlertProps) => void) | null>(
@@ -19,9 +17,7 @@ const SnackbarAlertContext = createContext<((props: SnackbarAlertProps) => void)
 export function useSnackbarAlert() {
   const ctx = useContext(SnackbarAlertContext);
   if (ctx === null) {
-    throw new Error(
-      'Error: useSnackbarAlert() may be used only in the context of a <SnackbarAlertProvider> component.'
-    );
+    throw new Error('useSnackbarAlert() requires context <SnackbarAlertProvider>');
   }
   return ctx;
 }
@@ -35,28 +31,24 @@ const SnackbarErrorContext = createContext<((message: string) => void) | null>(n
 export function useSnackbarError() {
   const ctx = useContext(SnackbarErrorContext);
   if (ctx === null) {
-    throw new Error(
-      'Error: useSnackbarError() may be used only in the context of a <SnackbarAlertProvider> component.'
-    );
+    throw new Error('useSnackbarError() requires context <SnackbarAlertProvider>');
   }
   return ctx;
 }
 
 export default function SnackbarAlertProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
-  const [props, setProps] = useState<SnackbarAlertProps>();
+  const [propsOnOpen, setPropsOnOpen] = useState<SnackbarAlertProps>();
 
   function openSnackbarAlert(props: SnackbarAlertProps) {
-    setProps(props);
+    setPropsOnOpen(props);
     setOpen(true);
   }
 
   function openSnackbarError(message: string) {
-    setProps({
-      slotProps: {
-        snackbar: {
-          anchorOrigin: { vertical: 'top', horizontal: 'center' },
-        },
+    setPropsOnOpen({
+      snackbarProps: {
+        anchorOrigin: { vertical: 'top', horizontal: 'center' },
       },
       severity: 'error',
       children: message,
@@ -68,6 +60,8 @@ export default function SnackbarAlertProvider({ children }: { children: ReactNod
     setOpen(false);
   }
 
+  const { snackbarProps, ...restPropsOnOpen } = propsOnOpen ?? {};
+
   return (
     <SnackbarAlertContext.Provider value={openSnackbarAlert}>
       <SnackbarErrorContext.Provider value={openSnackbarError}>
@@ -77,10 +71,9 @@ export default function SnackbarAlertProvider({ children }: { children: ReactNod
           open={open}
           autoHideDuration={10000}
           onClose={handleClose}
-          // eslint-disable-next-line react/prop-types
-          {...props?.slotProps?.snackbar}
+          {...snackbarProps}
         >
-          <Alert severity="error" onClose={handleClose} {...props} />
+          <Alert severity="error" onClose={handleClose} {...restPropsOnOpen} />
         </Snackbar>
       </SnackbarErrorContext.Provider>
     </SnackbarAlertContext.Provider>
