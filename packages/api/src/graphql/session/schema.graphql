@@ -8,7 +8,9 @@ enum AuthProvider {
 }
 
 "User info that is only available during sign in process and is not stored in database."
-type SignInUserInfo {
+type AuthProviderUserInfo {
+  "User ID"
+  id: String!
   "User email"
   email: String!
 }
@@ -22,27 +24,34 @@ input SignInInput {
   credentials: CredentialsInput!
 }
 type SignInPayload {
-  "Key to session ID in http-only cookie"
+  "Key to session ID in http-only cookie."
   currentSessionKey: String!
-  "Signed in user info"
+  "Signed in user info."
   userInfo: UserInfo!
-  "User info available only during sign in"
-  signInUserInfo: SignInUserInfo!
+  "User info available only during sign in from auth provider."
+  authProviderUserInfo: AuthProviderUserInfo!
 }
 extend type Mutation {
   "On successful sign in, session ID is stored in a http-only cookie. Returns null on failed sign in."
   signIn(input: SignInInput!): SignInPayload
 }
 
+"Sign out of current session unless allSessions or sessionKey is specified."
+input SignOutInput {
+  "Sign out of all session. Cookies are cleared."
+  allSessions: Boolean
+  "Sign out of specific session. This has no effect if allSessions is true."
+  sessionKey: String
+}
 type SignOutPayload {
   "User was signed out."
   signedOut: Boolean!
-  "Session keyafter signing out if other sessions still exists."
+  "Session keya fter signing out if other sessions still exists."
   currentSessionKey: String
 }
 extend type Mutation {
   "Returns signed out http-conly cookie session index or null if user was not signed in."
-  signOut: SignOutPayload! @auth
+  signOut(input: SignOutInput): SignOutPayload!
 }
 
 input SwitchToSessionInput {

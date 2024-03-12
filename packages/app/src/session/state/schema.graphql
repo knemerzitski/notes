@@ -7,6 +7,8 @@ type SavedSession {
   email: String!
   "Session has expired and is unusable. Must sign in again"
   isExpired: Boolean!
+  "Google payload sub field for now. TODO separate into own type?"
+  authProviderId: String!
 }
 
 extend type Query {

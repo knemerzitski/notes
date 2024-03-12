@@ -1,5 +1,5 @@
 import { Alert, AlertProps, Snackbar, SnackbarProps } from '@mui/material';
-import { ReactNode, createContext, useContext, useState } from 'react';
+import { ReactNode, createContext, useCallback, useContext, useState } from 'react';
 
 type SnackbarAlertProps = AlertProps & {
   snackbarProps?: SnackbarProps;
@@ -40,12 +40,12 @@ export default function SnackbarAlertProvider({ children }: { children: ReactNod
   const [open, setOpen] = useState(false);
   const [propsOnOpen, setPropsOnOpen] = useState<SnackbarAlertProps>();
 
-  function openSnackbarAlert(props: SnackbarAlertProps) {
+  const openSnackbarAlert = useCallback((props: SnackbarAlertProps) => {
     setPropsOnOpen(props);
     setOpen(true);
-  }
+  }, []);
 
-  function openSnackbarError(message: string) {
+  const openSnackbarError = useCallback((message: string) => {
     setPropsOnOpen({
       snackbarProps: {
         anchorOrigin: { vertical: 'top', horizontal: 'center' },
@@ -54,7 +54,7 @@ export default function SnackbarAlertProvider({ children }: { children: ReactNod
       children: message,
     });
     setOpen(true);
-  }
+  }, []);
 
   function handleClose() {
     setOpen(false);

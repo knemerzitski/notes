@@ -12,7 +12,6 @@ import LocalNotesRoute from './local/NotesRoute';
 import LocalEditNoteDialogRoute from './local/note/(desktop)/EditNoteDialogRoute';
 import LocalEditNotePage from './local/note/(mobile)/EditNotePage';
 import EditNoteDialogRoute from './note/(desktop)/EditNoteDialogRoute';
-import EditNotePage from './note/(mobile)/EditNotePage';
 
 export default function RoutesStructure() {
   const isMobile = useIsMobile();
@@ -20,21 +19,21 @@ export default function RoutesStructure() {
   return isMobile ? <MobileRoutes /> : <DesktopRoutes />;
 }
 
-const COMMON_ROUTES_QUERY = gql(`
-  query CommonRoutesQuery {
-    isLoggedIn @client
+const QUERY = gql(`
+  query RoutesStructure {
+    isSignedIn @client
   }
 `);
 
 function CommonRoutes({ children, ...restProps }: RoutesProps) {
   const {
-    data: { isLoggedIn },
-  } = useSuspenseQuery(COMMON_ROUTES_QUERY);
+    data: { isSignedIn },
+  } = useSuspenseQuery(QUERY);
 
   return (
     <Routes {...restProps}>
       <Route path="*" element={<AppBarDrawerLayout />}>
-        <Route index element={isLoggedIn ? <NotesRoute /> : <LocalNotesRoute />} />
+        <Route index element={isSignedIn ? <NotesRoute /> : <LocalNotesRoute />} />
         <Route path="local" element={<LocalNotesRoute />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
@@ -60,7 +59,8 @@ function DesktopRoutes() {
 function MobileRoutes() {
   return (
     <CommonRoutes>
-      <Route path="note/:id" element={<EditNotePage />} />
+      {/* <Route path="note/:id" element={<EditNotePage />} /> */}
+      <Route path="note/:id" element={<EditNoteDialogRoute />} />
       <Route path="local/note/:id" element={<LocalEditNotePage />} />
     </CommonRoutes>
   );

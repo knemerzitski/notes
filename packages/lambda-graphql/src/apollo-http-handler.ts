@@ -118,6 +118,7 @@ export function createApolloHttpHandler<
         ? (connectionId: string) => wsConnectionId === connectionId
         : () => false;
 
+      // TODO allow publish in subscriptions?
       graphQLContext.publish = createPublisher<GraphQLContext, TOnConnectGraphQLContext>({
         context: {
           ...context,

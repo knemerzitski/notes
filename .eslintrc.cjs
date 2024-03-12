@@ -33,10 +33,7 @@ module.exports = {
       processor: '@graphql-eslint/graphql',
     },
     {
-      files: [
-        './packages/api/src/graphql/**/*.graphql',
-        './packages/app/src/local-state/**/*.graphql',
-      ],
+      files: ['./packages/api/src/**/*.graphql', './packages/app/src/**/*.graphql'],
       extends: [
         'plugin:@graphql-eslint/schema-recommended',
         'plugin:@graphql-eslint/operations-recommended',
@@ -56,8 +53,8 @@ module.exports = {
       },
       parserOptions: {
         schema: [
-          './packages/api/src/graphql/**/schema.graphql',
-          './packages/app/src/local-state/**/schema.graphql',
+          './packages/api/src/**/schema.graphql',
+          './packages/app/src/**/schema.graphql',
         ],
         operations: ['./packages/app/src/**/*.{graphql,js,ts,jsx,tsx}'],
       },

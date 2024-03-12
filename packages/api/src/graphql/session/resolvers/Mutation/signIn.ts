@@ -65,7 +65,8 @@ export const signIn: NonNullable<MutationResolvers['signIn']> = async (
         displayName: existingUser.profile.displayName,
       },
     },
-    signInUserInfo: {
+    authProviderUserInfo: {
+      id: googleUserId,
       email: tmpGoogleEmail,
     },
   };

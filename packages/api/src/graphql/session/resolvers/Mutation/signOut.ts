@@ -1,35 +1,72 @@
-import { ObjectId } from 'mongodb';
-
 import type { MutationResolvers } from '../../../../graphql/types.generated';
-import { assertAuthenticated } from '../../../base/directives/auth';
 import {
   createCookieDeleteByKey,
   headersSetCookieDeleteSessions,
   headersSetCookieUpdateSessions,
+  parseAuthFromHeaders,
 } from '../../auth-context';
 
 export const signOut: NonNullable<MutationResolvers['signOut']> = async (
   _parent,
-  _arg,
-  { auth, mongoose: { model }, response }
+  { input },
+  ctx
 ) => {
-  assertAuthenticated(auth);
+  const {
+    mongoose: { model },
+    request,
+    response,
+  } = ctx;
 
-  await model.Session.findByIdAndDelete(ObjectId.createFromBase64(auth.session._id));
+  // Parse auth if it's available
+  const auth = await parseAuthFromHeaders(
+    request.headers,
+    model.Session,
+    ctx.session.tryRefreshExpireAt
+  );
 
-  const sessionCookie = createCookieDeleteByKey(auth.cookie, auth.cookie.currentKey);
-
-  if (sessionCookie) {
-    headersSetCookieUpdateSessions(response.multiValueHeaders, sessionCookie);
-
-    return {
-      signedOut: true,
-      currentSessionKey: sessionCookie.currentKey,
-    };
+  if (input?.allSessions) {
+    if (auth.cookie) {
+      // Deletes all sessions from database
+      await model.Session.deleteMany({
+        cookieId: {
+          $in: Object.values(auth.cookie.sessions),
+        },
+      });
+    }
   } else {
-    headersSetCookieDeleteSessions(response.multiValueHeaders);
-    return {
-      signedOut: true,
-    };
+    // Delete specific session from database, by default current session
+    const sessionKey = input?.sessionKey ?? auth.cookie?.currentKey;
+    const cookieId = input?.sessionKey
+      ? auth.cookie?.sessions[input.sessionKey]
+      : auth.cookie?.currentId;
+
+    if (!cookieId || !sessionKey || !auth.cookie) {
+      return {
+        signedOut: false,
+      };
+    }
+
+    await model.Session.deleteOne({
+      cookieId,
+    });
+
+    const sessionCookie = createCookieDeleteByKey(auth.cookie, sessionKey);
+
+    if (sessionCookie) {
+      // Still have existing sessions, update cookies accordingly
+      headersSetCookieUpdateSessions(response.multiValueHeaders, sessionCookie);
+
+      return {
+        signedOut: true,
+        currentSessionKey: sessionCookie.currentKey,
+      };
+    }
   }
+
+  // Deletes all cookies and signs out
+  headersSetCookieDeleteSessions(response.multiValueHeaders);
+
+  return {
+    signedOut: true,
+  };
 };

@@ -7,10 +7,10 @@ import {
   RouterProvider as DomRouterProvider,
 } from 'react-router-dom';
 
-import SessionSynchronization from '../local-state/session/components/SessionSynchronization';
-import { SessionSwitcherProvider } from '../local-state/session/hooks/useSwitchToSession';
 import ErrorPage from '../routes/ErrorPage';
 import RoutesStructure from '../routes/RoutesStructure';
+import SessionSynchronization from '../session/components/SessionSynchronization';
+import { NavigateToSessionProvider } from '../session/hooks/useNavigateToSession';
 
 import { PreviousLocationProvider } from './hooks/usePreviousLocation';
 import sessionPrefix from './sessionPrefix';
@@ -29,12 +29,12 @@ const router = createBrowserRouter([
   ...[`/${sessionPrefix}/:sessionIndex/*`, '*'].map((path) => ({
     path,
     element: (
-      <SessionSwitcherProvider>
+      <NavigateToSessionProvider>
         <PreviousLocationProvider>
           <SessionSynchronization />
           <RoutesStructure />
         </PreviousLocationProvider>
-      </SessionSwitcherProvider>
+      </NavigateToSessionProvider>
     ),
     errorElement: <ErrorPage />,
   })),

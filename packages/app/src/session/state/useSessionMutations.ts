@@ -1,13 +1,14 @@
 import { useCallback } from 'react';
 
-import { SavedSession } from '../../../__generated__/graphql';
-import { saveSessionContext, deleteSessionContext } from '../persistence';
+import { SavedSession } from '../../__generated__/graphql';
+
+import { saveSessionContext, deleteSessionContext } from './persistence';
 import {
   sessionsVar as defaultSessionsVar,
   currentSessionVar as defaultSessionVar,
-} from '../state';
+} from './state';
 
-export default function useLocalStateSessions(
+export default function useSessionMutations(
   { var: { sessionsVar, currentSessionVar } } = {
     var: {
       sessionsVar: defaultSessionsVar,

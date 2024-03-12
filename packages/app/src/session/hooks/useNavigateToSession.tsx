@@ -9,12 +9,11 @@ import {
 } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { gql } from '../../../__generated__/gql';
-import ProxyRoutesProvider from '../../../router/ProxyRoutesProvider';
-import sessionPrefix from '../../../router/sessionPrefix';
-import joinPathnames from '../../../utils/joinPathnames';
-
-import useLocalStateSessions from './useLocalStateSessions';
+import { gql } from '../../__generated__/gql';
+import ProxyRoutesProvider from '../../router/ProxyRoutesProvider';
+import sessionPrefix from '../../router/sessionPrefix';
+import joinPathnames from '../../utils/joinPathnames';
+import useSessionMutations from '../state/useSessionMutations';
 
 const PROVIDER_QUERY = gql(`
   query SessionSwitcherProvider {
@@ -27,26 +26,28 @@ const PROVIDER_QUERY = gql(`
   }
 `);
 
-type SwitchToSessionFunction = (sessionKey: string | null) => Promise<boolean>;
+type NavigateToSessionFn = (sessionKey: string | null) => Promise<boolean>;
 
-const SwitchToSessionContext = createContext<SwitchToSessionFunction | null>(null);
+const NavigateToSessionContext = createContext<NavigateToSessionFn | null>(null);
 
 // eslint-disable-next-line react-refresh/only-export-components
-export default function useSwitchToSession() {
-  const ctx = useContext(SwitchToSessionContext);
+export default function useNavigateToSession() {
+  const ctx = useContext(NavigateToSessionContext);
   if (ctx === null) {
-    throw new Error('useSwitchToSession() requires context <SessionSwitcherProvider>');
+    throw new Error(
+      'useNavigateToSession() requires context <NavigateToSessionProvider>'
+    );
   }
   return ctx;
 }
 
-export function SessionSwitcherProvider({ children }: { children: ReactNode }) {
+export function NavigateToSessionProvider({ children }: { children: ReactNode }) {
   const {
     data: { savedSessions: sessions, currentSavedSessionIndex: currentSessionIndex },
   } = useSuspenseQuery(PROVIDER_QUERY);
 
   const apolloClient = useApolloClient();
-  const { switchToSession } = useLocalStateSessions();
+  const { switchToSession } = useSessionMutations();
 
   const navigate = useNavigate();
 
@@ -90,7 +91,9 @@ export function SessionSwitcherProvider({ children }: { children: ReactNode }) {
   // Switches session and updates location
   const handleSwitchToSession = useCallback(
     async (newSessionKey: string | null) => {
-      if (switchingSessionRef.current) return false;
+      if (switchingSessionRef.current) {
+        return;
+      }
       try {
         switchingSessionRef.current = true;
 
@@ -112,8 +115,6 @@ export function SessionSwitcherProvider({ children }: { children: ReactNode }) {
         if (newSessionKey !== targetSessionKey) {
           await apolloClient.resetStore();
         }
-
-        return true;
       } finally {
         switchingSessionRef.current = false;
       }
@@ -135,8 +136,8 @@ export function SessionSwitcherProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <SwitchToSessionContext.Provider value={handleSwitchToSession}>
+    <NavigateToSessionContext.Provider value={handleSwitchToSession}>
       <ProxyRoutesProvider transform={transformPathname}>{children}</ProxyRoutesProvider>
-    </SwitchToSessionContext.Provider>
+    </NavigateToSessionContext.Provider>
   );
 }

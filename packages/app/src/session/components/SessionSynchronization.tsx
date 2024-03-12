@@ -6,14 +6,14 @@ import {
   GraphQLErrorCode,
 } from '~api-app-shared/graphql/error-codes';
 
-import { gql } from '../../../__generated__/gql';
-import useAddFetchResultErrorHandler from '../../../apollo/hooks/useAddFetchResultErrorHandler';
+import { gql } from '../../__generated__/gql';
+import useAddFetchResultErrorHandler from '../../apollo/hooks/useAddFetchResultErrorHandler';
 import {
   useSnackbarAlert,
   useSnackbarError,
-} from '../../../components/feedback/SnackbarAlertProvider';
-import useLocalStateSessions from '../hooks/useLocalStateSessions';
-import useSwitchToSession from '../hooks/useSwitchToSession';
+} from '../../components/feedback/SnackbarAlertProvider';
+import useNavigateToSession from '../hooks/useNavigateToSession';
+import useSessionMutations from '../state/useSessionMutations';
 
 const SYNC_SESSIONS = gql(`
   mutation SessionSynchronizationSyncSessions($input: SyncSessionsInput!) {
@@ -37,6 +37,7 @@ const QUERY = gql(`
       displayName
       email
       isExpired
+      authProviderId
     }
   }
 `);
@@ -47,9 +48,9 @@ const QUERY = gql(`
 export default function SessionSynchronization() {
   const addHandler = useAddFetchResultErrorHandler();
   const { availableSessionKeys, updateSession, clearSessions, filterSessions } =
-    useLocalStateSessions();
+    useSessionMutations();
 
-  const localSwitchToSession = useSwitchToSession();
+  const localSwitchToSession = useNavigateToSession();
 
   const {
     data: { currentSavedSession: currentSession },
@@ -75,7 +76,7 @@ export default function SessionSynchronization() {
 
           showAlert({
             severity: 'warning',
-            children: <>Current session has expired! Please sign in.</>,
+            children: <>Current session has expired! Please sign in again.</>,
             snackbarProps: {
               anchorOrigin: { vertical: 'top', horizontal: 'center' },
             },

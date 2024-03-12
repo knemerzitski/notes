@@ -76,11 +76,20 @@ function parseSavedSessions(rawObj: unknown): SessionContext['sessions'] {
       continue;
     }
 
+    if (
+      !('authProviderId' in rawValue) ||
+      typeof rawValue.authProviderId !== 'string' ||
+      rawValue.authProviderId.trim().length === 0
+    ) {
+      continue;
+    }
+
     sessions[rawValue.key] = {
       key: rawValue.key,
       displayName: rawValue.displayName,
       email: rawValue.email,
       isExpired: 'isExpired' in rawValue && !!rawValue.isExpired,
+      authProviderId: rawValue.authProviderId,
     };
   }
 

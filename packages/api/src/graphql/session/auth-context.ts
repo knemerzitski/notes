@@ -43,14 +43,15 @@ interface Cookie {
 
   /**
    * Current session Id. This is stored only in http-only cookies. \
-   * NEVER send this value to client as part of response.
+   * NEVER send this value to client as part of response. \
+   * Session model 'cookieId'
    */
   currentId: string;
   /**
    * All available sessions for current client.
    *
    * Key is currentKey \
-   * Value is currentId
+   * Value is currentId (Session.cookieId)
    */
   sessions: Record<string, string>;
 }
@@ -72,6 +73,10 @@ export interface AuthenticatedContext {
 }
 
 export interface UnauthenticatedContext {
+  /**
+   * Possible client cookie data.
+   */
+  cookie?: Cookie;
   reason: AuthenticationFailedReason;
 }
 
@@ -425,8 +430,9 @@ async function parseAuthFromCookies(
   Session: MongooseGraphQLContext['mongoose']['model']['Session'],
   tryRefreshExpireAt: (expireAt: Date) => boolean = () => false
 ): Promise<AuthenticationContext> {
+  let sessionCookie: Cookie | undefined;
   try {
-    const sessionCookie = parseSessionCookie(cookies);
+    sessionCookie = parseSessionCookie(cookies);
     const cookieId = sessionCookie.currentId;
 
     const session = await findRefreshDbSession(cookieId, Session, tryRefreshExpireAt);
@@ -439,6 +445,7 @@ async function parseAuthFromCookies(
     if (err instanceof AuthenticatedFailedError) {
       return {
         reason: err.reason,
+        cookie: sessionCookie,
       };
     } else {
       throw err;
