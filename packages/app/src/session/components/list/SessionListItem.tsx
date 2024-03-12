@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 
-import { SavedSession } from '../../../__generated__/graphql';
+import { ClientSession } from '../../../__generated__/graphql';
 import BackgroundLetterAvatar from '../../../components/data/BackgroundLetterAvatar';
 import { useCloseable } from '../../context/CloseableProvider';
 import SessionProvider from '../../context/SessionProvider';
@@ -21,7 +21,7 @@ import SignInMenuItem from '../menu/SignInMenuItem';
 import SignOutMenuItem from '../menu/SignOutMenuItem';
 
 interface SessionListItemProps extends ListItemProps {
-  session: SavedSession;
+  session: ClientSession;
 }
 
 export default function SessionListItem({ session, ...restProps }: SessionListItemProps) {

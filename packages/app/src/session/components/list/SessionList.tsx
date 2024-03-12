@@ -1,12 +1,12 @@
 import { List, ListProps } from '@mui/material';
 
-import { SavedSession } from '../../../__generated__/graphql';
+import { ClientSession } from '../../../__generated__/graphql';
 
 import SessionListItem from './SessionListItem';
 
 interface SessionListProps extends ListProps {
-  sessions: SavedSession[];
-  selectedSession?: Pick<SavedSession, 'key'>;
+  sessions: ClientSession[];
+  selectedSession?: Pick<ClientSession, 'key'>;
 }
 
 export default function SessionList({

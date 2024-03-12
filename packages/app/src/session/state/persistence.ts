@@ -1,10 +1,10 @@
-import { SavedSession } from '../../__generated__/graphql';
+import { ClientSession } from '../../__generated__/graphql';
 
 const SESSION_CONTEXT_KEY = 'session_context';
 
 interface SessionContext {
-  currentSession: SavedSession;
-  sessions: Record<string, SavedSession>;
+  currentSession: ClientSession;
+  sessions: Record<string, ClientSession>;
 }
 
 export function readSessionContext(): SessionContext | null {
@@ -16,7 +16,7 @@ export function readSessionContext(): SessionContext | null {
 
   let sessions: SessionContext['sessions'] = {};
   if ('sessions' in rawSessionCtx) {
-    sessions = parseSavedSessions(rawSessionCtx.sessions);
+    sessions = parseClientSessions(rawSessionCtx.sessions);
   }
 
   if (
@@ -44,7 +44,7 @@ export function readSessionContext(): SessionContext | null {
   };
 }
 
-function parseSavedSessions(rawObj: unknown): SessionContext['sessions'] {
+function parseClientSessions(rawObj: unknown): SessionContext['sessions'] {
   if (!Array.isArray(rawObj)) return {};
 
   const sessions: SessionContext['sessions'] = {};

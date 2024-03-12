@@ -7,7 +7,7 @@ import BackgroundLetterAvatar from '../../components/data/BackgroundLetterAvatar
 
 const QUERY = gql(`
   query CurrentSessionInfo {
-    currentSavedSession @client {
+    currentClientSession @client {
       displayName
       email
     }
@@ -16,7 +16,7 @@ const QUERY = gql(`
 
 export default function CurrentSessionInfo() {
   const {
-    data: { currentSavedSession },
+    data: { currentClientSession },
   } = useSuspenseQuery(QUERY);
 
   return (
@@ -29,9 +29,9 @@ export default function CurrentSessionInfo() {
         alignItems: 'center',
       }}
     >
-      {currentSavedSession ? (
+      {currentClientSession ? (
         <BackgroundLetterAvatar
-          name={currentSavedSession.displayName}
+          name={currentClientSession.displayName}
           avatarProps={{
             sx: {
               width: 64,
@@ -66,15 +66,15 @@ export default function CurrentSessionInfo() {
             fontWeight: 'bold',
           }}
         >
-          {currentSavedSession ? currentSavedSession.displayName : 'Local Account'}
+          {currentClientSession ? currentClientSession.displayName : 'Local Account'}
         </Typography>
-        {currentSavedSession && (
+        {currentClientSession && (
           <Typography
             sx={{
               fontSize: '0.9em',
             }}
           >
-            {currentSavedSession.email}
+            {currentClientSession.email}
           </Typography>
         )}
       </Box>

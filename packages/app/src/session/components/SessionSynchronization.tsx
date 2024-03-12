@@ -32,7 +32,7 @@ const SYNC_SESSIONS = gql(`
 
 const QUERY = gql(`
   query SessionSynchronization {
-    currentSavedSession @client {
+    currentClientSession @client {
       key
       displayName
       email
@@ -53,7 +53,7 @@ export default function SessionSynchronization() {
   const localSwitchToSession = useNavigateToSession();
 
   const {
-    data: { currentSavedSession: currentSession },
+    data: { currentClientSession: currentSession },
   } = useSuspenseQuery(QUERY);
 
   const [syncSessions] = useMutation(SYNC_SESSIONS);

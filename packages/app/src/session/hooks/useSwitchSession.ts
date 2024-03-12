@@ -2,7 +2,7 @@ import { useMutation } from '@apollo/client';
 import { useCallback } from 'react';
 
 import { gql } from '../../__generated__/gql';
-import { SavedSession } from '../../__generated__/graphql';
+import { ClientSession } from '../../__generated__/graphql';
 import useSessionMutations from '../state/useSessionMutations';
 
 import useNavigateToSession from './useNavigateToSession';
@@ -22,7 +22,7 @@ export default function useSwitchSession() {
   const { updateSession } = useSessionMutations();
 
   const startSwitchSession = useCallback(
-    async (session: SavedSession) => {
+    async (session: ClientSession) => {
       const { data } = await switchToSession({
         variables: {
           input: {

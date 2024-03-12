@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 
-import { SavedSession } from '../../__generated__/graphql';
+import { ClientSession } from '../../__generated__/graphql';
 
 import { saveSessionContext, deleteSessionContext } from './persistence';
 import {
@@ -22,8 +22,8 @@ export default function useSessionMutations(
     },
   }
 ) {
-  function sessionsArrayToMap(sessions: SavedSession[]) {
-    const result: Record<string, SavedSession> = {};
+  function sessionsArrayToMap(sessions: ClientSession[]) {
+    const result: Record<string, ClientSession> = {};
     for (const session of sessions) {
       result[session.key] = session;
     }
@@ -51,7 +51,7 @@ export default function useSessionMutations(
   }, [currentSessionVar, sessionsVar]);
 
   const currentSessionOrDefault = useCallback(
-    (fallback: SavedSession) => {
+    (fallback: ClientSession) => {
       const currentSession = currentSessionVar();
       if (currentSession) {
         return currentSession;
@@ -69,7 +69,7 @@ export default function useSessionMutations(
   );
 
   const updateSession = useCallback(
-    (updatedSession: SavedSession) => {
+    (updatedSession: ClientSession) => {
       const sessionsMap = sessionsArrayToMap(sessionsVar());
       sessionsMap[updatedSession.key] = updatedSession;
 

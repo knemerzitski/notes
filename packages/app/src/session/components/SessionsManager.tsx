@@ -10,7 +10,7 @@ import SessionList from './list/SessionList';
 
 const QUERY = gql(`
   query SessionsManager {
-    savedSessions @client {
+    clientSessions @client {
       key
       displayName
       email
@@ -18,7 +18,7 @@ const QUERY = gql(`
       authProviderId
     }
 
-    currentSavedSession @client {
+    currentClientSession @client {
       key
     }
   }
@@ -26,7 +26,7 @@ const QUERY = gql(`
 
 export default function SessionsManager() {
   const {
-    data: { savedSessions, currentSavedSession },
+    data: { clientSessions, currentClientSession },
   } = useSuspenseQuery(QUERY);
 
   return (
@@ -36,8 +36,8 @@ export default function SessionsManager() {
       <Divider sx={{ mt: 3 }} />
 
       <SessionList
-        sessions={savedSessions}
-        selectedSession={currentSavedSession ?? undefined}
+        sessions={clientSessions}
+        selectedSession={currentClientSession ?? undefined}
       />
 
       <LoginList

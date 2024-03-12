@@ -17,12 +17,12 @@ import useSessionMutations from '../state/useSessionMutations';
 
 const PROVIDER_QUERY = gql(`
   query SessionSwitcherProvider {
-    savedSessions @client {
+    clientSessions @client {
       key
       displayName
       email
     }
-    currentSavedSessionIndex @client
+    currentClientSessionIndex @client
   }
 `);
 
@@ -43,7 +43,7 @@ export default function useNavigateToSession() {
 
 export function NavigateToSessionProvider({ children }: { children: ReactNode }) {
   const {
-    data: { savedSessions: sessions, currentSavedSessionIndex: currentSessionIndex },
+    data: { clientSessions: sessions, currentClientSessionIndex: currentSessionIndex },
   } = useSuspenseQuery(PROVIDER_QUERY);
 
   const apolloClient = useApolloClient();

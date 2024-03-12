@@ -1,8 +1,8 @@
 import { ReactNode, createContext, useContext } from 'react';
 
-import { SavedSession } from '../../__generated__/graphql';
+import { ClientSession } from '../../__generated__/graphql';
 
-const SessionContext = createContext<SavedSession | null>(null);
+const SessionContext = createContext<ClientSession | null>(null);
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function useSession() {
@@ -19,7 +19,7 @@ export function useSessionMaybe() {
 }
 
 interface SessionProviderProps {
-  session: SavedSession;
+  session: ClientSession;
   children: ReactNode;
 }
 

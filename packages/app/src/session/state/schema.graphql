@@ -1,4 +1,4 @@
-type SavedSession {
+type ClientSession {
   "Unique key of this session."
   key: ID!
   "Cached displayName of this session."
@@ -13,11 +13,11 @@ type SavedSession {
 
 extend type Query {
   "Client only saved session info. Server uses http-only cookie to store an array of session ids."
-  savedSessions: [SavedSession!]!
+  clientSessions: [ClientSession!]!
   "Current session index."
-  currentSavedSessionIndex: NonNegativeInt
-  "Current saved session. savedSessions[currentSavedSessionIndex]"
-  currentSavedSession: SavedSession
+  currentClientSessionIndex: NonNegativeInt
+  "Current saved session. clientSessions[currentClientSessionIndex]"
+  currentClientSession: ClientSession
   "Is currently logged in"
   isSignedIn: Boolean!
 }

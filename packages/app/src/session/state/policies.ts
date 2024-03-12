@@ -1,16 +1,16 @@
 import { TypePolicies } from '@apollo/client';
 
-import { SavedSession } from '../../__generated__/graphql';
+import { ClientSession } from '../../__generated__/graphql';
 
 import { currentSessionVar, sessionsVar } from './state';
 
 const sessionPolicies: TypePolicies = {
   Query: {
     fields: {
-      savedSessions(): SavedSession[] {
+      clientSessions(): ClientSession[] {
         return sessionsVar();
       },
-      currentSavedSessionIndex(): number | null {
+      currentClientSessionIndex(): number | null {
         const sessions = sessionsVar();
         const currentSession = currentSessionVar();
         if (!currentSession) return null;
@@ -20,7 +20,7 @@ const sessionPolicies: TypePolicies = {
 
         return index;
       },
-      currentSavedSession(): SavedSession | null {
+      currentClientSession(): ClientSession | null {
         return currentSessionVar();
       },
       isSignedIn(): boolean {

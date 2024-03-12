@@ -1,6 +1,6 @@
 import { List, ListItem, ListProps } from '@mui/material';
 
-import { SavedSession } from '../../__generated__/graphql';
+import { ClientSession } from '../../__generated__/graphql';
 import { useCloseable } from '../context/CloseableProvider';
 
 import GoogleLogin from './GoogleLogin';
@@ -11,7 +11,7 @@ export interface LoginListProps extends ListProps {
   /**
    * Hint which session is being logged into.
    */
-  sessionHint?: SavedSession;
+  sessionHint?: ClientSession;
 }
 
 export default function LoginList({

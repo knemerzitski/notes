@@ -8,7 +8,7 @@ import useSignOut from '../hooks/useSignOut';
 
 const QUERY = gql(`
   query SignOutOfAllSessionsButton {
-    currentSavedSession @client {
+    currentClientSession @client {
       key
       displayName
       email
@@ -22,7 +22,7 @@ export default function SignOutOfAllSessionsButton() {
   const close = useCloseable();
 
   const {
-    data: { currentSavedSession },
+    data: { currentClientSession },
   } = useSuspenseQuery(QUERY);
 
   const signOut = useSignOut();
@@ -33,7 +33,7 @@ export default function SignOutOfAllSessionsButton() {
     }
   }
 
-  if (!currentSavedSession) return null;
+  if (!currentClientSession) return null;
 
   return (
     <Button

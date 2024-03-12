@@ -2,7 +2,7 @@ import { useMutation } from '@apollo/client';
 import { useCallback } from 'react';
 
 import { gql } from '../../__generated__/gql';
-import { SavedSession } from '../../__generated__/graphql';
+import { ClientSession } from '../../__generated__/graphql';
 import { useSnackbarError } from '../../components/feedback/SnackbarAlertProvider';
 import useSessionMutations from '../state/useSessionMutations';
 
@@ -30,7 +30,7 @@ export default function useSignOut() {
      * @param session Account session to sign out from.
      * If session is not specified, then user will be signed out of all accounts
      */
-    async (session?: SavedSession) => {
+    async (session?: ClientSession) => {
       const { data } = await signOut({
         variables: {
           input: {
