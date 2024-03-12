@@ -41,6 +41,7 @@ module.exports = {
             destructuredArrayIgnorePattern: '^_',
           },
         ],
+        'react-hooks/exhaustive-deps': ['error'],
       },
     },
     {
