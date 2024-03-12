@@ -7,8 +7,8 @@ export default function useForgetSession() {
   const { deleteSession } = useSessionMutations();
 
   const startDeleteSession = useCallback(
-    (session: ClientSession) => {
-      deleteSession(String(session.key));
+    (session: Pick<ClientSession, 'id'>) => {
+      deleteSession(String(session.id));
     },
     [deleteSession]
   );

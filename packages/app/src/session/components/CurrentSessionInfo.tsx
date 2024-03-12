@@ -8,6 +8,7 @@ import BackgroundLetterAvatar from '../../components/data/BackgroundLetterAvatar
 const QUERY = gql(`
   query CurrentSessionInfo {
     currentClientSession @client {
+      id
       displayName
       email
     }

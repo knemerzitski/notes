@@ -6,7 +6,7 @@ import SessionListItem from './SessionListItem';
 
 interface SessionListProps extends ListProps {
   sessions: ClientSession[];
-  selectedSession?: Pick<ClientSession, 'key'>;
+  selectedSession?: Pick<ClientSession, 'id'>;
 }
 
 export default function SessionList({
@@ -27,13 +27,13 @@ export default function SessionList({
       >
         {sessions.map((session) => (
           <SessionListItem
-            key={session.key}
+            key={session.id}
             session={session}
             divider
             disablePadding
             sx={{
               alignItems: 'stretch',
-              ...(session.key === selectedSession?.key && {
+              ...(session.id === selectedSession?.id && {
                 backgroundColor: 'action.selected',
               }),
             }}

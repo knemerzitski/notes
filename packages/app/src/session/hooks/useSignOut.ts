@@ -12,7 +12,7 @@ const SIGN_OUT = gql(`
   mutation UseSignOut($input: SignOutInput) {
     signOut(input: $input) {
       signedOut
-      currentSessionKey
+      currentSessionId
     }
   }
 `);
@@ -21,7 +21,7 @@ export default function useSignOut() {
   const [signOut] = useMutation(SIGN_OUT);
   const { deleteSession: deleteLocalSession, clearSessions: clearLocalSessions } =
     useSessionMutations();
-  const localSwitchToSession = useNavigateToSession();
+  const navigateToSession = useNavigateToSession();
 
   const showError = useSnackbarError();
 
@@ -34,14 +34,14 @@ export default function useSignOut() {
       const { data } = await signOut({
         variables: {
           input: {
-            sessionKey: session ? String(session.key) : null,
+            sessionId: session ? String(session.id) : null,
             allSessions: !session,
           },
         },
       });
       if (!data) return false;
 
-      const { signedOut, currentSessionKey: newSessionKey } = data.signOut;
+      const { signedOut, currentSessionId: newSessionKey } = data.signOut;
 
       if (!signedOut) {
         showError('Failed to sign out');
@@ -49,16 +49,16 @@ export default function useSignOut() {
       }
 
       if (session) {
-        deleteLocalSession(String(session.key));
-        await localSwitchToSession(newSessionKey ?? null);
+        deleteLocalSession(String(session.id));
+        await navigateToSession(newSessionKey ?? null);
       } else {
         clearLocalSessions();
-        await localSwitchToSession(null);
+        await navigateToSession(null);
       }
 
       return true;
     },
-    [signOut, deleteLocalSession, localSwitchToSession, showError, clearLocalSessions]
+    [signOut, deleteLocalSession, navigateToSession, showError, clearLocalSessions]
   );
 
   return startSignOut;

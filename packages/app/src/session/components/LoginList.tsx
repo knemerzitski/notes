@@ -1,6 +1,6 @@
 import { List, ListItem, ListProps } from '@mui/material';
 
-import { ClientSession } from '../../__generated__/graphql';
+import { AuthProvider, ClientSession } from '../../__generated__/graphql';
 import { useCloseable } from '../context/CloseableProvider';
 
 import GoogleLogin from './GoogleLogin';
@@ -32,6 +32,11 @@ export default function LoginList({
     close();
   }
 
+  const googleEntry = sessionHint?.authProviderEntries.find(
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    (entry) => entry.provider === AuthProvider.Google
+  );
+
   return (
     <List {...restProps}>
       <ListItem>
@@ -39,7 +44,7 @@ export default function LoginList({
           onSuccess={handleSuccess}
           onError={handleError}
           idConfig={{
-            login_hint: sessionHint?.authProviderId,
+            login_hint: googleEntry?.id,
           }}
         />
       </ListItem>

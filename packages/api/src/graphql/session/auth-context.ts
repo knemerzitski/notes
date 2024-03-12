@@ -8,7 +8,7 @@ import { parseCookiesFromHeaders } from './cookies';
 
 const SECURE_SET_COOKIE = process.env.NODE_ENV === 'production' ? '; Secure' : '';
 
-const CURRENT_SESSION_KEY_COOKIE_KEY = 'CurrentSessionKey';
+const CURRENT_SESSION_KEY_COOKIE_KEY = 'CurrentSessionId';
 
 const SESSIONS_COOKIE_KEY = 'Sessions';
 
@@ -34,24 +34,23 @@ interface Session extends Omit<DBSession, 'userId' | 'expireAt'> {
 /**
  * Authenticated user cookies data.
  */
-interface Cookie {
+interface ClientCookies {
   /**
-   * Current session key used by client.
-   * It's used to keep client and server session in sync.
+   * User.publicId
    */
-  currentKey: string;
+  currentUserPublicId: string;
 
   /**
-   * Current session Id. This is stored only in http-only cookies. \
-   * NEVER send this value to client as part of response. \
-   * Session model 'cookieId'
+   * Session.cookieId
+   * Stored only in http-only cookies. \
+   * NEVER send this in a response body.
    */
-  currentId: string;
+  currentCookieId: string;
   /**
    * All available sessions for current client.
    *
-   * Key is currentKey \
-   * Value is currentId (Session.cookieId)
+   * Key is User.publicId \
+   * Value is Session.cookieId (NEVER send this in a response body).
    */
   sessions: Record<string, string>;
 }
@@ -64,7 +63,7 @@ export interface AuthenticatedContext {
   /**
    * Data that is stored in client cookies.
    */
-  cookie: Cookie;
+  cookie: ClientCookies;
 
   /**
    * Current session and and the user.
@@ -76,11 +75,10 @@ export interface UnauthenticatedContext {
   /**
    * Possible client cookie data.
    */
-  cookie?: Cookie;
+  cookie?: ClientCookies;
   reason: AuthenticationFailedReason;
 }
 
-// TODO rename CookieSession to AuthenticationContext
 export type AuthenticationContext = AuthenticatedContext | UnauthenticatedContext;
 
 class AuthenticatedFailedError extends Error {
@@ -134,54 +132,31 @@ export async function findRefreshDbSession(
   };
 }
 
-// TODO remove
-// export function generateCookieKey() {
-//   return nanoid(6);
-// }
-
-export function createCookie(key: string, id: string): Cookie {
-  // TODO remove
-  // const key = generateCookieKey();
-
+export function createClientCookies(
+  userPublicId: string,
+  cookieId: string
+): ClientCookies {
   return {
-    currentKey: key,
-    currentId: id,
+    currentUserPublicId: userPublicId,
+    currentCookieId: cookieId,
     sessions: {
-      [key]: id,
+      [userPublicId]: cookieId,
     },
   };
 }
 
-export function createUpdatedCookie(
+export function createUpdatedClientCookies(
   auth: AuthenticatedContext,
-  key: string,
-  id: string
-
-  // TODO remove
-  // attempts = 10
-): Cookie {
-  // TODO remove
-  // Attempt to generate a unique random string a few times, it should never fail.
-  // let key: string | null = null;
-  // let i = 0;
-  // while (i < attempts) {
-  //   key = generateCookieKey();
-  //   if (!(key in existingSessions)) {
-  //     break;
-  //   }
-  //   i++;
-  // }
-  // if (key === null) {
-  //   throw new Error(`CRITICAL FAILURE! Couldn't generate key for cookie.`);
-  // }
-
+  userPublicId: string,
+  cookieId: string
+): ClientCookies {
   return {
     ...auth.cookie,
-    currentKey: key,
-    currentId: id,
+    currentUserPublicId: userPublicId,
+    currentCookieId: cookieId,
     sessions: {
       ...auth.cookie.sessions,
-      [key]: id,
+      [userPublicId]: cookieId,
     },
   };
 }
@@ -189,41 +164,44 @@ export function createUpdatedCookie(
 /**
  *
  * @param auth
- * @param key Can be shared in js code.
- * @param id Must remain a http-only cookie.
+ * @param userPublicId Can be shared in js code.
+ * @param cookieId Must remain a http-only cookie.
  * @returns
  */
-export function createCookieInsertNewSession(
+export function createClientCookiesInsertNewSession(
   auth: AuthenticationContext,
-  key: string,
-  id: string
-): Cookie {
+  userPublicId: string,
+  cookieId: string
+): ClientCookies {
   if (isAuthenticated(auth)) {
-    return createUpdatedCookie(auth, key, id);
+    return createUpdatedClientCookies(auth, userPublicId, cookieId);
   } else {
-    return createCookie(key, id);
+    return createClientCookies(userPublicId, cookieId);
   }
 }
 
-export function parseSessionCookie(cookies: Readonly<Record<string, string>>): Cookie {
+export function parseCookies(cookies: Readonly<Record<string, string>>): ClientCookies {
   if (!(CURRENT_SESSION_KEY_COOKIE_KEY in cookies)) {
     throw new AuthenticatedFailedError(
       AuthenticationFailedReason.InvalidCurrentSessionKey
     );
   }
-  const currentKey: Cookie['currentKey'] = cookies[CURRENT_SESSION_KEY_COOKIE_KEY];
+  const currentKey: ClientCookies['currentUserPublicId'] =
+    cookies[CURRENT_SESSION_KEY_COOKIE_KEY];
 
-  const sessions: Cookie['sessions'] = Object.fromEntries(
+  const sessions: ClientCookies['sessions'] = Object.fromEntries(
     cookies[SESSIONS_COOKIE_KEY]?.split(',').map((session) => {
-      const [key, id] = session.split(':', 2);
-      if (!key) {
+      const [userPublicId, cookieId] = session.split(':', 2);
+      if (!userPublicId) {
         throw new AuthenticatedFailedError(AuthenticationFailedReason.InvalidSessionsKey);
       }
-      if (!id) {
-        throw new AuthenticatedFailedError(AuthenticationFailedReason.InvalidSessionsId);
+      if (!cookieId) {
+        throw new AuthenticatedFailedError(
+          AuthenticationFailedReason.InvalidSessionsValue
+        );
       }
 
-      return [key, id];
+      return [userPublicId, cookieId];
     }) ?? []
   );
 
@@ -235,8 +213,8 @@ export function parseSessionCookie(cookies: Readonly<Record<string, string>>): C
   }
 
   return {
-    currentKey,
-    currentId,
+    currentUserPublicId: currentKey,
+    currentCookieId: currentId,
     sessions,
   };
 }
@@ -245,15 +223,15 @@ export function parseSessionCookie(cookies: Readonly<Record<string, string>>): C
  * @returns new Cookie object that has {@link deleteKey} removed. If {@link deleteKey} is
  * currentKey then new first is picked from existing sessions. Null if no existing sessions remain.
  */
-export function createCookieDeleteByKey(
-  cookie: Cookie,
+export function createClientCookiesDeleteByKey(
+  cookie: ClientCookies,
   deleteKey: string
-): Cookie | null {
+): ClientCookies | null {
   const newSessions = Object.fromEntries(
     Object.entries(cookie.sessions).filter(([key]) => key !== deleteKey)
   );
 
-  const isNotCurrentKey = deleteKey !== cookie.currentKey;
+  const isNotCurrentKey = deleteKey !== cookie.currentUserPublicId;
   if (isNotCurrentKey) {
     return {
       ...cookie,
@@ -272,15 +250,18 @@ export function createCookieDeleteByKey(
   }
 
   return {
-    currentKey: firstKey,
-    currentId: firstId,
+    currentUserPublicId: firstKey,
+    currentCookieId: firstId,
     sessions: newSessions,
   };
 }
 
-export function cookieFilterKeys(cookie: Cookie, keys: string[]): Cookie | null {
+export function clientCookieFilterPublicUserIds(
+  cookie: ClientCookies,
+  publicUserIds: string[]
+): ClientCookies | null {
   const newFilteredSessions = Object.fromEntries(
-    Object.entries(cookie.sessions).filter(([key]) => keys.includes(key))
+    Object.entries(cookie.sessions).filter(([key]) => publicUserIds.includes(key))
   );
 
   const firstKey = Object.keys(newFilteredSessions)[0];
@@ -294,8 +275,8 @@ export function cookieFilterKeys(cookie: Cookie, keys: string[]): Cookie | null 
   }
 
   return {
-    currentKey: firstKey,
-    currentId: firstId,
+    currentUserPublicId: firstKey,
+    currentCookieId: firstId,
     sessions: newFilteredSessions,
   };
 }
@@ -309,34 +290,34 @@ function isNonEmptyStringPair(arr: string[]): arr is [string, string] {
   );
 }
 
-export function parseOnlyValidCookiesFromHeaders(
+export function parseOnlyValidClientCookiesFromHeaders(
   headers: Readonly<Record<string, string | undefined>>
-): Cookie | null {
+): ClientCookies | null {
   const cookies = parseCookiesFromHeaders(headers);
 
-  let currentKey: Cookie['currentKey'] | null = null;
+  let currentUserPublicId: ClientCookies['currentUserPublicId'] | null = null;
   if (CURRENT_SESSION_KEY_COOKIE_KEY in cookies) {
     const parseKey = cookies[CURRENT_SESSION_KEY_COOKIE_KEY];
     if (parseKey.length > 0) {
-      currentKey = parseKey;
+      currentUserPublicId = parseKey;
     }
   }
 
-  const sessions: Cookie['sessions'] = Object.fromEntries(
+  const sessions: ClientCookies['sessions'] = Object.fromEntries(
     cookies[SESSIONS_COOKIE_KEY]?.split(',')
       .map((session) => {
-        const [key = '', id = ''] = session.split(':', 2);
-        return [key, id];
+        const [userPublicId = '', cookieId = ''] = session.split(':', 2);
+        return [userPublicId, cookieId];
       })
       .filter(isNonEmptyStringPair) ?? []
   );
 
-  if (currentKey) {
-    const currentId = sessions[currentKey];
-    if (currentId) {
+  if (currentUserPublicId) {
+    const currentCookieId = sessions[currentUserPublicId];
+    if (currentCookieId) {
       return {
-        currentKey: currentKey,
-        currentId,
+        currentUserPublicId,
+        currentCookieId,
         sessions,
       };
     }
@@ -353,8 +334,8 @@ export function parseOnlyValidCookiesFromHeaders(
   }
 
   return {
-    currentKey: firstKey,
-    currentId: firstId,
+    currentUserPublicId: firstKey,
+    currentCookieId: firstId,
     sessions,
   };
 }
@@ -365,7 +346,7 @@ export function parseOnlyValidCookiesFromHeaders(
  */
 export function headersSetCookieUpdateSessions(
   multiValueHeaders: Record<string, unknown[]>,
-  sessionCookie: Cookie
+  sessionCookie: ClientCookies
 ) {
   if (!('Set-Cookie' in multiValueHeaders)) {
     multiValueHeaders['Set-Cookie'] = [];
@@ -376,7 +357,7 @@ export function headersSetCookieUpdateSessions(
       .join(',')}; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}`
   );
   multiValueHeaders['Set-Cookie'].push(
-    `${CURRENT_SESSION_KEY_COOKIE_KEY}=${sessionCookie.currentKey}; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}`
+    `${CURRENT_SESSION_KEY_COOKIE_KEY}=${sessionCookie.currentUserPublicId}; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}`
   );
 }
 
@@ -430,10 +411,10 @@ async function parseAuthFromCookies(
   Session: MongooseGraphQLContext['mongoose']['model']['Session'],
   tryRefreshExpireAt: (expireAt: Date) => boolean = () => false
 ): Promise<AuthenticationContext> {
-  let sessionCookie: Cookie | undefined;
+  let sessionCookie: ClientCookies | undefined;
   try {
-    sessionCookie = parseSessionCookie(cookies);
-    const cookieId = sessionCookie.currentId;
+    sessionCookie = parseCookies(cookies);
+    const cookieId = sessionCookie.currentCookieId;
 
     const session = await findRefreshDbSession(cookieId, Session, tryRefreshExpireAt);
 

@@ -11,7 +11,7 @@ import useNavigateToSession from './useNavigateToSession';
 const SIGN_IN = gql(`
   mutation UseSignInWithGoogle($input: SignInInput!)  {
     signIn(input: $input) {
-      currentSessionKey
+      currentSessionId
       userInfo {
         profile {
           displayName
@@ -27,8 +27,8 @@ const SIGN_IN = gql(`
 
 export default function useSignInWithGoogle() {
   const [signIn] = useMutation(SIGN_IN);
-  const { updateSession: localUpdateSession } = useSessionMutations();
-  const localSwitchToSession = useNavigateToSession();
+  const { updateSession } = useSessionMutations();
+  const navigateToSession = useNavigateToSession();
 
   const showError = useSnackbarError();
 
@@ -52,26 +52,31 @@ export default function useSignInWithGoogle() {
       }
 
       const {
-        currentSessionKey,
+        currentSessionId,
         userInfo: {
           profile: { displayName },
         },
         authProviderUserInfo: { id: googleId, email },
       } = data.signIn;
 
-      localUpdateSession({
-        key: currentSessionKey,
+      updateSession({
+        id: currentSessionId,
+        isExpired: false,
         displayName,
         email,
-        authProviderId: googleId,
-        isExpired: false,
+        authProviderEntries: [
+          {
+            provider: AuthProvider.Google,
+            id: String(googleId),
+          },
+        ],
       });
 
-      await localSwitchToSession(currentSessionKey);
+      await navigateToSession(currentSessionId);
 
       return true;
     },
-    [signIn, localSwitchToSession, localUpdateSession, showError]
+    [signIn, navigateToSession, updateSession, showError]
   );
 
   return startSignIn;

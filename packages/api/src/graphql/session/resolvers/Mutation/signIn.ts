@@ -1,7 +1,7 @@
 import { verifyCredentialToken } from '../../../../auth/google/oauth2';
 import type { MutationResolvers } from '../../../../graphql/types.generated';
 import {
-  createCookieInsertNewSession,
+  createClientCookiesInsertNewSession,
   headersSetCookieUpdateSessions,
   parseAuthFromHeaders,
 } from '../../auth-context';
@@ -54,12 +54,12 @@ export const signIn: NonNullable<MutationResolvers['signIn']> = async (
   const cookieId = newSession.cookieId;
 
   const auth = await parseAuthFromHeaders(request.headers, mongoose.model.Session);
-  const sessionCookie = createCookieInsertNewSession(auth, cookieKey, cookieId);
+  const sessionCookie = createClientCookiesInsertNewSession(auth, cookieKey, cookieId);
 
   headersSetCookieUpdateSessions(response.multiValueHeaders, sessionCookie);
 
   return {
-    currentSessionKey: sessionCookie.currentKey,
+    currentSessionId: sessionCookie.currentUserPublicId,
     userInfo: {
       profile: {
         displayName: existingUser.profile.displayName,

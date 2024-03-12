@@ -9,11 +9,10 @@ import useSignOut from '../hooks/useSignOut';
 const QUERY = gql(`
   query SignOutOfAllSessionsButton {
     currentClientSession @client {
-      key
+      id
+      isExpired
       displayName
       email
-      isExpired
-      authProviderId
     }
   }
 `);

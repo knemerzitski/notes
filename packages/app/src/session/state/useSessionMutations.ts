@@ -8,6 +8,9 @@ import {
   currentSessionVar as defaultSessionVar,
 } from './state';
 
+type UpdateClientSession = Omit<ClientSession, 'authProviderEntries'> &
+  Partial<Pick<ClientSession, 'authProviderEntries'>>;
+
 export default function useSessionMutations(
   { var: { sessionsVar, currentSessionVar } } = {
     var: {
@@ -25,7 +28,7 @@ export default function useSessionMutations(
   function sessionsArrayToMap(sessions: ClientSession[]) {
     const result: Record<string, ClientSession> = {};
     for (const session of sessions) {
-      result[session.key] = session;
+      result[session.id] = session;
     }
     return result;
   }
@@ -38,7 +41,7 @@ export default function useSessionMutations(
 
     const sessions = sessionsVar();
     const currentSessionIndex = sessions.findIndex(
-      (session) => session.key === currentSession.key
+      (session) => session.id === currentSession.id
     );
     if (currentSessionIndex === -1) {
       return null;
@@ -69,13 +72,35 @@ export default function useSessionMutations(
   );
 
   const updateSession = useCallback(
-    (updatedSession: ClientSession) => {
+    (updatedSession: UpdateClientSession) => {
       const sessionsMap = sessionsArrayToMap(sessionsVar());
-      sessionsMap[updatedSession.key] = updatedSession;
 
-      const currentSession = currentSessionOrDefault(updatedSession);
+      const updatedClientSession: ClientSession = {
+        ...updatedSession,
+        authProviderEntries: updatedSession.authProviderEntries ?? [],
+      };
+
+      const existingSession = sessionsMap[updatedSession.id];
+
+      sessionsMap[updatedSession.id] = {
+        ...updatedSession,
+        authProviderEntries: existingSession
+          ? Object.values(
+              Object.fromEntries(
+                [
+                  ...existingSession.authProviderEntries,
+                  ...updatedClientSession.authProviderEntries,
+                ].map((entry) => [entry.provider, entry])
+              )
+            )
+          : updatedClientSession.authProviderEntries,
+      };
+
+      const currentSession = currentSessionOrDefault(updatedClientSession);
       const newCurrentSession =
-        updatedSession.key === currentSession.key ? updatedSession : currentSession;
+        updatedClientSession.id === currentSession.id
+          ? updatedClientSession
+          : currentSession;
 
       persistence.sessionContext.save({
         currentSession: newCurrentSession,
@@ -95,14 +120,14 @@ export default function useSessionMutations(
   }, [sessionsVar, currentSessionVar, persistence.sessionContext]);
 
   const deleteSession = useCallback(
-    (sessionKey: string) => {
+    (sessionId: string) => {
       const newSessions = [...sessionsVar()].filter(
-        (session) => session.key !== sessionKey
+        (session) => session.id !== sessionId
       );
       const currentSession = currentSessionVar();
 
       const newCurrentSession =
-        currentSession && currentSession.key === sessionKey
+        currentSession && currentSession.id === sessionId
           ? newSessions[0]
           : currentSession;
 
@@ -126,21 +151,19 @@ export default function useSessionMutations(
    * @returns New session with index after switchingor null if new session doesn't exist
    */
   const switchToSession = useCallback(
-    (sessionKey: string | null | undefined) => {
+    (sessionId: string | null | undefined) => {
       const currentSession = currentSessionVar();
-      if (sessionKey == null) {
+      if (sessionId == null) {
         // Delete session on null
         if (currentSession) {
-          deleteSession(String(currentSession.key));
+          deleteSession(String(currentSession.id));
         }
       } else {
         // Switch to new session
         const currentSession = currentSessionVar();
-        if (!currentSession || currentSession.key !== sessionKey) {
+        if (!currentSession || currentSession.id !== sessionId) {
           const sessions = sessionsVar();
-          const newCurrentSession = sessions.find(
-            (session) => session.key === sessionKey
-          );
+          const newCurrentSession = sessions.find((session) => session.id === sessionId);
           if (newCurrentSession) {
             persistence.sessionContext.save({
               currentSession: newCurrentSession,
@@ -163,13 +186,13 @@ export default function useSessionMutations(
   );
 
   const availableSessionKeys = useCallback(() => {
-    return sessionsVar().map((session) => String(session.key));
+    return sessionsVar().map((session) => String(session.id));
   }, [sessionsVar]);
 
   const filterSessions = useCallback(
     (filterKeys: string[]) => {
       const newSessions = sessionsVar().filter((session) =>
-        filterKeys.includes(String(session.key))
+        filterKeys.includes(String(session.id))
       );
 
       const newCurrentSession = newSessions[0];

@@ -11,15 +11,19 @@ import SessionList from './list/SessionList';
 const QUERY = gql(`
   query SessionsManager {
     clientSessions @client {
-      key
+      id
+      isExpired
       displayName
       email
-      isExpired
-      authProviderId
+      
+      authProviderEntries {
+        provider
+        id
+      }
     }
 
     currentClientSession @client {
-      key
+      id
     }
   }
 `);

@@ -18,7 +18,7 @@ import useSessionMutations from '../state/useSessionMutations';
 const PROVIDER_QUERY = gql(`
   query SessionSwitcherProvider {
     clientSessions @client {
-      key
+      id
       displayName
       email
     }
@@ -26,7 +26,7 @@ const PROVIDER_QUERY = gql(`
   }
 `);
 
-type NavigateToSessionFn = (sessionKey: string | null) => Promise<boolean>;
+type NavigateToSessionFn = (sessionId: string | null) => Promise<void>;
 
 const NavigateToSessionContext = createContext<NavigateToSessionFn | null>(null);
 
@@ -81,7 +81,7 @@ export function NavigateToSessionProvider({ children }: { children: ReactNode })
   if (targetSessionIndex != null) {
     const targetSession = sessions[targetSessionIndex];
     if (targetSession) {
-      targetSessionKey = String(targetSession.key);
+      targetSessionKey = String(targetSession.id);
     }
   }
 
@@ -89,7 +89,7 @@ export function NavigateToSessionProvider({ children }: { children: ReactNode })
   paramsRestRef.current = params['*'] ?? '';
 
   // Switches session and updates location
-  const handleSwitchToSession = useCallback(
+  const handleNavigateToSession = useCallback(
     async (newSessionKey: string | null) => {
       if (switchingSessionRef.current) {
         return;
@@ -124,8 +124,8 @@ export function NavigateToSessionProvider({ children }: { children: ReactNode })
 
   // Switch to correct session based on location
   useEffect(() => {
-    void handleSwitchToSession(targetSessionKey);
-  }, [targetSessionKey, handleSwitchToSession]);
+    void handleNavigateToSession(targetSessionKey);
+  }, [targetSessionKey, handleNavigateToSession]);
 
   const transformPathname = useCallback(
     (pathname: string) =>
@@ -136,7 +136,7 @@ export function NavigateToSessionProvider({ children }: { children: ReactNode })
   );
 
   return (
-    <NavigateToSessionContext.Provider value={handleSwitchToSession}>
+    <NavigateToSessionContext.Provider value={handleNavigateToSession}>
       <ProxyRoutesProvider transform={transformPathname}>{children}</ProxyRoutesProvider>
     </NavigateToSessionContext.Provider>
   );

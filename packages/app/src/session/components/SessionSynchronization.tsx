@@ -20,8 +20,8 @@ const SYNC_SESSIONS = gql(`
     syncSessions(input: $input) {
       __typename
       ... on SyncSessionsSignInPayload {
-        currentSessionKey
-        availableSessionKeys
+        currentSessionId
+        availableSessionIds
       }
       ... on SyncSessionsSignOutPayload {
         signedOut
@@ -33,11 +33,10 @@ const SYNC_SESSIONS = gql(`
 const QUERY = gql(`
   query SessionSynchronization {
     currentClientSession @client {
-      key
+      id
+      isExpired
       displayName
       email
-      isExpired
-      authProviderId
     }
   }
 `);
@@ -50,7 +49,7 @@ export default function SessionSynchronization() {
   const { availableSessionKeys, updateSession, clearSessions, filterSessions } =
     useSessionMutations();
 
-  const localSwitchToSession = useNavigateToSession();
+  const navigateToSession = useNavigateToSession();
 
   const {
     data: { currentClientSession: currentSession },
@@ -86,7 +85,7 @@ export default function SessionSynchronization() {
           const { data, errors } = await syncSessions({
             variables: {
               input: {
-                availableSessionKeys: availableSessionKeys(),
+                availableSessionIds: availableSessionKeys(),
               },
             },
             context,
@@ -95,11 +94,11 @@ export default function SessionSynchronization() {
           if (data) {
             if (data.syncSessions.__typename === 'SyncSessionsSignInPayload') {
               // Update sessions in localStorage
-              const { currentSessionKey, availableSessionKeys } = data.syncSessions;
+              const { currentSessionId, availableSessionIds } = data.syncSessions;
 
-              filterSessions(availableSessionKeys);
+              filterSessions(availableSessionIds);
 
-              await localSwitchToSession(currentSessionKey);
+              await navigateToSession(currentSessionId);
             } else {
               // Signed out, delete all sessions
               clearSessions();
@@ -114,7 +113,7 @@ export default function SessionSynchronization() {
     });
   }, [
     currentSession,
-    localSwitchToSession,
+    navigateToSession,
     updateSession,
     clearSessions,
     filterSessions,

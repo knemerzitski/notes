@@ -1,12 +1,12 @@
 import type { QueryResolvers } from '../../../../graphql/types.generated';
-import { assertAuthenticated } from '../../../base/directives/auth';
+import { parseOnlyValidClientCookiesFromHeaders } from '../../auth-context';
 export const sessionCount: NonNullable<QueryResolvers['sessionCount']> = (
   _parent,
   _arg,
-  ctx
+  { request }
 ) => {
-  const { auth } = ctx;
-  assertAuthenticated(auth);
+  const clientCookies = parseOnlyValidClientCookiesFromHeaders(request.headers);
+  if (!clientCookies) return 0;
 
-  return auth.cookie.sessions.length;
+  return Object.values(clientCookies.sessions).length;
 };

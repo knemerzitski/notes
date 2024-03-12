@@ -10,7 +10,7 @@ import useNavigateToSession from './useNavigateToSession';
 const SWITCH_SESSION = gql(`
   mutation UseSwitchSession($input: SwitchToSessionInput!) {
     switchToSession(input: $input) {
-      currentSessionKey
+      currentSessionId
     }
   }
 `);
@@ -22,18 +22,18 @@ export default function useSwitchSession() {
   const { updateSession } = useSessionMutations();
 
   const startSwitchSession = useCallback(
-    async (session: ClientSession) => {
+    async (session: Omit<ClientSession, 'authProviderEntries'>) => {
       const { data } = await switchToSession({
         variables: {
           input: {
-            switchToSessionKey: String(session.key),
+            switchToSessionId: String(session.id),
           },
         },
       });
-      if (!data) return false;
+      if (!data?.switchToSession) return false;
 
-      const { currentSessionKey: sessionKey } = data.switchToSession;
-      if (sessionKey !== session.key) {
+      const { currentSessionId: sessionId } = data.switchToSession;
+      if (sessionId !== session.id) {
         // Session has expired
         updateSession({
           ...session,
@@ -42,11 +42,11 @@ export default function useSwitchSession() {
         return false;
       }
 
-      await navigateToSession(sessionKey);
+      await navigateToSession(sessionId);
 
       return true;
     },
-    [switchToSession, navigateToSession]
+    [switchToSession, navigateToSession, updateSession]
   );
 
   return startSwitchSession;

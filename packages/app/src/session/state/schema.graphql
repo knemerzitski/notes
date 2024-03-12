@@ -1,23 +1,30 @@
 type ClientSession {
-  "Unique key of this session."
-  key: ID!
-  "Cached displayName of this session."
-  displayName: String!
-  "Email of this session. This is stored only on client-side and not in the server."
-  email: String!
-  "Session has expired and is unusable. Must sign in again"
+  "Self-descriptive"
+  id: ID!
+  "Session has expired and is unusable. Must sign in again."
   isExpired: Boolean!
-  "Google payload sub field for now. TODO separate into own type?"
-  authProviderId: String!
+  "Profile displayName."
+  displayName: String!
+  "User email. This is stored only on client-side and not in the server."
+  email: String!
+  "IDs given by auth provider."
+  authProviderEntries: [AuthProviderEntry!]!
+}
+
+type AuthProviderEntry {
+  "Self-descriptive"
+  provider: AuthProvider!
+  "Self-descriptive"
+  id: String!
 }
 
 extend type Query {
-  "Client only saved session info. Server uses http-only cookie to store an array of session ids."
+  "Client only saved session info. Server uses http-only cookie to store an array of session IDs."
   clientSessions: [ClientSession!]!
   "Current session index."
   currentClientSessionIndex: NonNegativeInt
   "Current saved session. clientSessions[currentClientSessionIndex]"
   currentClientSession: ClientSession
-  "Is currently logged in"
+  "Is currently signed in"
   isSignedIn: Boolean!
 }

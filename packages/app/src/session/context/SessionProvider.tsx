@@ -2,7 +2,9 @@ import { ReactNode, createContext, useContext } from 'react';
 
 import { ClientSession } from '../../__generated__/graphql';
 
-const SessionContext = createContext<ClientSession | null>(null);
+const SessionContext = createContext<Omit<ClientSession, 'authProviderEntries'> | null>(
+  null
+);
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function useSession() {

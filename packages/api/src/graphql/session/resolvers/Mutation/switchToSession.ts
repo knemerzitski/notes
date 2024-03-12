@@ -1,27 +1,30 @@
 import type { MutationResolvers } from '../../../../graphql/types.generated';
-import { assertAuthenticated } from '../../../base/directives/auth';
-import { headersSetCookieUpdateSessions } from '../../auth-context';
+import {
+  headersSetCookieUpdateSessions,
+  parseOnlyValidClientCookiesFromHeaders,
+} from '../../auth-context';
 export const switchToSession: NonNullable<MutationResolvers['switchToSession']> = (
   _parent,
   { input },
-  { auth: auth, response }
+  { request, response }
 ) => {
-  assertAuthenticated(auth);
+  const clientCookies = parseOnlyValidClientCookiesFromHeaders(request.headers);
+  if (!clientCookies) {
+    return null;
+  }
 
-  const newSessionId = auth.cookie.sessions[input.switchToSessionKey];
-  if (!newSessionId) {
-    return {
-      currentSessionKey: auth.cookie.currentKey,
-    };
+  const newCookieId = clientCookies.sessions[input.switchToSessionId];
+  if (!newCookieId) {
+    return null;
   }
 
   headersSetCookieUpdateSessions(response.multiValueHeaders, {
-    ...auth.cookie,
-    currentKey: input.switchToSessionKey,
-    currentId: newSessionId,
+    ...clientCookies,
+    currentUserPublicId: input.switchToSessionId,
+    currentCookieId: newCookieId,
   });
 
   return {
-    currentSessionKey: input.switchToSessionKey,
+    currentSessionId: input.switchToSessionId,
   };
 };

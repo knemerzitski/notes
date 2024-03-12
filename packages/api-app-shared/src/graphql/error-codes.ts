@@ -31,14 +31,14 @@ export enum AuthenticationFailedReason {
    */
   InvalidCurrentSessionKey = 'INVALID_CURRENT_SESSION_KEY',
   /**
-   * Sessions map has an invalid key.
+   * Sessions map has an invalid User.publicId.
    */
   InvalidSessionsKey = 'INVALID_SESSIONS_KEY',
 
   /**
-   * Sessions map has a invalid session ID.
+   * Sessions map has a invalid Session.cookieId.
    */
-  InvalidSessionsId = 'INVALID_SESSIONS_ID',
+  InvalidSessionsValue = 'INVALID_SESSIONS_VALUE',
   /**
    * Session was not found in database.
    */

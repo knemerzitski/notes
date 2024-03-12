@@ -8,6 +8,7 @@ import BackgroundLetterAvatar from '../../components/data/BackgroundLetterAvatar
 const QUERY = gql(`
   query CurrentSessionButton {
     currentClientSession @client {
+      id
       displayName
       isExpired
     }

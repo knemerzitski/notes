@@ -15,7 +15,7 @@ const sessionPolicies: TypePolicies = {
         const currentSession = currentSessionVar();
         if (!currentSession) return null;
 
-        const index = sessions.findIndex((session) => session.key === currentSession.key);
+        const index = sessions.findIndex((session) => session.id === currentSession.id);
         if (index < 0) return null;
 
         return index;

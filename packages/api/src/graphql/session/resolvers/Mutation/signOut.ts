@@ -1,9 +1,9 @@
 import type { MutationResolvers } from '../../../../graphql/types.generated';
 import {
-  createCookieDeleteByKey,
+  createClientCookiesDeleteByKey as createCookieDeleteByUserPublicId,
   headersSetCookieDeleteSessions,
   headersSetCookieUpdateSessions,
-  parseAuthFromHeaders,
+  parseOnlyValidClientCookiesFromHeaders,
 } from '../../auth-context';
 
 export const signOut: NonNullable<MutationResolvers['signOut']> = async (
@@ -17,30 +17,25 @@ export const signOut: NonNullable<MutationResolvers['signOut']> = async (
     response,
   } = ctx;
 
-  // Parse auth if it's available
-  const auth = await parseAuthFromHeaders(
-    request.headers,
-    model.Session,
-    ctx.session.tryRefreshExpireAt
-  );
+  const clientCookies = parseOnlyValidClientCookiesFromHeaders(request.headers);
 
   if (input?.allSessions) {
-    if (auth.cookie) {
+    if (clientCookies) {
       // Deletes all sessions from database
       await model.Session.deleteMany({
         cookieId: {
-          $in: Object.values(auth.cookie.sessions),
+          $in: Object.values(clientCookies.sessions),
         },
       });
     }
   } else {
     // Delete specific session from database, by default current session
-    const sessionKey = input?.sessionKey ?? auth.cookie?.currentKey;
-    const cookieId = input?.sessionKey
-      ? auth.cookie?.sessions[input.sessionKey]
-      : auth.cookie?.currentId;
+    const userPublicId = input?.sessionId ?? clientCookies?.currentUserPublicId;
+    const cookieId = input?.sessionId
+      ? clientCookies?.sessions[input.sessionId]
+      : clientCookies?.currentCookieId;
 
-    if (!cookieId || !sessionKey || !auth.cookie) {
+    if (!cookieId || !userPublicId || !clientCookies) {
       return {
         signedOut: false,
       };
@@ -50,7 +45,7 @@ export const signOut: NonNullable<MutationResolvers['signOut']> = async (
       cookieId,
     });
 
-    const sessionCookie = createCookieDeleteByKey(auth.cookie, sessionKey);
+    const sessionCookie = createCookieDeleteByUserPublicId(clientCookies, userPublicId);
 
     if (sessionCookie) {
       // Still have existing sessions, update cookies accordingly
@@ -58,7 +53,7 @@ export const signOut: NonNullable<MutationResolvers['signOut']> = async (
 
       return {
         signedOut: true,
-        currentSessionKey: sessionCookie.currentKey,
+        currentSessionId: sessionCookie.currentUserPublicId,
       };
     }
   }

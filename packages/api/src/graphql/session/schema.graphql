@@ -1,6 +1,6 @@
 extend type Query {
   "Session count saved in http-only cookie"
-  sessionCount: PositiveInt! @auth
+  sessionCount: NonNegativeInt!
 }
 
 enum AuthProvider {
@@ -10,8 +10,8 @@ enum AuthProvider {
 "User info that is only available during sign in process and is not stored in database."
 type AuthProviderUserInfo {
   "User ID"
-  id: String!
-  "User email"
+  id: ID!
+  "User email. Not stored in database and only available after sign in."
   email: String!
 }
 
@@ -24,8 +24,8 @@ input SignInInput {
   credentials: CredentialsInput!
 }
 type SignInPayload {
-  "Key to session ID in http-only cookie."
-  currentSessionKey: String!
+  "session ID in http-only cookie."
+  currentSessionId: String!
   "Signed in user info."
   userInfo: UserInfo!
   "User info available only during sign in from auth provider."
@@ -36,18 +36,18 @@ extend type Mutation {
   signIn(input: SignInInput!): SignInPayload
 }
 
-"Sign out of current session unless allSessions or sessionKey is specified."
+"Sign out of current session unless allSessions or sessionId is specified."
 input SignOutInput {
   "Sign out of all session. Cookies are cleared."
   allSessions: Boolean
   "Sign out of specific session. This has no effect if allSessions is true."
-  sessionKey: String
+  sessionId: String
 }
 type SignOutPayload {
   "User was signed out."
   signedOut: Boolean!
-  "Session keya fter signing out if other sessions still exists."
-  currentSessionKey: String
+  "SessionId after signing out if other sessions still exists."
+  currentSessionId: String
 }
 extend type Mutation {
   "Returns signed out http-conly cookie session index or null if user was not signed in."
@@ -55,27 +55,27 @@ extend type Mutation {
 }
 
 input SwitchToSessionInput {
-  switchToSessionKey: String!
+  switchToSessionId: String!
 }
 type SwitchToSessionPayload {
-  "Current session key in http-only cookie"
-  currentSessionKey: String!
+  "Current session ID in http-only cookie"
+  currentSessionId: String!
 }
 extend type Mutation {
   "Switch session to new index which is tied to http-only session cookie. Returns switched to session index."
-  switchToSession(input: SwitchToSessionInput!): SwitchToSessionPayload! @auth
+  switchToSession(input: SwitchToSessionInput!): SwitchToSessionPayload
 }
 
 input SyncSessionsInput {
-  "Client stored session keys."
-  availableSessionKeys: [String!]!
+  "Client stored session Ids."
+  availableSessionIds: [String!]!
 }
 
 type SyncSessionsSignInPayload {
-  "Restored session key"
-  currentSessionKey: String!
-  "Session keys available in http-only cookies"
-  availableSessionKeys: [String!]!
+  "Restored session ID"
+  currentSessionId: String!
+  "Session Ids available in http-only cookies"
+  availableSessionIds: [String!]!
 }
 
 type SyncSessionsSignOutPayload {
