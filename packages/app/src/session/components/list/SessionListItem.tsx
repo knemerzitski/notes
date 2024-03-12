@@ -34,8 +34,12 @@ export default function SessionListItem({ session, ...restProps }: SessionListIt
     if (session.isExpired) {
       setSignInModalOpen(true);
     } else {
-      await switchSession(session);
-      onClose();
+      const sessionSwitchedSuccessfully = await switchSession(session);
+      if (sessionSwitchedSuccessfully) {
+        onClose();
+      } else {
+        setSignInModalOpen(true);
+      }
     }
   }
 
@@ -102,7 +106,11 @@ export default function SessionListItem({ session, ...restProps }: SessionListIt
                 edge: 'end',
               }}
             >
-              <SignInMenuItem />
+              <SignInMenuItem
+                onClick={() => {
+                  setSignInModalOpen(true);
+                }}
+              />
               <SignOutMenuItem />
               <ForgetSessionMenuItem />
             </SessionMoreOptionsButton>

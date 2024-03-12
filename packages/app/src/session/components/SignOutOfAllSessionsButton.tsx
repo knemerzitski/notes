@@ -19,7 +19,7 @@ const QUERY = gql(`
 `);
 
 export default function SignOutOfAllSessionsButton() {
-  const onClose = useCloseable();
+  const close = useCloseable();
 
   const {
     data: { currentSavedSession },
@@ -29,7 +29,7 @@ export default function SignOutOfAllSessionsButton() {
 
   async function handleClickSignOut() {
     if (await signOut()) {
-      onClose();
+      close();
     }
   }
 

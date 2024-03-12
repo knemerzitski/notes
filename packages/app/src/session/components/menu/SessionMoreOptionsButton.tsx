@@ -2,7 +2,9 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import { IconButton, IconButtonProps, Menu } from '@mui/material';
 import { useId, useState, MouseEvent, ReactNode } from 'react';
 
-interface SessionMoreOptionsButtonProps {
+import CloseableProvider from '../../context/CloseableProvider';
+
+interface SessionMoreOptionsButtonProps extends IconButtonProps {
   children: ReactNode;
   iconButtonProps?: IconButtonProps;
 }
@@ -70,7 +72,7 @@ export default function SessionMoreOptionsButton({
           handleClickMenu(e);
         }}
       >
-        {children}
+        <CloseableProvider onClose={handleClose}>{children}</CloseableProvider>
       </Menu>
     </>
   );

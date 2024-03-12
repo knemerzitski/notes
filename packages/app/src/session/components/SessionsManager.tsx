@@ -35,7 +35,10 @@ export default function SessionsManager() {
 
       <Divider sx={{ mt: 3 }} />
 
-      <SessionList sessions={savedSessions} selectedSession={currentSavedSession} />
+      <SessionList
+        sessions={savedSessions}
+        selectedSession={currentSavedSession ?? undefined}
+      />
 
       <LoginList
         sx={{

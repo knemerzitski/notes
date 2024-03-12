@@ -15,7 +15,7 @@ export default function ForgetSessionMenuItem() {
         forgetSession(session);
       }}
     >
-      Forget session
+      Forget
     </MenuItem>
   );
 }

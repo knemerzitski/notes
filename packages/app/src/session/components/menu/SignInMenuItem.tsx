@@ -1,31 +1,26 @@
-import { MenuItem } from '@mui/material';
-import { useState } from 'react';
+import { MenuItem, MenuItemProps } from '@mui/material';
+import { MouseEvent } from 'react';
 
+import { useCloseable } from '../../context/CloseableProvider';
 import { useSession } from '../../context/SessionProvider';
-import SignInModal from '../SignInModal';
 
-export default function SignInMenuItem() {
+
+export default function SignInMenuItem({ onClick, ...restProps }: MenuItemProps) {
   const session = useSession();
+  const closeMenu = useCloseable();
 
-  const [modalOpen, setModalOpen] = useState(false);
-
-  function handleCloseModal() {
-    setModalOpen(false);
+  function handleClick(e: MouseEvent<HTMLLIElement>) {
+    closeMenu();
+    onClick?.(e);
   }
 
   if (!session.isExpired) return null;
 
   return (
     <>
-      <MenuItem
-        onClick={() => {
-          setModalOpen(true);
-        }}
-      >
+      <MenuItem onClick={handleClick} {...restProps}>
         Sign in
       </MenuItem>
-
-      <SignInModal sessionHint={session} open={modalOpen} onClose={handleCloseModal} />
     </>
   );
 }

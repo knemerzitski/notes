@@ -20,16 +20,16 @@ export default function LoginList({
   sessionHint,
   ...restProps
 }: LoginListProps) {
-  const onClose = useCloseable();
+  const close = useCloseable();
 
   function handleSuccess() {
     onSuccess?.();
-    onClose();
+    close();
   }
 
   function handleError() {
     onError?.();
-    onClose();
+    close();
   }
 
   return (

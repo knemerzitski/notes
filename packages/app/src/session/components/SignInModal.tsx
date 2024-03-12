@@ -37,7 +37,7 @@ export default function SignInModal({
         <DialogContent>
           {sessionHint?.isExpired && (
             <DialogContentText>
-              Refresh expired session.
+              Current session has expired. Sign in to continue.
               <br />
               <i>{sessionHint.email}</i>
             </DialogContentText>

@@ -6,7 +6,7 @@ import SessionListItem from './SessionListItem';
 
 interface SessionListProps extends ListProps {
   sessions: SavedSession[];
-  selectedSession?: SavedSession;
+  selectedSession?: Pick<SavedSession, 'key'>;
 }
 
 export default function SessionList({
