@@ -1,4 +1,4 @@
-import { FormEventHandler, useRef } from 'react';
+import { FormEventHandler, useCallback, useRef } from 'react';
 
 interface SelectionEvent {
   /**
@@ -45,7 +45,19 @@ export default function useInputValueChange({
     selectionDirection: 'none',
   });
 
-  const handleSelect: FormEventHandler<HTMLInputElement> = (e) => {
+  const onInsertRef = useRef(onInsert);
+  onInsertRef.current = onInsert;
+
+  const onDeleteRef = useRef(onDelete);
+  onDeleteRef.current = onDelete;
+
+  const onUndoRef = useRef(onUndo);
+  onUndoRef.current = onUndo;
+
+  const onRedoRef = useRef(onRedo);
+  onRedoRef.current = onRedo;
+
+  const handleSelect: FormEventHandler<HTMLInputElement> = useCallback((e) => {
     if (
       !(e.target instanceof HTMLTextAreaElement) &&
       !(e.target instanceof HTMLInputElement)
@@ -58,9 +70,9 @@ export default function useInputValueChange({
       selectionEnd: e.target.selectionEnd,
       selectionDirection: e.target.selectionDirection,
     };
-  };
+  }, []);
 
-  const handleInput: FormEventHandler<HTMLDivElement> = (e) => {
+  const handleInput: FormEventHandler<HTMLDivElement> = useCallback((e) => {
     if (
       (!(e.target instanceof HTMLTextAreaElement) &&
         !(e.target instanceof HTMLInputElement)) ||
@@ -76,28 +88,30 @@ export default function useInputValueChange({
     const beforeDirection = selectionRef.current.selectionDirection;
 
     if (type.match(/insert/i)) {
+      e.preventDefault();
       const start = e.target.selectionStart ?? 0;
       const value = e.target.value;
-      onInsert?.({
+      onInsertRef.current?.({
         selectionStart: beforeStart,
         selectionEnd: beforeEnd,
         selectionDirection: beforeDirection,
         insertText: value.substring(beforeStart, start),
       });
     } else if (type.match(/delete/i)) {
-      onDelete?.({
+      e.preventDefault();
+      onDeleteRef.current?.({
         selectionStart: beforeStart,
         selectionEnd: beforeEnd,
         selectionDirection: beforeDirection,
       });
     } else if (type.match(/undo/i)) {
       e.preventDefault();
-      onUndo?.();
+      onUndoRef.current?.();
     } else if (type.match(/redo/i)) {
       e.preventDefault();
-      onRedo?.();
+      onRedoRef.current?.();
     }
-  };
+  }, []);
 
   return {
     onSelect: handleSelect,

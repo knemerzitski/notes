@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 
 import {
   Changeset,
@@ -9,7 +9,6 @@ import { CollaborativeEditor } from '~collab/editor/collaborative-editor';
 import { SelectionDirection } from '~collab/editor/selection-range';
 
 import useClientSyncDebouncedCallback from './useClientSyncDebouncedCallback';
-import useControlledInputSelection from './useControlledInputSelection';
 import useInputValueChange from './useInputValueChange';
 
 function asEditorDirection(direction: HTMLInputElement['selectionDirection']) {
@@ -53,6 +52,7 @@ export default function useDebounceCollaborativeInputEditor({
       headText: initialHeadText,
     })
   );
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const [state, setState] = useState<{
     value: string;
@@ -66,26 +66,58 @@ export default function useDebounceCollaborativeInputEditor({
     selectionDirection: asInputDirection(editorRef.current.selectionDirection),
   });
 
-  const inputRef = useControlledInputSelection(state);
+  const latestInputSelectionRef = useRef<{ start: number; end: number }>({
+    start: state.selectionStart,
+    end: state.selectionEnd,
+  });
+
+  /**
+   * Input selection is updated with given values from state.
+   */
+  useLayoutEffect(() => {
+    if (inputRef.current == null) return;
+
+    const input = inputRef.current;
+
+    input.setSelectionRange(
+      state.selectionStart,
+      state.selectionEnd,
+      state.selectionDirection ?? input.selectionDirection ?? undefined
+    );
+    latestInputSelectionRef.current = {
+      start: state.selectionStart,
+      end: state.selectionEnd,
+    };
+  }, [state]);
 
   const { onSelect, onInput } = useInputValueChange({
     onInsert({ selectionStart, selectionEnd, selectionDirection, insertText }) {
       const editor = editorRef.current;
+
+      const startOffset = editor.selectionStart - state.selectionStart;
+      const endOffset = editor.selectionEnd - state.selectionEnd;
+
       editor.setSelectionRange(
-        selectionStart,
-        selectionEnd,
+        selectionStart + startOffset,
+        selectionEnd + endOffset,
         asEditorDirection(selectionDirection)
       );
+
       editor.insertText(insertText);
       syncStateFromEditor();
     },
     onDelete({ selectionStart, selectionEnd, selectionDirection }) {
       const editor = editorRef.current;
+
+      const startOffset = editor.selectionStart - state.selectionStart;
+      const endOffset = editor.selectionEnd - state.selectionEnd;
+
       editor.setSelectionRange(
-        selectionStart,
-        selectionEnd,
+        selectionStart + startOffset,
+        selectionEnd + endOffset,
         asEditorDirection(selectionDirection)
       );
+
       editor.deleteTextCount(1);
       syncStateFromEditor();
     },
@@ -105,7 +137,7 @@ export default function useDebounceCollaborativeInputEditor({
     async () => {
       const editor = editorRef.current;
 
-      if (editor.haveSubmittedChanges()) return;
+      if (!editor.haveLocalChanges() || editor.haveSubmittedChanges()) return;
 
       const changes = editor.submitChanges();
 
@@ -125,46 +157,73 @@ export default function useDebounceCollaborativeInputEditor({
     { maxWait: debounce?.maxWait }
   );
 
-  function syncStateFromEditor(skipDebounce = false) {
-    const editor = editorRef.current;
-    const selectionDirection = asInputDirection(editor.selectionDirection);
-    const stateChanged =
-      state.value !== editor.value ||
-      state.selectionStart !== editor.selectionStart ||
-      state.selectionEnd !== editor.selectionEnd ||
-      state.selectionDirection !== selectionDirection;
-    if (stateChanged) {
-      setState({
-        value: editor.value,
-        selectionStart: editor.selectionStart,
-        selectionEnd: editor.selectionEnd,
-        selectionDirection,
-      });
-    }
-    if (!skipDebounce && !editor.haveSubmittedChanges()) {
-      void submitContentDebounce();
-    }
-  }
+  const syncStateFromEditor = useCallback(
+    (skipDebounce = false) => {
+      const editor = editorRef.current;
+      const value = editor.value;
+      const selectionStart = editor.selectionStart;
+      const selectionEnd = editor.selectionEnd;
+      const selectionDirection = asInputDirection(editor.selectionDirection);
 
-  function onExternalChange(changes: SerializedRevisionChangeset) {
-    const editor = editorRef.current;
-    if (editor.documentRevision < changes.revision) {
-      const inputEl = inputRef.current;
-      if (inputEl) {
-        // Sync input selection to editor selection before processing external change
-        editor.setSelectionRange(
-          inputEl.selectionStart ?? editor.selectionStart,
-          inputEl.selectionEnd ?? editor.selectionEnd,
-          asEditorDirection(inputEl.selectionDirection)
-        );
-      }
-      editor.handleExternalChange({
-        revision: changes.revision,
-        changeset: Changeset.parseValue(changes.changeset),
+      setState((prev) => {
+        if (
+          prev.value === value &&
+          prev.selectionStart === selectionStart &&
+          prev.selectionEnd === selectionEnd &&
+          prev.selectionDirection === selectionDirection
+        ) {
+          return prev;
+        }
+
+        return {
+          value,
+          selectionStart,
+          selectionEnd,
+          selectionDirection,
+        };
       });
-      syncStateFromEditor(true);
-    }
-  }
+
+      if (!skipDebounce && editor.haveLocalChanges() && !editor.haveSubmittedChanges()) {
+        void submitContentDebounce();
+      }
+    },
+    [submitContentDebounce]
+  );
+
+  const syncEditorSelectionFromInput = useCallback(() => {
+    const input = inputRef.current;
+    if (!input?.selectionStart || !input.selectionEnd) return;
+
+    const editor = editorRef.current;
+
+    const startOffset = editor.selectionStart - latestInputSelectionRef.current.start;
+    const endOffset = editor.selectionEnd - latestInputSelectionRef.current.end;
+
+    editor.setSelectionRange(
+      input.selectionStart + startOffset,
+      input.selectionEnd + endOffset,
+      asEditorDirection(input.selectionDirection)
+    );
+  }, []);
+
+  const onExternalChange = useCallback(
+    (serializedChange: SerializedRevisionChangeset) => {
+      const editor = editorRef.current;
+      if (editor.documentRevision < serializedChange.revision) {
+        const change = {
+          revision: serializedChange.revision,
+          changeset: Changeset.parseValue(serializedChange.changeset),
+        };
+
+        syncEditorSelectionFromInput();
+
+        editor.handleExternalChange(change);
+
+        syncStateFromEditor(true);
+      }
+    },
+    [syncStateFromEditor, syncEditorSelectionFromInput]
+  );
 
   return {
     inputRef,
