@@ -5,7 +5,6 @@ type MessageVersion = number;
 
 interface StashedMessage<Payload> {
   type: MessageType;
-  version: MessageVersion;
   payload: Payload;
 }
 
@@ -52,12 +51,16 @@ export class OrderedMessageBuffer<Messages extends Record<MessageType, unknown>>
     return this._currentVersion;
   }
 
+  get size() {
+    return Object.keys(this.stashedMessageMap).length;
+  }
+
   constructor(options?: OrderedMessageBufferOptions<Messages>) {
     this._currentVersion = options?.initialVersion ?? 0;
     this.bus = options?.bus ?? mitt();
   }
 
-  private stashedMessages: StashedMessage<unknown>[] = [];
+  private stashedMessageMap: Record<number, StashedMessage<unknown>> = {};
 
   /**
    * Add message to the buffer.
@@ -69,17 +72,22 @@ export class OrderedMessageBuffer<Messages extends Record<MessageType, unknown>>
     message?: Messages[Key]
   ) {
     if (version <= this._currentVersion) {
-      // Discard old messages
-      return;
+      // Ignore old message
+      return false;
     }
 
-    this.stashedMessages.push({
+    if (version in this.stashedMessageMap) {
+      // Ignore duplicate message
+      return false;
+    }
+
+    this.stashedMessageMap[version] = {
       type,
-      version,
       payload: message,
-    });
+    };
 
     this.processMessages();
+    return true;
   }
 
   private processMessages() {
@@ -90,14 +98,17 @@ export class OrderedMessageBuffer<Messages extends Record<MessageType, unknown>>
   }
 
   private popNextMessage() {
-    this.stashedMessages.sort((a, b) => b.version - a.version);
-
-    const nextMessage = this.stashedMessages[this.stashedMessages.length - 1];
-    if (nextMessage && this._currentVersion + 1 === nextMessage.version) {
-      this.stashedMessages.pop();
-      this._currentVersion = nextMessage.version;
-      return nextMessage;
+    const nextVersion = this._currentVersion + 1;
+    const nextMessage = this.stashedMessageMap[nextVersion];
+    if (!nextMessage) {
+      return;
     }
-    return;
+
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete this.stashedMessageMap[nextVersion];
+
+    this._currentVersion = nextVersion;
+
+    return nextMessage;
   }
 }
