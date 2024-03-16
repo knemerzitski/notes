@@ -46,13 +46,19 @@ export class LocalChangesetEditorHistory {
     local: -1,
   };
 
-  private serverBaseComposition = Changeset.EMPTY;
+  /**
+   * Server composition changeset without any local changes applied.
+   * Same as undoing everything typed so far.
+   */
+  private serverBaseComposition: Changeset;
 
   private unsubscribeFromEvents: () => void;
 
   constructor(props: LocalChangesetEditorHistoryProps) {
     this.props = props;
     const { selection, editorBus: editorBus, document } = props;
+
+    this.serverBaseComposition = document.server;
 
     const editorChangeListener = ({
       changeset,
@@ -164,9 +170,6 @@ export class LocalChangesetEditorHistory {
   }
 
   private updateHistoryFromExternalChange(externalChangeset: Changeset) {
-    return; // TODO uncomment
-    // TODO test with history push slices server changeset so there is a gap...
-
     const entries = this.entries;
     const serverIndex = this.lastExecutedIndex.server;
 
@@ -192,7 +195,7 @@ export class LocalChangesetEditorHistory {
       followComposition = newChange;
       baseChange = newChange;
     }
-    // TOOD what if empty fux bug;
+
     this.serverBaseComposition = this.serverBaseComposition.compose(baseChange);
 
     // Undo before serverIndex (...,u0,u1,u2) - only calculates new selection
