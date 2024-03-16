@@ -32,6 +32,7 @@ const config: CodegenConfig = {
             input: 'number',
             output: 'number',
           },
+          Changeset: '~collab/changeset/changeset#SerializedChangeset',
         },
       },
       // TODO encode documents to prevent any query execution...
