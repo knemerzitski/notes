@@ -44,8 +44,8 @@ export default function GoogleLogin({
 
   const { clientId, isScriptLoaded } = useGoogleAuth();
 
-  const onSuccesSref = useRef(onSuccess);
-  onSuccesSref.current = onSuccess;
+  const onSuccessRef = useRef(onSuccess);
+  onSuccessRef.current = onSuccess;
 
   const onErrorRef = useRef(onError);
   onErrorRef.current = onError;
@@ -62,7 +62,7 @@ export default function GoogleLogin({
         if (!response.credential) {
           return onErrorRef.current?.();
         }
-        onSuccesSref.current(response);
+        onSuccessRef.current(response);
       },
       ...idConfig,
     });
