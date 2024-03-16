@@ -50,6 +50,15 @@ module.exports = {
         ],
         '@graphql-eslint/executable-definitions': 'off',
         '@graphql-eslint/strict-id-in-types': 'off',
+        '@graphql-eslint/no-unused-fragments': 'off',
+        '@typescript-eslint/no-unused-vars': [
+          'error',
+          {
+            ignoreRestSiblings: true,
+            argsIgnorePattern: '_',
+            destructuredArrayIgnorePattern: '^_',
+          },
+        ],
       },
       parserOptions: {
         schema: [
