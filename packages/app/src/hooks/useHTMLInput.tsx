@@ -31,7 +31,7 @@ export interface InputValueChangeProps {
 /**
  * Calls prop events with selection information on value change.
  */
-export default function useInputValueChange({
+export default function useHTMLInput({
   onInsert,
   onDelete,
   onUndo,
@@ -114,7 +114,7 @@ export default function useInputValueChange({
   }, []);
 
   return {
-    onSelect: handleSelect,
-    onInput: handleInput,
+    handleSelect,
+    handleInput,
   };
 }

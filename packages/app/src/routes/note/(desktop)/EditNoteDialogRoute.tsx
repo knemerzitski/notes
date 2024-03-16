@@ -72,92 +72,98 @@ function RouteClosableEditNoteDialog({
     maxWait: 600,
   };
 
+  // TODO separate title and content logic data fetching into separate child components
   const {
     inputRef: titleInputRef,
     value: titleValue,
     revision: titleRevision,
-    onInput: titleOnInput,
-    onSelect: titleOnSelect,
-    onExternalChange: titleOnExternalChange,
+    handleInput: titleHandleInput,
+    handleSelect: titleHandleSelect,
+    handleExternalChange: titleHandleExternalChange,
   } = useDebounceCollaborativeInputEditor({
-    initialHeadText: {
-      revision: data.note.title.latestRevision,
-      changeset: Changeset.fromInsertion(data.note.title.latestText),
-    },
-    async submitChanges(changes) {
-      const titleResult = await updateNote({
-        id: noteId,
-        patch: {
-          title: {
-            targetRevision: changes.revision,
-            changeset: changes.changeset,
-          },
-        },
-      });
-
-      const revision = titleResult?.patch?.title?.revision;
-      if (!revision) {
-        showError('Failed to acknowledge title changes!');
-        return;
-      }
-
-      return revision;
-    },
     debounce,
+    editorProps: {
+      initialHeadText: {
+        revision: data.note.title.latestRevision,
+        changeset: Changeset.fromInsertion(data.note.title.latestText),
+      },
+      async onSubmitChanges(changes) {
+        const titleResult = await updateNote({
+          id: noteId,
+          patch: {
+            title: {
+              targetRevision: changes.revision,
+              changeset: changes.changeset,
+            },
+          },
+        });
+
+        const revision = titleResult?.patch?.title?.revision;
+        if (!revision) {
+          showError('Failed to acknowledge title changes!');
+          return;
+        }
+
+        return revision;
+      },
+    },
   });
 
   const {
     inputRef: contentInputRef,
     value: contentValue,
     revision: contentRevision,
-    onInput: contentOnInput,
-    onSelect: contentOnSelect,
-    onExternalChange: contentOnExternalChange,
+    handleInput: contentHandleInput,
+    handleSelect: contentHandleSelect,
+    handleExternalChange: contentHandleExternalChange,
   } = useDebounceCollaborativeInputEditor({
-    initialHeadText: {
-      revision: data.note.content.latestRevision,
-      changeset: Changeset.fromInsertion(data.note.content.latestText),
-    },
-    async submitChanges(changes) {
-      const contentResult = await updateNote({
-        id: noteId,
-        patch: {
-          content: {
-            targetRevision: changes.revision,
-            changeset: changes.changeset,
-          },
-        },
-      });
-
-      const revision = contentResult?.patch?.content?.revision;
-      if (!revision) {
-        showError('Failed to acknowledge content changes!');
-        return;
-      }
-
-      return revision;
-    },
     debounce,
+    editorProps: {
+      initialHeadText: {
+        revision: data.note.content.latestRevision,
+        changeset: Changeset.fromInsertion(data.note.content.latestText),
+      },
+      async onSubmitChanges(changes) {
+        const contentResult = await updateNote({
+          id: noteId,
+          patch: {
+            content: {
+              targetRevision: changes.revision,
+              changeset: changes.changeset,
+            },
+          },
+        });
+
+        const revision = contentResult?.patch?.content?.revision;
+        if (!revision) {
+          showError('Failed to acknowledge content changes!');
+          return;
+        }
+
+        return revision;
+      },
+    },
   });
 
   useEffect(() => {
-    subscribeToMore({
+    return subscribeToMore({
       document: SUBSCRIPTION_UPDATED,
       updateQuery(existing, { subscriptionData }) {
+        // TODO update cache instead of passing external change from function
         const noteUpdate = subscriptionData.data.noteUpdated;
 
         if (noteUpdate.patch.title) {
-          titleOnExternalChange(noteUpdate.patch.title);
+          titleHandleExternalChange(noteUpdate.patch.title);
         }
 
         if (noteUpdate.patch.content) {
-          contentOnExternalChange(noteUpdate.patch.content);
+          contentHandleExternalChange(noteUpdate.patch.content);
         }
 
         return existing;
       },
     });
-  }, [subscribeToMore, titleOnExternalChange, contentOnExternalChange]);
+  }, [subscribeToMore, titleHandleExternalChange, contentHandleExternalChange]);
 
   function handleDeleteNote() {
     return deleteNote(noteId);
@@ -207,14 +213,14 @@ function RouteClosableEditNoteDialog({
           titleFieldProps: {
             inputRef: titleInputRef,
             value: titleValue,
-            onSelect: titleOnSelect,
-            onInput: titleOnInput,
+            onSelect: titleHandleSelect,
+            onInput: titleHandleInput,
           },
           contentFieldProps: {
             inputRef: contentInputRef,
             value: contentValue,
-            onSelect: contentOnSelect,
-            onInput: contentOnInput,
+            onSelect: contentHandleSelect,
+            onInput: contentHandleInput,
           },
         },
       }}
