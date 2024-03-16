@@ -553,8 +553,8 @@ describe('Changeset', () => {
   describe('serialize/parseValue', () => {
     it.each([
       [[], Changeset.EMPTY, undefined],
-      [[null], new Changeset([Strip.EMPTY]), undefined],
-      [[null, null], new Changeset([Strip.EMPTY]), [null]],
+      [[null], new Changeset([Strip.EMPTY]), []],
+      [[null, null], new Changeset([Strip.EMPTY]), []],
       [
         [1, 'abc'],
         new Changeset([new RetainStrip(1, 1), new InsertStrip('abc')]),
