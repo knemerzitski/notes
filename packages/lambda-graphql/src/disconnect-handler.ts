@@ -13,10 +13,16 @@ import { Logger } from '~utils/logger';
 import { Maybe, MaybePromise } from '~utils/types';
 
 import { WebSocketConnectEventEvent } from './connect-handler';
+import {
+  ApiGatewayContextParams,
+  WebSocketApi,
+  createApiGatewayContext,
+} from './context/apigateway';
 import { DynamoDBContextParams, createDynamoDbContext } from './context/dynamodb';
 import { GraphQLContextParams, createGraphQlContext } from './context/graphql';
 import { ConnectionTable, OnConnectGraphQLContext } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
+import { Publisher, createPublisher } from './pubsub/publish';
 import {
   SubscriptionContext,
   createSubscriptionContext,
@@ -27,7 +33,14 @@ interface DirectParams<
   TGraphQLContext,
   TOnConnectGraphQLContext extends OnConnectGraphQLContext,
 > {
-  graphQLContext: TGraphQLContext;
+  createGraphQLContext: (
+    context: WebSocketDisconnectHandlerContextWithoutGraphQLContext<
+      TGraphQLContext,
+      TOnConnectGraphQLContext
+    >,
+    event: APIGatewayProxyWebsocketEventV2
+  ) => Promise<TGraphQLContext> | TGraphQLContext;
+  apiGateway: ApiGatewayContextParams;
   logger: Logger;
 
   onDisconnect?: (args: {
@@ -49,11 +62,26 @@ export interface WebSocketDisconnectHandlerContext<
   TOnConnectGraphQLContext extends OnConnectGraphQLContext,
 > extends DirectParams<TGraphQLContext, TOnConnectGraphQLContext> {
   schema: GraphQLSchema;
+  graphQLContext: TGraphQLContext;
   models: {
     connections: ConnectionTable<TOnConnectGraphQLContext>;
     subscriptions: SubscriptionTable<TOnConnectGraphQLContext>;
   };
+  socketApi: WebSocketApi;
 }
+
+export interface WebSocketDisconnectGraphQLContext extends Record<string, unknown> {
+  readonly logger: Logger;
+  readonly publish: Publisher;
+}
+
+type WebSocketDisconnectHandlerContextWithoutGraphQLContext<
+  TGraphQLContext,
+  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
+> = Omit<
+  WebSocketDisconnectHandlerContext<TGraphQLContext, TOnConnectGraphQLContext>,
+  'graphQLContext'
+>;
 
 /**
  * Add headers types to APIGatewayProxyWebsocketEventV2 since they're
@@ -74,7 +102,7 @@ const defaultResponse: APIGatewayProxyResultV2 = {
 };
 
 export function createWebSocketDisconnectHandler<
-  TGraphQLContext,
+  TGraphQLContext extends WebSocketDisconnectGraphQLContext,
   TOnConnectGraphQLContext extends OnConnectGraphQLContext,
 >(
   params: WebSocketDisconnectHandlerParams<TGraphQLContext, TOnConnectGraphQLContext>
@@ -84,8 +112,9 @@ export function createWebSocketDisconnectHandler<
 
   const graphQl = createGraphQlContext(params.graphQl);
   const dynamoDB = createDynamoDbContext<TOnConnectGraphQLContext>(params.dynamoDB);
+  const apiGateway = createApiGatewayContext(params.apiGateway);
 
-  const context: WebSocketDisconnectHandlerContext<
+  const context: WebSocketDisconnectHandlerContextWithoutGraphQLContext<
     TGraphQLContext,
     TOnConnectGraphQLContext
   > = {
@@ -95,16 +124,26 @@ export function createWebSocketDisconnectHandler<
       connections: dynamoDB.connections,
       subscriptions: dynamoDB.subscriptions,
     },
+    socketApi: apiGateway.socketApi,
   };
 
-  return webSocketDisconnectHandler(context);
+  return webSocketDisconnectHandler(params, context);
 }
 
 export function webSocketDisconnectHandler<
-  TGraphQLContext,
+  TGraphQLContext extends WebSocketDisconnectGraphQLContext,
   TOnConnectGraphQLContext extends OnConnectGraphQLContext,
 >(
-  context: WebSocketDisconnectHandlerContext<TGraphQLContext, TOnConnectGraphQLContext>
+  {
+    createGraphQLContext,
+  }: Pick<
+    WebSocketDisconnectHandlerParams<TGraphQLContext, TOnConnectGraphQLContext>,
+    'createGraphQLContext'
+  >,
+  context: WebSocketDisconnectHandlerContextWithoutGraphQLContext<
+    TGraphQLContext,
+    TOnConnectGraphQLContext
+  >
 ): WebSocketDisconnectHandler {
   return async (event) => {
     try {
@@ -117,19 +156,43 @@ export function webSocketDisconnectHandler<
         connectionId,
       });
 
+      const partialGraphQLContext: TGraphQLContext & {
+        publish?: TGraphQLContext['publish'];
+      } = {
+        ...(await createGraphQLContext(context, event)),
+      };
+
+      const isCurrentConnection = (id: string) => connectionId === id;
+      partialGraphQLContext.publish = createPublisher<
+        Omit<TGraphQLContext, 'publish'>,
+        TOnConnectGraphQLContext
+      >({
+        context: {
+          ...context,
+          graphQLContext: partialGraphQLContext,
+        },
+        isCurrentConnection,
+      });
+
+      const graphQLContext: TGraphQLContext = partialGraphQLContext;
+
       context.logger.info('messages:disconnect:onDisconnect', {
         onDisconnect: !!context.onDisconnect,
       });
-      await context.onDisconnect?.({ context, event });
+      await context.onDisconnect?.({
+        context: { ...context, graphQLContext },
+        event,
+      });
 
       const connectionSubscriptions =
         await context.models.subscriptions.queryAllByConnectionId(connectionId);
 
       const deletions = connectionSubscriptions.map(async (sub) => {
-        const graphQLContext: SubscriptionContext &
+        const execContextValue: SubscriptionContext &
           TGraphQLContext &
           OnConnectGraphQLContext = {
-          ...context.graphQLContext,
+          ...context,
+          ...graphQLContext,
           ...sub.connectionOnConnectGraphQLContext,
           ...createSubscriptionContext(),
         };
@@ -137,7 +200,7 @@ export function webSocketDisconnectHandler<
         const execContext = buildExecutionContext({
           schema: context.schema,
           document: parse(sub.subscription.query),
-          contextValue: graphQLContext,
+          contextValue: execContextValue,
           variableValues: sub.subscription.variables,
           operationName: sub.subscription.operationName,
         });
@@ -146,7 +209,7 @@ export function webSocketDisconnectHandler<
           throw new AggregateError(execContext);
         }
 
-        const { onComplete } = getSubscribeFieldResult(execContext);
+        const { onComplete } = await getSubscribeFieldResult(execContext);
 
         context.logger.info('messages:onComplete', { onComplete: !!onComplete });
         await onComplete?.();

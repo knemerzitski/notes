@@ -29,7 +29,7 @@ export async function handleConnectGraphQLAuth(
 }
 
 export function createDefaultParams(): WebSocketConnectHandlerParams<BaseGraphQLContext> {
-  const logger = createLogger('websocket-connect-handler');
+  const logger = createLogger('ws-connect-handler');
 
   let mongoose: Awaited<ReturnType<typeof createDefaultMongooseContext>> | undefined;
 

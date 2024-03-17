@@ -53,7 +53,7 @@ export function createCompleteHandler<
         throw new AggregateError(execContext);
       }
 
-      const { onComplete } = getSubscribeFieldResult(execContext);
+      const { onComplete } = await getSubscribeFieldResult(execContext);
 
       context.logger.info('messages:onComplete', { onComplete: !!onComplete });
       await onComplete?.();

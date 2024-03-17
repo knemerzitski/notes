@@ -74,20 +74,20 @@ export function createSubscriptionContext<
   };
 }
 
-export function getSubscribeFieldResult(
+export async function getSubscribeFieldResult(
   execContext: ExecutionContext
-): SubscriberResult<PubSubEvent> {
+): Promise<SubscriberResult<PubSubEvent>> {
   const { field, parent, args, contextValue, info } = getResolverArgs(execContext);
   if (!field?.subscribe) {
     throw new Error('No field subscribe in schema');
   }
 
-  const subscribeFieldResult = field.subscribe(
+  const subscribeFieldResult = (await field.subscribe(
     parent,
     args,
     contextValue,
     info
-  ) as SubscriptionIterable;
+  )) as SubscriptionIterable;
   if (subscribeFieldResult.deny) {
     throw new GraphQLError(`Access denied`);
   }

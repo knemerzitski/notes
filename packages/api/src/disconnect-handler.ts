@@ -12,7 +12,9 @@ import {
   createErrorBaseSubscriptionResolversContext,
 } from './graphql/context';
 import {
+  createDefaultApiGatewayParams,
   createDefaultDynamoDBParams,
+  createDefaultMongooseContext,
   createDefaultSubscriptionGraphQLParams,
 } from './handler-params';
 
@@ -20,14 +22,27 @@ export function createDefaultParams(): WebSocketDisconnectHandlerParams<
   BaseSubscriptionResolversContext,
   BaseGraphQLContext
 > {
-  const name = 'websocket-disconnect-handler';
+  const name = 'ws-disconnect-handler';
   const logger = createLogger(name);
+
+  let mongoose: Awaited<ReturnType<typeof createDefaultMongooseContext>> | undefined;
 
   return {
     logger,
+    apiGateway: createDefaultApiGatewayParams(logger),
     graphQl: createDefaultSubscriptionGraphQLParams(logger),
     dynamoDB: createDefaultDynamoDBParams(logger),
-    graphQLContext: createErrorBaseSubscriptionResolversContext(name),
+    async createGraphQLContext() {
+      if (!mongoose) {
+        mongoose = await createDefaultMongooseContext(logger);
+      }
+
+      return {
+        ...createErrorBaseSubscriptionResolversContext(name),
+        logger: createLogger('ws-disconnect-gql-context'),
+        mongoose,
+      };
+    },
   };
 }
 

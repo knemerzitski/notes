@@ -7,8 +7,6 @@ import { MongooseModels } from '../mongoose/models';
 
 import { AuthenticationContext } from './session/auth-context';
 
-// import { Logger } from '~utils/logger';
-
 /**
  * Must only contain primitive values so it can be marshalled properly into
  * DynamoDB entry.
@@ -37,8 +35,6 @@ export interface MongooseGraphQLContext {
      */
     tryRefreshExpireAt: (expireAt: Date) => boolean;
   };
-  // TODO pass logger to context?
-  //logger: Logger;
 }
 
 export type GraphQLResolversContext = ApolloHttpGraphQLContext &
@@ -67,7 +63,7 @@ export type BaseSubscriptionResolversContext = Omit<
 
 export function createErrorBaseSubscriptionResolversContext(
   name = 'websocket-handler'
-): BaseSubscriptionResolversContext {
+): Omit<BaseSubscriptionResolversContext, 'logger'> {
   function createErrorProxy(propertyName: string) {
     return new Proxy(
       {},
@@ -93,7 +89,6 @@ export function createErrorBaseSubscriptionResolversContext(
       return createErrorProxy('response') as ApolloHttpGraphQLContext['response'];
     },
     publish() {
-      // TODO allow publish in subscriptions?
       throw new Error(`Publish should never be called in ${name}`);
     },
   };

@@ -49,7 +49,7 @@ void (async () => {
     const server = createLambdaServer({
       sockets,
       connectHandler: createWebSocketConnectHandler<BaseGraphQLContext>({
-        logger: createLogger('mock:websocket-connect-handler'),
+        logger: createLogger('mock:ws-connect-handler'),
         connection: createDefaultDynamoDBConnectionTtlContext(),
         dynamoDB: createMockDynamoDBParams(),
         async onConnect({ event }) {
@@ -63,13 +63,21 @@ void (async () => {
         BaseSubscriptionResolversContext,
         BaseGraphQLContext
       >({
-        logger: createLogger('mock:websocket-message-handler'),
+        logger: createLogger('mock:ws-message-handler'),
         dynamoDB: createMockDynamoDBParams(),
         apiGateway: createMockApiGatewayParams(sockets),
         graphQl: createMockSubscriptionGraphQLParams(),
-        graphQLContext: createErrorBaseSubscriptionResolversContext(
-          'mock:websocket-message-handler'
-        ),
+        async createGraphQLContext() {
+          if (!mongoose) {
+            mongoose = await createMockMongooseContext();
+          }
+
+          return {
+            ...createErrorBaseSubscriptionResolversContext(),
+            logger: createLogger('mock:ws-message-gql-context'),
+            mongoose,
+          };
+        },
         connection: createDefaultDynamoDBConnectionTtlContext(),
         //pingpong: createMockPingPongParams(sockets),
       }),
@@ -77,18 +85,27 @@ void (async () => {
         BaseSubscriptionResolversContext,
         BaseGraphQLContext
       >({
-        logger: createLogger('mock:websocket-disconnect-handler'),
+        logger: createLogger('mock:ws-disconnect-handler'),
         dynamoDB: createMockDynamoDBParams(),
         graphQl: createMockSubscriptionGraphQLParams(),
-        graphQLContext: createErrorBaseSubscriptionResolversContext(
-          'mock:websocket-disconnect-handler'
-        ),
+        apiGateway: createMockApiGatewayParams(sockets),
+        async createGraphQLContext() {
+          if (!mongoose) {
+            mongoose = await createMockMongooseContext();
+          }
+
+          return {
+            ...createErrorBaseSubscriptionResolversContext(),
+            logger: createLogger('mock:ws-disconnect-gql-context'),
+            mongoose,
+          };
+        },
       }),
       apolloHttpHandler: createApolloHttpHandler<
         Omit<GraphQLResolversContext, keyof ApolloHttpGraphQLContext>,
         BaseGraphQLContext
       >({
-        logger: createLogger('mock:apollo-websocket-handler'),
+        logger: createLogger('mock:apollo-http-handler'),
         graphQL: createMockGraphQLParams(),
         async createGraphQLContext() {
           if (!mongoose) {

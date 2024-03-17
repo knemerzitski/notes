@@ -54,6 +54,7 @@ export interface ApolloHttpGraphQLContext extends BaseContext {
     headers: Record<string, string | number | boolean>;
     multiValueHeaders: Record<string, (boolean | number | string)[]>;
   };
+  readonly logger: Logger;
   readonly publish: Publisher;
 }
 
@@ -107,18 +108,17 @@ export function createApolloHttpHandler<
           headers: responseHeadersFromResolvers,
           multiValueHeaders: responseMultiValueHeadersFromResolvers,
         },
+        logger,
         publish() {
           throw new Error('Publish has not been initialized');
         },
       };
 
-      // TODO use constant for header name in shared package
       const wsConnectionId = event.headers['x-ws-connection-id'];
       const isCurrentConnection = wsConnectionId
         ? (connectionId: string) => wsConnectionId === connectionId
         : () => false;
 
-      // TODO allow publish in subscriptions?
       graphQLContext.publish = createPublisher<GraphQLContext, TOnConnectGraphQLContext>({
         context: {
           ...context,
@@ -126,6 +126,7 @@ export function createApolloHttpHandler<
         },
         isCurrentConnection,
       });
+
       const res = await apollo.executeHTTPGraphQLRequest({
         httpGraphQLRequest,
         context: () => Promise.resolve(graphQLContext),

@@ -102,7 +102,7 @@ export function createSubscribeHandler<
       }
 
       const { topic, filter, onSubscribe, onAfterSubscribe } =
-        getSubscribeFieldResult(execContext);
+        await getSubscribeFieldResult(execContext);
 
       context.logger.info('messages:subscribe:onSubscribe', {
         onSubscribe: !!onSubscribe,

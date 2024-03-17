@@ -7,7 +7,7 @@
     "build": "esbuild src/index.ts --outdir=./out --loader:.graphql=text --bundle --platform=node --packages=external --sourcemap",
     "build:watch": "npm run build -- --watch=forever",
     "start": "DEBUG=*:error node ./out/index.js",
-    "start:watch": "DEBUG=*:info,*:warning,*:error nodemon ./out/index.js",
+    "start:watch": "DEBUG=*:error nodemon ./out/index.js",
     "dev": "npm run build:watch & npm run start:watch"
   },
   "dependencies": {

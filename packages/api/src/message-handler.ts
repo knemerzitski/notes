@@ -15,6 +15,7 @@ import {
   createDefaultApiGatewayParams,
   createDefaultDynamoDBConnectionTtlContext,
   createDefaultDynamoDBParams,
+  createDefaultMongooseContext,
   createDefaultSubscriptionGraphQLParams,
 } from './handler-params';
 
@@ -22,8 +23,10 @@ export function createDefaultParams(): WebSocketMessageHandlerParams<
   BaseSubscriptionResolversContext,
   BaseGraphQLContext
 > {
-  const name = 'websocket-message-handler';
+  const name = 'ws-message-handler';
   const logger = createLogger(name);
+
+  let mongoose: Awaited<ReturnType<typeof createDefaultMongooseContext>> | undefined;
 
   return {
     connection: createDefaultDynamoDBConnectionTtlContext(),
@@ -31,7 +34,17 @@ export function createDefaultParams(): WebSocketMessageHandlerParams<
     dynamoDB: createDefaultDynamoDBParams(logger),
     apiGateway: createDefaultApiGatewayParams(logger),
     graphQl: createDefaultSubscriptionGraphQLParams(logger),
-    graphQLContext: createErrorBaseSubscriptionResolversContext(name),
+    async createGraphQLContext() {
+      if (!mongoose) {
+        mongoose = await createDefaultMongooseContext(logger);
+      }
+
+      return {
+        ...createErrorBaseSubscriptionResolversContext(name),
+        logger: createLogger('ws-message-gql-context'),
+        mongoose,
+      };
+    },
   };
 }
 
