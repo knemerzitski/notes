@@ -16,6 +16,7 @@ const config: CodegenConfig = {
       typesPluginsConfig: {
         noSchemaStitching: false,
         contextType: './context#GraphQLResolversContext',
+        enumsAsTypes: false,
       },
     }),
   },
