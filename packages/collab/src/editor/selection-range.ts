@@ -1,8 +1,20 @@
-export interface SelectionRangeProps {
+import mitt, { Emitter } from 'mitt';
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type Events = {
+  selectionChanged: {
+    start: number;
+    end: number;
+    direction: SelectionDirection;
+  };
+};
+
+export interface SelectionRangeOptions {
   /**
    * Length is upper bound for selection range.
    */
   getLength(): number;
+  eventBus?: Emitter<Events>;
 }
 
 export enum SelectionDirection {
@@ -12,12 +24,16 @@ export enum SelectionDirection {
 }
 
 export class SelectionRange {
-  private props: SelectionRangeProps;
+  readonly eventBus: Emitter<Events>;
+
+  private props: SelectionRangeOptions;
 
   direction = SelectionDirection.None;
 
-  constructor(props: SelectionRangeProps) {
+  constructor(props: SelectionRangeOptions) {
     this.props = props;
+
+    this.eventBus = props.eventBus ?? mitt();
   }
 
   private get length() {
@@ -61,6 +77,12 @@ export class SelectionRange {
 
     this._start = Math.max(0, Math.min(start, this.length));
     this._end = Math.max(0, Math.min(end, this.length));
+
+    this.eventBus.emit('selectionChanged', {
+      start: this.start,
+      end: this.end,
+      direction: this.direction,
+    });
   }
 
   selectAll() {

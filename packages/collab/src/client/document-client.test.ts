@@ -127,6 +127,31 @@ describe('DocumentClient', () => {
     });
   });
 
+  describe('canSubmitChanges', () => {
+    it('returns true only if have local changes and dont have submitted changes', () => {
+      const client = new DocumentClient({ initialServerChangeset: cs('server') });
+
+      const haveSubmittedChangesFn = vi.spyOn(client, 'haveSubmittedChanges');
+      const haveLocalChangesFn = vi.spyOn(client, 'haveLocalChanges');
+
+      haveSubmittedChangesFn.mockReturnValueOnce(true);
+      haveLocalChangesFn.mockReturnValueOnce(true);
+      expect(client.canSubmitChanges()).toBeFalsy();
+
+      haveSubmittedChangesFn.mockReturnValueOnce(true);
+      haveLocalChangesFn.mockReturnValueOnce(false);
+      expect(client.canSubmitChanges()).toBeFalsy();
+
+      haveSubmittedChangesFn.mockReturnValueOnce(false);
+      haveLocalChangesFn.mockReturnValueOnce(true);
+      expect(client.canSubmitChanges()).toBeTruthy();
+
+      haveSubmittedChangesFn.mockReturnValueOnce(false);
+      haveLocalChangesFn.mockReturnValueOnce(false);
+      expect(client.canSubmitChanges()).toBeFalsy();
+    });
+  });
+
   describe('submitChanges', () => {
     it('submits only if have local changes and no submitted changes', () => {
       const client = new DocumentClient({ initialServerChangeset: cs('server') });

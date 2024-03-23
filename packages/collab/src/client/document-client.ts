@@ -4,6 +4,20 @@ import { Changeset } from '../changeset/changeset';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type Events = {
+  viewChange: {
+    /**
+     * New view changeset that will replace current view.
+     */
+    newView: Changeset;
+    /**
+     * Changeset that is about to be composed to view.
+     */
+    change: Changeset;
+    /**
+     * What caused view to be changed. Either external or local change.
+     */
+    source: ChangeSource;
+  };
   viewChanged: {
     /**
      * New view changeset.
@@ -22,7 +36,7 @@ export type Events = {
   };
   submitChanges?: never;
   submittedChangesAcknowledged?: never;
-  handleExternalChange: {
+  handledExternalChange: {
     externalChange: Changeset;
   };
 };
@@ -86,9 +100,17 @@ export class DocumentClient {
     newLocal = submittedView.insertionsToRetained(newLocal);
 
     if (!this._local.isEqual(newLocal)) {
-      this._local = newLocal;
+      const newView = this._view.compose(change);
 
-      this._view = this._view.compose(change);
+      this.eventBus.emit('viewChange', {
+        newView,
+        change: newLocal,
+        source: ChangeSource.Local,
+      });
+
+      this._local = newLocal;
+      this._view = newView;
+
       this.eventBus.emit('viewChanged', {
         view: this._view,
         change: newLocal,
@@ -105,6 +127,10 @@ export class DocumentClient {
     return !this._local.isIdentity(this._submitted);
   }
 
+  canSubmitChanges() {
+    return !this.haveSubmittedChanges() && this.haveLocalChanges();
+  }
+
   /**
    *
    * @returns Submitting changes was successful and submittable changes are in
@@ -112,7 +138,7 @@ export class DocumentClient {
    * there are no local changes to submit.
    */
   submitChanges() {
-    if (this.haveSubmittedChanges() || !this.haveLocalChanges()) return false;
+    if (!this.canSubmitChanges()) return false;
 
     this._submitted = this._local;
     this._local = this._submitted.getIdentity();
@@ -157,6 +183,12 @@ export class DocumentClient {
     // V' = VD
     const newView = this._view.compose(viewComposable);
 
+    this.eventBus.emit('viewChange', {
+      newView,
+      change: viewComposable,
+      source: ChangeSource.External,
+    });
+
     this._server = newServer;
     this._submitted = newSubmitted;
     this._local = newLocal;
@@ -168,7 +200,7 @@ export class DocumentClient {
       source: ChangeSource.External,
     });
 
-    this.eventBus.emit('handleExternalChange', {
+    this.eventBus.emit('handledExternalChange', {
       externalChange: external,
     });
   }

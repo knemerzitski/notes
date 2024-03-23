@@ -1,0 +1,25 @@
+input CreateCollaborativeDocumentInput {
+  "Inital text of the document"
+  initialText: String
+}
+
+type CollaborativeDocument {
+  "Latest revision of this document."
+  headRevision: NonNegativeInt!
+  "Document latest text. Composition of all previous changes."
+  headText: String!
+}
+
+type CollaborativeDocumentPatch {
+  "Revision of this changeset."
+  revision: NonNegativeInt!
+  "Changes to be applied to the document to get new revision."
+  changeset: Changeset!
+}
+
+input CollaborativeDocumentPatchInput {
+  "Revision of the document that this changeset applies to."
+  targetRevision: NonNegativeInt!
+  "New changes to be applied to the document."
+  changeset: Changeset!
+}

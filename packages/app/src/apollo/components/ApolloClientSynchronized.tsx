@@ -1,7 +1,7 @@
 import { OperationTypeNode } from 'graphql';
 import { useEffect } from 'react';
 
-import { useUpdateClientSyncStatus } from '../../hooks/useIsClientSynchronized';
+import { useUpdateClientSyncStatus } from '../../context/ClientSyncStatusProvider';
 import useStatsLink from '../hooks/useStatsLink';
 
 export default function ApolloClientSynchronized() {

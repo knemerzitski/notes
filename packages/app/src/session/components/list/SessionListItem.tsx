@@ -44,7 +44,6 @@ export default function SessionListItem({ session, ...restProps }: SessionListIt
   }
 
   const handleCloseSignInModal: SignInModalProps['onClose'] = (result) => {
-    console.log('closed', result);
     setSignInModalOpen(false);
     if (result !== 'canceled') {
       onClose();

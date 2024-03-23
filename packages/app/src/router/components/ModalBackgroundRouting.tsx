@@ -59,6 +59,7 @@ function DefaultOrModalBackgroundRoute({
     ? matchRoutes(modalRoutes, previousLocation)
     : null;
   if (previousMatchedModalRoutes && previousMatchedModalRoutes.length > 0) {
+    // TODO check for possible null?
     const route = previousMatchedModalRoutes[previousMatchedModalRoutes.length - 1].route;
     isPreviousLocationModal = !!route.backgroundPath;
   }
@@ -72,6 +73,7 @@ function DefaultOrModalBackgroundRoute({
     }
   }
 
+  // TODO use React.memo instead?
   const mainOrBgRoutes = useMemo(() => {
     const loc = {
       key: mainOrBgLocation.key,

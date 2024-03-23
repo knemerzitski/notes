@@ -5,10 +5,11 @@ import { newDocumentInsertion } from '~collab/adapters/mongodb/multi-field-docum
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { publishNoteCreated } from '../Subscription/noteCreated';
 
-import type {
-  CreateNotePayload,
-  MutationResolvers,
-  NoteCreatedPayload,
+import {
+  NoteTextField,
+  type CreateNotePayload,
+  type MutationResolvers,
+  type NoteCreatedPayload,
 } from './../../../types.generated';
 
 export const createNote: NonNullable<MutationResolvers['createNote']> = async (
@@ -26,8 +27,14 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
 
   const newNote = new model.Note({
     ownerId: currentUserId,
-    title: newDocumentInsertion(input.note?.textTitle ?? ''),
-    content: newDocumentInsertion(input.note?.textContent ?? ''),
+    title: newDocumentInsertion(
+      input.note?.textFields?.find((s) => s.key === NoteTextField.TITLE)?.value
+        .initialText ?? ''
+    ),
+    content: newDocumentInsertion(
+      input.note?.textFields?.find((s) => s.key === NoteTextField.CONTENT)?.value
+        .initialText ?? ''
+    ),
   });
 
   await connection.transaction(async (session) => {
@@ -58,14 +65,22 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
   const newNotePayload: CreateNotePayload & NoteCreatedPayload = {
     note: {
       id: newNote.publicId,
-      title: {
-        latestText: newNote.title.latestText,
-        latestRevision: newNote.title.latestRevision,
-      },
-      content: {
-        latestText: newNote.content.latestText,
-        latestRevision: newNote.content.latestRevision,
-      },
+      textFields: [
+        {
+          key: NoteTextField.TITLE,
+          value: {
+            headText: newNote.title.latestText,
+            headRevision: newNote.title.latestRevision,
+          },
+        },
+        {
+          key: NoteTextField.CONTENT,
+          value: {
+            headText: newNote.content.latestText,
+            headRevision: newNote.content.latestRevision,
+          },
+        },
+      ],
     },
   };
 

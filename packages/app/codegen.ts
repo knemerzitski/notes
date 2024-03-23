@@ -14,7 +14,7 @@ const config: CodegenConfig = {
         scalars: {
           ID: {
             input: 'string',
-            output: 'string | number',
+            output: 'string',
           },
           Date: {
             input: 'Date',
@@ -33,6 +33,7 @@ const config: CodegenConfig = {
             output: 'number',
           },
           Changeset: '~collab/changeset/changeset#SerializedChangeset',
+          CollaborativeEditor: '~collab/editor/collaborative-editor#CollaborativeEditor',
         },
       },
       // TODO encode documents to prevent any query execution...

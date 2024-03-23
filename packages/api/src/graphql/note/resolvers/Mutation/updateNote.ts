@@ -9,11 +9,12 @@ import {
 
 import { createDocumentServer } from '../../../../mongoose/models/note';
 import { assertAuthenticated } from '../../../base/directives/auth';
-import type {
-  CollaborativeDocumentPatch,
-  Maybe,
-  MutationResolvers,
-  UpdateNotePayload,
+import {
+  NoteTextField,
+  type Maybe,
+  type MutationResolvers,
+  type UpdateNotePayload,
+  NoteTextFieldEntryPatch,
 } from '../../../types.generated';
 import { publishNoteUpdated } from '../Subscription/noteUpdated';
 
@@ -58,8 +59,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
   }
 
   let backgroundColorResult: Maybe<string>;
-  let titleResult: Maybe<CollaborativeDocumentPatch>;
-  let contentResult: Maybe<CollaborativeDocumentPatch>;
+  let textFieldsResult: Maybe<NoteTextFieldEntryPatch[]>;
   await connection.transaction(async (session) => {
     let userNotePromise: ReturnType<typeof model.UserNote.updateOne> | undefined;
     if (patch.preferences) {
@@ -81,17 +81,27 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
 
     const documentServer = createDocumentServer(model.Note);
 
-    if (patch.title != null) {
-      documentServer.queueChange('title', {
-        revision: patch.title.targetRevision,
-        changeset: patch.title.changeset,
+    if (patch.textFields) {
+      patch.textFields.some(({ key, value }) => {
+        if (key === NoteTextField.TITLE) {
+          documentServer.queueChange('title', {
+            revision: value.targetRevision,
+            changeset: value.changeset,
+          });
+          return true;
+        }
+        return false;
       });
-    }
 
-    if (patch.content != null) {
-      documentServer.queueChange('content', {
-        revision: patch.content.targetRevision,
-        changeset: patch.content.changeset,
+      patch.textFields.some(({ key, value }) => {
+        if (key === NoteTextField.CONTENT) {
+          documentServer.queueChange('content', {
+            revision: value.targetRevision,
+            changeset: value.changeset,
+          });
+          return true;
+        }
+        return false;
       });
     }
 
@@ -106,8 +116,23 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const [_, noteResult] = await Promise.all([userNotePromise, notePromise]);
       if (noteResult) {
-        titleResult = noteResult.title?.[0];
-        contentResult = noteResult.content?.[0];
+        textFieldsResult = [];
+
+        const titleResult = noteResult.title?.[0];
+        if (titleResult) {
+          textFieldsResult.push({
+            key: NoteTextField.TITLE,
+            value: titleResult,
+          });
+        }
+
+        const contentResult = noteResult.content?.[0];
+        if (contentResult) {
+          textFieldsResult.push({
+            key: NoteTextField.CONTENT,
+            value: contentResult,
+          });
+        }
       }
     } catch (err) {
       if (err instanceof MultiFieldDocumentServerError) {
@@ -133,8 +158,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
   const updatedNotePayload: UpdateNotePayload = {
     id: notePublicId,
     patch: {
-      title: titleResult,
-      content: contentResult,
+      textFields: textFieldsResult,
       preferences: {
         backgroundColor: backgroundColorResult,
       },
@@ -144,8 +168,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
   await publishNoteUpdated(ctx, {
     id: updatedNotePayload.id,
     patch: {
-      title: updatedNotePayload.patch?.title,
-      content: updatedNotePayload.patch?.content,
+      textFields: updatedNotePayload.patch?.textFields,
       preferences: {
         backgroundColor: updatedNotePayload.patch?.preferences?.backgroundColor,
       },

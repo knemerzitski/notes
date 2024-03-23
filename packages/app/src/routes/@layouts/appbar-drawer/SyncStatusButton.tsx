@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import useStatsLink from '../../../apollo/hooks/useStatsLink';
 import CrossFade from '../../../components/utils/CrossFade';
-import useIsClientSynchronized from '../../../hooks/useIsClientSynchronized';
+import { useIsClientSynchronized } from '../../../context/ClientSyncStatusProvider';
 
 enum Status {
   READY_TO_REFRESH = 'refresh',

@@ -1,15 +1,33 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import mitt, { Emitter } from 'mitt';
+
 import { Changeset, RevisionChangeset } from '../changeset/changeset';
-import { ChangeSource, DocumentClient } from '../client/document-client';
-import { DocumentClientRevisionBuffer } from '../client/document-client-revision-buffer';
+import {
+  ChangeSource,
+  DocumentClient,
+  Events as DocumentClientEvents,
+} from '../client/document-client';
+import {
+  DocumentClientRevisionBuffer,
+  Events as DocumentClientRevisionBufferEvents,
+} from '../client/document-client-revision-buffer';
 
 import { ChangesetEditor } from './changeset-editor';
 import { LocalChangesetEditorHistory } from './local-changeset-editor-history';
-import { SelectionDirection, SelectionRange } from './selection-range';
+import {
+  SelectionDirection,
+  SelectionRange,
+  Events as SelectionRangeEvents,
+} from './selection-range';
 
-interface CollaborativeEditorOptions {
-  headText?: RevisionChangeset;
+export type Events = Pick<DocumentClientEvents, 'viewChange' | 'viewChanged'> &
+  Pick<SelectionRangeEvents, 'selectionChanged'> &
+  Pick<DocumentClientRevisionBufferEvents, 'revisionChanged'>;
+
+export interface CollaborativeEditorOptions {
+  head?: RevisionChangeset;
   caretPosition?: number;
+  eventBus?: Emitter<Events>;
 }
 
 export class CollaborativeEditor {
@@ -18,6 +36,8 @@ export class CollaborativeEditor {
   private document: DocumentClient;
   private revisionBuffer: DocumentClientRevisionBuffer;
   private history: LocalChangesetEditorHistory;
+
+  readonly eventBus: Emitter<Events>;
 
   private _value = '';
   get value() {
@@ -69,8 +89,8 @@ export class CollaborativeEditor {
   }
 
   constructor(options?: CollaborativeEditorOptions) {
-    const headText = options?.headText ?? { revision: 0, changeset: Changeset.EMPTY };
-    this._value = headText.changeset.strips.joinInsertions();
+    const head = options?.head ?? { revision: 0, changeset: Changeset.EMPTY };
+    this._value = head.changeset.strips.joinInsertions();
 
     // Range
     this.selection = new SelectionRange({
@@ -92,7 +112,7 @@ export class CollaborativeEditor {
 
     // Local, submitted, server changesets
     this.document = new DocumentClient({
-      initialServerChangeset: new Changeset(headText.changeset.strips),
+      initialServerChangeset: new Changeset(head.changeset.strips),
     });
     this.document.eventBus.on('viewChanged', ({ view, change, source }) => {
       this._value = view.strips.joinInsertions();
@@ -110,7 +130,7 @@ export class CollaborativeEditor {
     this.revisionBuffer = new DocumentClientRevisionBuffer({
       document: this.document,
       bufferOptions: {
-        initialVersion: headText.revision,
+        initialVersion: head.revision,
       },
     });
 
@@ -119,6 +139,25 @@ export class CollaborativeEditor {
       selection: this.selection,
       editorBus: this.changesetEditor.eventBus,
       document: this.document,
+    });
+
+    // Link events
+    this.eventBus = options?.eventBus ?? mitt();
+
+    this.selection.eventBus.on('selectionChanged', (e) => {
+      this.eventBus.emit('selectionChanged', e);
+    });
+
+    this.document.eventBus.on('viewChange', (e) => {
+      this.eventBus.emit('viewChange', e);
+    });
+
+    this.document.eventBus.on('viewChanged', (e) => {
+      this.eventBus.emit('viewChanged', e);
+    });
+
+    this.revisionBuffer.eventBus.on('revisionChanged', (e) => {
+      this.eventBus.emit('revisionChanged', e);
     });
   }
 
@@ -130,17 +169,24 @@ export class CollaborativeEditor {
     return this.document.haveLocalChanges();
   }
 
+  canSubmitChanges() {
+    return this.document.canSubmitChanges();
+  }
+
   /**
    *
    * @returns Revision changeset that can be send to the server. Contains all
-   * changes since last submission.
+   * changes since last submission. Returns undefined if changes cannot be submitted.
+   * Either due to existing submitted changes or no local changes exist.
    */
   submitChanges() {
-    this.document.submitChanges();
-    return {
-      revision: this.revisionBuffer.currentRevision,
-      changeset: this.document.submitted,
-    };
+    if (this.document.submitChanges()) {
+      return {
+        revision: this.revisionBuffer.currentRevision,
+        changeset: this.document.submitted,
+      };
+    }
+    return;
   }
 
   /**

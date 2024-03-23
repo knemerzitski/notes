@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Options, useDebouncedCallback } from 'use-debounce';
 
-import { useUpdateClientSyncStatus } from './useIsClientSynchronized';
+import { useUpdateClientSyncStatus } from '../context/ClientSyncStatusProvider';
 
 const useClientSyncDebouncedCallback: typeof useDebouncedCallback = <
   T extends (...args: unknown[]) => ReturnType<T>,

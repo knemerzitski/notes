@@ -1,5 +1,18 @@
 import mitt, { Emitter } from 'mitt';
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type Events = {
+  /**
+   * Called when all messages that can be processed are processed.
+   */
+  messagesProcessed: {
+    /***
+     * Count of processed messages.
+     */
+    count: number;
+  };
+};
+
 type MessageType = string | number | symbol;
 type MessageVersion = number;
 
@@ -35,6 +48,8 @@ export interface OrderedMessageBufferOptions<
    * Use a custom emitter.
    */
   bus?: Emitter<Messages>;
+
+  eventBus?: Emitter<Events>;
 }
 /**
  * Handles all messages that have increasing numbered version ordering.
@@ -44,6 +59,7 @@ export interface OrderedMessageBufferOptions<
 export class OrderedMessageBuffer<Messages extends Record<MessageType, unknown>>
   implements IOrderedMessageBuffer<Messages>
 {
+  public readonly eventBus;
   public readonly bus;
 
   private _currentVersion: number;
@@ -58,6 +74,7 @@ export class OrderedMessageBuffer<Messages extends Record<MessageType, unknown>>
   constructor(options?: OrderedMessageBufferOptions<Messages>) {
     this._currentVersion = options?.initialVersion ?? 0;
     this.bus = options?.bus ?? mitt();
+    this.eventBus = options?.eventBus ?? mitt();
   }
 
   private stashedMessageMap: Record<number, StashedMessage<unknown>> = {};
@@ -91,9 +108,16 @@ export class OrderedMessageBuffer<Messages extends Record<MessageType, unknown>>
   }
 
   private processMessages() {
+    let processedCount = 0;
     let currentMessage: StashedMessage<unknown> | undefined;
     while ((currentMessage = this.popNextMessage())) {
       this.bus.emit(currentMessage.type, currentMessage.payload as Messages[MessageType]);
+      processedCount++;
+    }
+    if (processedCount > 0) {
+      this.eventBus.emit('messagesProcessed', {
+        count: processedCount,
+      });
     }
   }
 

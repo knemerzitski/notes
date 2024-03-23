@@ -1,3 +1,8 @@
+import { GraphQLError } from 'graphql';
+import { ObjectId } from 'mongodb';
+
+import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+
 import { GraphQLResolversContext } from '../../../../graphql/context';
 import type {
   NoteDeletedPayload,
@@ -7,10 +12,29 @@ import { assertAuthenticated } from '../../../base/directives/auth';
 import { isAuthenticated } from '../../../session/auth-context';
 
 export const noteDeleted: NonNullable<SubscriptionResolvers['noteDeleted']> = {
-  subscribe: (_parent, _arg, { auth, subscribe, denySubscription }) => {
+  subscribe: async (
+    _parent,
+    { input: { id: notePublicId } },
+    { auth, mongoose: { model }, subscribe, denySubscription }
+  ) => {
     if (!isAuthenticated(auth)) return denySubscription();
 
-    return subscribe(`NOTE_DELETED:user-${auth.session.user.publicId}`);
+    const currentUserId = ObjectId.createFromBase64(auth.session.user._id);
+
+    const userNote = await model.UserNote.findOne({
+      userId: currentUserId,
+      notePublicId,
+    }).lean();
+
+    if (!userNote) {
+      throw new GraphQLError('Note not found.', {
+        extensions: {
+          code: GraphQLErrorCode.NotFound,
+        },
+      });
+    }
+
+    return subscribe(`NOTE_DELETED:${notePublicId}`);
   },
   resolve(payload: NoteDeletedPayload) {
     return payload;
@@ -23,7 +47,7 @@ export async function publishNoteDeleted(
 ) {
   assertAuthenticated(auth);
 
-  return publish(`NOTE_DELETED:user-${auth.session.user.publicId}`, {
+  return publish(`NOTE_DELETED:${payload.id}`, {
     noteDeleted: payload,
   });
 }

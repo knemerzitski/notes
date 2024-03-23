@@ -11,7 +11,10 @@ import ApolloClientSynchronized from './apollo/components/ApolloClientSynchroniz
 import { AddFetchResultErrorHandlerProvider } from './apollo/hooks/useAddFetchResultErrorHandler';
 import { StatsLinkProvider } from './apollo/hooks/useStatsLink';
 import SnackbarAlertProvider from './components/feedback/SnackbarAlertProvider';
-import { ClientSyncStatusProvider } from './hooks/useIsClientSynchronized';
+import ClientSyncStatusProvider from './context/ClientSyncStatusProvider';
+import ActiveNotesProvider from './note/collab/context/ActiveNotesProvider';
+import NotesEditorsProvider from './note/collab/context/NoteEditorsProvider';
+import ActiveNotesManager from './note/collab/event-components/ManageActiveNotes';
 import RouterProvider from './router/RouterProvider';
 import GoogleAuthProvider from './session/auth/google/GoogleAuthProvider';
 import themeOptions from './themeOptions';
@@ -27,6 +30,7 @@ const QUERY = gql(`
 `);
 
 export default function App() {
+  // TODO theme preference as separate component in preferences.
   const devicePrefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
   const { data } = useSuspenseQuery(QUERY, {
@@ -53,7 +57,13 @@ export default function App() {
                 <GlobalStyles />
                 <ApolloClientErrorsSnackbarAlert />
                 <GoogleAuthProvider clientId={CLIENT_ID}>
-                  <RouterProvider />
+                  {/* TODO everything that can be, move into router */}
+                  <ActiveNotesProvider>
+                    <NotesEditorsProvider>
+                      <ActiveNotesManager />
+                      <RouterProvider />
+                    </NotesEditorsProvider>
+                  </ActiveNotesProvider>
                 </GoogleAuthProvider>
               </SnackbarAlertProvider>
             </ThemeProvider>

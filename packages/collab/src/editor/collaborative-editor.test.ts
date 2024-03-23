@@ -10,7 +10,7 @@ describe('CollaborativeEditor', () => {
   describe('constructor', () => {
     it('sets correct initial document state', () => {
       const editor = new CollaborativeEditor({
-        headText: {
+        head: {
           revision: 4,
           changeset: cs('initial text'),
         },
@@ -42,6 +42,11 @@ describe('CollaborativeEditor', () => {
   });
 
   describe('submitChanges', () => {
+    it('returns undefined if have no local changes', () => {
+      const editor = new CollaborativeEditor();
+      expect(editor.submitChanges()).toBeUndefined();
+    });
+
     it('returns submitted changes with revision', () => {
       const editor = new CollaborativeEditor();
 

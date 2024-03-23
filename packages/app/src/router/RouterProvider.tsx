@@ -25,6 +25,17 @@ interface CustomNonIndexRouteObject extends NonIndexRouteObject {
 
 type ExtendedRouteObject = CustomIndexRouteObject | CustomNonIndexRouteObject;
 
+/*ClientSyncStatusProvider PROVIDE: useIsClientSynchronized, useUpdateClientSyncStatus
+	StatsLinkProvider: PROVIDE useStatsLink
+		ApolloClientSynchronized USE: useUpdateClientSyncStatus, useStatsLink
+	
+	
+	
+
+AddFetchResultErrorHandlerProvider PROVIDE: useAddFetchResultErrorHandler
+	SessionSynchronization: USE: useAddFetchResultErrorHandler
+	ApolloClientErrorsSnackbarAlert USE: useAddFetchResultErrorHandler*/
+
 const router = createBrowserRouter([
   ...[`/${sessionPrefix}/:sessionIndex/*`, '*'].map((path) => ({
     path,
@@ -70,6 +81,7 @@ export function useRouter() {
   return ctx;
 }
 
+// TODO pass in router from props?
 export default function RouterProvider() {
   return (
     <RouterContext.Provider value={{ router, modalRoutes }}>

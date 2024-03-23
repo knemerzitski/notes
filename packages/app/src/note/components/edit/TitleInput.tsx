@@ -1,0 +1,18 @@
+import { InputProps } from '@mui/material';
+
+import PlainInput from '../../../components/inputs/PlainInput';
+
+export default function TitleInput(props?: InputProps) {
+  return (
+    <PlainInput
+      placeholder="Content"
+      {...props}
+      sx={{
+        '.MuiInputBase-input': {
+          fontWeight: 'bold',
+        },
+        ...props?.sx,
+      }}
+    />
+  );
+}

@@ -9,7 +9,12 @@ import { DBNote } from '../../../../mongoose/models/note';
 import { DBUserNote } from '../../../../mongoose/models/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 
-import type { InputMaybe, NoteEdge, QueryResolvers } from './../../../types.generated';
+import {
+  NoteTextField,
+  type InputMaybe,
+  type NoteEdge,
+  type QueryResolvers,
+} from './../../../types.generated';
 
 type UserNoteWithoutIds = Omit<DBUserNote, 'userId' | 'notePublicId'>;
 type NoteWithoutRecords = Omit<DBNote, 'content'> & {
@@ -144,14 +149,22 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = a
             cursor: String(userNote._id),
             node: {
               id: note.publicId,
-              title: {
-                latestText: note.title.latestText,
-                latestRevision: note.title.latestRevision,
-              },
-              content: {
-                latestText: note.content.latestText,
-                latestRevision: note.content.latestRevision,
-              },
+              textFields: [
+                {
+                  key: NoteTextField.TITLE,
+                  value: {
+                    headText: note.title.latestText,
+                    headRevision: note.title.latestRevision,
+                  },
+                },
+                {
+                  key: NoteTextField.CONTENT,
+                  value: {
+                    headText: note.content.latestText,
+                    headRevision: note.content.latestRevision,
+                  },
+                },
+              ],
               readOnly: userNote.readOnly,
               preferences: {
                 backgroundColor: userNote.preferences?.backgroundColor,

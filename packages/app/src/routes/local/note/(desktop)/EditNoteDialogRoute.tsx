@@ -5,8 +5,12 @@ import { gql } from '../../../../__generated__/gql';
 import RouteClosable, {
   RouteClosableComponentProps,
 } from '../../../../components/feedback/RouteClosable';
-import EditNoteDialog from '../../../../components/notes/edit/EditNoteDialog';
 import useLocalStateNotes from '../../../../local-state/note/hooks/useLocalStateNotes';
+import NoteDialog from '../../../../note/components/NoteDialog';
+import InputsBox from '../../../../note/components/edit/InputsBox';
+import TitleInput from '../../../../note/components/edit/TitleInput';
+import Title from '../../../../note/components/edit/TitleInput';
+import ToolbarBox from '../../../../note/components/toolbar/ToolbarBox';
 
 const QUERY = gql(`
   query LocalEditNoteDialogRoute($id: ID!) {
@@ -54,39 +58,40 @@ function RouteClosableEditNoteDialog({
   }
 
   return (
-    <EditNoteDialog
-      slotProps={{
-        dialog: {
-          open,
-          onClose: onClosing,
-          onTransitionExited: onClosed,
-        },
-        editor: {
-          titleFieldProps: {
-            value: note.title,
-            onChange: (e) => {
-              const newTitle = String(e.target.value);
-              void handleChangedNote({
-                title: newTitle,
-                content: note.content,
-              });
-            },
+    <NoteDialog open={open} onClose={onClosing} onTransitionExited={onClosed}>
+      <ToolbarBox
+        onClose={onClosing}
+        toolbarProps={{
+          moreOptionsButtonProps: {
+            onDelete: handleDeleteNote,
           },
-          contentFieldProps: {
-            value: note.content,
-            onChange: (e) => {
-              const newContent = String(e.target.value);
-              void handleChangedNote({
-                title: note.title,
-                content: newContent,
-              });
-            },
-          },
-          onClose: onClosing,
-          onDelete: handleDeleteNote,
-        },
-      }}
-    />
+        }}
+        renderMainElement={(ref) => (
+          <InputsBox ref={ref}>
+            <Title
+              value={note.title}
+              onChange={(e) => {
+                const newTitle = String(e.target.value);
+                void handleChangedNote({
+                  title: newTitle,
+                  content: note.content,
+                });
+              }}
+            />
+            <TitleInput
+              value={note.content}
+              onChange={(e) => {
+                const newContent = String(e.target.value);
+                void handleChangedNote({
+                  title: note.title,
+                  content: newContent,
+                });
+              }}
+            />
+          </InputsBox>
+        )}
+      />
+    </NoteDialog>
   );
 }
 

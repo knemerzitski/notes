@@ -1,36 +1,60 @@
+input CreateNoteTextFieldEntryInput {
+  "Note text field type. Either title or content."
+  key: NoteTextField!
+  "Actual value of text field."
+  value: CreateCollaborativeDocumentInput!
+}
+
+type NoteTextFieldEntry {
+  "Note text field type. Either title or content."
+  key: NoteTextField!
+  "Actual value of text field."
+  value: CollaborativeDocument!
+}
+
+type NoteTextFieldEntryPatch {
+  "Self-descriptive"
+  key: NoteTextField!
+  "Self-descriptive"
+  value: CollaborativeDocumentPatch!
+}
+
+input NoteTextFieldEntryPatchInput {
+  key: NoteTextField!
+  value: CollaborativeDocumentPatchInput!
+}
+
+enum NoteTextField {
+  TITLE
+  CONTENT
+}
+
 type Note implements Node {
   "Self-descriptive"
   id: ID!
-  "Note contents summary"
-  title: CollaborativeDocument!
-  "Contents of the note"
-  content: CollaborativeDocument!
-  "Note read-only state. Default is false."
+  "All available text fields"
+  textFields: [NoteTextFieldEntry!]!
+  "Note read-only state. Default is false"
   readOnly: Boolean
   "Note preferences such as background color"
   preferences: NotePreferences
 }
 
 type NotePatch {
-  "Changed note title"
-  title: CollaborativeDocumentPatch
-  "Changes made to note content"
-  content: CollaborativeDocumentPatch
+  "Changed note text fields"
+  textFields: [NoteTextFieldEntryPatch!]
   "Changed preferences"
   preferences: NotePreferencesPatch
 }
 
 input NotePatchInput {
-  title: CollaborativeDocumentPatchInput
-  content: CollaborativeDocumentPatchInput
+  textFields: [NoteTextFieldEntryPatchInput!]
   preferences: NotePreferencesPatchInput
 }
 
 input CreateNotePatchInput {
-  "Initial note title"
-  textTitle: String
-  "Initial note content"
-  textContent: String
+  "Initial note text fields"
+  textFields: [CreateNoteTextFieldEntryInput!]
   preferences: NotePreferencesPatchInput
 }
 
@@ -73,7 +97,7 @@ extend type Query {
     after: String
   ): NoteConnection! @auth
   "Get note by ID"
-  note(id: ID!): Note! @auth
+  note(id: String!): Note! @auth
 }
 
 input CreateNoteInput {
@@ -89,12 +113,12 @@ extend type Mutation {
 }
 
 input UpdateNoteInput {
-  id: ID!
+  id: String!
   patch: NotePatchInput
 }
 type UpdateNotePayload {
   "ID of updated note"
-  id: ID!
+  id: String!
   "Response patch to input"
   patch: NotePatch
 }
@@ -104,7 +128,7 @@ extend type Mutation {
 }
 
 input DeleteNoteInput {
-  id: ID!
+  id: String!
 }
 type DeleteNotePayload {
   "Self-descriptive"
@@ -120,28 +144,35 @@ type NoteCreatedPayload {
   note: Note!
 }
 extend type Subscription {
-  "A new note was created"
+  "A new note was created for current user"
   noteCreated: NoteCreatedPayload! @auth
 }
 
+input NoteUpdatedInput {
+  "Note ID to subscribe for updates"
+  id: String!
+}
 type NoteUpdatedPayload {
   "ID of note that was updated"
-  id: ID!
+  id: String!
   "Changes made to the note"
   patch: NotePatch!
 }
-
 extend type Subscription {
   "An existing note was updated"
-  noteUpdated: NoteUpdatedPayload! @auth
+  noteUpdated(input: NoteUpdatedInput!): NoteUpdatedPayload! @auth
 }
 
+input NoteDeletedInput {
+  "Note ID to subscribe for deletions"
+  id: String!
+}
 type NoteDeletedPayload {
   "ID of deleted note"
-  id: ID!
+  id: String!
 }
 
 extend type Subscription {
   "A note was deleted"
-  noteDeleted: NoteDeletedPayload! @auth
+  noteDeleted(input: NoteDeletedInput!): NoteDeletedPayload! @auth
 }

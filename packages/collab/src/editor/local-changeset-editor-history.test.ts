@@ -1,7 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { Changeset } from '../changeset/changeset';
-import { ChangeSource, DocumentClient, Events } from '../client/document-client';
+import {
+  ChangeSource,
+  DocumentClient,
+  Events as DocumentClientEvents,
+} from '../client/document-client';
 import { textWithSelection } from '../test/helpers/text-with-selection';
 
 import { ChangesetEditor } from './changeset-editor';
@@ -29,7 +33,11 @@ describe('LocalChangesetEditorHistory', () => {
     selection,
   });
 
-  function handleViewChanged({ view, change, source }: Events['viewChanged']) {
+  function handleViewChanged({
+    view,
+    change,
+    source,
+  }: DocumentClientEvents['viewChanged']) {
     textValue = view.strips.joinInsertions();
     if (source === ChangeSource.External) {
       selection.setSelectionRange(

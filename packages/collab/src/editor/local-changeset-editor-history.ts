@@ -91,9 +91,9 @@ export class LocalChangesetEditorHistory {
       this.lastExecutedIndex.server = this.lastExecutedIndex.submitted;
     };
 
-    const handleExternalChangeListener = ({
+    const handledExternalChangeListener = ({
       externalChange,
-    }: DocumentClientEvents['handleExternalChange']) => {
+    }: DocumentClientEvents['handledExternalChange']) => {
       this.updateHistoryFromExternalChange(externalChange);
     };
 
@@ -103,7 +103,7 @@ export class LocalChangesetEditorHistory {
       'submittedChangesAcknowledged',
       submittedChangesAcknowledgedListener
     );
-    document.eventBus.on('handleExternalChange', handleExternalChangeListener);
+    document.eventBus.on('handledExternalChange', handledExternalChangeListener);
 
     this.unsubscribeFromEvents = () => {
       editorBus.off('change', editorChangeListener);
@@ -112,7 +112,7 @@ export class LocalChangesetEditorHistory {
         'submittedChangesAcknowledged',
         submittedChangesAcknowledgedListener
       );
-      document.eventBus.off('handleExternalChange', handleExternalChangeListener);
+      document.eventBus.off('handledExternalChange', handledExternalChangeListener);
     };
   }
 

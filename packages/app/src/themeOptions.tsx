@@ -8,11 +8,17 @@ interface PaletteExtension {
   };
 }
 
+interface ShadowsNamed {
+  shadowsNamed: {
+    scrollEnd: string;
+  };
+}
+
 declare module '@mui/material/styles' {
   // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  interface Theme {}
+  interface Theme extends ShadowsNamed {}
   // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  interface ThemeOptions {}
+  interface ThemeOptions extends ShadowsNamed {}
 
   // eslint-disable-next-line @typescript-eslint/no-empty-interface
   interface Palette extends PaletteExtension {}
@@ -55,6 +61,9 @@ export default function themeOptions(
             },
             tonalOffset: 0.1,
           }),
+    },
+    shadowsNamed: {
+      scrollEnd: '0px 0px 5px 2px rgba(0,0,0,0.2)',
     },
     components: {
       MuiAlert: {
