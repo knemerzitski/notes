@@ -142,6 +142,43 @@ export class LocalChangesetEditorHistory {
     this.applyTypingOperation(entry.execute);
   }
 
+  /**
+   *
+   * @param base First element in {@link executeChangesets} is composable on {@link base}.
+   * @param executeChangesets Changesets that can be applied before first history entry.
+   */
+  prepend(base: Changeset, executeChangesets: Changeset[]) {
+    let currentValue = base;
+    this.entries.unshift(
+      ...executeChangesets.map((execute) => {
+        const undo = execute.inverse(currentValue);
+        currentValue = currentValue.compose(execute);
+
+        const entry: HistoryEntry = {
+          execute: {
+            changeset: execute,
+            // TODO implement selection
+            selectionDirection: SelectionDirection.Forward,
+            selectionStart: 0,
+            selectionEnd: 0,
+          },
+          undo: {
+            changeset: undo,
+            selectionDirection: SelectionDirection.None,
+            selectionStart: 0,
+            selectionEnd: 0,
+          },
+        };
+
+        return entry;
+      })
+    );
+
+    this.lastExecutedIndex.server += executeChangesets.length;
+    this.lastExecutedIndex.submitted += executeChangesets.length;
+    this.lastExecutedIndex.local += executeChangesets.length;
+  }
+
   undo() {
     const entry = this.entries[this.lastExecutedIndex.local];
     if (entry) {
