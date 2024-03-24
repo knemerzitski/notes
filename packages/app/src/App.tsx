@@ -1,11 +1,11 @@
 import { ApolloProvider, useSuspenseQuery } from '@apollo/client';
 import { CssBaseline, ThemeProvider, createTheme, useMediaQuery } from '@mui/material';
-import { useMemo } from 'react';
+import { createContext, useContext, useMemo } from 'react';
 
 import GlobalStyles from './GlobalStyles';
 import { gql } from './__generated__/gql';
 import { ColorMode } from './__generated__/graphql';
-import { apolloClient, errorLink, statsLink } from './apollo/apollo-client';
+import { ExtendendApolloClient, apolloClient } from './apollo/apollo-client';
 import ApolloClientErrorsSnackbarAlert from './apollo/components/ApolloClientErrorsSnackbarAlert';
 import ApolloClientSynchronized from './apollo/components/ApolloClientSynchronized';
 import { AddFetchResultErrorHandlerProvider } from './apollo/hooks/useAddFetchResultErrorHandler';
@@ -29,12 +29,24 @@ const QUERY = gql(`
   }
 `);
 
+const ExtendedApolloClientContext = createContext<ExtendendApolloClient | null>(null);
+
+export function useExtendedApolloClient() {
+  const ctx = useContext(ExtendedApolloClientContext);
+  if (ctx === null) {
+    throw new Error(
+      'useExtendedApolloClient() requires context ExtendedApolloClientContext.Provider'
+    );
+  }
+  return ctx;
+}
+
 export default function App() {
   // TODO theme preference as separate component in preferences.
   const devicePrefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
   const { data } = useSuspenseQuery(QUERY, {
-    client: apolloClient,
+    client: apolloClient.client,
   });
   const preferencesColorMode = data.preferences?.colorMode ?? ColorMode.System;
 
@@ -46,30 +58,32 @@ export default function App() {
   const theme = useMemo(() => createTheme(themeOptions(colorMode)), [colorMode]);
 
   return (
-    <ClientSyncStatusProvider>
-      <ApolloProvider client={apolloClient}>
-        <StatsLinkProvider statsLink={statsLink}>
-          <AddFetchResultErrorHandlerProvider errorLink={errorLink}>
-            <ApolloClientSynchronized />
-            <ThemeProvider theme={theme}>
-              <SnackbarAlertProvider>
-                <CssBaseline />
-                <GlobalStyles />
-                <ApolloClientErrorsSnackbarAlert />
-                <GoogleAuthProvider clientId={CLIENT_ID}>
-                  {/* TODO everything that can be, move into router */}
-                  <ActiveNotesProvider>
-                    <NotesEditorsProvider>
-                      <ActiveNotesManager />
-                      <RouterProvider />
-                    </NotesEditorsProvider>
-                  </ActiveNotesProvider>
-                </GoogleAuthProvider>
-              </SnackbarAlertProvider>
-            </ThemeProvider>
-          </AddFetchResultErrorHandlerProvider>
-        </StatsLinkProvider>
-      </ApolloProvider>
-    </ClientSyncStatusProvider>
+    <ExtendedApolloClientContext.Provider value={apolloClient}>
+      <ClientSyncStatusProvider>
+        <ApolloProvider client={apolloClient.client}>
+          <StatsLinkProvider statsLink={apolloClient.statsLink}>
+            <AddFetchResultErrorHandlerProvider errorLink={apolloClient.errorLink}>
+              <ApolloClientSynchronized />
+              <ThemeProvider theme={theme}>
+                <SnackbarAlertProvider>
+                  <CssBaseline />
+                  <GlobalStyles />
+                  <ApolloClientErrorsSnackbarAlert />
+                  <GoogleAuthProvider clientId={CLIENT_ID}>
+                    {/* TODO everything that can be, move into router */}
+                    <ActiveNotesProvider>
+                      <NotesEditorsProvider>
+                        <ActiveNotesManager />
+                        <RouterProvider />
+                      </NotesEditorsProvider>
+                    </ActiveNotesProvider>
+                  </GoogleAuthProvider>
+                </SnackbarAlertProvider>
+              </ThemeProvider>
+            </AddFetchResultErrorHandlerProvider>
+          </StatsLinkProvider>
+        </ApolloProvider>
+      </ClientSyncStatusProvider>
+    </ExtendedApolloClientContext.Provider>
   );
 }

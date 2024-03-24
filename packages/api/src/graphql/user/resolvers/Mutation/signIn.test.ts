@@ -2,25 +2,24 @@ import { faker } from '@faker-js/faker';
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock, mockDeep, mockReset } from 'vitest-mock-extended';
 
+import { verifyCredentialToken } from '../../../../auth/google/__mocks__/oauth2';
 import { GraphQLResolversContext } from '../../../../graphql/context';
 import { SessionDocument } from '../../../../mongoose/models/session';
 import { UserDocument } from '../../../../mongoose/models/user';
 import { apolloServer } from '../../../../tests/helpers/apollo-server';
 import { mockResolver } from '../../../../tests/helpers/mock-resolver';
+import CookiesContext from '../../../cookies-context';
+import { AuthProvider } from '../../../types.generated';
 
 import { signIn } from './signIn';
 
-vi.mock('../../parse-cookies');
 
-const expireAt = faker.date.soon({ days: 7 });
+vi.mock('../../../../auth/google/oauth2');
 
 const mockedContext = vi.mocked(
   mockDeep<GraphQLResolversContext>({
     response: {
       multiValueHeaders: {},
-    },
-    session: {
-      newExpireAt: () => expireAt,
     },
   }),
   true
@@ -49,14 +48,19 @@ describe('directly', () => {
       Object.assign(mockedNewSession, args)
     );
 
-    await mockResolver(signIn)(
+    const authProviderUser = {
+      id: String(faker.number.int()),
+      email: faker.person.lastName() + '@email.com',
+      name: faker.person.firstName(),
+    };
+    verifyCredentialToken.mockResolvedValueOnce(authProviderUser);
+
+    const result = await mockResolver(signIn)(
       {},
       {
         input: {
-          provider: 'GOOGLE',
+          provider: AuthProvider.GOOGLE,
           credentials: {
-            // TODO right now auth is not implemented so any token will work
-            // Later must mock google jwt verification
             token: faker.string.numeric(20),
           },
         },
@@ -66,16 +70,12 @@ describe('directly', () => {
 
     expect(mockedNewUser._id).toStrictEqual(userId);
     expect(mockedNewSession.userId).toStrictEqual(userId);
+
+    assert(result != null);
+    expect(result.authProviderUser.id).toStrictEqual(authProviderUser.id);
   });
 
   it('signs in, sets correct session index and appends it to 2 existing session', async () => {
-    // const firstSessionKey = faker.string.nanoid();
-    // const firstSessionId = faker.string.nanoid();
-    // const existingSessions = {
-    //   [firstSessionKey]: firstSessionId,
-    //   [faker.string.nanoid()]: faker.string.nanoid(),
-    // };
-
     const newCookieId = faker.string.nanoid();
 
     const mockedNewUser = mock<UserDocument>();
@@ -92,26 +92,19 @@ describe('directly', () => {
       Object.assign(mockedNewSession, args)
     );
 
-    // getSessionUserFromHeaders.mockImplementationOnce(async () =>
-    //   Promise.resolve(
-    //     mock<AuthenticationContext>({
-    //       cookie: {
-    //         firstSessionKey: firstSessionKey,
-    //         currentId: firstSessionId,
-    //         sessions: existingSessions,
-    //       },
-    //     })
-    //   )
-    // );
+    const authProviderUser = {
+      id: String(faker.number.int()),
+      email: faker.person.lastName() + '@email.com',
+      name: faker.person.firstName(),
+    };
+    verifyCredentialToken.mockResolvedValueOnce(authProviderUser);
 
     const result = await mockResolver(signIn)(
       {},
       {
         input: {
-          provider: 'GOOGLE',
+          provider: AuthProvider.GOOGLE,
           credentials: {
-            // TODO right now auth is not implemented so any token will work
-            // Later must mock google jwt verificatmockedExistingUserion
             token: faker.string.alphanumeric(),
           },
         },
@@ -120,25 +113,21 @@ describe('directly', () => {
     );
 
     expect(result).containSubset({
-      sessionIndex: 2,
+      authProviderUser: {
+        id: authProviderUser.id,
+        email: authProviderUser.email,
+      },
     });
-
-    // expect({ ...mockedContext.response.multiValueHeaders }).toStrictEqual({
-    //   'Set-Cookie': [
-    //     `Sessions=${existingSessions
-    //       .concat([newCookieId])
-    //       .join(',')}; HttpOnly; SameSite=Strict; Secure`,
-    //     'CurrentSessionIndex=2; HttpOnly; SameSite=Strict; Secure',
-    //   ],
-    // });
   });
 
   it('signs in with an existing google account, has no existing session', async () => {
     const signInToken = faker.string.alphanumeric();
     const cookieId = faker.string.nanoid();
     const displayName = faker.person.firstName();
+    const publicUserId = faker.string.nanoid();
 
     const mockedExistingUser = mockDeep<UserDocument>({
+      publicId: publicUserId,
       profile: {
         displayName,
       },
@@ -155,24 +144,36 @@ describe('directly', () => {
       Object.assign(mockedSession, args)
     );
 
+    const authProviderUser = {
+      id: String(faker.number.int()),
+      email: faker.person.lastName() + '@email.com',
+      name: faker.person.firstName(),
+    };
+    verifyCredentialToken.mockResolvedValueOnce(authProviderUser);
+
     const result = await mockResolver(signIn)(
       {},
       {
         input: {
-          provider: 'GOOGLE',
+          provider: AuthProvider.GOOGLE,
           credentials: {
-            // TODO right now auth is not implemented so any token will work
-            // Later must mock google jwt verification
             token: signInToken,
           },
         },
       },
-      mockedContext
+      {
+        ...mockedContext,
+        cookies: new CookiesContext({ sessions: {} }),
+      }
     );
 
     expect(result).toStrictEqual({
-      sessionIndex: 0,
-      userInfo: {
+      authProviderUser: {
+        id: authProviderUser.id,
+        email: authProviderUser.email,
+      },
+      user: {
+        id: publicUserId,
         profile: {
           displayName,
         },
@@ -181,8 +182,7 @@ describe('directly', () => {
 
     expect({ ...mockedContext.response.multiValueHeaders }).toStrictEqual({
       'Set-Cookie': [
-        `Sessions=${cookieId}; HttpOnly; SameSite=Strict; Secure`,
-        'CurrentSessionIndex=0; HttpOnly; SameSite=Strict; Secure',
+        `Sessions=${publicUserId}:${cookieId}; HttpOnly; SameSite=Strict; Secure`,
       ],
     });
   });
@@ -192,8 +192,8 @@ describe('apollo server', () => {
   const query = `#graphql
     mutation SignIn($input: SignInInput!) {
       signIn(input: $input) {
-        currentSessionKey
-        userInfo {
+        user {
+          id
           profile {
             displayName
           }
@@ -206,8 +206,10 @@ describe('apollo server', () => {
     const signInToken = faker.string.alphanumeric();
     const cookieId = faker.string.nanoid();
     const displayName = faker.person.firstName();
+    const userPublicId = faker.string.nanoid();
 
     const mockedExistingUser = mockDeep<UserDocument>({
+      publicId: userPublicId,
       profile: {
         displayName,
       },
@@ -224,6 +226,13 @@ describe('apollo server', () => {
       Object.assign(mockedSession, args)
     );
 
+    const authProviderUser = {
+      id: String(faker.number.int()),
+      email: faker.person.lastName() + '@email.com',
+      name: faker.person.firstName(),
+    };
+    verifyCredentialToken.mockResolvedValueOnce(authProviderUser);
+
     const response = await apolloServer.executeOperation(
       {
         query,
@@ -231,23 +240,24 @@ describe('apollo server', () => {
           input: {
             provider: 'GOOGLE',
             credentials: {
-              // TODO right now auth is not implemented so any token will work
-              // Later must mock google jwt verification
               token: signInToken,
             },
           },
         },
       },
       {
-        contextValue: mockedContext,
+        contextValue: {
+          ...mockedContext,
+          cookies: new CookiesContext({ sessions: {} }),
+        },
       }
     );
 
     assert(response.body.kind === 'single');
     expect(response.body.singleResult.data).toEqual({
       signIn: {
-        sessionIndex: 0,
-        userInfo: {
+        user: {
+          id: userPublicId,
           profile: {
             displayName,
           },

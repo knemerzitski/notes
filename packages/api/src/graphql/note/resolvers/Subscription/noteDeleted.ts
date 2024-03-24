@@ -1,5 +1,4 @@
 import { GraphQLError } from 'graphql';
-import { ObjectId } from 'mongodb';
 
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
@@ -8,8 +7,8 @@ import type {
   NoteDeletedPayload,
   SubscriptionResolvers,
 } from '../../../../graphql/types.generated';
+import { isAuthenticated } from '../../../auth-context';
 import { assertAuthenticated } from '../../../base/directives/auth';
-import { isAuthenticated } from '../../../session/auth-context';
 
 export const noteDeleted: NonNullable<SubscriptionResolvers['noteDeleted']> = {
   subscribe: async (
@@ -19,7 +18,7 @@ export const noteDeleted: NonNullable<SubscriptionResolvers['noteDeleted']> = {
   ) => {
     if (!isAuthenticated(auth)) return denySubscription();
 
-    const currentUserId = ObjectId.createFromBase64(auth.session.user._id);
+    const currentUserId = auth.session.user._id._id;
 
     const userNote = await model.UserNote.findOne({
       userId: currentUserId,

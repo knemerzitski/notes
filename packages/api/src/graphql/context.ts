@@ -1,11 +1,27 @@
 import { Connection } from 'mongoose';
 
+import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
 import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
+import { WebSocketMessageHandlerParams } from '~lambda-graphql/message-handler';
 import { SubscriptionContext } from '~lambda-graphql/pubsub/subscribe';
 
 import { MongooseModels } from '../mongoose/models';
 
-import { AuthenticationContext } from './session/auth-context';
+import {
+  AuthenticationContext,
+  SerializedAuthenticationContext,
+  isAuthenticated,
+  parseAuthFromHeaders,
+  parseAuthenticationContextValue,
+  serializeAuthenticationContext,
+} from './auth-context';
+import CookiesContext, { SerializedCookiesContext } from './cookies-context';
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type BaseGraphQLContext = {
+  cookies: CookiesContext;
+  auth: AuthenticationContext;
+};
 
 /**
  * Must only contain primitive values so it can be marshalled properly into
@@ -13,42 +29,29 @@ import { AuthenticationContext } from './session/auth-context';
  * Class instances are not supported.
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type BaseGraphQLContext = {
-  auth?: AuthenticationContext;
+export type DynamoDBBaseGraphQLContext = {
+  cookies: SerializedCookiesContext;
+  auth: SerializedAuthenticationContext;
 };
 
-// TODO rename to ApiGraphQLContext?
-export interface MongooseGraphQLContext {
+export interface ApiGraphQLContext {
   mongoose: {
     connection: Connection;
     model: MongooseModels;
-  };
-  session: {
-    /**
-     * @returns Fresh Date object with time set to maximum session duration
-     */
-    newExpireAt: () => Date;
-    /**
-     * Attempts to refresh if it's below threshold
-     * @param expireAt Date session instance to refresh
-     * @returns  was {@link expireAt} changed
-     */
-    tryRefreshExpireAt: (expireAt: Date) => boolean;
   };
 }
 
 export type GraphQLResolversContext = ApolloHttpGraphQLContext &
   BaseGraphQLContext &
-  MongooseGraphQLContext &
+  ApiGraphQLContext &
   SubscriptionContext;
 
 /**
  * This type is used to define everything that websocket-graphql-handlers don't
  * define by default.
  *
- * MongooseGraphQLContext
+ * ApiGraphQLContext
  * mongoose
- * session
  *
  * ApolloHttpGraphQLContext
  * request
@@ -77,13 +80,10 @@ export function createErrorBaseSubscriptionResolversContext(
 
   return {
     get mongoose() {
-      return createErrorProxy('mongoose') as MongooseGraphQLContext['mongoose'];
+      return createErrorProxy('mongoose') as ApiGraphQLContext['mongoose'];
     },
     get request() {
       return createErrorProxy('request') as ApolloHttpGraphQLContext['request'];
-    },
-    get session() {
-      return createErrorProxy('session') as MongooseGraphQLContext['session'];
     },
     get response() {
       return createErrorProxy('response') as ApolloHttpGraphQLContext['response'];
@@ -93,3 +93,61 @@ export function createErrorBaseSubscriptionResolversContext(
     },
   };
 }
+
+export function serializeBaseGraphQLContext(
+  context: BaseGraphQLContext
+): DynamoDBBaseGraphQLContext {
+  return {
+    ...context,
+    cookies: context.cookies.serialize(),
+    auth: serializeAuthenticationContext(context.auth),
+  };
+}
+
+export function parseDynamoDBBaseGraphQLContext(
+  value: DynamoDBBaseGraphQLContext | undefined
+) {
+  return {
+    auth: parseAuthenticationContextValue(value?.auth),
+    cookies: new CookiesContext({
+      sessions: value?.cookies.sessions ?? {},
+    }),
+  };
+}
+
+export const handleConnectionInitAuthenticate: WebSocketMessageHandlerParams<
+  BaseSubscriptionResolversContext,
+  BaseGraphQLContext,
+  DynamoDBBaseGraphQLContext
+>['onConnectionInit'] = async ({
+  message,
+  context,
+  baseGraphQLContext: { auth, cookies, ...restCtx },
+}) => {
+  if (isAuthenticated(auth) || auth.reason !== AuthenticationFailedReason.UserUndefined)
+    return;
+
+  const payload = message.payload;
+  if (!payload) return;
+
+  const anyHeaders = payload.headers;
+  if (!anyHeaders || typeof anyHeaders !== 'object') return;
+
+  const headers = Object.fromEntries(
+    Object.entries(anyHeaders).map(([key, value]) => [key, String(value)])
+  );
+
+  const newAuth = await parseAuthFromHeaders(
+    headers,
+    cookies,
+    context.graphQLContext.mongoose.model.Session
+  );
+
+  if (!isAuthenticated(newAuth)) return;
+
+  return serializeBaseGraphQLContext({
+    ...restCtx,
+    auth: newAuth,
+    cookies: cookies,
+  });
+};

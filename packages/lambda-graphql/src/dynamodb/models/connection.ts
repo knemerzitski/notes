@@ -7,14 +7,14 @@ interface ConnectionKey {
   id: string;
 }
 
-export type OnConnectGraphQLContext = Record<string, unknown>;
+export type DynamoDBRecord = Record<string, unknown>;
 
-export interface Connection<TOnConnectGraphQLContext extends OnConnectGraphQLContext>
+export interface Connection<TDynamoDBGraphQLContext extends DynamoDBRecord>
   extends ConnectionKey {
   createdAt: number;
   // requestContext from $connect event
   requestContext: APIGatewayEventWebsocketRequestContextV2;
-  onConnectGraphQLContext?: TOnConnectGraphQLContext;
+  graphQLContext?: TDynamoDBGraphQLContext;
   hasPonged: boolean;
   // Time to live in seconds, after which record is deleted
   ttl: number;
@@ -25,13 +25,15 @@ export interface ConnectionTtlContext {
   tryRefreshTtl: (ttl: number) => number;
 }
 
-export type ConnectionTable<TOnConnectGraphQLContext extends OnConnectGraphQLContext> =
-  Table<ConnectionKey, Connection<TOnConnectGraphQLContext>>;
+export type ConnectionTable<TDynamoDBGraphQLContext extends DynamoDBRecord> = Table<
+  ConnectionKey,
+  Connection<TDynamoDBGraphQLContext>
+>;
 
-export function newConnectionModel<
-  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
->(newTableArgs: NewModelParams): ConnectionTable<TOnConnectGraphQLContext> {
-  const table = newModel<ConnectionKey, Connection<TOnConnectGraphQLContext>>(
+export function newConnectionModel<TDynamoDBGraphQLContext extends DynamoDBRecord>(
+  newTableArgs: NewModelParams
+): ConnectionTable<TDynamoDBGraphQLContext> {
+  const table = newModel<ConnectionKey, Connection<TDynamoDBGraphQLContext>>(
     newTableArgs
   );
 

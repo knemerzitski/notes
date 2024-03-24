@@ -5,7 +5,7 @@ import { Logger } from '~utils/logger';
 
 import {
   ConnectionTable,
-  OnConnectGraphQLContext,
+  DynamoDBRecord,
   newConnectionModel as newConnectionModel,
 } from '../dynamodb/models/connection';
 import {
@@ -22,16 +22,14 @@ export interface DynamoDBContextParams {
   logger: Logger;
 }
 
-export interface DynamoDBContext<
-  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
-> {
-  connections: ConnectionTable<TOnConnectGraphQLContext>;
-  subscriptions: SubscriptionTable<TOnConnectGraphQLContext>;
+export interface DynamoDBContext<TDynamoDBGraphQLContext extends DynamoDBRecord> {
+  connections: ConnectionTable<TDynamoDBGraphQLContext>;
+  subscriptions: SubscriptionTable<TDynamoDBGraphQLContext>;
 }
 
-export function createDynamoDbContext<
-  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
->(params: DynamoDBContextParams): DynamoDBContext<TOnConnectGraphQLContext> {
+export function createDynamoDbContext<TDynamoDBGraphQLContext extends DynamoDBRecord>(
+  params: DynamoDBContextParams
+): DynamoDBContext<TDynamoDBGraphQLContext> {
   params.logger.info('buildDynamoDbContext:new', {
     params: params.clientConfig,
   });
@@ -43,12 +41,12 @@ export function createDynamoDbContext<
     },
   });
   return {
-    connections: newConnectionModel<TOnConnectGraphQLContext>({
+    connections: newConnectionModel<TDynamoDBGraphQLContext>({
       documentClient,
       tableName: params.tableNames.connections,
       logger: params.logger,
     }),
-    subscriptions: newSubscriptionModel<TOnConnectGraphQLContext>({
+    subscriptions: newSubscriptionModel<TDynamoDBGraphQLContext>({
       documentClient,
       tableName: params.tableNames.subscriptions,
       logger: params.logger,

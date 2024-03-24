@@ -12,6 +12,7 @@ import useCreateNote from '../note/hooks/useCreateNote';
 import useDeleteNote from '../note/hooks/useDeleteNote';
 import { useProxyNavigate, useProxyRouteTransform } from '../router/ProxyRoutesProvider';
 import { useAbsoluteLocation } from '../router/hooks/useAbsoluteLocation';
+import { useIsBackgroundLocation } from '../router/hooks/useIsBackgroundLocation';
 
 const QUERY_NOTES = gql(`
   query NotesRouteNotesConnection($last: NonNegativeInt!, $before: String) {
@@ -44,6 +45,9 @@ interface NotesRouteProps {
 }
 
 export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
+  // TODO fix notes list should not update with editing a note
+  const isBackgroundLocation = useIsBackgroundLocation();
+
   const {
     data,
     loading: fetchLoading,
@@ -53,6 +57,7 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
     variables: {
       last: perPageCount,
     },
+    nextFetchPolicy: isBackgroundLocation ? 'standby' : 'cache-first',
   });
 
   const loading = fetchLoading && !data;

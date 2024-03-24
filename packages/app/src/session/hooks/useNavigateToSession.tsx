@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { useExtendedApolloClient } from '../../App';
 import { gql } from '../../__generated__/gql';
 import ProxyRoutesProvider from '../../router/ProxyRoutesProvider';
 import sessionPrefix from '../../router/sessionPrefix';
@@ -46,6 +47,7 @@ export function NavigateToSessionProvider({ children }: { children: ReactNode })
     data: { clientSessions: sessions, currentClientSessionIndex: currentSessionIndex },
   } = useSuspenseQuery(PROVIDER_QUERY);
 
+  const extendedApolloClient = useExtendedApolloClient();
   const apolloClient = useApolloClient();
   const { switchToSession } = useSessionMutations();
 
@@ -113,13 +115,21 @@ export function NavigateToSessionProvider({ children }: { children: ReactNode })
 
         // Reset store if session key changed
         if (newSessionKey !== targetSessionKey) {
+          extendedApolloClient.restartSubscriptionClient();
           await apolloClient.resetStore();
         }
       } finally {
         switchingSessionRef.current = false;
       }
     },
-    [apolloClient, locationSessionIndex, navigate, switchToSession, targetSessionKey]
+    [
+      apolloClient,
+      locationSessionIndex,
+      navigate,
+      switchToSession,
+      targetSessionKey,
+      extendedApolloClient,
+    ]
   );
 
   // Switch to correct session based on location

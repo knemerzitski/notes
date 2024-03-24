@@ -5,7 +5,7 @@ import PlainInput from '../../../components/inputs/PlainInput';
 export default function TitleInput(props?: InputProps) {
   return (
     <PlainInput
-      placeholder="Content"
+      placeholder="Title"
       {...props}
       sx={{
         '.MuiInputBase-input': {

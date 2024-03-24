@@ -1,5 +1,3 @@
-import { ObjectId } from 'mongodb';
-
 import { newDocumentInsertion } from '~collab/adapters/mongodb/multi-field-document-server';
 
 import { assertAuthenticated } from '../../../base/directives/auth';
@@ -23,7 +21,7 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
   } = ctx;
   assertAuthenticated(auth);
 
-  const currentUserId = ObjectId.createFromBase64(auth.session.user._id);
+  const currentUserId = auth.session.user._id._id;
 
   const newNote = new model.Note({
     ownerId: currentUserId,

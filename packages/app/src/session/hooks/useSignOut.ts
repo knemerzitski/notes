@@ -4,6 +4,7 @@ import { useCallback } from 'react';
 import { gql } from '../../__generated__/gql';
 import { ClientSession } from '../../__generated__/graphql';
 import { useSnackbarError } from '../../components/feedback/SnackbarAlertProvider';
+import { currentSessionVar } from '../state/state';
 import useSessionMutations from '../state/useSessionMutations';
 
 import useNavigateToSession from './useNavigateToSession';
@@ -12,7 +13,6 @@ const SIGN_OUT = gql(`
   mutation UseSignOut($input: SignOutInput) {
     signOut(input: $input) {
       signedOut
-      currentSessionId
     }
   }
 `);
@@ -34,14 +34,14 @@ export default function useSignOut() {
       const { data } = await signOut({
         variables: {
           input: {
-            sessionId: session ? String(session.id) : null,
-            allSessions: !session,
+            userId: session ? String(session.id) : null,
+            allUsers: !session,
           },
         },
       });
       if (!data) return false;
 
-      const { signedOut, currentSessionId: newSessionKey } = data.signOut;
+      const { signedOut } = data.signOut;
 
       if (!signedOut) {
         showError('Failed to sign out');
@@ -50,7 +50,8 @@ export default function useSignOut() {
 
       if (session) {
         deleteLocalSession(String(session.id));
-        await navigateToSession(newSessionKey ?? null);
+        // TODO fetch current session from cache?
+        await navigateToSession(currentSessionVar()?.id ?? null);
       } else {
         clearLocalSessions();
         await navigateToSession(null);

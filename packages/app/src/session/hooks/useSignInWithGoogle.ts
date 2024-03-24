@@ -11,13 +11,13 @@ import useNavigateToSession from './useNavigateToSession';
 const SIGN_IN = gql(`
   mutation UseSignInWithGoogle($input: SignInInput!)  {
     signIn(input: $input) {
-      currentSessionId
-      userInfo {
+      user {
+        id
         profile {
           displayName
         }
       }
-      authProviderUserInfo {
+      authProviderUser {
         id
         email
       }
@@ -52,15 +52,15 @@ export default function useSignInWithGoogle() {
       }
 
       const {
-        currentSessionId,
-        userInfo: {
+        user: {
+          id: userId,
           profile: { displayName },
         },
-        authProviderUserInfo: { id: googleId, email },
+        authProviderUser: { id: googleId, email },
       } = data.signIn;
 
       updateSession({
-        id: currentSessionId,
+        id: userId,
         isExpired: false,
         displayName,
         email,
@@ -72,7 +72,7 @@ export default function useSignInWithGoogle() {
         ],
       });
 
-      await navigateToSession(currentSessionId);
+      await navigateToSession(userId);
 
       return true;
     },

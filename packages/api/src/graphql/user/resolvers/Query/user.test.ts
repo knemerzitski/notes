@@ -3,14 +3,17 @@ import { GraphQLError } from 'graphql';
 import { assert, beforeEach, describe, expect, it } from 'vitest';
 import { mockDeep, mockReset } from 'vitest-mock-extended';
 
-import { GraphQLResolversContext } from '../../../../graphql/context';
+import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+
 import { apolloServer } from '../../../../tests/helpers/apollo-server';
 import { mockResolver } from '../../../../tests/helpers/mock-resolver';
+import { GraphQLResolversContext } from '../../../context';
 
-import { sessionCount } from './sessionCount';
+import { user } from './user';
 
-describe('currentSessionIndex', () => {
-  const sessions = [faker.string.nanoid()];
+describe('user', () => {
+  const displayName = faker.person.firstName();
+  const userPublicId = faker.string.nanoid();
 
   const mockedNoAuthContext = mockDeep<GraphQLResolversContext>({
     auth: undefined,
@@ -18,8 +21,13 @@ describe('currentSessionIndex', () => {
 
   const mockedAuthContext = mockDeep<GraphQLResolversContext>({
     auth: {
-      cookie: {
-        sessions,
+      session: {
+        user: {
+          publicId: userPublicId,
+          profile: {
+            displayName,
+          },
+        },
       },
     },
   });
@@ -32,21 +40,30 @@ describe('currentSessionIndex', () => {
   describe('directly', () => {
     it('throws error if not authenticated', async () => {
       await expect(async () => {
-        await mockResolver(sessionCount)({}, {}, mockedNoAuthContext);
+        await mockResolver(user)({}, {}, mockedNoAuthContext);
       }).rejects.toThrow(GraphQLError);
     });
 
-    it('returns session count', async () => {
-      const result = await mockResolver(sessionCount)({}, {}, mockedAuthContext);
+    it('returns displayName', async () => {
+      const result = await mockResolver(user)({}, {}, mockedAuthContext);
 
-      expect(result).toStrictEqual(sessions.length);
+      expect(result).toStrictEqual({
+        id: userPublicId,
+        profile: {
+          displayName,
+        },
+      });
     });
   });
 
   describe('graphql server', () => {
     const query = `#graphql
-      query {
-        sessionCount
+      query  {
+        user {
+          profile {
+            displayName
+          }
+        }
       }
     `;
 
@@ -61,10 +78,17 @@ describe('currentSessionIndex', () => {
       );
 
       assert(response.body.kind === 'single');
-      expect(response.body.singleResult.errors).toBeDefined();
+      expect(response.body.singleResult.errors).containSubset([
+        {
+          message: 'You are not authorized to perform this action.',
+          extensions: {
+            code: GraphQLErrorCode.Unauthenticated,
+          },
+        },
+      ]);
     });
 
-    it('returns currentSessionIndex', async () => {
+    it('returns user displayName', async () => {
       const response = await apolloServer.executeOperation(
         {
           query,
@@ -77,30 +101,12 @@ describe('currentSessionIndex', () => {
       assert(response.body.kind === 'single');
       expect(response.body.singleResult.errors).toBeUndefined();
       expect(response.body.singleResult.data).toEqual({
-        sessionCount: sessions.length,
-      });
-    });
-
-    it('returns error on empty sessions array', async () => {
-      const ctx = mockDeep<GraphQLResolversContext>({
-        auth: {
-          cookie: {
-            sessions: [],
+        user: {
+          profile: {
+            displayName,
           },
         },
       });
-
-      const response = await apolloServer.executeOperation(
-        {
-          query,
-        },
-        {
-          contextValue: ctx,
-        }
-      );
-
-      assert(response.body.kind === 'single');
-      expect(response.body.singleResult.errors).toBeDefined();
     });
   });
 });

@@ -11,7 +11,7 @@ import {
 } from './context/apigateway';
 import { DynamoDBContextParams, createDynamoDbContext } from './context/dynamodb';
 import { PingPongContextParams, PingPongMachineInput } from './context/pingpong';
-import { ConnectionTable, OnConnectGraphQLContext } from './dynamodb/models/connection';
+import { ConnectionTable, DynamoDBRecord } from './dynamodb/models/connection';
 
 interface DirectParams {
   logger: Logger;
@@ -23,11 +23,10 @@ export interface PingPongHandlerParams extends DirectParams {
   apiGateway: ApiGatewayContextParams;
 }
 
-export interface PingPongHandlerContext<
-  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
-> extends DirectParams {
+export interface PingPongHandlerContext<TDynamoDBGraphQLContext extends DynamoDBRecord>
+  extends DirectParams {
   models: {
-    connections: ConnectionTable<TOnConnectGraphQLContext>;
+    connections: ConnectionTable<TDynamoDBGraphQLContext>;
   };
   socketApi: WebSocketApi;
 }
@@ -37,17 +36,17 @@ export type PingPongHandler = Handler<
   MaybePromise<PingPongMachineInput>
 >;
 
-export function createPingPongHandler<
-  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
->(params: PingPongHandlerParams) {
+export function createPingPongHandler<TDynamoDBGraphQLContext extends DynamoDBRecord>(
+  params: PingPongHandlerParams
+) {
   const { logger } = params;
 
   logger.info('createPingPongHandler');
 
-  const dynamoDB = createDynamoDbContext<TOnConnectGraphQLContext>(params.dynamoDB);
+  const dynamoDB = createDynamoDbContext<TDynamoDBGraphQLContext>(params.dynamoDB);
   const apiGateway = createApiGatewayContext(params.apiGateway);
 
-  const context: PingPongHandlerContext<TOnConnectGraphQLContext> = {
+  const context: PingPongHandlerContext<TDynamoDBGraphQLContext> = {
     ...params,
     models: {
       connections: dynamoDB.connections,
@@ -55,11 +54,11 @@ export function createPingPongHandler<
     socketApi: apiGateway.socketApi,
   };
 
-  return pingPongHandler<TOnConnectGraphQLContext>(context);
+  return pingPongHandler<TDynamoDBGraphQLContext>(context);
 }
 
-export function pingPongHandler<TOnConnectGraphQLContext extends OnConnectGraphQLContext>(
-  context: PingPongHandlerContext<TOnConnectGraphQLContext>
+export function pingPongHandler<TDynamoDBGraphQLContext extends DynamoDBRecord>(
+  context: PingPongHandlerContext<TDynamoDBGraphQLContext>
 ): PingPongHandler {
   return async (input) => {
     // Send ping

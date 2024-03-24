@@ -1,5 +1,4 @@
 import { GraphQLError } from 'graphql';
-import { ObjectId } from 'mongodb';
 
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
@@ -8,8 +7,8 @@ import type {
   NoteUpdatedPayload,
   SubscriptionResolvers,
 } from '../../../../graphql/types.generated';
+import { isAuthenticated } from '../../../auth-context';
 import { assertAuthenticated } from '../../../base/directives/auth';
-import { isAuthenticated } from '../../../session/auth-context';
 
 export const noteUpdated: NonNullable<SubscriptionResolvers['noteUpdated']> = {
   subscribe: async (
@@ -19,7 +18,7 @@ export const noteUpdated: NonNullable<SubscriptionResolvers['noteUpdated']> = {
   ) => {
     if (!isAuthenticated(auth)) return denySubscription();
 
-    const currentUserId = ObjectId.createFromBase64(auth.session.user._id);
+    const currentUserId = auth.session.user._id._id;
 
     const userNote = await model.UserNote.findOne({
       userId: currentUserId,
@@ -38,8 +37,8 @@ export const noteUpdated: NonNullable<SubscriptionResolvers['noteUpdated']> = {
       onAfterSubscribe() {
         // TODO on sub start receiving connected users, publish to all other users about this user?
       },
-      async onComplete() {
-        // TODO subscription ended and removed, remove used from active list?
+      onComplete() {
+        // TODO subscription ended and removed, remove user from active list?
       },
     });
   },

@@ -1,18 +1,14 @@
 import { assertAuthenticated } from '../../../base/directives/auth';
 
 import type { QueryResolvers } from './../../../types.generated';
-
-export const currentUserInfo: NonNullable<QueryResolvers['currentUserInfo']> = (
-  _parent,
-  _arg,
-  ctx
-) => {
+export const user: NonNullable<QueryResolvers['user']> = (_parent, _args, ctx) => {
   const { auth } = ctx;
   assertAuthenticated(auth);
 
   const user = auth.session.user;
 
   return {
+    id: user.publicId,
     profile: {
       displayName: user.profile.displayName,
     },

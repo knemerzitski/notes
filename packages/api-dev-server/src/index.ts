@@ -3,14 +3,21 @@ import './load-env';
 import WebSocket from 'ws';
 
 import { handleConnectGraphQLAuth } from '~api/connect-handler';
+import { parseAuthFromHeaders } from '~api/graphql/auth-context';
 import {
   BaseGraphQLContext,
   BaseSubscriptionResolversContext,
+  DynamoDBBaseGraphQLContext,
   GraphQLResolversContext,
   createErrorBaseSubscriptionResolversContext,
+  handleConnectionInitAuthenticate,
+  parseDynamoDBBaseGraphQLContext,
 } from '~api/graphql/context';
-import { newExpireAt, tryRefreshExpireAt } from '~api/graphql/session/expire';
-import { createDefaultDynamoDBConnectionTtlContext } from '~api/handler-params';
+import CookiesContext, { parseCookiesFromHeaders } from '~api/graphql/cookies-context';
+import {
+  createDefaultDynamoDBConnectionTtlContext,
+  createDefaultIsCurrentConnection,
+} from '~api/handler-params';
 import { createApolloHttpHandler } from '~lambda-graphql/apollo-http-handler';
 import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
 import { createWebSocketConnectHandler } from '~lambda-graphql/connect-handler';
@@ -48,7 +55,10 @@ void (async () => {
 
     const server = createLambdaServer({
       sockets,
-      connectHandler: createWebSocketConnectHandler<BaseGraphQLContext>({
+      connectHandler: createWebSocketConnectHandler<
+        BaseGraphQLContext,
+        DynamoDBBaseGraphQLContext
+      >({
         logger: createLogger('mock:ws-connect-handler'),
         connection: createDefaultDynamoDBConnectionTtlContext(),
         dynamoDB: createMockDynamoDBParams(),
@@ -56,12 +66,15 @@ void (async () => {
           if (!mongoose) {
             mongoose = await createMockMongooseContext();
           }
+
           return handleConnectGraphQLAuth(mongoose, event);
         },
+        parseDynamoDBGraphQLContext: parseDynamoDBBaseGraphQLContext,
       }),
       messageHandler: createWebSocketMessageHandler<
         BaseSubscriptionResolversContext,
-        BaseGraphQLContext
+        BaseGraphQLContext,
+        DynamoDBBaseGraphQLContext
       >({
         logger: createLogger('mock:ws-message-handler'),
         dynamoDB: createMockDynamoDBParams(),
@@ -80,10 +93,13 @@ void (async () => {
         },
         connection: createDefaultDynamoDBConnectionTtlContext(),
         //pingpong: createMockPingPongParams(sockets),
+        parseDynamoDBGraphQLContext: parseDynamoDBBaseGraphQLContext,
+        onConnectionInit: handleConnectionInitAuthenticate,
       }),
       disconnectHandler: createWebSocketDisconnectHandler<
         BaseSubscriptionResolversContext,
-        BaseGraphQLContext
+        BaseGraphQLContext,
+        DynamoDBBaseGraphQLContext
       >({
         logger: createLogger('mock:ws-disconnect-handler'),
         dynamoDB: createMockDynamoDBParams(),
@@ -100,24 +116,31 @@ void (async () => {
             mongoose,
           };
         },
+        parseDynamoDBGraphQLContext: parseDynamoDBBaseGraphQLContext,
       }),
       apolloHttpHandler: createApolloHttpHandler<
         Omit<GraphQLResolversContext, keyof ApolloHttpGraphQLContext>,
-        BaseGraphQLContext
+        DynamoDBBaseGraphQLContext
       >({
         logger: createLogger('mock:apollo-http-handler'),
         graphQL: createMockGraphQLParams(),
-        async createGraphQLContext() {
+        async createGraphQLContext(_ctx, event) {
           if (!mongoose) {
             mongoose = await createMockMongooseContext();
           }
 
+          const cookiesCtx = CookiesContext.parse(parseCookiesFromHeaders(event.headers));
+
+          const authCtx = await parseAuthFromHeaders(
+            event.headers,
+            cookiesCtx,
+            mongoose.model.Session
+          );
+
           return {
+            cookies: cookiesCtx,
+            auth: authCtx,
             mongoose,
-            session: {
-              newExpireAt,
-              tryRefreshExpireAt,
-            },
             subscribe: () => {
               throw new Error('Subscribe should never be called in apollo-http-handler');
             },
@@ -128,6 +151,7 @@ void (async () => {
             },
           };
         },
+        createIsCurrentConnection: createDefaultIsCurrentConnection,
         dynamoDB: createMockDynamoDBParams(),
         apiGateway: createMockApiGatewayParams(sockets),
       }),

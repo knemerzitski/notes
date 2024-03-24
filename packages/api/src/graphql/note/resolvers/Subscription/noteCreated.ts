@@ -3,8 +3,8 @@ import type {
   NoteCreatedPayload,
   SubscriptionResolvers,
 } from '../../../../graphql/types.generated';
+import { isAuthenticated } from '../../../auth-context';
 import { assertAuthenticated } from '../../../base/directives/auth';
-import { isAuthenticated } from '../../../session/auth-context';
 
 export const noteCreated: NonNullable<SubscriptionResolvers['noteCreated']> = {
   subscribe: (_parent, _arg, { auth, subscribe, denySubscription }) => {

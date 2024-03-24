@@ -78,7 +78,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = a
     );
   }
 
-  const currentUserId = ObjectId.createFromBase64(auth.session.user._id);
+  const currentUserId = auth.session.user._id._id;
 
   const pipelineStages: PipelineStage[] = [
     // Select authenticated user

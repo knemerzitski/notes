@@ -13,7 +13,7 @@ import {
 } from './context/apigateway';
 import { DynamoDBContextParams, createDynamoDbContext } from './context/dynamodb';
 import { GraphQLContextParams, createGraphQlContext } from './context/graphql';
-import { ConnectionTable, OnConnectGraphQLContext } from './dynamodb/models/connection';
+import { ConnectionTable, DynamoDBRecord } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
 import { Publisher, createPublisher } from './pubsub/publish';
 
@@ -23,24 +23,27 @@ interface DirectParams {
 
 export interface CreateApolloHttpHandlerParams<
   TGraphQLContext,
-  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
+  TDynamoDBGraphQLContext extends DynamoDBRecord,
 > extends DirectParams {
   createGraphQLContext: (
-    context: ApolloHttpHandlerContext<TOnConnectGraphQLContext>,
+    context: ApolloHttpHandlerContext<TDynamoDBGraphQLContext>,
     event: APIGatewayProxyEvent
   ) => Promise<TGraphQLContext> | TGraphQLContext;
+  createIsCurrentConnection?: (
+    context: ApolloHttpHandlerContext<TDynamoDBGraphQLContext>,
+    event: APIGatewayProxyEvent
+  ) => ((connectionId: string) => boolean) | undefined;
   graphQL: GraphQLContextParams<TGraphQLContext>;
   dynamoDB: DynamoDBContextParams;
   apiGateway: ApiGatewayContextParams;
 }
 
-export interface ApolloHttpHandlerContext<
-  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
-> extends DirectParams {
+export interface ApolloHttpHandlerContext<TDynamoDBGraphQLContext extends DynamoDBRecord>
+  extends DirectParams {
   schema: GraphQLSchema;
   models: {
-    connections: ConnectionTable<TOnConnectGraphQLContext>;
-    subscriptions: SubscriptionTable<TOnConnectGraphQLContext>;
+    connections: ConnectionTable<TDynamoDBGraphQLContext>;
+    subscriptions: SubscriptionTable<TDynamoDBGraphQLContext>;
   };
   socketApi: WebSocketApi;
 }
@@ -60,18 +63,18 @@ export interface ApolloHttpGraphQLContext extends BaseContext {
 
 export function createApolloHttpHandler<
   TGraphQLContext,
-  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
+  TDynamoDBGraphQLContext extends DynamoDBRecord,
 >(
-  params: CreateApolloHttpHandlerParams<TGraphQLContext, TOnConnectGraphQLContext>
+  params: CreateApolloHttpHandlerParams<TGraphQLContext, TDynamoDBGraphQLContext>
 ): APIGatewayProxyHandler {
   const { logger } = params;
   logger.info('createApolloHttpHandler');
 
   const graphQL = createGraphQlContext(params.graphQL);
-  const dynamoDB = createDynamoDbContext<TOnConnectGraphQLContext>(params.dynamoDB);
+  const dynamoDB = createDynamoDbContext<TDynamoDBGraphQLContext>(params.dynamoDB);
   const apiGateway = createApiGatewayContext(params.apiGateway);
 
-  const context: ApolloHttpHandlerContext<TOnConnectGraphQLContext> = {
+  const context: ApolloHttpHandlerContext<TDynamoDBGraphQLContext> = {
     ...params,
     schema: graphQL.schema,
     models: {
@@ -114,12 +117,9 @@ export function createApolloHttpHandler<
         },
       };
 
-      const wsConnectionId = event.headers['x-ws-connection-id'];
-      const isCurrentConnection = wsConnectionId
-        ? (connectionId: string) => wsConnectionId === connectionId
-        : () => false;
+      const isCurrentConnection = params.createIsCurrentConnection?.(context, event);
 
-      graphQLContext.publish = createPublisher<GraphQLContext, TOnConnectGraphQLContext>({
+      graphQLContext.publish = createPublisher<GraphQLContext, TDynamoDBGraphQLContext>({
         context: {
           ...context,
           graphQLContext,

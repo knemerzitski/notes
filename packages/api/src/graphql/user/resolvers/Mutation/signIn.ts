@@ -1,15 +1,12 @@
 import { verifyCredentialToken } from '../../../../auth/google/oauth2';
-import type { MutationResolvers } from '../../../../graphql/types.generated';
-import {
-  createClientCookiesInsertNewSession,
-  headersSetCookieUpdateSessions,
-  parseAuthFromHeaders,
-} from '../../auth-context';
+import { newExpireAt } from '../../../session-expiration';
+
+import type { MutationResolvers } from './../../../types.generated';
 
 export const signIn: NonNullable<MutationResolvers['signIn']> = async (
   _parent,
   { input },
-  { mongoose, session, request, response }
+  { mongoose, response, cookies }
 ) => {
   const { model } = mongoose;
 
@@ -46,26 +43,22 @@ export const signIn: NonNullable<MutationResolvers['signIn']> = async (
 
   const newSession = new model.Session({
     userId: existingUser._id,
-    expireAt: session.newExpireAt(),
+    expireAt: newExpireAt(),
   });
 
   await newSession.save();
-  const cookieKey = existingUser.publicId;
-  const cookieId = newSession.cookieId;
 
-  const auth = await parseAuthFromHeaders(request.headers, mongoose.model.Session);
-  const sessionCookie = createClientCookiesInsertNewSession(auth, cookieKey, cookieId);
-
-  headersSetCookieUpdateSessions(response.multiValueHeaders, sessionCookie);
+  cookies.setSession(existingUser.publicId, newSession.cookieId);
+  cookies.setCookieHeadersUpdate(response.multiValueHeaders);
 
   return {
-    currentSessionId: sessionCookie.currentUserPublicId,
-    userInfo: {
+    user: {
+      id: existingUser.publicId,
       profile: {
         displayName: existingUser.profile.displayName,
       },
     },
-    authProviderUserInfo: {
+    authProviderUser: {
       id: googleUserId,
       email: tmpGoogleEmail,
     },

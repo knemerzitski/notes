@@ -1,11 +1,11 @@
 import AggregateError from 'aggregate-error';
-import { parse } from 'graphql';
+import { GraphQLError, parse } from 'graphql';
 import { buildExecutionContext } from 'graphql/execution/execute';
 import { MessageType } from 'graphql-ws';
 
 import { isArray } from '~utils/isArray';
 
-import { OnConnectGraphQLContext } from '../dynamodb/models/connection';
+import { DynamoDBRecord } from '../dynamodb/models/connection';
 import { MessageHandler } from '../message-handler';
 import {
   SubscriptionContext,
@@ -18,8 +18,14 @@ import {
  */
 export function createCompleteHandler<
   TGraphQLContext,
-  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
->(): MessageHandler<MessageType.Complete, TGraphQLContext, TOnConnectGraphQLContext> {
+  TBaseGraphQLContext = unknown,
+  TDynamoDBGraphQLContext extends DynamoDBRecord = DynamoDBRecord,
+>(): MessageHandler<
+  MessageType.Complete,
+  TGraphQLContext,
+  TBaseGraphQLContext,
+  TDynamoDBGraphQLContext
+> {
   return async ({ context, event, message }) => {
     const { connectionId } = event.requestContext;
     context.logger.info('messages:complete', {
@@ -33,13 +39,16 @@ export function createCompleteHandler<
         return;
       }
 
-      const graphQLContext: SubscriptionContext &
-        TGraphQLContext &
-        OnConnectGraphQLContext = {
-        ...context.graphQLContext,
-        ...subscription.connectionOnConnectGraphQLContext,
-        ...createSubscriptionContext(),
-      };
+      const baseGraphQLContext = context.parseDynamoDBGraphQLContext(
+        subscription.connectionGraphQLContext
+      );
+
+      const graphQLContext: SubscriptionContext & TGraphQLContext & TBaseGraphQLContext =
+        {
+          ...context.graphQLContext,
+          ...baseGraphQLContext,
+          ...createSubscriptionContext(),
+        };
 
       const execContext = buildExecutionContext({
         schema: context.schema,
@@ -60,11 +69,22 @@ export function createCompleteHandler<
 
       await context.models.subscriptions.delete({ id: `${connectionId}:${message.id}` });
     } catch (err) {
-      context.logger.error('messages:complete', err as Error, {
-        connectionId,
-        message,
-      });
-      throw err;
+      if (err instanceof GraphQLError) {
+        return context.socketApi.post({
+          ...event.requestContext,
+          message: {
+            type: MessageType.Error,
+            id: message.id,
+            payload: [err],
+          },
+        });
+      } else {
+        context.logger.error('messages:complete', err as Error, {
+          connectionId,
+          message,
+        });
+        throw err;
+      }
     }
 
     return Promise.resolve(undefined);

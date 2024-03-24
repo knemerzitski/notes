@@ -2,6 +2,8 @@ import { ApiGatewayManagementApiClient } from '@aws-sdk/client-apigatewaymanagem
 import { STSClient, AssumeRoleCommand } from '@aws-sdk/client-sts';
 import { ServerApiVersion } from 'mongodb';
 
+import { CustomHeaderName } from '~api-app-shared/custom-headers';
+import { CreateApolloHttpHandlerParams } from '~lambda-graphql/apollo-http-handler';
 import { ApiGatewayContextParams } from '~lambda-graphql/context/apigateway';
 import { DynamoDBContextParams } from '~lambda-graphql/context/dynamodb';
 import { GraphQLContextParams } from '~lambda-graphql/context/graphql';
@@ -9,11 +11,13 @@ import { ConnectionTtlContext } from '~lambda-graphql/dynamodb/models/connection
 import { Logger } from '~utils/logger';
 
 import { defaultTtl, tryRefreshTtl } from './dynamodb/connection-ttl';
-import { applyDirectives, applySubscriptionDirectives } from './graphql/directives';
+import { BaseGraphQLContext, DynamoDBBaseGraphQLContext } from './graphql/context';
+import { applyDirectives } from './graphql/directives';
 import { resolvers } from './graphql/resolvers.generated';
 import { typeDefs } from './graphql/typeDefs.generated';
 import { createMongooseContext } from './mongoose/lambda-context';
 import { createMongooseModels } from './mongoose/models';
+
 
 export function createDefaultGraphQLParams<TContext>(
   logger: Logger
@@ -38,7 +42,7 @@ export function createDefaultSubscriptionGraphQLParams<TContext>(
     logger,
     typeDefs, // TODO separate typeDefs
     resolvers: allExceptQueryMutationResolvers,
-    transform: applySubscriptionDirectives,
+    transform: applyDirectives,
   };
 }
 
@@ -133,3 +137,12 @@ export function createDefaultApiGatewayParams(logger: Logger): ApiGatewayContext
     },
   };
 }
+
+export const createDefaultIsCurrentConnection: CreateApolloHttpHandlerParams<
+  BaseGraphQLContext,
+  DynamoDBBaseGraphQLContext
+>['createIsCurrentConnection'] = (_ctx, event) => {
+  const wsConnectionId = event.headers[CustomHeaderName.WsConnectionId];
+  if (!wsConnectionId) return;
+  return (connectionId: string) => wsConnectionId === connectionId;
+};

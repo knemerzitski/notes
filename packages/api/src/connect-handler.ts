@@ -7,8 +7,15 @@ import {
 } from '~lambda-graphql/connect-handler';
 import { createLogger } from '~utils/logger';
 
-import { BaseGraphQLContext, MongooseGraphQLContext } from './graphql/context';
-import { parseAuthFromHeaders } from './graphql/session/auth-context';
+import { parseAuthFromHeaders } from './graphql/auth-context';
+import {
+  BaseGraphQLContext,
+  ApiGraphQLContext,
+  parseDynamoDBBaseGraphQLContext,
+  serializeBaseGraphQLContext,
+  DynamoDBBaseGraphQLContext,
+} from './graphql/context';
+import CookiesContext, { parseCookiesFromHeaders } from './graphql/cookies-context';
 import {
   createDefaultDynamoDBConnectionTtlContext,
   createDefaultDynamoDBParams,
@@ -16,19 +23,27 @@ import {
 } from './handler-params';
 
 export async function handleConnectGraphQLAuth(
-  mongoose: MongooseGraphQLContext['mongoose'],
+  mongoose: ApiGraphQLContext['mongoose'],
   event: WebSocketConnectEventEvent
-): Promise<BaseGraphQLContext> {
-  const auth = event.headers
-    ? await parseAuthFromHeaders(event.headers, mongoose.model.Session)
-    : undefined;
+): Promise<DynamoDBBaseGraphQLContext> {
+  const cookiesCtx = CookiesContext.parse(parseCookiesFromHeaders(event.headers));
 
-  return {
-    auth,
-  };
+  const authCtx = await parseAuthFromHeaders(
+    event.headers,
+    cookiesCtx,
+    mongoose.model.Session
+  );
+
+  return serializeBaseGraphQLContext({
+    cookies: cookiesCtx,
+    auth: authCtx,
+  });
 }
 
-export function createDefaultParams(): WebSocketConnectHandlerParams<BaseGraphQLContext> {
+export function createDefaultParams(): WebSocketConnectHandlerParams<
+  BaseGraphQLContext,
+  DynamoDBBaseGraphQLContext
+> {
   const logger = createLogger('ws-connect-handler');
 
   let mongoose: Awaited<ReturnType<typeof createDefaultMongooseContext>> | undefined;
@@ -42,6 +57,7 @@ export function createDefaultParams(): WebSocketConnectHandlerParams<BaseGraphQL
       }
       return handleConnectGraphQLAuth(mongoose, event);
     },
+    parseDynamoDBGraphQLContext: parseDynamoDBBaseGraphQLContext,
     connection: createDefaultDynamoDBConnectionTtlContext(),
   };
 }

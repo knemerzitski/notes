@@ -27,18 +27,15 @@ export enum GraphQLErrorCode {
 
 export enum AuthenticationFailedReason {
   /**
-   * Current session key is invalid.
+   * User has not been defined.
    */
-  InvalidCurrentSessionKey = 'INVALID_CURRENT_SESSION_KEY',
-  /**
-   * Sessions map has an invalid User.publicId.
-   */
-  InvalidSessionsKey = 'INVALID_SESSIONS_KEY',
+  UserUndefined = 'USER_UNEDFINED',
 
   /**
-   * Sessions map has a invalid Session.cookieId.
+   * Defined user has no session.
    */
-  InvalidSessionsValue = 'INVALID_SESSIONS_VALUE',
+  UserNoSession = 'USER_NO_SESSION',
+
   /**
    * Session was not found in database.
    */

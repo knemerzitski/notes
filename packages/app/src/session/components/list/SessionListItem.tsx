@@ -13,7 +13,7 @@ import { ClientSession } from '../../../__generated__/graphql';
 import BackgroundLetterAvatar from '../../../components/data/BackgroundLetterAvatar';
 import { useCloseable } from '../../context/CloseableProvider';
 import SessionProvider from '../../context/SessionProvider';
-import useSwitchSession from '../../hooks/useSwitchSession';
+import useNavigateToSession from '../../hooks/useNavigateToSession';
 import SignInModal, { SignInModalProps } from '../SignInModal';
 import ForgetSessionMenuItem from '../menu/ForgetSessionMenuItem';
 import SessionMoreOptionsButton from '../menu/SessionMoreOptionsButton';
@@ -25,7 +25,7 @@ interface SessionListItemProps extends ListItemProps {
 }
 
 export default function SessionListItem({ session, ...restProps }: SessionListItemProps) {
-  const switchSession = useSwitchSession();
+  const navigateToSession = useNavigateToSession();
   const onClose = useCloseable();
 
   const [signInModalOpen, setSignInModalOpen] = useState(false);
@@ -34,12 +34,8 @@ export default function SessionListItem({ session, ...restProps }: SessionListIt
     if (session.isExpired) {
       setSignInModalOpen(true);
     } else {
-      const sessionSwitchedSuccessfully = await switchSession(session);
-      if (sessionSwitchedSuccessfully) {
-        onClose();
-      } else {
-        setSignInModalOpen(true);
-      }
+      await navigateToSession(session.id);
+      onClose();
     }
   }
 

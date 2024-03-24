@@ -14,11 +14,14 @@ import { DynamoDBContextParams, createDynamoDbContext } from './context/dynamodb
 import {
   ConnectionTable,
   ConnectionTtlContext,
-  OnConnectGraphQLContext,
+  DynamoDBRecord,
 } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
 
-interface DirectParams<TOnConnectGraphQLContext extends OnConnectGraphQLContext> {
+interface DirectParams<
+  TBaseGraphQLContext,
+  TDynamoDBGraphQLContext extends DynamoDBRecord,
+> {
   connection: ConnectionTtlContext;
   logger: Logger;
 
@@ -29,23 +32,28 @@ interface DirectParams<TOnConnectGraphQLContext extends OnConnectGraphQLContext>
    * Throw error to disconnect.
    */
   onConnect?: (args: {
-    context: WebSocketConnectHandlerContext<TOnConnectGraphQLContext>;
+    context: WebSocketConnectHandlerContext<TBaseGraphQLContext, TDynamoDBGraphQLContext>;
     event: WebSocketConnectEventEvent;
-  }) => Maybe<MaybePromise<TOnConnectGraphQLContext>>;
+  }) => Maybe<MaybePromise<TDynamoDBGraphQLContext>>;
+  parseDynamoDBGraphQLContext: (
+    value: TDynamoDBGraphQLContext | undefined
+  ) => TBaseGraphQLContext;
 }
 
 export interface WebSocketConnectHandlerParams<
-  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
-> extends DirectParams<TOnConnectGraphQLContext> {
+  TBaseGraphQLContext,
+  TDynamoDBGraphQLContext extends DynamoDBRecord,
+> extends DirectParams<TBaseGraphQLContext, TDynamoDBGraphQLContext> {
   dynamoDB: DynamoDBContextParams;
 }
 
 export interface WebSocketConnectHandlerContext<
-  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
-> extends DirectParams<TOnConnectGraphQLContext> {
+  TBaseGraphQLContext,
+  TDynamoDBGraphQLContext extends DynamoDBRecord,
+> extends DirectParams<TBaseGraphQLContext, TDynamoDBGraphQLContext> {
   models: {
-    connections: ConnectionTable<TOnConnectGraphQLContext>;
-    subscriptions: SubscriptionTable<TOnConnectGraphQLContext>;
+    connections: ConnectionTable<TDynamoDBGraphQLContext>;
+    subscriptions: SubscriptionTable<TDynamoDBGraphQLContext>;
   };
 }
 
@@ -64,17 +72,21 @@ export type WebSocketConnectHandler<T = never> = Handler<
 >;
 
 export function createWebSocketConnectHandler<
-  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
+  TBaseGraphQLContext,
+  TDynamoDBGraphQLContext extends DynamoDBRecord,
 >(
-  params: WebSocketConnectHandlerParams<TOnConnectGraphQLContext>
+  params: WebSocketConnectHandlerParams<TBaseGraphQLContext, TDynamoDBGraphQLContext>
 ): WebSocketConnectHandler {
   const { logger } = params;
 
   logger.info('createWebSocketConnectHandler');
 
-  const dynamoDB = createDynamoDbContext<TOnConnectGraphQLContext>(params.dynamoDB);
+  const dynamoDB = createDynamoDbContext<TDynamoDBGraphQLContext>(params.dynamoDB);
 
-  const context: WebSocketConnectHandlerContext<TOnConnectGraphQLContext> = {
+  const context: WebSocketConnectHandlerContext<
+    TBaseGraphQLContext,
+    TDynamoDBGraphQLContext
+  > = {
     ...params,
     models: {
       connections: dynamoDB.connections,
@@ -86,9 +98,10 @@ export function createWebSocketConnectHandler<
 }
 
 export function webSocketConnectHandler<
-  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
+  TBaseGraphQLContext,
+  TDynamoDBGraphQLContext extends DynamoDBRecord,
 >(
-  context: WebSocketConnectHandlerContext<TOnConnectGraphQLContext>
+  context: WebSocketConnectHandlerContext<TBaseGraphQLContext, TDynamoDBGraphQLContext>
 ): WebSocketConnectHandler {
   return async (event) => {
     try {
@@ -102,13 +115,13 @@ export function webSocketConnectHandler<
         headers: event.headers,
       });
 
-      const onConnectGraphQLContext = await context.onConnect?.({ context, event });
+      const dynamoDBGraphQLContext = await context.onConnect?.({ context, event });
 
       await context.models.connections.put({
         id: connectionId,
         createdAt: Date.now(),
         requestContext: event.requestContext,
-        onConnectGraphQLContext,
+        graphQLContext: dynamoDBGraphQLContext,
         hasPonged: false,
         ttl: context.connection.defaultTtl(),
       });

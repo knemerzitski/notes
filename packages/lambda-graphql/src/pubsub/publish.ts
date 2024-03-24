@@ -1,23 +1,23 @@
-import { execute, parse } from 'graphql';
+import { GraphQLError, execute, parse } from 'graphql';
 import { MessageType, NextMessage } from 'graphql-ws';
 
 import { ApolloHttpHandlerContext } from '../apollo-http-handler';
-import { OnConnectGraphQLContext } from '../dynamodb/models/connection';
+import { DynamoDBRecord } from '../dynamodb/models/connection';
 import { Subscription } from '../dynamodb/models/subscription';
 
 import { PubSubEvent } from './subscribe';
 
 interface CreatePublisherParams<
   TGraphQLContext,
-  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
+  TDynamoDBGraphQLContext extends DynamoDBRecord,
 > {
-  context: ApolloHttpHandlerContext<TOnConnectGraphQLContext> & {
+  context: ApolloHttpHandlerContext<TDynamoDBGraphQLContext> & {
     graphQLContext: TGraphQLContext;
   };
   /**
    * @returns {boolean} {@link connectionId} belongs to client of current request.
    */
-  isCurrentConnection: (connectionId: string) => boolean;
+  isCurrentConnection?: (connectionId: string) => boolean;
 }
 
 interface PublisherOptions {
@@ -41,15 +41,15 @@ export type Publisher = (
   topic: PubSubEvent['topic'],
   payload: PubSubEvent['payload'],
   options?: PublisherOptions
-) => Promise<undefined[]>;
+) => Promise<PromiseSettledResult<undefined>[]>;
 
 export function createPublisher<
   TGraphQLContext,
-  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
+  TDynamoDBGraphQLContext extends DynamoDBRecord,
 >({
   context,
-  isCurrentConnection,
-}: CreatePublisherParams<TGraphQLContext, TOnConnectGraphQLContext>): Publisher {
+  isCurrentConnection = () => false,
+}: CreatePublisherParams<TGraphQLContext, TDynamoDBGraphQLContext>): Publisher {
   const { logger, models, schema, socketApi } = context;
   return async (topic, payload, options) => {
     logger.info('pubsub:publish', {
@@ -73,7 +73,7 @@ export function createPublisher<
     /**
      * Filter out subscription tied to current connection if set in options
      */
-    function isRelevantSubscription(sub: Subscription<TOnConnectGraphQLContext>) {
+    function isRelevantSubscription(sub: Subscription<TDynamoDBGraphQLContext>) {
       if (!publishToCurrentConnection) {
         return !isCurrentConnection(sub.connectionId);
       }
@@ -84,28 +84,49 @@ export function createPublisher<
     const subcriptionPostPromises = subscriptions
       .filter(isRelevantSubscription)
       .map(async (sub) => {
-        // Filters event.payload based on subscription query
-        const filteredPayload = await execute({
-          schema: schema,
-          document: parse(sub.subscription.query),
-          rootValue: payload,
-          contextValue: context.graphQLContext,
-          variableValues: sub.subscription.variables,
-          operationName: sub.subscription.operationName,
-        });
+        try {
+          // Filters event.payload based on subscription query
+          const filteredPayload = await execute({
+            schema: schema,
+            document: parse(sub.subscription.query),
+            rootValue: payload,
+            contextValue: context.graphQLContext,
+            variableValues: sub.subscription.variables,
+            operationName: sub.subscription.operationName,
+          });
 
-        const message: NextMessage = {
-          id: sub.subscriptionId,
-          type: MessageType.Next,
-          payload: filteredPayload,
-        };
+          const message: NextMessage = {
+            id: sub.subscriptionId,
+            type: MessageType.Next,
+            payload: filteredPayload,
+          };
 
-        return socketApi.post({
-          ...sub.requestContext,
-          message,
-        });
+          return socketApi.post({
+            ...sub.requestContext,
+            message,
+          });
+        } catch (err) {
+          if (err instanceof GraphQLError) {
+            return context.socketApi.post({
+              ...sub.requestContext,
+              message: {
+                type: MessageType.Error,
+                id: sub.subscriptionId,
+                payload: [err],
+              },
+            });
+          } else {
+            context.logger.error('publish:subscription', err as Error, {
+              ...sub.requestContext,
+              topic,
+              payload,
+              options,
+              subscription: sub,
+            });
+          }
+        }
       });
 
-    return Promise.all(subcriptionPostPromises);
+    return Promise.allSettled(subcriptionPostPromises);
   };
 }

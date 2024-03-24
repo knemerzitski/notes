@@ -13,19 +13,13 @@ import {
   useSnackbarError,
 } from '../../components/feedback/SnackbarAlertProvider';
 import useNavigateToSession from '../hooks/useNavigateToSession';
+import { currentSessionVar } from '../state/state';
 import useSessionMutations from '../state/useSessionMutations';
 
 const SYNC_SESSIONS = gql(`
-  mutation SessionSynchronizationSyncSessions($input: SyncSessionsInput!) {
-    syncSessions(input: $input) {
-      __typename
-      ... on SyncSessionsSignInPayload {
-        currentSessionId
-        availableSessionIds
-      }
-      ... on SyncSessionsSignOutPayload {
-        signedOut
-      }
+  mutation SessionSynchronizationSyncSessions($input: SyncSessionCookiesInput!) {
+    syncSessionCookies(input: $input) {
+      availableUserIds
     }
   }
 `);
@@ -65,7 +59,10 @@ export default function SessionSynchronization() {
       const code = firstError.extensions.code;
       if (code === GraphQLErrorCode.Unauthenticated) {
         const reason = firstError.extensions.reason;
-        if (reason === AuthenticationFailedReason.SessionExpired) {
+        if (
+          reason === AuthenticationFailedReason.SessionExpired ||
+          reason === AuthenticationFailedReason.UserNoSession
+        ) {
           if (currentSession) {
             updateSession({
               ...currentSession,
@@ -85,24 +82,17 @@ export default function SessionSynchronization() {
           const { data, errors } = await syncSessions({
             variables: {
               input: {
-                availableSessionIds: availableSessionKeys(),
+                availableUserIds: availableSessionKeys(),
               },
             },
             context,
           });
 
           if (data) {
-            if (data.syncSessions.__typename === 'SyncSessionsSignInPayload') {
-              // Update sessions in localStorage
-              const { currentSessionId, availableSessionIds } = data.syncSessions;
-
-              filterSessions(availableSessionIds);
-
-              await navigateToSession(currentSessionId);
-            } else {
-              // Signed out, delete all sessions
-              clearSessions();
-            }
+            const actualAvailableUserIds = data.syncSessionCookies.availableUserIds;
+            filterSessions(actualAvailableUserIds);
+            // TODO fetch current session from cache not from var?
+            await navigateToSession(currentSessionVar()?.id ?? null);
           } else if (errors?.[0]) {
             showError(errors[0].message);
           }

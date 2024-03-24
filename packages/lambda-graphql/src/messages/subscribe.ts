@@ -4,7 +4,7 @@ import { MessageType } from 'graphql-ws';
 
 import { isArray } from '~utils/isArray';
 
-import { OnConnectGraphQLContext } from '../dynamodb/models/connection';
+import { DynamoDBRecord } from '../dynamodb/models/connection';
 import { Subscription } from '../dynamodb/models/subscription';
 import validateQuery from '../graphql/validateQuery';
 import { MessageHandler } from '../message-handler';
@@ -16,8 +16,14 @@ import {
 
 export function createSubscribeHandler<
   TGraphQLContext,
-  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
->(): MessageHandler<MessageType.Subscribe, TGraphQLContext, TOnConnectGraphQLContext> {
+  TBaseGraphQLContext,
+  TDynamoDBGraphQLContext extends DynamoDBRecord,
+>(): MessageHandler<
+  MessageType.Subscribe,
+  TGraphQLContext,
+  TBaseGraphQLContext,
+  TDynamoDBGraphQLContext
+> {
   return async ({ context, event, message }) => {
     const { connectionId } = event.requestContext;
     context.logger.info('messages:subscribe', {
@@ -66,13 +72,16 @@ export function createSubscribeHandler<
         });
       }
 
-      const graphQLContext: SubscriptionContext &
-        TGraphQLContext &
-        OnConnectGraphQLContext = {
-        ...context.graphQLContext,
-        ...connection.onConnectGraphQLContext,
-        ...createSubscriptionContext(),
-      };
+      const connectionGraphQLContext = context.parseDynamoDBGraphQLContext(
+        connection.graphQLContext
+      );
+
+      const graphQLContext: SubscriptionContext & TGraphQLContext & TBaseGraphQLContext =
+        {
+          ...context.graphQLContext,
+          ...connectionGraphQLContext,
+          ...createSubscriptionContext(),
+        };
 
       const execContext = buildExecutionContext({
         schema: context.schema,
@@ -109,13 +118,13 @@ export function createSubscribeHandler<
       });
       await onSubscribe?.();
 
-      const subscription: Subscription<TOnConnectGraphQLContext> = {
+      const subscription: Subscription<TDynamoDBGraphQLContext> = {
         id: `${connection.id}:${message.id}`,
         topic,
         subscriptionId: message.id,
         subscription: message.payload,
         filter: filter,
-        connectionOnConnectGraphQLContext: connection.onConnectGraphQLContext,
+        connectionGraphQLContext: connection.graphQLContext,
         connectionId: connection.id,
         requestContext: event.requestContext,
         createdAt: Date.now(),
@@ -130,9 +139,15 @@ export function createSubscribeHandler<
       context.logger.info('messages:subscribe:onAfterSubscribe', {
         onAfterSubscribe: !!onAfterSubscribe,
       });
-      await onAfterSubscribe?.();
+      try {
+        await onAfterSubscribe?.();
+      } catch (err) {
+        // Delete subscription on error in onAfterSubscribe
+        await context.models.subscriptions.delete({ id: subscription.id });
+        throw err;
+      }
 
-      // Wait for Connection TTL refresh to be done if needed
+      // Wait for Connection TTL refresh to be done
       await ttlRefreshPromise;
     } catch (err) {
       context.logger.error('messages:subscribe:error', err as Error, {

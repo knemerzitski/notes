@@ -10,6 +10,9 @@ import {
   BaseGraphQLContext,
   BaseSubscriptionResolversContext,
   createErrorBaseSubscriptionResolversContext,
+  handleConnectionInitAuthenticate,
+  parseDynamoDBBaseGraphQLContext,
+  DynamoDBBaseGraphQLContext,
 } from './graphql/context';
 import {
   createDefaultApiGatewayParams,
@@ -21,7 +24,8 @@ import {
 
 export function createDefaultParams(): WebSocketMessageHandlerParams<
   BaseSubscriptionResolversContext,
-  BaseGraphQLContext
+  BaseGraphQLContext,
+  DynamoDBBaseGraphQLContext
 > {
   const name = 'ws-message-handler';
   const logger = createLogger(name);
@@ -45,10 +49,13 @@ export function createDefaultParams(): WebSocketMessageHandlerParams<
         mongoose,
       };
     },
+    parseDynamoDBGraphQLContext: parseDynamoDBBaseGraphQLContext,
+    onConnectionInit: handleConnectionInitAuthenticate,
   };
 }
 
 export const handler: APIGatewayProxyWebsocketHandlerV2 = createWebSocketMessageHandler<
   BaseSubscriptionResolversContext,
-  BaseGraphQLContext
+  BaseGraphQLContext,
+  DynamoDBBaseGraphQLContext
 >(createDefaultParams());

@@ -2,21 +2,21 @@ import { APIGatewayEventWebsocketRequestContextV2 } from 'aws-lambda';
 
 import { NewModelParams, Table, newModel } from '../model';
 
-import { OnConnectGraphQLContext } from './connection';
+import { DynamoDBRecord } from './connection';
 
 interface SubscriptionKey {
   // Id format `${connectionId}:${subscriptionId}`
   id: string;
 }
 
-export interface Subscription<TOnConnectGraphQLContext extends OnConnectGraphQLContext>
+export interface Subscription<TDynamoDBGraphQLContext extends DynamoDBRecord>
   extends SubscriptionKey {
   topic: string;
   createdAt: number;
   connectionId: string;
   subscriptionId: string;
   filter?: Record<string, unknown>;
-  connectionOnConnectGraphQLContext?: TOnConnectGraphQLContext;
+  connectionGraphQLContext?: TDynamoDBGraphQLContext;
   requestContext: APIGatewayEventWebsocketRequestContextV2;
   subscription: {
     query: string;
@@ -27,23 +27,22 @@ export interface Subscription<TOnConnectGraphQLContext extends OnConnectGraphQLC
   ttl: number;
 }
 
-export interface SubscriptionTable<
-  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
-> extends Table<SubscriptionKey, Subscription<TOnConnectGraphQLContext>> {
-  queryAllByTopic(topic: string): Promise<Subscription<TOnConnectGraphQLContext>[]>;
+export interface SubscriptionTable<TDynamoDBGraphQLContext extends DynamoDBRecord>
+  extends Table<SubscriptionKey, Subscription<TDynamoDBGraphQLContext>> {
+  queryAllByTopic(topic: string): Promise<Subscription<TDynamoDBGraphQLContext>[]>;
   queryAllByTopicFilter(
     topic: string,
     filter: Record<string, unknown>
-  ): Promise<Subscription<TOnConnectGraphQLContext>[]>;
+  ): Promise<Subscription<TDynamoDBGraphQLContext>[]>;
   queryAllByConnectionId(
     connectionId: string
-  ): Promise<Subscription<TOnConnectGraphQLContext>[]>;
+  ): Promise<Subscription<TDynamoDBGraphQLContext>[]>;
 }
 
-export function newSubscriptionModel<
-  TOnConnectGraphQLContext extends OnConnectGraphQLContext,
->(newTableArgs: NewModelParams): SubscriptionTable<TOnConnectGraphQLContext> {
-  const table = newModel<SubscriptionKey, Subscription<TOnConnectGraphQLContext>>(
+export function newSubscriptionModel<TDynamoDBGraphQLContext extends DynamoDBRecord>(
+  newTableArgs: NewModelParams
+): SubscriptionTable<TDynamoDBGraphQLContext> {
+  const table = newModel<SubscriptionKey, Subscription<TDynamoDBGraphQLContext>>(
     newTableArgs
   );
 

@@ -10,6 +10,8 @@ import {
   BaseGraphQLContext,
   BaseSubscriptionResolversContext,
   createErrorBaseSubscriptionResolversContext,
+  parseDynamoDBBaseGraphQLContext,
+  DynamoDBBaseGraphQLContext,
 } from './graphql/context';
 import {
   createDefaultApiGatewayParams,
@@ -20,7 +22,8 @@ import {
 
 export function createDefaultParams(): WebSocketDisconnectHandlerParams<
   BaseSubscriptionResolversContext,
-  BaseGraphQLContext
+  BaseGraphQLContext,
+  DynamoDBBaseGraphQLContext
 > {
   const name = 'ws-disconnect-handler';
   const logger = createLogger(name);
@@ -43,10 +46,13 @@ export function createDefaultParams(): WebSocketDisconnectHandlerParams<
         mongoose,
       };
     },
+    parseDynamoDBGraphQLContext: parseDynamoDBBaseGraphQLContext,
   };
 }
 
 export const handler: APIGatewayProxyWebsocketHandlerV2 =
-  createWebSocketDisconnectHandler<BaseSubscriptionResolversContext, BaseGraphQLContext>(
-    createDefaultParams()
-  );
+  createWebSocketDisconnectHandler<
+    BaseSubscriptionResolversContext,
+    BaseGraphQLContext,
+    DynamoDBBaseGraphQLContext
+  >(createDefaultParams());

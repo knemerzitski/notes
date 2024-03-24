@@ -1,5 +1,4 @@
 import { GraphQLError } from 'graphql';
-import { ObjectId } from 'mongodb';
 
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import {
@@ -29,7 +28,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
   } = ctx;
   assertAuthenticated(auth);
 
-  const currentUserId = ObjectId.createFromBase64(auth.session.user._id);
+  const currentUserId = auth.session.user._id._id;
 
   const userNote = await model.UserNote.findOne({
     userId: currentUserId,
