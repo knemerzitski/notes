@@ -53,6 +53,8 @@ export async function publishNoteUpdated(
 ) {
   assertAuthenticated(auth);
 
+  // TODO create myNoteUpdated subscription...
+
   return publish(`NOTE_UPDATED:${payload.id}`, {
     noteUpdated: payload,
   });

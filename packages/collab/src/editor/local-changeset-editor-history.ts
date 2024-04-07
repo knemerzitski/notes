@@ -7,24 +7,14 @@ import {
 } from '../client/document-client';
 
 import { Events as ChangesetEditorEvents } from './changeset-editor';
-import { SelectionDirection, SelectionRange } from './selection-range';
+import { SelectionRange } from './selection-range';
+import { AnyEntry, Entry, Operation, TailDocumentHistory } from './tail-document-history';
 
-interface LocalChangesetEditorHistoryProps {
+interface LocalChangesetEditorHistoryOptions {
   selection: SelectionRange;
   editorBus: Emitter<Pick<ChangesetEditorEvents, 'change'>>;
   document: DocumentClient;
-}
-
-interface TypingOperation {
-  changeset: Changeset;
-  selectionDirection: SelectionDirection;
-  selectionStart: number;
-  selectionEnd: number;
-}
-
-interface HistoryEntry {
-  execute: TypingOperation;
-  undo: TypingOperation;
+  tailHistory?: TailDocumentHistory;
 }
 
 /**
@@ -32,12 +22,21 @@ interface HistoryEntry {
  * External changes alter history as if change has always been there.
  */
 export class LocalChangesetEditorHistory {
-  private props: LocalChangesetEditorHistoryProps;
+  private history: TailDocumentHistory;
 
-  private entries: HistoryEntry[] = [];
+  private document: DocumentClient;
+  private selection: SelectionRange;
 
-  get entryCount() {
-    return this.entries.length;
+  get entries() {
+    return this.history.entries;
+  }
+
+  get tailDocument() {
+    return this.history.tailDocument;
+  }
+
+  get currentIndex() {
+    return this.lastExecutedIndex.local;
   }
 
   private lastExecutedIndex = {
@@ -46,41 +45,48 @@ export class LocalChangesetEditorHistory {
     local: -1,
   };
 
-  /**
-   * Server composition changeset without any local changes applied.
-   * Same as undoing everything typed so far.
-   */
-  private serverBaseComposition: Changeset;
-
   private unsubscribeFromEvents: () => void;
 
-  constructor(props: LocalChangesetEditorHistoryProps) {
-    this.props = props;
-    const { selection, editorBus: editorBus, document } = props;
+  constructor(options: LocalChangesetEditorHistoryOptions) {
+    const { selection, editorBus: editorBus, document } = options;
+    this.document = document;
+    this.selection = selection;
 
-    this.serverBaseComposition = document.server;
+    this.history =
+      options.tailHistory ??
+      new TailDocumentHistory({
+        tail: document.server,
+      });
+
+    this.history.eventBus.on('entryAtIndexDeleted', ({ index }) => {
+      if (index <= this.lastExecutedIndex.local) {
+        this.lastExecutedIndex.local--;
+      }
+      if (index <= this.lastExecutedIndex.submitted) {
+        this.lastExecutedIndex.submitted--;
+      }
+      if (index <= this.lastExecutedIndex.server) {
+        this.lastExecutedIndex.server--;
+      }
+    });
 
     const editorChangeListener = ({
       changeset,
       inverseChangeset,
       selectionPos,
     }: ChangesetEditorEvents['change']) => {
-      const newEntry: HistoryEntry = {
+      this.push({
         execute: {
           changeset,
-          selectionDirection: SelectionDirection.Forward,
           selectionStart: selectionPos,
           selectionEnd: selectionPos,
         },
         undo: {
           changeset: inverseChangeset,
-          selectionDirection: selection.direction,
           selectionStart: selection.start,
           selectionEnd: selection.end,
         },
-      };
-
-      this.push(newEntry);
+      });
     };
 
     const submitChangesListener = () => {
@@ -94,7 +100,7 @@ export class LocalChangesetEditorHistory {
     const handledExternalChangeListener = ({
       externalChange,
     }: DocumentClientEvents['handledExternalChange']) => {
-      this.updateHistoryFromExternalChange(externalChange);
+      this.adjustHistoryToExternalChange(externalChange);
     };
 
     editorBus.on('change', editorChangeListener);
@@ -117,15 +123,31 @@ export class LocalChangesetEditorHistory {
   }
 
   /**
+   *
+   * @param index Negative index counts from end of entries. -1 is last entry.
+   * @returns
+   */
+  at(index: number): Entry | undefined {
+    if (index < 0) {
+      if (-index < this.entries.length) {
+        index %= this.entries.length;
+      }
+      index += this.entries.length;
+    }
+
+    return this.entries[index];
+  }
+
+  /**
    * Removes event listeners. This instance becomes useless.
    */
   cleanUp() {
     this.unsubscribeFromEvents();
   }
 
-  private push(entry: HistoryEntry) {
-    if (this.lastExecutedIndex.local < this.entries.length - 1) {
-      this.entries = this.entries.slice(0, this.lastExecutedIndex.local + 1);
+  private push(entry: Entry) {
+    if (this.lastExecutedIndex.local < this.history.entries.length - 1) {
+      this.history.deleteNewerEntries(this.lastExecutedIndex.local);
 
       this.lastExecutedIndex.submitted = Math.min(
         this.lastExecutedIndex.submitted,
@@ -137,50 +159,33 @@ export class LocalChangesetEditorHistory {
       );
     }
 
-    this.entries.push(entry);
+    this.history.push([entry]);
     this.lastExecutedIndex.local++;
-    this.applyTypingOperation(entry.execute);
+    const newEntry = this.history.entries[this.history.entries.length - 1];
+    if (newEntry) {
+      this.applyTypingOperation(newEntry.execute);
+    }
   }
 
   /**
-   *
-   * @param base First element in {@link executeChangesets} is composable on {@link base}.
-   * @param executeChangesets Changesets that can be applied before first history entry.
+   * @param tailDocument First element in {@link entries} is composable on {@link entries}.
+   * @param entries Document entries.
    */
-  prepend(base: Changeset, executeChangesets: Changeset[]) {
-    let currentValue = base;
-    this.entries.unshift(
-      ...executeChangesets.map((execute) => {
-        const undo = execute.inverse(currentValue);
-        currentValue = currentValue.compose(execute);
+  restoreHistoryEntries(tailDocument: Changeset, entries: AnyEntry[]) {
+    const beforeEntriesCount = this.history.entries.length;
 
-        const entry: HistoryEntry = {
-          execute: {
-            changeset: execute,
-            // TODO implement selection
-            selectionDirection: SelectionDirection.Forward,
-            selectionStart: 0,
-            selectionEnd: 0,
-          },
-          undo: {
-            changeset: undo,
-            selectionDirection: SelectionDirection.None,
-            selectionStart: 0,
-            selectionEnd: 0,
-          },
-        };
+    this.history.unshift(tailDocument, entries);
 
-        return entry;
-      })
-    );
-
-    this.lastExecutedIndex.server += executeChangesets.length;
-    this.lastExecutedIndex.submitted += executeChangesets.length;
-    this.lastExecutedIndex.local += executeChangesets.length;
+    const addedEntriesCount = this.history.entries.length - beforeEntriesCount;
+    this.lastExecutedIndex.server += addedEntriesCount;
+    this.lastExecutedIndex.submitted += addedEntriesCount;
+    this.lastExecutedIndex.local += addedEntriesCount;
+    
+    return addedEntriesCount;
   }
 
   undo() {
-    const entry = this.entries[this.lastExecutedIndex.local];
+    const entry = this.history.entries[this.lastExecutedIndex.local];
     if (entry) {
       this.applyTypingOperation(entry.undo);
       this.lastExecutedIndex.local--;
@@ -188,128 +193,25 @@ export class LocalChangesetEditorHistory {
   }
 
   redo() {
-    const entry = this.entries[this.lastExecutedIndex.local + 1];
+    const entry = this.history.entries[this.lastExecutedIndex.local + 1];
     if (entry) {
       this.applyTypingOperation(entry.execute);
       this.lastExecutedIndex.local++;
     }
   }
 
-  private applyTypingOperation(op: TypingOperation) {
-    this.props.document.composeLocalChange(op.changeset);
+  private applyTypingOperation(op: Operation) {
+    this.document.composeLocalChange(op.changeset);
 
     // Selection must be updated after as it relies on length of the value
-    this.props.selection.setSelectionRange(
-      op.selectionStart,
-      op.selectionEnd,
-      op.selectionDirection
-    );
+    this.selection.setSelectionRange(op.selectionStart, op.selectionEnd);
   }
 
-  private updateHistoryFromExternalChange(externalChangeset: Changeset) {
-    const entries = this.entries;
-    const serverIndex = this.lastExecutedIndex.server;
-
-    let baseChange = serverIndex < 0 ? this.props.document.server : Changeset.EMPTY;
-
-    // Execute before serverIndex (...,e0,e1,e2)
-    let followComposition = externalChangeset;
-    for (let i = serverIndex; i >= 0; i--) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const entry = entries[i]!;
-      entry.execute.selectionStart = followComposition.followIndex(
-        entry.execute.selectionStart
-      );
-      entry.execute.selectionEnd = followComposition.followIndex(
-        entry.execute.selectionEnd
-      );
-
-      const newChange = entry.undo.changeset.follow(followComposition);
-      entry.execute.changeset = entry.execute.changeset.findSwapNewSecondChange(
-        followComposition,
-        newChange
-      );
-      followComposition = newChange;
-      baseChange = newChange;
-    }
-
-    this.serverBaseComposition = this.serverBaseComposition.compose(baseChange);
-
-    // Undo before serverIndex (...,u0,u1,u2) - only calculates new selection
-    followComposition = externalChangeset;
-    for (let i = serverIndex; i >= 0; i--) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const entry = entries[i]!;
-      const undo = entry.undo.changeset;
-      // entry.undo.changeset = followComposition.follow(undo);
-
-      entry.undo.selectionStart = followComposition.followIndex(
-        entry.undo.selectionStart
-      );
-      entry.undo.selectionEnd = followComposition.followIndex(entry.undo.selectionEnd);
-
-      followComposition = undo.follow(followComposition);
-    }
-
-    // Undo after serverIndex + 1 (u3,u4,...) - only calculates new selection
-    followComposition = externalChangeset;
-    for (let i = serverIndex + 1; i < entries.length; i++) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const entry = entries[i]!;
-      //const undo = entry.undo.changeset;
-
-      entry.undo.selectionStart = followComposition.followIndex(
-        entry.undo.selectionStart
-      );
-      entry.undo.selectionEnd = followComposition.followIndex(entry.undo.selectionEnd);
-
-      followComposition = entry.execute.changeset.follow(followComposition);
-
-      // entry.undo.changeset = undoAfter.follow(undo);
-    }
-
-    // Execute after serverIndex + 1 (e3,e4,...)
-    followComposition = externalChangeset;
-    for (let i = serverIndex + 1; i < entries.length; i++) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const entry = entries[i]!;
-      const execute = entry.execute.changeset;
-      entry.execute.changeset = followComposition.follow(execute);
-
-      followComposition = execute.follow(followComposition);
-
-      entry.execute.selectionStart = followComposition.followIndex(
-        entry.execute.selectionStart
-      );
-      entry.execute.selectionEnd = followComposition.followIndex(
-        entry.execute.selectionEnd
-      );
-    }
-
-    // Calculate new undo from server base value and execute.
-    let currentValue = this.serverBaseComposition;
-    for (const entry of entries) {
-      const newUndo = entry.execute.changeset.inverse(currentValue);
-      entry.undo.changeset = newUndo;
-      currentValue = currentValue.compose(entry.execute.changeset);
-    }
-
-    // Delete empty entries
-    for (let i = entries.length - 1; i >= 0; i--) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const entry = entries[i]!;
-      if (entry.execute.changeset.isEqual(entry.undo.changeset)) {
-        entries.splice(i, 1);
-        if (i <= this.lastExecutedIndex.local) {
-          this.lastExecutedIndex.local--;
-        }
-        if (i <= this.lastExecutedIndex.submitted) {
-          this.lastExecutedIndex.submitted--;
-        }
-        if (i <= this.lastExecutedIndex.server) {
-          this.lastExecutedIndex.server--;
-        }
-      }
+  private adjustHistoryToExternalChange(externalChangeset: Changeset) {
+    if (this.lastExecutedIndex.server >= 0) {
+      this.history.composeOnAllEntries(externalChangeset, this.lastExecutedIndex.server);
+    } else {
+      this.history.composeOnAllEntries(externalChangeset, this.document.server);
     }
   }
 }

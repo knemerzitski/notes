@@ -1,9 +1,6 @@
-import {
-  Changeset,
-  RevisionChangeset,
-  SerializedChangeset,
-} from '../../changeset/changeset';
+import { Changeset, SerializedChangeset } from '../../changeset/changeset';
 import { InsertStrip } from '../../changeset/insert-strip';
+import { RevisionChangeset } from '../../records/revision-changeset';
 
 import { EventBus } from './event-bus';
 import { Scheduler } from './scheduler';
@@ -45,6 +42,7 @@ export interface ChangesPayload {
 export interface ChangesAcknowlegedPayload {
   type: Event.ChangesAcknowledged;
   payload: {
+    changeset: SerializedChangeset;
     revision: number;
   };
 }
@@ -179,6 +177,7 @@ export class DocumentServer {
         type: Event.ChangesAcknowledged,
         payload: {
           revision: newRevisionRecord.revision,
+          changeset: newRevisionRecord.changeset.serialize(),
         },
       };
       client.socket.send(JSON.stringify(changesAcknowlegedPayload));

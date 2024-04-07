@@ -9,6 +9,8 @@ import { DocumentServer } from './helpers/document-server';
 import { Scheduler } from './helpers/scheduler';
 import { parseTextWithMultipleSelections } from './helpers/text-with-selection';
 
+// TODO simplify with direct calls.. no latency mess?
+
 function expectDocumentsConverged(
   textWithCursors: string,
   server: DocumentServer,

@@ -6,13 +6,6 @@ import { SerializedStrips, Strips } from './strips';
 
 export type SerializedChangeset = SerializedStrips;
 
-export interface RevisionChangeset<T = Changeset> {
-  revision: number;
-  changeset: T;
-}
-
-export type SerializedRevisionChangeset = RevisionChangeset<SerializedChangeset>;
-
 /**
  * Represents a change to a document (list of characters, or a string).
  * Changeset strips is compact and retain indexes are ordered.
@@ -374,7 +367,7 @@ export class Changeset implements Serializable<SerializedChangeset> {
     const A = this;
     const X = firstChange;
     const Y = secondChange;
-
+    
     const undoX = X.inverse(A);
     const Y_ = undoX.follow(Y);
     const X_ = X.findSwapNewSecondChange(Y, Y_);
@@ -524,6 +517,14 @@ export class Changeset implements Serializable<SerializedChangeset> {
     return this.strips.joinInsertions();
   }
 
+  hasOnlyInsertions() {
+    return this.strips.hasOnlyInsertions();
+  }
+
+  hasRetainStrips() {
+    return this.strips.hasRetainStrips();
+  }
+
   isEqual(other: Changeset): boolean {
     return this.strips.isEqual(other.strips);
   }
@@ -536,7 +537,9 @@ export class Changeset implements Serializable<SerializedChangeset> {
     return this.strips.serialize();
   }
 
-  static parseValue(value: unknown) {
+  static parseValue(value: unknown): Changeset {
+    // TODO no need to parse if already changeset
+    if(value instanceof Changeset) return value;
     return new Changeset(Strips.parseValue(value));
   }
 }

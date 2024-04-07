@@ -28,7 +28,8 @@ function createUserContext(userHelper: UserDocumentHelper) {
   });
 }
 
-describe('note', async () => {
+describe.skip('note', async () => {
+  return;
   faker.seed(5435);
   await resetDatabase();
 

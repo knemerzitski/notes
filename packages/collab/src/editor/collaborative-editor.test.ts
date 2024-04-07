@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { assert, describe, expect, it } from 'vitest';
 
 import { Changeset } from '../changeset/changeset';
 
@@ -42,9 +42,9 @@ describe('CollaborativeEditor', () => {
   });
 
   describe('submitChanges', () => {
-    it('returns undefined if have no local changes', () => {
+    it('returns undefined or null if have no local changes', () => {
       const editor = new CollaborativeEditor();
-      expect(editor.submitChanges()).toBeUndefined();
+      expect(editor.submitChanges()).toBeFalsy();
     });
 
     it('returns submitted changes with revision', () => {
@@ -55,7 +55,7 @@ describe('CollaborativeEditor', () => {
 
       const changes = editor.submitChanges();
 
-      expect(changes).toStrictEqual({ revision: 0, changeset: cs('first insert') });
+      expect(changes).containSubset({ revision: 0, changeset: cs('first insert') });
       expect(editor.documentSubmitted).toStrictEqual(changeset);
       expect(editor.documentLocal).toStrictEqual(changeset.getIdentity());
     });
@@ -66,36 +66,57 @@ describe('CollaborativeEditor', () => {
       const editor = new CollaborativeEditor();
       editor.insertText('changes');
 
-      const changes = editor.submitChanges();
+      const submitRecord = editor.submitChanges();
+      assert(submitRecord != null);
 
       expect(editor.documentServer).toStrictEqual(Changeset.EMPTY);
-      expect(editor.documentSubmitted).toStrictEqual(changes.changeset);
+      expect(editor.documentSubmitted).toStrictEqual(submitRecord.changeset);
       expect(editor.documentRevision).toStrictEqual(0);
 
-      editor.submittedChangesAcknowledged(1);
+      editor.submittedChangesAcknowledged({
+        ...submitRecord,
+        revision: 1,
+      });
 
-      expect(editor.documentServer).toStrictEqual(changes.changeset);
-      expect(editor.documentSubmitted).toStrictEqual(changes.changeset.getIdentity());
+      expect(editor.documentServer).toStrictEqual(submitRecord.changeset);
+      expect(editor.documentSubmitted).toStrictEqual(
+        submitRecord.changeset.getIdentity()
+      );
       expect(editor.documentRevision).toStrictEqual(1);
     });
 
     it('discards old revision', () => {
       const editor = new CollaborativeEditor();
 
-      editor.submittedChangesAcknowledged(-6);
+      editor.submittedChangesAcknowledged({
+        revision: -6,
+        changeset: Changeset.EMPTY,
+      });
       expect(editor.documentRevision).toStrictEqual(0);
-      editor.submittedChangesAcknowledged(1);
+      editor.submittedChangesAcknowledged({
+        revision: 1,
+        changeset: Changeset.EMPTY,
+      });
       expect(editor.documentRevision).toStrictEqual(1);
     });
 
     it('buffers new revision and processes it when missing revisions are received', () => {
       const editor = new CollaborativeEditor();
 
-      editor.submittedChangesAcknowledged(3);
+      editor.submittedChangesAcknowledged({
+        revision: 3,
+        changeset: Changeset.EMPTY,
+      });
       expect(editor.documentRevision).toStrictEqual(0);
-      editor.submittedChangesAcknowledged(2);
+      editor.submittedChangesAcknowledged({
+        revision: 2,
+        changeset: Changeset.EMPTY,
+      });
       expect(editor.documentRevision).toStrictEqual(0);
-      editor.submittedChangesAcknowledged(1);
+      editor.submittedChangesAcknowledged({
+        revision: 1,
+        changeset: Changeset.EMPTY,
+      });
       expect(editor.documentRevision).toStrictEqual(3);
     });
   });
@@ -105,8 +126,12 @@ describe('CollaborativeEditor', () => {
       const editor = new CollaborativeEditor();
 
       editor.insertText('server');
-      editor.submitChanges();
-      editor.submittedChangesAcknowledged(1);
+      const record = editor.submitChanges();
+      assert(record != null);
+      editor.submittedChangesAcknowledged({
+        ...record,
+        revision: 1,
+      });
       editor.insertText('; submitted');
       editor.submitChanges();
       editor.insertText('; local');

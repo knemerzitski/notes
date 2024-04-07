@@ -5,16 +5,14 @@ import { MultiFieldDocumentServer } from '~collab/adapters/mongodb/multi-field-d
 
 import { MongooseModels } from '../models';
 
-import {
-  DBCollaborativeDocument,
-  collaborativeDocumentSchema,
-} from './collaborative-document/collaborative-document';
-
 export interface DBNote {
   publicId: string;
   ownerId: Types.ObjectId;
-  title: DBCollaborativeDocument;
-  content: DBCollaborativeDocument;
+  collabTexts: Record<string, DBNoteCollabText>;
+}
+
+export interface DBNoteCollabText {
+  collabTextId: Types.ObjectId;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -34,14 +32,10 @@ export const noteSchema = new Schema<DBNote, NoteModel, DBNoteMethods>({
     type: Schema.Types.ObjectId,
     required: true,
   },
-  title: {
-    type: collaborativeDocumentSchema,
+  collabTexts: {
+    type: Schema.Types.Map,
     required: true,
-  },
-  content: {
-    type: collaborativeDocumentSchema,
-    required: true,
-  },
+  }
 });
 
 export function createDocumentServer(Note: MongooseModels['Note']) {

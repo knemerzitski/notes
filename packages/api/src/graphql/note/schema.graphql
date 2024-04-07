@@ -32,6 +32,8 @@ enum NoteTextField {
 type Note implements Node {
   "Self-descriptive"
   id: ID!
+  "URL-friendly ID"
+  urlId: String!
   "All available text fields"
   textFields: [NoteTextFieldEntry!]!
   "Note read-only state. Default is false"
@@ -91,10 +93,10 @@ type NoteEdge implements Edge {
 extend type Query {
   "Paginate notes"
   notesConnection(
-    last: NonNegativeInt
-    before: String
     first: NonNegativeInt
     after: String
+    last: NonNegativeInt
+    before: String
   ): NoteConnection! @auth
   "Get note by ID"
   note(id: String!): Note! @auth

@@ -38,6 +38,7 @@ export interface ApiGraphQLContext {
   mongoose: {
     connection: Connection;
     model: MongooseModels;
+    // datasource: MongooseDataSources; // must be created for every context.
   };
 }
 

@@ -73,7 +73,7 @@ describe('LocalChangesetEditorHistory', () => {
   function expectHistoryUndoRedoRestoreValue() {
     let expected = textValueWithSelection();
     let i = 0;
-    for (; i < history.entryCount; i++) {
+    for (; i < history.entries.length; i++) {
       history.undo();
       const undoValue = textValueWithSelection();
       if (undoValue === expected) break;
@@ -93,7 +93,7 @@ describe('LocalChangesetEditorHistory', () => {
 
   function expectHistoryBaseValue(expectedValue: string) {
     let i = 0;
-    for (; i < history.entryCount; i++) {
+    for (; i < history.entries.length; i++) {
       history.undo();
     }
     expect(textValueWithSelection()).toStrictEqual(expectedValue);
@@ -312,72 +312,6 @@ describe('LocalChangesetEditorHistory', () => {
       expect(document.server.toString()).toStrictEqual(
         '(0 -> 72)["[EXTERNAL][e1][BETWEEN][e2][e3][somewhere][e4][e5][e6][e7][e8][EXTERNAL]"]'
       );
-    });
-  });
-
-  describe('prepend', () => {
-    it('prepends 3 entries', () => {
-      document.handleExternalChange(Changeset.parseValue(['abc']));
-
-      const base = Changeset.EMPTY;
-      const a = Changeset.parseValue(['a']);
-      const b = Changeset.parseValue([0, 'b']);
-      const c = Changeset.parseValue([[0, 1], 'c']);
-
-      editor.insert('|my change');
-
-      expect(document.view.joinInsertions()).toStrictEqual('abc|my change');
-      history.prepend(base, [a, b, c]);
-      expect(document.view.joinInsertions()).toStrictEqual('abc|my change');
-
-      history.undo();
-      expect(document.view.joinInsertions()).toStrictEqual('abc');
-      history.undo();
-      expect(document.view.joinInsertions()).toStrictEqual('ab');
-      history.undo();
-      expect(document.view.joinInsertions()).toStrictEqual('a');
-      history.undo();
-      expect(document.view.joinInsertions()).toStrictEqual('');
-      history.redo();
-      expect(document.view.joinInsertions()).toStrictEqual('a');
-      history.redo();
-      expect(document.view.joinInsertions()).toStrictEqual('ab');
-      history.redo();
-      expect(document.view.joinInsertions()).toStrictEqual('abc');
-      history.redo();
-      expect(document.view.joinInsertions()).toStrictEqual('abc|my change');
-    });
-
-    it('keeps external change with change swap', () => {
-      document.handleExternalChange(Changeset.parseValue(['abc']));
-
-      const a = Changeset.parseValue(['a']);
-      const bExternal = Changeset.parseValue([0, 'b']);
-      const c = Changeset.parseValue([[0, 1], 'c']);
-      const [_bExternal, _a] = Changeset.EMPTY.swapChanges(a, bExternal);
-
-      const base = _bExternal;
-
-      editor.insert('|my change');
-
-      expect(document.view.joinInsertions()).toStrictEqual('abc|my change');
-      history.prepend(base, [_a, c]);
-      expect(document.view.joinInsertions()).toStrictEqual('abc|my change');
-
-      history.undo();
-      expect(document.view.joinInsertions()).toStrictEqual('abc');
-      history.undo();
-      expect(document.view.joinInsertions()).toStrictEqual('ab');
-      history.undo();
-      expect(document.view.joinInsertions()).toStrictEqual('b');
-      history.undo();
-      expect(document.view.joinInsertions()).toStrictEqual('b');
-      history.redo();
-      expect(document.view.joinInsertions()).toStrictEqual('ab');
-      history.redo();
-      expect(document.view.joinInsertions()).toStrictEqual('abc');
-      history.redo();
-      expect(document.view.joinInsertions()).toStrictEqual('abc|my change');
     });
   });
 });

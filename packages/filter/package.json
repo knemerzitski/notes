@@ -1,0 +1,14 @@
+{
+  "name": "filter",
+  "version": "0.0.0",
+  "private": "true",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest watch"
+  },
+  "dependencies": {
+    "vitest": "^1.3.1"
+  }
+}

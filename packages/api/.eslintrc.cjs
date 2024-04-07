@@ -25,6 +25,15 @@ module.exports = {
       rules: {
         '@typescript-eslint/no-unused-vars': ['error', { ignoreRestSiblings: true }],
         '@typescript-eslint/no-invalid-void-type': 'off',
+        '@typescript-eslint/no-unused-vars': [
+          'error',
+          {
+            ignoreRestSiblings: true,
+            argsIgnorePattern: '_',
+            destructuredArrayIgnorePattern: '^_',
+            varsIgnorePattern: '^_',
+          },
+        ],
       },
     },
   ],

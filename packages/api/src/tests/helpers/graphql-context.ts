@@ -3,7 +3,7 @@ import { mockDeep, mockFn } from 'vitest-mock-extended';
 import { GraphQLResolversContext } from '../../graphql/context';
 
 import UserDocumentHelper from './model/UserDocumentHelper';
-import { Note, Session, User, UserNote, testConnection } from './mongoose';
+import { Note, Session, User, UserNote, connection } from './mongoose';
 
 export function createUserContext(userHelper: UserDocumentHelper) {
   const mockContext = mockDeep<GraphQLResolversContext>({
@@ -29,7 +29,7 @@ export function createUserContext(userHelper: UserDocumentHelper) {
     ...mockContext,
     mongoose: {
       ...mockContext.mongoose,
-      connection: testConnection,
+      connection: connection,
     },
   };
   return context;

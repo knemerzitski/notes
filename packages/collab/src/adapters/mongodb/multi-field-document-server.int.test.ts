@@ -321,7 +321,7 @@ describe('CollaborationFieldsDocument', async () => {
       });
     }
 
-    it.each([...new Array<number>(4).keys()])(
+    it.each([...new Array<undefined>(4).keys()])(
       'handles two clients changes for the same revision at the same time using transactions (attempt %i)',
       async () => {
         changesDocServer.queueChange('content', {

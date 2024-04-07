@@ -1,5 +1,7 @@
 import mitt, { Emitter } from 'mitt';
 
+// TODO move to records dir?
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type Events = {
   /**
@@ -22,7 +24,7 @@ interface StashedMessage<Payload> {
 }
 
 interface IOrderedMessageBuffer<Messages extends Record<MessageType, unknown>> {
-  readonly bus: Emitter<Messages>;
+  readonly messageBus: Emitter<Messages>;
   readonly currentVersion: number;
 
   add<Key extends keyof Messages>(
@@ -47,7 +49,7 @@ export interface OrderedMessageBufferOptions<
   /**
    * Use a custom emitter.
    */
-  bus?: Emitter<Messages>;
+  messageBus?: Emitter<Messages>;
 
   eventBus?: Emitter<Events>;
 }
@@ -60,7 +62,7 @@ export class OrderedMessageBuffer<Messages extends Record<MessageType, unknown>>
   implements IOrderedMessageBuffer<Messages>
 {
   public readonly eventBus;
-  public readonly bus;
+  public readonly messageBus;
 
   private _currentVersion: number;
   get currentVersion() {
@@ -73,7 +75,7 @@ export class OrderedMessageBuffer<Messages extends Record<MessageType, unknown>>
 
   constructor(options?: OrderedMessageBufferOptions<Messages>) {
     this._currentVersion = options?.initialVersion ?? 0;
-    this.bus = options?.bus ?? mitt();
+    this.messageBus = options?.messageBus ?? mitt();
     this.eventBus = options?.eventBus ?? mitt();
   }
 
@@ -81,7 +83,7 @@ export class OrderedMessageBuffer<Messages extends Record<MessageType, unknown>>
 
   /**
    * Add message to the buffer.
-   * If next message become available then it is emitted from {@link bus}.
+   * If next message become available then it is emitted from {@link messageBus}.
    */
   add<Key extends keyof Messages>(
     type: Key,
@@ -111,7 +113,7 @@ export class OrderedMessageBuffer<Messages extends Record<MessageType, unknown>>
     let processedCount = 0;
     let currentMessage: StashedMessage<unknown> | undefined;
     while ((currentMessage = this.popNextMessage())) {
-      this.bus.emit(currentMessage.type, currentMessage.payload as Messages[MessageType]);
+      this.messageBus.emit(currentMessage.type, currentMessage.payload as Messages[MessageType]);
       processedCount++;
     }
     if (processedCount > 0) {

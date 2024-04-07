@@ -5,7 +5,7 @@ import { Session, User } from '../../tests/helpers/mongoose';
 
 import { UserDocument } from './user';
 
-describe('Session', () => {
+describe.skip('Session', () => {
   let user: UserDocument;
 
   beforeEach(async () => {

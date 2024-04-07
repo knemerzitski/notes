@@ -4,7 +4,7 @@ import { PipelineStage, Require_id, Types } from 'mongoose';
 
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
-import { DBCollaborativeDocument } from '../../../../mongoose/models/collaborative-document/collaborative-document';
+import { DBCollabText } from '../../../../mongoose/models/collab/collab-text';
 import { DBNote } from '../../../../mongoose/models/note';
 import { DBUserNote } from '../../../../mongoose/models/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
@@ -18,7 +18,7 @@ import {
 
 type UserNoteWithoutIds = Omit<DBUserNote, 'userId' | 'notePublicId'>;
 type NoteWithoutRecords = Omit<DBNote, 'content'> & {
-  content: Omit<DBCollaborativeDocument, 'records'>;
+  content: Omit<DBCollabText, 'records'>;
 };
 type UserNoteWithNote = UserNoteWithoutIds & { note?: Require_id<NoteWithoutRecords> };
 
@@ -123,7 +123,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = a
   );
 
   const results = await model.User.aggregate<Require_id<AggregateResult>>(pipelineStages);
-
+    
   const result = results[0];
   if (!result) {
     return {

@@ -2,9 +2,7 @@ import { Schema, SchemaTypeOptions } from 'mongoose';
 
 import { Changeset } from '~collab/changeset/changeset';
 
-export interface DBChangeset {
-  changeset: Changeset;
-}
+export type DBChangeset = Changeset;
 
 export const changesetField: SchemaTypeOptions<Changeset> = {
   type: Schema.Types.Mixed,
@@ -12,8 +10,11 @@ export const changesetField: SchemaTypeOptions<Changeset> = {
   get(value: unknown) {
     return Changeset.parseValue(value);
   },
-  set(value: Changeset) {
-    return value.serialize();
+  set(value: unknown) {
+    if(value instanceof Changeset){
+      return value.serialize();
+    }
+    return value;
   },
   default() {
     return Changeset.EMPTY;

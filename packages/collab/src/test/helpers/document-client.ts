@@ -47,7 +47,10 @@ export class DocumentClient extends CollaborativeEditor {
         changeset: Changeset.parseValue(data.payload.changeset),
       });
     } else if (data.type === Event.ChangesAcknowledged) {
-      this.submittedChangesAcknowledged(data.payload.revision);
+      this.submittedChangesAcknowledged({
+        revision: data.payload.revision,
+        changeset: Changeset.parseValue(data.payload.changeset),
+      });
     } else {
       // this.handleExternalChange({
       //   revision: data.payload.revision,
@@ -62,13 +65,7 @@ export class DocumentClient extends CollaborativeEditor {
 
   public sendChanges() {
     const changes = this.submitChanges();
-    // const data: ChangesPayload = {
-    //   type: Event.Changes,
-    //   payload: {
-    //     revision: changes.revision,
-    //     changeset: serializeChangeset(changes.changeset),
-    //   },
-    // };
+    if(!changes) return;
     const data: ChangesPayload = {
       type: Event.Changes,
       payload: {

@@ -9,8 +9,6 @@ scalar PositiveInt
 scalar NonNegativeInt
 scalar HexColorCode
 
-scalar Changeset
-
 "Requires user to be authenticated and with access to specific role"
 directive @auth(requires: Role = USER) on OBJECT | FIELD_DEFINITION
 

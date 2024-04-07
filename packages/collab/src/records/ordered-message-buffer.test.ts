@@ -18,7 +18,7 @@ describe('OrderedMessageBuffer', () => {
   beforeEach(() => {
     fooHandler.mockClear();
     // Initial: version 10, messages: ['_12', '_13'],
-    buffer = new OrderedMessageBuffer({ initialVersion: 10, bus });
+    buffer = new OrderedMessageBuffer({ initialVersion: 10, messageBus: bus });
     buffer.add('foo', 12, '_12');
     buffer.add('foo', 13, '_13');
   });
@@ -78,7 +78,7 @@ describe('OrderedMessageBuffer', () => {
     bus.on('foo', fooHandler);
     bus.on('bar', barHandler);
 
-    const buffer = new OrderedMessageBuffer({ initialVersion: 0, bus });
+    const buffer = new OrderedMessageBuffer({ initialVersion: 0, messageBus: bus });
 
     buffer.add('foo', 1, 'fooMsg');
     buffer.add('bar', 2, 'barMsg');

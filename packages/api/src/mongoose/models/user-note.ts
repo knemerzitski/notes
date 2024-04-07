@@ -1,11 +1,17 @@
 import { HydratedDocument, Model, Schema, Types } from 'mongoose';
+import { DBNote } from './note';
 
 /**
  * How user sees a particular note. E.g how it's ordered or is it read-only.
  */
 export interface DBUserNote {
+  _id: Types.ObjectId;
   userId: Types.ObjectId;
-  notePublicId: string;
+  note: {
+    id: Types.ObjectId;
+    publicId: DBNote['publicId'];
+    collabTexts: DBNote['collabTexts'];
+  };
   /**
    * @default false
    */
@@ -26,9 +32,19 @@ export const userNoteSchema = new Schema<DBUserNote, UserNoteModel, DBUserNoteMe
     type: Schema.Types.ObjectId,
     required: true,
   },
-  notePublicId: {
-    type: Schema.Types.String,
-    required: true,
+  note: {
+    id: {
+      type: Schema.Types.ObjectId,
+      required: true,
+    },
+    publicId: {
+      type: Schema.Types.String,
+      required: true,
+    },
+    collabTexts: {
+      type: Schema.Types.Map,
+      required: true,
+    },
   },
   readOnly: Schema.Types.Boolean,
   preferences: {
@@ -37,7 +53,7 @@ export const userNoteSchema = new Schema<DBUserNote, UserNoteModel, DBUserNoteMe
 });
 
 userNoteSchema.index(
-  { userId: 1, notePublicId: 1 },
+  { userId: 1, 'note.publicId': 1 },
   {
     unique: true,
   }

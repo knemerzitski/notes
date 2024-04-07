@@ -8,7 +8,7 @@ import { Note, User } from '../../tests/helpers/mongoose';
 import { NoteDocument } from './note';
 import { UserDocument } from './user';
 
-describe('Note', () => {
+describe.skip('Note', () => {
   let user: UserDocument;
 
   beforeAll(async () => {

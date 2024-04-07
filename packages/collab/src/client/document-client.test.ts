@@ -14,7 +14,7 @@ describe('DocumentClient', () => {
     it('initializes state with server changeset', () => {
       const serverChangeset = cs('server document');
 
-      const client = new DocumentClient({ initialServerChangeset: serverChangeset });
+      const client = new DocumentClient({ initialServerDocument: serverChangeset });
       expect(client.server.toString()).toStrictEqual(serverChangeset.toString());
       expect(client.submitted.toString()).toStrictEqual(
         serverChangeset.getIdentity().toString()
@@ -31,7 +31,7 @@ describe('DocumentClient', () => {
     let client: DocumentClient;
 
     beforeEach(() => {
-      client = new DocumentClient({ initialServerChangeset: serverChangeset });
+      client = new DocumentClient({ initialServerDocument: serverChangeset });
     });
 
     it('updates view with the change', () => {
@@ -110,7 +110,7 @@ describe('DocumentClient', () => {
 
   describe('haveSubmittedChanges', () => {
     it('checks if submitted is not identity for server', () => {
-      const client = new DocumentClient({ initialServerChangeset: cs('server') });
+      const client = new DocumentClient({ initialServerDocument: cs('server') });
       const isIdentity = vi.spyOn(client.submitted, 'isIdentity');
       client.haveSubmittedChanges();
       expect(isIdentity).toHaveBeenCalledWith(client.server);
@@ -119,7 +119,7 @@ describe('DocumentClient', () => {
 
   describe('haveLocalChanges', () => {
     it('checks if local is not identity for submitted', () => {
-      const client = new DocumentClient({ initialServerChangeset: cs('server') });
+      const client = new DocumentClient({ initialServerDocument: cs('server') });
       client.composeLocalChange(cs('hi'));
       const isIdentity = vi.spyOn(client.local, 'isIdentity');
       client.haveLocalChanges();
@@ -129,7 +129,7 @@ describe('DocumentClient', () => {
 
   describe('canSubmitChanges', () => {
     it('returns true only if have local changes and dont have submitted changes', () => {
-      const client = new DocumentClient({ initialServerChangeset: cs('server') });
+      const client = new DocumentClient({ initialServerDocument: cs('server') });
 
       const haveSubmittedChangesFn = vi.spyOn(client, 'haveSubmittedChanges');
       const haveLocalChangesFn = vi.spyOn(client, 'haveLocalChanges');
@@ -154,7 +154,7 @@ describe('DocumentClient', () => {
 
   describe('submitChanges', () => {
     it('submits only if have local changes and no submitted changes', () => {
-      const client = new DocumentClient({ initialServerChangeset: cs('server') });
+      const client = new DocumentClient({ initialServerDocument: cs('server') });
       const haveSubmittedChanges = vi.spyOn(client, 'haveSubmittedChanges');
       const haveLocalChanges = vi.spyOn(client, 'haveLocalChanges');
 
@@ -176,7 +176,7 @@ describe('DocumentClient', () => {
     });
 
     it('sets submitted = local and local = identity', () => {
-      const client = new DocumentClient({ initialServerChangeset: cs('server') });
+      const client = new DocumentClient({ initialServerDocument: cs('server') });
 
       client.composeLocalChange(cs('hi'));
       client.submitChanges();
@@ -187,7 +187,7 @@ describe('DocumentClient', () => {
 
   describe('submittedChangesAcknowledged', () => {
     it('acknowlege only if have submitted changes', () => {
-      const client = new DocumentClient({ initialServerChangeset: cs('server') });
+      const client = new DocumentClient({ initialServerDocument: cs('server') });
 
       expect(client.submittedChangesAcknowledged()).toStrictEqual(false);
 
@@ -201,7 +201,7 @@ describe('DocumentClient', () => {
     });
 
     it('sets composes submitted to server and sets submitted to identity', () => {
-      const client = new DocumentClient({ initialServerChangeset: cs('server') });
+      const client = new DocumentClient({ initialServerDocument: cs('server') });
       client.composeLocalChange(cs([0, 5], ': submit this'));
       client.submitChanges();
       client.submittedChangesAcknowledged();

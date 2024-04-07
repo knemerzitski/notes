@@ -29,7 +29,9 @@
     "noImplicitReturns": true,
     "noUncheckedIndexedAccess": true,
     "paths": {
-      "~/*": ["./src/*"]
+      "~/*": ["./src/*"],
+      "~filter/*": ["../filter/src/*"],
+      "~utils/*": ["../utils/src/*"]
     }
   },
   "include": ["src", "vitest.config.unit.ts", "vitest.config.integration.ts"]

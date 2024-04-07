@@ -1,18 +1,18 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { Changeset } from './changeset';
-import { ChangesetRevisionRecords } from './changeset-revision-records';
+import { Changeset } from '../changeset/changeset';
+import { RevisionRecords } from './revision-records';
 
-describe('ChangesetRevisionRecords', () => {
+describe('RevisionRecords', () => {
   describe('constructor', () => {
-    it('has no records and latestRevision -1', () => {
-      const records = new ChangesetRevisionRecords();
-      expect(records.latestRevision).toStrictEqual(-1);
+    it('has no records and latestRevision is -1', () => {
+      const records = new RevisionRecords();
+      expect(records.headRevision).toStrictEqual(-1);
       expect(records.records.length).toStrictEqual(0);
     });
   });
 
-  let composition: ChangesetRevisionRecords;
+  let revisionRecords: RevisionRecords;
 
   beforeEach(() => {
     const initialRecordsValue = [
@@ -30,8 +30,7 @@ describe('ChangesetRevisionRecords', () => {
       },
     ];
 
-    composition = new ChangesetRevisionRecords({
-      latestRevision: 7,
+    revisionRecords = new RevisionRecords({
       records: initialRecordsValue,
     });
   });
@@ -42,8 +41,8 @@ describe('ChangesetRevisionRecords', () => {
         revision: 7,
         changeset: Changeset.parseValue([[0, 4], ' [', [15, 25], ']']),
       };
-      const returnedRecord = composition.push(change);
-      expect(composition.records[composition.records.length - 1]).toStrictEqual(
+      const returnedRecord = revisionRecords.insert(change);
+      expect(revisionRecords.records[revisionRecords.records.length - 1]).toStrictEqual(
         returnedRecord
       );
     });
@@ -54,7 +53,7 @@ describe('ChangesetRevisionRecords', () => {
         changeset: Changeset.parseValue([[0, 4], ' [', [15, 25], ']']),
       };
 
-      const returnedRecord = composition.push(change);
+      const returnedRecord = revisionRecords.insert(change);
       expect(returnedRecord.revision).toStrictEqual(8);
       expect(returnedRecord.changeset.serialize()).toStrictEqual([
         [0, 4],
@@ -63,8 +62,8 @@ describe('ChangesetRevisionRecords', () => {
         ']',
       ]);
 
-      expect(composition.latestRevision).toStrictEqual(8);
-      expect(composition.getComposed().serialize()).toStrictEqual([
+      expect(revisionRecords.headRevision).toStrictEqual(8);
+      expect(revisionRecords.getHeadDocument().serialize()).toStrictEqual([
         'start [parenthesis]',
       ]);
     });
@@ -78,15 +77,15 @@ describe('ChangesetRevisionRecords', () => {
         ]),
       };
 
-      const returnedRecord = composition.push(change);
+      const returnedRecord = revisionRecords.insert(change);
       expect(returnedRecord.revision).toStrictEqual(8);
       expect(returnedRecord.changeset.serialize()).toStrictEqual([
         [0, 27],
         '[at the same time as end was inserted]',
       ]);
 
-      expect(composition.latestRevision).toStrictEqual(8);
-      expect(composition.getComposed().serialize()).toStrictEqual([
+      expect(revisionRecords.headRevision).toStrictEqual(8);
+      expect(revisionRecords.getHeadDocument().serialize()).toStrictEqual([
         'start between (parenthesis) [at the same time as end was inserted]',
       ]);
     });
@@ -97,7 +96,7 @@ describe('ChangesetRevisionRecords', () => {
         changeset: Changeset.EMPTY,
       };
 
-      expect(() => composition.push(change)).toThrow();
+      expect(() => revisionRecords.insert(change)).toThrow();
     });
 
     it('throws error if adding change that requires future revisions', () => {
@@ -106,23 +105,34 @@ describe('ChangesetRevisionRecords', () => {
         changeset: Changeset.EMPTY,
       };
 
-      expect(() => composition.push(change)).toThrow();
+      expect(() => revisionRecords.insert(change)).toThrow();
+    });
+  });
+
+  describe('sliceByRevision', () => {
+    it.each([
+      [6, undefined, [6, 7]],
+      [5, 6, [5, 6]],
+    ])('(%s,%s) => %s', (start, end, expected) => {
+      expect(
+        revisionRecords.sliceByRevision(start, end).map((r) => r.revision)
+      ).toStrictEqual(expected);
     });
   });
 
   describe('clear', () => {
-    it('clears records array and keeps latestRevision value', () => {
-      expect(composition.records).toHaveLength(3);
-      expect(composition.latestRevision).toStrictEqual(7);
-      composition.clear();
-      expect(composition.records).toHaveLength(0);
-      expect(composition.latestRevision).toStrictEqual(7);
+    it('clears records array and latestRevision becomes -1', () => {
+      expect(revisionRecords.records).toHaveLength(3);
+      expect(revisionRecords.headRevision).toStrictEqual(7);
+      revisionRecords.clear();
+      expect(revisionRecords.records).toHaveLength(0);
+      expect(revisionRecords.headRevision).toStrictEqual(-1);
     });
   });
 
   describe('getComposed', () => {
     it('returns composed value', () => {
-      expect(composition.getComposed().serialize()).toStrictEqual([
+      expect(revisionRecords.getHeadDocument().serialize()).toStrictEqual([
         'start between (parenthesis) end',
       ]);
     });

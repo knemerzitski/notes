@@ -47,7 +47,7 @@ export enum ChangeSource {
 }
 
 interface DocumentClientOptions {
-  initialServerChangeset?: Changeset;
+  initialServerDocument?: Changeset;
   eventBus?: Emitter<Events>;
 }
 
@@ -75,13 +75,18 @@ export class DocumentClient {
   }
 
   constructor(options?: DocumentClientOptions) {
-    const serverChangeset = options?.initialServerChangeset ?? Changeset.EMPTY;
+    const serverDocument = options?.initialServerDocument ?? Changeset.EMPTY;
+    if (!serverDocument.hasOnlyInsertions()) {
+      throw new Error(
+        `Expected serverDocument to be document but is ${String(serverDocument)}`
+      );
+    }
     this.eventBus = options?.eventBus ?? mitt();
 
-    this._server = serverChangeset;
-    this._submitted = serverChangeset.getIdentity();
-    this._local = serverChangeset.getIdentity();
-    this._view = serverChangeset;
+    this._server = serverDocument;
+    this._submitted = serverDocument.getIdentity();
+    this._local = serverDocument.getIdentity();
+    this._view = serverDocument;
   }
 
   private getSubmittedView() {
@@ -205,3 +210,6 @@ export class DocumentClient {
     });
   }
 }
+
+
+

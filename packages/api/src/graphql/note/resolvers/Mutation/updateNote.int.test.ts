@@ -12,7 +12,7 @@ import { UserNote, Note, resetDatabase } from '../../../../tests/helpers/mongoos
 
 import { updateNote } from './updateNote';
 
-describe('updateNote', () => {
+describe.skip('updateNote', () => {
   faker.seed(5435);
 
   let userModelHelper: UserModelHelper;

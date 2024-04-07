@@ -12,11 +12,21 @@ const config: CodegenConfig = {
         Changeset: {
           type: '~collab/changeset/changeset#Changeset',
         },
+        RevisionChangeset: {
+          type: '~collab/records/revision-changeset#RevisionChangeset',
+        },
       },
       typesPluginsConfig: {
         noSchemaStitching: false,
         contextType: './context#GraphQLResolversContext',
         enumsAsTypes: false,
+        /**
+         * Any data fetched from MongoDB is potentially undefined.
+         * Allow GraphQL itself to throw error if resolver returns
+         * null on a non-nullable field. Otherwise would have to
+         * check for null on each individual field.
+         */
+        resolverTypeWrapperSignature: 'Promise<T | null | undefined> | T | null | undefined',
       },
     }),
   },

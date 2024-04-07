@@ -1,4 +1,4 @@
-import { newDocumentInsertion } from '~collab/adapters/mongodb/multi-field-document-server';
+import { createInitialDocument } from '~collab/adapters/mongodb/collaborative-document';
 
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { publishNoteCreated } from '../Subscription/noteCreated';
@@ -9,6 +9,9 @@ import {
   type MutationResolvers,
   type NoteCreatedPayload,
 } from './../../../types.generated';
+
+import mapObject from '~utils/mapObject';
+import { Changeset } from '~collab/changeset/changeset';
 
 export const createNote: NonNullable<MutationResolvers['createNote']> = async (
   _parent,
@@ -23,24 +26,28 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
 
   const currentUserId = auth.session.user._id._id;
 
+  const collabDocs = mapObject(NoteTextField, (fieldName) => {
+    const fieldValue = input.note?.textFields?.find((s) => s.key === fieldName)?.value;
+
+    return new model.CollaborativeDocument(
+      createInitialDocument(currentUserId, fieldValue?.initialText ?? '')
+    );
+  });
+
   const newNote = new model.Note({
     ownerId: currentUserId,
-    title: newDocumentInsertion(
-      input.note?.textFields?.find((s) => s.key === NoteTextField.TITLE)?.value
-        .initialText ?? ''
-    ),
-    content: newDocumentInsertion(
-      input.note?.textFields?.find((s) => s.key === NoteTextField.CONTENT)?.value
-        .initialText ?? ''
-    ),
+    textFields: mapObject(collabDocs, (collabDoc) => ({ collabId: collabDoc._id })),
+  });
+
+  const newUserNote = new model.UserNote({
+    userId: currentUserId,
+    note: {
+      publicId: newNote.publicId,
+      textFields: newNote.textFields,
+    },
   });
 
   await connection.transaction(async (session) => {
-    const newUserNote = new model.UserNote({
-      userId: currentUserId,
-      notePublicId: newNote.publicId,
-    });
-
     const updateUserPromise = model.User.updateOne(
       {
         _id: currentUserId,
@@ -54,6 +61,7 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
     );
 
     await Promise.all([
+      ...Object.values(collabDocs).map((collabDoc) => collabDoc.save({ session })),
       newNote.save({ session }),
       newUserNote.save({ session }),
       updateUserPromise,
@@ -63,22 +71,40 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
   const newNotePayload: CreateNotePayload & NoteCreatedPayload = {
     note: {
       id: newNote.publicId,
-      textFields: [
-        {
-          key: NoteTextField.TITLE,
-          value: {
-            headText: newNote.title.latestText,
-            headRevision: newNote.title.latestRevision,
+      textFields: Object.entries(collabDocs).map(([fieldName, collabDoc]) => ({
+        key: fieldName as NoteTextField,
+        value: {
+          _id: collabDoc._id,
+          id: collabDoc._id.toString(),
+          headDocument: {
+            revision: collabDoc.headDocument.revision,
+            changeset: collabDoc.headDocument.changeset,
+          },
+          recordsConnection: {
+            tailDocument: {
+              revision: -1,
+              changeset: Changeset.EMPTY,
+            },
+            pageInfo: {
+              hasNextPage: false,
+              hasPreviousPage: false,
+            },
+            edges: collabDoc.records.map((record) => {
+              const id = `${collabDoc._id.toString()}:${record.change.revision}`;
+              return {
+                cursor: id,
+                node: {
+                  id,
+                  creatorUserId: record.creatorUserId.toString(),
+                  change: record.change,
+                  beforeSelection: record.beforeSelection,
+                  afterSelection: record.afterSelection,
+                },
+              };
+            }),
           },
         },
-        {
-          key: NoteTextField.CONTENT,
-          value: {
-            headText: newNote.content.latestText,
-            headRevision: newNote.content.latestRevision,
-          },
-        },
-      ],
+      })),
     },
   };
 

@@ -1,6 +1,6 @@
 import { afterAll, beforeAll } from 'vitest';
 
-import { testConnection, Note, User, UserNote, Session } from './mongoose';
+import { connection, Note, User, UserNote, Session } from './mongoose';
 
 beforeAll(async () => {
   await Promise.all([
@@ -12,5 +12,5 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await testConnection.close();
+  await connection.close();
 });

@@ -1,6 +1,6 @@
 import { GraphQLScalarType, Kind, ValueNode } from 'graphql';
 
-import { Changeset as ChangesetScalar } from '~collab/changeset/changeset';
+import { Changeset as ChangesetClass } from '~collab/changeset/changeset';
 
 function valueFromAST(value: ValueNode): unknown {
   if (value.kind === Kind.LIST) {
@@ -17,19 +17,19 @@ export const Changeset = new GraphQLScalarType({
   name: 'Changeset',
   description: 'Changeset custom scalar type',
   serialize: (value) => {
-    if (value instanceof ChangesetScalar) {
+    if (value instanceof ChangesetClass) {
       return value.serialize();
     }
 
     throw new Error('GraphQL Changeset Scalar serializer expected a `Changeset` object');
   },
   parseValue: (value) => {
-    if (value instanceof ChangesetScalar) {
+    if (value instanceof ChangesetClass) {
       return value;
     }
-    return ChangesetScalar.parseValue(value);
+    return ChangesetClass.parseValue(value);
   },
   parseLiteral: (ast) => {
-    return ChangesetScalar.parseValue(valueFromAST(ast));
+    return ChangesetClass.parseValue(valueFromAST(ast));
   },
 });

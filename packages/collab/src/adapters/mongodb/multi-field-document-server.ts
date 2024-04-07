@@ -8,10 +8,12 @@ import {
   MatchKeysAndValues,
   PushOperator,
   ClientSession,
+  ObjectId,
 } from 'mongodb';
 
-import { Changeset, RevisionChangeset } from '../../changeset/changeset';
+import { Changeset } from '../../changeset/changeset';
 import { DocumentServer } from '../../server/document-server';
+import { RevisionChangeset } from '../../records/revision-changeset';
 
 export enum MultiFieldDocumentServerErrorCode {
   /**
@@ -33,25 +35,38 @@ export class MultiFieldDocumentServerError extends Error {
   }
 }
 
+interface SelectionRange {
+  start: number;
+  end?: number;
+}
+
 export interface RecordValue<T = unknown> {
-  changeset: T;
-  revision: number;
+  creatorUserId: ObjectId;
+  change: RevisionChangeset<T>;
+  beforeSelection: SelectionRange;
+  afterSelection: SelectionRange;
 }
 
 export interface DocumentValue<T = unknown> {
-  latestText: string;
-  latestRevision: number;
+  headDocument: RevisionChangeset<T>;
   records: RecordValue<T>[];
 }
 
-export function newDocumentInsertion(text: string): DocumentValue<Changeset> {
+export function newDocumentInsertion(creatorId: ObjectId, text: string): DocumentValue<Changeset> {
   return {
     latestText: text,
     latestRevision: 0,
     records: [
       {
+        creatorUserId: creatorId, // TODO record customization?
         revision: 0,
         changeset: Changeset.fromInsertion(text),
+        beforeSelection: {
+          start: 0,
+        },
+        afterSelection: {
+          start: 0,
+        },
       },
     ],
   };

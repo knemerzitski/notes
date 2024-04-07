@@ -51,10 +51,10 @@ export class Strips implements Serializable<SerializedStrips> {
    */
   slice(start = 0, end?: number): Strips {
     if (start < 0) {
-      start = (start % this.length) + this.length;
+      start += this.length;
     }
     if (end && end < 0) {
-      end = (end % this.length) + this.length + 1;
+      end += this.length + 1;
     }
 
     const result: Strip[] = [];
@@ -163,6 +163,15 @@ export class Strips implements Serializable<SerializedStrips> {
       .filter(isInsertStrip)
       .map((strip) => strip.value)
       .join('');
+  }
+
+
+  hasOnlyInsertions() {
+    return !this.hasRetainStrips();
+  }
+
+  hasRetainStrips() {
+    return this.values.some((strip) => strip instanceof RetainStrip);
   }
 
   toString() {

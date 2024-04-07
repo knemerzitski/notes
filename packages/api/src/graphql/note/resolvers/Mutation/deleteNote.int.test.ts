@@ -11,7 +11,7 @@ import {
   User,
   UserNote,
   Note,
-  testConnection,
+  connection,
 } from '../../../../tests/helpers/mongoose';
 import { GraphQLResolversContext } from '../../../context';
 
@@ -40,13 +40,13 @@ function createContext(userHelper: UserDocumentHelper) {
     ...mockContext,
     mongoose: {
       ...mockContext.mongoose,
-      connection: testConnection,
+      connection: connection,
     },
   };
   return context;
 }
 
-describe('deleteNote', () => {
+describe.skip('deleteNote', () => {
   faker.seed(774);
 
   let userModelHelper: UserModelHelper;

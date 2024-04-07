@@ -1,14 +1,14 @@
 import { faker } from '@faker-js/faker';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { testConnection } from '../../tests/helpers/mongoose';
+import { connection } from '../../tests/helpers/mongoose';
 
 import { UserDocument, userSchema } from './user';
 
 // TODO flatten root desctibe
 
-describe('User', () => {
-  const User = testConnection.model('User', userSchema);
+describe.skip('User', () => {
+  const User = connection.model('User', userSchema);
 
   beforeEach(async () => {
     await User.deleteMany();

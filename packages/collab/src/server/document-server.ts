@@ -1,5 +1,7 @@
-import { Changeset, RevisionChangeset } from '../changeset/changeset';
+import { Changeset } from '../changeset/changeset';
+import { RevisionChangeset } from '../records/revision-changeset';
 
+// TODO integrate revisionrecords from records dir
 interface DocumentServerOptions {
   headText?: RevisionChangeset;
   records?: RevisionChangeset[];
