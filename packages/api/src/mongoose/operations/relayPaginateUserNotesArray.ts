@@ -1,45 +1,50 @@
 import { ObjectId } from 'mongodb';
 import { DBCollabText } from '../models/collab/collab-text';
-import userNotesArray, {
-  UserNotesArrayInput,
-  UserNotesArrayOutput,
-} from './userNotesArray';
 import relayArrayPagination, {
   RelayArrayPaginationInput,
   RelayArrayPaginationOutput,
 } from './relayArrayPagination';
+import userNotesArrayLookup, {
+  UserNotesArrayLookupInput,
+  UserNotesArrayLookupOutput,
+} from './lookup/userNotesArrayLookup';
+import { UserNoteLookupOutput } from './lookup/userNoteLookup';
 
-export interface RelayPaginateUserNotesArrayInput<TField extends string> {
+export interface RelayPaginateUserNotesArrayInput<TCollabTextKey extends string> {
   pagination: RelayArrayPaginationInput<ObjectId>;
-  userNotes: Omit<UserNotesArrayInput<TField>, 'fieldPath'>;
+  userNotes: Omit<UserNotesArrayLookupInput<TCollabTextKey>, 'fieldPath'>;
 }
 
-export interface RelayPaginateUserNotesArrayOuput<
-  TField extends string,
-  TCollaborativeDocumentPipeline = DBCollabText<unknown>,
-> extends UserNotesArrayOutput<TField, TCollaborativeDocumentPipeline> {
-  firstId: ObjectId;
-  lastId: ObjectId;
+interface GroupExpression {
   sizes: Exclude<
     RelayArrayPaginationOutput<ObjectId>['paginations']['sizes'],
     undefined
   > | null;
 }
 
-export default function relayPaginateUserNotesArray<TField extends string>(
-  input: RelayPaginateUserNotesArrayInput<TField>
+export type RelayPaginateUserNotesArrayOuput<
+  TCollabTextKey extends string,
+  TGroupExpressionOutput = {},
+  TUserNoteLookupOutput = UserNoteLookupOutput<TCollabTextKey>,
+> = UserNotesArrayLookupOutput<
+  TCollabTextKey,
+  TGroupExpressionOutput,
+  TUserNoteLookupOutput
+> &
+  GroupExpression;
+
+export default function relayPaginateUserNotesArray<TCollabTextKey extends string>(
+  input: RelayPaginateUserNotesArrayInput<TCollabTextKey>
 ) {
   return [
     {
       $project: relayArrayPagination(input.pagination),
     },
-    ...userNotesArray({
+    ...userNotesArrayLookup({
       ...input.userNotes,
       fieldPath: 'paginations.array',
       groupExpression: {
         ...input.userNotes.groupExpression,
-        firstId: { $first: '$firstElement' },
-        lastId: { $first: '$lastElement' },
         sizes: { $first: '$paginations.sizes' },
       },
     }),

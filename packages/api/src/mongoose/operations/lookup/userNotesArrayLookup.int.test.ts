@@ -18,7 +18,7 @@ import userNoteLookup, {
   UserNoteLookupOutput,
 } from './userNoteLookup';
 import { ObjectId } from 'mongodb';
-import userNotesArrayLookup, { UserNotesArrayOutput } from './userNotesArrayLookup';
+import userNotesArrayLookup, { UserNotesArrayLookupOutput } from './userNotesArrayLookup';
 import { UserDocument } from '../../models/user';
 
 import { expectedCollabText } from './userNoteLookup.int.test';
@@ -44,7 +44,7 @@ beforeAll(async () => {
 });
 
 it('returns userNotesArray in expected format', async () => {
-  const results = await User.aggregate<UserNotesArrayOutput<CollabTextKey>>([
+  const results = await User.aggregate<UserNotesArrayLookupOutput<CollabTextKey>>([
     {
       $match: {
         _id: user._id,
@@ -64,7 +64,7 @@ it('returns userNotesArray in expected format', async () => {
         },
         collabText: {
           collectionName: CollabText.collection.collectionName,
-          collabTexts: Object.values(CollabTextKey),
+          keys: Object.values(CollabTextKey),
         },
       },
     }),
@@ -94,7 +94,7 @@ it('returns userNotesArray in expected format', async () => {
 
 it('uses groupExpression', async () => {
   const results = await User.aggregate<
-    UserNotesArrayOutput<CollabTextKey, { firstElement: ObjectId }>
+    UserNotesArrayLookupOutput<CollabTextKey, { firstElement: ObjectId }>
   >([
     {
       $match: {

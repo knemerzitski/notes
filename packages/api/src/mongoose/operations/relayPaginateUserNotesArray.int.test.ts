@@ -49,7 +49,7 @@ beforeAll(async () => {
   await populateWithCreatedData();
 });
 
-it('returns first and last id with userNotes', async () => {
+it('returns all notes without any paginations', async () => {
   const results = await User.aggregate<RelayPaginateUserNotesArrayOuput<TextFields>>([
     {
       $match: {
@@ -66,11 +66,15 @@ it('returns first and last id with userNotes', async () => {
         arrayFieldPath: 'order',
       },
       userNotes: {
-        noteTextFields: Object.values(TextFields),
-        collectionNames: {
-          userNote: UserNote.collection.collectionName,
-          note: Note.collection.collectionName,
-          collaborativeDocument: CollabText.collection.collectionName,
+        userNoteCollctionName: UserNote.collection.collectionName,
+        userNoteLookupInput: {
+          note: {
+            collectionName: Note.collection.collectionName,
+          },
+          collabText: {
+            collectionName: CollabText.collection.collectionName,
+            keys: Object.values(TextFields),
+          },
         },
       },
     }),
@@ -80,11 +84,10 @@ it('returns first and last id with userNotes', async () => {
   assert(result != null);
 
   expect(result).toMatchObject({
-    firstId: expect.any(ObjectId),
-    lastId: expect.any(ObjectId),
     userNotes: expect.any(Array),
     sizes: null,
   });
+  expect(result.userNotes).toHaveLength(10);
 });
 
 it('paginates notes', async () => {
@@ -110,11 +113,15 @@ it('paginates notes', async () => {
         ],
       },
       userNotes: {
-        noteTextFields: Object.values(TextFields),
-        collectionNames: {
-          userNote: UserNote.collection.collectionName,
-          note: Note.collection.collectionName,
-          collaborativeDocument: CollabText.collection.collectionName,
+        userNoteCollctionName: UserNote.collection.collectionName,
+        userNoteLookupInput: {
+          note: {
+            collectionName: Note.collection.collectionName,
+          },
+          collabText: {
+            collectionName: CollabText.collection.collectionName,
+            keys: Object.values(TextFields),
+          },
         },
       },
     }),
@@ -122,6 +129,7 @@ it('paginates notes', async () => {
 
   const result = results[0];
   assert(result != null);
+
   expect(result.userNotes.map((userNote) => userNote.note.publicId)).toStrictEqual([
     'publicId_3',
     'publicId_4',

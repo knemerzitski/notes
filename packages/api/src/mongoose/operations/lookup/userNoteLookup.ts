@@ -59,24 +59,24 @@ interface CollabTextLookupInput<TCollabTextKey extends string> {
    * CollabText collection name
    */
   collectionName: string;
-  collabTexts: TCollabTextKey[] | Record<TCollabTextKey, CollabTextMapValue>;
+  keys: TCollabTextKey[] | Record<TCollabTextKey, CollabTextMapValue>;
 }
 
 function noteCollabTextLookup<TCollabTextKey extends string>({
   collectionName,
-  collabTexts,
+  keys,
 }: CollabTextLookupInput<TCollabTextKey>): Exclude<
   PipelineStage.Lookup['$lookup']['pipeline'],
   undefined
 > {
   let collabTextKeys: TCollabTextKey[];
   let collabTextMap: Record<TCollabTextKey, CollabTextMapValue> | null;
-  if (Array.isArray(collabTexts)) {
-    collabTextKeys = collabTexts;
+  if (Array.isArray(keys)) {
+    collabTextKeys = keys;
     collabTextMap = null;
   } else {
-    collabTextKeys = Object.keys(collabTexts) as TCollabTextKey[];
-    collabTextMap = collabTexts;
+    collabTextKeys = Object.keys(keys) as TCollabTextKey[];
+    collabTextMap = keys;
   }
 
   return [
