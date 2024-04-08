@@ -6,7 +6,7 @@ import {
   connection,
   Note,
   UserNote,
-  CollaborativeDocument,
+  CollabText,
 } from '../../tests/helpers/mongoose';
 
 import util from 'util';
@@ -56,7 +56,7 @@ function createNote(
 }
 
 function createCollaborativeDocument(user: UserDocument, text: string) {
-  return new CollaborativeDocument(createInitialDocument(user._id, text));
+  return new CollabText(createInitialDocument(user._id, text));
 }
 
 async function createSampleData() {
@@ -108,7 +108,7 @@ describe.skip('UserNotesDataSource', () => {
             textFieldNames: Object.values(NoteTextField),
             userNoteCollectionName: UserNote.collection.collectionName,
             noteCollectionName: Note.collection.collectionName,
-            collabDocumentCollectionName: CollaborativeDocument.collection.collectionName,
+            collabDocumentCollectionName: CollabText.collection.collectionName,
           })
         ]),
         false,

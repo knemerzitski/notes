@@ -14,7 +14,7 @@ import {
   populateWithCreatedData,
 } from '../../test/helpers/mongoose/populate';
 import {
-  CollaborativeDocument,
+  CollabText,
   Note,
   User,
   UserNote,
@@ -76,7 +76,7 @@ describe('collaborativeDocumentRevisionRecordsPagination', () => {
         collectionNames: {
           userNote: UserNote.collection.collectionName,
           note: Note.collection.collectionName,
-          collaborativeDocument: CollaborativeDocument.collection.collectionName,
+          collaborativeDocument: CollabText.collection.collectionName,
         },
         collaborativeDocumentPipeline: [
           {

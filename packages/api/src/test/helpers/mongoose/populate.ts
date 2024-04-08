@@ -8,7 +8,7 @@ import {
   User,
   UserNote,
   Note,
-  CollaborativeDocument,
+  CollabText,
 } from '../../../tests/helpers/mongoose';
 import { faker } from '@faker-js/faker';
 import { Changeset } from '~collab/changeset/changeset';
@@ -69,7 +69,7 @@ export function fakeUserNoteData(
     note: {
       id: note._id,
       publicId: note.publicId,
-      collabTexts: note.collabTexts,
+      collabTextId: note.collabTextId,
     },
     readOnly: !!faker.number.int({ max: 1 }),
     preferences: {
@@ -106,11 +106,8 @@ export function fakeNoteData(
   return {
     ownerId: user._id,
     publicId: options?.publicId,
-    collabTexts: Object.fromEntries(
-      Object.entries(collabTexts).map(([fieldName, { _id }]) => [
-        fieldName,
-        { collabId: _id },
-      ])
+    collabTextId: Object.fromEntries(
+      Object.entries(collabTexts).map(([collabTextKey, { _id }]) => [collabTextKey, _id])
     ),
   };
 }
@@ -207,7 +204,7 @@ export function createCollaborativeDocument(
   user: UserDocument,
   collabDocOptions?: FakeCollaborativeDocumentDataOptions
 ) {
-  const collabDoc = new CollaborativeDocument(
+  const collabDoc = new CollabText(
     fakeCollaborativeDocumentData(user, collabDocOptions)
   );
   queuePopulate(async () => {
@@ -222,10 +219,10 @@ export function createCollaborativeDocumentMany(
   collabDocOptions?: FakeCollaborativeDocumentDataOptions
 ) {
   const collabDocs = [...new Array<undefined>(count)].map(
-    () => new CollaborativeDocument(fakeCollaborativeDocumentData(user, collabDocOptions))
+    () => new CollabText(fakeCollaborativeDocumentData(user, collabDocOptions))
   );
   queuePopulate(async () => {
-    await CollaborativeDocument.insertMany(collabDocs);
+    await CollabText.insertMany(collabDocs);
   });
   return collabDocs;
 }

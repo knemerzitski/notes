@@ -1,110 +1,126 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
-import { assert, beforeAll, expect, it } from 'vitest';
+import { assert, beforeAll, it } from 'vitest';
 import {
   populateWithCreatedData,
   createUserWithNotes,
 } from '../../test/helpers/mongoose/populate';
 import {
-  CollaborativeDocument,
+  CollabText,
   Note,
-  User,
   UserNote,
   resetDatabase,
 } from '../../tests/helpers/mongoose';
-import { UserDocument } from '../models/user';
-import userNotesArray, { UserNotesArrayOutput } from './userNotesArray';
-import projectCollaborativeDocument, {
-  ProjectCollaborativeDocumentOutput,
-} from './_projectCollaborativeDocument';
-import { ObjectId } from 'mongodb';
+import { UserNoteDocument } from '../models/user-note';
+import projectUserNote, { ProjectUserNoteOutput } from './projectUserNote';
 
-enum TextFields {
+enum CollabTextKey {
   TITLE = 'title',
   CONTENT = 'content',
 }
 
-let user: UserDocument;
+let userNote: UserNoteDocument;
 
 beforeAll(async () => {
   await resetDatabase();
-  faker.seed(3256);
+  faker.seed(65464);
 
-  const { user: tmpUser } = createUserWithNotes(2, Object.values(TextFields), {
-    collabDoc: {
-      recordsCount: 1,
-    },
-  });
-  user = tmpUser;
+  const { userNotes: tmpUserNotes } = createUserWithNotes(
+    1,
+    Object.values(CollabTextKey),
+    {
+      collabDoc: {
+        recordsCount: 1,
+      },
+    }
+  );
+  assert(tmpUserNotes[0] != null);
+  userNote = tmpUserNotes[0];
 
   await populateWithCreatedData();
 });
 
-// TODO test
-it.skip('returns userNote data in expected format', async () => {
-  const result = await User.aggregate<
-    UserNotesArrayOutput<TextFields, ProjectCollaborativeDocumentOutput>
-  >([
+it('returns userNote data in expected format', async () => {
+  const results = await UserNote.aggregate<ProjectUserNoteOutput<CollabTextKey>>([
     {
       $match: {
-        _id: user._id,
+        _id: userNote._id,
       },
-    },
-    {
-      $project: {
-        order: '$notes.category.default.order',
-      },
-    },
-    ...userNotesArray({
-      fieldPath: 'order',
-      noteTextFields: Object.values(TextFields),
-      collectionNames: {
-        userNote: UserNote.collection.collectionName,
-        note: Note.collection.collectionName,
-        collaborativeDocument: CollaborativeDocument.collection.collectionName,
-      },
-      lookupNote: true,
-      collaborativeDocumentPipeline: [
-        {
-          $project: projectCollaborativeDocument({
-            headDocument: true,
-          }),
+      ...projectUserNote({
+        collectionNames: {
+          note: Note.collection.collectionName,
+          collaborativeDocument: CollabText.collection.collectionName,
         },
-      ],
-    }),
+      }),
+    },
   ]);
 
-  const userNote = result[0]?.userNotes[0];
-  assert(userNote != null);
+  // TODO check
+  const result = results[0];
+  assert(result != null);
 
-  expect(userNote).toMatchObject({
-    _id: expect.any(ObjectId),
-    note: {
-      id: expect.any(ObjectId),
-      publicId: expect.any(String),
-      textFields: {
-        title: {
-          _id: expect.any(ObjectId),
-          headDocument: {
-            changeset: expect.any(Array),
-            revision: expect.any(Number),
-          },
-        },
-        content: {
-          _id: expect.any(ObjectId),
-          headDocument: {
-            changeset: expect.any(Array),
-            revision: expect.any(Number),
-          },
-        },
-      },
-      lookupNote: {
-        ownerId: expect.any(ObjectId),
-      },
-    },
-    preferences: {
-      backgroundColor: expect.any(String),
-    },
-    readOnly: expect.any(Boolean),
-  });
+  // const result2 = await User.aggregate<
+  //   UserNotesArrayOutput<CollabTextKey, ProjectCollaborativeDocumentOutput>
+  // >([
+  //   {
+  //     $match: {
+  //       _id: user._id,
+  //     },
+  //   },
+  //   {
+  //     $project: {
+  //       order: '$notes.category.default.order',
+  //     },
+  //   },
+  //   ...userNotesArray({
+  //     fieldPath: 'order',
+  //     noteTextFields: Object.values(CollabTextKey),
+  //     collectionNames: {
+  //       userNote: UserNote.collection.collectionName,
+  //       note: Note.collection.collectionName,
+  //       collaborativeDocument: CollaborativeDocument.collection.collectionName,
+  //     },
+  //     lookupNote: true,
+  //     collaborativeDocumentPipeline: [
+  //       {
+  //         $project: projectCollaborativeDocument({
+  //           headDocument: true,
+  //         }),
+  //       },
+  //     ],
+  //   }),
+  // ]);
+
+  // const userNote2 = result[0]?.userNotes[0];
+  // assert(userNote2 != null);
+
+  // expect(userNote2).toMatchObject({
+  //   _id: expect.any(ObjectId),
+  //   note: {
+  //     id: expect.any(ObjectId),
+  //     publicId: expect.any(String),
+  //     textFields: {
+  //       title: {
+  //         _id: expect.any(ObjectId),
+  //         headDocument: {
+  //           changeset: expect.any(Array),
+  //           revision: expect.any(Number),
+  //         },
+  //       },
+  //       content: {
+  //         _id: expect.any(ObjectId),
+  //         headDocument: {
+  //           changeset: expect.any(Array),
+  //           revision: expect.any(Number),
+  //         },
+  //       },
+  //     },
+  //     lookupNote: {
+  //       ownerId: expect.any(ObjectId),
+  //     },
+  //   },
+  //   preferences: {
+  //     backgroundColor: expect.any(String),
+  //   },
+  //   readOnly: expect.any(Boolean),
+  // });
 });

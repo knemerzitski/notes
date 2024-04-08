@@ -6,7 +6,7 @@ import {
   createUserWithNotes,
 } from '../../test/helpers/mongoose/populate';
 import {
-  CollaborativeDocument,
+  CollabText,
   Note,
   User,
   UserNote,
@@ -70,7 +70,7 @@ it('returns first and last id with userNotes', async () => {
         collectionNames: {
           userNote: UserNote.collection.collectionName,
           note: Note.collection.collectionName,
-          collaborativeDocument: CollaborativeDocument.collection.collectionName,
+          collaborativeDocument: CollabText.collection.collectionName,
         },
       },
     }),
@@ -114,7 +114,7 @@ it('paginates notes', async () => {
         collectionNames: {
           userNote: UserNote.collection.collectionName,
           note: Note.collection.collectionName,
-          collaborativeDocument: CollaborativeDocument.collection.collectionName,
+          collaborativeDocument: CollabText.collection.collectionName,
         },
       },
     }),

@@ -8,11 +8,7 @@ import { MongooseModels } from '../models';
 export interface DBNote {
   publicId: string;
   ownerId: Types.ObjectId;
-  collabTexts: Record<string, DBNoteCollabText>;
-}
-
-export interface DBNoteCollabText {
-  collabTextId: Types.ObjectId;
+  collabTextId: Record<string, Types.ObjectId>;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -32,10 +28,10 @@ export const noteSchema = new Schema<DBNote, NoteModel, DBNoteMethods>({
     type: Schema.Types.ObjectId,
     required: true,
   },
-  collabTexts: {
+  collabTextId: {
     type: Schema.Types.Map,
     required: true,
-  }
+  },
 });
 
 export function createDocumentServer(Note: MongooseModels['Note']) {

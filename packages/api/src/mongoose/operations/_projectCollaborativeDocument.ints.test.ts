@@ -10,7 +10,7 @@ import projectCollaborativeDocument, {
 } from './_projectCollaborativeDocument';
 import { UserDocument } from '../models/user';
 import { CollabTextDocument } from '../models/collab/collab-text';
-import { CollaborativeDocument, resetDatabase } from '../../tests/helpers/mongoose';
+import { CollabText, resetDatabase } from '../../tests/helpers/mongoose';
 import { faker } from '@faker-js/faker';
 
 let user: UserDocument;
@@ -31,7 +31,7 @@ beforeAll(async () => {
 
 async function aggregateProjection(input: ProjectCollaborativeDocumentInput) {
   return (
-    await CollaborativeDocument.aggregate<ProjectCollaborativeDocumentOutput>([
+    await CollabText.aggregate<ProjectCollaborativeDocumentOutput>([
       {
         $match: {
           _id: collaborativeDocument._id,

@@ -6,7 +6,7 @@ import {
   createUserWithNotes,
 } from '../../test/helpers/mongoose/populate';
 import {
-  CollaborativeDocument,
+  CollabText,
   Note,
   User,
   UserNote,
@@ -61,7 +61,7 @@ it.skip('returns userNote data in expected format', async () => {
       collectionNames: {
         userNote: UserNote.collection.collectionName,
         note: Note.collection.collectionName,
-        collaborativeDocument: CollaborativeDocument.collection.collectionName,
+        collaborativeDocument: CollabText.collection.collectionName,
       },
       lookupNote: true,
       collaborativeDocumentPipeline: [

@@ -1,5 +1,5 @@
 import { it, describe, beforeEach, vi, expect, afterEach } from 'vitest';
-import { CollaborativeDocument, resetDatabase } from '../../../tests/helpers/mongoose';
+import { CollabText, resetDatabase } from '../../../tests/helpers/mongoose';
 import {
   CollaborativeDocumentsDataSource,
   CollaborativeDocumentDataSource,
@@ -37,7 +37,7 @@ async function createDocument(recordsCount: number) {
   initialData.records.push(
     ...[...new Array<undefined>(recordsCount - 1)].map((_, i) => createRecord(i + 1))
   );
-  const rawDoc = new CollaborativeDocument(initialData);
+  const rawDoc = new CollabText(initialData);
   await rawDoc.save();
   return rawDoc;
 }
@@ -45,7 +45,7 @@ async function createDocument(recordsCount: number) {
 describe.skip('CollaborativeDocumentDataSource', () => {
   faker.seed(88776);
 
-  const dbAggregateMethod = vi.spyOn(CollaborativeDocument, 'aggregate');
+  const dbAggregateMethod = vi.spyOn(CollabText, 'aggregate');
 
   let dataSource: CollaborativeDocumentsDataSource;
   let doc1Source: CollaborativeDocumentDataSource;
@@ -56,7 +56,7 @@ describe.skip('CollaborativeDocumentDataSource', () => {
     dbAggregateMethod.mockClear();
     const [doc1, doc2] = await Promise.all([createDocument(10), createDocument(10)]);
 
-    dataSource = new CollaborativeDocumentsDataSource(CollaborativeDocument);
+    dataSource = new CollaborativeDocumentsDataSource(CollabText);
     doc1Source = new CollaborativeDocumentDataSource(dataSource, doc1._id);
     doc2Source = new CollaborativeDocumentDataSource(dataSource, doc2._id);
   });

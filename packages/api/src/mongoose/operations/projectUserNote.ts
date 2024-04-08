@@ -3,11 +3,15 @@ import { DBCollabText } from '../models/collab/collab-text';
 import { DBUserNote } from '../models/user-note';
 import { DBNote } from '../models/note';
 
-export interface ProjectUserNoteInput<TField extends string> {
-  /**
-   * Note collabTexts to include by key
-   */
-  noteCollabTexts: TField[]; // TODO combine noteCollabTexts with collaborativeDocumentPipeline, can have separate pipeline for TITLE and CONTENT
+interface CollabTextInput {
+  pipeline?: PipelineStage.Lookup['$lookup']['pipeline'];
+}
+
+interface NoteInput {
+  pipeline?: PipelineStage.Lookup['$lookup']['pipeline'];
+}
+
+export interface ProjectUserNoteInput<TCollabTextKey extends string> {
   /**
    * Collection names for lookup
    */
@@ -15,66 +19,74 @@ export interface ProjectUserNoteInput<TField extends string> {
     note: string;
     collaborativeDocument: string;
   };
+
   /**
-   * Include note only fields: ownerId
+   * Collab texts lookup related input.
    */
-  lookupNote?: boolean;
+  collabTexts?: Record<TCollabTextKey, CollabTextInput>;
+
   /**
-   * Pipeline to use on CollaborativeDocument lookup
+   * Note lookup related info
    */
-  collaborativeDocumentPipeline?: PipelineStage.Lookup['$lookup']['pipeline'];
+  note?: NoteInput;
 }
 
 export type ProjectUserNoteOutput<
-  TField extends string,
-  TCollaborativeDocumentPipeline = DBCollabText,
+  TCollabTextKey extends string,
+  TCollabTextPipeline = DBCollabText,
+  TNotePipeline = Omit<DBNote, 'publicId' | 'collabTexts'>,
 > = Omit<DBUserNote, 'userId' | 'note'> & {
   note: Omit<DBUserNote['note'], 'collabTexts'> & {
-    collabTexts: Record<TField, TCollaborativeDocumentPipeline>;
+    collabTexts: Record<TCollabTextKey, TCollabTextPipeline>;
   };
-  lookupNote?: Omit<DBNote, 'publicId' | 'collabTexts'>;
+  notePipeline?: TNotePipeline;
 };
 
-export default function projectUserNote<TField extends string>({
-  noteCollabTexts,
+// TODO rename to userNoteLookup
+export default function projectUserNote<TCollabTextKey extends string>({
   collectionNames,
-  collaborativeDocumentPipeline,
-  lookupNote,
-}: ProjectUserNoteInput<TField>): PipelineStage[] {
+  collabTexts,
+  note,
+}: ProjectUserNoteInput<TCollabTextKey>): PipelineStage[] {
   return [
     {
       $unset: ['userId'],
     },
-    ...Object.values(noteCollabTexts).flatMap((collabTextName) => [
-      {
-        $lookup: {
-          from: collectionNames.collaborativeDocument,
-          foreignField: '_id',
-          localField: `note.collabTexts.${collabTextName}.collabTextId`,
-          as: `note.collabTexts.${collabTextName}`,
-          pipeline: collaborativeDocumentPipeline,
-        },
-      },
-      {
-        $set: {
-          [`note.collabTexts.${collabTextName}`]: {
-            $arrayElemAt: [`$note.collabTexts.${collabTextName}`, 0],
-          },
-        },
-      },
-    ]),
-    ...(lookupNote
+    ...(collabTexts
+      ? Object.entries<CollabTextInput>(collabTexts).flatMap(
+          ([collabTextKey, collabTextInput]) => [
+            {
+              $lookup: {
+                from: collectionNames.collaborativeDocument,
+                foreignField: '_id',
+                localField: `note.collabTexts.${collabTextKey}.collabTextId`,
+                as: `note.collabTexts.${collabTextKey}`,
+                pipeline: collabTextInput.pipeline,
+              },
+            },
+            {
+              $set: {
+                [`note.collabTexts.${collabTextKey}`]: {
+                  $arrayElemAt: [`$note.collabTexts.${collabTextKey}`, 0],
+                },
+              },
+            },
+          ]
+        )
+      : []),
+    ...(note?.pipeline
       ? [
           {
             $lookup: {
               from: collectionNames.note,
               foreignField: '_id',
               localField: 'note.id',
-              as: 'note.lookupNote',
+              as: 'note.notePipeline',
               pipeline: [
                 {
                   $unset: ['_id', 'publicId', 'collabTexts'],
                 },
+                ...note.pipeline,
               ],
             },
           },

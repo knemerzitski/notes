@@ -18,7 +18,7 @@ export type CollabTextModel = Model<
 >;
 export type CollabTextDocument = HydratedDocument<DBCollabText>;
 
-export const collaborativeDocumentSchema = new Schema<DBCollabText>({
+export const collabTextSchema = new Schema<DBCollabText>({
   headDocument: revisionChangesetSchema,
   tailDocument: revisionChangesetSchema,
   records: [revisionRecordSchema],
