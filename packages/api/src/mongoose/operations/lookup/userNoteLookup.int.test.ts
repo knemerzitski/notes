@@ -44,7 +44,7 @@ beforeAll(async () => {
   await populateWithCreatedData();
 });
 
-const expectedCollabText = {
+export const expectedCollabText = {
   _id: expect.any(ObjectId),
   headDocument: {
     changeset: expect.any(Array),

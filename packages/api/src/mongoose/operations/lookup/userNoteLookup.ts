@@ -29,17 +29,18 @@ export type UserNoteLookupOnlyCollabTextOutput<
   };
 };
 
-export type UserNoteLookupOnlyNoteOutput<
-  Pipeline = DefaultNotePipeline,
-> = BaseUserNote & {
-  note: BaseUserNoteNote & Pipeline;
-};
-
+export type UserNoteLookupOnlyNoteOutput<Pipeline = DefaultNotePipeline> =
+  BaseUserNote & {
+    note: BaseUserNoteNote & Pipeline;
+  };
 
 export default function userNoteLookup<TCollabTextKey extends string>({
   collabText,
   note,
-}: UserNoteLookupInput<TCollabTextKey>): PipelineStage[] {
+}: UserNoteLookupInput<TCollabTextKey>): Exclude<
+  PipelineStage.Lookup['$lookup']['pipeline'],
+  undefined
+> {
   return [
     {
       $unset: ['userId'],
@@ -64,7 +65,10 @@ interface CollabTextLookupInput<TCollabTextKey extends string> {
 function noteCollabTextLookup<TCollabTextKey extends string>({
   collectionName,
   collabTexts,
-}: CollabTextLookupInput<TCollabTextKey>): PipelineStage[] {
+}: CollabTextLookupInput<TCollabTextKey>): Exclude<
+  PipelineStage.Lookup['$lookup']['pipeline'],
+  undefined
+> {
   let collabTextKeys: TCollabTextKey[];
   let collabTextMap: Record<TCollabTextKey, CollabTextMapValue> | null;
   if (Array.isArray(collabTexts)) {
@@ -106,7 +110,10 @@ interface NoteLookupInput {
   pipeline?: PipelineStage.Lookup['$lookup']['pipeline'];
 }
 
-function noteLookup({ collectionName, pipeline = [] }: NoteLookupInput): PipelineStage[] {
+function noteLookup({
+  collectionName,
+  pipeline = [],
+}: NoteLookupInput): Exclude<PipelineStage.Lookup['$lookup']['pipeline'], undefined> {
   return [
     {
       $lookup: {
