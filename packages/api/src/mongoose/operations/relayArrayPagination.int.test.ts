@@ -11,6 +11,7 @@ import relayArrayPagination, {
   sliceLast,
 } from './relayArrayPagination';
 import { mongoDb } from '../../tests/helpers/mongoose';
+import isNonEmptyArray from '~utils/array/isNonEmptyArray';
 
 interface SubDocument {
   key: number;
@@ -86,7 +87,6 @@ describe('relayArrayPagination', () => {
       [7, ['0', '2', '4', '6', '8', '10', '12']],
       [10, ['0', '2', '4', '6', '8', '10', '12', '14', '16', '18']],
       [11, ['0', '2', '4', '6', '8', '10', '12', '14', '16', '18']],
-      [undefined, ['0', '2', '4', '6', '8', '10', '12', '14', '16', '18']],
     ])('%s => %s', async (first, expected) => {
       try {
         const results = await arrayCollection
@@ -143,6 +143,9 @@ describe('relayArrayPagination', () => {
       ],
     ])('after %s first %s => %s', async (slices, expected) => {
       try {
+        const sliceList = slices.map(([key, first]) => ({ after: key, first }));
+        assert(isNonEmptyArray(sliceList));
+
         const results = await arrayCollection
           .aggregate<{
             slices: SliceAfterOutput<SubDocument>;
@@ -157,7 +160,7 @@ describe('relayArrayPagination', () => {
                 slices: sliceAfter({
                   arrayFieldPath: 'subdoc',
                   itemPath: 'key',
-                  sliceList: slices.map(([key, first]) => ({ after: key, first })),
+                  sliceList,
                 }),
               },
             },
@@ -202,7 +205,6 @@ describe('relayArrayPagination', () => {
       [7, ['6', '8', '10', '12', '14', '16', '18']],
       [10, ['0', '2', '4', '6', '8', '10', '12', '14', '16', '18']],
       [11, ['0', '2', '4', '6', '8', '10', '12', '14', '16', '18']],
-      [undefined, ['0', '2', '4', '6', '8', '10', '12', '14', '16', '18']],
     ])('%s => %s', async (last, expected) => {
       try {
         const results = await arrayCollection
@@ -251,6 +253,12 @@ describe('relayArrayPagination', () => {
         ],
       ],
     ])('before %s last %s => %s', async (slices, expected) => {
+      const sliceList = slices.map(([before, last]) => ({
+        before,
+        last,
+      }));
+      assert(isNonEmptyArray(sliceList));
+
       try {
         const results = await arrayCollection
           .aggregate<{ slices: SliceBeforeOutput<string> }>([
@@ -263,10 +271,7 @@ describe('relayArrayPagination', () => {
               $project: {
                 slices: sliceBefore({
                   arrayFieldPath: 'deep.arr',
-                  sliceList: slices.map(([before, last]) => ({
-                    before,
-                    last,
-                  })),
+                  sliceList,
                 }),
               },
             },
@@ -388,8 +393,6 @@ describe('relayArrayPagination', () => {
             array: ['5', '6', '7', '3', '4', '5', '6'],
             sizes: [0, 0, 3, 4],
           },
-          firstElement: '0',
-          lastElement: '9',
         },
       },
       {
@@ -449,8 +452,6 @@ describe('relayArrayPagination', () => {
             array: ['0', '1', '2', '3', '8', '9', '4', '5', '6', '9', '4', '5', '6'],
             sizes: [4, 2, 3, 1, 0, 3],
           },
-          firstElement: '0',
-          lastElement: '9',
         },
       },
     ])('input $input => $expectedOutput', async ({ input, expectedOutput }) => {

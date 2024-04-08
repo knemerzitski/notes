@@ -1,13 +1,45 @@
 import { PipelineStage } from 'mongoose';
+import isNonEmptyArray from '~utils/array/isNonEmptyArray';
+
+interface RelayFirstPagination {
+  after?: never;
+  first: number;
+}
+
+export interface RelayAfterPagination<TItem> {
+  after: TItem;
+  first?: number;
+}
+
+interface RelayLastPagination {
+  before?: never;
+  last: number;
+}
+
+export interface RelayBeforePagination<TItem> {
+  before: TItem;
+  last?: number;
+}
+
+type AllPagination = {};
+
+export type RelayForwardsPagination<TItem> =
+  | RelayFirstPagination
+  | RelayAfterPagination<TItem>;
+export type RelayBackwardsPagination<TItem> =
+  | RelayLastPagination
+  | RelayBeforePagination<TItem>;
+
+export type RelayPagination<TItem> =
+  | RelayForwardsPagination<TItem>
+  | RelayBackwardsPagination<TItem>
+  | AllPagination;
 
 /**
  * From beginning up to first number of results.
  * @param first Must be a positive number > 0
  */
-export function sliceFirst(arrayFieldPath: string, first?: number) {
-  if (!first) {
-    return `$${arrayFieldPath}`;
-  }
+export function sliceFirst(arrayFieldPath: string, first: number) {
   return {
     $slice: [`$${arrayFieldPath}`, 0, first],
   };
@@ -17,10 +49,7 @@ export function sliceFirst(arrayFieldPath: string, first?: number) {
  * From end up to last number of results.
  * @param last Must be a positive number > 0
  */
-export function sliceLast(arrayFieldPath: string, last?: number) {
-  if (!last) {
-    return `$${arrayFieldPath}`;
-  }
+export function sliceLast(arrayFieldPath: string, last: number) {
   return {
     $slice: [`$${arrayFieldPath}`, -last, last],
   };
@@ -36,19 +65,7 @@ export interface SliceAfterInput<TItem> {
    * If undefined then after value itself is compared again array elements.
    */
   itemPath?: string;
-  /**
-   * If slice list is empty then whole array is returned.
-   */
-  sliceList: {
-    /**
-     * Expression used to search for the element.
-     */
-    after: TItem;
-    /**
-     * Size of slice. If not defined then array is sliced to the end.
-     */
-    first?: number;
-  }[];
+  sliceList: Readonly<[RelayAfterPagination<TItem>, ...RelayAfterPagination<TItem>[]]>;
 }
 
 export interface SliceAfterOutput<TItem> {
@@ -72,10 +89,6 @@ export function sliceAfter<T>({
   itemPath,
   sliceList,
 }: SliceAfterInput<T>) {
-  if (sliceList.length === 0) {
-    return `$${arrayFieldPath}`;
-  }
-
   const arrayField = itemPath ? `${arrayFieldPath}.${itemPath}` : arrayFieldPath;
 
   return {
@@ -133,19 +146,7 @@ export interface SliceBeforeInput<TItem> {
    * If undefined then after value itself is compared again array elements.
    */
   itemPath?: string;
-  /**
-   * If slice list is empty then whole array is returned.
-   */
-  sliceList: {
-    /**
-     * Expression used to search for the element.
-     */
-    before: TItem;
-    /**
-     * Size of slice. If not defined then array is sliced to the start.
-     */
-    last?: number;
-  }[];
+  sliceList: Readonly<[RelayBeforePagination<TItem>, ...RelayBeforePagination<TItem>[]]>;
 }
 
 export interface SliceBeforeOutput<TItem> {
@@ -167,10 +168,6 @@ export function sliceBefore<T>({
   itemPath,
   sliceList,
 }: SliceBeforeInput<T>) {
-  if (sliceList.length === 0) {
-    return `$${arrayFieldPath}`;
-  }
-
   const arrayField = itemPath ? `${arrayFieldPath}.${itemPath}` : arrayFieldPath;
 
   return {
@@ -211,66 +208,6 @@ export function sliceBefore<T>({
   };
 }
 
-export interface RelayPagination<TItem> {
-  // TODO allow only one or either at once, but not both
-  first?: number | null;
-  after?: TItem | null;
-  last?: number | null;
-  before?: TItem | null;
-}
-
-export interface RelayPaginationResult<TItem> {
-  /**
-   * Array containing all paginations.
-   * Order of array: [maxFirst, maxLast, ...after, ...before].
-   */
-  array: TItem[];
-  /**
-   * Size of slices for pagination in {@link array}.
-   * Order of sizes: [maxFirst, maxLast, ...after, ...before]
-   *
-   */
-  sizes?: [number, number, ...number[]];
-}
-
-export type RelayArrayPaginationConfig = Required<
-  Pick<RelayArrayPaginationInput<never>, 'maxLimit'>
-> &
-  Partial<Pick<RelayArrayPaginationInput<never>, 'defaultLimit' | 'defaultSlice'>>;
-
-export interface RelayArrayPaginationInput<TItem> {
-  arrayFieldPath: string;
-  /**
-   * Optional path to array value in item. Used to find item in array.
-   * If undefined then after value itself is compared again array elements.
-   */
-  arrayItemPath?: string;
-  defaultLimit?: number;
-  maxLimit?: number;
-  paginations?: RelayPagination<TItem>[];
-  /**
-   * How to slice when no arguments are provided.
-   * @default "start"
-   */
-  defaultSlice?: 'start' | 'end';
-}
-
-export interface RelayArrayPaginationOutput<TItem> {
-  /**
-   * Contains all paginations. Both array and sizes match in order.
-   */
-  paginations: RelayPaginationResult<TItem>;
-  /**
-   * First element value.
-   */
-  // TODO remove first last element inclusin
-  firstElement?: TItem;
-  /**
-   * First element value.
-   */
-  lastElement?: TItem;
-}
-
 export function applyLimit(
   value: number | undefined | null,
   defaultLimit: number | undefined,
@@ -302,43 +239,84 @@ export function maybeApplyLimit(
   return value;
 }
 
+export type RelayArrayPaginationConfig = Required<
+  Pick<RelayArrayPaginationInput<never>, 'maxLimit'>
+> &
+  Partial<Pick<RelayArrayPaginationInput<never>, 'defaultLimit' | 'defaultSlice'>>;
+
+export interface RelayArrayPaginationInput<TItem> {
+  arrayFieldPath: string;
+  /**
+   * Optional path to array value in item. Used to find item in array.
+   * If undefined then after value itself is compared again array elements.
+   */
+  arrayItemPath?: string;
+  defaultLimit?: number;
+  maxLimit?: number;
+  paginations?: RelayPagination<TItem>[];
+  /**
+   * How to slice when no arguments are provided.
+   * @default "start"
+   */
+  defaultSlice?: 'start' | 'end';
+}
+
+export interface RelayArrayPaginationOutput<TItem> {
+  /**
+   * Contains all paginations. Both array and sizes match in order.
+   */
+  paginations: RelayPaginationResult<TItem>;
+}
+
+export interface RelayPaginationResult<TItem> {
+  /**
+   * Array containing all paginations.
+   * Order of array: [maxFirst, maxLast, ...after, ...before].
+   */
+  array: TItem[];
+  /**
+   * Size of slices for pagination in {@link array}.
+   * Order of sizes: [maxFirst, maxLast, ...after, ...before]
+   *
+   */
+  sizes?: [number, number, ...number[]];
+}
+
 export default function relayArrayPagination<TItem>(
   input: RelayArrayPaginationInput<TItem>
 ): PipelineStage.Project['$project'] {
-  // TODO dont do that here???
-  const firstLastElement = {
-    firstElement: {
-      $first: `$${input.arrayFieldPath}`,
-    },
-    lastElement: {
-      $last: `$${input.arrayFieldPath}`,
-    },
-  };
-
   let maxFirst = -1;
   let maxLast = -1;
-  const sliceAfterList: SliceAfterInput<TItem>['sliceList'] = [];
-  const sliceBeforeList: SliceBeforeInput<TItem>['sliceList'] = [];
+  const sliceAfterList: RelayAfterPagination<TItem>[] = [];
+  const sliceBeforeList: RelayBeforePagination<TItem>[] = [];
   if (input.paginations) {
     for (const pagination of input.paginations) {
-      const first = maybeApplyLimit(pagination.first, input.defaultLimit, input.maxLimit);
-      if (pagination.after != null) {
-        sliceAfterList.push({
-          after: pagination.after,
-          first,
-        });
-      } else if (pagination.first != null && first != null) {
-        maxFirst = Math.max(maxFirst, first);
+      if ('after' in pagination || 'first' in pagination) {
+        const first = maybeApplyLimit(
+          pagination.first,
+          input.defaultLimit,
+          input.maxLimit
+        );
+        if (pagination.after != null) {
+          sliceAfterList.push({
+            after: pagination.after,
+            first: first,
+          });
+        } else if (pagination.first != null && first != null) {
+          maxFirst = Math.max(maxFirst, first);
+        }
       }
 
-      const last = maybeApplyLimit(pagination.last, input.defaultLimit, input.maxLimit);
-      if (pagination.before != null) {
-        sliceBeforeList.push({
-          before: pagination.before,
-          last,
-        });
-      } else if (pagination.last != null && last != null) {
-        maxLast = Math.max(maxLast, last);
+      if ('before' in pagination || 'last' in pagination) {
+        const last = maybeApplyLimit(pagination.last, input.defaultLimit, input.maxLimit);
+        if (pagination.before != null) {
+          sliceBeforeList.push({
+            before: pagination.before,
+            last,
+          });
+        } else if (pagination.last != null && last != null) {
+          maxLast = Math.max(maxLast, last);
+        }
       }
     }
 
@@ -375,14 +353,14 @@ export default function relayArrayPagination<TItem>(
                     sizes: null,
                   }
                 : emptyPagination,
-              sliceAfterList.length > 0
+              isNonEmptyArray(sliceAfterList)
                 ? sliceAfter({
                     arrayFieldPath: input.arrayFieldPath,
                     itemPath: input.arrayItemPath,
                     sliceList: sliceAfterList,
                   })
                 : skipPagination,
-              sliceBeforeList.length > 0
+              isNonEmptyArray(sliceBeforeList)
                 ? sliceBefore({
                     arrayFieldPath: input.arrayFieldPath,
                     itemPath: input.arrayItemPath,
@@ -413,7 +391,6 @@ export default function relayArrayPagination<TItem>(
             },
           },
         },
-        ...firstLastElement,
       };
     }
   }
@@ -426,21 +403,19 @@ export default function relayArrayPagination<TItem>(
         paginations: {
           array: sliceLast(input.arrayFieldPath, limit),
         },
-        ...firstLastElement,
       };
     } else {
       return {
         paginations: {
           array: sliceFirst(input.arrayFieldPath, limit),
         },
-        ...firstLastElement,
       };
     }
   }
+
   return {
     paginations: {
       array: `$${input.arrayFieldPath}`,
     },
-    ...firstLastElement,
   };
 }
