@@ -15,6 +15,7 @@ import {
   isBeforeUnboundPagination,
   isFirstPagination,
   isLastPagination,
+  maybeApplyLimit,
   sliceFirst,
   sliceLast,
 } from './relayArrayPagination';
@@ -22,14 +23,29 @@ import {
 export default function consecutiveIntArrayPagination(
   input: RelayArrayPaginationInput<number>
 ): PipelineStage.Project['$project'] {
-  if (input.paginations) {
-    const maxFirst = calcMaxFirst(input.paginations);
-    const maxLast = calcMaxLast(input.paginations);
-    const minAfterUnbound = calcMinAfterUnbound(input.paginations);
-    const maxBeforeUnbound = calcMaxBeforeUnbound(input.paginations);
-    const uniqueBoundPaginations = calcUniqueBoundPaginations(input.paginations);
+  if (input.paginations && input.paginations.length > 0) {
+    const limitedPaginations =
+      input.defaultLimit != null || input.maxLimit != null
+        ? input.paginations.map((p) => {
+            if ('first' in p && p.first != null) {
+              const pCpy = { ...p };
+              pCpy.first = maybeApplyLimit(p.first, input.defaultLimit, input.maxLimit);
+              return pCpy;
+            } else if ('last' in p && p.last != null) {
+              const pCpy = { ...p };
+              pCpy.last = maybeApplyLimit(p.last, input.defaultLimit, input.maxLimit);
+              return pCpy;
+            }
 
-    // TODO if have limit then no unbound...
+            return p;
+          })
+        : input.paginations;
+
+    const maxFirst = calcMaxFirst(limitedPaginations);
+    const maxLast = calcMaxLast(limitedPaginations);
+    const minAfterUnbound = calcMinAfterUnbound(limitedPaginations);
+    const maxBeforeUnbound = calcMaxBeforeUnbound(limitedPaginations);
+    const uniqueBoundPaginations = calcUniqueBoundPaginations(limitedPaginations);
 
     const arrayField = input.arrayItemPath
       ? `${input.arrayFieldPath}.${input.arrayItemPath}`

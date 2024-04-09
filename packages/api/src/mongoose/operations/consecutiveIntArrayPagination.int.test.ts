@@ -104,7 +104,6 @@ describe('consecutiveIntArrayPagination', () => {
       },
     },
     {
-      // TODO implement limit
       input: {
         maxLimit: 2,
         paginations: [
@@ -117,6 +116,16 @@ describe('consecutiveIntArrayPagination', () => {
         paginations: {
           array: [1, 2],
           sizes: [2, 0],
+        },
+      },
+    },
+    {
+      input: {
+        paginations: [],
+      },
+      expectedOutput: {
+        paginations: {
+          array: [1,2,3,4,5,6,7,8,9],
         },
       },
     },
