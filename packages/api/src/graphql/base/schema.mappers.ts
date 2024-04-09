@@ -1,8 +1,8 @@
-import { ResolverTypeWrapper } from '../types.generated';
+import { ResolversTypes } from '../types.generated';
 
 export interface PageInfoMapper {
-  hasPreviousPage(): ResolverTypeWrapper<boolean>;
-  startCursor(): ResolverTypeWrapper<string>;
-  hasNextPage(): ResolverTypeWrapper<boolean>;
-  endCursor(): ResolverTypeWrapper<string>;
+  hasPreviousPage(): ResolversTypes['Boolean'];
+  startCursor(): ResolversTypes['Cursor'];
+  hasNextPage(): ResolversTypes['Boolean'];
+  endCursor(): ResolversTypes['Cursor'];
 }

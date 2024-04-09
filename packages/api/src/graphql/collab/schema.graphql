@@ -94,5 +94,5 @@ type CollaborativeDocumentRecordEdge implements Edge {
   "Self descriptive"
   node: CollaborativeDocumentRecord!
   "Self descriptive"
-  cursor: String!
+  cursor: Cursor!
 }

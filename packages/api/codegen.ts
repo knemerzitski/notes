@@ -12,8 +12,8 @@ const config: CodegenConfig = {
         Changeset: {
           type: '~collab/changeset/changeset#Changeset',
         },
-        RevisionChangeset: {
-          type: '~collab/records/revision-changeset#RevisionChangeset',
+        Cursor: {
+          type: 'string | number',
         },
       },
       typesPluginsConfig: {
@@ -26,7 +26,8 @@ const config: CodegenConfig = {
          * null on a non-nullable field. Otherwise would have to
          * check for null on each individual field.
          */
-        resolverTypeWrapperSignature: 'Promise<T | null | undefined> | T | null | undefined',
+        resolverTypeWrapperSignature:
+          'Promise<T | null | undefined> | T | null | undefined',
       },
     }),
   },

@@ -16,15 +16,18 @@ enum Role {
   USER
 }
 
+scalar Cursor
+
+
 type PageInfo {
   "Self descriptive"
   hasPreviousPage: Boolean!
   "Self descriptive"
-  startCursor: String
+  startCursor: Cursor
   "Self descriptive"
   hasNextPage: Boolean!
   "Self descriptive"
-  endCursor: String
+  endCursor: Cursor
 }
 
 interface Node {
@@ -36,12 +39,13 @@ interface Edge {
   "Self descriptive"
   node: Node!
   "Self descriptive"
-  cursor: String!
+  cursor: Cursor!
 }
+
 
 interface Connection {
   "Self descriptive"
   pageInfo: PageInfo!
   "Self descriptive"
-  edges: [Edge!]!
+  edges: [Edge]!
 }
