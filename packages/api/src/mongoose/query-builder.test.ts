@@ -140,6 +140,6 @@ describe('mergeProjections', () => {
       },
     ],
   ])('%s => %s', (mergeData, expected) => {
-    expect(mergeProjections({}, ...mergeData)).toStrictEqual(expected);
+    expect(mergeProjections({}, mergeData)).toStrictEqual(expected);
   });
 });

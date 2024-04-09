@@ -13,6 +13,7 @@ interface ArrayBeforeSlice<TItem> {
   last?: number;
 }
 
+// TODO remove match, it makes no sense for pagination
 interface ArrayMatch<TItem> {
   match: TItem[];
 }
@@ -103,7 +104,7 @@ export type MergedProjection<T> = {
 };
 
 function calcPaginationKey(p: Pagination<string>): string {
-  if ('after' in p) {
+  if ('after' in p || 'first' in p) {
     return `a${p.after ?? ''}:${p.first ?? ''}`;
   } else if ('before' in p) {
     return `b${p.before ?? ''}:${p.last ?? ''}`;
