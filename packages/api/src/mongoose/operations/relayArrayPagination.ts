@@ -1,7 +1,7 @@
 import { PipelineStage } from 'mongoose';
 import isNonEmptyArray from '~utils/array/isNonEmptyArray';
 
-interface RelayFirstPagination {
+export interface RelayFirstPagination {
   after?: never;
   first: number;
 }
@@ -11,7 +11,17 @@ export interface RelayAfterPagination<TItem> {
   first?: number;
 }
 
-interface RelayLastPagination {
+export interface RelayAfterUnboundPagination<TItem> {
+  after: TItem;
+  first?: never;
+}
+
+export interface RelayAfterBoundPagination<TItem> {
+  after: TItem;
+  first: number;
+}
+
+export interface RelayLastPagination {
   before?: never;
   last: number;
 }
@@ -21,12 +31,26 @@ export interface RelayBeforePagination<TItem> {
   last?: number;
 }
 
+export interface RelayBeforeUnboundPagination<TItem> {
+  before: TItem;
+  last?: never;
+}
+
+export interface RelayBeforeBoundPagination<TItem> {
+  before: TItem;
+  last: number;
+}
+
 export type RelayForwardsPagination<TItem> =
   | RelayFirstPagination
-  | RelayAfterPagination<TItem>;
+  | RelayAfterPagination<TItem>
+  | RelayAfterUnboundPagination<TItem>
+  | RelayAfterBoundPagination<TItem>;
 export type RelayBackwardsPagination<TItem> =
   | RelayLastPagination
-  | RelayBeforePagination<TItem>;
+  | RelayBeforePagination<TItem>
+  | RelayBeforeUnboundPagination<TItem>
+  | RelayBeforeBoundPagination<TItem>;
 
 export type RelayPagination<TItem> =
   | RelayForwardsPagination<TItem>
@@ -58,10 +82,52 @@ export function isAfterPagination<TItem>(
   return 'after' in pagination && pagination.after != null;
 }
 
+export function isAfterUnboundPagination<TItem>(
+  pagination: RelayPagination<TItem>
+): pagination is RelayAfterUnboundPagination<TItem> {
+  return (
+    'after' in pagination &&
+    pagination.after != null &&
+    (!('first' in pagination) || pagination.first == null)
+  );
+}
+
+export function isAfterBoundPagination<TItem>(
+  pagination: RelayPagination<TItem>
+): pagination is RelayAfterBoundPagination<TItem> {
+  return (
+    'after' in pagination &&
+    pagination.after != null &&
+    'first' in pagination &&
+    pagination.first != null
+  );
+}
+
 export function isBeforePagination<TItem>(
   pagination: RelayPagination<TItem>
 ): pagination is RelayBeforePagination<TItem> {
   return 'before' in pagination && pagination.before != null;
+}
+
+export function isBeforeUnboundPagination<TItem>(
+  pagination: RelayPagination<TItem>
+): pagination is RelayBeforeUnboundPagination<TItem> {
+  return (
+    'before' in pagination &&
+    pagination.before != null &&
+    (!('last' in pagination) || pagination.last == null)
+  );
+}
+
+export function isBeforeBoundPagination<TItem>(
+  pagination: RelayPagination<TItem>
+): pagination is RelayBeforeBoundPagination<TItem> {
+  return (
+    'before' in pagination &&
+    pagination.before != null &&
+    'last' in pagination &&
+    pagination.last != null
+  );
 }
 
 /**
@@ -377,15 +443,13 @@ export default function relayArrayPagination<TItem>(
             input: [
               maxFirst > 0
                 ? {
-                    array: { $slice: [`$${input.arrayFieldPath}`, 0, maxFirst] },
+                    array: sliceFirst(input.arrayFieldPath, maxFirst),
                     sizes: null,
                   }
                 : emptyPagination,
               maxLast > 0
                 ? {
-                    array: {
-                      $slice: [`$${input.arrayFieldPath}`, -maxLast, maxLast],
-                    },
+                    array: sliceLast(input.arrayFieldPath, maxLast),
                     sizes: null,
                   }
                 : emptyPagination,

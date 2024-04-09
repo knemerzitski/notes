@@ -1,5 +1,4 @@
 import { ObjectId } from 'mongodb';
-import { DBCollabText } from '../models/collab/collab-text';
 import relayArrayPagination, {
   RelayArrayPaginationInput,
   RelayArrayPaginationOutput,
@@ -24,7 +23,7 @@ interface GroupExpression {
 
 export type RelayPaginateUserNotesArrayOuput<
   TCollabTextKey extends string,
-  TGroupExpressionOutput = {},
+  TGroupExpressionOutput = Record<string, never>,
   TUserNoteLookupOutput = UserNoteLookupOutput<TCollabTextKey>,
 > = UserNotesArrayLookupOutput<
   TCollabTextKey,
