@@ -21,8 +21,6 @@ export interface RelayBeforePagination<TItem> {
   last?: number;
 }
 
-type AllPagination = {};
-
 export type RelayForwardsPagination<TItem> =
   | RelayFirstPagination
   | RelayAfterPagination<TItem>;
@@ -32,8 +30,7 @@ export type RelayBackwardsPagination<TItem> =
 
 export type RelayPagination<TItem> =
   | RelayForwardsPagination<TItem>
-  | RelayBackwardsPagination<TItem>
-  | AllPagination;
+  | RelayBackwardsPagination<TItem>;
 
 /**
  * From beginning up to first number of results.
@@ -291,7 +288,9 @@ export default function relayArrayPagination<TItem>(
   const sliceBeforeList: RelayBeforePagination<TItem>[] = [];
   if (input.paginations) {
     for (const pagination of input.paginations) {
+      let isForward = false;
       if ('after' in pagination || 'first' in pagination) {
+        isForward = true;
         const first = maybeApplyLimit(
           pagination.first,
           input.defaultLimit,
@@ -308,6 +307,11 @@ export default function relayArrayPagination<TItem>(
       }
 
       if ('before' in pagination || 'last' in pagination) {
+        if (isForward) {
+          throw new Error(
+            'Both forwards and backwards pagination is not supported in a single input'
+          );
+        }
         const last = maybeApplyLimit(pagination.last, input.defaultLimit, input.maxLimit);
         if (pagination.before != null) {
           sliceBeforeList.push({
@@ -418,4 +422,82 @@ export default function relayArrayPagination<TItem>(
       array: `$${input.arrayFieldPath}`,
     },
   };
+}
+
+function isFirstPagination<TItem>(
+  pagination: RelayPagination<TItem>
+): pagination is RelayFirstPagination {
+  return (
+    'first' in pagination &&
+    pagination.first != null &&
+    (!('after' in pagination) || pagination.after == null)
+  );
+}
+
+function isLastPagination<TItem>(
+  pagination: RelayPagination<TItem>
+): pagination is RelayLastPagination {
+  return (
+    'last' in pagination &&
+    pagination.last != null &&
+    (!('before' in pagination) || pagination.before == null)
+  );
+}
+
+function isAfterPagination<TItem>(
+  pagination: RelayPagination<TItem>
+): pagination is RelayAfterPagination<TItem> {
+  return 'after' in pagination && pagination.after != null;
+}
+
+export function mapPaginationOutputToInput<TItem>(
+  input: RelayArrayPaginationInput<TItem>['paginations'],
+  output: RelayArrayPaginationOutput<TItem>['paginations']
+): TItem[][] {
+  if (!input || input.length === 0) return [output.array];
+
+  const sizes = output.sizes;
+  if (!sizes) throw new Error('Expected pagination sizes to be defined');
+
+  let afterIndex = 2;
+  let afterSize = sizes[0] + sizes[1];
+
+  let beforeIndex = input.reduce(
+    (a, b) => a + (isAfterPagination(b) ? 1 : 0),
+    afterIndex
+  );
+  let beforeSize = sizes
+    .slice(afterIndex, beforeIndex)
+    .reduce((a, b) => a + b, afterSize);
+
+  return input.map((pagination) => {
+    if (isFirstPagination(pagination)) {
+      return output.array.slice(0, Math.min(pagination.first, sizes[0]));
+    } else if (isLastPagination(pagination)) {
+      const end = sizes[0] + sizes[1];
+      return output.array.slice(Math.max(sizes[0], end - pagination.last), end);
+    } else if (isAfterPagination(pagination)) {
+      const nextSize = sizes[afterIndex];
+      if (nextSize == null) {
+        throw new Error(`Expected size at index ${afterIndex}`);
+      }
+
+      const slice = output.array.slice(afterSize, afterSize + nextSize);
+      afterSize += nextSize;
+      afterIndex++;
+
+      return slice;
+    } else {
+      const nextSize = sizes[beforeIndex];
+      if (nextSize == null) {
+        throw new Error(`Expected size at index ${beforeIndex}`);
+      }
+
+      const slice = output.array.slice(beforeSize, beforeSize + nextSize);
+      beforeSize += nextSize;
+      beforeIndex++;
+
+      return slice;
+    }
+  });
 }

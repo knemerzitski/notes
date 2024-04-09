@@ -317,6 +317,16 @@ describe('relayArrayPagination', () => {
       // ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
       {
         input: {
+          paginations: [],
+        },
+        expectedOutput: {
+          paginations: {
+            array: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+          },
+        },
+      },
+      {
+        input: {
           paginations: [
             {
               first: 4,
@@ -373,25 +383,7 @@ describe('relayArrayPagination', () => {
         expectedOutput: {
           paginations: {
             array: ['3', '4', '5'],
-            sizes: [0, 0, 0, 3],
-          },
-        },
-      },
-      {
-        input: {
-          paginations: [
-            {
-              first: 3,
-              after: '4',
-              last: 4,
-              before: '7',
-            },
-          ],
-        },
-        expectedOutput: {
-          paginations: {
-            array: ['5', '6', '7', '3', '4', '5', '6'],
-            sizes: [0, 0, 3, 4],
+            sizes: [0, 0, 3],
           },
         },
       },
@@ -454,6 +446,24 @@ describe('relayArrayPagination', () => {
           },
         },
       },
+      {
+        input: {
+          paginations: [
+            {
+              first: 3,
+            },
+            {
+              first: 5,
+            },
+          ],
+        },
+        expectedOutput: {
+          paginations: {
+            array: ['0', '1', '2', '3', '4'],
+            sizes: [5, 0],
+          },
+        },
+      },
     ])('input $input => $expectedOutput', async ({ input, expectedOutput }) => {
       const pagination = relayArrayPagination({
         arrayFieldPath: 'simple',
@@ -473,7 +483,11 @@ describe('relayArrayPagination', () => {
         ])
         .toArray();
 
-      expect(results[0]).containSubset(expectedOutput);
+      expect(results[0]).toMatchObject({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        _id: expect.any(ObjectId),
+        ...expectedOutput,
+      });
     });
   });
 });
