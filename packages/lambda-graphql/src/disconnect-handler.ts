@@ -9,7 +9,7 @@ import { GraphQLError, GraphQLSchema, parse } from 'graphql';
 import { buildExecutionContext } from 'graphql/execution/execute';
 import { MessageType } from 'graphql-ws';
 
-import { isArray } from '~utils/isArray';
+import isArray from '~utils/array/isArray';
 import { Logger } from '~utils/logger';
 import { Maybe, MaybePromise } from '~utils/types';
 

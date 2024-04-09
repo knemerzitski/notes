@@ -13,7 +13,7 @@ import {
   WebSocketConnectHandler,
 } from '~lambda-graphql/connect-handler';
 import { WebSocketDisconnectHandler } from '~lambda-graphql/disconnect-handler';
-import { isArray } from '~utils/isArray';
+import isArray from '~utils/array/isArray';
 import { Logger } from '~utils/logger';
 
 import fixtureWebSocketEventConnect from '../../fixtures/websocket/CONNECT.json';
