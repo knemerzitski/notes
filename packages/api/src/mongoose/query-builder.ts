@@ -1,37 +1,12 @@
 import { ObjectId } from 'mongodb';
+import { RelayPagination } from './operations/relayArrayPagination';
 
 type Primitive = string | number | boolean | ObjectId;
 type ProjectionValue = 1;
 
-interface ArrayAfterSlice<TItem> {
-  after?: TItem;
-  first?: number;
-}
-
-interface ArrayBeforeSlice<TItem> {
-  before?: TItem;
-  last?: number;
-}
-
-// TODO remove match, it makes no sense for pagination
-interface ArrayMatch<TItem> {
-  match: TItem[];
-}
-
 type Indexed<P> = P & { index: number };
 
-type Never<T> = {
-  [Key in keyof T]?: never;
-};
-
-type Only<T, E> = T & Never<E>;
-
-type Pagination<TItem> =
-  | Only<ArrayAfterSlice<TItem>, ArrayBeforeSlice<TItem> | ArrayMatch<TItem>>
-  | Only<ArrayBeforeSlice<TItem>, ArrayAfterSlice<TItem> | ArrayMatch<TItem>>
-  | Only<ArrayMatch<TItem>, ArrayAfterSlice<TItem> | ArrayBeforeSlice<TItem>>;
-
-type ArrayPagination<TItem> = Pagination<TItem> | Indexed<Pagination<TItem>>;
+type ArrayPagination<TItem> = RelayPagination<TItem> | Indexed<RelayPagination<TItem>>;
 
 export interface ArrayProjection<TItem> {
   $project?: Projection<TItem>;
@@ -103,13 +78,11 @@ export type MergedProjection<T> = {
         : ProjectionValue;
 };
 
-function calcPaginationKey(p: Pagination<string>): string {
+function calcPaginationKey(p: RelayPagination<string>): string {
   if ('after' in p || 'first' in p) {
     return `a${p.after ?? ''}:${p.first ?? ''}`;
-  } else if ('before' in p) {
-    return `b${p.before ?? ''}:${p.last ?? ''}`;
   } else {
-    return 'p';
+    return `b${p.before ?? ''}:${p.last ?? ''}`;
   }
 }
 

@@ -32,6 +32,38 @@ export type RelayPagination<TItem> =
   | RelayForwardsPagination<TItem>
   | RelayBackwardsPagination<TItem>;
 
+export function isFirstPagination<TItem>(
+  pagination: RelayPagination<TItem>
+): pagination is RelayFirstPagination {
+  return (
+    'first' in pagination &&
+    pagination.first != null &&
+    (!('after' in pagination) || pagination.after == null)
+  );
+}
+
+export function isLastPagination<TItem>(
+  pagination: RelayPagination<TItem>
+): pagination is RelayLastPagination {
+  return (
+    'last' in pagination &&
+    pagination.last != null &&
+    (!('before' in pagination) || pagination.before == null)
+  );
+}
+
+export function isAfterPagination<TItem>(
+  pagination: RelayPagination<TItem>
+): pagination is RelayAfterPagination<TItem> {
+  return 'after' in pagination && pagination.after != null;
+}
+
+export function isBeforePagination<TItem>(
+  pagination: RelayPagination<TItem>
+): pagination is RelayBeforePagination<TItem> {
+  return 'before' in pagination && pagination.before != null;
+}
+
 /**
  * From beginning up to first number of results.
  * @param first Must be a positive number > 0
@@ -422,32 +454,6 @@ export default function relayArrayPagination<TItem>(
       array: `$${input.arrayFieldPath}`,
     },
   };
-}
-
-function isFirstPagination<TItem>(
-  pagination: RelayPagination<TItem>
-): pagination is RelayFirstPagination {
-  return (
-    'first' in pagination &&
-    pagination.first != null &&
-    (!('after' in pagination) || pagination.after == null)
-  );
-}
-
-function isLastPagination<TItem>(
-  pagination: RelayPagination<TItem>
-): pagination is RelayLastPagination {
-  return (
-    'last' in pagination &&
-    pagination.last != null &&
-    (!('before' in pagination) || pagination.before == null)
-  );
-}
-
-function isAfterPagination<TItem>(
-  pagination: RelayPagination<TItem>
-): pagination is RelayAfterPagination<TItem> {
-  return 'after' in pagination && pagination.after != null;
 }
 
 export function mapPaginationOutputToInput<TItem>(
