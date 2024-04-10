@@ -6,7 +6,6 @@ export interface RelayFirstPagination {
   first: number;
 }
 
-
 export interface RelayAfterUnboundPagination<TCursor> {
   after: TCursor;
   first?: never;
@@ -50,6 +49,17 @@ export type RelayBackwardsPagination<TCursor> =
 export type RelayPagination<TCursor> =
   | RelayForwardsPagination<TCursor>
   | RelayBackwardsPagination<TCursor>;
+
+/**
+ * @returns String that is unique for a pagination.
+ */
+export function getPaginationKey(p: RelayPagination<string>): string {
+  if ('after' in p || 'first' in p) {
+    return `a${p.after ?? ''}:${p.first ?? ''}`;
+  } else {
+    return `b${p.before ?? ''}:${p.last ?? ''}`;
+  }
+}
 
 export function isFirstPagination<TCursor>(
   pagination: RelayPagination<TCursor>
@@ -155,7 +165,9 @@ export interface SliceAfterInput<TCursor> {
    * If undefined then after value itself is compared again array elements.
    */
   itemPath?: string;
-  sliceList: Readonly<[RelayAfterPagination<TCursor>, ...RelayAfterPagination<TCursor>[]]>;
+  sliceList: Readonly<
+    [RelayAfterPagination<TCursor>, ...RelayAfterPagination<TCursor>[]]
+  >;
 }
 
 export interface SliceAfterOutput<TItem> {
@@ -236,7 +248,9 @@ export interface SliceBeforeInput<TCursor> {
    * If undefined then after value itself is compared again array elements.
    */
   itemPath?: string;
-  sliceList: Readonly<[RelayBeforePagination<TCursor>, ...RelayBeforePagination<TCursor>[]]>;
+  sliceList: Readonly<
+    [RelayBeforePagination<TCursor>, ...RelayBeforePagination<TCursor>[]]
+  >;
 }
 
 export interface SliceBeforeOutput<TItem> {
@@ -515,8 +529,8 @@ export default function relayArrayPagination<TCursor>(
   };
 }
 
-export function relayArrayPaginationMapPaginationOutputToInput<TCursor,TItem>(
-  input: RelayArrayPaginationInput<TCursor>['paginations'], 
+export function relayArrayPaginationMapPaginationOutputToInput<TCursor, TItem>(
+  input: RelayArrayPaginationInput<TCursor>['paginations'],
   output: RelayArrayPaginationOutput<TItem>['paginations']
 ): TItem[][] {
   // Output is actual contents of item

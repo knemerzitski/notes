@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import { RelayPagination } from './operations/relayArrayPagination';
+import { RelayPagination, getPaginationKey } from './operations/relayArrayPagination';
 
 type Primitive = string | number | boolean | ObjectId;
 type ProjectionValue = 1;
@@ -78,14 +78,6 @@ export type MergedProjection<T> = {
         : ProjectionValue;
 };
 
-function calcPaginationKey(p: RelayPagination<string>): string {
-  if ('after' in p || 'first' in p) {
-    return `a${p.after ?? ''}:${p.first ?? ''}`;
-  } else {
-    return `b${p.before ?? ''}:${p.last ?? ''}`;
-  }
-}
-
 export function mergeProjections<T>(
   mergedObj: MergedProjection<T>,
   sources: Readonly<Projection<T>[]>,
@@ -145,7 +137,7 @@ export function mergeProjections<T>(
 
             // Add only unique paginations, skip duplicate
             const currentPathKey = `${pathKey}.${sourceKey}`;
-            const paginationValue = calcPaginationKey(pagination);
+            const paginationValue = getPaginationKey(pagination);
             const existingPaginationsSet = paginationMemo[currentPathKey];
             if (!existingPaginationsSet) {
               paginationMemo[currentPathKey] = new Set([paginationValue]);
