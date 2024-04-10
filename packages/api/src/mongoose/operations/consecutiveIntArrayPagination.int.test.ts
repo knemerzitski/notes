@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { assert, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
   RelayAfterBoundPagination,
   RelayArrayPaginationInput,
@@ -10,7 +10,6 @@ import { mongoDb } from '../../tests/helpers/mongoose';
 import consecutiveIntArrayPagination, {
   BoundPaginationUnion,
 } from './consecutiveIntArrayPagination';
-import { AfterRangeUnion } from './revisionRecordsPagination';
 
 interface ArrayDocument {
   items: number[];
@@ -45,10 +44,8 @@ describe('consecutiveIntArrayPagination', () => {
         ],
       },
       expectedOutput: {
-        paginations: {
-          array: [1, 2, 3],
-          sizes: [3, 0],
-        },
+        array: [1, 2, 3],
+        sizes: [3, 0],
       },
     },
     {
@@ -67,10 +64,8 @@ describe('consecutiveIntArrayPagination', () => {
         ],
       },
       expectedOutput: {
-        paginations: {
-          array: [1, 2, 3, 4, 6, 7, 8, 9, 5],
-          sizes: [4, 4, 1],
-        },
+        array: [1, 2, 3, 4, 6, 7, 8, 9, 5],
+        sizes: [4, 4, 1],
       },
     },
     {
@@ -97,10 +92,8 @@ describe('consecutiveIntArrayPagination', () => {
         ],
       },
       expectedOutput: {
-        paginations: {
-          array: [1, 2, 4, 6, 7, 8],
-          sizes: [2, 0, 1, 3],
-        },
+        array: [1, 2, 4, 6, 7, 8],
+        sizes: [2, 0, 1, 3],
       },
     },
     {
@@ -113,10 +106,8 @@ describe('consecutiveIntArrayPagination', () => {
         ],
       },
       expectedOutput: {
-        paginations: {
-          array: [1, 2],
-          sizes: [2, 0],
-        },
+        array: [1, 2],
+        sizes: [2, 0],
       },
     },
     {
@@ -124,9 +115,7 @@ describe('consecutiveIntArrayPagination', () => {
         paginations: [],
       },
       expectedOutput: {
-        paginations: {
-          array: [1, 2, 3, 4, 5, 6, 7, 8, 9],
-        },
+        array: [1, 2, 3, 4, 5, 6, 7, 8, 9],
       },
     },
   ])('input $input => $expectedOutput', async ({ input, expectedOutput }) => {
@@ -136,23 +125,22 @@ describe('consecutiveIntArrayPagination', () => {
     });
 
     const results = await arrayCollection
-      .aggregate<RelayArrayPaginationOutput<number>>([
+      .aggregate<{ paginations: RelayArrayPaginationOutput<number> }>([
         {
           $match: {
             _id: documentId,
           },
         },
         {
-          $project: pagination,
+          $project: {
+            paginations: pagination,
+          },
         },
       ])
       .toArray();
 
-    expect(results[0]).toMatchObject({
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      _id: expect.any(ObjectId),
-      ...expectedOutput,
-    });
+    assert(results[0] != null);
+    expect(results[0].paginations).toStrictEqual(expectedOutput);
   });
 });
 
@@ -233,7 +221,7 @@ describe('BoundPaginationUnion', () => {
     it.each<
       [
         (RelayAfterBoundPagination<number> | RelayBeforeBoundPagination<number>)[],
-        Parameters<AfterRangeUnion['remove']>[0],
+        Parameters<BoundPaginationUnion['remove']>[0],
         number,
         RelayAfterBoundPagination<number>[],
       ]

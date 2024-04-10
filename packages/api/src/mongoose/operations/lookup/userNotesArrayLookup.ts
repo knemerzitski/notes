@@ -20,8 +20,8 @@ export interface UserNotesArrayLookupInput<TCollabTextKey extends string> {
 
 export type UserNotesArrayLookupOutput<
   TCollabTextKey extends string,
-  TGroupExpressionOutput = Record<string, never>,
   TUserNoteLookupOutput = UserNoteLookupOutput<TCollabTextKey>,
+  TGroupExpressionOutput = Record<string, never>,
 > = {
   userNotes: TUserNoteLookupOutput[];
 } & TGroupExpressionOutput;

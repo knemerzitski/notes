@@ -8,7 +8,7 @@ import { consecutiveIntArrayMapPaginationOutputToInput } from './consecutiveIntA
 describe('consecutiveIntArrayMapPaginationOutputToInput', () => {
   it.each<{
     input: RelayArrayPaginationInput<number>['paginations'];
-    output: RelayArrayPaginationOutput<number>['paginations'];
+    output: RelayArrayPaginationOutput<number>;
     expected: number[][];
   }>([
     // [1,2,3,4,5,6,7,8,9]
@@ -160,8 +160,8 @@ describe('consecutiveIntArrayMapPaginationOutputToInput', () => {
       expected: [[6, 7, 8], [7], [4], [1, 2], [9], [9], [1]],
     },
   ])('(%s,%s) => %s', ({ input, output, expected }) => {
-    expect(consecutiveIntArrayMapPaginationOutputToInput(input, output, (item) => item)).toStrictEqual(
-      expected
-    );
+    expect(
+      consecutiveIntArrayMapPaginationOutputToInput(input, output, (item) => item)
+    ).toStrictEqual(expected);
   });
 });

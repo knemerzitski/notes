@@ -10,8 +10,8 @@ export interface UserNoteLookupInput<TCollabTextKey extends string> {
 
 type BaseUserNote = Omit<DBUserNote, 'userId' | 'note'>;
 type BaseUserNoteNote = Omit<DBUserNote['note'], 'collabTextId'>;
-type DefaultNotePipeline = Omit<DBNote, 'userId' | 'publicId' | 'collabTextId'>;
-type DefaultCollabTextPipeline = DBCollabText;
+export type DefaultNotePipeline = Omit<DBNote, 'userId' | 'publicId' | 'collabTextId'>;
+export type DefaultCollabTextPipeline = DBCollabText;
 
 export type UserNoteLookupOutput<
   TCollabTextKey extends string,

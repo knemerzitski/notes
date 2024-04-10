@@ -8,7 +8,7 @@ import {
 describe('relayArrayPaginationMapPaginationOutputToInput', () => {
   it.each<{
     input: RelayArrayPaginationInput<string>['paginations'];
-    output: RelayArrayPaginationOutput<string>['paginations'];
+    output: RelayArrayPaginationOutput<string>;
     expected: string[][];
   }>([
     {
@@ -155,7 +155,7 @@ describe('relayArrayPaginationMapPaginationOutputToInput', () => {
 
   it.each<{
     input: RelayArrayPaginationInput<string>['paginations'];
-    output: RelayArrayPaginationOutput<string>['paginations'];
+    output: RelayArrayPaginationOutput<string>;
   }>([
     {
       input: [

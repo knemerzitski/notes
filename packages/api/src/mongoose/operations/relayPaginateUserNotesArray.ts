@@ -15,20 +15,17 @@ export interface RelayPaginateUserNotesArrayInput<TCollabTextKey extends string>
 }
 
 interface GroupExpression {
-  sizes: Exclude<
-    RelayArrayPaginationOutput<ObjectId>['paginations']['sizes'],
-    undefined
-  > | null;
+  sizes: Exclude<RelayArrayPaginationOutput<ObjectId>['sizes'], undefined> | null;
 }
 
 export type RelayPaginateUserNotesArrayOuput<
   TCollabTextKey extends string,
-  TGroupExpressionOutput = Record<string, never>,
   TUserNoteLookupOutput = UserNoteLookupOutput<TCollabTextKey>,
+  TGroupExpressionOutput = Record<string, never>,
 > = UserNotesArrayLookupOutput<
   TCollabTextKey,
-  TGroupExpressionOutput,
-  TUserNoteLookupOutput
+  TUserNoteLookupOutput,
+  TGroupExpressionOutput
 > &
   GroupExpression;
 
@@ -37,7 +34,9 @@ export default function relayPaginateUserNotesArray<TCollabTextKey extends strin
 ) {
   return [
     {
-      $project: relayArrayPagination(input.pagination),
+      $project: {
+        paginations: relayArrayPagination(input.pagination),
+      },
     },
     ...userNotesArrayLookup({
       ...input.userNotes,

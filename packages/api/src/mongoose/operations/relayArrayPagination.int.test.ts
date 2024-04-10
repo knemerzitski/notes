@@ -320,9 +320,7 @@ describe('relayArrayPagination', () => {
           paginations: [],
         },
         expectedOutput: {
-          paginations: {
-            array: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
-          },
+          array: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
         },
       },
       {
@@ -334,10 +332,8 @@ describe('relayArrayPagination', () => {
           ],
         },
         expectedOutput: {
-          paginations: {
-            array: ['0', '1', '2', '3'],
-            sizes: [4, 0],
-          },
+          array: ['0', '1', '2', '3'],
+          sizes: [4, 0],
         },
       },
       {
@@ -349,10 +345,8 @@ describe('relayArrayPagination', () => {
           ],
         },
         expectedOutput: {
-          paginations: {
-            array: ['7', '8', '9'],
-            sizes: [0, 3],
-          },
+          array: ['7', '8', '9'],
+          sizes: [0, 3],
         },
       },
       {
@@ -365,10 +359,8 @@ describe('relayArrayPagination', () => {
           ],
         },
         expectedOutput: {
-          paginations: {
-            array: ['4', '5', '6', '7'],
-            sizes: [0, 0, 4],
-          },
+          array: ['4', '5', '6', '7'],
+          sizes: [0, 0, 4],
         },
       },
       {
@@ -381,10 +373,8 @@ describe('relayArrayPagination', () => {
           ],
         },
         expectedOutput: {
-          paginations: {
-            array: ['3', '4', '5'],
-            sizes: [0, 0, 3],
-          },
+          array: ['3', '4', '5'],
+          sizes: [0, 0, 3],
         },
       },
       {
@@ -393,9 +383,7 @@ describe('relayArrayPagination', () => {
           defaultSlice: 'start',
         },
         expectedOutput: {
-          paginations: {
-            array: ['0', '1', '2'],
-          },
+          array: ['0', '1', '2'],
         },
       },
       {
@@ -404,9 +392,7 @@ describe('relayArrayPagination', () => {
           defaultSlice: 'end',
         },
         expectedOutput: {
-          paginations: {
-            array: ['7', '8', '9'],
-          },
+          array: ['7', '8', '9'],
         },
       },
       {
@@ -440,10 +426,8 @@ describe('relayArrayPagination', () => {
           ],
         },
         expectedOutput: {
-          paginations: {
-            array: ['0', '1', '2', '3', '8', '9', '4', '5', '6', '9', '4', '5', '6'],
-            sizes: [4, 2, 3, 1, 0, 3],
-          },
+          array: ['0', '1', '2', '3', '8', '9', '4', '5', '6', '9', '4', '5', '6'],
+          sizes: [4, 2, 3, 1, 0, 3],
         },
       },
       {
@@ -458,10 +442,8 @@ describe('relayArrayPagination', () => {
           ],
         },
         expectedOutput: {
-          paginations: {
-            array: ['0', '1', '2', '3', '4'],
-            sizes: [5, 0],
-          },
+          array: ['0', '1', '2', '3', '4'],
+          sizes: [5, 0],
         },
       },
     ])('input $input => $expectedOutput', async ({ input, expectedOutput }) => {
@@ -471,23 +453,22 @@ describe('relayArrayPagination', () => {
       });
 
       const results = await arrayCollection
-        .aggregate<RelayArrayPaginationOutput<SubDocument>>([
+        .aggregate<{ paginations: RelayArrayPaginationOutput<SubDocument> }>([
           {
             $match: {
               _id: documentId,
             },
           },
           {
-            $project: pagination,
+            $project: {
+              paginations: pagination,
+            },
           },
         ])
         .toArray();
 
-      expect(results[0]).toMatchObject({
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        _id: expect.any(ObjectId),
-        ...expectedOutput,
-      });
+      assert(results[0] != null);
+      expect(results[0].paginations).toStrictEqual(expectedOutput);
     });
   });
 });

@@ -367,13 +367,6 @@ export interface RelayArrayPaginationInput<TCursor> {
 
 export interface RelayArrayPaginationOutput<TItem> {
   /**
-   * Contains all paginations. Both array and sizes match in order.
-   */
-  paginations: RelayPaginationResult<TItem>;
-}
-
-export interface RelayPaginationResult<TItem> {
-  /**
    * Array containing all paginations.
    * Order of array: [maxFirst, maxLast, ...after, ...before].
    */
@@ -447,56 +440,54 @@ export default function relayArrayPagination<TCursor>(
       };
 
       return {
-        paginations: {
-          $reduce: {
-            input: [
-              maxFirst > 0
-                ? {
-                    array: sliceFirst(input.arrayFieldPath, maxFirst),
-                    sizes: null,
-                  }
-                : emptyPagination,
-              maxLast > 0
-                ? {
-                    array: sliceLast(input.arrayFieldPath, maxLast),
-                    sizes: null,
-                  }
-                : emptyPagination,
-              isNonEmptyArray(sliceAfterList)
-                ? sliceAfter({
-                    arrayFieldPath: input.arrayFieldPath,
-                    itemPath: input.arrayItemPath,
-                    sliceList: sliceAfterList,
-                  })
-                : skipPagination,
-              isNonEmptyArray(sliceBeforeList)
-                ? sliceBefore({
-                    arrayFieldPath: input.arrayFieldPath,
-                    itemPath: input.arrayItemPath,
-                    sliceList: sliceBeforeList,
-                  })
-                : skipPagination,
-            ],
-            initialValue: {
-              array: [],
-              sizes: [],
+        $reduce: {
+          input: [
+            maxFirst > 0
+              ? {
+                  array: sliceFirst(input.arrayFieldPath, maxFirst),
+                  sizes: null,
+                }
+              : emptyPagination,
+            maxLast > 0
+              ? {
+                  array: sliceLast(input.arrayFieldPath, maxLast),
+                  sizes: null,
+                }
+              : emptyPagination,
+            isNonEmptyArray(sliceAfterList)
+              ? sliceAfter({
+                  arrayFieldPath: input.arrayFieldPath,
+                  itemPath: input.arrayItemPath,
+                  sliceList: sliceAfterList,
+                })
+              : skipPagination,
+            isNonEmptyArray(sliceBeforeList)
+              ? sliceBefore({
+                  arrayFieldPath: input.arrayFieldPath,
+                  itemPath: input.arrayItemPath,
+                  sliceList: sliceBeforeList,
+                })
+              : skipPagination,
+          ],
+          initialValue: {
+            array: [],
+            sizes: [],
+          },
+          in: {
+            array: {
+              $concatArrays: ['$$value.array', '$$this.array'],
             },
-            in: {
-              array: {
-                $concatArrays: ['$$value.array', '$$this.array'],
-              },
-              sizes: {
-                $concatArrays: [
-                  '$$value.sizes',
-                  {
-                    $cond: [
-                      { $eq: ['$$this.sizes', null] },
-                      [{ $size: '$$this.array' }],
-                      '$$this.sizes',
-                    ],
-                  },
-                ],
-              },
+            sizes: {
+              $concatArrays: [
+                '$$value.sizes',
+                {
+                  $cond: [
+                    { $eq: ['$$this.sizes', null] },
+                    [{ $size: '$$this.array' }],
+                    '$$this.sizes',
+                  ],
+                },
+              ],
             },
           },
         },
@@ -509,29 +500,23 @@ export default function relayArrayPagination<TCursor>(
   if (limit) {
     if (input.defaultSlice === 'end') {
       return {
-        paginations: {
-          array: sliceLast(input.arrayFieldPath, limit),
-        },
+        array: sliceLast(input.arrayFieldPath, limit),
       };
     } else {
       return {
-        paginations: {
-          array: sliceFirst(input.arrayFieldPath, limit),
-        },
+        array: sliceFirst(input.arrayFieldPath, limit),
       };
     }
   }
 
   return {
-    paginations: {
-      array: `$${input.arrayFieldPath}`,
-    },
+    array: `$${input.arrayFieldPath}`,
   };
 }
 
 export function relayArrayPaginationMapPaginationOutputToInput<TCursor, TItem>(
   input: RelayArrayPaginationInput<TCursor>['paginations'],
-  output: RelayArrayPaginationOutput<TItem>['paginations']
+  output: RelayArrayPaginationOutput<TItem>
 ): TItem[][] {
   // Output is actual contents of item
   if (!input || input.length === 0) return [output.array];

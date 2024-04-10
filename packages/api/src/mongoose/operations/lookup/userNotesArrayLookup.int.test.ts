@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { assert, beforeAll, expect, it } from 'vitest';
 import {
   CollabText,
@@ -7,16 +8,11 @@ import {
   resetDatabase,
 } from '../../../tests/helpers/mongoose';
 import { faker } from '@faker-js/faker';
-import { UserNoteDocument } from '../../models/user-note';
 import {
   createUserWithNotes,
   populateWithCreatedData,
 } from '../../../test/helpers/mongoose/populate';
-import userNoteLookup, {
-  UserNoteLookupOnlyCollabTextOutput,
-  UserNoteLookupOnlyNoteOutput,
-  UserNoteLookupOutput,
-} from './userNoteLookup';
+import { UserNoteLookupOutput } from './userNoteLookup';
 import { ObjectId } from 'mongodb';
 import userNotesArrayLookup, { UserNotesArrayLookupOutput } from './userNotesArrayLookup';
 import { UserDocument } from '../../models/user';
@@ -94,7 +90,11 @@ it('returns userNotesArray in expected format', async () => {
 
 it('uses groupExpression', async () => {
   const results = await User.aggregate<
-    UserNotesArrayLookupOutput<CollabTextKey, { firstElement: ObjectId }>
+    UserNotesArrayLookupOutput<
+      CollabTextKey,
+      UserNoteLookupOutput<CollabTextKey>,
+      { firstElement: ObjectId }
+    >
   >([
     {
       $match: {
