@@ -6,10 +6,10 @@ export interface RelayFirstPagination {
   first: number;
 }
 
-export interface RelayAfterPagination<TItem> {
-  after: TItem;
-  first?: number;
-}
+// export interface RelayAfterPagination<TItem> {
+//   after: TItem;
+//   first?: number;
+// }
 
 export interface RelayAfterUnboundPagination<TItem> {
   after: TItem;
@@ -21,15 +21,19 @@ export interface RelayAfterBoundPagination<TItem> {
   first: number;
 }
 
+export type RelayAfterPagination<TItem> =
+  | RelayAfterUnboundPagination<TItem>
+  | RelayAfterBoundPagination<TItem>;
+
 export interface RelayLastPagination {
   before?: never;
   last: number;
 }
 
-export interface RelayBeforePagination<TItem> {
-  before: TItem;
-  last?: number;
-}
+// export interface RelayBeforePagination<TItem> {
+//   before: TItem;
+//   last?: number;
+// }
 
 export interface RelayBeforeUnboundPagination<TItem> {
   before: TItem;
@@ -41,16 +45,20 @@ export interface RelayBeforeBoundPagination<TItem> {
   last: number;
 }
 
-export type RelayForwardsPagination<TItem> =
-  | RelayFirstPagination
-  | RelayAfterPagination<TItem>
-  | RelayAfterUnboundPagination<TItem>
-  | RelayAfterBoundPagination<TItem>;
-export type RelayBackwardsPagination<TItem> =
-  | RelayLastPagination
-  | RelayBeforePagination<TItem>
+export type RelayBeforePagination<TItem> =
   | RelayBeforeUnboundPagination<TItem>
   | RelayBeforeBoundPagination<TItem>;
+
+export type RelayForwardsPagination<TItem> =
+  | RelayFirstPagination
+  | RelayAfterPagination<TItem>;
+// | RelayAfterUnboundPagination<TItem>
+// | RelayAfterBoundPagination<TItem>;
+export type RelayBackwardsPagination<TItem> =
+  | RelayLastPagination
+  | RelayBeforePagination<TItem>;
+// | RelayBeforeUnboundPagination<TItem>
+// | RelayBeforeBoundPagination<TItem>;
 
 export type RelayPagination<TItem> =
   | RelayForwardsPagination<TItem>
@@ -520,10 +528,12 @@ export default function relayArrayPagination<TItem>(
   };
 }
 
-export function mapPaginationOutputToInput<TItem>(
-  input: RelayArrayPaginationInput<TItem>['paginations'],
+export function relayArrayPaginationMapPaginationOutputToInput<TItem>(
+  // TODO For input rename TItem to TCursor
+  input: RelayArrayPaginationInput<TItem>['paginations'], // input TItem is just value in array
   output: RelayArrayPaginationOutput<TItem>['paginations']
 ): TItem[][] {
+  // Output is actual contents of item
   if (!input || input.length === 0) return [output.array];
 
   const sizes = output.sizes;
