@@ -7,6 +7,7 @@ import { PipelineStage } from 'mongoose';
 import {
   RelayAfterBoundPagination,
   RelayArrayPaginationInput,
+  RelayArrayPaginationOutput,
   RelayBeforeBoundPagination,
   RelayPagination,
   isAfterBoundPagination,
@@ -15,7 +16,6 @@ import {
   isBeforeUnboundPagination,
   isFirstPagination,
   isLastPagination,
-  maybeApplyLimit,
   sliceFirst,
   sliceLast,
 } from './relayArrayPagination';
@@ -29,11 +29,13 @@ export default function consecutiveIntArrayPagination(
         ? input.paginations.map((p) => {
             if ('first' in p && p.first != null) {
               const pCpy = { ...p };
-              pCpy.first = maybeApplyLimit(p.first, input.defaultLimit, input.maxLimit);
+              pCpy.first =
+                input.maxLimit != null ? Math.min(p.first, input.maxLimit) : p.first;
               return pCpy;
             } else if ('last' in p && p.last != null) {
               const pCpy = { ...p };
-              pCpy.last = maybeApplyLimit(p.last, input.defaultLimit, input.maxLimit);
+              pCpy.last =
+                input.maxLimit != null ? Math.min(p.last, input.maxLimit) : p.last;
               return pCpy;
             }
 
@@ -190,6 +192,115 @@ export default function consecutiveIntArrayPagination(
       array: `$${input.arrayFieldPath}`,
     },
   };
+}
+
+interface Range {
+  start: number;
+  end: number;
+}
+
+function getRangeIntersection(a: Range, b: Range) {
+  const min = a.start < b.start ? a : b;
+  const max = min === a ? b : a;
+
+  if (min.end < max.start) {
+    return;
+  }
+
+  return {
+    start: max.start,
+    end: min.end < max.end ? min.end : max.end,
+  };
+}
+
+export function consecutiveIntArrayMapPaginationOutputToInput<TItem>(
+  input: RelayArrayPaginationInput<number>['paginations'],
+  output: RelayArrayPaginationOutput<TItem>['paginations'],
+  toCursor: (item: TItem) => number
+): TItem[][] {
+  if (!input || input.length === 0) return [output.array];
+
+  const sizes = output.sizes;
+  if (!sizes) throw new Error('Expected pagination sizes to be defined');
+
+  return input.map((pagination) => {
+    if (isFirstPagination(pagination)) {
+      return output.array.slice(0, Math.min(pagination.first, sizes[0]));
+    } else if (isLastPagination(pagination)) {
+      const end = sizes[0] + sizes[1];
+      return output.array.slice(Math.max(sizes[0], end - pagination.last), end);
+    } else if (isAfterUnboundPagination(pagination)) {
+      const startCursor = pagination.after + 1;
+      const firstEndItem = output.array[sizes[0]];
+      if (firstEndItem == null) {
+        throw new Error(
+          `Expected first size end to contain element at index ${sizes[0]}`
+        );
+      }
+      const start = sizes[0] + startCursor - toCursor(firstEndItem);
+
+      return output.array.slice(start, start + sizes[1]);
+    } else if (isBeforeUnboundPagination(pagination)) {
+      const endCursor = pagination.before;
+      const item0 = output.array[0];
+      if (item0 == null) {
+        throw new Error(`Expected output array first element to be defined at index 0`);
+      }
+      const cursor0 = toCursor(item0);
+
+      const end = endCursor - cursor0;
+
+      return output.array.slice(0, end);
+    } else {
+      let startCursor: number;
+      let endCursor: number;
+      if (isAfterBoundPagination(pagination)) {
+        const { after, first } = pagination;
+        startCursor = after + 1;
+        endCursor = startCursor + first;
+      } else {
+        const { before, last } = pagination;
+        startCursor = before - last;
+        endCursor = before;
+      }
+
+      let startSize = 0;
+      const result: TItem[] = [];
+      for (const size of sizes) {
+        const item = output.array[startSize];
+        if (item == null) {
+          throw new Error(
+            `Expected output array first element to be defined at index ${startSize}`
+          );
+        }
+
+        const startSubCursor = toCursor(item);
+        const endSubCursor = startSubCursor + size;
+
+        const range = { start: startCursor, end: endCursor - 1 };
+        const subRange = {
+          start: startSubCursor,
+          end: endSubCursor - 1,
+        };
+        const intersect = getRangeIntersection(range, subRange);
+
+        if (intersect) {
+          const offset = startSize - startSubCursor;
+          const outputIndex = {
+            start: intersect.start + offset,
+            end: intersect.end + 1 + offset,
+          };
+
+          result.push(...output.array.slice(outputIndex.start, outputIndex.end));
+        }
+
+        startSize += size;
+        if (startSize >= output.array.length) break;
+      }
+
+      return result;
+    }
+  });
 }
 
 function calcMaxFirst<TItem>(paginations: RelayPagination<TItem>[]) {
