@@ -42,7 +42,7 @@ describe('collaborativeDocumentRevisionRecordsPagination', () => {
       Object.values(CollabTextKey),
       {
         collabDoc: {
-          recordsCount: 20,
+          recordsCount: 10,
           tailRevision: -1,
         },
         noteMany: {

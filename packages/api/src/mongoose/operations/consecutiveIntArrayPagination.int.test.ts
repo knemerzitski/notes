@@ -17,7 +17,6 @@ interface ArrayDocument {
 
 describe('consecutiveIntArrayPagination', () => {
   const arrayCollection = mongoDb.collection<ArrayDocument>('array');
-  // Each array has 10 elements
   const document: ArrayDocument = {
     items: [1, 2, 3, 4, 5, 6, 7, 8, 9],
   };
@@ -116,6 +115,22 @@ describe('consecutiveIntArrayPagination', () => {
       },
       expectedOutput: {
         array: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+      },
+    },
+    {
+      input: {
+        paginations: [
+          {
+            before: 12,
+          },
+          {
+            after: 5,
+          },
+        ],
+      },
+      expectedOutput: {
+        array: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+        sizes: [9, 0],
       },
     },
   ])('input $input => $expectedOutput', async ({ input, expectedOutput }) => {

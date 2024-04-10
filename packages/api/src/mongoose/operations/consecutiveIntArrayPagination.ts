@@ -83,80 +83,94 @@ export default function consecutiveIntArrayPagination(
               },
             },
             in: {
-              $reduce: {
-                input: [
-                  {
-                    $cond: [
-                      { $gt: ['$$startBound', 0] },
-                      { $slice: [`$${input.arrayFieldPath}`, 0, '$$startBound'] },
-                      [],
-                    ],
-                  },
-                  { $slice: [`$${input.arrayFieldPath}`, '$$endBound', '$$size'] },
-                  ...uniqueBoundPaginations.map(({ after, first }) => ({
-                    $let: {
-                      vars: {
-                        // Start of slice
-                        start: {
-                          $min: [
-                            {
-                              $max: [
-                                0,
-                                {
-                                  $subtract: [after + 1, '$$firstValue'],
-                                },
-                                '$$startBound',
-                              ],
-                            },
-                            '$$endBound',
-                          ],
-                        },
-                        // End of slice
-                        end: {
-                          $min: [
-                            {
-                              $max: [
-                                {
-                                  $subtract: [after + first + 1, '$$firstValue'],
-                                },
-                                '$$startBound',
-                              ],
-                            },
-                            '$$endBound',
-                          ],
-                        },
-                      },
-                      in: {
+              $cond: [
+                { $lte: ['$$endBound', '$$startBound'] },
+                {
+                  array: `$${input.arrayFieldPath}`,
+                  sizes: ['$$size', 0],
+                },
+                {
+                  $reduce: {
+                    input: [
+                      {
                         $cond: [
-                          {
-                            $and: [{ $lt: [0, '$$end'] }, { $lt: ['$$start', '$$end'] }],
-                          },
-                          {
-                            $slice: [
-                              `$${input.arrayFieldPath}`,
-                              '$$start',
-                              { $subtract: ['$$end', '$$start'] },
-                            ],
-                          },
+                          { $gt: ['$$startBound', 0] },
+                          { $slice: [`$${input.arrayFieldPath}`, 0, '$$startBound'] },
                           [],
                         ],
                       },
+                      {
+                        $slice: [`$${input.arrayFieldPath}`, '$$endBound', '$$size'],
+                      },
+                      ...uniqueBoundPaginations.map(({ after, first }) => ({
+                        $let: {
+                          vars: {
+                            // Start of slice
+                            start: {
+                              $min: [
+                                {
+                                  $max: [
+                                    0,
+                                    {
+                                      $subtract: [after + 1, '$$firstValue'],
+                                    },
+                                    '$$startBound',
+                                  ],
+                                },
+                                '$$endBound',
+                              ],
+                            },
+                            // End of slice
+                            end: {
+                              $min: [
+                                {
+                                  $max: [
+                                    {
+                                      $subtract: [after + first + 1, '$$firstValue'],
+                                    },
+                                    '$$startBound',
+                                  ],
+                                },
+                                '$$endBound',
+                              ],
+                            },
+                          },
+                          in: {
+                            $cond: [
+                              {
+                                $and: [
+                                  { $lt: [0, '$$end'] },
+                                  { $lt: ['$$start', '$$end'] },
+                                ],
+                              },
+                              {
+                                $slice: [
+                                  `$${input.arrayFieldPath}`,
+                                  '$$start',
+                                  { $subtract: ['$$end', '$$start'] },
+                                ],
+                              },
+                              [],
+                            ],
+                          },
+                        },
+                      })),
+                    ],
+                    initialValue: {
+                      array: [],
+                      sizes: [],
                     },
-                  })),
-                ],
-                initialValue: {
-                  array: [],
-                  sizes: [],
-                },
-                in: {
-                  array: {
-                    $concatArrays: ['$$value.array', '$$this'],
-                  },
-                  sizes: {
-                    $concatArrays: ['$$value.sizes', [{ $size: '$$this' }]],
+                    in: {
+                      array: {
+                        $concatArrays: ['$$value.array', '$$this'],
+                      },
+                      sizes: {
+                        $concatArrays: ['$$value.sizes', [{ $size: '$$this' }]],
+                      },
+                    },
                   },
                 },
-              },
+              ],
             },
           },
         },
@@ -222,9 +236,7 @@ export function consecutiveIntArrayMapPaginationOutputToInput<TItem>(
       const startCursor = pagination.after + 1;
       const firstEndItem = output.array[sizes[0]];
       if (firstEndItem == null) {
-        throw new Error(
-          `Expected first size end to contain element at index ${sizes[0]}`
-        );
+        return [];
       }
       const start = sizes[0] + startCursor - toCursor(firstEndItem);
 
@@ -233,7 +245,7 @@ export function consecutiveIntArrayMapPaginationOutputToInput<TItem>(
       const endCursor = pagination.before;
       const item0 = output.array[0];
       if (item0 == null) {
-        throw new Error(`Expected output array first element to be defined at index 0`);
+        return [];
       }
       const cursor0 = toCursor(item0);
 
@@ -258,9 +270,7 @@ export function consecutiveIntArrayMapPaginationOutputToInput<TItem>(
       for (const size of sizes) {
         const item = output.array[startSize];
         if (item == null) {
-          throw new Error(
-            `Expected output array first element to be defined at index ${startSize}`
-          );
+          return [];
         }
 
         const startSubCursor = toCursor(item);
