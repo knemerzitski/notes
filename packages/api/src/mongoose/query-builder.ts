@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import { RelayPagination, getPaginationKey } from './operations/relayArrayPagination';
+import { RelayPagination, getPaginationKey } from './operations/pagination/relayArrayPagination';
 
 type Primitive = string | number | boolean | ObjectId;
 type ProjectionValue = 1;

@@ -1,4 +1,4 @@
-import { DBRevisionRecord } from '../models/collab/embedded/revision-record';
+import { DBRevisionRecord } from '../../models/collab/embedded/revision-record';
 import consecutiveIntArrayPagination, {
   consecutiveIntArrayMapPaginationOutputToInput,
 } from './consecutiveIntArrayPagination';

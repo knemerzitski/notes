@@ -4,19 +4,19 @@ import { assert, beforeAll, expect, it } from 'vitest';
 import {
   populateWithCreatedData,
   createUserWithNotes,
-} from '../../test/helpers/mongoose/populate';
+} from '../../../test/helpers/mongoose/populate';
 import {
   CollabText,
   Note,
   User,
   UserNote,
   resetDatabase,
-} from '../../tests/helpers/mongoose';
-import { UserDocument } from '../models/user';
+} from '../../../tests/helpers/mongoose';
+import { UserDocument } from '../../models/user';
 import relayPaginateUserNotesArray, {
   RelayPaginateUserNotesArrayOuput,
 } from './relayPaginateUserNotesArray';
-import { UserNoteDocument } from '../models/user-note';
+import { UserNoteDocument } from '../../models/user-note';
 
 enum TextFields {
   TITLE = 'title',

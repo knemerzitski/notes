@@ -6,8 +6,8 @@ import relayArrayPagination, {
 import userNotesArrayLookup, {
   UserNotesArrayLookupInput,
   UserNotesArrayLookupOutput,
-} from './lookup/userNotesArrayLookup';
-import { UserNoteLookupOutput } from './lookup/userNoteLookup';
+} from '../lookup/userNotesArrayLookup';
+import { UserNoteLookupOutput } from '../lookup/userNoteLookup';
 
 export interface RelayPaginateUserNotesArrayInput<TCollabTextKey extends string> {
   pagination: RelayArrayPaginationInput<ObjectId>;

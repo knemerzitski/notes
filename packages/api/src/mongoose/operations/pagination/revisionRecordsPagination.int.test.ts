@@ -4,24 +4,24 @@ import revisionRecordsPagination, {
   CollabTextRevisionRecordsPaginationInput,
   CollabTextRevisionRecordsPaginationOutput,
 } from './revisionRecordsPagination';
-import { UserDocument } from '../models/user';
+import { UserDocument } from '../../models/user';
 import { faker } from '@faker-js/faker';
 import {
   createUserWithNotes,
   populateWithCreatedData,
-} from '../../test/helpers/mongoose/populate';
+} from '../../../test/helpers/mongoose/populate';
 import {
   CollabText,
   Note,
   User,
   UserNote,
   resetDatabase,
-} from '../../tests/helpers/mongoose';
+} from '../../../tests/helpers/mongoose';
 import relayPaginateUserNotesArray, {
   RelayPaginateUserNotesArrayOuput,
 } from './relayPaginateUserNotesArray';
 
-import { DefaultCollabTextPipeline, UserNoteLookupOutput } from './lookup/userNoteLookup';
+import { DefaultCollabTextPipeline, UserNoteLookupOutput } from '../lookup/userNoteLookup';
 import { ObjectId } from 'mongodb';
 
 describe('collaborativeDocumentRevisionRecordsPagination', () => {

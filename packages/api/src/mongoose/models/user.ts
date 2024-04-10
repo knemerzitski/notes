@@ -1,5 +1,4 @@
 import { HydratedDocument, Model, Schema, Types } from 'mongoose';
-import { nanoid } from 'nanoid';
 
 export interface DBUser {
   /**

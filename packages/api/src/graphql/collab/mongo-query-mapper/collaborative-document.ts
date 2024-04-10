@@ -13,7 +13,7 @@ import { Changeset } from '~collab/changeset/changeset';
 import {
   RelayArrayPaginationConfig,
   applyLimit,
-} from '../../../mongoose/operations/relayArrayPagination';
+} from '../../../mongoose/operations/pagination/relayArrayPagination';
 import {
   RevisionChangesetQueryType,
   RevisionChangesetQuery,

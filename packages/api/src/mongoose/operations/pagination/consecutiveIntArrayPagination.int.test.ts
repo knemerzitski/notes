@@ -6,7 +6,7 @@ import {
   RelayArrayPaginationOutput,
   RelayBeforeBoundPagination,
 } from './relayArrayPagination';
-import { mongoDb } from '../../tests/helpers/mongoose';
+import { mongoDb } from '../../../tests/helpers/mongoose';
 import consecutiveIntArrayPagination, {
   BoundPaginationUnion,
 } from './consecutiveIntArrayPagination';
