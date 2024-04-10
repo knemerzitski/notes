@@ -1,11 +1,10 @@
-import { assert, beforeAll, describe, it } from 'vitest';
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { assert, beforeAll, describe, expect, it } from 'vitest';
 import revisionRecordsPagination, {
   CollabTextRevisionRecordsPaginationInput,
   CollabTextRevisionRecordsPaginationOutput,
-  mapRevisionRecordsPaginationInputToOutput,
 } from './revisionRecordsPagination';
 import { UserDocument } from '../models/user';
-import { UserNoteDocument } from '../models/user-note';
 import { faker } from '@faker-js/faker';
 import {
   createUserWithNotes,
@@ -22,8 +21,8 @@ import relayPaginateUserNotesArray, {
   RelayPaginateUserNotesArrayOuput,
 } from './relayPaginateUserNotesArray';
 
-import util from 'util';
 import { DefaultCollabTextPipeline, UserNoteLookupOutput } from './lookup/userNoteLookup';
+import { ObjectId } from 'mongodb';
 
 describe('collaborativeDocumentRevisionRecordsPagination', () => {
   enum CollabTextKey {
@@ -31,43 +30,31 @@ describe('collaborativeDocumentRevisionRecordsPagination', () => {
   }
 
   let user: UserDocument;
-  let userNotes: UserNoteDocument[];
 
   beforeAll(async () => {
     await resetDatabase();
     faker.seed(88765);
 
-    const { user: tmpUser, userNotes: tmpUserNotes } = createUserWithNotes(
-      1,
-      Object.values(CollabTextKey),
-      {
-        collabDoc: {
-          recordsCount: 10,
-          tailRevision: -1,
-        },
-        noteMany: {
-          enumaratePublicIdByIndex: 0,
-        },
-      }
-    );
+    const { user: tmpUser } = createUserWithNotes(1, Object.values(CollabTextKey), {
+      collabDoc: {
+        recordsCount: 10,
+        tailRevision: -1,
+      },
+      noteMany: {
+        enumaratePublicIdByIndex: 0,
+      },
+    });
     user = tmpUser;
-    userNotes = tmpUserNotes;
 
     await populateWithCreatedData();
   });
 
-  it('sandbox', async () => {
+  it('gets records within usernotes pagination', async () => {
     const paginationInput: CollabTextRevisionRecordsPaginationInput = {
       paginations: [
         {
-          before: 3,
-          last: 1,
-        },
-        {
-          before: 5,
-        },
-        {
-          after: 17,
+          after: 2,
+          first: 2,
         },
       ],
     };
@@ -132,27 +119,48 @@ describe('collaborativeDocumentRevisionRecordsPagination', () => {
     const result = results[0];
     assert(result != null);
 
-    for (const userNote of result.userNotes) {
-      const recordsOutput = userNote.note.collabText.content.records;
-      const recordsMapped = mapRevisionRecordsPaginationInputToOutput(
-        paginationInput.paginations,
-        recordsOutput
-      );
-
-      console.log(
-        util.inspect(
-          {
-            input: paginationInput.paginations,
-            output: recordsMapped,
+    expect(result).toMatchObject({
+      sizes: null,
+      userNotes: [
+        {
+          _id: expect.any(ObjectId),
+          readOnly: expect.any(Boolean),
+          preferences: { backgroundColor: expect.any(String) },
+          note: {
+            id: expect.any(ObjectId),
+            publicId: expect.any(String),
+            collabText: {
+              content: {
+                _id: expect.any(ObjectId),
+                headDocument: { changeset: ['head'], revision: 9 },
+                tailDocument: { changeset: [], revision: -1 },
+                records: {
+                  array: [
+                    {
+                      creatorUserId: expect.any(ObjectId),
+                      userGeneratedId: expect.any(String),
+                      revision: 3,
+                      changeset: ['r_3'],
+                      beforeSelection: { start: 0 },
+                      afterSelection: { start: 0 },
+                    },
+                    {
+                      creatorUserId: expect.any(ObjectId),
+                      userGeneratedId: expect.any(String),
+                      revision: 4,
+                      changeset: ['r_4'],
+                      beforeSelection: { start: 0 },
+                      afterSelection: { start: 0 },
+                    },
+                  ],
+                  sizes: [0, 0, 2],
+                },
+              },
+            },
+            ownerId: expect.any(ObjectId),
           },
-          false,
-          null,
-          true
-        )
-      );
-    }
-
-    // console.log(util.inspect(operations, false, null, true));
-    console.log(util.inspect(result, false, null, true));
+        },
+      ],
+    });
   });
 });
