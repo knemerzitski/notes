@@ -303,14 +303,14 @@ export function consecutiveIntArrayMapPaginationOutputToInput<TItem>(
   });
 }
 
-function calcMaxFirst<TItem>(paginations: RelayPagination<TItem>[]) {
+function calcMaxFirst<TCursor>(paginations: RelayPagination<TCursor>[]) {
   return paginations.reduce(
     (a, b) => (isFirstPagination(b) ? Math.max(a, b.first) : a),
     0
   );
 }
 
-function calcMaxLast<TItem>(paginations: RelayPagination<TItem>[]) {
+function calcMaxLast<TCursor>(paginations: RelayPagination<TCursor>[]) {
   return paginations.reduce((a, b) => (isLastPagination(b) ? Math.max(a, b.last) : a), 0);
 }
 

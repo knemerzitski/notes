@@ -6,66 +6,53 @@ export interface RelayFirstPagination {
   first: number;
 }
 
-// export interface RelayAfterPagination<TItem> {
-//   after: TItem;
-//   first?: number;
-// }
 
-export interface RelayAfterUnboundPagination<TItem> {
-  after: TItem;
+export interface RelayAfterUnboundPagination<TCursor> {
+  after: TCursor;
   first?: never;
 }
 
-export interface RelayAfterBoundPagination<TItem> {
-  after: TItem;
+export interface RelayAfterBoundPagination<TCursor> {
+  after: TCursor;
   first: number;
 }
 
-export type RelayAfterPagination<TItem> =
-  | RelayAfterUnboundPagination<TItem>
-  | RelayAfterBoundPagination<TItem>;
+export type RelayAfterPagination<TCursor> =
+  | RelayAfterUnboundPagination<TCursor>
+  | RelayAfterBoundPagination<TCursor>;
 
 export interface RelayLastPagination {
   before?: never;
   last: number;
 }
 
-// export interface RelayBeforePagination<TItem> {
-//   before: TItem;
-//   last?: number;
-// }
-
-export interface RelayBeforeUnboundPagination<TItem> {
-  before: TItem;
+export interface RelayBeforeUnboundPagination<TCursor> {
+  before: TCursor;
   last?: never;
 }
 
-export interface RelayBeforeBoundPagination<TItem> {
-  before: TItem;
+export interface RelayBeforeBoundPagination<TCursor> {
+  before: TCursor;
   last: number;
 }
 
-export type RelayBeforePagination<TItem> =
-  | RelayBeforeUnboundPagination<TItem>
-  | RelayBeforeBoundPagination<TItem>;
+export type RelayBeforePagination<TCursor> =
+  | RelayBeforeUnboundPagination<TCursor>
+  | RelayBeforeBoundPagination<TCursor>;
 
-export type RelayForwardsPagination<TItem> =
+export type RelayForwardsPagination<TCursor> =
   | RelayFirstPagination
-  | RelayAfterPagination<TItem>;
-// | RelayAfterUnboundPagination<TItem>
-// | RelayAfterBoundPagination<TItem>;
-export type RelayBackwardsPagination<TItem> =
+  | RelayAfterPagination<TCursor>;
+export type RelayBackwardsPagination<TCursor> =
   | RelayLastPagination
-  | RelayBeforePagination<TItem>;
-// | RelayBeforeUnboundPagination<TItem>
-// | RelayBeforeBoundPagination<TItem>;
+  | RelayBeforePagination<TCursor>;
 
-export type RelayPagination<TItem> =
-  | RelayForwardsPagination<TItem>
-  | RelayBackwardsPagination<TItem>;
+export type RelayPagination<TCursor> =
+  | RelayForwardsPagination<TCursor>
+  | RelayBackwardsPagination<TCursor>;
 
-export function isFirstPagination<TItem>(
-  pagination: RelayPagination<TItem>
+export function isFirstPagination<TCursor>(
+  pagination: RelayPagination<TCursor>
 ): pagination is RelayFirstPagination {
   return (
     'first' in pagination &&
@@ -74,8 +61,8 @@ export function isFirstPagination<TItem>(
   );
 }
 
-export function isLastPagination<TItem>(
-  pagination: RelayPagination<TItem>
+export function isLastPagination<TCursor>(
+  pagination: RelayPagination<TCursor>
 ): pagination is RelayLastPagination {
   return (
     'last' in pagination &&
@@ -84,15 +71,15 @@ export function isLastPagination<TItem>(
   );
 }
 
-export function isAfterPagination<TItem>(
-  pagination: RelayPagination<TItem>
-): pagination is RelayAfterPagination<TItem> {
+export function isAfterPagination<TCursor>(
+  pagination: RelayPagination<TCursor>
+): pagination is RelayAfterPagination<TCursor> {
   return 'after' in pagination && pagination.after != null;
 }
 
-export function isAfterUnboundPagination<TItem>(
-  pagination: RelayPagination<TItem>
-): pagination is RelayAfterUnboundPagination<TItem> {
+export function isAfterUnboundPagination<TCursor>(
+  pagination: RelayPagination<TCursor>
+): pagination is RelayAfterUnboundPagination<TCursor> {
   return (
     'after' in pagination &&
     pagination.after != null &&
@@ -100,9 +87,9 @@ export function isAfterUnboundPagination<TItem>(
   );
 }
 
-export function isAfterBoundPagination<TItem>(
-  pagination: RelayPagination<TItem>
-): pagination is RelayAfterBoundPagination<TItem> {
+export function isAfterBoundPagination<TCursor>(
+  pagination: RelayPagination<TCursor>
+): pagination is RelayAfterBoundPagination<TCursor> {
   return (
     'after' in pagination &&
     pagination.after != null &&
@@ -111,15 +98,15 @@ export function isAfterBoundPagination<TItem>(
   );
 }
 
-export function isBeforePagination<TItem>(
-  pagination: RelayPagination<TItem>
-): pagination is RelayBeforePagination<TItem> {
+export function isBeforePagination<TCursor>(
+  pagination: RelayPagination<TCursor>
+): pagination is RelayBeforePagination<TCursor> {
   return 'before' in pagination && pagination.before != null;
 }
 
-export function isBeforeUnboundPagination<TItem>(
-  pagination: RelayPagination<TItem>
-): pagination is RelayBeforeUnboundPagination<TItem> {
+export function isBeforeUnboundPagination<TCursor>(
+  pagination: RelayPagination<TCursor>
+): pagination is RelayBeforeUnboundPagination<TCursor> {
   return (
     'before' in pagination &&
     pagination.before != null &&
@@ -127,9 +114,9 @@ export function isBeforeUnboundPagination<TItem>(
   );
 }
 
-export function isBeforeBoundPagination<TItem>(
-  pagination: RelayPagination<TItem>
-): pagination is RelayBeforeBoundPagination<TItem> {
+export function isBeforeBoundPagination<TCursor>(
+  pagination: RelayPagination<TCursor>
+): pagination is RelayBeforeBoundPagination<TCursor> {
   return (
     'before' in pagination &&
     pagination.before != null &&
@@ -158,7 +145,7 @@ export function sliceLast(arrayFieldPath: string, last: number) {
   };
 }
 
-export interface SliceAfterInput<TItem> {
+export interface SliceAfterInput<TCursor> {
   /**
    * Field path to array to be sliced.
    */
@@ -168,7 +155,7 @@ export interface SliceAfterInput<TItem> {
    * If undefined then after value itself is compared again array elements.
    */
   itemPath?: string;
-  sliceList: Readonly<[RelayAfterPagination<TItem>, ...RelayAfterPagination<TItem>[]]>;
+  sliceList: Readonly<[RelayAfterPagination<TCursor>, ...RelayAfterPagination<TCursor>[]]>;
 }
 
 export interface SliceAfterOutput<TItem> {
@@ -239,7 +226,7 @@ export function sliceAfter<T>({
   };
 }
 
-export interface SliceBeforeInput<TItem> {
+export interface SliceBeforeInput<TCursor> {
   /**
    * Field path to array to be sliced.
    */
@@ -249,7 +236,7 @@ export interface SliceBeforeInput<TItem> {
    * If undefined then after value itself is compared again array elements.
    */
   itemPath?: string;
-  sliceList: Readonly<[RelayBeforePagination<TItem>, ...RelayBeforePagination<TItem>[]]>;
+  sliceList: Readonly<[RelayBeforePagination<TCursor>, ...RelayBeforePagination<TCursor>[]]>;
 }
 
 export interface SliceBeforeOutput<TItem> {
@@ -347,7 +334,7 @@ export type RelayArrayPaginationConfig = Required<
 > &
   Partial<Pick<RelayArrayPaginationInput<never>, 'defaultLimit' | 'defaultSlice'>>;
 
-export interface RelayArrayPaginationInput<TItem> {
+export interface RelayArrayPaginationInput<TCursor> {
   arrayFieldPath: string;
   /**
    * Optional path to array value in item. Used to find item in array.
@@ -356,7 +343,7 @@ export interface RelayArrayPaginationInput<TItem> {
   arrayItemPath?: string;
   defaultLimit?: number;
   maxLimit?: number;
-  paginations?: RelayPagination<TItem>[];
+  paginations?: RelayPagination<TCursor>[];
   /**
    * How to slice when no arguments are provided.
    * @default "start"
@@ -385,13 +372,13 @@ export interface RelayPaginationResult<TItem> {
   sizes?: [number, number, ...number[]];
 }
 
-export default function relayArrayPagination<TItem>(
-  input: RelayArrayPaginationInput<TItem>
+export default function relayArrayPagination<TCursor>(
+  input: RelayArrayPaginationInput<TCursor>
 ): PipelineStage.Project['$project'] {
   let maxFirst = -1;
   let maxLast = -1;
-  const sliceAfterList: RelayAfterPagination<TItem>[] = [];
-  const sliceBeforeList: RelayBeforePagination<TItem>[] = [];
+  const sliceAfterList: RelayAfterPagination<TCursor>[] = [];
+  const sliceBeforeList: RelayBeforePagination<TCursor>[] = [];
   if (input.paginations) {
     for (const pagination of input.paginations) {
       let isForward = false;
@@ -528,9 +515,8 @@ export default function relayArrayPagination<TItem>(
   };
 }
 
-export function relayArrayPaginationMapPaginationOutputToInput<TItem>(
-  // TODO For input rename TItem to TCursor
-  input: RelayArrayPaginationInput<TItem>['paginations'], // input TItem is just value in array
+export function relayArrayPaginationMapPaginationOutputToInput<TCursor,TItem>(
+  input: RelayArrayPaginationInput<TCursor>['paginations'], 
   output: RelayArrayPaginationOutput<TItem>['paginations']
 ): TItem[][] {
   // Output is actual contents of item

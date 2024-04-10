@@ -16,7 +16,6 @@ import { UserDocument } from '../models/user';
 import relayPaginateUserNotesArray, {
   RelayPaginateUserNotesArrayOuput,
 } from './relayPaginateUserNotesArray';
-import { ObjectId } from 'mongodb';
 import { UserNoteDocument } from '../models/user-note';
 
 enum TextFields {
