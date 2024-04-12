@@ -21,8 +21,12 @@ import relayPaginateUserNotesArray, {
   RelayPaginateUserNotesArrayOuput,
 } from './relayPaginateUserNotesArray';
 
-import { DefaultCollabTextPipeline, UserNoteLookupOutput } from '../lookup/userNoteLookup';
+import { UserNoteLookupOutput } from '../lookup/userNoteLookup';
 import { ObjectId } from 'mongodb';
+import { DBCollabText } from '../../models/collab/collab-text';
+import { DBUserNote } from '../../models/user-note';
+import { DBNote } from '../../models/note';
+import mapObject from 'map-obj';
 
 describe('collaborativeDocumentRevisionRecordsPagination', () => {
   enum CollabTextKey {
@@ -73,20 +77,36 @@ describe('collaborativeDocumentRevisionRecordsPagination', () => {
           },
           collabText: {
             collectionName: CollabText.collection.collectionName,
-            keys: Object.fromEntries(
-              Object.values(CollabTextKey).map((field) => [
-                field,
-                {
-                  pipeline: [
-                    {
-                      $set: {
-                        records: recordsPagination,
+
+            keys: mapObject(CollabTextKey, (_key, field) => [
+              field,
+              {
+                pipeline: [
+                  {
+                    $set: {
+                      records: recordsPagination,
+                    },
+                  },
+                  {
+                    $project: {
+                      headDocument: 1,
+                      tailDocument: 1,
+                      records: {
+                        array: {
+                          revision: 1,
+                          afterSelection: 1,
+                          beforeSelection: 1,
+                          changeset: 1,
+                          userGeneratedId: 1,
+                          creatorUserId: 1,
+                        },
+                        sizes: 1,
                       },
                     },
-                  ],
-                },
-              ])
-            ),
+                  },
+                ],
+              },
+            ]),
           },
         },
       },
@@ -97,9 +117,11 @@ describe('collaborativeDocumentRevisionRecordsPagination', () => {
         CollabTextKey,
         UserNoteLookupOutput<
           CollabTextKey,
-          Omit<DefaultCollabTextPipeline, 'records'> & {
+          Omit<DBCollabText, 'records'> & {
             records: CollabTextRevisionRecordsPaginationOutput;
-          }
+          },
+          DBUserNote,
+          DBNote
         >
       >
     >([

@@ -121,7 +121,6 @@ describe('mergeProjections', () => {
             },
             $pagination: {
               last: 2,
-              index: 2,
             },
           },
         },

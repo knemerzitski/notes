@@ -1,23 +1,25 @@
 import { ObjectId } from 'mongodb';
-import { RelayPagination, getPaginationKey } from './operations/pagination/relayArrayPagination';
+import {
+  RelayPagination,
+  getPaginationKey,
+} from './operations/pagination/relayArrayPagination';
 
 type Primitive = string | number | boolean | ObjectId;
-type ProjectionValue = 1;
-
-type Indexed<P> = P & { index: number };
-
-type ArrayPagination<TItem> = RelayPagination<TItem> | Indexed<RelayPagination<TItem>>;
+type ProjectionValue = 1 | undefined;
+type IdProjectionValue = 0 | ProjectionValue;
 
 export interface ArrayProjection<TItem> {
   $project?: Projection<TItem>;
-  $pagination?: ArrayPagination<string>;
+  $pagination?: RelayPagination<string>;
 }
 
 export type Projection<T> = {
   [Key in keyof T]?: T[Key] extends (infer U)[]
     ? ArrayProjection<U>
     : T[Key] extends Primitive
-      ? ProjectionValue
+      ? Key extends '_id'
+        ? IdProjectionValue
+        : ProjectionValue
       : T[Key] extends object | undefined
         ? Projection<T[Key]>
         : ProjectionValue;
@@ -65,14 +67,16 @@ export class CustomMongoDocumentDataSource<TDocument>
 
 export interface MergedArrayProjection<TItem> {
   $project?: Projection<TItem>;
-  $paginations?: ArrayPagination<string>[];
+  $paginations?: RelayPagination<string>[];
 }
 
 export type MergedProjection<T> = {
   [Key in keyof T]?: T[Key] extends (infer U)[]
     ? MergedArrayProjection<U>
     : T[Key] extends Primitive
-      ? ProjectionValue
+      ? Key extends '_id'
+        ? IdProjectionValue
+        : ProjectionValue
       : T[Key] extends object | undefined
         ? MergedProjection<T[Key]>
         : ProjectionValue;
@@ -107,7 +111,7 @@ export function mergeProjections<T>(
         if ('$project' in sourceValue || '$pagination' in sourceValue) {
           const arrayMergedValue = mergedValue as {
             $project?: Projection<unknown>;
-            $paginations?: ArrayPagination<string>[];
+            $paginations?: RelayPagination<string>[];
           };
 
           if ('$project' in sourceValue && sourceValue.$project) {
@@ -126,14 +130,7 @@ export function mergeProjections<T>(
               arrayMergedValue.$paginations = [];
             }
 
-            // Remove index as it's irrelevant during actual query
-            let pagination: ArrayPagination<string>;
-            if ('index' in sourceValue.$pagination) {
-              const { index, ...paginationNoIndex } = sourceValue.$pagination;
-              pagination = paginationNoIndex;
-            } else {
-              pagination = sourceValue.$pagination;
-            }
+            const pagination = sourceValue.$pagination;
 
             // Add only unique paginations, skip duplicate
             const currentPathKey = `${pathKey}.${sourceKey}`;

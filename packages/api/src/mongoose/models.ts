@@ -12,7 +12,7 @@ import {
 export interface MongooseModels {
   User: UserModel;
   Session: SessionModel;
-  CollabTextModel: CollabTextModel;
+  CollabText: CollabTextModel;
   Note: NoteModel;
   UserNote: UserNoteModel;
 }
@@ -21,7 +21,7 @@ export function createMongooseModels(connection: Connection): MongooseModels {
   return {
     User: connection.model('User', userSchema),
     Session: connection.model('Session', sessionSchema),
-    CollabTextModel: connection.model(
+    CollabText: connection.model(
       'CollabText',
       collabTextSchema
     ),

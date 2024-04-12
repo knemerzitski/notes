@@ -1,38 +1,20 @@
 import { PipelineStage } from 'mongoose';
-import { DBCollabText } from '../../models/collab/collab-text';
-import { DBNote } from '../../models/note';
-import { DBUserNote } from '../../models/user-note';
 
 export interface UserNoteLookupInput<TCollabTextKey extends string> {
   collabText?: CollabTextLookupInput<TCollabTextKey>;
   note?: NoteLookupInput;
 }
 
-type BaseUserNote = Omit<DBUserNote, 'userId' | 'note'>;
-type BaseUserNoteNote = Omit<DBUserNote['note'], 'collabTextId'>;
-export type DefaultNotePipeline = Omit<DBNote, 'userId' | 'publicId' | 'collabTextId'>;
-export type DefaultCollabTextPipeline = DBCollabText;
-
 export type UserNoteLookupOutput<
   TCollabTextKey extends string,
-  TCollabTextPipeline = DefaultCollabTextPipeline,
-  TNotePipeline = DefaultNotePipeline,
-> = UserNoteLookupOnlyCollabTextOutput<TCollabTextKey, TCollabTextPipeline> &
-  UserNoteLookupOnlyNoteOutput<TNotePipeline>;
-
-export type UserNoteLookupOnlyCollabTextOutput<
-  TCollabTextKey extends string,
-  Pipeline = DefaultCollabTextPipeline,
-> = BaseUserNote & {
-  note: BaseUserNoteNote & {
-    collabText: Record<TCollabTextKey, Pipeline>;
-  };
+  TCollabText,
+  TUserNote extends { note?: unknown },
+  TNote,
+> = Omit<TUserNote, 'userId' | 'note'> & {
+  note?: Omit<TUserNote['note'], 'collabTextId'> & {
+    collabText?: Partial<Record<TCollabTextKey, TCollabText>>;
+  } & Omit<TNote, '_id' | 'publicId' | 'collabTextId'>;
 };
-
-export type UserNoteLookupOnlyNoteOutput<Pipeline = DefaultNotePipeline> =
-  BaseUserNote & {
-    note: BaseUserNoteNote & Pipeline;
-  };
 
 export default function userNoteLookup<TCollabTextKey extends string>({
   collabText,

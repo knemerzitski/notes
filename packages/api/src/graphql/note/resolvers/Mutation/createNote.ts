@@ -10,8 +10,8 @@ import {
   type NoteCreatedPayload,
 } from './../../../types.generated';
 
-import mapObject from '~utils/mapObject';
 import { Changeset } from '~collab/changeset/changeset';
+import mapObject from 'map-obj';
 
 export const createNote: NonNullable<MutationResolvers['createNote']> = async (
   _parent,
@@ -26,17 +26,20 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
 
   const currentUserId = auth.session.user._id._id;
 
-  const collabDocs = mapObject(NoteTextField, (fieldName) => {
+  const collabDocs = mapObject(NoteTextField, (_key, fieldName) => {
     const fieldValue = input.note?.textFields?.find((s) => s.key === fieldName)?.value;
 
-    return new model.CollaborativeDocument(
-      createInitialDocument(currentUserId, fieldValue?.initialText ?? '')
-    );
+    return [
+      fieldName,
+      new model.CollaborativeDocument(
+        createInitialDocument(currentUserId, fieldValue?.initialText ?? '')
+      ),
+    ];
   });
 
   const newNote = new model.Note({
     ownerId: currentUserId,
-    textFields: mapObject(collabDocs, (collabDoc) => ({ collabId: collabDoc._id })),
+      textFields: mapObject(collabDocs, (key,_collabDoc) => [key, { collabId: collabDoc._id }]),
   });
 
   const newUserNote = new model.UserNote({

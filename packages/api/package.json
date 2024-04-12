@@ -24,6 +24,7 @@
     "google-auth-library": "^9.6.3",
     "graphql": "^16.8.1",
     "graphql-scalars": "^1.22.4",
+    "map-obj": "^5.0.2",
     "mongodb": "^6.3.0",
     "mongoose": "^8.0.1",
     "nanoid": "^5.0.4",

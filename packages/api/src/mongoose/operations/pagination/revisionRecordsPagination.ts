@@ -12,8 +12,8 @@ export type CollabTextRevisionRecordsPaginationInput = Omit<
   'arrayFieldPath' | 'arrayItemPath'
 >;
 
-export type CollabTextRevisionRecordsPaginationOutput =
-  RelayArrayPaginationOutput<DBRevisionRecord>;
+export type CollabTextRevisionRecordsPaginationOutput<T = DBRevisionRecord> =
+  RelayArrayPaginationOutput<T>;
 
 export default function revisionRecordsPagination(
   input: CollabTextRevisionRecordsPaginationInput
@@ -29,9 +29,27 @@ function toCursor({ revision }: Pick<DBRevisionRecord, 'revision'>) {
   return revision;
 }
 
-export function mapRevisionRecordsPaginationInputToOutput(
+export function mapRevisionRecordsPaginationInputToOutput<
+  T extends Pick<DBRevisionRecord, 'revision'>,
+>(
   input: RelayArrayPaginationInput<number>['paginations'],
-  output: RelayArrayPaginationOutput<DBRevisionRecord>
-): DBRevisionRecord[][] {
+  output: RelayArrayPaginationOutput<T>
+): T[][] {
   return consecutiveIntArrayMapPaginationOutputToInput(input, output, toCursor);
+}
+
+export function assertRecordRevisionDefined<
+  T extends Partial<Pick<DBRevisionRecord, 'revision'>>,
+>(
+  output: RelayArrayPaginationOutput<T>
+): asserts output is RelayArrayPaginationOutput<
+  T & {
+    revision: DBRevisionRecord['revision'];
+  }
+> {
+  for (const record of output.array) {
+    if (record.revision == null) {
+      throw new Error('Expected record.revision to be defined');
+    }
+  }
 }

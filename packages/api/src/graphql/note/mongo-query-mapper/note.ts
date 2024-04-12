@@ -7,12 +7,13 @@ import {
   CollaborativeDocumentQuery,
   CollaborativeDocumentQueryType,
 } from '../../collab/mongo-query-mapper/collaborative-document';
+import { DBNote } from '../../../mongoose/models/note';
 
-export type NoteQueryType = Omit<DBUserNote, 'preferences' | 'note'> & {
+export type NoteQueryType = Omit<DBUserNote, 'preferences' | 'note' | 'userId'> & {
   preferences: NotePreferencesQueryType;
-  note: Omit<DBUserNote['note'], 'collabTexts'> & {
-    collabTexts: Record<NoteTextField, CollaborativeDocumentQueryType>;
-  };
+  note: Omit<DBUserNote['note'], 'collabText' | 'collabTextId'> & {
+    collabText: Record<NoteTextField, CollaborativeDocumentQueryType>;
+  } & Omit<DBNote, 'publicId' | 'collabTextId'>;
 };
 
 export class NoteQuery implements NoteMapper {

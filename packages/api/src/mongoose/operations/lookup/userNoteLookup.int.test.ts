@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { assert, beforeAll, expect, it } from 'vitest';
 import {
   CollabText,
@@ -6,17 +7,15 @@ import {
   resetDatabase,
 } from '../../../tests/helpers/mongoose';
 import { faker } from '@faker-js/faker';
-import { UserNoteDocument } from '../../models/user-note';
+import { DBUserNote, UserNoteDocument } from '../../models/user-note';
 import {
   createUserWithNotes,
   populateWithCreatedData,
 } from '../../../test/helpers/mongoose/populate';
-import userNoteLookup, {
-  UserNoteLookupOnlyCollabTextOutput,
-  UserNoteLookupOnlyNoteOutput,
-  UserNoteLookupOutput,
-} from './userNoteLookup';
+import userNoteLookup, { UserNoteLookupOutput } from './userNoteLookup';
 import { ObjectId } from 'mongodb';
+import { DBCollabText } from '../../models/collab/collab-text';
+import { DBNote } from '../../models/note';
 
 enum CollabTextKey {
   TITLE = 'title',
@@ -58,7 +57,9 @@ export const expectedCollabText = {
 };
 
 it('returns userNote in expected format', async () => {
-  const results = await UserNote.aggregate<UserNoteLookupOutput<CollabTextKey>>([
+  const results = await UserNote.aggregate<
+    UserNoteLookupOutput<CollabTextKey, DBCollabText, DBUserNote, DBNote>
+  >([
     {
       $match: {
         _id: userNote._id,
@@ -98,7 +99,7 @@ it('returns userNote in expected format', async () => {
 
 it('only looks up collabTextId', async () => {
   const results = await UserNote.aggregate<
-    UserNoteLookupOnlyCollabTextOutput<CollabTextKey>
+    UserNoteLookupOutput<CollabTextKey, DBCollabText, DBUserNote, undefined>
   >([
     {
       $match: {
@@ -120,7 +121,9 @@ it('only looks up collabTextId', async () => {
 });
 
 it('only looks up note', async () => {
-  const results = await UserNote.aggregate<UserNoteLookupOnlyNoteOutput<CollabTextKey>>([
+  const results = await UserNote.aggregate<
+    UserNoteLookupOutput<CollabTextKey, undefined, DBUserNote, DBNote>
+  >([
     {
       $match: {
         _id: userNote._id,
@@ -144,8 +147,9 @@ it('uses note pipeline', async () => {
     customOwnerId: ObjectId;
     custom: string;
   }
-
-  const results = await UserNote.aggregate<UserNoteLookupOnlyNoteOutput<CustomNote>>([
+  const results = await UserNote.aggregate<
+    UserNoteLookupOutput<CollabTextKey, undefined, { note?: undefined }, CustomNote>
+  >([
     {
       $match: {
         _id: userNote._id,
@@ -183,7 +187,7 @@ it('uses collabText pipeline separate for each key', async () => {
   }
 
   const results = await UserNote.aggregate<
-    UserNoteLookupOnlyCollabTextOutput<CollabTextKey, CustomCollabText>
+    UserNoteLookupOutput<CollabTextKey, CustomCollabText, { note?: undefined }, undefined>
   >([
     {
       $match: {
@@ -216,8 +220,6 @@ it('uses collabText pipeline separate for each key', async () => {
 
   const result = results[0];
   assert(result != null);
-
-  result.note.collabText?.content.custom;
 
   expect(result).toMatchObject({
     note: {

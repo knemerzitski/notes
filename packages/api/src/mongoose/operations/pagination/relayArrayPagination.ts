@@ -53,11 +53,11 @@ export type RelayPagination<TCursor> =
 /**
  * @returns String that is unique for a pagination.
  */
-export function getPaginationKey(p: RelayPagination<string>): string {
+export function getPaginationKey<T>(p: RelayPagination<T>): string {
   if ('after' in p || 'first' in p) {
-    return `a${p.after ?? ''}:${p.first ?? ''}`;
+    return `a${p.after != null ? String(p.after) : ''}:${p.first ?? ''}`;
   } else {
-    return `b${p.before ?? ''}:${p.last ?? ''}`;
+    return `b${p.before != null ? String(p.before) : ''}:${p.last ?? ''}`;
   }
 }
 
@@ -310,6 +310,24 @@ export function sliceBefore<T>({
       },
     },
   };
+}
+
+export function paginationStringToInt(
+  pagination: RelayPagination<string>
+): RelayPagination<number> {
+  if (isAfterPagination(pagination)) {
+    return {
+      first: pagination.first,
+      after: Number.parseInt(pagination.after),
+    };
+  } else if (isBeforePagination(pagination)) {
+    return {
+      before: Number.parseInt(pagination.before),
+      last: pagination.last,
+    };
+  }
+
+  return pagination;
 }
 
 export function applyLimit(
