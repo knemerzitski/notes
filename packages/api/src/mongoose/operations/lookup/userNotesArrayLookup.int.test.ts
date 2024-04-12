@@ -60,7 +60,7 @@ it('returns userNotesArray in expected format', async () => {
         },
         collabText: {
           collectionName: CollabText.collection.collectionName,
-          keys: Object.values(CollabTextKey),
+          collabText: Object.values(CollabTextKey),
         },
       },
     }),

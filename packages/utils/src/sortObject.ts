@@ -1,3 +1,6 @@
+/**
+ * @returns New copy of obj that has it's keys sorted lexicographically
+ */
 export default function sortObject(obj: unknown): unknown {
   if (obj == null) return obj;
 

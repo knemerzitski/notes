@@ -71,7 +71,7 @@ it('returns userNote in expected format', async () => {
       },
       collabText: {
         collectionName: CollabText.collection.collectionName,
-        keys: Object.values(CollabTextKey),
+        collabText: Object.values(CollabTextKey),
       },
     }),
   ]);
@@ -109,7 +109,7 @@ it('only looks up collabTextId', async () => {
     ...userNoteLookup({
       collabText: {
         collectionName: CollabText.collection.collectionName,
-        keys: Object.values(CollabTextKey),
+        collabText: Object.values(CollabTextKey),
       },
     }),
   ]);
@@ -200,7 +200,7 @@ it('uses collabText pipeline separate for each key', async () => {
       },
       collabText: {
         collectionName: CollabText.collection.collectionName,
-        keys: Object.fromEntries(
+        collabText: Object.fromEntries(
           Object.values(CollabTextKey).map((collabKey) => [
             collabKey,
             {

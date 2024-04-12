@@ -78,7 +78,7 @@ describe('collaborativeDocumentRevisionRecordsPagination', () => {
           collabText: {
             collectionName: CollabText.collection.collectionName,
 
-            keys: mapObject(CollabTextKey, (_key, field) => [
+            collabText: mapObject(CollabTextKey, (_key, field) => [
               field,
               {
                 pipeline: [

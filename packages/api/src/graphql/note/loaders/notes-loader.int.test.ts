@@ -40,11 +40,9 @@ describe('NotesLoader', () => {
 
   it('gets userNote', async () => {
     const loader = new NotesLoader({
-      models: {
-        UserNote,
-        Note,
-        CollabText,
-      },
+      UserNote,
+      Note,
+      CollabText,
     });
 
     const note = notes[0];
@@ -184,5 +182,32 @@ describe('NotesLoader', () => {
         reason: expect.any(GraphQLError),
       },
     ]);
+
+    console.log('after');
+
+    // TODO write test that checks loader key is used
+    const more = await loader.get(note1.publicId, {
+      note: {
+        ownerId: 1,
+        collabText: {
+          TITLE: {
+            headDocument: {
+              revision: 1,
+            },
+          },
+          CONTENT: {
+            records: {
+              $project: {
+                revision: 1,
+              },
+              $pagination: {
+                after: '7',
+              },
+            },
+          },
+        },
+      },
+    });
+    console.log('more', more);
   });
 });
