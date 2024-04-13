@@ -39,14 +39,35 @@ import relayPaginateUserNotesArray, {
 
 import util from 'util';
 
-export default class NotesDataSource {
-  async getByPublicId(key: LoaderKey) {
-    throw new Error('not implemented');
-  }
+export interface NoteByPublicIdKey {
+  publicId: string;
+  noteQuery: DeepQuery<NoteQueryType>;
+}
 
-  async getPaginateDefaultCategory(key: UserNotesArrayKey) {
-    throw new Error('not implemented');
-  }
+export interface PaginateNotesKey {
+  pagination: RelayPagination<ObjectId>;
+  noteQuery: DeepQuery<NoteQueryType>;
+}
+
+export interface NotesDataSourceContext {
+  models: Pick<
+    GraphQLResolversContext['mongoose']['model'],
+    'User' | 'UserNote' | 'CollabText' | 'Note'
+  >;
+}
+
+type NotesLoaderContext = Pick<
+  GraphQLResolversContext['mongoose']['model'],
+  'UserNote' | 'CollabText' | 'Note'
+>;
+
+interface UserNotesArrayLoaderContext {
+  models: Pick<
+    GraphQLResolversContext['mongoose']['model'],
+    'User' | 'UserNote' | 'CollabText' | 'Note'
+  >;
+  userId: ObjectId;
+  userNotesArrayPath: string;
 }
 
 type UserNoteDeepQueryResponse = DeepQueryResponse<Omit<NoteQueryType, 'note'>> & {
@@ -61,6 +82,16 @@ type UserNoteDeepQueryResponse = DeepQueryResponse<Omit<NoteQueryType, 'note'>> 
     >;
   };
 };
+
+export default class NotesDataSource {
+  async getByPublicId(key: NoteByPublicIdKey) {
+    throw new Error('not implemented');
+  }
+
+  async getPaginateDefaultCategory(key: PaginateNotesKey) {
+    throw new Error('not implemented');
+  }
+}
 
 function userNoteQueryToLookupInput(
   userNoteQuery: MergedDeepQuery<NoteQueryType>,
@@ -275,18 +306,8 @@ function getEqualObjectString(obj: unknown) {
   return JSON.stringify(sortObject(obj), null, undefined);
 }
 
-interface LoaderKey {
-  publicId: string;
-  noteQuery: DeepQuery<NoteQueryType>;
-}
-
-type NotesLoaderContext = Pick<
-  GraphQLResolversContext['mongoose']['model'],
-  'UserNote' | 'CollabText' | 'Note'
->;
-
 async function notesLoaderFn(
-  keys: Readonly<LoaderKey[]>,
+  keys: Readonly<NoteByPublicIdKey[]>,
   context: NotesLoaderContext
 ): Promise<(DeepQueryResponse<NoteQueryType> | Error)[]> {
   // Gather publicIds
@@ -296,7 +317,6 @@ async function notesLoaderFn(
     {},
     keys.map(({ noteQuery }) => noteQuery)
   );
-
 
   // Build aggregate query
   const userNoteLookupInput = userNoteQueryToLookupInput(mergedQuery, context);
@@ -340,35 +360,21 @@ export class NotesLoader {
     this.context = context;
   }
 
-  private loader = new DataLoader<LoaderKey, DeepQueryResponse<NoteQueryType>, string>(
-    async (keys) => notesLoaderFn(keys, this.context),
-    {
-      cacheKeyFn: getEqualObjectString,
-    }
-  );
+  private loader = new DataLoader<
+    NoteByPublicIdKey,
+    DeepQueryResponse<NoteQueryType>,
+    string
+  >(async (keys) => notesLoaderFn(keys, this.context), {
+    cacheKeyFn: getEqualObjectString,
+  });
 
-  get(key: LoaderKey) {
+  get(key: NoteByPublicIdKey) {
     return this.loader.load(key);
   }
 }
 
-// TODO implement below
-interface UserNotesArrayKey {
-  pagination: RelayPagination<ObjectId>;
-  noteQuery: DeepQuery<NoteQueryType>;
-}
-
-interface UserNotesArrayLoaderContext {
-  models: Pick<
-    GraphQLResolversContext['mongoose']['model'],
-    'User' | 'UserNote' | 'CollabText' | 'Note'
-  >;
-  userId: ObjectId;
-  userNotesArrayPath: string;
-}
-
 async function userNotesArrayLoaderFn(
-  keys: Readonly<UserNotesArrayKey[]>,
+  keys: Readonly<PaginateNotesKey[]>,
   context: UserNotesArrayLoaderContext
 ): Promise<(DeepQueryResponse<NoteQueryType>[] | Error)[]> {
   // Merge queries
@@ -460,14 +466,14 @@ export class UserNotesArrayLoader {
   }
 
   private loader = new DataLoader<
-    UserNotesArrayKey,
+    PaginateNotesKey,
     DeepQueryResponse<NoteQueryType>[],
     string
   >((keys) => userNotesArrayLoaderFn(keys, this.context), {
     cacheKeyFn: getEqualObjectString,
   });
 
-  get(key: UserNotesArrayKey) {
+  get(key: PaginateNotesKey) {
     return this.loader.load(key);
   }
 }

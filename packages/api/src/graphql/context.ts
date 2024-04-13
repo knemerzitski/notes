@@ -37,8 +37,9 @@ export type DynamoDBBaseGraphQLContext = {
 export interface ApiGraphQLContext {
   mongoose: {
     connection: Connection;
+    // TODO rename to models?
     model: MongooseModels;
-    // datasource: MongooseDataSources; // must be created for every context.
+    // datasources: MongooseDataSources; // must be created for every context.
   };
 }
 
