@@ -10,31 +10,41 @@ import {
   UserNote,
   CollabText,
   Note,
+  User,
 } from '../../../tests/helpers/mongoose';
 import { NoteTextField } from '../../types.generated';
-import NotesLoader from './notes-loader';
+import NotesLoader, { UserNotesArrayLoader } from './notes-loader';
 
 import { NoteDocument } from '../../../mongoose/models/note';
 import { GraphQLError } from 'graphql';
 import { ObjectId } from 'mongodb';
+import { UserDocument } from '../../../mongoose/models/user';
+
+import util from 'util';
 
 describe('NotesLoader', () => {
   let notes: NoteDocument[];
+  let user: UserDocument;
 
   beforeAll(async () => {
     await resetDatabase();
-    faker.seed(73458);
+    faker.seed(73452);
 
-    const { notes: tmpNotes } = createUserWithNotes(2, Object.values(NoteTextField), {
-      collabDoc: {
-        recordsCount: 10,
-        tailRevision: -1,
-      },
-      noteMany: {
-        enumaratePublicIdByIndex: 0,
-      },
-    });
+    const { notes: tmpNotes, user: tmpUser } = createUserWithNotes(
+      5,
+      Object.values(NoteTextField),
+      {
+        collabDoc: {
+          recordsCount: 10,
+          tailRevision: -1,
+        },
+        noteMany: {
+          enumaratePublicIdByIndex: 0,
+        },
+      }
+    );
     notes = tmpNotes;
+    user = tmpUser;
 
     await populateWithCreatedData();
   });
@@ -119,7 +129,7 @@ describe('NotesLoader', () => {
         status: 'fulfilled',
         value: {
           readOnly: expect.any(Boolean),
-          preferences: { backgroundColor: '#dd3c8e' },
+          preferences: { backgroundColor: expect.any(String) },
           note: {
             publicId: 'publicId_0',
             collabText: {
@@ -148,7 +158,7 @@ describe('NotesLoader', () => {
         status: 'fulfilled',
         value: {
           readOnly: expect.any(Boolean),
-          preferences: { backgroundColor: '#9d01dd' },
+          preferences: { backgroundColor: expect.any(String) },
           note: {
             publicId: 'publicId_1',
             collabText: {
@@ -162,12 +172,12 @@ describe('NotesLoader', () => {
                 headDocument: { changeset: ['head'], revision: 9 },
                 records: [
                   {
-                    userGeneratedId: '022a32f3-7721-4330-ae92-bd45280c94c7',
+                    userGeneratedId: expect.any(String),
                     revision: 8,
                     changeset: ['r_8'],
                   },
                   {
-                    userGeneratedId: '21ac1d0f-d4df-4645-bd4a-862b0e69e130',
+                    userGeneratedId: expect.any(String),
                     revision: 9,
                     changeset: ['r_9'],
                   },
@@ -207,5 +217,136 @@ describe('NotesLoader', () => {
         },
       },
     });
+  });
+
+  it('gets userNotesArray', async () => {
+    const loader = new UserNotesArrayLoader({
+      models: {
+        User,
+        UserNote,
+        Note,
+        CollabText,
+      },
+      userId: user._id,
+      userNotesArrayPath: 'notes.category.default.order',
+    });
+
+    const results = await Promise.allSettled([
+      loader.get({
+        pagination: {
+          first: 2,
+        },
+        noteQuery: {
+          note: {
+            collabText: {
+              CONTENT: {
+                headDocument: {
+                  changeset: 1,
+                  revision: 1,
+                },
+                records: {
+                  $query: {
+                    revision: 1,
+                  },
+                  $pagination: {
+                    last: 2,
+                  },
+                },
+              },
+            },
+          },
+          readOnly: 1,
+          preferences: {
+            backgroundColor: 1,
+          },
+        },
+      }),
+      loader.get({
+        pagination: {
+          last: 2,
+        },
+        noteQuery: {
+          note: {
+            collabText: {
+              TITLE: {
+                headDocument: {
+                  revision: 1,
+                },
+              },
+            },
+          },
+          readOnly: 1,
+        },
+      }),
+    ]);
+
+    expect(results).toMatchObject([
+      {
+        status: 'fulfilled',
+        value: [
+          {
+            readOnly: expect.any(Boolean),
+            preferences: { backgroundColor: expect.any(String) },
+            note: {
+              publicId: 'publicId_0',
+              collabText: {
+                CONTENT: {
+                  _id: expect.any(ObjectId),
+                  headDocument: { changeset: ['head'], revision: 9 },
+                  records: [{ revision: 8 }, { revision: 9 }],
+                },
+              },
+            },
+          },
+          {
+            readOnly: expect.any(Boolean),
+            preferences: { backgroundColor: expect.any(String) },
+            note: {
+              publicId: 'publicId_1',
+              collabText: {
+                CONTENT: {
+                  _id: expect.any(ObjectId),
+                  headDocument: { changeset: ['head'], revision: 9 },
+                  records: [{ revision: 8 }, { revision: 9 }],
+                },
+              },
+            },
+          },
+        ],
+      },
+      {
+        status: 'fulfilled',
+        value: [
+          {
+            readOnly: expect.any(Boolean) ,
+            preferences: { backgroundColor: expect.any(String) },
+            note: {
+              publicId: 'publicId_3',
+              collabText: {
+                TITLE: {
+                  _id: expect.any(ObjectId),
+                  headDocument: { revision: 9 },
+                  records: [],
+                },
+              },
+            },
+          },
+          {
+            readOnly: expect.any(Boolean),
+            preferences: { backgroundColor: expect.any(String) },
+            note: {
+              publicId: 'publicId_4',
+              collabText: {
+                TITLE: {
+                  _id: expect.any(ObjectId),
+                  headDocument: { revision: 9 },
+                  records: [],
+                },
+              },
+            },
+          },
+        ],
+      },
+    ]);
   });
 });

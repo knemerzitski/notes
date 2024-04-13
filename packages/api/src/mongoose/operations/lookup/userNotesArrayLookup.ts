@@ -1,8 +1,5 @@
 import { PipelineStage } from 'mongoose';
-import userNoteLookup, {
-  UserNoteLookupInput,
-  UserNoteLookupOutput,
-} from './userNoteLookup';
+import userNoteLookup, { UserNoteLookupInput } from './userNoteLookup';
 
 export interface UserNotesArrayLookupInput<TCollabTextKey extends string> {
   /**
@@ -19,10 +16,10 @@ export interface UserNotesArrayLookupInput<TCollabTextKey extends string> {
 }
 
 export type UserNotesArrayLookupOutput<
-  TUserNoteLookupOutput,
+  TUserNotesLookupOutput,
   TGroupExpressionOutput = Record<string, never>,
 > = {
-  userNotes: TUserNoteLookupOutput[];
+  userNotes: TUserNotesLookupOutput;
 } & TGroupExpressionOutput;
 
 export default function userNotesArrayLookup<TCollabTextKey extends string>({

@@ -16,7 +16,7 @@ import { UserDocument } from '../../models/user';
 import relayPaginateUserNotesArray, {
   RelayPaginateUserNotesArrayOuput,
 } from './relayPaginateUserNotesArray';
-import { UserNoteDocument } from '../../models/user-note';
+import { DBUserNote, UserNoteDocument } from '../../models/user-note';
 
 enum TextFields {
   TITLE = 'title',
@@ -49,7 +49,7 @@ beforeAll(async () => {
 });
 
 it('returns all notes without any paginations', async () => {
-  const results = await User.aggregate<RelayPaginateUserNotesArrayOuput<TextFields>>([
+  const results = await User.aggregate<RelayPaginateUserNotesArrayOuput<DBUserNote>>([
     {
       $match: {
         _id: user._id,
@@ -83,14 +83,16 @@ it('returns all notes without any paginations', async () => {
   assert(result != null);
 
   expect(result).toMatchObject({
-    userNotes: expect.any(Array),
-    sizes: null,
+    userNotes: {
+      array: expect.any(Array),
+      sizes: null,
+    },
   });
-  expect(result.userNotes).toHaveLength(10);
+  expect(result.userNotes.array).toHaveLength(10);
 });
 
 it('paginates notes', async () => {
-  const results = await User.aggregate<RelayPaginateUserNotesArrayOuput<TextFields>>([
+  const results = await User.aggregate<RelayPaginateUserNotesArrayOuput<DBUserNote>>([
     {
       $match: {
         _id: user._id,
@@ -129,7 +131,7 @@ it('paginates notes', async () => {
   const result = results[0];
   assert(result != null);
 
-  expect(result.userNotes.map((userNote) => userNote.note.publicId)).toStrictEqual([
+  expect(result.userNotes.array.map((userNote) => userNote.note.publicId)).toStrictEqual([
     'publicId_3',
     'publicId_4',
   ]);

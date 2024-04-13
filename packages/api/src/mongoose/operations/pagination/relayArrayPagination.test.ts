@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   RelayArrayPaginationInput,
   RelayArrayPaginationOutput,
-  relayArrayPaginationMapPaginationOutputToInput,
+  relayArrayPaginationMapOutputToInput,
 } from './relayArrayPagination';
 
 describe('relayArrayPaginationMapPaginationOutputToInput', () => {
@@ -150,7 +150,7 @@ describe('relayArrayPaginationMapPaginationOutputToInput', () => {
       expected: [['3'], ['9', '10', '11']],
     },
   ])('(%s,%s) => %s', ({ input, output, expected }) => {
-    expect(relayArrayPaginationMapPaginationOutputToInput(input, output)).toStrictEqual(expected);
+    expect(relayArrayPaginationMapOutputToInput(input, output)).toStrictEqual(expected);
   });
 
   it.each<{
@@ -187,6 +187,6 @@ describe('relayArrayPaginationMapPaginationOutputToInput', () => {
       },
     },
   ])('(%s,%s) => error', ({ input, output }) => {
-    expect(() => relayArrayPaginationMapPaginationOutputToInput(input, output)).toThrow();
+    expect(() => relayArrayPaginationMapOutputToInput(input, output)).toThrow();
   });
 });

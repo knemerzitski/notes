@@ -13,14 +13,11 @@ export interface RelayPaginateUserNotesArrayInput<TCollabTextKey extends string>
   userNotes: Omit<UserNotesArrayLookupInput<TCollabTextKey>, 'fieldPath'>;
 }
 
-interface GroupExpression {
-  sizes: Exclude<RelayArrayPaginationOutput<ObjectId>['sizes'], undefined> | null;
-}
 
 export type RelayPaginateUserNotesArrayOuput<
   TUserNoteLookup,
   TGroupExpressionOutput = Record<string, never>,
-> = UserNotesArrayLookupOutput<TUserNoteLookup, TGroupExpressionOutput> & GroupExpression;
+> = UserNotesArrayLookupOutput<RelayArrayPaginationOutput<TUserNoteLookup>, TGroupExpressionOutput>;
 
 export default function relayPaginateUserNotesArray<TCollabTextKey extends string>(
   input: RelayPaginateUserNotesArrayInput<TCollabTextKey>
@@ -36,8 +33,27 @@ export default function relayPaginateUserNotesArray<TCollabTextKey extends strin
       fieldPath: 'paginations.array',
       groupExpression: {
         ...input.userNotes.groupExpression,
-        sizes: { $first: '$paginations.sizes' },
+        userNotesSizes: { $first: '$paginations.sizes' },
       },
     }),
+    {
+      $set: {
+        _userNotes: '$userNotes',
+      },
+    },
+    {
+      $unset: 'userNotes',
+    },
+    {
+      $set: {
+        userNotes: {
+          array: '$_userNotes',
+          sizes: '$userNotesSizes',
+        },
+      },
+    },
+    {
+      $unset: ['_userNotes', 'userNotesSizes'],
+    },
   ];
 }

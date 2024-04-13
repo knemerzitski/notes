@@ -16,10 +16,11 @@ import revisionRecordsPagination, {
 import userNoteLookup, {
   UserNoteLookupInput,
 } from '../../../mongoose/operations/lookup/userNoteLookup';
-import {
+import relayArrayPagination, {
   RelayPagination,
   getPaginationKey,
   paginationStringToInt,
+  relayArrayPaginationMapOutputToInput,
 } from '../../../mongoose/operations/pagination/relayArrayPagination';
 import { CollaborativeDocumentQueryType } from '../../collab/mongo-query-mapper/collaborative-document';
 import { RevisionRecordQueryType } from '../../collab/mongo-query-mapper/revision-record';
@@ -32,7 +33,9 @@ import { GraphQLResolversContext } from '../../context';
 
 import sortObject from '~utils/sortObject';
 import { ObjectId } from 'mongodb';
-import relayPaginateUserNotesArray from '../../../mongoose/operations/pagination/relayPaginateUserNotesArray';
+import relayPaginateUserNotesArray, {
+  RelayPaginateUserNotesArrayOuput,
+} from '../../../mongoose/operations/pagination/relayPaginateUserNotesArray';
 import { UserNotesArrayLookupOutput } from '../../../mongoose/operations/lookup/userNotesArrayLookup';
 
 import util from 'util';
@@ -365,7 +368,7 @@ export class UserNotesArrayLoader {
 
   private loader = new DataLoader<
     UserNotesArrayKey,
-    DeepQueryResponse<NoteQueryType>,
+    DeepQueryResponse<NoteQueryType>[],
     string
   >(
     async (keys) => {
@@ -390,7 +393,7 @@ export class UserNotesArrayLoader {
       );
 
       const userNotesResults = await this.context.models.User.aggregate<
-        UserNotesArrayLookupOutput<UserNoteDeepQueryResponse>
+        RelayPaginateUserNotesArrayOuput<UserNoteDeepQueryResponse>
       >([
         {
           $match: {
@@ -419,25 +422,36 @@ export class UserNotesArrayLoader {
         return Error(`Expected User aggregate to return data`);
       }
 
-      ///userNotesResults[0]?.userNotes[0]?.note
+      const userNotesByQueryPaginations = relayArrayPaginationMapOutputToInput(
+        allPaginations,
+        userNotesResult.userNotes
+      );
 
-      // Map paginations to original query
-      // const noteByPublicId = mapRecordsPaginations(userNotesResult.userNotes, mergedQuery);
+      const userNotesByPaginationKey: Record<string, UserNoteDeepQueryResponse[]> = {};
+      for (let i = 0; i < allPaginations.length; i++) {
+        const pagination = allPaginations[i];
+        if (!pagination) continue;
+        const userNotes = userNotesByQueryPaginations[i];
+        if (!userNotes) continue;
 
-      // must map by input userNotes pagination...
+        userNotesByPaginationKey[getPaginationKey(pagination)] = userNotes;
+      }
 
-      // return keys.map((key) => {
-      //   const noteInfo = noteByPublicId[key.publicId];
-      //   if (!noteInfo) {
-      //     return new GraphQLError(`Note '${key.publicId}' not found`, {
-      //       extensions: {
-      //         code: GraphQLErrorCode.NotFound,
-      //       },
-      //     });
-      //   }
+      return keys.map((key) => {
+        const userNotes = userNotesByPaginationKey[getPaginationKey(key.pagination)];
+        if (!userNotes) {
+          throw new Error(
+            `Notes not found for pagination ${getPaginationKey(key.pagination)}`
+          );
+        }
 
-      //   return getProjectionResult(noteInfo, key.query.note?.collabText);
-      // });
+        const userNotesPaginationsMapped = userNotes.map((userNote) =>
+          userNoteResponseToPaginationsMapped(userNote, mergeQueries({}, [key.noteQuery]))
+        );
+
+        // TODO can cache this with key publicId, key.noteQuery
+        return userNotesPaginationsMapped.map((userNote) => userNoteQueryPaginationMappedToResponse(userNote, key.noteQuery));
+      });
     },
     {
       cacheKeyFn: getEqualObjectString,

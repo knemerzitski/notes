@@ -142,47 +142,49 @@ describe('collaborativeDocumentRevisionRecordsPagination', () => {
     assert(result != null);
 
     expect(result).toMatchObject({
-      sizes: null,
-      userNotes: [
-        {
-          _id: expect.any(ObjectId),
-          readOnly: expect.any(Boolean),
-          preferences: { backgroundColor: expect.any(String) },
-          note: {
-            id: expect.any(ObjectId),
-            publicId: expect.any(String),
-            collabText: {
-              content: {
-                _id: expect.any(ObjectId),
-                headDocument: { changeset: ['head'], revision: 9 },
-                tailDocument: { changeset: [], revision: -1 },
-                records: {
-                  array: [
-                    {
-                      creatorUserId: expect.any(ObjectId),
-                      userGeneratedId: expect.any(String),
-                      revision: 3,
-                      changeset: ['r_3'],
-                      beforeSelection: { start: 0 },
-                      afterSelection: { start: 0 },
-                    },
-                    {
-                      creatorUserId: expect.any(ObjectId),
-                      userGeneratedId: expect.any(String),
-                      revision: 4,
-                      changeset: ['r_4'],
-                      beforeSelection: { start: 0 },
-                      afterSelection: { start: 0 },
-                    },
-                  ],
-                  sizes: [0, 0, 2],
+      userNotes: {
+        sizes: null,
+        array: [
+          {
+            _id: expect.any(ObjectId),
+            readOnly: expect.any(Boolean),
+            preferences: { backgroundColor: expect.any(String) },
+            note: {
+              id: expect.any(ObjectId),
+              publicId: expect.any(String),
+              collabText: {
+                content: {
+                  _id: expect.any(ObjectId),
+                  headDocument: { changeset: ['head'], revision: 9 },
+                  tailDocument: { changeset: [], revision: -1 },
+                  records: {
+                    array: [
+                      {
+                        creatorUserId: expect.any(ObjectId),
+                        userGeneratedId: expect.any(String),
+                        revision: 3,
+                        changeset: ['r_3'],
+                        beforeSelection: { start: 0 },
+                        afterSelection: { start: 0 },
+                      },
+                      {
+                        creatorUserId: expect.any(ObjectId),
+                        userGeneratedId: expect.any(String),
+                        revision: 4,
+                        changeset: ['r_4'],
+                        beforeSelection: { start: 0 },
+                        afterSelection: { start: 0 },
+                      },
+                    ],
+                    sizes: [0, 0, 2],
+                  },
                 },
               },
+              ownerId: expect.any(ObjectId),
             },
-            ownerId: expect.any(ObjectId),
           },
-        },
-      ],
+        ],
+      },
     });
   });
 });

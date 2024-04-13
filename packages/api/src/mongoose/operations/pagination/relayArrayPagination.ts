@@ -532,7 +532,7 @@ export default function relayArrayPagination<TCursor>(
   };
 }
 
-export function relayArrayPaginationMapPaginationOutputToInput<TCursor, TItem>(
+export function relayArrayPaginationMapOutputToInput<TCursor, TItem>(
   input: RelayArrayPaginationInput<TCursor>['paginations'],
   output: RelayArrayPaginationOutput<TItem>
 ): TItem[][] {
