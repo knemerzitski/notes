@@ -37,7 +37,7 @@ import { UserNotesArrayLookupOutput } from '../../../mongoose/operations/lookup/
 
 import util from 'util';
 
-type MongoAggregateUserNoteResult = DeepQueryResponse<Omit<NoteQueryType, 'note'>> & {
+type UserNoteDeepQueryResponse = DeepQueryResponse<Omit<NoteQueryType, 'note'>> & {
   note?: DeepQueryResponse<Omit<NoteQueryType['note'], 'collabText'>> & {
     collabText?: Record<
       NoteTextField,
@@ -50,7 +50,7 @@ type MongoAggregateUserNoteResult = DeepQueryResponse<Omit<NoteQueryType, 'note'
   };
 };
 
-function queryToNoteLookupInput(
+function userNoteQueryToLookupInput(
   userNoteQuery: MergedDeepQuery<NoteQueryType>,
   context: NotesLoaderContext
 ): UserNoteLookupInput<NoteTextField> {
@@ -146,29 +146,31 @@ function queryToNoteLookupInput(
   };
 }
 
-function mapUserNotePaginations(
-  noteQuery: MergedDeepQuery<NoteQueryType> | undefined,
-  userNote: MongoAggregateUserNoteResult
+function userNoteResponseToPaginationsMapped(
+  userNote: UserNoteDeepQueryResponse,
+  noteQuery: MergedDeepQuery<NoteQueryType> | undefined
 ): DeepQueryResponsePaginationMapped<NoteQueryType> {
   return {
     ...userNote,
     note: {
       ...userNote.note,
-      collabText: mapCollabTextRecordsByPagination(
-        noteQuery?.note?.collabText,
-        userNote.note?.collabText
+      collabText: collabTextResponseToPaginationsMapped(
+        userNote.note?.collabText,
+        noteQuery?.note?.collabText
       ),
     },
   };
 }
 
-function mapCollabTextRecordsByPagination(
+function collabTextResponseToPaginationsMapped(
+  collabTextMap: NonNullable<UserNoteDeepQueryResponse['note']>['collabText'],
   collabTextQuery:
     | MergedDeepQuery<Record<NoteTextField, CollaborativeDocumentQueryType>>
-    | undefined,
-  collabText: NonNullable<MongoAggregateUserNoteResult['note']>['collabText']
-): DeepQueryResponsePaginationMapped<Record<NoteTextField, CollaborativeDocumentQueryType>> {
-  if (!collabTextQuery || !collabText) {
+    | undefined
+): DeepQueryResponsePaginationMapped<
+  Record<NoteTextField, CollaborativeDocumentQueryType>
+> {
+  if (!collabTextQuery || !collabTextMap) {
     return mapObject(NoteTextField, (_key, value) => [value, {}]);
   }
 
@@ -177,26 +179,26 @@ function mapCollabTextRecordsByPagination(
       DeepQueryResponsePaginationMapped<Pick<CollaborativeDocumentQueryType, 'records'>>
     > &
       DeepQueryResponsePaginationMapped<CollaborativeDocumentQueryType> = {
-      ...collabText[key],
+      ...collabTextMap[key],
       records: {},
     };
 
     if (!query?.records?.$paginations) return [key, collabTextMappedPaginations];
 
-    const paginationInput = query.records.$paginations.map(paginationStringToInt);
-    const paginationOutput = collabText[key].records;
+    const paginationQueryInput = query.records.$paginations.map(paginationStringToInt);
+    const paginationOutput = collabTextMap[key].records;
     if (!paginationOutput) {
       throw new Error('Expected pagination result');
     }
 
     assertRecordRevisionDefined(paginationOutput);
     const recordsGroupedByInput = mapRevisionRecordsPaginationInputToOutput(
-      paginationInput,
+      paginationQueryInput,
       paginationOutput
     );
 
-    for (let i = 0; i < paginationInput.length; i++) {
-      const pagination = paginationInput[i];
+    for (let i = 0; i < paginationQueryInput.length; i++) {
+      const pagination = paginationQueryInput[i];
       if (!pagination) continue;
       const recordsByInput = recordsGroupedByInput[i];
       if (!recordsByInput) continue;
@@ -209,10 +211,10 @@ function mapCollabTextRecordsByPagination(
 }
 
 function mapUserNoteByPublicIdAndMapPaginations(
-  userNotesResult: MongoAggregateUserNoteResult[],
+  userNotes: UserNoteDeepQueryResponse[],
   userNoteQuery: MergedDeepQuery<NoteQueryType>
 ): Record<string, DeepQueryResponsePaginationMapped<NoteQueryType>> {
-  return userNotesResult.reduce<
+  return userNotes.reduce<
     Record<string, DeepQueryResponsePaginationMapped<NoteQueryType>>
   >((retMap, userNote) => {
     const publicId = userNote.note?.publicId;
@@ -220,21 +222,21 @@ function mapUserNoteByPublicIdAndMapPaginations(
       throw new Error('Expected field note.publicId in UserNote response');
     }
 
-    retMap[publicId] = mapUserNotePaginations(userNoteQuery, userNote);
+    retMap[publicId] = userNoteResponseToPaginationsMapped(userNote, userNoteQuery);
 
     return retMap;
   }, {});
 }
 
-function getProjectionResult(
+function userNoteQueryPaginationMappedToResponse(
   userNote: DeepQueryResponsePaginationMapped<NoteQueryType>,
-  userNoteQuery?: DeepQuery<NoteQueryType>
+  userNoteQuery: DeepQuery<NoteQueryType>
 ): DeepQueryResponse<NoteQueryType> {
   return {
     ...userNote,
     note: {
       ...userNote.note,
-      collabText: userNoteQuery?.note?.collabText
+      collabText: userNoteQuery.note?.collabText
         ? mapObject(userNoteQuery.note.collabText, (collabKey, query) => {
             if (!query) return mapObjectSkip;
 
@@ -290,11 +292,11 @@ export default class NotesLoader {
       );
 
       // Build aggregate query
-      const userNoteLookupInput = queryToNoteLookupInput(mergedQuery, this.context);
+      const userNoteLookupInput = userNoteQueryToLookupInput(mergedQuery, this.context);
 
       // Fetch data
       const userNotesResult =
-        await this.context.UserNote.aggregate<MongoAggregateUserNoteResult>([
+        await this.context.UserNote.aggregate<UserNoteDeepQueryResponse>([
           {
             $match: {
               'note.publicId': {
@@ -323,7 +325,7 @@ export default class NotesLoader {
           });
         }
 
-        return getProjectionResult(userNote, key.query);
+        return userNoteQueryPaginationMappedToResponse(userNote, key.query);
       });
     },
     {
@@ -382,13 +384,13 @@ export class UserNotesArrayLoader {
       );
 
       // Build userNote aggregate query
-      const userNoteLookupInput = queryToNoteLookupInput(
+      const userNoteLookupInput = userNoteQueryToLookupInput(
         mergedQuery,
         this.context.models
       );
 
       const userNotesResults = await this.context.models.User.aggregate<
-        UserNotesArrayLookupOutput<MongoAggregateUserNoteResult>
+        UserNotesArrayLookupOutput<UserNoteDeepQueryResponse>
       >([
         {
           $match: {
