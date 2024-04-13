@@ -65,53 +65,6 @@ describe('collaborativeDocumentRevisionRecordsPagination', () => {
 
     const recordsPagination = revisionRecordsPagination(paginationInput);
 
-    const operations = relayPaginateUserNotesArray({
-      pagination: {
-        arrayFieldPath: 'order',
-      },
-      userNotes: {
-        userNoteCollctionName: UserNote.collection.collectionName,
-        userNoteLookupInput: {
-          note: {
-            collectionName: Note.collection.collectionName,
-          },
-          collabText: {
-            collectionName: CollabText.collection.collectionName,
-
-            collabText: mapObject(CollabTextKey, (_key, field) => [
-              field,
-              {
-                pipeline: [
-                  {
-                    $set: {
-                      records: recordsPagination,
-                    },
-                  },
-                  {
-                    $project: {
-                      headDocument: 1,
-                      tailDocument: 1,
-                      records: {
-                        array: {
-                          revision: 1,
-                          afterSelection: 1,
-                          beforeSelection: 1,
-                          changeset: 1,
-                          userGeneratedId: 1,
-                          creatorUserId: 1,
-                        },
-                        sizes: 1,
-                      },
-                    },
-                  },
-                ],
-              },
-            ]),
-          },
-        },
-      },
-    });
-
     const results = await User.aggregate<
       RelayPaginateUserNotesArrayOuput<
         CollabTextKey,
@@ -130,12 +83,52 @@ describe('collaborativeDocumentRevisionRecordsPagination', () => {
           _id: user._id,
         },
       },
-      {
-        $project: {
-          order: '$notes.category.default.order',
+      ...relayPaginateUserNotesArray({
+        pagination: {
+          'notes.category.default.order': {},
         },
-      },
-      ...operations,
+        userNotes: {
+          userNoteCollctionName: UserNote.collection.collectionName,
+          userNoteLookupInput: {
+            note: {
+              collectionName: Note.collection.collectionName,
+            },
+            collabText: {
+              collectionName: CollabText.collection.collectionName,
+
+              collabText: mapObject(CollabTextKey, (_key, field) => [
+                field,
+                {
+                  pipeline: [
+                    {
+                      $set: {
+                        records: recordsPagination,
+                      },
+                    },
+                    {
+                      $project: {
+                        headDocument: 1,
+                        tailDocument: 1,
+                        records: {
+                          array: {
+                            revision: 1,
+                            afterSelection: 1,
+                            beforeSelection: 1,
+                            changeset: 1,
+                            userGeneratedId: 1,
+                            creatorUserId: 1,
+                          },
+                          sizes: 1,
+                        },
+                      },
+                    },
+                  ],
+                },
+              ]),
+            },
+          },
+        },
+      }),
     ]);
 
     const result = results[0];
@@ -143,7 +136,7 @@ describe('collaborativeDocumentRevisionRecordsPagination', () => {
 
     expect(result).toMatchObject({
       userNotes: {
-        sizes: null,
+        multiSizes: [1],
         array: [
           {
             _id: expect.any(ObjectId),

@@ -237,12 +237,12 @@ describe('NotesLoader', () => {
         Note,
         CollabText,
       },
-      userId: user._id,
-      userNotesArrayPath: 'notes.category.default.order',
     });
 
     const results = await Promise.allSettled([
       loader.get({
+        userId: user._id,
+        userNotesArrayPath: 'notes.category.default.order',
         pagination: {
           first: 2,
         },
@@ -272,6 +272,8 @@ describe('NotesLoader', () => {
         },
       }),
       loader.get({
+        userId: user._id,
+        userNotesArrayPath: 'notes.category.default.order',
         pagination: {
           last: 2,
         },

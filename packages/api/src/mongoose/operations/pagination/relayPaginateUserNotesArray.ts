@@ -1,31 +1,58 @@
 import { ObjectId } from 'mongodb';
-import relayArrayPagination, {
-  RelayArrayPaginationInput,
-  RelayArrayPaginationOutput,
-} from './relayArrayPagination';
+import relayArrayPagination, { RelayArrayPaginationInput } from './relayArrayPagination';
 import userNotesArrayLookup, {
   UserNotesArrayLookupInput,
   UserNotesArrayLookupOutput,
 } from '../lookup/userNotesArrayLookup';
+import mapObject from 'map-obj';
+import relayMultiArrayPaginationConcat, {
+  RelayMultiArrayPaginationConcatOutput,
+} from './relayMultiArrayPaginationConcat';
 
-export interface RelayPaginateUserNotesArrayInput<TCollabTextKey extends string> {
-  pagination: RelayArrayPaginationInput<ObjectId>;
+export interface RelayPaginateUserNotesArrayInput<
+  TCollabTextKey extends string,
+  TArrayKey extends string,
+> {
+  pagination: Partial<
+    Record<
+      TArrayKey,
+      Omit<RelayArrayPaginationInput<ObjectId>, 'arrayFieldPath' | 'searchExpression'>
+    >
+  >;
   userNotes: Omit<UserNotesArrayLookupInput<TCollabTextKey>, 'fieldPath'>;
 }
-
 
 export type RelayPaginateUserNotesArrayOuput<
   TUserNoteLookup,
   TGroupExpressionOutput = Record<string, never>,
-> = UserNotesArrayLookupOutput<RelayArrayPaginationOutput<TUserNoteLookup>, TGroupExpressionOutput>;
+> = UserNotesArrayLookupOutput<
+  RelayMultiArrayPaginationConcatOutput<TUserNoteLookup>,
+  TGroupExpressionOutput
+>;
 
-export default function relayPaginateUserNotesArray<TCollabTextKey extends string>(
-  input: RelayPaginateUserNotesArrayInput<TCollabTextKey>
-) {
+export default function relayPaginateUserNotesArray<
+  TCollabTextKey extends string,
+  TArrayKey extends string,
+>(input: RelayPaginateUserNotesArrayInput<TCollabTextKey, TArrayKey>) {
   return [
     {
       $project: {
-        paginations: relayArrayPagination(input.pagination),
+        ...mapObject(input.pagination, (key, pagination) => {
+          return [
+            `paginations.${key}`,
+            relayArrayPagination({
+              arrayFieldPath: key,
+              ...pagination,
+            }),
+          ];
+        }),
+      },
+    },
+    {
+      $project: {
+        paginations: relayMultiArrayPaginationConcat({
+          paths: Object.keys(input.pagination).map((key) => `paginations.${key}`),
+        }),
       },
     },
     ...userNotesArrayLookup({
@@ -33,7 +60,7 @@ export default function relayPaginateUserNotesArray<TCollabTextKey extends strin
       fieldPath: 'paginations.array',
       groupExpression: {
         ...input.userNotes.groupExpression,
-        userNotesSizes: { $first: '$paginations.sizes' },
+        userNotesMultiSizes: { $first: '$paginations.multiSizes' },
       },
     }),
     {
@@ -48,12 +75,12 @@ export default function relayPaginateUserNotesArray<TCollabTextKey extends strin
       $set: {
         userNotes: {
           array: '$_userNotes',
-          sizes: '$userNotesSizes',
+          multiSizes: '$userNotesMultiSizes',
         },
       },
     },
     {
-      $unset: ['_userNotes', 'userNotesSizes'],
+      $unset: ['_userNotes', 'userNotesMultiSizes'],
     },
   ];
 }

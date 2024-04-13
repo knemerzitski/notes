@@ -55,14 +55,9 @@ it('returns all notes without any paginations', async () => {
         _id: user._id,
       },
     },
-    {
-      $project: {
-        order: '$notes.category.default.order',
-      },
-    },
     ...relayPaginateUserNotesArray({
       pagination: {
-        arrayFieldPath: 'order',
+        'notes.category.default.order': {},
       },
       userNotes: {
         userNoteCollctionName: UserNote.collection.collectionName,
@@ -85,7 +80,7 @@ it('returns all notes without any paginations', async () => {
   expect(result).toMatchObject({
     userNotes: {
       array: expect.any(Array),
-      sizes: null,
+      multiSizes: [10],
     },
   });
   expect(result.userNotes.array).toHaveLength(10);
@@ -98,20 +93,16 @@ it('paginates notes', async () => {
         _id: user._id,
       },
     },
-    {
-      $project: {
-        order: '$notes.category.default.order',
-      },
-    },
     ...relayPaginateUserNotesArray({
       pagination: {
-        arrayFieldPath: 'order',
-        paginations: [
-          {
-            before: userNotes[5]?._id,
-            last: 2,
-          },
-        ],
+        'notes.category.default.order': {
+          paginations: [
+            {
+              before: userNotes[5]?._id,
+              last: 2,
+            },
+          ],
+        },
       },
       userNotes: {
         userNoteCollctionName: UserNote.collection.collectionName,
