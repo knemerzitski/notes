@@ -12,6 +12,6 @@ export class NotePreferencesQuery implements NotePreferencesMapper {
   }
 
   async backgroundColor() {
-    return (await this.query.projectDocument({ backgroundColor: 1 }))?.backgroundColor;
+    return (await this.query.queryDocument({ backgroundColor: 1 }))?.backgroundColor;
   }
 }

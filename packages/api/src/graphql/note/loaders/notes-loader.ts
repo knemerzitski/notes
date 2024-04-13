@@ -1,10 +1,10 @@
 import DataLoader from 'dataloader';
 import {
-  MergedProjection,
-  Projection,
-  ProjectionMappedPagination,
-  ProjectionResult,
-  mergeProjections,
+  MergedDeepQuery,
+  DeepQuery,
+  DeepQueryResponsePaginationMapped,
+  DeepQueryResponse,
+  mergeQueries,
 } from '../../../mongoose/query-builder';
 import { NoteQueryType } from '../mongo-query-mapper/note';
 import { NoteTextField } from '../../types.generated';
@@ -37,13 +37,13 @@ import { UserNotesArrayLookupOutput } from '../../../mongoose/operations/lookup/
 
 import util from 'util';
 
-type MongoAggregateUserNoteResult = ProjectionResult<Omit<NoteQueryType, 'note'>> & {
-  note?: ProjectionResult<Omit<NoteQueryType['note'], 'collabText'>> & {
+type MongoAggregateUserNoteResult = DeepQueryResponse<Omit<NoteQueryType, 'note'>> & {
+  note?: DeepQueryResponse<Omit<NoteQueryType['note'], 'collabText'>> & {
     collabText?: Record<
       NoteTextField,
-      ProjectionResult<Omit<CollaborativeDocumentQueryType, 'records'>> & {
+      DeepQueryResponse<Omit<CollaborativeDocumentQueryType, 'records'>> & {
         records?: CollabTextRevisionRecordsPaginationOutput<
-          ProjectionResult<RevisionRecordQueryType>
+          DeepQueryResponse<RevisionRecordQueryType>
         >;
       }
     >;
@@ -51,7 +51,7 @@ type MongoAggregateUserNoteResult = ProjectionResult<Omit<NoteQueryType, 'note'>
 };
 
 function queryToNoteLookupInput(
-  userNoteQuery: MergedProjection<NoteQueryType>,
+  userNoteQuery: MergedDeepQuery<NoteQueryType>,
   context: NotesLoaderContext
 ): UserNoteLookupInput<NoteTextField> {
   const { note: noteQuery, ...queryAllExceptNote } = userNoteQuery;
@@ -60,7 +60,7 @@ function queryToNoteLookupInput(
     publicId: 1,
   };
 
-  const userNoteProject: MergedProjection<NoteQueryType> = { ...queryAllExceptNote };
+  const userNoteProject: MergedDeepQuery<NoteQueryType> = { ...queryAllExceptNote };
   if (!userNoteProject._id) {
     userNoteProject._id = 0;
   }
@@ -110,10 +110,10 @@ function queryToNoteLookupInput(
                 {
                   $project: {
                     ...query,
-                    records: query.records?.$project
+                    records: query.records?.$query
                       ? {
                           array: {
-                            ...query.records.$project,
+                            ...query.records.$query,
                             revision: 1,
                           },
                           sizes: 1,
@@ -147,9 +147,9 @@ function queryToNoteLookupInput(
 }
 
 function mapUserNotePaginations(
-  noteQuery: MergedProjection<NoteQueryType> | undefined,
+  noteQuery: MergedDeepQuery<NoteQueryType> | undefined,
   userNote: MongoAggregateUserNoteResult
-): ProjectionMappedPagination<NoteQueryType> {
+): DeepQueryResponsePaginationMapped<NoteQueryType> {
   return {
     ...userNote,
     note: {
@@ -164,19 +164,19 @@ function mapUserNotePaginations(
 
 function mapCollabTextRecordsByPagination(
   collabTextQuery:
-    | MergedProjection<Record<NoteTextField, CollaborativeDocumentQueryType>>
+    | MergedDeepQuery<Record<NoteTextField, CollaborativeDocumentQueryType>>
     | undefined,
   collabText: NonNullable<MongoAggregateUserNoteResult['note']>['collabText']
-): ProjectionMappedPagination<Record<NoteTextField, CollaborativeDocumentQueryType>> {
+): DeepQueryResponsePaginationMapped<Record<NoteTextField, CollaborativeDocumentQueryType>> {
   if (!collabTextQuery || !collabText) {
     return mapObject(NoteTextField, (_key, value) => [value, {}]);
   }
 
   return mapObject(collabTextQuery, (key, query) => {
     const collabTextMappedPaginations: Required<
-      ProjectionMappedPagination<Pick<CollaborativeDocumentQueryType, 'records'>>
+      DeepQueryResponsePaginationMapped<Pick<CollaborativeDocumentQueryType, 'records'>>
     > &
-      ProjectionMappedPagination<CollaborativeDocumentQueryType> = {
+      DeepQueryResponsePaginationMapped<CollaborativeDocumentQueryType> = {
       ...collabText[key],
       records: {},
     };
@@ -210,10 +210,10 @@ function mapCollabTextRecordsByPagination(
 
 function mapUserNoteByPublicIdAndMapPaginations(
   userNotesResult: MongoAggregateUserNoteResult[],
-  userNoteQuery: MergedProjection<NoteQueryType>
-): Record<string, ProjectionMappedPagination<NoteQueryType>> {
+  userNoteQuery: MergedDeepQuery<NoteQueryType>
+): Record<string, DeepQueryResponsePaginationMapped<NoteQueryType>> {
   return userNotesResult.reduce<
-    Record<string, ProjectionMappedPagination<NoteQueryType>>
+    Record<string, DeepQueryResponsePaginationMapped<NoteQueryType>>
   >((retMap, userNote) => {
     const publicId = userNote.note?.publicId;
     if (!publicId) {
@@ -227,9 +227,9 @@ function mapUserNoteByPublicIdAndMapPaginations(
 }
 
 function getProjectionResult(
-  userNote: ProjectionMappedPagination<NoteQueryType>,
-  userNoteQuery?: Projection<NoteQueryType>
-): ProjectionResult<NoteQueryType> {
+  userNote: DeepQueryResponsePaginationMapped<NoteQueryType>,
+  userNoteQuery?: DeepQuery<NoteQueryType>
+): DeepQueryResponse<NoteQueryType> {
   return {
     ...userNote,
     note: {
@@ -263,7 +263,7 @@ function getEqualObjectString(obj: unknown) {
 
 interface LoaderKey {
   publicId: string;
-  query: Projection<NoteQueryType>;
+  query: DeepQuery<NoteQueryType>;
 }
 
 type NotesLoaderContext = Pick<
@@ -278,13 +278,13 @@ export default class NotesLoader {
     this.context = context;
   }
 
-  private loader = new DataLoader<LoaderKey, ProjectionResult<NoteQueryType>, string>(
+  private loader = new DataLoader<LoaderKey, DeepQueryResponse<NoteQueryType>, string>(
     async (keys) => {
       // Gather publicIds
       const allPublicIds = keys.map(({ publicId }) => publicId);
 
       // Merge queries
-      const mergedQuery = mergeProjections(
+      const mergedQuery = mergeQueries(
         {},
         keys.map(({ query }) => query)
       );
@@ -342,7 +342,7 @@ export default class NotesLoader {
 // TODO implement below
 interface UserNotesArrayKey {
   pagination: RelayPagination<ObjectId>;
-  noteQuery: Projection<NoteQueryType>;
+  noteQuery: DeepQuery<NoteQueryType>;
 }
 
 interface UserNotesArrayLoaderContext {
@@ -363,12 +363,12 @@ export class UserNotesArrayLoader {
 
   private loader = new DataLoader<
     UserNotesArrayKey,
-    ProjectionResult<NoteQueryType>,
+    DeepQueryResponse<NoteQueryType>,
     string
   >(
     async (keys) => {
       // Merge queries
-      const mergedQuery = mergeProjections(
+      const mergedQuery = mergeQueries(
         {},
         keys.map(({ noteQuery }) => noteQuery)
       );

@@ -24,12 +24,12 @@ export class NoteQuery implements NoteMapper {
   }
 
   async id() {
-    return (await this.query.projectDocument({ _id: 1 }))?._id?.toString('base64');
+    return (await this.query.queryDocument({ _id: 1 }))?._id?.toString('base64');
   }
 
   async urlId() {
     return (
-      await this.query.projectDocument({
+      await this.query.queryDocument({
         note: {
           publicId: 1,
         },
@@ -45,9 +45,9 @@ export class NoteQuery implements NoteMapper {
         },
         value: () => {
           return new CollaborativeDocumentQuery({
-            projectDocument: async (project) => {
+            queryDocument: async (project) => {
               return (
-                await this.query.projectDocument({
+                await this.query.queryDocument({
                   note: {
                     collabTexts: {
                       [field]: project,
@@ -63,13 +63,13 @@ export class NoteQuery implements NoteMapper {
   }
 
   async readOnly() {
-    return (await this.query.projectDocument({ readOnly: 1 }))?.readOnly;
+    return (await this.query.queryDocument({ readOnly: 1 }))?.readOnly;
   }
 
   preferences() {
     return new NotePreferencesQuery({
-      projectDocument: async (project) => {
-        return (await this.query.projectDocument({ preferences: project }))?.preferences;
+      queryDocument: async (project) => {
+        return (await this.query.queryDocument({ preferences: project }))?.preferences;
       },
     });
   }

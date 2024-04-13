@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { MergedProjection, Projection, mergeProjections } from './query-builder';
+import { MergedDeepQuery, DeepQuery, mergeQueries } from './query-builder';
 
-describe('mergeProjections', () => {
+describe('mergeQueries', () => {
   interface Item {
     name: string;
     quantity: number;
@@ -19,7 +19,7 @@ describe('mergeProjections', () => {
     sub: SubData;
   }
 
-  it.each<[Projection<Data>[], MergedProjection<Data>]>([
+  it.each<[DeepQuery<Data>[], MergedDeepQuery<Data>]>([
     [
       [
         {
@@ -76,7 +76,7 @@ describe('mergeProjections', () => {
       [
         {
           items: {
-            $project: {
+            $query: {
               name: 1,
             },
             $pagination: {
@@ -86,7 +86,7 @@ describe('mergeProjections', () => {
         },
         {
           items: {
-            $project: {
+            $query: {
               quantity: 1,
             },
             $pagination: {
@@ -97,7 +97,7 @@ describe('mergeProjections', () => {
       ],
       {
         items: {
-          $project: {
+          $query: {
             name: 1,
             quantity: 1,
           },
@@ -116,7 +116,7 @@ describe('mergeProjections', () => {
       [
         {
           items: {
-            $project: {
+            $query: {
               name: 1,
             },
             $pagination: {
@@ -127,7 +127,7 @@ describe('mergeProjections', () => {
       ],
       {
         items: {
-          $project: {
+          $query: {
             name: 1,
           },
           $paginations: [
@@ -139,6 +139,6 @@ describe('mergeProjections', () => {
       },
     ],
   ])('%s => %s', (mergeData, expected) => {
-    expect(mergeProjections({}, mergeData)).toStrictEqual(expected);
+    expect(mergeQueries({}, mergeData)).toStrictEqual(expected);
   });
 });

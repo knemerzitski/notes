@@ -8,8 +8,8 @@ type Primitive = string | number | boolean | ObjectId;
 type ProjectionValue = 1 | undefined;
 type IdProjectionValue = 0 | ProjectionValue;
 
-export interface ArrayProjection<TItem> {
-  $project?: Projection<TItem>;
+export interface ArrayQuery<TItem> {
+  $query?: DeepQuery<TItem>;
   $pagination?: RelayPagination<string>;
 }
 
@@ -17,15 +17,15 @@ export interface ArrayProjection<TItem> {
  * Copy structure of object with custom values.
  * Value can be 1 or pagination if it's an array.
  */
-export type Projection<T> = {
+export type DeepQuery<T> = {
   [Key in keyof T]?: T[Key] extends (infer U)[]
-    ? ArrayProjection<U>
+    ? ArrayQuery<U>
     : T[Key] extends Primitive
       ? Key extends '_id'
         ? IdProjectionValue
         : ProjectionValue
       : T[Key] extends object | undefined
-        ? Projection<T[Key]>
+        ? DeepQuery<T[Key]>
         : ProjectionValue;
 };
 
@@ -33,13 +33,13 @@ export type Projection<T> = {
  * Makes every property optional except primitive values.
  * e.g. ObjectId properties are not optional
  */
-export type ProjectionResult<T> = {
+export type DeepQueryResponse<T> = {
   [Key in keyof T]?: T[Key] extends (infer U)[]
-    ? ProjectionResult<U>[]
+    ? DeepQueryResponse<U>[]
     : T[Key] extends Primitive
       ? T[Key]
       : T[Key] extends object | undefined
-        ? ProjectionResult<T[Key]>
+        ? DeepQueryResponse<T[Key]>
         : T[Key];
 };
 
@@ -50,82 +50,79 @@ export type ProjectionResult<T> = {
  *  'b:3': [....], \
  * }
  */
-export type ArrayMappedPagination<TItem> = Record<string, ProjectionMappedPagination<TItem>[]>;
+type ArrayQueryDeepMappedPagination<TItem> = Record<string, DeepQueryResponsePaginationMapped<TItem>[]>;
 
 // final result...
-export type ProjectionMappedPagination<T> = {
+export type DeepQueryResponsePaginationMapped<T> = {
   [Key in keyof T]?: T[Key] extends (infer U)[]
-    ? ArrayMappedPagination<U>
+    ? ArrayQueryDeepMappedPagination<U>
     : T[Key] extends Primitive
       ? T[Key]
       : T[Key] extends object | undefined
-        ? ProjectionMappedPagination<T[Key]>
+        ? DeepQueryResponsePaginationMapped<T[Key]>
         : T[Key];
 };
 
-
-export type Project = <T>(project: unknown) => Promise<T>;
-
 export interface MongoQuery {
-  project<T>(project: unknown): Promise<T | null | undefined>;
+  query<T>(query: unknown): Promise<T | null | undefined>;
 }
 
 export interface MongoDocumentQuery<TDocument> {
-  projectDocument(
-    project: Projection<TDocument>
-  ): Promise<ProjectionResult<TDocument> | null | undefined>;
+  queryDocument(
+    query: DeepQuery<TDocument>
+  ): Promise<DeepQueryResponse<TDocument> | null | undefined>;
 }
 
 export class CustomMongoDocumentDataSource<TDocument>
   implements MongoDocumentQuery<TDocument>, MongoQuery
 {
-  private query: MongoQuery;
+  private mongoQuery: MongoQuery;
 
-  constructor(query: MongoQuery) {
-    this.query = query;
+  constructor(mongoQuery: MongoQuery) {
+    this.mongoQuery = mongoQuery;
   }
 
-  projectDocument(project: Projection<TDocument>) {
-    return this.query.project<ProjectionResult<TDocument> | null | undefined>(project);
+  queryDocument(query: DeepQuery<TDocument>) {
+    return this.mongoQuery.query<DeepQueryResponse<TDocument> | null | undefined>(query);
   }
 
-  async project<T>(project: unknown) {
-    return (await this.query.project<{ _custom: T }>({ _custom: project }))?._custom;
+  async query<T>(query: unknown) {
+    return (await this.mongoQuery.query<{ _custom: T }>({ _custom: query }))?._custom;
   }
 }
 
-export interface MergedArrayProjection<TItem> {
-  $project?: Projection<TItem>;
+export interface MergedArrayQuery<TItem> {
+  $query?: DeepQuery<TItem>;
   $paginations?: RelayPagination<string>[];
 }
 
-export type MergedProjection<T> = {
+export type MergedDeepQuery<T> = {
   [Key in keyof T]?: T[Key] extends (infer U)[]
-    ? MergedArrayProjection<U>
+    ? MergedArrayQuery<U>
     : T[Key] extends Primitive
       ? Key extends '_id'
         ? IdProjectionValue
         : ProjectionValue
       : T[Key] extends object | undefined
-        ? MergedProjection<T[Key]>
+        ? MergedDeepQuery<T[Key]>
         : ProjectionValue;
 };
 
-export function mergeProjections<T>(
-  mergedObj: MergedProjection<T>,
-  sources: Readonly<Projection<T>[]>,
+export function mergeQueries<T>(
+  mergedObj: MergedDeepQuery<T>,
+  sources: Readonly<DeepQuery<T>[]>,
   state?: {
     pathKey: string;
     paginationMemo: Record<string, Set<string>>;
   }
-): MergedProjection<T> {
+): MergedDeepQuery<T> {
   const resultMergedObj: Record<string, unknown> = mergedObj;
   const paginationMemo = state?.paginationMemo ?? {};
   const pathKey = state?.pathKey ?? 'ROOT';
 
   for (const source of sources) {
     for (const sourceKey of Object.keys(source)) {
-      const sourceValue = source[sourceKey as keyof Projection<T>];
+      const sourceValue = source[sourceKey as keyof DeepQuery<T>];
 
       if (sourceValue === 1) {
         // Merged 1's from all sources
@@ -137,19 +134,19 @@ export function mergeProjections<T>(
           resultMergedObj[sourceKey] = mergedValue;
         }
 
-        if ('$project' in sourceValue || '$pagination' in sourceValue) {
+        if ('$query' in sourceValue || '$pagination' in sourceValue) {
           const arrayMergedValue = mergedValue as {
-            $project?: Projection<unknown>;
+            $query?: DeepQuery<unknown>;
             $paginations?: RelayPagination<string>[];
           };
 
-          if ('$project' in sourceValue && sourceValue.$project) {
-            if (!arrayMergedValue.$project) {
-              arrayMergedValue.$project = {};
+          if ('$query' in sourceValue && sourceValue.$query) {
+            if (!arrayMergedValue.$query) {
+              arrayMergedValue.$query = {};
             }
-            mergeProjections(
-              arrayMergedValue.$project as MergedProjection<T>,
-              [sourceValue.$project as Projection<T>],
+            mergeQueries(
+              arrayMergedValue.$query as MergedDeepQuery<T>,
+              [sourceValue.$query as DeepQuery<T>],
               { paginationMemo, pathKey: `${pathKey}.${sourceKey}` }
             );
           }
@@ -174,7 +171,7 @@ export function mergeProjections<T>(
             }
           }
         } else {
-          mergeProjections(mergedValue, [sourceValue], {
+          mergeQueries(mergedValue, [sourceValue], {
             paginationMemo,
             pathKey: `${pathKey}.${sourceKey}`,
           });
@@ -185,5 +182,5 @@ export function mergeProjections<T>(
     }
   }
 
-  return resultMergedObj as MergedProjection<T>;
+  return resultMergedObj as MergedDeepQuery<T>;
 }

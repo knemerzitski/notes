@@ -39,14 +39,14 @@ export class CollaborativeDocumentQuery implements CollaborativeDocumentMapper {
   }
 
   async id() {
-    return (await this.query.projectDocument({ _id: 1 }))?._id?.toString('base64');
+    return (await this.query.queryDocument({ _id: 1 }))?._id?.toString('base64');
   }
 
   headDocument(): RevisionChangesetMapper {
     return new RevisionChangesetQuery({
-      projectDocument: async (change) => {
+      queryDocument: async (change) => {
         return (
-          await this.query.projectDocument({
+          await this.query.queryDocument({
             headDocument: change,
           })
         )?.headDocument;
@@ -56,9 +56,9 @@ export class CollaborativeDocumentQuery implements CollaborativeDocumentMapper {
 
   tailDocument(): RevisionChangesetMapper {
     return new RevisionChangesetQuery({
-      projectDocument: async (change) => {
+      queryDocument: async (change) => {
         return (
-          await this.query.projectDocument({
+          await this.query.queryDocument({
             tailDocument: change,
           })
         )?.tailDocument;
@@ -70,7 +70,7 @@ export class CollaborativeDocumentQuery implements CollaborativeDocumentMapper {
     revision: targetRevision,
   }: CollaborativeDocumentdocumentArgs): RevisionChangesetMapper {
     return new RevisionChangesetQuery({
-      projectDocument: async ({ revision, changeset }) => {
+      queryDocument: async ({ revision, changeset }) => {
         if (!revision && !changeset) return {};
 
         if (!changeset) {
@@ -81,9 +81,9 @@ export class CollaborativeDocumentQuery implements CollaborativeDocumentMapper {
 
         const [tailChangeset, rawDocument] = await Promise.all([
           this.tailDocument().changeset(),
-          this.query.projectDocument({
+          this.query.queryDocument({
             records: {
-              $project: {
+              $query: {
                 changeset: 1,
               },
               $pagination: {
@@ -132,11 +132,11 @@ export class CollaborativeDocumentQuery implements CollaborativeDocumentMapper {
           ...[...new Array<undefined>(isForwardPagination ? first : 0)].map(
             (_, index) => {
               const revisionRecordQuery = new RevisionRecordQuery(this, {
-                projectDocument: async (project) => {
+                queryDocument: async (project) => {
                   return (
-                    await this.query.projectDocument({
+                    await this.query.queryDocument({
                       records: {
-                        $project: project,
+                        $query: project,
                         $pagination: {
                           after,
                           first,
@@ -159,11 +159,11 @@ export class CollaborativeDocumentQuery implements CollaborativeDocumentMapper {
           ...[...new Array<undefined>(isBackwardPagination ? last : 0)].map(
             (_, index) => {
               const revisionRecordQuery = new RevisionRecordQuery(this, {
-                projectDocument: async (project) => {
+                queryDocument: async (project) => {
                   return (
-                    await this.query.projectDocument({
+                    await this.query.queryDocument({
                       records: {
-                        $project: project,
+                        $query: project,
                         $pagination: {
                           before,
                           last,

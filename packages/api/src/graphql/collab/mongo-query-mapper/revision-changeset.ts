@@ -13,11 +13,11 @@ export class RevisionChangesetQuery implements RevisionChangesetMapper {
   }
 
   async revision() {
-    return (await this.query.projectDocument({ revision: 1 }))?.revision;
+    return (await this.query.queryDocument({ revision: 1 }))?.revision;
   }
 
   async changeset() {
-    const serializedChangeset = (await this.query.projectDocument({ changeset: 1 }))
+    const serializedChangeset = (await this.query.queryDocument({ changeset: 1 }))
       ?.changeset;
 
     if (serializedChangeset == null) {

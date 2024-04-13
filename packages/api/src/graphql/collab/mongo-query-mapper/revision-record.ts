@@ -37,7 +37,7 @@ export class RevisionRecordQuery implements CollaborativeDocumentRecordMapper {
   }
 
   private async getRevision() {
-    return (await this.query.projectDocument({ revision: 1 }))?.revision;
+    return (await this.query.queryDocument({ revision: 1 }))?.revision;
   }
 
   async id() {
@@ -55,23 +55,23 @@ export class RevisionRecordQuery implements CollaborativeDocumentRecordMapper {
 
   async creatorUserId() {
     return (
-      await this.query.projectDocument({ creatorUserId: 1 })
+      await this.query.queryDocument({ creatorUserId: 1 })
     )?.creatorUserId?.toString('base64');
   }
 
   change(): RevisionChangesetMapper {
     return new RevisionChangesetQuery({
-      projectDocument: (change) => {
-        return this.query.projectDocument(change);
+      queryDocument: (change) => {
+        return this.query.queryDocument(change);
       },
     });
   }
 
   beforeSelection(): CollaborativeDocumentSelectionRangeMapper {
     return new SelectionRangeQuery({
-      projectDocument: async (selection) => {
+      queryDocument: async (selection) => {
         return (
-          await this.query.projectDocument({
+          await this.query.queryDocument({
             beforeSelection: selection,
           })
         )?.beforeSelection;
@@ -81,9 +81,9 @@ export class RevisionRecordQuery implements CollaborativeDocumentRecordMapper {
 
   afterSelection(): CollaborativeDocumentSelectionRangeMapper {
     return new SelectionRangeQuery({
-      projectDocument: async (selection) => {
+      queryDocument: async (selection) => {
         return (
-          await this.query.projectDocument({
+          await this.query.queryDocument({
             afterSelection: selection,
           })
         )?.afterSelection;

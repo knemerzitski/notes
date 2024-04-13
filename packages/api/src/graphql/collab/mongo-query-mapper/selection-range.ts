@@ -13,10 +13,10 @@ export class SelectionRangeQuery implements CollaborativeDocumentSelectionRangeM
   }
 
   async start() {
-    return (await this.query.projectDocument({ start: 1 }))?.start;
+    return (await this.query.queryDocument({ start: 1 }))?.start;
   }
 
   async end() {
-    return (await this.query.projectDocument({ end: 1 }))?.end;
+    return (await this.query.queryDocument({ end: 1 }))?.end;
   }
 }

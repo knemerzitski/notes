@@ -61,7 +61,7 @@ describe('NotesLoader', () => {
                 revision: 1,
               },
               records: {
-                $project: {
+                $query: {
                   revision: 1,
                   userGeneratedId: 1,
                   changeset: 1,
@@ -89,7 +89,7 @@ describe('NotesLoader', () => {
             },
             CONTENT: {
               records: {
-                $project: {
+                $query: {
                   revision: 1,
                 },
                 $pagination: {
@@ -196,7 +196,7 @@ describe('NotesLoader', () => {
           },
           CONTENT: {
             records: {
-              $project: {
+              $query: {
                 revision: 1,
               },
               $pagination: {

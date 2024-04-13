@@ -5,14 +5,14 @@ import { Changeset } from '~collab/changeset/changeset';
 import { NoteQuery, NoteQueryType } from '../graphql/note/mongo-query-mapper/note';
 
 import util from 'util';
-import { Projection, mergeProjections } from './query-builder';
+import { DeepQuery, mergeQueries } from './query-builder';
 
 describe.skip('sandbox', () => {
   it('project', async () => {
-    const projections: Projection<NoteQueryType>[] = [];
+    const projections: DeepQuery<NoteQueryType>[] = [];
 
     const noteQuery = new NoteQuery({
-      projectDocument(project) {
+      queryDocument(project) {
         projections.push(project);
         console.log('project', util.inspect(project, false, null, true));
         return Promise.resolve({
@@ -94,9 +94,9 @@ describe.skip('sandbox', () => {
 
     const result4 = await noteQuery.preferences().backgroundColor();
 
-    const finalQuery = mergeProjections({}, projections);
+    const finalQuery = mergeQueries({}, projections);
 
     console.log('MERGED');
-    console.log(util.inspect(mergeProjections({}, projections), false, null, true));
+    console.log(util.inspect(mergeQueries({}, projections), false, null, true));
   });
 });
