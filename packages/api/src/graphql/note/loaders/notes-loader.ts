@@ -16,7 +16,7 @@ import revisionRecordsPagination, {
 import userNoteLookup, {
   UserNoteLookupInput,
 } from '../../../mongoose/operations/lookup/userNoteLookup';
-import relayArrayPagination, {
+import {
   RelayPagination,
   getPaginationKey,
   paginationStringToInt,
@@ -36,7 +36,6 @@ import { ObjectId } from 'mongodb';
 import relayPaginateUserNotesArray, {
   RelayPaginateUserNotesArrayOuput,
 } from '../../../mongoose/operations/pagination/relayPaginateUserNotesArray';
-import { UserNotesArrayLookupOutput } from '../../../mongoose/operations/lookup/userNotesArrayLookup';
 
 import util from 'util';
 
@@ -276,6 +275,54 @@ type NotesLoaderContext = Pick<
   'UserNote' | 'CollabText' | 'Note'
 >;
 
+async function notesLoaderFn(
+  keys: Readonly<LoaderKey[]>,
+  context: NotesLoaderContext
+): Promise<(DeepQueryResponse<NoteQueryType> | Error)[]> {
+  // Gather publicIds
+  const allPublicIds = keys.map(({ publicId }) => publicId);
+
+  // Merge queries
+  const mergedQuery = mergeQueries(
+    {},
+    keys.map(({ query }) => query)
+  );
+
+  // Build aggregate query
+  const userNoteLookupInput = userNoteQueryToLookupInput(mergedQuery, context);
+
+  // Fetch data
+  const userNotesResult = await context.UserNote.aggregate<UserNoteDeepQueryResponse>([
+    {
+      $match: {
+        'note.publicId': {
+          $in: allPublicIds,
+        },
+      },
+    },
+    ...userNoteLookup(userNoteLookupInput),
+  ]);
+
+  // Map paginations to original query
+  const noteByPublicId = mapUserNoteByPublicIdAndMapPaginations(
+    userNotesResult,
+    mergedQuery
+  );
+
+  return keys.map((key) => {
+    const userNote = noteByPublicId[key.publicId];
+    if (!userNote) {
+      return new GraphQLError(`Note '${key.publicId}' not found`, {
+        extensions: {
+          code: GraphQLErrorCode.NotFound,
+        },
+      });
+    }
+
+    return userNoteQueryPaginationMappedToResponse(userNote, key.query);
+  });
+}
+
 export default class NotesLoader {
   private context: Readonly<NotesLoaderContext>;
 
@@ -284,53 +331,7 @@ export default class NotesLoader {
   }
 
   private loader = new DataLoader<LoaderKey, DeepQueryResponse<NoteQueryType>, string>(
-    async (keys) => {
-      // Gather publicIds
-      const allPublicIds = keys.map(({ publicId }) => publicId);
-
-      // Merge queries
-      const mergedQuery = mergeQueries(
-        {},
-        keys.map(({ query }) => query)
-      );
-
-      // Build aggregate query
-      const userNoteLookupInput = userNoteQueryToLookupInput(mergedQuery, this.context);
-
-      // Fetch data
-      const userNotesResult =
-        await this.context.UserNote.aggregate<UserNoteDeepQueryResponse>([
-          {
-            $match: {
-              'note.publicId': {
-                $in: allPublicIds,
-              },
-            },
-          },
-          ...userNoteLookup(userNoteLookupInput),
-        ]);
-
-      // Map paginations to original query
-      const noteByPublicId = mapUserNoteByPublicIdAndMapPaginations(
-        userNotesResult,
-        mergedQuery
-      );
-
-      // console.log(util.inspect(noteByPublicId, false, null, true));
-
-      return keys.map((key) => {
-        const userNote = noteByPublicId[key.publicId];
-        if (!userNote) {
-          return new GraphQLError(`Note '${key.publicId}' not found`, {
-            extensions: {
-              code: GraphQLErrorCode.NotFound,
-            },
-          });
-        }
-
-        return userNoteQueryPaginationMappedToResponse(userNote, key.query);
-      });
-    },
+    async (keys) => notesLoaderFn(keys, this.context),
     {
       cacheKeyFn: getEqualObjectString,
     }
@@ -359,6 +360,94 @@ interface UserNotesArrayLoaderContext {
   userNotesArrayPath: string;
 }
 
+async function userNotesArrayLoaderFn(
+  keys: Readonly<UserNotesArrayKey[]>,
+  context: UserNotesArrayLoaderContext
+): Promise<(DeepQueryResponse<NoteQueryType>[] | Error)[]> {
+  // Merge queries
+  const mergedQuery = mergeQueries(
+    {},
+    keys.map(({ noteQuery }) => noteQuery)
+  );
+
+  const allPaginations = keys.reduce<RelayPagination<ObjectId>[]>(
+    (list, { pagination }) => {
+      list.push(pagination);
+      return list;
+    },
+    []
+  );
+
+  // Build userNote aggregate query
+  const userNoteLookupInput = userNoteQueryToLookupInput(
+    mergedQuery,
+    context.models
+  );
+
+  const userNotesResults = await context.models.User.aggregate<
+    RelayPaginateUserNotesArrayOuput<UserNoteDeepQueryResponse>
+  >([
+    {
+      $match: {
+        _id: context.userId,
+      },
+    },
+    {
+      $project: {
+        order: `$${context.userNotesArrayPath}`,
+      },
+    },
+    ...relayPaginateUserNotesArray({
+      pagination: {
+        arrayFieldPath: 'order',
+        paginations: allPaginations,
+      },
+      userNotes: {
+        userNoteCollctionName: context.models.UserNote.collection.collectionName,
+        userNoteLookupInput,
+      },
+    }),
+  ]);
+
+  const userNotesResult = userNotesResults[0];
+  if (!userNotesResult) {
+    throw new Error(`Expected User aggregate to return data`);
+  }
+
+  const userNotesByQueryPaginations = relayArrayPaginationMapOutputToInput(
+    allPaginations,
+    userNotesResult.userNotes
+  );
+
+  const userNotesByPaginationKey: Record<string, UserNoteDeepQueryResponse[]> = {};
+  for (let i = 0; i < allPaginations.length; i++) {
+    const pagination = allPaginations[i];
+    if (!pagination) continue;
+    const userNotes = userNotesByQueryPaginations[i];
+    if (!userNotes) continue;
+
+    userNotesByPaginationKey[getPaginationKey(pagination)] = userNotes;
+  }
+
+  return keys.map((key) => {
+    const userNotes = userNotesByPaginationKey[getPaginationKey(key.pagination)];
+    if (!userNotes) {
+      throw new Error(
+        `Notes not found for pagination ${getPaginationKey(key.pagination)}`
+      );
+    }
+
+    const userNotesPaginationsMapped = userNotes.map((userNote) =>
+      userNoteResponseToPaginationsMapped(userNote, mergeQueries({}, [key.noteQuery]))
+    );
+
+    // TODO can cache this with key publicId, key.noteQuery
+    return userNotesPaginationsMapped.map((userNote) =>
+      userNoteQueryPaginationMappedToResponse(userNote, key.noteQuery)
+    );
+  });
+}
+
 export class UserNotesArrayLoader {
   private context: Readonly<UserNotesArrayLoaderContext>;
 
@@ -371,88 +460,7 @@ export class UserNotesArrayLoader {
     DeepQueryResponse<NoteQueryType>[],
     string
   >(
-    async (keys) => {
-      // Merge queries
-      const mergedQuery = mergeQueries(
-        {},
-        keys.map(({ noteQuery }) => noteQuery)
-      );
-
-      const allPaginations = keys.reduce<RelayPagination<ObjectId>[]>(
-        (list, { pagination }) => {
-          list.push(pagination);
-          return list;
-        },
-        []
-      );
-
-      // Build userNote aggregate query
-      const userNoteLookupInput = userNoteQueryToLookupInput(
-        mergedQuery,
-        this.context.models
-      );
-
-      const userNotesResults = await this.context.models.User.aggregate<
-        RelayPaginateUserNotesArrayOuput<UserNoteDeepQueryResponse>
-      >([
-        {
-          $match: {
-            _id: this.context.userId,
-          },
-        },
-        {
-          $project: {
-            order: `$${this.context.userNotesArrayPath}`,
-          },
-        },
-        ...relayPaginateUserNotesArray({
-          pagination: {
-            arrayFieldPath: 'order',
-            paginations: allPaginations,
-          },
-          userNotes: {
-            userNoteCollctionName: this.context.models.UserNote.collection.collectionName,
-            userNoteLookupInput,
-          },
-        }),
-      ]);
-
-      const userNotesResult = userNotesResults[0];
-      if (!userNotesResult) {
-        return Error(`Expected User aggregate to return data`);
-      }
-
-      const userNotesByQueryPaginations = relayArrayPaginationMapOutputToInput(
-        allPaginations,
-        userNotesResult.userNotes
-      );
-
-      const userNotesByPaginationKey: Record<string, UserNoteDeepQueryResponse[]> = {};
-      for (let i = 0; i < allPaginations.length; i++) {
-        const pagination = allPaginations[i];
-        if (!pagination) continue;
-        const userNotes = userNotesByQueryPaginations[i];
-        if (!userNotes) continue;
-
-        userNotesByPaginationKey[getPaginationKey(pagination)] = userNotes;
-      }
-
-      return keys.map((key) => {
-        const userNotes = userNotesByPaginationKey[getPaginationKey(key.pagination)];
-        if (!userNotes) {
-          throw new Error(
-            `Notes not found for pagination ${getPaginationKey(key.pagination)}`
-          );
-        }
-
-        const userNotesPaginationsMapped = userNotes.map((userNote) =>
-          userNoteResponseToPaginationsMapped(userNote, mergeQueries({}, [key.noteQuery]))
-        );
-
-        // TODO can cache this with key publicId, key.noteQuery
-        return userNotesPaginationsMapped.map((userNote) => userNoteQueryPaginationMappedToResponse(userNote, key.noteQuery));
-      });
-    },
+    (keys) => userNotesArrayLoaderFn(keys, this.context),
     {
       cacheKeyFn: getEqualObjectString,
     }
@@ -462,5 +470,3 @@ export class UserNotesArrayLoader {
     return this.loader.load(key);
   }
 }
-
-// specify userId "_id", path "notes.category.default.order" and pagination
