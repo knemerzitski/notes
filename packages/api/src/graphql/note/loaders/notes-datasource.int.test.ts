@@ -13,7 +13,7 @@ import {
   User,
 } from '../../../tests/helpers/mongoose';
 import { NoteTextField } from '../../types.generated';
-import NotesLoader, { UserNotesArrayLoader } from './notes-loader';
+import NotesLoader, { UserNotesArrayLoader } from './notes-datasource';
 
 import { NoteDocument } from '../../../mongoose/models/note';
 import { GraphQLError } from 'graphql';
