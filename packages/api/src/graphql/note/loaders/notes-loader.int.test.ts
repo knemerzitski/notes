@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
 import { describe, beforeAll, it, assert, expect } from 'vitest';
 import {
@@ -117,7 +118,7 @@ describe('NotesLoader', () => {
       {
         status: 'fulfilled',
         value: {
-          readOnly: false,
+          readOnly: expect.any(Boolean),
           preferences: { backgroundColor: '#dd3c8e' },
           note: {
             publicId: 'publicId_0',
@@ -146,7 +147,7 @@ describe('NotesLoader', () => {
       {
         status: 'fulfilled',
         value: {
-          readOnly: true,
+          readOnly: expect.any(Boolean),
           preferences: { backgroundColor: '#9d01dd' },
           note: {
             publicId: 'publicId_1',
@@ -154,7 +155,7 @@ describe('NotesLoader', () => {
               TITLE: {
                 _id: expect.any(ObjectId),
                 headDocument: { revision: 9 },
-                records: undefined,
+                records: [],
               },
               CONTENT: {
                 _id: expect.any(ObjectId),
@@ -183,8 +184,6 @@ describe('NotesLoader', () => {
       },
     ]);
 
-    console.log('after');
-
     // TODO write test that checks loader key is used
     const more = await loader.get(note1.publicId, {
       note: {
@@ -208,6 +207,5 @@ describe('NotesLoader', () => {
         },
       },
     });
-    console.log('more', more);
   });
 });

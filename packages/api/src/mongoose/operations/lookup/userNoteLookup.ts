@@ -3,6 +3,7 @@ import { PipelineStage } from 'mongoose';
 export interface UserNoteLookupInput<TCollabTextKey extends string> {
   collabText?: CollabTextLookupInput<TCollabTextKey>;
   note?: NoteLookupInput;
+  postLookup?: PipelineStage.Lookup['$lookup']['pipeline'];
 }
 
 export type UserNoteLookupOutput<
@@ -19,6 +20,7 @@ export type UserNoteLookupOutput<
 export default function userNoteLookup<TCollabTextKey extends string>({
   collabText,
   note,
+  postLookup,
 }: UserNoteLookupInput<TCollabTextKey>): Exclude<
   PipelineStage.Lookup['$lookup']['pipeline'],
   undefined
@@ -29,6 +31,7 @@ export default function userNoteLookup<TCollabTextKey extends string>({
     },
     ...(collabText ? noteCollabTextLookup(collabText) : []),
     ...(note ? noteLookup(note) : []),
+    ...(postLookup ? postLookup : []),
   ];
 }
 

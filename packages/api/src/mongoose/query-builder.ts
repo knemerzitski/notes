@@ -13,6 +13,10 @@ export interface ArrayProjection<TItem> {
   $pagination?: RelayPagination<string>;
 }
 
+/**
+ * Copy structure of object with custom values.
+ * Value can be 1 or pagination if it's an array.
+ */
 export type Projection<T> = {
   [Key in keyof T]?: T[Key] extends (infer U)[]
     ? ArrayProjection<U>
@@ -25,6 +29,10 @@ export type Projection<T> = {
         : ProjectionValue;
 };
 
+/**
+ * Makes every property optional except primitive values.
+ * e.g. ObjectId properties are not optional
+ */
 export type ProjectionResult<T> = {
   [Key in keyof T]?: T[Key] extends (infer U)[]
     ? ProjectionResult<U>[]
@@ -34,6 +42,27 @@ export type ProjectionResult<T> = {
         ? ProjectionResult<T[Key]>
         : T[Key];
 };
+
+/**
+ * Paginations by getPaginationKey. \
+ * e.g. { \
+ *  'a:2': [....], \
+ *  'b:3': [....], \
+ * }
+ */
+export type ArrayMappedPagination<TItem> = Record<string, ProjectionMappedPagination<TItem>[]>;
+
+// final result...
+export type ProjectionMappedPagination<T> = {
+  [Key in keyof T]?: T[Key] extends (infer U)[]
+    ? ArrayMappedPagination<U>
+    : T[Key] extends Primitive
+      ? T[Key]
+      : T[Key] extends object | undefined
+        ? ProjectionMappedPagination<T[Key]>
+        : T[Key];
+};
+
 
 export type Project = <T>(project: unknown) => Promise<T>;
 

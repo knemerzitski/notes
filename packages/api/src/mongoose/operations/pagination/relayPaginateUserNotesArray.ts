@@ -7,7 +7,6 @@ import userNotesArrayLookup, {
   UserNotesArrayLookupInput,
   UserNotesArrayLookupOutput,
 } from '../lookup/userNotesArrayLookup';
-import { UserNoteLookupOutput } from '../lookup/userNoteLookup';
 
 export interface RelayPaginateUserNotesArrayInput<TCollabTextKey extends string> {
   pagination: RelayArrayPaginationInput<ObjectId>;
@@ -19,15 +18,9 @@ interface GroupExpression {
 }
 
 export type RelayPaginateUserNotesArrayOuput<
-  TCollabTextKey extends string,
-  TUserNoteLookupOutput = UserNoteLookupOutput<TCollabTextKey>,
+  TUserNoteLookup,
   TGroupExpressionOutput = Record<string, never>,
-> = UserNotesArrayLookupOutput<
-  TCollabTextKey,
-  TUserNoteLookupOutput,
-  TGroupExpressionOutput
-> &
-  GroupExpression;
+> = UserNotesArrayLookupOutput<TUserNoteLookup, TGroupExpressionOutput> & GroupExpression;
 
 export default function relayPaginateUserNotesArray<TCollabTextKey extends string>(
   input: RelayPaginateUserNotesArrayInput<TCollabTextKey>
