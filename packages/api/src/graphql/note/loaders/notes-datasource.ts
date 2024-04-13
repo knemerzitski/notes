@@ -39,6 +39,16 @@ import relayPaginateUserNotesArray, {
 
 import util from 'util';
 
+export default class NotesDataSource {
+  async getByPublicId(key: LoaderKey) {
+    throw new Error('not implemented');
+  }
+
+  async getPaginateDefaultCategory(key: UserNotesArrayKey) {
+    throw new Error('not implemented');
+  }
+}
+
 type UserNoteDeepQueryResponse = DeepQueryResponse<Omit<NoteQueryType, 'note'>> & {
   note?: DeepQueryResponse<Omit<NoteQueryType['note'], 'collabText'>> & {
     collabText?: Record<
@@ -267,7 +277,7 @@ function getEqualObjectString(obj: unknown) {
 
 interface LoaderKey {
   publicId: string;
-  query: DeepQuery<NoteQueryType>;
+  noteQuery: DeepQuery<NoteQueryType>;
 }
 
 type NotesLoaderContext = Pick<
@@ -281,12 +291,12 @@ async function notesLoaderFn(
 ): Promise<(DeepQueryResponse<NoteQueryType> | Error)[]> {
   // Gather publicIds
   const allPublicIds = keys.map(({ publicId }) => publicId);
-
   // Merge queries
   const mergedQuery = mergeQueries(
     {},
-    keys.map(({ query }) => query)
+    keys.map(({ noteQuery }) => noteQuery)
   );
+
 
   // Build aggregate query
   const userNoteLookupInput = userNoteQueryToLookupInput(mergedQuery, context);
@@ -319,11 +329,11 @@ async function notesLoaderFn(
       });
     }
 
-    return userNoteQueryPaginationMappedToResponse(userNote, key.query);
+    return userNoteQueryPaginationMappedToResponse(userNote, key.noteQuery);
   });
 }
 
-export default class NotesLoader {
+export class NotesLoader {
   private context: Readonly<NotesLoaderContext>;
 
   constructor(context: Readonly<NotesLoaderContext>) {
@@ -337,11 +347,8 @@ export default class NotesLoader {
     }
   );
 
-  get(notePublicId: LoaderKey['publicId'], query: LoaderKey['query']) {
-    return this.loader.load({
-      publicId: notePublicId,
-      query,
-    });
+  get(key: LoaderKey) {
+    return this.loader.load(key);
   }
 }
 
@@ -379,10 +386,7 @@ async function userNotesArrayLoaderFn(
   );
 
   // Build userNote aggregate query
-  const userNoteLookupInput = userNoteQueryToLookupInput(
-    mergedQuery,
-    context.models
-  );
+  const userNoteLookupInput = userNoteQueryToLookupInput(mergedQuery, context.models);
 
   const userNotesResults = await context.models.User.aggregate<
     RelayPaginateUserNotesArrayOuput<UserNoteDeepQueryResponse>
@@ -459,16 +463,11 @@ export class UserNotesArrayLoader {
     UserNotesArrayKey,
     DeepQueryResponse<NoteQueryType>[],
     string
-  >(
-    (keys) => userNotesArrayLoaderFn(keys, this.context),
-    {
-      cacheKeyFn: getEqualObjectString,
-    }
-  );
+  >((keys) => userNotesArrayLoaderFn(keys, this.context), {
+    cacheKeyFn: getEqualObjectString,
+  });
 
   get(key: UserNotesArrayKey) {
     return this.loader.load(key);
   }
 }
-
-

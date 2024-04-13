@@ -13,14 +13,12 @@ import {
   User,
 } from '../../../tests/helpers/mongoose';
 import { NoteTextField } from '../../types.generated';
-import NotesLoader, { UserNotesArrayLoader } from './notes-datasource';
+import { NotesLoader, UserNotesArrayLoader } from './notes-datasource';
 
 import { NoteDocument } from '../../../mongoose/models/note';
 import { GraphQLError } from 'graphql';
 import { ObjectId } from 'mongodb';
 import { UserDocument } from '../../../mongoose/models/user';
-
-import util from 'util';
 
 describe('NotesLoader', () => {
   let notes: NoteDocument[];
@@ -62,61 +60,70 @@ describe('NotesLoader', () => {
     assert(note1 != null);
 
     const results = await Promise.allSettled([
-      loader.get(note.publicId, {
-        note: {
-          collabText: {
-            CONTENT: {
-              headDocument: {
-                changeset: 1,
-                revision: 1,
-              },
-              records: {
-                $query: {
-                  revision: 1,
-                  userGeneratedId: 1,
+      loader.get({
+        publicId: note.publicId,
+        noteQuery: {
+          note: {
+            collabText: {
+              CONTENT: {
+                headDocument: {
                   changeset: 1,
-                },
-                $pagination: {
-                  last: 2,
-                },
-              },
-            },
-          },
-        },
-        readOnly: 1,
-        preferences: {
-          backgroundColor: 1,
-        },
-      }),
-      loader.get(note1.publicId, {
-        note: {
-          ownerId: 1,
-          collabText: {
-            TITLE: {
-              headDocument: {
-                revision: 1,
-              },
-            },
-            CONTENT: {
-              records: {
-                $query: {
                   revision: 1,
                 },
-                $pagination: {
-                  after: '7',
+                records: {
+                  $query: {
+                    revision: 1,
+                    userGeneratedId: 1,
+                    changeset: 1,
+                  },
+                  $pagination: {
+                    last: 2,
+                  },
+                },
+              },
+            },
+          },
+          readOnly: 1,
+          preferences: {
+            backgroundColor: 1,
+          },
+        },
+      }),
+      loader.get({
+        publicId: note1.publicId,
+        noteQuery: {
+          note: {
+            ownerId: 1,
+            collabText: {
+              TITLE: {
+                headDocument: {
+                  revision: 1,
+                },
+              },
+              CONTENT: {
+                records: {
+                  $query: {
+                    revision: 1,
+                  },
+                  $pagination: {
+                    after: '7',
+                  },
                 },
               },
             },
           },
         },
       }),
-      loader.get('fdsfsf', {
-        note: {
-          ownerId: 1,
-          collabText: {
-            TITLE: {
-              headDocument: {
-                revision: 1,
+      loader.get({
+        publicId: 'fdsfsf',
+        noteQuery: {
+          note: {
+            ownerId: 1,
+            collabText: {
+              TITLE: {
+                headDocument: {
+                  revision: 1,
+                },
               },
             },
           },
@@ -195,22 +202,25 @@ describe('NotesLoader', () => {
     ]);
 
     // TODO write test that checks loader key is used
-    const more = await loader.get(note1.publicId, {
-      note: {
-        ownerId: 1,
-        collabText: {
-          TITLE: {
-            headDocument: {
-              revision: 1,
-            },
-          },
-          CONTENT: {
-            records: {
-              $query: {
+    const more = await loader.get({
+      publicId: note1.publicId,
+      noteQuery: {
+        note: {
+          ownerId: 1,
+          collabText: {
+            TITLE: {
+              headDocument: {
                 revision: 1,
               },
-              $pagination: {
-                after: '7',
+            },
+            CONTENT: {
+              records: {
+                $query: {
+                  revision: 1,
+                },
+                $pagination: {
+                  after: '7',
+                },
               },
             },
           },
@@ -318,7 +328,7 @@ describe('NotesLoader', () => {
         status: 'fulfilled',
         value: [
           {
-            readOnly: expect.any(Boolean) ,
+            readOnly: expect.any(Boolean),
             preferences: { backgroundColor: expect.any(String) },
             note: {
               publicId: 'publicId_3',
