@@ -9,10 +9,10 @@ import {
 } from '../../collab/mongo-query-mapper/collaborative-document';
 import { DBNote } from '../../../mongoose/models/note';
 
-export type NoteQueryType = Omit<DBUserNote, 'preferences' | 'note' | 'userId'> & {
+export type NoteQueryType<TCollabTextKey extends string = NoteTextField> = Omit<DBUserNote, 'preferences' | 'note' | 'userId'> & {
   preferences: NotePreferencesQueryType;
   note: Omit<DBUserNote['note'], 'collabText' | 'collabTextId'> & {
-    collabText: Record<NoteTextField, CollaborativeDocumentQueryType>;
+    collabText: Record<TCollabTextKey, CollaborativeDocumentQueryType>;
   } & Omit<DBNote, 'publicId' | 'collabTextId'>;
 };
 

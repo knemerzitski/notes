@@ -13,14 +13,14 @@ import {
   User,
 } from '../../../tests/helpers/mongoose';
 import { NoteTextField } from '../../types.generated';
-import { NotesLoader, UserNotesArrayLoader } from './notes-datasource';
 
 import { NoteDocument } from '../../../mongoose/models/note';
 import { GraphQLError } from 'graphql';
 import { ObjectId } from 'mongodb';
 import { UserDocument } from '../../../mongoose/models/user';
+import NotesDataSource from './notes-datasource';
 
-describe('NotesLoader', () => {
+describe('NotesDataSource', () => {
   let notes: NoteDocument[];
   let user: UserDocument;
 
@@ -47,11 +47,16 @@ describe('NotesLoader', () => {
     await populateWithCreatedData();
   });
 
-  it('gets userNote', async () => {
-    const loader = new NotesLoader({
-      UserNote,
-      Note,
-      CollabText,
+  it('gets note', async () => {
+    const loader = new NotesDataSource({
+      mongoose: {
+        models: {
+          User,
+          UserNote,
+          Note,
+          CollabText,
+        },
+      },
     });
 
     const note = notes[0];
@@ -60,7 +65,7 @@ describe('NotesLoader', () => {
     assert(note1 != null);
 
     const results = await Promise.allSettled([
-      loader.get({
+      loader.getNote({
         userId: user._id,
         publicId: note.publicId,
         noteQuery: {
@@ -90,7 +95,7 @@ describe('NotesLoader', () => {
           },
         },
       }),
-      loader.get({
+      loader.getNote({
         userId: user._id,
         publicId: note1.publicId,
         noteQuery: {
@@ -116,7 +121,7 @@ describe('NotesLoader', () => {
           },
         },
       }),
-      loader.get({
+      loader.getNote({
         userId: user._id,
         publicId: 'fdsfsf',
         noteQuery: {
@@ -205,7 +210,7 @@ describe('NotesLoader', () => {
     ]);
 
     // TODO write test that checks loader key is used
-    const more = await loader.get({
+    const more = await loader.getNote({
       userId: user._id,
       publicId: note1.publicId,
       noteQuery: {
@@ -233,18 +238,20 @@ describe('NotesLoader', () => {
     });
   });
 
-  it('gets userNotesArray', async () => {
-    const loader = new UserNotesArrayLoader({
-      models: {
-        User,
-        UserNote,
-        Note,
-        CollabText,
+  it('gets noteConnection', async () => {
+    const loader = new NotesDataSource({
+      mongoose: {
+        models: {
+          User,
+          UserNote,
+          Note,
+          CollabText,
+        },
       },
     });
 
     const results = await Promise.allSettled([
-      loader.get({
+      loader.getNoteConnection({
         userId: user._id,
         userNotesArrayPath: 'notes.category.default.order',
         pagination: {
@@ -275,7 +282,7 @@ describe('NotesLoader', () => {
           },
         },
       }),
-      loader.get({
+      loader.getNoteConnection({
         userId: user._id,
         userNotesArrayPath: 'notes.category.default.order',
         pagination: {
