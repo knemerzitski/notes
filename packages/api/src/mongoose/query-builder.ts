@@ -52,7 +52,6 @@ export type DeepQueryResponse<T> = {
  */
 type ArrayQueryDeepMappedPagination<TItem> = Record<string, DeepQueryResponsePaginationMapped<TItem>[]>;
 
-// final result...
 export type DeepQueryResponsePaginationMapped<T> = {
   [Key in keyof T]?: T[Key] extends (infer U)[]
     ? ArrayQueryDeepMappedPagination<U>

@@ -99,8 +99,10 @@ export interface NoteConnectionBatchLoadContext {
 }
 
 type UserNoteDeepQueryResponse<TCollabTextKey extends string = NoteTextField> =
-  DeepQueryResponse<Omit<NoteQueryType, 'note'>> & {
-    note?: DeepQueryResponse<Omit<NoteQueryType['note'], 'collabText'>> & {
+  DeepQueryResponse<Omit<NoteQueryType<TCollabTextKey>, 'note'>> & {
+    note?: DeepQueryResponse<
+      Omit<NoteQueryType<TCollabTextKey>['note'], 'collabText'>
+    > & {
       collabText?: Record<
         TCollabTextKey,
         DeepQueryResponse<Omit<CollaborativeDocumentQueryType, 'records'>> & {
