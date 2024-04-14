@@ -54,6 +54,10 @@ export default function userNoteQueryToLookupInput(
         collabText: mapObject(collabText, (key, query) => {
           if (!query) return mapObjectSkip;
 
+          if (!query._id) {
+            query._id = 0;
+          }
+
           return [
             key,
             {
