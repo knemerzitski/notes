@@ -2,16 +2,16 @@ import { faker } from '@faker-js/faker';
 import { assert, beforeEach, describe, expect, it } from 'vitest';
 import { mockDeep, mockFn } from 'vitest-mock-extended';
 
-import { mockResolver } from '../../../../tests/helpers/mock-resolver';
-import UserDocumentHelper from '../../../../tests/helpers/model/UserDocumentHelper';
-import UserModelHelper from '../../../../tests/helpers/model/UserModelHelper';
+import { mockResolver } from '../../../../test/helpers/mock-resolver';
+import UserDocumentHelper from '../../../../test/helpers/mongoose/model/UserDocumentHelper';
+import UserModelHelper from '../../../../test/helpers/mongoose/model/UserModelHelper';
 import {
   resetDatabase,
   User,
   UserNote,
   Note,
   connection,
-} from '../../../../tests/helpers/mongoose';
+} from '../../../../test/helpers/mongoose';
 import { GraphQLResolversContext } from '../../../context';
 import { CreateNotePatchInput } from '../../../types.generated';
 

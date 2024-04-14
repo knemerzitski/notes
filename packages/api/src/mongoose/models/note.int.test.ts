@@ -3,7 +3,7 @@ import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { Changeset } from '~collab/changeset/changeset';
 
-import { Note, User } from '../../tests/helpers/mongoose';
+import { Note, User } from '../../test/helpers/mongoose';
 
 import { NoteDocument } from './note';
 import { UserDocument } from './user';

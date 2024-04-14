@@ -1,14 +1,15 @@
+// TODO remove file, use populate instead
 import { faker } from '@faker-js/faker';
 import { Require_id } from 'mongoose';
 import { assert } from 'vitest';
 
 import { newDocumentInsertion } from '~collab/adapters/mongodb/multi-field-document-server';
 
-import { NoteEdge } from '../../../graphql/types.generated';
-import { DBNote } from '../../../mongoose/models/note';
-import { UserDocument } from '../../../mongoose/models/user';
-import { DBUserNote } from '../../../mongoose/models/user-note';
-import { User, Note, UserNote } from '../mongoose';
+import { NoteEdge } from '../../../../graphql/types.generated';
+import { DBNote } from '../../../../mongoose/models/note';
+import { UserDocument } from '../../../../mongoose/models/user';
+import { DBUserNote } from '../../../../mongoose/models/user-note';
+import { User, Note, UserNote } from '../../mongoose';
 
 interface NoteData {
   edge: NoteEdge;

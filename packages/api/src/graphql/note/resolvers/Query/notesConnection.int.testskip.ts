@@ -2,10 +2,10 @@ import { faker } from '@faker-js/faker';
 import { assert, beforeEach, describe, expect, it } from 'vitest';
 import { DeepMockProxy, mockDeep } from 'vitest-mock-extended';
 
-import { apolloServer } from '../../../../tests/helpers/apollo-server';
-import UserDocumentHelper from '../../../../tests/helpers/model/UserDocumentHelper';
-import UserModelHelper from '../../../../tests/helpers/model/UserModelHelper';
-import { Note, User, UserNote, resetDatabase } from '../../../../tests/helpers/mongoose';
+import { apolloServer } from '../../../../test/helpers/apollo-server';
+import UserDocumentHelper from '../../../../test/helpers/mongoose/model/UserDocumentHelper';
+import UserModelHelper from '../../../../test/helpers/mongoose/model/UserModelHelper';
+import { Note, User, UserNote, resetDatabase } from '../../../../test/helpers/mongoose';
 import { GraphQLResolversContext } from '../../../context';
 import { NoteConnection, NoteEdge } from '../../../types.generated';
 

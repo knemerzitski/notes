@@ -2,7 +2,7 @@ import { mockDeep, mockFn } from 'vitest-mock-extended';
 
 import { GraphQLResolversContext } from '../../graphql/context';
 
-import UserDocumentHelper from './model/UserDocumentHelper';
+import UserDocumentHelper from './mongoose/model/UserDocumentHelper';
 import { Note, Session, User, UserNote, connection } from './mongoose';
 
 export function createUserContext(userHelper: UserDocumentHelper) {

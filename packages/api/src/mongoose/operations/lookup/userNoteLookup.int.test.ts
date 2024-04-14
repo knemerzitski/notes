@@ -5,7 +5,7 @@ import {
   Note,
   UserNote,
   resetDatabase,
-} from '../../../tests/helpers/mongoose';
+} from '../../../test/helpers/mongoose';
 import { faker } from '@faker-js/faker';
 import { DBUserNote, UserNoteDocument } from '../../models/user-note';
 import {

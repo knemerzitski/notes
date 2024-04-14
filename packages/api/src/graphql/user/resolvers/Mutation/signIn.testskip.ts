@@ -6,8 +6,8 @@ import { verifyCredentialToken } from '../../../../auth/google/__mocks__/oauth2'
 import { GraphQLResolversContext } from '../../../context';
 import { SessionDocument } from '../../../../mongoose/models/session';
 import { UserDocument } from '../../../../mongoose/models/user';
-import { apolloServer } from '../../../../tests/helpers/apollo-server';
-import { mockResolver } from '../../../../tests/helpers/mock-resolver';
+import { apolloServer } from '../../../../test/helpers/apollo-server';
+import { mockResolver } from '../../../../test/helpers/mock-resolver';
 import CookiesContext from '../../../cookies-context';
 import { AuthProvider } from '../../../types.generated';
 

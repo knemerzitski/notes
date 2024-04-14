@@ -5,8 +5,8 @@ import { mockDeep, mockReset } from 'vitest-mock-extended';
 
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
-import { apolloServer } from '../../../../tests/helpers/apollo-server';
-import { mockResolver } from '../../../../tests/helpers/mock-resolver';
+import { apolloServer } from '../../../../test/helpers/apollo-server';
+import { mockResolver } from '../../../../test/helpers/mock-resolver';
 import { GraphQLResolversContext } from '../../../context';
 
 import { user } from './user';

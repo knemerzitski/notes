@@ -9,7 +9,7 @@ import {
   UserNote,
   Note,
   CollabText,
-} from '../../../tests/helpers/mongoose';
+} from '../mongoose';
 import { faker } from '@faker-js/faker';
 import { Changeset } from '~collab/changeset/changeset';
 import { DBUserNote } from '../../../mongoose/models/user-note';

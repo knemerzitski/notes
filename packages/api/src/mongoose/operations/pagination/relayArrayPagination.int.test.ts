@@ -10,7 +10,7 @@ import relayArrayPagination, {
   sliceFirst,
   sliceLast,
 } from './relayArrayPagination';
-import { mongoDb } from '../../../tests/helpers/mongoose';
+import { mongoDb } from '../../../test/helpers/mongoose';
 import isNonEmptyArray from '~utils/array/isNonEmptyArray';
 
 interface SubDocument {

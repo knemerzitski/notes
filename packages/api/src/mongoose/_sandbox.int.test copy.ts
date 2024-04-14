@@ -1,5 +1,5 @@
 import { describe, beforeEach, it } from 'vitest';
-import { mongoDb } from '../tests/helpers/mongoose';
+import { mongoDb } from '../test/helpers/mongoose';
 
 import util from 'util';
 

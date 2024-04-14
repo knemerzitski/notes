@@ -10,7 +10,7 @@ import {
   UserNote,
   CollabText,
   Note,
-} from '../../../tests/helpers/mongoose';
+} from '../../../test/helpers/mongoose';
 import { NoteTextField } from '../../types.generated';
 
 import { NoteDocument } from '../../../mongoose/models/note';

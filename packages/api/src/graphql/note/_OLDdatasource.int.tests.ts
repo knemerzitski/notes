@@ -7,7 +7,7 @@ import {
   Note,
   UserNote,
   CollabText,
-} from '../../tests/helpers/mongoose';
+} from '../../test/helpers/mongoose';
 
 import util from 'util';
 import mapObject, { mapObjectPromise } from '~utils/mapObject';

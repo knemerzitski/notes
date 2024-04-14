@@ -16,7 +16,7 @@ import {
   User,
   UserNote,
   resetDatabase,
-} from '../../../tests/helpers/mongoose';
+} from '../../../test/helpers/mongoose';
 import relayPaginateUserNotesArray, {
   RelayPaginateUserNotesArrayOuput,
 } from './relayPaginateUserNotesArray';

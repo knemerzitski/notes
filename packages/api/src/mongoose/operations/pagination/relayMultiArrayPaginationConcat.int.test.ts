@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { assert, beforeAll, describe, expect, it } from 'vitest';
 import relayArrayPagination, { RelayArrayPaginationInput } from './relayArrayPagination';
-import { mongoDb } from '../../../tests/helpers/mongoose';
+import { mongoDb } from '../../../test/helpers/mongoose';
 import relayMultiArrayPaginationConcat, {
   RelayMultiArrayPaginationConcatOutput,
 } from './relayMultiArrayPaginationConcat';

@@ -4,11 +4,11 @@ import { assert, beforeEach, describe, expect, it } from 'vitest';
 
 import { Changeset } from '~collab/changeset/changeset';
 
-import { createUserContext } from '../../../../tests/helpers/graphql-context';
-import { mockResolver } from '../../../../tests/helpers/mock-resolver';
-import UserDocumentHelper from '../../../../tests/helpers/model/UserDocumentHelper';
-import UserModelHelper from '../../../../tests/helpers/model/UserModelHelper';
-import { UserNote, Note, resetDatabase } from '../../../../tests/helpers/mongoose';
+import { createUserContext } from '../../../../test/helpers/graphql-context';
+import { mockResolver } from '../../../../test/helpers/mock-resolver';
+import UserDocumentHelper from '../../../../test/helpers/mongoose/model/UserDocumentHelper';
+import UserModelHelper from '../../../../test/helpers/mongoose/model/UserModelHelper';
+import { UserNote, Note, resetDatabase } from '../../../../test/helpers/mongoose';
 
 import { updateNote } from './updateNote';
 

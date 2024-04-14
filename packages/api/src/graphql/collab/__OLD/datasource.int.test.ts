@@ -1,5 +1,5 @@
 import { it, describe, beforeEach, vi, expect, afterEach } from 'vitest';
-import { CollabText, resetDatabase } from '../../../tests/helpers/mongoose';
+import { CollabText, resetDatabase } from '../../../test/helpers/mongoose';
 import {
   CollaborativeDocumentsDataSource,
   CollaborativeDocumentDataSource,

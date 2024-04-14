@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { Session, User } from '../../tests/helpers/mongoose';
+import { Session, User } from '../../test/helpers/mongoose';
 
 import { UserDocument } from './user';
 

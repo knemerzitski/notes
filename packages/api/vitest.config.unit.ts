@@ -9,7 +9,7 @@ export default defineConfig({
     env: {
       NODE_ENV: 'production',
     },
-    include: ['!src/**/*.int.test.ts', '!src/tests', 'src/**/*.test.ts'],
-    setupFiles: ['src/tests/helpers/setup.unit.ts'],
+    include: ['!src/**/*.int.test.ts', '!src/test', 'src/**/*.test.ts'],
+    setupFiles: ['src/test/helpers/setup.unit.ts'],
   },
 });
