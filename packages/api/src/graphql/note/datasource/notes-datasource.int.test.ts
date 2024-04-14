@@ -61,6 +61,7 @@ describe('NotesLoader', () => {
 
     const results = await Promise.allSettled([
       loader.get({
+        userId: user._id,
         publicId: note.publicId,
         noteQuery: {
           note: {
@@ -90,6 +91,7 @@ describe('NotesLoader', () => {
         },
       }),
       loader.get({
+        userId: user._id,
         publicId: note1.publicId,
         noteQuery: {
           note: {
@@ -115,6 +117,7 @@ describe('NotesLoader', () => {
         },
       }),
       loader.get({
+        userId: user._id,
         publicId: 'fdsfsf',
         noteQuery: {
           note: {
@@ -203,6 +206,7 @@ describe('NotesLoader', () => {
 
     // TODO write test that checks loader key is used
     const more = await loader.get({
+      userId: user._id,
       publicId: note1.publicId,
       noteQuery: {
         note: {
