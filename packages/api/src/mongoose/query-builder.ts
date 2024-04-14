@@ -92,7 +92,7 @@ export class CustomMongoDocumentDataSource<TDocument>
 }
 
 export interface MergedArrayQuery<TItem> {
-  $query?: DeepQuery<TItem>;
+  $query?: MergedDeepQuery<TItem>;
   $paginations?: RelayPagination<string>[];
 }
 
