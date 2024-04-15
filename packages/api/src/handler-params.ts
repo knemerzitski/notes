@@ -15,8 +15,8 @@ import { BaseGraphQLContext, DynamoDBBaseGraphQLContext } from './graphql/contex
 import { applyDirectives } from './graphql/directives';
 import { resolvers } from './graphql/resolvers.generated';
 import { typeDefs } from './graphql/typeDefs.generated';
-import { createMongooseContext } from './mongoose/lambda-context';
-import { createMongooseModels } from './mongoose/models';
+import { createMongooseContext } from './mongodb/lambda-context';
+import { createMongooseModels } from './mongodb/collections';
 
 
 export function createDefaultGraphQLParams<TContext>(

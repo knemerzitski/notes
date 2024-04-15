@@ -1,5 +1,5 @@
-import { CollabTextRevisionRecordsPaginationOutput } from '../../../mongoose/operations/pagination/revisionRecordsPagination';
-import { DeepQueryResponse } from '../../../mongoose/query-builder';
+import { CollabTextRevisionRecordsPaginationOutput } from '../../../mongodb/operations/pagination/revisionRecordsPagination';
+import { DeepQueryResponse } from '../../../mongodb/query-builder';
 import { CollaborativeDocumentQueryType } from '../../collab/mongo-query-mapper/collaborative-document';
 import { RevisionRecordQueryType } from '../../collab/mongo-query-mapper/revision-record';
 import { NoteTextField } from '../../types.generated';

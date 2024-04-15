@@ -1,9 +1,9 @@
 import { Changeset } from '~collab/changeset/changeset';
 import { RevisionChangesetMapper } from '../schema.mappers';
-import { DBRevisionChangeset } from '../../../mongoose/models/collab/embedded/revision-changeset';
-import { MongoDocumentQuery } from '../../../mongoose/query-builder';
+import { MongoDocumentQuery } from '../../../mongodb/query-builder';
+import { RevisionChangesetSchema } from '../../../mongodb/schema/collabText/collab-text';
 
-export type RevisionChangesetQueryType = DBRevisionChangeset;
+export type RevisionChangesetQueryType = RevisionChangesetSchema;
 
 export class RevisionChangesetQuery implements RevisionChangesetMapper {
   private query: MongoDocumentQuery<RevisionChangesetQueryType>;

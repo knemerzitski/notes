@@ -3,8 +3,8 @@ import { ObjectId } from 'mongodb';
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
 
-import { DBSession } from '../mongoose/models/session';
-import { DBUser } from '../mongoose/models/user';
+import { SessionSchema } from '../mongodb/schema/session/sessions';
+import { UserSchema } from '../mongodb/schema/user';
 
 import { ApiGraphQLContext } from './context';
 import CookiesContext from './cookies-context';
@@ -24,18 +24,18 @@ type SerializedSession = Omit<Session, '_id' | 'user'> & {
   user: SerializedUser;
 } & SerializedId;
 
-interface User extends Omit<DBUser, 'notes'> {
+interface User extends Omit<UserSchema, 'notes'> {
   _id: ObjectId;
 }
 
-interface Session extends Omit<DBSession, 'userId' | 'expireAt'> {
+interface Session extends Omit<SessionSchema, 'userId' | 'expireAt'> {
   /**
    * base64 representation of MongoDB ObjectId
    */
   _id: ObjectId;
   user: User;
   /**
-   * {@link DBSession.expireAt} unix timestamp representation
+   * {@link SessionSchema.expireAt} unix timestamp representation
    */
   expireAt: number;
 }

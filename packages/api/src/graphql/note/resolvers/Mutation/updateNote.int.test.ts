@@ -6,9 +6,9 @@ import { Changeset } from '~collab/changeset/changeset';
 
 import { createUserContext } from '../../../../test/helpers/graphql-context';
 import { mockResolver } from '../../../../test/helpers/mock-resolver';
-import UserDocumentHelper from '../../../../test/helpers/mongoose/model/UserDocumentHelper';
-import UserModelHelper from '../../../../test/helpers/mongoose/model/UserModelHelper';
-import { UserNote, Note, resetDatabase } from '../../../../test/helpers/mongoose';
+import UserDocumentHelper from '../../../../test/helpers/mongodb/_model/UserDocumentHelper';
+import UserModelHelper from '../../../../test/helpers/mongodb/_model/UserModelHelper';
+import { UserNote, Note, resetDatabase } from '../../../../test/helpers/mongodb';
 
 import { updateNote } from './updateNote';
 

@@ -2,24 +2,25 @@ import { ObjectId } from 'mongodb';
 import {
   RelayPagination,
   getPaginationKey,
-} from '../../../mongoose/operations/pagination/relayArrayPagination';
+} from '../../../mongodb/operations/pagination/relayArrayPagination';
 import mapObject from 'map-obj';
-import { multiRelayArrayPaginationMapOutputToInput } from '../../../mongoose/operations/pagination/relayMultiArrayPaginationConcat';
+import { multiRelayArrayPaginationMapOutputToInput } from '../../../mongodb/operations/pagination/relayMultiArrayPaginationConcat';
 import relayPaginateUserNotesArray, {
   RelayPaginateUserNotesArrayOuput,
-} from '../../../mongoose/operations/pagination/relayPaginateUserNotesArray';
+} from '../../../mongodb/operations/pagination/relayPaginateUserNotesArray';
 import {
   DeepQuery,
   DeepQueryResponse,
   mergeQueries,
-} from '../../../mongoose/query-builder';
+} from '../../../mongodb/query-builder';
 import { NoteQueryType } from '../mongo-query-mapper/note';
-import { NotesDataSourceContext } from './notes-datasource';
 import groupByUserId from './utils/groupByUserId';
 import userNoteQueryPaginationMappedToResponse from './utils/userNoteQueryPaginationMappedToResponse';
 import userNoteQueryToLookupInput from './utils/userNoteQueryToLookupInput';
 import userNoteResponseToPaginationsMapped from './utils/userNoteResponseToPaginationsMapped';
 import { UserNoteDeepQueryResponse } from './UserNoteDeepQueryResponse';
+import { CollectionName } from '../../../mongodb/collections';
+import { GraphQLResolversContext } from '../../context';
 
 export interface NoteConnectionKey {
   /**
@@ -41,10 +42,13 @@ export interface NoteConnectionKey {
 }
 
 export interface NoteConnectionBatchLoadContext {
-  mongoose: {
-    models: Pick<
-      NotesDataSourceContext['mongoose']['models'],
-      'User' | 'UserNote' | 'Note' | 'CollabText'
+  mongodb: {
+    collections: Pick<
+      GraphQLResolversContext['mongodb']['collections'],
+      | CollectionName.Users
+      | CollectionName.UserNotes
+      | CollectionName.CollabTexts
+      | CollectionName.Notes
     >;
   };
 }
@@ -81,23 +85,23 @@ export default async function noteConnectionBatchLoad(
         // Build userNote aggregate query
         const userNoteLookupInput = userNoteQueryToLookupInput(mergedQuery, context);
 
-        const userNotesResults = await context.mongoose.models.User.aggregate<
-          RelayPaginateUserNotesArrayOuput<UserNoteDeepQueryResponse>
-        >([
-          {
-            $match: {
-              _id: userId,
+        const userNotesResults = await context.mongodb.collections[CollectionName.Users]
+          .aggregate<RelayPaginateUserNotesArrayOuput<UserNoteDeepQueryResponse>>([
+            {
+              $match: {
+                _id: userId,
+              },
             },
-          },
-          ...relayPaginateUserNotesArray({
-            pagination: allPaginationsByArrayPath,
-            userNotes: {
-              userNoteCollctionName:
-                context.mongoose.models.UserNote.collection.collectionName,
-              userNoteLookupInput,
-            },
-          }),
-        ]);
+            ...relayPaginateUserNotesArray({
+              pagination: allPaginationsByArrayPath,
+              userNotes: {
+                userNoteCollctionName:
+                  context.mongodb.collections[CollectionName.UserNotes].collectionName,
+                userNoteLookupInput,
+              },
+            }),
+          ])
+          .toArray();
 
         const userNotesResult = userNotesResults[0];
         if (!userNotesResult) {

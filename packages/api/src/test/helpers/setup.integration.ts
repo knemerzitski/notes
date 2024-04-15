@@ -1,16 +1,14 @@
 import { afterAll, beforeAll } from 'vitest';
 
-import { connection, Note, User, UserNote, Session } from './mongoose';
+import { mongoClient, mongoCollections } from './mongodb';
+import { createAllIndexes } from '../../mongodb/collections';
+import { faker } from '@faker-js/faker';
 
 beforeAll(async () => {
-  await Promise.all([
-    User.syncIndexes(),
-    Session.syncIndexes(),
-    UserNote.syncIndexes(),
-    Note.syncIndexes(),
-  ]);
+  faker.seed(125);
+  await createAllIndexes(mongoCollections);
 });
 
 afterAll(async () => {
-  await connection.close();
+  await mongoClient.close();
 });

@@ -3,19 +3,19 @@ import { Require_id, Types } from 'mongoose';
 
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
-import { DBCollabText } from '../../../../mongoose/models/collab/collab-text';
-import { DBNote } from '../../../../mongoose/models/note';
-import { DBUserNote } from '../../../../mongoose/models/user-note';
+import { CollabTextSchema } from '../../../../mongodb/schema/collabText/collab-text';
+import { NoteSchema } from '../../../../mongodb/schema/note';
+import { UserNoteSchema } from '../../../../mongodb/collections/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 
 import { NoteTextField, type QueryResolvers } from './../../../types.generated';
 import { Changeset } from '~collab/changeset/changeset';
 
-type UserNoteWithoutIds = Omit<DBUserNote, 'userId' | 'notePublicId'> & {
+type UserNoteWithoutIds = Omit<UserNoteSchema, 'userId' | 'notePublicId'> & {
   _id?: Types.ObjectId;
 };
-type NoteWithoutRecords<T = unknown> = Omit<DBNote<T>, 'content'> & {
-  content: Omit<DBCollabText<T>, 'records'>;
+type NoteWithoutRecords<T = unknown> = Omit<NoteSchema<T>, 'content'> & {
+  content: Omit<CollabTextSchema<T>, 'records'>;
 };
 type UserNoteWithNote = UserNoteWithoutIds & { note: Require_id<NoteWithoutRecords> };
 
@@ -108,7 +108,7 @@ export const note: NonNullable<QueryResolvers['note']> = async (
           },
           async recordsConnection(first, afterRevision, last, beforeRevision) {
             const result = await model.Note.aggregate<
-              Require_id<{ records: DBNote['content']['records'] }>
+              Require_id<{ records: NoteSchema['content']['records'] }>
             >([
               {
                 $match: note._id,

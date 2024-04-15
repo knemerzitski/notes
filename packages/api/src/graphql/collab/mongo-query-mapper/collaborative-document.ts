@@ -3,27 +3,26 @@ import {
   CollaborativeDocumentRecordConnectionMapper,
   RevisionChangesetMapper,
 } from '../schema.mappers';
-import {} from '../../../mongoose/models/collab/embedded/revision-changeset';
 import {
   CollaborativeDocumentdocumentArgs,
   CollaborativeDocumentrecordsConnectionArgs,
 } from '../../types.generated';
-import { DBCollabText } from '../../../mongoose/models/collab/collab-text';
+import { CollabTextSchema } from '../../../mongodb/schema/collabText/collab-text';
 import { Changeset } from '~collab/changeset/changeset';
 import {
   RelayArrayPaginationConfig,
   applyLimit,
-} from '../../../mongoose/operations/pagination/relayArrayPagination';
+} from '../../../mongodb/operations/pagination/relayArrayPagination';
 import {
   RevisionChangesetQueryType,
   RevisionChangesetQuery,
 } from './revision-changeset';
 import { RevisionRecordQueryType, RevisionRecordQuery } from './revision-record';
-import { MongoDocumentQuery } from '../../../mongoose/query-builder';
+import { MongoDocumentQuery } from '../../../mongodb/query-builder';
 
 // TODO bad name
 export type CollaborativeDocumentQueryType = Omit<
-  DBCollabText,
+  CollabTextSchema,
   'headDocument' | 'tailDocument' | 'records'
 > & {
   headDocument: RevisionChangesetQueryType;

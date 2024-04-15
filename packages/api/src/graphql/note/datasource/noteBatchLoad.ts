@@ -1,15 +1,21 @@
 import { ObjectId } from 'mongodb';
-import { DeepQuery, DeepQueryResponse, DeepQueryResponsePaginationMapped, mergeQueries } from '../../../mongoose/query-builder';
-import { NotesDataSourceContext } from './notes-datasource';
+import {
+  DeepQuery,
+  DeepQueryResponse,
+  DeepQueryResponsePaginationMapped,
+  mergeQueries,
+} from '../../../mongodb/query-builder';
 import { GraphQLError } from 'graphql';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
-import userNoteLookup from '../../../mongoose/operations/lookup/userNoteLookup';
+import userNoteLookup from '../../../mongodb/operations/lookup/userNoteLookup';
 import { NoteQueryType } from '../mongo-query-mapper/note';
 import groupByUserId from './utils/groupByUserId';
 import userNoteQueryPaginationMappedToResponse from './utils/userNoteQueryPaginationMappedToResponse';
 import userNoteQueryToLookupInput from './utils/userNoteQueryToLookupInput';
 import userNoteResponseToPaginationsMapped from './utils/userNoteResponseToPaginationsMapped';
 import { UserNoteDeepQueryResponse } from './UserNoteDeepQueryResponse';
+import { GraphQLResolversContext } from '../../context';
+import { CollectionName } from '../../../mongodb/collections';
 
 export interface NoteKey {
   /**
@@ -27,10 +33,10 @@ export interface NoteKey {
 }
 
 export interface NoteBatchLoadContext {
-  mongoose: {
-    models: Pick<
-      NotesDataSourceContext['mongoose']['models'],
-      'UserNote' | 'Note' | 'CollabText'
+  mongodb: {
+    collections: Pick<
+      GraphQLResolversContext['mongodb']['collections'],
+      CollectionName.UserNotes | CollectionName.CollabTexts | CollectionName.Notes
     >;
   };
 }
@@ -59,8 +65,10 @@ export default async function noteBatchLoad(
         const userNoteLookupInput = userNoteQueryToLookupInput(mergedQuery, context);
 
         // Fetch data
-        const userNotesResult =
-          await context.mongoose.models.UserNote.aggregate<UserNoteDeepQueryResponse>([
+        const userNotesResult = await context.mongodb.collections[
+          CollectionName.UserNotes
+        ]
+          .aggregate<UserNoteDeepQueryResponse>([
             {
               $match: {
                 userId,
@@ -70,7 +78,8 @@ export default async function noteBatchLoad(
               },
             },
             ...userNoteLookup(userNoteLookupInput),
-          ]);
+          ])
+          .toArray();
 
         // Map paginations to original query
         const userNotesBy_publicId = userNotesResult.reduce<

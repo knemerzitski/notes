@@ -4,22 +4,17 @@ import { beforeAll, it, assert, expect } from 'vitest';
 import {
   createUserWithNotes,
   populateWithCreatedData,
-} from '../../../test/helpers/mongoose/populate';
-import {
-  resetDatabase,
-  UserNote,
-  CollabText,
-  Note,
-} from '../../../test/helpers/mongoose';
+} from '../../../test/helpers/mongodb/populate';
+import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb';
 import { NoteTextField } from '../../types.generated';
 
-import { NoteDocument } from '../../../mongoose/models/note';
 import { ObjectId } from 'mongodb';
-import { UserDocument } from '../../../mongoose/models/user';
 import noteBatchLoad, { NoteBatchLoadContext } from './noteBatchLoad';
+import { NoteSchema } from '../../../mongodb/schema/note';
+import { UserSchema } from '../../../mongodb/schema/user';
 
-let notes: NoteDocument[];
-let user: UserDocument;
+let notes: NoteSchema[];
+let user: UserSchema;
 let context: NoteBatchLoadContext;
 
 beforeAll(async () => {
@@ -45,12 +40,8 @@ beforeAll(async () => {
   await populateWithCreatedData();
 
   context = {
-    mongoose: {
-      models: {
-        UserNote,
-        Note,
-        CollabText,
-      },
+    mongodb: {
+      collections: mongoCollections,
     },
   };
 });

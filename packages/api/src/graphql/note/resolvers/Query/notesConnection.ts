@@ -4,9 +4,9 @@ import { PipelineStage, Require_id, Types } from 'mongoose';
 
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
-import { DBCollabText } from '../../../../mongoose/models/collab/collab-text';
-import { DBNote } from '../../../../mongoose/models/note';
-import { DBUserNote } from '../../../../mongoose/models/user-note';
+import { CollabTextSchema } from '../../../../mongodb/schema/collabText/collab-text';
+import { NoteSchema } from '../../../../mongodb/schema/note';
+import { UserNoteSchema } from '../../../../mongodb/collections/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 
 import {
@@ -16,9 +16,9 @@ import {
   type QueryResolvers,
 } from './../../../types.generated';
 
-type UserNoteWithoutIds = Omit<DBUserNote, 'userId' | 'notePublicId'>;
-type NoteWithoutRecords = Omit<DBNote, 'content'> & {
-  content: Omit<DBCollabText, 'records'>;
+type UserNoteWithoutIds = Omit<UserNoteSchema, 'userId' | 'notePublicId'>;
+type NoteWithoutRecords = Omit<NoteSchema, 'content'> & {
+  content: Omit<CollabTextSchema, 'records'>;
 };
 type UserNoteWithNote = UserNoteWithoutIds & { note?: Require_id<NoteWithoutRecords> };
 

@@ -4,14 +4,14 @@ import {
   CollaborativeDocumentSelectionRangeMapper,
   RevisionChangesetMapper,
 } from '../schema.mappers';
-import { DBRevisionRecord } from '../../../mongoose/models/collab/embedded/revision-record';
 import { RevisionChangesetQuery } from './revision-changeset';
 import { SelectionRangeQueryType, SelectionRangeQuery } from './selection-range';
-import { MongoDocumentQuery } from '../../../mongoose/query-builder';
+import { MongoDocumentQuery } from '../../../mongodb/query-builder';
 import { DeepReplace } from '~utils/types';
+import { RevisionRecordSchema } from '../../../mongodb/schema/collabText/collab-text';
 
 export type RevisionRecordQueryType = Omit<
-  DBRevisionRecord,
+  RevisionRecordSchema,
   'beforeSelection' | 'afterSelection'
 > & {
   beforeSelection: SelectionRangeQueryType;
@@ -20,17 +20,17 @@ export type RevisionRecordQueryType = Omit<
 
 export type ReplaceRevisionRecord<T> = DeepReplace<
   T,
-  DBRevisionRecord,
+  RevisionRecordSchema,
   RevisionRecordQueryType
 >;
 
 export class RevisionRecordQuery implements CollaborativeDocumentRecordMapper {
   private parent: CollaborativeDocumentMapper;
-  private query: MongoDocumentQuery<DBRevisionRecord>;
+  private query: MongoDocumentQuery<RevisionRecordSchema>;
 
   constructor(
     parent: CollaborativeDocumentMapper,
-    query: MongoDocumentQuery<DBRevisionRecord>
+    query: MongoDocumentQuery<RevisionRecordSchema>
   ) {
     this.parent = parent;
     this.query = query;

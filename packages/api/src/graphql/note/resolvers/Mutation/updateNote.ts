@@ -6,7 +6,7 @@ import {
   MultiFieldDocumentServerErrorCode,
 } from '~collab/adapters/mongodb/multi-field-document-server';
 
-import { createDocumentServer } from '../../../../mongoose/models/note';
+import { createDocumentServer } from '../../../../mongodb/schema/note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import {
   NoteTextField,

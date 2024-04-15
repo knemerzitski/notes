@@ -1,14 +1,13 @@
 import { CollaborativeDocumentSelectionRangeMapper } from '../schema.mappers';
-import {} from '../../../mongoose/models/collab/embedded/revision-changeset';
-import { DBSelectionRange } from '../../../mongoose/models/collab/embedded/selection-range';
-import { MongoDocumentQuery } from '../../../mongoose/query-builder';
+import { MongoDocumentQuery } from '../../../mongodb/query-builder';
+import { SelectionRangeSchema } from '../../../mongodb/schema/collabText/collab-text';
 
-export type SelectionRangeQueryType = DBSelectionRange;
+export type SelectionRangeQueryType = SelectionRangeSchema;
 
 export class SelectionRangeQuery implements CollaborativeDocumentSelectionRangeMapper {
-  private query: MongoDocumentQuery<DBSelectionRange>;
+  private query: MongoDocumentQuery<SelectionRangeSchema>;
 
-  constructor(query: MongoDocumentQuery<DBSelectionRange>) {
+  constructor(query: MongoDocumentQuery<SelectionRangeSchema>) {
     this.query = query;
   }
 

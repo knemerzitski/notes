@@ -4,15 +4,15 @@ import { assert, beforeEach, describe, expect, it } from 'vitest';
 import { mockDeep, mockFn } from 'vitest-mock-extended';
 
 import { mockResolver } from '../../../../test/helpers/mock-resolver';
-import UserDocumentHelper from '../../../../test/helpers/mongoose/model/UserDocumentHelper';
-import UserModelHelper from '../../../../test/helpers/mongoose/model/UserModelHelper';
+import UserDocumentHelper from '../../../../test/helpers/mongodb/_model/UserDocumentHelper';
+import UserModelHelper from '../../../../test/helpers/mongodb/_model/UserModelHelper';
 import {
   resetDatabase,
   User,
   UserNote,
   Note,
   connection,
-} from '../../../../test/helpers/mongoose';
+} from '../../../../test/helpers/mongodb';
 import { GraphQLResolversContext } from '../../../context';
 
 import { deleteNote } from './deleteNote';

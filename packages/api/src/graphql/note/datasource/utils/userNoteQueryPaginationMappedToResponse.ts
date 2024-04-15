@@ -1,6 +1,6 @@
 import mapObject, { mapObjectSkip } from "map-obj";
-import { getPaginationKey } from "../../../../mongoose/operations/pagination/relayArrayPagination";
-import { DeepQueryResponsePaginationMapped, DeepQuery, DeepQueryResponse } from "../../../../mongoose/query-builder";
+import { getPaginationKey } from "../../../../mongodb/operations/pagination/relayArrayPagination";
+import { DeepQueryResponsePaginationMapped, DeepQuery, DeepQueryResponse } from "../../../../mongodb/query-builder";
 import { NoteQueryType } from "../../mongo-query-mapper/note";
 
 /**

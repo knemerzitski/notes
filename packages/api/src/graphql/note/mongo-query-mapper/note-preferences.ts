@@ -1,8 +1,8 @@
 import { NotePreferencesMapper } from '../schema.mappers';
-import { DBUserNote } from '../../../mongoose/models/user-note';
-import { MongoDocumentQuery } from '../../../mongoose/query-builder';
+import { UserNoteSchema } from '../../../mongodb/collections/user-note';
+import { MongoDocumentQuery } from '../../../mongodb/query-builder';
 
-export type NotePreferencesQueryType = DBUserNote['preferences'];
+export type NotePreferencesQueryType = UserNoteSchema['preferences'];
 
 export class NotePreferencesQuery implements NotePreferencesMapper {
   private query: MongoDocumentQuery<NotePreferencesQueryType>;

@@ -1,11 +1,12 @@
 import mapObject, { mapObjectSkip } from 'map-obj';
-import { UserNoteLookupInput } from '../../../../mongoose/operations/lookup/userNoteLookup';
-import { paginationStringToInt } from '../../../../mongoose/operations/pagination/relayArrayPagination';
-import revisionRecordsPagination from '../../../../mongoose/operations/pagination/revisionRecordsPagination';
-import { MergedDeepQuery } from '../../../../mongoose/query-builder';
+import { UserNoteLookupInput } from '../../../../mongodb/operations/lookup/userNoteLookup';
+import { paginationStringToInt } from '../../../../mongodb/operations/pagination/relayArrayPagination';
+import revisionRecordsPagination from '../../../../mongodb/operations/pagination/revisionRecordsPagination';
+import { MergedDeepQuery } from '../../../../mongodb/query-builder';
 import { NoteTextField } from '../../../types.generated';
 import { NoteQueryType } from '../../mongo-query-mapper/note';
-import { NoteBatchLoadContext } from '../noteBatchLoad';
+import { ApiGraphQLContext } from '../../../context';
+import { CollectionName } from '../../../../mongodb/collections';
 
 /**
  * Translates query to lookup input used in by userNoteLookup
@@ -13,8 +14,11 @@ import { NoteBatchLoadContext } from '../noteBatchLoad';
 export default function userNoteQueryToLookupInput(
   userNoteQuery: MergedDeepQuery<NoteQueryType>,
   context: {
-    mongoose: {
-      models: Pick<NoteBatchLoadContext['mongoose']['models'], 'Note' | 'CollabText'>;
+    mongodb: {
+      collections: Pick<
+        ApiGraphQLContext['mongodb']['collections'],
+        CollectionName.Notes | CollectionName.CollabTexts
+      >;
     };
   }
 ): UserNoteLookupInput<NoteTextField> {
@@ -42,7 +46,7 @@ export default function userNoteQueryToLookupInput(
 
     if (Object.keys(noteProject).length > 0) {
       noteLookupInput = {
-        collectionName: context.mongoose.models.Note.collection.collectionName,
+        collectionName: context.mongodb.collections[CollectionName.Notes].collectionName,
         pipeline: [{ $project: noteProject }],
       };
       Object.assign(userNote_note_Project, noteProject);
@@ -50,7 +54,8 @@ export default function userNoteQueryToLookupInput(
 
     if (collabText) {
       collabTextLookupInput = {
-        collectionName: context.mongoose.models.CollabText.collection.collectionName,
+        collectionName:
+          context.mongodb.collections[CollectionName.CollabTexts].collectionName,
         collabText: mapObject(collabText, (key, query) => {
           if (!query) return mapObjectSkip;
 

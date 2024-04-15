@@ -1,0 +1,66 @@
+import { Collection, Db, IndexDescription } from 'mongodb';
+import { UserSchema, userDescription } from './schema/user';
+import mapObject from 'map-obj';
+import { SessionSchema, sessionDescription } from './schema/session/sessions';
+import { UserNoteSchema, userNoteDescription } from './schema/user-note';
+import { NoteSchema, noteDescription } from './schema/note';
+import { CollabTextSchema, collabTextDescription } from './schema/collabText/collab-text';
+
+
+export interface CollectionDescription {
+  indexSpecs?: IndexDescription[];
+}
+
+/**
+ * Values are actual names of collections in MongoDB Database.
+ */
+export enum CollectionName {
+  Sessions = 'sessions',
+  Users = 'users',
+  UserNotes = 'userNotes',
+  Notes = 'notes',
+  CollabTexts = 'collabTexts',
+}
+
+export const collectionDescriptions: Partial<
+  Record<CollectionName, CollectionDescription>
+> = {
+  [CollectionName.Sessions]: sessionDescription,
+  [CollectionName.Users]: userDescription,
+  [CollectionName.UserNotes]: userNoteDescription,
+  [CollectionName.Notes]: noteDescription,
+  [CollectionName.CollabTexts]: collabTextDescription,
+};
+
+export interface MongoDBCollections {
+  [CollectionName.Sessions]: Collection<SessionSchema>;
+  [CollectionName.Users]: Collection<UserSchema>;
+  [CollectionName.UserNotes]: Collection<UserNoteSchema>;
+  [CollectionName.Notes]: Collection<NoteSchema>;
+  [CollectionName.CollabTexts]: Collection<CollabTextSchema>;
+}
+
+export function createCollectionInstances(mongoDb: Db): MongoDBCollections {
+  return mapObject(CollectionName, (_key, name) => {
+    return [name, mongoDb.collection(name)];
+  }) as MongoDBCollections;
+}
+
+export async function createAllIndexes(
+  collections: MongoDBCollections
+): Promise<Record<CollectionName, string[] | undefined>> {
+  const results = await Promise.all(
+    Object.entries(collectionDescriptions).map<
+      Promise<[CollectionName, string[] | undefined]>
+    >(async ([rawKey, schema]) => {
+      const key = rawKey as CollectionName;
+      if (!schema.indexSpecs || schema.indexSpecs.length === 0) return [key, undefined];
+
+      const collection = collections[key];
+      const result = await collection.createIndexes(schema.indexSpecs);
+      return [key, result];
+    })
+  );
+
+  return Object.fromEntries(results) as Record<CollectionName, string[] | undefined>;
+}

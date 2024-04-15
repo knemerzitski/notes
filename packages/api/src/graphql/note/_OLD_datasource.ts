@@ -1,8 +1,8 @@
 import { ObjectId } from 'mongodb';
-import { UserModel } from '../../mongoose/models/user';
+import { UserModel } from '../../mongodb/schema/user';
 import DataLoader from 'dataloader';
-import { DBUserNote } from '../../mongoose/models/user-note';
-import { DBNote } from '../../mongoose/models/note';
+import { UserNoteSchema } from '../../mongodb/collections/user-note';
+import { NoteSchema } from '../../mongodb/schema/note';
 import { PipelineStage } from 'mongoose';
 
 interface UserNotesDataSourceKey {
@@ -12,7 +12,7 @@ interface UserNotesDataSourceKey {
   before?: string;
 }
 
-type UserNoteNoIds = Omit<DBUserNote, 'userId' | 'note'>;
+type UserNoteNoIds = Omit<UserNoteSchema, 'userId' | 'note'>;
 // type NoteWithCollabDocs = Omit<DBNote, 'textFields'> & {textFields: Record<string,>};
 
 // const s: UserNoteNoIds;

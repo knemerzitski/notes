@@ -1,19 +1,22 @@
 import { NoteMapper } from '../schema.mappers';
 import { NoteTextField } from '../../types.generated';
-import { DBUserNote } from '../../../mongoose/models/user-note';
-import { MongoDocumentQuery } from '../../../mongoose/query-builder';
+import { MongoDocumentQuery } from '../../../mongodb/query-builder';
 import { NotePreferencesQuery, NotePreferencesQueryType } from './note-preferences';
 import {
   CollaborativeDocumentQuery,
   CollaborativeDocumentQueryType,
 } from '../../collab/mongo-query-mapper/collaborative-document';
-import { DBNote } from '../../../mongoose/models/note';
+import { NoteSchema } from '../../../mongodb/schema/note';
+import { UserNoteSchema } from '../../../mongodb/schema/user-note';
 
-export type NoteQueryType<TCollabTextKey extends string = NoteTextField> = Omit<DBUserNote, 'preferences' | 'note' | 'userId'> & {
+export type NoteQueryType<TCollabTextKey extends string = NoteTextField> = Omit<
+  UserNoteSchema,
+  'preferences' | 'note' | 'userId'
+> & {
   preferences: NotePreferencesQueryType;
-  note: Omit<DBUserNote['note'], 'collabText' | 'collabTextId'> & {
+  note: Omit<UserNoteSchema['note'], 'collabText' | 'collabTextId'> & {
     collabText: Record<TCollabTextKey, CollaborativeDocumentQueryType>;
-  } & Omit<DBNote, 'publicId' | 'collabTextId'>;
+  } & Omit<NoteSchema, 'publicId' | 'collabTextId' | '_id'>;
 };
 
 export class NoteQuery implements NoteMapper {

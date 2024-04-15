@@ -6,7 +6,7 @@ import {
 import { PageInfoMapper } from '../base/schema.mappers';
 import { Changeset } from '~collab/changeset/changeset';
 
-import { RelayArrayPaginationConfig } from '../../mongoose/operations/pagination/relayArrayPagination';
+import { RelayArrayPaginationConfig } from '../../mongodb/operations/pagination/relayArrayPagination';
 
 export interface RevisionChangesetMapper {
   revision(): ResolverTypeWrapper<number>;

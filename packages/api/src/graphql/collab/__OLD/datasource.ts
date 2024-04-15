@@ -2,8 +2,8 @@ import DataLoader from 'dataloader';
 import { ObjectId } from 'mongodb';
 import {
   CollabTextModel,
-  DBCollabText,
-} from '../../../mongoose/models/collab/collab-text';
+  CollabTextSchema,
+} from '../../../mongodb/schema/collabText/collab-text';
 import { PipelineStage, Require_id } from 'mongoose';
 import { Changeset } from '~collab/changeset/changeset';
 import { RevisionChangeset } from '~collab/records/revision-changeset';
@@ -35,7 +35,7 @@ interface PositiveOrNegativeIndex {
 }
 
 type AggregateCollaborativeDocument<T = unknown> = Require_id<
-  Partial<DBCollabText<T>> & {
+  Partial<CollabTextSchema<T>> & {
     recordsMeta?: {
       tailDocumentRevision: number;
       recordsSize: number;
@@ -330,7 +330,7 @@ export class CollaborativeDocumentDataSource {
     };
   }
 
-  async getTailDocument(): Promise<DBCollabText['tailDocument']> {
+  async getTailDocument(): Promise<CollabTextSchema['tailDocument']> {
     const tailDocument = (
       await this.source.get({
         id: this.id,
@@ -353,7 +353,7 @@ export class CollaborativeDocumentDataSource {
   }: {
     startRevision?: number;
     endRevision?: number;
-  }): Promise<DBCollabText['records']> {
+  }): Promise<CollabTextSchema['records']> {
     const doc = await this.source.get({
       id: this.id,
       records: {
@@ -390,7 +390,7 @@ export class CollaborativeDocumentDataSource {
   async getRecordsBySlice(
     start: number,
     end: number = start + 1
-  ): Promise<DBCollabText['records']> {
+  ): Promise<CollabTextSchema['records']> {
     const doc = await this.source.get({
       id: this.id,
       records: {

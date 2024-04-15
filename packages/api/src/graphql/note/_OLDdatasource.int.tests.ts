@@ -7,7 +7,7 @@ import {
   Note,
   UserNote,
   CollabText,
-} from '../../test/helpers/mongoose';
+} from '../../test/helpers/mongodb';
 
 import util from 'util';
 import mapObject, { mapObjectPromise } from '~utils/mapObject';
@@ -15,9 +15,9 @@ import { createInitialDocument } from '~collab/adapters/mongodb/collaborative-do
 import { NoteTextField } from '../types.generated';
 import {
   CollabTextDocument,
-} from '../../mongoose/models/collab/collab-text';
-import { UserDocument } from '../../mongoose/models/user';
-import { NoteDocument } from '../../mongoose/models/note';
+} from '../../mongodb/schema/collabText/collab-text';
+import { UserDocument } from '../../mongodb/schema/user';
+import { NoteDocument } from '../../mongodb/schema/note';
 import { lookupNotes } from './_OLD_datasource';
 
 function createUser() {

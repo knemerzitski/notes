@@ -4,8 +4,8 @@ import { mock, mockDeep, mockReset } from 'vitest-mock-extended';
 
 import { verifyCredentialToken } from '../../../../auth/google/__mocks__/oauth2';
 import { GraphQLResolversContext } from '../../../context';
-import { SessionDocument } from '../../../../mongoose/models/session';
-import { UserDocument } from '../../../../mongoose/models/user';
+import { SessionDocument } from '../../../../mongodb/schema/session/sessions';
+import { UserDocument } from '../../../../mongodb/schema/user';
 import { apolloServer } from '../../../../test/helpers/apollo-server';
 import { mockResolver } from '../../../../test/helpers/mock-resolver';
 import CookiesContext from '../../../cookies-context';

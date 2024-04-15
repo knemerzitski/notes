@@ -1,17 +1,26 @@
-import mapObject from "map-obj";
-import { paginationStringToInt, getPaginationKey } from "../../../../mongoose/operations/pagination/relayArrayPagination";
-import { assertRecordRevisionDefined, mapRevisionRecordsPaginationInputToOutput } from "../../../../mongoose/operations/pagination/revisionRecordsPagination";
-import { MergedDeepQuery, DeepQueryResponsePaginationMapped } from "../../../../mongoose/query-builder";
-import { CollaborativeDocumentQueryType } from "../../../collab/mongo-query-mapper/collaborative-document";
-import { NoteTextField } from "../../../types.generated";
-import { NoteQueryType } from "../../mongo-query-mapper/note";
-import { UserNoteDeepQueryResponse } from "../notes-datasource";
+import mapObject from 'map-obj';
+import {
+  paginationStringToInt,
+  getPaginationKey,
+} from '../../../../mongodb/operations/pagination/relayArrayPagination';
+import {
+  assertRecordRevisionDefined,
+  mapRevisionRecordsPaginationInputToOutput,
+} from '../../../../mongodb/operations/pagination/revisionRecordsPagination';
+import {
+  MergedDeepQuery,
+  DeepQueryResponsePaginationMapped,
+} from '../../../../mongodb/query-builder';
+import { CollaborativeDocumentQueryType } from '../../../collab/mongo-query-mapper/collaborative-document';
+import { NoteTextField } from '../../../types.generated';
+import { NoteQueryType } from '../../mongo-query-mapper/note';
+import { UserNoteDeepQueryResponse } from '../UserNoteDeepQueryResponse';
 
 /**
  * Modifies collabText records pagination result to match
  * the query and stores it in records object as paginationKey.
  * @example
- * 
+ *
  * // Response structure
  * const responseRecords = {
  *  array: [...records],
@@ -22,7 +31,7 @@ import { UserNoteDeepQueryResponse } from "../notes-datasource";
  *  'a:2': [...part records],
  *  'b:5': [...part records],
  * }
- * 
+ *
  */
 export default function userNoteResponseToPaginationsMapped(
   userNote: UserNoteDeepQueryResponse,

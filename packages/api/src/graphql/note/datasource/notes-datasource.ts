@@ -1,5 +1,5 @@
 import DataLoader from 'dataloader';
-import { DeepQueryResponse } from '../../../mongoose/query-builder';
+import { DeepQueryResponse } from '../../../mongodb/query-builder';
 import { NoteQueryType } from '../mongo-query-mapper/note';
 
 import { GraphQLResolversContext } from '../../context';
@@ -8,15 +8,17 @@ import sortObject from '~utils/sortObject';
 import { ObjectId } from 'mongodb';
 
 import noteBatchLoad, { NoteKey } from './noteBatchLoad';
-import noteConnectionBatchLoad, {
-  NoteConnectionKey,
-} from './noteConnectionBatchLoad';
+import noteConnectionBatchLoad, { NoteConnectionKey } from './noteConnectionBatchLoad';
+import { CollectionName } from '../../../mongodb/collections';
 
 export interface NotesDataSourceContext {
-  mongoose: {
-    models: Pick<
-      GraphQLResolversContext['mongoose']['model'],
-      'User' | 'UserNote' | 'CollabText' | 'Note'
+  mongodb: {
+    collections: Pick<
+      GraphQLResolversContext['mongodb']['collections'],
+      | CollectionName.Users
+      | CollectionName.UserNotes
+      | CollectionName.CollabTexts
+      | CollectionName.Notes
     >;
   };
 }

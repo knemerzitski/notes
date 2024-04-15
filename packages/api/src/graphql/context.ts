@@ -1,11 +1,7 @@
-import { Connection } from 'mongoose';
-
 import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
 import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
 import { WebSocketMessageHandlerParams } from '~lambda-graphql/message-handler';
 import { SubscriptionContext } from '~lambda-graphql/pubsub/subscribe';
-
-import { MongooseModels } from '../mongoose/models';
 
 import {
   AuthenticationContext,
@@ -16,6 +12,9 @@ import {
   serializeAuthenticationContext,
 } from './auth-context';
 import CookiesContext, { SerializedCookiesContext } from './cookies-context';
+import NotesDataSource from './note/datasource/notes-datasource';
+import { MongoDBCollections } from '../mongodb/collections';
+import { MongoClient } from 'mongodb';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type BaseGraphQLContext = {
@@ -35,11 +34,12 @@ export type DynamoDBBaseGraphQLContext = {
 };
 
 export interface ApiGraphQLContext {
-  mongoose: {
-    connection: Connection;
-    // TODO rename to models?
-    model: MongooseModels;
-    // datasources: MongooseDataSources; // must be created for every context.
+  datasources: {
+    notes: NotesDataSource;
+  };
+  mongodb: {
+    client: MongoClient;
+    collections: MongoDBCollections;
   };
 }
 
