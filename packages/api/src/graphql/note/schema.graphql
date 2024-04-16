@@ -78,7 +78,7 @@ type NoteConnection implements Connection {
   "Query notes directly without edges"
   notes: [Note!]!
   "Self descriptive"
-  edges: [NoteEdge!]!
+  edges: [NoteEdge]!
   "Self descriptive"
   pageInfo: PageInfo!
 }
@@ -87,7 +87,7 @@ type NoteEdge implements Edge {
   "Self descriptive"
   node: Note!
   "Self descriptive"
-  cursor: String!
+  cursor: Cursor!
 }
 
 extend type Query {
@@ -99,7 +99,7 @@ extend type Query {
     before: String
   ): NoteConnection! @auth
   "Get note by url ID"
-  note(urlId: String!): Note! @auth
+  noteByUrlId(urlId: String!): Note! @auth
 }
 
 input CreateNoteInput {

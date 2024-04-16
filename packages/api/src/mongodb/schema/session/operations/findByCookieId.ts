@@ -11,7 +11,7 @@ export type SessionsLookupUser = Omit<SessionSchema, 'userId'> & {
 
 interface FindByCookieIdInput {
   cookieId: string;
-  collection: Collection<SessionSchema>;
+  sessionsCollection: Collection<SessionSchema>;
   usersCollectionName: string;
 }
 
@@ -20,11 +20,11 @@ interface FindByCookieIdInput {
  */
 export default async function findByCookieId({
   cookieId,
-  collection,
+  sessionsCollection,
   usersCollectionName,
 }: FindByCookieIdInput): Promise<SessionsLookupUser | undefined> {
   return (
-    await collection
+    await sessionsCollection
       .aggregate<SessionsLookupUser>([
         {
           $match: {

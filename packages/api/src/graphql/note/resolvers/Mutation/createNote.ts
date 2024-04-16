@@ -1,5 +1,3 @@
-import { createInitialDocument } from '~collab/adapters/mongodb/collaborative-document';
-
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { publishNoteCreated } from '../Subscription/noteCreated';
 
@@ -8,7 +6,7 @@ import {
   type CreateNotePayload,
   type MutationResolvers,
   type NoteCreatedPayload,
-} from './../../../types.generated';
+} from '../../../types.generated';
 
 import { Changeset } from '~collab/changeset/changeset';
 import mapObject from 'map-obj';

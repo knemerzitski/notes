@@ -311,17 +311,23 @@ export function sliceBefore<T>({
   };
 }
 
-export function paginationStringToInt(
-  pagination: RelayPagination<string>
+export function paginationStringToInt<TCursor extends string | number>(
+  pagination: RelayPagination<TCursor>
 ): RelayPagination<number> {
   if (isAfterPagination(pagination)) {
     return {
       first: pagination.first,
-      after: Number.parseInt(pagination.after),
+      after:
+        typeof pagination.after === 'string'
+          ? Number.parseInt(pagination.after)
+          : pagination.after,
     };
   } else if (isBeforePagination(pagination)) {
     return {
-      before: Number.parseInt(pagination.before),
+      before:
+        typeof pagination.before === 'string'
+          ? Number.parseInt(pagination.before)
+          : pagination.before,
       last: pagination.last,
     };
   }

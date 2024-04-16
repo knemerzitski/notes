@@ -92,7 +92,7 @@ input CollabTextPatchInput {
 
 type CollabTextRecordConnection implements Connection {
   "Self descriptive"
-  edges: [CollabTextRecordEdge!]!
+  edges: [CollabTextRecordEdge]!
   "Self descriptive"
   pageInfo: PageInfo!
 }

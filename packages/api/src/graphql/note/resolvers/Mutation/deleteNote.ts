@@ -1,5 +1,4 @@
 import { GraphQLError } from 'graphql';
-import { Require_id, Types } from 'mongoose';
 
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
@@ -7,7 +6,7 @@ import { NoteSchema } from '../../../../mongodb/schema/note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { publishNoteDeleted } from '../Subscription/noteDeleted';
 
-import type { MutationResolvers } from './../../../types.generated';
+import type { MutationResolvers } from '../../../types.generated';
 
 interface UserNoteAggregateResult {
   userId: Types.ObjectId;

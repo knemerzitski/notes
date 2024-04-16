@@ -25,11 +25,7 @@ export interface NotesDataSourceContext {
 export default class NotesDataSource {
   private loaders: {
     note: DataLoader<NoteKey, DeepQueryResponse<NoteQuery>, string>;
-    noteConnection: DataLoader<
-      NoteConnectionKey,
-      DeepQueryResponse<NoteQuery>[],
-      string
-    >;
+    noteConnection: DataLoader<NoteConnectionKey, DeepQueryResponse<NoteQuery>[], string>;
   };
 
   constructor(context: Readonly<NotesDataSourceContext>) {

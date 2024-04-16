@@ -1,11 +1,12 @@
 import { CollectionDescription } from '../collections';
 import { NoteSchema } from './note';
-import { ObjectId, WithId } from 'mongodb';
+import { ObjectId } from 'mongodb';
 
 /**
  * User's access to a note with customizations.
  */
-export interface UserNoteSchema extends WithId<Document> {
+export interface UserNoteSchema {
+  _id: ObjectId;
   userId: ObjectId;
   /**
    * @default false

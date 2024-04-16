@@ -11,6 +11,7 @@ import {
 import { CollabTextRecordQuery, CollabTextRecordQueryMapper } from './revision-record';
 import { MongoDocumentQuery } from '../../../mongodb/query-builder';
 import { CollabTextrecordsConnectionArgs } from '../../types.generated';
+import { newResolverOnlyError } from '../../plugins/remove-resolver-only-errors';
 
 export type CollabTextQuery = Omit<
   CollabTextSchema,
@@ -127,17 +128,22 @@ export class CollabTextQueryMapper implements CollabTextMapper {
             (_, index) => {
               const revisionRecordQuery = new CollabTextRecordQueryMapper(this, {
                 queryDocument: async (project) => {
-                  return (
-                    await this.query.queryDocument({
-                      records: {
-                        $query: project,
-                        $pagination: {
-                          after,
-                          first,
-                        },
+                  const result = await this.query.queryDocument({
+                    records: {
+                      $query: project,
+                      $pagination: {
+                        after,
+                        first,
                       },
-                    })
-                  )?.records?.[index];
+                    },
+                  });
+
+                  const record = result?.records?.[index];
+                  if (!record) {
+                    throw newResolverOnlyError(`No record at index ${index}`);
+                  }
+
+                  return record;
                 },
               });
 
@@ -153,17 +159,22 @@ export class CollabTextQueryMapper implements CollabTextMapper {
             (_, index) => {
               const revisionRecordQuery = new CollabTextRecordQueryMapper(this, {
                 queryDocument: async (project) => {
-                  return (
-                    await this.query.queryDocument({
-                      records: {
-                        $query: project,
-                        $pagination: {
-                          before,
-                          last,
-                        },
+                  const result = await this.query.queryDocument({
+                    records: {
+                      $query: project,
+                      $pagination: {
+                        before,
+                        last,
                       },
-                    })
-                  )?.records?.[index];
+                    },
+                  });
+
+                  const record = result?.records?.[index];
+                  if (!record) {
+                    throw newResolverOnlyError(`No record at index ${index}`);
+                  }
+
+                  return record;
                 },
               });
 

@@ -2,11 +2,11 @@ import { GraphQLError } from 'graphql';
 
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
-import { GraphQLResolversContext } from '../../../../graphql/context';
+import { GraphQLResolversContext } from '../../../context';
 import type {
   NoteDeletedPayload,
   SubscriptionResolvers,
-} from '../../../../graphql/types.generated';
+} from '../../../types.generated';
 import { isAuthenticated } from '../../../auth-context';
 import { assertAuthenticated } from '../../../base/directives/auth';
 

@@ -1,9 +1,10 @@
 import { nanoid } from 'nanoid';
 
-import { ObjectId, WithId } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { CollectionDescription } from '../../collections';
 
-export interface SessionSchema extends WithId<Document> {
+export interface SessionSchema {
+  _id: ObjectId;
   /**
    * ID that is stored in users cookie headers.
    * @default nanoid()

@@ -19,14 +19,6 @@ export enum GraphQLErrorCode {
    * Provided input/argument for requesting the resource is invalid.
    */
   InvalidInput = 'INVALID_INPUT',
-  /**
-   * Server has an unexpected invalid state that should never happen.
-   */
-  InternalError = 'INTERNAL_ERROR',
-  /**
-   * Requested more data from array than is available. Some array elements are null.
-   */
-  ArrayElementNull = 'ARRAY_ELEMENT_NULL',
 }
 
 export enum AuthenticationFailedReason {

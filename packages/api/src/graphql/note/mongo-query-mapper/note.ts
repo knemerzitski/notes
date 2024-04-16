@@ -51,11 +51,11 @@ export class NoteQueryMapper implements NoteMapper {
             queryDocument: async (query) => {
               return (
                 await this.query.queryDocument({
-                  // note: {
-                  //   collabTexts: {
-                  //     [field]: query,
-                  //   },
-                  // },
+                  note: {
+                    collabTexts: {
+                      [field]: query,
+                    },
+                  },
                 })
               )?.note?.collabTexts?.[field];
             },

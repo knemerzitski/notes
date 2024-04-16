@@ -1,9 +1,10 @@
-import { ObjectId, WithId } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { nanoid } from 'nanoid';
 
 import { CollectionDescription } from '../collections';
 
-export interface NoteSchema extends WithId<Document> {
+export interface NoteSchema {
+  _id: ObjectId;
   publicId: string;
   ownerId: ObjectId;
   collabTextIds: Record<string, ObjectId>;

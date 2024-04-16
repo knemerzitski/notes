@@ -1,8 +1,8 @@
-import { GraphQLResolversContext } from '../../../../graphql/context';
+import { GraphQLResolversContext } from '../../../context';
 import type {
   NoteCreatedPayload,
   SubscriptionResolvers,
-} from '../../../../graphql/types.generated';
+} from '../../../types.generated';
 import { isAuthenticated } from '../../../auth-context';
 import { assertAuthenticated } from '../../../base/directives/auth';
 

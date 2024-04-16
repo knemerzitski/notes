@@ -130,7 +130,18 @@ describe('consecutiveIntArrayPagination', () => {
       },
       expectedOutput: {
         array: [1, 2, 3, 4, 5, 6, 7, 8, 9],
-        sizes: [9, 0],
+      },
+    },
+    {
+      input: {
+        paginations: [
+          {
+            last: 9,
+          },
+        ],
+      },
+      expectedOutput: {
+        array: [1, 2, 3, 4, 5, 6, 7, 8, 9],
       },
     },
   ])('input $input => $expectedOutput', async ({ input, expectedOutput }) => {

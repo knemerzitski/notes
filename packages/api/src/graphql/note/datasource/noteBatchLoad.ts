@@ -103,7 +103,6 @@ export default async function noteBatchLoad(
   return keys.map((key) => {
     const userNote = userNotesBy_userId_publicId[key.userId.toString()]?.[key.publicId];
     if (!userNote) {
-      // TODO put error throw in resolver?
       return new GraphQLError(`Note '${key.publicId}' not found`, {
         extensions: {
           code: GraphQLErrorCode.NotFound,

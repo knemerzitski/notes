@@ -228,3 +228,7 @@ it('loads minimal fields', async () => {
     },
   ]);
 });
+
+// TODO create tests:
+// throws note not found when querying note owned by another user, no record in usernote
+// returns other user note since usernote record is present

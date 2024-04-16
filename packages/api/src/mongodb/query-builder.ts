@@ -8,9 +8,11 @@ type Primitive = string | number | boolean | ObjectId;
 type ProjectionValue = 1 | undefined;
 type IdProjectionValue = 0 | ProjectionValue;
 
+type Cursor = string | number;
+
 export interface ArrayQuery<TItem> {
   $query?: DeepQuery<TItem>;
-  $pagination?: RelayPagination<string>;
+  $pagination?: RelayPagination<Cursor>;
 }
 
 /**
@@ -92,7 +94,7 @@ export class CustomMongoDocumentDataSource<TDocument>
 
 export interface MergedArrayQuery<TItem> {
   $query?: MergedDeepQuery<TItem>;
-  $paginations?: RelayPagination<string>[];
+  $paginations?: RelayPagination<Cursor>[];
 }
 
 export type MergedDeepQuery<T> = {
@@ -136,7 +138,7 @@ export function mergeQueries<T>(
         if ('$query' in sourceValue || '$pagination' in sourceValue) {
           const arrayMergedValue = mergedValue as {
             $query?: DeepQuery<unknown>;
-            $paginations?: RelayPagination<string>[];
+            $paginations?: RelayPagination<Cursor>[];
           };
 
           if ('$query' in sourceValue && sourceValue.$query) {

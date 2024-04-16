@@ -87,7 +87,6 @@ export default function consecutiveIntArrayPagination(
                 { $lte: ['$$endBound', '$$startBound'] },
                 {
                   array: `$${input.arrayFieldPath}`,
-                  sizes: ['$$size', 0],
                 },
                 {
                   $reduce: {
@@ -224,23 +223,26 @@ export function consecutiveIntArrayMapPaginationOutputToInput<TItem>(
   if (!input || input.length === 0) return [output.array];
 
   const sizes = output.sizes;
-  if (!sizes) throw new Error('Expected pagination sizes to be defined');
 
   return input.map((pagination) => {
     if (isFirstPagination(pagination)) {
-      return output.array.slice(0, Math.min(pagination.first, sizes[0]));
+      const end = sizes ? sizes[0] : output.array.length;
+      return output.array.slice(0, Math.min(pagination.first, end));
     } else if (isLastPagination(pagination)) {
-      const end = sizes[0] + sizes[1];
-      return output.array.slice(Math.max(sizes[0], end - pagination.last), end);
+      const start = sizes ? sizes[0] : 0;
+      const end = sizes ? sizes[0] + sizes[1] : output.array.length;
+      return output.array.slice(Math.max(start, end - pagination.last), end);
     } else if (isAfterUnboundPagination(pagination)) {
       const startCursor = pagination.after + 1;
-      const firstEndItem = output.array[sizes[0]];
+      const startSize = sizes?.[0] ?? 0;
+      const firstEndItem = output.array[startSize];
       if (firstEndItem == null) {
         return [];
       }
-      const start = sizes[0] + startCursor - toCursor(firstEndItem);
+      const start = startSize + startCursor - toCursor(firstEndItem);
+      const end = sizes ? start + sizes[1] : output.array.length;
 
-      return output.array.slice(start, start + sizes[1]);
+      return output.array.slice(start, end);
     } else if (isBeforeUnboundPagination(pagination)) {
       const endCursor = pagination.before;
       const item0 = output.array[0];
@@ -267,7 +269,7 @@ export function consecutiveIntArrayMapPaginationOutputToInput<TItem>(
 
       let startSize = 0;
       const result: TItem[] = [];
-      for (const size of sizes) {
+      for (const size of sizes ?? [output.array.length]) {
         const item = output.array[startSize];
         if (item == null) {
           return [];

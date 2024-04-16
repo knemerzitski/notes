@@ -1,7 +1,8 @@
-import { Document, ObjectId, WithId } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { CollectionDescription } from '../collections';
 
-export interface UserSchema extends WithId<Document> {
+export interface UserSchema {
+  _id: ObjectId;
   /**
    * Any third-party related information
    */

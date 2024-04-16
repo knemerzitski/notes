@@ -51,12 +51,8 @@ export default function userNoteResponseToPaginationsMapped(
 
 export function collabTextResponseToPaginationsMapped(
   collabTextMap: NonNullable<UserNoteDeepQueryResponse['note']>['collabTexts'],
-  collabTextQuery:
-    | MergedDeepQuery<Record<NoteTextField, CollabTextQuery>>
-    | undefined
-): DeepQueryResponsePaginationMapped<
-  Record<NoteTextField, CollabTextQuery>
-> {
+  collabTextQuery: MergedDeepQuery<Record<NoteTextField, CollabTextQuery>> | undefined
+): DeepQueryResponsePaginationMapped<Record<NoteTextField, CollabTextQuery>> {
   if (!collabTextQuery || !collabTextMap) {
     return mapObject(NoteTextField, (_key, value) => [value, {}]);
   }

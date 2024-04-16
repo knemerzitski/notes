@@ -9,29 +9,18 @@ import { UserSchema } from '../mongodb/schema/user';
 import { ApiGraphQLContext } from './context';
 import CookiesContext from './cookies-context';
 import { tryRefreshExpireAt } from './session-expiration';
+import { DeepReplace } from '~utils/types';
+import { CollectionName } from '../mongodb/collections';
+import findByCookieId from '../mongodb/schema/session/operations/findByCookieId';
 
+/**
+ * Replaces ObjectId with base64 representation string.
+ */
+type SerializedSession = DeepReplace<Session, ObjectId, string>;
 
-interface SerializedId {
-  /**
-   * base64 representation of MongoDB ObjectId
-   */
-  _id: string;
-}
-
-type SerializedUser = Omit<User, '_id'> & SerializedId;
-
-type SerializedSession = Omit<Session, '_id' | 'user'> & {
-  user: SerializedUser;
-} & SerializedId;
-
-interface User extends Omit<UserSchema, 'notes'> {
-  _id: ObjectId;
-}
+type User = Omit<UserSchema, 'notes'>;
 
 interface Session extends Omit<SessionSchema, 'userId' | 'expireAt'> {
-  /**
-   * base64 representation of MongoDB ObjectId
-   */
   _id: ObjectId;
   user: User;
   /**
@@ -130,9 +119,17 @@ export function parseAuthenticationContextValue(
  */
 export async function findRefreshDbSession(
   cookieId: string,
-  Session: ApiGraphQLContext['mongoose']['model']['Session']
+  collections: Pick<
+    ApiGraphQLContext['mongodb']['collections'],
+    CollectionName.Users | CollectionName.Sessions
+  >
 ): Promise<AuthenticatedContext['session']> {
-  const session = await Session.findByCookieId(cookieId);
+  const session = await findByCookieId({
+    cookieId,
+    sessionsCollection: collections[CollectionName.Sessions],
+    usersCollectionName: collections[CollectionName.Users].collectionName,
+  });
+
   if (!session) {
     // Session doesn't exist in database
     throw new AuthenticatedFailedError(AuthenticationFailedReason.SessionExpired);
@@ -141,9 +138,14 @@ export async function findRefreshDbSession(
   // Refresh expireAt it's too low
   const expireAt = new Date(session.expireAt);
   if (tryRefreshExpireAt(expireAt)) {
-    await Session.findByIdAndUpdate(session._id, {
-      expireAt,
-    });
+    await collections[CollectionName.Sessions].findOneAndUpdate(
+      {
+        _id: session._id,
+      },
+      {
+        expireAt,
+      }
+    );
   }
 
   return {
@@ -160,7 +162,10 @@ export async function findRefreshDbSession(
 export async function parseAuthFromHeaders(
   headers: Readonly<Record<string, string | undefined>> | undefined,
   cookiesContext: CookiesContext,
-  Session: ApiGraphQLContext['mongoose']['model']['Session']
+  collections: Pick<
+    ApiGraphQLContext['mongodb']['collections'],
+    CollectionName.Users | CollectionName.Sessions
+  >
 ) {
   try {
     if (!headers) {
@@ -183,7 +188,7 @@ export async function parseAuthFromHeaders(
       };
     }
 
-    const session = await findRefreshDbSession(cookieId, Session);
+    const session = await findRefreshDbSession(cookieId, collections);
     return {
       session,
     };

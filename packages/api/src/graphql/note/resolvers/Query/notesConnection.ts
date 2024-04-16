@@ -1,12 +1,11 @@
 import { GraphQLError } from 'graphql';
 import { ObjectId } from 'mongodb';
-import { PipelineStage, Require_id, Types } from 'mongoose';
 
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
 import { CollabTextSchema } from '../../../../mongodb/schema/collabText/collab-text';
 import { NoteSchema } from '../../../../mongodb/schema/note';
-import { UserNoteSchema } from '../../../../mongodb/collections/user-note';
+// import { UserNoteSchema } from '../../../../mongodb/collections/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 
 import {
@@ -14,7 +13,7 @@ import {
   type InputMaybe,
   type NoteEdge,
   type QueryResolvers,
-} from './../../../types.generated';
+} from '../../../types.generated';
 
 type UserNoteWithoutIds = Omit<UserNoteSchema, 'userId' | 'notePublicId'>;
 type NoteWithoutRecords = Omit<NoteSchema, 'content'> & {
