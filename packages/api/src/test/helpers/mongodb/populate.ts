@@ -74,7 +74,7 @@ export function fakeUserNoteData(user: UserSchema, note: NoteSchema): UserNoteSc
     note: {
       id: note._id,
       publicId: note.publicId,
-      collabTextId: note.collabTextId,
+      collabTextIds: note.collabTextIds,
     },
     readOnly: !!faker.number.int({ max: 1 }),
     preferences: {
@@ -112,7 +112,7 @@ export function fakeNoteData(
     _id: new ObjectId(),
     ownerId: user._id,
     publicId: options?.publicId ?? noteDefaultValues.publicId(),
-    collabTextId: Object.fromEntries(
+    collabTextIds: Object.fromEntries(
       Object.entries(collabTexts).map(([collabTextKey, { _id }]) => [collabTextKey, _id])
     ),
   };
@@ -190,11 +190,11 @@ export function fakeCollabTextData(
 
   return {
     _id: new ObjectId(),
-    headDocument: {
+    headText: {
       revision: headRevision,
       changeset: Changeset.fromInsertion('head').serialize(),
     },
-    tailDocument: {
+    tailText: {
       revision: tailRevision,
       changeset: Changeset.EMPTY.serialize(),
     },

@@ -2,16 +2,16 @@ import { describe, it } from 'vitest';
 import { ObjectId } from 'mongodb';
 import { Changeset } from '~collab/changeset/changeset';
 
-import { NoteQuery, NoteQueryType } from '../graphql/note/mongo-query-mapper/note';
+import { NoteQueryMapper, NoteQuery } from '../graphql/note/mongo-query-mapper/note';
 
 import util from 'util';
 import { DeepQuery, mergeQueries } from './query-builder';
 
 describe.skip('sandbox', () => {
   it('project', async () => {
-    const projections: DeepQuery<NoteQueryType>[] = [];
+    const projections: DeepQuery<NoteQuery>[] = [];
 
-    const noteQuery = new NoteQuery({
+    const noteQuery = new NoteQueryMapper({
       queryDocument(project) {
         projections.push(project);
         console.log('project', util.inspect(project, false, null, true));

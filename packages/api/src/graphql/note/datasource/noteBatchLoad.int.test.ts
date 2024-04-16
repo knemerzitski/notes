@@ -61,9 +61,9 @@ it('loads a simple note', async () => {
             note: {
               publicId: 1,
               ownerId: 1,
-              collabText: {
+              collabTexts: {
                 CONTENT: {
-                  headDocument: {
+                  headText: {
                     changeset: 1,
                   },
                   records: {
@@ -88,9 +88,9 @@ it('loads a simple note', async () => {
       note: {
         publicId: note.publicId,
         ownerId: expect.any(ObjectId),
-        collabText: {
+        collabTexts: {
           CONTENT: {
-            headDocument: { changeset: ['head'] },
+            headText: { changeset: ['head'] },
             records: [
               {
                 revision: 8,
@@ -126,14 +126,14 @@ it('loads all fields', async () => {
               id: 1,
               publicId: 1,
               ownerId: 1,
-              collabText: {
+              collabTexts: {
                 CONTENT: {
                   _id: 1,
-                  headDocument: {
+                  headText: {
                     changeset: 1,
                     revision: 1,
                   },
-                  tailDocument: {
+                  tailText: {
                     changeset: 1,
                     revision: 1,
                   },
@@ -176,11 +176,11 @@ it('loads all fields', async () => {
         id: expect.any(ObjectId),
         publicId: note.publicId,
         ownerId: expect.any(ObjectId),
-        collabText: {
+        collabTexts: {
           CONTENT: {
             _id: expect.any(ObjectId),
-            headDocument: { changeset: ['head'], revision: expect.any(Number) },
-            tailDocument: { changeset: [], revision: expect.any(Number) },
+            headText: { changeset: ['head'], revision: expect.any(Number) },
+            tailText: { changeset: [], revision: expect.any(Number) },
             records: [
               {
                 revision: 6,

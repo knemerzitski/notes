@@ -1,35 +1,27 @@
+import { CollabTextRecordMapper } from '../schema.mappers';
+import { RevisionChangesetQueryMapper } from './revision-changeset';
 import {
-  CollaborativeDocumentMapper,
-  CollaborativeDocumentRecordMapper,
-  CollaborativeDocumentSelectionRangeMapper,
-  RevisionChangesetMapper,
-} from '../schema.mappers';
-import { RevisionChangesetQuery } from './revision-changeset';
-import { SelectionRangeQueryType, SelectionRangeQuery } from './selection-range';
+  CollabTextSelectionRangeQuery,
+  CollabTextSelectionRangeQueryMapper,
+} from './selection-range';
 import { MongoDocumentQuery } from '../../../mongodb/query-builder';
-import { DeepReplace } from '~utils/types';
 import { RevisionRecordSchema } from '../../../mongodb/schema/collabText/collab-text';
+import { CollabTextQueryMapper } from './collab-text';
 
-export type RevisionRecordQueryType = Omit<
+export type CollabTextRecordQuery = Omit<
   RevisionRecordSchema,
   'beforeSelection' | 'afterSelection'
 > & {
-  beforeSelection: SelectionRangeQueryType;
-  afterSelection: SelectionRangeQueryType;
+  beforeSelection: CollabTextSelectionRangeQuery;
+  afterSelection: CollabTextSelectionRangeQuery;
 };
 
-export type ReplaceRevisionRecord<T> = DeepReplace<
-  T,
-  RevisionRecordSchema,
-  RevisionRecordQueryType
->;
-
-export class RevisionRecordQuery implements CollaborativeDocumentRecordMapper {
-  private parent: CollaborativeDocumentMapper;
+export class CollabTextRecordQueryMapper implements CollabTextRecordMapper {
+  private parent: CollabTextQueryMapper;
   private query: MongoDocumentQuery<RevisionRecordSchema>;
 
   constructor(
-    parent: CollaborativeDocumentMapper,
+    parent: CollabTextQueryMapper,
     query: MongoDocumentQuery<RevisionRecordSchema>
   ) {
     this.parent = parent;
@@ -59,16 +51,16 @@ export class RevisionRecordQuery implements CollaborativeDocumentRecordMapper {
     )?.creatorUserId?.toString('base64');
   }
 
-  change(): RevisionChangesetMapper {
-    return new RevisionChangesetQuery({
+  change() {
+    return new RevisionChangesetQueryMapper({
       queryDocument: (change) => {
         return this.query.queryDocument(change);
       },
     });
   }
 
-  beforeSelection(): CollaborativeDocumentSelectionRangeMapper {
-    return new SelectionRangeQuery({
+  beforeSelection() {
+    return new CollabTextSelectionRangeQueryMapper({
       queryDocument: async (selection) => {
         return (
           await this.query.queryDocument({
@@ -79,8 +71,8 @@ export class RevisionRecordQuery implements CollaborativeDocumentRecordMapper {
     });
   }
 
-  afterSelection(): CollaborativeDocumentSelectionRangeMapper {
-    return new SelectionRangeQuery({
+  afterSelection() {
+    return new CollabTextSelectionRangeQueryMapper({
       queryDocument: async (selection) => {
         return (
           await this.query.queryDocument({

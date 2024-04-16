@@ -1,39 +1,30 @@
-import {
-  CollaborativeDocumentMapper,
-  CollaborativeDocumentRecordConnectionMapper,
-  RevisionChangesetMapper,
-} from '../schema.mappers';
-import {
-  CollaborativeDocumentdocumentArgs,
-  CollaborativeDocumentrecordsConnectionArgs,
-} from '../../types.generated';
+import { CollabTextMapper, CollabTextWithNearHistoryMapper } from '../schema.mappers';
 import { CollabTextSchema } from '../../../mongodb/schema/collabText/collab-text';
-import { Changeset } from '~collab/changeset/changeset';
 import {
   RelayArrayPaginationConfig,
   applyLimit,
 } from '../../../mongodb/operations/pagination/relayArrayPagination';
 import {
-  RevisionChangesetQueryType,
   RevisionChangesetQuery,
+  RevisionChangesetQueryMapper,
 } from './revision-changeset';
-import { RevisionRecordQueryType, RevisionRecordQuery } from './revision-record';
+import { CollabTextRecordQuery, CollabTextRecordQueryMapper } from './revision-record';
 import { MongoDocumentQuery } from '../../../mongodb/query-builder';
+import { CollabTextrecordsConnectionArgs } from '../../types.generated';
 
-// TODO bad name
-export type CollaborativeDocumentQueryType = Omit<
+export type CollabTextQuery = Omit<
   CollabTextSchema,
-  'headDocument' | 'tailDocument' | 'records'
+  'headText' | 'tailText' | 'records'
 > & {
-  headDocument: RevisionChangesetQueryType;
-  tailDocument: RevisionChangesetQueryType;
-  records: RevisionRecordQueryType[];
+  headText: RevisionChangesetQuery;
+  tailText: RevisionChangesetQuery;
+  records: CollabTextRecordQuery[];
 };
 
-export class CollaborativeDocumentQuery implements CollaborativeDocumentMapper {
-  private query: MongoDocumentQuery<CollaborativeDocumentQueryType>;
+export class CollabTextQueryMapper implements CollabTextMapper {
+  private query: MongoDocumentQuery<CollabTextQuery>;
 
-  constructor(query: MongoDocumentQuery<CollaborativeDocumentQueryType>) {
+  constructor(query: MongoDocumentQuery<CollabTextQuery>) {
     this.query = query;
   }
 
@@ -41,82 +32,86 @@ export class CollaborativeDocumentQuery implements CollaborativeDocumentMapper {
     return (await this.query.queryDocument({ _id: 1 }))?._id?.toString('base64');
   }
 
-  headDocument(): RevisionChangesetMapper {
-    return new RevisionChangesetQuery({
+  headText() {
+    return new RevisionChangesetQueryMapper({
       queryDocument: async (change) => {
         return (
           await this.query.queryDocument({
-            headDocument: change,
+            headText: change,
           })
-        )?.headDocument;
+        )?.headText;
       },
     });
   }
 
-  tailDocument(): RevisionChangesetMapper {
-    return new RevisionChangesetQuery({
+  tailText() {
+    return new RevisionChangesetQueryMapper({
       queryDocument: async (change) => {
         return (
           await this.query.queryDocument({
-            tailDocument: change,
+            tailText: change,
           })
-        )?.tailDocument;
+        )?.tailText;
       },
     });
   }
 
-  document({
-    revision: targetRevision,
-  }: CollaborativeDocumentdocumentArgs): RevisionChangesetMapper {
-    return new RevisionChangesetQuery({
-      queryDocument: async ({ revision, changeset }) => {
-        if (!revision && !changeset) return {};
+  // document({
+  //   revision: targetRevision,
+  // }: CollaborativeDocumentdocumentArgs): RevisionChangesetMapper {
+  //   return new RevisionChangesetQueryMapper({
+  //     queryDocument: async ({ revision, changeset }) => {
+  //       if (!revision && !changeset) return {};
 
-        if (!changeset) {
-          return {
-            revision: targetRevision,
-          };
-        }
+  //       if (!changeset) {
+  //         return {
+  //           revision: targetRevision,
+  //         };
+  //       }
 
-        const [tailChangeset, rawDocument] = await Promise.all([
-          this.tailDocument().changeset(),
-          this.query.queryDocument({
-            records: {
-              $query: {
-                changeset: 1,
-              },
-              $pagination: {
-                before: String(targetRevision + 1),
-              },
-            },
-          }),
-        ]);
+  //       const [tailChangeset, rawDocument] = await Promise.all([
+  //         this.tailDocument().changeset(),
+  //         this.query.queryDocument({
+  //           records: {
+  //             $query: {
+  //               changeset: 1,
+  //             },
+  //             $pagination: {
+  //               before: String(targetRevision + 1),
+  //             },
+  //           },
+  //         }),
+  //       ]);
 
-        if (tailChangeset == null || rawDocument?.records == null) {
-          return null;
-        }
+  //       if (tailChangeset == null || rawDocument?.records == null) {
+  //         return null;
+  //       }
 
-        const recordsChangesets = rawDocument.records.map((rawRecord) => {
-          const serializedChangeset = rawRecord.changeset;
-          if (serializedChangeset == null) {
-            throw new Error('RevisionRecord.changeset is null');
-          }
+  //       const recordsChangesets = rawDocument.records.map((rawRecord) => {
+  //         const serializedChangeset = rawRecord.changeset;
+  //         if (serializedChangeset == null) {
+  //           throw new Error('RevisionRecord.changeset is null');
+  //         }
 
-          return Changeset.parseValue(serializedChangeset);
-        });
+  //         return Changeset.parseValue(serializedChangeset);
+  //       });
 
-        return {
-          revision: targetRevision,
-          changeset: recordsChangesets.reduce((a, b) => a.compose(b), tailChangeset),
-        };
-      },
-    });
+  //       return {
+  //         revision: targetRevision,
+  //         changeset: recordsChangesets.reduce((a, b) => a.compose(b), tailChangeset),
+  //       };
+  //     },
+  //   });
+  // }
+
+  textWithNearHistory(): CollabTextWithNearHistoryMapper {
+    throw new Error('Method not implemented.');
   }
 
   recordsConnection(
-    args: CollaborativeDocumentrecordsConnectionArgs,
+    args: CollabTextrecordsConnectionArgs,
     config: RelayArrayPaginationConfig
-  ): CollaborativeDocumentRecordConnectionMapper {
+  ) {
     const first = applyLimit(args.first, config.defaultLimit, config.maxLimit);
     const last = applyLimit(args.last, config.defaultLimit, config.maxLimit);
     const after = args.after ? String(args.after) : undefined;
@@ -130,7 +125,7 @@ export class CollaborativeDocumentQuery implements CollaborativeDocumentMapper {
         return [
           ...[...new Array<undefined>(isForwardPagination ? first : 0)].map(
             (_, index) => {
-              const revisionRecordQuery = new RevisionRecordQuery(this, {
+              const revisionRecordQuery = new CollabTextRecordQueryMapper(this, {
                 queryDocument: async (project) => {
                   return (
                     await this.query.queryDocument({
@@ -139,11 +134,10 @@ export class CollaborativeDocumentQuery implements CollaborativeDocumentMapper {
                         $pagination: {
                           after,
                           first,
-                          index,
                         },
                       },
                     })
-                  )?.records?.[0];
+                  )?.records?.[index];
                 },
               });
 
@@ -157,7 +151,7 @@ export class CollaborativeDocumentQuery implements CollaborativeDocumentMapper {
           ),
           ...[...new Array<undefined>(isBackwardPagination ? last : 0)].map(
             (_, index) => {
-              const revisionRecordQuery = new RevisionRecordQuery(this, {
+              const revisionRecordQuery = new CollabTextRecordQueryMapper(this, {
                 queryDocument: async (project) => {
                   return (
                     await this.query.queryDocument({
@@ -166,11 +160,10 @@ export class CollaborativeDocumentQuery implements CollaborativeDocumentMapper {
                         $pagination: {
                           before,
                           last,
-                          index,
                         },
                       },
                     })
-                  )?.records?.[0];
+                  )?.records?.[index];
                 },
               });
 
@@ -188,27 +181,27 @@ export class CollaborativeDocumentQuery implements CollaborativeDocumentMapper {
         return {
           hasNextPage: async () => {
             const [tailRevision, headRevision] = await Promise.all([
-              this.tailDocument().revision(),
-              this.headDocument().revision(),
+              this.tailText().revision(),
+              this.headText().revision(),
             ]);
             if (tailRevision == null || headRevision == null) return null;
             return (args.after ?? tailRevision) + first < headRevision;
           },
           hasPreviousPage: async () => {
             const [tailRevision, headRevision] = await Promise.all([
-              this.tailDocument().revision(),
-              this.headDocument().revision(),
+              this.tailText().revision(),
+              this.headText().revision(),
             ]);
             if (tailRevision == null || headRevision == null) return null;
             return tailRevision + 1 < (args.before ?? headRevision + 1) - last;
           },
           startCursor: async () => {
-            const tailRevision = await this.tailDocument().revision();
+            const tailRevision = await this.tailText().revision();
             if (tailRevision == null) return null;
-            return String(tailRevision + 1);
+            return tailRevision + 1;
           },
           endCursor: () => {
-            return String(this.headDocument().revision());
+            return this.headText().revision();
           },
         };
       },

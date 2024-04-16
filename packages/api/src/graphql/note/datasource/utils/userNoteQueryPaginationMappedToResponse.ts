@@ -1,24 +1,24 @@
 import mapObject, { mapObjectSkip } from "map-obj";
 import { getPaginationKey } from "../../../../mongodb/operations/pagination/relayArrayPagination";
 import { DeepQueryResponsePaginationMapped, DeepQuery, DeepQueryResponse } from "../../../../mongodb/query-builder";
-import { NoteQueryType } from "../../mongo-query-mapper/note";
+import { NoteQuery } from "../../mongo-query-mapper/note";
 
 /**
  * Creates a UserNote with correct records pagination set.
  */
 export default function userNoteQueryPaginationMappedToResponse(
-  userNote: DeepQueryResponsePaginationMapped<NoteQueryType>,
-  userNoteQuery: DeepQuery<NoteQueryType>
-): DeepQueryResponse<NoteQueryType> {
+  userNote: DeepQueryResponsePaginationMapped<NoteQuery>,
+  userNoteQuery: DeepQuery<NoteQuery>
+): DeepQueryResponse<NoteQuery> {
   return {
     ...userNote,
     note: {
       ...userNote.note,
-      collabText: userNoteQuery.note?.collabText
-        ? mapObject(userNoteQuery.note.collabText, (collabKey, query) => {
+      collabTexts: userNoteQuery.note?.collabTexts
+        ? mapObject(userNoteQuery.note.collabTexts, (collabKey, query) => {
             if (!query) return mapObjectSkip;
 
-            const collabText = userNote.note?.collabText?.[collabKey];
+            const collabText = userNote.note?.collabTexts?.[collabKey];
 
             if (!query.records?.$pagination) {
               return [collabKey, { ...collabText, records: [] }];

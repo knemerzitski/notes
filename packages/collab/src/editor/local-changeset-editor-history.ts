@@ -2,37 +2,37 @@ import { Emitter } from 'mitt';
 
 import { Changeset } from '../changeset/changeset';
 import {
-  DocumentClient,
-  Events as DocumentClientEvents,
-} from '../client/document-client';
+  CollabClient,
+  Events as CollabClientEvents,
+} from '../client/collab-client';
 
 import { Events as ChangesetEditorEvents } from './changeset-editor';
 import { SelectionRange } from './selection-range';
-import { AnyEntry, Entry, Operation, TailDocumentHistory } from './tail-document-history';
+import { AnyEntry, Entry, Operation, TailTextHistory } from './tail-text-history';
 
 interface LocalChangesetEditorHistoryOptions {
   selection: SelectionRange;
   editorBus: Emitter<Pick<ChangesetEditorEvents, 'change'>>;
-  document: DocumentClient;
-  tailHistory?: TailDocumentHistory;
+  client: CollabClient;
+  tailHistory?: TailTextHistory;
 }
 
 /**
- * Maintains a history of {@link DocumentClient.local} changeset and {@link SelectionRange} state.
+ * Maintains a history of {@link CollabClient.local} changeset and {@link SelectionRange} state.
  * External changes alter history as if change has always been there.
  */
 export class LocalChangesetEditorHistory {
-  private history: TailDocumentHistory;
+  private history: TailTextHistory;
 
-  private document: DocumentClient;
+  private client: CollabClient;
   private selection: SelectionRange;
 
   get entries() {
     return this.history.entries;
   }
 
-  get tailDocument() {
-    return this.history.tailDocument;
+  get tailText() {
+    return this.history.tailText;
   }
 
   get currentIndex() {
@@ -48,14 +48,14 @@ export class LocalChangesetEditorHistory {
   private unsubscribeFromEvents: () => void;
 
   constructor(options: LocalChangesetEditorHistoryOptions) {
-    const { selection, editorBus: editorBus, document } = options;
-    this.document = document;
+    const { selection, editorBus: editorBus, client } = options;
+    this.client = client;
     this.selection = selection;
 
     this.history =
       options.tailHistory ??
-      new TailDocumentHistory({
-        tail: document.server,
+      new TailTextHistory({
+        tail: client.server,
       });
 
     this.history.eventBus.on('entryAtIndexDeleted', ({ index }) => {
@@ -99,26 +99,26 @@ export class LocalChangesetEditorHistory {
 
     const handledExternalChangeListener = ({
       externalChange,
-    }: DocumentClientEvents['handledExternalChange']) => {
+    }: CollabClientEvents['handledExternalChange']) => {
       this.adjustHistoryToExternalChange(externalChange);
     };
 
     editorBus.on('change', editorChangeListener);
-    document.eventBus.on('submitChanges', submitChangesListener);
-    document.eventBus.on(
+    client.eventBus.on('submitChanges', submitChangesListener);
+    client.eventBus.on(
       'submittedChangesAcknowledged',
       submittedChangesAcknowledgedListener
     );
-    document.eventBus.on('handledExternalChange', handledExternalChangeListener);
+    client.eventBus.on('handledExternalChange', handledExternalChangeListener);
 
     this.unsubscribeFromEvents = () => {
       editorBus.off('change', editorChangeListener);
-      document.eventBus.off('submitChanges', submitChangesListener);
-      document.eventBus.off(
+      client.eventBus.off('submitChanges', submitChangesListener);
+      client.eventBus.off(
         'submittedChangesAcknowledged',
         submittedChangesAcknowledgedListener
       );
-      document.eventBus.off('handledExternalChange', handledExternalChangeListener);
+      client.eventBus.off('handledExternalChange', handledExternalChangeListener);
     };
   }
 
@@ -168,13 +168,13 @@ export class LocalChangesetEditorHistory {
   }
 
   /**
-   * @param tailDocument First element in {@link entries} is composable on {@link entries}.
-   * @param entries Document entries.
+   * @param tailText First element in {@link entries} is composable on {@link entries}.
+   * @param entries Text entries.
    */
-  restoreHistoryEntries(tailDocument: Changeset, entries: AnyEntry[]) {
+  restoreHistoryEntries(tailText: Changeset, entries: AnyEntry[]) {
     const beforeEntriesCount = this.history.entries.length;
 
-    this.history.unshift(tailDocument, entries);
+    this.history.unshift(tailText, entries);
 
     const addedEntriesCount = this.history.entries.length - beforeEntriesCount;
     this.lastExecutedIndex.server += addedEntriesCount;
@@ -201,7 +201,7 @@ export class LocalChangesetEditorHistory {
   }
 
   private applyTypingOperation(op: Operation) {
-    this.document.composeLocalChange(op.changeset);
+    this.client.composeLocalChange(op.changeset);
 
     // Selection must be updated after as it relies on length of the value
     this.selection.setSelectionRange(op.selectionStart, op.selectionEnd);
@@ -211,7 +211,7 @@ export class LocalChangesetEditorHistory {
     if (this.lastExecutedIndex.server >= 0) {
       this.history.composeOnAllEntries(externalChangeset, this.lastExecutedIndex.server);
     } else {
-      this.history.composeOnAllEntries(externalChangeset, this.document.server);
+      this.history.composeOnAllEntries(externalChangeset, this.client.server);
     }
   }
 }

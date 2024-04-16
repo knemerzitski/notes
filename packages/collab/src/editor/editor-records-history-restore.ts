@@ -1,6 +1,6 @@
 import { RevisionChangeset } from '../records/revision-changeset';
 import { RevisionRecords } from '../records/revision-records';
-import { EditorRecord } from './collaborative-editor';
+import { EditorRecord } from './collab-editor';
 import { LocalChangesetEditorHistory } from './local-changeset-editor-history';
 
 export interface EditorRecordsHistoryRestoreProps<TRecord extends RevisionChangeset> {
@@ -50,15 +50,12 @@ export class EditorRecordsHistoryRestore<TRecord extends EditorRecord> {
 
     const firstRecordIndex = this.serverRecords.revisionToIndex(firstRecord.revision);
 
-    const newTailDocument = this.serverRecords.records
+    const newTailText = this.serverRecords.records
       .slice(0, firstRecordIndex)
-      .reduce(
-        (a, b) => a.compose(b.changeset),
-        this.serverRecords.tailDocument.changeset
-      );
+      .reduce((a, b) => a.compose(b.changeset), this.serverRecords.tailText.changeset);
 
     const addedEntriesCount = this.history.restoreHistoryEntries(
-      newTailDocument,
+      newTailText,
       relevantRecords.map((record) => {
         const isOtherClient =
           clientId && 'clientId' in record && record.clientId !== clientId;

@@ -12,7 +12,7 @@ import {
 } from 'mongodb';
 
 import { Changeset } from '../../changeset/changeset';
-import { DocumentServer } from '../../server/document-server';
+import { CollabServer } from '../../server/collab-server';
 import { RevisionChangeset } from '../../records/revision-changeset';
 
 export enum MultiFieldDocumentServerErrorCode {
@@ -263,7 +263,7 @@ export class MultiFieldDocumentServer<
 
       // Create a changeset document server which can apply changes to headText
       const lastRecordIndex = rawRelevantDocumentValue.relevantRecords.length - 1;
-      const documentServer = new DocumentServer({
+      const documentServer = new CollabServer({
         headText: {
           revision: rawRelevantDocumentValue.latestRevision,
           changeset: Changeset.fromInsertion(rawRelevantDocumentValue.latestText),

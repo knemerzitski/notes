@@ -63,9 +63,9 @@ it('loads paginated notes', async () => {
             note: {
               publicId: 1,
               ownerId: 1,
-              collabText: {
+              collabTexts: {
                 CONTENT: {
-                  headDocument: {
+                  headText: {
                     changeset: 1,
                   },
                   records: {
@@ -91,9 +91,9 @@ it('loads paginated notes', async () => {
         note: {
           publicId: notes.at(-2)?.publicId,
           ownerId: expect.any(ObjectId),
-          collabText: {
+          collabTexts: {
             CONTENT: {
-              headDocument: { changeset: ['head'] },
+              headText: { changeset: ['head'] },
               records: [
                 {
                   revision: 0,
@@ -111,9 +111,9 @@ it('loads paginated notes', async () => {
         note: {
           publicId: notes.at(-1)?.publicId,
           ownerId: expect.any(ObjectId),
-          collabText: {
+          collabTexts: {
             CONTENT: {
-              headDocument: { changeset: ['head'] },
+              headText: { changeset: ['head'] },
               records: [
                 {
                   revision: 0,

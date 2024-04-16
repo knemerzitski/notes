@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
-import { ChangeSource } from '~collab/client/document-client';
-import {
-  CollaborativeEditor,
-  Events as CollaborativeEditorEvents,
-} from '~collab/editor/collaborative-editor';
+import { ChangeSource } from '~collab/client/collab-client';
+import { CollabEditor, Events as CollabEditorEvents } from '~collab/editor/collab-editor';
 import { SelectionDirection } from '~collab/editor/selection-range';
 
 import useHTMLInput from './useHTMLInput';
@@ -29,7 +26,7 @@ function asInputDirection(direction: SelectionDirection) {
 
 type Editor = Readonly<
   Pick<
-    CollaborativeEditor,
+    CollabEditor,
     | 'value'
     | 'selectionStart'
     | 'selectionEnd'
@@ -92,7 +89,7 @@ export default function useHTMLInputCollaborativeEditor({
    * Keeps selection in place after the change.
    */
   useEffect(() => {
-    const handleViewChange: (e: CollaborativeEditorEvents['viewChange']) => void = ({
+    const handleViewChange: (e: CollabEditorEvents['viewChange']) => void = ({
       source,
     }) => {
       if (source == ChangeSource.External) {
@@ -111,7 +108,7 @@ export default function useHTMLInputCollaborativeEditor({
    * Update value after view changed
    */
   useEffect(() => {
-    const handleViewChanged: (e: CollaborativeEditorEvents['viewChanged']) => void = ({
+    const handleViewChanged: (e: CollabEditorEvents['viewChanged']) => void = ({
       view,
     }) => {
       setValue(view.joinInsertions());
@@ -128,9 +125,11 @@ export default function useHTMLInputCollaborativeEditor({
    * Update selection from editor
    */
   useEffect(() => {
-    const handleSelectionChanged: (
-      e: CollaborativeEditorEvents['selectionChanged']
-    ) => void = ({ start, end, direction }) => {
+    const handleSelectionChanged: (e: CollabEditorEvents['selectionChanged']) => void = ({
+      start,
+      end,
+      direction,
+    }) => {
       setSelection({
         start,
         end,

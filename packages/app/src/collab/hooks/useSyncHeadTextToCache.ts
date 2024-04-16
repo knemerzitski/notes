@@ -1,16 +1,12 @@
 import { OperationVariables, TypedDocumentNode, useApolloClient } from '@apollo/client';
 import { useEffect, useRef } from 'react';
 
-import {
-  CollaborativeEditor,
-  Events as CollaborativeEditorEvents,
-} from '~collab/editor/collaborative-editor';
+import { CollabEditor, Events as CollabEditorEvents } from '~collab/editor/collab-editor';
 import { Entry } from '~utils/types';
 
-import { CollaborativeDocument } from '../../__generated__/graphql';
+import { CollabText } from '../../__generated__/graphql';
 
-
-type PartialEditor = Readonly<Pick<CollaborativeEditor, 'eventBus'>>;
+type PartialEditor = Readonly<Pick<CollabEditor, 'eventBus'>>;
 
 export interface UseSyncHeadTextToCacheOptions<
   TKey,
@@ -20,9 +16,7 @@ export interface UseSyncHeadTextToCacheOptions<
   editors: Entry<TKey, PartialEditor>[];
   id?: string;
   fragment: TypedDocumentNode<TData, TVariables>;
-  mapData: (
-    data: Entry<TKey, Pick<CollaborativeDocument, 'headText' | 'headRevision'>>
-  ) => TData;
+  mapData: (data: Entry<TKey, Pick<CollabText, 'headText'>>) => TData;
 }
 
 export default function useSyncHeadTextToCache<
@@ -36,17 +30,20 @@ export default function useSyncHeadTextToCache<
 
   useEffect(() => {
     const subs = editors.map(({ key, value: editor }) => {
-      const handleRevisionChanged: (
-        e: CollaborativeEditorEvents['revisionChanged']
-      ) => void = ({ revision, changeset }) => {
+      const handleRevisionChanged: (e: CollabEditorEvents['revisionChanged']) => void = ({
+        revision,
+        changeset,
+      }) => {
         apolloClient.writeFragment({
           id,
           fragment,
           data: mapDataRef.current({
             key,
             value: {
-              headText: changeset.joinInsertions(),
-              headRevision: revision,
+              headText: {
+                changeset: changeset.serialize(),
+                revision,
+              },
             },
           }),
         });

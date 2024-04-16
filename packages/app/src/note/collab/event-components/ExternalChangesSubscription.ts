@@ -13,8 +13,12 @@ const SUBSCRIPTION = gql(`
         textFields {
           key
           value {
-            revision
-            changeset
+            newRecord {
+              change {
+                revision
+                changeset
+              }
+            }
           }
         }
       }

@@ -8,7 +8,7 @@ import {
 import { GraphQLError } from 'graphql';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import userNoteLookup from '../../../mongodb/operations/lookup/userNoteLookup';
-import { NoteQueryType } from '../mongo-query-mapper/note';
+import { NoteQuery } from '../mongo-query-mapper/note';
 import groupByUserId from './utils/groupByUserId';
 import userNoteQueryPaginationMappedToResponse from './utils/userNoteQueryPaginationMappedToResponse';
 import userNoteQueryToLookupInput from './utils/userNoteQueryToLookupInput';
@@ -29,7 +29,7 @@ export interface NoteKey {
   /**
    * Fields to retrieve, inclusion projection.
    */
-  noteQuery: DeepQuery<NoteQueryType>;
+  noteQuery: DeepQuery<NoteQuery>;
 }
 
 export interface NoteBatchLoadContext {
@@ -44,7 +44,7 @@ export interface NoteBatchLoadContext {
 export default async function noteBatchLoad(
   keys: Readonly<NoteKey[]>,
   context: Readonly<NoteBatchLoadContext>
-): Promise<(DeepQueryResponse<NoteQueryType> | Error)[]> {
+): Promise<(DeepQueryResponse<NoteQuery> | Error)[]> {
   const keysByUserId = groupByUserId(keys);
 
   const userNotesBy_userId_publicId = Object.fromEntries(
@@ -83,7 +83,7 @@ export default async function noteBatchLoad(
 
         // Map paginations to original query
         const userNotesBy_publicId = userNotesResult.reduce<
-          Record<string, DeepQueryResponsePaginationMapped<NoteQueryType>>
+          Record<string, DeepQueryResponsePaginationMapped<NoteQuery>>
         >((retMap, userNote) => {
           const publicId = userNote.note?.publicId;
           if (!publicId) {
@@ -98,7 +98,7 @@ export default async function noteBatchLoad(
         return [userIdStr, userNotesBy_publicId];
       })
     )
-  ) as Record<string, Record<string, DeepQueryResponsePaginationMapped<NoteQueryType>>>;
+  ) as Record<string, Record<string, DeepQueryResponsePaginationMapped<NoteQuery>>>;
 
   return keys.map((key) => {
     const userNote = userNotesBy_userId_publicId[key.userId.toString()]?.[key.publicId];

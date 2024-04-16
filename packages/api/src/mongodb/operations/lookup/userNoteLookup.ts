@@ -1,4 +1,4 @@
-import { Document } from "mongodb";
+import { Document } from 'mongodb';
 
 export interface UserNoteLookupInput<TCollabTextKey extends string> {
   collabText?: CollabTextLookupInput<TCollabTextKey>;
@@ -12,9 +12,9 @@ export type UserNoteLookupOutput<
   TUserNote extends { note?: unknown },
   TNote,
 > = Omit<TUserNote, 'userId' | 'note'> & {
-  note?: Omit<TUserNote['note'], 'collabTextId'> & {
-    collabText?: Partial<Record<TCollabTextKey, TCollabText>>;
-  } & Omit<TNote, '_id' | 'publicId' | 'collabTextId'>;
+  note?: Omit<TUserNote['note'], 'collabTextIds'> & {
+    collabTexts?: Partial<Record<TCollabTextKey, TCollabText>>;
+  } & Omit<TNote, '_id' | 'publicId' | 'collabTextIds'>;
 };
 
 export default function userNoteLookup<TCollabTextKey extends string>({
@@ -41,21 +41,21 @@ interface CollabTextLookupInput<TCollabTextKey extends string> {
    * CollabText collection name
    */
   collectionName: string;
-  collabText: TCollabTextKey[] | Record<TCollabTextKey, CollabTextMapValue>;
+  collabTexts: TCollabTextKey[] | Record<TCollabTextKey, CollabTextMapValue>;
 }
 
 function noteCollabTextLookup<TCollabTextKey extends string>({
   collectionName,
-  collabText,
+  collabTexts,
 }: CollabTextLookupInput<TCollabTextKey>) {
   let collabTextKeys: TCollabTextKey[];
   let collabTextMap: Record<TCollabTextKey, CollabTextMapValue> | null;
-  if (Array.isArray(collabText)) {
-    collabTextKeys = collabText;
+  if (Array.isArray(collabTexts)) {
+    collabTextKeys = collabTexts;
     collabTextMap = null;
   } else {
-    collabTextKeys = Object.keys(collabText) as TCollabTextKey[];
-    collabTextMap = collabText;
+    collabTextKeys = Object.keys(collabTexts) as TCollabTextKey[];
+    collabTextMap = collabTexts;
   }
 
   return [
@@ -64,20 +64,20 @@ function noteCollabTextLookup<TCollabTextKey extends string>({
         $lookup: {
           from: collectionName,
           foreignField: '_id',
-          localField: `note.collabTextId.${collabTextKey}`,
-          as: `note.collabText.${collabTextKey}`,
+          localField: `note.collabTextIds.${collabTextKey}`,
+          as: `note.collabTexts.${collabTextKey}`,
           pipeline: collabTextMap?.[collabTextKey].pipeline ?? [],
         },
       },
       {
         $set: {
-          [`note.collabText.${collabTextKey}`]: {
-            $arrayElemAt: [`$note.collabText.${collabTextKey}`, 0],
+          [`note.collabTexts.${collabTextKey}`]: {
+            $arrayElemAt: [`$note.collabTexts.${collabTextKey}`, 0],
           },
         },
       },
     ]),
-    ...(collabTextKeys.length > 0 ? [{ $unset: ['note.collabTextId'] }] : []),
+    ...(collabTextKeys.length > 0 ? [{ $unset: ['note.collabTextIds'] }] : []),
   ];
 }
 
@@ -99,7 +99,7 @@ function noteLookup({ collectionName, pipeline = [] }: NoteLookupInput) {
         as: 'note._lookup',
         pipeline: [
           {
-            $unset: ['_id', 'publicId', 'collabTextId'],
+            $unset: ['_id', 'publicId', 'collabTextIds'],
           },
           ...pipeline,
         ],

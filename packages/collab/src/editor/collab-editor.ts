@@ -4,9 +4,9 @@ import mitt, { Emitter } from 'mitt';
 import { Changeset } from '../changeset/changeset';
 import {
   ChangeSource,
-  DocumentClient,
-  Events as DocumentClientEvents,
-} from '../client/document-client';
+  CollabClient,
+  Events as CollabClientEvents,
+} from '../client/collab-client';
 
 import { ChangesetEditor } from './changeset-editor';
 import { LocalChangesetEditorHistory } from './local-changeset-editor-history';
@@ -39,7 +39,7 @@ type EditorEvents = {
   };
 };
 
-export type Events = Pick<DocumentClientEvents, 'viewChange' | 'viewChanged'> &
+export type Events = Pick<CollabClientEvents, 'viewChange' | 'viewChanged'> &
   Pick<SelectionRangeEvents, 'selectionChanged'> &
   EditorEvents;
 
@@ -54,7 +54,7 @@ export type RecordsBufferMessages = {
   externalChange: EditorRecord;
 };
 
-export interface CollaborativeEditorOptions {
+export interface CollabEditorOptions {
   head?: RevisionChangeset;
   clientId?: string;
   caretPosition?: number;
@@ -62,12 +62,12 @@ export interface CollaborativeEditorOptions {
   generateSubmitId?: () => string;
 }
 
-export class CollaborativeEditor {
+export class CollabEditor {
   readonly clientId?: string;
 
   private selection: SelectionRange;
   private changesetEditor: ChangesetEditor;
-  private document: DocumentClient;
+  private client: CollabClient;
   private recordsBuffer: OrderedMessageBuffer<RecordsBufferMessages>;
   private serverRecords: RevisionRecords<EditorRecord>;
   private history: LocalChangesetEditorHistory;
@@ -105,26 +105,26 @@ export class CollaborativeEditor {
   }
 
   /**
-   * Revision number that document is up to date with server.
+   * Revision number that client is up to date with.
    */
-  get documentRevision() {
+  get serverTextRevision() {
     return this.recordsBuffer.currentVersion;
   }
 
-  get documentServer() {
-    return this.document.server;
+  get textServer() {
+    return this.client.server;
   }
 
-  get documentSubmitted() {
-    return this.document.submitted;
+  get textSubmitted() {
+    return this.client.submitted;
   }
 
-  get documentLocal() {
-    return this.document.local;
+  get textLocal() {
+    return this.client.local;
   }
 
-  get documentView() {
-    return this.document.view;
+  get textView() {
+    return this.client.view;
   }
 
   get serverRecordsTailRevision(){
@@ -147,7 +147,7 @@ export class CollaborativeEditor {
     return this.history.entries;
   }
 
-  constructor(options?: CollaborativeEditorOptions) {
+  constructor(options?: CollabEditorOptions) {
     const head = options?.head ?? { revision: 0, changeset: Changeset.EMPTY };
     this._value = head.changeset.strips.joinInsertions();
     this.clientId = options?.clientId;
@@ -173,10 +173,10 @@ export class CollaborativeEditor {
     });
 
     // Local, submitted, server changesets
-    this.document = new DocumentClient({
-      initialServerDocument: new Changeset(head.changeset.strips),
+    this.client = new CollabClient({
+      initialServerText: new Changeset(head.changeset.strips),
     });
-    this.document.eventBus.on('viewChanged', ({ view, change, source }) => {
+    this.client.eventBus.on('viewChanged', ({ view, change, source }) => {
       this._value = view.strips.joinInsertions();
 
       // Position is set manually on local change, so update it only on external
@@ -195,11 +195,11 @@ export class CollaborativeEditor {
     this.recordsBuffer.messageBus.on('submittedChangesAcknowledged', (record) => {
       this.lastSubmittedRecord = null;
       this.serverRecords.update([record]);
-      this.document.submittedChangesAcknowledged();
+      this.client.submittedChangesAcknowledged();
     });
     this.recordsBuffer.messageBus.on('externalChange', (record) => {
       this.serverRecords.update([record]);
-      this.document.handleExternalChange(record.changeset);
+      this.client.handleExternalChange(record.changeset);
     });
 
     // Store known records from server
@@ -209,7 +209,7 @@ export class CollaborativeEditor {
     this.history = new LocalChangesetEditorHistory({
       selection: this.selection,
       editorBus: this.changesetEditor.eventBus,
-      document: this.document,
+      client: this.client,
     });
 
     // Restores history from server records
@@ -226,32 +226,32 @@ export class CollaborativeEditor {
       this.eventBus.emit('selectionChanged', e);
     });
 
-    this.document.eventBus.on('viewChange', (e) => {
+    this.client.eventBus.on('viewChange', (e) => {
       this.eventBus.emit('viewChange', e);
     });
 
-    this.document.eventBus.on('viewChanged', (e) => {
+    this.client.eventBus.on('viewChanged', (e) => {
       this.eventBus.emit('viewChanged', e);
     });
 
     this.recordsBuffer.eventBus.on('messagesProcessed', () => {
       this.eventBus.emit('revisionChanged', {
-        revision: this.documentRevision,
-        changeset: this.document.server,
+        revision: this.serverTextRevision,
+        changeset: this.client.server,
       });
     });
   }
 
   haveSubmittedChanges() {
-    return this.document.haveSubmittedChanges();
+    return this.client.haveSubmittedChanges();
   }
 
   haveLocalChanges() {
-    return this.document.haveLocalChanges();
+    return this.client.haveLocalChanges();
   }
 
   canSubmitChanges() {
-    return this.document.canSubmitChanges();
+    return this.client.canSubmitChanges();
   }
 
   /**
@@ -261,7 +261,7 @@ export class CollaborativeEditor {
    * Either due to existing submitted changes or no local changes exist.
    */
   submitChanges(): ClientRecord | undefined | null {
-    if (this.document.submitChanges()) {
+    if (this.client.submitChanges()) {
       const lastEntry = this.history.at(-1);
       if (!lastEntry) return;
 
@@ -285,7 +285,7 @@ export class CollaborativeEditor {
       this.lastSubmittedRecord = {
         generatedId: this.generateSubmitId(),
         revision: this.recordsBuffer.currentVersion,
-        changeset: this.document.submitted,
+        changeset: this.client.submitted,
         selection: {
           before: beforeSelection,
           after: afterSelection,
@@ -305,7 +305,7 @@ export class CollaborativeEditor {
 
   /**
    * Handles external change that is created by another client during
-   * collaborative editing.
+   * collab editing.
    */
   handleExternalChange(record: EditorRecord) {
     this.recordsBuffer.add('externalChange', record.revision, record);
@@ -313,9 +313,9 @@ export class CollaborativeEditor {
 
   addServerRecords(
     records: Readonly<ServerRecord[]>,
-    newTailDocument?: RevisionChangeset
+    newTailText?: RevisionChangeset
   ) {
-    this.serverRecords.update(records, newTailDocument);
+    this.serverRecords.update(records, newTailText);
   }
 
   /**

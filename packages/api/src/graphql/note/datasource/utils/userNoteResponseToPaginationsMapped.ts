@@ -11,9 +11,9 @@ import {
   MergedDeepQuery,
   DeepQueryResponsePaginationMapped,
 } from '../../../../mongodb/query-builder';
-import { CollaborativeDocumentQueryType } from '../../../collab/mongo-query-mapper/collaborative-document';
+import { CollabTextQuery } from '../../../collab/mongo-query-mapper/collab-text';
 import { NoteTextField } from '../../../types.generated';
-import { NoteQueryType } from '../../mongo-query-mapper/note';
+import { NoteQuery } from '../../mongo-query-mapper/note';
 import { UserNoteDeepQueryResponse } from '../UserNoteDeepQueryResponse';
 
 /**
@@ -35,27 +35,27 @@ import { UserNoteDeepQueryResponse } from '../UserNoteDeepQueryResponse';
  */
 export default function userNoteResponseToPaginationsMapped(
   userNote: UserNoteDeepQueryResponse,
-  noteQuery: MergedDeepQuery<NoteQueryType> | undefined
-): DeepQueryResponsePaginationMapped<NoteQueryType> {
+  noteQuery: MergedDeepQuery<NoteQuery> | undefined
+): DeepQueryResponsePaginationMapped<NoteQuery> {
   return {
     ...userNote,
     note: {
       ...userNote.note,
-      collabText: collabTextResponseToPaginationsMapped(
-        userNote.note?.collabText,
-        noteQuery?.note?.collabText
+      collabTexts: collabTextResponseToPaginationsMapped(
+        userNote.note?.collabTexts,
+        noteQuery?.note?.collabTexts
       ),
     },
   };
 }
 
 export function collabTextResponseToPaginationsMapped(
-  collabTextMap: NonNullable<UserNoteDeepQueryResponse['note']>['collabText'],
+  collabTextMap: NonNullable<UserNoteDeepQueryResponse['note']>['collabTexts'],
   collabTextQuery:
-    | MergedDeepQuery<Record<NoteTextField, CollaborativeDocumentQueryType>>
+    | MergedDeepQuery<Record<NoteTextField, CollabTextQuery>>
     | undefined
 ): DeepQueryResponsePaginationMapped<
-  Record<NoteTextField, CollaborativeDocumentQueryType>
+  Record<NoteTextField, CollabTextQuery>
 > {
   if (!collabTextQuery || !collabTextMap) {
     return mapObject(NoteTextField, (_key, value) => [value, {}]);
@@ -63,9 +63,9 @@ export function collabTextResponseToPaginationsMapped(
 
   return mapObject(collabTextQuery, (key, query) => {
     const collabTextMappedPaginations: Required<
-      DeepQueryResponsePaginationMapped<Pick<CollaborativeDocumentQueryType, 'records'>>
+      DeepQueryResponsePaginationMapped<Pick<CollabTextQuery, 'records'>>
     > &
-      DeepQueryResponsePaginationMapped<CollaborativeDocumentQueryType> = {
+      DeepQueryResponsePaginationMapped<CollabTextQuery> = {
       ...collabTextMap[key],
       records: {},
     };

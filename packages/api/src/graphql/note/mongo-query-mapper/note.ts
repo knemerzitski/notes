@@ -1,28 +1,28 @@
 import { NoteMapper } from '../schema.mappers';
 import { NoteTextField } from '../../types.generated';
 import { MongoDocumentQuery } from '../../../mongodb/query-builder';
-import { NotePreferencesQuery, NotePreferencesQueryType } from './note-preferences';
+import { NotePreferencesQueryMapper, NotePreferencesQuery } from './note-preferences';
 import {
-  CollaborativeDocumentQuery,
-  CollaborativeDocumentQueryType,
-} from '../../collab/mongo-query-mapper/collaborative-document';
+  CollabTextQueryMapper,
+  CollabTextQuery,
+} from '../../collab/mongo-query-mapper/collab-text';
 import { NoteSchema } from '../../../mongodb/schema/note';
 import { UserNoteSchema } from '../../../mongodb/schema/user-note';
 
-export type NoteQueryType<TCollabTextKey extends string = NoteTextField> = Omit<
+export type NoteQuery<TCollabTextKey extends string = NoteTextField> = Omit<
   UserNoteSchema,
   'preferences' | 'note' | 'userId'
 > & {
-  preferences: NotePreferencesQueryType;
-  note: Omit<UserNoteSchema['note'], 'collabText' | 'collabTextId'> & {
-    collabText: Record<TCollabTextKey, CollaborativeDocumentQueryType>;
-  } & Omit<NoteSchema, 'publicId' | 'collabTextId' | '_id'>;
+  preferences: NotePreferencesQuery;
+  note: Omit<UserNoteSchema['note'], 'collabTexts' | 'collabTextIds'> & {
+    collabTexts: Record<TCollabTextKey, CollabTextQuery>;
+  } & Omit<NoteSchema, 'publicId' | 'collabTextIds' | '_id'>;
 };
 
-export class NoteQuery implements NoteMapper {
-  private query: MongoDocumentQuery<NoteQueryType>;
+export class NoteQueryMapper implements NoteMapper {
+  private query: MongoDocumentQuery<NoteQuery>;
 
-  constructor(query: MongoDocumentQuery<NoteQueryType>) {
+  constructor(query: MongoDocumentQuery<NoteQuery>) {
     this.query = query;
   }
 
@@ -47,15 +47,15 @@ export class NoteQuery implements NoteMapper {
           return Promise.resolve(field);
         },
         value: () => {
-          return new CollaborativeDocumentQuery({
-            queryDocument: async (project) => {
+          return new CollabTextQueryMapper({
+            queryDocument: async (query) => {
               return (
                 await this.query.queryDocument({
-                  note: {
-                    collabTexts: {
-                      [field]: project,
-                    },
-                  },
+                  // note: {
+                  //   collabTexts: {
+                  //     [field]: query,
+                  //   },
+                  // },
                 })
               )?.note?.collabTexts?.[field];
             },
@@ -70,7 +70,7 @@ export class NoteQuery implements NoteMapper {
   }
 
   preferences() {
-    return new NotePreferencesQuery({
+    return new NotePreferencesQueryMapper({
       queryDocument: async (project) => {
         return (await this.query.queryDocument({ preferences: project }))?.preferences;
       },

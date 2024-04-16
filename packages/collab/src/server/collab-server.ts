@@ -2,12 +2,12 @@ import { Changeset } from '../changeset/changeset';
 import { RevisionChangeset } from '../records/revision-changeset';
 
 // TODO integrate revisionrecords from records dir
-interface DocumentServerOptions {
+interface CollabServerOptions {
   headText?: RevisionChangeset;
   records?: RevisionChangeset[];
 }
 
-export class DocumentServer {
+export class CollabServer {
   private _headText: RevisionChangeset;
   get headText(): Readonly<RevisionChangeset> {
     return this._headText;
@@ -17,7 +17,7 @@ export class DocumentServer {
     return this._records;
   }
 
-  constructor(options?: DocumentServerOptions) {
+  constructor(options?: CollabServerOptions) {
     this._headText = options?.headText ?? {
       revision: -1,
       changeset: Changeset.EMPTY,
@@ -26,7 +26,7 @@ export class DocumentServer {
   }
 
   /**
-   * Add new revision to the document. If change applies to an older revision then
+   * Add new revision to the text. If change applies to an older revision then
    * it's modified so it can be composed on headText.
    * @returns New latest record that was just composed to headText.
    */

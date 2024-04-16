@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { CollaborativeEditor } from '../editor/collaborative-editor';
+import { CollabEditor } from '../editor/collab-editor';
 
 import { Changeset } from '../changeset/changeset';
-import { Entry } from '../editor/tail-document-history';
+import { Entry } from '../editor/tail-text-history';
 import { ServerRecord, createServerRecords } from '../records/server-record';
 import { RevisionRecords } from '../records/revision-records';
 
@@ -22,18 +22,18 @@ function historyEntriesInfo(entries: Readonly<Entry[]>) {
 }
 
 describe('persist history in revision records', () => {
-  const initialTailDocument = {
+  const initialTailText = {
     changeset: Changeset.EMPTY,
     revision: -1,
   };
 
   let serverRecords: RevisionRecords<ServerRecord>;
-  let editorA: CollaborativeEditor;
-  let editorB: CollaborativeEditor;
+  let editorA: CollabEditor;
+  let editorB: CollabEditor;
 
   function editorSubmit(
-    submitEditor: CollaborativeEditor,
-    ...otherEditors: CollaborativeEditor[]
+    submitEditor: CollabEditor,
+    ...otherEditors: CollabEditor[]
   ) {
     const c1 = submitEditor.submitChanges();
     if (c1) {
@@ -59,12 +59,12 @@ describe('persist history in revision records', () => {
 
   beforeEach(() => {
     serverRecords = createServerRecords();
-    editorA = new CollaborativeEditor({
-      head: initialTailDocument,
+    editorA = new CollabEditor({
+      head: initialTailText,
       clientId: 'A',
     });
-    editorB = new CollaborativeEditor({
-      head: initialTailDocument,
+    editorB = new CollabEditor({
+      head: initialTailText,
       clientId: 'B',
     });
   });
@@ -93,9 +93,9 @@ describe('persist history in revision records', () => {
     editorA.insertText('Between: ');
     editorASubmit();
 
-    const restoredEditorB = new CollaborativeEditor({
+    const restoredEditorB = new CollabEditor({
       head: {
-        changeset: serverRecords.getHeadDocument(),
+        changeset: serverRecords.getHeadText(),
         revision: serverRecords.headRevision,
       },
       clientId: 'B',
@@ -123,9 +123,9 @@ describe('persist history in revision records', () => {
     editorA.setCaretPosition(30);
     editorA.deleteTextCount(4);
     editorASubmit();
-    const restoredEditorB = new CollaborativeEditor({
+    const restoredEditorB = new CollabEditor({
       head: {
-        changeset: serverRecords.getHeadDocument(),
+        changeset: serverRecords.getHeadText(),
         revision: serverRecords.headRevision,
       },
       clientId: 'B',

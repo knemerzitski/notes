@@ -2,12 +2,12 @@ import { OperationVariables, SubscriptionOptions, useApolloClient } from '@apoll
 import { useEffect, useRef } from 'react';
 
 import { Changeset } from '~collab/changeset/changeset';
-import { CollaborativeEditor } from '~collab/editor/collaborative-editor';
+import { CollabEditor } from '~collab/editor/collab-editor';
 import { Entry } from '~utils/types';
 
-import { CollaborativeDocumentPatch } from '../../__generated__/graphql';
+import { CollabTextPatch } from '../../__generated__/graphql';
 
-type PartialEditor = Readonly<Pick<CollaborativeEditor, 'handleExternalChange'>>;
+type PartialEditor = Readonly<Pick<CollabEditor, 'handleExternalChange'>>;
 
 interface UseHandleExternalChangesOptions<
   TKey,
@@ -16,7 +16,7 @@ interface UseHandleExternalChangesOptions<
 > {
   editors: Entry<TKey, PartialEditor>[];
   options: SubscriptionOptions<TVariables, TData>;
-  mapData: (data: TData) => Entry<TKey, CollaborativeDocumentPatch>[] | null | undefined;
+  mapData: (data: TData) => Entry<TKey, CollabTextPatch>[] | null | undefined;
 }
 
 export default function useHandleExternalChanges<
@@ -38,13 +38,15 @@ export default function useHandleExternalChanges<
 
         if (patch) {
           patch.forEach(({ key, value }) => {
+            const newRecord = value.newRecord;
+            if (!newRecord) return;
             const editor = editors.find(({ key: field }) => field === key)?.value;
-            if (editor) {
-              editor.handleExternalChange({
-                revision: value.revision,
-                changeset: Changeset.parseValue(value.changeset),
-              });
-            }
+            if (!editor) return;
+
+            editor.handleExternalChange({
+              revision: newRecord.change.revision,
+              changeset: Changeset.parseValue(newRecord.change.changeset),
+            });
           });
         }
       },

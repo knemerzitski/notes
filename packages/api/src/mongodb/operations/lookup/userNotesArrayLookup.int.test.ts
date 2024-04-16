@@ -10,19 +10,30 @@ import { UserNoteLookupOutput } from './userNoteLookup';
 import { ObjectId } from 'mongodb';
 import userNotesArrayLookup, { UserNotesArrayLookupOutput } from './userNotesArrayLookup';
 
-import { expectedCollabText } from './userNoteLookup.int.test';
 import { UserSchema } from '../../schema/user';
 import { CollectionName } from '../../collections';
 import { CollabTextSchema } from '../../schema/collabText/collab-text';
 import { UserNoteSchema } from '../../schema/user-note';
 import { NoteSchema } from '../../schema/note';
-import { RelayArrayPaginationOutput } from '../pagination/relayArrayPagination';
 
 enum CollabTextKey {
   CONTENT = 'content',
 }
 
 let user: UserSchema;
+
+const expectedCollabText = {
+  _id: expect.any(ObjectId),
+  headText: {
+    changeset: expect.any(Array),
+    revision: expect.any(Number),
+  },
+  tailText: {
+    changeset: expect.any(Array),
+    revision: expect.any(Number),
+  },
+  records: expect.any(Array),
+};
 
 beforeAll(async () => {
   await resetDatabase();
@@ -69,7 +80,7 @@ it('returns userNotesArray in expected format', async () => {
           },
           collabText: {
             collectionName: mongoCollections[CollectionName.CollabTexts].collectionName,
-            collabText: Object.values(CollabTextKey),
+            collabTexts: Object.values(CollabTextKey),
           },
         },
       }),
@@ -86,7 +97,7 @@ it('returns userNotesArray in expected format', async () => {
         id: expect.any(ObjectId),
         publicId: expect.any(String),
         ownerId: expect.any(ObjectId),
-        collabText: {
+        collabTexts: {
           content: expectedCollabText,
         },
       },

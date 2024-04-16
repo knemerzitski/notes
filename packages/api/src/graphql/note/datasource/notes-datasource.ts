@@ -1,6 +1,6 @@
 import DataLoader from 'dataloader';
 import { DeepQueryResponse } from '../../../mongodb/query-builder';
-import { NoteQueryType } from '../mongo-query-mapper/note';
+import { NoteQuery } from '../mongo-query-mapper/note';
 
 import { GraphQLResolversContext } from '../../context';
 
@@ -24,17 +24,17 @@ export interface NotesDataSourceContext {
 }
 export default class NotesDataSource {
   private loaders: {
-    note: DataLoader<NoteKey, DeepQueryResponse<NoteQueryType>, string>;
+    note: DataLoader<NoteKey, DeepQueryResponse<NoteQuery>, string>;
     noteConnection: DataLoader<
       NoteConnectionKey,
-      DeepQueryResponse<NoteQueryType>[],
+      DeepQueryResponse<NoteQuery>[],
       string
     >;
   };
 
   constructor(context: Readonly<NotesDataSourceContext>) {
     this.loaders = {
-      note: new DataLoader<NoteKey, DeepQueryResponse<NoteQueryType>, string>(
+      note: new DataLoader<NoteKey, DeepQueryResponse<NoteQuery>, string>(
         async (keys) => noteBatchLoad(keys, context),
         {
           cacheKeyFn: getEqualObjectString,
@@ -42,7 +42,7 @@ export default class NotesDataSource {
       ),
       noteConnection: new DataLoader<
         NoteConnectionKey,
-        DeepQueryResponse<NoteQueryType>[],
+        DeepQueryResponse<NoteQuery>[],
         string
       >((keys) => noteConnectionBatchLoad(keys, context), {
         cacheKeyFn: getEqualObjectString,

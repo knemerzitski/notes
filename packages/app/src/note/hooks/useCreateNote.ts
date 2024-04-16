@@ -11,8 +11,10 @@ const MUTATION = gql(`
         textFields {
           key
           value {
-            headRevision
-            headText
+            headText {
+              revision
+              changeset
+            }
             viewText @client
           }
         }
@@ -69,8 +71,10 @@ export default function useCreateNote(): (
                     textFields {
                       key
                       value {
-                        headText
-                        headRevision
+                        headText {
+                          changeset
+                          revision
+                        }
                       }
                     }
                   }

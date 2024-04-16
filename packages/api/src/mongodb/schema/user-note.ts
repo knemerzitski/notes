@@ -18,7 +18,7 @@ export interface UserNoteSchema extends WithId<Document> {
   note: {
     id: ObjectId;
     publicId: NoteSchema['publicId'];
-    collabTextId: NoteSchema['collabTextId'];
+    collabTextIds: NoteSchema['collabTextIds'];
   };
 }
 

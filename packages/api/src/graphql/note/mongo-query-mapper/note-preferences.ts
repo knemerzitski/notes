@@ -1,13 +1,13 @@
 import { NotePreferencesMapper } from '../schema.mappers';
-import { UserNoteSchema } from '../../../mongodb/collections/user-note';
 import { MongoDocumentQuery } from '../../../mongodb/query-builder';
+import { UserNoteSchema } from '../../../mongodb/schema/user-note';
 
-export type NotePreferencesQueryType = UserNoteSchema['preferences'];
+export type NotePreferencesQuery = UserNoteSchema['preferences'];
 
-export class NotePreferencesQuery implements NotePreferencesMapper {
-  private query: MongoDocumentQuery<NotePreferencesQueryType>;
+export class NotePreferencesQueryMapper implements NotePreferencesMapper {
+  private query: MongoDocumentQuery<NotePreferencesQuery>;
 
-  constructor(query: MongoDocumentQuery<NotePreferencesQueryType>) {
+  constructor(query: MongoDocumentQuery<NotePreferencesQuery>) {
     this.query = query;
   }
 

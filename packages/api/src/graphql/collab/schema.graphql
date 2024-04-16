@@ -8,27 +8,27 @@ type RevisionChangeset {
 }
 
 input RevisionChangesetInput {
-  "Changeset applies to document at this revision"
+  "Changeset applies to text at this revision"
   revision: NonNegativeInt!
-  "New changes to be applied to the document"
+  "New changes to be applied to text"
   changeset: Changeset!
 }
 
-type CollaborativeDocumentSelectionRange {
+type CollabTextSelectionRange {
   "Start index of selection"
   start: NonNegativeInt!
   "End index of selection. If null then start === end."
   end: NonNegativeInt
 }
 
-input CollaborativeDocumentSelectionRangeInput {
+input CollabTextSelectionRangeInput {
   "Start index of selection"
   start: NonNegativeInt!
   "End index of selection. If null then start === end."
   end: NonNegativeInt
 }
 
-type CollaborativeDocumentRecord implements Node {
+type CollabTextRecord implements Node {
   "Self-descriptive"
   id: ID!
   "User who created this record"
@@ -36,63 +36,70 @@ type CollaborativeDocumentRecord implements Node {
   "Changes of the record"
   change: RevisionChangeset!
   "Selection before changeset is composed"
-  beforeSelection: CollaborativeDocumentSelectionRange!
+  beforeSelection: CollabTextSelectionRange!
   "Selection after changeset is composed"
-  afterSelection: CollaborativeDocumentSelectionRange!
+  afterSelection: CollabTextSelectionRange!
 }
 
-input CollaborativeDocumentRecordInput {
-  "Change to be made on the document"
+input CollabTextRecordInput {
+  "Randomly generated string by client"
+  generatedId: String!
+  "Change to be made on the text"
   change: RevisionChangesetInput!
   "Selection before change is composed"
-  beforeSelection: CollaborativeDocumentSelectionRangeInput!
+  beforeSelection: CollabTextSelectionRangeInput!
   "Selection after change is composed"
-  afterSelection: CollaborativeDocumentSelectionRangeInput!
+  afterSelection: CollabTextSelectionRangeInput!
 }
 
-type CollaborativeDocument {
+type CollabTextWithNearHistory {
+  tailText: RevisionChangeset!
+  records: [CollabTextRecord!]!
+}
+
+type CollabText {
   "Self-descriptive"
   id: ID!
-  "Latest revision of this document."
-  headDocument: RevisionChangeset!
-  "Oldest available revision of this document. tailDocument.compose(...records) => headDocument"
-  tailDocument: RevisionChangeset!
-  "Document at specific revision. TODO use connection first, last or first?"
-  document(revision: NonNegativeInt!): RevisionChangeset!
-  "A list of records containing all changes made to the document"
+  "Latest revision of this text."
+  headText: RevisionChangeset!
+  "Oldest available revision of this text. tailText.compose(...records) => headText"
+  tailText: RevisionChangeset!
+  "Text with a few history entries."
+  textWithNearHistory: CollabTextWithNearHistory!
+  "A list of records containing all changes made to the text"
   recordsConnection(
     first: PositiveInt
     after: NonNegativeInt
     last: PositiveInt
     before: NonNegativeInt
-  ): CollaborativeDocumentRecordConnection!
+  ): CollabTextRecordConnection!
 }
 
-input CreateCollaborativeDocumentInput {
-  "Inital text of the document"
+input CreateCollabTextInput {
+  "Self-descriptive"
   initialText: String
 }
 
-type CollaborativeDocumentPatch {
-  "New document record."
-  newRecord: [CollaborativeDocumentRecord!]!
+type CollabTextPatch {
+  "New record added to text"
+  newRecord: CollabTextRecord
 }
 
-input CollaborativeDocumentPatchInput {
-  "Insert new record on the document"
-  insertRecord: CollaborativeDocumentRecordInput
+input CollabTextPatchInput {
+  "new record to added to the text"
+  insertRecord: CollabTextRecordInput
 }
 
-type CollaborativeDocumentRecordConnection implements Connection {
+type CollabTextRecordConnection implements Connection {
   "Self descriptive"
-  edges: [CollaborativeDocumentRecordEdge!]!
+  edges: [CollabTextRecordEdge!]!
   "Self descriptive"
   pageInfo: PageInfo!
 }
 
-type CollaborativeDocumentRecordEdge implements Edge {
+type CollabTextRecordEdge implements Edge {
   "Self descriptive"
-  node: CollaborativeDocumentRecord!
+  node: CollabTextRecord!
   "Self descriptive"
   cursor: Cursor!
 }

@@ -3,12 +3,12 @@ import { RevisionChangesetMapper } from '../schema.mappers';
 import { MongoDocumentQuery } from '../../../mongodb/query-builder';
 import { RevisionChangesetSchema } from '../../../mongodb/schema/collabText/collab-text';
 
-export type RevisionChangesetQueryType = RevisionChangesetSchema;
+export type RevisionChangesetQuery = RevisionChangesetSchema;
 
-export class RevisionChangesetQuery implements RevisionChangesetMapper {
-  private query: MongoDocumentQuery<RevisionChangesetQueryType>;
+export class RevisionChangesetQueryMapper implements RevisionChangesetMapper {
+  private query: MongoDocumentQuery<RevisionChangesetQuery>;
 
-  constructor(query: MongoDocumentQuery<RevisionChangesetQueryType>) {
+  constructor(query: MongoDocumentQuery<RevisionChangesetQuery>) {
     this.query = query;
   }
 

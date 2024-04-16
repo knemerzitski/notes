@@ -2,26 +2,26 @@ input CreateNoteTextFieldEntryInput {
   "Note text field type. Either title or content."
   key: NoteTextField!
   "Actual value of text field."
-  value: CreateCollaborativeDocumentInput!
+  value: CreateCollabTextInput!
 }
 
 type NoteTextFieldEntry {
   "Note text field type. Either title or content."
   key: NoteTextField!
   "Actual value of text field."
-  value: CollaborativeDocument!
+  value: CollabText!
 }
 
 type NoteTextFieldEntryPatch {
   "Self-descriptive"
   key: NoteTextField!
   "Self-descriptive"
-  value: CollaborativeDocumentPatch!
+  value: CollabTextPatch!
 }
 
 input NoteTextFieldEntryPatchInput {
   key: NoteTextField!
-  value: CollaborativeDocumentPatchInput!
+  value: CollabTextPatchInput!
 }
 
 enum NoteTextField {
@@ -98,8 +98,8 @@ extend type Query {
     last: NonNegativeInt
     before: String
   ): NoteConnection! @auth
-  "Get note by ID"
-  note(id: String!): Note! @auth
+  "Get note by url ID"
+  note(urlId: String!): Note! @auth
 }
 
 input CreateNoteInput {

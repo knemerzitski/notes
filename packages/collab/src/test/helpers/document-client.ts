@@ -1,10 +1,10 @@
 import { Changeset } from '../../changeset/changeset';
-import { CollaborativeEditor } from '../../editor/collaborative-editor';
+import { CollabEditor } from '../../editor/collab-editor';
 
 import { ChangesPayload, ClientPayload, Event } from './document-server';
 import { DelayedSocket } from './socket';
 
-export class DocumentClient extends CollaborativeEditor {
+export class DocumentClient extends CollabEditor {
   private socket: DelayedSocket;
 
   constructor(socket: DelayedSocket) {
@@ -109,10 +109,10 @@ export class DocumentClient extends CollaborativeEditor {
 
   getState() {
     return {
-      A: `@${this.documentRevision} ${this.documentServer.toString()}`,
-      X: this.documentSubmitted.toString(),
-      Y: this.documentLocal.toString(),
-      V: this.documentView.toString(),
+      A: `@${this.serverTextRevision} ${this.textServer.toString()}`,
+      X: this.textSubmitted.toString(),
+      Y: this.textLocal.toString(),
+      V: this.textView.toString(),
       value: this.getValueWithSelection(),
     };
   }

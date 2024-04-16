@@ -64,7 +64,7 @@ it('returns all notes without any paginations', async () => {
             },
             collabText: {
               collectionName: mongoCollections[CollectionName.CollabTexts].collectionName,
-              collabText: Object.values(TextFields),
+              collabTexts: Object.values(TextFields),
             },
           },
         },
@@ -112,7 +112,7 @@ it('paginates notes', async () => {
             },
             collabText: {
               collectionName: mongoCollections[CollectionName.CollabTexts].collectionName,
-              collabText: Object.values(TextFields),
+              collabTexts: Object.values(TextFields),
             },
           },
         },

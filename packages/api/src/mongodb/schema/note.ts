@@ -6,8 +6,7 @@ import { CollectionDescription } from '../collections';
 export interface NoteSchema extends WithId<Document> {
   publicId: string;
   ownerId: ObjectId;
-  // TODO rename to collabTextIds, as clearer that it can have multiple values
-  collabTextId: Record<string, ObjectId>;
+  collabTextIds: Record<string, ObjectId>;
 }
 
 export const noteDefaultValues = {

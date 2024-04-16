@@ -33,10 +33,9 @@ const config: CodegenConfig = {
             output: 'number',
           },
           Changeset: '~collab/changeset/changeset#SerializedChangeset',
-          CollaborativeEditor: '~collab/editor/collaborative-editor#CollaborativeEditor',
         },
       },
-      // TODO encode documents to prevent any query execution...
+      // TODO encode documents to prevent any query execution?
     },
   },
   ignoreNoDocuments: true,

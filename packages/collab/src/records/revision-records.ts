@@ -42,16 +42,16 @@ export class RevisionRecords<TRecord extends Record = Record> {
     return this.indexToRevision(0);
   }
 
-  private _tailDocument: RevisionChangeset = {
+  private _tailText: RevisionChangeset = {
     changeset: Changeset.EMPTY,
     revision: -1,
   };
 
   /**
-   * First record is composed on this document.
+   * First record is composed on this text.
    */
-  get tailDocument() {
-    return this._tailDocument;
+  get tailText() {
+    return this._tailText;
   }
 
   private _records: TRecord[];
@@ -68,7 +68,7 @@ export class RevisionRecords<TRecord extends Record = Record> {
     const lastRecord = this._records[this._records.length - 1];
     if (!lastRecord) return -1;
 
-    const result = revision + (this._records.length - lastRecord.change.revision) - 1;
+    const result = revision + (this._records.length - lastRecord.revision) - 1;
     if (result < 0 || result >= this._records.length) return -1;
 
     return result;
@@ -82,7 +82,7 @@ export class RevisionRecords<TRecord extends Record = Record> {
       index += this._records.length;
     }
 
-    return index + (lastRecord.change.revision - this._records.length) + 1;
+    return index + (lastRecord.revision - this._records.length) + 1;
   }
 
   /**
@@ -91,21 +91,21 @@ export class RevisionRecords<TRecord extends Record = Record> {
    * @returns Newest inserted record in records.
    */
   insert(newRecord: TRecord): TRecord {
-    if (newRecord.change.revision > this.headRevision) {
+    if (newRecord.revision > this.headRevision) {
       throw new Error(
-        `Unexpected change ${String(newRecord.change.changeset)} at revision ${
-          newRecord.change.revision
+        `Unexpected change ${String(newRecord.changeset)} at revision ${
+          newRecord.revision
         } is newer than headRevision ${this.headRevision}.`
       );
     }
 
-    const deltaRevision = newRecord.change.revision - this.headRevision;
+    const deltaRevision = newRecord.revision - this.headRevision;
     const startRecordIndex = this._records.length + deltaRevision;
     if (startRecordIndex < 0) {
       throw new Error(
         `Missing older records to insert change ${String(
-          newRecord.change.changeset
-        )} at revision ${newRecord.change.revision}.`
+          newRecord.changeset
+        )} at revision ${newRecord.revision}.`
       );
     }
 
@@ -113,21 +113,19 @@ export class RevisionRecords<TRecord extends Record = Record> {
       ...newRecord,
       revision: this.headRevision + 1,
     };
-    let expectedRevision = newRecord.change.revision + 1;
+    let expectedRevision = newRecord.revision + 1;
     for (let i = startRecordIndex; i < this._records.length; i++) {
       const record = this._records[i];
       if (!record) continue;
-      if (expectedRevision !== record.change.revision) {
+      if (expectedRevision !== record.revision) {
         throw new Error(
           `Expected next record revision to be '${expectedRevision}' but is '${
-            record.change.revision
-          }' for ${String(record.change.changeset)} at revision ${record.change.revision}`
+            record.revision
+          }' for ${String(record.changeset)} at revision ${record.revision}`
         );
       }
 
-      newHeadRecord.change.changeset = record.change.changeset.follow(
-        newHeadRecord.change.changeset
-      );
+      newHeadRecord.changeset = record.changeset.follow(newHeadRecord.changeset);
       this.filterBus.filter('followRecord', { record, follow: newHeadRecord });
 
       expectedRevision++;
@@ -155,31 +153,31 @@ export class RevisionRecords<TRecord extends Record = Record> {
   /**
    * Adds new records. Duplicate records are ignored.
    * @param newRecords Consecutive ordered array of new records.
-   * @param newTailDocument Required if it contains records older than current tailDocument.revision.
+   * @param newTailText Required if it contains records older than current tailText.revision.
    * @returns Records added successfully.
    */
-  update(newRecords: Readonly<TRecord[]>, newTailDocument?: RevisionChangeset) {
+  update(newRecords: Readonly<TRecord[]>, newTailText?: RevisionChangeset) {
     const firstRecord = newRecords[0];
     if (!firstRecord) return;
 
-    if (newTailDocument) {
-      if (newTailDocument.revision < this.tailDocument.revision) {
-        if (newTailDocument.revision + 1 !== firstRecord.change.revision) {
+    if (newTailText) {
+      if (newTailText.revision < this.tailText.revision) {
+        if (newTailText.revision + 1 !== firstRecord.revision) {
           throw new Error(
-            `Expected firstRecord revision ${firstRecord.change.revision} to be right after newTailDocument revision ${newTailDocument.revision}.`
+            `Expected firstRecord revision ${firstRecord.revision} to be right after newTailText revision ${newTailText.revision}.`
           );
         }
 
         if (this.mergeNewRecords(newRecords)) {
-          this._tailDocument = newTailDocument;
+          this._tailText = newTailText;
           return;
         }
       }
     } else {
-      // Ensure first record isn't too old if newTailDocument isn't specified
-      if (firstRecord.change.revision <= this.tailDocument.revision) {
+      // Ensure first record isn't too old if newTailText isn't specified
+      if (firstRecord.revision <= this.tailText.revision) {
         throw new Error(
-          `Expected firstRecord revision (${firstRecord.change.revision}) to be higher than tailDocument revision (${this.tailDocument.revision}) since newTailDocument isn't specified.`
+          `Expected firstRecord revision (${firstRecord.revision}) to be higher than tailText revision (${this.tailText.revision}) since newTailText isn't specified.`
         );
       }
 
@@ -194,7 +192,7 @@ export class RevisionRecords<TRecord extends Record = Record> {
     const mergedRecords = mergedConsecutiveOrdered(
       this._records,
       newRecords,
-      (record) => record.change.revision
+      (record) => record.revision
     );
     if (!mergedRecords) return false;
 
@@ -203,11 +201,11 @@ export class RevisionRecords<TRecord extends Record = Record> {
   }
 
   /**
-   * Deletes all records. Resets tailDocument.
+   * Deletes all records. Resets tailText.
    */
   clear() {
     this._records = [];
-    this._tailDocument = {
+    this._tailText = {
       changeset: Changeset.EMPTY,
       revision: -1,
     };
@@ -221,42 +219,42 @@ export class RevisionRecords<TRecord extends Record = Record> {
   }
 
   /**
-   * Merge records into tail document. Merged records are deleted.
+   * Merge records into tailText. Merged records are deleted.
    */
   mergeToTail(count: number) {
     if (count <= 0) return;
 
-    let mergedTailDocument = this._tailDocument.changeset;
-    let expectedRevision = this._tailDocument.revision + 1;
+    let mergedTailText = this._tailText.changeset;
+    let expectedRevision = this._tailText.revision + 1;
     for (let i = 0; i < count; i++) {
       const record = this._records[i];
       if (!record) continue;
-      if (expectedRevision !== record.change.revision) {
+      if (expectedRevision !== record.revision) {
         throw new Error(
           `Expected next record revision to be '${expectedRevision}' but is '${
-            record.change.revision
-          }' for ${String(record.change.changeset)} at revision ${record.change.revision}`
+            record.revision
+          }' for ${String(record.changeset)} at revision ${record.revision}`
         );
       }
-      mergedTailDocument = mergedTailDocument.compose(record.change.changeset);
+      mergedTailText = mergedTailText.compose(record.changeset);
       expectedRevision++;
     }
 
     this._records = this._records.slice(count);
 
-    this._tailDocument = {
-      changeset: mergedTailDocument,
+    this._tailText = {
+      changeset: mergedTailText,
       revision: expectedRevision - 1,
     };
   }
 
   /**
-   * Composition of tailDocument all record revision.
+   * Composition of all records on tailText.
    */
-  getHeadDocument() {
+  getHeadText() {
     return this.records.reduce(
-      (a, b) => a.compose(b.change.changeset),
-      this._tailDocument.changeset
+      (a, b) => a.compose(b.changeset),
+      this._tailText.changeset
     );
   }
 }

@@ -1,10 +1,10 @@
 import { Maybe } from '~utils/types';
 import { NoteTextField, ResolverTypeWrapper } from '../types.generated';
-import { CollaborativeDocumentMapper } from '../collab/schema.mappers';
+import { CollabTextMapper } from '../collab/schema.mappers';
 
 export interface NoteTextFieldEntryMapper {
   key(): ResolverTypeWrapper<NoteTextField>;
-  value(): CollaborativeDocumentMapper;
+  value(): CollabTextMapper;
 }
 
 export interface NotePreferencesMapper {

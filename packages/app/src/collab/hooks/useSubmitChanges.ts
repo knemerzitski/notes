@@ -6,17 +6,15 @@ import {
 } from '@apollo/client';
 import { useCallback, useRef } from 'react';
 
-import { CollaborativeEditor } from '~collab/editor/collaborative-editor';
+import { CollabEditor } from '~collab/editor/collab-editor';
 import isTruthy from '~utils/isTruthy';
 import { Entry } from '~utils/types';
 
-import {
-  CollaborativeDocumentPatch,
-  CollaborativeDocumentPatchInput,
-} from '../../__generated__/graphql';
+import { CollabTextPatch, CollabTextPatchInput } from '../../__generated__/graphql';
+import { Changeset } from '~collab/changeset/changeset';
 
 type PartialEditor = Readonly<
-  Pick<CollaborativeEditor, 'submitChanges' | 'submittedChangesAcknowledged'>
+  Pick<CollabEditor, 'submitChanges' | 'submittedChangesAcknowledged'>
 >;
 
 interface UseSubmitChangesOptions<
@@ -27,8 +25,8 @@ interface UseSubmitChangesOptions<
   editors: Entry<TKey, PartialEditor>[];
   mutation: TypedDocumentNode<TData, TVariables>;
   options?: MutationHookOptions<TData, TVariables>;
-  mapVariables: (variables: Entry<TKey, CollaborativeDocumentPatchInput>[]) => TVariables;
-  mapData: (data: TData) => Entry<TKey, CollaborativeDocumentPatch>[] | undefined | null;
+  mapVariables: (variables: Entry<TKey, CollabTextPatchInput>[]) => TVariables;
+  mapData: (data: TData) => Entry<TKey, CollabTextPatch>[] | undefined | null;
 }
 
 export default function useSubmitChanges<
@@ -59,10 +57,23 @@ export default function useSubmitChanges<
         return {
           key,
           value: {
-            targetRevision: changes.revision,
-            changeset: changes.changeset.serialize(),
+            insertRecord: {
+              generatedId: changes.generatedId,
+              change: {
+                revision: changes.revision,
+                changeset: changes.changeset.serialize(),
+              },
+              afterSelection: {
+                start: changes.selection.after.start,
+                end: changes.selection.after.end,
+              },
+              beforeSelection: {
+                start: changes.selection.before.start,
+                end: changes.selection.before.end,
+              },
+            },
           },
-        };
+        } as { key: TKey; value: CollabTextPatchInput };
       })
       .filter(isTruthy);
     if (allChanges.length === 0) return false;
@@ -76,10 +87,26 @@ export default function useSubmitChanges<
     if (!acknowledgedRevisions) return false;
 
     acknowledgedRevisions.forEach(({ key, value }) => {
+      const newRecord = value.newRecord;
+      if (!newRecord) return;
       const editor = editors.find(({ key: field }) => field === key)?.value;
-      if (editor) {
-        editor.submittedChangesAcknowledged(value.revision);
-      }
+      if (!editor) return;
+
+      editor.submittedChangesAcknowledged({
+        clientId: newRecord.creatorUserId,
+        revision: newRecord.change.revision,
+        changeset: Changeset.parseValue(newRecord.change.changeset),
+        selection: {
+          after: {
+            start: newRecord.afterSelection.start,
+            end: newRecord.afterSelection.end ?? undefined,
+          },
+          before: {
+            start: newRecord.beforeSelection.start,
+            end: newRecord.beforeSelection.end ?? undefined,
+          },
+        },
+      });
     });
 
     return true;

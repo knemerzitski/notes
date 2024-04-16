@@ -3,16 +3,12 @@
 import { OperationVariables, TypedDocumentNode, useApolloClient } from '@apollo/client';
 import { useEffect, useRef } from 'react';
 
-import {
-  CollaborativeEditor,
-  Events as CollaborativeEditorEvents,
-} from '~collab/editor/collaborative-editor';
+import { CollabEditor, Events as CollabEditorEvents } from '~collab/editor/collab-editor';
 import { Entry } from '~utils/types';
 
-import { CollaborativeDocument } from '../../__generated__/graphql';
+import { CollabText } from '../../__generated__/graphql';
 
-
-type PartialEditor = Readonly<Pick<CollaborativeEditor, 'eventBus'>>;
+type PartialEditor = Readonly<Pick<CollabEditor, 'eventBus'>>;
 
 export interface ContentSyncCacheLatestTextProps<
   TKey,
@@ -22,7 +18,7 @@ export interface ContentSyncCacheLatestTextProps<
   editors: Entry<TKey, PartialEditor>[];
   id?: string;
   fragment: TypedDocumentNode<TData, TVariables>;
-  mapData: (data: Entry<TKey, Pick<CollaborativeDocument, 'viewText'>>) => TData;
+  mapData: (data: Entry<TKey, Pick<CollabText, 'viewText'>>) => TData;
 }
 
 export default function useSyncViewTextToCache<
@@ -41,7 +37,7 @@ export default function useSyncViewTextToCache<
 
   useEffect(() => {
     const subs = editors.map(({ key, value: editor }) => {
-      const handleViewChanged: (e: CollaborativeEditorEvents['viewChanged']) => void = ({
+      const handleViewChanged: (e: CollabEditorEvents['viewChanged']) => void = ({
         view,
       }) => {
         apolloClient.writeFragment({

@@ -10,8 +10,10 @@ export const FRAGMENT = gql(`
     textFields {
       key
       value {
-        headText
-        headRevision
+        headText {
+          revision
+          changeset
+        }
       }
     }
   }

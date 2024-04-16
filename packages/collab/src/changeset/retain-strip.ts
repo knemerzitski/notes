@@ -2,7 +2,7 @@ import { Strip } from './strip';
 import { Strips } from './strips';
 
 /**
- * Represents retained characters range in the original document.
+ * Represents retained characters range in a text.
  * RetainStrip is immutable.
  */
 export class RetainStrip implements Strip {

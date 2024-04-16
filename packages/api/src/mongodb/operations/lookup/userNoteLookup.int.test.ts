@@ -39,13 +39,13 @@ beforeAll(async () => {
   await populateWithCreatedData();
 });
 
-export const expectedCollabText = {
+const expectedCollabText = {
   _id: expect.any(ObjectId),
-  headDocument: {
+  headText: {
     changeset: expect.any(Array),
     revision: expect.any(Number),
   },
-  tailDocument: {
+  tailText: {
     changeset: expect.any(Array),
     revision: expect.any(Number),
   },
@@ -68,7 +68,7 @@ it('returns userNote in expected format', async () => {
         },
         collabText: {
           collectionName: mongoCollections[CollectionName.CollabTexts].collectionName,
-          collabText: Object.values(CollabTextKey),
+          collabTexts: Object.values(CollabTextKey),
         },
       }),
     ])
@@ -83,7 +83,7 @@ it('returns userNote in expected format', async () => {
       id: expect.any(ObjectId),
       publicId: expect.any(String),
       ownerId: expect.any(ObjectId),
-      collabText: {
+      collabTexts: {
         title: expectedCollabText,
         content: expectedCollabText,
       },
@@ -95,7 +95,7 @@ it('returns userNote in expected format', async () => {
   });
 });
 
-it('only looks up collabTextId', async () => {
+it('only looks up collabTextIds', async () => {
   const results = await mongoCollections[CollectionName.UserNotes]
     .aggregate<
       UserNoteLookupOutput<CollabTextKey, CollabTextSchema, UserNoteSchema, undefined>
@@ -108,7 +108,7 @@ it('only looks up collabTextId', async () => {
       ...userNoteLookup({
         collabText: {
           collectionName: mongoCollections[CollectionName.CollabTexts].collectionName,
-          collabText: Object.values(CollabTextKey),
+          collabTexts: Object.values(CollabTextKey),
         },
       }),
     ])
@@ -141,7 +141,7 @@ it('only looks up note', async () => {
   const result = results[0];
   assert(result != null);
 
-  expect((result.note as { collabText?: unknown }).collabText).toBeUndefined();
+  expect((result.note as { collabTexts?: unknown }).collabTexts).toBeUndefined();
 });
 
 it('uses note pipeline', async () => {
@@ -210,7 +210,7 @@ it('uses collabText pipeline separate for each key', async () => {
         },
         collabText: {
           collectionName: mongoCollections[CollectionName.CollabTexts].collectionName,
-          collabText: Object.fromEntries(
+          collabTexts: Object.fromEntries(
             Object.values(CollabTextKey).map((collabKey) => [
               collabKey,
               {
@@ -234,7 +234,7 @@ it('uses collabText pipeline separate for each key', async () => {
 
   expect(result).toMatchObject({
     note: {
-      collabText: {
+      collabTexts: {
         title: { custom: expect.stringMatching('hi title') },
         content: { custom: expect.stringMatching('hi content') },
       },

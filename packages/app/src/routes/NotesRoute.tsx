@@ -22,9 +22,11 @@ const QUERY_NOTES = gql(`
         textFields {
           key
           value {
+            headText {
+              revision
+              changeset
+            }
             viewText @client
-            headText
-            headRevision
           }
         }
       }

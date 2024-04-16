@@ -13,7 +13,7 @@ import {
   DeepQueryResponse,
   mergeQueries,
 } from '../../../mongodb/query-builder';
-import { NoteQueryType } from '../mongo-query-mapper/note';
+import { NoteQuery } from '../mongo-query-mapper/note';
 import groupByUserId from './utils/groupByUserId';
 import userNoteQueryPaginationMappedToResponse from './utils/userNoteQueryPaginationMappedToResponse';
 import userNoteQueryToLookupInput from './utils/userNoteQueryToLookupInput';
@@ -38,7 +38,7 @@ export interface NoteConnectionKey {
   /**
    * Fields to retrieve, inclusion projection.
    */
-  noteQuery: DeepQuery<NoteQueryType>;
+  noteQuery: DeepQuery<NoteQuery>;
 }
 
 export interface NoteConnectionBatchLoadContext {
@@ -56,7 +56,7 @@ export interface NoteConnectionBatchLoadContext {
 export default async function noteConnectionBatchLoad(
   keys: Readonly<NoteConnectionKey[]>,
   context: Readonly<NoteConnectionBatchLoadContext>
-): Promise<(DeepQueryResponse<NoteQueryType>[] | Error)[]> {
+): Promise<(DeepQueryResponse<NoteQuery>[] | Error)[]> {
   const keysByUserId = groupByUserId(keys);
 
   const userNotesBy_userId_arrayPath_paginationKey = Object.fromEntries(

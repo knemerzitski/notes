@@ -4,7 +4,7 @@ import { paginationStringToInt } from '../../../../mongodb/operations/pagination
 import revisionRecordsPagination from '../../../../mongodb/operations/pagination/revisionRecordsPagination';
 import { MergedDeepQuery } from '../../../../mongodb/query-builder';
 import { NoteTextField } from '../../../types.generated';
-import { NoteQueryType } from '../../mongo-query-mapper/note';
+import { NoteQuery } from '../../mongo-query-mapper/note';
 import { ApiGraphQLContext } from '../../../context';
 import { CollectionName } from '../../../../mongodb/collections';
 
@@ -12,7 +12,7 @@ import { CollectionName } from '../../../../mongodb/collections';
  * Translates query to lookup input used in by userNoteLookup
  */
 export default function userNoteQueryToLookupInput(
-  userNoteQuery: MergedDeepQuery<NoteQueryType>,
+  userNoteQuery: MergedDeepQuery<NoteQuery>,
   context: {
     mongodb: {
       collections: Pick<
@@ -28,7 +28,7 @@ export default function userNoteQueryToLookupInput(
     publicId: 1,
   };
 
-  const userNoteProject: MergedDeepQuery<NoteQueryType> = { ...queryAllExceptNote };
+  const userNoteProject: MergedDeepQuery<NoteQuery> = { ...queryAllExceptNote };
   if (!userNoteProject._id) {
     userNoteProject._id = 0;
   }
@@ -38,7 +38,7 @@ export default function userNoteQueryToLookupInput(
     | UserNoteLookupInput<NoteTextField>['collabText']
     | undefined = undefined;
   if (noteQuery) {
-    const { id, collabText, ...noteProject } = noteQuery;
+    const { id, collabTexts, ...noteProject } = noteQuery;
 
     if (id) {
       userNote_note_Project.id = 1;
@@ -52,11 +52,11 @@ export default function userNoteQueryToLookupInput(
       Object.assign(userNote_note_Project, noteProject);
     }
 
-    if (collabText) {
+    if (collabTexts) {
       collabTextLookupInput = {
         collectionName:
           context.mongodb.collections[CollectionName.CollabTexts].collectionName,
-        collabText: mapObject(collabText, (key, query) => {
+        collabTexts: mapObject(collabTexts, (key, query) => {
           if (!query) return mapObjectSkip;
 
           if (!query._id) {
@@ -99,7 +99,7 @@ export default function userNoteQueryToLookupInput(
           ];
         }),
       };
-      userNote_note_Project.collabText = 1;
+      userNote_note_Project.collabTexts = 1;
     }
   }
 

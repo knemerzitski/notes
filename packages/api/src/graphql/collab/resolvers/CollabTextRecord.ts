@@ -1,6 +1,6 @@
-import type { CollaborativeDocumentRecordResolvers } from './../../types.generated';
+import type { CollabTextRecordResolvers } from './../../types.generated';
 
-export const CollaborativeDocumentRecord: CollaborativeDocumentRecordResolvers = {
+export const CollabTextRecord: CollabTextRecordResolvers = {
   id: (parent) => {
     return parent.id();
   },

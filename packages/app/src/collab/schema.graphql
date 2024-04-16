@@ -1,4 +1,4 @@
-extend type CollaborativeDocument {
-  "Text that user sees. Inclused submitted and local changes."
+extend type CollabText {
+  "Text that user sees. Includes submitted and local changes."
   viewText: String!
 }

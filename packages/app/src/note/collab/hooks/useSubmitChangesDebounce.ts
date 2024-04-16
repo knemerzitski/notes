@@ -12,8 +12,12 @@ const MUTATION = gql(`
         textFields {
           key
           value {
-            changeset
-            revision
+            newRecord {
+              change {
+                changeset
+                revision
+              }
+            }
           }
         }
       }

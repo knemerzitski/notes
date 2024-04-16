@@ -7,7 +7,7 @@ import { SerializedStrips, Strips } from './strips';
 export type SerializedChangeset = SerializedStrips;
 
 /**
- * Represents a change to a document (list of characters, or a string).
+ * Represents a change to a text (list of characters, or a string).
  * Changeset strips is compact and retain indexes are ordered.
  * Changeset is immutable.
  */
@@ -81,9 +81,19 @@ export class Changeset implements Serializable<SerializedChangeset> {
   }
 
   /**
-   * Finds follow of this and other so that following criteria is met: \
-   * this.compose(this.follow(other)) = other.compose(other.follow(this)) \
-   * In general: Af(A, B) = Bf(B, A), where A = this, B = other, f = follow
+   * 
+   * Given changesets: \
+   * X - base/tail changeset \
+   * A - this, X * A (A is composable on X) \
+   * B - other, X *B (B is composable on X) \
+   * Follow computes a new changeset B' that is composable on X * A * B'
+   * so that intention of B is kept:
+   * - A inserted characters are kept.
+   * - A and B intersection of retained characters are kept.
+   * 
+   * Follow has commutative property with previous change: \
+   * X * A* f(A,B) = X * B * f(B,A) \
+   * This property is ensured by ordering changes at same position lexicographically.
    */
   follow(other: Changeset): Changeset {
     const resultStrips: Strip[] = [];
@@ -218,7 +228,7 @@ export class Changeset implements Serializable<SerializedChangeset> {
   }
 
   /**
-   * Merge this and other changeset that both apply to same document.
+   * Merge this and other changeset that both apply to same text.
    * X * m(A,B)
    */
   merge(other: Changeset): Changeset {
@@ -354,13 +364,13 @@ export class Changeset implements Serializable<SerializedChangeset> {
   }
 
   /**
-   * Swap order of two latest changes that have yet to be applied to this document.
-   * Given document AXY, finds changes Y' and X' so that
-   * AXY = AY'X' (final document value is same)
-   * @param this A (document)
-   * @param firstChange X - Changeset that is composable on document
+   * Swap order of two latest changes that have yet to be applied to this changeset (tail).
+   * Given composition AXY, finds changes Y' and X' so that
+   * AXY = AY'X' (composed text is same)
+   * @param this A (base text)
+   * @param firstChange X - Changeset that is composable on base text
    * @param secondChange Y - Changeset that is composable on X
-   * @returns [Y', X'] Y' - is composable on document, X' - is compoable on Y'
+   * @returns [Y', X'] Y' - is composable on base text A, X' - is compoable on Y'
    */
   swapChanges(firstChange: Changeset, secondChange: Changeset): [Changeset, Changeset] {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
@@ -410,7 +420,7 @@ export class Changeset implements Serializable<SerializedChangeset> {
 
   /**
    * @returns New index that keeps intent of {@link oldIndex} after
-   * this changeset has been applied to a document.
+   * this changeset has been applied.
    */
   followIndex(oldIndex: number) {
     let pos = 0;

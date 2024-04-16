@@ -3,7 +3,7 @@ import { Strip } from './strip';
 import { Strips } from './strips';
 
 /**
- * Represents string insertion in the new document.
+ * Represents string insertion in a text.
  * InsertStrip is immutable.
  */
 export class InsertStrip implements Strip {

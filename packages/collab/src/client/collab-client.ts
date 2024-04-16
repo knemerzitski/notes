@@ -46,12 +46,12 @@ export enum ChangeSource {
   External,
 }
 
-interface DocumentClientOptions {
-  initialServerDocument?: Changeset;
+interface CollabClientOptions {
+  initialServerText?: Changeset;
   eventBus?: Emitter<Events>;
 }
 
-export class DocumentClient {
+export class CollabClient {
   readonly eventBus: Emitter<Events>;
 
   private _server: Changeset;
@@ -74,19 +74,21 @@ export class DocumentClient {
     return this._view;
   }
 
-  constructor(options?: DocumentClientOptions) {
-    const serverDocument = options?.initialServerDocument ?? Changeset.EMPTY;
-    if (!serverDocument.hasOnlyInsertions()) {
+  constructor(options?: CollabClientOptions) {
+    const serverText = options?.initialServerText ?? Changeset.EMPTY;
+    if (!serverText.hasOnlyInsertions()) {
       throw new Error(
-        `Expected serverDocument to be document but is ${String(serverDocument)}`
+        `Expected initialServerText to only contain insertions but is ${String(
+          serverText
+        )}`
       );
     }
     this.eventBus = options?.eventBus ?? mitt();
 
-    this._server = serverDocument;
-    this._submitted = serverDocument.getIdentity();
-    this._local = serverDocument.getIdentity();
-    this._view = serverDocument;
+    this._server = serverText;
+    this._submitted = serverText.getIdentity();
+    this._local = serverText.getIdentity();
+    this._view = serverText;
   }
 
   private getSubmittedView() {
@@ -173,8 +175,8 @@ export class DocumentClient {
   handleExternalChange(external: Changeset) {
     // A - server, X - submitted, Y - local, B - external,
     // V - view, D - external change relative to view
-    // Document before external change: AXY = V
-    // Document after external change: A'BX'Y' = VD
+    // Text before external change: AXY = V
+    // Text after external change: A'BX'Y' = VD
 
     // A' = AB
     const newServer = this._server.compose(external);
@@ -210,6 +212,3 @@ export class DocumentClient {
     });
   }
 }
-
-
-

@@ -47,7 +47,7 @@ const notePolicies: TypePolicies = {
     },
   },
   // TODO policy in collab?
-  CollaborativeDocument: {
+  CollabText: {
     fields: {
       viewText: {
         read(existing, { readField }): string | null {

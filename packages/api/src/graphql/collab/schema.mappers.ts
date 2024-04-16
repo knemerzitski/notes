@@ -1,48 +1,52 @@
 import {
-  CollaborativeDocumentdocumentArgs,
-  CollaborativeDocumentrecordsConnectionArgs,
+  CollabTextrecordsConnectionArgs,
   ResolverTypeWrapper,
+  ResolversTypes,
 } from '../types.generated';
 import { PageInfoMapper } from '../base/schema.mappers';
-import { Changeset } from '~collab/changeset/changeset';
 
 import { RelayArrayPaginationConfig } from '../../mongodb/operations/pagination/relayArrayPagination';
 
 export interface RevisionChangesetMapper {
   revision(): ResolverTypeWrapper<number>;
-  changeset(): ResolverTypeWrapper<Changeset>;
+  changeset(): ResolversTypes['Changeset'];
 }
 
-export interface CollaborativeDocumentSelectionRangeMapper {
+export interface CollabTextSelectionRangeMapper {
   start(): ResolverTypeWrapper<number>;
   end(): ResolverTypeWrapper<number>;
 }
 
-export interface CollaborativeDocumentRecordMapper {
+export interface CollabTextRecordMapper {
   id(): ResolverTypeWrapper<string>;
   creatorUserId(): ResolverTypeWrapper<string>;
   change(): RevisionChangesetMapper;
-  beforeSelection(): CollaborativeDocumentSelectionRangeMapper;
-  afterSelection(): CollaborativeDocumentSelectionRangeMapper;
+  beforeSelection(): CollabTextSelectionRangeMapper;
+  afterSelection(): CollabTextSelectionRangeMapper;
 }
 
-export interface CollaborativeDocumentMapper {
+export interface CollabTextWithNearHistoryMapper {
+  tailText(): RevisionChangesetMapper;
+  records(): CollabTextRecordMapper[];
+}
+
+export interface CollabTextMapper {
   id(): ResolverTypeWrapper<string>;
-  headDocument(): RevisionChangesetMapper;
-  tailDocument(): RevisionChangesetMapper;
-  document(args: CollaborativeDocumentdocumentArgs): RevisionChangesetMapper;
+  headText(): RevisionChangesetMapper;
+  tailText(): RevisionChangesetMapper;
+  textWithNearHistory(): CollabTextWithNearHistoryMapper;
   recordsConnection(
-    args: CollaborativeDocumentrecordsConnectionArgs,
+    args: CollabTextrecordsConnectionArgs,
     config: RelayArrayPaginationConfig
-  ): CollaborativeDocumentRecordConnectionMapper;
+  ): CollabTextRecordConnectionMapper;
 }
 
-export interface CollaborativeDocumentRecordConnectionMapper {
-  edges(): CollaborativeDocumentRecordEdgeMapper[];
+export interface CollabTextRecordConnectionMapper {
+  edges(): CollabTextRecordEdgeMapper[];
   pageInfo(): PageInfoMapper;
 }
 
-export interface CollaborativeDocumentRecordEdgeMapper {
-  node(): CollaborativeDocumentRecordMapper;
-  cursor(): ResolverTypeWrapper<string>;
+export interface CollabTextRecordEdgeMapper {
+  node(): CollabTextRecordMapper;
+  cursor(): ResolversTypes['Cursor'];
 }

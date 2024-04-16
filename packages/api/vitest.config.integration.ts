@@ -10,7 +10,7 @@ export default defineConfig({
   envDir: '../../',
   envPrefix: 'TEST_',
   test: {
-    include: ['src/**/*.int.test.ts', 'src/test/**/*.test.ts'],
+    include: ['src/**/*.int.test.ts'],
     setupFiles: ['src/test/helpers/setup.integration.ts'],
     pool: 'threads',
     poolOptions: {

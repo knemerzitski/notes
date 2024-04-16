@@ -9,7 +9,7 @@ import {
 } from 'react';
 
 import { Changeset } from '~collab/changeset/changeset';
-import { CollaborativeEditor } from '~collab/editor/collaborative-editor';
+import { CollabEditor } from '~collab/editor/collab-editor';
 import createDeferred, { Deferred } from '~utils/deferred';
 import { Entry } from '~utils/types';
 
@@ -19,16 +19,17 @@ import { NoteTextField } from '../../../__generated__/graphql';
 import { useActiveNotes } from './ActiveNotesProvider';
 import { useNoteId } from './NoteIdProvider';
 
-
 export const QUERY = gql(`
   query NoteEditorsProviderCreateEditor($id: String!) {
-    note(id: $id) {
+    note(urlId: $id) {
       id
       textFields {
         key
         value {
-          headText
-          headRevision
+          headText {
+            changeset
+            revision
+          }
         }
       }
     }
@@ -46,7 +47,7 @@ interface PromiseState<T> {
   error?: unknown;
 }
 
-export type TextFieldEditors = Entry<NoteTextField, CollaborativeEditor>[];
+export type TextFieldEditors = Entry<NoteTextField, CollabEditor>[];
 
 type GetEditorsContextProp = (noteId: string) => PromiseState<TextFieldEditors>;
 
@@ -176,7 +177,7 @@ async function createEditors<T>({ client, noteId }: CreateEditorsOptions<T>) {
   return data.note.textFields.map(({ key, value }) => {
     return {
       key,
-      value: new CollaborativeEditor({
+      value: new CollabEditor({
         head: {
           revision: value.headRevision,
           changeset: Changeset.fromInsertion(value.headText),
@@ -217,7 +218,7 @@ export function useSuspenseNoteEditors(): TextFieldEditors {
  * Note must be added to active notes list by using hook useModifyActiveNotes or
  * suspense will hang.
  */
-export function useSuspenseNoteEditor(field: NoteTextField): CollaborativeEditor {
+export function useSuspenseNoteEditor(field: NoteTextField): CollabEditor {
   const editors = useSuspenseNoteEditors();
 
   const editor = editors.find(({ key }) => key === field);

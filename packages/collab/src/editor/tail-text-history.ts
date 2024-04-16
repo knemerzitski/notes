@@ -24,7 +24,7 @@ export interface TailEntry {
   execute: Omit<Operation, 'selectionStart' | 'selectionEnd'>;
   undo?: Omit<PartialBy<Operation, 'changeset'>, 'selectionStart' | 'selectionEnd'>;
   /**
-   * Entry is composed on tailDocument.
+   * Entry is composed on tailText.
    */
   isTail: true;
 }
@@ -43,12 +43,12 @@ export type Events = {
   };
 };
 
-export interface TailDocumentHistoryOptions {
+export interface TailTextHistoryOptions {
   tail?: Changeset;
   eventBus?: Emitter<Events>;
 }
 
-export class TailDocumentHistory {
+export class TailTextHistory {
   readonly eventBus: Emitter<Events>;
 
   private _entries: Entry[] = [];
@@ -56,23 +56,22 @@ export class TailDocumentHistory {
     return this._entries;
   }
 
-  private _tailDocument = Changeset.EMPTY;
+  private _tailText = Changeset.EMPTY;
   /**
-   * History entries are composed after this document.
-   * As such, first history entry may contain retained characters to tailDocument.
+   * History entries are composed on this text.
    */
-  get tailDocument() {
-    return this._tailDocument;
+  get tailText() {
+    return this._tailText;
   }
 
   private tailComposition: Changeset | undefined;
 
-  constructor(options?: TailDocumentHistoryOptions) {
+  constructor(options?: TailTextHistoryOptions) {
     if (options?.tail) {
-      this._tailDocument = options.tail;
-      if (!this._tailDocument.hasOnlyInsertions()) {
+      this._tailText = options.tail;
+      if (!this._tailText.hasOnlyInsertions()) {
         throw new Error(
-          `Expected tailDocument to be document but is ${String(this._tailDocument)}`
+          `Expected tailText to only contain insertions but is ${String(this._tailText)}`
         );
       }
     }
@@ -81,17 +80,14 @@ export class TailDocumentHistory {
   }
 
   /**
-   * Composition of tailDocument and all history execute changesets.
+   * Composition of tailText and all history execute changesets.
    */
-  getHeadDocument() {
-    return this.entries.reduce(
-      (a, b) => a.compose(b.execute.changeset),
-      this._tailDocument
-    );
+  getHeadText() {
+    return this.entries.reduce((a, b) => a.compose(b.execute.changeset), this._tailText);
   }
 
   /**
-   * Merge entries into one. Tail document is unmodified.
+   * Merge entries into one. tailText is unmodified.
    */
   merge(startIndex: number, endIndex: number) {
     const mergedEntry = this._entries[endIndex];
@@ -121,18 +117,18 @@ export class TailDocumentHistory {
   }
 
   /**
-   * Merge entries into tail document. Merged entries become permanent and cannot be undone.
+   * Merge entries into tailText. Merged entries become permanent and cannot be undone.
    */
   mergeToTail(count: number) {
-    let mergedTailDocument = this._tailDocument;
+    let mergedTailText = this._tailText;
     for (let i = 0; i < count; i++) {
       const nextEntry = this.getEntry(i);
-      mergedTailDocument = mergedTailDocument.compose(nextEntry.execute.changeset);
+      mergedTailText = mergedTailText.compose(nextEntry.execute.changeset);
     }
 
     this._entries = this._entries.slice(count);
 
-    this._tailDocument = mergedTailDocument;
+    this._tailText = mergedTailText;
 
     for (let i = count - 1; i >= 0; i--) {
       this.eventBus.emit('entryAtIndexDeleted', {
@@ -144,7 +140,7 @@ export class TailDocumentHistory {
   }
 
   push(newEntries: AnyEntry[]) {
-    let headDocument = this.getHeadDocument();
+    let headText = this.getHeadText();
 
     newEntries.forEach((entry) => {
       if (!('isTail' in entry)) {
@@ -156,19 +152,19 @@ export class TailDocumentHistory {
             selectionEnd: execute.selectionEnd ?? execute.selectionStart,
           },
           undo: {
-            changeset: undo.changeset ?? execute.changeset.inverse(headDocument),
+            changeset: undo.changeset ?? execute.changeset.inverse(headText),
             selectionStart: undo.selectionStart,
             selectionEnd: undo.selectionEnd ?? undo.selectionStart,
           },
         });
-        headDocument = headDocument.compose(execute.changeset);
+        headText = headText.compose(execute.changeset);
       } else {
         this.composeOnAllEntries(entry.execute.changeset, this._entries.length - 1);
       }
     });
   }
 
-  unshift(newTailDocument: Changeset, newEntries: AnyEntry[]) {
+  unshift(newTailText: Changeset, newEntries: AnyEntry[]) {
     const resultEntries: Entry[] = [];
     // Compose isTails
     newEntries = newEntries.reduce<AnyEntry[]>((arr, b) => {
@@ -183,10 +179,10 @@ export class TailDocumentHistory {
     }, []);
 
     // Compose until newest entry and calc undo
-    let currentDocument = newTailDocument;
+    let currentText = newTailText;
     const newEntriesWithUndo: AnyEntryWithUndo[] = newEntries.map((entry) => {
-      const undo = entry.execute.changeset.inverse(currentDocument);
-      currentDocument = currentDocument.compose(entry.execute.changeset);
+      const undo = entry.execute.changeset.inverse(currentText);
+      currentText = currentText.compose(entry.execute.changeset);
       if (entry.isTail) {
         return {
           ...entry,
@@ -212,7 +208,7 @@ export class TailDocumentHistory {
       if (!swapEntry) {
         throw new Error('Expected entry to be defined');
       }
-      currentDocument = currentDocument.compose(swapEntry.undo.changeset);
+      currentText = currentText.compose(swapEntry.undo.changeset);
 
       if (swapEntry.isTail) {
         tailComposition = tailComposition
@@ -246,14 +242,14 @@ export class TailDocumentHistory {
         ? tailComposition.followIndex(swapEntry.execute.selectionEnd)
         : newExecuteSelectionStart;
 
-      const [newTailEntryExecute, newSwapEntryExecute] = currentDocument.swapChanges(
+      const [newTailEntryExecute, newSwapEntryExecute] = currentText.swapChanges(
         swapEntry.execute.changeset,
         tailComposition
       );
       tailComposition = newTailEntryExecute;
 
       const newSwapEntryUndo = newSwapEntryExecute.inverse(
-        currentDocument.compose(newTailEntryExecute)
+        currentText.compose(newTailEntryExecute)
       );
 
       const newUndoSelectionStart = newTailEntryExecute.followIndex(
@@ -280,9 +276,7 @@ export class TailDocumentHistory {
     resultEntries.reverse();
     this._entries.unshift(...resultEntries);
 
-    this._tailDocument = tailComposition
-      ? newTailDocument.compose(tailComposition)
-      : newTailDocument;
+    this._tailText = tailComposition ? newTailText.compose(tailComposition) : newTailText;
     this.tailComposition = tailComposition;
 
     this.deleteEmptyEntries();
@@ -302,32 +296,32 @@ export class TailDocumentHistory {
 
   /**
    *
-   * @param changeset Changeset that was just composed on {@link newTailDocument}
-   * @param newTailDocument New tailDocument that will replace current one.
-   * All existing entries must be composable on newTailDocument.
+   * @param changeset Changeset that was just composed on {@link newTailText}
+   * @param newTailText Text that will replace current one.
+   * All existing entries must be composable on {@link newTailText}.
    */
-  composeOnAllEntries(changeset: Changeset, newTailDocument: Changeset): void;
+  composeOnAllEntries(changeset: Changeset, newTailText: Changeset): void;
   /**
    *
-   * @param changeset Changeset to be composed on tailDocument
+   * @param changeset Changeset to be composed on tailText
    * @param targetEntryIndex Index of entry where {@link changeset} is composable on.
    */
   // eslint-disable-next-line @typescript-eslint/unified-signatures
   composeOnAllEntries(changeset: Changeset, targetEntryIndex: number): void;
   /**
-   * A changeset was/is composed on tailDocument. Every entry will reflect that with either
+   * A changeset was/is composed on tailText. Every entry will reflect that with either
    * deletions or retained characterrs.
    */
   composeOnAllEntries(
     changeset: Changeset,
-    targetEntryIndexOrNewTailDocument: Changeset | number
+    targetEntryIndexOrNewTailText: Changeset | number
   ) {
     let targetEntryIndex: number;
-    if (targetEntryIndexOrNewTailDocument instanceof Changeset) {
+    if (targetEntryIndexOrNewTailText instanceof Changeset) {
       targetEntryIndex = -1;
-      this._tailDocument = targetEntryIndexOrNewTailDocument;
+      this._tailText = targetEntryIndexOrNewTailText;
     } else {
-      targetEntryIndex = targetEntryIndexOrNewTailDocument;
+      targetEntryIndex = targetEntryIndexOrNewTailText;
       // Update execute before targetIndex (...,e0,e1,e2)
       this.executeTailComposedToIndex(changeset, targetEntryIndex);
 
@@ -367,7 +361,7 @@ export class TailDocumentHistory {
       tailComposable = newTailComposable;
     }
 
-    this._tailDocument = this.tailDocument.compose(tailComposable);
+    this._tailText = this.tailText.compose(tailComposable);
   }
 
   private undoTailComposedSelectionToIndex(changeset: Changeset, endIndex: number) {
@@ -418,14 +412,14 @@ export class TailDocumentHistory {
   }
 
   /**
-   * Calculates new undo from tailDocument and execute.
+   * Calculates new undo from tailText and execute.
    */
   private calculateUndo() {
-    let currentDocument = this.tailDocument;
+    let currentText = this.tailText;
     for (const entry of this._entries) {
-      const newUndo = entry.execute.changeset.inverse(currentDocument);
+      const newUndo = entry.execute.changeset.inverse(currentText);
       entry.undo.changeset = newUndo;
-      currentDocument = currentDocument.compose(entry.execute.changeset);
+      currentText = currentText.compose(entry.execute.changeset);
     }
   }
 
@@ -444,79 +438,3 @@ export class TailDocumentHistory {
     }
   }
 }
-
-/*
-caret applies to X for undo
-X^ * l1 * -l1
-X * l1 * E0
-
-X * E0' * l1' * -l1'
-
-follow E0' to get caret forward by one
-
-combine isTails: e2 * e3 * e4 = E0
-calc composite: TC = T2 * l0 * l1 * E0
-calc inverse: -l0, -l1, -E0
-move all isTails to left:
-T2 * l0 * l1 * E0  
-[E0',l1'] = (T2 * l0).swap(l1,E0)
-T2 * l0 * E0' * l1'
-[E0'',l0'] = (T2).swap(l0,E0')
-T2 * E0'' * l0' * l1'
-
-set base: T2 * E0''
-prepend to entries: l0', l1'
---
-newTailDocument = T2
-newEntries = [l0, l1, e2, e3, e4]
-
-
-
-
-B*m0*e1 = B*e1'*m0'  | A*X*Y => A*Y'*X'
--m0 = i(m0,B)         | undoX = X.inverse(A)
-e1' = f(-m0,e1)       | Y_ = undoX.follow(Y)
-m0' = sw(m0,[e1,e1']) | X.findSwapSecondChange(Y,Y_)
-[Y_, X_];
-
-B*e1'*e3'' 
-
--e1' = i(e1',B)
-
-m - mine
-e - external
-B*m0*e1*m2*e3*m4
-
-
-- m0: add => base: B, records: [m0]
-B*m0
-
-- e1: swap (m0;e1) => B*e1'*m0' => base: B*e1', records: [m0']  
-B*m0*e1
-[e1',m0'] = (B).swap(m0,e1)
-B*e1'*m0'
-
-- m2: add => base: B*e1', records: [m0', m2]
-B*e1'*m0'*m2
-
-- e3: swap (m0',m2;e3) => B*e1'*e3' => base: B*e1'*e3'', records: [m0'', m2']  
-
-B*e1'*m0'*m2*e3
-[e3',m2'] = (B*e1'*m0').swap(m2,e3)
-B*e1'*m0'*e3'*m2'
-[e3'',m0''] = (B*e1').swap(m0',e3')
-B*e1'*e3''*m0''*m2'
-
-- m4: add => base: B*e1'*e3'', records: [m0'', m2', m4]
-B*e1'*e3''*m0''*m2'*m4
-
-- e5: 
-  B*e1'*e3''*m0''*m2'*m4*e5
-  [e5',m4'] = (B*e1'*e3''*m0''*m2').swap(m4,e5)
-  B*e1'*e3''*m0''*m2'*e5'*m4'
-  [e5'',m2''] = (B*e1'*e3''*m0'').swap(m2',e5')
-  B*e1'*e3''*m0''*e5''*m2''*m4'
-  [e5''',m0'''] = (B*e1'*e3'').swap(m0'',e5'')
-  B*e1'*e3''*e5'''*m0'''*m2''*m4'
-
-*/
