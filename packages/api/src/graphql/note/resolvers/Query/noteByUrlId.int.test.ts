@@ -74,8 +74,7 @@ it('returns note', async () => {
     {
       query: `#graphql
         query($urlId: String!){
-
-          note(urlId: $urlId){
+          noteByUrlId(urlId: $urlId){
             textFields {
               key
               value {
@@ -111,7 +110,7 @@ it('returns note', async () => {
   expect(errors).toBeUndefined();
 
   expect(data).toEqual({
-    note: {
+    noteByUrlId: {
       textFields: [
         {
           key: 'CONTENT',
@@ -180,8 +179,7 @@ it('returns one note not found error', async () => {
     {
       query: `#graphql
         query($urlId: String!){
-
-          note(urlId: $urlId){
+          noteByUrlId(urlId: $urlId){
             textFields {
               key
               value {
