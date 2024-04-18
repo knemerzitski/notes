@@ -17,6 +17,44 @@ import { NoteConnection, NoteEdge, NoteTextField } from '../../../types.generate
 
 import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
 
+const QUERY = `#graphql
+  query($after: String, $first: NonNegativeInt, $before: String, $last: NonNegativeInt) {
+    notesConnection(after: $after, first: $first, before: $before, last: $last){
+      edges {
+        cursor
+        node {
+          id
+          noteId
+          textFields {
+            key
+            value {
+              headText {
+                revision
+                changeset
+              }
+              recordsConnection(last: 2) {
+                edges {
+                  node {
+                    change {
+                      revision
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      pageInfo {
+        hasPreviousPage
+        hasNextPage
+        startCursor
+        endCursor
+      }
+    }
+  }
+`;
+
 function createUserContext(user: UserSchema): GraphQLResolversContext {
   return {
     auth: {
@@ -75,45 +113,10 @@ it('returns last 2 notes, after: 7, first 4 => 8,9 (10 notes total)', async () =
 
   const response = await apolloServer.executeOperation(
     {
-      query: `#graphql
-        query($after: String) {
-          notesConnection(after: $after, first: 4){
-            edges {
-              node {
-                id
-                noteId
-                textFields {
-                  key
-                  value {
-                    headText {
-                      revision
-                      changeset
-                    }
-                    recordsConnection(last: 2) {
-                      edges {
-                        node {
-                          change {
-                            revision
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-              cursor
-            }
-            pageInfo {
-              hasPreviousPage
-              hasNextPage
-              startCursor
-              endCursor
-            }
-          }
-        }
-      `,
+      query: QUERY,
       variables: {
         after: userNote7._id.toString('base64'),
+        first: 4,
       },
     },
     {
@@ -147,42 +150,7 @@ it('returns nothing when cursor is invalid', async () => {
 
   const response = await apolloServer.executeOperation(
     {
-      query: `#graphql
-        query($before: String) {
-          notesConnection(before: $before, last: 5){
-            edges {
-              node {
-                id
-                noteId
-                textFields {
-                  key
-                  value {
-                    headText {
-                      revision
-                      changeset
-                    }
-                    recordsConnection(last: 1) {
-                      edges {
-                        node {
-                          change {
-                            revision
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-            pageInfo {
-              hasPreviousPage
-              hasNextPage
-              startCursor
-              endCursor
-            }
-          }
-        }
-      `,
+      query: QUERY,
       variables: {
         before: 'never',
       },
@@ -214,44 +182,10 @@ it('returns nulls when cursor is not found', async () => {
 
   const response = await apolloServer.executeOperation(
     {
-      query: `#graphql
-        query($before: String) {
-          notesConnection(before: $before, last: 5){
-            edges {
-              node {
-                id
-                noteId
-                textFields {
-                  key
-                  value {
-                    headText {
-                      revision
-                      changeset
-                    }
-                    recordsConnection(last: 1) {
-                      edges {
-                        node {
-                          change {
-                            revision
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-            pageInfo {
-              hasPreviousPage
-              hasNextPage
-              startCursor
-              endCursor
-            }
-          }
-        }
-      `,
+      query: QUERY,
       variables: {
         before: '1234567890abcdef',
+        last: 5,
       },
     },
     {
