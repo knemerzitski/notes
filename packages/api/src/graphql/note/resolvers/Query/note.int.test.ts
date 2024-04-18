@@ -73,8 +73,8 @@ it('returns note', async () => {
   const response = await apolloServer.executeOperation(
     {
       query: `#graphql
-        query($urlId: String!){
-          noteByUrlId(urlId: $urlId){
+        query($noteId: String!){
+          note(noteId: $noteId){
             textFields {
               key
               value {
@@ -97,7 +97,7 @@ it('returns note', async () => {
         }
       `,
       variables: {
-        urlId: firstNote.publicId,
+        noteId: firstNote.publicId,
       },
     },
     {
@@ -110,7 +110,7 @@ it('returns note', async () => {
   expect(errors).toBeUndefined();
 
   expect(data).toEqual({
-    noteByUrlId: {
+    note: {
       textFields: [
         {
           key: 'CONTENT',
@@ -178,8 +178,8 @@ it('returns one note not found error', async () => {
   const response = await apolloServer.executeOperation(
     {
       query: `#graphql
-        query($urlId: String!){
-          noteByUrlId(urlId: $urlId){
+        query($noteId: String!){
+          note(noteId: $noteId){
             textFields {
               key
               value {
@@ -202,7 +202,7 @@ it('returns one note not found error', async () => {
         }
       `,
       variables: {
-        urlId: 'never',
+        noteId: 'never',
       },
     },
     {

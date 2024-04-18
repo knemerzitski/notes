@@ -7,4 +7,7 @@ export const NoteConnection: NoteConnectionResolvers = {
   pageInfo: (parent) => {
     return parent.pageInfo();
   },
+  notes: (parent) => {
+    return parent.notes();
+  },
 };

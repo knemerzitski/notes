@@ -1,11 +1,11 @@
+import type { QueryResolvers } from './../../../types.generated';
+
+import { NoteQueryMapper } from '../../mongo-query-mapper/note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 
-import { type QueryResolvers } from '../../../types.generated';
-import { NoteQueryMapper } from '../../mongo-query-mapper/note';
-
-export const noteByUrlId: NonNullable<QueryResolvers['noteByUrlId']> = (
+export const note: NonNullable<QueryResolvers['note']> = (
   _parent,
-  { urlId: notePublicId },
+  { noteId: notePublicId },
   ctx
 ) => {
   const { auth, datasources } = ctx;

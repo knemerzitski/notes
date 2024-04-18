@@ -30,10 +30,10 @@ enum NoteTextField {
 }
 
 type Note implements Node {
-  "Self-descriptive"
+  "ID that globally identifies any note for any user."
   id: ID!
-  "URL-friendly ID"
-  urlId: String!
+  "ID that identifies note by content. Used for querying."
+  noteId: String!
   "All available text fields"
   textFields: [NoteTextFieldEntry!]!
   "Note read-only state. Default is false"
@@ -76,7 +76,7 @@ input NotePreferencesPatchInput {
 
 type NoteConnection implements Connection {
   "Query notes directly without edges"
-  notes: [Note!]!
+  notes: [Note]!
   "Self descriptive"
   edges: [NoteEdge]!
   "Self descriptive"
@@ -91,15 +91,15 @@ type NoteEdge implements Edge {
 }
 
 extend type Query {
-  "Paginate notes"
+  "Paginate notes."
   notesConnection(
     first: NonNegativeInt
     after: String
     last: NonNegativeInt
     before: String
   ): NoteConnection! @auth
-  "Get note by url ID"
-  noteByUrlId(urlId: String!): Note! @auth
+  "Get note by content (Note.noteId value)"
+  note(noteId: String!): Note! @auth
 }
 
 input CreateNoteInput {

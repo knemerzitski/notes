@@ -14,13 +14,14 @@ export interface NotePreferencesMapper {
 
 export interface NoteMapper {
   id(): ResolverTypeWrapper<string>;
-  urlId(): ResolverTypeWrapper<string>;
+  noteId(): ResolverTypeWrapper<string>;
   textFields(): NoteTextFieldEntryMapper[];
   readOnly(): ResolverTypeWrapper<Maybe<boolean>>;
   preferences(): NotePreferencesMapper;
 }
 
 export interface NoteConnectionMapper {
+  notes(): NoteMapper[];
   edges(): NoteEdgeMapper[];
   pageInfo(): PageInfoMapper;
 }

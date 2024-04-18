@@ -30,6 +30,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
     (args.before && !canObjectIdCreateFromBase64(args.before))
   ) {
     return {
+      notes: () => [],
       edges: () => [],
       pageInfo: () => ({
         hasNextPage: () => false,
@@ -66,6 +67,28 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
   }
 
   return {
+    notes: () => {
+      return [...new Array<undefined>(expectedSize)].map((_, index) => {
+        const noteQuery = new NoteQueryMapper({
+          queryDocument: async (query) => {
+            const result = await datasources.notes.getNoteConnection({
+              userId: currentUserId,
+              userNotesArrayPath: NOTES_ARRAY_PATH,
+              noteQuery: query,
+              pagination,
+            });
+            const note = result.userNotes[index];
+            if (!note) {
+              throw newResolverOnlyError(`No note at index ${index}`);
+            }
+
+            return note;
+          },
+        });
+
+        return noteQuery;
+      });
+    },
     edges: () => {
       return [...new Array<undefined>(expectedSize)].map((_, index) => {
         const noteQuery = new NoteQueryMapper({
