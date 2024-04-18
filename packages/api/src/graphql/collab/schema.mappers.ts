@@ -42,6 +42,7 @@ export interface CollabTextMapper {
 }
 
 export interface CollabTextRecordConnectionMapper {
+  records(): CollabTextRecordMapper[];
   edges(): CollabTextRecordEdgeMapper[];
   pageInfo(): PageInfoMapper;
 }

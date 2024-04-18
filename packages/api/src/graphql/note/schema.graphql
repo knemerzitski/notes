@@ -75,7 +75,7 @@ input NotePreferencesPatchInput {
 }
 
 type NoteConnection implements Connection {
-  "Query notes directly without edges"
+  "Notes directly without edges"
   notes: [Note]!
   "Self descriptive"
   edges: [NoteEdge]!

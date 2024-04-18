@@ -6,4 +6,7 @@ export const CollabTextRecordConnection: CollabTextRecordConnectionResolvers = {
   pageInfo: (parent) => {
     return parent.pageInfo();
   },
+  records: (parent) => {
+    return parent.records();
+  },
 };

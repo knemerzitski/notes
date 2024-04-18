@@ -2,6 +2,7 @@ import { CollabTextMapper, CollabTextWithNearHistoryMapper } from '../schema.map
 import { CollabTextSchema } from '../../../mongodb/schema/collabText/collab-text';
 import {
   RelayArrayPaginationConfig,
+  RelayPagination,
   applyLimit,
 } from '../../../mongodb/operations/pagination/relayArrayPagination';
 import {
@@ -115,78 +116,78 @@ export class CollabTextQueryMapper implements CollabTextMapper {
   ) {
     const first = applyLimit(args.first, config.defaultLimit, config.maxLimit);
     const last = applyLimit(args.last, config.defaultLimit, config.maxLimit);
-    const after = args.after ? String(args.after) : undefined;
-    const before = args.before ? String(args.before) : undefined;
+    const after = args.after ?? undefined;
+    const before = args.before ?? undefined;
 
     const isForwardPagination = args.after != null || args.first != null;
-    const isBackwardPagination = args.before != null || args.last != null;
+
+    let pagination: RelayPagination<number>;
+    let expectedSize: number;
+    if (isForwardPagination) {
+      pagination = {
+        after,
+        first,
+      };
+      expectedSize = first;
+    } else {
+      pagination = {
+        before,
+        last,
+      };
+      expectedSize = last;
+    }
 
     return {
+      records: () => {
+        return [...new Array<undefined>(expectedSize)].map((_, index) => {
+          const revisionRecordQuery = new CollabTextRecordQueryMapper(this, {
+            queryDocument: async (query) => {
+              const result = await this.query.queryDocument({
+                records: {
+                  $query: query,
+                  $pagination: pagination,
+                },
+              });
+
+              const record = result?.records?.[index];
+              if (!record) {
+                throw newResolverOnlyError(`No record at index ${index}`);
+              }
+
+              return record;
+            },
+          });
+
+          return revisionRecordQuery;
+        });
+      },
       edges: () => {
-        return [
-          ...[...new Array<undefined>(isForwardPagination ? first : 0)].map(
-            (_, index) => {
-              const revisionRecordQuery = new CollabTextRecordQueryMapper(this, {
-                queryDocument: async (project) => {
-                  const result = await this.query.queryDocument({
-                    records: {
-                      $query: project,
-                      $pagination: {
-                        after,
-                        first,
-                      },
-                    },
-                  });
-
-                  const record = result?.records?.[index];
-                  if (!record) {
-                    throw newResolverOnlyError(`No record at index ${index}`);
-                  }
-
-                  return record;
+        return [...new Array<undefined>(expectedSize)].map((_, index) => {
+          const revisionRecordQuery = new CollabTextRecordQueryMapper(this, {
+            queryDocument: async (query) => {
+              const result = await this.query.queryDocument({
+                records: {
+                  $query: query,
+                  $pagination: pagination,
                 },
               });
 
-              return {
-                node: () => revisionRecordQuery,
-                cursor: async () => {
-                  return String(await revisionRecordQuery.change().revision());
-                },
-              };
-            }
-          ),
-          ...[...new Array<undefined>(isBackwardPagination ? last : 0)].map(
-            (_, index) => {
-              const revisionRecordQuery = new CollabTextRecordQueryMapper(this, {
-                queryDocument: async (project) => {
-                  const result = await this.query.queryDocument({
-                    records: {
-                      $query: project,
-                      $pagination: {
-                        before,
-                        last,
-                      },
-                    },
-                  });
+              const record = result?.records?.[index];
+              if (!record) {
+                throw newResolverOnlyError(`No record at index ${index}`);
+              }
 
-                  const record = result?.records?.[index];
-                  if (!record) {
-                    throw newResolverOnlyError(`No record at index ${index}`);
-                  }
+              return record;
+            },
+          });
 
-                  return record;
-                },
-              });
-
-              return {
-                node: () => revisionRecordQuery,
-                cursor: async () => {
-                  return String(await revisionRecordQuery.change().revision());
-                },
-              };
-            }
-          ),
-        ];
+          return {
+            node: () => revisionRecordQuery,
+            cursor: async () => {
+              return String(await revisionRecordQuery.change().revision());
+            },
+          };
+        });
       },
       pageInfo: () => {
         return {
@@ -195,24 +196,79 @@ export class CollabTextQueryMapper implements CollabTextMapper {
               this.tailText().revision(),
               this.headText().revision(),
             ]);
-            if (tailRevision == null || headRevision == null) return null;
-            return (args.after ?? tailRevision) + first < headRevision;
+            if (tailRevision == null || headRevision == null) return false;
+
+            if (isForwardPagination) {
+              return (after ?? tailRevision) + first < headRevision;
+            }
+
+            if (before != null) {
+              return before <= headRevision;
+            }
+
+            return false;
           },
           hasPreviousPage: async () => {
             const [tailRevision, headRevision] = await Promise.all([
               this.tailText().revision(),
               this.headText().revision(),
             ]);
-            if (tailRevision == null || headRevision == null) return null;
+
+            if (tailRevision == null || headRevision == null) return false;
+
+            if (isForwardPagination) {
+              if (after != null) {
+                return tailRevision < after;
+              }
+
+              return false;
+            }
+
             return tailRevision + 1 < (args.before ?? headRevision + 1) - last;
           },
           startCursor: async () => {
-            const tailRevision = await this.tailText().revision();
-            if (tailRevision == null) return null;
-            return tailRevision + 1;
+            const [tailRevision, headRevision] = await Promise.all([
+              this.tailText().revision(),
+              this.headText().revision(),
+            ]);
+
+            if (tailRevision == null || headRevision == null) return null;
+
+            if (isForwardPagination) {
+              if (after != null) {
+                return Math.max(tailRevision + 1, after + 1);
+              }
+
+              return tailRevision + 1;
+            }
+
+            if (before != null) {
+              return Math.max(tailRevision + 1, before - last);
+            }
+
+            return Math.max(tailRevision, headRevision - last) + 1;
           },
-          endCursor: () => {
-            return this.headText().revision();
+          endCursor: async () => {
+            const [tailRevision, headRevision] = await Promise.all([
+              this.tailText().revision(),
+              this.headText().revision(),
+            ]);
+
+            if (tailRevision == null || headRevision == null) return null;
+
+            if (isForwardPagination) {
+              if (after != null) {
+                return Math.min(headRevision, after + first);
+              }
+
+              return Math.min(headRevision, tailRevision + first);
+            }
+
+            if (before != null) {
+              return Math.max(tailRevision + 1, before - 1);
+            }
+
+            return headRevision;
           },
         };
       },
