@@ -1,6 +1,7 @@
 import { Maybe } from '~utils/types';
-import { NoteTextField, ResolverTypeWrapper } from '../types.generated';
+import { NoteTextField, ResolverTypeWrapper, ResolversTypes } from '../types.generated';
 import { CollabTextMapper } from '../collab/schema.mappers';
+import { PageInfoMapper } from '../base/schema.mappers';
 
 export interface NoteTextFieldEntryMapper {
   key(): ResolverTypeWrapper<NoteTextField>;
@@ -17,4 +18,14 @@ export interface NoteMapper {
   textFields(): NoteTextFieldEntryMapper[];
   readOnly(): ResolverTypeWrapper<Maybe<boolean>>;
   preferences(): NotePreferencesMapper;
+}
+
+export interface NoteConnectionMapper {
+  edges(): NoteEdgeMapper[];
+  pageInfo(): PageInfoMapper;
+}
+
+export interface NoteEdgeMapper {
+  node(): NoteMapper;
+  cursor(): ResolversTypes['Cursor'];
 }

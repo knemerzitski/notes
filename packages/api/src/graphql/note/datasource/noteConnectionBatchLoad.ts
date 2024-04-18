@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongodb';
+import { Document, ObjectId } from 'mongodb';
 import {
   RelayPagination,
   getPaginationKey,
@@ -21,6 +21,7 @@ import userNoteResponseToPaginationsMapped from './utils/userNoteResponseToPagin
 import { UserNoteDeepQueryResponse } from './UserNoteDeepQueryResponse';
 import { CollectionName } from '../../../mongodb/collections';
 import { GraphQLResolversContext } from '../../context';
+import isEqual from 'lodash.isequal';
 
 export interface NoteConnectionKey {
   /**
@@ -39,6 +40,13 @@ export interface NoteConnectionKey {
    * Fields to retrieve, inclusion projection.
    */
   noteQuery: DeepQuery<NoteQuery>;
+  /**
+   * Any custom projection on UserSchema.
+   */
+  customQuery?: {
+    query: Document;
+    group: Document;
+  };
 }
 
 export interface NoteConnectionBatchLoadContext {
@@ -53,10 +61,18 @@ export interface NoteConnectionBatchLoadContext {
   };
 }
 
-export default async function noteConnectionBatchLoad(
+export type NoteConnectionBatchLoadOutput<
+  TCustomQuery extends Record<string, unknown> = Record<string, never>,
+> = {
+  userNotes: DeepQueryResponse<NoteQuery>[];
+} & TCustomQuery;
+
+export default async function noteConnectionBatchLoad<
+  TCustomQuery extends Record<string, unknown> = Record<string, never>,
+>(
   keys: Readonly<NoteConnectionKey[]>,
   context: Readonly<NoteConnectionBatchLoadContext>
-): Promise<(DeepQueryResponse<NoteQuery>[] | Error)[]> {
+): Promise<(NoteConnectionBatchLoadOutput<TCustomQuery> | Error)[]> {
   const keysByUserId = groupByUserId(keys);
 
   const userNotesBy_userId_arrayPath_paginationKey = Object.fromEntries(
@@ -70,46 +86,77 @@ export default async function noteConnectionBatchLoad(
           sameUserKeys.map(({ noteQuery }) => noteQuery)
         );
 
-        const allPaginationsByArrayPath = sameUserKeys.reduce<
-          Record<string, { paginations: RelayPagination<ObjectId>[] }>
-        >((map, { pagination, userNotesArrayPath }) => {
-          const existing = map[userNotesArrayPath];
-          if (existing) {
-            existing.paginations.push(pagination);
-          } else {
-            map[userNotesArrayPath] = { paginations: [pagination] };
-          }
-          return map;
-        }, {});
+        const allUniquePaginationsByArrayPath = mapObject(
+          sameUserKeys.reduce<Record<string, Record<string, RelayPagination<ObjectId>>>>(
+            (map, { pagination, userNotesArrayPath }) => {
+              const existing = map[userNotesArrayPath];
+              if (existing) {
+                existing[getPaginationKey(pagination)] = pagination;
+              } else {
+                map[userNotesArrayPath] = { [getPaginationKey(pagination)]: pagination };
+              }
+              return map;
+            },
+            {}
+          ),
+          (arrPath, pagMap) => [arrPath, { paginations: Object.values(pagMap) }]
+        );
 
         // Build userNote aggregate query
         const userNoteLookupInput = userNoteQueryToLookupInput(mergedQuery, context);
 
+        // Custom query and group
+        const mergedCustomQuery = {
+          query: groupEqualObjects(
+            sameUserKeys,
+            (loadKey) => loadKey.customQuery?.query,
+            (duplicateKey) => {
+              throw new Error(
+                `noteConnection customQuery.query key conflict: '${duplicateKey}'. Same key cannot contain different values`
+              );
+            }
+          ),
+          group: groupEqualObjects(
+            sameUserKeys,
+            (loadKey) => loadKey.customQuery?.group,
+            (duplicateKey) => {
+              throw new Error(
+                `noteConnection customQuery.group key conflict: '${duplicateKey}'. Same key cannot contain different values`
+              );
+            }
+          ),
+        };
+
         const userNotesResults = await context.mongodb.collections[CollectionName.Users]
-          .aggregate<RelayPaginateUserNotesArrayOuput<UserNoteDeepQueryResponse>>([
+          .aggregate<
+            RelayPaginateUserNotesArrayOuput<UserNoteDeepQueryResponse> & TCustomQuery
+          >([
             {
               $match: {
                 _id: userId,
               },
             },
             ...relayPaginateUserNotesArray({
-              pagination: allPaginationsByArrayPath,
+              customProject: mergedCustomQuery.query,
+              pagination: allUniquePaginationsByArrayPath,
               userNotes: {
                 userNoteCollctionName:
                   context.mongodb.collections[CollectionName.UserNotes].collectionName,
                 userNoteLookupInput,
+                groupExpression: mergedCustomQuery.group,
               },
             }),
           ])
           .toArray();
-
-        const userNotesResult = userNotesResults[0];
-        if (!userNotesResult) {
-          throw new Error(`Expected User aggregate to return data`);
-        }
+        const userNotesResult = userNotesResults[0] ?? {
+          userNotes: {
+            array: [],
+            multiSizes: [],
+          },
+        };
 
         const userNotesByQueryPaginations = multiRelayArrayPaginationMapOutputToInput(
-          mapObject(allPaginationsByArrayPath, (path, { paginations }) => [
+          mapObject(allUniquePaginationsByArrayPath, (path, { paginations }) => [
             path,
             paginations,
           ]),
@@ -117,7 +164,7 @@ export default async function noteConnectionBatchLoad(
         );
 
         const userNotesBy_arrayPath_paginationKey = mapObject(
-          allPaginationsByArrayPath,
+          allUniquePaginationsByArrayPath,
           (path, allPaginations) => {
             const mappedPaginations = userNotesByQueryPaginations[path];
             if (!mappedPaginations) {
@@ -139,16 +186,30 @@ export default async function noteConnectionBatchLoad(
           }
         );
 
-        return [userIdStr, userNotesBy_arrayPath_paginationKey];
+        return [
+          userIdStr,
+          {
+            ...userNotesResult,
+            userNotes: userNotesBy_arrayPath_paginationKey,
+          },
+        ];
       })
     )
-  ) as Record<string, Record<string, Record<string, UserNoteDeepQueryResponse[]>>>;
+  ) as Record<
+    string,
+    {
+      userNotes: Record<string, Record<string, UserNoteDeepQueryResponse[]>>;
+    } & TCustomQuery
+  >;
 
   return keys.map((key) => {
+    const userData = userNotesBy_userId_arrayPath_paginationKey[key.userId.toString()];
+    if (!userData) {
+      throw new Error(`Expected user data from notesConnection aggregate`);
+    }
+
     const userNotes =
-      userNotesBy_userId_arrayPath_paginationKey[key.userId.toString()]?.[
-        key.userNotesArrayPath
-      ]?.[getPaginationKey(key.pagination)];
+      userData.userNotes[key.userNotesArrayPath]?.[getPaginationKey(key.pagination)];
     if (!userNotes) {
       throw new Error(
         `Notes not found for pagination ${getPaginationKey(key.pagination)}`
@@ -159,8 +220,38 @@ export default async function noteConnectionBatchLoad(
       userNoteResponseToPaginationsMapped(userNote, mergeQueries({}, [key.noteQuery]))
     );
 
-    return userNotesPaginationsMapped.map((userNote) =>
+    const userNotesMapped = userNotesPaginationsMapped.map((userNote) =>
       userNoteQueryPaginationMappedToResponse(userNote, key.noteQuery)
     );
+
+    return {
+      ...userData,
+      userNotes: userNotesMapped,
+    };
   });
+}
+
+function groupEqualObjects<T>(
+  values: T[],
+  getTarget: (value: T) => Record<string, unknown> | undefined,
+  onDuplicateKey: (value: string) => void
+): Record<string, unknown> {
+  return values.reduce<Record<string, unknown>>((groupedValue, value) => {
+    const target = getTarget(value);
+    if (!target) {
+      return groupedValue;
+    }
+    for (const key of Object.keys(target)) {
+      if (key in groupedValue) {
+        if (!isEqual(groupedValue[key], target[key])) {
+          onDuplicateKey(key);
+        }
+      } else {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        groupedValue[key] = target[key];
+      }
+    }
+
+    return groupedValue;
+  }, {});
 }

@@ -11,11 +11,13 @@ import { NoteTextField } from '../../types.generated';
 import { ObjectId } from 'mongodb';
 import noteConnectionBatchLoad, {
   NoteConnectionBatchLoadContext,
+  NoteConnectionKey,
 } from './noteConnectionBatchLoad';
-import { NoteSchema } from '../../../mongodb/schema/note';
 import { UserSchema } from '../../../mongodb/schema/user';
+import { RelayPagination } from '../../../mongodb/operations/pagination/relayArrayPagination';
+import { UserNoteSchema } from '../../../mongodb/schema/user-note';
 
-let notes: NoteSchema[];
+let userNotes: UserNoteSchema[];
 let user: UserSchema;
 let context: NoteConnectionBatchLoadContext;
 
@@ -23,7 +25,7 @@ beforeAll(async () => {
   await resetDatabase();
   faker.seed(32314);
 
-  const { notes: tmpNotes, user: tmpUser } = createUserWithNotes(
+  const { userNotes: tmpUserNotes, user: tmpUser } = createUserWithNotes(
     5,
     Object.values(NoteTextField),
     {
@@ -36,7 +38,7 @@ beforeAll(async () => {
       },
     }
   );
-  notes = tmpNotes;
+  userNotes = tmpUserNotes;
   user = tmpUser;
 
   await populateWithCreatedData();
@@ -85,47 +87,169 @@ it('loads paginated notes', async () => {
       context
     )
   ).resolves.toEqual([
-    [
-      {
-        readOnly: expect.any(Boolean),
-        note: {
-          publicId: notes.at(-2)?.publicId,
-          ownerId: expect.any(ObjectId),
-          collabTexts: {
-            CONTENT: {
-              headText: { changeset: ['head'] },
-              records: [
-                {
-                  revision: 0,
-                },
-                {
-                  revision: 1,
-                },
-              ],
+    {
+      userNotes: [
+        {
+          readOnly: expect.any(Boolean),
+          note: {
+            publicId: 'publicId_3',
+            ownerId: expect.any(ObjectId),
+            collabTexts: {
+              CONTENT: {
+                headText: { changeset: ['head'] },
+                records: [
+                  {
+                    revision: 0,
+                  },
+                  {
+                    revision: 1,
+                  },
+                ],
+              },
             },
           },
         },
-      },
-      {
-        readOnly: expect.any(Boolean),
-        note: {
-          publicId: notes.at(-1)?.publicId,
-          ownerId: expect.any(ObjectId),
-          collabTexts: {
-            CONTENT: {
-              headText: { changeset: ['head'] },
-              records: [
-                {
-                  revision: 0,
-                },
-                {
-                  revision: 1,
-                },
-              ],
+        {
+          readOnly: expect.any(Boolean),
+          note: {
+            publicId: 'publicId_4',
+            ownerId: expect.any(ObjectId),
+            collabTexts: {
+              CONTENT: {
+                headText: { changeset: ['head'] },
+                records: [
+                  {
+                    revision: 0,
+                  },
+                  {
+                    revision: 1,
+                  },
+                ],
+              },
             },
           },
         },
+      ],
+    },
+  ]);
+});
+
+it('loads custom query with normal pagination', async () => {
+  await expect(
+    noteConnectionBatchLoad(
+      [
+        {
+          userId: user._id,
+          userNotesArrayPath: 'notes.category.default.order',
+          pagination: {
+            first: 1,
+          },
+          noteQuery: {
+            _id: 1,
+          },
+          customQuery: {
+            query: {
+              lastElement: {
+                $last: '$notes.category.default.order',
+              },
+            },
+            group: {
+              lastElement: { $first: '$lastElement' },
+            },
+          },
+        },
+      ],
+      context
+    )
+  ).resolves.toEqual([
+    {
+      lastElement: expect.any(ObjectId),
+      userNotes: [
+        {
+          _id: expect.any(ObjectId),
+          note: {
+            publicId: expect.any(String),
+          },
+        },
+      ],
+    },
+  ]);
+});
+
+it('loads multiple different paginations', async () => {
+  function createKey(pagination: RelayPagination<ObjectId>): NoteConnectionKey {
+    return {
+      userId: user._id,
+      userNotesArrayPath: 'notes.category.default.order',
+      pagination,
+      noteQuery: {
+        note: {
+          publicId: 1,
+        },
       },
-    ],
+    };
+  }
+
+  await expect(
+    noteConnectionBatchLoad(
+      [
+        createKey({ first: 1 }),
+        createKey({ last: 1 }),
+        createKey({ first: 1 }),
+        createKey({ last: 1 }),
+        createKey({
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          after: userNotes.at(1)!._id,
+          first: 1,
+        }),
+      ],
+      context
+    )
+  ).resolves.toEqual([
+    {
+      userNotes: [
+        {
+          note: {
+            publicId: 'publicId_0',
+          },
+        },
+      ],
+    },
+    {
+      userNotes: [
+        {
+          note: {
+            publicId: 'publicId_4',
+          },
+        },
+      ],
+    },
+    {
+      userNotes: [
+        {
+          note: {
+            publicId: 'publicId_0',
+          },
+        },
+      ],
+    },
+    {
+      userNotes: [
+        {
+          note: {
+            publicId: 'publicId_4',
+          },
+        },
+      ],
+    },
+    {
+      userNotes: [
+        {
+          note: {
+            publicId: 'publicId_2',
+          },
+        },
+      ],
+    },
   ]);
 });

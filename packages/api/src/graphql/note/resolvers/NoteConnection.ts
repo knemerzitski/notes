@@ -1,4 +1,10 @@
-import type   { NoteConnectionResolvers } from './../../types.generated';
-    export const NoteConnection: NoteConnectionResolvers = {
-    /* Implement NoteConnection resolver logic here */
-  };
+import type { NoteConnectionResolvers } from './../../types.generated';
+
+export const NoteConnection: NoteConnectionResolvers = {
+  edges: (parent) => {
+    return parent.edges();
+  },
+  pageInfo: (parent) => {
+    return parent.pageInfo();
+  },
+};

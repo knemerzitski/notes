@@ -1,411 +1,183 @@
-import { GraphQLError } from 'graphql';
 import { ObjectId } from 'mongodb';
 
-import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
-
-import { CollabTextSchema } from '../../../../mongodb/schema/collabText/collab-text';
-import { NoteSchema } from '../../../../mongodb/schema/note';
-// import { UserNoteSchema } from '../../../../mongodb/collections/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 
-import {
-  NoteTextField,
-  type InputMaybe,
-  type NoteEdge,
-  type QueryResolvers,
-} from '../../../types.generated';
+import { type QueryResolvers } from '../../../types.generated';
+import { NoteQueryMapper } from '../../mongo-query-mapper/note';
+import { newResolverOnlyError } from '../../../plugins/remove-resolver-only-errors';
+import { RelayPagination } from '../../../../mongodb/operations/pagination/relayArrayPagination';
 
-type UserNoteWithoutIds = Omit<UserNoteSchema, 'userId' | 'notePublicId'>;
-type NoteWithoutRecords = Omit<NoteSchema, 'content'> & {
-  content: Omit<CollabTextSchema, 'records'>;
-};
-type UserNoteWithNote = UserNoteWithoutIds & { note?: Require_id<NoteWithoutRecords> };
+const DEFAULT_LIMIT = 20;
+const MAX_LIMIT = 30;
+const NOTES_ARRAY_PATH = 'notes.category.default.order';
 
-interface AggregateResult {
-  userNotes: Require_id<UserNoteWithNote>[];
-  firstId?: Types.ObjectId;
-  lastId?: Types.ObjectId;
+function canObjectIdCreateFromBase64(s: string) {
+  return s.length === 16;
 }
 
-const RESULT_LIMIT_COUNT = 20;
-
-export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = async (
+export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
   _parent,
-  { first, after, last, before },
+  args,
   ctx
 ) => {
-  const {
-    auth,
-    mongoose: { model },
-  } = ctx;
+  const { auth, datasources } = ctx;
   assertAuthenticated(auth);
 
-  // Validate variables
-  const forwardsPagination = first != null || after != null;
-  const backwardsPagination = last != null || before != null;
-  if (forwardsPagination && backwardsPagination) {
-    throw new GraphQLError(
-      'Cannot mix arguments ("first", "after") with ("last", "before").',
-      {
-        extensions: {
-          code: GraphQLErrorCode.InvalidInput,
-        },
-      }
-    );
-  }
-  if (!forwardsPagination && !backwardsPagination) {
-    throw new GraphQLError(
-      'Must provide at least one variable "first", "after", "last" or "before"',
-      {
-        extensions: {
-          code: GraphQLErrorCode.InvalidInput,
-        },
-      }
-    );
-  }
-
-  const queryingAnyItems = !(first === 0 || last === 0);
-  const afterOrBeforeCursor = after ?? before;
-  if (!queryingAnyItems && !afterOrBeforeCursor) {
-    throw new GraphQLError(
-      '"before" or "after" is required to paginate with zero "first" or "last".',
-      {
-        extensions: {
-          code: GraphQLErrorCode.InvalidInput,
-        },
-      }
-    );
-  }
-
-  const currentUserId = auth.session.user._id._id;
-
-  const pipelineStages: PipelineStage[] = [
-    // Select authenticated user
-    {
-      $match: {
-        _id: currentUserId,
-      },
-    },
-  ];
-
-  if (queryingAnyItems) {
-    if (forwardsPagination) {
-      pipelineStages.push(
-        projectForwardsPagination({ fieldName: 'order', first, after })
-      );
-    } else {
-      pipelineStages.push(
-        projectBackwardsPagination({ fieldName: 'order', last, before })
-      );
-    }
-  } else {
-    // Select only the cursor to determine availability of next and prev page
-    pipelineStages.push({
-      $project: {
-        order: [new ObjectId(afterOrBeforeCursor ?? '')],
-        firstId: {
-          $first: '$notes.category.default.order',
-        },
-        lastId: {
-          $last: '$notes.category.default.order',
-        },
-      },
-    });
-  }
-
-  pipelineStages.push(
-    ...lookupNotes({
-      fieldName: 'order',
-      userNoteCollectionName: model.UserNote.collection.collectionName,
-      noteCollectionName: model.Note.collection.collectionName,
-    })
-  );
-
-  const results = await model.User.aggregate<Require_id<AggregateResult>>(pipelineStages);
-    
-  const result = results[0];
-  if (!result) {
+  // Validate before, after convertable to ObjectId
+  if (
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    (args.after && !canObjectIdCreateFromBase64(args.after)) ||
+    (args.before && !canObjectIdCreateFromBase64(args.before))
+  ) {
     return {
-      notes: [],
-      edges: [],
-      pageInfo: {
-        startCursor: null,
-        hasPreviousPage: false,
-        endCursor: null,
-        hasNextPage: false,
-      },
+      edges: () => [],
+      pageInfo: () => ({
+        hasNextPage: () => false,
+        hasPreviousPage: () => false,
+        startCursor: () => null,
+        endCursor: () => null,
+      }),
     };
   }
-  const { userNotes, firstId, lastId } = result;
 
-  const edges = queryingAnyItems
-    ? userNotes
-        .map((userNote) => {
-          const { note } = userNote;
-          if (!note) return null;
+  const first = args.first != null ? Math.min(MAX_LIMIT, args.first) : DEFAULT_LIMIT;
+  const last = args.last != null ? Math.min(MAX_LIMIT, args.last) : DEFAULT_LIMIT;
+  const after = args.after ? ObjectId.createFromBase64(args.after) : undefined;
+  const before = args.before ? ObjectId.createFromBase64(args.before) : undefined;
 
-          return {
-            cursor: String(userNote._id),
-            node: {
-              id: note.publicId,
-              textFields: [
-                {
-                  key: NoteTextField.TITLE,
-                  value: {
-                    headText: note.title.latestText,
-                    headRevision: note.title.latestRevision,
-                  },
-                },
-                {
-                  key: NoteTextField.CONTENT,
-                  value: {
-                    headText: note.content.latestText,
-                    headRevision: note.content.latestRevision,
-                  },
-                },
-              ],
-              readOnly: userNote.readOnly,
-              preferences: {
-                backgroundColor: userNote.preferences?.backgroundColor,
-              },
-            },
-          };
-        })
-        .reduce<NoteEdge[]>((arr, item) => {
-          if (item !== null) {
-            arr.push(item);
-          }
-          return arr;
-        }, [])
-    : [];
+  const currentUserId = auth.session.user._id;
 
-  const startCursorId = userNotes[0]?._id;
-  const hasPreviousPage = (startCursorId && !firstId?.equals(startCursorId)) ?? false;
-  const endCursorId = userNotes[userNotes.length - 1]?._id;
-  const hasNextPage = (endCursorId && !lastId?.equals(endCursorId)) ?? false;
+  const isForwardPagination = args.after != null || args.first != null;
+
+  let pagination: RelayPagination<ObjectId>;
+  let expectedSize: number;
+  if (isForwardPagination) {
+    pagination = {
+      after,
+      first,
+    };
+    expectedSize = first;
+  } else {
+    pagination = {
+      before,
+      last,
+    };
+    expectedSize = last;
+  }
 
   return {
-    notes: edges.map((edge) => ({
-      ...edge.node,
-    })),
-    edges,
-    pageInfo: {
-      hasPreviousPage,
-      startCursor: startCursorId?.toString(),
-      hasNextPage,
-      endCursor: endCursorId?.toString(),
+    edges: () => {
+      return [...new Array<undefined>(expectedSize)].map((_, index) => {
+        const noteQuery = new NoteQueryMapper({
+          queryDocument: async (query) => {
+            const result = await datasources.notes.getNoteConnection({
+              userId: currentUserId,
+              userNotesArrayPath: NOTES_ARRAY_PATH,
+              noteQuery: query,
+              pagination,
+            });
+            const note = result.userNotes[index];
+            if (!note) {
+              throw newResolverOnlyError(`No note at index ${index}`);
+            }
+
+            return note;
+          },
+        });
+
+        return {
+          node: () => noteQuery,
+          cursor: () => {
+            return noteQuery.id();
+          },
+        };
+      });
+    },
+    pageInfo: () => {
+      return {
+        hasNextPage: async () => {
+          const { userNotes, lastCursor } = await datasources.notes.getNoteConnection<{
+            lastCursor: ObjectId | null;
+          }>({
+            userId: currentUserId,
+            userNotesArrayPath: NOTES_ARRAY_PATH,
+            noteQuery: {
+              _id: 1,
+            },
+            pagination,
+            customQuery: {
+              query: {
+                lastCursor: {
+                  $last: `$${NOTES_ARRAY_PATH}`,
+                },
+              },
+              group: {
+                lastCursor: { $first: '$lastCursor' },
+              },
+            },
+          });
+
+          const endCursor = userNotes[userNotes.length - 1]?._id;
+          const hasNextPage = endCursor && !endCursor.equals(lastCursor);
+
+          return hasNextPage ?? false;
+        },
+        hasPreviousPage: async () => {
+          const { userNotes, firstCursor } = await datasources.notes.getNoteConnection<{
+            firstCursor: ObjectId | null;
+          }>({
+            userId: currentUserId,
+            userNotesArrayPath: NOTES_ARRAY_PATH,
+            noteQuery: {
+              _id: 1,
+            },
+            pagination,
+            customQuery: {
+              query: {
+                firstCursor: {
+                  $first: `$${NOTES_ARRAY_PATH}`,
+                },
+              },
+              group: {
+                firstCursor: { $first: '$firstCursor' },
+              },
+            },
+          });
+
+          const startCursor = userNotes[0]?._id;
+          const hasPreviousPage = startCursor && !startCursor.equals(firstCursor);
+
+          return hasPreviousPage ?? false;
+        },
+        startCursor: async () => {
+          const { userNotes } = await datasources.notes.getNoteConnection({
+            userId: currentUserId,
+            userNotesArrayPath: NOTES_ARRAY_PATH,
+            noteQuery: {
+              _id: 1,
+            },
+            pagination,
+          });
+
+          const startCursor = userNotes[0]?._id;
+
+          return startCursor?.toString('base64');
+        },
+        endCursor: async () => {
+          const { userNotes } = await datasources.notes.getNoteConnection({
+            userId: currentUserId,
+            userNotesArrayPath: NOTES_ARRAY_PATH,
+            noteQuery: {
+              _id: 1,
+            },
+            pagination,
+          });
+
+          const endCursor = userNotes[userNotes.length - 1]?._id;
+
+          return endCursor?.toString('base64');
+        },
+      };
     },
   };
 };
-
-/**
- * Last projected stage
- * @example
- * $project: {
- *   order: {...},
- *   firstId: {...},
- *   lastId: {...}
- * }
- */
-function projectForwardsPagination({
-  fieldName,
-  first,
-  after,
-}: {
-  fieldName: string;
-  first: InputMaybe<number>;
-  after: InputMaybe<string>;
-}): PipelineStage {
-  first = first != null && first <= RESULT_LIMIT_COUNT ? first : RESULT_LIMIT_COUNT;
-
-  return {
-    $project: {
-      [fieldName]: {
-        ...(!after
-          ? {
-              // Slice user notes ids [0, first-1]
-              $slice: ['$notes.category.default.order', 0, first],
-            }
-          : {
-              // Slice user notes ids [indexOf(after)+1, first-1]
-              $let: {
-                vars: {
-                  startIndex: {
-                    $add: [
-                      1,
-                      {
-                        $indexOfArray: [
-                          '$notes.category.default.order',
-                          new ObjectId(after),
-                        ],
-                      },
-                    ],
-                  },
-                },
-                in: {
-                  $slice: ['$notes.category.default.order', '$$startIndex', first],
-                },
-              },
-            }),
-      },
-      firstId: {
-        $first: '$notes.category.default.order',
-      },
-      lastId: {
-        $last: '$notes.category.default.order',
-      },
-    },
-  };
-}
-
-/**
- * Last projected stage
- * @example
- * $project: {
- *   order: {...},
- *   firstId: {...},
- *   lastId: {...}
- * }
- */
-function projectBackwardsPagination({
-  fieldName,
-  last,
-  before,
-}: {
-  fieldName: string;
-  last: InputMaybe<number>;
-  before: InputMaybe<string>;
-}): PipelineStage {
-  last = last != null && last <= RESULT_LIMIT_COUNT ? last : RESULT_LIMIT_COUNT;
-
-  return {
-    $project: {
-      [fieldName]: {
-        ...(!before
-          ? {
-              // Slice user notes ids [-last, last]
-              $slice: ['$notes.category.default.order', -last, last],
-            }
-          : {
-              // Slice user notes ids [indexOf(before)-last-1, indexOf(before)-1]
-              $let: {
-                vars: {
-                  // startIndex might be negative
-                  startIndex: {
-                    $subtract: [
-                      {
-                        $indexOfArray: [
-                          '$notes.category.default.order',
-                          new ObjectId(before),
-                        ],
-                      },
-                      last,
-                    ],
-                  },
-                },
-                in: {
-                  $cond: {
-                    // ensure slice count will be positive
-                    if: { $gt: [{ $add: ['$$startIndex', last] }, 0] },
-                    then: {
-                      $slice: [
-                        '$notes.category.default.order',
-                        {
-                          $max: ['$$startIndex', 0],
-                        },
-                        {
-                          $add: [
-                            {
-                              $min: ['$$startIndex', 0],
-                            },
-                            last,
-                          ],
-                        },
-                      ],
-                    },
-                    else: [],
-                  },
-                },
-              },
-            }),
-      },
-      firstId: {
-        $first: '$notes.category.default.order',
-      },
-      lastId: {
-        $last: '$notes.category.default.order',
-      },
-    },
-  };
-}
-
-/**
- * Last projected stage
- * @example
- * $project: {
- *  firstId: {...},
- *  lastId: {...},
- *  userNotes: [...]
- * }
- */
-function lookupNotes({
-  fieldName,
-  userNoteCollectionName,
-  noteCollectionName,
-}: {
-  fieldName: string;
-  userNoteCollectionName: string;
-  noteCollectionName: string;
-}): PipelineStage[] {
-  return [
-    {
-      $unwind: {
-        path: `$${fieldName}`,
-        includeArrayIndex: 'index',
-      },
-    },
-    {
-      $lookup: {
-        from: userNoteCollectionName,
-        foreignField: '_id',
-        localField: fieldName,
-        as: 'userNote',
-        pipeline: [
-          {
-            $lookup: {
-              from: noteCollectionName,
-              foreignField: 'publicId',
-              localField: 'notePublicId',
-              as: 'note',
-              pipeline: [
-                {
-                  $unset: ['content.records'],
-                },
-              ],
-            },
-          },
-          { $unset: ['userId', 'notePublicId'] },
-          {
-            $set: {
-              note: { $arrayElemAt: ['$note', 0] },
-            },
-          },
-        ],
-      },
-    },
-    {
-      $set: {
-        userNote: { $arrayElemAt: ['$userNote', 0] },
-      },
-    },
-    {
-      $group: {
-        _id: '$_id',
-        firstId: { $first: '$firstId' },
-        lastId: { $first: '$lastId' },
-        userNotes: { $push: '$userNote' },
-      },
-    },
-    { $unset: ['_id'] },
-  ];
-}

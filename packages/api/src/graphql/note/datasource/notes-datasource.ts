@@ -8,7 +8,10 @@ import sortObject from '~utils/sortObject';
 import { ObjectId } from 'mongodb';
 
 import noteBatchLoad, { NoteKey } from './noteBatchLoad';
-import noteConnectionBatchLoad, { NoteConnectionKey } from './noteConnectionBatchLoad';
+import noteConnectionBatchLoad, {
+  NoteConnectionBatchLoadOutput,
+  NoteConnectionKey,
+} from './noteConnectionBatchLoad';
 import { CollectionName } from '../../../mongodb/collections';
 
 export interface NotesDataSourceContext {
@@ -25,7 +28,7 @@ export interface NotesDataSourceContext {
 export default class NotesDataSource {
   private loaders: {
     note: DataLoader<NoteKey, DeepQueryResponse<NoteQuery>, string>;
-    noteConnection: DataLoader<NoteConnectionKey, DeepQueryResponse<NoteQuery>[], string>;
+    noteConnection: DataLoader<NoteConnectionKey, NoteConnectionBatchLoadOutput, string>;
   };
 
   constructor(context: Readonly<NotesDataSourceContext>) {
@@ -38,7 +41,7 @@ export default class NotesDataSource {
       ),
       noteConnection: new DataLoader<
         NoteConnectionKey,
-        DeepQueryResponse<NoteQuery>[],
+        NoteConnectionBatchLoadOutput,
         string
       >((keys) => noteConnectionBatchLoad(keys, context), {
         cacheKeyFn: getEqualObjectString,
@@ -50,11 +53,13 @@ export default class NotesDataSource {
     return this.loaders.note.load(key);
   }
 
-  async getNoteConnection(key: NoteConnectionKey) {
-    const userNotes = await this.loaders.noteConnection.load(key);
+  async getNoteConnection<
+    TCustomQuery extends Record<string, unknown> = Record<string, never>,
+  >(key: NoteConnectionKey) {
+    const result = await this.loaders.noteConnection.load(key);
 
     // Add notes found in notesConnection to note loader
-    userNotes.forEach((userNote) => {
+    result.userNotes.forEach((userNote) => {
       const publicId = userNote.note?.publicId;
       if (!publicId) return;
 
@@ -68,7 +73,7 @@ export default class NotesDataSource {
       );
     });
 
-    return userNotes;
+    return result as NoteConnectionBatchLoadOutput<TCustomQuery>;
   }
 }
 
