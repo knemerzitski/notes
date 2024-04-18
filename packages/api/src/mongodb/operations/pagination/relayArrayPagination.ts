@@ -541,51 +541,66 @@ export function relayArrayPaginationMapOutputToInput<TCursor, TItem>(
   input: RelayArrayPaginationInput<TCursor>['paginations'],
   output: RelayArrayPaginationOutput<TItem>
 ): TItem[][] {
-  // Output is actual contents of item
   if (!input || input.length === 0) return [output.array];
 
+  if (output.array.length === 0) {
+    return input.map(() => []);
+  }
+
   const sizes = output.sizes;
-  if (!sizes) throw new Error('Expected pagination sizes to be defined');
+  if (sizes) {
+    let afterIndex = 2;
+    let afterSize = sizes[0] + sizes[1];
 
-  let afterIndex = 2;
-  let afterSize = sizes[0] + sizes[1];
+    let beforeIndex = input.reduce(
+      (a, b) => a + (isAfterPagination(b) ? 1 : 0),
+      afterIndex
+    );
+    let beforeSize = sizes
+      .slice(afterIndex, beforeIndex)
+      .reduce((a, b) => a + b, afterSize);
 
-  let beforeIndex = input.reduce(
-    (a, b) => a + (isAfterPagination(b) ? 1 : 0),
-    afterIndex
-  );
-  let beforeSize = sizes
-    .slice(afterIndex, beforeIndex)
-    .reduce((a, b) => a + b, afterSize);
+    return input.map((pagination) => {
+      if (isFirstPagination(pagination)) {
+        return output.array.slice(0, Math.min(pagination.first, sizes[0]));
+      } else if (isLastPagination(pagination)) {
+        const end = sizes[0] + sizes[1];
+        return output.array.slice(Math.max(sizes[0], end - pagination.last), end);
+      } else if (isAfterPagination(pagination)) {
+        const nextSize = sizes[afterIndex];
+        if (nextSize == null) {
+          throw new Error(`Expected size at index ${afterIndex}`);
+        }
 
-  return input.map((pagination) => {
-    if (isFirstPagination(pagination)) {
-      return output.array.slice(0, Math.min(pagination.first, sizes[0]));
-    } else if (isLastPagination(pagination)) {
-      const end = sizes[0] + sizes[1];
-      return output.array.slice(Math.max(sizes[0], end - pagination.last), end);
-    } else if (isAfterPagination(pagination)) {
-      const nextSize = sizes[afterIndex];
-      if (nextSize == null) {
-        throw new Error(`Expected size at index ${afterIndex}`);
+        const slice = output.array.slice(afterSize, afterSize + nextSize);
+        afterSize += nextSize;
+        afterIndex++;
+
+        return slice;
+      } else {
+        const nextSize = sizes[beforeIndex];
+        if (nextSize == null) {
+          throw new Error(`Expected size at index ${beforeIndex}`);
+        }
+
+        const slice = output.array.slice(beforeSize, beforeSize + nextSize);
+        beforeSize += nextSize;
+        beforeIndex++;
+
+        return slice;
       }
-
-      const slice = output.array.slice(afterSize, afterSize + nextSize);
-      afterSize += nextSize;
-      afterIndex++;
-
-      return slice;
-    } else {
-      const nextSize = sizes[beforeIndex];
-      if (nextSize == null) {
-        throw new Error(`Expected size at index ${beforeIndex}`);
+    });
+  } else {
+    return input.map((pagination) => {
+      if (isFirstPagination(pagination)) {
+        return output.array.slice(0, Math.min(pagination.first, output.array.length));
+      } else if (isLastPagination(pagination)) {
+        const start = 0;
+        const end = output.array.length;
+        return output.array.slice(Math.max(start, end - pagination.last), end);
+      } else {
+        return [];
       }
-
-      const slice = output.array.slice(beforeSize, beforeSize + nextSize);
-      beforeSize += nextSize;
-      beforeIndex++;
-
-      return slice;
-    }
-  });
+    });
+  }
 }

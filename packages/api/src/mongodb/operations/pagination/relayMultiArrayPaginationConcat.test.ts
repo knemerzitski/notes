@@ -56,7 +56,6 @@ describe('multiRelayArrayPaginationMapOutputToInput', () => {
         'deep.sticky': [[10, 11]],
       },
     },
-
     {
       input: {
         'deep.sticky': [
@@ -93,6 +92,34 @@ describe('multiRelayArrayPaginationMapOutputToInput', () => {
           [6, 7],
           [1, 2, 3],
         ],
+      },
+    },
+  ])('(%s,%s) => %s', ({ input, output, expected }) => {
+    expect(multiRelayArrayPaginationMapOutputToInput(input, output)).toStrictEqual(
+      expected
+    );
+  });
+
+  it.each<{
+    input: Record<'items', RelayArrayPaginationInput<number>['paginations']>;
+    output: RelayMultiArrayPaginationConcatOutput<number>;
+    expected: Record<'items', number[][]>;
+  }>([
+    {
+      input: {
+        items: [
+          {
+            after: 1000,
+            first: 2,
+          },
+        ],
+      },
+      output: {
+        array: [],
+        multiSizes: [],
+      },
+      expected: {
+        items: [[]],
       },
     },
   ])('(%s,%s) => %s', ({ input, output, expected }) => {

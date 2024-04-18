@@ -327,6 +327,20 @@ describe('relayArrayPagination', () => {
         input: {
           paginations: [
             {
+              after: '100',
+              first: 2,
+            },
+          ],
+        },
+        expectedOutput: {
+          array: [],
+          sizes: [0, 0, 0],
+        },
+      },
+      {
+        input: {
+          paginations: [
+            {
               first: 4,
             },
           ],

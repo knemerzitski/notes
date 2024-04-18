@@ -58,21 +58,25 @@ export function multiRelayArrayPaginationMapOutputToInput<
   let sliceStart = 0;
   let index = 0;
   return mapObject(input, (key, relayInput) => {
-    const sizes = output.multiSizes[index];
-    if (sizes == null) {
-      throw new Error(`Expected sizes at index ${index}`);
+    const sizes = output.multiSizes[index++];
+    if (sizes != null) {
+      const sizeSum = Array.isArray(sizes) ? sizes.reduce((a, b) => a + b, 0) : sizes;
+      const end = sliceStart + sizeSum;
+
+      const result = relayArrayPaginationMapOutputToInput(relayInput, {
+        array: output.array.slice(sliceStart, end),
+        sizes: Array.isArray(sizes) ? sizes : undefined,
+      });
+      sliceStart = end;
+
+      return [key, result];
+    } else {
+      return [
+        key,
+        relayArrayPaginationMapOutputToInput(relayInput, {
+          array: output.array,
+        }),
+      ];
     }
-    index++;
-
-    const sizeSum = Array.isArray(sizes) ? sizes.reduce((a, b) => a + b, 0) : sizes;
-    const end = sliceStart + sizeSum;
-
-    const result = relayArrayPaginationMapOutputToInput(relayInput, {
-      array: output.array.slice(sliceStart, end),
-      sizes: Array.isArray(sizes) ? sizes : undefined,
-    });
-    sliceStart = end;
-
-    return [key, result];
   });
 }
