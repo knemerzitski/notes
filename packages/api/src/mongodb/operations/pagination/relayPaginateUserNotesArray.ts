@@ -20,6 +20,7 @@ export interface RelayPaginateUserNotesArrayInput<
     >
   >;
   userNotes: Omit<UserNotesArrayLookupInput<TCollabTextKey>, 'fieldPath'>;
+  customProject?: Document;
 }
 
 export type RelayPaginateUserNotesArrayOuput<
@@ -34,53 +35,70 @@ export default function relayPaginateUserNotesArray<
   TCollabTextKey extends string,
   TArrayKey extends string,
 >(input: RelayPaginateUserNotesArrayInput<TCollabTextKey, TArrayKey>): Document[] {
-  return [
-    {
-      $project: {
-        ...mapObject(input.pagination, (key, pagination) => {
-          return [
-            `paginations.${key}`,
-            relayArrayPagination({
-              arrayFieldPath: key,
-              ...pagination,
-            }),
-          ];
-        }),
-      },
-    },
-    {
-      $project: {
-        paginations: relayMultiArrayPaginationConcat({
-          paths: Object.keys(input.pagination).map((key) => `paginations.${key}`),
-        }),
-      },
-    },
-    ...userNotesArrayLookup({
-      ...input.userNotes,
-      fieldPath: 'paginations.array',
-      groupExpression: {
-        ...input.userNotes.groupExpression,
-        userNotesMultiSizes: { $first: '$paginations.multiSizes' },
-      },
-    }),
-    {
-      $set: {
-        _userNotes: '$userNotes',
-      },
-    },
-    {
-      $unset: 'userNotes',
-    },
-    {
-      $set: {
-        userNotes: {
-          array: '$_userNotes',
-          multiSizes: '$userNotesMultiSizes',
+  const paginationKeys = Object.keys(input.pagination);
+
+  if (paginationKeys.length > 0) {
+    return [
+      {
+        $project: {
+          ...input.customProject,
+          ...mapObject(input.pagination, (key, pagination) => {
+            return [
+              `paginations.${key}`,
+              relayArrayPagination({
+                arrayFieldPath: key,
+                ...pagination,
+              }),
+            ];
+          }),
         },
       },
-    },
-    {
-      $unset: ['_userNotes', 'userNotesMultiSizes'],
-    },
-  ];
+      {
+        $project: {
+          ...(input.customProject
+            ? Object.fromEntries(Object.keys(input.customProject).map((key) => [key, 1]))
+            : {}),
+          paginations: relayMultiArrayPaginationConcat({
+            paths: paginationKeys.map((key) => `paginations.${key}`),
+          }),
+        },
+      },
+      ...userNotesArrayLookup({
+        ...input.userNotes,
+        fieldPath: 'paginations.array',
+        groupExpression: {
+          ...input.userNotes.groupExpression,
+          userNotesMultiSizes: { $first: '$paginations.multiSizes' },
+        },
+      }),
+      {
+        $set: {
+          _userNotes: '$userNotes',
+        },
+      },
+      {
+        $unset: 'userNotes',
+      },
+      {
+        $set: {
+          userNotes: {
+            array: '$_userNotes',
+            multiSizes: '$userNotesMultiSizes',
+          },
+        },
+      },
+      {
+        $unset: ['_userNotes', 'userNotesMultiSizes'],
+      },
+    ];
+  } else {
+    return [
+      {
+        $project: {
+          ...input.customProject,
+        },
+      },
+      { $unset: ['_id'] },
+    ];
+  }
 }
