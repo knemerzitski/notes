@@ -25,16 +25,10 @@ export interface CollabTextRecordMapper {
   afterSelection(): CollabTextSelectionRangeMapper;
 }
 
-export interface CollabTextWithNearHistoryMapper {
-  tailText(): RevisionChangesetMapper;
-  records(): CollabTextRecordMapper[];
-}
-
 export interface CollabTextMapper {
   id(): ResolverTypeWrapper<string>;
   headText(): RevisionChangesetMapper;
   tailText(): RevisionChangesetMapper;
-  textWithNearHistory(): CollabTextWithNearHistoryMapper;
   recordsConnection(
     args: CollabTextrecordsConnectionArgs,
     config: RelayArrayPaginationConfig

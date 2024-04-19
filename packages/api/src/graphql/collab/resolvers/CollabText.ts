@@ -17,7 +17,4 @@ export const CollabText: CollabTextResolvers = {
   tailText: (parent) => {
     return parent.tailText();
   },
-  textWithNearHistory: (parent) => {
-    return parent.textWithNearHistory();
-  },
 };

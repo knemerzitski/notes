@@ -1,4 +1,4 @@
-import { CollabTextMapper, CollabTextWithNearHistoryMapper } from '../schema.mappers';
+import { CollabTextMapper } from '../schema.mappers';
 import { CollabTextSchema } from '../../../mongodb/schema/collabText/collab-text';
 import {
   RelayArrayPaginationConfig,
@@ -56,58 +56,6 @@ export class CollabTextQueryMapper implements CollabTextMapper {
         )?.tailText;
       },
     });
-  }
-
-  // document({
-  //   revision: targetRevision,
-  // }: CollaborativeDocumentdocumentArgs): RevisionChangesetMapper {
-  //   return new RevisionChangesetQueryMapper({
-  //     queryDocument: async ({ revision, changeset }) => {
-  //       if (!revision && !changeset) return {};
-
-  //       if (!changeset) {
-  //         return {
-  //           revision: targetRevision,
-  //         };
-  //       }
-
-  //       const [tailChangeset, rawDocument] = await Promise.all([
-  //         this.tailDocument().changeset(),
-  //         this.query.queryDocument({
-  //           records: {
-  //             $query: {
-  //               changeset: 1,
-  //             },
-  //             $pagination: {
-  //               before: String(targetRevision + 1),
-  //             },
-  //           },
-  //         }),
-  //       ]);
-
-  //       if (tailChangeset == null || rawDocument?.records == null) {
-  //         return null;
-  //       }
-
-  //       const recordsChangesets = rawDocument.records.map((rawRecord) => {
-  //         const serializedChangeset = rawRecord.changeset;
-  //         if (serializedChangeset == null) {
-  //           throw new Error('RevisionRecord.changeset is null');
-  //         }
-
-  //         return Changeset.parseValue(serializedChangeset);
-  //       });
-
-  //       return {
-  //         revision: targetRevision,
-  //         changeset: recordsChangesets.reduce((a, b) => a.compose(b), tailChangeset),
-  //       };
-  //     },
-  //   });
-  // }
-
-  textWithNearHistory(): CollabTextWithNearHistoryMapper {
-    throw new Error('Method not implemented.');
   }
 
   recordsConnection(

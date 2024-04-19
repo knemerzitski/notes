@@ -51,12 +51,6 @@ input CollabTextRecordInput {
   "Selection after change is composed"
   afterSelection: CollabTextSelectionRangeInput!
 }
-
-type CollabTextWithNearHistory {
-  tailText: RevisionChangeset!
-  records: [CollabTextRecord!]!
-}
-
 type CollabText {
   "Self-descriptive"
   id: ID!
@@ -64,8 +58,6 @@ type CollabText {
   headText: RevisionChangeset!
   "Oldest available revision of this text. tailText.compose(...records) => headText"
   tailText: RevisionChangeset!
-  "Text with a few history entries."
-  textWithNearHistory: CollabTextWithNearHistory!
   "A list of records containing all changes made to the text"
   recordsConnection(
     first: PositiveInt
