@@ -81,3 +81,24 @@ export function parseTextWithMultipleSelections(textWithSelection: string) {
     ),
   };
 }
+
+export function getValueWithSelection({
+  value,
+  selectionStart,
+  selectionEnd,
+}: {
+  value: string;
+  selectionStart: number;
+  selectionEnd: number;
+}) {
+  if (selectionStart === selectionEnd) {
+    return value.substring(0, selectionStart) + '>' + value.substring(selectionStart);
+  }
+  return (
+    value.substring(0, selectionStart) +
+    '>' +
+    value.substring(selectionStart, selectionEnd) +
+    '<' +
+    value.substring(selectionEnd)
+  );
+}

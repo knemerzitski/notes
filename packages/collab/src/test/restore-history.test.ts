@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { CollabEditor } from '../editor/collab-editor';
 
-import { Changeset } from '../changeset/changeset';
 import { Entry } from '../editor/tail-text-history';
 import { ServerRevisionRecord, addFiltersToRevisionRecords } from '../records/record';
 import { RevisionText } from '../records/revision-text';
+import { createServerClientsHelper } from './helpers/server-client';
 
 function historyEntriesInfo(entries: Readonly<Entry[]>) {
   return entries.map((e) => ({
@@ -22,120 +22,90 @@ function historyEntriesInfo(entries: Readonly<Entry[]>) {
 }
 
 describe('persist history in revision records', () => {
-  const initialTailText = {
-    changeset: Changeset.EMPTY,
-    revision: -1,
-  };
-
-  let serverRecords: RevisionText<ServerRevisionRecord>;
-  let editorA: CollabEditor;
-  let editorB: CollabEditor;
-
-  function editorSubmit(submitEditor: CollabEditor, ...otherEditors: CollabEditor[]) {
-    const submittedRecord = submitEditor.submitChanges();
-    if (submittedRecord) {
-      const recordInsertion = serverRecords.insert({
-        ...submittedRecord,
-        creatorUserId: submitEditor.userId ?? 'unknown',
-      });
-      submitEditor.submittedChangesAcknowledged(recordInsertion.processedRecord);
-      editorB.handleExternalChange(recordInsertion.processedRecord);
-      otherEditors.forEach((e) => {
-        e.handleExternalChange(recordInsertion.processedRecord);
-      });
-    }
-  }
-
-  function editorASubmit() {
-    editorSubmit(editorA, editorB);
-  }
-
-  function editorBSubmit() {
-    editorSubmit(editorB, editorA);
-  }
+  let helper: ReturnType<typeof createServerClientsHelper<'A' | 'B'>>;
 
   beforeEach(() => {
-    serverRecords = new RevisionText();
-    addFiltersToRevisionRecords(serverRecords);
-    editorA = new CollabEditor({
-      initialText: {
-        headText: initialTailText,
-      },
-      userId: 'A',
-    });
-    editorB = new CollabEditor({
-      initialText: {
-        headText: initialTailText,
-      },
-      userId: 'B',
+    const revisionTailRecords = new RevisionText<ServerRevisionRecord>();
+    addFiltersToRevisionRecords(revisionTailRecords);
+    helper = createServerClientsHelper(revisionTailRecords, {
+      A: new CollabEditor({
+        userId: 'A',
+      }),
+      B: new CollabEditor({
+        userId: 'B',
+      }),
     });
   });
 
   it('restores history from server records containing two users', () => {
-    editorA.insertText('Hi from A.');
-    editorASubmit();
-    editorB.insertText('Hi, im B.');
-    editorBSubmit();
-    editorA.setCaretPosition(-1);
-    editorA.insertText('[A_END]');
-    editorASubmit();
-    editorA.setCaretPosition(0);
-    editorA.insertText('[A_START]');
-    editorASubmit();
-    editorB.setCaretPosition(0);
-    editorB.insertText('[Bstart]');
-    editorBSubmit();
-    editorB.setCaretPosition(17);
-    editorB.deleteTextCount(9);
-    editorBSubmit();
-    editorB.setCaretPosition(27);
-    editorB.insertText('[B_almost_end]');
-    editorBSubmit();
-    editorA.setCaretPosition(18);
-    editorA.insertText('Between: ');
-    editorASubmit();
+    const { server, client } = helper;
+
+    client.A.instance.insertText('Hi from A.');
+    client.A.submitChangesInstant();
+    client.B.instance.insertText('Hi, im B.');
+    client.B.submitChangesInstant();
+    client.A.instance.setCaretPosition(-1);
+    client.A.instance.insertText('[A_END]');
+    client.A.submitChangesInstant();
+    client.A.instance.setCaretPosition(0);
+    client.A.instance.insertText('[A_START]');
+    client.A.submitChangesInstant();
+    client.B.instance.setCaretPosition(0);
+    client.B.instance.insertText('[Bstart]');
+    client.B.submitChangesInstant();
+    client.B.instance.setCaretPosition(17);
+    client.B.instance.deleteTextCount(9);
+    client.B.submitChangesInstant();
+    client.B.instance.setCaretPosition(27);
+    client.B.instance.insertText('[B_almost_end]');
+    client.B.submitChangesInstant();
+    client.A.instance.setCaretPosition(18);
+    client.A.instance.insertText('Between: ');
+    client.A.submitChangesInstant();
 
     const restoredEditorB = new CollabEditor({
       initialText: {
-        headText: serverRecords.getHeadText(),
+        headText: server.instance.getHeadText(),
       },
-      userId: 'B',
+      userId: client.B.instance.userId,
     });
 
-    restoredEditorB.addServerRecords(serverRecords.records);
-    restoredEditorB.historyRestore(editorB.historyEntryCount);
+    restoredEditorB.addServerRecords(server.instance.records);
+    restoredEditorB.historyRestore(client.B.instance.historyEntryCount);
 
-    expect(historyEntriesInfo(editorB.historyEntries)).toStrictEqual(
+    expect(historyEntriesInfo(client.B.instance.historyEntries)).toStrictEqual(
       historyEntriesInfo(restoredEditorB.historyEntries)
     );
   });
 
   it('restores history that includes complete deletion of an entry', () => {
-    editorB.insertText('start typing in B');
-    editorBSubmit();
-    editorB.setCaretPosition(5);
-    editorB.insertText(' next');
-    editorBSubmit();
-    editorA.setCaretPosition(0);
-    editorA.insertText('[beginning by A]');
-    editorASubmit();
-    editorB.insertText('BB');
-    editorBSubmit();
-    editorA.setCaretPosition(30);
-    editorA.deleteTextCount(4);
-    editorASubmit();
+    const { server, client } = helper;
+
+    client.B.instance.insertText('start typing in B');
+    client.B.submitChangesInstant();
+    client.B.instance.setCaretPosition(5);
+    client.B.instance.insertText(' next');
+    client.B.submitChangesInstant();
+    client.A.instance.setCaretPosition(0);
+    client.A.instance.insertText('[beginning by A]');
+    client.A.submitChangesInstant();
+    client.B.instance.insertText('BB');
+    client.B.submitChangesInstant();
+    client.A.instance.setCaretPosition(30);
+    client.A.instance.deleteTextCount(4);
+    client.A.submitChangesInstant();
     const restoredEditorB = new CollabEditor({
       initialText: {
-        headText: serverRecords.getHeadText(),
+        headText: server.instance.getHeadText(),
       },
-      userId: 'B',
+      userId: client.B.instance.userId,
     });
 
-    restoredEditorB.addServerRecords(serverRecords.records);
-    restoredEditorB.historyRestore(editorB.historyEntryCount);
+    restoredEditorB.addServerRecords(server.instance.records);
+    restoredEditorB.historyRestore(client.B.instance.historyEntryCount);
 
     expect(historyEntriesInfo(restoredEditorB.historyEntries)).toStrictEqual(
-      historyEntriesInfo(editorB.historyEntries)
+      historyEntriesInfo(client.B.instance.historyEntries)
     );
   });
 });
