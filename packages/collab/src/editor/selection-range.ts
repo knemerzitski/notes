@@ -1,4 +1,4 @@
-import mitt, { Emitter } from 'mitt';
+import mitt, { Emitter } from '~utils/mitt-unsub';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type Events = {

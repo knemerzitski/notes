@@ -1,4 +1,4 @@
-import mitt, { Emitter } from 'mitt';
+import mitt, { Emitter } from '~utils/mitt-unsub';
 
 import { Changeset } from '../changeset/changeset';
 

@@ -1,10 +1,7 @@
-import { Emitter } from 'mitt';
+import { Emitter } from '~utils/mitt-unsub';
 
 import { Changeset } from '../changeset/changeset';
-import {
-  CollabClient,
-  Events as CollabClientEvents,
-} from '../client/collab-client';
+import { CollabClient } from '../client/collab-client';
 
 import { Events as ChangesetEditorEvents } from './changeset-editor';
 import { SelectionRange } from './selection-range';
@@ -70,55 +67,38 @@ export class LocalChangesetEditorHistory {
       }
     });
 
-    const editorChangeListener = ({
-      changeset,
-      inverseChangeset,
-      selectionPos,
-    }: ChangesetEditorEvents['change']) => {
-      this.push({
-        execute: {
-          changeset,
-          selectionStart: selectionPos,
-          selectionEnd: selectionPos,
-        },
-        undo: {
-          changeset: inverseChangeset,
-          selectionStart: selection.start,
-          selectionEnd: selection.end,
-        },
-      });
-    };
+    const subscribedListeners: (() => void)[] = [];
 
-    const submitChangesListener = () => {
-      this.lastExecutedIndex.submitted = this.lastExecutedIndex.local;
-    };
-
-    const submittedChangesAcknowledgedListener = () => {
-      this.lastExecutedIndex.server = this.lastExecutedIndex.submitted;
-    };
-
-    const handledExternalChangeListener = ({
-      externalChange,
-    }: CollabClientEvents['handledExternalChange']) => {
-      this.adjustHistoryToExternalChange(externalChange);
-    };
-
-    editorBus.on('change', editorChangeListener);
-    client.eventBus.on('submitChanges', submitChangesListener);
-    client.eventBus.on(
-      'submittedChangesAcknowledged',
-      submittedChangesAcknowledgedListener
+    subscribedListeners.push(
+      editorBus.on('change', ({ changeset, inverseChangeset, selectionPos }) => {
+        this.push({
+          execute: {
+            changeset,
+            selectionStart: selectionPos,
+            selectionEnd: selectionPos,
+          },
+          undo: {
+            changeset: inverseChangeset,
+            selectionStart: selection.start,
+            selectionEnd: selection.end,
+          },
+        });
+      }),
+      client.eventBus.on('submitChanges', () => {
+        this.lastExecutedIndex.submitted = this.lastExecutedIndex.local;
+      }),
+      client.eventBus.on('submittedChangesAcknowledged', () => {
+        this.lastExecutedIndex.server = this.lastExecutedIndex.submitted;
+      }),
+      client.eventBus.on('handledExternalChange', ({ externalChange }) => {
+        this.adjustHistoryToExternalChange(externalChange);
+      })
     );
-    client.eventBus.on('handledExternalChange', handledExternalChangeListener);
 
     this.unsubscribeFromEvents = () => {
-      editorBus.off('change', editorChangeListener);
-      client.eventBus.off('submitChanges', submitChangesListener);
-      client.eventBus.off(
-        'submittedChangesAcknowledged',
-        submittedChangesAcknowledgedListener
-      );
-      client.eventBus.off('handledExternalChange', handledExternalChangeListener);
+      subscribedListeners.forEach((unsub) => {
+        unsub();
+      });
     };
   }
 
@@ -180,7 +160,7 @@ export class LocalChangesetEditorHistory {
     this.lastExecutedIndex.server += addedEntriesCount;
     this.lastExecutedIndex.submitted += addedEntriesCount;
     this.lastExecutedIndex.local += addedEntriesCount;
-    
+
     return addedEntriesCount;
   }
 

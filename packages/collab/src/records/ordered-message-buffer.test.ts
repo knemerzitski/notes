@@ -1,4 +1,4 @@
-import mitt from 'mitt';
+import mitt from '~utils/mitt-unsub';
 import { beforeEach, expect, it, vi } from 'vitest';
 
 import { OrderedMessageBuffer } from './ordered-message-buffer';

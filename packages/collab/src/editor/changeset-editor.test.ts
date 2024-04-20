@@ -1,4 +1,4 @@
-import mitt from 'mitt';
+import mitt from '~utils/mitt-unsub';
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Changeset } from '../changeset/changeset';

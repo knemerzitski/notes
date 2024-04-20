@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import mitt, { Emitter } from 'mitt';
+import mitt, { Emitter } from '~utils/mitt-unsub';
 
 import { Changeset } from '../changeset/changeset';
 import {

@@ -10,7 +10,6 @@
     "test:int:watch": "vitest watch -c ./vitest.config.integration.ts"
   },
   "dependencies": {
-    "mitt": "^3.0.1",
     "mongodb": "^6.3.0",
     "nanoid": "^5.0.7",
     "vite-tsconfig-paths": "^4.3.2",
