@@ -1,60 +1,71 @@
 import mergedConsecutiveOrdered from '~utils/array/mergedConsecutiveOrdered';
-import { Changeset } from '../changeset/changeset';
 
 import filter, { Filter } from '~filter/index';
-import { RevisionChangeset } from './revision-changeset';
+import { RevisionRecord } from './record';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type FilterEvents<TRecord> = {
+  isExistingRecord: {
+    /**
+     * New record to be inserted.
+     */
+    newRecord: TRecord;
+    /**
+     * Existing record that {@link newRecord} is going to follow.
+     */
+    existingRecord: Readonly<TRecord>;
+    /**
+     * Set this to true if {@link newRecord} already exists and is equal to {@link existingRecord}
+     */
+    isExisting: boolean;
+  };
   followRecord: {
     /**
-     * Modify this record
+     * New record that is following {@link existingRecord} and will be
+     * inserted as new latest record.
      */
-    follow: TRecord;
+    newRecord: TRecord;
     /**
-     * Record that is being used to modify follow.
+     * Existing record that was used for follow of {@link newRecord}
      */
-    record: Readonly<TRecord>;
+    existingRecord: Readonly<TRecord>;
   };
 };
 
-export type Record<T = Changeset> = RevisionChangeset<T>;
+interface RevisionRecordInsertion<TRecord> {
+  processedRecord: TRecord;
+  isExisting: boolean;
+}
 
-interface RevisionRecordsOptions<TRecord extends Record> {
+export interface RevisionRecordsOptions<TRecord extends RevisionRecord> {
   records?: TRecord[];
   filterBus?: Filter<FilterEvents<TRecord>>;
 }
 
 /**
- * An array of changesets [r0, r1, r2, ..., r3]
+ * Records contain an array of changesets [r0, r1, r2, ..., r3]
  * that are all composable in sequence R = r0 * r1 * r2 * ... * R3. \
  * Also keeps track of each changeset revision which allows
- * adding changes that are intented for older records.
+ * adding changes that are intendend for older records.
  */
-export class RevisionRecords<TRecord extends Record = Record> {
+export class RevisionRecords<TRecord extends RevisionRecord = RevisionRecord> {
   readonly filterBus: Filter<FilterEvents<TRecord>>;
 
-  get headRevision() {
+  /**
+   * Revision of the newest record.
+   */
+  get endRevision() {
     return this.indexToRevision(-1);
   }
 
-  get tailRevision() {
+  /**
+   * Revision of first record.
+   */
+  get startRevision() {
     return this.indexToRevision(0);
   }
 
-  private _tailText: RevisionChangeset = {
-    changeset: Changeset.EMPTY,
-    revision: -1,
-  };
-
-  /**
-   * First record is composed on this text.
-   */
-  get tailText() {
-    return this._tailText;
-  }
-
-  private _records: TRecord[];
+  protected _records: TRecord[];
   get records(): Readonly<TRecord[]> {
     return this._records;
   }
@@ -64,6 +75,9 @@ export class RevisionRecords<TRecord extends Record = Record> {
     this.filterBus = options?.filterBus ?? filter();
   }
 
+  /**
+   * @returns Index of a record that has {@link revision}. -1 if record not found.
+   */
   revisionToIndex(revision: number) {
     const lastRecord = this._records[this._records.length - 1];
     if (!lastRecord) return -1;
@@ -74,6 +88,10 @@ export class RevisionRecords<TRecord extends Record = Record> {
     return result;
   }
 
+  /**
+   * @returns Record index to revision. Negative values count from end of array.
+   * -1 is last record.
+   */
   indexToRevision(index: number) {
     const lastRecord = this._records[this._records.length - 1];
     if (!lastRecord) return -1;
@@ -82,58 +100,85 @@ export class RevisionRecords<TRecord extends Record = Record> {
       index += this._records.length;
     }
 
-    return index + (lastRecord.revision - this._records.length) + 1;
+    if (index < 0) {
+      return -1;
+    }
+
+    const revision = index + (lastRecord.revision - this._records.length) + 1;
+    if (revision > lastRecord.revision) return -1;
+
+    return revision;
   }
 
   /**
    * Inserts new change to records that applies to a specific revision.
    * If it applies to an older revision then it's modified using follow so it can be composed as a last record.
-   * @returns Newest inserted record in records.
+   * @returns Newest inserted record.
    */
-  insert(newRecord: TRecord): TRecord {
-    if (newRecord.revision > this.headRevision) {
+  insert(newRecord: TRecord): RevisionRecordInsertion<TRecord> {
+    if (newRecord.revision > this.endRevision) {
       throw new Error(
         `Unexpected change ${String(newRecord.changeset)} at revision ${
           newRecord.revision
-        } is newer than headRevision ${this.headRevision}.`
+        } is newer than newest revision ${this.endRevision}.`
       );
     }
 
-    const deltaRevision = newRecord.revision - this.headRevision;
+    const deltaRevision = newRecord.revision - this.endRevision;
     const startRecordIndex = this._records.length + deltaRevision;
     if (startRecordIndex < 0) {
       throw new Error(
         `Missing older records to insert change ${String(
           newRecord.changeset
-        )} at revision ${newRecord.revision}.`
+        )} at revision ${newRecord.revision}. Oldest revision is ${this.startRevision}.`
       );
     }
 
-    const newHeadRecord: TRecord = {
+    const newEndRecord: TRecord = {
       ...newRecord,
-      revision: this.headRevision + 1,
+      revision: this.endRevision + 1,
     };
-    let expectedRevision = newRecord.revision + 1;
+    let expectedNextRevision = newRecord.revision + 1;
     for (let i = startRecordIndex; i < this._records.length; i++) {
       const record = this._records[i];
       if (!record) continue;
-      if (expectedRevision !== record.revision) {
+      if (expectedNextRevision !== record.revision) {
         throw new Error(
-          `Expected next record revision to be '${expectedRevision}' but is '${
+          `Expected next record revision to be '${expectedNextRevision}' but is '${
             record.revision
           }' for ${String(record.changeset)} at revision ${record.revision}`
         );
       }
 
-      newHeadRecord.changeset = record.changeset.follow(newHeadRecord.changeset);
-      this.filterBus.filter('followRecord', { record, follow: newHeadRecord });
+      // Stop early if record already exists
+      const { isExisting } = this.filterBus.filter('isExistingRecord', {
+        existingRecord: record,
+        newRecord: newEndRecord,
+        isExisting: false,
+      });
+      if (isExisting) {
+        return {
+          processedRecord: record,
+          isExisting: true,
+        };
+      }
 
-      expectedRevision++;
+      // Follow changeset
+      newEndRecord.changeset = record.changeset.follow(newEndRecord.changeset);
+      this.filterBus.filter('followRecord', {
+        existingRecord: record,
+        newRecord: newEndRecord,
+      });
+
+      expectedNextRevision++;
     }
 
-    this._records.push(newHeadRecord);
+    this._records.push(newEndRecord);
 
-    return newHeadRecord;
+    return {
+      processedRecord: newEndRecord,
+      isExisting: false,
+    };
   }
 
   /**
@@ -150,42 +195,33 @@ export class RevisionRecords<TRecord extends Record = Record> {
     return this.records.slice(startIndex, endIndex);
   }
 
+  deleteNewerRevisions(keepRevision: number) {
+    const keepIndex = this.revisionToIndex(keepRevision);
+    if (keepIndex < 0) return;
+
+    this._records = this._records.slice(0, keepIndex + 1);
+  }
+
   /**
-   * Adds new records. Duplicate records are ignored.
+   * Adds new records. Duplicate records are ignored. Gaps are not allowed between newRecords and this.records.
    * @param newRecords Consecutive ordered array of new records.
-   * @param newTailText Required if it contains records older than current tailText.revision.
-   * @returns Records added successfully.
+   * Throws error if records have no overlap
    */
-  update(newRecords: Readonly<TRecord[]>, newTailText?: RevisionChangeset) {
+  update(newRecords: Readonly<TRecord[]>) {
     const firstRecord = newRecords[0];
-    if (!firstRecord) return;
+    const lastRecord = newRecords[newRecords.length - 1];
+    if (!firstRecord || !lastRecord) return;
 
-    if (newTailText) {
-      if (newTailText.revision < this.tailText.revision) {
-        if (newTailText.revision + 1 !== firstRecord.revision) {
-          throw new Error(
-            `Expected firstRecord revision ${firstRecord.revision} to be right after newTailText revision ${newTailText.revision}.`
-          );
-        }
-
-        if (this.mergeNewRecords(newRecords)) {
-          this._tailText = newTailText;
-          return;
-        }
-      }
-    } else {
-      // Ensure first record isn't too old if newTailText isn't specified
-      if (firstRecord.revision <= this.tailText.revision) {
-        throw new Error(
-          `Expected firstRecord revision (${firstRecord.revision}) to be higher than tailText revision (${this.tailText.revision}) since newTailText isn't specified.`
-        );
-      }
-
-      this.mergeNewRecords(newRecords);
-      return;
+    if (
+      lastRecord.revision + 1 < this.startRevision ||
+      this.endRevision < firstRecord.revision - 1
+    ) {
+      throw new Error(
+        `Expected newRecords to have overlap. newRecords: (${firstRecord.revision},${lastRecord.revision}), records: (${this.startRevision},${this.endRevision})`
+      );
     }
 
-    return false;
+    this.mergeNewRecords(newRecords);
   }
 
   private mergeNewRecords(newRecords: Readonly<TRecord[]>) {
@@ -201,60 +237,9 @@ export class RevisionRecords<TRecord extends Record = Record> {
   }
 
   /**
-   * Deletes all records. Resets tailText.
+   * Deletes all records.
    */
   clear() {
     this._records = [];
-    this._tailText = {
-      changeset: Changeset.EMPTY,
-      revision: -1,
-    };
-  }
-
-  deleteNewerRevisions(keepRevision: number) {
-    const keepIndex = this.revisionToIndex(keepRevision);
-    if (keepIndex < 0) return;
-
-    this._records = this._records.slice(0, keepIndex + 1);
-  }
-
-  /**
-   * Merge records into tailText. Merged records are deleted.
-   */
-  mergeToTail(count: number) {
-    if (count <= 0) return;
-
-    let mergedTailText = this._tailText.changeset;
-    let expectedRevision = this._tailText.revision + 1;
-    for (let i = 0; i < count; i++) {
-      const record = this._records[i];
-      if (!record) continue;
-      if (expectedRevision !== record.revision) {
-        throw new Error(
-          `Expected next record revision to be '${expectedRevision}' but is '${
-            record.revision
-          }' for ${String(record.changeset)} at revision ${record.revision}`
-        );
-      }
-      mergedTailText = mergedTailText.compose(record.changeset);
-      expectedRevision++;
-    }
-
-    this._records = this._records.slice(count);
-
-    this._tailText = {
-      changeset: mergedTailText,
-      revision: expectedRevision - 1,
-    };
-  }
-
-  /**
-   * Composition of all records on tailText.
-   */
-  getHeadText() {
-    return this.records.reduce(
-      (a, b) => a.compose(b.changeset),
-      this._tailText.changeset
-    );
   }
 }

@@ -9,13 +9,15 @@ const cs = (...values: unknown[]) => Changeset.parseValue(values);
 describe('constructor', () => {
   it('sets correct initial document state', () => {
     const editor = new CollabEditor({
-      head: {
-        revision: 4,
-        changeset: cs('initial text'),
+      initialText: {
+        headText: {
+          revision: 4,
+          changeset: cs('initial text'),
+        },
       },
     });
 
-    expect(editor.serverTextRevision).toStrictEqual(4);
+    expect(editor.localRevision).toStrictEqual(4);
     expect(editor.textServer.toString()).toStrictEqual(cs('initial text').toString());
     expect(editor.textSubmitted.toString()).toStrictEqual(cs([0, 11]).toString());
     expect(editor.textLocal.toString()).toStrictEqual(cs([0, 11]).toString());
@@ -52,7 +54,7 @@ describe('submitChanges', () => {
 
     const changes = editor.submitChanges();
 
-    expect(changes).containSubset({ revision: 0, changeset: cs('first insert') });
+    expect(changes).containSubset({ revision: -1, changeset: cs('first insert') });
     expect(editor.textSubmitted).toStrictEqual(changeset);
     expect(editor.textLocal).toStrictEqual(changeset.getIdentity());
   });
@@ -68,16 +70,16 @@ describe('handleSubmittedChangesAcknowledged', () => {
 
     expect(editor.textServer).toStrictEqual(Changeset.EMPTY);
     expect(editor.textSubmitted).toStrictEqual(submitRecord.changeset);
-    expect(editor.serverTextRevision).toStrictEqual(0);
+    expect(editor.localRevision).toStrictEqual(-1);
 
     editor.submittedChangesAcknowledged({
       ...submitRecord,
-      revision: 1,
+      revision: 0,
     });
 
     expect(editor.textServer).toStrictEqual(submitRecord.changeset);
     expect(editor.textSubmitted).toStrictEqual(submitRecord.changeset.getIdentity());
-    expect(editor.serverTextRevision).toStrictEqual(1);
+    expect(editor.localRevision).toStrictEqual(0);
   });
 
   it('discards old revision', () => {
@@ -87,32 +89,32 @@ describe('handleSubmittedChangesAcknowledged', () => {
       revision: -6,
       changeset: Changeset.EMPTY,
     });
-    expect(editor.serverTextRevision).toStrictEqual(0);
+    expect(editor.localRevision).toStrictEqual(-1);
     editor.submittedChangesAcknowledged({
-      revision: 1,
+      revision: 0,
       changeset: Changeset.EMPTY,
     });
-    expect(editor.serverTextRevision).toStrictEqual(1);
+    expect(editor.localRevision).toStrictEqual(0);
   });
 
   it('buffers new revision and processes it when missing revisions are received', () => {
     const editor = new CollabEditor();
 
     editor.submittedChangesAcknowledged({
-      revision: 3,
-      changeset: Changeset.EMPTY,
-    });
-    expect(editor.serverTextRevision).toStrictEqual(0);
-    editor.submittedChangesAcknowledged({
       revision: 2,
       changeset: Changeset.EMPTY,
     });
-    expect(editor.serverTextRevision).toStrictEqual(0);
+    expect(editor.localRevision).toStrictEqual(-1);
     editor.submittedChangesAcknowledged({
       revision: 1,
       changeset: Changeset.EMPTY,
     });
-    expect(editor.serverTextRevision).toStrictEqual(3);
+    expect(editor.localRevision).toStrictEqual(-1);
+    editor.submittedChangesAcknowledged({
+      revision: 0,
+      changeset: Changeset.EMPTY,
+    });
+    expect(editor.localRevision).toStrictEqual(2);
   });
 });
 
@@ -125,7 +127,7 @@ describe('handleExternalChange', () => {
     assert(record != null);
     editor.submittedChangesAcknowledged({
       ...record,
-      revision: 1,
+      revision: 0,
     });
     editor.insertText('; submitted');
     editor.submitChanges();
@@ -133,7 +135,7 @@ describe('handleExternalChange', () => {
     editor.insertText('; more');
 
     editor.handleExternalChange({
-      revision: 2,
+      revision: 1,
       changeset: cs('external before - ', [0, 5], ' - external after'),
     });
 
@@ -149,7 +151,7 @@ describe('handleExternalChange', () => {
     expect(editor.textView.toString()).toStrictEqual(
       cs('external before - server; submitted; local; more - external after').toString()
     );
-    expect(editor.serverTextRevision).toStrictEqual(2);
+    expect(editor.localRevision).toStrictEqual(1);
     expect(editor.value).toStrictEqual(
       'external before - server; submitted; local; more - external after'
     );

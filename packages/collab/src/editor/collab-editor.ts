@@ -15,15 +15,17 @@ import {
   SelectionRange,
   Events as SelectionRangeEvents,
 } from './selection-range';
-import { ClientRecord } from '../records/client-record';
-import { RevisionRecords } from '../records/revision-records';
-import { ServerRecord } from '../records/server-record';
-import { RevisionChangeset } from '../records/revision-changeset';
-import { PartialBy } from '~utils/types';
 import { OrderedMessageBuffer } from '../records/ordered-message-buffer';
 
-import { randomUUID } from 'crypto';
 import { EditorRecordsHistoryRestore } from './editor-records-history-restore';
+import {
+  RevisionChangeset,
+  ServerRevisionRecord,
+  SubmittedRevisionRecord,
+} from '../records/record';
+import { RevisionText } from '../records/revision-text';
+import { nanoid } from 'nanoid';
+import { PartialBy } from '~utils/types';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type EditorEvents = {
@@ -43,36 +45,43 @@ export type Events = Pick<CollabClientEvents, 'viewChange' | 'viewChanged'> &
   Pick<SelectionRangeEvents, 'selectionChanged'> &
   EditorEvents;
 
-export type LocalRecord = Omit<ServerRecord, 'clientId'>;
-export type ExternalRecord = PartialBy<ServerRecord, 'selection'>;
-
-export type EditorRecord = LocalRecord | ExternalRecord;
+type LocalRecord = Omit<ServerRevisionRecord, 'userGeneratedId' | 'creatorUserId'>;
+type ExternalRecord = PartialBy<
+  Omit<ServerRevisionRecord, 'userGeneratedId'>,
+  'beforeSelection' | 'afterSelection' | 'creatorUserId'
+>;
+export type EditorRevisionRecord = LocalRecord | ExternalRecord;
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RecordsBufferMessages = {
-  submittedChangesAcknowledged: EditorRecord;
-  externalChange: EditorRecord;
+  submittedChangesAcknowledged: EditorRevisionRecord;
+  externalChange: EditorRevisionRecord;
 };
 
 export interface CollabEditorOptions {
-  head?: RevisionChangeset;
-  clientId?: string;
+  initialText?:
+    | { headText: RevisionChangeset }
+    | {
+        tailText: RevisionChangeset;
+        records: EditorRevisionRecord[];
+      };
+  userId?: string;
   caretPosition?: number;
   eventBus?: Emitter<Events>;
   generateSubmitId?: () => string;
 }
 
 export class CollabEditor {
-  readonly clientId?: string;
+  readonly userId?: string;
 
   private selection: SelectionRange;
   private changesetEditor: ChangesetEditor;
   private client: CollabClient;
   private recordsBuffer: OrderedMessageBuffer<RecordsBufferMessages>;
-  private serverRecords: RevisionRecords<EditorRecord>;
+  private serverRecords: RevisionText<EditorRevisionRecord>;
   private history: LocalChangesetEditorHistory;
-  private historyRestorer: EditorRecordsHistoryRestore<EditorRecord>;
-  private lastSubmittedRecord: ClientRecord | null = null;
+  private historyRestorer: EditorRecordsHistoryRestore<EditorRevisionRecord>;
+  private lastSubmittedRecord: SubmittedRevisionRecord | null = null;
 
   private generateSubmitId: () => string;
 
@@ -105,9 +114,9 @@ export class CollabEditor {
   }
 
   /**
-   * Revision number that client is up to date with.
+   * Local changes apply to this server revision.
    */
-  get serverTextRevision() {
+  get localRevision() {
     return this.recordsBuffer.currentVersion;
   }
 
@@ -127,32 +136,51 @@ export class CollabEditor {
     return this.client.view;
   }
 
-  get serverRecordsTailRevision(){
+  get recordsTailRevision() {
     return this.serverRecords.tailRevision;
   }
 
-  get serverRecordsHeadRevision(){
+  get recordsHeadRevision() {
     return this.serverRecords.headRevision;
   }
 
-  get historyCurrentIndex(){
+  get historyCurrentIndex() {
     return this.history.currentIndex;
   }
 
-  get historyEntryCount(){
+  get historyEntryCount() {
     return this.history.entries.length;
   }
 
-  get historyEntries(){
+  get historyEntries() {
     return this.history.entries;
   }
 
   constructor(options?: CollabEditorOptions) {
-    const head = options?.head ?? { revision: 0, changeset: Changeset.EMPTY };
-    this._value = head.changeset.strips.joinInsertions();
-    this.clientId = options?.clientId;
+    let headText: RevisionChangeset;
+    if (options?.initialText) {
+      const { initialText } = options;
+      if ('tailText' in initialText) {
+        this.serverRecords = new RevisionText({
+          tailText: initialText.tailText,
+          revisionRecords: {
+            records: initialText.records,
+          },
+        });
+        headText = this.serverRecords.getHeadText();
+      } else {
+        this.serverRecords = new RevisionText();
+        headText = initialText.headText;
+      }
+    } else {
+      this.serverRecords = new RevisionText();
+      headText = this.serverRecords.getHeadText();
+    }
 
-    this.generateSubmitId = options?.generateSubmitId ?? randomUUID;
+    this._value = headText.changeset.strips.joinInsertions();
+    this.userId = options?.userId;
+
+    this.generateSubmitId = options?.generateSubmitId ?? (() => nanoid(6));
 
     // Range
     this.selection = new SelectionRange({
@@ -174,7 +202,7 @@ export class CollabEditor {
 
     // Local, submitted, server changesets
     this.client = new CollabClient({
-      initialServerText: new Changeset(head.changeset.strips),
+      initialServerText: headText.changeset,
     });
     this.client.eventBus.on('viewChanged', ({ view, change, source }) => {
       this._value = view.strips.joinInsertions();
@@ -190,7 +218,7 @@ export class CollabEditor {
 
     // Revision buffering
     this.recordsBuffer = new OrderedMessageBuffer({
-      initialVersion: head.revision,
+      initialVersion: headText.revision,
     });
     this.recordsBuffer.messageBus.on('submittedChangesAcknowledged', (record) => {
       this.lastSubmittedRecord = null;
@@ -203,7 +231,7 @@ export class CollabEditor {
     });
 
     // Store known records from server
-    this.serverRecords = new RevisionRecords<EditorRecord>();
+    this.serverRecords = new RevisionText();
 
     // History for selection and local changeset
     this.history = new LocalChangesetEditorHistory({
@@ -216,8 +244,8 @@ export class CollabEditor {
     this.historyRestorer = new EditorRecordsHistoryRestore({
       history: this.history,
       records: this.serverRecords,
-      historyTailRevision: head.revision,
-    })
+      historyTailRevision: headText.revision,
+    });
 
     // Link events
     this.eventBus = options?.eventBus ?? mitt();
@@ -236,7 +264,7 @@ export class CollabEditor {
 
     this.recordsBuffer.eventBus.on('messagesProcessed', () => {
       this.eventBus.emit('revisionChanged', {
-        revision: this.serverTextRevision,
+        revision: this.localRevision,
         changeset: this.client.server,
       });
     });
@@ -260,15 +288,15 @@ export class CollabEditor {
    * changes since last submission. Returns undefined if changes cannot be submitted.
    * Either due to existing submitted changes or no local changes exist.
    */
-  submitChanges(): ClientRecord | undefined | null {
+  submitChanges(): SubmittedRevisionRecord | undefined | null {
     if (this.client.submitChanges()) {
       const lastEntry = this.history.at(-1);
       if (!lastEntry) return;
 
-      const beforeSelection: ClientRecord['selection']['before'] = {
+      const beforeSelection: SubmittedRevisionRecord['beforeSelection'] = {
         start: 0,
       };
-      const afterSelection: ClientRecord['selection']['after'] = {
+      const afterSelection: SubmittedRevisionRecord['afterSelection'] = {
         start: 0,
       };
 
@@ -283,13 +311,11 @@ export class CollabEditor {
       }
 
       this.lastSubmittedRecord = {
-        generatedId: this.generateSubmitId(),
-        revision: this.recordsBuffer.currentVersion,
+        userGeneratedId: this.generateSubmitId(),
+        revision: this.localRevision,
         changeset: this.client.submitted,
-        selection: {
-          before: beforeSelection,
-          after: afterSelection,
-        },
+        beforeSelection,
+        afterSelection,
       };
     }
 
@@ -299,7 +325,7 @@ export class CollabEditor {
   /**
    * Acknowledge submitted changes.
    */
-  submittedChangesAcknowledged(record: EditorRecord) {
+  submittedChangesAcknowledged(record: EditorRevisionRecord) {
     this.recordsBuffer.add('submittedChangesAcknowledged', record.revision, record);
   }
 
@@ -307,15 +333,19 @@ export class CollabEditor {
    * Handles external change that is created by another client during
    * collab editing.
    */
-  handleExternalChange(record: EditorRecord) {
+  handleExternalChange(record: EditorRevisionRecord) {
     this.recordsBuffer.add('externalChange', record.revision, record);
   }
 
   addServerRecords(
-    records: Readonly<ServerRecord[]>,
+    records: Readonly<EditorRevisionRecord[]>,
     newTailText?: RevisionChangeset
   ) {
-    this.serverRecords.update(records, newTailText);
+    if (newTailText) {
+      this.serverRecords.updateWithTailText(newTailText, records);
+    } else {
+      this.serverRecords.update(records);
+    }
   }
 
   /**
@@ -323,7 +353,7 @@ export class CollabEditor {
    * must be available. Add them using method {@link addServerRecords}.
    */
   historyRestore(desiredRestoreCount: number): number | false {
-    return this.historyRestorer.restore(desiredRestoreCount, this.clientId);
+    return this.historyRestorer.restore(desiredRestoreCount, this.userId);
   }
 
   /**

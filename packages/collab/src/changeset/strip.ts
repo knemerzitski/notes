@@ -1,6 +1,6 @@
 import { InsertStrip } from './insert-strip';
 import { RetainStrip } from './retain-strip';
-import { Parseable, Serializable } from './serialize.types';
+import { Parseable, Serializable } from './serialize';
 import { Strips } from './strips';
 
 export type SerializedStrip = unknown;

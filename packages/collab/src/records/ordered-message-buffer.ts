@@ -1,7 +1,5 @@
 import mitt, { Emitter } from 'mitt';
 
-// TODO move to records dir?
-
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type Events = {
   /**

@@ -3,8 +3,8 @@ import { CollabEditor } from '../editor/collab-editor';
 
 import { Changeset } from '../changeset/changeset';
 import { Entry } from '../editor/tail-text-history';
-import { ServerRecord, createServerRecords } from '../records/server-record';
-import { RevisionRecords } from '../records/revision-records';
+import { ServerRevisionRecord, addFiltersToRevisionRecords } from '../records/record';
+import { RevisionText } from '../records/revision-text';
 
 function historyEntriesInfo(entries: Readonly<Entry[]>) {
   return entries.map((e) => ({
@@ -27,24 +27,21 @@ describe('persist history in revision records', () => {
     revision: -1,
   };
 
-  let serverRecords: RevisionRecords<ServerRecord>;
+  let serverRecords: RevisionText<ServerRevisionRecord>;
   let editorA: CollabEditor;
   let editorB: CollabEditor;
 
-  function editorSubmit(
-    submitEditor: CollabEditor,
-    ...otherEditors: CollabEditor[]
-  ) {
-    const c1 = submitEditor.submitChanges();
-    if (c1) {
-      const r1 = serverRecords.insert({
-        ...c1,
-        clientId: submitEditor.clientId,
+  function editorSubmit(submitEditor: CollabEditor, ...otherEditors: CollabEditor[]) {
+    const submittedRecord = submitEditor.submitChanges();
+    if (submittedRecord) {
+      const recordInsertion = serverRecords.insert({
+        ...submittedRecord,
+        creatorUserId: submitEditor.userId ?? 'unknown',
       });
-      submitEditor.submittedChangesAcknowledged(r1);
-      editorB.handleExternalChange(r1);
+      submitEditor.submittedChangesAcknowledged(recordInsertion.processedRecord);
+      editorB.handleExternalChange(recordInsertion.processedRecord);
       otherEditors.forEach((e) => {
-        e.handleExternalChange(r1);
+        e.handleExternalChange(recordInsertion.processedRecord);
       });
     }
   }
@@ -58,14 +55,19 @@ describe('persist history in revision records', () => {
   }
 
   beforeEach(() => {
-    serverRecords = createServerRecords();
+    serverRecords = new RevisionText();
+    addFiltersToRevisionRecords(serverRecords);
     editorA = new CollabEditor({
-      head: initialTailText,
-      clientId: 'A',
+      initialText: {
+        headText: initialTailText,
+      },
+      userId: 'A',
     });
     editorB = new CollabEditor({
-      head: initialTailText,
-      clientId: 'B',
+      initialText: {
+        headText: initialTailText,
+      },
+      userId: 'B',
     });
   });
 
@@ -94,11 +96,10 @@ describe('persist history in revision records', () => {
     editorASubmit();
 
     const restoredEditorB = new CollabEditor({
-      head: {
-        changeset: serverRecords.getHeadText(),
-        revision: serverRecords.headRevision,
+      initialText: {
+        headText: serverRecords.getHeadText(),
       },
-      clientId: 'B',
+      userId: 'B',
     });
 
     restoredEditorB.addServerRecords(serverRecords.records);
@@ -124,11 +125,10 @@ describe('persist history in revision records', () => {
     editorA.deleteTextCount(4);
     editorASubmit();
     const restoredEditorB = new CollabEditor({
-      head: {
-        changeset: serverRecords.getHeadText(),
-        revision: serverRecords.headRevision,
+      initialText: {
+        headText: serverRecords.getHeadText(),
       },
-      clientId: 'B',
+      userId: 'B',
     });
 
     restoredEditorB.addServerRecords(serverRecords.records);

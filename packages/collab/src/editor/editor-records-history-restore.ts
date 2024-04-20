@@ -1,16 +1,23 @@
-import { RevisionChangeset } from '../records/revision-changeset';
-import { RevisionRecords } from '../records/revision-records';
-import { EditorRecord } from './collab-editor';
+import { ServerRevisionRecord } from '../records/record';
+import { RevisionText } from '../records/revision-text';
 import { LocalChangesetEditorHistory } from './local-changeset-editor-history';
 
-export interface EditorRecordsHistoryRestoreProps<TRecord extends RevisionChangeset> {
-  records: RevisionRecords<TRecord>;
+type Record = Pick<ServerRevisionRecord, 'changeset' | 'revision'> &
+  Partial<
+    Pick<ServerRevisionRecord, 'beforeSelection' | 'afterSelection' | 'creatorUserId'>
+  >;
+
+export interface EditorRecordsHistoryRestoreProps<TRecord extends Record> {
+  records: RevisionText<TRecord>;
+  /**
+   * Revision of oldest history entry. Initially historyTailRevision is headRevision without any history entries.
+   */
   historyTailRevision: number;
   history: LocalChangesetEditorHistory;
 }
 
-export class EditorRecordsHistoryRestore<TRecord extends EditorRecord> {
-  private serverRecords: RevisionRecords<TRecord>;
+export class EditorRecordsHistoryRestore<TRecord extends Record> {
+  private serverRecords: RevisionText<TRecord>;
   private historyTailRevision: number;
   private history: LocalChangesetEditorHistory;
 
@@ -22,13 +29,13 @@ export class EditorRecordsHistoryRestore<TRecord extends EditorRecord> {
 
   restore(
     desiredRestoreCount: number,
-    clientId?: string,
+    targetUserId?: string | symbol,
     recursive = true
   ): number | false {
     if (desiredRestoreCount <= 0) return 0;
 
     let potentialRestoreCount = 0;
-    const relevantRecords: EditorRecord[] = [];
+    const relevantRecords: TRecord[] = [];
     for (
       let i = this.serverRecords.revisionToIndex(this.historyTailRevision);
       i >= 0;
@@ -37,7 +44,11 @@ export class EditorRecordsHistoryRestore<TRecord extends EditorRecord> {
       const record = this.serverRecords.records[i];
       if (!record) continue;
       relevantRecords.push(record);
-      if (!clientId || !('clientId' in record) || record.clientId === clientId) {
+      if (
+        !targetUserId ||
+        !('creatorUserId' in record) ||
+        record.creatorUserId === targetUserId
+      ) {
         potentialRestoreCount++;
         if (potentialRestoreCount >= desiredRestoreCount) {
           break;
@@ -57,9 +68,11 @@ export class EditorRecordsHistoryRestore<TRecord extends EditorRecord> {
     const addedEntriesCount = this.history.restoreHistoryEntries(
       newTailText,
       relevantRecords.map((record) => {
-        const isOtherClient =
-          clientId && 'clientId' in record && record.clientId !== clientId;
-        if (!record.selection || isOtherClient) {
+        const isOtherUser =
+          targetUserId &&
+          'creatorUserId' in record &&
+          record.creatorUserId !== targetUserId;
+        if (!record.beforeSelection || !record.afterSelection || isOtherUser) {
           return {
             isTail: true,
             execute: {
@@ -70,12 +83,12 @@ export class EditorRecordsHistoryRestore<TRecord extends EditorRecord> {
           return {
             execute: {
               changeset: record.changeset,
-              selectionStart: record.selection.after.start,
-              selectionEnd: record.selection.after.end,
+              selectionStart: record.afterSelection.start,
+              selectionEnd: record.afterSelection.end,
             },
             undo: {
-              selectionStart: record.selection.before.start,
-              selectionEnd: record.selection.before.start,
+              selectionStart: record.beforeSelection.start,
+              selectionEnd: record.beforeSelection.end,
             },
           };
         }
@@ -88,7 +101,7 @@ export class EditorRecordsHistoryRestore<TRecord extends EditorRecord> {
 
     const remainingCount = desiredRestoreCount - restoredCount;
     if (remainingCount > 0 && potentialRestoreCount > 0 && recursive) {
-      const nextRestoredCount = this.restore(remainingCount, clientId, recursive);
+      const nextRestoredCount = this.restore(remainingCount, targetUserId, recursive);
       if (typeof nextRestoredCount === 'number') {
         restoredCount += nextRestoredCount;
       }
