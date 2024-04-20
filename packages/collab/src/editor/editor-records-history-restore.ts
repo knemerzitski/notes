@@ -1,5 +1,5 @@
 import { ServerRevisionRecord } from '../records/record';
-import { RevisionText } from '../records/revision-text';
+import { RevisionTailRecords } from '../records/revision-tail-records';
 import { LocalChangesetEditorHistory } from './local-changeset-editor-history';
 
 type Record = Pick<ServerRevisionRecord, 'changeset' | 'revision'> &
@@ -8,7 +8,7 @@ type Record = Pick<ServerRevisionRecord, 'changeset' | 'revision'> &
   >;
 
 export interface EditorRecordsHistoryRestoreProps<TRecord extends Record> {
-  records: RevisionText<TRecord>;
+  records: RevisionTailRecords<TRecord>;
   /**
    * Revision of oldest history entry. Initially historyTailRevision is headRevision without any history entries.
    */
@@ -17,7 +17,7 @@ export interface EditorRecordsHistoryRestoreProps<TRecord extends Record> {
 }
 
 export class EditorRecordsHistoryRestore<TRecord extends Record> {
-  private serverRecords: RevisionText<TRecord>;
+  private serverRecords: RevisionTailRecords<TRecord>;
   private historyTailRevision: number;
   private history: LocalChangesetEditorHistory;
 

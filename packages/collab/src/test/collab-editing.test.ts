@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { SelectionDirection } from '../editor/selection-range';
 
 import { CollabEditor } from '../editor/collab-editor';
-import { RevisionText } from '../records/revision-text';
+import { RevisionTailRecords } from '../records/revision-tail-records';
 import { ServerRevisionRecord, addFiltersToRevisionRecords } from '../records/record';
 import { createServerClientsHelper } from './helpers/server-client';
 
@@ -11,7 +11,7 @@ describe('single client', () => {
   let helper: ReturnType<typeof createServerClientsHelper<'A'>>;
 
   beforeEach(() => {
-    const revisionTailRecords = new RevisionText<ServerRevisionRecord>();
+    const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>();
     addFiltersToRevisionRecords(revisionTailRecords);
     helper = createServerClientsHelper(revisionTailRecords, {
       A: new CollabEditor(),
@@ -39,7 +39,7 @@ describe('two clients', () => {
   let helper: ReturnType<typeof createServerClientsHelper<'A' | 'B'>>;
 
   beforeEach(() => {
-    const revisionTailRecords = new RevisionText<ServerRevisionRecord>();
+    const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>();
     addFiltersToRevisionRecords(revisionTailRecords);
     helper = createServerClientsHelper(revisionTailRecords, {
       A: new CollabEditor({
@@ -159,7 +159,7 @@ describe('three clients', () => {
   let helper: ReturnType<typeof createServerClientsHelper<'A' | 'B' | 'C'>>;
 
   beforeEach(() => {
-    const revisionTailRecords = new RevisionText<ServerRevisionRecord>();
+    const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>();
     addFiltersToRevisionRecords(revisionTailRecords);
     helper = createServerClientsHelper(revisionTailRecords, {
       A: new CollabEditor({

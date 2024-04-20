@@ -10,7 +10,7 @@ export interface RevisionTextOptions<TRecord extends RevisionRecord> {
 /**
  * Records with a tailText
  */
-export class RevisionText<
+export class RevisionTailRecords<
   TRecord extends RevisionRecord = RevisionRecord,
 > extends RevisionRecords<TRecord> {
   constructor(options?: RevisionTextOptions<TRecord>) {

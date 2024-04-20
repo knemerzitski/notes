@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { Changeset } from '../changeset/changeset';
-import { RevisionText } from './revision-text';
+import { RevisionTailRecords } from './revision-tail-records';
 
-let revisionText: RevisionText;
+let revisionText: RevisionTailRecords;
 
 beforeEach(() => {
   const initialRecords = [
@@ -17,7 +17,7 @@ beforeEach(() => {
     },
   ];
 
-  revisionText = new RevisionText({
+  revisionText = new RevisionTailRecords({
     tailText: {
       revision: 5,
       changeset: Changeset.fromInsertion('start'),
@@ -68,10 +68,10 @@ describe('updateWithTailText', () => {
     }));
   }
 
-  let revisionRecords: RevisionText;
+  let revisionRecords: RevisionTailRecords;
 
   beforeEach(() => {
-    revisionRecords = new RevisionText({
+    revisionRecords = new RevisionTailRecords({
       revisionRecords: {
         records: createConsecutiveRecords(5, 8),
       },

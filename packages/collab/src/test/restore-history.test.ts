@@ -3,7 +3,7 @@ import { CollabEditor } from '../editor/collab-editor';
 
 import { Entry } from '../editor/tail-text-history';
 import { ServerRevisionRecord, addFiltersToRevisionRecords } from '../records/record';
-import { RevisionText } from '../records/revision-text';
+import { RevisionTailRecords } from '../records/revision-tail-records';
 import { createServerClientsHelper } from './helpers/server-client';
 
 function historyEntriesInfo(entries: Readonly<Entry[]>) {
@@ -25,7 +25,7 @@ describe('persist history in revision records', () => {
   let helper: ReturnType<typeof createServerClientsHelper<'A' | 'B'>>;
 
   beforeEach(() => {
-    const revisionTailRecords = new RevisionText<ServerRevisionRecord>();
+    const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>();
     addFiltersToRevisionRecords(revisionTailRecords);
     helper = createServerClientsHelper(revisionTailRecords, {
       A: new CollabEditor({

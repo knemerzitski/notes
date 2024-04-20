@@ -23,7 +23,7 @@ import {
   ServerRevisionRecord,
   SubmittedRevisionRecord,
 } from '../records/record';
-import { RevisionText } from '../records/revision-text';
+import { RevisionTailRecords } from '../records/revision-tail-records';
 import { nanoid } from 'nanoid';
 import { PartialBy } from '~utils/types';
 
@@ -78,7 +78,7 @@ export class CollabEditor {
   private changesetEditor: ChangesetEditor;
   private client: CollabClient;
   private recordsBuffer: OrderedMessageBuffer<RecordsBufferMessages>;
-  private serverRecords: RevisionText<EditorRevisionRecord>;
+  private serverRecords: RevisionTailRecords<EditorRevisionRecord>;
   private history: LocalChangesetEditorHistory;
   private historyRestorer: EditorRecordsHistoryRestore<EditorRevisionRecord>;
   private lastSubmittedRecord: SubmittedRevisionRecord | null = null;
@@ -161,7 +161,7 @@ export class CollabEditor {
     if (options?.initialText) {
       const { initialText } = options;
       if ('tailText' in initialText) {
-        this.serverRecords = new RevisionText({
+        this.serverRecords = new RevisionTailRecords({
           tailText: initialText.tailText,
           revisionRecords: {
             records: initialText.records,
@@ -169,11 +169,11 @@ export class CollabEditor {
         });
         headText = this.serverRecords.getHeadText();
       } else {
-        this.serverRecords = new RevisionText();
+        this.serverRecords = new RevisionTailRecords();
         headText = initialText.headText;
       }
     } else {
-      this.serverRecords = new RevisionText();
+      this.serverRecords = new RevisionTailRecords();
       headText = this.serverRecords.getHeadText();
     }
 
@@ -231,7 +231,7 @@ export class CollabEditor {
     });
 
     // Store known records from server
-    this.serverRecords = new RevisionText();
+    this.serverRecords = new RevisionTailRecords();
 
     // History for selection and local changeset
     this.history = new LocalChangesetEditorHistory({

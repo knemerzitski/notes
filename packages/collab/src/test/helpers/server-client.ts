@@ -2,14 +2,14 @@ import mapObject, { mapObjectSkip } from 'map-obj';
 import { assert, expect } from 'vitest';
 import { CollabEditor } from '../../editor/collab-editor';
 import { ServerRevisionRecord } from '../../records/record';
-import { RevisionText } from '../../records/revision-text';
+import { RevisionTailRecords } from '../../records/revision-tail-records';
 import {
   getValueWithSelection,
   parseTextWithMultipleSelections,
 } from './text-with-selection';
 
 export function createServerClientsHelper<TClientName extends string>(
-  server: RevisionText<ServerRevisionRecord>,
+  server: RevisionTailRecords<ServerRevisionRecord>,
   clientMap: Record<TClientName, CollabEditor>
 ) {
   const allClientNames = Object.keys(clientMap) as TClientName[];
@@ -68,7 +68,7 @@ function createCollabEditorHelper(editor: CollabEditor) {
 }
 
 function createRevisionTailRecordsHelper(
-  revisionTailRecords: RevisionText<ServerRevisionRecord>
+  revisionTailRecords: RevisionTailRecords<ServerRevisionRecord>
 ) {
   return {
     instance: revisionTailRecords,
@@ -79,7 +79,7 @@ function createRevisionTailRecordsHelper(
 function createCollabEditorAndRevisionTailRecordsHelper<TClientName extends string>(
   name: TClientName,
   editor: CollabEditor,
-  revisionTailRecords: RevisionText<ServerRevisionRecord>,
+  revisionTailRecords: RevisionTailRecords<ServerRevisionRecord>,
   otherEditors: Record<TClientName, CollabEditor>
 ) {
   const allOtherNames = Object.keys(otherEditors) as TClientName[];
