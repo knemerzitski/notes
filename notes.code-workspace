@@ -15,6 +15,7 @@
       "*.tsx": "${capture}.jsx, ${capture}.*.tsx"
     },
     // Disable VSCode vitest as it doesn't support monorepo
-    "vitest.exclude": ["**"]
+    "vitest.exclude": ["**"],
+    "explorer.fileNesting.expand": false
   }
 }
