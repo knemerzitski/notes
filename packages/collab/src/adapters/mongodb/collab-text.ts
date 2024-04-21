@@ -2,26 +2,29 @@ import { ObjectId } from 'mongodb';
 import { Changeset } from '../../changeset/changeset';
 import { RevisionChangeset, ServerRevisionRecord } from '../../records/record';
 
-export type RevisionRecord = Omit<ServerRevisionRecord, 'creatorUserId'> & {
+export type RevisionRecord<T = unknown> = Omit<
+  ServerRevisionRecord<T>,
+  'creatorUserId'
+> & {
   creatorUserId: ObjectId;
 };
 
-export interface CollabText {
-  headText: RevisionChangeset;
-  tailText: RevisionChangeset;
-  records: RevisionRecord[];
+export interface CollabText<T = unknown> {
+  headText: RevisionChangeset<T>;
+  tailText: RevisionChangeset<T>;
+  records: RevisionRecord<T>[];
 }
 
 interface CreateNewTextParams {
   initalText: string;
   creatorUserId: ObjectId;
-  userGeneratedId: string;
+  userGeneratedId?: string;
 }
 
 export function createInitialCollabText({
   initalText,
   creatorUserId,
-  userGeneratedId,
+  userGeneratedId = '',
 }: CreateNewTextParams): CollabText {
   const changeset = Changeset.fromInsertion(initalText);
   return {
