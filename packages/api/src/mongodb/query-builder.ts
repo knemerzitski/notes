@@ -3,6 +3,7 @@ import {
   RelayPagination,
   getPaginationKey,
 } from './operations/pagination/relayArrayPagination';
+import { Maybe, MaybePromise } from '~utils/types';
 
 type Primitive = string | number | boolean | ObjectId;
 type ProjectionValue = 1 | undefined;
@@ -35,7 +36,7 @@ export type DeepQuery<T> = {
  * Makes every property optional except primitive values.
  * e.g. ObjectId properties are not optional
  */
-export type DeepQueryResponse<T> = {
+export type DeepQueryResponse<T> = Readonly<{
   [Key in keyof T]?: T[Key] extends (infer U)[]
     ? DeepQueryResponse<U>[]
     : T[Key] extends Primitive
@@ -43,7 +44,7 @@ export type DeepQueryResponse<T> = {
       : T[Key] extends object | undefined
         ? DeepQueryResponse<T[Key]>
         : T[Key];
-};
+}>;
 
 /**
  * Paginations by getPaginationKey. \
@@ -52,7 +53,10 @@ export type DeepQueryResponse<T> = {
  *  'b:3': [....], \
  * }
  */
-type ArrayQueryDeepMappedPagination<TItem> = Record<string, DeepQueryResponsePaginationMapped<TItem>[]>;
+type ArrayQueryDeepMappedPagination<TItem> = Record<
+  string,
+  DeepQueryResponsePaginationMapped<TItem>[]
+>;
 
 export type DeepQueryResponsePaginationMapped<T> = {
   [Key in keyof T]?: T[Key] extends (infer U)[]
@@ -65,13 +69,13 @@ export type DeepQueryResponsePaginationMapped<T> = {
 };
 
 export interface MongoQuery {
-  query<T>(query: unknown): Promise<T | null | undefined>;
+  query<T>(query: unknown): MaybePromise<Maybe<T>>;
 }
 
 export interface MongoDocumentQuery<TDocument> {
   queryDocument(
     query: DeepQuery<TDocument>
-  ): Promise<DeepQueryResponse<TDocument> | null | undefined>;
+  ): MaybePromise<Maybe<DeepQueryResponse<TDocument>>>;
 }
 
 export class CustomMongoDocumentDataSource<TDocument>
