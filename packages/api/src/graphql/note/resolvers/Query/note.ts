@@ -5,7 +5,7 @@ import { assertAuthenticated } from '../../../base/directives/auth';
 
 export const note: NonNullable<QueryResolvers['note']> = (
   _parent,
-  { noteId: notePublicId },
+  { contentId: notePublicId },
   ctx
 ) => {
   const { auth, datasources } = ctx;

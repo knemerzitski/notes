@@ -13,7 +13,7 @@ export const Note: NoteResolvers = {
   textFields: (parent) => {
     return parent.textFields();
   },
-  noteId: (parent) => {
-    return parent.noteId();
+  contentId: (parent) => {
+    return parent.contentId();
   },
 };

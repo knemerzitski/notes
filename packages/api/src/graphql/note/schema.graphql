@@ -30,10 +30,10 @@ enum NoteTextField {
 }
 
 type Note implements Node {
-  "ID that globally identifies any note for any user."
+  "Identifies note globally for all users"
   id: ID!
-  "ID that identifies note by content. Used for querying."
-  noteId: String!
+  "Identifies note by content. Is unique only for a specific user."
+  contentId: String!
   "All available text fields"
   textFields: [NoteTextFieldEntry!]!
   "Note read-only state. Default is false"
@@ -91,15 +91,15 @@ type NoteEdge implements Edge {
 }
 
 extend type Query {
-  "Paginate notes."
+  "Paginate notes"
   notesConnection(
     first: NonNegativeInt
     after: String
     last: NonNegativeInt
     before: String
   ): NoteConnection! @auth
-  "Get note by content (Note.noteId value)"
-  note(noteId: String!): Note! @auth
+  "Get note by content (Note.contentId value)"
+  note(contentId: String!): Note! @auth
 }
 
 input CreateNoteInput {
@@ -115,12 +115,12 @@ extend type Mutation {
 }
 
 input UpdateNoteInput {
-  id: String!
+  contentId: String!
   patch: NotePatchInput
 }
 type UpdateNotePayload {
-  "ID of updated note"
-  id: String!
+  "Self-descriptive"
+  contentId: String!
   "Response patch to input"
   patch: NotePatch
 }
@@ -130,7 +130,7 @@ extend type Mutation {
 }
 
 input DeleteNoteInput {
-  id: String!
+  contentId: String!
 }
 type DeleteNotePayload {
   "Self-descriptive"
@@ -151,12 +151,12 @@ extend type Subscription {
 }
 
 input NoteUpdatedInput {
-  "Note ID to subscribe for updates"
-  id: String!
+  "Subscribe to note changes by content ID. If undefined then subscribes to all notes of current user."
+  contentId: String
 }
 type NoteUpdatedPayload {
   "ID of note that was updated"
-  id: String!
+  contentId: String!
   "Changes made to the note"
   patch: NotePatch!
 }
@@ -166,12 +166,12 @@ extend type Subscription {
 }
 
 input NoteDeletedInput {
-  "Note ID to subscribe for deletions"
-  id: String!
+  "Subscribe to note deletion by content ID. If undefined then subscribes to all notes of current user."
+  contentId: String!
 }
 type NoteDeletedPayload {
   "ID of deleted note"
-  id: String!
+  contentId: String!
 }
 
 extend type Subscription {

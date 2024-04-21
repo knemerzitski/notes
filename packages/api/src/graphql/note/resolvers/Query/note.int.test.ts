@@ -18,8 +18,8 @@ import { NoteTextField } from '../../../types.generated';
 import { NoteSchema } from '../../../../mongodb/schema/note';
 
 const QUERY = `#graphql
-  query($noteId: String!, $recordsLast: PositiveInt){
-    note(noteId: $noteId){
+  query($contentId: String!, $recordsLast: PositiveInt){
+    note(contentId: $contentId){
       textFields {
         key
         value {
@@ -99,7 +99,7 @@ it('returns note', async () => {
     {
       query: QUERY,
       variables: {
-        noteId: firstNote.publicId,
+        contentId: firstNote.publicId,
         recordsLast: 2,
       },
     },
@@ -182,7 +182,7 @@ it('returns one note not found error', async () => {
     {
       query: QUERY,
       variables: {
-        noteId: 'never',
+        contentId: 'never',
         recordsLast: 3,
       },
     },

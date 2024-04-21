@@ -14,7 +14,7 @@ export interface NotePreferencesMapper {
 
 export interface NoteMapper {
   id(): ResolverTypeWrapper<string>;
-  noteId(): ResolverTypeWrapper<string>;
+  contentId(): ResolverTypeWrapper<string>;
   textFields(): NoteTextFieldEntryMapper[];
   readOnly(): ResolverTypeWrapper<Maybe<boolean>>;
   preferences(): NotePreferencesMapper;

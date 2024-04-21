@@ -33,7 +33,7 @@ const MUTATION = `#graphql
     createNote(input: $input) {
       note {
         id
-        noteId
+        contentId
         textFields {
           key
           value {
@@ -143,7 +143,7 @@ describe('create', () => {
       createNote: {
         note: {
           id: expect.any(String),
-          noteId: expect.any(String),
+          contentId: expect.any(String),
           textFields: [
             {
               key: 'CONTENT',
@@ -200,7 +200,7 @@ describe('publish', () => {
     subscription {
       noteCreated {
         note {
-          noteId
+          contentId
           textFields {
             key
             value {
@@ -270,7 +270,7 @@ describe('publish', () => {
             data: {
               noteCreated: {
                 note: {
-                  noteId: expect.any(String),
+                  contentId: expect.any(String),
                   textFields: [
                     {
                       key: 'CONTENT',

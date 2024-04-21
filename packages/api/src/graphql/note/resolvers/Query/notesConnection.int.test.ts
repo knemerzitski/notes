@@ -24,7 +24,7 @@ const QUERY = `#graphql
         cursor
         node {
           id
-          noteId
+          contentId
           textFields {
             key
             value {
@@ -132,7 +132,7 @@ it('returns last 2 notes, after: 7, first 4 => 8,9 (10 notes total)', async () =
   expect(
     typedData.notesConnection.edges.map((edge) => {
       if (!edge) return null;
-      return (edge as NoteEdge).node.noteId;
+      return (edge as NoteEdge).node.contentId;
     })
   ).toStrictEqual(['publicId_8', 'publicId_9', null, null]);
 

@@ -30,7 +30,7 @@ export class NoteQueryMapper implements NoteMapper {
     return (await this.query.queryDocument({ _id: 1 }))?._id?.toString('base64');
   }
 
-  async noteId() {
+  async contentId() {
     return (
       await this.query.queryDocument({
         note: {
