@@ -9,7 +9,7 @@ interface SubscriptionKey {
   id: string;
 }
 
-export interface Subscription<TDynamoDBGraphQLContext extends DynamoDBRecord>
+export interface Subscription<TDynamoDBGraphQLContext extends DynamoDBRecord = DynamoDBRecord>
   extends SubscriptionKey {
   topic: string;
   createdAt: number;
@@ -27,7 +27,7 @@ export interface Subscription<TDynamoDBGraphQLContext extends DynamoDBRecord>
   ttl: number;
 }
 
-export interface SubscriptionTable<TDynamoDBGraphQLContext extends DynamoDBRecord>
+export interface SubscriptionTable<TDynamoDBGraphQLContext extends DynamoDBRecord = DynamoDBRecord>
   extends Table<SubscriptionKey, Subscription<TDynamoDBGraphQLContext>> {
   queryAllByTopic(topic: string): Promise<Subscription<TDynamoDBGraphQLContext>[]>;
   queryAllByTopicFilter(
