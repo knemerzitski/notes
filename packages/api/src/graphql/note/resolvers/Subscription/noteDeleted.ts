@@ -3,50 +3,62 @@ import { GraphQLError } from 'graphql';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
 import { GraphQLResolversContext } from '../../../context';
-import type {
-  NoteDeletedPayload,
-  SubscriptionResolvers,
-} from '../../../types.generated';
+import type { ResolversTypes, SubscriptionResolvers } from '../../../types.generated';
 import { isAuthenticated } from '../../../auth-context';
 import { assertAuthenticated } from '../../../base/directives/auth';
+import { SubscriptionTopicPrefix } from '../../../subscriptions';
 
 export const noteDeleted: NonNullable<SubscriptionResolvers['noteDeleted']> = {
-  subscribe: async (
-    _parent,
-    { input: { id: notePublicId } },
-    { auth, mongoose: { model }, subscribe, denySubscription }
-  ) => {
+  subscribe: async (_parent, { input: { contentId: notePublicId } }, ctx) => {
+    const { auth, datasources, subscribe, denySubscription } = ctx;
     if (!isAuthenticated(auth)) return denySubscription();
 
-    const currentUserId = auth.session.user._id._id;
+    const currentUserId = auth.session.user._id;
 
-    const userNote = await model.UserNote.findOne({
-      userId: currentUserId,
-      notePublicId,
-    }).lean();
-
-    if (!userNote) {
-      throw new GraphQLError('Note not found.', {
-        extensions: {
-          code: GraphQLErrorCode.NotFound,
+    if (notePublicId) {
+      // Ensure current user has access to this note
+      const userNote = await datasources.notes.getNote({
+        userId: currentUserId,
+        publicId: notePublicId,
+        noteQuery: {
+          _id: 1,
         },
       });
-    }
 
-    return subscribe(`NOTE_DELETED:${notePublicId}`);
-  },
-  resolve(payload: NoteDeletedPayload) {
-    return payload;
+      if (!userNote._id) {
+        throw new GraphQLError(`Note '${notePublicId}' not found`, {
+          extensions: {
+            code: GraphQLErrorCode.NotFound,
+          },
+        });
+      }
+
+      return subscribe(`${SubscriptionTopicPrefix.NoteDeleted}:noteId=${notePublicId}`);
+    } else {
+      // Subscribe to deletion of own notes
+      const userId = auth.session.user._id.toString('base64');
+      return subscribe(`${SubscriptionTopicPrefix.NoteDeleted}:userId=${userId}`);
+    }
   },
 };
 
 export async function publishNoteDeleted(
   { publish, auth }: GraphQLResolversContext,
-  payload: NoteDeletedPayload
+  payload: ResolversTypes['NoteDeletedPayload']
 ) {
   assertAuthenticated(auth);
 
-  return publish(`NOTE_DELETED:${payload.id}`, {
-    noteDeleted: payload,
-  });
+  const notePublicId = (await payload)?.contentId;
+  if (!notePublicId) return;
+
+  const userId = auth.session.user._id.toString('base64');
+
+  return Promise.all([
+    publish(`${SubscriptionTopicPrefix.NoteDeleted}:noteId=${notePublicId}`, {
+      noteDeleted: payload,
+    }),
+    publish(`${SubscriptionTopicPrefix.NoteDeleted}:userId=${userId}`, {
+      noteDeleted: payload,
+    }),
+  ]);
 }

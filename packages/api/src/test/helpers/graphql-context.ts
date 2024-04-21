@@ -1,36 +1,37 @@
-import { mockDeep, mockFn } from 'vitest-mock-extended';
-
 import { GraphQLResolversContext } from '../../graphql/context';
+import { vi } from 'vitest';
+import { Publisher } from '~lambda-graphql/pubsub/publish';
+import NotesDataSource from '../../graphql/note/datasource/notes-datasource';
+import { UserSchema } from '../../mongodb/schema/user';
+import { mongoCollections, mongoClient } from './mongodb';
 
-import UserDocumentHelper from './mongodb/_model/UserDocumentHelper';
-import { Note, Session, User, UserNote, connection } from './mongodb';
-
-export function createUserContext(userHelper: UserDocumentHelper) {
-  const mockContext = mockDeep<GraphQLResolversContext>({
+export function createUserContext(
+  user: Pick<UserSchema, '_id'>,
+  publisher = (_ctx: Omit<GraphQLResolversContext, 'publish'>) => vi.fn() as Publisher
+): GraphQLResolversContext {
+  const ctx = {
     auth: {
       session: {
         user: {
-          _id: userHelper.user._id.toString('base64'),
+          _id: user._id,
         },
       },
     },
-    mongoose: {
-      model: {
-        User,
-        UserNote,
-        Note,
-        Session,
-      },
+    datasources: {
+      notes: new NotesDataSource({
+        mongodb: {
+          collections: mongoCollections,
+        },
+      }),
     },
-    publish: mockFn(),
-  });
+    mongodb: {
+      collections: mongoCollections,
+      client: mongoClient,
+    },
+  } as Omit<GraphQLResolversContext, 'publish'>;
 
-  const context: GraphQLResolversContext = {
-    ...mockContext,
-    mongoose: {
-      ...mockContext.mongoose,
-      connection: connection,
-    },
+  return {
+    ...ctx,
+    publish: publisher(ctx),
   };
-  return context;
 }

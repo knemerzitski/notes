@@ -14,7 +14,7 @@ export const noteCreated: NonNullable<SubscriptionResolvers['noteCreated']> = {
   },
 };
 
-export async function publishNoteCreated(
+export function publishNoteCreated(
   { publish, auth }: GraphQLResolversContext,
   payload: ResolversTypes['NoteCreatedPayload']
 ) {

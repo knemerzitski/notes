@@ -167,7 +167,7 @@ extend type Subscription {
 
 input NoteDeletedInput {
   "Subscribe to note deletion by content ID. If undefined then subscribes to all notes of current user."
-  contentId: String!
+  contentId: String
 }
 type NoteDeletedPayload {
   "ID of deleted note"

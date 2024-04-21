@@ -270,3 +270,11 @@ export function createUserWithNotes(
     userNotes,
   };
 }
+
+export function addNoteToUser(user: UserSchema, note: NoteSchema) {
+  const userNote = createUserNote(user, note);
+
+  user.notes.category.default.order.push(userNote._id);
+
+  return userNote;
+}

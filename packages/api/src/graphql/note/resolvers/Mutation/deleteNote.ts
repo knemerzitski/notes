@@ -2,154 +2,130 @@ import { GraphQLError } from 'graphql';
 
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
-import { NoteSchema } from '../../../../mongodb/schema/note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { publishNoteDeleted } from '../Subscription/noteDeleted';
 
-import type { MutationResolvers } from '../../../types.generated';
-
-interface UserNoteAggregateResult {
-  userId: Types.ObjectId;
-  note?: Pick<NoteSchema, 'ownerId'>;
-}
+import type { MutationResolvers, ResolversTypes } from '../../../types.generated';
+import { CollectionName } from '../../../../mongodb/collections';
+import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
 
 export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
   _parent,
-  { input: { id: notePublicId } },
+  { input: { contentId: notePublicId } },
   ctx
 ) => {
-  const {
-    auth,
-    mongoose: { model, connection },
-  } = ctx;
+  const { auth, mongodb, datasources } = ctx;
   assertAuthenticated(auth);
 
-  const currentUserId = auth.session.user._id._id;
+  const currentUserId = auth.session.user._id;
 
   // Ensure current user has access to this note
-  const [userNote] = await model.UserNote.aggregate<Require_id<UserNoteAggregateResult>>([
-    {
-      $match: {
-        userId: currentUserId,
-        notePublicId,
+  const userNote = await datasources.notes.getNote({
+    userId: currentUserId,
+    publicId: notePublicId,
+    noteQuery: {
+      _id: 1,
+      note: {
+        ownerId: 1,
       },
     },
-    {
-      $lookup: {
-        from: model.Note.collection.collectionName,
-        foreignField: 'publicId',
-        localField: 'notePublicId',
-        as: 'note',
-      },
-    },
-    {
-      $set: {
-        note: { $arrayElemAt: ['$note', 0] },
-      },
-    },
-    {
-      $project: {
-        userId: 1,
-        'note.ownerId': 1,
-      },
-    },
-  ]);
+  });
 
-  if (!userNote) {
-    throw new GraphQLError('Note not found.', {
+  const userNoteId = userNote._id;
+  const ownerId = userNote.note?.ownerId;
+  if (!userNoteId || !ownerId) {
+    throw new GraphQLError(`Note '${notePublicId}' not found`, {
       extensions: {
         code: GraphQLErrorCode.NotFound,
       },
     });
   }
 
-  const isCurrentUserOwner = userNote.note?.ownerId.equals(userNote.userId) ?? false;
-
+  const isCurrentUserOwner = ownerId.equals(currentUserId);
   if (isCurrentUserOwner) {
     // Delete note completely
-    const affectedUserNotes = await model.UserNote.find(
-      {
-        notePublicId,
-      },
-      {
-        userId: 1,
-        _id: 1,
-      }
-    ).lean();
-
-    await connection.transaction(async (session) => {
-      const deleteNotePromise = model.Note.deleteOne(
+    const affectedUserNotes = await mongodb.collections[CollectionName.UserNotes]
+      .find<Pick<UserNoteSchema, '_id' | 'userId'>>(
         {
-          publicId: notePublicId,
-        },
-        { session }
-      );
-
-      const deletedUserNotesPromise = model.UserNote.deleteMany(
-        {
-          notePublicId,
+          'note.publicId': notePublicId,
         },
         {
-          session,
+          projection: {
+            _id: 1,
+            userId: 1,
+          },
         }
-      );
+      )
+      .toArray();
 
-      const updateUsersPromise = model.User.bulkWrite(
-        affectedUserNotes.map((userNote) => {
-          return {
-            updateOne: {
-              filter: {
-                _id: userNote.userId,
-              },
-              update: {
-                $pull: {
-                  'notes.category.default.order': userNote._id,
+    await mongodb.client.withSession((session) =>
+      session.withTransaction((session) =>
+        Promise.all([
+          mongodb.collections[CollectionName.Notes].deleteOne(
+            {
+              publicId: notePublicId,
+            },
+            { session }
+          ),
+          mongodb.collections[CollectionName.UserNotes].deleteMany(
+            {
+              'note.publicId': notePublicId,
+            },
+            { session }
+          ),
+          mongodb.collections[CollectionName.Users].bulkWrite(
+            affectedUserNotes.map((userNote) => ({
+              updateOne: {
+                filter: {
+                  _id: userNote.userId,
+                },
+                update: {
+                  $pull: {
+                    'notes.category.default.order': userNote._id,
+                  },
                 },
               },
-            },
-          };
-        }),
-        {
-          session,
-        }
-      );
-
-      await Promise.all([deleteNotePromise, deletedUserNotesPromise, updateUsersPromise]);
-    });
+            })),
+            { session }
+          ),
+        ])
+      )
+    );
   } else {
     // Unlink note for current user
-    await connection.transaction(async (session) => {
-      const deletedUserNotesPromise = model.UserNote.deleteOne(
-        {
-          _id: userNote._id,
-          notePublicId,
-        },
-        {
-          session,
-        }
-      );
-
-      const updateUserPromise = model.User.updateOne(
-        {
-          _id: userNote.userId,
-        },
-        {
-          $pull: {
-            'notes.category.default.order': userNote._id,
-          },
-        },
-        {
-          session,
-        }
-      );
-
-      await Promise.all([deletedUserNotesPromise, updateUserPromise]);
-    });
+    await mongodb.client.withSession((session) =>
+      session.withTransaction((session) =>
+        Promise.all([
+          mongodb.collections[CollectionName.UserNotes].deleteOne(
+            {
+              _id: userNote._id,
+              'note.publicId': notePublicId,
+            },
+            { session }
+          ),
+          mongodb.collections[CollectionName.Users].updateOne(
+            {
+              _id: currentUserId,
+            },
+            {
+              $pull: {
+                'notes.category.default.order': userNote._id,
+              },
+            },
+            { session }
+          ),
+        ])
+      )
+    );
   }
 
-  await publishNoteDeleted(ctx, {
-    id: notePublicId,
-  });
+  const payload: ResolversTypes['DeleteNotePayload'] &
+    ResolversTypes['NoteDeletedPayload'] = {
+    contentId: notePublicId,
+    deleted: true,
+  };
 
-  return { deleted: true };
+  await publishNoteDeleted(ctx, payload);
+
+  return payload;
 };

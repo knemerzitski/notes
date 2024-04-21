@@ -1,13 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { assert, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { assert, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { UserSchema } from '../../../../mongodb/schema/user';
-import {
-  mongoClient,
-  mongoCollections,
-  resetDatabase,
-} from '../../../../test/helpers/mongodb';
+import { resetDatabase } from '../../../../test/helpers/mongodb';
 import { GraphQLResolversContext } from '../../../context';
-import NotesDataSource from '../../datasource/notes-datasource';
 import { faker } from '@faker-js/faker';
 import {
   createUser,
@@ -16,7 +11,7 @@ import {
 import { CreateNoteInput, NoteTextField } from '../../../types.generated';
 import { apolloServer } from '../../../../test/helpers/apollo-server';
 
-import { Publisher, createPublisher } from '~lambda-graphql/pubsub/publish';
+import { createPublisher } from '~lambda-graphql/pubsub/publish';
 import { typeDefs } from '../../../typeDefs.generated';
 import { createGraphQlContext } from '~lambda-graphql/context/graphql';
 import { mockDeep } from 'vitest-mock-extended';
@@ -27,6 +22,7 @@ import {
   SubscriptionTable,
 } from '~lambda-graphql/dynamodb/models/subscription';
 import { WebSocketApi } from '~lambda-graphql/context/apigateway';
+import { createUserContext } from '../../../../test/helpers/graphql-context';
 
 const MUTATION = `#graphql
   mutation($input: CreateNoteInput!){
@@ -74,37 +70,6 @@ const createNoteInput: CreateNoteInput = {
     ],
   },
 };
-
-function createUserContext(
-  user: UserSchema,
-  publisher = (_ctx: Omit<GraphQLResolversContext, 'publish'>) => vi.fn() as Publisher
-): GraphQLResolversContext {
-  const ctx = {
-    auth: {
-      session: {
-        user: {
-          _id: user._id,
-        },
-      },
-    },
-    datasources: {
-      notes: new NotesDataSource({
-        mongodb: {
-          collections: mongoCollections,
-        },
-      }),
-    },
-    mongodb: {
-      collections: mongoCollections,
-      client: mongoClient,
-    },
-  } as Omit<GraphQLResolversContext, 'publish'>;
-
-  return {
-    ...ctx,
-    publish: publisher(ctx),
-  };
-}
 
 let user: UserSchema;
 
