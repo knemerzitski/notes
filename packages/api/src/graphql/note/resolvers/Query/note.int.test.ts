@@ -17,6 +17,31 @@ import { NoteTextField } from '../../../types.generated';
 
 import { NoteSchema } from '../../../../mongodb/schema/note';
 
+const QUERY = `#graphql
+  query($noteId: String!, $recordsLast: PositiveInt){
+    note(noteId: $noteId){
+      textFields {
+        key
+        value {
+          headText {
+            revision
+            changeset
+          }
+          recordsConnection(last: $recordsLast) {
+            edges {
+              node {
+                change {
+                  revision
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
 function createUserContext(user: UserSchema): GraphQLResolversContext {
   return {
     auth: {
@@ -72,32 +97,10 @@ it('returns note', async () => {
 
   const response = await apolloServer.executeOperation(
     {
-      query: `#graphql
-        query($noteId: String!){
-          note(noteId: $noteId){
-            textFields {
-              key
-              value {
-                headText {
-                  revision
-                  changeset
-                }
-                recordsConnection(last: 2) {
-                  edges {
-                    node {
-                      change {
-                        revision
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      `,
+      query: QUERY,
       variables: {
         noteId: firstNote.publicId,
+        recordsLast: 2,
       },
     },
     {
@@ -177,32 +180,10 @@ it('returns one note not found error', async () => {
 
   const response = await apolloServer.executeOperation(
     {
-      query: `#graphql
-        query($noteId: String!){
-          note(noteId: $noteId){
-            textFields {
-              key
-              value {
-                headText {
-                  revision
-                  changeset
-                }
-                recordsConnection(last: 3) {
-                  edges {
-                    node {
-                      change {
-                        revision
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      `,
+      query: QUERY,
       variables: {
         noteId: 'never',
+        recordsLast: 3,
       },
     },
     {
