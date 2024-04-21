@@ -3,113 +3,151 @@ import { publishNoteCreated } from '../Subscription/noteCreated';
 
 import {
   NoteTextField,
-  type CreateNotePayload,
+  ResolversTypes,
   type MutationResolvers,
-  type NoteCreatedPayload,
 } from '../../../types.generated';
 
 import { Changeset } from '~collab/changeset/changeset';
 import mapObject from 'map-obj';
+import { ObjectId } from 'mongodb';
+import { CollabTextSchema } from '../../../../mongodb/schema/collabText/collab-text';
+import { NoteSchema, noteDefaultValues } from '../../../../mongodb/schema/note';
+import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
+import { CollectionName } from '../../../../mongodb/collections';
+import { NoteQuery, NoteQueryMapper } from '../../mongo-query-mapper/note';
+import { DeepQueryResponse } from '../../../../mongodb/query-builder';
 
 export const createNote: NonNullable<MutationResolvers['createNote']> = async (
   _parent,
   { input },
   ctx
 ) => {
-  const {
-    auth,
-    mongoose: { model, connection },
-  } = ctx;
+  const { auth, mongodb } = ctx;
   assertAuthenticated(auth);
 
-  const currentUserId = auth.session.user._id._id;
+  const currentUserId = auth.session.user._id;
 
-  const collabDocs = mapObject(NoteTextField, (_key, fieldName) => {
+  // Initialize data
+  const collabTexts = mapObject(NoteTextField, (_key, fieldName) => {
     const fieldValue = input.note?.textFields?.find((s) => s.key === fieldName)?.value;
-
+    const text = fieldValue?.initialText ?? '';
     return [
       fieldName,
-      new model.CollaborativeDocument(
-        createInitialDocument(currentUserId, fieldValue?.initialText ?? '')
-      ),
+      createCollabText({
+        creatorUserId: currentUserId,
+        initalText: text,
+      }),
     ];
   });
 
-  const newNote = new model.Note({
+  const note: NoteSchema = {
+    _id: new ObjectId(),
     ownerId: currentUserId,
-      textFields: mapObject(collabDocs, (key,_collabDoc) => [key, { collabId: collabDoc._id }]),
-  });
+    publicId: noteDefaultValues.publicId(),
+    collabTextIds: mapObject(collabTexts, (key, collabText) => [key, collabText._id]),
+  };
 
-  const newUserNote = new model.UserNote({
+  const userNote: UserNoteSchema = {
+    _id: new ObjectId(),
     userId: currentUserId,
     note: {
-      publicId: newNote.publicId,
-      textFields: newNote.textFields,
+      id: note._id,
+      collabTextIds: note.collabTextIds,
+      publicId: note.publicId,
     },
-  });
-
-  await connection.transaction(async (session) => {
-    const updateUserPromise = model.User.updateOne(
-      {
-        _id: currentUserId,
-      },
-      {
-        $push: {
-          'notes.category.default.order': newUserNote._id,
-        },
-      },
-      { session }
-    );
-
-    await Promise.all([
-      ...Object.values(collabDocs).map((collabDoc) => collabDoc.save({ session })),
-      newNote.save({ session }),
-      newUserNote.save({ session }),
-      updateUserPromise,
-    ]);
-  });
-
-  const newNotePayload: CreateNotePayload & NoteCreatedPayload = {
-    note: {
-      id: newNote.publicId,
-      textFields: Object.entries(collabDocs).map(([fieldName, collabDoc]) => ({
-        key: fieldName as NoteTextField,
-        value: {
-          _id: collabDoc._id,
-          id: collabDoc._id.toString(),
-          headDocument: {
-            revision: collabDoc.headDocument.revision,
-            changeset: collabDoc.headDocument.changeset,
-          },
-          recordsConnection: {
-            tailDocument: {
-              revision: -1,
-              changeset: Changeset.EMPTY,
-            },
-            pageInfo: {
-              hasNextPage: false,
-              hasPreviousPage: false,
-            },
-            edges: collabDoc.records.map((record) => {
-              const id = `${collabDoc._id.toString()}:${record.change.revision}`;
-              return {
-                cursor: id,
-                node: {
-                  id,
-                  creatorUserId: record.creatorUserId.toString(),
-                  change: record.change,
-                  beforeSelection: record.beforeSelection,
-                  afterSelection: record.afterSelection,
-                },
-              };
-            }),
-          },
-        },
-      })),
+    preferences: {
+      backgroundColor: input.note?.preferences?.backgroundColor ?? undefined,
     },
   };
 
-  await publishNoteCreated(ctx, newNotePayload);
+  // Insert to DB
+  await mongodb.client.withSession((session) =>
+    session.withTransaction(async (session) => {
+      // TODO handle duplicate _id and note.publicId
+      const updateUserPromise = mongodb.collections[CollectionName.Users].updateOne(
+        {
+          _id: currentUserId,
+        },
+        {
+          $push: {
+            'notes.category.default.order': userNote._id,
+          },
+        },
+        { session }
+      );
 
-  return newNotePayload;
+      await Promise.all([
+        ...Object.values(collabTexts).map((collabText) =>
+          mongodb.collections[CollectionName.CollabTexts].insertOne(collabText, {
+            session,
+          })
+        ),
+        mongodb.collections[CollectionName.Notes].insertOne(note, { session }),
+        mongodb.collections[CollectionName.UserNotes].insertOne(userNote, { session }),
+        updateUserPromise,
+      ]);
+    })
+  );
+
+  // Build response mapper
+  const noteQueryResponse: DeepQueryResponse<NoteQuery> = {
+    ...userNote,
+    note: {
+      ...note,
+      ...userNote.note,
+      collabTexts,
+    },
+  };
+  const noteQueryMapper = new NoteQueryMapper({
+    queryDocument() {
+      return noteQueryResponse;
+    },
+  });
+
+  // Send response
+  const payload: ResolversTypes['CreateNotePayload'] &
+    ResolversTypes['NoteCreatedPayload'] = {
+    note: noteQueryMapper,
+  };
+
+  await publishNoteCreated(ctx, payload);
+
+  return payload;
 };
+
+interface CreateCollabTextParams {
+  initalText: string;
+  creatorUserId: ObjectId;
+}
+
+function createCollabText({
+  initalText,
+  creatorUserId,
+}: CreateCollabTextParams): CollabTextSchema {
+  const changeset = Changeset.fromInsertion(initalText).serialize();
+  return {
+    _id: new ObjectId(),
+    headText: {
+      revision: 0,
+      changeset,
+    },
+    tailText: {
+      revision: -1,
+      changeset: Changeset.EMPTY.serialize(),
+    },
+    records: [
+      {
+        creatorUserId,
+        userGeneratedId: '',
+        revision: 0,
+        changeset,
+        beforeSelection: {
+          start: 0,
+        },
+        afterSelection: {
+          start: initalText.length,
+        },
+      },
+    ],
+  };
+}
