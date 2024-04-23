@@ -4,14 +4,11 @@
   "private": "true",
   "type": "module",
   "scripts": {
-    "test:unit": "vitest run -c ./vitest.config.unit.ts",
-    "test:unit:watch": "vitest watch -c ./vitest.config.unit.ts",
-    "test:int": "vitest -c ./vitest.config.integration.ts",
-    "test:int:watch": "vitest watch -c ./vitest.config.integration.ts"
+    "test": "vitest run",
+    "test:watch": "vitest watch"
   },
   "dependencies": {
     "map-obj": "^5.0.2",
-    "mongodb": "^6.3.0",
     "nanoid": "^5.0.7",
     "vite-tsconfig-paths": "^4.3.2",
     "vitest": "^1.2.1",

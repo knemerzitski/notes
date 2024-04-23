@@ -1,11 +1,8 @@
-import { CollabText } from '~collab/adapters/mongodb/collab-text';
-
-import { RevisionRecord } from '~collab/adapters/mongodb/collab-text';
 import { Changeset } from '~collab/changeset/changeset';
 
 import { CollectionDescription } from '../../collections';
 import { ObjectId } from 'mongodb';
-import { RevisionChangeset, SelectionRange } from '~collab/records/record';
+import { RevisionChangeset, SelectionRange, ServerRevisionRecord } from '~collab/records/record';
 
 export interface CollabTextSchema<T = unknown> extends CollabText<T> {
   _id: ObjectId;
@@ -20,3 +17,17 @@ export type ChangesetSchema = Changeset;
 export const collabTextDescription: CollectionDescription = {
   indexSpecs: [],
 };
+
+type RevisionRecord<T = unknown> = Omit<
+  ServerRevisionRecord<T>,
+  'creatorUserId'
+> & {
+  creatorUserId: ObjectId;
+};
+
+interface CollabText<T = unknown> {
+  headText: RevisionChangeset<T>;
+  tailText: RevisionChangeset<T>;
+  records: RevisionRecord<T>[];
+}
+

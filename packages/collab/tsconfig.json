@@ -34,5 +34,5 @@
       "~utils/*": ["../utils/src/*"]
     }
   },
-  "include": ["src", "vitest.config.unit.ts", "vitest.config.integration.ts"]
+  "include": ["src", "vitest.config.ts"]
 }
