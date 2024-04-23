@@ -2,7 +2,6 @@
 import { assert, beforeEach, describe, expect, it } from 'vitest';
 import { UserSchema } from '../../../../mongodb/schema/user';
 import { mongoCollections, resetDatabase } from '../../../../test/helpers/mongodb';
-import { GraphQLResolversContext } from '../../../context';
 import { faker } from '@faker-js/faker';
 import {
   populateNoteToUser,
@@ -16,19 +15,14 @@ import {
 } from '../../../types.generated';
 import { apolloServer } from '../../../../test/helpers/apollo-server';
 
-import { createPublisher } from '~lambda-graphql/pubsub/publish';
-import { typeDefs } from '../../../typeDefs.generated';
-import { createGraphQlContext } from '~lambda-graphql/context/graphql';
-import { mockDeep } from 'vitest-mock-extended';
-import { resolvers } from '../../../resolvers.generated';
-
-import {
-  Subscription,
-  SubscriptionTable,
-} from '~lambda-graphql/dynamodb/models/subscription';
-import { WebSocketApi } from '~lambda-graphql/context/apigateway';
+import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
 import { NoteSchema } from '../../../../mongodb/schema/note';
-import { createUserContext } from '../../../../test/helpers/graphql-context';
+import {
+  createMockedPublisher,
+  createUserContext,
+  mockSocketApi,
+  mockSubscriptionsModel,
+} from '../../../../test/helpers/graphql-context';
 
 import { Changeset } from '~collab/changeset/changeset';
 import { CollectionName } from '../../../../mongodb/collections';
@@ -683,9 +677,6 @@ describe('update', () => {
 });
 
 describe.only('publish', () => {
-  const mockSubscriptionsModel = mockDeep<SubscriptionTable>();
-  const mockSocketApi = mockDeep<WebSocketApi>();
-
   const SUBSCRIPTION = `#graphql
     subscription($input: NoteUpdatedInput!) {
       noteUpdated(input: $input) {
@@ -706,32 +697,6 @@ describe.only('publish', () => {
       }
     }
   `;
-
-  // TODO create mock publisher as helper?
-  function createMockPublisher(ctx: Omit<GraphQLResolversContext, 'publish'>) {
-    return createPublisher({
-      context: {
-        ...ctx,
-        schema: createGraphQlContext({
-          resolvers,
-          typeDefs,
-          logger: mockDeep(),
-        }).schema,
-        graphQLContext: mockDeep(),
-        socketApi: mockSocketApi,
-        logger: mockDeep(),
-        models: {
-          connections: mockDeep(),
-          subscriptions: mockSubscriptionsModel,
-        },
-      },
-    });
-  }
-
-  beforeEach(() => {
-    mockSubscriptionsModel.queryAllByTopic.mockClear();
-    mockSocketApi.post.mockClear();
-  });
 
   it('publishes new record insertion', async () => {
     mockSubscriptionsModel.queryAllByTopic.mockResolvedValueOnce([
@@ -782,7 +747,7 @@ describe.only('publish', () => {
         },
       },
       {
-        contextValue: createUserContext(user, createMockPublisher),
+        contextValue: createUserContext(user, createMockedPublisher),
       }
     );
 
@@ -867,7 +832,7 @@ describe.only('publish', () => {
           },
         },
         {
-          contextValue: createUserContext(user, createMockPublisher),
+          contextValue: createUserContext(user, createMockedPublisher),
         }
       );
     }

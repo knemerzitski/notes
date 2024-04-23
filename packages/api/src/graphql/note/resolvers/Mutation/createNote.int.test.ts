@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { assert, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { assert, beforeAll, describe, expect, it } from 'vitest';
 import { UserSchema } from '../../../../mongodb/schema/user';
 import { resetDatabase } from '../../../../test/helpers/mongodb';
 import { GraphQLResolversContext } from '../../../context';
@@ -11,18 +11,13 @@ import {
 import { CreateNoteInput, NoteTextField } from '../../../types.generated';
 import { apolloServer } from '../../../../test/helpers/apollo-server';
 
-import { createPublisher } from '~lambda-graphql/pubsub/publish';
-import { typeDefs } from '../../../typeDefs.generated';
-import { createGraphQlContext } from '~lambda-graphql/context/graphql';
-import { mockDeep } from 'vitest-mock-extended';
-import { resolvers } from '../../../resolvers.generated';
-
+import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
 import {
-  Subscription,
-  SubscriptionTable,
-} from '~lambda-graphql/dynamodb/models/subscription';
-import { WebSocketApi } from '~lambda-graphql/context/apigateway';
-import { createUserContext } from '../../../../test/helpers/graphql-context';
+  createMockedPublisher,
+  createUserContext,
+  mockSocketApi,
+  mockSubscriptionsModel,
+} from '../../../../test/helpers/graphql-context';
 
 const MUTATION = `#graphql
   mutation($input: CreateNoteInput!){
@@ -158,9 +153,6 @@ describe('create', () => {
 describe('publish', () => {
   let contextValue: GraphQLResolversContext;
 
-  const mockSubscriptionsModel = mockDeep<SubscriptionTable>();
-  const mockSocketApi = mockDeep<WebSocketApi>();
-
   const SUBSCRIPTION = `#graphql
     subscription {
       noteCreated {
@@ -180,30 +172,7 @@ describe('publish', () => {
   `;
 
   beforeAll(() => {
-    contextValue = createUserContext(user, (ctx) => {
-      return createPublisher({
-        context: {
-          ...ctx,
-          schema: createGraphQlContext({
-            resolvers,
-            typeDefs,
-            logger: mockDeep(),
-          }).schema,
-          graphQLContext: mockDeep(),
-          socketApi: mockSocketApi,
-          logger: mockDeep(),
-          models: {
-            connections: mockDeep(),
-            subscriptions: mockSubscriptionsModel,
-          },
-        },
-      });
-    });
-  });
-
-  beforeEach(() => {
-    mockSubscriptionsModel.queryAllByTopic.mockClear();
-    mockSocketApi.post.mockClear();
+    contextValue = createUserContext(user, createMockedPublisher);
   });
 
   it('publishes created note to a subscription', async () => {
