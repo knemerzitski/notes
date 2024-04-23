@@ -6,7 +6,7 @@ import {
   RelayArrayPaginationOutput,
   RelayBeforeBoundPagination,
 } from './relayArrayPagination';
-import { mongoDb } from '../../../test/helpers/mongodb';
+import { mongoDB } from '../../../test/helpers/mongodb';
 import consecutiveIntArrayPagination, {
   BoundPaginationUnion,
 } from './consecutiveIntArrayPagination';
@@ -16,7 +16,7 @@ interface ArrayDocument {
 }
 
 describe('consecutiveIntArrayPagination', () => {
-  const arrayCollection = mongoDb.collection<ArrayDocument>('array');
+  const arrayCollection = mongoDB.collection<ArrayDocument>('array');
   const document: ArrayDocument = {
     items: [1, 2, 3, 4, 5, 6, 7, 8, 9],
   };

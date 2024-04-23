@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { assert, beforeAll, describe, expect, it } from 'vitest';
 import relayArrayPagination, { RelayArrayPaginationInput } from './relayArrayPagination';
-import { mongoDb } from '../../../test/helpers/mongodb';
+import { mongoDB } from '../../../test/helpers/mongodb';
 import relayMultiArrayPaginationConcat, {
   RelayMultiArrayPaginationConcatOutput,
 } from './relayMultiArrayPaginationConcat';
@@ -17,7 +17,7 @@ interface ArrayDocument {
 }
 
 describe('relayMultiArrayPaginationConcat', () => {
-  const arrayCollection = mongoDb.collection<ArrayDocument>('array');
+  const arrayCollection = mongoDB.collection<ArrayDocument>('array');
   // Each array has 10 elements
   const document: ArrayDocument = {
     items: [1, 2, 3, 4, 5, 6, 7, 8, 9],

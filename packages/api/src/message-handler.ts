@@ -37,7 +37,7 @@ export function createDefaultParams(): WebSocketMessageHandlerParams<
     logger,
     dynamoDB: createDefaultDynamoDBParams(logger),
     apiGateway: createDefaultApiGatewayParams(logger),
-    graphQl: createDefaultSubscriptionGraphQLParams(logger),
+    graphQL: createDefaultSubscriptionGraphQLParams(logger),
     async createGraphQLContext() {
       if (!mongoose) {
         mongoose = await createDefaultMongooseContext(logger);

@@ -4,7 +4,7 @@ import { Publisher, createPublisher } from '~lambda-graphql/pubsub/publish';
 import NotesDataSource from '../../graphql/note/datasource/notes-datasource';
 import { UserSchema } from '../../mongodb/schema/user';
 import { mongoCollections, mongoClient } from './mongodb';
-import { createGraphQlContext } from '~lambda-graphql/context/graphql';
+import { createGraphQLContext } from '~lambda-graphql/context/graphql';
 import { mockDeep } from 'vitest-mock-extended';
 import { WebSocketApi } from '~lambda-graphql/context/apigateway';
 import { SubscriptionTable } from '~lambda-graphql/dynamodb/models/subscription';
@@ -54,7 +54,7 @@ export function createMockedPublisher(ctx: Omit<GraphQLResolversContext, 'publis
   return createPublisher({
     context: {
       ...ctx,
-      schema: createGraphQlContext({
+      schema: createGraphQLContext({
         resolvers,
         typeDefs,
         logger: mockDeep(),

@@ -76,12 +76,12 @@ export async function createDefaultMongooseContext(logger: Logger) {
   const connectionUri = process.env.MONGODB_ATLAS_URI_SRV!;
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const databaseName = encodeURIComponent(process.env.MONGODB_ATLAS_DATABASE_NAME!);
-  const mongoDbUri = `${connectionUri}/${databaseName}`;
+  const mongoDBUri = `${connectionUri}/${databaseName}`;
 
   return await createMongooseContext({
     logger,
     createModels: createMongooseModels,
-    uri: mongoDbUri,
+    uri: mongoDBUri,
     options: {
       auth: {
         username: credentials.AccessKeyId,

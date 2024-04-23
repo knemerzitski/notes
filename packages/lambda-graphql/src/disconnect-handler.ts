@@ -20,7 +20,7 @@ import {
   createApiGatewayContext,
 } from './context/apigateway';
 import { DynamoDBContextParams, createDynamoDbContext } from './context/dynamodb';
-import { GraphQLContextParams, createGraphQlContext } from './context/graphql';
+import { GraphQLContextParams, createGraphQLContext } from './context/graphql';
 import { ConnectionTable, DynamoDBRecord } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
 import { Publisher, createPublisher } from './pubsub/publish';
@@ -63,7 +63,7 @@ export interface WebSocketDisconnectHandlerParams<
   TBaseGraphQLContext,
   TDynamoDBGraphQLContext extends DynamoDBRecord,
 > extends DirectParams<TGraphQLContext, TBaseGraphQLContext, TDynamoDBGraphQLContext> {
-  graphQl: GraphQLContextParams<TGraphQLContext>;
+  graphQL: GraphQLContextParams<TGraphQLContext>;
   dynamoDB: DynamoDBContextParams;
 }
 
@@ -131,7 +131,7 @@ export function createWebSocketDisconnectHandler<
   const { logger } = params;
   logger.info('createWebSocketDisconnectHandler');
 
-  const graphQl = createGraphQlContext(params.graphQl);
+  const graphQL = createGraphQLContext(params.graphQL);
   const dynamoDB = createDynamoDbContext<TDynamoDBGraphQLContext>(params.dynamoDB);
   const apiGateway = createApiGatewayContext(params.apiGateway);
 
@@ -141,7 +141,7 @@ export function createWebSocketDisconnectHandler<
     TDynamoDBGraphQLContext
   > = {
     ...params,
-    schema: graphQl.schema,
+    schema: graphQL.schema,
     models: {
       connections: dynamoDB.connections,
       subscriptions: dynamoDB.subscriptions,

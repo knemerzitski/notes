@@ -23,7 +23,7 @@ import {
   createApiGatewayContext,
 } from './context/apigateway';
 import { DynamoDBContextParams, createDynamoDbContext } from './context/dynamodb';
-import { GraphQLContextParams, createGraphQlContext } from './context/graphql';
+import { GraphQLContextParams, createGraphQLContext } from './context/graphql';
 import {
   PingPongContext,
   PingPongContextParams,
@@ -105,7 +105,7 @@ export interface WebSocketMessageHandlerParams<
     >,
     event: APIGatewayProxyWebsocketEventV2
   ) => Promise<TGraphQLContext> | TGraphQLContext;
-  graphQl: GraphQLContextParams<TGraphQLContext>;
+  graphQL: GraphQLContextParams<TGraphQLContext>;
   dynamoDB: DynamoDBContextParams;
   apiGateway: ApiGatewayContextParams;
   pingpong?: PingPongContextParams;
@@ -228,7 +228,7 @@ export function createWebSocketMessageHandler<
 
   logger.info('createWebSocketMessageHandler');
 
-  const graphQl = createGraphQlContext(params.graphQl);
+  const graphQL = createGraphQLContext(params.graphQL);
   const dynamoDB = createDynamoDbContext<TDynamoDBGraphQLContext>(params.dynamoDB);
   const apiGateway = createApiGatewayContext(params.apiGateway);
   const pingpong = params.pingpong ? createPingPongContext(params.pingpong) : undefined;
@@ -239,7 +239,7 @@ export function createWebSocketMessageHandler<
     TDynamoDBGraphQLContext
   > = {
     ...params,
-    schema: graphQl.schema,
+    schema: graphQL.schema,
     models: {
       connections: dynamoDB.connections,
       subscriptions: dynamoDB.subscriptions,

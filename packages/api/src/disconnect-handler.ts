@@ -33,7 +33,7 @@ export function createDefaultParams(): WebSocketDisconnectHandlerParams<
   return {
     logger,
     apiGateway: createDefaultApiGatewayParams(logger),
-    graphQl: createDefaultSubscriptionGraphQLParams(logger),
+    graphQL: createDefaultSubscriptionGraphQLParams(logger),
     dynamoDB: createDefaultDynamoDBParams(logger),
     async createGraphQLContext() {
       if (!mongoose) {

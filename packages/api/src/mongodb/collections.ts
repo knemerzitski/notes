@@ -40,9 +40,9 @@ export interface MongoDBCollections {
   [CollectionName.CollabTexts]: Collection<CollabTextSchema>;
 }
 
-export function createCollectionInstances(mongoDb: Db): MongoDBCollections {
+export function createCollectionInstances(mongoDB: Db): MongoDBCollections {
   return mapObject(CollectionName, (_key, name) => {
-    return [name, mongoDb.collection(name)];
+    return [name, mongoDB.collection(name)];
   }) as MongoDBCollections;
 }
 

@@ -14,7 +14,7 @@ export interface GraphQLContext {
   schema: GraphQLSchema;
 }
 
-export function createGraphQlContext<TContext = unknown>({
+export function createGraphQLContext<TContext = unknown>({
   typeDefs,
   resolvers,
   transform,

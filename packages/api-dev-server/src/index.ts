@@ -79,7 +79,7 @@ void (async () => {
         logger: createLogger('mock:ws-message-handler'),
         dynamoDB: createMockDynamoDBParams(),
         apiGateway: createMockApiGatewayParams(sockets),
-        graphQl: createMockSubscriptionGraphQLParams(),
+        graphQL: createMockSubscriptionGraphQLParams(),
         async createGraphQLContext() {
           if (!mongoose) {
             mongoose = await createMockMongooseContext();
@@ -103,7 +103,7 @@ void (async () => {
       >({
         logger: createLogger('mock:ws-disconnect-handler'),
         dynamoDB: createMockDynamoDBParams(),
-        graphQl: createMockSubscriptionGraphQLParams(),
+        graphQL: createMockSubscriptionGraphQLParams(),
         apiGateway: createMockApiGatewayParams(sockets),
         async createGraphQLContext() {
           if (!mongoose) {

@@ -10,7 +10,7 @@ import relayArrayPagination, {
   sliceFirst,
   sliceLast,
 } from './relayArrayPagination';
-import { mongoDb } from '../../../test/helpers/mongodb';
+import { mongoDB } from '../../../test/helpers/mongodb';
 import isNonEmptyArray from '~utils/array/isNonEmptyArray';
 
 interface SubDocument {
@@ -27,7 +27,7 @@ interface ArrayDocument {
 }
 
 describe('relayArrayPagination', () => {
-  const arrayCollection = mongoDb.collection<ArrayDocument>('array');
+  const arrayCollection = mongoDB.collection<ArrayDocument>('array');
   // Each array has 10 elements
   const document: ArrayDocument = {
     direct: ['0', '2', '4', '6', '8', '10', '12', '14', '16', '18'],
