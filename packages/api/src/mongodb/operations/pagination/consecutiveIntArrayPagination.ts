@@ -239,7 +239,7 @@ export function consecutiveIntArrayMapPaginationOutputToInput<TItem>(
       if (firstEndItem == null) {
         return [];
       }
-      const start = startSize + startCursor - toCursor(firstEndItem);
+      const start = Math.max(0, startSize + startCursor - toCursor(firstEndItem));
       const end = sizes ? start + sizes[1] : output.array.length;
 
       return output.array.slice(start, end);

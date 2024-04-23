@@ -44,9 +44,15 @@ export interface ServerRevisionRecord<T = Changeset> extends SubmittedRevisionRe
   creatorUserId: string;
 }
 
+type IsExistingRecordByUserGeneratedIdRecord = Pick<
+  SubmittedRevisionRecord,
+  'userGeneratedId'
+>;
+
 export function isExistingRecordByUserGeneratedId<
-  TRecord extends Pick<SubmittedRevisionRecord, 'userGeneratedId'>,
->(event: RevisionRecordFilterEvents<TRecord>['isExistingRecord']) {
+  TRecord extends IsExistingRecordByUserGeneratedIdRecord,
+  TInsertRecord extends IsExistingRecordByUserGeneratedIdRecord,
+>(event: RevisionRecordFilterEvents<TRecord, TInsertRecord>['isExistingRecord']) {
   if (event.isExisting) return event;
 
   return {
@@ -55,16 +61,18 @@ export function isExistingRecordByUserGeneratedId<
   };
 }
 
-export function followRecordSelection<
-  TRecord extends Pick<
-    SubmittedRevisionRecord,
-    'beforeSelection' | 'afterSelection' | 'changeset'
-  >,
->(event: RevisionRecordFilterEvents<TRecord>['followRecord']) {
-  const { existingRecord: record, newRecord: follow } = event;
+type FollowRecordSelectionRecord = Pick<
+  SubmittedRevisionRecord,
+  'beforeSelection' | 'afterSelection' | 'changeset'
+>;
 
-  followSelection(record.changeset, follow.beforeSelection);
-  followSelection(record.changeset, follow.afterSelection);
+export function followRecordSelection<
+  TRecord extends RevisionRecord,
+  TInsertRecord extends FollowRecordSelectionRecord,
+>(event: RevisionRecordFilterEvents<TRecord, TInsertRecord>['followRecord']) {
+  const { newRecord } = event;
+  followSelection(newRecord.changeset, newRecord.beforeSelection);
+  followSelection(newRecord.changeset, newRecord.afterSelection);
 
   return event;
 }
@@ -76,9 +84,14 @@ function followSelection(changeset: Changeset, selection: SelectionRange) {
   }
 }
 
-export function addFiltersToRevisionRecords<TRecord extends ServerRevisionRecord>(
-  revisionRecords: RevisionRecords<TRecord>
-) {
+type AddFiltersRecord = RevisionRecord & IsExistingRecordByUserGeneratedIdRecord;
+
+type AddFiltersInsertRecord = FollowRecordSelectionRecord;
+
+export function addFiltersToRevisionRecords<
+  TRecord extends AddFiltersRecord,
+  TInsertRecord extends TRecord & AddFiltersInsertRecord,
+>(revisionRecords: RevisionRecords<TRecord, TInsertRecord>) {
   revisionRecords.filterBus.on('isExistingRecord', isExistingRecordByUserGeneratedId);
   revisionRecords.filterBus.on('followRecord', followRecordSelection);
 }

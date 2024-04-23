@@ -73,12 +73,17 @@ input CreateCollabTextInput {
 }
 
 type CollabTextPatch {
-  "New record added to text"
+  """
+  New record added to text. Can be existing record it has
+  previously been inserted. Check isExistingRecord field.
+  """
   newRecord: CollabTextRecord
+  "True if record has already been inserted."
+  isExistingRecord: Boolean
 }
 
 input CollabTextPatchInput {
-  "new record to added to the text"
+  "New record to be inserted"
   insertRecord: CollabTextRecordInput
 }
 

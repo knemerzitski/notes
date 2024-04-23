@@ -1,7 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { SelectionDirection } from '../editor/selection-range';
-
 import { CollabEditor } from '../editor/collab-editor';
 import { RevisionTailRecords } from '../records/revision-tail-records';
 import { ServerRevisionRecord, addFiltersToRevisionRecords } from '../records/record';

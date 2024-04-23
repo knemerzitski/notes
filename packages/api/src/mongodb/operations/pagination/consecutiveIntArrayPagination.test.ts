@@ -231,6 +231,18 @@ describe('consecutiveIntArrayMapPaginationOutputToInput', () => {
         [7, 8, 9],
       ],
     },
+    {
+      input: [
+        {
+          after: 9,
+        },
+      ],
+      output: {
+        array: [11, 12, 13, 14],
+        sizes: undefined,
+      },
+      expected: [[11, 12, 13, 14]],
+    },
   ])('(%s,%s) => %s', ({ input, output, expected }) => {
     expect(
       consecutiveIntArrayMapPaginationOutputToInput(input, output, (item) => item)

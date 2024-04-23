@@ -4,12 +4,12 @@ import filter, { Filter } from '~filter/index';
 import { RevisionRecord } from './record';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type FilterEvents<TRecord> = {
+export type FilterEvents<TRecord, TInsertRecord> = {
   isExistingRecord: {
     /**
      * New record to be inserted.
      */
-    newRecord: TRecord;
+    newRecord: TInsertRecord;
     /**
      * Existing record that {@link newRecord} is going to follow.
      */
@@ -24,7 +24,7 @@ export type FilterEvents<TRecord> = {
      * New record that is following {@link existingRecord} and will be
      * inserted as new latest record.
      */
-    newRecord: TRecord;
+    newRecord: TInsertRecord;
     /**
      * Existing record that was used for follow of {@link newRecord}
      */
@@ -32,15 +32,25 @@ export type FilterEvents<TRecord> = {
   };
 };
 
-interface RevisionRecordInsertion<TRecord> {
-  processedRecord: TRecord;
-  isExisting: boolean;
+type RevisionRecordInsertion<TRecord, TInsertRecord> =
+  | {
+      processedRecord: TRecord;
+      isExisting: true;
+    }
+  | {
+      processedRecord: TInsertRecord;
+      isExisting: false;
+    };
+
+export interface RevisionRecordsOptions<
+  TRecord extends RevisionRecord,
+  TInsertRecord extends TRecord = TRecord,
+> {
+  records?: TRecord[];
+  filterBus?: Filter<FilterEvents<TRecord, TInsertRecord>>;
 }
 
-export interface RevisionRecordsOptions<TRecord extends RevisionRecord> {
-  records?: TRecord[];
-  filterBus?: Filter<FilterEvents<TRecord>>;
-}
+// one that is needed for keeping and other for isnertion
 
 /**
  * Records contain an array of changesets [r0, r1, r2, ..., r3]
@@ -48,8 +58,11 @@ export interface RevisionRecordsOptions<TRecord extends RevisionRecord> {
  * Also keeps track of each changeset revision which allows
  * adding changes that are intendend for older records.
  */
-export class RevisionRecords<TRecord extends RevisionRecord = RevisionRecord> {
-  readonly filterBus: Filter<FilterEvents<TRecord>>;
+export class RevisionRecords<
+  TRecord extends RevisionRecord = RevisionRecord,
+  TInsertRecord extends TRecord = TRecord,
+> {
+  readonly filterBus: Filter<FilterEvents<TRecord, TInsertRecord>>;
 
   /**
    * Revision of the newest record.
@@ -70,7 +83,7 @@ export class RevisionRecords<TRecord extends RevisionRecord = RevisionRecord> {
     return this._records;
   }
 
-  constructor(options?: RevisionRecordsOptions<TRecord>) {
+  constructor(options?: RevisionRecordsOptions<TRecord, TInsertRecord>) {
     this._records = [...(options?.records ?? [])];
     this.filterBus = options?.filterBus ?? filter();
   }
@@ -115,7 +128,7 @@ export class RevisionRecords<TRecord extends RevisionRecord = RevisionRecord> {
    * If it applies to an older revision then it's modified using follow so it can be composed as a last record.
    * @returns Newest inserted record.
    */
-  insert(newRecord: TRecord): RevisionRecordInsertion<TRecord> {
+  insert(newRecord: TInsertRecord): RevisionRecordInsertion<TRecord, TInsertRecord> {
     if (newRecord.revision > this.endRevision) {
       throw new Error(
         `Unexpected change ${String(newRecord.changeset)} at revision ${
@@ -134,7 +147,7 @@ export class RevisionRecords<TRecord extends RevisionRecord = RevisionRecord> {
       );
     }
 
-    const newEndRecord: TRecord = {
+    const newEndRecord: TInsertRecord = {
       ...newRecord,
       revision: this.endRevision + 1,
     };

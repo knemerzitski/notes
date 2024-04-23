@@ -119,9 +119,9 @@ input UpdateNoteInput {
   patch: NotePatchInput
 }
 type UpdateNotePayload {
-  "Self-descriptive"
+  "Updated note content ID"
   contentId: String!
-  "Response patch to input"
+  "Changes made to the note"
   patch: NotePatch
 }
 extend type Mutation {

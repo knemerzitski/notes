@@ -17,9 +17,9 @@ export interface CollectionDescription {
 export enum CollectionName {
   Sessions = 'sessions',
   Users = 'users',
-  UserNotes = 'userNotes',
+  UserNotes = 'usernotes',
   Notes = 'notes',
-  CollabTexts = 'collabTexts',
+  CollabTexts = 'collabtexts',
 }
 
 export const collectionDescriptions: Partial<

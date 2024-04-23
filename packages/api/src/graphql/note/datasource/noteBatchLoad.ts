@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongodb';
+import { AggregateOptions, ObjectId } from 'mongodb';
 import {
   DeepQuery,
   DeepQueryResponse,
@@ -43,7 +43,8 @@ export interface NoteBatchLoadContext {
 
 export default async function noteBatchLoad(
   keys: Readonly<NoteKey[]>,
-  context: Readonly<NoteBatchLoadContext>
+  context: Readonly<NoteBatchLoadContext>,
+  aggregateOptions?: AggregateOptions
 ): Promise<(DeepQueryResponse<NoteQuery> | Error)[]> {
   const keysByUserId = groupByUserId(keys);
 
@@ -64,21 +65,23 @@ export default async function noteBatchLoad(
         // Build aggregate query
         const userNoteLookupInput = userNoteQueryToLookupInput(mergedQuery, context);
 
-        // Fetch data
         const userNotesResult = await context.mongodb.collections[
           CollectionName.UserNotes
         ]
-          .aggregate<UserNoteDeepQueryResponse>([
-            {
-              $match: {
-                userId,
-                'note.publicId': {
-                  $in: allPublicIds,
+          .aggregate<UserNoteDeepQueryResponse>(
+            [
+              {
+                $match: {
+                  userId,
+                  'note.publicId': {
+                    $in: allPublicIds,
+                  },
                 },
               },
-            },
-            ...userNoteLookup(userNoteLookupInput),
-          ])
+              ...userNoteLookup(userNoteLookupInput),
+            ],
+            aggregateOptions
+          )
           .toArray();
 
         // Map paginations to original query

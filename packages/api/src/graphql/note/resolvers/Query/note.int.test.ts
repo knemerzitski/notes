@@ -10,7 +10,7 @@ import { UserSchema } from '../../../../mongodb/schema/user';
 import { CollectionName } from '../../../../mongodb/collections';
 import NotesDataSource from '../../datasource/notes-datasource';
 import {
-  createUserWithNotes,
+  populateUserWithNotes,
   populateWithCreatedData,
 } from '../../../../test/helpers/mongodb/populate';
 import { NoteTextField } from '../../../types.generated';
@@ -74,11 +74,11 @@ beforeAll(async () => {
   faker.seed(5435);
   await resetDatabase();
 
-  const { notes: tmpNotes, user: tmpUser } = createUserWithNotes(
+  const { notes: tmpNotes, user: tmpUser } = populateUserWithNotes(
     2,
     Object.values(NoteTextField),
     {
-      collabDoc: {
+      collabText: {
         recordsCount: 2,
         tailRevision: -1,
       },

@@ -23,7 +23,7 @@ interface CreatePublisherParams<
 interface PublisherOptions {
   /**
    * Publish to connection that sent current request.
-   * Normally over HTTP request client gets a direct respone and
+   * Normally over HTTP request client gets a direct response and
    * only other connections need to be notified.
    * @default false
    */

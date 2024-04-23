@@ -3,59 +3,76 @@ import { GraphQLError } from 'graphql';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
 import { GraphQLResolversContext } from '../../../context';
-import type {
-  NoteUpdatedPayload,
-  SubscriptionResolvers,
-} from '../../../types.generated';
+import type { ResolversTypes, SubscriptionResolvers } from '../../../types.generated';
 import { isAuthenticated } from '../../../auth-context';
 import { assertAuthenticated } from '../../../base/directives/auth';
+import { SubscriptionTopicPrefix } from '../../../subscriptions';
 
 export const noteUpdated: NonNullable<SubscriptionResolvers['noteUpdated']> = {
-  subscribe: async (
-    _parent,
-    { input: { id: notePublicId } },
-    { auth, mongoose: { model }, subscribe, denySubscription }
-  ) => {
+  subscribe: async (_parent, { input: { contentId: notePublicId } }, ctx) => {
+    const { auth, datasources, subscribe, denySubscription } = ctx;
     if (!isAuthenticated(auth)) return denySubscription();
 
-    const currentUserId = auth.session.user._id._id;
+    const currentUserId = auth.session.user._id;
 
-    const userNote = await model.UserNote.findOne({
-      userId: currentUserId,
-      notePublicId,
-    }).lean();
+    if (notePublicId) {
+      // Ensure current user has access to this note
+      const userNote = await datasources.notes.getNote({
+        userId: currentUserId,
+        publicId: notePublicId,
+        noteQuery: {
+          _id: 1,
+        },
+      });
 
-    if (!userNote) {
-      throw new GraphQLError('Note not found.', {
-        extensions: {
-          code: GraphQLErrorCode.NotFound,
+      if (!userNote._id) {
+        throw new GraphQLError(`Note '${notePublicId}' not found`, {
+          extensions: {
+            code: GraphQLErrorCode.NotFound,
+          },
+        });
+      }
+
+      return subscribe(`${SubscriptionTopicPrefix.NoteUpdated}:noteId=${notePublicId}`, {
+        onAfterSubscribe() {
+          // TODO let other connected clients know about this user
+        },
+        onComplete() {
+          // TODO let other connected clients know this user left
+        },
+      });
+    } else {
+      // Subscribe to updates of own notes
+      const userId = auth.session.user._id.toString('base64');
+      return subscribe(`${SubscriptionTopicPrefix.NoteUpdated}:userId=${userId}`, {
+        onAfterSubscribe() {
+          // TODO let other connected clients know about this user
+        },
+        onComplete() {
+          // TODO let other connected clients know this user left
         },
       });
     }
-
-    return subscribe(`NOTE_UPDATED:${notePublicId}`, {
-      onAfterSubscribe() {
-        // TODO on sub start receiving connected users, publish to all other users about this user?
-      },
-      onComplete() {
-        // TODO subscription ended and removed, remove user from active list?
-      },
-    });
-  },
-  resolve(payload: NoteUpdatedPayload) {
-    return payload;
   },
 };
 
 export async function publishNoteUpdated(
   { publish, auth }: GraphQLResolversContext,
-  payload: NoteUpdatedPayload
+  payload: ResolversTypes['NoteUpdatedPayload']
 ) {
   assertAuthenticated(auth);
 
-  // TODO create myNoteUpdated subscription...
+  const notePublicId = (await payload)?.contentId;
+  if (!notePublicId) return;
 
-  return publish(`NOTE_UPDATED:${payload.id}`, {
-    noteUpdated: payload,
-  });
+  const userId = auth.session.user._id.toString('base64');
+
+  return Promise.allSettled([
+    publish(`${SubscriptionTopicPrefix.NoteUpdated}:noteId=${notePublicId}`, {
+      noteUpdated: payload,
+    }),
+    publish(`${SubscriptionTopicPrefix.NoteUpdated}:userId=${userId}`, {
+      noteUpdated: payload,
+    }),
+  ]);
 }

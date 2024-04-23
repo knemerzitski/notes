@@ -53,7 +53,7 @@ export async function publishNoteDeleted(
 
   const userId = auth.session.user._id.toString('base64');
 
-  return Promise.all([
+  return Promise.allSettled([
     publish(`${SubscriptionTopicPrefix.NoteDeleted}:noteId=${notePublicId}`, {
       noteDeleted: payload,
     }),

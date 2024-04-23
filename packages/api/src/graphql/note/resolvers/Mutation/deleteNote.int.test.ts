@@ -5,9 +5,9 @@ import { mongoCollections, resetDatabase } from '../../../../test/helpers/mongod
 import { GraphQLResolversContext } from '../../../context';
 import { faker } from '@faker-js/faker';
 import {
-  addNoteToUser,
+  addExistingNoteToExistingUser,
   createUser,
-  createUserWithNotes,
+  populateUserWithNotes,
   populateWithCreatedData,
 } from '../../../../test/helpers/mongodb/populate';
 import {
@@ -48,11 +48,11 @@ beforeEach(async () => {
   faker.seed(778);
   await resetDatabase();
 
-  const { notes: tmpNotes, user: tmpUser } = createUserWithNotes(
+  const { notes: tmpNotes, user: tmpUser } = populateUserWithNotes(
     1,
     Object.values(NoteTextField),
     {
-      collabDoc: {
+      collabText: {
         recordsCount: 1,
         tailRevision: -1,
       },
@@ -105,7 +105,7 @@ describe('delete', () => {
   });
 
   it('unlinks note if not owner', async () => {
-    addNoteToUser(userOther, note);
+    addExistingNoteToExistingUser(userOther, note);
     await populateWithCreatedData();
 
     const response = await apolloServer.executeOperation(
@@ -124,7 +124,6 @@ describe('delete', () => {
 
     assert(response.body.kind === 'single');
     const { data, errors } = response.body.singleResult;
-    console.log(errors);
     expect(errors).toBeUndefined();
     expect(data).toEqual({
       deleteNote: {
@@ -219,7 +218,7 @@ describe('publish', () => {
         variables: {
           input: {
             contentId: note.publicId,
-          } as NoteDeletedInput,
+          } as DeleteNoteInput,
         },
       },
       {

@@ -3,7 +3,7 @@ import { faker } from '@faker-js/faker';
 import { assert, beforeAll, expect, it } from 'vitest';
 import {
   populateWithCreatedData,
-  createUserWithNotes,
+  populateUserWithNotes,
 } from '../../../test/helpers/mongodb/populate';
 import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb';
 import relayPaginateUserNotesArray, {
@@ -25,11 +25,11 @@ beforeAll(async () => {
   await resetDatabase();
   faker.seed(677876);
 
-  const { user: tmpUser, userNotes: tmpUserNotes } = createUserWithNotes(
+  const { user: tmpUser, userNotes: tmpUserNotes } = populateUserWithNotes(
     10,
     Object.values(TextFields),
     {
-      collabDoc: {
+      collabText: {
         recordsCount: 1,
       },
       noteMany: {

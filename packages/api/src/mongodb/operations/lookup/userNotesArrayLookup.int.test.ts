@@ -3,7 +3,7 @@ import { assert, beforeAll, expect, it } from 'vitest';
 import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb';
 import { faker } from '@faker-js/faker';
 import {
-  createUserWithNotes,
+  populateUserWithNotes,
   populateWithCreatedData,
 } from '../../../test/helpers/mongodb/populate';
 import { UserNoteLookupOutput } from './userNoteLookup';
@@ -39,8 +39,8 @@ beforeAll(async () => {
   await resetDatabase();
   faker.seed(9243);
 
-  const { user: tmpUser } = createUserWithNotes(2, Object.values(CollabTextKey), {
-    collabDoc: {
+  const { user: tmpUser } = populateUserWithNotes(2, Object.values(CollabTextKey), {
+    collabText: {
       recordsCount: 1,
     },
   });

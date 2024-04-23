@@ -1,4 +1,4 @@
-import { CollabTextRecordMapper } from '../schema.mappers';
+import { CollabTextMapper, CollabTextRecordMapper } from '../schema.mappers';
 import { RevisionChangesetQueryMapper } from './revision-changeset';
 import {
   CollabTextSelectionRangeQuery,
@@ -6,7 +6,6 @@ import {
 } from './selection-range';
 import { MongoDocumentQuery } from '../../../mongodb/query-builder';
 import { RevisionRecordSchema } from '../../../mongodb/schema/collabText/collab-text';
-import { CollabTextQueryMapper } from './collab-text';
 
 export type CollabTextRecordQuery = Omit<
   RevisionRecordSchema,
@@ -16,14 +15,13 @@ export type CollabTextRecordQuery = Omit<
   afterSelection: CollabTextSelectionRangeQuery;
 };
 
+type Parent = Pick<CollabTextMapper, 'id'>;
+
 export class CollabTextRecordQueryMapper implements CollabTextRecordMapper {
-  private parent: CollabTextQueryMapper;
+  private parent: Parent;
   private query: MongoDocumentQuery<RevisionRecordSchema>;
 
-  constructor(
-    parent: CollabTextQueryMapper,
-    query: MongoDocumentQuery<RevisionRecordSchema>
-  ) {
+  constructor(parent: Parent, query: MongoDocumentQuery<RevisionRecordSchema>) {
     this.parent = parent;
     this.query = query;
   }

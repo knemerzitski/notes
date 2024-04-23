@@ -28,11 +28,11 @@ export default function mitt<Events extends Record<EventType, unknown>>(
   return {
     ...bus,
     on: (...args: unknown[]) => {
-      // @ts-expect-error Correct typing is in return value;
+      // @ts-expect-error Correct typing is in return value
       bus.on(...args);
 
       return () => {
-        // @ts-expect-error Correct typing is in return value;
+        // @ts-expect-error Correct typing is in return value
         bus.off(...args);
       };
     },

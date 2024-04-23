@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { assert, beforeAll, describe, expect, it } from 'vitest';
+import { assert, beforeAll, expect, it } from 'vitest';
 import revisionRecordsPagination, {
   CollabTextRevisionRecordsPaginationInput,
   CollabTextRevisionRecordsPaginationOutput,
 } from './revisionRecordsPagination';
 import { faker } from '@faker-js/faker';
 import {
-  createUserWithNotes,
+  populateUserWithNotes,
   populateWithCreatedData,
 } from '../../../test/helpers/mongodb/populate';
 import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb';
@@ -33,8 +33,8 @@ beforeAll(async () => {
   await resetDatabase();
   faker.seed(88765);
 
-  const { user: tmpUser } = createUserWithNotes(1, Object.values(CollabTextKey), {
-    collabDoc: {
+  const { user: tmpUser } = populateUserWithNotes(1, Object.values(CollabTextKey), {
+    collabText: {
       recordsCount: 10,
       tailRevision: -1,
     },

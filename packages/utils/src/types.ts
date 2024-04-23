@@ -18,3 +18,7 @@ export type DeepReplace<T, Source, Target> = T extends Source
           [Key in keyof T]: DeepReplace<T[Key], Source, Target>;
         }
       : T;
+
+export type ExcludeNullable<T, Key extends keyof NonNullable<T>> = NonNullable<T> & {
+  [key in Key]-?: Exclude<NonNullable<T>[key], null | undefined>;
+};

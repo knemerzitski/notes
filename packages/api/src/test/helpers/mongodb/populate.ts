@@ -1,4 +1,7 @@
-import { CollabTextSchema } from '../../../mongodb/schema/collabText/collab-text';
+import {
+  CollabTextSchema,
+  RevisionRecordSchema,
+} from '../../../mongodb/schema/collabText/collab-text';
 import { NoteSchema, noteDefaultValues } from '../../../mongodb/schema/note';
 import { UserSchema } from '../../../mongodb/schema/user';
 import { faker } from '@faker-js/faker';
@@ -67,7 +70,15 @@ export function createUserMany(count: number) {
   return users;
 }
 
-export function fakeUserNoteData(user: UserSchema, note: NoteSchema): UserNoteSchema {
+interface FakeUserNoteDataOptions {
+  readOnly?: boolean;
+}
+
+export function fakeUserNoteData(
+  user: UserSchema,
+  note: NoteSchema,
+  options?: FakeUserNoteDataOptions
+): UserNoteSchema {
   return {
     _id: new ObjectId(),
     userId: user._id,
@@ -76,23 +87,31 @@ export function fakeUserNoteData(user: UserSchema, note: NoteSchema): UserNoteSc
       publicId: note.publicId,
       collabTextIds: note.collabTextIds,
     },
-    readOnly: !!faker.number.int({ max: 1 }),
+    readOnly: options?.readOnly ?? !!faker.number.int({ max: 1 }),
     preferences: {
       backgroundColor: faker.color.rgb(),
     },
   };
 }
 
-export function createUserNote(user: UserSchema, note: NoteSchema) {
-  const userNote = fakeUserNoteData(user, note);
+export function createUserNote(
+  user: UserSchema,
+  note: NoteSchema,
+  options?: FakeUserNoteDataOptions
+) {
+  const userNote = fakeUserNoteData(user, note, options);
   queuePopulate(async () => {
     await mongoCollections[CollectionName.UserNotes].insertOne(userNote);
   });
   return userNote;
 }
 
-export function createUserNoteMany(user: UserSchema, notes: NoteSchema[]) {
-  const userNotes = notes.map((note) => fakeUserNoteData(user, note));
+export function createUserNoteMany(
+  user: UserSchema,
+  notes: NoteSchema[],
+  options?: FakeUserNoteDataOptions
+) {
+  const userNotes = notes.map((note) => fakeUserNoteData(user, note, options));
   queuePopulate(async () => {
     await mongoCollections[CollectionName.UserNotes].insertMany(userNotes);
   });
@@ -140,10 +159,10 @@ interface CreateNoteManyOptions {
 
 export function createNoteMany(
   user: UserSchema,
-  textFieldsList: Record<string, CollabTextSchema>[],
+  collabTextsList: Record<string, CollabTextSchema>[],
   options?: CreateNoteManyOptions
 ) {
-  const notes = textFieldsList.map((collabTexts, index) =>
+  const notes = collabTextsList.map((collabTexts, index) =>
     fakeNoteData(user, collabTexts, {
       publicId:
         options?.enumaratePublicIdByIndex != null
@@ -157,15 +176,23 @@ export function createNoteMany(
   return notes;
 }
 
+interface FakeCollabTextRecordDataOptions {
+  revision?: number;
+  changeset?: Changeset;
+}
+
 export function fakeCollabTextRecordData(
   user: UserSchema,
-  revision: number
+  options?: FakeCollabTextRecordDataOptions
 ): CollabTextSchema['records'][0] {
+  const revision = options?.revision ?? faker.number.int({ max: 1000 });
   return {
     creatorUserId: user._id,
-    userGeneratedId: faker.string.uuid(),
+    userGeneratedId: faker.string.nanoid(6),
     revision,
-    changeset: Changeset.fromInsertion(`r_${revision}`).serialize(),
+    changeset:
+      options?.changeset?.serialize() ??
+      Changeset.fromInsertion(`r_${revision}`).serialize(),
     beforeSelection: {
       start: 0,
     },
@@ -188,19 +215,38 @@ export function fakeCollabTextData(
   const recordsCount = options?.recordsCount ?? faker.number.int({ min: 1, max: 10 });
   const headRevision = tailRevision + recordsCount;
 
+  const headText = Changeset.fromInsertion('head');
+
+  const records: RevisionRecordSchema[] = [];
+  if (recordsCount > 1) {
+    records.push(
+      ...[...new Array<undefined>(recordsCount - 1)].map((_, i) =>
+        fakeCollabTextRecordData(user, {
+          revision: tailRevision + i + 1,
+        })
+      )
+    );
+  }
+  if (recordsCount > 0) {
+    records.push(
+      fakeCollabTextRecordData(user, {
+        revision: tailRevision + recordsCount,
+        changeset: headText,
+      })
+    );
+  }
+
   return {
     _id: new ObjectId(),
     headText: {
       revision: headRevision,
-      changeset: Changeset.fromInsertion('head').serialize(),
+      changeset: headText.serialize(),
     },
     tailText: {
       revision: tailRevision,
       changeset: Changeset.EMPTY.serialize(),
     },
-    records: [...new Array<undefined>(recordsCount)].map((_, i) =>
-      fakeCollabTextRecordData(user, tailRevision + i + 1)
-    ),
+    records,
   };
 }
 
@@ -229,28 +275,29 @@ export function createCollabTextMany(
   return collabTexts;
 }
 
-interface CreateUserWithNotesOptions {
+interface PopulateUserWithNotesOptions {
   noteMany?: CreateNoteManyOptions;
-  collabDoc?: FakeCollabTextDataOptions;
+  collabText?: FakeCollabTextDataOptions;
+  userNote?: FakeUserNoteDataOptions;
 }
 
-export function createUserWithNotes(
+export function populateUserWithNotes(
   notesCount: number,
   collabTextKeys: string[],
-  options?: CreateUserWithNotesOptions
+  options?: PopulateUserWithNotesOptions
 ) {
   const user = createUser();
   const collabTexts = createCollabTextMany(
     user,
     notesCount * collabTextKeys.length,
-    options?.collabDoc
+    options?.collabText
   );
   const notes = createNoteMany(
     user,
     [...new Array<undefined>(notesCount)].map((_, i) =>
       Object.fromEntries(
-        collabTextKeys.map((field, j) => [
-          field,
+        collabTextKeys.map((name, j) => [
+          name,
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           collabTexts[i * collabTextKeys.length + j]!,
         ])
@@ -259,7 +306,7 @@ export function createUserWithNotes(
     options?.noteMany
   );
 
-  const userNotes = createUserNoteMany(user, notes);
+  const userNotes = createUserNoteMany(user, notes, options?.userNote);
 
   user.notes.category.default.order = userNotes.map(({ _id }) => _id);
 
@@ -271,10 +318,46 @@ export function createUserWithNotes(
   };
 }
 
-export function addNoteToUser(user: UserSchema, note: NoteSchema) {
-  const userNote = createUserNote(user, note);
+export function addExistingNoteToExistingUser(
+  user: UserSchema,
+  note: NoteSchema,
+  options?: FakeUserNoteDataOptions
+) {
+  const userNote = createUserNote(user, note, options);
 
   user.notes.category.default.order.push(userNote._id);
 
   return userNote;
+}
+
+interface PopulateNoteToUserOptions {
+  collabText?: FakeCollabTextDataOptions;
+  note?: FakeNoteDataOptions;
+  userNote?: FakeUserNoteDataOptions;
+}
+
+export function populateNoteToUser(
+  user: UserSchema,
+  collabTextKeys: string[],
+  options?: PopulateNoteToUserOptions
+) {
+  const collabTexts = createCollabTextMany(
+    user,
+    collabTextKeys.length,
+    options?.collabText
+  );
+  const note = createNote(
+    user,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    Object.fromEntries(collabTextKeys.map((name, i) => [name, collabTexts[i]!])),
+    options?.note
+  );
+
+  const userNote = addExistingNoteToExistingUser(user, note, options?.userNote);
+
+  return {
+    collabTexts,
+    note,
+    userNote,
+  };
 }
