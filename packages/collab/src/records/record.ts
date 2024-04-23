@@ -1,8 +1,4 @@
 import { Changeset, SerializedChangeset } from '../changeset/changeset';
-import {
-  FilterEvents as RevisionRecordFilterEvents,
-  RevisionRecords,
-} from './revision-records';
 
 export interface RevisionChangeset<T = Changeset> {
   revision: number;
@@ -42,56 +38,4 @@ export interface SubmittedRevisionRecord<T = Changeset> extends RevisionRecord<T
  */
 export interface ServerRevisionRecord<T = Changeset> extends SubmittedRevisionRecord<T> {
   creatorUserId: string;
-}
-
-type IsExistingRecordByUserGeneratedIdRecord = Pick<
-  SubmittedRevisionRecord,
-  'userGeneratedId'
->;
-
-export function isExistingRecordByUserGeneratedId<
-  TRecord extends IsExistingRecordByUserGeneratedIdRecord,
-  TInsertRecord extends IsExistingRecordByUserGeneratedIdRecord,
->(event: RevisionRecordFilterEvents<TRecord, TInsertRecord>['isExistingRecord']) {
-  if (event.isExisting) return event;
-
-  return {
-    ...event,
-    isExisting: event.newRecord.userGeneratedId === event.existingRecord.userGeneratedId,
-  };
-}
-
-type FollowRecordSelectionRecord = Pick<
-  SubmittedRevisionRecord,
-  'beforeSelection' | 'afterSelection' | 'changeset'
->;
-
-export function followRecordSelection<
-  TRecord extends RevisionRecord,
-  TInsertRecord extends FollowRecordSelectionRecord,
->(event: RevisionRecordFilterEvents<TRecord, TInsertRecord>['followRecord']) {
-  const { newRecord } = event;
-  followSelection(newRecord.changeset, newRecord.beforeSelection);
-  followSelection(newRecord.changeset, newRecord.afterSelection);
-
-  return event;
-}
-
-function followSelection(changeset: Changeset, selection: SelectionRange) {
-  selection.start = changeset.followIndex(selection.start);
-  if (selection.end != null) {
-    selection.end = changeset.followIndex(selection.end);
-  }
-}
-
-type AddFiltersRecord = RevisionRecord & IsExistingRecordByUserGeneratedIdRecord;
-
-type AddFiltersInsertRecord = FollowRecordSelectionRecord;
-
-export function addFiltersToRevisionRecords<
-  TRecord extends AddFiltersRecord,
-  TInsertRecord extends TRecord & AddFiltersInsertRecord,
->(revisionRecords: RevisionRecords<TRecord, TInsertRecord>) {
-  revisionRecords.filterBus.on('isExistingRecord', isExistingRecordByUserGeneratedId);
-  revisionRecords.filterBus.on('followRecord', followRecordSelection);
 }

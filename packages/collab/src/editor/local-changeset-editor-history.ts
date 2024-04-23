@@ -67,9 +67,7 @@ export class LocalChangesetEditorHistory {
       }
     });
 
-    const subscribedListeners: (() => void)[] = [];
-
-    subscribedListeners.push(
+    const subscribedListeners = [
       editorBus.on('change', ({ changeset, inverseChangeset, selectionPos }) => {
         this.push({
           execute: {
@@ -92,8 +90,8 @@ export class LocalChangesetEditorHistory {
       }),
       client.eventBus.on('handledExternalChange', ({ externalChange }) => {
         this.adjustHistoryToExternalChange(externalChange);
-      })
-    );
+      }),
+    ];
 
     this.unsubscribeFromEvents = () => {
       subscribedListeners.forEach((unsub) => {

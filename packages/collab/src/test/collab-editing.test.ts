@@ -2,15 +2,16 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { CollabEditor } from '../editor/collab-editor';
 import { RevisionTailRecords } from '../records/revision-tail-records';
-import { ServerRevisionRecord, addFiltersToRevisionRecords } from '../records/record';
+import { ServerRevisionRecord } from '../records/record';
 import { createServerClientsHelper } from './helpers/server-client';
+import { addEditorFilters } from '../records/editor-revision-records';
 
 describe('single client', () => {
   let helper: ReturnType<typeof createServerClientsHelper<'A'>>;
 
   beforeEach(() => {
     const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>();
-    addFiltersToRevisionRecords(revisionTailRecords);
+    addEditorFilters(revisionTailRecords);
     helper = createServerClientsHelper(revisionTailRecords, {
       A: new CollabEditor(),
     });
@@ -38,7 +39,7 @@ describe('two clients', () => {
 
   beforeEach(() => {
     const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>();
-    addFiltersToRevisionRecords(revisionTailRecords);
+    addEditorFilters(revisionTailRecords);
     helper = createServerClientsHelper(revisionTailRecords, {
       A: new CollabEditor({
         userId: 'A',
@@ -158,7 +159,7 @@ describe('three clients', () => {
 
   beforeEach(() => {
     const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>();
-    addFiltersToRevisionRecords(revisionTailRecords);
+    addEditorFilters(revisionTailRecords);
     helper = createServerClientsHelper(revisionTailRecords, {
       A: new CollabEditor({
         userId: 'A',

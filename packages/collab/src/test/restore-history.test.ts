@@ -2,9 +2,10 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { CollabEditor } from '../editor/collab-editor';
 
 import { Entry } from '../editor/tail-text-history';
-import { ServerRevisionRecord, addFiltersToRevisionRecords } from '../records/record';
+import { ServerRevisionRecord } from '../records/record';
 import { RevisionTailRecords } from '../records/revision-tail-records';
 import { createServerClientsHelper } from './helpers/server-client';
+import { addEditorFilters } from '../records/editor-revision-records';
 
 function historyEntriesInfo(entries: Readonly<Entry[]>) {
   return entries.map((e) => ({
@@ -26,7 +27,7 @@ describe('persist history in revision records', () => {
 
   beforeEach(() => {
     const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>();
-    addFiltersToRevisionRecords(revisionTailRecords);
+    addEditorFilters(revisionTailRecords);
     helper = createServerClientsHelper(revisionTailRecords, {
       A: new CollabEditor({
         userId: 'A',
