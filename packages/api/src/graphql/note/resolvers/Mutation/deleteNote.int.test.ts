@@ -21,7 +21,7 @@ import { NoteSchema } from '../../../../mongodb/schema/note';
 import { CollectionName } from '../../../../mongodb/collections';
 import {
   createMockedPublisher,
-  createUserContext,
+  createMockedGraphQLContext,
   mockSocketApi,
   mockSubscriptionsModel,
 } from '../../../../test/helpers/graphql-context';
@@ -77,7 +77,7 @@ describe('delete', () => {
         },
       },
       {
-        contextValue: createUserContext(userOwner),
+        contextValue: createMockedGraphQLContext(userOwner),
       }
     );
 
@@ -112,7 +112,7 @@ describe('delete', () => {
         },
       },
       {
-        contextValue: createUserContext(userOther),
+        contextValue: createMockedGraphQLContext(userOther),
       }
     );
 
@@ -144,7 +144,7 @@ describe('delete', () => {
         },
       },
       {
-        contextValue: createUserContext(userOther),
+        contextValue: createMockedGraphQLContext(userOther),
       }
     );
 
@@ -188,7 +188,7 @@ describe('publish', () => {
         },
       },
       {
-        contextValue: createUserContext(userOwner, createMockedPublisher),
+        contextValue: createMockedGraphQLContext(userOwner, createMockedPublisher),
       }
     );
 

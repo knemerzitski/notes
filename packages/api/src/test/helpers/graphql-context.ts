@@ -11,18 +11,18 @@ import { SubscriptionTable } from '~lambda-graphql/dynamodb/models/subscription'
 import { resolvers } from '../../graphql/resolvers.generated';
 import { typeDefs } from '../../graphql/typeDefs.generated';
 
-export function createUserContext(
-  user: Pick<UserSchema, '_id'>,
+export function createMockedGraphQLContext(
+  user?: Partial<UserSchema>,
   publisher = (_ctx: Omit<GraphQLResolversContext, 'publish'>) => vi.fn() as Publisher
 ): GraphQLResolversContext {
   const ctx = {
-    auth: {
-      session: {
-        user: {
-          _id: user._id,
-        },
-      },
-    },
+    auth: user
+      ? {
+          session: {
+            user,
+          },
+        }
+      : null,
     datasources: {
       notes: new NotesDataSource({
         mongodb: {

@@ -14,7 +14,7 @@ import { apolloServer } from '../../../../test/helpers/apollo-server';
 import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
 import {
   createMockedPublisher,
-  createUserContext,
+  createMockedGraphQLContext,
   mockSocketApi,
   mockSubscriptionsModel,
 } from '../../../../test/helpers/graphql-context';
@@ -80,7 +80,7 @@ describe('create', () => {
   let contextValue: GraphQLResolversContext;
 
   beforeAll(() => {
-    contextValue = createUserContext(user);
+    contextValue = createMockedGraphQLContext(user);
   });
 
   it('creates a new note with initial text', async () => {
@@ -172,7 +172,7 @@ describe('publish', () => {
   `;
 
   beforeAll(() => {
-    contextValue = createUserContext(user, createMockedPublisher);
+    contextValue = createMockedGraphQLContext(user, createMockedPublisher);
   });
 
   it('publishes created note to a subscription', async () => {
