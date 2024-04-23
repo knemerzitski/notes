@@ -1,13 +1,13 @@
 import { useRef, useState } from 'react';
 
-import isStringTrue from '~utils/isTruthy';
+import isEnvVarStringTrue from '~utils/string/isEnvVarStringTrue';
 
 import useScript from '../../../../hooks/useScript';
 
 const MOCK =
   import.meta.env.MODE === 'production'
     ? false
-    : isStringTrue(import.meta.env.VITE_MOCK_GOOGLE_AUTH);
+    : isEnvVarStringTrue(import.meta.env.VITE_MOCK_GOOGLE_AUTH);
 
 export interface UseLoadClientScriptOptions {
   onLoad?: () => void;

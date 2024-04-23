@@ -4,7 +4,7 @@ import { NoteQuery } from '../mongo-query-mapper/note';
 
 import { GraphQLResolversContext } from '../../context';
 
-import sortObject from '~utils/sortObject';
+import sortObject from '~utils/object/sortObject';
 import { AggregateOptions, ClientSession, ObjectId } from 'mongodb';
 
 import noteBatchLoad, { NoteKey } from './noteBatchLoad';

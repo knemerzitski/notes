@@ -19,8 +19,8 @@ import { CollabTextRecordQueryMapper } from '../../../collab/mongo-query-mapper/
 import { DeepQueryResponse, MongoDocumentQuery } from '../../../../mongodb/query-builder';
 import { publishNoteUpdated } from '../Subscription/noteUpdated';
 import { CollabTextMapper } from '../../../collab/schema.mappers';
-import isEmptyDeep from '~utils/isEmptyDeep';
-import isDefined from '~utils/isDefined';
+import isEmptyDeep from '~utils/object/isEmptyDeep';
+import isDefined from '~utils/type-guards/isDefined';
 import recordInsertion, { RecordInsertionError } from '~collab/records/recordInsertion';
 import { NoteQuery } from '../../mongo-query-mapper/note';
 

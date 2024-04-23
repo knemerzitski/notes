@@ -11,14 +11,14 @@ import {
 } from '@mui/material';
 import { FormEvent, useEffect, useRef, useState } from 'react';
 
-import isStringTrue from '~utils/isTruthy';
+import isEnvVarStringTrue from '~utils/string/isEnvVarStringTrue';
 
 import { useGoogleAuth } from './GoogleAuthProvider';
 
 const MOCK =
   import.meta.env.MODE === 'production'
     ? false
-    : isStringTrue(import.meta.env.VITE_MOCK_GOOGLE_AUTH);
+    : isEnvVarStringTrue(import.meta.env.VITE_MOCK_GOOGLE_AUTH);
 
 export interface GoogleLoginProps {
   onSuccess: (response: google.accounts.id.CredentialResponse) => void;

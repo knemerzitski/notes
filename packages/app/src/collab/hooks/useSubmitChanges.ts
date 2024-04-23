@@ -7,7 +7,7 @@ import {
 import { useCallback, useRef } from 'react';
 
 import { CollabEditor } from '~collab/editor/collab-editor';
-import isTruthy from '~utils/isTruthy';
+import isTruthy from '~utils/type-guards/isTruthy';
 import { Entry } from '~utils/types';
 
 import { CollabTextPatch, CollabTextPatchInput } from '../../__generated__/graphql';
