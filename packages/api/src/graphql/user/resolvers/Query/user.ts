@@ -8,7 +8,7 @@ export const user: NonNullable<QueryResolvers['user']> = (_parent, _args, ctx) =
   const user = auth.session.user;
 
   return {
-    id: user.publicId,
+    id: user._id.toString('base64'),
     profile: {
       displayName: user.profile.displayName,
     },
