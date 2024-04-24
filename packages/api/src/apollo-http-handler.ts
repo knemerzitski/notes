@@ -10,13 +10,13 @@ import { createLogger } from '~utils/logger';
 import { parseAuthFromHeaders } from './graphql/auth-context';
 import { GraphQLResolversContext, DynamoDBBaseGraphQLContext } from './graphql/context';
 import CookiesContext from './graphql/cookies-context';
-import { newExpireAt, tryRefreshExpireAt } from './graphql/session-expiration';
 import {
   createDefaultApiGatewayParams,
+  createDefaultDataSources,
   createDefaultDynamoDBParams,
   createDefaultGraphQLParams,
   createDefaultIsCurrentConnection,
-  createDefaultMongooseContext,
+  createDefaultMongoDBContext,
 } from './handler-params';
 
 export function createDefaultParams(): CreateApolloHttpHandlerParams<
@@ -25,14 +25,14 @@ export function createDefaultParams(): CreateApolloHttpHandlerParams<
 > {
   const logger = createLogger('apollo-websocket-handler');
 
-  let mongoose: Awaited<ReturnType<typeof createDefaultMongooseContext>> | undefined;
+  let mongodb: Awaited<ReturnType<typeof createDefaultMongoDBContext>> | undefined;
 
   return {
     logger,
     graphQL: createDefaultGraphQLParams(logger),
     async createGraphQLContext(_ctx, event) {
-      if (!mongoose) {
-        mongoose = await createDefaultMongooseContext(logger);
+      if (!mongodb) {
+        mongodb = await createDefaultMongoDBContext(logger);
       }
 
       const cookiesCtx = CookiesContext.parseFromHeaders(event.headers);
@@ -40,17 +40,18 @@ export function createDefaultParams(): CreateApolloHttpHandlerParams<
       const authCtx = await parseAuthFromHeaders(
         event.headers,
         cookiesCtx,
-        mongoose.model.Session
+        mongodb.collections
       );
 
       return {
         cookies: cookiesCtx,
         auth: authCtx,
-        mongoose,
-        session: {
-          newExpireAt,
-          tryRefreshExpireAt,
-        },
+        mongodb,
+        datasources: createDefaultDataSources({
+          notes: {
+            mongodb,
+          },
+        }),
         subscribe: () => {
           throw new Error('Subscribe should never be called in apollo-http-handler');
         },

@@ -53,7 +53,8 @@ export type GraphQLResolversContext = ApolloHttpGraphQLContext &
  * define by default.
  *
  * ApiGraphQLContext
- * mongoose
+ * mongodb
+ * datasources
  *
  * ApolloHttpGraphQLContext
  * request
@@ -81,8 +82,11 @@ export function createErrorBaseSubscriptionResolversContext(
   }
 
   return {
-    get mongoose() {
-      return createErrorProxy('mongoose') as ApiGraphQLContext['mongoose'];
+    get datasources() {
+      return createErrorProxy('datasources') as ApiGraphQLContext['datasources'];
+    },
+    get mongodb() {
+      return createErrorProxy('mongodb') as ApiGraphQLContext['mongodb'];
     },
     get request() {
       return createErrorProxy('request') as ApolloHttpGraphQLContext['request'];
@@ -142,7 +146,7 @@ export const handleConnectionInitAuthenticate: WebSocketMessageHandlerParams<
   const newAuth = await parseAuthFromHeaders(
     headers,
     cookies,
-    context.graphQLContext.mongoose.model.Session
+    context.graphQLContext.mongodb.collections
   );
 
   if (!isAuthenticated(newAuth)) return;

@@ -16,9 +16,10 @@ import {
 } from './graphql/context';
 import {
   createDefaultApiGatewayParams,
+  createDefaultDataSources,
   createDefaultDynamoDBConnectionTtlContext,
   createDefaultDynamoDBParams,
-  createDefaultMongooseContext,
+  createDefaultMongoDBContext,
   createDefaultSubscriptionGraphQLParams,
 } from './handler-params';
 
@@ -30,7 +31,7 @@ export function createDefaultParams(): WebSocketMessageHandlerParams<
   const name = 'ws-message-handler';
   const logger = createLogger(name);
 
-  let mongoose: Awaited<ReturnType<typeof createDefaultMongooseContext>> | undefined;
+  let mongodb: Awaited<ReturnType<typeof createDefaultMongoDBContext>> | undefined;
 
   return {
     connection: createDefaultDynamoDBConnectionTtlContext(),
@@ -39,14 +40,19 @@ export function createDefaultParams(): WebSocketMessageHandlerParams<
     apiGateway: createDefaultApiGatewayParams(logger),
     graphQL: createDefaultSubscriptionGraphQLParams(logger),
     async createGraphQLContext() {
-      if (!mongoose) {
-        mongoose = await createDefaultMongooseContext(logger);
+      if (!mongodb) {
+        mongodb = await createDefaultMongoDBContext(logger);
       }
 
       return {
         ...createErrorBaseSubscriptionResolversContext(name),
         logger: createLogger('ws-message-gql-context'),
-        mongoose,
+        mongodb,
+        datasources: createDefaultDataSources({
+          notes: {
+            mongodb,
+          },
+        }),
       };
     },
     parseDynamoDBGraphQLContext: parseDynamoDBBaseGraphQLContext,

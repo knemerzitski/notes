@@ -4,8 +4,6 @@ import {
   createDefaultGraphQLParams,
   createDefaultSubscriptionGraphQLParams,
 } from '~api/handler-params';
-import { createMongooseContext } from '~api/mongoose/lambda-context';
-import { createMongooseModels } from '~api/mongoose/models';
 import { ApiGatewayContextParams } from '~lambda-graphql/context/apigateway';
 import { DynamoDBContextParams } from '~lambda-graphql/context/dynamodb';
 import { GraphQLContextParams } from '~lambda-graphql/context/graphql';
@@ -15,6 +13,8 @@ import { createLogger } from '~utils/logger';
 
 import { MockApiGatewayManagementApiClient } from './utils/mock-apigatewaymanagementapi';
 import { MockPingPongSFNClient } from './utils/mock-pingpong-sfnclient';
+import { createMongoDBContext } from '~api/mongodb/lambda-context';
+import { createCollectionInstances } from '~api/mongodb/collections';
 
 export function createMockGraphQLParams<TContext>(): GraphQLContextParams<TContext> {
   return createDefaultGraphQLParams<TContext>(createLogger('mock:graphql-http'));
@@ -28,14 +28,14 @@ export function createMockSubscriptionGraphQLParams<
   );
 }
 
-export async function createMockMongooseContext() {
+export async function createMockMongoDBContext() {
   if (!process.env.MOCK_MONGODB_URI) {
     throw new Error('Environment variable "MOCK_MONGODB_URI" must be defined');
   }
 
-  return await createMongooseContext({
+  return await createMongoDBContext({
     logger: createLogger('mock:mongodb'),
-    createModels: createMongooseModels,
+    createCollectionInstances,
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     uri: process.env.MOCK_MONGODB_URI,
   });

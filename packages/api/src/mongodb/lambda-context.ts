@@ -1,41 +1,45 @@
-import { Connection, createConnection, ConnectOptions } from 'mongoose';
-
+import { Db, MongoClient, MongoClientOptions } from 'mongodb';
 import { Logger } from '~utils/logger';
 
-export interface MongooseContextParams<TModels> {
+export interface MongoDBContextParams<TCollections> {
   uri: string;
-  options?: ConnectOptions;
-  createModels: (connection: Connection) => TModels;
+  options?: MongoClientOptions;
+  createCollectionInstances: (mongoDB: Db) => TCollections;
   logger: Logger;
 }
 
-export interface MongoDbContext<TModels> {
-  connection: Connection;
-  model: TModels;
+export interface MongoDBContext<TCollections> {
+  client: MongoClient;
+  collections: TCollections;
 }
 
-export async function createMongooseContext<TModels>(
-  params: MongooseContextParams<TModels> | (() => Promise<MongooseContextParams<TModels>>)
-): Promise<MongoDbContext<TModels>> {
+export async function createMongoDBContext<TCollections>(
+  params:
+    | MongoDBContextParams<TCollections>
+    | (() => Promise<MongoDBContextParams<TCollections>>)
+): Promise<MongoDBContext<TCollections>> {
   if (typeof params === 'function') {
     params = await params();
   }
 
-  params.logger.info('buildMongoDbContext:createConnection', {
+  params.logger.info('createMongoDBContext:connect', {
     uri: params.uri,
   });
 
-  const newConn = createConnection(params.uri, params.options);
-
   try {
-    const connection = await newConn.asPromise();
+    const client = new MongoClient(params.uri, params.options);
+    await client.connect();
+
+    const db = client.db();
+
+    const collections = params.createCollectionInstances(db);
 
     return {
-      connection,
-      model: params.createModels(connection),
+      client,
+      collections,
     };
   } catch (err) {
-    params.logger.error('buildMongoDbContext:connect', err as Error);
+    params.logger.error('createMongoDBContext:connect', err as Error);
     throw err;
   }
 }

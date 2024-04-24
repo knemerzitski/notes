@@ -10,14 +10,23 @@ import { GraphQLContextParams } from '~lambda-graphql/context/graphql';
 import { ConnectionTtlContext } from '~lambda-graphql/dynamodb/models/connection';
 import { Logger } from '~utils/logger';
 
-import { defaultTtl, tryRefreshTtl } from './session-expiration/dynamodb-subscription-connection';
-import { BaseGraphQLContext, DynamoDBBaseGraphQLContext } from './graphql/context';
+import {
+  defaultTtl,
+  tryRefreshTtl,
+} from './session-expiration/dynamodb-subscription-connection';
+import {
+  ApiGraphQLContext,
+  BaseGraphQLContext,
+  DynamoDBBaseGraphQLContext,
+} from './graphql/context';
 import { applyDirectives } from './graphql/directives';
 import { resolvers } from './graphql/resolvers.generated';
 import { typeDefs } from './graphql/typeDefs.generated';
-import { createMongooseContext } from './mongodb/lambda-context';
-import { createMongooseModels } from './mongodb/collections';
-
+import { createMongoDBContext } from './mongodb/lambda-context';
+import { createCollectionInstances } from './mongodb/collections';
+import NotesDataSource, {
+  NotesDataSourceContext,
+} from './graphql/note/datasource/notes-datasource';
 
 export function createDefaultGraphQLParams<TContext>(
   logger: Logger
@@ -46,7 +55,7 @@ export function createDefaultSubscriptionGraphQLParams<TContext>(
   };
 }
 
-async function fetchMongoDbAtlasRoleCredentials() {
+async function fetchMongoDBAtlasRoleCredentials() {
   const stsClient = new STSClient({
     region: process.env.STS_REGION,
   });
@@ -69,8 +78,8 @@ async function fetchMongoDbAtlasRoleCredentials() {
   return Credentials;
 }
 
-export async function createDefaultMongooseContext(logger: Logger) {
-  const credentials = await fetchMongoDbAtlasRoleCredentials();
+export async function createDefaultMongoDBContext(logger: Logger) {
+  const credentials = await fetchMongoDBAtlasRoleCredentials();
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const connectionUri = process.env.MONGODB_ATLAS_URI_SRV!;
@@ -78,9 +87,9 @@ export async function createDefaultMongooseContext(logger: Logger) {
   const databaseName = encodeURIComponent(process.env.MONGODB_ATLAS_DATABASE_NAME!);
   const mongoDBUri = `${connectionUri}/${databaseName}`;
 
-  return await createMongooseContext({
+  return await createMongoDBContext({
     logger,
-    createModels: createMongooseModels,
+    createCollectionInstances,
     uri: mongoDBUri,
     options: {
       auth: {
@@ -146,3 +155,15 @@ export const createDefaultIsCurrentConnection: CreateApolloHttpHandlerParams<
   if (!wsConnectionId) return;
   return (connectionId: string) => wsConnectionId === connectionId;
 };
+
+export interface CreateDefaultDataSourcesParams {
+  notes: NotesDataSourceContext;
+}
+
+export function createDefaultDataSources(
+  params: CreateDefaultDataSourcesParams
+): ApiGraphQLContext['datasources'] {
+  return {
+    notes: new NotesDataSource(params.notes),
+  };
+}

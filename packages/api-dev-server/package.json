@@ -19,7 +19,7 @@
     "aws-lambda": "^1.0.7",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
-    "esbuild": "^0.19.6",
+    "esbuild": "^0.20.2",
     "eslint-import-resolver-typescript": "^3.6.1",
     "nodemon": "^3.0.1",
     "ws": "^8.14.2"

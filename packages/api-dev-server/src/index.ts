@@ -15,6 +15,7 @@ import {
 } from '~api/graphql/context';
 import CookiesContext, { parseCookiesFromHeaders } from '~api/graphql/cookies-context';
 import {
+  createDefaultDataSources,
   createDefaultDynamoDBConnectionTtlContext,
   createDefaultIsCurrentConnection,
 } from '~api/handler-params';
@@ -29,7 +30,7 @@ import {
   createMockApiGatewayParams,
   createMockDynamoDBParams,
   createMockGraphQLParams,
-  createMockMongooseContext,
+  createMockMongoDBContext,
   createMockSubscriptionGraphQLParams,
 } from './handler-params';
 import { createLambdaServer } from './lambda-server';
@@ -49,7 +50,7 @@ void (async () => {
       logger,
     });
 
-    let mongoose: Awaited<ReturnType<typeof createMockMongooseContext>> | undefined;
+    let mongodb: Awaited<ReturnType<typeof createMockMongoDBContext>> | undefined;
 
     const sockets: Record<string, WebSocket> = {};
 
@@ -63,11 +64,11 @@ void (async () => {
         connection: createDefaultDynamoDBConnectionTtlContext(),
         dynamoDB: createMockDynamoDBParams(),
         async onConnect({ event }) {
-          if (!mongoose) {
-            mongoose = await createMockMongooseContext();
+          if (!mongodb) {
+            mongodb = await createMockMongoDBContext();
           }
 
-          return handleConnectGraphQLAuth(mongoose, event);
+          return handleConnectGraphQLAuth(mongodb.collections, event);
         },
         parseDynamoDBGraphQLContext: parseDynamoDBBaseGraphQLContext,
       }),
@@ -81,14 +82,19 @@ void (async () => {
         apiGateway: createMockApiGatewayParams(sockets),
         graphQL: createMockSubscriptionGraphQLParams(),
         async createGraphQLContext() {
-          if (!mongoose) {
-            mongoose = await createMockMongooseContext();
+          if (!mongodb) {
+            mongodb = await createMockMongoDBContext();
           }
 
           return {
             ...createErrorBaseSubscriptionResolversContext(),
             logger: createLogger('mock:ws-message-gql-context'),
-            mongoose,
+            mongodb,
+            datasources: createDefaultDataSources({
+              notes: {
+                mongodb,
+              },
+            }),
           };
         },
         connection: createDefaultDynamoDBConnectionTtlContext(),
@@ -106,14 +112,19 @@ void (async () => {
         graphQL: createMockSubscriptionGraphQLParams(),
         apiGateway: createMockApiGatewayParams(sockets),
         async createGraphQLContext() {
-          if (!mongoose) {
-            mongoose = await createMockMongooseContext();
+          if (!mongodb) {
+            mongodb = await createMockMongoDBContext();
           }
 
           return {
             ...createErrorBaseSubscriptionResolversContext(),
             logger: createLogger('mock:ws-disconnect-gql-context'),
-            mongoose,
+            mongodb,
+            datasources: createDefaultDataSources({
+              notes: {
+                mongodb,
+              },
+            }),
           };
         },
         parseDynamoDBGraphQLContext: parseDynamoDBBaseGraphQLContext,
@@ -125,8 +136,8 @@ void (async () => {
         logger: createLogger('mock:apollo-http-handler'),
         graphQL: createMockGraphQLParams(),
         async createGraphQLContext(_ctx, event) {
-          if (!mongoose) {
-            mongoose = await createMockMongooseContext();
+          if (!mongodb) {
+            mongodb = await createMockMongoDBContext();
           }
 
           const cookiesCtx = CookiesContext.parse(parseCookiesFromHeaders(event.headers));
@@ -134,13 +145,18 @@ void (async () => {
           const authCtx = await parseAuthFromHeaders(
             event.headers,
             cookiesCtx,
-            mongoose.model.Session
+            mongodb.collections
           );
 
           return {
             cookies: cookiesCtx,
             auth: authCtx,
-            mongoose,
+            mongodb,
+            datasources: createDefaultDataSources({
+              notes: {
+                mongodb,
+              },
+            }),
             subscribe: () => {
               throw new Error('Subscribe should never be called in apollo-http-handler');
             },

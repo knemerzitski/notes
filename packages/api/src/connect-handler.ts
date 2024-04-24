@@ -10,7 +10,6 @@ import { createLogger } from '~utils/logger';
 import { parseAuthFromHeaders } from './graphql/auth-context';
 import {
   BaseGraphQLContext,
-  ApiGraphQLContext,
   parseDynamoDBBaseGraphQLContext,
   serializeBaseGraphQLContext,
   DynamoDBBaseGraphQLContext,
@@ -19,11 +18,11 @@ import CookiesContext, { parseCookiesFromHeaders } from './graphql/cookies-conte
 import {
   createDefaultDynamoDBConnectionTtlContext,
   createDefaultDynamoDBParams,
-  createDefaultMongooseContext,
+  createDefaultMongoDBContext,
 } from './handler-params';
 
 export async function handleConnectGraphQLAuth(
-  mongoose: ApiGraphQLContext['mongoose'],
+  mongoDBCollections: Parameters<typeof parseAuthFromHeaders>['2'],
   event: WebSocketConnectEventEvent
 ): Promise<DynamoDBBaseGraphQLContext> {
   const cookiesCtx = CookiesContext.parse(parseCookiesFromHeaders(event.headers));
@@ -31,7 +30,7 @@ export async function handleConnectGraphQLAuth(
   const authCtx = await parseAuthFromHeaders(
     event.headers,
     cookiesCtx,
-    mongoose.model.Session
+    mongoDBCollections
   );
 
   return serializeBaseGraphQLContext({
@@ -46,16 +45,16 @@ export function createDefaultParams(): WebSocketConnectHandlerParams<
 > {
   const logger = createLogger('ws-connect-handler');
 
-  let mongoose: Awaited<ReturnType<typeof createDefaultMongooseContext>> | undefined;
+  let mongodb: Awaited<ReturnType<typeof createDefaultMongoDBContext>> | undefined;
 
   return {
     logger,
     dynamoDB: createDefaultDynamoDBParams(logger),
     async onConnect({ event }) {
-      if (!mongoose) {
-        mongoose = await createDefaultMongooseContext(logger);
+      if (!mongodb) {
+        mongodb = await createDefaultMongoDBContext(logger);
       }
-      return handleConnectGraphQLAuth(mongoose, event);
+      return handleConnectGraphQLAuth(mongodb.collections, event);
     },
     parseDynamoDBGraphQLContext: parseDynamoDBBaseGraphQLContext,
     connection: createDefaultDynamoDBConnectionTtlContext(),
