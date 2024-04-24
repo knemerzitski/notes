@@ -2,11 +2,11 @@ import { ObjectId, WithId } from 'mongodb';
 import { verifyCredentialToken } from '../../../../auth/google/oauth2';
 import { CollectionName } from '../../../../mongodb/collections';
 import { NoteCategory, UserSchema } from '../../../../mongodb/schema/user';
-import { newExpireAt } from '../../../session-expiration';
 
 import type { MutationResolvers } from './../../../types.generated';
 import mapObject from 'map-obj';
 import { sessionDefaultValues } from '../../../../mongodb/schema/session/sessions';
+import { sessionExpiration } from '../../../../session-expiration/mongodb-user-session';
 
 export const signIn: NonNullable<MutationResolvers['signIn']> = async (
   _parent,
@@ -16,7 +16,7 @@ export const signIn: NonNullable<MutationResolvers['signIn']> = async (
   const {
     mongodb: { collections },
     cookies,
-    response
+    response,
   } = ctx;
 
   const googleAuthToken = input.credentials.token;
@@ -73,17 +73,15 @@ export const signIn: NonNullable<MutationResolvers['signIn']> = async (
     };
   }
 
-
   const newSession = {
     _id: new ObjectId(),
     userId: existingUser._id,
-    expireAt: newExpireAt(),
+    expireAt: sessionExpiration.newExpireAtDate(),
     cookieId: sessionDefaultValues.cookieId(),
   };
   await collections[CollectionName.Sessions].insertOne(newSession);
 
   const userId = existingUser._id.toString('base64');
-
 
   cookies.setSession(userId, newSession.cookieId);
   cookies.setCookieHeadersUpdate(response.multiValueHeaders);

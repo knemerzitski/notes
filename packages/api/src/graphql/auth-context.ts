@@ -8,10 +8,10 @@ import { UserSchema } from '../mongodb/schema/user';
 
 import { ApiGraphQLContext } from './context';
 import CookiesContext from './cookies-context';
-import { tryRefreshExpireAt } from './session-expiration';
 import { DeepReplace } from '~utils/types';
 import { CollectionName } from '../mongodb/collections';
 import findByCookieId from '../mongodb/schema/session/operations/findByCookieId';
+import { sessionExpiration } from '../session-expiration/mongodb-user-session';
 
 /**
  * Replaces ObjectId with base64 representation string.
@@ -137,7 +137,7 @@ export async function findRefreshDbSession(
 
   // Refresh expireAt it's too low
   const expireAt = new Date(session.expireAt);
-  if (tryRefreshExpireAt(expireAt)) {
+  if (sessionExpiration.tryRefreshExpireAtDate(expireAt)) {
     await collections[CollectionName.Sessions].findOneAndUpdate(
       {
         _id: session._id,

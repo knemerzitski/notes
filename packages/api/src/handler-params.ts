@@ -10,7 +10,7 @@ import { GraphQLContextParams } from '~lambda-graphql/context/graphql';
 import { ConnectionTtlContext } from '~lambda-graphql/dynamodb/models/connection';
 import { Logger } from '~utils/logger';
 
-import { defaultTtl, tryRefreshTtl } from './dynamodb/connection-ttl';
+import { defaultTtl, tryRefreshTtl } from './session-expiration/dynamodb-subscription-connection';
 import { BaseGraphQLContext, DynamoDBBaseGraphQLContext } from './graphql/context';
 import { applyDirectives } from './graphql/directives';
 import { resolvers } from './graphql/resolvers.generated';
