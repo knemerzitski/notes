@@ -1,14 +1,23 @@
+import { ObjectId, WithId } from 'mongodb';
 import { verifyCredentialToken } from '../../../../auth/google/oauth2';
+import { CollectionName } from '../../../../mongodb/collections';
+import { NoteCategory, UserSchema } from '../../../../mongodb/schema/user';
 import { newExpireAt } from '../../../session-expiration';
 
 import type { MutationResolvers } from './../../../types.generated';
+import mapObject from 'map-obj';
+import { sessionDefaultValues } from '../../../../mongodb/schema/session/sessions';
 
 export const signIn: NonNullable<MutationResolvers['signIn']> = async (
   _parent,
   { input },
-  { mongoose, response, cookies }
+  ctx
 ) => {
-  const { model } = mongoose;
+  const {
+    mongodb: { collections },
+    cookies,
+    response
+  } = ctx;
 
   const googleAuthToken = input.credentials.token;
 
@@ -18,17 +27,27 @@ export const signIn: NonNullable<MutationResolvers['signIn']> = async (
     email: tmpGoogleEmail,
   } = await verifyCredentialToken(googleAuthToken);
 
-  let existingUser = await model.User.findOne({
-    thirdParty: {
-      google: {
-        id: googleUserId,
+  let existingUser = await collections[CollectionName.Users].findOne<
+    WithId<Pick<UserSchema, 'profile'>>
+  >(
+    {
+      thirdParty: {
+        google: {
+          id: googleUserId,
+        },
       },
     },
-  });
+    {
+      projection: {
+        profile: 1,
+      },
+    }
+  );
 
   if (!existingUser) {
-    // Insert new user from Google
-    const newUser = new model.User({
+    // New user insertion
+    const newUser: UserSchema = {
+      _id: new ObjectId(),
       thirdParty: {
         google: {
           id: googleUserId,
@@ -37,23 +56,41 @@ export const signIn: NonNullable<MutationResolvers['signIn']> = async (
       profile: {
         displayName: googleDisplayName,
       },
-    });
-    existingUser = await newUser.save();
+      notes: {
+        category: mapObject(NoteCategory, (_key, categoryName) => [
+          categoryName,
+          {
+            order: [],
+          },
+        ]),
+      },
+    };
+    await collections[CollectionName.Users].insertOne(newUser);
+
+    existingUser = {
+      _id: newUser._id,
+      profile: newUser.profile,
+    };
   }
 
-  const newSession = new model.Session({
+
+  const newSession = {
+    _id: new ObjectId(),
     userId: existingUser._id,
     expireAt: newExpireAt(),
-  });
+    cookieId: sessionDefaultValues.cookieId(),
+  };
+  await collections[CollectionName.Sessions].insertOne(newSession);
 
-  await newSession.save();
+  const userId = existingUser._id.toString('base64');
 
-  cookies.setSession(existingUser.publicId, newSession.cookieId);
+
+  cookies.setSession(userId, newSession.cookieId);
   cookies.setCookieHeadersUpdate(response.multiValueHeaders);
 
   return {
     user: {
-      id: existingUser.publicId,
+      id: userId,
       profile: {
         displayName: existingUser.profile.displayName,
       },

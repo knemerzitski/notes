@@ -10,6 +10,7 @@ import { WebSocketApi } from '~lambda-graphql/context/apigateway';
 import { SubscriptionTable } from '~lambda-graphql/dynamodb/models/subscription';
 import { resolvers } from '../../graphql/resolvers.generated';
 import { typeDefs } from '../../graphql/typeDefs.generated';
+import CookiesContext from '../../graphql/cookies-context';
 
 export function createMockedGraphQLContext(
   user?: Partial<UserSchema>,
@@ -34,6 +35,12 @@ export function createMockedGraphQLContext(
       collections: mongoCollections,
       client: mongoClient,
     },
+    cookies: new CookiesContext({
+      sessions: {},
+    }),
+    response: {
+      multiValueHeaders: {},
+    },
   } as Omit<GraphQLResolversContext, 'publish'>;
 
   return {
@@ -42,6 +49,7 @@ export function createMockedGraphQLContext(
   };
 }
 
+// TODO mock createPublisher with vi.mock
 export const mockSubscriptionsModel = mockDeep<SubscriptionTable>();
 export const mockSocketApi = mockDeep<WebSocketApi>();
 

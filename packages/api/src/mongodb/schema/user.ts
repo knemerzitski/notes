@@ -24,7 +24,7 @@ export interface UserSchema {
 }
 
 // TODO use enum from GraphQL?
-enum NoteCategory {
+export enum NoteCategory {
   Default = 'default',
   Sticky = 'sticky',
   Archived = 'archived',

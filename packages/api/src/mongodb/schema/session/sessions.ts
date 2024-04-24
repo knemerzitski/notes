@@ -20,7 +20,7 @@ export interface SessionSchema {
   expireAt: Date;
 }
 
-export const defaultValues = {
+export const sessionDefaultValues = {
   cookieId: () => nanoid(),
 };
 
