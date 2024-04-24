@@ -1,3 +1,4 @@
+import { CollectionName } from '../../../../mongodb/collections';
 import { isAuthenticated } from '../../../auth-context';
 import CookiesContext from '../../../cookies-context';
 
@@ -9,7 +10,7 @@ export const signOut: NonNullable<MutationResolvers['signOut']> = async (
   ctx
 ) => {
   const {
-    mongoose: { model },
+    mongodb: { collections },
     cookies,
     auth,
     response,
@@ -19,7 +20,7 @@ export const signOut: NonNullable<MutationResolvers['signOut']> = async (
     const cookieIds = Object.values(cookies.sessions);
     if (cookieIds.length > 0) {
       // Deletes all sessions from database
-      await model.Session.deleteMany({
+      await collections[CollectionName.Sessions].deleteMany({
         cookieId: {
           $in: cookieIds,
         },
@@ -27,21 +28,22 @@ export const signOut: NonNullable<MutationResolvers['signOut']> = async (
     }
   } else {
     const userAuth = isAuthenticated(auth) ? auth : null;
-    // Delete specific session from database, by default current user session
-    const userPublicId = input?.userId ?? userAuth?.session.user.publicId;
-    const cookieId = userPublicId ? cookies.sessions[userPublicId] : undefined;
 
-    if (!cookieId || !userPublicId) {
+    // Delete specific session from database, by default current user session
+    const userId = input?.userId ?? userAuth?.session.user._id.toString('base64');
+    const cookieId = userId ? cookies.sessions[userId] : undefined;
+
+    if (!cookieId || !userId) {
       return {
         signedOut: false,
       };
     }
 
-    await model.Session.deleteOne({
+    await collections[CollectionName.Sessions].deleteOne({
       cookieId,
     });
 
-    cookies.deleteSession(userPublicId);
+    cookies.deleteSession(userId);
     if (Object.keys(cookies.sessions).length > 0) {
       // Still have existing sessions, update cookies accordingly
       cookies.setCookieHeadersUpdate(response.multiValueHeaders);
