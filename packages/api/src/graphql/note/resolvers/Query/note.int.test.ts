@@ -2,13 +2,11 @@
 import { faker } from '@faker-js/faker';
 import { assert, beforeAll, expect, it } from 'vitest';
 
-import { mongoCollections, resetDatabase } from '../../../../test/helpers/mongodb';
+import { resetDatabase } from '../../../../test/helpers/mongodb';
 import { GraphQLResolversContext } from '../../../context';
 
 import { apolloServer } from '../../../../test/helpers/apollo-server';
 import { UserSchema } from '../../../../mongodb/schema/user';
-import { CollectionName } from '../../../../mongodb/collections';
-import NotesDataSource from '../../datasource/notes-datasource';
 import {
   populateUserWithNotes,
   populateWithCreatedData,
@@ -16,6 +14,7 @@ import {
 import { NoteTextField } from '../../../types.generated';
 
 import { NoteSchema } from '../../../../mongodb/schema/note';
+import { createMockedGraphQLContext } from '../../../../test/helpers/graphql-context';
 
 const QUERY = `#graphql
   query($contentId: String!, $recordsLast: PositiveInt){
@@ -42,30 +41,6 @@ const QUERY = `#graphql
   }
 `;
 
-function createUserContext(user: UserSchema): GraphQLResolversContext {
-  return {
-    auth: {
-      session: {
-        user: {
-          _id: user._id,
-        },
-      },
-    },
-    datasources: {
-      notes: new NotesDataSource({
-        mongodb: {
-          collections: {
-            [CollectionName.Users]: mongoCollections[CollectionName.Users],
-            [CollectionName.UserNotes]: mongoCollections[CollectionName.UserNotes],
-            [CollectionName.Notes]: mongoCollections[CollectionName.Notes],
-            [CollectionName.CollabTexts]: mongoCollections[CollectionName.CollabTexts],
-          },
-        },
-      }),
-    },
-  } as GraphQLResolversContext;
-}
-
 let notes: NoteSchema[];
 let user: UserSchema;
 let contextValue: GraphQLResolversContext;
@@ -88,7 +63,7 @@ beforeAll(async () => {
   user = tmpUser;
   await populateWithCreatedData();
 
-  contextValue = createUserContext(user);
+  contextValue = createMockedGraphQLContext(user);
 });
 
 it('returns note', async () => {
