@@ -4,7 +4,7 @@ import mapObject from 'map-obj';
 import { SessionSchema, sessionDescription } from './schema/session/sessions';
 import { UserNoteSchema, userNoteDescription } from './schema/user-note';
 import { NoteSchema, noteDescription } from './schema/note';
-import { CollabTextSchema, collabTextDescription } from './schema/collabText/collab-text';
+import { CollabTextSchema, collabTextDescription } from './schema/collab-text';
 
 
 export interface CollectionDescription {

@@ -5,7 +5,7 @@ import {
   CollabTextSelectionRangeQueryMapper,
 } from './selection-range';
 import { MongoDocumentQuery } from '../../../mongodb/query-builder';
-import { RevisionRecordSchema } from '../../../mongodb/schema/collabText/collab-text';
+import { RevisionRecordSchema } from '../../../mongodb/schema/collab-text';
 
 export type CollabTextRecordQuery = Omit<
   RevisionRecordSchema,

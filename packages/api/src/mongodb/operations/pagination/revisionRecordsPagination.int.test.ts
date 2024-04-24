@@ -16,7 +16,7 @@ import relayPaginateUserNotesArray, {
 
 import { UserNoteLookupOutput } from '../lookup/userNoteLookup';
 import { ObjectId } from 'mongodb';
-import { CollabTextSchema } from '../../schema/collabText/collab-text';
+import { CollabTextSchema } from '../../schema/collab-text';
 import { NoteSchema } from '../../schema/note';
 import mapObject from 'map-obj';
 import { UserSchema } from '../../schema/user';

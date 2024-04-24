@@ -1,4 +1,4 @@
-import { RevisionRecordSchema } from '../../schema/collabText/collab-text';
+import { RevisionRecordSchema } from '../../schema/collab-text';
 import consecutiveIntArrayPagination, {
   consecutiveIntArrayMapPaginationOutputToInput,
 } from './consecutiveIntArrayPagination';

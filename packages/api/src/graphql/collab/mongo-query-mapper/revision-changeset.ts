@@ -1,7 +1,7 @@
 import { Changeset } from '~collab/changeset/changeset';
 import { RevisionChangesetMapper } from '../schema.mappers';
 import { MongoDocumentQuery } from '../../../mongodb/query-builder';
-import { RevisionChangesetSchema } from '../../../mongodb/schema/collabText/collab-text';
+import { RevisionChangesetSchema } from '../../../mongodb/schema/collab-text';
 
 export type RevisionChangesetQuery = RevisionChangesetSchema;
 

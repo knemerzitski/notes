@@ -1,7 +1,7 @@
 import {
   CollabTextSchema,
   RevisionRecordSchema,
-} from '../../../mongodb/schema/collabText/collab-text';
+} from '../../../mongodb/schema/collab-text';
 import { NoteSchema, noteDefaultValues } from '../../../mongodb/schema/note';
 import { UserSchema } from '../../../mongodb/schema/user';
 import { faker } from '@faker-js/faker';

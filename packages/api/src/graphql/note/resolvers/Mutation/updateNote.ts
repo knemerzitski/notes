@@ -7,7 +7,7 @@ import {
   ResolversTypes,
   NoteTextField,
 } from '../../../types.generated';
-import { CollabTextSchema } from '../../../../mongodb/schema/collabText/collab-text';
+import { CollabTextSchema } from '../../../../mongodb/schema/collab-text';
 
 import { AnyBulkWriteOperation } from 'mongodb';
 import { CollectionName } from '../../../../mongodb/collections';

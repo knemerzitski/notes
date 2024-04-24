@@ -12,7 +12,7 @@ import userNotesArrayLookup, { UserNotesArrayLookupOutput } from './userNotesArr
 
 import { UserSchema } from '../../schema/user';
 import { CollectionName } from '../../collections';
-import { CollabTextSchema } from '../../schema/collabText/collab-text';
+import { CollabTextSchema } from '../../schema/collab-text';
 import { UserNoteSchema } from '../../schema/user-note';
 import { NoteSchema } from '../../schema/note';
 

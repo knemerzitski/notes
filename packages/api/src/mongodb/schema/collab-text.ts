@@ -1,6 +1,6 @@
 import { Changeset } from '~collab/changeset/changeset';
 
-import { CollectionDescription } from '../../collections';
+import { CollectionDescription } from '../collections';
 import { ObjectId } from 'mongodb';
 import { RevisionChangeset, SelectionRange, ServerRevisionRecord } from '~collab/records/record';
 

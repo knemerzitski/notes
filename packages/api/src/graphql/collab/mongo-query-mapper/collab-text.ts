@@ -1,5 +1,5 @@
 import { CollabTextMapper } from '../schema.mappers';
-import { CollabTextSchema } from '../../../mongodb/schema/collabText/collab-text';
+import { CollabTextSchema } from '../../../mongodb/schema/collab-text';
 import {
   RelayArrayPaginationConfig,
   RelayPagination,

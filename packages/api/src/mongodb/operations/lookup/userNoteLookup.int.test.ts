@@ -8,7 +8,7 @@ import {
 } from '../../../test/helpers/mongodb/populate';
 import userNoteLookup, { UserNoteLookupOutput } from './userNoteLookup';
 import { ObjectId } from 'mongodb';
-import { CollabTextSchema } from '../../schema/collabText/collab-text';
+import { CollabTextSchema } from '../../schema/collab-text';
 import { NoteSchema } from '../../schema/note';
 import { UserNoteSchema } from '../../schema/user-note';
 import { CollectionName } from '../../collections';

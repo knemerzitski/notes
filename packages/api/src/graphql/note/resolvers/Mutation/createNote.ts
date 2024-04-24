@@ -10,7 +10,7 @@ import {
 import { Changeset } from '~collab/changeset/changeset';
 import mapObject from 'map-obj';
 import { ObjectId } from 'mongodb';
-import { CollabTextSchema } from '../../../../mongodb/schema/collabText/collab-text';
+import { CollabTextSchema } from '../../../../mongodb/schema/collab-text';
 import { NoteSchema, noteDefaultValues } from '../../../../mongodb/schema/note';
 import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
 import { CollectionName } from '../../../../mongodb/collections';
