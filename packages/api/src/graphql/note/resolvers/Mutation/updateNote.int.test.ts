@@ -18,8 +18,8 @@ import { apolloServer } from '../../../../test/helpers/apollo-server';
 import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
 import { NoteSchema } from '../../../../mongodb/schema/note';
 import {
-  createMockedPublisher,
-  createMockedGraphQLContext,
+  createPublisher,
+  createGraphQLResolversContext,
   mockSocketApi,
   mockSubscriptionsModel,
 } from '../../../../test/helpers/graphql-context';
@@ -127,7 +127,7 @@ describe('update', () => {
         },
       },
       {
-        contextValue: createMockedGraphQLContext(user),
+        contextValue: createGraphQLResolversContext(user),
       }
     );
 
@@ -170,7 +170,7 @@ describe('update', () => {
         },
       },
       {
-        contextValue: createMockedGraphQLContext(user),
+        contextValue: createGraphQLResolversContext(user),
       }
     );
 
@@ -197,7 +197,7 @@ describe('update', () => {
         },
       },
       {
-        contextValue: createMockedGraphQLContext(user),
+        contextValue: createGraphQLResolversContext(user),
       }
     );
 
@@ -267,7 +267,7 @@ describe('update', () => {
           },
         },
         {
-          contextValue: createMockedGraphQLContext(user),
+          contextValue: createGraphQLResolversContext(user),
         }
       );
 
@@ -376,7 +376,7 @@ describe('update', () => {
           },
         },
         {
-          contextValue: createMockedGraphQLContext(user),
+          contextValue: createGraphQLResolversContext(user),
         }
       );
 
@@ -485,7 +485,7 @@ describe('update', () => {
           },
         },
         {
-          contextValue: createMockedGraphQLContext(user),
+          contextValue: createGraphQLResolversContext(user),
         }
       );
 
@@ -530,7 +530,7 @@ describe('update', () => {
           },
         },
         {
-          contextValue: createMockedGraphQLContext(user),
+          contextValue: createGraphQLResolversContext(user),
         }
       );
 
@@ -576,7 +576,7 @@ describe('update', () => {
           },
         },
         {
-          contextValue: createMockedGraphQLContext(user),
+          contextValue: createGraphQLResolversContext(user),
         }
       );
 
@@ -621,7 +621,7 @@ describe('update', () => {
           variables,
         },
         {
-          contextValue: createMockedGraphQLContext(user),
+          contextValue: createGraphQLResolversContext(user),
         }
       );
       const response = await apolloServer.executeOperation(
@@ -630,7 +630,7 @@ describe('update', () => {
           variables,
         },
         {
-          contextValue: createMockedGraphQLContext(user),
+          contextValue: createGraphQLResolversContext(user),
         }
       );
 
@@ -747,7 +747,7 @@ describe.only('publish', () => {
         },
       },
       {
-        contextValue: createMockedGraphQLContext(user, createMockedPublisher),
+        contextValue: createGraphQLResolversContext(user, createPublisher),
       }
     );
 
@@ -832,7 +832,7 @@ describe.only('publish', () => {
           },
         },
         {
-          contextValue: createMockedGraphQLContext(user, createMockedPublisher),
+          contextValue: createGraphQLResolversContext(user, createPublisher),
         }
       );
     }

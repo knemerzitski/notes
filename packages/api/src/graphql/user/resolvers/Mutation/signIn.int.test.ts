@@ -2,12 +2,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
-import { assert, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { verifyCredentialToken } from '../../../../auth/google/__mocks__/oauth2';
 import { apolloServer } from '../../../../test/helpers/apollo-server';
 import { AuthProvider, SignInInput, SignInPayload } from '../../../types.generated';
-import { createMockedGraphQLContext } from '../../../../test/helpers/graphql-context';
+import { createGraphQLResolversContext } from '../../../../test/helpers/graphql-context';
 import { mongoCollections, resetDatabase } from '../../../../test/helpers/mongodb';
 import { CollectionName } from '../../../../mongodb/collections';
 import { ObjectId } from 'mongodb';
@@ -44,7 +44,7 @@ describe('new user', () => {
   });
 
   it('creates new user and session on first sign in', async () => {
-    const contextValue = createMockedGraphQLContext();
+    const contextValue = createGraphQLResolversContext();
 
     const authProviderUser = {
       id: String(faker.number.int()),
@@ -133,7 +133,7 @@ describe('existing user user', () => {
   });
 
   it('uses existing user and creates new session', async () => {
-    const contextValue = createMockedGraphQLContext();
+    const contextValue = createGraphQLResolversContext();
 
     const googleUserId = user.thirdParty?.google?.id;
     assert(googleUserId != null);

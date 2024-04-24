@@ -1,6 +1,9 @@
 import { GraphQLResolversContext } from '../../graphql/context';
 import { beforeEach, vi } from 'vitest';
-import { Publisher, createPublisher } from '~lambda-graphql/pubsub/publish';
+import {
+  Publisher,
+  createPublisher as _createPublisher,
+} from '~lambda-graphql/pubsub/publish';
 import NotesDataSource from '../../graphql/note/datasource/notes-datasource';
 import { UserSchema } from '../../mongodb/schema/user';
 import { mongoCollections, mongoClient } from './mongodb';
@@ -12,7 +15,7 @@ import { resolvers } from '../../graphql/resolvers.generated';
 import { typeDefs } from '../../graphql/typeDefs.generated';
 import CookiesContext from '../../graphql/cookies-context';
 
-export function createMockedGraphQLContext(
+export function createGraphQLResolversContext(
   user?: Partial<UserSchema>,
   publisher = (_ctx: Omit<GraphQLResolversContext, 'publish'>) => vi.fn() as Publisher
 ): GraphQLResolversContext {
@@ -49,7 +52,6 @@ export function createMockedGraphQLContext(
   };
 }
 
-// TODO mock createPublisher with vi.mock
 export const mockSubscriptionsModel = mockDeep<SubscriptionTable>();
 export const mockSocketApi = mockDeep<WebSocketApi>();
 
@@ -58,8 +60,8 @@ beforeEach(() => {
   mockSocketApi.post.mockClear();
 });
 
-export function createMockedPublisher(ctx: Omit<GraphQLResolversContext, 'publish'>) {
-  return createPublisher({
+export function createPublisher(ctx: Omit<GraphQLResolversContext, 'publish'>) {
+  return _createPublisher({
     context: {
       ...ctx,
       schema: createGraphQLContext({

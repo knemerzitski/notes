@@ -14,7 +14,7 @@ import {
 import { NoteTextField } from '../../../types.generated';
 
 import { NoteSchema } from '../../../../mongodb/schema/note';
-import { createMockedGraphQLContext } from '../../../../test/helpers/graphql-context';
+import { createGraphQLResolversContext } from '../../../../test/helpers/graphql-context';
 
 const QUERY = `#graphql
   query($contentId: String!, $recordsLast: PositiveInt){
@@ -63,7 +63,7 @@ beforeAll(async () => {
   user = tmpUser;
   await populateWithCreatedData();
 
-  contextValue = createMockedGraphQLContext(user);
+  contextValue = createGraphQLResolversContext(user);
 });
 
 it('returns note', async () => {

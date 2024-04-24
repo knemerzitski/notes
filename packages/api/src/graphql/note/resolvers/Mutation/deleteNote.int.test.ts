@@ -20,8 +20,8 @@ import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
 import { NoteSchema } from '../../../../mongodb/schema/note';
 import { CollectionName } from '../../../../mongodb/collections';
 import {
-  createMockedPublisher,
-  createMockedGraphQLContext,
+  createPublisher,
+  createGraphQLResolversContext,
   mockSocketApi,
   mockSubscriptionsModel,
 } from '../../../../test/helpers/graphql-context';
@@ -77,7 +77,7 @@ describe('delete', () => {
         },
       },
       {
-        contextValue: createMockedGraphQLContext(userOwner),
+        contextValue: createGraphQLResolversContext(userOwner),
       }
     );
 
@@ -112,7 +112,7 @@ describe('delete', () => {
         },
       },
       {
-        contextValue: createMockedGraphQLContext(userOther),
+        contextValue: createGraphQLResolversContext(userOther),
       }
     );
 
@@ -144,7 +144,7 @@ describe('delete', () => {
         },
       },
       {
-        contextValue: createMockedGraphQLContext(userOther),
+        contextValue: createGraphQLResolversContext(userOther),
       }
     );
 
@@ -188,7 +188,7 @@ describe('publish', () => {
         },
       },
       {
-        contextValue: createMockedGraphQLContext(userOwner, createMockedPublisher),
+        contextValue: createGraphQLResolversContext(userOwner, createPublisher),
       }
     );
 
