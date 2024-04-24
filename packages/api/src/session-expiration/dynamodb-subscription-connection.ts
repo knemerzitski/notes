@@ -1,4 +1,4 @@
-import SessionExpiration from './createSessionExpiration';
+import SessionExpiration from './session-expiration';
 
 /**
  * Session expiration DynamoDB connection for subscriptions
