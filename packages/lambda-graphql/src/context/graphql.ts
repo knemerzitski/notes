@@ -1,3 +1,4 @@
+import { ApolloServerOptions, BaseContext } from '@apollo/server';
 import { IExecutableSchemaDefinition, makeExecutableSchema } from '@graphql-tools/schema';
 import { GraphQLSchema } from 'graphql';
 
@@ -27,5 +28,33 @@ export function createGraphQLContext<TContext = unknown>({
 
   return {
     schema,
+  };
+}
+
+interface ApolloDirectParams<TContext extends BaseContext> {
+  apolloServerOptions: Omit<
+    ApolloServerOptions<TContext>,
+    'schema' | 'gateway' | 'typeDefs' | 'resolvers'
+  >;
+}
+
+export interface ApolloGraphQLContextParams<TContext extends BaseContext = BaseContext>
+  extends GraphQLContextParams<TContext>,
+    ApolloDirectParams<TContext> {}
+
+export interface ApolloGraphQLContext<TContext extends BaseContext = BaseContext>
+  extends GraphQLContext,
+    ApolloDirectParams<TContext> {}
+
+export function createApolloGraphQLContext<TContext extends BaseContext = BaseContext>({
+  typeDefs,
+  resolvers,
+  transform,
+  logger,
+  ...directParams
+}: ApolloGraphQLContextParams<TContext>): ApolloGraphQLContext<TContext> {
+  return {
+    ...createGraphQLContext({ typeDefs, resolvers, transform, logger }),
+    ...directParams,
   };
 }

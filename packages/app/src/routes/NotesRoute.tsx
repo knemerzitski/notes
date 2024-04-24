@@ -13,15 +13,18 @@ import useDeleteNote from '../note/hooks/useDeleteNote';
 import { useProxyNavigate, useProxyRouteTransform } from '../router/ProxyRoutesProvider';
 import { useAbsoluteLocation } from '../router/hooks/useAbsoluteLocation';
 import { useIsBackgroundLocation } from '../router/hooks/useIsBackgroundLocation';
+import isDefined from '~utils/type-guards/isDefined';
 
 const QUERY_NOTES = gql(`
   query NotesRouteNotesConnection($last: NonNegativeInt!, $before: String) {
     notesConnection(last: $last, before: $before) {
       notes {
         id
+        contentId
         textFields {
           key
           value {
+            id
             headText {
               revision
               changeset
@@ -74,8 +77,8 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
   const activeNotes = useModifyActiveNotes();
 
   useEffect(() => {
-    data?.notesConnection.notes.forEach(({ id }) => {
-      activeNotes.add(id);
+    data?.notesConnection.notes.filter(isDefined).forEach(({ contentId }) => {
+      activeNotes.add(contentId);
     });
   }, [activeNotes, data?.notesConnection.notes]);
 
@@ -91,21 +94,21 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
     return <></>;
   }
 
-  const notes: NoteItemProps['note'][] = data.notesConnection.notes.map(
-    ({ id, textFields }) => {
+  const notes: NoteItemProps['note'][] = data.notesConnection.notes
+    .filter(isDefined)
+    .map(({ contentId, textFields }) => {
       const title =
         textFields.find(({ key }) => key === NoteTextField.Title)?.value.viewText ?? '';
       const content =
         textFields.find(({ key }) => key === NoteTextField.Content)?.value.viewText ?? '';
 
       return {
-        id: String(id),
+        id: contentId,
         title: title,
         content: content,
-        editing: absoluteLocation.pathname === transform(noteRoute(String(id))),
+        editing: absoluteLocation.pathname === transform(noteRoute(contentId)),
       };
-    }
-  );
+    });
 
   // Notes array is ordered by newest at the end
   // Reverse to display newest first

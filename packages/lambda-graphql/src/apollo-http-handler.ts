@@ -12,7 +12,10 @@ import {
   createApiGatewayContext,
 } from './context/apigateway';
 import { DynamoDBContextParams, createDynamoDbContext } from './context/dynamodb';
-import { GraphQLContextParams, createGraphQLContext } from './context/graphql';
+import {
+  ApolloGraphQLContextParams,
+  createApolloGraphQLContext,
+} from './context/graphql';
 import { ConnectionTable, DynamoDBRecord } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
 import { Publisher, createPublisher } from './pubsub/publish';
@@ -22,7 +25,7 @@ interface DirectParams {
 }
 
 export interface CreateApolloHttpHandlerParams<
-  TGraphQLContext,
+  TGraphQLContext extends BaseContext,
   TDynamoDBGraphQLContext extends DynamoDBRecord,
 > extends DirectParams {
   createGraphQLContext: (
@@ -33,7 +36,7 @@ export interface CreateApolloHttpHandlerParams<
     context: ApolloHttpHandlerContext<TDynamoDBGraphQLContext>,
     event: APIGatewayProxyEvent
   ) => ((connectionId: string) => boolean) | undefined;
-  graphQL: GraphQLContextParams<TGraphQLContext>;
+  graphQL: ApolloGraphQLContextParams<TGraphQLContext>;
   dynamoDB: DynamoDBContextParams;
   apiGateway: ApiGatewayContextParams;
 }
@@ -62,7 +65,7 @@ export interface ApolloHttpGraphQLContext extends BaseContext {
 }
 
 export function createApolloHttpHandler<
-  TGraphQLContext,
+  TGraphQLContext extends BaseContext,
   TDynamoDBGraphQLContext extends DynamoDBRecord,
 >(
   params: CreateApolloHttpHandlerParams<TGraphQLContext, TDynamoDBGraphQLContext>
@@ -70,7 +73,7 @@ export function createApolloHttpHandler<
   const { logger } = params;
   logger.info('createApolloHttpHandler');
 
-  const graphQL = createGraphQLContext(params.graphQL);
+  const graphQL = createApolloGraphQLContext(params.graphQL);
   const dynamoDB = createDynamoDbContext<TDynamoDBGraphQLContext>(params.dynamoDB);
   const apiGateway = createApiGatewayContext(params.apiGateway);
 
@@ -86,6 +89,7 @@ export function createApolloHttpHandler<
 
   type GraphQLContext = ApolloHttpGraphQLContext & TGraphQLContext;
   const apollo = new ApolloServer<GraphQLContext>({
+    ...graphQL.apolloServerOptions,
     schema: graphQL.schema,
     introspection: process.env.NODE_ENV !== 'production',
     nodeEnv: process.env.NODE_ENV,

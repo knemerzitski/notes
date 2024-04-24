@@ -12,27 +12,16 @@ const config: CodegenConfig = {
       },
       config: {
         scalars: {
-          ID: {
-            input: 'string',
-            output: 'string',
-          },
+          ID: { input: 'string', output: 'string | number' },
           Date: {
             input: 'Date',
             output: 'Date | string',
           },
-          HexColorCode: {
-            input: 'string',
-            output: 'string',
-          },
-          NonNegativeInt: {
-            input: 'number',
-            output: 'number',
-          },
-          PositiveInt: {
-            input: 'number',
-            output: 'number',
-          },
+          HexColorCode: 'string',
+          NonNegativeInt: 'number',
+          PositiveInt: 'number',
           Changeset: '~collab/changeset/changeset#SerializedChangeset',
+          Cursor: 'string | number',
         },
       },
       // TODO encode documents to prevent any query execution?

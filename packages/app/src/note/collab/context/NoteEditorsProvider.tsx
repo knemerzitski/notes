@@ -21,11 +21,12 @@ import { useNoteId } from './NoteIdProvider';
 
 export const QUERY = gql(`
   query NoteEditorsProviderCreateEditor($id: String!) {
-    note(urlId: $id) {
+    note(contentId: $id) {
       id
       textFields {
         key
         value {
+          id
           headText {
             changeset
             revision
@@ -178,9 +179,11 @@ async function createEditors<T>({ client, noteId }: CreateEditorsOptions<T>) {
     return {
       key,
       value: new CollabEditor({
-        head: {
-          revision: value.headRevision,
-          changeset: Changeset.fromInsertion(value.headText),
+        initialText: {
+          headText: {
+            revision: value.headText.revision,
+            changeset: Changeset.parseValue(value.headText.changeset),
+          },
         },
       }),
     };

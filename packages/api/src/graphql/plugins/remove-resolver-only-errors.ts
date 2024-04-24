@@ -1,9 +1,9 @@
 import {
   ApolloServerPlugin,
+  BaseContext,
   GraphQLRequestContext,
   GraphQLRequestListener,
 } from '@apollo/server';
-import { GraphQLResolversContext } from '../context';
 import { GraphQLError, GraphQLErrorOptions } from 'graphql';
 
 const REMOVE_ERROR_MARK = 'removeResolverOnlyError';
@@ -29,12 +29,12 @@ export function newResolverOnlyError(message?: string, options?: GraphQLErrorOpt
  * Removes errors that have extension {@link REMOVE_ERROR_MARK} set to truthy value.
  * @see {@link newResolverOnlyError}
  */
-export class RemoveResolverOnlyErrors
-  implements ApolloServerPlugin<GraphQLResolversContext>
+export class RemoveResolverOnlyErrors<TContext extends BaseContext>
+  implements ApolloServerPlugin<TContext>
 {
   requestDidStart(
-    _requestContext: GraphQLRequestContext<GraphQLResolversContext>
-  ): Promise<void | GraphQLRequestListener<GraphQLResolversContext>> {
+    _requestContext: GraphQLRequestContext<TContext>
+  ): Promise<void | GraphQLRequestListener<TContext>> {
     return Promise.resolve({
       willSendResponse(requestContext): Promise<void> {
         const response = requestContext.response;

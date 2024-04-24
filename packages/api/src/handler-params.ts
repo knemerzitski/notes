@@ -6,7 +6,10 @@ import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import { CreateApolloHttpHandlerParams } from '~lambda-graphql/apollo-http-handler';
 import { ApiGatewayContextParams } from '~lambda-graphql/context/apigateway';
 import { DynamoDBContextParams } from '~lambda-graphql/context/dynamodb';
-import { GraphQLContextParams } from '~lambda-graphql/context/graphql';
+import {
+  ApolloGraphQLContextParams,
+  GraphQLContextParams,
+} from '~lambda-graphql/context/graphql';
 import { ConnectionTtlContext } from '~lambda-graphql/dynamodb/models/connection';
 import { Logger } from '~utils/logger';
 
@@ -27,10 +30,13 @@ import { createCollectionInstances } from './mongodb/collections';
 import NotesDataSource, {
   NotesDataSourceContext,
 } from './graphql/note/datasource/notes-datasource';
+import { BaseContext } from '@apollo/server';
+import { GroupDuplicateErrors } from './graphql/plugins/group-duplicate-errors';
+import { RemoveResolverOnlyErrors } from './graphql/plugins/remove-resolver-only-errors';
 
-export function createDefaultGraphQLParams<TContext>(
+export function createDefaultGraphQLParams<TContext extends BaseContext>(
   logger: Logger
-): GraphQLContextParams<TContext> {
+): ApolloGraphQLContextParams<TContext> {
   const { Subscription, ...allExceptSubscriptionResolvers } = resolvers;
 
   return {
@@ -38,6 +44,9 @@ export function createDefaultGraphQLParams<TContext>(
     typeDefs, // TODO separate typeDefs
     resolvers: allExceptSubscriptionResolvers,
     transform: applyDirectives,
+    apolloServerOptions: {
+      plugins: [new RemoveResolverOnlyErrors(), new GroupDuplicateErrors()],
+    },
   };
 }
 

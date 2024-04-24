@@ -1,9 +1,9 @@
 import {
   ApolloServerPlugin,
+  BaseContext,
   GraphQLRequestContext,
   GraphQLRequestListener,
 } from '@apollo/server';
-import { GraphQLResolversContext } from '../context';
 import { GraphQLFormattedError } from 'graphql';
 
 function createErrorKey(err: GraphQLFormattedError) {
@@ -32,10 +32,12 @@ function commonErrorPath(err: GraphQLFormattedError, err2: GraphQLFormattedError
 /**
  * Groups errors that have same extensions and message.
  */
-export class GroupDuplicateErrors implements ApolloServerPlugin<GraphQLResolversContext> {
+export class GroupDuplicateErrors<TContext extends BaseContext>
+  implements ApolloServerPlugin<TContext>
+{
   requestDidStart(
-    _requestContext: GraphQLRequestContext<GraphQLResolversContext>
-  ): Promise<void | GraphQLRequestListener<GraphQLResolversContext>> {
+    _requestContext: GraphQLRequestContext<TContext>
+  ): Promise<void | GraphQLRequestListener<TContext>> {
     return Promise.resolve({
       willSendResponse(requestContext): Promise<void> {
         const response = requestContext.response;

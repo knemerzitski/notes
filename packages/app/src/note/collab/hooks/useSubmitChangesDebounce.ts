@@ -7,12 +7,13 @@ import { useNoteId } from '../context/NoteIdProvider';
 const MUTATION = gql(`
   mutation NoteUseSubmitLocalChanges($input: UpdateNoteInput!)  {
     updateNote(input: $input) {
-      id
+      contentId
       patch {
         textFields {
           key
           value {
             newRecord {
+              id
               change {
                 changeset
                 revision

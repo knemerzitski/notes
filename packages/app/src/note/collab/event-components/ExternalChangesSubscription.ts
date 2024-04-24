@@ -8,15 +8,25 @@ import { useNoteId } from '../context/NoteIdProvider';
 const SUBSCRIPTION = gql(`
   subscription NoteExternalChange($input: NoteUpdatedInput!) {
     noteUpdated(input: $input) {
-      id
+      contentId
       patch {
         textFields {
           key
           value {
             newRecord {
+              id
               change {
                 revision
                 changeset
+              }
+              creatorUserId
+              beforeSelection {
+                start
+                end
+              }
+              afterSelection {
+                start
+                end
               }
             }
           }
@@ -35,7 +45,7 @@ export default function ExternalChangesSubscription() {
       query: SUBSCRIPTION,
       variables: {
         input: {
-          id: noteId,
+          contentId: noteId,
         },
       },
     }),

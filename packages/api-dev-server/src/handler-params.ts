@@ -6,7 +6,10 @@ import {
 } from '~api/handler-params';
 import { ApiGatewayContextParams } from '~lambda-graphql/context/apigateway';
 import { DynamoDBContextParams } from '~lambda-graphql/context/dynamodb';
-import { GraphQLContextParams } from '~lambda-graphql/context/graphql';
+import {
+  ApolloGraphQLContextParams,
+  GraphQLContextParams,
+} from '~lambda-graphql/context/graphql';
 import { PingPongContextParams } from '~lambda-graphql/context/pingpong';
 import { createPingPongHandler } from '~lambda-graphql/ping-pong-handler';
 import { createLogger } from '~utils/logger';
@@ -16,7 +19,9 @@ import { MockPingPongSFNClient } from './utils/mock-pingpong-sfnclient';
 import { createMongoDBContext } from '~api/mongodb/lambda-context';
 import { createCollectionInstances } from '~api/mongodb/collections';
 
-export function createMockGraphQLParams<TContext>(): GraphQLContextParams<TContext> {
+export function createMockGraphQLParams<
+  TContext extends object,
+>(): ApolloGraphQLContextParams<TContext> {
   return createDefaultGraphQLParams<TContext>(createLogger('mock:graphql-http'));
 }
 
