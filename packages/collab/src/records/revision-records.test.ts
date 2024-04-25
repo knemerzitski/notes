@@ -163,34 +163,52 @@ describe('update', () => {
     }));
   }
 
-  let revisionRecords: RevisionRecords;
+  describe('with pre-existing records', () => {
+    let revisionRecords: RevisionRecords;
 
-  beforeEach(() => {
-    revisionRecords = new RevisionRecords({
-      records: createConsecutiveRecords(5, 8),
+    beforeEach(() => {
+      revisionRecords = new RevisionRecords({
+        records: createConsecutiveRecords(5, 8),
+      });
+    });
+
+    it.each([
+      [2, 4, [2, 3, 4, 5, 6, 7, 8]],
+      [2, 6, [2, 3, 4, 5, 6, 7, 8]],
+      [5, 6, [5, 6, 7, 8]],
+      [6, 8, [5, 6, 7, 8]],
+      [6, 9, [5, 6, 7, 8, 9]],
+      [9, 10, [5, 6, 7, 8, 9, 10]],
+      [4, 9, [4, 5, 6, 7, 8, 9]],
+      [5, 8, [5, 6, 7, 8]],
+    ])('(%s,%s) => %s', (start, end, expected) => {
+      revisionRecords.update(createConsecutiveRecords(start, end));
+      expect(revisionRecords.records.map((r) => r.revision)).toStrictEqual(expected);
+    });
+
+    it.each([
+      [2, 3],
+      [10, 11],
+    ])('(%s,%s) => throws error', (start, end) => {
+      expect(() => {
+        revisionRecords.update(createConsecutiveRecords(start, end));
+      }).toThrow();
     });
   });
 
-  it.each([
-    [2, 4, [2, 3, 4, 5, 6, 7, 8]],
-    [2, 6, [2, 3, 4, 5, 6, 7, 8]],
-    [5, 6, [5, 6, 7, 8]],
-    [6, 8, [5, 6, 7, 8]],
-    [6, 9, [5, 6, 7, 8, 9]],
-    [9, 10, [5, 6, 7, 8, 9, 10]],
-    [4, 9, [4, 5, 6, 7, 8, 9]],
-    [5, 8, [5, 6, 7, 8]],
-  ])('(%s,%s) => %s', (start, end, expected) => {
-    revisionRecords.update(createConsecutiveRecords(start, end));
-    expect(revisionRecords.records.map((r) => r.revision)).toStrictEqual(expected);
-  });
+  describe('with new records', () => {
+    let revisionRecords: RevisionRecords;
 
-  it.each([
-    [2, 3],
-    [10, 11],
-  ])('(%s,%s) => throws error', (start, end) => {
-    expect(() => {
+    beforeEach(() => {
+      revisionRecords = new RevisionRecords();
+    });
+
+    it.each([
+      [5, 9, [5, 6, 7, 8, 9]],
+      [16, 17, [16, 17]],
+    ])('(%s,%s) => %s', (start, end, expected) => {
       revisionRecords.update(createConsecutiveRecords(start, end));
-    }).toThrow();
+      expect(revisionRecords.records.map((r) => r.revision)).toStrictEqual(expected);
+    });
   });
 });

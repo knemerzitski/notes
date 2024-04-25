@@ -225,13 +225,16 @@ export class RevisionRecords<
     const lastRecord = newRecords[newRecords.length - 1];
     if (!firstRecord || !lastRecord) return;
 
-    if (
-      lastRecord.revision + 1 < this.startRevision ||
-      this.endRevision < firstRecord.revision - 1
-    ) {
-      throw new Error(
-        `Expected newRecords to have overlap. newRecords: (${firstRecord.revision},${lastRecord.revision}), records: (${this.startRevision},${this.endRevision})`
-      );
+    if (this.records.length > 0) {
+      const recordsHaveNoOverlap =
+        lastRecord.revision + 1 < this.startRevision ||
+        this.endRevision < firstRecord.revision - 1;
+
+      if (recordsHaveNoOverlap) {
+        throw new Error(
+          `Expected newRecords to have overlap. newRecords: (${firstRecord.revision},${lastRecord.revision}), records: (${this.startRevision},${this.endRevision})`
+        );
+      }
     }
 
     this.mergeNewRecords(newRecords);
