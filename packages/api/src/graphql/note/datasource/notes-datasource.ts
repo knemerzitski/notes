@@ -5,7 +5,7 @@ import { NoteQuery } from '../mongo-query-mapper/note';
 import { GraphQLResolversContext } from '../../context';
 
 import sortObject from '~utils/object/sortObject';
-import { AggregateOptions, ClientSession, ObjectId } from 'mongodb';
+import { AggregateOptions, ObjectId } from 'mongodb';
 
 import noteBatchLoad, { NoteKey } from './noteBatchLoad';
 import noteConnectionBatchLoad, {
@@ -13,6 +13,7 @@ import noteConnectionBatchLoad, {
   NoteConnectionKey,
 } from './noteConnectionBatchLoad';
 import { CollectionName } from '../../../mongodb/collections';
+import callFnGrouped from '~utils/callFnGrouped';
 
 export interface NotesDataSourceContext {
   mongodb: {
@@ -25,29 +26,41 @@ export interface NotesDataSourceContext {
     >;
   };
 }
+
+type NoteKeyWithSession = {
+  noteKey: NoteKey;
+} & Pick<AggregateOptions, 'session'>;
+
 export default class NotesDataSource {
   private context: Readonly<NotesDataSourceContext>;
 
   private loaders: {
-    note: DataLoader<NoteKey, DeepQueryResponse<NoteQuery>, string>;
+    note: DataLoader<NoteKeyWithSession, DeepQueryResponse<NoteQuery>, string>;
     noteConnection: DataLoader<NoteConnectionKey, NoteConnectionBatchLoadOutput, string>;
-  };
-
-  private loadersWithSession: {
-    note: WeakMap<
-      ClientSession,
-      DataLoader<NoteKey, DeepQueryResponse<NoteQuery>, string>
-    >;
   };
 
   constructor(context: Readonly<NotesDataSourceContext>) {
     this.context = context;
 
     this.loaders = {
-      note: new DataLoader<NoteKey, DeepQueryResponse<NoteQuery>, string>(
-        async (keys) => noteBatchLoad(keys, context),
+      note: new DataLoader<NoteKeyWithSession, DeepQueryResponse<NoteQuery>, string>(
+        async (keys) =>
+          callFnGrouped(
+            keys,
+            (key) => key.session,
+            (keys, session) =>
+              noteBatchLoad(
+                keys.map(({ noteKey }) => noteKey),
+                this.context,
+                {
+                  session,
+                }
+              )
+          ),
         {
-          cacheKeyFn: getEqualObjectString,
+          cacheKeyFn: (key) => {
+            return getEqualObjectString(key.noteKey);
+          },
         }
       ),
       noteConnection: new DataLoader<
@@ -58,36 +71,23 @@ export default class NotesDataSource {
         cacheKeyFn: getEqualObjectString,
       }),
     };
-
-    this.loadersWithSession = {
-      note: new WeakMap(),
-    };
   }
 
+  // TODO rename to loadNote
   getNote(key: NoteKey, aggregateOptions?: Pick<AggregateOptions, 'session'>) {
+    const loaderKey: NoteKeyWithSession = {
+      noteKey: key,
+    };
     if (aggregateOptions?.session) {
-      const session = aggregateOptions.session;
-
-      let loaderWithSession = this.loadersWithSession.note.get(session);
-      if (!loaderWithSession) {
-        loaderWithSession = new DataLoader<NoteKey, DeepQueryResponse<NoteQuery>, string>(
-          async (keys) =>
-            noteBatchLoad(keys, this.context, {
-              session,
-            }),
-          {
-            cacheKeyFn: getEqualObjectString,
-          }
-        );
-        this.loadersWithSession.note.set(session, loaderWithSession);
-      }
-
-      return loaderWithSession.load(key);
+      loaderKey.session = aggregateOptions.session;
+      // Clear key since session implies a transaction where returned value must be always up-to-date
+      return this.loaders.note.clear(loaderKey).load(loaderKey);
     } else {
-      return this.loaders.note.load(key);
+      return this.loaders.note.load(loaderKey);
     }
   }
 
+  // TODO rename to loadNoteConnection
   async getNoteConnection<
     TCustomQuery extends Record<string, unknown> = Record<string, never>,
   >(key: NoteConnectionKey) {
@@ -100,9 +100,11 @@ export default class NotesDataSource {
 
       this.loaders.note.prime(
         {
-          userId: key.userId,
-          publicId,
-          noteQuery: key.noteQuery,
+          noteKey: {
+            userId: key.userId,
+            publicId,
+            noteQuery: key.noteQuery,
+          },
         },
         userNote
       );

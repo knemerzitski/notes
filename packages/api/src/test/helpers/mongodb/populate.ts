@@ -5,11 +5,12 @@ import {
 import { NoteSchema, noteDefaultValues } from '../../../mongodb/schema/note';
 import { UserSchema } from '../../../mongodb/schema/user';
 import { faker } from '@faker-js/faker';
-import { Changeset } from '~collab/changeset/changeset';
+import { Changeset, SerializedChangeset } from '~collab/changeset/changeset';
 import { mongoCollections } from '../mongodb';
 import { CollectionName } from '../../../mongodb/collections';
 import { ObjectId } from 'mongodb';
 import { UserNoteSchema } from '../../../mongodb/schema/user-note';
+import { assert } from 'vitest';
 
 type Task = () => Promise<void>;
 
@@ -178,7 +179,8 @@ export function createNoteMany(
 
 interface FakeCollabTextRecordDataOptions {
   revision?: number;
-  changeset?: Changeset;
+  changeset?: SerializedChangeset;
+  userGeneratedId?: string;
 }
 
 export function fakeCollabTextRecordData(
@@ -188,11 +190,9 @@ export function fakeCollabTextRecordData(
   const revision = options?.revision ?? faker.number.int({ max: 1000 });
   return {
     creatorUserId: user._id,
-    userGeneratedId: faker.string.nanoid(6),
+    userGeneratedId: options?.userGeneratedId ?? faker.string.nanoid(6),
     revision,
-    changeset:
-      options?.changeset?.serialize() ??
-      Changeset.fromInsertion(`r_${revision}`).serialize(),
+    changeset: options?.changeset ?? Changeset.fromInsertion(`r_${revision}`).serialize(),
     beforeSelection: {
       start: 0,
     },
@@ -202,15 +202,48 @@ export function fakeCollabTextRecordData(
   };
 }
 
-interface FakeCollabTextDataOptions {
-  tailRevision?: number;
-  recordsCount?: number;
-}
+type FakeCollabTextDataOptions =
+  | {
+      tailRevision?: number;
+      recordsCount?: number;
+    }
+  | {
+      records: [
+        Required<FakeCollabTextRecordDataOptions>,
+        ...Required<FakeCollabTextRecordDataOptions>[],
+      ];
+    };
 
 export function fakeCollabTextData(
   user: UserSchema,
   options?: FakeCollabTextDataOptions
 ): CollabTextSchema {
+  if (options && 'records' in options) {
+    const records = options.records.map((recordOptions) =>
+      fakeCollabTextRecordData(user, recordOptions)
+    );
+
+    const lastRecord = records[records.length - 1];
+    assert(lastRecord != null);
+    const headText = options.records.reduce(
+      (a, b) => a.compose(Changeset.parseValue(b.changeset)),
+      Changeset.EMPTY
+    );
+
+    return {
+      _id: new ObjectId(),
+      headText: {
+        revision: lastRecord.revision,
+        changeset: headText.serialize(),
+      },
+      tailText: {
+        revision: -1,
+        changeset: Changeset.EMPTY.serialize(),
+      },
+      records,
+    };
+  }
+
   const tailRevision = options?.tailRevision ?? faker.number.int({ max: 1000 });
   const recordsCount = options?.recordsCount ?? faker.number.int({ min: 1, max: 10 });
   const headRevision = tailRevision + recordsCount;
@@ -227,11 +260,12 @@ export function fakeCollabTextData(
       )
     );
   }
+
   if (recordsCount > 0) {
     records.push(
       fakeCollabTextRecordData(user, {
         revision: tailRevision + recordsCount,
-        changeset: headText,
+        changeset: headText.serialize(),
       })
     );
   }

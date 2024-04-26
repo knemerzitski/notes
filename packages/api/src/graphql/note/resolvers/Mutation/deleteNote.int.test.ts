@@ -188,7 +188,9 @@ describe('publish', () => {
         },
       },
       {
-        contextValue: createGraphQLResolversContext(userOwner, createPublisher),
+        contextValue: createGraphQLResolversContext(userOwner, {
+          createPublisher
+        }),
       }
     );
 

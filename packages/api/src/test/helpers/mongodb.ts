@@ -4,15 +4,27 @@ import { CollectionName, createCollectionInstances } from '../../mongodb/collect
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const DB_URI = process.env.TEST_MONGODB_URI!;
 
-export const mongoClient = new MongoClient(DB_URI);
-await mongoClient.connect();
+export async function createMongoDBContext() {
+  const mongoClient = new MongoClient(DB_URI, {});
+  await mongoClient.connect();
 
-export const mongoDB = mongoClient.db();
+  const mongoDB = mongoClient.db();
 
-export const mongoCollections = createCollectionInstances(mongoDB);
+  const mongoCollections = createCollectionInstances(mongoDB);
 
-export function resetDatabase() {
-  return Promise.all(
-    Object.values(CollectionName).map((name) => mongoCollections[name].deleteMany())
-  );
+  function resetDatabase() {
+    return Promise.all(
+      Object.values(CollectionName).map((name) => mongoCollections[name].deleteMany())
+    );
+  }
+
+  return {
+    mongoClient,
+    mongoDB,
+    mongoCollections,
+    resetDatabase,
+  };
 }
+
+export const { mongoClient, mongoDB, mongoCollections, resetDatabase } =
+  await createMongoDBContext();

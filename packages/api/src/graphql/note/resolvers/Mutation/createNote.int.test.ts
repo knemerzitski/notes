@@ -172,7 +172,9 @@ describe('publish', () => {
   `;
 
   beforeAll(() => {
-    contextValue = createGraphQLResolversContext(user, createPublisher);
+    contextValue = createGraphQLResolversContext(user, {
+      createPublisher,
+    });
   });
 
   it('publishes created note to a subscription', async () => {

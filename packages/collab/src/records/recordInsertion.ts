@@ -59,7 +59,7 @@ export default function recordInsertion<
   if (headRevision < insertRecord.revision) {
     throw new RecordInsertionError(
       RecordInsertionErrorCode.RevisionInvalid,
-      `Expected insertion revision ${insertRecord.revision} to be before or same as HEAD revision ${headRevision}`
+      `Invalid revision. Expected insertion revision ${insertRecord.revision} to be before or same as HEAD revision ${headRevision}`
     );
   }
   const headText = {
@@ -75,9 +75,9 @@ export default function recordInsertion<
   if (firstRecordRevision != null && insertRecord.revision < firstRecordRevision - 1) {
     throw new RecordInsertionError(
       RecordInsertionErrorCode.RevisionOld,
-      `Expected insertion revision ${insertRecord.revision} to be after TAIL revision ${
-        firstRecordRevision - 1
-      }`
+      `Revision is old. Expected insertion revision ${
+        insertRecord.revision
+      } to be after TAIL revision ${firstRecordRevision - 1}`
     );
   }
 
@@ -148,7 +148,7 @@ function composeRecordOnHead<TRecord extends RevisionChangeset>(
     if (err instanceof Error) {
       throw new RecordInsertionError(
         RecordInsertionErrorCode.ChangesetInvalid,
-        'Cannot compose changeset on HEAD.'
+        'Invalid changeset. Cannot compose changeset on HEAD.'
       );
     } else {
       throw err;

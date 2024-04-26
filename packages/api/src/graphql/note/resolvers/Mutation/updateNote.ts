@@ -279,7 +279,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
               } catch (err) {
                 if (err instanceof RecordInsertionError) {
                   throw new GraphQLError(
-                    `Note '${fieldName}' field ${fieldName}. ${err.message}`,
+                    `Note '${notePublicId}' field ${fieldName}. ${err.message}`,
                     {
                       extensions: {
                         code: GraphQLErrorCode.InvalidInput,

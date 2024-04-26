@@ -1,4 +1,4 @@
-import { GraphQLResolversContext } from '../../graphql/context';
+import { ApiGraphQLContext, GraphQLResolversContext } from '../../graphql/context';
 import { beforeEach, vi } from 'vitest';
 import {
   Publisher,
@@ -15,9 +15,14 @@ import { resolvers } from '../../graphql/resolvers.generated';
 import { typeDefs } from '../../graphql/typeDefs.generated';
 import CookiesContext from '../../graphql/cookies-context';
 
+interface CreateGraphQLResolversContextOptions {
+  createPublisher?: (ctx: Omit<GraphQLResolversContext, 'publish'>) => Publisher;
+  mongodb?: ApiGraphQLContext['mongodb'];
+}
+
 export function createGraphQLResolversContext(
   user?: Partial<UserSchema>,
-  publisher = (_ctx: Omit<GraphQLResolversContext, 'publish'>) => vi.fn() as Publisher
+  options?: CreateGraphQLResolversContextOptions
 ): GraphQLResolversContext {
   const ctx = {
     auth: user
@@ -30,13 +35,13 @@ export function createGraphQLResolversContext(
     datasources: {
       notes: new NotesDataSource({
         mongodb: {
-          collections: mongoCollections,
+          collections: options?.mongodb?.collections ?? mongoCollections,
         },
       }),
     },
-    mongodb: {
-      collections: mongoCollections,
+    mongodb: options?.mongodb ?? {
       client: mongoClient,
+      collections: mongoCollections,
     },
     cookies: new CookiesContext({
       sessions: {},
@@ -48,7 +53,7 @@ export function createGraphQLResolversContext(
 
   return {
     ...ctx,
-    publish: publisher(ctx),
+    publish: options?.createPublisher?.(ctx) ?? (vi.fn() as Publisher),
   };
 }
 
