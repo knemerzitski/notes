@@ -15,17 +15,18 @@ export default function mergeArrayTypePolicies(
       if (!(policyName in result)) {
         result[policyName] = {};
       }
+
       const resultPolicy = result[policyName];
+      if (resultPolicy != null) {
+        const { fields, ...allExceptFields } = policy;
+        Object.assign(resultPolicy, allExceptFields);
 
-      const { fields, ...allExceptFields } = policy;
-
-      Object.assign(resultPolicy, allExceptFields);
-
-      if (fields) {
-        if (!resultPolicy.fields) {
-          resultPolicy.fields = {};
+        if (fields) {
+          if (!resultPolicy.fields) {
+            resultPolicy.fields = {};
+          }
+          Object.assign(resultPolicy.fields, fields);
         }
-        Object.assign(resultPolicy.fields, fields);
       }
     }
   }

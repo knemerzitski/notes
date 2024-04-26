@@ -19,7 +19,7 @@ export default function useDeleteNote() {
       const result = await deleteNote({
         variables: {
           input: {
-            id,
+            contentId: id,
           },
         },
         optimisticResponse: {

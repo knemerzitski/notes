@@ -12,13 +12,11 @@ export default function RouteSnackbarError({ children }: { children: ReactNode }
 
   return (
     <RouteSnackbarAlert
-      slotProps={{
-        snackbar: {
-          anchorOrigin: { vertical: 'top', horizontal: 'center' },
-        },
-        alert: {
-          severity: 'error',
-        },
+      snackBarProps={{
+        anchorOrigin: { vertical: 'top', horizontal: 'center' },
+      }}
+      alertProps={{
+        severity: 'error',
       }}
       onClose={handleClose}
     >

@@ -30,7 +30,7 @@ export default function useSignOut() {
      * @param session Account session to sign out from.
      * If session is not specified, then user will be signed out of all accounts
      */
-    async (session?: ClientSession) => {
+    async (session?: Pick<ClientSession, 'id'>) => {
       const { data } = await signOut({
         variables: {
           input: {
@@ -50,8 +50,9 @@ export default function useSignOut() {
 
       if (session) {
         deleteLocalSession(String(session.id));
+        const id = currentSessionVar()?.id;
         // TODO fetch current session from cache?
-        await navigateToSession(currentSessionVar()?.id ?? null);
+        await navigateToSession(id != null ? String(id) : null);
       } else {
         clearLocalSessions();
         await navigateToSession(null);

@@ -91,8 +91,9 @@ export default function SessionSynchronization() {
           if (data) {
             const actualAvailableUserIds = data.syncSessionCookies.availableUserIds;
             filterSessions(actualAvailableUserIds);
+            const id = currentSessionVar()?.id;
             // TODO fetch current session from cache not from var?
-            await navigateToSession(currentSessionVar()?.id ?? null);
+            await navigateToSession(id != null ? String(id) : null);
           } else if (errors?.[0]) {
             showError(errors[0].message);
           }

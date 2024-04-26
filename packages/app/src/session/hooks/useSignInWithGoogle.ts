@@ -72,7 +72,7 @@ export default function useSignInWithGoogle() {
         ],
       });
 
-      await navigateToSession(userId);
+      await navigateToSession(String(userId));
 
       return true;
     },

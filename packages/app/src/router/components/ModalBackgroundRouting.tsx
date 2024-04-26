@@ -41,8 +41,8 @@ function DefaultOrModalBackgroundRoute({
   let modalBackgroundLocation: Location | undefined;
   const matchedModalRoutes = matchRoutes(modalRoutes, location);
   if (matchedModalRoutes && matchedModalRoutes.length > 0) {
-    const route = matchedModalRoutes[matchedModalRoutes.length - 1].route;
-    if (route.backgroundPath) {
+    const route = matchedModalRoutes[matchedModalRoutes.length - 1]?.route;
+    if (route?.backgroundPath) {
       modalBackgroundLocation = {
         hash: '',
         key: 'default',
@@ -59,9 +59,9 @@ function DefaultOrModalBackgroundRoute({
     ? matchRoutes(modalRoutes, previousLocation)
     : null;
   if (previousMatchedModalRoutes && previousMatchedModalRoutes.length > 0) {
-    // TODO check for possible null?
-    const route = previousMatchedModalRoutes[previousMatchedModalRoutes.length - 1].route;
-    isPreviousLocationModal = !!route.backgroundPath;
+    const route =
+      previousMatchedModalRoutes[previousMatchedModalRoutes.length - 1]?.route;
+    isPreviousLocationModal = !!route?.backgroundPath;
   }
 
   let mainOrBgLocation = location;

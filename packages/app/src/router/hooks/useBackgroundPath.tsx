@@ -8,7 +8,7 @@ export default function useBackgroundPath() {
 
   const matchedModalRoutes = matchRoutes(modalRoutes, location);
   if (matchedModalRoutes && matchedModalRoutes.length > 0) {
-    const route = matchedModalRoutes[matchedModalRoutes.length - 1].route;
-    return route.backgroundPath;
+    const route = matchedModalRoutes[matchedModalRoutes.length - 1]?.route;
+    return route?.backgroundPath;
   }
 }

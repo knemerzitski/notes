@@ -39,7 +39,11 @@ function RouteClosableEditNoteDialog({
           <CollabEditor
             toolbarProps={{
               onClose: onClosing,
-              onDelete: handleDeleteNote,
+              toolbarProps: {
+                moreOptionsButtonProps: {
+                  onDelete: handleDeleteNote,
+                },
+              },
             }}
           />
         </NoteIdProvider>

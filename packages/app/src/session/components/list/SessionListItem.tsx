@@ -34,7 +34,7 @@ export default function SessionListItem({ session, ...restProps }: SessionListIt
     if (session.isExpired) {
       setSignInModalOpen(true);
     } else {
-      await navigateToSession(session.id);
+      await navigateToSession(String(session.id));
       onClose();
     }
   }

@@ -58,19 +58,13 @@ export default function useSubmitChanges<
           key,
           value: {
             insertRecord: {
-              generatedId: changes.generatedId,
+              generatedId: changes.userGeneratedId,
               change: {
                 revision: changes.revision,
                 changeset: changes.changeset.serialize(),
               },
-              afterSelection: {
-                start: changes.selection.after.start,
-                end: changes.selection.after.end,
-              },
-              beforeSelection: {
-                start: changes.selection.before.start,
-                end: changes.selection.before.end,
-              },
+              afterSelection: changes.afterSelection,
+              beforeSelection: changes.beforeSelection,
             },
           },
         } as { key: TKey; value: CollabTextPatchInput };
@@ -93,18 +87,16 @@ export default function useSubmitChanges<
       if (!editor) return;
 
       editor.submittedChangesAcknowledged({
-        clientId: newRecord.creatorUserId,
+        creatorUserId: newRecord.creatorUserId,
         revision: newRecord.change.revision,
         changeset: Changeset.parseValue(newRecord.change.changeset),
-        selection: {
-          after: {
-            start: newRecord.afterSelection.start,
-            end: newRecord.afterSelection.end ?? undefined,
-          },
-          before: {
-            start: newRecord.beforeSelection.start,
-            end: newRecord.beforeSelection.end ?? undefined,
-          },
+        afterSelection: {
+          start: newRecord.afterSelection.start,
+          end: newRecord.afterSelection.end ?? undefined,
+        },
+        beforeSelection: {
+          start: newRecord.beforeSelection.start,
+          end: newRecord.beforeSelection.end ?? undefined,
         },
       });
     });

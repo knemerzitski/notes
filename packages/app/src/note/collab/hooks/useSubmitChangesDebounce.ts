@@ -7,7 +7,6 @@ import { useNoteId } from '../context/NoteIdProvider';
 const MUTATION = gql(`
   mutation NoteUseSubmitLocalChanges($input: UpdateNoteInput!)  {
     updateNote(input: $input) {
-      contentId
       patch {
         textFields {
           key
@@ -17,6 +16,15 @@ const MUTATION = gql(`
               change {
                 changeset
                 revision
+              }
+              creatorUserId
+              beforeSelection {
+                start
+                end
+              }
+              afterSelection {
+                start
+                end
               }
             }
           }
@@ -59,7 +67,7 @@ export default function useSubmitChangesDebounce({
     mapVariables(variables) {
       return {
         input: {
-          id: noteId,
+          contentId: noteId,
           patch: {
             textFields: variables,
           },

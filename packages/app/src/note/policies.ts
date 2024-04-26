@@ -46,25 +46,6 @@ const notePolicies: TypePolicies = {
       },
     },
   },
-  // TODO policy in collab?
-  CollabText: {
-    fields: {
-      viewText: {
-        read(existing, { readField }): string | null {
-          if (typeof existing === 'string') {
-            return existing;
-          }
-
-          const headText = readField('headText');
-          if (typeof headText === 'string') {
-            return headText;
-          }
-
-          return null;
-        },
-      },
-    },
-  },
 };
 
 export default notePolicies;
