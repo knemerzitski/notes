@@ -81,7 +81,7 @@ export class Changeset implements Serializable<SerializedChangeset> {
   }
 
   /**
-   * 
+   *
    * Given changesets: \
    * X - base/tail changeset \
    * A - this, X * A (A is composable on X) \
@@ -90,7 +90,7 @@ export class Changeset implements Serializable<SerializedChangeset> {
    * so that intention of B is kept:
    * - A inserted characters are kept.
    * - A and B intersection of retained characters are kept.
-   * 
+   *
    * Follow has commutative property with previous change: \
    * X * A* f(A,B) = X * B * f(B,A) \
    * This property is ensured by ordering changes at same position lexicographically.
@@ -377,7 +377,7 @@ export class Changeset implements Serializable<SerializedChangeset> {
     const A = this;
     const X = firstChange;
     const Y = secondChange;
-    
+
     const undoX = X.inverse(A);
     const Y_ = undoX.follow(Y);
     const X_ = X.findSwapNewSecondChange(Y, Y_);
@@ -548,8 +548,7 @@ export class Changeset implements Serializable<SerializedChangeset> {
   }
 
   static parseValue(value: unknown): Changeset {
-    // TODO no need to parse if already changeset
-    if(value instanceof Changeset) return value;
+    if (value instanceof Changeset) return value;
     return new Changeset(Strips.parseValue(value));
   }
 }

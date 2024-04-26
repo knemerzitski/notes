@@ -207,17 +207,13 @@ describe('swapChanges', () => {
     expect(E2_b.toString()).not.toStrictEqual(E2.toString());
 
     const swappedFinalText = V0.compose(E1_b).compose(E2_b);
-    expect(swappedFinalText.toString()).toStrictEqual(
-      expectedFinalText.toString()
-    );
+    expect(swappedFinalText.toString()).toStrictEqual(expectedFinalText.toString());
 
     const [E1_a, E2_a] = V0.swapChanges(E1_b, E2_b);
 
     // swapChanges is symmetrical for composed text
     const swapped2FinalText = V0.compose(E1_a).compose(E2_a);
-    expect(swapped2FinalText.toString()).toStrictEqual(
-      expectedFinalText.toString()
-    );
+    expect(swapped2FinalText.toString()).toStrictEqual(expectedFinalText.toString());
 
     // swapChanges converges to same result
     const [E1_bb, E2_bb] = V0.swapChanges(E1_a, E2_a);
@@ -396,6 +392,7 @@ describe('insertionsToRetained', () => {
       [[0, 11], 'value', 12],
       [[0, 11], 'value', 12],
     ],
+    ['insertion at beginning', ['mobile:\n\ndesktop:'], ['\n', [0, 16]], ['\n', [0, 16]]],
   ])('%s', (_msg, docObj, changeObj, expectedObj) => {
     const doc = cs(docObj);
     const change = cs(changeObj);

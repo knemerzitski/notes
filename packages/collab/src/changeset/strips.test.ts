@@ -97,6 +97,9 @@ describe('slice', () => {
       [-3, -1],
       ['c', 'de'],
     ],
+    ['returns nothing when start and end are 0', ['abc', 'de'], [0, 0], []],
+    ['returns first character', ['abc', 'de'], [0, 1], ['a']],
+    ['returns nothing when start and end are 2', ['abc', 'de'], [2, 2], []],
   ])('%s: %s.slice(%s) = %s', (_msg, strs, [sliceStart, sliceEnd], expected) => {
     expect(ss(strs).slice(sliceStart, sliceEnd).toString()).toStrictEqual(
       ss(expected).toString()

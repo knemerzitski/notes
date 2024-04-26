@@ -56,6 +56,7 @@ export class Strips implements Serializable<SerializedStrips> {
     if (end && end < 0) {
       end += this.length + 1;
     }
+    if (start === end) return Strips.EMPTY;
 
     const result: Strip[] = [];
     let pos = 0;
@@ -164,7 +165,6 @@ export class Strips implements Serializable<SerializedStrips> {
       .map((strip) => strip.value)
       .join('');
   }
-
 
   hasOnlyInsertions() {
     return !this.hasRetainStrips();
