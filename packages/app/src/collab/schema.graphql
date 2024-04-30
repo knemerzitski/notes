@@ -1,4 +1,79 @@
+type CollabTextSubmittedRecord {
+  "Randomly generated string by user"
+  generatedId: String!
+  "Change to be made on the text"
+  change: RevisionChangeset!
+  "Selection before change is composed"
+  beforeSelection: CollabTextSelectionRange!
+  "Selection after change is composed"
+  afterSelection: CollabTextSelectionRange!
+}
+
 extend type CollabText {
-  "Text that user sees. Includes submitted and local changes."
+  "Last record submitted to the server. User is waiting for a server response."
+  submittedRecord: CollabTextSubmittedRecord
+  "Local unsaved changes. Composes on submittedRecord.change.changeset."
+  localChanges: Changeset
+  "Text that is displayed to the user. Includes submitted and local changes."
   viewText: String!
+  "Records received from the server that haven't been processed yet"
+  unprocessedRecords: [CollabTextUnprocessedRecord!]!
+  "Local history"
+  history: CollabTextLocalHistory!
+  "User text selection during active editing"
+  activeSelection: CollabTextSelectionRange
+
+  "TODO remove collabEditor"
+  collabEditor: String! @deprecated(reason: "Obsolete, using Apollo cache as state")
+}
+
+enum CollabTextUnprocessedRecordType {
+  "External change"
+  EXTERNAL_CHANGE
+  "Local change acknowleged"
+  SUBMITTED_ACKNOWLEGED
+}
+
+type CollabTextUnprocessedRecord {
+  "Self-descriptive"
+  type: CollabTextUnprocessedRecordType!
+  "Self-descriptive"
+  record: CollabTextRecord!
+  "Record is done being processed. It can be safely deleted."
+  done: Boolean
+}
+
+type CollabTextLocalHistory {
+  "Oldest text value. Cannot undo before this text."
+  tailText: RevisionChangeset!
+  """
+  All recorded history entries containing execute and undos.
+  Contains more changes than CollabText.records since it
+  includes every individual user action not just submitted ones.
+  """
+  entries: [CollabTextLocalHistoryEntry!]!
+  "Index of entry that is up-to-date with server"
+  serverIndex: Int!
+  "Index of entry that has been submitted to the server"
+  submittedIndex: Int!
+  """
+  Index of entry that user is currently at.
+  By default this index always equals to last entry unless user has
+  triggered undo.
+  """
+  localIndex: Int!
+}
+
+type CollabTextLocalHistoryEntry {
+  "Execute this entry"
+  execute: CollabTextHistoryOperation!
+  "Undo this entry"
+  undo: CollabTextHistoryOperation!
+}
+
+type CollabTextHistoryOperation {
+  "Changes to the text"
+  changeset: Changeset!
+  "Selection after changeset is composed"
+  selection: CollabTextSelectionRange!
 }
