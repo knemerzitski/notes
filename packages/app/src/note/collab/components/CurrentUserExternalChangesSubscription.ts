@@ -70,20 +70,12 @@ export default function CurrentUserExternalChangesSubscription() {
 
     const sub = observable.subscribe({
       next(value) {
-        // console.log(
-        //   'next',
-        //   util.inspect(JSON.parse(JSON.stringify(value)), false, null, true)
-        // );
         if (!value.data) return;
 
         value.data.noteUpdated.patch.textFields?.forEach(({ value }) => {
           const { id: collabTextId, newRecord } = value;
           if (!newRecord) return;
 
-          // console.log(
-          //   'write',
-          //   util.inspect(JSON.parse(JSON.stringify(newRecord)), false, null, true)
-          // );
           apolloClient.cache.writeFragment({
             id: apolloClient.cache.identify({
               id: collabTextId,
