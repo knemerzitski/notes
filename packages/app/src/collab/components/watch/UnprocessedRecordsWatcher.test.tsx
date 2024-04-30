@@ -42,7 +42,7 @@ it('calls onNext with initial value', async () => {
   });
 });
 
-it('calls onNext with given writeFragment', async () => {
+it('calls onNext after writeFragment', async () => {
   client.writeFragment({
     id: 'CollabText:1',
     fragment: gql(`

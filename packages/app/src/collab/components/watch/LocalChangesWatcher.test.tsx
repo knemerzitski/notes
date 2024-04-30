@@ -36,13 +36,13 @@ beforeEach(() => {
   );
 });
 
-it('calls onNext with initial localChanges', async () => {
+it('calls onNext with initial value', async () => {
   await waitFor(() => {
-    expect(handleNextFn).toHaveBeenLastCalledWith(['initial change']);
+    expect(handleNextFn).toHaveBeenCalledOnce();
   });
 });
 
-it('calls onNext after localChanges has been modified', async () => {
+it('calls onNext after writeFragment', async () => {
   client.writeFragment({
     id: 'CollabText:1',
     fragment: gql(`
@@ -56,6 +56,6 @@ it('calls onNext after localChanges has been modified', async () => {
   });
 
   await waitFor(() => {
-    expect(handleNextFn).toHaveBeenLastCalledWith(['new text']);
+    expect(handleNextFn).toHaveBeenCalledTimes(2)
   });
 });

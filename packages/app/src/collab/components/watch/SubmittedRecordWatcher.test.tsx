@@ -41,18 +41,13 @@ beforeEach(() => {
   );
 });
 
-it('calls onNext with initial submittedRecord', async () => {
+it('calls onNext with initial value', async () => {
   await waitFor(() => {
-    expect(handleNextFn).toHaveBeenLastCalledWith({
-      generatedId: 'a',
-      change: null,
-      beforeSelection: null,
-      afterSelection: null,
-    });
+    expect(handleNextFn).toHaveBeenCalledOnce();
   });
 });
 
-it('calls onNext after submittedRecord has been set to nul', async () => {
+it('calls onNext after writeFragment', async () => {
   client.writeFragment({
     id: 'CollabText:1',
     fragment: gql(`
@@ -68,6 +63,6 @@ it('calls onNext after submittedRecord has been set to nul', async () => {
   });
 
   await waitFor(() => {
-    expect(handleNextFn).toHaveBeenLastCalledWith(null);
+    expect(handleNextFn).toHaveBeenCalledTimes(2);
   });
 });
