@@ -41,7 +41,7 @@ beforeEach(() => {
   );
 });
 
-it('calls onNext with initial localChanges', async () => {
+it('calls onNext with initial submittedRecord', async () => {
   await waitFor(() => {
     expect(handleNextFn).toHaveBeenLastCalledWith({
       generatedId: 'a',
