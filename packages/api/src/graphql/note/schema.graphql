@@ -40,9 +40,13 @@ type Note implements Node {
   readOnly: Boolean
   "Note preferences such as background color"
   preferences: NotePreferences
+  "True if user owns this note"
+  isOwner: Boolean!
 }
 
 type NotePatch {
+  "This patch applies to Note.id"
+  id: String!
   "Changed note text fields"
   textFields: [NoteTextFieldEntryPatch!]
   "Changed preferences"
@@ -162,7 +166,7 @@ type NoteUpdatedPayload {
 }
 extend type Subscription {
   "An existing note was updated"
-  noteUpdated(input: NoteUpdatedInput!): NoteUpdatedPayload! @auth
+  noteUpdated(input: NoteUpdatedInput): NoteUpdatedPayload! @auth
 }
 
 input NoteDeletedInput {

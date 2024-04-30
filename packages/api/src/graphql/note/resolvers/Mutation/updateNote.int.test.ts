@@ -921,16 +921,6 @@ describe('pre-determined records', () => {
     assert(response.body.kind === 'single');
     const result = response.body.singleResult;
     const data = result.data as { updateNote: UpdateNotePayload };
-    if (result.errors != null) {
-      console.log(
-        util.inspect(
-          JSON.parse(JSON.stringify(response.body.singleResult)),
-          false,
-          null,
-          true
-        )
-      );
-    }
     expect(result.errors).toBeUndefined();
 
     const entry = data.updateNote.patch?.textFields?.find(

@@ -12,6 +12,7 @@
     "@aws-sdk/client-dynamodb": "^3.451.0",
     "@aws-sdk/client-sfn": "^3.460.0",
     "@aws-sdk/lib-dynamodb": "^3.451.0",
+    "@graphql-tools/schema": "^10.0.3",
     "@types/aws-lambda": "^8.10.126",
     "@types/ws": "^8.5.9",
     "aggregate-error": "^5.0.0",
@@ -20,6 +21,6 @@
     "constructs": "^10.3.0",
     "dotenv": "^16.3.1",
     "graphql": "^16.8.1",
-    "graphql-ws": "^5.14.2"
+    "graphql-ws": "^5.16.0"
   }
 }

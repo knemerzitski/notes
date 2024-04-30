@@ -51,6 +51,7 @@ input CollabTextRecordInput {
   "Selection after change is composed"
   afterSelection: CollabTextSelectionRangeInput!
 }
+
 type CollabText {
   "Self-descriptive"
   id: ID!
@@ -73,6 +74,8 @@ input CreateCollabTextInput {
 }
 
 type CollabTextPatch {
+  "This patch applies to CollabText.id"
+  id: String!
   """
   New record added to text. Can be existing record it has
   previously been inserted. Check isExistingRecord field.

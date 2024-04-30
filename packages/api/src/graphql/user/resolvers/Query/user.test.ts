@@ -61,7 +61,6 @@ it('returns user displayName', async () => {
 
   assert(response.body.kind === 'single');
   const { data, errors } = response.body.singleResult;
-  console.log(util.inspect(errors, false, null, true));
   expect(errors).toBeUndefined();
   expect(data).toEqual({
     user: {
