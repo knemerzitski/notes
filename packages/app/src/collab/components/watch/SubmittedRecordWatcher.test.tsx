@@ -8,16 +8,24 @@ import {
 } from '@apollo/client';
 import { gql } from '../../../__generated__';
 import SubmittedRecordWatcher from './SubmittedRecordWatcher';
+import { createCache } from '../../../test/helpers/apollo-client';
 
 let cache: InMemoryCache;
 let client: ApolloClient<NormalizedCacheObject>;
 
 const handleNextFn = vi.fn();
 
+let collabTextId: string | undefined;
+
 beforeEach(() => {
-  cache = new InMemoryCache();
+  cache = createCache();
   client = new ApolloClient({
     cache,
+  });
+
+  collabTextId = cache.identify({
+    id: '1',
+    __typename: 'CollabText',
   });
 
   cache.restore({
@@ -49,7 +57,7 @@ it('calls onNext with initial value', async () => {
 
 it('calls onNext after writeFragment', async () => {
   client.writeFragment({
-    id: 'CollabText:1',
+    id: collabTextId,
     fragment: gql(`
       fragment TestSubmittedRecordWatcher on CollabText {
         submittedRecord {
