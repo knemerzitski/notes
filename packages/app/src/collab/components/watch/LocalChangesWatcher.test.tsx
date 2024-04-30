@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { it, expect, beforeEach, vi } from 'vitest';
 import { render, waitFor } from '@testing-library/react';
 import LocalChangesWatcher from './LocalChangesWatcher';
@@ -26,10 +27,10 @@ beforeEach(() => {
   collabTextId = cache.identify({
     id: '1',
     __typename: 'CollabText',
-  });
+  })!;
 
   cache.restore({
-    'CollabText:1': {
+    [collabTextId]: {
       __typename: 'CollabText',
       localChanges: ['initial change'],
     },
