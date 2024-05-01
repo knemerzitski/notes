@@ -35,6 +35,7 @@ import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
 import { ObjectId } from 'mongodb';
 import { RevisionChangeset } from '~collab/records/record';
 import { CollabTextSchema } from '../../../../mongodb/schema/collab-text';
+import { GraphQLResolversContext } from '../../../context';
 
 const MUTATION = `#graphql
   mutation($input: UpdateNoteInput!){
@@ -866,9 +867,6 @@ describe('random records', () => {
     });
   });
 });
-
-import util from 'util';
-import { GraphQLResolversContext } from '../../../context';
 
 describe('pre-determined records', () => {
   let mongoDBContext2: Awaited<ReturnType<typeof createMongoDBContext>>;

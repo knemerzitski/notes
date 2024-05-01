@@ -13,6 +13,7 @@ import {
   insertionOperation as insertionAsChangesetOperation,
   deletionCountOperation as deletionAsChangesetOperation,
 } from '~collab/client/changeset-operations';
+import { clampSelectionRange } from '~collab/client/selection-range';
 
 export const FRAGMENT_READ_OPERATION = gql(`
   fragment UseEditorRead on CollabText {
@@ -83,6 +84,12 @@ export const FRAGMENT_WRITE_OPERATION = gql(`
         }
       }
     }
+  }
+`);
+
+const FRAGMENT_READ_SELECTION = gql(`
+  fragment UseEditorReadSelection on CollabText {
+    viewText
   }
 `);
 
@@ -327,19 +334,31 @@ export function useSetSelectionRange(collabTextId: string) {
 
   return useCallback(
     (start: number, end: number | null = null) => {
-      apolloClient.cache.writeFragment({
-        id: apolloClient.cache.identify({
-          id: collabTextId,
-          __typename: 'CollabText',
-        }),
-        fragment: FRAGMENT_WRITE_SELECTION,
-        data: {
-          activeSelection: {
-            start,
-            end,
+      updateFragment(
+        apolloClient.cache,
+        {
+          id: apolloClient.cache.identify({
+            id: collabTextId,
+            __typename: 'CollabText',
+          }),
+          read: {
+            fragment: FRAGMENT_READ_SELECTION,
+          },
+          write: {
+            fragment: FRAGMENT_WRITE_SELECTION,
           },
         },
-      });
+        (collabText) => {
+          if (!collabText) return;
+
+          return {
+            activeSelection: clampSelectionRange(
+              { start, end },
+              collabText.viewText.length
+            ),
+          };
+        }
+      );
     },
     [apolloClient, collabTextId]
   );

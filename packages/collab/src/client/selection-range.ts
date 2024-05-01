@@ -42,19 +42,9 @@ export class SelectionRange {
    * @param end End index of selection.
    */
   set(start: number, end: number = start) {
-    if (start < 0) {
-      start = this.length;
-    }
-    if (end < 0) {
-      end = this.length;
-    }
-
-    if (end < start) {
-      start = end;
-    }
-
-    this._start = Math.max(0, Math.min(start, this.length));
-    this._end = Math.max(0, Math.min(end, this.length));
+    const newSelection = clampSelectionRange({ start, end }, this.length);
+    this._start = newSelection.start;
+    this._end = newSelection.end ?? newSelection.start;
   }
 
   setFrom(other: SelectionRange) {
@@ -75,4 +65,37 @@ export class SelectionRange {
       end: this.end,
     };
   }
+}
+
+/**
+ * Clamp selection to length.
+ */
+export function clampSelectionRange(
+  {
+    start,
+    end,
+  }: {
+    start: number;
+    end?: number | null;
+  },
+  length: number
+) {
+  end = end ?? start;
+  if (start < 0) {
+    start = length;
+  }
+  if (end < 0) {
+    end = length;
+  }
+  if (end < start) {
+    start = end;
+  }
+
+  start = Math.max(0, Math.min(start, length));
+  end = Math.max(0, Math.min(end, length));
+
+  return {
+    start,
+    end: start !== end ? end : null,
+  };
 }

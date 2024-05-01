@@ -9,9 +9,8 @@ export interface ChangesetOperation {
 }
 
 interface SelectionRange {
-  end?: number | null;
-  /** Start index of selection */
   start: number;
+  end?: number | null;
 }
 
 /**
