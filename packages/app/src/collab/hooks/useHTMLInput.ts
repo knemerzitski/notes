@@ -21,7 +21,7 @@ interface InsertEvent extends SelectionEvent {
 
 type DeleteEvent = SelectionEvent;
 
-export interface InputValueChangeProps {
+export interface InputValueChangeOptions {
   onInsert?(event: InsertEvent): void;
   onDelete?(event: DeleteEvent): void;
   onUndo?(): void;
@@ -36,7 +36,7 @@ export default function useHTMLInput({
   onDelete,
   onUndo,
   onRedo,
-}: InputValueChangeProps) {
+}: InputValueChangeOptions) {
   const selectionRef = useRef<
     Pick<HTMLInputElement, 'selectionStart' | 'selectionEnd' | 'selectionDirection'>
   >({
