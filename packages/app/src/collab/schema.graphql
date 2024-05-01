@@ -16,12 +16,13 @@ extend type CollabText {
   localChanges: Changeset
   "Text that is displayed to the user. Includes submitted and local changes."
   viewText: String!
-  "Records received from the server that haven't been processed yet"
-  unprocessedRecords: [CollabTextUnprocessedRecord!]!
-  "Local history"
-  history: CollabTextLocalHistory!
   "User text selection during active editing"
   activeSelection: CollabTextSelectionRange
+  "Local history"
+  history: CollabTextLocalHistory!
+
+  "Records received from the server that haven't been processed yet"
+  unprocessedRecords: [CollabTextUnprocessedRecord!]!
 
   "TODO remove collabEditor"
   collabEditor: String! @deprecated(reason: "Obsolete, using Apollo cache as state")
@@ -39,19 +40,11 @@ type CollabTextUnprocessedRecord {
   type: CollabTextUnprocessedRecordType!
   "Self-descriptive"
   record: CollabTextRecord!
-  "Record is done being processed. It can be safely deleted."
-  done: Boolean
 }
 
 type CollabTextLocalHistory {
   "Oldest text value. Cannot undo before this text."
   tailText: RevisionChangeset!
-  """
-  All recorded history entries containing execute and undos.
-  Contains more changes than CollabText.records since it
-  includes every individual user action not just submitted ones.
-  """
-  entries: [CollabTextLocalHistoryEntry!]!
   "Index of entry that is up-to-date with server"
   serverIndex: Int!
   "Index of entry that has been submitted to the server"
@@ -62,6 +55,12 @@ type CollabTextLocalHistory {
   triggered undo.
   """
   localIndex: Int!
+  """
+  All recorded history entries containing execute and undos.
+  Contains more changes than CollabText.records since it
+  includes every individual user action not just submitted ones.
+  """
+  entries: [CollabTextLocalHistoryEntry!]!
 }
 
 type CollabTextLocalHistoryEntry {

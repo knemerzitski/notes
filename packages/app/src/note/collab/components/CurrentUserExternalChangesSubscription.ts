@@ -37,7 +37,6 @@ export const SUBSCRIPTION = gql(`
 const FRAGMENT = gql(`
 fragment CurrentUserExternalChangesWriteUnprocessedRecord on CollabText {
   unprocessedRecords {
-    done
     type
     record {
       change {
@@ -76,22 +75,26 @@ export default function CurrentUserExternalChangesSubscription() {
           const { id: collabTextId, newRecord } = value;
           if (!newRecord) return;
 
-          apolloClient.cache.writeFragment({
-            id: apolloClient.cache.identify({
-              id: collabTextId,
-              __typename: 'CollabText',
-            }),
-            fragment: FRAGMENT,
-            data: {
-              unprocessedRecords: [
-                {
-                  done: null,
-                  type: CollabTextUnprocessedRecordType.ExternalChange,
-                  record: newRecord,
-                },
-              ],
+          apolloClient.cache.updateFragment(
+            {
+              id: apolloClient.cache.identify({
+                id: collabTextId,
+                __typename: 'CollabText',
+              }),
+              fragment: FRAGMENT,
             },
-          });
+            (data) => {
+              return {
+                unprocessedRecords: [
+                  ...(data?.unprocessedRecords ?? []),
+                  {
+                    type: CollabTextUnprocessedRecordType.ExternalChange,
+                    record: newRecord,
+                  },
+                ],
+              };
+            }
+          );
         });
       },
     });

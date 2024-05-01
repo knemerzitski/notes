@@ -58,7 +58,6 @@ it('calls onNext after writeFragment', async () => {
     fragment: gql(`
       fragment TestUnprocessedRecordsWatcher on CollabText {
         unprocessedRecords {
-          done
           type
           record {
             id
@@ -81,7 +80,6 @@ it('calls onNext after writeFragment', async () => {
     data: {
       unprocessedRecords: [
         {
-          done: null,
           type: CollabTextUnprocessedRecordType.SubmittedAcknowleged,
           record: {
             id: 'hi',

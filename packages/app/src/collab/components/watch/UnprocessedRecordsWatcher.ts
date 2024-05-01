@@ -1,4 +1,4 @@
-import { useApolloClient } from '@apollo/client';
+import { WatchFragmentResult, useApolloClient } from '@apollo/client';
 import { useEffect, useRef } from 'react';
 import { gql } from '../../../__generated__';
 import { UnprocessedRecordsWatcherFragment } from '../../../__generated__/graphql';
@@ -6,7 +6,6 @@ import { UnprocessedRecordsWatcherFragment } from '../../../__generated__/graphq
 const FRAGMENT = gql(`
   fragment UnprocessedRecordsWatcher on CollabText {
     unprocessedRecords {
-      done
       type
       record {
         change {
@@ -26,12 +25,9 @@ const FRAGMENT = gql(`
   }
 `);
 
-type CollabText = UnprocessedRecordsWatcherFragment;
-type UnprocessedRecords = CollabText['unprocessedRecords'];
-
 export interface UnprocessedRecordsWatcherProps {
   collabTextId: string;
-  onNext: (unprocessedRecords: UnprocessedRecords) => void;
+  onNext: (value: WatchFragmentResult<UnprocessedRecordsWatcherFragment>) => void;
 }
 
 export default function UnprocessedRecordsWatcher({
@@ -54,12 +50,7 @@ export default function UnprocessedRecordsWatcher({
       })
       .subscribe({
         next(value) {
-          if (!value.complete) return;
-          const unprocessedRecords = value.data.unprocessedRecords.filter(
-            (record) => !record.done
-          );
-
-          onNextRef.current(unprocessedRecords);
+          onNextRef.current(value);
         },
       });
 

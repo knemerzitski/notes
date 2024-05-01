@@ -1,4 +1,4 @@
-import { useApolloClient } from '@apollo/client';
+import { WatchFragmentResult, useApolloClient } from '@apollo/client';
 import { useEffect, useRef } from 'react';
 import { gql } from '../../../__generated__';
 import { LocalChangesWatcherFragment } from '../../../__generated__/graphql';
@@ -9,12 +9,9 @@ const FRAGMENT = gql(`
   }
 `);
 
-type CollabText = LocalChangesWatcherFragment;
-type LocalChanges = CollabText['localChanges'];
-
 export interface LocalChangesWatcherProps {
   collabTextId: string;
-  onNext: (localChanges: LocalChanges) => void;
+  onNext: (localChanges: WatchFragmentResult<LocalChangesWatcherFragment>) => void;
 }
 
 export default function LocalChangesWatcher({
@@ -37,10 +34,7 @@ export default function LocalChangesWatcher({
       })
       .subscribe({
         next(value) {
-          if (!value.complete) return;
-          const localChanges = value.data.localChanges;
-
-          onNextRef.current(localChanges);
+          onNextRef.current(value);
         },
       });
 

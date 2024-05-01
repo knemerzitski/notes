@@ -1,4 +1,4 @@
-import { useApolloClient } from '@apollo/client';
+import { WatchFragmentResult, useApolloClient } from '@apollo/client';
 import { useEffect, useRef } from 'react';
 import { gql } from '../../../__generated__';
 import { SubmittedRecordWatcherFragment } from '../../../__generated__/graphql';
@@ -23,12 +23,9 @@ const FRAGMENT = gql(`
   }
 `);
 
-type CollabText = SubmittedRecordWatcherFragment;
-type SubmittedRecord = CollabText['submittedRecord'];
-
 export interface SubmittedRecordWatcherProps {
   collabTextId: string;
-  onNext: (submittedRecord: SubmittedRecord) => void;
+  onNext: (value: WatchFragmentResult<SubmittedRecordWatcherFragment>) => void;
 }
 
 export default function SubmittedRecordWatcher({
@@ -51,10 +48,7 @@ export default function SubmittedRecordWatcher({
       })
       .subscribe({
         next(value) {
-          if (!value.complete) return;
-          const submittedRecord = value.data.submittedRecord;
-
-          onNextRef.current(submittedRecord);
+          onNextRef.current(value);
         },
       });
 

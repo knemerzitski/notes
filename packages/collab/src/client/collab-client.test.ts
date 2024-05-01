@@ -1,11 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 import { Changeset } from '../changeset/changeset';
-import { ChangesetEditor } from '../editor/changeset-editor';
-import { SelectionRange } from '../editor/selection-range';
 import { textWithSelection } from '../test/helpers/text-with-selection';
-
-import { ChangeSource, CollabClient, Events } from './collab-client';
+import { CollabClient, CollabClientSelection } from './collab-client';
+import { ChangesetWriter } from './changeset-writer';
 
 const cs = (...values: unknown[]) => Changeset.parseValue(values);
 
@@ -13,7 +11,7 @@ describe('constructor', () => {
   it('initializes state with server changeset', () => {
     const serverChangeset = cs('server document');
 
-    const client = new CollabClient({ initialServerText: serverChangeset });
+    const client = new CollabClient({ server: serverChangeset });
     expect(client.server.toString()).toStrictEqual(serverChangeset.toString());
     expect(client.submitted.toString()).toStrictEqual(
       serverChangeset.getIdentity().toString()
@@ -30,7 +28,7 @@ describe('composeLocalChange', () => {
   let client: CollabClient;
 
   beforeEach(() => {
-    client = new CollabClient({ initialServerText: serverChangeset });
+    client = new CollabClient({ server: serverChangeset });
   });
 
   it('updates view with the change', () => {
@@ -63,18 +61,6 @@ describe('composeLocalChange', () => {
     expect(client.local.toString()).toStrictEqual(client.server.getIdentity().toString());
   });
 
-  it('emits viewChanged', () => {
-    const change = cs([0, 5], '[A]', [6, 14]);
-
-    const emit = vi.spyOn(client.eventBus, 'emit');
-    client.composeLocalChange(change);
-    expect(emit).toBeCalledWith('viewChanged', {
-      view: client.view,
-      change,
-      source: ChangeSource.Local,
-    });
-  });
-
   it.each([
     {
       desc: 'sets matching insertion to retained',
@@ -103,7 +89,7 @@ describe('composeLocalChange', () => {
 
 describe('haveSubmittedChanges', () => {
   it('checks if submitted is not identity for server', () => {
-    const client = new CollabClient({ initialServerText: cs('server') });
+    const client = new CollabClient({ server: cs('server') });
     const isIdentity = vi.spyOn(client.submitted, 'isIdentity');
     client.haveSubmittedChanges();
     expect(isIdentity).toHaveBeenCalledWith(client.server);
@@ -112,7 +98,7 @@ describe('haveSubmittedChanges', () => {
 
 describe('haveLocalChanges', () => {
   it('checks if local is not identity for submitted', () => {
-    const client = new CollabClient({ initialServerText: cs('server') });
+    const client = new CollabClient({ server: cs('server') });
     client.composeLocalChange(cs('hi'));
     const isIdentity = vi.spyOn(client.local, 'isIdentity');
     client.haveLocalChanges();
@@ -122,7 +108,7 @@ describe('haveLocalChanges', () => {
 
 describe('canSubmitChanges', () => {
   it('returns true only if have local changes and dont have submitted changes', () => {
-    const client = new CollabClient({ initialServerText: cs('server') });
+    const client = new CollabClient({ server: cs('server') });
 
     const haveSubmittedChangesFn = vi.spyOn(client, 'haveSubmittedChanges');
     const haveLocalChangesFn = vi.spyOn(client, 'haveLocalChanges');
@@ -147,7 +133,7 @@ describe('canSubmitChanges', () => {
 
 describe('submitChanges', () => {
   it('submits only if have local changes and no submitted changes', () => {
-    const client = new CollabClient({ initialServerText: cs('server') });
+    const client = new CollabClient({ server: cs('server') });
     const haveSubmittedChanges = vi.spyOn(client, 'haveSubmittedChanges');
     const haveLocalChanges = vi.spyOn(client, 'haveLocalChanges');
 
@@ -169,7 +155,7 @@ describe('submitChanges', () => {
   });
 
   it('sets submitted = local and local = identity', () => {
-    const client = new CollabClient({ initialServerText: cs('server') });
+    const client = new CollabClient({ server: cs('server') });
 
     client.composeLocalChange(cs('hi'));
     client.submitChanges();
@@ -180,7 +166,7 @@ describe('submitChanges', () => {
 
 describe('submittedChangesAcknowledged', () => {
   it('acknowlege only if have submitted changes', () => {
-    const client = new CollabClient({ initialServerText: cs('server') });
+    const client = new CollabClient({ server: cs('server') });
 
     expect(client.submittedChangesAcknowledged()).toStrictEqual(false);
 
@@ -194,7 +180,7 @@ describe('submittedChangesAcknowledged', () => {
   });
 
   it('sets composes submitted to server and sets submitted to identity', () => {
-    const client = new CollabClient({ initialServerText: cs('server') });
+    const client = new CollabClient({ server: cs('server') });
     client.composeLocalChange(cs([0, 5], ': submit this'));
     client.submitChanges();
     client.submittedChangesAcknowledged();
@@ -274,56 +260,63 @@ describe('handleExternalChange', () => {
 });
 
 describe('integration', () => {
-  let textValue = '';
   let client: CollabClient;
-  const selection = new SelectionRange({
-    getLength() {
-      return textValue.length;
-    },
-  });
-  const editor = new ChangesetEditor({
-    getValue() {
-      return textValue;
-    },
-    selection,
-  });
-  editor.eventBus.on('change', ({ changeset, selectionPos }) => {
-    client.composeLocalChange(changeset);
-    selection.setPosition(selectionPos);
-  });
+  let selection: CollabClientSelection;
+  let writer: ChangesetWriter;
 
-  function handleClientViewChanged({ view, change, source }: Events['viewChanged']) {
-    textValue = view.strips.joinInsertions();
+  const helper = {
+    insert(text: string) {
+      const write = writer.insert(text);
+      client.composeLocalChange(write.changeset);
 
-    // Position is set manually on local change, so update it only on external
-    if (source === ChangeSource.External) {
-      selection.setSelectionRange(
-        change.followIndex(selection.start),
-        change.followIndex(selection.end)
-      );
-    }
-  }
+      selection.local.set(write.newSelectionPos);
+    },
+    deleteCount(count: number) {
+      const write = writer.deleteCount(count);
+      if (!write) return;
+      client.composeLocalChange(write.changeset);
+
+      selection.local.set(write.newSelectionPos);
+    },
+    submitChanges() {
+      selection.submitChanges();
+    },
+    submittedChangesAcknowledged() {
+      selection.submittedChangesAcknowledged();
+    },
+    handleExternalChange(external: Changeset) {
+      selection.handleExternalChange(external);
+    },
+  };
 
   function textValueWithSelection() {
-    return textWithSelection(textValue, selection);
+    return textWithSelection(client.view.joinInsertions(), selection.local);
   }
 
   beforeEach(() => {
-    textValue = '';
-    selection.setSelectionRange(0, 0);
     client = new CollabClient();
-    client.eventBus.on('viewChanged', handleClientViewChanged);
+    selection = new CollabClientSelection({
+      client,
+    });
+    writer = new ChangesetWriter({
+      getValue() {
+        return client.view.joinInsertions();
+      },
+      selection: selection.local,
+    });
   });
 
   it('external changes to server are composed as retained characters in submitted and local', () => {
-    editor.insert('server');
+    helper.insert('server');
     client.submitChanges();
     client.submittedChangesAcknowledged();
-    editor.insert('; submitted');
+    helper.insert('; submitted');
     client.submitChanges();
-    editor.insert('; local');
-    editor.insert('; more');
-    client.handleExternalChange(cs('external before - ', [0, 5], ' - external after'));
+    helper.insert('; local');
+    helper.insert('; more');
+    expect(textValueWithSelection()).toStrictEqual('server; submitted; local; more>');
+
+    helper.handleExternalChange(cs('external before - ', [0, 5], ' - external after'));
 
     expect(client.server.toString()).toStrictEqual(
       cs('external before - server - external after').toString()
@@ -343,22 +336,22 @@ describe('integration', () => {
   });
 
   it('edits e0 to e8 with duplicate external deletion', () => {
-    editor.insert('[e0]');
-    editor.insert('[e1]');
-    editor.insert('[e2]');
+    helper.insert('[e0]');
+    helper.insert('[e1]');
+    helper.insert('[e2]');
     client.submitChanges();
     client.submittedChangesAcknowledged();
-    editor.insert('[e3]');
-    editor.insert('[e4]');
-    editor.insert('[e5]');
+    helper.insert('[e3]');
+    helper.insert('[e4]');
+    helper.insert('[e5]');
     client.submitChanges();
-    editor.insert('[e6]');
-    editor.insert('[e7]');
-    editor.insert('[e8]');
-    selection.setPosition(4);
-    editor.deleteCount(4);
+    helper.insert('[e6]');
+    helper.insert('[e7]');
+    helper.insert('[e8]');
+    selection.local.set(4);
+    helper.deleteCount(4);
 
-    client.handleExternalChange(
+    helper.handleExternalChange(
       cs('[EXTERNAL]', [4, 7], '[BETWEEN]', [8, 11], '[EXTERNAL]')
     );
 
@@ -366,10 +359,10 @@ describe('integration', () => {
     client.submitChanges();
     client.submittedChangesAcknowledged();
 
-    client.handleExternalChange(cs([0, 30], '[somewhere]', [31, 60]));
+    helper.handleExternalChange(cs([0, 30], '[somewhere]', [31, 60]));
 
-    selection.setPosition(23);
-    editor.deleteCount(9);
+    selection.local.set(23);
+    helper.deleteCount(9);
 
     expect(textValueWithSelection()).toStrictEqual(
       '[EXTERNAL][e1]>[e2][e3][somewhere][e4][e5][e6][e7][e8][EXTERNAL]'

@@ -1,59 +1,14 @@
-import mitt, { Emitter } from '~utils/mitt-unsub';
-
 import { Changeset } from '../changeset/changeset';
-
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type Events = {
-  viewChange: {
-    /**
-     * New view changeset that will replace current view.
-     */
-    newView: Changeset;
-    /**
-     * Changeset that is about to be composed to view.
-     */
-    change: Changeset;
-    /**
-     * What caused view to be changed. Either external or local change.
-     */
-    source: ChangeSource;
-  };
-  viewChanged: {
-    /**
-     * New view changeset.
-     */
-    view: Changeset;
-
-    /**
-     * Changeset that was just composed to view.
-     */
-    change: Changeset;
-
-    /**
-     * What caused view to change. Either external or local change.
-     */
-    source: ChangeSource;
-  };
-  submitChanges?: never;
-  submittedChangesAcknowledged?: never;
-  handledExternalChange: {
-    externalChange: Changeset;
-  };
-};
-
-export enum ChangeSource {
-  Local,
-  External,
-}
+import { SelectionRange, SelectionRangeProps } from './selection-range';
 
 interface CollabClientOptions {
-  initialServerText?: Changeset;
-  eventBus?: Emitter<Events>;
+  server?: Changeset;
+  submitted?: Changeset;
+  local?: Changeset;
+  view?: Changeset;
 }
 
 export class CollabClient {
-  readonly eventBus: Emitter<Events>;
-
   private _server: Changeset;
   get server() {
     return this._server;
@@ -75,20 +30,11 @@ export class CollabClient {
   }
 
   constructor(options?: CollabClientOptions) {
-    const serverText = options?.initialServerText ?? Changeset.EMPTY;
-    if (!serverText.hasOnlyInsertions()) {
-      throw new Error(
-        `Expected initialServerText to only contain insertions but is ${String(
-          serverText
-        )}`
-      );
-    }
-    this.eventBus = options?.eventBus ?? mitt();
-
-    this._server = serverText;
-    this._submitted = serverText.getIdentity();
-    this._local = serverText.getIdentity();
-    this._view = serverText;
+    this._server = options?.server ?? Changeset.EMPTY;
+    this._submitted = options?.submitted ?? this._server.getIdentity();
+    this._local = options?.local ?? this._submitted.getIdentity();
+    this._view =
+      options?.view ?? this._server.compose(this._submitted).compose(this._local);
   }
 
   private getSubmittedView() {
@@ -109,20 +55,8 @@ export class CollabClient {
     if (!this._local.isEqual(newLocal)) {
       const newView = this._view.compose(change);
 
-      this.eventBus.emit('viewChange', {
-        newView,
-        change: newLocal,
-        source: ChangeSource.Local,
-      });
-
       this._local = newLocal;
       this._view = newView;
-
-      this.eventBus.emit('viewChanged', {
-        view: this._view,
-        change: newLocal,
-        source: ChangeSource.Local,
-      });
     }
   }
 
@@ -150,8 +84,6 @@ export class CollabClient {
     this._submitted = this._local;
     this._local = this._submitted.getIdentity();
 
-    this.eventBus.emit('submitChanges');
-
     return true;
   }
 
@@ -165,7 +97,6 @@ export class CollabClient {
     this._server = this._server.compose(this._submitted);
     this._submitted = this._server.getIdentity();
 
-    this.eventBus.emit('submittedChangesAcknowledged');
     return true;
   }
 
@@ -190,25 +121,86 @@ export class CollabClient {
     // V' = VD
     const newView = this._view.compose(viewComposable);
 
-    this.eventBus.emit('viewChange', {
-      newView,
-      change: viewComposable,
-      source: ChangeSource.External,
-    });
-
     this._server = newServer;
     this._submitted = newSubmitted;
     this._local = newLocal;
     this._view = newView;
 
-    this.eventBus.emit('viewChanged', {
-      view: this._view,
-      change: viewComposable,
-      source: ChangeSource.External,
-    });
+    return {
+      viewComposable,
+    };
+  }
+}
 
-    this.eventBus.emit('handledExternalChange', {
-      externalChange: external,
+interface CollabClientSelectionOptions {
+  client: CollabClient;
+  server?: Pick<SelectionRangeProps, 'start' | 'end'> | null;
+  submitted?: Pick<SelectionRangeProps, 'start' | 'end'> | null;
+  local?: Pick<SelectionRangeProps, 'start' | 'end'> | null;
+}
+
+export class CollabClientSelection {
+  private client: CollabClient;
+
+  private _server: SelectionRange;
+  get server() {
+    return this._server;
+  }
+
+  private _submitted: SelectionRange;
+  get submitted() {
+    return this._submitted;
+  }
+
+  private _local: SelectionRange;
+  get local() {
+    return this._local;
+  }
+
+  constructor(options: CollabClientSelectionOptions) {
+    this.client = options.client;
+    this._server = new SelectionRange({
+      ...options.server,
+      getLength: () => {
+        return this.client.server.length;
+      },
     });
+    this._submitted = new SelectionRange({
+      ...options.submitted,
+      getLength: () => {
+        return this.client.submitted.length;
+      },
+    });
+    this._local = new SelectionRange({
+      ...options.local,
+      getLength: () => {
+        return this.client.local.length;
+      },
+    });
+  }
+
+  submitChanges() {
+    if (this.client.submitChanges()) {
+      this._submitted.setFrom(this._local);
+      return true;
+    }
+    return false;
+  }
+
+  submittedChangesAcknowledged() {
+    if (this.client.submittedChangesAcknowledged()) {
+      this._server.setFrom(this._submitted);
+      return true;
+    }
+    return false;
+  }
+
+  handleExternalChange(external: Changeset) {
+    const submitted = this.client.submitted;
+    const { viewComposable } = this.client.handleExternalChange(external);
+
+    this.server.followChangeset(external);
+    this.submitted.followChangeset(submitted.follow(external));
+    this.local.followChangeset(viewComposable);
   }
 }

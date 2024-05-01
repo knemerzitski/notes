@@ -123,7 +123,6 @@ it('writes received data to unprocessedRecords', async () => {
     fragment: gql(`
       fragment TestCurrentUserExternalChangesSubscription on CollabText {
         unprocessedRecords {
-          done
           type
           record {
             change {
@@ -150,7 +149,6 @@ it('writes received data to unprocessedRecords', async () => {
         {
           type: CollabTextUnprocessedRecordType.ExternalChange,
           record: expect.any(Object),
-          done: null,
         },
       ],
     });
