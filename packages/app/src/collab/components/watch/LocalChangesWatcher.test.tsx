@@ -17,6 +17,7 @@ let client: ApolloClient<NormalizedCacheObject>;
 const handleNextFn = vi.fn();
 
 let collabTextId: string | undefined;
+let collabTextRef: string | undefined;
 
 beforeEach(() => {
   cache = createCache();
@@ -24,13 +25,14 @@ beforeEach(() => {
     cache,
   });
 
-  collabTextId = cache.identify({
-    id: '1',
+  collabTextId = '1',
+  collabTextRef = cache.identify({
+    id: collabTextId,
     __typename: 'CollabText',
   })!;
 
   cache.restore({
-    [collabTextId]: {
+    [collabTextRef]: {
       __typename: 'CollabText',
       localChanges: ['initial change'],
     },
@@ -40,7 +42,7 @@ beforeEach(() => {
 
   render(
     <ApolloProvider client={client}>
-      <LocalChangesWatcher collabTextId="1" onNext={handleNextFn} />
+      <LocalChangesWatcher collabTextId={collabTextId} onNext={handleNextFn} />
     </ApolloProvider>
   );
 });
@@ -53,7 +55,7 @@ it('calls onNext with initial value', async () => {
 
 it('calls onNext after writeFragment', async () => {
   client.writeFragment({
-    id: collabTextId,
+    id: collabTextRef,
     fragment: gql(`
       fragment TestLocalChangesWatcher on CollabText {
         localChanges

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { it, expect, beforeEach, describe, assert } from 'vitest';
+import { it, expect, beforeEach, describe } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import {
   ApolloClient,
@@ -16,7 +16,6 @@ import {
   useInsertText,
   useSetSelectionRange,
 } from './useEditor';
-import prettyLog from '~utils/prettyLog';
 import { UseEditorReadFragment } from '../../__generated__/graphql';
 
 let cache: InMemoryCache;
@@ -396,7 +395,7 @@ describe('useSetSelectionRange', () => {
     [{ input: { start: 2, end: null }, expected: { start: 2, end: null } }],
     [{ input: { start: 13, end: 15 }, expected: { start: 11, end: null } }],
     [{ input: { start: 0, end: 4 }, expected: { start: 0, end: 4 } }],
-  ])('%s => %s', ({ input, expected }) => {
+  ])('$input => $expected', ({ input, expected }) => {
     const {
       result: { current: setSelectionRange },
     } = renderHook(() => useSetSelectionRange(collabTextId), {
