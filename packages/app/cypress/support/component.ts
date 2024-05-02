@@ -2,6 +2,7 @@ import { mount } from 'cypress/react18';
 
 import './commands';
 import mountSandbox from './mountSandbox';
+import { loadErrorMessages, loadDevMessages } from '@apollo/client/dev';
 
 // ***********************************************************
 // This example support/component.ts is processed and
@@ -34,3 +35,8 @@ declare global {
 
 Cypress.Commands.add('mount', mount);
 Cypress.Commands.add('mountSandbox', mountSandbox);
+
+if (import.meta.env.MODE !== 'production') {
+  loadDevMessages();
+  loadErrorMessages();
+}

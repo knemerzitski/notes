@@ -6,20 +6,18 @@ import { InMemoryCache } from '@apollo/client';
 import { MockedProvider, MockedResponse } from '@apollo/client/testing';
 import {
   CollabTextUnprocessedRecordType,
-  CurrentUserExternalChangesNewRecordSubscription,
-  CurrentUserExternalChangesNewRecordSubscriptionVariables,
+  ExternalChangesNewRecordSubscription,
+  ExternalChangesNewRecordSubscriptionVariables,
 } from '../../../__generated__/graphql';
-import CurrentUserExternalChangesSubscription, {
-  SUBSCRIPTION,
-} from './CurrentUserExternalChangesSubscription';
 
 import UnprocessedRecordsWatcher from '../../../collab/components/watch/UnprocessedRecordsWatcher';
 import { gql } from '../../../__generated__';
 import { createCache } from '../../../test/helpers/apollo-client';
+import ExternalChangesSubscription, { SUBSCRIPTION } from './ExternalChangesSubscription';
 
 let cache: InMemoryCache;
 
-const mockResultData: CurrentUserExternalChangesNewRecordSubscription = {
+const mockResultData: ExternalChangesNewRecordSubscription = {
   noteUpdated: {
     patch: {
       id: 'a',
@@ -52,8 +50,8 @@ const mockResultData: CurrentUserExternalChangesNewRecordSubscription = {
 
 const mocks: Readonly<
   MockedResponse<
-    CurrentUserExternalChangesNewRecordSubscription,
-    CurrentUserExternalChangesNewRecordSubscriptionVariables
+    ExternalChangesNewRecordSubscription,
+    ExternalChangesNewRecordSubscriptionVariables
   >[]
 > = [
   {
@@ -105,7 +103,7 @@ beforeEach(() => {
   render(
     <MockedProvider mocks={mocks} cache={cache}>
       <>
-        <CurrentUserExternalChangesSubscription />
+        <ExternalChangesSubscription />
         <UnprocessedRecordsWatcher
           collabTextId="1"
           onNext={handleNextUnprocessedRecordFn}

@@ -1,21 +1,21 @@
-import ToolbarBox, { ToolbarBoxProps } from '../../components/toolbar/ToolbarBox';
+import ToolbarBox, { ToolbarBoxProps } from '../../../components/toolbar/ToolbarBox';
 
-import CollabFields, { CollabFieldsProps } from './CollabFields';
+import CollabInputs, { CollabInputsProps } from './CollabInputs';
 
-interface CollabEditorProps {
+interface CollabNoteEditorProps {
   toolbarProps: Omit<ToolbarBoxProps, 'renderMainElement'>;
-  collabFieldsProps?: CollabFieldsProps;
+  collabFieldsProps?: CollabInputsProps;
 }
 
-export default function CollabEditor({
+export default function CollabNoteEditor({
   toolbarProps,
   collabFieldsProps: collaborativeFieldsProps,
-}: CollabEditorProps) {
+}: CollabNoteEditorProps) {
   return (
     <ToolbarBox
       {...toolbarProps}
       renderMainElement={(ref) => (
-        <CollabFields
+        <CollabInputs
           {...collaborativeFieldsProps}
           boxProps={{
             ...collaborativeFieldsProps?.boxProps,

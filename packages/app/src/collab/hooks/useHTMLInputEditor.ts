@@ -1,13 +1,12 @@
 import useHTMLInput from './useHTMLInput';
 import useEditor from './useEditor';
 
-export interface UseHTMLInputEditorProps {
-  collabTextId: string;
-}
-
-export default function useHTMLInputEditor({ collabTextId }: UseHTMLInputEditorProps) {
-  const editor = useEditor(collabTextId);
-
+export default function useHTMLInputEditor(
+  editor: Pick<
+    ReturnType<typeof useEditor>,
+    'insertText' | 'deleteText' | 'setSelectionRange' | 'undo' | 'redo'
+  >
+) {
   const { handleSelect, handleInput } = useHTMLInput({
     onInsert({ selectionStart, selectionEnd, insertText }) {
       editor.setSelectionRange(selectionStart, selectionEnd);

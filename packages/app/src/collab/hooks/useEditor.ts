@@ -14,6 +14,7 @@ import {
   deletionCountOperation as deletionAsChangesetOperation,
 } from '~collab/client/changeset-operations';
 import { clampSelectionRange } from '~collab/client/selection-range';
+import useViewText from './useViewText';
 
 export const FRAGMENT_READ_OPERATION = gql(`
   fragment UseEditorRead on CollabText {
@@ -106,6 +107,7 @@ type ReadCollabText = UseEditorReadFragment;
 type WriteCollabText = UseEditorWriteFragment;
 
 export default function useEditor(collabTextId: string) {
+  const viewText = useViewText(collabTextId);
   const insertText = useInsertText(collabTextId);
   const deleteText = useDeleteText(collabTextId);
   const setSelectionRange = useSetSelectionRange(collabTextId);
@@ -113,6 +115,7 @@ export default function useEditor(collabTextId: string) {
   const redo = useHistoryMove(collabTextId, 'execute');
 
   return {
+    viewText,
     insertText,
     deleteText,
     setSelectionRange,

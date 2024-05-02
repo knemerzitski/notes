@@ -5,8 +5,8 @@ import { gql } from '../../../__generated__/gql';
 import { CollabTextUnprocessedRecordType } from '../../../__generated__/graphql';
 
 export const SUBSCRIPTION = gql(`
-  subscription CurrentUserExternalChangesNewRecord {
-    noteUpdated {
+  subscription ExternalChangesNewRecord($input: NoteUpdatedInput) {
+    noteUpdated(input: $input) {
       patch {
         id
         textFields {
@@ -35,7 +35,7 @@ export const SUBSCRIPTION = gql(`
 `);
 
 const FRAGMENT = gql(`
-fragment CurrentUserExternalChangesWriteUnprocessedRecord on CollabText {
+fragment ExternalChangesWriteUnprocessedRecord on CollabText {
   unprocessedRecords {
     type
     record {
@@ -56,15 +56,32 @@ fragment CurrentUserExternalChangesWriteUnprocessedRecord on CollabText {
 },
 `);
 
+interface ExternalChangesSubscriptionProps {
+  /**
+   * Subscribe to specific note updates. If unspecified then subscribes
+   * to all notes of current user.
+   */
+  noteContentId?: string;
+}
+
 /**
- * Subscribe to noteUpdated of current user notes and add records to unprocessedRecords.
+ * Subscribe to noteUpdated and add records to unprocessedRecords.
  */
-export default function CurrentUserExternalChangesSubscription() {
+export default function ExternalChangesSubscription({
+  noteContentId,
+}: ExternalChangesSubscriptionProps) {
   const apolloClient = useApolloClient();
 
   useEffect(() => {
     const observable = apolloClient.subscribe({
       query: SUBSCRIPTION,
+      variables: noteContentId
+        ? {
+            input: {
+              contentId: noteContentId,
+            },
+          }
+        : undefined,
     });
 
     const sub = observable.subscribe({
@@ -102,7 +119,7 @@ export default function CurrentUserExternalChangesSubscription() {
     return () => {
       sub.unsubscribe();
     };
-  }, [apolloClient]);
+  }, [apolloClient, noteContentId]);
 
   return null;
 }

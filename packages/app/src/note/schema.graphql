@@ -1,0 +1,14 @@
+type AllNotes {
+  "Active Notes submitted record are sent to server and external changes are saved."
+  active: [Note!]!
+}
+
+"""
+References current user to a note
+"""
+type UserNoteMapping {
+  "Self-descriptive"
+  user: User!
+  "Self-descriptive"
+  note: Note!
+}

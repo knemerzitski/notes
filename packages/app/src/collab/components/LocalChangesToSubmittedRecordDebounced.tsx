@@ -119,6 +119,8 @@ export default function LocalChangesToSubmittedRecordDebounced({
   options,
 }: LocalChangesToSubmittedRecordDebouncedProps) {
   const apolloClient = useApolloClient();
+
+  // TODO instead of refs just query when needed?
   const haveLocalChangesRef = useRef(false);
   const haveSubmittedRecordsRef = useRef(false);
   const mustWriteWhenSubmittedRecordIsNull = useRef(false);

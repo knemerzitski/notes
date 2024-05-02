@@ -539,6 +539,13 @@ export class Changeset implements Serializable<SerializedChangeset> {
     return this.strips.isEqual(other.strips);
   }
 
+  /**
+   * @returns Total count of characters.
+   */
+  get length(){
+    return this.strips.length;
+  }
+
   toString() {
     return `(${this.strips.maxIndex + 1} -> ${this.strips.length})${String(this.strips)}`;
   }
@@ -550,5 +557,10 @@ export class Changeset implements Serializable<SerializedChangeset> {
   static parseValue(value: unknown): Changeset {
     if (value instanceof Changeset) return value;
     return new Changeset(Strips.parseValue(value));
+  }
+
+  static parseValueMaybe(value: unknown): Changeset | undefined {
+    if (value == null) return;
+    return this.parseValue(value);
   }
 }

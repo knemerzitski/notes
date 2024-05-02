@@ -1,3 +1,8 @@
+type AllCollabTexts {
+  "Active CollabTexts local changes are turned into submitted record, submitted changes acknowledged and external changes are handled."
+  active: [CollabText!]!
+}
+
 type CollabTextSubmittedRecord {
   "Randomly generated string by user"
   generatedId: String!
@@ -23,9 +28,6 @@ extend type CollabText {
 
   "Records received from the server that haven't been processed yet"
   unprocessedRecords: [CollabTextUnprocessedRecord!]!
-
-  "TODO remove collabEditor"
-  collabEditor: String! @deprecated(reason: "Obsolete, using Apollo cache as state")
 }
 
 enum CollabTextUnprocessedRecordType {

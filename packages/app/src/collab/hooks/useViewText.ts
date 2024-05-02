@@ -2,16 +2,12 @@ import { gql } from '../../__generated__';
 import { useFragment } from '@apollo/client';
 
 const FRAGMENT = gql(`
-  fragment ViewText on CollabText {
+  fragment UseViewText on CollabText {
     viewText
   }
 `);
 
-export interface ViewTextProps {
-  collabTextId: string;
-}
-
-export default function ViewText({ collabTextId }: ViewTextProps) {
+export default function useViewText(collabTextId: string) {
   const collabText = useFragment({
     from: {
       id: collabTextId,
