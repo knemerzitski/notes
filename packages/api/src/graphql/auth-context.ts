@@ -143,7 +143,9 @@ export async function findRefreshDbSession(
         _id: session._id,
       },
       {
-        expireAt,
+        $set: {
+          expireAt,
+        },
       }
     );
   }
