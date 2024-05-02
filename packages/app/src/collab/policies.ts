@@ -1,5 +1,6 @@
 import { FieldPolicy, Reference, TypePolicies } from '@apollo/client';
 import {
+  AllCollabTexts,
   CollabText,
   CollabTextLocalHistory,
   CollabTextLocalHistoryEntry,
@@ -7,6 +8,15 @@ import {
 } from '../__generated__/graphql';
 import { Changeset } from '~collab/changeset/changeset';
 import { CollabClient } from '~collab/client/collab-client';
+
+export const AllCollabTexts_active: FieldPolicy<
+  AllCollabTexts['active'],
+  AllCollabTexts['active']
+> = {
+  read(existing = []) {
+    return existing as CollabText[];
+  },
+};
 
 export const CollabText_id: FieldPolicy<CollabText['id'], CollabText['id']> = {
   merge(_existing, incoming, { cache, toReference }) {
@@ -146,6 +156,12 @@ export const CollabTextLocalHistory_entries: FieldPolicy<
 };
 
 const collabTextPolicies: TypePolicies = {
+  AllCollabTexts: {
+    keyFields: [],
+    fields: {
+      active: AllCollabTexts_active,
+    },
+  },
   CollabText: {
     fields: {
       submittedRecord: CollabText_submittedRecord,

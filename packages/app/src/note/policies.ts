@@ -57,6 +57,12 @@ export const Query_note: FieldPolicy<Query['note'], Query['note'] | Reference> =
   },
 };
 
+export const AllNotes_active: FieldPolicy<AllNotes['active'], AllNotes['active']> = {
+  read(existing = []) {
+    return existing as Note[];
+  },
+};
+
 export const Note_id: FieldPolicy<Note['id'], Note['id']> = {
   merge(_existing, incoming, { cache, toReference }) {
     const noteRef = toReference({
@@ -105,12 +111,6 @@ export const Note_textFields: FieldPolicy<Note['textFields'], Note['textFields']
   },
 };
 
-export const AllNotes_active: FieldPolicy<AllNotes['active'], AllNotes['active']> = {
-  read(existing = []) {
-    return existing as Note[];
-  },
-};
-
 const notePolicies: TypePolicies = {
   Query: {
     fields: {
@@ -118,11 +118,8 @@ const notePolicies: TypePolicies = {
       notesConnection: relayStylePagination(),
     },
   },
-  Note: {
-    fields: {
-      id: Note_id,
-      textFields: Note_textFields,
-    },
+  UserNoteMapping: {
+    keyFields: ['user', ['id'], 'note', ['contentId']],
   },
   AllNotes: {
     keyFields: [],
@@ -130,8 +127,11 @@ const notePolicies: TypePolicies = {
       active: AllNotes_active,
     },
   },
-  UserNoteMapping: {
-    keyFields: ['user', ['id'], 'note', ['contentId']],
+  Note: {
+    fields: {
+      id: Note_id,
+      textFields: Note_textFields,
+    },
   },
 };
 
