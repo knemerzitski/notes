@@ -1,7 +1,13 @@
-import { InMemoryCache, TypePolicies } from '@apollo/client';
-import { relayStylePagination } from '@apollo/client/utilities';
+import { FieldPolicy, InMemoryCache, TypePolicies } from '@apollo/client';
+import { Reference, isReference, relayStylePagination } from '@apollo/client/utilities';
 
-import { NoteTextFieldEntry } from '../__generated__/graphql';
+import {
+  AllNotes,
+  CollabText,
+  Note,
+  NoteTextFieldEntry,
+  Query,
+} from '../__generated__/graphql';
 import { gql } from '../__generated__';
 import { readSessionContext } from '../session/state/persistence';
 
@@ -38,53 +44,91 @@ function noteContentIdToNoteId(
   return data?.note.id;
 }
 
+export const Query_note: FieldPolicy<Query['note'], Query['note'] | Reference> = {
+  // Read single note from previously cached list of notes
+  read(_, { args, toReference, cache }) {
+    if (typeof args?.contentId === 'string') {
+      const noteId = noteContentIdToNoteId(args.contentId, cache);
+      return toReference({
+        __typename: 'Note',
+        id: noteId,
+      });
+    }
+  },
+};
+
+export const Note_id: FieldPolicy<Note['id'], Note['id']> = {
+  merge(_existing, incoming, { cache, toReference }) {
+    const noteRef = toReference({
+      id: incoming,
+      __typename: 'Note',
+    });
+    if (!noteRef) return incoming;
+
+    cache.modify<{ active: Reference[] }>({
+      id: cache.identify({
+        __typename: 'AllNotes',
+      }),
+      fields: {
+        active(existingRefs) {
+          if (existingRefs.some((val) => val === noteRef)) {
+            return existingRefs;
+          }
+
+          return [...existingRefs, noteRef];
+        },
+      },
+    });
+
+    return incoming;
+  },
+};
+
+export const Note_textFields: FieldPolicy<Note['textFields'], Note['textFields']> = {
+  merge(existing, incoming) {
+    if (!existing) {
+      return incoming;
+    }
+
+    // Overwrite existing with incoming by the same key
+    const mergedResult: NoteTextFieldEntry[] = [...existing];
+    incoming.forEach((entry) => {
+      const sameKeyIndex = existing.findIndex(({ key }) => key === entry.key);
+      if (sameKeyIndex !== -1) {
+        mergedResult[sameKeyIndex] = entry;
+      } else {
+        mergedResult.push(entry);
+      }
+    });
+
+    return incoming;
+  },
+};
+
+export const AllNotes_active: FieldPolicy<AllNotes['active'], AllNotes['active']> = {
+  read(existing = []) {
+    return existing as Note[];
+  },
+};
+
 const notePolicies: TypePolicies = {
   Query: {
     fields: {
-      note: {
-        // Read single note from previously cached list of notes
-        read(_, { args, toReference, cache }) {
-          if (typeof args?.contentId === 'string') {
-            const noteId = noteContentIdToNoteId(args.contentId, cache);
-            return toReference({
-              __typename: 'Note',
-              id: noteId,
-            });
-          }
-        },
-      },
+      note: Query_note,
       notesConnection: relayStylePagination(),
     },
   },
   Note: {
     fields: {
-      textFields: {
-        merge(
-          existing: NoteTextFieldEntry[] | undefined,
-          incoming: NoteTextFieldEntry[]
-        ) {
-          if (!existing) {
-            return incoming;
-          }
-
-          // Overwrite existing with incoming by the same key
-          const mergedResult: NoteTextFieldEntry[] = [...existing];
-          incoming.forEach((entry) => {
-            const sameKeyIndex = existing.findIndex(({ key }) => key === entry.key);
-            if (sameKeyIndex !== -1) {
-              mergedResult[sameKeyIndex] = entry;
-            } else {
-              mergedResult.push(entry);
-            }
-          });
-
-          return incoming;
-        },
-      },
+      id: Note_id,
+      textFields: Note_textFields,
     },
   },
   AllNotes: {
     keyFields: [],
+    fields: {
+      active: AllNotes_active,
+    },
   },
   UserNoteMapping: {
     keyFields: ['user', ['id'], 'note', ['contentId']],

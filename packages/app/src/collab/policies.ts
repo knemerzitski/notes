@@ -1,4 +1,4 @@
-import { FieldPolicy, TypePolicies } from '@apollo/client';
+import { FieldPolicy, Reference, TypePolicies } from '@apollo/client';
 import {
   CollabText,
   CollabTextLocalHistory,
@@ -8,7 +8,34 @@ import {
 import { Changeset } from '~collab/changeset/changeset';
 import { CollabClient } from '~collab/client/collab-client';
 
-export const submittedRecord: FieldPolicy<
+export const CollabText_id: FieldPolicy<CollabText['id'], CollabText['id']> = {
+  merge(_existing, incoming, { cache, toReference }) {
+    const collabTextRef = toReference({
+      id: incoming,
+      __typename: 'CollabText',
+    });
+    if (!collabTextRef) return incoming;
+
+    cache.modify<{ active: Reference[] }>({
+      id: cache.identify({
+        __typename: 'AllCollabTexts',
+      }),
+      fields: {
+        active(existingRefs) {
+          if (existingRefs.some((val) => val === collabTextRef)) {
+            return existingRefs;
+          }
+
+          return [...existingRefs, collabTextRef];
+        },
+      },
+    });
+
+    return incoming;
+  },
+};
+
+export const CollabText_submittedRecord: FieldPolicy<
   CollabText['submittedRecord'],
   CollabText['submittedRecord']
 > = {
@@ -23,7 +50,7 @@ export const submittedRecord: FieldPolicy<
   },
 };
 
-export const localChanges: FieldPolicy<
+export const CollabText_localChanges: FieldPolicy<
   CollabText['localChanges'],
   CollabText['localChanges']
 > = {
@@ -32,7 +59,10 @@ export const localChanges: FieldPolicy<
   },
 };
 
-export const viewText: FieldPolicy<CollabText['viewText'], CollabText['viewText']> = {
+export const CollabText_viewText: FieldPolicy<
+  CollabText['viewText'],
+  CollabText['viewText']
+> = {
   read(existing, { readField }) {
     if (typeof existing === 'string') {
       return existing;
@@ -52,7 +82,7 @@ export const viewText: FieldPolicy<CollabText['viewText'], CollabText['viewText'
   },
 };
 
-export const activeSelection: FieldPolicy<
+export const CollabText_activeSelection: FieldPolicy<
   CollabText['activeSelection'],
   CollabText['activeSelection']
 > = {
@@ -61,7 +91,7 @@ export const activeSelection: FieldPolicy<
   },
 };
 
-export const unprocessedRecords: FieldPolicy<
+export const CollabText_unprocessedRecords: FieldPolicy<
   CollabText['unprocessedRecords'],
   CollabText['unprocessedRecords']
 > = {
@@ -70,7 +100,7 @@ export const unprocessedRecords: FieldPolicy<
   },
 };
 
-export const history_tailText: FieldPolicy<
+export const CollabTextLocalHistory_tailText: FieldPolicy<
   CollabTextLocalHistory['tailText'],
   CollabTextLocalHistory['tailText']
 > = {
@@ -79,7 +109,7 @@ export const history_tailText: FieldPolicy<
   },
 };
 
-export const history_serverIndex: FieldPolicy<
+export const CollabTextLocalHistory_serverIndex: FieldPolicy<
   CollabTextLocalHistory['serverIndex'],
   CollabTextLocalHistory['serverIndex']
 > = {
@@ -88,7 +118,7 @@ export const history_serverIndex: FieldPolicy<
   },
 };
 
-export const history_submittedIndex: FieldPolicy<
+export const CollabTextLocalHistory_submittedIndex: FieldPolicy<
   CollabTextLocalHistory['submittedIndex'],
   CollabTextLocalHistory['submittedIndex']
 > = {
@@ -97,7 +127,7 @@ export const history_submittedIndex: FieldPolicy<
   },
 };
 
-export const history_localIndex: FieldPolicy<
+export const CollabTextLocalHistory_localIndex: FieldPolicy<
   CollabTextLocalHistory['localIndex'],
   CollabTextLocalHistory['localIndex']
 > = {
@@ -106,7 +136,7 @@ export const history_localIndex: FieldPolicy<
   },
 };
 
-export const history_entries: FieldPolicy<
+export const CollabTextLocalHistory_entries: FieldPolicy<
   CollabTextLocalHistory['entries'],
   CollabTextLocalHistory['entries']
 > = {
@@ -118,20 +148,20 @@ export const history_entries: FieldPolicy<
 const collabTextPolicies: TypePolicies = {
   CollabText: {
     fields: {
-      submittedRecord,
-      localChanges,
-      viewText,
-      activeSelection,
-      unprocessedRecords,
+      submittedRecord: CollabText_submittedRecord,
+      localChanges: CollabText_localChanges,
+      viewText: CollabText_viewText,
+      activeSelection: CollabText_activeSelection,
+      unprocessedRecords: CollabText_unprocessedRecords,
     },
   },
   CollabTextLocalHistory: {
     fields: {
-      tailText: history_tailText,
-      serverIndex: history_serverIndex,
-      submittedIndex: history_submittedIndex,
-      localIndex: history_localIndex,
-      entries: history_entries,
+      tailText: CollabTextLocalHistory_tailText,
+      serverIndex: CollabTextLocalHistory_serverIndex,
+      submittedIndex: CollabTextLocalHistory_submittedIndex,
+      localIndex: CollabTextLocalHistory_localIndex,
+      entries: CollabTextLocalHistory_entries,
     },
   },
 };

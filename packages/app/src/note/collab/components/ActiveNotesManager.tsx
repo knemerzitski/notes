@@ -4,7 +4,7 @@ import SubmittedRecordMutation from './SubmittedRecordMutation';
 import ExternalChangesSubscription from './ExternalChangesSubscription';
 
 const FRAGMENT = gql(`
-  fragment NotesManager on AllNotes {
+  fragment ActiveNotesManager on AllNotes {
     active {
       contentId
       isOwner
@@ -18,7 +18,7 @@ const FRAGMENT = gql(`
   }
 `);
 
-export default function NotesManager() {
+export default function ActiveNotesManager() {
   const allNotes = useFragment({
     from: {
       __typename: 'AllNotes',
