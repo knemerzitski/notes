@@ -20,7 +20,6 @@ import StatsLink from './links/stats-link';
 import WaitLink from './links/wait-link';
 import typePolicies from './policies';
 
-
 const HTTP_URL =
   import.meta.env.MODE === 'production'
     ? import.meta.env.VITE_GRAPHQL_HTTP_URL

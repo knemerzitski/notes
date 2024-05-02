@@ -12,12 +12,11 @@ import { AddFetchResultErrorHandlerProvider } from './apollo/hooks/useAddFetchRe
 import { StatsLinkProvider } from './apollo/hooks/useStatsLink';
 import SnackbarAlertProvider from './components/feedback/SnackbarAlertProvider';
 import ClientSyncStatusProvider from './context/ClientSyncStatusProvider';
-import ActiveNotesProvider from './note/collab/context/ActiveNotesProvider';
-import NotesEditorsProvider from './note/collab/context/NoteEditorsProvider';
-import ActiveNotesManager from './note/collab/event-components/ManageActiveNotes';
 import RouterProvider from './router/RouterProvider';
 import GoogleAuthProvider from './session/auth/google/GoogleAuthProvider';
 import themeOptions from './themeOptions';
+import ActiveNotesManager from './note/collab/components/ActiveNotesManager';
+import ActiveCollabTextsManager from './collab/components/ActiveCollabTextsManager';
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -71,12 +70,9 @@ export default function App() {
                   <ApolloClientErrorsSnackbarAlert />
                   <GoogleAuthProvider clientId={CLIENT_ID}>
                     {/* TODO everything that can be, move into router */}
-                    <ActiveNotesProvider>
-                      <NotesEditorsProvider>
-                        <ActiveNotesManager />
-                        <RouterProvider />
-                      </NotesEditorsProvider>
-                    </ActiveNotesProvider>
+                    <ActiveNotesManager />
+                    <ActiveCollabTextsManager />
+                    <RouterProvider />
                   </GoogleAuthProvider>
                 </SnackbarAlertProvider>
               </ThemeProvider>

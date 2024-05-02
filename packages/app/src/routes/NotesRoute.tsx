@@ -1,11 +1,10 @@
 import { useQuery } from '@apollo/client';
 import { Alert, Button } from '@mui/material';
-import { startTransition, useEffect } from 'react';
+import { startTransition } from 'react';
 
 import { gql } from '../__generated__/gql';
 import { NoteTextField } from '../__generated__/graphql';
 import { useSnackbarError } from '../components/feedback/SnackbarAlertProvider';
-import { useModifyActiveNotes } from '../note/collab/context/ActiveNotesProvider';
 import WidgetListFabLayout from '../note/components/layout/WidgetListFabLayout';
 import { NoteItemProps } from '../note/components/view/NoteItem';
 import useCreateNote from '../note/hooks/useCreateNote';
@@ -21,6 +20,7 @@ const QUERY_NOTES = gql(`
       notes {
         id
         contentId
+        isOwner
         textFields {
           key
           value {
@@ -73,14 +73,6 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
   const navigate = useProxyNavigate();
   const transform = useProxyRouteTransform();
   const absoluteLocation = useAbsoluteLocation();
-
-  const activeNotes = useModifyActiveNotes();
-
-  useEffect(() => {
-    data?.notesConnection.notes.filter(isDefined).forEach(({ contentId }) => {
-      activeNotes.add(contentId);
-    });
-  }, [activeNotes, data?.notesConnection.notes]);
 
   if (error) {
     return (

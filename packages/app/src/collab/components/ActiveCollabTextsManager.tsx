@@ -24,17 +24,19 @@ export default function ActiveCollabTextsManager() {
 
   return allCollabTexts.data.active.map((activeCollabText) => {
     const id = String(activeCollabText.id);
-    <>
-      <LocalChangesToSubmittedRecordDebounced
-        key={id}
-        collabTextId={id}
-        wait={500}
-        options={{
-          maxWait: 1000,
-        }}
-      />
-      <UnprocessedRecordsHandler key={id} collabTextId={id} />
-      <LocalChangesClientSychronized key={id} collabTextId={id} />
-    </>;
+    return (
+      <>
+        <LocalChangesToSubmittedRecordDebounced
+          key={id}
+          collabTextId={id}
+          wait={500}
+          options={{
+            maxWait: 1000,
+          }}
+        />
+        <UnprocessedRecordsHandler key={id} collabTextId={id} />
+        <LocalChangesClientSychronized key={id} collabTextId={id} />
+      </>
+    );
   });
 }
