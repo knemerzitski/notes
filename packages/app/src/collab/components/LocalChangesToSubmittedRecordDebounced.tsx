@@ -147,7 +147,7 @@ export default function LocalChangesToSubmittedRecordDebounced({
         const haveSubmittedRecord = collabText?.submittedRecord != null;
         if (haveSubmittedRecord) return;
 
-        return applyLocalChangesToSubmittedRecord(data);
+        return applyLocalChangesToSubmittedRecord(collabText);
       }
     );
   }
