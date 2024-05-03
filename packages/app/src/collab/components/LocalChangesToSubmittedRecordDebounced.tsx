@@ -5,7 +5,7 @@ import SubmittedRecordWatcher, {
   SubmittedRecordWatcherProps,
 } from './watch/SubmittedRecordWatcher';
 import { useDebouncedCallback, Options } from 'use-debounce';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { gql } from '../../__generated__/gql';
 import { useApolloClient } from '@apollo/client';
 import { nanoid } from 'nanoid';
@@ -21,6 +21,9 @@ const FRAGMENT_READ = gql(`
       revision
     }
     localChanges
+    submittedRecord {
+      generatedId
+    }
     history {
       localIndex
       entries {
@@ -37,14 +40,6 @@ const FRAGMENT_READ = gql(`
           }
         }
       }
-    }
-  }
-`);
-
-const FRAGMENT_READ_SUBMITTED_RECORD = gql(`
-  fragment LocalChangesToSubmittedRecordDebouncedReadSubmittedRecord on CollabText {
-    submittedRecord {
-      generatedId
     }
   }
 `);
@@ -147,18 +142,12 @@ export default function LocalChangesToSubmittedRecordDebounced({
           overwrite: true,
         },
       },
-      (data) => {
+      (collabText) => {
         // Verify no submitted record exists
-        const collabText = apolloClient.cache.readFragment({
-          id,
-          fragment: FRAGMENT_READ_SUBMITTED_RECORD,
-        });
-
         const haveSubmittedRecord = collabText?.submittedRecord != null;
-        if (!haveSubmittedRecord) {
-          return applyLocalChangesToSubmittedRecord(data);
-        }
-        return;
+        if (haveSubmittedRecord) return;
+
+        return applyLocalChangesToSubmittedRecord(data);
       }
     );
   }

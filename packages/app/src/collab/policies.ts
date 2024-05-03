@@ -1,6 +1,5 @@
-import { FieldPolicy, Reference, TypePolicies } from '@apollo/client';
+import { FieldPolicy, Reference, TypePolicies, makeVar } from '@apollo/client';
 import {
-  AllCollabTexts,
   CollabText,
   CollabTextLocalHistory,
   CollabTextLocalHistoryEntry,
@@ -9,37 +8,20 @@ import {
 import { Changeset } from '~collab/changeset/changeset';
 import { CollabClient } from '~collab/client/collab-client';
 
-export const AllCollabTexts_active: FieldPolicy<
-  AllCollabTexts['active'],
-  AllCollabTexts['active']
-> = {
-  read(existing = []) {
-    return existing as CollabText[];
-  },
-};
+const activeCollabTextsVar = makeVar<Reference[]>([]);
 
 export const CollabText_id: FieldPolicy<CollabText['id'], CollabText['id']> = {
-  merge(_existing, incoming, { cache, toReference }) {
+  merge(_existing, incoming, { toReference }) {
     const collabTextRef = toReference({
       id: incoming,
       __typename: 'CollabText',
     });
     if (!collabTextRef) return incoming;
 
-    cache.modify<{ active: Reference[] }>({
-      id: cache.identify({
-        __typename: 'AllCollabTexts',
-      }),
-      fields: {
-        active(existingRefs) {
-          if (existingRefs.some((val) => val === collabTextRef)) {
-            return existingRefs;
-          }
-
-          return [...existingRefs, collabTextRef];
-        },
-      },
-    });
+    const activeCollabTexts = activeCollabTextsVar();
+    if (!activeCollabTexts.some((val) => val.__ref === collabTextRef.__ref)) {
+      activeCollabTextsVar([...activeCollabTexts, collabTextRef]);
+    }
 
     return incoming;
   },
@@ -110,6 +92,27 @@ export const CollabText_unprocessedRecords: FieldPolicy<
   },
 };
 
+export const CollabText_history: FieldPolicy<
+  CollabText['history'],
+  CollabText['history']
+> = {
+  read(
+    existing = {
+      __typename: 'CollabTextLocalHistory',
+      serverIndex: -1,
+      submittedIndex: -1,
+      localIndex: -1,
+      tailText: {
+        changeset: Changeset.EMPTY.serialize(),
+        revision: -1,
+      },
+      entries: [],
+    }
+  ) {
+    return existing;
+  },
+};
+
 export const CollabTextLocalHistory_tailText: FieldPolicy<
   CollabTextLocalHistory['tailText'],
   CollabTextLocalHistory['tailText']
@@ -156,19 +159,24 @@ export const CollabTextLocalHistory_entries: FieldPolicy<
 };
 
 const collabTextPolicies: TypePolicies = {
-  AllCollabTexts: {
-    keyFields: [],
+  Query: {
     fields: {
-      active: AllCollabTexts_active,
+      allActiveCollabTexts: {
+        read() {
+          return activeCollabTextsVar();
+        },
+      },
     },
   },
   CollabText: {
     fields: {
+      id: CollabText_id,
       submittedRecord: CollabText_submittedRecord,
       localChanges: CollabText_localChanges,
       viewText: CollabText_viewText,
       activeSelection: CollabText_activeSelection,
       unprocessedRecords: CollabText_unprocessedRecords,
+      history: CollabText_history,
     },
   },
   CollabTextLocalHistory: {

@@ -1,42 +1,41 @@
-import { useFragment } from '@apollo/client';
+import { useQuery } from '@apollo/client';
 import { gql } from '../../__generated__/gql';
 import LocalChangesToSubmittedRecordDebounced from './LocalChangesToSubmittedRecordDebounced';
 import UnprocessedRecordsHandler from './UnprocessedRecordsHandler';
 import LocalChangesClientSychronized from './LocalChangesClientSychronized';
+import { Fragment } from 'react/jsx-runtime';
 
-const FRAGMENT = gql(`
-  fragment ActiveCollabTextsManager on AllCollabTexts {
-    active {
+const QUERY = gql(`
+  query ActiveCollabTextsManager {
+    allActiveCollabTexts {
       id
     }
   }
 `);
 
 export default function ActiveCollabTextsManager() {
-  const allCollabTexts = useFragment({
-    from: {
-      __typename: 'AllCollabTexts',
-    },
-    fragment: FRAGMENT,
+  const { data } = useQuery(QUERY, {
+    fetchPolicy: 'cache-only',
   });
 
-  if (!allCollabTexts.complete) return null;
+  if (!data) return null;
 
-  return allCollabTexts.data.active.map((activeCollabText) => {
+  const activeCollabTexts = data.allActiveCollabTexts;
+
+  return activeCollabTexts.map((activeCollabText) => {
     const id = String(activeCollabText.id);
     return (
-      <>
+      <Fragment key={id}>
         <LocalChangesToSubmittedRecordDebounced
-          key={id}
           collabTextId={id}
           wait={500}
           options={{
             maxWait: 1000,
           }}
         />
-        <UnprocessedRecordsHandler key={id} collabTextId={id} />
-        <LocalChangesClientSychronized key={id} collabTextId={id} />
-      </>
+        <UnprocessedRecordsHandler collabTextId={id} />
+        <LocalChangesClientSychronized collabTextId={id} />
+      </Fragment>
     );
   });
 }

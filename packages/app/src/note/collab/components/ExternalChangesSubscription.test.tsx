@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { it, beforeEach, vi, expect } from 'vitest';
+import { it, beforeEach, expect } from 'vitest';
 import { render, waitFor } from '@testing-library/react';
 import { InMemoryCache } from '@apollo/client';
 import { MockedProvider, MockedResponse } from '@apollo/client/testing';
@@ -10,7 +10,6 @@ import {
   ExternalChangesNewRecordSubscriptionVariables,
 } from '../../../__generated__/graphql';
 
-import UnprocessedRecordsWatcher from '../../../collab/components/watch/UnprocessedRecordsWatcher';
 import { gql } from '../../../__generated__';
 import { createCache } from '../../../test/helpers/apollo-client';
 import ExternalChangesSubscription, { SUBSCRIPTION } from './ExternalChangesSubscription';
@@ -64,8 +63,6 @@ const mocks: Readonly<
   },
 ];
 
-const handleNextUnprocessedRecordFn = vi.fn();
-
 let collabTextId: string | undefined;
 
 const nextTick = () => new Promise((res) => setTimeout(res, 0));
@@ -98,16 +95,10 @@ beforeEach(() => {
     },
   });
 
-  handleNextUnprocessedRecordFn.mockClear();
-
   render(
     <MockedProvider mocks={mocks} cache={cache}>
       <>
         <ExternalChangesSubscription />
-        <UnprocessedRecordsWatcher
-          collabTextId="1"
-          onNext={handleNextUnprocessedRecordFn}
-        />
       </>
     </MockedProvider>
   );
@@ -150,11 +141,5 @@ it('writes received data to unprocessedRecords', async () => {
         },
       ],
     });
-  });
-});
-
-it('triggers UnprocessedRecordWatcher', async () => {
-  await waitFor(() => {
-    expect(handleNextUnprocessedRecordFn).toHaveBeenCalledTimes(2);
   });
 });

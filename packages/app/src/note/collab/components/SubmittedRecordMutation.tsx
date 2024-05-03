@@ -75,6 +75,7 @@ export default function SubmittedRecordMutation({
         data.updateNote.patch?.textFields?.forEach((textField) => {
           const updatedCollabText = textField.value;
           const newRecord = updatedCollabText.newRecord;
+
           if (!newRecord) return;
 
           cache.updateFragment(
@@ -84,10 +85,10 @@ export default function SubmittedRecordMutation({
                 __typename: 'CollabText',
               }),
               fragment: FRAGMENT_UPDATE,
+              overwrite: true,
             },
             (data) => {
               return {
-                submittedRecord: null,
                 unprocessedRecords: [
                   ...(data?.unprocessedRecords ?? []),
                   {

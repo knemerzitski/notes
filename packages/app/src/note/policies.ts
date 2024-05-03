@@ -1,13 +1,7 @@
-import { FieldPolicy, InMemoryCache, TypePolicies } from '@apollo/client';
-import { Reference, isReference, relayStylePagination } from '@apollo/client/utilities';
+import { FieldPolicy, InMemoryCache, TypePolicies, makeVar } from '@apollo/client';
+import { Reference, relayStylePagination } from '@apollo/client/utilities';
 
-import {
-  AllNotes,
-  CollabText,
-  Note,
-  NoteTextFieldEntry,
-  Query,
-} from '../__generated__/graphql';
+import { Note, NoteTextFieldEntry, Query } from '../__generated__/graphql';
 import { gql } from '../__generated__';
 import { readSessionContext } from '../session/state/persistence';
 
@@ -57,34 +51,20 @@ export const Query_note: FieldPolicy<Query['note'], Query['note'] | Reference> =
   },
 };
 
-export const AllNotes_active: FieldPolicy<AllNotes['active'], AllNotes['active']> = {
-  read(existing = []) {
-    return existing as Note[];
-  },
-};
+const activeNotesVar = makeVar<Reference[]>([]);
 
 export const Note_id: FieldPolicy<Note['id'], Note['id']> = {
-  merge(_existing, incoming, { cache, toReference }) {
+  merge(_existing, incoming, { toReference }) {
     const noteRef = toReference({
       id: incoming,
       __typename: 'Note',
     });
     if (!noteRef) return incoming;
 
-    cache.modify<{ active: Reference[] }>({
-      id: cache.identify({
-        __typename: 'AllNotes',
-      }),
-      fields: {
-        active(existingRefs) {
-          if (existingRefs.some((val) => val === noteRef)) {
-            return existingRefs;
-          }
-
-          return [...existingRefs, noteRef];
-        },
-      },
-    });
+    const activeNotes = activeNotesVar();
+    if (!activeNotes.some((val) => val.__ref === noteRef.__ref)) {
+      activeNotesVar([...activeNotes, noteRef]);
+    }
 
     return incoming;
   },
@@ -114,18 +94,17 @@ export const Note_textFields: FieldPolicy<Note['textFields'], Note['textFields']
 const notePolicies: TypePolicies = {
   Query: {
     fields: {
+      allActiveNotes: {
+        read() {
+          return activeNotesVar();
+        },
+      },
       note: Query_note,
       notesConnection: relayStylePagination(),
     },
   },
   UserNoteMapping: {
     keyFields: ['user', ['id'], 'note', ['contentId']],
-  },
-  AllNotes: {
-    keyFields: [],
-    fields: {
-      active: AllNotes_active,
-    },
   },
   Note: {
     fields: {

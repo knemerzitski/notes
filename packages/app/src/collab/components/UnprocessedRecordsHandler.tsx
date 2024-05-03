@@ -6,8 +6,16 @@ import {
   CollabTextUnprocessedRecordType,
   UnprocessedRecordsHandlerFragment,
 } from '../../__generated__/graphql';
-import UnprocessedRecordsWatcher from './watch/UnprocessedRecordsWatcher';
 import { OrderedMessageBuffer } from '~utils/ordered-message-buffer';
+import { useEffect } from 'react';
+
+const FRAGMENT_WATCH = gql(`
+  fragment UnprocessedRecordsHandlerWatch on CollabText {
+    unprocessedRecords {
+      type
+    }
+  }
+`);
 
 const FRAGMENT = gql(`
   fragment UnprocessedRecordsHandler on CollabText {
@@ -112,9 +120,9 @@ export function handleUnprocessedRecords(
       changeset: collabClient.server.serialize(),
       revision: recordsBuffer.currentVersion,
     },
-    ...(collabClient.haveSubmittedChanges() && collabText.submittedRecord
-      ? {
-          submittedRecord: {
+    submittedRecord:
+      collabClient.haveSubmittedChanges() && collabText.submittedRecord
+        ? {
             ...collabText.submittedRecord,
             change: {
               ...collabText.submittedRecord.change,
@@ -122,18 +130,13 @@ export function handleUnprocessedRecords(
             },
             beforeSelection: collabClientSelection.server.serialize(),
             afterSelection: collabClientSelection.submitted.serialize(),
-          },
-        }
-      : null),
-    ...(collabClient.haveLocalChanges()
-      ? {
-          localChanges: collabClient.local.serialize(),
-        }
-      : null),
+          }
+        : null,
+    localChanges: collabClient.haveLocalChanges() ? collabClient.local.serialize() : null,
     viewText: collabClient.view.joinInsertions(),
-    ...(collabText.activeSelection && {
-      activeSelection: collabClientSelection.local.serialize(),
-    }),
+    activeSelection: collabText.activeSelection
+      ? collabClientSelection.local.serialize()
+      : null,
     unprocessedRecords: [...recordsBuffer.getAllMessages()],
   };
 }
@@ -147,18 +150,38 @@ export default function UnprocessedRecordsHandler({
 }: UnprocessedRecordsHandlerProps) {
   const apolloClient = useApolloClient();
 
-  function handleNext() {
-    apolloClient.cache.updateFragment(
-      {
-        id: apolloClient.cache.identify({
+  useEffect(() => {
+    const subscription = apolloClient
+      .watchFragment({
+        from: {
           id: collabTextId,
           __typename: 'CollabText',
-        }),
-        fragment: FRAGMENT,
-      },
-      handleUnprocessedRecords
-    );
-  }
+        },
+        fragment: FRAGMENT_WATCH,
+      })
+      .subscribe({
+        next() {
+          // Cannot update unprocessedRecords this tick since it was just modifed
+          setTimeout(() => {
+            apolloClient.cache.updateFragment(
+              {
+                id: apolloClient.cache.identify({
+                  id: collabTextId,
+                  __typename: 'CollabText',
+                }),
+                fragment: FRAGMENT,
+                overwrite: true,
+              },
+              handleUnprocessedRecords
+            );
+          }, 0);
+        },
+      });
 
-  return <UnprocessedRecordsWatcher collabTextId={collabTextId} onNext={handleNext} />;
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [apolloClient, collabTextId]);
+
+  return null;
 }

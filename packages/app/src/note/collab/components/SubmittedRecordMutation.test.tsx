@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { it, beforeEach, vi, expect } from 'vitest';
+import { it, beforeEach, expect } from 'vitest';
 import { render, waitFor } from '@testing-library/react';
 import { InMemoryCache } from '@apollo/client';
 import { MockedProvider, MockedResponse } from '@apollo/client/testing';
@@ -11,7 +11,6 @@ import {
   UseUpdateNoteMutationVariables,
 } from '../../../__generated__/graphql';
 
-import UnprocessedRecordsWatcher from '../../../collab/components/watch/UnprocessedRecordsWatcher';
 import { gql } from '../../../__generated__';
 import { createCache } from '../../../test/helpers/apollo-client';
 import { MUTATION } from '../../hooks/useUpdateNote';
@@ -68,8 +67,6 @@ const mocks: Readonly<
   },
 ];
 
-const handleNextUnprocessedRecordFn = vi.fn();
-
 beforeEach(() => {
   cache = createCache();
 
@@ -102,8 +99,6 @@ beforeEach(() => {
     },
   });
 
-  handleNextUnprocessedRecordFn.mockClear();
-
   render(
     <MockedProvider mocks={mocks} cache={cache}>
       <>
@@ -111,10 +106,6 @@ beforeEach(() => {
           collabTextId={collabTextId}
           noteContentId={noteContentId}
           noteField={noteField}
-        />
-        <UnprocessedRecordsWatcher
-          collabTextId="1"
-          onNext={handleNextUnprocessedRecordFn}
         />
       </>
     </MockedProvider>
@@ -156,12 +147,5 @@ it('writes acknowledgement to unprocessedRecords', async () => {
         },
       ],
     });
-  });
-});
-
-
-it('triggers UnprocessedRecordWatcher', async () => {
-  await waitFor(() => {
-    expect(handleNextUnprocessedRecordFn).toHaveBeenCalledTimes(2);
   });
 });

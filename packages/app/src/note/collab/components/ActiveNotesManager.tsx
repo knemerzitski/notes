@@ -1,11 +1,13 @@
-import { useFragment } from '@apollo/client';
+import { useQuery } from '@apollo/client';
 import { gql } from '../../../__generated__/gql';
 import SubmittedRecordMutation from './SubmittedRecordMutation';
 import ExternalChangesSubscription from './ExternalChangesSubscription';
+import { Fragment } from 'react/jsx-runtime';
 
-const FRAGMENT = gql(`
-  fragment ActiveNotesManager on AllNotes {
-    active {
+const QUERY = gql(`
+  query ActiveNotesManager {
+    allActiveNotes {
+      id
       contentId
       isOwner
       textFields {
@@ -19,49 +21,38 @@ const FRAGMENT = gql(`
 `);
 
 export default function ActiveNotesManager() {
-  const allNotes = useFragment({
-    from: {
-      __typename: 'AllNotes',
-    },
-    fragment: FRAGMENT,
+  const { data } = useQuery(QUERY, {
+    fetchPolicy: 'cache-only',
   });
 
-  if (!allNotes.complete) return null;
+  if (!data) return null;
 
-  return (
-    <>
-      <ExternalChangesSubscription />
+  const activeNotes = data.allActiveNotes;
 
-      {allNotes.data.active.map((activeNote) => {
-        const noteContentId = activeNote.contentId;
+  return activeNotes.map((activeNote) => {
+    const noteContentId = activeNote.contentId;
 
-        return (
-          <>
-            {!activeNote.isOwner && (
-              <ExternalChangesSubscription
-                key={noteContentId}
+    return (
+      <Fragment key={noteContentId}>
+        {!activeNote.isOwner && (
+          <ExternalChangesSubscription noteContentId={noteContentId} />
+        )}
+
+        {activeNote.textFields.map((textField) => {
+          const fieldName = textField.key;
+          const collabTextId = String(textField.value.id);
+
+          return (
+            <Fragment key={collabTextId}>
+              <SubmittedRecordMutation
                 noteContentId={noteContentId}
+                noteField={fieldName}
+                collabTextId={collabTextId}
               />
-            )}
-
-            {activeNote.textFields.map((textField) => {
-              const fieldName = textField.key;
-              const collabTextId = String(textField.value.id);
-
-              return (
-                <>
-                  <SubmittedRecordMutation
-                    key={collabTextId}
-                    noteContentId={noteContentId}
-                    noteField={fieldName}
-                    collabTextId={collabTextId}
-                  />
-                </>
-              );
-            })}
-          </>
-        );
-      })}
-    </>
-  );
+            </Fragment>
+          );
+        })}
+      </Fragment>
+    );
+  });
 }
