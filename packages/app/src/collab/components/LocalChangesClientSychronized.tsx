@@ -1,7 +1,7 @@
-import { useUpdateClientSyncStatus } from '../../context/ClientSyncStatusProvider';
 import { gql } from '../../__generated__/gql';
 import { useApolloClient } from '@apollo/client';
 import { useEffect } from 'react';
+import useUpdateClientSynchronization from '../../local-state/base/hooks/useUpdateClientSynchronization';
 
 const FRAGMENT = gql(`
   fragment LocalChangesClientSychronized on CollabText {
@@ -22,11 +22,17 @@ interface LocalChangesClientSychronizedProps {
 export default function LocalChangesClientSychronized({
   collabTextId,
 }: LocalChangesClientSychronizedProps) {
-  const updateClientSynchronized = useUpdateClientSyncStatus();
+  const updateClientSynchronization = useUpdateClientSynchronization();
 
   const apolloClient = useApolloClient();
 
   useEffect(() => {
+    const syncId =
+      apolloClient.cache.identify({
+        id: collabTextId,
+        __typename: 'CollabText',
+      }) ?? `CollabText:${collabTextId}`;
+
     const subscription = apolloClient
       .watchFragment({
         from: {
@@ -40,8 +46,8 @@ export default function LocalChangesClientSychronized({
           const collabText = value.data;
 
           // Synchronized if have no local and submitted changes
-          updateClientSynchronized(
-            collabTextId,
+          updateClientSynchronization(
+            syncId,
             collabText.localChanges == null && collabText.submittedRecord == null
           );
         },
@@ -50,7 +56,7 @@ export default function LocalChangesClientSychronized({
     return () => {
       subscription.unsubscribe();
     };
-  }, [apolloClient, collabTextId, updateClientSynchronized]);
+  }, [apolloClient, collabTextId, updateClientSynchronization]);
 
   return null;
 }

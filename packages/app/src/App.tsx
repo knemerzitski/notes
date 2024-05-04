@@ -11,12 +11,12 @@ import ApolloClientSynchronized from './apollo/components/ApolloClientSynchroniz
 import { AddFetchResultErrorHandlerProvider } from './apollo/hooks/useAddFetchResultErrorHandler';
 import { StatsLinkProvider } from './apollo/hooks/useStatsLink';
 import SnackbarAlertProvider from './components/feedback/SnackbarAlertProvider';
-import ClientSyncStatusProvider from './context/ClientSyncStatusProvider';
 import RouterProvider from './router/RouterProvider';
 import GoogleAuthProvider from './session/auth/google/GoogleAuthProvider';
 import themeOptions from './themeOptions';
 import ActiveNotesManager from './note/collab/components/ActiveNotesManager';
 import ActiveCollabTextsManager from './collab/components/ActiveCollabTextsManager';
+import ExternalChangesSubscription from './note/collab/components/ExternalChangesSubscription';
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -58,28 +58,27 @@ export default function App() {
 
   return (
     <ExtendedApolloClientContext.Provider value={apolloClient}>
-      <ClientSyncStatusProvider>
-        <ApolloProvider client={apolloClient.client}>
-          <StatsLinkProvider statsLink={apolloClient.statsLink}>
-            <AddFetchResultErrorHandlerProvider errorLink={apolloClient.errorLink}>
-              <ApolloClientSynchronized />
-              <ThemeProvider theme={theme}>
-                <SnackbarAlertProvider>
-                  <CssBaseline />
-                  <GlobalStyles />
-                  <ApolloClientErrorsSnackbarAlert />
-                  <GoogleAuthProvider clientId={CLIENT_ID}>
-                    {/* TODO everything that can be, move into router */}
-                    <ActiveNotesManager />
-                    <ActiveCollabTextsManager />
-                    <RouterProvider />
-                  </GoogleAuthProvider>
-                </SnackbarAlertProvider>
-              </ThemeProvider>
-            </AddFetchResultErrorHandlerProvider>
-          </StatsLinkProvider>
-        </ApolloProvider>
-      </ClientSyncStatusProvider>
+      <ApolloProvider client={apolloClient.client}>
+        <StatsLinkProvider statsLink={apolloClient.statsLink}>
+          <AddFetchResultErrorHandlerProvider errorLink={apolloClient.errorLink}>
+            <ApolloClientSynchronized />
+            <ThemeProvider theme={theme}>
+              <SnackbarAlertProvider>
+                <CssBaseline />
+                <GlobalStyles />
+                <ApolloClientErrorsSnackbarAlert />
+                <GoogleAuthProvider clientId={CLIENT_ID}>
+                  {/* TODO everything that can be, move into router */}
+                  <ExternalChangesSubscription />
+                  <ActiveNotesManager />
+                  <ActiveCollabTextsManager />
+                  <RouterProvider />
+                </GoogleAuthProvider>
+              </SnackbarAlertProvider>
+            </ThemeProvider>
+          </AddFetchResultErrorHandlerProvider>
+        </StatsLinkProvider>
+      </ApolloProvider>
     </ExtendedApolloClientContext.Provider>
   );
 }

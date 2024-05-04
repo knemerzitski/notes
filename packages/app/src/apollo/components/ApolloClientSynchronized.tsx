@@ -1,24 +1,24 @@
 import { OperationTypeNode } from 'graphql';
 import { useEffect } from 'react';
 
-import { useUpdateClientSyncStatus } from '../../context/ClientSyncStatusProvider';
 import useStatsLink from '../hooks/useStatsLink';
+import useUpdateClientSynchronization from '../../local-state/base/hooks/useUpdateClientSynchronization';
 
 export default function ApolloClientSynchronized() {
   const statsLink = useStatsLink();
-  const updateClientSynchronized = useUpdateClientSyncStatus();
+  const updateClientSynchronization = useUpdateClientSynchronization();
 
   // Subscribe to apollo client operation count changes and update client sync accordingly
   useEffect(() => {
     return statsLink.subscribe(({ type }) => {
       if (type === OperationTypeNode.QUERY || type === OperationTypeNode.MUTATION) {
-        updateClientSynchronized(
+        updateClientSynchronization(
           statsLink,
           statsLink.ongoing.query === 0 && statsLink.ongoing.mutation === 0
         );
       }
     });
-  }, [statsLink, updateClientSynchronized]);
+  }, [statsLink, updateClientSynchronization]);
 
   return null;
 }

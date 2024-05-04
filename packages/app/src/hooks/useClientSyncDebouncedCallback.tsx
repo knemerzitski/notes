@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { Options, useDebouncedCallback } from 'use-debounce';
-
-import { useUpdateClientSyncStatus } from '../context/ClientSyncStatusProvider';
+import useUpdateClientSynchronization from '../local-state/base/hooks/useUpdateClientSynchronization';
 
 const useClientSyncDebouncedCallback: typeof useDebouncedCallback = <
   T extends (...args: unknown[]) => ReturnType<T>,
@@ -10,11 +9,11 @@ const useClientSyncDebouncedCallback: typeof useDebouncedCallback = <
   wait?: number | undefined,
   options?: Options | undefined
 ) => {
-  const updateClientSynchronized = useUpdateClientSyncStatus();
+  const updateClientSynchronization = useUpdateClientSynchronization();
 
   const originalDebounce = useDebouncedCallback(
     () => {
-      updateClientSynchronized(originalDebounce, true);
+      updateClientSynchronization(originalDebounce, true);
       return func();
     },
     wait,
@@ -23,19 +22,19 @@ const useClientSyncDebouncedCallback: typeof useDebouncedCallback = <
 
   return useMemo(() => {
     const func: typeof originalDebounce = (...args) => {
-      updateClientSynchronized(originalDebounce, false);
+      updateClientSynchronization(originalDebounce, false);
       return originalDebounce(...args);
     };
 
     func.cancel = () => {
-      updateClientSynchronized(originalDebounce, true);
+      updateClientSynchronization(originalDebounce, true);
       originalDebounce.cancel();
     };
     func.isPending = originalDebounce.isPending;
     func.flush = originalDebounce.flush;
 
     return func;
-  }, [originalDebounce, updateClientSynchronized]);
+  }, [originalDebounce, updateClientSynchronization]);
 };
 
 export default useClientSyncDebouncedCallback;

@@ -25,7 +25,7 @@ interface CustomNonIndexRouteObject extends NonIndexRouteObject {
 
 type ExtendedRouteObject = CustomIndexRouteObject | CustomNonIndexRouteObject;
 
-/*ClientSyncStatusProvider PROVIDE: useIsClientSynchronized, useUpdateClientSyncStatus
+/*
 	StatsLinkProvider: PROVIDE useStatsLink
 		ApolloClientSynchronized USE: useUpdateClientSyncStatus, useStatsLink
 	

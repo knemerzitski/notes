@@ -8,6 +8,7 @@ import localSessionPolicies from '../session/state/policies';
 
 import logFieldRead from './utils/logFieldRead';
 import mergeArrayTypePolicies from './utils/mergeArrayTypePolicies';
+import localBasePolicies from '../local-state/base/policies';
 
 const LOG_READ = false;
 
@@ -18,6 +19,7 @@ const definedArrayTypePolicies: TypePolicies[] = [
   notePolicies,
   collabTextPolicies,
 
+  localBasePolicies,
   localPreferencesPolicies,
   localSessionPolicies,
   localNotePolicies,
