@@ -1,14 +1,11 @@
-import { FieldPolicy, Reference, TypePolicies, makeVar } from '@apollo/client';
-import {
-  CollabText,
-  CollabTextLocalHistory,
-  CollabTextLocalHistoryEntry,
-  CollabTextUnprocessedRecord,
-} from '../__generated__/graphql';
+import { FieldPolicy, TypePolicies } from '@apollo/client';
+
 import { Changeset } from '~collab/changeset/changeset';
 import { CollabClient } from '~collab/client/collab-client';
 
-const activeCollabTextsVar = makeVar<Reference[]>([]);
+import { CollabText, CollabTextUnprocessedRecord } from '../../__generated__/graphql';
+
+import { activeCollabTextsVar } from './reactive-vars';
 
 export const CollabText_id: FieldPolicy<CollabText['id'], CollabText['id']> = {
   merge(_existing, incoming, { toReference }) {
@@ -16,11 +13,15 @@ export const CollabText_id: FieldPolicy<CollabText['id'], CollabText['id']> = {
       id: incoming,
       __typename: 'CollabText',
     });
-    if (!collabTextRef) return incoming;
 
-    const activeCollabTexts = activeCollabTextsVar();
-    if (!activeCollabTexts.some((val) => val.__ref === collabTextRef.__ref)) {
-      activeCollabTextsVar([...activeCollabTexts, collabTextRef]);
+    if (collabTextRef) {
+      const activeCollabTexts = activeCollabTextsVar();
+      if (!(collabTextRef.__ref in activeCollabTexts)) {
+        activeCollabTextsVar({
+          ...activeCollabTexts,
+          [collabTextRef.__ref]: collabTextRef,
+        });
+      }
     }
 
     return incoming;
@@ -113,57 +114,12 @@ export const CollabText_history: FieldPolicy<
   },
 };
 
-export const CollabTextLocalHistory_tailText: FieldPolicy<
-  CollabTextLocalHistory['tailText'],
-  CollabTextLocalHistory['tailText']
-> = {
-  read(existing = { changeset: Changeset.EMPTY.serialize(), revision: -1 }) {
-    return existing;
-  },
-};
-
-export const CollabTextLocalHistory_serverIndex: FieldPolicy<
-  CollabTextLocalHistory['serverIndex'],
-  CollabTextLocalHistory['serverIndex']
-> = {
-  read(existing = -1) {
-    return existing;
-  },
-};
-
-export const CollabTextLocalHistory_submittedIndex: FieldPolicy<
-  CollabTextLocalHistory['submittedIndex'],
-  CollabTextLocalHistory['submittedIndex']
-> = {
-  read(existing = -1) {
-    return existing;
-  },
-};
-
-export const CollabTextLocalHistory_localIndex: FieldPolicy<
-  CollabTextLocalHistory['localIndex'],
-  CollabTextLocalHistory['localIndex']
-> = {
-  read(existing = -1) {
-    return existing;
-  },
-};
-
-export const CollabTextLocalHistory_entries: FieldPolicy<
-  CollabTextLocalHistory['entries'],
-  CollabTextLocalHistory['entries']
-> = {
-  read(existing = []) {
-    return existing as CollabTextLocalHistoryEntry[];
-  },
-};
-
 const collabTextPolicies: TypePolicies = {
   Query: {
     fields: {
       allActiveCollabTexts: {
         read() {
-          return activeCollabTextsVar();
+          return Object.values(activeCollabTextsVar());
         },
       },
     },
@@ -177,15 +133,6 @@ const collabTextPolicies: TypePolicies = {
       activeSelection: CollabText_activeSelection,
       unprocessedRecords: CollabText_unprocessedRecords,
       history: CollabText_history,
-    },
-  },
-  CollabTextLocalHistory: {
-    fields: {
-      tailText: CollabTextLocalHistory_tailText,
-      serverIndex: CollabTextLocalHistory_serverIndex,
-      submittedIndex: CollabTextLocalHistory_submittedIndex,
-      localIndex: CollabTextLocalHistory_localIndex,
-      entries: CollabTextLocalHistory_entries,
     },
   },
 };

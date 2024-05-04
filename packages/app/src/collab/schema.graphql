@@ -1,6 +1,6 @@
 extend type Query {
   "Active CollabTexts local changes are turned into submitted record, submitted changes acknowledged and external changes are handled."
-  allActiveCollabTexts: [Note!]!
+  allActiveCollabTexts: [CollabText!]!
 }
 
 type CollabTextSubmittedRecord {

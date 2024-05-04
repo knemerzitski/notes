@@ -1,5 +1,6 @@
 import { TypePolicies } from '@apollo/client';
 
+import collabTextPolicies from '../collab/state/policies';
 import localNotePolicies from '../local-state/note/policies';
 import localPreferencesPolicies from '../local-state/preferences/policies';
 import notePolicies from '../note/state/policies';
@@ -7,7 +8,6 @@ import localSessionPolicies from '../session/state/policies';
 
 import logFieldRead from './utils/logFieldRead';
 import mergeArrayTypePolicies from './utils/mergeArrayTypePolicies';
-import collabTextPolicies from '../collab/policies';
 
 const LOG_READ = false;
 
