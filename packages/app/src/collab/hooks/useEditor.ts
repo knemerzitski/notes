@@ -1,6 +1,7 @@
 import { gql } from '../../__generated__/gql';
 import { ApolloCache, useApolloClient } from '@apollo/client';
 import {
+  CollabTextSelectionRange,
   UseEditorReadFragment,
   UseEditorWriteFragment,
 } from '../../__generated__/graphql';
@@ -259,11 +260,15 @@ function updateCollabTextWithReadWriteFragment<TSerialized>(
   );
 }
 
+interface UseInsertTextOpions {
+  selection?: CollabTextSelectionRange;
+}
+
 export function useInsertText(collabTextId: string) {
   const apolloClient = useApolloClient();
 
   return useCallback(
-    (value: string) => {
+    (value: string, options?: UseInsertTextOpions) => {
       updateCollabTextWithReadWriteFragment(
         apolloClient.cache.identify({
           id: collabTextId,
@@ -277,7 +282,7 @@ export function useInsertText(collabTextId: string) {
             insertionAsChangesetOperation(
               value,
               collabText.viewText,
-              collabText.activeSelection
+              options?.selection ?? collabText.activeSelection
             )
           );
         }
@@ -287,11 +292,13 @@ export function useInsertText(collabTextId: string) {
   );
 }
 
+type UseDeleteTextOpions = UseInsertTextOpions;
+
 export function useDeleteText(collabTextId: string) {
   const apolloClient = useApolloClient();
 
   return useCallback(
-    (count = 1) => {
+    (count = 1, options?: UseDeleteTextOpions) => {
       updateCollabTextWithReadWriteFragment(
         apolloClient.cache.identify({
           id: collabTextId,
@@ -303,7 +310,7 @@ export function useDeleteText(collabTextId: string) {
           const operation = deletionAsChangesetOperation(
             count,
             collabText.viewText,
-            collabText.activeSelection
+            options?.selection ?? collabText.activeSelection
           );
           if (!operation) return;
           return pushChangesetOperation(collabText, operation);
