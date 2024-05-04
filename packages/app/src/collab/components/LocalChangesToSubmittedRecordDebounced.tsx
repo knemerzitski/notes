@@ -5,7 +5,7 @@ import SubmittedRecordWatcher, {
   SubmittedRecordWatcherProps,
 } from './watch/SubmittedRecordWatcher';
 import { useDebouncedCallback, Options } from 'use-debounce';
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { gql } from '../../__generated__/gql';
 import { useApolloClient } from '@apollo/client';
 import { nanoid } from 'nanoid';

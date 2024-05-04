@@ -2,7 +2,7 @@ import { TypePolicies } from '@apollo/client';
 
 import localNotePolicies from '../local-state/note/policies';
 import localPreferencesPolicies from '../local-state/preferences/policies';
-import notePolicies from '../note/policies';
+import notePolicies from '../note/state/policies';
 import localSessionPolicies from '../session/state/policies';
 
 import logFieldRead from './utils/logFieldRead';
