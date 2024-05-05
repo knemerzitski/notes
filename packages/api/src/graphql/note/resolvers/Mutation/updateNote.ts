@@ -23,6 +23,7 @@ import isEmptyDeep from '~utils/object/isEmptyDeep';
 import isDefined from '~utils/type-guards/isDefined';
 import recordInsertion, { RecordInsertionError } from '~collab/records/recordInsertion';
 import { NoteQuery } from '../../mongo-query-mapper/note';
+import { NoteMapper } from '../../schema.mappers';
 
 type DefinedAwaited<T> = NonNullable<Awaited<T>>;
 
@@ -182,6 +183,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
                 responseTextFieldsPayload.push({
                   key: fieldName,
                   value: {
+                    id: () => collabTextIdMapper.id(),
                     newRecord: new CollabTextRecordQueryMapper(
                       collabTextIdMapper,
                       !insertion.isExisting
@@ -263,6 +265,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
                   publishTextFieldsPayload.push({
                     key: fieldName,
                     value: {
+                      id: () => collabTextIdMapper.id(),
                       newRecord: new CollabTextRecordQueryMapper(collabTextIdMapper, {
                         queryDocument() {
                           return insertion.newRecord;
@@ -332,6 +335,26 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
       const haveNothingToPublish =
         publishTextFieldsPayload.length === 0 && isEmptyDeep(preferencesPayload);
 
+      const userNoteIdMapper: Pick<NoteMapper, 'id'> = {
+        id() {
+          return CollabTextQueryMapper.prototype.id.call<
+            {
+              query: MongoDocumentQuery<Pick<NoteQuery, '_id'>>;
+            },
+            [],
+            Promise<string | undefined>
+          >({
+            query: {
+              queryDocument() {
+                return {
+                  _id: userNoteId,
+                };
+              },
+            },
+          });
+        },
+      };
+
       const payloads: {
         response: UpdateNotePayload;
         publish: NoteUpdatedPayload | null;
@@ -339,6 +362,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
         response: {
           contentId: notePublicId,
           patch: {
+            id: () => userNoteIdMapper.id(),
             textFields: responseTextFieldsPayload,
             preferences: preferencesPayload,
           },
@@ -348,6 +372,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
           : {
               contentId: notePublicId,
               patch: {
+                id: () => userNoteIdMapper.id(),
                 textFields: publishTextFieldsPayload,
                 preferences: preferencesPayload,
               },

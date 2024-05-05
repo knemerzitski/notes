@@ -8,6 +8,7 @@ import {
 } from '../../collab/mongo-query-mapper/collab-text';
 import { NoteSchema } from '../../../mongodb/schema/note';
 import { UserNoteSchema } from '../../../mongodb/schema/user-note';
+import { ObjectId } from 'mongodb';
 
 export type NoteQuery<TCollabTextKey extends string = NoteTextField> = Omit<
   UserNoteSchema,
@@ -75,5 +76,9 @@ export class NoteQueryMapper implements NoteMapper {
         return (await this.query.queryDocument({ preferences: project }))?.preferences;
       },
     });
+  }
+
+  async ownerId(): Promise<ObjectId | undefined> {
+    return (await this.query.queryDocument({ note: { ownerId: 1 } }))?.note?.ownerId;
   }
 }

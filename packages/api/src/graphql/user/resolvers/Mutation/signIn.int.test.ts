@@ -176,7 +176,3 @@ describe('existing user user', () => {
     });
   });
 });
-
-// console.log(
-//   util.inspect(JSON.parse(JSON.stringify(contextValue.response)), false, null, true)
-// );

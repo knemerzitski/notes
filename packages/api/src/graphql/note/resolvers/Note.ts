@@ -1,4 +1,5 @@
 import type { NoteResolvers } from '../../../graphql/types.generated';
+import { assertAuthenticated } from '../../base/directives/auth';
 
 export const Note: NoteResolvers = {
   id: (parent) => {
@@ -15,5 +16,14 @@ export const Note: NoteResolvers = {
   },
   contentId: (parent) => {
     return parent.contentId();
+  },
+  isOwner: async (parent, _args, ctx) => {
+    const { auth } = ctx;
+    assertAuthenticated(auth);
+    
+    const owner = await parent.ownerId();
+    if (!owner) return false;
+
+    return owner.equals(auth.session.user._id);
   },
 };

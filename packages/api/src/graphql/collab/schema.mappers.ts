@@ -35,6 +35,12 @@ export interface CollabTextMapper {
   ): CollabTextRecordConnectionMapper;
 }
 
+export interface CollabTextPatchMapper {
+  id(): ResolverTypeWrapper<string>;
+  newRecord?: ResolversTypes['CollabTextRecord'];
+  isExistingRecord?: boolean;
+}
+
 export interface CollabTextRecordConnectionMapper {
   records(): CollabTextRecordMapper[];
   edges(): CollabTextRecordEdgeMapper[];

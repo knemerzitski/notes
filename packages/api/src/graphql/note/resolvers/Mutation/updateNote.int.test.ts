@@ -35,6 +35,7 @@ import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
 import { ObjectId } from 'mongodb';
 import { RevisionChangeset } from '~collab/records/record';
 import { CollabTextSchema } from '../../../../mongodb/schema/collab-text';
+import { GraphQLResolversContext } from '../../../context';
 
 const MUTATION = `#graphql
   mutation($input: UpdateNoteInput!){
@@ -867,9 +868,6 @@ describe('random records', () => {
   });
 });
 
-import util from 'util';
-import { GraphQLResolversContext } from '../../../context';
-
 describe('pre-determined records', () => {
   let mongoDBContext2: Awaited<ReturnType<typeof createMongoDBContext>>;
   let user: UserSchema;
@@ -921,16 +919,6 @@ describe('pre-determined records', () => {
     assert(response.body.kind === 'single');
     const result = response.body.singleResult;
     const data = result.data as { updateNote: UpdateNotePayload };
-    if (result.errors != null) {
-      console.log(
-        util.inspect(
-          JSON.parse(JSON.stringify(response.body.singleResult)),
-          false,
-          null,
-          true
-        )
-      );
-    }
     expect(result.errors).toBeUndefined();
 
     const entry = data.updateNote.patch?.textFields?.find(
