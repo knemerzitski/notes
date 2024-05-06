@@ -3,7 +3,7 @@ import mitt, { Emitter } from '~utils/mitt-unsub';
 import { Changeset } from '../changeset/changeset';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type Events = {
+export type CollabClientEvents = {
   viewChange: {
     /**
      * New view changeset that will replace current view.
@@ -37,7 +37,22 @@ export type Events = {
   submitChanges?: never;
   submittedChangesAcknowledged?: never;
   handledExternalChange: {
+    /**
+     * External change
+     */
     externalChange: Changeset;
+    /**
+     * Changeset that will be composed on view
+     */
+    viewComposable: Changeset;
+    /**
+     * State before the change
+     */
+    before: Pick<CollabClient, 'server' | 'submitted' | 'local' | 'view'>;
+    /**
+     * State after the change
+     */
+    after: Pick<CollabClient, 'server' | 'submitted' | 'local' | 'view'>;
   };
 };
 
@@ -48,11 +63,11 @@ export enum ChangeSource {
 
 interface CollabClientOptions {
   initialServerText?: Changeset;
-  eventBus?: Emitter<Events>;
+  eventBus?: Emitter<CollabClientEvents>;
 }
 
 export class CollabClient {
-  readonly eventBus: Emitter<Events>;
+  readonly eventBus: Emitter<CollabClientEvents>;
 
   private _server: Changeset;
   get server() {
@@ -111,7 +126,7 @@ export class CollabClient {
 
       this.eventBus.emit('viewChange', {
         newView,
-        change: newLocal,
+        change,
         source: ChangeSource.Local,
       });
 
@@ -120,7 +135,7 @@ export class CollabClient {
 
       this.eventBus.emit('viewChanged', {
         view: this._view,
-        change: newLocal,
+        change,
         source: ChangeSource.Local,
       });
     }
@@ -196,6 +211,18 @@ export class CollabClient {
       source: ChangeSource.External,
     });
 
+    const event = {
+      externalChange: external,
+      viewComposable,
+      before: this,
+      after: {
+        server: newServer,
+        submitted: newSubmitted,
+        local: newLocal,
+        view: newView,
+      },
+    };
+
     this._server = newServer;
     this._submitted = newSubmitted;
     this._local = newLocal;
@@ -207,8 +234,8 @@ export class CollabClient {
       source: ChangeSource.External,
     });
 
-    this.eventBus.emit('handledExternalChange', {
-      externalChange: external,
-    });
+    this.eventBus.emit('handledExternalChange', event);
+
+    return event;
   }
 }

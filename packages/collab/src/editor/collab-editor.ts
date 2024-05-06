@@ -2,20 +2,13 @@
 import mitt, { Emitter } from '~utils/mitt-unsub';
 
 import { Changeset } from '../changeset/changeset';
-import {
-  ChangeSource,
-  CollabClient,
-  Events as CollabClientEvents,
-} from '../client/collab-client';
+import { CollabClient, CollabClientEvents } from '../client/collab-client';
 
-import { ChangesetEditor } from './changeset-editor';
-import { LocalChangesetEditorHistory } from './local-changeset-editor-history';
 import {
-  SelectionDirection,
-  SelectionRange,
-  Events as SelectionRangeEvents,
-} from './selection-range';
-import { OrderedMessageBuffer } from '../records/ordered-message-buffer';
+  LocalChangesetEditorHistory,
+  LocalChangesetEditorHistoryEvents,
+} from './local-changeset-editor-history';
+import { OrderedMessageBuffer, ProcessingEvents } from '~utils/ordered-message-buffer';
 
 import { EditorRecordsHistoryRestore } from './editor-records-history-restore';
 import {
@@ -26,6 +19,27 @@ import {
 import { RevisionTailRecords } from '../records/revision-tail-records';
 import { nanoid } from 'nanoid';
 import { PartialBy } from '~utils/types';
+import {
+  deletionCountOperation,
+  insertionOperation,
+} from '../client/changeset-operations';
+import { SelectionRange } from '../client/selection-range';
+import { SubmittedRecord } from '../client/submitted-record';
+import { OrderedMessageBufferEvents } from '~utils/ordered-message-buffer';
+
+export type CollabEditorEvents = CollabClientEvents &
+  Omit<OrderedMessageBufferEvents<UnprocessedRecord>, 'processingMessages'> &
+  LocalChangesetEditorHistoryEvents &
+  EditorEvents;
+
+type EditorProcessingEvents = Omit<
+  ProcessingEvents<UnprocessedRecord>,
+  'messagesProcessed'
+> & {
+  messagesProcessed: {
+    hadExternalChanges: boolean;
+  };
+} & Pick<CollabClientEvents, 'handledExternalChange'>;
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type EditorEvents = {
@@ -39,24 +53,27 @@ type EditorEvents = {
      */
     changeset: Changeset;
   };
+  processingMessages: {
+    eventBus: Emitter<EditorProcessingEvents>;
+  };
 };
-
-export type Events = Pick<CollabClientEvents, 'viewChange' | 'viewChanged'> &
-  Pick<SelectionRangeEvents, 'selectionChanged'> &
-  EditorEvents;
 
 type LocalRecord = Omit<ServerRevisionRecord, 'userGeneratedId' | 'creatorUserId'>;
 type ExternalRecord = PartialBy<
   Omit<ServerRevisionRecord, 'userGeneratedId'>,
   'beforeSelection' | 'afterSelection' | 'creatorUserId'
 >;
-export type EditorRevisionRecord = LocalRecord | ExternalRecord;
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type RecordsBufferMessages = {
-  submittedChangesAcknowledged: EditorRevisionRecord;
-  externalChange: EditorRevisionRecord;
-};
+type EditorRevisionRecord = LocalRecord | ExternalRecord;
+
+export enum UnprocessedRecordType {
+  SubmittedAcknowleged,
+  ExternalChange,
+}
+
+export type UnprocessedRecord =
+  | { type: UnprocessedRecordType.SubmittedAcknowleged; record: EditorRevisionRecord }
+  | { type: UnprocessedRecordType.ExternalChange; record: EditorRevisionRecord };
 
 export interface CollabEditorOptions {
   initialText?:
@@ -67,59 +84,36 @@ export interface CollabEditorOptions {
       };
   userId?: string;
   caretPosition?: number;
-  eventBus?: Emitter<Events>;
+  eventBus?: Emitter<CollabEditorEvents>;
   generateSubmitId?: () => string;
+  client?: CollabClient;
+  history?: LocalChangesetEditorHistory;
 }
 
 export class CollabEditor {
   readonly userId?: string;
 
-  private selection: SelectionRange;
-  private changesetEditor: ChangesetEditor;
   private client: CollabClient;
-  private recordsBuffer: OrderedMessageBuffer<RecordsBufferMessages>;
+  private recordsBuffer: OrderedMessageBuffer<UnprocessedRecord>;
   private serverRecords: RevisionTailRecords<EditorRevisionRecord>;
   private history: LocalChangesetEditorHistory;
   private historyRestorer: EditorRecordsHistoryRestore<EditorRevisionRecord>;
-  private lastSubmittedRecord: SubmittedRevisionRecord | null = null;
+  private submittedRecord: SubmittedRecord | null = null;
 
   private generateSubmitId: () => string;
 
-  readonly eventBus: Emitter<Events>;
+  readonly eventBus: Emitter<CollabEditorEvents>;
 
-  private _value = '';
-  get value() {
-    return this._value;
-  }
-
-  get selectionDirection() {
-    return this.selection.direction;
-  }
-  set selectionDirection(direction: SelectionDirection) {
-    this.selection.direction = direction;
+  private _viewText = '';
+  get viewText() {
+    return this._viewText;
   }
 
-  get selectionStart() {
-    return this.selection.start;
-  }
-  set selectionStart(start: number) {
-    this.selection.start = start;
-  }
-
-  get selectionEnd() {
-    return this.selection.end;
-  }
-  set selectionEnd(end: number) {
-    this.selection.end = end;
-  }
-
-  /**
-   * Local changes apply to this server revision.
-   */
-  get localRevision() {
+  get revision() {
     return this.recordsBuffer.currentVersion;
   }
 
+  // TODO rename to something more clear
   get textServer() {
     return this.client.server;
   }
@@ -177,68 +171,49 @@ export class CollabEditor {
       headText = this.serverRecords.getHeadText();
     }
 
-    this._value = headText.changeset.strips.joinInsertions();
+    this._viewText = headText.changeset.strips.joinInsertions();
     this.userId = options?.userId;
 
     this.generateSubmitId = options?.generateSubmitId ?? (() => nanoid(6));
 
-    // Range
-    this.selection = new SelectionRange({
-      getLength: () => {
-        return this._value.length;
-      },
-    });
-    if (options?.caretPosition) {
-      this.selection.setPosition(options.caretPosition);
-    }
-
-    // Changeset editor
-    this.changesetEditor = new ChangesetEditor({
-      getValue: () => {
-        return this._value;
-      },
-      selection: this.selection,
-    });
-
     // Local, submitted, server changesets
-    this.client = new CollabClient({
-      initialServerText: headText.changeset,
-    });
-    this.client.eventBus.on('viewChanged', ({ view, change, source }) => {
-      this._value = view.strips.joinInsertions();
-
-      // Position is set manually on local change, so update it only on external
-      if (source === ChangeSource.External) {
-        this.selection.setSelectionRange(
-          change.followIndex(this.selection.start),
-          change.followIndex(this.selection.end)
-        );
-      }
+    this.client =
+      options?.client ??
+      new CollabClient({
+        initialServerText: headText.changeset,
+      });
+    this.client.eventBus.on('viewChanged', ({ view }) => {
+      this._viewText = view.strips.joinInsertions();
     });
 
     // Revision buffering
     this.recordsBuffer = new OrderedMessageBuffer({
-      initialVersion: headText.revision,
+      version: headText.revision,
+      getVersion(message) {
+        return message.record.revision;
+      },
     });
-    this.recordsBuffer.messageBus.on('submittedChangesAcknowledged', (record) => {
-      this.lastSubmittedRecord = null;
-      this.serverRecords.update([record]);
-      this.client.submittedChangesAcknowledged();
-    });
-    this.recordsBuffer.messageBus.on('externalChange', (record) => {
-      this.serverRecords.update([record]);
-      this.client.handleExternalChange(record.changeset);
-    });
+    this.recordsBuffer.eventBus.on('nextMessage', (message) => {
+      this.serverRecords.update([message.record]);
 
+      if (message.type == UnprocessedRecordType.SubmittedAcknowleged) {
+        this.submittedRecord = null;
+        this.client.submittedChangesAcknowledged();
+      } else {
+        // message.type === UnprocessedRecordType.ExternalChange
+        const event = this.client.handleExternalChange(message.record.changeset);
+        this.submittedRecord?.processExternalChangeEvent(event);
+      }
+    });
     // Store known records from server
     this.serverRecords = new RevisionTailRecords();
 
     // History for selection and local changeset
-    this.history = new LocalChangesetEditorHistory({
-      selection: this.selection,
-      editorBus: this.changesetEditor.eventBus,
-      client: this.client,
-    });
+    this.history =
+      options?.history ??
+      new LocalChangesetEditorHistory({
+        client: this.client,
+      });
 
     // Restores history from server records
     this.historyRestorer = new EditorRecordsHistoryRestore({
@@ -250,21 +225,52 @@ export class CollabEditor {
     // Link events
     this.eventBus = options?.eventBus ?? mitt();
 
-    this.selection.eventBus.on('selectionChanged', (e) => {
-      this.eventBus.emit('selectionChanged', e);
+    this.client.eventBus.on('*', (type, e) => {
+      this.eventBus.emit(type, e);
     });
 
-    this.client.eventBus.on('viewChange', (e) => {
-      this.eventBus.emit('viewChange', e);
+    this.history.eventBus.on('*', (type, e) => {
+      this.eventBus.emit(type, e);
     });
 
-    this.client.eventBus.on('viewChanged', (e) => {
-      this.eventBus.emit('viewChanged', e);
+    this.recordsBuffer.eventBus.on('nextMessage', (e) => {
+      this.eventBus.emit('nextMessage', e);
+    });
+
+    const processingBus = mitt<EditorProcessingEvents>();
+    this.recordsBuffer.eventBus.on('processingMessages', (e) => {
+      e.eventBus.on('nextMessage', (e) => {
+        processingBus.emit('nextMessage', e);
+      });
+
+      let hadExternalChanges = false;
+      const unsubHandledExternalChange = this.client.eventBus.on(
+        'handledExternalChange',
+        (e) => {
+          processingBus.emit('handledExternalChange', e);
+          hadExternalChanges = true;
+        }
+      );
+
+      e.eventBus.on('messagesProcessed', () => {
+        try {
+          processingBus.emit('messagesProcessed', {
+            hadExternalChanges,
+          });
+        } finally {
+          processingBus.all.clear();
+          unsubHandledExternalChange();
+        }
+      });
+
+      this.eventBus.emit('processingMessages', {
+        eventBus: processingBus,
+      });
     });
 
     this.recordsBuffer.eventBus.on('messagesProcessed', () => {
       this.eventBus.emit('revisionChanged', {
-        revision: this.localRevision,
+        revision: this.revision,
         changeset: this.client.server,
       });
     });
@@ -293,40 +299,26 @@ export class CollabEditor {
       const lastEntry = this.history.at(-1);
       if (!lastEntry) return;
 
-      const beforeSelection: SubmittedRevisionRecord['beforeSelection'] = {
-        start: 0,
-      };
-      const afterSelection: SubmittedRevisionRecord['afterSelection'] = {
-        start: 0,
-      };
-
-      beforeSelection.start = lastEntry.undo.selectionStart;
-      if (lastEntry.undo.selectionStart !== lastEntry.undo.selectionEnd) {
-        beforeSelection.end = lastEntry.undo.selectionEnd;
-      }
-
-      afterSelection.start = lastEntry.execute.selectionStart;
-      if (lastEntry.execute.selectionStart !== lastEntry.execute.selectionEnd) {
-        afterSelection.end = lastEntry.execute.selectionEnd;
-      }
-
-      this.lastSubmittedRecord = {
+      this.submittedRecord = new SubmittedRecord({
         userGeneratedId: this.generateSubmitId(),
-        revision: this.localRevision,
+        revision: this.revision,
         changeset: this.client.submitted,
-        beforeSelection,
-        afterSelection,
-      };
+        beforeSelection: lastEntry.undo.selection,
+        afterSelection: lastEntry.execute.selection,
+      });
     }
 
-    return this.lastSubmittedRecord;
+    return this.submittedRecord;
   }
 
   /**
    * Acknowledge submitted changes.
    */
   submittedChangesAcknowledged(record: EditorRevisionRecord) {
-    this.recordsBuffer.add('submittedChangesAcknowledged', record.revision, record);
+    this.recordsBuffer.add({
+      type: UnprocessedRecordType.SubmittedAcknowleged,
+      record: record,
+    });
   }
 
   /**
@@ -334,7 +326,10 @@ export class CollabEditor {
    * collab editing.
    */
   handleExternalChange(record: EditorRevisionRecord) {
-    this.recordsBuffer.add('externalChange', record.revision, record);
+    this.recordsBuffer.add({
+      type: UnprocessedRecordType.ExternalChange,
+      record: record,
+    });
   }
 
   addServerRecords(
@@ -360,29 +355,20 @@ export class CollabEditor {
    * Insert text after caret position.
    * Anything selected is deleted.
    */
-  insertText(insertText: string) {
-    this.changesetEditor.insert(insertText);
+  insertText(insertText: string, selection: SelectionRange) {
+    this.history.pushChangesetOperation(
+      insertionOperation(insertText, this.viewText, selection)
+    );
   }
 
   /**
    * Delete based on current caret position towards left (Same as pressing backspace on a keyboard).
    * Anything selected is deleted and counts as 1 {@link count}.
    */
-  deleteTextCount(count = 1) {
-    this.changesetEditor.deleteCount(count);
-  }
-
-  setSelectionRange(start: number, end: number, direction?: SelectionDirection) {
-    this.selection.setSelectionRange(start, end, direction);
-  }
-
-  // TODO allow by negative
-  setCaretPosition(pos: number) {
-    this.selection.setPosition(pos);
-  }
-
-  selectAll() {
-    this.selection.selectAll();
+  deleteTextCount(count = 1, selection: SelectionRange) {
+    const op = deletionCountOperation(count, this.viewText, selection);
+    if (!op) return;
+    this.history.pushChangesetOperation(op);
   }
 
   undo() {

@@ -83,12 +83,10 @@ export class EditorRecordsHistoryRestore<TRecord extends Record> {
           return {
             execute: {
               changeset: record.changeset,
-              selectionStart: record.afterSelection.start,
-              selectionEnd: record.afterSelection.end,
+              selection: record.afterSelection,
             },
             undo: {
-              selectionStart: record.beforeSelection.start,
-              selectionEnd: record.beforeSelection.end,
+              selection: record.beforeSelection,
             },
           };
         }

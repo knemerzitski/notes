@@ -1,5 +1,6 @@
 import { Changeset } from '../changeset/changeset';
-import { RevisionRecord, SelectionRange, SubmittedRevisionRecord } from './record';
+import { SelectionRange } from '../client/selection-range';
+import { RevisionRecord, SubmittedRevisionRecord } from './record';
 import {
   RevisionRecords,
   RevisionRecordsOptions,
@@ -63,17 +64,16 @@ export function followRecordSelection<
   TInsertRecord extends FollowSelectionRecord,
 >(event: RevisionRecordFilterEvents<TRecord, TInsertRecord>['followRecord']) {
   const { newRecord } = event;
-  followSelection(newRecord.changeset, newRecord.beforeSelection);
-  followSelection(newRecord.changeset, newRecord.afterSelection);
+  newRecord.beforeSelection = SelectionRange.followChangeset(
+    newRecord.beforeSelection,
+    newRecord.changeset
+  );
+  newRecord.afterSelection = SelectionRange.followChangeset(
+    newRecord.afterSelection,
+    newRecord.changeset
+  );
 
   return event;
-}
-
-function followSelection(changeset: Changeset, selection: SelectionRange) {
-  selection.start = changeset.followIndex(selection.start);
-  if (selection.end != null) {
-    selection.end = changeset.followIndex(selection.end);
-  }
 }
 
 export function addEditorFilters<

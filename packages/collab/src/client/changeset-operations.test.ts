@@ -1,42 +1,12 @@
-import mitt from '~utils/mitt-unsub';
-import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
+import { assert, describe, expect, it } from 'vitest';
 
 import { Changeset } from '../changeset/changeset';
 
-import { ChangesetEditor, Events } from './changeset-editor';
-import { SelectionRange } from './selection-range';
+import { deletionCountOperation, insertionOperation } from './changeset-operations';
 
 const cs = Changeset.parseValue.bind(Changeset);
 
-let selection: SelectionRange;
-let textValue: string;
-let editor: ChangesetEditor;
-
-const changeHandler = vi.fn<[Events['change']], void>();
-const eventBus = mitt<Events>();
-eventBus.on('change', changeHandler);
-
-beforeEach(() => {
-  textValue = '';
-
-  selection = new SelectionRange({
-    getLength() {
-      return textValue.length;
-    },
-  });
-
-  editor = new ChangesetEditor({
-    getValue() {
-      return textValue;
-    },
-    selection,
-    eventBus,
-  });
-
-  changeHandler.mockClear();
-});
-
-describe('insert', () => {
+describe('insertionOperation', () => {
   it.each([
     {
       desc: 'inserts to empty value',
@@ -107,37 +77,31 @@ describe('insert', () => {
       expectedInverseChangeset,
       expectedSelectionPos,
     }) => {
-      textValue = initialText;
-
-      if (range) {
-        selection.setSelectionRange(range.start, range.end);
-      }
-      editor.insert(insertText);
-
-      const onChangeArg = changeHandler.mock.calls[0]?.[0];
-      assert(onChangeArg !== undefined);
-
-      expect(onChangeArg.changeset.toString()).toStrictEqual(
-        cs(expectedChangeset).toString()
+      const { changeset, inverseChangeset, selection } = insertionOperation(
+        insertText,
+        initialText,
+        range ?? { start: 0, end: 0 }
       );
-      expect(onChangeArg.inverseChangeset.toString()).toStrictEqual(
+
+      expect(changeset.toString()).toStrictEqual(cs(expectedChangeset).toString());
+      expect(inverseChangeset.toString()).toStrictEqual(
         cs(expectedInverseChangeset).toString()
       );
-      expect(onChangeArg.selectionPos).toStrictEqual(expectedSelectionPos);
+      expect(selection.start).toStrictEqual(expectedSelectionPos);
 
       // Validate correctness of inverse changeset
-      const valueChangeset = cs([textValue]);
+      const valueChangeset = cs([initialText]);
       expect(
         valueChangeset
-          .compose(onChangeArg.changeset)
-          .compose(onChangeArg.inverseChangeset)
+          .compose(changeset)
+          .compose(inverseChangeset)
           .strips.joinInsertions()
-      ).toStrictEqual(textValue);
+      ).toStrictEqual(initialText);
     }
   );
 });
 
-describe('delete', () => {
+describe('deletionCountOperation', () => {
   it.each([
     {
       desc: 'deletes text in the middle',
@@ -206,30 +170,24 @@ describe('delete', () => {
       expectedInverseChangeset,
       expectedSelectionPos,
     }) => {
-      textValue = initialText;
+      const delOp = deletionCountOperation(deleteCount, initialText, range);
+      assert(delOp != null);
+      const { changeset, inverseChangeset, selection } = delOp;
 
-      selection.setSelectionRange(range.start, range.end);
-      editor.deleteCount(deleteCount);
-
-      const onChangeArg = changeHandler.mock.calls[0]?.[0];
-      assert(onChangeArg !== undefined);
-
-      expect(onChangeArg.changeset.toString()).toStrictEqual(
-        cs(expectedChangeset).toString()
-      );
-      expect(onChangeArg.inverseChangeset.toString()).toStrictEqual(
+      expect(changeset.toString()).toStrictEqual(cs(expectedChangeset).toString());
+      expect(inverseChangeset.toString()).toStrictEqual(
         cs(expectedInverseChangeset).toString()
       );
-      expect(onChangeArg.selectionPos).toStrictEqual(expectedSelectionPos);
+      expect(selection.start).toStrictEqual(expectedSelectionPos);
 
       // Validate correctness of inverse changeset
-      const valueChangeset = cs([textValue]);
+      const valueChangeset = cs([initialText]);
       expect(
         valueChangeset
-          .compose(onChangeArg.changeset)
-          .compose(onChangeArg.inverseChangeset)
+          .compose(changeset)
+          .compose(inverseChangeset)
           .strips.joinInsertions()
-      ).toStrictEqual(textValue);
+      ).toStrictEqual(initialText);
     }
   );
 });

@@ -16,10 +16,16 @@ function createEntry(changeset: unknown, isTail?: boolean): AnyEntry {
     return {
       execute: {
         changeset: Changeset.parseValue(changeset),
-        selectionStart: 0,
+        selection: {
+          start: 0,
+          end: 0,
+        },
       },
       undo: {
-        selectionStart: 0,
+        selection: {
+          start: 0,
+          end: 0,
+        },
       },
     };
   }

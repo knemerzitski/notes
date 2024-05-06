@@ -11,13 +11,11 @@ function historyEntriesInfo(entries: Readonly<Entry[]>) {
   return entries.map((e) => ({
     execute: {
       changeset: e.execute.changeset.toString(),
-      selectionStart: e.execute.selectionStart,
-      selectionEnd: e.execute.selectionEnd,
+      selection: e.execute.selection,
     },
     undo: {
       changeset: e.undo.changeset.toString(),
-      selectionStart: e.undo.selectionStart,
-      selectionEnd: e.undo.selectionEnd,
+      selection: e.undo.selection,
     },
   }));
 }
@@ -28,40 +26,33 @@ describe('persist history in revision records', () => {
   beforeEach(() => {
     const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>();
     addEditorFilters(revisionTailRecords);
-    helper = createServerClientsHelper(revisionTailRecords, {
-      A: new CollabEditor({
-        userId: 'A',
-      }),
-      B: new CollabEditor({
-        userId: 'B',
-      }),
-    });
+    helper = createServerClientsHelper(revisionTailRecords, ['A', 'B']);
   });
 
   it('restores history from server records containing two users', () => {
     const { server, client } = helper;
 
-    client.A.instance.insertText('Hi from A.');
+    client.A.insertText('Hi from A.');
     client.A.submitChangesInstant();
-    client.B.instance.insertText('Hi, im B.');
+    client.B.insertText('Hi, im B.');
     client.B.submitChangesInstant();
-    client.A.instance.setCaretPosition(-1);
-    client.A.instance.insertText('[A_END]');
+    client.A.setCaretPosition(-1);
+    client.A.insertText('[A_END]');
     client.A.submitChangesInstant();
-    client.A.instance.setCaretPosition(0);
-    client.A.instance.insertText('[A_START]');
+    client.A.setCaretPosition(0);
+    client.A.insertText('[A_START]');
     client.A.submitChangesInstant();
-    client.B.instance.setCaretPosition(0);
-    client.B.instance.insertText('[Bstart]');
+    client.B.setCaretPosition(0);
+    client.B.insertText('[Bstart]');
     client.B.submitChangesInstant();
-    client.B.instance.setCaretPosition(17);
-    client.B.instance.deleteTextCount(9);
+    client.B.setCaretPosition(17);
+    client.B.deleteTextCount(9);
     client.B.submitChangesInstant();
-    client.B.instance.setCaretPosition(27);
-    client.B.instance.insertText('[B_almost_end]');
+    client.B.setCaretPosition(27);
+    client.B.insertText('[B_almost_end]');
     client.B.submitChangesInstant();
-    client.A.instance.setCaretPosition(18);
-    client.A.instance.insertText('Between: ');
+    client.A.setCaretPosition(18);
+    client.A.insertText('Between: ');
     client.A.submitChangesInstant();
 
     const restoredEditorB = new CollabEditor({
@@ -82,18 +73,18 @@ describe('persist history in revision records', () => {
   it('restores history that includes complete deletion of an entry', () => {
     const { server, client } = helper;
 
-    client.B.instance.insertText('start typing in B');
+    client.B.insertText('start typing in B');
     client.B.submitChangesInstant();
-    client.B.instance.setCaretPosition(5);
-    client.B.instance.insertText(' next');
+    client.B.setCaretPosition(5);
+    client.B.insertText(' next');
     client.B.submitChangesInstant();
-    client.A.instance.setCaretPosition(0);
-    client.A.instance.insertText('[beginning by A]');
+    client.A.setCaretPosition(0);
+    client.A.insertText('[beginning by A]');
     client.A.submitChangesInstant();
-    client.B.instance.insertText('BB');
+    client.B.insertText('BB');
     client.B.submitChangesInstant();
-    client.A.instance.setCaretPosition(30);
-    client.A.instance.deleteTextCount(4);
+    client.A.setCaretPosition(30);
+    client.A.deleteTextCount(4);
     client.A.submitChangesInstant();
     const restoredEditorB = new CollabEditor({
       initialText: {

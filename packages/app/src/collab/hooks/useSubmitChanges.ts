@@ -92,11 +92,11 @@ export default function useSubmitChanges<
         changeset: Changeset.parseValue(newRecord.change.changeset),
         afterSelection: {
           start: newRecord.afterSelection.start,
-          end: newRecord.afterSelection.end ?? undefined,
+          end: newRecord.afterSelection.end ?? newRecord.afterSelection.start,
         },
         beforeSelection: {
           start: newRecord.beforeSelection.start,
-          end: newRecord.beforeSelection.end ?? undefined,
+          end: newRecord.beforeSelection.end ?? newRecord.beforeSelection.start,
         },
       });
     });

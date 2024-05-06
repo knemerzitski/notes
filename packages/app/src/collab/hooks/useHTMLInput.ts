@@ -1,18 +1,11 @@
 import { FormEventHandler, useCallback, useRef } from 'react';
+import { SelectionRange } from '~collab/client/selection-range';
 
 interface SelectionEvent {
   /**
-   * Selection start position before text insertion.
+   * Selection before text insertion/deletion.
    */
-  selectionStart: number;
-  /**
-   * Selection end position before text insertion.
-   */
-  selectionEnd: number;
-  /**
-   * Selection direction position before text insertion.
-   */
-  selectionDirection: HTMLInputElement['selectionDirection'];
+  beforeSelection: Readonly<SelectionRange>;
 }
 
 interface InsertEvent extends SelectionEvent {
@@ -37,12 +30,9 @@ export default function useHTMLInput({
   onUndo,
   onRedo,
 }: InputValueChangeProps) {
-  const selectionRef = useRef<
-    Pick<HTMLInputElement, 'selectionStart' | 'selectionEnd' | 'selectionDirection'>
-  >({
-    selectionStart: 0,
-    selectionEnd: 0,
-    selectionDirection: 'none',
+  const selectionRef = useRef<SelectionRange>({
+    start: 0,
+    end: 0,
   });
 
   const onInsertRef = useRef(onInsert);
@@ -65,10 +55,10 @@ export default function useHTMLInput({
       return;
     }
 
+    const start = e.target.selectionStart ?? 0;
     selectionRef.current = {
-      selectionStart: e.target.selectionStart,
-      selectionEnd: e.target.selectionEnd,
-      selectionDirection: e.target.selectionDirection,
+      start: start,
+      end: e.target.selectionEnd ?? start,
     };
   }, []);
 
@@ -83,26 +73,20 @@ export default function useHTMLInput({
 
     const type = e.nativeEvent.inputType;
 
-    const beforeStart = selectionRef.current.selectionStart ?? 0;
-    const beforeEnd = selectionRef.current.selectionEnd ?? 0;
-    const beforeDirection = selectionRef.current.selectionDirection;
+    const beforeSelection = selectionRef.current;
 
     if (type.match(/insert/i)) {
       e.preventDefault();
       const start = e.target.selectionStart ?? 0;
       const value = e.target.value;
       onInsertRef.current?.({
-        selectionStart: beforeStart,
-        selectionEnd: beforeEnd,
-        selectionDirection: beforeDirection,
-        insertText: value.substring(beforeStart, start),
+        beforeSelection,
+        insertText: value.substring(beforeSelection.start, start),
       });
     } else if (type.match(/delete/i)) {
       e.preventDefault();
       onDeleteRef.current?.({
-        selectionStart: beforeStart,
-        selectionEnd: beforeEnd,
-        selectionDirection: beforeDirection,
+        beforeSelection,
       });
     } else if (type.match(/undo/i)) {
       e.preventDefault();

@@ -3,6 +3,7 @@ import { assert, describe, expect, it } from 'vitest';
 import { Changeset } from '../changeset/changeset';
 
 import { CollabEditor } from './collab-editor';
+import { newSelectionRange } from '../test/helpers/collab-editor-selection-range';
 
 const cs = (...values: unknown[]) => Changeset.parseValue(values);
 
@@ -17,23 +18,24 @@ describe('constructor', () => {
       },
     });
 
-    expect(editor.localRevision).toStrictEqual(4);
+    expect(editor.revision).toStrictEqual(4);
     expect(editor.textServer.toString()).toStrictEqual(cs('initial text').toString());
     expect(editor.textSubmitted.toString()).toStrictEqual(cs([0, 11]).toString());
     expect(editor.textLocal.toString()).toStrictEqual(cs([0, 11]).toString());
     expect(editor.textView.toString()).toStrictEqual(cs('initial text').toString());
-    expect(editor.value).toStrictEqual('initial text');
+    expect(editor.viewText).toStrictEqual('initial text');
   });
 });
 
 describe('haveSubmittedChanges', () => {
   it('has submitted changes if any text was inserted', () => {
     const editor = new CollabEditor();
+    const { selectionRange } = newSelectionRange(editor);
 
     expect(editor.haveSubmittedChanges()).toBeFalsy();
     editor.submitChanges();
     expect(editor.haveSubmittedChanges()).toBeFalsy();
-    editor.insertText('hi');
+    editor.insertText('hi', selectionRange);
     expect(editor.haveSubmittedChanges()).toBeFalsy();
     editor.submitChanges();
     expect(editor.haveSubmittedChanges()).toBeTruthy();
@@ -48,9 +50,10 @@ describe('submitChanges', () => {
 
   it('returns submitted changes with revision', () => {
     const editor = new CollabEditor();
+    const { selectionRange } = newSelectionRange(editor);
 
     const changeset = cs('first insert');
-    editor.insertText('first insert');
+    editor.insertText('first insert', selectionRange);
 
     const changes = editor.submitChanges();
 
@@ -63,14 +66,15 @@ describe('submitChanges', () => {
 describe('handleSubmittedChangesAcknowledged', () => {
   it('handles next revision correctly', () => {
     const editor = new CollabEditor();
-    editor.insertText('changes');
+    const { selectionRange } = newSelectionRange(editor);
+    editor.insertText('changes', selectionRange);
 
     const submitRecord = editor.submitChanges();
     assert(submitRecord != null);
 
     expect(editor.textServer).toStrictEqual(Changeset.EMPTY);
     expect(editor.textSubmitted).toStrictEqual(submitRecord.changeset);
-    expect(editor.localRevision).toStrictEqual(-1);
+    expect(editor.revision).toStrictEqual(-1);
 
     editor.submittedChangesAcknowledged({
       ...submitRecord,
@@ -79,7 +83,7 @@ describe('handleSubmittedChangesAcknowledged', () => {
 
     expect(editor.textServer).toStrictEqual(submitRecord.changeset);
     expect(editor.textSubmitted).toStrictEqual(submitRecord.changeset.getIdentity());
-    expect(editor.localRevision).toStrictEqual(0);
+    expect(editor.revision).toStrictEqual(0);
   });
 
   it('discards old revision', () => {
@@ -89,12 +93,12 @@ describe('handleSubmittedChangesAcknowledged', () => {
       revision: -6,
       changeset: Changeset.EMPTY,
     });
-    expect(editor.localRevision).toStrictEqual(-1);
+    expect(editor.revision).toStrictEqual(-1);
     editor.submittedChangesAcknowledged({
       revision: 0,
       changeset: Changeset.EMPTY,
     });
-    expect(editor.localRevision).toStrictEqual(0);
+    expect(editor.revision).toStrictEqual(0);
   });
 
   it('buffers new revision and processes it when missing revisions are received', () => {
@@ -104,35 +108,40 @@ describe('handleSubmittedChangesAcknowledged', () => {
       revision: 2,
       changeset: Changeset.EMPTY,
     });
-    expect(editor.localRevision).toStrictEqual(-1);
+    expect(editor.revision).toStrictEqual(-1);
     editor.submittedChangesAcknowledged({
       revision: 1,
       changeset: Changeset.EMPTY,
     });
-    expect(editor.localRevision).toStrictEqual(-1);
+    expect(editor.revision).toStrictEqual(-1);
     editor.submittedChangesAcknowledged({
       revision: 0,
       changeset: Changeset.EMPTY,
     });
-    expect(editor.localRevision).toStrictEqual(2);
+    expect(editor.revision).toStrictEqual(2);
   });
 });
 
 describe('handleExternalChange', () => {
   it('handles next external change correctly', () => {
     const editor = new CollabEditor();
+    const { selectionRange } = newSelectionRange(editor);
 
-    editor.insertText('server');
+    editor.insertText('server', selectionRange);
+    expect(selectionRange.start).toStrictEqual(6);
     const record = editor.submitChanges();
     assert(record != null);
     editor.submittedChangesAcknowledged({
       ...record,
       revision: 0,
     });
-    editor.insertText('; submitted');
+    editor.insertText('; submitted', selectionRange);
+    expect(selectionRange.start).toStrictEqual(17);
     editor.submitChanges();
-    editor.insertText('; local');
-    editor.insertText('; more');
+    editor.insertText('; local', selectionRange);
+    expect(selectionRange.start).toStrictEqual(24);
+    editor.insertText('; more', selectionRange);
+    expect(selectionRange.start).toStrictEqual(30);
 
     editor.handleExternalChange({
       revision: 1,
@@ -151,46 +160,48 @@ describe('handleExternalChange', () => {
     expect(editor.textView.toString()).toStrictEqual(
       cs('external before - server; submitted; local; more - external after').toString()
     );
-    expect(editor.localRevision).toStrictEqual(1);
-    expect(editor.value).toStrictEqual(
+    expect(editor.revision).toStrictEqual(1);
+    expect(editor.viewText).toStrictEqual(
       'external before - server; submitted; local; more - external after'
     );
-    expect(editor.selectionStart).toStrictEqual(48);
-    expect(editor.selectionEnd).toStrictEqual(48);
+    expect(selectionRange.start).toStrictEqual(48);
+    expect(selectionRange.end).toStrictEqual(48);
 
     editor.undo();
-    expect(editor.value).toStrictEqual(
+    expect(editor.viewText).toStrictEqual(
       'external before - server; submitted; local - external after'
     );
-    expect(editor.selectionStart).toStrictEqual(42);
-    expect(editor.selectionEnd).toStrictEqual(42);
+    expect(selectionRange.start).toStrictEqual(42);
+    expect(selectionRange.end).toStrictEqual(42);
 
     editor.undo();
-    expect(editor.value).toStrictEqual(
+    expect(editor.viewText).toStrictEqual(
       'external before - server; submitted - external after'
     );
-    expect(editor.selectionStart).toStrictEqual(35);
-    expect(editor.selectionEnd).toStrictEqual(35);
+    expect(selectionRange.start).toStrictEqual(35);
+    expect(selectionRange.end).toStrictEqual(35);
 
     editor.undo();
-    expect(editor.value).toStrictEqual('external before - server - external after');
-    expect(editor.selectionStart).toStrictEqual(24);
-    expect(editor.selectionEnd).toStrictEqual(24);
+    expect(editor.viewText).toStrictEqual('external before - server - external after');
+    expect(selectionRange.start).toStrictEqual(24);
+    expect(selectionRange.end).toStrictEqual(24);
   });
 });
 
 describe('insertText', () => {
   it('inserts "hello world"', () => {
     const editor = new CollabEditor();
-    editor.insertText('hello world');
-    expect(editor.value).toStrictEqual('hello world');
+    const { selectionRange } = newSelectionRange(editor);
+    editor.insertText('hello world', selectionRange);
+    expect(editor.viewText).toStrictEqual('hello world');
   });
 
   it('inserts between existing', () => {
     const editor = new CollabEditor();
-    editor.insertText('hello world');
-    editor.setCaretPosition(5);
-    editor.insertText(' between');
-    expect(editor.value).toStrictEqual('hello between world');
+    const { selectionRange } = newSelectionRange(editor);
+    editor.insertText('hello world', selectionRange);
+    selectionRange.set(5);
+    editor.insertText(' between', selectionRange);
+    expect(editor.viewText).toStrictEqual('hello between world');
   });
 });

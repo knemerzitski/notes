@@ -1,192 +1,108 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
-import { ChangeSource } from '~collab/client/collab-client';
-import { CollabEditor, Events as CollabEditorEvents } from '~collab/editor/collab-editor';
-import { SelectionDirection } from '~collab/editor/selection-range';
+import { CollabEditor, CollabEditorEvents } from '~collab/editor/collab-editor';
 
 import useHTMLInput from './useHTMLInput';
+import { SelectionRange } from '~collab/client/selection-range';
+import { Emitter } from '~utils/mitt-unsub';
 
-function asEditorDirection(direction: HTMLInputElement['selectionDirection']) {
-  if (direction === 'forward') {
-    return SelectionDirection.Forward;
-  } else if (direction === 'backward') {
-    return SelectionDirection.Backward;
+type PartialEditor = Readonly<
+  Pick<CollabEditor, 'viewText' | 'insertText' | 'deleteTextCount' | 'undo' | 'redo'> & {
+    eventBus: Emitter<
+      Pick<
+        CollabEditorEvents,
+        'viewChanged' | 'processingMessages' | 'appliedTypingOperation'
+      >
+    >;
   }
-  return SelectionDirection.None;
-}
-
-function asInputDirection(direction: SelectionDirection) {
-  if (direction === SelectionDirection.Forward) {
-    return 'forward';
-  } else if (direction === SelectionDirection.Backward) {
-    return 'backward';
-  }
-  return 'none';
-}
-
-type Editor = Readonly<
-  Pick<
-    CollabEditor,
-    | 'value'
-    | 'selectionStart'
-    | 'selectionEnd'
-    | 'selectionDirection'
-    | 'eventBus'
-    | 'setSelectionRange'
-    | 'insertText'
-    | 'deleteTextCount'
-    | 'undo'
-    | 'redo'
-  >
 >;
 
 export interface UseHTMLInputCollaborativeEditorProps {
-  editor: Editor;
+  editor: PartialEditor;
 }
 
+// TODO test with cypress
 export default function useHTMLInputCollaborativeEditor({
   editor,
 }: UseHTMLInputCollaborativeEditorProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [value, setValue] = useState(editor.value);
-  const [selection, setSelection] = useState<{
-    start: number;
-    end: number;
-    direction: HTMLInputElement['selectionDirection'];
-  }>({
-    start: editor.selectionStart,
-    end: editor.selectionEnd,
-    direction: asInputDirection(editor.selectionDirection),
+  const [value, setValue] = useState(editor.viewText);
+  const [selection, setSelection] = useState<SelectionRange>({
+    start: 0,
+    end: 0,
   });
 
-  const latestInputSelectionRef = useRef({
-    start: selection.start,
-    end: selection.end,
-  });
+  // Temporarily remember input selection if any useEffects runs multiple times between renders
+  const inputSelectionRef = useRef<SelectionRange | null>(null);
+  inputSelectionRef.current = null;
 
-  const syncEditorSelectionFromInput = useCallback(() => {
-    const input = inputRef.current;
-    // TODO test activeElement
-    if (
-      !input?.selectionStart ||
-      !input.selectionEnd /* || !input.contains(document.activeElement) */
-    )
-      return;
-
-    const startOffset = editor.selectionStart - latestInputSelectionRef.current.start;
-    const endOffset = editor.selectionEnd - latestInputSelectionRef.current.end;
-
-    editor.setSelectionRange(
-      input.selectionStart + startOffset,
-      input.selectionEnd + endOffset,
-      asEditorDirection(input.selectionDirection)
-    );
-  }, [editor]);
-
-  /**
-   * Update editor selection from input when external change is about to happen.
-   * Keeps selection in place after the change.
-   */
+  // Keep selection in place after external change
   useEffect(() => {
-    const handleViewChange: (e: CollabEditorEvents['viewChange']) => void = ({
-      source,
-    }) => {
-      if (source == ChangeSource.External) {
-        syncEditorSelectionFromInput();
+    return editor.eventBus.on('processingMessages', ({ eventBus: processingBus }) => {
+      const input = inputRef.current;
+      if (!input) return;
+
+      if (input.selectionStart == null) return;
+
+      let inputSelection: SelectionRange;
+      if (inputSelectionRef.current === null) {
+        inputSelectionRef.current = {
+          start: input.selectionStart,
+          end: input.selectionEnd ?? input.selectionStart,
+        };
       }
-    };
+      inputSelection = inputSelectionRef.current;
 
-    editor.eventBus.on('viewChange', handleViewChange);
-
-    return () => {
-      editor.eventBus.off('viewChange', handleViewChange);
-    };
-  }, [editor, syncEditorSelectionFromInput]);
-
-  /**
-   * Update value after view changed
-   */
-  useEffect(() => {
-    const handleViewChanged: (e: CollabEditorEvents['viewChanged']) => void = ({
-      view,
-    }) => {
-      setValue(view.joinInsertions());
-    };
-
-    editor.eventBus.on('viewChanged', handleViewChanged);
-
-    return () => {
-      editor.eventBus.off('viewChanged', handleViewChanged);
-    };
-  }, [editor]);
-
-  /**
-   * Update selection from editor
-   */
-  useEffect(() => {
-    const handleSelectionChanged: (e: CollabEditorEvents['selectionChanged']) => void = ({
-      start,
-      end,
-      direction,
-    }) => {
-      setSelection({
-        start,
-        end,
-        direction: asInputDirection(direction),
+      processingBus.on('handledExternalChange', ({ viewComposable }) => {
+        inputSelection = SelectionRange.followChangeset(inputSelection, viewComposable);
       });
-    };
 
-    editor.eventBus.on('selectionChanged', handleSelectionChanged);
+      processingBus.on('messagesProcessed', ({ hadExternalChanges }) => {
+        if (!hadExternalChanges) return;
 
-    return () => {
-      editor.eventBus.off('selectionChanged', handleSelectionChanged);
-    };
+        inputSelectionRef.current = inputSelection;
+        setSelection(inputSelection);
+      });
+    });
   }, [editor]);
 
-  /**
-   * Update input selection from state
-   */
+  // Update value after view changed
+  useEffect(() => {
+    return editor.eventBus.on('viewChanged', () => {
+      setValue(editor.viewText);
+    });
+  }, [editor]);
+
+  // User typed/deleted something or undo/redo
+  useEffect(() => {
+    return editor.eventBus.on('appliedTypingOperation', ({ operation }) => {
+      setSelection(operation.selection);
+    });
+  }, [editor]);
+
+  // Update input selection from state
   useLayoutEffect(() => {
-    if (inputRef.current == null) return;
-
     const input = inputRef.current;
-
-    input.setSelectionRange(
-      selection.start,
-      selection.end,
-      selection.direction ?? input.selectionDirection ?? undefined
-    );
-    latestInputSelectionRef.current = {
-      start: selection.start,
-      end: selection.end,
-    };
+    if (input == null) return;
+    input.setSelectionRange(selection.start, selection.end);
   }, [selection]);
 
+  // Adjust selection from input that's outdated relative to editor
+  function getAdjustedSelection(newSelection: SelectionRange) {
+    const offset =
+      inputSelectionRef.current != null
+        ? SelectionRange.subtract(inputSelectionRef.current, selection)
+        : SelectionRange.ZERO;
+    return SelectionRange.add(newSelection, offset);
+  }
+
   const { handleSelect, handleInput } = useHTMLInput({
-    onInsert({ selectionStart, selectionEnd, selectionDirection, insertText }) {
-      const startOffset = editor.selectionStart - selection.start;
-      const endOffset = editor.selectionEnd - selection.end;
-
-      editor.setSelectionRange(
-        selectionStart + startOffset,
-        selectionEnd + endOffset,
-        asEditorDirection(selectionDirection)
-      );
-
-      editor.insertText(insertText);
+    onInsert({ beforeSelection, insertText }) {
+      editor.insertText(insertText, getAdjustedSelection(beforeSelection));
     },
-    onDelete({ selectionStart, selectionEnd, selectionDirection }) {
-      const startOffset = editor.selectionStart - selection.start;
-      const endOffset = editor.selectionEnd - selection.end;
-
-      editor.setSelectionRange(
-        selectionStart + startOffset,
-        selectionEnd + endOffset,
-        asEditorDirection(selectionDirection)
-      );
-
-      editor.deleteTextCount(1);
+    onDelete({ beforeSelection }) {
+      editor.deleteTextCount(1, getAdjustedSelection(beforeSelection));
     },
     onUndo() {
       editor.undo();

@@ -1,28 +1,34 @@
-import { Emitter } from '~utils/mitt-unsub';
+import mitt, { Emitter } from '~utils/mitt-unsub';
 
 import { Changeset } from '../changeset/changeset';
 import { CollabClient } from '../client/collab-client';
 
-import { Events as ChangesetEditorEvents } from './changeset-editor';
-import { SelectionRange } from './selection-range';
 import { AnyEntry, Entry, Operation, TailTextHistory } from './tail-text-history';
+import { ChangesetOperation } from '../client/changeset-operations';
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type LocalChangesetEditorHistoryEvents = {
+  appliedTypingOperation: {
+    operation: Operation;
+  };
+};
 
 interface LocalChangesetEditorHistoryOptions {
-  selection: SelectionRange;
-  editorBus: Emitter<Pick<ChangesetEditorEvents, 'change'>>;
+  eventBus?: Emitter<LocalChangesetEditorHistoryEvents>;
   client: CollabClient;
   tailHistory?: TailTextHistory;
 }
 
 /**
- * Maintains a history of {@link CollabClient.local} changeset and {@link SelectionRange} state.
+ * Maintains a history of {@link CollabClient.local} changeset.
  * External changes alter history as if change has always been there.
  */
 export class LocalChangesetEditorHistory {
+  readonly eventBus: Emitter<LocalChangesetEditorHistoryEvents>;
+
   private history: TailTextHistory;
 
   private client: CollabClient;
-  private selection: SelectionRange;
 
   get entries() {
     return this.history.entries;
@@ -45,9 +51,10 @@ export class LocalChangesetEditorHistory {
   private unsubscribeFromEvents: () => void;
 
   constructor(options: LocalChangesetEditorHistoryOptions) {
-    const { selection, editorBus: editorBus, client } = options;
+    // TODO client outside?
+    const { client, eventBus } = options;
+    this.eventBus = eventBus ?? mitt();
     this.client = client;
-    this.selection = selection;
 
     this.history =
       options.tailHistory ??
@@ -68,20 +75,6 @@ export class LocalChangesetEditorHistory {
     });
 
     const subscribedListeners = [
-      editorBus.on('change', ({ changeset, inverseChangeset, selectionPos }) => {
-        this.push({
-          execute: {
-            changeset,
-            selectionStart: selectionPos,
-            selectionEnd: selectionPos,
-          },
-          undo: {
-            changeset: inverseChangeset,
-            selectionStart: selection.start,
-            selectionEnd: selection.end,
-          },
-        });
-      }),
       client.eventBus.on('submitChanges', () => {
         this.lastExecutedIndex.submitted = this.lastExecutedIndex.local;
       }),
@@ -121,6 +114,24 @@ export class LocalChangesetEditorHistory {
    */
   cleanUp() {
     this.unsubscribeFromEvents();
+  }
+
+  public pushChangesetOperation({
+    changeset,
+    inverseChangeset,
+    selection,
+    inverseSelection,
+  }: ChangesetOperation) {
+    this.push({
+      execute: {
+        changeset,
+        selection,
+      },
+      undo: {
+        changeset: inverseChangeset,
+        selection: inverseSelection,
+      },
+    });
   }
 
   private push(entry: Entry) {
@@ -180,9 +191,7 @@ export class LocalChangesetEditorHistory {
 
   private applyTypingOperation(op: Operation) {
     this.client.composeLocalChange(op.changeset);
-
-    // Selection must be updated after as it relies on length of the value
-    this.selection.setSelectionRange(op.selectionStart, op.selectionEnd);
+    this.eventBus.emit('appliedTypingOperation', { operation: op });
   }
 
   private adjustHistoryToExternalChange(externalChangeset: Changeset) {

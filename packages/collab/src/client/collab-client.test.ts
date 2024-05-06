@@ -1,11 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 import { Changeset } from '../changeset/changeset';
-import { ChangesetEditor } from '../editor/changeset-editor';
-import { SelectionRange } from '../editor/selection-range';
-import { textWithSelection } from '../test/helpers/text-with-selection';
 
-import { ChangeSource, CollabClient, Events } from './collab-client';
+import { ChangeSource, CollabClient } from './collab-client';
 
 const cs = (...values: unknown[]) => Changeset.parseValue(values);
 
@@ -270,115 +267,5 @@ describe('handleExternalChange', () => {
     expect(client.server.toString()).toStrictEqual(initial.toString());
     expect(client.submitted.toString()).toStrictEqual(initial.getIdentity().toString());
     expect(client.local.toString()).toStrictEqual(initial.getIdentity().toString());
-  });
-});
-
-describe('integration', () => {
-  let textValue = '';
-  let client: CollabClient;
-  const selection = new SelectionRange({
-    getLength() {
-      return textValue.length;
-    },
-  });
-  const editor = new ChangesetEditor({
-    getValue() {
-      return textValue;
-    },
-    selection,
-  });
-  editor.eventBus.on('change', ({ changeset, selectionPos }) => {
-    client.composeLocalChange(changeset);
-    selection.setPosition(selectionPos);
-  });
-
-  function handleClientViewChanged({ view, change, source }: Events['viewChanged']) {
-    textValue = view.strips.joinInsertions();
-
-    // Position is set manually on local change, so update it only on external
-    if (source === ChangeSource.External) {
-      selection.setSelectionRange(
-        change.followIndex(selection.start),
-        change.followIndex(selection.end)
-      );
-    }
-  }
-
-  function textValueWithSelection() {
-    return textWithSelection(textValue, selection);
-  }
-
-  beforeEach(() => {
-    textValue = '';
-    selection.setSelectionRange(0, 0);
-    client = new CollabClient();
-    client.eventBus.on('viewChanged', handleClientViewChanged);
-  });
-
-  it('external changes to server are composed as retained characters in submitted and local', () => {
-    editor.insert('server');
-    client.submitChanges();
-    client.submittedChangesAcknowledged();
-    editor.insert('; submitted');
-    client.submitChanges();
-    editor.insert('; local');
-    editor.insert('; more');
-    client.handleExternalChange(cs('external before - ', [0, 5], ' - external after'));
-
-    expect(client.server.toString()).toStrictEqual(
-      cs('external before - server - external after').toString()
-    );
-    expect(client.submitted.toString()).toStrictEqual(
-      cs([0, 23], '; submitted', [24, 40]).toString()
-    );
-    expect(client.local.toString()).toStrictEqual(
-      cs([0, 34], '; local; more', [35, 51]).toString()
-    );
-    expect(client.view.toString()).toStrictEqual(
-      cs('external before - server; submitted; local; more - external after').toString()
-    );
-    expect(textValueWithSelection()).toStrictEqual(
-      'external before - server; submitted; local; more> - external after'
-    );
-  });
-
-  it('edits e0 to e8 with duplicate external deletion', () => {
-    editor.insert('[e0]');
-    editor.insert('[e1]');
-    editor.insert('[e2]');
-    client.submitChanges();
-    client.submittedChangesAcknowledged();
-    editor.insert('[e3]');
-    editor.insert('[e4]');
-    editor.insert('[e5]');
-    client.submitChanges();
-    editor.insert('[e6]');
-    editor.insert('[e7]');
-    editor.insert('[e8]');
-    selection.setPosition(4);
-    editor.deleteCount(4);
-
-    client.handleExternalChange(
-      cs('[EXTERNAL]', [4, 7], '[BETWEEN]', [8, 11], '[EXTERNAL]')
-    );
-
-    client.submittedChangesAcknowledged();
-    client.submitChanges();
-    client.submittedChangesAcknowledged();
-
-    client.handleExternalChange(cs([0, 30], '[somewhere]', [31, 60]));
-
-    selection.setPosition(23);
-    editor.deleteCount(9);
-
-    expect(textValueWithSelection()).toStrictEqual(
-      '[EXTERNAL][e1]>[e2][e3][somewhere][e4][e5][e6][e7][e8][EXTERNAL]'
-    );
-
-    expect(client.local.toString()).toStrictEqual('(72 -> 63)[0 - 13, 23 - 71]');
-    expect(client.submitted.toString()).toStrictEqual('(72 -> 72)[0 - 71]');
-    expect(client.server.toString()).toStrictEqual(
-      '(0 -> 72)["[EXTERNAL][e1][BETWEEN][e2][e3][somewhere][e4][e5][e6][e7][e8][EXTERNAL]"]'
-    );
   });
 });

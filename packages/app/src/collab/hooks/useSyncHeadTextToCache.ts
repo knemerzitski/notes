@@ -1,12 +1,15 @@
 import { OperationVariables, TypedDocumentNode, useApolloClient } from '@apollo/client';
 import { useEffect, useRef } from 'react';
 
-import { CollabEditor, Events as CollabEditorEvents } from '~collab/editor/collab-editor';
+import { CollabEditorEvents } from '~collab/editor/collab-editor';
 import { Entry } from '~utils/types';
 
 import { CollabText } from '../../__generated__/graphql';
+import { Emitter } from '~utils/mitt-unsub';
 
-type PartialEditor = Readonly<Pick<CollabEditor, 'eventBus'>>;
+type PartialEditor = Readonly<{
+  eventBus: Emitter<Pick<CollabEditorEvents, 'revisionChanged'>>;
+}>;
 
 export interface UseSyncHeadTextToCacheOptions<
   TKey,
@@ -29,11 +32,8 @@ export default function useSyncHeadTextToCache<
   mapDataRef.current = mapData;
 
   useEffect(() => {
-    const subs = editors.map(({ key, value: editor }) => {
-      const handleRevisionChanged: (e: CollabEditorEvents['revisionChanged']) => void = ({
-        revision,
-        changeset,
-      }) => {
+    const messageSubscriptions = editors.map(({ key, value: editor }) =>
+      editor.eventBus.on('revisionChanged', ({ changeset, revision }) => {
         apolloClient.writeFragment({
           id,
           fragment,
@@ -47,16 +47,12 @@ export default function useSyncHeadTextToCache<
             },
           }),
         });
-      };
-
-      editor.eventBus.on('revisionChanged', handleRevisionChanged);
-
-      return { eventBus: editor.eventBus, handler: handleRevisionChanged };
-    });
+      })
+    );
 
     return () => {
-      subs.forEach(({ eventBus, handler }) => {
-        eventBus.off('revisionChanged', handler);
+      messageSubscriptions.forEach((unsubscribe) => {
+        unsubscribe();
       });
     };
   }, [id, fragment, apolloClient, editors]);

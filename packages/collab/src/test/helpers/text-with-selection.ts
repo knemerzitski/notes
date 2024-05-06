@@ -1,10 +1,5 @@
-import { SelectionRange, SelectionDirection } from '../../editor/selection-range';
-
-const DEFAULT_DIRECTION_MAPPING = {
-  [SelectionDirection.Forward]: '>',
-  [SelectionDirection.Backward]: '<',
-  [SelectionDirection.None]: '|',
-};
+import { SelectionRange } from '../../client/selection-range';
+import { CollabEditor } from '../../editor/collab-editor';
 
 /**
  * Adds carets to text to indicate selection position and directions. \
@@ -18,18 +13,16 @@ const DEFAULT_DIRECTION_MAPPING = {
  */
 export function textWithSelection(
   text: string,
-  selection: Pick<SelectionRange, 'start' | 'end' | 'direction'>,
-  mapping = DEFAULT_DIRECTION_MAPPING
+  selection: Pick<SelectionRange, 'start' | 'end'>
 ) {
-  const dirChar = mapping[selection.direction];
   if (selection.start === selection.end) {
-    return text.substring(0, selection.start) + dirChar + text.substring(selection.start);
+    return text.substring(0, selection.start) + '>' + text.substring(selection.start);
   }
   return (
     text.substring(0, selection.start) +
-    dirChar +
+    '>' +
     text.substring(selection.start, selection.end) +
-    dirChar +
+    '<' +
     text.substring(selection.end)
   );
 }
@@ -82,23 +75,18 @@ export function parseTextWithMultipleSelections(textWithSelection: string) {
   };
 }
 
-export function getValueWithSelection({
-  value,
-  selectionStart,
-  selectionEnd,
-}: {
-  value: string;
-  selectionStart: number;
-  selectionEnd: number;
-}) {
-  if (selectionStart === selectionEnd) {
-    return value.substring(0, selectionStart) + '>' + value.substring(selectionStart);
+export function getValueWithSelection(
+  { viewText }: Pick<CollabEditor, 'viewText'>,
+  { start, end }: SelectionRange
+) {
+  if (start === end) {
+    return viewText.substring(0, start) + '>' + viewText.substring(start);
   }
   return (
-    value.substring(0, selectionStart) +
+    viewText.substring(0, start) +
     '>' +
-    value.substring(selectionStart, selectionEnd) +
+    viewText.substring(start, end) +
     '<' +
-    value.substring(selectionEnd)
+    viewText.substring(end)
   );
 }

@@ -3,12 +3,15 @@
 import { OperationVariables, TypedDocumentNode, useApolloClient } from '@apollo/client';
 import { useEffect, useRef } from 'react';
 
-import { CollabEditor, Events as CollabEditorEvents } from '~collab/editor/collab-editor';
+import { CollabEditorEvents as CollabEditorEvents } from '~collab/editor/collab-editor';
 import { Entry } from '~utils/types';
 
 import { CollabText } from '../../__generated__/graphql';
+import { Emitter } from '~utils/mitt-unsub';
 
-type PartialEditor = Readonly<Pick<CollabEditor, 'eventBus'>>;
+type PartialEditor = Readonly<{
+  eventBus: Emitter<Pick<CollabEditorEvents, 'viewChanged'>>;
+}>;
 
 export interface ContentSyncCacheLatestTextProps<
   TKey,
@@ -36,10 +39,8 @@ export default function useSyncViewTextToCache<
   mapDataRef.current = mapData;
 
   useEffect(() => {
-    const subs = editors.map(({ key, value: editor }) => {
-      const handleViewChanged: (e: CollabEditorEvents['viewChanged']) => void = ({
-        view,
-      }) => {
+    const messageSubscriptions = editors.map(({ key, value: editor }) =>
+      editor.eventBus.on('viewChanged', ({ view }) => {
         apolloClient.writeFragment({
           id,
           fragment,
@@ -50,16 +51,12 @@ export default function useSyncViewTextToCache<
             },
           }),
         });
-      };
-
-      editor.eventBus.on('viewChanged', handleViewChanged);
-
-      return { eventBus: editor.eventBus, handler: handleViewChanged };
-    });
+      })
+    );
 
     return () => {
-      subs.forEach(({ eventBus, handler }) => {
-        eventBus.off('viewChanged', handler);
+      messageSubscriptions.forEach((unsubscribe) => {
+        unsubscribe();
       });
     };
   }, [id, fragment, apolloClient, editors]);

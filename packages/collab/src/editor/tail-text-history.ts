@@ -2,11 +2,11 @@ import mitt, { Emitter } from '~utils/mitt-unsub';
 import { Changeset } from '../changeset/changeset';
 
 import { PartialBy } from '~utils/types';
+import { SelectionRange } from '../client/selection-range';
 
 export interface Operation {
   changeset: Changeset;
-  selectionStart: number;
-  selectionEnd: number;
+  selection: SelectionRange;
 }
 
 export interface Entry {
@@ -15,14 +15,14 @@ export interface Entry {
 }
 
 export interface AddEntry {
-  execute: PartialBy<Operation, 'selectionEnd'>;
-  undo: PartialBy<Operation, 'changeset' | 'selectionEnd'>;
+  execute: Operation;
+  undo: PartialBy<Operation, 'changeset'>;
   isTail?: false;
 }
 
 export interface TailEntry {
-  execute: Omit<Operation, 'selectionStart' | 'selectionEnd'>;
-  undo?: Omit<PartialBy<Operation, 'changeset'>, 'selectionStart' | 'selectionEnd'>;
+  execute: Omit<Operation, 'selection'>;
+  undo?: Omit<PartialBy<Operation, 'changeset'>, 'selection'>;
   /**
    * Entry is composed on tailText.
    */
@@ -148,13 +148,11 @@ export class TailTextHistory {
         this._entries.push({
           execute: {
             changeset: execute.changeset,
-            selectionStart: execute.selectionStart,
-            selectionEnd: execute.selectionEnd ?? execute.selectionStart,
+            selection: execute.selection,
           },
           undo: {
             changeset: undo.changeset ?? execute.changeset.inverse(headText),
-            selectionStart: undo.selectionStart,
-            selectionEnd: undo.selectionEnd ?? undo.selectionStart,
+            selection: undo.selection,
           },
         });
         headText = headText.compose(execute.changeset);
@@ -221,27 +219,20 @@ export class TailTextHistory {
         resultEntries.push({
           execute: {
             changeset: swapEntry.execute.changeset,
-            selectionStart: swapEntry.execute.selectionStart,
-            selectionEnd:
-              swapEntry.execute.selectionEnd ?? swapEntry.execute.selectionStart,
+            selection: swapEntry.execute.selection,
           },
           undo: {
             changeset: swapEntry.undo.changeset,
-            selectionStart: swapEntry.undo.selectionStart,
-            selectionEnd: swapEntry.undo.selectionEnd ?? swapEntry.undo.selectionStart,
+            selection: swapEntry.undo.selection,
           },
         });
         continue;
       }
 
-      const newExecuteSelectionStart = tailComposition.followIndex(
-        swapEntry.execute.selectionStart
+      const newExecuteSelection = SelectionRange.followChangeset(
+        swapEntry.execute.selection,
+        tailComposition
       );
-
-      const newExecuteSelectionEnd = swapEntry.execute.selectionEnd
-        ? tailComposition.followIndex(swapEntry.execute.selectionEnd)
-        : newExecuteSelectionStart;
-
       const [newTailEntryExecute, newSwapEntryExecute] = currentText.swapChanges(
         swapEntry.execute.changeset,
         tailComposition
@@ -252,23 +243,19 @@ export class TailTextHistory {
         currentText.compose(newTailEntryExecute)
       );
 
-      const newUndoSelectionStart = newTailEntryExecute.followIndex(
-        swapEntry.undo.selectionStart
+      const newUndoSelection = SelectionRange.followChangeset(
+        swapEntry.undo.selection,
+        newTailEntryExecute
       );
-      const newUndoSelectionEnd = swapEntry.undo.selectionEnd
-        ? newTailEntryExecute.followIndex(swapEntry.undo.selectionEnd)
-        : newUndoSelectionStart;
 
       resultEntries.push({
         execute: {
           changeset: newSwapEntryExecute,
-          selectionStart: newExecuteSelectionStart,
-          selectionEnd: newExecuteSelectionEnd,
+          selection: newExecuteSelection,
         },
         undo: {
           changeset: newSwapEntryUndo,
-          selectionStart: newUndoSelectionStart,
-          selectionEnd: newUndoSelectionEnd,
+          selection: newUndoSelection,
         },
       });
     }
@@ -344,12 +331,10 @@ export class TailTextHistory {
     let followComposition = changeset;
     for (let i = endIndex; i >= 0; i--) {
       const entry = this.getEntry(i);
-      entry.execute.selectionStart = followComposition.followIndex(
-        entry.execute.selectionStart
-      );
 
-      entry.execute.selectionEnd = followComposition.followIndex(
-        entry.execute.selectionEnd
+      entry.execute.selection = SelectionRange.followChangeset(
+        entry.execute.selection,
+        followComposition
       );
 
       const newTailComposable = entry.undo.changeset.follow(followComposition);
@@ -370,10 +355,10 @@ export class TailTextHistory {
       const entry = this.getEntry(i);
       const undo = entry.undo.changeset;
 
-      entry.undo.selectionStart = followComposition.followIndex(
-        entry.undo.selectionStart
+      entry.undo.selection = SelectionRange.followChangeset(
+        entry.undo.selection,
+        followComposition
       );
-      entry.undo.selectionEnd = followComposition.followIndex(entry.undo.selectionEnd);
 
       followComposition = undo.follow(followComposition);
     }
@@ -384,10 +369,10 @@ export class TailTextHistory {
     for (let i = startIndex; i < this._entries.length; i++) {
       const entry = this.getEntry(i);
 
-      entry.undo.selectionStart = followComposition.followIndex(
-        entry.undo.selectionStart
+      entry.undo.selection = SelectionRange.followChangeset(
+        entry.undo.selection,
+        followComposition
       );
-      entry.undo.selectionEnd = followComposition.followIndex(entry.undo.selectionEnd);
 
       followComposition = entry.execute.changeset.follow(followComposition);
     }
@@ -402,11 +387,9 @@ export class TailTextHistory {
 
       followComposition = execute.follow(followComposition);
 
-      entry.execute.selectionStart = followComposition.followIndex(
-        entry.execute.selectionStart
-      );
-      entry.execute.selectionEnd = followComposition.followIndex(
-        entry.execute.selectionEnd
+      entry.execute.selection = SelectionRange.followChangeset(
+        entry.execute.selection,
+        followComposition
       );
     }
   }

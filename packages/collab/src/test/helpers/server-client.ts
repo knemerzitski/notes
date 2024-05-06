@@ -7,22 +7,69 @@ import {
   getValueWithSelection,
   parseTextWithMultipleSelections,
 } from './text-with-selection';
+import { CollabClient } from '../../client/collab-client';
+import { LocalChangesetEditorHistory } from '../../editor/local-changeset-editor-history';
+import { newSelectionRange } from './collab-editor-selection-range';
 
 export function createServerClientsHelper<TClientName extends string>(
   server: RevisionTailRecords<ServerRevisionRecord>,
-  clientMap: Record<TClientName, CollabEditor>
+  clientNames: TClientName[]
 ) {
+  const clientMap = clientNames
+    .map((name) => {
+      const client = new CollabClient();
+      const history = new LocalChangesetEditorHistory({
+        client,
+      });
+      return [
+        name,
+        {
+          client,
+          history,
+          editor: new CollabEditor({
+            userId: name,
+            client,
+            history,
+          }),
+        },
+      ] as [
+        TClientName,
+        {
+          client: CollabClient;
+          editor: CollabEditor;
+          history: LocalChangesetEditorHistory;
+        },
+      ];
+    })
+    .reduce(
+      (map, [name, val]) => {
+        map[name] = val;
+        return map;
+      },
+      // eslint-disable-next-line @typescript-eslint/prefer-reduce-type-parameter
+      {} as Record<
+        TClientName,
+        {
+          client: CollabClient;
+          editor: CollabEditor;
+          history: LocalChangesetEditorHistory;
+        }
+      >
+    );
+
   const allClientNames = Object.keys(clientMap) as TClientName[];
   const serverHelper = createRevisionTailRecordsHelper(server);
-  const clientHelper = mapObject(clientMap, (name, editor) => [
+  const clientHelper = mapObject(clientMap, (name, { editor, client, history }) => [
     name,
     {
+      client,
+      history,
       ...createCollabEditorHelper(editor),
       ...createCollabEditorAndRevisionTailRecordsHelper<TClientName>(
         name,
         editor,
         server,
-        mapObject(clientMap, (otherName, otherEditor) => {
+        mapObject(clientMap, (otherName, { editor: otherEditor }) => {
           if (name === otherName) return mapObjectSkip;
           return [otherName, otherEditor];
         })
@@ -50,19 +97,29 @@ export function createServerClientsHelper<TClientName extends string>(
 }
 
 function createCollabEditorHelper(editor: CollabEditor) {
+  const { selectionRange } = newSelectionRange(editor);
   return {
     instance: editor,
-    valueWithSelection: () => getValueWithSelection(editor),
+    valueWithSelection: () => getValueWithSelection(editor, selectionRange),
     setCaretFromValue: (textWithCursors: string) => {
       const pos1 = textWithCursors.indexOf('>');
       const pos2 = textWithCursors.indexOf('<');
       if (pos1 !== -1 && pos2 !== -1) {
-        editor.setSelectionRange(pos1, pos2 - 1);
+        selectionRange.set(pos1, pos2 - 1);
       } else if (pos1 !== -1) {
-        editor.setCaretPosition(pos1);
+        selectionRange.set(pos1);
       } else if (pos2 !== -1) {
-        editor.setCaretPosition(pos2);
+        selectionRange.set(pos2);
       }
+    },
+    setCaretPosition(pos: number) {
+      selectionRange.set(pos);
+    },
+    insertText(value: string) {
+      editor.insertText(value, selectionRange);
+    },
+    deleteTextCount(count = 1) {
+      editor.deleteTextCount(count, selectionRange);
     },
   };
 }
