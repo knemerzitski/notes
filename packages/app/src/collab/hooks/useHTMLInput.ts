@@ -1,18 +1,18 @@
 import { FormEventHandler, useCallback, useRef } from 'react';
 import { SelectionRange } from '~collab/client/selection-range';
 
-interface SelectionEvent {
+export interface SelectionEvent {
   /**
    * Selection before text insertion/deletion.
    */
   beforeSelection: Readonly<SelectionRange>;
 }
 
-interface InsertEvent extends SelectionEvent {
+export interface InsertEvent extends SelectionEvent {
   insertText: string;
 }
 
-type DeleteEvent = SelectionEvent;
+export type DeleteEvent = SelectionEvent;
 
 export interface InputValueChangeProps {
   onInsert?(event: InsertEvent): void;
@@ -71,11 +71,10 @@ export default function useHTMLInput({
       return;
     }
 
+    const beforeSelection = selectionRef.current;
     const type = e.nativeEvent.inputType;
 
-    const beforeSelection = selectionRef.current;
-
-    if (type.match(/insert/i)) {
+    if (type.match(/insert/i) != null || e.nativeEvent.data) {
       e.preventDefault();
       const start = e.target.selectionStart ?? 0;
       const value = e.target.value;
@@ -83,7 +82,10 @@ export default function useHTMLInput({
         beforeSelection,
         insertText: value.substring(beforeSelection.start, start),
       });
-    } else if (type.match(/delete/i)) {
+    } else if (
+      type.match(/delete/i) != null ||
+      (e.nativeEvent instanceof KeyboardEvent && e.nativeEvent.code === 'Backspace')
+    ) {
       e.preventDefault();
       onDeleteRef.current?.({
         beforeSelection,

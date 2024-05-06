@@ -1,28 +1,22 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
-import { CollabEditor, CollabEditorEvents } from '~collab/editor/collab-editor';
+import { CollabEditor } from '~collab/editor/collab-editor';
 
 import useHTMLInput from './useHTMLInput';
 import { SelectionRange } from '~collab/client/selection-range';
-import { Emitter } from '~utils/mitt-unsub';
 
 type PartialEditor = Readonly<
-  Pick<CollabEditor, 'viewText' | 'insertText' | 'deleteTextCount' | 'undo' | 'redo'> & {
-    eventBus: Emitter<
-      Pick<
-        CollabEditorEvents,
-        'viewChanged' | 'processingMessages' | 'appliedTypingOperation'
-      >
-    >;
-  }
+  Pick<
+    CollabEditor,
+    'eventBus' | 'viewText' | 'insertText' | 'deleteTextCount' | 'undo' | 'redo'
+  >
 >;
 
 export interface UseHTMLInputCollaborativeEditorProps {
   editor: PartialEditor;
 }
 
-// TODO test with cypress
-export default function useHTMLInputCollaborativeEditor({
+export default function useHTMLInputCollabEditor({
   editor,
 }: UseHTMLInputCollaborativeEditorProps) {
   const inputRef = useRef<HTMLInputElement>(null);
