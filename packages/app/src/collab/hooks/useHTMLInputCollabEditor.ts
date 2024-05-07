@@ -27,36 +27,44 @@ export default function useHTMLInputCollabEditor({
     end: 0,
   });
 
-  // Temporarily remember input selection if any useEffects runs multiple times between renders
-  const inputSelectionRef = useRef<SelectionRange | null>(null);
-  inputSelectionRef.current = null;
+  const latestSelectionRef = useRef<SelectionRange | null>(null);
+  latestSelectionRef.current = null;
+
+  function updateLatestSelection(newSelection: SelectionRange) {
+    latestSelectionRef.current = newSelection;
+    setSelection(newSelection);
+  }
+
+  function getLatestSelection() {
+    return latestSelectionRef.current ?? getInputSelection();
+  }
+
+  function getInputSelection() {
+    const input = inputRef.current;
+    if (input?.selectionStart != null && input.selectionEnd != null) {
+      return {
+        start: input.selectionStart,
+        end: input.selectionEnd,
+      };
+    }
+    return;
+  }
 
   // Keep selection in place after external change
   useEffect(() => {
     return editor.eventBus.on('processingMessages', ({ eventBus: processingBus }) => {
-      const input = inputRef.current;
-      if (!input) return;
-
-      if (input.selectionStart == null) return;
-
-      let inputSelection: SelectionRange;
-      if (inputSelectionRef.current === null) {
-        inputSelectionRef.current = {
-          start: input.selectionStart,
-          end: input.selectionEnd ?? input.selectionStart,
-        };
-      }
-      inputSelection = inputSelectionRef.current;
+      const latestSelection = getLatestSelection();
+      if (!latestSelection) return;
+      let newSelection = latestSelection;
 
       processingBus.on('handledExternalChange', ({ viewComposable }) => {
-        inputSelection = SelectionRange.followChangeset(inputSelection, viewComposable);
+        newSelection = SelectionRange.followChangeset(newSelection, viewComposable);
       });
 
       processingBus.on('messagesProcessed', ({ hadExternalChanges }) => {
         if (!hadExternalChanges) return;
 
-        inputSelectionRef.current = inputSelection;
-        setSelection(inputSelection);
+        updateLatestSelection(newSelection);
       });
     });
   }, [editor]);
@@ -71,32 +79,22 @@ export default function useHTMLInputCollabEditor({
   // User typed/deleted something or undo/redo
   useEffect(() => {
     return editor.eventBus.on('appliedTypingOperation', ({ operation }) => {
-      setSelection(operation.selection);
+      updateLatestSelection(operation.selection);
     });
   }, [editor]);
 
-  // Update input selection from state
   useLayoutEffect(() => {
     const input = inputRef.current;
     if (input == null) return;
     input.setSelectionRange(selection.start, selection.end);
-  }, [selection]);
-
-  // Adjust selection from input that's outdated relative to editor
-  function getAdjustedSelection(newSelection: SelectionRange) {
-    const offset =
-      inputSelectionRef.current != null
-        ? SelectionRange.subtract(inputSelectionRef.current, selection)
-        : SelectionRange.ZERO;
-    return SelectionRange.add(newSelection, offset);
-  }
+  }, [selection, value]);
 
   const { handleSelect, handleInput } = useHTMLInput({
-    onInsert({ beforeSelection, insertText }) {
-      editor.insertText(insertText, getAdjustedSelection(beforeSelection));
+    onInsert({ beforeSelection, insertValue }) {
+      editor.insertText(insertValue, latestSelectionRef.current ?? beforeSelection);
     },
     onDelete({ beforeSelection }) {
-      editor.deleteTextCount(1, getAdjustedSelection(beforeSelection));
+      editor.deleteTextCount(1, latestSelectionRef.current ?? beforeSelection);
     },
     onUndo() {
       editor.undo();

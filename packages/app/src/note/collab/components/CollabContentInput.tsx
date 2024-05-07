@@ -9,7 +9,7 @@ export interface ContentProps {
 }
 
 export default function CollabContent({ inputProps }: ContentProps) {
-  const { inputRef, value, handleInput, handleSelect } = useNoteField(
+  const { inputRef, value, handleSelect, handleInput } = useNoteField(
     NoteTextField.Content
   );
 
@@ -17,8 +17,8 @@ export default function CollabContent({ inputProps }: ContentProps) {
     <BaseContent
       inputRef={inputRef}
       value={value}
-      onInput={handleInput}
       onSelect={handleSelect}
+      onInput={handleInput}
       {...inputProps}
     />
   );

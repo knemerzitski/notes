@@ -3,13 +3,13 @@ import { SelectionRange } from '~collab/client/selection-range';
 
 export interface SelectionEvent {
   /**
-   * Selection before text insertion/deletion.
+   * Selection before text insertion/deletion
    */
   beforeSelection: Readonly<SelectionRange>;
 }
 
 export interface InsertEvent extends SelectionEvent {
-  insertText: string;
+  insertValue: string;
 }
 
 export type DeleteEvent = SelectionEvent;
@@ -80,7 +80,7 @@ export default function useHTMLInput({
       const value = e.target.value;
       onInsertRef.current?.({
         beforeSelection,
-        insertText: value.substring(beforeSelection.start, start),
+        insertValue: value.substring(beforeSelection.start, start),
       });
     } else if (
       type.match(/delete/i) != null ||
