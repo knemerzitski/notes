@@ -2,7 +2,7 @@ import { OperationVariables, SubscriptionOptions, useApolloClient } from '@apoll
 import { useEffect, useRef } from 'react';
 
 import { Changeset } from '~collab/changeset/changeset';
-import { CollabEditor } from '~collab/editor/collab-editor';
+import { CollabEditor } from '~collab/client/collab-editor';
 import { Entry } from '~utils/types';
 
 import { CollabTextPatch } from '../../__generated__/graphql';

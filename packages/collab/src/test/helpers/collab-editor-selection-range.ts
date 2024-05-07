@@ -1,7 +1,7 @@
 import mitt, { Emitter } from "~utils/mitt-unsub";
 import { Changeset } from "../../changeset/changeset";
 import { SelectionRange } from "../../client/selection-range";
-import { CollabEditor } from "../../editor/collab-editor";
+import { CollabEditor } from "../../client/collab-editor";
 
 /**
  * Make sure to call cleanUp after you're done using the SelectionRange.

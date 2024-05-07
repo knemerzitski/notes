@@ -2,7 +2,7 @@ import mitt, { Emitter } from '~utils/mitt-unsub';
 import { Changeset } from '../changeset/changeset';
 
 import { PartialBy } from '~utils/types';
-import { SelectionRange } from '../client/selection-range';
+import { SelectionRange } from './selection-range';
 
 export interface Operation {
   changeset: Changeset;

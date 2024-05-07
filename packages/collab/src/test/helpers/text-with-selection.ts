@@ -1,5 +1,5 @@
 import { SelectionRange } from '../../client/selection-range';
-import { CollabEditor } from '../../editor/collab-editor';
+import { CollabEditor } from '../../client/collab-editor';
 
 /**
  * Adds carets to text to indicate selection position and directions. \

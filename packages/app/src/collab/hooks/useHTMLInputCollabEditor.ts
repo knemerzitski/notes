@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
-import { CollabEditor } from '~collab/editor/collab-editor';
+import { CollabEditor } from '~collab/client/collab-editor';
 
 import useHTMLInput from './useHTMLInput';
 import { SelectionRange } from '~collab/client/selection-range';

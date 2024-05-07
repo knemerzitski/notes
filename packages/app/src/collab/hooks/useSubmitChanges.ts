@@ -6,7 +6,7 @@ import {
 } from '@apollo/client';
 import { useCallback, useRef } from 'react';
 
-import { CollabEditor } from '~collab/editor/collab-editor';
+import { CollabEditor } from '~collab/client/collab-editor';
 import isTruthy from '~utils/type-guards/isTruthy';
 import { Entry } from '~utils/types';
 

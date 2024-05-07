@@ -2,7 +2,7 @@
 import mitt, { Emitter } from '~utils/mitt-unsub';
 
 import { Changeset } from '../changeset/changeset';
-import { CollabClient, CollabClientEvents } from '../client/collab-client';
+import { CollabClient, CollabClientEvents } from './collab-client';
 
 import {
   LocalChangesetEditorHistory,
@@ -22,9 +22,9 @@ import { PartialBy } from '~utils/types';
 import {
   deletionCountOperation,
   insertionOperation,
-} from '../client/changeset-operations';
-import { SelectionRange } from '../client/selection-range';
-import { SubmittedRecord } from '../client/submitted-record';
+} from './changeset-operations';
+import { SelectionRange } from './selection-range';
+import { SubmittedRecord } from './submitted-record';
 import { OrderedMessageBufferEvents } from '~utils/ordered-message-buffer';
 
 export type CollabEditorEvents = CollabClientEvents &
@@ -118,6 +118,7 @@ export class CollabEditor {
     return this.client.server;
   }
 
+  // TODO expose submittedrecord too?
   get textSubmitted() {
     return this.client.submitted;
   }
@@ -356,6 +357,7 @@ export class CollabEditor {
    * Anything selected is deleted.
    */
   insertText(insertText: string, selection: SelectionRange) {
+    // TODO add option to merge change into existing history entry...
     this.history.pushChangesetOperation(
       insertionOperation(insertText, this.viewText, selection)
     );

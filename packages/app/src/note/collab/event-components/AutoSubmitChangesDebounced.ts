@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
 import { ChangeSource } from '~collab/client/collab-client';
-import { CollabEditorEvents } from '~collab/editor/collab-editor';
+import { CollabEditorEvents } from '~collab/client/collab-editor';
 
 import { useSuspenseNoteEditors } from '../context/NoteEditorsProvider';
 import useSubmitChangesDebounce, {

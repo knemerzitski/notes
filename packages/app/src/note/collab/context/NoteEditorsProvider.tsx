@@ -9,7 +9,7 @@ import {
 } from 'react';
 
 import { Changeset } from '~collab/changeset/changeset';
-import { CollabEditor } from '~collab/editor/collab-editor';
+import { CollabEditor } from '~collab/client/collab-editor';
 import createDeferred, { Deferred } from '~utils/deferred';
 import { Entry } from '~utils/types';
 

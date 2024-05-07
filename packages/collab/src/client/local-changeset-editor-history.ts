@@ -1,10 +1,10 @@
 import mitt, { Emitter } from '~utils/mitt-unsub';
 
 import { Changeset } from '../changeset/changeset';
-import { CollabClient } from '../client/collab-client';
+import { CollabClient } from './collab-client';
 
 import { AnyEntry, Entry, Operation, TailTextHistory } from './tail-text-history';
-import { ChangesetOperation } from '../client/changeset-operations';
+import { ChangesetOperation } from './changeset-operations';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type LocalChangesetEditorHistoryEvents = {

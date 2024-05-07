@@ -1,6 +1,6 @@
 import mapObject, { mapObjectSkip } from 'map-obj';
 import { assert, expect } from 'vitest';
-import { CollabEditor } from '../../editor/collab-editor';
+import { CollabEditor } from '../../client/collab-editor';
 import { ServerRevisionRecord } from '../../records/record';
 import { RevisionTailRecords } from '../../records/revision-tail-records';
 import {
@@ -8,7 +8,7 @@ import {
   parseTextWithMultipleSelections,
 } from './text-with-selection';
 import { CollabClient } from '../../client/collab-client';
-import { LocalChangesetEditorHistory } from '../../editor/local-changeset-editor-history';
+import { LocalChangesetEditorHistory } from '../../client/local-changeset-editor-history';
 import { newSelectionRange } from './collab-editor-selection-range';
 
 export function createServerClientsHelper<TClientName extends string>(

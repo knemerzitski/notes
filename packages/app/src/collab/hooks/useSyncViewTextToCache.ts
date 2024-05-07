@@ -3,7 +3,7 @@
 import { OperationVariables, TypedDocumentNode, useApolloClient } from '@apollo/client';
 import { useEffect, useRef } from 'react';
 
-import { CollabEditorEvents as CollabEditorEvents } from '~collab/editor/collab-editor';
+import { CollabEditorEvents as CollabEditorEvents } from '~collab/client/collab-editor';
 import { Entry } from '~utils/types';
 
 import { CollabText } from '../../__generated__/graphql';

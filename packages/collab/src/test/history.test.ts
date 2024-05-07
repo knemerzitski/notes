@@ -6,7 +6,7 @@ import { createServerClientsHelper } from './helpers/server-client';
 import { addEditorFilters } from '../records/editor-revision-records';
 import { Changeset } from '../changeset/changeset';
 import { CollabClient } from '../client/collab-client';
-import { LocalChangesetEditorHistory } from '../editor/local-changeset-editor-history';
+import { LocalChangesetEditorHistory } from '../client/local-changeset-editor-history';
 
 const cs = (...values: unknown[]) => Changeset.parseValue(values);
 

@@ -1,6 +1,6 @@
 import { Changeset } from '~collab/changeset/changeset';
 import useHTMLInputCollabEditor from './useHTMLInputCollabEditor';
-import { CollabEditor } from '~collab/editor/collab-editor';
+import { CollabEditor } from '~collab/client/collab-editor';
 
 let editor: CollabEditor;
 

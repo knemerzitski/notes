@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { CollabEditor } from '../editor/collab-editor';
+import { CollabEditor } from '../client/collab-editor';
 
-import { Entry } from '../editor/tail-text-history';
+import { Entry } from '../client/tail-text-history';
 import { ServerRevisionRecord } from '../records/record';
 import { RevisionTailRecords } from '../records/revision-tail-records';
 import { createServerClientsHelper } from './helpers/server-client';
