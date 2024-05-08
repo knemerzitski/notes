@@ -24,13 +24,13 @@ function submitLocalChanges() {
   editor.submitChanges();
   editor.submittedChangesAcknowledged({
     changeset: editor.client.submitted,
-    revision: editor.revision + 1,
+    revision: editor.headRevision + 1,
   });
 }
 
 function addExternalChange(changeset: Changeset) {
   editor.handleExternalChange({
-    revision: editor.revision + 1,
+    revision: editor.headRevision + 1,
     changeset,
   });
 }

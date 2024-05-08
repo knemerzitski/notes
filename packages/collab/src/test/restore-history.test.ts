@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { CollabEditor } from '../client/collab-editor';
 
-import { Entry } from '../client/tail-text-history';
 import { ServerRevisionRecord } from '../records/record';
 import { RevisionTailRecords } from '../records/revision-tail-records';
 import { createServerClientsHelper } from './helpers/server-client';
 import { addEditorFilters } from '../records/editor-revision-records';
+import { Entry } from '../client/collab-history';
 
 function historyEntriesInfo(entries: Readonly<Entry[]>) {
   return entries.map((e) => ({
@@ -63,10 +63,10 @@ describe('persist history in revision records', () => {
     });
 
     restoredEditorB.addServerRecords(server.instance.records);
-    restoredEditorB.historyRestore(client.B.instance.historyEntryCount);
+    restoredEditorB.historyRestore(client.B.instance.history.entries.length);
 
-    expect(historyEntriesInfo(client.B.instance.historyEntries)).toStrictEqual(
-      historyEntriesInfo(restoredEditorB.historyEntries)
+    expect(historyEntriesInfo(client.B.instance.history.entries)).toStrictEqual(
+      historyEntriesInfo(restoredEditorB.history.entries)
     );
   });
 
@@ -94,10 +94,10 @@ describe('persist history in revision records', () => {
     });
 
     restoredEditorB.addServerRecords(server.instance.records);
-    restoredEditorB.historyRestore(client.B.instance.historyEntryCount);
+    restoredEditorB.historyRestore(client.B.instance.history.entries.length);
 
-    expect(historyEntriesInfo(restoredEditorB.historyEntries)).toStrictEqual(
-      historyEntriesInfo(client.B.instance.historyEntries)
+    expect(historyEntriesInfo(restoredEditorB.history.entries)).toStrictEqual(
+      historyEntriesInfo(client.B.instance.history.entries)
     );
   });
 });

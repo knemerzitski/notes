@@ -90,7 +90,7 @@ export class CollabEditor {
   private _client: CollabClient;
   private recordsBuffer: OrderedMessageBuffer<UnprocessedRecord>;
   private serverRecords: RevisionTailRecords<EditorRevisionRecord>;
-  private history: CollabHistory;
+  private _history: CollabHistory;
   private historyRestorer: EditorRecordsHistoryRestore<EditorRevisionRecord>;
   private submittedRecord: SubmittedRecord | null = null;
   
@@ -98,11 +98,6 @@ export class CollabEditor {
   private generateSubmitId: () => string;
 
   readonly eventBus: Emitter<CollabEditorEvents>;
-
-  private _viewText = '';
-  get viewText() {
-    return this._viewText;
-  }
 
   get headRevision() {
     return this.recordsBuffer.currentVersion;
@@ -116,16 +111,13 @@ export class CollabEditor {
     return this._client;
   }
 
-  get historyCurrentIndex() {
-    return this.history.localIndex;
+  get history(): Pick<CollabHistory, 'localIndex' | 'entries'>{
+    return this._history;
   }
 
-  get historyEntryCount() {
-    return this.history.entries.length;
-  }
-
-  get historyEntries() {
-    return this.history.entries;
+  private _viewText = '';
+  get viewText() {
+    return this._viewText;
   }
 
   constructor(options?: CollabEditorOptions) {
@@ -187,7 +179,7 @@ export class CollabEditor {
     this.serverRecords = new RevisionTailRecords();
 
     // History for selection and local changeset
-    this.history =
+    this._history =
       options?.history ??
       new CollabHistory({
         client: this._client,
@@ -195,7 +187,7 @@ export class CollabEditor {
 
     // Restores history from server records
     this.historyRestorer = new EditorRecordsHistoryRestore({
-      history: this.history,
+      history: this._history,
       records: this.serverRecords,
       historyTailRevision: headText.revision,
     });
@@ -207,7 +199,7 @@ export class CollabEditor {
       this.eventBus.emit(type, e);
     });
 
-    this.history.eventBus.on('*', (type, e) => {
+    this._history.eventBus.on('*', (type, e) => {
       this.eventBus.emit(type, e);
     });
 
@@ -274,7 +266,7 @@ export class CollabEditor {
    */
   submitChanges(): SubmittedRevisionRecord | undefined | null {
     if (this._client.submitChanges()) {
-      const lastEntry = this.history.at(-1);
+      const lastEntry = this._history.at(-1);
       if (!lastEntry) return;
 
       this.submittedRecord = new SubmittedRecord({
@@ -335,7 +327,7 @@ export class CollabEditor {
    */
   insertText(insertText: string, selection: SelectionRange) {
     // TODO add option to merge change into existing history entry...
-    this.history.pushChangesetOperation(
+    this._history.pushChangesetOperation(
       insertionOperation(insertText, this.viewText, selection)
     );
   }
@@ -347,14 +339,14 @@ export class CollabEditor {
   deleteTextCount(count = 1, selection: SelectionRange) {
     const op = deletionCountOperation(count, this.viewText, selection);
     if (!op) return;
-    this.history.pushChangesetOperation(op);
+    this._history.pushChangesetOperation(op);
   }
 
   undo() {
-    this.history.undo();
+    this._history.undo();
   }
 
   redo() {
-    this.history.redo();
+    this._history.redo();
   }
 }
