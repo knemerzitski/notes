@@ -18,7 +18,7 @@ describe('constructor', () => {
       },
     });
 
-    expect(editor.revision).toStrictEqual(4);
+    expect(editor.headRevision).toStrictEqual(4);
     expect(editor.client.server.toString()).toStrictEqual(cs('initial text').toString());
     expect(editor.client.submitted.toString()).toStrictEqual(cs([0, 11]).toString());
     expect(editor.client.local.toString()).toStrictEqual(cs([0, 11]).toString());
@@ -74,7 +74,7 @@ describe('handleSubmittedChangesAcknowledged', () => {
 
     expect(editor.client.server).toStrictEqual(Changeset.EMPTY);
     expect(editor.client.submitted).toStrictEqual(submitRecord.changeset);
-    expect(editor.revision).toStrictEqual(-1);
+    expect(editor.headRevision).toStrictEqual(-1);
 
     editor.submittedChangesAcknowledged({
       ...submitRecord,
@@ -83,7 +83,7 @@ describe('handleSubmittedChangesAcknowledged', () => {
 
     expect(editor.client.server).toStrictEqual(submitRecord.changeset);
     expect(editor.client.submitted).toStrictEqual(submitRecord.changeset.getIdentity());
-    expect(editor.revision).toStrictEqual(0);
+    expect(editor.headRevision).toStrictEqual(0);
   });
 
   it('discards old revision', () => {
@@ -93,12 +93,12 @@ describe('handleSubmittedChangesAcknowledged', () => {
       revision: -6,
       changeset: Changeset.EMPTY,
     });
-    expect(editor.revision).toStrictEqual(-1);
+    expect(editor.headRevision).toStrictEqual(-1);
     editor.submittedChangesAcknowledged({
       revision: 0,
       changeset: Changeset.EMPTY,
     });
-    expect(editor.revision).toStrictEqual(0);
+    expect(editor.headRevision).toStrictEqual(0);
   });
 
   it('buffers new revision and processes it when missing revisions are received', () => {
@@ -108,17 +108,17 @@ describe('handleSubmittedChangesAcknowledged', () => {
       revision: 2,
       changeset: Changeset.EMPTY,
     });
-    expect(editor.revision).toStrictEqual(-1);
+    expect(editor.headRevision).toStrictEqual(-1);
     editor.submittedChangesAcknowledged({
       revision: 1,
       changeset: Changeset.EMPTY,
     });
-    expect(editor.revision).toStrictEqual(-1);
+    expect(editor.headRevision).toStrictEqual(-1);
     editor.submittedChangesAcknowledged({
       revision: 0,
       changeset: Changeset.EMPTY,
     });
-    expect(editor.revision).toStrictEqual(2);
+    expect(editor.headRevision).toStrictEqual(2);
   });
 });
 
@@ -160,7 +160,7 @@ describe('handleExternalChange', () => {
     expect(editor.client.view.toString()).toStrictEqual(
       cs('external before - server; submitted; local; more - external after').toString()
     );
-    expect(editor.revision).toStrictEqual(1);
+    expect(editor.headRevision).toStrictEqual(1);
     expect(editor.viewText).toStrictEqual(
       'external before - server; submitted; local; more - external after'
     );

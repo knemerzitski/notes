@@ -104,20 +104,16 @@ export class CollabEditor {
     return this._viewText;
   }
 
-  get revision() {
+  get headRevision() {
     return this.recordsBuffer.currentVersion;
+  }
+
+  get tailRevision() {
+    return this.serverRecords.tailRevision;
   }
 
   get client(): Pick<CollabClient, 'server' | 'submitted' | 'local' | 'view'>{
     return this._client;
-  }
-
-  get recordsTailRevision() {
-    return this.serverRecords.tailRevision;
-  }
-
-  get recordsHeadRevision() {
-    return this.serverRecords.headRevision;
   }
 
   get historyCurrentIndex() {
@@ -252,7 +248,7 @@ export class CollabEditor {
 
     this.recordsBuffer.eventBus.on('messagesProcessed', () => {
       this.eventBus.emit('revisionChanged', {
-        revision: this.revision,
+        revision: this.headRevision,
         changeset: this._client.server,
       });
     });
@@ -283,7 +279,7 @@ export class CollabEditor {
 
       this.submittedRecord = new SubmittedRecord({
         userGeneratedId: this.generateSubmitId(),
-        revision: this.revision,
+        revision: this.headRevision,
         changeset: this._client.submitted,
         beforeSelection: lastEntry.undo.selection,
         afterSelection: lastEntry.execute.selection,
