@@ -1,6 +1,6 @@
 import { isInsertStrip } from './insert-strip';
 import { RetainStrip } from './retain-strip';
-import { Serializable } from './serialize';
+import { Serializable } from '../utils/serialize';
 import { SerializedStrip, Strip } from './strip';
 
 export type SerializedStrips = SerializedStrip[];

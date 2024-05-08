@@ -1,6 +1,6 @@
 import { InsertStrip } from './insert-strip';
 import { RetainStrip } from './retain-strip';
-import { Serializable } from './serialize';
+import { Serializable } from '../utils/serialize';
 import { Strip } from './strip';
 import { SerializedStrips, Strips } from './strips';
 
