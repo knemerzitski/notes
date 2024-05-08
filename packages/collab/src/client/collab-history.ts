@@ -6,6 +6,8 @@ import { CollabClient } from './collab-client';
 import { ChangesetOperation } from './changeset-operations';
 import { SelectionRange } from './selection-range';
 import { PartialBy } from '~utils/types';
+import { RevisionChangeset, ServerRevisionRecord } from '../records/record';
+import { RevisionTailRecords } from '../records/revision-tail-records';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type LocalChangesetEditorHistoryEvents = {
@@ -13,6 +15,11 @@ export type LocalChangesetEditorHistoryEvents = {
     operation: Operation;
   };
 };
+
+export type HistoryServerRecord = Pick<ServerRevisionRecord, 'changeset' | 'revision'> &
+  Partial<
+    Pick<ServerRevisionRecord, 'beforeSelection' | 'afterSelection' | 'creatorUserId'>
+  >;
 
 export interface Operation {
   changeset: Changeset;
@@ -46,6 +53,7 @@ type AnyEntryWithUndo = AnyEntry & { undo: Pick<Operation, 'changeset'> };
 interface LocalChangesetEditorHistoryOptions {
   eventBus?: Emitter<LocalChangesetEditorHistoryEvents>;
   client?: CollabClient;
+  tailRevision?: number;
 }
 
 /**
@@ -68,6 +76,11 @@ export class CollabHistory {
    */
   get tailText() {
     return this._tailText;
+  }
+
+  private _tailRevision: number;
+  get tailRevision() {
+    return this._tailRevision;
   }
 
   private tailComposition: Changeset | undefined;
@@ -106,6 +119,7 @@ export class CollabHistory {
     this.client = options?.client ?? new CollabClient();
 
     this._tailText = this.client.server;
+    this._tailRevision = options?.tailRevision ?? -1;
 
     const subscribedListeners = [
       this.client.eventBus.on('submitChanges', () => {
@@ -176,14 +190,100 @@ export class CollabHistory {
     this.redo(); // applies pushed entry
   }
 
+  restoreFromServerRecords<TRecord extends HistoryServerRecord>(
+    serverRecords: RevisionTailRecords<TRecord>,
+    desiredRestoreCount: number,
+    targetUserId?: string | symbol,
+    recursive = true
+  ): number | undefined {
+    if (desiredRestoreCount <= 0) return 0;
+
+    let potentialRestoreCount = 0;
+    const relevantRecords: TRecord[] = [];
+    for (let i = serverRecords.revisionToIndex(this._tailRevision); i >= 0; i--) {
+      const record = serverRecords.records[i];
+      if (!record) continue;
+      relevantRecords.push(record);
+      if (
+        !targetUserId ||
+        !('creatorUserId' in record) ||
+        record.creatorUserId === targetUserId
+      ) {
+        potentialRestoreCount++;
+        if (potentialRestoreCount >= desiredRestoreCount) {
+          break;
+        }
+      }
+    }
+    relevantRecords.reverse();
+    const firstRecord = relevantRecords[0];
+    if (!firstRecord) return;
+
+    const firstRecordIndex = serverRecords.revisionToIndex(firstRecord.revision);
+
+    const newTailText = serverRecords.records
+      .slice(0, firstRecordIndex)
+      .reduce((a, b) => a.compose(b.changeset), serverRecords.tailText.changeset);
+
+    const addedEntriesCount = this.restoreHistoryEntries(
+      {
+        changeset: newTailText,
+        revision: firstRecord.revision - 1,
+      },
+      relevantRecords.map((record) => {
+        const isOtherUser =
+          targetUserId &&
+          'creatorUserId' in record &&
+          record.creatorUserId !== targetUserId;
+        if (!record.beforeSelection || !record.afterSelection || isOtherUser) {
+          return {
+            isTail: true,
+            execute: {
+              changeset: record.changeset,
+            },
+          };
+        } else {
+          return {
+            execute: {
+              changeset: record.changeset,
+              selection: record.afterSelection,
+            },
+            undo: {
+              selection: record.beforeSelection,
+            },
+          };
+        }
+      })
+    );
+
+    let restoredCount = addedEntriesCount;
+
+    const remainingCount = desiredRestoreCount - restoredCount;
+    if (remainingCount > 0 && potentialRestoreCount > 0 && recursive) {
+      const nextRestoredCount = this.restoreFromServerRecords(
+        serverRecords,
+        remainingCount,
+        targetUserId,
+        recursive
+      );
+      if (typeof nextRestoredCount === 'number') {
+        restoredCount += nextRestoredCount;
+      }
+    }
+
+    return restoredCount;
+  }
+
   /**
    * @param tailText First element in {@link entries} is composable on {@link entries}.
    * @param entries Text entries.
    */
-  restoreHistoryEntries(tailText: Changeset, entries: AnyEntry[]) {
+  restoreHistoryEntries(tailText: RevisionChangeset, entries: AnyEntry[]) {
     const beforeEntriesCount = this._entries.length;
 
-    this.unshift(tailText, entries);
+    this.unshift(tailText.changeset, entries);
+
+    this._tailRevision = tailText.revision;
 
     const addedEntriesCount = this._entries.length - beforeEntriesCount;
     this.lastExecutedIndex.server += addedEntriesCount;

@@ -7,7 +7,6 @@ import { CollabClient, CollabClientEvents } from './collab-client';
 import { CollabHistory, LocalChangesetEditorHistoryEvents } from './collab-history';
 import { OrderedMessageBuffer, ProcessingEvents } from '~utils/ordered-message-buffer';
 
-import { EditorRecordsHistoryRestore } from './editor-records-history-restore';
 import {
   RevisionChangeset,
   ServerRevisionRecord,
@@ -87,13 +86,12 @@ export interface CollabEditorOptions {
 export class CollabEditor {
   readonly userId?: string;
 
-  private _client: CollabClient;
-  private recordsBuffer: OrderedMessageBuffer<UnprocessedRecord>;
   private serverRecords: RevisionTailRecords<EditorRevisionRecord>;
+  private recordsBuffer: OrderedMessageBuffer<UnprocessedRecord>;
+
+  private _client: CollabClient;
   private _history: CollabHistory;
-  private historyRestorer: EditorRecordsHistoryRestore<EditorRevisionRecord>;
   private submittedRecord: SubmittedRecord | null = null;
-  
 
   private generateSubmitId: () => string;
 
@@ -107,11 +105,11 @@ export class CollabEditor {
     return this.serverRecords.tailRevision;
   }
 
-  get client(): Pick<CollabClient, 'server' | 'submitted' | 'local' | 'view'>{
+  get client(): Pick<CollabClient, 'server' | 'submitted' | 'local' | 'view'> {
     return this._client;
   }
 
-  get history(): Pick<CollabHistory, 'localIndex' | 'entries'>{
+  get history(): Pick<CollabHistory, 'localIndex' | 'entries'> {
     return this._history;
   }
 
@@ -175,6 +173,7 @@ export class CollabEditor {
         this.submittedRecord?.processExternalChangeEvent(event);
       }
     });
+
     // Store known records from server
     this.serverRecords = new RevisionTailRecords();
 
@@ -183,14 +182,8 @@ export class CollabEditor {
       options?.history ??
       new CollabHistory({
         client: this._client,
+        tailRevision: headText.revision,
       });
-
-    // Restores history from server records
-    this.historyRestorer = new EditorRecordsHistoryRestore({
-      history: this._history,
-      records: this.serverRecords,
-      historyTailRevision: headText.revision,
-    });
 
     // Link events
     this.eventBus = options?.eventBus ?? mitt();
@@ -317,8 +310,12 @@ export class CollabEditor {
    * Restores up to {@link desiredRestoreCount} history entries. Server records
    * must be available. Add them using method {@link addServerRecords}.
    */
-  historyRestore(desiredRestoreCount: number): number | false {
-    return this.historyRestorer.restore(desiredRestoreCount, this.userId);
+  historyRestore(desiredRestoreCount: number): number | undefined {
+    return this._history.restoreFromServerRecords(
+      this.serverRecords,
+      desiredRestoreCount,
+      this.userId
+    );
   }
 
   /**
