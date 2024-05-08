@@ -87,12 +87,13 @@ export interface CollabEditorOptions {
 export class CollabEditor {
   readonly userId?: string;
 
-  private client: CollabClient;
+  private _client: CollabClient;
   private recordsBuffer: OrderedMessageBuffer<UnprocessedRecord>;
   private serverRecords: RevisionTailRecords<EditorRevisionRecord>;
   private history: CollabHistory;
   private historyRestorer: EditorRecordsHistoryRestore<EditorRevisionRecord>;
   private submittedRecord: SubmittedRecord | null = null;
+  
 
   private generateSubmitId: () => string;
 
@@ -107,22 +108,8 @@ export class CollabEditor {
     return this.recordsBuffer.currentVersion;
   }
 
-  // TODO rename to something more clear
-  get textServer() {
-    return this.client.server;
-  }
-
-  // TODO expose submittedrecord too?
-  get textSubmitted() {
-    return this.client.submitted;
-  }
-
-  get textLocal() {
-    return this.client.local;
-  }
-
-  get textView() {
-    return this.client.view;
+  get client(): Pick<CollabClient, 'server' | 'submitted' | 'local' | 'view'>{
+    return this._client;
   }
 
   get recordsTailRevision() {
@@ -172,12 +159,12 @@ export class CollabEditor {
     this.generateSubmitId = options?.generateSubmitId ?? (() => nanoid(6));
 
     // Local, submitted, server changesets
-    this.client =
+    this._client =
       options?.client ??
       new CollabClient({
         server: headText.changeset,
       });
-    this.client.eventBus.on('viewChanged', ({ view }) => {
+    this._client.eventBus.on('viewChanged', ({ view }) => {
       this._viewText = view.strips.joinInsertions();
     });
 
@@ -193,10 +180,10 @@ export class CollabEditor {
 
       if (message.type == UnprocessedRecordType.SubmittedAcknowleged) {
         this.submittedRecord = null;
-        this.client.submittedChangesAcknowledged();
+        this._client.submittedChangesAcknowledged();
       } else {
         // message.type === UnprocessedRecordType.ExternalChange
-        const event = this.client.handleExternalChange(message.record.changeset);
+        const event = this._client.handleExternalChange(message.record.changeset);
         this.submittedRecord?.processExternalChangeEvent(event);
       }
     });
@@ -207,7 +194,7 @@ export class CollabEditor {
     this.history =
       options?.history ??
       new CollabHistory({
-        client: this.client,
+        client: this._client,
       });
 
     // Restores history from server records
@@ -220,7 +207,7 @@ export class CollabEditor {
     // Link events
     this.eventBus = options?.eventBus ?? mitt();
 
-    this.client.eventBus.on('*', (type, e) => {
+    this._client.eventBus.on('*', (type, e) => {
       this.eventBus.emit(type, e);
     });
 
@@ -239,7 +226,7 @@ export class CollabEditor {
       });
 
       let hadExternalChanges = false;
-      const unsubHandledExternalChange = this.client.eventBus.on(
+      const unsubHandledExternalChange = this._client.eventBus.on(
         'handledExternalChange',
         (e) => {
           processingBus.emit('handledExternalChange', e);
@@ -266,21 +253,21 @@ export class CollabEditor {
     this.recordsBuffer.eventBus.on('messagesProcessed', () => {
       this.eventBus.emit('revisionChanged', {
         revision: this.revision,
-        changeset: this.client.server,
+        changeset: this._client.server,
       });
     });
   }
 
   haveSubmittedChanges() {
-    return this.client.haveSubmittedChanges();
+    return this._client.haveSubmittedChanges();
   }
 
   haveLocalChanges() {
-    return this.client.haveLocalChanges();
+    return this._client.haveLocalChanges();
   }
 
   canSubmitChanges() {
-    return this.client.canSubmitChanges();
+    return this._client.canSubmitChanges();
   }
 
   /**
@@ -290,14 +277,14 @@ export class CollabEditor {
    * Either due to existing submitted changes or no local changes exist.
    */
   submitChanges(): SubmittedRevisionRecord | undefined | null {
-    if (this.client.submitChanges()) {
+    if (this._client.submitChanges()) {
       const lastEntry = this.history.at(-1);
       if (!lastEntry) return;
 
       this.submittedRecord = new SubmittedRecord({
         userGeneratedId: this.generateSubmitId(),
         revision: this.revision,
-        changeset: this.client.submitted,
+        changeset: this._client.submitted,
         beforeSelection: lastEntry.undo.selection,
         afterSelection: lastEntry.execute.selection,
       });

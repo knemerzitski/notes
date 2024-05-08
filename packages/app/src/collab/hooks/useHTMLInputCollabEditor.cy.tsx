@@ -23,7 +23,7 @@ function InputEditing() {
 function submitLocalChanges() {
   editor.submitChanges();
   editor.submittedChangesAcknowledged({
-    changeset: editor.textSubmitted,
+    changeset: editor.client.submitted,
     revision: editor.revision + 1,
   });
 }

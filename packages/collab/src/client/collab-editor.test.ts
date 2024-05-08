@@ -19,10 +19,10 @@ describe('constructor', () => {
     });
 
     expect(editor.revision).toStrictEqual(4);
-    expect(editor.textServer.toString()).toStrictEqual(cs('initial text').toString());
-    expect(editor.textSubmitted.toString()).toStrictEqual(cs([0, 11]).toString());
-    expect(editor.textLocal.toString()).toStrictEqual(cs([0, 11]).toString());
-    expect(editor.textView.toString()).toStrictEqual(cs('initial text').toString());
+    expect(editor.client.server.toString()).toStrictEqual(cs('initial text').toString());
+    expect(editor.client.submitted.toString()).toStrictEqual(cs([0, 11]).toString());
+    expect(editor.client.local.toString()).toStrictEqual(cs([0, 11]).toString());
+    expect(editor.client.view.toString()).toStrictEqual(cs('initial text').toString());
     expect(editor.viewText).toStrictEqual('initial text');
   });
 });
@@ -58,8 +58,8 @@ describe('submitChanges', () => {
     const changes = editor.submitChanges();
 
     expect(changes).containSubset({ revision: -1, changeset: cs('first insert') });
-    expect(editor.textSubmitted).toStrictEqual(changeset);
-    expect(editor.textLocal).toStrictEqual(changeset.getIdentity());
+    expect(editor.client.submitted).toStrictEqual(changeset);
+    expect(editor.client.local).toStrictEqual(changeset.getIdentity());
   });
 });
 
@@ -72,8 +72,8 @@ describe('handleSubmittedChangesAcknowledged', () => {
     const submitRecord = editor.submitChanges();
     assert(submitRecord != null);
 
-    expect(editor.textServer).toStrictEqual(Changeset.EMPTY);
-    expect(editor.textSubmitted).toStrictEqual(submitRecord.changeset);
+    expect(editor.client.server).toStrictEqual(Changeset.EMPTY);
+    expect(editor.client.submitted).toStrictEqual(submitRecord.changeset);
     expect(editor.revision).toStrictEqual(-1);
 
     editor.submittedChangesAcknowledged({
@@ -81,8 +81,8 @@ describe('handleSubmittedChangesAcknowledged', () => {
       revision: 0,
     });
 
-    expect(editor.textServer).toStrictEqual(submitRecord.changeset);
-    expect(editor.textSubmitted).toStrictEqual(submitRecord.changeset.getIdentity());
+    expect(editor.client.server).toStrictEqual(submitRecord.changeset);
+    expect(editor.client.submitted).toStrictEqual(submitRecord.changeset.getIdentity());
     expect(editor.revision).toStrictEqual(0);
   });
 
@@ -148,16 +148,16 @@ describe('handleExternalChange', () => {
       changeset: cs('external before - ', [0, 5], ' - external after'),
     });
 
-    expect(editor.textServer.toString()).toStrictEqual(
+    expect(editor.client.server.toString()).toStrictEqual(
       cs('external before - server - external after').toString()
     );
-    expect(editor.textSubmitted.toString()).toStrictEqual(
+    expect(editor.client.submitted.toString()).toStrictEqual(
       cs([0, 23], '; submitted', [24, 40]).toString()
     );
-    expect(editor.textLocal.toString()).toStrictEqual(
+    expect(editor.client.local.toString()).toStrictEqual(
       cs([0, 34], '; local; more', [35, 51]).toString()
     );
-    expect(editor.textView.toString()).toStrictEqual(
+    expect(editor.client.view.toString()).toStrictEqual(
       cs('external before - server; submitted; local; more - external after').toString()
     );
     expect(editor.revision).toStrictEqual(1);
