@@ -68,6 +68,13 @@ export type UnprocessedRecord =
   | { type: UnprocessedRecordType.SubmittedAcknowleged; record: EditorRevisionRecord }
   | { type: UnprocessedRecordType.ExternalChange; record: EditorRevisionRecord };
 
+export interface HistoryOperationOptions {
+  /**
+   * Merge text into latest history entry.
+   */
+  merge: boolean;
+}
+
 export interface CollabEditorOptions {
   initialText?:
     | { headText: RevisionChangeset }
@@ -322,21 +329,47 @@ export class CollabEditor {
    * Insert text after caret position.
    * Anything selected is deleted.
    */
-  insertText(insertText: string, selection: SelectionRange) {
-    // TODO add option to merge change into existing history entry...
-    this._history.pushChangesetOperation(
-      insertionOperation(insertText, this.viewText, selection)
-    );
+  insertText(
+    insertText: string,
+    selection: SelectionRange,
+    options?: HistoryOperationOptions
+  ) {
+    const op = insertionOperation(insertText, this.viewText, selection);
+    if (options?.merge) {
+      this.historyMergedCall(() => {
+        this._history.pushChangesetOperation(op);
+      });
+    } else {
+      this._history.pushChangesetOperation(op);
+    }
+  }
+
+  private historyMergedCall(fn: () => void) {
+    const beforeIndex = this._history.localIndex;
+    fn();
+    const afterIndex = this._history.localIndex;
+    this._history.merge(beforeIndex, afterIndex);
   }
 
   /**
    * Delete based on current caret position towards left (Same as pressing backspace on a keyboard).
    * Anything selected is deleted and counts as 1 {@link count}.
    */
-  deleteTextCount(count = 1, selection: SelectionRange) {
+  deleteTextCount(
+    count = 1,
+    selection: SelectionRange,
+    options?: HistoryOperationOptions
+  ) {
     const op = deletionCountOperation(count, this.viewText, selection);
     if (!op) return;
-    this._history.pushChangesetOperation(op);
+
+    if (options?.merge) {
+      this.historyMergedCall(() => {
+        this._history.pushChangesetOperation(op);
+      });
+    } else {
+      this._history.pushChangesetOperation(op);
+    }
   }
 
   undo() {

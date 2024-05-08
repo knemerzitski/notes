@@ -3,7 +3,7 @@ import { CollabEditor } from '../client/collab-editor';
 
 import { ServerRevisionRecord } from '../records/record';
 import { RevisionTailRecords } from '../records/revision-tail-records';
-import { createServerClientsHelper } from './helpers/server-client';
+import { createHelperCollabEditingEnvironment } from './helpers/server-client';
 import { addEditorFilters } from '../records/editor-revision-records';
 import { Entry } from '../client/collab-history';
 
@@ -21,12 +21,12 @@ function historyEntriesInfo(entries: Readonly<Entry[]>) {
 }
 
 describe('persist history in revision records', () => {
-  let helper: ReturnType<typeof createServerClientsHelper<'A' | 'B'>>;
+  let helper: ReturnType<typeof createHelperCollabEditingEnvironment<'A' | 'B'>>;
 
   beforeEach(() => {
     const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>();
     addEditorFilters(revisionTailRecords);
-    helper = createServerClientsHelper(revisionTailRecords, ['A', 'B']);
+    helper = createHelperCollabEditingEnvironment(revisionTailRecords, ['A', 'B']);
   });
 
   it('restores history from server records containing two users', () => {
@@ -59,13 +59,13 @@ describe('persist history in revision records', () => {
       initialText: {
         headText: server.instance.getHeadText(),
       },
-      userId: client.B.instance.userId,
+      userId: client.B.editor.userId,
     });
 
     restoredEditorB.addServerRecords(server.instance.records);
-    restoredEditorB.historyRestore(client.B.instance.history.entries.length);
+    restoredEditorB.historyRestore(client.B.editor.history.entries.length);
 
-    expect(historyEntriesInfo(client.B.instance.history.entries)).toStrictEqual(
+    expect(historyEntriesInfo(client.B.editor.history.entries)).toStrictEqual(
       historyEntriesInfo(restoredEditorB.history.entries)
     );
   });
@@ -90,14 +90,14 @@ describe('persist history in revision records', () => {
       initialText: {
         headText: server.instance.getHeadText(),
       },
-      userId: client.B.instance.userId,
+      userId: client.B.editor.userId,
     });
 
     restoredEditorB.addServerRecords(server.instance.records);
-    restoredEditorB.historyRestore(client.B.instance.history.entries.length);
+    restoredEditorB.historyRestore(client.B.editor.history.entries.length);
 
     expect(historyEntriesInfo(restoredEditorB.history.entries)).toStrictEqual(
-      historyEntriesInfo(client.B.instance.history.entries)
+      historyEntriesInfo(client.B.editor.history.entries)
     );
   });
 });

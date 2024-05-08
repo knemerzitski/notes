@@ -167,7 +167,7 @@ export class CollabHistory {
     return this.entries[index];
   }
 
-  public pushChangesetOperation({
+  pushChangesetOperation({
     changeset,
     inverseChangeset,
     selection,

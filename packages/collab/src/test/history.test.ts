@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { RevisionTailRecords } from '../records/revision-tail-records';
 import { ServerRevisionRecord } from '../records/record';
-import { createServerClientsHelper } from './helpers/server-client';
+import { createHelperCollabEditingEnvironment } from './helpers/server-client';
 import { addEditorFilters } from '../records/editor-revision-records';
 import { Changeset } from '../changeset/changeset';
 import { CollabClient } from '../client/collab-client';
@@ -11,12 +11,12 @@ import { CollabHistory } from '../client/collab-history';
 const cs = (...values: unknown[]) => Changeset.parseValue(values);
 
 describe('single client', () => {
-  let helper: ReturnType<typeof createServerClientsHelper<'A'>>;
+  let helper: ReturnType<typeof createHelperCollabEditingEnvironment<'A'>>;
 
   beforeEach(() => {
     const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>();
     addEditorFilters(revisionTailRecords);
-    helper = createServerClientsHelper(revisionTailRecords, ['A']);
+    helper = createHelperCollabEditingEnvironment(revisionTailRecords, ['A']);
   });
 
   it('undo, redo retains selection', () => {
@@ -30,9 +30,9 @@ describe('single client', () => {
     client.A.deleteTextCount();
     expect(client.A.valueWithSelection()).toStrictEqual('hello > world');
 
-    client.A.instance.undo();
+    client.A.editor.undo();
     expect(client.A.valueWithSelection()).toStrictEqual('hello >between< world');
-    client.A.instance.redo();
+    client.A.editor.redo();
     expect(client.A.valueWithSelection()).toStrictEqual('hello > world');
   });
 
@@ -298,12 +298,12 @@ describe('single client', () => {
 });
 
 describe('two clients', () => {
-  let helper: ReturnType<typeof createServerClientsHelper<'A' | 'B'>>;
+  let helper: ReturnType<typeof createHelperCollabEditingEnvironment<'A' | 'B'>>;
 
   beforeEach(() => {
     const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>();
     addEditorFilters(revisionTailRecords);
-    helper = createServerClientsHelper(revisionTailRecords, ['A', 'B']);
+    helper = createHelperCollabEditingEnvironment(revisionTailRecords, ['A', 'B']);
   });
 
   it('handles undo, redo of local changes', () => {
@@ -315,10 +315,10 @@ describe('two clients', () => {
     client.A.submitChangesInstant();
 
     expect(client.A.valueWithSelection()).toStrictEqual('hello between >world');
-    client.A.instance.undo();
+    client.A.editor.undo();
     expect(client.A.valueWithSelection()).toStrictEqual('hello >world');
     client.A.setCaretPosition(0);
-    client.A.instance.redo();
+    client.A.editor.redo();
     expect(client.A.valueWithSelection()).toStrictEqual('hello between >world');
 
     client.B.setCaretPosition(0);
@@ -328,13 +328,13 @@ describe('two clients', () => {
     helper.expectTextsConverted('ALL: [1>]hello between [0>]world');
 
     client.A.setCaretPosition(-1);
-    client.A.instance.undo();
+    client.A.editor.undo();
     expect(client.A.valueWithSelection()).toStrictEqual('ALL: hello >world');
-    client.A.instance.undo();
+    client.A.editor.undo();
     expect(client.A.valueWithSelection()).toStrictEqual('ALL: >');
-    client.A.instance.redo();
+    client.A.editor.redo();
     expect(client.A.valueWithSelection()).toStrictEqual('ALL: hello world>');
-    client.A.instance.redo();
+    client.A.editor.redo();
     expect(client.A.valueWithSelection()).toStrictEqual('ALL: hello between >world');
   });
 });

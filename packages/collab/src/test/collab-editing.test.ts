@@ -2,19 +2,19 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { RevisionTailRecords } from '../records/revision-tail-records';
 import { ServerRevisionRecord } from '../records/record';
-import { createServerClientsHelper } from './helpers/server-client';
+import { createHelperCollabEditingEnvironment } from './helpers/server-client';
 import { addEditorFilters } from '../records/editor-revision-records';
 import { Changeset } from '../changeset/changeset';
 
 const cs = (...values: unknown[]) => Changeset.parseValue(values);
 
 describe('single client', () => {
-  let helper: ReturnType<typeof createServerClientsHelper<'A'>>;
+  let helper: ReturnType<typeof createHelperCollabEditingEnvironment<'A'>>;
 
   beforeEach(() => {
     const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>();
     addEditorFilters(revisionTailRecords);
-    helper = createServerClientsHelper(revisionTailRecords, ['A']);
+    helper = createHelperCollabEditingEnvironment(revisionTailRecords, ['A']);
   });
 
   it('processes "hello world"', () => {
@@ -105,15 +105,26 @@ describe('single client', () => {
       '(0 -> 72)["[EXTERNAL][e1][BETWEEN][e2][e3][somewhere][e4][e5][e6][e7][e8][EXTERNAL]"]'
     );
   });
+
+  it('merges history entries with option set', () => {
+    const { client } = helper;
+
+    client.A.insertText('hello world');
+    client.A.insertText(' one', { merge: true });
+    expect(client.A.valueWithSelection()).toStrictEqual('hello world one>');
+    expect(client.A.editor.history.entries).toHaveLength(1);
+    client.A.editor.undo();
+    expect(client.A.valueWithSelection()).toStrictEqual('>');
+  });
 });
 
 describe('two clients', () => {
-  let helper: ReturnType<typeof createServerClientsHelper<'A' | 'B'>>;
+  let helper: ReturnType<typeof createHelperCollabEditingEnvironment<'A' | 'B'>>;
 
   beforeEach(() => {
     const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>();
     addEditorFilters(revisionTailRecords);
-    helper = createServerClientsHelper(revisionTailRecords, ['A', 'B']);
+    helper = createHelperCollabEditingEnvironment(revisionTailRecords, ['A', 'B']);
   });
 
   it('converges 2 changes at the same time', () => {
@@ -221,12 +232,12 @@ describe('two clients', () => {
 });
 
 describe('three clients', () => {
-  let helper: ReturnType<typeof createServerClientsHelper<'A' | 'B' | 'C'>>;
+  let helper: ReturnType<typeof createHelperCollabEditingEnvironment<'A' | 'B' | 'C'>>;
 
   beforeEach(() => {
     const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>();
     addEditorFilters(revisionTailRecords);
-    helper = createServerClientsHelper(revisionTailRecords, ['A', 'B', 'C']);
+    helper = createHelperCollabEditingEnvironment(revisionTailRecords, ['A', 'B', 'C']);
   });
 
   it(`converges 3 changes at the same time'`, () => {

@@ -1,6 +1,6 @@
 import mapObject, { mapObjectSkip } from 'map-obj';
 import { assert, expect } from 'vitest';
-import { CollabEditor } from '../../client/collab-editor';
+import { CollabEditor, HistoryOperationOptions } from '../../client/collab-editor';
 import { ServerRevisionRecord } from '../../records/record';
 import { RevisionTailRecords } from '../../records/revision-tail-records';
 import {
@@ -11,7 +11,7 @@ import { CollabClient } from '../../client/collab-client';
 import { CollabHistory } from '../../client/collab-history';
 import { newSelectionRange } from './collab-editor-selection-range';
 
-export function createServerClientsHelper<TClientName extends string>(
+export function createHelperCollabEditingEnvironment<TClientName extends string>(
   server: RevisionTailRecords<ServerRevisionRecord>,
   clientNames: TClientName[]
 ) {
@@ -99,7 +99,7 @@ export function createServerClientsHelper<TClientName extends string>(
 function createCollabEditorHelper(editor: CollabEditor) {
   const { selectionRange } = newSelectionRange(editor);
   return {
-    instance: editor,
+    editor,
     valueWithSelection: () => getValueWithSelection(editor, selectionRange),
     setCaretFromValue: (textWithCursors: string) => {
       const pos1 = textWithCursors.indexOf('>');
@@ -115,11 +115,11 @@ function createCollabEditorHelper(editor: CollabEditor) {
     setCaretPosition(pos: number) {
       selectionRange.set(pos);
     },
-    insertText(value: string) {
-      editor.insertText(value, selectionRange);
+    insertText(value: string, options?: HistoryOperationOptions) {
+      editor.insertText(value, selectionRange, options);
     },
-    deleteTextCount(count = 1) {
-      editor.deleteTextCount(count, selectionRange);
+    deleteTextCount(count = 1, options?: HistoryOperationOptions) {
+      editor.deleteTextCount(count, selectionRange, options);
     },
   };
 }
