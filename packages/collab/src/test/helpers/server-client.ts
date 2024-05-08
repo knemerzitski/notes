@@ -8,7 +8,7 @@ import {
   parseTextWithMultipleSelections,
 } from './text-with-selection';
 import { CollabClient } from '../../client/collab-client';
-import { LocalChangesetEditorHistory } from '../../client/local-changeset-editor-history';
+import { CollabHistory } from '../../client/collab-history';
 import { newSelectionRange } from './collab-editor-selection-range';
 
 export function createServerClientsHelper<TClientName extends string>(
@@ -18,7 +18,7 @@ export function createServerClientsHelper<TClientName extends string>(
   const clientMap = clientNames
     .map((name) => {
       const client = new CollabClient();
-      const history = new LocalChangesetEditorHistory({
+      const history = new CollabHistory({
         client,
       });
       return [
@@ -37,7 +37,7 @@ export function createServerClientsHelper<TClientName extends string>(
         {
           client: CollabClient;
           editor: CollabEditor;
-          history: LocalChangesetEditorHistory;
+          history: CollabHistory;
         },
       ];
     })
@@ -52,7 +52,7 @@ export function createServerClientsHelper<TClientName extends string>(
         {
           client: CollabClient;
           editor: CollabEditor;
-          history: LocalChangesetEditorHistory;
+          history: CollabHistory;
         }
       >
     );

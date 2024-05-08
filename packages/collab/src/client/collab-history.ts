@@ -1,8 +1,18 @@
 import mitt, { Emitter } from '~utils/mitt-unsub';
-import { Changeset } from '../changeset/changeset';
 
-import { PartialBy } from '~utils/types';
+import { Changeset } from '../changeset/changeset';
+import { CollabClient } from './collab-client';
+
+import { ChangesetOperation } from './changeset-operations';
 import { SelectionRange } from './selection-range';
+import { PartialBy } from '~utils/types';
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type LocalChangesetEditorHistoryEvents = {
+  appliedTypingOperation: {
+    operation: Operation;
+  };
+};
 
 export interface Operation {
   changeset: Changeset;
@@ -33,23 +43,19 @@ export type AnyEntry = AddEntry | TailEntry;
 
 type AnyEntryWithUndo = AnyEntry & { undo: Pick<Operation, 'changeset'> };
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type Events = {
-  entryAtIndexDeleted: {
-    /**
-     * Entry was in entries at this index
-     */
-    index: number;
-  };
-};
-
-export interface TailTextHistoryOptions {
-  tail?: Changeset;
-  eventBus?: Emitter<Events>;
+interface LocalChangesetEditorHistoryOptions {
+  eventBus?: Emitter<LocalChangesetEditorHistoryEvents>;
+  client?: CollabClient;
 }
 
-export class TailTextHistory {
-  readonly eventBus: Emitter<Events>;
+/**
+ * Maintains a history of {@link CollabClient.local} changeset.
+ * External changes alter history as if change has always been there.
+ */
+export class CollabHistory {
+  readonly eventBus: Emitter<LocalChangesetEditorHistoryEvents>;
+
+  private client: CollabClient;
 
   private _entries: Entry[] = [];
   get entries(): Readonly<Entry[]> {
@@ -58,7 +64,7 @@ export class TailTextHistory {
 
   private _tailText = Changeset.EMPTY;
   /**
-   * History entries are composed on this text.
+   * History entries are are composed starting from this changeset
    */
   get tailText() {
     return this._tailText;
@@ -66,17 +72,65 @@ export class TailTextHistory {
 
   private tailComposition: Changeset | undefined;
 
-  constructor(options?: TailTextHistoryOptions) {
-    if (options?.tail) {
-      this._tailText = options.tail;
-      if (!this._tailText.hasOnlyInsertions()) {
-        throw new Error(
-          `Expected tailText to only contain insertions but is ${String(this._tailText)}`
-        );
-      }
-    }
+  private lastExecutedIndex = {
+    server: -1,
+    submitted: -1,
+    local: -1,
+  };
 
+  /**
+   * Entry index that matches CollabClient.server after execute
+   */
+  get serverIndex() {
+    return this.lastExecutedIndex.server;
+  }
+
+  /**
+   * Entry index that maches CollabClient.submitted after execute
+   */
+  get submittedIndex() {
+    return this.lastExecutedIndex.submitted;
+  }
+
+  /**
+   * Entry index that maches CollabClient.local after execute
+   */
+  get localIndex() {
+    return this.lastExecutedIndex.local;
+  }
+
+  private unsubscribeFromEvents: () => void;
+
+  constructor(options?: LocalChangesetEditorHistoryOptions) {
     this.eventBus = options?.eventBus ?? mitt();
+    this.client = options?.client ?? new CollabClient();
+
+    this._tailText = this.client.server;
+
+    const subscribedListeners = [
+      this.client.eventBus.on('submitChanges', () => {
+        this.lastExecutedIndex.submitted = this.lastExecutedIndex.local;
+      }),
+      this.client.eventBus.on('submittedChangesAcknowledged', () => {
+        this.lastExecutedIndex.server = this.lastExecutedIndex.submitted;
+      }),
+      this.client.eventBus.on('handledExternalChange', ({ externalChange }) => {
+        this.adjustHistoryToExternalChange(externalChange);
+      }),
+    ];
+
+    this.unsubscribeFromEvents = () => {
+      subscribedListeners.forEach((unsub) => {
+        unsub();
+      });
+    };
+  }
+
+  /**
+   * Removes event listeners from client. This instance becomes useless.
+   */
+  cleanUp() {
+    this.unsubscribeFromEvents();
   }
 
   /**
@@ -84,6 +138,100 @@ export class TailTextHistory {
    */
   getHeadText() {
     return this.entries.reduce((a, b) => a.compose(b.execute.changeset), this._tailText);
+  }
+
+  /**
+   *
+   * @param index Negative index counts from end of entries. -1 is last entry.
+   * @returns
+   */
+  at(index: number): Entry | undefined {
+    if (index < 0) {
+      index += this.entries.length;
+    }
+
+    return this.entries[index];
+  }
+
+  public pushChangesetOperation({
+    changeset,
+    inverseChangeset,
+    selection,
+    inverseSelection,
+  }: ChangesetOperation) {
+    const entry: Entry = {
+      execute: {
+        changeset,
+        selection,
+      },
+      undo: {
+        changeset: inverseChangeset,
+        selection: inverseSelection,
+      },
+    };
+
+    this.deleteNewerEntries(this.lastExecutedIndex.local);
+
+    this.push([entry]);
+    this.redo(); // applies pushed entry
+  }
+
+  /**
+   * @param tailText First element in {@link entries} is composable on {@link entries}.
+   * @param entries Text entries.
+   */
+  restoreHistoryEntries(tailText: Changeset, entries: AnyEntry[]) {
+    const beforeEntriesCount = this._entries.length;
+
+    this.unshift(tailText, entries);
+
+    const addedEntriesCount = this._entries.length - beforeEntriesCount;
+    this.lastExecutedIndex.server += addedEntriesCount;
+    this.lastExecutedIndex.submitted += addedEntriesCount;
+    this.lastExecutedIndex.local += addedEntriesCount;
+
+    return addedEntriesCount;
+  }
+
+  undo() {
+    const entry = this._entries[this.lastExecutedIndex.local];
+    if (entry) {
+      this.lastExecutedIndex.local--;
+      this.applyTypingOperation(entry.undo);
+    }
+  }
+
+  redo() {
+    const entry = this._entries[this.lastExecutedIndex.local + 1];
+    if (entry) {
+      this.lastExecutedIndex.local++;
+      this.applyTypingOperation(entry.execute);
+    }
+  }
+
+  private applyTypingOperation(op: Operation) {
+    this.client.composeLocalChange(op.changeset);
+    this.eventBus.emit('appliedTypingOperation', { operation: op });
+  }
+
+  private adjustHistoryToExternalChange(externalChangeset: Changeset) {
+    if (this.lastExecutedIndex.server >= 0) {
+      this.composeOnAllEntries(externalChangeset, this.lastExecutedIndex.server);
+    } else {
+      this.composeOnAllEntries(externalChangeset, this.client.server);
+    }
+  }
+
+  private entryAtIndexDeleted(index: number) {
+    if (index <= this.lastExecutedIndex.local) {
+      this.lastExecutedIndex.local--;
+    }
+    if (index <= this.lastExecutedIndex.submitted) {
+      this.lastExecutedIndex.submitted--;
+    }
+    if (index <= this.lastExecutedIndex.server) {
+      this.lastExecutedIndex.server--;
+    }
   }
 
   /**
@@ -108,9 +256,7 @@ export class TailTextHistory {
     ];
 
     for (let i = endIndex; i > startIndex; i--) {
-      this.eventBus.emit('entryAtIndexDeleted', {
-        index: i,
-      });
+      this.entryAtIndexDeleted(i);
     }
 
     return true;
@@ -131,9 +277,7 @@ export class TailTextHistory {
     this._tailText = mergedTailText;
 
     for (let i = count - 1; i >= 0; i--) {
-      this.eventBus.emit('entryAtIndexDeleted', {
-        index: i,
-      });
+      this.entryAtIndexDeleted(i);
     }
 
     return true;
@@ -278,7 +422,18 @@ export class TailTextHistory {
   }
 
   deleteNewerEntries(keepEntryIndex: number) {
-    this._entries = this._entries.slice(0, keepEntryIndex + 1);
+    if (0 <= keepEntryIndex && keepEntryIndex < this._entries.length - 1) {
+      this._entries = this._entries.slice(0, keepEntryIndex + 1);
+
+      this.lastExecutedIndex.submitted = Math.min(
+        this.lastExecutedIndex.submitted,
+        keepEntryIndex
+      );
+      this.lastExecutedIndex.server = Math.min(
+        this.lastExecutedIndex.server,
+        this.lastExecutedIndex.submitted
+      );
+    }
   }
 
   /**
@@ -414,9 +569,7 @@ export class TailTextHistory {
       const entry = this.getEntry(i);
       if (entry.execute.changeset.isEqual(entry.undo.changeset)) {
         this._entries.splice(i, 1);
-        this.eventBus.emit('entryAtIndexDeleted', {
-          index: i,
-        });
+        this.entryAtIndexDeleted(i);
       }
     }
   }

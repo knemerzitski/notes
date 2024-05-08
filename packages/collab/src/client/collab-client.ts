@@ -62,8 +62,12 @@ export enum ChangeSource {
 }
 
 interface CollabClientOptions {
-  initialServerText?: Changeset;
   eventBus?: Emitter<CollabClientEvents>;
+
+  server?: Changeset;
+  submitted?: Changeset;
+  local?: Changeset;
+  view?: Changeset;
 }
 
 export class CollabClient {
@@ -90,20 +94,13 @@ export class CollabClient {
   }
 
   constructor(options?: CollabClientOptions) {
-    const serverText = options?.initialServerText ?? Changeset.EMPTY;
-    if (!serverText.hasOnlyInsertions()) {
-      throw new Error(
-        `Expected initialServerText to only contain insertions but is ${String(
-          serverText
-        )}`
-      );
-    }
     this.eventBus = options?.eventBus ?? mitt();
 
-    this._server = serverText;
-    this._submitted = serverText.getIdentity();
-    this._local = serverText.getIdentity();
-    this._view = serverText;
+    this._server = options?.server ?? Changeset.EMPTY;
+    this._submitted = options?.submitted ?? this._server.getIdentity();
+    this._local = options?.local ?? this._submitted.getIdentity();
+    this._view =
+      options?.view ?? this._server.compose(this._submitted).compose(this._local);
   }
 
   private getSubmittedView() {

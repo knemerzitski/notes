@@ -1,6 +1,6 @@
 import { ServerRevisionRecord } from '../records/record';
 import { RevisionTailRecords } from '../records/revision-tail-records';
-import { LocalChangesetEditorHistory } from './local-changeset-editor-history';
+import { CollabHistory } from './collab-history';
 
 type Record = Pick<ServerRevisionRecord, 'changeset' | 'revision'> &
   Partial<
@@ -13,13 +13,13 @@ export interface EditorRecordsHistoryRestoreProps<TRecord extends Record> {
    * Revision of oldest history entry. Initially historyTailRevision is headRevision without any history entries.
    */
   historyTailRevision: number;
-  history: LocalChangesetEditorHistory;
+  history: CollabHistory;
 }
 
 export class EditorRecordsHistoryRestore<TRecord extends Record> {
   private serverRecords: RevisionTailRecords<TRecord>;
   private historyTailRevision: number;
-  private history: LocalChangesetEditorHistory;
+  private history: CollabHistory;
 
   constructor(props: EditorRecordsHistoryRestoreProps<TRecord>) {
     this.serverRecords = props.records;
@@ -27,6 +27,7 @@ export class EditorRecordsHistoryRestore<TRecord extends Record> {
     this.history = props.history;
   }
 
+  // this should an utility that takes server and history? or just in editor?
   restore(
     desiredRestoreCount: number,
     targetUserId?: string | symbol,

@@ -4,10 +4,7 @@ import mitt, { Emitter } from '~utils/mitt-unsub';
 import { Changeset } from '../changeset/changeset';
 import { CollabClient, CollabClientEvents } from './collab-client';
 
-import {
-  LocalChangesetEditorHistory,
-  LocalChangesetEditorHistoryEvents,
-} from './local-changeset-editor-history';
+import { CollabHistory, LocalChangesetEditorHistoryEvents } from './collab-history';
 import { OrderedMessageBuffer, ProcessingEvents } from '~utils/ordered-message-buffer';
 
 import { EditorRecordsHistoryRestore } from './editor-records-history-restore';
@@ -19,10 +16,7 @@ import {
 import { RevisionTailRecords } from '../records/revision-tail-records';
 import { nanoid } from 'nanoid';
 import { PartialBy } from '~utils/types';
-import {
-  deletionCountOperation,
-  insertionOperation,
-} from './changeset-operations';
+import { deletionCountOperation, insertionOperation } from './changeset-operations';
 import { SelectionRange } from './selection-range';
 import { SubmittedRecord } from './submitted-record';
 import { OrderedMessageBufferEvents } from '~utils/ordered-message-buffer';
@@ -87,7 +81,7 @@ export interface CollabEditorOptions {
   eventBus?: Emitter<CollabEditorEvents>;
   generateSubmitId?: () => string;
   client?: CollabClient;
-  history?: LocalChangesetEditorHistory;
+  history?: CollabHistory;
 }
 
 export class CollabEditor {
@@ -96,7 +90,7 @@ export class CollabEditor {
   private client: CollabClient;
   private recordsBuffer: OrderedMessageBuffer<UnprocessedRecord>;
   private serverRecords: RevisionTailRecords<EditorRevisionRecord>;
-  private history: LocalChangesetEditorHistory;
+  private history: CollabHistory;
   private historyRestorer: EditorRecordsHistoryRestore<EditorRevisionRecord>;
   private submittedRecord: SubmittedRecord | null = null;
 
@@ -140,7 +134,7 @@ export class CollabEditor {
   }
 
   get historyCurrentIndex() {
-    return this.history.currentIndex;
+    return this.history.localIndex;
   }
 
   get historyEntryCount() {
@@ -181,7 +175,7 @@ export class CollabEditor {
     this.client =
       options?.client ??
       new CollabClient({
-        initialServerText: headText.changeset,
+        server: headText.changeset,
       });
     this.client.eventBus.on('viewChanged', ({ view }) => {
       this._viewText = view.strips.joinInsertions();
@@ -212,7 +206,7 @@ export class CollabEditor {
     // History for selection and local changeset
     this.history =
       options?.history ??
-      new LocalChangesetEditorHistory({
+      new CollabHistory({
         client: this.client,
       });
 

@@ -6,7 +6,7 @@ import { createServerClientsHelper } from './helpers/server-client';
 import { addEditorFilters } from '../records/editor-revision-records';
 import { Changeset } from '../changeset/changeset';
 import { CollabClient } from '../client/collab-client';
-import { LocalChangesetEditorHistory } from '../client/local-changeset-editor-history';
+import { CollabHistory } from '../client/collab-history';
 
 const cs = (...values: unknown[]) => Changeset.parseValue(values);
 
@@ -37,7 +37,7 @@ describe('single client', () => {
   });
 
   describe('text external change entries modification', () => {
-    let history: LocalChangesetEditorHistory;
+    let history: CollabHistory;
     let client: CollabClient;
 
     beforeEach(() => {

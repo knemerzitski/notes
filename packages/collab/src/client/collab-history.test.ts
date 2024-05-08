@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { beforeEach, describe, expect, it } from 'vitest';
-import { AnyEntry, TailTextHistory } from './tail-text-history';
 
 import { Changeset } from '../changeset/changeset';
+import { AnyEntry, CollabHistory } from './collab-history';
+import { CollabClient } from './collab-client';
 
 function createEntry(changeset: unknown, isTail?: boolean): AnyEntry {
   if (isTail) {
@@ -112,8 +113,10 @@ describe('unshift', () => {
       },
     },
   ])('creates correct tail and entries: $msg', ({ populate, unshift, expected }) => {
-    const history = new TailTextHistory({
-      tail: populate?.tail ? Changeset.parseValue(populate.tail) : undefined,
+    const history = new CollabHistory({
+      client: new CollabClient({
+        server: populate?.tail ? Changeset.parseValue(populate.tail) : undefined,
+      }),
     });
     if (populate?.entries) {
       history.push(populate.entries.map((cs) => createEntry(cs)));
@@ -137,10 +140,10 @@ describe('unshift', () => {
 });
 
 describe('composeOnAllEntries', () => {
-  let history: TailTextHistory;
+  let history: CollabHistory;
 
   beforeEach(() => {
-    history = new TailTextHistory();
+    history = new CollabHistory();
     history.push([
       createEntry(['cd']),
       createEntry(['ab', [0, 1]]),
