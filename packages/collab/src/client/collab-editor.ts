@@ -546,11 +546,12 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
 
   serialize(historyRemoveServerEntries = true): SerializedCollabEditor {
     const s_client = this._client.serialize();
+    // Using submittedRecord
     delete s_client.submitted;
 
     const s_history: PartialBy<SerializedCollabHistory, 'tailText' | 'tailRevision'> =
       this._history.serialize(historyRemoveServerEntries);
-    // tailRevision and text can be retrieved from headTExt
+    // tailRevision and text can be retrieved from headText
     delete s_history.tailRevision;
     delete s_history.tailText;
 
