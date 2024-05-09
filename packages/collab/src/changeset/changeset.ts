@@ -553,8 +553,8 @@ export class Changeset implements Serializable<SerializedChangeset> {
     return new Changeset(Strips.parseValue(value));
   }
 
-  static parseValueMaybe(value: unknown): Maybe<Changeset> {
+  static parseValueMaybe(value: unknown) {
     if (value === undefined) return;
-    return Changeset.parseValue(value);
+    return this.parseValue(value);
   }
 }

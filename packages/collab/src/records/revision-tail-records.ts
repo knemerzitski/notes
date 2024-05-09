@@ -1,8 +1,4 @@
-import {
-  ParseError,
-  Serializable,
-  assertHasProperties,
-} from '~utils/serialize';
+import { ParseError, Serializable, assertHasProperties } from '~utils/serialize';
 import { Changeset, SerializedChangeset } from '../changeset/changeset';
 import { RevisionChangeset, RevisionRecord, SerializedRevisionChangeset } from './record';
 import { RevisionRecords, RevisionRecordsOptions } from './revision-records';
@@ -53,8 +49,16 @@ export class RevisionTailRecords<
     }
   }
 
+  get endRevision() {
+    return this._records.length > 0 ? super.endRevision : this.tailRevision;
+  }
+
+  get startRevision() {
+    return this._records.length > 0 ? super.startRevision : this.tailRevision;
+  }
+
   get headRevision() {
-    return this.indexToRevision(-1);
+    return this.endRevision;
   }
 
   get tailRevision() {
@@ -89,21 +93,26 @@ export class RevisionTailRecords<
    * @param newTailText Required if it contains records older than current tailText.revision.
    * @returns Records added successfully.
    */
-  updateWithTailText(newTailText: RevisionChangeset, newRecords: Readonly<TRecord[]>) {
-    this.update(newRecords);
+  update(newRecords: Readonly<TRecord[]>, newTailText?: RevisionChangeset) {
+    super.update(newRecords);
 
-    if (newTailText.revision < this.tailText.revision) {
-      this._tailText = newTailText;
-    }
-
-    const firstRecord = this._records[0];
-
-    if (firstRecord) {
-      if (this._tailText.revision + 1 !== firstRecord.revision) {
-        throw new Error(
-          `Expected newTailText revision ${this._tailText.revision} to be right before first record revision ${firstRecord.revision}.`
-        );
+    if (newTailText) {
+      if (newTailText.revision < this.tailText.revision) {
+        this._tailText = newTailText;
       }
+      const firstRecord = this._records[0];
+      if (firstRecord) {
+        if (this._tailText.revision + 1 !== firstRecord.revision) {
+          throw new Error(
+            `Expected newTailText revision ${this._tailText.revision} to be right before first record revision ${firstRecord.revision}.`
+          );
+        }
+      }
+    } else {
+      this._tailText = {
+        changeset: Changeset.EMPTY,
+        revision: -1,
+      };
     }
   }
 
@@ -160,11 +169,10 @@ export class RevisionTailRecords<
     U extends RevisionRecord<SerializedChangeset> = RevisionRecord<SerializedChangeset>,
   >(
     value: unknown,
-    parseRecord: (record: unknown) => T,
-    options: Omit<RevisionTailRecordsOptions<T, U>, 'tailText' | 'records'> & {
-      records?: Omit<RevisionTailRecordsOptions<T, U>['records'], 'records'>;
-    }
-  ): RevisionTailRecords<T, U> | null {
+    parseRecord: (record: unknown) => T
+  ): Pick<RevisionTailRecordsOptions<T, U>, 'tailText'> & {
+    records: Pick<NonNullable<RevisionTailRecordsOptions<T, U>['records']>, 'records'>;
+  } {
     assertHasProperties(value, ['tailText', 'records']);
 
     if (!Array.isArray(value.records)) {
@@ -173,13 +181,11 @@ export class RevisionTailRecords<
       );
     }
 
-    return new RevisionTailRecords<T, U>({
+    return {
       tailText: RevisionChangeset.parseValue(value.tailText),
-      ...options,
       records: {
-        ...options.records,
         records: value.records.map((record) => parseRecord(record)),
       },
-    });
+    };
   }
 }

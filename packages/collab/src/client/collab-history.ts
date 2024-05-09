@@ -6,13 +6,18 @@ import { CollabClient } from './collab-client';
 import { ChangesetOperation } from './changeset-operations';
 import { SelectionRange } from './selection-range';
 import { PartialBy } from '~utils/types';
-import { RevisionChangeset, ServerRevisionRecord } from '../records/record';
+import {
+  RevisionChangeset,
+  ServerRevisionRecord,
+  SubmittedRevisionRecord,
+} from '../records/record';
 import { RevisionTailRecords } from '../records/revision-tail-records';
 import {
   ParseError,
   Serializable,
   assertHasProperties,
   parseNumber,
+  parseNumberMaybe,
 } from '~utils/serialize';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -187,6 +192,28 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
    */
   getHeadText() {
     return this.entries.reduce((a, b) => a.compose(b.execute.changeset), this._tailText);
+  }
+
+  getSubmitSelection():
+    | Pick<SubmittedRevisionRecord, 'afterSelection' | 'beforeSelection'>
+    | undefined {
+    if (this.lastExecutedIndex.server < this.lastExecutedIndex.local) {
+      const before = this.entries[this.lastExecutedIndex.server + 1];
+      const after = this.entries[this.lastExecutedIndex.local];
+      if (!before || !after) return;
+      return {
+        beforeSelection: before.undo.selection,
+        afterSelection: after.execute.selection,
+      };
+    } else {
+      const before = this.entries[this.lastExecutedIndex.server];
+      const after = this.entries[this.lastExecutedIndex.local];
+      if (!before || !after) return;
+      return {
+        beforeSelection: before.execute.selection,
+        afterSelection: after.execute.selection,
+      };
+    }
   }
 
   /**
@@ -709,9 +736,21 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
     }
   }
 
-  serialize(): SerializedCollabHistory {
+  serialize(removeServerEntries = true): SerializedCollabHistory {
+    let entries = this.entries;
+    let lastExecutedIndex = this.lastExecutedIndex;
+    if (removeServerEntries) {
+      const offset = this.lastExecutedIndex.server + 1;
+      entries = this._entries.slice(offset);
+      lastExecutedIndex = {
+        server: -1,
+        submitted: this.lastExecutedIndex.submitted - offset,
+        local: this.lastExecutedIndex.local - offset,
+      };
+    }
+
     return {
-      entries: this._entries.map((entry) => ({
+      entries: entries.map((entry) => ({
         execute: {
           ...entry.execute,
           changeset: entry.execute.changeset.serialize(),
@@ -724,23 +763,17 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
       tailRevision: this._tailRevision,
       tailText: this._tailText.serialize(),
       tailComposition: this.tailComposition?.serialize(),
-      lastExecutedIndex: this.lastExecutedIndex,
+      lastExecutedIndex,
     };
   }
 
   static parseValue(
-    value: unknown,
-    options?: Omit<
-      CollabHistoryOptions,
-      'entries' | 'tailRevision' | 'tailText' | 'lastExecutedIndex' | 'tailComposition'
-    >
-  ): CollabHistory {
-    assertHasProperties(value, [
-      'entries',
-      'tailRevision',
-      'tailText',
-      'lastExecutedIndex',
-    ]);
+    value: unknown
+  ): Pick<
+    CollabHistoryOptions,
+    'entries' | 'tailRevision' | 'tailText' | 'lastExecutedIndex' | 'tailComposition'
+  > {
+    assertHasProperties(value, ['entries', 'lastExecutedIndex']);
 
     if (!Array.isArray(value.entries)) {
       throw new ParseError(
@@ -748,15 +781,19 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
       );
     }
 
-    return new CollabHistory({
-      ...options,
+    const valueOptional = value as {
+      tailRevision?: unknown;
+      tailText?: unknown;
+      tailComposition?: unknown;
+    };
+
+    return {
       entries: value.entries.map((entry) => parseEntry(entry)),
-      tailRevision: parseNumber(value.tailRevision),
-      tailText: Changeset.parseValue(value.tailRevision),
+      tailRevision: parseNumberMaybe(valueOptional.tailRevision),
+      tailText: Changeset.parseValueMaybe(valueOptional.tailText),
       lastExecutedIndex: parseLastExecutedIndex(value.lastExecutedIndex),
-      tailComposition:
-        Changeset.parseValueMaybe((value as any).tailComposition) ?? undefined,
-    });
+      tailComposition: Changeset.parseValueMaybe(valueOptional.tailComposition),
+    };
   }
 }
 

@@ -26,7 +26,6 @@ export function assertIsKeyArray<T, Key extends string | number | symbol>(
   }
 }
 
-
 export function assertHasProperties<T, Key extends string | number | symbol>(
   obj: T,
   keys: Key[]
@@ -57,4 +56,9 @@ export function parseNumber(value: unknown): number {
     throw new ParseError(`Expected ${value} to be a number`);
   }
   return nr;
+}
+
+export function parseNumberMaybe(value: unknown): number | undefined {
+  if (value === undefined) return;
+  return parseNumber(value);
 }

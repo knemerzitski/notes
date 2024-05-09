@@ -62,7 +62,7 @@ describe('mergeToTail', () => {
   });
 });
 
-describe('updateWithTailText', () => {
+describe('update', () => {
   function createConsecutiveRecords(start: number, end: number) {
     return [...new Array<undefined>(end - start + 1)].map((_, i) => ({
       revision: start + i,
@@ -92,13 +92,10 @@ describe('updateWithTailText', () => {
   ])(
     '(%s,%s,%s) => %s, %s',
     (tailRevision, start, end, expectedTailRevision, expectedRecordRevisions) => {
-      revisionRecords.updateWithTailText(
-        {
-          revision: tailRevision,
-          changeset: Changeset.fromInsertion(String(tailRevision)),
-        },
-        createConsecutiveRecords(start, end)
-      );
+      revisionRecords.update(createConsecutiveRecords(start, end), {
+        revision: tailRevision,
+        changeset: Changeset.fromInsertion(String(tailRevision)),
+      });
       expect(revisionRecords.records.map((r) => r.revision)).toStrictEqual(
         expectedRecordRevisions
       );
@@ -108,13 +105,10 @@ describe('updateWithTailText', () => {
 
   it.each([[2, 7, 10]])('(%s,%s,%s) => throws error', (tailRevision, start, end) => {
     expect(() => {
-      revisionRecords.updateWithTailText(
-        {
-          revision: tailRevision,
-          changeset: Changeset.fromInsertion(String(tailRevision)),
-        },
-        createConsecutiveRecords(start, end)
-      );
+      revisionRecords.update(createConsecutiveRecords(start, end), {
+        revision: tailRevision,
+        changeset: Changeset.fromInsertion(String(tailRevision)),
+      });
     }).toThrow();
   });
 });

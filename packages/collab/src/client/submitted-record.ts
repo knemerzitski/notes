@@ -49,9 +49,12 @@ export class SubmittedRecord
     return SubmittedRevisionRecord.serialize(this);
   }
 
-  static parseValue(value: unknown): SubmittedRecord {
-    const submittedRecord = SubmittedRevisionRecord.parseValue(value);
+  static parseValue(value: unknown): SubmittedRevisionRecord {
+    return SubmittedRevisionRecord.parseValue(value);
+  }
 
-    return new SubmittedRecord(submittedRecord);
+  static parseValueMaybe(value: unknown) {
+    if (value === undefined) return value;
+    return this.parseValue(value);
   }
 }

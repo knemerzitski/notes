@@ -1,5 +1,11 @@
 import mitt, { Emitter } from './mitt-unsub';
-import { ParseError, Serializable, assertHasProperties } from './serialize';
+import {
+  ParseError,
+  Serializable,
+  assertHasProperties,
+  parseOrDefault,
+} from './serialize';
+import isDefined from './type-guards/isDefined';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type OrderedMessageBufferEvents<TMessage> = {
@@ -187,9 +193,8 @@ export class OrderedMessageBuffer<TMessage, TSerializedMessage = TMessage>
 
   static parseValue<T, U = T>(
     value: unknown,
-    parseMessage: (msg: unknown) => T,
-    options: Omit<OrderedMessageBufferOptions<T, U>, 'version' | 'messages'>
-  ): OrderedMessageBuffer<T, U> {
+    parseMessage: (msg: unknown) => T
+  ): Pick<OrderedMessageBufferOptions<T, U>, 'version' | 'messages'> {
     assertHasProperties(value, ['version', 'messages']);
 
     if (!Array.isArray(value.messages)) {
@@ -198,10 +203,11 @@ export class OrderedMessageBuffer<TMessage, TSerializedMessage = TMessage>
       );
     }
 
-    return new OrderedMessageBuffer<T, U>({
+    return {
       version: Number(value.version),
-      messages: value.messages.map((msg) => parseMessage(msg)),
-      ...options,
-    });
+      messages: value.messages
+        .map((msg) => parseOrDefault(() => parseMessage(msg), undefined))
+        .filter(isDefined),
+    };
   }
 }

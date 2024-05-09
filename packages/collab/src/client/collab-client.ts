@@ -251,13 +251,13 @@ export class CollabClient implements Serializable<SerializedCollabClient> {
     };
   }
 
-  static parseValue(value: any): CollabClient {
+  static parseValue(value: any): CollabClientOptions {
     assertIsObject(value);
 
-    return new CollabClient({
+    return {
       server: Changeset.parseValueMaybe(value.server) ?? undefined,
       submitted: Changeset.parseValueMaybe(value.submitted) ?? undefined,
       local: Changeset.parseValueMaybe(value.local) ?? undefined,
-    });
+    };
   }
 }

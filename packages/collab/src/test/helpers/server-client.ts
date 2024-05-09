@@ -1,6 +1,10 @@
 import mapObject, { mapObjectSkip } from 'map-obj';
 import { assert, expect } from 'vitest';
-import { CollabEditor, HistoryOperationOptions } from '../../client/collab-editor';
+import {
+  CollabEditor,
+  CollabEditorOptions,
+  HistoryOperationOptions,
+} from '../../client/collab-editor';
 import { ServerRevisionRecord } from '../../records/record';
 import { RevisionTailRecords } from '../../records/revision-tail-records';
 import {
@@ -10,23 +14,53 @@ import {
 import { CollabClient } from '../../client/collab-client';
 import { CollabHistory } from '../../client/collab-history';
 import { newSelectionRange } from './collab-editor-selection-range';
+import { OrderedMessageBuffer } from '~utils/ordered-message-buffer';
 
 export function createHelperCollabEditingEnvironment<TClientName extends string>(
   server: RevisionTailRecords<ServerRevisionRecord>,
-  clientNames: TClientName[]
+  clientNames: TClientName[],
+  options?: Partial<Record<TClientName, Omit<CollabEditorOptions, 'userId'>>>
 ) {
   const clientMap = clientNames
     .map((name) => {
-      const client = new CollabClient();
-      const history = new CollabHistory({
-        client,
-      });
+      let clientOptions: CollabEditorOptions['client'] | undefined;
+      let historyOptions: CollabEditorOptions['history'] | undefined;
+      let editorOptions:
+        | Omit<CollabEditorOptions, 'client' | 'history' | 'userId'>
+        | undefined;
+      const currentOptions = options?.[name];
+      if (currentOptions) {
+        const {
+          client: tmpClientOptions,
+          history: tmpHistoryOptions,
+          ...tmpEditorOptions
+        } = currentOptions;
+        clientOptions = tmpClientOptions;
+        historyOptions = tmpHistoryOptions;
+        editorOptions = tmpEditorOptions;
+      }
+      const client =
+        clientOptions instanceof CollabClient
+          ? clientOptions
+          : new CollabClient(clientOptions);
+      const history =
+        historyOptions instanceof CollabHistory
+          ? historyOptions
+          : new CollabHistory({
+              tailRevision:
+                editorOptions?.recordsBuffer instanceof OrderedMessageBuffer
+                  ? editorOptions?.recordsBuffer.currentVersion
+                  : editorOptions?.recordsBuffer?.version,
+              ...historyOptions,
+              client,
+            });
       return [
         name,
         {
           client,
           history,
           editor: new CollabEditor({
+            ...editorOptions,
             userId: name,
             client,
             history,
