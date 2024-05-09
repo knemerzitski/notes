@@ -1,9 +1,15 @@
 import { Changeset } from '../changeset/changeset';
-import { SubmittedRevisionRecord } from '../records/record';
+import {
+  SerializedSubmittedRevisionRecord,
+  SubmittedRevisionRecord,
+} from '../records/record';
 import { SelectionRange } from './selection-range';
 import { CollabClientEvents as CollabClientEvents } from './collab-client';
+import { Serializable } from '~utils/serialize';
 
-export class SubmittedRecord implements SubmittedRevisionRecord {
+export class SubmittedRecord
+  implements SubmittedRevisionRecord, Serializable<SerializedSubmittedRevisionRecord>
+{
   readonly userGeneratedId: string;
 
   readonly revision: number;
@@ -37,5 +43,15 @@ export class SubmittedRecord implements SubmittedRevisionRecord {
       this.afterSelection,
       before.submitted.follow(externalChange)
     );
+  }
+
+  serialize(): SerializedSubmittedRevisionRecord {
+    return SubmittedRevisionRecord.serialize(this);
+  }
+
+  static parseValue(value: unknown): SubmittedRecord {
+    const submittedRecord = SubmittedRevisionRecord.parseValue(value);
+
+    return new SubmittedRecord(submittedRecord);
   }
 }

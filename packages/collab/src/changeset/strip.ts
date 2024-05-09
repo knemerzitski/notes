@@ -1,6 +1,6 @@
 import { InsertStrip } from './insert-strip';
 import { RetainStrip } from './retain-strip';
-import { Parseable, Serializable } from '../utils/serialize';
+import { ParseError, Parseable, Serializable } from '~utils/serialize';
 import { Strips } from './strips';
 
 export type SerializedStrip = unknown;
@@ -73,6 +73,6 @@ export abstract class Strip implements Serializable<SerializedStrip> {
       }
     }
 
-    throw new Error(`Value '${String(value)}' cannot be parsed to a Strip.`);
+    throw new ParseError(`Value '${String(value)}' cannot be parsed to a Strip.`);
   }
 }

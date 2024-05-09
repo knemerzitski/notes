@@ -1,4 +1,5 @@
 import { Changeset } from '../changeset/changeset';
+import { assertHasProperties, parseNumber } from '~utils/serialize';
 
 export interface SelectionRange {
   /**
@@ -75,5 +76,15 @@ export namespace SelectionRange {
       end = changeset.followIndex(end);
     }
     return { start, end };
+  }
+
+  export function parseValue(value: unknown): SelectionRange {
+    assertHasProperties(value, ['start']);
+    
+    const start = parseNumber(value.start);
+    return {
+      start,
+      end: 'end' in value ? parseNumber(value.end) : start,
+    };
   }
 }

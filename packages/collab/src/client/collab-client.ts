@@ -1,6 +1,7 @@
 import mitt, { Emitter } from '~utils/mitt-unsub';
 
-import { Changeset } from '../changeset/changeset';
+import { Changeset, SerializedChangeset } from '../changeset/changeset';
+import { Serializable, assertIsObject } from '~utils/serialize';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CollabClientEvents = {
@@ -61,7 +62,13 @@ export enum ChangeSource {
   External,
 }
 
-interface CollabClientOptions {
+export interface SerializedCollabClient {
+  server?: SerializedChangeset;
+  submitted?: SerializedChangeset;
+  local?: SerializedChangeset;
+}
+
+export interface CollabClientOptions {
   eventBus?: Emitter<CollabClientEvents>;
 
   server?: Changeset;
@@ -70,7 +77,7 @@ interface CollabClientOptions {
   view?: Changeset;
 }
 
-export class CollabClient {
+export class CollabClient implements Serializable<SerializedCollabClient> {
   readonly eventBus: Emitter<CollabClientEvents>;
 
   private _server: Changeset;
@@ -234,5 +241,23 @@ export class CollabClient {
     this.eventBus.emit('handledExternalChange', event);
 
     return event;
+  }
+
+  serialize(): SerializedCollabClient {
+    return {
+      server: !this.server.isEqual(Changeset.EMPTY) ? this.server.serialize() : undefined,
+      submitted: this.haveSubmittedChanges() ? this.submitted.serialize() : undefined,
+      local: this.haveLocalChanges() ? this.local.serialize() : undefined,
+    };
+  }
+
+  static parseValue(value: any): CollabClient {
+    assertIsObject(value);
+
+    return new CollabClient({
+      server: Changeset.parseValueMaybe(value.server) ?? undefined,
+      submitted: Changeset.parseValueMaybe(value.submitted) ?? undefined,
+      local: Changeset.parseValueMaybe(value.local) ?? undefined,
+    });
   }
 }

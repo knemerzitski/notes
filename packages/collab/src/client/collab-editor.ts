@@ -1,18 +1,38 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import mitt, { Emitter } from '~utils/mitt-unsub';
 
-import { Changeset } from '../changeset/changeset';
-import { CollabClient, CollabClientEvents } from './collab-client';
+import { Changeset, SerializedChangeset } from '../changeset/changeset';
+import {
+  CollabClient,
+  CollabClientEvents,
+  CollabClientOptions,
+  SerializedCollabClient,
+} from './collab-client';
 
-import { CollabHistory, LocalChangesetEditorHistoryEvents } from './collab-history';
-import { OrderedMessageBuffer, ProcessingEvents } from '~utils/ordered-message-buffer';
+import {
+  CollabHistory,
+  CollabHistoryOptions,
+  LocalChangesetEditorHistoryEvents,
+  SerializedCollabHistory,
+} from './collab-history';
+import {
+  OrderedMessageBuffer,
+  OrderedMessageBufferOptions,
+  ProcessingEvents,
+  SerializedOrderedMessageBuffer,
+} from '~utils/ordered-message-buffer';
 
 import {
   RevisionChangeset,
+  SerializedSubmittedRevisionRecord,
   ServerRevisionRecord,
   SubmittedRevisionRecord,
 } from '../records/record';
-import { RevisionTailRecords } from '../records/revision-tail-records';
+import {
+  RevisionTailRecords,
+  RevisionTailRecordsOptions,
+  SerializedRevisionTailRecords,
+} from '../records/revision-tail-records';
 import { nanoid } from 'nanoid';
 import { PartialBy } from '~utils/types';
 import { deletionCountOperation, insertionOperation } from './changeset-operations';
@@ -51,22 +71,33 @@ type EditorEvents = {
   };
 };
 
-type LocalRecord = Omit<ServerRevisionRecord, 'userGeneratedId' | 'creatorUserId'>;
-type ExternalRecord = PartialBy<
-  Omit<ServerRevisionRecord, 'userGeneratedId'>,
+type LocalRecord<TChangeset = Changeset> = Omit<
+  ServerRevisionRecord<TChangeset>,
+  'userGeneratedId' | 'creatorUserId'
+>;
+type ExternalRecord<TChangeset = Changeset> = PartialBy<
+  Omit<ServerRevisionRecord<TChangeset>, 'userGeneratedId'>,
   'beforeSelection' | 'afterSelection' | 'creatorUserId'
 >;
 
-type EditorRevisionRecord = LocalRecord | ExternalRecord;
+type EditorRevisionRecord<TChangeset = Changeset> =
+  | LocalRecord<TChangeset>
+  | ExternalRecord<TChangeset>;
 
 export enum UnprocessedRecordType {
   SubmittedAcknowleged,
   ExternalChange,
 }
 
-export type UnprocessedRecord =
-  | { type: UnprocessedRecordType.SubmittedAcknowleged; record: EditorRevisionRecord }
-  | { type: UnprocessedRecordType.ExternalChange; record: EditorRevisionRecord };
+export type UnprocessedRecord<TChangeset = Changeset> =
+  | {
+      type: UnprocessedRecordType.SubmittedAcknowleged;
+      record: EditorRevisionRecord<TChangeset>;
+    }
+  | {
+      type: UnprocessedRecordType.ExternalChange;
+      record: EditorRevisionRecord<TChangeset>;
+    };
 
 export interface HistoryOperationOptions {
   /**
@@ -75,34 +106,80 @@ export interface HistoryOperationOptions {
   merge: boolean;
 }
 
+export interface SerializedCollabEditor {
+  // headText: changeset, revision => client.server
+  // localChanges: changeset (omit)
+  client?: Omit<SerializedCollabClient, 'submitted'>; // submitted from submittedRecord
+
+  // submittedRecord: generatedId, changeset, revision, beforeSelection, afterSelection
+  submittedRecord?: SerializedSubmittedRevisionRecord;
+
+  // saved record the need to be processed
+  recordsBuffer?: SerializedOrderedMessageBuffer<UnprocessedRecord<SerializedChangeset>>;
+
+  // tailText: changeset, revision
+  // serverRecords: [EditorRevisionRecord]
+  serverRecords?: SerializedRevisionTailRecords<
+    EditorRevisionRecord<SerializedChangeset>
+  >;
+
+  history?: SerializedCollabHistory;
+  // server will be before submitted?
+  // TODO remove repetetive info
+  // history: (only after serverIndex, anything before is in serverRecords)
+  /*
+  [.... serverIndex, ... submittedIndex ... localIndex]
+  
+  :save
+  [.... serverIndex, (... submittedIndex ... localIndex)]
+  */
+}
+
+type EditorServerRecords = RevisionTailRecords<
+  EditorRevisionRecord,
+  EditorRevisionRecord<SerializedChangeset>
+>;
+
+type EditorServerRecordsOptions = Omit<
+  RevisionTailRecordsOptions<
+    EditorRevisionRecord,
+    EditorRevisionRecord<SerializedChangeset>
+  >,
+  'serializeRecord'
+>;
+
+type UnprocessedRecordsBuffer = OrderedMessageBuffer<
+  UnprocessedRecord,
+  UnprocessedRecord<SerializedChangeset>
+>;
+
+type UnprocessedRecordsBufferOptions = Omit<
+  OrderedMessageBufferOptions<UnprocessedRecord, UnprocessedRecord<SerializedChangeset>>,
+  'getVersion' | 'serializeMessage'
+>;
+
 export interface CollabEditorOptions {
-  initialText?:
-    | { headText: RevisionChangeset }
-    | {
-        tailText: RevisionChangeset;
-        records: EditorRevisionRecord[];
-      };
-  userId?: string;
-  caretPosition?: number;
   eventBus?: Emitter<CollabEditorEvents>;
   generateSubmitId?: () => string;
-  client?: CollabClient;
-  history?: CollabHistory;
+  userId?: string;
+  serverRecords?: EditorServerRecords | EditorServerRecordsOptions;
+  recordsBuffer?: UnprocessedRecordsBuffer | UnprocessedRecordsBufferOptions;
+  client?: CollabClient | CollabClientOptions;
+  history?: CollabHistory | Omit<CollabHistoryOptions, 'client'>;
+  submittedRecord?: SubmittedRecord;
 }
 
 export class CollabEditor {
+  readonly eventBus: Emitter<CollabEditorEvents>;
+  private generateSubmitId: () => string;
   readonly userId?: string;
 
-  private serverRecords: RevisionTailRecords<EditorRevisionRecord>;
-  private recordsBuffer: OrderedMessageBuffer<UnprocessedRecord>;
+  private serverRecords: EditorServerRecords;
+  private recordsBuffer: UnprocessedRecordsBuffer;
 
   private _client: CollabClient;
   private _history: CollabHistory;
   private submittedRecord: SubmittedRecord | null = null;
-
-  private generateSubmitId: () => string;
-
-  readonly eventBus: Emitter<CollabEditorEvents>;
 
   get headRevision() {
     return this.recordsBuffer.currentVersion;
@@ -125,125 +202,174 @@ export class CollabEditor {
     return this._viewText;
   }
 
-  constructor(options?: CollabEditorOptions) {
-    let headText: RevisionChangeset;
-    if (options?.initialText) {
-      const { initialText } = options;
-      if ('tailText' in initialText) {
-        this.serverRecords = new RevisionTailRecords({
-          tailText: initialText.tailText,
-          revisionRecords: {
-            records: initialText.records,
-          },
-        });
-        headText = this.serverRecords.getHeadText();
-      } else {
-        this.serverRecords = new RevisionTailRecords();
-        headText = initialText.headText;
-      }
-    } else {
-      this.serverRecords = new RevisionTailRecords();
-      headText = this.serverRecords.getHeadText();
-    }
+  private unsubscribeFromEvents: () => void;
 
-    this._viewText = headText.changeset.strips.joinInsertions();
-    this.userId = options?.userId;
+  static newFromHeadText(headText: RevisionChangeset): CollabEditor {
+    return new CollabEditor({
+      recordsBuffer: {
+        version: headText.revision,
+      },
+      client: {
+        server: headText.changeset,
+      },
+    });
+  }
+
+  constructor(options?: CollabEditorOptions) {
+    const subscribedListeners: (() => void)[] = [];
+    this.unsubscribeFromEvents = () => {
+      subscribedListeners.forEach((unsub) => {
+        unsub();
+      });
+    };
 
     this.generateSubmitId = options?.generateSubmitId ?? (() => nanoid(6));
+    this.userId = options?.userId;
 
     // Local, submitted, server changesets
     this._client =
-      options?.client ??
-      new CollabClient({
-        server: headText.changeset,
-      });
-    this._client.eventBus.on('viewChanged', ({ view }) => {
-      this._viewText = view.strips.joinInsertions();
-    });
+      options?.client instanceof CollabClient
+        ? options.client
+        : new CollabClient(options?.client);
+    subscribedListeners.push(
+      this._client.eventBus.on('viewChanged', ({ view }) => {
+        this._viewText = view.strips.joinInsertions();
+      })
+    );
 
-    // Revision buffering
-    this.recordsBuffer = new OrderedMessageBuffer({
-      version: headText.revision,
-      getVersion(message) {
-        return message.record.revision;
-      },
-    });
-    this.recordsBuffer.eventBus.on('nextMessage', (message) => {
-      this.serverRecords.update([message.record]);
+    this._viewText = this._client.view.joinInsertions();
 
-      if (message.type == UnprocessedRecordType.SubmittedAcknowleged) {
-        this.submittedRecord = null;
-        this._client.submittedChangesAcknowledged();
-      } else {
-        // message.type === UnprocessedRecordType.ExternalChange
-        const event = this._client.handleExternalChange(message.record.changeset);
-        this.submittedRecord?.processExternalChangeEvent(event);
-      }
-    });
+    // Submitted record
+    this.submittedRecord = options?.submittedRecord ?? null;
 
     // Store known records from server
-    this.serverRecords = new RevisionTailRecords();
+    this.serverRecords =
+      options?.serverRecords instanceof RevisionTailRecords
+        ? options.serverRecords
+        : new RevisionTailRecords({
+            ...options?.serverRecords,
+            serializeRecord(record) {
+              return {
+                ...record,
+                changeset: record.changeset.serialize(),
+              };
+            },
+          });
+
+    // Buffered future records
+    this.recordsBuffer =
+      options?.recordsBuffer instanceof OrderedMessageBuffer
+        ? options.recordsBuffer
+        : new OrderedMessageBuffer({
+            version: this.serverRecords.headRevision,
+            ...options?.recordsBuffer,
+            getVersion(message) {
+              return message.record.revision;
+            },
+            serializeMessage(message) {
+              return {
+                ...message,
+                record: {
+                  ...message.record,
+                  changeset: message.record.changeset.serialize(),
+                },
+              };
+            },
+          });
+    subscribedListeners.push(
+      this.recordsBuffer.eventBus.on('nextMessage', (message) => {
+        this.serverRecords.update([message.record]);
+
+        if (message.type == UnprocessedRecordType.SubmittedAcknowleged) {
+          this.submittedRecord = null;
+          this._client.submittedChangesAcknowledged();
+        } else {
+          // message.type === UnprocessedRecordType.ExternalChange
+          const event = this._client.handleExternalChange(message.record.changeset);
+          this.submittedRecord?.processExternalChangeEvent(event);
+        }
+      })
+    );
 
     // History for selection and local changeset
     this._history =
-      options?.history ??
-      new CollabHistory({
-        client: this._client,
-        tailRevision: headText.revision,
-      });
+      options?.history instanceof CollabHistory
+        ? options.history
+        : new CollabHistory({
+            tailRevision: this.recordsBuffer.currentVersion,
+            ...options?.history,
+            client: this._client,
+          });
 
     // Link events
     this.eventBus = options?.eventBus ?? mitt();
 
-    this._client.eventBus.on('*', (type, e) => {
-      this.eventBus.emit(type, e);
-    });
+    subscribedListeners.push(
+      this._client.eventBus.on('*', (type, e) => {
+        this.eventBus.emit(type, e);
+      })
+    );
 
-    this._history.eventBus.on('*', (type, e) => {
-      this.eventBus.emit(type, e);
-    });
+    subscribedListeners.push(
+      this._history.eventBus.on('*', (type, e) => {
+        this.eventBus.emit(type, e);
+      })
+    );
 
-    this.recordsBuffer.eventBus.on('nextMessage', (e) => {
-      this.eventBus.emit('nextMessage', e);
-    });
+    subscribedListeners.push(
+      this.recordsBuffer.eventBus.on('nextMessage', (e) => {
+        this.eventBus.emit('nextMessage', e);
+      })
+    );
 
     const processingBus = mitt<EditorProcessingEvents>();
-    this.recordsBuffer.eventBus.on('processingMessages', (e) => {
-      e.eventBus.on('nextMessage', (e) => {
-        processingBus.emit('nextMessage', e);
-      });
+    subscribedListeners.push(
+      this.recordsBuffer.eventBus.on('processingMessages', (e) => {
+        e.eventBus.on('nextMessage', (e) => {
+          processingBus.emit('nextMessage', e);
+        });
 
-      let hadExternalChanges = false;
-      const unsubHandledExternalChange = this._client.eventBus.on(
-        'handledExternalChange',
-        (e) => {
-          processingBus.emit('handledExternalChange', e);
-          hadExternalChanges = true;
-        }
-      );
+        let hadExternalChanges = false;
+        const unsubHandledExternalChange = this._client.eventBus.on(
+          'handledExternalChange',
+          (e) => {
+            processingBus.emit('handledExternalChange', e);
+            hadExternalChanges = true;
+          }
+        );
 
-      e.eventBus.on('messagesProcessed', () => {
-        try {
-          processingBus.emit('messagesProcessed', {
-            hadExternalChanges,
-          });
-        } finally {
-          processingBus.all.clear();
-          unsubHandledExternalChange();
-        }
-      });
+        e.eventBus.on('messagesProcessed', () => {
+          try {
+            processingBus.emit('messagesProcessed', {
+              hadExternalChanges,
+            });
+          } finally {
+            processingBus.all.clear();
+            unsubHandledExternalChange();
+          }
+        });
 
-      this.eventBus.emit('processingMessages', {
-        eventBus: processingBus,
-      });
-    });
+        this.eventBus.emit('processingMessages', {
+          eventBus: processingBus,
+        });
+      })
+    );
 
-    this.recordsBuffer.eventBus.on('messagesProcessed', () => {
-      this.eventBus.emit('revisionChanged', {
-        revision: this.headRevision,
-        changeset: this._client.server,
-      });
-    });
+    subscribedListeners.push(
+      this.recordsBuffer.eventBus.on('messagesProcessed', () => {
+        this.eventBus.emit('revisionChanged', {
+          revision: this.headRevision,
+          changeset: this._client.server,
+        });
+      })
+    );
+  }
+
+  /**
+   * Removes event listeners from editor. This instance becomes useless.
+   */
+  cleanUp() {
+    this.unsubscribeFromEvents();
   }
 
   haveSubmittedChanges() {

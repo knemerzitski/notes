@@ -1,8 +1,9 @@
 import { InsertStrip } from './insert-strip';
 import { RetainStrip } from './retain-strip';
-import { Serializable } from '../utils/serialize';
+import { Serializable } from '~utils/serialize';
 import { Strip } from './strip';
 import { SerializedStrips, Strips } from './strips';
+import { Maybe } from '~utils/types';
 
 export type SerializedChangeset = SerializedStrips;
 
@@ -550,5 +551,10 @@ export class Changeset implements Serializable<SerializedChangeset> {
   static parseValue(value: unknown): Changeset {
     if (value instanceof Changeset) return value;
     return new Changeset(Strips.parseValue(value));
+  }
+
+  static parseValueMaybe(value: unknown): Maybe<Changeset> {
+    if (value === undefined) return;
+    return Changeset.parseValue(value);
   }
 }

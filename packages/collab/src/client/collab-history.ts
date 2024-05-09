@@ -1,6 +1,6 @@
 import mitt, { Emitter } from '~utils/mitt-unsub';
 
-import { Changeset } from '../changeset/changeset';
+import { Changeset, SerializedChangeset } from '../changeset/changeset';
 import { CollabClient } from './collab-client';
 
 import { ChangesetOperation } from './changeset-operations';
@@ -8,6 +8,12 @@ import { SelectionRange } from './selection-range';
 import { PartialBy } from '~utils/types';
 import { RevisionChangeset, ServerRevisionRecord } from '../records/record';
 import { RevisionTailRecords } from '../records/revision-tail-records';
+import {
+  ParseError,
+  Serializable,
+  assertHasProperties,
+  parseNumber,
+} from '~utils/serialize';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type LocalChangesetEditorHistoryEvents = {
@@ -16,19 +22,34 @@ export type LocalChangesetEditorHistoryEvents = {
   };
 };
 
+export interface SerializedCollabHistory {
+  entries: Entry<SerializedChangeset>[];
+
+  tailText: SerializedChangeset;
+  tailRevision: number;
+
+  tailComposition?: SerializedChangeset;
+
+  lastExecutedIndex: {
+    server: number;
+    submitted: number;
+    local: number;
+  };
+}
+
 export type HistoryServerRecord = Pick<ServerRevisionRecord, 'changeset' | 'revision'> &
   Partial<
     Pick<ServerRevisionRecord, 'beforeSelection' | 'afterSelection' | 'creatorUserId'>
   >;
 
-export interface Operation {
-  changeset: Changeset;
+export interface Operation<TChangeset = Changeset> {
+  changeset: TChangeset;
   selection: SelectionRange;
 }
 
-export interface Entry {
-  execute: Operation;
-  undo: Operation;
+export interface Entry<TChangeset = Changeset> {
+  execute: Operation<TChangeset>;
+  undo: Operation<TChangeset>;
 }
 
 export interface AddEntry {
@@ -50,22 +71,32 @@ export type AnyEntry = AddEntry | TailEntry;
 
 type AnyEntryWithUndo = AnyEntry & { undo: Pick<Operation, 'changeset'> };
 
-interface LocalChangesetEditorHistoryOptions {
+interface LastExecutedIndex {
+  server: number;
+  submitted: number;
+  local: number;
+}
+
+export interface CollabHistoryOptions {
   eventBus?: Emitter<LocalChangesetEditorHistoryEvents>;
   client?: CollabClient;
+  entries?: Entry[];
   tailRevision?: number;
+  tailText?: Changeset;
+  lastExecutedIndex?: LastExecutedIndex;
+  tailComposition?: Changeset;
 }
 
 /**
  * Maintains a history of {@link CollabClient.local} changeset.
  * External changes alter history as if change has always been there.
  */
-export class CollabHistory {
+export class CollabHistory implements Serializable<SerializedCollabHistory> {
   readonly eventBus: Emitter<LocalChangesetEditorHistoryEvents>;
 
   private client: CollabClient;
 
-  private _entries: Entry[] = [];
+  private _entries: Entry[];
   get entries(): Readonly<Entry[]> {
     return this._entries;
   }
@@ -85,11 +116,7 @@ export class CollabHistory {
 
   private tailComposition: Changeset | undefined;
 
-  private lastExecutedIndex = {
-    server: -1,
-    submitted: -1,
-    local: -1,
-  };
+  private lastExecutedIndex: LastExecutedIndex;
 
   /**
    * Entry index that matches CollabClient.server after execute
@@ -114,12 +141,21 @@ export class CollabHistory {
 
   private unsubscribeFromEvents: () => void;
 
-  constructor(options?: LocalChangesetEditorHistoryOptions) {
+  constructor(options?: CollabHistoryOptions) {
     this.eventBus = options?.eventBus ?? mitt();
     this.client = options?.client ?? new CollabClient();
 
-    this._tailText = this.client.server;
+    this._tailText = options?.tailText ?? this.client.server;
     this._tailRevision = options?.tailRevision ?? -1;
+
+    this.tailComposition = options?.tailComposition;
+    this.lastExecutedIndex = options?.lastExecutedIndex ?? {
+      server: -1,
+      submitted: -1,
+      local: -1,
+    };
+
+    this._entries = options?.entries ?? [];
 
     const subscribedListeners = [
       this.client.eventBus.on('submitChanges', () => {
@@ -132,7 +168,6 @@ export class CollabHistory {
         this.adjustHistoryToExternalChange(externalChange);
       }),
     ];
-
     this.unsubscribeFromEvents = () => {
       subscribedListeners.forEach((unsub) => {
         unsub();
@@ -673,4 +708,82 @@ export class CollabHistory {
       }
     }
   }
+
+  serialize(): SerializedCollabHistory {
+    return {
+      entries: this._entries.map((entry) => ({
+        execute: {
+          ...entry.execute,
+          changeset: entry.execute.changeset.serialize(),
+        },
+        undo: {
+          ...entry.undo,
+          changeset: entry.undo.changeset.serialize(),
+        },
+      })),
+      tailRevision: this._tailRevision,
+      tailText: this._tailText.serialize(),
+      tailComposition: this.tailComposition?.serialize(),
+      lastExecutedIndex: this.lastExecutedIndex,
+    };
+  }
+
+  static parseValue(
+    value: unknown,
+    options?: Omit<
+      CollabHistoryOptions,
+      'entries' | 'tailRevision' | 'tailText' | 'lastExecutedIndex' | 'tailComposition'
+    >
+  ): CollabHistory {
+    assertHasProperties(value, [
+      'entries',
+      'tailRevision',
+      'tailText',
+      'lastExecutedIndex',
+    ]);
+
+    if (!Array.isArray(value.entries)) {
+      throw new ParseError(
+        `Expected 'entries' to be an array, found '${String(value.entries)}'`
+      );
+    }
+
+    return new CollabHistory({
+      ...options,
+      entries: value.entries.map((entry) => parseEntry(entry)),
+      tailRevision: parseNumber(value.tailRevision),
+      tailText: Changeset.parseValue(value.tailRevision),
+      lastExecutedIndex: parseLastExecutedIndex(value.lastExecutedIndex),
+      tailComposition:
+        Changeset.parseValueMaybe((value as any).tailComposition) ?? undefined,
+    });
+  }
+}
+
+function parseEntry(value: unknown): Entry {
+  assertHasProperties(value, ['execute', 'undo']);
+
+  return {
+    execute: parseOperation(value.execute),
+    undo: parseOperation(value.undo),
+  };
+}
+
+function parseOperation(value: unknown): Operation {
+  assertHasProperties(value, ['changeset', 'selection']);
+
+  return {
+    changeset: Changeset.parseValue(value.changeset),
+    selection: SelectionRange.parseValue(value.selection),
+  };
+}
+
+function parseLastExecutedIndex(value: unknown): LastExecutedIndex {
+  assertHasProperties(value, ['server', 'submitted', 'local']);
+
+  return {
+    server: parseNumber(value.server),
+    submitted: parseNumber(value.submitted),
+    local: parseNumber(value.local),
+  };
 }

@@ -1,4 +1,5 @@
 import mitt, { Emitter } from './mitt-unsub';
+import { ParseError, Serializable, assertHasProperties } from './serialize';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type OrderedMessageBufferEvents<TMessage> = {
@@ -18,6 +19,11 @@ export type OrderedMessageBufferEvents<TMessage> = {
   messagesProcessed: undefined;
 };
 
+export interface SerializedOrderedMessageBuffer<TSerializedMessage> {
+  version: number;
+  messages: TSerializedMessage[];
+}
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ProcessingEvents<TMessage> = {
   /**
@@ -30,13 +36,14 @@ export type ProcessingEvents<TMessage> = {
   messagesProcessed: undefined;
 };
 
-export interface OrderedMessageBufferOptions<TMessage> {
+export interface OrderedMessageBufferOptions<TMessage, TSerializedMessage = TMessage> {
   /**
    * @default 0
    */
   version?: number;
   messages?: Readonly<Readonly<TMessage>>[];
   getVersion: (message: TMessage) => number;
+  serializeMessage: (message: TMessage) => TSerializedMessage;
   eventBus?: Emitter<OrderedMessageBufferEvents<TMessage>>;
 }
 
@@ -45,7 +52,9 @@ export interface OrderedMessageBufferOptions<TMessage> {
  * Old messages are discarded and future ones are stored
  * until missing messages are present.
  */
-export class OrderedMessageBuffer<TMessage> {
+export class OrderedMessageBuffer<TMessage, TSerializedMessage = TMessage>
+  implements Serializable<SerializedOrderedMessageBuffer<TSerializedMessage>>
+{
   readonly eventBus: Emitter<OrderedMessageBufferEvents<TMessage>>;
   private processingEventBus: Emitter<ProcessingEvents<TMessage>>;
 
@@ -55,6 +64,7 @@ export class OrderedMessageBuffer<TMessage> {
   }
 
   private getVersion: (message: TMessage) => number;
+  private serializeMessage: (message: TMessage) => TSerializedMessage;
 
   get size() {
     return this.stashedMessagesMap.size;
@@ -62,11 +72,12 @@ export class OrderedMessageBuffer<TMessage> {
 
   stashedMessagesMap: Map<number, TMessage>;
 
-  constructor(options: OrderedMessageBufferOptions<TMessage>) {
+  constructor(options: OrderedMessageBufferOptions<TMessage, TSerializedMessage>) {
     this.eventBus = options.eventBus ?? mitt();
     this.processingEventBus = mitt();
     this._currentVersion = options.version ?? 0;
     this.getVersion = options.getVersion;
+    this.serializeMessage = options.serializeMessage;
     this.stashedMessagesMap = new Map<number, TMessage>();
     options.messages?.forEach((message) => {
       this.add(message);
@@ -163,5 +174,34 @@ export class OrderedMessageBuffer<TMessage> {
         },
       }),
     };
+  }
+
+  serialize(): SerializedOrderedMessageBuffer<TSerializedMessage> {
+    return {
+      version: this._currentVersion,
+      messages: [...this.stashedMessagesMap.values()].map((msg) =>
+        this.serializeMessage(msg)
+      ),
+    };
+  }
+
+  static parseValue<T, U = T>(
+    value: unknown,
+    parseMessage: (msg: unknown) => T,
+    options: Omit<OrderedMessageBufferOptions<T, U>, 'version' | 'messages'>
+  ): OrderedMessageBuffer<T, U> {
+    assertHasProperties(value, ['version', 'messages']);
+
+    if (!Array.isArray(value.messages)) {
+      throw new ParseError(
+        `Expected 'messages' to be an array, found '${String(value.messages)}'`
+      );
+    }
+
+    return new OrderedMessageBuffer<T, U>({
+      version: Number(value.version),
+      messages: value.messages.map((msg) => parseMessage(msg)),
+      ...options,
+    });
   }
 }

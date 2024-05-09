@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { Changeset } from '../changeset/changeset';
 import { RevisionTailRecords } from './revision-tail-records';
+import { ServerRevisionRecord } from './record';
 
 let revisionText: RevisionTailRecords;
 
@@ -22,9 +23,10 @@ beforeEach(() => {
       revision: 5,
       changeset: Changeset.fromInsertion('start'),
     },
-    revisionRecords: {
+    records: {
       records: initialRecords,
     },
+    serializeRecord: (r) => ({ ...r, changeset: r.changeset.serialize() }),
   });
 });
 
@@ -72,13 +74,14 @@ describe('updateWithTailText', () => {
 
   beforeEach(() => {
     revisionRecords = new RevisionTailRecords({
-      revisionRecords: {
+      records: {
         records: createConsecutiveRecords(5, 8),
       },
       tailText: {
         revision: 4,
         changeset: Changeset.fromInsertion('4'),
       },
+      serializeRecord: (r) => ({ ...r, changeset: r.changeset.serialize() }),
     });
   });
 

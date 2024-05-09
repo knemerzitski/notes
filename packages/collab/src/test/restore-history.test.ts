@@ -24,7 +24,9 @@ describe('persist history in revision records', () => {
   let helper: ReturnType<typeof createHelperCollabEditingEnvironment<'A' | 'B'>>;
 
   beforeEach(() => {
-    const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>();
+    const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>({
+      serializeRecord: ServerRevisionRecord.serialize,
+    });
     addEditorFilters(revisionTailRecords);
     helper = createHelperCollabEditingEnvironment(revisionTailRecords, ['A', 'B']);
   });
@@ -56,8 +58,11 @@ describe('persist history in revision records', () => {
     client.A.submitChangesInstant();
 
     const restoredEditorB = new CollabEditor({
-      initialText: {
-        headText: server.instance.getHeadText(),
+      recordsBuffer: {
+        version: server.instance.getHeadText().revision,
+      },
+      client: {
+        server: server.instance.getHeadText().changeset,
       },
       userId: client.B.editor.userId,
     });
@@ -87,8 +92,11 @@ describe('persist history in revision records', () => {
     client.A.deleteTextCount(4);
     client.A.submitChangesInstant();
     const restoredEditorB = new CollabEditor({
-      initialText: {
-        headText: server.instance.getHeadText(),
+      recordsBuffer: {
+        version: server.instance.getHeadText().revision,
+      },
+      client: {
+        server: server.instance.getHeadText().changeset,
       },
       userId: client.B.editor.userId,
     });

@@ -1,20 +1,45 @@
-import { Changeset } from '../changeset/changeset';
-import { RevisionChangeset, RevisionRecord } from './record';
+import {
+  ParseError,
+  Serializable,
+  assertHasProperties,
+} from '~utils/serialize';
+import { Changeset, SerializedChangeset } from '../changeset/changeset';
+import { RevisionChangeset, RevisionRecord, SerializedRevisionChangeset } from './record';
 import { RevisionRecords, RevisionRecordsOptions } from './revision-records';
 
-export interface RevisionTextOptions<TRecord extends RevisionRecord> {
+export interface RevisionTailRecordsOptions<
+  TRecord extends RevisionRecord,
+  TSerializedRecord extends RevisionRecord<SerializedChangeset>,
+> {
   tailText?: RevisionChangeset;
-  revisionRecords: RevisionRecordsOptions<TRecord>;
+  records?: RevisionRecordsOptions<TRecord>;
+  serializeRecord: (record: TRecord) => TSerializedRecord;
+}
+
+export interface SerializedRevisionTailRecords<
+  TSerializedRecord extends
+    RevisionRecord<SerializedChangeset> = RevisionRecord<SerializedChangeset>,
+> {
+  tailText: SerializedRevisionChangeset;
+  records: TSerializedRecord[];
 }
 
 /**
  * Records with a tailText
  */
 export class RevisionTailRecords<
-  TRecord extends RevisionRecord = RevisionRecord,
-> extends RevisionRecords<TRecord> {
-  constructor(options?: RevisionTextOptions<TRecord>) {
-    super(options?.revisionRecords);
+    TRecord extends RevisionRecord = RevisionRecord,
+    TSerializedRecord extends
+      RevisionRecord<SerializedChangeset> = RevisionRecord<SerializedChangeset>,
+  >
+  extends RevisionRecords<TRecord>
+  implements Serializable<SerializedRevisionTailRecords<TSerializedRecord>>
+{
+  private serializeRecord: (record: TRecord) => TSerializedRecord;
+
+  constructor(options: RevisionTailRecordsOptions<TRecord, TSerializedRecord>) {
+    super(options?.records);
+    this.serializeRecord = options?.serializeRecord;
 
     this._tailText = options?.tailText ?? {
       changeset: Changeset.EMPTY,
@@ -121,5 +146,40 @@ export class RevisionTailRecords<
       changeset: Changeset.EMPTY,
       revision: -1,
     };
+  }
+
+  serialize(): SerializedRevisionTailRecords<TSerializedRecord> {
+    return {
+      tailText: RevisionChangeset.serialize(this._tailText),
+      records: this.records.map((record) => this.serializeRecord(record)),
+    };
+  }
+
+  static parseValue<
+    T extends RevisionRecord = RevisionRecord,
+    U extends RevisionRecord<SerializedChangeset> = RevisionRecord<SerializedChangeset>,
+  >(
+    value: unknown,
+    parseRecord: (record: unknown) => T,
+    options: Omit<RevisionTailRecordsOptions<T, U>, 'tailText' | 'records'> & {
+      records?: Omit<RevisionTailRecordsOptions<T, U>['records'], 'records'>;
+    }
+  ): RevisionTailRecords<T, U> | null {
+    assertHasProperties(value, ['tailText', 'records']);
+
+    if (!Array.isArray(value.records)) {
+      throw new ParseError(
+        `Expected 'records' to be an array, found '${String(value.records)}'`
+      );
+    }
+
+    return new RevisionTailRecords<T, U>({
+      tailText: RevisionChangeset.parseValue(value.tailText),
+      ...options,
+      records: {
+        ...options.records,
+        records: value.records.map((record) => parseRecord(record)),
+      },
+    });
   }
 }

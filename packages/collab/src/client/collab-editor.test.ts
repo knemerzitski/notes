@@ -9,13 +9,9 @@ const cs = (...values: unknown[]) => Changeset.parseValue(values);
 
 describe('constructor', () => {
   it('sets correct initial document state', () => {
-    const editor = new CollabEditor({
-      initialText: {
-        headText: {
-          revision: 4,
-          changeset: cs('initial text'),
-        },
-      },
+    const editor = CollabEditor.newFromHeadText({
+      revision: 4,
+      changeset: cs('initial text'),
     });
 
     expect(editor.headRevision).toStrictEqual(4);

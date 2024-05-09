@@ -1,6 +1,6 @@
 import { isInsertStrip } from './insert-strip';
 import { RetainStrip } from './retain-strip';
-import { Serializable } from '../utils/serialize';
+import { ParseError, Serializable } from '~utils/serialize';
 import { SerializedStrip, Strip } from './strip';
 
 export type SerializedStrips = SerializedStrip[];
@@ -186,7 +186,7 @@ export class Strips implements Serializable<SerializedStrips> {
     if (!value) return Strips.EMPTY;
 
     if (!Array.isArray(value)) {
-      throw new Error(`Expected an array, found '${String(value)}'`);
+      throw new ParseError(`Expected an array, found '${String(value)}'`);
     }
 
     if (value.length === 0) {
