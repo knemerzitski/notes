@@ -178,13 +178,9 @@ async function createEditors<T>({ client, noteId }: CreateEditorsOptions<T>) {
   return data.note.textFields.map(({ key, value }) => {
     return {
       key,
-      value: new CollabEditor({
-        initialText: {
-          headText: {
-            revision: value.headText.revision,
-            changeset: Changeset.parseValue(value.headText.changeset),
-          },
-        },
+      value: CollabEditor.newFromHeadText({
+        revision: value.headText.revision,
+        changeset: Changeset.parseValue(value.headText.changeset),
       }),
     };
   });
