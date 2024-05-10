@@ -303,11 +303,11 @@ describe('random records', () => {
                       },
                       beforeSelection: {
                         start: 4,
-                        end: null,
+                        end: 4,
                       },
                       afterSelection: {
                         start: 16,
-                        end: null,
+                        end: 16,
                       },
                     },
                     isExistingRecord: false,
@@ -415,11 +415,11 @@ describe('random records', () => {
                       },
                       beforeSelection: {
                         start: 0,
-                        end: null,
+                        end: 0,
                       },
                       afterSelection: {
                         start: 22,
-                        end: null,
+                        end: 22,
                       },
                     },
                     isExistingRecord: false,

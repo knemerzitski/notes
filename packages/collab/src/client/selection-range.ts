@@ -1,3 +1,4 @@
+import { PartialBy } from '~utils/types';
 import { Changeset } from '../changeset/changeset';
 import { assertHasProperties, parseNumber } from '~utils/serialize';
 
@@ -63,6 +64,42 @@ export namespace SelectionRange {
     return { start: a.start - b.start, end: a.end - b.end };
   }
 
+  /**
+   * Removes end if start === end
+   */
+  export function collapseSame(range: SelectionRange): PartialBy<SelectionRange, 'end'> {
+    if (range.start === range.end) {
+      return {
+        start: range.start,
+      };
+    } else {
+      return range;
+    }
+  }
+
+  /**
+   * Ensures SelectionRange has start and end fefined
+   */
+  export function expandSame({
+    start,
+    end,
+  }: {
+    start: number;
+    end?: number | null | undefined;
+  }): SelectionRange {
+    if (end == null) {
+      return {
+        start,
+        end: start,
+      };
+    } else {
+      return {
+        start,
+        end,
+      };
+    }
+  }
+
   export function followChangeset(
     { start, end }: Readonly<SelectionRange>,
     changeset: Changeset
@@ -80,7 +117,7 @@ export namespace SelectionRange {
 
   export function parseValue(value: unknown): SelectionRange {
     assertHasProperties(value, ['start']);
-    
+
     const start = parseNumber(value.start);
     return {
       start,

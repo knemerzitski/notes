@@ -22,8 +22,3 @@ export const noteDescription: CollectionDescription = {
     },
   ],
 };
-
-// TODO fix, put in another file
-// export function createDocumentServer(Note: MongooseModels['Note']) {
-//   return new MultiFieldDocumentServer<'title' | 'content'>(Note.collection);
-// }

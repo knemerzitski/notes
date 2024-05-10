@@ -24,6 +24,7 @@ import isDefined from '~utils/type-guards/isDefined';
 import recordInsertion, { RecordInsertionError } from '~collab/records/recordInsertion';
 import { NoteQuery } from '../../mongo-query-mapper/note';
 import { NoteMapper } from '../../schema.mappers';
+import { SelectionRange } from '~collab/client/selection-range';
 
 type DefinedAwaited<T> = NonNullable<Awaited<T>>;
 
@@ -144,18 +145,12 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
                     revision: insertRecord.change.revision,
                     changeset: insertRecord.change.changeset,
                     creatorUserId: currentUserId,
-                    afterSelection: {
-                      start: insertRecord.afterSelection.start,
-                      ...(insertRecord.afterSelection.end != null
-                        ? { end: insertRecord.afterSelection.end }
-                        : {}),
-                    },
-                    beforeSelection: {
-                      start: insertRecord.beforeSelection.start,
-                      ...(insertRecord.beforeSelection.end != null
-                        ? { end: insertRecord.beforeSelection.end }
-                        : {}),
-                    },
+                    beforeSelection: SelectionRange.expandSame(
+                      insertRecord.beforeSelection
+                    ),
+                    afterSelection: SelectionRange.expandSame(
+                      insertRecord.afterSelection
+                    ),
                   },
                 });
 
@@ -239,6 +234,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
 
                 if (!insertion.isExisting) {
                   // New record, create bulkUpdate query
+                  const { beforeSelection, afterSelection } = insertion.newRecord;
                   const bulkUpdate: AnyBulkWriteOperation<CollabTextSchema> = {
                     updateOne: {
                       filter: {
@@ -255,6 +251,8 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
                           records: {
                             ...insertion.newRecord,
                             changeset: insertion.newRecord.changeset.serialize(),
+                            beforeSelection: SelectionRange.collapseSame(beforeSelection),
+                            afterSelection: SelectionRange.collapseSame(afterSelection),
                           },
                         },
                       },
@@ -302,6 +300,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
                 recordUpdates,
                 {
                   session,
+                  ignoreUndefined: false,
                 }
               );
             }
