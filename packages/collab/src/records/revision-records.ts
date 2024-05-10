@@ -1,10 +1,10 @@
 import mergedConsecutiveOrdered from '~utils/array/mergedConsecutiveOrdered';
 
-import filter, { Filter } from '~filter/index';
+import mitt, { Emitter } from '~utils/mitt-unsub';
 import { RevisionRecord } from './record';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type FilterEvents<TRecord, TInsertRecord> = {
+export type RevisionRecordEvents<TRecord, TInsertRecord> = {
   isExistingRecord: {
     /**
      * New record to be inserted.
@@ -47,7 +47,7 @@ export interface RevisionRecordsOptions<
   TInsertRecord extends TRecord = TRecord,
 > {
   records?: TRecord[];
-  filterBus?: Filter<FilterEvents<TRecord, TInsertRecord>>;
+  eventBus?: Emitter<RevisionRecordEvents<TRecord, TInsertRecord>>;
 }
 
 // one that is needed for keeping and other for isnertion
@@ -62,7 +62,7 @@ export class RevisionRecords<
   TRecord extends RevisionRecord = RevisionRecord,
   TInsertRecord extends TRecord = TRecord,
 > {
-  readonly filterBus: Filter<FilterEvents<TRecord, TInsertRecord>>;
+  readonly eventBus: Emitter<RevisionRecordEvents<TRecord, TInsertRecord>>;
 
   /**
    * Revision of the newest record.
@@ -85,7 +85,7 @@ export class RevisionRecords<
 
   constructor(options?: RevisionRecordsOptions<TRecord, TInsertRecord>) {
     this._records = [...(options?.records ?? [])];
-    this.filterBus = options?.filterBus ?? filter();
+    this.eventBus = options?.eventBus ?? mitt();
   }
 
   /**
@@ -164,12 +164,13 @@ export class RevisionRecords<
       }
 
       // Stop early if record already exists
-      const { isExisting } = this.filterBus.filter('isExistingRecord', {
+      const isExistingPayload: RevisionRecordEvents<TRecord,TInsertRecord>['isExistingRecord'] = {
         existingRecord: record,
         newRecord: newEndRecord,
         isExisting: false,
-      });
-      if (isExisting) {
+      };
+      this.eventBus.emit('isExistingRecord', isExistingPayload);
+      if (isExistingPayload.isExisting) {
         return {
           processedRecord: record,
           isExisting: true,
@@ -178,7 +179,7 @@ export class RevisionRecords<
 
       // Follow changeset
       newEndRecord.changeset = record.changeset.follow(newEndRecord.changeset);
-      this.filterBus.filter('followRecord', {
+      this.eventBus.emit('followRecord', {
         existingRecord: record,
         newRecord: newEndRecord,
       });

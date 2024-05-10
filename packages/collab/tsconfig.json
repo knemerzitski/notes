@@ -30,7 +30,6 @@
     "noUncheckedIndexedAccess": true,
     "paths": {
       "~/*": ["./src/*"],
-      "~filter/*": ["../filter/src/*"],
       "~utils/*": ["../utils/src/*"]
     }
   },

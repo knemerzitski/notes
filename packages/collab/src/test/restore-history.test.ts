@@ -4,7 +4,7 @@ import { CollabEditor } from '../client/collab-editor';
 import { ServerRevisionRecord } from '../records/record';
 import { RevisionTailRecords } from '../records/revision-tail-records';
 import { createHelperCollabEditingEnvironment } from './helpers/server-client';
-import { addEditorFilters } from '../records/editor-revision-records';
+import { subscribeEditorListeners } from '../records/editor-revision-records';
 import { Entry } from '../client/collab-history';
 
 function historyEntriesInfo(entries: Readonly<Entry[]>) {
@@ -27,7 +27,7 @@ describe('persist history in revision records', () => {
     const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>({
       serializeRecord: ServerRevisionRecord.serialize,
     });
-    addEditorFilters(revisionTailRecords);
+    subscribeEditorListeners(revisionTailRecords);
     helper = createHelperCollabEditingEnvironment(revisionTailRecords, ['A', 'B']);
   });
 

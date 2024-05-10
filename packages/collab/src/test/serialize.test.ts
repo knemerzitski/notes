@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { RevisionTailRecords } from '../records/revision-tail-records';
 import { RevisionChangeset, ServerRevisionRecord } from '../records/record';
 import { createHelperCollabEditingEnvironment } from './helpers/server-client';
-import { addEditorFilters } from '../records/editor-revision-records';
+import { subscribeEditorListeners } from '../records/editor-revision-records';
 import { Changeset } from '../changeset/changeset';
 import prettyLog from '~utils/prettyLog';
 import { CollabEditor } from '../client/collab-editor';
@@ -19,7 +19,7 @@ beforeEach(() => {
     tailText,
     serializeRecord: ServerRevisionRecord.serialize,
   });
-  addEditorFilters(revisionTailRecords);
+  subscribeEditorListeners(revisionTailRecords);
   helper = createHelperCollabEditingEnvironment(revisionTailRecords, ['A', 'B'], {
     A: {
       client: {

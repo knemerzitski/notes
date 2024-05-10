@@ -4,7 +4,7 @@ import { RevisionRecord, SubmittedRevisionRecord } from './record';
 import {
   RevisionRecords,
   RevisionRecordsOptions,
-  FilterEvents as RevisionRecordFilterEvents,
+  RevisionRecordEvents,
 } from './revision-records';
 
 export class EditorRevisionRecords<
@@ -16,7 +16,7 @@ export class EditorRevisionRecords<
   constructor(options?: RevisionRecordsOptions<TRecord, TInsertRecord>) {
     super(options);
 
-    const subscribedListeners = addEditorFilters(this);
+    const subscribedListeners = subscribeEditorListeners(this);
 
     this.unsubscribeFromEvents = () => {
       subscribedListeners.forEach((unsub) => {
@@ -45,13 +45,10 @@ type IsExistingRecordByUserGeneratedIdRecord<T = Changeset> = Pick<
 export function isExistingRecordByUserGeneratedId<
   TRecord extends IsExistingRecordByUserGeneratedIdRecord,
   TInsertRecord extends IsExistingRecordByUserGeneratedIdRecord,
->(event: RevisionRecordFilterEvents<TRecord, TInsertRecord>['isExistingRecord']) {
-  if (event.isExisting) return event;
-
-  return {
-    ...event,
-    isExisting: event.newRecord.userGeneratedId === event.existingRecord.userGeneratedId,
-  };
+>(event: RevisionRecordEvents<TRecord, TInsertRecord>['isExistingRecord']) {
+  event.isExisting =
+    event.isExisting ||
+    event.newRecord.userGeneratedId === event.existingRecord.userGeneratedId;
 }
 
 type FollowSelectionRecord<T = Changeset> = Pick<
@@ -62,8 +59,7 @@ type FollowSelectionRecord<T = Changeset> = Pick<
 export function followRecordSelection<
   TRecord extends RevisionRecord,
   TInsertRecord extends FollowSelectionRecord,
->(event: RevisionRecordFilterEvents<TRecord, TInsertRecord>['followRecord']) {
-  const { newRecord } = event;
+>({ newRecord }: RevisionRecordEvents<TRecord, TInsertRecord>['followRecord']) {
   newRecord.beforeSelection = SelectionRange.followChangeset(
     newRecord.beforeSelection,
     newRecord.changeset
@@ -72,16 +68,14 @@ export function followRecordSelection<
     newRecord.afterSelection,
     newRecord.changeset
   );
-
-  return event;
 }
 
-export function addEditorFilters<
+export function subscribeEditorListeners<
   TRecord extends EditorRecord,
   TInsertRecord extends EditorInsertRecord & TRecord,
 >(revisionRecords: RevisionRecords<TRecord, TInsertRecord>) {
   return [
-    revisionRecords.filterBus.on('isExistingRecord', isExistingRecordByUserGeneratedId),
-    revisionRecords.filterBus.on('followRecord', followRecordSelection),
+    revisionRecords.eventBus.on('isExistingRecord', isExistingRecordByUserGeneratedId),
+    revisionRecords.eventBus.on('followRecord', followRecordSelection),
   ];
 }

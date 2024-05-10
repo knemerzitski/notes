@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { RevisionTailRecords } from '../records/revision-tail-records';
 import { ServerRevisionRecord } from '../records/record';
 import { createHelperCollabEditingEnvironment } from './helpers/server-client';
-import { addEditorFilters } from '../records/editor-revision-records';
+import { subscribeEditorListeners } from '../records/editor-revision-records';
 import { Changeset } from '../changeset/changeset';
 import { CollabClient } from '../client/collab-client';
 import { CollabHistory } from '../client/collab-history';
@@ -14,8 +14,10 @@ describe('single client', () => {
   let helper: ReturnType<typeof createHelperCollabEditingEnvironment<'A'>>;
 
   beforeEach(() => {
-    const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>();
-    addEditorFilters(revisionTailRecords);
+    const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>({
+      serializeRecord: ServerRevisionRecord.serialize,
+    });
+    subscribeEditorListeners(revisionTailRecords);
     helper = createHelperCollabEditingEnvironment(revisionTailRecords, ['A']);
   });
 
@@ -301,8 +303,10 @@ describe('two clients', () => {
   let helper: ReturnType<typeof createHelperCollabEditingEnvironment<'A' | 'B'>>;
 
   beforeEach(() => {
-    const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>();
-    addEditorFilters(revisionTailRecords);
+    const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>({
+      serializeRecord: ServerRevisionRecord.serialize,
+    });
+    subscribeEditorListeners(revisionTailRecords);
     helper = createHelperCollabEditingEnvironment(revisionTailRecords, ['A', 'B']);
   });
 
