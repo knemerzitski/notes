@@ -6,5 +6,6 @@ export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
     include: ['!src/**/*.int.test.ts', 'src/**/*.test.ts'],
+    setupFiles: ['src/test/helpers/setup.ts'],
   },
 });
