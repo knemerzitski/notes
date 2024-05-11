@@ -5,39 +5,20 @@ import { RevisionChangeset, ServerRevisionRecord } from '../records/record';
 import { createHelperCollabEditingEnvironment } from './helpers/server-client';
 import { subscribeEditorListeners } from '../records/editor-revision-records';
 import { Changeset } from '../changeset/changeset';
-import prettyLog from '~utils/prettyLog';
 import { CollabEditor } from '../client/collab-editor';
 
 let helper: ReturnType<typeof createHelperCollabEditingEnvironment<'A' | 'B'>>;
 
 beforeEach(() => {
-  const tailText: RevisionChangeset = {
-    changeset: Changeset.parseValue(['[ZERO]']),
-    revision: 4,
-  };
   const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>({
-    tailText,
+    tailText: {
+      changeset: Changeset.parseValue(['[ZERO]']),
+      revision: 4,
+    },
     serializeRecord: ServerRevisionRecord.serialize,
   });
   subscribeEditorListeners(revisionTailRecords);
-  helper = createHelperCollabEditingEnvironment(revisionTailRecords, ['A', 'B'], {
-    A: {
-      client: {
-        server: tailText.changeset,
-      },
-      recordsBuffer: {
-        version: tailText.revision,
-      },
-    },
-    B: {
-      client: {
-        server: tailText.changeset,
-      },
-      recordsBuffer: {
-        version: tailText.revision,
-      },
-    },
-  });
+  helper = createHelperCollabEditingEnvironment(revisionTailRecords, ['A', 'B']);
 });
 
 it('restores serialized editor', () => {

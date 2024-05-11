@@ -21,112 +21,115 @@ export function createHelperCollabEditingEnvironment<TClientName extends string>
   clientNames: TClientName[],
   options?: Partial<Record<TClientName, Omit<CollabEditorOptions, 'userId'>>>
 ) {
-  const clientMap = clientNames
-    .map((name) => {
-      let clientOptions: CollabEditorOptions['client'] | undefined;
-      let historyOptions: CollabEditorOptions['history'] | undefined;
-      let editorOptions:
-        | Omit<CollabEditorOptions, 'client' | 'history' | 'userId'>
-        | undefined;
-      const currentOptions = options?.[name];
-      if (currentOptions) {
-        const {
-          client: tmpClientOptions,
-          history: tmpHistoryOptions,
-          ...tmpEditorOptions
-        } = currentOptions;
-        clientOptions = tmpClientOptions;
-        historyOptions = tmpHistoryOptions;
-        editorOptions = tmpEditorOptions;
-      }
-      const client =
-        clientOptions instanceof CollabClient
-          ? clientOptions
-          : new CollabClient(clientOptions);
-      const history =
-        historyOptions instanceof CollabHistory
-          ? historyOptions
-          : new CollabHistory({
-              tailRevision:
-                editorOptions?.recordsBuffer instanceof OrderedMessageBuffer
-                  ? editorOptions?.recordsBuffer.currentVersion
-                  : editorOptions?.recordsBuffer?.version,
-              ...historyOptions,
-              client,
-            });
-      return [
-        name,
-        {
-          client,
-          history,
-          editor: new CollabEditor({
-            ...editorOptions,
-            userId: name,
-            client,
-            history,
-          }),
-        },
-      ] as [
-        TClientName,
-        {
-          client: CollabClient;
-          editor: CollabEditor;
-          history: CollabHistory;
-        },
-      ];
-    })
-    .reduce(
-      (map, [name, val]) => {
-        map[name] = val;
-        return map;
-      },
-      // eslint-disable-next-line @typescript-eslint/prefer-reduce-type-parameter
-      {} as Record<
-        TClientName,
-        {
-          client: CollabClient;
-          editor: CollabEditor;
-          history: CollabHistory;
-        }
-      >
-    );
-
-  const allClientNames = Object.keys(clientMap) as TClientName[];
   const serverHelper = createRevisionTailRecordsHelper(server);
-  const clientHelper = mapObject(clientMap, (name, { editor, client, history }) => [
-    name,
-    {
-      client,
-      history,
-      ...createCollabEditorHelper(editor),
-      ...createCollabEditorAndRevisionTailRecordsHelper<TClientName>(
-        name,
-        editor,
-        server,
-        mapObject(clientMap, (otherName, { editor: otherEditor }) => {
-          if (name === otherName) return mapObjectSkip;
-          return [otherName, otherEditor];
-        })
-      ),
-    },
-  ]);
-  return {
-    server: serverHelper,
-    client: clientHelper,
-    expectTextsConverted: (
-      textWithCursors: string,
-      clientNames: TClientName[] = allClientNames
-    ) => {
-      const { rawText, textWithSelection } =
-        parseTextWithMultipleSelections(textWithCursors);
-      expect(serverHelper.headText(), 'server headText').toStrictEqual(rawText);
-      clientNames.forEach((name, index) => {
-        const client = clientHelper[name];
+  const clientsHelperMap: Record<string, ReturnType<typeof createClientHelper>> = {};
+
+  function getOtherEditors(name: string) {
+    return mapObject(clientsHelperMap, (otherName, { editor: otherEditor }) => {
+      if (name === otherName) return mapObjectSkip;
+      return [otherName, otherEditor];
+    });
+  }
+
+  function addNewClient(name: string, options: Omit<CollabEditorOptions, 'userId'> = {}) {
+    const helper = createClientHelper(name, options, server, () => getOtherEditors(name));
+    clientsHelperMap[name] = helper;
+    return helper;
+  }
+
+  clientNames.forEach((name) => {
+    addNewClient(name, options?.[name]);
+  });
+
+  function expectTextsConverted(
+    textWithCursors: string,
+    clientNames: string[] = Object.keys(clientsHelperMap)
+  ) {
+    const { rawText, textWithSelection } =
+      parseTextWithMultipleSelections(textWithCursors);
+    expect(serverHelper.headText(), 'server headText').toStrictEqual(rawText);
+    clientNames.forEach((name, index) => {
+      const client = clientsHelperMap[name];
+      if (client) {
         expect(client.valueWithSelection(), `client ${name}`).toStrictEqual(
           textWithSelection[index]
         );
-      });
+      }
+    });
+  }
+
+  return {
+    server: serverHelper,
+    client: clientsHelperMap as Record<
+      TClientName,
+      ReturnType<typeof createClientHelper>
+    >,
+    addNewClient,
+    expectTextsConverted,
+  };
+}
+
+function createClientHelper<TName extends string>(
+  name: TName,
+  currentOptions: Omit<CollabEditorOptions, 'userId'>,
+  server: RevisionTailRecords<ServerRevisionRecord>,
+  getOtherEditors: () => { [K in TName]: CollabEditor }
+) {
+  let clientOptions: CollabEditorOptions['client'] | undefined;
+  let historyOptions: CollabEditorOptions['history'] | undefined;
+  let editorOptions:
+    | Omit<CollabEditorOptions, 'client' | 'history' | 'userId'>
+    | undefined;
+  if (currentOptions) {
+    const {
+      client: tmpClientOptions,
+      history: tmpHistoryOptions,
+      ...tmpEditorOptions
+    } = currentOptions;
+    clientOptions = tmpClientOptions;
+    historyOptions = tmpHistoryOptions;
+    editorOptions = tmpEditorOptions;
+  }
+  const client =
+    clientOptions instanceof CollabClient
+      ? clientOptions
+      : new CollabClient({
+          server: server.tailText.changeset,
+          ...clientOptions,
+        });
+  const history =
+    historyOptions instanceof CollabHistory
+      ? historyOptions
+      : new CollabHistory({
+          tailRevision:
+            editorOptions?.recordsBuffer instanceof OrderedMessageBuffer
+              ? editorOptions?.recordsBuffer.currentVersion
+              : editorOptions?.recordsBuffer?.version,
+          ...historyOptions,
+          client,
+        });
+
+  const editor = new CollabEditor({
+    ...editorOptions,
+    recordsBuffer: {
+      ...editorOptions?.recordsBuffer,
+      version: server.tailText.revision,
     },
+    userId: name,
+    client,
+    history,
+  });
+
+  return {
+    client,
+    history,
+    ...createCollabEditorHelper(editor),
+    ...createCollabEditorAndRevisionTailRecordsHelper<TName>(
+      name,
+      editor,
+      server,
+      getOtherEditors
+    ),
   };
 }
 
@@ -171,13 +174,14 @@ function createCollabEditorAndRevisionTailRecordsHelper<TClientName extends stri
   name: TClientName,
   editor: CollabEditor,
   revisionTailRecords: RevisionTailRecords<ServerRevisionRecord>,
-  otherEditors: Record<TClientName, CollabEditor>
+  getOtherEditors: () => { [Key in TClientName]: CollabEditor }
 ) {
-  const allOtherNames = Object.keys(otherEditors) as TClientName[];
-
   function submitChanges() {
     const submittedRecord = editor.submitChanges();
     assert(submittedRecord != null);
+
+    const otherEditors = getOtherEditors();
+    const allOtherNames = Object.keys(otherEditors) as TClientName[];
 
     return {
       serverReceive: () => {

@@ -3,7 +3,6 @@ import { RetainStrip } from './retain-strip';
 import { Serializable } from '~utils/serialize';
 import { Strip } from './strip';
 import { SerializedStrips, Strips } from './strips';
-import { Maybe } from '~utils/types';
 
 export type SerializedChangeset = SerializedStrips;
 
