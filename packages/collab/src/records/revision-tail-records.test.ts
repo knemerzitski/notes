@@ -23,9 +23,7 @@ beforeEach(() => {
       revision: 5,
       changeset: Changeset.fromInsertion('start'),
     },
-    records: {
-      records: initialRecords,
-    },
+    records: initialRecords,
     serializeRecord: (r) => ({ ...r, changeset: r.changeset.serialize() }),
   });
 });
@@ -74,9 +72,7 @@ describe('update', () => {
 
   beforeEach(() => {
     revisionRecords = new RevisionTailRecords({
-      records: {
-        records: createConsecutiveRecords(5, 8),
-      },
+      records: createConsecutiveRecords(5, 8),
       tailText: {
         revision: 4,
         changeset: Changeset.fromInsertion('4'),

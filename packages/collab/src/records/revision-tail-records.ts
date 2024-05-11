@@ -6,9 +6,8 @@ import { RevisionRecords, RevisionRecordsOptions } from './revision-records';
 export interface RevisionTailRecordsOptions<
   TRecord extends RevisionRecord,
   TSerializedRecord extends RevisionRecord<SerializedChangeset>,
-> {
+> extends RevisionRecordsOptions<TRecord> {
   tailText?: RevisionChangeset;
-  records?: RevisionRecordsOptions<TRecord>;
   serializeRecord: (record: TRecord) => TSerializedRecord;
 }
 
@@ -34,7 +33,7 @@ export class RevisionTailRecords<
   private serializeRecord: (record: TRecord) => TSerializedRecord;
 
   constructor(options: RevisionTailRecordsOptions<TRecord, TSerializedRecord>) {
-    super(options?.records);
+    super(options);
     this.serializeRecord = options?.serializeRecord;
 
     this._tailText = options?.tailText ?? {
@@ -170,9 +169,7 @@ export class RevisionTailRecords<
   >(
     value: unknown,
     parseRecord: (record: unknown) => T
-  ): Pick<RevisionTailRecordsOptions<T, U>, 'tailText'> & {
-    records: Pick<NonNullable<RevisionTailRecordsOptions<T, U>['records']>, 'records'>;
-  } {
+  ): Pick<RevisionTailRecordsOptions<T, U>, 'tailText' | 'records'> {
     assertHasProperties(value, ['tailText', 'records']);
 
     if (!Array.isArray(value.records)) {
@@ -183,9 +180,7 @@ export class RevisionTailRecords<
 
     return {
       tailText: RevisionChangeset.parseValue(value.tailText),
-      records: {
-        records: value.records.map((record) => parseRecord(record)),
-      },
+      records: value.records.map((record) => parseRecord(record)),
     };
   }
 }
