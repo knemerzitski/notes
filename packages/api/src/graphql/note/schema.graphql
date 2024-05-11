@@ -34,9 +34,9 @@ type Note implements Node {
   id: ID!
   "Identifies note by content. Is unique only for a specific user."
   contentId: String!
-  "All available text fields"
-  textFields: [NoteTextFieldEntry!]!
-  "Note read-only state. Default is false"
+  "All available text fields. If name is defined then only that field is returned."
+  textFields(name: NoteTextField): [NoteTextFieldEntry!]!
+  "Note read-only state. Default is false."
   readOnly: Boolean
   "Note preferences such as background color"
   preferences: NotePreferences

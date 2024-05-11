@@ -17,9 +17,9 @@ import { NoteSchema } from '../../../../mongodb/schema/note';
 import { createGraphQLResolversContext } from '../../../../test/helpers/graphql-context';
 
 const QUERY = `#graphql
-  query($contentId: String!, $recordsLast: PositiveInt){
+  query($contentId: String!, $recordsLast: PositiveInt, $fieldName: NoteTextField){
     note(contentId: $contentId){
-      textFields {
+      textFields(name: $fieldName) {
         key
         value {
           headText {
@@ -117,6 +117,63 @@ it('returns note', async () => {
             },
           },
         },
+        {
+          key: 'TITLE',
+          value: {
+            headText: {
+              revision: expect.any(Number),
+              changeset: expect.any(Array),
+            },
+            recordsConnection: {
+              edges: [
+                {
+                  node: {
+                    change: {
+                      revision: expect.any(Number),
+                    },
+                  },
+                },
+                {
+                  node: {
+                    change: {
+                      revision: expect.any(Number),
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        },
+      ],
+    },
+  });
+});
+
+it('returns only specified textField', async () => {
+  const firstNote = notes[0];
+  assert(firstNote != null);
+
+  const response = await apolloServer.executeOperation(
+    {
+      query: QUERY,
+      variables: {
+        contentId: firstNote.publicId,
+        recordsLast: 2,
+        fieldName: NoteTextField.TITLE,
+      },
+    },
+    {
+      contextValue,
+    }
+  );
+
+  assert(response.body.kind === 'single');
+  const { data, errors } = response.body.singleResult;
+  expect(errors).toBeUndefined();
+
+  expect(data).toEqual({
+    note: {
+      textFields: [
         {
           key: 'TITLE',
           value: {

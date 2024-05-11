@@ -11,8 +11,8 @@ export const Note: NoteResolvers = {
   readOnly: (parent) => {
     return parent.readOnly();
   },
-  textFields: (parent) => {
-    return parent.textFields();
+  textFields: (parent, args) => {
+    return parent.textFields(args);
   },
   contentId: (parent) => {
     return parent.contentId();
@@ -20,7 +20,7 @@ export const Note: NoteResolvers = {
   isOwner: async (parent, _args, ctx) => {
     const { auth } = ctx;
     assertAuthenticated(auth);
-    
+
     const owner = await parent.ownerId();
     if (!owner) return false;
 

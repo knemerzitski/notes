@@ -1,5 +1,5 @@
 import { NoteMapper } from '../schema.mappers';
-import { NoteTextField } from '../../types.generated';
+import { NoteTextField, NotetextFieldsArgs } from '../../types.generated';
 import { MongoDocumentQuery } from '../../../mongodb/query-builder';
 import { NotePreferencesQueryMapper, NotePreferencesQuery } from './note-preferences';
 import {
@@ -41,8 +41,9 @@ export class NoteQueryMapper implements NoteMapper {
     )?.note?.publicId;
   }
 
-  textFields() {
-    return Object.values(NoteTextField).map((field) => {
+  textFields(args?: NotetextFieldsArgs) {
+    const fields = args?.name ? [args?.name] : Object.values(NoteTextField);
+    return fields.map((field) => {
       return {
         key: () => {
           return Promise.resolve(field);
