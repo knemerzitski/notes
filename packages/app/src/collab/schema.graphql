@@ -1,4 +1,9 @@
+extend type Query {
+  "All active CollabTexts that the user has accessed"
+  allActiveCollabTexts: [CollabText!]!
+}
+
 extend type CollabText {
-  "Text that user sees. Includes submitted and local changes."
+  "Text that is displayed to the user. Includes submitted and local changes."
   viewText: String!
 }

@@ -35,6 +35,12 @@ export type CollabClientEvents = {
      */
     source: ChangeSource;
   };
+  haveLocalChanges: {
+    /**
+     * Local changes
+     */
+    local: Changeset;
+  };
   submitChanges?: never;
   submittedChangesAcknowledged?: never;
   handledExternalChange: {
@@ -142,6 +148,10 @@ export class CollabClient implements Serializable<SerializedCollabClient> {
         change,
         source: ChangeSource.Local,
       });
+
+      if (this.haveLocalChanges()) {
+        this.eventBus.emit('haveLocalChanges', { local: newLocal });
+      }
     }
   }
 

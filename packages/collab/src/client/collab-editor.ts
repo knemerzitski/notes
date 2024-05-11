@@ -75,6 +75,12 @@ type EditorEvents = {
   processingMessages: {
     eventBus: Emitter<EditorProcessingEvents>;
   };
+  submittedRecord: {
+    /**
+     * Record that is ready to be submitted to the server.
+     */
+    submittedRecord: SubmittedRecord;
+  };
 };
 
 type LocalRecord<TChangeset = Changeset> = PartialBy<
@@ -105,6 +111,7 @@ export type UnprocessedRecord<TChangeset = Changeset> =
       record: EditorRevisionRecord<TChangeset>;
     };
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 namespace UnprocessedRecord {
   export function getVersion(message: UnprocessedRecord) {
     return message.record.revision;
@@ -125,7 +132,7 @@ namespace UnprocessedRecord {
       type !== UnprocessedRecordType.ExternalChange &&
       type !== UnprocessedRecordType.SubmittedAcknowleged
     ) {
-      throw new ParseError(`Unknown record type ${type}`);
+      throw new ParseError(`Unknown record type ${String(type)}`);
     }
 
     return {
@@ -151,6 +158,7 @@ export interface SerializedCollabEditor {
   serverHasOlderRecords?: boolean;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace EditorServerRecord {
   export function serialize(
     record: EditorRevisionRecord
@@ -216,7 +224,11 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
 
   private _client: CollabClient;
   private _history: CollabHistory;
-  private submittedRecord: SubmittedRecord | null = null;
+
+  private _submittedRecord: SubmittedRecord | null = null;
+  get submittedRecord() {
+    return this._submittedRecord;
+  }
 
   /**
    * Remember if server has older records than current tailRevision.
@@ -291,7 +303,7 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
     this._viewText = this._client.view.joinInsertions();
 
     // Submitted record
-    this.submittedRecord = options?.submittedRecord ?? null;
+    this._submittedRecord = options?.submittedRecord ?? null;
 
     // Store known records from server
     this.serverRecords =
@@ -320,12 +332,12 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
         this.serverRecords.update([message.record]);
 
         if (message.type == UnprocessedRecordType.SubmittedAcknowleged) {
-          this.submittedRecord = null;
+          this._submittedRecord = null;
           this._client.submittedChangesAcknowledged();
         } else {
           // message.type === UnprocessedRecordType.ExternalChange
           const event = this._client.handleExternalChange(message.record.changeset);
-          this.submittedRecord?.processExternalChangeEvent(event);
+          this._submittedRecord?.processExternalChangeEvent(event);
         }
       })
     );
@@ -435,15 +447,17 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
       const historySelection = this._history.getSubmitSelection();
       if (!historySelection) return;
 
-      this.submittedRecord = new SubmittedRecord({
+      this._submittedRecord = new SubmittedRecord({
         ...historySelection,
         userGeneratedId: this.generateSubmitId(),
         revision: this.headRevision,
         changeset: this._client.submitted,
       });
+
+      this.eventBus.emit('submittedRecord', { submittedRecord: this._submittedRecord });
     }
 
-    return this.submittedRecord;
+    return this._submittedRecord;
   }
 
   /**
@@ -573,7 +587,7 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
 
     return {
       client: s_client,
-      submittedRecord: this.submittedRecord?.serialize(),
+      submittedRecord: this._submittedRecord?.serialize(),
       recordsBuffer: this.recordsBuffer.serialize(),
       serverRecords: this.serverRecords.serialize(),
       history: s_history,

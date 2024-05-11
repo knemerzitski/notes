@@ -5,6 +5,7 @@ import {
   NormalizedCacheObject,
   split,
 } from '@apollo/client';
+import { loadErrorMessages, loadDevMessages } from '@apollo/client/dev';
 import { setContext } from '@apollo/client/link/context';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
@@ -20,6 +21,10 @@ import StatsLink from './links/stats-link';
 import WaitLink from './links/wait-link';
 import typePolicies from './policies';
 
+if (import.meta.env.MODE !== 'production') {
+  loadDevMessages();
+  loadErrorMessages();
+}
 
 const HTTP_URL =
   import.meta.env.MODE === 'production'

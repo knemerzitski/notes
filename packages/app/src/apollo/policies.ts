@@ -2,12 +2,13 @@ import { TypePolicies } from '@apollo/client';
 
 import localNotePolicies from '../local-state/note/policies';
 import localPreferencesPolicies from '../local-state/preferences/policies';
-import notePolicies from '../note/policies';
+import notePolicies from '../note/state/policies';
 import localSessionPolicies from '../session/state/policies';
 
 import logFieldRead from './utils/logFieldRead';
 import mergeArrayTypePolicies from './utils/mergeArrayTypePolicies';
-import collabTextPolicies from '../collab/policies';
+import collabTextPolicies from '../collab/state/policies';
+import localBasePolicies from '../local-state/base/policies';
 
 const LOG_READ = false;
 
@@ -17,7 +18,8 @@ const LOG_READ = false;
 const definedArrayTypePolicies: TypePolicies[] = [
   notePolicies,
   collabTextPolicies,
-
+  
+  localBasePolicies,
   localPreferencesPolicies,
   localSessionPolicies,
   localNotePolicies,

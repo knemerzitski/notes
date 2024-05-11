@@ -29,6 +29,6 @@
       "~utils/*": ["../utils/src/*"]
     }
   },
-  "include": ["src", "cypress"],
+  "include": ["src", "cypress", "vitest.config.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

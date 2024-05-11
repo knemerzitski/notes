@@ -1,0 +1,16 @@
+extend type Query {
+  "Active Notes submitted record are sent to server and external changes are saved."
+  allActiveNotes: [Note!]!
+  "Links Note.contentId to a Note belonging to User"
+  userNoteMappings: [UserNoteMapping!]!
+}
+
+"""
+References current user to a note
+"""
+type UserNoteMapping {
+  "Self-descriptive"
+  user: User!
+  "Self-descriptive"
+  note: Note!
+}

@@ -11,6 +11,8 @@
     "graphql:compile": "graphql-codegen",
     "graphql:watch": "graphql-codegen -w",
     "dev": "npm run vite:dev & npm run graphql:watch",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
     "cypress": "cypress open",
     "test:comp": "cypress run --component"
   },
@@ -23,6 +25,7 @@
     "@graphql-typed-document-node/core": "^3.2.0",
     "@mui/icons-material": "^5.14.15",
     "@mui/material": "^5.14.15",
+    "@testing-library/react": "^15.0.7",
     "@types/google.accounts": "^0.0.14",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
@@ -36,6 +39,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
     "graphql": "^16.8.1",
+    "jsdom": "^24.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-error-boundary": "^4.0.12",
@@ -43,7 +47,8 @@
     "typescript": "~5.2.0",
     "use-debounce": "^10.0.0",
     "vite": "^4.4.5",
-    "vite-tsconfig-paths": "^4.3.1"
+    "vite-tsconfig-paths": "^4.3.2",
+    "vitest": "~1.4"
   },
   "peerDependencies": {
     "@parcel/watcher": "^2.3.0"

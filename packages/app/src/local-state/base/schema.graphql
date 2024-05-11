@@ -3,3 +3,8 @@ The @client directive allows you to resolve client-only data alongside your serv
 These fields are not sent to the GraphQL server.
 """
 directive @client on FIELD
+
+extend type Query {
+  "Client is up-to-date with server. All changes are saved."
+  isClientSynchronized: Boolean!
+}

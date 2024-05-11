@@ -12,13 +12,7 @@ type PartialEditor = Readonly<
   >
 >;
 
-export interface UseHTMLInputCollaborativeEditorProps {
-  editor: PartialEditor;
-}
-
-export default function useHTMLInputCollabEditor({
-  editor,
-}: UseHTMLInputCollaborativeEditorProps) {
+export default function useHTMLInputCollabEditor(editor: PartialEditor) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [value, setValue] = useState(editor.viewText);
@@ -107,7 +101,7 @@ export default function useHTMLInputCollabEditor({
   return {
     inputRef,
     value,
-    handleSelect,
-    handleInput,
+    onSelect: handleSelect,
+    onInput: handleInput,
   };
 }
