@@ -162,7 +162,7 @@ function createRevisionTailRecordsHelper(
   revisionTailRecords: RevisionTailRecords<ServerRevisionRecord>
 ) {
   return {
-    instance: revisionTailRecords,
+    tailRecords: revisionTailRecords,
     headText: () => revisionTailRecords.getHeadText().changeset.joinInsertions(),
   };
 }

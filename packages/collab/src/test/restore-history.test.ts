@@ -59,15 +59,15 @@ describe('persist history in revision records', () => {
 
     const restoredEditorB = new CollabEditor({
       recordsBuffer: {
-        version: server.instance.getHeadText().revision,
+        version: server.tailRecords.getHeadText().revision,
       },
       client: {
-        server: server.instance.getHeadText().changeset,
+        server: server.tailRecords.getHeadText().changeset,
       },
       userId: client.B.editor.userId,
     });
 
-    restoredEditorB.addServerRecords(server.instance.records);
+    restoredEditorB.addServerRecords(server.tailRecords.records);
     restoredEditorB.historyRestore(client.B.editor.history.entries.length);
 
     expect(historyEntriesInfo(client.B.editor.history.entries)).toStrictEqual(
@@ -93,15 +93,15 @@ describe('persist history in revision records', () => {
     client.A.submitChangesInstant();
     const restoredEditorB = new CollabEditor({
       recordsBuffer: {
-        version: server.instance.getHeadText().revision,
+        version: server.tailRecords.getHeadText().revision,
       },
       client: {
-        server: server.instance.getHeadText().changeset,
+        server: server.tailRecords.getHeadText().changeset,
       },
       userId: client.B.editor.userId,
     });
 
-    restoredEditorB.addServerRecords(server.instance.records);
+    restoredEditorB.addServerRecords(server.tailRecords.records);
     restoredEditorB.historyRestore(client.B.editor.history.entries.length);
 
     expect(historyEntriesInfo(restoredEditorB.history.entries)).toStrictEqual(
