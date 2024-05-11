@@ -19,6 +19,7 @@ import {
   parseNumber,
   parseNumberMaybe,
 } from '~utils/serialize';
+import { EditorServerRecords, isOwnRecord } from './editor-records';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type LocalChangesetEditorHistoryEvents = {
@@ -108,13 +109,17 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
 
   private _tailText = Changeset.EMPTY;
   /**
-   * History entries are are composed starting from this changeset
+   * Oldest history entry is composable on this changeset
    */
   get tailText() {
     return this._tailText;
   }
 
   private _tailRevision: number;
+
+  /**
+   * Revision of oldest history entry.
+   */
   get tailRevision() {
     return this._tailRevision;
   }
@@ -252,52 +257,32 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
     this.redo(); // applies pushed entry
   }
 
-  restoreFromServerRecords<TRecord extends HistoryServerRecord>(
-    serverRecords: RevisionTailRecords<TRecord>,
+  restoreFromServerRecords(
+    serverRecords: EditorServerRecords,
     desiredRestoreCount: number,
     targetUserId?: string | symbol,
     recursive = true
   ): number | undefined {
     if (desiredRestoreCount <= 0) return 0;
 
-    let potentialRestoreCount = 0;
-    const relevantRecords: TRecord[] = [];
-    for (let i = serverRecords.revisionToIndex(this._tailRevision); i >= 0; i--) {
-      const record = serverRecords.records[i];
-      if (!record) continue;
-      relevantRecords.push(record);
-      if (
-        !targetUserId ||
-        !('creatorUserId' in record) ||
-        record.creatorUserId === targetUserId
-      ) {
-        potentialRestoreCount++;
-        if (potentialRestoreCount >= desiredRestoreCount) {
-          break;
-        }
-      }
-    }
-    relevantRecords.reverse();
+    const { records: relevantRecords, ownCount } =
+      serverRecords.sliceRecordsUntilDesiredOwnCount(
+        this._tailRevision,
+        desiredRestoreCount,
+        targetUserId
+      );
+    let potentialRestoreCount = ownCount;
+
     const firstRecord = relevantRecords[0];
     if (!firstRecord) return;
 
-    const firstRecordIndex = serverRecords.revisionToIndex(firstRecord.revision);
-
-    const newTailText = serverRecords.records
-      .slice(0, firstRecordIndex)
-      .reduce((a, b) => a.compose(b.changeset), serverRecords.tailText.changeset);
+    const newTailText = serverRecords.getTextAt(firstRecord.revision - 1);
 
     const addedEntriesCount = this.restoreHistoryEntries(
-      {
-        changeset: newTailText,
-        revision: firstRecord.revision - 1,
-      },
+      newTailText,
       relevantRecords.map((record) => {
-        const isOtherUser =
-          targetUserId &&
-          'creatorUserId' in record &&
-          record.creatorUserId !== targetUserId;
-        if (!record.beforeSelection || !record.afterSelection || isOtherUser) {
+        const isOtherUserRecord = !isOwnRecord(record, targetUserId);
+        if (!record.beforeSelection || !record.afterSelection || isOtherUserRecord) {
           return {
             isTail: true,
             execute: {
@@ -355,12 +340,22 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
     return addedEntriesCount;
   }
 
+  canUndo() {
+    return Boolean(this._entries[this.lastExecutedIndex.local]);
+  }
+
   undo() {
     const entry = this._entries[this.lastExecutedIndex.local];
     if (entry) {
       this.lastExecutedIndex.local--;
       this.applyTypingOperation(entry.undo);
+      return true;
     }
+    return false;
+  }
+
+  canRedo() {
+    return Boolean(this._entries[this.lastExecutedIndex.local + 1]);
   }
 
   redo() {
@@ -368,7 +363,9 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
     if (entry) {
       this.lastExecutedIndex.local++;
       this.applyTypingOperation(entry.execute);
+      return true;
     }
+    return false;
   }
 
   private applyTypingOperation(op: Operation) {

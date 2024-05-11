@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, expect, it } from 'vitest';
 
 import { RevisionTailRecords } from '../records/revision-tail-records';
-import { RevisionChangeset, ServerRevisionRecord } from '../records/record';
+import { ServerRevisionRecord } from '../records/record';
 import { createHelperCollabEditingEnvironment } from './helpers/server-client';
 import { subscribeEditorListeners } from '../records/editor-revision-records';
 import { Changeset } from '../changeset/changeset';
@@ -15,7 +15,6 @@ beforeEach(() => {
       changeset: Changeset.parseValue(['[ZERO]']),
       revision: 4,
     },
-    serializeRecord: ServerRevisionRecord.serialize,
   });
   subscribeEditorListeners(revisionTailRecords);
   helper = createHelperCollabEditingEnvironment(revisionTailRecords, ['A', 'B']);

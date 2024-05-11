@@ -25,6 +25,11 @@ export namespace RevisionChangeset {
       changeset: Changeset.parseValue(value.changeset),
     };
   }
+
+  export function parseValueMaybe(value: unknown): RevisionChangeset | undefined {
+    if (value === undefined) return value;
+    return parseValue(value);
+  }
 }
 
 export type RevisionRecord<T = Changeset> = RevisionChangeset<T>;

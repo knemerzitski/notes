@@ -12,9 +12,7 @@ describe('single client', () => {
   let helper: ReturnType<typeof createHelperCollabEditingEnvironment<'A'>>;
 
   beforeEach(() => {
-    const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>({
-      serializeRecord: ServerRevisionRecord.serialize,
-    });
+    const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>();
     subscribeEditorListeners(revisionTailRecords);
     helper = createHelperCollabEditingEnvironment(revisionTailRecords, ['A']);
   });
@@ -124,9 +122,7 @@ describe('two clients', () => {
   let helper: ReturnType<typeof createHelperCollabEditingEnvironment<'A' | 'B'>>;
 
   beforeEach(() => {
-    const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>({
-      serializeRecord: ServerRevisionRecord.serialize,
-    });
+    const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>();
     subscribeEditorListeners(revisionTailRecords);
     helper = createHelperCollabEditingEnvironment(revisionTailRecords, ['A', 'B']);
   });
@@ -239,9 +235,7 @@ describe('three clients', () => {
   let helper: ReturnType<typeof createHelperCollabEditingEnvironment<'A' | 'B' | 'C'>>;
 
   beforeEach(() => {
-    const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>({
-      serializeRecord: ServerRevisionRecord.serialize,
-    });
+    const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>();
     subscribeEditorListeners(revisionTailRecords);
     helper = createHelperCollabEditingEnvironment(revisionTailRecords, ['A', 'B', 'C']);
   });
