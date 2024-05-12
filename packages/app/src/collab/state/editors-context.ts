@@ -43,12 +43,23 @@ export function getEditorContext(
   collabTextId: string,
   getHeadText: () => SerializedRevisionChangeset | undefined
 ) {
+  const editorContext = getEditorContextMaybe(collabTextId, getHeadText);
+  if (!editorContext) {
+    throw new Error(`CollabText '${collabTextId}' is missing headText`);
+  }
+  return editorContext;
+}
+
+export function getEditorContextMaybe(
+  collabTextId: string,
+  getHeadText: () => SerializedRevisionChangeset | undefined
+) {
   const existingContext = editorsContextById.get(collabTextId);
   if (existingContext) return existingContext;
 
   const serializedHeadText = getHeadText();
   if (!serializedHeadText) {
-    throw new Error(`CollabText '${collabTextId}' is missing headText`);
+    return;
   }
   const headText = RevisionChangeset.parseValue(serializedHeadText);
 

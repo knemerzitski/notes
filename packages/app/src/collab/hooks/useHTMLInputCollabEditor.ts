@@ -29,23 +29,23 @@ export default function useHTMLInputCollabEditor(editor: PartialEditor) {
     setSelection(newSelection);
   }
 
-  function getLatestSelection() {
-    return latestSelectionRef.current ?? getInputSelection();
-  }
-
-  function getInputSelection() {
-    const input = inputRef.current;
-    if (input?.selectionStart != null && input.selectionEnd != null) {
-      return {
-        start: input.selectionStart,
-        end: input.selectionEnd,
-      };
-    }
-    return;
-  }
-
   // Keep selection in place after external change
   useEffect(() => {
+    function getLatestSelection() {
+      return latestSelectionRef.current ?? getInputSelection();
+    }
+
+    function getInputSelection() {
+      const input = inputRef.current;
+      if (input?.selectionStart != null && input.selectionEnd != null) {
+        return {
+          start: input.selectionStart,
+          end: input.selectionEnd,
+        };
+      }
+      return;
+    }
+
     return editor.eventBus.on('processingMessages', ({ eventBus: processingBus }) => {
       const latestSelection = getLatestSelection();
       if (!latestSelection) return;

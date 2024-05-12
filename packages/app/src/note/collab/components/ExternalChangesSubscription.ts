@@ -2,8 +2,8 @@ import { useEffect } from 'react';
 
 import { useApolloClient } from '@apollo/client';
 import { gql } from '../../../__generated__/gql';
-import getCollabEditor from '../../../collab/utils/getCollabEditor';
 import { collabTextRecordToEditorRevisionRecord } from '../../../collab/utils/record-conversion';
+import { getCollabEditorMaybe } from '../../../collab/hooks/useCollabEditor';
 
 export const SUBSCRIPTION = gql(`
   subscription ExternalChangesNewRecord($input: NoteUpdatedInput) {
@@ -69,9 +69,12 @@ export default function ExternalChangesSubscription({
           const { id: collabTextId, newRecord } = value;
           if (!newRecord) return;
 
-          const editor = getCollabEditor(apolloClient, collabTextId);
-          if (!editor) return;
-          editor.handleExternalChange(collabTextRecordToEditorRevisionRecord(newRecord));
+          const editor = getCollabEditorMaybe(apolloClient, collabTextId);
+          if (editor) {
+            editor.handleExternalChange(
+              collabTextRecordToEditorRevisionRecord(newRecord)
+            );
+          }
         });
       },
     });
