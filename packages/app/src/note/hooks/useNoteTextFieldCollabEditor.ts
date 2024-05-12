@@ -1,5 +1,5 @@
-import { NoteTextField } from '../../../__generated__/graphql';
-import useCollabEditor from '../../../collab/hooks/useCollabEditor';
+import { NoteTextField } from '../../__generated__/graphql';
+import useCollabEditor from '../../collab/hooks/useCollabEditor';
 import useNoteTextFieldId from './useNoteTextFieldId';
 
 export default function useNoteTextFieldCollabEditor(

@@ -15,7 +15,7 @@ import {
   SerializedCollabEditor,
   UnprocessedRecordType,
 } from '~collab/client/collab-editor';
-import useNoteTextFieldCollabEditor from '../hooks/__mocks__/useNoteTextFieldCollabEditor';
+import useNoteTextFieldCollabEditor from '../../hooks/__mocks__/useNoteTextFieldCollabEditor';
 import nextTick from '~utils/nextTick';
 import { Changeset } from '~collab/changeset/changeset';
 

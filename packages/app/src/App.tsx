@@ -14,8 +14,8 @@ import SnackbarAlertProvider from './components/feedback/SnackbarAlertProvider';
 import RouterProvider from './router/RouterProvider';
 import GoogleAuthProvider from './session/auth/google/GoogleAuthProvider';
 import themeOptions from './themeOptions';
-import ExternalChangesSubscription from './note/collab/components/ExternalChangesSubscription';
-import ActiveNotesManager from './note/collab/components/ActiveNotesManager';
+import ExternalChangesSubscription from './note/components/state/ExternalChangesSubscription';
+import ActiveNotesManager from './note/components/state/ActiveNotesManager';
 import ActiveCollabTextsManager from './collab/components/ActiveCollabTextsManager';
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;

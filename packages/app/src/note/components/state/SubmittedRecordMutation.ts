@@ -1,7 +1,7 @@
 import useUpdateNote from '../../hooks/useUpdateNote';
 import { NoteTextField } from '../../../__generated__/graphql';
 import { useEffect } from 'react';
-import useNoteTextFieldCollabEditor from '../hooks/useNoteTextFieldCollabEditor';
+import useNoteTextFieldCollabEditor from '../../hooks/useNoteTextFieldCollabEditor';
 import { SubmittedRecord } from '~collab/client/submitted-record';
 import {
   collabTextRecordToEditorRevisionRecord,

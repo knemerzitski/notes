@@ -1,6 +1,6 @@
 import { BoxProps } from '@mui/material';
 
-import InputsBox from '../../../components/edit/InputsBox';
+import InputsBox from './InputsBox';
 
 import CollabContentInput from './CollabContentInput';
 import CollabTitleInput from './CollabTitleInput';

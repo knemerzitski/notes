@@ -1,4 +1,4 @@
-import { NoteTextField } from '../../../__generated__/graphql';
+import { NoteTextField } from '../../__generated__/graphql';
 import useNoteCollabTextIds from './useNoteCollabTextIds';
 
 export default function useNoteCollabTextId(

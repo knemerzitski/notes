@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from '@apollo/client';
-import { gql } from '../../../__generated__/gql';
+import { gql } from '../../__generated__/gql';
 
 export const QUERY = gql(`
   query UseNoteCollabTextIds($noteContentId: String!) {

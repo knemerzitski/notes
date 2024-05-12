@@ -1,12 +1,11 @@
 import { Alert } from '@mui/material';
-import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
 import RouteClosable, {
   RouteClosableComponentProps,
 } from '../../../components/feedback/RouteClosable';
-import CollabNoteEditor from '../../../note/collab/components/fields/CollabNoteEditor';
-import NoteContentIdProvider from '../../../note/collab/context/NoteContentIdProvider';
+import CollabNoteEditor from '../../../note/components/edit/CollabNoteEditor';
+import NoteContentIdProvider from '../../../note/context/NoteContentIdProvider';
 import NoteDialog from '../../../note/components/NoteDialog';
 import useDeleteNote from '../../../note/hooks/useDeleteNote';
 

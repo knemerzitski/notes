@@ -1,4 +1,4 @@
-import ToolbarBox, { ToolbarBoxProps } from '../../../components/toolbar/ToolbarBox';
+import ToolbarBox, { ToolbarBoxProps } from '../toolbar/ToolbarBox';
 
 import CollabInputs, { CollabInputsProps } from './CollabInputs';
 
