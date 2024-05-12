@@ -3,6 +3,7 @@ import { gql } from '../../../__generated__/gql';
 import SubmittedRecordMutation from './SubmittedRecordMutation';
 import ExternalChangesSubscription from './ExternalChangesSubscription';
 import { Fragment } from 'react';
+import NoteDeletedSubscription from './NoteDeletedSubscription';
 
 const QUERY = gql(`
   query ActiveNotesManager {
@@ -35,7 +36,10 @@ export default function ActiveNotesManager() {
     return (
       <Fragment key={noteContentId}>
         {!activeNote.isOwner && (
-          <ExternalChangesSubscription noteContentId={noteContentId} />
+          <>
+            <ExternalChangesSubscription noteContentId={noteContentId} />
+            <NoteDeletedSubscription noteContentId={noteContentId} />
+          </>
         )}
 
         {activeNote.textFields.map((textField) => {

@@ -17,6 +17,8 @@ import themeOptions from './themeOptions';
 import ExternalChangesSubscription from './note/components/state/ExternalChangesSubscription';
 import ActiveNotesManager from './note/components/state/ActiveNotesManager';
 import ActiveCollabTextsManager from './collab/components/ActiveCollabTextsManager';
+import NoteCreatedSubscription from './note/components/state/NoteCreatedSubscription';
+import NoteDeletedSubscription from './note/components/state/NoteDeletedSubscription';
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -69,6 +71,8 @@ export default function App() {
                 <ApolloClientErrorsSnackbarAlert />
                 <GoogleAuthProvider clientId={CLIENT_ID}>
                   {/* TODO everything that can be, move into router */}
+                  <NoteCreatedSubscription />
+                  <NoteDeletedSubscription />
                   <ExternalChangesSubscription />
                   <ActiveNotesManager />
                   <ActiveCollabTextsManager />
