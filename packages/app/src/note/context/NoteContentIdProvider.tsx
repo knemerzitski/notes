@@ -10,6 +10,10 @@ export function useNoteContentId() {
   return ctx;
 }
 
+export function useNoteContentIdMaybe() {
+  return useContext(NoteContentIdContext);
+}
+
 interface NoteContentIdProviderProps {
   noteContentId: string;
   children: ReactNode;

@@ -1,14 +1,16 @@
 import useMobile from '../../../hooks/useIsMobile';
+import NoteTextFieldEditorsProvider, {
+  NoteTextFieldEditorsProviderProps,
+} from '../../context/NoteTextFieldEditorsProvider';
 import CreateNoteFab, { CreateNoteFabProps } from '../create/CreateNoteFab';
 import CreateNoteWidget, { CreateNoteWidgetProps } from '../create/CreateNoteWidget';
 import NotesList, { NotesListProps } from '../view/NotesList';
 
 interface NotesLayoutProps {
-  slotProps: {
-    notesList: NotesListProps;
-    createNoteWidget: CreateNoteWidgetProps;
-    createNoteFab: CreateNoteFabProps;
-  };
+  notesList: NotesListProps;
+  createNoteWidget: CreateNoteWidgetProps;
+  createNoteWidgetEditor: Omit<NoteTextFieldEditorsProviderProps, 'children'>;
+  createNoteFab: CreateNoteFabProps;
 }
 
 export default function WidgetListFabLayout(props: NotesLayoutProps) {
@@ -17,18 +19,20 @@ export default function WidgetListFabLayout(props: NotesLayoutProps) {
   return (
     <>
       {!isMobile && (
-        <CreateNoteWidget
-          {...props.slotProps.createNoteWidget}
-          sx={{
-            width: 'min(100%, 600px)',
-            ...props.slotProps.createNoteWidget.sx,
-          }}
-        />
+        <NoteTextFieldEditorsProvider {...props.createNoteWidgetEditor}>
+          <CreateNoteWidget
+            {...props.createNoteWidget}
+            sx={{
+              width: 'min(100%, 600px)',
+              ...props.createNoteWidget.sx,
+            }}
+          />
+        </NoteTextFieldEditorsProvider>
       )}
 
-      <NotesList {...props.slotProps.notesList} />
+      <NotesList {...props.notesList} />
 
-      {isMobile && <CreateNoteFab {...props.slotProps.createNoteFab} />}
+      {isMobile && <CreateNoteFab {...props.createNoteFab} />}
     </>
   );
 }

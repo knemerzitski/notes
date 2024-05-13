@@ -2,7 +2,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { Fab, FabProps } from '@mui/material';
 
 export interface CreateNoteFabProps extends FabProps {
-  onCreate: () => Promise<void>;
+  onCreate: () => void;
 }
 
 export default function CreateNoteFab({ onCreate, ...restProps }: CreateNoteFabProps) {
@@ -12,9 +12,7 @@ export default function CreateNoteFab({ onCreate, ...restProps }: CreateNoteFabP
       color="primary"
       size="large"
       aria-label="new note"
-      onClick={() => {
-        void onCreate();
-      }}
+      onClick={onCreate}
       sx={(theme) => ({
         position: 'fixed',
         bottom: theme.spacing(2),

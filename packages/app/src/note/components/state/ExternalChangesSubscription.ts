@@ -2,8 +2,9 @@ import { useEffect } from 'react';
 
 import { useApolloClient } from '@apollo/client';
 import { gql } from '../../../__generated__/gql';
-import { collabTextRecordToEditorRevisionRecord } from '../../../collab/utils/record-conversion';
+import { collabTextRecordToEditorRevisionRecord } from '../../../collab/editor-graphql-adapter';
 import { getCollabEditorMaybe } from '../../../collab/hooks/useCollabEditor';
+import { useNoteContentIdMaybe } from '../../context/NoteContentIdProvider';
 
 export const SUBSCRIPTION = gql(`
   subscription ExternalChangesNewRecord($input: NoteUpdatedInput) {
@@ -36,18 +37,13 @@ export const SUBSCRIPTION = gql(`
   }
 `);
 
-interface ExternalChangesSubscriptionProps {
-  /**
-   * Subscribe to specific note updates. If unspecified then subscribes
-   * to all notes of current user.
-   */
-  noteContentId?: string;
-}
-
-export default function ExternalChangesSubscription({
-  noteContentId,
-}: ExternalChangesSubscriptionProps) {
+/**
+ * Subscribe to specific note updates. If unspecified then subscribes
+ * to all notes of current user.
+ */
+export default function ExternalChangesSubscription() {
   const apolloClient = useApolloClient();
+  const noteContentId = useNoteContentIdMaybe();
 
   useEffect(() => {
     const observable = apolloClient.subscribe({

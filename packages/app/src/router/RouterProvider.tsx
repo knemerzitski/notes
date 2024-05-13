@@ -56,7 +56,7 @@ const modalRoutes: ExtendedRouteObject[] = [
     path: `/${sessionPrefix}?/:sessionIndex?/*`,
     children: [
       {
-        path: 'note/:id',
+        path: 'note/:id?',
         backgroundPath: '/',
       },
       {

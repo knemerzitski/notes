@@ -1,28 +1,29 @@
 import useUpdateNote from '../../hooks/useUpdateNote';
 import { NoteTextField } from '../../../__generated__/graphql';
 import { useEffect } from 'react';
-import useNoteTextFieldCollabEditor from '../../hooks/useNoteTextFieldCollabEditor';
 import { SubmittedRecord } from '~collab/client/submitted-record';
 import {
   collabTextRecordToEditorRevisionRecord,
   submittedRecordToCollabTextRecordInput,
-} from '../../../collab/utils/record-conversion';
+} from '../../../collab/editor-graphql-adapter';
+import { useNoteTextFieldEditor } from '../../context/NoteTextFieldEditorsProvider';
+import { useNoteContentId } from '../../context/NoteContentIdProvider';
 
 export interface SubmittedRecordMutationProps {
-  noteContentId: string;
-  noteField: NoteTextField;
+  fieldName: NoteTextField;
 }
 
 /**
  * Listens for submittedRecord. Sends it to server and acknowleges the response.
  */
 export default function SubmittedRecordMutation({
-  noteContentId,
-  noteField,
+  fieldName,
 }: SubmittedRecordMutationProps) {
   const updateNote = useUpdateNote();
 
-  const editor = useNoteTextFieldCollabEditor(noteContentId, noteField);
+  const noteContentId = useNoteContentId();
+  const editor = useNoteTextFieldEditor(fieldName);
+
   useEffect(() => {
     async function handleSubmittedRecord(submittedRecord: SubmittedRecord) {
       const { data } = await updateNote({
@@ -32,7 +33,7 @@ export default function SubmittedRecordMutation({
             patch: {
               textFields: [
                 {
-                  key: noteField,
+                  key: fieldName,
                   value: {
                     insertRecord: submittedRecordToCollabTextRecordInput(submittedRecord),
                   },
@@ -44,7 +45,7 @@ export default function SubmittedRecordMutation({
       });
 
       const newRecord = data?.updateNote.patch?.textFields?.find(
-        (textField) => textField.key === noteField
+        (textField) => textField.key === fieldName
       )?.value.newRecord;
       if (!newRecord) return;
 
@@ -60,7 +61,7 @@ export default function SubmittedRecordMutation({
     return editor.eventBus.on('submittedRecord', ({ submittedRecord }) => {
       void handleSubmittedRecord(submittedRecord);
     });
-  }, [editor, noteContentId, noteField, updateNote]);
+  }, [editor, noteContentId, fieldName, updateNote]);
 
   return null;
 }

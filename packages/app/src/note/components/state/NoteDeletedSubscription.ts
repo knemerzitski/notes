@@ -2,7 +2,9 @@ import { useEffect } from 'react';
 
 import { useApolloClient } from '@apollo/client';
 import { gql } from '../../../__generated__/gql';
-import { activeNotesVar } from '../../state/reactive-vars';
+import { useNoteContentIdMaybe } from '../../context/NoteContentIdProvider';
+import { removeActiveNotes } from '../../state/active-notes';
+import useNoteByContentId from '../../hooks/useNoteByContentId';
 
 export const SUBSCRIPTION = gql(`
   subscription NoteDeleted($input: NoteDeletedInput) {
@@ -12,35 +14,15 @@ export const SUBSCRIPTION = gql(`
   }
 `);
 
-const QUERY = gql(`
-  query NoteDeletedUserNotesMapping {
-    userNoteMappings @client {
-      user {
-        id
-      }
-      note {
-        id
-        contentId
-      }
-    }
-  }
-`);
-
-interface NoteCreatedSubscriptionProps {
-  /**
-   * Subscribe to specific note deletion. If unspecified then subscribes
-   * to all notes of current user.
-   */
-  noteContentId?: string;
-}
-
 /**
- * Subscribe to creation of own notes.
+ * Subscribe to specific note deletion. If unspecified then subscribes
+ * to all notes of current user.
  */
-export default function NoteDeletedSubscription({
-  noteContentId,
-}: NoteCreatedSubscriptionProps) {
+export default function NoteDeletedSubscription() {
   const apolloClient = useApolloClient();
+  const noteContentId = useNoteContentIdMaybe();
+
+  const noteContentIdToId = useNoteByContentId();
 
   useEffect(() => {
     const observable = apolloClient.subscribe({
@@ -57,51 +39,25 @@ export default function NoteDeletedSubscription({
     const sub = observable.subscribe({
       next(value) {
         const deletedContentId = value.data?.noteDeleted.contentId;
-        console.log('deleted', deletedContentId, Object.keys(activeNotesVar()));
         if (!deletedContentId) return;
 
         const cache = apolloClient.cache;
 
-        const queryResult = cache.readQuery({
-          query: QUERY,
-        });
-        if (!queryResult) return;
-        const { userNoteMappings } = queryResult;
-
-        const deletedUserNoteMappings = userNoteMappings.filter(
-          ({ note: { contentId } }) => contentId === deletedContentId
-        );
-
-        // Remove note from list of active notes
-        const updatedActiveNotes = activeNotesVar();
-        deletedUserNoteMappings.forEach((deletedUserNote) => {
-          const noteRef = cache.identify(deletedUserNote.note);
-          if (noteRef) {
-            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-            delete updatedActiveNotes[noteRef];
-          }
-        });
-        activeNotesVar(updatedActiveNotes);
-
-        // Evict note related data from cache
-        deletedUserNoteMappings.forEach((deletedUserNote) => {
-          console.log('pruge', deletedUserNote);
+        const note = noteContentIdToId(deletedContentId);
+        if (note) {
+          removeActiveNotes(cache, [note]);
           cache.evict({
-            id: cache.identify(deletedUserNote),
+            id: cache.identify(note),
           });
-          cache.evict({
-            id: cache.identify(deletedUserNote.note),
-          });
-        });
-        console.log('gc', Object.keys(activeNotesVar()));
-        cache.gc();
+          cache.gc();
+        }
       },
     });
 
     return () => {
       sub.unsubscribe();
     };
-  }, [apolloClient, noteContentId]);
+  }, [apolloClient, noteContentId, noteContentIdToId]);
 
   return null;
 }

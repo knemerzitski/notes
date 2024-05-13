@@ -1,9 +1,9 @@
 import { FieldPolicy } from '@apollo/client';
 import { CollabText } from '../../../../__generated__/graphql';
-import { getEditorContextInPolicy } from '../../editors-context';
+import { editorsWithVars } from '../../editors-by-id';
 
 export const viewText: FieldPolicy<CollabText['viewText'], CollabText['viewText']> = {
   read(_existing, options) {
-    return getEditorContextInPolicy(options).viewTextVar();
+    return editorsWithVars.getOrCreateOrFailInPolicy(options).vars.viewTextVar();
   },
 };

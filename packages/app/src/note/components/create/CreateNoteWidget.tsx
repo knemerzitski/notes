@@ -1,71 +1,35 @@
-import { ClickAwayListener, InputProps, Paper, PaperProps } from '@mui/material';
+import { ClickAwayListener, Paper, PaperProps } from '@mui/material';
 import { useState } from 'react';
 
-import { useSnackbarError } from '../../../components/feedback/SnackbarAlertProvider';
-import ContentInput from '../edit/ContentInput';
-import InputsBox from '../edit/InputsBox';
-import Title from '../edit/TitleInput';
-import ToolbarBox from '../toolbar/ToolbarBox';
-
-interface Note {
-  title: string;
-  content: string;
-}
+import CollabNoteEditor from '../edit/CollabNoteEditor';
+import CollabContentInput from '../edit/CollabContentInput';
 
 export interface CreateNoteWidgetProps extends PaperProps {
-  onCreated: (title: string, content: string) => Promise<boolean>;
-  contentFieldProps?: InputProps;
+  onCreate: () => void;
+  onClose?: () => void;
 }
 
 export default function CreateNoteWidget({
-  onCreated,
-  contentFieldProps,
+  onCreate,
+  onClose,
   ...restProps
 }: CreateNoteWidgetProps) {
-  const [note, setNote] = useState<Note>({
-    title: '',
-    content: '',
-  });
   const [isEditorOpen, setIsEditorOpen] = useState(false);
 
-  const showError = useSnackbarError();
-
-  function setContentAndOpenEditor(textContent = '') {
+  function handleStartEditing() {
     if (!isEditorOpen) {
-      setNote((prev) => ({
-        ...prev,
-        textContent,
-      }));
+      onCreate();
       setIsEditorOpen(true);
     }
   }
 
-  function handleNoteChange(updatedNote: Note) {
-    setNote(updatedNote);
-  }
-
-  function reset() {
-    setNote({
-      title: '',
-      content: '',
-    });
+  function handleCloseWidget() {
     setIsEditorOpen(false);
-  }
-
-  async function handleOnClose() {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (note.title || note.content) {
-      if (!(await onCreated(note.title, note.content))) {
-        showError('Failed to create note');
-        return;
-      }
-    }
-    reset();
+    onClose?.();
   }
 
   function handleDeleteNote() {
-    reset();
-    return true;
+    handleCloseWidget();
   }
 
   return (
@@ -82,21 +46,21 @@ export default function CreateNoteWidget({
           ...restProps.sx,
         }}
       >
-        <ContentInput
-          placeholder="Take a note..."
-          {...contentFieldProps}
-          value={note.content}
-          onChange={(e) => {
-            setContentAndOpenEditor(e.target.value);
-          }}
-          onClick={() => {
-            setIsEditorOpen(true);
+        <CollabContentInput
+          inputProps={{
+            placeholder: 'Take a note...',
+            onChange: handleStartEditing,
+            onClick: handleStartEditing,
           }}
         />
       </Paper>
 
       {isEditorOpen && (
-        <ClickAwayListener onClickAway={() => void handleOnClose()}>
+        <ClickAwayListener
+          onClickAway={handleCloseWidget}
+          touchEvent="onTouchStart"
+          mouseEvent="onMouseDown"
+        >
           <Paper
             variant="outlined"
             {...restProps}
@@ -108,41 +72,25 @@ export default function CreateNoteWidget({
               ...restProps.sx,
             }}
           >
-            <ToolbarBox
-              onClose={() => {
-                void handleOnClose();
-              }}
-              toolbarProps={{
-                moreOptionsButtonProps: {
-                  onDelete: () => {
-                    return Promise.resolve(handleDeleteNote());
+            <CollabNoteEditor
+              toolbarBoxProps={{
+                onClose: handleCloseWidget,
+                toolbarProps: {
+                  moreOptionsButtonProps: {
+                    onDelete: async () => {
+                      handleDeleteNote();
+                      return Promise.resolve(true);
+                    },
                   },
                 },
               }}
-              renderMainElement={(ref) => (
-                <InputsBox ref={ref}>
-                  <Title
-                    value={note.title}
-                    onChange={(e) => {
-                      handleNoteChange({
-                        title: e.target.value,
-                        content: note.content,
-                      });
-                    }}
-                  />
-                  <ContentInput
-                    {...contentFieldProps}
-                    value={note.content}
-                    autoFocus
-                    onChange={(e) => {
-                      handleNoteChange({
-                        title: note.title,
-                        content: e.target.value,
-                      });
-                    }}
-                  />
-                </InputsBox>
-              )}
+              collabFieldsProps={{
+                contentProps: {
+                  inputProps: {
+                    autoFocus: true,
+                  },
+                },
+              }}
             />
           </Paper>
         </ClickAwayListener>

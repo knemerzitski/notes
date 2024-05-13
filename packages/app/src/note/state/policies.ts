@@ -6,6 +6,7 @@ import { note as Query_note } from './policies/Query/note';
 import { id as Note_id } from './policies/Note/id';
 import { userNoteMappings as Query_userNoteMappings } from './policies/Query/userNoteMappings';
 import { textFields as Note_textFields } from './policies/Note/textFields';
+import { isOwner as Note_isOwner } from './policies/Note/isOwner';
 
 const notePolicies: TypePolicies = {
   Query: {
@@ -23,6 +24,7 @@ const notePolicies: TypePolicies = {
     fields: {
       id: Note_id,
       textFields: Note_textFields,
+      isOwner: Note_isOwner,
     },
   },
 };

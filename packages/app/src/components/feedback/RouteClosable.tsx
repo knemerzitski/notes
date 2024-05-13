@@ -54,10 +54,12 @@ export default function RouteClosable<T = undefined>(
   const hasNavigatedRef = useRef(false);
 
   useEffect(() => {
-    const unsubscribe = router.subscribe(() => {
-      hasNavigatedRef.current = true;
+    return router.subscribe(({ historyAction }) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+      if (historyAction !== 'REPLACE') {
+        hasNavigatedRef.current = true;
+      }
     });
-    return unsubscribe;
   }, [router]);
 
   const reset = useCallback(() => {

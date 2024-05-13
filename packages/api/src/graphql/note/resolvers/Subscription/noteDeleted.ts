@@ -9,9 +9,11 @@ import { assertAuthenticated } from '../../../base/directives/auth';
 import { SubscriptionTopicPrefix } from '../../../subscriptions';
 
 export const noteDeleted: NonNullable<SubscriptionResolvers['noteDeleted']> = {
-  subscribe: async (_parent, { input: { contentId: notePublicId } }, ctx) => {
+  subscribe: async (_parent, { input }, ctx) => {
     const { auth, datasources, subscribe, denySubscription } = ctx;
     if (!isAuthenticated(auth)) return denySubscription();
+
+    const notePublicId = input?.contentId;
 
     const currentUserId = auth.session.user._id;
 

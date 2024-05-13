@@ -1,5 +1,4 @@
 import { useMutation } from '@apollo/client';
-
 import { gql } from '../../__generated__/gql';
 import { CreateNoteInput } from '../../__generated__/graphql';
 
@@ -24,27 +23,6 @@ const MUTATION = gql(`
   }
 `);
 
-const CACHE_UPDATE_NOTES_CONNECTION = gql(`
-query CreateNoteUpdateNotesConnection {
-  notesConnection {
-    notes {
-      id
-      contentId
-      textFields {
-        key
-        value {
-          id
-          headText {
-            changeset
-            revision
-          }
-        }
-      }
-    }
-  }
-}
-`);
-
 export default function useCreateNote() {
   const [createNote] = useMutation(MUTATION);
 
@@ -54,37 +32,6 @@ export default function useCreateNote() {
         input: {
           note,
         },
-      },
-      update(cache, { data }) {
-        if (!data?.createNote) return;
-
-        const newNote = data.createNote.note;
-
-        cache.updateQuery(
-          {
-            query: CACHE_UPDATE_NOTES_CONNECTION,
-          },
-          (existing) => {
-            if (!existing) {
-              return {
-                notesConnection: {
-                  notes: [newNote],
-                },
-              };
-            }
-
-            if (existing.notesConnection.notes.some((note) => note?.id === newNote.id)) {
-              return;
-            }
-
-            return {
-              notesConnection: {
-                ...existing.notesConnection,
-                notes: [...existing.notesConnection.notes, newNote],
-              },
-            };
-          }
-        );
       },
     });
 

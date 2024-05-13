@@ -2,7 +2,8 @@ import { useMutation } from '@apollo/client';
 import { useCallback } from 'react';
 
 import { gql } from '../../__generated__/gql';
-import { activeNotesVar } from '../state/reactive-vars';
+import { removeActiveNotes } from '../state/active-notes';
+import useNoteByContentId from './useNoteByContentId';
 
 const MUTATION = gql(`
   mutation UseDeleteNote($input: DeleteNoteInput!) {
@@ -12,22 +13,10 @@ const MUTATION = gql(`
   }
 `);
 
-const QUERY_UPDATE = gql(`
-  query UseDeleteNoteUserNotesMapping {
-    userNoteMappings @client {
-      user {
-        id
-      }
-      note {
-        id
-        contentId
-      }
-    }
-  }
-`);
-
 export default function useDeleteNote() {
   const [deleteNote] = useMutation(MUTATION);
+
+  const noteContentIdToId = useNoteByContentId();
 
   return useCallback(
     async (deleteContentId: string) => {
@@ -42,47 +31,23 @@ export default function useDeleteNote() {
             deleted: true,
           },
         },
-        update(cache, { data }) {
+        update(cache, result) {
+          const { data } = result;
           if (!data?.deleteNote.deleted) return;
 
-          const queryResult = cache.readQuery({
-            query: QUERY_UPDATE,
-          });
-          if (!queryResult) return;
-          const { userNoteMappings } = queryResult;
-
-          const deletedUserNoteMappings = userNoteMappings.filter(
-            ({ note: { contentId } }) => contentId === deleteContentId
-          );
-
-          // Remove note from list of active notes
-          const updatedActiveNotes = activeNotesVar();
-          deletedUserNoteMappings.forEach((deletedUserNote) => {
-            const noteRef = cache.identify(deletedUserNote.note);
-            if (noteRef) {
-              // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-              delete updatedActiveNotes[noteRef];
-            }
-          });
-          activeNotesVar(updatedActiveNotes);
-
-          // Evict note related data from cache
-          deletedUserNoteMappings.forEach((deletedUserNote) => {
-            const userNoteMappingId = cache.identify(deletedUserNote);
-            const noteId = cache.identify(deletedUserNote.note);
+          const note = noteContentIdToId(deleteContentId);
+          if (note) {
+            removeActiveNotes(cache, [note]);
             cache.evict({
-              id: noteId,
+              id: cache.identify(note),
             });
-            cache.evict({
-              id: userNoteMappingId,
-            });
-          });
-          cache.gc();
+            cache.gc();
+          }
         },
       });
 
       return result.data?.deleteNote.deleted ?? false;
     },
-    [deleteNote]
+    [deleteNote, noteContentIdToId]
   );
 }

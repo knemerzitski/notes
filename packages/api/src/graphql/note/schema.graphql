@@ -174,11 +174,11 @@ input NoteDeletedInput {
   contentId: String
 }
 type NoteDeletedPayload {
-  "ID of deleted note"
+  "Content ID of deleted note"
   contentId: String!
 }
 
 extend type Subscription {
   "A note was deleted"
-  noteDeleted(input: NoteDeletedInput!): NoteDeletedPayload! @auth
+  noteDeleted(input: NoteDeletedInput): NoteDeletedPayload! @auth
 }

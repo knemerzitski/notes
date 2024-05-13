@@ -29,6 +29,15 @@ export default function useHTMLInputCollabEditor(editor: PartialEditor) {
     setSelection(newSelection);
   }
 
+  // Reset state when editor changes
+  useEffect(() => {
+    setValue(editor.viewText);
+    setSelection({
+      start: 0,
+      end: 0,
+    });
+  }, [editor]);
+
   // Keep selection in place after external change
   useEffect(() => {
     function getLatestSelection() {

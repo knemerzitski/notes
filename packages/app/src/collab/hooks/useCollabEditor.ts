@@ -1,7 +1,7 @@
 import { ApolloClient, useFragment } from '@apollo/client';
 import { gql } from '../../__generated__/gql';
-import { getEditorContext, getEditorContextMaybe } from '../state/editors-context';
 import { CollabEditor } from '~collab/client/collab-editor';
+import { editorsWithVars } from '../state/editors-by-id';
 
 export const FRAGMENT = gql(`
   fragment UseCollabEditor on CollabText {
@@ -21,7 +21,7 @@ export default function useCollabEditor(collabTextId: string): CollabEditor {
     fragment: FRAGMENT,
   });
 
-  return getEditorContext(collabTextId, () =>
+  return editorsWithVars.getOrCreateOrFail(collabTextId, () =>
     collabText.complete ? collabText.data.headText : undefined
   ).editor;
 }
@@ -30,7 +30,7 @@ export function getCollabEditor<TCacheShape>(
   apolloClient: ApolloClient<TCacheShape>,
   collabTextId: string
 ): CollabEditor {
-  return getEditorContext(collabTextId, () => {
+  return editorsWithVars.getOrCreateOrFail(collabTextId, () => {
     const collabText = apolloClient.cache.readFragment({
       id: apolloClient.cache.identify({
         id: collabTextId,
@@ -46,7 +46,7 @@ export function getCollabEditorMaybe<TCacheShape>(
   apolloClient: ApolloClient<TCacheShape>,
   collabTextId: string
 ): CollabEditor | undefined {
-  return getEditorContextMaybe(collabTextId, () => {
+  return editorsWithVars.getOrCreate(collabTextId, () => {
     const collabText = apolloClient.cache.readFragment({
       id: apolloClient.cache.identify({
         id: collabTextId,

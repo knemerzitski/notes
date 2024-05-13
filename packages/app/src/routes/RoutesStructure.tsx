@@ -48,7 +48,7 @@ function DesktopRoutes() {
       DefaultRoutes={CommonRoutes}
       modalRoutes={
         <Routes>
-          <Route path="note/:id" element={<EditNoteDialogRoute />} />
+          <Route path="note/:id?" element={<EditNoteDialogRoute />} />
           <Route path="local/note/:id" element={<LocalEditNoteDialogRoute />} />
         </Routes>
       }

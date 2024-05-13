@@ -18,6 +18,7 @@ import {
 import useNoteTextFieldCollabEditor from '../../hooks/__mocks__/useNoteTextFieldCollabEditor';
 import nextTick from '~utils/nextTick';
 import { Changeset } from '~collab/changeset/changeset';
+import NoteTextFieldEditorsProvider from '../../context/NoteTextFieldEditorsProvider';
 
 vi.mock('../hooks/useNoteTextFieldCollabEditor');
 
@@ -112,7 +113,16 @@ beforeEach(() => {
 
   render(
     <MockedProvider mocks={mocks}>
-      <SubmittedRecordMutation noteContentId="random" noteField={NoteTextField.Content} />
+      <NoteTextFieldEditorsProvider
+        textFields={[
+          {
+            key: NoteTextField.Content,
+            value: editor,
+          },
+        ]}
+      >
+        <SubmittedRecordMutation fieldName={NoteTextField.Content} />
+      </NoteTextFieldEditorsProvider>
     </MockedProvider>
   );
 });

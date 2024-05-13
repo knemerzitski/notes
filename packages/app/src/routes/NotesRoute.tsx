@@ -1,18 +1,20 @@
-import { useQuery } from '@apollo/client';
-import { Alert, Button } from '@mui/material';
-import { startTransition } from 'react';
-
+import { startTransition, useEffect, useRef } from 'react';
 import { gql } from '../__generated__/gql';
 import { NoteTextField } from '../__generated__/graphql';
 import { useSnackbarError } from '../components/feedback/SnackbarAlertProvider';
 import WidgetListFabLayout from '../note/components/layout/WidgetListFabLayout';
 import { NoteItemProps } from '../note/components/view/NoteItem';
-import useCreateNote from '../note/hooks/useCreateNote';
 import useDeleteNote from '../note/hooks/useDeleteNote';
 import { useProxyNavigate, useProxyRouteTransform } from '../router/ProxyRoutesProvider';
 import { useAbsoluteLocation } from '../router/hooks/useAbsoluteLocation';
 import { useIsBackgroundLocation } from '../router/hooks/useIsBackgroundLocation';
 import isDefined from '~utils/type-guards/isDefined';
+import usePauseableQuery from '../apollo/hooks/usePauseableQuery';
+import { Alert, Button } from '@mui/material';
+import { useApolloClient } from '@apollo/client';
+import { addActiveNotes } from '../note/state/active-notes';
+import { insertNoteToNotesConnection } from '../note/state/update-query';
+import { useCreatableNoteTextFieldEditors } from '../note/hooks/useCreatableNoteTextFieldEditors';
 
 const QUERY_NOTES = gql(`
   query NotesRouteNotesConnection($last: NonNegativeInt!, $before: String) {
@@ -41,16 +43,16 @@ const QUERY_NOTES = gql(`
   }
 `);
 
-function noteRoute(noteId: string) {
-  return `/note/${noteId}`;
-}
-
 interface NotesRouteProps {
   perPageCount?: number;
 }
 
+function noteRoute(noteId: string) {
+  return `/note/${noteId}`;
+}
+
 export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
-  // TODO fix notes list should not update with editing a note
+  const apolloClient = useApolloClient();
   const isBackgroundLocation = useIsBackgroundLocation();
 
   const {
@@ -58,21 +60,31 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
     loading: fetchLoading,
     error,
     fetchMore,
-  } = useQuery(QUERY_NOTES, {
+  } = usePauseableQuery(isBackgroundLocation, QUERY_NOTES, {
     variables: {
       last: perPageCount,
     },
-    nextFetchPolicy: isBackgroundLocation ? 'standby' : 'cache-first',
   });
 
   const loading = fetchLoading && !data;
 
-  const createNote = useCreateNote();
   const deleteNote = useDeleteNote();
   const showError = useSnackbarError();
   const navigate = useProxyNavigate();
   const transform = useProxyRouteTransform();
   const absoluteLocation = useAbsoluteLocation();
+
+  const { editors, createNote, reset } = useCreatableNoteTextFieldEditors();
+  const createdNoteRef = useRef<NonNullable<
+    Awaited<ReturnType<typeof createNote>>
+  > | null>();
+
+  useEffect(() => {
+    const notes = data?.notesConnection.notes;
+    if (notes) {
+      addActiveNotes(apolloClient.cache, data.notesConnection.notes.filter(isDefined));
+    }
+  }, [apolloClient, data]);
 
   if (error) {
     return (
@@ -108,42 +120,11 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
 
   const pageInfo = data.notesConnection.pageInfo;
 
-  async function handleWidgetNoteCreated(title: string, content: string) {
-    if (
-      !(await createNote({
-        textFields: [
-          {
-            key: NoteTextField.Title,
-            value: {
-              initialText: title,
-            },
-          },
-          {
-            key: NoteTextField.Content,
-            value: {
-              initialText: content,
-            },
-          },
-        ],
-      }))
-    ) {
-      showError('Failed to create note');
-      return false;
-    }
-    return true;
-  }
-
-  async function handleFabCreate() {
-    const note = await createNote({});
-
-    if (!note) {
-      showError('Failed to create note');
-      return;
-    }
-
+  function handleFabCreate() {
     startTransition(() => {
-      navigate(noteRoute(String(note.id)), {
+      navigate('/note', {
         state: {
+          newNote: true,
           autoFocus: true,
         },
       });
@@ -185,22 +166,43 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
       },
     });
   }
+
+  async function handleCreateNote() {
+    const newNote = await createNote();
+    if (createdNoteRef.current) {
+      insertNoteToNotesConnection(apolloClient.cache, createdNoteRef.current);
+    }
+    createdNoteRef.current = newNote;
+  }
+
+  function handleCloseCreateNoteWidget() {
+    reset();
+    if (createdNoteRef.current) {
+      insertNoteToNotesConnection(apolloClient.cache, createdNoteRef.current);
+    }
+    createdNoteRef.current = null;
+  }
+
   return (
     <>
       <WidgetListFabLayout
-        slotProps={{
-          createNoteWidget: {
-            onCreated: handleWidgetNoteCreated,
+        createNoteWidgetEditor={{
+          textFields: editors,
+        }}
+        createNoteWidget={{
+          onCreate: () => {
+            void handleCreateNote();
           },
-          notesList: {
-            loading,
-            notes,
-            onStartEdit: handleStartEdit,
-            onDelete: handleDelete,
-          },
-          createNoteFab: {
-            onCreate: handleFabCreate,
-          },
+          onClose: handleCloseCreateNoteWidget,
+        }}
+        notesList={{
+          loading,
+          notes,
+          onStartEdit: handleStartEdit,
+          onDelete: handleDelete,
+        }}
+        createNoteFab={{
+          onCreate: handleFabCreate,
         }}
       />
       {pageInfo.hasPreviousPage && (

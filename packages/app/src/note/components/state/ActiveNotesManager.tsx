@@ -4,6 +4,7 @@ import SubmittedRecordMutation from './SubmittedRecordMutation';
 import ExternalChangesSubscription from './ExternalChangesSubscription';
 import { Fragment } from 'react';
 import NoteDeletedSubscription from './NoteDeletedSubscription';
+import { NoteContentIdToEditorsProvider } from '../../context/NoteTextFieldEditorsProvider';
 
 const QUERY = gql(`
   query ActiveNotesManager {
@@ -34,11 +35,11 @@ export default function ActiveNotesManager() {
     const noteContentId = activeNote.contentId;
 
     return (
-      <Fragment key={noteContentId}>
+      <NoteContentIdToEditorsProvider key={noteContentId} noteContentId={noteContentId}>
         {!activeNote.isOwner && (
           <>
-            <ExternalChangesSubscription noteContentId={noteContentId} />
-            <NoteDeletedSubscription noteContentId={noteContentId} />
+            <ExternalChangesSubscription />
+            <NoteDeletedSubscription />
           </>
         )}
 
@@ -48,14 +49,11 @@ export default function ActiveNotesManager() {
 
           return (
             <Fragment key={collabTextId}>
-              <SubmittedRecordMutation
-                noteContentId={noteContentId}
-                noteField={fieldName}
-              />
+              <SubmittedRecordMutation fieldName={fieldName} />
             </Fragment>
           );
         })}
-      </Fragment>
+      </NoteContentIdToEditorsProvider>
     );
   });
 }

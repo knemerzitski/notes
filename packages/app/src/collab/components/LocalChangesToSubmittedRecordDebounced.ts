@@ -40,7 +40,7 @@ export default function LocalChangesToSubmittedRecordDebounced({
         debouncedSubmitChanges();
       }
     });
-  }, [editor]);
+  }, [editor, debouncedSubmitChanges]);
 
   useEffect(() => {
     return editor.eventBus.on('submittedChangesAcknowledged', () => {
@@ -48,7 +48,7 @@ export default function LocalChangesToSubmittedRecordDebounced({
         debouncedSubmitChanges();
       }
     });
-  }, [editor]);
+  }, [editor, debouncedSubmitChanges]);
 
   return null;
 }

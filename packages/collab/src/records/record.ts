@@ -9,6 +9,7 @@ export interface RevisionChangeset<T = Changeset> {
 
 export type SerializedRevisionChangeset = RevisionChangeset<SerializedChangeset>;
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace RevisionChangeset {
   export function serialize(change: RevisionChangeset): SerializedRevisionChangeset {
     return {

@@ -43,7 +43,7 @@ export default function LocalChangesClientSychronized({
         unsub();
       });
     };
-  }, [apolloClient, collabTextId, updateClientSynchronization]);
+  }, [apolloClient, collabTextId, updateClientSynchronization, editor]);
 
   return null;
 }
