@@ -51,11 +51,13 @@ const persistor = new CachePersistor({
 await persistor.restore();
 
 interface CustomApolloClientParams {
+  persistor: CachePersistor<NormalizedCacheObject>;
   cache: InMemoryCache;
 }
 
 export class CustomApolloClient {
   readonly client: ApolloClient<NormalizedCacheObject>;
+  readonly persistor: CachePersistor<NormalizedCacheObject>;
 
   readonly statsLink: StatsLink;
   readonly errorLink: ErrorLink;
@@ -63,7 +65,8 @@ export class CustomApolloClient {
   restartSubscriptionClient: () => void;
   private restartRequested;
 
-  constructor({ cache }: CustomApolloClientParams) {
+  constructor({ cache, persistor }: CustomApolloClientParams) {
+    this.persistor = persistor;
     const httpLink = new HttpLink({
       uri: HTTP_URL,
     });
@@ -186,4 +189,4 @@ export class CustomApolloClient {
   }
 }
 
-export const customApolloClient = new CustomApolloClient({ cache });
+export const customApolloClient = new CustomApolloClient({ cache, persistor });

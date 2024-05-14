@@ -20,6 +20,7 @@ import ExternalChangesSubscription from './modules/note/components/ExternalChang
 import NoteCreatedSubscription from './modules/note/components/NoteCreatedSubscription';
 import NoteDeletedSubscription from './modules/note/components/NoteDeletedSubscription';
 import RouterProvider from './modules/router/RouterProvider';
+import { PersistProvider } from './modules/apollo-client/hooks/usePersist';
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -50,27 +51,29 @@ export default function App() {
   return (
     <CustomApolloClientProvider client={customApolloClient}>
       <ApolloProvider client={customApolloClient.client}>
-        <StatsLinkProvider statsLink={customApolloClient.statsLink}>
-          <AddFetchResultErrorHandlerProvider errorLink={customApolloClient.errorLink}>
-            <ApolloClientSynchronized />
-            <ThemeProvider theme={theme}>
-              <SnackbarAlertProvider>
-                <CssBaseline />
-                <GlobalStyles />
-                <ApolloClientErrorsSnackbarAlert />
-                <GoogleAuthProvider clientId={CLIENT_ID}>
-                  {/* TODO everything that can be, move into router */}
-                  <NoteCreatedSubscription />
-                  <NoteDeletedSubscription />
-                  <ExternalChangesSubscription />
-                  <ActiveNotesManager />
-                  <ActiveCollabTextsManager />
-                  <RouterProvider />
-                </GoogleAuthProvider>
-              </SnackbarAlertProvider>
-            </ThemeProvider>
-          </AddFetchResultErrorHandlerProvider>
-        </StatsLinkProvider>
+        <PersistProvider persistor={customApolloClient.persistor}>
+          <StatsLinkProvider statsLink={customApolloClient.statsLink}>
+            <AddFetchResultErrorHandlerProvider errorLink={customApolloClient.errorLink}>
+              <ApolloClientSynchronized />
+              <ThemeProvider theme={theme}>
+                <SnackbarAlertProvider>
+                  <CssBaseline />
+                  <GlobalStyles />
+                  <ApolloClientErrorsSnackbarAlert />
+                  <GoogleAuthProvider clientId={CLIENT_ID}>
+                    {/* TODO everything that can be, move into router */}
+                    <NoteCreatedSubscription />
+                    <NoteDeletedSubscription />
+                    <ExternalChangesSubscription />
+                    <ActiveNotesManager />
+                    <ActiveCollabTextsManager />
+                    <RouterProvider />
+                  </GoogleAuthProvider>
+                </SnackbarAlertProvider>
+              </ThemeProvider>
+            </AddFetchResultErrorHandlerProvider>
+          </StatsLinkProvider>
+        </PersistProvider>
       </ApolloProvider>
     </CustomApolloClientProvider>
   );

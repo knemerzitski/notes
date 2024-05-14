@@ -3,6 +3,7 @@ import LocalChangesToSubmittedRecordDebounced from './LocalChangesToSubmittedRec
 import { Fragment } from 'react';
 import LocalChangesClientSychronized from './LocalChangesClientSynchronized';
 import { gql } from '../../../__generated__/gql';
+import PersistChangesDebounced from './PersistChangesDebounced';
 
 const QUERY = gql(`
   query ActiveCollabTextsManager {
@@ -30,6 +31,13 @@ export default function ActiveCollabTextsManager() {
           wait={500}
           options={{
             maxWait: 1000,
+          }}
+        />
+        <PersistChangesDebounced
+          collabTextId={id}
+          wait={800}
+          options={{
+            maxWait: 6000,
           }}
         />
         <LocalChangesClientSychronized collabTextId={id} />
