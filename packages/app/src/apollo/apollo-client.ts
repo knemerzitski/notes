@@ -22,20 +22,18 @@ import WaitLink from './links/wait-link';
 import typePolicies from './typePolicies';
 import { TypePersistentStorage } from './persistence';
 
-if (import.meta.env.MODE !== 'production') {
+let HTTP_URL: string;
+let WS_URL: string;
+if (import.meta.env.MODE === 'production') {
+  HTTP_URL = import.meta.env.VITE_GRAPHQL_HTTP_URL;
+  WS_URL = import.meta.env.VITE_GRAPHQL_WS_URL;
+} else {
+  HTTP_URL = `${location.origin}/graphql`;
+  WS_URL = `ws://${location.host}/graphql-ws`;
+
   loadDevMessages();
   loadErrorMessages();
 }
-
-const HTTP_URL =
-  import.meta.env.MODE === 'production'
-    ? import.meta.env.VITE_GRAPHQL_HTTP_URL
-    : `${location.origin}/graphql`;
-
-const WS_URL =
-  import.meta.env.MODE === 'production'
-    ? import.meta.env.VITE_GRAPHQL_WS_URL
-    : `ws://${location.host}/graphql-ws`;
 
 const cache = new InMemoryCache({
   typePolicies,
