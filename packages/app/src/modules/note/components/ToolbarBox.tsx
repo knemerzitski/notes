@@ -34,6 +34,8 @@ export default function ToolbarBox({
               sx: {
                 flexGrow: 1,
                 p: 1,
+                display: 'flex',
+                gap: 1
               },
             }}
           />

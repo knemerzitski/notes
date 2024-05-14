@@ -6,6 +6,7 @@ import { getCollabEditor } from '../../collab/hooks/useCollabEditor';
 import NoteContentIdProvider from './NoteContentIdProvider';
 import { NoteTextFieldEntry, NoteTextField } from '../../../__generated__/graphql';
 import { gql } from '../../../__generated__/gql';
+import FocusedEditorProvider, { useSetFocusedEditor } from './FocusedEditorProvider';
 
 export type NoteCollabTextEditors = (Omit<NoteTextFieldEntry, 'value'> & {
   value: CollabEditor;
@@ -37,7 +38,18 @@ export function useNoteTextFieldEditor(fieldName: NoteTextField) {
 export function useNoteTextFieldHTMLInput(fieldName: NoteTextField) {
   const editor = useNoteTextFieldEditor(fieldName);
 
-  return useHTMLInputCollabEditor(editor);
+  const setFocusedEditor = useSetFocusedEditor();
+
+  function handleFocus() {
+    setFocusedEditor(editor);
+  }
+
+  const inputProps = useHTMLInputCollabEditor(editor);
+
+  return {
+    ...inputProps,
+    onFocus: handleFocus,
+  };
 }
 
 export interface NoteTextFieldEditorsProviderProps {
@@ -51,8 +63,20 @@ export default function NoteTextFieldEditorsProvider({
 }: NoteTextFieldEditorsProviderProps) {
   return (
     <NoteCollabTextEditorsContext.Provider value={textFields}>
-      {children}
+      <FocusedEditorProviderInitialContent>
+        {children}
+      </FocusedEditorProviderInitialContent>
     </NoteCollabTextEditorsContext.Provider>
+  );
+}
+
+function FocusedEditorProviderInitialContent({ children }: { children: ReactNode }) {
+  const contentEditor = useNoteTextFieldEditor(NoteTextField.Content);
+
+  return (
+    <FocusedEditorProvider initialEditor={contentEditor}>
+      {children}
+    </FocusedEditorProvider>
   );
 }
 

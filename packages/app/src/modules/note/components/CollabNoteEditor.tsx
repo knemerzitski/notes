@@ -14,6 +14,10 @@ export default function CollabNoteEditor({
   return (
     <ToolbarBox
       {...toolbarBoxProps}
+      toolbarProps={{
+        ...toolbarBoxProps.toolbarProps,
+        editing: true,
+      }}
       renderMainElement={(ref) => (
         <CollabInputs
           {...collabFieldsProps}
