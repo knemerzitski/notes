@@ -1,8 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-export default function useBeforeUnload(
-  onConfirmLeave: (e: BeforeUnloadEvent) => boolean
-) {
+export default function useBeforeUnload(onConfirmLeave: (e: BeforeUnloadEvent) => void) {
   const onConfirmLeaveRef = useRef(onConfirmLeave);
   onConfirmLeaveRef.current = onConfirmLeave;
 

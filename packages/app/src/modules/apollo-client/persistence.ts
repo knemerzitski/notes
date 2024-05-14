@@ -97,7 +97,7 @@ export class TypePersistentStorage<T extends string> implements PersistentStorag
             console.error(
               `Failed to parse ${(typePolicy.persist.getCacheKey ?? defaultGetCacheKey)(
                 value
-              )}. Skipping...`
+              )}.${err instanceof Error ? ` (${err.message})` : ''}`
             );
           }
         }

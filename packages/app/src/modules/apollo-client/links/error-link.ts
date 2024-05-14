@@ -1,6 +1,7 @@
 import { ApolloLink, Operation, NextLink, FetchResult, Context } from '@apollo/client';
 import { Observable, Observer } from '@apollo/client/utilities';
 import { GraphQLError } from 'graphql';
+import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
 /**
  * Used for preventing recursive requests from continous errors.
@@ -21,8 +22,20 @@ type Handler = (
   context: Context
 ) => Promise<boolean>;
 
+interface ErrorLinkOptions {
+  ignoreCodes: GraphQLErrorCode[];
+}
+
 export default class ErrorLink extends ApolloLink {
   private handlers = new Set<Handler>();
+  private ignroeCodes: GraphQLErrorCode[];
+
+  static IGNORE_CONTEXT_KEY = 'handleErrorCodes';
+
+  constructor(options?: ErrorLinkOptions) {
+    super();
+    this.ignroeCodes = options?.ignoreCodes ?? [];
+  }
 
   /**
    * Adds a new handler that can intercept errors and handle or ignore them.
@@ -47,7 +60,7 @@ export default class ErrorLink extends ApolloLink {
         },
         next: (value) => {
           void (async () => {
-            const isHandled = await this.handleNext(value);
+            const isHandled = await this.handleNext(value, ctx);
             if (isHandled) {
               observer.complete?.();
             } else {
@@ -68,18 +81,29 @@ export default class ErrorLink extends ApolloLink {
     });
   }
 
-  private handleNext(value: FetchResult): Promise<boolean> {
+  private handleNext(value: FetchResult, ctx: Context): Promise<boolean> {
     const firstError = value.errors?.[0];
     if (firstError) {
-      return this.handleError(value, firstError);
+      return this.handleError(value, firstError, ctx);
     }
     return Promise.resolve(false);
   }
 
   private async handleError(
     value: FetchResult,
-    firstError: GraphQLError
+    firstError: GraphQLError,
+    ctx: Context
   ): Promise<boolean> {
+    const ctxHandleCodes: unknown = ctx[ErrorLink.IGNORE_CONTEXT_KEY];
+    const ignoreCodes = [
+      ...this.ignroeCodes,
+      ...(Array.isArray(ctxHandleCodes) ? (ctxHandleCodes as GraphQLErrorCode[]) : []),
+    ];
+    const code = firstError.extensions.code;
+    if (ignoreCodes.includes(code as GraphQLErrorCode)) {
+      return false;
+    }
+
     for (const handler of this.handlers) {
       if (
         await handler(value, firstError, {
