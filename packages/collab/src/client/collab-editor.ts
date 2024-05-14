@@ -62,7 +62,7 @@ type EditorProcessingEvents = Omit<
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type EditorEvents = {
-  revisionChanged: {
+  headRevisionChanged: {
     /**
      * New revision.
      */
@@ -71,6 +71,12 @@ type EditorEvents = {
      * Changeset that matches this revision.
      */
     changeset: Changeset;
+  };
+  tailRevisionChanged: {
+    /**
+     * New tailRevision.
+     */
+    revision: number;
   };
   processingMessages: {
     eventBus: Emitter<EditorProcessingEvents>;
@@ -411,7 +417,7 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
 
     subscribedListeners.push(
       this.recordsBuffer.eventBus.on('messagesProcessed', () => {
-        this.eventBus.emit('revisionChanged', {
+        this.eventBus.emit('headRevisionChanged', {
           revision: this.headRevision,
           changeset: this._client.server,
         });
@@ -447,7 +453,9 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
   submitChanges(): SubmittedRevisionRecord | undefined | null {
     if (this._client.submitChanges()) {
       const historySelection = this._history.getSubmitSelection();
-      if (!historySelection) return;
+      if (!historySelection) {
+        return;
+      }
 
       this._submittedRecord = new SubmittedRecord({
         ...historySelection,
@@ -534,7 +542,13 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
     records: Readonly<EditorRevisionRecord[]>,
     newTailText?: RevisionChangeset
   ) {
+    const beforeTailRevision = this.tailRevision;
     this.serverRecords.update(records, newTailText);
+    if (this.tailRevision !== beforeTailRevision) {
+      this.eventBus.emit('tailRevisionChanged', {
+        revision: this.tailRevision,
+      });
+    }
   }
 
   /**
@@ -550,7 +564,7 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
   }
 
   canRedo() {
-    return this._history.canRedo() || this.canRestoreHistory();
+    return this._history.canRedo();
   }
 
   canUndo() {
@@ -566,7 +580,9 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
 
     if (this.canRestoreHistory()) {
       const restoreCount = this.historyRestore(1);
-      return restoreCount != null && restoreCount >= 1;
+      if (restoreCount != null && restoreCount >= 1) {
+        return this._history.undo();
+      }
     }
 
     return false;

@@ -13,9 +13,12 @@ export default function UndoButton() {
 
   useEffect(() => {
     setCanUndo(editor.canUndo());
-    return editor.eventBus.on('appliedTypingOperation', () => {
-      setCanUndo(editor.canUndo());
-    });
+    return editor.eventBus.onMany(
+      ['appliedTypingOperation', 'tailRevisionChanged'],
+      () => {
+        setCanUndo(editor.canUndo());
+      }
+    );
   }, [editor]);
 
   return (

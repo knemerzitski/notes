@@ -187,7 +187,7 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
     <>
       <WidgetListFabLayout
         createNoteWidgetEditor={{
-          textFields: editors,
+          editors,
         }}
         createNoteWidget={{
           onCreate: () => {

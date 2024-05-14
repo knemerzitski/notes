@@ -4,7 +4,7 @@ import SubmittedRecordMutation from './SubmittedRecordMutation';
 import ExternalChangesSubscription from './ExternalChangesSubscription';
 import { Fragment } from 'react';
 import NoteDeletedSubscription from './NoteDeletedSubscription';
-import { NoteContentIdToEditorsProvider } from '../context/NoteTextFieldEditorsProvider';
+import NoteContentIdToCollabTextsProvider from '../context/NoteContentIdToCollabTextsProvider';
 
 const QUERY = gql(`
   query ActiveNotesManager {
@@ -35,7 +35,10 @@ export default function ActiveNotesManager() {
     const noteContentId = activeNote.contentId;
 
     return (
-      <NoteContentIdToEditorsProvider key={noteContentId} noteContentId={noteContentId}>
+      <NoteContentIdToCollabTextsProvider
+        key={noteContentId}
+        noteContentId={noteContentId}
+      >
         {!activeNote.isOwner && (
           <>
             <ExternalChangesSubscription />
@@ -53,7 +56,7 @@ export default function ActiveNotesManager() {
             </Fragment>
           );
         })}
-      </NoteContentIdToEditorsProvider>
+      </NoteContentIdToCollabTextsProvider>
     );
   });
 }

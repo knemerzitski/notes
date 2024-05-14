@@ -56,7 +56,6 @@ export default function useDeleteNote() {
       });
 
       if (isErrorCode(result.errors, GraphQLErrorCode.NotFound)) {
-        console.log('is notfound');
         const cache = apolloClinet.cache;
         const note = noteContentIdToId(deleteContentId);
         if (note) {

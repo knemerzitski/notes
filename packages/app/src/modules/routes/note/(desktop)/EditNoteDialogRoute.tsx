@@ -2,9 +2,7 @@ import { useLocation, useParams } from 'react-router-dom';
 
 import NoteDialog from '../../../note/components/NoteDialog';
 import useDeleteNote from '../../../note/hooks/useDeleteNote';
-import NoteTextFieldEditorsProvider, {
-  NoteContentIdToEditorsProvider,
-} from '../../../note/context/NoteTextFieldEditorsProvider';
+import NoteCollabTextsProvider from '../../../note/context/NoteTextFieldEditorsProvider';
 import { useCreatableNoteTextFieldEditors } from '../../../note/hooks/useCreatableNoteTextFieldEditors';
 import { startTransition, useEffect, useRef } from 'react';
 import { useProxyNavigate } from '../../../router/ProxyRoutesProvider';
@@ -17,6 +15,7 @@ import CollabNoteEditor, {
   CollabNoteEditorProps,
 } from '../../../note/components/CollabNoteEditor';
 import { insertNoteToNotesConnection } from '../../../note/update-query';
+import { NoteEditingContext } from '../../../note/context/NoteEditingContext';
 
 export type EditNoteLocationState = null | { newNote?: boolean; autoFocus?: boolean };
 
@@ -51,7 +50,7 @@ function RouteClosableEditNoteDialog({
           }}
         />
       ) : (
-        <NoteContentIdToEditorsProvider noteContentId={noteContentId}>
+        <NoteEditingContext noteContentId={noteContentId}>
           <CollabNoteEditor
             toolbarBoxProps={{
               onClose: onClosing,
@@ -62,7 +61,7 @@ function RouteClosableEditNoteDialog({
               },
             }}
           />
-        </NoteContentIdToEditorsProvider>
+        </NoteEditingContext>
       )}
     </NoteDialog>
   );
@@ -101,9 +100,9 @@ function NewNoteCollabNoteEditor(props: CollabNoteEditorProps) {
   }, [apolloClient, createNote, navigate]);
 
   return (
-    <NoteTextFieldEditorsProvider textFields={editors}>
+    <NoteCollabTextsProvider editors={editors}>
       <CollabNoteEditor {...props} />
-    </NoteTextFieldEditorsProvider>
+    </NoteCollabTextsProvider>
   );
 }
 

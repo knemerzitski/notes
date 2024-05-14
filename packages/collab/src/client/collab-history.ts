@@ -25,6 +25,18 @@ export type LocalChangesetEditorHistoryEvents = {
   appliedTypingOperation: {
     operation: Operation;
   };
+  appliedUndo: {
+    operation: Operation;
+  };
+  appliedRedo: {
+    operation: Operation;
+  };
+  addedTailRecords: {
+    /**
+     * Count of added records. Can undo that many more times.
+     */
+    count: number;
+  };
 };
 
 export interface SerializedCollabHistory {
@@ -210,12 +222,13 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
         afterSelection: after.execute.selection,
       };
     } else {
+      // this.lastExecutedIndex.server >= this.lastExecutedIndex.local
       const before = this.entries[this.lastExecutedIndex.server];
       const after = this.entries[this.lastExecutedIndex.local];
-      if (!before || !after) return;
+      if (!before) return;
       return {
         beforeSelection: before.execute.selection,
-        afterSelection: after.execute.selection,
+        afterSelection: after ? after.execute.selection : before.undo.selection,
       };
     }
   }
@@ -260,7 +273,8 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
     serverRecords: EditorServerRecords,
     desiredRestoreCount: number,
     targetUserId?: string | symbol,
-    recursive = true
+    recursive = true,
+    depth = 0
   ): number | undefined {
     if (desiredRestoreCount <= 0) return 0;
 
@@ -309,11 +323,18 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
         serverRecords,
         remainingCount,
         targetUserId,
-        recursive
+        recursive,
+        depth + 1
       );
       if (typeof nextRestoredCount === 'number') {
         restoredCount += nextRestoredCount;
       }
+    }
+
+    if (depth === 0 && restoredCount > 0) {
+      this.eventBus.emit('addedTailRecords', {
+        count: restoredCount,
+      });
     }
 
     return restoredCount;
@@ -347,6 +368,7 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
     if (entry) {
       this.lastExecutedIndex.local--;
       this.applyTypingOperation(entry.undo);
+      this.eventBus.emit('appliedUndo', { operation: entry.undo });
       return true;
     }
     return false;
@@ -361,6 +383,7 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
     if (entry) {
       this.lastExecutedIndex.local++;
       this.applyTypingOperation(entry.execute);
+      this.eventBus.emit('appliedRedo', { operation: entry.execute });
       return true;
     }
     return false;

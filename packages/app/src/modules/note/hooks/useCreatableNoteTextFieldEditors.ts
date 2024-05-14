@@ -1,5 +1,4 @@
 import { CollabEditor } from '~collab/client/collab-editor';
-import { NoteCollabTextEditors } from '../context/NoteTextFieldEditorsProvider';
 import { useCallback, useRef, useState } from 'react';
 import useCreateNote from './useCreateNote';
 import isDefined from '~utils/type-guards/isDefined';
@@ -8,6 +7,7 @@ import { NoteTextField } from '../../../__generated__/graphql';
 import { editorsWithVars } from '../../collab/editors-by-id';
 import { addActiveNotes } from '../active-notes';
 import { Changeset } from '~collab/changeset/changeset';
+import { NoteCollabTextEditors } from '../context/NoteTextFieldEditorsProvider';
 
 function newEmptyEditors(): NoteCollabTextEditors {
   return [

@@ -6,8 +6,8 @@ import {
   collabTextRecordToEditorRevisionRecord,
   submittedRecordToCollabTextRecordInput,
 } from '../../collab/editor-graphql-adapter';
-import { useNoteTextFieldEditor } from '../context/NoteTextFieldEditorsProvider';
 import { useNoteContentId } from '../context/NoteContentIdProvider';
+import { useNoteTextFieldEditor } from '../context/NoteTextFieldEditorsProvider';
 
 export interface SubmittedRecordMutationProps {
   fieldName: NoteTextField;
