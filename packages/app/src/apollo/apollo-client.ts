@@ -11,7 +11,7 @@ import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { Kind, OperationTypeNode } from 'graphql';
 import { createClient, MessageType, ConnectionInitMessage } from 'graphql-ws';
-
+import { CachePersistor } from 'apollo3-cache-persist';
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
 
 import { readSessionContext } from '../session/state/persistence';
@@ -19,7 +19,8 @@ import { readSessionContext } from '../session/state/persistence';
 import ErrorLink from './links/error-link';
 import StatsLink from './links/stats-link';
 import WaitLink from './links/wait-link';
-import typePolicies from './policies';
+import typePolicies from './typePolicies';
+import { TypePersistentStorage } from './persistence';
 
 if (import.meta.env.MODE !== 'production') {
   loadDevMessages();
@@ -36,6 +37,25 @@ const WS_URL =
     ? import.meta.env.VITE_GRAPHQL_WS_URL
     : `ws://${location.host}/graphql-ws`;
 
+const cache = new InMemoryCache({
+  typePolicies,
+});
+
+const persistor = new CachePersistor({
+  cache,
+  storage: new TypePersistentStorage({
+    storage: window.localStorage,
+    serialize: (value) => JSON.stringify(value),
+    typePersistors: typePolicies,
+  }),
+});
+
+await persistor.restore();
+
+interface ExtendendApolloClientParams {
+  cache: InMemoryCache;
+}
+
 export class ExtendendApolloClient {
   readonly client: ApolloClient<NormalizedCacheObject>;
 
@@ -45,7 +65,7 @@ export class ExtendendApolloClient {
   restartSubscriptionClient: () => void;
   private restartRequested;
 
-  constructor() {
+  constructor({ cache }: ExtendendApolloClientParams) {
     const httpLink = new HttpLink({
       uri: HTTP_URL,
     });
@@ -158,9 +178,7 @@ export class ExtendendApolloClient {
 
     const apolloClient = new ApolloClient({
       link: statsLink.concat(waitLink).concat(errorLink).concat(httpWsSplitLink),
-      cache: new InMemoryCache({
-        typePolicies,
-      }),
+      cache,
     });
 
     this.client = apolloClient;
@@ -170,4 +188,4 @@ export class ExtendendApolloClient {
   }
 }
 
-export const apolloClient = new ExtendendApolloClient();
+export const apolloClient = new ExtendendApolloClient({ cache });

@@ -1,7 +1,14 @@
 import { SubmittedRecord } from '~collab/client/submitted-record';
-import { CollabTextRecord, CollabTextRecordInput } from '../__generated__/graphql';
+import {
+  CollabText,
+  CollabTextRecord,
+  CollabTextRecordInput,
+} from '../__generated__/graphql';
 import { Changeset } from '~collab/changeset/changeset';
-import { EditorRevisionRecord } from '~collab/client/collab-editor';
+import {
+  EditorRevisionRecord,
+  SerializedCollabEditor,
+} from '~collab/client/collab-editor';
 
 export function submittedRecordToCollabTextRecordInput(
   record: SubmittedRecord

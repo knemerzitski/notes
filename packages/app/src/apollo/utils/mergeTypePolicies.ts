@@ -1,22 +1,23 @@
 import { TypePolicies } from '@apollo/client';
+import { TypePersistors } from '../persistence';
 
 /**
  *
- * @param arrayPolicies
+ * @param allPolicies
  * @returns Merged policies by concatenating fields
  */
-export default function mergeArrayTypePolicies(
-  arrayPolicies: TypePolicies[]
-): TypePolicies {
-  const result: TypePolicies = {};
+export default function mergeTypePolicies(
+  allPolicies: (TypePolicies & TypePersistors)[]
+): TypePolicies & TypePersistors {
+  const result: TypePolicies & TypePersistors = {};
 
-  for (const policies of arrayPolicies) {
-    for (const [policyName, policy] of Object.entries(policies)) {
-      if (!(policyName in result)) {
-        result[policyName] = {};
+  for (const policies of allPolicies) {
+    for (const [type, policy] of Object.entries(policies)) {
+      if (!(type in result)) {
+        result[type] = {};
       }
 
-      const resultPolicy = result[policyName];
+      const resultPolicy = result[type];
       if (resultPolicy != null) {
         const { fields, ...allExceptFields } = policy;
         Object.assign(resultPolicy, allExceptFields);

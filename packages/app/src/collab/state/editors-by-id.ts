@@ -2,33 +2,37 @@ import { FieldFunctionOptions, makeVar } from '@apollo/client';
 import { CollabEditor } from '~collab/client/collab-editor';
 import { RevisionChangeset, SerializedRevisionChangeset } from '~collab/records/record';
 
-type EditorId = string | symbol;
+type EditorId = string;
 
 /**
  * Editors by CollabText.id
  */
-const editorsWithVarsById = new Map<
+const editorsWithVarsMap = new Map<
   EditorId,
   { editor: CollabEditor; vars: ReturnType<typeof createEditorReactiveVars> }
 >();
 
+const all = () => {
+  return editorsWithVarsMap;
+};
+
 const set = (id: EditorId, editor: CollabEditor) => {
-  const existing = editorsWithVarsById.get(id);
+  const existing = editorsWithVarsMap.get(id);
   if (existing && existing.editor !== editor) {
     existing.vars.cleanUp();
   }
-  editorsWithVarsById.set(id, { editor, vars: createEditorReactiveVars(editor) });
+  editorsWithVarsMap.set(id, { editor, vars: createEditorReactiveVars(editor) });
 };
 
 const get = (id: EditorId) => {
-  return editorsWithVarsById.get(id);
+  return editorsWithVarsMap.get(id);
 };
 
 const getOrCreate = (
   id: EditorId,
   getHeadText: () => SerializedRevisionChangeset | RevisionChangeset | undefined
 ) => {
-  const existingContext = editorsWithVarsById.get(id);
+  const existingContext = editorsWithVarsMap.get(id);
   if (existingContext) return existingContext;
 
   const anyHeadText = getHeadText();
@@ -43,7 +47,7 @@ const getOrCreate = (
     editor,
     vars: createEditorReactiveVars(editor),
   };
-  editorsWithVarsById.set(id, result);
+  editorsWithVarsMap.set(id, result);
 
   return result;
 };
@@ -60,9 +64,9 @@ function getOrCreateOrFail(
 }
 
 const _delete = (id: EditorId) => {
-  const editorContext = editorsWithVarsById.get(id);
+  const editorContext = editorsWithVarsMap.get(id);
   if (editorContext) {
-    editorsWithVarsById.delete(id);
+    editorsWithVarsMap.delete(id);
   }
   return editorContext;
 };
@@ -101,6 +105,7 @@ function createEditorReactiveVars(editor: CollabEditor) {
 }
 
 export const editorsWithVars = {
+  all,
   set,
   get,
   getOrCreate,
