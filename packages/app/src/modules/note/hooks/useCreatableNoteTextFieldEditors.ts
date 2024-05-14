@@ -3,11 +3,11 @@ import { NoteCollabTextEditors } from '../context/NoteTextFieldEditorsProvider';
 import { useCallback, useRef, useState } from 'react';
 import useCreateNote from './useCreateNote';
 import isDefined from '~utils/type-guards/isDefined';
-import { RevisionChangeset } from '~collab/records/record';
 import { useApolloClient } from '@apollo/client';
 import { NoteTextField } from '../../../__generated__/graphql';
 import { editorsWithVars } from '../../collab/editors-by-id';
 import { addActiveNotes } from '../active-notes';
+import { Changeset } from '~collab/changeset/changeset';
 
 function newEmptyEditors(): NoteCollabTextEditors {
   return [
@@ -63,9 +63,20 @@ export function useCreatableNoteTextFieldEditors() {
 
           //Acknowledge submitted
           const collabText = textField.value;
-          editor.submittedChangesAcknowledged(
-            RevisionChangeset.parseValue(collabText.headText)
-          );
+          const changeset = Changeset.parseValue(collabText.headText.changeset);
+          // TODO creteNote response a recod...
+          editor.submittedChangesAcknowledged({
+            revision: collabText.headText.revision,
+            changeset,
+            beforeSelection: {
+              start: 0,
+              end: 0,
+            },
+            afterSelection: {
+              start: changeset.length,
+              end: changeset.length,
+            },
+          });
 
           // Add editor to context so it won't be recreated in typePolicies after caching
           editorsWithVars.set(String(textField.value.id), editor);

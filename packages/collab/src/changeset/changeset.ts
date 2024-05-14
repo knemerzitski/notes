@@ -57,6 +57,10 @@ export class Changeset implements Serializable<SerializedChangeset> {
     }
   }
 
+  get length() {
+    return this.strips.length;
+  }
+
   /**
    * Composition between changeset A and B is denoted as A * B
    * @returns A new changeset that is a compostion of this and other.
