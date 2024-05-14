@@ -50,11 +50,11 @@ const persistor = new CachePersistor({
 
 await persistor.restore();
 
-interface ExtendendApolloClientParams {
+interface CustomApolloClientParams {
   cache: InMemoryCache;
 }
 
-export class ExtendendApolloClient {
+export class CustomApolloClient {
   readonly client: ApolloClient<NormalizedCacheObject>;
 
   readonly statsLink: StatsLink;
@@ -63,7 +63,7 @@ export class ExtendendApolloClient {
   restartSubscriptionClient: () => void;
   private restartRequested;
 
-  constructor({ cache }: ExtendendApolloClientParams) {
+  constructor({ cache }: CustomApolloClientParams) {
     const httpLink = new HttpLink({
       uri: HTTP_URL,
     });
@@ -186,4 +186,4 @@ export class ExtendendApolloClient {
   }
 }
 
-export const apolloClient = new ExtendendApolloClient({ cache });
+export const customApolloClient = new CustomApolloClient({ cache });

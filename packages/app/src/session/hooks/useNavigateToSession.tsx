@@ -9,12 +9,12 @@ import {
 } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { useExtendedApolloClient } from '../../App';
 import { gql } from '../../__generated__/gql';
 import ProxyRoutesProvider from '../../router/ProxyRoutesProvider';
 import sessionPrefix from '../../router/sessionPrefix';
 import joinPathnames from '../../utils/joinPathnames';
 import useSessionMutations from '../state/useSessionMutations';
+import { useCustomApolloClient } from '../../apollo/context/CustomApolloClientProvider';
 
 const PROVIDER_QUERY = gql(`
   query SessionSwitcherProvider {
@@ -47,7 +47,7 @@ export function NavigateToSessionProvider({ children }: { children: ReactNode })
     data: { clientSessions: sessions, currentClientSessionIndex: currentSessionIndex },
   } = useSuspenseQuery(PROVIDER_QUERY);
 
-  const extendedApolloClient = useExtendedApolloClient();
+  const customApolloClient = useCustomApolloClient();
   const apolloClient = useApolloClient();
   const { switchToSession } = useSessionMutations();
 
@@ -115,7 +115,7 @@ export function NavigateToSessionProvider({ children }: { children: ReactNode })
 
         // Reset store if session key changed
         if (newSessionKey !== targetSessionKey) {
-          extendedApolloClient.restartSubscriptionClient();
+          customApolloClient.restartSubscriptionClient();
           await apolloClient.resetStore();
         }
       } finally {
@@ -128,7 +128,7 @@ export function NavigateToSessionProvider({ children }: { children: ReactNode })
       navigate,
       switchToSession,
       targetSessionKey,
-      extendedApolloClient,
+      customApolloClient,
     ]
   );
 
