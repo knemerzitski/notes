@@ -140,6 +140,8 @@ export class CollabClient implements Serializable<SerializedCollabClient> {
         source: ChangeSource.Local,
       });
 
+      const hadLocalChanges = this.haveLocalChanges();
+
       this._local = newLocal;
       this._view = newView;
 
@@ -149,7 +151,7 @@ export class CollabClient implements Serializable<SerializedCollabClient> {
         source: ChangeSource.Local,
       });
 
-      if (this.haveLocalChanges()) {
+      if (!hadLocalChanges && this.haveLocalChanges()) {
         this.eventBus.emit('haveLocalChanges', { local: newLocal });
       }
     }
@@ -261,13 +263,19 @@ export class CollabClient implements Serializable<SerializedCollabClient> {
     };
   }
 
-  static parseValue(value: any): CollabClientOptions {
+  static parseValue(value: unknown): CollabClientOptions {
     assertIsObject(value);
 
+    const valueMaybe = value as {
+      server?: unknown;
+      submitted?: unknown;
+      local?: unknown;
+    };
+
     return {
-      server: Changeset.parseValueMaybe(value.server) ?? undefined,
-      submitted: Changeset.parseValueMaybe(value.submitted) ?? undefined,
-      local: Changeset.parseValueMaybe(value.local) ?? undefined,
+      server: Changeset.parseValueMaybe(valueMaybe.server) ?? undefined,
+      submitted: Changeset.parseValueMaybe(valueMaybe.submitted) ?? undefined,
+      local: Changeset.parseValueMaybe(valueMaybe.local) ?? undefined,
     };
   }
 }
