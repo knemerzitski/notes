@@ -174,20 +174,22 @@ export namespace EditorServerRecord {
   }
 
   export function parseValue(value: unknown): EditorRevisionRecord {
-    assertHasProperties(value, [
-      'revision',
-      'changeset',
-      'beforeSelection',
-      'afterSelection',
-      'creatorUserId',
-    ]);
+    assertHasProperties(value, ['revision', 'changeset']);
+
+    const typedValue = value as typeof value & {
+      beforeSelection?: unknown;
+      afterSelection?: unknown;
+      creatorUserId?: unknown;
+    };
 
     return {
-      changeset: Changeset.parseValue(value.changeset),
-      revision: parseNumber(value.revision),
-      creatorUserId: String(value.creatorUserId),
-      beforeSelection: SelectionRange.parseValue(value.beforeSelection),
-      afterSelection: SelectionRange.parseValue(value.afterSelection),
+      changeset: Changeset.parseValue(typedValue.changeset),
+      revision: parseNumber(typedValue.revision),
+      creatorUserId: typedValue.creatorUserId
+        ? String(typedValue.creatorUserId)
+        : undefined,
+      beforeSelection: SelectionRange.parseValueMaybe(typedValue.beforeSelection),
+      afterSelection: SelectionRange.parseValueMaybe(typedValue.afterSelection),
     };
   }
 }

@@ -124,4 +124,9 @@ export namespace SelectionRange {
       end: 'end' in value ? parseNumber(value.end) : start,
     };
   }
+
+  export function parseValueMaybe(value: unknown): SelectionRange | undefined {
+    if (value === undefined) return value;
+    return parseValue(value);
+  }
 }

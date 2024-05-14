@@ -11,7 +11,6 @@ import {
   ServerRevisionRecord,
   SubmittedRevisionRecord,
 } from '../records/record';
-import { RevisionTailRecords } from '../records/revision-tail-records';
 import {
   ParseError,
   Serializable,
@@ -265,13 +264,12 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
   ): number | undefined {
     if (desiredRestoreCount <= 0) return 0;
 
-    const { records: relevantRecords, ownCount } =
+    const { records: relevantRecords, ownCount: potentialRestoreCount } =
       serverRecords.sliceRecordsUntilDesiredOwnCount(
         this._tailRevision,
         desiredRestoreCount,
         targetUserId
       );
-    let potentialRestoreCount = ownCount;
 
     const firstRecord = relevantRecords[0];
     if (!firstRecord) return;
