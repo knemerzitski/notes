@@ -7,19 +7,20 @@ import SettingsButton from './SettingsButton';
 import SyncStatusButton from './SyncStatusButton';
 
 interface AppBarContentProps extends ToolbarProps {
-  slotProps?: {
-    menuButton?: IconButtonProps;
-  };
+  menuButtonProps?: IconButtonProps;
 }
 
-export default function AppBarContent({ slotProps, ...restProps }: AppBarContentProps) {
+export default function AppBarContent({
+  menuButtonProps,
+  ...restProps
+}: AppBarContentProps) {
   const buttonSizePx = 24;
   const buttonSize = 'medium';
   const gapSpacing = 0.5;
 
   return (
     <Toolbar {...restProps} sx={{ justifyContent: 'space-between', ...restProps.sx }}>
-      <MenuButton edge="start" {...slotProps?.menuButton} />
+      <MenuButton edge="start" {...menuButtonProps} />
       <Box>
         <SyncStatusButton
           fontSize={buttonSizePx}

@@ -35,10 +35,8 @@ export default function AppBarDrawerLayout() {
     >
       <AppBar slideIn={isDrawerOpen}>
         <AppBarContent
-          slotProps={{
-            menuButton: {
-              onClick: toggleDrawer,
-            },
+          menuButtonProps={{
+            onClick: toggleDrawer,
           }}
         />
       </AppBar>
