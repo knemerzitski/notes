@@ -8,7 +8,9 @@ export default function UndoButton() {
   const [canUndo, setCanUndo] = useState(editor.canUndo());
 
   function handleClickUndo() {
-    editor.undo();
+    if (!editor.undo()) {
+      setCanUndo(false);
+    }
   }
 
   useEffect(() => {

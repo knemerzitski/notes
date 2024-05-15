@@ -8,7 +8,9 @@ export default function RedoButton() {
   const [canRedo, setCanRedo] = useState(editor.canRedo());
 
   function handleClickRedo() {
-    editor.redo();
+    if (!editor.redo()) {
+      setCanRedo(false);
+    }
   }
 
   useEffect(() => {

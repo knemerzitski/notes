@@ -6,6 +6,8 @@ import { RevisionTailRecords } from '../records/revision-tail-records';
 import { createHelperCollabEditingEnvironment } from './helpers/server-client';
 import { subscribeEditorListeners } from '../records/editor-revision-records';
 import { Entry } from '../client/collab-history';
+import { createFakeServerRevisionRecordData } from './helpers/populate';
+import { Changeset } from '../changeset/changeset';
 
 function historyEntriesInfo(entries: Readonly<Entry[]>) {
   return entries.map((e) => ({
@@ -105,5 +107,51 @@ describe('persist history in revision records', () => {
     expect(historyEntriesInfo(restoredEditorB.history.entries)).toStrictEqual(
       historyEntriesInfo(client.B.editor.history.entries)
     );
+  });
+});
+
+describe('restore with undo', () => {
+  let helper: ReturnType<typeof createHelperCollabEditingEnvironment<'A'>>;
+
+  beforeEach(() => {
+    const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>({
+      records: [
+        createFakeServerRevisionRecordData({
+          changeset: Changeset.parseValue(['']),
+          revision: 0,
+          creatorUserId: 'A',
+        }),
+        createFakeServerRevisionRecordData({
+          changeset: Changeset.parseValue(['123']),
+          revision: 1,
+          creatorUserId: 'A',
+        }),
+      ],
+    });
+    subscribeEditorListeners(revisionTailRecords);
+    helper = createHelperCollabEditingEnvironment(revisionTailRecords, ['A'], {
+      A: {
+        client: {
+          server: Changeset.parseValue(['123']),
+        },
+        recordsBuffer: {
+          version: 1,
+        },
+      },
+    });
+  });
+
+  it('undoes until very last server record', () => {
+    const { server, client } = helper;
+
+    expect(client.A.editor.canUndo()).toBeFalsy();
+    client.A.editor.addServerRecords(server.tailRecords.records);
+    expect(client.A.editor.canUndo()).toBeTruthy();
+    expect(client.A.valueWithSelection()).toStrictEqual('>123');
+    expect(client.A.editor.undo()).toBeTruthy();
+    expect(client.A.valueWithSelection()).toStrictEqual('>');
+    expect(client.A.editor.canUndo()).toBeTruthy();
+    expect(client.A.editor.undo()).toBeFalsy();
+    expect(client.A.valueWithSelection()).toStrictEqual('>');
   });
 });

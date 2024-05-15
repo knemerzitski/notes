@@ -89,12 +89,17 @@ export class RevisionTailRecords<
       }
     } else {
       const firstRecord = this._records[0];
-      // Ensure order: [this.tailRevision, firstRecord.revision, ...] or clear tailText
-      if (!firstRecord || this.tailRevision + 1 !== firstRecord.revision) {
-        this._tailText = {
-          changeset: Changeset.EMPTY,
-          revision: -1,
-        };
+      if (firstRecord) {
+        if (firstRecord.revision === 0) {
+          this._tailText = {
+            changeset: Changeset.EMPTY,
+            revision: -1,
+          };
+        } else if (firstRecord.revision <= this.tailRevision) {
+          throw new Error(
+            'Update to RevisionTailRecords with older records requires newTailText'
+          );
+        }
       }
     }
   }

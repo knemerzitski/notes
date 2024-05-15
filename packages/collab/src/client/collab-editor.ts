@@ -572,7 +572,7 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
   }
 
   private canRestoreHistory() {
-    return this.serverRecords.hasOwnRecords(this._history.tailRevision);
+    return this.serverRecords.hasOwnRecords(this._history.tailRevision, this.userId);
   }
 
   undo() {
@@ -589,7 +589,7 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
   }
 
   redo() {
-    this._history.redo();
+    return this._history.redo();
   }
 
   serialize(historyRemoveServerEntries = true): SerializedCollabEditor {

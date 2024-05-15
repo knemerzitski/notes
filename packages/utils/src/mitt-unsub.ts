@@ -14,6 +14,10 @@ export type Emitter<Events extends Record<EventType, unknown>> = Omit<
 > & {
   on<Key extends keyof Events>(type: Key, handler: Handler<Events[Key]>): () => void;
   on(type: '*', handler: WildcardHandler<Events>): () => void;
+  onMany<Key extends keyof Events>(
+    events: Key[],
+    handler: Handler<Events[Key]>
+  ): () => void;
 };
 
 /**
@@ -34,6 +38,17 @@ export default function mitt<Events extends Record<EventType, unknown>>(
       return () => {
         // @ts-expect-error Correct typing is in return value
         bus.off(...args);
+      };
+    },
+    onMany: <Key extends keyof Events>(events: Key[], handler: Handler<Events[Key]>) => {
+      events.forEach((event) => {
+        bus.on(event, handler);
+      });
+
+      return () => {
+        events.forEach((event) => {
+          bus.off(event, handler);
+        });
       };
     },
   };
