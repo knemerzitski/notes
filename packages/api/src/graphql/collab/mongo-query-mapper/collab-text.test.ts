@@ -9,6 +9,7 @@ import {
   isFirstPagination,
   isLastPagination,
 } from '../../../mongodb/operations/pagination/relayArrayPagination';
+import { Changeset } from '~collab/changeset/changeset';
 
 let collabTextMapper: CollabTextQueryMapper;
 
@@ -21,6 +22,7 @@ beforeAll(() => {
       const allRecords: DeepQueryResponse<CollabTextRecordQuery>[] = [
         ...new Array<undefined>(recordCount),
       ].map((_, i) => ({
+        changeset: Changeset.parseValue([[0, 3 + i], 'a']),
         revision: i + tailRevision + 1,
       }));
 
@@ -301,5 +303,20 @@ describe('endCursor', () => {
         .pageInfo()
         .endCursor()
     ).resolves.toStrictEqual(expected);
+  });
+});
+
+describe('textAtRevision', () => {
+  it.each<[number, string]>([
+    [12, 'tail'],
+    [13, 'taila'],
+    [14, 'tailaa'],
+    [15, 'tailaaa'],
+  ])('%i => %s', async (revision, expected) => {
+    console.log(
+      (await collabTextMapper.textAtRevision({ revision }).changeset())?.toString()
+    );
+    const changeset = await collabTextMapper.textAtRevision({ revision }).changeset();
+    expect(changeset?.joinInsertions()).toStrictEqual(expected);
   });
 });

@@ -1,5 +1,6 @@
 import {
   CollabTextrecordsConnectionArgs,
+  CollabTexttextAtRevisionArgs,
   ResolverTypeWrapper,
   ResolversTypes,
 } from '../types.generated';
@@ -29,6 +30,7 @@ export interface CollabTextMapper {
   id(): ResolverTypeWrapper<string>;
   headText(): RevisionChangesetMapper;
   tailText(): RevisionChangesetMapper;
+  textAtRevision(args: CollabTexttextAtRevisionArgs): RevisionChangesetMapper;
   recordsConnection(
     args: CollabTextrecordsConnectionArgs,
     config: RelayArrayPaginationConfig

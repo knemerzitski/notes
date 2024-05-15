@@ -6,16 +6,22 @@ import { useNoteTextFieldEditor } from '../context/NoteTextFieldEditorsProvider'
 import { useApolloClient } from '@apollo/client';
 import isDefined from '~utils/type-guards/isDefined';
 import { collabTextRecordToEditorRevisionRecord } from '../../collab/editor-graphql-adapter';
+import { RevisionChangeset } from '~collab/records/record';
 
 const QUERY = gql(`
   query HistoryRestoration($noteContentId: String!, $fieldName: NoteTextField!, 
-                            $recordsBeforeRevision: NonNegativeInt!, $recordsLast: PositiveInt!){
+                            $recordsBeforeRevision: NonNegativeInt!, $recordsLast: PositiveInt!, 
+                            $tailRevision: NonNegativeInt!, $skipTextAtRevision: Boolean!){
     note(contentId: $noteContentId) {
       id
       textFields(name: $fieldName) {
         key
         value {
           id
+          textAtRevision(revision: $tailRevision) @skip(if: $skipTextAtRevision) {
+            revision
+            changeset
+          }
           recordsConnection(before: $recordsBeforeRevision, last: $recordsLast){
             records {
               id
@@ -83,6 +89,8 @@ export default function HistoryRestoration({
       if (entriesRemaining <= triggerEntriesRemaining) {
         try {
           isFetchingRef.current = true;
+          const tailRevision = Math.max(-1, editor.tailRevision - fetchEntriesCount);
+          const skipTextAtRevision = tailRevision <= -1;
           const result = await apolloClient.query({
             query: QUERY,
             variables: {
@@ -90,6 +98,8 @@ export default function HistoryRestoration({
               noteContentId,
               recordsBeforeRevision: editor.tailRevision + 1,
               recordsLast: fetchEntriesCount,
+              tailRevision: !skipTextAtRevision ? tailRevision : 0,
+              skipTextAtRevision,
             },
           });
 
@@ -106,12 +116,16 @@ export default function HistoryRestoration({
             editor.addServerRecords(
               recordsConnection.records
                 .filter(isDefined)
-                .map(collabTextRecordToEditorRevisionRecord)
+                .map(collabTextRecordToEditorRevisionRecord),
+              !skipTextAtRevision
+                ? RevisionChangeset.parseValue(textField.value.textAtRevision)
+                : undefined
             );
           });
+
+          void attemptFetchMore();
         } finally {
           isFetchingRef.current = false;
-          void attemptFetchMore();
         }
       }
     }

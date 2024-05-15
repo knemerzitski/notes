@@ -59,6 +59,8 @@ type CollabText {
   headText: RevisionChangeset!
   "Oldest available revision of this text. tailText.compose(...records) => headText"
   tailText: RevisionChangeset!
+  "Text at specific revision. Is a composition of all previous changesets."
+  textAtRevision(revision: NonNegativeInt!): RevisionChangeset!
   "A list of records containing all changes made to the text"
   recordsConnection(
     first: PositiveInt

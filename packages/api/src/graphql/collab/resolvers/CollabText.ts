@@ -1,11 +1,17 @@
 import type { CollabTextResolvers } from './../../types.generated';
 
 export const CollabText: CollabTextResolvers = {
+  id: (parent) => {
+    return parent.id();
+  },
   headText: (parent) => {
     return parent.headText();
   },
-  id: (parent) => {
-    return parent.id();
+  tailText: (parent) => {
+    return parent.tailText();
+  },
+  textAtRevision: (parent, args) => {
+    return parent.textAtRevision(args);
   },
   recordsConnection: (parent, args) => {
     return parent.recordsConnection(args, {
@@ -13,8 +19,5 @@ export const CollabText: CollabTextResolvers = {
       defaultLimit: 20,
       maxLimit: 100,
     });
-  },
-  tailText: (parent) => {
-    return parent.tailText();
   },
 };

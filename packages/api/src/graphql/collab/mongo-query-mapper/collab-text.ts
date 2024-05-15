@@ -1,4 +1,4 @@
-import { CollabTextMapper } from '../schema.mappers';
+import { CollabTextMapper, RevisionChangesetMapper } from '../schema.mappers';
 import { CollabTextSchema } from '../../../mongodb/schema/collab-text';
 import {
   RelayArrayPaginationConfig,
@@ -11,8 +11,12 @@ import {
 } from './revision-changeset';
 import { CollabTextRecordQuery, CollabTextRecordQueryMapper } from './revision-record';
 import { MongoDocumentQuery } from '../../../mongodb/query-builder';
-import { CollabTextrecordsConnectionArgs } from '../../types.generated';
+import {
+  CollabTextrecordsConnectionArgs,
+  CollabTexttextAtRevisionArgs,
+} from '../../types.generated';
 import { newResolverOnlyError } from '../../plugins/remove-resolver-only-errors';
+import { Changeset } from '~collab/changeset/changeset';
 
 export type CollabTextQuery = Omit<
   CollabTextSchema,
@@ -54,6 +58,61 @@ export class CollabTextQueryMapper implements CollabTextMapper {
             tailText: change,
           })
         )?.tailText;
+      },
+    });
+  }
+
+  textAtRevision({
+    revision: targetRevision,
+  }: CollabTexttextAtRevisionArgs): RevisionChangesetMapper {
+    return new RevisionChangesetQueryMapper({
+      queryDocument: async ({ revision, changeset }) => {
+        if (!revision && !changeset) return {};
+
+        if (!changeset) {
+          return {
+            revision: targetRevision,
+          };
+        }
+
+        if (targetRevision <= -1) {
+          return {
+            revision: -1,
+            changeset: Changeset.EMPTY,
+          };
+        }
+
+        const [tailChangeset, rawDocument] = await Promise.all([
+          this.tailText().changeset(),
+          this.query.queryDocument({
+            records: {
+              $query: {
+                changeset: 1,
+              },
+              $pagination: {
+                before: String(targetRevision + 1),
+              },
+            },
+          }),
+        ]);
+
+        if (tailChangeset == null || rawDocument?.records == null) {
+          return null;
+        }
+
+        const recordsChangesets = rawDocument.records.map((rawRecord) => {
+          const serializedChangeset = rawRecord.changeset;
+          if (serializedChangeset == null) {
+            throw new Error('RevisionRecord.changeset is null');
+          }
+
+          return Changeset.parseValue(serializedChangeset);
+        });
+
+        return {
+          revision: targetRevision,
+          changeset: recordsChangesets.reduce((a, b) => a.compose(b), tailChangeset),
+        };
       },
     });
   }
