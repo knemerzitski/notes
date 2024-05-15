@@ -16,6 +16,24 @@ const MUTATION = gql(`
               revision
               changeset
             }
+            recordsConnection {
+              records {
+                id
+                creatorUserId
+                change {
+                  revision
+                  changeset
+                }
+                beforeSelection {
+                  start
+                  end
+                }
+                afterSelection {
+                  start
+                  end
+                }
+              }
+            }
           }
         }
       }

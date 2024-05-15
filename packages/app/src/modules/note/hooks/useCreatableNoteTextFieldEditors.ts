@@ -6,8 +6,8 @@ import { useApolloClient } from '@apollo/client';
 import { NoteTextField } from '../../../__generated__/graphql';
 import { editorsWithVars } from '../../collab/editors-by-id';
 import { addActiveNotes } from '../active-notes';
-import { Changeset } from '~collab/changeset/changeset';
 import { NoteCollabTextEditors } from '../context/NoteTextFieldEditorsProvider';
+import { collabTextRecordToEditorRevisionRecord } from '../../collab/editor-graphql-adapter';
 
 function newEmptyEditors(): NoteCollabTextEditors {
   return [
@@ -61,24 +61,16 @@ export function useCreatableNoteTextFieldEditors() {
           const editor = editors.find(({ key }) => key === textField.key)?.value;
           if (!editor) return;
 
-          //Acknowledge submitted
-          const collabText = textField.value;
-          const changeset = Changeset.parseValue(collabText.headText.changeset);
-          // TODO creteNote response a recod...
-          editor.submittedChangesAcknowledged({
-            revision: collabText.headText.revision,
-            changeset,
-            beforeSelection: {
-              start: 0,
-              end: 0,
-            },
-            afterSelection: {
-              start: changeset.length,
-              end: changeset.length,
-            },
-          });
+          const firstRecord = textField.value.recordsConnection.records[0];
+          if (!firstRecord) {
+            throw new Error('Expected first record to be present');
+          }
 
-          // Add editor to context so it won't be recreated in typePolicies after caching
+          //Acknowledge submitted
+          editor.submittedChangesAcknowledged(
+            collabTextRecordToEditorRevisionRecord(firstRecord)
+          );
+
           editorsWithVars.set(String(textField.value.id), editor);
         });
 
