@@ -1,11 +1,10 @@
-import { Skeleton } from '@mui/material';
-import Grid, { GridProps } from '@mui/material/Grid';
+import { Box, BoxProps, Skeleton } from '@mui/material';
 
 import NoteItem, { NoteItemProps } from './NoteItem';
 
 const LOADING_SKELETON_COUNT = 15;
 
-export interface NotesListProps extends GridProps {
+export interface NotesListProps extends BoxProps {
   notes: NoteItemProps['note'][];
   onStartEdit: (id: string) => void;
   onDelete: (id: string) => Promise<boolean>;
@@ -20,51 +19,48 @@ export default function NotesList({
   ...restProps
 }: NotesListProps) {
   return (
-    <Grid container justifyContent="center" spacing={{ xs: 1, md: 2 }} {...restProps}>
+    <Box
+      {...restProps}
+      sx={(theme) => ({
+        width: '100%',
+        display: 'grid',
+        gridTemplateColumns: {
+          xs: `calc(100% - ${theme.spacing(1)})`,
+          sm: 'repeat(auto-fit, 256px)',
+        },
+        justifyContent: 'center',
+        gap: {
+          xs: 1,
+          md: 2,
+        },
+        mx: 1,
+      })}
+    >
       {loading
         ? [...Array(LOADING_SKELETON_COUNT).keys()].map((index) => (
-            <Grid
-              item
+            <Skeleton
               key={index}
-              sx={{
-                width: {
-                  xs: '100%',
-                  sm: 'min(256px,100%)',
-                },
-              }}
-            >
-              <Skeleton
-                width="inherit"
-                height={384}
-                variant="rounded"
-                animation="wave"
-              ></Skeleton>
-            </Grid>
+              height={256}
+              variant="rounded"
+              animation="wave"
+            ></Skeleton>
           ))
         : notes.map((note) => (
-            <Grid
-              item
+            <NoteItem
               key={note.id}
+              note={note}
+              onStartEdit={() => {
+                onStartEdit(String(note.id));
+              }}
+              onDelete={() => onDelete(String(note.id))}
               sx={{
-                width: {
-                  xs: '100%',
-                  sm: 'min(256px,100%)',
+                height: {
+                  xs: 'auto',
+                  sm: '256px',
                 },
               }}
-            >
-              <NoteItem
-                note={note}
-                onStartEdit={() => {
-                  onStartEdit(String(note.id));
-                }}
-                onDelete={() => onDelete(String(note.id))}
-                sx={{
-                  width: 'inherit',
-                  height: '100%',
-                }}
-              />
-            </Grid>
+            />
           ))}
-    </Grid>
+    </Box>
   );
 }
