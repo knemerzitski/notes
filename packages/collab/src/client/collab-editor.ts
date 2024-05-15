@@ -454,7 +454,7 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
     if (this._client.submitChanges()) {
       const historySelection = this._history.getSubmitSelection();
       if (!historySelection) {
-        return;
+        throw new Error('Expected to have selection from history to submit changes.');
       }
 
       this._submittedRecord = new SubmittedRecord({
