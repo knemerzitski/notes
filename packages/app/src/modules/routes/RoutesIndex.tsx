@@ -28,7 +28,7 @@ export const router = createBrowserRouter([
         <NavigateToSessionProvider>
           <PreviousLocationProvider>
             <SessionSynchronization />
-            <RoutesStructure />
+            <RoutesIndex />
           </PreviousLocationProvider>
         </NavigateToSessionProvider>
       </SessionPrefixProvider>
@@ -37,14 +37,14 @@ export const router = createBrowserRouter([
   })),
 ]);
 
-export default function RoutesStructure() {
+export default function RoutesIndex() {
   const isMobile = useIsMobile();
 
   return isMobile ? <MobileRoutes /> : <DesktopRoutes />;
 }
 
 const QUERY = gql(`
-  query RoutesStructure {
+  query RoutesIndex {
     isSignedIn @client
   }
 `);

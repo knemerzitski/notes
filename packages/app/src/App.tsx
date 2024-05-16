@@ -13,7 +13,7 @@ import ExternalChangesSubscription from './modules/note/components/ExternalChang
 import NoteCreatedSubscription from './modules/note/components/NoteCreatedSubscription';
 import NoteDeletedSubscription from './modules/note/components/NoteDeletedSubscription';
 import CustomThemeProvider from './modules/theme/context/CustomThemeProvider';
-import { router } from './modules/routes/RoutesStructure';
+import { router } from './modules/routes/RoutesIndex';
 import RouterProvider from './modules/router/context/RouterProvider';
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
