@@ -6,7 +6,6 @@ import {
   NavigateOptions,
   useLocation,
 } from 'react-router-dom';
-
 import { useRouter } from './RouterProvider';
 
 const ProxyRouteTransformContext = createContext<ProxyRoutesProviderProps['transform']>(
@@ -21,7 +20,7 @@ export function useProxyRouteTransform() {
 // eslint-disable-next-line react-refresh/only-export-components
 export function useProxyNavigate() {
   const transform = useProxyRouteTransform();
-  const { router } = useRouter();
+  const router = useRouter();
 
   const proxyNavigate: NavigateFunction = (
     to: To | number,
@@ -44,7 +43,7 @@ export function useProxyNavigate() {
 // eslint-disable-next-line react-refresh/only-export-components
 export function useProxyIsAbsolutePathname(pathname: To) {
   const transform = useProxyRouteTransform();
-  const { router } = useRouter();
+  const router = useRouter();
   const [isPathname, setIsPathname] = useState(false);
 
   const testPathname = transform(

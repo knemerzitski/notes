@@ -12,7 +12,7 @@ import {
 import {
   useProxyIsPathname,
   useProxyNavigate,
-} from '../../../router/ProxyRoutesProvider';
+} from '../../../router/context/ProxyRoutesProvider';
 import { gql } from '../../../../__generated__/gql';
 import useIsMobile from '../../../common/hooks/useIsMobile';
 import { useDrawerExpanded } from '../../../common/components/Drawer';

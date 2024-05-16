@@ -3,7 +3,7 @@ import { useSuspenseQuery } from '@apollo/client';
 import {
   useProxyNavigate,
   useProxyRouteTransform,
-} from '../../router/ProxyRoutesProvider';
+} from '../../router/context/ProxyRoutesProvider';
 import { useAbsoluteLocation } from '../../router/hooks/useAbsoluteLocation';
 import { gql } from '../../../__generated__/gql';
 import useLocalStateNotes from '../../note-local/hooks/useLocalStateNotes';

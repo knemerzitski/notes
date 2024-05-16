@@ -1,5 +1,5 @@
 import { startTransition, useEffect, useRef } from 'react';
-import { useProxyNavigate, useProxyRouteTransform } from '../router/ProxyRoutesProvider';
+import { useProxyNavigate, useProxyRouteTransform } from '../router/context/ProxyRoutesProvider';
 import { useAbsoluteLocation } from '../router/hooks/useAbsoluteLocation';
 import { useIsBackgroundLocation } from '../router/hooks/useIsBackgroundLocation';
 import isDefined from '~utils/type-guards/isDefined';

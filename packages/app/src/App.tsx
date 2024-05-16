@@ -12,8 +12,9 @@ import ActiveNotesManager from './modules/note/components/ActiveNotesManager';
 import ExternalChangesSubscription from './modules/note/components/ExternalChangesSubscription';
 import NoteCreatedSubscription from './modules/note/components/NoteCreatedSubscription';
 import NoteDeletedSubscription from './modules/note/components/NoteDeletedSubscription';
-import RouterProvider from './modules/router/RouterProvider';
 import CustomThemeProvider from './modules/theme/context/CustomThemeProvider';
+import { router } from './modules/routes/RoutesStructure';
+import RouterProvider from './modules/router/context/RouterProvider';
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -32,7 +33,7 @@ export default function App() {
             <ExternalChangesSubscription />
             <ActiveNotesManager />
             <ActiveCollabTextsManager />
-            <RouterProvider />
+            <RouterProvider router={router} />
           </GoogleAuthProvider>
         </SnackbarAlertProvider>
       </CustomThemeProvider>

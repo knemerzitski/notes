@@ -5,7 +5,7 @@ import useDeleteNote from '../../../note/hooks/useDeleteNote';
 import NoteCollabTextsProvider from '../../../note/context/NoteTextFieldEditorsProvider';
 import { useCreatableNoteTextFieldEditors } from '../../../note/hooks/useCreatableNoteTextFieldEditors';
 import { startTransition, useEffect, useRef } from 'react';
-import { useProxyNavigate } from '../../../router/ProxyRoutesProvider';
+import { useProxyNavigate } from '../../../router/context/ProxyRoutesProvider';
 import { useApolloClient } from '@apollo/client';
 import RouteClosable, {
   RouteClosableComponentProps,

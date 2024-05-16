@@ -1,11 +1,25 @@
-import { ComponentType, ReactElement, Suspense, useMemo } from 'react';
+import {
+  ComponentType,
+  ReactElement,
+  Suspense,
+  createContext,
+  useContext,
+  useMemo,
+} from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { matchRoutes, useLocation, Location, RoutesProps } from 'react-router-dom';
+import { useLocation, Location, RoutesProps, Route, RouteProps } from 'react-router-dom';
 
-import { useProxyRouteTransform } from '../ProxyRoutesProvider';
-import { useRouter } from '../RouterProvider';
 import usePreviousLocation from '../hooks/usePreviousLocation';
 import SnackbarErrorBoundary from '../../common/components/SnackbarErrorBoundary';
+import isDefined from '~utils/type-guards/isDefined';
+import matchPathSuffix from '../utils/matchPathSuffix';
+import getParentFromSuffix from '../utils/getParentFromSuffix';
+
+const BackgroundPathContext = createContext<string | null>(null);
+
+export function useBackgroundPath() {
+  return useContext(BackgroundPathContext);
+}
 
 interface ModalBackgroundRouteProps {
   DefaultRoutes: ComponentType<RoutesProps>;
@@ -16,9 +30,14 @@ export default function ModalBackgroundRouting({
   DefaultRoutes,
   modalRoutes,
 }: ModalBackgroundRouteProps) {
+  const modalPaths = useMemo(() => extractModalPaths(modalRoutes), [modalRoutes]);
+
   return (
     <>
-      <DefaultOrModalBackgroundRoute DefaultRoutes={DefaultRoutes} />
+      <DefaultOrModalBackgroundRoute
+        DefaultRoutes={DefaultRoutes}
+        modalPaths={modalPaths}
+      />
 
       <ErrorBoundary FallbackComponent={SnackbarErrorBoundary}>
         <Suspense fallback={null}>{modalRoutes}</Suspense>
@@ -27,42 +46,46 @@ export default function ModalBackgroundRouting({
   );
 }
 
+/**
+ * Read and collect <Route path/> 'path' prop value
+ */
+function extractModalPaths(
+  routeElements: ReactElement<RoutesProps, string | React.JSXElementConstructor<unknown>>
+): string[] {
+  if (Array.isArray(routeElements.props.children)) {
+    return routeElements.props.children
+      .filter((child: { type?: unknown } | null) => child?.type === Route)
+      .map((route) => (route as ReactElement<RouteProps>).props.path)
+      .filter(isDefined);
+  }
+  return [];
+}
+
 function DefaultOrModalBackgroundRoute({
   DefaultRoutes,
+  modalPaths,
 }: {
   DefaultRoutes: ComponentType<RoutesProps>;
+  modalPaths: string[];
 }) {
-  const pathnameTransform = useProxyRouteTransform();
   const location = useLocation();
   const previousLocation = usePreviousLocation();
-  const { modalRoutes } = useRouter();
 
-  //Check if current route is a modal with background location defined
   let modalBackgroundLocation: Location | undefined;
-  const matchedModalRoutes = matchRoutes(modalRoutes, location);
-  if (matchedModalRoutes && matchedModalRoutes.length > 0) {
-    const route = matchedModalRoutes[matchedModalRoutes.length - 1]?.route;
-    if (route?.backgroundPath) {
-      modalBackgroundLocation = {
-        hash: '',
-        key: 'default',
-        pathname: pathnameTransform(route.backgroundPath),
-        search: '',
-        state: null,
-      };
-    }
+  const currentModalPath = matchPathSuffix(modalPaths, location.pathname);
+  if (currentModalPath) {
+    const backgroundPathname = getParentFromSuffix(currentModalPath, location.pathname);
+    modalBackgroundLocation = {
+      hash: '',
+      key: 'default',
+      pathname: backgroundPathname,
+      search: '',
+      state: null,
+    };
   }
 
-  // Check if previous route was a modal with background location defined
-  let isPreviousLocationModal = false;
-  const previousMatchedModalRoutes = previousLocation
-    ? matchRoutes(modalRoutes, previousLocation)
-    : null;
-  if (previousMatchedModalRoutes && previousMatchedModalRoutes.length > 0) {
-    const route =
-      previousMatchedModalRoutes[previousMatchedModalRoutes.length - 1]?.route;
-    isPreviousLocationModal = !!route?.backgroundPath;
-  }
+  const isPreviousLocationModal =
+    previousLocation && !!matchPathSuffix(modalPaths, previousLocation.pathname);
 
   let mainOrBgLocation = location;
   if (modalBackgroundLocation) {
@@ -73,7 +96,6 @@ function DefaultOrModalBackgroundRoute({
     }
   }
 
-  // TODO use React.memo instead?
   const mainOrBgRoutes = useMemo(() => {
     const loc = {
       key: mainOrBgLocation.key,
@@ -93,5 +115,9 @@ function DefaultOrModalBackgroundRoute({
     DefaultRoutes,
   ]);
 
-  return mainOrBgRoutes;
+  return (
+    <BackgroundPathContext.Provider value={modalBackgroundLocation?.pathname ?? null}>
+      {mainOrBgRoutes}
+    </BackgroundPathContext.Provider>
+  );
 }

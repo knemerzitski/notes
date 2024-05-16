@@ -1,10 +1,10 @@
 import { ComponentType, useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, Location } from 'react-router-dom';
 
-import { useProxyNavigate } from '../../router/ProxyRoutesProvider';
-import { useRouter } from '../../router/RouterProvider';
-import useBackgroundPath from '../../router/hooks/useBackgroundPath';
+import { useProxyNavigate } from '../../router/context/ProxyRoutesProvider';
 import usePreviousLocation from '../../router/hooks/usePreviousLocation';
+import { useBackgroundPath } from '../../router/components/ModalBackgroundRouting';
+import { useRouter } from '../../router/context/RouterProvider';
 
 interface Props {
   open: boolean;
@@ -50,7 +50,7 @@ export default function RouteClosable<T = undefined>(
   const location = useLocation();
   const initialLocationRef = useRef<Location | null>(location);
   const backgroundPath = useBackgroundPath();
-  const { router } = useRouter();
+  const router = useRouter();
   const hasNavigatedRef = useRef(false);
 
   useEffect(() => {

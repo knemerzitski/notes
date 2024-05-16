@@ -9,12 +9,12 @@ import {
 } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import ProxyRoutesProvider from '../../router/ProxyRoutesProvider';
-import sessionPrefix from '../../router/sessionPrefix';
+import ProxyRoutesProvider from '../../router/context/ProxyRoutesProvider';
 import useSessionMutations from '../state/useSessionMutations';
 import { useCustomApolloClient } from '../../apollo-client/context/CustomApolloClientProvider';
 import { gql } from '../../../__generated__/gql';
 import joinPathnames from '../../common/utils/joinPathnames';
+import { useSessionPrefix } from '../../router/context/SessionPrefixProvider';
 
 const PROVIDER_QUERY = gql(`
   query SessionSwitcherProvider {
@@ -50,6 +50,7 @@ export function NavigateToSessionProvider({ children }: { children: ReactNode })
   const customApolloClient = useCustomApolloClient();
   const apolloClient = useApolloClient();
   const { switchToSession } = useSessionMutations();
+  const sessionPrefix = useSessionPrefix();
 
   const navigate = useNavigate();
 
@@ -129,6 +130,7 @@ export function NavigateToSessionProvider({ children }: { children: ReactNode })
       switchToSession,
       targetSessionKey,
       customApolloClient,
+      sessionPrefix,
     ]
   );
 
@@ -142,7 +144,7 @@ export function NavigateToSessionProvider({ children }: { children: ReactNode })
       targetSessionIndex != null
         ? joinPathnames(sessionPrefix, targetSessionIndex, pathname)
         : pathname,
-    [targetSessionIndex]
+    [targetSessionIndex, sessionPrefix]
   );
 
   return (

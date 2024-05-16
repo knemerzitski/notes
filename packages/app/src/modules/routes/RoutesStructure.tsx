@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from '@apollo/client';
-import { Route, Routes, RoutesProps } from 'react-router-dom';
+import { Route, Routes, RoutesProps, createBrowserRouter } from 'react-router-dom';
 
 import ModalBackgroundRouting from '../router/components/ModalBackgroundRouting';
 
@@ -12,6 +12,30 @@ import LocalEditNotePage from './local/note/(mobile)/EditNotePage';
 import EditNoteDialogRoute from './note/(desktop)/EditNoteDialogRoute';
 import useIsMobile from '../common/hooks/useIsMobile';
 import { gql } from '../../__generated__/gql';
+import SessionSynchronization from '../auth/components/SessionSynchronization';
+import { NavigateToSessionProvider } from '../auth/hooks/useNavigateToSession';
+import { PreviousLocationProvider } from '../router/hooks/usePreviousLocation';
+import ErrorPage from './ErrorPage';
+import SessionPrefixProvider from '../router/context/SessionPrefixProvider';
+
+const sessionPrefix = 'u';
+
+export const router = createBrowserRouter([
+  ...[`/${sessionPrefix}/:sessionIndex/*`, '*'].map((path) => ({
+    path,
+    element: (
+      <SessionPrefixProvider sessionPrefix={sessionPrefix}>
+        <NavigateToSessionProvider>
+          <PreviousLocationProvider>
+            <SessionSynchronization />
+            <RoutesStructure />
+          </PreviousLocationProvider>
+        </NavigateToSessionProvider>
+      </SessionPrefixProvider>
+    ),
+    errorElement: <ErrorPage />,
+  })),
+]);
 
 export default function RoutesStructure() {
   const isMobile = useIsMobile();
