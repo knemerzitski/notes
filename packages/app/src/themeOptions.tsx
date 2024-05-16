@@ -26,9 +26,9 @@ declare module '@mui/material/styles' {
   interface PaletteOptions extends PaletteExtension {}
 }
 
-export default function themeOptions(
-  mode: PaletteOptions['mode'] = 'light'
-): ThemeOptions {
+export type ThemeOptionsFn = (mode: PaletteOptions['mode']) => ThemeOptions;
+
+const themeOptions: ThemeOptionsFn = function (mode = 'light') {
   return {
     palette: {
       mode,
@@ -74,4 +74,6 @@ export default function themeOptions(
       },
     },
   };
-}
+};
+
+export default themeOptions;

@@ -1,10 +1,5 @@
-import { useSuspenseQuery } from '@apollo/client';
-import { CssBaseline, ThemeProvider, createTheme, useMediaQuery } from '@mui/material';
-import { useMemo } from 'react';
-
+import { CssBaseline } from '@mui/material';
 import GlobalStyles from './GlobalStyles';
-import { gql } from './__generated__/gql';
-import { ColorMode } from './__generated__/graphql';
 import themeOptions from './themeOptions';
 import { customApolloClient } from './modules/apollo-client/apollo-client';
 import ApolloClientErrorsSnackbarAlert from './modules/apollo-client/components/ApolloClientErrorsSnackbarAlert';
@@ -18,37 +13,15 @@ import ExternalChangesSubscription from './modules/note/components/ExternalChang
 import NoteCreatedSubscription from './modules/note/components/NoteCreatedSubscription';
 import NoteDeletedSubscription from './modules/note/components/NoteDeletedSubscription';
 import RouterProvider from './modules/router/RouterProvider';
+import CustomThemeProvider from './modules/theme/context/CustomThemeProvider';
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
-const QUERY = gql(`
-  query App {
-    preferences @client {
-      colorMode
-    }
-  }
-`);
-
 export default function App() {
-  // TODO theme preference as separate component in preferences.
-  const devicePrefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
-
-  const { data } = useSuspenseQuery(QUERY, {
-    client: customApolloClient.client,
-  });
-  const preferencesColorMode = data.preferences?.colorMode ?? ColorMode.System;
-
-  const prefersDarkMode =
-    preferencesColorMode === ColorMode.Dark ||
-    (preferencesColorMode === ColorMode.System && devicePrefersDarkMode);
-  const colorMode = prefersDarkMode ? 'dark' : 'light';
-
-  const theme = useMemo(() => createTheme(themeOptions(colorMode)), [colorMode]);
-
   return (
     <CustomApolloClientProvider client={customApolloClient}>
       <ApolloClientSynchronized />
-      <ThemeProvider theme={theme}>
+      <CustomThemeProvider themeOptions={themeOptions}>
         <SnackbarAlertProvider>
           <CssBaseline />
           <GlobalStyles />
@@ -62,7 +35,7 @@ export default function App() {
             <RouterProvider />
           </GoogleAuthProvider>
         </SnackbarAlertProvider>
-      </ThemeProvider>
+      </CustomThemeProvider>
     </CustomApolloClientProvider>
   );
 }
