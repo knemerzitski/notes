@@ -167,7 +167,7 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
     this.client = options?.client ?? new CollabClient();
 
     this._tailText = options?.tailText ?? this.client.server;
-    this._tailRevision = options?.tailRevision ?? -1;
+    this._tailRevision = options?.tailRevision ?? 0;
 
     this.tailComposition = options?.tailComposition;
     this.lastExecutedIndex = options?.lastExecutedIndex ?? {

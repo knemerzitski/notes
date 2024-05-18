@@ -55,7 +55,7 @@ beforeAll(async () => {
     {
       collabText: {
         recordsCount: 2,
-        tailRevision: -1,
+        tailRevision: 0,
       },
     }
   );

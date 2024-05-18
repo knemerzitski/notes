@@ -313,9 +313,6 @@ describe('textAtRevision', () => {
     [14, 'tailaa'],
     [15, 'tailaaa'],
   ])('%i => %s', async (revision, expected) => {
-    console.log(
-      (await collabTextMapper.textAtRevision({ revision }).changeset())?.toString()
-    );
     const changeset = await collabTextMapper.textAtRevision({ revision }).changeset();
     expect(changeset?.joinInsertions()).toStrictEqual(expected);
   });

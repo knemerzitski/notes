@@ -11,14 +11,14 @@ import { RevisionChangeset } from '~collab/records/record';
 const QUERY = gql(`
   query HistoryRestoration($noteContentId: String!, $fieldName: NoteTextField!, 
                             $recordsBeforeRevision: NonNegativeInt!, $recordsLast: PositiveInt!, 
-                            $tailRevision: NonNegativeInt!, $skipTextAtRevision: Boolean!){
+                            $tailRevision: NonNegativeInt!){
     note(contentId: $noteContentId) {
       id
       textFields(name: $fieldName) {
         key
         value {
           id
-          textAtRevision(revision: $tailRevision) @skip(if: $skipTextAtRevision) {
+          textAtRevision(revision: $tailRevision) {
             revision
             changeset
           }
@@ -89,8 +89,7 @@ export default function HistoryRestoration({
       if (entriesRemaining <= triggerEntriesRemaining) {
         try {
           isFetchingRef.current = true;
-          const tailRevision = Math.max(-1, editor.tailRevision - fetchEntriesCount);
-          const skipTextAtRevision = tailRevision <= -1;
+          const tailRevision = Math.max(0, editor.tailRevision - fetchEntriesCount);
           const result = await apolloClient.query({
             query: QUERY,
             variables: {
@@ -98,8 +97,7 @@ export default function HistoryRestoration({
               noteContentId,
               recordsBeforeRevision: editor.tailRevision + 1,
               recordsLast: fetchEntriesCount,
-              tailRevision: !skipTextAtRevision ? tailRevision : 0,
-              skipTextAtRevision,
+              tailRevision,
             },
           });
 
@@ -117,9 +115,7 @@ export default function HistoryRestoration({
               recordsConnection.records
                 .filter(isDefined)
                 .map(collabTextRecordToEditorRevisionRecord),
-              !skipTextAtRevision
-                ? RevisionChangeset.parseValue(textField.value.textAtRevision)
-                : undefined
+              RevisionChangeset.parseValue(textField.value.textAtRevision)
             );
           });
 

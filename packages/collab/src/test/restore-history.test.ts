@@ -118,12 +118,12 @@ describe('restore with undo', () => {
       records: [
         createFakeServerRevisionRecordData({
           changeset: Changeset.parseValue(['']),
-          revision: 0,
+          revision: 1,
           creatorUserId: 'A',
         }),
         createFakeServerRevisionRecordData({
           changeset: Changeset.parseValue(['123']),
-          revision: 1,
+          revision: 2,
           creatorUserId: 'A',
         }),
       ],
@@ -135,7 +135,7 @@ describe('restore with undo', () => {
           server: Changeset.parseValue(['123']),
         },
         recordsBuffer: {
-          version: 1,
+          version: 2,
         },
       },
     });

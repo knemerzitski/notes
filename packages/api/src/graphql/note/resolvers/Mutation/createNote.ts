@@ -128,18 +128,18 @@ function createCollabText({
   return {
     _id: new ObjectId(),
     headText: {
-      revision: 0,
+      revision: 1,
       changeset,
     },
     tailText: {
-      revision: -1,
+      revision: 0,
       changeset: Changeset.EMPTY.serialize(),
     },
     records: [
       {
         creatorUserId,
         userGeneratedId: '',
-        revision: 0,
+        revision: 1, 
         changeset,
         beforeSelection: {
           start: 0,

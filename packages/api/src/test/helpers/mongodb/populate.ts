@@ -237,7 +237,7 @@ export function fakeCollabTextData(
         changeset: headText.serialize(),
       },
       tailText: {
-        revision: -1,
+        revision: 0,
         changeset: Changeset.EMPTY.serialize(),
       },
       records,
@@ -298,10 +298,10 @@ export function createCollabText(
 export function createCollabTextMany(
   user: UserSchema,
   count: number,
-  collabDocOptions?: FakeCollabTextDataOptions
+  collabTextOptions?: FakeCollabTextDataOptions
 ) {
   const collabTexts = [...new Array<undefined>(count)].map(() =>
-    fakeCollabTextData(user, collabDocOptions)
+    fakeCollabTextData(user, collabTextOptions)
   );
   queuePopulate(async () => {
     await mongoCollections[CollectionName.CollabTexts].insertMany(collabTexts);

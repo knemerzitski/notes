@@ -18,7 +18,7 @@ export class RevisionTailRecords<
 
     this._tailText = options?.tailText ?? {
       changeset: Changeset.EMPTY,
-      revision: -1,
+      revision: 0,
     };
 
     if (!this._tailText.changeset.hasOnlyInsertions()) {
@@ -90,10 +90,10 @@ export class RevisionTailRecords<
     } else {
       const firstRecord = this._records[0];
       if (firstRecord) {
-        if (firstRecord.revision === 0) {
+        if (firstRecord.revision === 1) {
           this._tailText = {
             changeset: Changeset.EMPTY,
-            revision: -1,
+            revision: 0,
           };
         } else if (firstRecord.revision <= this.tailRevision) {
           throw new Error(
@@ -155,7 +155,7 @@ export class RevisionTailRecords<
     super.clear();
     this._tailText = {
       changeset: Changeset.EMPTY,
-      revision: -1,
+      revision: 0,
     };
   }
 }

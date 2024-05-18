@@ -75,9 +75,9 @@ export class CollabTextQueryMapper implements CollabTextMapper {
           };
         }
 
-        if (targetRevision <= -1) {
+        if (targetRevision <= 0) {
           return {
-            revision: -1,
+            revision: 0,
             changeset: Changeset.EMPTY,
           };
         }

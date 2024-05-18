@@ -36,7 +36,7 @@ beforeAll(async () => {
   const { user: tmpUser } = populateUserWithNotes(1, Object.values(CollabTextKey), {
     collabText: {
       recordsCount: 10,
-      tailRevision: -1,
+      tailRevision: 0,
     },
     noteMany: {
       enumaratePublicIdByIndex: 0,
@@ -145,8 +145,8 @@ it('gets records within usernotes pagination', async () => {
             collabTexts: {
               content: {
                 _id: expect.any(ObjectId),
-                headText: { changeset: ['head'], revision: 9 },
-                tailText: { changeset: [], revision: -1 },
+                headText: { changeset: ['head'], revision: 10 },
+                tailText: { changeset: [], revision: 0 },
                 records: {
                   array: [
                     {

@@ -31,7 +31,7 @@ beforeAll(async () => {
     {
       collabText: {
         recordsCount: 3,
-        tailRevision: -1,
+        tailRevision: 0,
       },
       noteMany: {
         enumaratePublicIdByIndex: 0,
@@ -99,10 +99,10 @@ it('loads paginated notes', async () => {
                 headText: { changeset: ['head'] },
                 records: [
                   {
-                    revision: 0,
+                    revision: 1,
                   },
                   {
-                    revision: 1,
+                    revision: 2,
                   },
                 ],
               },
@@ -119,10 +119,10 @@ it('loads paginated notes', async () => {
                 headText: { changeset: ['head'] },
                 records: [
                   {
-                    revision: 0,
+                    revision: 1,
                   },
                   {
-                    revision: 1,
+                    revision: 2,
                   },
                 ],
               },

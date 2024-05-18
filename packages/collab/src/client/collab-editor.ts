@@ -284,7 +284,7 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
       revision:
         options?.recordsBuffer instanceof OrderedMessageBuffer
           ? options.recordsBuffer.currentVersion
-          : options?.recordsBuffer?.version ?? -1,
+          : options?.recordsBuffer?.version ?? 0,
     };
 
     const subscribedListeners: (() => void)[] = [];
@@ -323,7 +323,7 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
           });
     this.serverHasOlderRecords =
       options?.serverHasOlderRecords ??
-      (this.serverRecords.tailRevision <= -1 ? false : null);
+      (this.serverRecords.tailRevision <= 0 ? false : null);
 
     // Buffered future records
     this.recordsBuffer =
@@ -337,6 +337,9 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
           });
     subscribedListeners.push(
       this.recordsBuffer.eventBus.on('nextMessage', (message) => {
+        // TODO handle UnprocessedRecordType.Reconnect, catching up with changes
+        // If have no local and submitted changes then, act as if its composeLocalChange?
+        // applyLocalTyping from just server if it's own record?
         this.serverRecords.update([message.record]);
 
         if (message.type == UnprocessedRecordType.SubmittedAcknowleged) {

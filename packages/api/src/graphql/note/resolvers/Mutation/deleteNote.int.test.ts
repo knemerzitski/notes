@@ -48,7 +48,7 @@ beforeEach(async () => {
     {
       collabText: {
         recordsCount: 1,
-        tailRevision: -1,
+        tailRevision: 0,
       },
       noteMany: {
         enumaratePublicIdByIndex: 0,
