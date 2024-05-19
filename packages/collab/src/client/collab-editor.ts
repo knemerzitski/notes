@@ -40,11 +40,7 @@ import {
   assertHasProperties,
   parseNumber,
 } from '~utils/serialize';
-import {
-  EditorServerRecords,
-  EditorServerRecordsOptions,
-  SerializedEditorServerRecords,
-} from './editor-records';
+import { UserEditorRecords } from './user-editor-records';
 
 export type CollabEditorEvents = CollabClientEvents &
   Omit<OrderedMessageBufferEvents<UnprocessedRecord>, 'processingMessages'> &
@@ -71,12 +67,6 @@ type EditorEvents = {
      * Changeset that matches this revision.
      */
     changeset: Changeset;
-  };
-  tailRevisionChanged: {
-    /**
-     * New tailRevision.
-     */
-    revision: number;
   };
   processingMessages: {
     eventBus: Emitter<EditorProcessingEvents>;
@@ -159,9 +149,7 @@ export interface SerializedCollabEditor {
   client: Omit<SerializedCollabClient, 'submitted'>;
   submittedRecord?: SerializedSubmittedRevisionRecord;
   recordsBuffer: SerializedOrderedMessageBuffer<UnprocessedRecord<SerializedChangeset>>;
-  serverRecords: SerializedEditorServerRecords;
   history: Omit<SerializedCollabHistory, 'tailRevision' | 'tailText'>;
-  serverHasOlderRecords?: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -213,21 +201,18 @@ type UnprocessedRecordsBufferOptions = Omit<
 export interface CollabEditorOptions {
   eventBus?: Emitter<CollabEditorEvents>;
   generateSubmitId?: () => string;
-  userId?: string;
-  serverRecords?: EditorServerRecords | EditorServerRecordsOptions;
+  serverRecords?: UserEditorRecords;
   recordsBuffer?: UnprocessedRecordsBuffer | UnprocessedRecordsBufferOptions;
   client?: CollabClient | CollabClientOptions;
   history?: CollabHistory | Omit<CollabHistoryOptions, 'client'>;
   submittedRecord?: SubmittedRecord;
-  serverHasOlderRecords?: boolean;
 }
 
 export class CollabEditor implements Serializable<SerializedCollabEditor> {
   readonly eventBus: Emitter<CollabEditorEvents>;
   private generateSubmitId: () => string;
-  readonly userId?: string;
 
-  private serverRecords: EditorServerRecords;
+  private serverRecords?: UserEditorRecords;
   private recordsBuffer: UnprocessedRecordsBuffer;
 
   private _client: CollabClient;
@@ -238,18 +223,8 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
     return this._submittedRecord;
   }
 
-  /**
-   * Remember if server has older records than current tailRevision.
-   * If null then don't know and must query the server.
-   */
-  serverHasOlderRecords: boolean | null;
-
   get headRevision() {
     return this.recordsBuffer.currentVersion;
-  }
-
-  get tailRevision() {
-    return this.serverRecords.tailRevision;
   }
 
   get client(): Pick<CollabClient, 'server' | 'submitted' | 'local' | 'view'> {
@@ -295,7 +270,6 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
     };
 
     this.generateSubmitId = options?.generateSubmitId ?? (() => nanoid(6));
-    this.userId = options?.userId;
 
     // Local, submitted, server changesets
     this._client =
@@ -313,18 +287,8 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
     // Submitted record
     this._submittedRecord = options?.submittedRecord ?? null;
 
-    // Store known records from server
-    this.serverRecords =
-      options?.serverRecords instanceof EditorServerRecords
-        ? options.serverRecords
-        : new EditorServerRecords({
-            tailText: headText,
-            ...options?.serverRecords,
-          });
-    this.serverHasOlderRecords =
-      options?.serverHasOlderRecords ??
-      (this.serverRecords.tailRevision <= 0 ? false : null);
-
+    // Server records
+    this.serverRecords = options?.serverRecords;
     // Buffered future records
     this.recordsBuffer =
       options?.recordsBuffer instanceof OrderedMessageBuffer
@@ -337,11 +301,6 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
           });
     subscribedListeners.push(
       this.recordsBuffer.eventBus.on('nextMessage', (message) => {
-        // TODO handle UnprocessedRecordType.Reconnect, catching up with changes
-        // If have no local and submitted changes then, act as if its composeLocalChange?
-        // applyLocalTyping from just server if it's own record?
-        this.serverRecords.update([message.record]);
-
         if (message.type == UnprocessedRecordType.SubmittedAcknowleged) {
           this._submittedRecord = null;
           this._client.submittedChangesAcknowledged();
@@ -541,29 +500,14 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
     }
   }
 
-  addServerRecords(
-    records: Readonly<EditorRevisionRecord[]>,
-    newTailText?: RevisionChangeset
-  ) {
-    const beforeTailRevision = this.tailRevision;
-    this.serverRecords.update(records, newTailText);
-    if (this.tailRevision !== beforeTailRevision) {
-      this.eventBus.emit('tailRevisionChanged', {
-        revision: this.tailRevision,
-      });
-    }
-  }
-
   /**
    * Restores up to {@link desiredRestoreCount} history entries. Server records
    * must be available. Add them using method {@link addServerRecords}.
    */
   historyRestore(desiredRestoreCount: number): number | undefined {
-    return this._history.restoreFromServerRecords(
-      this.serverRecords,
-      desiredRestoreCount,
-      this.userId
-    );
+    if (!this.serverRecords) return;
+
+    return this._history.restoreFromUserRecords(this.serverRecords, desiredRestoreCount);
   }
 
   canRedo() {
@@ -575,7 +519,7 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
   }
 
   private canRestoreHistory() {
-    return this.serverRecords.hasOwnRecords(this._history.tailRevision, this.userId);
+    return this.serverRecords?.hasOwnOlderRecords(this._history.tailRevision);
   }
 
   undo() {
@@ -610,9 +554,7 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
       client: s_client,
       submittedRecord: this._submittedRecord?.serialize(),
       recordsBuffer: this.recordsBuffer.serialize(),
-      serverRecords: this.serverRecords.serialize(),
       history: s_history,
-      serverHasOlderRecords: this.serverHasOlderRecords ?? undefined,
     };
   }
 
@@ -620,14 +562,9 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
     value: unknown
   ): Pick<
     CollabEditorOptions,
-    | 'client'
-    | 'submittedRecord'
-    | 'recordsBuffer'
-    | 'serverRecords'
-    | 'history'
-    | 'serverHasOlderRecords'
+    'client' | 'submittedRecord' | 'recordsBuffer' | 'history'
   > {
-    assertHasProperties(value, ['client', 'recordsBuffer', 'serverRecords', 'history']);
+    assertHasProperties(value, ['client', 'recordsBuffer', 'history']);
 
     const client = CollabClient.parseValue(value.client);
 
@@ -644,23 +581,15 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
       (message) => UnprocessedRecord.parseValue(message)
     );
 
-    const serverRecords = EditorServerRecords.parseValue(value.serverRecords);
-
     const history = CollabHistory.parseValue(value.history);
     history.tailRevision = recordsBuffer.version;
     history.tailText = client.server;
-
-    const hasOlderRecords = (value as { serverHasOlderRecords?: unknown })
-      .serverHasOlderRecords;
 
     return {
       client,
       submittedRecord,
       recordsBuffer,
-      serverRecords,
       history,
-      serverHasOlderRecords:
-        hasOlderRecords != null ? Boolean(hasOlderRecords) : undefined,
     };
   }
 }

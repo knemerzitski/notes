@@ -67,44 +67,6 @@ export class RevisionTailRecords<
   }
 
   /**
-   * Adds new records. Duplicate records are ignored.
-   * @param newRecords Consecutive ordered array of new records.
-   * @param newTailText Required if it contains records older than current tailText.revision.
-   * @returns Records added successfully.
-   */
-  update(newRecords: Readonly<TRecord[]>, newTailText?: RevisionChangeset) {
-    super.update(newRecords);
-
-    if (newTailText) {
-      if (newTailText.revision < this.tailText.revision) {
-        this._tailText = newTailText;
-      }
-      const firstRecord = this._records[0];
-      if (firstRecord) {
-        if (this._tailText.revision + 1 !== firstRecord.revision) {
-          throw new Error(
-            `Expected newTailText revision ${this._tailText.revision} to be right before first record revision ${firstRecord.revision}.`
-          );
-        }
-      }
-    } else {
-      const firstRecord = this._records[0];
-      if (firstRecord) {
-        if (firstRecord.revision === 1) {
-          this._tailText = {
-            changeset: Changeset.EMPTY,
-            revision: 0,
-          };
-        } else if (firstRecord.revision <= this.tailRevision) {
-          throw new Error(
-            'Update to RevisionTailRecords with older records requires newTailText'
-          );
-        }
-      }
-    }
-  }
-
-  /**
    * Merge oldest records into tailText. Merged records are deleted.
    */
   mergeToTail(count: number) {

@@ -6,8 +6,10 @@ import { RevisionTailRecords } from '../records/revision-tail-records';
 import { createHelperCollabEditingEnvironment } from './helpers/server-client';
 import { subscribeEditorListeners } from '../records/editor-revision-records';
 import { Entry } from '../client/collab-history';
-import { createFakeServerRevisionRecordData } from './helpers/populate';
+import { createFakeServerRevisionRecordData } from '../../../../__EXCLUDE/populate';
 import { Changeset } from '../changeset/changeset';
+import { LocalServerRecords } from '../records/server-records';
+import { UserEditorRecords } from '../client/user-editor-records';
 
 function historyEntriesInfo(entries: Readonly<Entry[]>) {
   return entries.map((e) => ({
@@ -57,6 +59,7 @@ describe('persist history in revision records', () => {
     client.A.insertText('Between: ');
     client.A.submitChangesInstant();
 
+    const restoredEditorB_serverRecords = new LocalServerRecords();
     const restoredEditorB = new CollabEditor({
       recordsBuffer: {
         version: server.tailRecords.getHeadText().revision,
@@ -64,10 +67,13 @@ describe('persist history in revision records', () => {
       client: {
         server: server.tailRecords.getHeadText().changeset,
       },
-      userId: client.B.editor.userId,
+      serverRecords: new UserEditorRecords({
+        serverRecords: restoredEditorB_serverRecords,
+        userId: client.B.name,
+      }),
     });
 
-    restoredEditorB.addServerRecords(server.tailRecords.records);
+    restoredEditorB_serverRecords.update(server.tailRecords.records);
     restoredEditorB.historyRestore(client.B.editor.history.entries.length);
 
     expect(historyEntriesInfo(client.B.editor.history.entries)).toStrictEqual(
@@ -91,6 +97,8 @@ describe('persist history in revision records', () => {
     client.A.setCaretPosition(30);
     client.A.deleteTextCount(4);
     client.A.submitChangesInstant();
+
+    const restoredEditorB_serverRecords = new LocalServerRecords();
     const restoredEditorB = new CollabEditor({
       recordsBuffer: {
         version: server.tailRecords.getHeadText().revision,
@@ -98,10 +106,13 @@ describe('persist history in revision records', () => {
       client: {
         server: server.tailRecords.getHeadText().changeset,
       },
-      userId: client.B.editor.userId,
+      serverRecords: new UserEditorRecords({
+        serverRecords: restoredEditorB_serverRecords,
+        userId: client.B.name,
+      }),
     });
 
-    restoredEditorB.addServerRecords(server.tailRecords.records);
+    restoredEditorB_serverRecords.update(server.tailRecords.records);
     restoredEditorB.historyRestore(client.B.editor.history.entries.length);
 
     expect(historyEntriesInfo(restoredEditorB.history.entries)).toStrictEqual(
@@ -145,7 +156,7 @@ describe('restore with undo', () => {
     const { server, client } = helper;
 
     expect(client.A.editor.canUndo()).toBeFalsy();
-    client.A.editor.addServerRecords(server.tailRecords.records);
+    client.A.editorServerRecords.update(server.tailRecords.records);
     expect(client.A.editor.canUndo()).toBeTruthy();
     expect(client.A.valueWithSelection()).toStrictEqual('>123');
     expect(client.A.editor.undo()).toBeTruthy();

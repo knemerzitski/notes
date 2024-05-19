@@ -6,6 +6,10 @@ interface Message {
   payload: string;
 }
 
+function serializeMessage(msg: Message) {
+  return msg;
+}
+
 let buffer: OrderedMessageBuffer<Message>;
 
 beforeEach(() => {
@@ -23,6 +27,7 @@ beforeEach(() => {
         payload: '_12',
       },
     ],
+    serializeMessage,
   });
 });
 
@@ -31,13 +36,13 @@ it('ignores old or same versions', () => {
     buffer.add({
       version: 10,
       payload: 'discard same',
-    })
+    }, false)
   ).toBeFalsy();
   expect(
     buffer.add({
       version: 9,
       payload: 'discard same',
-    })
+    }, false)
   ).toBeFalsy();
   expect(buffer.currentVersion).toStrictEqual(10);
   expect([...buffer.popIterable()]).toHaveLength(0);
@@ -47,7 +52,7 @@ it('ignores old or same versions', () => {
     buffer.add({
       version: 11,
       payload: 'start 11',
-    })
+    }, false)
   ).toBeTruthy();
   expect([...buffer.popIterable()].map((m) => m.payload)).toStrictEqual([
     'start 11',
@@ -63,13 +68,13 @@ it('stashes future messages', () => {
     buffer.add({
       version: 14,
       payload: '_14',
-    })
+    }, false)
   ).toBeTruthy();
   expect(
     buffer.add({
       version: 15,
       payload: '_15',
-    })
+    }, false)
   ).toBeTruthy();
   expect([...buffer.popIterable()]).toHaveLength(0);
   expect(buffer.size).toStrictEqual(4);
@@ -77,7 +82,7 @@ it('stashes future messages', () => {
     buffer.add({
       version: 11,
       payload: '_11',
-    })
+    }, false)
   ).toBeTruthy();
 
   expect([...buffer.popIterable()].map((m) => m.payload)).toStrictEqual([
@@ -96,32 +101,32 @@ it('ignores duplicate future messages', () => {
     buffer.add({
       version: 12,
       payload: '_12 duplicate',
-    })
+    }, false)
   ).toBeFalsy();
   expect(
     buffer.add({
       version: 13,
       payload: '_13 duplicate',
-    })
+    }, false)
   ).toBeFalsy();
   expect(
     buffer.add({
       version: 12,
       payload: '_12 duplicate 2',
-    })
+    }, false)
   ).toBeFalsy();
   expect(
     buffer.add({
       version: 13,
       payload: '_13 duplicate 2',
-    })
+    }, false)
   ).toBeFalsy();
   expect([...buffer.popIterable()]).toHaveLength(0);
   expect(
     buffer.add({
       version: 11,
       payload: '_11',
-    })
+    }, false)
   ).toBeTruthy();
   expect([...buffer.popIterable()].map((m) => m.payload)).toStrictEqual([
     '_11',

@@ -15,6 +15,8 @@ import { CollabClient } from '../../client/collab-client';
 import { CollabHistory } from '../../client/collab-history';
 import { newSelectionRange } from './collab-editor-selection-range';
 import { OrderedMessageBuffer } from '~utils/ordered-message-buffer';
+import { UserEditorRecords } from '../../client/user-editor-records';
+import { LocalServerRecords } from '../../records/server-records';
 
 export function createHelperCollabEditingEnvironment<TClientName extends string>(
   server: RevisionTailRecords<ServerRevisionRecord>,
@@ -75,21 +77,12 @@ function createClientHelper<TName extends string>(
   server: RevisionTailRecords<ServerRevisionRecord>,
   getOtherEditors: () => { [K in TName]: CollabEditor }
 ) {
-  let clientOptions: CollabEditorOptions['client'] | undefined;
-  let historyOptions: CollabEditorOptions['history'] | undefined;
-  let editorOptions:
-    | Omit<CollabEditorOptions, 'client' | 'history' | 'userId'>
-    | undefined;
-  if (currentOptions) {
-    const {
-      client: tmpClientOptions,
-      history: tmpHistoryOptions,
-      ...tmpEditorOptions
-    } = currentOptions;
-    clientOptions = tmpClientOptions;
-    historyOptions = tmpHistoryOptions;
-    editorOptions = tmpEditorOptions;
-  }
+  const {
+    client: clientOptions,
+    history: historyOptions,
+    ...editorOptions
+  } = currentOptions;
+
   const client =
     clientOptions instanceof CollabClient
       ? clientOptions
@@ -102,27 +95,36 @@ function createClientHelper<TName extends string>(
       ? historyOptions
       : new CollabHistory({
           tailRevision:
-            editorOptions?.recordsBuffer instanceof OrderedMessageBuffer
-              ? editorOptions?.recordsBuffer.currentVersion
-              : editorOptions?.recordsBuffer?.version,
+            editorOptions.recordsBuffer instanceof OrderedMessageBuffer
+              ? editorOptions.recordsBuffer.currentVersion
+              : editorOptions.recordsBuffer?.version,
           ...historyOptions,
           client,
         });
 
+  const editorServerRecords = new LocalServerRecords();
   const editor = new CollabEditor({
     ...editorOptions,
     recordsBuffer: {
-      ...editorOptions?.recordsBuffer,
+      ...editorOptions.recordsBuffer,
       version: server.tailText.revision,
     },
-    userId: name,
+    serverRecords: new UserEditorRecords({
+      serverRecords: editorServerRecords,
+      userId: name,
+    }),
     client,
     history,
+  });
+  editor.eventBus.on('nextMessage', ({ record }) => {
+    editorServerRecords.update([record]);
   });
 
   return {
     client,
     history,
+    editorServerRecords,
+    name,
     ...createCollabEditorHelper(editor),
     ...createCollabEditorAndRevisionTailRecordsHelper<TName>(
       name,
@@ -187,7 +189,7 @@ function createCollabEditorAndRevisionTailRecordsHelper<TClientName extends stri
       serverReceive: () => {
         const recordInsertion = revisionTailRecords.insert({
           ...submittedRecord,
-          creatorUserId: editor.userId ?? 'user',
+          creatorUserId: name,
         });
 
         function clientAcknowledge() {

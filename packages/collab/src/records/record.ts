@@ -57,6 +57,7 @@ export interface SubmittedRevisionRecord<T = Changeset> extends RevisionRecord<T
 export type SerializedSubmittedRevisionRecord =
   SubmittedRevisionRecord<SerializedChangeset>;
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace SubmittedRevisionRecord {
   export function serialize(
     record: SubmittedRevisionRecord
@@ -95,6 +96,7 @@ export interface ServerRevisionRecord<T = Changeset> extends SubmittedRevisionRe
 
 export type SerializedServerRevisionRecord = ServerRevisionRecord<SerializedChangeset>;
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace ServerRevisionRecord {
   export function serialize(
     record: ServerRevisionRecord

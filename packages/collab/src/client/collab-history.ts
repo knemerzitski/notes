@@ -18,7 +18,7 @@ import {
   parseNumber,
   parseNumberMaybe,
 } from '~utils/serialize';
-import { EditorServerRecords, isOwnRecord } from './editor-records';
+import { UserEditorRecords } from './user-editor-records';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type LocalChangesetEditorHistoryEvents = {
@@ -269,31 +269,29 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
     this.redo(); // applies pushed entry
   }
 
-  restoreFromServerRecords(
-    serverRecords: EditorServerRecords,
+  restoreFromUserRecords(
+    userRecords: UserEditorRecords,
     desiredRestoreCount: number,
-    targetUserId?: string | symbol,
     recursive = true,
     depth = 0
   ): number | undefined {
     if (desiredRestoreCount <= 0) return 0;
 
     const { records: relevantRecords, ownCount: potentialRestoreCount } =
-      serverRecords.sliceRecordsUntilDesiredOwnCount(
+      userRecords.sliceOlderRecordsUntilDesiredOwnCount(
         this._tailRevision,
-        desiredRestoreCount,
-        targetUserId
+        desiredRestoreCount
       );
 
     const firstRecord = relevantRecords[0];
     if (!firstRecord) return;
 
-    const newTailText = serverRecords.getTextAt(firstRecord.revision - 1);
+    const newTailText = userRecords.getTextAt(firstRecord.revision - 1);
 
     const addedEntriesCount = this.restoreHistoryEntries(
       newTailText,
       relevantRecords.map((record) => {
-        const isOtherUserRecord = !isOwnRecord(record, targetUserId);
+        const isOtherUserRecord = !userRecords.isOwnRecord(record);
         if (!record.beforeSelection || !record.afterSelection || isOtherUserRecord) {
           return {
             isTail: true,
@@ -319,10 +317,9 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
 
     const remainingCount = desiredRestoreCount - restoredCount;
     if (remainingCount > 0 && potentialRestoreCount > 0 && recursive) {
-      const nextRestoredCount = this.restoreFromServerRecords(
-        serverRecords,
+      const nextRestoredCount = this.restoreFromUserRecords(
+        userRecords,
         remainingCount,
-        targetUserId,
         recursive,
         depth + 1
       );

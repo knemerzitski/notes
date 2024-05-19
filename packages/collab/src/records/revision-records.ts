@@ -1,5 +1,3 @@
-import mergedConsecutiveOrdered from '~utils/array/mergedConsecutiveOrdered';
-
 import mitt, { Emitter } from '~utils/mitt-unsub';
 import { RevisionRecord } from './record';
 
@@ -214,43 +212,6 @@ export class RevisionRecords<
     if (keepIndex < 0) return;
 
     this._records = this._records.slice(0, keepIndex + 1);
-  }
-
-  /**
-   * Adds new records. Duplicate records are ignored. Gaps are not allowed between newRecords and this.records.
-   * @param newRecords Consecutive ordered array of new records.
-   * Throws error if records have no overlap
-   */
-  update(newRecords: Readonly<TRecord[]>) {
-    const firstRecord = newRecords[0];
-    const lastRecord = newRecords[newRecords.length - 1];
-    if (!firstRecord || !lastRecord) return;
-
-    if (this.records.length > 0) {
-      const recordsHaveNoOverlap =
-        lastRecord.revision + 1 < this.startRevision ||
-        this.endRevision < firstRecord.revision - 1;
-
-      if (recordsHaveNoOverlap) {
-        throw new Error(
-          `Expected newRecords to have overlap. newRecords: (${firstRecord.revision},${lastRecord.revision}), records: (${this.startRevision},${this.endRevision})`
-        );
-      }
-    }
-
-    this.mergeNewRecords(newRecords);
-  }
-
-  private mergeNewRecords(newRecords: Readonly<TRecord[]>) {
-    const mergedRecords = mergedConsecutiveOrdered(
-      this._records,
-      newRecords,
-      (record) => record.revision
-    );
-    if (!mergedRecords) return false;
-
-    this._records = mergedRecords;
-    return true;
   }
 
   /**
