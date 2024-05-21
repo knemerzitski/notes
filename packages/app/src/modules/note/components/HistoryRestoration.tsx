@@ -169,13 +169,6 @@ export default function HistoryRestoration({
           const currentTailRevision = serverRecords.tailText.revision;
           const newTailRevision = Math.max(0, currentTailRevision - fetchEntriesCount);
 
-          console.log(
-            'fetching',
-            currentTailRevision + 1,
-            newTailRevision,
-            fetchEntriesCount
-          );
-
           const result = await apolloClient.query({
             query: QUERY,
             variables: {
@@ -192,7 +185,6 @@ export default function HistoryRestoration({
             if (textField.key !== fieldName) return;
             const recordsConnection = textField.value.recordsConnection;
             if (!recordsConnection.pageInfo.hasPreviousPage) {
-              console.log('no more history', textField);
               // Stop listening since no more records
               editor.eventBus.off('appliedUndo', appliedUndoHandler);
             }
