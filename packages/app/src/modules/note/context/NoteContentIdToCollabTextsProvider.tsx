@@ -5,7 +5,7 @@ import { getCollabEditor } from '../../collab/hooks/useCollabEditor';
 import NoteContentIdProvider from './NoteContentIdProvider';
 import NoteTextFieldEditorsProvider from './NoteTextFieldEditorsProvider';
 import { CollabEditor } from '~collab/client/collab-editor';
-import { NoteTextFieldEntry } from '../../../__generated__/graphql';
+import { NoteTextField, NoteTextFieldEntry } from '../../../__generated__/graphql';
 
 const QUERY_COLLAB_TEXT = gql(`
   query NoteContentIdToEditorsProvider($noteContentId: String!) {
@@ -40,6 +40,17 @@ export function useNoteCollabTexts() {
     throw new Error('useNoteCollabTexts() requires context <NoteCollabTextsProvider>');
   }
   return ctx;
+}
+
+export function useNoteCollabText(fieldName: NoteTextField) {
+  const collabTexts = useNoteCollabTexts();
+
+  const collabText = collabTexts.find((entry) => entry.key === fieldName);
+  if (!collabText) {
+    throw new Error(`Note text field ${fieldName} not found`);
+  }
+
+  return collabText;
 }
 
 interface NoteContentIdToCollabTextsProviderProps {

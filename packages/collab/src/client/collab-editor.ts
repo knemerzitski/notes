@@ -68,6 +68,12 @@ type EditorEvents = {
      */
     changeset: Changeset;
   };
+  tailRevisionChanged: {
+    /**
+     * New tailRevision.
+     */
+    revision: number;
+  };
   processingMessages: {
     eventBus: Emitter<EditorProcessingEvents>;
   };
@@ -212,7 +218,7 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
   readonly eventBus: Emitter<CollabEditorEvents>;
   private generateSubmitId: () => string;
 
-  private serverRecords?: UserEditorRecords;
+  private serverRecords?: UserEditorRecords | null;
   private recordsBuffer: UnprocessedRecordsBuffer;
 
   private _client: CollabClient;
@@ -231,7 +237,7 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
     return this._client;
   }
 
-  get history(): Pick<CollabHistory, 'localIndex' | 'entries'> {
+  get history(): Pick<CollabHistory, 'localIndex' | 'entries' | 'tailRevision'> {
     return this._history;
   }
 
@@ -288,7 +294,8 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
     this._submittedRecord = options?.submittedRecord ?? null;
 
     // Server records
-    this.serverRecords = options?.serverRecords;
+    this.setServerRecords(options?.serverRecords ?? null);
+
     // Buffered future records
     this.recordsBuffer =
       options?.recordsBuffer instanceof OrderedMessageBuffer
@@ -392,6 +399,10 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
    */
   cleanUp() {
     this.unsubscribeFromEvents();
+  }
+
+  setServerRecords(serverRecords: UserEditorRecords | null) {
+    this.serverRecords = serverRecords;
   }
 
   haveSubmittedChanges() {

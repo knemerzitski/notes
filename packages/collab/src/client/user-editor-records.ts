@@ -26,11 +26,16 @@ export class UserEditorRecords {
   /**
    * Finds if there is any older records from headRevision created by userId.
    */
-  hasOwnOlderRecords(headRevision: number) {
+  hasOwnOlderRecords(headRevision: number, count = 1) {
+    if (count <= 0) return true;
+
     for (const record of this.serverRecords.newestRecordsIterable(headRevision)) {
-      if (isOwnRecord(record, this.userId)) return true;
+      if (isOwnRecord(record, this.userId)) {
+        count--;
+        if (count <= 0) return true;
+      }
     }
-    return false;
+    return count <= 0;
   }
 
   /**

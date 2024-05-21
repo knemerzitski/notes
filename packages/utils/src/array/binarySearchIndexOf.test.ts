@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { it, expect, describe } from 'vitest';
-import binarySearchIndexOf from './binarySearchIndexOf';
+import { binarySearchIndexOf } from './binarySearchIndexOf';
 
 const cmp = (a: number, b: number) => a - b;
 
@@ -43,6 +44,28 @@ describe('insertion index', () => {
     });
 
     const expectedSorted = [...arr, item].sort();
+    arr.splice(searchResult.index, 0, item);
+    expect(arr).toStrictEqual(expectedSorted);
+  });
+});
+
+describe('insertion index reversed', () => {
+  const cmpReversed = (a: number, b: number) => b - a;
+
+  it.each([
+    [[5, 4, 3, 2], 1, 4],
+    [[5, 4, 3, 1], 2, 3],
+    [[5, 4, 2, 1], 3, 2],
+    [[5, 3, 2, 1], 4, 1],
+    [[4, 3, 2, 1], 5, 0],
+  ])('(%s,%s) => %s', (arr, item, expectedIndex) => {
+    const searchResult = binarySearchIndexOf(arr, item, cmpReversed);
+    expect(searchResult).toStrictEqual({
+      index: expectedIndex,
+      exists: false,
+    });
+
+    const expectedSorted = [...arr, item].sort(cmpReversed);
     arr.splice(searchResult.index, 0, item);
     expect(arr).toStrictEqual(expectedSorted);
   });

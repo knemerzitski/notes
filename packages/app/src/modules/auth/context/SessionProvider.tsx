@@ -1,6 +1,5 @@
 import { ReactNode, createContext, useContext } from 'react';
-
-import { ClientSession } from '../../__generated__/graphql';
+import { ClientSession } from '../../../__generated__/graphql';
 
 const SessionContext = createContext<Omit<ClientSession, 'authProviderEntries'> | null>(
   null

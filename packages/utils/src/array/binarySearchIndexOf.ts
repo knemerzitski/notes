@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-interface BinarySearchIndexOfResult {
+export interface BinarySearchIndexOfResult {
   /**
    * Index or insertion index of item
    */
@@ -16,10 +16,10 @@ interface BinarySearchIndexOfResult {
 /**
  * Binary search index of item in array. Array must be sorted.
  */
-export default function binarySearchIndexOf<T>(
+export function binarySearchIndexOf<T>(
   arr: Readonly<T[]>,
   item: T,
-  cmpFn: (a: T, b: T) => number,
+  compareFn: (a: T, b: T) => number,
   left = 0,
   right = arr.length - 1
 ): BinarySearchIndexOfResult {
@@ -28,13 +28,13 @@ export default function binarySearchIndexOf<T>(
   }
   const mid = Math.floor((right + left) / 2);
 
-  const cmpResult = cmpFn(arr[mid]!, item);
+  const cmpResult = compareFn(arr[mid]!, item);
   if (cmpResult < 0) {
     // Mid is smaller
-    return binarySearchIndexOf(arr, item, cmpFn, mid + 1, right);
+    return binarySearchIndexOf(arr, item, compareFn, mid + 1, right);
   } else if (cmpResult > 0) {
     // Mid is bigger
-    return binarySearchIndexOf(arr, item, cmpFn, left, mid - 1);
+    return binarySearchIndexOf(arr, item, compareFn, left, mid - 1);
   } else {
     return { index: mid, exists: true };
   }
