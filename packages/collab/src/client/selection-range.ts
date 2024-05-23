@@ -100,17 +100,17 @@ export namespace SelectionRange {
     }
   }
 
-  export function followChangeset(
+  export function closestRetainedPosition(
     { start, end }: Readonly<SelectionRange>,
     changeset: Changeset
   ): SelectionRange {
     if (start === end) {
-      const tmp = changeset.followIndex(start);
+      const tmp = changeset.indexOfClosestRetained(start);
       start = tmp;
       end = tmp;
     } else {
-      start = changeset.followIndex(start);
-      end = changeset.followIndex(end);
+      start = changeset.indexOfClosestRetained(start);
+      end = changeset.indexOfClosestRetained(end);
     }
     return { start, end };
   }

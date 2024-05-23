@@ -264,7 +264,7 @@ describe('inverse', () => {
   });
 });
 
-describe('followIndex', () => {
+describe('indexOfClosestRetained', () => {
   describe('random', () => {
     it.each([
       ['empty', [], 0, 0],
@@ -277,7 +277,7 @@ describe('followIndex', () => {
       ['random 6', ['start ', [0, 14]], 15, 21],
       ['random 7', [[0, 20], 'THREE'], 21, 21],
     ])('%s', (_msg, changeset, cursor, expectedCursor) => {
-      expect(cs(changeset).followIndex(cursor)).toStrictEqual(expectedCursor);
+      expect(cs(changeset).indexOfClosestRetained(cursor)).toStrictEqual(expectedCursor);
     });
   });
 
@@ -298,7 +298,7 @@ describe('followIndex', () => {
       [['abcd'], 3, 4],
       [['abcd'], 4, 4],
     ])('(%s,%s) => %s', (changeset, cursor, expectedCursor) => {
-      expect(cs(changeset).followIndex(cursor)).toStrictEqual(expectedCursor);
+      expect(cs(changeset).indexOfClosestRetained(cursor)).toStrictEqual(expectedCursor);
     });
   });
 
@@ -310,7 +310,7 @@ describe('followIndex', () => {
         [' *****^****  => +++ *****^****', 5, 8],
         [' ***** ****^ => +++ ***** ****^', 9, 12],
       ])('%s, before: %s, after: %s', (_msg, beforeCursor, expectedAfterCursor) => {
-        expect(changeset.followIndex(beforeCursor)).toStrictEqual(expectedAfterCursor);
+        expect(changeset.indexOfClosestRetained(beforeCursor)).toStrictEqual(expectedAfterCursor);
       });
     });
     describe('insert middle ****+++*****', () => {
@@ -321,7 +321,7 @@ describe('followIndex', () => {
         [' ******^***  =>  ***** +++*^***', 6, 9],
         [' ***** ****^ =>  ***** +++ ****^', 9, 12],
       ])('%s, before: %s, after: %s', (_msg, beforeCursor, expectedAfterCursor) => {
-        expect(changeset.followIndex(beforeCursor)).toStrictEqual(expectedAfterCursor);
+        expect(changeset.indexOfClosestRetained(beforeCursor)).toStrictEqual(expectedAfterCursor);
       });
     });
     describe('insert end, *********+++', () => {
@@ -331,7 +331,7 @@ describe('followIndex', () => {
         [' *****^****  =>  *****^**** +++', 5, 5],
         [' ***** ****^ =>  ***** ****^+++', 9, 9],
       ])('%s, before: %s, after: %s', (_msg, beforeCursor, expectedAfterCursor) => {
-        expect(changeset.followIndex(beforeCursor)).toStrictEqual(expectedAfterCursor);
+        expect(changeset.indexOfClosestRetained(beforeCursor)).toStrictEqual(expectedAfterCursor);
       });
     });
     describe('insert start, delete start +++----*****', () => {
@@ -342,7 +342,7 @@ describe('followIndex', () => {
         [' ** ***^****  => +++---- *^****', 5, 4],
         [' ** *** ****^ => +++---- * ****^', 9, 8],
       ])('%s, before: %s, after: %s', (_msg, beforeCursor, expectedAfterCursor) => {
-        expect(changeset.followIndex(beforeCursor)).toStrictEqual(expectedAfterCursor);
+        expect(changeset.indexOfClosestRetained(beforeCursor)).toStrictEqual(expectedAfterCursor);
       });
     });
     describe('insert middle, delete middle **--+++--***', () => {
@@ -353,7 +353,7 @@ describe('followIndex', () => {
         [' ** ***^****  =>  **-- +++--^***', 5, 5],
         [' ** *** ****^ =>  **-- +++-- ***^', 9, 8],
       ])('%s, before: %s, after: %s', (_msg, beforeCursor, expectedAfterCursor) => {
-        expect(changeset.followIndex(beforeCursor)).toStrictEqual(expectedAfterCursor);
+        expect(changeset.indexOfClosestRetained(beforeCursor)).toStrictEqual(expectedAfterCursor);
       });
     });
     describe('insert end, delete end *****----+++', () => {
@@ -364,7 +364,7 @@ describe('followIndex', () => {
         [' ** ***^****  =>  ** ***----^+++', 5, 5],
         [' ** *** ****^ =>  ** ***---- +++^', 9, 8],
       ])('%s, before: %s, after: %s', (_msg, beforeCursor, expectedAfterCursor) => {
-        expect(changeset.followIndex(beforeCursor)).toStrictEqual(expectedAfterCursor);
+        expect(changeset.indexOfClosestRetained(beforeCursor)).toStrictEqual(expectedAfterCursor);
       });
     });
   });

@@ -61,7 +61,7 @@ export default function useHTMLInputCollabEditor(editor: PartialEditor) {
       let newSelection = latestSelection;
 
       processingBus.on('handledExternalChange', ({ viewComposable }) => {
-        newSelection = SelectionRange.followChangeset(newSelection, viewComposable);
+        newSelection = SelectionRange.closestRetainedPosition(newSelection, viewComposable);
       });
 
       processingBus.on('messagesProcessed', ({ hadExternalChanges }) => {

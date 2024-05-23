@@ -14,7 +14,7 @@ export function newSelectionRange(editor: CollabEditor) {
   });
   const subscriptions = [
     editor.eventBus.on('handledExternalChange', ({ viewComposable }) => {
-      selectionRange.followChangeset(viewComposable);
+      selectionRange.closestRetainedPosition(viewComposable);
     }),
     editor.eventBus.on('appliedTypingOperation', ({ operation }) => {
       selectionRange.set(operation.selection);
@@ -105,8 +105,8 @@ class CollabEditorSelectionRange implements SelectionRange {
     });
   }
 
-  followChangeset(changeset: Changeset) {
-    const newSelection = SelectionRange.followChangeset(this, changeset);
+  closestRetainedPosition(changeset: Changeset) {
+    const newSelection = SelectionRange.closestRetainedPosition(this, changeset);
     this._start = newSelection.start;
     this._end = newSelection.end;
   }

@@ -66,7 +66,7 @@ it.each<TestEntry>([
   ).toStrictEqual(tail);
 
   expect(
-    SelectionRange.followChangeset(
+    SelectionRange.closestRetainedPosition(
       { start: execute.selection, end: execute.selection },
       composition
     ),
@@ -77,7 +77,7 @@ it.each<TestEntry>([
   });
 
   expect(
-    SelectionRange.followChangeset(
+    SelectionRange.closestRetainedPosition(
       { start: undo.selection, end: undo.selection },
       composition
     ),

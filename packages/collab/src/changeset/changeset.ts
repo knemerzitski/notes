@@ -423,17 +423,16 @@ export class Changeset implements Serializable<SerializedChangeset> {
   }
 
   /**
-   * @returns New index that keeps intent of {@link oldIndex} after
-   * this changeset has been applied.
+   * @returns Index of a retained character that is closest to {@link index}.
    */
-  followIndex(oldIndex: number) {
+  indexOfClosestRetained(index: number) {
     let pos = 0;
     if (this.hasOnlyInsertions()) {
       // If changeset has only insertion then place pos to closest side of insertion.
       const strip = this.strips.values[0];
       if (strip) {
-        if (oldIndex < strip.length) {
-          if (strip.length <= 2 * oldIndex) {
+        if (index < strip.length) {
+          if (strip.length <= 2 * index) {
             return strip.length;
           } else {
             return pos;
@@ -444,9 +443,9 @@ export class Changeset implements Serializable<SerializedChangeset> {
 
     for (const strip of this.strips.values) {
       if (strip instanceof RetainStrip) {
-        if (strip.startIndex <= oldIndex && oldIndex <= strip.endIndex + 1) {
-          return pos + oldIndex - strip.startIndex;
-        } else if (oldIndex < strip.startIndex) {
+        if (strip.startIndex <= index && index <= strip.endIndex + 1) {
+          return pos + index - strip.startIndex;
+        } else if (index < strip.startIndex) {
           return pos;
         }
       }

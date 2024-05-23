@@ -60,11 +60,11 @@ export function followRecordSelection<
   TRecord extends RevisionRecord,
   TInsertRecord extends FollowSelectionRecord,
 >({ newRecord }: RevisionRecordEvents<TRecord, TInsertRecord>['followRecord']) {
-  newRecord.beforeSelection = SelectionRange.followChangeset(
+  newRecord.beforeSelection = SelectionRange.closestRetainedPosition(
     newRecord.beforeSelection,
     newRecord.changeset
   );
-  newRecord.afterSelection = SelectionRange.followChangeset(
+  newRecord.afterSelection = SelectionRange.closestRetainedPosition(
     newRecord.afterSelection,
     newRecord.changeset
   );

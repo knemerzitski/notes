@@ -35,11 +35,11 @@ export class SubmittedRecord
   }: CollabClientEvents['handledExternalChange']) {
     this.changeset = after.submitted;
 
-    this.beforeSelection = SelectionRange.followChangeset(
+    this.beforeSelection = SelectionRange.closestRetainedPosition(
       this.beforeSelection,
       externalChange
     );
-    this.afterSelection = SelectionRange.followChangeset(
+    this.afterSelection = SelectionRange.closestRetainedPosition(
       this.afterSelection,
       before.submitted.follow(externalChange)
     );

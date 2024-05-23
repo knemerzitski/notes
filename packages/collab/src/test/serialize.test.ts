@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { beforeEach, expect, it } from 'vitest';
 
 import { RevisionTailRecords } from '../records/revision-tail-records';
