@@ -14,15 +14,17 @@ Changeset.prototype[util.inspect.custom] = function (
   { stylize }: InspectOptionsStylized
 ) {
   const stripsStr = util.inspect(this.strips, false, null, true);
-  return `(${stylize(String(this.strips.maxIndex + 1), 'number')} -> ${stylize(String(this.strips.length), 'number')})${stripsStr}`;
+  return `(${stylize(String(this.strips.maxIndex + 1), 'number')} -> ${stylize(
+    String(this.strips.length),
+    'number'
+  )})${stripsStr}`;
 };
 
 // @ts-expect-error "Dynamic injection"
-Strips.prototype[util.inspect.custom] = function (
-  _depth: number,
-  { stylize }: InspectOptionsStylized
-) {
-  return `[${this.values.map((value) => util.inspect(value, false, null, true)).join(', ')}]`;
+Strips.prototype[util.inspect.custom] = function () {
+  return `[${this.values
+    .map((value) => util.inspect(value, false, null, true))
+    .join(', ')}]`;
 };
 
 // @ts-expect-error "Dynamic injection"
@@ -39,6 +41,9 @@ RetainStrip.prototype[util.inspect.custom] = function (
   { stylize }: InspectOptionsStylized
 ) {
   return this.startIndex !== this.endIndex
-    ? `${stylize(String(this.startIndex), 'number')} - ${stylize(String(this.endIndex), 'number')}`
+    ? `${stylize(String(this.startIndex), 'number')} - ${stylize(
+        String(this.endIndex),
+        'number'
+      )}`
     : stylize(String(this.startIndex), 'number');
 };
