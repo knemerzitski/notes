@@ -554,6 +554,11 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
         swapEntry.execute.selection,
         tailComposition
       );
+      const newUndoSelection = SelectionRange.followChangeset(
+        swapEntry.undo.selection,
+        tailComposition
+      );
+
       const [newTailEntryExecute, newSwapEntryExecute] = currentText.swapChanges(
         swapEntry.execute.changeset,
         tailComposition
@@ -562,11 +567,6 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
 
       const newSwapEntryUndo = newSwapEntryExecute.inverse(
         currentText.compose(newTailEntryExecute)
-      );
-
-      const newUndoSelection = SelectionRange.followChangeset(
-        swapEntry.undo.selection,
-        newTailEntryExecute
       );
 
       resultEntries.push({
