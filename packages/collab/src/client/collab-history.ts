@@ -550,11 +550,11 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
         continue;
       }
 
-      const newExecuteSelection = SelectionRange.followChangeset(
+      const newExecuteSelection = SelectionRange.closestRetainedPosition(
         swapEntry.execute.selection,
         tailComposition
       );
-      const newUndoSelection = SelectionRange.followChangeset(
+      const newUndoSelection = SelectionRange.closestRetainedPosition(
         swapEntry.undo.selection,
         tailComposition
       );
@@ -664,7 +664,7 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
     for (let i = endIndex; i >= 0; i--) {
       const entry = this.getEntry(i);
 
-      entry.execute.selection = SelectionRange.followChangeset(
+      entry.execute.selection = SelectionRange.closestRetainedPosition(
         entry.execute.selection,
         followComposition
       );
@@ -687,7 +687,7 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
       const entry = this.getEntry(i);
       const undo = entry.undo.changeset;
 
-      entry.undo.selection = SelectionRange.followChangeset(
+      entry.undo.selection = SelectionRange.closestRetainedPosition(
         entry.undo.selection,
         followComposition
       );
@@ -701,7 +701,7 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
     for (let i = startIndex; i < this._entries.length; i++) {
       const entry = this.getEntry(i);
 
-      entry.undo.selection = SelectionRange.followChangeset(
+      entry.undo.selection = SelectionRange.closestRetainedPosition(
         entry.undo.selection,
         followComposition
       );
@@ -719,7 +719,7 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
 
       followComposition = execute.follow(followComposition);
 
-      entry.execute.selection = SelectionRange.followChangeset(
+      entry.execute.selection = SelectionRange.closestRetainedPosition(
         entry.execute.selection,
         followComposition
       );
