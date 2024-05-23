@@ -428,6 +428,20 @@ export class Changeset implements Serializable<SerializedChangeset> {
    */
   followIndex(oldIndex: number) {
     let pos = 0;
+    if (this.hasOnlyInsertions()) {
+      // If changeset has only insertion then place pos to closest side of insertion.
+      const strip = this.strips.values[0];
+      if (strip) {
+        if (oldIndex < strip.length) {
+          if (strip.length <= 2 * oldIndex) {
+            return strip.length;
+          } else {
+            return pos;
+          }
+        }
+      }
+    }
+
     for (const strip of this.strips.values) {
       if (strip instanceof RetainStrip) {
         if (strip.startIndex <= oldIndex && oldIndex <= strip.endIndex + 1) {

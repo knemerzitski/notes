@@ -269,7 +269,6 @@ describe('followIndex', () => {
     it.each([
       ['empty', [], 0, 0],
       ['single retain', [5], 0, 0],
-      ['cursor inside insert moves cursor to end', ['abc'], 1, 3],
       ['random 1', [[0, 2], 'hello', [6, 10]], 6, 8],
       ['random 2', ['hello', [6, 10]], 6, 5],
       ['random 3', ['abc', [2, 4], 'dddsss', [8, 10]], 9, 13],
@@ -277,8 +276,29 @@ describe('followIndex', () => {
       ['random 5', [[0, 16], ' end'], 6, 6],
       ['random 6', ['start ', [0, 14]], 15, 21],
       ['random 7', [[0, 20], 'THREE'], 21, 21],
-    ])('%s', (_msg, changeset, cursor, expected) => {
-      expect(cs(changeset).followIndex(cursor)).toStrictEqual(expected);
+    ])('%s', (_msg, changeset, cursor, expectedCursor) => {
+      expect(cs(changeset).followIndex(cursor)).toStrictEqual(expectedCursor);
+    });
+  });
+
+  describe('moves cursor closest to retained in insertion', () => {
+    it.each([
+      [['a'], 0, 0],
+      [['a'], 1, 1],
+      [['ab'], 0, 0],
+      [['ab'], 1, 2],
+      [['ab'], 2, 2],
+      [['abc'], 0, 0],
+      [['abc'], 1, 0],
+      [['abc'], 2, 3],
+      [['abc'], 3, 3],
+      [['abcd'], 0, 0],
+      [['abcd'], 1, 0],
+      [['abcd'], 2, 4],
+      [['abcd'], 3, 4],
+      [['abcd'], 4, 4],
+    ])('(%s,%s) => %s', (changeset, cursor, expectedCursor) => {
+      expect(cs(changeset).followIndex(cursor)).toStrictEqual(expectedCursor);
     });
   });
 
