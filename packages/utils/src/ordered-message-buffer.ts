@@ -91,6 +91,29 @@ export class OrderedMessageBuffer<TMessage, TSerializedMessage = TMessage>
   }
 
   /**
+   * Change version of the buffer. All older messages are discarded.
+   * Future messages are kept.
+   */
+  setVersion(newVersion: number, startProcessing = true){
+    if(newVersion === this._currentVersion) return;
+    if(newVersion < this._currentVersion){
+      this._currentVersion = newVersion;
+      return;
+    }
+
+    // Must discard older messages (this._currentVersion,newVersion]
+    for(let i = this._currentVersion + 1; i <= newVersion; i++){
+      this.stashedMessagesMap.delete(i);
+    }
+
+    this._currentVersion = newVersion;
+
+    if (startProcessing) {
+      this.processMessages();
+    }
+  }
+
+  /**
    * Add message to the buffer.
    * If next message become available then it is emitted from {@link messageBus}.
    */

@@ -16,31 +16,41 @@ import { CollabHistory } from '../../client/collab-history';
 import { newSelectionRange } from './collab-editor-selection-range';
 import { OrderedMessageBuffer } from '~utils/ordered-message-buffer';
 import { UserEditorRecords } from '../../client/user-editor-records';
-import { LocalServerRecords } from '../../records/server-records';
+import { RevisionTailServerRecords } from './server-records';
 
 export function createHelperCollabEditingEnvironment<TClientName extends string>(
   server: RevisionTailRecords<ServerRevisionRecord>,
-  clientNames: TClientName[],
-  options?: Partial<Record<TClientName, Omit<CollabEditorOptions, 'userId'>>>
+  clientNames: TClientName[] = [],
+  options?: Partial<Record<TClientName, CollabEditorOptions>>
 ) {
   const serverHelper = createRevisionTailRecordsHelper(server);
   const clientsHelperMap: Record<string, ReturnType<typeof createClientHelper>> = {};
 
+  const disconnectedClients = new Set<string>();
+
   function getOtherEditors(name: string) {
     return mapObject(clientsHelperMap, (otherName, { editor: otherEditor }) => {
-      if (name === otherName) return mapObjectSkip;
+      if (name === otherName || disconnectedClients.has(otherName)) return mapObjectSkip;
       return [otherName, otherEditor];
     });
   }
 
-  function addNewClient(name: string, options: Omit<CollabEditorOptions, 'userId'> = {}) {
-    const helper = createClientHelper(name, options, server, () => getOtherEditors(name));
+  function addNewClient(name: string, userId = name, options: CollabEditorOptions = {}) {
+    const helper = {
+      ...createClientHelper(name, userId, options, server, () => getOtherEditors(name)),
+      disconnect: () => {
+        disconnectedClients.add(name);
+      },
+      connect: () => {
+        disconnectedClients.delete(name);
+      },
+    };
     clientsHelperMap[name] = helper;
     return helper;
   }
 
   clientNames.forEach((name) => {
-    addNewClient(name, options?.[name]);
+    addNewClient(name, name, options?.[name]);
   });
 
   function expectTextsConverted(
@@ -73,7 +83,8 @@ export function createHelperCollabEditingEnvironment<TClientName extends string>
 
 function createClientHelper<TName extends string>(
   name: TName,
-  currentOptions: Omit<CollabEditorOptions, 'userId'>,
+  userId = name,
+  currentOptions: CollabEditorOptions,
   server: RevisionTailRecords<ServerRevisionRecord>,
   getOtherEditors: () => { [K in TName]: CollabEditor }
 ) {
@@ -102,32 +113,28 @@ function createClientHelper<TName extends string>(
           client,
         });
 
-  const editorServerRecords = new LocalServerRecords();
   const editor = new CollabEditor({
     ...editorOptions,
     recordsBuffer: {
-      ...editorOptions.recordsBuffer,
       version: server.tailText.revision,
+      ...editorOptions.recordsBuffer,
     },
     serverRecords: new UserEditorRecords({
-      serverRecords: editorServerRecords,
-      userId: name,
+      serverRecords: new RevisionTailServerRecords(server),
+      userId,
     }),
     client,
     history,
-  });
-  editor.eventBus.on('nextMessage', ({ record }) => {
-    editorServerRecords.update([record]);
   });
 
   return {
     client,
     history,
-    editorServerRecords,
     name,
     ...createCollabEditorHelper(editor),
     ...createCollabEditorAndRevisionTailRecordsHelper<TName>(
       name,
+      userId,
       editor,
       server,
       getOtherEditors
@@ -174,6 +181,7 @@ function createRevisionTailRecordsHelper(
 
 function createCollabEditorAndRevisionTailRecordsHelper<TClientName extends string>(
   name: TClientName,
+  userId = name,
   editor: CollabEditor,
   revisionTailRecords: RevisionTailRecords<ServerRevisionRecord>,
   getOtherEditors: () => { [Key in TClientName]: CollabEditor }
@@ -189,7 +197,7 @@ function createCollabEditorAndRevisionTailRecordsHelper<TClientName extends stri
       serverReceive: () => {
         const recordInsertion = revisionTailRecords.insert({
           ...submittedRecord,
-          creatorUserId: name,
+          creatorUserId: userId,
         });
 
         function clientAcknowledge() {

@@ -401,6 +401,34 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
     this.unsubscribeFromEvents();
   }
 
+  /**
+   * Replaces current headText with a new one. Must not have any submitted or local changes.
+   *
+   */
+  replaceHeadText(headText: RevisionChangeset) {
+    if (headText.revision === this.recordsBuffer.currentVersion) return;
+
+    if (this.haveLocalChanges()) {
+      throw new Error('Cannot replace headText. Have local changes.');
+    }
+    if (this.haveSubmittedChanges()) {
+      throw new Error('Cannot replace headText. Have submitted changes.');
+    }
+
+    this._client.reset({
+      server: headText.changeset,
+    });
+    this._history.reset({
+      tailRevision: headText.revision,
+    });
+    this.recordsBuffer.setVersion(headText.revision);
+
+    this.eventBus.emit('headRevisionChanged', {
+      revision: this.headRevision,
+      changeset: this._client.server,
+    });
+  }
+
   setServerRecords(serverRecords: UserEditorRecords | null) {
     this.serverRecords = serverRecords;
   }
@@ -464,6 +492,7 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
     });
   }
 
+  // TODO merge debounce first few history entries?
   /**
    * Insert text after caret position.
    * Anything selected is deleted.

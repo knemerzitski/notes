@@ -135,7 +135,7 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
     return this._tailRevision;
   }
 
-  private tailComposition: Changeset | undefined;
+  private tailComposition: Changeset | null;
 
   private lastExecutedIndex: LastExecutedIndex;
 
@@ -169,7 +169,7 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
     this._tailText = options?.tailText ?? this.client.server;
     this._tailRevision = options?.tailRevision ?? 0;
 
-    this.tailComposition = options?.tailComposition;
+    this.tailComposition = options?.tailComposition ?? null;
     this.lastExecutedIndex = options?.lastExecutedIndex ?? {
       server: -1,
       submitted: -1,
@@ -194,6 +194,20 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
         unsub();
       });
     };
+  }
+
+  reset(options: Required<Pick<CollabHistoryOptions, 'tailRevision'>>) {
+    this._tailText = this.client.server;
+    this._tailRevision = options.tailRevision;
+
+    this.tailComposition = null;
+    this.lastExecutedIndex = {
+      server: -1,
+      submitted: -1,
+      local: -1,
+    };
+
+    this._entries = [];
   }
 
   /**

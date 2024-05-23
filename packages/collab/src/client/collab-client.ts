@@ -66,6 +66,7 @@ export type CollabClientEvents = {
 export enum ChangeSource {
   Local,
   External,
+  Reset,
 }
 
 export interface SerializedCollabClient {
@@ -86,22 +87,22 @@ export interface CollabClientOptions {
 export class CollabClient implements Serializable<SerializedCollabClient> {
   readonly eventBus: Emitter<CollabClientEvents>;
 
-  private _server: Changeset;
+  private _server!: Changeset;
   get server() {
     return this._server;
   }
 
-  private _submitted: Changeset;
+  private _submitted!: Changeset;
   get submitted() {
     return this._submitted;
   }
 
-  private _local: Changeset;
+  private _local!: Changeset;
   get local() {
     return this._local;
   }
 
-  private _view: Changeset;
+  private _view!: Changeset;
   get view() {
     return this._view;
   }
@@ -109,11 +110,21 @@ export class CollabClient implements Serializable<SerializedCollabClient> {
   constructor(options?: CollabClientOptions) {
     this.eventBus = options?.eventBus ?? mitt();
 
+    this.reset(options);
+  }
+
+  reset(options?: Pick<CollabClientOptions, 'server' | 'submitted' | 'local' | 'view'>) {
     this._server = options?.server ?? Changeset.EMPTY;
     this._submitted = options?.submitted ?? this._server.getIdentity();
     this._local = options?.local ?? this._submitted.getIdentity();
     this._view =
       options?.view ?? this._server.compose(this._submitted).compose(this._local);
+
+    this.eventBus.emit('viewChanged', {
+      view: this._view,
+      change: this._server,
+      source: ChangeSource.Reset,
+    });
   }
 
   private getSubmittedView() {
