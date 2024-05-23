@@ -5,7 +5,7 @@ import { Strips } from './strips';
  * Represents retained characters range in a text.
  * RetainStrip is immutable.
  */
-export class RetainStrip implements Strip {
+export class RetainStrip extends Strip {
   static create(startIndex: number, endIndex: number): RetainStrip | Strip {
     if (endIndex < startIndex || endIndex < 0) {
       return Strip.EMPTY;
@@ -35,6 +35,7 @@ export class RetainStrip implements Strip {
    * @param endIndex Must be greater or equal to {@link startIndex}. Is inclusive
    */
   constructor(startIndex: number, endIndex: number = startIndex) {
+    super();
     if (startIndex < 0) {
       throw new Error(`startIndex must be non-negative (0 <= ${startIndex})`);
     }
@@ -134,8 +135,9 @@ export class RetainStrip implements Strip {
     } else if (typeof value === 'number') {
       return RetainStrip.create(value, value);
     }
-    return;
+    return Strip.NULL;
   }
+
 }
 
 export function isRetainStrip(strip: Strip): strip is RetainStrip {

@@ -9,8 +9,6 @@ export type SerializedStrips = SerializedStrip[];
  * A strip array with convinience methods.
  */
 export class Strips implements Serializable<SerializedStrips> {
-  static EMPTY = new Strips();
-
   /**
    * Convinience method to create Strips from spread syntax.
    */
@@ -195,4 +193,9 @@ export class Strips implements Serializable<SerializedStrips> {
 
     return new Strips(value.map((v) => Strip.parseValue(v)));
   }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace Strips {
+  export const EMPTY = new Strips();
 }

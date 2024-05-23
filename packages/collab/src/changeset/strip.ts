@@ -1,6 +1,6 @@
 import { InsertStrip } from './insert-strip';
 import { RetainStrip } from './retain-strip';
-import { ParseError, Parseable, Serializable } from '~utils/serialize';
+import { ParseError, Serializable } from '~utils/serialize';
 import { Strips } from './strips';
 
 export type SerializedStrip = unknown;
@@ -10,34 +10,6 @@ export type SerializedStrip = unknown;
  * Strip is immutable.
  */
 export abstract class Strip implements Serializable<SerializedStrip> {
-  static EMPTY: Strip & Parseable<Strip> = {
-    length: 0,
-
-    reference() {
-      return Strips.EMPTY;
-    },
-    slice() {
-      return this;
-    },
-    concat(strip: Strip) {
-      return Strips.from(strip);
-    },
-    isEqual(strip: Strip): boolean {
-      return strip === Strip.EMPTY;
-    },
-    toString() {
-      return '(EMPTY)';
-    },
-    serialize() {
-      return null;
-    },
-    parseValue(value: unknown) {
-      if (value == null) {
-        return this;
-      }
-      return;
-    },
-  };
 
   abstract length: number;
 
@@ -68,11 +40,46 @@ export abstract class Strip implements Serializable<SerializedStrip> {
   static parseValue(value: unknown): Strip {
     for (const StripKlass of [InsertStrip, RetainStrip, Strip.EMPTY]) {
       const strip = StripKlass.parseValue(value);
-      if (strip) {
+      if (strip !== Strip.NULL) {
         return strip;
       }
     }
 
     throw new ParseError(`Value '${String(value)}' cannot be parsed to a Strip.`);
   }
+}
+
+export class EmptyStrip extends Strip {
+  length = 0;
+
+  reference() {
+    return Strips.EMPTY;
+  }
+  slice() {
+    return this;
+  }
+  concat(strip: Strip) {
+    return Strips.from(strip);
+  }
+  isEqual(strip: Strip): boolean {
+    return strip === this;
+  }
+  toString() {
+    return '(EMPTY)';
+  }
+  serialize() {
+    return null;
+  }
+  parseValue(value: unknown) {
+    if (value == null) {
+      return this;
+    }
+    return Strip.NULL;
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace Strip {
+  export const EMPTY = new EmptyStrip();
+  export const NULL = new EmptyStrip();
 }

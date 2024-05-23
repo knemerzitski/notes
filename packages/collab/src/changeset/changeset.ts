@@ -12,8 +12,6 @@ export type SerializedChangeset = SerializedStrips;
  * Changeset is immutable.
  */
 export class Changeset implements Serializable<SerializedChangeset> {
-  static EMPTY = new Changeset();
-
   /**
    * Convinience method to create Changeset from spread syntax.
    */
@@ -573,4 +571,9 @@ export class Changeset implements Serializable<SerializedChangeset> {
     if (value === undefined) return;
     return this.parseValue(value);
   }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace Changeset {
+  export const EMPTY = new Changeset();
 }

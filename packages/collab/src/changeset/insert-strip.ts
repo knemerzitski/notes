@@ -6,7 +6,7 @@ import { Strips } from './strips';
  * Represents string insertion in a text.
  * InsertStrip is immutable.
  */
-export class InsertStrip implements Strip {
+export class InsertStrip extends Strip {
   static create(value: string): InsertStrip | Strip {
     if (value.length === 0) {
       return Strip.EMPTY;
@@ -18,6 +18,7 @@ export class InsertStrip implements Strip {
   readonly value: string;
 
   constructor(value: string) {
+    super();
     if (value.length === 0) {
       throw new Error('value cannot be empty');
     }
@@ -90,7 +91,7 @@ export class InsertStrip implements Strip {
     if (typeof value === 'string') {
       return InsertStrip.create(value);
     }
-    return;
+    return Strip.NULL;
   }
 }
 
