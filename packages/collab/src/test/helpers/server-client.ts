@@ -6,7 +6,6 @@ import {
   HistoryOperationOptions,
 } from '../../client/collab-editor';
 import { ServerRevisionRecord } from '../../records/record';
-import { RevisionTailRecords } from '../../records/revision-tail-records';
 import {
   getValueWithSelection,
   parseTextWithMultipleSelections,
@@ -15,14 +14,27 @@ import { CollabClient } from '../../client/collab-client';
 import { CollabHistory } from '../../client/collab-history';
 import { newSelectionRange } from './collab-editor-selection-range';
 import { OrderedMessageBuffer } from '~utils/ordered-message-buffer';
-import { UserEditorRecords } from '../../client/user-editor-records';
-import { RevisionTailServerRecords } from './server-records';
+import { UserRecords } from '../../client/user-records';
+import { LocalServerRecords, LocalServerRecordsParams } from './server-records';
+import { ChangesetRevisionRecords } from '../../records/changeset-revision-records';
+import { newServerRecords } from '../../records/server-records';
 
 export function createHelperCollabEditingEnvironment<TClientName extends string>(
-  server: RevisionTailRecords<ServerRevisionRecord>,
-  clientNames: TClientName[] = [],
-  options?: Partial<Record<TClientName, CollabEditorOptions>>
+  options: {
+    server?: LocalServerRecordsParams<ServerRevisionRecord>;
+    clientNames?: TClientName[];
+    editor?: Partial<Record<TClientName, CollabEditorOptions>>;
+  } = {
+    clientNames: [],
+  }
 ) {
+  const server = new LocalServerRecords<ServerRevisionRecord>({
+    changesetRecords: new ChangesetRevisionRecords({
+      revisionRecords: newServerRecords(),
+    }),
+    ...options.server,
+  });
+
   const serverHelper = createRevisionTailRecordsHelper(server);
   const clientsHelperMap: Record<string, ReturnType<typeof createClientHelper>> = {};
 
@@ -49,8 +61,8 @@ export function createHelperCollabEditingEnvironment<TClientName extends string>
     return helper;
   }
 
-  clientNames.forEach((name) => {
-    addNewClient(name, name, options?.[name]);
+  options.clientNames?.forEach((name) => {
+    addNewClient(name, name, options.editor?.[name]);
   });
 
   function expectTextsConverted(
@@ -85,7 +97,7 @@ function createClientHelper<TName extends string>(
   name: TName,
   userId = name,
   currentOptions: CollabEditorOptions,
-  server: RevisionTailRecords<ServerRevisionRecord>,
+  server: LocalServerRecords<ServerRevisionRecord>,
   getOtherEditors: () => { [K in TName]: CollabEditor }
 ) {
   const {
@@ -119,8 +131,9 @@ function createClientHelper<TName extends string>(
       version: server.tailText.revision,
       ...editorOptions.recordsBuffer,
     },
-    serverRecords: new UserEditorRecords({
-      serverRecords: new RevisionTailServerRecords(server),
+
+    userRecords: new UserRecords({
+      serverRecords: server,
       userId,
     }),
     client,
@@ -171,11 +184,11 @@ function createCollabEditorHelper(editor: CollabEditor) {
 }
 
 function createRevisionTailRecordsHelper(
-  revisionTailRecords: RevisionTailRecords<ServerRevisionRecord>
+  localRecords: LocalServerRecords<ServerRevisionRecord>
 ) {
   return {
-    tailRecords: revisionTailRecords,
-    headText: () => revisionTailRecords.getHeadText().changeset.joinInsertions(),
+    localRecords,
+    headText: () => localRecords.getHeadText().changeset.joinInsertions(),
   };
 }
 
@@ -183,7 +196,7 @@ function createCollabEditorAndRevisionTailRecordsHelper<TClientName extends stri
   name: TClientName,
   userId = name,
   editor: CollabEditor,
-  revisionTailRecords: RevisionTailRecords<ServerRevisionRecord>,
+  localRecords: LocalServerRecords<ServerRevisionRecord>,
   getOtherEditors: () => { [Key in TClientName]: CollabEditor }
 ) {
   function submitChanges() {
@@ -195,7 +208,7 @@ function createCollabEditorAndRevisionTailRecordsHelper<TClientName extends stri
 
     return {
       serverReceive: () => {
-        const recordInsertion = revisionTailRecords.insert({
+        const recordInsertion = localRecords.changesetRecords.insert({
           ...submittedRecord,
           creatorUserId: userId,
         });

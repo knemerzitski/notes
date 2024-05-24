@@ -40,7 +40,7 @@ import {
   assertHasProperties,
   parseNumber,
 } from '~utils/serialize';
-import { UserEditorRecords } from './user-editor-records';
+import { UserRecords } from './user-records';
 
 export type CollabEditorEvents = CollabClientEvents &
   Omit<OrderedMessageBufferEvents<UnprocessedRecord>, 'processingMessages'> &
@@ -207,7 +207,7 @@ type UnprocessedRecordsBufferOptions = Omit<
 export interface CollabEditorOptions {
   eventBus?: Emitter<CollabEditorEvents>;
   generateSubmitId?: () => string;
-  serverRecords?: UserEditorRecords;
+  userRecords?: UserRecords;
   recordsBuffer?: UnprocessedRecordsBuffer | UnprocessedRecordsBufferOptions;
   client?: CollabClient | CollabClientOptions;
   history?: CollabHistory | Omit<CollabHistoryOptions, 'client'>;
@@ -218,7 +218,7 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
   readonly eventBus: Emitter<CollabEditorEvents>;
   private generateSubmitId: () => string;
 
-  private serverRecords?: UserEditorRecords | null;
+  private userRecords?: UserRecords | null;
   private recordsBuffer: UnprocessedRecordsBuffer;
 
   private _client: CollabClient;
@@ -293,8 +293,8 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
     // Submitted record
     this._submittedRecord = options?.submittedRecord ?? null;
 
-    // Server records
-    this.setServerRecords(options?.serverRecords ?? null);
+    // Records of a specific user
+    this.setUserRecords(options?.userRecords ?? null);
 
     // Buffered future records
     this.recordsBuffer =
@@ -429,8 +429,8 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
     });
   }
 
-  setServerRecords(serverRecords: UserEditorRecords | null) {
-    this.serverRecords = serverRecords;
+  setUserRecords(userRecords: UserRecords | null) {
+    this.userRecords = userRecords;
   }
 
   haveSubmittedChanges() {
@@ -545,9 +545,9 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
    * must be available. Add them using method {@link addServerRecords}.
    */
   historyRestore(desiredRestoreCount: number): number | undefined {
-    if (!this.serverRecords) return;
+    if (!this.userRecords) return;
 
-    return this._history.restoreFromUserRecords(this.serverRecords, desiredRestoreCount);
+    return this._history.restoreFromUserRecords(this.userRecords, desiredRestoreCount);
   }
 
   canRedo() {
@@ -559,7 +559,7 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
   }
 
   private canRestoreHistory() {
-    return this.serverRecords?.hasOwnOlderRecords(this._history.tailRevision);
+    return this.userRecords?.hasOwnOlderRecords(this._history.tailRevision);
   }
 
   undo() {

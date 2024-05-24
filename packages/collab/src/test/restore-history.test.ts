@@ -1,12 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { ServerRevisionRecord } from '../records/record';
-import { RevisionTailRecords } from '../records/revision-tail-records';
 import { createHelperCollabEditingEnvironment } from './helpers/server-client';
-import { subscribeEditorListeners } from '../records/editor-revision-records';
+import { newServerRecords } from '../records/server-records';
 import { Entry } from '../client/collab-history';
 import { createFakeServerRevisionRecordData } from '../../../../__EXCLUDE/populate';
 import { Changeset } from '../changeset/changeset';
+import { ChangesetRevisionRecords } from '../records/changeset-revision-records';
 
 function historyEntriesInfo(entries: Readonly<Entry[]>) {
   return entries.map((e) => ({
@@ -25,9 +24,9 @@ describe('persist history in revision records', () => {
   let helper: ReturnType<typeof createHelperCollabEditingEnvironment<'A' | 'B'>>;
 
   beforeEach(() => {
-    const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>();
-    subscribeEditorListeners(revisionTailRecords);
-    helper = createHelperCollabEditingEnvironment(revisionTailRecords, ['A', 'B']);
+    helper = createHelperCollabEditingEnvironment({
+      clientNames: ['A', 'B'],
+    });
   });
 
   it('restores history from server records containing two users', () => {
@@ -58,10 +57,10 @@ describe('persist history in revision records', () => {
 
     const clientB2 = helper.addNewClient('B2', client.B.name, {
       recordsBuffer: {
-        version: server.tailRecords.getHeadText().revision,
+        version: server.localRecords.getHeadText().revision,
       },
       client: {
-        server: server.tailRecords.getHeadText().changeset,
+        server: server.localRecords.getHeadText().changeset,
       },
     });
     const restoredEditorB = clientB2.editor;
@@ -89,21 +88,17 @@ describe('persist history in revision records', () => {
     client.A.deleteTextCount(4);
     client.A.submitChangesInstant();
 
-    // console.log(util.inspect(client.B.editor.serialize(false), false, null, true));
-
     const clientB2 = helper.addNewClient('B2', client.B.name, {
       recordsBuffer: {
-        version: server.tailRecords.getHeadText().revision,
+        version: server.localRecords.getHeadText().revision,
       },
       client: {
-        server: server.tailRecords.getHeadText().changeset,
+        server: server.localRecords.getHeadText().changeset,
       },
     });
 
     const restoredEditorB = clientB2.editor;
     restoredEditorB.historyRestore(client.B.editor.history.entries.length);
-    // console.log(util.inspect(client.B.editor.serialize(false), false, null, true));
-    // console.log(util.inspect(restoredEditorB.serialize(false), false, null, true));
 
     expect(historyEntriesInfo(restoredEditorB.history.entries)).toStrictEqual(
       historyEntriesInfo(client.B.editor.history.entries)
@@ -115,28 +110,34 @@ describe('restore with undo', () => {
   let helper: ReturnType<typeof createHelperCollabEditingEnvironment<'A'>>;
 
   beforeEach(() => {
-    const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>({
-      records: [
-        createFakeServerRevisionRecordData({
-          changeset: Changeset.parseValue(['']),
-          revision: 1,
-          creatorUserId: 'A',
+    helper = createHelperCollabEditingEnvironment({
+      server: {
+        changesetRecords: new ChangesetRevisionRecords({
+          revisionRecords: newServerRecords({
+            records: [
+              createFakeServerRevisionRecordData({
+                changeset: Changeset.parseValue(['']),
+                revision: 1,
+                creatorUserId: 'A',
+              }),
+              createFakeServerRevisionRecordData({
+                changeset: Changeset.parseValue(['123']),
+                revision: 2,
+                creatorUserId: 'A',
+              }),
+            ],
+          }),
         }),
-        createFakeServerRevisionRecordData({
-          changeset: Changeset.parseValue(['123']),
-          revision: 2,
-          creatorUserId: 'A',
-        }),
-      ],
-    });
-    subscribeEditorListeners(revisionTailRecords);
-    helper = createHelperCollabEditingEnvironment(revisionTailRecords, ['A'], {
-      A: {
-        client: {
-          server: Changeset.parseValue(['123']),
-        },
-        recordsBuffer: {
-          version: 2,
+      },
+      clientNames: ['A'],
+      editor: {
+        A: {
+          client: {
+            server: Changeset.parseValue(['123']),
+          },
+          recordsBuffer: {
+            version: 2,
+          },
         },
       },
     });

@@ -1,17 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { RevisionTailRecords } from '../records/revision-tail-records';
-import { ServerRevisionRecord } from '../records/record';
 import { createHelperCollabEditingEnvironment } from './helpers/server-client';
-import { subscribeEditorListeners } from '../records/editor-revision-records';
 
 describe('single user', () => {
   let helper: ReturnType<typeof createHelperCollabEditingEnvironment>;
 
   beforeEach(() => {
-    const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>();
-    subscribeEditorListeners(revisionTailRecords);
-    helper = createHelperCollabEditingEnvironment(revisionTailRecords);
+    helper = createHelperCollabEditingEnvironment();
   });
 
   it('can undo "d" after setting new headText', () => {
@@ -31,7 +26,7 @@ describe('single user', () => {
     clientA.submitChangesInstant();
     clientB.connect();
 
-    const headText = server.tailRecords.getHeadText();
+    const headText = server.localRecords.getHeadText();
 
     clientB.editor.replaceHeadText(headText);
     clientB.editor.undo();

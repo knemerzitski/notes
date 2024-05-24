@@ -18,7 +18,7 @@ import {
   parseNumber,
   parseNumberMaybe,
 } from '~utils/serialize';
-import { UserEditorRecords } from './user-editor-records';
+import { UserRecords } from './user-records';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type LocalChangesetEditorHistoryEvents = {
@@ -284,7 +284,7 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
   }
 
   restoreFromUserRecords(
-    userRecords: UserEditorRecords,
+    userRecords: UserRecords,
     desiredRestoreCount: number,
     recursive = true,
     depth = 0

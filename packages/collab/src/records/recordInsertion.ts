@@ -1,14 +1,10 @@
-import {
-  EditorInsertRecord,
-  EditorRecord,
-  EditorRevisionRecords,
-} from './editor-revision-records';
+import { ServerInsertRecord, ServerRecord, newServerRecords } from './server-records';
 import { Changeset } from '../changeset/changeset';
 import { RevisionChangeset } from './record';
 
 interface RecordInsertionParams<
-  TRecord extends EditorRecord<unknown>,
-  TInsertRecord extends EditorInsertRecord & TRecord,
+  TRecord extends ServerRecord<unknown>,
+  TInsertRecord extends ServerInsertRecord & TRecord,
 > {
   insertRecord: TInsertRecord;
   serializedRecords: Partial<TRecord>[] | undefined;
@@ -32,8 +28,8 @@ export class RecordInsertionError extends Error {
 }
 
 export default function recordInsertion<
-  TRecord extends EditorRecord<unknown>,
-  TInsertRecord extends EditorInsertRecord & TRecord,
+  TRecord extends ServerRecord<unknown>,
+  TInsertRecord extends ServerInsertRecord & TRecord,
 >({
   insertRecord,
   serializedRecords,
@@ -47,7 +43,7 @@ export default function recordInsertion<
     }
   | {
       isExisting: true;
-      existingRecord: Partial<TRecord> & EditorRecord;
+      existingRecord: Partial<TRecord> & ServerRecord;
     } {
   if (!serializedHeadText) {
     throw new Error(`Expected headText to be defined`);
@@ -94,7 +90,7 @@ export default function recordInsertion<
     };
   }
 
-  const records: (Partial<TRecord> & EditorRecord)[] = serializedRecords.map((record) => {
+  const records: (Partial<TRecord> & ServerRecord)[] = serializedRecords.map((record) => {
     if (!record.revision) {
       throw new Error('Expected record.revision to be defined');
     }
@@ -112,8 +108,8 @@ export default function recordInsertion<
     };
   });
 
-  const editorRevisionRecords = new EditorRevisionRecords<
-    Partial<TRecord> & EditorRecord,
+  const editorRevisionRecords = newServerRecords<
+    Partial<TRecord> & ServerRecord,
     TInsertRecord
   >({
     records,

@@ -1,16 +1,36 @@
-import { ServerRecords } from '../records/server-records';
 import { EditorRevisionRecord } from './collab-editor';
+import { RevisionChangeset } from '../records/record';
 
-interface UserEditorRecordsParams {
-  serverRecords: ServerRecords<EditorRevisionRecord>;
+/**
+ * Simple facade for querying server records.
+ */
+export interface ServerRecordsFacade<TRecord> {
+  /**
+   * tailText is a composition of all previous records before oldest record.
+   */
+  readonly tailText: Readonly<RevisionChangeset>;
+
+  /**
+   * Iterates through records from newest (headRevision) to oldest
+   */
+  newestRecordsIterable(headRevision: number): Iterable<Readonly<TRecord>>;
+
+  /**
+   * Get text at specific revision
+   */
+  getTextAt(revision: number): Readonly<RevisionChangeset>;
+}
+
+interface UserRecordsParams {
+  serverRecords: ServerRecordsFacade<EditorRevisionRecord>;
   userId?: string;
 }
 
-export class UserEditorRecords {
-  private serverRecords: ServerRecords<EditorRevisionRecord>;
+export class UserRecords {
+  private serverRecords: ServerRecordsFacade<EditorRevisionRecord>;
   private userId?: string;
 
-  constructor(params: UserEditorRecordsParams) {
+  constructor(params: UserRecordsParams) {
     this.serverRecords = params.serverRecords;
     this.userId = params.userId;
   }
@@ -72,3 +92,4 @@ export class UserEditorRecords {
 export function isOwnRecord(record: EditorRevisionRecord, userId?: string | symbol) {
   return !userId || !record.creatorUserId || record.creatorUserId === userId;
 }
+

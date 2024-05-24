@@ -7,8 +7,7 @@ import isDefined from '~utils/type-guards/isDefined';
 import { collabTextRecordToEditorRevisionRecord } from '../../collab/editor-graphql-adapter';
 import { RevisionChangeset } from '~collab/records/record';
 import { useNoteCollabText } from '../context/NoteContentIdToCollabTextsProvider';
-import { UserEditorRecords } from '~collab/client/user-editor-records';
-import { ServerRecords } from '~collab/records/server-records';
+import { UserRecords, ServerRecordsFacade } from '~collab/client/user-records';
 import { EditorRevisionRecord } from '~collab/client/collab-editor';
 import { readSessionContext } from '../../auth/state/persistence';
 
@@ -136,11 +135,11 @@ export default function HistoryRestoration({
         changeset: editor.client.server,
       },
     });
-    const userEditorRecords = new UserEditorRecords({
+    const userEditorRecords = new UserRecords({
       userId: String(currentUserId),
       serverRecords,
     });
-    editor.setServerRecords(userEditorRecords);
+    editor.setUserRecords(userEditorRecords);
 
     const appliedUndoHandler = () => {
       void attemptFetchMore();
@@ -178,7 +177,7 @@ export default function HistoryRestoration({
               recordsLast: fetchEntriesCount,
               tailRevision: newTailRevision,
             },
-            fetchPolicy: 'network-only'
+            fetchPolicy: 'network-only',
           });
 
           result.data.note.textFields.forEach((textField) => {
@@ -204,7 +203,7 @@ export default function HistoryRestoration({
     void attemptFetchMore();
     return () => {
       editor.eventBus.on('appliedUndo', appliedUndoHandler);
-      editor.setServerRecords(null);
+      editor.setUserRecords(null);
     };
   }, [
     editor,
@@ -241,7 +240,7 @@ export interface ApolloCacheServerRecordsParams<TCacheShape> {
 }
 
 export class ApolloCacheServerRecords<TCacheShape>
-  implements ServerRecords<EditorRevisionRecord>
+  implements ServerRecordsFacade<EditorRevisionRecord>
 {
   private readonly cache: ApolloCache<TCacheShape>;
   readonly collabTextRef: string | undefined;

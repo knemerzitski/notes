@@ -1,9 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { RevisionTailRecords } from '../records/revision-tail-records';
-import { ServerRevisionRecord } from '../records/record';
 import { createHelperCollabEditingEnvironment } from './helpers/server-client';
-import { subscribeEditorListeners } from '../records/editor-revision-records';
 import { Changeset } from '../changeset/changeset';
 
 const cs = (...values: unknown[]) => Changeset.parseValue(values);
@@ -12,9 +9,9 @@ describe('single client', () => {
   let helper: ReturnType<typeof createHelperCollabEditingEnvironment<'A'>>;
 
   beforeEach(() => {
-    const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>();
-    subscribeEditorListeners(revisionTailRecords);
-    helper = createHelperCollabEditingEnvironment(revisionTailRecords, ['A']);
+    helper = createHelperCollabEditingEnvironment({
+      clientNames: ['A'],
+    });
   });
 
   it('processes "hello world"', () => {
@@ -122,9 +119,9 @@ describe('two clients', () => {
   let helper: ReturnType<typeof createHelperCollabEditingEnvironment<'A' | 'B'>>;
 
   beforeEach(() => {
-    const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>();
-    subscribeEditorListeners(revisionTailRecords);
-    helper = createHelperCollabEditingEnvironment(revisionTailRecords, ['A', 'B']);
+    helper = createHelperCollabEditingEnvironment({
+      clientNames: ['A', 'B'],
+    });
   });
 
   it('converges 2 changes at the same time', () => {
@@ -235,9 +232,9 @@ describe('three clients', () => {
   let helper: ReturnType<typeof createHelperCollabEditingEnvironment<'A' | 'B' | 'C'>>;
 
   beforeEach(() => {
-    const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>();
-    subscribeEditorListeners(revisionTailRecords);
-    helper = createHelperCollabEditingEnvironment(revisionTailRecords, ['A', 'B', 'C']);
+    helper = createHelperCollabEditingEnvironment({
+      clientNames: ['A', 'B', 'C'],
+    });
   });
 
   it(`converges 3 changes at the same time'`, () => {

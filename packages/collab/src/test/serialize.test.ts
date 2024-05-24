@@ -1,24 +1,27 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { beforeEach, expect, it } from 'vitest';
 
-import { RevisionTailRecords } from '../records/revision-tail-records';
-import { ServerRevisionRecord } from '../records/record';
 import { createHelperCollabEditingEnvironment } from './helpers/server-client';
-import { subscribeEditorListeners } from '../records/editor-revision-records';
+import { newServerRecords } from '../records/server-records';
 import { Changeset } from '../changeset/changeset';
 import { CollabEditor } from '../client/collab-editor';
+import { ChangesetRevisionRecords } from '../records/changeset-revision-records';
 
 let helper: ReturnType<typeof createHelperCollabEditingEnvironment<'A' | 'B'>>;
 
 beforeEach(() => {
-  const revisionTailRecords = new RevisionTailRecords<ServerRevisionRecord>({
-    tailText: {
-      changeset: Changeset.parseValue(['[ZERO]']),
-      revision: 4,
+  helper = createHelperCollabEditingEnvironment({
+    server: {
+      changesetRecords: new ChangesetRevisionRecords({
+        revisionRecords: newServerRecords(),
+        tailText: {
+          changeset: Changeset.parseValue(['[ZERO]']),
+          revision: 4,
+        },
+      }),
     },
+    clientNames: ['A', 'B'],
   });
-  subscribeEditorListeners(revisionTailRecords);
-  helper = createHelperCollabEditingEnvironment(revisionTailRecords, ['A', 'B']);
 });
 
 it('restores serialized editor', () => {

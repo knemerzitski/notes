@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { Changeset } from '../changeset/changeset';
-import { RevisionTailRecords } from './revision-tail-records';
+import { ChangesetRevisionRecords } from './changeset-revision-records';
+import { RevisionRecords } from './revision-records';
 
-let revisionText: RevisionTailRecords;
+let changesetRecords: ChangesetRevisionRecords;
 
 beforeEach(() => {
   const initialRecords = [
@@ -17,31 +18,29 @@ beforeEach(() => {
     },
   ];
 
-  revisionText = new RevisionTailRecords({
+  changesetRecords = new ChangesetRevisionRecords({
     tailText: {
       revision: 5,
       changeset: Changeset.fromInsertion('start'),
     },
-    records: initialRecords,
+    revisionRecords: new RevisionRecords({
+      records: initialRecords,
+    }),
   });
 });
 
 it('composes headText', () => {
-  expect(revisionText.getHeadText().changeset.serialize()).toStrictEqual([
+  expect(changesetRecords.getHeadText().changeset.serialize()).toStrictEqual([
     'start between (parenthesis) end',
   ]);
 });
 
 it('returns headRevision', () => {
-  expect(revisionText.headRevision).toStrictEqual(7);
+  expect(changesetRecords.headRevision).toStrictEqual(7);
 });
 
 it('returns tailRevision', () => {
-  expect(revisionText.tailRevision).toStrictEqual(5);
-});
-
-it('returns startRevision from records', () => {
-  expect(revisionText.startRevision).toStrictEqual(6);
+  expect(changesetRecords.tailRevision).toStrictEqual(5);
 });
 
 describe('mergeToTail', () => {
@@ -50,10 +49,10 @@ describe('mergeToTail', () => {
     [1, ['start end'], 6],
     [2, ['start between (parenthesis) end'], 7],
   ])('%s => %s at revision %i', (count, expectedTail, expectedRevision) => {
-    const beforeRecordsLength = revisionText.records.length;
-    revisionText.mergeToTail(count);
-    expect(revisionText.tailText.changeset.serialize()).toStrictEqual(expectedTail);
-    expect(revisionText.tailText.revision).toStrictEqual(expectedRevision);
-    expect(revisionText.records.length).toStrictEqual(beforeRecordsLength - count);
+    const beforeRecordsLength = changesetRecords.records.length;
+    changesetRecords.mergeToTail(count);
+    expect(changesetRecords.tailText.changeset.serialize()).toStrictEqual(expectedTail);
+    expect(changesetRecords.tailText.revision).toStrictEqual(expectedRevision);
+    expect(changesetRecords.records.length).toStrictEqual(beforeRecordsLength - count);
   });
 });

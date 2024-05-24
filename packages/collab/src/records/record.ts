@@ -1,9 +1,9 @@
 import { assertHasProperties, parseNumber } from '~utils/serialize';
 import { Changeset, SerializedChangeset } from '../changeset/changeset';
 import { SelectionRange } from '../client/selection-range';
+import { Revision } from './revision-records';
 
-export interface RevisionChangeset<T = Changeset> {
-  revision: number;
+export interface RevisionChangeset<T = Changeset> extends Revision {
   changeset: T;
 }
 
