@@ -32,6 +32,10 @@ module.exports = {
       },
       plugins: ['react-refresh'],
       rules: {
+        // VSCode ESLint doesn't update after graphql-codegen. This stops showing errors no-unsafe after every change.
+        '@typescript-eslint/no-unsafe-assignment': 'warn',
+        '@typescript-eslint/no-unsafe-member-access': 'warn',
+
         'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
         'react-hooks/exhaustive-deps': ['error'],
       },
