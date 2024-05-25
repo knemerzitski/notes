@@ -1,9 +1,13 @@
-import { IconButton } from '@mui/material';
+import { IconButton, IconButtonProps } from '@mui/material';
 import UndoIcon from '@mui/icons-material/Undo';
 import { useFocusedEditor } from '../context/FocusedEditorProvider';
 import { useEffect, useState } from 'react';
 
-export default function UndoButton() {
+export interface UndoButtonProps {
+  iconButtonProps?: IconButtonProps;
+}
+
+export default function UndoButton({ iconButtonProps }: UndoButtonProps) {
   const editor = useFocusedEditor();
   const [canUndo, setCanUndo] = useState(editor.canUndo());
 
@@ -30,6 +34,7 @@ export default function UndoButton() {
       aria-label="note history undo"
       size="medium"
       disabled={!canUndo}
+      {...iconButtonProps}
     >
       <UndoIcon />
     </IconButton>

@@ -2,20 +2,19 @@ import { useLocation, useParams } from 'react-router-dom';
 
 import NoteDialog from '../../../note/components/NoteDialog';
 import useDeleteNote from '../../../note/hooks/useDeleteNote';
-import NoteCollabTextsProvider from '../../../note/context/NoteTextFieldEditorsProvider';
-import { useCreatableNoteTextFieldEditors } from '../../../note/hooks/useCreatableNoteTextFieldEditors';
-import { startTransition, useEffect, useRef } from 'react';
-import { useProxyNavigate } from '../../../router/context/ProxyRoutesProvider';
-import { useApolloClient } from '@apollo/client';
+import { Dispatch, useState } from 'react';
 import RouteClosable, {
   RouteClosableComponentProps,
 } from '../../../common/components/RouteClosable';
 import RouteSnackbarError from '../../../common/components/RouteSnackbarError';
-import CollabNoteEditor, {
-  CollabNoteEditorProps,
-} from '../../../note/components/CollabNoteEditor';
-import { insertNoteToNotesConnection } from '../../../note/update-query';
 import { NoteEditingContext } from '../../../note/context/NoteEditingContext';
+import CollabInputs from '../../../note/components/CollabInputs';
+import { Box, Button, AppBar as MuiAppBar, useTheme } from '@mui/material';
+import useIsElementScrollEnd from '../../../common/hooks/useIsElementScrollEnd';
+import MoreOptionsButton from '../../../note/components/MoreOptionsButton';
+import UndoButton from '../../../note/components/UndoButton';
+import RedoButton from '../../../note/components/RedoButton';
+import NewNoteEditingContext from '../../../note/context/NewNoteEditingContext';
 
 export type EditNoteLocationState = null | { newNote?: boolean; autoFocus?: boolean };
 
@@ -29,8 +28,12 @@ function RouteClosableEditNoteDialog({
   const location = useLocation();
   const state = location.state as EditNoteLocationState;
   const noteContentId = params.id;
+  const theme = useTheme();
 
   const isNewNote = Boolean(state?.newNote);
+
+  const [collabInputsEl, setCollabInputsEl] = useState<HTMLElement>();
+  const isScrollEnd = useIsElementScrollEnd(collabInputsEl);
 
   async function handleDeleteNote() {
     if (!noteContentId) return false;
@@ -42,24 +45,33 @@ function RouteClosableEditNoteDialog({
   }
 
   return (
-    <NoteDialog open={open} onClose={onClosing} onTransitionExited={onClosed}>
+    <NoteDialog
+      open={open}
+      onClose={onClosing}
+      onTransitionExited={onClosed}
+      PaperProps={{
+        sx: {
+          boxSizing: 'content-box',
+          border: theme.palette.mode === 'light' ? 'transparent' : undefined,
+        },
+      }}
+    >
       {!noteContentId || isNewNote ? (
-        <NewNoteCollabNoteEditor
-          toolbarBoxProps={{
-            onClose: onClosing,
-          }}
-        />
+        <NewNoteEditingContext>
+          <CollabEditor
+            isScrollEnd={isScrollEnd}
+            onDelete={handleDeleteNote}
+            onClose={onClosing}
+            setCollabInputsEl={setCollabInputsEl}
+          />
+        </NewNoteEditingContext>
       ) : (
         <NoteEditingContext noteContentId={noteContentId}>
-          <CollabNoteEditor
-            toolbarBoxProps={{
-              onClose: onClosing,
-              toolbarProps: {
-                moreOptionsButtonProps: {
-                  onDelete: handleDeleteNote,
-                },
-              },
-            }}
+          <CollabEditor
+            isScrollEnd={isScrollEnd}
+            onDelete={handleDeleteNote}
+            onClose={onClosing}
+            setCollabInputsEl={setCollabInputsEl}
           />
         </NoteEditingContext>
       )}
@@ -67,42 +79,68 @@ function RouteClosableEditNoteDialog({
   );
 }
 
-function noteRoute(noteId: string) {
-  return `/note/${noteId}`;
+interface CollabEditorProps {
+  isScrollEnd?: boolean;
+  onDelete?: () => Promise<boolean>;
+  onClose: () => void;
+  setCollabInputsEl: Dispatch<React.SetStateAction<HTMLElement | undefined>>;
 }
 
-function NewNoteCollabNoteEditor(props: CollabNoteEditorProps) {
-  const apolloClient = useApolloClient();
-  const navigate = useProxyNavigate();
-  const { editors, createNote } = useCreatableNoteTextFieldEditors();
-  const isCreatingNoteRef = useRef(false);
-
-  useEffect(() => {
-    if (isCreatingNoteRef.current) return;
-    void (async () => {
-      try {
-        isCreatingNoteRef.current = true;
-        const newNote = await createNote();
-        if (!newNote) return;
-        insertNoteToNotesConnection(apolloClient.cache, newNote);
-        startTransition(() => {
-          navigate(noteRoute(String(newNote.contentId)), {
-            replace: true,
-            state: {
-              autoFocus: true,
-            },
-          });
-        });
-      } finally {
-        isCreatingNoteRef.current = false;
-      }
-    })();
-  }, [apolloClient, createNote, navigate]);
-
+function CollabEditor({
+  isScrollEnd,
+  setCollabInputsEl,
+  onDelete,
+  onClose,
+}: CollabEditorProps) {
   return (
-    <NoteCollabTextsProvider editors={editors}>
-      <CollabNoteEditor {...props} />
-    </NoteCollabTextsProvider>
+    <>
+      <CollabInputs
+        boxProps={{
+          ref: (el: HTMLElement) => {
+            setCollabInputsEl(el);
+          },
+        }}
+      />
+
+      <MuiAppBar
+        elevation={0}
+        position="relative"
+        sx={{
+          ...(!isScrollEnd && {
+            boxShadow: (theme) => theme.shadowsNamed.scrollEnd,
+          }),
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+          }}
+        >
+          <Box
+            sx={{
+              p: 1,
+              gap: 1,
+              display: 'flex',
+            }}
+          >
+            <MoreOptionsButton onDelete={onDelete} />
+            <UndoButton />
+            <RedoButton />
+          </Box>
+          <Button
+            color="inherit"
+            size="small"
+            onClick={onClose}
+            sx={{
+              mr: 1,
+            }}
+          >
+            Close
+          </Button>
+        </Box>
+      </MuiAppBar>
+    </>
   );
 }
 

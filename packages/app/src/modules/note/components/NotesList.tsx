@@ -21,11 +21,11 @@ export default function NotesList({
   return (
     <Box
       {...restProps}
-      sx={(theme) => ({
+      sx={{
         width: '100%',
         display: 'grid',
         gridTemplateColumns: {
-          xs: `calc(100% - ${theme.spacing(1)})`,
+          xs: '100%',
           sm: 'repeat(auto-fit, 256px)',
         },
         justifyContent: 'center',
@@ -34,7 +34,7 @@ export default function NotesList({
           md: 2,
         },
         mx: 1,
-      })}
+      }}
     >
       {loading
         ? [...Array(LOADING_SKELETON_COUNT).keys()].map((index) => (

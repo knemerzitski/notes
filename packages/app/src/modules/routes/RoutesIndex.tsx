@@ -17,6 +17,7 @@ import { NavigateToSessionProvider } from '../auth/hooks/useNavigateToSession';
 import { PreviousLocationProvider } from '../router/hooks/usePreviousLocation';
 import ErrorPage from './ErrorPage';
 import SessionPrefixProvider from '../router/context/SessionPrefixProvider';
+import EditNotePage from './note/(mobile)/EditNotePage';
 
 const sessionPrefix = 'u';
 
@@ -83,8 +84,7 @@ function DesktopRoutes() {
 function MobileRoutes() {
   return (
     <CommonRoutes>
-      {/* <Route path="note/:id" element={<EditNotePage />} /> */}
-      <Route path="note/:id" element={<EditNoteDialogRoute />} />
+      <Route path="note/:id?" element={<EditNotePage />} />
       <Route path="local/note/:id" element={<LocalEditNotePage />} />
     </CommonRoutes>
   );

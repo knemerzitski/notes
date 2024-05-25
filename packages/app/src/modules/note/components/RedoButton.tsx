@@ -1,9 +1,13 @@
-import { IconButton } from '@mui/material';
+import { IconButton, IconButtonProps } from '@mui/material';
 import RedoIcon from '@mui/icons-material/Redo';
 import { useFocusedEditor } from '../context/FocusedEditorProvider';
 import { useEffect, useState } from 'react';
 
-export default function RedoButton() {
+export interface RedoButtonProps {
+  iconButtonProps?: IconButtonProps;
+}
+
+export default function RedoButton({ iconButtonProps }: RedoButtonProps) {
   const editor = useFocusedEditor();
   const [canRedo, setCanRedo] = useState(editor.canRedo());
 
@@ -30,6 +34,7 @@ export default function RedoButton() {
       aria-label="note history redo"
       size="medium"
       disabled={!canRedo}
+      {...iconButtonProps}
     >
       <RedoIcon />
     </IconButton>

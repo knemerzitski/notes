@@ -178,7 +178,7 @@ export default function HistoryRestoration({
           if (recordsLast === 0) return;
 
           const tailRevision = Math.max(0, recordsBeforeRevision - recordsLast - 1);
-          const skipTailRevision = Boolean(serverRecords.getTextAt(tailRevision));
+          const skipTailRevision = serverRecords.hasTextAt(tailRevision);
 
           const result = await apolloClient.query({
             query: QUERY,
@@ -318,5 +318,9 @@ export class ApolloCacheServerRecords<TCacheShape>
 
   getTextAt(revision: number): Readonly<RevisionChangeset> {
     return RevisionChangeset.parseValue(this.readTextAtRevision(revision));
+  }
+
+  hasTextAt(revision: number) {
+    return Boolean(this.readTextAtRevision(revision));
   }
 }

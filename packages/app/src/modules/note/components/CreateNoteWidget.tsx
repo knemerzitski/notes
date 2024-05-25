@@ -1,8 +1,18 @@
-import { ClickAwayListener, Paper, PaperProps } from '@mui/material';
+import {
+  ClickAwayListener,
+  Paper,
+  PaperProps,
+  AppBar as MuiAppBar,
+  Box,
+  Button,
+} from '@mui/material';
 import { useState } from 'react';
 
-import CollabNoteEditor from './CollabNoteEditor';
 import CollabContentInput from './CollabContentInput';
+import CollabInputs from './CollabInputs';
+import MoreOptionsButton from './MoreOptionsButton';
+import UndoButton from './UndoButton';
+import RedoButton from './RedoButton';
 
 export interface CreateNoteWidgetProps extends PaperProps {
   onCreate: () => void;
@@ -72,26 +82,49 @@ export default function CreateNoteWidget({
               ...restProps.sx,
             }}
           >
-            <CollabNoteEditor
-              toolbarBoxProps={{
-                onClose: handleCloseWidget,
-                toolbarProps: {
-                  moreOptionsButtonProps: {
-                    onDelete: async () => {
-                      handleDeleteNote();
-                      return Promise.resolve(true);
-                    },
-                  },
-                },
-              }}
-              collabFieldsProps={{
-                contentProps: {
-                  inputProps: {
-                    autoFocus: true,
-                  },
+            <CollabInputs
+              contentProps={{
+                inputProps: {
+                  autoFocus: true,
                 },
               }}
             />
+
+            <MuiAppBar elevation={0} position="relative">
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <Box
+                  sx={{
+                    p: 1,
+                    gap: 1,
+                    display: 'flex',
+                  }}
+                >
+                  <MoreOptionsButton
+                    onDelete={() => {
+                      handleDeleteNote();
+                      return Promise.resolve(true);
+                    }}
+                  />
+                  <UndoButton />
+                  <RedoButton />
+                </Box>
+                <Button
+                  color="inherit"
+                  size="small"
+                  onClick={handleCloseWidget}
+                  sx={{
+                    mr: 1,
+                  }}
+                >
+                  Close
+                </Button>
+              </Box>
+            </MuiAppBar>
           </Paper>
         </ClickAwayListener>
       )}

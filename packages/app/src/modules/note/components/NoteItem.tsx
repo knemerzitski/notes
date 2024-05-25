@@ -1,7 +1,7 @@
-import { Paper, PaperProps, Typography, useTheme } from '@mui/material';
+import { Box, Paper, PaperProps, Typography, useTheme } from '@mui/material';
 import { useRef, useState } from 'react';
 
-import Toolbar from './Toolbar';
+import MoreOptionsButton from './MoreOptionsButton';
 
 interface Note {
   id: string;
@@ -103,33 +103,32 @@ export default function NoteItem({
         {visibleNote.content}
       </Typography>
 
-      <Toolbar
-        moreOptionsButtonProps={{
-          onOpened() {
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          opacity: isHover ? 0.9 : 0,
+          transition: 'opacity .15s',
+          mt: 1,
+        }}
+      >
+        <MoreOptionsButton
+          onOpened={() => {
             optionsMenuOpenRef.current = true;
             mouseOverRef.current = false;
-          },
-          onClosed() {
+          }}
+          onClosed={() => {
             optionsMenuOpenRef.current = false;
             if (!mouseOverRef.current) {
               setHover(false);
             }
-          },
-          onDelete,
-          iconButtonProps: {
+          }}
+          onDelete={onDelete}
+          iconButtonProps={{
             edge: 'end',
-          },
-        }}
-        boxProps={{
-          sx: {
-            display: 'flex',
-            justifyContent: 'flex-end',
-            opacity: isHover ? 0.9 : 0,
-            transition: 'opacity .15s',
-            mt: 1,
-          },
-        }}
-      />
+          }}
+        />
+      </Box>
     </Paper>
   );
 }
