@@ -5,8 +5,14 @@ import { CircularProgress, IconButton, IconButtonProps } from '@mui/material';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import useStatsLink from '../../../apollo-client/hooks/useStatsLink';
-import useIsClientSynchronized from '../../../global/hooks/useIsClientSynchronized';
 import CrossFade from '../../../common/components/CrossFade';
+import { gql } from '../../../../__generated__/gql';
+
+const QUERY = gql(`
+  query SyncStatusButton {
+    isClientSynchronized @client
+  }
+`);
 
 enum Status {
   READY_TO_REFRESH = 'refresh',
@@ -35,15 +41,11 @@ export default function SyncStatusButton({
 }: CloudStateButtonProps) {
   const client = useApolloClient();
 
-  const isClientSynchronized = useIsClientSynchronized();
-
   const statsLink = useStatsLink();
 
   const cloudIconTimeoutIdRef = useRef<NodeJS.Timeout | null>(null);
 
-  const [status, setStatus] = useState(
-    isClientSynchronized ? Status.READY_TO_REFRESH : Status.LOADING
-  );
+  const [status, setStatus] = useState(Status.READY_TO_REFRESH);
 
   const statusLoading = useCallback(() => {
     setStatus((status) => {
@@ -61,6 +63,8 @@ export default function SyncStatusButton({
 
   const statusSynchronized = useCallback(() => {
     setStatus((status) => {
+      if (status === Status.READY_TO_REFRESH) return status;
+
       if (status !== Status.SYNCHRONIZED) {
         // Reset cloud icon timer
         if (cloudIconTimeoutIdRef.current !== null) {
@@ -77,12 +81,26 @@ export default function SyncStatusButton({
   }, [cloudDuration]);
 
   useEffect(() => {
-    if (isClientSynchronized) {
-      statusSynchronized();
-    } else {
-      statusLoading();
-    }
-  }, [isClientSynchronized, statusLoading, statusSynchronized]);
+    const observable = client.watchQuery({
+      query: QUERY,
+      fetchPolicy: 'cache-only',
+    });
+
+    const sub = observable.subscribe({
+      next(value) {
+        const isClientSynchronized = value.data.isClientSynchronized;
+        if (isClientSynchronized) {
+          statusSynchronized();
+        } else {
+          statusLoading();
+        }
+      },
+    });
+
+    return () => {
+      sub.unsubscribe();
+    };
+  }, [client, statusSynchronized, statusLoading]);
 
   // Prevent refetching queries from spam click
   const fetcingQueriesRef = useRef(statsLink.ongoing.query > 0);
@@ -130,6 +148,9 @@ export default function SyncStatusButton({
           {
             in: status === Status.READY_TO_REFRESH,
             element: <RefreshIcon fontSize="inherit" />,
+            fadeProps: {
+              appear: false,
+            },
           },
         ]}
       />
