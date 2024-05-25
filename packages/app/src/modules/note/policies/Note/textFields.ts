@@ -1,23 +1,32 @@
-import { FieldPolicy } from '@apollo/client';
-import { Note, NoteTextFieldEntry } from '../../../../__generated__/graphql';
+import { FieldPolicy, Reference, StoreObject } from '@apollo/client';
+import {
+  Note,
+  NoteTextField,
+  NoteTextFieldEntry,
+} from '../../../../__generated__/graphql';
 
-export const textFields: FieldPolicy<Note['textFields'], Note['textFields']> = {
-  merge(existing, incoming) {
-    if (!existing) {
-      return incoming;
-    }
-
-    // Overwrite existing with incoming by the same key
-    const mergedResult: NoteTextFieldEntry[] = [...existing];
-    incoming.forEach((entry) => {
-      const sameKeyIndex = existing.findIndex(({ key }) => key === entry.key);
-      if (sameKeyIndex !== -1) {
-        mergedResult[sameKeyIndex] = entry;
-      } else {
-        mergedResult.push(entry);
-      }
+export const textFields: FieldPolicy<
+  Partial<Record<NoteTextField, NoteTextFieldEntry | Reference | StoreObject>>,
+  Note['textFields']
+> = {
+  keyArgs: false,
+  read(existing = {}, { args }) {
+    const name = args?.name as NoteTextField | undefined;
+    if (!name) return Object.values(existing) as NoteTextFieldEntry[];
+    const entry = existing[name] as NoteTextFieldEntry | undefined;
+    if (!entry) return;
+    return [entry];
+  },
+  merge(existing = {}, incoming, { mergeObjects }) {
+    // Store textFields in a map by key
+    const merged = { ...existing };
+    incoming.forEach((incomingEntry) => {
+      const existingEntry = merged[incomingEntry.key];
+      merged[incomingEntry.key] = existingEntry
+        ? mergeObjects(existingEntry, incomingEntry)
+        : incomingEntry;
     });
 
-    return incoming;
+    return merged;
   },
 };
