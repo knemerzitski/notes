@@ -109,9 +109,7 @@ export default function SyncStatusButton({
     if (fetcingQueriesRef.current) return;
     try {
       fetcingQueriesRef.current = true;
-      await client.refetchQueries({
-        include: 'all',
-      });
+      await client.reFetchObservableQueries(false);
     } finally {
       fetcingQueriesRef.current = false;
     }

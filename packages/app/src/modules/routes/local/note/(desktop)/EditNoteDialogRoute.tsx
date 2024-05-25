@@ -8,7 +8,6 @@ import useLocalStateNotes from '../../../../note-local/hooks/useLocalStateNotes'
 import InputsBox from '../../../../note/components/InputsBox';
 import NoteDialog from '../../../../note/components/NoteDialog';
 import TitleInput from '../../../../note/components/TitleInput';
-import ToolbarBox from '../../../../note/components/ToolbarBox';
 import ContentInput from '../../../../note/components/ContentInput';
 
 const QUERY = gql(`

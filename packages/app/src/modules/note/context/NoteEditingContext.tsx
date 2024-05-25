@@ -11,7 +11,10 @@ interface NoteEditingContextProps {
 
 export function NoteEditingContext({ noteContentId, children }: NoteEditingContextProps) {
   return (
-    <NoteContentIdToCollabTextsProvider noteContentId={noteContentId}>
+    <NoteContentIdToCollabTextsProvider
+      noteContentId={noteContentId}
+      fetchPolicy="cache-first"
+    >
       <NoteEditingContextCollabTexts>{children}</NoteEditingContextCollabTexts>
     </NoteContentIdToCollabTextsProvider>
   );

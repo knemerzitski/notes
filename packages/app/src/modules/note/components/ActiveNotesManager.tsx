@@ -39,6 +39,7 @@ export default function ActiveNotesManager() {
       <NoteContentIdToCollabTextsProvider
         key={noteContentId}
         noteContentId={noteContentId}
+        fetchPolicy="cache-only"
       >
         {!activeNote.isOwner && (
           <>

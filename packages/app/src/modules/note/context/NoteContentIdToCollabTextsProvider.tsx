@@ -1,4 +1,4 @@
-import { useApolloClient, useQuery } from '@apollo/client';
+import { WatchQueryFetchPolicy, useApolloClient, useQuery } from '@apollo/client';
 import { gql } from '../../../__generated__/gql';
 import { ReactNode, createContext, useContext, useMemo } from 'react';
 import { getCollabEditor } from '../../collab/hooks/useCollabEditor';
@@ -9,7 +9,7 @@ import { NoteTextField, NoteTextFieldEntry } from '../../../__generated__/graphq
 
 const QUERY_COLLAB_TEXT = gql(`
   query NoteContentIdToEditorsProvider($noteContentId: String!) {
-    note(contentId: $noteContentId) @client {
+    note(contentId: $noteContentId) {
       id
       textFields {
         key
@@ -55,19 +55,22 @@ export function useNoteCollabText(fieldName: NoteTextField) {
 
 interface NoteContentIdToCollabTextsProviderProps {
   noteContentId: string;
+  fetchPolicy?: WatchQueryFetchPolicy;
   children: ReactNode;
 }
 
 export default function NoteContentIdToCollabTextsProvider({
   noteContentId,
+  fetchPolicy = 'cache-only',
   children,
 }: NoteContentIdToCollabTextsProviderProps) {
   const apolloClient = useApolloClient();
+
   const { data } = useQuery(QUERY_COLLAB_TEXT, {
     variables: {
       noteContentId,
     },
-    fetchPolicy: 'cache-only',
+    fetchPolicy,
   });
 
   const collabTexts = useMemo(
@@ -87,7 +90,9 @@ export default function NoteContentIdToCollabTextsProvider({
     [collabTexts]
   );
 
-  if (!collabTexts || !editors) return null;
+  if (!collabTexts || !editors) {
+    return null;
+  }
 
   return (
     <NoteContentIdProvider noteContentId={noteContentId}>
