@@ -20,7 +20,7 @@ import { gql } from '../../__generated__/gql';
 import { addActiveNotes } from '../note/active-notes';
 
 const QUERY_NOTES = gql(`
-  query NotesRouteNotesConnection($last: NonNegativeInt!, $before: String, $skipHeadText: Boolean!) {
+  query NotesRouteNotesConnection($last: NonNegativeInt!, $before: String) {
     notesConnection(last: $last, before: $before) {
       notes {
         id
@@ -30,7 +30,7 @@ const QUERY_NOTES = gql(`
           key
           value {
             id
-            headText @skip(if: $skipHeadText) {
+            headText {
               revision
               changeset
             }
@@ -45,7 +45,6 @@ const QUERY_NOTES = gql(`
     }
   }
 `);
-// TODO skip headText after first....
 
 interface NotesRouteProps {
   perPageCount?: number;
@@ -59,7 +58,7 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
   const apolloClient = useApolloClient();
   const isBackgroundLocation = useIsBackgroundLocation();
 
-  const isFirstRenderRef = useRef(true);
+  const haveFetchedData = useRef(false);
 
   const {
     data,
@@ -69,13 +68,9 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
   } = usePauseableQuery(isBackgroundLocation, QUERY_NOTES, {
     variables: {
       last: perPageCount,
-      skipHeadText: !isFirstRenderRef.current,
     },
-    fetchPolicy: 'cache-and-network',
-    nextFetchPolicy: 'cache-first',
+    fetchPolicy: haveFetchedData.current ? 'cache-first' : 'cache-and-network',
   });
-
-  isFirstRenderRef.current = false;
 
   const loading = fetchLoading && !data;
 
@@ -108,6 +103,8 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
   if (!data) {
     return <></>;
   }
+
+  haveFetchedData.current = true;
 
   const notes: NoteItemProps['note'][] = data.notesConnection.notes
     .filter(isDefined)

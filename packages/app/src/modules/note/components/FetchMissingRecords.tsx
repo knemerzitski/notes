@@ -9,7 +9,7 @@ import { collabTextRecordToEditorRevisionRecord } from '../../collab/editor-grap
 
 const QUERY_WATCH = gql(`
   query FetchMissingRecordsWatch($noteContentId: String!, $fieldName: NoteTextField!){
-    note(contentId: $noteContentId) {
+    note(contentId: $noteContentId) @client {
       id
       textFields(name: $fieldName) {
         key
