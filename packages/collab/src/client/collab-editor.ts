@@ -68,11 +68,17 @@ type EditorEvents = {
      */
     changeset: Changeset;
   };
-  tailRevisionChanged: {
+  replacedHeadText: {
     /**
-     * New tailRevision.
+     * New headText.
      */
-    revision: number;
+    headText: RevisionChangeset;
+  };
+  userRecordsUpdated: {
+    /**
+     * User records has new data or it's been replaced with a different instance.
+     */
+    userRecords: UserRecords | null;
   };
   processingMessages: {
     eventBus: Emitter<EditorProcessingEvents>;
@@ -218,7 +224,11 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
   readonly eventBus: Emitter<CollabEditorEvents>;
   private generateSubmitId: () => string;
 
-  private userRecords?: UserRecords | null;
+  private _userRecords?: UserRecords | null;
+  get userRecords() {
+    return this._userRecords;
+  }
+
   private recordsBuffer: UnprocessedRecordsBuffer;
 
   private _client: CollabClient;
@@ -239,6 +249,13 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
 
   get history(): Pick<CollabHistory, 'localIndex' | 'entries' | 'tailRevision'> {
     return this._history;
+  }
+
+  get headText(): RevisionChangeset {
+    return {
+      revision: this.recordsBuffer.currentVersion,
+      changeset: this._client.server,
+    };
   }
 
   private _viewText = '';
@@ -293,9 +310,6 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
     // Submitted record
     this._submittedRecord = options?.submittedRecord ?? null;
 
-    // Records of a specific user
-    this.setUserRecords(options?.userRecords ?? null);
-
     // Buffered future records
     this.recordsBuffer =
       options?.recordsBuffer instanceof OrderedMessageBuffer
@@ -332,6 +346,9 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
 
     // Link events
     this.eventBus = options?.eventBus ?? mitt();
+
+    // Records of a specific user
+    this.setUserRecords(options?.userRecords ?? null);
 
     subscribedListeners.push(
       this._client.eventBus.on('*', (type, e) => {
@@ -427,10 +444,17 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
       revision: this.headRevision,
       changeset: this._client.server,
     });
+    this.eventBus.emit('replacedHeadText', {
+      headText: this.headText,
+    });
   }
 
+  // TODO use simple set
   setUserRecords(userRecords: UserRecords | null) {
-    this.userRecords = userRecords;
+    this._userRecords = userRecords;
+    this.eventBus.emit('userRecordsUpdated', {
+      userRecords,
+    });
   }
 
   haveSubmittedChanges() {
@@ -439,6 +463,10 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
 
   haveLocalChanges() {
     return this._client.haveLocalChanges();
+  }
+
+  haveChanges() {
+    return this.haveSubmittedChanges() || this.haveLocalChanges();
   }
 
   canSubmitChanges() {
@@ -545,9 +573,9 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
    * must be available. Add them using method {@link addServerRecords}.
    */
   historyRestore(desiredRestoreCount: number): number | undefined {
-    if (!this.userRecords) return;
+    if (!this._userRecords) return;
 
-    return this._history.restoreFromUserRecords(this.userRecords, desiredRestoreCount);
+    return this._history.restoreFromUserRecords(this._userRecords, desiredRestoreCount);
   }
 
   canRedo() {
@@ -559,7 +587,7 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
   }
 
   private canRestoreHistory() {
-    return this.userRecords?.hasOwnOlderRecords(this._history.tailRevision);
+    return this._userRecords?.hasOwnOlderRecords(this._history.tailRevision);
   }
 
   undo() {

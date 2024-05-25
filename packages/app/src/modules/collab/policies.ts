@@ -46,4 +46,7 @@ export const collabTextPolicies: TypePolicies & TypePersistors = {
   CollabTextRecord: {
     keyFields: false,
   },
+  CollabTextPatch: {
+    keyFields: false,
+  }
 };

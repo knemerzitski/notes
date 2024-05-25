@@ -16,7 +16,7 @@ export default function UndoButton() {
   useEffect(() => {
     setCanUndo(editor.canUndo());
     return editor.eventBus.onMany(
-      ['appliedTypingOperation', 'tailRevisionChanged'],
+      ['appliedTypingOperation', 'userRecordsUpdated'],
       () => {
         setCanUndo(editor.canUndo());
       }

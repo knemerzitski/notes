@@ -14,14 +14,14 @@ import { readSessionContext } from '../../auth/state/persistence';
 const QUERY = gql(`
   query HistoryRestoration($noteContentId: String!, $fieldName: NoteTextField!, 
                             $recordsBeforeRevision: NonNegativeInt!, $recordsLast: PositiveInt!, 
-                            $tailRevision: NonNegativeInt!){
+                            $tailRevision: NonNegativeInt! $skipTailRevision: Boolean!){
     note(contentId: $noteContentId) {
       id
       textFields(name: $fieldName) {
         key
         value {
           id
-          textAtRevision(revision: $tailRevision) {
+          textAtRevision(revision: $tailRevision) @skip(if: $skipTailRevision) {
             revision
             changeset
           }
@@ -47,17 +47,6 @@ const QUERY = gql(`
             }
           }
         }
-      }
-    }
-  }
-
-`);
-
-const FRAGMENT_PAGEINFO = gql(`
-  fragment HistoryRestorationPageInfo on CollabText {
-    recordsConnection {
-      pageInfo {
-        hasPreviousPage
       }
     }
   }
@@ -121,8 +110,6 @@ export default function HistoryRestoration({
   const { editor, id: collabTextId } = collabText.value;
 
   useEffect(() => {
-    if (cacheHasOlderRecords(apolloClient.cache, collabTextId) === false) return;
-
     // TODO put sessions to context provider
     const sessions = readSessionContext();
     const currentUserId = sessions?.currentSession.id ?? '';
@@ -135,29 +122,31 @@ export default function HistoryRestoration({
         changeset: editor.client.server,
       },
     });
-    const userEditorRecords = new UserRecords({
+    const userRecords = new UserRecords({
       userId: String(currentUserId),
       serverRecords,
     });
-    editor.setUserRecords(userEditorRecords);
+    editor.setUserRecords(userRecords);
 
-    const appliedUndoHandler = () => {
-      void attemptFetchMore();
-    };
+    // TODO ask for any records right before headRevision not just from oldest..
+
+    const editorUnsubscribe = editor.eventBus.onMany(
+      ['appliedUndo', 'replacedHeadText'],
+      () => {
+        void attemptFetchMore();
+      }
+    );
 
     async function attemptFetchMore() {
       const historyEntriesRemaining = editor.history.localIndex + 1;
       const requiredEntriesInCacheCount =
         triggerEntriesRemaining - historyEntriesRemaining + 1;
-      const haveEnoughEntries = userEditorRecords.hasOwnOlderRecords(
+      const haveEnoughEntries = userRecords.hasOwnOlderRecords(
         editor.history.tailRevision,
         requiredEntriesInCacheCount
       );
 
-      if (
-        isFetchingRef.current ||
-        cacheHasOlderRecords(apolloClient.cache, collabTextId) === false
-      ) {
+      if (isFetchingRef.current) {
         return;
       }
 
@@ -165,19 +154,42 @@ export default function HistoryRestoration({
         try {
           isFetchingRef.current = true;
 
-          const currentTailRevision = serverRecords.tailText.revision;
-          const newTailRevision = Math.max(0, currentTailRevision - fetchEntriesCount);
+          // Calc which records and text must be fetched
+          const recordsBeforeRevision = editor.history.tailRevision + 1;
+          const minRecordsAfterRevision = Math.max(
+            0,
+            recordsBeforeRevision - fetchEntriesCount - 1
+          );
+
+          const availableRecords = serverRecords.readRecords({
+            after: minRecordsAfterRevision,
+          });
+          const newestCachedRevision =
+            availableRecords?.[availableRecords.length - 1]?.change.revision;
+          const recordsLast = Math.min(
+            fetchEntriesCount,
+            Math.max(
+              0,
+              recordsBeforeRevision -
+                (newestCachedRevision ?? minRecordsAfterRevision) -
+                1
+            )
+          );
+          if (recordsLast === 0) return;
+
+          const tailRevision = Math.max(0, recordsBeforeRevision - recordsLast - 1);
+          const skipTailRevision = Boolean(serverRecords.getTextAt(tailRevision));
 
           const result = await apolloClient.query({
             query: QUERY,
             variables: {
               fieldName,
               noteContentId,
-              recordsBeforeRevision: currentTailRevision + 1,
-              recordsLast: fetchEntriesCount,
-              tailRevision: newTailRevision,
+              recordsBeforeRevision,
+              recordsLast,
+              tailRevision,
+              skipTailRevision,
             },
-            fetchPolicy: 'network-only',
           });
 
           result.data.note.textFields.forEach((textField) => {
@@ -185,11 +197,11 @@ export default function HistoryRestoration({
             const recordsConnection = textField.value.recordsConnection;
             if (!recordsConnection.pageInfo.hasPreviousPage) {
               // Stop listening since no more records
-              editor.eventBus.off('appliedUndo', appliedUndoHandler);
+              editorUnsubscribe();
             }
 
-            editor.eventBus.emit('tailRevisionChanged', {
-              revision: serverRecords.tailText.revision,
+            editor.eventBus.emit('userRecordsUpdated', {
+              userRecords,
             });
           });
 
@@ -201,9 +213,12 @@ export default function HistoryRestoration({
     }
 
     void attemptFetchMore();
+
     return () => {
-      editor.eventBus.on('appliedUndo', appliedUndoHandler);
-      editor.setUserRecords(null);
+      editorUnsubscribe();
+      if (editor.userRecords === userRecords) {
+        editor.setUserRecords(null);
+      }
     };
   }, [
     editor,
@@ -216,21 +231,6 @@ export default function HistoryRestoration({
   ]);
 
   return null;
-}
-
-export function cacheHasOlderRecords<TSerialized>(
-  cache: ApolloCache<TSerialized>,
-  collabTextId: string
-) {
-  const collabText = cache.readFragment({
-    id: cache.identify({
-      __typename: 'CollabText',
-      id: collabTextId,
-    }),
-    fragment: FRAGMENT_PAGEINFO,
-  });
-
-  return collabText?.recordsConnection.pageInfo.hasPreviousPage;
 }
 
 export interface ApolloCacheServerRecordsParams<TCacheShape> {
@@ -260,7 +260,7 @@ export class ApolloCacheServerRecords<TCacheShape>
     });
   }
 
-  private readTextAtRevision(revision?: number) {
+  readTextAtRevision(revision?: number) {
     return this.cache.readFragment({
       id: this.collabTextRef,
       fragment: FRAGMENT_TEXT_AT_REVISION,
@@ -270,21 +270,20 @@ export class ApolloCacheServerRecords<TCacheShape>
     })?.textAtRevision;
   }
 
-  private readRecords(before: number) {
+  readRecords(variables: { before?: number; after?: number }) {
     return this.cache
       .readFragment({
         id: this.collabTextRef,
         fragment: FRAGMENT_RECORDS,
-        variables: {
-          before,
-        },
+        variables,
       })
       ?.recordsConnection.records.filter(isDefined);
   }
 
   newestRecordsIterable(headRevision: number): Iterable<Readonly<EditorRevisionRecord>> {
-    const records = this.readRecords(headRevision + 1);
-
+    const records = this.readRecords({
+      before: headRevision + 1,
+    });
     if (!records || records.length === 0) {
       return {
         [Symbol.iterator]: () => ({

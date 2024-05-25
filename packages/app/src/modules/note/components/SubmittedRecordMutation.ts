@@ -8,6 +8,32 @@ import {
 } from '../../collab/editor-graphql-adapter';
 import { useNoteContentId } from '../context/NoteContentIdProvider';
 import { useNoteTextFieldEditor } from '../context/NoteTextFieldEditorsProvider';
+import { gql } from '../../../__generated__/gql';
+import { useApolloClient } from '@apollo/client';
+
+const FRAGMENT_RECORDS = gql(`
+  fragment SubmittedRecordMutationUpdateCache on CollabText {
+    recordsConnection {
+      records {
+        id
+        creatorUserId
+        change {
+          revision
+          changeset
+        }
+        beforeSelection {
+          start
+          end
+        }
+        afterSelection {
+          start
+          end
+        }
+      }
+    }
+
+  }
+`);
 
 export interface SubmittedRecordMutationProps {
   fieldName: NoteTextField;
@@ -19,6 +45,7 @@ export interface SubmittedRecordMutationProps {
 export default function SubmittedRecordMutation({
   fieldName,
 }: SubmittedRecordMutationProps) {
+  const apolloClient = useApolloClient();
   const updateNote = useUpdateNote();
 
   const noteContentId = useNoteContentId();
@@ -44,10 +71,25 @@ export default function SubmittedRecordMutation({
         },
       });
 
-      const newRecord = data?.updateNote.patch?.textFields?.find(
+      const textField = data?.updateNote.patch?.textFields?.find(
         (textField) => textField.key === fieldName
-      )?.value.newRecord;
+      );
+      const newRecord = textField?.value.newRecord;
       if (!newRecord) return;
+
+      // Update cache with new record
+      apolloClient.cache.writeFragment({
+        id: apolloClient.cache.identify({
+          id: textField.value.id,
+          __typename: 'CollabText',
+        }),
+        fragment: FRAGMENT_RECORDS,
+        data: {
+          recordsConnection: {
+            records: [newRecord],
+          },
+        },
+      });
 
       const editorRecord = collabTextRecordToEditorRevisionRecord(newRecord);
       editor.submittedChangesAcknowledged(editorRecord);
@@ -61,7 +103,7 @@ export default function SubmittedRecordMutation({
     return editor.eventBus.on('submittedRecord', ({ submittedRecord }) => {
       void handleSubmittedRecord(submittedRecord);
     });
-  }, [editor, noteContentId, fieldName, updateNote]);
+  }, [editor, noteContentId, fieldName, updateNote, apolloClient]);
 
   return null;
 }

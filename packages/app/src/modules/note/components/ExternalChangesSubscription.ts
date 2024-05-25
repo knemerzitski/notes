@@ -37,6 +37,30 @@ export const SUBSCRIPTION = gql(`
   }
 `);
 
+const FRAGMENT_RECORDS = gql(`
+  fragment ExternalChangesUpdateCache on CollabText {
+    recordsConnection {
+      records {
+        id
+        creatorUserId
+        change {
+          revision
+          changeset
+        }
+        beforeSelection {
+          start
+          end
+        }
+        afterSelection {
+          start
+          end
+        }
+      }
+    }
+
+  }
+`);
+
 /**
  * Subscribe to specific note updates. If unspecified then subscribes
  * to all notes of current user.
@@ -64,6 +88,20 @@ export default function ExternalChangesSubscription() {
         value.data.noteUpdated.patch.textFields?.forEach(({ value }) => {
           const { id: collabTextId, newRecord } = value;
           if (!newRecord) return;
+
+          // Update cache with new record
+          apolloClient.cache.writeFragment({
+            id: apolloClient.cache.identify({
+              id: collabTextId,
+              __typename: 'CollabText',
+            }),
+            fragment: FRAGMENT_RECORDS,
+            data: {
+              recordsConnection: {
+                records: [newRecord],
+              },
+            },
+          });
 
           const editor = getCollabEditorMaybe(apolloClient, collabTextId);
           if (editor) {

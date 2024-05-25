@@ -196,8 +196,9 @@ function mergeRecords(
  */
 function mergePageInfo(
   existing: Partial<CollabTextRecordConnection['pageInfo']> | undefined,
-  incoming: Partial<CollabTextRecordConnection['pageInfo']>
+  incoming: Partial<CollabTextRecordConnection['pageInfo']> | undefined
 ) {
+  if(!incoming) return existing;
   if (!existing) return incoming;
 
   const hasPreviousPage =

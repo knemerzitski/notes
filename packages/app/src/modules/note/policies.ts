@@ -25,6 +25,9 @@ const notePolicies: TypePolicies = {
       isOwner: Note_isOwner,
     },
   },
+  NotePatch: {
+    keyFields: false,
+  },
 };
 
 export default notePolicies;

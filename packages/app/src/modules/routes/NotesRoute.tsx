@@ -1,5 +1,8 @@
 import { startTransition, useEffect, useRef } from 'react';
-import { useProxyNavigate, useProxyRouteTransform } from '../router/context/ProxyRoutesProvider';
+import {
+  useProxyNavigate,
+  useProxyRouteTransform,
+} from '../router/context/ProxyRoutesProvider';
 import { useAbsoluteLocation } from '../router/hooks/useAbsoluteLocation';
 import { useIsBackgroundLocation } from '../router/hooks/useIsBackgroundLocation';
 import isDefined from '~utils/type-guards/isDefined';
@@ -17,7 +20,7 @@ import { gql } from '../../__generated__/gql';
 import { addActiveNotes } from '../note/active-notes';
 
 const QUERY_NOTES = gql(`
-  query NotesRouteNotesConnection($last: NonNegativeInt!, $before: String) {
+  query NotesRouteNotesConnection($last: NonNegativeInt!, $before: String, $skipHeadText: Boolean!) {
     notesConnection(last: $last, before: $before) {
       notes {
         id
@@ -27,7 +30,7 @@ const QUERY_NOTES = gql(`
           key
           value {
             id
-            headText {
+            headText @skip(if: $skipHeadText) {
               revision
               changeset
             }
@@ -42,6 +45,7 @@ const QUERY_NOTES = gql(`
     }
   }
 `);
+// TODO skip headText after first....
 
 interface NotesRouteProps {
   perPageCount?: number;
@@ -55,6 +59,8 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
   const apolloClient = useApolloClient();
   const isBackgroundLocation = useIsBackgroundLocation();
 
+  const isFirstRenderRef = useRef(true);
+
   const {
     data,
     loading: fetchLoading,
@@ -63,8 +69,13 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
   } = usePauseableQuery(isBackgroundLocation, QUERY_NOTES, {
     variables: {
       last: perPageCount,
+      skipHeadText: !isFirstRenderRef.current,
     },
+    fetchPolicy: 'cache-and-network',
+    nextFetchPolicy: 'cache-first',
   });
+
+  isFirstRenderRef.current = false;
 
   const loading = fetchLoading && !data;
 

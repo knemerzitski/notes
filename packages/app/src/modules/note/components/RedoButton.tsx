@@ -15,9 +15,12 @@ export default function RedoButton() {
 
   useEffect(() => {
     setCanRedo(editor.canRedo());
-    return editor.eventBus.on('appliedTypingOperation', () => {
-      setCanRedo(editor.canRedo());
-    });
+    return editor.eventBus.onMany(
+      ['appliedTypingOperation', 'userRecordsUpdated'],
+      () => {
+        setCanRedo(editor.canRedo());
+      }
+    );
   }, [editor]);
 
   return (
