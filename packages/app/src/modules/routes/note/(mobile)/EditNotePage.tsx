@@ -68,6 +68,8 @@ export default function EditNotePage() {
         <MuiToolbar
           sx={{
             justifyContent: 'space-between',
+            // Temporary fix for layout shift for "interactive-widget=resizes-content" when title field is focused
+            height: '56px',
           }}
         >
           <IconButton
@@ -83,7 +85,7 @@ export default function EditNotePage() {
         </MuiToolbar>
       </AppBar>
 
-      <MuiToolbar />
+      <MuiToolbar sx={{ height: '56px' }} />
 
       {!noteContentId || isNewNote ? (
         <NewNoteEditingContext>
