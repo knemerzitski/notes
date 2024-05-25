@@ -74,7 +74,7 @@ export default function EditNotePage() {
             edge="start"
             color="inherit"
             aria-label="back to all notes"
-            size={buttonSize}
+            size="large"
             onClick={handleClickBack}
           >
             <ArrowBackIcon />
