@@ -352,7 +352,7 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
   }
 
   /**
-   * @param tailText First element in {@link entries} is composable on {@link entries}.
+   * @param tailText First element in {@link entries} is composable on {@link tailText}.
    * @param entries Text entries.
    */
   restoreHistoryEntries(tailText: RevisionChangeset, entries: AnyEntry[]) {
