@@ -35,8 +35,6 @@ export const textAtRevision: FieldPolicy<
     const revision = Number(args.revision);
     if (Number.isNaN(revision)) return;
 
-    // Return oldest without revision?
-
     // Find closest older revision
     const { index, exists } = binarySearchIndexOf(
       existing,
@@ -72,12 +70,17 @@ export const textAtRevision: FieldPolicy<
       revision,
     };
   },
-  merge(existing, incoming, options) {
+  merge(
+    existing = [
+      {
+        changeset: Changeset.EMPTY.serialize(),
+        revision: 0,
+      },
+    ],
+    incoming,
+    options
+  ) {
     const { mergeObjects } = options;
-
-    if (!existing) {
-      return [incoming];
-    }
 
     // Find closest older revision
     const { index, exists } = binarySearchIndexOf(

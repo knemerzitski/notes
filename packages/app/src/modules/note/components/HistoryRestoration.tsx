@@ -14,7 +14,7 @@ import useCurrentUserId from '../../auth/hooks/useCurrentUserId';
 const QUERY = gql(`
   query HistoryRestoration($noteContentId: String!, $fieldName: NoteTextField!, 
                             $recordsBeforeRevision: NonNegativeInt!, $recordsLast: PositiveInt!, 
-                            $tailRevision: NonNegativeInt! $skipTailRevision: Boolean!){
+                            $tailRevision: NonNegativeInt! $skipTailRevision: Boolean!, $skipRecords: Boolean!){
     note(contentId: $noteContentId) {
       id
       textFields(name: $fieldName) {
@@ -25,7 +25,7 @@ const QUERY = gql(`
             revision
             changeset
           }
-          recordsConnection(before: $recordsBeforeRevision, last: $recordsLast){
+          recordsConnection(before: $recordsBeforeRevision, last: $recordsLast) @skip(if: $skipRecords){
             records {
               id
               creatorUserId
@@ -41,9 +41,6 @@ const QUERY = gql(`
                 start
                 end
               }
-            }
-            pageInfo {
-              hasPreviousPage
             }
           }
         }
@@ -173,10 +170,12 @@ export default function HistoryRestoration({
                 1
             )
           );
-          if (recordsLast === 0) return;
 
           const tailRevision = Math.max(0, recordsBeforeRevision - recordsLast - 1);
           const skipTailRevision = serverRecords.hasTextAt(tailRevision);
+          const skipRecords = recordsLast === 0;
+
+          if (skipRecords && skipTailRevision) return;
 
           const result = await apolloClient.query({
             query: QUERY,
@@ -184,20 +183,15 @@ export default function HistoryRestoration({
               fieldName,
               noteContentId,
               recordsBeforeRevision,
-              recordsLast,
+              recordsLast: skipRecords ? 1 : recordsLast,
               tailRevision,
               skipTailRevision,
+              skipRecords,
             },
           });
 
           result.data.note.textFields.forEach((textField) => {
             if (textField.key !== fieldName) return;
-            const recordsConnection = textField.value.recordsConnection;
-            if (!recordsConnection.pageInfo.hasPreviousPage) {
-              // Stop listening since no more records
-              editorUnsubscribe();
-            }
-
             editor.eventBus.emit('userRecordsUpdated', {
               userRecords,
             });
