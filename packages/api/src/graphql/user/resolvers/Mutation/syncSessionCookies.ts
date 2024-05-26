@@ -10,7 +10,7 @@ export const syncSessionCookies: NonNullable<MutationResolvers['syncSessionCooki
   const { response, cookies } = ctx;
 
   cookies.filterSessions(availableUserIds);
-  const newAvailableUserIds = Object.keys(cookies);
+  const newAvailableUserIds = Object.keys(cookies.sessions);
   if (newAvailableUserIds.length > 0) {
     cookies.setCookieHeadersUpdate(response.multiValueHeaders);
   } else {
