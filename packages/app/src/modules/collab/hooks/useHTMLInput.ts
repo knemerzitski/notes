@@ -99,20 +99,22 @@ export default function useHTMLInput({
     }
   }, []);
 
-  const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = useCallback((e) => {
-    // ctrl+z
-    const isUndo = e.ctrlKey && e.code === 'KeyZ';
-    // ctrl+y | ctrl+shift+z
-    const isRedo =
-      (e.ctrlKey && e.code === 'KeyY') || (e.ctrlKey && e.shiftKey && e.code === 'KeyZ');
-    if (isRedo) {
-      e.preventDefault();
-      onRedoRef.current?.();
-    } else if (isUndo) {
-      e.preventDefault();
-      onUndoRef.current?.();
-    }
-  }, []);
+  const handleKeyDown: KeyboardEventHandler<HTMLInputElement | HTMLTextAreaElement> =
+    useCallback((e) => {
+      // ctrl+z
+      const isUndo = e.ctrlKey && e.code === 'KeyZ';
+      // ctrl+y | ctrl+shift+z
+      const isRedo =
+        (e.ctrlKey && e.code === 'KeyY') ||
+        (e.ctrlKey && e.shiftKey && e.code === 'KeyZ');
+      if (isRedo) {
+        e.preventDefault();
+        onRedoRef.current?.();
+      } else if (isUndo) {
+        e.preventDefault();
+        onUndoRef.current?.();
+      }
+    }, []);
 
   return {
     handleSelect,
