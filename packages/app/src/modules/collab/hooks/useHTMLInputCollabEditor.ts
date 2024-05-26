@@ -61,7 +61,10 @@ export default function useHTMLInputCollabEditor(editor: PartialEditor) {
       let newSelection = latestSelection;
 
       processingBus.on('handledExternalChange', ({ viewComposable }) => {
-        newSelection = SelectionRange.closestRetainedPosition(newSelection, viewComposable);
+        newSelection = SelectionRange.closestRetainedPosition(
+          newSelection,
+          viewComposable
+        );
       });
 
       processingBus.on('messagesProcessed', ({ hadExternalChanges }) => {
@@ -92,7 +95,7 @@ export default function useHTMLInputCollabEditor(editor: PartialEditor) {
     input.setSelectionRange(selection.start, selection.end);
   }, [selection, value]);
 
-  const { handleSelect, handleInput } = useHTMLInput({
+  const { handleSelect, handleInput, handleKeyDown } = useHTMLInput({
     onInsert({ beforeSelection, insertValue }) {
       editor.insertText(insertValue, latestSelectionRef.current ?? beforeSelection);
     },
@@ -112,5 +115,6 @@ export default function useHTMLInputCollabEditor(editor: PartialEditor) {
     value,
     onSelect: handleSelect,
     onInput: handleInput,
+    onKeyDown: handleKeyDown,
   };
 }
