@@ -624,6 +624,10 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
         this.lastExecutedIndex.server,
         this.lastExecutedIndex.submitted
       );
+    } else if (keepEntryIndex === -1) {
+      this.lastExecutedIndex.submitted = -1;
+      this.lastExecutedIndex.server = -1;
+      this._entries = [];
     }
   }
 
