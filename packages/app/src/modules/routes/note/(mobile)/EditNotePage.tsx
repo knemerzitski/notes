@@ -3,7 +3,6 @@ import { useLocation, useParams } from 'react-router-dom';
 import useDeleteNote from '../../../note/hooks/useDeleteNote';
 import { useProxyNavigate } from '../../../router/context/ProxyRoutesProvider';
 import RouteSnackbarError from '../../../common/components/RouteSnackbarError';
-import { NoteEditingContext } from '../../../note/context/NoteEditingContext';
 import {
   AppBar as MuiAppBar,
   Box,
@@ -20,7 +19,7 @@ import AppBar from '../../../common/components/AppBar';
 import MoreOptionsButton from '../../../note/components/MoreOptionsButton';
 import RedoButton from '../../../note/components/RedoButton';
 import UndoButton from '../../../note/components/UndoButton';
-import NewNoteEditingContext from '../../../note/context/NewNoteEditingContext';
+import NewOrExistingNoteEditingContext from '../../../note/context/NewOrExistingNoteEditingContext';
 
 export type EditNoteLocationState = null | { newNote?: boolean; autoFocus?: boolean };
 
@@ -87,99 +86,76 @@ export default function EditNotePage() {
 
       <MuiToolbar sx={{ height: '56px' }} />
 
-      {!noteContentId || isNewNote ? (
-        <NewNoteEditingContext>
-          <CollabEditor
-            isScrollEnd={isScrollEnd}
-            buttonSize={buttonSize}
-            onDelete={handleDeleteNote}
-          />
-        </NewNoteEditingContext>
-      ) : (
-        <NoteEditingContext noteContentId={noteContentId}>
-          <CollabEditor
-            isScrollEnd={isScrollEnd}
-            buttonSize={buttonSize}
-            onDelete={handleDeleteNote}
-          />
-        </NoteEditingContext>
-      )}
-    </Box>
-  );
-}
-
-interface CollabEditorProps {
-  isScrollEnd?: boolean;
-  buttonSize?: 'small' | 'medium' | 'large';
-  onDelete?: () => Promise<boolean>;
-}
-
-function CollabEditor({ isScrollEnd, buttonSize, onDelete }: CollabEditorProps) {
-  return (
-    <>
-      <CollabInputs
-        boxProps={{
-          sx: {
-            flexGrow: 1,
-          },
-        }}
-        contentProps={{
-          inputProps: {
-            sx: {
-              '.MuiInputBase-input': {
-                alignSelf: 'flex-start',
-              },
-            },
-          },
-        }}
-      />
-
-      <MuiAppBar
-        elevation={0}
-        position="fixed"
-        sx={{
-          ...(!isScrollEnd && {
-            boxShadow: (theme) => theme.shadowsNamed.scrollEnd,
-          }),
-          top: 'auto',
-          bottom: 0,
-        }}
+      <NewOrExistingNoteEditingContext
+        noteContentId={noteContentId}
+        isNewNote={isNewNote}
       >
-        <MuiToolbar
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            gap: 1,
-          }}
-        >
-          <Box
+        <>
+          <CollabInputs
+            boxProps={{
+              sx: {
+                flexGrow: 1,
+              },
+            }}
+            contentProps={{
+              inputProps: {
+                sx: {
+                  '.MuiInputBase-input': {
+                    alignSelf: 'flex-start',
+                  },
+                },
+              },
+            }}
+          />
+
+          <MuiAppBar
+            elevation={0}
+            position="fixed"
             sx={{
-              display: 'flex',
-              gap: 1,
+              ...(!isScrollEnd && {
+                boxShadow: (theme) => theme.shadowsNamed.scrollEnd,
+              }),
+              top: 'auto',
+              bottom: 0,
             }}
           >
-            <UndoButton
-              iconButtonProps={{
-                edge: 'start',
-                size: buttonSize,
+            <MuiToolbar
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                gap: 1,
               }}
-            />
-            <RedoButton
-              iconButtonProps={{
-                edge: 'end',
-                size: buttonSize,
-              }}
-            />
-          </Box>
-          <MoreOptionsButton
-            onDelete={onDelete}
-            iconButtonProps={{
-              edge: 'end',
-              size: buttonSize,
-            }}
-          />
-        </MuiToolbar>
-      </MuiAppBar>
-    </>
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 1,
+                }}
+              >
+                <UndoButton
+                  iconButtonProps={{
+                    edge: 'start',
+                    size: buttonSize,
+                  }}
+                />
+                <RedoButton
+                  iconButtonProps={{
+                    edge: 'end',
+                    size: buttonSize,
+                  }}
+                />
+              </Box>
+              <MoreOptionsButton
+                onDelete={handleDeleteNote}
+                iconButtonProps={{
+                  edge: 'end',
+                  size: buttonSize,
+                }}
+              />
+            </MuiToolbar>
+          </MuiAppBar>
+        </>
+      </NewOrExistingNoteEditingContext>
+    </Box>
   );
 }
