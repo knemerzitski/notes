@@ -15,6 +15,8 @@ import NoteDeletedSubscription from './modules/note/components/NoteDeletedSubscr
 import CustomThemeProvider from './modules/theme/context/CustomThemeProvider';
 import { router } from './modules/routes/RoutesIndex';
 import RouterProvider from './modules/router/context/RouterProvider';
+import { Suspense } from 'react';
+import FullSizeErrorContainer from './modules/common/components/FullSizeErrorContainer';
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -26,15 +28,22 @@ export default function App() {
         <SnackbarAlertProvider>
           <CssBaseline />
           <GlobalStyles />
-          <ApolloClientErrorsSnackbarAlert />
-          <GoogleAuthProvider clientId={CLIENT_ID}>
-            <NoteCreatedSubscription />
-            <NoteDeletedSubscription />
-            <ExternalChangesSubscription />
-            <ActiveNotesManager />
-            <ActiveCollabTextsManager />
-            <RouterProvider router={router} />
-          </GoogleAuthProvider>
+          <Suspense
+            fallback={
+              <FullSizeErrorContainer message="Unexpected suspense. This should never happen!" />
+            }
+          >
+            <ApolloClientErrorsSnackbarAlert />
+            <GoogleAuthProvider clientId={CLIENT_ID}>
+              <NoteCreatedSubscription />
+              <NoteDeletedSubscription />
+              <ExternalChangesSubscription />
+              <ActiveNotesManager />
+              <ActiveCollabTextsManager />
+
+              <RouterProvider router={router} />
+            </GoogleAuthProvider>
+          </Suspense>
         </SnackbarAlertProvider>
       </CustomThemeProvider>
     </CustomApolloClientProvider>

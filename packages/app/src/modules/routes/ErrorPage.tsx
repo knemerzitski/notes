@@ -1,9 +1,8 @@
-import { Box, Paper, Typography } from '@mui/material';
 import { useRouteError } from 'react-router-dom';
+import FullSizeErrorContainer from '../common/components/FullSizeErrorContainer';
 
 export default function ErrorPage() {
   const routeError = useRouteError() as { statusText?: string; status: number } | Error;
-  console.error(routeError);
 
   const message =
     routeError instanceof Error
@@ -13,50 +12,5 @@ export default function ErrorPage() {
   const stack =
     routeError instanceof Error && !import.meta.env.PROD ? routeError.stack : null;
 
-  return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100dvh',
-        mx: 'auto',
-        px: 3,
-        gap: 4,
-      }}
-    >
-      <Box
-        sx={{
-          flexGrow: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Typography variant="body1" mt={1} fontSize="1.5em">
-          Sorry, an unexpected error has occurred!
-        </Typography>
-
-        <Typography mt={3} fontSize="1.1em">
-          {message}
-        </Typography>
-
-        {stack && (
-          <Paper
-            variant="elevation"
-            elevation={7}
-            sx={{
-              mt: 2,
-              p: 2,
-            }}
-          >
-            <Typography whiteSpace="pre-wrap">{stack}</Typography>
-          </Paper>
-        )}
-      </Box>
-      <Box flexGrow={1}></Box>
-    </Box>
-  );
+  return <FullSizeErrorContainer message={message} stack={stack} />;
 }
