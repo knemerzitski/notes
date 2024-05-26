@@ -37,6 +37,7 @@ module.exports = {
         '@typescript-eslint/no-unsafe-member-access': 'warn',
         '@typescript-eslint/no-unsafe-call': 'warn',
         '@typescript-eslint/no-unsafe-argument': 'warn',
+        '@typescript-eslint/no-unsafe-return': 'warn',
 
         'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
         'react-hooks/exhaustive-deps': ['error'],

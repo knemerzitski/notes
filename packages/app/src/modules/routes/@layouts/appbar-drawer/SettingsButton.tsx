@@ -4,21 +4,27 @@ import {
   Menu,
   MenuItem,
   ListItemText,
-  useTheme,
   IconButtonProps,
+  ListItemIcon,
+  MenuList,
+  Typography,
 } from '@mui/material';
 import { useId, useState } from 'react';
-import useLocalStateColorMode from '../../../preferences/hooks/useLocalStateColorMode';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import AppearanceText from '../../../theme/components/AppearanceText';
+import AppearanceMenu from '../../../theme/components/AppearanceMenu';
+
+type SubMenu = 'appearance' | null;
 
 export default function SettingsButton(props: IconButtonProps) {
-  const { toggleColorMode } = useLocalStateColorMode();
-  const theme = useTheme();
-
   const buttonId = useId();
   const menuId = useId();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const menuOpen = Boolean(anchorEl);
+
+  const [subMenu, setSubMenu] = useState<SubMenu>(null);
 
   return (
     <>
@@ -45,21 +51,49 @@ export default function SettingsButton(props: IconButtonProps) {
         onClose={() => {
           setAnchorEl(null);
         }}
+        onTransitionExited={() => {
+          setSubMenu(null);
+        }}
         disableScrollLock
         MenuListProps={{
           'aria-labelledby': anchorEl?.id,
         }}
       >
-        <MenuItem
-          onClick={() => {
-            setAnchorEl(null);
-            toggleColorMode();
-          }}
-        >
-          <ListItemText>{`${
-            theme.palette.mode === 'light' ? 'Enable' : 'Disable'
-          } dark theme`}</ListItemText>
-        </MenuItem>
+        {!subMenu ? (
+          <MenuList>
+            <MenuItem
+              onClick={() => {
+                setSubMenu('appearance');
+              }}
+              aria-label="appearance"
+            >
+              <ListItemIcon>
+                <DarkModeIcon />
+              </ListItemIcon>
+              <ListItemText>
+                <Typography variant="body2">
+                  <AppearanceText />
+                </Typography>
+              </ListItemText>
+              <ListItemIcon
+                sx={{
+                  justifyContent: 'right',
+                }}
+              >
+                <NavigateNextIcon />
+              </ListItemIcon>
+            </MenuItem>
+          </MenuList>
+        ) : (
+          <AppearanceMenu
+            onClickBack={() => {
+              setSubMenu(null);
+            }}
+            onSelected={() => {
+              setAnchorEl(null);
+            }}
+          />
+        )}
       </Menu>
     </>
   );

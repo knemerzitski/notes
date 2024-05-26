@@ -1,17 +1,21 @@
-import { TypePolicies } from '@apollo/client';
+import { FieldPolicy, TypePolicies } from '@apollo/client';
 
-import { Preferences } from '../../__generated__/graphql';
+import { ColorMode, Query } from '../../__generated__/graphql';
 
-import { colorModeVar } from './state';
+const Query_preferences: FieldPolicy<Query['preferences'], Query['preferences']> = {
+  read(
+    existing = {
+      colorMode: ColorMode.System,
+    }
+  ) {
+    return existing;
+  },
+};
 
 const preferencesPolicies: TypePolicies = {
   Query: {
     fields: {
-      preferences(): Preferences {
-        return {
-          colorMode: colorModeVar(),
-        };
-      },
+      preferences: Query_preferences,
     },
   },
 };

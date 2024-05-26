@@ -29,7 +29,8 @@ export default function CustomThemeProvider({
   const { data } = useSuspenseQuery(QUERY, {
     client: customApolloClient.client,
   });
-  const preferencesColorMode = data.preferences?.colorMode ?? ColorMode.System;
+
+  const preferencesColorMode = data.preferences.colorMode;
 
   const prefersDarkMode =
     preferencesColorMode === ColorMode.Dark ||

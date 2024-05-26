@@ -11,5 +11,5 @@ type Preferences {
 
 extend type Query {
   "User local preferences"
-  preferences: Preferences
+  preferences: Preferences!
 }
