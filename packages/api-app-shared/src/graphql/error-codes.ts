@@ -25,7 +25,7 @@ export enum AuthenticationFailedReason {
   /**
    * User has not been defined.
    */
-  UserUndefined = 'USER_UNEDFINED',
+  UserUndefined = 'USER_UNDEFINED', // TODO fixed typo
 
   /**
    * Defined user has no session.
