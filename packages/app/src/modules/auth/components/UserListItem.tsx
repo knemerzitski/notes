@@ -9,32 +9,34 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 
-import { ClientSession } from '../../../__generated__/graphql';
 import { useCloseable } from '../context/CloseableProvider';
-import SessionProvider from '../context/SessionProvider';
-import useNavigateToSession from '../hooks/useNavigateToSession';
+import UserProvider from '../context/UserProvider';
+import useNavigateSwitchCurrentUser from '../hooks/useNavigateSwitchCurrentUser';
 import SignInModal, { SignInModalProps } from './SignInModal';
-import ForgetSessionMenuItem from './ForgetSessionMenuItem';
-import SessionMoreOptionsButton from './SessionMoreOptionsButton';
+import ForgetUserMenuItem from './ForgetUserMenuItem';
+import UserMoreOptionsButton from './UserMoreOptionsButton';
 import SignInMenuItem from './SignInMenuItem';
 import SignOutMenuItem from './SignOutMenuItem';
 import BackgroundLetterAvatar from '../../common/components/BackgroundLetterAvatar';
+import { User } from '../../../__generated__/graphql';
 
-interface SessionListItemProps extends ListItemProps {
-  session: ClientSession;
+export interface UserListItemProps extends ListItemProps {
+  user: Pick<User, 'id' | 'isSessionExpired' | 'email' | 'authProviderEntries'> & {
+    profile: Pick<User['profile'], 'displayName'>;
+  };
 }
 
-export default function SessionListItem({ session, ...restProps }: SessionListItemProps) {
-  const navigateToSession = useNavigateToSession();
+export default function UserListItem({ user, ...restProps }: UserListItemProps) {
+  const navigateSwitchCurrentUser = useNavigateSwitchCurrentUser();
   const onClose = useCloseable();
 
   const [signInModalOpen, setSignInModalOpen] = useState(false);
 
   async function handleClick() {
-    if (session.isExpired) {
+    if (user.isSessionExpired) {
       setSignInModalOpen(true);
     } else {
-      await navigateToSession(String(session.id));
+      await navigateSwitchCurrentUser(String(user.id));
       onClose();
     }
   }
@@ -55,7 +57,7 @@ export default function SessionListItem({ session, ...restProps }: SessionListIt
           }}
         >
           <ListItemAvatar>
-            <BackgroundLetterAvatar name={session.displayName} />
+            <BackgroundLetterAvatar name={user.profile.displayName} />
           </ListItemAvatar>
 
           <ListItemText>
@@ -66,8 +68,8 @@ export default function SessionListItem({ session, ...restProps }: SessionListIt
                 justifyContent: 'space-between',
               }}
             >
-              <Typography fontWeight="bold">{session.displayName}</Typography>
-              {session.isExpired && (
+              <Typography fontWeight="bold">{user.profile.displayName}</Typography>
+              {user.isSessionExpired && (
                 <Typography
                   sx={{
                     backgroundColor: 'rgba(0,0,0,0.15)',
@@ -87,12 +89,12 @@ export default function SessionListItem({ session, ...restProps }: SessionListIt
                 fontSize: '.9em',
               }}
             >
-              {session.email}
+              {user.email}
             </Typography>
           </ListItemText>
 
-          <SessionProvider session={session}>
-            <SessionMoreOptionsButton
+          <UserProvider user={user}>
+            <UserMoreOptionsButton
               iconButtonProps={{
                 sx: {
                   alignSelf: 'flex-start',
@@ -107,14 +109,14 @@ export default function SessionListItem({ session, ...restProps }: SessionListIt
                 }}
               />
               <SignOutMenuItem />
-              <ForgetSessionMenuItem />
-            </SessionMoreOptionsButton>
-          </SessionProvider>
+              <ForgetUserMenuItem />
+            </UserMoreOptionsButton>
+          </UserProvider>
         </ListItemButton>
       </ListItem>
 
       <SignInModal
-        sessionHint={session}
+        userHint={user}
         open={signInModalOpen}
         onClose={handleCloseSignInModal}
       />

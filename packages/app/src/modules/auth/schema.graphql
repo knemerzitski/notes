@@ -1,0 +1,22 @@
+extend type User {
+  "Current session has expired and is unusable. Must sign in again."
+  isSessionExpired: Boolean!
+  "User email. This is stored only on client-side during sign-in and not in the server."
+  email: String!
+  "IDs given by auth provider."
+  authProviderEntries: [AuthProviderEntry!]!
+}
+
+type AuthProviderEntry {
+  "Self-descriptive"
+  provider: AuthProvider!
+  "Self-descriptive"
+  id: String!
+}
+
+extend type Query {
+  "Self-descriptive"
+  signedInUsers(id: ID): [User!]!
+  "Current user that is being used during network requests."
+  currentSignedInUser: User
+}

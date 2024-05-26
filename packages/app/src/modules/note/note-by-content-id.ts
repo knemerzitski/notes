@@ -1,20 +1,23 @@
-import { Reference } from '@apollo/client';
-import { readSessionContext } from '../auth/state/persistence';
+import { ApolloCache, Reference } from '@apollo/client';
+import { getCurrentUserId } from '../auth/hooks/useCurrentUserId';
 
 /**
  * Access current user note by Note.contentId
  */
 const noteByContentId: Record<string, Reference> = {};
 
-function getKey(contentId: string) {
-  const sessions = readSessionContext();
-  const userId = sessions?.currentSession.id;
+function getKey<TCacheShape>(cache: ApolloCache<TCacheShape>, contentId: string) {
+  const userId = getCurrentUserId(cache);
   if (!userId) return;
   return `${userId}:${contentId}`;
 }
 
-export function addNoteReferenceByContentId(contentId: string, noteReference: Reference) {
-  const key = getKey(contentId);
+export function addNoteReferenceByContentId<TCacheShape>(
+  cache: ApolloCache<TCacheShape>,
+  contentId: string,
+  noteReference: Reference
+) {
+  const key = getKey(cache, contentId);
   if (!key) return false;
 
   noteByContentId[key] = noteReference;
@@ -22,15 +25,21 @@ export function addNoteReferenceByContentId(contentId: string, noteReference: Re
   return true;
 }
 
-export function getNoteReferenceByContentId(contentId: string) {
-  const key = getKey(contentId);
+export function getNoteReferenceByContentId<TCacheShape>(
+  cache: ApolloCache<TCacheShape>,
+  contentId: string
+) {
+  const key = getKey(cache, contentId);
   if (!key) return;
 
   return noteByContentId[key];
 }
 
-export function removeNoteReferenceByContentId(contentId: string) {
-  const key = getKey(contentId);
+export function removeNoteReferenceByContentId<TCacheShape>(
+  cache: ApolloCache<TCacheShape>,
+  contentId: string
+) {
+  const key = getKey(cache, contentId);
   if (!key) return false;
 
   // eslint-disable-next-line @typescript-eslint/no-dynamic-delete

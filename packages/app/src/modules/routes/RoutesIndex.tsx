@@ -1,4 +1,3 @@
-import { useSuspenseQuery } from '@apollo/client';
 import { Route, Routes, RoutesProps, createBrowserRouter } from 'react-router-dom';
 
 import ModalBackgroundRouting from '../router/components/ModalBackgroundRouting';
@@ -11,28 +10,28 @@ import LocalEditNoteDialogRoute from './local/note/(desktop)/EditNoteDialogRoute
 import LocalEditNotePage from './local/note/(mobile)/EditNotePage';
 import EditNoteDialogRoute from './note/(desktop)/EditNoteDialogRoute';
 import useIsMobile from '../common/hooks/useIsMobile';
-import { gql } from '../../__generated__/gql';
 import SessionSynchronization from '../auth/components/SessionSynchronization';
-import { NavigateToSessionProvider } from '../auth/hooks/useNavigateToSession';
+import { NavigateSwitchCurrentUserProvider } from '../auth/hooks/useNavigateSwitchCurrentUser';
 import { PreviousLocationProvider } from '../router/hooks/usePreviousLocation';
 import ErrorPage from './ErrorPage';
-import SessionPrefixProvider from '../router/context/SessionPrefixProvider';
+import LocationPrefixProvider from '../router/context/LocationPrefixProvider';
 import EditNotePage from './note/(mobile)/EditNotePage';
+import useIsSignedIn from '../auth/hooks/useIsSignedIn';
 
-const sessionPrefix = 'u';
+const currentUserIndex = 'u';
 
 export const router = createBrowserRouter([
-  ...[`/${sessionPrefix}/:sessionIndex/*`, '*'].map((path) => ({
+  ...[`/${currentUserIndex}/:currentUserIndex/*`, '*'].map((path) => ({
     path,
     element: (
-      <SessionPrefixProvider sessionPrefix={sessionPrefix}>
-        <NavigateToSessionProvider>
+      <LocationPrefixProvider prefix={currentUserIndex}>
+        <NavigateSwitchCurrentUserProvider>
           <PreviousLocationProvider>
             <SessionSynchronization />
             <RoutesIndex />
           </PreviousLocationProvider>
-        </NavigateToSessionProvider>
-      </SessionPrefixProvider>
+        </NavigateSwitchCurrentUserProvider>
+      </LocationPrefixProvider>
     ),
     errorElement: <ErrorPage />,
   })),
@@ -44,16 +43,8 @@ export default function RoutesIndex() {
   return isMobile ? <MobileRoutes /> : <DesktopRoutes />;
 }
 
-const QUERY = gql(`
-  query RoutesIndex {
-    isSignedIn @client
-  }
-`);
-
 function CommonRoutes({ children, ...restProps }: RoutesProps) {
-  const {
-    data: { isSignedIn },
-  } = useSuspenseQuery(QUERY);
+  const isSignedIn = useIsSignedIn();
 
   return (
     <Routes {...restProps}>

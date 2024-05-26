@@ -2,11 +2,11 @@ import { MenuItem, MenuItemProps } from '@mui/material';
 import { MouseEvent } from 'react';
 
 import { useCloseable } from '../context/CloseableProvider';
-import { useSession } from '../context/SessionProvider';
+import { useUser } from '../context/UserProvider';
 
 
 export default function SignInMenuItem({ onClick, ...restProps }: MenuItemProps) {
-  const session = useSession();
+  const session = useUser();
   const closeMenu = useCloseable();
 
   function handleClick(e: MouseEvent<HTMLLIElement>) {
@@ -14,7 +14,7 @@ export default function SignInMenuItem({ onClick, ...restProps }: MenuItemProps)
     onClick?.(e);
   }
 
-  if (!session.isExpired) return null;
+  if (!session.isSessionExpired) return null;
 
   return (
     <>

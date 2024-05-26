@@ -3,7 +3,7 @@ import { Note } from '../../../../__generated__/graphql';
 import { addNoteReferenceByContentId } from '../../note-by-content-id';
 
 export const id: FieldPolicy<Note['id'], Note['id']> = {
-  read(id, { toReference, readField }) {
+  read(id, { toReference, readField, cache }) {
     const contentId = readField('contentId');
     if (contentId) {
       const noteRef = toReference({
@@ -11,7 +11,7 @@ export const id: FieldPolicy<Note['id'], Note['id']> = {
         id,
       });
       if (noteRef) {
-        addNoteReferenceByContentId(String(contentId), noteRef);
+        addNoteReferenceByContentId(cache, String(contentId), noteRef);
       }
     }
 

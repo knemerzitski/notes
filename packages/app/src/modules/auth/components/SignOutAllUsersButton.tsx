@@ -7,21 +7,18 @@ import useSignOut from '../hooks/useSignOut';
 import { gql } from '../../../__generated__/gql';
 
 const QUERY = gql(`
-  query SignOutOfAllSessionsButton {
-    currentClientSession @client {
+  query SignOutAllUsersButton {
+    currentSignedInUser @client {
       id
-      isExpired
-      displayName
-      email
     }
   }
 `);
 
-export default function SignOutOfAllSessionsButton() {
+export default function SignOutAllUsersButton() {
   const close = useCloseable();
 
   const {
-    data: { currentClientSession },
+    data: { currentSignedInUser },
   } = useSuspenseQuery(QUERY);
 
   const signOut = useSignOut();
@@ -32,7 +29,7 @@ export default function SignOutOfAllSessionsButton() {
     }
   }
 
-  if (!currentClientSession) return null;
+  if (!currentSignedInUser) return null;
 
   return (
     <Button

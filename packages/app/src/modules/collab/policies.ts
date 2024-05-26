@@ -8,7 +8,7 @@ import { editorsWithVars } from './editors-by-id';
 import { textAtRevision as CollabText_textAtRevision } from './policies/CollabText/textAtRevision';
 import { recordsConnection as CollabText_recordsConnection } from './policies/CollabText/recordsConnection';
 
-export const collabTextPolicies: TypePolicies & TypePersistors = {
+const collabTextPolicies: TypePolicies & TypePersistors = {
   Query: {
     fields: {
       allActiveCollabTexts: Query_allActiveCollabTexts,
@@ -50,3 +50,5 @@ export const collabTextPolicies: TypePolicies & TypePersistors = {
     keyFields: false,
   }
 };
+
+export default collabTextPolicies;

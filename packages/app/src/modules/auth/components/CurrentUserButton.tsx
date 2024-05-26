@@ -5,23 +5,25 @@ import { gql } from '../../../__generated__/gql';
 import BackgroundLetterAvatar from '../../common/components/BackgroundLetterAvatar';
 
 const QUERY = gql(`
-  query CurrentSessionButton {
-    currentClientSession @client {
+  query CurrentUserButton {
+    currentSignedInUser @client {
       id
-      displayName
-      isExpired
+      profile {
+        displayName
+      }
+      isSessionExpired
     }
   }
 `);
 
-export default function CurrentSessionButton(props?: IconButtonProps) {
+export default function CurrentUserButton(props?: IconButtonProps) {
   const {
-    data: { currentClientSession },
+    data: { currentSignedInUser },
   } = useSuspenseQuery(QUERY);
 
   return (
     <IconButton color="inherit" {...props}>
-      {currentClientSession?.isExpired ? (
+      {currentSignedInUser?.isSessionExpired ? (
         <Badge
           badgeContent="!"
           color="warning"
@@ -32,10 +34,10 @@ export default function CurrentSessionButton(props?: IconButtonProps) {
             },
           }}
         >
-          <BackgroundLetterAvatar name={currentClientSession.displayName} />
+          <BackgroundLetterAvatar name={currentSignedInUser.profile.displayName} />
         </Badge>
-      ) : currentClientSession ? (
-        <BackgroundLetterAvatar name={currentClientSession.displayName} />
+      ) : currentSignedInUser ? (
+        <BackgroundLetterAvatar name={currentSignedInUser.profile.displayName} />
       ) : (
         <Avatar>
           <PersonIcon />

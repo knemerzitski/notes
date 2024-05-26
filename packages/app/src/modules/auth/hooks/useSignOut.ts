@@ -1,13 +1,9 @@
 import { useMutation } from '@apollo/client';
 import { useCallback } from 'react';
 
-import { currentSessionVar } from '../state/state';
-import useSessionMutations from '../state/useSessionMutations';
-
-import useNavigateToSession from './useNavigateToSession';
+import useNavigateSwitchCurrentUser from './useNavigateSwitchCurrentUser';
 import { gql } from '../../../__generated__/gql';
-import { ClientSession } from '../../../__generated__/graphql';
-import { useSnackbarError } from '../../common/components/SnackbarAlertProvider';
+import { removeUser } from '../state/user';
 
 const SIGN_OUT = gql(`
   mutation UseSignOut($input: SignOutInput) {
@@ -18,50 +14,38 @@ const SIGN_OUT = gql(`
 `);
 
 export default function useSignOut() {
+  // const apolloClient = useApolloClient();
   const [signOut] = useMutation(SIGN_OUT);
-  const { deleteSession: deleteLocalSession, clearSessions: clearLocalSessions } =
-    useSessionMutations();
-  const navigateToSession = useNavigateToSession();
+  const navigateSwitchCurrentUser = useNavigateSwitchCurrentUser();
 
-  const showError = useSnackbarError();
-
-  const startSignOut = useCallback(
+  return useCallback(
     /**
-     * @param session Account session to sign out from.
-     * If session is not specified, then user will be signed out of all accounts
+     * @param userId User to sign out.
+     * If {@link userId} is not specified, then client will be signed out of all accounts
      */
-    async (session?: Pick<ClientSession, 'id'>) => {
+    async (userId?: string) => {
       const { data } = await signOut({
         variables: {
           input: {
-            userId: session ? String(session.id) : null,
-            allUsers: !session,
+            userId: userId ?? null,
+            allUsers: !userId,
           },
+        },
+        optimisticResponse: {
+          signOut: {
+            signedOut: true,
+          },
+        },
+        update(cache) {
+          removeUser(cache, userId);
         },
       });
       if (!data) return false;
 
-      const { signedOut } = data.signOut;
-
-      if (!signedOut) {
-        showError('Failed to sign out');
-        return false;
-      }
-
-      if (session) {
-        deleteLocalSession(String(session.id));
-        const id = currentSessionVar()?.id;
-        // TODO fetch current session from cache?
-        await navigateToSession(id != null ? String(id) : null);
-      } else {
-        clearLocalSessions();
-        await navigateToSession(null);
-      }
+      await navigateSwitchCurrentUser(true);
 
       return true;
     },
-    [signOut, deleteLocalSession, navigateToSession, showError, clearLocalSessions]
+    [signOut, navigateSwitchCurrentUser]
   );
-
-  return startSignOut;
 }

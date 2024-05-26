@@ -9,7 +9,7 @@ import { RevisionChangeset } from '~collab/records/record';
 import { useNoteCollabText } from '../context/NoteContentIdToCollabTextsProvider';
 import { UserRecords, ServerRecordsFacade } from '~collab/client/user-records';
 import { EditorRevisionRecord } from '~collab/client/collab-editor';
-import { readSessionContext } from '../../auth/state/persistence';
+import useCurrentUserId from '../../auth/hooks/useCurrentUserId';
 
 const QUERY = gql(`
   query HistoryRestoration($noteContentId: String!, $fieldName: NoteTextField!, 
@@ -109,11 +109,9 @@ export default function HistoryRestoration({
   const collabText = useNoteCollabText(fieldName);
   const { editor, id: collabTextId } = collabText.value;
 
-  useEffect(() => {
-    // TODO put sessions to context provider
-    const sessions = readSessionContext();
-    const currentUserId = sessions?.currentSession.id ?? '';
+  const currentUserId = useCurrentUserId();
 
+  useEffect(() => {
     const serverRecords = new ApolloCacheServerRecords({
       cache: apolloClient.cache,
       collabTextId,
@@ -228,6 +226,7 @@ export default function HistoryRestoration({
     fetchEntriesCount,
     triggerEntriesRemaining,
     collabTextId,
+    currentUserId,
   ]);
 
   return null;

@@ -2,21 +2,21 @@ import { IconButtonProps } from '@mui/material';
 import { useId, useState, MouseEvent } from 'react';
 
 import CloseableProvider from '../context/CloseableProvider';
-import CurrentSessionButton from './CurrentSessionButton';
+import CurrentUserButton from './CurrentUserButton';
 
-import SessionsManagementPopover, {
-  SessionsManagementPopoverProps,
-} from './SessionsManagerPopover';
+import UsersContainerPopover, {
+  UsersContainerPopoverProps,
+} from './UsersContainerPopover';
 
-interface SessionsManagementButtonProps {
+interface UserContainerPopoverButtonProps {
   buttonProps?: IconButtonProps;
-  popoverProps?: Omit<SessionsManagementPopoverProps, 'open' | 'onClose' | 'anchorEl'>;
+  popoverProps?: Omit<UsersContainerPopoverProps, 'open' | 'onClose' | 'anchorEl'>;
 }
 
-export default function SessionsManagerButton({
+export default function UserContainerPopoverButton({
   buttonProps,
   popoverProps,
-}: SessionsManagementButtonProps) {
+}: UserContainerPopoverButtonProps) {
   const buttonId = useId();
   const menuId = useId();
 
@@ -36,7 +36,7 @@ export default function SessionsManagerButton({
 
   return (
     <>
-      <CurrentSessionButton
+      <CurrentUserButton
         id={buttonId}
         aria-label="manage accounts"
         aria-controls={menuOpen ? menuId : undefined}
@@ -47,7 +47,7 @@ export default function SessionsManagerButton({
       />
 
       <CloseableProvider onClose={handleClosePopover}>
-        <SessionsManagementPopover
+        <UsersContainerPopover
           open={menuOpen}
           anchorEl={anchorEl}
           onClose={handleClosePopover}

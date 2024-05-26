@@ -1,6 +1,6 @@
 import { Toolbar, Box, IconButtonProps, ToolbarProps } from '@mui/material';
 
-import SessionsManagerButton from '../../../auth/components/SessionsManagerPopoverButton';
+import UserContainerPopoverButton from '../../../auth/components/UserContainerPopoverButton';
 
 import MenuButton from './MenuButton';
 import SettingsButton from './SettingsButton';
@@ -28,7 +28,7 @@ export default function AppBarContent({
           sx={{ mr: gapSpacing }}
         />
         <SettingsButton size={buttonSize} sx={{ mr: gapSpacing }} />
-        <SessionsManagerButton
+        <UserContainerPopoverButton
           buttonProps={{
             edge: 'end',
             size: 'medium',

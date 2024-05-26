@@ -1,12 +1,11 @@
-import { useMutation } from '@apollo/client';
+import { useApolloClient, useMutation } from '@apollo/client';
 import { useCallback } from 'react';
 
-import useSessionMutations from '../state/useSessionMutations';
-
-import useNavigateToSession from './useNavigateToSession';
+import useNavigateSwitchCurrentUser from './useNavigateSwitchCurrentUser';
 import { gql } from '../../../__generated__/gql';
 import { AuthProvider } from '../../../__generated__/graphql';
 import { useSnackbarError } from '../../common/components/SnackbarAlertProvider';
+import { addSignedInUser } from '../state/user';
 
 const SIGN_IN = gql(`
   mutation UseSignInWithGoogle($input: SignInInput!)  {
@@ -25,10 +24,24 @@ const SIGN_IN = gql(`
   }
 `);
 
+const QUERY_USER = gql(`
+  query UseSignInWithGoogleSaveUser {
+    user @client {
+      id
+      email
+      isSessionExpired
+      authProviderEntries {
+        provider
+        id
+      }
+    }
+  }
+`);
+
 export default function useSignInWithGoogle() {
+  const apolloClient = useApolloClient();
   const [signIn] = useMutation(SIGN_IN);
-  const { updateSession } = useSessionMutations();
-  const navigateToSession = useNavigateToSession();
+  const navigateSwitchCurrentUser = useNavigateSwitchCurrentUser();
 
   const showError = useSnackbarError();
 
@@ -52,31 +65,34 @@ export default function useSignInWithGoogle() {
       }
 
       const {
-        user: {
-          id: userId,
-          profile: { displayName },
-        },
+        user: { id: userId },
         authProviderUser: { id: googleId, email },
       } = data.signIn;
 
-      updateSession({
-        id: userId,
-        isExpired: false,
-        displayName,
-        email,
-        authProviderEntries: [
-          {
-            provider: AuthProvider.Google,
-            id: String(googleId),
+      apolloClient.writeQuery({
+        query: QUERY_USER,
+        data: {
+          user: {
+            __typename: 'User',
+            id: userId,
+            email,
+            isSessionExpired: false,
+            authProviderEntries: [
+              {
+                provider: AuthProvider.Google,
+                id: String(googleId),
+              },
+            ],
           },
-        ],
+        },
       });
+      addSignedInUser(apolloClient.cache, String(userId));
 
-      await navigateToSession(String(userId));
+      await navigateSwitchCurrentUser(String(userId));
 
       return true;
     },
-    [signIn, navigateToSession, updateSession, showError]
+    [signIn, navigateSwitchCurrentUser, showError, apolloClient]
   );
 
   return startSignIn;

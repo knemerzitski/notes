@@ -3,7 +3,7 @@ import { List, ListItem, ListProps } from '@mui/material';
 import { useCloseable } from '../context/CloseableProvider';
 
 import GoogleLogin from './GoogleLogin';
-import { ClientSession, AuthProvider } from '../../../__generated__/graphql';
+import { AuthProvider, User } from '../../../__generated__/graphql';
 
 export interface LoginListProps extends ListProps {
   onSuccess?: () => void;
@@ -11,13 +11,13 @@ export interface LoginListProps extends ListProps {
   /**
    * Hint which session is being logged into.
    */
-  sessionHint?: ClientSession;
+  userHint?: Pick<User, 'authProviderEntries'>;
 }
 
 export default function LoginList({
   onSuccess,
   onError,
-  sessionHint,
+  userHint,
   ...restProps
 }: LoginListProps) {
   const close = useCloseable();
@@ -32,7 +32,7 @@ export default function LoginList({
     close();
   }
 
-  const googleEntry = sessionHint?.authProviderEntries.find(
+  const googleEntry = userHint?.authProviderEntries.find(
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     (entry) => entry.provider === AuthProvider.Google
   );

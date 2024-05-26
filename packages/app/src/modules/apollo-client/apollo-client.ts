@@ -14,13 +14,12 @@ import { createClient, MessageType, ConnectionInitMessage } from 'graphql-ws';
 import { CachePersistor } from 'apollo3-cache-persist';
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
 
-import { readSessionContext } from '../auth/state/persistence';
-
 import ErrorLink from './links/error-link';
 import StatsLink from './links/stats-link';
 import WaitLink from './links/wait-link';
 import typePolicies from './typePolicies';
 import { TypePersistentStorage } from './persistence';
+import { getCurrentUserId } from '../auth/hooks/useCurrentUserId';
 
 let HTTP_URL: string;
 let WS_URL: string;
@@ -72,8 +71,7 @@ export class CustomApolloClient {
     });
 
     const authLink = setContext((_request, previousContext) => {
-      const sessions = readSessionContext();
-      const currentUserId = sessions?.currentSession.id ?? '';
+      const currentUserId = getCurrentUserId(cache);
       if (!currentUserId) return previousContext;
       return {
         ...previousContext,
@@ -111,8 +109,8 @@ export class CustomApolloClient {
       retryAttempts: Infinity,
       connectionParams() {
         // Send authentication in connection init
-        const sessions = readSessionContext();
-        const currentUserId = sessions?.currentSession.id ?? '';
+        const currentUserId = getCurrentUserId(cache);
+        if (!currentUserId) return;
 
         const payload: ConnectionInitMessage['payload'] = {
           headers: {

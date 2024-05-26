@@ -1,18 +1,18 @@
 import { MenuItem } from '@mui/material';
 
-import { useSession } from '../context/SessionProvider';
+import { useUser } from '../context/UserProvider';
 import useSignOut from '../hooks/useSignOut';
 
 export default function SignOutMenuItem() {
   const signOut = useSignOut();
-  const session = useSession();
+  const user = useUser();
 
-  if (session.isExpired) return null;
+  if (user.isSessionExpired) return null;
 
   return (
     <MenuItem
       onClick={() => {
-        void signOut(session);
+        void signOut(String(user.id));
       }}
     >
       Sign out

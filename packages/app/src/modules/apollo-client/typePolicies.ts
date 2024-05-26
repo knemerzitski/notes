@@ -2,9 +2,9 @@ import { TypePolicies } from '@apollo/client';
 
 import logFieldRead from './utils/logFieldRead';
 import mergeTypePolicies from './utils/mergeTypePolicies';
-import { collabTextPolicies } from '../collab/policies';
+import collabTextPolicies from '../collab/policies';
 import preferencesPolicies from '../preferences/policies';
-import sessionPolicies from '../auth/state/policies';
+import authPolicies from '../auth/policies';
 import basePolicies from '../global/policies';
 import notePolicies from '../note/policies';
 import noteLocalPolicies from '../note-local/policies';
@@ -15,12 +15,14 @@ const LOG_READ = false;
  * Define all type policies here
  */
 const allTypePolicies: TypePolicies[] = [
+  basePolicies,
+  preferencesPolicies,
+
+  authPolicies,
+
   notePolicies,
   collabTextPolicies,
 
-  basePolicies,
-  preferencesPolicies,
-  sessionPolicies,
   noteLocalPolicies,
 ];
 

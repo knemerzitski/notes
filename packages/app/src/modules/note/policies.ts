@@ -4,8 +4,8 @@ import { relayStylePagination } from '@apollo/client/utilities';
 import { allActiveNotes as Query_allActiveNotes } from './policies/Query/allActiveNotes';
 import { note as Query_note } from './policies/Query/note';
 import { id as Note_id } from './policies/Note/id';
-import { textFields as Note_textFields } from './policies/Note/textFields';
 import { isOwner as Note_isOwner } from './policies/Note/isOwner';
+import { fieldArrayToMap } from '../apollo-client/utils/fieldArrayToMap';
 
 const notePolicies: TypePolicies = {
   Query: {
@@ -21,7 +21,9 @@ const notePolicies: TypePolicies = {
   Note: {
     fields: {
       id: Note_id,
-      textFields: Note_textFields,
+      textFields: fieldArrayToMap('key', {
+        argName: 'name',
+      }),
       isOwner: Note_isOwner,
     },
   },

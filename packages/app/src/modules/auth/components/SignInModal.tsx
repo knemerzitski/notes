@@ -8,9 +8,8 @@ import {
   DialogTitle,
 } from '@mui/material';
 
-import { ClientSession } from '../../__generated__/graphql';
-
 import LoginList from './LoginList';
+import { User } from '../../../__generated__/graphql';
 
 type SignInResult = 'success' | 'error' | 'canceled';
 
@@ -18,14 +17,14 @@ export interface SignInModalProps {
   /**
    * Hint which session is being logged into.
    */
-  sessionHint?: ClientSession;
+  userHint?: Pick<User, 'isSessionExpired' | 'email' | 'authProviderEntries'>;
   open: boolean;
   onClose?: (result: SignInResult) => void;
   dialogProps?: Omit<DialogProps, 'open' | 'onClose'>;
 }
 
 export default function SignInModal({
-  sessionHint,
+  userHint,
   open,
   onClose,
   dialogProps,
@@ -35,9 +34,9 @@ export default function SignInModal({
       <Dialog open={open} onClose={() => onClose?.('canceled')} {...dialogProps}>
         <DialogTitle>Sign In</DialogTitle>
         <DialogContent>
-          {sessionHint?.isExpired && (
+          {userHint?.isSessionExpired && (
             <DialogContentText>
-              <i>{sessionHint.email}</i>
+              <i>{userHint.email}</i>
               <br />
               Session has expired. Sign in to continue.
             </DialogContentText>
@@ -45,7 +44,7 @@ export default function SignInModal({
           <LoginList
             onSuccess={() => onClose?.('success')}
             onError={() => onClose?.('error')}
-            sessionHint={sessionHint}
+            userHint={userHint}
           />
         </DialogContent>
         <DialogActions>

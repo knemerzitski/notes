@@ -4,15 +4,15 @@ import { useId, useState, MouseEvent, ReactNode } from 'react';
 
 import CloseableProvider from '../context/CloseableProvider';
 
-interface SessionMoreOptionsButtonProps extends IconButtonProps {
+interface UserMoreOptionsButtonProps {
   children: ReactNode;
   iconButtonProps?: IconButtonProps;
 }
 
-export default function SessionMoreOptionsButton({
+export default function UserMoreOptionsButton({
   children,
   iconButtonProps,
-}: SessionMoreOptionsButtonProps) {
+}: UserMoreOptionsButtonProps) {
   const buttonId = useId();
   const menuId = useId();
 

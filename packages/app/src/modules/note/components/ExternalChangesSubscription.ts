@@ -5,6 +5,7 @@ import { gql } from '../../../__generated__/gql';
 import { collabTextRecordToEditorRevisionRecord } from '../../collab/editor-graphql-adapter';
 import { getCollabEditorMaybe } from '../../collab/hooks/useCollabEditor';
 import { useNoteContentIdMaybe } from '../context/NoteContentIdProvider';
+import useCurrentUserId from '../../auth/hooks/useCurrentUserId';
 
 export const SUBSCRIPTION = gql(`
   subscription ExternalChangesNewRecord($input: NoteUpdatedInput) {
@@ -67,9 +68,11 @@ const FRAGMENT_RECORDS = gql(`
  */
 export default function ExternalChangesSubscription() {
   const apolloClient = useApolloClient();
+  const currentUserId = useCurrentUserId();
   const noteContentId = useNoteContentIdMaybe();
 
   useEffect(() => {
+    if (!currentUserId) return;
     const observable = apolloClient.subscribe({
       query: SUBSCRIPTION,
       variables: noteContentId
@@ -116,7 +119,7 @@ export default function ExternalChangesSubscription() {
     return () => {
       sub.unsubscribe();
     };
-  }, [apolloClient, noteContentId]);
+  }, [apolloClient, noteContentId, currentUserId]);
 
   return null;
 }

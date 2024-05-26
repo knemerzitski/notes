@@ -1,4 +1,3 @@
-import { useSuspenseQuery } from '@apollo/client';
 import FolderIcon from '@mui/icons-material/Folder';
 import {
   Box,
@@ -13,24 +12,16 @@ import {
   useProxyIsPathname,
   useProxyNavigate,
 } from '../../../router/context/ProxyRoutesProvider';
-import { gql } from '../../../../__generated__/gql';
 import useIsMobile from '../../../common/hooks/useIsMobile';
 import { useDrawerExpanded } from '../../../common/components/Drawer';
+import useIsSignedIn from '../../../auth/hooks/useIsSignedIn';
 
 interface DrawerContentProps extends BoxProps {
   onClose: () => void;
 }
 
-const QUERY = gql(`
-  query DrawerContent {
-    isSignedIn @client
-  }
-`);
-
 export function DrawerContent({ onClose, ...restProps }: DrawerContentProps) {
-  const {
-    data: { isSignedIn },
-  } = useSuspenseQuery(QUERY);
+  const isSignedIn = useIsSignedIn();
 
   const isMobile = useIsMobile();
   const expanded = useDrawerExpanded();

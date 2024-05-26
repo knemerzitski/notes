@@ -95,20 +95,10 @@ export default function FetchMissingRecords({ fieldName }: FetchMissingRecordsPr
         if (!textField) return;
         const editorIsOutdated = editor.headRevision < textField.headText.revision;
         if (editorIsOutdated) {
-          console.log(
-            'found outdated editor',
-            editor.headRevision,
-            textField.headText.revision
-          );
           if (!editor.haveChanges()) {
-            console.log('replaceHeadText');
             // No changes, just replace headText
             editor.replaceHeadText(RevisionChangeset.parseValue(textField.headText));
           } else {
-            console.log('query records', {
-              after: editor.headRevision,
-              first: textField.headText.revision - editor.headRevision,
-            });
             // Have local/submitted changes, query for records and handle them as external changes
             void apolloClient
               .query({
@@ -121,7 +111,7 @@ export default function FetchMissingRecords({ fieldName }: FetchMissingRecordsPr
                 },
               })
               .then(({ data }) => {
-                data.note.textFields?.forEach(({ key, value }) => {
+                data.note.textFields.forEach(({ key, value }) => {
                   if (key !== fieldName) return;
                   value.recordsConnection.records.forEach((record) => {
                     if (!record) return;

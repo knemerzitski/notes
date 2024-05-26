@@ -5,6 +5,7 @@ import { gql } from '../../../__generated__/gql';
 import { useNoteContentIdMaybe } from '../context/NoteContentIdProvider';
 import useNoteByContentId from '../hooks/useNoteByContentId';
 import { removeActiveNotes } from '../active-notes';
+import useCurrentUserId from '../../auth/hooks/useCurrentUserId';
 
 export const SUBSCRIPTION = gql(`
   subscription NoteDeleted($input: NoteDeletedInput) {
@@ -20,11 +21,14 @@ export const SUBSCRIPTION = gql(`
  */
 export default function NoteDeletedSubscription() {
   const apolloClient = useApolloClient();
+  const currentUserId = useCurrentUserId();
+
   const noteContentId = useNoteContentIdMaybe();
 
   const noteContentIdToId = useNoteByContentId();
 
   useEffect(() => {
+    if (!currentUserId) return;
     const observable = apolloClient.subscribe({
       query: SUBSCRIPTION,
       variables: noteContentId
@@ -57,7 +61,7 @@ export default function NoteDeletedSubscription() {
     return () => {
       sub.unsubscribe();
     };
-  }, [apolloClient, noteContentId, noteContentIdToId]);
+  }, [apolloClient, noteContentId, noteContentIdToId, currentUserId]);
 
   return null;
 }

@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 
 import { useApolloClient } from '@apollo/client';
 import { gql } from '../../../__generated__/gql';
+import useCurrentUserId from '../../auth/hooks/useCurrentUserId';
 
 export const SUBSCRIPTION = gql(`
   subscription NoteCreated {
@@ -52,8 +53,11 @@ const QUERY_UPDATE = gql(`
  */
 export default function NoteCreatedSubscription() {
   const apolloClient = useApolloClient();
+  const currentUserId = useCurrentUserId();
 
   useEffect(() => {
+    if (!currentUserId) return;
+
     const observable = apolloClient.subscribe({
       query: SUBSCRIPTION,
     });
@@ -97,7 +101,7 @@ export default function NoteCreatedSubscription() {
     return () => {
       sub.unsubscribe();
     };
-  }, [apolloClient]);
+  }, [apolloClient, currentUserId]);
 
   return null;
 }

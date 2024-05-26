@@ -7,12 +7,12 @@ const CloseableContext = createContext<() => void>(() => {});
 export function useCloseable() {
   return useContext(CloseableContext);
 }
-interface SessionProviderProps {
+interface CloseableProviderProps {
   onClose: () => void;
   children: ReactNode;
 }
 
-export default function CloseableProvider({ onClose, children }: SessionProviderProps) {
+export default function CloseableProvider({ onClose, children }: CloseableProviderProps) {
   return (
     <CloseableContext.Provider value={onClose}>{children}</CloseableContext.Provider>
   );

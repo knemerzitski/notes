@@ -1,19 +1,19 @@
 import CloseIcon from '@mui/icons-material/Close';
 import { Popover, IconButton, PopoverProps } from '@mui/material';
 
-import SessionsManager from './SessionsManager';
+import UsersContainer from './UsersContainer';
 
-export interface SessionsManagementPopoverProps
+export interface UsersContainerPopoverProps
   extends Omit<PopoverProps, 'open' | 'onClose'> {
   open: boolean;
   onClose?: () => void;
 }
 
-export default function SessionsManagementPopover({
+export default function UsersContainerPopover({
   open,
   onClose,
   ...restProps
-}: SessionsManagementPopoverProps) {
+}: UsersContainerPopoverProps) {
   return (
     <Popover
       open={open}
@@ -40,14 +40,13 @@ export default function SessionsManagementPopover({
         sx={(theme) => ({
           position: 'absolute',
           right: theme.spacing(1),
-          // TODO check spacing with just value?
           top: theme.spacing(1),
         })}
       >
         <CloseIcon />
       </IconButton>
 
-      <SessionsManager />
+      <UsersContainer />
     </Popover>
   );
 }
