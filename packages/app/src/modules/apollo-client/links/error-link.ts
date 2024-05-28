@@ -28,13 +28,13 @@ interface ErrorLinkOptions {
 
 export default class ErrorLink extends ApolloLink {
   private handlers = new Set<Handler>();
-  private ignroeCodes: GraphQLErrorCode[];
+  private ignoreCodes: GraphQLErrorCode[];
 
   static IGNORE_CONTEXT_KEY = 'handleErrorCodes';
 
   constructor(options?: ErrorLinkOptions) {
     super();
-    this.ignroeCodes = options?.ignoreCodes ?? [];
+    this.ignoreCodes = options?.ignoreCodes ?? [];
   }
 
   /**
@@ -96,7 +96,7 @@ export default class ErrorLink extends ApolloLink {
   ): Promise<boolean> {
     const ctxHandleCodes: unknown = ctx[ErrorLink.IGNORE_CONTEXT_KEY];
     const ignoreCodes = [
-      ...this.ignroeCodes,
+      ...this.ignoreCodes,
       ...(Array.isArray(ctxHandleCodes) ? (ctxHandleCodes as GraphQLErrorCode[]) : []),
     ];
     const code = firstError.extensions.code;
