@@ -17,9 +17,16 @@ import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import ErrorLink from './links/error-link';
 import StatsLink from './links/stats-link';
 import WaitLink from './links/wait-link';
-import typePolicies from './typePolicies';
-import { TypePersistentStorage } from './persistence';
-import { getCurrentUserId } from '../auth/hooks/useCurrentUserId';
+import { typePolicies } from './policies';
+import { TypePersistentStorage } from './policy/persist';
+import {
+  EvictOptions,
+  EvictTag,
+  TypePoliciesEvictor as TypePoliciesEvictor,
+} from './policy/evict';
+import { LocalStoragePrefix, localStorageKey } from '../storage/local-storage';
+import { getCurrentUserId, withDifferentUserIdInStorage } from '../auth/user';
+import { KeyArguments } from './key-args';
 
 let HTTP_URL: string;
 let WS_URL: string;
@@ -40,10 +47,11 @@ const cache = new InMemoryCache({
 
 const persistor = new CachePersistor({
   cache,
+  key: localStorageKey(LocalStoragePrefix.Apollo, 'cache'),
   storage: new TypePersistentStorage({
     storage: window.localStorage,
     serialize: (value) => JSON.stringify(value),
-    typePersistors: typePolicies,
+    typePolicies,
   }),
 });
 
@@ -57,6 +65,7 @@ interface CustomApolloClientParams {
 export class CustomApolloClient {
   readonly client: ApolloClient<NormalizedCacheObject>;
   readonly persistor: CachePersistor<NormalizedCacheObject>;
+  readonly evictor: TypePoliciesEvictor<NormalizedCacheObject>;
 
   readonly statsLink: StatsLink;
   readonly errorLink: ErrorLink;
@@ -66,6 +75,12 @@ export class CustomApolloClient {
 
   constructor({ cache, persistor }: CustomApolloClientParams) {
     this.persistor = persistor;
+
+    this.evictor = new TypePoliciesEvictor({
+      cache,
+      typePolicies,
+    });
+
     const httpLink = new HttpLink({
       uri: HTTP_URL,
     });
@@ -184,6 +199,29 @@ export class CustomApolloClient {
 
     this.statsLink = statsLink;
     this.errorLink = errorLink;
+  }
+
+  evictUserSpecific(
+    userId: string | undefined,
+    options?: EvictOptions<NormalizedCacheObject>
+  ) {
+    withDifferentUserIdInStorage(userId, () => {
+      const args: Record<string, unknown[]> = userId
+        ? {
+            [KeyArguments.UserId]: [userId],
+          }
+        : {};
+
+      customApolloClient.evictor.evict({
+        cache: this.client.cache,
+        tag: EvictTag.UserSpecific,
+        ...options,
+        args: {
+          ...args,
+          ...options?.args,
+        },
+      });
+    });
   }
 }
 

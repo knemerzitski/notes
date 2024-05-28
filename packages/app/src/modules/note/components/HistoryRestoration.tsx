@@ -9,7 +9,7 @@ import { RevisionChangeset } from '~collab/records/record';
 import { useNoteCollabText } from '../context/NoteContentIdToCollabTextsProvider';
 import { UserRecords, ServerRecordsFacade } from '~collab/client/user-records';
 import { EditorRevisionRecord } from '~collab/client/collab-editor';
-import useCurrentUserId from '../../auth/hooks/useCurrentUserId';
+import { useCurrentUserId } from '../../auth/user';
 
 const QUERY = gql(`
   query HistoryRestoration($noteContentId: String!, $fieldName: NoteTextField!, 

@@ -1,5 +1,8 @@
 import { TypePolicies } from '@apollo/client';
-import { TypePersistors } from '../persistence';
+import { PersistTypePolicies } from '../policy/persist';
+import { EvictTypePolicies } from '../policy/evict';
+
+type AllTypePolicies = TypePolicies & PersistTypePolicies & EvictTypePolicies;
 
 /**
  *
@@ -7,9 +10,9 @@ import { TypePersistors } from '../persistence';
  * @returns Merged policies by concatenating fields
  */
 export default function mergeTypePolicies(
-  allPolicies: (TypePolicies & TypePersistors)[]
-): TypePolicies & TypePersistors {
-  const result: TypePolicies & TypePersistors = {};
+  allPolicies: AllTypePolicies[]
+): AllTypePolicies {
+  const result: AllTypePolicies = {};
 
   for (const policies of allPolicies) {
     for (const [type, policy] of Object.entries(policies)) {

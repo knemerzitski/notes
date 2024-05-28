@@ -1,5 +1,28 @@
 import { PersistentStorage } from 'apollo3-cache-persist';
-import { Scalars } from '../../__generated__/graphql';
+import { Scalars } from '../../../__generated__/graphql';
+
+export type PersistTypePolicies = Record<string, { persist?: PersistTypePolicy }>;
+
+export interface PersistTypePolicy<
+  T extends { id: Scalars['ID']['output']; __typename: string } = {
+    id: Scalars['ID']['output'];
+    __typename: string;
+  },
+  TSerializedValue = unknown,
+> {
+  getCacheKey?: (value: T) => string;
+
+  /**
+   * Merges type into existing before persisting.
+   */
+  writeAllAssign(): (T & TSerializedValue)[];
+
+  /**
+   * Modify {@link readValue} to match what was done in {@link writeAllAssign}.
+   * Result will be stored in cache.
+   */
+  readModify(readValue: T & Partial<TSerializedValue>): void;
+}
 
 interface NormalizedType {
   id: Scalars['ID']['output'];
@@ -27,27 +50,6 @@ function defaultGetCacheKey(value: NormalizedType) {
   return `${value.__typename}:${value.id}`;
 }
 
-interface TypePersistor<
-  T extends { id: Scalars['ID']['output']; __typename: string } = {
-    id: Scalars['ID']['output'];
-    __typename: string;
-  },
-  TSerializedValue = unknown,
-> {
-  getCacheKey?: (value: T) => string;
-
-  /**
-   * Merges type into existing before persisting.
-   */
-  writeAllAssign(): (T & TSerializedValue)[];
-
-  /**
-   * Modify {@link readValue} to match what was done in {@link writeAllAssign}.
-   * Result will be stored in cache.
-   */
-  readModify(readValue: T & Partial<TSerializedValue>): void;
-}
-
 interface TypePersistentStorageParams<T> {
   /**
    * Actual storage used after types have been processed
@@ -61,10 +63,8 @@ interface TypePersistentStorageParams<T> {
    * How to handle serialization of specific type
    * Key is __typename
    */
-  typePersistors: TypePersistors;
+  typePolicies: PersistTypePolicies;
 }
-
-export type TypePersistors = Record<string, { persist?: TypePersistor }>;
 
 export class TypePersistentStorage<T extends string> implements PersistentStorage<T> {
   private params;
@@ -74,7 +74,7 @@ export class TypePersistentStorage<T extends string> implements PersistentStorag
   }
 
   async getItem(key: string): Promise<T | null> {
-    const { storage, typePersistors: typePolicies, serialize } = this.params;
+    const { storage, typePolicies: typePolicies, serialize } = this.params;
 
     const value = await storage.getItem(key);
     if (!value) return value;
@@ -108,7 +108,7 @@ export class TypePersistentStorage<T extends string> implements PersistentStorag
   }
   // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
   setItem(key: string, value: T): void | T | Promise<void> | Promise<T> {
-    const { storage, typePersistors: typePolicies, serialize } = this.params;
+    const { storage, typePolicies, serialize } = this.params;
 
     const valueUnknown: unknown = JSON.parse(value);
     if (!valueUnknown || typeof valueUnknown !== 'object') {

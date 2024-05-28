@@ -1,10 +1,11 @@
 import { ApolloCache, Reference } from '@apollo/client';
-import { getCurrentUserId } from '../auth/hooks/useCurrentUserId';
+import { getCurrentUserId } from '../auth/user';
 
 /**
  * Access current user note by Note.contentId
  */
 const noteByContentId: Record<string, Reference> = {};
+// TODO separate per user?
 
 function getKey<TCacheShape>(cache: ApolloCache<TCacheShape>, contentId: string) {
   const userId = getCurrentUserId(cache);

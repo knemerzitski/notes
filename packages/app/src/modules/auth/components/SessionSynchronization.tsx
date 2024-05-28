@@ -12,7 +12,7 @@ import {
   useSnackbarAlert,
   useSnackbarError,
 } from '../../common/components/SnackbarAlertProvider';
-import { getCurrentUserId } from '../hooks/useCurrentUserId';
+import { getCurrentUserId } from '../user';
 
 const SYNC_SESSIONS = gql(`
   mutation SessionSynchronizationSyncSessions($input: SyncSessionCookiesInput!) {

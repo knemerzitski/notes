@@ -5,7 +5,7 @@ import useNavigateSwitchCurrentUser from './useNavigateSwitchCurrentUser';
 import { gql } from '../../../__generated__/gql';
 import { AuthProvider } from '../../../__generated__/graphql';
 import { useSnackbarError } from '../../common/components/SnackbarAlertProvider';
-import { addSignedInUser } from '../state/user';
+import { addSignedInUser, setCurrentUserIdInStorage } from '../user';
 
 const SIGN_IN = gql(`
   mutation UseSignInWithGoogle($input: SignInInput!)  {
@@ -55,6 +55,12 @@ export default function useSignInWithGoogle() {
               token: response.credential,
             },
           },
+        },
+        onCompleted(data) {
+          const id = data.signIn?.user.id;
+          if (id) {
+            setCurrentUserIdInStorage(String(id));
+          }
         },
       });
       if (!data) return false;

@@ -3,8 +3,8 @@ import { useEffect } from 'react';
 import useAddFetchResultErrorHandler from '../hooks/useAddFetchResultErrorHandler';
 import { useSnackbarError } from '../../common/components/SnackbarAlertProvider';
 import { useApolloClient } from '@apollo/client';
-import { getCurrentUserId } from '../../auth/hooks/useCurrentUserId';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+import { getCurrentUserId } from '../../auth/user';
 
 export default function ApolloClientErrorsSnackbarAlert() {
   const apolloClient = useApolloClient();

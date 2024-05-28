@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 import { useApolloClient } from '@apollo/client';
 import { gql } from '../../../__generated__/gql';
-import useCurrentUserId from '../../auth/hooks/useCurrentUserId';
+import { useCurrentUserId } from '../../auth/user';
 
 export const SUBSCRIPTION = gql(`
   subscription NoteCreated {

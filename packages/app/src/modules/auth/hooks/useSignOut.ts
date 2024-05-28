@@ -3,7 +3,8 @@ import { useCallback } from 'react';
 
 import useNavigateSwitchCurrentUser from './useNavigateSwitchCurrentUser';
 import { gql } from '../../../__generated__/gql';
-import { removeUser } from '../state/user';
+import { removeUser } from '../user';
+import { useCustomApolloClient } from '../../apollo-client/context/CustomApolloClientProvider';
 
 const SIGN_OUT = gql(`
   mutation UseSignOut($input: SignOutInput) {
@@ -14,7 +15,7 @@ const SIGN_OUT = gql(`
 `);
 
 export default function useSignOut() {
-  // const apolloClient = useApolloClient();
+  const customApolloClient = useCustomApolloClient();
   const [signOut] = useMutation(SIGN_OUT);
   const navigateSwitchCurrentUser = useNavigateSwitchCurrentUser();
 
@@ -38,6 +39,10 @@ export default function useSignOut() {
         },
         update(cache) {
           removeUser(cache, userId);
+          customApolloClient.evictUserSpecific(userId, {
+            cache,
+          });
+          cache.gc();
         },
       });
       if (!data) return false;
@@ -46,6 +51,6 @@ export default function useSignOut() {
 
       return true;
     },
-    [signOut, navigateSwitchCurrentUser]
+    [signOut, navigateSwitchCurrentUser, customApolloClient]
   );
 }

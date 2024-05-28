@@ -8,13 +8,15 @@ import authPolicies from '../auth/policies';
 import basePolicies from '../global/policies';
 import notePolicies from '../note/policies';
 import noteLocalPolicies from '../note-local/policies';
+import { EvictTypePolicies } from './policy/evict';
+import { PersistTypePolicies } from './policy/persist';
 
 const LOG_READ = false;
 
 /**
  * Define all type policies here
  */
-const allTypePolicies: TypePolicies[] = [
+const allTypePolicies: (TypePolicies & PersistTypePolicies & EvictTypePolicies)[] = [
   basePolicies,
   preferencesPolicies,
 
@@ -26,10 +28,10 @@ const allTypePolicies: TypePolicies[] = [
   noteLocalPolicies,
 ];
 
-let typePolicies = mergeTypePolicies(allTypePolicies);
+let mergedTypePolicies = mergeTypePolicies(allTypePolicies);
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 if (LOG_READ) {
-  typePolicies = logFieldRead(typePolicies);
+  mergedTypePolicies = logFieldRead(mergedTypePolicies);
 }
 
-export default typePolicies;
+export const typePolicies = mergedTypePolicies;

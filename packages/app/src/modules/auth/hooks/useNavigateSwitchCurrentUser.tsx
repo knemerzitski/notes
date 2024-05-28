@@ -14,8 +14,7 @@ import { useCustomApolloClient } from '../../apollo-client/context/CustomApolloC
 import { gql } from '../../../__generated__/gql';
 import joinPathnames from '../../common/utils/joinPathnames';
 import { useLocationPrefix } from '../../router/context/LocationPrefixProvider';
-import { setCurrentSignedInUser } from '../state/user';
-import { getCurrentUserId } from './useCurrentUserId';
+import { getCurrentUserId, setCurrentSignedInUser } from '../user';
 
 const QUERY = gql(`
   query NavigateSwitchCurrentUserProvider {
@@ -130,18 +129,9 @@ export function NavigateSwitchCurrentUserProvider({ children }: { children: Reac
           }
         }
 
-        // Reset store if user changed
+        // Restart WebSocket and refetch queries on user change
         if (newUserId !== targetUserId) {
           customApolloClient.restartSubscriptionClient();
-          apolloClient.cache.evict({
-            id: 'ROOT_QUERY',
-            fieldName: 'notesConnection',
-          });
-          apolloClient.cache.evict({
-            id: 'ROOT_QUERY',
-            fieldName: 'user',
-          });
-          apolloClient.cache.gc();
           await apolloClient.reFetchObservableQueries();
         }
       } finally {

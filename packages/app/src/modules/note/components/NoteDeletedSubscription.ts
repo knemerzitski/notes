@@ -5,7 +5,7 @@ import { gql } from '../../../__generated__/gql';
 import { useNoteContentIdMaybe } from '../context/NoteContentIdProvider';
 import useNoteByContentId from '../hooks/useNoteByContentId';
 import { removeActiveNotes } from '../active-notes';
-import useCurrentUserId from '../../auth/hooks/useCurrentUserId';
+import { useCurrentUserId } from '../../auth/user';
 
 export const SUBSCRIPTION = gql(`
   subscription NoteDeleted($input: NoteDeletedInput) {

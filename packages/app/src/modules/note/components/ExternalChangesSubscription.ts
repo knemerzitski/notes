@@ -5,7 +5,7 @@ import { gql } from '../../../__generated__/gql';
 import { collabTextRecordToEditorRevisionRecord } from '../../collab/editor-graphql-adapter';
 import { getCollabEditorMaybe } from '../../collab/hooks/useCollabEditor';
 import { useNoteContentIdMaybe } from '../context/NoteContentIdProvider';
-import useCurrentUserId from '../../auth/hooks/useCurrentUserId';
+import { useCurrentUserId } from '../../auth/user';
 
 export const SUBSCRIPTION = gql(`
   subscription ExternalChangesNewRecord($input: NoteUpdatedInput) {

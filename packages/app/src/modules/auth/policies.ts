@@ -1,10 +1,22 @@
 import { TypePolicies } from '@apollo/client';
 
 import { fieldArrayToMap } from '../apollo-client/utils/fieldArrayToMap';
+import customKeyArgsFn from '../apollo-client/utils/customKeyArgsFn';
+import { getCurrentUserIdInStorage } from './user';
+import { KeyArguments } from '../apollo-client/key-args';
+import { EvictTag, EvictTypePolicies } from '../apollo-client/policy/evict';
 
-const sessionPolicies: TypePolicies = {
+const sessionPolicies: TypePolicies & EvictTypePolicies = {
   Query: {
     fields: {
+      user: {
+        evictTag: EvictTag.UserSpecific,
+        keyArgs: customKeyArgsFn({
+          customArgsFnMap: {
+            [KeyArguments.UserId]: () => getCurrentUserIdInStorage(),
+          },
+        }),
+      },
       signedInUsers(existing = []) {
         return existing;
       },
@@ -28,6 +40,9 @@ const sessionPolicies: TypePolicies = {
         merge: true,
       },
     },
+  },
+  AuthProviderUser: {
+    keyFields: false,
   },
 };
 

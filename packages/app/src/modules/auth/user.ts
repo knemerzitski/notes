@@ -1,5 +1,10 @@
-import { gql } from '../../../__generated__/gql';
-import { ApolloCache } from '@apollo/client';
+import { gql } from '../../__generated__/gql';
+import { ApolloCache, useSuspenseQuery } from '@apollo/client';
+import { localStorageKey, LocalStoragePrefix } from '../storage/local-storage';
+import { DeepPartial } from '@apollo/client/utilities';
+import { SignedInUserQuery } from '../../__generated__/graphql';
+
+const KEY = localStorageKey(LocalStoragePrefix.Auth, 'currentUserId');
 
 const QUERY = gql(`
   query SignedInUser {
@@ -22,6 +27,35 @@ const QUERY_ADD = gql(`
   }
 `);
 
+export function setCurrentUserIdInStorage(userId: string | undefined | null) {
+  if (userId) {
+    localStorage.setItem(KEY, userId);
+  } else {
+    localStorage.removeItem(KEY);
+  }
+}
+
+export function getCurrentUserIdInStorage() {
+  return localStorage.getItem(KEY);
+}
+
+export function withDifferentUserIdInStorage(
+  userId: string | undefined | null,
+  fn: () => void
+) {
+  const savedUserId = getCurrentUserIdInStorage();
+  if (savedUserId === userId) {
+    fn();
+  } else {
+    try {
+      setCurrentUserIdInStorage(userId);
+      fn();
+    } finally {
+      setCurrentUserIdInStorage(savedUserId);
+    }
+  }
+}
+
 export function addSignedInUser<TCacheShape>(
   cache: ApolloCache<TCacheShape>,
   userId: string
@@ -35,7 +69,7 @@ export function addSignedInUser<TCacheShape>(
         __typename: 'User' as const,
         id: userId,
       };
-      
+
       if (!data) {
         return {
           signedInUsers: [user],
@@ -61,7 +95,9 @@ export function setCurrentSignedInUser<TCacheShape>(
   cache: ApolloCache<TCacheShape>,
   userId: string | undefined | null
 ) {
-  return cache.updateQuery(
+  setCurrentUserIdInStorage(userId);
+
+  const result = cache.updateQuery(
     {
       query: QUERY,
       overwrite: true,
@@ -77,6 +113,12 @@ export function setCurrentSignedInUser<TCacheShape>(
       };
     }
   );
+
+  // Sanity check to match cache value
+  const newUserId = result?.currentSignedInUser?.id;
+  setCurrentUserIdInStorage(newUserId ? String(newUserId) : null);
+
+  return result;
 }
 
 /**
@@ -107,8 +149,7 @@ export function removeUser<TCacheShape>(
       let newCurrentSignedInUser = data.currentSignedInUser;
       if (data.currentSignedInUser?.id === userId) {
         newCurrentSignedInUser =
-          newSignedInUsers?.find((user) => !user?.isSessionExpired) ??
-          newSignedInUsers?.[0];
+          newSignedInUsers.find((user) => !user.isSessionExpired) ?? newSignedInUsers[0];
       }
 
       return {
@@ -129,4 +170,35 @@ export function removeUser<TCacheShape>(
   }
 
   return result;
+}
+
+export function useCurrentUserId(): string | undefined {
+  const { data } = useSuspenseQuery(QUERY, {
+    returnPartialData: true,
+  });
+  return findAvailableUserId(data);
+}
+
+export function getCurrentUserId<TCacheShape>(
+  cache: ApolloCache<TCacheShape>
+): string | undefined {
+  const data = cache.readQuery({
+    query: QUERY,
+    returnPartialData: true,
+  });
+  if (!data) return;
+  return findAvailableUserId(data);
+}
+
+function findAvailableUserId(data: DeepPartial<SignedInUserQuery>) {
+  let currentId = data.currentSignedInUser?.id;
+  if (!currentId) {
+    const firstUser =
+      data.signedInUsers?.find((user) => !user?.isSessionExpired) ??
+      data.signedInUsers?.[0];
+    if (firstUser) {
+      currentId = firstUser.id;
+    }
+  }
+  return currentId ? String(currentId) : undefined;
 }
