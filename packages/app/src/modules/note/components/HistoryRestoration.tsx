@@ -123,8 +123,6 @@ export default function HistoryRestoration({
     });
     editor.setUserRecords(userRecords);
 
-    // TODO ask for any records right before headRevision not just from oldest..
-
     const editorUnsubscribe = editor.eventBus.onMany(
       ['appliedUndo', 'replacedHeadText'],
       () => {
