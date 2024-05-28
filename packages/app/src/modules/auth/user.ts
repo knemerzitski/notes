@@ -129,20 +129,28 @@ export function removeUser<TCacheShape>(
   cache: ApolloCache<TCacheShape>,
   userId?: string | null
 ) {
+  const removedUsers: { id: string }[] = [];
+  if (userId) {
+    removedUsers.push({
+      id: userId,
+    });
+  }
+
   const result = cache.updateQuery(
     {
       query: QUERY,
       overwrite: true,
     },
     (data) => {
+      if (!data) return;
+
       if (!userId) {
+        removedUsers.push(...data.signedInUsers.map(({ id }) => ({ id: String(id) })));
         return {
           signedInUsers: [],
           currentSignedInUser: null,
         };
       }
-
-      if (!data) return;
 
       const newSignedInUsers = data.signedInUsers.filter(({ id }) => id !== userId);
 
@@ -159,15 +167,14 @@ export function removeUser<TCacheShape>(
     }
   );
 
-  if (userId) {
+  removedUsers.forEach(({ id }) => {
     cache.evict({
       id: cache.identify({
         __typename: 'User',
-        id: userId,
+        id,
       }),
     });
-    cache.gc();
-  }
+  });
 
   return result;
 }
