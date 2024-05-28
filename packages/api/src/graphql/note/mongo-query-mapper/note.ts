@@ -42,7 +42,7 @@ export class NoteQueryMapper implements NoteMapper {
   }
 
   textFields(args?: NotetextFieldsArgs) {
-    const fields = args?.name ? [args?.name] : Object.values(NoteTextField);
+    const fields = args?.name ? [args.name] : Object.values(NoteTextField);
     return fields.map((field) => {
       return {
         key: () => {
