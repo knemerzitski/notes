@@ -4,10 +4,10 @@ import useCreateNote from './useCreateNote';
 import isDefined from '~utils/type-guards/isDefined';
 import { useApolloClient } from '@apollo/client';
 import { NoteTextField } from '../../../__generated__/graphql';
-import { editorsWithVars } from '../../collab/editors-by-id';
+import { editorsWithVars } from '../../collab/editors';
 import { addActiveNotes } from '../active-notes';
 import { NoteCollabTextEditors } from '../context/NoteTextFieldEditorsProvider';
-import { collabTextRecordToEditorRevisionRecord } from '../../collab/editor-graphql-adapter';
+import { collabTextRecordToEditorRevisionRecord } from '../../collab/editor-graphql-mapping';
 
 function newEmptyEditors(): NoteCollabTextEditors {
   return [

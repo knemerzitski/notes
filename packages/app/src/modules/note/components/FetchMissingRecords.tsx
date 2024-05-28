@@ -5,7 +5,7 @@ import { useNoteContentId } from '../context/NoteContentIdProvider';
 import { NoteTextField } from '../../../__generated__/graphql';
 import { useNoteTextFieldEditor } from '../context/NoteTextFieldEditorsProvider';
 import { RevisionChangeset } from '~collab/records/record';
-import { collabTextRecordToEditorRevisionRecord } from '../../collab/editor-graphql-adapter';
+import { collabTextRecordToEditorRevisionRecord } from '../../collab/editor-graphql-mapping';
 
 const QUERY_WATCH = gql(`
   query FetchMissingRecordsWatch($noteContentId: String!, $fieldName: NoteTextField!){

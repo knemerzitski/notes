@@ -1,6 +1,6 @@
 import { ApolloClient, useFragment } from '@apollo/client';
 import { CollabEditor } from '~collab/client/collab-editor';
-import { editorsWithVars } from '../editors-by-id';
+import { editorsWithVars } from '../editors';
 import { gql } from '../../../__generated__/gql';
 
 export const FRAGMENT = gql(`

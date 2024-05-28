@@ -4,7 +4,7 @@ import { NoteTextField } from '../../../__generated__/graphql';
 import { useNoteContentId } from '../context/NoteContentIdProvider';
 import { ApolloCache, useApolloClient } from '@apollo/client';
 import isDefined from '~utils/type-guards/isDefined';
-import { collabTextRecordToEditorRevisionRecord } from '../../collab/editor-graphql-adapter';
+import { collabTextRecordToEditorRevisionRecord } from '../../collab/editor-graphql-mapping';
 import { RevisionChangeset } from '~collab/records/record';
 import { useNoteCollabText } from '../context/NoteContentIdToCollabTextsProvider';
 import { UserRecords, ServerRecordsFacade } from '~collab/client/user-records';

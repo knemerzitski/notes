@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 import { useApolloClient } from '@apollo/client';
 import { gql } from '../../../__generated__/gql';
-import { collabTextRecordToEditorRevisionRecord } from '../../collab/editor-graphql-adapter';
+import { collabTextRecordToEditorRevisionRecord } from '../../collab/editor-graphql-mapping';
 import { getCollabEditorMaybe } from '../../collab/hooks/useCollabEditor';
 import { useNoteContentIdMaybe } from '../context/NoteContentIdProvider';
 import { useCurrentUserId } from '../../auth/user';

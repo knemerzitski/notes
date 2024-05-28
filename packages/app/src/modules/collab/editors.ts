@@ -2,13 +2,11 @@ import { FieldFunctionOptions, makeVar } from '@apollo/client';
 import { CollabEditor } from '~collab/client/collab-editor';
 import { RevisionChangeset, SerializedRevisionChangeset } from '~collab/records/record';
 
-type EditorId = string;
-
 /**
  * Editors by CollabText.id
  */
 const editorsWithVarsMap = new Map<
-  EditorId,
+  string,
   { editor: CollabEditor; vars: ReturnType<typeof createEditorReactiveVars> }
 >();
 
@@ -16,7 +14,7 @@ const all = () => {
   return editorsWithVarsMap;
 };
 
-const set = (id: EditorId, editor: CollabEditor) => {
+const set = (id: string, editor: CollabEditor) => {
   const existing = editorsWithVarsMap.get(id);
   if (existing && existing.editor !== editor) {
     existing.vars.cleanUp();
@@ -24,12 +22,12 @@ const set = (id: EditorId, editor: CollabEditor) => {
   editorsWithVarsMap.set(id, { editor, vars: createEditorReactiveVars(editor) });
 };
 
-const get = (id: EditorId) => {
+const get = (id: string) => {
   return editorsWithVarsMap.get(id);
 };
 
 const getOrCreate = (
-  id: EditorId,
+  id: string,
   getHeadText: () => SerializedRevisionChangeset | RevisionChangeset | undefined
 ) => {
   const existingContext = editorsWithVarsMap.get(id);
@@ -63,7 +61,7 @@ function getOrCreateOrFail(
   return editorContext;
 }
 
-const _delete = (id: EditorId) => {
+const _delete = (id: string) => {
   const editorContext = editorsWithVarsMap.get(id);
   if (editorContext) {
     editorsWithVarsMap.delete(id);

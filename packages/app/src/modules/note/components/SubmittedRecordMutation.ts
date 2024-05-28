@@ -5,7 +5,7 @@ import { SubmittedRecord } from '~collab/client/submitted-record';
 import {
   collabTextRecordToEditorRevisionRecord,
   submittedRecordToCollabTextRecordInput,
-} from '../../collab/editor-graphql-adapter';
+} from '../../collab/editor-graphql-mapping';
 import { useNoteContentId } from '../context/NoteContentIdProvider';
 import { useNoteTextFieldEditor } from '../context/NoteTextFieldEditorsProvider';
 import { gql } from '../../../__generated__/gql';
