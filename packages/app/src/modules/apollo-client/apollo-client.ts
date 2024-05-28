@@ -27,6 +27,7 @@ import {
 import { LocalStoragePrefix, localStorageKey } from '../storage/local-storage';
 import { getCurrentUserId, withDifferentUserIdInStorage } from '../auth/user';
 import { KeyArguments } from './key-args';
+import TypeLink from './links/type-link';
 
 let HTTP_URL: string;
 let WS_URL: string;
@@ -78,6 +79,10 @@ export class CustomApolloClient {
 
     this.evictor = new TypePoliciesEvictor({
       cache,
+      typePolicies,
+    });
+
+    const typeLink = new TypeLink({
       typePolicies,
     });
 
@@ -191,7 +196,11 @@ export class CustomApolloClient {
     });
 
     const apolloClient = new ApolloClient({
-      link: statsLink.concat(waitLink).concat(errorLink).concat(httpWsSplitLink),
+      link: typeLink
+        .concat(statsLink)
+        .concat(waitLink)
+        .concat(errorLink)
+        .concat(httpWsSplitLink),
       cache,
     });
 

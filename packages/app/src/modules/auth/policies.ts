@@ -10,7 +10,9 @@ const sessionPolicies: TypePolicies & EvictTypePolicies = {
   Query: {
     fields: {
       user: {
-        evictTag: EvictTag.UserSpecific,
+        evict: {
+          tag: EvictTag.UserSpecific,
+        },
         keyArgs: customKeyArgsFn({
           customArgsFnMap: {
             [KeyArguments.UserId]: () => getCurrentUserIdInStorage(),

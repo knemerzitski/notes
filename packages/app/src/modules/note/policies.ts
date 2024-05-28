@@ -1,4 +1,4 @@
-import { TypePolicies } from '@apollo/client';
+import { NormalizedCacheObject, TypePolicies } from '@apollo/client';
 import { relayStylePagination } from '@apollo/client/utilities';
 import { allActiveNotes as Query_allActiveNotes } from './policies/Query/allActiveNotes';
 import { note as Query_note } from './policies/Query/note';
@@ -9,14 +9,20 @@ import customKeyArgsFn from '../apollo-client/utils/customKeyArgsFn';
 import { EvictTag, EvictTypePolicies } from '../apollo-client/policy/evict';
 import { getCurrentUserIdInStorage } from '../auth/user';
 import { KeyArguments } from '../apollo-client/key-args';
+import { LinkTypePolicies } from '../apollo-client/links/type-link';
+import { link as Note_link } from './policies/Note/link';
 
-const notePolicies: TypePolicies & EvictTypePolicies = {
+const notePolicies: TypePolicies &
+  EvictTypePolicies &
+  LinkTypePolicies<NormalizedCacheObject> = {
   Query: {
     fields: {
       allActiveNotes: Query_allActiveNotes,
       note: Query_note,
       notesConnection: {
-        evictTag: EvictTag.UserSpecific,
+        evict: {
+          tag: EvictTag.UserSpecific,
+        },
         ...relayStylePagination(
           customKeyArgsFn({
             customArgsFnMap: {
@@ -38,6 +44,7 @@ const notePolicies: TypePolicies & EvictTypePolicies = {
       }),
       isOwner: Note_isOwner,
     },
+    link: Note_link,
   },
   NotePatch: {
     keyFields: false,

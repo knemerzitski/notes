@@ -4,7 +4,7 @@ import { TypePolicies } from '@apollo/client';
 import { PersistTypePolicies } from '../apollo-client/policy/persist';
 import { CollabEditor } from '~collab/client/collab-editor';
 import { CollabText } from '../../__generated__/graphql';
-import { editorsWithVars } from './editors-by-id';
+import { editorsWithVars } from './editors';
 import { textAtRevision as CollabText_textAtRevision } from './policies/CollabText/textAtRevision';
 import { recordsConnection as CollabText_recordsConnection } from './policies/CollabText/recordsConnection';
 

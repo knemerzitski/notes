@@ -1,7 +1,7 @@
 import { PersistentStorage } from 'apollo3-cache-persist';
 import { Scalars } from '../../../__generated__/graphql';
 
-export type PersistTypePolicies = Record<string, { persist?: PersistTypePolicy }>;
+export type PersistTypePolicies = Record<string, PersistTypePolicy>;
 
 export interface PersistTypePolicy<
   T extends { id: Scalars['ID']['output']; __typename: string } = {
@@ -10,18 +10,20 @@ export interface PersistTypePolicy<
   },
   TSerializedValue = unknown,
 > {
-  getCacheKey?: (value: T) => string;
+  persist?: {
+    getCacheKey?: (value: T) => string;
 
-  /**
-   * Merges type into existing before persisting.
-   */
-  writeAllAssign(): (T & TSerializedValue)[];
+    /**
+     * Merges type into existing before persisting.
+     */
+    writeAllAssign(): (T & TSerializedValue)[];
 
-  /**
-   * Modify {@link readValue} to match what was done in {@link writeAllAssign}.
-   * Result will be stored in cache.
-   */
-  readModify(readValue: T & Partial<TSerializedValue>): void;
+    /**
+     * Modify {@link readValue} to match what was done in {@link writeAllAssign}.
+     * Result will be stored in cache.
+     */
+    readModify(readValue: T & Partial<TSerializedValue>): void;
+  };
 }
 
 interface NormalizedType {

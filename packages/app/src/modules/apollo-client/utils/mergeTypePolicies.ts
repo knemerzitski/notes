@@ -1,8 +1,12 @@
-import { TypePolicies } from '@apollo/client';
+import { NormalizedCacheObject, TypePolicies } from '@apollo/client';
 import { PersistTypePolicies } from '../policy/persist';
 import { EvictTypePolicies } from '../policy/evict';
+import { LinkTypePolicies } from '../links/type-link';
 
-type AllTypePolicies = TypePolicies & PersistTypePolicies & EvictTypePolicies;
+type AllTypePolicies = TypePolicies &
+  PersistTypePolicies &
+  EvictTypePolicies &
+  LinkTypePolicies<NormalizedCacheObject>;
 
 /**
  *

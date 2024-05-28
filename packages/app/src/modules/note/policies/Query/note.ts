@@ -38,7 +38,9 @@ export const note: FieldPolicy & EvictFieldPolicy = {
 
     return existing;
   },
-  evictTag: EvictTag.UserSpecific,
+  evict: {
+    tag: EvictTag.UserSpecific,
+  },
   keyArgs: false,
   merge: false,
 };

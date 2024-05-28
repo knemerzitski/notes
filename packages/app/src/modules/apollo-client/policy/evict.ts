@@ -18,15 +18,17 @@ export interface EvictOptions<TCacheShape> {
 }
 
 export interface EvictFieldPolicy {
-  /**
-   * Custom tag can be specified to group together similar fields
-   * so they can be evicted with a single call.
-   */
-  evictTag?: EvictTag;
-  /**
-   * Evict every combination of possible keyArgs
-   */
-  evictPossibleKeyArgs?: Record<string, unknown[]>;
+  evict?: {
+    /**
+     * Custom tag can be specified to group together similar fields
+     * so they can be evicted with a single call.
+     */
+    tag?: EvictTag;
+    /**
+     * Evict every combination of possible keyArgs
+     */
+    possibleKeyArgs?: Record<string, unknown[]>;
+  };
 }
 
 const TYPE_MAPPINGS: Record<string, string> = {
@@ -54,13 +56,13 @@ export class TypePoliciesEvictor<TCacheShape> {
       if (!typePolicy.fields) return;
       __typename = TYPE_MAPPINGS[__typename] ?? __typename;
       Object.entries(typePolicy.fields).forEach(([fieldName, field]) => {
-        const isTagMismatch = options?.tag != null && field.evictTag !== options.tag;
+        const isTagMismatch = options?.tag != null && field.evict?.tag !== options.tag;
         if (isTagMismatch) {
           return;
         }
 
         const mergedArgs = {
-          ...field.evictPossibleKeyArgs,
+          ...field.evict?.possibleKeyArgs,
           ...options?.args,
         };
         if (Object.keys(mergedArgs).length === 0) {

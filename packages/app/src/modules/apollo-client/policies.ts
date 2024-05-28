@@ -1,4 +1,4 @@
-import { TypePolicies } from '@apollo/client';
+import { NormalizedCacheObject, TypePolicies } from '@apollo/client';
 
 import logFieldRead from './utils/logFieldRead';
 import mergeTypePolicies from './utils/mergeTypePolicies';
@@ -10,13 +10,17 @@ import notePolicies from '../note/policies';
 import noteLocalPolicies from '../note-local/policies';
 import { EvictTypePolicies } from './policy/evict';
 import { PersistTypePolicies } from './policy/persist';
+import { LinkTypePolicies } from './links/type-link';
 
 const LOG_READ = false;
 
 /**
  * Define all type policies here
  */
-const allTypePolicies: (TypePolicies & PersistTypePolicies & EvictTypePolicies)[] = [
+const allTypePolicies: (TypePolicies &
+  PersistTypePolicies &
+  EvictTypePolicies &
+  LinkTypePolicies<NormalizedCacheObject>)[] = [
   basePolicies,
   preferencesPolicies,
 

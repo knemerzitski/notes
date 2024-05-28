@@ -39,6 +39,15 @@ module.exports = {
         '@typescript-eslint/no-unsafe-argument': 'warn',
         '@typescript-eslint/no-unsafe-return': 'warn',
 
+        '@typescript-eslint/no-unused-vars': [
+          'error',
+          {
+            ignoreRestSiblings: true,
+            argsIgnorePattern: '_',
+            destructuredArrayIgnorePattern: '^_',
+          },
+        ],
+
         'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
         'react-hooks/exhaustive-deps': ['error'],
       },
