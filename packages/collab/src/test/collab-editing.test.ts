@@ -114,7 +114,7 @@ describe('single client', () => {
     expect(client.A.valueWithSelection()).toStrictEqual('>');
   });
 
-  it.only('returns same record on duplicate submit', () => {
+  it('returns same record on duplicate submit', () => {
     const generateSubmitIdFn = vi.fn();
     generateSubmitIdFn.mockReturnValue('a');
 
@@ -130,7 +130,7 @@ describe('single client', () => {
     const submit2 = client.submitChanges().serverReceive();
     expect(submit1.acknowledgeAndSendToOtherClients().revision).toStrictEqual(1);
     expect(submit2.acknowledgeAndSendToOtherClients().revision).toStrictEqual(1);
-    
+
     client2.selectionRange.set(-1);
     client2.insertText('other');
     const submit3 = client2.submitChanges().serverReceive();
