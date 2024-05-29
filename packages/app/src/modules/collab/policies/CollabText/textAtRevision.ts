@@ -135,7 +135,7 @@ function readRecords(
 ) {
   const idRef = cache.identify({
     __typename: 'CollabText',
-    id: id,
+    id,
   });
   if (!idRef) return;
 
