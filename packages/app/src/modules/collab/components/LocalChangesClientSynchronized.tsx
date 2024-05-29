@@ -33,16 +33,10 @@ export default function LocalChangesClientSychronized({
       updateClientSynchronization(syncId, isEditorSynchronized(editor));
     }
 
-    const subs = [
-      editor.eventBus.on('haveLocalChanges', update),
-      editor.eventBus.on('submittedChangesAcknowledged', update),
-    ];
-
-    return () => {
-      subs.forEach((unsub) => {
-        unsub();
-      });
-    };
+    return editor.eventBus.onMany(
+      ['haveLocalChanges', 'submittedChangesAcknowledged'],
+      update
+    );
   }, [apolloClient, collabTextId, updateClientSynchronization, editor]);
 
   return null;
