@@ -137,15 +137,15 @@ export default function SyncStatusButton({
         elements={[
           {
             in: status === Status.SYNCHRONIZED,
-            element: <CloudDoneIcon fontSize="inherit" />,
+            element: <CloudDoneIcon color="inherit" fontSize="inherit" />,
           },
           {
             in: status === Status.LOADING,
-            element: <CircularProgress size={fontSize} />,
+            element: <CircularProgress color="inherit" size={fontSize} />,
           },
           {
             in: status === Status.READY_TO_REFRESH,
-            element: <RefreshIcon fontSize="inherit" />,
+            element: <RefreshIcon color="inherit" fontSize="inherit" />,
             fadeProps: {
               appear: false,
             },
