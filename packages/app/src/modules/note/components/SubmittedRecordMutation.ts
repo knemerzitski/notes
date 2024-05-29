@@ -9,7 +9,7 @@ import {
 import { useNoteContentId } from '../context/NoteContentIdProvider';
 import { useNoteTextFieldEditor } from '../context/NoteTextFieldEditorsProvider';
 import { gql } from '../../../__generated__/gql';
-import { useApolloClient } from '@apollo/client';
+import { useCustomApolloClient } from '../../apollo-client/context/CustomApolloClientProvider';
 
 const FRAGMENT_RECORDS = gql(`
   fragment SubmittedRecordMutationUpdateCache on CollabText {
@@ -31,7 +31,6 @@ const FRAGMENT_RECORDS = gql(`
         }
       }
     }
-
   }
 `);
 
@@ -45,7 +44,7 @@ export interface SubmittedRecordMutationProps {
 export default function SubmittedRecordMutation({
   fieldName,
 }: SubmittedRecordMutationProps) {
-  const apolloClient = useApolloClient();
+  const customApolloClient = useCustomApolloClient();
   const updateNote = useUpdateNote();
 
   const noteContentId = useNoteContentId();
@@ -78,8 +77,8 @@ export default function SubmittedRecordMutation({
       if (!newRecord) return;
 
       // Update cache with new record
-      apolloClient.cache.writeFragment({
-        id: apolloClient.cache.identify({
+      customApolloClient.writeFragmentNoRetain({
+        id: customApolloClient.cache.identify({
           id: textField.value.id,
           __typename: 'CollabText',
         }),
@@ -103,7 +102,7 @@ export default function SubmittedRecordMutation({
     return editor.eventBus.on('submittedRecord', ({ submittedRecord }) => {
       void handleSubmittedRecord(submittedRecord);
     });
-  }, [editor, noteContentId, fieldName, updateNote, apolloClient]);
+  }, [editor, noteContentId, fieldName, updateNote, customApolloClient]);
 
   return null;
 }

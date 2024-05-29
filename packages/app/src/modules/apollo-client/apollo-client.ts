@@ -1,5 +1,6 @@
 import {
   ApolloClient,
+  DataProxy,
   HttpLink,
   InMemoryCache,
   NormalizedCacheObject,
@@ -8,7 +9,7 @@ import {
 import { loadErrorMessages, loadDevMessages } from '@apollo/client/dev';
 import { setContext } from '@apollo/client/link/context';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
-import { getMainDefinition } from '@apollo/client/utilities';
+import { Reference, getMainDefinition } from '@apollo/client/utilities';
 import { Kind, OperationTypeNode } from 'graphql';
 import { createClient, MessageType, ConnectionInitMessage } from 'graphql-ws';
 import { CachePersistor } from 'apollo3-cache-persist';
@@ -67,6 +68,7 @@ export class CustomApolloClient {
   readonly client: ApolloClient<NormalizedCacheObject>;
   readonly persistor: CachePersistor<NormalizedCacheObject>;
   readonly evictor: TypePoliciesEvictor<NormalizedCacheObject>;
+  readonly cache: InMemoryCache;
 
   readonly statsLink: StatsLink;
   readonly errorLink: ErrorLink;
@@ -75,6 +77,7 @@ export class CustomApolloClient {
   private restartRequested;
 
   constructor({ cache, persistor }: CustomApolloClientParams) {
+    this.cache = cache;
     this.persistor = persistor;
 
     this.evictor = new TypePoliciesEvictor({
@@ -208,6 +211,30 @@ export class CustomApolloClient {
 
     this.statsLink = statsLink;
     this.errorLink = errorLink;
+  }
+
+  /**
+   * Write fragment without retaining ID as reachable root ID.
+   * Written data could be garbage collected.
+   */
+  writeFragmentNoRetain<TData = unknown, TVariables = unknown>({
+    id,
+    data,
+    fragment,
+    fragmentName,
+    ...options
+  }: DataProxy.WriteFragmentOptions<TData, TVariables>): Reference | undefined {
+    const result = this.cache.writeFragment({
+      id,
+      data,
+      fragment,
+      fragmentName,
+      ...options,
+    });
+    if (id) {
+      this.cache.release(id);
+    }
+    return result;
   }
 
   evictUserSpecific(

@@ -1,7 +1,7 @@
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import { LinkTypePolicy } from '../../../apollo-client/links/type-link';
 import { gql } from '../../../../__generated__/gql';
-import { NormalizedCacheObject } from '@apollo/client';
+import { InMemoryCache, NormalizedCacheObject } from '@apollo/client';
 
 const FRAGMENT = gql(`
 fragment LinkNote on User {
@@ -34,11 +34,12 @@ export const link: LinkTypePolicy<NormalizedCacheObject> = {
         valueAny;
 
       if (value.id != null && value.contentId != null) {
+        const id = cache.identify({
+          __typename: 'User',
+          id: userId,
+        });
         cache.writeFragment({
-          id: cache.identify({
-            __typename: 'User',
-            id: userId,
-          }),
+          id,
           fragment: FRAGMENT,
           data: {
             note: {
@@ -50,6 +51,10 @@ export const link: LinkTypePolicy<NormalizedCacheObject> = {
             contentId: String(value.contentId),
           },
         });
+        // Prevent user from becoming a root id, so it can be garbage collected
+        if (id && cache instanceof InMemoryCache) {
+          cache.release(id);
+        }
         return false;
       }
     };

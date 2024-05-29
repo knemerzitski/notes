@@ -13,8 +13,8 @@ const FRAGMENT = gql(`
 
 export const note: FieldPolicy & EvictFieldPolicy = {
   // Read single note from previously cached list of notes
-  read(existing, { args, cache, toReference }) {
-    // Attempt to read noteId from User type
+  read(_, { args, cache, toReference }) {
+    // Must read noteId from User type
     if (typeof args?.contentId === 'string') {
       const userId = getCurrentUserId(cache);
       const noteId = cache.readFragment({
@@ -36,7 +36,7 @@ export const note: FieldPolicy & EvictFieldPolicy = {
       }
     }
 
-    return existing;
+    return;
   },
   evict: {
     tag: EvictTag.UserSpecific,

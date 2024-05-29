@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
 
-import { useApolloClient } from '@apollo/client';
 import { gql } from '../../../__generated__/gql';
 import { collabTextRecordToEditorRevisionRecord } from '../../collab/editor-graphql-mapping';
 import { getCollabEditorMaybe } from '../../collab/hooks/useCollabEditor';
 import { useNoteContentIdMaybe } from '../context/NoteContentIdProvider';
 import { useCurrentUserId } from '../../auth/user';
+import { useCustomApolloClient } from '../../apollo-client/context/CustomApolloClientProvider';
 
 export const SUBSCRIPTION = gql(`
   subscription ExternalChangesNewRecord($input: NoteUpdatedInput) {
@@ -67,13 +67,13 @@ const FRAGMENT_RECORDS = gql(`
  * to all notes of current user.
  */
 export default function ExternalChangesSubscription() {
-  const apolloClient = useApolloClient();
+  const customApolloClient = useCustomApolloClient();
   const currentUserId = useCurrentUserId();
   const noteContentId = useNoteContentIdMaybe();
 
   useEffect(() => {
     if (!currentUserId) return;
-    const observable = apolloClient.subscribe({
+    const observable = customApolloClient.client.subscribe({
       query: SUBSCRIPTION,
       variables: noteContentId
         ? {
@@ -93,8 +93,8 @@ export default function ExternalChangesSubscription() {
           if (!newRecord) return;
 
           // Update cache with new record
-          apolloClient.cache.writeFragment({
-            id: apolloClient.cache.identify({
+          customApolloClient.writeFragmentNoRetain({
+            id: customApolloClient.cache.identify({
               id: collabTextId,
               __typename: 'CollabText',
             }),
@@ -106,7 +106,7 @@ export default function ExternalChangesSubscription() {
             },
           });
 
-          const editor = getCollabEditorMaybe(apolloClient, collabTextId);
+          const editor = getCollabEditorMaybe(customApolloClient.client, collabTextId);
           if (editor) {
             editor.handleExternalChange(
               collabTextRecordToEditorRevisionRecord(newRecord)
@@ -119,7 +119,7 @@ export default function ExternalChangesSubscription() {
     return () => {
       sub.unsubscribe();
     };
-  }, [apolloClient, noteContentId, currentUserId]);
+  }, [customApolloClient, noteContentId, currentUserId]);
 
   return null;
 }
