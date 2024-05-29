@@ -22,11 +22,13 @@ const collabTextPolicies: TypePolicies & PersistTypePolicies = {
     },
     persist: {
       writeAllAssign() {
-        return [...editorsWithVars.all().entries()].map(([collabTextId, { editor }]) => ({
-          id: collabTextId,
-          __typename: 'CollabText',
-          editor: editor.serialize(),
-        }));
+        return [...editorsWithVars.all().entries()].map(([collabTextId, { editor }]) => {
+          return {
+            id: collabTextId,
+            __typename: 'CollabText',
+            editor: editor.serialize(),
+          };
+        });
       },
       readModify(readValue: Pick<CollabText, 'id'> & Partial<{ editor: unknown }>): void {
         try {
@@ -47,7 +49,7 @@ const collabTextPolicies: TypePolicies & PersistTypePolicies = {
   },
   CollabTextPatch: {
     keyFields: false,
-  }
+  },
 };
 
 export default collabTextPolicies;
