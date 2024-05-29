@@ -520,7 +520,6 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
     });
   }
 
-  // TODO merge debounce first few history entries?
   /**
    * Insert text after caret position.
    * Anything selected is deleted.

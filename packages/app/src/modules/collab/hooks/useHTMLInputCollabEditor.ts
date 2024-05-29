@@ -4,6 +4,20 @@ import { CollabEditor } from '~collab/client/collab-editor';
 
 import useHTMLInput from './useHTMLInput';
 import { SelectionRange } from '~collab/client/selection-range';
+import { Options, useDebouncedCallback } from 'use-debounce';
+
+interface UseHTMLInputCollabEditorOptions {
+  merge?: {
+    /**
+     * @default 1000 milliseconds
+     */
+    wait?: number;
+    /**
+     * @default {maxWait: 5000}
+     */
+    options?: Options;
+  };
+}
 
 type PartialEditor = Readonly<
   Pick<
@@ -12,7 +26,10 @@ type PartialEditor = Readonly<
   >
 >;
 
-export default function useHTMLInputCollabEditor(editor: PartialEditor) {
+export default function useHTMLInputCollabEditor(
+  editor: PartialEditor,
+  options?: UseHTMLInputCollabEditorOptions
+) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [value, setValue] = useState(editor.viewText);
@@ -95,12 +112,38 @@ export default function useHTMLInputCollabEditor(editor: PartialEditor) {
     input.setSelectionRange(selection.start, selection.end);
   }, [selection, value]);
 
+  // Merge changes made in a short duration
+  const isMergeChangesRef = useRef(false);
+  const debouncedResetMergeChanges = useDebouncedCallback(
+    () => {
+      isMergeChangesRef.current = false;
+    },
+    options?.merge?.wait ?? 1000,
+    {
+      maxWait: options?.merge?.options?.maxWait ?? 5000,
+      ...options?.merge?.options,
+    }
+  );
+
+  function startDebouncedMerge() {
+    if (!isMergeChangesRef.current) {
+      isMergeChangesRef.current = true;
+      debouncedResetMergeChanges();
+    }
+  }
+
   const { handleSelect, handleInput, handleKeyDown } = useHTMLInput({
     onInsert({ beforeSelection, insertValue }) {
-      editor.insertText(insertValue, latestSelectionRef.current ?? beforeSelection);
+      editor.insertText(insertValue, latestSelectionRef.current ?? beforeSelection, {
+        merge: isMergeChangesRef.current,
+      });
+      startDebouncedMerge();
     },
     onDelete({ beforeSelection }) {
-      editor.deleteTextCount(1, latestSelectionRef.current ?? beforeSelection);
+      editor.deleteTextCount(1, latestSelectionRef.current ?? beforeSelection, {
+        merge: isMergeChangesRef.current,
+      });
+      startDebouncedMerge();
     },
     onUndo() {
       editor.undo();

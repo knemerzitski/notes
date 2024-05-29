@@ -441,6 +441,10 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
       );
     }
 
+    // Update undo selection
+    const oldestEntry = this.getEntry(startIndex);
+    mergedEntry.undo.selection = oldestEntry.undo.selection;
+
     this._entries = [
       ...this._entries.slice(0, startIndex),
       ...this._entries.slice(endIndex),
