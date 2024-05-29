@@ -5,20 +5,6 @@ import { Serializable, assertIsObject } from '~utils/serialize';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CollabClientEvents = {
-  viewChange: {
-    /**
-     * New view changeset that will replace current view.
-     */
-    newView: Changeset;
-    /**
-     * Changeset that is about to be composed to view.
-     */
-    change: Changeset;
-    /**
-     * What caused view to be changed. Either external or local change.
-     */
-    source: ChangeSource;
-  };
   viewChanged: {
     /**
      * New view changeset.
@@ -26,9 +12,10 @@ export type CollabClientEvents = {
     view: Changeset;
 
     /**
-     * Changeset that was just composed to view.
+     * Changeset that was just composed on view.
+     * If undefined then view was completely replaced.
      */
-    change: Changeset;
+    change?: Changeset;
 
     /**
      * What caused view to change. Either external or local change.
@@ -145,12 +132,6 @@ export class CollabClient implements Serializable<SerializedCollabClient> {
     if (!this._local.isEqual(newLocal)) {
       const newView = this._view.compose(change);
 
-      this.eventBus.emit('viewChange', {
-        newView,
-        change,
-        source: ChangeSource.Local,
-      });
-
       const hadLocalChanges = this.haveLocalChanges();
 
       this._local = newLocal;
@@ -231,12 +212,6 @@ export class CollabClient implements Serializable<SerializedCollabClient> {
     const viewComposable = this._local.follow(externalAfterSubmitted);
     // V' = VD
     const newView = this._view.compose(viewComposable);
-
-    this.eventBus.emit('viewChange', {
-      newView,
-      change: viewComposable,
-      source: ChangeSource.External,
-    });
 
     const event = {
       externalChange: external,
