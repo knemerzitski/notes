@@ -113,6 +113,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
                               userGeneratedId: 1,
                               revision: 1,
                               changeset: 1,
+                              creatorUserId: 1,
                             },
                             $pagination: {
                               after: insertRecord.change.revision,

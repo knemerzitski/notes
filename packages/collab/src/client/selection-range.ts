@@ -78,7 +78,7 @@ export namespace SelectionRange {
   }
 
   /**
-   * Ensures SelectionRange has start and end fefined
+   * Ensures SelectionRange has start and end defined
    */
   export function expandSame({
     start,
@@ -113,6 +113,14 @@ export namespace SelectionRange {
       end = changeset.indexOfClosestRetained(end);
     }
     return { start, end };
+  }
+
+  export function isEqual(a?: Partial<SelectionRange>, b?: Partial<SelectionRange>) {
+    if (!a && !b) return true;
+    if (a && b) {
+      return a.start === b.start && (a.end ?? a.start) === (b.end && b.start);
+    }
+    return false;
   }
 
   export function parseValue(value: unknown): SelectionRange {

@@ -23,29 +23,85 @@ export function listenOnProcessNewRecord<
   TInsertRecord extends ServerInsertRecord & TRecord,
 >(revisionRecords: RevisionRecords<TRecord, TInsertRecord>) {
   return revisionRecords.eventBus.on('processNewRecord', (e) => {
-    isDuplicateRecordByUserGeneratedId(e);
+    isDuplicateRecord(e);
     if (e.isDuplicate) return;
     followChangeset(e);
   });
 }
 
-export type ServerRecord<T = Changeset> = IsExistingRecordByUserGeneratedIdRecord<T> &
-  RevisionRecord<T>;
+export type ServerRecord<T = Changeset> = IsDuplicateRecord<T> & RevisionRecord<T>;
 export type ServerInsertRecord<T = Changeset> = FollowChangesetRecord<T> &
   ServerRecord<T>;
 
-type IsExistingRecordByUserGeneratedIdRecord<T = Changeset> = Pick<
+type IsDuplicateRecord<T = Changeset, U = unknown> = Pick<
   SubmittedRevisionRecord<T>,
   'userGeneratedId'
->;
+> & {
+  beforeSelection?: Partial<SelectionRange>;
+  afterSelection?: Partial<SelectionRange>;
+  changeset?: T;
+  creatorUserId?: U;
+};
 
-export function isDuplicateRecordByUserGeneratedId<
-  TRecord extends IsExistingRecordByUserGeneratedIdRecord,
-  TInsertRecord extends IsExistingRecordByUserGeneratedIdRecord,
+export function isDuplicateRecord<
+  TRecord extends IsDuplicateRecord,
+  TInsertRecord extends IsDuplicateRecord,
 >(event: RevisionRecordsEvents<TRecord, TInsertRecord>['processNewRecord']) {
-  event.isDuplicate =
-    event.isDuplicate ||
-    event.newRecord.userGeneratedId === event.existingRecord.userGeneratedId;
+  if (event.isDuplicate) return;
+  const { newRecord, existingRecord } = event;
+
+  // Different generated id
+  if (newRecord.userGeneratedId !== existingRecord.userGeneratedId) return;
+
+  // Different user
+  if (
+    event.newRecord.creatorUserId != null &&
+    event.existingRecord.creatorUserId != null &&
+    !callIsEqualCallOnObject(
+      event.newRecord.creatorUserId,
+      event.existingRecord.creatorUserId
+    )
+  ) {
+    return;
+  }
+
+  // Different changeset
+  if (
+    newRecord.changeset &&
+    existingRecord.changeset &&
+    !newRecord.changeset.isEqual(existingRecord.changeset)
+  )
+    return;
+
+  // Different selections
+  if (
+    newRecord.afterSelection &&
+    existingRecord.afterSelection &&
+    !SelectionRange.isEqual(newRecord.afterSelection, existingRecord.afterSelection)
+  )
+    return;
+  if (
+    newRecord.beforeSelection &&
+    existingRecord.beforeSelection &&
+    !SelectionRange.isEqual(newRecord.beforeSelection, existingRecord.beforeSelection)
+  )
+    return;
+
+  event.isDuplicate = true;
+}
+
+function callIsEqualCallOnObject<T = unknown>(a: T, b: T) {
+  if (a == null || b === null || typeof a !== 'object' || typeof b !== 'object')
+    return a === b;
+
+  if ('isEqual' in a && typeof a.isEqual === 'function') {
+    return Boolean(a.isEqual(b));
+  }
+  if ('equals' in a && typeof a.equals === 'function') {
+    return Boolean(a.equals(b));
+  }
+
+  return a === b;
 }
 
 type FollowChangesetRecord<T = Changeset> = Pick<

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createHelperCollabEditingEnvironment } from './helpers/server-client';
 import { Changeset } from '../changeset/changeset';
@@ -112,6 +112,31 @@ describe('single client', () => {
     expect(client.A.editor.history.entries).toHaveLength(1);
     client.A.editor.undo();
     expect(client.A.valueWithSelection()).toStrictEqual('>');
+  });
+
+  it.only('returns same record on duplicate submit', () => {
+    const generateSubmitIdFn = vi.fn();
+    generateSubmitIdFn.mockReturnValue('a');
+
+    const client = helper.addNewClient('Z', 'Z', {
+      generateSubmitId: generateSubmitIdFn,
+    });
+    const client2 = helper.addNewClient('Y', 'Y', {
+      generateSubmitId: generateSubmitIdFn,
+    });
+
+    client.insertText('hello');
+    const submit1 = client.submitChanges().serverReceive();
+    const submit2 = client.submitChanges().serverReceive();
+    expect(submit1.acknowledgeAndSendToOtherClients().revision).toStrictEqual(1);
+    expect(submit2.acknowledgeAndSendToOtherClients().revision).toStrictEqual(1);
+    
+    client2.selectionRange.set(-1);
+    client2.insertText('other');
+    const submit3 = client2.submitChanges().serverReceive();
+    const submit4 = client2.submitChanges().serverReceive();
+    expect(submit3.acknowledgeAndSendToOtherClients().revision).toStrictEqual(2);
+    expect(submit4.acknowledgeAndSendToOtherClients().revision).toStrictEqual(2);
   });
 });
 

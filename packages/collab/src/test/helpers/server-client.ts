@@ -159,6 +159,7 @@ function createCollabEditorHelper(editor: CollabEditor) {
   const { selectionRange } = newSelectionRange(editor);
   return {
     editor,
+    selectionRange,
     valueWithSelection: () => getValueWithSelection(editor, selectionRange),
     setCaretFromValue: (textWithCursors: string) => {
       const pos1 = textWithCursors.indexOf('>');
@@ -215,6 +216,7 @@ function createCollabEditorAndRevisionTailRecordsHelper<TClientName extends stri
 
         function clientAcknowledge() {
           editor.submittedChangesAcknowledged(recordInsertion.processedRecord);
+          return recordInsertion.processedRecord;
         }
 
         function sendToOtherClients(clientNames: TClientName[] = allOtherNames) {
@@ -225,6 +227,7 @@ function createCollabEditorAndRevisionTailRecordsHelper<TClientName extends stri
 
             otherEditor.handleExternalChange(recordInsertion.processedRecord);
           });
+          return recordInsertion.processedRecord;
         }
 
         function acknowledgeAndSendToOtherClients(
@@ -232,6 +235,7 @@ function createCollabEditorAndRevisionTailRecordsHelper<TClientName extends stri
         ) {
           clientAcknowledge();
           sendToOtherClients(clientNames);
+          return recordInsertion.processedRecord;
         }
 
         return {
