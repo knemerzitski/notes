@@ -12,7 +12,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import ProxyRoutesProvider from '../../router/context/ProxyRoutesProvider';
 import { useCustomApolloClient } from '../../apollo-client/context/CustomApolloClientProvider';
 import { gql } from '../../../__generated__/gql';
-import joinPathnames from '../../common/utils/joinPathnames';
+import { joinPathnames, slicePathnames } from '../../common/utils/pathname';
 import { useLocationPrefix } from '../../router/context/LocationPrefixProvider';
 import { getCurrentUserId, setCurrentSignedInUser } from '../user';
 
@@ -161,9 +161,21 @@ export function NavigateSwitchCurrentUserProvider({ children }: { children: Reac
     [targetUserIndex, locationPrefix]
   );
 
+  const inverseTransformPathname = useCallback(
+    // Remove /u/{i}
+    (pathname: string) =>
+      targetUserIndex != null ? slicePathnames(pathname, 2) : pathname,
+    [targetUserIndex]
+  );
+
   return (
     <NavigateSwitchCurrentUserContext.Provider value={handleNavigateSwitchCurrentUser}>
-      <ProxyRoutesProvider transform={transformPathname}>{children}</ProxyRoutesProvider>
+      <ProxyRoutesProvider
+        transform={transformPathname}
+        inverseTransform={inverseTransformPathname}
+      >
+        {children}
+      </ProxyRoutesProvider>
     </NavigateSwitchCurrentUserContext.Provider>
   );
 }

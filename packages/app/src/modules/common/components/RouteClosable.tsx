@@ -1,10 +1,12 @@
 import { ComponentType, useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, Location } from 'react-router-dom';
 
-import { useProxyNavigate } from '../../router/context/ProxyRoutesProvider';
+import {
+  useProxyNavigate,
+  useProxyRouteInverseTransform,
+} from '../../router/context/ProxyRoutesProvider';
 import usePreviousLocation from '../../router/hooks/usePreviousLocation';
 import { useBackgroundPath } from '../../router/components/ModalBackgroundRouting';
-import { useRouter } from '../../router/context/RouterProvider';
 
 interface Props {
   open: boolean;
@@ -50,17 +52,7 @@ export default function RouteClosable<T = undefined>(
   const location = useLocation();
   const initialLocationRef = useRef<Location | null>(location);
   const backgroundPath = useBackgroundPath();
-  const router = useRouter();
-  const hasNavigatedRef = useRef(false);
-
-  useEffect(() => {
-    return router.subscribe(({ historyAction }) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-      if (historyAction !== 'REPLACE') {
-        hasNavigatedRef.current = true;
-      }
-    });
-  }, [router]);
+  const inverseTransform = useProxyRouteInverseTransform();
 
   const reset = useCallback(() => {
     isClosingRef.current = false;
@@ -83,8 +75,13 @@ export default function RouteClosable<T = undefined>(
 
     const navigationHandled = onClose?.();
 
-    if (!navigationHandled && !hasNavigatedRef.current) {
-      if (previousLocation) {
+    if (!navigationHandled) {
+      if (
+        previousLocation &&
+        (inverseTransform(previousLocation.pathname) !==
+          inverseTransform(location.pathname) ||
+          previousLocation.search !== location.search)
+      ) {
         navigate(-1);
       } else if (backgroundPath) {
         navigate(backgroundPath);

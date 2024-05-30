@@ -11,10 +11,17 @@ import { useRouter } from './RouterProvider';
 const ProxyRouteTransformContext = createContext<ProxyRoutesProviderProps['transform']>(
   (s) => s
 );
+const ProxyRouteInverseTransformContext = createContext<
+  ProxyRoutesProviderProps['transform']
+>((s) => s);
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function useProxyRouteTransform() {
   return useContext(ProxyRouteTransformContext);
+}
+
+export function useProxyRouteInverseTransform() {
+  return useContext(ProxyRouteInverseTransformContext);
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -79,16 +86,20 @@ export function useProxyIsPathname(pathname: To) {
 
 interface ProxyRoutesProviderProps {
   transform: (pathname: string) => string;
+  inverseTransform: (pathname: string) => string;
   children: ReactNode;
 }
 
 export default function ProxyRoutesProvider({
   transform,
+  inverseTransform,
   children,
 }: ProxyRoutesProviderProps) {
   return (
     <ProxyRouteTransformContext.Provider value={transform}>
-      {children}
+      <ProxyRouteInverseTransformContext.Provider value={inverseTransform}>
+        {children}
+      </ProxyRouteInverseTransformContext.Provider>
     </ProxyRouteTransformContext.Provider>
   );
 }
