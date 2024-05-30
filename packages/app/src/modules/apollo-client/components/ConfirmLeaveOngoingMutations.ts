@@ -5,7 +5,6 @@ export default function ConfirmLeaveOngoingMutations() {
   const statsLink = useStatsLink();
 
   useBeforeUnload((e) => {
-    console.log(statsLink.ongoing, statsLink.total);
     if (statsLink.ongoing.mutation > 0) {
       e.preventDefault();
     }
