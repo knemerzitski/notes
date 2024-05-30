@@ -8,6 +8,11 @@ export default function useIsScrollEnd() {
       setIsScrollEnd(window.scrollY >= document.body.scrollHeight - window.innerHeight);
     }
 
+    handleScroll();
+    setTimeout(() => {
+      handleScroll();
+    }, 0);
+
     window.addEventListener('scroll', handleScroll);
     window.addEventListener('touchmove', handleScroll);
     return () => {
