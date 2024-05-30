@@ -9,6 +9,24 @@ export default function PlainInput(props: InputProps) {
       disableUnderline
       fullWidth
       {...props}
+      slotProps={{
+        ...props.slotProps,
+        input: {
+          ...props.slotProps?.input,
+          onClick: (e) => {
+            props.slotProps?.input?.onClick?.(e);
+            e.stopPropagation();
+          },
+        },
+      }}
+      onClick={(e) => {
+        props.onClick?.(e);
+        // If clicked on div outside textarea, set selection to the end
+        const child = (e.target as { firstChild?: unknown }).firstChild;
+        if (child instanceof HTMLTextAreaElement) {
+          child.selectionStart = -1;
+        }
+      }}
       sx={{
         borderRadius: 0,
         '.MuiInputBase-root': {
