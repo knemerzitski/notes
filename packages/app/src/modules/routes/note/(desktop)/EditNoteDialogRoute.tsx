@@ -44,17 +44,20 @@ function RouteClosableEditNoteDialog({
   }
 
   return (
-    <NewOrExistingNoteEditingContext noteContentId={noteContentId} isNewNote={isNewNote}>
-      <NoteDialog
-        open={open}
-        onClose={onClosing}
-        onTransitionExited={onClosed}
-        PaperProps={{
-          sx: {
-            boxSizing: 'content-box',
-            border: theme.palette.mode === 'light' ? 'transparent' : undefined,
-          },
-        }}
+    <NoteDialog
+      open={open}
+      onClose={onClosing}
+      onTransitionExited={onClosed}
+      PaperProps={{
+        sx: {
+          boxSizing: 'content-box',
+          border: theme.palette.mode === 'light' ? 'transparent' : undefined,
+        },
+      }}
+    >
+      <NewOrExistingNoteEditingContext
+        noteContentId={noteContentId}
+        isNewNote={isNewNote}
       >
         <>
           <CollabInputs
@@ -104,8 +107,8 @@ function RouteClosableEditNoteDialog({
             </Box>
           </MuiAppBar>
         </>
-      </NoteDialog>
-    </NewOrExistingNoteEditingContext>
+      </NewOrExistingNoteEditingContext>
+    </NoteDialog>
   );
 }
 

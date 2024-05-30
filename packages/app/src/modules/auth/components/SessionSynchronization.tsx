@@ -1,4 +1,4 @@
-import { useApolloClient, useMutation } from '@apollo/client';
+import { useMutation } from '@apollo/client';
 import { useEffect } from 'react';
 
 import {
@@ -12,7 +12,8 @@ import {
   useSnackbarAlert,
   useSnackbarError,
 } from '../../common/components/SnackbarAlertProvider';
-import { getCurrentUserId } from '../user';
+import { getCurrentUserId, getSignedInUserIds, setAvailableUsers } from '../user';
+import { useCustomApolloClient } from '../../apollo-client/context/CustomApolloClientProvider';
 
 const SYNC_SESSIONS = gql(`
   mutation SessionSynchronizationSyncSessions($input: SyncSessionCookiesInput!) {
@@ -22,21 +23,9 @@ const SYNC_SESSIONS = gql(`
   }
 `);
 
-const QUERY_USERS = gql(`
-  query SessionSynchronizationUsers {
-    signedInUsers @client {
-      id
-      isSessionExpired
-    }
-  }
-`);
-
-const QUERY_CURRENT_USER = gql(`
-  query SessionSynchronizationUpdateExpired {
-    currentSignedInUser @client {
-      id
-      isSessionExpired
-    }
+const FRAGMENT_SESSION_EXPIRED = gql(`
+  fragment SessionSynchronizationUpdateExpired on User {
+    isSessionExpired
   }
 `);
 
@@ -44,7 +33,7 @@ const QUERY_CURRENT_USER = gql(`
  * Synchronizes session between local state and server. Marks sessions expired.
  */
 export default function SessionSynchronization() {
-  const apolloClient = useApolloClient();
+  const customApolloClient = useCustomApolloClient();
   const addFetchResultErrorHandler = useAddFetchResultErrorHandler();
   const [syncSessions] = useMutation(SYNC_SESSIONS);
   const showAlert = useSnackbarAlert();
@@ -60,15 +49,16 @@ export default function SessionSynchronization() {
           reason === AuthenticationFailedReason.UserNoSession
         ) {
           // Mark current user session expired
-          const currentUserId = getCurrentUserId(apolloClient.cache);
+          const currentUserId = getCurrentUserId(customApolloClient.cache);
           if (currentUserId) {
-            apolloClient.cache.writeQuery({
-              query: QUERY_CURRENT_USER,
+            customApolloClient.writeFragmentNoRetain({
+              id: customApolloClient.cache.identify({
+                __typename: 'User',
+                id: currentUserId,
+              }),
+              fragment: FRAGMENT_SESSION_EXPIRED,
               data: {
-                currentSignedInUser: {
-                  id: currentUserId,
-                  isSessionExpired: true,
-                },
+                isSessionExpired: true,
               },
             });
 
@@ -82,50 +72,37 @@ export default function SessionSynchronization() {
           }
           return true;
         } else {
-          const signedInUserIds =
-            apolloClient.cache
-              .readQuery({
-                query: QUERY_USERS,
-              })
-              ?.signedInUsers.map(({ id }) => String(id)) ?? [];
-
-          const { data, errors } = await syncSessions({
+          const { errors } = await syncSessions({
             variables: {
               input: {
-                availableUserIds: signedInUserIds,
+                availableUserIds: getSignedInUserIds(customApolloClient.cache),
               },
             },
             context,
+            update(cache, { data }) {
+              if (!data) return;
+
+              const actualAvailableUserIds = data.syncSessionCookies.availableUserIds;
+              setAvailableUsers(cache, actualAvailableUserIds, true);
+            },
           });
 
-          if (data) {
-            const actualAvailableUserIds = data.syncSessionCookies.availableUserIds;
-
-            // Mark not available users as expired
-            apolloClient.cache.updateQuery(
-              {
-                query: QUERY_USERS,
-              },
-              (data) => {
-                if (!data) return;
-
-                return {
-                  signedInUsers: data.signedInUsers.map(({ id }) => ({
-                    id,
-                    isSessionExpired: !actualAvailableUserIds.includes(String(id)),
-                  })),
-                };
-              }
-            );
-          } else if (errors?.[0]) {
+          if (errors?.[0]) {
             showError(errors[0].message);
           }
+
           return true;
         }
       }
       return false;
     });
-  }, [apolloClient, addFetchResultErrorHandler, showAlert, showError, syncSessions]);
+  }, [
+    customApolloClient,
+    addFetchResultErrorHandler,
+    showAlert,
+    showError,
+    syncSessions,
+  ]);
 
   return null;
 }

@@ -160,6 +160,57 @@ export function removeUser<TCacheShape>(
   );
 }
 
+export function setAvailableUsers<TCacheShape>(
+  cache: ApolloCache<TCacheShape>,
+  actualAvailableUserIds: string[],
+  setSessionExpired = true
+) {
+  return cache.updateQuery(
+    {
+      query: QUERY,
+      overwrite: true,
+    },
+    (data) => {
+      if (!data) return;
+
+      const newSignedInUsers = setSessionExpired
+        ? data.signedInUsers.map((user) =>
+            actualAvailableUserIds.includes(String(user.id))
+              ? user
+              : { ...user, isSessionExpired: true }
+          )
+        : data.signedInUsers.filter(({ id }) =>
+            actualAvailableUserIds.includes(String(id))
+          );
+
+      let newCurrentSignedInUser = data.currentSignedInUser;
+      const userId = newCurrentSignedInUser?.id;
+      if (userId) {
+        if (!newSignedInUsers.some(({ id }) => id === userId)) {
+          newCurrentSignedInUser =
+            newSignedInUsers.find((user) => !user.isSessionExpired) ??
+            newSignedInUsers[0];
+        }
+      }
+
+      return {
+        signedInUsers: newSignedInUsers,
+        currentSignedInUser: newCurrentSignedInUser,
+      };
+    }
+  );
+}
+
+export function getSignedInUserIds<TCacheShape>(cache: ApolloCache<TCacheShape>) {
+  return (
+    cache
+      .readQuery({
+        query: QUERY,
+      })
+      ?.signedInUsers.map(({ id }) => String(id)) ?? []
+  );
+}
+
 export function useCurrentUserId(): string | undefined {
   const { data } = useSuspenseQuery(QUERY, {
     returnPartialData: true,

@@ -187,6 +187,8 @@ export default function HistoryRestoration({
               skipRecords,
             },
           });
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          if (!result) return;
 
           result.data.note.textFields.forEach((textField) => {
             if (textField.key !== fieldName) return;
