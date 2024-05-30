@@ -17,6 +17,7 @@ import { router } from './modules/routes/RoutesIndex';
 import RouterProvider from './modules/router/context/RouterProvider';
 import { Suspense } from 'react';
 import FullSizeErrorContainer from './modules/common/components/FullSizeErrorContainer';
+import ConfirmLeaveOngoingMutations from './modules/apollo-client/components/ConfirmLeaveOngoingMutations';
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -24,6 +25,7 @@ export default function App() {
   return (
     <CustomApolloClientProvider client={customApolloClient}>
       <ApolloClientSynchronized />
+      <ConfirmLeaveOngoingMutations />
       <CustomThemeProvider themeOptions={themeOptions}>
         <SnackbarAlertProvider>
           <CssBaseline />

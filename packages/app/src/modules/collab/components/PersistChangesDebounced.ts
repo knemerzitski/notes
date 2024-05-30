@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { useDebouncedCallback, Options } from 'use-debounce';
 import useCollabEditor from '../hooks/useCollabEditor';
 import usePersist from '../../apollo-client/hooks/usePersist';
-import { useBeforeUnload } from 'react-router-dom';
+import useBeforeUnload from '../../common/hooks/useBeforeUnload';
 
 interface PersistChangesDebouncedProps {
   collabTextId: string;
