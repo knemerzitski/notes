@@ -149,7 +149,9 @@ export function removeUser<TCacheShape>(
       let newCurrentSignedInUser = data.currentSignedInUser;
       if (data.currentSignedInUser?.id === userId) {
         newCurrentSignedInUser =
-          newSignedInUsers.find((user) => !user.isSessionExpired) ?? newSignedInUsers[0];
+          newSignedInUsers.find((user) => !user.isSessionExpired) ??
+          newSignedInUsers[0] ??
+          null;
       }
 
       return {
@@ -189,7 +191,8 @@ export function setAvailableUsers<TCacheShape>(
         if (!newSignedInUsers.some(({ id }) => id === userId)) {
           newCurrentSignedInUser =
             newSignedInUsers.find((user) => !user.isSessionExpired) ??
-            newSignedInUsers[0];
+            newSignedInUsers[0] ??
+            null;
         }
       }
 
