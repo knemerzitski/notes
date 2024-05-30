@@ -77,17 +77,20 @@ export default function NoteItem({
         ...restProps.sx,
       }}
     >
-      <Typography
-        sx={{
-          fontWeight: (theme) => theme.typography.fontWeightMedium,
-          fontSize: '1.2em',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {visibleNote.title}
-      </Typography>
+      {visibleNote.title && (
+        <Typography
+          sx={{
+            fontWeight: (theme) => theme.typography.fontWeightMedium,
+            fontSize: '1.2em',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            flex: '1 0 auto',
+          }}
+        >
+          {visibleNote.title}
+        </Typography>
+      )}
       <Typography
         sx={{
           overflow: 'hidden',
@@ -95,9 +98,9 @@ export default function NoteItem({
           whiteSpace: 'pre-wrap',
           display: '-webkit-box',
           WebkitBoxOrient: 'vertical',
-          WebkitLineClamp: '10',
+          WebkitLineClamp: '7',
           textAlign: 'left',
-          flexGrow: 1,
+          flex: '1 1 auto',
         }}
       >
         {visibleNote.content}
