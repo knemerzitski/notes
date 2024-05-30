@@ -95,6 +95,7 @@ export default function EditNotePage() {
             boxProps={{
               sx: {
                 flexGrow: 1,
+                mb: '56px',
               },
             }}
             contentProps={{
@@ -124,6 +125,8 @@ export default function EditNotePage() {
                 display: 'flex',
                 justifyContent: 'space-between',
                 gap: 1,
+                // Temporary fix for layout shift for "interactive-widget=resizes-content" when title field is focused
+                height: '56px',
               }}
             >
               <Box
