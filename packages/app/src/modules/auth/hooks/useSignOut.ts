@@ -42,7 +42,7 @@ export default function useSignOut() {
           customApolloClient.evictUserSpecific(userId, {
             cache,
           });
-          cache.gc();
+          customApolloClient.gc();
         },
       });
       if (!data) return false;

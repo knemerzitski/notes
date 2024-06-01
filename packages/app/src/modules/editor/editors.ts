@@ -1,14 +1,14 @@
-import { makeVar } from '@apollo/client';
+import { makeReference, makeVar } from '@apollo/client';
 import { CollabEditor, CollabEditorOptions } from '~collab/client/collab-editor';
 import {
-  StorageObject,
+  IdentifiedStoreObject,
   CompactStorageObject,
   identify,
   inverseIdentify,
 } from '../apollo-client/utils/identify';
 
 interface CacheEditor {
-  object: StorageObject;
+  object: IdentifiedStoreObject;
   editor: CollabEditor;
   vars: ReturnType<typeof createEditorReactiveVars>;
 }
@@ -30,10 +30,11 @@ const allByTypename = (__typename: string) => {
 };
 
 const set = (objectOrId: string | CompactStorageObject, editor: CollabEditor) => {
-  const cacheId = typeof objectOrId === 'string' ? objectOrId : identify(objectOrId);
+  const ref =
+    typeof objectOrId === 'string' ? makeReference(objectOrId) : identify(objectOrId);
   const object = inverseIdentify(objectOrId);
 
-  const existing = mapByCacheId.get(cacheId);
+  const existing = mapByCacheId.get(ref.__ref);
   if (existing && existing.editor !== editor) {
     existing.vars.cleanUp();
   }
@@ -44,7 +45,7 @@ const set = (objectOrId: string | CompactStorageObject, editor: CollabEditor) =>
     vars: createEditorReactiveVars(editor),
   };
 
-  mapByCacheId.set(cacheId, cacheEditor);
+  mapByCacheId.set(ref.__ref, cacheEditor);
   getAllByTypename(object.__typename).set(object.id, cacheEditor);
 
   return cacheEditor;
@@ -52,7 +53,8 @@ const set = (objectOrId: string | CompactStorageObject, editor: CollabEditor) =>
 
 const get = (objectOrId: string | CompactStorageObject) => {
   return mapByCacheId.get(
-    typeof objectOrId === 'string' ? objectOrId : identify(objectOrId)
+    (typeof objectOrId === 'string' ? makeReference(objectOrId) : identify(objectOrId))
+      .__ref
   );
 };
 
@@ -77,11 +79,12 @@ const getOrCreateMaybe = (
 };
 
 const _delete = (objectOrId: string | CompactStorageObject) => {
-  const cacheId = typeof objectOrId === 'string' ? objectOrId : identify(objectOrId);
+  const ref =
+    typeof objectOrId === 'string' ? makeReference(objectOrId) : identify(objectOrId);
   const object =
     typeof objectOrId === 'string' ? inverseIdentify(objectOrId) : objectOrId;
 
-  mapByCacheId.delete(cacheId);
+  mapByCacheId.delete(ref.__ref);
   getAllByTypename(object.__typename).delete(object.id);
 };
 

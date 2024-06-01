@@ -1,4 +1,4 @@
-import { ApolloCache, Reference, makeVar } from '@apollo/client';
+import { ApolloCache, Reference, makeReference, makeVar } from '@apollo/client';
 import isDefined from '~utils/type-guards/isDefined';
 import { Note } from '../../__generated__/graphql';
 import { getCurrentUserId } from '../auth/user';
@@ -8,14 +8,43 @@ import { getCurrentUserId } from '../auth/user';
  */
 export const activeNotesVar = makeVar<Record<string, Reference>>({});
 
-interface NoteIdentifiable {
+interface NoteContentId {
   contentId: Note['contentId'];
 }
 
-export function addActiveNotes<TCacheShape>(
+export function addActiveNotesByReference(notes: Reference[]) {
+  if (notes.length === 0) return;
+
+  const { ...activeNotes } = activeNotesVar();
+  notes.forEach((ref) => {
+    activeNotes[ref.__ref] = ref;
+  });
+  activeNotesVar(activeNotes);
+
+  return true;
+}
+
+export function removeActiveNotesByReference(notes: Reference[]) {
+  if (notes.length === 0) return;
+
+  const { ...activeNotes } = activeNotesVar();
+
+  notes.forEach((ref) => {
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete activeNotes[ref.__ref];
+  });
+
+  activeNotesVar(activeNotes);
+
+  return true;
+}
+
+export function addActiveNotesByContentId<TCacheShape>(
   cache: ApolloCache<TCacheShape>,
-  notes: NoteIdentifiable[]
+  notes: NoteContentId[]
 ) {
+  if (notes.length === 0) return;
+
   const refsList = notes.map((note) => noteToReference(cache, note)).filter(isDefined);
 
   const { ...activeNotes } = activeNotesVar();
@@ -27,10 +56,12 @@ export function addActiveNotes<TCacheShape>(
   return true;
 }
 
-export function removeActiveNotes<TCacheShape>(
+export function removeActiveNotesByContentId<TCacheShape>(
   cache: ApolloCache<TCacheShape>,
-  notes: NoteIdentifiable[]
+  notes: NoteContentId[]
 ) {
+  if (notes.length === 0) return;
+
   const refsList = notes.map((note) => noteToReference(cache, note)).filter(isDefined);
 
   const { ...activeNotes } = activeNotesVar();
@@ -47,23 +78,13 @@ export function removeActiveNotes<TCacheShape>(
 
 function noteToReference<TCacheShape>(
   cache: ApolloCache<TCacheShape>,
-  note: NoteIdentifiable
+  note: NoteContentId
 ) {
-  const noteRef = toReference(
-    cache.identify({
-      contentId: note.contentId,
-      userId: getCurrentUserId(cache),
-      __typename: 'Note',
-    })
-  );
-  return noteRef;
-}
+  const id = cache.identify({
+    contentId: note.contentId,
+    userId: getCurrentUserId(cache),
+    __typename: 'Note',
+  });
 
-function toReference(value: string | Reference | undefined): Reference | undefined {
-  if (typeof value === 'string') {
-    return {
-      __ref: value,
-    };
-  }
-  return value;
+  return id ? makeReference(id) : undefined;
 }

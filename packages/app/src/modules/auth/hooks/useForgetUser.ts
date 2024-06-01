@@ -11,7 +11,7 @@ export default function useForgetUser() {
       customApolloClient.evictUserSpecific(userId, {
         cache: customApolloClient.cache,
       });
-      customApolloClient.cache.gc();
+      customApolloClient.gc();
     },
     [customApolloClient]
   );

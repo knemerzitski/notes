@@ -1,4 +1,4 @@
-import { TypePolicies } from '@apollo/client';
+import { NormalizedCacheObject, TypePolicies } from '@apollo/client';
 import { relayStylePagination } from '@apollo/client/utilities';
 import { allActiveNotes as Query_allActiveNotes } from './policies/Query/allActiveNotes';
 import { note as Query_note } from './policies/Query/note';
@@ -8,8 +8,9 @@ import { fieldArrayToMap } from '../apollo-client/utils/fieldArrayToMap';
 import { EvictTag, EvictTypePolicies } from '../apollo-client/policy/evict';
 import { getCurrentUserIdInStorage } from '../auth/user';
 import { KeySpecifierName } from '../apollo-client/key-specifier';
+import { removeActiveNotesByReference } from './active-notes';
 
-const notePolicies: TypePolicies & EvictTypePolicies = {
+const notePolicies: TypePolicies & EvictTypePolicies<NormalizedCacheObject> = {
   Query: {
     fields: {
       allActiveNotes: Query_allActiveNotes,
@@ -43,6 +44,11 @@ const notePolicies: TypePolicies & EvictTypePolicies = {
         argName: 'name',
       }),
       isOwner: Note_isOwner,
+    },
+    evict: {
+      evicted(objects) {
+        removeActiveNotesByReference(objects.map(({ ref }) => ref));
+      },
     },
   },
   NotePatch: {

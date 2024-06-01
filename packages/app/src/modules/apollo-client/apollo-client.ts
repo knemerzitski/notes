@@ -21,8 +21,10 @@ import WaitLink from './links/wait-link';
 import { typePolicies } from './policies';
 import { TypePersistentStorage } from './policy/persist';
 import {
+  EvictByTagOptions,
   EvictOptions,
   EvictTag,
+  GarbageCollectionOptions,
   TypePoliciesEvictor as TypePoliciesEvictor,
 } from './policy/evict';
 import { LocalStoragePrefix, localStorageKey } from '../storage/local-storage';
@@ -239,7 +241,7 @@ export class CustomApolloClient {
 
   evictUserSpecific(
     userId: string | undefined,
-    options?: EvictOptions<NormalizedCacheObject>
+    options?: EvictByTagOptions<NormalizedCacheObject>
   ) {
     withDifferentUserIdInStorage(userId, () => {
       const args: Record<string, unknown[]> = userId
@@ -248,7 +250,7 @@ export class CustomApolloClient {
           }
         : {};
 
-      customApolloClient.evictor.evict({
+      customApolloClient.evictor.evictByTag({
         cache: this.client.cache,
         tag: EvictTag.UserSpecific,
         ...options,
@@ -258,6 +260,20 @@ export class CustomApolloClient {
         },
       });
     });
+  }
+
+  /**
+   * Calls evicted in typePolicy
+   */
+  evict(options: EvictOptions<NormalizedCacheObject>) {
+    return this.evictor.evict(options);
+  }
+
+  /**
+   * Calls evicted in typePolicy
+   */
+  gc(options?: GarbageCollectionOptions<NormalizedCacheObject>) {
+    return this.evictor.gc(options);
   }
 }
 

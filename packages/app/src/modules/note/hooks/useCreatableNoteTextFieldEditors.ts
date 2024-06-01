@@ -4,10 +4,10 @@ import useCreateNote from './useCreateNote';
 import isDefined from '~utils/type-guards/isDefined';
 import { useApolloClient } from '@apollo/client';
 import { NoteTextField } from '../../../__generated__/graphql';
-import { addActiveNotes } from '../active-notes';
 import { NoteCollabTextEditors } from '../context/NoteTextFieldEditorsProvider';
 import { collabTextRecordToEditorRevisionRecord } from '../../collab/editor-graphql-mapping';
 import { editorsInCache } from '../../editor/editors';
+import { addActiveNotesByContentId } from '../active-notes';
 
 function newEmptyEditors(): NoteCollabTextEditors {
   return [
@@ -80,7 +80,7 @@ export function useCreatableNoteTextFieldEditors() {
           );
         });
 
-        addActiveNotes(apolloClient.cache, [newNote]);
+        addActiveNotesByContentId(apolloClient.cache, [newNote]);
       } else {
         statusRef.current = 'local';
       }

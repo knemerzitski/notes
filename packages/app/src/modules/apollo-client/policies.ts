@@ -19,7 +19,7 @@ const LOG_READ = false;
  */
 const allTypePolicies: (TypePolicies &
   PersistTypePolicies &
-  EvictTypePolicies &
+  EvictTypePolicies<NormalizedCacheObject> &
   LinkTypePolicies<NormalizedCacheObject>)[] = [
   basePolicies,
   preferencesPolicies,

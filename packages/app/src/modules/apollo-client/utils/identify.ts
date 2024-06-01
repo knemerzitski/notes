@@ -1,39 +1,46 @@
-export interface StorageObject {
-  cacheId: string;
+import { Reference, isReference, makeReference } from '@apollo/client';
+
+export interface IdentifiedStoreObject {
+  ref: Reference;
   __typename: string;
   id: string;
 }
 
-export type CompactStorageObject = Pick<StorageObject, '__typename' | 'id'>;
+export type CompactStorageObject = Pick<IdentifiedStoreObject, '__typename' | 'id'>;
 
 export function identify(object: CompactStorageObject) {
-  return `${object.__typename}:${object.id}`;
+  if ('ref' in object && isReference(object.ref)) {
+    return object.ref;
+  }
+  return makeReference(`${object.__typename}:${object.id}`);
 }
 
-export function inverseIdentify(cacheId: string | CompactStorageObject): StorageObject {
-  if (typeof cacheId === 'string') {
-    const colonIndex = cacheId.indexOf(':');
+export function inverseIdentify(
+  object: string | CompactStorageObject
+): IdentifiedStoreObject {
+  if (typeof object === 'string') {
+    const colonIndex = object.indexOf(':');
     if (colonIndex === -1) {
-      throw new Error(`Failed to inverseIdentify ${cacheId}`);
+      throw new Error(`Failed to inverseIdentify ${object}`);
     }
-    const __typename = cacheId.substring(0, colonIndex);
+    const __typename = object.substring(0, colonIndex);
     if (!__typename) {
-      throw new Error(`Failed to parse __typename from ${cacheId}`);
+      throw new Error(`Failed to parse __typename from ${object}`);
     }
-    const id = cacheId.substring(colonIndex + 1);
+    const id = object.substring(colonIndex + 1);
     if (!id) {
-      throw new Error(`Failed to parse id from ${cacheId}`);
+      throw new Error(`Failed to parse id from ${object}`);
     }
 
     return {
-      cacheId,
+      ref: makeReference(object),
       __typename,
       id,
     };
   } else {
     return {
-      ...cacheId,
-      cacheId: identify(cacheId),
+      ...object,
+      ref: identify(object),
     };
   }
 }

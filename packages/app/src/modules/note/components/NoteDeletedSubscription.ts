@@ -1,11 +1,9 @@
 import { useEffect } from 'react';
 
-import { useApolloClient } from '@apollo/client';
 import { gql } from '../../../__generated__/gql';
 import { useNoteContentIdMaybe } from '../context/NoteContentIdProvider';
-import useNoteByContentId from '../hooks/useNoteByContentId';
-import { removeActiveNotes } from '../active-notes';
 import { useCurrentUserId } from '../../auth/user';
+import { useCustomApolloClient } from '../../apollo-client/context/CustomApolloClientProvider';
 
 export const SUBSCRIPTION = gql(`
   subscription NoteDeleted($input: NoteDeletedInput) {
@@ -20,16 +18,14 @@ export const SUBSCRIPTION = gql(`
  * to all notes of current user.
  */
 export default function NoteDeletedSubscription() {
-  const apolloClient = useApolloClient();
+  const customApolloClient = useCustomApolloClient();
   const currentUserId = useCurrentUserId();
 
   const noteContentId = useNoteContentIdMaybe();
 
-  const noteContentIdToId = useNoteByContentId();
-
   useEffect(() => {
     if (!currentUserId) return;
-    const observable = apolloClient.subscribe({
+    const observable = customApolloClient.client.subscribe({
       query: SUBSCRIPTION,
       variables: noteContentId
         ? {
@@ -45,23 +41,23 @@ export default function NoteDeletedSubscription() {
         const deletedContentId = value.data?.noteDeleted.contentId;
         if (!deletedContentId) return;
 
-        const cache = apolloClient.cache;
+        const cache = customApolloClient.cache;
 
-        const note = noteContentIdToId(deletedContentId);
-        if (note) {
-          removeActiveNotes(cache, [note]);
-          cache.evict({
-            id: cache.identify(note),
-          });
-          cache.gc();
-        }
+        customApolloClient.evict({
+          id: cache.identify({
+            contentId: deletedContentId,
+            userId: currentUserId,
+            __typename: 'Note',
+          }),
+        });
+        customApolloClient.gc();
       },
     });
 
     return () => {
       sub.unsubscribe();
     };
-  }, [apolloClient, noteContentId, noteContentIdToId, currentUserId]);
+  }, [customApolloClient, noteContentId, currentUserId]);
 
   return null;
 }

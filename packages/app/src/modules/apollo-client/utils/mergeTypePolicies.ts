@@ -5,7 +5,7 @@ import { LinkTypePolicies } from '../links/type-link';
 
 type AllTypePolicies = TypePolicies &
   PersistTypePolicies &
-  EvictTypePolicies &
+  EvictTypePolicies<NormalizedCacheObject> &
   LinkTypePolicies<NormalizedCacheObject>;
 
 /**
