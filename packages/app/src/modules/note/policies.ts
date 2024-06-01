@@ -1,20 +1,15 @@
-import { NormalizedCacheObject, TypePolicies } from '@apollo/client';
+import { TypePolicies } from '@apollo/client';
 import { relayStylePagination } from '@apollo/client/utilities';
 import { allActiveNotes as Query_allActiveNotes } from './policies/Query/allActiveNotes';
 import { note as Query_note } from './policies/Query/note';
 import { id as Note_id } from './policies/Note/id';
 import { isOwner as Note_isOwner } from './policies/Note/isOwner';
 import { fieldArrayToMap } from '../apollo-client/utils/fieldArrayToMap';
-import customKeyArgsFn from '../apollo-client/utils/customKeyArgsFn';
 import { EvictTag, EvictTypePolicies } from '../apollo-client/policy/evict';
 import { getCurrentUserIdInStorage } from '../auth/user';
-import { KeyArguments } from '../apollo-client/key-args';
-import { LinkTypePolicies } from '../apollo-client/links/type-link';
-import { link as Note_link } from './policies/Note/link';
+import { KeySpecifierName } from '../apollo-client/key-specifier';
 
-const notePolicies: TypePolicies &
-  EvictTypePolicies &
-  LinkTypePolicies<NormalizedCacheObject> = {
+const notePolicies: TypePolicies & EvictTypePolicies = {
   Query: {
     fields: {
       allActiveNotes: Query_allActiveNotes,
@@ -24,11 +19,10 @@ const notePolicies: TypePolicies &
           tag: EvictTag.UserSpecific,
         },
         ...relayStylePagination(
-          customKeyArgsFn({
-            customArgsFnMap: {
-              [KeyArguments.UserId]: () => getCurrentUserIdInStorage(),
-            },
-          })
+          () =>
+            `notesConnection:${JSON.stringify({
+              [KeySpecifierName.UserId]: getCurrentUserIdInStorage(),
+            })}`
         ),
       },
     },
@@ -37,6 +31,12 @@ const notePolicies: TypePolicies &
     keyFields: ['user', ['id'], 'note', ['contentId']],
   },
   Note: {
+    keyFields: (_object, { readField }) => {
+      return `Note:${JSON.stringify({
+        contentId: readField('contentId'),
+        [KeySpecifierName.UserId]: getCurrentUserIdInStorage(),
+      })}`;
+    },
     fields: {
       id: Note_id,
       textFields: fieldArrayToMap('key', {
@@ -44,7 +44,6 @@ const notePolicies: TypePolicies &
       }),
       isOwner: Note_isOwner,
     },
-    link: Note_link,
   },
   NotePatch: {
     keyFields: false,

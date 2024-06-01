@@ -1,9 +1,8 @@
 import { TypePolicies } from '@apollo/client';
 
 import { fieldArrayToMap } from '../apollo-client/utils/fieldArrayToMap';
-import customKeyArgsFn from '../apollo-client/utils/customKeyArgsFn';
 import { getCurrentUserIdInStorage } from './user';
-import { KeyArguments } from '../apollo-client/key-args';
+import { KeySpecifierName } from '../apollo-client/key-specifier';
 import { EvictTag, EvictTypePolicies } from '../apollo-client/policy/evict';
 
 const sessionPolicies: TypePolicies & EvictTypePolicies = {
@@ -13,11 +12,10 @@ const sessionPolicies: TypePolicies & EvictTypePolicies = {
         evict: {
           tag: EvictTag.UserSpecific,
         },
-        keyArgs: customKeyArgsFn({
-          customArgsFnMap: {
-            [KeyArguments.UserId]: () => getCurrentUserIdInStorage(),
-          },
-        }),
+        keyArgs: () =>
+          `user:${JSON.stringify({
+            [KeySpecifierName.UserId]: getCurrentUserIdInStorage(),
+          })}`,
       },
       signedInUsers(existing = []) {
         return existing;

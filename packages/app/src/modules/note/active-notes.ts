@@ -1,19 +1,20 @@
 import { ApolloCache, Reference, makeVar } from '@apollo/client';
 import isDefined from '~utils/type-guards/isDefined';
 import { Note } from '../../__generated__/graphql';
+import { getCurrentUserId } from '../auth/user';
 
 /**
  * Active notes local changes are submitted and external changes are processed.
  */
 export const activeNotesVar = makeVar<Record<string, Reference>>({});
 
-interface NoteOnlyId {
-  id: Note['id'];
+interface NoteIdentifiable {
+  contentId: Note['contentId'];
 }
 
 export function addActiveNotes<TCacheShape>(
   cache: ApolloCache<TCacheShape>,
-  notes: NoteOnlyId[]
+  notes: NoteIdentifiable[]
 ) {
   const refsList = notes.map((note) => noteToReference(cache, note)).filter(isDefined);
 
@@ -28,7 +29,7 @@ export function addActiveNotes<TCacheShape>(
 
 export function removeActiveNotes<TCacheShape>(
   cache: ApolloCache<TCacheShape>,
-  notes: NoteOnlyId[]
+  notes: NoteIdentifiable[]
 ) {
   const refsList = notes.map((note) => noteToReference(cache, note)).filter(isDefined);
 
@@ -44,10 +45,14 @@ export function removeActiveNotes<TCacheShape>(
   return true;
 }
 
-function noteToReference<TCacheShape>(cache: ApolloCache<TCacheShape>, note: NoteOnlyId) {
+function noteToReference<TCacheShape>(
+  cache: ApolloCache<TCacheShape>,
+  note: NoteIdentifiable
+) {
   const noteRef = toReference(
     cache.identify({
-      id: note.id,
+      contentId: note.contentId,
+      userId: getCurrentUserId(cache),
       __typename: 'Note',
     })
   );
