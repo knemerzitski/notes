@@ -27,7 +27,7 @@ import {
 } from './policy/evict';
 import { LocalStoragePrefix, localStorageKey } from '../storage/local-storage';
 import { getCurrentUserId, withDifferentUserIdInStorage } from '../auth/user';
-import { KeyArguments } from './key-args';
+import { KeySpecifierName } from './key-specifier';
 import TypeLink from './links/type-link';
 
 let HTTP_URL: string;
@@ -244,7 +244,7 @@ export class CustomApolloClient {
     withDifferentUserIdInStorage(userId, () => {
       const args: Record<string, unknown[]> = userId
         ? {
-            [KeyArguments.UserId]: [userId],
+            [KeySpecifierName.UserId]: [userId],
           }
         : {};
 

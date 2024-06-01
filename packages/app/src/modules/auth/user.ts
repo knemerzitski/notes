@@ -27,7 +27,7 @@ const QUERY_ADD = gql(`
   }
 `);
 
-export function setCurrentUserIdInStorage(userId: string | undefined | null) {
+function setCurrentUserIdInStorage(userId: string | undefined | null) {
   if (userId) {
     localStorage.setItem(KEY, userId);
   } else {

@@ -27,7 +27,25 @@ const QUERY = gql(`
   }
 `);
 
-type NavigateSwitchCurrentUserFn = (userId: string | true | null) => Promise<void>;
+type NavigateSwitchCurrentUserFn = <T>(
+  newUserId: SwitchUserId | SwitchUserClosure<T>
+) => Promise<T | undefined>;
+
+/**
+ * string - specific userId \
+ * true - first available user \
+ * null - no user, sign out
+ */
+type SwitchUserId = string | true | null;
+
+interface SwitchUserContext {
+  /**
+   * Set new userId after outside closure
+   */
+  switchAfterClosure: (newUserId: SwitchUserId) => void;
+}
+
+type SwitchUserClosure<T> = (context: SwitchUserContext) => Promise<T>;
 
 const NavigateSwitchCurrentUserContext =
   createContext<NavigateSwitchCurrentUserFn | null>(null);
@@ -97,45 +115,36 @@ export function NavigateSwitchCurrentUserProvider({ children }: { children: Reac
   const paramsRestRef = useRef(params['*'] ?? '');
   paramsRestRef.current = params['*'] ?? '';
 
-  // Switches user and updates location
-  const handleNavigateSwitchCurrentUser = useCallback(
-    async (newUserId: string | true | null) => {
-      if (switchingUserRef.current) {
-        return;
+  // Directly navigates and switches user without any checks
+  const navigateSwitchCurrentUser = useCallback(
+    async (newUserId: SwitchUserId) => {
+      if (newUserId === true) {
+        newUserId = getCurrentUserId(apolloClient.cache) ?? null;
       }
-      try {
-        switchingUserRef.current = true;
 
-        if (newUserId === true) {
-          newUserId = getCurrentUserId(apolloClient.cache) ?? null;
+      const setUserResult = setCurrentSignedInUser(apolloClient.cache, newUserId);
+      const indexOfUser = setUserResult?.signedInUsers.findIndex(
+        ({ id }) => id === setUserResult.currentSignedInUser?.id
+      );
+      const newIndex = indexOfUser != null && indexOfUser !== -1 ? indexOfUser : null;
+
+      // Update location if new index doesn't match
+      if (locationUserIndex !== newIndex) {
+        if (newIndex == null) {
+          // All users signed out
+          navigate(joinPathnames(paramsRestRef.current));
+        } else {
+          // Switches user
+          navigate(
+            joinPathnames(`/${locationPrefix}/${newIndex}`, paramsRestRef.current)
+          );
         }
+      }
 
-        const setUserResult = setCurrentSignedInUser(apolloClient.cache, newUserId);
-        const indexOfUser = setUserResult?.signedInUsers.findIndex(
-          ({ id }) => id === setUserResult.currentSignedInUser?.id
-        );
-        const newIndex = indexOfUser != null && indexOfUser !== -1 ? indexOfUser : null;
-
-        // Update location if new index doesn't match
-        if (locationUserIndex !== newIndex) {
-          if (newIndex == null) {
-            // All users signed out
-            navigate(joinPathnames(paramsRestRef.current));
-          } else {
-            // Switches user
-            navigate(
-              joinPathnames(`/${locationPrefix}/${newIndex}`, paramsRestRef.current)
-            );
-          }
-        }
-
-        // Restart WebSocket and refetch queries on user change
-        if (newUserId !== targetUserId) {
-          customApolloClient.restartSubscriptionClient();
-          await apolloClient.reFetchObservableQueries();
-        }
-      } finally {
-        switchingUserRef.current = false;
+      // Restart WebSocket and refetch queries on user change
+      if (newUserId !== targetUserId) {
+        customApolloClient.restartSubscriptionClient();
+        await apolloClient.reFetchObservableQueries();
       }
     },
     [
@@ -146,6 +155,41 @@ export function NavigateSwitchCurrentUserProvider({ children }: { children: Reac
       customApolloClient,
       locationPrefix,
     ]
+  );
+
+  // Switches user and updates browser location
+  const handleNavigateSwitchCurrentUser = useCallback(
+    async function <T>(newUserId: SwitchUserId | SwitchUserClosure<T>) {
+      if (switchingUserRef.current) {
+        return;
+      }
+
+      try {
+        switchingUserRef.current = true;
+
+        if (typeof newUserId === 'function') {
+          let theUserId: string | true | null | undefined;
+
+          const closureResult = await newUserId({
+            switchAfterClosure(newUserId) {
+              theUserId = newUserId;
+            },
+          });
+
+          if (theUserId !== undefined) {
+            await navigateSwitchCurrentUser(theUserId);
+          }
+
+          return closureResult;
+        }
+
+        await navigateSwitchCurrentUser(newUserId);
+        return;
+      } finally {
+        switchingUserRef.current = false;
+      }
+    },
+    [navigateSwitchCurrentUser]
   );
 
   // Switch to correct user based on location

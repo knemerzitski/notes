@@ -5,7 +5,7 @@ import useNavigateSwitchCurrentUser from './useNavigateSwitchCurrentUser';
 import { gql } from '../../../__generated__/gql';
 import { AuthProvider } from '../../../__generated__/graphql';
 import { useSnackbarError } from '../../common/components/SnackbarAlertProvider';
-import { addSignedInUser, setCurrentUserIdInStorage } from '../user';
+import { addSignedInUser } from '../user';
 
 const SIGN_IN = gql(`
   mutation UseSignInWithGoogle($input: SignInInput!)  {
@@ -47,56 +47,52 @@ export default function useSignInWithGoogle() {
 
   const startSignIn = useCallback(
     async (response: google.accounts.id.CredentialResponse) => {
-      const { data } = await signIn({
-        variables: {
-          input: {
-            provider: AuthProvider.Google,
-            credentials: {
-              token: response.credential,
+      return await navigateSwitchCurrentUser(async ({ switchAfterClosure }) => {
+        const { data } = await signIn({
+          variables: {
+            input: {
+              provider: AuthProvider.Google,
+              credentials: {
+                token: response.credential,
+              },
             },
           },
-        },
-        onCompleted(data) {
-          const id = data.signIn?.user.id;
-          if (id) {
-            setCurrentUserIdInStorage(String(id));
-          }
-        },
-      });
-      if (!data) return false;
+        });
+        if (!data) return false;
 
-      if (!data.signIn) {
-        showError('Failed to sign in');
-        return false;
-      }
+        if (!data.signIn) {
+          showError('Failed to sign in');
+          return false;
+        }
 
-      const {
-        user: { id: userId },
-        authProviderUser: { id: googleId, email },
-      } = data.signIn;
+        const {
+          user: { id: userId },
+          authProviderUser: { id: googleId, email },
+        } = data.signIn;
 
-      apolloClient.writeQuery({
-        query: QUERY_USER,
-        data: {
-          user: {
-            __typename: 'User',
-            id: userId,
-            email,
-            isSessionExpired: false,
-            authProviderEntries: [
-              {
-                provider: AuthProvider.Google,
-                id: String(googleId),
-              },
-            ],
+        apolloClient.writeQuery({
+          query: QUERY_USER,
+          data: {
+            user: {
+              __typename: 'User',
+              id: userId,
+              email,
+              isSessionExpired: false,
+              authProviderEntries: [
+                {
+                  provider: AuthProvider.Google,
+                  id: String(googleId),
+                },
+              ],
+            },
           },
-        },
+        });
+        addSignedInUser(apolloClient.cache, String(userId));
+
+        switchAfterClosure(String(userId));
+
+        return true;
       });
-      addSignedInUser(apolloClient.cache, String(userId));
-
-      await navigateSwitchCurrentUser(String(userId));
-
-      return true;
     },
     [signIn, navigateSwitchCurrentUser, showError, apolloClient]
   );
