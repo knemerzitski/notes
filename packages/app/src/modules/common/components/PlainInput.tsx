@@ -14,13 +14,12 @@ export default function PlainInput(props: InputProps) {
         input: {
           ...props.slotProps?.input,
           onClick: (e) => {
-            props.slotProps?.input?.onClick?.(e);
+            props.onClick?.(e);
             e.stopPropagation();
           },
         },
       }}
       onClick={(e) => {
-        props.onClick?.(e);
         // If clicked on div outside textarea, set selection to the end
         const child = (e.target as { firstChild?: unknown }).firstChild;
         if (child instanceof HTMLTextAreaElement) {
