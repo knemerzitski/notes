@@ -4,9 +4,9 @@ import { TypePolicies } from '@apollo/client';
 import { PersistTypePolicies } from '../apollo-client/policy/persist';
 import { CollabEditor } from '~collab/client/collab-editor';
 import { CollabText } from '../../__generated__/graphql';
-import { editorsWithVars } from './editors';
 import { textAtRevision as CollabText_textAtRevision } from './policies/CollabText/textAtRevision';
 import { recordsConnection as CollabText_recordsConnection } from './policies/CollabText/recordsConnection';
+import { editorsInCache } from '../editor/editors';
 
 const collabTextPolicies: TypePolicies & PersistTypePolicies = {
   Query: {
@@ -22,19 +22,24 @@ const collabTextPolicies: TypePolicies & PersistTypePolicies = {
     },
     persist: {
       writeAllAssign() {
-        return [...editorsWithVars.all().entries()].map(([collabTextId, { editor }]) => {
-          return {
-            id: collabTextId,
-            __typename: 'CollabText',
-            editor: editor.serialize(),
-          };
-        });
+        return [...editorsInCache.allByTypename('CollabText')].map(
+          ({ object, editor }) => {
+            return {
+              id: object.id,
+              __typename: 'CollabText',
+              editor: editor.serialize(),
+            };
+          }
+        );
       },
       readModify(readValue: Pick<CollabText, 'id'> & Partial<{ editor: unknown }>): void {
         try {
           if (readValue.editor) {
-            editorsWithVars.set(
-              String(readValue.id),
+            editorsInCache.set(
+              {
+                id: String(readValue.id),
+                __typename: 'CollabText',
+              },
               new CollabEditor(CollabEditor.parseValue(readValue.editor))
             );
           }

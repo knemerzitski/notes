@@ -1,7 +1,8 @@
 import { ApolloClient, useFragment } from '@apollo/client';
 import { CollabEditor } from '~collab/client/collab-editor';
-import { editorsWithVars } from '../editors';
 import { gql } from '../../../__generated__/gql';
+import { editorsInCache } from '../../editor/editors';
+import { RevisionChangeset } from '~collab/records/record';
 
 export const FRAGMENT = gql(`
   fragment UseCollabEditor on CollabText {
@@ -12,6 +13,13 @@ export const FRAGMENT = gql(`
   }
 `);
 
+function getCacheId(collabTextId: string) {
+  return {
+    __typename: 'CollabText',
+    id: collabTextId,
+  };
+}
+
 export default function useCollabEditor(collabTextId: string): CollabEditor {
   const collabText = useFragment({
     from: {
@@ -21,16 +29,18 @@ export default function useCollabEditor(collabTextId: string): CollabEditor {
     fragment: FRAGMENT,
   });
 
-  return editorsWithVars.getOrCreateOrFail(collabTextId, () =>
-    collabText.complete ? collabText.data.headText : undefined
-  ).editor;
+  return editorsInCache.getOrCreate(getCacheId(collabTextId), () => {
+    return CollabEditor.headTextAsOptions(
+      RevisionChangeset.parseValue(collabText.data.headText)
+    );
+  }).editor;
 }
 
 export function getCollabEditor<TCacheShape>(
   apolloClient: ApolloClient<TCacheShape>,
   collabTextId: string
 ): CollabEditor {
-  return editorsWithVars.getOrCreateOrFail(collabTextId, () => {
+  return editorsInCache.getOrCreate(getCacheId(collabTextId), () => {
     const collabText = apolloClient.cache.readFragment({
       id: apolloClient.cache.identify({
         id: collabTextId,
@@ -38,7 +48,9 @@ export function getCollabEditor<TCacheShape>(
       }),
       fragment: FRAGMENT,
     });
-    return collabText?.headText;
+    return CollabEditor.headTextAsOptions(
+      RevisionChangeset.parseValue(collabText?.headText)
+    );
   }).editor;
 }
 
@@ -46,7 +58,7 @@ export function getCollabEditorMaybe<TCacheShape>(
   apolloClient: ApolloClient<TCacheShape>,
   collabTextId: string
 ): CollabEditor | undefined {
-  return editorsWithVars.getOrCreate(collabTextId, () => {
+  return editorsInCache.getOrCreateMaybe(getCacheId(collabTextId), () => {
     const collabText = apolloClient.cache.readFragment({
       id: apolloClient.cache.identify({
         id: collabTextId,
@@ -54,6 +66,8 @@ export function getCollabEditorMaybe<TCacheShape>(
       }),
       fragment: FRAGMENT,
     });
-    return collabText?.headText;
+    return CollabEditor.headTextAsOptions(
+      RevisionChangeset.parseValue(collabText?.headText)
+    );
   })?.editor;
 }

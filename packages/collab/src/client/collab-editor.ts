@@ -266,14 +266,18 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
   private unsubscribeFromEvents: () => void;
 
   static newFromHeadText(headText: RevisionChangeset): CollabEditor {
-    return new CollabEditor({
+    return new CollabEditor(CollabEditor.headTextAsOptions(headText));
+  }
+
+  static headTextAsOptions(headText: RevisionChangeset): CollabEditorOptions {
+    return {
       recordsBuffer: {
         version: headText.revision,
       },
       client: {
         server: headText.changeset,
       },
-    });
+    };
   }
 
   constructor(options?: CollabEditorOptions) {
