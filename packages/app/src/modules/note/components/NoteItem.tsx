@@ -100,7 +100,7 @@ export default function NoteItem({
           WebkitBoxOrient: 'vertical',
           WebkitLineClamp: '7',
           textAlign: 'left',
-          flex: '1 1 auto',
+          flex: '1 1 100%',
         }}
       >
         {visibleNote.content}
