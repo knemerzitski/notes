@@ -6,7 +6,6 @@ import { UserNoteSchema, userNoteDescription } from './schema/user-note';
 import { NoteSchema, noteDescription } from './schema/note';
 import { CollabTextSchema, collabTextDescription } from './schema/collab-text';
 
-
 export interface CollectionDescription {
   indexSpecs?: IndexDescription[];
 }

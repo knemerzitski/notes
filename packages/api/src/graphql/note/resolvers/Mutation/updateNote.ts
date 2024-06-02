@@ -25,6 +25,9 @@ import recordInsertion, { RecordInsertionError } from '~collab/records/recordIns
 import { NoteQuery } from '../../mongo-query-mapper/note';
 import { NoteMapper } from '../../schema.mappers';
 import { SelectionRange } from '~collab/client/selection-range';
+import { ChangesetRevisionRecords } from '~collab/records/changeset-revision-records';
+import { RevisionChangeset, SerializedRevisionChangeset } from '~collab/records/record';
+import { RevisionRecords } from '~collab/records/revision-records';
 
 type DefinedAwaited<T> = NonNullable<Awaited<T>>;
 
@@ -82,6 +85,8 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
     });
   }
 
+  const maxRecordsCount = ctx.options?.collabText?.maxRecordsCount;
+
   const payloads = await mongodb.client.withSession((session) =>
     session.withTransaction(async (session) => {
       const responseTextFieldsPayload: UpdateNotePayloadPatch['textFields'] = [];
@@ -94,43 +99,79 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
             patch.textFields.map(async ({ key: fieldName, value: { insertRecord } }) => {
               if (!insertRecord) return;
 
-              // Get relevant records for record insertion
-              const userNote = await datasources.notes.getNote(
-                {
-                  publicId: notePublicId,
-                  userId: currentUserId,
-                  noteQuery: {
-                    note: {
-                      collabTexts: {
-                        [fieldName]: {
-                          _id: 1,
-                          headText: {
-                            changeset: 1,
-                            revision: 1,
-                          },
-                          records: {
-                            $query: {
-                              userGeneratedId: 1,
-                              revision: 1,
+              // Get relevant records for record insertion and tailText composition
+              const [userNoteForInsertion, userNoteForTailText] = await Promise.all([
+                datasources.notes.getNote(
+                  {
+                    publicId: notePublicId,
+                    userId: currentUserId,
+                    noteQuery: {
+                      note: {
+                        collabTexts: {
+                          [fieldName]: {
+                            _id: 1,
+                            headText: {
                               changeset: 1,
-                              creatorUserId: 1,
+                              revision: 1,
                             },
-                            $pagination: {
-                              after: insertRecord.change.revision,
+                            records: {
+                              $query: {
+                                userGeneratedId: 1,
+                                revision: 1,
+                                changeset: 1,
+                                creatorUserId: 1,
+                              },
+                              $pagination: {
+                                after: insertRecord.change.revision,
+                              },
                             },
                           },
                         },
                       },
                     },
                   },
-                },
-                {
-                  session,
-                }
-              );
+                  {
+                    session,
+                  }
+                ),
+                maxRecordsCount != null && maxRecordsCount > 0
+                  ? datasources.notes.getNote(
+                      {
+                        publicId: notePublicId,
+                        userId: currentUserId,
+                        noteQuery: {
+                          note: {
+                            collabTexts: {
+                              [fieldName]: {
+                                _id: 1,
+                                tailText: {
+                                  changeset: 1,
+                                  revision: 1,
+                                },
+                                records: {
+                                  $query: {
+                                    revision: 1,
+                                    changeset: 1,
+                                  },
+                                  $pagination: {
+                                    before:
+                                      insertRecord.change.revision - maxRecordsCount + 2,
+                                  },
+                                },
+                              },
+                            },
+                          },
+                        },
+                      },
+                      {
+                        session,
+                      }
+                    )
+                  : Promise.resolve(null),
+              ]);
 
               const collabText = assertCollabTextWithId(
-                userNote,
+                userNoteForInsertion,
                 fieldName,
                 notePublicId
               );
@@ -236,6 +277,51 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
                 if (!insertion.isExisting) {
                   // New record, create bulkUpdate query
                   const { beforeSelection, afterSelection } = insertion.newRecord;
+
+                  const pushRecord = {
+                    ...insertion.newRecord,
+                    changeset: insertion.newRecord.changeset.serialize(),
+                    beforeSelection: SelectionRange.collapseSame(beforeSelection),
+                    afterSelection: SelectionRange.collapseSame(afterSelection),
+                  };
+
+                  // Compose tailText, deleting older records
+                  let newComposedTail:
+                    | { tailText: SerializedRevisionChangeset; recordsCount: number }
+                    | undefined;
+                  if (userNoteForTailText) {
+                    const collabTextForTailCompose = assertCollabTextWithId(
+                      userNoteForTailText,
+                      fieldName,
+                      notePublicId
+                    );
+
+                    const tailRevisionRecords = new ChangesetRevisionRecords({
+                      tailText: RevisionChangeset.parseValue(
+                        collabTextForTailCompose.tailText
+                      ),
+                      revisionRecords: new RevisionRecords({
+                        records:
+                          collabTextForTailCompose.records?.map((record) =>
+                            RevisionChangeset.parseValue(record)
+                          ) ?? [],
+                      }),
+                    });
+
+                    const beforeTailRevision = tailRevisionRecords.tailRevision;
+
+                    tailRevisionRecords.mergeToTail(tailRevisionRecords.records.length);
+                    const newTailText = tailRevisionRecords.tailText;
+
+                    if (newTailText.revision > beforeTailRevision) {
+                      newComposedTail = {
+                        tailText: RevisionChangeset.serialize(newTailText),
+                        recordsCount:
+                          insertion.newHeadText.revision - newTailText.revision,
+                      };
+                    }
+                  }
+
                   const bulkUpdate: AnyBulkWriteOperation<CollabTextSchema> = {
                     updateOne: {
                       filter: {
@@ -247,14 +333,16 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
                             revision: insertion.newHeadText.revision,
                             changeset: insertion.newHeadText.changeset.serialize(),
                           },
+                          ...(newComposedTail && { tailText: newComposedTail.tailText }),
                         },
                         $push: {
-                          records: {
-                            ...insertion.newRecord,
-                            changeset: insertion.newRecord.changeset.serialize(),
-                            beforeSelection: SelectionRange.collapseSame(beforeSelection),
-                            afterSelection: SelectionRange.collapseSame(afterSelection),
-                          },
+                          records:
+                            newComposedTail != null && newComposedTail.recordsCount > 0
+                              ? {
+                                  $each: [pushRecord],
+                                  $slice: -newComposedTail.recordsCount,
+                                }
+                              : pushRecord,
                         },
                       },
                     },
@@ -302,6 +390,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
                 {
                   session,
                   ignoreUndefined: false,
+                  ordered: true,
                 }
               );
             }

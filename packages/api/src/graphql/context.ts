@@ -15,6 +15,7 @@ import CookiesContext, { SerializedCookiesContext } from './cookies-context';
 import NotesDataSource from './note/datasource/notes-datasource';
 import { MongoDBCollections } from '../mongodb/collections';
 import { MongoClient } from 'mongodb';
+import { ApiOptions } from './api-options';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type BaseGraphQLContext = {
@@ -41,6 +42,7 @@ export interface ApiGraphQLContext {
     client: MongoClient;
     collections: MongoDBCollections;
   };
+  options?: ApiOptions;
 }
 
 export type GraphQLResolversContext = ApolloHttpGraphQLContext &

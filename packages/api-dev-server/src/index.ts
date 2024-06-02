@@ -15,6 +15,7 @@ import {
 } from '~api/graphql/context';
 import CookiesContext, { parseCookiesFromHeaders } from '~api/graphql/cookies-context';
 import {
+  createDefaultApiOptions,
   createDefaultDataSources,
   createDefaultDynamoDBConnectionTtlContext,
   createDefaultIsCurrentConnection,
@@ -157,6 +158,7 @@ void (async () => {
                 mongodb,
               },
             }),
+            options: createDefaultApiOptions(),
             subscribe: () => {
               throw new Error('Subscribe should never be called in apollo-http-handler');
             },

@@ -691,6 +691,142 @@ describe('random records', () => {
           },
         });
       });
+
+      describe('tailText compose older records', () => {
+        it('keeps exact records when composed on headText', async () => {
+          await apolloServer.executeOperation(
+            {
+              query: MUTATION,
+              variables: {
+                input: {
+                  contentId: note.publicId,
+                  patch: {
+                    textFields: [
+                      {
+                        key: NoteTextField.CONTENT,
+                        value: {
+                          insertRecord: {
+                            generatedId: 'aa',
+                            change: {
+                              revision: 14,
+                              changeset: Changeset.parseValue([[0, 3], '. after head']),
+                            },
+                            beforeSelection: {
+                              start: 4,
+                            },
+                            afterSelection: {
+                              start: 16,
+                            },
+                          },
+                        },
+                      },
+                    ],
+                  },
+                } as UpdateNoteInput,
+              },
+            },
+            {
+              contextValue: {
+                ...createGraphQLResolversContext(user),
+                options: {
+                  collabText: {
+                    maxRecordsCount: 3,
+                  },
+                },
+              } as GraphQLResolversContext,
+            }
+          );
+
+          // // Database
+          const collabTextId = note.collabTextIds[NoteTextField.CONTENT];
+          assert(collabTextId != null);
+
+          const collabText = await mongoCollections[CollectionName.CollabTexts].findOne(
+            {
+              _id: collabTextId,
+            },
+            {
+              projection: {
+                _id: 0,
+                tailText: 1,
+                records: 1,
+              },
+            }
+          );
+
+          expect(collabText?.tailText.revision).toStrictEqual(12);
+          expect(collabText?.records.map((record) => record.revision)).toStrictEqual([
+            13, 14, 15,
+          ]);
+        });
+
+        it('keeps more records when composed on older record', async () => {
+          await apolloServer.executeOperation(
+            {
+              query: MUTATION,
+              variables: {
+                input: {
+                  contentId: note.publicId,
+                  patch: {
+                    textFields: [
+                      {
+                        key: NoteTextField.CONTENT,
+                        value: {
+                          insertRecord: {
+                            generatedId: 'aa',
+                            change: {
+                              revision: 13,
+                              changeset: Changeset.parseValue(['on_r13']),
+                            },
+                            beforeSelection: {
+                              start: 4,
+                            },
+                            afterSelection: {
+                              start: 16,
+                            },
+                          },
+                        },
+                      },
+                    ],
+                  },
+                } as UpdateNoteInput,
+              },
+            },
+            {
+              contextValue: {
+                ...createGraphQLResolversContext(user),
+                options: {
+                  collabText: {
+                    maxRecordsCount: 1,
+                  },
+                },
+              } as GraphQLResolversContext,
+            }
+          );
+
+          // // Database
+          const collabTextId = note.collabTextIds[NoteTextField.CONTENT];
+          assert(collabTextId != null);
+
+          const collabText = await mongoCollections[CollectionName.CollabTexts].findOne(
+            {
+              _id: collabTextId,
+            },
+            {
+              projection: {
+                _id: 0,
+                tailText: 1,
+                records: 1,
+              },
+            }
+          );
+
+          expect(collabText?.tailText.revision).toStrictEqual(13);
+          expect(collabText?.records.map((record) => record.revision)).toStrictEqual([
+            14, 15,
+          ]);
+        });
+      });
     });
   });
 

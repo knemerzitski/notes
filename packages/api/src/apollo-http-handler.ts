@@ -12,6 +12,7 @@ import { GraphQLResolversContext, DynamoDBBaseGraphQLContext } from './graphql/c
 import CookiesContext from './graphql/cookies-context';
 import {
   createDefaultApiGatewayParams,
+  createDefaultApiOptions,
   createDefaultDataSources,
   createDefaultDynamoDBParams,
   createDefaultGraphQLParams,
@@ -52,6 +53,7 @@ export function createDefaultParams(): CreateApolloHttpHandlerParams<
             mongodb,
           },
         }),
+        options: createDefaultApiOptions(),
         subscribe: () => {
           throw new Error('Subscribe should never be called in apollo-http-handler');
         },

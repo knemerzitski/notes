@@ -33,6 +33,7 @@ import NotesDataSource, {
 import { BaseContext } from '@apollo/server';
 import { GroupDuplicateErrors } from './graphql/plugins/group-duplicate-errors';
 import { RemoveResolverOnlyErrors } from './graphql/plugins/remove-resolver-only-errors';
+import { ApiOptions } from './graphql/api-options';
 
 export function createDefaultGraphQLParams<TContext extends BaseContext>(
   logger: Logger
@@ -174,5 +175,13 @@ export function createDefaultDataSources(
 ): ApiGraphQLContext['datasources'] {
   return {
     notes: new NotesDataSource(params.notes),
+  };
+}
+
+export function createDefaultApiOptions(): ApiOptions {
+  return {
+    collabText: {
+      maxRecordsCount: 500,
+    },
   };
 }
