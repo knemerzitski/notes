@@ -12,8 +12,8 @@ interface Note {
 
 export interface NoteItemProps extends PaperProps {
   note: Note;
-  onStartEdit: () => void;
-  onDelete: () => Promise<boolean>;
+  onStartEdit?: () => void;
+  onDelete?: () => Promise<boolean>;
 }
 
 export default function NoteItem({
@@ -36,8 +36,10 @@ export default function NoteItem({
   const visibleNote = noteBeforeEditRef.current ?? note;
 
   function handleStartEdit() {
-    noteBeforeEditRef.current = note;
-    onStartEdit();
+    if (onStartEdit) {
+      noteBeforeEditRef.current = note;
+      onStartEdit();
+    }
   }
 
   return (

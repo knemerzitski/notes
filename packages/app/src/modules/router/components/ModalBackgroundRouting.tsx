@@ -1,11 +1,4 @@
-import {
-  ComponentType,
-  ReactElement,
-  Suspense,
-  createContext,
-  useContext,
-  useMemo,
-} from 'react';
+import { ComponentType, ReactElement, Suspense, useMemo } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useLocation, Location, RoutesProps, Route, RouteProps } from 'react-router-dom';
 
@@ -14,12 +7,6 @@ import SnackbarErrorBoundary from '../../common/components/SnackbarErrorBoundary
 import isDefined from '~utils/type-guards/isDefined';
 import matchPathSuffix from '../utils/matchPathSuffix';
 import getParentFromSuffix from '../utils/getParentFromSuffix';
-
-const BackgroundPathContext = createContext<string | null>(null);
-
-export function useBackgroundPath() {
-  return useContext(BackgroundPathContext);
-}
 
 interface ModalBackgroundRouteProps {
   DefaultRoutes: ComponentType<RoutesProps>;
@@ -104,6 +91,7 @@ function DefaultOrModalBackgroundRoute({
       hash: mainOrBgLocation.hash,
       state: mainOrBgLocation.state as unknown,
     };
+
     return <DefaultRoutes location={loc} />;
   }, [
     // Memo only values, not location object itself as it can change while values inside are still same
@@ -115,9 +103,5 @@ function DefaultOrModalBackgroundRoute({
     DefaultRoutes,
   ]);
 
-  return (
-    <BackgroundPathContext.Provider value={modalBackgroundLocation?.pathname ?? null}>
-      {mainOrBgRoutes}
-    </BackgroundPathContext.Provider>
-  );
+  return mainOrBgRoutes;
 }

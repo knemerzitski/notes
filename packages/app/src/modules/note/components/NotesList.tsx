@@ -6,8 +6,8 @@ const LOADING_SKELETON_COUNT = 15;
 
 export interface NotesListProps extends BoxProps {
   notes: NoteItemProps['note'][];
-  onStartEdit: (id: string) => void;
-  onDelete: (id: string) => Promise<boolean>;
+  onStartEdit?: (id: string) => void;
+  onDelete?: (id: string) => Promise<boolean>;
   loading?: boolean;
 }
 
@@ -50,9 +50,9 @@ export default function NotesList({
               key={note.id}
               note={note}
               onStartEdit={() => {
-                onStartEdit(String(note.id));
+                onStartEdit?.(String(note.id));
               }}
-              onDelete={() => onDelete(String(note.id))}
+              onDelete={() => onDelete?.(String(note.id)) ?? Promise.resolve(true)}
               sx={{
                 height: {
                   xs: 'auto',

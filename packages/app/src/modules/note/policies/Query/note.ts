@@ -1,8 +1,8 @@
-import { FieldPolicy } from '@apollo/client';
+import { FieldPolicy, NormalizedCacheObject } from '@apollo/client';
 import { EvictFieldPolicy, EvictTag } from '../../../apollo-client/policy/evict';
 import { getCurrentUserId } from '../../../auth/user';
 
-export const note: FieldPolicy & EvictFieldPolicy = {
+export const note: FieldPolicy & EvictFieldPolicy<NormalizedCacheObject> = {
   read(_, { args, cache, toReference }) {
     if (typeof args?.contentId === 'string') {
       return toReference({

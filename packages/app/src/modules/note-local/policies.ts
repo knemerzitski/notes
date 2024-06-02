@@ -1,39 +1,96 @@
-import { TypePolicies } from '@apollo/client';
-import { GraphQLError } from 'graphql';
+import { NormalizedCacheObject, TypePolicies } from '@apollo/client';
+import { PersistTypePolicies } from '../apollo-client/policy/persist';
+import { editorsInCache } from '../editor/editors';
+import { LocalCollabText } from '../../__generated__/graphql';
+import { CollabEditor } from '~collab/client/collab-editor';
+import { EvictTypePolicies } from '../apollo-client/policy/evict';
+import { localNotesConnection as Query_localNotesConnection } from './policies/Query/localNotesConnection';
 
-import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
-
-import { LocalNote } from '../../__generated__/graphql';
-
-import { notesVar } from './state';
-
-
-const noteLocalPolicies: TypePolicies = {
+const localNotePolicies: TypePolicies &
+  PersistTypePolicies &
+  EvictTypePolicies<NormalizedCacheObject> = {
   Query: {
     fields: {
-      localNotes(): LocalNote[] {
-        return notesVar();
+      nextLocalNoteId(existing = 1) {
+        return existing;
       },
-      localNote(_, { variables }: { variables?: { id?: string } }): LocalNote {
-        const id = variables?.id;
-        if (!id) {
-          throw new GraphQLError('Id is required');
-        }
-        const notes = notesVar();
+      nextLocalCollabTextId(existing = 1) {
+        return existing;
+      },
+      localNote: {
+        read(_, { args, toReference }) {
+          if (typeof args?.id === 'string' || typeof args?.id === 'number') {
+            return toReference({
+              __typename: 'LocalNote',
+              id: args.id,
+            });
+          }
 
-        const note = notes.find((note) => note.id === id);
+          return;
+        },
+        keyArgs: false,
+        merge: false,
+      },
+      localNotesConnection: Query_localNotesConnection,
+    },
+  },
+  LocalCollabText: {
+    fields: {
+      viewText: {
+        read(_existing, options) {
+          const { readField } = options;
+          const id = readField('id');
+          if (!id) {
+            throw new Error('Expected LocalCollabText.id to be defined to create editor');
+          }
 
-        if (!note) {
-          throw new GraphQLError('Note not found', {
-            extensions: {
-              code: GraphQLErrorCode.NotFound,
-            },
-          });
+          return editorsInCache
+            .getOrCreate({
+              __typename: 'LocalCollabText',
+              id: String(id),
+            })
+            .vars.viewTextVar();
+        },
+      },
+    },
+    persist: {
+      writeAllAssign() {
+        return [...editorsInCache.allByTypename('LocalCollabText')].map(
+          ({ object, editor }) => {
+            return {
+              id: object.id,
+              __typename: 'LocalCollabText',
+              editor: editor.serialize(),
+            };
+          }
+        );
+      },
+      readModify(
+        readValue: Pick<LocalCollabText, 'id'> & Partial<{ editor: unknown }>
+      ): void {
+        try {
+          if (readValue.editor) {
+            editorsInCache.set(
+              {
+                id: String(readValue.id),
+                __typename: 'LocalCollabText',
+              },
+              new CollabEditor(CollabEditor.parseValue(readValue.editor))
+            );
+          }
+        } finally {
+          delete readValue.editor;
         }
-        return note;
+      },
+    },
+    evict: {
+      evicted(objects) {
+        objects.forEach((object) => {
+          editorsInCache.delete(object);
+        });
       },
     },
   },
 };
 
-export default noteLocalPolicies;
+export default localNotePolicies;

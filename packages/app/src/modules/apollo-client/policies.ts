@@ -7,7 +7,7 @@ import preferencesPolicies from '../preferences/policies';
 import authPolicies from '../auth/policies';
 import basePolicies from '../global/policies';
 import notePolicies from '../note/policies';
-import noteLocalPolicies from '../note-local/policies';
+import localNotePolicies from '../note-local/policies';
 import { EvictTypePolicies } from './policy/evict';
 import { PersistTypePolicies } from './policy/persist';
 import { LinkTypePolicies } from './links/type-link';
@@ -29,7 +29,7 @@ const allTypePolicies: (TypePolicies &
   notePolicies,
   collabTextPolicies,
 
-  noteLocalPolicies,
+  localNotePolicies,
 ];
 
 let mergedTypePolicies = mergeTypePolicies(allTypePolicies);

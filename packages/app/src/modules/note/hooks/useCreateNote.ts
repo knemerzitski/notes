@@ -1,6 +1,7 @@
 import { useMutation } from '@apollo/client';
 import { gql } from '../../../__generated__/gql';
 import { CreateNoteInput } from '../../../__generated__/graphql';
+import { useCallback } from 'react';
 
 const MUTATION = gql(`
   mutation UseCreateNote($input: CreateNoteInput!)  {
@@ -44,15 +45,18 @@ const MUTATION = gql(`
 export default function useCreateNote() {
   const [createNote] = useMutation(MUTATION);
 
-  return async (note: CreateNoteInput['note']) => {
-    const { data } = await createNote({
-      variables: {
-        input: {
-          note,
+  return useCallback(
+    async (note: CreateNoteInput['note']) => {
+      const { data } = await createNote({
+        variables: {
+          input: {
+            note,
+          },
         },
-      },
-    });
+      });
 
-    return data?.createNote?.note;
-  };
+      return data?.createNote?.note;
+    },
+    [createNote]
+  );
 }

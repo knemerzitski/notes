@@ -36,7 +36,11 @@ function RouteClosableEditNoteDialog({
 
   async function handleDeleteNote() {
     if (!noteContentId) return false;
-    return deleteNote(noteContentId);
+    const deleted = await deleteNote(noteContentId);
+    if (deleted) {
+      onClosed(true);
+    }
+    return deleted;
   }
 
   if (!noteContentId && !isNewNote) {

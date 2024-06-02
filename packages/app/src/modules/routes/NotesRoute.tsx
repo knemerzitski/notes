@@ -15,9 +15,9 @@ import { NoteItemProps } from '../note/components/NoteItem';
 import WidgetListFabLayout from '../note/components/WidgetListFabLayout';
 import { useCreatableNoteTextFieldEditors } from '../note/hooks/useCreatableNoteTextFieldEditors';
 import useDeleteNote from '../note/hooks/useDeleteNote';
-import { insertNoteToNotesConnection } from '../note/update-query';
 import { gql } from '../../__generated__/gql';
-import { addActiveNotes } from '../note/active-notes';
+import { addActiveNotesByContentId } from '../note/active-notes';
+import { insertNoteToNotesConnection } from '../note/policies/Query/notesConnection';
 
 const QUERY_NOTES = gql(`
   query NotesRouteNotesConnection($last: NonNegativeInt!, $before: String) {
@@ -50,29 +50,22 @@ interface NotesRouteProps {
   perPageCount?: number;
 }
 
-function noteRoute(noteId: string) {
-  return `/note/${noteId}`;
-}
-
 export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
   const apolloClient = useApolloClient();
   const isBackgroundLocation = useIsBackgroundLocation();
 
   const haveFetchedData = useRef(false);
 
-  const {
-    data,
-    loading: fetchLoading,
-    error,
-    fetchMore,
-  } = usePauseableQuery(isBackgroundLocation, QUERY_NOTES, {
-    variables: {
-      last: perPageCount,
-    },
-    fetchPolicy: haveFetchedData.current ? 'cache-first' : 'cache-and-network',
-  });
-
-  const loading = fetchLoading && !data;
+  const { data, loading, error, fetchMore } = usePauseableQuery(
+    isBackgroundLocation,
+    QUERY_NOTES,
+    {
+      variables: {
+        last: perPageCount,
+      },
+      fetchPolicy: haveFetchedData.current ? 'cache-first' : 'cache-and-network',
+    }
+  );
 
   const deleteNote = useDeleteNote();
   const showError = useSnackbarError();
@@ -88,8 +81,12 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
   useEffect(() => {
     const notes = data?.notesConnection.notes;
     if (notes) {
-      addActiveNotes(apolloClient.cache, data.notesConnection.notes.filter(isDefined));
+      addActiveNotesByContentId(
+        apolloClient.cache,
+        data.notesConnection.notes.filter(isDefined)
+      );
     }
+    // TODO return removeActiveNote with a delay?
   }, [apolloClient, data]);
 
   if (error) {
@@ -100,15 +97,10 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
     );
   }
 
-  if (!data) {
-    return <></>;
-  }
-
   haveFetchedData.current = true;
 
-  const notes: NoteItemProps['note'][] = data.notesConnection.notes
-    .filter(isDefined)
-    .map(({ contentId, textFields }) => {
+  const notes: NoteItemProps['note'][] =
+    data?.notesConnection.notes.filter(isDefined).map(({ contentId, textFields }) => {
       const title =
         textFields.find(({ key }) => key === NoteTextField.Title)?.value.viewText ?? '';
       const content =
@@ -118,15 +110,15 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
         id: contentId,
         title: title,
         content: content,
-        editing: absoluteLocation.pathname === transform(noteRoute(contentId)),
+        editing: absoluteLocation.pathname === transform(`/note/${contentId}`),
       };
-    });
+    }) ?? [];
 
   // Notes array is ordered by newest at the end
   // Reverse to display newest first
   notes.reverse();
 
-  const pageInfo = data.notesConnection.pageInfo;
+  const pageInfo = data?.notesConnection.pageInfo;
 
   function handleFabCreate() {
     startTransition(() => {
@@ -141,7 +133,7 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
 
   function handleStartEdit(noteId: string) {
     startTransition(() => {
-      navigate(noteRoute(noteId));
+      navigate(`/note/${noteId}`);
     });
   }
 
@@ -154,6 +146,8 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
   }
 
   async function handleFetchMore() {
+    if (!pageInfo) return;
+
     await fetchMore({
       variables: {
         last: perPageCount,
@@ -213,7 +207,7 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
           onCreate: handleFabCreate,
         }}
       />
-      {pageInfo.hasPreviousPage && (
+      {pageInfo?.hasPreviousPage && (
         <Button onClick={() => void handleFetchMore()}>Fetch More</Button>
       )}
     </>

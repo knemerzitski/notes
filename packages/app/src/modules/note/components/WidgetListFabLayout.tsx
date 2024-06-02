@@ -22,9 +22,12 @@ export default function WidgetListFabLayout(props: NotesLayoutProps) {
         <NoteTextFieldEditorsProvider {...props.createNoteWidgetEditor}>
           <CreateNoteWidget
             {...props.createNoteWidget}
-            sx={{
-              width: 'min(100%, 600px)',
-              ...props.createNoteWidget.sx,
+            paperProps={{
+              ...props.createNoteWidget.paperProps,
+              sx: {
+                width: 'min(100%, 600px)',
+                ...props.createNoteWidget.paperProps?.sx,
+              },
             }}
           />
         </NoteTextFieldEditorsProvider>

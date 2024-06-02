@@ -160,7 +160,7 @@ export interface HistoryOperationOptions {
 export interface SerializedCollabEditor {
   client: Omit<SerializedCollabClient, 'submitted'>;
   submittedRecord?: SerializedSubmittedRevisionRecord;
-  recordsBuffer: SerializedOrderedMessageBuffer<UnprocessedRecord<SerializedChangeset>>;
+  recordsBuffer?: SerializedOrderedMessageBuffer<UnprocessedRecord<SerializedChangeset>>;
   history: Omit<SerializedCollabHistory, 'tailRevision' | 'tailText'>;
 }
 
@@ -621,21 +621,24 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
     delete s_history.tailRevision;
     delete s_history.tailText;
 
+    const recordsBuffer = this.recordsBuffer.serialize();
+
     return {
       client: s_client,
       submittedRecord: this._submittedRecord?.serialize(),
-      recordsBuffer: this.recordsBuffer.serialize(),
+      ...(recordsBuffer.version !== OrderedMessageBuffer.DEFAULT_VERSION &&
+        recordsBuffer.messages.length > 0 && { recordsBuffer }),
       history: s_history,
     };
   }
 
-  static parseValue(
-    value: unknown
-  ): Pick<
+  static parseValue(value: {
+    recordsBuffer?: unknown;
+  }): Pick<
     CollabEditorOptions,
     'client' | 'submittedRecord' | 'recordsBuffer' | 'history'
   > {
-    assertHasProperties(value, ['client', 'recordsBuffer', 'history']);
+    assertHasProperties(value, ['client', 'history']);
 
     const client = CollabClient.parseValue(value.client);
 
@@ -647,10 +650,14 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
       : undefined;
     client.submitted = submittedRecord?.changeset;
 
-    const recordsBuffer = OrderedMessageBuffer.parseValue(
-      value.recordsBuffer,
-      (message) => UnprocessedRecord.parseValue(message)
-    );
+    const recordsBuffer = value.recordsBuffer
+      ? OrderedMessageBuffer.parseValue(value.recordsBuffer, (message) =>
+          UnprocessedRecord.parseValue(message)
+        )
+      : {
+          version: OrderedMessageBuffer.DEFAULT_VERSION,
+          messages: [],
+        };
 
     const history = CollabHistory.parseValue(value.history);
     history.tailRevision = recordsBuffer.version;

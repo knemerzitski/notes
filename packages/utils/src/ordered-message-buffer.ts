@@ -61,6 +61,8 @@ export interface OrderedMessageBufferOptions<TMessage, TSerializedMessage = TMes
 export class OrderedMessageBuffer<TMessage, TSerializedMessage = TMessage>
   implements Serializable<SerializedOrderedMessageBuffer<TSerializedMessage>>
 {
+  static readonly DEFAULT_VERSION = 0;
+
   readonly eventBus: Emitter<OrderedMessageBufferEvents<TMessage>>;
   private processingEventBus: Emitter<ProcessingEvents<TMessage>>;
 
@@ -81,7 +83,7 @@ export class OrderedMessageBuffer<TMessage, TSerializedMessage = TMessage>
   constructor(options: OrderedMessageBufferOptions<TMessage, TSerializedMessage>) {
     this.eventBus = options.eventBus ?? mitt();
     this.processingEventBus = mitt();
-    this._currentVersion = options.version ?? 0;
+    this._currentVersion = options.version ?? OrderedMessageBuffer.DEFAULT_VERSION;
     this.getVersion = options.getVersion;
     this.serializeMessage = options.serializeMessage;
     this.stashedMessagesMap = new Map<number, TMessage>();
@@ -94,15 +96,15 @@ export class OrderedMessageBuffer<TMessage, TSerializedMessage = TMessage>
    * Change version of the buffer. All older messages are discarded.
    * Future messages are kept.
    */
-  setVersion(newVersion: number, startProcessing = true){
-    if(newVersion === this._currentVersion) return;
-    if(newVersion < this._currentVersion){
+  setVersion(newVersion: number, startProcessing = true) {
+    if (newVersion === this._currentVersion) return;
+    if (newVersion < this._currentVersion) {
       this._currentVersion = newVersion;
       return;
     }
 
     // Must discard older messages (this._currentVersion,newVersion]
-    for(let i = this._currentVersion + 1; i <= newVersion; i++){
+    for (let i = this._currentVersion + 1; i <= newVersion; i++) {
       this.stashedMessagesMap.delete(i);
     }
 

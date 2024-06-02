@@ -6,12 +6,12 @@ import {
   useProxyRouteInverseTransform,
 } from '../../router/context/ProxyRoutesProvider';
 import usePreviousLocation from '../../router/hooks/usePreviousLocation';
-import { useBackgroundPath } from '../../router/components/ModalBackgroundRouting';
+import { useBackgroundPath } from '../../router/context/BackgroundPathProvider';
 
 interface Props {
   open: boolean;
   onClosing: () => void;
-  onClosed: () => void;
+  onClosed: (immediate?: boolean) => void;
 }
 
 interface ComponentProps<T> extends Props {
@@ -70,8 +70,8 @@ export default function RouteClosable<T = undefined>(
     isClosingRef.current = true;
   }
 
-  function handleClosed() {
-    if (!isClosingRef.current) return;
+  function handleClosed(immediate = false) {
+    if (!immediate && !isClosingRef.current) return;
 
     const navigationHandled = onClose?.();
 

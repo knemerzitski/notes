@@ -8,28 +8,33 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 
-import CollabContentInput from './CollabContentInput';
+import CollabContentInput, { CollabContentInputProps } from './CollabContentInput';
 import CollabInputs from './CollabInputs';
 import MoreOptionsButton from './MoreOptionsButton';
 import UndoButton from './UndoButton';
 import RedoButton from './RedoButton';
 
-export interface CreateNoteWidgetProps extends PaperProps {
-  onCreate: () => void;
+export interface CreateNoteWidgetProps {
+  onCreate?: () => void;
   onClose?: () => void;
+  paperProps?: PaperProps;
+  initialContentInputProps?: CollabContentInputProps;
 }
 
 export default function CreateNoteWidget({
   onCreate,
   onClose,
-  ...restProps
+  paperProps,
+  initialContentInputProps,
 }: CreateNoteWidgetProps) {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
 
   function handleStartEditing() {
-    if (!isEditorOpen) {
-      onCreate();
-      setIsEditorOpen(true);
+    if (onCreate) {
+      if (!isEditorOpen) {
+        onCreate();
+        setIsEditorOpen(true);
+      }
     }
   }
 
@@ -46,21 +51,23 @@ export default function CreateNoteWidget({
     <>
       <Paper
         variant="outlined"
-        {...restProps}
+        {...paperProps}
         sx={{
           px: 2,
           py: 2,
           borderRadius: 2,
           boxShadow: 3,
           display: isEditorOpen ? 'none' : undefined,
-          ...restProps.sx,
+          ...paperProps?.sx,
         }}
       >
         <CollabContentInput
+          {...initialContentInputProps}
           inputProps={{
             placeholder: 'Take a note...',
             onChange: handleStartEditing,
             onClick: handleStartEditing,
+            ...initialContentInputProps?.inputProps,
           }}
         />
       </Paper>
@@ -73,13 +80,13 @@ export default function CreateNoteWidget({
         >
           <Paper
             variant="outlined"
-            {...restProps}
+            {...paperProps}
             sx={{
               borderRadius: 2,
               boxShadow: 3,
               zIndex: 1,
               display: undefined,
-              ...restProps.sx,
+              ...paperProps?.sx,
             }}
           >
             <CollabInputs

@@ -7,7 +7,7 @@ import NoteTextFieldEditorsProvider from './NoteTextFieldEditorsProvider';
 import { CollabEditor } from '~collab/client/collab-editor';
 import { NoteTextField, NoteTextFieldEntry } from '../../../__generated__/graphql';
 
-const QUERY_COLLAB_TEXT = gql(`
+const QUERY = gql(`
   query NoteContentIdToEditorsProvider($noteContentId: String!) {
     note(contentId: $noteContentId) {
       id
@@ -37,7 +37,7 @@ const NoteCollabTextContext = createContext<NoteCollabTexts | null>(null);
 export function useNoteCollabTexts() {
   const ctx = useContext(NoteCollabTextContext);
   if (ctx === null) {
-    throw new Error('useNoteCollabTexts() requires context <NoteCollabTextsProvider>');
+    throw new Error('useNoteCollabTexts() requires context <NoteContentIdToCollabTextsProvider>');
   }
   return ctx;
 }
@@ -66,7 +66,7 @@ export default function NoteContentIdToCollabTextsProvider({
 }: NoteContentIdToCollabTextsProviderProps) {
   const apolloClient = useApolloClient();
 
-  const { data } = useQuery(QUERY_COLLAB_TEXT, {
+  const { data } = useQuery(QUERY, {
     variables: {
       noteContentId,
     },

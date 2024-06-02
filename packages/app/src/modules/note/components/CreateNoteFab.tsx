@@ -2,7 +2,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { Fab, FabProps } from '@mui/material';
 
 export interface CreateNoteFabProps extends FabProps {
-  onCreate: () => void;
+  onCreate?: () => void;
 }
 
 export default function CreateNoteFab({ onCreate, ...restProps }: CreateNoteFabProps) {

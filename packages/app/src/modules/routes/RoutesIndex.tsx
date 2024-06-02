@@ -65,7 +65,10 @@ function DesktopRoutes() {
       modalRoutes={
         <Routes>
           <Route path="note/:id?" element={<EditNoteDialogRoute />} />
-          <Route path="local/note/:id" element={<LocalEditNoteDialogRoute />} />
+          <Route
+            path="local/note/:id?"
+            element={<LocalEditNoteDialogRoute parentPath="local" />}
+          />
         </Routes>
       }
     />
@@ -76,7 +79,7 @@ function MobileRoutes() {
   return (
     <CommonRoutes>
       <Route path="note/:id?" element={<EditNotePage />} />
-      <Route path="local/note/:id" element={<LocalEditNotePage />} />
+      <Route path="local/note/:id?" element={<LocalEditNotePage />} />
     </CommonRoutes>
   );
 }

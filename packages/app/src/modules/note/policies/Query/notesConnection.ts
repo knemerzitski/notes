@@ -1,6 +1,9 @@
-import { ApolloCache } from '@apollo/client';
-import { gql } from '../../__generated__';
-import { InsertNoteToNotesConnectionQuery } from '../../__generated__/graphql';
+import { ApolloCache, FieldPolicy, NormalizedCacheObject, gql } from '@apollo/client';
+import { EvictFieldPolicy, EvictTag } from '../../../apollo-client/policy/evict';
+import { getCurrentUserIdInStorage } from '../../../auth/user';
+import { relayStylePagination } from '@apollo/client/utilities';
+import { KeySpecifierName } from '../../../apollo-client/key-specifier';
+import { InsertNoteToNotesConnectionQuery } from '../../../../__generated__/graphql';
 
 const QUERY = gql(`
   query InsertNoteToNotesConnection {
@@ -11,6 +14,18 @@ const QUERY = gql(`
     }
   }
 `);
+
+export const notesConnection: FieldPolicy & EvictFieldPolicy<NormalizedCacheObject> = {
+  evict: {
+    tag: EvictTag.UserSpecific,
+  },
+  ...relayStylePagination(
+    () =>
+      `notesConnection:${JSON.stringify({
+        [KeySpecifierName.UserId]: getCurrentUserIdInStorage(),
+      })}`
+  ),
+};
 
 type NotesConnectionNote = NonNullable<
   InsertNoteToNotesConnectionQuery['notesConnection']['notes'][0]

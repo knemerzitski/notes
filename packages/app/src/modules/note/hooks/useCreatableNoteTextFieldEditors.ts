@@ -9,7 +9,7 @@ import { collabTextRecordToEditorRevisionRecord } from '../../collab/editor-grap
 import { editorsInCache } from '../../editor/editors';
 import { addActiveNotesByContentId } from '../active-notes';
 
-function newEmptyEditors(): NoteCollabTextEditors {
+export function newEmptyEditors(): NoteCollabTextEditors {
   return [
     {
       key: NoteTextField.Title,
