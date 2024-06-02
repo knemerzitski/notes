@@ -56,7 +56,7 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
 
   const haveFetchedData = useRef(false);
 
-  const { data, loading, error, fetchMore } = usePauseableQuery(
+  const { data, loading: fetchLoading, error, fetchMore } = usePauseableQuery(
     isBackgroundLocation,
     QUERY_NOTES,
     {
@@ -66,6 +66,8 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
       fetchPolicy: haveFetchedData.current ? 'cache-first' : 'cache-and-network',
     }
   );
+
+  const loading = fetchLoading && !data;
 
   const deleteNote = useDeleteNote();
   const showError = useSnackbarError();
