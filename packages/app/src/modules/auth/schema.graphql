@@ -5,8 +5,6 @@ extend type User {
   email: String!
   "IDs given by auth provider."
   authProviderEntries: [AuthProviderEntry!]!
-  "Get specific user note from cache by contentId"
-  note(contentId: String!): Note @auth
 }
 
 type AuthProviderEntry {
