@@ -11,7 +11,7 @@ input RevisionChangesetInput {
   "Changeset applies to text at this revision"
   revision: NonNegativeInt!
   "New changes to be applied to text"
-  changeset: Changeset!
+  changeset: Changeset! @length(max: 10000)
 }
 
 type CollabTextSelectionRange {
@@ -43,7 +43,7 @@ type CollabTextRecord implements Node {
 
 input CollabTextRecordInput {
   "Randomly generated string by client"
-  generatedId: String!
+  generatedId: String! @length(max: 32)
   "Change to be made on the text"
   change: RevisionChangesetInput!
   "Selection before change is composed"
@@ -72,7 +72,7 @@ type CollabText {
 
 input CreateCollabTextInput {
   "Self-descriptive"
-  initialText: String
+  initialText: String @length(max: 100000)
 }
 
 type CollabTextPatch {

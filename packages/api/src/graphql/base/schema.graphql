@@ -12,8 +12,8 @@ scalar HexColorCode
 "Requires user to be authenticated and with access to specific role"
 directive @auth(requires: Role = USER) on OBJECT | FIELD_DEFINITION
 
-"Limits the length of input field"
-directive @length(max: NonNegativeInt) on INPUT_FIELD_DEFINITION
+"Limits the length of a field"
+directive @length(max: NonNegativeInt) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 
 enum Role {
   USER
