@@ -10,7 +10,12 @@
     "test:unit": "vitest run -c ./vitest.config.unit.ts",
     "test:unit:watch": "vitest watch -c ./vitest.config.unit.ts",
     "test:int": "vitest -c ./vitest.config.integration.ts",
-    "test:int:watch": "vitest watch -c ./vitest.config.integration.ts"
+    "test:int:watch": "vitest watch -c ./vitest.config.integration.ts",
+    "build:http": "vite-node build.ts src/apollo-http-handler.ts --outfile out/apollo-http-handler/index.js",
+    "build:connect": "vite-node ../api/build.ts src/connect-handler.ts --outfile out/connect-handler/index.js",
+    "build:message": "vite-node ../api/build.ts src/message-handler.ts --outfile out/message-handler/index.js",
+    "build:disconnect": "vite-node ../api/build.ts src/disconnect-handler.ts --outfile out/disconnect-handler/index.js",
+    "build": "npm run build:http && npm run build:connect && npm run build:message &&npm run build:disconnect"
   },
   "dependencies": {
     "@apollo/server": "^4.9.5",
@@ -22,6 +27,7 @@
     "aws-lambda": "^1.0.7",
     "dataloader": "^2.2.2",
     "dotenv": "^16.3.1",
+    "esbuild": "^0.21.4",
     "google-auth-library": "^9.6.3",
     "graphql": "^16.8.1",
     "graphql-scalars": "^1.22.4",
@@ -29,6 +35,7 @@
     "map-obj": "^5.0.2",
     "mongodb": "^6.3.0",
     "nanoid": "^5.0.4",
+    "source-map-support": "^0.5.21",
     "vite-tsconfig-paths": "^4.2.2",
     "vitest": "~1.4",
     "vitest-mock-extended": "^1.3.1"

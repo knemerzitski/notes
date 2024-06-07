@@ -1,3 +1,4 @@
+import 'source-map-support/register';
 import { APIGatewayProxyWebsocketHandlerV2 } from 'aws-lambda';
 
 import {

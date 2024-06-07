@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "Node16",
+    "lib": ["ES2023"],
+    "moduleResolution": "Node16",
+    
+    "alwaysStrict": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": false,
+    "allowJs": false,
+    "removeComments": true,
+    "experimentalDecorators": true,
+    "resolveJsonModule": true,
+    "strictPropertyInitialization": false,
+    "declaration": true,
+
+    "typeRoots": ["../../node_modules/@types"],
+    "outDir": "out",
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["./*"],
+      "~lambda-graphql/*": ["../lambda-graphql/src/*"],
+      "~api-app-shared/*": ["../api-app-shared/src/*"],
+      "~api/*": ["../api/src/*"],
+      "~collab/*": ["../collab/src/*"],
+      "~utils/*": ["../utils/src/*"]
+    }
+  },
+  "exclude": ["node_modules"]
+}
