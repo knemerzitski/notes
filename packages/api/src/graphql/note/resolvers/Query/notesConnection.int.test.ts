@@ -134,7 +134,7 @@ it('returns last 2 notes, after: 7, first 4 => 8,9 (10 notes total)', async () =
       if (!edge) return null;
       return (edge as NoteEdge).node.contentId;
     })
-  ).toStrictEqual(['publicId_8', 'publicId_9', null, null]);
+  ).toStrictEqual(['publicId_8', 'publicId_9']);
 
   expect(typedData.notesConnection.pageInfo).toEqual({
     hasPreviousPage: true,
@@ -176,7 +176,7 @@ it('returns nothing when cursor is invalid', async () => {
   });
 });
 
-it('returns nulls when cursor is not found', async () => {
+it('returns empty array when cursor is not found', async () => {
   const userNote6 = userNotes[6];
   assert(userNote6 != null);
 
@@ -198,7 +198,7 @@ it('returns nulls when cursor is not found', async () => {
   expect(errors).toBeUndefined();
   expect(data).toEqual({
     notesConnection: {
-      edges: [null, null, null, null, null],
+      edges: [],
       pageInfo: {
         hasPreviousPage: false,
         hasNextPage: false,

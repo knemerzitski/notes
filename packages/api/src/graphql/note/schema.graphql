@@ -80,9 +80,9 @@ input NotePreferencesPatchInput {
 
 type NoteConnection implements Connection {
   "Notes directly without edges"
-  notes: [Note]!
+  notes: [Note!]!
   "Self descriptive"
-  edges: [NoteEdge]!
+  edges: [NoteEdge!]!
   "Self descriptive"
   pageInfo: PageInfo!
 }

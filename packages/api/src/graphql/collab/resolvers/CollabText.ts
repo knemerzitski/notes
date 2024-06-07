@@ -13,11 +13,16 @@ export const CollabText: CollabTextResolvers = {
   textAtRevision: (parent, args) => {
     return parent.textAtRevision(args);
   },
-  recordsConnection: (parent, args) => {
-    return parent.recordsConnection(args, {
-      defaultSlice: 'end',
-      defaultLimit: 20,
-      maxLimit: 100,
-    });
+  recordsConnection: (parent, args, ctx, info) => {
+    return parent.recordsConnection(
+      args,
+      {
+        defaultSlice: 'end',
+        defaultLimit: 20,
+        maxLimit: 100,
+      },
+      ctx,
+      info
+    );
   },
 };

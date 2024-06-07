@@ -15,8 +15,10 @@ import {
   CollabTextrecordsConnectionArgs,
   CollabTexttextAtRevisionArgs,
 } from '../../types.generated';
-import { newResolverOnlyError } from '../../plugins/remove-resolver-only-errors';
 import { Changeset } from '~collab/changeset/changeset';
+import preExecuteField from '../../utils/preExecuteField';
+import { GraphQLResolversContext } from '../../context';
+import { GraphQLResolveInfo } from 'graphql';
 
 export type CollabTextQuery = Omit<
   CollabTextSchema,
@@ -119,7 +121,9 @@ export class CollabTextQueryMapper implements CollabTextMapper {
 
   recordsConnection(
     args: CollabTextrecordsConnectionArgs,
-    config: RelayArrayPaginationConfig
+    config: RelayArrayPaginationConfig,
+    ctx: GraphQLResolversContext,
+    info: GraphQLResolveInfo
   ) {
     const first = applyLimit(args.first, config.defaultLimit, config.maxLimit);
     const last = applyLimit(args.last, config.defaultLimit, config.maxLimit);
@@ -129,24 +133,43 @@ export class CollabTextQueryMapper implements CollabTextMapper {
     const isForwardPagination = args.after != null || args.first != null;
 
     let pagination: RelayPagination<number>;
-    let expectedSize: number;
     if (isForwardPagination) {
       pagination = {
         after,
         first,
       };
-      expectedSize = first;
     } else {
       pagination = {
         before,
         last,
       };
-      expectedSize = last;
     }
 
     return {
-      records: () => {
-        return [...new Array<undefined>(expectedSize)].map((_, index) => {
+      records: async () => {
+        // Pre resolve to build query and fetch with dataloader to figure out list size
+        let actualSize: undefined | number;
+        await preExecuteField('records', ctx, info, {
+          records: () => {
+            return [
+              new CollabTextRecordQueryMapper(this, {
+                queryDocument: async (query) => {
+                  const result = await this.query.queryDocument({
+                    records: {
+                      $query: query,
+                      $pagination: pagination,
+                    },
+                  });
+                  actualSize = actualSize ?? result?.records?.length;
+                  return null;
+                },
+              }),
+            ];
+          },
+        });
+        if (!actualSize) return [];
+
+        return [...new Array<undefined>(actualSize)].map((_, index) => {
           const revisionRecordQuery = new CollabTextRecordQueryMapper(this, {
             queryDocument: async (query) => {
               const result = await this.query.queryDocument({
@@ -155,21 +178,44 @@ export class CollabTextQueryMapper implements CollabTextMapper {
                   $pagination: pagination,
                 },
               });
-
-              const record = result?.records?.[index];
-              if (!record) {
-                throw newResolverOnlyError(`No record at index ${index}`);
-              }
-
-              return record;
+              return result?.records?.[index];
             },
           });
 
           return revisionRecordQuery;
         });
       },
-      edges: () => {
-        return [...new Array<undefined>(expectedSize)].map((_, index) => {
+      edges: async () => {
+        // Pre resolve to build query and fetch with dataloader to figure out list size
+        let actualSize: undefined | number;
+        await preExecuteField('edges', ctx, info, {
+          edges: () => {
+            const revisionRecordQuery = new CollabTextRecordQueryMapper(this, {
+              queryDocument: async (query) => {
+                const result = await this.query.queryDocument({
+                  records: {
+                    $query: query,
+                    $pagination: pagination,
+                  },
+                });
+                actualSize = actualSize ?? result?.records?.length;
+                return null;
+              },
+            });
+
+            return [
+              {
+                node: () => revisionRecordQuery,
+                cursor: async () => {
+                  return String(await revisionRecordQuery.change().revision());
+                },
+              },
+            ];
+          },
+        });
+        if (!actualSize) return [];
+
+        return [...new Array<undefined>(actualSize)].map((_, index) => {
           const revisionRecordQuery = new CollabTextRecordQueryMapper(this, {
             queryDocument: async (query) => {
               const result = await this.query.queryDocument({
@@ -178,13 +224,7 @@ export class CollabTextQueryMapper implements CollabTextMapper {
                   $pagination: pagination,
                 },
               });
-
-              const record = result?.records?.[index];
-              if (!record) {
-                throw newResolverOnlyError(`No record at index ${index}`);
-              }
-
-              return record;
+              return result?.records?.[index];
             },
           });
 

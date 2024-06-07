@@ -3,7 +3,6 @@ import { gql } from '../../../__generated__';
 import { NoteTextField } from '../../../__generated__/graphql';
 import { useNoteContentId } from '../context/NoteContentIdProvider';
 import { ApolloCache, useApolloClient } from '@apollo/client';
-import isDefined from '~utils/type-guards/isDefined';
 import { collabTextRecordToEditorRevisionRecord } from '../../collab/editor-graphql-mapping';
 import { RevisionChangeset } from '~collab/records/record';
 import { useNoteCollabText } from '../context/NoteContentIdToCollabTextsProvider';
@@ -270,7 +269,7 @@ export class ApolloCacheServerRecords<TCacheShape>
         fragment: FRAGMENT_RECORDS,
         variables,
       })
-      ?.recordsConnection.records.filter(isDefined);
+      ?.recordsConnection.records;
   }
 
   newestRecordsIterable(headRevision: number): Iterable<Readonly<EditorRevisionRecord>> {

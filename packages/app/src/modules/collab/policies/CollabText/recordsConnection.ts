@@ -5,7 +5,6 @@ import {
   CollabTextRecordConnection,
 } from '../../../../__generated__/graphql';
 import mergeOrderedSet from '~utils/ordered-set/mergeOrderedSet';
-import isDefined from '~utils/type-guards/isDefined';
 import { binarySearchIndexOf } from '~utils/array/binarySearchIndexOf';
 import { binarySearchConsecutiveOrderedSubset } from '~utils/ordered-set/consecutive-ordered-set';
 
@@ -40,7 +39,7 @@ export const recordsConnection: FieldPolicy<
       }
 
       // Start of records
-      const records = existing.records.filter(isDefined);
+      const records = existing.records;
       const { index: start, exists } = binarySearchIndexOf<CollabTextRecordOnlyRevision>(
         records,
         { change: { revision: after + 1 } },
@@ -95,7 +94,7 @@ export const recordsConnection: FieldPolicy<
       }
 
       // Start of records
-      const records = existing.records.filter(isDefined);
+      const records = existing.records;
       const { index: endIndex, exists } =
         binarySearchIndexOf<CollabTextRecordOnlyRevision>(
           records,
@@ -182,8 +181,8 @@ function mergeRecords(
 ) {
   if (!existing) return incoming;
 
-  const existingRecords = existing.filter(isDefined);
-  const incomingRecords = incoming.filter(isDefined);
+  const existingRecords = [...existing];
+  const incomingRecords = incoming;
 
   mergeOrderedSet(existingRecords, incomingRecords, compareRecords, mergeObjects);
 
@@ -198,7 +197,7 @@ function mergePageInfo(
   existing: Partial<CollabTextRecordConnection['pageInfo']> | undefined,
   incoming: Partial<CollabTextRecordConnection['pageInfo']> | undefined
 ) {
-  if(!incoming) return existing;
+  if (!incoming) return existing;
   if (!existing) return incoming;
 
   const hasPreviousPage =

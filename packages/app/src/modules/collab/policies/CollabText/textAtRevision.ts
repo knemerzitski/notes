@@ -1,7 +1,6 @@
 import { FieldFunctionOptions, FieldPolicy } from '@apollo/client';
 import { CollabText, CollabTextRecord } from '../../../../__generated__/graphql';
 import { gql } from '../../../../__generated__/gql';
-import isDefined from '~utils/type-guards/isDefined';
 import { Changeset } from '~collab/changeset/changeset';
 import { binarySearchIndexOf } from '~utils/array/binarySearchIndexOf';
 
@@ -148,5 +147,5 @@ function readRecords(
     },
   });
   if (!collabText) return;
-  return collabText.recordsConnection.records.filter(isDefined);
+  return collabText.recordsConnection.records;
 }

@@ -31,8 +31,6 @@ import NotesDataSource, {
   NotesDataSourceContext,
 } from './graphql/note/datasource/notes-datasource';
 import { BaseContext } from '@apollo/server';
-import { GroupDuplicateErrors } from './graphql/plugins/group-duplicate-errors';
-import { RemoveResolverOnlyErrors } from './graphql/plugins/remove-resolver-only-errors';
 import { ApiOptions } from './graphql/api-options';
 
 export function createDefaultGraphQLParams<TContext extends BaseContext>(
@@ -46,7 +44,7 @@ export function createDefaultGraphQLParams<TContext extends BaseContext>(
     resolvers: allExceptSubscriptionResolvers,
     transform: applyDirectives,
     apolloServerOptions: {
-      plugins: [new RemoveResolverOnlyErrors(), new GroupDuplicateErrors()],
+      plugins: [],
     },
   };
 }

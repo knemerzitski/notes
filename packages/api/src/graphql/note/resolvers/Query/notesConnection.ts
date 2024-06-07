@@ -1,11 +1,10 @@
 import { ObjectId } from 'mongodb';
 
-import { assertAuthenticated } from '../../../base/directives/auth';
-
-import { type QueryResolvers } from '../../../types.generated';
-import { NoteQueryMapper } from '../../mongo-query-mapper/note';
-import { newResolverOnlyError } from '../../../plugins/remove-resolver-only-errors';
 import { RelayPagination } from '../../../../mongodb/operations/pagination/relayArrayPagination';
+import { assertAuthenticated } from '../../../base/directives/auth';
+import { type QueryResolvers } from '../../../types.generated';
+import preExecuteField from '../../../utils/preExecuteField';
+import { NoteQueryMapper } from '../../mongo-query-mapper/note';
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 30;
@@ -18,7 +17,8 @@ function canObjectIdCreateFromBase64(s: string) {
 export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
   _parent,
   args,
-  ctx
+  ctx,
+  info
 ) => {
   const { auth, datasources } = ctx;
   assertAuthenticated(auth);
@@ -51,24 +51,43 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
   const isForwardPagination = args.after != null || args.first != null;
 
   let pagination: RelayPagination<ObjectId>;
-  let expectedSize: number;
   if (isForwardPagination) {
     pagination = {
       after,
       first,
     };
-    expectedSize = first;
   } else {
     pagination = {
       before,
       last,
     };
-    expectedSize = last;
   }
 
   return {
-    notes: () => {
-      return [...new Array<undefined>(expectedSize)].map((_, index) => {
+    notes: async () => {
+      // Pre resolve to build query and fetch with dataloader to figure out list size
+      let actualSize: undefined | number;
+      await preExecuteField('notes', ctx, info, {
+        notes: () => {
+          return [
+            new NoteQueryMapper({
+              async queryDocument(query) {
+                const result = await datasources.notes.getNoteConnection({
+                  userId: currentUserId,
+                  userNotesArrayPath: NOTES_ARRAY_PATH,
+                  noteQuery: query,
+                  pagination,
+                });
+                actualSize = actualSize ?? result.userNotes.length;
+                return null;
+              },
+            }),
+          ];
+        },
+      });
+      if (!actualSize) return [];
+
+      return [...new Array<undefined>(actualSize)].map((_, index) => {
         const noteQuery = new NoteQueryMapper({
           queryDocument: async (query) => {
             const result = await datasources.notes.getNoteConnection({
@@ -77,20 +96,44 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
               noteQuery: query,
               pagination,
             });
-            const note = result.userNotes[index];
-            if (!note) {
-              throw newResolverOnlyError(`No note at index ${index}`);
-            }
-
-            return note;
+            return result.userNotes[index];
           },
         });
 
         return noteQuery;
       });
     },
-    edges: () => {
-      return [...new Array<undefined>(expectedSize)].map((_, index) => {
+    edges: async () => {
+      // Pre resolve to build query and fetch with dataloader to figure out list size
+      let actualSize: undefined | number;
+      await preExecuteField('edges', ctx, info, {
+        edges: () => {
+          const noteQuery = new NoteQueryMapper({
+            async queryDocument(query) {
+              const result = await datasources.notes.getNoteConnection({
+                userId: currentUserId,
+                userNotesArrayPath: NOTES_ARRAY_PATH,
+                noteQuery: query,
+                pagination,
+              });
+              actualSize = actualSize ?? result.userNotes.length;
+              return null;
+            },
+          });
+
+          return [
+            {
+              node: () => noteQuery,
+              cursor: () => {
+                return noteQuery.id();
+              },
+            },
+          ];
+        },
+      });
+      if (!actualSize) return [];
+
+      return [...new Array<undefined>(actualSize)].map((_, index) => {
         const noteQuery = new NoteQueryMapper({
           queryDocument: async (query) => {
             const result = await datasources.notes.getNoteConnection({
@@ -99,12 +142,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
               noteQuery: query,
               pagination,
             });
-            const note = result.userNotes[index];
-            if (!note) {
-              throw newResolverOnlyError(`No note at index ${index}`);
-            }
-
-            return note;
+            return result.userNotes[index];
           },
         });
 

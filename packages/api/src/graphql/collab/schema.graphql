@@ -94,9 +94,9 @@ input CollabTextPatchInput {
 
 type CollabTextRecordConnection implements Connection {
   "Records directly without edges"
-  records: [CollabTextRecord]!
+  records: [CollabTextRecord!]!
   "Self descriptive"
-  edges: [CollabTextRecordEdge]!
+  edges: [CollabTextRecordEdge!]!
   "Self descriptive"
   pageInfo: PageInfo!
 }

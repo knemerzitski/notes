@@ -7,6 +7,8 @@ import {
 import { PageInfoMapper } from '../base/schema.mappers';
 
 import { RelayArrayPaginationConfig } from '../../mongodb/operations/pagination/relayArrayPagination';
+import { GraphQLResolveInfo } from 'graphql';
+import { GraphQLResolversContext } from '../context';
 
 export interface RevisionChangesetMapper {
   revision(): ResolverTypeWrapper<number>;
@@ -33,7 +35,9 @@ export interface CollabTextMapper {
   textAtRevision(args: CollabTexttextAtRevisionArgs): RevisionChangesetMapper;
   recordsConnection(
     args: CollabTextrecordsConnectionArgs,
-    config: RelayArrayPaginationConfig
+    config: RelayArrayPaginationConfig,
+    ctx: GraphQLResolversContext,
+    info: GraphQLResolveInfo
   ): CollabTextRecordConnectionMapper;
 }
 
@@ -44,8 +48,8 @@ export interface CollabTextPatchMapper {
 }
 
 export interface CollabTextRecordConnectionMapper {
-  records(): CollabTextRecordMapper[];
-  edges(): CollabTextRecordEdgeMapper[];
+  records(): ResolverTypeWrapper<CollabTextRecordMapper[]>;
+  edges(): ResolverTypeWrapper<CollabTextRecordEdgeMapper[]>;
   pageInfo(): PageInfoMapper;
 }
 

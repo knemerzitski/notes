@@ -5,7 +5,6 @@ import {
 } from '../router/context/ProxyRoutesProvider';
 import { useAbsoluteLocation } from '../router/hooks/useAbsoluteLocation';
 import { useIsBackgroundLocation } from '../router/hooks/useIsBackgroundLocation';
-import isDefined from '~utils/type-guards/isDefined';
 import usePauseableQuery from '../apollo-client/hooks/usePauseableQuery';
 import { Alert, Button } from '@mui/material';
 import { useApolloClient } from '@apollo/client';
@@ -56,16 +55,17 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
 
   const haveFetchedData = useRef(false);
 
-  const { data, loading: fetchLoading, error, fetchMore } = usePauseableQuery(
-    isBackgroundLocation,
-    QUERY_NOTES,
-    {
-      variables: {
-        last: perPageCount,
-      },
-      fetchPolicy: haveFetchedData.current ? 'cache-first' : 'cache-and-network',
-    }
-  );
+  const {
+    data,
+    loading: fetchLoading,
+    error,
+    fetchMore,
+  } = usePauseableQuery(isBackgroundLocation, QUERY_NOTES, {
+    variables: {
+      last: perPageCount,
+    },
+    fetchPolicy: haveFetchedData.current ? 'cache-first' : 'cache-and-network',
+  });
 
   const loading = fetchLoading && !data;
 
@@ -83,10 +83,7 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
   useEffect(() => {
     const notes = data?.notesConnection.notes;
     if (notes) {
-      addActiveNotesByContentId(
-        apolloClient.cache,
-        data.notesConnection.notes.filter(isDefined)
-      );
+      addActiveNotesByContentId(apolloClient.cache, data.notesConnection.notes);
     }
     // TODO return removeActiveNote with a delay?
   }, [apolloClient, data]);
@@ -102,7 +99,7 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
   haveFetchedData.current = true;
 
   const notes: NoteItemProps['note'][] =
-    data?.notesConnection.notes.filter(isDefined).map(({ contentId, textFields }) => {
+    data?.notesConnection.notes.map(({ contentId, textFields }) => {
       const title =
         textFields.find(({ key }) => key === NoteTextField.Title)?.value.viewText ?? '';
       const content =

@@ -29,8 +29,8 @@ export interface NotePatchMapper {
 }
 
 export interface NoteConnectionMapper {
-  notes(): NoteMapper[];
-  edges(): NoteEdgeMapper[];
+  notes(): ResolverTypeWrapper<NoteMapper[]>;
+  edges(): ResolverTypeWrapper<NoteEdgeMapper[]>;
   pageInfo(): PageInfoMapper;
 }
 
