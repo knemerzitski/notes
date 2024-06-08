@@ -95,6 +95,8 @@ export async function createDefaultMongoDBContext(logger: Logger) {
   const databaseName = encodeURIComponent(process.env.MONGODB_ATLAS_DATABASE_NAME!);
   const mongoDBUri = `${connectionUri}/${databaseName}`;
 
+  const timeout = 2000;
+
   return await createMongoDBContext({
     logger,
     createCollectionInstances,
@@ -115,6 +117,10 @@ export async function createDefaultMongoDBContext(logger: Logger) {
         strict: true,
         deprecationErrors: true,
       },
+      connectTimeoutMS: timeout,
+      socketTimeoutMS: timeout,
+      waitQueueTimeoutMS: timeout,
+      serverSelectionTimeoutMS: timeout,
     },
   });
 }

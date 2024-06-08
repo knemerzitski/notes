@@ -41,11 +41,18 @@ export async function createMockMongoDBContext() {
     throw new Error('Environment variable "MOCK_MONGODB_URI" must be defined');
   }
 
+  const timeout = 2000;
+
   return await createMongoDBContext({
     logger: createLogger('mock:mongodb'),
     createCollectionInstances,
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     uri: process.env.MOCK_MONGODB_URI,
+    options: {
+      connectTimeoutMS: timeout,
+      socketTimeoutMS: timeout,
+      waitQueueTimeoutMS: timeout,
+      serverSelectionTimeoutMS: timeout,
+    },
   });
 }
 
