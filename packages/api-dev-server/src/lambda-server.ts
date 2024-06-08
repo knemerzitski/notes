@@ -1,33 +1,30 @@
 import { createServer } from 'http';
 
-import { APIGatewayProxyHandler, APIGatewayProxyWebsocketHandlerV2 } from 'aws-lambda';
+import { APIGatewayProxyHandler } from 'aws-lambda';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import express from 'express';
 import { WebSocketServer, WebSocket } from 'ws';
 
-import { WebSocketConnectHandler } from '~lambda-graphql/connect-handler';
-import { WebSocketDisconnectHandler } from '~lambda-graphql/disconnect-handler';
 import { Logger } from '~utils/logger';
 
 import { apiGatewayProxyHandlerMiddleware } from './api-gateway/express-middleware-handler';
-import { apiGatewayProxyWebSocketHandler } from './api-gateway/websocket-handler';
+import {
+  MergedOrRoutedWebSocketHandler,
+  apiGatewayProxyWebSocketHandler,
+} from './api-gateway/websocket-handler';
 
 export function createLambdaServer({
   sockets,
   apolloHttpHandler,
-  connectHandler,
-  messageHandler,
-  disconnectHandler,
+  webSocketHandler,
   httpUrl,
   wsUrl,
   logger,
 }: {
   sockets: Record<string, WebSocket>;
   apolloHttpHandler: APIGatewayProxyHandler;
-  connectHandler: WebSocketConnectHandler;
-  messageHandler: APIGatewayProxyWebsocketHandlerV2;
-  disconnectHandler: WebSocketDisconnectHandler;
+  webSocketHandler: MergedOrRoutedWebSocketHandler;
   httpUrl: URL;
   wsUrl: URL;
   logger: Logger;
@@ -55,9 +52,7 @@ export function createLambdaServer({
 
   const webSocketConnectionHandler = apiGatewayProxyWebSocketHandler({
     sockets,
-    connectHandler,
-    messageHandler,
-    disconnectHandler,
+    handler: webSocketHandler,
     logger,
   });
 

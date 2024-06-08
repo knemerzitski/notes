@@ -22,6 +22,9 @@ import { mockCreateDefaultParams as mockCreateDefaultApolloHttpHandlerParams } f
 import { mockCreateDefaultParams as mockCreateDefaultWebSocketConnectParams } from './handlers/mock-connect-handler';
 import { mockCreateDefaultParams as mockCreateDefaultMessageHandlerParams } from './handlers/mock-message-handler';
 import { mockCreateDefaultParams as mockCreateDefaultDisconnectHandlerParams } from './handlers/mock-disconnect-handler';
+import isEnvVarStringTrue from '~utils/string/isEnvVarStringTrue';
+import { createWebSocketHandler } from '~lambda-graphql/websocket-handler';
+import { mockCreateDefaultParams as mockCreateDefaultWebSocketHandlerParams } from './handlers/mock-websocket-handler';
 
 const logger = createLogger('mock:lambda-graphql-server');
 
@@ -43,34 +46,43 @@ void (async () => {
 
     const server = createLambdaServer({
       sockets,
-      connectHandler: createWebSocketConnectHandler<
-        BaseGraphQLContext,
-        DynamoDBBaseGraphQLContext
-      >(
-        mockCreateDefaultWebSocketConnectParams({
-          mongodb,
-        })
-      ),
-      messageHandler: createWebSocketMessageHandler<
-        BaseSubscriptionResolversContext,
-        BaseGraphQLContext,
-        DynamoDBBaseGraphQLContext
-      >(
-        mockCreateDefaultMessageHandlerParams({
-          mongodb,
-          sockets,
-        })
-      ),
-      disconnectHandler: createWebSocketDisconnectHandler<
-        BaseSubscriptionResolversContext,
-        BaseGraphQLContext,
-        DynamoDBBaseGraphQLContext
-      >(
-        mockCreateDefaultDisconnectHandlerParams({
-          mongodb,
-          sockets,
-        })
-      ),
+      webSocketHandler: isEnvVarStringTrue(process.env.ROUTED_WEBSOCKET_HANDLER)
+        ? {
+            connect: createWebSocketConnectHandler<
+              BaseGraphQLContext,
+              DynamoDBBaseGraphQLContext
+            >(
+              mockCreateDefaultWebSocketConnectParams({
+                mongodb,
+              })
+            ),
+            message: createWebSocketMessageHandler<
+              BaseSubscriptionResolversContext,
+              BaseGraphQLContext,
+              DynamoDBBaseGraphQLContext
+            >(
+              mockCreateDefaultMessageHandlerParams({
+                mongodb,
+                sockets,
+              })
+            ),
+            disconnect: createWebSocketDisconnectHandler<
+              BaseSubscriptionResolversContext,
+              BaseGraphQLContext,
+              DynamoDBBaseGraphQLContext
+            >(
+              mockCreateDefaultDisconnectHandlerParams({
+                mongodb,
+                sockets,
+              })
+            ),
+          }
+        : createWebSocketHandler(
+            mockCreateDefaultWebSocketHandlerParams({
+              mongodb,
+              sockets,
+            })
+          ),
       apolloHttpHandler: createApolloHttpHandler<
         Omit<GraphQLResolversContext, keyof ApolloHttpGraphQLContext>,
         DynamoDBBaseGraphQLContext

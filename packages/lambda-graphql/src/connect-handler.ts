@@ -34,7 +34,7 @@ interface DirectParams<
    */
   onConnect?: (args: {
     context: WebSocketConnectHandlerContext<TBaseGraphQLContext, TDynamoDBGraphQLContext>;
-    event: WebSocketConnectEventEvent;
+    event: WebSocketConnectEvent;
   }) => Maybe<MaybePromise<TDynamoDBGraphQLContext>>;
   parseDynamoDBGraphQLContext: (
     value: TDynamoDBGraphQLContext | undefined
@@ -62,13 +62,13 @@ export interface WebSocketConnectHandlerContext<
  * Add headers types to APIGatewayProxyWebsocketEventV2 since they're
  * available during $connect and $disconnect route
  */
-export type WebSocketConnectEventEvent = APIGatewayProxyWebsocketEventV2 & {
+export type WebSocketConnectEvent = APIGatewayProxyWebsocketEventV2 & {
   headers?: APIGatewayProxyEventHeaders;
   multiValueHeaders?: APIGatewayProxyEventMultiValueHeaders;
 };
 
 export type WebSocketConnectHandler<T = never> = Handler<
-  WebSocketConnectEventEvent,
+  WebSocketConnectEvent,
   APIGatewayProxyResultV2<T>
 >;
 

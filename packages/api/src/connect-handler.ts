@@ -3,7 +3,7 @@ import { APIGatewayProxyWebsocketHandlerV2 } from 'aws-lambda';
 
 import {
   createWebSocketConnectHandler,
-  WebSocketConnectEventEvent,
+  WebSocketConnectEvent,
   WebSocketConnectHandlerParams,
 } from '~lambda-graphql/connect-handler';
 import { createLogger } from '~utils/logger';
@@ -24,7 +24,7 @@ import {
 
 export async function handleConnectGraphQLAuth(
   mongoDBCollections: Parameters<typeof parseAuthFromHeaders>['2'],
-  event: WebSocketConnectEventEvent
+  event: WebSocketConnectEvent
 ): Promise<DynamoDBBaseGraphQLContext> {
   const cookiesCtx = CookiesContext.parse(parseCookiesFromHeaders(event.headers));
 

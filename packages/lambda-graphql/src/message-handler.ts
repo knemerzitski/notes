@@ -98,10 +98,13 @@ export interface WebSocketMessageHandlerParams<
   TDynamoDBGraphQLContext extends DynamoDBRecord,
 > extends DirectParams<TGraphQLContext, TBaseGraphQLContext, TDynamoDBGraphQLContext> {
   createGraphQLContext: (
-    context: WebSocketMessageHandlerContextWithoutGraphQLContext<
-      TGraphQLContext,
-      TBaseGraphQLContext,
-      TDynamoDBGraphQLContext
+    context: Omit<
+      WebSocketMessageHandlerContext<
+        TGraphQLContext,
+        TBaseGraphQLContext,
+        TDynamoDBGraphQLContext
+      >,
+      'graphQLContext' | 'createGraphQLContext'
     >,
     event: APIGatewayProxyWebsocketEventV2
   ) => Promise<TGraphQLContext> | TGraphQLContext;
@@ -124,6 +127,16 @@ export interface WebSocketMessageHandlerContext<
   };
   socketApi: WebSocketApi;
   startPingPong?: PingPongContext['startPingPong'];
+  messageHandlers: MessageHandlers<
+    TGraphQLContext,
+    TBaseGraphQLContext,
+    TDynamoDBGraphQLContext
+  >;
+  createGraphQLContext: WebSocketMessageHandlerParams<
+    TGraphQLContext,
+    TBaseGraphQLContext,
+    TDynamoDBGraphQLContext
+  >['createGraphQLContext'];
 }
 
 export interface WebSocketMessageGraphQLContext {
@@ -131,23 +144,6 @@ export interface WebSocketMessageGraphQLContext {
   readonly publish: Publisher;
 }
 
-type WebSocketMessageHandlerContextWithoutGraphQLContext<
-  TGraphQLContext,
-  TBaseGraphQLContext,
-  TDynamoDBGraphQLContext extends DynamoDBRecord,
-> = Omit<
-  WebSocketMessageHandlerContext<
-    TGraphQLContext,
-    TBaseGraphQLContext,
-    TDynamoDBGraphQLContext
-  >,
-  'graphQLContext'
->;
-
-/**
- * Add headers types to APIGatewayProxyWebsocketEventV2 since they're
- * available during $connect and $disconnect route
- */
 export type WebSocketMessageHandler<T = never> = Handler<
   APIGatewayProxyWebsocketEventV2,
   APIGatewayProxyResultV2<T>
@@ -233,10 +229,13 @@ export function createWebSocketMessageHandler<
   const apiGateway = createApiGatewayContext(params.apiGateway);
   const pingpong = params.pingpong ? createPingPongContext(params.pingpong) : undefined;
 
-  const context: WebSocketMessageHandlerContextWithoutGraphQLContext<
-    TGraphQLContext,
-    TBaseGraphQLContext,
-    TDynamoDBGraphQLContext
+  const context: Omit<
+    WebSocketMessageHandlerContext<
+      TGraphQLContext,
+      TBaseGraphQLContext,
+      TDynamoDBGraphQLContext
+    >,
+    'graphQLContext'
   > = {
     ...params,
     schema: graphQL.schema,
@@ -246,17 +245,18 @@ export function createWebSocketMessageHandler<
     },
     socketApi: apiGateway.socketApi,
     startPingPong: pingpong?.startPingPong,
+    messageHandlers: createMessageHandlers<
+      TGraphQLContext,
+      TBaseGraphQLContext,
+      TDynamoDBGraphQLContext
+    >(),
   };
 
   return webSocketMessageHandler<
     TGraphQLContext,
     TBaseGraphQLContext,
     TDynamoDBGraphQLContext
-  >(
-    params,
-    context,
-    createMessageHandlers<TGraphQLContext, TBaseGraphQLContext, TDynamoDBGraphQLContext>()
-  );
+  >(context);
 }
 
 export function webSocketMessageHandler<
@@ -264,27 +264,17 @@ export function webSocketMessageHandler<
   TBaseGraphQLContext,
   TDynamoDBGraphQLContext extends DynamoDBRecord,
 >(
-  {
-    createGraphQLContext,
-  }: Pick<
-    WebSocketMessageHandlerParams<
+  context: Omit<
+    WebSocketMessageHandlerContext<
       TGraphQLContext,
       TBaseGraphQLContext,
       TDynamoDBGraphQLContext
     >,
-    'createGraphQLContext'
-  >,
-  context: WebSocketMessageHandlerContextWithoutGraphQLContext<
-    TGraphQLContext,
-    TBaseGraphQLContext,
-    TDynamoDBGraphQLContext
-  >,
-  messageHandlers: MessageHandlers<
-    TGraphQLContext,
-    TBaseGraphQLContext,
-    TDynamoDBGraphQLContext
+    'graphQLContext'
   >
 ): WebSocketMessageHandler {
+  const messageHandlers = context.messageHandlers;
+
   return async (event) => {
     try {
       const { eventType, connectionId } = event.requestContext;
@@ -305,7 +295,7 @@ export function webSocketMessageHandler<
       const partialGraphQLContext: TGraphQLContext & {
         publish?: TGraphQLContext['publish'];
       } = {
-        ...(await createGraphQLContext(context, event)),
+        ...(await context.createGraphQLContext(context, event)),
       };
 
       const isCurrentConnection = (id: string) => connectionId === id;

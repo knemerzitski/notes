@@ -9,7 +9,7 @@ import {
 import { WebSocket } from 'ws';
 
 import {
-  WebSocketConnectEventEvent,
+  WebSocketConnectEvent,
   WebSocketConnectHandler,
 } from '~lambda-graphql/connect-handler';
 import { WebSocketDisconnectHandler } from '~lambda-graphql/disconnect-handler';
@@ -20,20 +20,45 @@ import fixtureWebSocketEventConnect from '../../fixtures/websocket/CONNECT.json'
 import fixtureWebSocketEventDisconnect from '../../fixtures/websocket/DISCONNECT.json';
 import fixtureWebSocketEventMessage from '../../fixtures/websocket/MESSAGE.json';
 import { createLambdaContext } from '../utils/lambda-context';
+import { WebSocketHandler } from '~lambda-graphql/websocket-handler';
+
+type AllHandler = WebSocketHandler;
+interface RoutedHandlers {
+  connect: WebSocketConnectHandler;
+  message: APIGatewayProxyWebsocketHandlerV2;
+  disconnect: WebSocketDisconnectHandler;
+}
+
+export type MergedOrRoutedWebSocketHandler = AllHandler | RoutedHandlers;
+
+function isRoutedHandlers(
+  handler: MergedOrRoutedWebSocketHandler
+): handler is RoutedHandlers {
+  return typeof handler !== 'function';
+}
 
 export function apiGatewayProxyWebSocketHandler({
+  handler,
   sockets,
   logger,
-  connectHandler,
-  messageHandler,
-  disconnectHandler,
 }: {
-  connectHandler: WebSocketConnectHandler;
-  messageHandler: APIGatewayProxyWebsocketHandlerV2;
-  disconnectHandler: WebSocketDisconnectHandler;
+  handler: MergedOrRoutedWebSocketHandler;
   sockets: Record<string, WebSocket>;
   logger: Logger;
 }) {
+  let connectHandler: WebSocketConnectHandler;
+  let messageHandler: APIGatewayProxyWebsocketHandlerV2;
+  let disconnectHandler: WebSocketDisconnectHandler;
+  if (isRoutedHandlers(handler)) {
+    connectHandler = handler.connect;
+    messageHandler = handler.message;
+    disconnectHandler = handler.disconnect;
+  } else {
+    connectHandler = handler;
+    messageHandler = handler;
+    disconnectHandler = handler;
+  }
+
   return async (ws: WebSocket, msg: IncomingMessage) => {
     const id = randomUUID();
     sockets[id] = ws;
@@ -105,7 +130,7 @@ export function apiGatewayProxyWebSocketHandler({
     });
 
     try {
-      const event: WebSocketConnectEventEvent = {
+      const event: WebSocketConnectEvent = {
         ...createWebSocketEvent(id, 'CONNECT'),
         headers: Object.fromEntries(
           Object.entries(msg.headers).map(([key, value]) => [
