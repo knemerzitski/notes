@@ -112,14 +112,8 @@ export class NotesStack extends Stack {
     dynamoDbWebSocketTables.connections.grantReadData(handlers.http);
     dynamoDbWebSocketTables.subscriptions.grantReadData(handlers.http);
 
-    dynamoDbWebSocketTables.connections.grantReadWriteData(handlers.connect);
-
-    dynamoDbWebSocketTables.connections.grantReadWriteData(handlers.message);
-    dynamoDbWebSocketTables.subscriptions.grantReadWriteData(handlers.message);
-
-    dynamoDbWebSocketTables.connections.grantReadWriteData(handlers.disconnect);
-    dynamoDbWebSocketTables.subscriptions.grantReadWriteData(handlers.disconnect);
-
+    dynamoDbWebSocketTables.connections.grantReadWriteData(handlers.webSocket);
+    dynamoDbWebSocketTables.subscriptions.grantReadWriteData(handlers.webSocket);
 
     // Setup MongoDB
     const mongoDbAtlasAuthRole = new Role(this, 'MongoDbAtlasAuthRole', {
@@ -197,19 +191,19 @@ export class NotesStack extends Stack {
       connectRouteOptions: {
         integration: new WebSocketLambdaIntegration(
           'WsConnectIntegration',
-          handlers.connect
+          handlers.webSocket
         ),
       },
       defaultRouteOptions: {
         integration: new WebSocketLambdaIntegration(
           'WsMessageIntegration',
-          handlers.message
+          handlers.webSocket
         ),
       },
       disconnectRouteOptions: {
         integration: new WebSocketLambdaIntegration(
           'WsDisconnectIntegration',
-          handlers.disconnect
+          handlers.webSocket
         ),
       },
     });

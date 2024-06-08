@@ -9,7 +9,7 @@ import path from 'path';
 import { TestNotesStack } from '../lib/stacks/test-notes-stack';
 
 /**
- * DO NOT DEPLOY TESTING APP
+ * DO NOT DEPLOY, ONLY FOR TESTING APP
  */
 
 const NODE_ENV = process.env.NODE_ENV ?? 'test';
@@ -34,17 +34,9 @@ new TestNotesStack(app, 'TESTINGONLYNotesStack', {
           PROJECT_DIR,
           '../api-dev-server/out-handlers/mock-apollo-http-handler'
         ),
-        connect: path.join(
+        webSocket: path.join(
           PROJECT_DIR,
-          '../api-dev-server/out-handlers/mock-connect-handler'
-        ),
-        message: path.join(
-          PROJECT_DIR,
-          '../api-dev-server/out-handlers/mock-message-handler'
-        ),
-        disconnect: path.join(
-          PROJECT_DIR,
-          '../api-dev-server/out-handlers/mock-disconnect-handler'
+          '../api-dev-server/out-handlers/mock-websocket-handler'
         ),
       },
       environment: {

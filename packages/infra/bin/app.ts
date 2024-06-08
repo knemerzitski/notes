@@ -56,9 +56,7 @@ new NotesStack(app, 'NotesStack', {
     lambda: {
       codePath: {
         http: path.join(PROJECT_DIR, '../api/out/apollo-http-handler'),
-        connect: path.join(PROJECT_DIR, '../api/out/connect-handler'),
-        message: path.join(PROJECT_DIR, '../api/out/message-handler'),
-        disconnect: path.join(PROJECT_DIR, '../api/out/disconnect-handler'),
+        webSocket: path.join(PROJECT_DIR, '../api/out/websocket-handler'),
       },
       environment: {
         NODE_ENV: NODE_ENV,
