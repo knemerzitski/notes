@@ -1,5 +1,5 @@
 {
-  "app": "vite-node bin/cdk.ts",
+  "app": "vite-node bin/app.ts",
   "watch": {
     "include": [
       "**"
