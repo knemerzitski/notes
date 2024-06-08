@@ -25,7 +25,7 @@ export function createDefaultParams(): CreateApolloHttpHandlerParams<
   Omit<GraphQLResolversContext, keyof ApolloHttpGraphQLContext>,
   DynamoDBBaseGraphQLContext
 > {
-  const logger = createLogger('apollo-websocket-handler');
+  const logger = createLogger('apollo-http-handler');
 
   let mongodb: Awaited<ReturnType<typeof createDefaultMongoDBContext>> | undefined;
 
