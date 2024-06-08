@@ -92,7 +92,6 @@ export function createApolloHttpHandler<
   const apollo = new ApolloServer<GraphQLContext>({
     ...graphQL.apolloServerOptions,
     schema: graphQL.schema,
-    introspection: process.env.NODE_ENV !== 'production',
     nodeEnv: process.env.NODE_ENV,
   });
   apollo.startInBackgroundHandlingStartupErrorsByLoggingAndFailingAllRequests();
@@ -100,6 +99,8 @@ export function createApolloHttpHandler<
   return async (event) => {
     try {
       event.headers = lowercaseHeaderKeys(event.headers);
+
+      logger.info('event:HTTP');
 
       const httpGraphQLRequest = parseGraphQLRequestEvent(event);
 
