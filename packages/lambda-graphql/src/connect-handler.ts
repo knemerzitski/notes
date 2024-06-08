@@ -17,6 +17,7 @@ import {
   DynamoDBRecord,
 } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
+import lowercaseHeaderKeys from './apigateway-proxy-event/lowercaseHeaderKeys';
 
 interface DirectParams<
   TBaseGraphQLContext,
@@ -105,6 +106,8 @@ export function webSocketConnectHandler<
 ): WebSocketConnectHandler {
   return async (event) => {
     try {
+      event.headers = event.headers ? lowercaseHeaderKeys(event.headers) : event.headers;
+
       const { eventType, connectionId } = event.requestContext;
       if (eventType !== 'CONNECT') {
         throw new Error(`Invalid event type. Expected CONNECT but is ${eventType}`);

@@ -19,6 +19,7 @@ import {
 import { ConnectionTable, DynamoDBRecord } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
 import { Publisher, createPublisher } from './pubsub/publish';
+import lowercaseHeaderKeys from './apigateway-proxy-event/lowercaseHeaderKeys';
 
 interface DirectParams {
   logger: Logger;
@@ -98,6 +99,8 @@ export function createApolloHttpHandler<
 
   return async (event) => {
     try {
+      event.headers = lowercaseHeaderKeys(event.headers);
+
       const httpGraphQLRequest = parseGraphQLRequestEvent(event);
 
       const responseHeadersFromResolvers: ApolloHttpGraphQLContext['response']['headers'] =
