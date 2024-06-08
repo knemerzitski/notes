@@ -1,11 +1,11 @@
-import { TypePolicies } from '@apollo/client';
+import { NormalizedCacheObject, TypePolicies } from '@apollo/client';
 
 import { fieldArrayToMap } from '../apollo-client/utils/fieldArrayToMap';
 import { getCurrentUserIdInStorage } from './user';
 import { KeySpecifierName } from '../apollo-client/key-specifier';
 import { EvictTag, EvictTypePolicies } from '../apollo-client/policy/evict';
 
-const sessionPolicies: TypePolicies & EvictTypePolicies = {
+const sessionPolicies: TypePolicies & EvictTypePolicies<NormalizedCacheObject> = {
   Query: {
     fields: {
       user: {
