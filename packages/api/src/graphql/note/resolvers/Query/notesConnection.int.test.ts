@@ -2,13 +2,11 @@
 import { faker } from '@faker-js/faker';
 import { assert, beforeAll, expect, it } from 'vitest';
 
-import { mongoCollections, resetDatabase } from '../../../../test/helpers/mongodb';
+import { resetDatabase } from '../../../../test/helpers/mongodb';
 import { GraphQLResolversContext } from '../../../context';
 
 import { apolloServer } from '../../../../test/helpers/apollo-server';
 import { UserSchema } from '../../../../mongodb/schema/user';
-import { CollectionName } from '../../../../mongodb/collections';
-import NotesDataSource from '../../datasource/notes-datasource';
 import {
   populateUserWithNotes,
   populateWithCreatedData,
@@ -16,6 +14,7 @@ import {
 import { NoteConnection, NoteEdge, NoteTextField } from '../../../types.generated';
 
 import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
+import { createGraphQLResolversContext } from '../../../../test/helpers/graphql-context';
 
 const QUERY = `#graphql
   query($after: String, $first: NonNegativeInt, $before: String, $last: NonNegativeInt) {
@@ -55,30 +54,6 @@ const QUERY = `#graphql
   }
 `;
 
-function createUserContext(user: UserSchema): GraphQLResolversContext {
-  return {
-    auth: {
-      session: {
-        user: {
-          _id: user._id,
-        },
-      },
-    },
-    datasources: {
-      notes: new NotesDataSource({
-        mongodb: {
-          collections: {
-            [CollectionName.Users]: mongoCollections[CollectionName.Users],
-            [CollectionName.UserNotes]: mongoCollections[CollectionName.UserNotes],
-            [CollectionName.Notes]: mongoCollections[CollectionName.Notes],
-            [CollectionName.CollabTexts]: mongoCollections[CollectionName.CollabTexts],
-          },
-        },
-      }),
-    },
-  } as GraphQLResolversContext;
-}
-
 let userNotes: UserNoteSchema[];
 let user: UserSchema;
 let contextValue: GraphQLResolversContext;
@@ -104,7 +79,7 @@ beforeAll(async () => {
   userNotes = tmpUserNotes;
   await populateWithCreatedData();
 
-  contextValue = createUserContext(user);
+  contextValue = createGraphQLResolversContext(user);
 });
 
 it('returns last 2 notes, after: 7, first 4 => 8,9 (10 notes total)', async () => {
