@@ -7,8 +7,13 @@
     "build": "esbuild src/index.ts --outdir=./out --loader:.graphql=text --bundle --platform=node --packages=external --sourcemap",
     "build:watch": "npm run build -- --watch=forever",
     "start": "DEBUG=*:error node ./out/index.js",
-    "start:watch": "DEBUG=*:error nodemon ./out/index.js",
-    "dev": "npm run build:watch & npm run start:watch"
+    "start:watch": "DEBUG=mock:graphql-http:* nodemon ./out/index.js",
+    "dev": "npm run build:watch & npm run start:watch",
+    "build:http": "vite-node ../api/build.ts src/handlers/mock-apollo-http-handler.ts --outfile out-handlers/mock-apollo-http-handler/index.js",
+    "build:connect": "vite-node ../api/build.ts src/handlers/mock-connect-handler.ts --outfile out-handlers/mock-connect-handler/index.js",
+    "build:message": "vite-node ../api/build.ts src/handlers/mock-message-handler.ts --outfile out-handlers/mock-message-handler/index.js",
+    "build:disconnect": "vite-node ../api/build.ts src/handlers/mock-disconnect-handler.ts --outfile out-handlers/mock-disconnect-handler/index.js",
+    "build:handlers": "npm run build:http && npm run build:connect && npm run build:message &&npm run build:disconnect"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.454.0",
