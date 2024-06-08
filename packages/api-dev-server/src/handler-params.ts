@@ -14,8 +14,11 @@ import { PingPongContextParams } from '~lambda-graphql/context/pingpong';
 import { createPingPongHandler } from '~lambda-graphql/ping-pong-handler';
 import { createLogger } from '~utils/logger';
 
-import { MockApiGatewayManagementApiClient } from './utils/mock-apigatewaymanagementapi';
-import { MockPingPongSFNClient } from './utils/mock-pingpong-sfnclient';
+import {
+  MockApiGatewayManagementApiClient,
+  MockEmtpyApiGatewayManagementApiClient,
+} from './api-gateway/mock-apigatewaymanagementapi';
+import { MockPingPongSFNClient } from './pingpong/mock-pingpong-sfnclient';
 import { createMongoDBContext } from '~api/mongodb/lambda-context';
 import { createCollectionInstances } from '~api/mongodb/collections';
 
@@ -69,10 +72,24 @@ export function createMockDynamoDBParams(): DynamoDBContextParams {
 }
 
 export function createMockApiGatewayParams(
-  sockets: Record<string, WebSocket>
+  sockets?: Record<string, WebSocket>
 ): ApiGatewayContextParams {
+  const logger = createLogger('mock:apigateway');
+
+  if (!sockets) {
+    logger.warning(
+      'Created without providing sockets. WebSocket subscriptions will not work.'
+    );
+    return {
+      logger,
+      newClient() {
+        return new MockEmtpyApiGatewayManagementApiClient();
+      },
+    };
+  }
+
   return {
-    logger: createLogger('mock:apigateway'),
+    logger,
     newClient() {
       return new MockApiGatewayManagementApiClient(sockets);
     },

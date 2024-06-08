@@ -2,24 +2,12 @@ import './load-env';
 
 import WebSocket from 'ws';
 
-import { handleConnectGraphQLAuth } from '~api/connect-handler';
-import { parseAuthFromHeaders } from '~api/graphql/auth-context';
 import {
   BaseGraphQLContext,
   BaseSubscriptionResolversContext,
   DynamoDBBaseGraphQLContext,
   GraphQLResolversContext,
-  createErrorBaseSubscriptionResolversContext,
-  handleConnectionInitAuthenticate,
-  parseDynamoDBBaseGraphQLContext,
 } from '~api/graphql/context';
-import CookiesContext, { parseCookiesFromHeaders } from '~api/graphql/cookies-context';
-import {
-  createDefaultApiOptions,
-  createDefaultDataSources,
-  createDefaultDynamoDBConnectionTtlContext,
-  createDefaultIsCurrentConnection,
-} from '~api/handler-params';
 import { createApolloHttpHandler } from '~lambda-graphql/apollo-http-handler';
 import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
 import { createWebSocketConnectHandler } from '~lambda-graphql/connect-handler';
@@ -27,15 +15,13 @@ import { createWebSocketDisconnectHandler } from '~lambda-graphql/disconnect-han
 import { createWebSocketMessageHandler } from '~lambda-graphql/message-handler';
 import { createLogger } from '~utils/logger';
 
-import {
-  createMockApiGatewayParams,
-  createMockDynamoDBParams,
-  createMockGraphQLParams,
-  createMockMongoDBContext,
-  createMockSubscriptionGraphQLParams,
-} from './handler-params';
+import { createMockMongoDBContext } from './handler-params';
 import { createLambdaServer } from './lambda-server';
 import { createLambdaGraphQLDynamoDBTables } from './utils/lambda-graphql-dynamodb';
+import { mockCreateDefaultParams as mockCreateDefaultApolloHttpHandlerParams } from './handlers/mock-apollo-http-handler';
+import { mockCreateDefaultParams as mockCreateDefaultWebSocketConnectParams } from './handlers/mock-connect-handler';
+import { mockCreateDefaultParams as mockCreateDefaultMessageHandlerParams } from './handlers/mock-message-handler';
+import { mockCreateDefaultParams as mockCreateDefaultDisconnectHandlerParams } from './handlers/mock-disconnect-handler';
 
 const logger = createLogger('mock:lambda-graphql-server');
 
@@ -60,119 +46,40 @@ void (async () => {
       connectHandler: createWebSocketConnectHandler<
         BaseGraphQLContext,
         DynamoDBBaseGraphQLContext
-      >({
-        logger: createLogger('mock:ws-connect-handler'),
-        connection: createDefaultDynamoDBConnectionTtlContext(),
-        dynamoDB: createMockDynamoDBParams(),
-        async onConnect({ event }) {
-          if (!mongodb) {
-            mongodb = await createMockMongoDBContext();
-          }
-
-          return handleConnectGraphQLAuth(mongodb.collections, event);
-        },
-        parseDynamoDBGraphQLContext: parseDynamoDBBaseGraphQLContext,
-      }),
+      >(
+        mockCreateDefaultWebSocketConnectParams({
+          mongodb,
+        })
+      ),
       messageHandler: createWebSocketMessageHandler<
         BaseSubscriptionResolversContext,
         BaseGraphQLContext,
         DynamoDBBaseGraphQLContext
-      >({
-        logger: createLogger('mock:ws-message-handler'),
-        dynamoDB: createMockDynamoDBParams(),
-        apiGateway: createMockApiGatewayParams(sockets),
-        graphQL: createMockSubscriptionGraphQLParams(),
-        async createGraphQLContext() {
-          if (!mongodb) {
-            mongodb = await createMockMongoDBContext();
-          }
-
-          return {
-            ...createErrorBaseSubscriptionResolversContext(),
-            logger: createLogger('mock:ws-message-gql-context'),
-            mongodb,
-            datasources: createDefaultDataSources({
-              notes: {
-                mongodb,
-              },
-            }),
-          };
-        },
-        connection: createDefaultDynamoDBConnectionTtlContext(),
-        //pingpong: createMockPingPongParams(sockets),
-        parseDynamoDBGraphQLContext: parseDynamoDBBaseGraphQLContext,
-        onConnectionInit: handleConnectionInitAuthenticate,
-      }),
+      >(
+        mockCreateDefaultMessageHandlerParams({
+          mongodb,
+          sockets,
+        })
+      ),
       disconnectHandler: createWebSocketDisconnectHandler<
         BaseSubscriptionResolversContext,
         BaseGraphQLContext,
         DynamoDBBaseGraphQLContext
-      >({
-        logger: createLogger('mock:ws-disconnect-handler'),
-        dynamoDB: createMockDynamoDBParams(),
-        graphQL: createMockSubscriptionGraphQLParams(),
-        apiGateway: createMockApiGatewayParams(sockets),
-        async createGraphQLContext() {
-          if (!mongodb) {
-            mongodb = await createMockMongoDBContext();
-          }
-
-          return {
-            ...createErrorBaseSubscriptionResolversContext(),
-            logger: createLogger('mock:ws-disconnect-gql-context'),
-            mongodb,
-            datasources: createDefaultDataSources({
-              notes: {
-                mongodb,
-              },
-            }),
-          };
-        },
-        parseDynamoDBGraphQLContext: parseDynamoDBBaseGraphQLContext,
-      }),
+      >(
+        mockCreateDefaultDisconnectHandlerParams({
+          mongodb,
+          sockets,
+        })
+      ),
       apolloHttpHandler: createApolloHttpHandler<
         Omit<GraphQLResolversContext, keyof ApolloHttpGraphQLContext>,
         DynamoDBBaseGraphQLContext
-      >({
-        logger: createLogger('mock:apollo-http-handler'),
-        graphQL: createMockGraphQLParams(),
-        async createGraphQLContext(_ctx, event) {
-          if (!mongodb) {
-            mongodb = await createMockMongoDBContext();
-          }
-
-          const cookiesCtx = CookiesContext.parse(parseCookiesFromHeaders(event.headers));
-
-          const authCtx = await parseAuthFromHeaders(
-            event.headers,
-            cookiesCtx,
-            mongodb.collections
-          );
-
-          return {
-            cookies: cookiesCtx,
-            auth: authCtx,
-            mongodb,
-            datasources: createDefaultDataSources({
-              notes: {
-                mongodb,
-              },
-            }),
-            options: createDefaultApiOptions(),
-            subscribe: () => {
-              throw new Error('Subscribe should never be called in apollo-http-handler');
-            },
-            denySubscription: () => {
-              throw new Error(
-                'denySubscription should never be called in apollo-http-handler'
-              );
-            },
-          };
-        },
-        createIsCurrentConnection: createDefaultIsCurrentConnection,
-        dynamoDB: createMockDynamoDBParams(),
-        apiGateway: createMockApiGatewayParams(sockets),
-      }),
+      >(
+        mockCreateDefaultApolloHttpHandlerParams({
+          mongodb,
+          sockets,
+        })
+      ),
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       httpUrl: new URL(process.env.VITE_GRAPHQL_HTTP_URL!),
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

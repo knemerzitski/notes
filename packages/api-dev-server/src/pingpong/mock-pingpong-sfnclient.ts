@@ -4,7 +4,7 @@ import { PingPongMachineInput } from '~lambda-graphql/context/pingpong';
 import { PingPongHandler } from '~lambda-graphql/ping-pong-handler';
 import { Logger } from '~utils/logger';
 
-import { createLambdaContext } from './lambda-context';
+import { createLambdaContext } from '../utils/lambda-context';
 
 export class MockPingPongSFNClient extends SFNClient {
   handler: PingPongHandler;

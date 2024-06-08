@@ -48,3 +48,9 @@ export class MockApiGatewayManagementApiClient extends ApiGatewayManagementApiCl
     return Promise.resolve();
   }
 }
+
+export class MockEmtpyApiGatewayManagementApiClient extends ApiGatewayManagementApiClient {
+  send(): Promise<void> {
+    return Promise.resolve();
+  }
+}

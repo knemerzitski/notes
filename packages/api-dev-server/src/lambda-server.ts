@@ -10,8 +10,8 @@ import { WebSocketConnectHandler } from '~lambda-graphql/connect-handler';
 import { WebSocketDisconnectHandler } from '~lambda-graphql/disconnect-handler';
 import { Logger } from '~utils/logger';
 
-import { apiGatewayProxyHandlerMiddleware } from './handler/lambda-middleware';
-import { apiGatewayProxyWebSocketHandler } from './handler/lambda-websocket';
+import { apiGatewayProxyHandlerMiddleware } from './api-gateway/express-middleware-handler';
+import { apiGatewayProxyWebSocketHandler } from './api-gateway/websocket-handler';
 
 export function createLambdaServer({
   sockets,
