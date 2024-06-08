@@ -32,6 +32,7 @@ import NotesDataSource, {
 } from './graphql/note/datasource/notes-datasource';
 import { BaseContext } from '@apollo/server';
 import { ApiOptions } from './graphql/api-options';
+import { ApolloServerLogger } from './graphql/plugins/apollo-server-logger';
 
 export function createDefaultGraphQLParams<TContext extends BaseContext>(
   logger: Logger
@@ -44,7 +45,7 @@ export function createDefaultGraphQLParams<TContext extends BaseContext>(
     resolvers: allExceptSubscriptionResolvers,
     transform: applyDirectives,
     apolloServerOptions: {
-      plugins: [],
+      plugins: [new ApolloServerLogger(logger)],
     },
   };
 }
