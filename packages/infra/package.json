@@ -4,8 +4,8 @@
   "type": "module",
   "scripts": {
     "cdk": "NODE_ENV=production cdk",
-    "test:synth": "NODE_ENV=test cdk synth --no-staging --quiet",
-    "test:start-api": "sam local start-api --host 127.0.0.1 -p 3000 --docker-network sam-api-network --warm-containers EAGER -t cdk.out/NoDeployTestOnlyNotesStack.template.json",
+    "test:synth": "NODE_ENV=test cdk synth -a 'vite-node bin/app-test.ts' --no-staging --quiet",
+    "test:start-api": "sam local start-api --host 127.0.0.1 -p 3000 --docker-network sam-api-network --warm-containers EAGER -t cdk.out/TESTINGONLYNotesStack.template.json",
     "test": "vitest run",
     "test:watch": "vitest watch"
   },
