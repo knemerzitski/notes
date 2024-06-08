@@ -124,7 +124,7 @@ export function webSocketConnectHandler<
         id: connectionId,
         createdAt: Date.now(),
         requestContext: event.requestContext,
-        graphQLContext: dynamoDBGraphQLContext,
+        graphQLContext: dynamoDBGraphQLContext ?? undefined,
         hasPonged: false,
         ttl: context.connection.defaultTtl(),
       });
