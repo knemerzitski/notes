@@ -1,7 +1,10 @@
-import { CssBaseline } from '@mui/material';
+import { Box, CircularProgress, CssBaseline } from '@mui/material';
 import GlobalStyles from './GlobalStyles';
 import themeOptions from './themeOptions';
-import { customApolloClient } from './modules/apollo-client/apollo-client';
+import {
+  CustomApolloClient,
+  customApolloClientPromise,
+} from './modules/apollo-client/apollo-client';
 import ApolloClientErrorsSnackbarAlert from './modules/apollo-client/components/ApolloClientErrorsSnackbarAlert';
 import ApolloClientSynchronized from './modules/apollo-client/components/ApolloClientSynchronized';
 import CustomApolloClientProvider from './modules/apollo-client/context/CustomApolloClientProvider';
@@ -12,10 +15,12 @@ import ActiveNotesManager from './modules/note/components/ActiveNotesManager';
 import ExternalChangesSubscription from './modules/note/components/ExternalChangesSubscription';
 import NoteCreatedSubscription from './modules/note/components/NoteCreatedSubscription';
 import NoteDeletedSubscription from './modules/note/components/NoteDeletedSubscription';
-import CustomThemeProvider from './modules/theme/context/CustomThemeProvider';
+import CustomThemeProvider, {
+  CustomThemeDirectStorageColorModeProvider,
+} from './modules/theme/context/CustomThemeProvider';
 import { router } from './modules/routes/RoutesIndex';
 import RouterProvider from './modules/router/context/RouterProvider';
-import { Suspense } from 'react';
+import { ReactNode, Suspense, useEffect, useState } from 'react';
 import FullSizeErrorContainer from './modules/common/components/FullSizeErrorContainer';
 import ConfirmLeaveOngoingMutations from './modules/apollo-client/components/ConfirmLeaveOngoingMutations';
 
@@ -23,7 +28,7 @@ const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 export default function App() {
   return (
-    <CustomApolloClientProvider client={customApolloClient}>
+    <AppLoadApolloClient>
       <ApolloClientSynchronized />
       <ConfirmLeaveOngoingMutations />
       <CustomThemeProvider themeOptions={themeOptions}>
@@ -48,6 +53,58 @@ export default function App() {
           </Suspense>
         </SnackbarAlertProvider>
       </CustomThemeProvider>
-    </CustomApolloClientProvider>
+    </AppLoadApolloClient>
+  );
+}
+
+let customApolloClient: CustomApolloClient | null = null;
+void customApolloClientPromise.then((client) => {
+  customApolloClient = client;
+});
+
+/**
+ * Display loading until state has been restored from storage
+ */
+function AppLoadApolloClient({ children }: { children: ReactNode }) {
+  const [client, setClient] = useState<CustomApolloClient | null>(customApolloClient);
+
+  useEffect(() => {
+    void customApolloClientPromise.then((client) => {
+      setClient(client);
+    });
+  }, []);
+
+  if (client == null) {
+    return (
+      <>
+        <CustomThemeDirectStorageColorModeProvider themeOptions={themeOptions}>
+          <CssBaseline />
+          <GlobalStyles />
+          <PageCenterLoading />
+        </CustomThemeDirectStorageColorModeProvider>
+      </>
+    );
+  }
+
+  return (
+    <CustomApolloClientProvider client={client}>{children}</CustomApolloClientProvider>
+  );
+}
+
+function PageCenterLoading() {
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100dvh',
+        flexFlow: 'row wrap',
+        gap: 2,
+      }}
+    >
+      Loading saved data
+      <CircularProgress size={40} />
+    </Box>
   );
 }

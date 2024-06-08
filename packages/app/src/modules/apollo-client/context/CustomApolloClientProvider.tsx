@@ -1,5 +1,5 @@
 import { ReactNode, createContext, useContext } from 'react';
-import { CustomApolloClient, customApolloClient } from '../apollo-client';
+import { CustomApolloClient } from '../apollo-client';
 import { ApolloProvider } from '@apollo/client';
 import { PersistProvider } from '../hooks/usePersist';
 import { StatsLinkProvider } from '../hooks/useStatsLink';
@@ -29,9 +29,9 @@ export default function CustomApolloClientProvider({
   return (
     <CustomApolloClientContext.Provider value={customClient}>
       <ApolloProvider client={customClient.client}>
-        <PersistProvider persistor={customApolloClient.persistor}>
-          <StatsLinkProvider statsLink={customApolloClient.statsLink}>
-            <AddFetchResultErrorHandlerProvider errorLink={customApolloClient.errorLink}>
+        <PersistProvider persistor={customClient.persistor}>
+          <StatsLinkProvider statsLink={customClient.statsLink}>
+            <AddFetchResultErrorHandlerProvider errorLink={customClient.errorLink}>
               {children}
             </AddFetchResultErrorHandlerProvider>
           </StatsLinkProvider>

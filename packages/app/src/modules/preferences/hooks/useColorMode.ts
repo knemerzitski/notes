@@ -2,6 +2,7 @@ import { useApolloClient, useSuspenseQuery } from '@apollo/client';
 import { gql } from '../../../__generated__/gql';
 import { ColorMode } from '../../../__generated__/graphql';
 import { useCallback } from 'react';
+import { LocalStoragePrefix, localStorageKey } from '../../storage/local-storage';
 
 const QUERY = gql(`
   query UseColorMode {
@@ -10,6 +11,20 @@ const QUERY = gql(`
     }
   }
 `);
+
+const STORAGE_KEY = localStorageKey(LocalStoragePrefix.Theme, 'colorMode');
+
+function setColorModeInStorage(colorMode: ColorMode | null | undefined) {
+  if (colorMode) {
+    localStorage.setItem(STORAGE_KEY, colorMode);
+  } else {
+    localStorage.removeItem(STORAGE_KEY);
+  }
+}
+
+export function getColorModeInStorage() {
+  return (localStorage.getItem(STORAGE_KEY) ?? ColorMode.System) as ColorMode;
+}
 
 export default function useColorMode(): [ColorMode, (newColorMode: ColorMode) => void] {
   const apolloClient = useApolloClient();
@@ -25,6 +40,7 @@ export default function useColorMode(): [ColorMode, (newColorMode: ColorMode) =>
           },
         },
       });
+      setColorModeInStorage(newColorMode);
     },
     [apolloClient]
   );

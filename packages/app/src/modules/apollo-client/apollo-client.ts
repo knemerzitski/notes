@@ -45,22 +45,6 @@ if (import.meta.env.MODE === 'production') {
   loadErrorMessages();
 }
 
-const cache = new InMemoryCache({
-  typePolicies,
-});
-
-const persistor = new CachePersistor({
-  cache,
-  key: localStorageKey(LocalStoragePrefix.Apollo, 'cache'),
-  storage: new TypePersistentStorage({
-    storage: window.localStorage,
-    serialize: (value) => JSON.stringify(value),
-    typePolicies,
-  }),
-});
-
-await persistor.restore();
-
 interface CustomApolloClientParams {
   persistor: CachePersistor<NormalizedCacheObject>;
   cache: InMemoryCache;
@@ -250,7 +234,7 @@ export class CustomApolloClient {
           }
         : {};
 
-      customApolloClient.evictor.evictByTag({
+      this.evictor.evictByTag({
         cache: this.client.cache,
         tag: EvictTag.UserSpecific,
         ...options,
@@ -277,4 +261,38 @@ export class CustomApolloClient {
   }
 }
 
-export const customApolloClient = new CustomApolloClient({ cache, persistor });
+const cache = new InMemoryCache({
+  typePolicies,
+});
+
+const persistor = new CachePersistor({
+  cache,
+  key: localStorageKey(LocalStoragePrefix.Apollo, 'cache'),
+  storage: new TypePersistentStorage({
+    storage: window.localStorage,
+    serialize: (value) => JSON.stringify(value),
+    typePolicies,
+  }),
+});
+
+/**
+ * Not all browsers support top-level await.
+ * Exporting promise instead.
+ */
+export const customApolloClientPromise = new Promise<CustomApolloClient>((res, rej) => {
+  void (async () => {
+    try {
+      await persistor.restore();
+
+      await new Promise((res2) => {
+        setTimeout(res2, 10000);
+      });
+
+      const client = new CustomApolloClient({ cache, persistor });
+
+      res(client);
+    } catch (err) {
+      rej(err);
+    }
+  })();
+});
