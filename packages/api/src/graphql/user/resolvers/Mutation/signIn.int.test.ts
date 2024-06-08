@@ -115,7 +115,7 @@ describe('new user', () => {
 
     expect(contextValue.response.multiValueHeaders).toEqual({
       'Set-Cookie': [
-        `Sessions=${data.signIn.user.id}:${session.cookieId}; HttpOnly; SameSite=Strict`,
+        `Sessions=${data.signIn.user.id}:${session.cookieId}; HttpOnly; SameSite=Strict; Path=/`,
       ],
     });
   });

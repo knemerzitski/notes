@@ -4,6 +4,14 @@ services:
     command: '-jar DynamoDBLocal.jar -sharedDb -inMemory'
     image: 'amazon/dynamodb-local'
     container_name: dynamodb-local
+    networks:
+      - sam-api-network   
     ports:
       - '8000:8000'
     working_dir: /home/dynamodblocal
+
+
+networks:
+  sam-api-network:
+    name: sam-api-network
+    external: true

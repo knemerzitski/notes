@@ -1,6 +1,5 @@
 import { exec } from 'child_process';
 import { join } from 'path';
-
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
@@ -10,8 +9,8 @@ export default defineConfig({
   envDir: '../../',
   envPrefix: 'TEST_',
   test: {
-    include: ['src/**/*.int.test.ts'],
-    setupFiles: ['src/test/helpers/setup.integration.ts'],
+    include: ['test/**/*.test.ts', 'cloudfront-functions/src/**/*.test.ts'],
+    setupFiles: [],
     pool: 'threads',
     poolOptions: {
       threads: {

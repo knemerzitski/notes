@@ -20,7 +20,9 @@
     "api:dev": "npm run -w dev-server dev & npm run -w api graphql:watch",
     "app:dev": "npm run -w app dev",
     "dev": "npm run api:dev & npm run app:dev",
-    "graphql:compile": "npm run graphql:compile --workspaces --if-present"
+    "graphql:compile": "npm run -w api graphql:compile && npm run -w app graphql:compile",
+    "build": "npm run -w api build && npm run -w app build",
+    "deploy": "npm run -w infra cdk deploy"
   },
   "validate-branch-name": {
     "pattern": "^main$|^[\\w]+\\/\\S+$",

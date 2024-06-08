@@ -15,7 +15,7 @@
     "build:connect": "vite-node ../api/build.ts src/connect-handler.ts --outfile out/connect-handler/index.js",
     "build:message": "vite-node ../api/build.ts src/message-handler.ts --outfile out/message-handler/index.js",
     "build:disconnect": "vite-node ../api/build.ts src/disconnect-handler.ts --outfile out/disconnect-handler/index.js",
-    "build": "npm run build:http && npm run build:connect && npm run build:message &&npm run build:disconnect"
+    "build": "rm -rf out/* && npm run build:http && npm run build:connect && npm run build:message &&npm run build:disconnect"
   },
   "dependencies": {
     "@apollo/server": "^4.9.5",

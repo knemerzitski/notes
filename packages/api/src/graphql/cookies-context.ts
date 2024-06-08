@@ -82,7 +82,7 @@ export default class CookiesContext {
     multiValueHeaders['Set-Cookie'].push(
       `${CookiesContext.SESSIONS_KEY}=${Object.entries(this.sessions)
         .map(([key, id]) => `${key}:${id}`)
-        .join(',')}; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}`
+        .join(',')}; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}; Path=/`
     );
   }
 

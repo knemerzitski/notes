@@ -21,6 +21,9 @@ export class ApolloServerLogger<TContext extends BaseContext>
     const requestStartTime = performance.now();
 
     this.logger.info(`request:started`, {
+      method: requestContext.request.http?.method,
+      search: requestContext.request.http?.search,
+      headers: requestContext.request.http?.headers,
       query: requestContext.request.query,
     });
 

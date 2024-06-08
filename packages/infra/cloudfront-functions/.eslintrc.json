@@ -1,0 +1,9 @@
+{
+  "extends": ["eslint:recommended", "prettier"],
+  "overrides": [
+    {
+      "files": ["*.[t]s?(x)"],
+      "extends": "plugin:@typescript-eslint/recommended"
+    }
+  ]
+}

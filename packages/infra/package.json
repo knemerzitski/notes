@@ -1,0 +1,27 @@
+{
+  "name": "infra",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "cdk": "NODE_ENV=production cdk",
+    "test:synth": "NODE_ENV=test cdk synth --no-staging --quiet",
+    "test:start-api": "sam local start-api --host 127.0.0.1 -p 3000 --docker-network sam-api-network --warm-containers EAGER -t cdk.out/NoDeployTestOnlyNotesStack.template.json",
+    "test": "vitest run",
+    "test:watch": "vitest watch"
+  },
+  "dependencies": {
+    "@types/node": "20.12.7",
+    "@typescript-eslint/eslint-plugin": "^7.12.0",
+    "aws-cdk": "2.144.0",
+    "aws-cdk-lib": "2.144.0",
+    "awscdk-resources-mongodbatlas": "^3.5.2",
+    "constructs": "^10.0.0",
+    "dotenv": "^16.4.5",
+    "source-map-support": "^0.5.21",
+    "ts-essentials": "^10.0.0",
+    "typescript": "^5.4.5",
+    "vite-node": "^1.6.0",
+    "vite-tsconfig-paths": "^4.3.2",
+    "vitest": "^1.6.0"
+  }
+}

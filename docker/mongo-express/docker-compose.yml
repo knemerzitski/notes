@@ -6,10 +6,10 @@ services:
     environment:
       ME_CONFIG_MONGODB_URL: mongodb://mongo:27017/mongo?authSource=admin
     networks:
-      - mongodb_mongo-network
+      - mongo-network
     ports:
       - 8081:8081
 
 networks:
-  mongodb_mongo-network:
+  mongo-network:
     external: true
