@@ -43,13 +43,15 @@ const mongoDb: NotesStackProps['customProps']['mongoDb'] = {
   },
 };
 
-const lambdaEnvironment = {
+const commonLambdaEnvironment = {
   NODE_ENV: NODE_ENV,
   DEBUG: process.env.LAMBDA_DEBUG_ARG ?? '*',
+};
 
+const runtimeLambdaEnvironment = {
+  ...commonLambdaEnvironment,
   // MongoDB
   STS_REGION: process.env.STS_REGION ?? '',
-  MONGODB_ATLAS_DATABASE_NAME: mongoDb.atlas.databaseName,
 
   // DynamoDB
   DYNAMODB_REGION: process.env.DYNAMODB_REGION ?? '',
@@ -64,14 +66,18 @@ new NotesStack(app, 'NotesStack', {
     region: process.env.CDK_DEFAULT_REGION,
   },
   customProps: {
+    postDeployment: {
+      codePath: path.join(PROJECT_DIR, '../api/out/initialize-handler'),
+      environment: commonLambdaEnvironment,
+    },
     lambda: {
       apolloHttp: {
         codePath: path.join(PROJECT_DIR, '../api/out/apollo-http-handler'),
-        environment: lambdaEnvironment,
+        environment: runtimeLambdaEnvironment,
       },
       webSocket: {
         codePath: path.join(PROJECT_DIR, '../api/out/websocket-handler'),
-        environment: lambdaEnvironment,
+        environment: runtimeLambdaEnvironment,
       },
     },
     mongoDb,

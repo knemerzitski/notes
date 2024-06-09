@@ -9,9 +9,14 @@ import { SubscriptionsWebSocketApi } from '../api/subscriptions-websocket-api';
 import { Domains, DomainsProps } from '../dns/domains';
 import { AppDistribution, AppDistributionProps } from '../cdn/AppDistribution';
 import { AppStaticFiles } from '../storage/AppStaticFiles';
+import {
+  PostDeploymentFunction,
+  PostDeploymentFunctionProps,
+} from '../compute/post-deployment-function';
 
 export interface NotesStackProps extends StackProps {
   customProps: {
+    postDeployment: PostDeploymentFunctionProps;
     lambda: LambdaHandlersProps;
     mongoDb: Omit<StateMongoDBProps, 'role'>;
     api: {
@@ -37,6 +42,12 @@ export class NotesStack extends Stack {
 
     // Lambda handlers
     const handlers = new LambdaHandlers(this, 'LambdaHandlers', customProps.lambda);
+    const postDeployHandler = new PostDeploymentFunction(
+      this,
+      'PostDeployment',
+      customProps.postDeployment
+    );
+    const mongoDbHandlers = [...handlers.getAll(), postDeployHandler.function];
 
     // DynamoDB
     const webSocketDynamoDB = new WebSocketDynamoDB(this, 'WebSocketDynamo');
@@ -58,14 +69,18 @@ export class NotesStack extends Stack {
     // MongoDB
     const mongoDbRole = new Role(this, 'MongoDBAtlasAuthRole', {
       assumedBy: new CompositePrincipal(
-        ...handlers.getAll().map((lambda) => lambda.grantPrincipal)
+        ...mongoDbHandlers.map((lambda) => lambda.grantPrincipal)
       ),
     });
     const mongoDb = new StateMongoDB(this, 'MongoDB', {
       role: mongoDbRole,
       atlas: customProps.mongoDb.atlas,
     });
-    handlers.getAll().forEach((lambda) => {
+    mongoDbHandlers.forEach((lambda) => {
+      lambda.addEnvironment(
+        'MONGODB_ATLAS_DATABASE_NAME',
+        customProps.mongoDb.atlas.databaseName
+      );
       lambda.addEnvironment('MONGODB_ATLAS_ROLE_ARN', mongoDbRole.roleArn);
       lambda.addEnvironment('MONGODB_ATLAS_URI_SRV', mongoDb.connectionString);
     });

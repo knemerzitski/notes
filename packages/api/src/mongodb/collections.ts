@@ -45,7 +45,6 @@ export function createCollectionInstances(mongoDB: Db): MongoDBCollections {
   }) as MongoDBCollections;
 }
 
-// TODO update indexes once during deployment
 export async function createAllIndexes(
   collections: MongoDBCollections
 ): Promise<Record<CollectionName, string[] | undefined>> {

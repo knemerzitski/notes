@@ -13,7 +13,8 @@
     "test:int:watch": "vitest watch -c ./vitest.config.integration.ts",
     "build:http": "vite-node build.ts src/apollo-http-handler.ts --outfile out/apollo-http-handler/index.js",
     "build:websocket": "vite-node ../api/build.ts src/websocket-handler.ts --outfile out/websocket-handler/index.js",
-    "build": "rm -rf out/* && npm run build:http && npm run build:websocket"
+    "build:initialize": "vite-node ../api/build.ts src/initialize-handler.ts --outfile out/initialize-handler/index.js",
+    "build": "rm -rf out/* && npm run build:http && npm run build:websocket && npm run build:initialize"
   },
   "dependencies": {
     "@apollo/server": "^4.9.5",
