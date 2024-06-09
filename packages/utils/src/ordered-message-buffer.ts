@@ -23,6 +23,11 @@ export type OrderedMessageBufferEvents<TMessage> = {
    * No more messages left to process.
    */
   messagesProcessed: undefined;
+
+  /**
+   * Need messages from start to end (inclusive) to process all stashes messages.
+   */
+  missingMessages: { start: number; end: number };
 };
 
 export interface SerializedOrderedMessageBuffer<TSerializedMessage> {
@@ -73,6 +78,8 @@ export class OrderedMessageBuffer<TMessage, TSerializedMessage = TMessage>
 
   private getVersion: (message: TMessage) => number;
   private serializeMessage: (message: TMessage) => TSerializedMessage;
+
+  private maxStashedVersion: number | undefined;
 
   get size() {
     return this.stashedMessagesMap.size;
@@ -132,10 +139,19 @@ export class OrderedMessageBuffer<TMessage, TSerializedMessage = TMessage>
       return false;
     }
 
+    this.maxStashedVersion =
+      this.maxStashedVersion != null
+        ? Math.max(this.maxStashedVersion, version)
+        : version;
     this.stashedMessagesMap.set(version, message);
 
     if (startProcessing) {
       this.processMessages();
+    }
+
+    const missingVersions = this.getMissingVersions();
+    if (missingVersions) {
+      this.eventBus.emit('missingMessages', missingVersions);
     }
 
     return true;
@@ -187,6 +203,30 @@ export class OrderedMessageBuffer<TMessage, TSerializedMessage = TMessage>
    */
   getAllMessages(): IterableIterator<TMessage> {
     return this.stashedMessagesMap.values();
+  }
+
+  /**
+   * @returns Range by start and end (inclusive) versions requires to process all messages.
+   */
+  getMissingVersions(): { start: number; end: number } | undefined {
+    if (
+      this.stashedMessagesMap.size === 0 ||
+      this.peekNextMessage() != null ||
+      this.maxStashedVersion == null
+    )
+      return;
+
+    let biggestMissing = this.maxStashedVersion - 1;
+    for (; biggestMissing > this.currentVersion; biggestMissing--) {
+      if (this.stashedMessagesMap.get(biggestMissing) == null) {
+        break;
+      }
+    }
+
+    return {
+      start: this._currentVersion + 1,
+      end: biggestMissing,
+    };
   }
 
   popIterable(): Iterable<TMessage> {

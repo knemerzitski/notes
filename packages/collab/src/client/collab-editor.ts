@@ -89,6 +89,10 @@ type EditorEvents = {
      */
     submittedRecord: SubmittedRecord;
   };
+  /**
+   * Need records from start to end (inclusive) to continue editing.
+   */
+  missingRevisions: { start: number; end: number };
 };
 
 type LocalRecord<TChangeset = Changeset> = PartialBy<
@@ -413,6 +417,12 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
         });
       })
     );
+
+    subscribedListeners.push(
+      this.recordsBuffer.eventBus.on('missingMessages', (e) => {
+        this.eventBus.emit('missingRevisions', e);
+      })
+    );
   }
 
   /**
@@ -459,6 +469,10 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
     this.eventBus.emit('userRecordsUpdated', {
       userRecords,
     });
+  }
+
+  getMissingRevisions() {
+    return this.recordsBuffer.getMissingVersions();
   }
 
   haveSubmittedChanges() {

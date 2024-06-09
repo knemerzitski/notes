@@ -5,7 +5,8 @@ import ExternalChangesSubscription from './ExternalChangesSubscription';
 import { Fragment } from 'react';
 import NoteDeletedSubscription from './NoteDeletedSubscription';
 import NoteContentIdToCollabTextsProvider from '../context/NoteContentIdToCollabTextsProvider';
-import FetchMissingRecords from './FetchMissingRecords';
+import SyncRecordsMissingInBuffer from './SyncRecordsMissingInBuffer';
+import SyncRecordsHeadTextUpdated from './SyncRecordsHeadTextUpdated';
 
 const QUERY = gql(`
   query ActiveNotesManager {
@@ -55,7 +56,8 @@ export default function ActiveNotesManager() {
           return (
             <Fragment key={collabTextId}>
               <SubmittedRecordMutation fieldName={fieldName} />
-              <FetchMissingRecords fieldName={fieldName} />
+              <SyncRecordsHeadTextUpdated fieldName={fieldName} />
+              <SyncRecordsMissingInBuffer fieldName={fieldName} />
             </Fragment>
           );
         })}

@@ -8,7 +8,7 @@ import { RevisionChangeset } from '~collab/records/record';
 import { collabTextRecordToEditorRevisionRecord } from '../../collab/editor-graphql-mapping';
 
 const QUERY_WATCH = gql(`
-  query FetchMissingRecordsWatch($noteContentId: String!, $fieldName: NoteTextField!){
+  query SyncRecordsHeadTextUpdatedWatch($noteContentId: String!, $fieldName: NoteTextField!){
     note(contentId: $noteContentId) @client {
       id
       textFields(name: $fieldName) {
@@ -26,7 +26,7 @@ const QUERY_WATCH = gql(`
 `);
 
 const QUERY_RECORDS = gql(`
-  query FetchMissingRecords($noteContentId: String!, $fieldName: NoteTextField!, 
+  query SyncRecordsHeadTextUpdated($noteContentId: String!, $fieldName: NoteTextField!, 
                             $after: NonNegativeInt!, $first: PositiveInt!){
     note(contentId: $noteContentId) {
       id
@@ -70,12 +70,15 @@ export interface FetchMissingRecordsProps {
  * If persisted note textField editor is is older than
  * recently fetched headText then update editor.
  */
-export default function FetchMissingRecords({ fieldName }: FetchMissingRecordsProps) {
+export default function SyncRecordsHeadTextUpdated({
+  fieldName,
+}: FetchMissingRecordsProps) {
   const apolloClient = useApolloClient();
 
   const noteContentId = useNoteContentId();
   const editor = useNoteTextFieldEditor(fieldName);
 
+  // If cache updates with a headText.revision higher than editor, the must update editor
   useEffect(() => {
     const observable = apolloClient.watchQuery({
       query: QUERY_WATCH,
@@ -114,7 +117,6 @@ export default function FetchMissingRecords({ fieldName }: FetchMissingRecordsPr
                 data.note.textFields.forEach(({ key, value }) => {
                   if (key !== fieldName) return;
                   value.recordsConnection.records.forEach((record) => {
-                    if (!record) return;
                     editor.handleExternalChange(
                       collabTextRecordToEditorRevisionRecord(record)
                     );
