@@ -284,10 +284,6 @@ export const customApolloClientPromise = new Promise<CustomApolloClient>((res, r
     try {
       await persistor.restore();
 
-      await new Promise((res2) => {
-        setTimeout(res2, 10000);
-      });
-
       const client = new CustomApolloClient({ cache, persistor });
 
       res(client);
