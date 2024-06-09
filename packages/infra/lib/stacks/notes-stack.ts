@@ -34,7 +34,6 @@ import {
 } from 'aws-cdk-lib/aws-cloudfront';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { S3Origin, RestApiOrigin, HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
-import { transpileTypeScriptAsFile } from '../../cloudfront-functions/transpile';
 import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { CloudFrontTarget, Route53RecordTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { CacheControl } from 'aws-cdk-lib/aws-codepipeline-actions';
@@ -48,6 +47,12 @@ import {
   LambdaHandlersConstructProps,
 } from '../constructs/lambda-handlers';
 import { RestApiConstruct } from '../constructs/rest-api';
+import {
+  TranspileOptionsAsFile,
+  eslintFile,
+  transpileTypeScriptToFile,
+} from '../utils/transpile-ts';
+import { ModuleKind, ScriptTarget } from 'typescript';
 
 export interface NotesStackProps extends StackProps {
   customProps: {
@@ -59,7 +64,10 @@ export interface NotesStackProps extends StackProps {
     cloudFront: {
       certificateArn: string;
       disableCache?: boolean;
-      viewerRequestFunctionPath: string;
+      viewerRequestFunction: {
+        inFile: string;
+        outFile: string;
+      };
     };
 
     mongoDb: {
@@ -298,17 +306,31 @@ export class NotesStack extends Stack {
         functionAssociations: [
           {
             eventType: FunctionEventType.VIEWER_REQUEST,
-            function: new Function(this, 'MainDomainNoSlashRewriteWebpFunction', {
+            function: new Function(this, 'ViewerRequestFn', {
               code: FunctionCode.fromFile({
-                filePath: transpileTypeScriptAsFile(
-                  customProps.cloudFront.viewerRequestFunctionPath,
-                  {
-                    replace: {
-                      'process.env.PRIMARY_DOMAIN': domains[0]?.primaryName,
-                      'export const exportedForTesting_handler = handler;': '',
+                filePath: (() => {
+                  const options: TranspileOptionsAsFile = {
+                    inFile: customProps.cloudFront.viewerRequestFunction.inFile,
+                    outFile: customProps.cloudFront.viewerRequestFunction.outFile,
+                    transpile: {
+                      compilerOptions: {
+                        target: ScriptTarget.ES5,
+                        module: ModuleKind.CommonJS,
+                      },
                     },
-                  }
-                ),
+                    source: {
+                      replace: {
+                        'process.env.PRIMARY_DOMAIN': domains[0].primaryName,
+                        'export const exportedForTesting_handler = handler;': '',
+                      },
+                    },
+                  };
+
+                  transpileTypeScriptToFile(options);
+                  eslintFile(options.outFile);
+
+                  return options.outFile;
+                })(),
               }),
             }),
           },

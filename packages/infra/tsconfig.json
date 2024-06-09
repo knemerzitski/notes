@@ -44,5 +44,5 @@
     "require": ["tsconfig-paths/register"]
   },
   "include": ["lib", "bin", "test"],
-  "exclude": ["node_modules", "cdk.out"]
+  "exclude": ["node_modules", "cdk.out", "out"]
 }

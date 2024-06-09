@@ -81,10 +81,10 @@ new NotesStack(app, 'NotesStack', {
     cloudFront: {
       certificateArn: definedEnvs.CLOUDFRONT_CERTIFICATE_ARN,
       disableCache: isEnvVarStringTrue(process.env.DEBUG_DISABLE_CDN_CACHING),
-      viewerRequestFunctionPath: path.join(
-        PROJECT_DIR,
-        'cloudfront-functions/src/mainDomainNoSlashRewriteWebpFunction.ts'
-      ),
+      viewerRequestFunction: {
+        inFile: path.join(PROJECT_DIR, 'lib/cloudfront-functions/viewer-request.ts'),
+        outFile: path.join(PROJECT_DIR, 'out/viewer-request.js'),
+      },
     },
     mongoDb,
   },

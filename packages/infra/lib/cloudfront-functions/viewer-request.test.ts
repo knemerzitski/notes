@@ -1,5 +1,5 @@
 import { it, vi, expect } from 'vitest';
-import { exportedForTesting_handler } from './mainDomainNoSlashRewriteWebpFunction';
+import { exportedForTesting_handler } from './viewer-request';
 import { afterEach, beforeEach, describe } from 'vitest';
 import { DeepPartial } from 'ts-essentials';
 
