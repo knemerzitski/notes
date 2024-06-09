@@ -1,6 +1,5 @@
 import { CfnOutput, Duration, Fn, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import parseDomains, { Domain } from '../utils/parseDomains';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { CompositePrincipal, Role } from 'aws-cdk-lib/aws-iam';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
@@ -26,8 +25,6 @@ import {
 } from 'aws-cdk-lib/aws-cloudfront';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { S3Origin, RestApiOrigin, HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
-import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
-import { CloudFrontTarget, Route53RecordTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { CacheControl } from 'aws-cdk-lib/aws-codepipeline-actions';
 import {
   BucketDeployment,
@@ -45,13 +42,15 @@ import { LambdaHandlers, LambdaHandlersProps } from '../compute/lambda-handlers'
 import { WebSocketDynamoDB } from '../database/websocket-dynamodb';
 import { StateMongoDB, StateMongoDBProps } from '../database/state-mongodb';
 import { SubscriptionsWebSocketApi } from '../api/subscriptions-websocket-api';
+import { Domains, DomainsProps } from '../dns/domains';
 
 export interface NotesStackProps extends StackProps {
   customProps: {
     app: {
+      // TODO rename to buildFilesPath
       sourcePath: string;
     };
-    domains: string | Domain[];
+    domain: DomainsProps;
 
     cloudFront: {
       certificateArn: string;
@@ -161,7 +160,7 @@ export class NotesStack extends Stack {
       }
     );
 
-    const domains = parseDomains(customProps.domains);
+    const domains = new Domains(this, 'Domains', customProps.domain);
 
     const cdnDistribution = new Distribution(this, 'Distribution', {
       comment: 'CDN for Notes App with GraphQL API',
@@ -171,7 +170,7 @@ export class NotesStack extends Stack {
         'MyCloudFrontCertificate',
         customProps.cloudFront.certificateArn
       ),
-      domainNames: domains.map((d) => [d.primaryName, ...d.aliases]).flat(),
+      domainNames: domains.definitions.map((d) => [d.primaryName, ...d.aliases]).flat(),
       defaultRootObject: 'index.html',
       defaultBehavior: {
         origin: new S3Origin(staticFilesBucket),
@@ -209,7 +208,7 @@ export class NotesStack extends Stack {
                     },
                     source: {
                       replace: {
-                        'process.env.PRIMARY_DOMAIN': domains[0].primaryName,
+                        'process.env.PRIMARY_DOMAIN': domains.getPrimaryDomain(),
                         'export const exportedForTesting_handler = handler;': '',
                       },
                     },
@@ -266,29 +265,7 @@ export class NotesStack extends Stack {
     });
 
     // Make CloudFront accessible through a domain
-    domains.forEach((domain) => {
-      const hostedZone = HostedZone.fromHostedZoneAttributes(
-        this,
-        `Zone-${domain.zoneName}`,
-        {
-          hostedZoneId: domain.zoneId,
-          zoneName: domain.zoneName,
-        }
-      );
-      const primaryRecord = new ARecord(this, `ARecord-${domain.zoneName}`, {
-        zone: hostedZone,
-        recordName: domain.primaryName,
-        target: RecordTarget.fromAlias(new CloudFrontTarget(cdnDistribution)),
-      });
-
-      domain.aliases.forEach((alias) => {
-        new ARecord(this, `AliasARecord-${domain.zoneName}-${alias}`, {
-          zone: hostedZone,
-          recordName: alias,
-          target: RecordTarget.fromAlias(new Route53RecordTarget(primaryRecord)),
-        });
-      });
-    });
+    domains.addDistributionTaret(cdnDistribution);
 
     // Deploy App static files
     const commonBucketDeploymentSettings: BucketDeploymentProps = {

@@ -81,7 +81,9 @@ new NotesStack(app, 'NotesStack', {
       httpUrl: definedEnvs.VITE_GRAPHQL_HTTP_URL,
       webSocketUrl: definedEnvs.VITE_GRAPHQL_WS_URL,
     },
-    domains: definedEnvs.DOMAINS,
+    domain: {
+      definitions: definedEnvs.DOMAINS,
+    },
     cloudFront: {
       certificateArn: definedEnvs.CLOUDFRONT_CERTIFICATE_ARN,
       disableCache: isEnvVarStringTrue(process.env.DEBUG_DISABLE_CDN_CACHING),
