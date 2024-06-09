@@ -36,7 +36,7 @@ import {
   BucketDeploymentProps,
   Source,
 } from 'aws-cdk-lib/aws-s3-deployment';
-import { RestApiConstruct } from '../constructs/rest-api';
+import { HttpRestApi } from '../api/http-rest-api';
 import {
   TranspileOptionsAsFile,
   eslintFile,
@@ -79,7 +79,7 @@ export class NotesStack extends Stack {
     super(scope, id, props);
     const customProps = props.customProps;
 
-    // Create lambda handlers
+    // Lambda handlers
     const handlers = new LambdaHandlers(this, 'LambdaHandlers', customProps.lambda);
 
     // DynamoDB
@@ -114,8 +114,8 @@ export class NotesStack extends Stack {
       lambda.addEnvironment('MONGODB_ATLAS_URI_SRV', mongoDb.connectionString);
     });
 
-    // Setup Rest API
-    const restApi = new RestApiConstruct(this, 'RestApiConstruct', {
+    // Rest API
+    const restApi = new HttpRestApi(this, 'RestApi', {
       url: customProps.api.httpUrl,
       handler: handlers.http,
     });
