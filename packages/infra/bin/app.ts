@@ -84,7 +84,7 @@ new NotesStack(app, 'NotesStack', {
     domain: {
       definitions: definedEnvs.DOMAINS,
     },
-    cloudFront: {
+    distribution: {
       certificateArn: definedEnvs.CLOUDFRONT_CERTIFICATE_ARN,
       disableCache: isEnvVarStringTrue(process.env.DEBUG_DISABLE_CDN_CACHING),
       viewerRequestFunction: {

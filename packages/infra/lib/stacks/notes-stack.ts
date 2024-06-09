@@ -1,30 +1,8 @@
-import { CfnOutput, Duration, Fn, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
+import { CfnOutput, Duration, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { CompositePrincipal, Role } from 'aws-cdk-lib/aws-iam';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
-import {
-  AllowedMethods,
-  CacheCookieBehavior,
-  CacheHeaderBehavior,
-  CachePolicy,
-  CacheQueryStringBehavior,
-  Distribution,
-  FunctionCode,
-  FunctionEventType,
-  HeadersFrameOption,
-  HeadersReferrerPolicy,
-  OriginRequestCookieBehavior,
-  OriginRequestHeaderBehavior,
-  OriginRequestPolicy,
-  OriginRequestQueryStringBehavior,
-  PriceClass,
-  ResponseHeadersPolicy,
-  ViewerProtocolPolicy,
-  Function,
-} from 'aws-cdk-lib/aws-cloudfront';
-import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
-import { S3Origin, RestApiOrigin, HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { CacheControl } from 'aws-cdk-lib/aws-codepipeline-actions';
 import {
   BucketDeployment,
@@ -32,17 +10,12 @@ import {
   Source,
 } from 'aws-cdk-lib/aws-s3-deployment';
 import { HttpRestApi } from '../api/http-rest-api';
-import {
-  TranspileOptionsAsFile,
-  eslintFile,
-  transpileTypeScriptToFile,
-} from '../utils/transpile-ts';
-import { ModuleKind, ScriptTarget } from 'typescript';
 import { LambdaHandlers, LambdaHandlersProps } from '../compute/lambda-handlers';
 import { WebSocketDynamoDB } from '../database/websocket-dynamodb';
 import { StateMongoDB, StateMongoDBProps } from '../database/state-mongodb';
 import { SubscriptionsWebSocketApi } from '../api/subscriptions-websocket-api';
 import { Domains, DomainsProps } from '../dns/domains';
+import { AppDistribution, AppDistributionProps } from '../cdn/AppDistribution';
 
 export interface NotesStackProps extends StackProps {
   customProps: {
@@ -52,14 +25,10 @@ export interface NotesStackProps extends StackProps {
     };
     domain: DomainsProps;
 
-    cloudFront: {
-      certificateArn: string;
-      disableCache?: boolean;
-      viewerRequestFunction: {
-        inFile: string;
-        outFile: string;
-      };
-    };
+    distribution: Omit<
+      AppDistributionProps,
+      'defaultOriginFiles' | 'restApi' | 'webSocketApi' | 'domains'
+    >;
 
     mongoDb: Omit<StateMongoDBProps, 'role'>;
 
@@ -127,145 +96,26 @@ export class NotesStack extends Stack {
       webSocketApi.stage.grantManagementApiAccess(lambda);
     });
 
-    const staticFilesBucket = new Bucket(this, 'MaybeAppStaticFiles', {
+    const staticFilesBucket = new Bucket(this, 'StaticFiles', {
       versioned: false,
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
     });
 
-    // CloudFront, add APIs
-    const responseHeadersPolicy = new ResponseHeadersPolicy(
-      this,
-      'SecureResponseHeadersPolicy',
-      {
-        comment: 'Adds a set of security headers to every response',
-        securityHeadersBehavior: {
-          strictTransportSecurity: {
-            accessControlMaxAge: Duration.seconds(63072000),
-            includeSubdomains: true,
-            override: true,
-          },
-          contentTypeOptions: {
-            override: true,
-          },
-          referrerPolicy: {
-            referrerPolicy: HeadersReferrerPolicy.SAME_ORIGIN,
-            override: true,
-          },
-          frameOptions: {
-            frameOption: HeadersFrameOption.DENY,
-            override: true,
-          },
-        },
-      }
-    );
-
+    // DNS
     const domains = new Domains(this, 'Domains', customProps.domain);
 
-    const cdnDistribution = new Distribution(this, 'Distribution', {
-      comment: 'CDN for Notes App with GraphQL API',
-      priceClass: PriceClass.PRICE_CLASS_100,
-      certificate: Certificate.fromCertificateArn(
-        this,
-        'MyCloudFrontCertificate',
-        customProps.cloudFront.certificateArn
-      ),
-      domainNames: domains.definitions.map((d) => [d.primaryName, ...d.aliases]).flat(),
-      defaultRootObject: 'index.html',
-      defaultBehavior: {
-        origin: new S3Origin(staticFilesBucket),
-        compress: true,
-        allowedMethods: AllowedMethods.ALLOW_GET_HEAD,
-        viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-        originRequestPolicy: OriginRequestPolicy.CORS_S3_ORIGIN,
-        responseHeadersPolicy,
-        cachePolicy: customProps.cloudFront.disableCache
-          ? CachePolicy.CACHING_DISABLED
-          : new CachePolicy(this, 'CacheByAcceptHeaderPolicy', {
-              minTtl: Duration.seconds(1),
-              maxTtl: Duration.seconds(31536000),
-              defaultTtl: Duration.seconds(86400),
-              headerBehavior: CacheHeaderBehavior.allowList('Accept'),
-              queryStringBehavior: CacheQueryStringBehavior.all(),
-              cookieBehavior: CacheCookieBehavior.none(),
-              enableAcceptEncodingBrotli: true,
-              enableAcceptEncodingGzip: true,
-            }),
-        functionAssociations: [
-          {
-            eventType: FunctionEventType.VIEWER_REQUEST,
-            function: new Function(this, 'ViewerRequestFn', {
-              code: FunctionCode.fromFile({
-                filePath: (() => {
-                  const options: TranspileOptionsAsFile = {
-                    inFile: customProps.cloudFront.viewerRequestFunction.inFile,
-                    outFile: customProps.cloudFront.viewerRequestFunction.outFile,
-                    transpile: {
-                      compilerOptions: {
-                        target: ScriptTarget.ES5,
-                        module: ModuleKind.CommonJS,
-                      },
-                    },
-                    source: {
-                      replace: {
-                        'process.env.PRIMARY_DOMAIN': domains.getPrimaryDomain(),
-                        'export const exportedForTesting_handler = handler;': '',
-                      },
-                    },
-                  };
-
-                  transpileTypeScriptToFile(options);
-                  eslintFile(options.outFile);
-
-                  return options.outFile;
-                })(),
-              }),
-            }),
-          },
-        ],
-      },
-      additionalBehaviors: {
-        [restApi.url.pathname]: {
-          origin: new RestApiOrigin(restApi.api),
-          allowedMethods: AllowedMethods.ALLOW_ALL,
-          viewerProtocolPolicy: ViewerProtocolPolicy.HTTPS_ONLY,
-          compress: true,
-          cachePolicy: CachePolicy.CACHING_DISABLED,
-          originRequestPolicy: OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-          responseHeadersPolicy,
-        },
-        [webSocketApi.url.pathname]: {
-          origin: new HttpOrigin(
-            Fn.select(1, Fn.split('//', webSocketApi.api.apiEndpoint))
-          ),
-          cachePolicy: CachePolicy.CACHING_DISABLED,
-          originRequestPolicy: new OriginRequestPolicy(this, 'WebSocketPolicy', {
-            comment: 'Policy for handling WebSockets',
-            cookieBehavior: OriginRequestCookieBehavior.all(),
-            headerBehavior: OriginRequestHeaderBehavior.allowList(
-              'Sec-WebSocket-Key',
-              'Sec-WebSocket-Version',
-              'Sec-WebSocket-Protcol',
-              'Sec-WebSocket-Accept',
-              'Sec-WebSocket-Extensions'
-            ),
-            queryStringBehavior: OriginRequestQueryStringBehavior.none(),
-          }),
-        },
-      },
-      errorResponses: [
-        {
-          // Return app index.html when path not found in S3 bucket
-          httpStatus: 403,
-          ttl: Duration.seconds(10),
-          responsePagePath: '/index.html',
-          responseHttpStatus: 404,
-        },
-      ],
+    // CloudFront
+    const appDistribution = new AppDistribution(this, 'AppDistribution', {
+      ...props.customProps.distribution,
+      domains,
+      defaultOriginFiles: staticFilesBucket,
+      restApi,
+      webSocketApi,
     });
 
     // Make CloudFront accessible through a domain
-    domains.addDistributionTaret(cdnDistribution);
+    domains.addDistributionTaret(appDistribution.distribution);
 
     // Deploy App static files
     const commonBucketDeploymentSettings: BucketDeploymentProps = {
@@ -283,8 +133,8 @@ export class NotesStack extends Stack {
       ...commonBucketDeploymentSettings,
       exclude: ['*.webp'],
       // Invalidate cache when it's enabled
-      ...(customProps.cloudFront.disableCache !== true && {
-        distribution: cdnDistribution,
+      ...(customProps.distribution.disableCache !== true && {
+        distribution: appDistribution.distribution,
         distributionPaths: ['/*'],
       }),
     });
@@ -297,15 +147,15 @@ export class NotesStack extends Stack {
     });
 
     new CfnOutput(this, 'DistributionDomainName', {
-      value: cdnDistribution.domainName,
+      value: appDistribution.distribution.domainName,
     });
-    new CfnOutput(this, 'MongoDbAtlasProjectName', {
+    new CfnOutput(this, 'MongoDBAtlasProjectName', {
       value: mongoDb.atlas.mProject.props.name,
     });
-    new CfnOutput(this, 'MongoDbAtlasClusterName', {
+    new CfnOutput(this, 'MongoDBAtlasClusterName', {
       value: mongoDb.atlas.mCluster.props.name,
     });
-    new CfnOutput(this, 'MongoDbAtlasConnectionString', {
+    new CfnOutput(this, 'MongoDBAtlasConnectionString', {
       value: mongoDb.connectionString,
     });
     new CfnOutput(this, 'WebSocketUrl', {
