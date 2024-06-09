@@ -7,6 +7,7 @@ import {
 import { PROJECT_DIR } from '../lib/utils/project-dir';
 import path from 'path';
 import { TestNotesStack } from '../lib/stacks/test-notes-stack';
+import { createLambdaGraphQLDynamoDBTables } from '~api-dev-server/utils/lambda-graphql-dynamodb';
 
 /**
  * DO NOT DEPLOY, ONLY FOR TESTING APP
@@ -24,21 +25,21 @@ const definedVars = assertGetEnvironmentVariables([
   'VITE_MOCK_GOOGLE_AUTH',
   'TEST_DOCKER_MONGODB_URI',
   'TEST_DOCKER_DYNAMODB_ENDPOINT',
+  'MOCK_DYNAMODB_ENDPOINT',
 ]);
+
+// Ensure DynamoDB tables are created
+await createLambdaGraphQLDynamoDBTables({
+  endpoint: definedVars.MOCK_DYNAMODB_ENDPOINT,
+});
 
 new TestNotesStack(app, 'TESTINGONLYNotesStack', {
   customProps: {
-    lambda: {
-      codePath: {
-        http: path.join(
-          PROJECT_DIR,
-          '../api-dev-server/out-handlers/mock-apollo-http-handler'
-        ),
-        webSocket: path.join(
-          PROJECT_DIR,
-          '../api-dev-server/out-handlers/mock-websocket-handler'
-        ),
-      },
+    apolloHttpLambda: {
+      codePath: path.join(
+        PROJECT_DIR,
+        '../api-dev-server/out-handlers/mock-apollo-http-handler'
+      ),
       environment: {
         NODE_ENV,
         DEBUG: process.env.LAMBDA_DEBUG_ARG ?? '*',

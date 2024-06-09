@@ -1,16 +1,13 @@
 import { Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
-import {
-  LambdaHandlersConstruct,
-  LambdaHandlersConstructProps,
-} from '../constructs/lambda-handlers';
 import { RestApiConstruct, RestApiConstructProps } from '../constructs/rest-api';
+import { ApolloHttpLambda, ApolloHttpLambdaProps } from '../compute/apollo-http-lambda';
 
 export interface NotesStackProps extends StackProps {
   customProps: {
     api: Omit<RestApiConstructProps, 'handler'>;
-    lambda: LambdaHandlersConstructProps;
+    apolloHttpLambda: ApolloHttpLambdaProps;
   };
 }
 
@@ -19,14 +16,14 @@ export class TestNotesStack extends Stack {
     super(scope, id, props);
     const customProps = props.customProps;
 
-    const handlers = new LambdaHandlersConstruct(
+    const httpLambda = new ApolloHttpLambda(
       this,
-      'LambdaHandlers',
-      customProps.lambda
-    );
+      'ApolloHttp',
+      customProps.apolloHttpLambda
+    ).function;
 
     new RestApiConstruct(this, 'RestApiConstruct', {
-      handler: handlers.http,
+      handler: httpLambda,
       url: props.customProps.api.url,
     });
   }

@@ -42,10 +42,6 @@ import {
   BucketDeploymentProps,
   Source,
 } from 'aws-cdk-lib/aws-s3-deployment';
-import {
-  LambdaHandlersConstruct,
-  LambdaHandlersConstructProps,
-} from '../constructs/lambda-handlers';
 import { RestApiConstruct } from '../constructs/rest-api';
 import {
   TranspileOptionsAsFile,
@@ -53,6 +49,7 @@ import {
   transpileTypeScriptToFile,
 } from '../utils/transpile-ts';
 import { ModuleKind, ScriptTarget } from 'typescript';
+import { LambdaHandlers, LambdaHandlersProps } from '../compute/lambda-handlers';
 
 export interface NotesStackProps extends StackProps {
   customProps: {
@@ -89,7 +86,7 @@ export interface NotesStackProps extends StackProps {
       webSocketUrl: string;
     };
 
-    lambda: LambdaHandlersConstructProps;
+    lambda: LambdaHandlersProps;
   };
 }
 
@@ -101,11 +98,7 @@ export class NotesStack extends Stack {
     // WebSocket subscriptions with DynamoDB
     const dynamoDbWebSocketTables = createCdkTableConstructs(this, 'WebSocketTables');
 
-    const handlers = new LambdaHandlersConstruct(
-      this,
-      'LambdaHandlers',
-      customProps.lambda
-    );
+    const handlers = new LambdaHandlers(this, 'LambdaHandlers', customProps.lambda);
     handlers.getAll().forEach((lambda) => {
       lambda.addEnvironment(
         'DYNAMODB_CONNECTIONS_TABLE_NAME',

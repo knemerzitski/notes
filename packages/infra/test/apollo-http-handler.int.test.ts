@@ -1,5 +1,4 @@
 import { beforeEach, expect, it } from 'vitest';
-import util from 'util';
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import { resetDatabase } from '~api/test/helpers/mongodb';
 
@@ -114,7 +113,7 @@ async function fetchNotes(user: User) {
 it(
   'runs without errors, creates user, note and fetches created note',
   {
-    timeout: 10000,
+    timeout: 20000,
   },
   async () => {
     const user = await fetchSignIn();

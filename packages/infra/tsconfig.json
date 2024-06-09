@@ -37,6 +37,7 @@
       "~utils/*": ["../utils/src/*"],
       "~api-app-shared/*": ["../api-app-shared/src/*"],
       "~lambda-graphql/*": ["../lambda-graphql/src/*"],
+      "~api-dev-server/*": ["../api-dev-server/src/*"],
       "~api/*": ["../api/src/*"]
     }
   },

@@ -14,7 +14,7 @@ export async function createLambdaGraphQLDynamoDBTables({
   logger,
 }: {
   endpoint: string;
-  logger: Logger;
+  logger?: Logger;
 }) {
   const client = new DynamoDBClient({
     region: 'eu-west-1',
@@ -36,7 +36,7 @@ export async function createLambdaGraphQLDynamoDBTables({
       throw new Error(`Missing table name`);
     }
 
-    logger.info('dynamodb:createTable', { TableName: cmd.TableName });
+    logger?.info('dynamodb:createTable', { TableName: cmd.TableName });
 
     await deleteTableIfExists(documentClient, cmd.TableName);
     await documentClient.send(new CreateTableCommand(cmd));

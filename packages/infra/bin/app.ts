@@ -44,6 +44,21 @@ const mongoDb: NotesStackProps['customProps']['mongoDb'] = {
   },
 };
 
+const lambdaEnvironment = {
+  NODE_ENV: NODE_ENV,
+  DEBUG: process.env.LAMBDA_DEBUG_ARG ?? '*',
+
+  // MongoDB
+  STS_REGION: mongoDb.stsRegion ?? '',
+  MONGODB_ATLAS_DATABASE_NAME: mongoDb.atlas.databaseName,
+
+  // DynamoDB
+  DYNAMODB_REGION: process.env.DYNAMODB_REGION ?? '',
+
+  // WebSocket
+  API_GATEWAY_MANAGEMENT_REGION: process.env.API_GATEWAY_MANAGEMENT_REGION ?? '',
+};
+
 new NotesStack(app, 'NotesStack', {
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
@@ -54,23 +69,13 @@ new NotesStack(app, 'NotesStack', {
       sourcePath: path.join(PROJECT_DIR, '../app/out'),
     },
     lambda: {
-      codePath: {
-        http: path.join(PROJECT_DIR, '../api/out/apollo-http-handler'),
-        webSocket: path.join(PROJECT_DIR, '../api/out/websocket-handler'),
+      apolloHttp: {
+        codePath: path.join(PROJECT_DIR, '../api/out/apollo-http-handler'),
+        environment: lambdaEnvironment,
       },
-      environment: {
-        NODE_ENV: NODE_ENV,
-        DEBUG: process.env.LAMBDA_DEBUG_ARG ?? '*',
-
-        // MongoDB
-        STS_REGION: mongoDb.stsRegion ?? '',
-        MONGODB_ATLAS_DATABASE_NAME: mongoDb.atlas.databaseName,
-
-        // DynamoDB
-        DYNAMODB_REGION: process.env.DYNAMODB_REGION ?? '',
-
-        // WebSocket
-        API_GATEWAY_MANAGEMENT_REGION: process.env.API_GATEWAY_MANAGEMENT_REGION ?? '',
+      webSocket: {
+        codePath: path.join(PROJECT_DIR, '../api/out/websocket-handler'),
+        environment: lambdaEnvironment,
       },
     },
     api: {
