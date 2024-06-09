@@ -626,8 +626,10 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
     return {
       client: s_client,
       submittedRecord: this._submittedRecord?.serialize(),
-      ...(recordsBuffer.version !== OrderedMessageBuffer.DEFAULT_VERSION &&
-        recordsBuffer.messages.length > 0 && { recordsBuffer }),
+      ...(recordsBuffer.version !== OrderedMessageBuffer.DEFAULT_VERSION ||
+      recordsBuffer.messages.length > 0
+        ? { recordsBuffer }
+        : {}),
       history: s_history,
     };
   }
