@@ -3,8 +3,6 @@ import { Construct } from 'constructs';
 import parseDomains, { Domain } from '../utils/parseDomains';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { CompositePrincipal, Role } from 'aws-cdk-lib/aws-iam';
-import { WebSocketApi, WebSocketStage } from 'aws-cdk-lib/aws-apigatewayv2';
-import { WebSocketLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import {
   AllowedMethods,
@@ -46,6 +44,7 @@ import { ModuleKind, ScriptTarget } from 'typescript';
 import { LambdaHandlers, LambdaHandlersProps } from '../compute/lambda-handlers';
 import { WebSocketDynamoDB } from '../database/websocket-dynamodb';
 import { StateMongoDB, StateMongoDBProps } from '../database/state-mongodb';
+import { SubscriptionsWebSocketApi } from '../api/subscriptions-websocket-api';
 
 export interface NotesStackProps extends StackProps {
   customProps: {
@@ -120,50 +119,13 @@ export class NotesStack extends Stack {
       handler: handlers.http,
     });
 
-    const webSocketApi = new WebSocketApi(this, 'WebSocketApi', {
-      apiName: 'Notes App WebSocketApi',
-      description: 'Handles GraphQL subscriptions for Notes App',
-      connectRouteOptions: {
-        integration: new WebSocketLambdaIntegration(
-          'WsConnectIntegration',
-          handlers.webSocket
-        ),
-      },
-      defaultRouteOptions: {
-        integration: new WebSocketLambdaIntegration(
-          'WsMessageIntegration',
-          handlers.webSocket
-        ),
-      },
-      disconnectRouteOptions: {
-        integration: new WebSocketLambdaIntegration(
-          'WsDisconnectIntegration',
-          handlers.webSocket
-        ),
-      },
-    });
-
-    const webSocketUrl = new URL(customProps.api.webSocketUrl);
-
-    // WebSocket API stageName cannot contain any slashes
-    const webSocketStageName = webSocketUrl.pathname.substring(1);
-    if (webSocketStageName.includes('/')) {
-      throw new Error(
-        `'VITE_GRAPHQL_WS_URL' pathname cannot contain any slashes: ${webSocketStageName}`
-      );
-    }
-
-    const webSocketStage = new WebSocketStage(this, 'WebSocketStage', {
-      webSocketApi: webSocketApi,
-      stageName: webSocketStageName,
-      autoDeploy: true,
-      throttle: {
-        rateLimit: 500,
-        burstLimit: 50,
-      },
+    // WebSocket API
+    const webSocketApi = new SubscriptionsWebSocketApi(this, 'WebSocketApi', {
+      url: customProps.api.webSocketUrl,
+      handler: handlers.webSocket,
     });
     handlers.getAll().forEach((lambda) => {
-      webSocketStage.grantManagementApiAccess(lambda);
+      webSocketApi.stage.grantManagementApiAccess(lambda);
     });
 
     const staticFilesBucket = new Bucket(this, 'MaybeAppStaticFiles', {
@@ -273,8 +235,10 @@ export class NotesStack extends Stack {
           originRequestPolicy: OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
           responseHeadersPolicy,
         },
-        [webSocketUrl.pathname]: {
-          origin: new HttpOrigin(Fn.select(1, Fn.split('//', webSocketApi.apiEndpoint))),
+        [webSocketApi.url.pathname]: {
+          origin: new HttpOrigin(
+            Fn.select(1, Fn.split('//', webSocketApi.api.apiEndpoint))
+          ),
           cachePolicy: CachePolicy.CACHING_DISABLED,
           originRequestPolicy: new OriginRequestPolicy(this, 'WebSocketPolicy', {
             comment: 'Policy for handling WebSockets',
@@ -368,7 +332,7 @@ export class NotesStack extends Stack {
       value: mongoDb.connectionString,
     });
     new CfnOutput(this, 'WebSocketUrl', {
-      value: webSocketStage.url,
+      value: webSocketApi.stage.url,
     });
   }
 }
