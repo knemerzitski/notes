@@ -1,4 +1,4 @@
-import { IconButton, IconButtonProps } from '@mui/material';
+import { IconButton, IconButtonProps, Tooltip } from '@mui/material';
 import UndoIcon from '@mui/icons-material/Undo';
 import { useFocusedEditor } from '../context/FocusedEditorProvider';
 import { useEffect, useState } from 'react';
@@ -28,15 +28,19 @@ export default function UndoButton({ iconButtonProps }: UndoButtonProps) {
   }, [editor]);
 
   return (
-    <IconButton
-      onClick={handleClickUndo}
-      color="inherit"
-      aria-label="note history undo"
-      size="medium"
-      disabled={!canUndo}
-      {...iconButtonProps}
-    >
-      <UndoIcon />
-    </IconButton>
+    <Tooltip title="Undo">
+      <span>
+        <IconButton
+          onClick={handleClickUndo}
+          color="inherit"
+          aria-label="note history undo"
+          size="medium"
+          disabled={!canUndo}
+          {...iconButtonProps}
+        >
+          <UndoIcon />
+        </IconButton>
+      </span>
+    </Tooltip>
   );
 }

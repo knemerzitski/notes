@@ -10,6 +10,7 @@ import {
   MenuItem,
   MenuList,
   Slide,
+  Tooltip,
 } from '@mui/material';
 import { TransitionProps } from '@mui/material/transitions';
 import { useId, useState, MouseEvent, ReactElement, Ref, forwardRef } from 'react';
@@ -62,19 +63,23 @@ export default function MoreOptionsButton({
 
   return (
     <>
-      <IconButton
-        id={buttonId}
-        color="inherit"
-        aria-label="note options menu"
-        size="medium"
-        aria-controls={menuOpen ? menuId : undefined}
-        aria-haspopup={true}
-        aria-expanded={menuOpen ? true : undefined}
-        onClick={handleClickButton}
-        {...iconButtonProps}
-      >
-        <MoreVertIcon />
-      </IconButton>
+      <Tooltip title="More">
+        <span>
+          <IconButton
+            id={buttonId}
+            color="inherit"
+            aria-label="note options menu"
+            size="medium"
+            aria-controls={menuOpen ? menuId : undefined}
+            aria-haspopup={true}
+            aria-expanded={menuOpen ? true : undefined}
+            onClick={handleClickButton}
+            {...iconButtonProps}
+          >
+            <MoreVertIcon />
+          </IconButton>
+        </span>
+      </Tooltip>
 
       {isMobile ? (
         <Dialog

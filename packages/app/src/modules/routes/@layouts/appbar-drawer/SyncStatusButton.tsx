@@ -1,7 +1,7 @@
 import { useApolloClient } from '@apollo/client';
 import CloudDoneIcon from '@mui/icons-material/CloudDone';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import { CircularProgress, IconButton, IconButtonProps } from '@mui/material';
+import { CircularProgress, IconButton, IconButtonProps, Tooltip } from '@mui/material';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import useStatsLink from '../../../apollo-client/hooks/useStatsLink';
@@ -118,40 +118,44 @@ export default function SyncStatusButton({
   const disableRipple = status !== Status.READY_TO_REFRESH;
 
   return (
-    <IconButton
-      color="inherit"
-      aria-label={status}
-      onClick={() => {
-        void refetchQueries();
-      }}
-      disableRipple={disableRipple}
-      {...restProps}
-      sx={{
-        fontSize,
-        ...restProps.sx,
-      }}
-    >
-      <CrossFade
-        size={fontSize}
-        unmountOnExit={true}
-        elements={[
-          {
-            in: status === Status.SYNCHRONIZED,
-            element: <CloudDoneIcon color="inherit" fontSize="inherit" />,
-          },
-          {
-            in: status === Status.LOADING,
-            element: <CircularProgress color="inherit" size={fontSize} />,
-          },
-          {
-            in: status === Status.READY_TO_REFRESH,
-            element: <RefreshIcon color="inherit" fontSize="inherit" />,
-            fadeProps: {
-              appear: false,
-            },
-          },
-        ]}
-      />
-    </IconButton>
+    <Tooltip title="Refresh">
+      <span>
+        <IconButton
+          color="inherit"
+          aria-label={status}
+          onClick={() => {
+            void refetchQueries();
+          }}
+          disableRipple={disableRipple}
+          {...restProps}
+          sx={{
+            fontSize,
+            ...restProps.sx,
+          }}
+        >
+          <CrossFade
+            size={fontSize}
+            unmountOnExit={true}
+            elements={[
+              {
+                in: status === Status.SYNCHRONIZED,
+                element: <CloudDoneIcon color="inherit" fontSize="inherit" />,
+              },
+              {
+                in: status === Status.LOADING,
+                element: <CircularProgress color="inherit" size={fontSize} />,
+              },
+              {
+                in: status === Status.READY_TO_REFRESH,
+                element: <RefreshIcon color="inherit" fontSize="inherit" />,
+                fadeProps: {
+                  appear: false,
+                },
+              },
+            ]}
+          />
+        </IconButton>
+      </span>
+    </Tooltip>
   );
 }

@@ -8,6 +8,7 @@ import {
   ListItemIcon,
   MenuList,
   Typography,
+  Tooltip,
 } from '@mui/material';
 import { useId, useState } from 'react';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
@@ -28,22 +29,26 @@ export default function SettingsButton(props: IconButtonProps) {
 
   return (
     <>
-      <IconButton
-        id={buttonId}
-        color="inherit"
-        aria-label="app options menu"
-        aria-controls={menuOpen ? menuId : undefined}
-        aria-haspopup={true}
-        aria-expanded={menuOpen ? true : undefined}
-        onClick={(e) => {
-          e.stopPropagation();
-          setAnchorEl(e.currentTarget);
-        }}
-        {...props}
-      >
-        <SettingsIcon />
-      </IconButton>
-
+      <Tooltip title="Settings">
+        <span>
+          <IconButton
+            id={buttonId}
+            color="inherit"
+            aria-label="app options menu"
+            aria-controls={menuOpen ? menuId : undefined}
+            aria-haspopup={true}
+            aria-expanded={menuOpen ? true : undefined}
+            onClick={(e) => {
+              e.stopPropagation();
+              setAnchorEl(e.currentTarget);
+            }}
+            {...props}
+          >
+            <SettingsIcon />
+          </IconButton>
+        </span>
+      </Tooltip>
+      
       <Menu
         id={menuId}
         anchorEl={anchorEl}

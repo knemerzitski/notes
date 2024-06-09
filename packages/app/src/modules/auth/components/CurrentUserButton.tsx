@@ -1,6 +1,6 @@
 import { useSuspenseQuery } from '@apollo/client';
 import PersonIcon from '@mui/icons-material/Person';
-import { IconButtonProps, IconButton, Badge, Avatar } from '@mui/material';
+import { IconButtonProps, IconButton, Badge, Avatar, Tooltip } from '@mui/material';
 import { gql } from '../../../__generated__/gql';
 import BackgroundLetterAvatar from '../../common/components/BackgroundLetterAvatar';
 
@@ -22,27 +22,31 @@ export default function CurrentUserButton(props?: IconButtonProps) {
   } = useSuspenseQuery(QUERY);
 
   return (
-    <IconButton color="inherit" {...props}>
-      {currentSignedInUser?.isSessionExpired ? (
-        <Badge
-          badgeContent="!"
-          color="warning"
-          sx={{
-            '& .MuiBadge-badge': {
-              right: 4,
-              top: 5,
-            },
-          }}
-        >
-          <BackgroundLetterAvatar name={currentSignedInUser.profile.displayName} />
-        </Badge>
-      ) : currentSignedInUser ? (
-        <BackgroundLetterAvatar name={currentSignedInUser.profile.displayName} />
-      ) : (
-        <Avatar>
-          <PersonIcon />
-        </Avatar>
-      )}
-    </IconButton>
+    <Tooltip title="Accounts">
+      <span>
+        <IconButton color="inherit" {...props}>
+          {currentSignedInUser?.isSessionExpired ? (
+            <Badge
+              badgeContent="!"
+              color="warning"
+              sx={{
+                '& .MuiBadge-badge': {
+                  right: 4,
+                  top: 5,
+                },
+              }}
+            >
+              <BackgroundLetterAvatar name={currentSignedInUser.profile.displayName} />
+            </Badge>
+          ) : currentSignedInUser ? (
+            <BackgroundLetterAvatar name={currentSignedInUser.profile.displayName} />
+          ) : (
+            <Avatar>
+              <PersonIcon />
+            </Avatar>
+          )}
+        </IconButton>
+      </span>
+    </Tooltip>
   );
 }

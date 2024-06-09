@@ -1,4 +1,4 @@
-import { IconButton, IconButtonProps } from '@mui/material';
+import { IconButton, IconButtonProps, Tooltip } from '@mui/material';
 import RedoIcon from '@mui/icons-material/Redo';
 import { useFocusedEditor } from '../context/FocusedEditorProvider';
 import { useEffect, useState } from 'react';
@@ -28,15 +28,19 @@ export default function RedoButton({ iconButtonProps }: RedoButtonProps) {
   }, [editor]);
 
   return (
-    <IconButton
-      onClick={handleClickRedo}
-      color="inherit"
-      aria-label="note history redo"
-      size="medium"
-      disabled={!canRedo}
-      {...iconButtonProps}
-    >
-      <RedoIcon />
-    </IconButton>
+    <Tooltip title="Redo">
+      <span>
+        <IconButton
+          onClick={handleClickRedo}
+          color="inherit"
+          aria-label="note history redo"
+          size="medium"
+          disabled={!canRedo}
+          {...iconButtonProps}
+        >
+          <RedoIcon />
+        </IconButton>
+      </span>
+    </Tooltip>
   );
 }
