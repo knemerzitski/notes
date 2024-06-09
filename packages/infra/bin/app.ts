@@ -33,7 +33,6 @@ const definedEnvs = assertGetEnvironmentVariables([
 ]);
 
 const mongoDb: NotesStackProps['customProps']['mongoDb'] = {
-  stsRegion: process.env.STS_REGION,
   atlas: {
     region: process.env.MONGODB_ATLAS_REGION,
     profile: process.env.MONGODB_ATLAS_PROFILE,
@@ -49,7 +48,7 @@ const lambdaEnvironment = {
   DEBUG: process.env.LAMBDA_DEBUG_ARG ?? '*',
 
   // MongoDB
-  STS_REGION: mongoDb.stsRegion ?? '',
+  STS_REGION: process.env.STS_REGION ?? '',
   MONGODB_ATLAS_DATABASE_NAME: mongoDb.atlas.databaseName,
 
   // DynamoDB

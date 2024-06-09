@@ -1,14 +1,8 @@
 import { CfnOutput, Duration, Fn, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import parseDomains, { Domain } from '../utils/parseDomains';
-import { createCdkTableConstructs } from '~lambda-graphql/dynamodb/schema';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { CompositePrincipal, Role } from 'aws-cdk-lib/aws-iam';
-import {
-  AtlasBasic,
-  CfnDatabaseUserPropsAwsiamType,
-  AdvancedRegionConfigProviderName,
-} from 'awscdk-resources-mongodbatlas';
 import { WebSocketApi, WebSocketStage } from 'aws-cdk-lib/aws-apigatewayv2';
 import { WebSocketLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
@@ -50,6 +44,8 @@ import {
 } from '../utils/transpile-ts';
 import { ModuleKind, ScriptTarget } from 'typescript';
 import { LambdaHandlers, LambdaHandlersProps } from '../compute/lambda-handlers';
+import { WebSocketDynamoDB } from '../database/websocket-dynamodb';
+import { StateMongoDB, StateMongoDBProps } from '../database/state-mongodb';
 
 export interface NotesStackProps extends StackProps {
   customProps: {
@@ -67,19 +63,7 @@ export interface NotesStackProps extends StackProps {
       };
     };
 
-    mongoDb: {
-      stsRegion?: string;
-
-      // Require project and cluster name on deployment to prevent creating and deleting project every time
-      atlas: {
-        region?: string;
-        profile?: string;
-        orgId: string;
-        projectName: string;
-        clusterName: string;
-        databaseName: string;
-      };
-    };
+    mongoDb: Omit<StateMongoDBProps, 'role'>;
 
     api: {
       httpUrl: string;
@@ -95,89 +79,39 @@ export class NotesStack extends Stack {
     super(scope, id, props);
     const customProps = props.customProps;
 
-    // WebSocket subscriptions with DynamoDB
-    const dynamoDbWebSocketTables = createCdkTableConstructs(this, 'WebSocketTables');
-
+    // Create lambda handlers
     const handlers = new LambdaHandlers(this, 'LambdaHandlers', customProps.lambda);
+
+    // DynamoDB
+    const webSocketDynamoDB = new WebSocketDynamoDB(this, 'WebSocketDynamo');
     handlers.getAll().forEach((lambda) => {
       lambda.addEnvironment(
         'DYNAMODB_CONNECTIONS_TABLE_NAME',
-        dynamoDbWebSocketTables.connections.tableName
+        webSocketDynamoDB.tables.connections.tableName
       );
       lambda.addEnvironment(
         'DYNAMODB_SUBSCRIPTIONS_TABLE_NAME',
-        dynamoDbWebSocketTables.subscriptions.tableName
+        webSocketDynamoDB.tables.subscriptions.tableName
       );
     });
+    webSocketDynamoDB.tables.connections.grantReadData(handlers.http);
+    webSocketDynamoDB.tables.subscriptions.grantReadData(handlers.http);
+    webSocketDynamoDB.tables.connections.grantReadWriteData(handlers.webSocket);
+    webSocketDynamoDB.tables.subscriptions.grantReadWriteData(handlers.webSocket);
 
-    dynamoDbWebSocketTables.connections.grantReadData(handlers.http);
-    dynamoDbWebSocketTables.subscriptions.grantReadData(handlers.http);
-
-    dynamoDbWebSocketTables.connections.grantReadWriteData(handlers.webSocket);
-    dynamoDbWebSocketTables.subscriptions.grantReadWriteData(handlers.webSocket);
-
-    // Setup MongoDB
-    const mongoDbAtlasAuthRole = new Role(this, 'MongoDbAtlasAuthRole', {
+    // MongoDB
+    const mongoDbRole = new Role(this, 'MongoDBAtlasAuthRole', {
       assumedBy: new CompositePrincipal(
         ...handlers.getAll().map((lambda) => lambda.grantPrincipal)
       ),
     });
-    handlers.getAll().forEach((lambda) => {
-      lambda.addEnvironment('MONGODB_ATLAS_ROLE_ARN', mongoDbAtlasAuthRole.roleArn);
+    const mongoDb = new StateMongoDB(this, 'MongoDB', {
+      role: mongoDbRole,
+      atlas: customProps.mongoDb.atlas,
     });
-
-    const mongoDbAtlas = new AtlasBasic(this, 'MongoDbAtlasBasic', {
-      profile: customProps.mongoDb.atlas.profile,
-      projectProps: {
-        orgId: customProps.mongoDb.atlas.orgId,
-        name: customProps.mongoDb.atlas.projectName,
-      },
-      dbUserProps: {
-        // User is created externally (IAM Role)
-        databaseName: '$external',
-        awsiamType: CfnDatabaseUserPropsAwsiamType.ROLE,
-        username: mongoDbAtlasAuthRole.roleArn,
-        // Must set password undefined so that only IAM Role authentication is available
-        password: undefined,
-      },
-      ipAccessListProps: {
-        accessList: [{ cidrBlock: '0.0.0.0/0', comment: 'Allow access from anywhere' }],
-      },
-      clusterProps: {
-        // Free tier M0 Cluster
-        name: customProps.mongoDb.atlas.clusterName,
-        clusterType: 'REPLICASET',
-        replicationSpecs: [
-          {
-            numShards: 1,
-            advancedRegionConfigs: [
-              {
-                regionName: customProps.mongoDb.atlas.region,
-                providerName: AdvancedRegionConfigProviderName.TENANT,
-                backingProviderName: 'AWS',
-                priority: 7,
-                electableSpecs: {
-                  ebsVolumeType: 'STANDARD',
-                  instanceSize: 'M0',
-                  nodeCount: 3,
-                },
-                analyticsSpecs: {
-                  ebsVolumeType: 'STANDARD',
-                  instanceSize: 'M0',
-                  nodeCount: 1,
-                },
-              },
-            ],
-          },
-        ],
-      },
-    });
-
-    const mongoDbConnectionString = mongoDbAtlas.mCluster
-      .getAtt('ConnectionStrings.StandardSrv')
-      .toString();
     handlers.getAll().forEach((lambda) => {
-      lambda.addEnvironment('MONGODB_ATLAS_URI_SRV', mongoDbConnectionString);
+      lambda.addEnvironment('MONGODB_ATLAS_ROLE_ARN', mongoDbRole.roleArn);
+      lambda.addEnvironment('MONGODB_ATLAS_URI_SRV', mongoDb.connectionString);
     });
 
     // Setup Rest API
@@ -425,13 +359,13 @@ export class NotesStack extends Stack {
       value: cdnDistribution.domainName,
     });
     new CfnOutput(this, 'MongoDbAtlasProjectName', {
-      value: mongoDbAtlas.mProject.props.name,
+      value: mongoDb.atlas.mProject.props.name,
     });
     new CfnOutput(this, 'MongoDbAtlasClusterName', {
-      value: mongoDbAtlas.mCluster.props.name,
+      value: mongoDb.atlas.mCluster.props.name,
     });
     new CfnOutput(this, 'MongoDbAtlasConnectionString', {
-      value: mongoDbConnectionString,
+      value: mongoDb.connectionString,
     });
     new CfnOutput(this, 'WebSocketUrl', {
       value: webSocketStage.url,
