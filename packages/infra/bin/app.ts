@@ -64,9 +64,6 @@ new NotesStack(app, 'NotesStack', {
     region: process.env.CDK_DEFAULT_REGION,
   },
   customProps: {
-    app: {
-      sourcePath: path.join(PROJECT_DIR, '../app/out'),
-    },
     lambda: {
       apolloHttp: {
         codePath: path.join(PROJECT_DIR, '../api/out/apollo-http-handler'),
@@ -77,6 +74,7 @@ new NotesStack(app, 'NotesStack', {
         environment: lambdaEnvironment,
       },
     },
+    mongoDb,
     api: {
       httpUrl: definedEnvs.VITE_GRAPHQL_HTTP_URL,
       webSocketUrl: definedEnvs.VITE_GRAPHQL_WS_URL,
@@ -92,6 +90,8 @@ new NotesStack(app, 'NotesStack', {
         outFile: path.join(PROJECT_DIR, 'out/viewer-request.js'),
       },
     },
-    mongoDb,
+    app: {
+      outPath: path.join(PROJECT_DIR, '../app/out'),
+    },
   },
 });
