@@ -92,7 +92,7 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
             affectedUserNotes.map((userNote) => ({
               deleteOne: {
                 filter: {
-                  sourceUserNoteId: userNote._id,
+                  'sourceUserNote.id': userNote._id,
                 },
               },
             })),

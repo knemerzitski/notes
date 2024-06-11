@@ -5,7 +5,9 @@ import { NoteQueryMapper } from '../../../note/mongo-query-mapper/note';
 import type { MutationResolvers } from './../../../types.generated';
 import { publishNoteUpdated } from '../../../note/resolvers/Subscription/noteUpdated';
 
-export const deleteNoteSharing: NonNullable<MutationResolvers['deleteNoteSharing']> = async (_parent, { input: { contentId: notePublicId } }, ctx) => {
+export const deleteNoteSharing: NonNullable<
+  MutationResolvers['deleteNoteSharing']
+> = async (_parent, { input: { contentId: notePublicId } }, ctx) => {
   const { auth, datasources, mongodb } = ctx;
   assertAuthenticated(auth);
 
@@ -51,7 +53,7 @@ export const deleteNoteSharing: NonNullable<MutationResolvers['deleteNoteSharing
   }
 
   await mongodb.collections[CollectionName.ShareNoteLinks].deleteMany({
-    sourceUserNoteId: userNote._id,
+    'sourceUserNote.id': userNote._id,
   });
 
   await publishNoteUpdated(ctx, {

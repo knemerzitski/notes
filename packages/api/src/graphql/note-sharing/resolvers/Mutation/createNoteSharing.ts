@@ -13,7 +13,9 @@ import mapObject from 'map-obj';
 import { NoteQueryMapper } from '../../../note/mongo-query-mapper/note';
 import { publishNoteUpdated } from '../../../note/resolvers/Subscription/noteUpdated';
 
-export const createNoteSharing: NonNullable<MutationResolvers['createNoteSharing']> = async (_parent, { input: { contentId: notePublicId } }, ctx) => {
+export const createNoteSharing: NonNullable<
+  MutationResolvers['createNoteSharing']
+> = async (_parent, { input: { contentId: notePublicId } }, ctx) => {
   const { auth, datasources, mongodb } = ctx;
   assertAuthenticated(auth);
 
@@ -102,7 +104,9 @@ export const createNoteSharing: NonNullable<MutationResolvers['createNoteSharing
   const shareNoteLink: ShareNoteLinkSchema = {
     _id: new ObjectId(),
     publicId: shareNoteLinkDefaultValues.publicId(),
-    sourceUserNoteId: userNote._id,
+    sourceUserNote: {
+      id: userNote._id,
+    },
     note: {
       id: userNote.note.id,
       publicId: userNote.note.publicId,

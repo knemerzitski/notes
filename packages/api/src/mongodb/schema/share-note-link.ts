@@ -2,6 +2,7 @@ import { nanoid } from 'nanoid';
 import { CollectionDescription } from '../collections';
 import { NoteSchema } from './note';
 import { ObjectId } from 'mongodb';
+import { UserNoteSchema } from './user-note';
 
 /**
  * Note sharing via links
@@ -12,10 +13,13 @@ export interface ShareNoteLinkSchema {
    * Unique generated ID used at access note sharing
    */
   publicId: string;
-  /**
-   * UserNote.id that is responsible for creating thid document
-   */
-  sourceUserNoteId: ObjectId;
+
+  sourceUserNote: {
+    /**
+     * UserNote.id that was used when this link was created
+     */
+    id: UserNoteSchema['_id'];
+  };
 
   /**
    * Cached note values for quick accces
@@ -61,7 +65,7 @@ export const shareNoteLinkDescription: CollectionDescription = {
       unique: true,
     },
     {
-      key: { sourceUserNoteId: 1 },
+      key: { 'sourceUserNote.id': 1 },
     },
     {
       key: { expireAt: 1 },

@@ -324,7 +324,9 @@ export function fakeShareNoteLinkData(
   return {
     _id: new ObjectId(),
     publicId: options?.publicId ?? shareNoteLinkDefaultValues.publicId(),
-    sourceUserNoteId: userNote._id,
+    sourceUserNote: {
+      id: userNote._id,
+    },
     note: userNote.note,
     permissions: {
       user: {
@@ -399,7 +401,10 @@ export function populateUserWithNotes(
 
   const userNotes = createUserNoteMany(user, notes, options?.userNote);
 
-  const shareNoteLinks = options?.shareNoteLink !== false ? createShareNoteLinkMany(userNotes, options?.shareNoteLink) : [];
+  const shareNoteLinks =
+    options?.shareNoteLink !== false
+      ? createShareNoteLinkMany(userNotes, options?.shareNoteLink)
+      : [];
 
   user.notes.category.default.order = userNotes.map(({ _id }) => _id);
 

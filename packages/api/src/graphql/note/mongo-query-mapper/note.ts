@@ -19,7 +19,7 @@ export type NoteQuery<TCollabTextKey extends string = NoteTextField> = Omit<
   note: Omit<UserNoteSchema['note'], 'collabTexts' | 'collabTextIds'> & {
     collabTexts: Record<TCollabTextKey, CollabTextQuery>;
   } & Omit<NoteSchema, 'publicId' | 'collabTextIds' | '_id'>;
-  shareNoteLinks: Omit<ShareNoteLinkSchema, 'note' | 'sourceUserNoteId'>[];
+  shareNoteLinks: Omit<ShareNoteLinkSchema, 'note' | 'sourceUserNote'>[];
 };
 
 export class NoteQueryMapper implements NoteMapper {

@@ -17,7 +17,7 @@ export type UserNoteLookupOutput<
   note?: Omit<TUserNote['note'], 'collabTextIds'> & {
     collabTexts?: Partial<Record<TCollabTextKey, TCollabText>>;
   } & Omit<TNote, '_id' | 'publicId' | 'collabTextIds'>;
-  shareNoteLinks: TShareNoteLink[],
+  shareNoteLinks: TShareNoteLink[];
 };
 
 export default function userNoteLookup<TCollabTextKey extends string>({
@@ -130,7 +130,7 @@ function noteLookup({ collectionName, pipeline = [] }: NoteLookupInput) {
 
 interface ShareNoteLinkLookupInput {
   /**
-   * Note collection name
+   * ShareNoteLink collection name
    */
   collectionName: string;
   pipeline?: Document[];
@@ -144,12 +144,12 @@ function shareNoteLinkLookup({
     {
       $lookup: {
         from: collectionName,
-        foreignField: 'sourceUserNoteId',
+        foreignField: 'sourceUserNote.id',
         localField: '_id',
         as: 'shareNoteLinks',
         pipeline: [
           {
-            $unset: ['note', 'sourceUserNoteId'],
+            $unset: ['note', 'sourceUserNote'],
           },
           ...pipeline,
         ],
