@@ -29,5 +29,8 @@ export const userNoteDescription: CollectionDescription = {
       key: { userId: 1, 'note.publicId': 1 },
       unique: true,
     },
+    {
+      key: { 'note.publicId': 1 },
+    },
   ],
 };

@@ -10,7 +10,11 @@ import {
   populateNoteToUser,
   populateWithCreatedData,
 } from '../../../../test/helpers/mongodb/populate';
-import { LinkSharedNoteInput, NoteTextField } from '../../../types.generated';
+import {
+  LinkSharedNoteInput,
+  LinkSharedNotePayload,
+  NoteTextField,
+} from '../../../types.generated';
 import { apolloServer } from '../../../../test/helpers/apollo-server';
 
 import { createGraphQLResolversContext } from '../../../../test/helpers/graphql-context';
@@ -89,6 +93,28 @@ it('links existing note and creates UserNote with access to note', async () => {
       },
     },
   });
+
+  // Executing again returns same UserNote
+  const response2 = await apolloServer.executeOperation(
+    {
+      query: MUTATION,
+      variables: {
+        input: {
+          shareId: shareNoteLink.publicId,
+        } as LinkSharedNoteInput,
+      },
+    },
+    {
+      contextValue,
+    }
+  );
+
+  assert(response2.body.kind === 'single');
+  const { data: data2, errors: errors2 } = response2.body.singleResult;
+  expect(errors2).toBeUndefined();
+  expect(
+    (data2 as { linkSharedNote: LinkSharedNotePayload }).linkSharedNote.note.id
+  ).toEqual((data as { linkSharedNote: LinkSharedNotePayload }).linkSharedNote.note.id);
 });
 
 // TODO create test: when sharing doesn't exist

@@ -1,4 +1,4 @@
-import { ObjectId, WithId } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { CollectionName } from '../../../../mongodb/collections';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { NoteQueryMapper } from '../../../note/mongo-query-mapper/note';
@@ -21,19 +21,55 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
 
   const currentUserId = auth.session.user._id;
 
-  const shareNoteLink: DeepQueryResponse<WithId<ShareNoteLinkSchema>> | null =
-    await mongodb.collections[CollectionName.ShareNoteLinks].findOne(
+  const shareNoteLinks = await mongodb.collections[CollectionName.ShareNoteLinks]
+    .aggregate<
+      DeepQueryResponse<
+        Pick<ShareNoteLinkSchema, 'note'> & {
+          lookupUserNote: {
+            _id: ObjectId;
+          };
+        }
+      >
+    >([
       {
-        publicId: shareNoteLinkPublicId,
+        $match: {
+          publicId: shareNoteLinkPublicId,
+        },
+      },
+      // Check if UserNote for currentUserId already exists
+      {
+        $lookup: {
+          from: mongodb.collections[CollectionName.UserNotes].collectionName,
+          foreignField: 'note.publicId',
+          localField: 'note.publicId',
+          as: 'lookupUserNote',
+          pipeline: [
+            {
+              $match: {
+                userId: currentUserId,
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+              },
+            },
+          ],
+        },
       },
       {
-        projection: {
+        $project: {
+          lookupUserNote: {
+            $arrayElemAt: ['$lookupUserNote', 0],
+          },
           note: 1,
         },
-      }
-    );
-
+      },
+    ])
+    .toArray();
   // TODO implement permissions and expiration
+
+  const shareNoteLink = shareNoteLinks[0];
 
   if (!shareNoteLink) {
     throw new GraphQLError(`A note is not shared by '${shareNoteLinkPublicId}'`, {
@@ -42,6 +78,8 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
       },
     });
   }
+
+  const existingUserNoteId = shareNoteLink.lookupUserNote?._id;
 
   if (!shareNoteLink.note?.id) {
     throw new ErrorWithData(`Expected ShareNoteLink.note.id to be defined`, {
@@ -63,6 +101,22 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
       shareNoteLinkPublicId,
       shareNoteLink,
     });
+  }
+
+  // Return early since UserNote already exists
+  if (existingUserNoteId) {
+    const publicId = shareNoteLink.note.publicId;
+    return {
+      note: new NoteQueryMapper({
+        queryDocument(query) {
+          return datasources.notes.getNote({
+            userId: currentUserId,
+            publicId,
+            noteQuery: query,
+          });
+        },
+      }),
+    };
   }
 
   const sharedUserNote: UserNoteSchema = {
