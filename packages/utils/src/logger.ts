@@ -1,4 +1,5 @@
 import debug, { Debugger } from 'debug';
+import isNonEmptyArray from './array/isNonEmptyArray';
 
 type LogLevel = 'info' | 'warning' | 'error';
 
@@ -15,6 +16,27 @@ export interface Logger {
   info: (message: string, data?: LogData) => void;
   warning: (message: string, data?: LogData) => void;
   error: (message: string, error: Error, extraData?: LogData) => void;
+}
+
+export class ErrorWithData extends Error {
+  static extractNestedCauseData(error: ErrorWithData) {
+    const collectedData: LogData[] = [];
+
+    let tmpError: unknown = error;
+    while (tmpError instanceof ErrorWithData) {
+      collectedData.push(tmpError.extraData);
+      tmpError = error.cause;
+    }
+
+    return collectedData;
+  }
+
+  readonly extraData: LogData;
+
+  constructor(message: string, extraData: LogData, options?: ErrorOptions) {
+    super(message, options);
+    this.extraData = extraData;
+  }
 }
 
 /**
@@ -62,6 +84,24 @@ export function createLogger(namespace: string): Logger {
       });
     },
     error(message, error, extraData) {
+      // Collect data from ErrorWithData instances
+      let data: LogData | undefined;
+      if (error instanceof ErrorWithData) {
+        const allData = [
+          ...(extraData ? [extraData] : []),
+          ...ErrorWithData.extractNestedCauseData(error),
+        ];
+        if (allData.length > 1) {
+          data = {
+            multiple: allData,
+          };
+        } else if (isNonEmptyArray(allData)) {
+          data = allData[0];
+        }
+      } else {
+        data = extraData;
+      }
+
       logError({
         level: 'error',
         message,
@@ -69,7 +109,7 @@ export function createLogger(namespace: string): Logger {
           errorType: error.name,
           errorMessage: error.message,
           stack: error.stack?.toString().split('\n'),
-          data: extraData,
+          data,
         },
       });
     },

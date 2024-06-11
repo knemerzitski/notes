@@ -1,5 +1,11 @@
 import { Maybe } from '~utils/types';
-import { NoteTextField, NotetextFieldsArgs, ResolverTypeWrapper, ResolversTypes } from '../types.generated';
+import {
+  NoteSharing,
+  NoteTextField,
+  NotetextFieldsArgs,
+  ResolverTypeWrapper,
+  ResolversTypes,
+} from '../types.generated';
 import { CollabTextMapper } from '../collab/schema.mappers';
 import { PageInfoMapper } from '../base/schema.mappers';
 import { ObjectId } from 'mongodb';
@@ -20,12 +26,14 @@ export interface NoteMapper {
   readOnly(): ResolverTypeWrapper<Maybe<boolean>>;
   preferences(): NotePreferencesMapper;
   ownerId(): Promise<ObjectId | undefined>;
+  sharing(): ResolverTypeWrapper<NoteSharing>;
 }
 
 export interface NotePatchMapper {
   id(): ResolverTypeWrapper<string>;
   textFields?: ResolversTypes['NoteTextFieldEntryPatch'][];
   preferences?: ResolversTypes['NotePreferencesPatch'];
+  sharing?: ResolversTypes['NoteSharingPatch'];
 }
 
 export interface NoteConnectionMapper {

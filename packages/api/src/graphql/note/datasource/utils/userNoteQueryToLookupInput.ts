@@ -17,27 +17,36 @@ export default function userNoteQueryToLookupInput(
     mongodb: {
       collections: Pick<
         ApiGraphQLContext['mongodb']['collections'],
-        CollectionName.Notes | CollectionName.CollabTexts
+        CollectionName.Notes | CollectionName.CollabTexts | CollectionName.ShareNoteLinks
       >;
     };
   }
 ): UserNoteLookupInput<NoteTextField> {
-  const { note: noteQuery, ...queryAllExceptNote } = userNoteQuery;
+  const {
+    note: noteQuery,
+    shareNoteLinks: shareNoteLinkQuery,
+    ...queryAllRemaining
+  } = userNoteQuery;
 
-  const userNote_note_Project: Record<string, unknown> = {
-    publicId: 1,
+  const postProject: {
+    note: Record<string, unknown>;
+    _id?: unknown;
+    shareNoteLinks?: unknown;
+  } = {
+    ...queryAllRemaining,
+    note: { publicId: 1 },
   };
-
-  const userNoteProject: MergedDeepQuery<NoteQuery> = { ...queryAllExceptNote };
-  if (!userNoteProject._id) {
-    userNoteProject._id = 0;
+  if (!postProject._id) {
+    postProject._id = 0;
   }
 
-  let noteLookupInput: UserNoteLookupInput<NoteTextField>['note'] | undefined = undefined;
+  let noteLookupInput: UserNoteLookupInput<NoteTextField>['note'] | undefined;
   let collabTextLookupInput:
     | UserNoteLookupInput<NoteTextField>['collabText']
     | undefined = undefined;
   if (noteQuery) {
+    const userNote_note_Project: Record<string, unknown> = {};
+
     const { id, collabTexts, ...noteProject } = noteQuery;
 
     if (id) {
@@ -101,19 +110,35 @@ export default function userNoteQueryToLookupInput(
       };
       userNote_note_Project.collabTexts = 1;
     }
+
+    if (Object.keys(userNote_note_Project).length > 0) {
+      Object.assign(postProject.note, userNote_note_Project);
+    }
+  }
+
+  let shareNoteLinkLookupInput:
+    | UserNoteLookupInput<NoteTextField>['shareNoteLink']
+    | undefined;
+  if (shareNoteLinkQuery?.$query && Object.keys(shareNoteLinkQuery.$query).length > 0) {
+    if (!shareNoteLinkQuery.$query._id) {
+      shareNoteLinkQuery.$query._id = 0;
+    }
+    // Ignores $pagination and returns all shareNoteLinks in array
+    shareNoteLinkLookupInput = {
+      collectionName:
+        context.mongodb.collections[CollectionName.ShareNoteLinks].collectionName,
+      pipeline: [{ $project: shareNoteLinkQuery.$query }],
+    };
+    postProject.shareNoteLinks = 1;
   }
 
   return {
     note: noteLookupInput,
     collabText: collabTextLookupInput,
+    shareNoteLink: shareNoteLinkLookupInput,
     postLookup: [
       {
-        $project: {
-          ...userNoteProject,
-          ...(Object.keys(userNote_note_Project).length > 0
-            ? { note: userNote_note_Project }
-            : {}),
-        },
+        $project: postProject,
       },
     ],
   };

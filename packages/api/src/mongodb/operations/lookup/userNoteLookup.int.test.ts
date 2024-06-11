@@ -12,6 +12,7 @@ import { CollabTextSchema } from '../../schema/collab-text';
 import { NoteSchema } from '../../schema/note';
 import { UserNoteSchema } from '../../schema/user-note';
 import { CollectionName } from '../../collections';
+import { ShareNoteLinkSchema } from '../../schema/share-note-link';
 
 enum CollabTextKey {
   TITLE = 'title',
@@ -239,5 +240,41 @@ it('uses collabText pipeline separate for each key', async () => {
         content: { custom: expect.stringMatching('hi content') },
       },
     },
+  });
+});
+
+it('looks up shareNoteLinks', async () => {
+  const results = await mongoCollections[CollectionName.UserNotes]
+    .aggregate<
+      UserNoteLookupOutput<
+        CollabTextKey,
+        undefined,
+        UserNoteSchema,
+        NoteSchema,
+        ShareNoteLinkSchema
+      >
+    >([
+      {
+        $match: {
+          _id: userNote._id,
+        },
+      },
+      ...userNoteLookup({
+        shareNoteLink: {
+          collectionName: mongoCollections[CollectionName.ShareNoteLinks].collectionName,
+        },
+      }),
+    ])
+    .toArray();
+
+  const result = results[0];
+  assert(result != null);
+
+  expect(result.shareNoteLinks[0]).toStrictEqual({
+    _id: expect.any(ObjectId),
+    publicId: expect.any(String),
+    permissions: expect.any(Object),
+    expireAt: expect.any(Date),
+    expireAccessCount: expect.any(Number),
   });
 });

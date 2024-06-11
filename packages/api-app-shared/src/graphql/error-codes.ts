@@ -4,7 +4,7 @@ export enum GraphQLErrorCode {
    */
   Unauthenticated = 'UNAUTHENTICATED',
   /**
-   * Current user lacks permission to perform this request.
+   * Current user lacks permissions to perform this request.
    */
   Unauthorized = 'UNAUTHORIZED',
   /**
@@ -19,13 +19,17 @@ export enum GraphQLErrorCode {
    * Provided input/argument for requesting the resource is invalid.
    */
   InvalidInput = 'INVALID_INPUT',
+  /**
+   * Unable to process the operation because it would create an invalid state.
+   */
+  InvalidOperation = 'INVALID_OPERATION',
 }
 
 export enum AuthenticationFailedReason {
   /**
    * User has not been defined.
    */
-  UserUndefined = 'USER_UNDEFINED', // TODO fixed typo
+  UserUndefined = 'USER_UNDEFINED',
 
   /**
    * Defined user has no session.

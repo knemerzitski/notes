@@ -5,7 +5,7 @@ import {
 } from './operations/pagination/relayArrayPagination';
 import { Maybe, MaybePromise } from '~utils/types';
 
-type Primitive = string | number | boolean | ObjectId;
+type Primitive = undefined | string | number | boolean | ObjectId | Date;
 type ProjectionValue = 1 | undefined;
 type IdProjectionValue = 0 | ProjectionValue;
 

@@ -79,7 +79,7 @@ export class OrderedMessageBuffer<TMessage, TSerializedMessage = TMessage>
   private getVersion: (message: TMessage) => number;
   private serializeMessage: (message: TMessage) => TSerializedMessage;
 
-  private maxStashedVersion: number | undefined;
+  private maxStashedVersion: number | null = null;
 
   get size() {
     return this.stashedMessagesMap.size;
@@ -223,8 +223,11 @@ export class OrderedMessageBuffer<TMessage, TSerializedMessage = TMessage>
       }
     }
 
+    const start = this._currentVersion + 1;
+    if (biggestMissing < start) return;
+
     return {
-      start: this._currentVersion + 1,
+      start,
       end: biggestMissing,
     };
   }

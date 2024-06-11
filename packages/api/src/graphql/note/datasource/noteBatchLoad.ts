@@ -36,7 +36,10 @@ export interface NoteBatchLoadContext {
   mongodb: {
     collections: Pick<
       GraphQLResolversContext['mongodb']['collections'],
-      CollectionName.UserNotes | CollectionName.CollabTexts | CollectionName.Notes
+      | CollectionName.UserNotes
+      | CollectionName.CollabTexts
+      | CollectionName.Notes
+      | CollectionName.ShareNoteLinks
     >;
   };
 }

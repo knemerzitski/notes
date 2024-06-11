@@ -1,0 +1,60 @@
+extend type Note {
+  "Self-descriptive"
+  sharing: NoteSharing
+}
+
+extend type NotePatch {
+  "Self-descriptive"
+  sharing: NoteSharingPatch
+}
+
+type NoteSharing {
+  "Note is shareable by NoteSharing.id"
+  id: ID!
+}
+
+type NoteSharingPatch {
+  "Note is shareable by NoteSharing.id"
+  id: ID
+  "Sharing has been deleted, Note is not shared anymore."
+  deleted: Boolean
+}
+
+input CreateNoteSharingInput {
+  "Note.contentId"
+  contentId: String!
+}
+type CreateNoteSharingPayload {
+  "Note that has sharing"
+  note: Note!
+}
+extend type Mutation {
+  "Share existing note"
+  createNoteSharing(input: CreateNoteSharingInput!): CreateNoteSharingPayload! @auth
+}
+
+input DeleteNoteSharingInput {
+  "Note.contentId"
+  contentId: String!
+}
+type DeleteNoteSharingPayload {
+  "Note the has sharing deleted"
+  note: Note!
+}
+extend type Mutation {
+  "Delete note sharing. Anyone already linked to note still has access. This sharing will no longer work."
+  deleteNoteSharing(input: DeleteNoteSharingInput!): DeleteNoteSharingPayload! @auth
+}
+
+input LinkSharedNoteInput {
+  "NoteSharing.id"
+  shareId: String!
+}
+type LinkSharedNotePayload {
+  "Note that has been linked"
+  note: Note!
+}
+extend type Mutation {
+  "Add a link to an existing note for collaborative editing"
+  linkSharedNote(input: LinkSharedNoteInput!): LinkSharedNotePayload! @auth
+}

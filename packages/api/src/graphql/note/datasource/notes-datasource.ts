@@ -23,6 +23,7 @@ export interface NotesDataSourceContext {
       | CollectionName.UserNotes
       | CollectionName.CollabTexts
       | CollectionName.Notes
+      | CollectionName.ShareNoteLinks
     >;
   };
 }

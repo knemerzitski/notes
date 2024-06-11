@@ -5,6 +5,7 @@ import { SessionSchema, sessionDescription } from './schema/session/sessions';
 import { UserNoteSchema, userNoteDescription } from './schema/user-note';
 import { NoteSchema, noteDescription } from './schema/note';
 import { CollabTextSchema, collabTextDescription } from './schema/collab-text';
+import { ShareNoteLinkSchema, shareNoteLinkDescription } from './schema/share-note-link';
 
 export interface CollectionDescription {
   indexSpecs?: IndexDescription[];
@@ -19,6 +20,7 @@ export enum CollectionName {
   UserNotes = 'usernotes',
   Notes = 'notes',
   CollabTexts = 'collabtexts',
+  ShareNoteLinks = 'sharenotelinks',
 }
 
 export const collectionDescriptions: Partial<
@@ -29,6 +31,7 @@ export const collectionDescriptions: Partial<
   [CollectionName.UserNotes]: userNoteDescription,
   [CollectionName.Notes]: noteDescription,
   [CollectionName.CollabTexts]: collabTextDescription,
+  [CollectionName.ShareNoteLinks]: shareNoteLinkDescription,
 };
 
 export interface MongoDBCollections {
@@ -37,6 +40,7 @@ export interface MongoDBCollections {
   [CollectionName.UserNotes]: Collection<UserNoteSchema>;
   [CollectionName.Notes]: Collection<NoteSchema>;
   [CollectionName.CollabTexts]: Collection<CollabTextSchema>;
+  [CollectionName.ShareNoteLinks]: Collection<ShareNoteLinkSchema>;
 }
 
 export function createCollectionInstances(mongoDB: Db): MongoDBCollections {

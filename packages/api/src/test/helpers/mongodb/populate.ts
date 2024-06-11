@@ -11,6 +11,10 @@ import { CollectionName } from '../../../mongodb/collections';
 import { ObjectId } from 'mongodb';
 import { UserNoteSchema } from '../../../mongodb/schema/user-note';
 import { assert } from 'vitest';
+import {
+  ShareNoteLinkSchema,
+  shareNoteLinkDefaultValues,
+} from '../../../mongodb/schema/share-note-link';
 
 type Task = () => Promise<void>;
 
@@ -309,10 +313,63 @@ export function createCollabTextMany(
   return collabTexts;
 }
 
+interface FakeShareNoteLinkDataOptions {
+  publicId?: string;
+}
+
+export function fakeShareNoteLinkData(
+  userNote: UserNoteSchema,
+  options?: FakeShareNoteLinkDataOptions
+): ShareNoteLinkSchema {
+  return {
+    _id: new ObjectId(),
+    publicId: options?.publicId ?? shareNoteLinkDefaultValues.publicId(),
+    sourceUserNoteId: userNote._id,
+    note: userNote.note,
+    permissions: {
+      user: {
+        readOnly: false,
+      },
+      guest: {
+        readOnly: false,
+      },
+    },
+    expireAt: faker.date.future({
+      years: 1,
+    }),
+    expireAccessCount: 100,
+  };
+}
+
+export function createShareNoteLink(
+  userNote: UserNoteSchema,
+  options?: FakeShareNoteLinkDataOptions
+) {
+  const shareNoteLink = fakeShareNoteLinkData(userNote, options);
+  queuePopulate(async () => {
+    await mongoCollections[CollectionName.ShareNoteLinks].insertOne(shareNoteLink);
+  });
+  return shareNoteLink;
+}
+
+export function createShareNoteLinkMany(
+  userNotes: UserNoteSchema[],
+  options?: FakeShareNoteLinkDataOptions
+) {
+  const shareNoteLinks = userNotes.map((userNote) =>
+    fakeShareNoteLinkData(userNote, options)
+  );
+  queuePopulate(async () => {
+    await mongoCollections[CollectionName.ShareNoteLinks].insertMany(shareNoteLinks);
+  });
+  return shareNoteLinks;
+}
+
 interface PopulateUserWithNotesOptions {
   noteMany?: CreateNoteManyOptions;
   collabText?: FakeCollabTextDataOptions;
   userNote?: FakeUserNoteDataOptions;
+  shareNoteLink?: FakeShareNoteLinkDataOptions | false;
 }
 
 export function populateUserWithNotes(
@@ -342,6 +399,8 @@ export function populateUserWithNotes(
 
   const userNotes = createUserNoteMany(user, notes, options?.userNote);
 
+  const shareNoteLinks = options?.shareNoteLink !== false ? createShareNoteLinkMany(userNotes, options?.shareNoteLink) : [];
+
   user.notes.category.default.order = userNotes.map(({ _id }) => _id);
 
   return {
@@ -349,6 +408,7 @@ export function populateUserWithNotes(
     collabTexts,
     notes,
     userNotes,
+    shareNoteLinks,
   };
 }
 

@@ -229,6 +229,43 @@ it('loads minimal fields', async () => {
   ]);
 });
 
+it('loads shareNoteLinks', async () => {
+  const note = notes[0];
+  assert(note != null);
+
+  await expect(
+    noteBatchLoad(
+      [
+        {
+          userId: user._id,
+          publicId: note.publicId,
+          noteQuery: {
+            shareNoteLinks: {
+              $query: {
+                publicId: 1,
+                expireAccessCount: 1,
+              },
+            },
+          },
+        },
+      ],
+      context
+    )
+  ).resolves.toEqual([
+    {
+      note: {
+        publicId: note.publicId,
+      },
+      shareNoteLinks: [
+        {
+          publicId: expect.any(String),
+          expireAccessCount: expect.any(Number),
+        },
+      ],
+    },
+  ]);
+});
+
 // TODO create tests:
 // throws note not found when querying note owned by another user, no record in usernote
 // returns other user note since usernote record is present

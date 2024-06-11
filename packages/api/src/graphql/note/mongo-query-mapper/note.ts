@@ -9,6 +9,7 @@ import {
 import { NoteSchema } from '../../../mongodb/schema/note';
 import { UserNoteSchema } from '../../../mongodb/schema/user-note';
 import { ObjectId } from 'mongodb';
+import { ShareNoteLinkSchema } from '../../../mongodb/schema/share-note-link';
 
 export type NoteQuery<TCollabTextKey extends string = NoteTextField> = Omit<
   UserNoteSchema,
@@ -18,6 +19,7 @@ export type NoteQuery<TCollabTextKey extends string = NoteTextField> = Omit<
   note: Omit<UserNoteSchema['note'], 'collabTexts' | 'collabTextIds'> & {
     collabTexts: Record<TCollabTextKey, CollabTextQuery>;
   } & Omit<NoteSchema, 'publicId' | 'collabTextIds' | '_id'>;
+  shareNoteLinks: Omit<ShareNoteLinkSchema, 'note' | 'sourceUserNoteId'>[];
 };
 
 export class NoteQueryMapper implements NoteMapper {
@@ -81,5 +83,22 @@ export class NoteQueryMapper implements NoteMapper {
 
   async ownerId(): Promise<ObjectId | undefined> {
     return (await this.query.queryDocument({ note: { ownerId: 1 } }))?.note?.ownerId;
+  }
+
+  async sharing() {
+    const note = await this.query.queryDocument({
+      shareNoteLinks: {
+        $query: {
+          publicId: 1,
+        },
+      },
+    });
+
+    const publicId = note?.shareNoteLinks?.[0]?.publicId;
+    if (!publicId) return null;
+
+    return {
+      id: publicId,
+    };
   }
 }

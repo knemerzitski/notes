@@ -17,7 +17,7 @@ export interface UserNoteSchema {
   };
 
   note: {
-    id: ObjectId;
+    id: NoteSchema['_id'];
     publicId: NoteSchema['publicId'];
     collabTextIds: NoteSchema['collabTextIds'];
   };

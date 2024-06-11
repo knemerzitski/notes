@@ -5,6 +5,9 @@ import { CollectionDescription } from '../collections';
 
 export interface NoteSchema {
   _id: ObjectId;
+  /**
+   * Unique generated ID used to access note
+   */
   publicId: string;
   ownerId: ObjectId;
   collabTextIds: Record<string, ObjectId>;

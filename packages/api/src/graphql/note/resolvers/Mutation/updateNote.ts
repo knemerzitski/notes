@@ -64,11 +64,11 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
   const isReadOnly = userNote.readOnly ?? false;
 
   if (!userNoteId) {
-    throw new Error(
-      `Expected user '${String(
-        currentUserId
-      )} to have UserNote._id for note with contentId '${notePublicId}'`
-    );
+    throw new GraphQLError(`Note '${notePublicId}' not found`, {
+      extensions: {
+        code: GraphQLErrorCode.NotFound,
+      },
+    });
   }
 
   if (!patch || isEmptyDeep(patch)) {
