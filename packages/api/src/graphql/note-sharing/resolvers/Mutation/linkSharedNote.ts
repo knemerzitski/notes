@@ -142,7 +142,24 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
     },
   };
 
-  await mongodb.collections[CollectionName.UserNotes].insertOne(sharedUserNote);
+  await mongodb.client.withSession((session) =>
+    session.withTransaction((session) => {
+      return Promise.all([
+        mongodb.collections[CollectionName.Users].updateOne(
+          {
+            _id: currentUserId,
+          },
+          {
+            $push: {
+              'notes.category.default.order': sharedUserNote._id,
+            },
+          },
+          { session }
+        ),
+        mongodb.collections[CollectionName.UserNotes].insertOne(sharedUserNote),
+      ]);
+    })
+  );
 
   const noteQueryMapper = new NoteQueryMapper({
     queryDocument(query) {
