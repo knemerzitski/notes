@@ -1,12 +1,6 @@
-import { ComponentType, useCallback, useEffect, useRef, useState } from 'react';
-import { useLocation, Location } from 'react-router-dom';
+import { ComponentType } from 'react';
 
-import {
-  useProxyNavigate,
-  useProxyRouteInverseTransform,
-} from '../../router/context/ProxyRoutesProvider';
-import usePreviousLocation from '../../router/hooks/usePreviousLocation';
-import { useBackgroundPath } from '../../router/context/BackgroundPathProvider';
+import useRouteOpen from '../hooks/useRouteOpen';
 
 interface Props {
   open: boolean;
@@ -45,52 +39,14 @@ export default function RouteClosable<T = undefined>(
 ) {
   const { onClose } = props;
 
-  const navigate = useProxyNavigate();
-  const previousLocation = usePreviousLocation();
-  const [open, setOpen] = useState(true);
-  const isClosingRef = useRef(false);
-  const location = useLocation();
-  const initialLocationRef = useRef<Location | null>(location);
-  const backgroundPath = useBackgroundPath();
-  const inverseTransform = useProxyRouteInverseTransform();
-
-  const reset = useCallback(() => {
-    isClosingRef.current = false;
-    setOpen(true);
-  }, []);
-
-  useEffect(() => {
-    if (initialLocationRef.current !== location) {
-      reset();
-    }
-  }, [location, reset]);
+  const { open, onClosing, onClosed } = useRouteOpen(true);
 
   function handleClosing() {
-    setOpen(false);
-    isClosingRef.current = true;
+    onClosing();
   }
 
   function handleClosed(immediate = false) {
-    if (!immediate && !isClosingRef.current) return;
-
-    const navigationHandled = onClose?.();
-
-    if (!navigationHandled) {
-      if (
-        previousLocation &&
-        (inverseTransform(previousLocation.pathname) !==
-          inverseTransform(location.pathname) ||
-          previousLocation.search !== location.search)
-      ) {
-        navigate(-1);
-      } else if (backgroundPath) {
-        navigate(backgroundPath);
-      } else {
-        navigate('/');
-      }
-    }
-
-    isClosingRef.current = false;
+    onClosed(immediate, onClose);
   }
 
   if ('ComponentProps' in props) {
