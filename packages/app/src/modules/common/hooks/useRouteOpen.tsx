@@ -20,8 +20,8 @@ export default function useRouteOpen(defaultOpen = false) {
 
   const reset = useCallback(() => {
     isClosingRef.current = false;
-    setOpen(false);
-  }, []);
+    setOpen(defaultOpen);
+  }, [defaultOpen]);
 
   useEffect(() => {
     if (initialLocationRef.current !== location) {

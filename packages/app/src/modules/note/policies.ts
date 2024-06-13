@@ -27,7 +27,7 @@ const notePolicies: TypePolicies & EvictTypePolicies<NormalizedCacheObject> = {
       if (!contentId) return;
 
       return `Note:${JSON.stringify({
-        contentId: readField('contentId'),
+        contentId,
         [KeySpecifierName.UserId]: getCurrentUserIdInStorage(),
       })}`;
     },
