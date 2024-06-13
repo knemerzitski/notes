@@ -72,7 +72,7 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
   const shareNoteLink = shareNoteLinks[0];
 
   if (!shareNoteLink) {
-    throw new GraphQLError(`A note is not shared by '${shareNoteLinkPublicId}'`, {
+    throw new GraphQLError(`Shared note '${shareNoteLinkPublicId}' not found`, {
       extensions: {
         code: GraphQLErrorCode.NotFound,
       },
