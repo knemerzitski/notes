@@ -71,7 +71,6 @@ export default function RouteSnackbarAlertProvider({
   }
 
   function handleExited() {
-    // must close when not here?
     onClosed();
   }
 
