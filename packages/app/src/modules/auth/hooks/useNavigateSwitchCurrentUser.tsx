@@ -132,11 +132,22 @@ export function NavigateSwitchCurrentUserProvider({ children }: { children: Reac
       if (locationUserIndex !== newIndex) {
         if (newIndex == null) {
           // All users signed out
-          navigate(joinPathnames(paramsRestRef.current));
+          navigate(joinPathnames(paramsRestRef.current), {
+            replace: true,
+            state: {
+              replaced: true,
+            },
+          });
         } else {
           // Switches user
           navigate(
-            joinPathnames(`/${locationPrefix}/${newIndex}`, paramsRestRef.current)
+            joinPathnames(`/${locationPrefix}/${newIndex}`, paramsRestRef.current),
+            {
+              replace: true,
+              state: {
+                replaced: true,
+              },
+            }
           );
         }
       }
@@ -197,19 +208,28 @@ export function NavigateSwitchCurrentUserProvider({ children }: { children: Reac
     void handleNavigateSwitchCurrentUser(targetUserId);
   }, [targetUserId, handleNavigateSwitchCurrentUser]);
 
-  const transformPathname = useCallback(
-    (pathname: string) =>
-      targetUserIndex != null
-        ? joinPathnames(locationPrefix, targetUserIndex, pathname)
-        : pathname,
-    [targetUserIndex, locationPrefix]
-  );
+  function hasLocationPrefix(pathname: string) {
+    return pathname.match(/^\/u\/\d+(\/.+)?/g) != null;
+  }
 
   const inverseTransformPathname = useCallback(
     // Remove /u/{i}
     (pathname: string) =>
-      targetUserIndex != null ? slicePathnames(pathname, 2) : pathname,
-    [targetUserIndex]
+      hasLocationPrefix(pathname) ? slicePathnames(pathname, 2) : pathname,
+    []
+  );
+
+  const transformPathname = useCallback(
+    (pathname: string) => {
+      if (hasLocationPrefix(pathname)) {
+        pathname = inverseTransformPathname(pathname);
+      }
+
+      return targetUserIndex != null
+        ? joinPathnames(locationPrefix, targetUserIndex, pathname)
+        : pathname;
+    },
+    [targetUserIndex, locationPrefix, inverseTransformPathname]
   );
 
   return (
