@@ -17,6 +17,7 @@ import ErrorPage from './ErrorPage';
 import LocationPrefixProvider from '../router/context/LocationPrefixProvider';
 import EditNotePage from './note/(mobile)/EditNotePage';
 import useIsSignedIn from '../auth/hooks/useIsSignedIn';
+import RouteSnackbarAlertProvider from '../common/components/RouteSnackbarAlertProvider';
 
 const currentUserIndex = 'u';
 
@@ -28,7 +29,9 @@ export const router = createBrowserRouter([
         <NavigateSwitchCurrentUserProvider>
           <PreviousLocationProvider>
             <SessionSynchronization />
+            <RouteSnackbarAlertProvider>
             <RoutesIndex />
+            </RouteSnackbarAlertProvider>
           </PreviousLocationProvider>
         </NavigateSwitchCurrentUserProvider>
       </LocationPrefixProvider>
