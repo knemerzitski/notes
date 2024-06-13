@@ -89,6 +89,10 @@ export default class ErrorLink extends ApolloLink {
     return Promise.resolve(false);
   }
 
+  /**
+   *
+   * @returns Response is handled and won't be passed to next observer
+   */
   private async handleError(
     value: FetchResult,
     firstError: GraphQLError,
