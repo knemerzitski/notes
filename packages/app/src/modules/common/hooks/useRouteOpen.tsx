@@ -43,7 +43,7 @@ export default function useRouteOpen(defaultOpen = false) {
         (inverseTransform(previousLocation.pathname) !==
           inverseTransform(location.pathname) ||
           previousLocation.search !== location.search) &&
-        !previousLocation.state.replaced
+        !previousLocation.state?.replaced
       ) {
         navigate(-1);
       } else if (backgroundPath) {
