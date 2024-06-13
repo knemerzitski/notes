@@ -28,6 +28,7 @@ import { SelectionRange } from '~collab/client/selection-range';
 import { ChangesetRevisionRecords } from '~collab/records/changeset-revision-records';
 import { RevisionChangeset, SerializedRevisionChangeset } from '~collab/records/record';
 import { RevisionRecords } from '~collab/records/revision-records';
+import { ErrorWithData } from '~utils/logger';
 
 type DefinedAwaited<T> = NonNullable<Awaited<T>>;
 
@@ -57,6 +58,9 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
     noteQuery: {
       _id: 1,
       readOnly: 1,
+      note: {
+        ownerId: 1,
+      },
     },
   });
 
@@ -68,6 +72,15 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
       extensions: {
         code: GraphQLErrorCode.NotFound,
       },
+    });
+  }
+
+  const ownerId = userNote.note?.ownerId;
+  if (!ownerId) {
+    throw new ErrorWithData(`Expected UserNote.note.ownerId to be defined`, {
+      userId: currentUserId,
+      notePublicId,
+      userNote,
     });
   }
 
@@ -473,7 +486,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
   );
 
   if (payloads.publish !== null) {
-    await publishNoteUpdated(ctx, payloads.publish);
+    await publishNoteUpdated(ctx, ownerId, payloads.publish);
   }
 
   return payloads.response;

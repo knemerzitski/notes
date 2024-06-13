@@ -135,7 +135,7 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
     deleted: true,
   };
 
-  await publishNoteDeleted(ctx, payload);
+  await publishNoteDeleted(ctx, ownerId, payload);
 
   return payload;
 };

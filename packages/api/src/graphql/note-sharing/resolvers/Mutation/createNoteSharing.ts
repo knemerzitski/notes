@@ -30,6 +30,7 @@ export const createNoteSharing: NonNullable<
       note: {
         id: 1,
         publicId: 1,
+        ownerId: 1,
         collabTexts: mapObject(NoteTextField, (_key, value) => [
           value,
           {
@@ -69,6 +70,14 @@ export const createNoteSharing: NonNullable<
   }
   if (!userNote.note.collabTexts) {
     throw new ErrorWithData(`Expected UserNote.note.collabTexts to be defined`, {
+      userId: currentUserId,
+      notePublicId,
+      userNote,
+    });
+  }
+  const ownerId = userNote.note.ownerId;
+  if (!ownerId) {
+    throw new ErrorWithData(`Expected UserNote.note.ownerId to be defined`, {
       userId: currentUserId,
       notePublicId,
       userNote,
@@ -143,7 +152,7 @@ export const createNoteSharing: NonNullable<
   // Override sharing with known value
   noteMapper.sharing = () => Promise.resolve({ id: shareNoteLink.publicId });
 
-  await publishNoteUpdated(ctx, {
+  await publishNoteUpdated(ctx, ownerId, {
     contentId: notePublicId,
     patch: {
       id: () => noteMapper.id(),

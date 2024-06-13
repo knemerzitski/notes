@@ -7,6 +7,7 @@ import type { ResolversTypes, SubscriptionResolvers } from '../../../types.gener
 import { isAuthenticated } from '../../../auth-context';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { SubscriptionTopicPrefix } from '../../../subscriptions';
+import { ObjectId } from 'mongodb';
 
 export const noteDeleted: NonNullable<SubscriptionResolvers['noteDeleted']> = {
   subscribe: async (_parent, { input }, ctx) => {
@@ -46,6 +47,7 @@ export const noteDeleted: NonNullable<SubscriptionResolvers['noteDeleted']> = {
 
 export async function publishNoteDeleted(
   { publish, auth }: GraphQLResolversContext,
+  ownerUserId: ObjectId,
   payload: ResolversTypes['NoteDeletedPayload']
 ) {
   assertAuthenticated(auth);
@@ -53,7 +55,7 @@ export async function publishNoteDeleted(
   const notePublicId = (await payload)?.contentId;
   if (!notePublicId) return;
 
-  const userId = auth.session.user._id.toString('base64');
+  const userId = ownerUserId.toString('base64');
 
   return Promise.allSettled([
     publish(`${SubscriptionTopicPrefix.NoteDeleted}:noteId=${notePublicId}`, {

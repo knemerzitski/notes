@@ -18,6 +18,9 @@ export const deleteNoteSharing: NonNullable<
     publicId: notePublicId,
     noteQuery: {
       _id: 1,
+      note: {
+        ownerId: 1,
+      },
       shareNoteLinks: {
         $query: {
           _id: 1,
@@ -51,12 +54,20 @@ export const deleteNoteSharing: NonNullable<
       userNote,
     });
   }
+  const ownerId = userNote.note?.ownerId;
+  if (!ownerId) {
+    throw new ErrorWithData(`Expected UserNote.note.ownerId to be defined`, {
+      userId: currentUserId,
+      notePublicId,
+      userNote,
+    });
+  }
 
   await mongodb.collections[CollectionName.ShareNoteLinks].deleteMany({
     'sourceUserNote.id': userNote._id,
   });
 
-  await publishNoteUpdated(ctx, {
+  await publishNoteUpdated(ctx, ownerId, {
     contentId: notePublicId,
     patch: {
       id: () => noteMapper.id(),
