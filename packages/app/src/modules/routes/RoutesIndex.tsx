@@ -17,6 +17,7 @@ import ErrorPage from './ErrorPage';
 import LocationPrefixProvider from '../router/context/LocationPrefixProvider';
 import EditNotePage from './note/(mobile)/EditNotePage';
 import useIsSignedIn from '../auth/hooks/useIsSignedIn';
+import RedirectSharedNote from './RedirectSharedNote';
 import RouteSnackbarAlertProvider from '../common/components/RouteSnackbarAlertProvider';
 
 const currentUserIndex = 'u';
@@ -30,7 +31,7 @@ export const router = createBrowserRouter([
           <PreviousLocationProvider>
             <SessionSynchronization />
             <RouteSnackbarAlertProvider>
-            <RoutesIndex />
+              <RoutesIndex />
             </RouteSnackbarAlertProvider>
           </PreviousLocationProvider>
         </NavigateSwitchCurrentUserProvider>
@@ -50,14 +51,21 @@ function CommonRoutes({ children, ...restProps }: RoutesProps) {
   const isSignedIn = useIsSignedIn();
 
   return (
-    <Routes {...restProps}>
-      <Route path="*" element={<AppBarDrawerLayout />}>
-        <Route index element={isSignedIn ? <NotesRoute /> : <LocalNotesRoute />} />
-        <Route path="local" element={<LocalNotesRoute />} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Route>
-      {children}
-    </Routes>
+    <>
+      <Routes>
+        {/* searchParams: ?share=shareId */}
+        <Route index element={<RedirectSharedNote />} />
+      </Routes>
+
+      <Routes {...restProps}>
+        <Route path="*" element={<AppBarDrawerLayout />}>
+          <Route index element={isSignedIn ? <NotesRoute /> : <LocalNotesRoute />} />
+          <Route path="local" element={<LocalNotesRoute />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
+        {children}
+      </Routes>
+    </>
   );
 }
 

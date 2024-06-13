@@ -1,5 +1,7 @@
-import { Box, Paper, PaperProps, Typography, useTheme } from '@mui/material';
-import { useRef, useState } from 'react';
+import { Box, Paper, PaperProps, Tooltip, Typography, useTheme } from '@mui/material';
+import { ReactNode, useRef, useState } from 'react';
+import LinkIcon from '@mui/icons-material/Link';
+import PersonIcon from '@mui/icons-material/Person';
 
 import MoreOptionsButton from './MoreOptionsButton';
 
@@ -8,6 +10,10 @@ interface Note {
   editing?: boolean;
   title: string;
   content: string;
+  type?: 'linked' | 'shared';
+  slots?: {
+    toolbar?: ReactNode;
+  };
 }
 
 export interface NoteItemProps extends PaperProps {
@@ -42,6 +48,35 @@ export default function NoteItem({
     }
   }
 
+  let cornerIcon = null;
+  if (note.type === 'linked') {
+    cornerIcon = (
+      <Tooltip
+        sx={(theme) => ({
+          position: 'absolute',
+          right: theme.spacing(1),
+          top: theme.spacing(1),
+        })}
+        title="Linked from another user"
+      >
+        <LinkIcon fontSize="small" />
+      </Tooltip>
+    );
+  } else if (note.type === 'shared') {
+    cornerIcon = (
+      <Tooltip
+        sx={(theme) => ({
+          position: 'absolute',
+          right: theme.spacing(1),
+          top: theme.spacing(1),
+        })}
+        title="Note is shared"
+      >
+        <PersonIcon fontSize="small" />
+      </Tooltip>
+    );
+  }
+
   return (
     <Paper
       key={visibleNote.id}
@@ -59,6 +94,7 @@ export default function NoteItem({
       }}
       {...restProps}
       sx={{
+        position: 'relative',
         display: 'flex',
         flexDirection: 'column',
         px: 2,
@@ -79,6 +115,7 @@ export default function NoteItem({
         ...restProps.sx,
       }}
     >
+      {cornerIcon}
       {visibleNote.title && (
         <Typography
           sx={{
@@ -111,12 +148,17 @@ export default function NoteItem({
       <Box
         sx={{
           display: 'flex',
-          justifyContent: 'flex-end',
+          justifyContent: 'space-between',
           opacity: isHover ? 0.9 : 0,
           transition: 'opacity .15s',
           mt: 1,
         }}
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
       >
+        <Box>{note.slots?.toolbar}</Box>
+
         <MoreOptionsButton
           onOpened={() => {
             optionsMenuOpenRef.current = true;
@@ -131,6 +173,9 @@ export default function NoteItem({
           onDelete={onDelete}
           iconButtonProps={{
             edge: 'end',
+            sx: {
+              justifySelf: 'flex-end',
+            },
           }}
         />
       </Box>

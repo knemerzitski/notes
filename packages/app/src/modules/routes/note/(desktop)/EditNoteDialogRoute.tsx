@@ -14,6 +14,7 @@ import MoreOptionsButton from '../../../note/components/MoreOptionsButton';
 import UndoButton from '../../../note/components/UndoButton';
 import RedoButton from '../../../note/components/RedoButton';
 import NewOrExistingNoteEditingContext from '../../../note/context/NewOrExistingNoteEditingContext';
+import CollaborationButton from '../../../note/components/CollaborationButton';
 
 export type EditNoteLocationState = null | { newNote?: boolean; autoFocus?: boolean };
 
@@ -95,6 +96,7 @@ function RouteClosableEditNoteDialog({
                 }}
               >
                 <MoreOptionsButton onDelete={handleDeleteNote} />
+                <CollaborationButton />
                 <UndoButton />
                 <RedoButton />
               </Box>

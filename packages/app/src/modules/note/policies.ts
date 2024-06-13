@@ -47,6 +47,9 @@ const notePolicies: TypePolicies & EvictTypePolicies<NormalizedCacheObject> = {
   NotePatch: {
     keyFields: false,
   },
+  NoteSharing: {
+    keyFields: false,
+  },
 };
 
 export default notePolicies;

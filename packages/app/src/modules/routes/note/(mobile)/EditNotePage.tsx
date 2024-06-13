@@ -20,6 +20,7 @@ import MoreOptionsButton from '../../../note/components/MoreOptionsButton';
 import RedoButton from '../../../note/components/RedoButton';
 import UndoButton from '../../../note/components/UndoButton';
 import NewOrExistingNoteEditingContext from '../../../note/context/NewOrExistingNoteEditingContext';
+import CollaborationButton from '../../../note/components/CollaborationButton';
 
 export type EditNoteLocationState = null | { newNote?: boolean; autoFocus?: boolean };
 
@@ -135,9 +136,14 @@ export default function EditNotePage() {
                   gap: 1,
                 }}
               >
-                <UndoButton
+                <CollaborationButton
                   iconButtonProps={{
                     edge: 'start',
+                    size: buttonSize,
+                  }}
+                />
+                <UndoButton
+                  iconButtonProps={{
                     size: buttonSize,
                   }}
                 />

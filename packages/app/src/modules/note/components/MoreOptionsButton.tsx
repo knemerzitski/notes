@@ -39,13 +39,11 @@ export default function MoreOptionsButton({
   const menuOpen = anchorEl != null;
 
   function handleClickButton(e: MouseEvent<HTMLElement>) {
-    e.stopPropagation();
     setAnchorEl(e.currentTarget);
     onOpened?.();
   }
 
-  function handleClose(e: { stopPropagation: () => void }) {
-    e.stopPropagation();
+  function handleClose() {
     setAnchorEl(null);
   }
 
@@ -56,7 +54,7 @@ export default function MoreOptionsButton({
   async function handleClickDelete(e: MouseEvent<HTMLElement>) {
     e.stopPropagation();
     if (menuOpen && ((await onDelete?.()) ?? true)) {
-      handleClose(e);
+      handleClose();
       handleClosed();
     }
   }

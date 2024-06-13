@@ -17,6 +17,8 @@ import useDeleteNote from '../note/hooks/useDeleteNote';
 import { gql } from '../../__generated__/gql';
 import { addActiveNotesByContentId } from '../note/active-notes';
 import { insertNoteToNotesConnection } from '../note/policies/Query/notesConnection';
+import CollaborationButton from '../note/components/CollaborationButton';
+import NoteContentIdProvider from '../note/context/NoteContentIdProvider';
 
 const QUERY_NOTES = gql(`
   query NotesRouteNotesConnection($last: NonNegativeInt!, $before: String) {
@@ -35,6 +37,9 @@ const QUERY_NOTES = gql(`
             }
             viewText @client
           }
+        }
+        sharing {
+          id
         }
       }
       pageInfo {
@@ -99,7 +104,7 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
   haveFetchedData.current = true;
 
   const notes: NoteItemProps['note'][] =
-    data?.notesConnection.notes.map(({ contentId, textFields }) => {
+    data?.notesConnection.notes.map(({ contentId, textFields, isOwner, sharing }) => {
       const title =
         textFields.find(({ key }) => key === NoteTextField.Title)?.value.viewText ?? '';
       const content =
@@ -110,6 +115,14 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
         title: title,
         content: content,
         editing: absoluteLocation.pathname === transform(`/note/${contentId}`),
+        type: !isOwner ? 'linked' : sharing ? 'shared' : undefined,
+        slots: {
+          toolbar: (
+            <NoteContentIdProvider noteContentId={contentId}>
+              <CollaborationButton />
+            </NoteContentIdProvider>
+          ),
+        },
       };
     }) ?? [];
 
