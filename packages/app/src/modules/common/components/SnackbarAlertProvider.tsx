@@ -22,37 +22,35 @@ export function useSnackbarAlert() {
   return ctx;
 }
 
-const SnackbarErrorContext = createContext<((message: string) => void) | null>(null);
-
 /**
  * @returns Simplified function to display an error message
  */
 // eslint-disable-next-line react-refresh/only-export-components
 export function useSnackbarError() {
-  const ctx = useContext(SnackbarErrorContext);
-  if (ctx === null) {
-    throw new Error('useSnackbarError() requires context <SnackbarAlertProvider>');
-  }
-  return ctx;
+  const showAlert = useSnackbarAlert();
+
+  return useCallback(
+    (message: string) => {
+      showAlert({
+        snackbarProps: {
+          anchorOrigin: { vertical: 'top', horizontal: 'center' },
+        },
+        severity: 'error',
+        children: message,
+      });
+    },
+    [showAlert]
+  );
 }
 
 export default function SnackbarAlertProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [propsOnOpen, setPropsOnOpen] = useState<SnackbarAlertProps>();
 
+  const { snackbarProps, ...restPropsOnOpen } = propsOnOpen ?? {};
+
   const openSnackbarAlert = useCallback((props: SnackbarAlertProps) => {
     setPropsOnOpen(props);
-    setOpen(true);
-  }, []);
-
-  const openSnackbarError = useCallback((message: string) => {
-    setPropsOnOpen({
-      snackbarProps: {
-        anchorOrigin: { vertical: 'top', horizontal: 'center' },
-      },
-      severity: 'error',
-      children: message,
-    });
     setOpen(true);
   }, []);
 
@@ -60,22 +58,18 @@ export default function SnackbarAlertProvider({ children }: { children: ReactNod
     setOpen(false);
   }
 
-  const { snackbarProps, ...restPropsOnOpen } = propsOnOpen ?? {};
-
   return (
     <SnackbarAlertContext.Provider value={openSnackbarAlert}>
-      <SnackbarErrorContext.Provider value={openSnackbarError}>
-        {children}
+      {children}
 
-        <Snackbar
-          open={open}
-          autoHideDuration={10000}
-          onClose={handleClose}
-          {...snackbarProps}
-        >
-          <Alert severity="error" onClose={handleClose} {...restPropsOnOpen} />
-        </Snackbar>
-      </SnackbarErrorContext.Provider>
+      <Snackbar
+        open={open}
+        autoHideDuration={10000}
+        onClose={handleClose}
+        {...snackbarProps}
+      >
+        <Alert severity="error" onClose={handleClose} {...restPropsOnOpen} />
+      </Snackbar>
     </SnackbarAlertContext.Provider>
   );
 }
