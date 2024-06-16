@@ -1,13 +1,14 @@
 import { useApolloClient } from '@apollo/client';
 import { useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+
 import { gql } from '../../__generated__/gql';
 import ErrorLink from '../apollo-client/links/error-link';
-import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import isErrorCode from '../apollo-client/utils/isErrorCode';
 import { useRouteSnackbarError } from '../common/components/RouteSnackbarAlertProvider';
-import { useProxyNavigate } from '../router/context/ProxyRoutesProvider';
 import { insertNoteToNotesConnection } from '../note/policies/Query/notesConnection';
+import { useProxyNavigate } from '../router/context/ProxyRoutesProvider';
 
 const MUTATION_LINK = gql(`
   mutation RedirectSharedNoteLinkPage($input: LinkSharedNoteInput!) {

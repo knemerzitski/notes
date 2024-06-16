@@ -1,41 +1,41 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { assert, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { UserSchema } from '../../../../mongodb/schema/user';
-import {
-  createMongoDBContext,
-  mongoCollections,
-  resetDatabase,
-} from '../../../../test/helpers/mongodb';
 import { faker } from '@faker-js/faker';
-import {
-  populateNoteToUser,
-  populateUserWithNotes,
-  populateWithCreatedData,
-} from '../../../../test/helpers/mongodb/populate';
-import {
-  NoteTextField,
-  NoteUpdatedInput,
-  UpdateNoteInput,
-  UpdateNotePayload,
-} from '../../../types.generated';
-import { apolloServer } from '../../../../test/helpers/apollo-server';
-
+import { ObjectId } from 'mongodb';
+import { assert, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { Changeset } from '~collab/changeset/changeset';
+import { RevisionChangeset } from '~collab/records/record';
 import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
+
+import { CollectionName } from '../../../../mongodb/collections';
+import { CollabTextSchema } from '../../../../mongodb/schema/collab-text';
 import { NoteSchema } from '../../../../mongodb/schema/note';
+import { UserSchema } from '../../../../mongodb/schema/user';
+import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
+import { apolloServer } from '../../../../test/helpers/apollo-server';
 import {
   createPublisher,
   createGraphQLResolversContext,
   mockSocketApi,
   mockSubscriptionsModel,
 } from '../../../../test/helpers/graphql-context';
-
-import { Changeset } from '~collab/changeset/changeset';
-import { CollectionName } from '../../../../mongodb/collections';
-import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
-import { ObjectId } from 'mongodb';
-import { RevisionChangeset } from '~collab/records/record';
-import { CollabTextSchema } from '../../../../mongodb/schema/collab-text';
+import {
+  createMongoDBContext,
+  mongoCollections,
+  resetDatabase,
+} from '../../../../test/helpers/mongodb';
+import {
+  populateNoteToUser,
+  populateUserWithNotes,
+  populateWithCreatedData,
+} from '../../../../test/helpers/mongodb/populate';
 import { GraphQLResolversContext } from '../../../context';
+import {
+  NoteTextField,
+  NoteUpdatedInput,
+  UpdateNoteInput,
+  UpdateNotePayload,
+} from '../../../types.generated';
+
 
 const MUTATION = `#graphql
   mutation($input: UpdateNoteInput!){

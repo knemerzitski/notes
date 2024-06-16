@@ -2,6 +2,7 @@ type Query
 type Mutation
 type Subscription
 
+# eslint-disable-next-line @graphql-eslint/no-unreachable-types
 scalar Date
 "int > 0"
 scalar PositiveInt

@@ -1,4 +1,5 @@
 import { ReactNode, createContext, useContext } from 'react';
+
 import { UserListItemProps } from '../components/UserListItem';
 
 const UserContext = createContext<UserListItemProps['user'] | null>(null);

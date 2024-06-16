@@ -1,21 +1,22 @@
-import { assertAuthenticated } from '../../../base/directives/auth';
-import { publishNoteCreated } from '../Subscription/noteCreated';
 
+
+import mapObject from 'map-obj';
+import { ObjectId } from 'mongodb';
+import { Changeset } from '~collab/changeset/changeset';
+
+import { CollectionName } from '../../../../mongodb/collections';
+import { DeepQueryResponse } from '../../../../mongodb/query-builder';
+import { CollabTextSchema } from '../../../../mongodb/schema/collab-text';
+import { NoteSchema, noteDefaultValues } from '../../../../mongodb/schema/note';
+import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
+import { assertAuthenticated } from '../../../base/directives/auth';
 import {
   NoteTextField,
   ResolversTypes,
   type MutationResolvers,
 } from '../../../types.generated';
-
-import { Changeset } from '~collab/changeset/changeset';
-import mapObject from 'map-obj';
-import { ObjectId } from 'mongodb';
-import { CollabTextSchema } from '../../../../mongodb/schema/collab-text';
-import { NoteSchema, noteDefaultValues } from '../../../../mongodb/schema/note';
-import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
-import { CollectionName } from '../../../../mongodb/collections';
 import { NoteQuery, NoteQueryMapper } from '../../mongo-query-mapper/note';
-import { DeepQueryResponse } from '../../../../mongodb/query-builder';
+import { publishNoteCreated } from '../Subscription/noteCreated';
 
 export const createNote: NonNullable<MutationResolvers['createNote']> = async (
   _parent,

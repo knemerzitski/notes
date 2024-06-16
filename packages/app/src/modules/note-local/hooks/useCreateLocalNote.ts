@@ -1,7 +1,8 @@
 import { useApolloClient } from '@apollo/client';
+import { useCallback } from 'react';
+
 import { gql } from '../../../__generated__/gql';
 import { NoteTextField } from '../../../__generated__/graphql';
-import { useCallback } from 'react';
 
 const QUERY_IDS = gql(`
   query UseCreateLocalNoteGetIds  {

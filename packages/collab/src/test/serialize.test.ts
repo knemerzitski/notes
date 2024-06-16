@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { beforeEach, expect, it } from 'vitest';
 
-import { createHelperCollabEditingEnvironment } from './helpers/server-client';
-import { newServerRecords } from '../records/server-records';
 import { Changeset } from '../changeset/changeset';
 import { CollabEditor } from '../client/collab-editor';
 import { ChangesetRevisionRecords } from '../records/changeset-revision-records';
+import { newServerRecords } from '../records/server-records';
+
+import { createHelperCollabEditingEnvironment } from './helpers/server-client';
 
 let helper: ReturnType<typeof createHelperCollabEditingEnvironment<'A' | 'B'>>;
 

@@ -1,7 +1,8 @@
+import { assertAuthenticated } from '../../../base/directives/auth';
+import { NoteQueryMapper } from '../../mongo-query-mapper/note';
+
 import type { QueryResolvers } from './../../../types.generated';
 
-import { NoteQueryMapper } from '../../mongo-query-mapper/note';
-import { assertAuthenticated } from '../../../base/directives/auth';
 
 export const note: NonNullable<QueryResolvers['note']> = (
   _parent,

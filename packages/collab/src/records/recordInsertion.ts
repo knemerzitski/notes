@@ -1,6 +1,7 @@
-import { ServerInsertRecord, ServerRecord, newServerRecords } from './server-records';
 import { Changeset } from '../changeset/changeset';
+
 import { RevisionChangeset } from './record';
+import { ServerInsertRecord, ServerRecord, newServerRecords } from './server-records';
 
 interface RecordInsertionParams<
   TRecord extends ServerRecord<unknown>,

@@ -1,8 +1,9 @@
 import { InputProps } from '@mui/material';
 
 import { NoteTextField } from '../../../__generated__/graphql';
-import TitleInput from './TitleInput';
 import { useNoteTextFieldHTMLInput } from '../context/NoteTextFieldEditorsProvider';
+
+import TitleInput from './TitleInput';
 
 export interface CollabTitleInputProps {
   inputProps?: InputProps;

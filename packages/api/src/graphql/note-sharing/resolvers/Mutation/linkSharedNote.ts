@@ -1,16 +1,20 @@
+import { GraphQLError } from 'graphql';
+import mapObject from 'map-obj';
 import { ObjectId } from 'mongodb';
+import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+import { ErrorWithData } from '~utils/logger';
+
 import { CollectionName } from '../../../../mongodb/collections';
+import { DeepQueryResponse } from '../../../../mongodb/query-builder';
+import { ShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link';
+import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { NoteQueryMapper } from '../../../note/mongo-query-mapper/note';
-import type { MutationResolvers, ResolversTypes } from './../../../types.generated';
-import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
-import { ErrorWithData } from '~utils/logger';
-import { GraphQLError } from 'graphql';
-import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import { publishNoteCreated } from '../../../note/resolvers/Subscription/noteCreated';
-import { ShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link';
-import { DeepQueryResponse } from '../../../../mongodb/query-builder';
-import mapObject from 'map-obj';
+
+import type { MutationResolvers, ResolversTypes } from './../../../types.generated';
+
+
 export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = async (
   _parent,
   { input: { shareId: shareNoteLinkPublicId } },

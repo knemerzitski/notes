@@ -2,9 +2,9 @@ import { BaseContext } from '@apollo/server';
 import { ApolloServer } from '@apollo/server';
 import { APIGatewayProxyEvent, APIGatewayProxyHandler } from 'aws-lambda';
 import { GraphQLSchema } from 'graphql';
-
 import { Logger } from '~utils/logger';
 
+import lowercaseHeaderKeys from './apigateway-proxy-event/lowercaseHeaderKeys';
 import parseGraphQLRequestEvent from './apigateway-proxy-event/parseGraphQLRequestEvent';
 import {
   ApiGatewayContextParams,
@@ -19,7 +19,6 @@ import {
 import { ConnectionTable, DynamoDBRecord } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
 import { Publisher, createPublisher } from './pubsub/publish';
-import lowercaseHeaderKeys from './apigateway-proxy-event/lowercaseHeaderKeys';
 
 interface DirectParams {
   logger: Logger;

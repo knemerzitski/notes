@@ -1,10 +1,11 @@
 import { useMutation } from '@apollo/client';
 import { useCallback } from 'react';
 
-import useNavigateSwitchCurrentUser from './useNavigateSwitchCurrentUser';
 import { gql } from '../../../__generated__/gql';
-import { removeUser } from '../user';
 import { useCustomApolloClient } from '../../apollo-client/context/CustomApolloClientProvider';
+import { removeUser } from '../user';
+
+import useNavigateSwitchCurrentUser from './useNavigateSwitchCurrentUser';
 
 const SIGN_OUT = gql(`
   mutation UseSignOut($input: SignOutInput) {

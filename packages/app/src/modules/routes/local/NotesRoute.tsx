@@ -1,23 +1,25 @@
+import { useApolloClient } from '@apollo/client';
+import { Button } from '@mui/material';
+import { useRef, useState } from 'react';
+import { CollabEditor } from '~collab/client/collab-editor';
+
+import { gql } from '../../../__generated__/gql';
+import { NoteTextField } from '../../../__generated__/graphql';
+import usePauseableQuery from '../../apollo-client/hooks/usePauseableQuery';
+import { editorsInCache } from '../../editor/editors';
+import { NoteItemProps } from '../../note/components/NoteItem';
+import WidgetListFabLayout from '../../note/components/WidgetListFabLayout';
+import { newEmptyEditors } from '../../note/hooks/useCreatableNoteTextFieldEditors';
+import useCreateLocalNote from '../../note-local/hooks/useCreateLocalNote';
+import useDeleteLocalNote from '../../note-local/hooks/useDeleteLocalNote';
+import { insertLocalNoteToNotesConnection } from '../../note-local/policies/Query/localNotesConnection';
 import {
   useProxyNavigate,
   useProxyRouteTransform,
 } from '../../router/context/ProxyRoutesProvider';
 import { useAbsoluteLocation } from '../../router/hooks/useAbsoluteLocation';
-import { gql } from '../../../__generated__/gql';
-import usePauseableQuery from '../../apollo-client/hooks/usePauseableQuery';
-import { NoteItemProps } from '../../note/components/NoteItem';
-import { NoteTextField } from '../../../__generated__/graphql';
 import { useIsBackgroundLocation } from '../../router/hooks/useIsBackgroundLocation';
-import WidgetListFabLayout from '../../note/components/WidgetListFabLayout';
-import { CollabEditor } from '~collab/client/collab-editor';
-import useCreateLocalNote from '../../note-local/hooks/useCreateLocalNote';
-import { useRef, useState } from 'react';
-import { insertLocalNoteToNotesConnection } from '../../note-local/policies/Query/localNotesConnection';
-import { useApolloClient } from '@apollo/client';
-import { newEmptyEditors } from '../../note/hooks/useCreatableNoteTextFieldEditors';
-import { editorsInCache } from '../../editor/editors';
-import useDeleteLocalNote from '../../note-local/hooks/useDeleteLocalNote';
-import { Button } from '@mui/material';
+
 
 const QUERY = gql(`
   query LocalNotesRoute($last: NonNegativeInt!, $before: NonNegativeInt) {

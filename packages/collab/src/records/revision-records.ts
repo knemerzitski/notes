@@ -1,5 +1,5 @@
-import { consecutiveOrderedSetIndexOf } from '~utils/ordered-set/consecutive-ordered-set';
 import mitt, { Emitter } from '~utils/mitt-unsub';
+import { consecutiveOrderedSetIndexOf } from '~utils/ordered-set/consecutive-ordered-set';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RevisionRecordsEvents<TRecord, TInsertRecord> = {

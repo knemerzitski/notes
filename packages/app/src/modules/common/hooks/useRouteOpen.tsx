@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, Location } from 'react-router-dom';
 
+import { useBackgroundPath } from '../../router/context/BackgroundPathProvider';
 import {
   useProxyNavigate,
   useProxyRouteInverseTransform,
 } from '../../router/context/ProxyRoutesProvider';
 import usePreviousLocation from '../../router/hooks/usePreviousLocation';
-import { useBackgroundPath } from '../../router/context/BackgroundPathProvider';
 
 export default function useRouteOpen(defaultOpen = false) {
   const navigate = useProxyNavigate();
@@ -43,7 +43,7 @@ export default function useRouteOpen(defaultOpen = false) {
         (inverseTransform(previousLocation.pathname) !==
           inverseTransform(location.pathname) ||
           previousLocation.search !== location.search) &&
-        !previousLocation.state?.replaced
+        !(previousLocation.state as { replaced?: boolean } | undefined)?.replaced
       ) {
         navigate(-1);
       } else if (backgroundPath) {

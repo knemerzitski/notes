@@ -1,9 +1,10 @@
 import WebSocket from 'ws';
-
 import {
   createDefaultGraphQLParams,
   createDefaultSubscriptionGraphQLParams,
 } from '~api/handler-params';
+import { createCollectionInstances } from '~api/mongodb/collections';
+import { createMongoDBContext } from '~api/mongodb/lambda-context';
 import { ApiGatewayContextParams } from '~lambda-graphql/context/apigateway';
 import { DynamoDBContextParams } from '~lambda-graphql/context/dynamodb';
 import {
@@ -19,8 +20,6 @@ import {
   MockEmtpyApiGatewayManagementApiClient,
 } from './api-gateway/mock-apigatewaymanagementapi';
 import { MockPingPongSFNClient } from './pingpong/mock-pingpong-sfnclient';
-import { createMongoDBContext } from '~api/mongodb/lambda-context';
-import { createCollectionInstances } from '~api/mongodb/collections';
 
 export function createMockGraphQLParams<
   TContext extends object,

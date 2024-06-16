@@ -2,10 +2,11 @@ import { InMemoryCache } from '@apollo/client';
 import { loadErrorMessages, loadDevMessages } from '@apollo/client/dev';
 import { CachePersistor } from 'apollo3-cache-persist';
 
+import { LocalStoragePrefix, localStorageKey } from '../storage/local-storage';
+
+import { CustomApolloClient } from './custom-apollo-client';
 import { typePolicies } from './policies';
 import { TypePersistentStorage } from './policy/persist';
-import { LocalStoragePrefix, localStorageKey } from '../storage/local-storage';
-import { CustomApolloClient } from './custom-apollo-client';
 
 let HTTP_URL: string;
 let WS_URL: string;

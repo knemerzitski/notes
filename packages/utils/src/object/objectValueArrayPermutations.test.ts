@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+
 import objectValueArrayPermutations from './objectValueArrayPermutations';
 
 function collectByCopy<T>(gen: Generator<Readonly<T>>): T[] {

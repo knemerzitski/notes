@@ -1,6 +1,7 @@
-import { build as _build, BuildOptions } from 'esbuild';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+
+import { build as _build, BuildOptions } from 'esbuild';
 
 await build(readArgs());
 

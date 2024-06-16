@@ -1,7 +1,9 @@
 import { ReactNode, createContext, useContext } from 'react';
 import { CollabEditor } from '~collab/client/collab-editor';
-import useHTMLInputCollabEditor from '../../collab/hooks/useHTMLInputCollabEditor';
+
 import { NoteTextFieldEntry, NoteTextField } from '../../../__generated__/graphql';
+import useHTMLInputCollabEditor from '../../collab/hooks/useHTMLInputCollabEditor';
+
 import FocusedEditorProvider, { useSetFocusedEditor } from './FocusedEditorProvider';
 
 export type NoteCollabTextEditors = (Omit<NoteTextFieldEntry, 'value'> & {
@@ -10,6 +12,7 @@ export type NoteCollabTextEditors = (Omit<NoteTextFieldEntry, 'value'> & {
 
 const NoteCollabTextEditorsContext = createContext<NoteCollabTextEditors | null>(null);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useNoteCollabTextEditors() {
   const ctx = useContext(NoteCollabTextEditorsContext);
   if (ctx === null) {
@@ -20,6 +23,7 @@ export function useNoteCollabTextEditors() {
   return ctx;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useNoteTextFieldEditor(fieldName: NoteTextField) {
   const editors = useNoteCollabTextEditors();
 
@@ -31,6 +35,7 @@ export function useNoteTextFieldEditor(fieldName: NoteTextField) {
   return editorEntry.value;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useNoteTextFieldHTMLInput(fieldName: NoteTextField) {
   const editor = useNoteTextFieldEditor(fieldName);
 

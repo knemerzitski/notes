@@ -8,8 +8,9 @@ import {
   DialogTitle,
 } from '@mui/material';
 
-import LoginList from './LoginList';
 import { User } from '../../../__generated__/graphql';
+
+import LoginList from './LoginList';
 
 type SignInResult = 'success' | 'error' | 'canceled';
 

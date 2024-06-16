@@ -11,8 +11,8 @@ import { useState } from 'react';
 import CollabContentInput, { CollabContentInputProps } from './CollabContentInput';
 import CollabInputs from './CollabInputs';
 import MoreOptionsButton from './MoreOptionsButton';
-import UndoButton from './UndoButton';
 import RedoButton from './RedoButton';
+import UndoButton from './UndoButton';
 
 export interface CreateNoteWidgetProps {
   onCreate?: () => void;

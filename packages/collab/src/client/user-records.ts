@@ -1,5 +1,6 @@
-import { EditorRevisionRecord } from './collab-editor';
 import { RevisionChangeset } from '../records/record';
+
+import { EditorRevisionRecord } from './collab-editor';
 
 /**
  * Simple facade for querying server records.

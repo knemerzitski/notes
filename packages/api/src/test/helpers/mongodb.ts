@@ -1,4 +1,5 @@
 import { MongoClient } from 'mongodb';
+
 import { CollectionName, createCollectionInstances } from '../../mongodb/collections';
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

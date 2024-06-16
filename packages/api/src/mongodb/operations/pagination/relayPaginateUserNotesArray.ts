@@ -1,10 +1,12 @@
+import mapObject from 'map-obj';
 import { ObjectId, Document } from 'mongodb';
-import relayArrayPagination, { RelayArrayPaginationInput } from './relayArrayPagination';
+
 import userNotesArrayLookup, {
   UserNotesArrayLookupInput,
   UserNotesArrayLookupOutput,
 } from '../lookup/userNotesArrayLookup';
-import mapObject from 'map-obj';
+
+import relayArrayPagination, { RelayArrayPaginationInput } from './relayArrayPagination';
 import relayMultiArrayPaginationConcat, {
   RelayMultiArrayPaginationConcatOutput,
 } from './relayMultiArrayPaginationConcat';

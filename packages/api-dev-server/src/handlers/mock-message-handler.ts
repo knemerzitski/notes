@@ -1,4 +1,6 @@
 import 'source-map-support/register';
+import { APIGatewayProxyWebsocketHandlerV2 } from 'aws-lambda';
+import WebSocket from 'ws';
 import {
   BaseGraphQLContext,
   BaseSubscriptionResolversContext,
@@ -11,19 +13,18 @@ import {
   createDefaultDataSources,
   createDefaultDynamoDBConnectionTtlContext,
 } from '~api/handler-params';
+import {
+  WebSocketMessageHandlerParams,
+  createWebSocketMessageHandler,
+} from '~lambda-graphql/message-handler';
 import { createLogger } from '~utils/logger';
+
 import {
   createMockApiGatewayParams,
   createMockDynamoDBParams,
   createMockMongoDBContext,
   createMockSubscriptionGraphQLParams,
 } from '../handler-params';
-import WebSocket from 'ws';
-import {
-  WebSocketMessageHandlerParams,
-  createWebSocketMessageHandler,
-} from '~lambda-graphql/message-handler';
-import { APIGatewayProxyWebsocketHandlerV2 } from 'aws-lambda';
 
 interface MockWebSocketMessageHandlerOptions {
   mongodb?: Awaited<ReturnType<typeof createMockMongoDBContext>> | undefined;

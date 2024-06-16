@@ -1,24 +1,25 @@
+import { useApolloClient } from '@apollo/client';
+import { Alert, Button } from '@mui/material';
 import { startTransition, useEffect, useRef } from 'react';
+
+import { gql } from '../../__generated__/gql';
+import { NoteTextField } from '../../__generated__/graphql';
+import usePauseableQuery from '../apollo-client/hooks/usePauseableQuery';
+import { useSnackbarError } from '../common/components/SnackbarAlertProvider';
+import { addActiveNotesByContentId } from '../note/active-notes';
+import CollaborationButton from '../note/components/CollaborationButton';
+import { NoteItemProps } from '../note/components/NoteItem';
+import WidgetListFabLayout from '../note/components/WidgetListFabLayout';
+import NoteContentIdProvider from '../note/context/NoteContentIdProvider';
+import { useCreatableNoteTextFieldEditors } from '../note/hooks/useCreatableNoteTextFieldEditors';
+import useDeleteNote from '../note/hooks/useDeleteNote';
+import { insertNoteToNotesConnection } from '../note/policies/Query/notesConnection';
 import {
   useProxyNavigate,
   useProxyRouteTransform,
 } from '../router/context/ProxyRoutesProvider';
 import { useAbsoluteLocation } from '../router/hooks/useAbsoluteLocation';
 import { useIsBackgroundLocation } from '../router/hooks/useIsBackgroundLocation';
-import usePauseableQuery from '../apollo-client/hooks/usePauseableQuery';
-import { Alert, Button } from '@mui/material';
-import { useApolloClient } from '@apollo/client';
-import { NoteTextField } from '../../__generated__/graphql';
-import { useSnackbarError } from '../common/components/SnackbarAlertProvider';
-import { NoteItemProps } from '../note/components/NoteItem';
-import WidgetListFabLayout from '../note/components/WidgetListFabLayout';
-import { useCreatableNoteTextFieldEditors } from '../note/hooks/useCreatableNoteTextFieldEditors';
-import useDeleteNote from '../note/hooks/useDeleteNote';
-import { gql } from '../../__generated__/gql';
-import { addActiveNotesByContentId } from '../note/active-notes';
-import { insertNoteToNotesConnection } from '../note/policies/Query/notesConnection';
-import CollaborationButton from '../note/components/CollaborationButton';
-import NoteContentIdProvider from '../note/context/NoteContentIdProvider';
 
 const QUERY_NOTES = gql(`
   query NotesRouteNotesConnection($last: NonNegativeInt!, $before: String) {

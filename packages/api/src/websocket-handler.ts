@@ -1,12 +1,12 @@
 import 'source-map-support/register';
 import { APIGatewayProxyWebsocketHandlerV2 } from 'aws-lambda';
-
 import {
   WebSocketHandlerParams,
   createWebSocketHandler,
 } from '~lambda-graphql/websocket-handler';
 import { createLogger } from '~utils/logger';
 
+import { handleConnectGraphQLAuth } from './connect-handler';
 import {
   BaseGraphQLContext,
   BaseSubscriptionResolversContext,
@@ -23,7 +23,6 @@ import {
   createDefaultMongoDBContext,
   createDefaultSubscriptionGraphQLParams,
 } from './handler-params';
-import { handleConnectGraphQLAuth } from './connect-handler';
 
 export function createDefaultParams(): WebSocketHandlerParams<
   BaseSubscriptionResolversContext,

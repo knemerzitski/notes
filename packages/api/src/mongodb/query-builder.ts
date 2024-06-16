@@ -1,9 +1,10 @@
 import { ObjectId } from 'mongodb';
+import { Maybe, MaybePromise } from '~utils/types';
+
 import {
   RelayPagination,
   getPaginationKey,
 } from './operations/pagination/relayArrayPagination';
-import { Maybe, MaybePromise } from '~utils/types';
 
 type Primitive = undefined | string | number | boolean | ObjectId | Date;
 type ProjectionValue = 1 | undefined;

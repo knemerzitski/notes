@@ -2,6 +2,7 @@ import { Duration } from 'aws-cdk-lib';
 import { Code } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunctionProps, NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Construct } from 'constructs';
+
 import { commonProps } from './common-props';
 
 export interface WebSocketLambdaProps {

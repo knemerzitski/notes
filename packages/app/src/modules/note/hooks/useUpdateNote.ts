@@ -1,4 +1,5 @@
 import { useMutation } from '@apollo/client';
+
 import { gql } from '../../../__generated__/gql';
 export const MUTATION = gql(`
   mutation UseUpdateNote($input: UpdateNoteInput!)  {

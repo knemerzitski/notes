@@ -6,6 +6,7 @@ import {
 } from 'aws-cdk-lib/aws-apigateway';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Construct } from 'constructs';
+
 import getOrCreateResource from '../utils/getOrCreateResource';
 
 export interface HttpRestApiProps {

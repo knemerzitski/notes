@@ -1,8 +1,12 @@
+import { MongoClient } from 'mongodb';
 import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
 import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
 import { WebSocketMessageHandlerParams } from '~lambda-graphql/message-handler';
 import { SubscriptionContext } from '~lambda-graphql/pubsub/subscribe';
 
+import { MongoDBCollections } from '../mongodb/collections';
+
+import { ApiOptions } from './api-options';
 import {
   AuthenticationContext,
   SerializedAuthenticationContext,
@@ -13,9 +17,6 @@ import {
 } from './auth-context';
 import CookiesContext, { SerializedCookiesContext } from './cookies-context';
 import NotesDataSource from './note/datasource/notes-datasource';
-import { MongoDBCollections } from '../mongodb/collections';
-import { MongoClient } from 'mongodb';
-import { ApiOptions } from './api-options';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type BaseGraphQLContext = {

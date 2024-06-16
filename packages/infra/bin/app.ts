@@ -1,13 +1,15 @@
 import 'source-map-support/register';
+import path from 'path';
+
 import { App } from 'aws-cdk-lib';
+import isEnvVarStringTrue from '~utils/string/isEnvVarStringTrue';
+
 import { NotesStack, NotesStackProps } from '../lib/stacks/notes-stack';
 import {
   assertGetEnvironmentVariables,
   loadEnvironmentVariables,
 } from '../lib/utils/env';
-import isEnvVarStringTrue from '~utils/string/isEnvVarStringTrue';
 import { PROJECT_DIR } from '../lib/utils/project-dir';
-import path from 'path';
 
 const NODE_ENV = process.env.NODE_ENV ?? 'production';
 

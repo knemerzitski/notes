@@ -1,16 +1,17 @@
 import { NormalizedCacheObject, TypePolicies } from '@apollo/client';
 
-import logFieldRead from './utils/logFieldRead';
-import mergeTypePolicies from './utils/mergeTypePolicies';
-import collabTextPolicies from '../collab/policies';
-import preferencesPolicies from '../preferences/policies';
 import authPolicies from '../auth/policies';
+import collabTextPolicies from '../collab/policies';
 import basePolicies from '../global/policies';
 import notePolicies from '../note/policies';
 import localNotePolicies from '../note-local/policies';
+import preferencesPolicies from '../preferences/policies';
+
+import { LinkTypePolicies } from './links/type-link';
 import { EvictTypePolicies } from './policy/evict';
 import { PersistTypePolicies } from './policy/persist';
-import { LinkTypePolicies } from './links/type-link';
+import logFieldRead from './utils/logFieldRead';
+import mergeTypePolicies from './utils/mergeTypePolicies';
 
 const LOG_READ = false;
 

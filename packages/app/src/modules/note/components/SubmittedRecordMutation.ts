@@ -1,15 +1,16 @@
-import useUpdateNote from '../hooks/useUpdateNote';
-import { NoteTextField } from '../../../__generated__/graphql';
 import { useEffect } from 'react';
 import { SubmittedRecord } from '~collab/client/submitted-record';
+
+import { gql } from '../../../__generated__/gql';
+import { NoteTextField } from '../../../__generated__/graphql';
+import { useCustomApolloClient } from '../../apollo-client/context/CustomApolloClientProvider';
 import {
   collabTextRecordToEditorRevisionRecord,
   submittedRecordToCollabTextRecordInput,
 } from '../../collab/editor-graphql-mapping';
 import { useNoteContentId } from '../context/NoteContentIdProvider';
 import { useNoteTextFieldEditor } from '../context/NoteTextFieldEditorsProvider';
-import { gql } from '../../../__generated__/gql';
-import { useCustomApolloClient } from '../../apollo-client/context/CustomApolloClientProvider';
+import useUpdateNote from '../hooks/useUpdateNote';
 
 const FRAGMENT_RECORDS = gql(`
   fragment SubmittedRecordMutationUpdateCache on CollabText {

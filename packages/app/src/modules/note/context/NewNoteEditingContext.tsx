@@ -1,8 +1,9 @@
 import { useApolloClient } from '@apollo/client';
 import { ReactNode, useRef, useEffect, startTransition } from 'react';
+
+import NoteCollabTextsProvider from '../../note/context/NoteTextFieldEditorsProvider';
 import { useProxyNavigate } from '../../router/context/ProxyRoutesProvider';
 import { useCreatableNoteTextFieldEditors } from '../hooks/useCreatableNoteTextFieldEditors';
-import NoteCollabTextsProvider from '../../note/context/NoteTextFieldEditorsProvider';
 import { insertNoteToNotesConnection } from '../policies/Query/notesConnection';
 
 interface NewNoteEditingContextProps {

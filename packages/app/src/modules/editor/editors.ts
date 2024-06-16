@@ -1,5 +1,6 @@
 import { makeReference, makeVar } from '@apollo/client';
 import { CollabEditor, CollabEditorOptions } from '~collab/client/collab-editor';
+
 import {
   IdentifiedStoreObject,
   CompactStorageObject,

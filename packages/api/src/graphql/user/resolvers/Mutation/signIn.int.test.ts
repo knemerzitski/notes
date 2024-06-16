@@ -2,21 +2,21 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
+import { ObjectId } from 'mongodb';
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { verifyCredentialToken } from '../../../../auth/google/__mocks__/oauth2';
-import { apolloServer } from '../../../../test/helpers/apollo-server';
-import { AuthProvider, SignInInput, SignInPayload } from '../../../types.generated';
-import { createGraphQLResolversContext } from '../../../../test/helpers/graphql-context';
-import { mongoCollections, resetDatabase } from '../../../../test/helpers/mongodb';
 import { CollectionName } from '../../../../mongodb/collections';
-import { ObjectId } from 'mongodb';
 import { SessionSchema } from '../../../../mongodb/schema/session/sessions';
 import { UserSchema } from '../../../../mongodb/schema/user';
+import { apolloServer } from '../../../../test/helpers/apollo-server';
+import { createGraphQLResolversContext } from '../../../../test/helpers/graphql-context';
+import { mongoCollections, resetDatabase } from '../../../../test/helpers/mongodb';
 import {
   createUser,
   populateWithCreatedData,
 } from '../../../../test/helpers/mongodb/populate';
+import { AuthProvider, SignInInput, SignInPayload } from '../../../types.generated';
 
 vi.mock('../../../../auth/google/oauth2');
 

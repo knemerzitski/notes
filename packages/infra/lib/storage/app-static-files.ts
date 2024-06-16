@@ -1,5 +1,6 @@
 import { Duration, RemovalPolicy } from 'aws-cdk-lib';
-import { Construct } from 'constructs';
+import { Distribution } from 'aws-cdk-lib/aws-cloudfront';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import {
   BucketDeployment,
@@ -7,8 +8,7 @@ import {
   CacheControl,
   Source,
 } from 'aws-cdk-lib/aws-s3-deployment';
-import { RetentionDays } from 'aws-cdk-lib/aws-logs';
-import { Distribution } from 'aws-cdk-lib/aws-cloudfront';
+import { Construct } from 'constructs';
 
 export interface BucketDeploymentOptions {
   sourcePath: string;

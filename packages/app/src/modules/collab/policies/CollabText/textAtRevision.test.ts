@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { InMemoryCache } from '@apollo/client';
-import { createCache } from '../../../../test/helpers/apollo-client';
-import { it, assert, expect, beforeAll, describe, beforeEach } from 'vitest';
+import { it, expect, beforeAll, describe, beforeEach } from 'vitest';
+
 import { gql } from '../../../../__generated__/gql';
+import { createCache } from '../../../../test/helpers/apollo-client';
 
 const FRAGMENT = gql(`
   fragment TestTextAtRevision on CollabText {
@@ -24,8 +26,7 @@ describe('read', () => {
       id: collabTextId,
       __typename: 'CollabText',
     });
-    assert(_collabTextId != null);
-    collabTextRef = _collabTextId;
+    collabTextRef = _collabTextId!;
 
     /*
     3 - a
@@ -151,8 +152,7 @@ describe('merge', () => {
       id: collabTextId,
       __typename: 'CollabText',
     });
-    assert(_collabTextRef != null);
-    collabTextRef = _collabTextRef;
+    collabTextRef = _collabTextRef!;
 
     cache.restore({
       [collabTextRef]: {

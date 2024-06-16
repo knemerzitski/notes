@@ -1,18 +1,21 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { assert, beforeAll, expect, it } from 'vitest';
-import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb';
 import { faker } from '@faker-js/faker';
+import { ObjectId } from 'mongodb';
+import { assert, beforeAll, expect, it } from 'vitest';
+
+import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb';
 import {
   populateUserWithNotes,
   populateWithCreatedData,
 } from '../../../test/helpers/mongodb/populate';
-import userNoteLookup, { UserNoteLookupOutput } from './userNoteLookup';
-import { ObjectId } from 'mongodb';
+import { CollectionName } from '../../collections';
 import { CollabTextSchema } from '../../schema/collab-text';
 import { NoteSchema } from '../../schema/note';
-import { UserNoteSchema } from '../../schema/user-note';
-import { CollectionName } from '../../collections';
 import { ShareNoteLinkSchema } from '../../schema/share-note-link';
+import { UserNoteSchema } from '../../schema/user-note';
+
+import userNoteLookup, { UserNoteLookupOutput } from './userNoteLookup';
+
 
 enum CollabTextKey {
   TITLE = 'title',

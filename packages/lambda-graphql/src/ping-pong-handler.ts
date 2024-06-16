@@ -1,6 +1,5 @@
 import { Handler } from 'aws-lambda';
 import { MessageType } from 'graphql-ws';
-
 import { Logger } from '~utils/logger';
 import { MaybePromise } from '~utils/types';
 

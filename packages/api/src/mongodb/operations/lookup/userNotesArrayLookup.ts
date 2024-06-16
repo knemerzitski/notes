@@ -1,4 +1,5 @@
 import { Document } from 'mongodb';
+
 import userNoteLookup, { UserNoteLookupInput } from './userNoteLookup';
 
 export interface UserNotesArrayLookupInput<TCollabTextKey extends string> {

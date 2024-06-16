@@ -1,9 +1,11 @@
 import { NormalizedCacheObject, TypePolicies } from '@apollo/client';
+import { CollabEditor } from '~collab/client/collab-editor';
+
+import { LocalCollabText } from '../../__generated__/graphql';
+import { EvictTypePolicies } from '../apollo-client/policy/evict';
 import { PersistTypePolicies } from '../apollo-client/policy/persist';
 import { editorsInCache } from '../editor/editors';
-import { LocalCollabText } from '../../__generated__/graphql';
-import { CollabEditor } from '~collab/client/collab-editor';
-import { EvictTypePolicies } from '../apollo-client/policy/evict';
+
 import { localNotesConnection as Query_localNotesConnection } from './policies/Query/localNotesConnection';
 
 const localNotePolicies: TypePolicies &
@@ -11,10 +13,12 @@ const localNotePolicies: TypePolicies &
   EvictTypePolicies<NormalizedCacheObject> = {
   Query: {
     fields: {
-      nextLocalNoteId(existing = 1) {
+      // eslint-disable-next-line @typescript-eslint/no-inferrable-types
+      nextLocalNoteId(existing: number = 1): number {
         return existing;
       },
-      nextLocalCollabTextId(existing = 1) {
+      // eslint-disable-next-line @typescript-eslint/no-inferrable-types
+      nextLocalCollabTextId(existing: number = 1): number {
         return existing;
       },
       localNote: {

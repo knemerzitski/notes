@@ -13,13 +13,17 @@ import {
 import { setContext } from '@apollo/client/link/context';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { Reference, getMainDefinition } from '@apollo/client/utilities';
+import { CachePersistor } from 'apollo3-cache-persist';
 import { Kind, OperationTypeNode } from 'graphql';
 import { createClient, MessageType, ConnectionInitMessage } from 'graphql-ws';
-import { CachePersistor } from 'apollo3-cache-persist';
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
 
+import { getCurrentUserId, withDifferentUserIdInStorage } from '../auth/user';
+
+import { KeySpecifierName } from './key-specifier';
 import ErrorLink from './links/error-link';
 import StatsLink from './links/stats-link';
+import TypeLink, { LinkTypePolicies } from './links/type-link';
 import WaitLink from './links/wait-link';
 import {
   EvictByTagOptions,
@@ -29,10 +33,8 @@ import {
   GarbageCollectionOptions,
   TypePoliciesEvictor as TypePoliciesEvictor,
 } from './policy/evict';
-import { KeySpecifierName } from './key-specifier';
-import TypeLink, { LinkTypePolicies } from './links/type-link';
 import { PersistTypePolicies } from './policy/persist';
-import { getCurrentUserId, withDifferentUserIdInStorage } from '../auth/user';
+
 
 type AllTypePolicies = TypePolicies &
   PersistTypePolicies &

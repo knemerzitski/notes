@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import { TransitionProps } from '@mui/material/transitions';
 import { useId, useState, MouseEvent, ReactElement, Ref, forwardRef } from 'react';
+
 import useIsMobile from '../../common/hooks/useIsMobile';
 
 export interface MoreOptionsButtonProps {

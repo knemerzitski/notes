@@ -10,7 +10,6 @@ import {
   useTheme,
 } from '@mui/material';
 import { FormEvent, useEffect, useRef, useState } from 'react';
-
 import isEnvVarStringTrue from '~utils/string/isEnvVarStringTrue';
 
 import { useGoogleAuth } from './GoogleAuthProvider';

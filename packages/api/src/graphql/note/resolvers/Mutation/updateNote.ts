@@ -1,34 +1,33 @@
 import { GraphQLError } from 'graphql';
-
-import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
-import { assertAuthenticated } from '../../../base/directives/auth';
-import {
-  type MutationResolvers,
-  ResolversTypes,
-  NoteTextField,
-} from '../../../types.generated';
-import { CollabTextSchema } from '../../../../mongodb/schema/collab-text';
-
 import { AnyBulkWriteOperation } from 'mongodb';
+import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+import { SelectionRange } from '~collab/client/selection-range';
+import { ChangesetRevisionRecords } from '~collab/records/changeset-revision-records';
+import { RevisionChangeset, SerializedRevisionChangeset } from '~collab/records/record';
+import recordInsertion, { RecordInsertionError } from '~collab/records/recordInsertion';
+import { RevisionRecords } from '~collab/records/revision-records';
+import { ErrorWithData } from '~utils/logger';
+import isEmptyDeep from '~utils/object/isEmptyDeep';
+import isDefined from '~utils/type-guards/isDefined';
+
 import { CollectionName } from '../../../../mongodb/collections';
+import { DeepQueryResponse, MongoDocumentQuery } from '../../../../mongodb/query-builder';
+import { CollabTextSchema } from '../../../../mongodb/schema/collab-text';
+import { assertAuthenticated } from '../../../base/directives/auth';
 import {
   CollabTextQuery,
   CollabTextQueryMapper,
 } from '../../../collab/mongo-query-mapper/collab-text';
 import { CollabTextRecordQueryMapper } from '../../../collab/mongo-query-mapper/revision-record';
-import { DeepQueryResponse, MongoDocumentQuery } from '../../../../mongodb/query-builder';
-import { publishNoteUpdated } from '../Subscription/noteUpdated';
 import { CollabTextMapper } from '../../../collab/schema.mappers';
-import isEmptyDeep from '~utils/object/isEmptyDeep';
-import isDefined from '~utils/type-guards/isDefined';
-import recordInsertion, { RecordInsertionError } from '~collab/records/recordInsertion';
+import {
+  type MutationResolvers,
+  ResolversTypes,
+  NoteTextField,
+} from '../../../types.generated';
 import { NoteQuery } from '../../mongo-query-mapper/note';
 import { NoteMapper } from '../../schema.mappers';
-import { SelectionRange } from '~collab/client/selection-range';
-import { ChangesetRevisionRecords } from '~collab/records/changeset-revision-records';
-import { RevisionChangeset, SerializedRevisionChangeset } from '~collab/records/record';
-import { RevisionRecords } from '~collab/records/revision-records';
-import { ErrorWithData } from '~utils/logger';
+import { publishNoteUpdated } from '../Subscription/noteUpdated';
 
 type DefinedAwaited<T> = NonNullable<Awaited<T>>;
 

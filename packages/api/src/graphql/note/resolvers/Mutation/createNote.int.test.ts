@@ -1,23 +1,25 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { assert, beforeAll, describe, expect, it } from 'vitest';
-import { UserSchema } from '../../../../mongodb/schema/user';
-import { resetDatabase } from '../../../../test/helpers/mongodb';
-import { GraphQLResolversContext } from '../../../context';
 import { faker } from '@faker-js/faker';
-import {
-  createUser,
-  populateWithCreatedData,
-} from '../../../../test/helpers/mongodb/populate';
-import { CreateNoteInput, NoteTextField } from '../../../types.generated';
-import { apolloServer } from '../../../../test/helpers/apollo-server';
-
+import { assert, beforeAll, describe, expect, it } from 'vitest';
 import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
+
+import { UserSchema } from '../../../../mongodb/schema/user';
+import { apolloServer } from '../../../../test/helpers/apollo-server';
 import {
   createPublisher,
   createGraphQLResolversContext,
   mockSocketApi,
   mockSubscriptionsModel,
 } from '../../../../test/helpers/graphql-context';
+import { resetDatabase } from '../../../../test/helpers/mongodb';
+import {
+  createUser,
+  populateWithCreatedData,
+} from '../../../../test/helpers/mongodb/populate';
+import { GraphQLResolversContext } from '../../../context';
+import { CreateNoteInput, NoteTextField } from '../../../types.generated';
+
+
 
 const MUTATION = `#graphql
   mutation($input: CreateNoteInput!){

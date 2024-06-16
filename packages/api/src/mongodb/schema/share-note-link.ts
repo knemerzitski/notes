@@ -1,7 +1,9 @@
-import { nanoid } from 'nanoid';
-import { CollectionDescription } from '../collections';
-import { NoteSchema } from './note';
 import { ObjectId } from 'mongodb';
+import { nanoid } from 'nanoid';
+
+import { CollectionDescription } from '../collections';
+
+import { NoteSchema } from './note';
 import { UserNoteSchema } from './user-note';
 
 /**

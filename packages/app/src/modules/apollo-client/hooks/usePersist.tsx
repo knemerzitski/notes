@@ -1,5 +1,5 @@
-import { createContext, useContext, ReactNode, useCallback } from 'react';
 import { CachePersistor } from 'apollo3-cache-persist';
+import { createContext, useContext, ReactNode, useCallback } from 'react';
 
 const PersistContext = createContext<(() => Promise<void>) | null>(null);
 

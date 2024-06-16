@@ -4,9 +4,9 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import { CircularProgress, IconButton, IconButtonProps, Tooltip } from '@mui/material';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { gql } from '../../../../__generated__/gql';
 import useStatsLink from '../../../apollo-client/hooks/useStatsLink';
 import CrossFade from '../../../common/components/CrossFade';
-import { gql } from '../../../../__generated__/gql';
 
 const QUERY = gql(`
   query SyncStatusButton {

@@ -7,6 +7,17 @@ import {
   Handler,
   APIGatewayProxyResultV2,
 } from 'aws-lambda';
+
+import {
+  WebSocketConnectEvent,
+  WebSocketConnectHandlerContext,
+  WebSocketConnectHandlerParams,
+  webSocketConnectHandler,
+} from './connect-handler';
+import { createApiGatewayContext } from './context/apigateway';
+import { createDynamoDbContext } from './context/dynamodb';
+import { createGraphQLContext } from './context/graphql';
+import { createPingPongContext } from './context/pingpong';
 import {
   WebSocketDisconnectEvent,
   WebSocketDisconnectGraphQLContext,
@@ -14,12 +25,7 @@ import {
   WebSocketDisconnectHandlerParams,
   webSocketDisconnectHandler,
 } from './disconnect-handler';
-import {
-  WebSocketConnectEvent,
-  WebSocketConnectHandlerContext,
-  WebSocketConnectHandlerParams,
-  webSocketConnectHandler,
-} from './connect-handler';
+import { DynamoDBRecord } from './dynamodb/models/connection';
 import {
   WebSocketMessageGraphQLContext,
   WebSocketMessageHandlerContext,
@@ -27,11 +33,6 @@ import {
   createMessageHandlers,
   webSocketMessageHandler,
 } from './message-handler';
-import { DynamoDBRecord } from './dynamodb/models/connection';
-import { createDynamoDbContext } from './context/dynamodb';
-import { createGraphQLContext } from './context/graphql';
-import { createApiGatewayContext } from './context/apigateway';
-import { createPingPongContext } from './context/pingpong';
 
 /**
  * Add headers types to APIGatewayProxyWebsocketEventV2 since they're

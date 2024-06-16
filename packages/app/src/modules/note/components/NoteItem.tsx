@@ -1,7 +1,7 @@
-import { Box, Paper, PaperProps, Tooltip, Typography, useTheme } from '@mui/material';
-import { ReactNode, useRef, useState } from 'react';
 import LinkIcon from '@mui/icons-material/Link';
 import PersonIcon from '@mui/icons-material/Person';
+import { Box, Paper, PaperProps, Tooltip, Typography, useTheme } from '@mui/material';
+import { ReactNode, useRef, useState } from 'react';
 
 import MoreOptionsButton from './MoreOptionsButton';
 

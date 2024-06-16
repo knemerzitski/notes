@@ -1,19 +1,22 @@
 import DataLoader from 'dataloader';
+import { AggregateOptions, ObjectId } from 'mongodb';
+import callFnGrouped from '~utils/callFnGrouped';
+import sortObject from '~utils/object/sortObject';
+
+import { CollectionName } from '../../../mongodb/collections';
 import { DeepQueryResponse } from '../../../mongodb/query-builder';
+import { GraphQLResolversContext } from '../../context';
 import { NoteQuery } from '../mongo-query-mapper/note';
 
-import { GraphQLResolversContext } from '../../context';
 
-import sortObject from '~utils/object/sortObject';
-import { AggregateOptions, ObjectId } from 'mongodb';
 
 import noteBatchLoad, { NoteKey } from './noteBatchLoad';
 import noteConnectionBatchLoad, {
   NoteConnectionBatchLoadOutput,
   NoteConnectionKey,
 } from './noteConnectionBatchLoad';
-import { CollectionName } from '../../../mongodb/collections';
-import callFnGrouped from '~utils/callFnGrouped';
+
+
 
 export interface NotesDataSourceContext {
   mongodb: {

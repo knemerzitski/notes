@@ -1,19 +1,18 @@
 import { useMutation } from '@apollo/client';
 import { useEffect } from 'react';
-
 import {
   AuthenticationFailedReason,
   GraphQLErrorCode,
 } from '~api-app-shared/graphql/error-codes';
 
-import useAddFetchResultErrorHandler from '../../apollo-client/hooks/useAddFetchResultErrorHandler';
 import { gql } from '../../../__generated__/gql';
+import { useCustomApolloClient } from '../../apollo-client/context/CustomApolloClientProvider';
+import useAddFetchResultErrorHandler from '../../apollo-client/hooks/useAddFetchResultErrorHandler';
 import {
   useSnackbarAlert,
   useSnackbarError,
 } from '../../common/components/SnackbarAlertProvider';
 import { getCurrentUserId, getSignedInUserIds, setAvailableUsers } from '../user';
-import { useCustomApolloClient } from '../../apollo-client/context/CustomApolloClientProvider';
 
 const SYNC_SESSIONS = gql(`
   mutation SessionSynchronizationSyncSessions($input: SyncSessionCookiesInput!) {

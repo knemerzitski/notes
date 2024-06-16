@@ -1,8 +1,9 @@
 import util, { InspectOptionsStylized } from 'util';
+
 import { Changeset } from '../../changeset/changeset';
-import { Strips } from '../../changeset/strips';
 import { InsertStrip } from '../../changeset/insert-strip';
 import { RetainStrip } from '../../changeset/retain-strip';
+import { Strips } from '../../changeset/strips';
 
 /**
  * Display Changeset as a stylized string

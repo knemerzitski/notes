@@ -1,13 +1,15 @@
-import { allActiveCollabTexts as Query_allActiveCollabTexts } from './policies/Query/allActiveCollabTexts';
-import { viewText as CollabText_viewText } from './policies/CollabText/viewText';
 import { NormalizedCacheObject, TypePolicies } from '@apollo/client';
-import { PersistTypePolicies } from '../apollo-client/policy/persist';
 import { CollabEditor } from '~collab/client/collab-editor';
+
 import { CollabText } from '../../__generated__/graphql';
-import { textAtRevision as CollabText_textAtRevision } from './policies/CollabText/textAtRevision';
-import { recordsConnection as CollabText_recordsConnection } from './policies/CollabText/recordsConnection';
-import { editorsInCache } from '../editor/editors';
 import { EvictTypePolicies } from '../apollo-client/policy/evict';
+import { PersistTypePolicies } from '../apollo-client/policy/persist';
+import { editorsInCache } from '../editor/editors';
+
+import { recordsConnection as CollabText_recordsConnection } from './policies/CollabText/recordsConnection';
+import { textAtRevision as CollabText_textAtRevision } from './policies/CollabText/textAtRevision';
+import { viewText as CollabText_viewText } from './policies/CollabText/viewText';
+import { allActiveCollabTexts as Query_allActiveCollabTexts } from './policies/Query/allActiveCollabTexts';
 
 const collabTextPolicies: TypePolicies &
   PersistTypePolicies &

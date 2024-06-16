@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { SelectionRange } from './selection-range';
 
 describe('clamp', () => {

@@ -1,5 +1,4 @@
 import { SFNClient, SFNClientConfig, StartExecutionCommand } from '@aws-sdk/client-sfn';
-
 import { Logger } from '~utils/logger';
 
 export interface PingPongMachineInput {

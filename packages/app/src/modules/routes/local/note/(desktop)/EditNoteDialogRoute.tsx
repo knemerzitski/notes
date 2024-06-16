@@ -1,19 +1,20 @@
 import { AppBar as MuiAppBar, Box, Button, useTheme } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+
 import RouteClosable, {
   RouteClosableComponentProps,
 } from '../../../../common/components/RouteClosable';
+import RouteSnackbarError from '../../../../common/components/RouteSnackbarError';
 import useIsElementScrollEnd from '../../../../common/hooks/useIsElementScrollEnd';
-import { LocalNoteEditingContext } from '../../../../note-local/context/LocalNoteEditingContext';
 import CollabInputs from '../../../../note/components/CollabInputs';
 import MoreOptionsButton from '../../../../note/components/MoreOptionsButton';
 import NoteDialog from '../../../../note/components/NoteDialog';
 import RedoButton from '../../../../note/components/RedoButton';
 import UndoButton from '../../../../note/components/UndoButton';
+import { LocalNoteEditingContext } from '../../../../note-local/context/LocalNoteEditingContext';
 import useDeleteLocalNote from '../../../../note-local/hooks/useDeleteLocalNote';
 import useLocalNoteExists from '../../../../note-local/hooks/useLocalNoteExists';
-import RouteSnackbarError from '../../../../common/components/RouteSnackbarError';
 import { BackgroundPathProvider } from '../../../../router/context/BackgroundPathProvider';
 
 function RouteClosableEditNoteDialog({

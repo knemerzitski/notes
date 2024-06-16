@@ -6,10 +6,10 @@ import {
   Handler,
 } from 'aws-lambda';
 import { GRAPHQL_TRANSPORT_WS_PROTOCOL } from 'graphql-ws';
-
 import { Logger } from '~utils/logger';
 import { Maybe, MaybePromise } from '~utils/types';
 
+import lowercaseHeaderKeys from './apigateway-proxy-event/lowercaseHeaderKeys';
 import { DynamoDBContextParams, createDynamoDbContext } from './context/dynamodb';
 import {
   ConnectionTable,
@@ -17,7 +17,6 @@ import {
   DynamoDBRecord,
 } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
-import lowercaseHeaderKeys from './apigateway-proxy-event/lowercaseHeaderKeys';
 
 interface DirectParams<
   TBaseGraphQLContext,

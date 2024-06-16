@@ -1,12 +1,12 @@
 import { ComponentType, ReactElement, Suspense, useMemo } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useLocation, Location, RoutesProps, Route, RouteProps } from 'react-router-dom';
-
-import usePreviousLocation from '../hooks/usePreviousLocation';
-import SnackbarErrorBoundary from '../../common/components/SnackbarErrorBoundary';
 import isDefined from '~utils/type-guards/isDefined';
-import matchPathSuffix from '../utils/matchPathSuffix';
+
+import SnackbarErrorBoundary from '../../common/components/SnackbarErrorBoundary';
+import usePreviousLocation from '../hooks/usePreviousLocation';
 import getParentFromSuffix from '../utils/getParentFromSuffix';
+import matchPathSuffix from '../utils/matchPathSuffix';
 
 interface ModalBackgroundRouteProps {
   DefaultRoutes: ComponentType<RoutesProps>;

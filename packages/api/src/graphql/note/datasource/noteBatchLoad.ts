@@ -1,21 +1,24 @@
+import { GraphQLError } from 'graphql';
 import { AggregateOptions, ObjectId } from 'mongodb';
+import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+
+import { CollectionName } from '../../../mongodb/collections';
+import userNoteLookup from '../../../mongodb/operations/lookup/userNoteLookup';
 import {
   DeepQuery,
   DeepQueryResponse,
   DeepQueryResponsePaginationMapped,
   mergeQueries,
 } from '../../../mongodb/query-builder';
-import { GraphQLError } from 'graphql';
-import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
-import userNoteLookup from '../../../mongodb/operations/lookup/userNoteLookup';
+import { GraphQLResolversContext } from '../../context';
 import { NoteQuery } from '../mongo-query-mapper/note';
+
+import { UserNoteDeepQueryResponse } from './UserNoteDeepQueryResponse';
 import groupByUserId from './utils/groupByUserId';
 import userNoteQueryPaginationMappedToResponse from './utils/userNoteQueryPaginationMappedToResponse';
 import userNoteQueryToLookupInput from './utils/userNoteQueryToLookupInput';
 import userNoteResponseToPaginationsMapped from './utils/userNoteResponseToPaginationsMapped';
-import { UserNoteDeepQueryResponse } from './UserNoteDeepQueryResponse';
-import { GraphQLResolversContext } from '../../context';
-import { CollectionName } from '../../../mongodb/collections';
+
 
 export interface NoteKey {
   /**

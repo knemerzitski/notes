@@ -1,10 +1,11 @@
+
+import { ObjectId } from 'mongodb';
 import { Changeset } from '~collab/changeset/changeset';
+import { SelectionRange } from '~collab/client/selection-range';
+import { RevisionChangeset, ServerRevisionRecord } from '~collab/records/record';
+import { PartialBy } from '~utils/types';
 
 import { CollectionDescription } from '../collections';
-import { ObjectId } from 'mongodb';
-import { RevisionChangeset, ServerRevisionRecord } from '~collab/records/record';
-import { SelectionRange } from '~collab/client/selection-range';
-import { PartialBy } from '~utils/types';
 
 export interface CollabTextSchema<T = unknown> {
   _id: ObjectId;

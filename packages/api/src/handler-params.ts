@@ -1,7 +1,7 @@
+import { BaseContext } from '@apollo/server';
 import { ApiGatewayManagementApiClient } from '@aws-sdk/client-apigatewaymanagementapi';
 import { STSClient, AssumeRoleCommand } from '@aws-sdk/client-sts';
 import { ServerApiVersion } from 'mongodb';
-
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import { CreateApolloHttpHandlerParams } from '~lambda-graphql/apollo-http-handler';
 import { ApiGatewayContextParams } from '~lambda-graphql/context/apigateway';
@@ -13,26 +13,25 @@ import {
 import { ConnectionTtlContext } from '~lambda-graphql/dynamodb/models/connection';
 import { Logger } from '~utils/logger';
 
-import {
-  defaultTtl,
-  tryRefreshTtl,
-} from './session-expiration/dynamodb-subscription-connection';
+import { ApiOptions } from './graphql/api-options';
 import {
   ApiGraphQLContext,
   BaseGraphQLContext,
   DynamoDBBaseGraphQLContext,
 } from './graphql/context';
 import { applyDirectives } from './graphql/directives';
-import { resolvers } from './graphql/resolvers.generated';
-import { typeDefs } from './graphql/typeDefs.generated';
-import { createMongoDBContext } from './mongodb/lambda-context';
-import { createCollectionInstances } from './mongodb/collections';
 import NotesDataSource, {
   NotesDataSourceContext,
 } from './graphql/note/datasource/notes-datasource';
-import { BaseContext } from '@apollo/server';
-import { ApiOptions } from './graphql/api-options';
 import { ApolloServerLogger } from './graphql/plugins/apollo-server-logger';
+import { resolvers } from './graphql/resolvers.generated';
+import { typeDefs } from './graphql/typeDefs.generated';
+import { createCollectionInstances } from './mongodb/collections';
+import { createMongoDBContext } from './mongodb/lambda-context';
+import {
+  defaultTtl,
+  tryRefreshTtl,
+} from './session-expiration/dynamodb-subscription-connection';
 
 export function createDefaultGraphQLParams<TContext extends BaseContext>(
   logger: Logger

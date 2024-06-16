@@ -1,17 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
+import { ObjectId } from 'mongodb';
 import { beforeAll, it, assert, expect } from 'vitest';
+
+import { NoteSchema } from '../../../mongodb/schema/note';
+import { UserSchema } from '../../../mongodb/schema/user';
+import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb';
 import {
   populateUserWithNotes,
   populateWithCreatedData,
 } from '../../../test/helpers/mongodb/populate';
-import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb';
 import { NoteTextField } from '../../types.generated';
 
-import { ObjectId } from 'mongodb';
 import noteBatchLoad, { NoteBatchLoadContext } from './noteBatchLoad';
-import { NoteSchema } from '../../../mongodb/schema/note';
-import { UserSchema } from '../../../mongodb/schema/user';
+
 
 let notes: NoteSchema[];
 let user: UserSchema;

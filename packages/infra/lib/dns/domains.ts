@@ -1,8 +1,8 @@
-import { Construct } from 'constructs';
-import { isNonEmptyMutableArray } from '~utils/array/isNonEmptyArray';
+import { Distribution } from 'aws-cdk-lib/aws-cloudfront';
 import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { CloudFrontTarget, Route53RecordTarget } from 'aws-cdk-lib/aws-route53-targets';
-import { Distribution } from 'aws-cdk-lib/aws-cloudfront';
+import { Construct } from 'constructs';
+import { isNonEmptyMutableArray } from '~utils/array/isNonEmptyArray';
 
 export interface DomainsProps {
   definitions: string | DomainDefinition[];

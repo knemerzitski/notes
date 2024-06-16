@@ -1,5 +1,5 @@
-import { useParams } from 'react-router-dom';
 
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import {
   AppBar as MuiAppBar,
   Box,
@@ -7,19 +7,20 @@ import {
   Toolbar as MuiToolbar,
   Alert,
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import useDeleteLocalNote from '../../../../note-local/hooks/useDeleteLocalNote';
-import useIsScrollEnd from '../../../../common/hooks/useIsScrollEnd';
-import usePreviousLocation from '../../../../router/hooks/usePreviousLocation';
-import { useProxyNavigate } from '../../../../router/context/ProxyRoutesProvider';
 import { useEffect } from 'react';
-import useLocalNoteExists from '../../../../note-local/hooks/useLocalNoteExists';
+import { useParams } from 'react-router-dom';
+
 import AppBar from '../../../../common/components/AppBar';
-import { LocalNoteEditingContext } from '../../../../note-local/context/LocalNoteEditingContext';
+import useIsScrollEnd from '../../../../common/hooks/useIsScrollEnd';
 import CollabInputs from '../../../../note/components/CollabInputs';
-import UndoButton from '../../../../note/components/UndoButton';
-import RedoButton from '../../../../note/components/RedoButton';
 import MoreOptionsButton from '../../../../note/components/MoreOptionsButton';
+import RedoButton from '../../../../note/components/RedoButton';
+import UndoButton from '../../../../note/components/UndoButton';
+import { LocalNoteEditingContext } from '../../../../note-local/context/LocalNoteEditingContext';
+import useDeleteLocalNote from '../../../../note-local/hooks/useDeleteLocalNote';
+import useLocalNoteExists from '../../../../note-local/hooks/useLocalNoteExists';
+import { useProxyNavigate } from '../../../../router/context/ProxyRoutesProvider';
+import usePreviousLocation from '../../../../router/hooks/usePreviousLocation';
 
 export type EditNoteLocationState = null | { newNote?: boolean; autoFocus?: boolean };
 

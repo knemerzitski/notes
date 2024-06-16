@@ -1,8 +1,8 @@
 // Runs GraphQL API with an actual lambda Docker container
 
 import { beforeEach, expect, it } from 'vitest';
-import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import { resetDatabase } from '~api/test/helpers/mongodb';
+import { CustomHeaderName } from '~api-app-shared/custom-headers';
 
 beforeEach(() => {
   resetDatabase();

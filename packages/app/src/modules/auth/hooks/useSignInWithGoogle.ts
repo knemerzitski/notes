@@ -1,11 +1,12 @@
 import { useApolloClient, useMutation } from '@apollo/client';
 import { useCallback } from 'react';
 
-import useNavigateSwitchCurrentUser from './useNavigateSwitchCurrentUser';
 import { gql } from '../../../__generated__/gql';
 import { AuthProvider } from '../../../__generated__/graphql';
 import { useSnackbarError } from '../../common/components/SnackbarAlertProvider';
 import { addSignedInUser } from '../user';
+
+import useNavigateSwitchCurrentUser from './useNavigateSwitchCurrentUser';
 
 const SIGN_IN = gql(`
   mutation UseSignInWithGoogle($input: SignInInput!)  {

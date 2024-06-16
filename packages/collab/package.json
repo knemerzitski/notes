@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "test:unit": "vitest run",
-    "test:unit:watch": "vitest watch"
+    "test:unit:watch": "vitest watch",
+    "lint": "eslint . --max-warnings 0"
   },
   "dependencies": {
     "map-obj": "^5.0.2",

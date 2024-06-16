@@ -7,12 +7,12 @@ import {
   APIGatewayProxyWebsocketHandlerV2,
 } from 'aws-lambda';
 import { WebSocket } from 'ws';
-
 import {
   WebSocketConnectEvent,
   WebSocketConnectHandler,
 } from '~lambda-graphql/connect-handler';
 import { WebSocketDisconnectHandler } from '~lambda-graphql/disconnect-handler';
+import { WebSocketHandler } from '~lambda-graphql/websocket-handler';
 import isArray from '~utils/array/isArray';
 import { Logger } from '~utils/logger';
 
@@ -20,7 +20,6 @@ import fixtureWebSocketEventConnect from '../../fixtures/websocket/CONNECT.json'
 import fixtureWebSocketEventDisconnect from '../../fixtures/websocket/DISCONNECT.json';
 import fixtureWebSocketEventMessage from '../../fixtures/websocket/MESSAGE.json';
 import { createLambdaContext } from '../utils/lambda-context';
-import { WebSocketHandler } from '~lambda-graphql/websocket-handler';
 
 type AllHandler = WebSocketHandler;
 interface RoutedHandlers {

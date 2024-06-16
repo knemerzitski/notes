@@ -1,8 +1,9 @@
 import { ApolloCache, FieldPolicy, NormalizedCacheObject } from '@apollo/client';
-import { EvictFieldPolicy } from '../../../apollo-client/policy/evict';
 import { relayStylePagination } from '@apollo/client/utilities';
+
 import { gql } from '../../../../__generated__/gql';
 import { InsertLocalNoteToNotesConnectionQuery } from '../../../../__generated__/graphql';
+import { EvictFieldPolicy } from '../../../apollo-client/policy/evict';
 
 const QUERY = gql(`
   query InsertLocalNoteToNotesConnection {

@@ -1,7 +1,6 @@
 import './load-env';
 
 import WebSocket from 'ws';
-
 import {
   BaseGraphQLContext,
   BaseSubscriptionResolversContext,
@@ -13,18 +12,18 @@ import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
 import { createWebSocketConnectHandler } from '~lambda-graphql/connect-handler';
 import { createWebSocketDisconnectHandler } from '~lambda-graphql/disconnect-handler';
 import { createWebSocketMessageHandler } from '~lambda-graphql/message-handler';
+import { createWebSocketHandler } from '~lambda-graphql/websocket-handler';
 import { createLogger } from '~utils/logger';
+import isEnvVarStringTrue from '~utils/string/isEnvVarStringTrue';
 
 import { createMockMongoDBContext } from './handler-params';
-import { createLambdaServer } from './lambda-server';
-import { createLambdaGraphQLDynamoDBTables } from './utils/lambda-graphql-dynamodb';
 import { mockCreateDefaultParams as mockCreateDefaultApolloHttpHandlerParams } from './handlers/mock-apollo-http-handler';
 import { mockCreateDefaultParams as mockCreateDefaultWebSocketConnectParams } from './handlers/mock-connect-handler';
-import { mockCreateDefaultParams as mockCreateDefaultMessageHandlerParams } from './handlers/mock-message-handler';
 import { mockCreateDefaultParams as mockCreateDefaultDisconnectHandlerParams } from './handlers/mock-disconnect-handler';
-import isEnvVarStringTrue from '~utils/string/isEnvVarStringTrue';
-import { createWebSocketHandler } from '~lambda-graphql/websocket-handler';
+import { mockCreateDefaultParams as mockCreateDefaultMessageHandlerParams } from './handlers/mock-message-handler';
 import { mockCreateDefaultParams as mockCreateDefaultWebSocketHandlerParams } from './handlers/mock-websocket-handler';
+import { createLambdaServer } from './lambda-server';
+import { createLambdaGraphQLDynamoDBTables } from './utils/lambda-graphql-dynamodb';
 
 const logger = createLogger('mock:lambda-graphql-server');
 

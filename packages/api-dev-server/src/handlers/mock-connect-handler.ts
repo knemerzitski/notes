@@ -11,6 +11,7 @@ import {
   createWebSocketConnectHandler,
 } from '~lambda-graphql/connect-handler';
 import { createLogger } from '~utils/logger';
+
 import { createMockDynamoDBParams, createMockMongoDBContext } from '../handler-params';
 
 interface MockWebSocketConnectHandlerOptions {

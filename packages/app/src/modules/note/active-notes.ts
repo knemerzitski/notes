@@ -1,5 +1,6 @@
 import { ApolloCache, Reference, makeReference, makeVar } from '@apollo/client';
 import isDefined from '~utils/type-guards/isDefined';
+
 import { Note } from '../../__generated__/graphql';
 import { getCurrentUserId } from '../auth/user';
 

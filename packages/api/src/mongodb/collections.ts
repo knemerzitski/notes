@@ -1,11 +1,12 @@
-import { Collection, Db, IndexDescription } from 'mongodb';
-import { UserSchema, userDescription } from './schema/user';
 import mapObject from 'map-obj';
-import { SessionSchema, sessionDescription } from './schema/session/sessions';
-import { UserNoteSchema, userNoteDescription } from './schema/user-note';
-import { NoteSchema, noteDescription } from './schema/note';
+import { Collection, Db, IndexDescription } from 'mongodb';
+
 import { CollabTextSchema, collabTextDescription } from './schema/collab-text';
+import { NoteSchema, noteDescription } from './schema/note';
+import { SessionSchema, sessionDescription } from './schema/session/sessions';
 import { ShareNoteLinkSchema, shareNoteLinkDescription } from './schema/share-note-link';
+import { UserSchema, userDescription } from './schema/user';
+import { UserNoteSchema, userNoteDescription } from './schema/user-note';
 
 export interface CollectionDescription {
   indexSpecs?: IndexDescription[];

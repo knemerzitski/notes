@@ -1,20 +1,22 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { assert, beforeAll, expect, it } from 'vitest';
-import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb';
 import { faker } from '@faker-js/faker';
+import { ObjectId } from 'mongodb';
+import { assert, beforeAll, expect, it } from 'vitest';
+
+import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb';
 import {
   populateUserWithNotes,
   populateWithCreatedData,
 } from '../../../test/helpers/mongodb/populate';
-import { UserNoteLookupOutput } from './userNoteLookup';
-import { ObjectId } from 'mongodb';
-import userNotesArrayLookup, { UserNotesArrayLookupOutput } from './userNotesArrayLookup';
-
-import { UserSchema } from '../../schema/user';
 import { CollectionName } from '../../collections';
 import { CollabTextSchema } from '../../schema/collab-text';
-import { UserNoteSchema } from '../../schema/user-note';
 import { NoteSchema } from '../../schema/note';
+import { UserSchema } from '../../schema/user';
+import { UserNoteSchema } from '../../schema/user-note';
+
+import { UserNoteLookupOutput } from './userNoteLookup';
+import userNotesArrayLookup, { UserNotesArrayLookupOutput } from './userNotesArrayLookup';
+
 
 enum CollabTextKey {
   CONTENT = 'content',

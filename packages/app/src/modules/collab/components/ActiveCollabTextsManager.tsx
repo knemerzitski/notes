@@ -1,8 +1,10 @@
 import { useQuery } from '@apollo/client';
-import LocalChangesToSubmittedRecordDebounced from './LocalChangesToSubmittedRecordDebounced';
 import { Fragment } from 'react';
-import LocalChangesClientSychronized from './LocalChangesClientSynchronized';
+
 import { gql } from '../../../__generated__/gql';
+
+import LocalChangesClientSychronized from './LocalChangesClientSynchronized';
+import LocalChangesToSubmittedRecordDebounced from './LocalChangesToSubmittedRecordDebounced';
 import PersistChangesDebounced from './PersistChangesDebounced';
 
 const QUERY = gql(`

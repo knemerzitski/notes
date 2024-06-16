@@ -1,8 +1,8 @@
+import { useApolloClient } from '@apollo/client';
 import { useEffect } from 'react';
 
-import useAddFetchResultErrorHandler from '../hooks/useAddFetchResultErrorHandler';
 import { useSnackbarError } from '../../common/components/SnackbarAlertProvider';
-import { useApolloClient } from '@apollo/client';
+import useAddFetchResultErrorHandler from '../hooks/useAddFetchResultErrorHandler';
 // import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 // import { getCurrentUserId } from '../../auth/user';
 

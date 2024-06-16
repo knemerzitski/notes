@@ -1,9 +1,12 @@
+import isEqual from 'lodash.isequal';
+import mapObject from 'map-obj';
 import { Document, ObjectId } from 'mongodb';
+
+import { CollectionName } from '../../../mongodb/collections';
 import {
   RelayPagination,
   getPaginationKey,
 } from '../../../mongodb/operations/pagination/relayArrayPagination';
-import mapObject from 'map-obj';
 import { multiRelayArrayPaginationMapOutputToInput } from '../../../mongodb/operations/pagination/relayMultiArrayPaginationConcat';
 import relayPaginateUserNotesArray, {
   RelayPaginateUserNotesArrayOuput,
@@ -13,15 +16,14 @@ import {
   DeepQueryResponse,
   mergeQueries,
 } from '../../../mongodb/query-builder';
+import { GraphQLResolversContext } from '../../context';
 import { NoteQuery } from '../mongo-query-mapper/note';
+
+import { UserNoteDeepQueryResponse } from './UserNoteDeepQueryResponse';
 import groupByUserId from './utils/groupByUserId';
 import userNoteQueryPaginationMappedToResponse from './utils/userNoteQueryPaginationMappedToResponse';
 import userNoteQueryToLookupInput from './utils/userNoteQueryToLookupInput';
 import userNoteResponseToPaginationsMapped from './utils/userNoteResponseToPaginationsMapped';
-import { UserNoteDeepQueryResponse } from './UserNoteDeepQueryResponse';
-import { CollectionName } from '../../../mongodb/collections';
-import { GraphQLResolversContext } from '../../context';
-import isEqual from 'lodash.isequal';
 
 export interface NoteConnectionKey {
   /**

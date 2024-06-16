@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+
 import isEmptyDeep from './isEmptyDeep';
 
 it.each([

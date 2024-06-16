@@ -1,12 +1,14 @@
 import { useQuery } from '@apollo/client';
-import { gql } from '../../../__generated__/gql';
-import SubmittedRecordMutation from './SubmittedRecordMutation';
-import ExternalChangesSubscription from './ExternalChangesSubscription';
 import { Fragment } from 'react';
-import NoteDeletedSubscription from './NoteDeletedSubscription';
+
+import { gql } from '../../../__generated__/gql';
 import NoteContentIdToCollabTextsProvider from '../context/NoteContentIdToCollabTextsProvider';
-import SyncRecordsMissingInBuffer from './SyncRecordsMissingInBuffer';
+
+import ExternalChangesSubscription from './ExternalChangesSubscription';
+import NoteDeletedSubscription from './NoteDeletedSubscription';
+import SubmittedRecordMutation from './SubmittedRecordMutation';
 import SyncRecordsHeadTextUpdated from './SyncRecordsHeadTextUpdated';
+import SyncRecordsMissingInBuffer from './SyncRecordsMissingInBuffer';
 
 const QUERY = gql(`
   query ActiveNotesManager {

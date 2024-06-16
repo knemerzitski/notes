@@ -1,6 +1,5 @@
 import 'source-map-support/register';
 import { APIGatewayProxyHandler } from 'aws-lambda';
-
 import {
   createApolloHttpHandler,
   CreateApolloHttpHandlerParams,

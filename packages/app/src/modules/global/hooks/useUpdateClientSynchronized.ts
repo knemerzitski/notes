@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+
 import { clientSynchronizationVar } from '../reactive-vars';
 
 type UpdateFn = (key: unknown, synchronized: boolean) => void;

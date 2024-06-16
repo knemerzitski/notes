@@ -1,7 +1,9 @@
 import { MockedResponse, MockLink } from '@apollo/client/testing';
 import React from 'react';
+
 import CustomApolloClientProvider from '../../modules/apollo-client/context/CustomApolloClientProvider';
 import { CustomApolloClient } from '../../modules/apollo-client/custom-apollo-client';
+
 import { createCustomApolloClient } from './apollo-client';
 
 export interface CustomMockedProviderProps {

@@ -1,20 +1,23 @@
+import { faker } from '@faker-js/faker';
+import { ObjectId } from 'mongodb';
+import { assert } from 'vitest';
+import { Changeset, SerializedChangeset } from '~collab/changeset/changeset';
+
+import { CollectionName } from '../../../mongodb/collections';
 import {
   CollabTextSchema,
   RevisionRecordSchema,
 } from '../../../mongodb/schema/collab-text';
 import { NoteSchema, noteDefaultValues } from '../../../mongodb/schema/note';
-import { UserSchema } from '../../../mongodb/schema/user';
-import { faker } from '@faker-js/faker';
-import { Changeset, SerializedChangeset } from '~collab/changeset/changeset';
-import { mongoCollections } from '../mongodb';
-import { CollectionName } from '../../../mongodb/collections';
-import { ObjectId } from 'mongodb';
-import { UserNoteSchema } from '../../../mongodb/schema/user-note';
-import { assert } from 'vitest';
 import {
   ShareNoteLinkSchema,
   shareNoteLinkDefaultValues,
 } from '../../../mongodb/schema/share-note-link';
+import { UserSchema } from '../../../mongodb/schema/user';
+import { UserNoteSchema } from '../../../mongodb/schema/user-note';
+import { mongoCollections } from '../mongodb';
+
+
 
 type Task = () => Promise<void>;
 

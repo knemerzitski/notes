@@ -1,26 +1,25 @@
-import { useLocation, useParams } from 'react-router-dom';
-
-import useDeleteNote from '../../../note/hooks/useDeleteNote';
-import { useProxyNavigate } from '../../../router/context/ProxyRoutesProvider';
-import RouteSnackbarError from '../../../common/components/RouteSnackbarError';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import {
   AppBar as MuiAppBar,
   Box,
   IconButton,
   Toolbar as MuiToolbar,
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import usePreviousLocation from '../../../router/hooks/usePreviousLocation';
-import SyncStatusButton from '../../@layouts/appbar-drawer/SyncStatusButton';
-import CollabInputs from '../../../note/components/CollabInputs';
+import { useLocation, useParams } from 'react-router-dom';
 
-import useIsScrollEnd from '../../../common/hooks/useIsScrollEnd';
 import AppBar from '../../../common/components/AppBar';
+import RouteSnackbarError from '../../../common/components/RouteSnackbarError';
+import useIsScrollEnd from '../../../common/hooks/useIsScrollEnd';
+import CollabInputs from '../../../note/components/CollabInputs';
+import CollaborationButton from '../../../note/components/CollaborationButton';
 import MoreOptionsButton from '../../../note/components/MoreOptionsButton';
 import RedoButton from '../../../note/components/RedoButton';
 import UndoButton from '../../../note/components/UndoButton';
 import NewOrExistingNoteEditingContext from '../../../note/context/NewOrExistingNoteEditingContext';
-import CollaborationButton from '../../../note/components/CollaborationButton';
+import useDeleteNote from '../../../note/hooks/useDeleteNote';
+import { useProxyNavigate } from '../../../router/context/ProxyRoutesProvider';
+import usePreviousLocation from '../../../router/hooks/usePreviousLocation';
+import SyncStatusButton from '../../@layouts/appbar-drawer/SyncStatusButton';
 
 export type EditNoteLocationState = null | { newNote?: boolean; autoFocus?: boolean };
 

@@ -4,7 +4,7 @@ module.exports = {
     project: ['./tsconfig.json'],
     tsconfigRootDir: __dirname,
   },
-  ignorePatterns: ['src/graphql/*.generated.ts', 'node_modules'],
+  ignorePatterns: ['src/graphql/*.generated.ts', 'node_modules', 'out'],
   settings: {
     'import/resolver': {
       typescript: {

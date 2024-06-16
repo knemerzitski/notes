@@ -6,6 +6,7 @@ import {
   NavigateOptions,
   useLocation,
 } from 'react-router-dom';
+
 import { useRouter } from './RouterProvider';
 
 const ProxyRouteTransformContext = createContext<ProxyRoutesProviderProps['transform']>(
@@ -20,6 +21,7 @@ export function useProxyRouteTransform() {
   return useContext(ProxyRouteTransformContext);
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useProxyRouteInverseTransform() {
   return useContext(ProxyRouteInverseTransformContext);
 }

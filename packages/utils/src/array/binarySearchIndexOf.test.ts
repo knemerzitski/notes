@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { it, expect, describe } from 'vitest';
+
 import { binarySearchIndexOf } from './binarySearchIndexOf';
 
 const cmp = (a: number, b: number) => a - b;

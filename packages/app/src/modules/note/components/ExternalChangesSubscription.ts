@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
 
 import { gql } from '../../../__generated__/gql';
+import { useCustomApolloClient } from '../../apollo-client/context/CustomApolloClientProvider';
+import { useCurrentUserId } from '../../auth/user';
 import { collabTextRecordToEditorRevisionRecord } from '../../collab/editor-graphql-mapping';
 import { getCollabEditorMaybe } from '../../collab/hooks/useCollabEditor';
 import { useNoteContentIdMaybe } from '../context/NoteContentIdProvider';
-import { useCurrentUserId } from '../../auth/user';
-import { useCustomApolloClient } from '../../apollo-client/context/CustomApolloClientProvider';
 
 export const SUBSCRIPTION = gql(`
   subscription ExternalChangesNewRecord($input: NoteUpdatedInput) {

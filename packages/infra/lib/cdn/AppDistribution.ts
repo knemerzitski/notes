@@ -1,4 +1,3 @@
-import { Construct } from 'constructs';
 import { Duration, Fn } from 'aws-cdk-lib';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import {
@@ -22,16 +21,18 @@ import {
   Function
 } from 'aws-cdk-lib/aws-cloudfront';
 import { S3Origin, RestApiOrigin, HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import { IBucket } from 'aws-cdk-lib/aws-s3';
+import { Construct } from 'constructs';
 import { ScriptTarget, ModuleKind } from 'typescript';
+
+import { HttpRestApi } from '../api/http-rest-api';
+import { SubscriptionsWebSocketApi } from '../api/subscriptions-websocket-api';
+import { Domains } from '../dns/domains';
 import {
   TranspileOptionsAsFile,
   transpileTypeScriptToFile,
   eslintFile,
 } from '../utils/transpile-ts';
-import { Domains } from '../dns/domains';
-import { IBucket } from 'aws-cdk-lib/aws-s3';
-import { HttpRestApi } from '../api/http-rest-api';
-import { SubscriptionsWebSocketApi } from '../api/subscriptions-websocket-api';
 
 export interface AppDistributionProps {
   certificateArn: string;

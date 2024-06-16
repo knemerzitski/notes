@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
+
 import { OrderedMessageBuffer } from './ordered-message-buffer';
 
 interface Message {

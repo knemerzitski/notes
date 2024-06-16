@@ -1,27 +1,28 @@
 import { Route, Routes, RoutesProps, createBrowserRouter } from 'react-router-dom';
 
+import SessionSynchronization from '../auth/components/SessionSynchronization';
+import useIsSignedIn from '../auth/hooks/useIsSignedIn';
+import { NavigateSwitchCurrentUserProvider } from '../auth/hooks/useNavigateSwitchCurrentUser';
+import RouteSnackbarAlertProvider from '../common/components/RouteSnackbarAlertProvider';
+import useIsMobile from '../common/hooks/useIsMobile';
 import ModalBackgroundRouting from '../router/components/ModalBackgroundRouting';
+import LocationPrefixProvider from '../router/context/LocationPrefixProvider';
+import { PreviousLocationProvider } from '../router/hooks/usePreviousLocation';
 
 import AppBarDrawerLayout from './@layouts/appbar-drawer/AppBarDrawerLayout';
+import ErrorPage from './ErrorPage';
 import NotFoundPage from './NotFoundPage';
 import NotesRoute from './NotesRoute';
+import RedirectSharedNote from './RedirectSharedNote';
 import LocalNotesRoute from './local/NotesRoute';
 import LocalEditNoteDialogRoute from './local/note/(desktop)/EditNoteDialogRoute';
 import LocalEditNotePage from './local/note/(mobile)/EditNotePage';
 import EditNoteDialogRoute from './note/(desktop)/EditNoteDialogRoute';
-import useIsMobile from '../common/hooks/useIsMobile';
-import SessionSynchronization from '../auth/components/SessionSynchronization';
-import { NavigateSwitchCurrentUserProvider } from '../auth/hooks/useNavigateSwitchCurrentUser';
-import { PreviousLocationProvider } from '../router/hooks/usePreviousLocation';
-import ErrorPage from './ErrorPage';
-import LocationPrefixProvider from '../router/context/LocationPrefixProvider';
 import EditNotePage from './note/(mobile)/EditNotePage';
-import useIsSignedIn from '../auth/hooks/useIsSignedIn';
-import RedirectSharedNote from './RedirectSharedNote';
-import RouteSnackbarAlertProvider from '../common/components/RouteSnackbarAlertProvider';
 
 const currentUserIndex = 'u';
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const router = createBrowserRouter([
   ...[`/${currentUserIndex}/:currentUserIndex/*`, '*'].map((path) => ({
     path,

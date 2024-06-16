@@ -1,5 +1,9 @@
 import { ObjectId } from 'mongodb';
 import { assert, beforeAll, describe, expect, it } from 'vitest';
+import isNonEmptyArray from '~utils/array/isNonEmptyArray';
+
+import { mongoDB } from '../../../test/helpers/mongodb';
+
 import relayArrayPagination, {
   RelayArrayPaginationInput,
   RelayArrayPaginationOutput,
@@ -10,8 +14,6 @@ import relayArrayPagination, {
   sliceFirst,
   sliceLast,
 } from './relayArrayPagination';
-import { mongoDB } from '../../../test/helpers/mongodb';
-import isNonEmptyArray from '~utils/array/isNonEmptyArray';
 
 interface SubDocument {
   key: number;

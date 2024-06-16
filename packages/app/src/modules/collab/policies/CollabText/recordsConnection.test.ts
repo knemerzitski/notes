@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { InMemoryCache } from '@apollo/client';
-import { createCache } from '../../../../test/helpers/apollo-client';
 import { it, beforeEach, assert, expect, beforeAll, describe } from 'vitest';
+
 import { gql } from '../../../../__generated__/gql';
+import { createCache } from '../../../../test/helpers/apollo-client';
 
 let cache: InMemoryCache;
 let collabTextId: string;
@@ -36,8 +38,7 @@ describe('read', () => {
       id: '1',
       __typename: 'CollabText',
     });
-    assert(_collabTextId != null);
-    collabTextId = _collabTextId;
+    collabTextId = _collabTextId!;
 
     cache.restore({
       [collabTextId]: {
@@ -57,7 +58,7 @@ describe('read', () => {
     });
 
     expect(
-      collabText?.recordsConnection.records.map((r) => r?.change.revision)
+      collabText?.recordsConnection.records.map((r) => r.change.revision)
     ).toStrictEqual([4, 5, 6, 7, 9, 10, 11, 15, 16]);
   });
 
@@ -82,7 +83,7 @@ describe('read', () => {
       });
 
       expect(
-        collabText?.recordsConnection.records.map((r) => r?.change.revision)
+        collabText?.recordsConnection.records.map((r) => r.change.revision)
       ).toStrictEqual(expected);
     });
   });
@@ -107,7 +108,7 @@ describe('read', () => {
       });
 
       expect(
-        collabText?.recordsConnection.records.map((r) => r?.change.revision)
+        collabText?.recordsConnection.records.map((r) => r.change.revision)
       ).toStrictEqual(expected);
     });
   });
@@ -131,7 +132,7 @@ describe('merge', () => {
       __typename: 'CollabText',
     });
     assert(_collabTextId != null);
-    collabTextId = _collabTextId;
+    collabTextId = _collabTextId!;
 
     cache.restore({
       [collabTextId]: {

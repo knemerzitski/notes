@@ -1,8 +1,9 @@
 import { Handler } from 'aws-lambda';
 import 'source-map-support/register';
-import { createAllIndexes } from './mongodb/collections';
 import { createLogger } from '~utils/logger';
+
 import { createDefaultMongoDBContext } from './handler-params';
+import { createAllIndexes } from './mongodb/collections';
 
 /**
  * Handler that should be run once after deployment.

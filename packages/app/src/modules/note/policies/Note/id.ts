@@ -1,6 +1,7 @@
 import { FieldPolicy } from '@apollo/client';
-import { Note } from '../../../../__generated__/graphql';
+
 import { gql } from '../../../../__generated__/gql';
+import { Note } from '../../../../__generated__/graphql';
 
 const QUERY = gql(`
   query NoteIdRefresh {

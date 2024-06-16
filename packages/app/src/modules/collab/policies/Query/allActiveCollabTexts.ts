@@ -1,6 +1,7 @@
 import { Reference, FieldPolicy } from '@apollo/client';
-import { gql } from '../../../../__generated__';
 import isDefined from '~utils/type-guards/isDefined';
+
+import { gql } from '../../../../__generated__';
 import { activeNotesVar } from '../../../note/active-notes';
 
 const FRAGMENT = gql(`

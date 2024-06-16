@@ -1,5 +1,5 @@
-import useColorMode from '../../preferences/hooks/useColorMode';
 import { ColorMode } from '../../../__generated__/graphql';
+import useColorMode from '../../preferences/hooks/useColorMode';
 
 const labels = [
   {

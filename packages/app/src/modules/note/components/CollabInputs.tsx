@@ -1,9 +1,9 @@
 import { BoxProps } from '@mui/material';
 
-import InputsBox from './InputsBox';
 
 import CollabContentInput, { CollabContentInputProps } from './CollabContentInput';
 import CollabTitleInput, { CollabTitleInputProps } from './CollabTitleInput';
+import InputsBox from './InputsBox';
 
 export interface CollabInputsProps {
   boxProps?: BoxProps;

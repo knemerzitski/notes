@@ -1,10 +1,11 @@
 import { InMemoryCache } from '@apollo/client';
-import { typePolicies } from '../../modules/apollo-client/policies';
 import { CachePersistor, PersistentStorage } from 'apollo3-cache-persist';
+
 import {
   CustomApolloClient,
   CustomApolloClientParams,
 } from '../../modules/apollo-client/custom-apollo-client';
+import { typePolicies } from '../../modules/apollo-client/policies';
 
 export function createCache() {
   return new InMemoryCache({

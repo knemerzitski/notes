@@ -46,7 +46,7 @@ export default class TypeLink<TCacheShape> extends ApolloLink {
   public request(operation: Operation, forward: NextLink) {
     return new Observable<FetchResult>((observer: Observer<FetchResult>) => {
       const sub = forward(operation).subscribe({
-        start(subscription) {
+        start(subscription): unknown {
           return observer.start?.(subscription);
         },
         next: (data) => {

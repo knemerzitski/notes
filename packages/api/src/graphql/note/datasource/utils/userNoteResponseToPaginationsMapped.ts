@@ -1,4 +1,5 @@
 import mapObject from 'map-obj';
+
 import {
   paginationStringToInt,
   getPaginationKey,

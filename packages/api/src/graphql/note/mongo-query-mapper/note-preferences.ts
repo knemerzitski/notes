@@ -1,6 +1,6 @@
-import { NotePreferencesMapper } from '../schema.mappers';
 import { MongoDocumentQuery } from '../../../mongodb/query-builder';
 import { UserNoteSchema } from '../../../mongodb/schema/user-note';
+import { NotePreferencesMapper } from '../schema.mappers';
 
 export type NotePreferencesQuery = UserNoteSchema['preferences'];
 

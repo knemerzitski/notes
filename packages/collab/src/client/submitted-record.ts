@@ -1,11 +1,13 @@
+import { Serializable } from '~utils/serialize';
+
 import { Changeset } from '../changeset/changeset';
 import {
   SerializedSubmittedRevisionRecord,
   SubmittedRevisionRecord,
 } from '../records/record';
-import { SelectionRange } from './selection-range';
+
 import { CollabClientEvents as CollabClientEvents } from './collab-client';
-import { Serializable } from '~utils/serialize';
+import { SelectionRange } from './selection-range';
 
 export class SubmittedRecord
   implements SubmittedRevisionRecord, Serializable<SerializedSubmittedRevisionRecord>

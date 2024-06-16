@@ -1,4 +1,5 @@
 import { beforeEach, expect, it, vi } from 'vitest';
+
 import callFnGrouped from './callFnGrouped';
 
 interface Input {

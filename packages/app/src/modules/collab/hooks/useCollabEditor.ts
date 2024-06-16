@@ -1,8 +1,9 @@
 import { ApolloClient, useFragment } from '@apollo/client';
 import { CollabEditor } from '~collab/client/collab-editor';
+import { RevisionChangeset } from '~collab/records/record';
+
 import { gql } from '../../../__generated__/gql';
 import { editorsInCache } from '../../editor/editors';
-import { RevisionChangeset } from '~collab/records/record';
 
 export const FRAGMENT = gql(`
   fragment UseCollabEditor on CollabText {

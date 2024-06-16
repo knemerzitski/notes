@@ -1,28 +1,26 @@
-import { it, beforeEach, vi, expect } from 'vitest';
-import { render } from '@testing-library/react';
 import { MockedResponse } from '@apollo/client/testing';
-import {
-  NoteTextField,
-  UseUpdateNoteMutation,
-  UseUpdateNoteMutationVariables,
-} from '../../../__generated__/graphql';
-
-import { MUTATION } from '../hooks/useUpdateNote';
-import SubmittedRecordMutation from './SubmittedRecordMutation';
+import { render } from '@testing-library/react';
+import { it, beforeEach, vi, expect } from 'vitest';
+import { Changeset } from '~collab/changeset/changeset';
 import {
   CollabEditor,
   CollabEditorEvents,
   SerializedCollabEditor,
   UnprocessedRecordType,
 } from '~collab/client/collab-editor';
-import useNoteTextFieldCollabEditor from '../hooks/__mocks__/useNoteTextFieldCollabEditor';
 import nextTick from '~utils/nextTick';
-import { Changeset } from '~collab/changeset/changeset';
-import NoteCollabTextsProvider from '../context/NoteTextFieldEditorsProvider';
-import NoteContentIdProvider from '../context/NoteContentIdProvider';
-import { CustomMockedProvider } from '../../../test/helpers/CustomMockedProvider';
 
-vi.mock('../hooks/useNoteTextFieldCollabEditor');
+import {
+  NoteTextField,
+  UseUpdateNoteMutation,
+  UseUpdateNoteMutationVariables,
+} from '../../../__generated__/graphql';
+import { CustomMockedProvider } from '../../../test/helpers/CustomMockedProvider';
+import NoteContentIdProvider from '../context/NoteContentIdProvider';
+import NoteCollabTextsProvider from '../context/NoteTextFieldEditorsProvider';
+import { MUTATION } from '../hooks/useUpdateNote';
+
+import SubmittedRecordMutation from './SubmittedRecordMutation';
 
 let editor: CollabEditor;
 const nextMessageEventFn = vi.fn<[CollabEditorEvents['nextMessage']]>();
@@ -111,7 +109,6 @@ beforeEach(() => {
     } as SerializedCollabEditor)
   );
   editor.eventBus.on('nextMessage', nextMessageEventFn);
-  useNoteTextFieldCollabEditor.mockReturnValue(editor);
 
   render(
     <CustomMockedProvider mocks={mocks}>

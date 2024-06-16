@@ -1,17 +1,19 @@
 import { GraphQLError } from 'graphql';
-import { assertAuthenticated } from '../../../base/directives/auth';
-import { NoteTextField, type MutationResolvers } from './../../../types.generated';
+import mapObject from 'map-obj';
+import { ObjectId } from 'mongodb';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+import { ErrorWithData } from '~utils/logger';
+
+import { CollectionName } from '../../../../mongodb/collections';
 import {
   ShareNoteLinkSchema,
   shareNoteLinkDefaultValues,
 } from '../../../../mongodb/schema/share-note-link';
-import { CollectionName } from '../../../../mongodb/collections';
-import { ObjectId } from 'mongodb';
-import { ErrorWithData } from '~utils/logger';
-import mapObject from 'map-obj';
+import { assertAuthenticated } from '../../../base/directives/auth';
 import { NoteQueryMapper } from '../../../note/mongo-query-mapper/note';
 import { publishNoteUpdated } from '../../../note/resolvers/Subscription/noteUpdated';
+
+import { NoteTextField, type MutationResolvers } from './../../../types.generated';
 
 export const createNoteSharing: NonNullable<
   MutationResolvers['createNoteSharing']

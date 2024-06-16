@@ -2,8 +2,8 @@ import { IconButtonProps } from '@mui/material';
 import { useId, useState, MouseEvent } from 'react';
 
 import CloseableProvider from '../context/CloseableProvider';
-import CurrentUserButton from './CurrentUserButton';
 
+import CurrentUserButton from './CurrentUserButton';
 import UsersContainerPopover, {
   UsersContainerPopoverProps,
 } from './UsersContainerPopover';

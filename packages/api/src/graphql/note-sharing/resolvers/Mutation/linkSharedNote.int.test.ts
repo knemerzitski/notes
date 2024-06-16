@@ -1,24 +1,24 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { assert, beforeEach, expect, it } from 'vitest';
-import { UserSchema } from '../../../../mongodb/schema/user';
-import { resetDatabase } from '../../../../test/helpers/mongodb';
-import { GraphQLResolversContext } from '../../../context';
 import { faker } from '@faker-js/faker';
+import { assert, beforeEach, expect, it } from 'vitest';
+
+import { ShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link';
+import { UserSchema } from '../../../../mongodb/schema/user';
+import { apolloServer } from '../../../../test/helpers/apollo-server';
+import { createGraphQLResolversContext } from '../../../../test/helpers/graphql-context';
+import { resetDatabase } from '../../../../test/helpers/mongodb';
 import {
   createShareNoteLink,
   createUser,
   populateNoteToUser,
   populateWithCreatedData,
 } from '../../../../test/helpers/mongodb/populate';
+import { GraphQLResolversContext } from '../../../context';
 import {
   LinkSharedNoteInput,
   LinkSharedNotePayload,
   NoteTextField,
 } from '../../../types.generated';
-import { apolloServer } from '../../../../test/helpers/apollo-server';
-
-import { createGraphQLResolversContext } from '../../../../test/helpers/graphql-context';
-import { ShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link';
 
 const MUTATION = `#graphql
   mutation($input: LinkSharedNoteInput!){

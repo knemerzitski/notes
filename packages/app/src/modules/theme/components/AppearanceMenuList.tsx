@@ -1,3 +1,4 @@
+import CheckIcon from '@mui/icons-material/Check';
 import {
   MenuItem,
   ListItemText,
@@ -5,9 +6,9 @@ import {
   MenuList,
   Typography,
 } from '@mui/material';
-import CheckIcon from '@mui/icons-material/Check';
-import useColorMode from '../../preferences/hooks/useColorMode';
+
 import { ColorMode } from '../../../__generated__/graphql';
+import useColorMode from '../../preferences/hooks/useColorMode';
 
 const colorModes = [
   {

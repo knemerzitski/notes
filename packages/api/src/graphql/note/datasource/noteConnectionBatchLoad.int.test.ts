@@ -1,21 +1,23 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
+import { ObjectId } from 'mongodb';
 import { beforeAll, it, expect } from 'vitest';
+
+import { RelayPagination } from '../../../mongodb/operations/pagination/relayArrayPagination';
+import { UserSchema } from '../../../mongodb/schema/user';
+import { UserNoteSchema } from '../../../mongodb/schema/user-note';
+import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb';
 import {
   populateUserWithNotes,
   populateWithCreatedData,
 } from '../../../test/helpers/mongodb/populate';
-import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb';
 import { NoteTextField } from '../../types.generated';
 
-import { ObjectId } from 'mongodb';
 import noteConnectionBatchLoad, {
   NoteConnectionBatchLoadContext,
   NoteConnectionKey,
 } from './noteConnectionBatchLoad';
-import { UserSchema } from '../../../mongodb/schema/user';
-import { RelayPagination } from '../../../mongodb/operations/pagination/relayArrayPagination';
-import { UserNoteSchema } from '../../../mongodb/schema/user-note';
+
 
 let userNotes: UserNoteSchema[];
 let user: UserSchema;

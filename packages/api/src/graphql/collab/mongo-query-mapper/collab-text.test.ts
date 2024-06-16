@@ -1,15 +1,19 @@
-import { beforeAll, describe, expect, it } from 'vitest';
-import { CollabTextQueryMapper } from './collab-text';
-import { mock } from 'vitest-mock-extended';
 import { ObjectId } from 'mongodb';
-import { DeepQueryResponse } from '../../../mongodb/query-builder';
-import { CollabTextRecordQuery } from './revision-record';
+import { beforeAll, describe, expect, it } from 'vitest';
+import { mock } from 'vitest-mock-extended';
+import { Changeset } from '~collab/changeset/changeset';
+
 import {
   isAfterPagination,
   isFirstPagination,
   isLastPagination,
 } from '../../../mongodb/operations/pagination/relayArrayPagination';
-import { Changeset } from '~collab/changeset/changeset';
+import { DeepQueryResponse } from '../../../mongodb/query-builder';
+
+import { CollabTextQueryMapper } from './collab-text';
+import { CollabTextRecordQuery } from './revision-record';
+
+
 
 let collabTextMapper: CollabTextQueryMapper;
 

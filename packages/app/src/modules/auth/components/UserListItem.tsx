@@ -9,16 +9,17 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 
+import { User } from '../../../__generated__/graphql';
+import BackgroundLetterAvatar from '../../common/components/BackgroundLetterAvatar';
 import { useCloseable } from '../context/CloseableProvider';
 import UserProvider from '../context/UserProvider';
 import useNavigateSwitchCurrentUser from '../hooks/useNavigateSwitchCurrentUser';
-import SignInModal, { SignInModalProps } from './SignInModal';
+
 import ForgetUserMenuItem from './ForgetUserMenuItem';
-import UserMoreOptionsButton from './UserMoreOptionsButton';
 import SignInMenuItem from './SignInMenuItem';
+import SignInModal, { SignInModalProps } from './SignInModal';
 import SignOutMenuItem from './SignOutMenuItem';
-import BackgroundLetterAvatar from '../../common/components/BackgroundLetterAvatar';
-import { User } from '../../../__generated__/graphql';
+import UserMoreOptionsButton from './UserMoreOptionsButton';
 
 export interface UserListItemProps extends ListItemProps {
   user: Pick<User, 'id' | 'isSessionExpired' | 'email' | 'authProviderEntries'> & {

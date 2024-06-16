@@ -8,13 +8,13 @@ import {
   BoxProps,
 } from '@mui/material';
 
+import useIsSignedIn from '../../../auth/hooks/useIsSignedIn';
+import { useDrawerExpanded } from '../../../common/components/Drawer';
+import useIsMobile from '../../../common/hooks/useIsMobile';
 import {
   useProxyIsPathname,
   useProxyNavigate,
 } from '../../../router/context/ProxyRoutesProvider';
-import useIsMobile from '../../../common/hooks/useIsMobile';
-import { useDrawerExpanded } from '../../../common/components/Drawer';
-import useIsSignedIn from '../../../auth/hooks/useIsSignedIn';
 
 interface DrawerContentProps extends BoxProps {
   onClose: () => void;

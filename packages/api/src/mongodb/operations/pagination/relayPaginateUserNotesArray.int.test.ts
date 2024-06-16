@@ -1,17 +1,20 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
 import { assert, beforeAll, expect, it } from 'vitest';
+
+import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb';
 import {
   populateWithCreatedData,
   populateUserWithNotes,
 } from '../../../test/helpers/mongodb/populate';
-import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb';
+import { CollectionName } from '../../collections';
+import { UserSchema } from '../../schema/user';
+import { UserNoteSchema } from '../../schema/user-note';
+
 import relayPaginateUserNotesArray, {
   RelayPaginateUserNotesArrayOuput,
 } from './relayPaginateUserNotesArray';
-import { UserSchema } from '../../schema/user';
-import { UserNoteSchema } from '../../schema/user-note';
-import { CollectionName } from '../../collections';
+
 
 enum TextFields {
   TITLE = 'title',

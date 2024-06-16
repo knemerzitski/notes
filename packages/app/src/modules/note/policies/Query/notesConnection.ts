@@ -1,9 +1,11 @@
-import { ApolloCache, FieldPolicy, NormalizedCacheObject, gql } from '@apollo/client';
+import { ApolloCache, FieldPolicy, NormalizedCacheObject } from '@apollo/client';
+import { relayStylePagination } from '@apollo/client/utilities';
+
+import { gql } from '../../../../__generated__/gql';
+import { InsertNoteToNotesConnectionQuery } from '../../../../__generated__/graphql';
+import { KeySpecifierName } from '../../../apollo-client/key-specifier';
 import { EvictFieldPolicy, EvictTag } from '../../../apollo-client/policy/evict';
 import { getCurrentUserIdInStorage } from '../../../auth/user';
-import { relayStylePagination } from '@apollo/client/utilities';
-import { KeySpecifierName } from '../../../apollo-client/key-specifier';
-import { InsertNoteToNotesConnectionQuery } from '../../../../__generated__/graphql';
 
 const QUERY = gql(`
   query InsertNoteToNotesConnection {
@@ -53,7 +55,7 @@ export function insertNoteToNotesConnection<TCacheShape>(
         };
       }
 
-      if (data.notesConnection.notes.some((note) => note?.id === insertNewNote.id)) {
+      if (data.notesConnection.notes.some((note) => note.id === insertNewNote.id)) {
         return;
       }
 

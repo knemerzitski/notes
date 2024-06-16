@@ -1,13 +1,13 @@
 import { GraphQLError } from 'graphql';
-
+import { ObjectId } from 'mongodb';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
-import { GraphQLResolversContext } from '../../../context';
-import type { ResolversTypes, SubscriptionResolvers } from '../../../types.generated';
 import { isAuthenticated } from '../../../auth-context';
 import { assertAuthenticated } from '../../../base/directives/auth';
+import { GraphQLResolversContext } from '../../../context';
 import { SubscriptionTopicPrefix } from '../../../subscriptions';
-import { ObjectId } from 'mongodb';
+import type { ResolversTypes, SubscriptionResolvers } from '../../../types.generated';
+
 
 export const noteDeleted: NonNullable<SubscriptionResolvers['noteDeleted']> = {
   subscribe: async (_parent, { input }, ctx) => {

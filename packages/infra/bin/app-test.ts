@@ -1,13 +1,16 @@
 import 'source-map-support/register';
+import path from 'path';
+
 import { App } from 'aws-cdk-lib';
+import { createLambdaGraphQLDynamoDBTables } from '~api-dev-server/utils/lambda-graphql-dynamodb';
+
+import { TestNotesStack } from '../lib/stacks/test-notes-stack';
 import {
   assertGetEnvironmentVariables,
   loadEnvironmentVariables,
 } from '../lib/utils/env';
 import { PROJECT_DIR } from '../lib/utils/project-dir';
-import path from 'path';
-import { TestNotesStack } from '../lib/stacks/test-notes-stack';
-import { createLambdaGraphQLDynamoDBTables } from '~api-dev-server/utils/lambda-graphql-dynamodb';
+
 
 /**
  * DO NOT DEPLOY, ONLY FOR TESTING APP

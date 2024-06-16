@@ -4,7 +4,6 @@ import {
   APIGatewayProxyResult,
 } from 'aws-lambda';
 import express from 'express';
-
 import isArray from '~utils/array/isArray';
 import { Logger } from '~utils/logger';
 

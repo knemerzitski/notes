@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
-import { removeUser } from '../user';
+
 import { useCustomApolloClient } from '../../apollo-client/context/CustomApolloClientProvider';
+import { removeUser } from '../user';
 
 export default function useForgetUser() {
   const customApolloClient = useCustomApolloClient();

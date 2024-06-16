@@ -1,27 +1,28 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { assert, beforeAll, expect, it } from 'vitest';
-import revisionRecordsPagination, {
-  CollabTextRevisionRecordsPaginationInput,
-  CollabTextRevisionRecordsPaginationOutput,
-} from './revisionRecordsPagination';
 import { faker } from '@faker-js/faker';
+import mapObject from 'map-obj';
+import { ObjectId } from 'mongodb';
+import { assert, beforeAll, expect, it } from 'vitest';
+
+import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb';
 import {
   populateUserWithNotes,
   populateWithCreatedData,
 } from '../../../test/helpers/mongodb/populate';
-import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb';
+import { CollectionName } from '../../collections';
+import { CollabTextSchema } from '../../schema/collab-text';
+import { NoteSchema } from '../../schema/note';
+import { UserSchema } from '../../schema/user';
+import { UserNoteSchema } from '../../schema/user-note';
+import { UserNoteLookupOutput } from '../lookup/userNoteLookup';
+
 import relayPaginateUserNotesArray, {
   RelayPaginateUserNotesArrayOuput,
 } from './relayPaginateUserNotesArray';
-
-import { UserNoteLookupOutput } from '../lookup/userNoteLookup';
-import { ObjectId } from 'mongodb';
-import { CollabTextSchema } from '../../schema/collab-text';
-import { NoteSchema } from '../../schema/note';
-import mapObject from 'map-obj';
-import { UserSchema } from '../../schema/user';
-import { CollectionName } from '../../collections';
-import { UserNoteSchema } from '../../schema/user-note';
+import revisionRecordsPagination, {
+  CollabTextRevisionRecordsPaginationInput,
+  CollabTextRevisionRecordsPaginationOutput,
+} from './revisionRecordsPagination';
 
 enum CollabTextKey {
   CONTENT = 'content',

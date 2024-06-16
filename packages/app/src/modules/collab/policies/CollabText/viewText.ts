@@ -1,4 +1,5 @@
 import { FieldPolicy } from '@apollo/client';
+
 import { CollabText } from '../../../../__generated__/graphql';
 import { editorsInCache } from '../../../editor/editors';
 import { createEditorInFieldPolicy } from '../../editors';

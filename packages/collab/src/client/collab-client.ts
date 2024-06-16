@@ -1,7 +1,7 @@
 import mitt, { Emitter } from '~utils/mitt-unsub';
+import { Serializable, assertIsObject } from '~utils/serialize';
 
 import { Changeset, SerializedChangeset } from '../changeset/changeset';
-import { Serializable, assertIsObject } from '~utils/serialize';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CollabClientEvents = {

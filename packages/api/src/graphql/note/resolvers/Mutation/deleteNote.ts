@@ -1,13 +1,12 @@
 import { GraphQLError } from 'graphql';
-
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
-import { assertAuthenticated } from '../../../base/directives/auth';
-import { publishNoteDeleted } from '../Subscription/noteDeleted';
-
-import type { MutationResolvers, ResolversTypes } from '../../../types.generated';
 import { CollectionName } from '../../../../mongodb/collections';
 import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
+import { assertAuthenticated } from '../../../base/directives/auth';
+import type { MutationResolvers, ResolversTypes } from '../../../types.generated';
+import { publishNoteDeleted } from '../Subscription/noteDeleted';
+
 
 export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
   _parent,

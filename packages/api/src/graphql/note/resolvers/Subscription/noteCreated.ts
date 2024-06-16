@@ -1,8 +1,8 @@
-import { GraphQLResolversContext } from '../../../context';
-import type { ResolversTypes, SubscriptionResolvers } from '../../../types.generated';
 import { isAuthenticated } from '../../../auth-context';
 import { assertAuthenticated } from '../../../base/directives/auth';
+import { GraphQLResolversContext } from '../../../context';
 import { SubscriptionTopicPrefix } from '../../../subscriptions';
+import type { ResolversTypes, SubscriptionResolvers } from '../../../types.generated';
 
 export const noteCreated: NonNullable<SubscriptionResolvers['noteCreated']> = {
   subscribe: (_parent, _arg, { auth, subscribe, denySubscription }) => {

@@ -20,6 +20,11 @@ import {
   GraphQLAbstractType,
 } from 'graphql';
 import { collectSubfields as _collectSubfields } from 'graphql/execution/collectFields';
+import {
+  ExecutionContext,
+  getFieldDef,
+  buildResolveInfo,
+} from 'graphql/execution/execute';
 import { ObjMap } from 'graphql/jsutils/ObjMap';
 import { Path, addPath, pathToArray } from 'graphql/jsutils/Path';
 import { PromiseOrValue } from 'graphql/jsutils/PromiseOrValue';
@@ -27,13 +32,8 @@ import { PromiseOrValue } from 'graphql/jsutils/PromiseOrValue';
 import { inspect } from './jsutils/inspect';
 import { invariant } from './jsutils/invariant';
 import { isIterableObject } from './jsutils/isIterableObject';
-import { memoize3 } from './jsutils/memoize3';
-import {
-  ExecutionContext,
-  getFieldDef,
-  buildResolveInfo,
-} from 'graphql/execution/execute';
 import { isPromise } from './jsutils/isPromise';
+import { memoize3 } from './jsutils/memoize3';
 import { promiseForObject } from './jsutils/promiseForObject';
 
 declare module 'graphql/execution/execute' {

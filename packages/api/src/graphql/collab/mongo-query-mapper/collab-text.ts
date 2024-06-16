@@ -1,24 +1,28 @@
-import { CollabTextMapper, RevisionChangesetMapper } from '../schema.mappers';
-import { CollabTextSchema } from '../../../mongodb/schema/collab-text';
+import { GraphQLResolveInfo } from 'graphql';
+import { Changeset } from '~collab/changeset/changeset';
+
 import {
   RelayArrayPaginationConfig,
   RelayPagination,
   applyLimit,
 } from '../../../mongodb/operations/pagination/relayArrayPagination';
+import { MongoDocumentQuery } from '../../../mongodb/query-builder';
+import { CollabTextSchema } from '../../../mongodb/schema/collab-text';
+import { GraphQLResolversContext } from '../../context';
+import {
+  CollabTextrecordsConnectionArgs,
+  CollabTexttextAtRevisionArgs,
+} from '../../types.generated';
+import preExecuteField from '../../utils/preExecuteField';
+import { CollabTextMapper, RevisionChangesetMapper } from '../schema.mappers';
+
 import {
   RevisionChangesetQuery,
   RevisionChangesetQueryMapper,
 } from './revision-changeset';
 import { CollabTextRecordQuery, CollabTextRecordQueryMapper } from './revision-record';
-import { MongoDocumentQuery } from '../../../mongodb/query-builder';
-import {
-  CollabTextrecordsConnectionArgs,
-  CollabTexttextAtRevisionArgs,
-} from '../../types.generated';
-import { Changeset } from '~collab/changeset/changeset';
-import preExecuteField from '../../utils/preExecuteField';
-import { GraphQLResolversContext } from '../../context';
-import { GraphQLResolveInfo } from 'graphql';
+
+
 
 export type CollabTextQuery = Omit<
   CollabTextSchema,

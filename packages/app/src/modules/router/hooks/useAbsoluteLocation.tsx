@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+
 import { useRouter } from '../context/RouterProvider';
 
 export function useAbsoluteLocation() {

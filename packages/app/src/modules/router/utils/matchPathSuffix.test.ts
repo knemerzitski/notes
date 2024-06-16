@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+
 import matchPathSuffix from './matchPathSuffix';
 
 it.each([

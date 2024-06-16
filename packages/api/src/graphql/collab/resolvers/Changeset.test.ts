@@ -1,6 +1,5 @@
 import { ApolloServer } from '@apollo/server';
 import { assert, describe, expect, it } from 'vitest';
-
 import { Changeset } from '~collab/changeset/changeset';
 import { InsertStrip } from '~collab/changeset/insert-strip';
 import { RetainStrip } from '~collab/changeset/retain-strip';

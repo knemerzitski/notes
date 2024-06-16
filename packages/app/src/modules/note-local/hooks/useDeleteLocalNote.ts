@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+
 import { useCustomApolloClient } from '../../apollo-client/context/CustomApolloClientProvider';
 
 export default function useDeleteLocalNote() {

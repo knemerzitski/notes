@@ -1,11 +1,12 @@
 import { useSuspenseQuery } from '@apollo/client';
 import { Divider } from '@mui/material';
 
+import { gql } from '../../../__generated__/gql';
+
 import CurrentUserInfo from './CurrentUserInfo';
 import LoginList from './LoginList';
 import SignOutAllUsersButton from './SignOutAllUsersButton';
 import UsersList from './UsersList';
-import { gql } from '../../../__generated__/gql';
 
 const QUERY = gql(`
   query UsersContainer {

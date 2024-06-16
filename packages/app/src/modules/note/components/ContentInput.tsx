@@ -1,4 +1,5 @@
 import { InputProps } from '@mui/material';
+
 import PlainInput from '../../common/components/PlainInput';
 
 export default function ContentInput(props?: InputProps) {

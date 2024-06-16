@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+
 import getParentFromSuffix from './getParentFromSuffix';
 
 it.each([

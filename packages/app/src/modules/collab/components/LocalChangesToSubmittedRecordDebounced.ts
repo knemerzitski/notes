@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
-
-import { CollabEditor } from '~collab/client/collab-editor';
 import { useDebouncedCallback, Options } from 'use-debounce';
+import { CollabEditor } from '~collab/client/collab-editor';
+
 import useCollabEditor from '../hooks/useCollabEditor';
 
 interface LocalChangesToSubmittedRecordDebouncedProps {

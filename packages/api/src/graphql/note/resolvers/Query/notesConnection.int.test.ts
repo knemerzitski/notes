@@ -2,19 +2,17 @@
 import { faker } from '@faker-js/faker';
 import { assert, beforeAll, expect, it } from 'vitest';
 
-import { resetDatabase } from '../../../../test/helpers/mongodb';
-import { GraphQLResolversContext } from '../../../context';
-
-import { apolloServer } from '../../../../test/helpers/apollo-server';
 import { UserSchema } from '../../../../mongodb/schema/user';
+import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
+import { apolloServer } from '../../../../test/helpers/apollo-server';
+import { createGraphQLResolversContext } from '../../../../test/helpers/graphql-context';
+import { resetDatabase } from '../../../../test/helpers/mongodb';
 import {
   populateUserWithNotes,
   populateWithCreatedData,
 } from '../../../../test/helpers/mongodb/populate';
+import { GraphQLResolversContext } from '../../../context';
 import { NoteConnection, NoteEdge, NoteTextField } from '../../../types.generated';
-
-import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
-import { createGraphQLResolversContext } from '../../../../test/helpers/graphql-context';
 
 const QUERY = `#graphql
   query($after: String, $first: NonNegativeInt, $before: String, $last: NonNegativeInt) {

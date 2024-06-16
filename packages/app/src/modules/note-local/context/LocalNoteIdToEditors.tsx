@@ -1,10 +1,12 @@
-import { ReactNode, createContext, useContext, useMemo } from 'react';
-import { gql } from '../../../__generated__/gql';
 import { useQuery } from '@apollo/client';
-import NoteTextFieldEditorsProvider from '../../note/context/NoteTextFieldEditorsProvider';
-import { editorsInCache } from '../../editor/editors';
-import { NoteTextField, NoteTextFieldEntry } from '../../../__generated__/graphql';
+import { ReactNode, createContext, useContext, useMemo } from 'react';
 import { CollabEditor } from '~collab/client/collab-editor';
+
+import { gql } from '../../../__generated__/gql';
+import { NoteTextField, NoteTextFieldEntry } from '../../../__generated__/graphql';
+import { editorsInCache } from '../../editor/editors';
+import NoteTextFieldEditorsProvider from '../../note/context/NoteTextFieldEditorsProvider';
+
 import LocalNoteIdProvider from './LocalNoteIdProvider';
 
 const QUERY = gql(`
@@ -30,6 +32,7 @@ export type LocalNoteCollabTexts = (Omit<NoteTextFieldEntry, 'value'> & {
 
 const LocalNoteCollabTextContext = createContext<LocalNoteCollabTexts | null>(null);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useLocalNoteCollabTexts() {
   const ctx = useContext(LocalNoteCollabTextContext);
   if (ctx === null) {
@@ -40,6 +43,7 @@ export function useLocalNoteCollabTexts() {
   return ctx;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useNoteCollabText(fieldName: NoteTextField) {
   const collabTexts = useLocalNoteCollabTexts();
 

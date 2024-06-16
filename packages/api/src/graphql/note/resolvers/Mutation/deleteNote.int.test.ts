@@ -1,8 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { assert, beforeEach, describe, expect, it } from 'vitest';
-import { UserSchema } from '../../../../mongodb/schema/user';
-import { mongoCollections, resetDatabase } from '../../../../test/helpers/mongodb';
 import { faker } from '@faker-js/faker';
+import { assert, beforeEach, describe, expect, it } from 'vitest';
+import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
+
+import { CollectionName } from '../../../../mongodb/collections';
+import { NoteSchema } from '../../../../mongodb/schema/note';
+import { UserSchema } from '../../../../mongodb/schema/user';
+import { apolloServer } from '../../../../test/helpers/apollo-server';
+import {
+  createPublisher,
+  createGraphQLResolversContext,
+  mockSocketApi,
+  mockSubscriptionsModel,
+} from '../../../../test/helpers/graphql-context';
+import { mongoCollections, resetDatabase } from '../../../../test/helpers/mongodb';
 import {
   addExistingNoteToExistingUser,
   createUser,
@@ -14,17 +25,8 @@ import {
   NoteDeletedInput,
   NoteTextField,
 } from '../../../types.generated';
-import { apolloServer } from '../../../../test/helpers/apollo-server';
 
-import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
-import { NoteSchema } from '../../../../mongodb/schema/note';
-import { CollectionName } from '../../../../mongodb/collections';
-import {
-  createPublisher,
-  createGraphQLResolversContext,
-  mockSocketApi,
-  mockSubscriptionsModel,
-} from '../../../../test/helpers/graphql-context';
+
 
 const MUTATION = `#graphql
   mutation($input: DeleteNoteInput!){

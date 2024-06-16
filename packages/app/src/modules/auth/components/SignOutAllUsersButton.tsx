@@ -2,9 +2,9 @@ import { useSuspenseQuery } from '@apollo/client';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { Button } from '@mui/material';
 
+import { gql } from '../../../__generated__/gql';
 import { useCloseable } from '../context/CloseableProvider';
 import useSignOut from '../hooks/useSignOut';
-import { gql } from '../../../__generated__/gql';
 
 const QUERY = gql(`
   query SignOutAllUsersButton {

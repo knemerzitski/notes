@@ -1,15 +1,18 @@
-import { NoteMapper } from '../schema.mappers';
-import { NoteTextField, NotetextFieldsArgs } from '../../types.generated';
+import { ObjectId } from 'mongodb';
+
 import { MongoDocumentQuery } from '../../../mongodb/query-builder';
-import { NotePreferencesQueryMapper, NotePreferencesQuery } from './note-preferences';
+import { NoteSchema } from '../../../mongodb/schema/note';
+import { ShareNoteLinkSchema } from '../../../mongodb/schema/share-note-link';
+import { UserNoteSchema } from '../../../mongodb/schema/user-note';
 import {
   CollabTextQueryMapper,
   CollabTextQuery,
 } from '../../collab/mongo-query-mapper/collab-text';
-import { NoteSchema } from '../../../mongodb/schema/note';
-import { UserNoteSchema } from '../../../mongodb/schema/user-note';
-import { ObjectId } from 'mongodb';
-import { ShareNoteLinkSchema } from '../../../mongodb/schema/share-note-link';
+import { NoteTextField, NotetextFieldsArgs } from '../../types.generated';
+import { NoteMapper } from '../schema.mappers';
+
+import { NotePreferencesQueryMapper, NotePreferencesQuery } from './note-preferences';
+
 
 export type NoteQuery<TCollabTextKey extends string = NoteTextField> = Omit<
   UserNoteSchema,

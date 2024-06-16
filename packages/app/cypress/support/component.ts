@@ -1,8 +1,8 @@
+import { loadErrorMessages, loadDevMessages } from '@apollo/client/dev';
 import { mount } from 'cypress/react18';
 
 import './commands';
 import mountSandbox from './mountSandbox';
-import { loadErrorMessages, loadDevMessages } from '@apollo/client/dev';
 
 // ***********************************************************
 // This example support/component.ts is processed and

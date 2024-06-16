@@ -14,6 +14,7 @@ import {
   defaultTypeResolver,
 } from 'graphql/execution/execute';
 import { addPath } from 'graphql/jsutils/Path';
+
 import { ExecutionOptions, executeField } from './graphql/execute';
 
 /**

@@ -1,5 +1,7 @@
 import { ReactNode } from 'react';
+
 import HistoryRestoration from '../components/HistoryRestoration';
+
 import NoteContentIdToCollabTextsProvider, {
   useNoteCollabTexts,
 } from './NoteContentIdToCollabTextsProvider';

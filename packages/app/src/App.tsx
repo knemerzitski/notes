@@ -1,26 +1,27 @@
 import { Box, CircularProgress, CssBaseline } from '@mui/material';
+import { ReactNode, Suspense, useEffect, useState } from 'react';
+
 import GlobalStyles from './GlobalStyles';
-import themeOptions from './themeOptions';
 import { customApolloClientPromise } from './modules/apollo-client/apollo-client';
 import ApolloClientErrorsSnackbarAlert from './modules/apollo-client/components/ApolloClientErrorsSnackbarAlert';
 import ApolloClientSynchronized from './modules/apollo-client/components/ApolloClientSynchronized';
+import ConfirmLeaveOngoingMutations from './modules/apollo-client/components/ConfirmLeaveOngoingMutations';
 import CustomApolloClientProvider from './modules/apollo-client/context/CustomApolloClientProvider';
+import { CustomApolloClient } from './modules/apollo-client/custom-apollo-client';
 import GoogleAuthProvider from './modules/auth/third-party/google/GoogleAuthProvider';
 import ActiveCollabTextsManager from './modules/collab/components/ActiveCollabTextsManager';
+import FullSizeErrorContainer from './modules/common/components/FullSizeErrorContainer';
 import SnackbarAlertProvider from './modules/common/components/SnackbarAlertProvider';
 import ActiveNotesManager from './modules/note/components/ActiveNotesManager';
 import ExternalChangesSubscription from './modules/note/components/ExternalChangesSubscription';
 import NoteCreatedSubscription from './modules/note/components/NoteCreatedSubscription';
 import NoteDeletedSubscription from './modules/note/components/NoteDeletedSubscription';
+import RouterProvider from './modules/router/context/RouterProvider';
+import { router } from './modules/routes/RoutesIndex';
 import CustomThemeProvider, {
   CustomThemeDirectStorageColorModeProvider,
 } from './modules/theme/context/CustomThemeProvider';
-import { router } from './modules/routes/RoutesIndex';
-import RouterProvider from './modules/router/context/RouterProvider';
-import { ReactNode, Suspense, useEffect, useState } from 'react';
-import FullSizeErrorContainer from './modules/common/components/FullSizeErrorContainer';
-import ConfirmLeaveOngoingMutations from './modules/apollo-client/components/ConfirmLeaveOngoingMutations';
-import { CustomApolloClient } from './modules/apollo-client/custom-apollo-client';
+import themeOptions from './themeOptions';
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 

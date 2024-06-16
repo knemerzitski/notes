@@ -1,14 +1,14 @@
+import { GraphQLResolveInfo } from 'graphql';
+
+import { RelayArrayPaginationConfig } from '../../mongodb/operations/pagination/relayArrayPagination';
+import { PageInfoMapper } from '../base/schema.mappers';
+import { GraphQLResolversContext } from '../context';
 import {
   CollabTextrecordsConnectionArgs,
   CollabTexttextAtRevisionArgs,
   ResolverTypeWrapper,
   ResolversTypes,
 } from '../types.generated';
-import { PageInfoMapper } from '../base/schema.mappers';
-
-import { RelayArrayPaginationConfig } from '../../mongodb/operations/pagination/relayArrayPagination';
-import { GraphQLResolveInfo } from 'graphql';
-import { GraphQLResolversContext } from '../context';
 
 export interface RevisionChangesetMapper {
   revision(): ResolverTypeWrapper<number>;

@@ -2,8 +2,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { Changeset } from '../changeset/changeset';
-import { AnyEntry, CollabHistory } from './collab-history';
+
 import { CollabClient } from './collab-client';
+import { AnyEntry, CollabHistory } from './collab-history';
 
 function createEntry(changeset: unknown, isTail?: boolean): AnyEntry {
   if (isTail) {

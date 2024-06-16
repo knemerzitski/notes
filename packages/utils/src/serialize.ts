@@ -53,7 +53,7 @@ export function parseOrDefault<T, R>(fn: () => T, def: R): T | R {
 export function parseNumber(value: unknown): number {
   const nr = Number(value);
   if (Number.isNaN(nr)) {
-    throw new ParseError(`Expected ${value} to be a number`);
+    throw new ParseError(`Expected ${String(value)} to be a number`);
   }
   return nr;
 }

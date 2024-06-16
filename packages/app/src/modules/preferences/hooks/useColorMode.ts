@@ -1,7 +1,8 @@
 import { useApolloClient, useSuspenseQuery } from '@apollo/client';
+import { useCallback } from 'react';
+
 import { gql } from '../../../__generated__/gql';
 import { ColorMode } from '../../../__generated__/graphql';
-import { useCallback } from 'react';
 import { LocalStoragePrefix, localStorageKey } from '../../storage/local-storage';
 
 const QUERY = gql(`

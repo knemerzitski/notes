@@ -1,4 +1,5 @@
 import { Collection } from 'mongodb';
+
 import { UserSchema } from '../../user';
 import { SessionSchema } from '../sessions';
 

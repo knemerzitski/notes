@@ -1,17 +1,16 @@
 import { ObjectId } from 'mongodb';
-
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
+import { DeepReplace } from '~utils/types';
 
+import { CollectionName } from '../mongodb/collections';
+import findByCookieId from '../mongodb/schema/session/operations/findByCookieId';
 import { SessionSchema } from '../mongodb/schema/session/sessions';
 import { UserSchema } from '../mongodb/schema/user';
+import { sessionExpiration } from '../session-expiration/mongodb-user-session';
 
 import { ApiGraphQLContext } from './context';
 import CookiesContext from './cookies-context';
-import { DeepReplace } from '~utils/types';
-import { CollectionName } from '../mongodb/collections';
-import findByCookieId from '../mongodb/schema/session/operations/findByCookieId';
-import { sessionExpiration } from '../session-expiration/mongodb-user-session';
 
 /**
  * Replaces ObjectId with base64 representation string.

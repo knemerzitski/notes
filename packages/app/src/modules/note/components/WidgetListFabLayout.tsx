@@ -2,6 +2,7 @@ import useIsMobile from '../../common/hooks/useIsMobile';
 import NoteTextFieldEditorsProvider, {
   NoteTextFieldEditorsProviderProps,
 } from '../context/NoteTextFieldEditorsProvider';
+
 import CreateNoteFab, { CreateNoteFabProps } from './CreateNoteFab';
 import CreateNoteWidget, { CreateNoteWidgetProps } from './CreateNoteWidget';
 import NotesList, { NotesListProps } from './NotesList';

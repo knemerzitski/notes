@@ -9,11 +9,11 @@ import {
 } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import ProxyRoutesProvider from '../../router/context/ProxyRoutesProvider';
-import { useCustomApolloClient } from '../../apollo-client/context/CustomApolloClientProvider';
 import { gql } from '../../../__generated__/gql';
+import { useCustomApolloClient } from '../../apollo-client/context/CustomApolloClientProvider';
 import { joinPathnames, slicePathnames } from '../../common/utils/pathname';
 import { useLocationPrefix } from '../../router/context/LocationPrefixProvider';
+import ProxyRoutesProvider from '../../router/context/ProxyRoutesProvider';
 import { getCurrentUserId, setCurrentSignedInUser } from '../user';
 
 const QUERY = gql(`

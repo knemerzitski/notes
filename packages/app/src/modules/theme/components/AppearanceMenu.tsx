@@ -1,6 +1,7 @@
-import { Box, Divider, IconButton } from '@mui/material';
-import AppearanceMenuList from './AppearanceMenuList';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { Box, Divider, IconButton } from '@mui/material';
+
+import AppearanceMenuList from './AppearanceMenuList';
 
 interface AppearanceMenuListProps {
   onClickBack?: () => void;

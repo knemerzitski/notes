@@ -1,13 +1,15 @@
-import { CollabEditor } from '~collab/client/collab-editor';
-import { useCallback, useRef, useState } from 'react';
-import useCreateNote from './useCreateNote';
-import isDefined from '~utils/type-guards/isDefined';
 import { useApolloClient } from '@apollo/client';
+import { useCallback, useRef, useState } from 'react';
+import { CollabEditor } from '~collab/client/collab-editor';
+import isDefined from '~utils/type-guards/isDefined';
+
 import { NoteTextField } from '../../../__generated__/graphql';
-import { NoteCollabTextEditors } from '../context/NoteTextFieldEditorsProvider';
 import { collabTextRecordToEditorRevisionRecord } from '../../collab/editor-graphql-mapping';
 import { editorsInCache } from '../../editor/editors';
 import { addActiveNotesByContentId } from '../active-notes';
+import { NoteCollabTextEditors } from '../context/NoteTextFieldEditorsProvider';
+
+import useCreateNote from './useCreateNote';
 
 export function newEmptyEditors(): NoteCollabTextEditors {
   return [

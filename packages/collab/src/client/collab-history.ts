@@ -1,16 +1,4 @@
 import mitt, { Emitter } from '~utils/mitt-unsub';
-
-import { Changeset, SerializedChangeset } from '../changeset/changeset';
-import { CollabClient } from './collab-client';
-
-import { ChangesetOperation } from './changeset-operations';
-import { SelectionRange } from './selection-range';
-import { PartialBy } from '~utils/types';
-import {
-  RevisionChangeset,
-  ServerRevisionRecord,
-  SubmittedRevisionRecord,
-} from '../records/record';
 import {
   ParseError,
   Serializable,
@@ -18,6 +6,18 @@ import {
   parseNumber,
   parseNumberMaybe,
 } from '~utils/serialize';
+import { PartialBy } from '~utils/types';
+
+import { Changeset, SerializedChangeset } from '../changeset/changeset';
+import {
+  RevisionChangeset,
+  ServerRevisionRecord,
+  SubmittedRevisionRecord,
+} from '../records/record';
+
+import { ChangesetOperation } from './changeset-operations';
+import { CollabClient } from './collab-client';
+import { SelectionRange } from './selection-range';
 import { UserRecords } from './user-records';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

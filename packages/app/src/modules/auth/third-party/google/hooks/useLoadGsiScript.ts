@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
-
 import isEnvVarStringTrue from '~utils/string/isEnvVarStringTrue';
+
 import useScript from '../../../../common/hooks/useScript';
 
 const MOCK =

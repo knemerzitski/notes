@@ -1,6 +1,6 @@
-import { RevisionChangeset, RevisionRecord } from '../../records/record';
 import { ServerRecordsFacade } from '../../client/user-records';
 import { ChangesetRevisionRecords } from '../../records/changeset-revision-records';
+import { RevisionChangeset, RevisionRecord } from '../../records/record';
 
 export interface LocalServerRecordsParams<TRecord extends RevisionRecord> {
   changesetRecords: ChangesetRevisionRecords<TRecord>;

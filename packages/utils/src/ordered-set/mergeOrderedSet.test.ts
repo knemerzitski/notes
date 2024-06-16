@@ -1,4 +1,5 @@
 import { it, expect, describe } from 'vitest';
+
 import mergeOrderedSet from './mergeOrderedSet';
 
 const cmp = (a: number, b: number) => a - b;

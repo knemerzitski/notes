@@ -1,15 +1,17 @@
 import { ObjectId } from 'mongodb';
 import { assert, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+
+import { mongoDB } from '../../../test/helpers/mongodb';
+
+import consecutiveIntArrayPagination, {
+  BoundPaginationUnion,
+} from './consecutiveIntArrayPagination';
 import {
   RelayAfterBoundPagination,
   RelayArrayPaginationInput,
   RelayArrayPaginationOutput,
   RelayBeforeBoundPagination,
 } from './relayArrayPagination';
-import { mongoDB } from '../../../test/helpers/mongodb';
-import consecutiveIntArrayPagination, {
-  BoundPaginationUnion,
-} from './consecutiveIntArrayPagination';
 
 interface ArrayDocument {
   items: number[];

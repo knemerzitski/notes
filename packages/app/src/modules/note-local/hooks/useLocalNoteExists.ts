@@ -1,4 +1,5 @@
 import { useQuery } from '@apollo/client';
+
 import { gql } from '../../../__generated__/gql';
 
 const QUERY = gql(`

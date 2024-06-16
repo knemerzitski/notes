@@ -1,4 +1,5 @@
 import { Changeset } from '../changeset/changeset';
+
 import { RevisionChangeset, RevisionRecord } from './record';
 import { RevisionRecordInsertion, RevisionRecords } from './revision-records';
 

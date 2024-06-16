@@ -4,7 +4,7 @@ module.exports = {
     project: ['./tsconfig.json'],
     tsconfigRootDir: __dirname,
   },
-  ignorePatterns: ['.eslintrc.cjs', 'out'],
+  ignorePatterns: ['.eslintrc.cjs', 'out', 'out-handlers', 'node_modules'],
   settings: {
     'import/resolver': {
       typescript: {

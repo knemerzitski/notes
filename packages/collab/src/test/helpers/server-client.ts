@@ -1,23 +1,25 @@
 import mapObject, { mapObjectSkip } from 'map-obj';
 import { assert, expect } from 'vitest';
+import { OrderedMessageBuffer } from '~utils/ordered-message-buffer';
+
+import { CollabClient } from '../../client/collab-client';
 import {
   CollabEditor,
   CollabEditorOptions,
   HistoryOperationOptions,
 } from '../../client/collab-editor';
+import { CollabHistory } from '../../client/collab-history';
+import { UserRecords } from '../../client/user-records';
+import { ChangesetRevisionRecords } from '../../records/changeset-revision-records';
 import { ServerRevisionRecord } from '../../records/record';
+import { newServerRecords } from '../../records/server-records';
+
+import { newSelectionRange } from './collab-editor-selection-range';
+import { LocalServerRecords, LocalServerRecordsParams } from './server-records';
 import {
   getValueWithSelection,
   parseTextWithMultipleSelections,
 } from './text-with-selection';
-import { CollabClient } from '../../client/collab-client';
-import { CollabHistory } from '../../client/collab-history';
-import { newSelectionRange } from './collab-editor-selection-range';
-import { OrderedMessageBuffer } from '~utils/ordered-message-buffer';
-import { UserRecords } from '../../client/user-records';
-import { LocalServerRecords, LocalServerRecordsParams } from './server-records';
-import { ChangesetRevisionRecords } from '../../records/changeset-revision-records';
-import { newServerRecords } from '../../records/server-records';
 
 export function createHelperCollabEditingEnvironment<TClientName extends string>(
   options: {

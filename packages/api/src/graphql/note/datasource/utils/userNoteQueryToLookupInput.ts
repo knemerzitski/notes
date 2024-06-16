@@ -1,12 +1,13 @@
 import mapObject, { mapObjectSkip } from 'map-obj';
+
+import { CollectionName } from '../../../../mongodb/collections';
 import { UserNoteLookupInput } from '../../../../mongodb/operations/lookup/userNoteLookup';
 import { paginationStringToInt } from '../../../../mongodb/operations/pagination/relayArrayPagination';
 import revisionRecordsPagination from '../../../../mongodb/operations/pagination/revisionRecordsPagination';
 import { MergedDeepQuery } from '../../../../mongodb/query-builder';
+import { ApiGraphQLContext } from '../../../context';
 import { NoteTextField } from '../../../types.generated';
 import { NoteQuery } from '../../mongo-query-mapper/note';
-import { ApiGraphQLContext } from '../../../context';
-import { CollectionName } from '../../../../mongodb/collections';
 
 /**
  * Translates query to lookup input used in by userNoteLookup

@@ -1,11 +1,12 @@
-import { useEffect } from 'react';
-import { gql } from '../../../__generated__/gql';
 import { useApolloClient } from '@apollo/client';
-import { useNoteContentId } from '../context/NoteContentIdProvider';
-import { NoteTextField } from '../../../__generated__/graphql';
-import { useNoteTextFieldEditor } from '../context/NoteTextFieldEditorsProvider';
+import { useEffect } from 'react';
 import { RevisionChangeset } from '~collab/records/record';
+
+import { gql } from '../../../__generated__/gql';
+import { NoteTextField } from '../../../__generated__/graphql';
 import { collabTextRecordToEditorRevisionRecord } from '../../collab/editor-graphql-mapping';
+import { useNoteContentId } from '../context/NoteContentIdProvider';
+import { useNoteTextFieldEditor } from '../context/NoteTextFieldEditorsProvider';
 
 const QUERY_WATCH = gql(`
   query SyncRecordsHeadTextUpdatedWatch($noteContentId: String!, $fieldName: NoteTextField!){

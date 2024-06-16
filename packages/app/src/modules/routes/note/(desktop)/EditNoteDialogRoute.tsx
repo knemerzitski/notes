@@ -1,20 +1,20 @@
+import { Box, Button, AppBar as MuiAppBar, useTheme } from '@mui/material';
+import { useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 
-import NoteDialog from '../../../note/components/NoteDialog';
-import useDeleteNote from '../../../note/hooks/useDeleteNote';
-import { useState } from 'react';
 import RouteClosable, {
   RouteClosableComponentProps,
 } from '../../../common/components/RouteClosable';
 import RouteSnackbarError from '../../../common/components/RouteSnackbarError';
-import CollabInputs from '../../../note/components/CollabInputs';
-import { Box, Button, AppBar as MuiAppBar, useTheme } from '@mui/material';
 import useIsElementScrollEnd from '../../../common/hooks/useIsElementScrollEnd';
-import MoreOptionsButton from '../../../note/components/MoreOptionsButton';
-import UndoButton from '../../../note/components/UndoButton';
-import RedoButton from '../../../note/components/RedoButton';
-import NewOrExistingNoteEditingContext from '../../../note/context/NewOrExistingNoteEditingContext';
+import CollabInputs from '../../../note/components/CollabInputs';
 import CollaborationButton from '../../../note/components/CollaborationButton';
+import MoreOptionsButton from '../../../note/components/MoreOptionsButton';
+import NoteDialog from '../../../note/components/NoteDialog';
+import RedoButton from '../../../note/components/RedoButton';
+import UndoButton from '../../../note/components/UndoButton';
+import NewOrExistingNoteEditingContext from '../../../note/context/NewOrExistingNoteEditingContext';
+import useDeleteNote from '../../../note/hooks/useDeleteNote';
 
 export type EditNoteLocationState = null | { newNote?: boolean; autoFocus?: boolean };
 

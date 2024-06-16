@@ -1,11 +1,13 @@
+import mapObject from 'map-obj';
 import { ObjectId } from 'mongodb';
 import { assert, beforeAll, describe, expect, it } from 'vitest';
-import relayArrayPagination, { RelayArrayPaginationInput } from './relayArrayPagination';
+
 import { mongoDB } from '../../../test/helpers/mongodb';
+
+import relayArrayPagination, { RelayArrayPaginationInput } from './relayArrayPagination';
 import relayMultiArrayPaginationConcat, {
   RelayMultiArrayPaginationConcatOutput,
 } from './relayMultiArrayPaginationConcat';
-import mapObject from 'map-obj';
 
 type ArrayKey = 'items' | 'deep.sticky';
 

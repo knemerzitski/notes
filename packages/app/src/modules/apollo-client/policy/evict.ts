@@ -1,7 +1,8 @@
 import { ApolloCache } from '@apollo/client';
-import objectValueArrayPermutations from '~utils/object/objectValueArrayPermutations';
-import { IdentifiedStoreObject, inverseIdentify } from '../utils/identify';
 import mapObject from 'map-obj';
+import objectValueArrayPermutations from '~utils/object/objectValueArrayPermutations';
+
+import { IdentifiedStoreObject, inverseIdentify } from '../utils/identify';
 
 export enum EvictTag {
   UserSpecific = 'userSpecific',

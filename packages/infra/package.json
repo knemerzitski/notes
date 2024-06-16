@@ -6,12 +6,19 @@
     "test:unit": "vitest run -c ./vitest.config.unit.ts",
     "test:unit:watch": "vitest watch -c ./vitest.config.unit.ts",
     "test:int:synth": "NODE_ENV=test cdk synth -a 'vite-node bin/app-test.ts' --no-staging --quiet",
-    "test:int:start-api": "sam local start-api --host 127.0.0.1 -p 3000 --docker-network sam-api-network -t cdk.out/TESTINGONLYNotesStack.template.json",
+    "test:int:api:start": "sam local start-api --host 127.0.0.1 -p 3000 --docker-network sam-api-network -t cdk.out/TESTINGONLYNotesStack.template.json",
+    "test:int:api:start-detached": "sam local start-api --host 127.0.0.1 -p 3000 --docker-network sam-api-network -t cdk.out/TESTINGONLYNotesStack.template.json --warm-containers EAGER > /dev/null 2>&1 &",
+    "test:int:api:stop": "kill $(ps wwo pid,args | grep -m 1 'sam local start-api' | awk '{print $1}'); docker network inspect sam-api-network | jq -r '.[].Containers[].Name | select(test(\"^(?!mongo|dynamo)\"))' | xargs docker rm -f",
     "test:int": "vitest -c ./vitest.config.integration.ts",
     "test:int:watch": "vitest watch -c ./vitest.config.integration.ts",
+    "lint": "eslint . --max-warnings 0",
     "cdk": "NODE_ENV=production cdk",
     "synth": "NODE_ENV=production cdk synth",
-    "deploy": "NODE_ENV=production cdk deploy"
+    "deploy": "NODE_ENV=production cdk deploy",
+    "ci:test:int:prepare": "npm run test:int:synth && npm run test:int:api:start-detached",
+    "ci:test:int:run": "wait-port 127.0.0.1:3000 -t 10000 && npm run test:int",
+    "ci:test:int:cleanup": "npm run test:int:api:stop",
+    "ci:test:int": "npm run ci:test:int:prepare && npm run ci:test:int:run; npm run ci:test:int:cleanup"
   },
   "dependencies": {
     "@types/node": "20.12.7",
@@ -26,6 +33,7 @@
     "typescript": "^5.4.5",
     "vite-node": "^1.6.0",
     "vite-tsconfig-paths": "^4.3.2",
-    "vitest": "^1.6.0"
+    "vitest": "^1.6.0",
+    "wait-port": "^1.1.0"
   }
 }

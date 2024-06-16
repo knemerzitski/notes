@@ -1,13 +1,15 @@
 import { NormalizedCacheObject, TypePolicies } from '@apollo/client';
-import { allActiveNotes as Query_allActiveNotes } from './policies/Query/allActiveNotes';
-import { note as Query_note } from './policies/Query/note';
+
+import { KeySpecifierName } from '../apollo-client/key-specifier';
+import { EvictTypePolicies } from '../apollo-client/policy/evict';
+import { fieldArrayToMap } from '../apollo-client/utils/fieldArrayToMap';
+import { getCurrentUserIdInStorage } from '../auth/user';
+
+import { removeActiveNotesByReference } from './active-notes';
 import { id as Note_id } from './policies/Note/id';
 import { isOwner as Note_isOwner } from './policies/Note/isOwner';
-import { fieldArrayToMap } from '../apollo-client/utils/fieldArrayToMap';
-import { EvictTypePolicies } from '../apollo-client/policy/evict';
-import { getCurrentUserIdInStorage } from '../auth/user';
-import { KeySpecifierName } from '../apollo-client/key-specifier';
-import { removeActiveNotesByReference } from './active-notes';
+import { allActiveNotes as Query_allActiveNotes } from './policies/Query/allActiveNotes';
+import { note as Query_note } from './policies/Query/note';
 import { notesConnection as Query_notesConnection } from './policies/Query/notesConnection';
 
 const notePolicies: TypePolicies & EvictTypePolicies<NormalizedCacheObject> = {

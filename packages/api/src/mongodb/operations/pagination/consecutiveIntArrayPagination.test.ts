@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
+
+import { consecutiveIntArrayMapPaginationOutputToInput } from './consecutiveIntArrayPagination';
 import {
   RelayArrayPaginationInput,
   RelayArrayPaginationOutput,
 } from './relayArrayPagination';
-import { consecutiveIntArrayMapPaginationOutputToInput } from './consecutiveIntArrayPagination';
 
 describe('consecutiveIntArrayMapPaginationOutputToInput', () => {
   it.each<{

@@ -1,11 +1,12 @@
+import { MongoDocumentQuery } from '../../../mongodb/query-builder';
+import { RevisionRecordSchema } from '../../../mongodb/schema/collab-text';
 import { CollabTextMapper, CollabTextRecordMapper } from '../schema.mappers';
+
 import { RevisionChangesetQueryMapper } from './revision-changeset';
 import {
   CollabTextSelectionRangeQuery,
   CollabTextSelectionRangeQueryMapper,
 } from './selection-range';
-import { MongoDocumentQuery } from '../../../mongodb/query-builder';
-import { RevisionRecordSchema } from '../../../mongodb/schema/collab-text';
 
 export type CollabTextRecordQuery = Omit<
   RevisionRecordSchema,

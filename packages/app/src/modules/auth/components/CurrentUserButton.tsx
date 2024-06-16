@@ -1,6 +1,7 @@
 import { useSuspenseQuery } from '@apollo/client';
 import PersonIcon from '@mui/icons-material/Person';
 import { IconButtonProps, IconButton, Badge, Avatar, Tooltip } from '@mui/material';
+
 import { gql } from '../../../__generated__/gql';
 import BackgroundLetterAvatar from '../../common/components/BackgroundLetterAvatar';
 

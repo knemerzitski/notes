@@ -1,6 +1,7 @@
+import { ParseError, Serializable } from '~utils/serialize';
+
 import { isInsertStrip } from './insert-strip';
 import { RetainStrip } from './retain-strip';
-import { ParseError, Serializable } from '~utils/serialize';
 import { SerializedStrip, Strip } from './strip';
 
 export type SerializedStrips = SerializedStrip[];

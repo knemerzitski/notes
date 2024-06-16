@@ -1,4 +1,5 @@
 import { PersistentStorage } from 'apollo3-cache-persist';
+
 import { Scalars } from '../../../__generated__/graphql';
 
 export type PersistTypePolicies = Record<string, PersistTypePolicy>;

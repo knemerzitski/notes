@@ -1,5 +1,4 @@
 import { GraphQLError, GraphQLSchema } from 'graphql';
-
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
 import type { DirectiveResolvers } from '../../../graphql/types.generated';

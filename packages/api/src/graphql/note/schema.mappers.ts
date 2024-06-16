@@ -1,4 +1,8 @@
+import { ObjectId } from 'mongodb';
 import { Maybe } from '~utils/types';
+
+import { PageInfoMapper } from '../base/schema.mappers';
+import { CollabTextMapper } from '../collab/schema.mappers';
 import {
   NoteSharing,
   NoteTextField,
@@ -6,9 +10,6 @@ import {
   ResolverTypeWrapper,
   ResolversTypes,
 } from '../types.generated';
-import { CollabTextMapper } from '../collab/schema.mappers';
-import { PageInfoMapper } from '../base/schema.mappers';
-import { ObjectId } from 'mongodb';
 
 export interface NoteTextFieldEntryMapper {
   key(): ResolverTypeWrapper<NoteTextField>;

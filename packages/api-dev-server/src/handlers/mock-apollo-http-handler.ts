@@ -1,4 +1,5 @@
 import 'source-map-support/register';
+import WebSocket from 'ws';
 import { parseAuthFromHeaders } from '~api/graphql/auth-context';
 import {
   GraphQLResolversContext,
@@ -16,13 +17,13 @@ import {
   CreateApolloHttpHandlerParams,
 } from '~lambda-graphql/apollo-http-handler';
 import { createLogger } from '~utils/logger';
+
 import {
   createMockGraphQLParams,
   createMockMongoDBContext,
   createMockDynamoDBParams,
   createMockApiGatewayParams,
 } from '../handler-params';
-import WebSocket from 'ws';
 
 interface MockCreateApolloHttpHandlerOptions {
   mongodb?: Awaited<ReturnType<typeof createMockMongoDBContext>> | undefined;

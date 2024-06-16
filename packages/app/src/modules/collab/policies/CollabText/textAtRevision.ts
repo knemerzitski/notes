@@ -1,8 +1,9 @@
 import { FieldFunctionOptions, FieldPolicy } from '@apollo/client';
-import { CollabText, CollabTextRecord } from '../../../../__generated__/graphql';
-import { gql } from '../../../../__generated__/gql';
 import { Changeset } from '~collab/changeset/changeset';
 import { binarySearchIndexOf } from '~utils/array/binarySearchIndexOf';
+
+import { gql } from '../../../../__generated__/gql';
+import { CollabText, CollabTextRecord } from '../../../../__generated__/graphql';
 
 const FRAGMENT_RECORDS = gql(`
   fragment TextAtRevisionRecords on CollabText {

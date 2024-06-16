@@ -1,7 +1,7 @@
 import { ApolloServer } from '@apollo/server';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 import { assert, describe, expect, it } from 'vitest';
 
-import { makeExecutableSchema } from '@graphql-tools/schema';
 import { lengthTransform } from './length';
 
 describe('Changeset', () => {

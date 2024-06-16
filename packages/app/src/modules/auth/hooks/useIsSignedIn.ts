@@ -1,4 +1,5 @@
 import { useSuspenseQuery } from '@apollo/client';
+
 import { gql } from '../../../__generated__';
 
 const QUERY = gql(`

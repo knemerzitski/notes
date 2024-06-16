@@ -1,38 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { nanoid } from 'nanoid';
 import mitt, { Emitter } from '~utils/mitt-unsub';
-
-import { Changeset, SerializedChangeset } from '../changeset/changeset';
-import {
-  CollabClient,
-  CollabClientEvents,
-  CollabClientOptions,
-  SerializedCollabClient,
-} from './collab-client';
-
-import {
-  CollabHistory,
-  CollabHistoryOptions,
-  LocalChangesetEditorHistoryEvents,
-  SerializedCollabHistory,
-} from './collab-history';
 import {
   OrderedMessageBuffer,
   OrderedMessageBufferOptions,
   ProcessingEvents,
   SerializedOrderedMessageBuffer,
 } from '~utils/ordered-message-buffer';
-
-import {
-  RevisionChangeset,
-  SerializedSubmittedRevisionRecord,
-  ServerRevisionRecord,
-  SubmittedRevisionRecord,
-} from '../records/record';
-import { nanoid } from 'nanoid';
-import { PartialBy } from '~utils/types';
-import { deletionCountOperation, insertionOperation } from './changeset-operations';
-import { SelectionRange } from './selection-range';
-import { SubmittedRecord } from './submitted-record';
 import { OrderedMessageBufferEvents } from '~utils/ordered-message-buffer';
 import {
   ParseError,
@@ -40,6 +14,31 @@ import {
   assertHasProperties,
   parseNumber,
 } from '~utils/serialize';
+import { PartialBy } from '~utils/types';
+
+import { Changeset, SerializedChangeset } from '../changeset/changeset';
+import {
+  RevisionChangeset,
+  SerializedSubmittedRevisionRecord,
+  ServerRevisionRecord,
+  SubmittedRevisionRecord,
+} from '../records/record';
+
+import { deletionCountOperation, insertionOperation } from './changeset-operations';
+import {
+  CollabClient,
+  CollabClientEvents,
+  CollabClientOptions,
+  SerializedCollabClient,
+} from './collab-client';
+import {
+  CollabHistory,
+  CollabHistoryOptions,
+  LocalChangesetEditorHistoryEvents,
+  SerializedCollabHistory,
+} from './collab-history';
+import { SelectionRange } from './selection-range';
+import { SubmittedRecord } from './submitted-record';
 import { UserRecords } from './user-records';
 
 export type CollabEditorEvents = CollabClientEvents &

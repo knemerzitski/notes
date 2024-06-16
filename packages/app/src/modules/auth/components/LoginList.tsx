@@ -1,9 +1,9 @@
 import { List, ListItem, ListProps } from '@mui/material';
 
+import { AuthProvider, User } from '../../../__generated__/graphql';
 import { useCloseable } from '../context/CloseableProvider';
 
 import GoogleLogin from './GoogleLogin';
-import { AuthProvider, User } from '../../../__generated__/graphql';
 
 export interface LoginListProps extends ListProps {
   onSuccess?: () => void;

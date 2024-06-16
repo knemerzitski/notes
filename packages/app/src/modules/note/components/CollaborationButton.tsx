@@ -1,3 +1,7 @@
+import { useApolloClient, useQuery } from '@apollo/client';
+import CloseIcon from '@mui/icons-material/Close';
+import LinkIcon from '@mui/icons-material/Link';
+import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import {
   Alert,
   Box,
@@ -16,12 +20,9 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
-import LinkIcon from '@mui/icons-material/Link';
 import { useId, useState } from 'react';
-import CloseIcon from '@mui/icons-material/Close';
+
 import { gql } from '../../../__generated__/gql';
-import { useApolloClient, useQuery } from '@apollo/client';
 import { useNoteContentId } from '../context/NoteContentIdProvider';
 
 const QUERY = gql(`

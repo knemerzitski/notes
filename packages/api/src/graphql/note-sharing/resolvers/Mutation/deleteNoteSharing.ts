@@ -1,9 +1,11 @@
 import { ErrorWithData } from '~utils/logger';
+
 import { CollectionName } from '../../../../mongodb/collections';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { NoteQueryMapper } from '../../../note/mongo-query-mapper/note';
-import type { MutationResolvers } from './../../../types.generated';
 import { publishNoteUpdated } from '../../../note/resolvers/Subscription/noteUpdated';
+
+import type { MutationResolvers } from './../../../types.generated';
 
 export const deleteNoteSharing: NonNullable<
   MutationResolvers['deleteNoteSharing']

@@ -1,8 +1,10 @@
 import { ReactNode } from 'react';
+
+import LocalCollabTextPersistChangesDebounced from '../components/LocalCollabTextPersistChangesDebounced';
+
 import LocalNoteIdToCollabTextsProvider, {
   useLocalNoteCollabTexts,
 } from './LocalNoteIdToEditors';
-import LocalCollabTextPersistChangesDebounced from '../components/LocalCollabTextPersistChangesDebounced';
 
 interface LocalNoteEditingContextProps {
   localNoteId: string;

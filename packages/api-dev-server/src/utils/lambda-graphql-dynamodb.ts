@@ -5,7 +5,6 @@ import {
   ResourceNotFoundException,
 } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
-
 import { createTableCommandInputs } from '~lambda-graphql/dynamodb/schema';
 import { Logger } from '~utils/logger';
 

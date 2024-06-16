@@ -2,11 +2,12 @@ import { Box, Toolbar } from '@mui/material';
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 
-import AppBarContent from './AppBarContent';
-import { DrawerContent } from './DrawerContent';
-import useIsMobile from '../../../common/hooks/useIsMobile';
 import AppBar from '../../../common/components/AppBar';
 import Drawer from '../../../common/components/Drawer';
+import useIsMobile from '../../../common/hooks/useIsMobile';
+
+import AppBarContent from './AppBarContent';
+import { DrawerContent } from './DrawerContent';
 
 export default function AppBarDrawerLayout() {
   const isMobile = useIsMobile();

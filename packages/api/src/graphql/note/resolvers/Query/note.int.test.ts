@@ -2,19 +2,17 @@
 import { faker } from '@faker-js/faker';
 import { assert, beforeAll, expect, it } from 'vitest';
 
-import { resetDatabase } from '../../../../test/helpers/mongodb';
-import { GraphQLResolversContext } from '../../../context';
-
-import { apolloServer } from '../../../../test/helpers/apollo-server';
+import { NoteSchema } from '../../../../mongodb/schema/note';
 import { UserSchema } from '../../../../mongodb/schema/user';
+import { apolloServer } from '../../../../test/helpers/apollo-server';
+import { createGraphQLResolversContext } from '../../../../test/helpers/graphql-context';
+import { resetDatabase } from '../../../../test/helpers/mongodb';
 import {
   populateUserWithNotes,
   populateWithCreatedData,
 } from '../../../../test/helpers/mongodb/populate';
+import { GraphQLResolversContext } from '../../../context';
 import { NoteTextField } from '../../../types.generated';
-
-import { NoteSchema } from '../../../../mongodb/schema/note';
-import { createGraphQLResolversContext } from '../../../../test/helpers/graphql-context';
 
 const QUERY = `#graphql
   query($contentId: String!, $recordsLast: PositiveInt, $fieldName: NoteTextField){

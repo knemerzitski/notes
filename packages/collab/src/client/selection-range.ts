@@ -1,6 +1,7 @@
-import { PartialBy } from '~utils/types';
-import { Changeset } from '../changeset/changeset';
 import { assertHasProperties, parseNumber } from '~utils/serialize';
+import { PartialBy } from '~utils/types';
+
+import { Changeset } from '../changeset/changeset';
 
 export interface SelectionRange {
   /**

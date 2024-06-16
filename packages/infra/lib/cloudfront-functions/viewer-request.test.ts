@@ -1,7 +1,8 @@
-import { it, vi, expect } from 'vitest';
-import { exportedForTesting_handler } from './viewer-request';
-import { afterEach, beforeEach, describe } from 'vitest';
 import { DeepPartial } from 'ts-essentials';
+import { it, vi, expect } from 'vitest';
+import { afterEach, beforeEach, describe } from 'vitest';
+
+import { exportedForTesting_handler } from './viewer-request';
 
 const handler = exportedForTesting_handler;
 

@@ -1,3 +1,5 @@
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import SettingsIcon from '@mui/icons-material/Settings';
 import {
   IconButton,
@@ -11,10 +13,9 @@ import {
   Tooltip,
 } from '@mui/material';
 import { useId, useState } from 'react';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import AppearanceText from '../../../theme/components/AppearanceText';
+
 import AppearanceMenu from '../../../theme/components/AppearanceMenu';
+import AppearanceText from '../../../theme/components/AppearanceText';
 
 type SubMenu = 'appearance' | null;
 

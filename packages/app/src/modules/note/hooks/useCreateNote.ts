@@ -1,7 +1,8 @@
 import { useMutation } from '@apollo/client';
+import { useCallback } from 'react';
+
 import { gql } from '../../../__generated__/gql';
 import { CreateNoteInput } from '../../../__generated__/graphql';
-import { useCallback } from 'react';
 
 const MUTATION = gql(`
   mutation UseCreateNote($input: CreateNoteInput!)  {

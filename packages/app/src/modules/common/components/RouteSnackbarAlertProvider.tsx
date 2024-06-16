@@ -1,5 +1,6 @@
 import { Alert, AlertProps, Snackbar, SnackbarProps } from '@mui/material';
 import { ReactNode, createContext, useCallback, useContext, useState } from 'react';
+
 import useRouteOpen from '../hooks/useRouteOpen';
 
 type SnackbarAlertProps = AlertProps & {

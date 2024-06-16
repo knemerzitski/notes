@@ -1,12 +1,13 @@
 import { FieldFunctionOptions, FieldPolicy } from '@apollo/client';
+import { binarySearchIndexOf } from '~utils/array/binarySearchIndexOf';
+import { binarySearchConsecutiveOrderedSubset } from '~utils/ordered-set/consecutive-ordered-set';
+import mergeOrderedSet from '~utils/ordered-set/mergeOrderedSet';
+
 import {
   CollabText,
   CollabTextRecord,
   CollabTextRecordConnection,
 } from '../../../../__generated__/graphql';
-import mergeOrderedSet from '~utils/ordered-set/mergeOrderedSet';
-import { binarySearchIndexOf } from '~utils/array/binarySearchIndexOf';
-import { binarySearchConsecutiveOrderedSubset } from '~utils/ordered-set/consecutive-ordered-set';
 
 interface CollabTextRecordOnlyRevision {
   change: {

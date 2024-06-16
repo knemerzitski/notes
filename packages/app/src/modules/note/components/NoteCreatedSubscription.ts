@@ -1,6 +1,6 @@
+import { useApolloClient } from '@apollo/client';
 import { useEffect } from 'react';
 
-import { useApolloClient } from '@apollo/client';
 import { gql } from '../../../__generated__/gql';
 import { useCurrentUserId } from '../../auth/user';
 
@@ -82,7 +82,7 @@ export default function NoteCreatedSubscription() {
               };
             }
 
-            if (existingNotes.some((note) => note?.id === newNote.id)) {
+            if (existingNotes.some((note) => note.id === newNote.id)) {
               return;
             }
 

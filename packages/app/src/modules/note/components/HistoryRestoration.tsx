@@ -1,14 +1,17 @@
+import { ApolloCache, useApolloClient } from '@apollo/client';
 import { useEffect, useRef } from 'react';
+import { EditorRevisionRecord } from '~collab/client/collab-editor';
+import { UserRecords, ServerRecordsFacade } from '~collab/client/user-records';
+import { RevisionChangeset } from '~collab/records/record';
+
 import { gql } from '../../../__generated__';
 import { NoteTextField } from '../../../__generated__/graphql';
-import { useNoteContentId } from '../context/NoteContentIdProvider';
-import { ApolloCache, useApolloClient } from '@apollo/client';
-import { collabTextRecordToEditorRevisionRecord } from '../../collab/editor-graphql-mapping';
-import { RevisionChangeset } from '~collab/records/record';
-import { useNoteCollabText } from '../context/NoteContentIdToCollabTextsProvider';
-import { UserRecords, ServerRecordsFacade } from '~collab/client/user-records';
-import { EditorRevisionRecord } from '~collab/client/collab-editor';
 import { useCurrentUserId } from '../../auth/user';
+import { collabTextRecordToEditorRevisionRecord } from '../../collab/editor-graphql-mapping';
+import { useNoteContentId } from '../context/NoteContentIdProvider';
+import { useNoteCollabText } from '../context/NoteContentIdToCollabTextsProvider';
+
+
 
 const QUERY = gql(`
   query HistoryRestoration($noteContentId: String!, $fieldName: NoteTextField!, 

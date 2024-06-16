@@ -1,8 +1,9 @@
-import { ReactNode, useMemo } from 'react';
-import { gql } from '../../../__generated__/gql';
 import { useSuspenseQuery } from '@apollo/client';
 import { ThemeProvider } from '@emotion/react';
 import { useMediaQuery, createTheme } from '@mui/material';
+import { ReactNode, useMemo } from 'react';
+
+import { gql } from '../../../__generated__/gql';
 import { ColorMode } from '../../../__generated__/graphql';
 import { ThemeOptionsFn } from '../../../themeOptions';
 import { useCustomApolloClient } from '../../apollo-client/context/CustomApolloClientProvider';

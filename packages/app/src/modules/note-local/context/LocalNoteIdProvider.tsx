@@ -2,6 +2,7 @@ import { ReactNode, createContext, useContext } from 'react';
 
 const LocalNoteIdContext = createContext<string | null>(null);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useLocalNoteId() {
   const ctx = useContext(LocalNoteIdContext);
   if (ctx === null) {
@@ -10,6 +11,7 @@ export function useLocalNoteId() {
   return ctx;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useLocalNoteIdMaybe() {
   return useContext(LocalNoteIdContext);
 }

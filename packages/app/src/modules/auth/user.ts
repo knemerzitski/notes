@@ -1,8 +1,9 @@
-import { gql } from '../../__generated__/gql';
 import { ApolloCache, useSuspenseQuery } from '@apollo/client';
-import { localStorageKey, LocalStoragePrefix } from '../storage/local-storage';
 import { DeepPartial } from '@apollo/client/utilities';
+
+import { gql } from '../../__generated__/gql';
 import { SignedInUserQuery } from '../../__generated__/graphql';
+import { localStorageKey, LocalStoragePrefix } from '../storage/local-storage';
 
 const KEY = localStorageKey(LocalStoragePrefix.Auth, 'currentUserId');
 

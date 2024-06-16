@@ -1,5 +1,7 @@
 import path from 'path';
+
 import dotenv from 'dotenv';
+
 import { PROJECT_DIR } from './project-dir';
 
 export function loadEnvironmentVariables() {

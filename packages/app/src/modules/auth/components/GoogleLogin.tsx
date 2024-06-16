@@ -1,6 +1,6 @@
-import BaseGoogleLogin, { GoogleLoginProps } from '../third-party/google/GoogleLogin';
-import useSignInWithGoogle from '../hooks/useSignInWithGoogle';
 import { useSnackbarError } from '../../common/components/SnackbarAlertProvider';
+import useSignInWithGoogle from '../hooks/useSignInWithGoogle';
+import BaseGoogleLogin, { GoogleLoginProps } from '../third-party/google/GoogleLogin';
 
 export default function GoogleLogin(props: Partial<GoogleLoginProps>) {
   const signInWithGoogle = useSignInWithGoogle();

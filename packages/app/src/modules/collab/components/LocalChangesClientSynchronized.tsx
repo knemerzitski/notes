@@ -1,8 +1,9 @@
 import { useApolloClient } from '@apollo/client';
 import { useEffect } from 'react';
-import useCollabEditor from '../hooks/useCollabEditor';
 import { CollabEditor } from '~collab/client/collab-editor';
+
 import useUpdateClientSynchronization from '../../global/hooks/useUpdateClientSynchronized';
+import useCollabEditor from '../hooks/useCollabEditor';
 
 interface LocalChangesClientSychronizedProps {
   collabTextId: string;

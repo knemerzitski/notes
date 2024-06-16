@@ -1,6 +1,8 @@
-import { CollectionDescription } from '../collections';
-import { NoteSchema } from './note';
 import { ObjectId } from 'mongodb';
+
+import { CollectionDescription } from '../collections';
+
+import { NoteSchema } from './note';
 
 /**
  * User's access to a note with customizations.

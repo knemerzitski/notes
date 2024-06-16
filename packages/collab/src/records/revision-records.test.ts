@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { Changeset } from '../changeset/changeset';
+
 import { RevisionRecords } from './revision-records';
 
 describe('constructor', () => {

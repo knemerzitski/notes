@@ -4,6 +4,7 @@
  */
 
 import { Document } from 'mongodb';
+
 import {
   RelayAfterBoundPagination,
   RelayArrayPaginationInput,

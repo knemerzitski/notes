@@ -2,6 +2,7 @@ import { ReactNode, createContext, useContext } from 'react';
 
 const BackgroundPathContext = createContext<string | undefined | null>(null);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useBackgroundPath() {
   return useContext(BackgroundPathContext);
 }

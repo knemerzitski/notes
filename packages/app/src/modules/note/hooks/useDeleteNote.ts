@@ -1,11 +1,11 @@
 import { useMutation } from '@apollo/client';
 import { useCallback } from 'react';
+import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
 import { gql } from '../../../__generated__/gql';
-import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
-import isErrorCode from '../../apollo-client/utils/isErrorCode';
-import ErrorLink from '../../apollo-client/links/error-link';
 import { useCustomApolloClient } from '../../apollo-client/context/CustomApolloClientProvider';
+import ErrorLink from '../../apollo-client/links/error-link';
+import isErrorCode from '../../apollo-client/utils/isErrorCode';
 import { getCurrentUserId } from '../../auth/user';
 
 const MUTATION = gql(`

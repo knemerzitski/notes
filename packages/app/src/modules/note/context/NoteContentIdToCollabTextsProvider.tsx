@@ -1,11 +1,13 @@
 import { WatchQueryFetchPolicy, useApolloClient, useQuery } from '@apollo/client';
-import { gql } from '../../../__generated__/gql';
 import { ReactNode, createContext, useContext, useMemo } from 'react';
+import { CollabEditor } from '~collab/client/collab-editor';
+
+import { gql } from '../../../__generated__/gql';
+import { NoteTextField, NoteTextFieldEntry } from '../../../__generated__/graphql';
 import { getCollabEditor } from '../../collab/hooks/useCollabEditor';
+
 import NoteContentIdProvider from './NoteContentIdProvider';
 import NoteTextFieldEditorsProvider from './NoteTextFieldEditorsProvider';
-import { CollabEditor } from '~collab/client/collab-editor';
-import { NoteTextField, NoteTextFieldEntry } from '../../../__generated__/graphql';
 
 const QUERY = gql(`
   query NoteContentIdToEditorsProvider($noteContentId: String!) {
@@ -34,14 +36,18 @@ export type NoteCollabTexts = (Omit<NoteTextFieldEntry, 'value'> & {
 
 const NoteCollabTextContext = createContext<NoteCollabTexts | null>(null);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useNoteCollabTexts() {
   const ctx = useContext(NoteCollabTextContext);
   if (ctx === null) {
-    throw new Error('useNoteCollabTexts() requires context <NoteContentIdToCollabTextsProvider>');
+    throw new Error(
+      'useNoteCollabTexts() requires context <NoteContentIdToCollabTextsProvider>'
+    );
   }
   return ctx;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useNoteCollabText(fieldName: NoteTextField) {
   const collabTexts = useNoteCollabTexts();
 

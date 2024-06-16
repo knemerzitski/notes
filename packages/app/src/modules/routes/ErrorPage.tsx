@@ -1,4 +1,5 @@
 import { useRouteError } from 'react-router-dom';
+
 import FullSizeErrorContainer from '../common/components/FullSizeErrorContainer';
 
 export default function ErrorPage() {

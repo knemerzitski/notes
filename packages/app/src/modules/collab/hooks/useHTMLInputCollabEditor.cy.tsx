@@ -1,6 +1,7 @@
 import { Changeset } from '~collab/changeset/changeset';
-import useHTMLInputCollabEditor from './useHTMLInputCollabEditor';
 import { CollabEditor } from '~collab/client/collab-editor';
+
+import useHTMLInputCollabEditor from './useHTMLInputCollabEditor';
 let editor: CollabEditor;
 
 beforeEach(() => {
@@ -9,6 +10,7 @@ beforeEach(() => {
   cy.mount(<InputEditing />);
 });
 
+// eslint-disable-next-line react-refresh/only-export-components
 function InputEditing() {
   const {
     inputRef: ref,

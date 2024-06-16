@@ -1,5 +1,6 @@
 import { Changeset } from '../changeset/changeset';
 import { SelectionRange } from '../client/selection-range';
+
 import { RevisionRecord, SubmittedRevisionRecord } from './record';
 import {
   RevisionRecords,

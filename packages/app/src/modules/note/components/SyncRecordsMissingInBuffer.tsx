@@ -1,10 +1,11 @@
-import { useEffect } from 'react';
-import { gql } from '../../../__generated__/gql';
 import { useApolloClient } from '@apollo/client';
-import { useNoteContentId } from '../context/NoteContentIdProvider';
+import { useEffect } from 'react';
+
+import { gql } from '../../../__generated__/gql';
 import { NoteTextField } from '../../../__generated__/graphql';
-import { useNoteTextFieldEditor } from '../context/NoteTextFieldEditorsProvider';
 import { collabTextRecordToEditorRevisionRecord } from '../../collab/editor-graphql-mapping';
+import { useNoteContentId } from '../context/NoteContentIdProvider';
+import { useNoteTextFieldEditor } from '../context/NoteTextFieldEditorsProvider';
 
 const QUERY_RECORDS = gql(`
   query SyncRecordsMissingInBuffer($noteContentId: String!, $fieldName: NoteTextField!, 
