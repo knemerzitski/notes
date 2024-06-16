@@ -27,31 +27,35 @@ const QUERY_ADD = gql(`
   }
 `);
 
-function setCurrentUserIdInStorage(userId: string | undefined | null) {
+function setCurrentUserIdInStorage(
+  userId: string | undefined | null,
+  storage = localStorage
+) {
   if (userId) {
-    localStorage.setItem(KEY, userId);
+    storage.setItem(KEY, userId);
   } else {
-    localStorage.removeItem(KEY);
+    storage.removeItem(KEY);
   }
 }
 
-export function getCurrentUserIdInStorage() {
-  return localStorage.getItem(KEY);
+export function getCurrentUserIdInStorage(storage = localStorage) {
+  return storage.getItem(KEY);
 }
 
 export function withDifferentUserIdInStorage(
   userId: string | undefined | null,
-  fn: () => void
+  fn: () => void,
+  storage = localStorage
 ) {
-  const savedUserId = getCurrentUserIdInStorage();
+  const savedUserId = getCurrentUserIdInStorage(storage);
   if (savedUserId === userId) {
     fn();
   } else {
     try {
-      setCurrentUserIdInStorage(userId);
+      setCurrentUserIdInStorage(userId, storage);
       fn();
     } finally {
-      setCurrentUserIdInStorage(savedUserId);
+      setCurrentUserIdInStorage(savedUserId, storage);
     }
   }
 }

@@ -1,7 +1,6 @@
 import { Changeset } from '~collab/changeset/changeset';
 import useHTMLInputCollabEditor from './useHTMLInputCollabEditor';
 import { CollabEditor } from '~collab/client/collab-editor';
-
 let editor: CollabEditor;
 
 beforeEach(() => {
@@ -11,12 +10,22 @@ beforeEach(() => {
 });
 
 function InputEditing() {
-  const { inputRef, value, handleSelect, handleInput } = useHTMLInputCollabEditor({
-    editor,
-  });
+  const {
+    inputRef: ref,
+    value,
+    onInput,
+    onKeyDown,
+    onSelect,
+  } = useHTMLInputCollabEditor(editor);
 
   return (
-    <input ref={inputRef} onSelect={handleSelect} value={value} onInput={handleInput} />
+    <input
+      ref={ref}
+      value={value}
+      onInput={onInput}
+      onKeyDown={onKeyDown}
+      onSelect={onSelect}
+    />
   );
 }
 

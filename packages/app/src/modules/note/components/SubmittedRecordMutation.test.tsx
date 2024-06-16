@@ -1,6 +1,6 @@
 import { it, beforeEach, vi, expect } from 'vitest';
 import { render } from '@testing-library/react';
-import { MockedProvider, MockedResponse } from '@apollo/client/testing';
+import { MockedResponse } from '@apollo/client/testing';
 import {
   NoteTextField,
   UseUpdateNoteMutation,
@@ -19,6 +19,8 @@ import useNoteTextFieldCollabEditor from '../hooks/__mocks__/useNoteTextFieldCol
 import nextTick from '~utils/nextTick';
 import { Changeset } from '~collab/changeset/changeset';
 import NoteCollabTextsProvider from '../context/NoteTextFieldEditorsProvider';
+import NoteContentIdProvider from '../context/NoteContentIdProvider';
+import { CustomMockedProvider } from '../../../test/helpers/CustomMockedProvider';
 
 vi.mock('../hooks/useNoteTextFieldCollabEditor');
 
@@ -112,18 +114,20 @@ beforeEach(() => {
   useNoteTextFieldCollabEditor.mockReturnValue(editor);
 
   render(
-    <MockedProvider mocks={mocks}>
-      <NoteCollabTextsProvider
-        editors={[
-          {
-            key: NoteTextField.Content,
-            value: editor,
-          },
-        ]}
-      >
-        <SubmittedRecordMutation fieldName={NoteTextField.Content} />
-      </NoteCollabTextsProvider>
-    </MockedProvider>
+    <CustomMockedProvider mocks={mocks}>
+      <NoteContentIdProvider noteContentId="random">
+        <NoteCollabTextsProvider
+          editors={[
+            {
+              key: NoteTextField.Content,
+              value: editor,
+            },
+          ]}
+        >
+          <SubmittedRecordMutation fieldName={NoteTextField.Content} />
+        </NoteCollabTextsProvider>
+      </NoteContentIdProvider>
+    </CustomMockedProvider>
   );
 });
 

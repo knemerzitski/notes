@@ -1,10 +1,7 @@
 import { Box, CircularProgress, CssBaseline } from '@mui/material';
 import GlobalStyles from './GlobalStyles';
 import themeOptions from './themeOptions';
-import {
-  CustomApolloClient,
-  customApolloClientPromise,
-} from './modules/apollo-client/apollo-client';
+import { customApolloClientPromise } from './modules/apollo-client/apollo-client';
 import ApolloClientErrorsSnackbarAlert from './modules/apollo-client/components/ApolloClientErrorsSnackbarAlert';
 import ApolloClientSynchronized from './modules/apollo-client/components/ApolloClientSynchronized';
 import CustomApolloClientProvider from './modules/apollo-client/context/CustomApolloClientProvider';
@@ -23,6 +20,7 @@ import RouterProvider from './modules/router/context/RouterProvider';
 import { ReactNode, Suspense, useEffect, useState } from 'react';
 import FullSizeErrorContainer from './modules/common/components/FullSizeErrorContainer';
 import ConfirmLeaveOngoingMutations from './modules/apollo-client/components/ConfirmLeaveOngoingMutations';
+import { CustomApolloClient } from './modules/apollo-client/custom-apollo-client';
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 

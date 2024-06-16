@@ -1,9 +1,9 @@
 import { ReactNode, createContext, useContext } from 'react';
-import { CustomApolloClient } from '../apollo-client';
 import { ApolloProvider } from '@apollo/client';
 import { PersistProvider } from '../hooks/usePersist';
 import { StatsLinkProvider } from '../hooks/useStatsLink';
 import { AddFetchResultErrorHandlerProvider } from '../hooks/useAddFetchResultErrorHandler';
+import { CustomApolloClient } from '../custom-apollo-client';
 
 const CustomApolloClientContext = createContext<CustomApolloClient | null>(null);
 
