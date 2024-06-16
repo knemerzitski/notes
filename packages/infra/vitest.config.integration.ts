@@ -1,5 +1,6 @@
 import { exec } from 'child_process';
 import { join } from 'path';
+
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
@@ -9,14 +10,14 @@ export default defineConfig({
   envDir: '../../',
   envPrefix: 'TEST_',
   test: {
-    include: ['test/**/*.test.ts', 'cloudfront-functions/src/**/*.test.ts'],
-    setupFiles: [],
+    include: ['lib/**/*.int.test.ts', 'test/**/*.int.test.ts'],
     pool: 'threads',
     poolOptions: {
       threads: {
         singleThread: true,
       },
     },
+    watch: false,
   },
 });
 
@@ -27,6 +28,18 @@ exec(`cd ${mongoDBDockerPath} && docker compose ps`, (err, stdout) => {
     console.error(
       `MongoDB container is not running. Integration tests cannot run without it.\n` +
         `Please start MongoDB container with commad 'npm run mongodb:start'`
+    );
+    process.exit(-1);
+  }
+});
+
+// Ensure sam local api is running
+exec(`curl -I -X OPTIONS http://127.0.0.1:3000/graphql`, (err, stdout) => {
+  if (!err && !stdout.startsWith('HTTP/1.1 200 OK')) {
+    console.error(
+      `SAM local API is not running. Integration tests cannot run without it.\n` +
+        `Please start API with commad 'npm run -w infra test:int:start-api'. \n` +
+        `Cloudformation must be syntheized: 'npm run -w infra test:int:synth'.`
     );
     process.exit(-1);
   }

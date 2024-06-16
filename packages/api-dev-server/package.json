@@ -3,14 +3,14 @@
   "version": "0.0.0",
   "private": "true",
   "scripts": {
-    "lint": "eslint .",
-    "build:server": "esbuild src/index.ts --outdir=./out --loader:.graphql=text --bundle --platform=node --packages=external --sourcemap",
-    "build:server:watch": "npm run build:server -- --watch=forever",
-    "start": "DEBUG=*:error node ./out/index.js",
+    "server:build": "esbuild src/index.ts --outdir=./out --loader:.graphql=text --bundle --platform=node --packages=external --sourcemap",
+    "server:build:watch": "npm run server:build -- --watch=forever",
     "start:watch": "DEBUG=mock:graphql-http:* nodemon ./out/index.js",
-    "dev": "npm run build:server:watch & npm run start:watch",
     "build:http": "vite-node ../api/build.ts src/handlers/mock-apollo-http-handler.ts --outfile out-handlers/mock-apollo-http-handler/index.js",
-    "build:handlers": "npm run build:http"
+    "build:handlers": "npm run build:http",
+    "lint": "eslint . --max-warnings 0",
+    "dev": "npm run server:build:watch & npm run start:watch",
+    "start": "DEBUG=*:error node ./out/index.js"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.454.0",

@@ -7,8 +7,6 @@
   "type": "module",
   "version": "0.0.0",
   "scripts": {
-    "prepare": "husky install",
-    "lint": "npm run lint --workspaces --if-present",
     "dynamodb:start": "cd ./docker/dynamodb && docker compose up -d",
     "dynamodb:stop": "cd ./docker/dynamodb && docker compose down",
     "mongodb:start": "cd ./docker/mongodb && docker compose up -d",
@@ -19,10 +17,16 @@
     "db:stop": "npm run dynamodb:stop & npm run mongodb:stop",
     "api:dev": "npm run -w dev-server dev & npm run -w api graphql:watch",
     "app:dev": "npm run -w app dev",
-    "dev": "npm run api:dev & npm run app:dev",
-    "graphql:compile": "npm run -w api graphql:compile && npm run -w app graphql:compile",
+    "test:unit": "npm run test:unit --workspaces --if-present",
+    "test:int": "npm run test:int --workspaces --if-present",
+    "test:comp": "npm run test:comp --workspaces --if-present",
+    "prepare": "husky install",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test:unit && npm run test:int && npm run test:comp",
+    "dev": "npm run db:start && npm run api:dev & npm run app:dev",
+    "graphql:compile": "npm run graphql:compile --workspaces --if-present",
     "build": "npm run -w api build && npm run -w app build",
-    "deploy": "npm run -w infra cdk deploy"
+    "deploy": "npm run -w infra deploy"
   },
   "validate-branch-name": {
     "pattern": "^main$|^[\\w]+\\/\\S+$",

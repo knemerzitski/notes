@@ -3,11 +3,15 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "test:unit": "vitest run -c ./vitest.config.unit.ts",
+    "test:unit:watch": "vitest watch -c ./vitest.config.unit.ts",
+    "test:int:synth": "NODE_ENV=test cdk synth -a 'vite-node bin/app-test.ts' --no-staging --quiet",
+    "test:int:start-api": "sam local start-api --host 127.0.0.1 -p 3000 --docker-network sam-api-network -t cdk.out/TESTINGONLYNotesStack.template.json",
+    "test:int": "vitest -c ./vitest.config.integration.ts",
+    "test:int:watch": "vitest watch -c ./vitest.config.integration.ts",
     "cdk": "NODE_ENV=production cdk",
-    "test:synth": "NODE_ENV=test cdk synth -a 'vite-node bin/app-test.ts' --no-staging --quiet",
-    "test:start-api": "sam local start-api --host 127.0.0.1 -p 3000 --docker-network sam-api-network -t cdk.out/TESTINGONLYNotesStack.template.json",
-    "test": "vitest run",
-    "test:watch": "vitest watch"
+    "synth": "NODE_ENV=production cdk synth",
+    "deploy": "NODE_ENV=production cdk deploy"
   },
   "dependencies": {
     "@types/node": "20.12.7",

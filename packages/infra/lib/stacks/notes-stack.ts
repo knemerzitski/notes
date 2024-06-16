@@ -8,7 +8,7 @@ import { StateMongoDB, StateMongoDBProps } from '../database/state-mongodb';
 import { SubscriptionsWebSocketApi } from '../api/subscriptions-websocket-api';
 import { Domains, DomainsProps } from '../dns/domains';
 import { AppDistribution, AppDistributionProps } from '../cdn/AppDistribution';
-import { AppStaticFiles } from '../storage/AppStaticFiles';
+import { AppStaticFiles } from '../storage/app-static-files';
 import {
   PostDeploymentFunction,
   PostDeploymentFunctionProps,

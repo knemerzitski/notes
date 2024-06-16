@@ -4,17 +4,18 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "lint": "eslint .",
     "vite:dev": "vite --host",
-    "build": "graphql-codegen && tsc && vite build",
-    "preview": "vite preview --host",
+    "vite:preview": "vite preview --host",
+    "vite:build": "tsc && vite build",
     "graphql:compile": "graphql-codegen",
     "graphql:watch": "graphql-codegen -w",
-    "dev": "npm run vite:dev & npm run graphql:watch",
-    "test": "vitest run",
-    "test:watch": "vitest watch",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest watch",
+    "test:comp": "cypress run --component",
     "cypress": "cypress open",
-    "test:comp": "cypress run --component"
+    "lint": "eslint . --max-warnings 0",
+    "dev": "npm run vite:dev & npm run graphql:watch",
+    "build": "npm run graphql:compile && npm run vite:build"
   },
   "dependencies": {
     "@apollo/client": "^3.10.3",
