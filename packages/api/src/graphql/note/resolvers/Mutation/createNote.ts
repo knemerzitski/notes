@@ -1,7 +1,6 @@
-
-
 import mapObject from 'map-obj';
 import { ObjectId } from 'mongodb';
+
 import { Changeset } from '~collab/changeset/changeset';
 
 import { CollectionName } from '../../../../mongodb/collections';
@@ -140,7 +139,7 @@ function createCollabText({
       {
         creatorUserId,
         userGeneratedId: '',
-        revision: 1, 
+        revision: 1,
         changeset,
         beforeSelection: {
           start: 0,
