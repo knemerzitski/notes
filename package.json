@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "@commitlint/config-conventional": "^18.4.2",
+    "@commitlint/types": "^19.0.3",
     "@graphql-eslint/eslint-plugin": "^3.20.1",
     "commitlint": "^18.4.2",
     "eslint": "^8.53.0",

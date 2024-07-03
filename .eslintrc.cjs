@@ -7,6 +7,10 @@ module.exports = {
       typescript: {},
     },
   },
+  parserOptions: {
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+  },
   ignorePatterns: ['.eslintrc.cjs', 'node_modules'],
   rules: {
     'import/order': [

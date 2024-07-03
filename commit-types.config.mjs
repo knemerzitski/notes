@@ -7,7 +7,7 @@
 /**
  * @type {CommitType[]}
  */
-module.exports = [
+export default [
   {
     type: 'feat',
     description: 'A new feature',
