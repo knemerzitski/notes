@@ -35,13 +35,11 @@ function RouteClosableEditNoteDialog({
   const [collabInputsEl, setCollabInputsEl] = useState<HTMLElement>();
   const isScrollEnd = useIsElementScrollEnd(collabInputsEl);
 
-  async function handleDeleteNote() {
-    if (!noteContentId) return false;
-    const deleted = await deleteNote(noteContentId);
-    if (deleted) {
-      onClosed(true);
-    }
-    return deleted;
+  function handleDeleteNote() {
+    if (!noteContentId) return;
+
+    void deleteNote(noteContentId);
+    onClosed(true);
   }
 
   if (!noteContentId && !isNewNote) {

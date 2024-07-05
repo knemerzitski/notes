@@ -32,14 +32,11 @@ function RouteClosableEditNoteDialog({
 
   const noteExists = useLocalNoteExists(localNoteId ?? '');
 
-  async function handleDeleteNote() {
-    if (!localNoteId) return false;
+  function handleDeleteNote() {
+    if (!localNoteId) return;
 
     deleteNote(localNoteId);
-
     onClosed(true);
-
-    return Promise.resolve(true);
   }
 
   useEffect(() => {

@@ -1,4 +1,3 @@
-
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import {
   AppBar as MuiAppBar,
@@ -34,8 +33,8 @@ export default function EditNotePage() {
 
   const noteExists = useLocalNoteExists(localNoteId ?? '');
 
-  async function handleDeleteNote() {
-    if (!localNoteId) return false;
+  function handleDeleteNote() {
+    if (!localNoteId) return;
 
     deleteNote(localNoteId);
 
@@ -45,8 +44,6 @@ export default function EditNotePage() {
     } else {
       navigate('/');
     }
-
-    return Promise.resolve(true);
   }
 
   useEffect(() => {

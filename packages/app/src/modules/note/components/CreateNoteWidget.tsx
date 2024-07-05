@@ -111,12 +111,7 @@ export default function CreateNoteWidget({
                     display: 'flex',
                   }}
                 >
-                  <MoreOptionsButton
-                    onDelete={() => {
-                      handleDeleteNote();
-                      return Promise.resolve(true);
-                    }}
-                  />
+                  <MoreOptionsButton onDelete={handleDeleteNote} />
                   <UndoButton />
                   <RedoButton />
                 </Box>

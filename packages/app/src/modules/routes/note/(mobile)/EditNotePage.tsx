@@ -36,9 +36,9 @@ export default function EditNotePage() {
 
   const isScrollEnd = useIsScrollEnd();
 
-  async function handleDeleteNote() {
-    if (!noteContentId) return false;
-    return deleteNote(noteContentId);
+  function handleDeleteNote() {
+    if (!noteContentId) return;
+    void deleteNote(noteContentId);
   }
 
   if (!noteContentId && !isNewNote) {
