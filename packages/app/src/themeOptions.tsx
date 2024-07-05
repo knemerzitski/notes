@@ -6,6 +6,7 @@ interface PaletteExtension {
     thumbHover: string;
     trackPiece: string;
   };
+  dividerHoverOpacity: number;
 }
 
 interface ShadowsNamed {
@@ -43,6 +44,7 @@ const themeOptions: ThemeOptionsFn = function (mode = 'light') {
               thumbHover: 'rgba(0,0,0,.35)',
               trackPiece: 'hsla(0,0%,95%,.8)',
             },
+            dividerHoverOpacity: 0.18,
           }
         : {
             text: {
@@ -60,6 +62,7 @@ const themeOptions: ThemeOptionsFn = function (mode = 'light') {
               trackPiece: 'hsla(0,0%,20%,.3)',
             },
             tonalOffset: 0.1,
+            dividerHoverOpacity: 0.24,
           }),
     },
     shadowsNamed: {

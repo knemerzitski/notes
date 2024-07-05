@@ -1,6 +1,14 @@
 import LinkIcon from '@mui/icons-material/Link';
 import PersonIcon from '@mui/icons-material/Person';
-import { Box, Paper, PaperProps, Tooltip, Typography, useTheme } from '@mui/material';
+import {
+  Box,
+  Paper,
+  PaperProps,
+  Tooltip,
+  Typography,
+  useTheme,
+  alpha,
+} from '@mui/material';
 import { ReactNode, useRef, useState } from 'react';
 
 import MoreOptionsButton from './MoreOptionsButton';
@@ -106,7 +114,7 @@ export default function NoteItem({
           cursor: 'default',
           boxShadow: 1,
           ...(theme.palette.mode === 'dark' && {
-            borderColor: 'rgba(255,255,255,0.16)',
+            borderColor: alpha(theme.palette.divider, theme.palette.dividerHoverOpacity),
           }),
         }),
         ...(note.editing && {
