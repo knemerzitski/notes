@@ -5,7 +5,7 @@ import { useCustomApolloClient } from '../../apollo-client/context/CustomApolloC
 import { useCurrentUserId } from '../../auth/user';
 import { collabTextRecordToEditorRevisionRecord } from '../../collab/editor-graphql-mapping';
 import { getCollabEditorMaybe } from '../../collab/hooks/useCollabEditor';
-import { useNoteContentIdMaybe } from '../context/NoteContentIdProvider';
+import { useNoteContentId } from '../context/NoteContentIdProvider';
 
 export const SUBSCRIPTION = gql(`
   subscription ExternalChangesNewRecord($input: NoteUpdatedInput) {
@@ -69,7 +69,7 @@ const FRAGMENT_RECORDS = gql(`
 export default function ExternalChangesSubscription() {
   const customApolloClient = useCustomApolloClient();
   const currentUserId = useCurrentUserId();
-  const noteContentId = useNoteContentIdMaybe();
+  const noteContentId = useNoteContentId(true);
 
   useEffect(() => {
     if (!currentUserId) return;

@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { gql } from '../../../__generated__/gql';
 import { useCustomApolloClient } from '../../apollo-client/context/CustomApolloClientProvider';
 import { useCurrentUserId } from '../../auth/user';
-import { useNoteContentIdMaybe } from '../context/NoteContentIdProvider';
+import { useNoteContentId } from '../context/NoteContentIdProvider';
 
 export const SUBSCRIPTION = gql(`
   subscription NoteDeleted($input: NoteDeletedInput) {
@@ -21,7 +21,7 @@ export default function NoteDeletedSubscription() {
   const customApolloClient = useCustomApolloClient();
   const currentUserId = useCurrentUserId();
 
-  const noteContentId = useNoteContentIdMaybe();
+  const noteContentId = useNoteContentId(true);
 
   useEffect(() => {
     if (!currentUserId) return;
