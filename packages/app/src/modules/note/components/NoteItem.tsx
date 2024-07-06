@@ -25,7 +25,8 @@ interface Note {
   };
 }
 
-export interface NoteItemProps extends PaperProps {
+export interface NoteItemProps {
+  paperProps?: PaperProps;
   note: Note;
   onStartEdit?: () => void;
   onDelete?: () => Promise<boolean>;
@@ -87,10 +88,10 @@ function NoteInnerBadge({ type }: Pick<Note, 'type'>) {
 }
 
 export default function NoteItem({
+  paperProps,
   note,
   onStartEdit,
   onDelete,
-  ...restProps
 }: NoteItemProps) {
   const theme = useTheme();
 
@@ -127,7 +128,7 @@ export default function NoteItem({
           setHover(false);
         }
       }}
-      {...restProps}
+      {...paperProps}
       sx={{
         position: 'relative',
         display: 'flex',
@@ -147,7 +148,7 @@ export default function NoteItem({
         ...(note.editing && {
           visibility: 'hidden',
         }),
-        ...restProps.sx,
+        ...paperProps?.sx,
       }}
     >
       <NoteInnerBadge {...note} />
