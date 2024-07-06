@@ -195,11 +195,11 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
     });
   }
 
-  function handleCloseCreateNoteWidget() {
+  function handleCloseCreateNoteWidget(deleted?: boolean) {
     reset();
 
     setCreatedNote((createdNote) => {
-      if (createdNote) {
+      if (createdNote && !deleted) {
         insertNoteToNotesConnection(apolloClient.cache, createdNote);
       }
       return null;
@@ -229,6 +229,12 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
                 }}
               />
             ),
+          },
+          moreOptionsButtonProps: {
+            onDelete() {
+              if (!createdNote) return;
+              handleDelete(createdNote.contentId);
+            },
           },
         }}
         notesList={{

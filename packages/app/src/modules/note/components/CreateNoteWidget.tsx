@@ -6,19 +6,20 @@ import {
   Box,
   Button,
 } from '@mui/material';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useRef, useState } from 'react';
 
 import CollabContentInput, { CollabContentInputProps } from './CollabContentInput';
 import CollabInputs from './CollabInputs';
-import MoreOptionsButton from './MoreOptionsButton';
+import MoreOptionsButton, { MoreOptionsButtonProps } from './MoreOptionsButton';
 import RedoButton from './RedoButton';
 import UndoButton from './UndoButton';
 
 export interface CreateNoteWidgetProps {
   onCreate?: () => void;
-  onClose?: () => void;
+  onClose?: (deleted?: boolean) => void;
   paperProps?: PaperProps;
   initialContentInputProps?: CollabContentInputProps;
+  moreOptionsButtonProps?: Omit<MoreOptionsButtonProps, 'onOpened' | 'onClosed'>;
   slots?: {
     toolbar?: ReactNode;
   };
@@ -29,26 +30,35 @@ export default function CreateNoteWidget({
   onClose,
   paperProps,
   slots,
+  moreOptionsButtonProps,
   initialContentInputProps,
 }: CreateNoteWidgetProps) {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const isCreatedCalledRef = useRef(false);
 
-  function handleStartEditing() {
-    if (onCreate) {
-      if (!isEditorOpen) {
-        onCreate();
-        setIsEditorOpen(true);
-      }
-    }
+  function createOnce() {
+    if (!onCreate || isCreatedCalledRef.current) return;
+    onCreate();
+    isCreatedCalledRef.current = true;
   }
 
-  function handleCloseWidget() {
+  function handleTextChange() {
+    createOnce();
+  }
+
+  function handleExpandEditor() {
+    setIsEditorOpen(true);
+  }
+
+  function handleCloseWidget(deleted?: boolean) {
     setIsEditorOpen(false);
-    onClose?.();
+    onClose?.(deleted);
+    isCreatedCalledRef.current = false;
   }
 
   function handleDeleteNote() {
-    handleCloseWidget();
+    handleCloseWidget(true);
+    moreOptionsButtonProps?.onDelete?.();
   }
 
   return (
@@ -69,8 +79,8 @@ export default function CreateNoteWidget({
           {...initialContentInputProps}
           inputProps={{
             placeholder: 'Take a note...',
-            onChange: handleStartEditing,
-            onClick: handleStartEditing,
+            onChange: handleTextChange,
+            onClick: handleExpandEditor,
             ...initialContentInputProps?.inputProps,
           }}
         />
@@ -78,7 +88,9 @@ export default function CreateNoteWidget({
 
       {isEditorOpen && (
         <ClickAwayListener
-          onClickAway={handleCloseWidget}
+          onClickAway={() => {
+            handleCloseWidget();
+          }}
           touchEvent="onTouchStart"
           mouseEvent="onMouseDown"
         >
@@ -94,8 +106,14 @@ export default function CreateNoteWidget({
             }}
           >
             <CollabInputs
+              titleProps={{
+                inputProps: {
+                  onChange: handleTextChange,
+                },
+              }}
               contentProps={{
                 inputProps: {
+                  onChange: handleTextChange,
                   autoFocus: true,
                 },
               }}
@@ -115,7 +133,10 @@ export default function CreateNoteWidget({
                     display: 'flex',
                   }}
                 >
-                  <MoreOptionsButton onDelete={handleDeleteNote} />
+                  <MoreOptionsButton
+                    {...moreOptionsButtonProps}
+                    onDelete={handleDeleteNote}
+                  />
 
                   {slots?.toolbar}
                   <UndoButton />
@@ -124,7 +145,9 @@ export default function CreateNoteWidget({
                 <Button
                   color="inherit"
                   size="small"
-                  onClick={handleCloseWidget}
+                  onClick={() => {
+                    handleCloseWidget();
+                  }}
                   sx={{
                     mr: 1,
                   }}
