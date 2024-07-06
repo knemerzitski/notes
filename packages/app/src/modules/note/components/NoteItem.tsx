@@ -133,6 +133,7 @@ export default function NoteItem({
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
             flex: '1 0 auto',
+            userSelect: 'none',
           }}
         >
           {visibleNote.title}
@@ -148,6 +149,7 @@ export default function NoteItem({
           WebkitLineClamp: '7',
           textAlign: 'left',
           flex: '1 1 100%',
+          userSelect: 'none',
         }}
       >
         {visibleNote.content}
