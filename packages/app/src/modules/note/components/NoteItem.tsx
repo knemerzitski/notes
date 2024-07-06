@@ -8,6 +8,7 @@ import {
   Typography,
   useTheme,
   alpha,
+  styled,
 } from '@mui/material';
 import { ReactNode, useRef, useState } from 'react';
 
@@ -29,6 +30,28 @@ export interface NoteItemProps extends PaperProps {
   onStartEdit?: () => void;
   onDelete?: () => Promise<boolean>;
 }
+
+const TitleTypography = styled(Typography)(({ theme }) => ({
+  fontWeight: theme.typography.fontWeightMedium,
+  fontSize: '1.2em',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  flex: '1 0 auto',
+  userSelect: 'none',
+}));
+
+const ContentTypography = styled(Typography)({
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'pre-wrap',
+  display: '-webkit-box',
+  WebkitBoxOrient: 'vertical',
+  WebkitLineClamp: '7',
+  textAlign: 'left',
+  flex: '1 1 100%',
+  userSelect: 'none',
+});
 
 export default function NoteItem({
   note,
@@ -124,36 +147,8 @@ export default function NoteItem({
       }}
     >
       {cornerIcon}
-      {visibleNote.title && (
-        <Typography
-          sx={{
-            fontWeight: (theme) => theme.typography.fontWeightMedium,
-            fontSize: '1.2em',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            flex: '1 0 auto',
-            userSelect: 'none',
-          }}
-        >
-          {visibleNote.title}
-        </Typography>
-      )}
-      <Typography
-        sx={{
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'pre-wrap',
-          display: '-webkit-box',
-          WebkitBoxOrient: 'vertical',
-          WebkitLineClamp: '7',
-          textAlign: 'left',
-          flex: '1 1 100%',
-          userSelect: 'none',
-        }}
-      >
-        {visibleNote.content}
-      </Typography>
+      {visibleNote.title && <TitleTypography>{visibleNote.title}</TitleTypography>}
+      <ContentTypography>{visibleNote.content}</ContentTypography>
 
       <Box
         sx={{
