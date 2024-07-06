@@ -53,6 +53,39 @@ const ContentTypography = styled(Typography)({
   userSelect: 'none',
 });
 
+function NoteInnerBadge({ type }: Pick<Note, 'type'>) {
+  switch (type) {
+    case 'linked':
+      return (
+        <Tooltip
+          sx={(theme) => ({
+            position: 'absolute',
+            right: theme.spacing(1),
+            top: theme.spacing(1),
+          })}
+          title="Linked from another user"
+        >
+          <LinkIcon fontSize="small" />
+        </Tooltip>
+      );
+    case 'shared':
+      return (
+        <Tooltip
+          sx={(theme) => ({
+            position: 'absolute',
+            right: theme.spacing(1),
+            top: theme.spacing(1),
+          })}
+          title="Note is shared"
+        >
+          <PersonIcon fontSize="small" />
+        </Tooltip>
+      );
+  }
+
+  return null;
+}
+
 export default function NoteItem({
   note,
   onStartEdit,
@@ -77,35 +110,6 @@ export default function NoteItem({
       noteBeforeEditRef.current = note;
       onStartEdit();
     }
-  }
-
-  let cornerIcon = null;
-  if (note.type === 'linked') {
-    cornerIcon = (
-      <Tooltip
-        sx={(theme) => ({
-          position: 'absolute',
-          right: theme.spacing(1),
-          top: theme.spacing(1),
-        })}
-        title="Linked from another user"
-      >
-        <LinkIcon fontSize="small" />
-      </Tooltip>
-    );
-  } else if (note.type === 'shared') {
-    cornerIcon = (
-      <Tooltip
-        sx={(theme) => ({
-          position: 'absolute',
-          right: theme.spacing(1),
-          top: theme.spacing(1),
-        })}
-        title="Note is shared"
-      >
-        <PersonIcon fontSize="small" />
-      </Tooltip>
-    );
   }
 
   return (
@@ -146,7 +150,7 @@ export default function NoteItem({
         ...restProps.sx,
       }}
     >
-      {cornerIcon}
+      <NoteInnerBadge {...note} />
       {visibleNote.title && <TitleTypography>{visibleNote.title}</TitleTypography>}
       <ContentTypography>{visibleNote.content}</ContentTypography>
 
