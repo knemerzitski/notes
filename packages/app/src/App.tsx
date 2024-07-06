@@ -31,9 +31,9 @@ export default function App() {
       <ApolloClientSynchronized />
       <ConfirmLeaveOngoingMutations />
       <CustomThemeProvider themeOptions={themeOptions}>
+        <CssBaseline />
+        <GlobalStyles />
         <SnackbarAlertProvider>
-          <CssBaseline />
-          <GlobalStyles />
           <Suspense
             fallback={
               <FullSizeErrorContainer message="Unexpected suspense. This should never happen!" />
