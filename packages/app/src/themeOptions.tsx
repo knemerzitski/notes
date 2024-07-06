@@ -52,6 +52,12 @@ const themeOptions: ThemeOptionsFn = function (mode = 'light') {
               secondary: 'rgba(242,242,242, 0.7)',
               disabled: 'rgba(242,242,242, 0.5)',
             },
+            info: {
+              main: '#282736',
+              light: '#3a394f',
+              dark: '#28273b',
+              contrastText: '#fff',
+            },
             background: {
               default: '#1d1c21', // Default: #121212
               paper: '#1d1c21', // Default: #121212
@@ -73,6 +79,15 @@ const themeOptions: ThemeOptionsFn = function (mode = 'light') {
         defaultProps: {
           elevation: 8,
           variant: 'filled',
+        },
+        styleOverrides: {
+          action: {
+            // Center close button
+            alignSelf: 'center',
+            justifySelf: 'center',
+            paddingTop: 0,
+            paddingBottom: 0,
+          },
         },
       },
     },
