@@ -2,12 +2,12 @@ import { Box, BoxProps, Skeleton } from '@mui/material';
 
 import NoteItem, { NoteItemProps } from './NoteItem';
 
-const LOADING_SKELETON_COUNT = 15;
+const LOADING_SKELETON_COUNT = 6;
 
 export interface NotesListProps extends BoxProps {
   notes: NoteItemProps['note'][];
   onStartEdit?: (id: string) => void;
-  onDelete?: (id: string) => Promise<boolean>;
+  onDelete?: (id: string) => void;
   loading?: boolean;
 }
 
@@ -52,11 +52,17 @@ export default function NotesList({
               onStartEdit={() => {
                 onStartEdit?.(String(note.id));
               }}
-              onDelete={() => onDelete?.(String(note.id)) ?? Promise.resolve(true)}
-              sx={{
-                height: {
-                  xs: 'auto',
-                  sm: '256px',
+              moreOptionsButtonProps={{
+                onDelete() {
+                  onDelete?.(String(note.id));
+                },
+              }}
+              paperProps={{
+                sx: {
+                  height: {
+                    xs: 'auto',
+                    sm: '256px',
+                  },
                 },
               }}
             />

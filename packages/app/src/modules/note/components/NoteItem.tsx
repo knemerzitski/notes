@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import { ReactNode, useRef, useState } from 'react';
 
-import MoreOptionsButton from './MoreOptionsButton';
+import MoreOptionsButton, { MoreOptionsButtonProps } from './MoreOptionsButton';
 
 interface Note {
   id: string;
@@ -29,7 +29,7 @@ export interface NoteItemProps {
   paperProps?: PaperProps;
   note: Note;
   onStartEdit?: () => void;
-  onDelete?: () => Promise<boolean>;
+  moreOptionsButtonProps?: Omit<MoreOptionsButtonProps, 'onOpened' | 'onClosed'>;
 }
 
 const TitleTypography = styled(Typography)(({ theme }) => ({
@@ -91,7 +91,7 @@ export default function NoteItem({
   paperProps,
   note,
   onStartEdit,
-  onDelete,
+  moreOptionsButtonProps,
 }: NoteItemProps) {
   const theme = useTheme();
 
@@ -180,11 +180,13 @@ export default function NoteItem({
               setHover(false);
             }
           }}
-          onDelete={onDelete}
+          {...moreOptionsButtonProps}
           iconButtonProps={{
             edge: 'end',
+            ...moreOptionsButtonProps?.iconButtonProps,
             sx: {
               justifySelf: 'flex-end',
+              ...moreOptionsButtonProps?.iconButtonProps?.sx,
             },
           }}
         />

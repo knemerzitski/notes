@@ -37,6 +37,8 @@ export default function ResponsiveMenuButton({
 
   const isMobile = useIsMobile();
 
+  if (itemsProps.length === 0) return null;
+
   const isMenuOpen = anchorEl != null;
 
   function handleClickOpen(e: MouseEvent<HTMLElement>) {

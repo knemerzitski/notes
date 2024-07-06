@@ -1,6 +1,7 @@
 import { useApolloClient } from '@apollo/client';
 import { Button } from '@mui/material';
 import { useRef, useState } from 'react';
+
 import { CollabEditor } from '~collab/client/collab-editor';
 
 import { gql } from '../../../__generated__/gql';
@@ -19,7 +20,6 @@ import {
 } from '../../router/context/ProxyRoutesProvider';
 import { useAbsoluteLocation } from '../../router/hooks/useAbsoluteLocation';
 import { useIsBackgroundLocation } from '../../router/hooks/useIsBackgroundLocation';
-
 
 const QUERY = gql(`
   query LocalNotesRoute($last: NonNegativeInt!, $before: NonNegativeInt) {
@@ -102,9 +102,8 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
     navigate(`/local/note/${noteId}`);
   }
 
-  async function handleDelete(id: string) {
+  function handleDelete(id: string) {
     deleteNote(id);
-    return Promise.resolve(true);
   }
 
   async function handleFetchMore() {

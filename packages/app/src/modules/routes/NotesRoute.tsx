@@ -150,12 +150,12 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
     });
   }
 
-  async function handleDelete(id: string) {
-    if (!(await deleteNote(id))) {
-      showError('Failed to delete note');
-      return false;
-    }
-    return true;
+  function handleDelete(id: string) {
+    void deleteNote(id).then((deleted) => {
+      if (!deleted) {
+        showError('Failed to delete note');
+      }
+    });
   }
 
   async function handleFetchMore() {

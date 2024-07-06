@@ -32,19 +32,21 @@ export default function MoreOptionsButton({
       }}
       itemsProps={[
         ...(restProps.itemsProps ?? []),
-        {
-          onClick: () => {
-            onDelete?.();
-          },
-          children: (
-            <>
-              <ListItemIcon>
-                <DeleteIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>Delete note</ListItemText>
-            </>
-          ),
-        },
+        ...(onDelete
+          ? [
+              {
+                onClick: onDelete,
+                children: (
+                  <>
+                    <ListItemIcon>
+                      <DeleteIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>Delete note</ListItemText>
+                  </>
+                ),
+              },
+            ]
+          : []),
       ]}
     />
   );
