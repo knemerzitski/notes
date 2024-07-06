@@ -179,23 +179,17 @@ export default function CollaborationButton({
 
   return (
     <>
-      <Tooltip title="Collaboration">
-        <span>
-          <IconButton
-            id={buttonId}
-            onClick={handleClickOpenDialog}
-            color="inherit"
-            aria-label="note collaboration"
-            aria-controls={isModalOpen ? dialogId : undefined}
-            aria-haspopup={true}
-            aria-expanded={isModalOpen ? true : undefined}
-            size="medium"
-            {...iconButtonProps}
-          >
-            <PersonAddAlt1Icon />
-          </IconButton>
-        </span>
-      </Tooltip>
+      <CollaborationButtonBase
+        iconButtonProps={{
+          id: buttonId,
+          onClick: handleClickOpenDialog,
+          'aria-label': 'note collaboration',
+          'aria-controls': isModalOpen ? dialogId : undefined,
+          'aria-haspopup': true,
+          'aria-expanded': isModalOpen ? true : undefined,
+          ...iconButtonProps,
+        }}
+      />
 
       <Dialog
         id={dialogId}
@@ -302,5 +296,23 @@ export default function CollaborationButton({
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+export interface CollaboratorButtonBaseProps {
+  iconButtonProps?: IconButtonProps;
+}
+
+export function CollaborationButtonBase({
+  iconButtonProps,
+}: CollaboratorButtonBaseProps) {
+  return (
+    <Tooltip title="Collaboration">
+      <span>
+        <IconButton color="inherit" size="medium" {...iconButtonProps}>
+          <PersonAddAlt1Icon />
+        </IconButton>
+      </span>
+    </Tooltip>
   );
 }
