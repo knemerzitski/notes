@@ -23,7 +23,9 @@ const SnackbarRouteAlertContext = createContext<
 export function useRouteSnackbarAlert() {
   const ctx = useContext(SnackbarRouteAlertContext);
   if (ctx === null) {
-    throw new Error('useSnackbarAlert() requires context <SnackbarAlertProvider>');
+    throw new Error(
+      'useRouteSnackbarAlert() requires context <RouteSnackbarAlertProvider>'
+    );
   }
   return ctx;
 }

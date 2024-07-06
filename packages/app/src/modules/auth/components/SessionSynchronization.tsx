@@ -1,5 +1,6 @@
 import { useMutation } from '@apollo/client';
 import { useEffect } from 'react';
+
 import {
   AuthenticationFailedReason,
   GraphQLErrorCode,
@@ -35,7 +36,7 @@ export default function SessionSynchronization() {
   const customApolloClient = useCustomApolloClient();
   const addFetchResultErrorHandler = useAddFetchResultErrorHandler();
   const [syncSessions] = useMutation(SYNC_SESSIONS);
-  const showAlert = useSnackbarAlert();
+  const { open: showAlert } = useSnackbarAlert();
   const showError = useSnackbarError();
 
   useEffect(() => {

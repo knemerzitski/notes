@@ -1,13 +1,31 @@
-import { Alert, AlertProps, Snackbar, SnackbarProps } from '@mui/material';
-import { ReactNode, createContext, useCallback, useContext, useState } from 'react';
+import {
+  Alert,
+  AlertProps,
+  Box,
+  Button,
+  Snackbar,
+  SnackbarProps,
+  styled,
+} from '@mui/material';
+import {
+  ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from 'react';
 
 type SnackbarAlertProps = AlertProps & {
   snackbarProps?: SnackbarProps;
 };
 
-const SnackbarAlertContext = createContext<((props: SnackbarAlertProps) => void) | null>(
-  null
-);
+interface SnackbarAlertContextProps {
+  open: (props: SnackbarAlertProps) => void;
+  close: () => void;
+}
+
+const SnackbarAlertContext = createContext<SnackbarAlertContextProps | null>(null);
 
 /**
  *
@@ -27,7 +45,7 @@ export function useSnackbarAlert() {
  */
 // eslint-disable-next-line react-refresh/only-export-components
 export function useSnackbarError() {
-  const showAlert = useSnackbarAlert();
+  const { open: showAlert } = useSnackbarAlert();
 
   return useCallback(
     (message: string) => {
@@ -43,6 +61,41 @@ export function useSnackbarError() {
   );
 }
 
+const ButtonUndoBox = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  gap: theme.spacing(2),
+  alignItems: 'center',
+  justifyContent: 'space-between',
+}));
+
+export function useSnackbarUndoAction() {
+  const { open: showAlert, close: closeAlert } = useSnackbarAlert();
+
+  return useCallback(
+    (message: string, onUndo: () => void) => {
+      showAlert({
+        children: (
+          <ButtonUndoBox>
+            {message}
+            <Button
+              color="primary"
+              variant="text"
+              onClick={() => {
+                closeAlert();
+                onUndo();
+              }}
+            >
+              Undo
+            </Button>
+          </ButtonUndoBox>
+        ),
+        icon: false,
+      });
+    },
+    [showAlert, closeAlert]
+  );
+}
+
 export default function SnackbarAlertProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [propsOnOpen, setPropsOnOpen] = useState<SnackbarAlertProps>();
@@ -54,21 +107,37 @@ export default function SnackbarAlertProvider({ children }: { children: ReactNod
     setOpen(true);
   }, []);
 
+  const closeSnackbarAlert = useCallback(() => {
+    setOpen(false);
+  }, []);
+
   function handleClose() {
     setOpen(false);
   }
 
+  const providerValue = useMemo<SnackbarAlertContextProps>(
+    () => ({
+      open: openSnackbarAlert,
+      close: closeSnackbarAlert,
+    }),
+    [openSnackbarAlert, closeSnackbarAlert]
+  );
+
   return (
-    <SnackbarAlertContext.Provider value={openSnackbarAlert}>
+    <SnackbarAlertContext.Provider value={providerValue}>
       {children}
 
       <Snackbar
         open={open}
         autoHideDuration={10000}
         onClose={handleClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
         {...snackbarProps}
       >
-        <Alert severity="error" onClose={handleClose} {...restPropsOnOpen} />
+        <Alert severity="info" onClose={handleClose} {...restPropsOnOpen} />
       </Snackbar>
     </SnackbarAlertContext.Provider>
   );
