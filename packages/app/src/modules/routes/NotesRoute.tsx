@@ -1,13 +1,15 @@
 import { useApolloClient } from '@apollo/client';
 import { Alert, Button } from '@mui/material';
-import { startTransition, useEffect, useRef } from 'react';
+import { startTransition, useEffect, useRef, useState } from 'react';
 
 import { gql } from '../../__generated__/gql';
 import { NoteTextField } from '../../__generated__/graphql';
 import usePauseableQuery from '../apollo-client/hooks/usePauseableQuery';
 import { useSnackbarError } from '../common/components/SnackbarAlertProvider';
 import { addActiveNotesByContentId } from '../note/active-notes';
-import CollaborationButton from '../note/components/CollaborationButton';
+import CollaborationButton, {
+  CollaborationButtonBase,
+} from '../note/components/CollaborationButton';
 import { NoteItemProps } from '../note/components/NoteItem';
 import WidgetListFabLayout from '../note/components/WidgetListFabLayout';
 import NoteContentIdProvider from '../note/context/NoteContentIdProvider';
@@ -82,7 +84,7 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
   const absoluteLocation = useAbsoluteLocation();
 
   const { editors, createNote, reset } = useCreatableNoteTextFieldEditors();
-  const createdNoteRef = useRef<NonNullable<
+  const [createdNote, setCreatedNote] = useState<NonNullable<
     Awaited<ReturnType<typeof createNote>>
   > | null>();
 
@@ -184,18 +186,24 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
 
   async function handleCreateNote() {
     const newNote = await createNote();
-    if (createdNoteRef.current) {
-      insertNoteToNotesConnection(apolloClient.cache, createdNoteRef.current);
-    }
-    createdNoteRef.current = newNote;
+
+    setCreatedNote((createdNote) => {
+      if (createdNote) {
+        insertNoteToNotesConnection(apolloClient.cache, createdNote);
+      }
+      return newNote;
+    });
   }
 
   function handleCloseCreateNoteWidget() {
     reset();
-    if (createdNoteRef.current) {
-      insertNoteToNotesConnection(apolloClient.cache, createdNoteRef.current);
-    }
-    createdNoteRef.current = null;
+
+    setCreatedNote((createdNote) => {
+      if (createdNote) {
+        insertNoteToNotesConnection(apolloClient.cache, createdNote);
+      }
+      return null;
+    });
   }
 
   return (
@@ -209,6 +217,19 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
             void handleCreateNote();
           },
           onClose: handleCloseCreateNoteWidget,
+          slots: {
+            toolbar: createdNote ? (
+              <NoteContentIdProvider noteContentId={createdNote.contentId}>
+                <CollaborationButton />
+              </NoteContentIdProvider>
+            ) : (
+              <CollaborationButtonBase
+                iconButtonProps={{
+                  disabled: true,
+                }}
+              />
+            ),
+          },
         }}
         notesList={{
           loading,

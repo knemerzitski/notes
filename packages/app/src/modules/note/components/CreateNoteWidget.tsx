@@ -6,7 +6,7 @@ import {
   Box,
   Button,
 } from '@mui/material';
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 
 import CollabContentInput, { CollabContentInputProps } from './CollabContentInput';
 import CollabInputs from './CollabInputs';
@@ -19,12 +19,16 @@ export interface CreateNoteWidgetProps {
   onClose?: () => void;
   paperProps?: PaperProps;
   initialContentInputProps?: CollabContentInputProps;
+  slots?: {
+    toolbar?: ReactNode;
+  };
 }
 
 export default function CreateNoteWidget({
   onCreate,
   onClose,
   paperProps,
+  slots,
   initialContentInputProps,
 }: CreateNoteWidgetProps) {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -112,6 +116,8 @@ export default function CreateNoteWidget({
                   }}
                 >
                   <MoreOptionsButton onDelete={handleDeleteNote} />
+
+                  {slots?.toolbar}
                   <UndoButton />
                   <RedoButton />
                 </Box>
