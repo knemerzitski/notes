@@ -75,7 +75,7 @@ function getShareUrl(shareId?: string | number) {
   return shareId ? `${location.origin}?share=${shareId}` : EMPTY_SHARING_LINK;
 }
 
-export default function CollaborationButton({
+export default function ManageNoteSharingButton({
   iconButtonProps,
 }: CollaboratorButtonProps) {
   const noteContentId = useNoteContentId();
@@ -179,7 +179,7 @@ export default function CollaborationButton({
 
   return (
     <>
-      <CollaborationButtonBase
+      <ManageNoteSharingButtonBase
         iconButtonProps={{
           id: buttonId,
           onClick: handleClickOpenDialog,
@@ -303,7 +303,7 @@ export interface CollaboratorButtonBaseProps {
   iconButtonProps?: IconButtonProps;
 }
 
-export function CollaborationButtonBase({
+export function ManageNoteSharingButtonBase({
   iconButtonProps,
 }: CollaboratorButtonBaseProps) {
   return (

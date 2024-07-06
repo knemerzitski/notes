@@ -11,7 +11,7 @@ import AppBar from '../../../common/components/AppBar';
 import RouteSnackbarError from '../../../common/components/RouteSnackbarError';
 import useIsScrollEnd from '../../../common/hooks/useIsScrollEnd';
 import CollabInputs from '../../../note/components/CollabInputs';
-import CollaborationButton from '../../../note/components/CollaborationButton';
+import ManageNoteSharingButton from '../../../note/components/ManageNoteSharingButton';
 import MoreOptionsButton from '../../../note/components/MoreOptionsButton';
 import RedoButton from '../../../note/components/RedoButton';
 import UndoButton from '../../../note/components/UndoButton';
@@ -135,7 +135,7 @@ export default function EditNotePage() {
                   gap: 1,
                 }}
               >
-                <CollaborationButton
+                <ManageNoteSharingButton
                   iconButtonProps={{
                     edge: 'start',
                     size: buttonSize,

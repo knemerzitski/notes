@@ -8,7 +8,7 @@ import RouteClosable, {
 import RouteSnackbarError from '../../../common/components/RouteSnackbarError';
 import useIsElementScrollEnd from '../../../common/hooks/useIsElementScrollEnd';
 import CollabInputs from '../../../note/components/CollabInputs';
-import CollaborationButton from '../../../note/components/CollaborationButton';
+import ManageNoteSharingButton from '../../../note/components/ManageNoteSharingButton';
 import MoreOptionsButton from '../../../note/components/MoreOptionsButton';
 import NoteDialog from '../../../note/components/NoteDialog';
 import RedoButton from '../../../note/components/RedoButton';
@@ -94,7 +94,7 @@ function RouteClosableEditNoteDialog({
                 }}
               >
                 <MoreOptionsButton onDelete={handleDeleteNote} />
-                <CollaborationButton />
+                <ManageNoteSharingButton />
                 <UndoButton />
                 <RedoButton />
               </Box>

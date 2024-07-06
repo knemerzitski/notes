@@ -7,9 +7,9 @@ import { NoteTextField } from '../../__generated__/graphql';
 import usePauseableQuery from '../apollo-client/hooks/usePauseableQuery';
 import { useSnackbarError } from '../common/components/SnackbarAlertProvider';
 import { addActiveNotesByContentId } from '../note/active-notes';
-import CollaborationButton, {
-  CollaborationButtonBase,
-} from '../note/components/CollaborationButton';
+import ManageNoteSharingButton, {
+  ManageNoteSharingButtonBase,
+} from '../note/components/ManageNoteSharingButton';
 import { NoteItemProps } from '../note/components/NoteItem';
 import WidgetListFabLayout from '../note/components/WidgetListFabLayout';
 import NoteContentIdProvider from '../note/context/NoteContentIdProvider';
@@ -122,7 +122,7 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
         slots: {
           toolbar: (
             <NoteContentIdProvider noteContentId={contentId}>
-              <CollaborationButton />
+              <ManageNoteSharingButton />
             </NoteContentIdProvider>
           ),
         },
@@ -220,10 +220,10 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
           slots: {
             toolbar: createdNote ? (
               <NoteContentIdProvider noteContentId={createdNote.contentId}>
-                <CollaborationButton />
+                <ManageNoteSharingButton />
               </NoteContentIdProvider>
             ) : (
-              <CollaborationButtonBase
+              <ManageNoteSharingButtonBase
                 iconButtonProps={{
                   disabled: true,
                 }}
