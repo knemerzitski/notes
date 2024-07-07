@@ -15,18 +15,18 @@ export default function useUpdateClientSynchronization(
 
   return useCallback<UpdateFn>(
     (key, synchronized) => {
-      const set = stateVar();
+      const existingState = stateVar();
       if (synchronized) {
-        if (set.has(key)) {
-          const newSet = new Set(set);
-          newSet.delete(key);
-          stateVar(newSet);
+        if (existingState.has(key)) {
+          const copiedState = new Set(existingState);
+          copiedState.delete(key);
+          stateVar(copiedState);
         }
       } else {
-        if (!set.has(key)) {
-          const newSet = new Set(set);
-          newSet.add(key);
-          stateVar(newSet);
+        if (!existingState.has(key)) {
+          const copiedState = new Set(existingState);
+          copiedState.add(key);
+          stateVar(copiedState);
         }
       }
     },
