@@ -1,5 +1,6 @@
 import { useApolloClient } from '@apollo/client';
 import { useCallback, useRef, useState } from 'react';
+
 import { CollabEditor } from '~collab/client/collab-editor';
 import isDefined from '~utils/type-guards/isDefined';
 
@@ -25,23 +26,22 @@ export function newEmptyEditors(): NoteCollabTextEditors {
 }
 
 /**
- * Initially returns local CollabEditors. createNote can be called
- * to submit note to server. Returns editors that be used for
- * further editing.
+ * Returns editors that will be linked to the created note when createNote is called.
  */
 export function useCreatableNoteTextFieldEditors() {
   const apolloClient = useApolloClient();
-  const createNoteMutation = useCreateNote();
+  const fetchCreateNote = useCreateNote();
+
   const statusRef = useRef<'local' | 'creating' | 'created'>('local');
   const [editors, setEditors] = useState(newEmptyEditors());
 
-  const createNote = useCallback(async () => {
+  const createNoteLinkEditors = useCallback(async () => {
     if (statusRef.current !== 'local') return;
 
     try {
       statusRef.current = 'creating';
 
-      const newNote = await createNoteMutation({
+      const newNote = await fetchCreateNote({
         textFields: editors
           .map(({ key, value: editor }) => {
             const submittedRecord = editor.submitChanges();
@@ -92,7 +92,7 @@ export function useCreatableNoteTextFieldEditors() {
       console.error(err);
       statusRef.current = 'local';
     }
-  }, [createNoteMutation, editors, apolloClient]);
+  }, [fetchCreateNote, editors, apolloClient]);
 
   const reset = useCallback(() => {
     statusRef.current = 'local';
@@ -101,7 +101,7 @@ export function useCreatableNoteTextFieldEditors() {
 
   return {
     editors,
-    createNote,
+    createNote: createNoteLinkEditors,
     reset,
   };
 }
