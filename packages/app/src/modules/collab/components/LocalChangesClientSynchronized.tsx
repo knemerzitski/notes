@@ -1,5 +1,6 @@
 import { useApolloClient } from '@apollo/client';
 import { useEffect } from 'react';
+
 import { CollabEditor } from '~collab/client/collab-editor';
 
 import useUpdateClientSynchronization from '../../global/hooks/useUpdateClientSynchronized';
@@ -34,10 +35,15 @@ export default function LocalChangesClientSychronized({
       updateClientSynchronization(syncId, isEditorSynchronized(editor));
     }
 
-    return editor.eventBus.onMany(
-      ['haveLocalChanges', 'submittedChangesAcknowledged'],
+    const unsubscribe = editor.eventBus.onMany(
+      ['haveLocalChanges', 'submittedChangesAcknowledged', 'replacedHeadText'],
       update
     );
+
+    return () => {
+      updateClientSynchronization(syncId, true);
+      unsubscribe();
+    };
   }, [apolloClient, collabTextId, updateClientSynchronization, editor]);
 
   return null;

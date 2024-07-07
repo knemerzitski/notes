@@ -10,7 +10,7 @@ export default function ApolloClientSynchronized() {
 
   // Subscribe to apollo client operation count changes and update client sync accordingly
   useEffect(() => {
-    return statsLink.subscribe(({ type }) => {
+    const unsubscribe = statsLink.subscribe(({ type }) => {
       if (type === OperationTypeNode.QUERY || type === OperationTypeNode.MUTATION) {
         updateClientSynchronized(
           statsLink,
@@ -18,6 +18,10 @@ export default function ApolloClientSynchronized() {
         );
       }
     });
+    return () => {
+      updateClientSynchronized(statsLink, true);
+      unsubscribe();
+    };
   }, [statsLink, updateClientSynchronized]);
 
   return null;
