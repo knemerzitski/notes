@@ -109,6 +109,8 @@ export interface CollabHistoryOptions {
  * External changes alter history as if change has always been there.
  */
 export class CollabHistory implements Serializable<SerializedCollabHistory> {
+  static readonly DEFAULT_TAIL_REVISION = 0;
+
   readonly eventBus: Emitter<LocalChangesetEditorHistoryEvents>;
 
   private client: CollabClient;
@@ -167,7 +169,7 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
     this.client = options?.client ?? new CollabClient();
 
     this._tailText = options?.tailText ?? this.client.server;
-    this._tailRevision = options?.tailRevision ?? 0;
+    this._tailRevision = options?.tailRevision ?? CollabHistory.DEFAULT_TAIL_REVISION;
 
     this.tailComposition = options?.tailComposition ?? null;
     this.lastExecutedIndex = options?.lastExecutedIndex ?? {
@@ -196,9 +198,9 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
     };
   }
 
-  reset(options: Required<Pick<CollabHistoryOptions, 'tailRevision'>>) {
+  reset(options?: Pick<CollabHistoryOptions, 'tailRevision'>) {
     this._tailText = this.client.server;
-    this._tailRevision = options.tailRevision;
+    this._tailRevision = options?.tailRevision ?? CollabHistory.DEFAULT_TAIL_REVISION;
 
     this.tailComposition = null;
     this.lastExecutedIndex = {

@@ -99,6 +99,11 @@ export class OrderedMessageBuffer<TMessage, TSerializedMessage = TMessage>
     });
   }
 
+  reset() {
+    this.stashedMessagesMap.clear();
+    this._currentVersion = OrderedMessageBuffer.DEFAULT_VERSION;
+  }
+
   /**
    * Change version of the buffer. All older messages are discarded.
    * Future messages are kept.

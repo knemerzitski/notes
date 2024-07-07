@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { nanoid } from 'nanoid';
+
 import mitt, { Emitter } from '~utils/mitt-unsub';
 import {
   OrderedMessageBuffer,
@@ -429,6 +430,23 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
    */
   cleanUp() {
     this.unsubscribeFromEvents();
+  }
+
+  /**
+   * Completely resets editor state and clears all data.
+   */
+  reset() {
+    this._client.reset();
+    this._history.reset();
+    this.recordsBuffer.reset();
+
+    this.eventBus.emit('headRevisionChanged', {
+      revision: this.headRevision,
+      changeset: this._client.server,
+    });
+    this.eventBus.emit('replacedHeadText', {
+      headText: this.headText,
+    });
   }
 
   /**
