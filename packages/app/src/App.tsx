@@ -11,6 +11,7 @@ import { CustomApolloClient } from './modules/apollo-client/custom-apollo-client
 import GoogleAuthProvider from './modules/auth/third-party/google/GoogleAuthProvider';
 import ActiveCollabTextsManager from './modules/collab/components/ActiveCollabTextsManager';
 import FullSizeErrorContainer from './modules/common/components/FullSizeErrorContainer';
+import RenderedFabsTrackingProvider from './modules/common/components/RenderedFabsTrackingProvider';
 import SnackbarAlertProvider from './modules/common/components/SnackbarAlertProvider';
 import ActiveNotesManager from './modules/note/components/ActiveNotesManager';
 import ExternalChangesSubscription from './modules/note/components/ExternalChangesSubscription';
@@ -33,24 +34,26 @@ export default function App() {
       <CustomThemeProvider themeOptions={themeOptions}>
         <CssBaseline />
         <GlobalStyles />
-        <SnackbarAlertProvider>
-          <Suspense
-            fallback={
-              <FullSizeErrorContainer message="Unexpected suspense. This should never happen!" />
-            }
-          >
-            <ApolloClientErrorsSnackbarAlert />
-            <GoogleAuthProvider clientId={CLIENT_ID}>
-              <NoteCreatedSubscription />
-              <NoteDeletedSubscription />
-              <ExternalChangesSubscription />
-              <ActiveNotesManager />
-              <ActiveCollabTextsManager />
+        <RenderedFabsTrackingProvider>
+          <SnackbarAlertProvider>
+            <Suspense
+              fallback={
+                <FullSizeErrorContainer message="Unexpected suspense. This should never happen!" />
+              }
+            >
+              <ApolloClientErrorsSnackbarAlert />
+              <GoogleAuthProvider clientId={CLIENT_ID}>
+                <NoteCreatedSubscription />
+                <NoteDeletedSubscription />
+                <ExternalChangesSubscription />
+                <ActiveNotesManager />
+                <ActiveCollabTextsManager />
 
-              <RouterProvider router={router} />
-            </GoogleAuthProvider>
-          </Suspense>
-        </SnackbarAlertProvider>
+                <RouterProvider router={router} />
+              </GoogleAuthProvider>
+            </Suspense>
+          </SnackbarAlertProvider>
+        </RenderedFabsTrackingProvider>
       </CustomThemeProvider>
     </AppLoadApolloClient>
   );
