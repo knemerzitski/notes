@@ -29,9 +29,8 @@ export default function useDiscardEmptyNote() {
           children: 'Empty note discarded',
           icon: false,
         });
+        void deleteNote(note.contentId);
       }, 0);
-
-      void deleteNote(note.contentId);
 
       return true;
     },
