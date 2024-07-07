@@ -80,7 +80,7 @@ export default function CreateNoteWidget({
           inputProps={{
             placeholder: 'Take a note...',
             onChange: handleTextChange,
-            onClick: handleExpandEditor,
+            onFocus: handleExpandEditor,
             ...initialContentInputProps?.inputProps,
           }}
         />
