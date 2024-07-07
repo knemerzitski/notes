@@ -161,6 +161,12 @@ export default function SnackbarAlertProvider({ children }: { children: ReactNod
     setActiveSnack(null);
   }
 
+  const anchorOrigin = snackbarProps?.anchorOrigin ?? {
+    vertical: 'bottom',
+    horizontal: 'left',
+  };
+  const adjustToMobileFab = isRenderingFab && anchorOrigin.vertical === 'bottom';
+
   return (
     <SnackbarAlertContext.Provider value={addSnackToQueue}>
       {children}
@@ -171,11 +177,8 @@ export default function SnackbarAlertProvider({ children }: { children: ReactNod
         autoHideDuration={10000}
         onClose={handleClose}
         TransitionProps={{ onExited: handleExited }}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
-        sx={{ bottom: isRenderingFab ? { xs: 90, sm: 24 } : undefined }}
+        anchorOrigin={anchorOrigin}
+        sx={{ bottom: adjustToMobileFab ? { xs: 90, sm: 24 } : undefined }}
         {...snackbarProps}
       >
         <Alert
