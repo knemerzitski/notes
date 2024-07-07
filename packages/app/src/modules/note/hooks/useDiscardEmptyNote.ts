@@ -24,10 +24,12 @@ export default function useDiscardEmptyNote() {
       );
       if (noteHasSomeText) return false;
 
-      showAlert({
-        children: 'Empty note discarded',
-        icon: false,
-      });
+      setTimeout(() => {
+        showAlert({
+          children: 'Empty note discarded',
+          icon: false,
+        });
+      }, 0);
 
       void deleteNote(note.contentId);
 
