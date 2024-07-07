@@ -10,6 +10,9 @@ const MUTATION = gql(`
       note {
         id
         contentId
+        sharing {
+          id
+        }
         textFields {
           key
           value {
