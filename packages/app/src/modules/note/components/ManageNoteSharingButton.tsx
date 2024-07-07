@@ -78,7 +78,24 @@ function getShareUrl(shareId?: string | number) {
 export default function ManageNoteSharingButton({
   iconButtonProps,
 }: CollaboratorButtonProps) {
-  const noteContentId = useNoteContentId();
+  const noteContentId = useNoteContentId(true);
+
+  if (!noteContentId) {
+    return <NoteContentIdMissingButton iconButtonProps={iconButtonProps} />;
+  }
+
+  return (
+    <NoteContentIdDefinedButton
+      iconButtonProps={iconButtonProps}
+      noteContentId={noteContentId}
+    />
+  );
+}
+
+function NoteContentIdDefinedButton({
+  iconButtonProps,
+  noteContentId,
+}: CollaboratorButtonProps & { noteContentId: string }) {
   const apolloClient = useApolloClient();
 
   const [isCreatingShareLink, setIsCreatingShareLink] = useState(false);
@@ -179,7 +196,7 @@ export default function ManageNoteSharingButton({
 
   return (
     <>
-      <ManageNoteSharingButtonBase
+      <SharingBaseButton
         iconButtonProps={{
           id: buttonId,
           onClick: handleClickOpenDialog,
@@ -299,13 +316,18 @@ export default function ManageNoteSharingButton({
   );
 }
 
-export interface CollaboratorButtonBaseProps {
-  iconButtonProps?: IconButtonProps;
+function NoteContentIdMissingButton({ iconButtonProps }: CollaboratorButtonProps) {
+  return (
+    <SharingBaseButton
+      iconButtonProps={{
+        ...iconButtonProps,
+        disabled: true,
+      }}
+    />
+  );
 }
 
-export function ManageNoteSharingButtonBase({
-  iconButtonProps,
-}: CollaboratorButtonBaseProps) {
+function SharingBaseButton({ iconButtonProps }: CollaboratorButtonProps) {
   return (
     <Tooltip title="Collaboration">
       <span>
