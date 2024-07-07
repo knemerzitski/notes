@@ -181,6 +181,9 @@ export default function SnackbarAlertProvider({ children }: { children: ReactNod
         <Alert
           severity="info"
           icon={restProps.severity ? undefined : false}
+          onMouseDown={(e) => {
+            e.stopPropagation();
+          }}
           onClose={handleClose}
           {...restProps}
         />

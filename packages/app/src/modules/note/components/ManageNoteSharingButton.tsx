@@ -3,7 +3,6 @@ import CloseIcon from '@mui/icons-material/Close';
 import LinkIcon from '@mui/icons-material/Link';
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import {
-  Alert,
   Box,
   Button,
   CircularProgress,
@@ -13,7 +12,6 @@ import {
   DialogTitle,
   IconButton,
   IconButtonProps,
-  Snackbar,
   Stack,
   Switch,
   TextField,
@@ -23,6 +21,7 @@ import {
 import { useId, useState } from 'react';
 
 import { gql } from '../../../__generated__/gql';
+import { useSnackbarAlert } from '../../common/components/SnackbarAlertProvider';
 import { useNoteContentId } from '../context/NoteContentIdProvider';
 
 const QUERY = gql(`
@@ -100,7 +99,7 @@ function NoteContentIdDefinedButton({
 
   const [isCreatingShareLink, setIsCreatingShareLink] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLinkCopied, setIsLinkCopied] = useState(false);
+  const showAlert = useSnackbarAlert();
 
   const { data, loading: queryLoading } = useQuery(QUERY, {
     variables: {
@@ -130,7 +129,7 @@ function NoteContentIdDefinedButton({
 
   function handleCloseDialog() {
     setIsModalOpen(false);
-    setIsLinkCopied(false);
+    console.log('close dialog');
   }
 
   function handleToggleSharing() {
@@ -186,12 +185,14 @@ function NoteContentIdDefinedButton({
 
   function handleCopyLink() {
     void navigator.clipboard.writeText(sharingLink).then(() => {
-      setIsLinkCopied(true);
+      showAlert({
+        severity: 'success',
+        children: 'Link copied',
+        snackbarProps: {
+          autoHideDuration: 5000,
+        },
+      });
     });
-  }
-
-  function handleCloseLinkCopiedAlert() {
-    setIsLinkCopied(false);
   }
 
   return (
@@ -295,16 +296,6 @@ function NoteContentIdDefinedButton({
                 Copy link
               </Button>
             </Box>
-
-            <Snackbar
-              open={isLinkCopied}
-              autoHideDuration={5000}
-              onClose={handleCloseLinkCopiedAlert}
-            >
-              <Alert severity="success" onClose={handleCloseLinkCopiedAlert}>
-                Link copied
-              </Alert>
-            </Snackbar>
 
             <DialogContentText>
               Anyone with the link gains access to read and modify this note.
