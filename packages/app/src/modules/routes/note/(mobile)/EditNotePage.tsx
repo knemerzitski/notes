@@ -195,20 +195,22 @@ function DiscardEmptyNoteOnClose() {
 
   const leavingRoute = useContext(LeavingRouteContext);
 
-  const discardEmptyNote = useDiscardEmptyNote({
-    note: noteContentId
-      ? {
-          contentId: noteContentId,
-        }
-      : null,
-    editors,
-  });
+  const discardEmptyNote = useDiscardEmptyNote();
 
   useEffect(() => {
     if (!leavingRoute) return;
 
-    return leavingRoute(discardEmptyNote);
-  }, [leavingRoute, discardEmptyNote]);
+    return leavingRoute(() => {
+      discardEmptyNote({
+        note: noteContentId
+          ? {
+              contentId: noteContentId,
+            }
+          : null,
+        editors,
+      });
+    });
+  }, [leavingRoute, discardEmptyNote, noteContentId, editors]);
 
   return null;
 }

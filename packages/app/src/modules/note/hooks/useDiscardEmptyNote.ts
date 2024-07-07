@@ -11,28 +11,28 @@ export interface UseDiscardEmptyNoteOptions {
   editors: NoteCollabTextEditors;
 }
 
-export default function useDiscardEmptyNote({
-  note,
-  editors,
-}: UseDiscardEmptyNoteOptions) {
+export default function useDiscardEmptyNote() {
   const deleteNote = useDeleteNote();
   const showAlert = useSnackbarAlert();
 
-  return useCallback(() => {
-    if (!note) return false;
+  return useCallback(
+    ({ note, editors }: UseDiscardEmptyNoteOptions) => {
+      if (!note) return false;
 
-    const noteHasSomeText = editors.some(
-      ({ value: editor }) => editor.viewText.trim().length > 0
-    );
-    if (noteHasSomeText) return false;
+      const noteHasSomeText = editors.some(
+        ({ value: editor }) => editor.viewText.trim().length > 0
+      );
+      if (noteHasSomeText) return false;
 
-    showAlert({
-      children: 'Empty note discarded',
-      icon: false,
-    });
+      showAlert({
+        children: 'Empty note discarded',
+        icon: false,
+      });
 
-    void deleteNote(note.contentId);
+      void deleteNote(note.contentId);
 
-    return true;
-  }, [deleteNote, editors, note, showAlert]);
+      return true;
+    },
+    [deleteNote, showAlert]
+  );
 }

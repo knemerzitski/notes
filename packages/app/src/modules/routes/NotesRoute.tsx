@@ -11,6 +11,7 @@ import ManageNoteSharingButton from '../note/components/ManageNoteSharingButton'
 import { NoteItemProps } from '../note/components/NoteItem';
 import WidgetListFabLayout from '../note/components/WidgetListFabLayout';
 import NoteContentIdProvider from '../note/context/NoteContentIdProvider';
+import { NoteCollabTextEditors } from '../note/context/NoteTextFieldEditorsProvider';
 import { useCreatableNoteTextFieldEditors } from '../note/hooks/useCreatableNoteTextFieldEditors';
 import useDeleteNote from '../note/hooks/useDeleteNote';
 import useDiscardEmptyNote from '../note/hooks/useDiscardEmptyNote';
@@ -83,14 +84,12 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
   const absoluteLocation = useAbsoluteLocation();
 
   const { editors, createNote, reset } = useCreatableNoteTextFieldEditors();
-  const [createdNote, setCreatedNote] = useState<NonNullable<
-    Awaited<ReturnType<typeof createNote>>
-  > | null>();
+  const [fetchedState, setFetchedState] = useState<{
+    note: NonNullable<Awaited<ReturnType<typeof createNote>>>;
+    editors: NoteCollabTextEditors;
+  } | null>();
 
-  const discardEmptyNote = useDiscardEmptyNote({
-    note: createdNote,
-    editors,
-  });
+  const discardEmptyNote = useDiscardEmptyNote();
 
   useEffect(() => {
     const notes = data?.notesConnection.notes;
@@ -190,27 +189,38 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
 
   async function handleCreateNote() {
     const newNote = await createNote();
+    const newEditors = editors;
 
-    setCreatedNote((createdNote) => {
-      if (createdNote) {
-        insertNoteToNotesConnection(apolloClient.cache, createdNote);
+    setFetchedState((state) => {
+      if (state) {
+        insertNoteToNotesConnection(apolloClient.cache, state.note);
       }
-      return newNote;
+
+      if (!newNote) {
+        return null;
+      }
+
+      return {
+        note: newNote,
+        editors: newEditors,
+      };
     });
   }
 
   function handleCloseCreateNoteWidget(deleted?: boolean) {
     reset();
 
-    if (discardEmptyNote()) {
-      setCreatedNote(null);
-      return;
-    }
+    setFetchedState((state) => {
+      if (state) {
+        if (discardEmptyNote(state)) {
+          return null;
+        }
 
-    setCreatedNote((createdNote) => {
-      if (createdNote && !deleted) {
-        insertNoteToNotesConnection(apolloClient.cache, createdNote);
+        if (!deleted) {
+          insertNoteToNotesConnection(apolloClient.cache, state.note);
+        }
       }
+
       return null;
     });
   }
@@ -228,15 +238,15 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
           onClose: handleCloseCreateNoteWidget,
           slots: {
             toolbar: (
-              <NoteContentIdProvider noteContentId={createdNote?.contentId}>
+              <NoteContentIdProvider noteContentId={fetchedState?.note.contentId}>
                 <ManageNoteSharingButton />
               </NoteContentIdProvider>
             ),
           },
           moreOptionsButtonProps: {
             onDelete() {
-              if (!createdNote) return;
-              handleDelete(createdNote.contentId);
+              if (!fetchedState) return;
+              handleDelete(fetchedState.note.contentId);
             },
           },
         }}
