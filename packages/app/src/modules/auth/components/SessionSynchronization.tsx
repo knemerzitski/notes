@@ -36,7 +36,7 @@ export default function SessionSynchronization() {
   const customApolloClient = useCustomApolloClient();
   const addFetchResultErrorHandler = useAddFetchResultErrorHandler();
   const [syncSessions] = useMutation(SYNC_SESSIONS);
-  const { open: showAlert } = useSnackbarAlert();
+  const showAlert = useSnackbarAlert();
   const showError = useSnackbarError();
 
   useEffect(() => {

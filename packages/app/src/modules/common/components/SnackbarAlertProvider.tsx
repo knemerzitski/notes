@@ -4,28 +4,33 @@ import {
   Box,
   Button,
   Snackbar,
+  SnackbarCloseReason,
   SnackbarProps,
   styled,
 } from '@mui/material';
 import {
   ReactNode,
+  SyntheticEvent,
   createContext,
   useCallback,
   useContext,
-  useMemo,
+  useEffect,
   useState,
 } from 'react';
 
-type SnackbarAlertProps = AlertProps & {
-  snackbarProps?: SnackbarProps;
+import { useIsRenderingFab } from './RenderedFabsTrackingProvider';
+
+type AlertAndSnackProps = AlertProps & {
+  snackbarProps?: Omit<SnackbarProps, 'open'>;
+  /**
+   * @default false
+   */
+  clickAwayClose?: boolean;
 };
 
-interface SnackbarAlertContextProps {
-  open: (props: SnackbarAlertProps) => void;
-  close: () => void;
-}
-
-const SnackbarAlertContext = createContext<SnackbarAlertContextProps | null>(null);
+const SnackbarAlertContext = createContext<
+  ((props: AlertAndSnackProps | string) => () => void) | null
+>(null);
 
 /**
  *
@@ -45,7 +50,7 @@ export function useSnackbarAlert() {
  */
 // eslint-disable-next-line react-refresh/only-export-components
 export function useSnackbarError() {
-  const { open: showAlert } = useSnackbarAlert();
+  const showAlert = useSnackbarAlert();
 
   return useCallback(
     (message: string) => {
@@ -69,11 +74,11 @@ const ButtonUndoBox = styled(Box)(({ theme }) => ({
 }));
 
 export function useSnackbarUndoAction() {
-  const { open: showAlert, close: closeAlert } = useSnackbarAlert();
+  const showAlert = useSnackbarAlert();
 
   return useCallback(
     (message: string, onUndo: () => void) => {
-      showAlert({
+      const closeAlert = showAlert({
         children: (
           <ButtonUndoBox>
             {message}
@@ -92,52 +97,93 @@ export function useSnackbarUndoAction() {
         icon: false,
       });
     },
-    [showAlert, closeAlert]
+    [showAlert]
   );
 }
 
 export default function SnackbarAlertProvider({ children }: { children: ReactNode }) {
-  const [open, setOpen] = useState(false);
-  const [propsOnOpen, setPropsOnOpen] = useState<SnackbarAlertProps>();
+  const isRenderingFab = useIsRenderingFab();
 
-  const { snackbarProps, ...restPropsOnOpen } = propsOnOpen ?? {};
+  const [queuedSnacks, setQueuedSnacks] = useState<Readonly<AlertAndSnackProps[]>>([]);
+  const [open, setOpen] = useState<boolean>(false);
+  const [activeSnack, setActiveSnack] = useState<AlertAndSnackProps | null>(null);
 
-  const openSnackbarAlert = useCallback((props: SnackbarAlertProps) => {
-    setPropsOnOpen(props);
-    setOpen(true);
+  useEffect(() => {
+    const firstSnack = queuedSnacks[0];
+    if (!firstSnack) return;
+
+    if (!activeSnack) {
+      setOpen(true);
+      setActiveSnack(firstSnack);
+      setQueuedSnacks((prev) => prev.slice(1));
+    } else if (open) {
+      setOpen(false);
+    }
+  }, [activeSnack, queuedSnacks, open]);
+
+  const addSnackToQueue = useCallback((newSnack: AlertAndSnackProps | string) => {
+    if (typeof newSnack === 'string') {
+      newSnack = {
+        children: newSnack,
+      };
+    }
+    setQueuedSnacks((prev) => [...prev, newSnack]);
+
+    return () => {
+      setQueuedSnacks((prev) => {
+        const index = prev.indexOf(newSnack);
+        if (index === -1) return prev;
+        return [...prev.slice(0, index), ...prev.slice(index + 1)];
+      });
+    };
   }, []);
 
-  const closeSnackbarAlert = useCallback(() => {
-    setOpen(false);
-  }, []);
+  if (!activeSnack) {
+    return (
+      <SnackbarAlertContext.Provider value={addSnackToQueue}>
+        {children}
+      </SnackbarAlertContext.Provider>
+    );
+  }
 
-  function handleClose() {
+  const { key, snackbarProps, clickAwayClose, ...restProps } = activeSnack;
+
+  function handleClose(
+    _event: SyntheticEvent<unknown> | Event,
+    reason?: SnackbarCloseReason
+  ) {
+    if (!clickAwayClose && reason === 'clickaway') return;
+
     setOpen(false);
   }
 
-  const providerValue = useMemo<SnackbarAlertContextProps>(
-    () => ({
-      open: openSnackbarAlert,
-      close: closeSnackbarAlert,
-    }),
-    [openSnackbarAlert, closeSnackbarAlert]
-  );
+  function handleExited() {
+    setActiveSnack(null);
+  }
 
   return (
-    <SnackbarAlertContext.Provider value={providerValue}>
+    <SnackbarAlertContext.Provider value={addSnackToQueue}>
       {children}
 
       <Snackbar
+        key={key}
         open={open}
         autoHideDuration={10000}
         onClose={handleClose}
+        TransitionProps={{ onExited: handleExited }}
         anchorOrigin={{
           vertical: 'bottom',
           horizontal: 'left',
         }}
+        sx={{ bottom: isRenderingFab ? { xs: 90, sm: 24 } : undefined }}
         {...snackbarProps}
       >
-        <Alert severity="info" onClose={handleClose} {...restPropsOnOpen} />
+        <Alert
+          severity="info"
+          icon={restProps.severity ? undefined : false}
+          onClose={handleClose}
+          {...restProps}
+        />
       </Snackbar>
     </SnackbarAlertContext.Provider>
   );
