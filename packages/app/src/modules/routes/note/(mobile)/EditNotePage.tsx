@@ -5,6 +5,7 @@ import {
   IconButton,
   Toolbar as MuiToolbar,
 } from '@mui/material';
+import { createContext, useCallback, useContext, useEffect, useRef } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 
 import AppBar from '../../../common/components/AppBar';
@@ -16,7 +17,10 @@ import MoreOptionsButton from '../../../note/components/MoreOptionsButton';
 import RedoButton from '../../../note/components/RedoButton';
 import UndoButton from '../../../note/components/UndoButton';
 import NewOrExistingNoteEditingContext from '../../../note/context/NewOrExistingNoteEditingContext';
+import { useNoteContentId } from '../../../note/context/NoteContentIdProvider';
+import { useNoteCollabTextEditors } from '../../../note/context/NoteTextFieldEditorsProvider';
 import useDeleteNote from '../../../note/hooks/useDeleteNote';
+import useDiscardEmptyNote from '../../../note/hooks/useDiscardEmptyNote';
 import { useProxyNavigate } from '../../../router/context/ProxyRoutesProvider';
 import usePreviousLocation from '../../../router/hooks/usePreviousLocation';
 import SyncStatusButton from '../../@layouts/appbar-drawer/SyncStatusButton';
@@ -36,6 +40,14 @@ export default function EditNotePage() {
 
   const isScrollEnd = useIsScrollEnd();
 
+  const leavingRouteCallbacksRef = useRef(new Set<() => void>());
+  const addLeavingRouteCallback = useCallback((callback: () => void) => {
+    leavingRouteCallbacksRef.current.add(callback);
+    return () => {
+      leavingRouteCallbacksRef.current.delete(callback);
+    };
+  }, []);
+
   function handleDeleteNote() {
     if (!noteContentId) return;
     void deleteNote(noteContentId);
@@ -46,6 +58,10 @@ export default function EditNotePage() {
   }
 
   function handleClickBack() {
+    leavingRouteCallbacksRef.current.forEach((callback) => {
+      callback();
+    });
+
     if (previousLocation) {
       navigate(-1);
     } else {
@@ -56,114 +72,143 @@ export default function EditNotePage() {
   const buttonSize = 'medium';
 
   return (
-    <Box
-      sx={{
-        minHeight: '100dvh',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      <AppBar>
-        <MuiToolbar
-          sx={{
-            justifyContent: 'space-between',
-            // Temporary fix for layout shift for "interactive-widget=resizes-content" when title field is focused
-            height: '56px',
-          }}
-        >
-          <IconButton
-            edge="start"
-            color="inherit"
-            aria-label="back to all notes"
-            size="large"
-            onClick={handleClickBack}
-          >
-            <ArrowBackIcon />
-          </IconButton>
-          <SyncStatusButton fontSize={buttonSizePx} size={buttonSize} edge="end" />
-        </MuiToolbar>
-      </AppBar>
-
-      <MuiToolbar sx={{ height: '56px' }} />
-
-      <NewOrExistingNoteEditingContext
-        noteContentId={noteContentId}
-        isNewNote={isNewNote}
+    <LeavingRouteContext.Provider value={addLeavingRouteCallback}>
+      <Box
+        sx={{
+          minHeight: '100dvh',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
       >
-        <>
-          <CollabInputs
-            boxProps={{
-              sx: {
-                flexGrow: 1,
-                mb: '56px',
-              },
+        <AppBar>
+          <MuiToolbar
+            sx={{
+              justifyContent: 'space-between',
+              // Temporary fix for layout shift for "interactive-widget=resizes-content" when title field is focused
+              height: '56px',
             }}
-            contentProps={{
-              inputProps: {
+          >
+            <IconButton
+              edge="start"
+              color="inherit"
+              aria-label="back to all notes"
+              size="large"
+              onClick={handleClickBack}
+            >
+              <ArrowBackIcon />
+            </IconButton>
+            <SyncStatusButton fontSize={buttonSizePx} size={buttonSize} edge="end" />
+          </MuiToolbar>
+        </AppBar>
+
+        <MuiToolbar sx={{ height: '56px' }} />
+
+        <NewOrExistingNoteEditingContext
+          noteContentId={noteContentId}
+          isNewNote={isNewNote}
+        >
+          <DiscardEmptyNoteOnClose />
+          <>
+            <CollabInputs
+              boxProps={{
                 sx: {
-                  '.MuiInputBase-input': {
-                    alignSelf: 'flex-start',
+                  flexGrow: 1,
+                  mb: '56px',
+                },
+              }}
+              contentProps={{
+                inputProps: {
+                  sx: {
+                    '.MuiInputBase-input': {
+                      alignSelf: 'flex-start',
+                    },
                   },
                 },
-              },
-            }}
-          />
+              }}
+            />
 
-          <MuiAppBar
-            elevation={0}
-            position="fixed"
-            sx={{
-              ...(!isScrollEnd && {
-                boxShadow: (theme) => theme.shadowsNamed.scrollEnd,
-              }),
-              top: 'auto',
-              bottom: 0,
-            }}
-          >
-            <MuiToolbar
+            <MuiAppBar
+              elevation={0}
+              position="fixed"
               sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                gap: 1,
-                // Temporary fix for layout shift for "interactive-widget=resizes-content" when title field is focused
-                height: '56px',
+                ...(!isScrollEnd && {
+                  boxShadow: (theme) => theme.shadowsNamed.scrollEnd,
+                }),
+                top: 'auto',
+                bottom: 0,
               }}
             >
-              <Box
+              <MuiToolbar
                 sx={{
                   display: 'flex',
+                  justifyContent: 'space-between',
                   gap: 1,
+                  // Temporary fix for layout shift for "interactive-widget=resizes-content" when title field is focused
+                  height: '56px',
                 }}
               >
-                <ManageNoteSharingButton
-                  iconButtonProps={{
-                    edge: 'start',
-                    size: buttonSize,
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: 1,
                   }}
-                />
-                <UndoButton
-                  iconButtonProps={{
-                    size: buttonSize,
-                  }}
-                />
-                <RedoButton
+                >
+                  <ManageNoteSharingButton
+                    iconButtonProps={{
+                      edge: 'start',
+                      size: buttonSize,
+                    }}
+                  />
+                  <UndoButton
+                    iconButtonProps={{
+                      size: buttonSize,
+                    }}
+                  />
+                  <RedoButton
+                    iconButtonProps={{
+                      edge: 'end',
+                      size: buttonSize,
+                    }}
+                  />
+                </Box>
+                <MoreOptionsButton
+                  onDelete={handleDeleteNote}
                   iconButtonProps={{
                     edge: 'end',
                     size: buttonSize,
                   }}
                 />
-              </Box>
-              <MoreOptionsButton
-                onDelete={handleDeleteNote}
-                iconButtonProps={{
-                  edge: 'end',
-                  size: buttonSize,
-                }}
-              />
-            </MuiToolbar>
-          </MuiAppBar>
-        </>
-      </NewOrExistingNoteEditingContext>
-    </Box>
+              </MuiToolbar>
+            </MuiAppBar>
+          </>
+        </NewOrExistingNoteEditingContext>
+      </Box>
+    </LeavingRouteContext.Provider>
   );
+}
+
+const LeavingRouteContext = createContext<((sub: () => void) => () => void) | null>(null);
+
+function DiscardEmptyNoteOnClose() {
+  const noteContentId = useNoteContentId(true);
+  const editors = useNoteCollabTextEditors();
+
+  const leavingRoute = useContext(LeavingRouteContext);
+
+  const discardEmptyNote = useDiscardEmptyNote({
+    note: noteContentId
+      ? {
+          contentId: noteContentId,
+        }
+      : null,
+    editors,
+  });
+
+  useEffect(() => {
+    if (!leavingRoute) return;
+
+    return leavingRoute(discardEmptyNote);
+  }, [leavingRoute, discardEmptyNote]);
+
+  return null;
 }

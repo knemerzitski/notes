@@ -13,6 +13,7 @@ import WidgetListFabLayout from '../note/components/WidgetListFabLayout';
 import NoteContentIdProvider from '../note/context/NoteContentIdProvider';
 import { useCreatableNoteTextFieldEditors } from '../note/hooks/useCreatableNoteTextFieldEditors';
 import useDeleteNote from '../note/hooks/useDeleteNote';
+import useDiscardEmptyNote from '../note/hooks/useDiscardEmptyNote';
 import { insertNoteToNotesConnection } from '../note/policies/Query/notesConnection';
 import {
   useProxyNavigate,
@@ -85,6 +86,11 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
   const [createdNote, setCreatedNote] = useState<NonNullable<
     Awaited<ReturnType<typeof createNote>>
   > | null>();
+
+  const discardEmptyNote = useDiscardEmptyNote({
+    note: createdNote,
+    editors,
+  });
 
   useEffect(() => {
     const notes = data?.notesConnection.notes;
@@ -195,6 +201,11 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
 
   function handleCloseCreateNoteWidget(deleted?: boolean) {
     reset();
+
+    if (discardEmptyNote()) {
+      setCreatedNote(null);
+      return;
+    }
 
     setCreatedNote((createdNote) => {
       if (createdNote && !deleted) {
