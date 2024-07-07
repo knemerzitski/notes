@@ -1,6 +1,7 @@
 import { GraphQLError } from 'graphql';
 import mapObject from 'map-obj';
 import { ObjectId } from 'mongodb';
+
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import { ErrorWithData } from '~utils/logger';
 
@@ -13,7 +14,6 @@ import { NoteQueryMapper } from '../../../note/mongo-query-mapper/note';
 import { publishNoteCreated } from '../../../note/resolvers/Subscription/noteCreated';
 
 import type { MutationResolvers, ResolversTypes } from './../../../types.generated';
-
 
 export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = async (
   _parent,

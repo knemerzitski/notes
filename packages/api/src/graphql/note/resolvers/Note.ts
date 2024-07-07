@@ -1,7 +1,10 @@
 import type { NoteResolvers } from '../../../graphql/types.generated';
 import { assertAuthenticated } from '../../base/directives/auth';
 
-export const Note: Pick<NoteResolvers, 'contentId'|'id'|'isOwner'|'preferences'|'readOnly'|'textFields'> = {
+export const Note: Pick<
+  NoteResolvers,
+  'contentId' | 'id' | 'isOwner' | 'preferences' | 'readOnly' | 'textFields'
+> = {
   id: (parent) => {
     return parent.id();
   },

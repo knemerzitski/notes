@@ -28,6 +28,9 @@ const config: CodegenConfig = {
     },
   },
   ignoreNoDocuments: true,
+  hooks: {
+    afterAllFileWrite: ['eslint --fix', 'prettier --write --ignore-unkown'],
+  },
 };
 
 export default config;

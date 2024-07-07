@@ -1,5 +1,6 @@
 import { GraphQLError } from 'graphql';
 import { ObjectId } from 'mongodb';
+
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
 import { isAuthenticated } from '../../../auth-context';
@@ -7,7 +8,6 @@ import { assertAuthenticated } from '../../../base/directives/auth';
 import { GraphQLResolversContext } from '../../../context';
 import { SubscriptionTopicPrefix } from '../../../subscriptions';
 import type { ResolversTypes, SubscriptionResolvers } from '../../../types.generated';
-
 
 export const noteUpdated: NonNullable<SubscriptionResolvers['noteUpdated']> = {
   subscribe: async (_parent, { input }, ctx) => {
