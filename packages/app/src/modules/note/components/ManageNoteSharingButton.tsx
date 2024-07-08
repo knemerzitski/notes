@@ -129,7 +129,6 @@ function NoteContentIdDefinedButton({
 
   function handleCloseDialog() {
     setIsModalOpen(false);
-    console.log('close dialog');
   }
 
   function handleToggleSharing() {
