@@ -29,6 +29,12 @@ enum NoteTextField {
   CONTENT
 }
 
+enum NoteCategory {
+  DEFAULT
+  STICKY
+  ARCHIVE
+}
+
 type Note implements Node {
   "Identifies note globally for all users"
   id: ID!
@@ -42,6 +48,8 @@ type Note implements Node {
   preferences: NotePreferences
   "True if user owns this note"
   isOwner: Boolean!
+  "Category where note belongs"
+  categoryName: NoteCategory!
 }
 
 type NotePatch {
@@ -51,11 +59,14 @@ type NotePatch {
   textFields: [NoteTextFieldEntryPatch!]
   "Changed preferences"
   preferences: NotePreferencesPatch
+  "Changed note category"
+  categoryName: NoteCategory
 }
 
 input NotePatchInput {
   textFields: [NoteTextFieldEntryPatchInput!]
   preferences: NotePreferencesPatchInput
+  categoryName: NoteCategory
 }
 
 input CreateNotePatchInput {
@@ -101,6 +112,7 @@ extend type Query {
     after: String
     last: NonNegativeInt
     before: String
+    category: NoteCategory
   ): NoteConnection! @auth
   "Get note by content (Note.contentId value)"
   note(contentId: String!): Note! @auth

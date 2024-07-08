@@ -1,9 +1,11 @@
 import { ObjectId } from 'mongodb';
+
 import { Maybe } from '~utils/types';
 
 import { PageInfoMapper } from '../base/schema.mappers';
 import { CollabTextMapper } from '../collab/schema.mappers';
 import {
+  NoteCategory,
   NoteSharing,
   NoteTextField,
   NotetextFieldsArgs,
@@ -28,6 +30,7 @@ export interface NoteMapper {
   preferences(): NotePreferencesMapper;
   ownerId(): Promise<ObjectId | undefined>;
   sharing(): ResolverTypeWrapper<NoteSharing>;
+  categoryName(): ResolverTypeWrapper<NoteCategory>;
 }
 
 export interface NotePatchMapper {
@@ -35,6 +38,7 @@ export interface NotePatchMapper {
   textFields?: ResolversTypes['NoteTextFieldEntryPatch'][];
   preferences?: ResolversTypes['NotePreferencesPatch'];
   sharing?: ResolversTypes['NoteSharingPatch'];
+  categoryName?: ResolversTypes['NoteCategory'];
 }
 
 export interface NoteConnectionMapper {

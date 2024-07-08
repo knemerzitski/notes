@@ -12,11 +12,16 @@ import {
   populateWithCreatedData,
 } from '../../../../test/helpers/mongodb/populate';
 import { GraphQLResolversContext } from '../../../context';
-import { NoteConnection, NoteEdge, NoteTextField } from '../../../types.generated';
+import {
+  NoteCategory,
+  NoteConnection,
+  NoteEdge,
+  NoteTextField,
+} from '../../../types.generated';
 
 const QUERY = `#graphql
-  query($after: String, $first: NonNegativeInt, $before: String, $last: NonNegativeInt) {
-    notesConnection(after: $after, first: $first, before: $before, last: $last){
+  query($after: String, $first: NonNegativeInt, $before: String, $last: NonNegativeInt, $category: NoteCategory) {
+    notesConnection(after: $after, first: $first, before: $before, last: $last, category: $category){
       edges {
         cursor
         node {
@@ -53,6 +58,7 @@ const QUERY = `#graphql
 `;
 
 let userNotes: UserNoteSchema[];
+let userNotesCategoryArchive: UserNoteSchema[];
 let user: UserSchema;
 let contextValue: GraphQLResolversContext;
 
@@ -60,21 +66,26 @@ beforeAll(async () => {
   faker.seed(5435);
   await resetDatabase();
 
-  const { user: tmpUser, userNotes: tmpUserNotes } = populateUserWithNotes(
-    10,
+  ({ user, userNotes } = populateUserWithNotes(10, Object.values(NoteTextField), {
+    collabText: {
+      recordsCount: 2,
+      tailRevision: 0,
+    },
+    noteMany: {
+      enumaratePublicIdByIndex: 0,
+    },
+  }));
+  ({ userNotes: userNotesCategoryArchive } = populateUserWithNotes(
+    3,
     Object.values(NoteTextField),
     {
-      collabText: {
-        recordsCount: 2,
-        tailRevision: 0,
-      },
-      noteMany: {
-        enumaratePublicIdByIndex: 0,
+      user,
+      userNote: {
+        categoryName: NoteCategory.ARCHIVE,
       },
     }
-  );
-  user = tmpUser;
-  userNotes = tmpUserNotes;
+  ));
+
   await populateWithCreatedData();
 
   contextValue = createGraphQLResolversContext(user);
@@ -180,4 +191,31 @@ it('returns empty array when cursor is not found', async () => {
       },
     },
   });
+});
+
+it('returns notes from different category: ARCHIVE', async () => {
+  const response = await apolloServer.executeOperation(
+    {
+      query: QUERY,
+      variables: {
+        first: 10,
+        category: NoteCategory.ARCHIVE,
+      },
+    },
+    {
+      contextValue,
+    }
+  );
+
+  assert(response.body.kind === 'single');
+  const { data, errors } = response.body.singleResult;
+  expect(errors).toBeUndefined();
+  const typedData = data as { notesConnection: NoteConnection };
+
+  expect(
+    typedData.notesConnection.edges.map((edge) => {
+      if (!edge) return null;
+      return (edge as NoteEdge).node.id;
+    })
+  ).toStrictEqual(userNotesCategoryArchive.map((n) => n._id.toString('base64')));
 });

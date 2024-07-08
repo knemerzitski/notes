@@ -3,9 +3,14 @@ import { GraphQLError } from 'graphql';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
 import { CollectionName } from '../../../../mongodb/collections';
+import { getNotesArrayPath } from '../../../../mongodb/schema/user';
 import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
-import type { MutationResolvers, ResolversTypes } from '../../../types.generated';
+import {
+  NoteCategory,
+  type MutationResolvers,
+  type ResolversTypes,
+} from '../../../types.generated';
 import { publishNoteDeleted } from '../Subscription/noteDeleted';
 
 export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
@@ -44,7 +49,11 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
   if (isCurrentUserOwner) {
     // Delete note completely
     const affectedUserNotes = await mongodb.collections[CollectionName.UserNotes]
-      .find<Pick<UserNoteSchema, '_id' | 'userId'>>(
+      .find<
+        Pick<UserNoteSchema, '_id' | 'userId'> & {
+          category?: Pick<NonNullable<UserNoteSchema['category']>, 'name'>;
+        }
+      >(
         {
           'note.publicId': notePublicId,
         },
@@ -52,6 +61,7 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
           projection: {
             _id: 1,
             userId: 1,
+            'category.name': 1,
           },
         }
       )
@@ -80,7 +90,8 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
                 },
                 update: {
                   $pull: {
-                    'notes.category.default.order': userNote._id,
+                    [getNotesArrayPath(userNote.category?.name ?? NoteCategory.DEFAULT)]:
+                      userNote._id,
                   },
                 },
               },
@@ -118,7 +129,8 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
             },
             {
               $pull: {
-                'notes.category.default.order': userNote._id,
+                [getNotesArrayPath(userNote.category?.name ?? NoteCategory.DEFAULT)]:
+                  userNote._id,
               },
             },
             { session }

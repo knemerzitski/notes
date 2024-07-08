@@ -1,5 +1,6 @@
 import { ObjectId } from 'mongodb';
 
+import { NoteCategory } from '../../graphql/types.generated';
 import { CollectionDescription } from '../collections';
 
 import { NoteSchema } from './note';
@@ -22,6 +23,9 @@ export interface UserNoteSchema {
     id: NoteSchema['_id'];
     publicId: NoteSchema['publicId'];
     collabTextIds: NoteSchema['collabTextIds'];
+  };
+  category?: {
+    name: NoteCategory;
   };
 }
 

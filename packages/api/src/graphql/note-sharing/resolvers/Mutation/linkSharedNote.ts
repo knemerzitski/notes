@@ -8,12 +8,17 @@ import { ErrorWithData } from '~utils/logger';
 import { CollectionName } from '../../../../mongodb/collections';
 import { DeepQueryResponse } from '../../../../mongodb/query-builder';
 import { ShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link';
+import { getNotesArrayPath } from '../../../../mongodb/schema/user';
 import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { NoteQueryMapper } from '../../../note/mongo-query-mapper/note';
 import { publishNoteCreated } from '../../../note/resolvers/Subscription/noteCreated';
 
-import type { MutationResolvers, ResolversTypes } from './../../../types.generated';
+import {
+  NoteCategory,
+  type MutationResolvers,
+  type ResolversTypes,
+} from './../../../types.generated';
 
 export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = async (
   _parent,
@@ -155,7 +160,7 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
           },
           {
             $push: {
-              'notes.category.default.order': sharedUserNote._id,
+              [getNotesArrayPath(NoteCategory.DEFAULT)]: sharedUserNote._id,
             },
           },
           { session }

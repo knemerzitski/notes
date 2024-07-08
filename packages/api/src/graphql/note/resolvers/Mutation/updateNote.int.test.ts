@@ -2,6 +2,7 @@
 import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 import { assert, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+
 import { Changeset } from '~collab/changeset/changeset';
 import { RevisionChangeset } from '~collab/records/record';
 import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
@@ -30,12 +31,12 @@ import {
 } from '../../../../test/helpers/mongodb/populate';
 import { GraphQLResolversContext } from '../../../context';
 import {
+  NoteCategory,
   NoteTextField,
   NoteUpdatedInput,
   UpdateNoteInput,
   UpdateNotePayload,
 } from '../../../types.generated';
-
 
 const MUTATION = `#graphql
   mutation($input: UpdateNoteInput!){
@@ -67,6 +68,17 @@ const MUTATION = `#graphql
         preferences {
           backgroundColor
         }
+      }
+    }
+  }
+`;
+
+const MUTATION_CATEGORY = `#graphql
+  mutation($input: UpdateNoteInput!){
+    updateNote(input: $input) {
+      contentId
+      patch {
+        categoryName
       }
     }
   }
@@ -314,9 +326,7 @@ describe('random records', () => {
                   },
                 },
               ],
-              preferences: {
-                backgroundColor: null,
-              },
+              preferences: null,
             },
           },
         });
@@ -426,9 +436,7 @@ describe('random records', () => {
                   },
                 },
               ],
-              preferences: {
-                backgroundColor: null,
-              },
+              preferences: null,
             },
           },
         });
@@ -684,9 +692,7 @@ describe('random records', () => {
                   },
                 },
               ],
-              preferences: {
-                backgroundColor: null,
-              },
+              preferences: null,
             },
           },
         });
@@ -1192,4 +1198,69 @@ describe('pre-determined records', () => {
       ]).toContainEqual(fetchedCollabText.records.slice(6));
     }
   );
+});
+
+it('changes note category', async () => {
+  const { userNotes, user } = populateUserWithNotes(1, Object.values(NoteTextField));
+  const userNote = userNotes[0];
+  assert(userNote != null);
+  await populateWithCreatedData();
+
+  const response = await apolloServer.executeOperation(
+    {
+      query: MUTATION_CATEGORY,
+      variables: {
+        input: {
+          contentId: userNote.note.publicId,
+          patch: {
+            categoryName: NoteCategory.ARCHIVE,
+          },
+        } as UpdateNoteInput,
+      },
+    },
+    {
+      contextValue: createGraphQLResolversContext(user),
+    }
+  );
+
+  assert(response.body.kind === 'single');
+  const { data, errors } = response.body.singleResult;
+  expect(errors).toBeUndefined();
+  expect(data).toEqual({
+    updateNote: {
+      contentId: userNote.note.publicId,
+      patch: {
+        categoryName: NoteCategory.ARCHIVE,
+      },
+    },
+  });
+
+  // Check DB in User document that category is swapped
+  await expect(
+    mongoCollections[CollectionName.Users].findOne(
+      {
+        _id: user._id,
+      },
+      {
+        projection: {
+          'notes.category': 1,
+        },
+      }
+    )
+  ).resolves.toEqual({
+    _id: user._id,
+    notes: {
+      category: {
+        [NoteCategory.ARCHIVE]: {
+          order: [expect.any(ObjectId)],
+        },
+        [NoteCategory.DEFAULT]: {
+          order: [],
+        },
+        [NoteCategory.STICKY]: {
+          order: [],
+        },
+      },
+    },
+  });
 });

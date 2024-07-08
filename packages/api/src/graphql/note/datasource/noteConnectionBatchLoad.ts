@@ -59,6 +59,7 @@ export interface NoteConnectionBatchLoadContext {
       | CollectionName.UserNotes
       | CollectionName.CollabTexts
       | CollectionName.Notes
+      | CollectionName.ShareNoteLinks
     >;
   };
 }

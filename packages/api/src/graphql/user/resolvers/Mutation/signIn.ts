@@ -4,10 +4,10 @@ import { ObjectId, WithId } from 'mongodb';
 import { verifyCredentialToken } from '../../../../auth/google/oauth2';
 import { CollectionName } from '../../../../mongodb/collections';
 import { sessionDefaultValues } from '../../../../mongodb/schema/session/sessions';
-import { NoteCategory, UserSchema } from '../../../../mongodb/schema/user';
+import { UserSchema } from '../../../../mongodb/schema/user';
 import { sessionExpiration } from '../../../../session-expiration/mongodb-user-session';
 
-import type { MutationResolvers } from './../../../types.generated';
+import { NoteCategory, type MutationResolvers } from './../../../types.generated';
 
 export const signIn: NonNullable<MutationResolvers['signIn']> = async (
   _parent,

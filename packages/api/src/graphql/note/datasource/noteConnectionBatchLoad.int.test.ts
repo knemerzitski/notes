@@ -4,20 +4,19 @@ import { ObjectId } from 'mongodb';
 import { beforeAll, it, expect } from 'vitest';
 
 import { RelayPagination } from '../../../mongodb/operations/pagination/relayArrayPagination';
-import { UserSchema } from '../../../mongodb/schema/user';
+import { getNotesArrayPath, UserSchema } from '../../../mongodb/schema/user';
 import { UserNoteSchema } from '../../../mongodb/schema/user-note';
 import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb';
 import {
   populateUserWithNotes,
   populateWithCreatedData,
 } from '../../../test/helpers/mongodb/populate';
-import { NoteTextField } from '../../types.generated';
+import { NoteCategory, NoteTextField } from '../../types.generated';
 
 import noteConnectionBatchLoad, {
   NoteConnectionBatchLoadContext,
   NoteConnectionKey,
 } from './noteConnectionBatchLoad';
-
 
 let userNotes: UserNoteSchema[];
 let user: UserSchema;
@@ -58,7 +57,7 @@ it('loads paginated notes', async () => {
       [
         {
           userId: user._id,
-          userNotesArrayPath: 'notes.category.default.order',
+          userNotesArrayPath: getNotesArrayPath(NoteCategory.DEFAULT),
           pagination: {
             last: 2,
           },
@@ -142,7 +141,7 @@ it('loads custom query with normal pagination', async () => {
       [
         {
           userId: user._id,
-          userNotesArrayPath: 'notes.category.default.order',
+          userNotesArrayPath: getNotesArrayPath(NoteCategory.DEFAULT),
           pagination: {
             first: 1,
           },
@@ -152,7 +151,7 @@ it('loads custom query with normal pagination', async () => {
           customQuery: {
             query: {
               lastElement: {
-                $last: '$notes.category.default.order',
+                $last: `$${getNotesArrayPath(NoteCategory.DEFAULT)}`,
               },
             },
             group: {
@@ -182,7 +181,7 @@ it('loads multiple different paginations', async () => {
   function createKey(pagination: RelayPagination<ObjectId>): NoteConnectionKey {
     return {
       userId: user._id,
-      userNotesArrayPath: 'notes.category.default.order',
+      userNotesArrayPath: getNotesArrayPath(NoteCategory.DEFAULT),
       pagination,
       noteQuery: {
         note: {

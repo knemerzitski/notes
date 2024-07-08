@@ -13,7 +13,6 @@ import { NoteMapper } from '../schema.mappers';
 
 import { NotePreferencesQueryMapper, NotePreferencesQuery } from './note-preferences';
 
-
 export type NoteQuery<TCollabTextKey extends string = NoteTextField> = Omit<
   UserNoteSchema,
   'preferences' | 'note' | 'userId'
@@ -103,5 +102,15 @@ export class NoteQueryMapper implements NoteMapper {
     return {
       id: publicId,
     };
+  }
+
+  async categoryName() {
+    const note = await this.query.queryDocument({
+      category: {
+        name: 1,
+      },
+    });
+
+    return note?.category?.name;
   }
 }

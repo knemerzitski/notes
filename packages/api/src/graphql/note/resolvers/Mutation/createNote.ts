@@ -7,9 +7,11 @@ import { CollectionName } from '../../../../mongodb/collections';
 import { DeepQueryResponse } from '../../../../mongodb/query-builder';
 import { CollabTextSchema } from '../../../../mongodb/schema/collab-text';
 import { NoteSchema, noteDefaultValues } from '../../../../mongodb/schema/note';
+import { getNotesArrayPath } from '../../../../mongodb/schema/user';
 import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import {
+  NoteCategory,
   NoteTextField,
   ResolversTypes,
   type MutationResolvers,
@@ -47,6 +49,9 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
     collabTextIds: mapObject(collabTexts, (key, collabText) => [key, collabText._id]),
   };
 
+  const categoryName = NoteCategory.DEFAULT;
+  const notesArrayPath = getNotesArrayPath(categoryName);
+
   const userNote: UserNoteSchema = {
     _id: new ObjectId(),
     userId: currentUserId,
@@ -57,6 +62,9 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
     },
     preferences: {
       backgroundColor: input.note?.preferences?.backgroundColor ?? undefined,
+    },
+    category: {
+      name: categoryName,
     },
   };
 
@@ -70,7 +78,7 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
         },
         {
           $push: {
-            'notes.category.default.order': userNote._id,
+            [notesArrayPath]: userNote._id,
           },
         },
         { session }

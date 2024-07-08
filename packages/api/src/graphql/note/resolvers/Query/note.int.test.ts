@@ -4,6 +4,7 @@ import { assert, beforeAll, expect, it } from 'vitest';
 
 import { NoteSchema } from '../../../../mongodb/schema/note';
 import { UserSchema } from '../../../../mongodb/schema/user';
+import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
 import { apolloServer } from '../../../../test/helpers/apollo-server';
 import { createGraphQLResolversContext } from '../../../../test/helpers/graphql-context';
 import { resetDatabase } from '../../../../test/helpers/mongodb';
@@ -12,7 +13,7 @@ import {
   populateWithCreatedData,
 } from '../../../../test/helpers/mongodb/populate';
 import { GraphQLResolversContext } from '../../../context';
-import { NoteTextField } from '../../../types.generated';
+import { NoteCategory, NoteTextField } from '../../../types.generated';
 
 const QUERY = `#graphql
   query($contentId: String!, $recordsLast: PositiveInt, $fieldName: NoteTextField){
@@ -39,26 +40,46 @@ const QUERY = `#graphql
   }
 `;
 
+const QUERY_CATEGORY = `#graphql
+  query($contentId: String!){
+    note(contentId: $contentId){
+      categoryName
+    }
+  }
+`;
+
 let notes: NoteSchema[];
 let user: UserSchema;
+let userNoteCategoryArchive: UserNoteSchema;
 let contextValue: GraphQLResolversContext;
 
 beforeAll(async () => {
   faker.seed(5435);
   await resetDatabase();
 
-  const { notes: tmpNotes, user: tmpUser } = populateUserWithNotes(
-    2,
+  ({ notes, user } = populateUserWithNotes(2, Object.values(NoteTextField), {
+    collabText: {
+      recordsCount: 2,
+      tailRevision: 0,
+    },
+  }));
+  const { userNotes: userNotesArchive } = populateUserWithNotes(
+    1,
     Object.values(NoteTextField),
     {
+      user,
       collabText: {
         recordsCount: 2,
         tailRevision: 0,
       },
+      userNote: {
+        categoryName: NoteCategory.ARCHIVE,
+      },
     }
   );
-  notes = tmpNotes;
-  user = tmpUser;
+  assert(userNotesArchive[0] != null);
+  userNoteCategoryArchive = userNotesArchive[0];
+
   await populateWithCreatedData();
 
   contextValue = createGraphQLResolversContext(user);
@@ -225,4 +246,28 @@ it('returns one note not found error', async () => {
   const { errors } = response.body.singleResult;
   expect(errors?.length).toStrictEqual(1);
   expect(errors?.[0]?.message).toEqual(expect.stringMatching(/Note '.+' not found/));
+});
+
+it('returns note category', async () => {
+  const response = await apolloServer.executeOperation(
+    {
+      query: QUERY_CATEGORY,
+      variables: {
+        contentId: userNoteCategoryArchive.note.publicId,
+      },
+    },
+    {
+      contextValue,
+    }
+  );
+
+  assert(response.body.kind === 'single');
+  const { data, errors } = response.body.singleResult;
+  expect(errors).toBeUndefined();
+
+  expect(data).toEqual({
+    note: {
+      categoryName: NoteCategory.ARCHIVE,
+    },
+  });
 });

@@ -1,8 +1,11 @@
 import { faker } from '@faker-js/faker';
+import mapObject from 'map-obj';
 import { ObjectId } from 'mongodb';
 import { assert } from 'vitest';
+
 import { Changeset, SerializedChangeset } from '~collab/changeset/changeset';
 
+import { NoteCategory } from '../../../graphql/types.generated';
 import { CollectionName } from '../../../mongodb/collections';
 import {
   CollabTextSchema,
@@ -16,8 +19,6 @@ import {
 import { UserSchema } from '../../../mongodb/schema/user';
 import { UserNoteSchema } from '../../../mongodb/schema/user-note';
 import { mongoCollections } from '../mongodb';
-
-
 
 type Task = () => Promise<void>;
 
@@ -47,17 +48,12 @@ export function fakeUserData(): UserSchema {
       },
     },
     notes: {
-      category: {
-        default: {
+      category: mapObject(NoteCategory, (_key, categoryName) => [
+        categoryName,
+        {
           order: [],
         },
-        sticky: {
-          order: [],
-        },
-        archived: {
-          order: [],
-        },
-      },
+      ]),
     },
   };
 }
@@ -80,6 +76,7 @@ export function createUserMany(count: number) {
 
 interface FakeUserNoteDataOptions {
   readOnly?: boolean;
+  categoryName?: NoteCategory;
 }
 
 export function fakeUserNoteData(
@@ -98,6 +95,9 @@ export function fakeUserNoteData(
     readOnly: options?.readOnly ?? !!faker.number.int({ max: 1 }),
     preferences: {
       backgroundColor: faker.color.rgb(),
+    },
+    category: {
+      name: options?.categoryName ?? NoteCategory.DEFAULT,
     },
   };
 }
@@ -371,6 +371,7 @@ export function createShareNoteLinkMany(
 }
 
 interface PopulateUserWithNotesOptions {
+  user?: UserSchema;
   noteMany?: CreateNoteManyOptions;
   collabText?: FakeCollabTextDataOptions;
   userNote?: FakeUserNoteDataOptions;
@@ -382,7 +383,7 @@ export function populateUserWithNotes(
   collabTextKeys: string[],
   options?: PopulateUserWithNotesOptions
 ) {
-  const user = createUser();
+  const user = options?.user ?? createUser();
   const collabTexts = createCollabTextMany(
     user,
     notesCount * collabTextKeys.length,
@@ -402,6 +403,8 @@ export function populateUserWithNotes(
     options?.noteMany
   );
 
+  const categoryName = options?.userNote?.categoryName ?? NoteCategory.DEFAULT;
+
   const userNotes = createUserNoteMany(user, notes, options?.userNote);
 
   const shareNoteLinks =
@@ -409,7 +412,7 @@ export function populateUserWithNotes(
       ? createShareNoteLinkMany(userNotes, options?.shareNoteLink)
       : [];
 
-  user.notes.category.default.order = userNotes.map(({ _id }) => _id);
+  user.notes.category[categoryName].order = userNotes.map(({ _id }) => _id);
 
   return {
     user,
@@ -427,7 +430,7 @@ export function addExistingNoteToExistingUser(
 ) {
   const userNote = createUserNote(user, note, options);
 
-  user.notes.category.default.order.push(userNote._id);
+  user.notes.category.DEFAULT.order.push(userNote._id);
 
   return userNote;
 }

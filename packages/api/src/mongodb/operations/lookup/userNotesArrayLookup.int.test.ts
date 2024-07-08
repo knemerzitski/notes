@@ -3,6 +3,7 @@ import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 import { assert, beforeAll, expect, it } from 'vitest';
 
+import { NoteCategory } from '../../../graphql/types.generated';
 import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb';
 import {
   populateUserWithNotes,
@@ -11,12 +12,11 @@ import {
 import { CollectionName } from '../../collections';
 import { CollabTextSchema } from '../../schema/collab-text';
 import { NoteSchema } from '../../schema/note';
-import { UserSchema } from '../../schema/user';
+import { getNotesArrayPath, UserSchema } from '../../schema/user';
 import { UserNoteSchema } from '../../schema/user-note';
 
 import { UserNoteLookupOutput } from './userNoteLookup';
 import userNotesArrayLookup, { UserNotesArrayLookupOutput } from './userNotesArrayLookup';
-
 
 enum CollabTextKey {
   CONTENT = 'content',
@@ -70,7 +70,7 @@ it('returns userNotesArray in expected format', async () => {
       },
       {
         $project: {
-          order: '$notes.category.default.order',
+          order: `$${getNotesArrayPath(NoteCategory.DEFAULT)}`,
         },
       },
       ...userNotesArrayLookup({
@@ -131,9 +131,9 @@ it('uses groupExpression', async () => {
       },
       {
         $project: {
-          order: '$notes.category.default.order',
+          order: `$${getNotesArrayPath(NoteCategory.DEFAULT)}`,
           firstElement: {
-            $first: '$notes.category.default.order',
+            $first: `$${getNotesArrayPath(NoteCategory.DEFAULT)}`,
           },
         },
       },

@@ -2,19 +2,19 @@
 import { faker } from '@faker-js/faker';
 import { assert, beforeAll, expect, it } from 'vitest';
 
+import { NoteCategory } from '../../../graphql/types.generated';
 import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb';
 import {
   populateWithCreatedData,
   populateUserWithNotes,
 } from '../../../test/helpers/mongodb/populate';
 import { CollectionName } from '../../collections';
-import { UserSchema } from '../../schema/user';
+import { getNotesArrayPath, UserSchema } from '../../schema/user';
 import { UserNoteSchema } from '../../schema/user-note';
 
 import relayPaginateUserNotesArray, {
   RelayPaginateUserNotesArrayOuput,
 } from './relayPaginateUserNotesArray';
-
 
 enum TextFields {
   TITLE = 'title',
@@ -56,7 +56,7 @@ it('returns all notes without any paginations', async () => {
       },
       ...relayPaginateUserNotesArray({
         pagination: {
-          'notes.category.default.order': {},
+          [getNotesArrayPath(NoteCategory.DEFAULT)]: {},
         },
         userNotes: {
           userNoteCollctionName:
@@ -97,7 +97,7 @@ it('paginates notes', async () => {
       },
       ...relayPaginateUserNotesArray({
         pagination: {
-          'notes.category.default.order': {
+          [getNotesArrayPath(NoteCategory.DEFAULT)]: {
             paginations: [
               {
                 before: userNotes[5]?._id,

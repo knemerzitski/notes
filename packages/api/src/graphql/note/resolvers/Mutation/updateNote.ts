@@ -1,5 +1,6 @@
 import { GraphQLError } from 'graphql';
-import { AnyBulkWriteOperation } from 'mongodb';
+import { AnyBulkWriteOperation, UpdateFilter } from 'mongodb';
+
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import { SelectionRange } from '~collab/client/selection-range';
 import { ChangesetRevisionRecords } from '~collab/records/changeset-revision-records';
@@ -13,6 +14,8 @@ import isDefined from '~utils/type-guards/isDefined';
 import { CollectionName } from '../../../../mongodb/collections';
 import { DeepQueryResponse, MongoDocumentQuery } from '../../../../mongodb/query-builder';
 import { CollabTextSchema } from '../../../../mongodb/schema/collab-text';
+import { getNotesArrayPath, UserSchema } from '../../../../mongodb/schema/user';
+import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import {
   CollabTextQuery,
@@ -24,6 +27,7 @@ import {
   type MutationResolvers,
   ResolversTypes,
   NoteTextField,
+  NoteCategory,
 } from '../../../types.generated';
 import { NoteQuery } from '../../mongo-query-mapper/note';
 import { NoteMapper } from '../../schema.mappers';
@@ -60,11 +64,15 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
       note: {
         ownerId: 1,
       },
+      category: {
+        name: 1,
+      },
     },
   });
 
   const userNoteId = userNote._id;
   const isReadOnly = userNote.readOnly ?? false;
+  const existingCategoryName = userNote.category?.name ?? NoteCategory.DEFAULT;
 
   if (!userNoteId) {
     throw new GraphQLError(`Note '${notePublicId}' not found`, {
@@ -103,8 +111,12 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
     session.withTransaction(async (session) => {
       const responseTextFieldsPayload: UpdateNotePayloadPatch['textFields'] = [];
       const publishTextFieldsPayload: NoteUpdatedPayloadPatch['textFields'] = [];
-      const preferencesPayload: PayloadPatch['preferences'] = {};
+
+      let payloadPatch: Awaited<Omit<PayloadPatch, 'id'>> | undefined;
+      let userNoteUpdate: UpdateFilter<UserNoteSchema> | undefined;
+      let userUpdate: UpdateFilter<UserSchema> | undefined;
       const updateDbPromises: Promise<unknown>[] = [];
+
       if (patch.textFields) {
         updateDbPromises.push(
           Promise.all(
@@ -411,30 +423,79 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
       }
 
       if (patch.preferences?.backgroundColor) {
+        userNoteUpdate = {
+          ...userNoteUpdate,
+          $set: {
+            ...userNoteUpdate?.$set,
+            'preferences.backgroundColor': patch.preferences.backgroundColor,
+          },
+        };
+        payloadPatch = {
+          ...payloadPatch,
+          preferences: {
+            ...(await payloadPatch?.preferences),
+            backgroundColor: patch.preferences.backgroundColor,
+          },
+        };
+      }
+
+      if (patch.categoryName) {
+        userNoteUpdate = {
+          ...userNoteUpdate,
+          $set: {
+            ...userNoteUpdate?.$set,
+            'category.name': patch.categoryName,
+          },
+        };
+        payloadPatch = {
+          ...payloadPatch,
+          categoryName: patch.categoryName,
+        };
+
+        userUpdate = {
+          ...userUpdate,
+          $pull: {
+            ...userUpdate?.$pull,
+            [getNotesArrayPath(existingCategoryName)]: userNoteId,
+          },
+          $push: {
+            ...userUpdate?.$push,
+            [getNotesArrayPath(patch.categoryName)]: userNoteId,
+          },
+        };
+      }
+
+      if (userUpdate) {
         updateDbPromises.push(
-          mongodb.collections[CollectionName.UserNotes].updateOne(
+          mongodb.collections[CollectionName.Users].updateOne(
             {
-              _id: userNoteId,
+              _id: currentUserId,
             },
-            {
-              $set: {
-                preferences: {
-                  backgroundColor: patch.preferences.backgroundColor,
-                },
-              },
-            },
+            userUpdate,
             {
               session,
             }
           )
         );
-        preferencesPayload.backgroundColor = patch.preferences.backgroundColor;
+      }
+      if (userNoteUpdate) {
+        updateDbPromises.push(
+          mongodb.collections[CollectionName.UserNotes].updateOne(
+            {
+              _id: userNoteId,
+            },
+            userNoteUpdate,
+            {
+              session,
+            }
+          )
+        );
       }
 
       await Promise.all(updateDbPromises);
 
       const haveNothingToPublish =
-        publishTextFieldsPayload.length === 0 && isEmptyDeep(preferencesPayload);
+        publishTextFieldsPayload.length === 0 && isEmptyDeep(payloadPatch);
 
       const userNoteIdMapper: Pick<NoteMapper, 'id'> = {
         id() {
@@ -465,7 +526,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
           patch: {
             id: () => userNoteIdMapper.id(),
             textFields: responseTextFieldsPayload,
-            preferences: preferencesPayload,
+            ...payloadPatch,
           },
         },
         publish: haveNothingToPublish
@@ -475,7 +536,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
               patch: {
                 id: () => userNoteIdMapper.id(),
                 textFields: publishTextFieldsPayload,
-                preferences: preferencesPayload,
+                ...payloadPatch,
               },
             },
       };

@@ -3,7 +3,13 @@ import { assertAuthenticated } from '../../base/directives/auth';
 
 export const Note: Pick<
   NoteResolvers,
-  'contentId' | 'id' | 'isOwner' | 'preferences' | 'readOnly' | 'textFields'
+  | 'categoryName'
+  | 'contentId'
+  | 'id'
+  | 'isOwner'
+  | 'preferences'
+  | 'readOnly'
+  | 'textFields'
 > = {
   id: (parent) => {
     return parent.id();

@@ -1,14 +1,14 @@
 import { ObjectId } from 'mongodb';
 
 import { RelayPagination } from '../../../../mongodb/operations/pagination/relayArrayPagination';
+import { getNotesArrayPath } from '../../../../mongodb/schema/user';
 import { assertAuthenticated } from '../../../base/directives/auth';
-import { type QueryResolvers } from '../../../types.generated';
+import { NoteCategory, type QueryResolvers } from '../../../types.generated';
 import preExecuteField from '../../../utils/preExecuteField';
 import { NoteQueryMapper } from '../../mongo-query-mapper/note';
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 30;
-const NOTES_ARRAY_PATH = 'notes.category.default.order';
 
 function canObjectIdCreateFromBase64(s: string) {
   return s.length === 16;
@@ -63,6 +63,9 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
     };
   }
 
+  const categoryName = args.category ?? NoteCategory.DEFAULT;
+  const userNotesArrayPath = getNotesArrayPath(categoryName);
+
   return {
     notes: async () => {
       // Pre resolve to build query and fetch with dataloader to figure out list size
@@ -74,7 +77,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
               async queryDocument(query) {
                 const result = await datasources.notes.getNoteConnection({
                   userId: currentUserId,
-                  userNotesArrayPath: NOTES_ARRAY_PATH,
+                  userNotesArrayPath,
                   noteQuery: query,
                   pagination,
                 });
@@ -92,7 +95,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
           queryDocument: async (query) => {
             const result = await datasources.notes.getNoteConnection({
               userId: currentUserId,
-              userNotesArrayPath: NOTES_ARRAY_PATH,
+              userNotesArrayPath,
               noteQuery: query,
               pagination,
             });
@@ -112,7 +115,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
             async queryDocument(query) {
               const result = await datasources.notes.getNoteConnection({
                 userId: currentUserId,
-                userNotesArrayPath: NOTES_ARRAY_PATH,
+                userNotesArrayPath,
                 noteQuery: query,
                 pagination,
               });
@@ -138,7 +141,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
           queryDocument: async (query) => {
             const result = await datasources.notes.getNoteConnection({
               userId: currentUserId,
-              userNotesArrayPath: NOTES_ARRAY_PATH,
+              userNotesArrayPath,
               noteQuery: query,
               pagination,
             });
@@ -161,7 +164,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
             lastCursor: ObjectId | null;
           }>({
             userId: currentUserId,
-            userNotesArrayPath: NOTES_ARRAY_PATH,
+            userNotesArrayPath,
             noteQuery: {
               _id: 1,
             },
@@ -169,7 +172,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
             customQuery: {
               query: {
                 lastCursor: {
-                  $last: `$${NOTES_ARRAY_PATH}`,
+                  $last: `$${userNotesArrayPath}`,
                 },
               },
               group: {
@@ -188,7 +191,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
             firstCursor: ObjectId | null;
           }>({
             userId: currentUserId,
-            userNotesArrayPath: NOTES_ARRAY_PATH,
+            userNotesArrayPath,
             noteQuery: {
               _id: 1,
             },
@@ -196,7 +199,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
             customQuery: {
               query: {
                 firstCursor: {
-                  $first: `$${NOTES_ARRAY_PATH}`,
+                  $first: `$${userNotesArrayPath}`,
                 },
               },
               group: {
@@ -213,7 +216,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
         startCursor: async () => {
           const { userNotes } = await datasources.notes.getNoteConnection({
             userId: currentUserId,
-            userNotesArrayPath: NOTES_ARRAY_PATH,
+            userNotesArrayPath,
             noteQuery: {
               _id: 1,
             },
@@ -227,7 +230,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
         endCursor: async () => {
           const { userNotes } = await datasources.notes.getNoteConnection({
             userId: currentUserId,
-            userNotesArrayPath: NOTES_ARRAY_PATH,
+            userNotesArrayPath,
             noteQuery: {
               _id: 1,
             },

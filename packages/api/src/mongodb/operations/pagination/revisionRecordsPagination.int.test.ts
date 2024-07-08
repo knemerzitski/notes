@@ -4,6 +4,7 @@ import mapObject from 'map-obj';
 import { ObjectId } from 'mongodb';
 import { assert, beforeAll, expect, it } from 'vitest';
 
+import { NoteCategory } from '../../../graphql/types.generated';
 import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb';
 import {
   populateUserWithNotes,
@@ -12,7 +13,7 @@ import {
 import { CollectionName } from '../../collections';
 import { CollabTextSchema } from '../../schema/collab-text';
 import { NoteSchema } from '../../schema/note';
-import { UserSchema } from '../../schema/user';
+import { getNotesArrayPath, UserSchema } from '../../schema/user';
 import { UserNoteSchema } from '../../schema/user-note';
 import { UserNoteLookupOutput } from '../lookup/userNoteLookup';
 
@@ -81,7 +82,7 @@ it('gets records within usernotes pagination', async () => {
       },
       ...relayPaginateUserNotesArray({
         pagination: {
-          'notes.category.default.order': {},
+          [getNotesArrayPath(NoteCategory.DEFAULT)]: {},
         },
         userNotes: {
           userNoteCollctionName:

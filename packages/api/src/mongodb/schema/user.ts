@@ -1,5 +1,6 @@
 import { ObjectId } from 'mongodb';
 
+import { NoteCategory } from '../../graphql/types.generated';
 import { CollectionDescription } from '../collections';
 
 export interface UserSchema {
@@ -24,15 +25,12 @@ export interface UserSchema {
   };
 }
 
-// TODO use enum from GraphQL?
-export enum NoteCategory {
-  Default = 'default',
-  Sticky = 'sticky',
-  Archived = 'archived',
-}
-
 interface UserNoteCategoryMeta {
   order: ObjectId[];
+}
+
+export function getNotesArrayPath(category: NoteCategory) {
+  return `notes.category.${category}.order`;
 }
 
 export const userDescription: CollectionDescription = {
