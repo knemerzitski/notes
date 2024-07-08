@@ -38,7 +38,7 @@ export default function relayMultiArrayPaginationConcat<TArrayKey extends string
             '$$value.multiSizes',
             [
               {
-                $ifNull: ['$$this.sizes', { $size: '$$this.array' }],
+                $ifNull: ['$$this.sizes', { $size: { $ifNull: ['$$this.array', []] } }],
               },
             ],
           ],

@@ -59,7 +59,7 @@ export default function consecutiveIntArrayPagination(
         vars: {
           firstValue: { $first: `$${arrayField}` },
           lastValue: { $last: `$${arrayField}` },
-          size: { $size: `$${input.arrayFieldPath}` },
+          size: { $size: { $ifNull: [`$${input.arrayFieldPath}`, []] } },
         },
         in: {
           $let: {
@@ -165,7 +165,10 @@ export default function consecutiveIntArrayPagination(
                         $concatArrays: ['$$value.array', '$$this'],
                       },
                       sizes: {
-                        $concatArrays: ['$$value.sizes', [{ $size: '$$this' }]],
+                        $concatArrays: [
+                          '$$value.sizes',
+                          [{ $size: { $ifNull: ['$$this', []] } }],
+                        ],
                       },
                     },
                   },

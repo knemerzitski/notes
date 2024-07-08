@@ -213,7 +213,7 @@ export function sliceAfter<T>({
                 $slice: [
                   `$${arrayFieldPath}`,
                   '$$start',
-                  first ?? { $size: `$${arrayFieldPath}` },
+                  first ?? { $size: { $ifNull: [`$${arrayFieldPath}`, []] } },
                 ],
               },
               [],
@@ -230,7 +230,7 @@ export function sliceAfter<T>({
           $concatArrays: ['$$value.array', '$$this'],
         },
         sizes: {
-          $concatArrays: ['$$value.sizes', [{ $size: '$$this' }]],
+          $concatArrays: ['$$value.sizes', [{ $size: { $ifNull: ['$$this', []] } }]],
         },
       },
     },
@@ -304,7 +304,7 @@ export function sliceBefore<T>({
           $concatArrays: ['$$value.array', '$$this'],
         },
         sizes: {
-          $concatArrays: ['$$value.sizes', [{ $size: '$$this' }]],
+          $concatArrays: ['$$value.sizes', [{ $size: { $ifNull: ['$$this', []] } }]],
         },
       },
     },
@@ -506,7 +506,7 @@ export default function relayArrayPagination<TCursor>(
                 {
                   $cond: [
                     { $eq: ['$$this.sizes', null] },
-                    [{ $size: '$$this.array' }],
+                    [{ $size: { $ifNull: ['$$this.array', []] } }],
                     '$$this.sizes',
                   ],
                 },
