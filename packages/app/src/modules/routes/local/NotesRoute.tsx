@@ -8,12 +8,12 @@ import { gql } from '../../../__generated__/gql';
 import { NoteTextField } from '../../../__generated__/graphql';
 import usePauseableQuery from '../../apollo-client/hooks/usePauseableQuery';
 import { editorsInCache } from '../../editor/editors';
-import { NoteItemProps } from '../../note/components/NoteItem';
-import WidgetListFabLayout from '../../note/components/WidgetListFabLayout';
-import { newEmptyEditors } from '../../note/hooks/useCreatableNoteTextFieldEditors';
-import useCreateLocalNote from '../../note-local/hooks/useCreateLocalNote';
-import useDeleteLocalNote from '../../note-local/hooks/useDeleteLocalNote';
-import { insertLocalNoteToNotesConnection } from '../../note-local/policies/Query/localNotesConnection';
+import useCreateLocalNote from '../../note/local/hooks/useCreateLocalNote';
+import useDeleteLocalNote from '../../note/local/hooks/useDeleteLocalNote';
+import { insertLocalNoteToNotesConnection } from '../../note/local/policies/Query/localNotesConnection';
+import { NoteItemProps } from '../../note/remote/components/NoteItem';
+import WidgetListFabLayout from '../../note/remote/components/WidgetListFabLayout';
+import { newEmptyEditors } from '../../note/remote/hooks/useCreatableNoteTextFieldEditors';
 import {
   useProxyNavigate,
   useProxyRouteTransform,

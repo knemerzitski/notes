@@ -1,8 +1,9 @@
 import { Reference, FieldPolicy } from '@apollo/client';
+
 import isDefined from '~utils/type-guards/isDefined';
 
 import { gql } from '../../../../__generated__';
-import { activeNotesVar } from '../../../note/active-notes';
+import { activeNotesVar } from '../../../note/remote/active-notes';
 
 const FRAGMENT = gql(`
   fragment AllActiveCollabTextsNote on Note {

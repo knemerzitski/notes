@@ -13,10 +13,10 @@ import ActiveCollabTextsManager from './modules/collab/components/ActiveCollabTe
 import FullSizeErrorContainer from './modules/common/components/FullSizeErrorContainer';
 import RenderedFabsTrackingProvider from './modules/common/components/RenderedFabsTrackingProvider';
 import SnackbarAlertProvider from './modules/common/components/SnackbarAlertProvider';
-import ActiveNotesManager from './modules/note/components/ActiveNotesManager';
-import ExternalChangesSubscription from './modules/note/components/ExternalChangesSubscription';
-import NoteCreatedSubscription from './modules/note/components/NoteCreatedSubscription';
-import NoteDeletedSubscription from './modules/note/components/NoteDeletedSubscription';
+import ActiveNotesManager from './modules/note/remote/components/ActiveNotesManager';
+import ExternalChangesSubscription from './modules/note/remote/components/ExternalChangesSubscription';
+import NoteCreatedSubscription from './modules/note/remote/components/NoteCreatedSubscription';
+import NoteDeletedSubscription from './modules/note/remote/components/NoteDeletedSubscription';
 import RouterProvider from './modules/router/context/RouterProvider';
 import { router } from './modules/routes/RoutesIndex';
 import CustomThemeProvider, {

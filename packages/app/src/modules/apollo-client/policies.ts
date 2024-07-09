@@ -3,8 +3,8 @@ import { NormalizedCacheObject, TypePolicies } from '@apollo/client';
 import authPolicies from '../auth/policies';
 import collabTextPolicies from '../collab/policies';
 import basePolicies from '../global/policies';
-import notePolicies from '../note/policies';
-import localNotePolicies from '../note-local/policies';
+import localNotePolicies from '../note/local/policies';
+import notePolicies from '../note/remote/policies';
 import preferencesPolicies from '../preferences/policies';
 
 import { LinkTypePolicies } from './links/type-link';

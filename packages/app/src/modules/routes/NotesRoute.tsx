@@ -4,16 +4,16 @@ import { startTransition, useState } from 'react';
 
 import { NoteCategory } from '../../__generated__/graphql';
 import { useSnackbarError } from '../common/components/SnackbarAlertProvider';
-import ManageNoteSharingButton from '../note/components/ManageNoteSharingButton';
-import { NoteItemProps } from '../note/components/NoteItem';
-import WidgetListFabLayout from '../note/components/WidgetListFabLayout';
-import NoteContentIdProvider from '../note/context/NoteContentIdProvider';
-import { NoteCollabTextEditors } from '../note/context/NoteTextFieldEditorsProvider';
-import { useCreatableNoteTextFieldEditors } from '../note/hooks/useCreatableNoteTextFieldEditors';
-import useDeleteNote from '../note/hooks/useDeleteNote';
-import useDiscardEmptyNote from '../note/hooks/useDiscardEmptyNote';
-import useNotesConnection from '../note/hooks/useNotesConnection';
-import { insertNoteToNotesConnection } from '../note/policies/Query/notesConnection';
+import ManageNoteSharingButton from '../note/remote/components/ManageNoteSharingButton';
+import { NoteItemProps } from '../note/remote/components/NoteItem';
+import WidgetListFabLayout from '../note/remote/components/WidgetListFabLayout';
+import NoteContentIdProvider from '../note/remote/context/NoteContentIdProvider';
+import { NoteCollabTextEditors } from '../note/remote/context/NoteTextFieldEditorsProvider';
+import { useCreatableNoteTextFieldEditors } from '../note/remote/hooks/useCreatableNoteTextFieldEditors';
+import useDeleteNote from '../note/remote/hooks/useDeleteNote';
+import useDiscardEmptyNote from '../note/remote/hooks/useDiscardEmptyNote';
+import useNotesConnection from '../note/remote/hooks/useNotesConnection';
+import { insertNoteToNotesConnection } from '../note/remote/policies/Query/notesConnection';
 import {
   useProxyNavigate,
   useProxyRouteTransform,

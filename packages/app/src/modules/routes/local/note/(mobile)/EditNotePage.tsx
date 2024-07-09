@@ -11,13 +11,13 @@ import { useParams } from 'react-router-dom';
 
 import AppBar from '../../../../common/components/AppBar';
 import useIsScrollEnd from '../../../../common/hooks/useIsScrollEnd';
-import CollabInputs from '../../../../note/components/CollabInputs';
-import MoreOptionsButton from '../../../../note/components/MoreOptionsButton';
-import RedoButton from '../../../../note/components/RedoButton';
-import UndoButton from '../../../../note/components/UndoButton';
-import { LocalNoteEditingContext } from '../../../../note-local/context/LocalNoteEditingContext';
-import useDeleteLocalNote from '../../../../note-local/hooks/useDeleteLocalNote';
-import useLocalNoteExists from '../../../../note-local/hooks/useLocalNoteExists';
+import { LocalNoteEditingContext } from '../../../../note/local/context/LocalNoteEditingContext';
+import useDeleteLocalNote from '../../../../note/local/hooks/useDeleteLocalNote';
+import useLocalNoteExists from '../../../../note/local/hooks/useLocalNoteExists';
+import CollabInputs from '../../../../note/remote/components/CollabInputs';
+import MoreOptionsButton from '../../../../note/remote/components/MoreOptionsButton';
+import RedoButton from '../../../../note/remote/components/RedoButton';
+import UndoButton from '../../../../note/remote/components/UndoButton';
 import { useProxyNavigate } from '../../../../router/context/ProxyRoutesProvider';
 import usePreviousLocation from '../../../../router/hooks/usePreviousLocation';
 

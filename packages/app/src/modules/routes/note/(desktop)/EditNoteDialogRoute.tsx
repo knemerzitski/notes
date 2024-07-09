@@ -7,14 +7,14 @@ import RouteClosable, {
 } from '../../../common/components/RouteClosable';
 import RouteSnackbarError from '../../../common/components/RouteSnackbarError';
 import useIsElementScrollEnd from '../../../common/hooks/useIsElementScrollEnd';
-import CollabInputs from '../../../note/components/CollabInputs';
-import ManageNoteSharingButton from '../../../note/components/ManageNoteSharingButton';
-import MoreOptionsButton from '../../../note/components/MoreOptionsButton';
-import NoteDialog from '../../../note/components/NoteDialog';
-import RedoButton from '../../../note/components/RedoButton';
-import UndoButton from '../../../note/components/UndoButton';
-import NewOrExistingNoteEditingContext from '../../../note/context/NewOrExistingNoteEditingContext';
-import useDeleteNote from '../../../note/hooks/useDeleteNote';
+import CollabInputs from '../../../note/remote/components/CollabInputs';
+import ManageNoteSharingButton from '../../../note/remote/components/ManageNoteSharingButton';
+import MoreOptionsButton from '../../../note/remote/components/MoreOptionsButton';
+import NoteDialog from '../../../note/remote/components/NoteDialog';
+import RedoButton from '../../../note/remote/components/RedoButton';
+import UndoButton from '../../../note/remote/components/UndoButton';
+import NewOrExistingNoteEditingContext from '../../../note/remote/context/NewOrExistingNoteEditingContext';
+import useDeleteNote from '../../../note/remote/hooks/useDeleteNote';
 
 export type EditNoteLocationState = null | { newNote?: boolean; autoFocus?: boolean };
 
