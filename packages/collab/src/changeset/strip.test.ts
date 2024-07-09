@@ -10,7 +10,7 @@ describe('EMPTY', () => {
   });
 
   it('reference returns empty strips', () => {
-    expect(Strip.EMPTY.reference(mock())).toStrictEqual(Strips.EMPTY);
+    expect(Strip.EMPTY.reference()).toStrictEqual(Strips.EMPTY);
   });
 
   it('slice returns self', () => {

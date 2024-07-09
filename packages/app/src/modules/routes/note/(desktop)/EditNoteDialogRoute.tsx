@@ -42,6 +42,8 @@ function RouteClosableEditNoteDialog({
     onClosed(true);
   }
 
+  // TODO make note active?
+
   if (!noteContentId && !isNewNote) {
     return <RouteSnackbarError>Empty note id</RouteSnackbarError>;
   }
@@ -74,6 +76,7 @@ function RouteClosableEditNoteDialog({
           <MuiAppBar
             elevation={0}
             position="relative"
+            color="default"
             sx={{
               ...(!isScrollEnd && {
                 boxShadow: (theme) => theme.shadowsNamed.scrollEnd,

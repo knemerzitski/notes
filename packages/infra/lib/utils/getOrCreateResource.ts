@@ -1,7 +1,9 @@
 import { IResource } from 'aws-cdk-lib/aws-apigateway';
 
+import isNonEmptyArray from '~utils/array/isNonEmptyArray';
+
 export default function getOrCreateResource(resource: IResource, path: string[]) {
-  if (path.length === 0) return resource;
+  if (!isNonEmptyArray(path)) return resource;
   const part = path[0];
   let nextResource = resource.getResource(part);
   if (!nextResource) {

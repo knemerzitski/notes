@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { DeepPartial } from 'ts-essentials';
 import { it, vi, expect } from 'vitest';
 import { afterEach, beforeEach, describe } from 'vitest';

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
 import { assert, beforeEach, describe, expect, it } from 'vitest';
+
 import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
 
 import { CollectionName } from '../../../../mongodb/collections';
@@ -25,8 +26,6 @@ import {
   NoteDeletedInput,
   NoteTextField,
 } from '../../../types.generated';
-
-
 
 const MUTATION = `#graphql
   mutation($input: DeleteNoteInput!){
@@ -93,7 +92,7 @@ describe('delete', () => {
     });
 
     await expect(
-      mongoCollections[CollectionName.Notes].findOne({
+      mongoCollections[CollectionName.NOTES].findOne({
         publicId: note.publicId,
       }),
       'Note should be deleted'
@@ -128,7 +127,7 @@ describe('delete', () => {
     });
 
     await expect(
-      mongoCollections[CollectionName.Notes].findOne({
+      mongoCollections[CollectionName.NOTES].findOne({
         publicId: note.publicId,
       }),
       'Note should not be deleted'
@@ -191,7 +190,7 @@ describe('publish', () => {
       },
       {
         contextValue: createGraphQLResolversContext(userOwner, {
-          createPublisher
+          createPublisher,
         }),
       }
     );

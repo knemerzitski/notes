@@ -31,16 +31,16 @@ export const noteDeleted: NonNullable<SubscriptionResolvers['noteDeleted']> = {
       if (!userNote._id) {
         throw new GraphQLError(`Note '${notePublicId}' not found`, {
           extensions: {
-            code: GraphQLErrorCode.NotFound,
+            code: GraphQLErrorCode.NOT_FOUND,
           },
         });
       }
 
-      return subscribe(`${SubscriptionTopicPrefix.NoteDeleted}:noteId=${notePublicId}`);
+      return subscribe(`${SubscriptionTopicPrefix.NOTE_DELETED}:noteId=${notePublicId}`);
     } else {
       // Subscribe to deletion of own notes
       const userId = auth.session.user._id.toString('base64');
-      return subscribe(`${SubscriptionTopicPrefix.NoteDeleted}:userId=${userId}`);
+      return subscribe(`${SubscriptionTopicPrefix.NOTE_DELETED}:userId=${userId}`);
     }
   },
 };
@@ -58,10 +58,10 @@ export async function publishNoteDeleted(
   const userId = ownerUserId.toString('base64');
 
   return Promise.allSettled([
-    publish(`${SubscriptionTopicPrefix.NoteDeleted}:noteId=${notePublicId}`, {
+    publish(`${SubscriptionTopicPrefix.NOTE_DELETED}:noteId=${notePublicId}`, {
       noteDeleted: payload,
     }),
-    publish(`${SubscriptionTopicPrefix.NoteDeleted}:userId=${userId}`, {
+    publish(`${SubscriptionTopicPrefix.NOTE_DELETED}:userId=${userId}`, {
       noteDeleted: payload,
     }),
   ]);

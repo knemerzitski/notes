@@ -16,7 +16,6 @@ import { UserNoteSchema } from '../../schema/user-note';
 
 import userNoteLookup, { UserNoteLookupOutput } from './userNoteLookup';
 
-
 enum CollabTextKey {
   TITLE = 'title',
   CONTENT = 'content',
@@ -57,7 +56,7 @@ const expectedCollabText = {
 };
 
 it('returns userNote in expected format', async () => {
-  const results = await mongoCollections[CollectionName.UserNotes]
+  const results = await mongoCollections[CollectionName.USER_NOTES]
     .aggregate<
       UserNoteLookupOutput<CollabTextKey, CollabTextSchema, UserNoteSchema, NoteSchema>
     >([
@@ -68,10 +67,10 @@ it('returns userNote in expected format', async () => {
       },
       ...userNoteLookup({
         note: {
-          collectionName: mongoCollections[CollectionName.Notes].collectionName,
+          collectionName: mongoCollections[CollectionName.NOTES].collectionName,
         },
         collabText: {
-          collectionName: mongoCollections[CollectionName.CollabTexts].collectionName,
+          collectionName: mongoCollections[CollectionName.COLLAB_TEXTS].collectionName,
           collabTexts: Object.values(CollabTextKey),
         },
       }),
@@ -100,7 +99,7 @@ it('returns userNote in expected format', async () => {
 });
 
 it('only looks up collabTextIds', async () => {
-  const results = await mongoCollections[CollectionName.UserNotes]
+  const results = await mongoCollections[CollectionName.USER_NOTES]
     .aggregate<
       UserNoteLookupOutput<CollabTextKey, CollabTextSchema, UserNoteSchema, undefined>
     >([
@@ -111,7 +110,7 @@ it('only looks up collabTextIds', async () => {
       },
       ...userNoteLookup({
         collabText: {
-          collectionName: mongoCollections[CollectionName.CollabTexts].collectionName,
+          collectionName: mongoCollections[CollectionName.COLLAB_TEXTS].collectionName,
           collabTexts: Object.values(CollabTextKey),
         },
       }),
@@ -125,7 +124,7 @@ it('only looks up collabTextIds', async () => {
 });
 
 it('only looks up note', async () => {
-  const results = await mongoCollections[CollectionName.UserNotes]
+  const results = await mongoCollections[CollectionName.USER_NOTES]
     .aggregate<
       UserNoteLookupOutput<CollabTextKey, undefined, UserNoteSchema, NoteSchema>
     >([
@@ -136,7 +135,7 @@ it('only looks up note', async () => {
       },
       ...userNoteLookup({
         note: {
-          collectionName: mongoCollections[CollectionName.Notes].collectionName,
+          collectionName: mongoCollections[CollectionName.NOTES].collectionName,
         },
       }),
     ])
@@ -153,7 +152,7 @@ it('uses note pipeline', async () => {
     customOwnerId: ObjectId;
     custom: string;
   }
-  const results = await mongoCollections[CollectionName.UserNotes]
+  const results = await mongoCollections[CollectionName.USER_NOTES]
     .aggregate<
       UserNoteLookupOutput<CollabTextKey, undefined, { note?: undefined }, CustomNote>
     >([
@@ -164,7 +163,7 @@ it('uses note pipeline', async () => {
       },
       ...userNoteLookup({
         note: {
-          collectionName: mongoCollections[CollectionName.Notes].collectionName,
+          collectionName: mongoCollections[CollectionName.NOTES].collectionName,
           pipeline: [
             {
               $project: {
@@ -194,7 +193,7 @@ it('uses collabText pipeline separate for each key', async () => {
     custom: string;
   }
 
-  const results = await mongoCollections[CollectionName.UserNotes]
+  const results = await mongoCollections[CollectionName.USER_NOTES]
     .aggregate<
       UserNoteLookupOutput<
         CollabTextKey,
@@ -210,10 +209,10 @@ it('uses collabText pipeline separate for each key', async () => {
       },
       ...userNoteLookup({
         note: {
-          collectionName: mongoCollections[CollectionName.Notes].collectionName,
+          collectionName: mongoCollections[CollectionName.NOTES].collectionName,
         },
         collabText: {
-          collectionName: mongoCollections[CollectionName.CollabTexts].collectionName,
+          collectionName: mongoCollections[CollectionName.COLLAB_TEXTS].collectionName,
           collabTexts: Object.fromEntries(
             Object.values(CollabTextKey).map((collabKey) => [
               collabKey,
@@ -247,7 +246,7 @@ it('uses collabText pipeline separate for each key', async () => {
 });
 
 it('looks up shareNoteLinks', async () => {
-  const results = await mongoCollections[CollectionName.UserNotes]
+  const results = await mongoCollections[CollectionName.USER_NOTES]
     .aggregate<
       UserNoteLookupOutput<
         CollabTextKey,
@@ -264,7 +263,8 @@ it('looks up shareNoteLinks', async () => {
       },
       ...userNoteLookup({
         shareNoteLink: {
-          collectionName: mongoCollections[CollectionName.ShareNoteLinks].collectionName,
+          collectionName:
+            mongoCollections[CollectionName.SHARE_NOTE_LINKS].collectionName,
         },
       }),
     ])

@@ -7,7 +7,7 @@ import { MaybePromise } from './types';
  * and returns output in same order and size as {@link inputs}.
  */
 export default async function callFnGrouped<TIn, TOut, TGroup>(
-  inputs: Readonly<TIn[]>,
+  inputs: readonly TIn[],
   inputToGroup: (input: TIn) => TGroup,
   groupHandler: (groupedInputs: TIn[], group: TGroup) => MaybePromise<TOut[]>
 ): Promise<TOut[]> {

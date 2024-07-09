@@ -28,7 +28,7 @@ export const signIn: NonNullable<MutationResolvers['signIn']> = async (
     email: tmpGoogleEmail,
   } = await verifyCredentialToken(googleAuthToken);
 
-  let existingUser = await collections[CollectionName.Users].findOne<
+  let existingUser = await collections[CollectionName.USERS].findOne<
     WithId<Pick<UserSchema, 'profile'>>
   >(
     {
@@ -66,7 +66,7 @@ export const signIn: NonNullable<MutationResolvers['signIn']> = async (
         ]),
       },
     };
-    await collections[CollectionName.Users].insertOne(newUser);
+    await collections[CollectionName.USERS].insertOne(newUser);
 
     existingUser = {
       _id: newUser._id,
@@ -80,7 +80,7 @@ export const signIn: NonNullable<MutationResolvers['signIn']> = async (
     expireAt: sessionExpiration.newExpireAtDate(),
     cookieId: sessionDefaultValues.cookieId(),
   };
-  await collections[CollectionName.Sessions].insertOne(newSession);
+  await collections[CollectionName.SESSIONS].insertOne(newSession);
 
   const userId = existingUser._id.toString('base64');
 

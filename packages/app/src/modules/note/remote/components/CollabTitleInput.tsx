@@ -10,7 +10,7 @@ export interface CollabTitleInputProps {
 }
 
 export default function CollabTitleInput({ inputProps }: CollabTitleInputProps) {
-  const editorInput = useNoteTextFieldHTMLInput(NoteTextField.Title);
+  const editorInput = useNoteTextFieldHTMLInput(NoteTextField.TITLE);
 
   return <TitleInput {...editorInput} {...inputProps} />;
 }

@@ -1,12 +1,10 @@
 module.exports = {
-  extends: ['eslint:recommended', 'prettier'],
-
   env: { node: true },
   parserOptions: {
     project: ['./tsconfig.json'],
     tsconfigRootDir: __dirname,
   },
-  ignorePatterns: ['.eslintrc.cjs', 'out', 'cdk.out', 'node_modules'],
+  ignorePatterns: ['node_modules', 'out', 'cdk.out', '.eslintrc.cjs'],
   settings: {
     'import/resolver': {
       typescript: {
@@ -14,11 +12,4 @@ module.exports = {
       },
     },
   },
-
-  overrides: [
-    {
-      files: ['*.[t]s?(x)'],
-      extends: 'plugin:@typescript-eslint/recommended',
-    },
-  ],
 };

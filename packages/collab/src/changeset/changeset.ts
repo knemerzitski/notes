@@ -16,7 +16,7 @@ export class Changeset implements Serializable<SerializedChangeset> {
   /**
    * Convinience method to create Changeset from spread syntax.
    */
-  static from(...strips: Readonly<Strip[]>) {
+  static from(...strips: readonly Strip[]) {
     return new Changeset(strips);
   }
 
@@ -36,7 +36,7 @@ export class Changeset implements Serializable<SerializedChangeset> {
    * Create new Changeset from either an array of strips or Strips instance
    * Strips will be compacted if not already.
    */
-  constructor(stripsOrChangeset: Changeset | Strips | Readonly<Strip[]> = []) {
+  constructor(stripsOrChangeset: Changeset | Strips | readonly Strip[] = []) {
     if (stripsOrChangeset instanceof Changeset) {
       this.strips = stripsOrChangeset.strips;
     } else if (stripsOrChangeset instanceof Strips) {

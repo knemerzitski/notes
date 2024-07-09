@@ -12,7 +12,7 @@ type Output = string;
 /**
  * Multiply value by 2 and append group text
  */
-function multipyByTwoAndAppendGroup(inputs: Readonly<Input[]>, group: string): Output[] {
+function multipyByTwoAndAppendGroup(inputs: readonly Input[], group: string): Output[] {
   return inputs.map((input) => `${input.value * 2}${group}`);
 }
 

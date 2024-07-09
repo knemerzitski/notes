@@ -5,7 +5,7 @@ import { gql } from '../../__generated__/gql';
 import { SignedInUserQuery } from '../../__generated__/graphql';
 import { localStorageKey, LocalStoragePrefix } from '../storage/local-storage';
 
-const KEY = localStorageKey(LocalStoragePrefix.Auth, 'currentUserId');
+const KEY = localStorageKey(LocalStoragePrefix.AUTH, 'currentUserId');
 
 const QUERY = gql(`
   query SignedInUser {

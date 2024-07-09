@@ -13,15 +13,15 @@ import useColorMode from '../../preferences/hooks/useColorMode';
 const colorModes = [
   {
     text: 'Use device theme',
-    value: ColorMode.System,
+    value: ColorMode.SYSTEM,
   },
   {
     text: 'Light theme',
-    value: ColorMode.Light,
+    value: ColorMode.LIGHT,
   },
   {
     text: 'Dark theme',
-    value: ColorMode.Dark,
+    value: ColorMode.DARK,
   },
 ];
 

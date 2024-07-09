@@ -40,7 +40,7 @@ const useUpdateNoteMock: Readonly<
           id: 'noteId',
           textFields: [
             {
-              key: NoteTextField.Content,
+              key: NoteTextField.CONTENT,
               value: {
                 id: '1',
                 newRecord: {
@@ -117,12 +117,12 @@ beforeEach(() => {
         <NoteCollabTextsProvider
           editors={[
             {
-              key: NoteTextField.Content,
+              key: NoteTextField.CONTENT,
               value: editor,
             },
           ]}
         >
-          <SubmittedRecordMutation fieldName={NoteTextField.Content} />
+          <SubmittedRecordMutation fieldName={NoteTextField.CONTENT} />
         </NoteCollabTextsProvider>
       </NoteContentIdProvider>
     </CustomMockedProvider>
@@ -134,7 +134,7 @@ it('receives response in nextMessage', async () => {
   expect(nextMessageEventFn.mock.calls).toStrictEqual([
     [
       {
-        type: UnprocessedRecordType.SubmittedAcknowleged,
+        type: UnprocessedRecordType.SUBMITTED_ACKNOWLEDGED,
         record: {
           creatorUserId: 'userId',
           changeset: Changeset.parseValue(['a']),

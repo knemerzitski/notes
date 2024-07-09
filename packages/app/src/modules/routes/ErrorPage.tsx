@@ -8,7 +8,8 @@ export default function ErrorPage() {
   const message =
     routeError instanceof Error
       ? routeError.message
-      : routeError.status + (routeError.statusText ? ' ' + routeError.statusText : '');
+      : String(routeError.status) +
+        (routeError.statusText ? ' ' + routeError.statusText : '');
 
   const stack =
     routeError instanceof Error && !import.meta.env.PROD ? routeError.stack : null;

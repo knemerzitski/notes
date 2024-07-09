@@ -349,7 +349,7 @@ function calcUniqueBoundPaginations(paginations: RelayPagination<number>[]) {
  */
 export class BoundPaginationUnion {
   private _slices: RelayAfterBoundPagination<number>[] = [];
-  get slices(): Readonly<RelayAfterBoundPagination<number>[]> {
+  get slices(): readonly RelayAfterBoundPagination<number>[] {
     return this._slices;
   }
 

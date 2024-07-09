@@ -6,7 +6,7 @@
   "scripts": {
     "test:unit": "vitest run",
     "test:unit:watch": "vitest watch",
-    "lint": "eslint . --max-warnings 0"
+    "lint": "tsc --noEmit && eslint . --max-warnings 0"
   },
   "dependencies": {
     "@types/debug": "^4.1.12",

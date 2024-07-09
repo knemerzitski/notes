@@ -1,5 +1,6 @@
 import { ApolloError } from '@apollo/client';
 import { GraphQLError } from 'graphql';
+
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import isArray from '~utils/array/isArray';
 
@@ -7,7 +8,7 @@ export default function isErrorCode(
   err:
     | Readonly<ApolloError>
     | Readonly<GraphQLError>
-    | Readonly<GraphQLError[]>
+    | readonly GraphQLError[]
     | undefined,
   code: GraphQLErrorCode
 ) {

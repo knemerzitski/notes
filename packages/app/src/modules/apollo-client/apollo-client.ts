@@ -27,7 +27,7 @@ const cache = new InMemoryCache({
 
 const persistor = new CachePersistor({
   cache,
-  key: localStorageKey(LocalStoragePrefix.Apollo, 'cache'),
+  key: localStorageKey(LocalStoragePrefix.APOLLO, 'cache'),
   storage: new TypePersistentStorage({
     storage: window.localStorage,
     serialize: (value) => JSON.stringify(value),

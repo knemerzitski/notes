@@ -1,4 +1,5 @@
 import { SFNClient, StartExecutionCommand } from '@aws-sdk/client-sfn';
+
 import { PingPongMachineInput } from '~lambda-graphql/context/pingpong';
 import { PingPongHandler } from '~lambda-graphql/ping-pong-handler';
 import { Logger } from '~utils/logger';
@@ -35,7 +36,7 @@ export class MockPingPongSFNClient extends SFNClient {
   }
 
   selfRunHandler(input: PingPongMachineInput) {
-    this.asyncSelfRunHandler(input).catch((err) => {
+    this.asyncSelfRunHandler(input).catch((err: unknown) => {
       this.logger.error('mock:pingpong:sfnclient:err', err as Error);
     });
   }

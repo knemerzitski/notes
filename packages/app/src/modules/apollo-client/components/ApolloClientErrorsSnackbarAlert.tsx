@@ -15,7 +15,7 @@ export default function ApolloClientErrorsSnackbarAlert() {
   useEffect(() => {
     return addHandler(async (_value, firstError) => {
       // const ignoreUnauthenticatedNoUser =
-      //   firstError.extensions.code === GraphQLErrorCode.Unauthenticated &&
+      //   firstError.extensions.code === GraphQLErrorCode.UNAUTHENTICATED &&
       //   !getCurrentUserId(apolloClient.cache);
 
       // if (!ignoreUnauthenticatedNoUser) {

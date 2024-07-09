@@ -126,7 +126,7 @@ export class RetainStrip extends Strip {
     }
   }
 
-  static parseValue(value: unknown) {
+  static override parseValue(value: unknown) {
     if (Array.isArray(value) && typeof value[0] === 'number') {
       return RetainStrip.create(
         value[0],
@@ -137,7 +137,6 @@ export class RetainStrip extends Strip {
     }
     return Strip.NULL;
   }
-
 }
 
 export function isRetainStrip(strip: Strip): strip is RetainStrip {

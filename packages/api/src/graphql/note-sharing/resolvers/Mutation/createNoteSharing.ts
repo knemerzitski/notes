@@ -89,9 +89,8 @@ export const createNoteSharing: NonNullable<
 
   const nowTime = Date.now();
 
-  const hasValidShareLink =
-    userNote.shareNoteLinks &&
-    userNote.shareNoteLinks.some(({ expireAt, expireAccessCount }) => {
+  const hasValidShareLink = userNote.shareNoteLinks?.some(
+    ({ expireAt, expireAccessCount }) => {
       let isValid = true;
 
       if (expireAccessCount != null) {
@@ -103,12 +102,13 @@ export const createNoteSharing: NonNullable<
       }
 
       return isValid;
-    });
+    }
+  );
 
   if (hasValidShareLink) {
     throw new GraphQLError('Note is already shared. Cannot create another link.', {
       extensions: {
-        code: GraphQLErrorCode.InvalidOperation,
+        code: GraphQLErrorCode.INVALID_OPERATION,
       },
     });
   }
@@ -140,7 +140,7 @@ export const createNoteSharing: NonNullable<
     // TODO implement permissions, expireAt, expireAccessCount
   };
 
-  await mongodb.collections[CollectionName.ShareNoteLinks].insertOne(shareNoteLink);
+  await mongodb.collections[CollectionName.SHARE_NOTE_LINKS].insertOne(shareNoteLink);
 
   const noteMapper = new NoteQueryMapper({
     queryDocument(query) {

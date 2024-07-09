@@ -80,7 +80,7 @@ export default function useUpdateNoteCategory() {
             cache.readFragment({
               id: noteCacheId,
               fragment: FRAGMENT_NOTE,
-            })?.categoryName ?? NoteCategory.Default;
+            })?.categoryName ?? NoteCategory.DEFAULT;
 
           // TODO test if correct cache is used with write fragment
           // Update Note with new category

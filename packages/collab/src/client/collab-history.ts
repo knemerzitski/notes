@@ -116,7 +116,7 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
   private client: CollabClient;
 
   private _entries: Entry[];
-  get entries(): Readonly<Entry[]> {
+  get entries(): readonly Entry[] {
     return this._entries;
   }
 

@@ -1,4 +1,5 @@
 import { MongoClient } from 'mongodb';
+
 import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
 import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
 import { WebSocketMessageHandlerParams } from '~lambda-graphql/message-handler';
@@ -133,7 +134,7 @@ export const handleConnectionInitAuthenticate: WebSocketMessageHandlerParams<
   context,
   baseGraphQLContext: { auth, cookies, ...restCtx },
 }) => {
-  if (isAuthenticated(auth) || auth.reason !== AuthenticationFailedReason.UserUndefined)
+  if (isAuthenticated(auth) || auth.reason !== AuthenticationFailedReason.USER_UNDEFINED)
     return;
 
   const payload = message.payload;

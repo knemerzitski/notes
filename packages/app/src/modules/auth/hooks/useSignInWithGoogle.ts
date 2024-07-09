@@ -52,7 +52,7 @@ export default function useSignInWithGoogle() {
         const { data } = await signIn({
           variables: {
             input: {
-              provider: AuthProvider.Google,
+              provider: AuthProvider.GOOGLE,
               credentials: {
                 token: response.credential,
               },
@@ -81,7 +81,7 @@ export default function useSignInWithGoogle() {
               isSessionExpired: false,
               authProviderEntries: [
                 {
-                  provider: AuthProvider.Google,
+                  provider: AuthProvider.GOOGLE,
                   id: String(googleId),
                 },
               ],

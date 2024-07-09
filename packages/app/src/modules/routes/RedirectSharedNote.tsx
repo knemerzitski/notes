@@ -58,17 +58,17 @@ export default function RedirectSharedNote() {
         },
         context: {
           [ErrorLink.IGNORE_CONTEXT_KEY]: [
-            GraphQLErrorCode.NotFound,
-            GraphQLErrorCode.Unauthenticated,
+            GraphQLErrorCode.NOT_FOUND,
+            GraphQLErrorCode.UNAUTHENTICATED,
           ],
         },
         errorPolicy: 'all',
       })
       .then(({ data, errors }) => {
-        if (isErrorCode(errors, GraphQLErrorCode.NotFound)) {
+        if (isErrorCode(errors, GraphQLErrorCode.NOT_FOUND)) {
           showRouteError('Share note not found');
           return;
-        } else if (isErrorCode(errors, GraphQLErrorCode.Unauthenticated)) {
+        } else if (isErrorCode(errors, GraphQLErrorCode.UNAUTHENTICATED)) {
           showRouteError('You must be logged in to access shared note');
           return;
         }

@@ -18,7 +18,9 @@ export default function userNoteQueryToLookupInput(
     mongodb: {
       collections: Pick<
         ApiGraphQLContext['mongodb']['collections'],
-        CollectionName.Notes | CollectionName.CollabTexts | CollectionName.ShareNoteLinks
+        | CollectionName.NOTES
+        | CollectionName.COLLAB_TEXTS
+        | CollectionName.SHARE_NOTE_LINKS
       >;
     };
   }
@@ -56,7 +58,7 @@ export default function userNoteQueryToLookupInput(
 
     if (Object.keys(noteProject).length > 0) {
       noteLookupInput = {
-        collectionName: context.mongodb.collections[CollectionName.Notes].collectionName,
+        collectionName: context.mongodb.collections[CollectionName.NOTES].collectionName,
         pipeline: [{ $project: noteProject }],
       };
       Object.assign(userNote_note_Project, noteProject);
@@ -65,7 +67,7 @@ export default function userNoteQueryToLookupInput(
     if (collabTexts) {
       collabTextLookupInput = {
         collectionName:
-          context.mongodb.collections[CollectionName.CollabTexts].collectionName,
+          context.mongodb.collections[CollectionName.COLLAB_TEXTS].collectionName,
         collabTexts: mapObject(collabTexts, (key, query) => {
           if (!query) return mapObjectSkip;
 
@@ -127,7 +129,7 @@ export default function userNoteQueryToLookupInput(
     // Ignores $pagination and returns all shareNoteLinks in array
     shareNoteLinkLookupInput = {
       collectionName:
-        context.mongodb.collections[CollectionName.ShareNoteLinks].collectionName,
+        context.mongodb.collections[CollectionName.SHARE_NOTE_LINKS].collectionName,
       pipeline: [{ $project: shareNoteLinkQuery.$query }],
     };
     postProject.shareNoteLinks = 1;

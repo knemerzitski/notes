@@ -72,7 +72,7 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
   await mongodb.client.withSession((session) =>
     session.withTransaction(async (session) => {
       // TODO handle duplicate _id and note.publicId
-      const updateUserPromise = mongodb.collections[CollectionName.Users].updateOne(
+      const updateUserPromise = mongodb.collections[CollectionName.USERS].updateOne(
         {
           _id: currentUserId,
         },
@@ -86,12 +86,12 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
 
       await Promise.all([
         ...Object.values(collabTexts).map((collabText) =>
-          mongodb.collections[CollectionName.CollabTexts].insertOne(collabText, {
+          mongodb.collections[CollectionName.COLLAB_TEXTS].insertOne(collabText, {
             session,
           })
         ),
-        mongodb.collections[CollectionName.Notes].insertOne(note, { session }),
-        mongodb.collections[CollectionName.UserNotes].insertOne(userNote, { session }),
+        mongodb.collections[CollectionName.NOTES].insertOne(note, { session }),
+        mongodb.collections[CollectionName.USER_NOTES].insertOne(userNote, { session }),
         updateUserPromise,
       ]);
     })

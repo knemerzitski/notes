@@ -42,11 +42,11 @@ export default function SessionSynchronization() {
   useEffect(() => {
     return addFetchResultErrorHandler(async (_value, firstError, context) => {
       const code = firstError.extensions.code;
-      if (code === GraphQLErrorCode.Unauthenticated) {
+      if (code === GraphQLErrorCode.UNAUTHENTICATED) {
         const reason = firstError.extensions.reason;
         if (
-          reason === AuthenticationFailedReason.SessionExpired ||
-          reason === AuthenticationFailedReason.UserNoSession
+          reason === AuthenticationFailedReason.SESSION_EXPIRED ||
+          reason === AuthenticationFailedReason.USER_NO_SESSION
         ) {
           // Mark current user session expired
           const currentUserId = getCurrentUserId(customApolloClient.cache);

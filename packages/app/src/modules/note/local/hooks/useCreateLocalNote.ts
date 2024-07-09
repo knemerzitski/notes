@@ -29,6 +29,7 @@ const QUERY_CREATE = gql(`
   }
 `);
 
+// TODO rename to useLocalCreateNote???
 export default function useCreateLocalNote() {
   const apolloClient = useApolloClient();
 
@@ -46,14 +47,14 @@ export default function useCreateLocalNote() {
       __typename: 'LocalNote' as const,
       textFields: [
         {
-          key: NoteTextField.Title,
+          key: NoteTextField.TITLE,
           value: {
             id: nextLocalCollabTextId++,
             __typename: 'LocalCollabText' as const,
           },
         },
         {
-          key: NoteTextField.Content,
+          key: NoteTextField.CONTENT,
           value: {
             id: nextLocalCollabTextId++,
             __typename: 'LocalCollabText' as const,

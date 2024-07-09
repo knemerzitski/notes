@@ -1,6 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { Changeset } from '~collab/changeset/changeset';
 
 import {
@@ -12,8 +13,6 @@ import { DeepQueryResponse } from '../../../mongodb/query-builder';
 
 import { CollabTextQueryMapper } from './collab-text';
 import { CollabTextRecordQuery } from './revision-record';
-
-
 
 let collabTextMapper: CollabTextQueryMapper;
 
@@ -139,6 +138,7 @@ describe('hasNextPage', () => {
   ])('$pagination => $expected', async ({ pagination, expected }) => {
     await expect(
       collabTextMapper
+        // @ts-expect-error Other arguments are not used
         .recordsConnection(pagination, {
           maxLimit: 20,
         })
@@ -205,6 +205,7 @@ describe('hasPreviousPage', () => {
   ])('$pagination => $expected', async ({ pagination, expected }) => {
     await expect(
       collabTextMapper
+        // @ts-expect-error Other arguments are not used
         .recordsConnection(pagination, {
           maxLimit: 20,
         })
@@ -253,6 +254,7 @@ describe('startCursor', () => {
   ])('$pagination => $expected', async ({ pagination, expected }) => {
     await expect(
       collabTextMapper
+        // @ts-expect-error Other arguments are not used
         .recordsConnection(pagination, {
           maxLimit: 20,
         })
@@ -301,6 +303,7 @@ describe('endCursor', () => {
   ])('$pagination => $expected', async ({ pagination, expected }) => {
     await expect(
       collabTextMapper
+        // @ts-expect-error Other arguments are not used
         .recordsConnection(pagination, {
           maxLimit: 20,
         })

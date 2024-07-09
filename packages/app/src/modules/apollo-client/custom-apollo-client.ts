@@ -98,7 +98,7 @@ export class CustomApolloClient {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         headers: {
           ...previousContext.headers,
-          [CustomHeaderName.UserId]: currentUserId,
+          [CustomHeaderName.USER_ID]: currentUserId,
         },
       };
     });
@@ -112,7 +112,7 @@ export class CustomApolloClient {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         headers: {
           ...previousContext.headers,
-          [CustomHeaderName.WsConnectionId]: wsConnectionId,
+          [CustomHeaderName.WS_CONNECTION_ID]: wsConnectionId,
         },
       };
     });
@@ -134,7 +134,7 @@ export class CustomApolloClient {
 
             const payload: ConnectionInitMessage['payload'] = {
               headers: {
-                [CustomHeaderName.UserId]: currentUserId,
+                [CustomHeaderName.USER_ID]: currentUserId,
               },
             };
 
@@ -257,13 +257,13 @@ export class CustomApolloClient {
       () => {
         const args: Record<string, unknown[]> = userId
           ? {
-              [KeySpecifierName.UserId]: [userId],
+              [KeySpecifierName.USER_ID]: [userId],
             }
           : {};
 
         this.evictor.evictByTag({
           cache: this.client.cache,
-          tag: EvictTag.UserSpecific,
+          tag: EvictTag.USER_SPECIFIC,
           ...options,
           args: {
             ...args,

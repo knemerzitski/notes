@@ -34,7 +34,7 @@ export default function LoginList({
 
   const googleEntry = userHint?.authProviderEntries.find(
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    (entry) => entry.provider === AuthProvider.Google
+    (entry) => entry.provider === AuthProvider.GOOGLE
   );
 
   return (

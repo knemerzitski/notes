@@ -1,5 +1,6 @@
 import { ObjectId } from 'mongodb';
 import { assert, beforeAll, describe, expect, it } from 'vitest';
+
 import isNonEmptyArray from '~utils/array/isNonEmptyArray';
 
 import { mongoDB } from '../../../test/helpers/mongodb';
@@ -174,7 +175,7 @@ describe('relayArrayPagination', () => {
 
         let sizeAccumulator = 0;
         for (let i = 0; i < expected.length; i++) {
-          const size = resultSlices.sizes[i];
+          const size: number | undefined = resultSlices.sizes[i];
           assert(size != null);
           const arraySlice = resultSlices.array.slice(
             sizeAccumulator,
@@ -285,7 +286,7 @@ describe('relayArrayPagination', () => {
 
         let sizeAccumulator = 0;
         for (let i = 0; i < expected.length; i++) {
-          const size = resultSlices.sizes[i];
+          const size: number | undefined = resultSlices.sizes[i];
           assert(size != null);
           const arraySlice = resultSlices.array.slice(
             sizeAccumulator,

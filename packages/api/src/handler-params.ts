@@ -2,6 +2,7 @@ import { BaseContext } from '@apollo/server';
 import { ApiGatewayManagementApiClient } from '@aws-sdk/client-apigatewaymanagementapi';
 import { STSClient, AssumeRoleCommand } from '@aws-sdk/client-sts';
 import { ServerApiVersion } from 'mongodb';
+
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import { CreateApolloHttpHandlerParams } from '~lambda-graphql/apollo-http-handler';
 import { ApiGatewayContextParams } from '~lambda-graphql/context/apigateway';
@@ -165,7 +166,7 @@ export const createDefaultIsCurrentConnection: CreateApolloHttpHandlerParams<
   BaseGraphQLContext,
   DynamoDBBaseGraphQLContext
 >['createIsCurrentConnection'] = (_ctx, event) => {
-  const wsConnectionId = event.headers[CustomHeaderName.WsConnectionId];
+  const wsConnectionId = event.headers[CustomHeaderName.WS_CONNECTION_ID];
   if (!wsConnectionId) return;
   return (connectionId: string) => wsConnectionId === connectionId;
 };

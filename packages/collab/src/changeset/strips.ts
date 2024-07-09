@@ -13,11 +13,11 @@ export class Strips implements Serializable<SerializedStrips> {
   /**
    * Convinience method to create Strips from spread syntax.
    */
-  static from(...values: Readonly<Strip[]>) {
+  static from(...values: readonly Strip[]) {
     return new Strips(values);
   }
 
-  readonly values: Readonly<Strip[]>;
+  readonly values: readonly Strip[];
 
   /**
    * Total length of all strips.
@@ -31,7 +31,7 @@ export class Strips implements Serializable<SerializedStrips> {
 
   private isCompact: boolean | null;
 
-  constructor(values: Readonly<Strip[]> = []) {
+  constructor(values: readonly Strip[] = []) {
     this.values = values;
     this.isCompact =
       values.length === 0 || (values.length === 1 && values[0] !== Strip.EMPTY);

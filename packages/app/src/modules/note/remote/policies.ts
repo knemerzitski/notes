@@ -30,7 +30,7 @@ const notePolicies: TypePolicies & EvictTypePolicies<NormalizedCacheObject> = {
 
       return `Note:${JSON.stringify({
         contentId,
-        [KeySpecifierName.UserId]: getCurrentUserIdInStorage(),
+        [KeySpecifierName.USER_ID]: getCurrentUserIdInStorage(),
       })}`;
     },
     fields: {

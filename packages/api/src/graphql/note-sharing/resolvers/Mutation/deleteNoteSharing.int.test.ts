@@ -83,7 +83,7 @@ it('deletes all note sharings', async () => {
   });
 
   await expect(
-    mongoCollections[CollectionName.ShareNoteLinks].findOne({
+    mongoCollections[CollectionName.SHARE_NOTE_LINKS].findOne({
       _id: shareNoteLink._id,
     })
   ).resolves.toBeNull();

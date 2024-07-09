@@ -23,6 +23,11 @@ const config: CodegenConfig = {
           Changeset: '~collab/changeset/changeset#SerializedChangeset',
           Cursor: 'string | number',
         },
+        enumsAsTypes: false,
+        namingConvention: {
+          typeNames: 'change-case-all#pascalCase',
+          enumValues: 'change-case-all#upperCase',
+        },
       },
       // TODO encode documents to prevent any query execution?
     },

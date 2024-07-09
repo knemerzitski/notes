@@ -53,6 +53,8 @@ export default function EditNotePage() {
     void deleteNote(noteContentId);
   }
 
+  // TODO make note active?
+
   if (!noteContentId && !isNewNote) {
     return <RouteSnackbarError>Empty note id</RouteSnackbarError>;
   }

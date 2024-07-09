@@ -16,7 +16,7 @@ export const note: FieldPolicy & EvictFieldPolicy<NormalizedCacheObject> = {
     return;
   },
   evict: {
-    tag: EvictTag.UserSpecific,
+    tag: EvictTag.USER_SPECIFIC,
   },
   keyArgs: false,
   merge: false,

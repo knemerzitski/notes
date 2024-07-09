@@ -23,6 +23,7 @@
     "noFallthroughCasesInSwitch": false,
     "allowJs": false,
     "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
 
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,

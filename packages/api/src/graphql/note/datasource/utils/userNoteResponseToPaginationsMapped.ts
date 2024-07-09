@@ -17,6 +17,8 @@ import { NoteTextField } from '../../../types.generated';
 import { NoteQuery } from '../../mongo-query-mapper/note';
 import { UserNoteDeepQueryResponse } from '../UserNoteDeepQueryResponse';
 
+export const PAGINALTION_BYPASS_SYMBOL = Symbol('paginationAll');
+
 /**
  * Modifies collabText records pagination result to match
  * the query and stores it in records object as paginationKey.
@@ -47,6 +49,11 @@ export default function userNoteResponseToPaginationsMapped(
         noteQuery?.note?.collabTexts
       ),
     },
+    shareNoteLinks: userNote.shareNoteLinks
+      ? {
+          [PAGINALTION_BYPASS_SYMBOL]: userNote.shareNoteLinks,
+        }
+      : undefined,
   };
 }
 

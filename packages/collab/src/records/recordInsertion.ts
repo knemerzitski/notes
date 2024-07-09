@@ -14,9 +14,9 @@ interface RecordInsertionParams<
 }
 
 enum RecordInsertionErrorCode {
-  RevisionInvalid,
-  RevisionOld,
-  ChangesetInvalid,
+  REVISION_INVALID,
+  REVISION_OLD,
+  CHANGESET_INVALID,
 }
 
 export class RecordInsertionError extends Error {
@@ -55,7 +55,7 @@ export default function recordInsertion<
   }
   if (headRevision < insertRecord.revision) {
     throw new RecordInsertionError(
-      RecordInsertionErrorCode.RevisionInvalid,
+      RecordInsertionErrorCode.REVISION_INVALID,
       `Invalid revision. Expected insertion revision ${insertRecord.revision} to be before or same as HEAD revision ${headRevision}`
     );
   }
@@ -71,7 +71,7 @@ export default function recordInsertion<
   const firstRecordRevision = serializedRecords[0]?.revision;
   if (firstRecordRevision != null && insertRecord.revision < firstRecordRevision - 1) {
     throw new RecordInsertionError(
-      RecordInsertionErrorCode.RevisionOld,
+      RecordInsertionErrorCode.REVISION_OLD,
       `Revision is old. Expected insertion revision ${
         insertRecord.revision
       } to be after TAIL revision ${firstRecordRevision - 1}`
@@ -144,7 +144,7 @@ function composeRecordOnHead<TRecord extends RevisionChangeset>(
   } catch (err) {
     if (err instanceof Error) {
       throw new RecordInsertionError(
-        RecordInsertionErrorCode.ChangesetInvalid,
+        RecordInsertionErrorCode.CHANGESET_INVALID,
         'Invalid changeset. Cannot compose changeset on HEAD.'
       );
     } else {

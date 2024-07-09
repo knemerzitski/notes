@@ -8,7 +8,7 @@ import { newServerRecords } from '../records/server-records';
 
 import { createHelperCollabEditingEnvironment } from './helpers/server-client';
 
-function historyEntriesInfo(entries: Readonly<Entry[]>) {
+function historyEntriesInfo(entries: readonly Entry[]) {
   return entries.map((e) => ({
     execute: {
       changeset: e.execute.changeset.toString(),

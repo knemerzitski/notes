@@ -89,7 +89,7 @@ describe('new user', () => {
 
     // Created User document
     expect(
-      await mongoCollections[CollectionName.Users].findOne({
+      await mongoCollections[CollectionName.USERS].findOne({
         _id: userId,
       })
     ).containSubset({
@@ -99,7 +99,7 @@ describe('new user', () => {
     });
 
     // Sets valid cookie
-    const session = await mongoCollections[CollectionName.Sessions].findOne<
+    const session = await mongoCollections[CollectionName.SESSIONS].findOne<
       Pick<SessionSchema, 'cookieId'>
     >(
       {

@@ -15,11 +15,11 @@ import useCreateNote from './useCreateNote';
 export function newEmptyEditors(): NoteCollabTextEditors {
   return [
     {
-      key: NoteTextField.Title,
+      key: NoteTextField.TITLE,
       value: new CollabEditor(),
     },
     {
-      key: NoteTextField.Content,
+      key: NoteTextField.CONTENT,
       value: new CollabEditor(),
     },
   ];

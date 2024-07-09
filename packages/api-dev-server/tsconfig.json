@@ -28,6 +28,7 @@
     "incremental": true,
     "noImplicitReturns": true,
     "noUncheckedIndexedAccess": true,
+
     "paths": {
       "~/*": ["./src/*"],
       "~utils/*": ["../utils/src/*"],

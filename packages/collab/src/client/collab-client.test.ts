@@ -68,7 +68,7 @@ describe('composeLocalChange', () => {
     expect(emit).toBeCalledWith('viewChanged', {
       view: client.view,
       change,
-      source: ChangeSource.Local,
+      source: ChangeSource.LOCAL,
     });
   });
 

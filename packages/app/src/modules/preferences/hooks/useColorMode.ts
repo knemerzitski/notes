@@ -13,7 +13,7 @@ const QUERY = gql(`
   }
 `);
 
-const STORAGE_KEY = localStorageKey(LocalStoragePrefix.Theme, 'colorMode');
+const STORAGE_KEY = localStorageKey(LocalStoragePrefix.THEME, 'colorMode');
 
 function setColorModeInStorage(colorMode: ColorMode | null | undefined) {
   if (colorMode) {
@@ -24,7 +24,7 @@ function setColorModeInStorage(colorMode: ColorMode | null | undefined) {
 }
 
 export function getColorModeInStorage() {
-  return (localStorage.getItem(STORAGE_KEY) ?? ColorMode.System) as ColorMode;
+  return (localStorage.getItem(STORAGE_KEY) ?? ColorMode.SYSTEM) as ColorMode;
 }
 
 export default function useColorMode(): [ColorMode, (newColorMode: ColorMode) => void] {

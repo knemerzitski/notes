@@ -20,7 +20,7 @@ export const signOut: NonNullable<MutationResolvers['signOut']> = async (
     const cookieIds = Object.values(cookies.sessions);
     if (cookieIds.length > 0) {
       // Deletes all sessions from database
-      await collections[CollectionName.Sessions].deleteMany({
+      await collections[CollectionName.SESSIONS].deleteMany({
         cookieId: {
           $in: cookieIds,
         },
@@ -39,7 +39,7 @@ export const signOut: NonNullable<MutationResolvers['signOut']> = async (
       };
     }
 
-    await collections[CollectionName.Sessions].deleteOne({
+    await collections[CollectionName.SESSIONS].deleteOne({
       cookieId,
     });
 

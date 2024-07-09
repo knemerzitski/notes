@@ -12,11 +12,11 @@ const sessionPolicies: TypePolicies & EvictTypePolicies<NormalizedCacheObject> =
     fields: {
       user: {
         evict: {
-          tag: EvictTag.UserSpecific,
+          tag: EvictTag.USER_SPECIFIC,
         },
         keyArgs: () =>
           `user:${JSON.stringify({
-            [KeySpecifierName.UserId]: getCurrentUserIdInStorage(),
+            [KeySpecifierName.USER_ID]: getCurrentUserIdInStorage(),
           })}`,
       },
       signedInUsers(existing: User[] = []): User[] {

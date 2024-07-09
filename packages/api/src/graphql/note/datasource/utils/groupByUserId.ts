@@ -4,7 +4,7 @@ import { ObjectId } from 'mongodb';
  * Groups array by "userId" ObjectId value.
  */
 export default function groupByUserId<T extends { userId: ObjectId }>(
-  keys: Readonly<T[]>
+  keys: readonly T[]
 ) {
   return keys.reduce<Record<string, Readonly<T>[]>>((map, key) => {
     const userIdStr = key.userId.toString();

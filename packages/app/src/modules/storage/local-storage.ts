@@ -1,7 +1,7 @@
 export enum LocalStoragePrefix {
-  Auth = 'auth',
-  Apollo = 'apollo',
-  Theme = 'theme',
+  AUTH = 'auth',
+  APOLLO = 'apollo',
+  THEME = 'theme',
 }
 
 export function localStorageKey(prefix: LocalStoragePrefix, value: string) {

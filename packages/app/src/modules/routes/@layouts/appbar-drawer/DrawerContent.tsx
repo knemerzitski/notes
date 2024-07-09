@@ -1,4 +1,6 @@
+import ArchiveIcon from '@mui/icons-material/Archive';
 import FolderIcon from '@mui/icons-material/Folder';
+import NoteIcon from '@mui/icons-material/Note';
 import {
   Box,
   List,
@@ -28,6 +30,8 @@ export function DrawerContent({ onClose, ...restProps }: DrawerContentProps) {
   const navigate = useProxyNavigate();
 
   const isRootPathname = useProxyIsPathname('/');
+  const isArchivePathname = useProxyIsPathname('/archive');
+  const isLocalPathname = useProxyIsPathname('/local');
 
   const items = [
     {
@@ -36,19 +40,29 @@ export function DrawerContent({ onClose, ...restProps }: DrawerContentProps) {
       onClick: () => {
         navigate('/local');
       },
-      active: useProxyIsPathname('/local'),
+      active: isLocalPathname,
     },
   ];
 
   if (isSignedIn) {
-    items.unshift({
-      icon: <FolderIcon />,
-      text: 'Notes',
-      onClick: () => {
-        navigate('/');
+    items.unshift(
+      {
+        icon: <NoteIcon />,
+        text: 'Notes',
+        onClick: () => {
+          navigate('/');
+        },
+        active: isRootPathname,
       },
-      active: isRootPathname,
-    });
+      {
+        icon: <ArchiveIcon />,
+        text: 'Archive',
+        onClick: () => {
+          navigate('/archive');
+        },
+        active: isArchivePathname,
+      }
+    );
   }
 
   items.push();

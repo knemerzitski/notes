@@ -16,32 +16,32 @@ export interface CollectionDescription {
  * Values are actual names of collections in MongoDB Database.
  */
 export enum CollectionName {
-  Sessions = 'sessions',
-  Users = 'users',
-  UserNotes = 'usernotes',
-  Notes = 'notes',
-  CollabTexts = 'collabtexts',
-  ShareNoteLinks = 'sharenotelinks',
+  SESSIONS = 'sessions',
+  USERS = 'users',
+  USER_NOTES = 'usernotes',
+  NOTES = 'notes',
+  COLLAB_TEXTS = 'collabtexts',
+  SHARE_NOTE_LINKS = 'sharenotelinks',
 }
 
 export const collectionDescriptions: Partial<
   Record<CollectionName, CollectionDescription>
 > = {
-  [CollectionName.Sessions]: sessionDescription,
-  [CollectionName.Users]: userDescription,
-  [CollectionName.UserNotes]: userNoteDescription,
-  [CollectionName.Notes]: noteDescription,
-  [CollectionName.CollabTexts]: collabTextDescription,
-  [CollectionName.ShareNoteLinks]: shareNoteLinkDescription,
+  [CollectionName.SESSIONS]: sessionDescription,
+  [CollectionName.USERS]: userDescription,
+  [CollectionName.USER_NOTES]: userNoteDescription,
+  [CollectionName.NOTES]: noteDescription,
+  [CollectionName.COLLAB_TEXTS]: collabTextDescription,
+  [CollectionName.SHARE_NOTE_LINKS]: shareNoteLinkDescription,
 };
 
 export interface MongoDBCollections {
-  [CollectionName.Sessions]: Collection<SessionSchema>;
-  [CollectionName.Users]: Collection<UserSchema>;
-  [CollectionName.UserNotes]: Collection<UserNoteSchema>;
-  [CollectionName.Notes]: Collection<NoteSchema>;
-  [CollectionName.CollabTexts]: Collection<CollabTextSchema>;
-  [CollectionName.ShareNoteLinks]: Collection<ShareNoteLinkSchema>;
+  [CollectionName.SESSIONS]: Collection<SessionSchema>;
+  [CollectionName.USERS]: Collection<UserSchema>;
+  [CollectionName.USER_NOTES]: Collection<UserNoteSchema>;
+  [CollectionName.NOTES]: Collection<NoteSchema>;
+  [CollectionName.COLLAB_TEXTS]: Collection<CollabTextSchema>;
+  [CollectionName.SHARE_NOTE_LINKS]: Collection<ShareNoteLinkSchema>;
 }
 
 export function createCollectionInstances(mongoDB: Db): MongoDBCollections {

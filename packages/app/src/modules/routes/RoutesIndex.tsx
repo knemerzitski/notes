@@ -61,6 +61,7 @@ function CommonRoutes({ children, ...restProps }: RoutesProps) {
       <Routes {...restProps}>
         <Route path="*" element={<AppBarDrawerLayout />}>
           <Route index element={isSignedIn ? <NotesRoute /> : <LocalNotesRoute />} />
+          {isSignedIn && <Route path="archive" element={'TODO implement archive list'} />}
           <Route path="local" element={<LocalNotesRoute />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>

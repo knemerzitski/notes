@@ -1,3 +1,3 @@
 export enum KeySpecifierName {
-  UserId = 'userId',
+  USER_ID = 'userId',
 }

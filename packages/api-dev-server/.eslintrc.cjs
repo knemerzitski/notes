@@ -4,7 +4,7 @@ module.exports = {
     project: ['./tsconfig.json'],
     tsconfigRootDir: __dirname,
   },
-  ignorePatterns: ['.eslintrc.cjs', 'out', 'out-handlers', 'node_modules'],
+  ignorePatterns: ['node_modules', 'out', 'out-handlers', '.eslintrc.cjs'],
   settings: {
     'import/resolver': {
       typescript: {
@@ -12,17 +12,4 @@ module.exports = {
       },
     },
   },
-  overrides: [
-    {
-      files: ['*.[t]s?(x)'],
-      extends: [
-        'plugin:@typescript-eslint/strict-type-checked',
-        'plugin:@typescript-eslint/stylistic-type-checked',
-      ],
-      rules: {
-        '@typescript-eslint/no-unused-vars': ['error', { ignoreRestSiblings: true }],
-        '@typescript-eslint/no-invalid-void-type': 'off',
-      },
-    },
-  ],
 };

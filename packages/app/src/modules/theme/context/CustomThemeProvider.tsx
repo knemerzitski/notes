@@ -37,8 +37,8 @@ export default function CustomThemeProvider({
   const preferencesColorMode = data.preferences.colorMode;
 
   const prefersDarkMode =
-    preferencesColorMode === ColorMode.Dark ||
-    (preferencesColorMode === ColorMode.System && devicePrefersDarkMode);
+    preferencesColorMode === ColorMode.DARK ||
+    (preferencesColorMode === ColorMode.SYSTEM && devicePrefersDarkMode);
   const colorMode = prefersDarkMode ? 'dark' : 'light';
 
   const theme = useMemo(
@@ -60,8 +60,8 @@ export function CustomThemeDirectStorageColorModeProvider({
   const preferencesColorMode = getColorModeInStorage();
 
   const prefersDarkMode =
-    preferencesColorMode === ColorMode.Dark ||
-    (preferencesColorMode === ColorMode.System && devicePrefersDarkMode);
+    preferencesColorMode === ColorMode.DARK ||
+    (preferencesColorMode === ColorMode.SYSTEM && devicePrefersDarkMode);
   const colorMode = prefersDarkMode ? 'dark' : 'light';
 
   const theme = useMemo(

@@ -4,15 +4,15 @@ import useColorMode from '../../preferences/hooks/useColorMode';
 const labels = [
   {
     text: 'Device theme',
-    value: ColorMode.System,
+    value: ColorMode.SYSTEM,
   },
   {
     text: 'Light',
-    value: ColorMode.Light,
+    value: ColorMode.LIGHT,
   },
   {
     text: 'Dark',
-    value: ColorMode.Dark,
+    value: ColorMode.DARK,
   },
 ];
 

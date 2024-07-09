@@ -61,7 +61,7 @@ export function fakeUserData(): UserSchema {
 export function createUser() {
   const user = fakeUserData();
   queuePopulate(async () => {
-    await mongoCollections[CollectionName.Users].insertOne(user);
+    await mongoCollections[CollectionName.USERS].insertOne(user);
   });
   return user;
 }
@@ -69,7 +69,7 @@ export function createUser() {
 export function createUserMany(count: number) {
   const users = [...new Array<undefined>(count)].map(() => fakeUserData());
   queuePopulate(async () => {
-    await mongoCollections[CollectionName.Users].insertMany(users);
+    await mongoCollections[CollectionName.USERS].insertMany(users);
   });
   return users;
 }
@@ -109,7 +109,7 @@ export function createUserNote(
 ) {
   const userNote = fakeUserNoteData(user, note, options);
   queuePopulate(async () => {
-    await mongoCollections[CollectionName.UserNotes].insertOne(userNote);
+    await mongoCollections[CollectionName.USER_NOTES].insertOne(userNote);
   });
   return userNote;
 }
@@ -121,7 +121,7 @@ export function createUserNoteMany(
 ) {
   const userNotes = notes.map((note) => fakeUserNoteData(user, note, options));
   queuePopulate(async () => {
-    await mongoCollections[CollectionName.UserNotes].insertMany(userNotes);
+    await mongoCollections[CollectionName.USER_NOTES].insertMany(userNotes);
   });
   return userNotes;
 }
@@ -152,7 +152,7 @@ export function createNote(
 ) {
   const note = fakeNoteData(user, collabTexts, options);
   queuePopulate(async () => {
-    await mongoCollections[CollectionName.Notes].insertOne(note);
+    await mongoCollections[CollectionName.NOTES].insertOne(note);
   });
   return note;
 }
@@ -179,7 +179,7 @@ export function createNoteMany(
     })
   );
   queuePopulate(async () => {
-    await mongoCollections[CollectionName.Notes].insertMany(notes);
+    await mongoCollections[CollectionName.NOTES].insertMany(notes);
   });
   return notes;
 }
@@ -297,7 +297,7 @@ export function createCollabText(
 ) {
   const collabText = fakeCollabTextData(user, collabDocOptions);
   queuePopulate(async () => {
-    await mongoCollections[CollectionName.CollabTexts].insertOne(collabText);
+    await mongoCollections[CollectionName.COLLAB_TEXTS].insertOne(collabText);
   });
   return collabText;
 }
@@ -311,7 +311,7 @@ export function createCollabTextMany(
     fakeCollabTextData(user, collabTextOptions)
   );
   queuePopulate(async () => {
-    await mongoCollections[CollectionName.CollabTexts].insertMany(collabTexts);
+    await mongoCollections[CollectionName.COLLAB_TEXTS].insertMany(collabTexts);
   });
   return collabTexts;
 }
@@ -352,7 +352,7 @@ export function createShareNoteLink(
 ) {
   const shareNoteLink = fakeShareNoteLinkData(userNote, options);
   queuePopulate(async () => {
-    await mongoCollections[CollectionName.ShareNoteLinks].insertOne(shareNoteLink);
+    await mongoCollections[CollectionName.SHARE_NOTE_LINKS].insertOne(shareNoteLink);
   });
   return shareNoteLink;
 }
@@ -365,7 +365,7 @@ export function createShareNoteLinkMany(
     fakeShareNoteLinkData(userNote, options)
   );
   queuePopulate(async () => {
-    await mongoCollections[CollectionName.ShareNoteLinks].insertMany(shareNoteLinks);
+    await mongoCollections[CollectionName.SHARE_NOTE_LINKS].insertMany(shareNoteLinks);
   });
   return shareNoteLinks;
 }

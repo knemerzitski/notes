@@ -37,5 +37,6 @@
       "~collab/*": ["../collab/src/*"]
     }
   },
-  "include": ["src", "codegen.ts", "vitest.config*.ts", "build.ts"]
+  "include": ["src", "codegen.ts", "vitest.config*.ts", "build.ts"],
+  "exclude": ["src/graphql/*.generated.ts"]
 }

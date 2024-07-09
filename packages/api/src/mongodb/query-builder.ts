@@ -1,4 +1,5 @@
 import { ObjectId } from 'mongodb';
+
 import { Maybe, MaybePromise } from '~utils/types';
 
 import {
@@ -55,7 +56,7 @@ export type DeepQueryResponse<T> = Readonly<{
  * }
  */
 type ArrayQueryDeepMappedPagination<TItem> = Record<
-  string,
+  string | symbol,
   DeepQueryResponsePaginationMapped<TItem>[]
 >;
 
@@ -116,7 +117,7 @@ export type MergedDeepQuery<T> = {
 
 export function mergeQueries<T>(
   mergedObj: MergedDeepQuery<T>,
-  sources: Readonly<DeepQuery<T>[]>,
+  sources: readonly DeepQuery<T>[],
   state?: {
     pathKey: string;
     paginationMemo: Record<string, Set<string>>;

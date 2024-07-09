@@ -1,5 +1,6 @@
 import DataLoader from 'dataloader';
 import { AggregateOptions, ObjectId } from 'mongodb';
+
 import callFnGrouped from '~utils/callFnGrouped';
 import sortObject from '~utils/object/sortObject';
 
@@ -8,25 +9,21 @@ import { DeepQueryResponse } from '../../../mongodb/query-builder';
 import { GraphQLResolversContext } from '../../context';
 import { NoteQuery } from '../mongo-query-mapper/note';
 
-
-
 import noteBatchLoad, { NoteKey } from './noteBatchLoad';
 import noteConnectionBatchLoad, {
   NoteConnectionBatchLoadOutput,
   NoteConnectionKey,
 } from './noteConnectionBatchLoad';
 
-
-
 export interface NotesDataSourceContext {
   mongodb: {
     collections: Pick<
       GraphQLResolversContext['mongodb']['collections'],
-      | CollectionName.Users
-      | CollectionName.UserNotes
-      | CollectionName.CollabTexts
-      | CollectionName.Notes
-      | CollectionName.ShareNoteLinks
+      | CollectionName.USERS
+      | CollectionName.USER_NOTES
+      | CollectionName.COLLAB_TEXTS
+      | CollectionName.NOTES
+      | CollectionName.SHARE_NOTE_LINKS
     >;
   };
 }

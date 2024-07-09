@@ -1,5 +1,6 @@
 import { GraphQLError } from 'graphql';
 import { AggregateOptions, ObjectId } from 'mongodb';
+
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
 import { CollectionName } from '../../../mongodb/collections';
@@ -18,7 +19,6 @@ import groupByUserId from './utils/groupByUserId';
 import userNoteQueryPaginationMappedToResponse from './utils/userNoteQueryPaginationMappedToResponse';
 import userNoteQueryToLookupInput from './utils/userNoteQueryToLookupInput';
 import userNoteResponseToPaginationsMapped from './utils/userNoteResponseToPaginationsMapped';
-
 
 export interface NoteKey {
   /**
@@ -39,16 +39,16 @@ export interface NoteBatchLoadContext {
   mongodb: {
     collections: Pick<
       GraphQLResolversContext['mongodb']['collections'],
-      | CollectionName.UserNotes
-      | CollectionName.CollabTexts
-      | CollectionName.Notes
-      | CollectionName.ShareNoteLinks
+      | CollectionName.USER_NOTES
+      | CollectionName.COLLAB_TEXTS
+      | CollectionName.NOTES
+      | CollectionName.SHARE_NOTE_LINKS
     >;
   };
 }
 
 export default async function noteBatchLoad(
-  keys: Readonly<NoteKey[]>,
+  keys: readonly NoteKey[],
   context: Readonly<NoteBatchLoadContext>,
   aggregateOptions?: AggregateOptions
 ): Promise<(DeepQueryResponse<NoteQuery> | Error)[]> {
@@ -72,7 +72,7 @@ export default async function noteBatchLoad(
         const userNoteLookupInput = userNoteQueryToLookupInput(mergedQuery, context);
 
         const userNotesResult = await context.mongodb.collections[
-          CollectionName.UserNotes
+          CollectionName.USER_NOTES
         ]
           .aggregate<UserNoteDeepQueryResponse>(
             [
@@ -114,7 +114,7 @@ export default async function noteBatchLoad(
     if (!userNote) {
       return new GraphQLError(`Note '${key.publicId}' not found`, {
         extensions: {
-          code: GraphQLErrorCode.NotFound,
+          code: GraphQLErrorCode.NOT_FOUND,
         },
       });
     }

@@ -1,4 +1,5 @@
 import { ObjectId } from 'mongodb';
+
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
 import { DeepReplace } from '~utils/types';
@@ -93,7 +94,7 @@ export function parseAuthenticationContextValue(
 ): AuthenticationContext {
   if (!auth) {
     return {
-      reason: AuthenticationFailedReason.UserUndefined,
+      reason: AuthenticationFailedReason.USER_UNDEFINED,
     };
   }
 
@@ -120,24 +121,24 @@ export async function findRefreshDbSession(
   cookieId: string,
   collections: Pick<
     ApiGraphQLContext['mongodb']['collections'],
-    CollectionName.Users | CollectionName.Sessions
+    CollectionName.USERS | CollectionName.SESSIONS
   >
 ): Promise<AuthenticatedContext['session']> {
   const session = await findByCookieId({
     cookieId,
-    sessionsCollection: collections[CollectionName.Sessions],
-    usersCollectionName: collections[CollectionName.Users].collectionName,
+    sessionsCollection: collections[CollectionName.SESSIONS],
+    usersCollectionName: collections[CollectionName.USERS].collectionName,
   });
 
   if (!session) {
     // Session doesn't exist in database
-    throw new AuthenticatedFailedError(AuthenticationFailedReason.SessionExpired);
+    throw new AuthenticatedFailedError(AuthenticationFailedReason.SESSION_EXPIRED);
   }
 
   // Refresh expireAt it's too low
   const expireAt = new Date(session.expireAt);
   if (sessionExpiration.tryRefreshExpireAtDate(expireAt)) {
-    await collections[CollectionName.Sessions].findOneAndUpdate(
+    await collections[CollectionName.SESSIONS].findOneAndUpdate(
       {
         _id: session._id,
       },
@@ -165,27 +166,28 @@ export async function parseAuthFromHeaders(
   cookiesContext: CookiesContext,
   collections: Pick<
     ApiGraphQLContext['mongodb']['collections'],
-    CollectionName.Users | CollectionName.Sessions
+    CollectionName.USERS | CollectionName.SESSIONS
   >
 ) {
+  console.log(headers);
   try {
     if (!headers) {
       return {
-        reason: AuthenticationFailedReason.UserUndefined,
+        reason: AuthenticationFailedReason.USER_UNDEFINED,
       };
     }
 
-    const userId = headers[CustomHeaderName.UserId];
+    const userId = headers[CustomHeaderName.USER_ID];
     if (!userId) {
       return {
-        reason: AuthenticationFailedReason.UserUndefined,
+        reason: AuthenticationFailedReason.USER_UNDEFINED,
       };
     }
 
     const cookieId = cookiesContext.sessions[userId];
     if (!cookieId) {
       return {
-        reason: AuthenticationFailedReason.UserNoSession,
+        reason: AuthenticationFailedReason.USER_NO_SESSION,
       };
     }
 

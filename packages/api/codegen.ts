@@ -28,6 +28,8 @@ const config: CodegenConfig = {
          */
         resolverTypeWrapperSignature:
           'Promise<T | null | undefined> | T | null | undefined',
+        customResolverFn:
+          '(parent: TParent, args: TArgs, context: TContext, info: GraphQLResolveInfo) => Promise<TResult | null | undefined> | TResult | null | undefined',
       },
     }),
   },

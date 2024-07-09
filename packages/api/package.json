@@ -13,7 +13,7 @@
     "build:http": "vite-node build.ts src/apollo-http-handler.ts --outfile out/apollo-http-handler/index.js",
     "build:websocket": "vite-node build.ts src/websocket-handler.ts --outfile out/websocket-handler/index.js",
     "build:initialize": "vite-node build.ts src/initialize-handler.ts --outfile out/initialize-handler/index.js",
-    "lint": "eslint . --max-warnings 0",
+    "lint": "tsc --noEmit && eslint . --max-warnings 0",
     "build": "rm -rf out/* && npm run build:http && npm run build:websocket && npm run build:initialize"
   },
   "dependencies": {
@@ -21,6 +21,7 @@
     "@aws-sdk/client-apigatewaymanagementapi": "^3.451.0",
     "@eddeee888/gcg-typescript-resolver-files": "^0.7.1",
     "@faker-js/faker": "^8.3.1",
+    "@graphql-codegen/cli": "^5.0.2",
     "@types/aws-lambda": "^8.10.126",
     "@types/lodash.isequal": "^4.5.8",
     "aws-lambda": "^1.0.7",

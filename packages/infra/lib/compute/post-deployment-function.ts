@@ -1,5 +1,5 @@
 import { Duration } from 'aws-cdk-lib';
-import { Code } from 'aws-cdk-lib/aws-lambda';
+import { Code, FunctionOptions } from 'aws-cdk-lib/aws-lambda';
 import { TriggerFunction } from 'aws-cdk-lib/triggers';
 import { Construct } from 'constructs';
 
@@ -7,7 +7,7 @@ import { commonProps } from './common-props';
 
 export interface PostDeploymentFunctionProps {
   codePath: string;
-  environment?: TriggerFunction['environment'];
+  environment?: FunctionOptions['environment'];
 }
 
 /**

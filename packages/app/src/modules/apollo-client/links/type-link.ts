@@ -7,6 +7,7 @@ import {
   ApolloCache,
 } from '@apollo/client';
 import { Observable, Observer } from '@apollo/client/utilities';
+
 import forEachDeep from '~utils/object/forEachDeep';
 
 export type LinkTypePolicies<TCacheShape> = Record<
@@ -52,7 +53,8 @@ export default class TypeLink<TCacheShape> extends ApolloLink {
         next: (data) => {
           try {
             const context = operation.getContext();
-            const cache = context.cache instanceof ApolloCache ? context.cache : null;
+            const cache: ApolloCache<TCacheShape> | null =
+              context.cache instanceof ApolloCache ? context.cache : null;
             if (!cache) return;
             const { typePolicies } = this.params;
 

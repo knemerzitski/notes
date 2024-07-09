@@ -5,7 +5,7 @@ import { ColorMode, Query } from '../../__generated__/graphql';
 const Query_preferences: FieldPolicy<Query['preferences'], Query['preferences']> = {
   read(
     existing = {
-      colorMode: ColorMode.System,
+      colorMode: ColorMode.SYSTEM,
     }
   ) {
     return existing;

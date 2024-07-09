@@ -43,9 +43,9 @@ export default function CreateNoteWidget(props: CreateNoteWidgetProps) {
     createdNoteRef.current = newNote;
   }
 
-  function handleWidgetCollapsed() {
+  function handleWidgetCollapsed(deleted?: boolean) {
     setNewNoteEditors(newEmptyEditors());
-    if (createdNoteRef.current) {
+    if (createdNoteRef.current && !deleted) {
       insertLocalNoteToNotesConnection(apolloClient.cache, createdNoteRef.current);
     }
     createdNoteRef.current = null;

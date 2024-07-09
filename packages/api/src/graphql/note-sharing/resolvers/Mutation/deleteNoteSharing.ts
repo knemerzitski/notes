@@ -65,7 +65,7 @@ export const deleteNoteSharing: NonNullable<
     });
   }
 
-  await mongodb.collections[CollectionName.ShareNoteLinks].deleteMany({
+  await mongodb.collections[CollectionName.SHARE_NOTE_LINKS].deleteMany({
     'sourceUserNote.id': userNote._id,
   });
 

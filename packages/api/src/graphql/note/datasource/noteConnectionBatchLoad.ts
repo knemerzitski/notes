@@ -55,11 +55,11 @@ export interface NoteConnectionBatchLoadContext {
   mongodb: {
     collections: Pick<
       GraphQLResolversContext['mongodb']['collections'],
-      | CollectionName.Users
-      | CollectionName.UserNotes
-      | CollectionName.CollabTexts
-      | CollectionName.Notes
-      | CollectionName.ShareNoteLinks
+      | CollectionName.USERS
+      | CollectionName.USER_NOTES
+      | CollectionName.COLLAB_TEXTS
+      | CollectionName.NOTES
+      | CollectionName.SHARE_NOTE_LINKS
     >;
   };
 }
@@ -73,7 +73,7 @@ export type NoteConnectionBatchLoadOutput<
 export default async function noteConnectionBatchLoad<
   TCustomQuery extends Record<string, unknown> = Record<string, never>,
 >(
-  keys: Readonly<NoteConnectionKey[]>,
+  keys: readonly NoteConnectionKey[],
   context: Readonly<NoteConnectionBatchLoadContext>
 ): Promise<(NoteConnectionBatchLoadOutput<TCustomQuery> | Error)[]> {
   const keysByUserId = groupByUserId(keys);
@@ -130,7 +130,7 @@ export default async function noteConnectionBatchLoad<
           ),
         };
 
-        const userNotesResults = await context.mongodb.collections[CollectionName.Users]
+        const userNotesResults = await context.mongodb.collections[CollectionName.USERS]
           .aggregate<
             RelayPaginateUserNotesArrayOuput<UserNoteDeepQueryResponse> & TCustomQuery
           >([
@@ -144,7 +144,7 @@ export default async function noteConnectionBatchLoad<
               pagination: allUniquePaginationsByArrayPath,
               userNotes: {
                 userNoteCollctionName:
-                  context.mongodb.collections[CollectionName.UserNotes].collectionName,
+                  context.mongodb.collections[CollectionName.USER_NOTES].collectionName,
                 userNoteLookupInput,
                 groupExpression: mergedCustomQuery.group,
               },

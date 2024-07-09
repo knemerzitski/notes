@@ -80,6 +80,7 @@ function RouteClosableEditNoteDialog({
           <MuiAppBar
             elevation={0}
             position="relative"
+            color="default"
             sx={{
               ...(!isScrollEnd && {
                 boxShadow: (theme) => theme.shadowsNamed.scrollEnd,

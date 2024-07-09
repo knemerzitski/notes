@@ -1,8 +1,14 @@
-import mapObject, { mapObjectSkip } from "map-obj";
+import mapObject, { mapObjectSkip } from 'map-obj';
 
-import { getPaginationKey } from "../../../../mongodb/operations/pagination/relayArrayPagination";
-import { DeepQueryResponsePaginationMapped, DeepQuery, DeepQueryResponse } from "../../../../mongodb/query-builder";
-import { NoteQuery } from "../../mongo-query-mapper/note";
+import { getPaginationKey } from '../../../../mongodb/operations/pagination/relayArrayPagination';
+import {
+  DeepQueryResponsePaginationMapped,
+  DeepQuery,
+  DeepQueryResponse,
+} from '../../../../mongodb/query-builder';
+import { NoteQuery } from '../../mongo-query-mapper/note';
+
+import { PAGINALTION_BYPASS_SYMBOL } from './userNoteResponseToPaginationsMapped';
 
 /**
  * Creates a UserNote with correct records pagination set.
@@ -31,5 +37,6 @@ export default function userNoteQueryPaginationMappedToResponse(
           })
         : undefined,
     },
+    shareNoteLinks: userNote.shareNoteLinks?.[PAGINALTION_BYPASS_SYMBOL],
   };
 }

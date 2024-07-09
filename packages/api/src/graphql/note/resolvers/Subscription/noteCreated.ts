@@ -10,7 +10,7 @@ export const noteCreated: NonNullable<SubscriptionResolvers['noteCreated']> = {
 
     const userId = auth.session.user._id.toString('base64');
 
-    return subscribe(`${SubscriptionTopicPrefix.NoteCreated}:${userId}`);
+    return subscribe(`${SubscriptionTopicPrefix.NOTE_CREATED}:${userId}`);
   },
 };
 
@@ -22,7 +22,7 @@ export function publishNoteCreated(
 
   const userId = auth.session.user._id.toString('base64');
 
-  return publish(`${SubscriptionTopicPrefix.NoteCreated}:${userId}`, {
+  return publish(`${SubscriptionTopicPrefix.NOTE_CREATED}:${userId}`, {
     noteCreated: payload,
   });
 }

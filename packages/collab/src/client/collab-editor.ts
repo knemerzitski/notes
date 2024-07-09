@@ -109,17 +109,17 @@ export type EditorRevisionRecord<TChangeset = Changeset> =
   | ExternalRecord<TChangeset>;
 
 export enum UnprocessedRecordType {
-  SubmittedAcknowleged,
-  ExternalChange,
+  SUBMITTED_ACKNOWLEDGED,
+  EXTERNAL_CHANGE,
 }
 
 export type UnprocessedRecord<TChangeset = Changeset> =
   | {
-      type: UnprocessedRecordType.SubmittedAcknowleged;
+      type: UnprocessedRecordType.SUBMITTED_ACKNOWLEDGED;
       record: EditorRevisionRecord<TChangeset>;
     }
   | {
-      type: UnprocessedRecordType.ExternalChange;
+      type: UnprocessedRecordType.EXTERNAL_CHANGE;
       record: EditorRevisionRecord<TChangeset>;
     };
 
@@ -141,8 +141,8 @@ namespace UnprocessedRecord {
 
     const type = value.type;
     if (
-      type !== UnprocessedRecordType.ExternalChange &&
-      type !== UnprocessedRecordType.SubmittedAcknowleged
+      type !== UnprocessedRecordType.EXTERNAL_CHANGE &&
+      type !== UnprocessedRecordType.SUBMITTED_ACKNOWLEDGED
     ) {
       throw new ParseError(`Unknown record type ${String(type)}`);
     }
@@ -330,7 +330,7 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
           });
     subscribedListeners.push(
       this.recordsBuffer.eventBus.on('nextMessage', (message) => {
-        if (message.type == UnprocessedRecordType.SubmittedAcknowleged) {
+        if (message.type == UnprocessedRecordType.SUBMITTED_ACKNOWLEDGED) {
           this._submittedRecord = null;
           this._client.submittedChangesAcknowledged();
         } else {
@@ -539,7 +539,7 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
    */
   submittedChangesAcknowledged(record: EditorRevisionRecord) {
     this.recordsBuffer.add({
-      type: UnprocessedRecordType.SubmittedAcknowleged,
+      type: UnprocessedRecordType.SUBMITTED_ACKNOWLEDGED,
       record: record,
     });
   }
@@ -550,7 +550,7 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
    */
   handleExternalChange(record: EditorRevisionRecord) {
     this.recordsBuffer.add({
-      type: UnprocessedRecordType.ExternalChange,
+      type: UnprocessedRecordType.EXTERNAL_CHANGE,
       record: record,
     });
   }

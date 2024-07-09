@@ -87,7 +87,7 @@ export class InsertStrip extends Strip {
     return this.value;
   }
 
-  static parseValue(value: unknown) {
+  static override parseValue(value: unknown) {
     if (typeof value === 'string') {
       return InsertStrip.create(value);
     }

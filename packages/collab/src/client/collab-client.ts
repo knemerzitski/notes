@@ -51,9 +51,9 @@ export type CollabClientEvents = {
 };
 
 export enum ChangeSource {
-  Local,
-  External,
-  Reset,
+  LOCAL,
+  EXTERNAL,
+  RESET,
 }
 
 export interface SerializedCollabClient {
@@ -110,7 +110,7 @@ export class CollabClient implements Serializable<SerializedCollabClient> {
     this.eventBus.emit('viewChanged', {
       view: this._view,
       change: this._server,
-      source: ChangeSource.Reset,
+      source: ChangeSource.RESET,
     });
   }
 
@@ -140,7 +140,7 @@ export class CollabClient implements Serializable<SerializedCollabClient> {
       this.eventBus.emit('viewChanged', {
         view: this._view,
         change,
-        source: ChangeSource.Local,
+        source: ChangeSource.LOCAL,
       });
 
       if (!hadLocalChanges && this.haveLocalChanges()) {
@@ -233,7 +233,7 @@ export class CollabClient implements Serializable<SerializedCollabClient> {
     this.eventBus.emit('viewChanged', {
       view: this._view,
       change: viewComposable,
-      source: ChangeSource.External,
+      source: ChangeSource.EXTERNAL,
     });
 
     this.eventBus.emit('handledExternalChange', event);

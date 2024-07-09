@@ -11,7 +11,7 @@ module.exports = {
     ecmaVersion: 'latest',
     sourceType: 'module',
   },
-  ignorePatterns: ['.eslintrc.cjs', 'node_modules'],
+  ignorePatterns: ['node_modules', 'out', '.eslintrc.cjs'],
   rules: {
     'import/order': [
       'warn',
@@ -32,6 +32,52 @@ module.exports = {
     ],
   },
   overrides: [
+    {
+      files: ['*.[t]s?(x)'],
+      extends: [
+        'plugin:@typescript-eslint/strict-type-checked',
+        'plugin:@typescript-eslint/stylistic-type-checked',
+      ],
+      parser: '@typescript-eslint/parser',
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+      rules: {
+        '@typescript-eslint/no-unused-vars': ['error', { ignoreRestSiblings: true }],
+        '@typescript-eslint/no-invalid-void-type': 'off',
+        '@typescript-eslint/no-unused-vars': [
+          'error',
+          {
+            ignoreRestSiblings: true,
+            argsIgnorePattern: '_',
+            destructuredArrayIgnorePattern: '^_',
+            varsIgnorePattern: '^_',
+          },
+        ],
+        '@typescript-eslint/prefer-promise-reject-errors': 'off',
+        '@typescript-eslint/naming-convention': [
+          'error',
+          {
+            selector: 'enumMember',
+            format: ['UPPER_CASE'],
+          },
+        ],
+        '@typescript-eslint/restrict-template-expressions': [
+          'error',
+          {
+            allowNumber: true,
+          },
+        ],
+
+        // VSCode ESLint doesn't update after graphql-codegen. This stops showing errors no-unsafe after every change.
+        '@typescript-eslint/no-unsafe-assignment': 'warn',
+        '@typescript-eslint/no-unsafe-member-access': 'warn',
+        '@typescript-eslint/no-unsafe-call': 'warn',
+        '@typescript-eslint/no-unsafe-argument': 'warn',
+        '@typescript-eslint/no-unsafe-return': 'warn',
+      },
+    },
     {
       files: ['./packages/app/src/**/*.[jt]s?(x)'],
       processor: '@graphql-eslint/graphql',

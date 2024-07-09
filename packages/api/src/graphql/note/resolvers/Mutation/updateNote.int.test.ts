@@ -240,7 +240,7 @@ describe('random records', () => {
       });
 
       await expect(
-        mongoCollections[CollectionName.UserNotes].findOne(
+        mongoCollections[CollectionName.USER_NOTES].findOne(
           {
             _id: readOnlyUserNote._id,
           },
@@ -335,7 +335,7 @@ describe('random records', () => {
         const collabTextId = note.collabTextIds[NoteTextField.CONTENT];
         assert(collabTextId != null);
         await expect(
-          mongoCollections[CollectionName.CollabTexts].findOne(
+          mongoCollections[CollectionName.COLLAB_TEXTS].findOne(
             {
               _id: collabTextId,
             },
@@ -445,7 +445,7 @@ describe('random records', () => {
         const collabTextId = note.collabTextIds[NoteTextField.CONTENT];
         assert(collabTextId != null);
         await expect(
-          mongoCollections[CollectionName.CollabTexts].findOne(
+          mongoCollections[CollectionName.COLLAB_TEXTS].findOne(
             {
               _id: collabTextId,
             },
@@ -747,7 +747,7 @@ describe('random records', () => {
           const collabTextId = note.collabTextIds[NoteTextField.CONTENT];
           assert(collabTextId != null);
 
-          const collabText = await mongoCollections[CollectionName.CollabTexts].findOne(
+          const collabText = await mongoCollections[CollectionName.COLLAB_TEXTS].findOne(
             {
               _id: collabTextId,
             },
@@ -814,7 +814,7 @@ describe('random records', () => {
           const collabTextId = note.collabTextIds[NoteTextField.CONTENT];
           assert(collabTextId != null);
 
-          const collabText = await mongoCollections[CollectionName.CollabTexts].findOne(
+          const collabText = await mongoCollections[CollectionName.COLLAB_TEXTS].findOne(
             {
               _id: collabTextId,
             },
@@ -1161,7 +1161,7 @@ describe('pre-determined records', () => {
 
       // Verify directly against database
       const fetchedCollabText = await mongoCollections[
-        CollectionName.CollabTexts
+        CollectionName.COLLAB_TEXTS
       ].findOne(
         {
           _id: collabText._id,
@@ -1237,7 +1237,7 @@ it('changes note category', async () => {
 
   // Check DB in User document that category is swapped
   await expect(
-    mongoCollections[CollectionName.Users].findOne(
+    mongoCollections[CollectionName.USERS].findOne(
       {
         _id: user._id,
       },

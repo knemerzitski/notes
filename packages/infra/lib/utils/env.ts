@@ -6,7 +6,7 @@ import { PROJECT_DIR } from './project-dir';
 
 export function loadEnvironmentVariables() {
   const paths = ['../../.env.local'];
-  
+
   if (process.env.NODE_ENV === 'production') {
     paths.unshift(...['../../.env.production.local']);
   } else if (process.env.NODE_ENV === 'test') {
@@ -23,7 +23,7 @@ export function loadEnvironmentVariables() {
 }
 
 export function assertGetEnvironmentVariables<TKey extends string>(
-  names: Readonly<TKey[]>
+  names: readonly TKey[]
 ): Readonly<Record<TKey, string>> {
   return names.reduce<Record<TKey, string>>(
     (map, name) => {
@@ -36,6 +36,7 @@ export function assertGetEnvironmentVariables<TKey extends string>(
       map[name] = value;
       return map;
     },
+    // eslint-disable-next-line @typescript-eslint/prefer-reduce-type-parameter
     {} as Record<TKey, string>
   );
 }

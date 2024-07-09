@@ -78,7 +78,7 @@ export default function useNotesConnection(
   options?: UseNotesConnectionOptions
 ): UseNotesConnectionResult {
   const perPageCount = options?.perPageCount ?? 20;
-  const category = options?.category ?? NoteCategory.Default;
+  const category = options?.category ?? NoteCategory.DEFAULT;
 
   const apolloClient = useApolloClient();
   const isBackgroundLocation = useIsBackgroundLocation();

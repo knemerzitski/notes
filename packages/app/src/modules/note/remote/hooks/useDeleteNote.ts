@@ -21,7 +21,7 @@ export default function useDeleteNote() {
   const customApolloClient = useCustomApolloClient();
   const [deleteNote] = useMutation(MUTATION, {
     context: {
-      [ErrorLink.IGNORE_CONTEXT_KEY]: [GraphQLErrorCode.NotFound],
+      [ErrorLink.IGNORE_CONTEXT_KEY]: [GraphQLErrorCode.NOT_FOUND],
     },
     errorPolicy: 'all',
   });
@@ -54,7 +54,7 @@ export default function useDeleteNote() {
         },
       });
 
-      if (isErrorCode(result.errors, GraphQLErrorCode.NotFound)) {
+      if (isErrorCode(result.errors, GraphQLErrorCode.NOT_FOUND)) {
         const cache = customApolloClient.cache;
 
         customApolloClient.evict({

@@ -17,7 +17,7 @@ export interface BinarySearchIndexOfResult {
  * Binary search index of item in array. Array must be sorted.
  */
 export function binarySearchIndexOf<T>(
-  arr: Readonly<T[]>,
+  arr: readonly T[],
   item: T,
   compareFn: (a: T, b: T) => number,
   left = 0,

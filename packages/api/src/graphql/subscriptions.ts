@@ -1,5 +1,5 @@
 export enum SubscriptionTopicPrefix {
-  NoteCreated = 'NOTE_CREATED',
-  NoteUpdated = 'NOTE_UPDATED',
-  NoteDeleted = 'NOTE_DELETED',
+  NOTE_CREATED = 'NOTE_CREATED',
+  NOTE_UPDATED = 'NOTE_UPDATED',
+  NOTE_DELETED = 'NOTE_DELETED',
 }

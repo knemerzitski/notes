@@ -7,6 +7,7 @@ import {
   APIGatewayProxyWebsocketHandlerV2,
 } from 'aws-lambda';
 import { WebSocket } from 'ws';
+
 import {
   WebSocketConnectEvent,
   WebSocketConnectHandler,
@@ -145,7 +146,7 @@ export function apiGatewayProxyWebSocketHandler({
       });
     } catch (err) {
       logger.error('handler:CONNECT', err as Error);
-      sockets[id]?.close();
+      sockets[id].close();
       // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       delete sockets[id];
     }

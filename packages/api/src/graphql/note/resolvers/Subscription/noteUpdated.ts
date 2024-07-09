@@ -31,12 +31,12 @@ export const noteUpdated: NonNullable<SubscriptionResolvers['noteUpdated']> = {
       if (!userNote._id) {
         throw new GraphQLError(`Note '${notePublicId}' not found`, {
           extensions: {
-            code: GraphQLErrorCode.NotFound,
+            code: GraphQLErrorCode.NOT_FOUND,
           },
         });
       }
 
-      return subscribe(`${SubscriptionTopicPrefix.NoteUpdated}:noteId=${notePublicId}`, {
+      return subscribe(`${SubscriptionTopicPrefix.NOTE_UPDATED}:noteId=${notePublicId}`, {
         onAfterSubscribe() {
           // TODO let other connected clients know about this user
         },
@@ -47,7 +47,7 @@ export const noteUpdated: NonNullable<SubscriptionResolvers['noteUpdated']> = {
     } else {
       // Subscribe to updates of own notes
       const userId = auth.session.user._id.toString('base64');
-      return subscribe(`${SubscriptionTopicPrefix.NoteUpdated}:userId=${userId}`, {
+      return subscribe(`${SubscriptionTopicPrefix.NOTE_UPDATED}:userId=${userId}`, {
         onAfterSubscribe() {
           // TODO let other connected clients know about this user
         },
@@ -73,10 +73,10 @@ export async function publishNoteUpdated(
   const userId = ownerUserId.toString('base64');
 
   return Promise.allSettled([
-    publish(`${SubscriptionTopicPrefix.NoteUpdated}:noteId=${notePublicId}`, {
+    publish(`${SubscriptionTopicPrefix.NOTE_UPDATED}:noteId=${notePublicId}`, {
       noteUpdated: payload,
     }),
-    publish(`${SubscriptionTopicPrefix.NoteUpdated}:userId=${userId}`, {
+    publish(`${SubscriptionTopicPrefix.NOTE_UPDATED}:userId=${userId}`, {
       noteUpdated: payload,
     }),
   ]);

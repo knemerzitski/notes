@@ -10,7 +10,7 @@ export interface CollabContentInputProps {
 }
 
 export default function CollabContentInput({ inputProps }: CollabContentInputProps) {
-  const editorInput = useNoteTextFieldHTMLInput(NoteTextField.Content);
+  const editorInput = useNoteTextFieldHTMLInput(NoteTextField.CONTENT);
 
   return <ContentInput {...editorInput} {...inputProps} />;
 }

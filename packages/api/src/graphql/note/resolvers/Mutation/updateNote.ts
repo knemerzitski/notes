@@ -77,7 +77,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
   if (!userNoteId) {
     throw new GraphQLError(`Note '${notePublicId}' not found`, {
       extensions: {
-        code: GraphQLErrorCode.NotFound,
+        code: GraphQLErrorCode.NOT_FOUND,
       },
     });
   }
@@ -100,7 +100,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
   if (isReadOnly && patch.textFields && patch.textFields.length > 0) {
     throw new GraphQLError(`Note is read-only and it's contents cannot be modified.`, {
       extensions: {
-        code: GraphQLErrorCode.ReadOnly,
+        code: GraphQLErrorCode.READ_ONLY,
       },
     });
   }
@@ -396,7 +396,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
                     `Note '${notePublicId}' field ${fieldName}. ${err.message}`,
                     {
                       extensions: {
-                        code: GraphQLErrorCode.InvalidInput,
+                        code: GraphQLErrorCode.INVALID_INPUT,
                       },
                     }
                   );
@@ -409,7 +409,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
             const recordUpdates = maybeRecordUpdates.filter(isDefined);
 
             if (recordUpdates.length > 0) {
-              await mongodb.collections[CollectionName.CollabTexts].bulkWrite(
+              await mongodb.collections[CollectionName.COLLAB_TEXTS].bulkWrite(
                 recordUpdates,
                 {
                   session,
@@ -467,7 +467,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
 
       if (userUpdate) {
         updateDbPromises.push(
-          mongodb.collections[CollectionName.Users].updateOne(
+          mongodb.collections[CollectionName.USERS].updateOne(
             {
               _id: currentUserId,
             },
@@ -480,7 +480,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
       }
       if (userNoteUpdate) {
         updateDbPromises.push(
-          mongodb.collections[CollectionName.UserNotes].updateOne(
+          mongodb.collections[CollectionName.USER_NOTES].updateOne(
             {
               _id: userNoteId,
             },

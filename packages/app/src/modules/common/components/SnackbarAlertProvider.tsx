@@ -73,6 +73,7 @@ const ButtonUndoBox = styled(Box)(({ theme }) => ({
   justifyContent: 'space-between',
 }));
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useSnackbarUndoAction() {
   const showAlert = useSnackbarAlert();
 
@@ -104,7 +105,7 @@ export function useSnackbarUndoAction() {
 export default function SnackbarAlertProvider({ children }: { children: ReactNode }) {
   const isRenderingFab = useIsRenderingFab();
 
-  const [queuedSnacks, setQueuedSnacks] = useState<Readonly<AlertAndSnackProps[]>>([]);
+  const [queuedSnacks, setQueuedSnacks] = useState<readonly AlertAndSnackProps[]>([]);
   const [open, setOpen] = useState<boolean>(false);
   const [activeSnack, setActiveSnack] = useState<AlertAndSnackProps | null>(null);
 

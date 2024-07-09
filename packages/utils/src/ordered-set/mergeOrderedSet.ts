@@ -8,7 +8,7 @@ import { binarySearchIndexOf } from '../array/binarySearchIndexOf';
  */
 export default function mergedOrderedSet<T>(
   targetSet: T[],
-  insertSet: Readonly<T[]>,
+  insertSet: readonly T[],
   compareFn: (a: Readonly<T>, b: Readonly<T>) => number,
   mergeFn: (a: Readonly<T>, b: Readonly<T>) => T = (_a, b) => b
 ) {

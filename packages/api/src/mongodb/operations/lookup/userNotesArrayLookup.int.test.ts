@@ -52,7 +52,7 @@ beforeAll(async () => {
 });
 
 it('returns userNotesArray in expected format', async () => {
-  const results = await mongoCollections[CollectionName.Users]
+  const results = await mongoCollections[CollectionName.USERS]
     .aggregate<
       UserNotesArrayLookupOutput<
         UserNoteLookupOutput<
@@ -75,13 +75,13 @@ it('returns userNotesArray in expected format', async () => {
       },
       ...userNotesArrayLookup({
         fieldPath: 'order',
-        userNoteCollctionName: mongoCollections[CollectionName.UserNotes].collectionName,
+        userNoteCollctionName: mongoCollections[CollectionName.USER_NOTES].collectionName,
         userNoteLookupInput: {
           note: {
-            collectionName: mongoCollections[CollectionName.Notes].collectionName,
+            collectionName: mongoCollections[CollectionName.NOTES].collectionName,
           },
           collabText: {
-            collectionName: mongoCollections[CollectionName.CollabTexts].collectionName,
+            collectionName: mongoCollections[CollectionName.COLLAB_TEXTS].collectionName,
             collabTexts: Object.values(CollabTextKey),
           },
         },
@@ -112,7 +112,7 @@ it('returns userNotesArray in expected format', async () => {
 });
 
 it('uses groupExpression', async () => {
-  const results = await mongoCollections[CollectionName.Users]
+  const results = await mongoCollections[CollectionName.USERS]
     .aggregate<
       UserNotesArrayLookupOutput<
         UserNoteLookupOutput<
@@ -139,10 +139,10 @@ it('uses groupExpression', async () => {
       },
       ...userNotesArrayLookup({
         fieldPath: 'order',
-        userNoteCollctionName: mongoCollections[CollectionName.UserNotes].collectionName,
+        userNoteCollctionName: mongoCollections[CollectionName.USER_NOTES].collectionName,
         userNoteLookupInput: {
           note: {
-            collectionName: mongoCollections[CollectionName.Notes].collectionName,
+            collectionName: mongoCollections[CollectionName.NOTES].collectionName,
           },
         },
         groupExpression: {

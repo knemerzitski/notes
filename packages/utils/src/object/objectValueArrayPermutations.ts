@@ -49,7 +49,7 @@ export default function* objectValueArrayPermutations(
   let k = keys.length - 1;
   while (k >= 0) {
     const key = keys[k]!;
-    let i = --indexes[key];
+    let i = --indexes[key]!;
     if (i >= 0) {
       value[key] = obj[key]![i];
       yield value;

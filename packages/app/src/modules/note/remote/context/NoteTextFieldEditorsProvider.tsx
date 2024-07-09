@@ -73,7 +73,7 @@ export default function NoteTextFieldEditorsProvider({
 }
 
 function FocusedEditorProviderInitialContent({ children }: { children: ReactNode }) {
-  const contentEditor = useNoteTextFieldEditor(NoteTextField.Content);
+  const contentEditor = useNoteTextFieldEditor(NoteTextField.CONTENT);
 
   return (
     <FocusedEditorProvider initialEditor={contentEditor}>

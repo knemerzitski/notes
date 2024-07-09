@@ -23,13 +23,13 @@ const QUERY = gql(`
 
 export const notesConnection: FieldPolicy & EvictFieldPolicy<NormalizedCacheObject> = {
   evict: {
-    tag: EvictTag.UserSpecific,
+    tag: EvictTag.USER_SPECIFIC,
   },
   keyArgs: ['category'],
   ...relayStylePagination(
     () =>
       `notesConnection:${JSON.stringify({
-        [KeySpecifierName.UserId]: getCurrentUserIdInStorage(),
+        [KeySpecifierName.USER_ID]: getCurrentUserIdInStorage(),
       })}`
   ),
 };
@@ -53,7 +53,7 @@ export function insertNoteToNotesConnection<TCacheShape>(
     {
       query: QUERY,
       variables: {
-        category: note.categoryName ?? NoteCategory.Default,
+        category: note.categoryName ?? NoteCategory.DEFAULT,
       },
     },
     (data) => {

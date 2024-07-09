@@ -1,11 +1,12 @@
 import { ApolloCache } from '@apollo/client';
 import mapObject from 'map-obj';
+
 import objectValueArrayPermutations from '~utils/object/objectValueArrayPermutations';
 
 import { IdentifiedStoreObject, inverseIdentify } from '../utils/identify';
 
 export enum EvictTag {
-  UserSpecific = 'userSpecific',
+  USER_SPECIFIC = 'userSpecific',
 }
 
 export type EvictTypePolicies<TCacheShape> = Record<string, EvictTypePolicy<TCacheShape>>;

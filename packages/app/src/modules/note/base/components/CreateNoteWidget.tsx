@@ -136,7 +136,15 @@ export default function CreateNoteWidget({
               }}
             />
 
-            <MuiAppBar elevation={0} position="relative">
+            <MuiAppBar
+              elevation={0}
+              position="relative"
+              color="default"
+              sx={{
+                borderBottomLeftRadius: (theme) => theme.spacing(1),
+                borderBottomRightRadius: (theme) => theme.spacing(1),
+              }}
+            >
               <Box
                 sx={{
                   display: 'flex',

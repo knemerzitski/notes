@@ -47,7 +47,7 @@ beforeAll(async () => {
 });
 
 it('returns all notes without any paginations', async () => {
-  const results = await mongoCollections[CollectionName.Users]
+  const results = await mongoCollections[CollectionName.USERS]
     .aggregate<RelayPaginateUserNotesArrayOuput<UserNoteSchema>>([
       {
         $match: {
@@ -60,13 +60,14 @@ it('returns all notes without any paginations', async () => {
         },
         userNotes: {
           userNoteCollctionName:
-            mongoCollections[CollectionName.UserNotes].collectionName,
+            mongoCollections[CollectionName.USER_NOTES].collectionName,
           userNoteLookupInput: {
             note: {
-              collectionName: mongoCollections[CollectionName.Notes].collectionName,
+              collectionName: mongoCollections[CollectionName.NOTES].collectionName,
             },
             collabText: {
-              collectionName: mongoCollections[CollectionName.CollabTexts].collectionName,
+              collectionName:
+                mongoCollections[CollectionName.COLLAB_TEXTS].collectionName,
               collabTexts: Object.values(TextFields),
             },
           },
@@ -88,7 +89,7 @@ it('returns all notes without any paginations', async () => {
 });
 
 it('paginates notes', async () => {
-  const results = await mongoCollections[CollectionName.Users]
+  const results = await mongoCollections[CollectionName.USERS]
     .aggregate<RelayPaginateUserNotesArrayOuput<UserNoteSchema>>([
       {
         $match: {
@@ -108,13 +109,14 @@ it('paginates notes', async () => {
         },
         userNotes: {
           userNoteCollctionName:
-            mongoCollections[CollectionName.UserNotes].collectionName,
+            mongoCollections[CollectionName.USER_NOTES].collectionName,
           userNoteLookupInput: {
             note: {
-              collectionName: mongoCollections[CollectionName.Notes].collectionName,
+              collectionName: mongoCollections[CollectionName.NOTES].collectionName,
             },
             collabText: {
-              collectionName: mongoCollections[CollectionName.CollabTexts].collectionName,
+              collectionName:
+                mongoCollections[CollectionName.COLLAB_TEXTS].collectionName,
               collabTexts: Object.values(TextFields),
             },
           },

@@ -1,16 +1,19 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 // Runs GraphQL API with an actual lambda Docker container
 
 import { beforeEach, expect, it } from 'vitest';
+
 import { resetDatabase } from '~api/test/helpers/mongodb';
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
 
-beforeEach(() => {
-  resetDatabase();
+beforeEach(async () => {
+  await resetDatabase();
 });
 
 interface User {
   headers: {
-    [CustomHeaderName.UserId]: string;
+    [CustomHeaderName.USER_ID]: string;
     Cookie: string[];
   };
 }
@@ -43,7 +46,7 @@ async function fetchSignIn(): Promise<User> {
 
   return {
     headers: {
-      [CustomHeaderName.UserId]: userId ?? '',
+      [CustomHeaderName.USER_ID]: userId ?? '',
       Cookie: cookie,
     },
   };
@@ -84,7 +87,7 @@ async function fetchCreateNote(user: User, content: string): Promise<User> {
 
   return {
     headers: {
-      [CustomHeaderName.UserId]: userId ?? '',
+      [CustomHeaderName.USER_ID]: userId ?? '',
       Cookie: cookie,
     },
   };

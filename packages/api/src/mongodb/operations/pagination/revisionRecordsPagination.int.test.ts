@@ -61,7 +61,7 @@ it('gets records within usernotes pagination', async () => {
 
   const recordsPagination = revisionRecordsPagination(paginationInput);
 
-  const results = await mongoCollections[CollectionName.Users]
+  const results = await mongoCollections[CollectionName.USERS]
     .aggregate<
       RelayPaginateUserNotesArrayOuput<
         CollabTextKey,
@@ -86,13 +86,14 @@ it('gets records within usernotes pagination', async () => {
         },
         userNotes: {
           userNoteCollctionName:
-            mongoCollections[CollectionName.UserNotes].collectionName,
+            mongoCollections[CollectionName.USER_NOTES].collectionName,
           userNoteLookupInput: {
             note: {
-              collectionName: mongoCollections[CollectionName.Notes].collectionName,
+              collectionName: mongoCollections[CollectionName.NOTES].collectionName,
             },
             collabText: {
-              collectionName: mongoCollections[CollectionName.CollabTexts].collectionName,
+              collectionName:
+                mongoCollections[CollectionName.COLLAB_TEXTS].collectionName,
 
               collabTexts: mapObject(CollabTextKey, (_key, field) => [
                 field,

@@ -1,5 +1,10 @@
-type ValueAttributeObject = { value?: string; attributes?: string };
+interface ValueAttributeObject {
+  value?: string;
+  attributes?: string;
+}
+
 type WithMultiValue<T> = T & { multiValue?: T[] };
+
 type MultiValueRecord = Record<string, WithMultiValue<ValueAttributeObject> | undefined>;
 
 interface Event {
