@@ -1,24 +1,15 @@
-import { useApolloClient } from '@apollo/client';
 import { Button } from '@mui/material';
-import { useRef, useState } from 'react';
-
-import { CollabEditor } from '~collab/client/collab-editor';
 
 import { gql } from '../../../__generated__/gql';
 import { NoteTextField } from '../../../__generated__/graphql';
 import usePauseableQuery from '../../apollo-client/hooks/usePauseableQuery';
 import IsDesktop from '../../common/components/IsDesktop';
 import IsMobile from '../../common/components/IsMobile';
-import { editorsInCache } from '../../editor/editors';
-import CreateNoteWidget from '../../note/base/components/CreateNoteWidget';
 import CreateNoteFab from '../../note/local/components/CreateNoteFab';
-import useCreateLocalNote from '../../note/local/hooks/useCreateLocalNote';
+import CreateNoteWidget from '../../note/local/components/CreateNoteWidget';
 import useDeleteLocalNote from '../../note/local/hooks/useDeleteLocalNote';
-import { insertLocalNoteToNotesConnection } from '../../note/local/policies/Query/localNotesConnection';
 import { NoteItemProps } from '../../note/remote/components/NoteItem';
 import NotesList from '../../note/remote/components/NotesList';
-import NoteTextFieldEditorsProvider from '../../note/remote/context/NoteTextFieldEditorsProvider';
-import { newEmptyEditors } from '../../note/remote/hooks/useCreatableNoteTextFieldEditors';
 import {
   useProxyNavigate,
   useProxyRouteTransform,
@@ -54,7 +45,6 @@ interface NotesRouteProps {
 }
 
 export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
-  const apolloClient = useApolloClient();
   const isBackgroundLocation = useIsBackgroundLocation();
 
   const { data, fetchMore } = usePauseableQuery(isBackgroundLocation, QUERY, {
@@ -69,9 +59,6 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
   const absoluteLocation = useAbsoluteLocation();
 
   const deleteNote = useDeleteLocalNote();
-  const createNote = useCreateLocalNote();
-  const [newNoteEditors, setNewNoteEditors] = useState(newEmptyEditors());
-  const createdNoteRef = useRef<NonNullable<ReturnType<typeof createNote>> | null>();
 
   const notes: NoteItemProps['note'][] =
     data?.localNotesConnection.edges.map(({ node: { id, textFields } }) => {
@@ -124,56 +111,10 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
     });
   }
 
-  function handleCreateNote() {
-    const newNote = createNote();
-
-    // Add editors to cache
-    newNote.textFields.forEach(({ key, value }) => {
-      const editor = newNoteEditors.find((entry) => entry.key === key)?.value;
-      editorsInCache.set(
-        {
-          __typename: value.__typename,
-          id: String(value.id),
-        },
-        editor ?? new CollabEditor()
-      );
-    });
-
-    if (createdNoteRef.current) {
-      insertLocalNoteToNotesConnection(apolloClient.cache, createdNoteRef.current);
-    }
-    createdNoteRef.current = newNote;
-  }
-
-  function handleCloseCreateNoteWidget() {
-    setNewNoteEditors(newEmptyEditors());
-    if (createdNoteRef.current) {
-      insertLocalNoteToNotesConnection(apolloClient.cache, createdNoteRef.current);
-    }
-    createdNoteRef.current = null;
-  }
-
   return (
     <>
       <IsDesktop>
-        <NoteTextFieldEditorsProvider editors={newNoteEditors}>
-          <CreateNoteWidget
-            {...{
-              initialContentInputProps: {
-                inputProps: {
-                  placeholder: 'Take a local note...',
-                },
-              },
-              onCreate: handleCreateNote,
-              onCollapse: handleCloseCreateNoteWidget,
-              paperProps: {
-                sx: {
-                  width: 'min(100%, 600px)',
-                },
-              },
-            }}
-          />
-        </NoteTextFieldEditorsProvider>
+        <CreateNoteWidget />
       </IsDesktop>
 
       <NotesList {...{ notes, onStartEdit: handleStartEdit, onDelete: handleDelete }} />

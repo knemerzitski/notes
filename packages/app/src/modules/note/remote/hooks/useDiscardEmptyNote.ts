@@ -24,13 +24,12 @@ export default function useDiscardEmptyNote() {
       );
       if (noteHasSomeText) return false;
 
-      setTimeout(() => {
-        showAlert({
-          children: 'Empty note discarded',
-          icon: false,
-        });
-        void deleteNote(note.contentId);
-      }, 0);
+      showAlert({
+        children: 'Empty note discarded',
+        icon: false,
+      });
+
+      void deleteNote(note.contentId);
 
       return true;
     },

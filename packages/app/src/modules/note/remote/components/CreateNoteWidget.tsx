@@ -1,164 +1,101 @@
-import {
-  ClickAwayListener,
-  Paper,
-  PaperProps,
-  AppBar as MuiAppBar,
-  Box,
-  Button,
-} from '@mui/material';
-import { ReactNode, useRef, useState } from 'react';
+import { useApolloClient } from '@apollo/client';
+import { useState } from 'react';
 
-import CollabContentInput, { CollabContentInputProps } from './CollabContentInput';
-import CollabInputs from './CollabInputs';
-import MoreOptionsButton, { MoreOptionsButtonProps } from './MoreOptionsButton';
-import RedoButton from './RedoButton';
-import UndoButton from './UndoButton';
+import { useSnackbarError } from '../../../common/components/SnackbarAlertProvider';
+import BaseCreateNoteWidget, {
+  CreateNoteWidgetProps,
+} from '../../base/components/CreateNoteWidget';
+import NoteContentIdProvider from '../context/NoteContentIdProvider';
+import NoteTextFieldEditorsProvider, {
+  NoteCollabTextEditors,
+} from '../context/NoteTextFieldEditorsProvider';
+import { useCreatableNoteTextFieldEditors } from '../hooks/useCreatableNoteTextFieldEditors';
+import useDeleteNote from '../hooks/useDeleteNote';
+import useDiscardEmptyNote from '../hooks/useDiscardEmptyNote';
+import { insertNoteToNotesConnection } from '../policies/Query/notesConnection';
 
-export interface CreateNoteWidgetProps {
-  onCreate?: () => void;
-  onClose?: (deleted?: boolean) => void;
-  paperProps?: PaperProps;
-  initialContentInputProps?: CollabContentInputProps;
-  moreOptionsButtonProps?: Omit<MoreOptionsButtonProps, 'onOpened' | 'onClosed'>;
-  slots?: {
-    toolbar?: ReactNode;
-  };
-}
 
-export default function CreateNoteWidget({
-  onCreate,
-  onClose,
-  paperProps,
-  slots,
-  moreOptionsButtonProps,
-  initialContentInputProps,
-}: CreateNoteWidgetProps) {
-  const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const isCreatedCalledRef = useRef(false);
+import ManageNoteSharingButton from './ManageNoteSharingButton';
 
-  function createOnce() {
-    if (!onCreate || isCreatedCalledRef.current) return;
-    onCreate();
-    isCreatedCalledRef.current = true;
+
+export default function CreateNoteWidget(props: CreateNoteWidgetProps) {
+  const apolloClient = useApolloClient();
+
+  const deleteNote = useDeleteNote();
+  const showError = useSnackbarError();
+
+  const { editors, createNote, reset } = useCreatableNoteTextFieldEditors();
+  const [noteWithEditors, setNoteWithEditors] = useState<{
+    note: NonNullable<Awaited<ReturnType<typeof createNote>>>;
+    editors: NoteCollabTextEditors;
+  } | null>();
+
+  const discardEmptyNote = useDiscardEmptyNote();
+
+  const handleDelete = noteWithEditors
+    ? function handleDelete() {
+        const id = noteWithEditors.note.contentId;
+        if (!id) return;
+
+        void deleteNote(id).then((deleted) => {
+          if (!deleted) {
+            showError('Failed to delete note');
+          }
+        });
+      }
+    : undefined;
+
+  async function handleCreateNote() {
+    const newNote = await createNote();
+    const newEditors = editors;
+
+    if (noteWithEditors) {
+      insertNoteToNotesConnection(apolloClient.cache, noteWithEditors.note);
+    }
+
+    if (!newNote) {
+      setNoteWithEditors(null);
+    } else {
+      setNoteWithEditors({
+        note: newNote,
+        editors: newEditors,
+      });
+    }
   }
 
-  function handleTextChange() {
-    createOnce();
-  }
+  function handleWidgetCollapsed(deleted?: boolean) {
+    reset();
 
-  function handleExpandEditor() {
-    setIsEditorOpen(true);
-  }
+    if (noteWithEditors) {
+      const discarded = discardEmptyNote(noteWithEditors);
 
-  function handleCloseWidget(deleted?: boolean) {
-    setIsEditorOpen(false);
-    onClose?.(deleted);
-    isCreatedCalledRef.current = false;
-  }
+      if (!discarded && !deleted) {
+        insertNoteToNotesConnection(apolloClient.cache, noteWithEditors.note);
+      }
 
-  function handleDeleteNote() {
-    handleCloseWidget(true);
-    moreOptionsButtonProps?.onDelete?.();
+      setNoteWithEditors(null);
+    }
   }
 
   return (
-    <>
-      <Paper
-        variant="outlined"
-        {...paperProps}
-        sx={{
-          px: 2,
-          py: 2,
-          borderRadius: 2,
-          boxShadow: 3,
-          display: isEditorOpen ? 'none' : undefined,
-          ...paperProps?.sx,
+    <NoteTextFieldEditorsProvider editors={editors}>
+      <BaseCreateNoteWidget
+        onCreate={() => {
+          void handleCreateNote();
         }}
-      >
-        <CollabContentInput
-          {...initialContentInputProps}
-          inputProps={{
-            placeholder: 'Take a note...',
-            onChange: handleTextChange,
-            onFocus: handleExpandEditor,
-            ...initialContentInputProps?.inputProps,
-          }}
-        />
-      </Paper>
-
-      {isEditorOpen && (
-        <ClickAwayListener
-          onClickAway={() => {
-            handleCloseWidget();
-          }}
-          touchEvent="onTouchStart"
-          mouseEvent="onMouseDown"
-        >
-          <Paper
-            variant="outlined"
-            {...paperProps}
-            sx={{
-              borderRadius: 2,
-              boxShadow: 3,
-              zIndex: 1,
-              display: undefined,
-              ...paperProps?.sx,
-            }}
-          >
-            <CollabInputs
-              titleProps={{
-                inputProps: {
-                  onChange: handleTextChange,
-                },
-              }}
-              contentProps={{
-                inputProps: {
-                  onChange: handleTextChange,
-                  autoFocus: true,
-                },
-              }}
-            />
-
-            <MuiAppBar elevation={0} position="relative">
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                }}
-              >
-                <Box
-                  sx={{
-                    p: 1,
-                    gap: 1,
-                    display: 'flex',
-                  }}
-                >
-                  <MoreOptionsButton
-                    {...moreOptionsButtonProps}
-                    onDelete={handleDeleteNote}
-                  />
-
-                  {slots?.toolbar}
-                  <UndoButton />
-                  <RedoButton />
-                </Box>
-                <Button
-                  color="inherit"
-                  size="small"
-                  onClick={() => {
-                    handleCloseWidget();
-                  }}
-                  sx={{
-                    mr: 1,
-                  }}
-                >
-                  Close
-                </Button>
-              </Box>
-            </MuiAppBar>
-          </Paper>
-        </ClickAwayListener>
-      )}
-    </>
+        onCollapse={handleWidgetCollapsed}
+        slots={{
+          toolbar: (
+            <NoteContentIdProvider noteContentId={noteWithEditors?.note.contentId}>
+              <ManageNoteSharingButton />
+            </NoteContentIdProvider>
+          ),
+        }}
+        moreOptionsButtonProps={{
+          onDelete: handleDelete,
+        }}
+        {...props}
+      />
+    </NoteTextFieldEditorsProvider>
   );
 }
