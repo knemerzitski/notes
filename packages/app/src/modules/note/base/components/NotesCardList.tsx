@@ -1,17 +1,17 @@
 import { Box, BoxProps, Skeleton } from '@mui/material';
 
-import NoteItem, { NoteItemProps } from './NoteItem';
+import NoteCardItem, { NoteCardItemProps } from './NoteCardItem';
 
 const LOADING_SKELETON_COUNT = 6;
 
 export interface NotesListProps extends BoxProps {
-  notes: NoteItemProps['note'][];
+  notes: NoteCardItemProps['note'][];
   onStartEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
   loading?: boolean;
 }
 
-export default function NotesList({
+export default function NotesCardList({
   notes,
   onStartEdit,
   onDelete,
@@ -46,7 +46,7 @@ export default function NotesList({
             ></Skeleton>
           ))
         : notes.map((note) => (
-            <NoteItem
+            <NoteCardItem
               key={note.id}
               note={note}
               onStartEdit={() => {

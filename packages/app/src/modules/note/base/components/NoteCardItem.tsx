@@ -12,9 +12,11 @@ import {
 } from '@mui/material';
 import { ReactNode, useRef, useState } from 'react';
 
-import MoreOptionsButton, { MoreOptionsButtonProps } from './MoreOptionsButton';
+import MoreOptionsButton, {
+  MoreOptionsButtonProps,
+} from '../../remote/components/MoreOptionsButton';
 
-interface Note {
+interface NoteCard {
   id: string;
   editing?: boolean;
   title: string;
@@ -25,9 +27,9 @@ interface Note {
   };
 }
 
-export interface NoteItemProps {
+export interface NoteCardItemProps {
   paperProps?: PaperProps;
-  note: Note;
+  note: NoteCard;
   onStartEdit?: () => void;
   moreOptionsButtonProps?: Omit<MoreOptionsButtonProps, 'onOpened' | 'onClosed'>;
 }
@@ -54,7 +56,7 @@ const ContentTypography = styled(Typography)({
   userSelect: 'none',
 });
 
-function NoteInnerBadge({ type }: Pick<Note, 'type'>) {
+function NoteInnerBadge({ type }: Pick<NoteCard, 'type'>) {
   switch (type) {
     case 'linked':
       return (
@@ -87,19 +89,19 @@ function NoteInnerBadge({ type }: Pick<Note, 'type'>) {
   return null;
 }
 
-export default function NoteItem({
+export default function NoteCardItem({
   paperProps,
   note,
   onStartEdit,
   moreOptionsButtonProps,
-}: NoteItemProps) {
+}: NoteCardItemProps) {
   const theme = useTheme();
 
   const [isHover, setHover] = useState(false);
   const mouseOverRef = useRef(false);
   const optionsMenuOpenRef = useRef(false);
 
-  const noteBeforeEditRef = useRef<Note | null>(null);
+  const noteBeforeEditRef = useRef<NoteCard | null>(null);
   if (!note.editing) {
     noteBeforeEditRef.current = null;
   }
