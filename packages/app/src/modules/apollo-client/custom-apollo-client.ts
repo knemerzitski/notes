@@ -9,6 +9,7 @@ import {
   split,
   empty,
   ApolloLink,
+  ApolloCache,
 } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
@@ -16,6 +17,7 @@ import { Reference, getMainDefinition } from '@apollo/client/utilities';
 import { CachePersistor } from 'apollo3-cache-persist';
 import { Kind, OperationTypeNode } from 'graphql';
 import { createClient, MessageType, ConnectionInitMessage } from 'graphql-ws';
+
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
 
 import { getCurrentUserId, withDifferentUserIdInStorage } from '../auth/user';
@@ -34,7 +36,6 @@ import {
   TypePoliciesEvictor as TypePoliciesEvictor,
 } from './policy/evict';
 import { PersistTypePolicies } from './policy/persist';
-
 
 type AllTypePolicies = TypePolicies &
   PersistTypePolicies &
@@ -217,22 +218,32 @@ export class CustomApolloClient {
    * Write fragment without retaining ID as reachable root ID.
    * Written data could be garbage collected.
    */
-  writeFragmentNoRetain<TData = unknown, TVariables = unknown>({
-    id,
-    data,
-    fragment,
-    fragmentName,
-    ...options
-  }: DataProxy.WriteFragmentOptions<TData, TVariables>): Reference | undefined {
-    const result = this.cache.writeFragment({
+  writeFragmentNoRetain<TData = unknown, TVariables = unknown>(
+    {
       id,
       data,
       fragment,
       fragmentName,
-      ...options,
+      ...restOptions
+    }: DataProxy.WriteFragmentOptions<TData, TVariables>,
+    options?: {
+      cache?: ApolloCache<unknown>;
+    }
+  ): Reference | undefined {
+    const cache =
+      options?.cache && options.cache instanceof InMemoryCache
+        ? options.cache
+        : this.cache;
+
+    const result = cache.writeFragment({
+      id,
+      data,
+      fragment,
+      fragmentName,
+      ...restOptions,
     });
     if (id) {
-      this.cache.release(id);
+      cache.release(id);
     }
     return result;
   }
