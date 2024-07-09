@@ -7,12 +7,17 @@ import { CollabEditor } from '~collab/client/collab-editor';
 import { gql } from '../../../__generated__/gql';
 import { NoteTextField } from '../../../__generated__/graphql';
 import usePauseableQuery from '../../apollo-client/hooks/usePauseableQuery';
+import IsDesktop from '../../common/components/IsDesktop';
+import IsMobile from '../../common/components/IsMobile';
 import { editorsInCache } from '../../editor/editors';
+import CreateNoteWidget from '../../note/base/components/CreateNoteWidget';
+import CreateNoteFab from '../../note/local/components/CreateNoteFab';
 import useCreateLocalNote from '../../note/local/hooks/useCreateLocalNote';
 import useDeleteLocalNote from '../../note/local/hooks/useDeleteLocalNote';
 import { insertLocalNoteToNotesConnection } from '../../note/local/policies/Query/localNotesConnection';
 import { NoteItemProps } from '../../note/remote/components/NoteItem';
-import WidgetListFabLayout from '../../note/remote/components/WidgetListFabLayout';
+import NotesList from '../../note/remote/components/NotesList';
+import NoteTextFieldEditorsProvider from '../../note/remote/context/NoteTextFieldEditorsProvider';
 import { newEmptyEditors } from '../../note/remote/hooks/useCreatableNoteTextFieldEditors';
 import {
   useProxyNavigate,
@@ -87,17 +92,6 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
 
   const pageInfo = data?.localNotesConnection.pageInfo;
 
-  function handleFabCreate() {
-    const newNote = createNote();
-    insertLocalNoteToNotesConnection(apolloClient.cache, newNote);
-
-    navigate(`/local/note/${newNote.id}`, {
-      state: {
-        autoFocus: true,
-      },
-    });
-  }
-
   function handleStartEdit(noteId: string) {
     navigate(`/local/note/${noteId}`);
   }
@@ -161,31 +155,35 @@ export default function NotesRoute({ perPageCount = 20 }: NotesRouteProps) {
 
   return (
     <>
-      <WidgetListFabLayout
-        createNoteWidgetEditor={{
-          editors: newNoteEditors,
-        }}
-        createNoteWidget={{
-          initialContentInputProps: {
-            inputProps: {
-              placeholder: 'Take a local note...',
-            },
-          },
-          onCreate: handleCreateNote,
-          onClose: handleCloseCreateNoteWidget,
-        }}
-        notesList={{
-          notes,
-          onStartEdit: handleStartEdit,
-          onDelete: handleDelete,
-        }}
-        createNoteFab={{
-          onCreate: handleFabCreate,
-        }}
-      />
+      <IsDesktop>
+        <NoteTextFieldEditorsProvider editors={newNoteEditors}>
+          <CreateNoteWidget
+            {...{
+              initialContentInputProps: {
+                inputProps: {
+                  placeholder: 'Take a local note...',
+                },
+              },
+              onCreate: handleCreateNote,
+              onCollapse: handleCloseCreateNoteWidget,
+              paperProps: {
+                sx: {
+                  width: 'min(100%, 600px)',
+                },
+              },
+            }}
+          />
+        </NoteTextFieldEditorsProvider>
+      </IsDesktop>
+
+      <NotesList {...{ notes, onStartEdit: handleStartEdit, onDelete: handleDelete }} />
       {pageInfo?.hasPreviousPage && (
         <Button onClick={() => void handleFetchMore()}>Fetch More</Button>
       )}
+
+      <IsMobile>
+        <CreateNoteFab />
+      </IsMobile>
     </>
   );
 }

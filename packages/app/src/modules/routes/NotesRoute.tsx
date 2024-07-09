@@ -3,12 +3,18 @@ import { Alert, Button } from '@mui/material';
 import { startTransition, useState } from 'react';
 
 import { NoteCategory } from '../../__generated__/graphql';
+import IsDesktop from '../common/components/IsDesktop';
+import IsMobile from '../common/components/IsMobile';
 import { useSnackbarError } from '../common/components/SnackbarAlertProvider';
+import CreateNoteWidget from '../note/base/components/CreateNoteWidget';
+import CreateNoteFab from '../note/remote/components/CreateNoteFab';
 import ManageNoteSharingButton from '../note/remote/components/ManageNoteSharingButton';
 import { NoteItemProps } from '../note/remote/components/NoteItem';
-import WidgetListFabLayout from '../note/remote/components/WidgetListFabLayout';
+import NotesList from '../note/remote/components/NotesList';
 import NoteContentIdProvider from '../note/remote/context/NoteContentIdProvider';
-import { NoteCollabTextEditors } from '../note/remote/context/NoteTextFieldEditorsProvider';
+import NoteTextFieldEditorsProvider, {
+  NoteCollabTextEditors,
+} from '../note/remote/context/NoteTextFieldEditorsProvider';
 import { useCreatableNoteTextFieldEditors } from '../note/remote/hooks/useCreatableNoteTextFieldEditors';
 import useDeleteNote from '../note/remote/hooks/useDeleteNote';
 import useDiscardEmptyNote from '../note/remote/hooks/useDiscardEmptyNote';
@@ -68,17 +74,6 @@ export default function NotesRoute() {
       };
     }) ?? [];
 
-  function handleFabCreate() {
-    startTransition(() => {
-      navigate('/note', {
-        state: {
-          newNote: true,
-          autoFocus: true,
-        },
-      });
-    });
-  }
-
   function handleStartEdit(noteId: string) {
     startTransition(() => {
       navigate(`/note/${noteId}`);
@@ -133,40 +128,45 @@ export default function NotesRoute() {
 
   return (
     <>
-      <WidgetListFabLayout
-        createNoteWidgetEditor={{
-          editors,
-        }}
-        createNoteWidget={{
-          onCreate: () => {
-            void handleCreateNote();
-          },
-          onClose: handleCloseCreateNoteWidget,
-          slots: {
-            toolbar: (
-              <NoteContentIdProvider noteContentId={fetchedState?.note.contentId}>
-                <ManageNoteSharingButton />
-              </NoteContentIdProvider>
-            ),
-          },
-          moreOptionsButtonProps: {
-            onDelete() {
-              if (!fetchedState) return;
-              handleDelete(fetchedState.note.contentId);
-            },
-          },
-        }}
-        notesList={{
-          loading,
-          notes,
-          onStartEdit: handleStartEdit,
-          onDelete: handleDelete,
-        }}
-        createNoteFab={{
-          onCreate: handleFabCreate,
-        }}
+      <IsDesktop>
+        <NoteTextFieldEditorsProvider editors={editors}>
+          <CreateNoteWidget
+            {...{
+              onCreate: () => {
+                void handleCreateNote();
+              },
+              onCollapse: handleCloseCreateNoteWidget,
+              slots: {
+                toolbar: (
+                  <NoteContentIdProvider noteContentId={fetchedState?.note.contentId}>
+                    <ManageNoteSharingButton />
+                  </NoteContentIdProvider>
+                ),
+              },
+              moreOptionsButtonProps: {
+                onDelete() {
+                  if (!fetchedState) return;
+                  handleDelete(fetchedState.note.contentId);
+                },
+              },
+              paperProps: {
+                sx: {
+                  width: 'min(100%, 600px)',
+                },
+              },
+            }}
+          />
+        </NoteTextFieldEditorsProvider>
+      </IsDesktop>
+
+      <NotesList
+        {...{ loading, notes, onStartEdit: handleStartEdit, onDelete: handleDelete }}
       />
       {canFetchMore && <Button onClick={() => void fetchMore()}>Fetch More</Button>}
+
+      <IsMobile>
+        <CreateNoteFab />
+      </IsMobile>
     </>
   );
 }
