@@ -1,46 +1,27 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "Node",
-    "lib": ["ES2023"],
-    "esModuleInterop": true,
-
-    /* Bundler mode */
-    "alwaysStrict": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-
-    /* Linting */
-    "strict": true,
-    "strictNullChecks": true,
-    "noImplicitThis": true,
-    "noImplicitAny": true,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": false,
-    "allowJs": false,
-    "noImplicitOverride": true,
-    "noUncheckedIndexedAccess": true,
-
+    /* Language and Environment */
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "strictPropertyInitialization": false,
-    "incremental": true,
 
-    "typeRoots": ["../../node_modules/@types"],
-
-    "outDir": "out",
+    /* Modules */
     "baseUrl": ".",
+    "moduleResolution": "Node",
     "paths": {
       "~utils/*": ["../utils/src/*"],
       "~api-app-shared/*": ["../api-app-shared/src/*"],
       "~lambda-graphql/*": ["../lambda-graphql/src/*"],
       "~api-dev-server/*": ["../api-dev-server/src/*"],
-      "~api/*": ["../api/src/*"]
-    }
+      "~api/*": ["../api/src/*"],
+      "~collab/*": ["../collab/src/*"]
+    },
+
+    /* Emit */
+    "declarationMap": true,
+    "inlineSourceMap": false,
+    "sourceMap": true,
+    "outDir": "out"
   },
   "ts-node": {
     "require": ["tsconfig-paths/register"]

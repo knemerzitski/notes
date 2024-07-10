@@ -13,7 +13,10 @@
     "test:unit:watch": "vitest watch",
     "test:comp": "cypress run --component",
     "cypress": "cypress open",
-    "lint": "tsc --noEmit && eslint . --max-warnings 0",
+    "prettify": "prettier --write --ignore-unknown src cypress",
+    "eslint": "eslint . --max-warnings 0",
+    "type-check": "tsc --noEmit",
+    "lint": "npm run type-check && npm run eslint",
     "dev": "npm run vite:dev & npm run graphql:watch",
     "build": "npm run graphql:compile && npm run vite:build"
   },

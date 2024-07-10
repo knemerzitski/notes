@@ -41,7 +41,7 @@ export class MockPingPongSFNClient extends SFNClient {
     });
   }
 
-  send(command: unknown): Promise<void> {
+  override send(command: unknown): Promise<void> {
     if (command instanceof StartExecutionCommand) {
       const { input } = command;
 

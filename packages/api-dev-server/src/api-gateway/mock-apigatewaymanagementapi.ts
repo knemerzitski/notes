@@ -21,7 +21,7 @@ export class MockApiGatewayManagementApiClient extends ApiGatewayManagementApiCl
     return ws;
   }
 
-  send(command: unknown): Promise<void> {
+  override send(command: unknown): Promise<void> {
     if (command instanceof PostToConnectionCommand) {
       const { input } = command;
       const { ConnectionId, Data } = input;
@@ -50,7 +50,7 @@ export class MockApiGatewayManagementApiClient extends ApiGatewayManagementApiCl
 }
 
 export class MockEmtpyApiGatewayManagementApiClient extends ApiGatewayManagementApiClient {
-  send(): Promise<void> {
+  override send(): Promise<void> {
     return Promise.resolve();
   }
 }

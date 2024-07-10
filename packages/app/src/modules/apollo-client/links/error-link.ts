@@ -1,6 +1,7 @@
 import { ApolloLink, Operation, NextLink, FetchResult, Context } from '@apollo/client';
 import { Observable, Observer } from '@apollo/client/utilities';
 import { GraphQLError } from 'graphql';
+
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
 /**
@@ -46,7 +47,7 @@ export default class ErrorLink extends ApolloLink {
     return () => this.handlers.delete(handler);
   }
 
-  public request(operation: Operation, forward: NextLink) {
+  public override request(operation: Operation, forward: NextLink) {
     const ctx = operation.getContext();
     if (ERROR_LINK_SYMBOL in ctx) {
       return forward(operation);

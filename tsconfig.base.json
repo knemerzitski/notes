@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    /* Language and Environment */
+    "target": "ES2022",
+    "lib": ["ES2023"],
+    "jsx": "preserve",
+    "experimentalDecorators": false,
+
+    /* Modules */
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "typeRoots": ["./node_modules/@types"],
+
+    /* Interop Constraints */
+    "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+
+    /* Completeness */
+    "skipLibCheck": true,
+
+    /* Emit */
+    "noEmit": true,
+    "removeComments": true,
+    "inlineSourceMap": true,
+    "inlineSources": true,
+    "declaration": true,
+
+    /* Type Checking */
+    "alwaysStrict": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": false,
+    "strictPropertyInitialization": false,
+    "noImplicitOverride": true,
+
+    /* JavaScript Support */
+    "allowJs": false,
+
+    /* Projects */
+    "incremental": true
+  }
+}

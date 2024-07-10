@@ -44,7 +44,7 @@ export default class TypeLink<TCacheShape> extends ApolloLink {
     this.params = params;
   }
 
-  public request(operation: Operation, forward: NextLink) {
+  public override request(operation: Operation, forward: NextLink) {
     return new Observable<FetchResult>((observer: Observer<FetchResult>) => {
       const sub = forward(operation).subscribe({
         start(subscription): unknown {
@@ -83,6 +83,7 @@ export default class TypeLink<TCacheShape> extends ApolloLink {
               for (const handler of handlers) {
                 handler(value);
               }
+              return;
             });
           } finally {
             observer.next?.(data);

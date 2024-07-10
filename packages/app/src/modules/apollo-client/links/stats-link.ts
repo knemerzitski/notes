@@ -52,7 +52,7 @@ export default class StatsLink extends ApolloLink {
     });
   }
 
-  public request(operation: Operation, forward: NextLink) {
+  public override request(operation: Operation, forward: NextLink) {
     const definition = getMainDefinition(operation.query);
     if (definition.kind !== Kind.OPERATION_DEFINITION) {
       return forward(operation);

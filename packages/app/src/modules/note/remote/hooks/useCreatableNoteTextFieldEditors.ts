@@ -91,6 +91,7 @@ export function useCreatableNoteTextFieldEditors() {
     } catch (err) {
       console.error(err);
       statusRef.current = 'local';
+      return;
     }
   }, [fetchCreateNote, editors, apolloClient]);
 

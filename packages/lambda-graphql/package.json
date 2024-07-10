@@ -4,7 +4,10 @@
   "private": "true",
   "type": "module",
   "scripts": {
-    "lint": "tsc --noEmit && eslint . --max-warnings 0"
+    "prettify": "prettier --write --ignore-unknown src",
+    "eslint": "eslint . --max-warnings 0",
+    "type-check": "tsc --noEmit",
+    "lint": "npm run type-check && npm run eslint"
   },
   "dependencies": {
     "@apollo/server": "^4.9.5",

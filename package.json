@@ -21,6 +21,7 @@
     "test:int": "npm run test:int -w api",
     "test:comp": "npm run test:comp -w app",
     "prepare": "husky install",
+    "prettify": "npm run prettify --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test:unit && npm run test:int && npm run test:comp",
     "test:all": "npm run test && npm run -w infra ci:test:int",

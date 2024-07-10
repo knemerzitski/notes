@@ -36,7 +36,7 @@ export class CustomMockedProvider extends React.Component<
     };
   }
 
-  public render() {
+  public override render() {
     const { children, childProps } = this.props;
     const { customClient } = this.state;
 
@@ -47,7 +47,7 @@ export class CustomMockedProvider extends React.Component<
     ) : null;
   }
 
-  public componentWillUnmount() {
+  public override componentWillUnmount() {
     this.state.customClient.client.stop();
   }
 }

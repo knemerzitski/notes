@@ -1,33 +1,7 @@
 {
-  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["ES2023"],
-    "module": "ESNext",
-    "skipLibCheck": true,
-
-    /* Bundler mode */
-    "moduleResolution": "Bundler",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "preserve",
-    "alwaysStrict": true,
-    "removeComments": true,
-    "inlineSourceMap": true,
-    "inlineSources": true,
-
-    /* Linting */
-    "strict": true,
-    "allowSyntheticDefaultImports": true,
-    "strictNullChecks": true,
-    "forceConsistentCasingInFileNames": true,
-    "allowJs": false,
-    "esModuleInterop": true,
-    "incremental": true,
-    "noImplicitReturns": true,
-    "noUncheckedIndexedAccess": true,
+    /* Modules */
     "paths": {
       "~/*": ["./src/*"],
       "~utils/*": ["../utils/src/*"]
