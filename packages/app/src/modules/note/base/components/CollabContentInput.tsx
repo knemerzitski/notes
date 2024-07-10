@@ -1,7 +1,7 @@
 import { InputProps } from '@mui/material';
 
 import { NoteTextField } from '../../../../__generated__/graphql';
-import { useNoteTextFieldHTMLInput } from '../context/NoteTextFieldEditorsProvider';
+import { useNoteTextFieldHTMLInput } from '../../remote/context/NoteTextFieldEditorsProvider';
 
 import ContentInput from './ContentInput';
 

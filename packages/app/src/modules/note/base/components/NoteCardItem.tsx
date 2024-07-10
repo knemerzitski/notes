@@ -12,9 +12,7 @@ import {
 } from '@mui/material';
 import { ReactNode, useRef, useState } from 'react';
 
-import MoreOptionsButton, {
-  MoreOptionsButtonProps,
-} from '../../remote/components/MoreOptionsButton';
+import MoreOptionsButton, { MoreOptionsButtonProps } from '../MoreOptionsButton';
 
 interface NoteCard {
   id: string;

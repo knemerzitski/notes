@@ -2,7 +2,7 @@ import UndoIcon from '@mui/icons-material/Undo';
 import { IconButton, IconButtonProps, Tooltip } from '@mui/material';
 import { useEffect, useState } from 'react';
 
-import { useFocusedEditor } from '../context/FocusedEditorProvider';
+import { useFocusedEditor } from '../../remote/context/FocusedEditorProvider';
 
 export interface UndoButtonProps {
   iconButtonProps?: IconButtonProps;

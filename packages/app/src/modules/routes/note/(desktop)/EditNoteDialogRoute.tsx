@@ -7,12 +7,12 @@ import RouteClosable, {
 } from '../../../common/components/RouteClosable';
 import RouteSnackbarError from '../../../common/components/RouteSnackbarError';
 import useIsElementScrollEnd from '../../../common/hooks/useIsElementScrollEnd';
-import CollabInputs from '../../../note/remote/components/CollabInputs';
+import MoreOptionsButton from '../../../note/base/MoreOptionsButton';
+import CollabInputs from '../../../note/base/components/CollabInputs';
+import NoteDialog from '../../../note/base/components/NoteDialog';
+import RedoButton from '../../../note/base/components/RedoButton';
+import UndoButton from '../../../note/base/components/UndoButton';
 import ManageNoteSharingButton from '../../../note/remote/components/ManageNoteSharingButton';
-import MoreOptionsButton from '../../../note/remote/components/MoreOptionsButton';
-import NoteDialog from '../../../note/remote/components/NoteDialog';
-import RedoButton from '../../../note/remote/components/RedoButton';
-import UndoButton from '../../../note/remote/components/UndoButton';
 import NewOrExistingNoteEditingContext from '../../../note/remote/context/NewOrExistingNoteEditingContext';
 import useDeleteNote from '../../../note/remote/hooks/useDeleteNote';
 

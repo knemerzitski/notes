@@ -2,7 +2,7 @@ import RedoIcon from '@mui/icons-material/Redo';
 import { IconButton, IconButtonProps, Tooltip } from '@mui/material';
 import { useEffect, useState } from 'react';
 
-import { useFocusedEditor } from '../context/FocusedEditorProvider';
+import { useFocusedEditor } from '../../remote/context/FocusedEditorProvider';
 
 export interface RedoButtonProps {
   iconButtonProps?: IconButtonProps;

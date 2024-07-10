@@ -11,27 +11,27 @@ import { useParams } from 'react-router-dom';
 
 import AppBar from '../../../../common/components/AppBar';
 import useIsScrollEnd from '../../../../common/hooks/useIsScrollEnd';
-import { LocalNoteEditingContext } from '../../../../note/local/context/LocalNoteEditingContext';
-import useDeleteLocalNote from '../../../../note/local/hooks/useDeleteLocalNote';
-import useLocalNoteExists from '../../../../note/local/hooks/useLocalNoteExists';
-import CollabInputs from '../../../../note/remote/components/CollabInputs';
-import MoreOptionsButton from '../../../../note/remote/components/MoreOptionsButton';
-import RedoButton from '../../../../note/remote/components/RedoButton';
-import UndoButton from '../../../../note/remote/components/UndoButton';
+import MoreOptionsButton from '../../../../note/base/MoreOptionsButton';
+import CollabInputs from '../../../../note/base/components/CollabInputs';
+import RedoButton from '../../../../note/base/components/RedoButton';
+import UndoButton from '../../../../note/base/components/UndoButton';
+import { NoteEditingContext } from '../../../../note/local/context/NoteEditingContext';
+import useDeleteNote from '../../../../note/local/hooks/useDeleteNote';
+import useNoteExists from '../../../../note/local/hooks/useNoteExists';
 import { useProxyNavigate } from '../../../../router/context/ProxyRoutesProvider';
 import usePreviousLocation from '../../../../router/hooks/usePreviousLocation';
 
 export type EditNoteLocationState = null | { newNote?: boolean; autoFocus?: boolean };
 
 export default function EditNotePage() {
-  const deleteNote = useDeleteLocalNote();
+  const deleteNote = useDeleteNote();
   const params = useParams<'id'>();
   const localNoteId = params.id;
   const previousLocation = usePreviousLocation();
   const isScrollEnd = useIsScrollEnd();
   const navigate = useProxyNavigate();
 
-  const noteExists = useLocalNoteExists(localNoteId ?? '');
+  const noteExists = useNoteExists(localNoteId ?? '');
 
   function handleDeleteNote() {
     if (!localNoteId) return;
@@ -103,7 +103,7 @@ export default function EditNotePage() {
 
       <MuiToolbar sx={{ height: '56px' }} />
 
-      <LocalNoteEditingContext localNoteId={localNoteId}>
+      <NoteEditingContext noteId={localNoteId}>
         <>
           <CollabInputs
             boxProps={{
@@ -172,7 +172,7 @@ export default function EditNotePage() {
             </MuiToolbar>
           </MuiAppBar>
         </>
-      </LocalNoteEditingContext>
+      </NoteEditingContext>
     </Box>
   );
 }

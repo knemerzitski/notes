@@ -5,8 +5,8 @@ import usePersist from '../../../apollo-client/hooks/usePersist';
 import useBeforeUnload from '../../../common/hooks/useBeforeUnload';
 import { editorsInCache } from '../../../editor/editors';
 
-interface LocalCollabTextPersistChangesDebouncedProps {
-  localCollabTextId: string;
+interface CollabTextPersistChangesDebouncedProps {
+  collabTextId: string;
   flushOnUnmount?: boolean;
   /**
    * @default 1000 milliseconds
@@ -15,14 +15,14 @@ interface LocalCollabTextPersistChangesDebouncedProps {
   options?: Options;
 }
 
-export default function LocalCollabTextPersistChangesDebounced({
-  localCollabTextId,
+export default function CollabTextPersistChangesDebounced({
+  collabTextId,
   flushOnUnmount = false,
   wait = 500,
   options = {
     maxWait: 5000,
   },
-}: LocalCollabTextPersistChangesDebouncedProps) {
+}: CollabTextPersistChangesDebouncedProps) {
   const persist = usePersist();
 
   const debouncedPersist = useDebouncedCallback(
@@ -52,13 +52,13 @@ export default function LocalCollabTextPersistChangesDebounced({
   useEffect(() => {
     const editor = editorsInCache.getOrCreate({
       __typename: 'LocalCollabText',
-      id: localCollabTextId,
+      id: collabTextId,
     }).editor;
 
     return editor.eventBus.on('appliedTypingOperation', () => {
       void debouncedPersist();
     });
-  }, [localCollabTextId, debouncedPersist]);
+  }, [collabTextId, debouncedPersist]);
 
   return null;
 }

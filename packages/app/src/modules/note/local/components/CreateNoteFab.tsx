@@ -4,14 +4,14 @@ import { useProxyNavigate } from '../../../router/context/ProxyRoutesProvider';
 import BaseCreateNoteFab, {
   CreateNoteFabProps,
 } from '../../base/components/CreateNoteFab';
-import useCreateLocalNote from '../hooks/useCreateLocalNote';
+import useCreateNote from '../hooks/useCreateNote';
 import { insertLocalNoteToNotesConnection } from '../policies/Query/localNotesConnection';
 
 export default function CreateNoteFab(props: Omit<CreateNoteFabProps, 'onCreate'>) {
   const apolloClient = useApolloClient();
   const navigate = useProxyNavigate();
 
-  const createNote = useCreateLocalNote();
+  const createNote = useCreateNote();
 
   function handleCreate() {
     const newNote = createNote();

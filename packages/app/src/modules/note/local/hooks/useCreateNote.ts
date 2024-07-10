@@ -29,8 +29,7 @@ const QUERY_CREATE = gql(`
   }
 `);
 
-// TODO rename to useLocalCreateNote???
-export default function useCreateLocalNote() {
+export default function useCreateNote() {
   const apolloClient = useApolloClient();
 
   return useCallback(() => {

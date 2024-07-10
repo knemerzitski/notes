@@ -9,16 +9,16 @@ import BaseCreateNoteWidget, {
 } from '../../base/components/CreateNoteWidget';
 import NoteTextFieldEditorsProvider from '../../remote/context/NoteTextFieldEditorsProvider';
 import { newEmptyEditors } from '../../remote/hooks/useCreatableNoteTextFieldEditors';
-import useCreateLocalNote from '../hooks/useCreateLocalNote';
-import useDeleteLocalNote from '../hooks/useDeleteLocalNote';
+import useCreateNote from '../hooks/useCreateNote';
+import useDeleteNote from '../hooks/useDeleteNote';
 import { insertLocalNoteToNotesConnection } from '../policies/Query/localNotesConnection';
 
 export default function CreateNoteWidget(props: CreateNoteWidgetProps) {
   const apolloClient = useApolloClient();
 
   const [newNoteEditors, setNewNoteEditors] = useState(newEmptyEditors());
-  const createNote = useCreateLocalNote();
-  const deleteNote = useDeleteLocalNote();
+  const createNote = useCreateNote();
+  const deleteNote = useDeleteNote();
 
   const createdNoteRef = useRef<NonNullable<ReturnType<typeof createNote>> | null>();
 

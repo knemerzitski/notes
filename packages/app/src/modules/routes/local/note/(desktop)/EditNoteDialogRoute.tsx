@@ -7,14 +7,14 @@ import RouteClosable, {
 } from '../../../../common/components/RouteClosable';
 import RouteSnackbarError from '../../../../common/components/RouteSnackbarError';
 import useIsElementScrollEnd from '../../../../common/hooks/useIsElementScrollEnd';
-import { LocalNoteEditingContext } from '../../../../note/local/context/LocalNoteEditingContext';
-import useDeleteLocalNote from '../../../../note/local/hooks/useDeleteLocalNote';
-import useLocalNoteExists from '../../../../note/local/hooks/useLocalNoteExists';
-import CollabInputs from '../../../../note/remote/components/CollabInputs';
-import MoreOptionsButton from '../../../../note/remote/components/MoreOptionsButton';
-import NoteDialog from '../../../../note/remote/components/NoteDialog';
-import RedoButton from '../../../../note/remote/components/RedoButton';
-import UndoButton from '../../../../note/remote/components/UndoButton';
+import MoreOptionsButton from '../../../../note/base/MoreOptionsButton';
+import CollabInputs from '../../../../note/base/components/CollabInputs';
+import NoteDialog from '../../../../note/base/components/NoteDialog';
+import RedoButton from '../../../../note/base/components/RedoButton';
+import UndoButton from '../../../../note/base/components/UndoButton';
+import { NoteEditingContext } from '../../../../note/local/context/NoteEditingContext';
+import useDeleteNote from '../../../../note/local/hooks/useDeleteNote';
+import useNoteExists from '../../../../note/local/hooks/useNoteExists';
 import { BackgroundPathProvider } from '../../../../router/context/BackgroundPathProvider';
 
 function RouteClosableEditNoteDialog({
@@ -22,7 +22,7 @@ function RouteClosableEditNoteDialog({
   onClosing,
   onClosed,
 }: RouteClosableComponentProps) {
-  const deleteNote = useDeleteLocalNote();
+  const deleteNote = useDeleteNote();
   const params = useParams<'id'>();
   const localNoteId = params.id;
   const theme = useTheme();
@@ -30,7 +30,7 @@ function RouteClosableEditNoteDialog({
   const [collabInputsEl, setCollabInputsEl] = useState<HTMLElement>();
   const isScrollEnd = useIsElementScrollEnd(collabInputsEl);
 
-  const noteExists = useLocalNoteExists(localNoteId ?? '');
+  const noteExists = useNoteExists(localNoteId ?? '');
 
   function handleDeleteNote() {
     if (!localNoteId) return;
@@ -67,7 +67,7 @@ function RouteClosableEditNoteDialog({
         },
       }}
     >
-      <LocalNoteEditingContext localNoteId={localNoteId}>
+      <NoteEditingContext noteId={localNoteId}>
         <>
           <CollabInputs
             boxProps={{
@@ -117,7 +117,7 @@ function RouteClosableEditNoteDialog({
             </Box>
           </MuiAppBar>
         </>
-      </LocalNoteEditingContext>
+      </NoteEditingContext>
     </NoteDialog>
   );
 }

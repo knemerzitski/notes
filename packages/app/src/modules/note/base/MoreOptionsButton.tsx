@@ -6,7 +6,7 @@ import { PartialBy } from '~utils/types';
 
 import ResponsiveMenuButton, {
   ResponsiveMenuButtonProps,
-} from '../../../common/components/ResponsiveMenuButton';
+} from '../../common/components/ResponsiveMenuButton';
 
 export interface MoreOptionsButtonProps
   extends Omit<ResponsiveMenuButtonProps, 'tooltipProps' | 'itemsProps'> {

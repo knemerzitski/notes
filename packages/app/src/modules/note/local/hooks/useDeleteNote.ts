@@ -2,16 +2,16 @@ import { useCallback } from 'react';
 
 import { useCustomApolloClient } from '../../../apollo-client/context/CustomApolloClientProvider';
 
-export default function useDeleteLocalNote() {
+export default function useDeleteNote() {
   const customApolloClient = useCustomApolloClient();
 
   return useCallback(
-    (deleteLocalNoteId: string) => {
+    (deleteNoteId: string) => {
       const cache = customApolloClient.cache;
 
       customApolloClient.evict({
         id: cache.identify({
-          id: deleteLocalNoteId,
+          id: deleteNoteId,
           __typename: 'LocalNote',
         }),
       });

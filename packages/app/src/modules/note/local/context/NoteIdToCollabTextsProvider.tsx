@@ -8,11 +8,11 @@ import { NoteTextField, NoteTextFieldEntry } from '../../../../__generated__/gra
 import { editorsInCache } from '../../../editor/editors';
 import NoteTextFieldEditorsProvider from '../../remote/context/NoteTextFieldEditorsProvider';
 
-import LocalNoteIdProvider from './LocalNoteIdProvider';
+import NoteIdProvider from './NoteIdProvider';
 
 const QUERY = gql(`
-  query LocalNoteIdToTextFieldEditorsProvider($localNoteId: ID!) {
-    localNote(id: $localNoteId) @client {
+  query LocalNoteIdToTextFieldEditorsProvider($noteId: ID!) {
+    localNote(id: $noteId) @client {
       id
       textFields {
         key
@@ -24,21 +24,21 @@ const QUERY = gql(`
   }
 `);
 
-export type LocalNoteCollabTexts = (Omit<NoteTextFieldEntry, 'value'> & {
+export type NoteCollabTexts = (Omit<NoteTextFieldEntry, 'value'> & {
   value: {
     id: string;
     editor: CollabEditor;
   };
 })[];
 
-const LocalNoteCollabTextContext = createContext<LocalNoteCollabTexts | null>(null);
+const NoteCollabTextContext = createContext<NoteCollabTexts | null>(null);
 
 // eslint-disable-next-line react-refresh/only-export-components
-export function useLocalNoteCollabTexts() {
-  const ctx = useContext(LocalNoteCollabTextContext);
+export function useNoteCollabTexts() {
+  const ctx = useContext(NoteCollabTextContext);
   if (ctx === null) {
     throw new Error(
-      'useLocalNoteCollabTexts() requires context <LocalNoteIdToCollabTextsProvider>'
+      'useNoteCollabTexts() requires context <NoteIdToCollabTextsProvider>'
     );
   }
   return ctx;
@@ -46,7 +46,7 @@ export function useLocalNoteCollabTexts() {
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function useNoteCollabText(fieldName: NoteTextField) {
-  const collabTexts = useLocalNoteCollabTexts();
+  const collabTexts = useNoteCollabTexts();
 
   const collabText = collabTexts.find((entry) => entry.key === fieldName);
   if (!collabText) {
@@ -63,18 +63,18 @@ function getCacheId(id: string) {
   };
 }
 
-interface LocalNoteIdToCollabTextsProviderProps {
-  localNoteId: string;
+interface NoteIdToCollabTextsProviderProps {
+  noteId: string;
   children: ReactNode;
 }
 
-export default function LocalNoteIdToCollabTextsProvider({
-  localNoteId,
+export default function NoteIdToCollabTextsProvider({
+  noteId: noteId,
   children,
-}: LocalNoteIdToCollabTextsProviderProps) {
+}: NoteIdToCollabTextsProviderProps) {
   const { data } = useQuery(QUERY, {
     variables: {
-      localNoteId,
+      noteId,
     },
   });
 
@@ -100,12 +100,12 @@ export default function LocalNoteIdToCollabTextsProvider({
   }
 
   return (
-    <LocalNoteIdProvider localNoteId={localNoteId}>
-      <LocalNoteCollabTextContext.Provider value={collabTexts}>
+    <NoteIdProvider noteId={noteId}>
+      <NoteCollabTextContext.Provider value={collabTexts}>
         <NoteTextFieldEditorsProvider editors={editors}>
           {children}
         </NoteTextFieldEditorsProvider>
-      </LocalNoteCollabTextContext.Provider>
-    </LocalNoteIdProvider>
+      </NoteCollabTextContext.Provider>
+    </NoteIdProvider>
   );
 }

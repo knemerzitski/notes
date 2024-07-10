@@ -10,15 +10,12 @@ import {
 } from '@mui/material';
 import { ReactNode, useRef, useState } from 'react';
 
-import CollabContentInput, {
-  CollabContentInputProps,
-} from '../../remote/components/CollabContentInput';
-import CollabInputs from '../../remote/components/CollabInputs';
-import MoreOptionsButton, {
-  MoreOptionsButtonProps,
-} from '../../remote/components/MoreOptionsButton';
-import RedoButton from '../../remote/components/RedoButton';
-import UndoButton from '../../remote/components/UndoButton';
+import MoreOptionsButton, { MoreOptionsButtonProps } from '../MoreOptionsButton';
+
+import CollabContentInput, { CollabContentInputProps } from './CollabContentInput';
+import CollabInputs from './CollabInputs';
+import RedoButton from './RedoButton';
+import UndoButton from './UndoButton';
 
 export interface CreateNoteWidgetProps {
   /**

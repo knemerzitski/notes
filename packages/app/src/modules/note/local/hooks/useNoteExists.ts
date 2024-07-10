@@ -10,7 +10,7 @@ const QUERY = gql(`
   }
 `);
 
-export default function useLocalNoteExists(localNoteId: string) {
+export default function useNoteExists(localNoteId: string) {
   const query = useQuery(QUERY, {
     fetchPolicy: 'cache-only',
     variables: {

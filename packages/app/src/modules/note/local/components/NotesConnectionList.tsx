@@ -7,22 +7,21 @@ import {
 import { useAbsoluteLocation } from '../../../router/hooks/useAbsoluteLocation';
 import { NoteCardItemProps } from '../../base/components/NoteCardItem';
 import NotesCardList from '../../base/components/NotesCardList';
-import useDeleteLocalNote from '../hooks/useDeleteLocalNote';
-import useLocalNotesConnection, {
-  UseLocalNotesConnectionOptions,
-} from '../hooks/useLocalNotesConnection';
+import useDeleteNote from '../hooks/useDeleteNote';
+import useNotesConnection, {
+  UseNotesConnectionOptions,
+} from '../hooks/useNotesConnection';
 
 interface NotesConnectionListProps {
-  notesConnectionOptions?: UseLocalNotesConnectionOptions;
+  notesConnectionOptions?: UseNotesConnectionOptions;
 }
 
 export default function NotesConnectionList({
   notesConnectionOptions,
 }: NotesConnectionListProps) {
-  const { data, fetchMore, canFetchMore } =
-    useLocalNotesConnection(notesConnectionOptions);
+  const { data, fetchMore, canFetchMore } = useNotesConnection(notesConnectionOptions);
 
-  const deleteNote = useDeleteLocalNote();
+  const deleteNote = useDeleteNote();
 
   const navigate = useProxyNavigate();
   const transform = useProxyRouteTransform();

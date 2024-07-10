@@ -41,14 +41,14 @@ type NoteTransformed = Omit<
   >;
 };
 
-export interface UseLocalNotesConnectionOptions {
+export interface UseNotesConnectionOptions {
   /**
    * @default 20
    */
   perPageCount?: number;
 }
 
-interface UseLocalNotesConnectionResult {
+interface UseNotesConnectionResult {
   data: {
     notes: NoteTransformed[];
   };
@@ -56,9 +56,9 @@ interface UseLocalNotesConnectionResult {
   canFetchMore?: boolean;
 }
 
-export default function useLocalNotesConnection(
-  options?: UseLocalNotesConnectionOptions
-): UseLocalNotesConnectionResult {
+export default function useNotesConnection(
+  options?: UseNotesConnectionOptions
+): UseNotesConnectionResult {
   const perPageCount = options?.perPageCount ?? 20;
 
   const isBackgroundLocation = useIsBackgroundLocation();
