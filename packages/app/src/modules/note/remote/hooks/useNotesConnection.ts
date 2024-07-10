@@ -126,20 +126,22 @@ export default function useNotesConnection(
   haveFetchedData.current = true;
 
   const notes: NoteTransformed[] =
-    data?.notesConnection.notes.map((note) => {
-      return {
-        ...note,
-        textFields: mapObject(NoteTextField, (_, key) => {
-          const textField = note.textFields.find((textField) => textField.key === key);
+    data?.notesConnection.notes
+      .filter((note) => note.categoryName === category)
+      .map((note) => {
+        return {
+          ...note,
+          textFields: mapObject(NoteTextField, (_, key) => {
+            const textField = note.textFields.find((textField) => textField.key === key);
 
-          if (!textField) {
-            throw new Error(`Note '${note.contentId}' is missing field '${key}'`);
-          }
+            if (!textField) {
+              throw new Error(`Note '${note.contentId}' is missing field '${key}'`);
+            }
 
-          return [key, textField.value];
-        }),
-      };
-    }) ?? [];
+            return [key, textField.value];
+          }),
+        };
+      }) ?? [];
 
   // Reverse to display newest entry first
   notes.reverse();

@@ -1,5 +1,5 @@
 import { Alert, Button } from '@mui/material';
-import { startTransition } from 'react';
+import { ReactNode, startTransition } from 'react';
 
 import { useSnackbarError } from '../../../common/components/SnackbarAlertProvider';
 import {
@@ -19,10 +19,15 @@ import ManageNoteSharingButton from './ManageNoteSharingButton';
 
 interface NotesConnectionListProps {
   notesConnectionOptions?: UseNotesConnectionOptions;
+  /**
+   * Render this node when list is empty
+   */
+  emptyRender?: ReactNode;
 }
 
 export default function NotesConnectionList({
   notesConnectionOptions,
+  emptyRender,
 }: NotesConnectionListProps) {
   const { data, loading, error, fetchMore, canFetchMore } =
     useNotesConnection(notesConnectionOptions);
@@ -57,6 +62,10 @@ export default function NotesConnectionList({
         ),
       },
     })) ?? [];
+
+  if (notes.length === 0 && emptyRender) {
+    return emptyRender;
+  }
 
   function handleStartEdit(noteId: string) {
     startTransition(() => {

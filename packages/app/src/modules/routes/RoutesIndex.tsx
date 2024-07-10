@@ -14,6 +14,7 @@ import ErrorPage from './ErrorPage';
 import NotFoundPage from './NotFoundPage';
 import NotesRoute from './NotesRoute';
 import RedirectSharedNote from './RedirectSharedNote';
+import ArchivedNotesRoute from './archive/ArchivedNotesRoute';
 import LocalNotesRoute from './local/NotesRoute';
 import LocalEditNoteDialogRoute from './local/note/(desktop)/EditNoteDialogRoute';
 import LocalEditNotePage from './local/note/(mobile)/EditNotePage';
@@ -61,7 +62,7 @@ function CommonRoutes({ children, ...restProps }: RoutesProps) {
       <Routes {...restProps}>
         <Route path="*" element={<AppBarDrawerLayout />}>
           <Route index element={isSignedIn ? <NotesRoute /> : <LocalNotesRoute />} />
-          {isSignedIn && <Route path="archive" element={'TODO implement archive list'} />}
+          {isSignedIn && <Route path="archive" element={<ArchivedNotesRoute />} />}
           <Route path="local" element={<LocalNotesRoute />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
