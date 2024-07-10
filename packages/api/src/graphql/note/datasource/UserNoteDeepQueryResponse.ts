@@ -7,9 +7,7 @@ import { NoteQuery } from '../mongo-query-mapper/note';
 
 export type UserNoteDeepQueryResponse<TCollabTextKey extends string = NoteTextField> =
   DeepQueryResponse<Omit<NoteQuery<TCollabTextKey>, 'note'>> & {
-    note?: DeepQueryResponse<
-      Omit<NoteQuery<TCollabTextKey>['note'], 'collabTexts'>
-    > & {
+    note?: DeepQueryResponse<Omit<NoteQuery<TCollabTextKey>['note'], 'collabTexts'>> & {
       collabTexts?: Record<
         TCollabTextKey,
         DeepQueryResponse<Omit<CollabTextQuery, 'records'>> & {

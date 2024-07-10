@@ -11,7 +11,6 @@ export type SerializedStrip = unknown;
  * Strip is immutable.
  */
 export abstract class Strip implements Serializable<SerializedStrip> {
-
   abstract length: number;
 
   /**

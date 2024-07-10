@@ -22,7 +22,7 @@ export class ApolloHttpLambda extends Construct {
       code: Code.fromAsset(props.codePath),
       timeout: Duration.seconds(8),
       memorySize: 256,
-      environment: props.environment
+      environment: props.environment,
     });
   }
 }

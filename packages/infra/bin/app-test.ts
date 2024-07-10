@@ -2,6 +2,7 @@ import 'source-map-support/register';
 import path from 'path';
 
 import { App } from 'aws-cdk-lib';
+
 import { createLambdaGraphQLDynamoDBTables } from '~api-dev-server/utils/lambda-graphql-dynamodb';
 
 import { TestNotesStack } from '../lib/stacks/test-notes-stack';
@@ -10,7 +11,6 @@ import {
   loadEnvironmentVariables,
 } from '../lib/utils/env';
 import { PROJECT_DIR } from '../lib/utils/project-dir';
-
 
 /**
  * DO NOT DEPLOY, ONLY FOR TESTING APP

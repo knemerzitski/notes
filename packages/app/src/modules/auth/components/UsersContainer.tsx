@@ -41,10 +41,7 @@ export default function UsersContainer() {
 
       <Divider sx={{ mt: 3 }} />
 
-      <UsersList
-        users={signedInUsers}
-        selectedUser={currentSignedInUser ?? undefined}
-      />
+      <UsersList users={signedInUsers} selectedUser={currentSignedInUser ?? undefined} />
 
       <LoginList
         sx={{

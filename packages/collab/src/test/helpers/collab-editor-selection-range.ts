@@ -1,8 +1,8 @@
-import mitt, { Emitter } from "~utils/mitt-unsub";
+import mitt, { Emitter } from '~utils/mitt-unsub';
 
-import { Changeset } from "../../changeset/changeset";
-import { CollabEditor } from "../../client/collab-editor";
-import { SelectionRange } from "../../client/selection-range";
+import { Changeset } from '../../changeset/changeset';
+import { CollabEditor } from '../../client/collab-editor';
+import { SelectionRange } from '../../client/selection-range';
 
 /**
  * Make sure to call cleanUp after you're done using the SelectionRange.
@@ -38,8 +38,6 @@ type CollabEditorSelectionRangeEvents = {
     newSelection: Readonly<SelectionRange>;
   };
 };
-
-
 
 interface CollabEditorSelectionRangeOptions {
   /**

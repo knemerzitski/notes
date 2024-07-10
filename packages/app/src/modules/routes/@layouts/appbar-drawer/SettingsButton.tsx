@@ -49,7 +49,7 @@ export default function SettingsButton(props: IconButtonProps) {
           </IconButton>
         </span>
       </Tooltip>
-      
+
       <Menu
         id={menuId}
         anchorEl={anchorEl}

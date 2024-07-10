@@ -1,4 +1,5 @@
 import { GraphQLResolveInfo } from 'graphql';
+
 import { Changeset } from '~collab/changeset/changeset';
 
 import {
@@ -21,8 +22,6 @@ import {
   RevisionChangesetQueryMapper,
 } from './revision-changeset';
 import { CollabTextRecordQuery, CollabTextRecordQueryMapper } from './revision-record';
-
-
 
 export type CollabTextQuery = Omit<
   CollabTextSchema,

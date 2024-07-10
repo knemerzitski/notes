@@ -14,9 +14,7 @@ import useDeleteNote from '../hooks/useDeleteNote';
 import useDiscardEmptyNote from '../hooks/useDiscardEmptyNote';
 import { insertNoteToNotesConnection } from '../policies/Query/notesConnection';
 
-
 import ManageNoteSharingButton from './ManageNoteSharingButton';
-
 
 export default function CreateNoteWidget(props: CreateNoteWidgetProps) {
   const apolloClient = useApolloClient();

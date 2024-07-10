@@ -4,7 +4,6 @@ import { MouseEvent } from 'react';
 import { useCloseable } from '../context/CloseableProvider';
 import { useUser } from '../context/UserProvider';
 
-
 export default function SignInMenuItem({ onClick, ...restProps }: MenuItemProps) {
   const session = useUser();
   const closeMenu = useCloseable();

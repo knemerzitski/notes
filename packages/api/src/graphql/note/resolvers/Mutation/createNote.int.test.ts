@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
 import { assert, beforeAll, describe, expect, it } from 'vitest';
+
 import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
 
 import { UserSchema } from '../../../../mongodb/schema/user';
@@ -18,8 +19,6 @@ import {
 } from '../../../../test/helpers/mongodb/populate';
 import { GraphQLResolversContext } from '../../../context';
 import { CreateNoteInput, NoteTextField } from '../../../types.generated';
-
-
 
 const MUTATION = `#graphql
   mutation($input: CreateNoteInput!){

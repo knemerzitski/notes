@@ -14,7 +14,6 @@ import { NoteTextField } from '../../types.generated';
 
 import noteBatchLoad, { NoteBatchLoadContext } from './noteBatchLoad';
 
-
 let notes: NoteSchema[];
 let user: UserSchema;
 let context: NoteBatchLoadContext;

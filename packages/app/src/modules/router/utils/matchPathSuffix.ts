@@ -10,7 +10,10 @@ note - note match ok
 
 */
 
-export default function matchPathSuffix(pathsPatterns: string[], locationPathname: string) {
+export default function matchPathSuffix(
+  pathsPatterns: string[],
+  locationPathname: string
+) {
   const locationParts = locationPathname.split(SLASH);
   for (const path of pathsPatterns) {
     const pathParts = path.split(SLASH);

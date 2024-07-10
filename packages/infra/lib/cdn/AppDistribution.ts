@@ -18,7 +18,7 @@ import {
   OriginRequestCookieBehavior,
   OriginRequestHeaderBehavior,
   OriginRequestQueryStringBehavior,
-  Function
+  Function,
 } from 'aws-cdk-lib/aws-cloudfront';
 import { S3Origin, RestApiOrigin, HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { IBucket } from 'aws-cdk-lib/aws-s3';

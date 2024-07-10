@@ -7,8 +7,6 @@ import BaseCreateNoteFab, {
 import useCreateLocalNote from '../hooks/useCreateLocalNote';
 import { insertLocalNoteToNotesConnection } from '../policies/Query/localNotesConnection';
 
-
-
 export default function CreateNoteFab(props: Omit<CreateNoteFabProps, 'onCreate'>) {
   const apolloClient = useApolloClient();
   const navigate = useProxyNavigate();

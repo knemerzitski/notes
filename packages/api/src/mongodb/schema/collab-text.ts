@@ -1,5 +1,5 @@
-
 import { ObjectId } from 'mongodb';
+
 import { Changeset } from '~collab/changeset/changeset';
 import { SelectionRange } from '~collab/client/selection-range';
 import { RevisionChangeset, ServerRevisionRecord } from '~collab/records/record';

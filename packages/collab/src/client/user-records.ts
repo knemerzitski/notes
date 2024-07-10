@@ -93,4 +93,3 @@ export class UserRecords {
 export function isOwnRecord(record: EditorRevisionRecord, userId?: string | symbol) {
   return !userId || !record.creatorUserId || record.creatorUserId === userId;
 }
-
