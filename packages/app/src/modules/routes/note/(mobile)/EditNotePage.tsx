@@ -37,6 +37,7 @@ export default function EditNotePage() {
   const navigate = useProxyNavigate();
 
   const isNewNote = Boolean(state?.newNote);
+  const isOrWasNewNoteRef = useRef(isNewNote);
 
   const isScrollEnd = useIsScrollEnd();
 
@@ -109,7 +110,7 @@ export default function EditNotePage() {
           noteContentId={noteContentId}
           isNewNote={isNewNote}
         >
-          <DiscardEmptyNoteOnClose />
+          {isOrWasNewNoteRef.current && <DiscardEmptyNoteOnClose />}
           <>
             <CollabInputs
               boxProps={{
