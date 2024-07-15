@@ -4,8 +4,8 @@ import { Fragment } from 'react';
 import { gql } from '../../../../__generated__/gql';
 import NoteContentIdToCollabTextsProvider from '../context/NoteContentIdToCollabTextsProvider';
 
-import ExternalChangesSubscription from './ExternalChangesSubscription';
 import NoteDeletedSubscription from './NoteDeletedSubscription';
+import NoteUpdatedSubscription from './NoteUpdatedSubscription';
 import SubmittedRecordMutation from './SubmittedRecordMutation';
 import SyncRecordsHeadTextUpdated from './SyncRecordsHeadTextUpdated';
 import SyncRecordsMissingInBuffer from './SyncRecordsMissingInBuffer';
@@ -46,7 +46,7 @@ export default function ActiveNotesManager() {
       >
         {!activeNote.isOwner && (
           <>
-            <ExternalChangesSubscription />
+            <NoteUpdatedSubscription />
             <NoteDeletedSubscription />
           </>
         )}

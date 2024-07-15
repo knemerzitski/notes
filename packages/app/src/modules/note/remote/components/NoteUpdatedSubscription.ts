@@ -8,10 +8,14 @@ import { getCollabEditorMaybe } from '../../../collab/hooks/useCollabEditor';
 import { useNoteContentId } from '../context/NoteContentIdProvider';
 
 export const SUBSCRIPTION = gql(`
-  subscription ExternalChangesNewRecord($input: NoteUpdatedInput) {
+  subscription NoteUpdated($input: NoteUpdatedInput) {
     noteUpdated(input: $input) {
+      contentId
       patch {
         id
+        sharing {
+          id
+        }
         textFields {
           value {
             id
@@ -38,8 +42,8 @@ export const SUBSCRIPTION = gql(`
   }
 `);
 
-const FRAGMENT_RECORDS = gql(`
-  fragment ExternalChangesUpdateCache on CollabText {
+const FRAGMENT_COLLABTEXT = gql(`
+  fragment NoteUpdatedCollabTextCache on CollabText {
     recordsConnection {
       records {
         id
@@ -58,7 +62,14 @@ const FRAGMENT_RECORDS = gql(`
         }
       }
     }
+  }
+`);
 
+const FRAGMENT_NOTE = gql(`
+  fragment NoteUpdatedNoteCache on Note {
+    sharing {
+      id
+    }    
   }
 `);
 
@@ -66,7 +77,7 @@ const FRAGMENT_RECORDS = gql(`
  * Subscribe to specific note updates. If unspecified then subscribes
  * to all notes of current user.
  */
-export default function ExternalChangesSubscription() {
+export default function NoteUpdatedSubscription() {
   const customApolloClient = useCustomApolloClient();
   const currentUserId = useCurrentUserId();
   const noteContentId = useNoteContentId(true);
@@ -86,9 +97,29 @@ export default function ExternalChangesSubscription() {
 
     const sub = observable.subscribe({
       next(value) {
-        if (!value.data) return;
+        const noteUpdated = value.data?.noteUpdated;
+        if (!noteUpdated) return;
 
-        value.data.noteUpdated.patch.textFields?.forEach(({ value }) => {
+        // Note
+        if (noteUpdated.patch.sharing) {
+          customApolloClient.writeFragmentNoRetain({
+            id: customApolloClient.cache.identify({
+              contentId: noteUpdated.contentId,
+              __typename: 'Note',
+            }),
+            fragment: FRAGMENT_NOTE,
+            data: {
+              sharing: noteUpdated.patch.sharing.id
+                ? {
+                    id: noteUpdated.patch.sharing.id,
+                  }
+                : null,
+            },
+          });
+        }
+
+        // CollabText
+        noteUpdated.patch.textFields?.forEach(({ value }) => {
           const { id: collabTextId, newRecord } = value;
           if (!newRecord) return;
 
@@ -98,7 +129,7 @@ export default function ExternalChangesSubscription() {
               id: collabTextId,
               __typename: 'CollabText',
             }),
-            fragment: FRAGMENT_RECORDS,
+            fragment: FRAGMENT_COLLABTEXT,
             data: {
               recordsConnection: {
                 records: [newRecord],

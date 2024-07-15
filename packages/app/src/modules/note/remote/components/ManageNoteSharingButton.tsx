@@ -20,7 +20,11 @@ import {
 } from '@mui/material';
 import { useId, useState } from 'react';
 
+import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+
 import { gql } from '../../../../__generated__/gql';
+import ErrorLink from '../../../apollo-client/links/error-link';
+import isErrorCode from '../../../apollo-client/utils/isErrorCode';
 import { useSnackbarAlert } from '../../../common/components/SnackbarAlertProvider';
 import { useNoteContentId } from '../context/NoteContentIdProvider';
 
@@ -163,6 +167,10 @@ function NoteContentIdDefinedButton({
               contentId: noteContentId,
             },
           },
+          context: {
+            [ErrorLink.IGNORE_CONTEXT_KEY]: [GraphQLErrorCode.INVALID_OPERATION],
+          },
+          errorPolicy: 'all',
           optimisticResponse: {
             createNoteSharing: {
               note: {
@@ -175,6 +183,19 @@ function NoteContentIdDefinedButton({
               },
             },
           },
+        })
+        .then((result) => {
+          if (isErrorCode(result.errors, GraphQLErrorCode.INVALID_OPERATION)) {
+            // Note is already shared, fetch shareId and update cache
+            return apolloClient.query({
+              query: QUERY,
+              variables: {
+                contentId: noteContentId,
+              },
+              fetchPolicy: 'network-only',
+            });
+          }
+          return;
         })
         .finally(() => {
           setIsCreatingShareLink(false);

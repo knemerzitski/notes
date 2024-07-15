@@ -14,9 +14,9 @@ import FullSizeErrorContainer from './modules/common/components/FullSizeErrorCon
 import RenderedFabsTrackingProvider from './modules/common/components/RenderedFabsTrackingProvider';
 import SnackbarAlertProvider from './modules/common/components/SnackbarAlertProvider';
 import ActiveNotesManager from './modules/note/remote/components/ActiveNotesManager';
-import ExternalChangesSubscription from './modules/note/remote/components/ExternalChangesSubscription';
 import NoteCreatedSubscription from './modules/note/remote/components/NoteCreatedSubscription';
 import NoteDeletedSubscription from './modules/note/remote/components/NoteDeletedSubscription';
+import NoteUpdatedSubscription from './modules/note/remote/components/NoteUpdatedSubscription';
 import RouterProvider from './modules/router/context/RouterProvider';
 import { router } from './modules/routes/RoutesIndex';
 import CustomThemeProvider, {
@@ -44,8 +44,8 @@ export default function App() {
               <ApolloClientErrorsSnackbarAlert />
               <GoogleAuthProvider clientId={CLIENT_ID}>
                 <NoteCreatedSubscription />
+                <NoteUpdatedSubscription />
                 <NoteDeletedSubscription />
-                <ExternalChangesSubscription />
                 <ActiveNotesManager />
                 <ActiveCollabTextsManager />
 
