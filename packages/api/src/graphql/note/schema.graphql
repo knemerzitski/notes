@@ -53,7 +53,7 @@ type Note implements Node {
 }
 
 type NotePatch {
-  "This patch applies to Note.id"
+  "This patch applies to Note.id TODO remove this field"
   id: String!
   "Changed note text fields"
   textFields: [NoteTextFieldEntryPatch!]
@@ -170,6 +170,9 @@ input NoteUpdatedInput {
   "Subscribe to note changes by content ID. If undefined then subscribes to all notes of current user."
   contentId: String
 }
+"""
+TODO leave id outside patch as it cannot change.
+"""
 type NoteUpdatedPayload {
   "ID of note that was updated"
   contentId: String!
