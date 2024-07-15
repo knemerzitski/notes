@@ -1,6 +1,6 @@
 import { ApolloError, useApolloClient } from '@apollo/client';
 import mapObject from 'map-obj';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 
 import { gql } from '../../../../__generated__/gql';
 import {
@@ -74,6 +74,10 @@ interface UseNotesConnectionResult {
   error?: ApolloError;
 }
 
+// Fetch notesConnection once for category between browser refreshes
+// Should this be a context instead of a local variable? Set a timer after which data is fetched again?
+const haveFetchedCategories = new Set<NoteCategory>();
+
 export default function useNotesConnection(
   options?: UseNotesConnectionOptions
 ): UseNotesConnectionResult {
@@ -82,8 +86,6 @@ export default function useNotesConnection(
 
   const apolloClient = useApolloClient();
   const isBackgroundLocation = useIsBackgroundLocation();
-
-  const haveFetchedData = useRef(false);
 
   const {
     data,
@@ -95,7 +97,9 @@ export default function useNotesConnection(
       last: perPageCount,
       category,
     },
-    fetchPolicy: haveFetchedData.current ? 'cache-first' : 'cache-and-network',
+    fetchPolicy: haveFetchedCategories.has(category)
+      ? 'cache-first'
+      : 'cache-and-network',
   });
 
   useEffect(() => {
@@ -123,7 +127,11 @@ export default function useNotesConnection(
     };
   }
 
-  haveFetchedData.current = true;
+  // data && loading => data is fresh from a network request
+  // data && not loading => data is from cache
+  if (!fetchLoading) {
+    haveFetchedCategories.add(category);
+  }
 
   const notes: NoteTransformed[] =
     data?.notesConnection.notes
