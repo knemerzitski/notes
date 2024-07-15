@@ -1,7 +1,6 @@
 import { Alert, Button } from '@mui/material';
 import { ReactNode, startTransition } from 'react';
 
-import { NoteCategory } from '../../../../__generated__/graphql';
 import { useSnackbarError } from '../../../common/components/SnackbarAlertProvider';
 import {
   useProxyNavigate,
@@ -16,9 +15,8 @@ import useNotesConnection, {
   UseNotesConnectionOptions,
 } from '../hooks/useNotesConnection';
 
-import ArchiveNoteButton from './ArchiveNoteButton';
+import ArchiveOrUnarchiveNoteButton from './ArchiveOrUnarchiveNoteButton';
 import ManageNoteSharingButton from './ManageNoteSharingButton';
-import UnarchiveNoteButton from './UnarchiveNoteButton';
 
 interface NotesConnectionListProps {
   notesConnectionOptions?: UseNotesConnectionOptions;
@@ -50,7 +48,7 @@ export default function NotesConnectionList({
   }
 
   const notes: NoteCardItemProps['note'][] =
-    data?.notes.map(({ contentId, textFields, isOwner, sharing, categoryName }) => ({
+    data?.notes.map(({ contentId, textFields, isOwner, sharing }) => ({
       id: contentId,
       title: textFields.TITLE.viewText,
       content: textFields.CONTENT.viewText,
@@ -61,11 +59,7 @@ export default function NotesConnectionList({
         toolbar: (
           <NoteContentIdProvider noteContentId={contentId}>
             <ManageNoteSharingButton />
-            {categoryName === NoteCategory.ARCHIVE ? (
-              <UnarchiveNoteButton />
-            ) : (
-              <ArchiveNoteButton />
-            )}
+            <ArchiveOrUnarchiveNoteButton />
           </NoteContentIdProvider>
         ),
       },
