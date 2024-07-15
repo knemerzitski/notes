@@ -131,11 +131,7 @@ export default function SnackbarAlertProvider({ children }: { children: ReactNod
     setQueuedSnacks((prev) => [...prev, newSnack]);
 
     return () => {
-      setQueuedSnacks((prev) => {
-        const index = prev.indexOf(newSnack);
-        if (index === -1) return prev;
-        return [...prev.slice(0, index), ...prev.slice(index + 1)];
-      });
+      setOpen(false);
     };
   }, []);
 
