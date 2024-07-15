@@ -10,6 +10,8 @@ const MUTATION = gql(`
       note {
         id
         contentId
+        isOwner
+        categoryName
         sharing {
           id
         }
