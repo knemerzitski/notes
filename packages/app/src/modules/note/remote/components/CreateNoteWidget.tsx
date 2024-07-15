@@ -14,12 +14,15 @@ import useDiscardEmptyNote from '../hooks/useDiscardEmptyNote';
 
 import { useInsertNoteToNotesConnection } from '../hooks/useInsertNoteToNotesConnection';
 
+import ArchiveOrUnarchiveNoteButton from './ArchiveOrUnarchiveNoteButton';
 import ManageNoteSharingButton from './ManageNoteSharingButton';
 
-export default function CreateNoteWidget(props: CreateNoteWidgetProps) {
+export default function CreateNoteWidget(props: Omit<CreateNoteWidgetProps, 'expanded'>) {
   const insertNoteToNotesConnection = useInsertNoteToNotesConnection();
   const deleteNote = useDeleteNote();
   const showError = useSnackbarError();
+
+  const [isWidgetExpanded, setIsWidgetExpanded] = useState(false);
 
   const { editors, createNote, reset } = useCreatableNoteTextFieldEditors();
   const [noteWithEditors, setNoteWithEditors] = useState<{
@@ -60,7 +63,13 @@ export default function CreateNoteWidget(props: CreateNoteWidgetProps) {
     }
   }
 
-  function handleWidgetCollapsed(deleted?: boolean) {
+  function handleWidgetExpand() {
+    setIsWidgetExpanded(true);
+  }
+
+  function handleWidgetCollapse(deleted?: boolean) {
+    setIsWidgetExpanded(false);
+
     reset();
 
     if (noteWithEditors) {
@@ -77,14 +86,23 @@ export default function CreateNoteWidget(props: CreateNoteWidgetProps) {
   return (
     <NoteTextFieldEditorsProvider editors={editors}>
       <BaseCreateNoteWidget
+        expanded={isWidgetExpanded}
         onCreate={() => {
           void handleCreateNote();
         }}
-        onCollapse={handleWidgetCollapsed}
+        onExpand={handleWidgetExpand}
+        onCollapse={handleWidgetCollapse}
         slots={{
           toolbar: (
             <NoteContentIdProvider noteContentId={noteWithEditors?.note.contentId}>
               <ManageNoteSharingButton />
+              <ArchiveOrUnarchiveNoteButton
+                iconButtonProps={{
+                  onClick: () => {
+                    handleWidgetCollapse();
+                  },
+                }}
+              />
             </NoteContentIdProvider>
           ),
         }}

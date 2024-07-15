@@ -26,9 +26,12 @@ export default function UnarchiveNoteButton({ iconButtonProps }: UnarchvieButton
   return (
     <BaseButton
       iconButtonProps={{
-        onClick: unarchiveNoteWithUndo,
         'aria-label': 'archive note',
         ...iconButtonProps,
+        onClick: (e) => {
+          unarchiveNoteWithUndo();
+          iconButtonProps?.onClick?.(e);
+        },
       }}
     />
   );

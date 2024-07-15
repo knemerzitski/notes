@@ -26,9 +26,12 @@ export default function ArchiveNoteButton({ iconButtonProps }: ArchvieButtonProp
   return (
     <BaseButton
       iconButtonProps={{
-        onClick: archiveNoteWithUndo,
         'aria-label': 'archive note',
         ...iconButtonProps,
+        onClick: (e) => {
+          archiveNoteWithUndo();
+          iconButtonProps?.onClick?.(e);
+        },
       }}
     />
   );

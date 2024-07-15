@@ -19,12 +19,21 @@ import UndoButton from './UndoButton';
 
 export interface CreateNoteWidgetProps {
   /**
+   * Widget is expanded with both title and content fields.
+   * If not expanded then only content field is shown.
+   */
+  expanded: boolean;
+  /**
+   * Expand widget. {@link expanded} should be set to true
+   */
+  onExpand?: () => void;
+  /**
    * Note should be created when this function is invoked.
    */
   onCreate?: () => void;
   /**
-   * Collapses widget only display single field for content
-   * @param deleted Widget collapses because 'Delete note' was clicked
+   * Collapse widget. Inverse of expand. {@link expanded} should be set to false
+   * @param deleted Widget must collapse because 'Delete note' was clicked
    */
   onCollapse?: (deleted?: boolean) => void;
   paperProps?: PaperProps;
@@ -35,15 +44,39 @@ export interface CreateNoteWidgetProps {
   };
 }
 
+export function ControlledCreateNoteWidget(props: Omit<CreateNoteWidgetProps, 'expand'>) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const handleExpand: CreateNoteWidgetProps['onExpand'] = (...args) => {
+    setIsExpanded(true);
+    props.onExpand?.(...args);
+  };
+
+  const handleCollapse: CreateNoteWidgetProps['onCollapse'] = (...args) => {
+    setIsExpanded(false);
+    props.onCollapse?.(...args);
+  };
+
+  return (
+    <CreateNoteWidget
+      {...props}
+      expanded={isExpanded}
+      onExpand={handleExpand}
+      onCollapse={handleCollapse}
+    />
+  );
+}
+
 export default function CreateNoteWidget({
+  expanded,
   onCreate,
+  onExpand,
   onCollapse,
   paperProps,
   slots,
   moreOptionsButtonProps,
   initialContentInputProps,
 }: CreateNoteWidgetProps) {
-  const [isEditorOpen, setIsEditorOpen] = useState(false);
   const isCreatedCalledRef = useRef(false);
 
   function createOnce() {
@@ -57,11 +90,10 @@ export default function CreateNoteWidget({
   }
 
   function handleExpandEditor() {
-    setIsEditorOpen(true);
+    onExpand?.();
   }
 
   function handleCloseWidget(deleted?: boolean) {
-    setIsEditorOpen(false);
     onCollapse?.(deleted);
     isCreatedCalledRef.current = false;
   }
@@ -85,7 +117,7 @@ export default function CreateNoteWidget({
         sx={{
           px: 2,
           py: 2,
-          display: isEditorOpen ? 'none' : undefined,
+          display: expanded ? 'none' : undefined,
           ...baseSx,
           ...paperProps?.sx,
         }}
@@ -101,7 +133,7 @@ export default function CreateNoteWidget({
         />
       </Paper>
 
-      {isEditorOpen && (
+      {expanded && (
         <ClickAwayListener
           onClickAway={() => {
             handleCloseWidget();

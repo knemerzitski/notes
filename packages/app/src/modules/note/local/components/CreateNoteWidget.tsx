@@ -4,8 +4,9 @@ import { useState, useRef } from 'react';
 import { CollabEditor } from '~collab/client/collab-editor';
 
 import { editorsInCache } from '../../../editor/editors';
-import BaseCreateNoteWidget, {
+import {
   CreateNoteWidgetProps,
+  ControlledCreateNoteWidget,
 } from '../../base/components/CreateNoteWidget';
 import NoteTextFieldEditorsProvider from '../../remote/context/NoteTextFieldEditorsProvider';
 import { newEmptyEditors } from '../../remote/hooks/useCreatableNoteTextFieldEditors';
@@ -49,6 +50,7 @@ export default function CreateNoteWidget(props: CreateNoteWidgetProps) {
       insertLocalNoteToNotesConnection(apolloClient.cache, createdNoteRef.current);
     }
     createdNoteRef.current = null;
+    props.onCollapse?.();
   }
 
   function handleDelete() {
@@ -59,9 +61,8 @@ export default function CreateNoteWidget(props: CreateNoteWidgetProps) {
 
   return (
     <NoteTextFieldEditorsProvider editors={newNoteEditors}>
-      <BaseCreateNoteWidget
+      <ControlledCreateNoteWidget
         onCreate={handleCreateNote}
-        onCollapse={handleWidgetCollapsed}
         moreOptionsButtonProps={{
           onDelete: handleDelete,
         }}
@@ -71,6 +72,7 @@ export default function CreateNoteWidget(props: CreateNoteWidgetProps) {
           },
         }}
         {...props}
+        onCollapse={handleWidgetCollapsed}
       />
     </NoteTextFieldEditorsProvider>
   );
