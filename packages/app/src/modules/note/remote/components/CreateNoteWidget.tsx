@@ -1,4 +1,3 @@
-import { useApolloClient } from '@apollo/client';
 import { useState } from 'react';
 
 import { useSnackbarError } from '../../../common/components/SnackbarAlertProvider';
@@ -12,13 +11,13 @@ import NoteTextFieldEditorsProvider, {
 import { useCreatableNoteTextFieldEditors } from '../hooks/useCreatableNoteTextFieldEditors';
 import useDeleteNote from '../hooks/useDeleteNote';
 import useDiscardEmptyNote from '../hooks/useDiscardEmptyNote';
-import { insertNoteToNotesConnection } from '../policies/Query/notesConnection';
+
+import { useInsertNoteToNotesConnection } from '../hooks/useInsertNoteToNotesConnection';
 
 import ManageNoteSharingButton from './ManageNoteSharingButton';
 
 export default function CreateNoteWidget(props: CreateNoteWidgetProps) {
-  const apolloClient = useApolloClient();
-
+  const insertNoteToNotesConnection = useInsertNoteToNotesConnection();
   const deleteNote = useDeleteNote();
   const showError = useSnackbarError();
 
@@ -48,7 +47,7 @@ export default function CreateNoteWidget(props: CreateNoteWidgetProps) {
     const newEditors = editors;
 
     if (noteWithEditors) {
-      insertNoteToNotesConnection(apolloClient.cache, noteWithEditors.note);
+      insertNoteToNotesConnection(noteWithEditors.note);
     }
 
     if (!newNote) {
@@ -68,7 +67,7 @@ export default function CreateNoteWidget(props: CreateNoteWidgetProps) {
       const discarded = discardEmptyNote(noteWithEditors);
 
       if (!discarded && !deleted) {
-        insertNoteToNotesConnection(apolloClient.cache, noteWithEditors.note);
+        insertNoteToNotesConnection(noteWithEditors.note);
       }
 
       setNoteWithEditors(null);

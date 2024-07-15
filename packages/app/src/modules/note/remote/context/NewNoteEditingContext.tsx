@@ -3,7 +3,8 @@ import { ReactNode, useRef, useEffect, startTransition } from 'react';
 
 import { useProxyNavigate } from '../../../router/context/ProxyRoutesProvider';
 import { useCreatableNoteTextFieldEditors } from '../hooks/useCreatableNoteTextFieldEditors';
-import { insertNoteToNotesConnection } from '../policies/Query/notesConnection';
+
+import { useInsertNoteToNotesConnection } from '../hooks/useInsertNoteToNotesConnection';
 
 import NoteCollabTextsProvider from './NoteTextFieldEditorsProvider';
 
@@ -13,6 +14,7 @@ interface NewNoteEditingContextProps {
 
 export default function NewNoteEditingContext({ children }: NewNoteEditingContextProps) {
   const apolloClient = useApolloClient();
+  const insertNoteToNotesConnection = useInsertNoteToNotesConnection();
   const navigate = useProxyNavigate();
   const { editors, createNote } = useCreatableNoteTextFieldEditors();
   const isCreatingNoteRef = useRef(false);
@@ -24,7 +26,7 @@ export default function NewNoteEditingContext({ children }: NewNoteEditingContex
         isCreatingNoteRef.current = true;
         const newNote = await createNote();
         if (!newNote) return;
-        insertNoteToNotesConnection(apolloClient.cache, newNote);
+        insertNoteToNotesConnection(newNote);
         startTransition(() => {
           navigate(`/note/${newNote.contentId}`, {
             replace: true,
@@ -37,7 +39,7 @@ export default function NewNoteEditingContext({ children }: NewNoteEditingContex
         isCreatingNoteRef.current = false;
       }
     })();
-  }, [apolloClient, createNote, navigate]);
+  }, [apolloClient, createNote, navigate, insertNoteToNotesConnection]);
 
   return <NoteCollabTextsProvider editors={editors}>{children}</NoteCollabTextsProvider>;
 }

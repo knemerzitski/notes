@@ -8,7 +8,7 @@ import { gql } from '../../__generated__/gql';
 import ErrorLink from '../apollo-client/links/error-link';
 import isErrorCode from '../apollo-client/utils/isErrorCode';
 import { useRouteSnackbarError } from '../common/components/RouteSnackbarAlertProvider';
-import { insertNoteToNotesConnection } from '../note/remote/policies/Query/notesConnection';
+import { useInsertNoteToNotesConnection } from '../note/remote/hooks/useInsertNoteToNotesConnection';
 import { useProxyNavigate } from '../router/context/ProxyRoutesProvider';
 
 const MUTATION_LINK = gql(`
@@ -43,6 +43,7 @@ export default function RedirectSharedNote() {
   const apolloClient = useApolloClient();
   const showRouteError = useRouteSnackbarError();
   const fetchingRef = useRef(false);
+  const insertNoteToNotesConnection = useInsertNoteToNotesConnection();
 
   useEffect(() => {
     if (!shareId || fetchingRef.current) return;
@@ -75,7 +76,7 @@ export default function RedirectSharedNote() {
 
         if (!data) return;
 
-        insertNoteToNotesConnection(apolloClient.cache, data.linkSharedNote.note);
+        insertNoteToNotesConnection(data.linkSharedNote.note);
 
         const noteContentId = data.linkSharedNote.note.contentId;
         navigate(`/note/${noteContentId}`, {
@@ -89,7 +90,7 @@ export default function RedirectSharedNote() {
       .finally(() => {
         fetchingRef.current = false;
       });
-  }, [shareId, apolloClient, navigate, showRouteError]);
+  }, [shareId, apolloClient, navigate, showRouteError, insertNoteToNotesConnection]);
 
   return null;
 }
