@@ -169,7 +169,6 @@ export async function parseAuthFromHeaders(
     CollectionName.USERS | CollectionName.SESSIONS
   >
 ) {
-  console.log(headers);
   try {
     if (!headers) {
       return {
