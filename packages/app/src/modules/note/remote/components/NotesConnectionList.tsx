@@ -15,8 +15,7 @@ import useNotesConnection, {
   UseNotesConnectionOptions,
 } from '../hooks/useNotesConnection';
 
-import ArchiveOrUnarchiveNoteButton from './ArchiveOrUnarchiveNoteButton';
-import ManageNoteSharingButton from './ManageNoteSharingButton';
+import NoteToolbar from './NoteToolbar';
 
 interface NotesConnectionListProps {
   notesConnectionOptions?: UseNotesConnectionOptions;
@@ -58,8 +57,14 @@ export default function NotesConnectionList({
       slots: {
         toolbar: (
           <NoteContentIdProvider noteContentId={contentId}>
-            <ManageNoteSharingButton />
-            <ArchiveOrUnarchiveNoteButton />
+            <NoteToolbar
+              generic={{
+                start: {
+                  edge: 'start',
+                },
+              }}
+              hasEditor={false}
+            />
           </NoteContentIdProvider>
         ),
       },

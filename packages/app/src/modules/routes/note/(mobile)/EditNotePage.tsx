@@ -13,10 +13,7 @@ import RouteSnackbarError from '../../../common/components/RouteSnackbarError';
 import useIsScrollEnd from '../../../common/hooks/useIsScrollEnd';
 import MoreOptionsButton from '../../../note/base/MoreOptionsButton';
 import CollabInputs from '../../../note/base/components/CollabInputs';
-import RedoButton from '../../../note/base/components/RedoButton';
-import UndoButton from '../../../note/base/components/UndoButton';
-import ArchiveOrUnarchiveNoteButton from '../../../note/remote/components/ArchiveOrUnarchiveNoteButton';
-import ManageNoteSharingButton from '../../../note/remote/components/ManageNoteSharingButton';
+import NoteToolbar from '../../../note/remote/components/NoteToolbar';
 import NewOrExistingNoteEditingContext from '../../../note/remote/context/NewOrExistingNoteEditingContext';
 import { useNoteContentId } from '../../../note/remote/context/NoteContentIdProvider';
 import { useNoteCollabTextEditors } from '../../../note/remote/context/NoteTextFieldEditorsProvider';
@@ -157,22 +154,17 @@ export default function EditNotePage() {
                     gap: 1,
                   }}
                 >
-                  <ManageNoteSharingButton
-                    iconButtonProps={{
-                      edge: 'start',
-                      size: buttonSize,
-                    }}
-                  />
-                  <ArchiveOrUnarchiveNoteButton />
-                  <UndoButton
-                    iconButtonProps={{
-                      size: buttonSize,
-                    }}
-                  />
-                  <RedoButton
-                    iconButtonProps={{
-                      edge: 'end',
-                      size: buttonSize,
+                  <NoteToolbar
+                    generic={{
+                      start: {
+                        edge: 'start',
+                      },
+                      end: {
+                        edge: 'end',
+                      },
+                      all: {
+                        size: buttonSize,
+                      },
                     }}
                   />
                 </Box>

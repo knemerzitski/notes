@@ -14,6 +14,8 @@ import useCreateNote from '../hooks/useCreateNote';
 import useDeleteNote from '../hooks/useDeleteNote';
 import { insertLocalNoteToNotesConnection } from '../policies/Query/localNotesConnection';
 
+import NoteToolbar from './NoteToolbar';
+
 export default function CreateNoteWidget(props: CreateNoteWidgetProps) {
   const apolloClient = useApolloClient();
 
@@ -65,6 +67,9 @@ export default function CreateNoteWidget(props: CreateNoteWidgetProps) {
         onCreate={handleCreateNote}
         moreOptionsButtonProps={{
           onDelete: handleDelete,
+        }}
+        slots={{
+          toolbar: <NoteToolbar />,
         }}
         initialContentInputProps={{
           inputProps: {

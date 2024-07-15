@@ -6,19 +6,34 @@ import { useFocusedEditor } from '../../remote/context/FocusedEditorProvider';
 
 export interface UndoButtonProps {
   iconButtonProps?: IconButtonProps;
+  /**
+   * - hidden: Button is not rendered
+   * - disabled: Button is rendered with disabled state
+   * - error: Runtime error will be thrown
+   *
+   * @default "error"
+   */
+  noFocusedEditorBehaviour?: 'hidden' | 'disabled' | 'error';
 }
 
-export default function UndoButton({ iconButtonProps }: UndoButtonProps) {
-  const editor = useFocusedEditor();
-  const [canUndo, setCanUndo] = useState(editor.canUndo());
+export default function UndoButton({
+  iconButtonProps,
+  noFocusedEditorBehaviour = 'error',
+}: UndoButtonProps) {
+  const editor = useFocusedEditor(noFocusedEditorBehaviour !== 'error');
+  const [canUndo, setCanUndo] = useState(editor?.canUndo());
 
   function handleClickUndo() {
+    if (!editor) return;
+
     if (!editor.undo()) {
       setCanUndo(false);
     }
   }
 
   useEffect(() => {
+    if (!editor) return;
+
     setCanUndo(editor.canUndo());
     return editor.eventBus.onMany(
       ['appliedTypingOperation', 'userRecordsUpdated'],
@@ -27,6 +42,10 @@ export default function UndoButton({ iconButtonProps }: UndoButtonProps) {
       }
     );
   }, [editor]);
+
+  if (!editor && noFocusedEditorBehaviour === 'hidden') {
+    return null;
+  }
 
   return (
     <Tooltip title="Undo">

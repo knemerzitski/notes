@@ -68,7 +68,7 @@ const MUTATION_DELETE = gql(`
   }
 `);
 
-export interface CollaboratorButtonProps {
+export interface ManageNoteSharingButtonProps {
   iconButtonProps?: IconButtonProps;
 }
 
@@ -80,7 +80,7 @@ function getShareUrl(shareId?: string | number) {
 
 export default function ManageNoteSharingButton({
   iconButtonProps,
-}: CollaboratorButtonProps) {
+}: ManageNoteSharingButtonProps) {
   const noteContentId = useNoteContentId(true);
 
   if (!noteContentId) {
@@ -98,7 +98,7 @@ export default function ManageNoteSharingButton({
 function NoteContentIdDefinedButton({
   iconButtonProps,
   noteContentId,
-}: CollaboratorButtonProps & { noteContentId: string }) {
+}: ManageNoteSharingButtonProps & { noteContentId: string }) {
   const apolloClient = useApolloClient();
 
   const [isCreatingShareLink, setIsCreatingShareLink] = useState(false);
@@ -327,7 +327,7 @@ function NoteContentIdDefinedButton({
   );
 }
 
-function NoteContentIdMissingButton({ iconButtonProps }: CollaboratorButtonProps) {
+function NoteContentIdMissingButton({ iconButtonProps }: ManageNoteSharingButtonProps) {
   return (
     <SharingBaseButton
       iconButtonProps={{
@@ -338,7 +338,7 @@ function NoteContentIdMissingButton({ iconButtonProps }: CollaboratorButtonProps
   );
 }
 
-function SharingBaseButton({ iconButtonProps }: CollaboratorButtonProps) {
+function SharingBaseButton({ iconButtonProps }: ManageNoteSharingButtonProps) {
   return (
     <Tooltip title="Collaboration">
       <span>

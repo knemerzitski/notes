@@ -7,10 +7,12 @@ const SetFocusedEditorContext = createContext<
   ((newFocusEditor: CollabEditor) => void) | null
 >(null);
 
+export function useFocusedEditor(nullable: boolean): CollabEditor | undefined | null;
+export function useFocusedEditor(): CollabEditor;
 // eslint-disable-next-line react-refresh/only-export-components
-export function useFocusedEditor() {
+export function useFocusedEditor(nullable?: boolean): CollabEditor | undefined | null {
   const ctx = useContext(FocusedEditorContext);
-  if (ctx === null) {
+  if (ctx === null && !nullable) {
     throw new Error('useFocusedEditor() requires context <FocusedEditorProvider>');
   }
   return ctx;

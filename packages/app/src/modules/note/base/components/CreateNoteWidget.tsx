@@ -14,8 +14,6 @@ import MoreOptionsButton, { MoreOptionsButtonProps } from '../MoreOptionsButton'
 
 import CollabContentInput, { CollabContentInputProps } from './CollabContentInput';
 import CollabInputs from './CollabInputs';
-import RedoButton from './RedoButton';
-import UndoButton from './UndoButton';
 
 export interface CreateNoteWidgetProps {
   /**
@@ -193,8 +191,6 @@ export default function CreateNoteWidget({
                   />
 
                   {slots?.toolbar}
-                  <UndoButton />
-                  <RedoButton />
                 </Box>
                 <Button
                   color="inherit"

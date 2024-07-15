@@ -13,8 +13,7 @@ import AppBar from '../../../../common/components/AppBar';
 import useIsScrollEnd from '../../../../common/hooks/useIsScrollEnd';
 import MoreOptionsButton from '../../../../note/base/MoreOptionsButton';
 import CollabInputs from '../../../../note/base/components/CollabInputs';
-import RedoButton from '../../../../note/base/components/RedoButton';
-import UndoButton from '../../../../note/base/components/UndoButton';
+import NoteToolbar from '../../../../note/local/components/NoteToolbar';
 import { NoteEditingContext } from '../../../../note/local/context/NoteEditingContext';
 import useDeleteNote from '../../../../note/local/hooks/useDeleteNote';
 import useNoteExists from '../../../../note/local/hooks/useNoteExists';
@@ -149,16 +148,17 @@ export default function EditNotePage() {
                   gap: 1,
                 }}
               >
-                <UndoButton
-                  iconButtonProps={{
-                    edge: 'start',
-                    size: buttonSize,
-                  }}
-                />
-                <RedoButton
-                  iconButtonProps={{
-                    edge: 'end',
-                    size: buttonSize,
+                <NoteToolbar
+                  generic={{
+                    start: {
+                      edge: 'start',
+                    },
+                    end: {
+                      edge: 'end',
+                    },
+                    all: {
+                      size: buttonSize,
+                    },
                   }}
                 />
               </Box>

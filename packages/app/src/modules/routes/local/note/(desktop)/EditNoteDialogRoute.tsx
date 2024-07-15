@@ -10,8 +10,7 @@ import useIsElementScrollEnd from '../../../../common/hooks/useIsElementScrollEn
 import MoreOptionsButton from '../../../../note/base/MoreOptionsButton';
 import CollabInputs from '../../../../note/base/components/CollabInputs';
 import NoteDialog from '../../../../note/base/components/NoteDialog';
-import RedoButton from '../../../../note/base/components/RedoButton';
-import UndoButton from '../../../../note/base/components/UndoButton';
+import NoteToolbar from '../../../../note/local/components/NoteToolbar';
 import { NoteEditingContext } from '../../../../note/local/context/NoteEditingContext';
 import useDeleteNote from '../../../../note/local/hooks/useDeleteNote';
 import useNoteExists from '../../../../note/local/hooks/useNoteExists';
@@ -101,8 +100,7 @@ function RouteClosableEditNoteDialog({
                 }}
               >
                 <MoreOptionsButton onDelete={handleDeleteNote} />
-                <UndoButton />
-                <RedoButton />
+                <NoteToolbar />
               </Box>
               <Button
                 color="inherit"

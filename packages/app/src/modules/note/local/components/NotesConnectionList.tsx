@@ -12,6 +12,8 @@ import useNotesConnection, {
   UseNotesConnectionOptions,
 } from '../hooks/useNotesConnection';
 
+import NoteToolbar from './NoteToolbar';
+
 interface NotesConnectionListProps {
   notesConnectionOptions?: UseNotesConnectionOptions;
 }
@@ -32,6 +34,9 @@ export default function NotesConnectionList({
     title: textFields.TITLE.viewText,
     content: textFields.CONTENT.viewText,
     editing: absoluteLocation.pathname === transform(`/local/note/${id}`),
+    slots: {
+      toolbar: <NoteToolbar hasEditor={false} />,
+    },
   }));
 
   function handleStartEdit(noteId: string) {

@@ -14,8 +14,7 @@ import useDiscardEmptyNote from '../hooks/useDiscardEmptyNote';
 
 import { useInsertNoteToNotesConnection } from '../hooks/useInsertNoteToNotesConnection';
 
-import ArchiveOrUnarchiveNoteButton from './ArchiveOrUnarchiveNoteButton';
-import ManageNoteSharingButton from './ManageNoteSharingButton';
+import NoteToolbar from './NoteToolbar';
 
 export default function CreateNoteWidget(props: Omit<CreateNoteWidgetProps, 'expanded'>) {
   const insertNoteToNotesConnection = useInsertNoteToNotesConnection();
@@ -95,11 +94,14 @@ export default function CreateNoteWidget(props: Omit<CreateNoteWidgetProps, 'exp
         slots={{
           toolbar: (
             <NoteContentIdProvider noteContentId={noteWithEditors?.note.contentId}>
-              <ManageNoteSharingButton />
-              <ArchiveOrUnarchiveNoteButton
-                iconButtonProps={{
-                  onClick: () => {
-                    handleWidgetCollapse();
+              <NoteToolbar
+                specific={{
+                  archiveOrUnarchive: {
+                    iconButtonProps: {
+                      onClick: () => {
+                        handleWidgetCollapse();
+                      },
+                    },
                   },
                 }}
               />
