@@ -1,7 +1,6 @@
 import { Alert, Button } from '@mui/material';
 import { ReactNode, startTransition } from 'react';
 
-import { useSnackbarError } from '../../../common/components/SnackbarAlertProvider';
 import {
   useProxyNavigate,
   useProxyRouteTransform,
@@ -33,7 +32,6 @@ export default function NotesConnectionList({
     useNotesConnection(notesConnectionOptions);
 
   const deleteNote = useDeleteNote();
-  const showError = useSnackbarError();
   const navigate = useProxyNavigate();
   const transform = useProxyRouteTransform();
   const absoluteLocation = useAbsoluteLocation();
@@ -81,11 +79,7 @@ export default function NotesConnectionList({
   }
 
   function handleDelete(id: string) {
-    void deleteNote(id).then((deleted) => {
-      if (!deleted) {
-        showError('Failed to delete note');
-      }
-    });
+    void deleteNote(id);
   }
 
   return (

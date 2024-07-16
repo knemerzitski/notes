@@ -50,6 +50,8 @@ export default function EditNotePage() {
   function handleDeleteNote() {
     if (!noteContentId) return;
     void deleteNote(noteContentId);
+
+    handleClickBack();
   }
 
   // TODO make note active?

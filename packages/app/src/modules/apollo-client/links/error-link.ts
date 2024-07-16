@@ -21,7 +21,7 @@ type Handler = (
   value: FetchResult,
   firstError: GraphQLError,
   context: Context
-) => Promise<boolean>;
+) => boolean | void;
 
 interface ErrorLinkOptions {
   ignoreCodes: GraphQLErrorCode[];
@@ -60,14 +60,12 @@ export default class ErrorLink extends ApolloLink {
           return observer.start?.(subscription);
         },
         next: (value) => {
-          void (async () => {
-            const isHandled = await this.handleNext(value, ctx);
-            if (isHandled) {
-              observer.complete?.();
-            } else {
-              observer.next?.(value);
-            }
-          })();
+          const isHandled = this.handleNext(value, ctx);
+          if (isHandled) {
+            observer.complete?.();
+          } else {
+            observer.next?.(value);
+          }
         },
         error(errorValue) {
           observer.error?.(errorValue);
@@ -82,23 +80,23 @@ export default class ErrorLink extends ApolloLink {
     });
   }
 
-  private handleNext(value: FetchResult, ctx: Context): Promise<boolean> {
+  private handleNext(value: FetchResult, ctx: Context): boolean {
     const firstError = value.errors?.[0];
     if (firstError) {
       return this.handleError(value, firstError, ctx);
     }
-    return Promise.resolve(false);
+    return false;
   }
 
   /**
    *
    * @returns Response is handled and won't be passed to next observer
    */
-  private async handleError(
+  private handleError(
     value: FetchResult,
     firstError: GraphQLError,
     ctx: Context
-  ): Promise<boolean> {
+  ): boolean {
     const ctxHandleCodes: unknown = ctx[ErrorLink.IGNORE_CONTEXT_KEY];
     const ignoreCodes = [
       ...this.ignoreCodes,
@@ -111,7 +109,7 @@ export default class ErrorLink extends ApolloLink {
 
     for (const handler of this.handlers) {
       if (
-        await handler(value, firstError, {
+        handler(value, firstError, {
           [ERROR_LINK_SYMBOL]: true,
         })
       ) {

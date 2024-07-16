@@ -40,7 +40,7 @@ export default function SessionSynchronization() {
   const showError = useSnackbarError();
 
   useEffect(() => {
-    return addFetchResultErrorHandler(async (_value, firstError, context) => {
+    return addFetchResultErrorHandler((_value, firstError, context) => {
       const code = firstError.extensions.code;
       if (code === GraphQLErrorCode.UNAUTHENTICATED) {
         const reason = firstError.extensions.reason;
@@ -72,7 +72,7 @@ export default function SessionSynchronization() {
           }
           return true;
         } else {
-          const { errors } = await syncSessions({
+          void syncSessions({
             variables: {
               input: {
                 availableUserIds: getSignedInUserIds(customApolloClient.cache),
@@ -85,16 +85,17 @@ export default function SessionSynchronization() {
               const actualAvailableUserIds = data.syncSessionCookies.availableUserIds;
               setAvailableUsers(cache, actualAvailableUserIds, true);
             },
+          }).then(({ errors }) => {
+            if (errors?.[0]) {
+              showError(errors[0].message);
+            }
           });
-
-          if (errors?.[0]) {
-            showError(errors[0].message);
-          }
 
           return true;
         }
       }
-      return false;
+
+      return;
     });
   }, [
     customApolloClient,

@@ -114,7 +114,7 @@ export default function useUpdateNoteCategory() {
   );
 }
 
-function getExistingNoteWithCategory<TCacheShape>(
+export function getExistingNoteWithCategory<TCacheShape>(
   cache: ApolloCache<TCacheShape>,
   noteContentId: string
 ) {

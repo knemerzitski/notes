@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
 
 import CircularProgressOverlay from '../../../common/components/CircularProgressOverlay';
-import { useSnackbarError } from '../../../common/components/SnackbarAlertProvider';
 import BaseCreateNoteWidget, {
   CreateNoteWidgetProps,
 } from '../../base/components/CreateNoteWidget';
@@ -18,7 +17,6 @@ import NoteToolbar from './NoteToolbar';
 export default function CreateNoteWidget(props: Omit<CreateNoteWidgetProps, 'expanded'>) {
   const insertNoteToNotesConnection = useInsertNoteToNotesConnection();
   const deleteNote = useDeleteNote();
-  const showError = useSnackbarError();
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -68,11 +66,7 @@ export default function CreateNoteWidget(props: Omit<CreateNoteWidgetProps, 'exp
       if (reason === 'deleted') {
         const { note } = noteWithEditors;
 
-        void deleteNote(note.contentId).then((deleted) => {
-          if (!deleted) {
-            showError('Failed to delete note');
-          }
-        });
+        void deleteNote(note.contentId);
       } else {
         const discarded = discardEmptyNote(noteWithEditors);
 

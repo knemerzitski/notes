@@ -57,6 +57,7 @@ export default function ResponsiveMenuButton({
   const menuItemsEl = itemsProps.map((itemProps, index) => (
     <MenuItem
       key={index}
+      {...itemProps}
       onClick={(e) => {
         e.stopPropagation();
         if (!isMenuOpen) return;
@@ -66,7 +67,6 @@ export default function ResponsiveMenuButton({
         handleClose();
         handleClosed();
       }}
-      {...itemProps}
     />
   ));
 

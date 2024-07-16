@@ -13,16 +13,8 @@ export default function ApolloClientErrorsSnackbarAlert() {
   const showError = useSnackbarError();
 
   useEffect(() => {
-    return addHandler(async (_value, firstError) => {
-      // const ignoreUnauthenticatedNoUser =
-      //   firstError.extensions.code === GraphQLErrorCode.UNAUTHENTICATED &&
-      //   !getCurrentUserId(apolloClient.cache);
-
-      // if (!ignoreUnauthenticatedNoUser) {
+    return addHandler((_value, firstError) => {
       showError(firstError.message);
-      // }
-
-      return Promise.resolve(false);
     });
   }, [addHandler, showError, apolloClient]);
 

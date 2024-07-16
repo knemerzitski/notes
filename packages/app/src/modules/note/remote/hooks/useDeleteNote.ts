@@ -9,6 +9,10 @@ import ErrorLink from '../../../apollo-client/links/error-link';
 import isErrorCode from '../../../apollo-client/utils/isErrorCode';
 import { getCurrentUserId } from '../../../auth/user';
 
+import { useSnackbarError } from '../../../common/components/SnackbarAlertProvider';
+
+import { deleteNoteFromNotesConnection } from './useDeleteNoteFromNotesConnections';
+
 const MUTATION = gql(`
   mutation UseDeleteNote($input: DeleteNoteInput!) {
     deleteNote(input: $input) {
@@ -25,6 +29,7 @@ export default function useDeleteNote() {
     },
     errorPolicy: 'all',
   });
+  const showError = useSnackbarError();
 
   return useCallback(
     async (deleteContentId: string) => {
@@ -43,6 +48,7 @@ export default function useDeleteNote() {
           const { data } = result;
           if (!data?.deleteNote.deleted) return;
 
+          deleteNoteFromNotesConnection(cache, deleteContentId);
           customApolloClient.evict({
             id: cache.identify({
               contentId: deleteContentId,
@@ -68,8 +74,13 @@ export default function useDeleteNote() {
         return true;
       }
 
-      return result.data?.deleteNote.deleted ?? false;
+      const deleted = result.data?.deleteNote.deleted ?? false;
+      if (!deleted) {
+        showError('Failed to delete note');
+      }
+
+      return deleted;
     },
-    [deleteNote, customApolloClient]
+    [deleteNote, customApolloClient, showError]
   );
 }
