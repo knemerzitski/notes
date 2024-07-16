@@ -13,7 +13,7 @@ export const notesConnection: FieldPolicy & EvictFieldPolicy<NormalizedCacheObje
   ...relayStylePagination((args) => {
     return `notesConnection:${JSON.stringify({
       [KeySpecifierName.USER_ID]: getCurrentUserIdInStorage(),
-      category: args?.category ?? NoteCategory.DEFAULT,
+      category: (args?.category as string | undefined) ?? NoteCategory.DEFAULT,
     })}`;
   }),
 };

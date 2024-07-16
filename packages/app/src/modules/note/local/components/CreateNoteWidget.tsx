@@ -16,7 +16,7 @@ import { insertLocalNoteToNotesConnection } from '../policies/Query/localNotesCo
 
 import NoteToolbar from './NoteToolbar';
 
-export default function CreateNoteWidget(props: CreateNoteWidgetProps) {
+export default function CreateNoteWidget(props: Omit<CreateNoteWidgetProps, 'expanded'>) {
   const apolloClient = useApolloClient();
 
   const [newNoteEditors, setNewNoteEditors] = useState(newEmptyEditors());

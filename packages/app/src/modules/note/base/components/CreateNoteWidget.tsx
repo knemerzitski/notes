@@ -42,7 +42,9 @@ export interface CreateNoteWidgetProps {
   };
 }
 
-export function ControlledCreateNoteWidget(props: Omit<CreateNoteWidgetProps, 'expand'>) {
+export function ControlledCreateNoteWidget(
+  props: Omit<CreateNoteWidgetProps, 'expanded'>
+) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleExpand: CreateNoteWidgetProps['onExpand'] = (...args) => {
