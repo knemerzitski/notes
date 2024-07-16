@@ -16,7 +16,8 @@ export default function NewNoteEditingContext({ children }: NewNoteEditingContex
   const apolloClient = useApolloClient();
   const insertNoteToNotesConnection = useInsertNoteToNotesConnection();
   const navigate = useProxyNavigate();
-  const { editors, createNote } = useCreatableNoteTextFieldEditors();
+  const { editors, createNoteWithLinkedEditors: createNote } =
+    useCreatableNoteTextFieldEditors();
   const isCreatingNoteRef = useRef(false);
 
   useEffect(() => {
@@ -24,8 +25,9 @@ export default function NewNoteEditingContext({ children }: NewNoteEditingContex
     void (async () => {
       try {
         isCreatingNoteRef.current = true;
-        const newNote = await createNote();
-        if (!newNote) return;
+        const createData = await createNote();
+        if (!createData) return;
+        const { note: newNote } = createData;
         insertNoteToNotesConnection(newNote);
         startTransition(() => {
           navigate(`/note/${newNote.contentId}`, {

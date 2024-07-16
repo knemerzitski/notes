@@ -1,13 +1,12 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
+import CircularProgressOverlay from '../../../common/components/CircularProgressOverlay';
 import { useSnackbarError } from '../../../common/components/SnackbarAlertProvider';
 import BaseCreateNoteWidget, {
   CreateNoteWidgetProps,
 } from '../../base/components/CreateNoteWidget';
 import NoteContentIdProvider from '../context/NoteContentIdProvider';
-import NoteTextFieldEditorsProvider, {
-  NoteCollabTextEditors,
-} from '../context/NoteTextFieldEditorsProvider';
+import NoteTextFieldEditorsProvider from '../context/NoteTextFieldEditorsProvider';
 import { useCreatableNoteTextFieldEditors } from '../hooks/useCreatableNoteTextFieldEditors';
 import useDeleteNote from '../hooks/useDeleteNote';
 import useDiscardEmptyNote from '../hooks/useDiscardEmptyNote';
@@ -21,98 +20,106 @@ export default function CreateNoteWidget(props: Omit<CreateNoteWidgetProps, 'exp
   const deleteNote = useDeleteNote();
   const showError = useSnackbarError();
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const [isWidgetExpanded, setIsWidgetExpanded] = useState(false);
 
-  const { editors, createNote, reset } = useCreatableNoteTextFieldEditors();
-  const [noteWithEditors, setNoteWithEditors] = useState<{
-    note: NonNullable<Awaited<ReturnType<typeof createNote>>>;
-    editors: NoteCollabTextEditors;
-  } | null>();
+  const { editors, createNoteWithLinkedEditors, resetEditors } =
+    useCreatableNoteTextFieldEditors();
+  const createNoteWithLinkedEditorsPromiseRef = useRef<ReturnType<
+    typeof createNoteWithLinkedEditors
+  > | null>(null);
+  const [noteContentId, setNoteContentId] = useState<string | null>();
 
   const discardEmptyNote = useDiscardEmptyNote();
 
-  const handleDelete = noteWithEditors
-    ? function handleDelete() {
-        const id = noteWithEditors.note.contentId;
-        if (!id) return;
-
-        void deleteNote(id).then((deleted) => {
-          if (!deleted) {
-            showError('Failed to delete note');
-          }
-        });
-      }
-    : undefined;
-
   async function handleCreateNote() {
-    const newNote = await createNote();
-    const newEditors = editors;
+    if (createNoteWithLinkedEditorsPromiseRef.current) return;
+    const createPromise = createNoteWithLinkedEditors();
+    createNoteWithLinkedEditorsPromiseRef.current = createPromise;
 
-    if (noteWithEditors) {
-      insertNoteToNotesConnection(noteWithEditors.note);
+    const data = await createPromise;
+    if (!data) {
+      return;
     }
 
-    if (!newNote) {
-      setNoteWithEditors(null);
-    } else {
-      setNoteWithEditors({
-        note: newNote,
-        editors: newEditors,
-      });
-    }
+    const { note } = data;
+
+    setNoteContentId(note.contentId);
   }
 
   function handleWidgetExpand() {
     setIsWidgetExpanded(true);
   }
 
-  function handleWidgetCollapse(deleted?: boolean) {
-    setIsWidgetExpanded(false);
+  async function handleWidgetCollapse(reason: 'deleted' | 'clickaway' | 'archived') {
+    if (isLoading) return;
 
-    reset();
+    setIsLoading(true);
+    try {
+      if (!createNoteWithLinkedEditorsPromiseRef.current) return;
 
-    if (noteWithEditors) {
-      const discarded = discardEmptyNote(noteWithEditors);
+      const createPromise = createNoteWithLinkedEditorsPromiseRef.current;
+      createNoteWithLinkedEditorsPromiseRef.current = null;
 
-      if (!discarded && !deleted) {
-        insertNoteToNotesConnection(noteWithEditors.note);
+      const noteWithEditors = await createPromise;
+      if (!noteWithEditors) return;
+
+      if (reason === 'deleted') {
+        const { note } = noteWithEditors;
+
+        void deleteNote(note.contentId).then((deleted) => {
+          if (!deleted) {
+            showError('Failed to delete note');
+          }
+        });
+      } else {
+        const discarded = discardEmptyNote(noteWithEditors);
+
+        if (!discarded && reason === 'clickaway') {
+          insertNoteToNotesConnection(noteWithEditors.note);
+        }
       }
-
-      setNoteWithEditors(null);
+    } finally {
+      setIsLoading(false);
+      setIsWidgetExpanded(false);
+      setNoteContentId(null);
+      resetEditors();
     }
   }
 
   return (
-    <NoteTextFieldEditorsProvider editors={editors}>
-      <BaseCreateNoteWidget
-        expanded={isWidgetExpanded}
-        onCreate={() => {
-          void handleCreateNote();
-        }}
-        onExpand={handleWidgetExpand}
-        onCollapse={handleWidgetCollapse}
-        slots={{
-          toolbar: (
-            <NoteContentIdProvider noteContentId={noteWithEditors?.note.contentId}>
-              <NoteToolbar
-                specific={{
-                  archiveOrUnarchive: {
-                    iconButtonProps: {
-                      onClick: () => {
-                        handleWidgetCollapse();
+    <CircularProgressOverlay enabled={isLoading}>
+      <NoteTextFieldEditorsProvider editors={editors}>
+        <BaseCreateNoteWidget
+          expanded={isWidgetExpanded}
+          onCreate={() => {
+            void handleCreateNote();
+          }}
+          onExpand={handleWidgetExpand}
+          onCollapse={(deleted) => {
+            void handleWidgetCollapse(deleted ? 'deleted' : 'clickaway');
+          }}
+          slots={{
+            toolbar: (
+              <NoteContentIdProvider noteContentId={noteContentId ?? undefined}>
+                <NoteToolbar
+                  specific={{
+                    archiveOrUnarchive: {
+                      iconButtonProps: {
+                        onClick: () => {
+                          void handleWidgetCollapse('archived');
+                        },
                       },
                     },
-                  },
-                }}
-              />
-            </NoteContentIdProvider>
-          ),
-        }}
-        moreOptionsButtonProps={{
-          onDelete: handleDelete,
-        }}
-        {...props}
-      />
-    </NoteTextFieldEditorsProvider>
+                  }}
+                />
+              </NoteContentIdProvider>
+            ),
+          }}
+          {...props}
+        />
+      </NoteTextFieldEditorsProvider>
+    </CircularProgressOverlay>
   );
 }

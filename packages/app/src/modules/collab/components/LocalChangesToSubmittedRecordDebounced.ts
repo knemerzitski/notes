@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useDebouncedCallback, Options } from 'use-debounce';
+
 import { CollabEditor } from '~collab/client/collab-editor';
 
 import useCollabEditor from '../hooks/useCollabEditor';
@@ -35,19 +36,18 @@ export default function LocalChangesToSubmittedRecordDebounced({
   );
 
   useEffect(() => {
-    return editor.eventBus.on('haveLocalChanges', () => {
+    function attemptSubmit() {
       if (canSubmit(editor)) {
         debouncedSubmitChanges();
       }
-    });
-  }, [editor, debouncedSubmitChanges]);
+    }
 
-  useEffect(() => {
-    return editor.eventBus.on('submittedChangesAcknowledged', () => {
-      if (canSubmit(editor)) {
-        debouncedSubmitChanges();
-      }
-    });
+    attemptSubmit();
+
+    return editor.eventBus.onMany(
+      ['haveLocalChanges', 'submittedChangesAcknowledged'],
+      attemptSubmit
+    );
   }, [editor, debouncedSubmitChanges]);
 
   return null;

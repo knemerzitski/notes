@@ -1,4 +1,4 @@
-import { useApolloClient } from '@apollo/client';
+import { ApolloCache, useApolloClient } from '@apollo/client';
 import { useCallback } from 'react';
 
 import { gql } from '../../../../__generated__/gql';
@@ -35,6 +35,8 @@ export function useInsertNoteToNotesConnection() {
         ...note,
       };
 
+      insertNoteToNotesConnection(apolloClient.cache, note);
+
       apolloClient.cache.updateQuery(
         {
           query: QUERY,
@@ -66,5 +68,45 @@ export function useInsertNoteToNotesConnection() {
       );
     },
     [apolloClient]
+  );
+}
+
+export function insertNoteToNotesConnection<TCacheShape>(
+  cache: ApolloCache<TCacheShape>,
+  note: NotesConnectionNote
+) {
+  const insertNewNote: NotesConnectionNote = {
+    __typename: 'Note',
+    ...note,
+  };
+
+  cache.updateQuery(
+    {
+      query: QUERY,
+      variables: {
+        category: note.categoryName ?? NoteCategory.DEFAULT,
+      },
+    },
+    (data) => {
+      if (!data) {
+        return {
+          notesConnection: {
+            notes: [insertNewNote],
+          },
+        };
+      }
+
+      if (data.notesConnection.notes.some((note) => note.id === insertNewNote.id)) {
+        return;
+      }
+
+      return {
+        ...data,
+        notesConnection: {
+          ...data.notesConnection,
+          notes: [...data.notesConnection.notes, insertNewNote],
+        },
+      };
+    }
   );
 }

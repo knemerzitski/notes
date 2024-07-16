@@ -32,14 +32,22 @@ export function useCreatableNoteTextFieldEditors() {
   const apolloClient = useApolloClient();
   const fetchCreateNote = useCreateNote();
 
-  const statusRef = useRef<'local' | 'creating' | 'created'>('local');
   const [editors, setEditors] = useState(newEmptyEditors());
 
-  const createNoteLinkEditors = useCallback(async () => {
-    if (statusRef.current !== 'local') return;
+  const linkedEditorsRef = useRef(new Set<CollabEditor>());
+  const isFetchingRef = useRef(false);
+
+  const createNoteWithLinkedEditors = useCallback(async () => {
+    if (editors.some((e) => linkedEditorsRef.current.has(e.value))) {
+      return false;
+    }
+
+    if (isFetchingRef.current) {
+      return false;
+    }
 
     try {
-      statusRef.current = 'creating';
+      isFetchingRef.current = true;
 
       const newNote = await fetchCreateNote({
         textFields: editors
@@ -56,53 +64,56 @@ export function useCreatableNoteTextFieldEditors() {
           .filter(isDefined),
       });
 
-      if (newNote) {
-        statusRef.current = 'created';
+      if (!newNote) return false;
 
-        newNote.textFields.forEach((textField) => {
-          const editor = editors.find(({ key }) => key === textField.key)?.value;
-          if (!editor) return;
+      newNote.textFields.forEach((textField) => {
+        const editor = editors.find(({ key }) => key === textField.key)?.value;
+        if (!editor) return;
 
-          const firstRecord = textField.value.recordsConnection.records[0];
-          if (!firstRecord) {
-            throw new Error('Expected first record to be present');
-          }
+        const firstRecord = textField.value.recordsConnection.records[0];
+        if (!firstRecord) {
+          throw new Error('Expected first record to be present');
+        }
 
-          //Acknowledge submitted
-          editor.submittedChangesAcknowledged(
-            collabTextRecordToEditorRevisionRecord(firstRecord)
-          );
+        //Acknowledge submitted
+        editor.submittedChangesAcknowledged(
+          collabTextRecordToEditorRevisionRecord(firstRecord)
+        );
 
-          editorsInCache.set(
-            {
-              __typename: 'CollabText',
-              id: String(textField.value.id),
-            },
-            editor
-          );
-        });
+        editorsInCache.set(
+          {
+            __typename: 'CollabText',
+            id: String(textField.value.id),
+          },
+          editor
+        );
+        linkedEditorsRef.current.add(editor);
+      });
 
-        addActiveNotesByContentId(apolloClient.cache, [newNote]);
-      } else {
-        statusRef.current = 'local';
-      }
+      addActiveNotesByContentId(apolloClient.cache, [newNote]);
 
-      return newNote;
-    } catch (err) {
-      console.error(err);
-      statusRef.current = 'local';
-      return;
+      return {
+        note: newNote,
+        editors: editors,
+      };
+    } finally {
+      isFetchingRef.current = false;
     }
-  }, [fetchCreateNote, editors, apolloClient]);
+  }, [apolloClient, fetchCreateNote, editors]);
 
-  const reset = useCallback(() => {
-    statusRef.current = 'local';
-    setEditors(newEmptyEditors());
+  const resetEditors = useCallback(() => {
+    setEditors((prevEditors) => {
+      prevEditors.forEach((e) => {
+        linkedEditorsRef.current.delete(e.value);
+      });
+
+      return newEmptyEditors();
+    });
   }, []);
 
   return {
     editors,
-    createNote: createNoteLinkEditors,
-    reset,
+    createNoteWithLinkedEditors,
+    resetEditors,
   };
 }

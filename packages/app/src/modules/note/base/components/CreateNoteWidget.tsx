@@ -8,7 +8,7 @@ import {
   Theme,
   SxProps,
 } from '@mui/material';
-import { ReactNode, useRef, useState } from 'react';
+import { ReactNode, useState } from 'react';
 
 import MoreOptionsButton, { MoreOptionsButtonProps } from '../MoreOptionsButton';
 
@@ -75,16 +75,8 @@ export default function CreateNoteWidget({
   moreOptionsButtonProps,
   initialContentInputProps,
 }: CreateNoteWidgetProps) {
-  const isCreatedCalledRef = useRef(false);
-
-  function createOnce() {
-    if (!onCreate || isCreatedCalledRef.current) return;
-    onCreate();
-    isCreatedCalledRef.current = true;
-  }
-
   function handleTextChange() {
-    createOnce();
+    onCreate?.();
   }
 
   function handleExpandEditor() {
@@ -93,7 +85,6 @@ export default function CreateNoteWidget({
 
   function handleCloseWidget(deleted?: boolean) {
     onCollapse?.(deleted);
-    isCreatedCalledRef.current = false;
   }
 
   function handleDeleteNote() {
