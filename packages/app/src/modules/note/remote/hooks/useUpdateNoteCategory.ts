@@ -1,13 +1,17 @@
-import { useApolloClient, useMutation } from '@apollo/client';
+import { ApolloCache, useApolloClient, useMutation } from '@apollo/client';
 
 import { useCallback } from 'react';
 
 import { gql } from '../../../../__generated__/gql';
-import { Note } from '../../../../__generated__/graphql';
+import {
+  Note,
+  UseUpdateNoteReadNoteCategoryQuery,
+} from '../../../../__generated__/graphql';
 
 export const MUTATION = gql(`
   mutation UseUpdateNoteCategory($input: UpdateNoteInput!)  {
     updateNote(input: $input) {
+      contentId
       patch {
         id
         categoryName
@@ -59,16 +63,12 @@ export default function useUpdateNoteCategory() {
 
   return useCallback(
     (newNote: UpdateNoteArg) => {
-      const existingData = apolloClient.readQuery({
-        query: QUERY_READ,
-        variables: {
-          noteContentId: newNote.contentId,
-        },
-      });
-      if (!existingData) return false;
-      const existingNote = existingData.note;
-
-      if (existingData.note.categoryName === newNote.categoryName) return false;
+      const existingNote = getExistingNoteWithCategory(
+        apolloClient.cache,
+        newNote.contentId
+      );
+      if (!existingNote) return false;
+      if (existingNote.categoryName === newNote.categoryName) return false;
 
       void updateNote({
         variables: {
@@ -81,6 +81,7 @@ export default function useUpdateNoteCategory() {
         },
         optimisticResponse: {
           updateNote: {
+            contentId: existingNote.contentId,
             patch: {
               id: String(existingNote.id),
               categoryName: newNote.categoryName,
@@ -88,75 +89,19 @@ export default function useUpdateNoteCategory() {
           },
         },
         update(cache, { data }) {
-          const patch = data?.updateNote.patch;
-          if (!patch) return;
-          const newCategoryName = patch.categoryName;
+          if (!data?.updateNote.patch) return;
+
+          const contentId = data.updateNote.contentId;
+          const newCategoryName = data.updateNote.patch.categoryName;
           if (!newCategoryName) return;
 
-          const updatedNote: UpdatedNote = {
-            id: patch.id,
-            contentId: newNote.contentId,
-            categoryName: newCategoryName,
-            __typename: 'Note',
-          };
-
-          // Update note category and move Note from one notesConnection to other notesConnection
-          cache.updateQuery(
+          updateNoteCategory(
+            cache,
             {
-              query: QUERY_UPDATE,
-              variables: {
-                noteContentId: updatedNote.contentId,
-                from: existingNote.categoryName,
-                to: updatedNote.categoryName,
-              },
+              contentId,
+              categoryName: newCategoryName,
             },
-            (data) => {
-              if (!data) {
-                return {
-                  note: updatedNote,
-                  fromNotesConnection: {
-                    notes: [],
-                  },
-                  toNotesConnection: {
-                    notes: [updatedNote],
-                  },
-                };
-              }
-
-              const toIndex = data.toNotesConnection.notes.findIndex(
-                (note) => note.id === updatedNote.id
-              );
-              // Note already in correct notesConnection
-              if (toIndex !== -1)
-                return {
-                  ...data,
-                  note: updatedNote,
-                };
-
-              let newfromNotesConnection = data.fromNotesConnection.notes;
-              const fromIndex: number = newfromNotesConnection.findIndex(
-                (note) => note.id === updatedNote.id
-              );
-              if (fromIndex !== -1) {
-                newfromNotesConnection = [
-                  ...newfromNotesConnection.slice(0, fromIndex),
-                  ...newfromNotesConnection.slice(fromIndex + 1),
-                ];
-              }
-
-              return {
-                ...data,
-                note: updatedNote,
-                fromNotesConnection: {
-                  ...data.fromNotesConnection,
-                  notes: newfromNotesConnection,
-                },
-                toNotesConnection: {
-                  ...data.toNotesConnection,
-                  notes: [...data.toNotesConnection.notes, updatedNote],
-                },
-              };
-            }
+            existingNote
           );
         },
       });
@@ -167,4 +112,101 @@ export default function useUpdateNoteCategory() {
     },
     [updateNote, apolloClient]
   );
+}
+
+function getExistingNoteWithCategory<TCacheShape>(
+  cache: ApolloCache<TCacheShape>,
+  noteContentId: string
+) {
+  const existingData = cache.readQuery({
+    query: QUERY_READ,
+    variables: {
+      noteContentId: noteContentId,
+    },
+  });
+  if (!existingData) return false;
+  const existingNote = existingData.note;
+
+  return existingNote;
+}
+
+export function updateNoteCategory<TCacheShape>(
+  cache: ApolloCache<TCacheShape>,
+  newNote: UpdateNoteArg,
+  existingNote?: UseUpdateNoteReadNoteCategoryQuery['note']
+) {
+  if (!existingNote) {
+    const existingNoteFromCache = getExistingNoteWithCategory(cache, newNote.contentId);
+    if (!existingNoteFromCache) return false;
+    existingNote = existingNoteFromCache;
+  }
+  if (existingNote.categoryName === newNote.categoryName) return true;
+
+  const updatedNote: UpdatedNote = {
+    id: existingNote.id,
+    contentId: existingNote.contentId,
+    categoryName: newNote.categoryName,
+    __typename: 'Note',
+  };
+
+  // Update note category and move Note from one notesConnection to other notesConnection
+  cache.updateQuery(
+    {
+      query: QUERY_UPDATE,
+      variables: {
+        noteContentId: updatedNote.contentId,
+        from: existingNote.categoryName,
+        to: updatedNote.categoryName,
+      },
+    },
+    (data) => {
+      if (!data) {
+        return {
+          note: updatedNote,
+          fromNotesConnection: {
+            notes: [],
+          },
+          toNotesConnection: {
+            notes: [updatedNote],
+          },
+        };
+      }
+
+      const toIndex = data.toNotesConnection.notes.findIndex(
+        (note) => note.id === updatedNote.id
+      );
+      // Note already in correct notesConnection
+      if (toIndex !== -1)
+        return {
+          ...data,
+          note: updatedNote,
+        };
+
+      let newfromNotesConnection = data.fromNotesConnection.notes;
+      const fromIndex: number = newfromNotesConnection.findIndex(
+        (note) => note.id === updatedNote.id
+      );
+      if (fromIndex !== -1) {
+        newfromNotesConnection = [
+          ...newfromNotesConnection.slice(0, fromIndex),
+          ...newfromNotesConnection.slice(fromIndex + 1),
+        ];
+      }
+
+      return {
+        ...data,
+        note: updatedNote,
+        fromNotesConnection: {
+          ...data.fromNotesConnection,
+          notes: newfromNotesConnection,
+        },
+        toNotesConnection: {
+          ...data.toNotesConnection,
+          notes: [...data.toNotesConnection.notes, updatedNote],
+        },
+      };
+    }
+  );
+
+  return true;
 }

@@ -6,6 +6,7 @@ import { useCurrentUserId } from '../../../auth/user';
 import { collabTextRecordToEditorRevisionRecord } from '../../../collab/editor-graphql-mapping';
 import { getCollabEditorMaybe } from '../../../collab/hooks/useCollabEditor';
 import { useNoteContentId } from '../context/NoteContentIdProvider';
+import { updateNoteCategory } from '../hooks/useUpdateNoteCategory';
 
 export const SUBSCRIPTION = gql(`
   subscription NoteUpdated($input: NoteUpdatedInput) {
@@ -16,6 +17,7 @@ export const SUBSCRIPTION = gql(`
         sharing {
           id
         }
+        categoryName
         textFields {
           value {
             id
@@ -65,7 +67,7 @@ const FRAGMENT_COLLABTEXT = gql(`
   }
 `);
 
-const FRAGMENT_NOTE = gql(`
+const FRAGMENT_NOTE_SHARING = gql(`
   fragment NoteUpdatedNoteCache on Note {
     sharing {
       id
@@ -100,14 +102,14 @@ export default function NoteUpdatedSubscription() {
         const noteUpdated = value.data?.noteUpdated;
         if (!noteUpdated) return;
 
-        // Note
+        // Note sharing
         if (noteUpdated.patch.sharing) {
           customApolloClient.writeFragmentNoRetain({
             id: customApolloClient.cache.identify({
               contentId: noteUpdated.contentId,
               __typename: 'Note',
             }),
-            fragment: FRAGMENT_NOTE,
+            fragment: FRAGMENT_NOTE_SHARING,
             data: {
               sharing: noteUpdated.patch.sharing.id
                 ? {
@@ -115,6 +117,15 @@ export default function NoteUpdatedSubscription() {
                   }
                 : null,
             },
+          });
+        }
+
+        // Note categoryName
+        if (noteUpdated.patch.categoryName) {
+          const newCategoryName = noteUpdated.patch.categoryName;
+          updateNoteCategory(customApolloClient.cache, {
+            contentId: noteUpdated.contentId,
+            categoryName: newCategoryName,
           });
         }
 
