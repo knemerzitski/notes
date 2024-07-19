@@ -4,7 +4,7 @@ services:
   mongo-express:
     image: mongo-express
     environment:
-      ME_CONFIG_MONGODB_URL: mongodb://mongo:27017/mongo?authSource=admin
+      ME_CONFIG_MONGODB_URL: mongodb://mongod:27017/mongo?authSource=admin
     networks:
       - mongo-network
     ports:

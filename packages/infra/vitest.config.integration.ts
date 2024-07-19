@@ -24,7 +24,7 @@ export default defineConfig({
 // Ensure MongoDB container is running
 const mongoDBDockerPath = join(__dirname, '../../docker/mongodb');
 exec(`cd ${mongoDBDockerPath} && docker compose ps`, (err, stdout) => {
-  if (!err && !stdout.includes('mongo')) {
+  if (!err && !stdout.includes('mongod')) {
     console.error(
       `MongoDB container is not running. Integration tests cannot run without it.\n` +
         `Please start MongoDB container with commad 'npm run mongodb:start'`
