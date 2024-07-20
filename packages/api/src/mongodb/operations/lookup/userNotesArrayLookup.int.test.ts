@@ -3,12 +3,10 @@ import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 import { assert, beforeAll, expect, it } from 'vitest';
 
-import { NoteCategory } from '../../../graphql/types.generated';
+import { NoteCategory, NoteTextField } from '../../../graphql/types.generated';
 import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb';
-import {
-  populateUserWithNotes,
-  populateWithCreatedData,
-} from '../../../test/helpers/mongodb/populate';
+import { populateNotes } from '../../../test/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../test/helpers/mongodb/populate/populate-queue';
 import { CollectionName } from '../../collections';
 import { CollabTextSchema } from '../../schema/collab-text';
 import { NoteSchema } from '../../schema/note';
@@ -17,10 +15,6 @@ import { UserNoteSchema } from '../../schema/user-note';
 
 import { UserNoteLookupOutput } from './userNoteLookup';
 import userNotesArrayLookup, { UserNotesArrayLookupOutput } from './userNotesArrayLookup';
-
-enum CollabTextKey {
-  CONTENT = 'content',
-}
 
 let user: UserSchema;
 
@@ -41,14 +35,10 @@ beforeAll(async () => {
   await resetDatabase();
   faker.seed(9243);
 
-  const { user: tmpUser } = populateUserWithNotes(2, Object.values(CollabTextKey), {
-    collabText: {
-      recordsCount: 1,
-    },
-  });
-  user = tmpUser;
+  const populateResult = populateNotes(2);
+  user = populateResult.user;
 
-  await populateWithCreatedData();
+  await populateExecuteAll();
 });
 
 it('returns userNotesArray in expected format', async () => {
@@ -56,7 +46,7 @@ it('returns userNotesArray in expected format', async () => {
     .aggregate<
       UserNotesArrayLookupOutput<
         UserNoteLookupOutput<
-          CollabTextKey,
+          NoteTextField,
           CollabTextSchema,
           UserNoteSchema,
           NoteSchema
@@ -82,7 +72,7 @@ it('returns userNotesArray in expected format', async () => {
           },
           collabText: {
             collectionName: mongoCollections[CollectionName.COLLAB_TEXTS].collectionName,
-            collabTexts: Object.values(CollabTextKey),
+            collabTexts: Object.values(NoteTextField),
           },
         },
       }),
@@ -100,7 +90,8 @@ it('returns userNotesArray in expected format', async () => {
         publicId: expect.any(String),
         ownerId: expect.any(ObjectId),
         collabTexts: {
-          content: expectedCollabText,
+          [NoteTextField.TITLE]: expectedCollabText,
+          [NoteTextField.CONTENT]: expectedCollabText,
         },
       },
       preferences: {
@@ -116,7 +107,7 @@ it('uses groupExpression', async () => {
     .aggregate<
       UserNotesArrayLookupOutput<
         UserNoteLookupOutput<
-          CollabTextKey,
+          NoteTextField,
           CollabTextSchema,
           UserNoteSchema,
           NoteSchema

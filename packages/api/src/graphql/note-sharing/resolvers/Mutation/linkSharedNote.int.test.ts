@@ -7,18 +7,11 @@ import { UserSchema } from '../../../../mongodb/schema/user';
 import { apolloServer } from '../../../../test/helpers/apollo-server';
 import { createGraphQLResolversContext } from '../../../../test/helpers/graphql-context';
 import { resetDatabase } from '../../../../test/helpers/mongodb';
-import {
-  createShareNoteLink,
-  createUser,
-  populateNoteToUser,
-  populateWithCreatedData,
-} from '../../../../test/helpers/mongodb/populate';
+import { populateNotes } from '../../../../test/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../../test/helpers/mongodb/populate/populate-queue';
+import { fakeUserPopulateQueue } from '../../../../test/helpers/mongodb/populate/user';
 import { GraphQLResolversContext } from '../../../context';
-import {
-  LinkSharedNoteInput,
-  LinkSharedNotePayload,
-  NoteTextField,
-} from '../../../types.generated';
+import { LinkSharedNoteInput, LinkSharedNotePayload } from '../../../types.generated';
 
 const MUTATION = `#graphql
   mutation($input: LinkSharedNoteInput!){
@@ -44,22 +37,22 @@ const MUTATION = `#graphql
 `;
 
 let contextValue: GraphQLResolversContext;
-let user: UserSchema;
+let otherUser: UserSchema;
 let shareNoteLink: ShareNoteLinkSchema;
 
 beforeEach(async () => {
   faker.seed(843);
   await resetDatabase();
 
-  const ownerUser = createUser();
-  user = createUser();
+  otherUser = fakeUserPopulateQueue();
 
-  const { userNote } = populateNoteToUser(ownerUser, Object.values(NoteTextField));
-  shareNoteLink = createShareNoteLink(userNote);
+  const populateResult = populateNotes(1);
+  assert(populateResult.data[0] != null);
+  shareNoteLink = populateResult.data[0].shareNoteLink;
 
-  await populateWithCreatedData();
+  await populateExecuteAll();
 
-  contextValue = createGraphQLResolversContext(user);
+  contextValue = createGraphQLResolversContext(otherUser);
 });
 
 it('links existing note and creates UserNote with access to note', async () => {

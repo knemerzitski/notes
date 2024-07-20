@@ -25,10 +25,10 @@ import {
   resetDatabase,
 } from '../../../../test/helpers/mongodb';
 import {
-  populateNoteToUser,
-  populateUserWithNotes,
-  populateWithCreatedData,
-} from '../../../../test/helpers/mongodb/populate';
+  populateNotes,
+  PopulateNotesOptions,
+} from '../../../../test/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../../test/helpers/mongodb/populate/populate-queue';
 import { GraphQLResolversContext } from '../../../context';
 import {
   NoteCategory,
@@ -96,45 +96,49 @@ describe('random records', () => {
   let readOnlyUserNote: UserNoteSchema;
 
   beforeEach(async () => {
-    const { notes: tmpNotes, user: tmpUser } = populateUserWithNotes(
-      1,
-      Object.values(NoteTextField),
-      {
-        collabText: {
+    const populateBaseOptions: PopulateNotesOptions = {
+      collabText() {
+        return {
           recordsCount: 4,
-          tailRevision: 10,
-        },
-        noteMany: {
-          enumaratePublicIdByIndex: 0,
-        },
-        userNote: {
-          readOnly: false,
-        },
-      }
-    );
+          revisionOffset: 10,
+          initialText: 'head',
+          record(_recordIndex, revision) {
+            return {
+              changeset: Changeset.fromInsertion(`r_${revision}`).serialize(),
+            };
+          },
+        };
+      },
+      userNote() {
+        return {
+          override: {
+            readOnly: false,
+          },
+        };
+      },
+    };
 
-    user = tmpUser;
-    assert(tmpNotes[0] != null);
-    note = tmpNotes[0];
+    const populateNote = populateNotes(1, populateBaseOptions);
+    user = populateNote.user;
+    assert(populateNote.data[0] != null);
+    note = populateNote.data[0].note;
 
-    const { note: tmpReadOnlyNote, userNote: tmpReadOnlyUserNote } = populateNoteToUser(
+    const populateReadOnlyNote = populateNotes(1, {
+      ...populateBaseOptions,
       user,
-      Object.values(NoteTextField),
-      {
-        collabText: {
-          tailRevision: 10,
-          recordsCount: 4,
-        },
-        userNote: {
-          readOnly: true,
-        },
-      }
-    );
+      userNote() {
+        return {
+          override: {
+            readOnly: true,
+          },
+        };
+      },
+    });
+    assert(populateReadOnlyNote.data[0] != null);
+    readOnlyNote = populateReadOnlyNote.data[0].note;
+    readOnlyUserNote = populateReadOnlyNote.data[0].userNote;
 
-    readOnlyNote = tmpReadOnlyNote;
-    readOnlyUserNote = tmpReadOnlyUserNote;
-
-    await populateWithCreatedData();
+    await populateExecuteAll();
   });
 
   describe('update', () => {
@@ -407,7 +411,7 @@ describe('random records', () => {
         // Response
         assert(response.body.kind === 'single');
         const { data, errors } = response.body.singleResult;
-        expect(errors).toBeUndefined();
+        expect(errors, JSON.stringify(errors, null, 2)).toBeUndefined();
         expect(data).toEqual({
           updateNote: {
             contentId: expect.any(String),
@@ -1017,10 +1021,6 @@ describe('pre-determined records', () => {
   let collabText: CollabTextSchema;
   let generatedId = 0;
 
-  function nextGeneratedId() {
-    return String(generatedId++);
-  }
-
   async function insertChange(
     change: RevisionChangeset,
     contextValue: GraphQLResolversContext
@@ -1061,7 +1061,7 @@ describe('pre-determined records', () => {
     assert(response.body.kind === 'single');
     const result = response.body.singleResult;
     const data = result.data as { updateNote: UpdateNotePayload };
-    expect(result.errors).toBeUndefined();
+    expect(result.errors, JSON.stringify(result.errors, null, 2)).toBeUndefined();
 
     const entry = data.updateNote.patch?.textFields?.find(
       (e) => e.key === NoteTextField.CONTENT
@@ -1077,60 +1077,43 @@ describe('pre-determined records', () => {
   beforeEach(async () => {
     generatedId = 0;
 
-    const {
-      notes,
-      user: tmpUser,
-      collabTexts,
-    } = populateUserWithNotes(1, [NoteTextField.CONTENT], {
-      collabText: {
-        records: [
-          {
-            userGeneratedId: nextGeneratedId(),
-            changeset: ['a'],
-            revision: 0,
+    const populateResult = populateNotes(1, {
+      collabText() {
+        return {
+          override: {
+            headText: {
+              revision: 5,
+              changeset: ['abcdef'],
+            },
+            records: [
+              ['a'],
+              [0, 'b'],
+              [[0, 1], 'c'],
+              [[0, 2], 'd'],
+              [[0, 3], 'e'],
+              [[0, 4], 'f'],
+            ].map((changeset, index) => ({
+              revision: index,
+              changeset,
+            })),
           },
-          {
-            userGeneratedId: nextGeneratedId(),
-            changeset: [0, 'b'],
-            revision: 1,
-          },
-          {
-            userGeneratedId: nextGeneratedId(),
-            changeset: [[0, 1], 'c'],
-            revision: 2,
-          },
-          {
-            userGeneratedId: nextGeneratedId(),
-            changeset: [[0, 2], 'd'],
-            revision: 3,
-          },
-          {
-            userGeneratedId: nextGeneratedId(),
-            changeset: [[0, 3], 'e'],
-            revision: 4,
-          },
-          {
-            userGeneratedId: nextGeneratedId(),
-            changeset: [[0, 4], 'f'],
-            revision: 5,
-          },
-        ],
+        };
       },
-      noteMany: {
-        enumaratePublicIdByIndex: 0,
-      },
-      userNote: {
-        readOnly: false,
+      userNote() {
+        return {
+          override: {
+            readOnly: false,
+          },
+        };
       },
     });
 
-    user = tmpUser;
-    assert(notes[0] != null);
-    note = notes[0];
-    assert(collabTexts[0] != null);
-    collabText = collabTexts[0];
+    user = populateResult.user;
+    assert(populateResult.data[0] != null);
+    note = populateResult.data[0].note;
+    collabText = populateResult.data[0].collabTextsByField.CONTENT;
 
-    await populateWithCreatedData();
+    await populateExecuteAll();
   });
 
   it.each([...new Array<undefined>(4).keys()])(
@@ -1201,10 +1184,20 @@ describe('pre-determined records', () => {
 });
 
 it('changes note category', async () => {
-  const { userNotes, user } = populateUserWithNotes(1, Object.values(NoteTextField));
-  const userNote = userNotes[0];
-  assert(userNote != null);
-  await populateWithCreatedData();
+  const populateResult = populateNotes(1, {
+    userNote() {
+      return {
+        override: {
+          readOnly: false,
+        },
+      };
+    },
+  });
+  const user = populateResult.user;
+  assert(populateResult.data[0] != null);
+  const userNote = populateResult.data[0].userNote;
+
+  await populateExecuteAll();
 
   const response = await apolloServer.executeOperation(
     {

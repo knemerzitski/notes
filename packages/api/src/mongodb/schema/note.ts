@@ -1,6 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { nanoid } from 'nanoid';
 
+import { NoteTextField } from '../../graphql/types.generated';
 import { CollectionDescription } from '../collections';
 
 export interface NoteSchema {
@@ -10,7 +11,7 @@ export interface NoteSchema {
    */
   publicId: string;
   ownerId: ObjectId;
-  collabTextIds: Record<string, ObjectId>;
+  collabTextIds: { [key in NoteTextField]?: ObjectId };
 }
 
 export const noteDefaultValues = {

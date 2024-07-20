@@ -9,14 +9,10 @@ import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
 import { apolloServer } from '../../../../test/helpers/apollo-server';
 import { createGraphQLResolversContext } from '../../../../test/helpers/graphql-context';
 import { mongoCollections, resetDatabase } from '../../../../test/helpers/mongodb';
-import {
-  createShareNoteLink,
-  createUser,
-  populateNoteToUser,
-  populateWithCreatedData,
-} from '../../../../test/helpers/mongodb/populate';
+import { populateNotes } from '../../../../test/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../../test/helpers/mongodb/populate/populate-queue';
 import { GraphQLResolversContext } from '../../../context';
-import { DeleteNoteSharingInput, NoteTextField } from '../../../types.generated';
+import { DeleteNoteSharingInput } from '../../../types.generated';
 
 const MUTATION = `#graphql
   mutation($input: DeleteNoteSharingInput!){
@@ -40,19 +36,15 @@ beforeEach(async () => {
   faker.seed(843);
   await resetDatabase();
 
-  user = createUser();
-
-  const { userNote: tmpUserNote } = populateNoteToUser(
-    user,
-    Object.values(NoteTextField)
-  );
-  userNote = tmpUserNote;
-
-  shareNoteLink = createShareNoteLink(userNote);
-
-  await populateWithCreatedData();
+  const populateResult = populateNotes(1);
+  user = populateResult.user;
+  assert(populateResult.data[0] != null);
+  userNote = populateResult.data[0].userNote;
+  shareNoteLink = populateResult.data[0].shareNoteLink;
 
   contextValue = createGraphQLResolversContext(user);
+
+  await populateExecuteAll();
 });
 
 it('deletes all note sharings', async () => {
@@ -72,7 +64,7 @@ it('deletes all note sharings', async () => {
 
   assert(response.body.kind === 'single');
   const { data, errors } = response.body.singleResult;
-  expect(errors).toBeUndefined();
+  expect(errors, JSON.stringify(errors, null, 2)).toBeUndefined();
   expect(data).toEqual({
     deleteNoteSharing: {
       note: {

@@ -12,10 +12,8 @@ import { UserSchema } from '../../../../mongodb/schema/user';
 import { apolloServer } from '../../../../test/helpers/apollo-server';
 import { createGraphQLResolversContext } from '../../../../test/helpers/graphql-context';
 import { mongoCollections, resetDatabase } from '../../../../test/helpers/mongodb';
-import {
-  createUser,
-  populateWithCreatedData,
-} from '../../../../test/helpers/mongodb/populate';
+import { populateExecuteAll } from '../../../../test/helpers/mongodb/populate/populate-queue';
+import { fakeUserPopulateQueue } from '../../../../test/helpers/mongodb/populate/user';
 import { AuthProvider, SignInInput, SignInPayload } from '../../../types.generated';
 
 vi.mock('../../../../auth/google/oauth2');
@@ -128,8 +126,8 @@ describe('existing user user', () => {
     faker.seed(897);
     await resetDatabase();
 
-    user = createUser();
-    await populateWithCreatedData();
+    user = fakeUserPopulateQueue();
+    await populateExecuteAll();
   });
 
   it('uses existing user and creates new session', async () => {

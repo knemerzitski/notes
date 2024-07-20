@@ -16,16 +16,12 @@ import {
 } from '../../../../test/helpers/graphql-context';
 import { mongoCollections, resetDatabase } from '../../../../test/helpers/mongodb';
 import {
-  addExistingNoteToExistingUser,
-  createUser,
-  populateUserWithNotes,
-  populateWithCreatedData,
-} from '../../../../test/helpers/mongodb/populate';
-import {
-  DeleteNoteInput,
-  NoteDeletedInput,
-  NoteTextField,
-} from '../../../types.generated';
+  populateAddNoteToUser,
+  populateNotes,
+} from '../../../../test/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../../test/helpers/mongodb/populate/populate-queue';
+import { fakeUserPopulateQueue } from '../../../../test/helpers/mongodb/populate/user';
+import { DeleteNoteInput, NoteDeletedInput } from '../../../types.generated';
 
 const MUTATION = `#graphql
   mutation($input: DeleteNoteInput!){
@@ -35,35 +31,27 @@ const MUTATION = `#graphql
   }
 `;
 
+let populateResult: ReturnType<typeof populateNotes>;
+
 let userOwner: UserSchema;
 let userOther: UserSchema;
+
 let note: NoteSchema;
 
 beforeEach(async () => {
   faker.seed(778);
   await resetDatabase();
 
-  const { notes: tmpNotes, user: tmpUser } = populateUserWithNotes(
-    1,
-    Object.values(NoteTextField),
-    {
-      collabText: {
-        recordsCount: 1,
-        tailRevision: 0,
-      },
-      noteMany: {
-        enumaratePublicIdByIndex: 0,
-      },
-    }
-  );
+  populateResult = populateNotes(1);
 
-  userOwner = tmpUser;
-  assert(tmpNotes[0] != null);
-  note = tmpNotes[0];
+  userOwner = populateResult.user;
+  const firstNote = populateResult.data[0]?.note;
+  assert(firstNote != null);
+  note = firstNote;
 
-  userOther = createUser();
+  userOther = fakeUserPopulateQueue();
 
-  await populateWithCreatedData();
+  await populateExecuteAll();
 });
 
 describe('delete', () => {
@@ -100,8 +88,8 @@ describe('delete', () => {
   });
 
   it('unlinks note if not owner', async () => {
-    addExistingNoteToExistingUser(userOther, note);
-    await populateWithCreatedData();
+    populateAddNoteToUser(userOther, note);
+    await populateExecuteAll();
 
     const response = await apolloServer.executeOperation(
       {

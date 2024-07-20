@@ -19,14 +19,26 @@ export interface UserNoteSchema {
     backgroundColor?: string;
   };
 
-  note: {
-    id: NoteSchema['_id'];
-    publicId: NoteSchema['publicId'];
-    collabTextIds: NoteSchema['collabTextIds'];
-  };
+  note: UserNoteNoteSchema;
+
   category?: {
     name: NoteCategory;
   };
+}
+
+export interface UserNoteNoteSchema {
+  /**
+   * Note.id
+   */
+  id: NoteSchema['_id'];
+  /**
+   * Note.publicId
+   */
+  publicId: NoteSchema['publicId'];
+  /**
+   * Note.collabTextIds
+   */
+  collabTextIds: NoteSchema['collabTextIds'];
 }
 
 export const userNoteDescription: CollectionDescription = {

@@ -13,10 +13,8 @@ import {
   mockSubscriptionsModel,
 } from '../../../../test/helpers/graphql-context';
 import { resetDatabase } from '../../../../test/helpers/mongodb';
-import {
-  createUser,
-  populateWithCreatedData,
-} from '../../../../test/helpers/mongodb/populate';
+import { populateExecuteAll } from '../../../../test/helpers/mongodb/populate/populate-queue';
+import { fakeUserPopulateQueue } from '../../../../test/helpers/mongodb/populate/user';
 import { GraphQLResolversContext } from '../../../context';
 import { CreateNoteInput, NoteTextField } from '../../../types.generated';
 
@@ -73,8 +71,8 @@ beforeAll(async () => {
   faker.seed(778);
   await resetDatabase();
 
-  user = createUser();
-  await populateWithCreatedData();
+  user = fakeUserPopulateQueue();
+  await populateExecuteAll();
 });
 
 describe('create', () => {

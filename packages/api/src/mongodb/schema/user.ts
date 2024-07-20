@@ -21,7 +21,7 @@ export interface UserSchema {
     displayName: string;
   };
   notes: {
-    category: Record<NoteCategory, UserNoteCategoryMeta>;
+    category: { [key in NoteCategory]?: UserNoteCategoryMeta };
   };
 }
 

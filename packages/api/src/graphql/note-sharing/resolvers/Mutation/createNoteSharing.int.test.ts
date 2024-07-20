@@ -7,13 +7,10 @@ import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
 import { apolloServer } from '../../../../test/helpers/apollo-server';
 import { createGraphQLResolversContext } from '../../../../test/helpers/graphql-context';
 import { resetDatabase } from '../../../../test/helpers/mongodb';
-import {
-  createUser,
-  populateNoteToUser,
-  populateWithCreatedData,
-} from '../../../../test/helpers/mongodb/populate';
+import { populateNotes } from '../../../../test/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../../test/helpers/mongodb/populate/populate-queue';
 import { GraphQLResolversContext } from '../../../context';
-import { CreateNoteSharingInput, NoteTextField } from '../../../types.generated';
+import { CreateNoteSharingInput } from '../../../types.generated';
 
 const MUTATION = `#graphql
   mutation($input: CreateNoteSharingInput!){
@@ -36,15 +33,16 @@ beforeEach(async () => {
   faker.seed(843);
   await resetDatabase();
 
-  user = createUser();
+  const populateResult = populateNotes(1, {
+    skipInsert: {
+      shareNoteLink: true,
+    },
+  });
+  user = populateResult.user;
+  assert(populateResult.data[0] != null);
+  userNote = populateResult.data[0].userNote;
 
-  const { userNote: tmpUserNote } = populateNoteToUser(
-    user,
-    Object.values(NoteTextField)
-  );
-  userNote = tmpUserNote;
-
-  await populateWithCreatedData();
+  await populateExecuteAll();
 
   contextValue = createGraphQLResolversContext(user);
 });
@@ -66,7 +64,7 @@ it('creates a new note sharing', async () => {
 
   assert(response.body.kind === 'single');
   const { data, errors } = response.body.singleResult;
-  expect(errors).toBeUndefined();
+  expect(errors, JSON.stringify(errors, null, 2)).toBeUndefined();
   expect(data).toEqual({
     createNoteSharing: {
       note: {

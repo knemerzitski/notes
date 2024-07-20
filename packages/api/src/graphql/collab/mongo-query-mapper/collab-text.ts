@@ -25,7 +25,7 @@ import { CollabTextRecordQuery, CollabTextRecordQueryMapper } from './revision-r
 
 export type CollabTextQuery = Omit<
   CollabTextSchema,
-  'headText' | 'tailText' | 'records'
+  'headText' | 'tailText' | 'records' | 'userNotes'
 > & {
   headText: RevisionChangesetQuery;
   tailText: RevisionChangesetQuery;

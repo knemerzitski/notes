@@ -5,7 +5,10 @@ import { Changeset } from '~collab/changeset/changeset';
 
 import { CollectionName } from '../../../../mongodb/collections';
 import { DeepQueryResponse } from '../../../../mongodb/query-builder';
-import { CollabTextSchema } from '../../../../mongodb/schema/collab-text';
+import {
+  CollabTextSchema,
+  CollabTextUserNoteSchema,
+} from '../../../../mongodb/schema/collab-text';
 import { NoteSchema, noteDefaultValues } from '../../../../mongodb/schema/note';
 import { getNotesArrayPath } from '../../../../mongodb/schema/user';
 import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
@@ -29,6 +32,13 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
 
   const currentUserId = auth.session.user._id;
 
+  const userNoteId = new ObjectId();
+
+  const collabTextUserNote: CollabTextUserNoteSchema = {
+    id: userNoteId,
+    userId: currentUserId,
+  };
+
   // Initialize data
   const collabTexts = mapObject(NoteTextField, (_key, fieldName) => {
     const fieldValue = input.note?.textFields?.find((s) => s.key === fieldName)?.value;
@@ -36,7 +46,7 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
     return [
       fieldName,
       createCollabText({
-        creatorUserId: currentUserId,
+        userNote: collabTextUserNote,
         initalText: text,
       }),
     ];
@@ -53,7 +63,7 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
   const notesArrayPath = getNotesArrayPath(categoryName);
 
   const userNote: UserNoteSchema = {
-    _id: new ObjectId(),
+    _id: userNoteId,
     userId: currentUserId,
     note: {
       id: note._id,
@@ -77,6 +87,7 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
           _id: currentUserId,
         },
         {
+          // TODO what if path doesn't exist
           $push: {
             [notesArrayPath]: userNote._id,
           },
@@ -124,17 +135,18 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
 };
 
 interface CreateCollabTextParams {
+  userNote: CollabTextUserNoteSchema;
   initalText: string;
-  creatorUserId: ObjectId;
 }
 
 function createCollabText({
   initalText,
-  creatorUserId,
+  userNote,
 }: CreateCollabTextParams): CollabTextSchema {
   const changeset = Changeset.fromInsertion(initalText).serialize();
   return {
     _id: new ObjectId(),
+    userNotes: [userNote],
     headText: {
       revision: 1,
       changeset,
@@ -145,7 +157,7 @@ function createCollabText({
     },
     records: [
       {
-        creatorUserId,
+        creatorUserId: userNote.userId,
         userGeneratedId: '',
         revision: 1,
         changeset,

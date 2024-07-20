@@ -3,42 +3,53 @@ import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 import { beforeAll, it, assert, expect } from 'vitest';
 
+import { Changeset } from '~collab/changeset/changeset';
+
 import { NoteSchema } from '../../../mongodb/schema/note';
 import { UserSchema } from '../../../mongodb/schema/user';
 import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb';
-import {
-  populateUserWithNotes,
-  populateWithCreatedData,
-} from '../../../test/helpers/mongodb/populate';
-import { NoteTextField } from '../../types.generated';
+
+import { populateNotes } from '../../../test/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../test/helpers/mongodb/populate/populate-queue';
 
 import noteBatchLoad, { NoteBatchLoadContext } from './noteBatchLoad';
 
-let notes: NoteSchema[];
+let populateResult: ReturnType<typeof populateNotes>;
 let user: UserSchema;
+let note: NoteSchema;
+
 let context: NoteBatchLoadContext;
 
 beforeAll(async () => {
   await resetDatabase();
   faker.seed(73452);
 
-  const { notes: tmpNotes, user: tmpUser } = populateUserWithNotes(
-    3,
-    Object.values(NoteTextField),
-    {
-      collabText: {
+  populateResult = populateNotes(3, {
+    collabText() {
+      return {
         recordsCount: 10,
-        tailRevision: 0,
-      },
-      noteMany: {
-        enumaratePublicIdByIndex: 0,
-      },
-    }
-  );
-  notes = tmpNotes;
-  user = tmpUser;
+        initialText: 'head',
+        record(_recordIndex, revision) {
+          return {
+            changeset: Changeset.fromInsertion(`r_${revision}`).serialize(),
+          };
+        },
+      };
+    },
+    note(noteIndex) {
+      return {
+        override: {
+          publicId: `publicId_${noteIndex}`,
+        },
+      };
+    },
+  });
+  user = populateResult.user;
+  const firstNote = populateResult.data[0]?.note;
+  assert(firstNote != null);
+  note = firstNote;
 
-  await populateWithCreatedData();
+  await populateExecuteAll();
 
   context = {
     mongodb: {
@@ -48,9 +59,6 @@ beforeAll(async () => {
 });
 
 it('loads a simple note', async () => {
-  const note = notes[0];
-  assert(note != null);
-
   await expect(
     noteBatchLoad(
       [
@@ -108,9 +116,6 @@ it('loads a simple note', async () => {
 });
 
 it('loads all fields', async () => {
-  const note = notes[0];
-  assert(note != null);
-
   await expect(
     noteBatchLoad(
       [
@@ -189,7 +194,7 @@ it('loads all fields', async () => {
                 creatorUserId: expect.any(ObjectId),
                 userGeneratedId: expect.any(String),
                 afterSelection: {
-                  start: 0,
+                  start: 4,
                 },
                 beforeSelection: {
                   start: 0,
@@ -204,9 +209,6 @@ it('loads all fields', async () => {
 });
 
 it('loads minimal fields', async () => {
-  const note = notes[0];
-  assert(note != null);
-
   await expect(
     noteBatchLoad(
       [
@@ -231,9 +233,6 @@ it('loads minimal fields', async () => {
 });
 
 it('loads shareNoteLinks', async () => {
-  const note = notes[0];
-  assert(note != null);
-
   await expect(
     noteBatchLoad(
       [

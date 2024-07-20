@@ -8,10 +8,8 @@ import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
 import { apolloServer } from '../../../../test/helpers/apollo-server';
 import { createGraphQLResolversContext } from '../../../../test/helpers/graphql-context';
 import { resetDatabase } from '../../../../test/helpers/mongodb';
-import {
-  populateUserWithNotes,
-  populateWithCreatedData,
-} from '../../../../test/helpers/mongodb/populate';
+import { populateNotes } from '../../../../test/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../../test/helpers/mongodb/populate/populate-queue';
 import { GraphQLResolversContext } from '../../../context';
 import { NoteCategory, NoteTextField } from '../../../types.generated';
 
@@ -48,52 +46,53 @@ const QUERY_CATEGORY = `#graphql
   }
 `;
 
-let notes: NoteSchema[];
+let note: NoteSchema;
 let user: UserSchema;
-let userNoteCategoryArchive: UserNoteSchema;
+let userNoteArchive: UserNoteSchema;
 let contextValue: GraphQLResolversContext;
 
 beforeAll(async () => {
   faker.seed(5435);
   await resetDatabase();
 
-  ({ notes, user } = populateUserWithNotes(2, Object.values(NoteTextField), {
-    collabText: {
-      recordsCount: 2,
-      tailRevision: 0,
-    },
-  }));
-  const { userNotes: userNotesArchive } = populateUserWithNotes(
-    1,
-    Object.values(NoteTextField),
-    {
-      user,
-      collabText: {
+  const populateResult = populateNotes(2, {
+    collabText() {
+      return {
         recordsCount: 2,
-        tailRevision: 0,
-      },
-      userNote: {
-        categoryName: NoteCategory.ARCHIVE,
-      },
-    }
-  );
-  assert(userNotesArchive[0] != null);
-  userNoteCategoryArchive = userNotesArchive[0];
+      };
+    },
+    userNote(noteIndex) {
+      if (noteIndex === 1) {
+        return {
+          override: {
+            category: {
+              name: NoteCategory.ARCHIVE,
+            },
+          },
+        };
+      }
+      return;
+    },
+  });
 
-  await populateWithCreatedData();
+  assert(populateResult.data[0] != null);
+  assert(populateResult.data[1] != null);
+
+  user = populateResult.user;
+  note = populateResult.data[0].note;
+  userNoteArchive = populateResult.data[1].userNote;
+
+  await populateExecuteAll();
 
   contextValue = createGraphQLResolversContext(user);
 });
 
 it('returns note', async () => {
-  const firstNote = notes[0];
-  assert(firstNote != null);
-
   const response = await apolloServer.executeOperation(
     {
       query: QUERY,
       variables: {
-        contentId: firstNote.publicId,
+        contentId: note.publicId,
         recordsLast: 2,
       },
     },
@@ -169,14 +168,11 @@ it('returns note', async () => {
 });
 
 it('returns only specified textField', async () => {
-  const firstNote = notes[0];
-  assert(firstNote != null);
-
   const response = await apolloServer.executeOperation(
     {
       query: QUERY,
       variables: {
-        contentId: firstNote.publicId,
+        contentId: note.publicId,
         recordsLast: 2,
         fieldName: NoteTextField.TITLE,
       },
@@ -226,9 +222,6 @@ it('returns only specified textField', async () => {
 });
 
 it('returns one note not found error', async () => {
-  const firstNote = notes[0];
-  assert(firstNote != null);
-
   const response = await apolloServer.executeOperation(
     {
       query: QUERY,
@@ -253,7 +246,7 @@ it('returns note category', async () => {
     {
       query: QUERY_CATEGORY,
       variables: {
-        contentId: userNoteCategoryArchive.note.publicId,
+        contentId: userNoteArchive.note.publicId,
       },
     },
     {

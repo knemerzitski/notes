@@ -4,12 +4,12 @@ import mapObject from 'map-obj';
 import { ObjectId } from 'mongodb';
 import { assert, beforeAll, expect, it } from 'vitest';
 
-import { NoteCategory } from '../../../graphql/types.generated';
+import { Changeset } from '~collab/changeset/changeset';
+
+import { NoteCategory, NoteTextField } from '../../../graphql/types.generated';
 import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb';
-import {
-  populateUserWithNotes,
-  populateWithCreatedData,
-} from '../../../test/helpers/mongodb/populate';
+import { populateNotes } from '../../../test/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../test/helpers/mongodb/populate/populate-queue';
 import { CollectionName } from '../../collections';
 import { CollabTextSchema } from '../../schema/collab-text';
 import { NoteSchema } from '../../schema/note';
@@ -25,28 +25,28 @@ import revisionRecordsPagination, {
   CollabTextRevisionRecordsPaginationOutput,
 } from './revisionRecordsPagination';
 
-enum CollabTextKey {
-  CONTENT = 'content',
-}
-
 let user: UserSchema;
 
 beforeAll(async () => {
   await resetDatabase();
   faker.seed(88765);
 
-  const { user: tmpUser } = populateUserWithNotes(1, Object.values(CollabTextKey), {
-    collabText: {
-      recordsCount: 10,
-      tailRevision: 0,
-    },
-    noteMany: {
-      enumaratePublicIdByIndex: 0,
+  const populateResult = populateNotes(1, {
+    collabText() {
+      return {
+        recordsCount: 10,
+        initialText: 'head',
+        record(_recordIndex, revision) {
+          return {
+            changeset: Changeset.fromInsertion(`r_${revision}`).serialize(),
+          };
+        },
+      };
     },
   });
-  user = tmpUser;
+  user = populateResult.user;
 
-  await populateWithCreatedData();
+  await populateExecuteAll();
 });
 
 it('gets records within usernotes pagination', async () => {
@@ -64,9 +64,9 @@ it('gets records within usernotes pagination', async () => {
   const results = await mongoCollections[CollectionName.USERS]
     .aggregate<
       RelayPaginateUserNotesArrayOuput<
-        CollabTextKey,
+        NoteTextField,
         UserNoteLookupOutput<
-          CollabTextKey,
+          NoteTextField,
           Omit<CollabTextSchema, 'records'> & {
             records: CollabTextRevisionRecordsPaginationOutput;
           },
@@ -95,7 +95,7 @@ it('gets records within usernotes pagination', async () => {
               collectionName:
                 mongoCollections[CollectionName.COLLAB_TEXTS].collectionName,
 
-              collabTexts: mapObject(CollabTextKey, (_key, field) => [
+              collabTexts: mapObject(NoteTextField, (_key, field) => [
                 field,
                 {
                   pipeline: [
@@ -146,7 +146,7 @@ it('gets records within usernotes pagination', async () => {
             id: expect.any(ObjectId),
             publicId: expect.any(String),
             collabTexts: {
-              content: {
+              [NoteTextField.CONTENT]: {
                 _id: expect.any(ObjectId),
                 headText: { changeset: ['head'], revision: 10 },
                 tailText: { changeset: [], revision: 0 },
@@ -158,7 +158,7 @@ it('gets records within usernotes pagination', async () => {
                       revision: 3,
                       changeset: ['r_3'],
                       beforeSelection: { start: 0 },
-                      afterSelection: { start: 0 },
+                      afterSelection: { start: 4 },
                     },
                     {
                       creatorUserId: expect.any(ObjectId),
@@ -166,7 +166,7 @@ it('gets records within usernotes pagination', async () => {
                       revision: 4,
                       changeset: ['r_4'],
                       beforeSelection: { start: 0 },
-                      afterSelection: { start: 0 },
+                      afterSelection: { start: 4 },
                     },
                   ],
                   sizes: [0, 0, 2],

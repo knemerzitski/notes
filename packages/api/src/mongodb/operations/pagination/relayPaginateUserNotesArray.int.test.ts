@@ -2,12 +2,10 @@
 import { faker } from '@faker-js/faker';
 import { assert, beforeAll, expect, it } from 'vitest';
 
-import { NoteCategory } from '../../../graphql/types.generated';
+import { NoteCategory, NoteTextField } from '../../../graphql/types.generated';
 import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb';
-import {
-  populateWithCreatedData,
-  populateUserWithNotes,
-} from '../../../test/helpers/mongodb/populate';
+import { populateNotes } from '../../../test/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../test/helpers/mongodb/populate/populate-queue';
 import { CollectionName } from '../../collections';
 import { getNotesArrayPath, UserSchema } from '../../schema/user';
 import { UserNoteSchema } from '../../schema/user-note';
@@ -16,11 +14,6 @@ import relayPaginateUserNotesArray, {
   RelayPaginateUserNotesArrayOuput,
 } from './relayPaginateUserNotesArray';
 
-enum TextFields {
-  TITLE = 'title',
-  CONTENT = 'content',
-}
-
 let user: UserSchema;
 let userNotes: UserNoteSchema[];
 
@@ -28,22 +21,19 @@ beforeAll(async () => {
   await resetDatabase();
   faker.seed(677876);
 
-  const { user: tmpUser, userNotes: tmpUserNotes } = populateUserWithNotes(
-    10,
-    Object.values(TextFields),
-    {
-      collabText: {
-        recordsCount: 1,
-      },
-      noteMany: {
-        enumaratePublicIdByIndex: 0,
-      },
-    }
-  );
-  user = tmpUser;
-  userNotes = tmpUserNotes;
+  const populateResult = populateNotes(10, {
+    note(noteIndex) {
+      return {
+        override: {
+          publicId: `publicId_${noteIndex}`,
+        },
+      };
+    },
+  });
+  user = populateResult.user;
+  userNotes = populateResult.data.map(({ userNote }) => userNote);
 
-  await populateWithCreatedData();
+  await populateExecuteAll();
 });
 
 it('returns all notes without any paginations', async () => {
@@ -68,7 +58,7 @@ it('returns all notes without any paginations', async () => {
             collabText: {
               collectionName:
                 mongoCollections[CollectionName.COLLAB_TEXTS].collectionName,
-              collabTexts: Object.values(TextFields),
+              collabTexts: Object.values(NoteTextField),
             },
           },
         },
@@ -117,7 +107,7 @@ it('paginates notes', async () => {
             collabText: {
               collectionName:
                 mongoCollections[CollectionName.COLLAB_TEXTS].collectionName,
-              collabTexts: Object.values(TextFields),
+              collabTexts: Object.values(NoteTextField),
             },
           },
         },

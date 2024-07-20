@@ -5,44 +5,43 @@ import { beforeAll, it, expect } from 'vitest';
 
 import { RelayPagination } from '../../../mongodb/operations/pagination/relayArrayPagination';
 import { getNotesArrayPath, UserSchema } from '../../../mongodb/schema/user';
-import { UserNoteSchema } from '../../../mongodb/schema/user-note';
 import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb';
-import {
-  populateUserWithNotes,
-  populateWithCreatedData,
-} from '../../../test/helpers/mongodb/populate';
-import { NoteCategory, NoteTextField } from '../../types.generated';
+import { populateNotes } from '../../../test/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../test/helpers/mongodb/populate/populate-queue';
+import { NoteCategory } from '../../types.generated';
 
 import noteConnectionBatchLoad, {
   NoteConnectionBatchLoadContext,
   NoteConnectionKey,
 } from './noteConnectionBatchLoad';
 
-let userNotes: UserNoteSchema[];
+let populateResult: ReturnType<typeof populateNotes>;
 let user: UserSchema;
+
 let context: NoteConnectionBatchLoadContext;
 
 beforeAll(async () => {
   await resetDatabase();
   faker.seed(32314);
 
-  const { userNotes: tmpUserNotes, user: tmpUser } = populateUserWithNotes(
-    5,
-    Object.values(NoteTextField),
-    {
-      collabText: {
+  populateResult = populateNotes(5, {
+    collabText() {
+      return {
         recordsCount: 3,
-        tailRevision: 0,
-      },
-      noteMany: {
-        enumaratePublicIdByIndex: 0,
-      },
-    }
-  );
-  userNotes = tmpUserNotes;
-  user = tmpUser;
+        initialText: 'head',
+      };
+    },
+    note(noteIndex) {
+      return {
+        override: {
+          publicId: `publicId_${noteIndex}`,
+        },
+      };
+    },
+  });
+  user = populateResult.user;
 
-  await populateWithCreatedData();
+  await populateExecuteAll();
 
   context = {
     mongodb: {
@@ -200,7 +199,7 @@ it('loads multiple different paginations', async () => {
         createKey({ last: 1 }),
         createKey({
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          after: userNotes.at(1)!._id,
+          after: populateResult.data.at(1)?.userNote!._id,
           first: 1,
         }),
       ],

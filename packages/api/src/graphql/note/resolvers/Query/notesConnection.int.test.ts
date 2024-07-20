@@ -3,21 +3,13 @@ import { faker } from '@faker-js/faker';
 import { assert, beforeAll, expect, it } from 'vitest';
 
 import { UserSchema } from '../../../../mongodb/schema/user';
-import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
 import { apolloServer } from '../../../../test/helpers/apollo-server';
 import { createGraphQLResolversContext } from '../../../../test/helpers/graphql-context';
 import { resetDatabase } from '../../../../test/helpers/mongodb';
-import {
-  populateUserWithNotes,
-  populateWithCreatedData,
-} from '../../../../test/helpers/mongodb/populate';
+import { populateNotes } from '../../../../test/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../../test/helpers/mongodb/populate/populate-queue';
 import { GraphQLResolversContext } from '../../../context';
-import {
-  NoteCategory,
-  NoteConnection,
-  NoteEdge,
-  NoteTextField,
-} from '../../../types.generated';
+import { NoteCategory, NoteConnection, NoteEdge } from '../../../types.generated';
 
 const QUERY = `#graphql
   query($after: String, $first: NonNegativeInt, $before: String, $last: NonNegativeInt, $category: NoteCategory) {
@@ -57,42 +49,53 @@ const QUERY = `#graphql
   }
 `;
 
-let userNotes: UserNoteSchema[];
-let userNotesCategoryArchive: UserNoteSchema[];
+let populateResult: ReturnType<typeof populateNotes>;
+let populateResultArchive: ReturnType<typeof populateNotes>;
+
 let user: UserSchema;
+
 let contextValue: GraphQLResolversContext;
 
 beforeAll(async () => {
   faker.seed(5435);
   await resetDatabase();
 
-  ({ user, userNotes } = populateUserWithNotes(10, Object.values(NoteTextField), {
-    collabText: {
-      recordsCount: 2,
-      tailRevision: 0,
+  populateResult = populateNotes(10, {
+    collabText() {
+      return {
+        recordsCount: 2,
+      };
     },
-    noteMany: {
-      enumaratePublicIdByIndex: 0,
+    note(noteIndex) {
+      return {
+        override: {
+          publicId: `publicId_${noteIndex}`,
+        },
+      };
     },
-  }));
-  ({ userNotes: userNotesCategoryArchive } = populateUserWithNotes(
-    3,
-    Object.values(NoteTextField),
-    {
-      user,
-      userNote: {
-        categoryName: NoteCategory.ARCHIVE,
-      },
-    }
-  ));
+  });
+  user = populateResult.user;
 
-  await populateWithCreatedData();
+  populateResultArchive = populateNotes(3, {
+    user,
+    userNote() {
+      return {
+        override: {
+          category: {
+            name: NoteCategory.ARCHIVE,
+          },
+        },
+      };
+    },
+  });
+
+  await populateExecuteAll();
 
   contextValue = createGraphQLResolversContext(user);
 });
 
 it('returns last 2 notes, after: 7, first 4 => 8,9 (10 notes total)', async () => {
-  const userNote7 = userNotes[7];
+  const userNote7 = populateResult.data[7]?.userNote;
   assert(userNote7 != null);
 
   const response = await apolloServer.executeOperation(
@@ -129,7 +132,7 @@ it('returns last 2 notes, after: 7, first 4 => 8,9 (10 notes total)', async () =
 });
 
 it('returns nothing when cursor is invalid', async () => {
-  const userNote6 = userNotes[6];
+  const userNote6 = populateResult.data[6]?.userNote;
   assert(userNote6 != null);
 
   const response = await apolloServer.executeOperation(
@@ -161,7 +164,7 @@ it('returns nothing when cursor is invalid', async () => {
 });
 
 it('returns empty array when cursor is not found', async () => {
-  const userNote6 = userNotes[6];
+  const userNote6 = populateResult.data[6]?.userNote;
   assert(userNote6 != null);
 
   const response = await apolloServer.executeOperation(
@@ -217,5 +220,9 @@ it('returns notes from different category: ARCHIVE', async () => {
       if (!edge) return null;
       return (edge as NoteEdge).node.id;
     })
-  ).toStrictEqual(userNotesCategoryArchive.map((n) => n._id.toString('base64')));
+  ).toStrictEqual(
+    populateResultArchive.data
+      .map(({ userNote }) => userNote)
+      .map((n) => n._id.toString('base64'))
+  );
 });
