@@ -1,7 +1,7 @@
 import { assert, describe, expect, it } from 'vitest';
 
+import { newSelectionRange } from '../__test__/helpers/collab-editor-selection-range';
 import { Changeset } from '../changeset/changeset';
-import { newSelectionRange } from '../test/helpers/collab-editor-selection-range';
 
 import { CollabEditor } from './collab-editor';
 
