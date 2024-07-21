@@ -7,6 +7,6 @@ export default defineConfig({
   envDir: '../../',
   envPrefix: 'TEST_',
   test: {
-    include: ['!lib/**/*.int.test.ts', '!test', 'lib/**/*.test.ts'],
+    include: ['!lib/**/*.int.test.ts', '!__test__', 'lib/**/*.test.ts'],
   },
 });
