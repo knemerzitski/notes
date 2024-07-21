@@ -2,12 +2,12 @@
 import { faker } from '@faker-js/faker';
 import { assert, beforeAll, expect, it } from 'vitest';
 
+import { apolloServer } from '../../../../__test__/helpers/graphql/apollo-server';
+import { createGraphQLResolversContext } from '../../../../__test__/helpers/graphql/graphql-context';
+import { resetDatabase } from '../../../../__test__/helpers/mongodb/mongodb';
+import { populateNotes } from '../../../../__test__/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { UserSchema } from '../../../../mongodb/schema/user';
-import { apolloServer } from '../../../../test/helpers/graphql/apollo-server';
-import { createGraphQLResolversContext } from '../../../../test/helpers/graphql/graphql-context';
-import { resetDatabase } from '../../../../test/helpers/mongodb/mongodb';
-import { populateNotes } from '../../../../test/helpers/mongodb/populate/populate';
-import { populateExecuteAll } from '../../../../test/helpers/mongodb/populate/populate-queue';
 import { GraphQLResolversContext } from '../../../context';
 import { NoteCategory, NoteConnection, NoteEdge } from '../../../types.generated';
 

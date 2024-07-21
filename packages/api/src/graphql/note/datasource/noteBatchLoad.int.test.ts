@@ -5,12 +5,15 @@ import { beforeAll, it, assert, expect } from 'vitest';
 
 import { Changeset } from '~collab/changeset/changeset';
 
+import {
+  mongoCollections,
+  resetDatabase,
+} from '../../../__test__/helpers/mongodb/mongodb';
+
+import { populateNotes } from '../../../__test__/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../__test__/helpers/mongodb/populate/populate-queue';
 import { NoteSchema } from '../../../mongodb/schema/note';
 import { UserSchema } from '../../../mongodb/schema/user';
-import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb/mongodb';
-
-import { populateNotes } from '../../../test/helpers/mongodb/populate/populate';
-import { populateExecuteAll } from '../../../test/helpers/mongodb/populate/populate-queue';
 
 import noteBatchLoad, { NoteBatchLoadContext } from './noteBatchLoad';
 

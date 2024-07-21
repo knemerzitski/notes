@@ -3,11 +3,14 @@ import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 import { beforeAll, it, expect } from 'vitest';
 
+import {
+  mongoCollections,
+  resetDatabase,
+} from '../../../__test__/helpers/mongodb/mongodb';
+import { populateNotes } from '../../../__test__/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../__test__/helpers/mongodb/populate/populate-queue';
 import { RelayPagination } from '../../../mongodb/operations/pagination/relayArrayPagination';
 import { getNotesArrayPath, UserSchema } from '../../../mongodb/schema/user';
-import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb/mongodb';
-import { populateNotes } from '../../../test/helpers/mongodb/populate/populate';
-import { populateExecuteAll } from '../../../test/helpers/mongodb/populate/populate-queue';
 import { NoteCategory } from '../../types.generated';
 
 import noteConnectionBatchLoad, {

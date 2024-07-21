@@ -3,7 +3,7 @@ import { assert, beforeAll, describe, expect, it } from 'vitest';
 
 import isNonEmptyArray from '~utils/array/isNonEmptyArray';
 
-import { mongoDB } from '../../../test/helpers/mongodb/mongodb';
+import { mongoDB } from '../../../__test__/helpers/mongodb/mongodb';
 
 import relayArrayPagination, {
   RelayArrayPaginationInput,

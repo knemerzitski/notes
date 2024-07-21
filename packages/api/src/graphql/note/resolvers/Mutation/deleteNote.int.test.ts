@@ -4,26 +4,26 @@ import { assert, beforeEach, describe, expect, it } from 'vitest';
 
 import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
 
-import { CollectionName } from '../../../../mongodb/collections';
-import { NoteSchema } from '../../../../mongodb/schema/note';
-import { UserSchema } from '../../../../mongodb/schema/user';
-import { apolloServer } from '../../../../test/helpers/graphql/apollo-server';
+import { apolloServer } from '../../../../__test__/helpers/graphql/apollo-server';
 import {
   createPublisher,
   createGraphQLResolversContext,
   mockSocketApi,
   mockSubscriptionsModel,
-} from '../../../../test/helpers/graphql/graphql-context';
+} from '../../../../__test__/helpers/graphql/graphql-context';
 import {
   mongoCollections,
   resetDatabase,
-} from '../../../../test/helpers/mongodb/mongodb';
+} from '../../../../__test__/helpers/mongodb/mongodb';
 import {
   populateAddNoteToUser,
   populateNotes,
-} from '../../../../test/helpers/mongodb/populate/populate';
-import { populateExecuteAll } from '../../../../test/helpers/mongodb/populate/populate-queue';
-import { fakeUserPopulateQueue } from '../../../../test/helpers/mongodb/populate/user';
+} from '../../../../__test__/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
+import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
+import { CollectionName } from '../../../../mongodb/collections';
+import { NoteSchema } from '../../../../mongodb/schema/note';
+import { UserSchema } from '../../../../mongodb/schema/user';
 import { DeleteNoteInput, NoteDeletedInput } from '../../../types.generated';
 
 const MUTATION = `#graphql

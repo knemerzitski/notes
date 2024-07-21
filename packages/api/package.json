@@ -10,6 +10,7 @@
     "test:unit:watch": "vitest watch -c ./vitest.config.unit.ts",
     "test:int": "vitest -c ./vitest.config.integration.ts",
     "test:int:watch": "vitest watch -c ./vitest.config.integration.ts",
+    "test": "npm run test:unit && npm run test:int",
     "build:http": "vite-node build.ts src/apollo-http-handler.ts --outfile out/apollo-http-handler/index.js",
     "build:websocket": "vite-node build.ts src/websocket-handler.ts --outfile out/websocket-handler/index.js",
     "build:initialize": "vite-node build.ts src/initialize-handler.ts --outfile out/initialize-handler/index.js",

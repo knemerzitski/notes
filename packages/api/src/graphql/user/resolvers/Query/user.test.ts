@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 import { assert, expect, it } from 'vitest';
 
-import { apolloServer } from '../../../../test/helpers/graphql/apollo-server';
+import { apolloServer } from '../../../../__test__/helpers/graphql/apollo-server';
 import { GraphQLResolversContext } from '../../../context';
 
 const QUERY = `#graphql

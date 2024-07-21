@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { assert, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import { mongoDB } from '../../../test/helpers/mongodb/mongodb';
+import { mongoDB } from '../../../__test__/helpers/mongodb/mongodb';
 
 import consecutiveIntArrayPagination, {
   BoundPaginationUnion,

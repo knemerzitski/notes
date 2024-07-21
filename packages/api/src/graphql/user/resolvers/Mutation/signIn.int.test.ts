@@ -5,18 +5,18 @@ import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { apolloServer } from '../../../../__test__/helpers/graphql/apollo-server';
+import { createGraphQLResolversContext } from '../../../../__test__/helpers/graphql/graphql-context';
+import {
+  mongoCollections,
+  resetDatabase,
+} from '../../../../__test__/helpers/mongodb/mongodb';
+import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
+import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
 import { verifyCredentialToken } from '../../../../auth/google/__mocks__/oauth2';
 import { CollectionName } from '../../../../mongodb/collections';
 import { SessionSchema } from '../../../../mongodb/schema/session/sessions';
 import { UserSchema } from '../../../../mongodb/schema/user';
-import { apolloServer } from '../../../../test/helpers/graphql/apollo-server';
-import { createGraphQLResolversContext } from '../../../../test/helpers/graphql/graphql-context';
-import {
-  mongoCollections,
-  resetDatabase,
-} from '../../../../test/helpers/mongodb/mongodb';
-import { populateExecuteAll } from '../../../../test/helpers/mongodb/populate/populate-queue';
-import { fakeUserPopulateQueue } from '../../../../test/helpers/mongodb/populate/user';
 import { AuthProvider, SignInInput, SignInPayload } from '../../../types.generated';
 
 vi.mock('../../../../auth/google/oauth2');

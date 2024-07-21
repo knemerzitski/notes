@@ -7,28 +7,28 @@ import { Changeset } from '~collab/changeset/changeset';
 import { RevisionChangeset } from '~collab/records/record';
 import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
 
-import { CollectionName } from '../../../../mongodb/collections';
-import { CollabTextSchema } from '../../../../mongodb/schema/collab-text';
-import { NoteSchema } from '../../../../mongodb/schema/note';
-import { UserSchema } from '../../../../mongodb/schema/user';
-import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
-import { apolloServer } from '../../../../test/helpers/graphql/apollo-server';
+import { apolloServer } from '../../../../__test__/helpers/graphql/apollo-server';
 import {
   createPublisher,
   createGraphQLResolversContext,
   mockSocketApi,
   mockSubscriptionsModel,
-} from '../../../../test/helpers/graphql/graphql-context';
+} from '../../../../__test__/helpers/graphql/graphql-context';
 import {
   createMongoDBContext,
   mongoCollections,
   resetDatabase,
-} from '../../../../test/helpers/mongodb/mongodb';
+} from '../../../../__test__/helpers/mongodb/mongodb';
 import {
   populateNotes,
   PopulateNotesOptions,
-} from '../../../../test/helpers/mongodb/populate/populate';
-import { populateExecuteAll } from '../../../../test/helpers/mongodb/populate/populate-queue';
+} from '../../../../__test__/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
+import { CollectionName } from '../../../../mongodb/collections';
+import { CollabTextSchema } from '../../../../mongodb/schema/collab-text';
+import { NoteSchema } from '../../../../mongodb/schema/note';
+import { UserSchema } from '../../../../mongodb/schema/user';
+import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
 import { GraphQLResolversContext } from '../../../context';
 import {
   NoteCategory,

@@ -11,7 +11,7 @@ export default defineConfig({
   envPrefix: 'TEST_',
   test: {
     include: ['src/**/*.int.test.ts'],
-    setupFiles: ['src/test/helpers/setup.integration.ts'],
+    setupFiles: ['src/__test__/helpers/setup.integration.ts'],
     pool: 'threads',
     poolOptions: {
       threads: {

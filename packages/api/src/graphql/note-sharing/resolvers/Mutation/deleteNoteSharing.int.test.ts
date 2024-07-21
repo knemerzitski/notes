@@ -2,18 +2,18 @@
 import { faker } from '@faker-js/faker';
 import { assert, beforeEach, expect, it } from 'vitest';
 
+import { apolloServer } from '../../../../__test__/helpers/graphql/apollo-server';
+import { createGraphQLResolversContext } from '../../../../__test__/helpers/graphql/graphql-context';
+import {
+  mongoCollections,
+  resetDatabase,
+} from '../../../../__test__/helpers/mongodb/mongodb';
+import { populateNotes } from '../../../../__test__/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { CollectionName } from '../../../../mongodb/collections';
 import { ShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link';
 import { UserSchema } from '../../../../mongodb/schema/user';
 import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
-import { apolloServer } from '../../../../test/helpers/graphql/apollo-server';
-import { createGraphQLResolversContext } from '../../../../test/helpers/graphql/graphql-context';
-import {
-  mongoCollections,
-  resetDatabase,
-} from '../../../../test/helpers/mongodb/mongodb';
-import { populateNotes } from '../../../../test/helpers/mongodb/populate/populate';
-import { populateExecuteAll } from '../../../../test/helpers/mongodb/populate/populate-queue';
 import { GraphQLResolversContext } from '../../../context';
 import { DeleteNoteSharingInput } from '../../../types.generated';
 

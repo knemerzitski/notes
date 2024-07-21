@@ -2,10 +2,13 @@
 import { faker } from '@faker-js/faker';
 import { assert, beforeAll, expect, it } from 'vitest';
 
+import {
+  mongoCollections,
+  resetDatabase,
+} from '../../../__test__/helpers/mongodb/mongodb';
+import { populateNotes } from '../../../__test__/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../__test__/helpers/mongodb/populate/populate-queue';
 import { NoteCategory, NoteTextField } from '../../../graphql/types.generated';
-import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb/mongodb';
-import { populateNotes } from '../../../test/helpers/mongodb/populate/populate';
-import { populateExecuteAll } from '../../../test/helpers/mongodb/populate/populate-queue';
 import { CollectionName } from '../../collections';
 import { getNotesArrayPath, UserSchema } from '../../schema/user';
 import { UserNoteSchema } from '../../schema/user-note';
