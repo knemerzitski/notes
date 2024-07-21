@@ -1,5 +1,6 @@
 import { beforeEach, vi } from 'vitest';
 import { mockDeep } from 'vitest-mock-extended';
+
 import { WebSocketApi } from '~lambda-graphql/context/apigateway';
 import { createGraphQLContext } from '~lambda-graphql/context/graphql';
 import { SubscriptionTable } from '~lambda-graphql/dynamodb/models/subscription';
@@ -15,7 +16,7 @@ import { resolvers } from '../../graphql/resolvers.generated';
 import { typeDefs } from '../../graphql/typeDefs.generated';
 import { UserSchema } from '../../mongodb/schema/user';
 
-import { mongoCollections, mongoClient } from './mongodb';
+import { mongoCollections, mongoClient } from './mongodb/mongodb';
 
 interface CreateGraphQLResolversContextOptions {
   createPublisher?: (ctx: Omit<GraphQLResolversContext, 'publish'>) => Publisher;

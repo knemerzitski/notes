@@ -13,7 +13,7 @@ import { ShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link'
 import { UserSchema } from '../../../../mongodb/schema/user';
 import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
 
-import { mongoCollections } from '../../mongodb';
+import { mongoCollections } from '../mongodb';
 
 import { fakeCollabText, FakeCollabTextOptions } from './collab-text';
 import { fakeNote, FakeNoteOptions } from './note';

@@ -7,7 +7,7 @@ import { assert, beforeAll, expect, it } from 'vitest';
 import { Changeset } from '~collab/changeset/changeset';
 
 import { NoteCategory, NoteTextField } from '../../../graphql/types.generated';
-import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb';
+import { mongoCollections, resetDatabase } from '../../../test/helpers/mongodb/mongodb';
 import { populateNotes } from '../../../test/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../test/helpers/mongodb/populate/populate-queue';
 import { CollectionName } from '../../collections';

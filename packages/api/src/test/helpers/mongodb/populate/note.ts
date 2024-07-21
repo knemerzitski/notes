@@ -7,7 +7,7 @@ import { CollectionName } from '../../../../mongodb/collections';
 import { CollabTextSchema } from '../../../../mongodb/schema/collab-text';
 import { noteDefaultValues, NoteSchema } from '../../../../mongodb/schema/note';
 import { UserSchema } from '../../../../mongodb/schema/user';
-import { mongoCollections } from '../../mongodb';
+import { mongoCollections } from '../mongodb';
 import { DeepPartial } from '../types';
 
 import { populateQueue } from './populate-queue';

@@ -11,7 +11,10 @@ import { SessionSchema } from '../../../../mongodb/schema/session/sessions';
 import { UserSchema } from '../../../../mongodb/schema/user';
 import { apolloServer } from '../../../../test/helpers/apollo-server';
 import { createGraphQLResolversContext } from '../../../../test/helpers/graphql-context';
-import { mongoCollections, resetDatabase } from '../../../../test/helpers/mongodb';
+import {
+  mongoCollections,
+  resetDatabase,
+} from '../../../../test/helpers/mongodb/mongodb';
 import { populateExecuteAll } from '../../../../test/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../test/helpers/mongodb/populate/user';
 import { AuthProvider, SignInInput, SignInPayload } from '../../../types.generated';

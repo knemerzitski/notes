@@ -14,7 +14,10 @@ import {
   mockSocketApi,
   mockSubscriptionsModel,
 } from '../../../../test/helpers/graphql-context';
-import { mongoCollections, resetDatabase } from '../../../../test/helpers/mongodb';
+import {
+  mongoCollections,
+  resetDatabase,
+} from '../../../../test/helpers/mongodb/mongodb';
 import {
   populateAddNoteToUser,
   populateNotes,

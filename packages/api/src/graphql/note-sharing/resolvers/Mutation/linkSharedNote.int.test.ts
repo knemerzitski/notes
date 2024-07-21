@@ -6,7 +6,7 @@ import { ShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link'
 import { UserSchema } from '../../../../mongodb/schema/user';
 import { apolloServer } from '../../../../test/helpers/apollo-server';
 import { createGraphQLResolversContext } from '../../../../test/helpers/graphql-context';
-import { resetDatabase } from '../../../../test/helpers/mongodb';
+import { resetDatabase } from '../../../../test/helpers/mongodb/mongodb';
 import { populateNotes } from '../../../../test/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../test/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../test/helpers/mongodb/populate/user';

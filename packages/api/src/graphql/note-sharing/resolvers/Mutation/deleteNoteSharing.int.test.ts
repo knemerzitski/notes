@@ -8,7 +8,10 @@ import { UserSchema } from '../../../../mongodb/schema/user';
 import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
 import { apolloServer } from '../../../../test/helpers/apollo-server';
 import { createGraphQLResolversContext } from '../../../../test/helpers/graphql-context';
-import { mongoCollections, resetDatabase } from '../../../../test/helpers/mongodb';
+import {
+  mongoCollections,
+  resetDatabase,
+} from '../../../../test/helpers/mongodb/mongodb';
 import { populateNotes } from '../../../../test/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../test/helpers/mongodb/populate/populate-queue';
 import { GraphQLResolversContext } from '../../../context';

@@ -3,7 +3,7 @@ import { afterAll, beforeAll } from 'vitest';
 
 import { createAllIndexes } from '../../mongodb/collections';
 
-import { mongoClient, mongoCollections } from './mongodb';
+import { mongoClient, mongoCollections } from './mongodb/mongodb';
 
 beforeAll(async () => {
   faker.seed(125);

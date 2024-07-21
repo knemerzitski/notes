@@ -2,7 +2,7 @@ import mapObject from 'map-obj';
 import { ObjectId } from 'mongodb';
 import { assert, beforeAll, describe, expect, it } from 'vitest';
 
-import { mongoDB } from '../../../test/helpers/mongodb';
+import { mongoDB } from '../../../test/helpers/mongodb/mongodb';
 
 import relayArrayPagination, { RelayArrayPaginationInput } from './relayArrayPagination';
 import relayMultiArrayPaginationConcat, {

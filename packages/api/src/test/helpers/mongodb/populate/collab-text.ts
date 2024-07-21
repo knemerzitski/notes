@@ -11,7 +11,7 @@ import {
   CollabTextUserNoteSchema,
   RevisionRecordSchema,
 } from '../../../../mongodb/schema/collab-text';
-import { mongoCollections } from '../../mongodb';
+import { mongoCollections } from '../mongodb';
 import { DeepPartial } from '../types';
 
 import { populateQueue } from './populate-queue';

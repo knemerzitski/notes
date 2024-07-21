@@ -12,7 +12,7 @@ import {
   mockSocketApi,
   mockSubscriptionsModel,
 } from '../../../../test/helpers/graphql-context';
-import { resetDatabase } from '../../../../test/helpers/mongodb';
+import { resetDatabase } from '../../../../test/helpers/mongodb/mongodb';
 import { populateExecuteAll } from '../../../../test/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../test/helpers/mongodb/populate/user';
 import { GraphQLResolversContext } from '../../../context';

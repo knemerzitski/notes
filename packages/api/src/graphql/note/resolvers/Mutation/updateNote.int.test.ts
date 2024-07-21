@@ -23,7 +23,7 @@ import {
   createMongoDBContext,
   mongoCollections,
   resetDatabase,
-} from '../../../../test/helpers/mongodb';
+} from '../../../../test/helpers/mongodb/mongodb';
 import {
   populateNotes,
   PopulateNotesOptions,

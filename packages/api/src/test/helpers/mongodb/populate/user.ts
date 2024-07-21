@@ -8,7 +8,7 @@ import { NoteCategory } from '../../../../graphql/types.generated';
 import { CollectionName } from '../../../../mongodb/collections';
 import { UserSchema } from '../../../../mongodb/schema/user';
 
-import { mongoCollections } from '../../mongodb';
+import { mongoCollections } from '../mongodb';
 import { DeepPartial } from '../types';
 
 import { populateQueue } from './populate-queue';

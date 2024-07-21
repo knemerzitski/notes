@@ -6,7 +6,7 @@ import { CollectionName } from '../../../../mongodb/collections';
 import { NoteSchema } from '../../../../mongodb/schema/note';
 import { UserSchema } from '../../../../mongodb/schema/user';
 import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
-import { mongoCollections } from '../../mongodb';
+import { mongoCollections } from '../mongodb';
 import { DeepPartial } from '../types';
 
 import { populateQueue } from './populate-queue';
