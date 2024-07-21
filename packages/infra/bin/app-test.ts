@@ -1,5 +1,6 @@
 import 'source-map-support/register';
-import path from 'path';
+import { exec } from 'child_process';
+import path, { join } from 'path';
 
 import { App } from 'aws-cdk-lib';
 
@@ -30,6 +31,18 @@ const definedVars = assertGetEnvironmentVariables([
   'TEST_DOCKER_DYNAMODB_ENDPOINT',
   'MOCK_DYNAMODB_ENDPOINT',
 ]);
+
+// Ensure DynamoDB is running
+const dynamoDBDockerPath = join(PROJECT_DIR, '../../docker/dynamodb');
+exec(`cd ${dynamoDBDockerPath} && docker compose ps`, (err, stdout) => {
+  if (!err && !stdout.includes('dynamodb-local')) {
+    console.error(
+      `DynamoDB container is not running. Cannot synth test app without it.\n` +
+        `Please start DynamoDB container with command 'npm run dynamodb:start'`
+    );
+    process.exit(1);
+  }
+});
 
 // Ensure DynamoDB tables are created
 await createLambdaGraphQLDynamoDBTables({

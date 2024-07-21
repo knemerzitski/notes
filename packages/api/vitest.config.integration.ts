@@ -30,6 +30,6 @@ exec(`cd ${mongoDBDockerPath} && docker compose ps`, (err, stdout) => {
       `MongoDB container is not running. Integration tests cannot run without it.\n` +
         `Please start MongoDB container with commad 'npm run mongodb:start'`
     );
-    process.exit(-1);
+    process.exit(1);
   }
 });

@@ -29,7 +29,19 @@ exec(`cd ${mongoDBDockerPath} && docker compose ps`, (err, stdout) => {
       `MongoDB container is not running. Integration tests cannot run without it.\n` +
         `Please start MongoDB container with commad 'npm run mongodb:start'`
     );
-    process.exit(-1);
+    process.exit(1);
+  }
+});
+
+// Ensure DynamoDB is running
+const dynamoDBDockerPath = join(__dirname, '../../docker/dynamodb');
+exec(`cd ${dynamoDBDockerPath} && docker compose ps`, (err, stdout) => {
+  if (!err && !stdout.includes('dynamodb-local')) {
+    console.error(
+      `DynamoDB container is not running. Integration tests cannot run without it.\n` +
+        `Please start DynamoDB container with commad 'npm run dynamodb:start'`
+    );
+    process.exit(1);
   }
 });
 
@@ -41,6 +53,6 @@ exec(`curl -I -X OPTIONS http://127.0.0.1:3000/graphql`, (err, stdout) => {
         `Please start API with commad 'npm run -w infra test:int:start-api'. \n` +
         `Cloudformation must be syntheized: 'npm run -w infra test:int:synth'.`
     );
-    process.exit(-1);
+    process.exit(1);
   }
 });
