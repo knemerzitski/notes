@@ -8,7 +8,7 @@ export default defineConfig({
   envDir: '../../',
   test: {
     include: ['src/**/*.test.{ts,tsx}'],
-    setupFiles: ['src/test/helpers/setup.ts'],
+    setupFiles: ['src/__test__/helpers/setup.ts'],
     environment: 'jsdom',
   },
 });

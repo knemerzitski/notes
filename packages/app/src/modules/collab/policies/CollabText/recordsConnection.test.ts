@@ -4,7 +4,7 @@ import { InMemoryCache } from '@apollo/client';
 import { it, beforeEach, assert, expect, beforeAll, describe } from 'vitest';
 
 import { gql } from '../../../../__generated__/gql';
-import { createCache } from '../../../../test/helpers/apollo-client';
+import { createCache } from '../../../../__test__/helpers/apollo-client';
 
 let cache: InMemoryCache;
 let collabTextId: string;

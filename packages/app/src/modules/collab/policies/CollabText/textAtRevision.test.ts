@@ -4,7 +4,7 @@ import { InMemoryCache } from '@apollo/client';
 import { it, expect, beforeAll, describe, beforeEach } from 'vitest';
 
 import { gql } from '../../../../__generated__/gql';
-import { createCache } from '../../../../test/helpers/apollo-client';
+import { createCache } from '../../../../__test__/helpers/apollo-client';
 
 const FRAGMENT = gql(`
   fragment TestTextAtRevision on CollabText {

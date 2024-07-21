@@ -16,7 +16,7 @@ import {
   UseUpdateNoteMutation,
   UseUpdateNoteMutationVariables,
 } from '../../../../__generated__/graphql';
-import { CustomMockedProvider } from '../../../../test/helpers/CustomMockedProvider';
+import { CustomMockedProvider } from '../../../../__test__/helpers/CustomMockedProvider';
 import NoteContentIdProvider from '../context/NoteContentIdProvider';
 import NoteCollabTextsProvider from '../context/NoteTextFieldEditorsProvider';
 import { MUTATION } from '../hooks/useUpdateNote';

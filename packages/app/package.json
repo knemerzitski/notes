@@ -12,6 +12,7 @@
     "test:unit": "vitest run",
     "test:unit:watch": "vitest watch",
     "test:comp": "cypress run --component",
+    "test": "npm run test:unit && npm run test:comp",
     "cypress": "cypress open",
     "prettify": "prettier --write --ignore-unknown src cypress",
     "eslint": "eslint . --max-warnings 0",
