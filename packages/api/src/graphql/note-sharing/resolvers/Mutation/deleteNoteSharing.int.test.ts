@@ -6,8 +6,8 @@ import { CollectionName } from '../../../../mongodb/collections';
 import { ShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link';
 import { UserSchema } from '../../../../mongodb/schema/user';
 import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
-import { apolloServer } from '../../../../test/helpers/apollo-server';
-import { createGraphQLResolversContext } from '../../../../test/helpers/graphql-context';
+import { apolloServer } from '../../../../test/helpers/graphql/apollo-server';
+import { createGraphQLResolversContext } from '../../../../test/helpers/graphql/graphql-context';
 import {
   mongoCollections,
   resetDatabase,

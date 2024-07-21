@@ -1,8 +1,8 @@
 import { ApolloServer } from '@apollo/server';
 
-import { GraphQLResolversContext } from '../../graphql/context';
-import { resolvers } from '../../graphql/resolvers.generated';
-import { typeDefs } from '../../graphql/typeDefs.generated';
+import { GraphQLResolversContext } from '../../../graphql/context';
+import { resolvers } from '../../../graphql/resolvers.generated';
+import { typeDefs } from '../../../graphql/typeDefs.generated';
 
 export function createApolloServer() {
   return new ApolloServer<GraphQLResolversContext>({

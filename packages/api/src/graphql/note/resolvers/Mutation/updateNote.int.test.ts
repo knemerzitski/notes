@@ -12,13 +12,13 @@ import { CollabTextSchema } from '../../../../mongodb/schema/collab-text';
 import { NoteSchema } from '../../../../mongodb/schema/note';
 import { UserSchema } from '../../../../mongodb/schema/user';
 import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
-import { apolloServer } from '../../../../test/helpers/apollo-server';
+import { apolloServer } from '../../../../test/helpers/graphql/apollo-server';
 import {
   createPublisher,
   createGraphQLResolversContext,
   mockSocketApi,
   mockSubscriptionsModel,
-} from '../../../../test/helpers/graphql-context';
+} from '../../../../test/helpers/graphql/graphql-context';
 import {
   createMongoDBContext,
   mongoCollections,

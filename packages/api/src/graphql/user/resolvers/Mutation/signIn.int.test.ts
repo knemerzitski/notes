@@ -9,8 +9,8 @@ import { verifyCredentialToken } from '../../../../auth/google/__mocks__/oauth2'
 import { CollectionName } from '../../../../mongodb/collections';
 import { SessionSchema } from '../../../../mongodb/schema/session/sessions';
 import { UserSchema } from '../../../../mongodb/schema/user';
-import { apolloServer } from '../../../../test/helpers/apollo-server';
-import { createGraphQLResolversContext } from '../../../../test/helpers/graphql-context';
+import { apolloServer } from '../../../../test/helpers/graphql/apollo-server';
+import { createGraphQLResolversContext } from '../../../../test/helpers/graphql/graphql-context';
 import {
   mongoCollections,
   resetDatabase,

@@ -9,14 +9,14 @@ import {
   createPublisher as _createPublisher,
 } from '~lambda-graphql/pubsub/publish';
 
-import { ApiGraphQLContext, GraphQLResolversContext } from '../../graphql/context';
-import CookiesContext from '../../graphql/cookies-context';
-import NotesDataSource from '../../graphql/note/datasource/notes-datasource';
-import { resolvers } from '../../graphql/resolvers.generated';
-import { typeDefs } from '../../graphql/typeDefs.generated';
-import { UserSchema } from '../../mongodb/schema/user';
+import { ApiGraphQLContext, GraphQLResolversContext } from '../../../graphql/context';
+import CookiesContext from '../../../graphql/cookies-context';
+import NotesDataSource from '../../../graphql/note/datasource/notes-datasource';
+import { resolvers } from '../../../graphql/resolvers.generated';
+import { typeDefs } from '../../../graphql/typeDefs.generated';
+import { UserSchema } from '../../../mongodb/schema/user';
 
-import { mongoCollections, mongoClient } from './mongodb/mongodb';
+import { mongoCollections, mongoClient } from '../mongodb/mongodb';
 
 interface CreateGraphQLResolversContextOptions {
   createPublisher?: (ctx: Omit<GraphQLResolversContext, 'publish'>) => Publisher;

@@ -1,6 +1,6 @@
 import { FieldNode, GraphQLResolveInfo, SelectionSetNode } from 'graphql';
 
-import { Resolver } from '../../graphql/types.generated';
+import { Resolver } from '../../../graphql/types.generated';
 
 interface MockResolverWithResolve<TResult, TParent, TContext, TArgs> {
   resolve: MockResolverFn<TResult, TParent, TContext, TArgs>;
