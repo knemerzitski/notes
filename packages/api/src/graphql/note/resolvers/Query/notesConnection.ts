@@ -1,6 +1,9 @@
 import { ObjectId } from 'mongodb';
 
 import { RelayPagination } from '../../../../mongodb/pagination/relayArrayPagination';
+import { DeepObjectQuery } from '../../../../mongodb/query/query';
+import { QueryableUser } from '../../../../mongodb/schema/user/query/queryable-user';
+import { QueryableUserNote } from '../../../../mongodb/schema/user-note/query/queryable-user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { NoteCategory, type QueryResolvers } from '../../../types.generated';
 import preExecuteField from '../../../utils/preExecuteField';
@@ -12,6 +15,16 @@ const MAX_LIMIT = 30;
 function canObjectIdCreateFromBase64(s: string) {
   return s.length === 16;
 }
+
+type ExtractCategoryType<T> = T extends {
+  [Key in string]?: infer U;
+}
+  ? U
+  : never;
+type QueryableOrderExtra = Omit<
+  ExtractCategoryType<QueryableUser['notes']['category']>['order'],
+  'items'
+>;
 
 export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
   _parent,
@@ -67,6 +80,30 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
 
   const categoryName = args.category ?? NoteCategory.DEFAULT;
 
+  function loadUser_userNote(
+    userNoteQuery: DeepObjectQuery<QueryableUserNote>,
+    additionalOrderQuery?: DeepObjectQuery<QueryableOrderExtra>
+  ) {
+    return loaders.user.load({
+      userId: currentUserId,
+      userQuery: {
+        notes: {
+          category: {
+            [categoryName]: {
+              order: {
+                ...additionalOrderQuery,
+                items: {
+                  $pagination: pagination,
+                  $query: userNoteQuery,
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
   return {
     notes: async () => {
       // Pre resolve to build query and fetch with dataloader to figure out list size
@@ -76,26 +113,10 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
           return [
             new NoteQueryMapper({
               async query(query) {
-                const result = await loaders.user.load({
-                  userId: currentUserId,
-                  userQuery: {
-                    notes: {
-                      category: {
-                        [categoryName]: {
-                          order: {
-                            items: {
-                              $pagination: pagination,
-                              $query: query,
-                            },
-                          },
-                        },
-                      },
-                    },
-                  },
-                });
+                const user = await loadUser_userNote(query);
                 actualSize =
                   actualSize ??
-                  result.notes?.category?.[categoryName]?.order?.items?.length;
+                  user.notes?.category?.[categoryName]?.order?.items?.length;
                 return null;
               },
             }),
@@ -107,24 +128,8 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
       return [...new Array<undefined>(actualSize)].map((_, index) => {
         const noteQuery = new NoteQueryMapper({
           query: async (query) => {
-            const result = await loaders.user.load({
-              userId: currentUserId,
-              userQuery: {
-                notes: {
-                  category: {
-                    [categoryName]: {
-                      order: {
-                        items: {
-                          $pagination: pagination,
-                          $query: query,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            });
-            return result.notes?.category?.[categoryName]?.order?.items?.[index];
+            const user = await loadUser_userNote(query);
+            return user.notes?.category?.[categoryName]?.order?.items?.[index];
           },
         });
 
@@ -138,26 +143,9 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
         edges: () => {
           const noteQuery = new NoteQueryMapper({
             async query(query) {
-              const result = await loaders.user.load({
-                userId: currentUserId,
-                userQuery: {
-                  notes: {
-                    category: {
-                      [categoryName]: {
-                        order: {
-                          items: {
-                            $pagination: pagination,
-                            $query: query,
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              });
+              const user = await loadUser_userNote(query);
               actualSize =
-                actualSize ??
-                result.notes?.category?.[categoryName]?.order?.items?.length;
+                actualSize ?? user.notes?.category?.[categoryName]?.order?.items?.length;
               return null;
             },
           });
@@ -177,24 +165,8 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
       return [...new Array<undefined>(actualSize)].map((_, index) => {
         const noteQuery = new NoteQueryMapper({
           query: async (query) => {
-            const result = await loaders.user.load({
-              userId: currentUserId,
-              userQuery: {
-                notes: {
-                  category: {
-                    [categoryName]: {
-                      order: {
-                        items: {
-                          $pagination: pagination,
-                          $query: query,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            });
-            return result.notes?.category?.[categoryName]?.order?.items?.[index];
+            const user = await loadUser_userNote(query);
+            return user.notes?.category?.[categoryName]?.order?.items?.[index];
           },
         });
 
@@ -209,28 +181,16 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
     pageInfo: () => {
       return {
         hasNextPage: async () => {
-          const result = await loaders.user.load({
-            userId: currentUserId,
-            userQuery: {
-              notes: {
-                category: {
-                  [categoryName]: {
-                    order: {
-                      items: {
-                        $pagination: pagination,
-                        $query: {
-                          _id: 1,
-                        },
-                      },
-                      lastId: 1,
-                    },
-                  },
-                },
-              },
+          const user = await loadUser_userNote(
+            {
+              _id: 1,
             },
-          });
+            {
+              lastId: 1,
+            }
+          );
 
-          const order = result.notes?.category?.[categoryName]?.order;
+          const order = user.notes?.category?.[categoryName]?.order;
           const endCursor = order?.items?.[order.items.length - 1]?._id;
           const lastCursor = order?.lastId;
 
@@ -239,28 +199,16 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
           return hasNextPage ?? false;
         },
         hasPreviousPage: async () => {
-          const result = await loaders.user.load({
-            userId: currentUserId,
-            userQuery: {
-              notes: {
-                category: {
-                  [categoryName]: {
-                    order: {
-                      items: {
-                        $pagination: pagination,
-                        $query: {
-                          _id: 1,
-                        },
-                      },
-                      firstId: 1,
-                    },
-                  },
-                },
-              },
+          const user = await loadUser_userNote(
+            {
+              _id: 1,
             },
-          });
+            {
+              firstId: 1,
+            }
+          );
 
-          const order = result.notes?.category?.[categoryName]?.order;
+          const order = user.notes?.category?.[categoryName]?.order;
           const startCursor = order?.items?.[0]?._id;
           const firstCursor = order?.firstId;
 
@@ -269,53 +217,21 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
           return hasPreviousPage ?? false;
         },
         startCursor: async () => {
-          const result = await loaders.user.load({
-            userId: currentUserId,
-            userQuery: {
-              notes: {
-                category: {
-                  [categoryName]: {
-                    order: {
-                      items: {
-                        $pagination: pagination,
-                        $query: {
-                          _id: 1,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
+          const user = await loadUser_userNote({
+            _id: 1,
           });
 
-          const order = result.notes?.category?.[categoryName]?.order;
+          const order = user.notes?.category?.[categoryName]?.order;
           const startCursor = order?.items?.[0]?._id;
 
           return startCursor?.toString('base64');
         },
         endCursor: async () => {
-          const result = await loaders.user.load({
-            userId: currentUserId,
-            userQuery: {
-              notes: {
-                category: {
-                  [categoryName]: {
-                    order: {
-                      items: {
-                        $pagination: pagination,
-                        $query: {
-                          _id: 1,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
+          const user = await loadUser_userNote({
+            _id: 1,
           });
 
-          const order = result.notes?.category?.[categoryName]?.order;
+          const order = user.notes?.category?.[categoryName]?.order;
           const endCursor = order?.items?.[order.items.length - 1]?._id;
 
           return endCursor?.toString('base64');

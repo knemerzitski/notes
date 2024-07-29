@@ -53,7 +53,7 @@ type Note implements Node {
 }
 
 type NotePatch {
-  "This patch applies to Note.id TODO remove this field"
+  "This patch applies to Note.id"
   id: String!
   "Changed note text fields"
   textFields: [NoteTextFieldEntryPatch!]
