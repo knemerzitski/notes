@@ -4,6 +4,9 @@
   "private": "true",
   "type": "module",
   "scripts": {
+    "test:int": "vitest -c ./vitest.config.integration.ts",
+    "test:int:watch": "vitest watch -c ./vitest.config.integration.ts",
+    "test": "npm run test:int",
     "prettify": "prettier --write --ignore-unknown src",
     "eslint": "eslint . --max-warnings 0",
     "type-check": "tsc --noEmit",
@@ -23,6 +26,8 @@
     "constructs": "^10.3.0",
     "dotenv": "^16.3.1",
     "graphql": "^16.8.1",
-    "graphql-ws": "^5.14.2"
+    "graphql-ws": "^5.14.2",
+    "vite-tsconfig-paths": "^4.3.2",
+    "vitest": "^2.0.4"
   }
 }
