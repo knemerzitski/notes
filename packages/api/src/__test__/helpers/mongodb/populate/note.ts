@@ -1,44 +1,49 @@
-import mapObject, { mapObjectSkip } from 'map-obj';
+import mapObject from 'map-obj';
 import { ObjectId } from 'mongodb';
 
-import { NoteTextField } from '../../../../graphql/types.generated';
+import isDefined from '~utils/type-guards/isDefined';
 
+import { NoteTextField } from '../../../../graphql/types.generated';
 import { CollectionName } from '../../../../mongodb/collections';
-import { CollabTextSchema } from '../../../../mongodb/schema/collab-text';
-import { noteDefaultValues, NoteSchema } from '../../../../mongodb/schema/note';
-import { UserSchema } from '../../../../mongodb/schema/user';
+import { noteDefaultValues, NoteSchema } from '../../../../mongodb/schema/note/note';
+import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { mongoCollections } from '../mongodb';
 import { DeepPartial } from '../types';
 
+import { fakeCollabText, FakeCollabTextOptions } from './collab-text';
 import { populateQueue } from './populate-queue';
 
 export interface FakeNoteOptions {
-  override?: DeepPartial<NoteSchema>;
+  override?: DeepPartial<Omit<NoteSchema, 'collabTexts'>>;
+  collabTexts?: { [key in NoteTextField]?: FakeCollabTextOptions };
 }
 
 export function fakeNote(
   ownerUser: Pick<UserSchema, '_id'>,
-  collabTexts: { [key in NoteTextField]?: Pick<CollabTextSchema, '_id'> },
   options?: FakeNoteOptions
 ): NoteSchema {
   return {
     _id: new ObjectId(),
     ownerId: ownerUser._id,
     publicId: noteDefaultValues.publicId(),
-    collabTextIds: mapObject(collabTexts, (fieldName, collabText) => {
-      if (!collabText) return mapObjectSkip;
-      return [fieldName, collabText._id];
-    }),
     ...options?.override,
+    userNotes:
+      options?.override?.userNotes?.filter(isDefined).map((userNote) => ({
+        _id: new ObjectId(),
+        userId: ownerUser._id,
+        ...userNote,
+      })) ?? [],
+    collabTexts: mapObject(NoteTextField, (_key, fieldName) => {
+      return [
+        fieldName,
+        fakeCollabText(ownerUser._id, options?.collabTexts?.[fieldName]),
+      ];
+    }),
   };
 }
 
-export const fakeNotePopulateQueue: typeof fakeNote = (
-  ownerUser,
-  collabTexts,
-  options
-) => {
-  const note = fakeNote(ownerUser, collabTexts, options);
+export const fakeNotePopulateQueue: typeof fakeNote = (ownerUser, options) => {
+  const note = fakeNote(ownerUser, options);
 
   populateQueue(async () => {
     await mongoCollections[CollectionName.NOTES].insertOne(note);

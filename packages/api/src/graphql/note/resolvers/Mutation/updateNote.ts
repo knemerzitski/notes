@@ -1,5 +1,5 @@
 import { GraphQLError } from 'graphql';
-import { AnyBulkWriteOperation, UpdateFilter } from 'mongodb';
+import { UpdateFilter } from 'mongodb';
 
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import { SelectionRange } from '~collab/client/selection-range';
@@ -9,28 +9,23 @@ import recordInsertion, { RecordInsertionError } from '~collab/records/recordIns
 import { RevisionRecords } from '~collab/records/revision-records';
 import { ErrorWithData } from '~utils/logger';
 import isEmptyDeep from '~utils/object/isEmptyDeep';
-import isDefined from '~utils/type-guards/isDefined';
 
 import { CollectionName } from '../../../../mongodb/collections';
-import { DeepQueryResponse, MongoDocumentQuery } from '../../../../mongodb/query-builder';
-import { CollabTextSchema } from '../../../../mongodb/schema/collab-text';
-import { getNotesArrayPath, UserSchema } from '../../../../mongodb/schema/user';
-import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
+import { MongoQuery } from '../../../../mongodb/query/query';
+import createCollabText from '../../../../mongodb/schema/collab-text/utils/createCollabText';
+import { NoteSchema } from '../../../../mongodb/schema/note/note';
+import { getNotesArrayPath, UserSchema } from '../../../../mongodb/schema/user/user';
+import { QueryableUserNote } from '../../../../mongodb/schema/user-note/query/queryable-user-note';
+import { UserNoteSchema } from '../../../../mongodb/schema/user-note/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
-import {
-  CollabTextQuery,
-  CollabTextQueryMapper,
-} from '../../../collab/mongo-query-mapper/collab-text';
 import { CollabTextRecordQueryMapper } from '../../../collab/mongo-query-mapper/revision-record';
-import { CollabTextMapper } from '../../../collab/schema.mappers';
 import {
   type MutationResolvers,
   ResolversTypes,
-  NoteTextField,
   NoteCategory,
 } from '../../../types.generated';
-import { NoteQuery } from '../../mongo-query-mapper/note';
-import { NoteMapper } from '../../schema.mappers';
+import { NoteQueryMapper } from '../../mongo-query-mapper/note';
+import { NoteCollabTextQueryMapper } from '../../mongo-query-mapper/note-collab-text';
 import { publishNoteUpdated } from '../Subscription/noteUpdated';
 
 type DefinedAwaited<T> = NonNullable<Awaited<T>>;
@@ -50,18 +45,19 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
   { input: { contentId: notePublicId, patch } },
   ctx
 ) => {
-  const { auth, mongodb, datasources } = ctx;
+  const { auth, mongodb } = ctx;
   assertAuthenticated(auth);
 
   const currentUserId = auth.session.user._id;
 
-  const userNote = await datasources.notes.getNote({
+  const userNote = await mongodb.loaders.userNote.load({
     userId: currentUserId,
     publicId: notePublicId,
-    noteQuery: {
+    userNoteQuery: {
       _id: 1,
       readOnly: 1,
       note: {
+        _id: 1,
         ownerId: 1,
       },
       category: {
@@ -82,7 +78,16 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
     });
   }
 
-  const ownerId = userNote.note?.ownerId;
+  const noteId = userNote.note?._id;
+  if (!noteId) {
+    throw new ErrorWithData(`Expected UserNote.note._id to be defined`, {
+      userId: currentUserId,
+      notePublicId,
+      userNote,
+    });
+  }
+
+  const ownerId = userNote.note.ownerId;
   if (!ownerId) {
     throw new ErrorWithData(`Expected UserNote.note.ownerId to be defined`, {
       userId: currentUserId,
@@ -107,316 +112,333 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
 
   const maxRecordsCount = ctx.options?.collabText?.maxRecordsCount;
 
+  const noteQuery_onlyId: MongoQuery<QueryableUserNote> = {
+    query() {
+      return {
+        _id: userNoteId,
+        note: {
+          _id: noteId,
+        },
+      };
+    },
+  };
+
   const payloads = await mongodb.client.withSession((session) =>
     session.withTransaction(async (session) => {
       const responseTextFieldsPayload: UpdateNotePayloadPatch['textFields'] = [];
       const publishTextFieldsPayload: NoteUpdatedPayloadPatch['textFields'] = [];
 
       let payloadPatch: Awaited<Omit<PayloadPatch, 'id'>> | undefined;
-      let userNoteUpdate: UpdateFilter<UserNoteSchema> | undefined;
       let userUpdate: UpdateFilter<UserSchema> | undefined;
-      const updateDbPromises: Promise<unknown>[] = [];
+      let userNoteUpdate: UpdateFilter<UserNoteSchema> | undefined;
+      let noteUpdate: UpdateFilter<NoteSchema> | undefined;
 
       if (patch.textFields) {
-        updateDbPromises.push(
-          Promise.all(
-            patch.textFields.map(async ({ key: fieldName, value: { insertRecord } }) => {
-              if (!insertRecord) return;
+        await Promise.all(
+          patch.textFields.map(async ({ key: fieldName, value: { insertRecord } }) => {
+            if (!insertRecord) return;
 
-              // Get relevant records for record insertion and tailText composition
-              const [userNoteForInsertion, userNoteForTailText] = await Promise.all([
-                datasources.notes.getNote(
-                  {
-                    publicId: notePublicId,
-                    userId: currentUserId,
-                    noteQuery: {
-                      note: {
-                        collabTexts: {
-                          [fieldName]: {
-                            _id: 1,
-                            headText: {
-                              changeset: 1,
+            // Get relevant records for record insertion and tailText composition
+            const [userNoteForInsertion, userNoteForTailText] = await Promise.all([
+              mongodb.loaders.userNote.load(
+                {
+                  publicId: notePublicId,
+                  userId: currentUserId,
+                  userNoteQuery: {
+                    note: {
+                      collabTexts: {
+                        [fieldName]: {
+                          headText: {
+                            changeset: 1,
+                            revision: 1,
+                          },
+                          records: {
+                            $query: {
+                              userGeneratedId: 1,
                               revision: 1,
+                              changeset: 1,
+                              creatorUserId: 1,
                             },
-                            records: {
-                              $query: {
-                                userGeneratedId: 1,
-                                revision: 1,
-                                changeset: 1,
-                                creatorUserId: 1,
-                              },
-                              $pagination: {
-                                after: insertRecord.change.revision,
-                              },
+                            $pagination: {
+                              after: insertRecord.change.revision,
                             },
                           },
                         },
                       },
                     },
                   },
-                  {
-                    session,
-                  }
-                ),
-                maxRecordsCount != null && maxRecordsCount > 0
-                  ? datasources.notes.getNote(
-                      {
-                        publicId: notePublicId,
-                        userId: currentUserId,
-                        noteQuery: {
-                          note: {
-                            collabTexts: {
-                              [fieldName]: {
-                                _id: 1,
-                                tailText: {
-                                  changeset: 1,
+                },
+                {
+                  session,
+                }
+              ),
+              maxRecordsCount != null && maxRecordsCount > 0
+                ? mongodb.loaders.userNote.load(
+                    {
+                      publicId: notePublicId,
+                      userId: currentUserId,
+                      userNoteQuery: {
+                        note: {
+                          collabTexts: {
+                            [fieldName]: {
+                              tailText: {
+                                changeset: 1,
+                                revision: 1,
+                              },
+                              records: {
+                                $query: {
                                   revision: 1,
+                                  changeset: 1,
                                 },
-                                records: {
-                                  $query: {
-                                    revision: 1,
-                                    changeset: 1,
-                                  },
-                                  $pagination: {
-                                    before:
-                                      insertRecord.change.revision - maxRecordsCount + 2,
-                                  },
+                                $pagination: {
+                                  before:
+                                    insertRecord.change.revision - maxRecordsCount + 2,
                                 },
                               },
                             },
                           },
                         },
                       },
-                      {
-                        session,
-                      }
-                    )
-                  : Promise.resolve(null),
-              ]);
+                    },
+                    {
+                      session,
+                    }
+                  )
+                : Promise.resolve(null),
+            ]);
 
-              const collabText = assertCollabTextWithId(
-                userNoteForInsertion,
-                fieldName,
-                notePublicId
-              );
+            const collabText = userNoteForInsertion.note?.collabTexts?.[fieldName];
 
-              try {
-                // Process record, following any future records
-                const insertion = recordInsertion({
-                  serializedHeadText: collabText.headText?.changeset,
-                  headRevision: collabText.headText?.revision,
-                  serializedRecords: collabText.records,
-                  insertRecord: {
-                    userGeneratedId: insertRecord.generatedId,
-                    revision: insertRecord.change.revision,
-                    changeset: insertRecord.change.changeset,
-                    creatorUserId: currentUserId,
-                    beforeSelection: SelectionRange.expandSame(
-                      insertRecord.beforeSelection
-                    ),
-                    afterSelection: SelectionRange.expandSame(
-                      insertRecord.afterSelection
-                    ),
-                  },
-                });
+            const collabTextPath = `collabTexts.${fieldName}`;
+            const noteCollabText_onlyId = new NoteCollabTextQueryMapper(
+              noteQuery_onlyId,
+              fieldName,
+              {
+                query() {
+                  return null;
+                },
+              }
+            );
 
-                const collabTextIdMapper: Pick<CollabTextMapper, 'id'> = {
-                  id() {
-                    return CollabTextQueryMapper.prototype.id.call<
-                      {
-                        query: MongoDocumentQuery<Pick<CollabTextQuery, '_id'>>;
-                      },
-                      [],
-                      Promise<string | undefined>
-                    >({
-                      query: {
-                        queryDocument() {
-                          return {
-                            _id: collabText._id,
-                          };
-                        },
-                      },
-                    });
-                  },
-                };
+            // Unknown new field, create the field with initial value
+            const isNewFieldInsertion =
+              collabText &&
+              !collabText.headText &&
+              (!collabText.records || collabText.records.length === 0);
+            if (isNewFieldInsertion) {
+              const newCollabText = createCollabText({
+                initalText: insertRecord.change.changeset.joinInsertions(),
+                creatorUserId: currentUserId,
+                afterSelection: {
+                  start: insertRecord.afterSelection.start,
+                  ...(insertRecord.afterSelection.end != null && {
+                    end: insertRecord.afterSelection.end,
+                  }),
+                },
+              });
 
-                // Response payload
-                responseTextFieldsPayload.push({
-                  key: fieldName,
-                  value: {
-                    id: () => collabTextIdMapper.id(),
-                    newRecord: new CollabTextRecordQueryMapper(
-                      collabTextIdMapper,
-                      !insertion.isExisting
-                        ? {
-                            queryDocument() {
-                              return insertion.newRecord;
-                            },
-                          }
-                        : {
-                            async queryDocument(query) {
-                              if (
-                                query.creatorUserId != null ||
-                                query.afterSelection != null ||
-                                query.beforeSelection != null
-                              ) {
-                                // Cannot use session here since query happens outside withSession after this field resolver has returned
-                                const missingRecordValues = (
-                                  await datasources.notes.getNote({
-                                    publicId: notePublicId,
-                                    userId: currentUserId,
-                                    noteQuery: {
-                                      note: {
-                                        collabTexts: {
-                                          [fieldName]: {
-                                            records: {
-                                              $query: query,
-                                              $pagination: {
-                                                after:
-                                                  insertion.existingRecord.revision - 1,
-                                                first: 1,
-                                              },
+              const newRecord = newCollabText.records[0];
+
+              noteUpdate = {
+                ...noteUpdate,
+                $set: {
+                  ...noteUpdate?.$set,
+                  [collabTextPath]: newCollabText,
+                },
+              };
+
+              const newFieldPayload: ResolversTypes['NoteTextFieldEntryPatch'] = {
+                key: fieldName,
+                value: {
+                  id: () => noteCollabText_onlyId.id(),
+                  newRecord: new CollabTextRecordQueryMapper(noteCollabText_onlyId, {
+                    query() {
+                      return newRecord;
+                    },
+                  }),
+                  isExistingRecord: false,
+                },
+              };
+              responseTextFieldsPayload.push(newFieldPayload);
+              publishTextFieldsPayload.push(newFieldPayload);
+
+              // Return since it's a new field
+              return;
+            }
+
+            try {
+              // Process record, following any future records
+              const insertion = recordInsertion({
+                serializedHeadText: collabText?.headText?.changeset,
+                headRevision: collabText?.headText?.revision,
+                serializedRecords: collabText?.records,
+                insertRecord: {
+                  userGeneratedId: insertRecord.generatedId,
+                  revision: insertRecord.change.revision,
+                  changeset: insertRecord.change.changeset,
+                  creatorUserId: currentUserId,
+                  beforeSelection: SelectionRange.expandSame(
+                    insertRecord.beforeSelection
+                  ),
+                  afterSelection: SelectionRange.expandSame(insertRecord.afterSelection),
+                },
+              });
+
+              // Response payload
+              responseTextFieldsPayload.push({
+                key: fieldName,
+                value: {
+                  id: () => noteCollabText_onlyId.id(),
+                  newRecord: new CollabTextRecordQueryMapper(
+                    noteCollabText_onlyId,
+                    !insertion.isExisting
+                      ? {
+                          query() {
+                            return insertion.newRecord;
+                          },
+                        }
+                      : {
+                          async query(query) {
+                            if (
+                              query.creatorUserId != null ||
+                              query.afterSelection != null ||
+                              query.beforeSelection != null
+                            ) {
+                              // Cannot use session here since query happens outside withSession after this field resolver has returned
+                              const missingRecordValues = (
+                                await mongodb.loaders.userNote.load({
+                                  publicId: notePublicId,
+                                  userId: currentUserId,
+                                  userNoteQuery: {
+                                    note: {
+                                      collabTexts: {
+                                        [fieldName]: {
+                                          records: {
+                                            $query: query,
+                                            $pagination: {
+                                              after:
+                                                insertion.existingRecord.revision - 1,
+                                              first: 1,
                                             },
                                           },
                                         },
                                       },
                                     },
-                                  })
-                                ).note?.collabTexts?.[fieldName]?.records?.[0];
+                                  },
+                                })
+                              ).note?.collabTexts?.[fieldName]?.records?.[0];
 
-                                return {
-                                  ...missingRecordValues,
-                                  ...insertion.existingRecord,
-                                };
-                              }
+                              return {
+                                ...missingRecordValues,
+                                ...insertion.existingRecord,
+                              };
+                            }
 
-                              return insertion.existingRecord;
-                            },
-                          }
-                    ),
-                    isExistingRecord: insertion.isExisting,
-                  },
-                });
-
-                if (!insertion.isExisting) {
-                  // New record, create bulkUpdate query
-                  const { beforeSelection, afterSelection } = insertion.newRecord;
-
-                  const pushRecord = {
-                    ...insertion.newRecord,
-                    changeset: insertion.newRecord.changeset.serialize(),
-                    beforeSelection: SelectionRange.collapseSame(beforeSelection),
-                    afterSelection: SelectionRange.collapseSame(afterSelection),
-                  };
-
-                  // Compose tailText, deleting older records
-                  let newComposedTail:
-                    | { tailText: SerializedRevisionChangeset; recordsCount: number }
-                    | undefined;
-                  if (userNoteForTailText) {
-                    const collabTextForTailCompose = assertCollabTextWithId(
-                      userNoteForTailText,
-                      fieldName,
-                      notePublicId
-                    );
-
-                    const tailRevisionRecords = new ChangesetRevisionRecords({
-                      tailText: RevisionChangeset.parseValue(
-                        collabTextForTailCompose.tailText
-                      ),
-                      revisionRecords: new RevisionRecords({
-                        records:
-                          collabTextForTailCompose.records?.map((record) =>
-                            RevisionChangeset.parseValue(record)
-                          ) ?? [],
-                      }),
-                    });
-
-                    const beforeTailRevision = tailRevisionRecords.tailRevision;
-
-                    tailRevisionRecords.mergeToTail(tailRevisionRecords.records.length);
-                    const newTailText = tailRevisionRecords.tailText;
-
-                    if (newTailText.revision > beforeTailRevision) {
-                      newComposedTail = {
-                        tailText: RevisionChangeset.serialize(newTailText),
-                        recordsCount:
-                          insertion.newHeadText.revision - newTailText.revision,
-                      };
-                    }
-                  }
-
-                  const bulkUpdate: AnyBulkWriteOperation<CollabTextSchema> = {
-                    updateOne: {
-                      filter: {
-                        _id: collabText._id,
-                      },
-                      update: {
-                        $set: {
-                          headText: {
-                            revision: insertion.newHeadText.revision,
-                            changeset: insertion.newHeadText.changeset.serialize(),
+                            return insertion.existingRecord;
                           },
-                          ...(newComposedTail && { tailText: newComposedTail.tailText }),
-                        },
-                        $push: {
-                          records:
-                            newComposedTail != null && newComposedTail.recordsCount > 0
-                              ? {
-                                  $each: [pushRecord],
-                                  $slice: -newComposedTail.recordsCount,
-                                }
-                              : pushRecord,
-                        },
-                      },
-                    },
-                  };
+                        }
+                  ),
+                  isExistingRecord: insertion.isExisting,
+                },
+              });
 
-                  // Publish payload
-                  publishTextFieldsPayload.push({
-                    key: fieldName,
-                    value: {
-                      id: () => collabTextIdMapper.id(),
-                      newRecord: new CollabTextRecordQueryMapper(collabTextIdMapper, {
-                        queryDocument() {
-                          return insertion.newRecord;
-                        },
-                      }),
-                      isExistingRecord: false,
-                    },
+              if (!insertion.isExisting) {
+                // New record, create bulkUpdate query
+                const { beforeSelection, afterSelection } = insertion.newRecord;
+
+                const pushRecord = {
+                  ...insertion.newRecord,
+                  changeset: insertion.newRecord.changeset.serialize(),
+                  beforeSelection: SelectionRange.collapseSame(beforeSelection),
+                  afterSelection: SelectionRange.collapseSame(afterSelection),
+                };
+
+                // Compose tailText, deleting older records
+                let newComposedTail:
+                  | { tailText: SerializedRevisionChangeset; recordsCount: number }
+                  | undefined;
+                if (userNoteForTailText) {
+                  const collabTextForTailCompose =
+                    userNoteForTailText.note?.collabTexts?.[fieldName];
+
+                  const tailRevisionRecords = new ChangesetRevisionRecords({
+                    tailText: RevisionChangeset.parseValue(
+                      collabTextForTailCompose?.tailText
+                    ),
+                    revisionRecords: new RevisionRecords({
+                      records:
+                        collabTextForTailCompose?.records?.map((record) =>
+                          RevisionChangeset.parseValue(record)
+                        ) ?? [],
+                    }),
                   });
 
-                  return bulkUpdate;
+                  const beforeTailRevision = tailRevisionRecords.tailRevision;
+
+                  tailRevisionRecords.mergeToTail(tailRevisionRecords.records.length);
+                  const newTailText = tailRevisionRecords.tailText;
+
+                  if (newTailText.revision > beforeTailRevision) {
+                    newComposedTail = {
+                      tailText: RevisionChangeset.serialize(newTailText),
+                      recordsCount: insertion.newHeadText.revision - newTailText.revision,
+                    };
+                  }
                 }
 
-                return;
-              } catch (err) {
-                if (err instanceof RecordInsertionError) {
-                  throw new GraphQLError(
-                    `Note '${notePublicId}' field ${fieldName}. ${err.message}`,
-                    {
-                      extensions: {
-                        code: GraphQLErrorCode.INVALID_INPUT,
+                noteUpdate = {
+                  ...noteUpdate,
+                  $set: {
+                    ...noteUpdate?.$set,
+                    [`${collabTextPath}.headText.revision`]:
+                      insertion.newHeadText.revision,
+                    [`${collabTextPath}.headText.changeset`]:
+                      insertion.newHeadText.changeset.serialize(),
+                    ...(newComposedTail && {
+                      [`${collabTextPath}.tailText`]: newComposedTail.tailText,
+                    }),
+                  },
+                  $push: {
+                    ...noteUpdate?.$push,
+                    [`${collabTextPath}.records`]:
+                      newComposedTail != null && newComposedTail.recordsCount > 0
+                        ? {
+                            $each: [pushRecord],
+                            $slice: -newComposedTail.recordsCount,
+                          }
+                        : pushRecord,
+                  },
+                };
+
+                // Publish payload
+                publishTextFieldsPayload.push({
+                  key: fieldName,
+                  value: {
+                    id: () => noteCollabText_onlyId.id(),
+                    newRecord: new CollabTextRecordQueryMapper(noteCollabText_onlyId, {
+                      query() {
+                        return insertion.newRecord;
                       },
-                    }
-                  );
-                } else {
-                  throw err;
-                }
+                    }),
+                    isExistingRecord: false,
+                  },
+                });
               }
-            })
-          ).then(async (maybeRecordUpdates) => {
-            const recordUpdates = maybeRecordUpdates.filter(isDefined);
 
-            if (recordUpdates.length > 0) {
-              await mongodb.collections[CollectionName.COLLAB_TEXTS].bulkWrite(
-                recordUpdates,
-                {
-                  session,
-                  ignoreUndefined: false,
-                  ordered: true,
-                }
-              );
+              return;
+            } catch (err) {
+              if (err instanceof RecordInsertionError) {
+                throw new GraphQLError(
+                  `Note '${notePublicId}' field ${fieldName}. ${err.message}`,
+                  {
+                    extensions: {
+                      code: GraphQLErrorCode.INVALID_INPUT,
+                    },
+                  }
+                );
+              } else {
+                throw err;
+              }
             }
           })
         );
@@ -465,8 +487,8 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
         };
       }
 
-      if (userUpdate) {
-        updateDbPromises.push(
+      await Promise.all([
+        userUpdate &&
           mongodb.collections[CollectionName.USERS].updateOne(
             {
               _id: currentUserId,
@@ -475,11 +497,8 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
             {
               session,
             }
-          )
-        );
-      }
-      if (userNoteUpdate) {
-        updateDbPromises.push(
+          ),
+        userNoteUpdate &&
           mongodb.collections[CollectionName.USER_NOTES].updateOne(
             {
               _id: userNoteId,
@@ -488,34 +507,23 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
             {
               session,
             }
-          )
-        );
-      }
-
-      await Promise.all(updateDbPromises);
+          ),
+        noteUpdate &&
+          mongodb.collections[CollectionName.NOTES].updateOne(
+            {
+              _id: noteId,
+            },
+            noteUpdate,
+            {
+              session,
+            }
+          ),
+      ]);
 
       const haveNothingToPublish =
         publishTextFieldsPayload.length === 0 && isEmptyDeep(payloadPatch);
 
-      const userNoteIdMapper: Pick<NoteMapper, 'id'> = {
-        id() {
-          return CollabTextQueryMapper.prototype.id.call<
-            {
-              query: MongoDocumentQuery<Pick<NoteQuery, '_id'>>;
-            },
-            [],
-            Promise<string | undefined>
-          >({
-            query: {
-              queryDocument() {
-                return {
-                  _id: userNoteId,
-                };
-              },
-            },
-          });
-        },
-      };
+      const noteMapper_onlyId = new NoteQueryMapper(noteQuery_onlyId);
 
       const payloads: {
         response: UpdateNotePayload;
@@ -524,7 +532,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
         response: {
           contentId: notePublicId,
           patch: {
-            id: () => userNoteIdMapper.id(),
+            id: () => noteMapper_onlyId.id(),
             textFields: responseTextFieldsPayload,
             ...payloadPatch,
           },
@@ -534,7 +542,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
           : {
               contentId: notePublicId,
               patch: {
-                id: () => userNoteIdMapper.id(),
+                id: () => noteMapper_onlyId.id(),
                 textFields: publishTextFieldsPayload,
                 ...payloadPatch,
               },
@@ -551,28 +559,3 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
 
   return payloads.response;
 };
-
-function assertCollabTextWithId(
-  userNote: DeepQueryResponse<NoteQuery>,
-  fieldName: NoteTextField,
-  notePublicId: string
-) {
-  const collabText = userNote.note?.collabTexts?.[fieldName];
-  if (!collabText) {
-    throw new Error(
-      `Expected CollabText document for note '${notePublicId}' '${fieldName}' field`
-    );
-  }
-
-  const collabTextId = collabText._id;
-  if (!collabTextId) {
-    throw new Error(
-      `Expected CollabText._id for note '${notePublicId}' '${fieldName}' field`
-    );
-  }
-
-  return {
-    ...collabText,
-    _id: collabTextId,
-  };
-}

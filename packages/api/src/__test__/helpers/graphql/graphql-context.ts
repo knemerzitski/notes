@@ -9,24 +9,33 @@ import {
   createPublisher as _createPublisher,
 } from '~lambda-graphql/pubsub/publish';
 
+import { PartialBy } from '~utils/types';
+
 import { ApiGraphQLContext, GraphQLResolversContext } from '../../../graphql/context';
 import CookiesContext from '../../../graphql/cookies-context';
-import NotesDataSource from '../../../graphql/note/datasource/notes-datasource';
 import { resolvers } from '../../../graphql/resolvers.generated';
 import { typeDefs } from '../../../graphql/typeDefs.generated';
-import { UserSchema } from '../../../mongodb/schema/user';
 
+import { MongoDBCollections } from '../../../mongodb/collections';
+import { MongoDBContext } from '../../../mongodb/lambda-context';
+import { createMongoDBLoaders } from '../../../mongodb/loaders';
+import { UserSchema } from '../../../mongodb/schema/user/user';
 import { mongoCollections, mongoClient } from '../mongodb/mongodb';
 
 interface CreateGraphQLResolversContextOptions {
   createPublisher?: (ctx: Omit<GraphQLResolversContext, 'publish'>) => Publisher;
-  mongodb?: ApiGraphQLContext['mongodb'];
+  mongodb?: PartialBy<ApiGraphQLContext['mongodb'], 'loaders'>;
 }
 
 export function createGraphQLResolversContext(
   user?: Partial<UserSchema>,
   options?: CreateGraphQLResolversContextOptions
 ): GraphQLResolversContext {
+  const mongoDBContext: MongoDBContext<MongoDBCollections> = options?.mongodb ?? {
+    client: mongoClient,
+    collections: mongoCollections,
+  };
+
   const ctx = {
     auth: user
       ? {
@@ -35,16 +44,9 @@ export function createGraphQLResolversContext(
           },
         }
       : null,
-    datasources: {
-      notes: new NotesDataSource({
-        mongodb: {
-          collections: options?.mongodb?.collections ?? mongoCollections,
-        },
-      }),
-    },
-    mongodb: options?.mongodb ?? {
-      client: mongoClient,
-      collections: mongoCollections,
+    mongodb: {
+      loaders: createMongoDBLoaders(mongoDBContext),
+      ...mongoDBContext,
     },
     cookies: new CookiesContext({
       sessions: {},

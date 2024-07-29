@@ -1,7 +1,7 @@
 import { Collection } from 'mongodb';
 
-import { UserSchema } from '../../user';
-import { SessionSchema } from '../sessions';
+import { UserSchema } from '../../user/user';
+import { SessionSchema } from '../session';
 
 /**
  * ISession that has userId replaced with an actual user

@@ -40,12 +40,12 @@ export class HttpRestApi extends Construct {
 
     // Add url as an endpoint to apollo-http-handler lambda
     this.url = new URL(props.url);
-    const graphQlResource = getOrCreateResource(
+    const graphQLResource = getOrCreateResource(
       this.api.root,
       this.url.pathname.split('/').filter((p) => p.trim().length > 0)
     );
     ['POST', 'GET'].forEach((method) => {
-      graphQlResource.addMethod(method, new LambdaIntegration(props.handler));
+      graphQLResource.addMethod(method, new LambdaIntegration(props.handler));
     });
   }
 }

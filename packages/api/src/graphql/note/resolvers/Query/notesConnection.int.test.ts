@@ -7,7 +7,7 @@ import { createGraphQLResolversContext } from '../../../../__test__/helpers/grap
 import { resetDatabase } from '../../../../__test__/helpers/mongodb/mongodb';
 import { populateNotes } from '../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
-import { UserSchema } from '../../../../mongodb/schema/user';
+import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { GraphQLResolversContext } from '../../../context';
 import { NoteCategory, NoteConnection, NoteEdge } from '../../../types.generated';
 
@@ -182,7 +182,7 @@ it('returns empty array when cursor is not found', async () => {
 
   assert(response.body.kind === 'single');
   const { data, errors } = response.body.singleResult;
-  expect(errors).toBeUndefined();
+  expect(errors, JSON.stringify(errors, null, 2)).toBeUndefined();
   expect(data).toEqual({
     notesConnection: {
       edges: [],

@@ -3,8 +3,8 @@ import { GraphQLError } from 'graphql';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
 import { CollectionName } from '../../../../mongodb/collections';
-import { getNotesArrayPath } from '../../../../mongodb/schema/user';
-import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
+import { getNotesArrayPath } from '../../../../mongodb/schema/user/user';
+import { UserNoteSchema } from '../../../../mongodb/schema/user-note/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import {
   NoteCategory,
@@ -18,16 +18,16 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
   { input: { contentId: notePublicId } },
   ctx
 ) => {
-  const { auth, mongodb, datasources } = ctx;
+  const { auth, mongodb } = ctx;
   assertAuthenticated(auth);
 
   const currentUserId = auth.session.user._id;
 
   // Ensure current user has access to this note
-  const userNote = await datasources.notes.getNote({
+  const userNote = await mongodb.loaders.userNote.load({
     userId: currentUserId,
     publicId: notePublicId,
-    noteQuery: {
+    userNoteQuery: {
       _id: 1,
       note: {
         ownerId: 1,

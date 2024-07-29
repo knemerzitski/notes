@@ -1,5 +1,6 @@
 import 'source-map-support/register';
 import { APIGatewayProxyHandler } from 'aws-lambda';
+
 import {
   createApolloHttpHandler,
   CreateApolloHttpHandlerParams,
@@ -13,12 +14,12 @@ import CookiesContext from './graphql/cookies-context';
 import {
   createDefaultApiGatewayParams,
   createDefaultApiOptions,
-  createDefaultDataSources,
   createDefaultDynamoDBParams,
   createDefaultGraphQLParams,
   createDefaultIsCurrentConnection,
   createDefaultMongoDBContext,
 } from './handler-params';
+import { createMongoDBLoaders } from './mongodb/loaders';
 
 export function createDefaultParams(): CreateApolloHttpHandlerParams<
   Omit<GraphQLResolversContext, keyof ApolloHttpGraphQLContext>,
@@ -47,12 +48,10 @@ export function createDefaultParams(): CreateApolloHttpHandlerParams<
       return {
         cookies: cookiesCtx,
         auth: authCtx,
-        mongodb,
-        datasources: createDefaultDataSources({
-          notes: {
-            mongodb,
-          },
-        }),
+        mongodb: {
+          ...mongodb,
+          loaders: createMongoDBLoaders(mongodb),
+        },
         options: createDefaultApiOptions(),
         subscribe: () => {
           throw new Error('Subscribe should never be called in apollo-http-handler');

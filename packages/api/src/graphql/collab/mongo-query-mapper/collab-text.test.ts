@@ -8,28 +8,38 @@ import {
   isAfterPagination,
   isFirstPagination,
   isLastPagination,
-} from '../../../mongodb/operations/pagination/relayArrayPagination';
-import { DeepQueryResponse } from '../../../mongodb/query-builder';
+} from '../../../mongodb/pagination/relayArrayPagination';
+
+import { DeepQueryResult } from '../../../mongodb/query/query';
+import { RevisionRecordSchema } from '../../../mongodb/schema/collab-text/collab-text';
 
 import { CollabTextQueryMapper } from './collab-text';
-import { CollabTextRecordQuery } from './revision-record';
+
+class TestCollabTextQueryMapper extends CollabTextQueryMapper {
+  override id() {
+    return 'irrelevant';
+  }
+}
 
 let collabTextMapper: CollabTextQueryMapper;
 
 beforeAll(() => {
-  collabTextMapper = new CollabTextQueryMapper({
-    queryDocument(query) {
+  collabTextMapper = new TestCollabTextQueryMapper({
+    query(query) {
       const tailRevision = 12;
       const recordCount = 8;
       const headRevision = tailRevision + recordCount;
-      const allRecords: DeepQueryResponse<CollabTextRecordQuery>[] = [
+      const allRecords: DeepQueryResult<RevisionRecordSchema>[] = [
         ...new Array<undefined>(recordCount),
       ].map((_, i) => ({
         changeset: Changeset.parseValue([[0, 3 + i], 'a']),
         revision: i + tailRevision + 1,
       }));
 
-      function cursorToIndex(cursor: string | number) {
+      function cursorToIndex(cursor: string | number | ObjectId) {
+        if (cursor instanceof ObjectId) {
+          throw new Error('impossible');
+        }
         return (
           (typeof cursor === 'string' ? Number.parseInt(cursor) : cursor) -
           tailRevision -
@@ -37,7 +47,7 @@ beforeAll(() => {
         );
       }
 
-      let paginationRecords: DeepQueryResponse<CollabTextRecordQuery>[];
+      let paginationRecords: DeepQueryResult<RevisionRecordSchema>[];
       const pagination = query.records?.$pagination;
       if (pagination) {
         if (isFirstPagination(pagination)) {

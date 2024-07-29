@@ -3,8 +3,8 @@ import { ObjectId, WithId } from 'mongodb';
 
 import { verifyCredentialToken } from '../../../../auth/google/oauth2';
 import { CollectionName } from '../../../../mongodb/collections';
-import { sessionDefaultValues } from '../../../../mongodb/schema/session/sessions';
-import { UserSchema } from '../../../../mongodb/schema/user';
+import { sessionDefaultValues } from '../../../../mongodb/schema/session/session';
+import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { sessionExpiration } from '../../../../session-expiration/mongodb-user-session';
 
 import { NoteCategory, type MutationResolvers } from './../../../types.generated';

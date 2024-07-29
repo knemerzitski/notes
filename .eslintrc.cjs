@@ -70,7 +70,7 @@ module.exports = {
           },
         ],
 
-        // VSCode ESLint doesn't update after graphql-codegen. This stops showing errors no-unsafe after every change.
+        // Temporary hack: VSCode ESLint doesn't update after graphql-codegen. This stops showing errors no-unsafe after every change.
         '@typescript-eslint/no-unsafe-assignment': 'warn',
         '@typescript-eslint/no-unsafe-member-access': 'warn',
         '@typescript-eslint/no-unsafe-call': 'warn',

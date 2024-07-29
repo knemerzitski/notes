@@ -1,17 +1,15 @@
-import { MongoDocumentQuery } from '../../../mongodb/query-builder';
-import { UserNoteSchema } from '../../../mongodb/schema/user-note';
+import { MongoQuery } from '../../../mongodb/query/query';
+import { UserNoteSchema } from '../../../mongodb/schema/user-note/user-note';
 import { NotePreferencesMapper } from '../schema.mappers';
 
-export type NotePreferencesQuery = UserNoteSchema['preferences'];
-
 export class NotePreferencesQueryMapper implements NotePreferencesMapper {
-  private query: MongoDocumentQuery<NotePreferencesQuery>;
+  private preferences: MongoQuery<UserNoteSchema['preferences']>;
 
-  constructor(query: MongoDocumentQuery<NotePreferencesQuery>) {
-    this.query = query;
+  constructor(preferences: MongoQuery<UserNoteSchema['preferences']>) {
+    this.preferences = preferences;
   }
 
   async backgroundColor() {
-    return (await this.query.queryDocument({ backgroundColor: 1 }))?.backgroundColor;
+    return (await this.preferences.query({ backgroundColor: 1 }))?.backgroundColor;
   }
 }

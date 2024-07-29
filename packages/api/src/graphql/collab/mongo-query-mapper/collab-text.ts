@@ -6,48 +6,35 @@ import {
   RelayArrayPaginationConfig,
   RelayPagination,
   applyLimit,
-} from '../../../mongodb/operations/pagination/relayArrayPagination';
-import { MongoDocumentQuery } from '../../../mongodb/query-builder';
-import { CollabTextSchema } from '../../../mongodb/schema/collab-text';
+} from '../../../mongodb/pagination/relayArrayPagination';
+import { MongoQuery } from '../../../mongodb/query/query';
+import { CollabTextSchema } from '../../../mongodb/schema/collab-text/collab-text';
 import { GraphQLResolversContext } from '../../context';
 import {
   CollabTextrecordsConnectionArgs,
   CollabTexttextAtRevisionArgs,
+  ResolverTypeWrapper,
 } from '../../types.generated';
 import preExecuteField from '../../utils/preExecuteField';
 import { CollabTextMapper, RevisionChangesetMapper } from '../schema.mappers';
 
-import {
-  RevisionChangesetQuery,
-  RevisionChangesetQueryMapper,
-} from './revision-changeset';
-import { CollabTextRecordQuery, CollabTextRecordQueryMapper } from './revision-record';
+import { RevisionChangesetQueryMapper } from './revision-changeset';
+import { CollabTextRecordQueryMapper } from './revision-record';
 
-export type CollabTextQuery = Omit<
-  CollabTextSchema,
-  'headText' | 'tailText' | 'records' | 'userNotes'
-> & {
-  headText: RevisionChangesetQuery;
-  tailText: RevisionChangesetQuery;
-  records: CollabTextRecordQuery[];
-};
+export abstract class CollabTextQueryMapper implements CollabTextMapper {
+  private collabText: MongoQuery<CollabTextSchema>;
 
-export class CollabTextQueryMapper implements CollabTextMapper {
-  private query: MongoDocumentQuery<CollabTextQuery>;
-
-  constructor(query: MongoDocumentQuery<CollabTextQuery>) {
-    this.query = query;
+  constructor(collabText: MongoQuery<CollabTextSchema>) {
+    this.collabText = collabText;
   }
 
-  async id() {
-    return (await this.query.queryDocument({ _id: 1 }))?._id?.toString('base64');
-  }
+  abstract id(): ResolverTypeWrapper<string>;
 
   headText() {
     return new RevisionChangesetQueryMapper({
-      queryDocument: async (change) => {
+      query: async (change) => {
         return (
-          await this.query.queryDocument({
+          await this.collabText.query({
             headText: change,
           })
         )?.headText;
@@ -57,9 +44,9 @@ export class CollabTextQueryMapper implements CollabTextMapper {
 
   tailText() {
     return new RevisionChangesetQueryMapper({
-      queryDocument: async (change) => {
+      query: async (change) => {
         return (
-          await this.query.queryDocument({
+          await this.collabText.query({
             tailText: change,
           })
         )?.tailText;
@@ -71,7 +58,7 @@ export class CollabTextQueryMapper implements CollabTextMapper {
     revision: targetRevision,
   }: CollabTexttextAtRevisionArgs): RevisionChangesetMapper {
     return new RevisionChangesetQueryMapper({
-      queryDocument: async ({ revision, changeset }) => {
+      query: async ({ revision, changeset }) => {
         if (!revision && !changeset) return {};
 
         if (!changeset) {
@@ -89,7 +76,7 @@ export class CollabTextQueryMapper implements CollabTextMapper {
 
         const [tailChangeset, rawDocument] = await Promise.all([
           this.tailText().changeset(),
-          this.query.queryDocument({
+          this.collabText.query({
             records: {
               $query: {
                 changeset: 1,
@@ -156,8 +143,8 @@ export class CollabTextQueryMapper implements CollabTextMapper {
           records: () => {
             return [
               new CollabTextRecordQueryMapper(this, {
-                queryDocument: async (query) => {
-                  const result = await this.query.queryDocument({
+                query: async (query) => {
+                  const result = await this.collabText.query({
                     records: {
                       $query: query,
                       $pagination: pagination,
@@ -174,8 +161,8 @@ export class CollabTextQueryMapper implements CollabTextMapper {
 
         return [...new Array<undefined>(actualSize)].map((_, index) => {
           const revisionRecordQuery = new CollabTextRecordQueryMapper(this, {
-            queryDocument: async (query) => {
-              const result = await this.query.queryDocument({
+            query: async (query) => {
+              const result = await this.collabText.query({
                 records: {
                   $query: query,
                   $pagination: pagination,
@@ -194,8 +181,8 @@ export class CollabTextQueryMapper implements CollabTextMapper {
         await preExecuteField('edges', ctx, info, {
           edges: () => {
             const revisionRecordQuery = new CollabTextRecordQueryMapper(this, {
-              queryDocument: async (query) => {
-                const result = await this.query.queryDocument({
+              query: async (query) => {
+                const result = await this.collabText.query({
                   records: {
                     $query: query,
                     $pagination: pagination,
@@ -220,8 +207,8 @@ export class CollabTextQueryMapper implements CollabTextMapper {
 
         return [...new Array<undefined>(actualSize)].map((_, index) => {
           const revisionRecordQuery = new CollabTextRecordQueryMapper(this, {
-            queryDocument: async (query) => {
-              const result = await this.query.queryDocument({
+            query: async (query) => {
+              const result = await this.collabText.query({
                 records: {
                   $query: query,
                   $pagination: pagination,

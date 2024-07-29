@@ -1,5 +1,6 @@
 import 'source-map-support/register';
 import WebSocket from 'ws';
+
 import { parseAuthFromHeaders } from '~api/graphql/auth-context';
 import {
   GraphQLResolversContext,
@@ -7,10 +8,10 @@ import {
 } from '~api/graphql/context';
 import CookiesContext, { parseCookiesFromHeaders } from '~api/graphql/cookies-context';
 import {
-  createDefaultDataSources,
   createDefaultApiOptions,
   createDefaultIsCurrentConnection,
 } from '~api/handler-params';
+import { createMongoDBLoaders } from '~api/mongodb/loaders';
 import {
   createApolloHttpHandler,
   ApolloHttpGraphQLContext,
@@ -61,12 +62,10 @@ export function mockCreateDefaultParams(
       return {
         cookies: cookiesCtx,
         auth: authCtx,
-        mongodb,
-        datasources: createDefaultDataSources({
-          notes: {
-            mongodb,
-          },
-        }),
+        mongodb: {
+          ...mongodb,
+          loaders: createMongoDBLoaders(mongodb),
+        },
         options: createDefaultApiOptions(),
         subscribe: () => {
           throw new Error('Subscribe should never be called in apollo-http-handler');

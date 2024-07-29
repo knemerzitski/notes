@@ -1,6 +1,7 @@
 import 'source-map-support/register';
 import { APIGatewayProxyWebsocketHandlerV2 } from 'aws-lambda';
 import WebSocket from 'ws';
+
 import {
   BaseGraphQLContext,
   BaseSubscriptionResolversContext,
@@ -8,7 +9,7 @@ import {
   createErrorBaseSubscriptionResolversContext,
   parseDynamoDBBaseGraphQLContext,
 } from '~api/graphql/context';
-import { createDefaultDataSources } from '~api/handler-params';
+import { createMongoDBLoaders } from '~api/mongodb/loaders';
 import {
   WebSocketDisconnectHandlerParams,
   createWebSocketDisconnectHandler,
@@ -51,12 +52,10 @@ export function mockCreateDefaultParams(
       return {
         ...createErrorBaseSubscriptionResolversContext(),
         logger: createLogger('mock:ws-disconnect-gql-context'),
-        mongodb,
-        datasources: createDefaultDataSources({
-          notes: {
-            mongodb,
-          },
-        }),
+        mongodb: {
+          ...mongodb,
+          loaders: createMongoDBLoaders(mongodb),
+        },
       };
     },
     parseDynamoDBGraphQLContext: parseDynamoDBBaseGraphQLContext,

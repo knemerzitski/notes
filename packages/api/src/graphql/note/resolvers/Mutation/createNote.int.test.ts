@@ -14,7 +14,7 @@ import {
 import { resetDatabase } from '../../../../__test__/helpers/mongodb/mongodb';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
-import { UserSchema } from '../../../../mongodb/schema/user';
+import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { GraphQLResolversContext } from '../../../context';
 import { CreateNoteInput, NoteTextField } from '../../../types.generated';
 
@@ -97,7 +97,7 @@ describe('create', () => {
 
     assert(response.body.kind === 'single');
     const { data, errors } = response.body.singleResult;
-    expect(errors).toBeUndefined();
+    expect(errors, JSON.stringify(errors, null, 2)).toBeUndefined();
     expect(data).toEqual({
       createNote: {
         note: {

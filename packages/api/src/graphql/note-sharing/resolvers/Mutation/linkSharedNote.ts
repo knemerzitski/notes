@@ -1,15 +1,14 @@
 import { GraphQLError } from 'graphql';
-import mapObject from 'map-obj';
 import { ObjectId } from 'mongodb';
 
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import { ErrorWithData } from '~utils/logger';
 
 import { CollectionName } from '../../../../mongodb/collections';
-import { DeepQueryResponse } from '../../../../mongodb/query-builder';
-import { ShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link';
-import { getNotesArrayPath } from '../../../../mongodb/schema/user';
-import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
+import { DeepQueryResult } from '../../../../mongodb/query/query';
+import { ShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link/share-note-link';
+import { getNotesArrayPath } from '../../../../mongodb/schema/user/user';
+import { UserNoteSchema } from '../../../../mongodb/schema/user-note/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { NoteQueryMapper } from '../../../note/mongo-query-mapper/note';
 import { publishNoteCreated } from '../../../note/resolvers/Subscription/noteCreated';
@@ -25,14 +24,14 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
   { input: { shareId: shareNoteLinkPublicId } },
   ctx
 ) => {
-  const { auth, datasources, mongodb } = ctx;
+  const { auth, mongodb } = ctx;
   assertAuthenticated(auth);
 
   const currentUserId = auth.session.user._id;
 
   const shareNoteLinks = await mongodb.collections[CollectionName.SHARE_NOTE_LINKS]
     .aggregate<
-      DeepQueryResponse<
+      DeepQueryResult<
         Pick<ShareNoteLinkSchema, 'note'> & {
           lookupUserNote: {
             _id: ObjectId;
@@ -90,7 +89,7 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
 
   const existingUserNoteId = shareNoteLink.lookupUserNote?._id;
 
-  if (!shareNoteLink.note?.id) {
+  if (!shareNoteLink.note?._id) {
     throw new ErrorWithData(`Expected ShareNoteLink.note.id to be defined`, {
       userId: currentUserId,
       shareNoteLinkPublicId,
@@ -104,24 +103,16 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
       shareNoteLink,
     });
   }
-  if (!shareNoteLink.note.collabTextIds) {
-    throw new ErrorWithData(`Expected ShareNoteLink.note.collabTextIds to be defined`, {
-      userId: currentUserId,
-      shareNoteLinkPublicId,
-      shareNoteLink,
-    });
-  }
-
   // Return early since UserNote already exists
   if (existingUserNoteId) {
     const publicId = shareNoteLink.note.publicId;
     return {
       note: new NoteQueryMapper({
-        queryDocument(query) {
-          return datasources.notes.getNote({
+        query(query) {
+          return mongodb.loaders.userNote.load({
             userId: currentUserId,
             publicId,
-            noteQuery: query,
+            userNoteQuery: query,
           });
         },
       }),
@@ -132,22 +123,8 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
     _id: new ObjectId(),
     userId: currentUserId,
     note: {
-      id: shareNoteLink.note.id,
+      _id: shareNoteLink.note._id,
       publicId: shareNoteLink.note.publicId, // this must be unique within (userId, publicId)
-      collabTextIds: mapObject(shareNoteLink.note.collabTextIds, (key, id) => {
-        if (!id) {
-          throw new ErrorWithData(
-            `Expected ShareNoteLink.note.collabText.${key}.id to be defined`,
-            {
-              userId: currentUserId,
-              shareNoteLinkPublicId,
-              shareNoteLink,
-            }
-          );
-        }
-
-        return [key, id];
-      }),
     },
   };
 
@@ -171,11 +148,11 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
   );
 
   const noteQueryMapper = new NoteQueryMapper({
-    queryDocument(query) {
-      return datasources.notes.getNote({
+    query(query) {
+      return mongodb.loaders.userNote.load({
         userId: currentUserId,
         publicId: sharedUserNote.note.publicId,
-        noteQuery: query,
+        userNoteQuery: query,
       });
     },
   });

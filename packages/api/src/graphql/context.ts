@@ -7,6 +7,8 @@ import { SubscriptionContext } from '~lambda-graphql/pubsub/subscribe';
 
 import { MongoDBCollections } from '../mongodb/collections';
 
+import { MongoDBLoaders } from '../mongodb/loaders';
+
 import { ApiOptions } from './api-options';
 import {
   AuthenticationContext,
@@ -17,7 +19,6 @@ import {
   serializeAuthenticationContext,
 } from './auth-context';
 import CookiesContext, { SerializedCookiesContext } from './cookies-context';
-import NotesDataSource from './note/datasource/notes-datasource';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type BaseGraphQLContext = {
@@ -37,12 +38,10 @@ export type DynamoDBBaseGraphQLContext = {
 };
 
 export interface ApiGraphQLContext {
-  datasources: {
-    notes: NotesDataSource;
-  };
   mongodb: {
     client: MongoClient;
     collections: MongoDBCollections;
+    loaders: MongoDBLoaders;
   };
   options?: ApiOptions;
 }
@@ -58,7 +57,6 @@ export type GraphQLResolversContext = ApolloHttpGraphQLContext &
  *
  * ApiGraphQLContext
  * mongodb
- * datasources
  *
  * ApolloHttpGraphQLContext
  * request
@@ -86,9 +84,6 @@ export function createErrorBaseSubscriptionResolversContext(
   }
 
   return {
-    get datasources() {
-      return createErrorProxy('datasources') as ApiGraphQLContext['datasources'];
-    },
     get mongodb() {
       return createErrorProxy('mongodb') as ApiGraphQLContext['mongodb'];
     },

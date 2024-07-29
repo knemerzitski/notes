@@ -1,24 +1,22 @@
 import { Changeset } from '~collab/changeset/changeset';
 
-import { MongoDocumentQuery } from '../../../mongodb/query-builder';
-import { RevisionChangesetSchema } from '../../../mongodb/schema/collab-text';
+import { MongoQuery } from '../../../mongodb/query/query';
+import { RevisionChangesetSchema } from '../../../mongodb/schema/collab-text/collab-text';
 import { RevisionChangesetMapper } from '../schema.mappers';
 
-export type RevisionChangesetQuery = RevisionChangesetSchema;
-
 export class RevisionChangesetQueryMapper implements RevisionChangesetMapper {
-  private query: MongoDocumentQuery<RevisionChangesetQuery>;
+  private revisionChangeset: MongoQuery<RevisionChangesetSchema>;
 
-  constructor(query: MongoDocumentQuery<RevisionChangesetQuery>) {
-    this.query = query;
+  constructor(revisionChangeset: MongoQuery<RevisionChangesetSchema>) {
+    this.revisionChangeset = revisionChangeset;
   }
 
   async revision() {
-    return (await this.query.queryDocument({ revision: 1 }))?.revision;
+    return (await this.revisionChangeset.query({ revision: 1 }))?.revision;
   }
 
   async changeset() {
-    const serializedChangeset = (await this.query.queryDocument({ changeset: 1 }))
+    const serializedChangeset = (await this.revisionChangeset.query({ changeset: 1 }))
       ?.changeset;
 
     if (serializedChangeset == null) {

@@ -6,8 +6,8 @@ import isDefined from '~utils/type-guards/isDefined';
 
 import { NoteCategory } from '../../../../graphql/types.generated';
 import { CollectionName } from '../../../../mongodb/collections';
-import { UserSchema } from '../../../../mongodb/schema/user';
 
+import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { mongoCollections } from '../mongodb';
 import { DeepPartial } from '../types';
 

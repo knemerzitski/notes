@@ -4,18 +4,14 @@ import { ObjectId } from 'mongodb';
 
 import { NoteCategory, NoteTextField } from '../../../../graphql/types.generated';
 import { CollectionName } from '../../../../mongodb/collections';
-import {
-  CollabTextSchema,
-  CollabTextUserNoteSchema,
-} from '../../../../mongodb/schema/collab-text';
-import { NoteSchema } from '../../../../mongodb/schema/note';
-import { ShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link';
-import { UserSchema } from '../../../../mongodb/schema/user';
-import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
+import { NoteSchema } from '../../../../mongodb/schema/note/note';
+import { ShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link/share-note-link';
+import { UserSchema } from '../../../../mongodb/schema/user/user';
+import { UserNoteSchema } from '../../../../mongodb/schema/user-note/user-note';
 
 import { mongoCollections } from '../mongodb';
 
-import { fakeCollabText, FakeCollabTextOptions } from './collab-text';
+import { FakeCollabTextOptions } from './collab-text';
 import { fakeNote, FakeNoteOptions } from './note';
 import { populateQueue } from './populate-queue';
 
@@ -27,16 +23,21 @@ import {
   fakeUserNotePopulateQueue,
 } from './user-note';
 
+interface OptionsMeta {
+  userNoteId: ObjectId;
+}
+
 export interface PopulateNotesOptions {
   user?: UserSchema;
   skipInsert?: {
     shareNoteLink?: boolean;
   };
-  userNote?: (noteIndex: number) => FakeUserNoteOptions | undefined;
-  note?: (noteIndex: number) => FakeNoteOptions | undefined;
+  userNote?: (noteIndex: number, meta: OptionsMeta) => FakeUserNoteOptions | undefined;
+  note?: (noteIndex: number, meta: OptionsMeta) => FakeNoteOptions | undefined;
   collabText?: (
     noteIndex: number,
-    fieldName: NoteTextField
+    fieldName: NoteTextField,
+    meta: OptionsMeta
   ) => FakeCollabTextOptions | undefined;
   shareNoteLink?: (noteIndex: number) => FakeShareNoteLinkOptions | undefined;
 }
@@ -44,33 +45,38 @@ export interface PopulateNotesOptions {
 export function populateNotes(count: number, options?: PopulateNotesOptions) {
   const user = options?.user ?? fakeUser();
 
-  const collabTexts: CollabTextSchema[] = [];
   const notes: NoteSchema[] = [];
   const userNotes: UserNoteSchema[] = [];
   const shareNoteLinks: ShareNoteLinkSchema[] = [];
 
   const data = [...new Array<undefined>(count)].map((_, noteIndex) => {
     const userNoteId = new ObjectId();
-    const collabTextUserNote: CollabTextUserNoteSchema = {
-      id: userNoteId,
-      userId: user._id,
+
+    const meta: OptionsMeta = {
+      userNoteId,
     };
 
-    const collabTextsByField = mapObject(NoteTextField, (_key, fieldName) => {
-      const collabText = fakeCollabText(
-        collabTextUserNote,
-        options?.collabText?.(noteIndex, fieldName)
-      );
-
-      collabTexts.push(collabText);
-
-      return [fieldName, collabText];
+    const collabTextsOptionsByField = mapObject(NoteTextField, (_key, fieldName) => {
+      return [fieldName, options?.collabText?.(noteIndex, fieldName, meta)];
     });
 
-    const note = fakeNote(user, collabTextsByField, options?.note?.(noteIndex));
+    const noteOptions = options?.note?.(noteIndex, meta);
+
+    const note = fakeNote(user, {
+      collabTexts: collabTextsOptionsByField,
+      ...noteOptions,
+      override: {
+        userNotes: [
+          {
+            _id: userNoteId,
+          },
+        ],
+        ...noteOptions?.override,
+      },
+    });
     notes.push(note);
 
-    const customUserNoteOptions = options?.userNote?.(noteIndex);
+    const customUserNoteOptions = options?.userNote?.(noteIndex, meta);
     const userNote = fakeUserNote(user, note, {
       ...customUserNoteOptions,
       override: {
@@ -93,7 +99,6 @@ export function populateNotes(count: number, options?: PopulateNotesOptions) {
     return {
       userNote,
       note,
-      collabTextsByField,
       shareNoteLink,
     };
   });
@@ -101,7 +106,6 @@ export function populateNotes(count: number, options?: PopulateNotesOptions) {
   populateQueue(() =>
     Promise.all([
       !options?.user && mongoCollections[CollectionName.USERS].insertOne(user),
-      mongoCollections[CollectionName.COLLAB_TEXTS].insertMany(collabTexts),
       mongoCollections[CollectionName.NOTES].insertMany(notes),
       mongoCollections[CollectionName.USER_NOTES].insertMany(userNotes),
       shareNoteLinks.length > 0 &&
@@ -125,8 +129,8 @@ export function populateNotesWithText(
 ) {
   return populateNotes(texts.length, {
     ...options,
-    collabText(noteIndex, fieldName) {
-      const collabTextOptions = options?.collabText?.(noteIndex, fieldName);
+    collabText(noteIndex, fieldName, meta) {
+      const collabTextOptions = options?.collabText?.(noteIndex, fieldName, meta);
       return {
         initialText: texts[noteIndex]?.[fieldName],
         ...collabTextOptions,

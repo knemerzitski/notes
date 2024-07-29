@@ -1,31 +1,25 @@
 import { faker } from '@faker-js/faker';
-import { ObjectId } from 'mongodb';
 
 import { Changeset } from '~collab/changeset/changeset';
 
 import isDefined from '~utils/type-guards/isDefined';
 
-import { CollectionName } from '../../../../mongodb/collections';
 import {
   CollabTextSchema,
-  CollabTextUserNoteSchema,
   RevisionRecordSchema,
-} from '../../../../mongodb/schema/collab-text';
-import { mongoCollections } from '../mongodb';
+} from '../../../../mongodb/schema/collab-text/collab-text';
 import { DeepPartial } from '../types';
-
-import { populateQueue } from './populate-queue';
 
 export interface FakeCollabTextOptions {
   initialText?: string;
-  override?: DeepPartial<Omit<CollabTextSchema, 'userNotes'>>;
+  override?: DeepPartial<CollabTextSchema>;
   revisionOffset?: number;
   recordsCount?: number;
   record?: (recordIndex: number, revision: number) => DeepPartial<RevisionRecordSchema>;
 }
 
 export function fakeCollabText(
-  userNote: CollabTextUserNoteSchema,
+  creatorUserId: RevisionRecordSchema['creatorUserId'],
   options?: FakeCollabTextOptions
 ): CollabTextSchema {
   const revisionOffset = Math.max(options?.revisionOffset ?? 0, 0);
@@ -46,7 +40,7 @@ export function fakeCollabText(
 
   function fakeRecord(options?: DeepPartial<RevisionRecordSchema>): RevisionRecordSchema {
     return {
-      creatorUserId: userNote.userId,
+      creatorUserId: creatorUserId,
       userGeneratedId: faker.string.nanoid(6),
       revision: headRevision,
       changeset: headChangeset,
@@ -74,14 +68,7 @@ export function fakeCollabText(
     });
 
   return {
-    _id: new ObjectId(),
     ...options?.override,
-    userNotes: [
-      {
-        id: userNote.id,
-        userId: userNote.userId,
-      },
-    ],
     headText: {
       revision: headRevision,
       changeset: headChangeset,
@@ -95,13 +82,3 @@ export function fakeCollabText(
     records,
   };
 }
-
-export const fakeCollabTextPopulateQueue: typeof fakeCollabText = (userNote, options) => {
-  const collabText = fakeCollabText(userNote, options);
-
-  populateQueue(async () => {
-    await mongoCollections[CollectionName.COLLAB_TEXTS].insertOne(collabText);
-  });
-
-  return collabText;
-};

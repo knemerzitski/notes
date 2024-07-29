@@ -8,8 +8,8 @@ import { resetDatabase } from '../../../../__test__/helpers/mongodb/mongodb';
 import { populateNotes } from '../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
-import { ShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link';
-import { UserSchema } from '../../../../mongodb/schema/user';
+import { ShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link/share-note-link';
+import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { GraphQLResolversContext } from '../../../context';
 import { LinkSharedNoteInput, LinkSharedNotePayload } from '../../../types.generated';
 

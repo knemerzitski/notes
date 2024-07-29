@@ -2,6 +2,7 @@ import 'source-map-support/register';
 import path from 'path';
 
 import { App } from 'aws-cdk-lib';
+
 import isEnvVarStringTrue from '~utils/string/isEnvVarStringTrue';
 
 import { NotesStack, NotesStackProps } from '../lib/stacks/notes-stack';
@@ -34,7 +35,7 @@ const definedEnvs = assertGetEnvironmentVariables([
   'VITE_GRAPHQL_WS_URL',
 ]);
 
-const mongoDb: NotesStackProps['customProps']['mongoDb'] = {
+const mongoDB: NotesStackProps['customProps']['mongoDB'] = {
   atlas: {
     region: process.env.MONGODB_ATLAS_REGION,
     profile: process.env.MONGODB_ATLAS_PROFILE,
@@ -82,7 +83,7 @@ new NotesStack(app, 'NotesStack', {
         environment: runtimeLambdaEnvironment,
       },
     },
-    mongoDb,
+    mongoDB,
     api: {
       httpUrl: definedEnvs.VITE_GRAPHQL_HTTP_URL,
       webSocketUrl: definedEnvs.VITE_GRAPHQL_WS_URL,

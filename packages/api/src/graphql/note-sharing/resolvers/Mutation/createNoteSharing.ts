@@ -1,5 +1,4 @@
 import { GraphQLError } from 'graphql';
-import mapObject from 'map-obj';
 import { ObjectId } from 'mongodb';
 
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
@@ -9,37 +8,31 @@ import { CollectionName } from '../../../../mongodb/collections';
 import {
   ShareNoteLinkSchema,
   shareNoteLinkDefaultValues,
-} from '../../../../mongodb/schema/share-note-link';
+} from '../../../../mongodb/schema/share-note-link/share-note-link';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { NoteQueryMapper } from '../../../note/mongo-query-mapper/note';
 import { publishNoteUpdated } from '../../../note/resolvers/Subscription/noteUpdated';
 
-import { NoteTextField, type MutationResolvers } from './../../../types.generated';
+import { type MutationResolvers } from './../../../types.generated';
 
 export const createNoteSharing: NonNullable<
   MutationResolvers['createNoteSharing']
 > = async (_parent, { input: { contentId: notePublicId } }, ctx) => {
-  const { auth, datasources, mongodb } = ctx;
+  const { auth, mongodb } = ctx;
   assertAuthenticated(auth);
 
   const currentUserId = auth.session.user._id;
 
-  const userNote = await datasources.notes.getNote({
+  const userNote = await mongodb.loaders.userNote.load({
     userId: currentUserId,
     publicId: notePublicId,
-    noteQuery: {
+    userNoteQuery: {
       _id: 1,
       readOnly: 1,
       note: {
-        id: 1,
+        _id: 1,
         publicId: 1,
         ownerId: 1,
-        collabTexts: mapObject(NoteTextField, (_key, value) => [
-          value,
-          {
-            _id: 1,
-          },
-        ]),
       },
       shareNoteLinks: {
         $query: {
@@ -57,7 +50,7 @@ export const createNoteSharing: NonNullable<
       userNote,
     });
   }
-  if (!userNote.note?.id) {
+  if (!userNote.note?._id) {
     throw new ErrorWithData(`Expected UserNote.note._id to be defined`, {
       userId: currentUserId,
       notePublicId,
@@ -66,13 +59,6 @@ export const createNoteSharing: NonNullable<
   }
   if (!userNote.note.publicId) {
     throw new ErrorWithData(`Expected UserNote.note.publicId to be defined`, {
-      userId: currentUserId,
-      notePublicId,
-      userNote,
-    });
-  }
-  if (!userNote.note.collabTexts) {
-    throw new ErrorWithData(`Expected UserNote.note.collabTexts to be defined`, {
       userId: currentUserId,
       notePublicId,
       userNote,
@@ -117,25 +103,11 @@ export const createNoteSharing: NonNullable<
     _id: new ObjectId(),
     publicId: shareNoteLinkDefaultValues.publicId(),
     sourceUserNote: {
-      id: userNote._id,
+      _id: userNote._id,
     },
     note: {
-      id: userNote.note.id,
+      _id: userNote.note._id,
       publicId: userNote.note.publicId,
-      collabTextIds: mapObject(userNote.note.collabTexts, (key, collabText) => {
-        if (!collabText?._id) {
-          throw new ErrorWithData(
-            `Expected UserNote.note.collabText.${key}._id to be defined`,
-            {
-              userId: currentUserId,
-              notePublicId,
-              userNote,
-            }
-          );
-        }
-
-        return [key, collabText._id];
-      }),
     },
     // TODO implement permissions, expireAt, expireAccessCount
   };
@@ -143,11 +115,11 @@ export const createNoteSharing: NonNullable<
   await mongodb.collections[CollectionName.SHARE_NOTE_LINKS].insertOne(shareNoteLink);
 
   const noteMapper = new NoteQueryMapper({
-    queryDocument(query) {
-      return datasources.notes.getNote({
+    query(query) {
+      return mongodb.loaders.userNote.load({
         userId: currentUserId,
         publicId: notePublicId,
-        noteQuery: query,
+        userNoteQuery: query,
       });
     },
   });

@@ -1,23 +1,21 @@
-import { MongoDocumentQuery } from '../../../mongodb/query-builder';
-import { SelectionRangeSchema } from '../../../mongodb/schema/collab-text';
+import { MongoQuery } from '../../../mongodb/query/query';
+import { SelectionRangeSchema } from '../../../mongodb/schema/collab-text/collab-text';
 import { CollabTextSelectionRangeMapper } from '../schema.mappers';
-
-export type CollabTextSelectionRangeQuery = SelectionRangeSchema;
 
 export class CollabTextSelectionRangeQueryMapper
   implements CollabTextSelectionRangeMapper
 {
-  private query: MongoDocumentQuery<CollabTextSelectionRangeQuery>;
+  private selectionRange: MongoQuery<SelectionRangeSchema>;
 
-  constructor(query: MongoDocumentQuery<CollabTextSelectionRangeQuery>) {
-    this.query = query;
+  constructor(selectionRange: MongoQuery<SelectionRangeSchema>) {
+    this.selectionRange = selectionRange;
   }
 
   async start() {
-    return (await this.query.queryDocument({ start: 1 }))?.start;
+    return (await this.selectionRange.query({ start: 1 }))?.start;
   }
 
   async end() {
-    return (await this.query.queryDocument({ end: 1 }))?.end;
+    return (await this.selectionRange.query({ end: 1 }))?.end;
   }
 }

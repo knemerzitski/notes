@@ -11,9 +11,9 @@ import {
 import { populateNotes } from '../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { CollectionName } from '../../../../mongodb/collections';
-import { ShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link';
-import { UserSchema } from '../../../../mongodb/schema/user';
-import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
+import { ShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link/share-note-link';
+import { UserSchema } from '../../../../mongodb/schema/user/user';
+import { UserNoteSchema } from '../../../../mongodb/schema/user-note/user-note';
 import { GraphQLResolversContext } from '../../../context';
 import { DeleteNoteSharingInput } from '../../../types.generated';
 

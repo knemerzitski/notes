@@ -11,7 +11,12 @@ import type { ResolversTypes, SubscriptionResolvers } from '../../../types.gener
 
 export const noteUpdated: NonNullable<SubscriptionResolvers['noteUpdated']> = {
   subscribe: async (_parent, { input }, ctx) => {
-    const { auth, datasources, subscribe, denySubscription } = ctx;
+    const {
+      auth,
+      mongodb: { loaders },
+      subscribe,
+      denySubscription,
+    } = ctx;
     if (!isAuthenticated(auth)) return denySubscription();
 
     const notePublicId = input?.contentId;
@@ -20,10 +25,10 @@ export const noteUpdated: NonNullable<SubscriptionResolvers['noteUpdated']> = {
 
     if (notePublicId) {
       // Ensure current user has access to this note
-      const userNote = await datasources.notes.getNote({
+      const userNote = await loaders.userNote.load({
         userId: currentUserId,
         publicId: notePublicId,
-        noteQuery: {
+        userNoteQuery: {
           _id: 1,
         },
       });

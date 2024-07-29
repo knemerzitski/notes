@@ -3,9 +3,9 @@ import { ObjectId } from 'mongodb';
 
 import { NoteCategory } from '../../../../graphql/types.generated';
 import { CollectionName } from '../../../../mongodb/collections';
-import { NoteSchema } from '../../../../mongodb/schema/note';
-import { UserSchema } from '../../../../mongodb/schema/user';
-import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
+import { NoteSchema } from '../../../../mongodb/schema/note/note';
+import { UserSchema } from '../../../../mongodb/schema/user/user';
+import { UserNoteSchema } from '../../../../mongodb/schema/user-note/user-note';
 import { mongoCollections } from '../mongodb';
 import { DeepPartial } from '../types';
 
@@ -17,7 +17,7 @@ export interface FakeUserNoteOptions {
 
 export function fakeUserNote(
   user: Pick<UserSchema, '_id'>,
-  note: Pick<NoteSchema, '_id' | 'publicId' | 'collabTextIds'>,
+  note: Pick<NoteSchema, '_id' | 'publicId'>,
   options?: FakeUserNoteOptions
 ): UserNoteSchema {
   return {
@@ -26,9 +26,8 @@ export function fakeUserNote(
     readOnly: !!faker.number.int({ max: 1 }),
     ...options?.override,
     note: {
-      id: note._id,
+      _id: note._id,
       publicId: note.publicId,
-      collabTextIds: note.collabTextIds,
       ...options?.override?.note,
     },
     preferences: {

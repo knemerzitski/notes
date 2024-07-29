@@ -22,8 +22,8 @@ import {
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
 import { CollectionName } from '../../../../mongodb/collections';
-import { NoteSchema } from '../../../../mongodb/schema/note';
-import { UserSchema } from '../../../../mongodb/schema/user';
+import { NoteSchema } from '../../../../mongodb/schema/note/note';
+import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { DeleteNoteInput, NoteDeletedInput } from '../../../types.generated';
 
 const MUTATION = `#graphql

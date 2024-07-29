@@ -10,15 +10,15 @@ import type { MutationResolvers } from './../../../types.generated';
 export const deleteNoteSharing: NonNullable<
   MutationResolvers['deleteNoteSharing']
 > = async (_parent, { input: { contentId: notePublicId } }, ctx) => {
-  const { auth, datasources, mongodb } = ctx;
+  const { auth, mongodb } = ctx;
   assertAuthenticated(auth);
 
   const currentUserId = auth.session.user._id;
 
-  const userNote = await datasources.notes.getNote({
+  const userNote = await mongodb.loaders.userNote.load({
     userId: currentUserId,
     publicId: notePublicId,
-    noteQuery: {
+    userNoteQuery: {
       _id: 1,
       note: {
         ownerId: 1,
@@ -32,15 +32,15 @@ export const deleteNoteSharing: NonNullable<
   });
 
   const noteMapper = new NoteQueryMapper({
-    queryDocument(query) {
-      return datasources.notes.getNote({
+    query(query) {
+      return mongodb.loaders.userNote.load({
         userId: currentUserId,
         publicId: notePublicId,
-        noteQuery: query,
+        userNoteQuery: query,
       });
     },
   });
-  // Sharing is deleted, set to null
+  // Sharing will be deleted, set to null
   noteMapper.sharing = () => Promise.resolve(null);
 
   if (!userNote.shareNoteLinks || userNote.shareNoteLinks.length === 0) {
@@ -66,7 +66,7 @@ export const deleteNoteSharing: NonNullable<
   }
 
   await mongodb.collections[CollectionName.SHARE_NOTE_LINKS].deleteMany({
-    'sourceUserNote.id': userNote._id,
+    'sourceUserNote._id': userNote._id,
   });
 
   await publishNoteUpdated(ctx, ownerId, {

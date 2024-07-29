@@ -15,15 +15,8 @@ import { ConnectionTtlContext } from '~lambda-graphql/dynamodb/models/connection
 import { Logger } from '~utils/logger';
 
 import { ApiOptions } from './graphql/api-options';
-import {
-  ApiGraphQLContext,
-  BaseGraphQLContext,
-  DynamoDBBaseGraphQLContext,
-} from './graphql/context';
+import { BaseGraphQLContext, DynamoDBBaseGraphQLContext } from './graphql/context';
 import { applyDirectives } from './graphql/directives';
-import NotesDataSource, {
-  NotesDataSourceContext,
-} from './graphql/note/datasource/notes-datasource';
 import { ApolloServerLogger } from './graphql/plugins/apollo-server-logger';
 import { resolvers } from './graphql/resolvers.generated';
 import { typeDefs } from './graphql/typeDefs.generated';
@@ -170,18 +163,6 @@ export const createDefaultIsCurrentConnection: CreateApolloHttpHandlerParams<
   if (!wsConnectionId) return;
   return (connectionId: string) => wsConnectionId === connectionId;
 };
-
-export interface CreateDefaultDataSourcesParams {
-  notes: NotesDataSourceContext;
-}
-
-export function createDefaultDataSources(
-  params: CreateDefaultDataSourcesParams
-): ApiGraphQLContext['datasources'] {
-  return {
-    notes: new NotesDataSource(params.notes),
-  };
-}
 
 export function createDefaultApiOptions(): ApiOptions {
   return {

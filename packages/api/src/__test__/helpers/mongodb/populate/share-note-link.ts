@@ -5,8 +5,8 @@ import { CollectionName } from '../../../../mongodb/collections';
 import {
   shareNoteLinkDefaultValues,
   ShareNoteLinkSchema,
-} from '../../../../mongodb/schema/share-note-link';
-import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
+} from '../../../../mongodb/schema/share-note-link/share-note-link';
+import { UserNoteSchema } from '../../../../mongodb/schema/user-note/user-note';
 import { mongoCollections } from '../mongodb';
 import { DeepPartial } from '../types';
 
@@ -29,11 +29,12 @@ export function fakeShareNoteLink(
     }),
     ...options?.override,
     note: {
-      ...userNote.note,
+      _id: userNote.note._id,
+      publicId: userNote.note.publicId,
       ...options?.override?.note,
     },
     sourceUserNote: {
-      id: userNote._id,
+      _id: userNote._id,
       ...options?.override?.sourceUserNote,
     },
     permissions: {

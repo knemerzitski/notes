@@ -6,8 +6,8 @@ import { DeepReplace } from '~utils/types';
 
 import { CollectionName } from '../mongodb/collections';
 import findByCookieId from '../mongodb/schema/session/operations/findByCookieId';
-import { SessionSchema } from '../mongodb/schema/session/sessions';
-import { UserSchema } from '../mongodb/schema/user';
+import { SessionSchema } from '../mongodb/schema/session/session';
+import { UserSchema } from '../mongodb/schema/user/user';
 import { sessionExpiration } from '../session-expiration/mongodb-user-session';
 
 import { ApiGraphQLContext } from './context';

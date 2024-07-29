@@ -8,17 +8,20 @@ export const note: NonNullable<QueryResolvers['note']> = (
   { contentId: notePublicId },
   ctx
 ) => {
-  const { auth, datasources } = ctx;
+  const {
+    auth,
+    mongodb: { loaders },
+  } = ctx;
   assertAuthenticated(auth);
 
   const currentUserId = auth.session.user._id;
 
   return new NoteQueryMapper({
-    queryDocument(query) {
-      return datasources.notes.getNote({
+    query(query) {
+      return loaders.userNote.load({
         userId: currentUserId,
         publicId: notePublicId,
-        noteQuery: query,
+        userNoteQuery: query,
       });
     },
   });

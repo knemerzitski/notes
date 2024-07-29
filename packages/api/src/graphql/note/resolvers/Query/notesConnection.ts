@@ -1,7 +1,6 @@
 import { ObjectId } from 'mongodb';
 
-import { RelayPagination } from '../../../../mongodb/operations/pagination/relayArrayPagination';
-import { getNotesArrayPath } from '../../../../mongodb/schema/user';
+import { RelayPagination } from '../../../../mongodb/pagination/relayArrayPagination';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { NoteCategory, type QueryResolvers } from '../../../types.generated';
 import preExecuteField from '../../../utils/preExecuteField';
@@ -20,7 +19,10 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
   ctx,
   info
 ) => {
-  const { auth, datasources } = ctx;
+  const {
+    auth,
+    mongodb: { loaders },
+  } = ctx;
   assertAuthenticated(auth);
 
   // Validate before, after convertable to ObjectId
@@ -64,7 +66,6 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
   }
 
   const categoryName = args.category ?? NoteCategory.DEFAULT;
-  const userNotesArrayPath = getNotesArrayPath(categoryName);
 
   return {
     notes: async () => {
@@ -74,14 +75,27 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
         notes: () => {
           return [
             new NoteQueryMapper({
-              async queryDocument(query) {
-                const result = await datasources.notes.getNoteConnection({
+              async query(query) {
+                const result = await loaders.user.load({
                   userId: currentUserId,
-                  userNotesArrayPath,
-                  noteQuery: query,
-                  pagination,
+                  userQuery: {
+                    notes: {
+                      category: {
+                        [categoryName]: {
+                          order: {
+                            items: {
+                              $pagination: pagination,
+                              $query: query,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
                 });
-                actualSize = actualSize ?? result.userNotes.length;
+                actualSize =
+                  actualSize ??
+                  result.notes?.category?.[categoryName]?.order?.items?.length;
                 return null;
               },
             }),
@@ -92,14 +106,25 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
 
       return [...new Array<undefined>(actualSize)].map((_, index) => {
         const noteQuery = new NoteQueryMapper({
-          queryDocument: async (query) => {
-            const result = await datasources.notes.getNoteConnection({
+          query: async (query) => {
+            const result = await loaders.user.load({
               userId: currentUserId,
-              userNotesArrayPath,
-              noteQuery: query,
-              pagination,
+              userQuery: {
+                notes: {
+                  category: {
+                    [categoryName]: {
+                      order: {
+                        items: {
+                          $pagination: pagination,
+                          $query: query,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
             });
-            return result.userNotes[index];
+            return result.notes?.category?.[categoryName]?.order?.items?.[index];
           },
         });
 
@@ -112,14 +137,27 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
       await preExecuteField('edges', ctx, info, {
         edges: () => {
           const noteQuery = new NoteQueryMapper({
-            async queryDocument(query) {
-              const result = await datasources.notes.getNoteConnection({
+            async query(query) {
+              const result = await loaders.user.load({
                 userId: currentUserId,
-                userNotesArrayPath,
-                noteQuery: query,
-                pagination,
+                userQuery: {
+                  notes: {
+                    category: {
+                      [categoryName]: {
+                        order: {
+                          items: {
+                            $pagination: pagination,
+                            $query: query,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
               });
-              actualSize = actualSize ?? result.userNotes.length;
+              actualSize =
+                actualSize ??
+                result.notes?.category?.[categoryName]?.order?.items?.length;
               return null;
             },
           });
@@ -138,14 +176,25 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
 
       return [...new Array<undefined>(actualSize)].map((_, index) => {
         const noteQuery = new NoteQueryMapper({
-          queryDocument: async (query) => {
-            const result = await datasources.notes.getNoteConnection({
+          query: async (query) => {
+            const result = await loaders.user.load({
               userId: currentUserId,
-              userNotesArrayPath,
-              noteQuery: query,
-              pagination,
+              userQuery: {
+                notes: {
+                  category: {
+                    [categoryName]: {
+                      order: {
+                        items: {
+                          $pagination: pagination,
+                          $query: query,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
             });
-            return result.userNotes[index];
+            return result.notes?.category?.[categoryName]?.order?.items?.[index];
           },
         });
 
@@ -160,84 +209,114 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
     pageInfo: () => {
       return {
         hasNextPage: async () => {
-          const { userNotes, lastCursor } = await datasources.notes.getNoteConnection<{
-            lastCursor: ObjectId | null;
-          }>({
+          const result = await loaders.user.load({
             userId: currentUserId,
-            userNotesArrayPath,
-            noteQuery: {
-              _id: 1,
-            },
-            pagination,
-            customQuery: {
-              query: {
-                lastCursor: {
-                  $last: `$${userNotesArrayPath}`,
+            userQuery: {
+              notes: {
+                category: {
+                  [categoryName]: {
+                    order: {
+                      items: {
+                        $pagination: pagination,
+                        $query: {
+                          _id: 1,
+                        },
+                      },
+                      lastId: 1,
+                    },
+                  },
                 },
-              },
-              group: {
-                lastCursor: { $first: '$lastCursor' },
               },
             },
           });
 
-          const endCursor = userNotes[userNotes.length - 1]?._id;
+          const order = result.notes?.category?.[categoryName]?.order;
+          const endCursor = order?.items?.[order.items.length - 1]?._id;
+          const lastCursor = order?.lastId;
+
           const hasNextPage = endCursor && !endCursor.equals(lastCursor);
 
           return hasNextPage ?? false;
         },
         hasPreviousPage: async () => {
-          const { userNotes, firstCursor } = await datasources.notes.getNoteConnection<{
-            firstCursor: ObjectId | null;
-          }>({
+          const result = await loaders.user.load({
             userId: currentUserId,
-            userNotesArrayPath,
-            noteQuery: {
-              _id: 1,
-            },
-            pagination,
-            customQuery: {
-              query: {
-                firstCursor: {
-                  $first: `$${userNotesArrayPath}`,
+            userQuery: {
+              notes: {
+                category: {
+                  [categoryName]: {
+                    order: {
+                      items: {
+                        $pagination: pagination,
+                        $query: {
+                          _id: 1,
+                        },
+                      },
+                      firstId: 1,
+                    },
+                  },
                 },
-              },
-              group: {
-                firstCursor: { $first: '$firstCursor' },
               },
             },
           });
 
-          const startCursor = userNotes[0]?._id;
+          const order = result.notes?.category?.[categoryName]?.order;
+          const startCursor = order?.items?.[0]?._id;
+          const firstCursor = order?.firstId;
+
           const hasPreviousPage = startCursor && !startCursor.equals(firstCursor);
 
           return hasPreviousPage ?? false;
         },
         startCursor: async () => {
-          const { userNotes } = await datasources.notes.getNoteConnection({
+          const result = await loaders.user.load({
             userId: currentUserId,
-            userNotesArrayPath,
-            noteQuery: {
-              _id: 1,
+            userQuery: {
+              notes: {
+                category: {
+                  [categoryName]: {
+                    order: {
+                      items: {
+                        $pagination: pagination,
+                        $query: {
+                          _id: 1,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
             },
-            pagination,
           });
 
-          const startCursor = userNotes[0]?._id;
+          const order = result.notes?.category?.[categoryName]?.order;
+          const startCursor = order?.items?.[0]?._id;
 
           return startCursor?.toString('base64');
         },
         endCursor: async () => {
-          const { userNotes } = await datasources.notes.getNoteConnection({
+          const result = await loaders.user.load({
             userId: currentUserId,
-            userNotesArrayPath,
-            noteQuery: {
-              _id: 1,
+            userQuery: {
+              notes: {
+                category: {
+                  [categoryName]: {
+                    order: {
+                      items: {
+                        $pagination: pagination,
+                        $query: {
+                          _id: 1,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
             },
-            pagination,
           });
 
-          const endCursor = userNotes[userNotes.length - 1]?._id;
+          const order = result.notes?.category?.[categoryName]?.order;
+          const endCursor = order?.items?.[order.items.length - 1]?._id;
 
           return endCursor?.toString('base64');
         },

@@ -7,8 +7,8 @@ import { createGraphQLResolversContext } from '../../../../__test__/helpers/grap
 import { resetDatabase } from '../../../../__test__/helpers/mongodb/mongodb';
 import { populateNotes } from '../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
-import { UserSchema } from '../../../../mongodb/schema/user';
-import { UserNoteSchema } from '../../../../mongodb/schema/user-note';
+import { UserSchema } from '../../../../mongodb/schema/user/user';
+import { UserNoteSchema } from '../../../../mongodb/schema/user-note/user-note';
 import { GraphQLResolversContext } from '../../../context';
 import { CreateNoteSharingInput } from '../../../types.generated';
 

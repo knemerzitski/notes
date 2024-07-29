@@ -1,5 +1,6 @@
 import 'source-map-support/register';
 import { APIGatewayProxyWebsocketHandlerV2 } from 'aws-lambda';
+
 import {
   createWebSocketDisconnectHandler,
   WebSocketDisconnectHandlerParams,
@@ -15,11 +16,11 @@ import {
 } from './graphql/context';
 import {
   createDefaultApiGatewayParams,
-  createDefaultDataSources,
   createDefaultDynamoDBParams,
   createDefaultMongoDBContext,
   createDefaultSubscriptionGraphQLParams,
 } from './handler-params';
+import { createMongoDBLoaders } from './mongodb/loaders';
 
 export function createDefaultParams(): WebSocketDisconnectHandlerParams<
   BaseSubscriptionResolversContext,
@@ -44,12 +45,10 @@ export function createDefaultParams(): WebSocketDisconnectHandlerParams<
       return {
         ...createErrorBaseSubscriptionResolversContext(name),
         logger: createLogger('ws-disconnect-gql-context'),
-        mongodb,
-        datasources: createDefaultDataSources({
-          notes: {
-            mongodb,
-          },
-        }),
+        mongodb: {
+          ...mongodb,
+          loaders: createMongoDBLoaders(mongodb),
+        },
       };
     },
     parseDynamoDBGraphQLContext: parseDynamoDBBaseGraphQLContext,

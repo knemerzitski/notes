@@ -19,7 +19,7 @@ export interface NotesStackProps extends StackProps {
   customProps: {
     postDeployment: PostDeploymentFunctionProps;
     lambda: LambdaHandlersProps;
-    mongoDb: Omit<StateMongoDBProps, 'role'>;
+    mongoDB: Omit<StateMongoDBProps, 'role'>;
     api: {
       httpUrl: string;
       webSocketUrl: string;
@@ -48,7 +48,7 @@ export class NotesStack extends Stack {
       'PostDeployment',
       customProps.postDeployment
     );
-    const mongoDbHandlers = [...handlers.getAll(), postDeployHandler.function];
+    const mongoDBHandlers = [...handlers.getAll(), postDeployHandler.function];
 
     // DynamoDB
     const webSocketDynamoDB = new WebSocketDynamoDB(this, 'WebSocketDynamo');
@@ -68,22 +68,22 @@ export class NotesStack extends Stack {
     webSocketDynamoDB.tables.subscriptions.grantReadWriteData(handlers.webSocket);
 
     // MongoDB
-    const mongoDbRole = new Role(this, 'MongoDBAtlasAuthRole', {
+    const mongoDBRole = new Role(this, 'MongoDBAtlasAuthRole', {
       assumedBy: new CompositePrincipal(
-        ...mongoDbHandlers.map((lambda) => lambda.grantPrincipal)
+        ...mongoDBHandlers.map((lambda) => lambda.grantPrincipal)
       ),
     });
-    const mongoDb = new StateMongoDB(this, 'MongoDB', {
-      role: mongoDbRole,
-      atlas: customProps.mongoDb.atlas,
+    const mongoDB = new StateMongoDB(this, 'MongoDB', {
+      role: mongoDBRole,
+      atlas: customProps.mongoDB.atlas,
     });
-    mongoDbHandlers.forEach((lambda) => {
+    mongoDBHandlers.forEach((lambda) => {
       lambda.addEnvironment(
         'MONGODB_ATLAS_DATABASE_NAME',
-        customProps.mongoDb.atlas.databaseName
+        customProps.mongoDB.atlas.databaseName
       );
-      lambda.addEnvironment('MONGODB_ATLAS_ROLE_ARN', mongoDbRole.roleArn);
-      lambda.addEnvironment('MONGODB_ATLAS_URI_SRV', mongoDb.connectionString);
+      lambda.addEnvironment('MONGODB_ATLAS_ROLE_ARN', mongoDBRole.roleArn);
+      lambda.addEnvironment('MONGODB_ATLAS_URI_SRV', mongoDB.connectionString);
     });
 
     // Rest API
@@ -130,13 +130,13 @@ export class NotesStack extends Stack {
       value: appDistribution.distribution.domainName,
     });
     new CfnOutput(this, 'MongoDBAtlasProjectName', {
-      value: mongoDb.atlas.mProject.props.name,
+      value: mongoDB.atlas.mProject.props.name,
     });
     new CfnOutput(this, 'MongoDBAtlasClusterName', {
-      value: mongoDb.atlas.mCluster.props.name,
+      value: mongoDB.atlas.mCluster.props.name,
     });
     new CfnOutput(this, 'MongoDBAtlasConnectionString', {
-      value: mongoDb.connectionString,
+      value: mongoDB.connectionString,
     });
     new CfnOutput(this, 'WebSocketUrl', {
       value: webSocketApi.stage.url,

@@ -1,0 +1,134 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { faker } from '@faker-js/faker';
+import { Collection, ObjectId } from 'mongodb';
+import { afterEach, assert, beforeAll, expect, it, vi } from 'vitest';
+
+import {
+  resetDatabase,
+  mongoCollections,
+  mongoClient,
+} from '../__test__/helpers/mongodb/mongodb';
+import { populateNotes } from '../__test__/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../__test__/helpers/mongodb/populate/populate-queue';
+
+import { NoteCategory } from '../graphql/types.generated';
+
+import { createMongoDBLoaders, MongoDBLoaders } from './loaders';
+import { DeepQuery } from './query/query';
+import { NoteSchema } from './schema/note/note';
+import { UserSchema } from './schema/user/user';
+
+import { QueryableUserNote } from './schema/user-note/query/queryable-user-note';
+
+let populateResult: ReturnType<typeof populateNotes>;
+let user: UserSchema;
+let note: NoteSchema;
+
+let loaders: MongoDBLoaders;
+
+beforeAll(async () => {
+  await resetDatabase();
+  faker.seed(73452);
+
+  populateResult = populateNotes(2);
+  user = populateResult.user;
+  const firstNote = populateResult.data[0]?.note;
+  assert(firstNote != null);
+  note = firstNote;
+
+  await populateExecuteAll();
+
+  loaders = createMongoDBLoaders({
+    client: mongoClient,
+    collections: mongoCollections,
+  });
+});
+
+function databaseCallsCountGetter() {
+  const collections: Collection[] = Object.values(mongoCollections);
+
+  const spyCollections = collections.map((col) => vi.spyOn(col, 'aggregate'));
+
+  return () => spyCollections.reduce((sum, col) => sum + col.mock.calls.length, 0);
+}
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
+it('loading note from user primes userNote loader', async () => {
+  const dbCallCount = databaseCallsCountGetter();
+
+  expect(dbCallCount()).toStrictEqual(0);
+
+  const userNoteQuery: DeepQuery<QueryableUserNote> = {
+    _id: 1,
+    note: {
+      publicId: 1,
+    },
+  };
+  const userResult = await loaders.user.load({
+    userId: user._id,
+    userQuery: {
+      notes: {
+        category: {
+          [NoteCategory.DEFAULT]: {
+            order: {
+              items: {
+                $pagination: {
+                  first: 2,
+                },
+                $query: userNoteQuery,
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  expect(userResult).toStrictEqual({
+    notes: {
+      category: {
+        [NoteCategory.DEFAULT]: {
+          order: {
+            items: [
+              {
+                _id: expect.any(ObjectId),
+                note: {
+                  publicId: expect.any(String),
+                },
+              },
+              {
+                _id: expect.any(ObjectId),
+                note: {
+                  publicId: expect.any(String),
+                },
+              },
+            ],
+          },
+        },
+      },
+    },
+  });
+
+  expect(dbCallCount()).toStrictEqual(1);
+
+  const quickUserNoteResult = await loaders.userNote.load({
+    userId: user._id,
+    publicId: note.publicId,
+    userNoteQuery,
+  });
+
+  expect(quickUserNoteResult).toStrictEqual({
+    _id: expect.any(ObjectId),
+    note: {
+      publicId: expect.any(String),
+    },
+  });
+
+  expect(
+    dbCallCount(),
+    'QueryableUserNoteLoader is not reusing result form QueryableUserLoader'
+  ).toStrictEqual(1);
+});

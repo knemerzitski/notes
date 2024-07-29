@@ -15,8 +15,8 @@ import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populat
 import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
 import { verifyCredentialToken } from '../../../../auth/google/__mocks__/oauth2';
 import { CollectionName } from '../../../../mongodb/collections';
-import { SessionSchema } from '../../../../mongodb/schema/session/sessions';
-import { UserSchema } from '../../../../mongodb/schema/user';
+import { SessionSchema } from '../../../../mongodb/schema/session/session';
+import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { AuthProvider, SignInInput, SignInPayload } from '../../../types.generated';
 
 vi.mock('../../../../auth/google/oauth2');

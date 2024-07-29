@@ -1,43 +1,27 @@
 import { ObjectId } from 'mongodb';
 
-import { MongoDocumentQuery } from '../../../mongodb/query-builder';
-import { NoteSchema } from '../../../mongodb/schema/note';
-import { ShareNoteLinkSchema } from '../../../mongodb/schema/share-note-link';
-import { UserNoteSchema } from '../../../mongodb/schema/user-note';
-import {
-  CollabTextQueryMapper,
-  CollabTextQuery,
-} from '../../collab/mongo-query-mapper/collab-text';
-import { NoteTextField, NotetextFieldsArgs } from '../../types.generated';
+import { MongoQuery } from '../../../mongodb/query/query';
+import { QueryableUserNote } from '../../../mongodb/schema/user-note/query/queryable-user-note';
+import { NoteCategory, NoteTextField, NotetextFieldsArgs } from '../../types.generated';
 import { NoteMapper } from '../schema.mappers';
 
-import { NotePreferencesQueryMapper, NotePreferencesQuery } from './note-preferences';
-
-export type NoteQuery<TCollabTextKey extends string = NoteTextField> = Omit<
-  UserNoteSchema,
-  'preferences' | 'note' | 'userId'
-> & {
-  preferences: NotePreferencesQuery;
-  note: Omit<UserNoteSchema['note'], 'collabTexts' | 'collabTextIds'> & {
-    collabTexts: Record<TCollabTextKey, CollabTextQuery>;
-  } & Omit<NoteSchema, 'publicId' | 'collabTextIds' | '_id'>;
-  shareNoteLinks: Omit<ShareNoteLinkSchema, 'note' | 'sourceUserNote'>[];
-};
+import { NoteCollabTextQueryMapper } from './note-collab-text';
+import { NotePreferencesQueryMapper } from './note-preferences';
 
 export class NoteQueryMapper implements NoteMapper {
-  private query: MongoDocumentQuery<NoteQuery>;
+  private userNote: MongoQuery<QueryableUserNote>;
 
-  constructor(query: MongoDocumentQuery<NoteQuery>) {
-    this.query = query;
+  constructor(userNote: MongoQuery<QueryableUserNote>) {
+    this.userNote = userNote;
   }
 
   async id() {
-    return (await this.query.queryDocument({ _id: 1 }))?._id?.toString('base64');
+    return (await this.userNote.query({ _id: 1 }))?._id?.toString('base64');
   }
 
   async contentId() {
     return (
-      await this.query.queryDocument({
+      await this.userNote.query({
         note: {
           publicId: 1,
         },
@@ -53,10 +37,10 @@ export class NoteQueryMapper implements NoteMapper {
           return Promise.resolve(field);
         },
         value: () => {
-          return new CollabTextQueryMapper({
-            queryDocument: async (query) => {
+          return new NoteCollabTextQueryMapper(this.userNote, field, {
+            query: async (query) => {
               return (
-                await this.query.queryDocument({
+                await this.userNote.query({
                   note: {
                     collabTexts: {
                       [field]: query,
@@ -72,23 +56,23 @@ export class NoteQueryMapper implements NoteMapper {
   }
 
   async readOnly() {
-    return (await this.query.queryDocument({ readOnly: 1 }))?.readOnly;
+    return (await this.userNote.query({ readOnly: 1 }))?.readOnly;
   }
 
   preferences() {
     return new NotePreferencesQueryMapper({
-      queryDocument: async (project) => {
-        return (await this.query.queryDocument({ preferences: project }))?.preferences;
+      query: async (project) => {
+        return (await this.userNote.query({ preferences: project }))?.preferences;
       },
     });
   }
 
   async ownerId(): Promise<ObjectId | undefined> {
-    return (await this.query.queryDocument({ note: { ownerId: 1 } }))?.note?.ownerId;
+    return (await this.userNote.query({ note: { ownerId: 1 } }))?.note?.ownerId;
   }
 
   async sharing() {
-    const note = await this.query.queryDocument({
+    const note = await this.userNote.query({
       shareNoteLinks: {
         $query: {
           publicId: 1,
@@ -105,12 +89,12 @@ export class NoteQueryMapper implements NoteMapper {
   }
 
   async categoryName() {
-    const note = await this.query.queryDocument({
+    const note = await this.userNote.query({
       category: {
         name: 1,
       },
     });
 
-    return note?.category?.name;
+    return note?.category?.name as NoteCategory;
   }
 }

@@ -1,34 +1,26 @@
-import { MongoDocumentQuery } from '../../../mongodb/query-builder';
-import { RevisionRecordSchema } from '../../../mongodb/schema/collab-text';
-import { CollabTextMapper, CollabTextRecordMapper } from '../schema.mappers';
+import { MongoQuery } from '../../../mongodb/query/query';
+import { RevisionRecordSchema } from '../../../mongodb/schema/collab-text/collab-text';
+import { ResolverTypeWrapper } from '../../types.generated';
+import { CollabTextRecordMapper } from '../schema.mappers';
 
 import { RevisionChangesetQueryMapper } from './revision-changeset';
-import {
-  CollabTextSelectionRangeQuery,
-  CollabTextSelectionRangeQueryMapper,
-} from './selection-range';
+import { CollabTextSelectionRangeQueryMapper } from './selection-range';
 
-export type CollabTextRecordQuery = Omit<
-  RevisionRecordSchema,
-  'beforeSelection' | 'afterSelection'
-> & {
-  beforeSelection: CollabTextSelectionRangeQuery;
-  afterSelection: CollabTextSelectionRangeQuery;
-};
-
-type Parent = Pick<CollabTextMapper, 'id'>;
+interface Parent {
+  id(): ResolverTypeWrapper<string>;
+}
 
 export class CollabTextRecordQueryMapper implements CollabTextRecordMapper {
   private parent: Parent;
-  private query: MongoDocumentQuery<RevisionRecordSchema>;
+  private revisionRecord: MongoQuery<RevisionRecordSchema>;
 
-  constructor(parent: Parent, query: MongoDocumentQuery<RevisionRecordSchema>) {
+  constructor(parent: Parent, revisionRecord: MongoQuery<RevisionRecordSchema>) {
     this.parent = parent;
-    this.query = query;
+    this.revisionRecord = revisionRecord;
   }
 
   private async getRevision() {
-    return (await this.query.queryDocument({ revision: 1 }))?.revision;
+    return (await this.revisionRecord.query({ revision: 1 }))?.revision;
   }
 
   async id() {
@@ -46,23 +38,23 @@ export class CollabTextRecordQueryMapper implements CollabTextRecordMapper {
 
   async creatorUserId() {
     return (
-      await this.query.queryDocument({ creatorUserId: 1 })
+      await this.revisionRecord.query({ creatorUserId: 1 })
     )?.creatorUserId?.toString('base64');
   }
 
   change() {
     return new RevisionChangesetQueryMapper({
-      queryDocument: (change) => {
-        return this.query.queryDocument(change);
+      query: (change) => {
+        return this.revisionRecord.query(change);
       },
     });
   }
 
   beforeSelection() {
     return new CollabTextSelectionRangeQueryMapper({
-      queryDocument: async (selection) => {
+      query: async (selection) => {
         return (
-          await this.query.queryDocument({
+          await this.revisionRecord.query({
             beforeSelection: selection,
           })
         )?.beforeSelection;
@@ -72,9 +64,9 @@ export class CollabTextRecordQueryMapper implements CollabTextRecordMapper {
 
   afterSelection() {
     return new CollabTextSelectionRangeQueryMapper({
-      queryDocument: async (selection) => {
+      query: async (selection) => {
         return (
-          await this.query.queryDocument({
+          await this.revisionRecord.query({
             afterSelection: selection,
           })
         )?.afterSelection;
