@@ -20,7 +20,6 @@ import { populateNotes } from '../../__test__/helpers/mongodb/populate/populate'
 import { populateExecuteAll } from '../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../__test__/helpers/mongodb/populate/user';
 import { fakeUserNotePopulateQueue } from '../../__test__/helpers/mongodb/populate/user-note';
-import { CollectionName } from '../collections';
 import { NoteSchema } from '../schema/note/note';
 import { UserSchema } from '../schema/user/user';
 
@@ -339,10 +338,7 @@ describe('spy on aggregate', () => {
   >;
 
   beforeEach(() => {
-    spyUserNotesAggregateFn = vi.spyOn(
-      mongoCollections[CollectionName.USER_NOTES],
-      'aggregate'
-    );
+    spyUserNotesAggregateFn = vi.spyOn(mongoCollections.userNotes, 'aggregate');
   });
 
   afterEach(() => {

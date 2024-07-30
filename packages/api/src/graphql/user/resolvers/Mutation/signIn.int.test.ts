@@ -14,7 +14,6 @@ import {
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
 import { verifyCredentialToken } from '../../../../auth/google/__mocks__/oauth2';
-import { CollectionName } from '../../../../mongodb/collections';
 import { SessionSchema } from '../../../../mongodb/schema/session/session';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { AuthProvider, SignInInput, SignInPayload } from '../../../types.generated';
@@ -90,7 +89,7 @@ describe('new user', () => {
 
     // Created User document
     expect(
-      await mongoCollections[CollectionName.USERS].findOne({
+      await mongoCollections.users.findOne({
         _id: userId,
       })
     ).containSubset({
@@ -100,7 +99,7 @@ describe('new user', () => {
     });
 
     // Sets valid cookie
-    const session = await mongoCollections[CollectionName.SESSIONS].findOne<
+    const session = await mongoCollections.sessions.findOne<
       Pick<SessionSchema, 'cookieId'>
     >(
       {

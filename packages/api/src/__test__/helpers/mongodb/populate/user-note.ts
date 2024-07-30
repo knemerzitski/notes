@@ -2,7 +2,6 @@ import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 
 import { NoteCategory } from '../../../../graphql/types.generated';
-import { CollectionName } from '../../../../mongodb/collections';
 import { NoteSchema } from '../../../../mongodb/schema/note/note';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { UserNoteSchema } from '../../../../mongodb/schema/user-note/user-note';
@@ -45,7 +44,7 @@ export const fakeUserNotePopulateQueue: typeof fakeUserNote = (user, note, optio
   const userNote = fakeUserNote(user, note, options);
 
   populateQueue(async () => {
-    await mongoCollections[CollectionName.USER_NOTES].insertOne(userNote);
+    await mongoCollections.userNotes.insertOne(userNote);
   });
 
   return userNote;

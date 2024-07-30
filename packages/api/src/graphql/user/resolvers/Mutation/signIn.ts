@@ -2,7 +2,6 @@ import mapObject from 'map-obj';
 import { ObjectId, WithId } from 'mongodb';
 
 import { verifyCredentialToken } from '../../../../auth/google/oauth2';
-import { CollectionName } from '../../../../mongodb/collections';
 import { sessionDefaultValues } from '../../../../mongodb/schema/session/session';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { sessionExpiration } from '../../../../session-expiration/mongodb-user-session';
@@ -28,9 +27,7 @@ export const signIn: NonNullable<MutationResolvers['signIn']> = async (
     email: tmpGoogleEmail,
   } = await verifyCredentialToken(googleAuthToken);
 
-  let existingUser = await collections[CollectionName.USERS].findOne<
-    WithId<Pick<UserSchema, 'profile'>>
-  >(
+  let existingUser = await collections.users.findOne<WithId<Pick<UserSchema, 'profile'>>>(
     {
       thirdParty: {
         google: {
@@ -66,7 +63,7 @@ export const signIn: NonNullable<MutationResolvers['signIn']> = async (
         ]),
       },
     };
-    await collections[CollectionName.USERS].insertOne(newUser);
+    await collections.users.insertOne(newUser);
 
     existingUser = {
       _id: newUser._id,
@@ -80,7 +77,7 @@ export const signIn: NonNullable<MutationResolvers['signIn']> = async (
     expireAt: sessionExpiration.newExpireAtDate(),
     cookieId: sessionDefaultValues.cookieId(),
   };
-  await collections[CollectionName.SESSIONS].insertOne(newSession);
+  await collections.sessions.insertOne(newSession);
 
   const userId = existingUser._id.toString('base64');
 

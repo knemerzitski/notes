@@ -21,7 +21,6 @@ import {
 } from '../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
-import { CollectionName } from '../../../../mongodb/collections';
 import { NoteSchema } from '../../../../mongodb/schema/note/note';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { DeleteNoteInput, NoteDeletedInput } from '../../../types.generated';
@@ -83,7 +82,7 @@ describe('delete', () => {
     });
 
     await expect(
-      mongoCollections[CollectionName.NOTES].findOne({
+      mongoCollections.notes.findOne({
         publicId: note.publicId,
       }),
       'Note should be deleted'
@@ -118,7 +117,7 @@ describe('delete', () => {
     });
 
     await expect(
-      mongoCollections[CollectionName.NOTES].findOne({
+      mongoCollections.notes.findOne({
         publicId: note.publicId,
       }),
       'Note should not be deleted'

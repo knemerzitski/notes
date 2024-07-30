@@ -4,7 +4,6 @@ import { ObjectId } from 'mongodb';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import { ErrorWithData } from '~utils/logger';
 
-import { CollectionName } from '../../../../mongodb/collections';
 import {
   ShareNoteLinkSchema,
   shareNoteLinkDefaultValues,
@@ -112,7 +111,7 @@ export const createNoteSharing: NonNullable<
     // TODO implement permissions, expireAt, expireAccessCount
   };
 
-  await mongodb.collections[CollectionName.SHARE_NOTE_LINKS].insertOne(shareNoteLink);
+  await mongodb.collections.shareNoteLinks.insertOne(shareNoteLink);
 
   const noteMapper = new NoteQueryMapper({
     query(query) {

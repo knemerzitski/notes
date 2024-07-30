@@ -25,6 +25,24 @@ export enum CollectionName {
   SHARE_NOTE_LINKS = 'shareNoteLinks',
 }
 
+interface CollectionDefinitions {
+  [CollectionName.SESSIONS]: {
+    schema: Collection<SessionSchema>;
+  };
+  [CollectionName.USERS]: {
+    schema: Collection<UserSchema>;
+  };
+  [CollectionName.USER_NOTES]: {
+    schema: Collection<UserNoteSchema>;
+  };
+  [CollectionName.NOTES]: {
+    schema: Collection<NoteSchema>;
+  };
+  [CollectionName.SHARE_NOTE_LINKS]: {
+    schema: Collection<ShareNoteLinkSchema>;
+  };
+}
+
 export const collectionDescriptions: Partial<
   Record<CollectionName, CollectionDescription>
 > = {
@@ -35,13 +53,13 @@ export const collectionDescriptions: Partial<
   [CollectionName.SHARE_NOTE_LINKS]: shareNoteLinkDescription,
 };
 
-export interface MongoDBCollections {
-  [CollectionName.SESSIONS]: Collection<SessionSchema>;
-  [CollectionName.USERS]: Collection<UserSchema>;
-  [CollectionName.USER_NOTES]: Collection<UserNoteSchema>;
-  [CollectionName.NOTES]: Collection<NoteSchema>;
-  [CollectionName.SHARE_NOTE_LINKS]: Collection<ShareNoteLinkSchema>;
-}
+export type MongoDBCollections = {
+  [Key in CollectionName]: CollectionDefinitions[Key]['schema'];
+};
+
+export type MongoDBCollectionsOnlyNames = {
+  [Key in CollectionName]: Pick<MongoDBCollections[Key], 'collectionName'>;
+};
 
 export function createCollectionInstances(mongoDB: Db): MongoDBCollections {
   return mapObject(CollectionName, (_key, name) => {

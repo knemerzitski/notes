@@ -1,7 +1,6 @@
 import mapObject from 'map-obj';
 import { ObjectId } from 'mongodb';
 
-import { CollectionName } from '../../../../mongodb/collections';
 import { DeepQueryResult } from '../../../../mongodb/query/query';
 import createCollabText from '../../../../mongodb/schema/collab-text/utils/createCollabText';
 import { NoteSchema, noteDefaultValues } from '../../../../mongodb/schema/note/note';
@@ -76,7 +75,7 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
   await mongodb.client.withSession((session) =>
     session.withTransaction(async (session) => {
       // TODO handle duplicate _id and note.publicId
-      const updateUserPromise = mongodb.collections[CollectionName.USERS].updateOne(
+      const updateUserPromise = mongodb.collections.users.updateOne(
         {
           _id: currentUserId,
         },
@@ -89,8 +88,8 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
       );
 
       await Promise.all([
-        mongodb.collections[CollectionName.NOTES].insertOne(note, { session }),
-        mongodb.collections[CollectionName.USER_NOTES].insertOne(userNote, { session }),
+        mongodb.collections.notes.insertOne(note, { session }),
+        mongodb.collections.userNotes.insertOne(userNote, { session }),
         updateUserPromise,
       ]);
     })

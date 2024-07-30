@@ -4,7 +4,6 @@ import { ObjectId } from 'mongodb';
 import isDefined from '~utils/type-guards/isDefined';
 
 import { NoteTextField } from '../../../../graphql/types.generated';
-import { CollectionName } from '../../../../mongodb/collections';
 import { noteDefaultValues, NoteSchema } from '../../../../mongodb/schema/note/note';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { mongoCollections } from '../mongodb';
@@ -46,7 +45,7 @@ export const fakeNotePopulateQueue: typeof fakeNote = (ownerUser, options) => {
   const note = fakeNote(ownerUser, options);
 
   populateQueue(async () => {
-    await mongoCollections[CollectionName.NOTES].insertOne(note);
+    await mongoCollections.notes.insertOne(note);
   });
 
   return note;

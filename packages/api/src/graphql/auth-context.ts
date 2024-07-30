@@ -126,8 +126,8 @@ export async function findRefreshDbSession(
 ): Promise<AuthenticatedContext['session']> {
   const session = await findByCookieId({
     cookieId,
-    sessionsCollection: collections[CollectionName.SESSIONS],
-    usersCollectionName: collections[CollectionName.USERS].collectionName,
+    sessionsCollection: collections.sessions,
+    usersCollectionName: collections.users.collectionName,
   });
 
   if (!session) {
@@ -138,7 +138,7 @@ export async function findRefreshDbSession(
   // Refresh expireAt it's too low
   const expireAt = new Date(session.expireAt);
   if (sessionExpiration.tryRefreshExpireAtDate(expireAt)) {
-    await collections[CollectionName.SESSIONS].findOneAndUpdate(
+    await collections.sessions.findOneAndUpdate(
       {
         _id: session._id,
       },

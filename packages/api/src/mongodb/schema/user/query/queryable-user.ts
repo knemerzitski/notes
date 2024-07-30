@@ -4,8 +4,7 @@ import { ObjectId } from 'mongodb';
 
 import isObjectLike from '~utils/type-guards/isObjectLike';
 
-import { CollectionName, MongoDBCollections } from '../../../collections';
-import { MongoDBContext } from '../../../lambda-context';
+import { MongoDBCollectionsOnlyNames } from '../../../collections';
 import relayArrayPagination, {
   relayArrayPaginationMapAggregateResult,
   relayMultiArraySplit,
@@ -16,7 +15,6 @@ import asArrayFieldDescription from '../../../query/asArrayFieldDescription';
 import { DeepAnyDescription } from '../../../query/description';
 import {
   QueryableUserNote,
-  QueryableUserNoteContext,
   queryableUserNoteDescription,
 } from '../../user-note/query/queryable-user-note';
 import { UserSchema } from '../user';
@@ -37,14 +35,9 @@ export type QueryableUser = Omit<UserSchema, 'notes'> & {
   };
 };
 
-export type QueryableUserContext = {
-  collections: {
-    [CollectionName.USER_NOTES]: Pick<
-      MongoDBContext<MongoDBCollections>['collections'][CollectionName.USER_NOTES],
-      'collectionName'
-    >;
-  };
-} & QueryableUserNoteContext;
+export interface QueryableUserContext {
+  collections: MongoDBCollectionsOnlyNames;
+}
 
 export const queryableUserDescription: DeepAnyDescription<
   QueryableUser,
@@ -132,8 +125,7 @@ export const queryableUserDescription: DeepAnyDescription<
               },
               // Lookup UserNote
               ...user_userNoteLookup({
-                collectionName:
-                  customContext.collections[CollectionName.USER_NOTES].collectionName,
+                collectionName: customContext.collections.userNotes.collectionName,
                 fieldPath: `${concatUserNotesFieldPath}.array`,
                 pipeline: [
                   ...innerStages({

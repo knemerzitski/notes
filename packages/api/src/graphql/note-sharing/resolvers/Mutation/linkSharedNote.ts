@@ -4,7 +4,6 @@ import { ObjectId } from 'mongodb';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import { ErrorWithData } from '~utils/logger';
 
-import { CollectionName } from '../../../../mongodb/collections';
 import { DeepQueryResult } from '../../../../mongodb/query/query';
 import { ShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link/share-note-link';
 import { getNotesArrayPath } from '../../../../mongodb/schema/user/user';
@@ -29,7 +28,7 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
 
   const currentUserId = auth.session.user._id;
 
-  const shareNoteLinks = await mongodb.collections[CollectionName.SHARE_NOTE_LINKS]
+  const shareNoteLinks = await mongodb.collections.shareNoteLinks
     .aggregate<
       DeepQueryResult<
         Pick<ShareNoteLinkSchema, 'note'> & {
@@ -47,7 +46,7 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
       // Check if UserNote for currentUserId already exists
       {
         $lookup: {
-          from: mongodb.collections[CollectionName.USER_NOTES].collectionName,
+          from: mongodb.collections.userNotes.collectionName,
           foreignField: 'note.publicId',
           localField: 'note.publicId',
           as: 'lookupUserNote',
@@ -131,7 +130,7 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
   await mongodb.client.withSession((session) =>
     session.withTransaction((session) => {
       return Promise.all([
-        mongodb.collections[CollectionName.USERS].updateOne(
+        mongodb.collections.users.updateOne(
           {
             _id: currentUserId,
           },
@@ -142,7 +141,7 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
           },
           { session }
         ),
-        mongodb.collections[CollectionName.USER_NOTES].insertOne(sharedUserNote),
+        mongodb.collections.userNotes.insertOne(sharedUserNote),
       ]);
     })
   );

@@ -1,6 +1,5 @@
 import { ErrorWithData } from '~utils/logger';
 
-import { CollectionName } from '../../../../mongodb/collections';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { NoteQueryMapper } from '../../../note/mongo-query-mapper/note';
 import { publishNoteUpdated } from '../../../note/resolvers/Subscription/noteUpdated';
@@ -65,7 +64,7 @@ export const deleteNoteSharing: NonNullable<
     });
   }
 
-  await mongodb.collections[CollectionName.SHARE_NOTE_LINKS].deleteMany({
+  await mongodb.collections.shareNoteLinks.deleteMany({
     'sourceUserNote._id': userNote._id,
   });
 

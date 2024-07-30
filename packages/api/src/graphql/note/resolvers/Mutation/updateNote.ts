@@ -10,7 +10,6 @@ import { RevisionRecords } from '~collab/records/revision-records';
 import { ErrorWithData } from '~utils/logger';
 import isEmptyDeep from '~utils/object/isEmptyDeep';
 
-import { CollectionName } from '../../../../mongodb/collections';
 import { MongoQuery } from '../../../../mongodb/query/query';
 import createCollabText from '../../../../mongodb/schema/collab-text/utils/createCollabText';
 import { NoteSchema } from '../../../../mongodb/schema/note/note';
@@ -489,7 +488,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
 
       await Promise.all([
         userUpdate &&
-          mongodb.collections[CollectionName.USERS].updateOne(
+          mongodb.collections.users.updateOne(
             {
               _id: currentUserId,
             },
@@ -499,7 +498,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
             }
           ),
         userNoteUpdate &&
-          mongodb.collections[CollectionName.USER_NOTES].updateOne(
+          mongodb.collections.userNotes.updateOne(
             {
               _id: userNoteId,
             },
@@ -509,7 +508,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
             }
           ),
         noteUpdate &&
-          mongodb.collections[CollectionName.NOTES].updateOne(
+          mongodb.collections.notes.updateOne(
             {
               _id: noteId,
             },

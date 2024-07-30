@@ -2,7 +2,6 @@ import { GraphQLError } from 'graphql';
 
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
-import { CollectionName } from '../../../../mongodb/collections';
 import { getNotesArrayPath } from '../../../../mongodb/schema/user/user';
 import { UserNoteSchema } from '../../../../mongodb/schema/user-note/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
@@ -48,7 +47,7 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
   const isCurrentUserOwner = ownerId.equals(currentUserId);
   if (isCurrentUserOwner) {
     // Delete note completely
-    const affectedUserNotes = await mongodb.collections[CollectionName.USER_NOTES]
+    const affectedUserNotes = await mongodb.collections.userNotes
       .find<
         Pick<UserNoteSchema, '_id' | 'userId'> & {
           category?: Pick<NonNullable<UserNoteSchema['category']>, 'name'>;
@@ -70,19 +69,19 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
     await mongodb.client.withSession((session) =>
       session.withTransaction((session) =>
         Promise.all([
-          mongodb.collections[CollectionName.NOTES].deleteOne(
+          mongodb.collections.notes.deleteOne(
             {
               publicId: notePublicId,
             },
             { session }
           ),
-          mongodb.collections[CollectionName.USER_NOTES].deleteMany(
+          mongodb.collections.userNotes.deleteMany(
             {
               'note.publicId': notePublicId,
             },
             { session }
           ),
-          mongodb.collections[CollectionName.USERS].bulkWrite(
+          mongodb.collections.users.bulkWrite(
             affectedUserNotes.map((userNote) => ({
               updateOne: {
                 filter: {
@@ -98,7 +97,7 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
             })),
             { session }
           ),
-          mongodb.collections[CollectionName.SHARE_NOTE_LINKS].bulkWrite(
+          mongodb.collections.shareNoteLinks.bulkWrite(
             affectedUserNotes.map((userNote) => ({
               deleteOne: {
                 filter: {
@@ -116,14 +115,14 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
     await mongodb.client.withSession((session) =>
       session.withTransaction((session) =>
         Promise.all([
-          mongodb.collections[CollectionName.USER_NOTES].deleteOne(
+          mongodb.collections.userNotes.deleteOne(
             {
               _id: userNote._id,
               'note.publicId': notePublicId,
             },
             { session }
           ),
-          mongodb.collections[CollectionName.USERS].updateOne(
+          mongodb.collections.users.updateOne(
             {
               _id: currentUserId,
             },

@@ -3,7 +3,6 @@ import mapObject from 'map-obj';
 import { ObjectId } from 'mongodb';
 
 import { NoteCategory, NoteTextField } from '../../../../graphql/types.generated';
-import { CollectionName } from '../../../../mongodb/collections';
 import { NoteSchema } from '../../../../mongodb/schema/note/note';
 import { ShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link/share-note-link';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
@@ -105,11 +104,11 @@ export function populateNotes(count: number, options?: PopulateNotesOptions) {
 
   populateQueue(() =>
     Promise.all([
-      !options?.user && mongoCollections[CollectionName.USERS].insertOne(user),
-      mongoCollections[CollectionName.NOTES].insertMany(notes),
-      mongoCollections[CollectionName.USER_NOTES].insertMany(userNotes),
+      !options?.user && mongoCollections.users.insertOne(user),
+      mongoCollections.notes.insertMany(notes),
+      mongoCollections.userNotes.insertMany(userNotes),
       shareNoteLinks.length > 0 &&
-        mongoCollections[CollectionName.SHARE_NOTE_LINKS].insertMany(shareNoteLinks),
+        mongoCollections.shareNoteLinks.insertMany(shareNoteLinks),
     ])
   );
 
@@ -153,7 +152,7 @@ export function populateAddNoteToUser(
   addUserNoteToUser(user, userNote);
 
   populateQueue(async () => {
-    await mongoCollections[CollectionName.USERS].replaceOne(
+    await mongoCollections.users.replaceOne(
       {
         _id: user._id,
       },

@@ -1,5 +1,4 @@
-import { CollectionName, MongoDBCollections } from '../../../collections';
-import { MongoDBContext } from '../../../lambda-context';
+import { MongoDBCollectionsOnlyNames } from '../../../collections';
 import { DeepAnyDescription } from '../../../query/description';
 import { collabTextDescription } from '../../collab-text/query/collab-text';
 import { UserNoteSchema } from '../user-note';
@@ -14,19 +13,8 @@ export type QueryableUserNote = UserNoteSchema &
   UserNote_ShareNoteLinksLookup;
 
 export interface QueryableUserNoteContext {
-  collections: {
-    [CollectionName.NOTES]: Pick<
-      MongoDBContext<MongoDBCollections>['collections'][CollectionName.NOTES],
-      'collectionName'
-    >;
-    [CollectionName.SHARE_NOTE_LINKS]: Pick<
-      MongoDBContext<MongoDBCollections>['collections'][CollectionName.SHARE_NOTE_LINKS],
-      'collectionName'
-    >;
-  };
+  collections: MongoDBCollectionsOnlyNames;
 }
-
-// function that wraps resolvers from item to items
 
 export const queryableUserNoteDescription: DeepAnyDescription<
   QueryableUserNote,
@@ -60,7 +48,7 @@ export const queryableUserNoteDescription: DeepAnyDescription<
             $project: innerLastProject(),
           },
         ],
-        collectionName: customContext.collections[CollectionName.NOTES].collectionName,
+        collectionName: customContext.collections.notes.collectionName,
       });
     },
     collabTexts: {
@@ -80,8 +68,7 @@ export const queryableUserNoteDescription: DeepAnyDescription<
             $project: innerLastProject(),
           },
         ],
-        collectionName:
-          customContext.collections[CollectionName.SHARE_NOTE_LINKS].collectionName,
+        collectionName: customContext.collections.shareNoteLinks.collectionName,
       });
     },
     $mapLastProject(query) {

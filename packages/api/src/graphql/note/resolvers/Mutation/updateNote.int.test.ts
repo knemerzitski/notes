@@ -25,7 +25,6 @@ import {
   PopulateNotesOptions,
 } from '../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
-import { CollectionName } from '../../../../mongodb/collections';
 import { NoteSchema } from '../../../../mongodb/schema/note/note';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { UserNoteSchema } from '../../../../mongodb/schema/user-note/user-note';
@@ -246,7 +245,7 @@ describe('random records', () => {
       });
 
       await expect(
-        mongoCollections[CollectionName.USER_NOTES].findOne(
+        mongoCollections.userNotes.findOne(
           {
             _id: readOnlyUserNote._id,
           },
@@ -339,7 +338,7 @@ describe('random records', () => {
 
         // Database
         await expect(
-          mongoCollections[CollectionName.NOTES].findOne(
+          mongoCollections.notes.findOne(
             {
               _id: note._id,
             },
@@ -447,7 +446,7 @@ describe('random records', () => {
 
         // Database
         await expect(
-          mongoCollections[CollectionName.NOTES].findOne(
+          mongoCollections.notes.findOne(
             {
               _id: note._id,
             },
@@ -746,7 +745,7 @@ describe('random records', () => {
           );
 
           // Database
-          const fetchedNote = await mongoCollections[CollectionName.NOTES].findOne(
+          const fetchedNote = await mongoCollections.notes.findOne(
             {
               _id: note._id,
             },
@@ -814,7 +813,7 @@ describe('random records', () => {
           );
 
           // // Database
-          const fetchedNote = await mongoCollections[CollectionName.NOTES].findOne(
+          const fetchedNote = await mongoCollections.notes.findOne(
             {
               _id: note._id,
             },
@@ -1141,7 +1140,7 @@ describe('pre-determined records', () => {
       ]);
 
       // Verify directly against database
-      const fetchedNote = await mongoCollections[CollectionName.NOTES].findOne(
+      const fetchedNote = await mongoCollections.notes.findOne(
         {
           _id: note._id,
         },
@@ -1238,7 +1237,7 @@ describe('single user and note', () => {
 
     // Check DB in User document that category is swapped
     await expect(
-      mongoCollections[CollectionName.USERS].findOne(
+      mongoCollections.users.findOne(
         {
           _id: user._id,
         },
@@ -1283,7 +1282,7 @@ describe('single user and note', () => {
 
     // User has new category
     await expect(
-      mongoCollections[CollectionName.USERS].findOne(
+      mongoCollections.users.findOne(
         {
           _id: user._id,
         },
@@ -1341,7 +1340,7 @@ describe('single user and note', () => {
     );
 
     await expect(
-      mongoCollections[CollectionName.NOTES].findOne(
+      mongoCollections.notes.findOne(
         {
           _id: userNote.note._id,
         },

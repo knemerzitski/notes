@@ -75,7 +75,7 @@ export default async function queryableUserNoteBatchLoad(
         });
 
         // Fetch from database
-        const userNotesResult = await context.collections[CollectionName.USER_NOTES]
+        const userNotesResult = await context.collections.userNotes
           .aggregate(
             [
               {

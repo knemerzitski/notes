@@ -1,7 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 
-import { CollectionName } from '../../../../mongodb/collections';
 import {
   shareNoteLinkDefaultValues,
   ShareNoteLinkSchema,
@@ -58,7 +57,7 @@ export const fakeShareNoteLinkPopulateQueue: typeof fakeShareNoteLink = (
   const shareNoteLink = fakeShareNoteLink(userNote, options);
 
   populateQueue(async () => {
-    await mongoCollections[CollectionName.SHARE_NOTE_LINKS].insertOne(shareNoteLink);
+    await mongoCollections.shareNoteLinks.insertOne(shareNoteLink);
   });
 
   return shareNoteLink;

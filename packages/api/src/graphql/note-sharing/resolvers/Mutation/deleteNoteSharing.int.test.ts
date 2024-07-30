@@ -10,7 +10,6 @@ import {
 } from '../../../../__test__/helpers/mongodb/mongodb';
 import { populateNotes } from '../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
-import { CollectionName } from '../../../../mongodb/collections';
 import { ShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link/share-note-link';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { UserNoteSchema } from '../../../../mongodb/schema/user-note/user-note';
@@ -78,7 +77,7 @@ it('deletes all note sharings', async () => {
   });
 
   await expect(
-    mongoCollections[CollectionName.SHARE_NOTE_LINKS].findOne({
+    mongoCollections.shareNoteLinks.findOne({
       _id: shareNoteLink._id,
     })
   ).resolves.toBeNull();

@@ -59,7 +59,7 @@ export default async function queryableUserBatchLoad(
         });
 
         // Fetch from database
-        const userResult = await context.collections[CollectionName.USERS]
+        const userResult = await context.collections.users
           .aggregate(
             [
               {
