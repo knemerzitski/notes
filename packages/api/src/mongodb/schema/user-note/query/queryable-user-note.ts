@@ -4,13 +4,8 @@ import { collabTextDescription } from '../../collab-text/query/collab-text';
 import { UserNoteSchema } from '../user-note';
 
 import userNote_noteLookup, { UserNote_NoteLookup } from './userNote_noteLookup';
-import userNote_shareNoteLinkLookup, {
-  UserNote_ShareNoteLinksLookup,
-} from './userNote_shareNoteLinkLookup';
 
-export type QueryableUserNote = UserNoteSchema &
-  UserNote_NoteLookup &
-  UserNote_ShareNoteLinksLookup;
+export type QueryableUserNote = UserNoteSchema & UserNote_NoteLookup;
 
 export interface QueryableUserNoteContext {
   collections: MongoDBCollectionsOnlyNames;
@@ -53,26 +48,6 @@ export const queryableUserNoteDescription: DeepAnyDescription<
     },
     collabTexts: {
       $anyKey: collabTextDescription,
-    },
-  },
-  shareNoteLinks: {
-    $addStages({
-      subStages: innerStages,
-      subLastProject: innerLastProject,
-      customContext,
-    }) {
-      return userNote_shareNoteLinkLookup({
-        pipeline: [
-          ...innerStages(),
-          {
-            $project: innerLastProject(),
-          },
-        ],
-        collectionName: customContext.collections.shareNoteLinks.collectionName,
-      });
-    },
-    $mapLastProject(query) {
-      return query.$query;
     },
   },
   $mapLastProject(query) {

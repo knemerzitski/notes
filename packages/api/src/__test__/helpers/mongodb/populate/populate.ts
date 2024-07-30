@@ -4,7 +4,6 @@ import { ObjectId } from 'mongodb';
 
 import { NoteCategory, NoteTextField } from '../../../../graphql/types.generated';
 import { NoteSchema } from '../../../../mongodb/schema/note/note';
-import { ShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link/share-note-link';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { UserNoteSchema } from '../../../../mongodb/schema/user-note/user-note';
 
@@ -14,7 +13,7 @@ import { FakeCollabTextOptions } from './collab-text';
 import { fakeNote, FakeNoteOptions } from './note';
 import { populateQueue } from './populate-queue';
 
-import { fakeShareNoteLink, FakeShareNoteLinkOptions } from './share-note-link';
+import { FakeShareNoteLinkOptions } from './share-note-link';
 import { fakeUser } from './user';
 import {
   fakeUserNote,
@@ -46,7 +45,6 @@ export function populateNotes(count: number, options?: PopulateNotesOptions) {
 
   const notes: NoteSchema[] = [];
   const userNotes: UserNoteSchema[] = [];
-  const shareNoteLinks: ShareNoteLinkSchema[] = [];
 
   const data = [...new Array<undefined>(count)].map((_, noteIndex) => {
     const userNoteId = new ObjectId();
@@ -61,8 +59,13 @@ export function populateNotes(count: number, options?: PopulateNotesOptions) {
 
     const noteOptions = options?.note?.(noteIndex, meta);
 
+    const shareNoteLinkOptions = !options?.skipInsert
+      ? options?.shareNoteLink?.(noteIndex) ?? {}
+      : undefined;
+
     const note = fakeNote(user, {
       collabTexts: collabTextsOptionsByField,
+      shareNoteLinks: shareNoteLinkOptions ? [shareNoteLinkOptions] : undefined,
       ...noteOptions,
       override: {
         userNotes: [
@@ -87,18 +90,9 @@ export function populateNotes(count: number, options?: PopulateNotesOptions) {
 
     addUserNoteToUser(user, userNote);
 
-    const shareNoteLink = fakeShareNoteLink(
-      userNote,
-      options?.shareNoteLink?.(noteIndex)
-    );
-    if (!options?.skipInsert?.shareNoteLink) {
-      shareNoteLinks.push(shareNoteLink);
-    }
-
     return {
       userNote,
       note,
-      shareNoteLink,
     };
   });
 
@@ -107,8 +101,6 @@ export function populateNotes(count: number, options?: PopulateNotesOptions) {
       !options?.user && mongoCollections.users.insertOne(user),
       mongoCollections.notes.insertMany(notes),
       mongoCollections.userNotes.insertMany(userNotes),
-      shareNoteLinks.length > 0 &&
-        mongoCollections.shareNoteLinks.insertMany(shareNoteLinks),
     ])
   );
 

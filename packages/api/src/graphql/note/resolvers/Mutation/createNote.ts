@@ -51,6 +51,7 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
         }),
       ];
     }),
+    shareNoteLinks: [],
   };
 
   const categoryName = NoteCategory.DEFAULT;
@@ -75,22 +76,20 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
   await mongodb.client.withSession((session) =>
     session.withTransaction(async (session) => {
       // TODO handle duplicate _id and note.publicId
-      const updateUserPromise = mongodb.collections.users.updateOne(
-        {
-          _id: currentUserId,
-        },
-        {
-          $push: {
-            [notesArrayPath]: userNote._id,
-          },
-        },
-        { session }
-      );
-
       await Promise.all([
         mongodb.collections.notes.insertOne(note, { session }),
         mongodb.collections.userNotes.insertOne(userNote, { session }),
-        updateUserPromise,
+        mongodb.collections.users.updateOne(
+          {
+            _id: currentUserId,
+          },
+          {
+            $push: {
+              [notesArrayPath]: userNote._id,
+            },
+          },
+          { session }
+        ),
       ]);
     })
   );

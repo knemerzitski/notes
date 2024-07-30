@@ -11,10 +11,12 @@ import { DeepPartial } from '../types';
 
 import { fakeCollabText, FakeCollabTextOptions } from './collab-text';
 import { populateQueue } from './populate-queue';
+import { fakeShareNoteLink, FakeShareNoteLinkOptions } from './share-note-link';
 
 export interface FakeNoteOptions {
-  override?: DeepPartial<Omit<NoteSchema, 'collabTexts'>>;
+  override?: DeepPartial<Omit<NoteSchema, 'collabTexts' | 'shareNoteLinks'>>;
   collabTexts?: { [key in NoteTextField]?: FakeCollabTextOptions };
+  shareNoteLinks?: FakeShareNoteLinkOptions[];
 }
 
 export function fakeNote(
@@ -38,6 +40,10 @@ export function fakeNote(
         fakeCollabText(ownerUser._id, options?.collabTexts?.[fieldName]),
       ];
     }),
+    shareNoteLinks:
+      options?.shareNoteLinks
+        ?.filter(isDefined)
+        .map((shareNoteLink) => fakeShareNoteLink(ownerUser, shareNoteLink)) ?? [],
   };
 }
 

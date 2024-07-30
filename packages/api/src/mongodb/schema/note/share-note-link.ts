@@ -1,30 +1,20 @@
-import { ObjectId } from 'mongodb';
 import { nanoid } from 'nanoid';
 
-import { CollectionDescription } from '../../collections';
-
-import { NoteSchema } from '../note/note';
 import { UserNoteSchema } from '../user-note/user-note';
 
 /**
  * Note sharing via links
  */
 export interface ShareNoteLinkSchema {
-  _id: ObjectId;
   /**
-   * Unique generated ID used at access note sharing
+   * Unique generated ID used to access sharing
    */
   publicId: string;
 
   /**
-   * UserNote tied to creating this link
+   * User who created this link
    */
-  sourceUserNote: Pick<UserNoteSchema, '_id'>;
-
-  /**
-   * Referenced note
-   */
-  note: Pick<NoteSchema, '_id' | 'publicId'>;
+  creatorUserId: UserNoteSchema['_id'];
 
   /**
    * Permissions depending on user role
@@ -52,20 +42,4 @@ interface SimplePermissions {
 
 export const shareNoteLinkDefaultValues = {
   publicId: () => nanoid(),
-};
-
-export const shareNoteLinkDescription: CollectionDescription = {
-  indexSpecs: [
-    {
-      key: { publicId: 1 },
-      unique: true,
-    },
-    {
-      key: { 'sourceUserNote.id': 1 },
-    },
-    {
-      key: { expireAt: 1 },
-      expireAfterSeconds: 0,
-    },
-  ],
 };

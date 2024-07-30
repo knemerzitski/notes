@@ -8,7 +8,7 @@ import { resetDatabase } from '../../../../__test__/helpers/mongodb/mongodb';
 import { populateNotes } from '../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
-import { ShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link/share-note-link';
+import { ShareNoteLinkSchema } from '../../../../mongodb/schema/note/share-note-link';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { GraphQLResolversContext } from '../../../context';
 import { LinkSharedNoteInput, LinkSharedNotePayload } from '../../../types.generated';
@@ -47,8 +47,8 @@ beforeEach(async () => {
   otherUser = fakeUserPopulateQueue();
 
   const populateResult = populateNotes(1);
-  assert(populateResult.data[0] != null);
-  shareNoteLink = populateResult.data[0].shareNoteLink;
+  assert(populateResult.data[0]?.note.shareNoteLinks[0] != null);
+  shareNoteLink = populateResult.data[0].note.shareNoteLinks[0];
 
   await populateExecuteAll();
 
@@ -72,7 +72,7 @@ it('links existing note and creates UserNote with access to note', async () => {
 
   assert(response.body.kind === 'single');
   const { data, errors } = response.body.singleResult;
-  expect(errors).toBeUndefined();
+  expect(errors, JSON.stringify(errors, null, 2)).toBeUndefined();
   expect(data).toEqual({
     linkSharedNote: {
       note: {
@@ -82,7 +82,9 @@ it('links existing note and creates UserNote with access to note', async () => {
         textFields: [
           { key: 'CONTENT', value: { headText: { revision: expect.any(Number) } } },
         ],
-        sharing: null,
+        sharing: {
+          id: expect.any(String),
+        },
       },
     },
   });

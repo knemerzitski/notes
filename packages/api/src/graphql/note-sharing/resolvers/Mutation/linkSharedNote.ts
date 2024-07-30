@@ -5,7 +5,7 @@ import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import { ErrorWithData } from '~utils/logger';
 
 import { DeepQueryResult } from '../../../../mongodb/query/query';
-import { ShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link/share-note-link';
+import { NoteSchema } from '../../../../mongodb/schema/note/note';
 import { getNotesArrayPath } from '../../../../mongodb/schema/user/user';
 import { UserNoteSchema } from '../../../../mongodb/schema/user-note/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
@@ -26,59 +26,37 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
   const { auth, mongodb } = ctx;
   assertAuthenticated(auth);
 
+  // TODO check if user is allowed to access this note
+
   const currentUserId = auth.session.user._id;
 
-  const shareNoteLinks = await mongodb.collections.shareNoteLinks
-    .aggregate<
-      DeepQueryResult<
-        Pick<ShareNoteLinkSchema, 'note'> & {
-          lookupUserNote: {
-            _id: ObjectId;
-          };
+  // TODO use loader
+  const note = (await mongodb.collections.notes.findOne(
+    {
+      'shareNoteLinks.publicId': shareNoteLinkPublicId,
+    },
+    {
+      projection: {
+        _id: 1,
+        publicId: 1,
+        userNotes: {
+          userId: 1,
+        },
+      },
+    }
+  )) as
+    | DeepQueryResult<
+        Pick<NoteSchema, '_id' | 'publicId' | 'shareNoteLinks'> & {
+          userNotes: Pick<
+            NoteSchema['userNotes'] extends (infer U)[] ? U : never,
+            'userId'
+          >[];
         }
       >
-    >([
-      {
-        $match: {
-          publicId: shareNoteLinkPublicId,
-        },
-      },
-      // Check if UserNote for currentUserId already exists
-      {
-        $lookup: {
-          from: mongodb.collections.userNotes.collectionName,
-          foreignField: 'note.publicId',
-          localField: 'note.publicId',
-          as: 'lookupUserNote',
-          pipeline: [
-            {
-              $match: {
-                userId: currentUserId,
-              },
-            },
-            {
-              $project: {
-                _id: 1,
-              },
-            },
-          ],
-        },
-      },
-      {
-        $project: {
-          lookupUserNote: {
-            $arrayElemAt: ['$lookupUserNote', 0],
-          },
-          note: 1,
-        },
-      },
-    ])
-    .toArray();
-  // TODO implement permissions and expiration
+    | null
+    | undefined;
 
-  const shareNoteLink = shareNoteLinks[0];
-
-  if (!shareNoteLink) {
+  if (!note) {
     throw new GraphQLError(`Shared note '${shareNoteLinkPublicId}' not found`, {
       extensions: {
         code: GraphQLErrorCode.NOT_FOUND,
@@ -86,25 +64,29 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
     });
   }
 
-  const existingUserNoteId = shareNoteLink.lookupUserNote?._id;
+  if (!note.publicId) {
+    throw new ErrorWithData(`Expected Note.publicId to be defined`, {
+      userId: currentUserId,
+      shareNoteLinkPublicId,
+      note,
+    });
+  }
+  if (!note.userNotes) {
+    throw new ErrorWithData(`Expected Note.userNotes to be defined`, {
+      userId: currentUserId,
+      shareNoteLinkPublicId,
+      note,
+    });
+  }
 
-  if (!shareNoteLink.note?._id) {
-    throw new ErrorWithData(`Expected ShareNoteLink.note.id to be defined`, {
-      userId: currentUserId,
-      shareNoteLinkPublicId,
-      shareNoteLink,
-    });
-  }
-  if (!shareNoteLink.note.publicId) {
-    throw new ErrorWithData(`Expected ShareNoteLink.note.publicId to be defined`, {
-      userId: currentUserId,
-      shareNoteLinkPublicId,
-      shareNoteLink,
-    });
-  }
+  // TODO implement permissions and expiration
+
+  const userIsAlreadyLinked = note.userNotes.some(
+    (userNote) => userNote.userId?.equals(currentUserId)
+  );
   // Return early since UserNote already exists
-  if (existingUserNoteId) {
-    const publicId = shareNoteLink.note.publicId;
+  if (userIsAlreadyLinked) {
+    const publicId = note.publicId;
     return {
       note: new NoteQueryMapper({
         query(query) {
@@ -118,12 +100,20 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
     };
   }
 
+  if (!note._id) {
+    throw new ErrorWithData(`Expected Note._id to be defined`, {
+      userId: currentUserId,
+      shareNoteLinkPublicId,
+      note,
+    });
+  }
+
   const sharedUserNote: UserNoteSchema = {
     _id: new ObjectId(),
     userId: currentUserId,
     note: {
-      _id: shareNoteLink.note._id,
-      publicId: shareNoteLink.note.publicId, // this must be unique within (userId, publicId)
+      _id: note._id,
+      publicId: note.publicId, // this must be unique within (userId, publicId)
     },
   };
 
@@ -141,7 +131,21 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
           },
           { session }
         ),
-        mongodb.collections.userNotes.insertOne(sharedUserNote),
+        mongodb.collections.notes.updateOne(
+          {
+            _id: note._id,
+          },
+          {
+            $push: {
+              userNotes: {
+                _id: sharedUserNote._id,
+                userId: currentUserId,
+              },
+            },
+          },
+          { session }
+        ),
+        mongodb.collections.userNotes.insertOne(sharedUserNote, { session }),
       ]);
     })
   );

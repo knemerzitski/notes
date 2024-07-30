@@ -5,6 +5,8 @@ import { CollectionDescription } from '../../collections';
 import { CollabTextSchema } from '../collab-text/collab-text';
 import { UserNoteSchema } from '../user-note/user-note';
 
+import { ShareNoteLinkSchema } from './share-note-link';
+
 export interface NoteSchema {
   _id: ObjectId;
   /**
@@ -24,6 +26,10 @@ export interface NoteSchema {
    * Key is enum value NoteTextField
    */
   collabTexts: Record<string, CollabTextSchema>;
+  /**
+   * Note sharing via links
+   */
+  shareNoteLinks?: ShareNoteLinkSchema[];
 }
 
 export const noteDefaultValues = {
@@ -34,6 +40,15 @@ export const noteDescription: CollectionDescription = {
   indexSpecs: [
     {
       key: { publicId: 1 },
+      unique: true,
+    },
+    {
+      key: { 'userNotes.userId': 1, publicId: 1 },
+      unique: true,
+    },
+    {
+      key: { 'shareNoteLinks.publicId': 1 },
+      sparse: true,
       unique: true,
     },
   ],

@@ -10,7 +10,7 @@ import {
 } from '../../../../__test__/helpers/mongodb/mongodb';
 import { populateNotes } from '../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
-import { ShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link/share-note-link';
+import { ShareNoteLinkSchema } from '../../../../mongodb/schema/note/share-note-link';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { UserNoteSchema } from '../../../../mongodb/schema/user-note/user-note';
 import { GraphQLResolversContext } from '../../../context';
@@ -40,9 +40,9 @@ beforeEach(async () => {
 
   const populateResult = populateNotes(1);
   user = populateResult.user;
-  assert(populateResult.data[0] != null);
+  assert(populateResult.data[0]?.note.shareNoteLinks[0] != null);
   userNote = populateResult.data[0].userNote;
-  shareNoteLink = populateResult.data[0].shareNoteLink;
+  shareNoteLink = populateResult.data[0].note.shareNoteLinks[0];
 
   contextValue = createGraphQLResolversContext(user);
 
@@ -50,6 +50,12 @@ beforeEach(async () => {
 });
 
 it('deletes all note sharings', async () => {
+  await expect(
+    mongoCollections.notes.findOne({
+      'shareNoteLinks.publicId': shareNoteLink.publicId,
+    })
+  ).resolves.not.toBeNull();
+
   const response = await apolloServer.executeOperation(
     {
       query: MUTATION,
@@ -77,8 +83,8 @@ it('deletes all note sharings', async () => {
   });
 
   await expect(
-    mongoCollections.shareNoteLinks.findOne({
-      _id: shareNoteLink._id,
+    mongoCollections.notes.findOne({
+      'shareNoteLinks.publicId': shareNoteLink.publicId,
     })
   ).resolves.toBeNull();
 });

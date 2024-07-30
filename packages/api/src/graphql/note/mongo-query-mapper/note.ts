@@ -72,15 +72,17 @@ export class NoteQueryMapper implements NoteMapper {
   }
 
   async sharing() {
-    const note = await this.userNote.query({
-      shareNoteLinks: {
-        $query: {
-          publicId: 1,
+    const userNote = await this.userNote.query({
+      note: {
+        shareNoteLinks: {
+          $query: {
+            publicId: 1,
+          },
         },
       },
     });
 
-    const publicId = note?.shareNoteLinks?.[0]?.publicId;
+    const publicId = userNote?.note?.shareNoteLinks?.[0]?.publicId;
     if (!publicId) return null;
 
     return {

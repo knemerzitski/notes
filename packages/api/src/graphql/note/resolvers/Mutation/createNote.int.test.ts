@@ -185,7 +185,7 @@ describe('publish', () => {
       } as Subscription,
     ]);
 
-    await apolloServer.executeOperation(
+    const response = await apolloServer.executeOperation(
       {
         query: MUTATION,
         variables: {
@@ -196,6 +196,9 @@ describe('publish', () => {
         contextValue,
       }
     );
+    assert(response.body.kind === 'single');
+    const { errors } = response.body.singleResult;
+    expect(errors, JSON.stringify(errors, null, 2)).toBeUndefined();
 
     expect(mockSocketApi.post.mock.lastCall).toEqual([
       {

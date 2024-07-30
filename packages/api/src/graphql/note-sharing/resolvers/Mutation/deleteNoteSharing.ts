@@ -1,5 +1,10 @@
+import { GraphQLError } from 'graphql';
+
+import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import { ErrorWithData } from '~utils/logger';
 
+import { DeepQueryResult } from '../../../../mongodb/query/query';
+import { NoteSchema } from '../../../../mongodb/schema/note/note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { NoteQueryMapper } from '../../../note/mongo-query-mapper/note';
 import { publishNoteUpdated } from '../../../note/resolvers/Subscription/noteUpdated';
@@ -14,21 +19,29 @@ export const deleteNoteSharing: NonNullable<
 
   const currentUserId = auth.session.user._id;
 
-  const userNote = await mongodb.loaders.userNote.load({
-    userId: currentUserId,
-    publicId: notePublicId,
-    userNoteQuery: {
-      _id: 1,
-      note: {
-        ownerId: 1,
-      },
-      shareNoteLinks: {
-        $query: {
-          _id: 1,
-        },
-      },
+  // TODO use loader
+  const note = (await mongodb.collections.notes.findOne(
+    {
+      'userNotes.userId': currentUserId,
+      publicId: notePublicId,
     },
-  });
+    {
+      projection: {
+        _id: 1,
+        ownerId: 1,
+        userNotes: 1,
+        shareNoteLinks: 1,
+      },
+    }
+  )) as DeepQueryResult<NoteSchema> | null | undefined;
+
+  if (!note?._id) {
+    throw new GraphQLError(`Note '${notePublicId}' not found`, {
+      extensions: {
+        code: GraphQLErrorCode.NOT_FOUND,
+      },
+    });
+  }
 
   const noteMapper = new NoteQueryMapper({
     query(query) {
@@ -42,31 +55,31 @@ export const deleteNoteSharing: NonNullable<
   // Sharing will be deleted, set to null
   noteMapper.sharing = () => Promise.resolve(null);
 
-  if (!userNote.shareNoteLinks || userNote.shareNoteLinks.length === 0) {
+  if (!note.shareNoteLinks || note.shareNoteLinks.length === 0) {
     return {
       note: noteMapper,
     };
   }
 
-  if (!userNote._id) {
-    throw new ErrorWithData(`Expected UserNote._id to be defined`, {
-      userId: currentUserId,
-      notePublicId,
-      userNote,
-    });
-  }
-  const ownerId = userNote.note?.ownerId;
+  const ownerId = note.ownerId;
   if (!ownerId) {
-    throw new ErrorWithData(`Expected UserNote.note.ownerId to be defined`, {
+    throw new ErrorWithData(`Expected Note.ownerId to be defined`, {
       userId: currentUserId,
       notePublicId,
-      userNote,
+      note,
     });
   }
 
-  await mongodb.collections.shareNoteLinks.deleteMany({
-    'sourceUserNote._id': userNote._id,
-  });
+  await mongodb.collections.notes.updateOne(
+    {
+      _id: note._id,
+    },
+    {
+      $unset: {
+        shareNoteLinks: 1,
+      },
+    }
+  );
 
   await publishNoteUpdated(ctx, ownerId, {
     contentId: notePublicId,

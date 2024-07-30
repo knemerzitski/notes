@@ -97,16 +97,6 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
             })),
             { session }
           ),
-          mongodb.collections.shareNoteLinks.bulkWrite(
-            affectedUserNotes.map((userNote) => ({
-              deleteOne: {
-                filter: {
-                  'sourceUserNote.id': userNote._id,
-                },
-              },
-            })),
-            { session }
-          ),
         ])
       )
     );

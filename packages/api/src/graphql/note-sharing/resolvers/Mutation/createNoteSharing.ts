@@ -1,5 +1,4 @@
 import { GraphQLError } from 'graphql';
-import { ObjectId } from 'mongodb';
 
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import { ErrorWithData } from '~utils/logger';
@@ -7,7 +6,7 @@ import { ErrorWithData } from '~utils/logger';
 import {
   ShareNoteLinkSchema,
   shareNoteLinkDefaultValues,
-} from '../../../../mongodb/schema/share-note-link/share-note-link';
+} from '../../../../mongodb/schema/note/share-note-link';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { NoteQueryMapper } from '../../../note/mongo-query-mapper/note';
 import { publishNoteUpdated } from '../../../note/resolvers/Subscription/noteUpdated';
@@ -32,11 +31,11 @@ export const createNoteSharing: NonNullable<
         _id: 1,
         publicId: 1,
         ownerId: 1,
-      },
-      shareNoteLinks: {
-        $query: {
-          expireAccessCount: 1,
-          expireAt: 1,
+        shareNoteLinks: {
+          $query: {
+            expireAccessCount: 1,
+            expireAt: 1,
+          },
         },
       },
     },
@@ -74,7 +73,7 @@ export const createNoteSharing: NonNullable<
 
   const nowTime = Date.now();
 
-  const hasValidShareLink = userNote.shareNoteLinks?.some(
+  const hasValidShareLink = userNote.note.shareNoteLinks?.some(
     ({ expireAt, expireAccessCount }) => {
       let isValid = true;
 
@@ -99,19 +98,21 @@ export const createNoteSharing: NonNullable<
   }
 
   const shareNoteLink: ShareNoteLinkSchema = {
-    _id: new ObjectId(),
     publicId: shareNoteLinkDefaultValues.publicId(),
-    sourceUserNote: {
-      _id: userNote._id,
-    },
-    note: {
-      _id: userNote.note._id,
-      publicId: userNote.note.publicId,
-    },
+    creatorUserId: currentUserId,
     // TODO implement permissions, expireAt, expireAccessCount
   };
 
-  await mongodb.collections.shareNoteLinks.insertOne(shareNoteLink);
+  await mongodb.collections.notes.updateOne(
+    {
+      _id: userNote.note._id,
+    },
+    {
+      $push: {
+        shareNoteLinks: shareNoteLink,
+      },
+    }
+  );
 
   const noteMapper = new NoteQueryMapper({
     query(query) {

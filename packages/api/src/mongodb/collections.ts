@@ -3,10 +3,6 @@ import { Collection, Db, IndexDescription } from 'mongodb';
 
 import { NoteSchema, noteDescription } from './schema/note/note';
 import { SessionSchema, sessionDescription } from './schema/session/session';
-import {
-  ShareNoteLinkSchema,
-  shareNoteLinkDescription,
-} from './schema/share-note-link/share-note-link';
 import { userDescription, UserSchema } from './schema/user/user';
 import { UserNoteSchema, userNoteDescription } from './schema/user-note/user-note';
 
@@ -22,7 +18,6 @@ export enum CollectionName {
   USERS = 'users',
   USER_NOTES = 'userNotes',
   NOTES = 'notes',
-  SHARE_NOTE_LINKS = 'shareNoteLinks',
 }
 
 interface CollectionDefinitions {
@@ -38,9 +33,6 @@ interface CollectionDefinitions {
   [CollectionName.NOTES]: {
     schema: Collection<NoteSchema>;
   };
-  [CollectionName.SHARE_NOTE_LINKS]: {
-    schema: Collection<ShareNoteLinkSchema>;
-  };
 }
 
 export const collectionDescriptions: Partial<
@@ -50,7 +42,6 @@ export const collectionDescriptions: Partial<
   [CollectionName.USERS]: userDescription,
   [CollectionName.USER_NOTES]: userNoteDescription,
   [CollectionName.NOTES]: noteDescription,
-  [CollectionName.SHARE_NOTE_LINKS]: shareNoteLinkDescription,
 };
 
 export type MongoDBCollections = {
