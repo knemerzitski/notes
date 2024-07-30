@@ -1,6 +1,6 @@
 import { AggregateOptions, ObjectId } from 'mongodb';
 
-import { CollectionName, MongoDBCollections } from '../collections';
+import { MongoDBCollections } from '../collections';
 
 import { MongoDBContext } from '../lambda-context';
 import queryFilterAggregateResult from '../query/mapQueryAggregateResult';
@@ -9,7 +9,6 @@ import mergedQueryToPipeline from '../query/mergedQueryToPipeline';
 import { DeepQuery, DeepQueryResult } from '../query/query';
 import {
   QueryableUser,
-  QueryableUserContext,
   queryableUserDescription,
 } from '../schema/user/query/queryable-user';
 import { QueryableUserNote } from '../schema/user-note/query/queryable-user-note';
@@ -27,12 +26,10 @@ export interface QueryableUserLoadKey {
   userQuery: DeepQuery<QueryableUser>;
 }
 
-export type QueryableUserBatchLoadContext = {
-  collections: Pick<
-    MongoDBContext<MongoDBCollections>['collections'],
-    CollectionName.USERS
-  >;
-} & QueryableUserContext;
+export type QueryableUserBatchLoadContext = Pick<
+  MongoDBContext<MongoDBCollections>,
+  'collections'
+>;
 
 export default async function queryableUserBatchLoad(
   keys: readonly QueryableUserLoadKey[],

@@ -5,7 +5,7 @@ import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
 import isObjectLike from '~utils/type-guards/isObjectLike';
 
-import { CollectionName, MongoDBCollections } from '../collections';
+import { MongoDBCollections } from '../collections';
 
 import { MongoDBContext } from '../lambda-context';
 import queryFilterAggregateResult from '../query/mapQueryAggregateResult';
@@ -34,12 +34,10 @@ export interface QueryableUserNoteLoadKey {
   userNoteQuery: DeepQuery<QueryableUserNote>;
 }
 
-export interface QueryableUserNoteBatchLoadContext {
-  collections: Pick<
-    MongoDBContext<MongoDBCollections>['collections'],
-    CollectionName.USER_NOTES | CollectionName.NOTES | CollectionName.SHARE_NOTE_LINKS
-  >;
-}
+export type QueryableUserNoteBatchLoadContext = Pick<
+  MongoDBContext<MongoDBCollections>,
+  'collections'
+>;
 
 export default async function queryableUserNoteBatchLoad(
   keys: readonly QueryableUserNoteLoadKey[],
