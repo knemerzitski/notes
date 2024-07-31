@@ -20,10 +20,7 @@ export interface QueryableUserLoaderContext {
   eventBus?: Emitter<LoaderEvents>;
   collections: Pick<
     MongoDBContext<MongoDBCollections>['collections'],
-    | CollectionName.USERS
-    | CollectionName.USER_NOTES
-    | CollectionName.NOTES
-    | CollectionName.SHARE_NOTE_LINKS
+    CollectionName.USERS | CollectionName.NOTES
   >;
 }
 

@@ -1,5 +1,5 @@
 import { MongoQuery } from '../../../mongodb/query/query';
-import { UserNoteSchema } from '../../../mongodb/schema/user-note/user-note';
+import { UserNoteSchema } from '../../../mongodb/schema/note/user-note';
 import { NotePreferencesMapper } from '../schema.mappers';
 
 export class NotePreferencesQueryMapper implements NotePreferencesMapper {

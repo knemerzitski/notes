@@ -9,7 +9,6 @@ import { populateNotes } from '../../../../__test__/helpers/mongodb/populate/pop
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { NoteSchema } from '../../../../mongodb/schema/note/note';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
-import { UserNoteSchema } from '../../../../mongodb/schema/user-note/user-note';
 import { GraphQLResolversContext } from '../../../context';
 import { NoteCategory, NoteTextField } from '../../../types.generated';
 
@@ -46,9 +45,9 @@ const QUERY_CATEGORY = `#graphql
   }
 `;
 
-let note: NoteSchema;
 let user: UserSchema;
-let userNoteArchive: UserNoteSchema;
+let note: NoteSchema;
+let noteArchive: NoteSchema;
 let contextValue: GraphQLResolversContext;
 
 beforeAll(async () => {
@@ -80,7 +79,7 @@ beforeAll(async () => {
 
   user = populateResult.user;
   note = populateResult.data[0].note;
-  userNoteArchive = populateResult.data[1].userNote;
+  noteArchive = populateResult.data[1].note;
 
   await populateExecuteAll();
 
@@ -246,7 +245,7 @@ it('returns note category', async () => {
     {
       query: QUERY_CATEGORY,
       variables: {
-        contentId: userNoteArchive.note.publicId,
+        contentId: noteArchive.publicId,
       },
     },
     {

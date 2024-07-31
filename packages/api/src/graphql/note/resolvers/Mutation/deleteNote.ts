@@ -3,7 +3,6 @@ import { GraphQLError } from 'graphql';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
 import { getNotesArrayPath } from '../../../../mongodb/schema/user/user';
-import { UserNoteSchema } from '../../../../mongodb/schema/user-note/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import {
   NoteCategory,
@@ -23,20 +22,27 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
   const currentUserId = auth.session.user._id;
 
   // Ensure current user has access to this note
-  const userNote = await mongodb.loaders.userNote.load({
+  const note = await mongodb.loaders.note.load({
     userId: currentUserId,
     publicId: notePublicId,
-    userNoteQuery: {
+    noteQuery: {
       _id: 1,
-      note: {
-        ownerId: 1,
+      ownerId: 1,
+      userNotes: {
+        $query: {
+          userId: 1,
+          category: {
+            name: 1,
+          },
+        },
       },
     },
   });
 
-  const userNoteId = userNote._id;
-  const ownerId = userNote.note?.ownerId;
-  if (!userNoteId || !ownerId) {
+  const noteId = note._id;
+  const ownerId = note.ownerId;
+  const userNotes = note.userNotes ?? [];
+  if (!noteId || !ownerId) {
     throw new GraphQLError(`Note '${notePublicId}' not found`, {
       extensions: {
         code: GraphQLErrorCode.NOT_FOUND,
@@ -47,42 +53,17 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
   const isCurrentUserOwner = ownerId.equals(currentUserId);
   if (isCurrentUserOwner) {
     // Delete note completely
-    const affectedUserNotes = await mongodb.collections.userNotes
-      .find<
-        Pick<UserNoteSchema, '_id' | 'userId'> & {
-          category?: Pick<NonNullable<UserNoteSchema['category']>, 'name'>;
-        }
-      >(
-        {
-          'note.publicId': notePublicId,
-        },
-        {
-          projection: {
-            _id: 1,
-            userId: 1,
-            'category.name': 1,
-          },
-        }
-      )
-      .toArray();
-
     await mongodb.client.withSession((session) =>
       session.withTransaction((session) =>
         Promise.all([
           mongodb.collections.notes.deleteOne(
             {
-              publicId: notePublicId,
-            },
-            { session }
-          ),
-          mongodb.collections.userNotes.deleteMany(
-            {
-              'note.publicId': notePublicId,
+              _id: noteId,
             },
             { session }
           ),
           mongodb.collections.users.bulkWrite(
-            affectedUserNotes.map((userNote) => ({
+            userNotes.map((userNote) => ({
               updateOne: {
                 filter: {
                   _id: userNote.userId,
@@ -90,7 +71,7 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
                 update: {
                   $pull: {
                     [getNotesArrayPath(userNote.category?.name ?? NoteCategory.DEFAULT)]:
-                      userNote._id,
+                      note._id,
                   },
                 },
               },
@@ -101,16 +82,33 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
       )
     );
   } else {
+    const userNote = userNotes.find((userNote) => userNote.userId?.equals(currentUserId));
+    if (!userNote) {
+      throw new GraphQLError(`Note '${notePublicId}' not found`, {
+        extensions: {
+          code: GraphQLErrorCode.NOT_FOUND,
+        },
+      });
+    }
+
     // Unlink note for current user
     await mongodb.client.withSession((session) =>
       session.withTransaction((session) =>
         Promise.all([
-          mongodb.collections.userNotes.deleteOne(
+          mongodb.collections.notes.updateOne(
             {
-              _id: userNote._id,
-              'note.publicId': notePublicId,
+              _id: note._id,
             },
-            { session }
+            {
+              $pull: {
+                userNotes: {
+                  userId: currentUserId,
+                },
+              },
+            },
+            {
+              session,
+            }
           ),
           mongodb.collections.users.updateOne(
             {
@@ -119,7 +117,7 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
             {
               $pull: {
                 [getNotesArrayPath(userNote.category?.name ?? NoteCategory.DEFAULT)]:
-                  userNote._id,
+                  note._id,
               },
             },
             { session }

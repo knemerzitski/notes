@@ -2,8 +2,8 @@ import { ObjectId } from 'mongodb';
 
 import { RelayPagination } from '../../../../mongodb/pagination/relayArrayPagination';
 import { DeepObjectQuery } from '../../../../mongodb/query/query';
+import { QueryableNote } from '../../../../mongodb/schema/note/query/queryable-note';
 import { QueryableUser } from '../../../../mongodb/schema/user/query/queryable-user';
-import { QueryableUserNote } from '../../../../mongodb/schema/user-note/query/queryable-user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { NoteCategory, type QueryResolvers } from '../../../types.generated';
 import preExecuteField from '../../../utils/preExecuteField';
@@ -81,7 +81,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
   const categoryName = args.category ?? NoteCategory.DEFAULT;
 
   function loadUser_userNote(
-    userNoteQuery: DeepObjectQuery<QueryableUserNote>,
+    noteQuery: DeepObjectQuery<QueryableNote>,
     additionalOrderQuery?: DeepObjectQuery<QueryableOrderExtra>
   ) {
     return loaders.user.load({
@@ -94,7 +94,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
                 ...additionalOrderQuery,
                 items: {
                   $pagination: pagination,
-                  $query: userNoteQuery,
+                  $query: noteQuery,
                 },
               },
             },
@@ -111,7 +111,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
       await preExecuteField('notes', ctx, info, {
         notes: () => {
           return [
-            new NoteQueryMapper({
+            new NoteQueryMapper(currentUserId, {
               async query(query) {
                 const user = await loadUser_userNote(query);
                 actualSize =
@@ -126,7 +126,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
       if (!actualSize) return [];
 
       return [...new Array<undefined>(actualSize)].map((_, index) => {
-        const noteQuery = new NoteQueryMapper({
+        const noteQuery = new NoteQueryMapper(currentUserId, {
           query: async (query) => {
             const user = await loadUser_userNote(query);
             return user.notes?.category?.[categoryName]?.order?.items?.[index];
@@ -141,7 +141,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
       let actualSize: undefined | number;
       await preExecuteField('edges', ctx, info, {
         edges: () => {
-          const noteQuery = new NoteQueryMapper({
+          const noteQuery = new NoteQueryMapper(currentUserId, {
             async query(query) {
               const user = await loadUser_userNote(query);
               actualSize =
@@ -163,7 +163,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
       if (!actualSize) return [];
 
       return [...new Array<undefined>(actualSize)].map((_, index) => {
-        const noteQuery = new NoteQueryMapper({
+        const noteQuery = new NoteQueryMapper(currentUserId, {
           query: async (query) => {
             const user = await loadUser_userNote(query);
             return user.notes?.category?.[categoryName]?.order?.items?.[index];

@@ -109,13 +109,14 @@ describe('delete', () => {
 
     assert(response.body.kind === 'single');
     const { data, errors } = response.body.singleResult;
-    expect(errors).toBeUndefined();
+    expect(errors, JSON.stringify(errors, null, 2)).toBeUndefined();
     expect(data).toEqual({
       deleteNote: {
         deleted: true,
       },
     });
 
+    // TODO check if usernote is removed
     await expect(
       mongoCollections.notes.findOne({
         publicId: note.publicId,

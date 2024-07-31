@@ -1,6 +1,6 @@
 import { AggregateOptions, ObjectId } from 'mongodb';
 
-import { MongoDBCollections } from '../collections';
+import { CollectionName, MongoDBCollections } from '../collections';
 
 import { MongoDBContext } from '../lambda-context';
 import queryFilterAggregateResult from '../query/mapQueryAggregateResult';
@@ -11,13 +11,12 @@ import {
   QueryableUser,
   queryableUserDescription,
 } from '../schema/user/query/queryable-user';
-import { QueryableUserNote } from '../schema/user-note/query/queryable-user-note';
 
 import groupByUserId from './utils/groupByUserId';
 
 export interface QueryableUserLoadKey {
   /**
-   * UserNote.userId
+   * User._id
    */
   userId: ObjectId;
   /**
@@ -26,16 +25,18 @@ export interface QueryableUserLoadKey {
   userQuery: DeepQuery<QueryableUser>;
 }
 
-export type QueryableUserBatchLoadContext = Pick<
-  MongoDBContext<MongoDBCollections>,
-  'collections'
->;
+export interface QueryableUserBatchLoadContext {
+  collections: Pick<
+    MongoDBContext<MongoDBCollections>['collections'],
+    CollectionName.USERS | CollectionName.NOTES
+  >;
+}
 
 export default async function queryableUserBatchLoad(
   keys: readonly QueryableUserLoadKey[],
   context: Readonly<QueryableUserBatchLoadContext>,
   aggregateOptions?: AggregateOptions
-): Promise<(DeepQueryResult<QueryableUserNote> | Error)[]> {
+): Promise<(DeepQueryResult<QueryableUser> | Error)[]> {
   const keysByUserId = groupByUserId(keys);
 
   const results = Object.fromEntries(
@@ -83,7 +84,7 @@ export default async function queryableUserBatchLoad(
     string,
     {
       user: Document | undefined;
-      mergedQuery: MergedDeepObjectQuery<QueryableUserNote>;
+      mergedQuery: MergedDeepObjectQuery<QueryableUser>;
     }
   >;
 

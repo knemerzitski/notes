@@ -7,7 +7,7 @@ export default function groupByUserId<T extends { userId: ObjectId }>(
   keys: readonly T[]
 ) {
   return keys.reduce<Record<string, Readonly<T>[]>>((map, key) => {
-    const userIdStr = key.userId.toString();
+    const userIdStr = toGroupUserIdKey(key.userId);
     const existing = map[userIdStr];
     if (existing) {
       existing.push(key);
@@ -16,4 +16,8 @@ export default function groupByUserId<T extends { userId: ObjectId }>(
     }
     return map;
   }, {});
+}
+
+export function toGroupUserIdKey(userId: ObjectId) {
+  return userId.toString();
 }

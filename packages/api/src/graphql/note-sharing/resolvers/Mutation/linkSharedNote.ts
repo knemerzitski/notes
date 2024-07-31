@@ -1,13 +1,12 @@
 import { GraphQLError } from 'graphql';
-import { ObjectId } from 'mongodb';
 
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import { ErrorWithData } from '~utils/logger';
 
 import { DeepQueryResult } from '../../../../mongodb/query/query';
 import { NoteSchema } from '../../../../mongodb/schema/note/note';
+import { UserNoteSchema } from '../../../../mongodb/schema/note/user-note';
 import { getNotesArrayPath } from '../../../../mongodb/schema/user/user';
-import { UserNoteSchema } from '../../../../mongodb/schema/user-note/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { NoteQueryMapper } from '../../../note/mongo-query-mapper/note';
 import { publishNoteCreated } from '../../../note/resolvers/Subscription/noteCreated';
@@ -64,7 +63,8 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
     });
   }
 
-  if (!note.publicId) {
+  const notePublicId = note.publicId;
+  if (!notePublicId) {
     throw new ErrorWithData(`Expected Note.publicId to be defined`, {
       userId: currentUserId,
       shareNoteLinkPublicId,
@@ -88,12 +88,12 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
   if (userIsAlreadyLinked) {
     const publicId = note.publicId;
     return {
-      note: new NoteQueryMapper({
+      note: new NoteQueryMapper(currentUserId, {
         query(query) {
-          return mongodb.loaders.userNote.load({
+          return mongodb.loaders.note.load({
             userId: currentUserId,
             publicId,
-            userNoteQuery: query,
+            noteQuery: query,
           });
         },
       }),
@@ -109,12 +109,7 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
   }
 
   const sharedUserNote: UserNoteSchema = {
-    _id: new ObjectId(),
     userId: currentUserId,
-    note: {
-      _id: note._id,
-      publicId: note.publicId, // this must be unique within (userId, publicId)
-    },
   };
 
   await mongodb.client.withSession((session) =>
@@ -126,7 +121,7 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
           },
           {
             $push: {
-              [getNotesArrayPath(NoteCategory.DEFAULT)]: sharedUserNote._id,
+              [getNotesArrayPath(NoteCategory.DEFAULT)]: note._id,
             },
           },
           { session }
@@ -137,25 +132,21 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
           },
           {
             $push: {
-              userNotes: {
-                _id: sharedUserNote._id,
-                userId: currentUserId,
-              },
+              userNotes: sharedUserNote,
             },
           },
           { session }
         ),
-        mongodb.collections.userNotes.insertOne(sharedUserNote, { session }),
       ]);
     })
   );
 
-  const noteQueryMapper = new NoteQueryMapper({
+  const noteQueryMapper = new NoteQueryMapper(currentUserId, {
     query(query) {
-      return mongodb.loaders.userNote.load({
+      return mongodb.loaders.note.load({
         userId: currentUserId,
-        publicId: sharedUserNote.note.publicId,
-        userNoteQuery: query,
+        publicId: notePublicId,
+        noteQuery: query,
       });
     },
   });

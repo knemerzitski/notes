@@ -28,6 +28,9 @@ export interface UserSchema {
 }
 
 interface Category {
+  /**
+   * An ordered list of Note._id
+   */
   order: ObjectId[];
 }
 

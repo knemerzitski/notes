@@ -1,31 +1,29 @@
 import { MongoQuery } from '../../../mongodb/query/query';
 import { CollabTextSchema } from '../../../mongodb/schema/collab-text/collab-text';
-import { QueryableUserNote } from '../../../mongodb/schema/user-note/query/queryable-user-note';
+import { QueryableNote } from '../../../mongodb/schema/note/query/queryable-note';
 import { CollabTextQueryMapper } from '../../collab/mongo-query-mapper/collab-text';
 
 export class NoteCollabTextQueryMapper extends CollabTextQueryMapper {
-  private userNote: MongoQuery<QueryableUserNote>;
+  private note: MongoQuery<QueryableNote>;
   private fieldName: string;
 
   constructor(
-    userNote: MongoQuery<QueryableUserNote>,
+    note: MongoQuery<QueryableNote>,
     fieldName: string,
     collabText: MongoQuery<CollabTextSchema>
   ) {
     super(collabText);
 
-    this.userNote = userNote;
+    this.note = note;
     this.fieldName = fieldName;
   }
 
   override async id() {
     const noteId = (
-      await this.userNote.query({
-        note: {
-          _id: 1,
-        },
+      await this.note.query({
+        _id: 1,
       })
-    )?.note?._id?.toString('base64');
+    )?._id?.toString('base64');
 
     if (!noteId) return null;
 

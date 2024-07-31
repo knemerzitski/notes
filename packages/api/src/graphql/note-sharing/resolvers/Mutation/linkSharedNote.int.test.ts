@@ -47,7 +47,7 @@ beforeEach(async () => {
   otherUser = fakeUserPopulateQueue();
 
   const populateResult = populateNotes(1);
-  assert(populateResult.data[0]?.note.shareNoteLinks[0] != null);
+  assert(populateResult.data[0]?.note.shareNoteLinks?.[0] != null);
   shareNoteLink = populateResult.data[0].note.shareNoteLinks[0];
 
   await populateExecuteAll();

@@ -25,10 +25,10 @@ export const noteUpdated: NonNullable<SubscriptionResolvers['noteUpdated']> = {
 
     if (notePublicId) {
       // Ensure current user has access to this note
-      const userNote = await loaders.userNote.load({
+      const userNote = await loaders.note.load({
         userId: currentUserId,
         publicId: notePublicId,
-        userNoteQuery: {
+        noteQuery: {
           _id: 1,
         },
       });

@@ -10,9 +10,9 @@ import {
 } from '../../../../__test__/helpers/mongodb/mongodb';
 import { populateNotes } from '../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
+import { NoteSchema } from '../../../../mongodb/schema/note/note';
 import { ShareNoteLinkSchema } from '../../../../mongodb/schema/note/share-note-link';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
-import { UserNoteSchema } from '../../../../mongodb/schema/user-note/user-note';
 import { GraphQLResolversContext } from '../../../context';
 import { DeleteNoteSharingInput } from '../../../types.generated';
 
@@ -31,7 +31,7 @@ const MUTATION = `#graphql
 
 let contextValue: GraphQLResolversContext;
 let user: UserSchema;
-let userNote: UserNoteSchema;
+let note: NoteSchema;
 let shareNoteLink: ShareNoteLinkSchema;
 
 beforeEach(async () => {
@@ -40,8 +40,8 @@ beforeEach(async () => {
 
   const populateResult = populateNotes(1);
   user = populateResult.user;
-  assert(populateResult.data[0]?.note.shareNoteLinks[0] != null);
-  userNote = populateResult.data[0].userNote;
+  assert(populateResult.data[0]?.note.shareNoteLinks?.[0] != null);
+  note = populateResult.data[0].note;
   shareNoteLink = populateResult.data[0].note.shareNoteLinks[0];
 
   contextValue = createGraphQLResolversContext(user);
@@ -61,7 +61,7 @@ it('deletes all note sharings', async () => {
       query: MUTATION,
       variables: {
         input: {
-          contentId: userNote.note.publicId,
+          contentId: note.publicId,
         } as DeleteNoteSharingInput,
       },
     },

@@ -13,9 +13,8 @@ import isEmptyDeep from '~utils/object/isEmptyDeep';
 import { MongoQuery } from '../../../../mongodb/query/query';
 import createCollabText from '../../../../mongodb/schema/collab-text/utils/createCollabText';
 import { NoteSchema } from '../../../../mongodb/schema/note/note';
+import { QueryableNote } from '../../../../mongodb/schema/note/query/queryable-note';
 import { getNotesArrayPath, UserSchema } from '../../../../mongodb/schema/user/user';
-import { QueryableUserNote } from '../../../../mongodb/schema/user-note/query/queryable-user-note';
-import { UserNoteSchema } from '../../../../mongodb/schema/user-note/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { CollabTextRecordQueryMapper } from '../../../collab/mongo-query-mapper/revision-record';
 import {
@@ -25,6 +24,7 @@ import {
 } from '../../../types.generated';
 import { NoteQueryMapper } from '../../mongo-query-mapper/note';
 import { NoteCollabTextQueryMapper } from '../../mongo-query-mapper/note-collab-text';
+import findUserNote from '../../utils/findUserNote';
 import { publishNoteUpdated } from '../Subscription/noteUpdated';
 
 type DefinedAwaited<T> = NonNullable<Awaited<T>>;
@@ -49,27 +49,30 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
 
   const currentUserId = auth.session.user._id;
 
-  const userNote = await mongodb.loaders.userNote.load({
+  const note = await mongodb.loaders.note.load({
     userId: currentUserId,
     publicId: notePublicId,
-    userNoteQuery: {
+    noteQuery: {
       _id: 1,
-      readOnly: 1,
-      note: {
-        _id: 1,
-        ownerId: 1,
-      },
-      category: {
-        name: 1,
+      ownerId: 1,
+      userNotes: {
+        $query: {
+          userId: 1,
+          readOnly: 1,
+          category: {
+            name: 1,
+          },
+        },
       },
     },
   });
 
-  const userNoteId = userNote._id;
-  const isReadOnly = userNote.readOnly ?? false;
-  const existingCategoryName = userNote.category?.name ?? NoteCategory.DEFAULT;
+  const noteId = note._id;
+  const userNote = findUserNote(currentUserId, note);
+  const isReadOnly = userNote?.readOnly ?? false;
+  const existingCategoryName = userNote?.category?.name ?? NoteCategory.DEFAULT;
 
-  if (!userNoteId) {
+  if (!noteId || !userNote) {
     throw new GraphQLError(`Note '${notePublicId}' not found`, {
       extensions: {
         code: GraphQLErrorCode.NOT_FOUND,
@@ -77,21 +80,12 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
     });
   }
 
-  const noteId = userNote.note?._id;
-  if (!noteId) {
-    throw new ErrorWithData(`Expected UserNote.note._id to be defined`, {
-      userId: currentUserId,
-      notePublicId,
-      userNote,
-    });
-  }
-
-  const ownerId = userNote.note.ownerId;
+  const ownerId = note.ownerId;
   if (!ownerId) {
-    throw new ErrorWithData(`Expected UserNote.note.ownerId to be defined`, {
+    throw new ErrorWithData(`Expected Note.ownerId to be defined`, {
       userId: currentUserId,
       notePublicId,
-      userNote,
+      userNote: note,
     });
   }
 
@@ -102,7 +96,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
   }
 
   if (isReadOnly && patch.textFields && patch.textFields.length > 0) {
-    throw new GraphQLError(`Note is read-only and it's contents cannot be modified.`, {
+    throw new GraphQLError(`Note is read-only and text cannot be modified.`, {
       extensions: {
         code: GraphQLErrorCode.READ_ONLY,
       },
@@ -111,13 +105,10 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
 
   const maxRecordsCount = ctx.options?.collabText?.maxRecordsCount;
 
-  const noteQuery_onlyId: MongoQuery<QueryableUserNote> = {
+  const noteQuery_onlyId: MongoQuery<QueryableNote> = {
     query() {
       return {
-        _id: userNoteId,
-        note: {
-          _id: noteId,
-        },
+        _id: noteId,
       };
     },
   };
@@ -129,8 +120,9 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
 
       let payloadPatch: Awaited<Omit<PayloadPatch, 'id'>> | undefined;
       let userUpdate: UpdateFilter<UserSchema> | undefined;
-      let userNoteUpdate: UpdateFilter<UserNoteSchema> | undefined;
       let noteUpdate: UpdateFilter<NoteSchema> | undefined;
+      const currenUserNoteFilterName = 'currentUserNote';
+      let isUsingCurrentUserNoteFilter = false;
 
       if (patch.textFields) {
         await Promise.all(
@@ -139,28 +131,26 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
 
             // Get relevant records for record insertion and tailText composition
             const [userNoteForInsertion, userNoteForTailText] = await Promise.all([
-              mongodb.loaders.userNote.load(
+              mongodb.loaders.note.load(
                 {
                   publicId: notePublicId,
                   userId: currentUserId,
-                  userNoteQuery: {
-                    note: {
-                      collabTexts: {
-                        [fieldName]: {
-                          headText: {
-                            changeset: 1,
+                  noteQuery: {
+                    collabTexts: {
+                      [fieldName]: {
+                        headText: {
+                          changeset: 1,
+                          revision: 1,
+                        },
+                        records: {
+                          $query: {
+                            userGeneratedId: 1,
                             revision: 1,
+                            changeset: 1,
+                            creatorUserId: 1,
                           },
-                          records: {
-                            $query: {
-                              userGeneratedId: 1,
-                              revision: 1,
-                              changeset: 1,
-                              creatorUserId: 1,
-                            },
-                            $pagination: {
-                              after: insertRecord.change.revision,
-                            },
+                          $pagination: {
+                            after: insertRecord.change.revision,
                           },
                         },
                       },
@@ -172,27 +162,25 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
                 }
               ),
               maxRecordsCount != null && maxRecordsCount > 0
-                ? mongodb.loaders.userNote.load(
+                ? mongodb.loaders.note.load(
                     {
                       publicId: notePublicId,
                       userId: currentUserId,
-                      userNoteQuery: {
-                        note: {
-                          collabTexts: {
-                            [fieldName]: {
-                              tailText: {
-                                changeset: 1,
+                      noteQuery: {
+                        collabTexts: {
+                          [fieldName]: {
+                            tailText: {
+                              changeset: 1,
+                              revision: 1,
+                            },
+                            records: {
+                              $query: {
                                 revision: 1,
+                                changeset: 1,
                               },
-                              records: {
-                                $query: {
-                                  revision: 1,
-                                  changeset: 1,
-                                },
-                                $pagination: {
-                                  before:
-                                    insertRecord.change.revision - maxRecordsCount + 2,
-                                },
+                              $pagination: {
+                                before:
+                                  insertRecord.change.revision - maxRecordsCount + 2,
                               },
                             },
                           },
@@ -206,7 +194,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
                 : Promise.resolve(null),
             ]);
 
-            const collabText = userNoteForInsertion.note?.collabTexts?.[fieldName];
+            const collabText = userNoteForInsertion.collabTexts?.[fieldName];
 
             const collabTextPath = `collabTexts.${fieldName}`;
             const noteCollabText_onlyId = new NoteCollabTextQueryMapper(
@@ -305,27 +293,24 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
                             ) {
                               // Cannot use session here since query happens outside withSession after this field resolver has returned
                               const missingRecordValues = (
-                                await mongodb.loaders.userNote.load({
+                                await mongodb.loaders.note.load({
                                   publicId: notePublicId,
                                   userId: currentUserId,
-                                  userNoteQuery: {
-                                    note: {
-                                      collabTexts: {
-                                        [fieldName]: {
-                                          records: {
-                                            $query: query,
-                                            $pagination: {
-                                              after:
-                                                insertion.existingRecord.revision - 1,
-                                              first: 1,
-                                            },
+                                  noteQuery: {
+                                    collabTexts: {
+                                      [fieldName]: {
+                                        records: {
+                                          $query: query,
+                                          $pagination: {
+                                            after: insertion.existingRecord.revision - 1,
+                                            first: 1,
                                           },
                                         },
                                       },
                                     },
                                   },
                                 })
-                              ).note?.collabTexts?.[fieldName]?.records?.[0];
+                              ).collabTexts?.[fieldName]?.records?.[0];
 
                               return {
                                 ...missingRecordValues,
@@ -358,7 +343,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
                   | undefined;
                 if (userNoteForTailText) {
                   const collabTextForTailCompose =
-                    userNoteForTailText.note?.collabTexts?.[fieldName];
+                    userNoteForTailText.collabTexts?.[fieldName];
 
                   const tailRevisionRecords = new ChangesetRevisionRecords({
                     tailText: RevisionChangeset.parseValue(
@@ -444,11 +429,13 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
       }
 
       if (patch.preferences?.backgroundColor) {
-        userNoteUpdate = {
-          ...userNoteUpdate,
+        isUsingCurrentUserNoteFilter = true;
+        noteUpdate = {
+          ...noteUpdate,
           $set: {
-            ...userNoteUpdate?.$set,
-            'preferences.backgroundColor': patch.preferences.backgroundColor,
+            ...noteUpdate?.$set,
+            [`userNotes.$[${currenUserNoteFilterName}].preferences.backgroundColor`]:
+              patch.preferences.backgroundColor,
           },
         };
         payloadPatch = {
@@ -461,11 +448,13 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
       }
 
       if (patch.categoryName) {
-        userNoteUpdate = {
-          ...userNoteUpdate,
+        isUsingCurrentUserNoteFilter = true;
+        noteUpdate = {
+          ...noteUpdate,
           $set: {
-            ...userNoteUpdate?.$set,
-            'category.name': patch.categoryName,
+            ...noteUpdate?.$set,
+            [`userNotes.$[${currenUserNoteFilterName}].category.name`]:
+              patch.categoryName,
           },
         };
         payloadPatch = {
@@ -477,11 +466,11 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
           ...userUpdate,
           $pull: {
             ...userUpdate?.$pull,
-            [getNotesArrayPath(existingCategoryName)]: userNoteId,
+            [getNotesArrayPath(existingCategoryName)]: noteId,
           },
           $push: {
             ...userUpdate?.$push,
-            [getNotesArrayPath(patch.categoryName)]: userNoteId,
+            [getNotesArrayPath(patch.categoryName)]: noteId,
           },
         };
       }
@@ -497,16 +486,6 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
               session,
             }
           ),
-        userNoteUpdate &&
-          mongodb.collections.userNotes.updateOne(
-            {
-              _id: userNoteId,
-            },
-            userNoteUpdate,
-            {
-              session,
-            }
-          ),
         noteUpdate &&
           mongodb.collections.notes.updateOne(
             {
@@ -514,6 +493,13 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
             },
             noteUpdate,
             {
+              arrayFilters: isUsingCurrentUserNoteFilter
+                ? [
+                    {
+                      [`${currenUserNoteFilterName}.userId`]: currentUserId,
+                    },
+                  ]
+                : undefined,
               session,
             }
           ),
@@ -522,7 +508,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
       const haveNothingToPublish =
         publishTextFieldsPayload.length === 0 && isEmptyDeep(payloadPatch);
 
-      const noteMapper_onlyId = new NoteQueryMapper(noteQuery_onlyId);
+      const noteMapper_onlyId = new NoteQueryMapper(currentUserId, noteQuery_onlyId);
 
       const payloads: {
         response: UpdateNotePayload;

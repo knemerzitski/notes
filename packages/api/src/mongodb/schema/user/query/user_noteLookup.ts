@@ -1,32 +1,32 @@
 import { Document } from 'mongodb';
 
-import { UserNoteSchema } from '../../user-note/user-note';
+import { NoteSchema } from '../../note/note';
 
-export interface User_UserNoteLookupParams {
+export interface User_NoteLookupParams {
   /**
-   * UserNote collection name
+   * Note collection name
    */
   collectionName: string;
   /**
-   * Path to UserNote._id
+   * Path to Note._id
    */
   fieldPath: string;
   /**
-   * Pipeline to be applied on UserNote
+   * Pipeline to be applied on Note
    */
   pipeline?: Document[];
 }
 
-export type User_UserNoteLookup<T = UserNoteSchema> = T;
+export type User_NoteLookup<T = NoteSchema> = T;
 
 /**
  * Replaces {@link fieldPath} with actual UserNote document
  */
-export default function user_userNoteLookup({
+export default function user_noteLookup({
   collectionName,
   fieldPath,
   pipeline = [],
-}: User_UserNoteLookupParams) {
+}: User_NoteLookupParams) {
   return [
     {
       $lookup: {

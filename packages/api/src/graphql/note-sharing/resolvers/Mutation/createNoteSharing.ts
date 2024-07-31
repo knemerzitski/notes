@@ -21,59 +21,54 @@ export const createNoteSharing: NonNullable<
 
   const currentUserId = auth.session.user._id;
 
-  const userNote = await mongodb.loaders.userNote.load({
+  const note = await mongodb.loaders.note.load({
     userId: currentUserId,
     publicId: notePublicId,
-    userNoteQuery: {
+    noteQuery: {
       _id: 1,
-      readOnly: 1,
-      note: {
-        _id: 1,
-        publicId: 1,
-        ownerId: 1,
-        shareNoteLinks: {
-          $query: {
-            expireAccessCount: 1,
-            expireAt: 1,
-          },
+      publicId: 1,
+      ownerId: 1,
+      userNotes: {
+        $query: {
+          readOnly: 1,
+        },
+      },
+      shareNoteLinks: {
+        $query: {
+          expireAccessCount: 1,
+          expireAt: 1,
         },
       },
     },
   });
 
-  if (!userNote._id) {
-    throw new ErrorWithData(`Expected UserNote._id to be defined`, {
+  // TODO create utility function to guarantee properties are defined
+  if (!note._id) {
+    throw new ErrorWithData(`Expected Note._id to be defined`, {
       userId: currentUserId,
       notePublicId,
-      userNote,
+      userNote: note,
     });
   }
-  if (!userNote.note?._id) {
-    throw new ErrorWithData(`Expected UserNote.note._id to be defined`, {
+  if (!note.publicId) {
+    throw new ErrorWithData(`Expected Note.publicId to be defined`, {
       userId: currentUserId,
       notePublicId,
-      userNote,
+      userNote: note,
     });
   }
-  if (!userNote.note.publicId) {
-    throw new ErrorWithData(`Expected UserNote.note.publicId to be defined`, {
-      userId: currentUserId,
-      notePublicId,
-      userNote,
-    });
-  }
-  const ownerId = userNote.note.ownerId;
+  const ownerId = note.ownerId;
   if (!ownerId) {
-    throw new ErrorWithData(`Expected UserNote.note.ownerId to be defined`, {
+    throw new ErrorWithData(`Expected Note.ownerId to be defined`, {
       userId: currentUserId,
       notePublicId,
-      userNote,
+      userNote: note,
     });
   }
 
   const nowTime = Date.now();
 
-  const hasValidShareLink = userNote.note.shareNoteLinks?.some(
+  const hasValidShareLink = note.shareNoteLinks?.some(
     ({ expireAt, expireAccessCount }) => {
       let isValid = true;
 
@@ -105,7 +100,7 @@ export const createNoteSharing: NonNullable<
 
   await mongodb.collections.notes.updateOne(
     {
-      _id: userNote.note._id,
+      _id: note._id,
     },
     {
       $push: {
@@ -114,12 +109,12 @@ export const createNoteSharing: NonNullable<
     }
   );
 
-  const noteMapper = new NoteQueryMapper({
+  const noteMapper = new NoteQueryMapper(currentUserId, {
     query(query) {
-      return mongodb.loaders.userNote.load({
+      return mongodb.loaders.note.load({
         userId: currentUserId,
         publicId: notePublicId,
-        userNoteQuery: query,
+        noteQuery: query,
       });
     },
   });

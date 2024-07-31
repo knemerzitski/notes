@@ -16,12 +16,12 @@ export const note: NonNullable<QueryResolvers['note']> = (
 
   const currentUserId = auth.session.user._id;
 
-  return new NoteQueryMapper({
+  return new NoteQueryMapper(currentUserId, {
     query(query) {
-      return loaders.userNote.load({
+      return loaders.note.load({
         userId: currentUserId,
         publicId: notePublicId,
-        userNoteQuery: query,
+        noteQuery: query,
       });
     },
   });

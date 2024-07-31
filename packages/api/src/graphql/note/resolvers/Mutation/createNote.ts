@@ -4,9 +4,8 @@ import { ObjectId } from 'mongodb';
 import { DeepQueryResult } from '../../../../mongodb/query/query';
 import createCollabText from '../../../../mongodb/schema/collab-text/utils/createCollabText';
 import { NoteSchema, noteDefaultValues } from '../../../../mongodb/schema/note/note';
+import { QueryableNote } from '../../../../mongodb/schema/note/query/queryable-note';
 import { getNotesArrayPath } from '../../../../mongodb/schema/user/user';
-import { QueryableUserNote } from '../../../../mongodb/schema/user-note/query/queryable-user-note';
-import { UserNoteSchema } from '../../../../mongodb/schema/user-note/user-note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import {
   NoteCategory,
@@ -27,7 +26,8 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
 
   const currentUserId = auth.session.user._id;
 
-  const userNoteId = new ObjectId();
+  const categoryName = NoteCategory.DEFAULT;
+  const notesArrayPath = getNotesArrayPath(categoryName);
 
   // Initialize data
   const note: NoteSchema = {
@@ -36,8 +36,13 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
     publicId: noteDefaultValues.publicId(),
     userNotes: [
       {
-        _id: userNoteId,
         userId: currentUserId,
+        preferences: {
+          backgroundColor: input.note?.preferences?.backgroundColor ?? undefined,
+        },
+        category: {
+          name: categoryName,
+        },
       },
     ],
     collabTexts: mapObject(NoteTextField, (_key, fieldName) => {
@@ -54,38 +59,19 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
     shareNoteLinks: [],
   };
 
-  const categoryName = NoteCategory.DEFAULT;
-  const notesArrayPath = getNotesArrayPath(categoryName);
-
-  const userNote: UserNoteSchema = {
-    _id: userNoteId,
-    userId: currentUserId,
-    note: {
-      _id: note._id,
-      publicId: note.publicId,
-    },
-    preferences: {
-      backgroundColor: input.note?.preferences?.backgroundColor ?? undefined,
-    },
-    category: {
-      name: categoryName,
-    },
-  };
-
   // Insert to DB
   await mongodb.client.withSession((session) =>
     session.withTransaction(async (session) => {
-      // TODO handle duplicate _id and note.publicId
+      // TODO handle duplicate _id and publicId
       await Promise.all([
         mongodb.collections.notes.insertOne(note, { session }),
-        mongodb.collections.userNotes.insertOne(userNote, { session }),
         mongodb.collections.users.updateOne(
           {
             _id: currentUserId,
           },
           {
             $push: {
-              [notesArrayPath]: userNote._id,
+              [notesArrayPath]: note._id,
             },
           },
           { session }
@@ -95,14 +81,9 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
   );
 
   // Build response mapper
-  const noteQueryResponse: DeepQueryResult<QueryableUserNote> = {
-    ...userNote,
-    note: {
-      ...note,
-      ...userNote.note,
-    },
-  };
-  const noteQueryMapper = new NoteQueryMapper({
+  const noteQueryResponse: DeepQueryResult<QueryableNote> = note;
+
+  const noteQueryMapper = new NoteQueryMapper(currentUserId, {
     query() {
       return noteQueryResponse;
     },

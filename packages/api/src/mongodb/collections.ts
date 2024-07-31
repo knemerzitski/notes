@@ -4,7 +4,6 @@ import { Collection, Db, IndexDescription } from 'mongodb';
 import { NoteSchema, noteDescription } from './schema/note/note';
 import { SessionSchema, sessionDescription } from './schema/session/session';
 import { userDescription, UserSchema } from './schema/user/user';
-import { UserNoteSchema, userNoteDescription } from './schema/user-note/user-note';
 
 export interface CollectionDescription {
   indexSpecs?: IndexDescription[];
@@ -16,7 +15,6 @@ export interface CollectionDescription {
 export enum CollectionName {
   SESSIONS = 'sessions',
   USERS = 'users',
-  USER_NOTES = 'userNotes',
   NOTES = 'notes',
 }
 
@@ -26,9 +24,6 @@ interface CollectionDefinitions {
   };
   [CollectionName.USERS]: {
     schema: Collection<UserSchema>;
-  };
-  [CollectionName.USER_NOTES]: {
-    schema: Collection<UserNoteSchema>;
   };
   [CollectionName.NOTES]: {
     schema: Collection<NoteSchema>;
@@ -40,7 +35,6 @@ export const collectionDescriptions: Partial<
 > = {
   [CollectionName.SESSIONS]: sessionDescription,
   [CollectionName.USERS]: userDescription,
-  [CollectionName.USER_NOTES]: userNoteDescription,
   [CollectionName.NOTES]: noteDescription,
 };
 

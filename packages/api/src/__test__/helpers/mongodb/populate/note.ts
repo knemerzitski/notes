@@ -3,7 +3,7 @@ import { ObjectId } from 'mongodb';
 
 import isDefined from '~utils/type-guards/isDefined';
 
-import { NoteTextField } from '../../../../graphql/types.generated';
+import { NoteCategory, NoteTextField } from '../../../../graphql/types.generated';
 import { noteDefaultValues, NoteSchema } from '../../../../mongodb/schema/note/note';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { mongoCollections } from '../mongodb';
@@ -11,12 +11,12 @@ import { DeepPartial } from '../types';
 
 import { fakeCollabText, FakeCollabTextOptions } from './collab-text';
 import { populateQueue } from './populate-queue';
-import { fakeShareNoteLink, FakeShareNoteLinkOptions } from './share-note-link';
+import { fakeShareNoteLink } from './share-note-link';
+import { fakeUserNote } from './user-note';
 
 export interface FakeNoteOptions {
-  override?: DeepPartial<Omit<NoteSchema, 'collabTexts' | 'shareNoteLinks'>>;
+  override?: DeepPartial<Omit<NoteSchema, 'collabTexts'>>;
   collabTexts?: { [key in NoteTextField]?: FakeCollabTextOptions };
-  shareNoteLinks?: FakeShareNoteLinkOptions[];
 }
 
 export function fakeNote(
@@ -29,11 +29,20 @@ export function fakeNote(
     publicId: noteDefaultValues.publicId(),
     ...options?.override,
     userNotes:
-      options?.override?.userNotes?.filter(isDefined).map((userNote) => ({
-        _id: new ObjectId(),
-        userId: ownerUser._id,
-        ...userNote,
-      })) ?? [],
+      options?.override?.userNotes
+        ?.filter(isDefined)
+        .map(({ category, ...restUserNote }) => {
+          const defaultUserNote = fakeUserNote(ownerUser);
+          return {
+            ...defaultUserNote,
+            ...restUserNote,
+            category: {
+              name: NoteCategory.DEFAULT,
+              ...defaultUserNote.category,
+              ...category,
+            },
+          };
+        }) ?? [],
     collabTexts: mapObject(NoteTextField, (_key, fieldName) => {
       return [
         fieldName,
@@ -41,9 +50,10 @@ export function fakeNote(
       ];
     }),
     shareNoteLinks:
-      options?.shareNoteLinks
-        ?.filter(isDefined)
-        .map((shareNoteLink) => fakeShareNoteLink(ownerUser, shareNoteLink)) ?? [],
+      options?.override?.shareNoteLinks?.filter(isDefined).map((shareNoteLink) => ({
+        ...fakeShareNoteLink(ownerUser),
+        ...shareNoteLink,
+      })) ?? [],
   };
 }
 

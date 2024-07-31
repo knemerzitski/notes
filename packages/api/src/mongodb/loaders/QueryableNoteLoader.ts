@@ -9,44 +9,40 @@ import { CollectionName, MongoDBCollections } from '../collections';
 import { MongoDBContext } from '../lambda-context';
 import { LoaderEvents } from '../loaders';
 import { DeepQueryResult } from '../query/query';
-import { QueryableUserNote } from '../schema/user-note/query/queryable-user-note';
 
-import queryableUserNoteBatchLoad, {
-  QueryableUserNoteLoadKey,
-} from './queryableUserNoteBatchLoad';
+import { QueryableNote } from '../schema/note/query/queryable-note';
+
+import queryableNoteBatchLoad, { QueryableNoteLoadKey } from './queryableNoteBatchLoad';
 
 import getEqualObjectString from './utils/getEqualObjectString';
 
-export interface QueryableUserNoteLoaderContext {
+export interface QueryableNoteLoaderContext {
   eventBus?: Emitter<LoaderEvents>;
   collections: Pick<
     MongoDBContext<MongoDBCollections>['collections'],
-    | CollectionName.USERS
-    | CollectionName.USER_NOTES
-    | CollectionName.NOTES
-    | CollectionName.SHARE_NOTE_LINKS
+    CollectionName.NOTES
   >;
 }
 
-type QueryableUserNoteLoadKeyWithSession = {
-  userNoteKey: QueryableUserNoteLoadKey;
+type QueryableNoteLoadKeyWithSession = {
+  noteKey: QueryableNoteLoadKey;
 } & Pick<AggregateOptions, 'session'>;
 
-export default class QueryableUserNoteLoader {
-  private readonly context: Readonly<QueryableUserNoteLoaderContext>;
+export default class QueryableNoteLoader {
+  private readonly context: Readonly<QueryableNoteLoaderContext>;
 
   private readonly loader: DataLoader<
-    QueryableUserNoteLoadKeyWithSession,
-    DeepQueryResult<QueryableUserNote>,
+    QueryableNoteLoadKeyWithSession,
+    DeepQueryResult<QueryableNote>,
     string
   >;
 
-  constructor(context: Readonly<QueryableUserNoteLoaderContext>) {
+  constructor(context: Readonly<QueryableNoteLoaderContext>) {
     this.context = context;
 
     this.loader = new DataLoader<
-      QueryableUserNoteLoadKeyWithSession,
-      DeepQueryResult<QueryableUserNote>,
+      QueryableNoteLoadKeyWithSession,
+      DeepQueryResult<QueryableNote>,
       string
     >(
       async (keys) =>
@@ -54,8 +50,8 @@ export default class QueryableUserNoteLoader {
           keys,
           (key) => key.session,
           (keys, session) =>
-            queryableUserNoteBatchLoad(
-              keys.map(({ userNoteKey }) => userNoteKey),
+            queryableNoteBatchLoad(
+              keys.map(({ noteKey }) => noteKey),
               this.context,
               {
                 session,
@@ -64,24 +60,24 @@ export default class QueryableUserNoteLoader {
         ),
       {
         cacheKeyFn: (key) => {
-          return getEqualObjectString(key.userNoteKey);
+          return getEqualObjectString(key.noteKey);
         },
       }
     );
 
     if (context.eventBus) {
       context.eventBus.on('loadedUser', (payload) => {
-        this.primeUserNotesFromUser(payload);
+        this.primeNotesLoadedUser(payload);
       });
     }
   }
 
   async load(
-    key: QueryableUserNoteLoadKey,
+    key: QueryableNoteLoadKey,
     aggregateOptions?: Pick<AggregateOptions, 'session'>
   ) {
-    const loaderKey: QueryableUserNoteLoadKeyWithSession = {
-      userNoteKey: key,
+    const loaderKey: QueryableNoteLoadKeyWithSession = {
+      noteKey: key,
     };
     if (aggregateOptions?.session) {
       loaderKey.session = aggregateOptions.session;
@@ -92,7 +88,7 @@ export default class QueryableUserNoteLoader {
 
       const eventBus = this.context.eventBus;
       if (eventBus) {
-        eventBus.emit('loadedUserNote', {
+        eventBus.emit('loadedNote', {
           key,
           value: result,
         });
@@ -102,7 +98,7 @@ export default class QueryableUserNoteLoader {
     }
   }
 
-  private primeUserNotesFromUser({ key, value }: LoaderEvents['loadedUser']) {
+  private primeNotesLoadedUser({ key, value }: LoaderEvents['loadedUser']) {
     if (!key.userQuery.notes?.category) {
       return;
     }
@@ -110,8 +106,8 @@ export default class QueryableUserNoteLoader {
     const userId = key.userId;
     Object.entries(key.userQuery.notes.category).forEach(
       ([categoryName, categoryMeta]) => {
-        const userNoteQuery = categoryMeta?.order?.items?.$query;
-        if (!userNoteQuery) {
+        const noteQuery = categoryMeta?.order?.items?.$query;
+        if (!noteQuery) {
           return;
         }
 
@@ -119,17 +115,17 @@ export default class QueryableUserNoteLoader {
         if (!resultCategoryMeta) {
           return;
         }
-        resultCategoryMeta.order?.items?.forEach((userNote) => {
-          if (!userNote.note?.publicId) return;
+        resultCategoryMeta.order?.items?.forEach((note) => {
+          if (!note.publicId) return;
           this.loader.prime(
             {
-              userNoteKey: {
+              noteKey: {
                 userId,
-                publicId: userNote.note.publicId,
-                userNoteQuery: userNoteQuery,
+                publicId: note.publicId,
+                noteQuery: noteQuery,
               },
             },
-            userNote
+            note
           );
         });
       }

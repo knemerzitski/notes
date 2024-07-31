@@ -7,8 +7,8 @@ import { createGraphQLResolversContext } from '../../../../__test__/helpers/grap
 import { resetDatabase } from '../../../../__test__/helpers/mongodb/mongodb';
 import { populateNotes } from '../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
+import { NoteSchema } from '../../../../mongodb/schema/note/note';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
-import { UserNoteSchema } from '../../../../mongodb/schema/user-note/user-note';
 import { GraphQLResolversContext } from '../../../context';
 import { CreateNoteSharingInput } from '../../../types.generated';
 
@@ -27,7 +27,7 @@ const MUTATION = `#graphql
 
 let contextValue: GraphQLResolversContext;
 let user: UserSchema;
-let userNote: UserNoteSchema;
+let note: NoteSchema;
 
 beforeEach(async () => {
   faker.seed(843);
@@ -40,7 +40,7 @@ beforeEach(async () => {
   });
   user = populateResult.user;
   assert(populateResult.data[0] != null);
-  userNote = populateResult.data[0].userNote;
+  note = populateResult.data[0].note;
 
   await populateExecuteAll();
 
@@ -53,7 +53,7 @@ it('creates a new note sharing', async () => {
       query: MUTATION,
       variables: {
         input: {
-          contentId: userNote.note.publicId,
+          contentId: note.publicId,
         } as CreateNoteSharingInput,
       },
     },

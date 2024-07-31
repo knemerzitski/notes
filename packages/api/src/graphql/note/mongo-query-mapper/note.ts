@@ -1,32 +1,42 @@
 import { ObjectId } from 'mongodb';
 
-import { MongoQuery } from '../../../mongodb/query/query';
-import { QueryableUserNote } from '../../../mongodb/schema/user-note/query/queryable-user-note';
-import { NoteCategory, NoteTextField, NotetextFieldsArgs } from '../../types.generated';
+import { DeepQueryResult, MongoQuery } from '../../../mongodb/query/query';
+import { NoteSchema } from '../../../mongodb/schema/note/note';
+import { QueryableNote } from '../../../mongodb/schema/note/query/queryable-note';
+import {
+  Maybe,
+  NoteCategory,
+  NoteTextField,
+  NotetextFieldsArgs,
+} from '../../types.generated';
 import { NoteMapper } from '../schema.mappers';
 
 import { NoteCollabTextQueryMapper } from './note-collab-text';
 import { NotePreferencesQueryMapper } from './note-preferences';
 
 export class NoteQueryMapper implements NoteMapper {
-  private userNote: MongoQuery<QueryableUserNote>;
+  private readonly targetUserId: ObjectId;
+  private readonly note: MongoQuery<QueryableNote>;
 
-  constructor(userNote: MongoQuery<QueryableUserNote>) {
-    this.userNote = userNote;
+  constructor(userId: ObjectId, note: MongoQuery<QueryableNote>) {
+    this.targetUserId = userId;
+    this.note = note;
+  }
+
+  private getTargetUserNote(note: Maybe<DeepQueryResult<NoteSchema>>) {
+    return note?.userNotes?.find(({ userId }) => userId?.equals(this.targetUserId));
   }
 
   async id() {
-    return (await this.userNote.query({ _id: 1 }))?._id?.toString('base64');
+    return (await this.note.query({ _id: 1 }))?._id?.toString('base64');
   }
 
   async contentId() {
     return (
-      await this.userNote.query({
-        note: {
-          publicId: 1,
-        },
+      await this.note.query({
+        publicId: 1,
       })
-    )?.note?.publicId;
+    )?.publicId;
   }
 
   textFields(args?: NotetextFieldsArgs) {
@@ -37,17 +47,15 @@ export class NoteQueryMapper implements NoteMapper {
           return Promise.resolve(field);
         },
         value: () => {
-          return new NoteCollabTextQueryMapper(this.userNote, field, {
+          return new NoteCollabTextQueryMapper(this.note, field, {
             query: async (query) => {
               return (
-                await this.userNote.query({
-                  note: {
-                    collabTexts: {
-                      [field]: query,
-                    },
+                await this.note.query({
+                  collabTexts: {
+                    [field]: query,
                   },
                 })
-              )?.note?.collabTexts?.[field];
+              )?.collabTexts?.[field];
             },
           });
         },
@@ -56,33 +64,49 @@ export class NoteQueryMapper implements NoteMapper {
   }
 
   async readOnly() {
-    return (await this.userNote.query({ readOnly: 1 }))?.readOnly;
+    return this.getTargetUserNote(
+      await this.note.query({
+        userNotes: {
+          $query: {
+            userId: 1,
+            readOnly: 1,
+          },
+        },
+      })
+    )?.readOnly;
   }
 
   preferences() {
     return new NotePreferencesQueryMapper({
       query: async (project) => {
-        return (await this.userNote.query({ preferences: project }))?.preferences;
+        return this.getTargetUserNote(
+          await this.note.query({
+            userNotes: {
+              $query: {
+                userId: 1,
+                preferences: project,
+              },
+            },
+          })
+        )?.preferences;
       },
     });
   }
 
   async ownerId(): Promise<ObjectId | undefined> {
-    return (await this.userNote.query({ note: { ownerId: 1 } }))?.note?.ownerId;
+    return (await this.note.query({ ownerId: 1 }))?.ownerId;
   }
 
   async sharing() {
-    const userNote = await this.userNote.query({
-      note: {
-        shareNoteLinks: {
-          $query: {
-            publicId: 1,
-          },
+    const userNote = await this.note.query({
+      shareNoteLinks: {
+        $query: {
+          publicId: 1,
         },
       },
     });
 
-    const publicId = userNote?.note?.shareNoteLinks?.[0]?.publicId;
+    const publicId = userNote?.shareNoteLinks?.[0]?.publicId;
     if (!publicId) return null;
 
     return {
@@ -91,12 +115,17 @@ export class NoteQueryMapper implements NoteMapper {
   }
 
   async categoryName() {
-    const note = await this.userNote.query({
-      category: {
-        name: 1,
+    const note = await this.note.query({
+      userNotes: {
+        $query: {
+          userId: 1,
+          category: {
+            name: 1,
+          },
+        },
       },
     });
 
-    return note?.category?.name as NoteCategory;
+    return this.getTargetUserNote(note)?.category?.name as NoteCategory;
   }
 }

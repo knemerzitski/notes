@@ -4,7 +4,7 @@ import { ObjectId } from 'mongodb';
 
 import isObjectLike from '~utils/type-guards/isObjectLike';
 
-import { MongoDBCollectionsOnlyNames } from '../../../collections';
+import { CollectionName, MongoDBCollectionsOnlyNames } from '../../../collections';
 import relayArrayPagination, {
   relayArrayPaginationMapAggregateResult,
   relayMultiArraySplit,
@@ -13,20 +13,18 @@ import relayArrayPagination, {
 } from '../../../pagination/relayArrayPagination';
 import asArrayFieldDescription from '../../../query/asArrayFieldDescription';
 import { DeepAnyDescription } from '../../../query/description';
-import {
-  QueryableUserNote,
-  queryableUserNoteDescription,
-} from '../../user-note/query/queryable-user-note';
+import { QueryableNote, queryableNoteDescription } from '../../note/query/queryable-note';
 import { UserSchema } from '../user';
 
-import user_userNoteLookup, { User_UserNoteLookup } from './user_userNoteLookup';
+import user_noteLookup, { User_NoteLookup } from './user_noteLookup';
 
 export type QueryableUser = Omit<UserSchema, 'notes'> & {
   notes: Omit<UserSchema['notes'], 'category'> & {
     category: {
       [Key in string]?: Omit<UserSchema['notes']['category'][Key], 'order'> & {
         order: {
-          items: User_UserNoteLookup<QueryableUserNote>[];
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
+          items: User_NoteLookup<QueryableNote>[];
           firstId: ObjectId;
           lastId: ObjectId;
         };
@@ -36,7 +34,7 @@ export type QueryableUser = Omit<UserSchema, 'notes'> & {
 };
 
 export interface QueryableUserContext {
-  collections: MongoDBCollectionsOnlyNames;
+  collections: Pick<MongoDBCollectionsOnlyNames, CollectionName.NOTES>;
 }
 
 export const queryableUserDescription: DeepAnyDescription<
@@ -49,14 +47,14 @@ export const queryableUserDescription: DeepAnyDescription<
       $anyKey: {
         order: {
           items: {
-            ...asArrayFieldDescription(queryableUserNoteDescription),
+            ...asArrayFieldDescription(queryableNoteDescription),
             $mapLastProject(query, projectValue) {
               if (!query.$query) return;
 
-              // Delete UserNote._id projection if set to 0
+              // Delete Note._id projection if set to 0
               // Exclusion is not allowed in $project except root _id
-              if (queryableUserNoteDescription.$mapLastProject) {
-                projectValue = queryableUserNoteDescription.$mapLastProject(
+              if (queryableNoteDescription.$mapLastProject) {
+                projectValue = queryableNoteDescription.$mapLastProject(
                   query.$query,
                   projectValue
                 );
@@ -124,8 +122,8 @@ export const queryableUserDescription: DeepAnyDescription<
                 },
               },
               // Lookup UserNote
-              ...user_userNoteLookup({
-                collectionName: customContext.collections.userNotes.collectionName,
+              ...user_noteLookup({
+                collectionName: customContext.collections.notes.collectionName,
                 fieldPath: `${concatUserNotesFieldPath}.array`,
                 pipeline: [
                   ...innerStages({

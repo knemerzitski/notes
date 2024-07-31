@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
-import { Collection, ObjectId } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { afterEach, assert, beforeAll, expect, it, vi } from 'vitest';
 
 import {
@@ -16,9 +16,8 @@ import { NoteCategory } from '../graphql/types.generated';
 import { createMongoDBLoaders, MongoDBLoaders } from './loaders';
 import { DeepQuery } from './query/query';
 import { NoteSchema } from './schema/note/note';
+import { QueryableNote } from './schema/note/query/queryable-note';
 import { UserSchema } from './schema/user/user';
-
-import { QueryableUserNote } from './schema/user-note/query/queryable-user-note';
 
 let populateResult: ReturnType<typeof populateNotes>;
 let user: UserSchema;
@@ -45,7 +44,7 @@ beforeAll(async () => {
 });
 
 function databaseCallsCountGetter() {
-  const collections: Collection[] = Object.values(mongoCollections);
+  const collections = Object.values(mongoCollections);
 
   const spyCollections = collections.map((col) => vi.spyOn(col, 'aggregate'));
 
@@ -61,11 +60,9 @@ it('loading note from user primes userNote loader', async () => {
 
   expect(dbCallCount()).toStrictEqual(0);
 
-  const userNoteQuery: DeepQuery<QueryableUserNote> = {
+  const userNoteQuery: DeepQuery<QueryableNote> = {
     _id: 1,
-    note: {
-      publicId: 1,
-    },
+    publicId: 1,
   };
   const userResult = await loaders.user.load({
     userId: user._id,
@@ -95,15 +92,11 @@ it('loading note from user primes userNote loader', async () => {
             items: [
               {
                 _id: expect.any(ObjectId),
-                note: {
-                  publicId: expect.any(String),
-                },
+                publicId: expect.any(String),
               },
               {
                 _id: expect.any(ObjectId),
-                note: {
-                  publicId: expect.any(String),
-                },
+                publicId: expect.any(String),
               },
             ],
           },
@@ -114,17 +107,15 @@ it('loading note from user primes userNote loader', async () => {
 
   expect(dbCallCount()).toStrictEqual(1);
 
-  const quickUserNoteResult = await loaders.userNote.load({
+  const quickUserNoteResult = await loaders.note.load({
     userId: user._id,
     publicId: note.publicId,
-    userNoteQuery,
+    noteQuery: userNoteQuery,
   });
 
   expect(quickUserNoteResult).toStrictEqual({
     _id: expect.any(ObjectId),
-    note: {
-      publicId: expect.any(String),
-    },
+    publicId: expect.any(String),
   });
 
   expect(

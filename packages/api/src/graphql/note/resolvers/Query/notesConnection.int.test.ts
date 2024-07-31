@@ -95,14 +95,14 @@ beforeAll(async () => {
 });
 
 it('returns last 2 notes, after: 7, first 4 => 8,9 (10 notes total)', async () => {
-  const userNote7 = populateResult.data[7]?.userNote;
-  assert(userNote7 != null);
+  const note7 = populateResult.data[7]?.note;
+  assert(note7 != null);
 
   const response = await apolloServer.executeOperation(
     {
       query: QUERY,
       variables: {
-        after: userNote7._id.toString('base64'),
+        after: note7._id.toString('base64'),
         first: 4,
       },
     },
@@ -164,8 +164,8 @@ it('returns nothing when cursor is invalid', async () => {
 });
 
 it('returns empty array when cursor is not found', async () => {
-  const userNote6 = populateResult.data[6]?.userNote;
-  assert(userNote6 != null);
+  const note6 = populateResult.data[6]?.note;
+  assert(note6 != null);
 
   const response = await apolloServer.executeOperation(
     {
@@ -222,7 +222,7 @@ it('returns notes from different category: ARCHIVE', async () => {
     })
   ).toStrictEqual(
     populateResultArchive.data
-      .map(({ userNote }) => userNote)
+      .map(({ note }) => note)
       .map((n) => n._id.toString('base64'))
   );
 });

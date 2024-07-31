@@ -43,12 +43,12 @@ export const deleteNoteSharing: NonNullable<
     });
   }
 
-  const noteMapper = new NoteQueryMapper({
+  const noteMapper = new NoteQueryMapper(currentUserId, {
     query(query) {
-      return mongodb.loaders.userNote.load({
+      return mongodb.loaders.note.load({
         userId: currentUserId,
         publicId: notePublicId,
-        userNoteQuery: query,
+        noteQuery: query,
       });
     },
   });

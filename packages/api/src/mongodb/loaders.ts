@@ -2,17 +2,17 @@ import mitt from '~utils/mitt-unsub';
 
 import { MongoDBCollections } from './collections';
 import { MongoDBContext } from './lambda-context';
+import QueryableNoteLoader from './loaders/QueryableNoteLoader';
 import QueryableUserLoader from './loaders/QueryableUserLoader';
-import QueryableUserNoteLoader from './loaders/QueryableUserNoteLoader';
+import { QueryableNoteLoadKey } from './loaders/queryableNoteBatchLoad';
 import { QueryableUserLoadKey } from './loaders/queryableUserBatchLoad';
-import { QueryableUserNoteLoadKey } from './loaders/queryableUserNoteBatchLoad';
 import { DeepQueryResult } from './query/query';
+import { QueryableNote } from './schema/note/query/queryable-note';
 import { QueryableUser } from './schema/user/query/queryable-user';
-import { QueryableUserNote } from './schema/user-note/query/queryable-user-note';
 
 export interface MongoDBLoaders {
   user: QueryableUserLoader;
-  userNote: QueryableUserNoteLoader;
+  note: QueryableNoteLoader;
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -21,9 +21,9 @@ export type LoaderEvents = {
     key: QueryableUserLoadKey;
     value: DeepQueryResult<QueryableUser>;
   };
-  loadedUserNote: {
-    key: QueryableUserNoteLoadKey;
-    value: DeepQueryResult<QueryableUserNote>;
+  loadedNote: {
+    key: QueryableNoteLoadKey;
+    value: DeepQueryResult<QueryableNote>;
   };
 };
 
@@ -37,7 +37,7 @@ export function createMongoDBLoaders(
       ...context,
       eventBus: loadersEventBus,
     }),
-    userNote: new QueryableUserNoteLoader({
+    note: new QueryableNoteLoader({
       ...context,
       eventBus: loadersEventBus,
     }),

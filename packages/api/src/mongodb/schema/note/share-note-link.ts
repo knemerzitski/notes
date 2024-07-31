@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 
-import { UserNoteSchema } from '../user-note/user-note';
+import { UserSchema } from '../user/user';
 
 /**
  * Note sharing via links
@@ -14,7 +14,7 @@ export interface ShareNoteLinkSchema {
   /**
    * User who created this link
    */
-  creatorUserId: UserNoteSchema['_id'];
+  creatorUserId: UserSchema['_id'];
 
   /**
    * Permissions depending on user role

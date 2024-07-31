@@ -27,7 +27,6 @@ import {
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { NoteSchema } from '../../../../mongodb/schema/note/note';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
-import { UserNoteSchema } from '../../../../mongodb/schema/user-note/user-note';
 import { GraphQLResolversContext } from '../../../context';
 import {
   NoteCategory,
@@ -38,6 +37,8 @@ import {
 } from '../../../types.generated';
 
 import { updateNote } from './updateNote';
+
+// TODO organize tests
 
 const MUTATION = `#graphql
   mutation($input: UpdateNoteInput!){
@@ -94,7 +95,6 @@ describe('random records', () => {
   let user: UserSchema;
   let note: NoteSchema;
   let readOnlyNote: NoteSchema;
-  let readOnlyUserNote: UserNoteSchema;
 
   beforeEach(async () => {
     const populateBaseOptions: PopulateNotesOptions = {
@@ -137,7 +137,6 @@ describe('random records', () => {
     });
     assert(populateReadOnlyNote.data[0] != null);
     readOnlyNote = populateReadOnlyNote.data[0].note;
-    readOnlyUserNote = populateReadOnlyNote.data[0].userNote;
 
     await populateExecuteAll();
   });
@@ -245,19 +244,19 @@ describe('random records', () => {
       });
 
       await expect(
-        mongoCollections.userNotes.findOne(
+        mongoCollections.notes.findOne(
           {
-            _id: readOnlyUserNote._id,
+            _id: readOnlyNote._id,
           },
           {
             projection: {
               _id: 0,
-              bg: '$preferences.backgroundColor',
+              bg: '$userNotes.preferences.backgroundColor',
             },
           }
         )
       ).resolves.toStrictEqual({
-        bg: '#00000f',
+        bg: ['#00000f'],
       });
     });
 
@@ -1186,7 +1185,7 @@ describe('pre-determined records', () => {
 
 describe('single user and note', () => {
   let user: UserSchema;
-  let userNote: UserNoteSchema;
+  let note: NoteSchema;
 
   beforeEach(async () => {
     const populateResult = populateNotes(1, {
@@ -1200,18 +1199,18 @@ describe('single user and note', () => {
     });
     user = populateResult.user;
     assert(populateResult.data[0] != null);
-    userNote = populateResult.data[0].userNote;
+    note = populateResult.data[0].note;
 
     await populateExecuteAll();
   });
 
-  it('changes note category', async () => {
+  it('moves note from default to archive category', async () => {
     const response = await apolloServer.executeOperation(
       {
         query: MUTATION_CATEGORY,
         variables: {
           input: {
-            contentId: userNote.note.publicId,
+            contentId: note.publicId,
             patch: {
               categoryName: NoteCategory.ARCHIVE,
             },
@@ -1225,10 +1224,10 @@ describe('single user and note', () => {
 
     assert(response.body.kind === 'single');
     const { data, errors } = response.body.singleResult;
-    expect(errors).toBeUndefined();
+    expect(errors, JSON.stringify(errors, null, 2)).toBeUndefined();
     expect(data).toEqual({
       updateNote: {
-        contentId: userNote.note.publicId,
+        contentId: note.publicId,
         patch: {
           categoryName: NoteCategory.ARCHIVE,
         },
@@ -1263,6 +1262,26 @@ describe('single user and note', () => {
         },
       },
     });
+
+    const fetchedNote = await mongoCollections.notes.findOne(
+      {
+        'userNotes.userId': user._id,
+        publicId: note.publicId,
+      },
+      {
+        projection: {
+          userNotes: 1,
+        },
+      }
+    );
+    expect(
+      fetchedNote?.userNotes.some(
+        (userNote) =>
+          userNote.userId.equals(user._id) &&
+          userNote.category?.name === NoteCategory.ARCHIVE
+      ),
+      'Category was not updated in Note document'
+    ).toBeTruthy();
   });
 
   it('handles changing note category to any string', async () => {
@@ -1271,7 +1290,7 @@ describe('single user and note', () => {
       {},
       {
         input: {
-          contentId: userNote.note.publicId,
+          contentId: note.publicId,
           patch: {
             categoryName: 'randomCategory' as NoteCategory,
           },
@@ -1296,7 +1315,7 @@ describe('single user and note', () => {
       notes: {
         category: {
           randomCategory: {
-            order: [userNote._id],
+            order: [note._id],
           },
         },
       },
@@ -1309,7 +1328,7 @@ describe('single user and note', () => {
       {},
       {
         input: {
-          contentId: userNote.note.publicId,
+          contentId: note.publicId,
           patch: {
             textFields: [
               {
@@ -1342,7 +1361,7 @@ describe('single user and note', () => {
     await expect(
       mongoCollections.notes.findOne(
         {
-          _id: userNote.note._id,
+          _id: note._id,
         },
         {
           projection: {

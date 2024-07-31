@@ -3,9 +3,9 @@ import { nanoid } from 'nanoid';
 
 import { CollectionDescription } from '../../collections';
 import { CollabTextSchema } from '../collab-text/collab-text';
-import { UserNoteSchema } from '../user-note/user-note';
 
 import { ShareNoteLinkSchema } from './share-note-link';
+import { UserNoteSchema } from './user-note';
 
 export interface NoteSchema {
   _id: ObjectId;
@@ -13,14 +13,15 @@ export interface NoteSchema {
    * Unique generated ID used to access note
    */
   publicId: string;
+  // TODO move ownerId into userNote with permission field
   /**
    * User who owns this note. Only user that can delete it.
    */
   ownerId: ObjectId;
   /**
-   * All UserNotes that are referencing this note
+   * User specific info for this note
    */
-  userNotes: Pick<UserNoteSchema, '_id' | 'userId'>[];
+  userNotes: UserNoteSchema[];
   /**
    * Collaborative editing texts by field name
    * Key is enum value NoteTextField

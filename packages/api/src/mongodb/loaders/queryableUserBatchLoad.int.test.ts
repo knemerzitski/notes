@@ -73,22 +73,24 @@ it('loads paginated notes', async () => {
                         last: 2,
                       },
                       $query: {
-                        readOnly: 1,
-                        note: {
-                          publicId: 1,
-                          ownerId: 1,
-                          collabTexts: {
-                            CONTENT: {
-                              headText: {
-                                changeset: 1,
+                        publicId: 1,
+                        ownerId: 1,
+                        userNotes: {
+                          $query: {
+                            readOnly: 1,
+                          },
+                        },
+                        collabTexts: {
+                          CONTENT: {
+                            headText: {
+                              changeset: 1,
+                            },
+                            records: {
+                              $query: {
+                                revision: 1,
                               },
-                              records: {
-                                $query: {
-                                  revision: 1,
-                                },
-                                $pagination: {
-                                  first: 2,
-                                },
+                              $pagination: {
+                                first: 2,
                               },
                             },
                           },
@@ -112,42 +114,46 @@ it('loads paginated notes', async () => {
             order: {
               items: [
                 {
-                  readOnly: expect.any(Boolean),
-                  note: {
-                    publicId: 'publicId_6',
-                    ownerId: expect.any(ObjectId),
-                    collabTexts: {
-                      CONTENT: {
-                        headText: { changeset: ['head'] },
-                        records: [
-                          {
-                            revision: 1,
-                          },
-                          {
-                            revision: 2,
-                          },
-                        ],
-                      },
+                  publicId: 'publicId_6',
+                  ownerId: expect.any(ObjectId),
+                  userNotes: [
+                    {
+                      readOnly: expect.any(Boolean),
+                    },
+                  ],
+                  collabTexts: {
+                    CONTENT: {
+                      headText: { changeset: ['head'] },
+                      records: [
+                        {
+                          revision: 1,
+                        },
+                        {
+                          revision: 2,
+                        },
+                      ],
                     },
                   },
                 },
                 {
-                  readOnly: expect.any(Boolean),
-                  note: {
-                    publicId: 'publicId_8',
-                    ownerId: expect.any(ObjectId),
-                    collabTexts: {
-                      CONTENT: {
-                        headText: { changeset: ['head'] },
-                        records: [
-                          {
-                            revision: 1,
-                          },
-                          {
-                            revision: 2,
-                          },
-                        ],
-                      },
+                  publicId: 'publicId_8',
+                  ownerId: expect.any(ObjectId),
+                  userNotes: [
+                    {
+                      readOnly: expect.any(Boolean),
+                    },
+                  ],
+                  collabTexts: {
+                    CONTENT: {
+                      headText: { changeset: ['head'] },
+                      records: [
+                        {
+                          revision: 1,
+                        },
+                        {
+                          revision: 2,
+                        },
+                      ],
                     },
                   },
                 },
@@ -175,9 +181,7 @@ it('loads many different paginations', async () => {
                 items: {
                   $pagination: pagination,
                   $query: {
-                    note: {
-                      publicId: 1,
-                    },
+                    publicId: 1,
                   },
                 },
               },
@@ -211,7 +215,7 @@ it('loads many different paginations', async () => {
         createLoadKey(NoteCategory.DEFAULT, { last: 1 }), // 8
         createLoadKey(NoteCategory.ARCHIVE, {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          after: populateResult.data.at(1)?.userNote!._id,
+          after: populateResult.data.at(1)?.note!._id,
           first: 1,
         }), // 3
       ],
@@ -220,37 +224,27 @@ it('loads many different paginations', async () => {
   ).resolves.toMatchObject([
     wrapUserNotes(NoteCategory.DEFAULT, [
       {
-        note: {
-          publicId: 'publicId_0',
-        },
+        publicId: 'publicId_0',
       },
     ]),
     wrapUserNotes(NoteCategory.ARCHIVE, [
       {
-        note: {
-          publicId: 'publicId_9',
-        },
+        publicId: 'publicId_9',
       },
     ]),
     wrapUserNotes(NoteCategory.ARCHIVE, [
       {
-        note: {
-          publicId: 'publicId_1',
-        },
+        publicId: 'publicId_1',
       },
     ]),
     wrapUserNotes(NoteCategory.DEFAULT, [
       {
-        note: {
-          publicId: 'publicId_8',
-        },
+        publicId: 'publicId_8',
       },
     ]),
     wrapUserNotes(NoteCategory.ARCHIVE, [
       {
-        note: {
-          publicId: 'publicId_3',
-        },
+        publicId: 'publicId_3',
       },
     ]),
   ]);
@@ -273,9 +267,7 @@ it('loads firstId, lastId with pagination', async () => {
                       },
                       $query: {
                         _id: 1,
-                        note: {
-                          publicId: 1,
-                        },
+                        publicId: 1,
                       },
                     },
                     firstId: 1,
@@ -298,9 +290,7 @@ it('loads firstId, lastId with pagination', async () => {
               items: [
                 {
                   _id: expect.any(ObjectId),
-                  note: {
-                    publicId: 'publicId_0',
-                  },
+                  publicId: 'publicId_0',
                 },
               ],
               firstId: expect.any(ObjectId),
@@ -329,7 +319,7 @@ it('returns empty array for invalid path', async () => {
                         last: 2,
                       },
                       $query: {
-                        readOnly: 1,
+                        _id: 1,
                       },
                     },
                   },
