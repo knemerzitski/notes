@@ -32,11 +32,11 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
   // Initialize data
   const note: NoteSchema = {
     _id: new ObjectId(),
-    ownerId: currentUserId,
     publicId: noteDefaultValues.publicId(),
     userNotes: [
       {
         userId: currentUserId,
+        isOwner: true,
         preferences: {
           backgroundColor: input.note?.preferences?.backgroundColor ?? undefined,
         },

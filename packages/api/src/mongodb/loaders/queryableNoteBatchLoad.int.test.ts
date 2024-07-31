@@ -77,9 +77,9 @@ it('loads a simple note', async () => {
           publicId: note.publicId,
           noteQuery: {
             publicId: 1,
-            ownerId: 1,
             userNotes: {
               $query: {
+                isOwner: 1,
                 readOnly: 1,
               },
             },
@@ -106,8 +106,10 @@ it('loads a simple note', async () => {
   ).resolves.toEqual([
     {
       publicId: note.publicId,
-      ownerId: expect.any(ObjectId),
-      userNotes: [{ readOnly: expect.any(Boolean) }, { readOnly: expect.any(Boolean) }],
+      userNotes: [
+        { readOnly: expect.any(Boolean), isOwner: expect.any(Boolean) },
+        { readOnly: expect.any(Boolean) },
+      ],
       collabTexts: {
         CONTENT: {
           headText: { changeset: ['head'] },
@@ -135,10 +137,10 @@ it('loads all fields', async () => {
           noteQuery: {
             _id: 1,
             publicId: 1,
-            ownerId: 1,
             userNotes: {
               $query: {
                 readOnly: 1,
+                isOwner: 1,
                 preferences: {
                   backgroundColor: 1,
                 },
@@ -187,6 +189,7 @@ it('loads all fields', async () => {
       userNotes: [
         {
           readOnly: expect.any(Boolean),
+          isOwner: expect.any(Boolean),
           preferences: {
             backgroundColor: expect.any(String),
           },
@@ -199,7 +202,6 @@ it('loads all fields', async () => {
         },
       ],
       publicId: note.publicId,
-      ownerId: expect.any(ObjectId),
       collabTexts: {
         CONTENT: {
           headText: { changeset: ['head'], revision: expect.any(Number) },
@@ -315,7 +317,7 @@ it('loads a note for user who has UserNote document', async () => {
           userId: user_hasUserNote._id,
           publicId: note.publicId,
           noteQuery: {
-            ownerId: 1,
+            _id: 1,
           },
         },
       ],
@@ -323,8 +325,8 @@ it('loads a note for user who has UserNote document', async () => {
     )
   ).resolves.toEqual([
     {
+      _id: expect.any(ObjectId),
       publicId: expect.any(String),
-      ownerId: user._id,
     },
   ]);
 });

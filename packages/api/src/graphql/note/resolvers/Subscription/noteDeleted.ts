@@ -52,7 +52,7 @@ export const noteDeleted: NonNullable<SubscriptionResolvers['noteDeleted']> = {
 
 export async function publishNoteDeleted(
   { publish, auth }: GraphQLResolversContext,
-  ownerUserId: ObjectId,
+  ownerUserIds: ObjectId[],
   payload: ResolversTypes['NoteDeletedPayload']
 ) {
   assertAuthenticated(auth);
@@ -60,14 +60,19 @@ export async function publishNoteDeleted(
   const notePublicId = (await payload)?.contentId;
   if (!notePublicId) return;
 
-  const userId = ownerUserId.toString('base64');
-
   return Promise.allSettled([
     publish(`${SubscriptionTopicPrefix.NOTE_DELETED}:noteId=${notePublicId}`, {
       noteDeleted: payload,
     }),
-    publish(`${SubscriptionTopicPrefix.NOTE_DELETED}:userId=${userId}`, {
-      noteDeleted: payload,
-    }),
+    ...ownerUserIds.map((ownerUserId) =>
+      publish(
+        `${SubscriptionTopicPrefix.NOTE_DELETED}:userId=${ownerUserId.toString(
+          'base64'
+        )}`,
+        {
+          noteDeleted: payload,
+        }
+      )
+    ),
   ]);
 }

@@ -1,5 +1,3 @@
-import { ObjectId } from 'mongodb';
-
 import { Maybe } from '~utils/types';
 
 import { PageInfoMapper } from '../base/schema.mappers';
@@ -26,9 +24,9 @@ export interface NoteMapper {
   id(): ResolverTypeWrapper<string>;
   contentId(): ResolverTypeWrapper<string>;
   textFields(args?: NotetextFieldsArgs): NoteTextFieldEntryMapper[];
-  readOnly(): ResolverTypeWrapper<Maybe<boolean>>;
+  readOnly(): ResolverTypeWrapper<boolean>;
   preferences(): NotePreferencesMapper;
-  ownerId(): Promise<ObjectId | undefined>;
+  isOwner(): ResolverTypeWrapper<boolean>;
   sharing(): ResolverTypeWrapper<NoteSharing>;
   categoryName(): ResolverTypeWrapper<NoteCategory>;
 }

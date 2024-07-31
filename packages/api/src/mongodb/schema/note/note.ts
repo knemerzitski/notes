@@ -13,11 +13,6 @@ export interface NoteSchema {
    * Unique generated ID used to access note
    */
   publicId: string;
-  // TODO move ownerId into userNote with permission field
-  /**
-   * User who owns this note. Only user that can delete it.
-   */
-  ownerId: ObjectId;
   /**
    * User specific info for this note
    */

@@ -64,16 +64,18 @@ export class NoteQueryMapper implements NoteMapper {
   }
 
   async readOnly() {
-    return this.getTargetUserNote(
-      await this.note.query({
-        userNotes: {
-          $query: {
-            userId: 1,
-            readOnly: 1,
+    return (
+      this.getTargetUserNote(
+        await this.note.query({
+          userNotes: {
+            $query: {
+              userId: 1,
+              readOnly: 1,
+            },
           },
-        },
-      })
-    )?.readOnly;
+        })
+      )?.readOnly ?? false
+    );
   }
 
   preferences() {
@@ -93,8 +95,19 @@ export class NoteQueryMapper implements NoteMapper {
     });
   }
 
-  async ownerId(): Promise<ObjectId | undefined> {
-    return (await this.note.query({ ownerId: 1 }))?.ownerId;
+  async isOwner() {
+    return (
+      this.getTargetUserNote(
+        await this.note.query({
+          userNotes: {
+            $query: {
+              userId: 1,
+              isOwner: 1,
+            },
+          },
+        })
+      )?.isOwner ?? false
+    );
   }
 
   async sharing() {

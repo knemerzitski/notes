@@ -1,13 +1,14 @@
 import { GraphQLError } from 'graphql';
 
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
-import { ErrorWithData } from '~utils/logger';
 
 import { DeepQueryResult } from '../../../../mongodb/query/query';
 import { NoteSchema } from '../../../../mongodb/schema/note/note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { NoteQueryMapper } from '../../../note/mongo-query-mapper/note';
 import { publishNoteUpdated } from '../../../note/resolvers/Subscription/noteUpdated';
+
+import findNoteOwners from '../../../note/utils/findNoteOwners';
 
 import type { MutationResolvers } from './../../../types.generated';
 
@@ -28,7 +29,6 @@ export const deleteNoteSharing: NonNullable<
     {
       projection: {
         _id: 1,
-        ownerId: 1,
         userNotes: 1,
         shareNoteLinks: 1,
       },
@@ -61,15 +61,6 @@ export const deleteNoteSharing: NonNullable<
     };
   }
 
-  const ownerId = note.ownerId;
-  if (!ownerId) {
-    throw new ErrorWithData(`Expected Note.ownerId to be defined`, {
-      userId: currentUserId,
-      notePublicId,
-      note,
-    });
-  }
-
   await mongodb.collections.notes.updateOne(
     {
       _id: note._id,
@@ -81,7 +72,7 @@ export const deleteNoteSharing: NonNullable<
     }
   );
 
-  await publishNoteUpdated(ctx, ownerId, {
+  await publishNoteUpdated(ctx, findNoteOwners(note), {
     contentId: notePublicId,
     patch: {
       id: () => noteMapper.id(),

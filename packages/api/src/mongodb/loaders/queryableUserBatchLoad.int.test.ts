@@ -74,10 +74,10 @@ it('loads paginated notes', async () => {
                       },
                       $query: {
                         publicId: 1,
-                        ownerId: 1,
                         userNotes: {
                           $query: {
                             readOnly: 1,
+                            isOwner: 1,
                           },
                         },
                         collabTexts: {
@@ -115,9 +115,9 @@ it('loads paginated notes', async () => {
               items: [
                 {
                   publicId: 'publicId_6',
-                  ownerId: expect.any(ObjectId),
                   userNotes: [
                     {
+                      isOwner: expect.any(Boolean),
                       readOnly: expect.any(Boolean),
                     },
                   ],
@@ -137,9 +137,9 @@ it('loads paginated notes', async () => {
                 },
                 {
                   publicId: 'publicId_8',
-                  ownerId: expect.any(ObjectId),
                   userNotes: [
                     {
+                      isOwner: expect.any(Boolean),
                       readOnly: expect.any(Boolean),
                     },
                   ],

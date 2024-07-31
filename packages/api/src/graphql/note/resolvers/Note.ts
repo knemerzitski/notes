@@ -1,5 +1,4 @@
 import { NoteCategory, type NoteResolvers } from '../../../graphql/types.generated';
-import { assertAuthenticated } from '../../base/directives/auth';
 
 export const Note: Pick<
   NoteResolvers,
@@ -26,14 +25,8 @@ export const Note: Pick<
   contentId: (parent) => {
     return parent.contentId();
   },
-  isOwner: async (parent, _args, ctx) => {
-    const { auth } = ctx;
-    assertAuthenticated(auth);
-
-    const owner = await parent.ownerId();
-    if (!owner) return false;
-
-    return owner.equals(auth.session.user._id);
+  isOwner: async (parent) => {
+    return parent.isOwner();
   },
   categoryName: async (parent) => {
     return (await parent.categoryName()) ?? NoteCategory.DEFAULT;

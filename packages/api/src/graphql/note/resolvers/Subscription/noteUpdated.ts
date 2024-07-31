@@ -66,7 +66,7 @@ export const noteUpdated: NonNullable<SubscriptionResolvers['noteUpdated']> = {
 
 export async function publishNoteUpdated(
   { publish, auth }: GraphQLResolversContext,
-  ownerUserId: ObjectId,
+  ownerUserIds: ObjectId[],
   payload: ResolversTypes['NoteUpdatedPayload']
 ) {
   assertAuthenticated(auth);
@@ -75,14 +75,19 @@ export async function publishNoteUpdated(
   const notePublicId = awaitedPayload?.contentId;
   if (!notePublicId) return;
 
-  const userId = ownerUserId.toString('base64');
-
   return Promise.allSettled([
     publish(`${SubscriptionTopicPrefix.NOTE_UPDATED}:noteId=${notePublicId}`, {
       noteUpdated: payload,
     }),
-    publish(`${SubscriptionTopicPrefix.NOTE_UPDATED}:userId=${userId}`, {
-      noteUpdated: payload,
-    }),
+    ...ownerUserIds.map((ownerUserId) =>
+      publish(
+        `${SubscriptionTopicPrefix.NOTE_UPDATED}:userId=${ownerUserId.toString(
+          'base64'
+        )}`,
+        {
+          noteUpdated: payload,
+        }
+      )
+    ),
   ]);
 }

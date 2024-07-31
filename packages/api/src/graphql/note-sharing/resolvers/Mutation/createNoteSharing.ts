@@ -11,6 +11,8 @@ import { assertAuthenticated } from '../../../base/directives/auth';
 import { NoteQueryMapper } from '../../../note/mongo-query-mapper/note';
 import { publishNoteUpdated } from '../../../note/resolvers/Subscription/noteUpdated';
 
+import findNoteOwners from '../../../note/utils/findNoteOwners';
+
 import { type MutationResolvers } from './../../../types.generated';
 
 export const createNoteSharing: NonNullable<
@@ -27,10 +29,10 @@ export const createNoteSharing: NonNullable<
     noteQuery: {
       _id: 1,
       publicId: 1,
-      ownerId: 1,
       userNotes: {
         $query: {
           readOnly: 1,
+          isOwner: 1,
         },
       },
       shareNoteLinks: {
@@ -52,14 +54,6 @@ export const createNoteSharing: NonNullable<
   }
   if (!note.publicId) {
     throw new ErrorWithData(`Expected Note.publicId to be defined`, {
-      userId: currentUserId,
-      notePublicId,
-      userNote: note,
-    });
-  }
-  const ownerId = note.ownerId;
-  if (!ownerId) {
-    throw new ErrorWithData(`Expected Note.ownerId to be defined`, {
       userId: currentUserId,
       notePublicId,
       userNote: note,
@@ -122,7 +116,7 @@ export const createNoteSharing: NonNullable<
   // Override sharing with known value
   noteMapper.sharing = () => Promise.resolve({ id: shareNoteLink.publicId });
 
-  await publishNoteUpdated(ctx, ownerId, {
+  await publishNoteUpdated(ctx, findNoteOwners(note), {
     contentId: notePublicId,
     patch: {
       id: () => noteMapper.id(),

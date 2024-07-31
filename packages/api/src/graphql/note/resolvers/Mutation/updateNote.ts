@@ -7,7 +7,6 @@ import { ChangesetRevisionRecords } from '~collab/records/changeset-revision-rec
 import { RevisionChangeset, SerializedRevisionChangeset } from '~collab/records/record';
 import recordInsertion, { RecordInsertionError } from '~collab/records/recordInsertion';
 import { RevisionRecords } from '~collab/records/revision-records';
-import { ErrorWithData } from '~utils/logger';
 import isEmptyDeep from '~utils/object/isEmptyDeep';
 
 import { MongoQuery } from '../../../../mongodb/query/query';
@@ -24,6 +23,7 @@ import {
 } from '../../../types.generated';
 import { NoteQueryMapper } from '../../mongo-query-mapper/note';
 import { NoteCollabTextQueryMapper } from '../../mongo-query-mapper/note-collab-text';
+import findNoteOwners from '../../utils/findNoteOwners';
 import findUserNote from '../../utils/findUserNote';
 import { publishNoteUpdated } from '../Subscription/noteUpdated';
 
@@ -54,11 +54,11 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
     publicId: notePublicId,
     noteQuery: {
       _id: 1,
-      ownerId: 1,
       userNotes: {
         $query: {
           userId: 1,
           readOnly: 1,
+          isOwner: 1,
           category: {
             name: 1,
           },
@@ -77,15 +77,6 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
       extensions: {
         code: GraphQLErrorCode.NOT_FOUND,
       },
-    });
-  }
-
-  const ownerId = note.ownerId;
-  if (!ownerId) {
-    throw new ErrorWithData(`Expected Note.ownerId to be defined`, {
-      userId: currentUserId,
-      notePublicId,
-      userNote: note,
     });
   }
 
@@ -539,7 +530,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
   );
 
   if (payloads.publish !== null) {
-    await publishNoteUpdated(ctx, ownerId, payloads.publish);
+    await publishNoteUpdated(ctx, findNoteOwners(note), payloads.publish);
   }
 
   return payloads.response;

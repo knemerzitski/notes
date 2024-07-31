@@ -25,14 +25,17 @@ export function fakeNote(
 ): NoteSchema {
   return {
     _id: new ObjectId(),
-    ownerId: ownerUser._id,
     publicId: noteDefaultValues.publicId(),
     ...options?.override,
     userNotes:
       options?.override?.userNotes
         ?.filter(isDefined)
         .map(({ category, ...restUserNote }) => {
-          const defaultUserNote = fakeUserNote(ownerUser);
+          const defaultUserNote = fakeUserNote(ownerUser, {
+            override: {
+              isOwner: true,
+            },
+          });
           return {
             ...defaultUserNote,
             ...restUserNote,

@@ -9,6 +9,8 @@ import {
   type MutationResolvers,
   type ResolversTypes,
 } from '../../../types.generated';
+import findNoteOwners from '../../utils/findNoteOwners';
+import findUserNote from '../../utils/findUserNote';
 import { publishNoteDeleted } from '../Subscription/noteDeleted';
 
 export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
@@ -27,10 +29,10 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
     publicId: notePublicId,
     noteQuery: {
       _id: 1,
-      ownerId: 1,
       userNotes: {
         $query: {
           userId: 1,
+          isOwner: 1,
           category: {
             name: 1,
           },
@@ -40,9 +42,9 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
   });
 
   const noteId = note._id;
-  const ownerId = note.ownerId;
   const userNotes = note.userNotes ?? [];
-  if (!noteId || !ownerId) {
+  const userNote = findUserNote(currentUserId, note);
+  if (!noteId || !userNote) {
     throw new GraphQLError(`Note '${notePublicId}' not found`, {
       extensions: {
         code: GraphQLErrorCode.NOT_FOUND,
@@ -50,7 +52,7 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
     });
   }
 
-  const isCurrentUserOwner = ownerId.equals(currentUserId);
+  const isCurrentUserOwner = userNote.isOwner ?? false;
   if (isCurrentUserOwner) {
     // Delete note completely
     await mongodb.client.withSession((session) =>
@@ -134,7 +136,7 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
   };
 
   if (isCurrentUserOwner) {
-    await publishNoteDeleted(ctx, ownerId, payload);
+    await publishNoteDeleted(ctx, findNoteOwners(note), payload);
   }
 
   return payload;
