@@ -1,5 +1,7 @@
 import { AggregateOptions, ObjectId } from 'mongodb';
 
+import groupBy from '~utils/array/groupBy';
+
 import { CollectionName, MongoDBCollections } from '../collections';
 
 import { MongoDBContext } from '../lambda-context';
@@ -11,8 +13,6 @@ import {
   QueryableUser,
   queryableUserDescription,
 } from '../schema/user/query/queryable-user';
-
-import groupByUserId from './utils/groupByUserId';
 
 export interface QueryableUserLoadKey {
   /**
@@ -37,7 +37,7 @@ export default async function queryableUserBatchLoad(
   context: Readonly<QueryableUserBatchLoadContext>,
   aggregateOptions?: AggregateOptions
 ): Promise<(DeepQueryResult<QueryableUser> | Error)[]> {
-  const keysByUserId = groupByUserId(keys);
+  const keysByUserId = groupBy(keys, (item) => item.userId.toHexString());
 
   const results = Object.fromEntries(
     await Promise.all(

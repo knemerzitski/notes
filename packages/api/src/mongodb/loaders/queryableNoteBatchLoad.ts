@@ -3,6 +3,8 @@ import { AggregateOptions, ObjectId } from 'mongodb';
 
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
+import groupBy from '~utils/array/groupBy';
+
 import { CollectionName, MongoDBCollections } from '../collections';
 
 import { MongoDBContext } from '../lambda-context';
@@ -15,8 +17,6 @@ import {
   QueryableNote,
   queryableNoteDescription,
 } from '../schema/note/query/queryable-note';
-
-import groupByUserId from './utils/groupByUserId';
 
 export interface QueryableNoteLoadKey {
   /**
@@ -45,7 +45,7 @@ export default async function queryableNoteBatchLoad(
   context: Readonly<QueryableNoteBatchLoadContext>,
   aggregateOptions?: AggregateOptions
 ): Promise<(DeepQueryResult<QueryableNote> | Error)[]> {
-  const keysByUserId = groupByUserId(keys);
+  const keysByUserId = groupBy(keys, (key) => key.userId.toString('hex'));
 
   const notesBy_userId_publicId = Object.fromEntries(
     await Promise.all(
