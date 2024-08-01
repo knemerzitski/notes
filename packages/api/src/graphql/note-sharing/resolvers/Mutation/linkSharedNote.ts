@@ -1,10 +1,5 @@
-import { GraphQLError } from 'graphql';
-
-import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import { ErrorWithData } from '~utils/logger';
 
-import { DeepQueryResult } from '../../../../mongodb/query/query';
-import { NoteSchema } from '../../../../mongodb/schema/note/note';
 import { UserNoteSchema } from '../../../../mongodb/schema/note/user-note';
 import { getNotesArrayPath } from '../../../../mongodb/schema/user/user';
 import { assertAuthenticated } from '../../../base/directives/auth';
@@ -29,39 +24,18 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
 
   const currentUserId = auth.session.user._id;
 
-  // TODO use loader
-  const note = (await mongodb.collections.notes.findOne(
-    {
-      'shareNoteLinks.publicId': shareNoteLinkPublicId,
-    },
-    {
-      projection: {
-        _id: 1,
-        publicId: 1,
-        userNotes: {
+  const note = await mongodb.loaders.noteByShareLink.load({
+    shareNoteLinkPublicId,
+    noteQuery: {
+      _id: 1,
+      publicId: 1,
+      userNotes: {
+        $query: {
           userId: 1,
         },
       },
-    }
-  )) as
-    | DeepQueryResult<
-        Pick<NoteSchema, '_id' | 'publicId' | 'shareNoteLinks'> & {
-          userNotes: Pick<
-            NoteSchema['userNotes'] extends (infer U)[] ? U : never,
-            'userId'
-          >[];
-        }
-      >
-    | null
-    | undefined;
-
-  if (!note) {
-    throw new GraphQLError(`Shared note '${shareNoteLinkPublicId}' not found`, {
-      extensions: {
-        code: GraphQLErrorCode.NOT_FOUND,
-      },
-    });
-  }
+    },
+  });
 
   const notePublicId = note.publicId;
   if (!notePublicId) {

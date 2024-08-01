@@ -2,8 +2,6 @@ import { GraphQLError } from 'graphql';
 
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
-import { DeepQueryResult } from '../../../../mongodb/query/query';
-import { NoteSchema } from '../../../../mongodb/schema/note/note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { NoteQueryMapper } from '../../../note/mongo-query-mapper/note';
 import { publishNoteUpdated } from '../../../note/resolvers/Subscription/noteUpdated';
@@ -20,22 +18,20 @@ export const deleteNoteSharing: NonNullable<
 
   const currentUserId = auth.session.user._id;
 
-  // TODO use loader
-  const note = (await mongodb.collections.notes.findOne(
-    {
-      'userNotes.userId': currentUserId,
-      publicId: notePublicId,
-    },
-    {
-      projection: {
-        _id: 1,
-        userNotes: 1,
-        shareNoteLinks: 1,
+  const note = await mongodb.loaders.note.load({
+    userId: currentUserId,
+    publicId: notePublicId,
+    noteQuery: {
+      _id: 1,
+      shareNoteLinks: {
+        $query: {
+          publicId: 1,
+        },
       },
-    }
-  )) as DeepQueryResult<NoteSchema> | null | undefined;
+    },
+  });
 
-  if (!note?._id) {
+  if (!note._id) {
     throw new GraphQLError(`Note '${notePublicId}' not found`, {
       extensions: {
         code: GraphQLErrorCode.NOT_FOUND,
