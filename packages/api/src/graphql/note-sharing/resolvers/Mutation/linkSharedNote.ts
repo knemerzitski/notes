@@ -37,20 +37,20 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
     },
   });
 
-  const notePublicId = note.publicId;
-  if (!notePublicId) {
-    throw new ErrorWithData(`Expected Note.publicId to be defined`, {
+  function throwExpectedProperty(name: string): never {
+    throw new ErrorWithData(`Expected '${name}' to be defined`, {
       userId: currentUserId,
       shareNoteLinkPublicId,
       note,
     });
   }
+
+  const notePublicId = note.publicId;
+  if (!notePublicId) {
+    throwExpectedProperty('publicId');
+  }
   if (!note.userNotes) {
-    throw new ErrorWithData(`Expected Note.userNotes to be defined`, {
-      userId: currentUserId,
-      shareNoteLinkPublicId,
-      note,
-    });
+    throwExpectedProperty('userNotes');
   }
 
   // TODO implement permissions and expiration
@@ -75,11 +75,7 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
   }
 
   if (!note._id) {
-    throw new ErrorWithData(`Expected Note._id to be defined`, {
-      userId: currentUserId,
-      shareNoteLinkPublicId,
-      note,
-    });
+    throwExpectedProperty('_id');
   }
 
   const sharedUserNote: UserNoteSchema = {

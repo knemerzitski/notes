@@ -28,13 +28,6 @@ export const createNoteSharing: NonNullable<
     publicId: notePublicId,
     noteQuery: {
       _id: 1,
-      publicId: 1,
-      userNotes: {
-        $query: {
-          readOnly: 1,
-          isOwner: 1,
-        },
-      },
       shareNoteLinks: {
         $query: {
           expireAccessCount: 1,
@@ -44,20 +37,16 @@ export const createNoteSharing: NonNullable<
     },
   });
 
-  // TODO create utility function to guarantee properties are defined
-  if (!note._id) {
-    throw new ErrorWithData(`Expected Note._id to be defined`, {
+  function throwExpectedProperty(name: string): never {
+    throw new ErrorWithData(`Expected '${name}' to be defined`, {
       userId: currentUserId,
       notePublicId,
-      userNote: note,
+      note,
     });
   }
-  if (!note.publicId) {
-    throw new ErrorWithData(`Expected Note.publicId to be defined`, {
-      userId: currentUserId,
-      notePublicId,
-      userNote: note,
-    });
+
+  if (!note._id) {
+    throwExpectedProperty('_id');
   }
 
   const nowTime = Date.now();
