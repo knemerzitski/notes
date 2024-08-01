@@ -102,8 +102,8 @@ beforeAll(async () => {
   };
 
   // TOOD defined search index in note schema
-  const serachIndexes = await mongoCollections.notes.listSearchIndexes().toArray();
-  if (serachIndexes.length > 0) {
+  const searchIndexes = await mongoCollections.notes.listSearchIndexes().toArray();
+  if (searchIndexes.length > 0) {
     await mongoCollections.notes.dropSearchIndex('collabTextsHeadText');
   }
   await mongoCollections.notes.createSearchIndex({
@@ -158,7 +158,7 @@ beforeAll(async () => {
   }
 });
 
-it('finds a note, {first: 1}', async () => {
+it('finds a note, first: 1', async () => {
   const result = await notesSearchBatchLoad(
     [
       createLoadKey('foo', {

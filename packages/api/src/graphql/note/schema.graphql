@@ -116,6 +116,14 @@ extend type Query {
   ): NoteConnection! @auth
   "Get note by content (Note.contentId value)"
   note(contentId: String!): Note! @auth
+  "Search notes using natural language"
+  notesAdvancedSearchConnection(
+    searchText: String!
+    first: NonNegativeInt
+    after: String
+    last: NonNegativeInt
+    before: String
+  ): NoteConnection! @auth
 }
 
 input CreateNoteInput {
