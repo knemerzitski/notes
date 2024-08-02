@@ -95,6 +95,8 @@ export default async function notesSearchBatchLoad(
                   sameArgsKeys.map(({ searchQuery }) => searchQuery)
                 );
 
+                mergedQuery.cursor = 1;
+
                 // Build aggregate pipeline for note
                 const aggregatePipeline = mergedQueryToPipeline(mergedQuery, {
                   description: searchDescription,
@@ -166,10 +168,17 @@ export default async function notesSearchBatchLoad(
                           },
                         },
                       },
-                      // Sort order
+                      {
+                        $addFields: {
+                          _search: {
+                            score: { $meta: 'searchScore' },
+                          },
+                        },
+                      },
+                      //Sort order
                       {
                         $sort: {
-                          score: sortReverse ? 1 : -1,
+                          '_search.score': sortReverse ? 1 : -1,
                         },
                       },
                       ...(limit != null
@@ -191,6 +200,10 @@ export default async function notesSearchBatchLoad(
                     aggregateOptions
                   )
                   .toArray();
+
+                if (sortReverse) {
+                  notesResult.reverse();
+                }
 
                 return [sameArgsStr, { notesResult, mergedQuery }];
               })

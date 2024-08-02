@@ -31,17 +31,35 @@ export const notesAdvancedSearchConnection: NonNullable<
 
   const isForwardPagination = args.after != null || args.first != null;
 
+  let basePaginationOffset: number;
+  let basePaginationLength: number;
   let pagination: RelayPagination<string>;
   if (isForwardPagination) {
+    basePaginationOffset = 0;
+    basePaginationLength = first;
     pagination = {
       after,
-      first,
+      first: first + 1,
     };
   } else {
+    basePaginationOffset = 1;
+    basePaginationLength = last;
     pagination = {
       before,
-      last,
+      last: last + 1,
     };
+  }
+
+  function getSearchOffset(searchResultSize: number) {
+    if (searchResultSize > basePaginationLength) {
+      return basePaginationOffset;
+    } else {
+      return 0;
+    }
+  }
+
+  function getSearchLength(searchResultSize: number) {
+    return Math.min(searchResultSize, basePaginationLength);
   }
 
   function loadSearchNotes(searchQuery: DeepObjectQuery<QueryableNoteSearch>) {
@@ -73,13 +91,13 @@ export const notesAdvancedSearchConnection: NonNullable<
       });
       if (!resultCount) return [];
 
-      return [...new Array<undefined>(resultCount)].map((_, index) => {
+      return [...new Array<undefined>(getSearchLength(resultCount))].map((_, index) => {
         const noteQuery = new NoteQueryMapper(currentUserId, {
           query: async (query) => {
             const searchResult = await loadSearchNotes({
               note: query,
             });
-            return searchResult[index]?.note;
+            return searchResult[getSearchOffset(searchResult.length) + index]?.note;
           },
         });
 
@@ -90,7 +108,52 @@ export const notesAdvancedSearchConnection: NonNullable<
       throw new Error('Not implemented');
     },
     pageInfo() {
-      throw new Error('Not implemented');
+      return {
+        async hasNextPage() {
+          if (isForwardPagination) {
+            const searchResult = await loadSearchNotes({
+              cursor: 1,
+            });
+            return searchResult.length > basePaginationLength;
+          } else {
+            if (before) {
+              const searchResult = await loadSearchNotes({
+                cursor: 1,
+              });
+              return searchResult.length > 0;
+            }
+            return false;
+          }
+        },
+        async hasPreviousPage() {
+          if (isForwardPagination) {
+            if (after) {
+              const searchResult = await loadSearchNotes({
+                cursor: 1,
+              });
+              return searchResult.length > 0;
+            }
+            return false;
+          } else {
+            const searchResult = await loadSearchNotes({
+              cursor: 1,
+            });
+            return searchResult.length > basePaginationLength;
+          }
+        },
+        async startCursor() {
+          const searchResult = await loadSearchNotes({
+            cursor: 1,
+          });
+          return searchResult[getSearchOffset(searchResult.length)]?.cursor;
+        },
+        async endCursor() {
+          const searchResult = await loadSearchNotes({
+            cursor: 1,
+          });
+          return searchResult[getSearchLength(searchResult.length) - 1]?.cursor;
+        },
+      };
     },
   };
 };

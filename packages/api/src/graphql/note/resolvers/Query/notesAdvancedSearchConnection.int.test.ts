@@ -21,8 +21,8 @@ import { GraphQLResolversContext } from '../../../context';
 import { NoteConnection, NoteTextField } from '../../../types.generated';
 
 const QUERY = `#graphql
-  query($searchText: String! $after: String, $first: NonNegativeInt) {
-    notesAdvancedSearchConnection(searchText: $searchText, after: $after, first: $first){
+  query($searchText: String! $after: String, $first: NonNegativeInt, $before: String, $last: NonNegativeInt) {
+    notesAdvancedSearchConnection(searchText: $searchText, after: $after, first: $first, before: $before, last: $last){
       notes {
         textFields {
           key
@@ -32,6 +32,12 @@ const QUERY = `#graphql
             }
           }
         }
+      }
+      pageInfo {
+        hasPreviousPage
+        hasNextPage
+        startCursor
+        endCursor
       }
     }
   }
@@ -47,15 +53,27 @@ beforeAll(async () => {
 
   populateResult = populateNotesWithText([
     {
-      [NoteTextField.TITLE]: 'foo',
+      [NoteTextField.TITLE]: '1',
+      [NoteTextField.CONTENT]: 'bar bar',
+    },
+    {
+      [NoteTextField.TITLE]: '2',
+      [NoteTextField.CONTENT]: 'foo foo',
+    },
+    {
+      [NoteTextField.TITLE]: '3',
       [NoteTextField.CONTENT]: 'bar',
     },
     {
-      [NoteTextField.TITLE]: 'bar',
-      [NoteTextField.CONTENT]: 'bar',
+      [NoteTextField.TITLE]: '4',
+      [NoteTextField.CONTENT]: 'foo foo foo',
     },
     {
-      [NoteTextField.TITLE]: 'foo',
+      [NoteTextField.TITLE]: '5',
+      [NoteTextField.CONTENT]: 'bar bar bar',
+    },
+    {
+      [NoteTextField.TITLE]: '6',
       [NoteTextField.CONTENT]: 'foo',
     },
   ]);
@@ -66,7 +84,7 @@ beforeAll(async () => {
 
   contextValue = createGraphQLResolversContext(user);
 
-  // TOOD defined search index in note schema
+  // TODO defined search index in note schema
   const searchIndexes = await mongoCollections.notes.listSearchIndexes().toArray();
   if (searchIndexes.length > 0) {
     await mongoCollections.notes.dropSearchIndex('collabTextsHeadText');
@@ -123,14 +141,17 @@ beforeAll(async () => {
   }
 });
 
-it('finds a note, first: 1', async () => {
+async function fetchPaginate(variables: {
+  searchText: string;
+  after?: string | number | null;
+  before?: string | number | null;
+  first?: number;
+  last?: number;
+}) {
   const response = await apolloServer.executeOperation(
     {
       query: QUERY,
-      variables: {
-        searchText: 'foo',
-        first: 1,
-      },
+      variables,
     },
     {
       contextValue,
@@ -139,27 +160,148 @@ it('finds a note, first: 1', async () => {
 
   assert(response.body.kind === 'single');
   const { data, errors } = response.body.singleResult;
-  expect(errors).toBeUndefined();
-  const typedData = data as { notesAdvancedSearchConnection: NoteConnection };
+  expect(errors, JSON.stringify(errors, null, 2)).toBeUndefined();
 
-  expect(
-    typedData.notesAdvancedSearchConnection.notes.map((note) => {
-      const titleField = note.textFields.find(
-        (textField) => textField.key === NoteTextField.TITLE
-      );
-      const contentField = note.textFields.find(
-        (textField) => textField.key === NoteTextField.CONTENT
-      );
-      const titleText = Changeset.parseValue(
-        titleField?.value.headText.changeset
-      ).joinInsertions();
-      const contentText = Changeset.parseValue(
-        contentField?.value.headText.changeset
-      ).joinInsertions();
-      return {
-        title: titleText,
-        content: contentText,
-      };
-    })
-  ).toStrictEqual([{ title: 'foo', content: 'foo' }]);
+  assert(data != null);
+
+  return data.notesAdvancedSearchConnection as NoteConnection;
+}
+
+function getContentFieldTexts(data: NoteConnection) {
+  return data.notes.map((note) => {
+    const contentField = note.textFields.find(
+      (textField) => textField.key === NoteTextField.CONTENT
+    );
+    const contentText = Changeset.parseValue(
+      contentField?.value.headText.changeset
+    ).joinInsertions();
+
+    return contentText;
+  });
+}
+
+it('paginates notes from start to end', async () => {
+  // [(foo foo foo),foo foo,foo]
+  let pagination = await fetchPaginate({
+    searchText: 'foo',
+    first: 1,
+  });
+  expect(getContentFieldTexts(pagination)).toStrictEqual(['foo foo foo']);
+  expect(pagination.pageInfo).toEqual({
+    hasNextPage: true,
+    hasPreviousPage: false,
+    startCursor: expect.any(String),
+    endCursor: expect.any(String),
+  });
+
+  // [foo foo foo,(foo foo),foo]
+  pagination = await fetchPaginate({
+    searchText: 'foo',
+    first: 1,
+    after: pagination.pageInfo.endCursor,
+  });
+  expect(getContentFieldTexts(pagination)).toStrictEqual(['foo foo']);
+  expect(pagination.pageInfo).toEqual({
+    hasNextPage: true,
+    hasPreviousPage: true,
+    startCursor: expect.any(String),
+    endCursor: expect.any(String),
+  });
+
+  // [foo foo foo,foo foo,(foo)]
+  pagination = await fetchPaginate({
+    searchText: 'foo',
+    first: 1,
+    after: pagination.pageInfo.endCursor,
+  });
+  expect(getContentFieldTexts(pagination)).toStrictEqual(['foo']);
+  expect(pagination.pageInfo).toEqual({
+    hasNextPage: false,
+    hasPreviousPage: true,
+    startCursor: expect.any(String),
+    endCursor: expect.any(String),
+  });
+
+  // [foo foo foo,foo foo,foo,()]
+  pagination = await fetchPaginate({
+    searchText: 'foo',
+    first: 1,
+    after: pagination.pageInfo.endCursor,
+  });
+  expect(getContentFieldTexts(pagination)).toStrictEqual([]);
+  expect(pagination.pageInfo).toEqual({
+    hasNextPage: false,
+    hasPreviousPage: false,
+    startCursor: null,
+    endCursor: null,
+  });
+});
+
+it('paginates notes from end to start', async () => {
+  let result = await fetchPaginate({
+    searchText: 'foo',
+    last: 1,
+  });
+  expect(getContentFieldTexts(result)).toStrictEqual(['foo']);
+  expect(result.pageInfo).toEqual({
+    hasNextPage: false,
+    hasPreviousPage: true,
+    startCursor: expect.any(String),
+    endCursor: expect.any(String),
+  });
+
+  result = await fetchPaginate({
+    searchText: 'foo',
+    last: 1,
+    before: result.pageInfo.startCursor,
+  });
+  expect(getContentFieldTexts(result)).toStrictEqual(['foo foo']);
+  expect(result.pageInfo).toEqual({
+    hasNextPage: true,
+    hasPreviousPage: true,
+    startCursor: expect.any(String),
+    endCursor: expect.any(String),
+  });
+
+  result = await fetchPaginate({
+    searchText: 'foo',
+    last: 1,
+    before: result.pageInfo.startCursor,
+  });
+  expect(getContentFieldTexts(result)).toStrictEqual(['foo foo foo']);
+  expect(result.pageInfo).toEqual({
+    hasNextPage: true,
+    hasPreviousPage: false,
+    startCursor: expect.any(String),
+    endCursor: expect.any(String),
+  });
+
+  result = await fetchPaginate({
+    searchText: 'foo',
+    last: 1,
+    before: result.pageInfo.startCursor,
+  });
+  expect(getContentFieldTexts(result)).toStrictEqual([]);
+  expect(result.pageInfo).toEqual({
+    hasNextPage: false,
+    hasPreviousPage: false,
+    startCursor: null,
+    endCursor: null,
+  });
+});
+
+it('invalid cursor returns empty array', async () => {
+  const pagination = await fetchPaginate({
+    searchText: 'bar',
+    first: 1,
+    after: 'CAIVisvKPg==',
+  });
+
+  expect(getContentFieldTexts(pagination)).toStrictEqual([]);
+  expect(pagination.pageInfo).toMatchObject({
+    hasNextPage: false,
+    hasPreviousPage: false,
+    startCursor: null,
+    endCursor: null,
+  });
 });
