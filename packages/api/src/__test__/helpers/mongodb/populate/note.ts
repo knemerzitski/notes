@@ -1,9 +1,7 @@
-import mapObject from 'map-obj';
 import { ObjectId } from 'mongodb';
 
 import isDefined from '~utils/type-guards/isDefined';
 
-import { NoteCategory, NoteTextField } from '../../../../graphql/types.generated';
 import { noteDefaultValues, NoteSchema } from '../../../../mongodb/schema/note/note';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { mongoCollections } from '../mongodb';
@@ -16,7 +14,7 @@ import { fakeUserNote } from './user-note';
 
 export interface FakeNoteOptions {
   override?: DeepPartial<Omit<NoteSchema, 'collabTexts'>>;
-  collabTexts?: { [key in NoteTextField]?: FakeCollabTextOptions };
+  collabTexts?: Record<string, FakeCollabTextOptions | undefined>;
 }
 
 export function fakeNote(
@@ -28,29 +26,23 @@ export function fakeNote(
     publicId: noteDefaultValues.publicId(),
     ...options?.override,
     userNotes:
-      options?.override?.userNotes
-        ?.filter(isDefined)
-        .map(({ category, ...restUserNote }) => {
-          const defaultUserNote = fakeUserNote(ownerUser, {
-            override: {
-              isOwner: true,
-            },
-          });
-          return {
-            ...defaultUserNote,
-            ...restUserNote,
-            category: {
-              name: NoteCategory.DEFAULT,
-              ...defaultUserNote.category,
-              ...category,
-            },
-          };
-        }) ?? [],
-    collabTexts: mapObject(NoteTextField, (_key, fieldName) => {
-      return [
-        fieldName,
-        fakeCollabText(ownerUser._id, options?.collabTexts?.[fieldName]),
-      ];
+      options?.override?.userNotes?.filter(isDefined).map((userNote) => {
+        const defaultUserNote = fakeUserNote(ownerUser, {
+          override: {
+            isOwner: true,
+          },
+        });
+
+        return {
+          ...defaultUserNote,
+          ...userNote,
+        };
+      }) ?? [],
+    ...(options?.collabTexts && {
+      collabTexts: Object.entries(options.collabTexts).map(([key, value]) => ({
+        k: key,
+        v: fakeCollabText(ownerUser._id, value),
+      })),
     }),
     shareNoteLinks:
       options?.override?.shareNoteLinks?.filter(isDefined).map((shareNoteLink) => ({

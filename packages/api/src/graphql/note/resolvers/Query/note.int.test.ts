@@ -55,6 +55,7 @@ beforeAll(async () => {
   await resetDatabase();
 
   const populateResult = populateNotes(2, {
+    collabTextKeys: Object.values(NoteTextField),
     collabText() {
       return {
         recordsCount: 2,
@@ -64,13 +65,15 @@ beforeAll(async () => {
       if (noteIndex === 1) {
         return {
           override: {
-            category: {
-              name: NoteCategory.ARCHIVE,
-            },
+            categoryName: NoteCategory.ARCHIVE,
           },
         };
       }
-      return;
+      return {
+        override: {
+          categoryName: NoteCategory.DEFAULT,
+        },
+      };
     },
   });
 
@@ -102,7 +105,7 @@ it('returns note', async () => {
 
   assert(response.body.kind === 'single');
   const { data, errors } = response.body.singleResult;
-  expect(errors).toBeUndefined();
+  expect(errors, JSON.stringify(errors, null, 2)).toBeUndefined();
 
   expect(data).toEqual({
     note: {

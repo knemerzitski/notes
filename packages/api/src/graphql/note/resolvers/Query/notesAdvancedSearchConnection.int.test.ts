@@ -1,16 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
-import mapObject from 'map-obj';
 import { assert, beforeAll, expect, it } from 'vitest';
 
 import { Changeset } from '~collab/changeset/changeset';
 
 import { apolloServer } from '../../../../__test__/helpers/graphql/apollo-server';
 import { createGraphQLResolversContext } from '../../../../__test__/helpers/graphql/graphql-context';
-import {
-  mongoCollections,
-  resetDatabase,
-} from '../../../../__test__/helpers/mongodb/mongodb';
+import { dropAndCreateSearchIndexes } from '../../../../__test__/helpers/mongodb/indexes';
+import { resetDatabase } from '../../../../__test__/helpers/mongodb/mongodb';
 import {
   populateNotes,
   populateNotesWithText,
@@ -51,94 +48,20 @@ beforeAll(async () => {
   faker.seed(42347);
   await resetDatabase();
 
-  populateResult = populateNotesWithText([
+  populateResult = populateNotesWithText(
+    ['bar bar', 'foo foo', 'bar', 'foo foo foo', 'bar bar bar', 'foo'],
     {
-      [NoteTextField.TITLE]: '1',
-      [NoteTextField.CONTENT]: 'bar bar',
-    },
-    {
-      [NoteTextField.TITLE]: '2',
-      [NoteTextField.CONTENT]: 'foo foo',
-    },
-    {
-      [NoteTextField.TITLE]: '3',
-      [NoteTextField.CONTENT]: 'bar',
-    },
-    {
-      [NoteTextField.TITLE]: '4',
-      [NoteTextField.CONTENT]: 'foo foo foo',
-    },
-    {
-      [NoteTextField.TITLE]: '5',
-      [NoteTextField.CONTENT]: 'bar bar bar',
-    },
-    {
-      [NoteTextField.TITLE]: '6',
-      [NoteTextField.CONTENT]: 'foo',
-    },
-  ]);
+      collabTextKeys: Object.values(NoteTextField),
+    }
+  );
 
   user = populateResult.user;
 
   await populateExecuteAll();
 
+  await dropAndCreateSearchIndexes();
+
   contextValue = createGraphQLResolversContext(user);
-
-  // TODO defined search index in note schema
-  const searchIndexes = await mongoCollections.notes.listSearchIndexes().toArray();
-  if (searchIndexes.length > 0) {
-    await mongoCollections.notes.dropSearchIndex('collabTextsHeadText');
-  }
-  await mongoCollections.notes.createSearchIndex({
-    name: 'collabTextsHeadText',
-    definition: {
-      mappings: {
-        dynamic: false,
-        fields: {
-          userNotes: {
-            type: 'document',
-            fields: {
-              userId: {
-                type: 'objectId',
-              },
-            },
-          },
-          collabTexts: {
-            type: 'document',
-            fields: mapObject(NoteTextField, (_key, fieldName) => [
-              fieldName,
-              {
-                type: 'document',
-                fields: {
-                  headText: {
-                    type: 'document',
-                    fields: {
-                      changeset: {
-                        type: 'string',
-                        analyzer: 'lucene.english',
-                      },
-                    },
-                  },
-                },
-              },
-            ]),
-          },
-        },
-      },
-    },
-  });
-
-  // Wait for search index to be ready
-  while (
-    (
-      (await mongoCollections.notes.listSearchIndexes().next()) as {
-        name: string;
-        status: string;
-      } | null
-    )?.status !== 'READY'
-  ) {
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
 });
 
 async function fetchPaginate(variables: {
@@ -294,6 +217,7 @@ it('invalid cursor returns empty array', async () => {
   const pagination = await fetchPaginate({
     searchText: 'bar',
     first: 1,
+    // TODO find an always invalid cursor, sometimes this test fails
     after: 'CAIVisvKPg==',
   });
 

@@ -1,7 +1,11 @@
 import mapObject from 'map-obj';
-import { Collection, Db, IndexDescription } from 'mongodb';
+import { Collection, Db, IndexDescription, SearchIndexDescription } from 'mongodb';
 
-import { NoteSchema, noteDescription } from './schema/note/note';
+import {
+  NoteSchema,
+  noteDescription,
+  noteSearchIndexDescriptions,
+} from './schema/note/note';
 import { SessionSchema, sessionDescription } from './schema/session/session';
 import { userDescription, UserSchema } from './schema/user/user';
 
@@ -38,6 +42,12 @@ export const collectionDescriptions: Partial<
   [CollectionName.NOTES]: noteDescription,
 };
 
+export const collectionSearchIndexDescriptions: Partial<
+  Record<CollectionName, SearchIndexDescription[]>
+> = {
+  [CollectionName.NOTES]: noteSearchIndexDescriptions,
+};
+
 export type MongoDBCollections = {
   [Key in CollectionName]: CollectionDefinitions[Key]['schema'];
 };
@@ -52,21 +62,85 @@ export function createCollectionInstances(mongoDB: Db): MongoDBCollections {
   }) as MongoDBCollections;
 }
 
-export async function createAllIndexes(
-  collections: MongoDBCollections
-): Promise<Record<CollectionName, string[] | undefined>> {
-  const results = await Promise.all(
-    Object.entries(collectionDescriptions).map<
-      Promise<[CollectionName, string[] | undefined]>
-    >(async ([rawKey, schema]) => {
-      const key = rawKey as CollectionName;
-      if (!schema.indexSpecs || schema.indexSpecs.length === 0) return [key, undefined];
+interface CreateAllIndexesOptions {
+  /**
+   * @default true
+   */
+  indexes?: boolean;
+  /**
+   * @default false
+   */
+  searchIndexes?: boolean;
+}
 
-      const collection = collections[key];
-      const result = await collection.createIndexes(schema.indexSpecs);
-      return [key, result];
-    })
-  );
+export function createAllIndexes(
+  collections: MongoDBCollections,
+  options?: CreateAllIndexesOptions
+) {
+  const createIndexes = options?.indexes ?? true;
+  const createSearchIndexes = options?.searchIndexes ?? false;
 
-  return Object.fromEntries(results) as Record<CollectionName, string[] | undefined>;
+  return Promise.all([
+    // CollectionDescription
+    ...(createIndexes
+      ? Object.entries(collectionDescriptions).map<
+          Promise<[CollectionName, string[] | undefined]>
+        >(async ([rawKey, description]) => {
+          const colName = rawKey as CollectionName;
+          if (!description.indexSpecs || description.indexSpecs.length === 0)
+            return [colName, undefined];
+
+          const collection = collections[colName];
+          const result = await collection.createIndexes(description.indexSpecs);
+          return [colName, result];
+        })
+      : []),
+
+    // SearchIndexDescription
+    ...(createSearchIndexes
+      ? // createSearchIndex is only available on MongoDB Atlas deployments hosted on at least tier M10
+        // M0 requires creating search index through cli or ui
+        Object.entries(collectionSearchIndexDescriptions).map<
+          Promise<[CollectionName, string[] | undefined]>
+        >(async ([rawKey, searchDescriptions]) => {
+          const colName = rawKey as CollectionName;
+
+          const collection = collections[colName];
+          const result = await collection.createSearchIndexes(searchDescriptions);
+          return [colName, result];
+        })
+      : []),
+  ]);
+}
+
+interface DropAllIndexesOptions {
+  /**
+   * @default true
+   */
+  indexes?: boolean;
+  /**
+   * @default false
+   */
+  searchIndexes?: boolean;
+}
+
+export function dropAllIndexes(
+  collections: MongoDBCollections,
+  options?: DropAllIndexesOptions
+) {
+  const dropIndexes = options?.indexes ?? true;
+  const dropSearchIndexes = options?.searchIndexes ?? false;
+  return Promise.all([
+    // CollectionDescription
+    ...(dropIndexes ? Object.values(collections).map((coll) => coll.dropIndexes()) : []),
+
+    // SearchIndexDescription
+    ...(dropSearchIndexes
+      ? Object.values(collections).flatMap(async (collection) => {
+          const existingIndexes = await collection.listSearchIndexes().toArray();
+
+          return existingIndexes.map((index) => collection.dropSearchIndex(index.name));
+        })
+      : []),
+  ]);
 }

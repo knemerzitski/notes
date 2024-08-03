@@ -80,6 +80,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
 
   const categoryName = args.category ?? NoteCategory.DEFAULT;
 
+  // TODO renname, no userNote
   function loadUser_userNote(
     noteQuery: DeepObjectQuery<QueryableNote>,
     additionalOrderQuery?: DeepObjectQuery<QueryableOrderExtra>

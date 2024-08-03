@@ -1,9 +1,13 @@
 import { Handler } from 'aws-lambda';
+
 import 'source-map-support/register';
 import { createLogger } from '~utils/logger';
 
 import { createDefaultMongoDBContext } from './handler-params';
 import { createAllIndexes } from './mongodb/collections';
+
+const TIER = process.env.MONGODB_TIER;
+const hasAtlasSearch = TIER === 'enterprise';
 
 /**
  * Handler that should be run once after deployment.
@@ -20,7 +24,9 @@ export const handler: Handler = async (event: unknown, context: unknown) => {
     const mongodb = await createDefaultMongoDBContext(logger);
 
     logger.info('createAllIndexes');
-    await createAllIndexes(mongodb.collections);
+    await createAllIndexes(mongodb.collections, {
+      searchIndexes: hasAtlasSearch,
+    });
 
     return {
       statusCode: 200,

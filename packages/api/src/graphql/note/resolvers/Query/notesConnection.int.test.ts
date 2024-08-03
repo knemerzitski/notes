@@ -9,7 +9,12 @@ import { populateNotes } from '../../../../__test__/helpers/mongodb/populate/pop
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { GraphQLResolversContext } from '../../../context';
-import { NoteCategory, NoteConnection, NoteEdge } from '../../../types.generated';
+import {
+  NoteCategory,
+  NoteConnection,
+  NoteEdge,
+  NoteTextField,
+} from '../../../types.generated';
 
 const QUERY = `#graphql
   query($after: String, $first: NonNegativeInt, $before: String, $last: NonNegativeInt, $category: NoteCategory) {
@@ -61,6 +66,7 @@ beforeAll(async () => {
   await resetDatabase();
 
   populateResult = populateNotes(10, {
+    collabTextKeys: Object.values(NoteTextField),
     collabText() {
       return {
         recordsCount: 2,
@@ -73,17 +79,23 @@ beforeAll(async () => {
         },
       };
     },
+    userNote() {
+      return {
+        override: {
+          categoryName: NoteCategory.DEFAULT,
+        },
+      };
+    },
   });
   user = populateResult.user;
 
   populateResultArchive = populateNotes(3, {
+    collabTextKeys: Object.values(NoteTextField),
     user,
     userNote() {
       return {
         override: {
-          category: {
-            name: NoteCategory.ARCHIVE,
-          },
+          categoryName: NoteCategory.ARCHIVE,
         },
       };
     },

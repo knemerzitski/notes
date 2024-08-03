@@ -1,10 +1,8 @@
 import { faker } from '@faker-js/faker';
-import mapObject from 'map-obj';
+import mapObject, { mapObjectSkip } from 'map-obj';
 import { ObjectId } from 'mongodb';
 
 import isDefined from '~utils/type-guards/isDefined';
-
-import { NoteCategory } from '../../../../graphql/types.generated';
 
 import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { mongoCollections } from '../mongodb';
@@ -33,16 +31,18 @@ export function fakeUser(options?: FakeUserOptions): UserSchema {
     },
     notes: {
       ...options?.override?.notes,
-      category: mapObject(NoteCategory, (_key, categoryName) => [
-        categoryName,
-        {
-          ...options?.override?.notes?.category?.[categoryName],
-          order:
-            options?.override?.notes?.category?.[categoryName]?.order?.filter(
-              isDefined
-            ) ?? [],
-        },
-      ]),
+      category: options?.override?.notes?.category
+        ? mapObject(options.override.notes.category, (categoryName, category) => {
+            if (!categoryName || !category) return mapObjectSkip;
+
+            const mergedCategory = {
+              ...category,
+              order: category.order?.filter(isDefined) ?? [],
+            };
+
+            return [categoryName, mergedCategory];
+          })
+        : {},
     },
   };
 }

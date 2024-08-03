@@ -229,8 +229,6 @@ export function buildStages<TSchema = unknown, TContext = unknown>(
       const item = queue.shift();
       if (!item || ignoreQueries.has(item.query)) continue;
 
-      // console.log(`>${item.rootPath.join('.')}`);
-
       const { query, description, rootPath, relativePath } = item;
 
       // Queue next depth

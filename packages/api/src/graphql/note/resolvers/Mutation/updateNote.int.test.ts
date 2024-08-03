@@ -15,11 +15,15 @@ import {
   mockSubscriptionsModel,
 } from '../../../../__test__/helpers/graphql/graphql-context';
 import { mockResolver } from '../../../../__test__/helpers/graphql/mock-resolver';
+import { expectGraphQLResponseData } from '../../../../__test__/helpers/graphql/response';
 import {
   createMongoDBContext,
   mongoCollections,
   resetDatabase,
 } from '../../../../__test__/helpers/mongodb/mongodb';
+import findNoteUserNote, {
+  findNoteTextField,
+} from '../../../../__test__/helpers/mongodb/note';
 import {
   populateNotes,
   PopulateNotesOptions,
@@ -98,6 +102,7 @@ describe('random records', () => {
 
   beforeEach(async () => {
     const populateBaseOptions: PopulateNotesOptions = {
+      collabTextKeys: Object.values(NoteTextField),
       collabText() {
         return {
           recordsCount: 4,
@@ -228,9 +233,7 @@ describe('random records', () => {
         }
       );
 
-      assert(response.body.kind === 'single');
-      const { data, errors } = response.body.singleResult;
-      expect(errors).toBeUndefined();
+      const data = expectGraphQLResponseData(response);
       expect(data).toEqual({
         updateNote: {
           contentId: readOnlyNote.publicId,
@@ -298,10 +301,8 @@ describe('random records', () => {
           }
         );
 
-        // Response
-        assert(response.body.kind === 'single');
-        const { data, errors } = response.body.singleResult;
-        expect(errors, JSON.stringify(errors, null, 2)).toBeUndefined();
+        const data = expectGraphQLResponseData(response);
+
         expect(data).toEqual({
           updateNote: {
             contentId: expect.any(String),
@@ -336,32 +337,21 @@ describe('random records', () => {
         });
 
         // Database
-        await expect(
-          mongoCollections.notes.findOne(
-            {
-              _id: note._id,
-            },
-            {
-              projection: {
-                _id: 0,
-                record: {
-                  $last: '$collabTexts.CONTENT.records',
-                },
-              },
-            }
-          )
-        ).resolves.toEqual({
-          record: {
-            userGeneratedId: 'aa',
-            creatorUserId: expect.any(ObjectId),
-            revision: 15,
-            changeset: [[0, 3], '. after head'],
-            beforeSelection: {
-              start: 4,
-            },
-            afterSelection: {
-              start: 16,
-            },
+        const dbNote = await mongoCollections.notes.findOne({
+          _id: note._id,
+        });
+        const records = findNoteTextField(dbNote, NoteTextField.CONTENT)?.records;
+        assert(records != null, 'Expected note text field to have records');
+        expect(records[records.length - 1]).toStrictEqual({
+          userGeneratedId: 'aa',
+          creatorUserId: expect.any(ObjectId),
+          revision: 15,
+          changeset: [[0, 3], '. after head'],
+          beforeSelection: {
+            start: 4,
+          },
+          afterSelection: {
+            start: 16,
           },
         });
       });
@@ -444,32 +434,21 @@ describe('random records', () => {
         });
 
         // Database
-        await expect(
-          mongoCollections.notes.findOne(
-            {
-              _id: note._id,
-            },
-            {
-              projection: {
-                _id: 0,
-                record: {
-                  $last: '$collabTexts.CONTENT.records',
-                },
-              },
-            }
-          )
-        ).resolves.toEqual({
-          record: {
-            userGeneratedId: 'aa',
-            creatorUserId: expect.any(ObjectId),
-            revision: 15,
-            changeset: [[0, 3], 'text before "r_12"'],
-            beforeSelection: {
-              start: 0,
-            },
-            afterSelection: {
-              start: 22,
-            },
+        const dbNote = await mongoCollections.notes.findOne({
+          _id: note._id,
+        });
+        const records = findNoteTextField(dbNote, NoteTextField.CONTENT)?.records;
+        assert(records != null, 'Expected note text field to have records');
+        expect(records[records.length - 1]).toStrictEqual({
+          userGeneratedId: 'aa',
+          creatorUserId: expect.any(ObjectId),
+          revision: 15,
+          changeset: [[0, 3], 'text before "r_12"'],
+          beforeSelection: {
+            start: 0,
+          },
+          afterSelection: {
+            start: 22,
           },
         });
       });
@@ -700,7 +679,7 @@ describe('random records', () => {
 
       describe('tailText compose older records', () => {
         it('keeps exact records when composed on headText', async () => {
-          await apolloServer.executeOperation(
+          const response = await apolloServer.executeOperation(
             {
               query: MUTATION,
               variables: {
@@ -743,32 +722,26 @@ describe('random records', () => {
             }
           );
 
-          // Database
-          const fetchedNote = await mongoCollections.notes.findOne(
-            {
-              _id: note._id,
-            },
-            {
-              projection: {
-                _id: 0,
-                collabTexts: {
-                  CONTENT: {
-                    tailText: 1,
-                    records: 1,
-                  },
-                },
-              },
-            }
-          );
+          const _data = expectGraphQLResponseData(response);
+          // TODO check data
 
-          expect(fetchedNote?.collabTexts.CONTENT?.tailText.revision).toStrictEqual(12);
+          // Database
+          const fetchedNote = await mongoCollections.notes.findOne({
+            _id: note._id,
+          });
+
           expect(
-            fetchedNote?.collabTexts.CONTENT?.records.map((record) => record.revision)
+            findNoteTextField(fetchedNote, NoteTextField.CONTENT)?.tailText.revision
+          ).toStrictEqual(12);
+          expect(
+            findNoteTextField(fetchedNote, NoteTextField.CONTENT)?.records.map(
+              (record) => record.revision
+            )
           ).toStrictEqual([13, 14, 15]);
         });
 
         it('keeps more records when composed on older record', async () => {
-          await apolloServer.executeOperation(
+          const response = await apolloServer.executeOperation(
             {
               query: MUTATION,
               variables: {
@@ -811,27 +784,21 @@ describe('random records', () => {
             }
           );
 
-          // // Database
-          const fetchedNote = await mongoCollections.notes.findOne(
-            {
-              _id: note._id,
-            },
-            {
-              projection: {
-                _id: 0,
-                collabTexts: {
-                  CONTENT: {
-                    tailText: 1,
-                    records: 1,
-                  },
-                },
-              },
-            }
-          );
+          const _data = expectGraphQLResponseData(response);
+          // TODO check data
 
-          expect(fetchedNote?.collabTexts.CONTENT?.tailText.revision).toStrictEqual(13);
+          // Database
+          const fetchedNote = await mongoCollections.notes.findOne({
+            _id: note._id,
+          });
+
           expect(
-            fetchedNote?.collabTexts.CONTENT?.records.map((record) => record.revision)
+            findNoteTextField(fetchedNote, NoteTextField.CONTENT)?.tailText.revision
+          ).toStrictEqual(13);
+          expect(
+            findNoteTextField(fetchedNote, NoteTextField.CONTENT)?.records.map(
+              (record) => record.revision
+            )
           ).toStrictEqual([14, 15]);
         });
       });
@@ -1075,6 +1042,7 @@ describe('pre-determined records', () => {
     generatedId = 0;
 
     const populateResult = populateNotes(1, {
+      collabTextKeys: Object.values(NoteTextField),
       collabText() {
         return {
           override: {
@@ -1139,32 +1107,14 @@ describe('pre-determined records', () => {
       ]);
 
       // Verify directly against database
-      const fetchedNote = await mongoCollections.notes.findOne(
-        {
-          _id: note._id,
-        },
-        {
-          projection: {
-            collabTexts: {
-              CONTENT: {
-                headText: {
-                  changeset: 1,
-                },
-                records: {
-                  changeset: 1,
-                  revision: 1,
-                },
-              },
-            },
-          },
-        }
-      );
-      assert(fetchedNote != null);
+      const dbNote = await mongoCollections.notes.findOne({
+        _id: note._id,
+      });
+      const contentField = findNoteTextField(dbNote, NoteTextField.CONTENT);
+      assert(contentField != null, 'Expecte note to have CONTENT field');
 
       expect(
-        Changeset.parseValue(
-          fetchedNote.collabTexts.CONTENT?.headText.changeset
-        ).joinInsertions(),
+        Changeset.parseValue(contentField.headText.changeset).joinInsertions(),
         'updateNote resolver is not using transactions'
       ).toStrictEqual('abcdefAB');
 
@@ -1178,7 +1128,11 @@ describe('pre-determined records', () => {
           { changeset: [[0, 5], 'B'], revision: 6 },
           { changeset: [[0, 5], 'A', 6], revision: 7 },
         ],
-      ]).toContainEqual(fetchedNote.collabTexts.CONTENT?.records.slice(6));
+      ]).toContainEqual(
+        contentField.records
+          .slice(6)
+          .map(({ changeset, revision }) => ({ changeset, revision }))
+      );
     }
   );
 });
@@ -1189,10 +1143,12 @@ describe('single user and note', () => {
 
   beforeEach(async () => {
     const populateResult = populateNotes(1, {
+      collabTextKeys: Object.values(NoteTextField),
       userNote() {
         return {
           override: {
             readOnly: false,
+            categoryName: NoteCategory.DEFAULT,
           },
         };
       },
@@ -1222,9 +1178,7 @@ describe('single user and note', () => {
       }
     );
 
-    assert(response.body.kind === 'single');
-    const { data, errors } = response.body.singleResult;
-    expect(errors, JSON.stringify(errors, null, 2)).toBeUndefined();
+    const data = expectGraphQLResponseData(response);
     expect(data).toEqual({
       updateNote: {
         contentId: note.publicId,
@@ -1235,53 +1189,37 @@ describe('single user and note', () => {
     });
 
     // Check DB in User document that category is swapped
-    await expect(
-      mongoCollections.users.findOne(
-        {
-          _id: user._id,
-        },
-        {
-          projection: {
-            'notes.category': 1,
-          },
-        }
-      )
-    ).resolves.toEqual({
+    const dbUser = await mongoCollections.users.findOne({
       _id: user._id,
-      notes: {
-        category: {
-          [NoteCategory.ARCHIVE]: {
-            order: [expect.any(ObjectId)],
-          },
-          [NoteCategory.DEFAULT]: {
-            order: [],
-          },
-          [NoteCategory.STICKY]: {
-            order: [],
-          },
-        },
-      },
     });
-
-    const fetchedNote = await mongoCollections.notes.findOne(
-      {
-        'userNotes.userId': user._id,
-        publicId: note.publicId,
-      },
-      {
-        projection: {
-          userNotes: 1,
+    expect(dbUser).toEqual(
+      expect.objectContaining({
+        _id: user._id,
+        notes: {
+          category: {
+            [NoteCategory.ARCHIVE]: {
+              order: [expect.any(ObjectId)],
+            },
+            [NoteCategory.DEFAULT]: {
+              order: [],
+            },
+          },
         },
-      }
+      })
     );
+
+    const dbNote = await mongoCollections.notes.findOne({
+      'userNotes.userId': user._id,
+      publicId: note.publicId,
+    });
+    assert(dbNote != null, 'Expected to have note in DB');
+
+    const userNote = findNoteUserNote(user._id, dbNote);
+
     expect(
-      fetchedNote?.userNotes.some(
-        (userNote) =>
-          userNote.userId.equals(user._id) &&
-          userNote.category?.name === NoteCategory.ARCHIVE
-      ),
+      userNote?.categoryName,
       'Category was not updated in Note document'
-    ).toBeTruthy();
+    ).toStrictEqual(NoteCategory.ARCHIVE);
   });
 
   it('handles changing note category to any string', async () => {
@@ -1359,20 +1297,18 @@ describe('single user and note', () => {
     );
 
     await expect(
-      mongoCollections.notes.findOne(
-        {
-          _id: note._id,
-        },
-        {
-          projection: {
-            collabTexts: 1,
+      mongoCollections.notes.findOne({
+        _id: note._id,
+      })
+    ).resolves.toEqual(
+      expect.objectContaining({
+        collabTexts: expect.arrayContaining([
+          {
+            k: 'randomField',
+            v: expect.any(Object),
           },
-        }
-      )
-    ).resolves.toMatchObject({
-      collabTexts: {
-        randomField: expect.any(Object),
-      },
-    });
+        ]),
+      })
+    );
   });
 });

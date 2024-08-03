@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
-import mapObject from 'map-obj';
 import { beforeAll, it, expect, assert } from 'vitest';
 
 import { Changeset } from '~collab/changeset/changeset';
 
+import { dropAndCreateSearchIndexes } from '../../__test__/helpers/mongodb/indexes';
 import { resetDatabase, mongoCollections } from '../../__test__/helpers/mongodb/mongodb';
 import {
+  TestCollabTextKey,
   populateNotes,
   populateNotesWithText,
 } from '../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../__test__/helpers/mongodb/populate/populate-queue';
-import { NoteTextField } from '../../graphql/types.generated';
 import { UserSchema } from '../schema/user/user';
 
 import notesSearchBatchLoad, {
@@ -24,24 +24,19 @@ let user: UserSchema;
 
 let context: NotesSearchBatchLoadContext;
 
-function resultByText(title: string, content: string) {
-  return {
+function resultsByText(...texts: string[]) {
+  return texts.map((text) => ({
     cursor: expect.any(String),
     note: {
       collabTexts: {
-        [NoteTextField.TITLE]: {
+        [TestCollabTextKey.TEXT]: {
           headText: {
-            changeset: Changeset.fromInsertion(title).serialize(),
-          },
-        },
-        [NoteTextField.CONTENT]: {
-          headText: {
-            changeset: Changeset.fromInsertion(content).serialize(),
+            changeset: Changeset.fromInsertion(text).serialize(),
           },
         },
       },
     },
-  };
+  }));
 }
 
 function createLoadKey(
@@ -57,12 +52,7 @@ function createLoadKey(
       ...override?.searchQuery,
       note: {
         collabTexts: {
-          TITLE: {
-            headText: {
-              changeset: 1,
-            },
-          },
-          CONTENT: {
+          [TestCollabTextKey.TEXT]: {
             headText: {
               changeset: 1,
             },
@@ -78,84 +68,17 @@ beforeAll(async () => {
   await resetDatabase();
   faker.seed(3325);
 
-  populateResult = populateNotesWithText([
-    {
-      [NoteTextField.TITLE]: 'foo',
-      [NoteTextField.CONTENT]: 'bar',
-    },
-    {
-      [NoteTextField.TITLE]: 'bar',
-      [NoteTextField.CONTENT]: 'bar',
-    },
-    {
-      [NoteTextField.TITLE]: 'foo',
-      [NoteTextField.CONTENT]: 'foo',
-    },
-  ]);
+  populateResult = populateNotesWithText(['foo foo foo', 'bar', 'foo foo', 'foo']);
 
   user = populateResult.user;
 
   await populateExecuteAll();
 
+  await dropAndCreateSearchIndexes();
+
   context = {
     collections: mongoCollections,
   };
-
-  // TOOD defined search index in note schema
-  const searchIndexes = await mongoCollections.notes.listSearchIndexes().toArray();
-  if (searchIndexes.length > 0) {
-    await mongoCollections.notes.dropSearchIndex('collabTextsHeadText');
-  }
-  await mongoCollections.notes.createSearchIndex({
-    name: 'collabTextsHeadText',
-    definition: {
-      mappings: {
-        dynamic: false,
-        fields: {
-          userNotes: {
-            type: 'document',
-            fields: {
-              userId: {
-                type: 'objectId',
-              },
-            },
-          },
-          collabTexts: {
-            type: 'document',
-            fields: mapObject(NoteTextField, (_key, fieldName) => [
-              fieldName,
-              {
-                type: 'document',
-                fields: {
-                  headText: {
-                    type: 'document',
-                    fields: {
-                      changeset: {
-                        type: 'string',
-                        analyzer: 'lucene.english',
-                      },
-                    },
-                  },
-                },
-              },
-            ]),
-          },
-        },
-      },
-    },
-  });
-
-  // Wait for search index to be ready
-  while (
-    (
-      (await mongoCollections.notes.listSearchIndexes().next()) as {
-        name: string;
-        status: string;
-      } | null
-    )?.status !== 'READY'
-  ) {
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
 });
 
 it('finds a note, first: 1', async () => {
@@ -170,7 +93,7 @@ it('finds a note, first: 1', async () => {
     context
   );
 
-  expect(result).toEqual([[resultByText('foo', 'foo')]]);
+  expect(result).toEqual([resultsByText('foo foo foo')]);
 });
 
 it('continues pagination with a cursor', async () => {
@@ -201,7 +124,7 @@ it('continues pagination with a cursor', async () => {
     context
   );
 
-  expect(result2).toEqual([[resultByText('foo', 'bar')]]);
+  expect(result2).toEqual([resultsByText('foo foo')]);
 });
 
 it('returns empty array on no match', async () => {

@@ -1,11 +1,11 @@
 import { ObjectId } from 'mongodb';
 
 import { DeepQueryResult } from '../../../mongodb/query/query';
-import { NoteSchema } from '../../../mongodb/schema/note/note';
+import { QueryableNote } from '../../../mongodb/schema/note/query/queryable-note';
 
 export default function findUserNote(
   findUserId: ObjectId,
-  note?: DeepQueryResult<NoteSchema>
+  note?: DeepQueryResult<QueryableNote>
 ) {
   return note?.userNotes?.find(({ userId }) => userId?.equals(findUserId));
 }

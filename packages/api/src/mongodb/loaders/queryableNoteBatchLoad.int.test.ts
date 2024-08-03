@@ -7,6 +7,7 @@ import { Changeset } from '~collab/changeset/changeset';
 
 import { resetDatabase, mongoCollections } from '../../__test__/helpers/mongodb/mongodb';
 import {
+  TestCollabTextKey,
   populateAddNoteToUser,
   populateNotes,
 } from '../../__test__/helpers/mongodb/populate/populate';
@@ -84,7 +85,7 @@ it('loads a simple note', async () => {
               },
             },
             collabTexts: {
-              CONTENT: {
+              [TestCollabTextKey.TEXT]: {
                 headText: {
                   changeset: 1,
                 },
@@ -111,7 +112,7 @@ it('loads a simple note', async () => {
         { readOnly: expect.any(Boolean) },
       ],
       collabTexts: {
-        CONTENT: {
+        [TestCollabTextKey.TEXT]: {
           headText: { changeset: ['head'] },
           records: [
             {
@@ -147,7 +148,7 @@ it('loads all fields', async () => {
               },
             },
             collabTexts: {
-              CONTENT: {
+              [TestCollabTextKey.TEXT]: {
                 headText: {
                   changeset: 1,
                   revision: 1,
@@ -203,7 +204,7 @@ it('loads all fields', async () => {
       ],
       publicId: note.publicId,
       collabTexts: {
-        CONTENT: {
+        [TestCollabTextKey.TEXT]: {
           headText: { changeset: ['head'], revision: expect.any(Number) },
           tailText: { changeset: [], revision: expect.any(Number) },
           records: [

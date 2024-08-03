@@ -8,10 +8,11 @@ import {
   mongoCollections,
   mongoClient,
 } from '../__test__/helpers/mongodb/mongodb';
-import { populateNotes } from '../__test__/helpers/mongodb/populate/populate';
+import {
+  populateNotes,
+  TestNoteCategory,
+} from '../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../__test__/helpers/mongodb/populate/populate-queue';
-
-import { NoteCategory } from '../graphql/types.generated';
 
 import { createMongoDBLoaders, MongoDBLoaders } from './loaders';
 import { DeepQuery } from './query/query';
@@ -69,7 +70,7 @@ it('loading note from user primes userNote loader', async () => {
     userQuery: {
       notes: {
         category: {
-          [NoteCategory.DEFAULT]: {
+          [TestNoteCategory.MAIN]: {
             order: {
               items: {
                 $pagination: {
@@ -87,7 +88,7 @@ it('loading note from user primes userNote loader', async () => {
   expect(userResult).toStrictEqual({
     notes: {
       category: {
-        [NoteCategory.DEFAULT]: {
+        [TestNoteCategory.MAIN]: {
           order: {
             items: [
               {

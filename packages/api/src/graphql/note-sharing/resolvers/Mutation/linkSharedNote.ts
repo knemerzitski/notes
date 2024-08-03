@@ -80,6 +80,7 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
 
   const sharedUserNote: UserNoteSchema = {
     userId: currentUserId,
+    categoryName: NoteCategory.DEFAULT,
   };
 
   await mongodb.client.withSession((session) =>

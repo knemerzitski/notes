@@ -1,7 +1,8 @@
-import { ObjectId } from 'mongodb';
+import { ObjectId, SearchIndexDescription } from 'mongodb';
 import { nanoid } from 'nanoid';
 
 import { CollectionDescription } from '../../collections';
+import { Entry } from '../../types';
 import { CollabTextSchema } from '../collab-text/collab-text';
 
 import { ShareNoteLinkSchema } from './share-note-link';
@@ -18,10 +19,11 @@ export interface NoteSchema {
    */
   userNotes: UserNoteSchema[];
   /**
-   * Collaborative editing texts by field name
-   * Key is enum value NoteTextField
+   * Collaborative editing texts by field name.
+   * Using array instead of map for easier indexing. \
+   * GraphQL uses enum NoteTextField for key.
    */
-  collabTexts: Record<string, CollabTextSchema>;
+  collabTexts?: Entry<string, CollabTextSchema>[];
   /**
    * Note sharing via links
    */
@@ -49,3 +51,49 @@ export const noteDescription: CollectionDescription = {
     },
   ],
 };
+
+export enum NoteSearchIndexName {
+  COLLAB_TEXTS_HEAD_TEXT = 'collabTextsHeadText',
+}
+
+export const noteSearchIndexDescriptions: SearchIndexDescription[] = [
+  {
+    name: NoteSearchIndexName.COLLAB_TEXTS_HEAD_TEXT,
+    definition: {
+      mappings: {
+        dynamic: false,
+        fields: {
+          // Filter note by userNotes.userId
+          userNotes: {
+            type: 'document',
+            fields: {
+              userId: {
+                type: 'objectId',
+              },
+            },
+          },
+          // collabTexts headText changeset string value
+          collabTexts: {
+            type: 'document',
+            fields: {
+              v: {
+                type: 'document',
+                fields: {
+                  headText: {
+                    type: 'document',
+                    fields: {
+                      changeset: {
+                        type: 'string',
+                        analyzer: 'lucene.english',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+];

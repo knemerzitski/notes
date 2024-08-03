@@ -11,7 +11,11 @@ import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/popu
 import { ShareNoteLinkSchema } from '../../../../mongodb/schema/note/share-note-link';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { GraphQLResolversContext } from '../../../context';
-import { LinkSharedNoteInput, LinkSharedNotePayload } from '../../../types.generated';
+import {
+  LinkSharedNoteInput,
+  LinkSharedNotePayload,
+  NoteTextField,
+} from '../../../types.generated';
 
 const MUTATION = `#graphql
   mutation($input: LinkSharedNoteInput!){
@@ -46,7 +50,9 @@ beforeEach(async () => {
 
   otherUser = fakeUserPopulateQueue();
 
-  const populateResult = populateNotes(1);
+  const populateResult = populateNotes(1, {
+    collabTextKeys: Object.values(NoteTextField),
+  });
   assert(populateResult.data[0]?.note.shareNoteLinks?.[0] != null);
   shareNoteLink = populateResult.data[0].note.shareNoteLinks[0];
 

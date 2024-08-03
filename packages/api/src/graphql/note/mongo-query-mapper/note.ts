@@ -1,7 +1,6 @@
 import { ObjectId } from 'mongodb';
 
 import { DeepQueryResult, MongoQuery } from '../../../mongodb/query/query';
-import { NoteSchema } from '../../../mongodb/schema/note/note';
 import { QueryableNote } from '../../../mongodb/schema/note/query/queryable-note';
 import {
   Maybe,
@@ -23,7 +22,7 @@ export class NoteQueryMapper implements NoteMapper {
     this.note = note;
   }
 
-  private getTargetUserNote(note: Maybe<DeepQueryResult<NoteSchema>>) {
+  private getTargetUserNote(note: Maybe<DeepQueryResult<QueryableNote>>) {
     return note?.userNotes?.find(({ userId }) => userId?.equals(this.targetUserId));
   }
 
@@ -132,13 +131,11 @@ export class NoteQueryMapper implements NoteMapper {
       userNotes: {
         $query: {
           userId: 1,
-          category: {
-            name: 1,
-          },
+          categoryName: 1,
         },
       },
     });
 
-    return this.getTargetUserNote(note)?.category?.name as NoteCategory;
+    return this.getTargetUserNote(note)?.categoryName as NoteCategory;
   }
 }

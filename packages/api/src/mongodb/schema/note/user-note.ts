@@ -18,12 +18,10 @@ export interface UserNoteSchema {
   preferences?: {
     backgroundColor?: string;
   };
-  category?: {
-    /**
-     * Category groups similar notes
-     *
-     * Enum value NoteCategory
-     */
-    name: string;
-  };
+  /**
+   * User can categorize similar notes. \
+   * GraphQL uses enum NoteCategory.
+   * @default 'dangling'
+   */
+  categoryName: string;
 }

@@ -11,6 +11,7 @@ import {
   mockSocketApi,
   mockSubscriptionsModel,
 } from '../../../../__test__/helpers/graphql/graphql-context';
+import { expectGraphQLResponseData } from '../../../../__test__/helpers/graphql/response';
 import { resetDatabase } from '../../../../__test__/helpers/mongodb/mongodb';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
@@ -95,9 +96,8 @@ describe('create', () => {
       }
     );
 
-    assert(response.body.kind === 'single');
-    const { data, errors } = response.body.singleResult;
-    expect(errors, JSON.stringify(errors, null, 2)).toBeUndefined();
+    const data = expectGraphQLResponseData(response);
+
     expect(data).toEqual({
       createNote: {
         note: {

@@ -59,9 +59,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
           userId: 1,
           readOnly: 1,
           isOwner: 1,
-          category: {
-            name: 1,
-          },
+          categoryName: 1,
         },
       },
     },
@@ -70,7 +68,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
   const noteId = note._id;
   const userNote = findUserNote(currentUserId, note);
   const isReadOnly = userNote?.readOnly ?? false;
-  const existingCategoryName = userNote?.category?.name ?? NoteCategory.DEFAULT;
+  const existingCategoryName = userNote?.categoryName ?? NoteCategory.DEFAULT;
 
   if (!noteId || !userNote) {
     throw new GraphQLError(`Note '${notePublicId}' not found`, {
@@ -113,7 +111,11 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
       let userUpdate: UpdateFilter<UserSchema> | undefined;
       let noteUpdate: UpdateFilter<NoteSchema> | undefined;
       const currenUserNoteFilterName = 'currentUserNote';
-      let isUsingCurrentUserNoteFilter = false;
+      let needCurrentUserNoteFilter = false;
+      const textFieldArrayFilters: Document[] = [];
+      const currentUserNoteArrayFilter: Document = {
+        [`${currenUserNoteFilterName}.userId`]: currentUserId,
+      };
 
       if (patch.textFields) {
         await Promise.all(
@@ -187,7 +189,6 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
 
             const collabText = userNoteForInsertion.collabTexts?.[fieldName];
 
-            const collabTextPath = `collabTexts.${fieldName}`;
             const noteCollabText_onlyId = new NoteCollabTextQueryMapper(
               noteQuery_onlyId,
               fieldName,
@@ -219,9 +220,12 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
 
               noteUpdate = {
                 ...noteUpdate,
-                $set: {
-                  ...noteUpdate?.$set,
-                  [collabTextPath]: newCollabText,
+                $push: {
+                  ...noteUpdate?.$push,
+                  collabTexts: {
+                    k: fieldName,
+                    v: newCollabText,
+                  },
                 },
               };
 
@@ -361,6 +365,12 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
                   }
                 }
 
+                const arrayIdentifier = `collabTexts${fieldName}`;
+                const collabTextPath = `collabTexts.$[${arrayIdentifier}].v`;
+                textFieldArrayFilters.push({
+                  [`${arrayIdentifier}.k`]: fieldName,
+                });
+
                 noteUpdate = {
                   ...noteUpdate,
                   $set: {
@@ -420,7 +430,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
       }
 
       if (patch.preferences?.backgroundColor) {
-        isUsingCurrentUserNoteFilter = true;
+        needCurrentUserNoteFilter = true;
         noteUpdate = {
           ...noteUpdate,
           $set: {
@@ -439,13 +449,12 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
       }
 
       if (patch.categoryName) {
-        isUsingCurrentUserNoteFilter = true;
+        needCurrentUserNoteFilter = true;
         noteUpdate = {
           ...noteUpdate,
           $set: {
             ...noteUpdate?.$set,
-            [`userNotes.$[${currenUserNoteFilterName}].category.name`]:
-              patch.categoryName,
+            [`userNotes.$[${currenUserNoteFilterName}].categoryName`]: patch.categoryName,
           },
         };
         payloadPatch = {
@@ -484,13 +493,10 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
             },
             noteUpdate,
             {
-              arrayFilters: isUsingCurrentUserNoteFilter
-                ? [
-                    {
-                      [`${currenUserNoteFilterName}.userId`]: currentUserId,
-                    },
-                  ]
-                : undefined,
+              arrayFilters: [
+                ...(needCurrentUserNoteFilter ? [currentUserNoteArrayFilter] : []),
+                ...textFieldArrayFilters,
+              ],
               session,
             }
           ),

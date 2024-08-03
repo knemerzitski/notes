@@ -1,6 +1,3 @@
-import mapObject from 'map-obj';
-
-import { NoteCategory, NoteTextField } from '../../../../graphql/types.generated';
 import { NoteSchema } from '../../../../mongodb/schema/note/note';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
 
@@ -14,16 +11,29 @@ import { fakeShareNoteLink, FakeShareNoteLinkOptions } from './share-note-link';
 import { fakeUser } from './user';
 import { fakeUserNote, FakeUserNoteOptions } from './user-note';
 
+export enum TestCollabTextKey {
+  TEXT = 'text',
+}
+
+export enum TestNoteCategory {
+  MAIN = 'main',
+  OTHER = 'other',
+}
+
 export interface PopulateNotesOptions {
   user?: UserSchema;
   skipInsert?: {
     shareNoteLink?: boolean;
   };
+  /**
+   * @default [CollabTextKey]
+   */
+  collabTextKeys?: string[];
   userNote?: (noteIndex: number) => FakeUserNoteOptions | undefined;
   note?: (noteIndex: number) => FakeNoteOptions | undefined;
   collabText?: (
     noteIndex: number,
-    fieldName: NoteTextField
+    fieldName: string
   ) => FakeCollabTextOptions | undefined;
   shareNoteLink?: (noteIndex: number) => FakeShareNoteLinkOptions | undefined;
 }
@@ -33,10 +43,15 @@ export function populateNotes(count: number, options?: PopulateNotesOptions) {
 
   const notes: NoteSchema[] = [];
 
+  const collabTextKeys = options?.collabTextKeys ?? Object.values(TestCollabTextKey);
+
   const data = [...new Array<undefined>(count)].map((_, noteIndex) => {
-    const collabTextsOptionsByField = mapObject(NoteTextField, (_key, fieldName) => {
-      return [fieldName, options?.collabText?.(noteIndex, fieldName)];
-    });
+    const collabTextsOptionsByField = Object.fromEntries(
+      collabTextKeys.map((fieldName) => [
+        fieldName,
+        options?.collabText?.(noteIndex, fieldName),
+      ])
+    );
 
     const shareNoteLink = !options?.skipInsert
       ? fakeShareNoteLink(user, options?.shareNoteLink?.(noteIndex))
@@ -82,16 +97,13 @@ export interface PopulateNotesWithTextParams {
   user?: UserSchema;
 }
 
-export function populateNotesWithText(
-  texts: { [key in NoteTextField]?: string }[],
-  options?: PopulateNotesOptions
-) {
+export function populateNotesWithText(texts: string[], options?: PopulateNotesOptions) {
   return populateNotes(texts.length, {
     ...options,
     collabText(noteIndex, fieldName) {
       const collabTextOptions = options?.collabText?.(noteIndex, fieldName);
       return {
-        initialText: texts[noteIndex]?.[fieldName],
+        initialText: texts[noteIndex],
         ...collabTextOptions,
       };
     },
@@ -138,7 +150,7 @@ function addUserNoteToUser(
     note.userNotes.push(userNote);
   }
 
-  const categoryName = userNote.category?.name ?? NoteCategory.DEFAULT;
+  const categoryName = userNote.categoryName;
   let categoryMeta = user.notes.category[categoryName];
   if (!categoryMeta) {
     categoryMeta = {

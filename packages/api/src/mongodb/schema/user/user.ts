@@ -23,6 +23,7 @@ export interface UserSchema {
     /**
      * Key is enum value NoteCategory
      */
+    // TODO convert to array of entries??
     category: Record<string, Category>;
   };
 }

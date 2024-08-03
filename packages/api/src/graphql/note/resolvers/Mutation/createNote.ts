@@ -1,7 +1,7 @@
-import mapObject from 'map-obj';
 import { ObjectId } from 'mongodb';
 
 import { DeepQueryResult } from '../../../../mongodb/query/query';
+import { CollabTextSchema } from '../../../../mongodb/schema/collab-text/collab-text';
 import createCollabText from '../../../../mongodb/schema/collab-text/utils/createCollabText';
 import { NoteSchema, noteDefaultValues } from '../../../../mongodb/schema/note/note';
 import { QueryableNote } from '../../../../mongodb/schema/note/query/queryable-note';
@@ -29,8 +29,22 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
   const categoryName = NoteCategory.DEFAULT;
   const notesArrayPath = getNotesArrayPath(categoryName);
 
+  const collabTextSchemaEntries = input.note?.textFields
+    ?.filter(
+      (textField) =>
+        textField.value.initialText != null &&
+        textField.value.initialText.trim().length > 0
+    )
+    .map((textField) => ({
+      k: textField.key,
+      v: createCollabText({
+        creatorUserId: currentUserId,
+        initalText: textField.value.initialText ?? '',
+      }),
+    }));
+
   // Initialize data
-  const note: NoteSchema = {
+  const noteNoCollabTexts: Omit<NoteSchema, 'collabTexts'> = {
     _id: new ObjectId(),
     publicId: noteDefaultValues.publicId(),
     userNotes: [
@@ -40,24 +54,23 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
         preferences: {
           backgroundColor: input.note?.preferences?.backgroundColor ?? undefined,
         },
-        category: {
-          name: categoryName,
-        },
+        categoryName,
       },
     ],
-    collabTexts: mapObject(NoteTextField, (_key, fieldName) => {
-      const fieldValue = input.note?.textFields?.find((s) => s.key === fieldName)?.value;
-      const text = fieldValue?.initialText ?? '';
-      return [
-        fieldName,
-        createCollabText({
-          creatorUserId: currentUserId,
-          initalText: text,
-        }),
-      ];
-    }),
+    ...(collabTextSchemaEntries != null &&
+      collabTextSchemaEntries.length > 0 && {
+        collabTexts: collabTextSchemaEntries,
+      }),
     shareNoteLinks: [],
   };
+
+  const note =
+    collabTextSchemaEntries != null && collabTextSchemaEntries.length > 0
+      ? {
+          ...noteNoCollabTexts,
+          collabTexts: collabTextSchemaEntries,
+        }
+      : noteNoCollabTexts;
 
   // Insert to DB
   await mongodb.client.withSession((session) =>
@@ -81,7 +94,18 @@ export const createNote: NonNullable<MutationResolvers['createNote']> = async (
   );
 
   // Build response mapper
-  const noteQueryResponse: DeepQueryResult<QueryableNote> = note;
+  const noteQueryResponse: DeepQueryResult<QueryableNote> = {
+    ...noteNoCollabTexts,
+    ...(collabTextSchemaEntries != null &&
+      collabTextSchemaEntries.length > 0 && {
+        collabTexts: Object.fromEntries(
+          collabTextSchemaEntries.map<[NoteTextField, CollabTextSchema]>((collabText) => [
+            collabText.k,
+            collabText.v,
+          ])
+        ),
+      }),
+  };
 
   const noteQueryMapper = new NoteQueryMapper(currentUserId, {
     query() {

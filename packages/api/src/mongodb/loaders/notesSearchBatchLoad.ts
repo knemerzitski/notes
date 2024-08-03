@@ -22,10 +22,12 @@ import mergedQueryToPipeline from '../query/mergedQueryToPipeline';
 import { DeepQuery, DeepQueryResult } from '../query/query';
 
 import fieldsRemoved from '../query/utils/fieldsRemoved';
+import { NoteSearchIndexName } from '../schema/note/note';
 import {
   QueryableNote,
   queryableNoteDescription,
 } from '../schema/note/query/queryable-note';
+
 
 export interface QueryableNoteSearch {
   note: QueryableNote;
@@ -134,7 +136,7 @@ export default async function notesSearchBatchLoad(
                       // Find all possible notes with searchText
                       {
                         $search: {
-                          index: 'collabTextsHeadText',
+                          index: NoteSearchIndexName.COLLAB_TEXTS_HEAD_TEXT,
                           ...(searchAfter && {
                             searchAfter,
                           }),
@@ -142,26 +144,19 @@ export default async function notesSearchBatchLoad(
                             searchBefore,
                           }),
                           compound: {
-                            minimumShouldMatch: 1,
-                            should: [
-                              {
-                                text: {
-                                  path: 'collabTexts.TITLE.headText.changeset',
-                                  query: searchText,
-                                },
-                              },
-                              {
-                                text: {
-                                  path: 'collabTexts.CONTENT.headText.changeset',
-                                  query: searchText,
-                                },
-                              },
-                            ],
                             filter: [
                               {
                                 equals: {
                                   path: 'userNotes.userId',
                                   value: userId,
+                                },
+                              },
+                            ],
+                            must: [
+                              {
+                                text: {
+                                  path: 'collabTexts.v.headText.changeset',
+                                  query: searchText,
                                 },
                               },
                             ],
