@@ -11,6 +11,7 @@
     "dynamodb:stop": "cd ./docker/dynamodb && docker compose down",
     "mongodb:start": "cd ./docker/mongodb && docker compose up -d",
     "mongodb:stop": "cd ./docker/mongodb && docker compose down",
+    "mongosh": "cd ./docker/mongodb && docker compose exec -it mongod /bin/bash -c 'mongosh'",
     "mongo-express:start": "cd ./docker/mongo-express && docker compose up -d",
     "mongo-express:stop": "cd ./docker/mongo-express && docker compose down",
     "db:start": "npm run dynamodb:start & npm run mongodb:start",
