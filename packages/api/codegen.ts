@@ -10,10 +10,7 @@ const config: CodegenConfig = {
       // },
       scalarsOverrides: {
         Changeset: {
-          type: {
-            input: '~collab/changeset/changeset#Changeset',
-            output: '~collab/changeset/changeset#SerializedChangeset',
-          },
+          type: '~collab/changeset/changeset#Changeset',
         },
         Cursor: {
           type: 'string | number',
