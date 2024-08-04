@@ -36,9 +36,9 @@ enum NoteCategory {
 }
 
 type Note implements Node {
-  "Identifies note globally for all users"
+  "Globally identifies Note"
   id: ID!
-  "Identifies note by content. Is unique only for a specific user."
+  "Identifies note by text content. Multiple users can have same contentId which means note text is same."
   contentId: String!
   "All available text fields. If name is defined then only that field is returned."
   textFields(name: NoteTextField): [NoteTextFieldEntry!]!
@@ -144,7 +144,7 @@ input UpdateNoteInput {
   patch: NotePatchInput
 }
 type UpdateNotePayload {
-  "Updated note content ID"
+  "Updated note contentId"
   contentId: String!
   "Changes made to the note"
   patch: NotePatch
@@ -158,8 +158,10 @@ input DeleteNoteInput {
   contentId: String!
 }
 type DeleteNotePayload {
-  "Self-descriptive"
-  deleted: Boolean!
+  "Deleted note ID"
+  id: String!
+  "Deleted note contentId"
+  contentId: String!
 }
 extend type Mutation {
   "Delete note by ID"
@@ -175,10 +177,6 @@ extend type Subscription {
   noteCreated: NoteCreatedPayload! @auth
 }
 
-input NoteUpdatedInput {
-  "Subscribe to note changes by content ID. If undefined then subscribes to all notes of current user."
-  contentId: String
-}
 type NoteUpdatedPayload {
   "ID of note that was updated"
   contentId: String!
@@ -187,19 +185,17 @@ type NoteUpdatedPayload {
 }
 extend type Subscription {
   "An existing note was updated"
-  noteUpdated(input: NoteUpdatedInput): NoteUpdatedPayload! @auth
+  noteUpdated: NoteUpdatedPayload! @auth
 }
 
-input NoteDeletedInput {
-  "Subscribe to note deletion by content ID. If undefined then subscribes to all notes of current user."
-  contentId: String
-}
 type NoteDeletedPayload {
-  "Content ID of deleted note"
+  "Deleted note ID"
+  id: String!
+  "Deleted note contentId"
   contentId: String!
 }
 
 extend type Subscription {
   "A note was deleted"
-  noteDeleted(input: NoteDeletedInput): NoteDeletedPayload! @auth
+  noteDeleted: NoteDeletedPayload! @auth
 }

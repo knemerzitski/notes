@@ -1,78 +1,33 @@
-import { GraphQLError } from 'graphql';
 import { ObjectId } from 'mongodb';
 
-import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
-
 import { isAuthenticated } from '../../../auth-context';
-import { assertAuthenticated } from '../../../base/directives/auth';
 import { GraphQLResolversContext } from '../../../context';
 import { SubscriptionTopicPrefix } from '../../../subscriptions';
 import type { ResolversTypes, SubscriptionResolvers } from '../../../types.generated';
 
 export const noteDeleted: NonNullable<SubscriptionResolvers['noteDeleted']> = {
-  subscribe: async (_parent, { input }, ctx) => {
-    const {
-      auth,
-      mongodb: { loaders },
-      subscribe,
-      denySubscription,
-    } = ctx;
+  subscribe: (_parent, _args, ctx) => {
+    const { auth, subscribe, denySubscription } = ctx;
     if (!isAuthenticated(auth)) return denySubscription();
 
-    const notePublicId = input?.contentId;
-
-    const currentUserId = auth.session.user._id;
-
-    if (notePublicId) {
-      // Ensure current user has access to this note
-      const userNote = await loaders.note.load({
-        userId: currentUserId,
-        publicId: notePublicId,
-        noteQuery: {
-          _id: 1,
-        },
-      });
-
-      if (!userNote._id) {
-        throw new GraphQLError(`Note '${notePublicId}' not found`, {
-          extensions: {
-            code: GraphQLErrorCode.NOT_FOUND,
-          },
-        });
-      }
-
-      return subscribe(`${SubscriptionTopicPrefix.NOTE_DELETED}:noteId=${notePublicId}`);
-    } else {
-      // Subscribe to deletion of own notes
-      const userId = auth.session.user._id.toString('base64');
-      return subscribe(`${SubscriptionTopicPrefix.NOTE_DELETED}:userId=${userId}`);
-    }
+    const userId = auth.session.user._id.toString('base64');
+    return subscribe(`${SubscriptionTopicPrefix.NOTE_DELETED}:userId=${userId}`);
   },
 };
 
 export async function publishNoteDeleted(
-  { publish, auth }: GraphQLResolversContext,
-  ownerUserIds: ObjectId[],
-  payload: ResolversTypes['NoteDeletedPayload']
+  targetUserIds: ObjectId[],
+  payload: ResolversTypes['NoteDeletedPayload'],
+  { publish }: GraphQLResolversContext
 ) {
-  assertAuthenticated(auth);
-
-  const notePublicId = (await payload)?.contentId;
-  if (!notePublicId) return;
-
-  return Promise.allSettled([
-    publish(`${SubscriptionTopicPrefix.NOTE_DELETED}:noteId=${notePublicId}`, {
-      noteDeleted: payload,
-    }),
-    ...ownerUserIds.map((ownerUserId) =>
+  return Promise.allSettled(
+    targetUserIds.map((userId) =>
       publish(
-        `${SubscriptionTopicPrefix.NOTE_DELETED}:userId=${ownerUserId.toString(
-          'base64'
-        )}`,
+        `${SubscriptionTopicPrefix.NOTE_DELETED}:userId=${userId.toString('base64')}`,
         {
           noteDeleted: payload,
         }
       )
-    ),
-  ]);
+    )
+  );
 }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
@@ -615,70 +616,67 @@ describe('no existing notes', () => {
     });
   });
 
-  describe('subscription noteCreated', () => {
-    it('publishes created note to current user', async () => {
-      mockSubscriptionsModel.queryAllByTopic.mockResolvedValueOnce([
-        {
-          subscription: {
-            query: SUBSCRIPTION,
-          },
-        } as Subscription,
-      ]);
-
-      const response = await executeOperation(
-        {
-          note: {
-            textFields: [
-              {
-                key: NoteTextField.CONTENT,
-                value: {
-                  initialText: 'content',
-                },
-              },
-            ],
-          },
+  it('subscription: publishes created note to current user', async () => {
+    mockSubscriptionsModel.queryAllByTopic.mockResolvedValueOnce([
+      {
+        subscription: {
+          query: SUBSCRIPTION,
         },
-        {
-          user,
-          createPublisher: createMockedPublisher,
-        }
-      );
-      expectGraphQLResponseData(response);
+      } as Subscription,
+    ]);
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenCalledWith(
-        expect.stringContaining(`${SubscriptionTopicPrefix.NOTE_CREATED}:`)
-      );
+    const response = await executeOperation(
+      {
+        note: {
+          textFields: [
+            {
+              key: NoteTextField.CONTENT,
+              value: {
+                initialText: 'content',
+              },
+            },
+          ],
+        },
+      },
+      {
+        user,
+        createPublisher: createMockedPublisher,
+      }
+    );
+    expectGraphQLResponseData(response);
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(mockSocketApi.post).toHaveBeenLastCalledWith({
-        message: expect.objectContaining({
-          type: 'next',
-          payload: {
-            data: {
-              noteCreated: {
-                note: {
-                  contentId: expect.any(String),
-                  textFields: expect.arrayContaining([
-                    {
-                      key: NoteTextField.CONTENT,
-                      value: {
-                        headText: {
-                          changeset: Changeset.fromInsertion('content').serialize(),
-                        },
+    expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenCalledWith(
+      `${SubscriptionTopicPrefix.NOTE_CREATED}:userId=${user._id.toString('base64')}`
+    );
+    expect(mockSubscriptionsModel.queryAllByTopic).toBeCalledTimes(1);
+
+    expect(mockSocketApi.post).toHaveBeenLastCalledWith({
+      message: expect.objectContaining({
+        type: 'next',
+        payload: {
+          data: {
+            noteCreated: {
+              note: {
+                contentId: expect.any(String),
+                textFields: expect.arrayContaining([
+                  {
+                    key: NoteTextField.CONTENT,
+                    value: {
+                      headText: {
+                        changeset: Changeset.fromInsertion('content').serialize(),
                       },
                     },
-                    {
-                      key: NoteTextField.TITLE,
-                      value: { headText: { changeset: Changeset.EMPTY.serialize() } },
-                    },
-                  ]),
-                },
+                  },
+                  {
+                    key: NoteTextField.TITLE,
+                    value: { headText: { changeset: Changeset.EMPTY.serialize() } },
+                  },
+                ]),
               },
             },
           },
-        }),
-      });
+        },
+      }),
     });
   });
 });

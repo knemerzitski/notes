@@ -1,6 +1,10 @@
 import { GraphQLError } from 'graphql';
 
+import { ObjectId } from 'mongodb';
+
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+
+import isDefined from '~utils/type-guards/isDefined';
 
 import { getNotesArrayPath } from '../../../../mongodb/schema/user/user';
 import { assertAuthenticated } from '../../../base/directives/auth';
@@ -9,7 +13,7 @@ import {
   type MutationResolvers,
   type ResolversTypes,
 } from '../../../types.generated';
-import findNoteOwners from '../../utils/findNoteOwners';
+import { NoteQueryMapper } from '../../mongo-query-mapper/note';
 import findUserNote from '../../utils/findUserNote';
 import { publishNoteDeleted } from '../Subscription/noteDeleted';
 
@@ -23,7 +27,6 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
 
   const currentUserId = auth.session.user._id;
 
-  // Ensure current user has access to this note
   const note = await mongodb.loaders.note.load({
     userId: currentUserId,
     publicId: notePublicId,
@@ -33,9 +36,7 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
         $query: {
           userId: 1,
           isOwner: 1,
-          category: {
-            name: 1,
-          },
+          categoryName: 1,
         },
       },
     },
@@ -52,36 +53,37 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
     });
   }
 
-  const isCurrentUserOwner = userNote.isOwner ?? false;
-  if (isCurrentUserOwner) {
-    // Delete note completely
+  const deleteNoteCompletely = userNote.isOwner ?? false;
+  const affectedUserIds: ObjectId[] = [];
+  if (deleteNoteCompletely) {
+    affectedUserIds.push(
+      ...userNotes.map((userNote) => userNote.userId).filter(isDefined)
+    );
     await mongodb.client.withSession((session) =>
-      session.withTransaction((session) =>
-        Promise.all([
-          mongodb.collections.notes.deleteOne(
-            {
-              _id: noteId,
-            },
-            { session }
-          ),
-          mongodb.collections.users.bulkWrite(
-            userNotes.map((userNote) => ({
-              updateOne: {
-                filter: {
-                  _id: userNote.userId,
-                },
-                update: {
-                  $pull: {
-                    [getNotesArrayPath(userNote.category?.name ?? NoteCategory.DEFAULT)]:
-                      note._id,
-                  },
+      session.withTransaction(async (session) => {
+        await mongodb.collections.notes.deleteOne(
+          {
+            _id: noteId,
+          },
+          { session }
+        );
+        await mongodb.collections.users.bulkWrite(
+          userNotes.map((userNote) => ({
+            updateOne: {
+              filter: {
+                _id: userNote.userId,
+              },
+              update: {
+                $pull: {
+                  [getNotesArrayPath(userNote.categoryName ?? NoteCategory.DEFAULT)]:
+                    note._id,
                 },
               },
-            })),
-            { session }
-          ),
-        ])
-      )
+            },
+          })),
+          { session }
+        );
+      })
     );
   } else {
     const userNote = userNotes.find((userNote) => userNote.userId?.equals(currentUserId));
@@ -93,51 +95,53 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
       });
     }
 
+    affectedUserIds.push(currentUserId);
+
     // Unlink note for current user
     await mongodb.client.withSession((session) =>
-      session.withTransaction((session) =>
-        Promise.all([
-          mongodb.collections.notes.updateOne(
-            {
-              _id: note._id,
-            },
-            {
-              $pull: {
-                userNotes: {
-                  userId: currentUserId,
-                },
+      session.withTransaction(async (session) => {
+        await mongodb.collections.notes.updateOne(
+          {
+            _id: note._id,
+          },
+          {
+            $pull: {
+              userNotes: {
+                userId: currentUserId,
               },
             },
-            {
-              session,
-            }
-          ),
-          mongodb.collections.users.updateOne(
-            {
-              _id: currentUserId,
+          },
+          {
+            session,
+          }
+        );
+        await mongodb.collections.users.updateOne(
+          {
+            _id: currentUserId,
+          },
+          {
+            $pull: {
+              [getNotesArrayPath(userNote.categoryName ?? NoteCategory.DEFAULT)]:
+                note._id,
             },
-            {
-              $pull: {
-                [getNotesArrayPath(userNote.category?.name ?? NoteCategory.DEFAULT)]:
-                  note._id,
-              },
-            },
-            { session }
-          ),
-        ])
-      )
+          },
+          { session }
+        );
+      })
     );
   }
 
-  const payload: ResolversTypes['DeleteNotePayload'] &
-    ResolversTypes['NoteDeletedPayload'] = {
-    contentId: notePublicId,
-    deleted: true,
-  };
+  const noteQueryMapper = new NoteQueryMapper(currentUserId, {
+    query() {
+      return note;
+    },
+  });
 
-  if (isCurrentUserOwner) {
-    await publishNoteDeleted(ctx, findNoteOwners(note), payload);
-  }
+  // Send response
+  const payload: ResolversTypes['DeleteNotePayload'] &
+    ResolversTypes['NoteDeletedPayload'] = noteQueryMapper;
+
+  await publishNoteDeleted(affectedUserIds, payload, ctx);
 
   return payload;
 };

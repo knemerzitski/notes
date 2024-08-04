@@ -50,3 +50,13 @@ export interface NoteEdgeMapper {
   node(): NoteMapper;
   cursor(): ResolversTypes['Cursor'];
 }
+
+export interface DeleteNotePayloadMapper {
+  id(): ResolverTypeWrapper<string>;
+  contentId(): ResolverTypeWrapper<string>;
+}
+
+export interface NoteDeletedPayloadMapper {
+  id(): ResolverTypeWrapper<string>;
+  contentId(): ResolverTypeWrapper<string>;
+}

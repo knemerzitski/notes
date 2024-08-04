@@ -32,11 +32,11 @@ describe('Changeset', () => {
     schema,
   });
 
-  const query = `#graphql
-  query TestLength($input: EchoInput!) {
-    echo(input: $input)
-  }
-`;
+  const query = `#graphql_ignore
+    query TestLength($input: EchoInput!) {
+      echo(input: $input)
+    }
+  `;
 
   it('allows below max length', async () => {
     const response = await apolloServer.executeOperation({

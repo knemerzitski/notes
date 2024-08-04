@@ -1,5 +1,6 @@
+import { ObjectId } from 'mongodb';
+
 import { isAuthenticated } from '../../../auth-context';
-import { assertAuthenticated } from '../../../base/directives/auth';
 import { GraphQLResolversContext } from '../../../context';
 import { SubscriptionTopicPrefix } from '../../../subscriptions';
 import type { ResolversTypes, SubscriptionResolvers } from '../../../types.generated';
@@ -10,19 +11,23 @@ export const noteCreated: NonNullable<SubscriptionResolvers['noteCreated']> = {
 
     const userId = auth.session.user._id.toString('base64');
 
-    return subscribe(`${SubscriptionTopicPrefix.NOTE_CREATED}:${userId}`);
+    return subscribe(`${SubscriptionTopicPrefix.NOTE_CREATED}:userId=${userId}`);
   },
 };
 
 export function publishNoteCreated(
-  { publish, auth }: GraphQLResolversContext,
-  payload: ResolversTypes['NoteCreatedPayload']
+  targetUserIds: ObjectId[],
+  payload: ResolversTypes['NoteCreatedPayload'],
+  { publish }: GraphQLResolversContext
 ) {
-  assertAuthenticated(auth);
-
-  const userId = auth.session.user._id.toString('base64');
-
-  return publish(`${SubscriptionTopicPrefix.NOTE_CREATED}:${userId}`, {
-    noteCreated: payload,
-  });
+  return Promise.allSettled(
+    targetUserIds.map((userId) =>
+      publish(
+        `${SubscriptionTopicPrefix.NOTE_CREATED}:userId=${userId.toString('base64')}`,
+        {
+          noteCreated: payload,
+        }
+      )
+    )
+  );
 }

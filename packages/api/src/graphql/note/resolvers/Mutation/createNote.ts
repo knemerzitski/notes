@@ -132,7 +132,7 @@ const _createNote: NonNullable<MutationResolvers['createNote']> = async (
     note: noteQueryMapper,
   };
 
-  await publishNoteCreated(ctx, payload);
+  await publishNoteCreated([currentUserId], payload, ctx);
 
   return payload;
 };
