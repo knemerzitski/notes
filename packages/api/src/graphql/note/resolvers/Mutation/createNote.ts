@@ -24,7 +24,6 @@ import {
 import { NoteQueryMapper } from '../../mongo-query-mapper/note';
 import { publishNoteCreated } from '../Subscription/noteCreated';
 
-
 const _createNote: NonNullable<MutationResolvers['createNote']> = async (
   _parent,
   { input },
@@ -87,23 +86,23 @@ const _createNote: NonNullable<MutationResolvers['createNote']> = async (
           collabTexts: collabTextSchemaEntries,
         }
       : noteNoCollabTexts;
-
   await mongodb.client.withSession((session) =>
     session.withTransaction(async (session) => {
-      await Promise.all([
-        mongodb.collections.notes.insertOne(note, { session }),
-        mongodb.collections.users.updateOne(
-          {
-            _id: currentUserId,
+      // First request must not be done in parallel or you get NoSuchTransaction error
+      await mongodb.collections.notes.insertOne(note, { session });
+
+      // Now can do requests in parellel
+      await mongodb.collections.users.updateOne(
+        {
+          _id: currentUserId,
+        },
+        {
+          $push: {
+            [getNotesArrayPath(userNote.categoryName)]: note._id,
           },
-          {
-            $push: {
-              [getNotesArrayPath(userNote.categoryName)]: note._id,
-            },
-          },
-          { session }
-        ),
-      ]);
+        },
+        { session }
+      );
     })
   );
 

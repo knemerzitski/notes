@@ -31,6 +31,7 @@ import {
 } from '../../../../__test__/helpers/graphql/response';
 import {
   mongoCollections,
+  mongoCollectionStats,
   resetDatabase,
 } from '../../../../__test__/helpers/mongodb/mongodb';
 import { fakeNotePopulateQueue } from '../../../../__test__/helpers/mongodb/populate/note';
@@ -167,6 +168,7 @@ beforeEach(async () => {
 describe('no existing notes', () => {
   beforeEach(async () => {
     await populateExecuteAll();
+    mongoCollectionStats.mockClear();
   });
 
   it('creates note without specifying any input', async () => {
@@ -206,6 +208,8 @@ describe('no existing notes', () => {
         },
       },
     });
+
+    expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(2);
 
     // Database, User
     const dbUser = await mongoCollections.users.findOne({
@@ -353,6 +357,7 @@ describe('no existing notes', () => {
         },
       },
     });
+    expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(2);
 
     // Database, User
     const dbUser = await mongoCollections.users.findOne({
@@ -491,6 +496,8 @@ describe('no existing notes', () => {
         },
       },
     });
+
+    expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(2);
 
     // Database, User
     const dbUser = await mongoCollections.users.findOne({
@@ -688,11 +695,15 @@ describe('have existing note', () => {
     });
 
     await populateExecuteAll();
+
+    mongoCollectionStats.mockClear();
   });
 
   it('pushes new note to end of array', async () => {
     const response = await executeOperation({}, { user });
     expectGraphQLResponseData(response);
+
+    expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(2);
 
     // Database, User
     const dbUser = await mongoCollections.users.findOne({

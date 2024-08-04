@@ -1,6 +1,8 @@
-import { MongoClient } from 'mongodb';
+import { Collection, MongoClient } from 'mongodb';
 
 import { CollectionName, createCollectionInstances } from '../../../mongodb/collections';
+
+import { CollectionsStats } from './collection-stats';
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const DB_URI = process.env.TEST_MONGODB_URI!;
@@ -29,3 +31,7 @@ export async function createMongoDBContext() {
 
 export const { mongoClient, mongoDB, mongoCollections, resetDatabase } =
   await createMongoDBContext();
+
+export const mongoCollectionStats = new CollectionsStats(
+  mongoCollections as unknown as Record<CollectionName, Collection>
+);
