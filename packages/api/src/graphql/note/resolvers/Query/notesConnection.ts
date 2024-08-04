@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 
 import { RelayPagination } from '../../../../mongodb/pagination/relayArrayPagination';
-import { DeepObjectQuery } from '../../../../mongodb/query/query';
+import { DeepObjectQuery, MongoQuery } from '../../../../mongodb/query/query';
 import { QueryableNote } from '../../../../mongodb/schema/note/query/queryable-note';
 import { QueryableUser } from '../../../../mongodb/schema/user/query/queryable-user';
 import { assertAuthenticated } from '../../../base/directives/auth';
@@ -105,6 +105,25 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
     });
   }
 
+  /**
+   *
+   * @param index negative value counts from end, -1 is last item
+   * @returns
+   */
+  function createNoteMongoQueryAtIndex(index: number): MongoQuery<QueryableNote> {
+    return {
+      query: async (query) => {
+        const user = await loadUser_userNote(query);
+        const items = user.notes?.category?.[categoryName]?.order?.items;
+        if (!items) return;
+
+        const realIndex = index < 0 ? index + items.length : index;
+
+        return items[realIndex];
+      },
+    };
+  }
+
   return {
     notes: async () => {
       // Pre resolve to build query and fetch with dataloader to figure out list size
@@ -127,12 +146,10 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
       if (!actualSize) return [];
 
       return [...new Array<undefined>(actualSize)].map((_, index) => {
-        const noteQuery = new NoteQueryMapper(currentUserId, {
-          query: async (query) => {
-            const user = await loadUser_userNote(query);
-            return user.notes?.category?.[categoryName]?.order?.items?.[index];
-          },
-        });
+        const noteQuery = new NoteQueryMapper(
+          currentUserId,
+          createNoteMongoQueryAtIndex(index)
+        );
 
         return noteQuery;
       });
@@ -164,17 +181,15 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
       if (!actualSize) return [];
 
       return [...new Array<undefined>(actualSize)].map((_, index) => {
-        const noteQuery = new NoteQueryMapper(currentUserId, {
-          query: async (query) => {
-            const user = await loadUser_userNote(query);
-            return user.notes?.category?.[categoryName]?.order?.items?.[index];
-          },
-        });
+        const noteQuery = new NoteQueryMapper(
+          currentUserId,
+          createNoteMongoQueryAtIndex(index)
+        );
 
         return {
           node: () => noteQuery,
           cursor: () => {
-            return noteQuery.id();
+            return noteQuery.noteId();
           },
         };
       });
@@ -218,24 +233,18 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
           return hasPreviousPage ?? false;
         },
         startCursor: async () => {
-          const user = await loadUser_userNote({
-            _id: 1,
-          });
-
-          const order = user.notes?.category?.[categoryName]?.order;
-          const startCursor = order?.items?.[0]?._id;
-
-          return startCursor?.toString('base64');
+          const startNoteQuery = new NoteQueryMapper(
+            currentUserId,
+            createNoteMongoQueryAtIndex(0)
+          );
+          return startNoteQuery.noteId();
         },
         endCursor: async () => {
-          const user = await loadUser_userNote({
-            _id: 1,
-          });
-
-          const order = user.notes?.category?.[categoryName]?.order;
-          const endCursor = order?.items?.[order.items.length - 1]?._id;
-
-          return endCursor?.toString('base64');
+          const endNoteQuery = new NoteQueryMapper(
+            currentUserId,
+            createNoteMongoQueryAtIndex(-1)
+          );
+          return endNoteQuery.noteId();
         },
       };
     },

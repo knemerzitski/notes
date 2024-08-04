@@ -61,7 +61,7 @@ beforeAll(async () => {
 
   await dropAndCreateSearchIndexes();
 
-  contextValue = createGraphQLResolversContext(user);
+  contextValue = createGraphQLResolversContext({ user });
 });
 
 async function fetchPaginate(variables: {

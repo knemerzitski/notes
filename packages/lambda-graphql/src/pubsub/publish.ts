@@ -20,7 +20,7 @@ interface CreatePublisherParams<
   isCurrentConnection?: (connectionId: string) => boolean;
 }
 
-interface PublisherOptions {
+export interface PublisherOptions {
   /**
    * Publish to connection that sent current request.
    * Normally over HTTP request client gets a direct response and

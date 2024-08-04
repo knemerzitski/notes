@@ -44,7 +44,7 @@ beforeEach(async () => {
   note = populateResult.data[0].note;
   shareNoteLink = populateResult.data[0].note.shareNoteLinks[0];
 
-  contextValue = createGraphQLResolversContext(user);
+  contextValue = createGraphQLResolversContext({ user });
 
   await populateExecuteAll();
 });

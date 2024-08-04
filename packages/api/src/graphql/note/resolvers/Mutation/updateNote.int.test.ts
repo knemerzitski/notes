@@ -9,7 +9,7 @@ import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
 
 import { apolloServer } from '../../../../__test__/helpers/graphql/apollo-server';
 import {
-  createPublisher,
+  createMockedPublisher,
   createGraphQLResolversContext,
   mockSocketApi,
   mockSubscriptionsModel,
@@ -159,7 +159,7 @@ describe('random records', () => {
           },
         },
         {
-          contextValue: createGraphQLResolversContext(user),
+          contextValue: createGraphQLResolversContext({ user }),
         }
       );
 
@@ -202,7 +202,7 @@ describe('random records', () => {
           },
         },
         {
-          contextValue: createGraphQLResolversContext(user),
+          contextValue: createGraphQLResolversContext({ user }),
         }
       );
 
@@ -229,7 +229,7 @@ describe('random records', () => {
           },
         },
         {
-          contextValue: createGraphQLResolversContext(user),
+          contextValue: createGraphQLResolversContext({ user }),
         }
       );
 
@@ -297,7 +297,7 @@ describe('random records', () => {
             },
           },
           {
-            contextValue: createGraphQLResolversContext(user),
+            contextValue: createGraphQLResolversContext({ user }),
           }
         );
 
@@ -392,7 +392,7 @@ describe('random records', () => {
             },
           },
           {
-            contextValue: createGraphQLResolversContext(user),
+            contextValue: createGraphQLResolversContext({ user }),
           }
         );
 
@@ -486,7 +486,7 @@ describe('random records', () => {
             },
           },
           {
-            contextValue: createGraphQLResolversContext(user),
+            contextValue: createGraphQLResolversContext({ user }),
           }
         );
 
@@ -531,7 +531,7 @@ describe('random records', () => {
             },
           },
           {
-            contextValue: createGraphQLResolversContext(user),
+            contextValue: createGraphQLResolversContext({ user }),
           }
         );
 
@@ -579,7 +579,7 @@ describe('random records', () => {
             },
           },
           {
-            contextValue: createGraphQLResolversContext(user),
+            contextValue: createGraphQLResolversContext({ user }),
           }
         );
 
@@ -626,7 +626,7 @@ describe('random records', () => {
             variables,
           },
           {
-            contextValue: createGraphQLResolversContext(user),
+            contextValue: createGraphQLResolversContext({ user }),
           }
         );
         const response = await apolloServer.executeOperation(
@@ -635,7 +635,7 @@ describe('random records', () => {
             variables,
           },
           {
-            contextValue: createGraphQLResolversContext(user),
+            contextValue: createGraphQLResolversContext({ user }),
           }
         );
 
@@ -712,7 +712,7 @@ describe('random records', () => {
             },
             {
               contextValue: {
-                ...createGraphQLResolversContext(user),
+                ...createGraphQLResolversContext({ user }),
                 options: {
                   collabText: {
                     maxRecordsCount: 3,
@@ -774,7 +774,7 @@ describe('random records', () => {
             },
             {
               contextValue: {
-                ...createGraphQLResolversContext(user),
+                ...createGraphQLResolversContext({ user }),
                 options: {
                   collabText: {
                     maxRecordsCount: 1,
@@ -876,8 +876,9 @@ describe('random records', () => {
           },
         },
         {
-          contextValue: createGraphQLResolversContext(user, {
-            createPublisher,
+          contextValue: createGraphQLResolversContext({
+            user,
+            createPublisher: createMockedPublisher,
           }),
         }
       );
@@ -963,8 +964,9 @@ describe('random records', () => {
             },
           },
           {
-            contextValue: createGraphQLResolversContext(user, {
-              createPublisher,
+            contextValue: createGraphQLResolversContext({
+              user,
+              createPublisher: createMockedPublisher,
             }),
           }
         );
@@ -1089,7 +1091,7 @@ describe('pre-determined records', () => {
             changeset: Changeset.parseValue([[0, 5], 'A']),
             revision: 5,
           },
-          createGraphQLResolversContext(user)
+          createGraphQLResolversContext({ user })
         ),
         insertChange(
           {
@@ -1097,7 +1099,8 @@ describe('pre-determined records', () => {
             revision: 5,
           },
           // Second insert with a different mongo client
-          createGraphQLResolversContext(user, {
+          createGraphQLResolversContext({
+            user,
             mongodb: {
               client: mongoDBContext2.mongoClient,
               collections: mongoDBContext2.mongoCollections,
@@ -1174,7 +1177,7 @@ describe('single user and note', () => {
         },
       },
       {
-        contextValue: createGraphQLResolversContext(user),
+        contextValue: createGraphQLResolversContext({ user }),
       }
     );
 
@@ -1234,7 +1237,7 @@ describe('single user and note', () => {
           },
         },
       },
-      createGraphQLResolversContext(user)
+      createGraphQLResolversContext({ user })
     );
 
     // User has new category
@@ -1293,7 +1296,7 @@ describe('single user and note', () => {
           },
         },
       },
-      createGraphQLResolversContext(user)
+      createGraphQLResolversContext({ user })
     );
 
     await expect(

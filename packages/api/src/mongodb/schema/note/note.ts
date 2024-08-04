@@ -31,7 +31,7 @@ export interface NoteSchema {
 }
 
 export const noteDefaultValues = {
-  publicId: () => nanoid(),
+  publicId: () => nanoid(64),
 };
 
 export const noteDescription: CollectionDescription = {

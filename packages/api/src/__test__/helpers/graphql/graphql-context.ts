@@ -22,15 +22,17 @@ import { createMongoDBLoaders } from '../../../mongodb/loaders';
 import { UserSchema } from '../../../mongodb/schema/user/user';
 import { mongoCollections, mongoClient } from '../mongodb/mongodb';
 
-interface CreateGraphQLResolversContextOptions {
+export interface CreateGraphQLResolversContextOptions {
+  user?: Partial<UserSchema>;
   createPublisher?: (ctx: Omit<GraphQLResolversContext, 'publish'>) => Publisher;
   mongodb?: PartialBy<ApiGraphQLContext['mongodb'], 'loaders'>;
 }
 
 export function createGraphQLResolversContext(
-  user?: Partial<UserSchema>,
   options?: CreateGraphQLResolversContextOptions
 ): GraphQLResolversContext {
+  const user = options?.user;
+
   const mongoDBContext: MongoDBContext<MongoDBCollections> = options?.mongodb ?? {
     client: mongoClient,
     collections: mongoCollections,
@@ -70,7 +72,7 @@ beforeEach(() => {
   mockSocketApi.post.mockClear();
 });
 
-export function createPublisher(ctx: Omit<GraphQLResolversContext, 'publish'>) {
+export function createMockedPublisher(ctx: Omit<GraphQLResolversContext, 'publish'>) {
   return _createPublisher({
     context: {
       ...ctx,

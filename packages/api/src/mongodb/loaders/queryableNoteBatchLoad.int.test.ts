@@ -8,7 +8,7 @@ import { Changeset } from '~collab/changeset/changeset';
 import { resetDatabase, mongoCollections } from '../../__test__/helpers/mongodb/mongodb';
 import {
   TestCollabTextKey,
-  populateAddNoteToUser,
+  populateUserAddNote,
   populateNotes,
 } from '../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../__test__/helpers/mongodb/populate/populate-queue';
@@ -60,7 +60,7 @@ beforeAll(async () => {
   user_noUserNote = fakeUserPopulateQueue();
 
   user_hasUserNote = fakeUserPopulateQueue();
-  populateAddNoteToUser(user_hasUserNote, note);
+  populateUserAddNote(user_hasUserNote, note);
 
   await populateExecuteAll();
 

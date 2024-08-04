@@ -5,7 +5,7 @@ import { QueryableNote } from '../../../mongodb/schema/note/query/queryable-note
 
 export default function findUserNote(
   findUserId: ObjectId,
-  note?: DeepQueryResult<QueryableNote>
+  note?: DeepQueryResult<QueryableNote> | null
 ) {
   return note?.userNotes?.find(({ userId }) => userId?.equals(findUserId));
 }

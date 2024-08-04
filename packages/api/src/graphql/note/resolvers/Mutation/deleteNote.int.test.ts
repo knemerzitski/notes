@@ -6,7 +6,7 @@ import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
 
 import { apolloServer } from '../../../../__test__/helpers/graphql/apollo-server';
 import {
-  createPublisher,
+  createMockedPublisher,
   createGraphQLResolversContext,
   mockSocketApi,
   mockSubscriptionsModel,
@@ -16,7 +16,7 @@ import {
   resetDatabase,
 } from '../../../../__test__/helpers/mongodb/mongodb';
 import {
-  populateAddNoteToUser,
+  populateUserAddNote,
   populateNotes,
 } from '../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
@@ -68,7 +68,7 @@ describe('delete', () => {
         },
       },
       {
-        contextValue: createGraphQLResolversContext(userOwner),
+        contextValue: createGraphQLResolversContext({ user: userOwner }),
       }
     );
 
@@ -90,7 +90,7 @@ describe('delete', () => {
   });
 
   it('unlinks note if not owner', async () => {
-    populateAddNoteToUser(userOther, note);
+    populateUserAddNote(userOther, note);
     await populateExecuteAll();
 
     const response = await apolloServer.executeOperation(
@@ -103,7 +103,7 @@ describe('delete', () => {
         },
       },
       {
-        contextValue: createGraphQLResolversContext(userOther),
+        contextValue: createGraphQLResolversContext({ user: userOther }),
       }
     );
 
@@ -136,7 +136,7 @@ describe('delete', () => {
         },
       },
       {
-        contextValue: createGraphQLResolversContext(userOther),
+        contextValue: createGraphQLResolversContext({ user: userOther }),
       }
     );
 
@@ -180,8 +180,9 @@ describe('publish', () => {
         },
       },
       {
-        contextValue: createGraphQLResolversContext(userOwner, {
-          createPublisher,
+        contextValue: createGraphQLResolversContext({
+          user: userOwner,
+          createPublisher: createMockedPublisher,
         }),
       }
     );

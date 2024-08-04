@@ -26,5 +26,7 @@ export function expectGraphQLResponseErrorMessage<TData = Record<string, unknown
   assert(errors != null, 'Expected to have errors array');
 
   expect(errors).toHaveLength(1);
-  expect(errors[0]?.message).toEqual(expect.stringMatching(expectedMessage));
+  expect(errors[0]?.message, JSON.stringify(errors, null, 2)).toEqual(
+    expect.stringMatching(expectedMessage)
+  );
 }

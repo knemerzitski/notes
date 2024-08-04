@@ -58,7 +58,7 @@ beforeEach(async () => {
 
   await populateExecuteAll();
 
-  contextValue = createGraphQLResolversContext(otherUser);
+  contextValue = createGraphQLResolversContext({ user: otherUser });
 });
 
 it('links existing note and creates UserNote with access to note', async () => {

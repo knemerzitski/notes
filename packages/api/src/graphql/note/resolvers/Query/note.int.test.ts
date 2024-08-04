@@ -86,7 +86,7 @@ beforeAll(async () => {
 
   await populateExecuteAll();
 
-  contextValue = createGraphQLResolversContext(user);
+  contextValue = createGraphQLResolversContext({ user });
 });
 
 it('returns note', async () => {

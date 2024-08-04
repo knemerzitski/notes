@@ -73,6 +73,7 @@ input CreateNotePatchInput {
   "Initial note text fields"
   textFields: [CreateNoteTextFieldEntryInput!]
   preferences: NotePreferencesPatchInput
+  categoryName: NoteCategory
 }
 
 type NotePreferences {
@@ -178,9 +179,6 @@ input NoteUpdatedInput {
   "Subscribe to note changes by content ID. If undefined then subscribes to all notes of current user."
   contentId: String
 }
-"""
-TODO leave id outside patch as it cannot change.
-"""
 type NoteUpdatedPayload {
   "ID of note that was updated"
   contentId: String!

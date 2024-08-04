@@ -1,7 +1,6 @@
 import { Maybe } from '~utils/types';
 
 import { PageInfoMapper } from '../base/schema.mappers';
-import { CollabTextMapper } from '../collab/schema.mappers';
 import {
   NoteCategory,
   NoteSharing,
@@ -11,9 +10,11 @@ import {
   ResolversTypes,
 } from '../types.generated';
 
+import { NoteCollabTextQueryMapper } from './mongo-query-mapper/note-collab-text';
+
 export interface NoteTextFieldEntryMapper {
   key(): ResolverTypeWrapper<NoteTextField>;
-  value(): CollabTextMapper;
+  value(): NoteCollabTextQueryMapper;
 }
 
 export interface NotePreferencesMapper {

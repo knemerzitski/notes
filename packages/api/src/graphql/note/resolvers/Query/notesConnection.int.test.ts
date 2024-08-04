@@ -103,7 +103,7 @@ beforeAll(async () => {
 
   await populateExecuteAll();
 
-  contextValue = createGraphQLResolversContext(user);
+  contextValue = createGraphQLResolversContext({ user });
 });
 
 it('returns last 2 notes, after: 7, first 4 => 8,9 (10 notes total)', async () => {
@@ -230,11 +230,9 @@ it('returns notes from different category: ARCHIVE', async () => {
   expect(
     typedData.notesConnection.edges.map((edge) => {
       if (!edge) return null;
-      return (edge as NoteEdge).node.id;
+      return (edge as NoteEdge).node.contentId;
     })
   ).toStrictEqual(
-    populateResultArchive.data
-      .map(({ note }) => note)
-      .map((n) => n._id.toString('base64'))
+    populateResultArchive.data.map(({ note }) => note).map((n) => n.publicId)
   );
 });

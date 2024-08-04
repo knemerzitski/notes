@@ -1,5 +1,7 @@
 import { ObjectId } from 'mongodb';
 
+import { Changeset } from '~collab/changeset/changeset';
+
 import { DeepQueryResult, MongoQuery } from '../../../mongodb/query/query';
 import { QueryableNote } from '../../../mongodb/schema/note/query/queryable-note';
 import {
@@ -9,6 +11,8 @@ import {
   NotetextFieldsArgs,
 } from '../../types.generated';
 import { NoteMapper } from '../schema.mappers';
+
+import findUserNote from '../utils/findUserNote';
 
 import { NoteCollabTextQueryMapper } from './note-collab-text';
 import { NotePreferencesQueryMapper } from './note-preferences';
@@ -23,13 +27,26 @@ export class NoteQueryMapper implements NoteMapper {
   }
 
   private getTargetUserNote(note: Maybe<DeepQueryResult<QueryableNote>>) {
-    return note?.userNotes?.find(({ userId }) => userId?.equals(this.targetUserId));
+    return findUserNote(this.targetUserId, note);
   }
 
-  async id() {
+  async noteId() {
     return (await this.note.query({ _id: 1 }))?._id?.toString('base64');
   }
 
+  /**
+   * Id is Note._id:UserNote.userId
+   */
+  async id() {
+    const noteId = await this.noteId();
+    if (!noteId) {
+      return;
+    }
+
+    return `${noteId}:${this.targetUserId.toString('base64')}`;
+  }
+
+  // TODO rename to publicId
   async contentId() {
     return (
       await this.note.query({
@@ -49,12 +66,24 @@ export class NoteQueryMapper implements NoteMapper {
           return new NoteCollabTextQueryMapper(this.note, field, {
             query: async (query) => {
               return (
-                await this.note.query({
-                  collabTexts: {
-                    [field]: query,
+                (
+                  await this.note.query({
+                    collabTexts: {
+                      [field]: query,
+                    },
+                  })
+                )?.collabTexts?.[field] ?? {
+                  headText: {
+                    changeset: Changeset.EMPTY.serialize(),
+                    revision: 0,
                   },
-                })
-              )?.collabTexts?.[field];
+                  tailText: {
+                    changeset: Changeset.EMPTY.serialize(),
+                    revision: 0,
+                  },
+                  records: [],
+                }
+              );
             },
           });
         },

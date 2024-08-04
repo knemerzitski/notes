@@ -41,5 +41,5 @@ interface SimplePermissions {
 }
 
 export const shareNoteLinkDefaultValues = {
-  publicId: () => nanoid(),
+  publicId: () => nanoid(32),
 };

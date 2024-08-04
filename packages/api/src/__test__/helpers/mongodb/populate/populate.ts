@@ -71,7 +71,7 @@ export function populateNotes(count: number, options?: PopulateNotesOptions) {
     });
     notes.push(note);
 
-    addUserNoteToUser(user, note);
+    userAddNote(user, note);
 
     return {
       note,
@@ -114,12 +114,13 @@ export interface PopulateAddNoteToUserOptions {
   userNote?: FakeUserNoteOptions;
 }
 
-export function populateAddNoteToUser(
+// TODO remove this, use only userAddNote
+export function populateUserAddNote(
   user: UserSchema,
   note: NoteSchema,
   options?: PopulateAddNoteToUserOptions
 ) {
-  addUserNoteToUser(user, note, options?.userNote);
+  userAddNote(user, note, options?.userNote);
 
   populateQueue(() => {
     return Promise.all([
@@ -139,7 +140,7 @@ export function populateAddNoteToUser(
   });
 }
 
-function addUserNoteToUser(
+export function userAddNote(
   user: UserSchema,
   note: NoteSchema,
   options?: FakeUserNoteOptions

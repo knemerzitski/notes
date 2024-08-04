@@ -44,7 +44,7 @@ beforeEach(async () => {
 
   await populateExecuteAll();
 
-  contextValue = createGraphQLResolversContext(user);
+  contextValue = createGraphQLResolversContext({ user });
 });
 
 it('creates a new note sharing', async () => {

@@ -20,7 +20,7 @@ type SerializedSession = DeepReplace<Session, ObjectId, string>;
 
 type User = Omit<UserSchema, 'notes'>;
 
-interface Session extends Omit<SessionSchema, 'userId' | 'expireAt'> {
+export interface Session extends Omit<SessionSchema, 'userId' | 'expireAt'> {
   _id: ObjectId;
   user: User;
   /**
