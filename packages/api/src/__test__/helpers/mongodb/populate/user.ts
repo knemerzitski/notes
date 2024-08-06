@@ -5,8 +5,8 @@ import { ObjectId } from 'mongodb';
 import isDefined from '~utils/type-guards/isDefined';
 
 import { UserSchema } from '../../../../mongodb/schema/user/user';
+import { DeepPartial } from '../../../../mongodb/types';
 import { mongoCollections } from '../mongodb';
-import { DeepPartial } from '../types';
 
 import { populateQueue } from './populate-queue';
 

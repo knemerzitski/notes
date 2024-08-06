@@ -5,7 +5,7 @@ import {
   ShareNoteLinkSchema,
 } from '../../../../mongodb/schema/note/share-note-link';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
-import { DeepPartial } from '../types';
+import { DeepPartial } from '../../../../mongodb/types';
 
 export interface FakeShareNoteLinkOptions {
   override?: DeepPartial<ShareNoteLinkSchema>;

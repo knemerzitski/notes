@@ -15,19 +15,15 @@ export const noteCreated: NonNullable<SubscriptionResolvers['noteCreated']> = {
   },
 };
 
-export function publishNoteCreated(
-  targetUserIds: ObjectId[],
+export async function publishNoteCreated(
+  targetUserId: ObjectId,
   payload: ResolversTypes['NoteCreatedPayload'],
-  { publish }: GraphQLResolversContext
+  { publish }: Pick<GraphQLResolversContext, 'publish'>
 ) {
-  return Promise.allSettled(
-    targetUserIds.map((userId) =>
-      publish(
-        `${SubscriptionTopicPrefix.NOTE_CREATED}:userId=${userId.toString('base64')}`,
-        {
-          noteCreated: payload,
-        }
-      )
-    )
+  return await publish(
+    `${SubscriptionTopicPrefix.NOTE_CREATED}:userId=${targetUserId.toString('base64')}`,
+    {
+      noteCreated: payload,
+    }
   );
 }

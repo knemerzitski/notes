@@ -16,18 +16,14 @@ export const noteDeleted: NonNullable<SubscriptionResolvers['noteDeleted']> = {
 };
 
 export async function publishNoteDeleted(
-  targetUserIds: ObjectId[],
+  targetUserId: ObjectId,
   payload: ResolversTypes['NoteDeletedPayload'],
-  { publish }: GraphQLResolversContext
+  { publish }: Pick<GraphQLResolversContext, 'publish'>
 ) {
-  return Promise.allSettled(
-    targetUserIds.map((userId) =>
-      publish(
-        `${SubscriptionTopicPrefix.NOTE_DELETED}:userId=${userId.toString('base64')}`,
-        {
-          noteDeleted: payload,
-        }
-      )
-    )
+  return publish(
+    `${SubscriptionTopicPrefix.NOTE_DELETED}:userId=${targetUserId.toString('base64')}`,
+    {
+      noteDeleted: payload,
+    }
   );
 }

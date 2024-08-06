@@ -17,6 +17,7 @@ import findUserNote from '../utils/findUserNote';
 import { NoteCollabTextQueryMapper } from './note-collab-text';
 import { NotePreferencesQueryMapper } from './note-preferences';
 
+// TODO rename to NoteMongoMapper
 export class NoteQueryMapper implements NoteMapper {
   private readonly targetUserId: ObjectId;
   private readonly note: MongoQuery<QueryableNote>;
@@ -63,7 +64,7 @@ export class NoteQueryMapper implements NoteMapper {
           return Promise.resolve(field);
         },
         value: () => {
-          return new NoteCollabTextQueryMapper(this.note, field, {
+          return new NoteCollabTextQueryMapper(this, field, {
             query: async (query) => {
               return (
                 (
@@ -108,13 +109,13 @@ export class NoteQueryMapper implements NoteMapper {
 
   preferences() {
     return new NotePreferencesQueryMapper({
-      query: async (project) => {
+      query: async (query) => {
         return this.getTargetUserNote(
           await this.note.query({
             userNotes: {
               $query: {
                 userId: 1,
-                preferences: project,
+                preferences: query,
               },
             },
           })
@@ -139,7 +140,7 @@ export class NoteQueryMapper implements NoteMapper {
   }
 
   async sharing() {
-    const userNote = await this.note.query({
+    const note = await this.note.query({
       shareNoteLinks: {
         $query: {
           publicId: 1,
@@ -147,7 +148,7 @@ export class NoteQueryMapper implements NoteMapper {
       },
     });
 
-    const publicId = userNote?.shareNoteLinks?.[0]?.publicId;
+    const publicId = note?.shareNoteLinks?.[0]?.publicId;
     if (!publicId) return null;
 
     return {

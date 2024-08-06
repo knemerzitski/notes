@@ -4,8 +4,8 @@ import isDefined from '~utils/type-guards/isDefined';
 
 import { noteDefaultValues, NoteSchema } from '../../../../mongodb/schema/note/note';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
+import { DeepPartial } from '../../../../mongodb/types';
 import { mongoCollections } from '../mongodb';
-import { DeepPartial } from '../types';
 
 import { fakeCollabText, FakeCollabTextOptions } from './collab-text';
 import { populateQueue } from './populate-queue';

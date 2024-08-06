@@ -237,28 +237,41 @@ it('note non-owner delete note only for self, note is not deleted for other user
   expect(dbNote, 'Non-owner must not delete note').toBeDefined();
 });
 
-it('throws note not found if user is not linked to the note', async () => {
-  const response = await executeOperation(
-    {
-      contentId: note.publicId,
-    },
-    { user: userNoAccess }
-  );
+describe('errors', () => {
+  it('throws note not found if contentId is invalid', async () => {
+    const response = await executeOperation(
+      {
+        contentId: 'never',
+      },
+      { user: userOwner }
+    );
 
-  expectGraphQLResponseErrorMessage(response, /Note '.+' not found/);
-});
-
-it('throws error if not authenticated', async () => {
-  const response = await executeOperation({
-    contentId: note.publicId,
+    expectGraphQLResponseErrorMessage(response, /Note '.+' not found/);
   });
 
-  expectGraphQLResponseErrorMessage(response, /You are not auth.*/);
+  it('throws note not found if user is not linked to the note', async () => {
+    const response = await executeOperation(
+      {
+        contentId: note.publicId,
+      },
+      { user: userNoAccess }
+    );
+
+    expectGraphQLResponseErrorMessage(response, /Note '.+' not found/);
+  });
+
+  it('throws error if not authenticated', async () => {
+    const response = await executeOperation({
+      contentId: note.publicId,
+    });
+
+    expectGraphQLResponseErrorMessage(response, /You are not auth.*/);
+  });
 });
 
 describe('subscription', () => {
   it('owner note deletion is published to every user involved', async () => {
-    mockSubscriptionsModel.queryAllByTopic.mockResolvedValueOnce([
+    mockSubscriptionsModel.queryAllByTopic.mockResolvedValue([
       {
         subscription: {
           query: SUBSCRIPTION,
@@ -289,23 +302,37 @@ describe('subscription', () => {
     );
     expect(mockSubscriptionsModel.queryAllByTopic).toBeCalledTimes(2);
 
-    expect(mockSocketApi.post).toHaveBeenLastCalledWith({
+    expect(mockSocketApi.post).toHaveBeenNthCalledWith(1, {
       message: expect.objectContaining({
         type: 'next',
         payload: {
           data: {
             noteDeleted: {
-              id: expect.any(String),
-              contentId: expect.any(String),
+              id: `${note._id.toString('base64')}:${userOwner._id.toString('base64')}`,
+              contentId: note.publicId,
             },
           },
         },
       }),
     });
+    expect(mockSocketApi.post).toHaveBeenNthCalledWith(2, {
+      message: expect.objectContaining({
+        type: 'next',
+        payload: {
+          data: {
+            noteDeleted: {
+              id: `${note._id.toString('base64')}:${userNotOwner._id.toString('base64')}`,
+              contentId: note.publicId,
+            },
+          },
+        },
+      }),
+    });
+    expect(mockSocketApi.post).toBeCalledTimes(2);
   });
 
   it('non-owner note deletion is published only to self', async () => {
-    mockSubscriptionsModel.queryAllByTopic.mockResolvedValueOnce([
+    mockSubscriptionsModel.queryAllByTopic.mockResolvedValue([
       {
         subscription: {
           query: SUBSCRIPTION,
@@ -337,12 +364,13 @@ describe('subscription', () => {
         payload: {
           data: {
             noteDeleted: {
-              id: expect.any(String),
+              id: `${note._id.toString('base64')}:${userNotOwner._id.toString('base64')}`,
               contentId: expect.any(String),
             },
           },
         },
       }),
     });
+    expect(mockSocketApi.post).toHaveBeenCalledOnce();
   });
 });

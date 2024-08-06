@@ -36,6 +36,18 @@ export interface DeepArrayQuery<TItem> {
   $pagination?: RelayPagination<Cursor>;
 }
 
+export type DeepQueryPartial<T> = T extends (infer U)[]
+  ? DeepQueryPartial<U>[]
+  : T extends Primitive
+    ? T
+    : T extends object
+      ? DeepObjectQueryPartial<T>
+      : T;
+
+type DeepObjectQueryPartial<T extends object> = {
+  [Key in keyof T]?: T[Key] extends Primitive ? T[Key] : DeepQueryPartial<T[Key]>;
+};
+
 export function isArrayQuery(value?: unknown): value is DeepArrayQuery<unknown> {
   const isObject = value != null && typeof value == 'object';
   if (!isObject) return false;

@@ -2,7 +2,8 @@ import { faker } from '@faker-js/faker';
 
 import { UserNoteSchema } from '../../../../mongodb/schema/note/user-note';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
-import { DeepPartial } from '../types';
+
+import { DeepPartial } from '../../../../mongodb/types';
 
 import { TestNoteCategory } from './populate';
 

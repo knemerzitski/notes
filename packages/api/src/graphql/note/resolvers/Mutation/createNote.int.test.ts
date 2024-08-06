@@ -120,6 +120,7 @@ const SUBSCRIPTION = `#graphql
   subscription {
     noteCreated {
       note {
+        id
         contentId
         textFields {
           key
@@ -553,42 +554,44 @@ describe('no existing notes', () => {
     });
   });
 
-  it('throws error if not authenticated', async () => {
-    const response = await executeOperation({}, { user: undefined });
-    expectGraphQLResponseErrorMessage(response, /You are not auth.*/);
+  describe('errors', () => {
+    it('throws error if not authenticated', async () => {
+      const response = await executeOperation({}, { user: undefined });
+      expectGraphQLResponseErrorMessage(response, /You are not auth.*/);
 
-    // Database not modified
-    const dbUser = await mongoCollections.users.findOne({
-      _id: user._id,
+      // Database not modified
+      const dbUser = await mongoCollections.users.findOne({
+        _id: user._id,
+      });
+      expect(dbUser, 'Expected User collection to be unmodified').toStrictEqual(
+        expect.objectContaining({
+          notes: {
+            category: {},
+          },
+        })
+      );
+      const dbNote = await mongoCollections.notes.find().toArray();
+      expect(dbNote, 'Expected Note collection to be unmodified').toStrictEqual([]);
     });
-    expect(dbUser, 'Expected User collection to be unmodified').toStrictEqual(
-      expect.objectContaining({
-        notes: {
-          category: {},
-        },
-      })
-    );
-    const dbNote = await mongoCollections.notes.find().toArray();
-    expect(dbNote, 'Expected Note collection to be unmodified').toStrictEqual([]);
-  });
 
-  it('throws error if input text is too large', async () => {
-    const response = await executeOperation(
-      {
-        note: {
-          textFields: [
-            {
-              key: NoteTextField.CONTENT,
-              value: {
-                initialText: 'a'.repeat(100001),
+    it('throws error if input text is too large', async () => {
+      const response = await executeOperation(
+        {
+          note: {
+            textFields: [
+              {
+                key: NoteTextField.CONTENT,
+                value: {
+                  initialText: 'a'.repeat(100001),
+                },
               },
-            },
-          ],
+            ],
+          },
         },
-      },
-      { user }
-    );
-    expectGraphQLResponseErrorMessage(response, /got invalid value/);
+        { user }
+      );
+      expectGraphQLResponseErrorMessage(response, /got invalid value/);
+    });
   });
 
   describe('spyOn publicId', () => {
@@ -616,67 +619,71 @@ describe('no existing notes', () => {
     });
   });
 
-  it('subscription: publishes created note to current user', async () => {
-    mockSubscriptionsModel.queryAllByTopic.mockResolvedValueOnce([
-      {
-        subscription: {
-          query: SUBSCRIPTION,
-        },
-      } as Subscription,
-    ]);
+  describe('subscription', () => {
+    it('publishes created note to current user', async () => {
+      mockSubscriptionsModel.queryAllByTopic.mockResolvedValue([
+        {
+          subscription: {
+            query: SUBSCRIPTION,
+          },
+        } as Subscription,
+      ]);
 
-    const response = await executeOperation(
-      {
-        note: {
-          textFields: [
-            {
-              key: NoteTextField.CONTENT,
-              value: {
-                initialText: 'content',
+      const response = await executeOperation(
+        {
+          note: {
+            textFields: [
+              {
+                key: NoteTextField.CONTENT,
+                value: {
+                  initialText: 'content',
+                },
               },
-            },
-          ],
+            ],
+          },
         },
-      },
-      {
-        user,
-        createPublisher: createMockedPublisher,
-      }
-    );
-    expectGraphQLResponseData(response);
+        {
+          user,
+          createPublisher: createMockedPublisher,
+        }
+      );
+      expectGraphQLResponseData(response);
 
-    expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenCalledWith(
-      `${SubscriptionTopicPrefix.NOTE_CREATED}:userId=${user._id.toString('base64')}`
-    );
-    expect(mockSubscriptionsModel.queryAllByTopic).toBeCalledTimes(1);
+      expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenCalledWith(
+        `${SubscriptionTopicPrefix.NOTE_CREATED}:userId=${user._id.toString('base64')}`
+      );
+      expect(mockSubscriptionsModel.queryAllByTopic).toBeCalledTimes(1);
 
-    expect(mockSocketApi.post).toHaveBeenLastCalledWith({
-      message: expect.objectContaining({
-        type: 'next',
-        payload: {
-          data: {
-            noteCreated: {
-              note: {
-                contentId: expect.any(String),
-                textFields: expect.arrayContaining([
-                  {
-                    key: NoteTextField.CONTENT,
-                    value: {
-                      headText: {
-                        changeset: Changeset.fromInsertion('content').serialize(),
+      expect(mockSocketApi.post).toHaveBeenLastCalledWith({
+        message: expect.objectContaining({
+          type: 'next',
+          payload: {
+            data: {
+              noteCreated: {
+                note: {
+                  id: expect.any(String),
+                  contentId: expect.any(String),
+                  textFields: expect.arrayContaining([
+                    {
+                      key: NoteTextField.CONTENT,
+                      value: {
+                        headText: {
+                          changeset: Changeset.fromInsertion('content').serialize(),
+                        },
                       },
                     },
-                  },
-                  {
-                    key: NoteTextField.TITLE,
-                    value: { headText: { changeset: Changeset.EMPTY.serialize() } },
-                  },
-                ]),
+                    {
+                      key: NoteTextField.TITLE,
+                      value: { headText: { changeset: Changeset.EMPTY.serialize() } },
+                    },
+                  ]),
+                },
               },
             },
           },
-        },
-      }),
+        }),
+      });
+      expect(mockSocketApi.post).toBeCalledTimes(1);
     });
   });
 });

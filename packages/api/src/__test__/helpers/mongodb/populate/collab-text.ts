@@ -8,14 +8,17 @@ import {
   CollabTextSchema,
   RevisionRecordSchema,
 } from '../../../../mongodb/schema/collab-text/collab-text';
-import { DeepPartial } from '../types';
+import { DeepPartial } from '../../../../mongodb/types';
 
 export interface FakeCollabTextOptions {
   initialText?: string;
   override?: DeepPartial<CollabTextSchema>;
   revisionOffset?: number;
   recordsCount?: number;
-  record?: (recordIndex: number, revision: number) => DeepPartial<RevisionRecordSchema>;
+  record?: (
+    recordIndex: number,
+    revision: number
+  ) => DeepPartial<RevisionRecordSchema> | undefined;
 }
 
 export function fakeCollabText(

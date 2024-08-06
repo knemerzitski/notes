@@ -1,4 +1,4 @@
-import type { NotePatchResolvers } from '../../../graphql/types.generated';
+import type { NotePatchResolvers } from './../../types.generated';
 
 export const NotePatch: Pick<
   NotePatchResolvers,
@@ -6,5 +6,11 @@ export const NotePatch: Pick<
 > = {
   id: (parent) => {
     return parent.id();
+  },
+  categoryName: (parent) => {
+    return parent.categoryName();
+  },
+  textFields: (parent) => {
+    return parent.textFields();
   },
 };

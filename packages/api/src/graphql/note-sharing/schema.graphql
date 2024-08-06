@@ -38,7 +38,7 @@ input DeleteNoteSharingInput {
   contentId: String!
 }
 type DeleteNoteSharingPayload {
-  "Note the has sharing deleted"
+  "Note with sharing deleted"
   note: Note!
 }
 extend type Mutation {

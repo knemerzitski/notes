@@ -143,6 +143,9 @@ input UpdateNoteInput {
   contentId: String!
   patch: NotePatchInput
 }
+"""
+TODO instead of patch, return the Note itself?
+"""
 type UpdateNotePayload {
   "Updated note contentId"
   contentId: String!

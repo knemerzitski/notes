@@ -10,24 +10,6 @@ import {
   ResolversTypes,
 } from '../types.generated';
 
-export interface RevisionChangesetMapper {
-  revision(): ResolverTypeWrapper<number>;
-  changeset(): ResolversTypes['Changeset'];
-}
-
-export interface CollabTextSelectionRangeMapper {
-  start(): ResolverTypeWrapper<number>;
-  end(): ResolverTypeWrapper<number>;
-}
-
-export interface CollabTextRecordMapper {
-  id(): ResolverTypeWrapper<string>;
-  creatorUserId(): ResolverTypeWrapper<string>;
-  change(): RevisionChangesetMapper;
-  beforeSelection(): CollabTextSelectionRangeMapper;
-  afterSelection(): CollabTextSelectionRangeMapper;
-}
-
 export interface CollabTextMapper {
   id(): ResolverTypeWrapper<string>;
   headText(): RevisionChangesetMapper;
@@ -41,10 +23,22 @@ export interface CollabTextMapper {
   ): CollabTextRecordConnectionMapper;
 }
 
-export interface CollabTextPatchMapper {
+export interface CollabTextRecordMapper {
   id(): ResolverTypeWrapper<string>;
-  newRecord?: ResolversTypes['CollabTextRecord'];
-  isExistingRecord?: boolean;
+  creatorUserId(): ResolverTypeWrapper<string>;
+  change(): RevisionChangesetMapper;
+  beforeSelection(): CollabTextSelectionRangeMapper;
+  afterSelection(): CollabTextSelectionRangeMapper;
+}
+
+export interface RevisionChangesetMapper {
+  revision(): ResolverTypeWrapper<number>;
+  changeset(): ResolversTypes['Changeset'];
+}
+
+export interface CollabTextSelectionRangeMapper {
+  start(): ResolverTypeWrapper<number>;
+  end(): ResolverTypeWrapper<number>;
 }
 
 export interface CollabTextRecordConnectionMapper {
