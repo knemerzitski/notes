@@ -16,7 +16,7 @@ import createCollabText from '../../../../mongodb/schema/collab-text/utils/creat
 import { NoteSchema } from '../../../../mongodb/schema/note/note';
 import { QueryableNote } from '../../../../mongodb/schema/note/query/queryable-note';
 import { getNotesArrayPath, UserSchema } from '../../../../mongodb/schema/user/user';
-import { DeepPartial } from '../../../../mongodb/types';
+import { MongoDeepPartial } from '../../../../mongodb/types';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import {
   type MutationResolvers,
@@ -494,7 +494,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
 
   function createResponseForUser(
     userId: ObjectId,
-    patchExtra: DeepPartial<MongoNotePatch>
+    patchExtra: MongoDeepPartial<MongoNotePatch>
   ): ResolversTypes['UpdateNotePayload'] & ResolversTypes['NoteUpdatedPayload'] {
     const patch = new MongoNotePatchMapper(
       new NoteQueryMapper(userId, notePatchQuery),

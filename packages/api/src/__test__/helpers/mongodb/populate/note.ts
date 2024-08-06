@@ -4,7 +4,7 @@ import isDefined from '~utils/type-guards/isDefined';
 
 import { noteDefaultValues, NoteSchema } from '../../../../mongodb/schema/note/note';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
-import { DeepPartial } from '../../../../mongodb/types';
+import { MongoDeepPartial } from '../../../../mongodb/types';
 import { mongoCollections } from '../mongodb';
 
 import { fakeCollabText, FakeCollabTextOptions } from './collab-text';
@@ -13,7 +13,7 @@ import { fakeShareNoteLink } from './share-note-link';
 import { fakeUserNote } from './user-note';
 
 export interface FakeNoteOptions {
-  override?: DeepPartial<Omit<NoteSchema, 'collabTexts'>>;
+  override?: MongoDeepPartial<Omit<NoteSchema, 'collabTexts'>>;
   collabTexts?: Record<string, FakeCollabTextOptions | undefined>;
 }
 

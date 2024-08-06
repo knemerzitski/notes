@@ -3,8 +3,8 @@ import { ObjectId } from 'mongodb';
 import { Maybe, MaybePromise } from '~utils/types';
 
 import { RelayPagination } from '../pagination/relayArrayPagination';
+import { MongoPrimitive } from '../types';
 
-export type Primitive = string | number | boolean | ObjectId | Date;
 export type ProjectionValue = 1 | undefined;
 export type IdProjectionValue = 0 | ProjectionValue;
 
@@ -17,14 +17,14 @@ export type Cursor = string | number | ObjectId;
  */
 export type DeepQuery<T> = T extends (infer U)[]
   ? DeepArrayQuery<U>
-  : T extends Primitive
+  : T extends MongoPrimitive
     ? ProjectionValue
     : T extends object
       ? DeepObjectQuery<T>
       : T;
 
 export type DeepObjectQuery<T extends object> = {
-  [Key in keyof T]?: T[Key] extends Primitive
+  [Key in keyof T]?: T[Key] extends MongoPrimitive
     ? Key extends '_id'
       ? IdProjectionValue
       : ProjectionValue
@@ -38,14 +38,14 @@ export interface DeepArrayQuery<TItem> {
 
 export type DeepQueryPartial<T> = T extends (infer U)[]
   ? DeepQueryPartial<U>[]
-  : T extends Primitive
+  : T extends MongoPrimitive
     ? T
     : T extends object
       ? DeepObjectQueryPartial<T>
       : T;
 
 type DeepObjectQueryPartial<T extends object> = {
-  [Key in keyof T]?: T[Key] extends Primitive ? T[Key] : DeepQueryPartial<T[Key]>;
+  [Key in keyof T]?: T[Key] extends MongoPrimitive ? T[Key] : DeepQueryPartial<T[Key]>;
 };
 
 export function isArrayQuery(value?: unknown): value is DeepArrayQuery<unknown> {
@@ -63,7 +63,7 @@ export function isArrayQuery(value?: unknown): value is DeepArrayQuery<unknown> 
  */
 export type DeepQueryResult<T> = T extends (infer U)[]
   ? DeepQueryResult<Readonly<U>>[]
-  : T extends Primitive
+  : T extends MongoPrimitive
     ? T
     : T extends object
       ? DeepObjectQueryResult<T>

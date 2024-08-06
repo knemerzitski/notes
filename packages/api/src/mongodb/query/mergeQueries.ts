@@ -1,5 +1,5 @@
-import { Primitive } from '../../__test__/helpers/mongodb/types';
 import { RelayPagination, getPaginationKey } from '../pagination/relayArrayPagination';
+import { MongoPrimitive } from '../types';
 
 import {
   Cursor,
@@ -11,14 +11,14 @@ import {
 
 export type MergedDeepQuery<T> = T extends (infer U)[]
   ? MergedDeepArrayQuery<U>
-  : T extends Primitive
+  : T extends MongoPrimitive
     ? ProjectionValue
     : T extends object
       ? MergedDeepObjectQuery<T>
       : T;
 
 export type MergedDeepObjectQuery<T extends object> = {
-  [Key in keyof T]?: T[Key] extends Primitive
+  [Key in keyof T]?: T[Key] extends MongoPrimitive
     ? Key extends '_id'
       ? IdProjectionValue
       : MergedDeepQuery<T[Key]>

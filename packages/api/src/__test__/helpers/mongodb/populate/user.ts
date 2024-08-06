@@ -5,13 +5,13 @@ import { ObjectId } from 'mongodb';
 import isDefined from '~utils/type-guards/isDefined';
 
 import { UserSchema } from '../../../../mongodb/schema/user/user';
-import { DeepPartial } from '../../../../mongodb/types';
+import { MongoDeepPartial } from '../../../../mongodb/types';
 import { mongoCollections } from '../mongodb';
 
 import { populateQueue } from './populate-queue';
 
 export interface FakeUserOptions {
-  override?: DeepPartial<UserSchema>;
+  override?: MongoDeepPartial<UserSchema>;
 }
 
 export function fakeUser(options?: FakeUserOptions): UserSchema {

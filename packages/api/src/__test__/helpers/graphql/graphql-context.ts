@@ -20,14 +20,14 @@ import { MongoDBCollections } from '../../../mongodb/collections';
 import { MongoDBContext } from '../../../mongodb/lambda-context';
 import { createMongoDBLoaders } from '../../../mongodb/loaders';
 import { UserSchema } from '../../../mongodb/schema/user/user';
-import { DeepPartial } from '../../../mongodb/types';
+import { MongoDeepPartial } from '../../../mongodb/types';
 import { mongoCollections, mongoClient } from '../mongodb/mongodb';
 
 export interface CreateGraphQLResolversContextOptions {
   user?: Partial<UserSchema>;
   createPublisher?: (ctx: Omit<GraphQLResolversContext, 'publish'>) => Publisher;
   mongodb?: PartialBy<ApiGraphQLContext['mongodb'], 'loaders'>;
-  override?: DeepPartial<GraphQLResolversContext>;
+  override?: MongoDeepPartial<GraphQLResolversContext>;
 }
 
 export function createGraphQLResolversContext(

@@ -1,6 +1,7 @@
+import { MongoPrimitive } from '../types';
+
 import { MapAggregateResultResolver } from './mapQueryAggregateResult';
 import { AddStagesResolver, MapLastProjectResolver } from './mergedQueryToPipeline';
-import { Primitive } from './query';
 
 export interface FieldDescription<
   TSchema = unknown,
@@ -40,7 +41,7 @@ export type DeepAnyDescription<
   IsArrayItem = false,
 > = T extends (infer U)[]
   ? DeepAnyDescription<U, R, C, true>
-  : T extends Primitive
+  : T extends MongoPrimitive
     ? FieldDescription<T, R, C>
     : T extends object
       ? DeepObjectDescription<T, R, C, IsArrayItem>
