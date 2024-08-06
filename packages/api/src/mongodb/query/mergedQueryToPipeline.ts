@@ -1,6 +1,6 @@
 import { Document } from 'mongodb';
 
-import mergeTwoObjects from '~utils/object/mergeTwoObjects';
+import mergeObjects from '~utils/object/mergeObjects';
 import stringPathToNestedObject from '~utils/string/stringPathToNestedObject';
 import isDefined from '~utils/type-guards/isDefined';
 
@@ -199,7 +199,7 @@ export function buildStages<TSchema = unknown, TContext = unknown>(
               }
             }
 
-            return mergeTwoObjects(
+            return mergeObjects(
               existingProjectValue,
               buildLastProjectValue(field.query, {
                 descriptions: fieldDescription ? [fieldDescription] : [],
@@ -394,7 +394,7 @@ function mergedProject(existingProject: unknown, newProject: unknown) {
   }
 
   for (const key of Object.keys(newProject)) {
-    mergeTwoObjects(
+    mergeObjects(
       existingProject,
       stringPathToNestedObject(key, newProject[key as keyof typeof newProject], '.')
     );
