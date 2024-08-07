@@ -52,7 +52,11 @@ export default function mapQueryAggregateResult<
   ) as DeepQueryResult<TSchema>;
 
   const targetQuery = isArrayQuery(rootQuery) ? rootQuery.$query : rootQuery;
-  if (isObjectLike(targetQuery) && typeof aggregateResult === 'object') {
+  if (
+    isObjectLike(targetQuery) &&
+    aggregateResult != null &&
+    typeof aggregateResult === 'object'
+  ) {
     if (isArrayQuery(rootQuery)) {
       // must map result right await?
       if (Array.isArray(aggregateResult)) {
@@ -70,7 +74,7 @@ export default function mapQueryAggregateResult<
         ) as DeepQueryResult<TSchema>;
       }
     } else {
-      const tmpAggregateResult: Record<string, unknown> = { ...aggregateResult };
+      const newAggregateResult: Record<string, unknown> = {};
 
       for (const subQueryKey of Object.keys(targetQuery)) {
         const subQuery = targetQuery[subQueryKey as keyof typeof targetQuery];
@@ -83,7 +87,9 @@ export default function mapQueryAggregateResult<
           continue;
         }
 
-        let subAggregateResult = tmpAggregateResult[subQueryKey];
+        let subAggregateResult = (aggregateResult as Record<string, unknown>)[
+          subQueryKey
+        ];
         if (subAggregateResult == null) {
           continue;
         }
@@ -117,11 +123,11 @@ export default function mapQueryAggregateResult<
           }
         );
         if (subAggregateResult != null) {
-          tmpAggregateResult[subQueryKey] = subAggregateResult;
+          newAggregateResult[subQueryKey] = subAggregateResult;
         }
       }
 
-      aggregateResult = tmpAggregateResult;
+      aggregateResult = newAggregateResult;
     }
   }
 

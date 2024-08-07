@@ -247,7 +247,6 @@ it('loads minimal fields', async () => {
     )
   ).resolves.toEqual([
     {
-      publicId: note.publicId,
       userNotes: [
         {
           readOnly: expect.any(Boolean),
@@ -281,7 +280,6 @@ it('loads shareNoteLinks', async () => {
     )
   ).resolves.toEqual([
     {
-      publicId: note.publicId,
       shareNoteLinks: [
         {
           publicId: expect.any(String),
@@ -327,7 +325,6 @@ it('loads a note for user who has UserNote document', async () => {
   ).resolves.toEqual([
     {
       _id: expect.any(ObjectId),
-      publicId: expect.any(String),
     },
   ]);
 });

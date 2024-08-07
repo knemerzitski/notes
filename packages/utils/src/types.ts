@@ -47,36 +47,36 @@ export type IsTuple<Type> = Type extends readonly unknown[]
     : Type
   : never;
 
-export type DeepPartial<Type, TPrimitive = never> = Type extends Exclude<
-  Builtin | TPrimitive,
+export type DeepPartial<Type, TIn = never, TOut = never> = Type extends Exclude<
+  Builtin | TIn,
   Error
 >
   ? Type
   : Type extends Map<infer Keys, infer Values>
-    ? Map<DeepPartial<Keys, TPrimitive>, DeepPartial<Values, TPrimitive>>
+    ? Map<DeepPartial<Keys, TIn, TOut>, DeepPartial<Values, TIn, TOut>>
     : Type extends ReadonlyMap<infer Keys, infer Values>
-      ? ReadonlyMap<DeepPartial<Keys, TPrimitive>, DeepPartial<Values, TPrimitive>>
+      ? ReadonlyMap<DeepPartial<Keys, TIn, TOut>, DeepPartial<Values, TIn, TOut>>
       : Type extends WeakMap<infer Keys, infer Values>
-        ? WeakMap<DeepPartial<Keys, TPrimitive>, DeepPartial<Values, TPrimitive>>
+        ? WeakMap<DeepPartial<Keys, TIn, TOut>, DeepPartial<Values, TIn, TOut>>
         : Type extends Set<infer Values>
-          ? Set<DeepPartial<Values, TPrimitive>>
+          ? Set<DeepPartial<Values, TIn, TOut>>
           : Type extends ReadonlySet<infer Values>
-            ? ReadonlySet<DeepPartial<Values, TPrimitive>>
+            ? ReadonlySet<DeepPartial<Values, TIn, TOut>>
             : Type extends WeakSet<infer Values>
-              ? WeakSet<DeepPartial<Values, TPrimitive>>
+              ? WeakSet<DeepPartial<Values, TIn, TOut>>
               : Type extends readonly (infer Values)[]
                 ? Type extends IsTuple<Type>
                   ? {
-                      [Key in keyof Type]?: DeepPartial<Type[Key], TPrimitive>;
+                      [Key in keyof Type]?: DeepPartial<Type[Key], TIn, TOut>;
                     }
                   : Type extends Values[]
-                    ? (DeepPartial<Values, TPrimitive> | undefined)[]
-                    : readonly (DeepPartial<Values, TPrimitive> | undefined)[]
+                    ? (DeepPartial<Values, TIn, TOut> | undefined)[]
+                    : readonly (DeepPartial<Values, TIn, TOut> | undefined)[]
                 : Type extends Promise<infer Value>
-                  ? Promise<DeepPartial<Value, TPrimitive>>
+                  ? Promise<DeepPartial<Value, TIn, TOut>>
                   : Type extends object
                     ? {
-                        [Key in keyof Type]?: DeepPartial<Type[Key], TPrimitive>;
+                        [Key in keyof Type]?: DeepPartial<Type[Key], TIn, TOut>;
                       }
                     : IsUnknown<Type> extends true
                       ? unknown

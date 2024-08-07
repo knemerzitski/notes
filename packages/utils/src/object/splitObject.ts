@@ -1,5 +1,3 @@
-import { DeepPartial } from '../types';
-
 interface SplitObjectOptions {
   /**
    * Objects in these keys are kept as is without modification
@@ -31,7 +29,7 @@ export default function splitObject<T extends object>(
   fromParentPathObj: (innerObj: Record<string, unknown>) => Record<string, unknown> = (
     obj
   ) => obj
-): DeepPartial<T>[] {
+): T[] {
   const isPrim = options?.splitFn ?? isPrimitive;
 
   const entries = Object.entries(obj);
@@ -43,7 +41,7 @@ export default function splitObject<T extends object>(
     const firstValue = entries[0]?.[1];
     if (isPrim(firstValue)) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return [obj as any];
+      return [fromParentPathObj(obj as any) as any];
     }
   }
 
@@ -68,7 +66,7 @@ export default function splitObject<T extends object>(
       result.push(fromParentPathObj({ [key]: value }));
     } else if (value != null && typeof value === 'object') {
       result.push(
-        ...splitObject(value as Record<string, unknown>, options, (innerObj) =>
+        ...splitObject(value, options, (innerObj) =>
           fromParentPathObj({
             ...extraPathObj,
             [key]: {

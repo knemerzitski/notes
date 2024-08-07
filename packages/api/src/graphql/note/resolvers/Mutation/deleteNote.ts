@@ -34,6 +34,7 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
     publicId: notePublicId,
     noteQuery: {
       _id: 1,
+      publicId: 1,
       userNotes: {
         $query: {
           userId: 1,
@@ -44,11 +45,11 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
     },
   });
 
-  const noteId = note._id;
-  const userNotes = note.userNotes ?? [];
+  const noteId = note?._id;
+  const userNotes = note?.userNotes ?? [];
   const userNote = findUserNote(currentUserId, note);
   const otherUserIds: ObjectId[] =
-    note.userNotes
+    note?.userNotes
       ?.map((userNote) => userNote.userId)
       .filter(isDefined)
       .filter((userId) => !userId.equals(currentUserId)) ?? [];
@@ -132,6 +133,8 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
       })
     );
   }
+
+  // TODO prime the note value, then just return a loader query
 
   const noteQuery: MongoQuery<QueryableNote> = {
     query() {

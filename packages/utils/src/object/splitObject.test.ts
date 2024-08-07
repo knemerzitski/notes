@@ -153,6 +153,74 @@ it.each([
       },
     ],
   ],
+  [
+    {
+      publicId: 1,
+      userNotes: {
+        $query: {
+          isOwner: 1,
+          readOnly: 1,
+        },
+      },
+      collabTexts: {
+        title: {
+          headText: {
+            changeset: 1,
+          },
+          records: {
+            $query: {
+              revision: 1,
+            },
+            $pagination: {
+              last: 2,
+            },
+          },
+        },
+      },
+    },
+    [
+      {
+        publicId: 1,
+      },
+      {
+        userNotes: {
+          $query: {
+            isOwner: 1,
+          },
+        },
+      },
+      {
+        userNotes: {
+          $query: {
+            readOnly: 1,
+          },
+        },
+      },
+      {
+        collabTexts: {
+          title: {
+            headText: {
+              changeset: 1,
+            },
+          },
+        },
+      },
+      {
+        collabTexts: {
+          title: {
+            records: {
+              $query: {
+                revision: 1,
+              },
+              $pagination: {
+                last: 2,
+              },
+            },
+          },
+        },
+      },
+    ],
+  ],
 ])('%s => %s', (bigQuery, expectedLeaves) => {
   expect(
     splitObject(bigQuery, {

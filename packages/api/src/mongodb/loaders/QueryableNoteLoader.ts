@@ -1,20 +1,15 @@
-import DataLoader from 'dataloader';
 import { AggregateOptions } from 'mongodb';
 
-import callFnGrouped from '~utils/callFnGrouped';
-
-import { Emitter } from '~utils/mitt-unsub';
+import mitt, { Emitter } from '~utils/mitt-unsub';
 
 import { CollectionName, MongoDBCollections } from '../collections';
 import { MongoDBContext } from '../lambda-context';
 import { LoaderEvents } from '../loaders';
-import { DeepQueryResult } from '../query/query';
 
 import { QueryableNote } from '../schema/note/query/queryable-note';
 
+import QueryLoader, { QueryLoaderEvents } from './QueryLoader';
 import queryableNoteBatchLoad, { QueryableNoteLoadKey } from './queryableNoteBatchLoad';
-
-import getEqualObjectString from './utils/getEqualObjectString';
 
 export interface QueryableNoteLoaderContext {
   eventBus?: Emitter<LoaderEvents>;
@@ -24,46 +19,52 @@ export interface QueryableNoteLoaderContext {
   >;
 }
 
-type QueryableNoteLoadKeyWithSession = {
-  noteKey: QueryableNoteLoadKey;
-} & Pick<AggregateOptions, 'session'>;
-
 export default class QueryableNoteLoader {
-  private readonly context: Readonly<QueryableNoteLoaderContext>;
-
-  private readonly loader: DataLoader<
-    QueryableNoteLoadKeyWithSession,
-    DeepQueryResult<QueryableNote>,
-    string
+  private readonly loader: QueryLoader<
+    Pick<QueryableNoteLoadKey, 'userId' | 'publicId'>,
+    QueryableNote,
+    QueryableNoteLoaderContext,
+    AggregateOptions['session']
   >;
 
   constructor(context: Readonly<QueryableNoteLoaderContext>) {
-    this.context = context;
+    const loaderEventBus =
+      mitt<
+        QueryLoaderEvents<
+          Pick<QueryableNoteLoadKey, 'userId' | 'publicId'>,
+          QueryableNote
+        >
+      >();
+    if (context.eventBus) {
+      loaderEventBus.on('loaded', ({ key, value }) => {
+        context.eventBus?.emit('loadedNote', {
+          key: {
+            userId: key.id.userId,
+            publicId: key.id.publicId,
+            noteQuery: key.query,
+          },
+          value,
+        });
+      });
+    }
 
-    this.loader = new DataLoader<
-      QueryableNoteLoadKeyWithSession,
-      DeepQueryResult<QueryableNote>,
-      string
-    >(
-      async (keys) =>
-        callFnGrouped(
-          keys,
-          (key) => key.session,
-          (keys, session) =>
-            queryableNoteBatchLoad(
-              keys.map(({ noteKey }) => noteKey),
-              this.context,
-              {
-                session,
-              }
-            )
-        ),
-      {
-        cacheKeyFn: (key) => {
-          return getEqualObjectString(key.noteKey);
-        },
-      }
-    );
+    this.loader = new QueryLoader({
+      eventBus: context.eventBus ? loaderEventBus : undefined,
+      batchLoadFn: (keys, context) => {
+        return queryableNoteBatchLoad(
+          keys.map((key) => ({
+            userId: key.id.userId,
+            publicId: key.id.publicId,
+            noteQuery: key.query,
+          })),
+          context.global,
+          {
+            session: context.request,
+          }
+        );
+      },
+      context,
+    });
 
     if (context.eventBus) {
       context.eventBus.on('loadedUser', (payload) => {
@@ -76,26 +77,19 @@ export default class QueryableNoteLoader {
     key: QueryableNoteLoadKey,
     aggregateOptions?: Pick<AggregateOptions, 'session'>
   ) {
-    const loaderKey: QueryableNoteLoadKeyWithSession = {
-      noteKey: key,
-    };
-    if (aggregateOptions?.session) {
-      loaderKey.session = aggregateOptions.session;
-      // Clear key since session implies a transaction where returned value must be always up-to-date
-      return this.loader.clear(loaderKey).load(loaderKey);
-    } else {
-      const result = await this.loader.load(loaderKey);
-
-      const eventBus = this.context.eventBus;
-      if (eventBus) {
-        eventBus.emit('loadedNote', {
-          key,
-          value: result,
-        });
+    return this.loader.load(
+      {
+        id: {
+          userId: key.userId,
+          publicId: key.publicId,
+        },
+        query: key.noteQuery,
+      },
+      {
+        context: aggregateOptions?.session,
+        skipCache: aggregateOptions?.session != null,
       }
-
-      return result;
-    }
+    );
   }
 
   private primeNotesLoadedUser({ key, value }: LoaderEvents['loadedUser']) {
@@ -119,11 +113,11 @@ export default class QueryableNoteLoader {
           if (!note.publicId) return;
           this.loader.prime(
             {
-              noteKey: {
+              id: {
                 userId,
                 publicId: note.publicId,
-                noteQuery: noteQuery,
               },
+              query: noteQuery,
             },
             note
           );
