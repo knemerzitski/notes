@@ -1,7 +1,7 @@
 import { GraphQLResponse } from '@apollo/server';
 import { assert, expect } from 'vitest';
 
-import expectp from '../expectp';
+import { expectp } from '../expectp';
 
 export function expectGraphQLResponseData<TData = Record<string, unknown>>(
   response: GraphQLResponse<TData>

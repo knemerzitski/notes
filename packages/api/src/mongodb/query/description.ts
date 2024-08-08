@@ -1,7 +1,7 @@
 import { MongoPrimitive } from '../types';
 
-import { MapAggregateResultResolver } from './mapQueryAggregateResult';
-import { AddStagesResolver, MapLastProjectResolver } from './mergedQueryToPipeline';
+import { MapAggregateResultResolver } from './map-query-aggregate-result';
+import { AddStagesResolver, MapLastProjectResolver } from './merged-query-to-pipeline';
 
 export interface FieldDescription<
   TSchema = unknown,

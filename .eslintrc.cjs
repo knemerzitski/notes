@@ -1,6 +1,6 @@
 module.exports = {
   root: true,
-  plugins: ['eslint-plugin-import'],
+  plugins: ['eslint-plugin-import', 'unicorn'],
   extends: ['eslint:recommended', 'prettier'],
   settings: {
     'import/resolver': {
@@ -28,6 +28,13 @@ module.exports = {
           order: 'asc',
           caseInsensitive: false,
         },
+      },
+    ],
+    'import/no-default-export': ['error'],
+    'unicorn/filename-case': [
+      'error',
+      {
+        case: 'kebabCase',
       },
     ],
   },

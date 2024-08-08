@@ -6,12 +6,12 @@ import { EvictTypePolicies } from '../apollo-client/policy/evict';
 import { PersistTypePolicies } from '../apollo-client/policy/persist';
 import { editorsInCache } from '../editor/editors';
 
-import { recordsConnection as CollabText_recordsConnection } from './policies/CollabText/recordsConnection';
-import { textAtRevision as CollabText_textAtRevision } from './policies/CollabText/textAtRevision';
-import { viewText as CollabText_viewText } from './policies/CollabText/viewText';
-import { allActiveCollabTexts as Query_allActiveCollabTexts } from './policies/Query/allActiveCollabTexts';
+import { recordsConnection as CollabText_recordsConnection } from './policies/collab-text/records-connection';
+import { textAtRevision as CollabText_textAtRevision } from './policies/collab-text/text-at-revision';
+import { viewText as CollabText_viewText } from './policies/collab-text/view-text';
+import { allActiveCollabTexts as Query_allActiveCollabTexts } from './policies/query/all-active-collab-texts';
 
-const collabTextPolicies: TypePolicies &
+export const collabTextPolicies: TypePolicies &
   PersistTypePolicies &
   EvictTypePolicies<NormalizedCacheObject> = {
   Query: {
@@ -68,5 +68,3 @@ const collabTextPolicies: TypePolicies &
     keyFields: false,
   },
 };
-
-export default collabTextPolicies;

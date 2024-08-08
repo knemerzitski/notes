@@ -14,7 +14,7 @@ import { createWebSocketDisconnectHandler } from '~lambda-graphql/disconnect-han
 import { createWebSocketMessageHandler } from '~lambda-graphql/message-handler';
 import { createWebSocketHandler } from '~lambda-graphql/websocket-handler';
 import { createLogger } from '~utils/logger';
-import isEnvVarStringTrue from '~utils/string/isEnvVarStringTrue';
+import { isEnvVarStringTrue } from '~utils/string/is-env-var-string-true';
 
 import { createMockMongoDBContext } from './handler-params';
 import { mockCreateDefaultParams as mockCreateDefaultApolloHttpHandlerParams } from './handlers/mock-apollo-http-handler';

@@ -7,7 +7,7 @@ import {
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Construct } from 'constructs';
 
-import getOrCreateResource from '../utils/getOrCreateResource';
+import { getOrCreateResource } from '../utils/get-or-create-resource';
 
 export interface HttpRestApiProps {
   url: string;

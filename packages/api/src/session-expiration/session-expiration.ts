@@ -12,7 +12,7 @@ export interface SessionExpirationConfig {
   readonly refreshThreshold: number;
 }
 
-export default class SessionExpiration {
+export class SessionExpiration {
   private config: SessionExpirationConfig;
 
   constructor(config: SessionExpirationConfig) {

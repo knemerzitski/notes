@@ -6,6 +6,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 const envDir = '../../';
 
 // https://vitejs.dev/config/
+// eslint-disable-next-line import/no-default-export
 export default ({ mode }: { mode: string }) => {
   process.env = { ...process.env, ...loadEnv(mode, envDir) };
 

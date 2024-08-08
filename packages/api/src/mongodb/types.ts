@@ -12,6 +12,8 @@ export interface Entry<Key, Value> {
   v: Value;
 }
 
-export type MongoPrimitive = Exclude<Primitive, undefined> | ObjectId;
+type AddPrimitives = ObjectId | Date;
 
-export type MongoDeepPartial<T> = DeepPartial<T, ObjectId, undefined>;
+export type MongoPrimitive = Exclude<Primitive, undefined> | AddPrimitives;
+
+export type MongoDeepPartial<T> = DeepPartial<T, AddPrimitives, undefined>;

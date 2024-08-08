@@ -7,9 +7,9 @@ import { EvictTypePolicies } from '../../apollo-client/policy/evict';
 import { PersistTypePolicies } from '../../apollo-client/policy/persist';
 import { editorsInCache } from '../../editor/editors';
 
-import { localNotesConnection as Query_localNotesConnection } from './policies/Query/localNotesConnection';
+import { localNotesConnection as Query_localNotesConnection } from './policies/query/local-notes-connection';
 
-const localNotePolicies: TypePolicies &
+export const localNotePolicies: TypePolicies &
   PersistTypePolicies &
   EvictTypePolicies<NormalizedCacheObject> = {
   Query: {
@@ -97,5 +97,3 @@ const localNotePolicies: TypePolicies &
     },
   },
 };
-
-export default localNotePolicies;

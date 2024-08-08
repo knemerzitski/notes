@@ -1,4 +1,4 @@
-import mitt, { Emitter } from '~utils/mitt-unsub';
+import { mitt, Emitter } from '~utils/mitt-unsub';
 import { Serializable, assertIsObject } from '~utils/serialize';
 
 import { Changeset, SerializedChangeset } from '../changeset/changeset';

@@ -2,7 +2,7 @@ import { ObjectId } from 'mongodb';
 
 import { Maybe, MaybePromise } from '~utils/types';
 
-import { RelayPagination } from '../pagination/relayArrayPagination';
+import { RelayPagination } from '../pagination/relay-array-pagination';
 import { MongoPrimitive } from '../types';
 
 export type ProjectionValue = 1 | undefined;

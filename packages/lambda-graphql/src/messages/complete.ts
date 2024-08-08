@@ -2,7 +2,7 @@ import AggregateError from 'aggregate-error';
 import { GraphQLError, parse } from 'graphql';
 import { buildExecutionContext } from 'graphql/execution/execute';
 import { MessageType } from 'graphql-ws';
-import isArray from '~utils/array/isArray';
+import { isArray } from '~utils/array/is-array';
 
 import { DynamoDBRecord } from '../dynamodb/models/connection';
 import { MessageHandler } from '../message-handler';

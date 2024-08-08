@@ -2,21 +2,22 @@ import mapObject from 'map-obj';
 
 import { ObjectId } from 'mongodb';
 
-import isObjectLike from '~utils/type-guards/isObjectLike';
+import { isObjectLike } from '~utils/type-guards/is-object-like';
 
 import { CollectionName, MongoDBCollectionsOnlyNames } from '../../../collections';
-import relayArrayPagination, {
+import {
   relayArrayPaginationMapAggregateResult,
   relayMultiArraySplit,
   relayMultiArrayConcat,
   isRelayArrayPaginationAggregateResult,
-} from '../../../pagination/relayArrayPagination';
-import asArrayFieldDescription from '../../../query/asArrayFieldDescription';
+  relayArrayPagination,
+} from '../../../pagination/relay-array-pagination';
+import { asArrayFieldDescription } from '../../../query/as-array-field-description';
 import { DeepAnyDescription } from '../../../query/description';
 import { QueryableNote, queryableNoteDescription } from '../../note/query/queryable-note';
 import { UserSchema } from '../user';
 
-import user_noteLookup, { User_NoteLookup } from './user_noteLookup';
+import { User_NoteLookup, user_noteLookup } from './user-note-lookup';
 
 export type QueryableUser = Omit<UserSchema, 'notes'> & {
   notes: Omit<UserSchema['notes'], 'category'> & {

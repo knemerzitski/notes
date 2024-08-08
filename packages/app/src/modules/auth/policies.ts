@@ -3,11 +3,11 @@ import { NormalizedCacheObject, TypePolicies } from '@apollo/client';
 import { User } from '../../__generated__/graphql';
 import { KeySpecifierName } from '../apollo-client/key-specifier';
 import { EvictTag, EvictTypePolicies } from '../apollo-client/policy/evict';
-import { fieldArrayToMap } from '../apollo-client/utils/fieldArrayToMap';
+import { fieldArrayToMap } from '../apollo-client/utils/field-array-to-map';
 
 import { getCurrentUserIdInStorage } from './user';
 
-const sessionPolicies: TypePolicies & EvictTypePolicies<NormalizedCacheObject> = {
+export const sessionPolicies: TypePolicies & EvictTypePolicies<NormalizedCacheObject> = {
   Query: {
     fields: {
       user: {
@@ -49,5 +49,3 @@ const sessionPolicies: TypePolicies & EvictTypePolicies<NormalizedCacheObject> =
     keyFields: false,
   },
 };
-
-export default sessionPolicies;

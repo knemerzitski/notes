@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker';
 import mapObject, { mapObjectSkip } from 'map-obj';
 import { ObjectId } from 'mongodb';
 
-import isDefined from '~utils/type-guards/isDefined';
+import { isDefined } from '~utils/type-guards/is-defined';
 
 import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { MongoDeepPartial } from '../../../../mongodb/types';

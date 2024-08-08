@@ -27,7 +27,7 @@ interface ErrorLinkOptions {
   ignoreCodes: GraphQLErrorCode[];
 }
 
-export default class ErrorLink extends ApolloLink {
+export class ErrorLink extends ApolloLink {
   private handlers = new Set<Handler>();
   private ignoreCodes: GraphQLErrorCode[];
 

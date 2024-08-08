@@ -8,7 +8,7 @@ import {
 } from '@apollo/client';
 import { Observable, Observer } from '@apollo/client/utilities';
 
-import forEachDeep from '~utils/object/forEachDeep';
+import { forEachDeep } from '~utils/object/for-each-deep';
 
 export type LinkTypePolicies<TCacheShape> = Record<
   string,
@@ -36,7 +36,7 @@ interface TypeLinkParams<TCacheShape> {
 /**
  * Runs defined link in typePolicies per type
  */
-export default class TypeLink<TCacheShape> extends ApolloLink {
+export class TypeLink<TCacheShape> extends ApolloLink {
   private params: TypeLinkParams<TCacheShape>;
 
   constructor(params: TypeLinkParams<TCacheShape>) {

@@ -1,6 +1,6 @@
 import { OAuth2Client } from 'google-auth-library';
 
-import isTruthy from '~utils/type-guards/isTruthy';
+import { isTruthy } from '~utils/type-guards/is-truthy';
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const CLIENT_ID = process.env.VITE_GOOGLE_CLIENT_ID!;

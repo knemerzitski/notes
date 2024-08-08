@@ -1,6 +1,6 @@
 import { GraphQLResolveInfo } from 'graphql';
 
-import { RelayArrayPaginationConfig } from '../../mongodb/pagination/relayArrayPagination';
+import { RelayArrayPaginationConfig } from '../../mongodb/pagination/relay-array-pagination';
 import { PageInfoMapper } from '../base/schema.mappers';
 import { GraphQLResolversContext } from '../context';
 import {

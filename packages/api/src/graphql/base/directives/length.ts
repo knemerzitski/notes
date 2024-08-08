@@ -1,7 +1,7 @@
 import { GraphQLScalarType, GraphQLSchema } from 'graphql';
 
 import { lengthDirectiveArgs } from '../../types.generated';
-import transformSchemaInputDirectiveResolver from '../../utils/transformSchemaInputDirectiveResolver';
+import { transformSchemaInputDirectiveResolver } from '../../utils/transform-schema-input-directive-resolver';
 
 export class MaxLengthType extends GraphQLScalarType {
   constructor(type: GraphQLScalarType, args: lengthDirectiveArgs) {

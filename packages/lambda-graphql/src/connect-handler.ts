@@ -9,7 +9,7 @@ import { GRAPHQL_TRANSPORT_WS_PROTOCOL } from 'graphql-ws';
 import { Logger } from '~utils/logger';
 import { Maybe, MaybePromise } from '~utils/types';
 
-import lowercaseHeaderKeys from './apigateway-proxy-event/lowercaseHeaderKeys';
+import { lowercaseHeaderKeys } from './apigateway-proxy-event/lowercase-header-keys';
 import { DynamoDBContextParams, createDynamoDbContext } from './context/dynamodb';
 import {
   ConnectionTable,

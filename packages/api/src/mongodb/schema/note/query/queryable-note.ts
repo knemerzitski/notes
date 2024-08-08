@@ -1,6 +1,6 @@
 import { CollectionName, MongoDBCollectionsOnlyNames } from '../../../collections';
 import { DeepAnyDescription } from '../../../query/description';
-import { AddStagesResolver } from '../../../query/mergedQueryToPipeline';
+import { AddStagesResolver } from '../../../query/merged-query-to-pipeline';
 import { CollabTextSchema } from '../../collab-text/collab-text';
 import { collabTextDescription } from '../../collab-text/query/collab-text';
 import { NoteSchema } from '../note';

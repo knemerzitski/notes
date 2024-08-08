@@ -10,7 +10,7 @@ import { createLogger } from '~utils/logger';
 
 import { parseAuthFromHeaders } from './graphql/auth-context';
 import { GraphQLResolversContext, DynamoDBBaseGraphQLContext } from './graphql/context';
-import CookiesContext from './graphql/cookies-context';
+import { CookiesContext } from './graphql/cookies-context';
 import {
   createDefaultApiGatewayParams,
   createDefaultApiOptions,

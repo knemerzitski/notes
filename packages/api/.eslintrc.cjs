@@ -15,4 +15,13 @@ module.exports = {
   rules: {
     '@typescript-eslint/ban-ts-comment': 'off',
   },
+  overrides: [
+    {
+      // Ignore filename casing for generates resolver files
+      files: ['./src/graphql/*/resolvers/**', './src/graphql/utils/graphql/**'],
+      rules: {
+        'unicorn/filename-case': ['off'],
+      },
+    },
+  ],
 };

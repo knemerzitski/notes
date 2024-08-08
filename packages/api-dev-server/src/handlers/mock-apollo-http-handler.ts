@@ -6,7 +6,7 @@ import {
   GraphQLResolversContext,
   DynamoDBBaseGraphQLContext,
 } from '~api/graphql/context';
-import CookiesContext, { parseCookiesFromHeaders } from '~api/graphql/cookies-context';
+import { CookiesContext, parseCookiesFromHeaders } from '~api/graphql/cookies-context';
 import {
   createDefaultApiOptions,
   createDefaultIsCurrentConnection,

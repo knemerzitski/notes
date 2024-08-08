@@ -14,7 +14,7 @@ import {
   serializeBaseGraphQLContext,
   DynamoDBBaseGraphQLContext,
 } from './graphql/context';
-import CookiesContext, { parseCookiesFromHeaders } from './graphql/cookies-context';
+import { parseCookiesFromHeaders, CookiesContext } from './graphql/cookies-context';
 import {
   createDefaultDynamoDBConnectionTtlContext,
   createDefaultDynamoDBParams,

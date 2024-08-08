@@ -1,11 +1,12 @@
-import consecutiveIntArrayPagination, {
+import {
   consecutiveIntArrayPaginationMapAggregateResult,
-} from '../../../pagination/consecutiveIntArrayPagination';
+  consecutiveIntArrayPagination,
+} from '../../../pagination/consecutive-int-array-pagination';
 import {
   paginationStringToInt,
   RelayArrayPaginationInput,
   RelayArrayPaginationAggregateResult,
-} from '../../../pagination/relayArrayPagination';
+} from '../../../pagination/relay-array-pagination';
 import { FieldDescription } from '../../../query/description';
 import { DeepQueryResult } from '../../../query/query';
 import { CollabTextSchema, RevisionRecordSchema } from '../collab-text';

@@ -9,9 +9,6 @@ import {
 } from '../../../../mongodb/schema/note/share-note-link';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { NoteQueryMapper } from '../../../note/mongo-query-mapper/note';
-import { publishNoteUpdated } from '../../../note/resolvers/Subscription/noteUpdated';
-
-import findNoteOwners from '../../../note/utils/findNoteOwners';
 
 import { type MutationResolvers } from './../../../types.generated';
 
@@ -45,7 +42,7 @@ export const createNoteSharing: NonNullable<
     });
   }
 
-  if (!note._id) {
+  if (!note?._id) {
     throwExpectedProperty('_id');
   }
 
@@ -105,13 +102,14 @@ export const createNoteSharing: NonNullable<
   // Override sharing with known value
   noteMapper.sharing = () => Promise.resolve({ id: shareNoteLink.publicId });
 
-  await publishNoteUpdated(ctx, findNoteOwners(note), {
-    contentId: notePublicId,
-    patch: {
-      id: () => noteMapper.id(),
-      sharing: noteMapper.sharing(),
-    },
-  });
+  // TODO fix
+  // await publishNoteUpdated(ctx, findNoteOwners(note), {
+  //   contentId: notePublicId,
+  //   patch: {
+  //     id: () => noteMapper.id(),
+  //     sharing: noteMapper.sharing(),
+  //   },
+  // });
 
   return {
     note: noteMapper,

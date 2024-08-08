@@ -7,7 +7,7 @@ All credits go to graphql package collaborators.
 
 ## Reason
 
-Used for calling executeField in preExecuteField.  
+Used for calling executeField in [preExecuteField](../pre-execute-field.ts).  
 Need it to look ahead of the operation to know how many items will be returned in a list.
 
 ## Changes

@@ -14,7 +14,7 @@ type Listener = (stats: {
  * Keeps track of how many operations are ongoing and how many
  * have been run in total.
  */
-export default class StatsLink extends ApolloLink {
+export class StatsLink extends ApolloLink {
   private _ongoing: OperationStats = {
     query: 0,
     mutation: 0,

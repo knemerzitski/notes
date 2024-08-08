@@ -5,14 +5,14 @@ import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import { SelectionRange } from '~collab/client/selection-range';
 import { ChangesetRevisionRecords } from '~collab/records/changeset-revision-records';
 import { RevisionChangeset, SerializedRevisionChangeset } from '~collab/records/record';
-import recordInsertion, { RecordInsertionError } from '~collab/records/recordInsertion';
+import { recordInsertion, RecordInsertionError } from '~collab/records/record-insertion';
 import { RevisionRecords } from '~collab/records/revision-records';
-import isEmptyDeep from '~utils/object/isEmptyDeep';
+import { isEmptyDeep } from '~utils/object/is-empty-deep';
 
-import isDefined from '~utils/type-guards/isDefined';
+import { isDefined } from '~utils/type-guards/is-defined';
 
 import { DeepQueryPartial, MongoQuery } from '../../../../mongodb/query/query';
-import createCollabText from '../../../../mongodb/schema/collab-text/utils/createCollabText';
+import { createCollabText } from '../../../../mongodb/schema/collab-text/utils/create-collab-text';
 import { NoteSchema } from '../../../../mongodb/schema/note/note';
 import { QueryableNote } from '../../../../mongodb/schema/note/query/queryable-note';
 import { getNotesArrayPath, UserSchema } from '../../../../mongodb/schema/user/user';
@@ -25,7 +25,7 @@ import {
 } from '../../../types.generated';
 import { MongoNotePatchMapper, MongoNotePatch } from '../../mappers/note-patch';
 import { NoteQueryMapper } from '../../mongo-query-mapper/note';
-import findUserNote from '../../utils/findUserNote';
+import { findUserNote } from '../../utils/find-user-note';
 import { publishNoteUpdated } from '../Subscription/noteUpdated';
 
 // TODO refactor code, merged code by logic to one place: category, preferences, collabText
@@ -56,7 +56,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
     },
   });
 
-  const noteId = note._id;
+  const noteId = note?._id;
   const userNote = findUserNote(currentUserId, note);
   if (!noteId || !userNote) {
     throw new GraphQLError(`Note '${notePublicId}' not found`, {
@@ -201,7 +201,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
             ]);
             transactionStarted = true;
 
-            const collabText = userNoteForInsertion.collabTexts?.[fieldName];
+            const collabText = userNoteForInsertion?.collabTexts?.[fieldName];
 
             // Unknown new field, create the field with initial value
             const isNewFieldInsertion =

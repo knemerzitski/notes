@@ -21,7 +21,7 @@ type Subscription = ReturnType<Observable<FetchResult>['subscribe']>;
  * Wait a period of time before forwarding operation.
  * Useful for debugging slow connections.
  */
-export default class WaitLink extends ApolloLink {
+export class WaitLink extends ApolloLink {
   private waitTime: number;
 
   constructor(options: WaitLinkOptions) {

@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb';
 
-import isDefined from '~utils/type-guards/isDefined';
+import { isDefined } from '~utils/type-guards/is-defined';
 
 import { noteDefaultValues, NoteSchema } from '../../../../mongodb/schema/note/note';
 import { UserSchema } from '../../../../mongodb/schema/user/user';

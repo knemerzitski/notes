@@ -12,7 +12,7 @@ import {
 import { PartialBy } from '~utils/types';
 
 import { ApiGraphQLContext, GraphQLResolversContext } from '../../../graphql/context';
-import CookiesContext from '../../../graphql/cookies-context';
+import { CookiesContext } from '../../../graphql/cookies-context';
 import { resolvers } from '../../../graphql/resolvers.generated';
 import { typeDefs } from '../../../graphql/typeDefs.generated';
 

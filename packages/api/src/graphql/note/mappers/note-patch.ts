@@ -1,4 +1,4 @@
-import isDefined from '~utils/type-guards/isDefined';
+import { isDefined } from '~utils/type-guards/is-defined';
 import { Maybe } from '~utils/types';
 
 import { DeepQueryPartial } from '../../../mongodb/query/query';

@@ -2,7 +2,7 @@ import { GraphQLError } from 'graphql';
 import { ExecutionContext } from 'graphql/execution/execute';
 import { MaybePromise } from '~utils/types';
 
-import getResolverArgs from '../graphql/getResolverArgs';
+import { getResolverArgs } from '../graphql/get-resolver-args';
 
 export interface PubSubEvent {
   topic: string;

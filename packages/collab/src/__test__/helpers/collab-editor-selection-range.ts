@@ -1,4 +1,4 @@
-import mitt, { Emitter } from '~utils/mitt-unsub';
+import { mitt, Emitter } from '~utils/mitt-unsub';
 
 import { Changeset } from '../../changeset/changeset';
 import { CollabEditor } from '../../client/collab-editor';
@@ -39,7 +39,7 @@ type CollabEditorSelectionRangeEvents = {
   };
 };
 
-interface CollabEditorSelectionRangeOptions {
+export interface CollabEditorSelectionRangeOptions {
   /**
    * Length is upper bound for selection range.
    */
@@ -47,7 +47,7 @@ interface CollabEditorSelectionRangeOptions {
   eventBus?: Emitter<CollabEditorSelectionRangeEvents>;
 }
 
-class CollabEditorSelectionRange implements SelectionRange {
+export class CollabEditorSelectionRange implements SelectionRange {
   readonly eventBus: Emitter<CollabEditorSelectionRangeEvents>;
 
   private props: CollabEditorSelectionRangeOptions;

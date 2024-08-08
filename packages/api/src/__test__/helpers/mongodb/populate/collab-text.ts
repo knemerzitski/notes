@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker';
 
 import { Changeset } from '~collab/changeset/changeset';
 
-import isDefined from '~utils/type-guards/isDefined';
+import { isDefined } from '~utils/type-guards/is-defined';
 
 import {
   CollabTextSchema,

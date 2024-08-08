@@ -4,7 +4,6 @@ import { UserNoteSchema } from '../../../../mongodb/schema/note/user-note';
 import { getNotesArrayPath } from '../../../../mongodb/schema/user/user';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { NoteQueryMapper } from '../../../note/mongo-query-mapper/note';
-import { publishNoteCreated } from '../../../note/resolvers/Subscription/noteCreated';
 
 import {
   NoteCategory,
@@ -127,7 +126,8 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
     note: noteQueryMapper,
   };
 
-  await publishNoteCreated(ctx, payload);
+  // TODO fix
+  // await publishNoteCreated(ctx, payload);
 
   return payload;
 };

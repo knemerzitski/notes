@@ -23,10 +23,10 @@ import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import { getCurrentUserId, withDifferentUserIdInStorage } from '../auth/user';
 
 import { KeySpecifierName } from './key-specifier';
-import ErrorLink from './links/error-link';
-import StatsLink from './links/stats-link';
-import TypeLink, { LinkTypePolicies } from './links/type-link';
-import WaitLink from './links/wait-link';
+import { ErrorLink } from './links/error-link';
+import { StatsLink } from './links/stats-link';
+import { LinkTypePolicies, TypeLink } from './links/type-link';
+import { WaitLink } from './links/wait-link';
 import {
   EvictByTagOptions,
   EvictOptions,

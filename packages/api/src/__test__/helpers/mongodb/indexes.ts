@@ -1,4 +1,4 @@
-import isDefined from '~utils/type-guards/isDefined';
+import { isDefined } from '~utils/type-guards/is-defined';
 
 import {
   collectionSearchIndexDescriptions,

@@ -4,7 +4,7 @@ import {
   APIGatewayProxyResult,
 } from 'aws-lambda';
 import express from 'express';
-import isArray from '~utils/array/isArray';
+import { isArray } from '~utils/array/is-array';
 import { Logger } from '~utils/logger';
 
 import apiGatewayProxyEventFixture from '../../fixtures/apiGatewayProxyEvent.json';

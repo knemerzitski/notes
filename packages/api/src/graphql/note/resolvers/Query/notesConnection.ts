@@ -1,12 +1,12 @@
 import { ObjectId } from 'mongodb';
 
-import { RelayPagination } from '../../../../mongodb/pagination/relayArrayPagination';
+import { RelayPagination } from '../../../../mongodb/pagination/relay-array-pagination';
 import { DeepObjectQuery, MongoQuery } from '../../../../mongodb/query/query';
 import { QueryableNote } from '../../../../mongodb/schema/note/query/queryable-note';
 import { QueryableUser } from '../../../../mongodb/schema/user/query/queryable-user';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { NoteCategory, type QueryResolvers } from '../../../types.generated';
-import preExecuteField from '../../../utils/preExecuteField';
+import { preExecuteField } from '../../../utils/pre-execute-field';
 import { NoteQueryMapper } from '../../mongo-query-mapper/note';
 
 const DEFAULT_LIMIT = 20;

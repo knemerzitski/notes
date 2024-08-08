@@ -18,7 +18,7 @@ import {
   parseAuthenticationContextValue,
   serializeAuthenticationContext,
 } from './auth-context';
-import CookiesContext, { SerializedCookiesContext } from './cookies-context';
+import { SerializedCookiesContext, CookiesContext } from './cookies-context';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type BaseGraphQLContext = {

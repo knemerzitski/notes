@@ -6,7 +6,7 @@ import {
   RelayArrayPaginationConfig,
   RelayPagination,
   applyLimit,
-} from '../../../mongodb/pagination/relayArrayPagination';
+} from '../../../mongodb/pagination/relay-array-pagination';
 import { MongoQuery } from '../../../mongodb/query/query';
 import { CollabTextSchema } from '../../../mongodb/schema/collab-text/collab-text';
 import { GraphQLResolversContext } from '../../context';
@@ -15,7 +15,7 @@ import {
   CollabTexttextAtRevisionArgs,
   ResolverTypeWrapper,
 } from '../../types.generated';
-import preExecuteField from '../../utils/preExecuteField';
+import { preExecuteField } from '../../utils/pre-execute-field';
 import { CollabTextMapper, RevisionChangesetMapper } from '../schema.mappers';
 
 import { RevisionChangesetQueryMapper } from './revision-changeset';

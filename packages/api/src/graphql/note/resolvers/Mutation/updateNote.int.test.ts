@@ -27,8 +27,8 @@ import {
   mongoCollectionStats,
   resetDatabase,
 } from '../../../../__test__/helpers/mongodb/mongodb';
-import findNoteUserNote, {
-  findNoteTextField,
+import {
+  findNoteTextField, findNoteUserNote
 } from '../../../../__test__/helpers/mongodb/note';
 import { fakeNotePopulateQueue } from '../../../../__test__/helpers/mongodb/populate/note';
 import {

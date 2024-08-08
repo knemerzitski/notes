@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/filename-case */
 import { MessageType } from 'graphql-ws';
 
 import { DynamoDBRecord } from '../dynamodb/models/connection';

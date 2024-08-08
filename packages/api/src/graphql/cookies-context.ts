@@ -11,7 +11,7 @@ export interface SerializedCookiesContext {
 /**
  * Parsed client cookies as a context. Normally parsed from request headers.
  */
-export default class CookiesContext {
+export class CookiesContext {
   static SESSIONS_KEY = 'Sessions';
 
   static parse(cookiesRecord: Readonly<Record<string, string>>) {

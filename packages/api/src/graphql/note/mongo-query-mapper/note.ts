@@ -12,7 +12,7 @@ import {
 } from '../../types.generated';
 import { NoteMapper } from '../schema.mappers';
 
-import findUserNote from '../utils/findUserNote';
+import { findUserNote } from '../utils/find-user-note';
 
 import { NoteCollabTextQueryMapper } from './note-collab-text';
 import { NotePreferencesQueryMapper } from './note-preferences';

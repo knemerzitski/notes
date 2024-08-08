@@ -1,6 +1,6 @@
 import debug, { Debugger } from 'debug';
 
-import isNonEmptyArray from './array/isNonEmptyArray';
+import { isNonEmptyArray } from './array/is-non-empty-array';
 
 type LogLevel = 'info' | 'warning' | 'error';
 

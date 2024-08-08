@@ -1,7 +1,7 @@
 import { ApolloCache } from '@apollo/client';
 import mapObject from 'map-obj';
 
-import objectValueArrayPermutations from '~utils/object/objectValueArrayPermutations';
+import { objectValueArrayPermutations } from '~utils/object/object-value-array-permutations';
 
 import { IdentifiedStoreObject, inverseIdentify } from '../utils/identify';
 

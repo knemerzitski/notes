@@ -1,8 +1,8 @@
-import { QueryableNoteSearch } from '../../../../mongodb/loaders/notesSearchBatchLoad';
-import { RelayPagination } from '../../../../mongodb/pagination/relayArrayPagination';
+import { QueryableNoteSearch } from '../../../../mongodb/loaders/notes-search-batch-load';
+import { RelayPagination } from '../../../../mongodb/pagination/relay-array-pagination';
 import { DeepObjectQuery } from '../../../../mongodb/query/query';
 import { assertAuthenticated } from '../../../base/directives/auth';
-import preExecuteField from '../../../utils/preExecuteField';
+import { preExecuteField } from '../../../utils/pre-execute-field';
 import { NoteQueryMapper } from '../../mongo-query-mapper/note';
 
 import type { QueryResolvers } from './../../../types.generated';

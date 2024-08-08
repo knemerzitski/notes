@@ -2,7 +2,7 @@ import { loadErrorMessages, loadDevMessages } from '@apollo/client/dev';
 import { mount } from 'cypress/react18';
 
 import './commands';
-import mountSandbox from './mountSandbox';
+import { mountSandbox } from './mount-sandbox';
 
 // ***********************************************************
 // This example support/component.ts is processed and

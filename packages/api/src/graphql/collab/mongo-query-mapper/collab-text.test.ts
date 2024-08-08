@@ -8,7 +8,7 @@ import {
   isAfterPagination,
   isFirstPagination,
   isLastPagination,
-} from '../../../mongodb/pagination/relayArrayPagination';
+} from '../../../mongodb/pagination/relay-array-pagination';
 
 import { DeepQueryResult } from '../../../mongodb/query/query';
 import { RevisionRecordSchema } from '../../../mongodb/schema/collab-text/collab-text';

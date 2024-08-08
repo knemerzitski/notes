@@ -5,13 +5,13 @@ import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes'
 import { DeepReplace } from '~utils/types';
 
 import { CollectionName } from '../mongodb/collections';
-import findByCookieId from '../mongodb/schema/session/operations/findByCookieId';
+import { findByCookieId } from '../mongodb/schema/session/operations/find-by-cookie-id';
 import { SessionSchema } from '../mongodb/schema/session/session';
 import { UserSchema } from '../mongodb/schema/user/user';
 import { sessionExpiration } from '../session-expiration/mongodb-user-session';
 
 import { ApiGraphQLContext } from './context';
-import CookiesContext from './cookies-context';
+import { CookiesContext } from './cookies-context';
 
 /**
  * Replaces ObjectId with base64 representation string.

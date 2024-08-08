@@ -1,11 +1,11 @@
 import { ObjectId } from 'mongodb';
 
-import isDefined from '~utils/type-guards/isDefined';
+import { isDefined } from '~utils/type-guards/is-defined';
 import { wrapRetryOnErrorAsync } from '~utils/wrap-retry-on-error';
 
 import { DeepQueryResult } from '../../../../mongodb/query/query';
 import { CollabTextSchema } from '../../../../mongodb/schema/collab-text/collab-text';
-import createCollabText from '../../../../mongodb/schema/collab-text/utils/createCollabText';
+import { createCollabText } from '../../../../mongodb/schema/collab-text/utils/create-collab-text';
 import { NoteSchema, noteDefaultValues } from '../../../../mongodb/schema/note/note';
 import { QueryableNote } from '../../../../mongodb/schema/note/query/queryable-note';
 import { UserNoteSchema } from '../../../../mongodb/schema/note/user-note';
@@ -13,7 +13,7 @@ import { getNotesArrayPath } from '../../../../mongodb/schema/user/user';
 import {
   MongoErrorCodes,
   retryOnMongoError,
-} from '../../../../mongodb/utils/retryOnMongoError';
+} from '../../../../mongodb/utils/retry-on-mongo-error';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import {
   NoteCategory,

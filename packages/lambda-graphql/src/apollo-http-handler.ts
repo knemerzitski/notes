@@ -4,8 +4,8 @@ import { APIGatewayProxyEvent, APIGatewayProxyHandler } from 'aws-lambda';
 import { GraphQLSchema } from 'graphql';
 import { Logger } from '~utils/logger';
 
-import lowercaseHeaderKeys from './apigateway-proxy-event/lowercaseHeaderKeys';
-import parseGraphQLRequestEvent from './apigateway-proxy-event/parseGraphQLRequestEvent';
+import { lowercaseHeaderKeys } from './apigateway-proxy-event/lowercase-header-keys';
+import { parseGraphQLRequestEvent } from './apigateway-proxy-event/parse-graphql-request-event';
 import {
   ApiGatewayContextParams,
   WebSocketApi,

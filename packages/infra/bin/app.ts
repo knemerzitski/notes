@@ -3,7 +3,7 @@ import path from 'path';
 
 import { App } from 'aws-cdk-lib';
 
-import isEnvVarStringTrue from '~utils/string/isEnvVarStringTrue';
+import { isEnvVarStringTrue } from '~utils/string/is-env-var-string-true';
 
 import { NotesStack, NotesStackProps } from '../lib/stacks/notes-stack';
 import {

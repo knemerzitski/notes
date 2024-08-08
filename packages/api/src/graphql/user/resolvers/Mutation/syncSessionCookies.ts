@@ -1,4 +1,4 @@
-import CookiesContext from '../../../cookies-context';
+import { CookiesContext } from '../../../cookies-context';
 
 import type { MutationResolvers } from './../../../types.generated';
 

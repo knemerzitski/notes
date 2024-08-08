@@ -1,11 +1,11 @@
-import mitt, { Emitter } from './mitt-unsub';
+import { mitt, Emitter } from './mitt-unsub';
 import {
   ParseError,
   Serializable,
   assertHasProperties,
   parseOrDefault,
 } from './serialize';
-import isDefined from './type-guards/isDefined';
+import { isDefined } from './type-guards/is-defined';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type OrderedMessageBufferEvents<TMessage> = {

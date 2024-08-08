@@ -2,7 +2,7 @@ import { TypePolicies } from '@apollo/client';
 
 import { clientSynchronizationVar } from './reactive-vars';
 
-const basePolicies: TypePolicies = {
+export const basePolicies: TypePolicies = {
   Query: {
     fields: {
       isClientSynchronized(): boolean {
@@ -11,5 +11,3 @@ const basePolicies: TypePolicies = {
     },
   },
 };
-
-export default basePolicies;

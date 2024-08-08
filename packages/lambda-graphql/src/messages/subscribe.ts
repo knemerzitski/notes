@@ -1,11 +1,11 @@
 import { GraphQLError, OperationTypeNode, parse } from 'graphql';
 import { buildExecutionContext } from 'graphql/execution/execute';
 import { MessageType } from 'graphql-ws';
-import isArray from '~utils/array/isArray';
+import { isArray } from '~utils/array/is-array';
 
 import { DynamoDBRecord } from '../dynamodb/models/connection';
 import { Subscription } from '../dynamodb/models/subscription';
-import validateQuery from '../graphql/validateQuery';
+import { validateQuery } from '../graphql/validate-query';
 import { MessageHandler } from '../message-handler';
 import {
   SubscriptionContext,

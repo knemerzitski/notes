@@ -4,9 +4,6 @@ import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { NoteQueryMapper } from '../../../note/mongo-query-mapper/note';
-import { publishNoteUpdated } from '../../../note/resolvers/Subscription/noteUpdated';
-
-import findNoteOwners from '../../../note/utils/findNoteOwners';
 
 import type { MutationResolvers } from './../../../types.generated';
 
@@ -31,7 +28,7 @@ export const deleteNoteSharing: NonNullable<
     },
   });
 
-  if (!note._id) {
+  if (!note?._id) {
     throw new GraphQLError(`Note '${notePublicId}' not found`, {
       extensions: {
         code: GraphQLErrorCode.NOT_FOUND,
@@ -68,16 +65,17 @@ export const deleteNoteSharing: NonNullable<
     }
   );
 
-  await publishNoteUpdated(ctx, findNoteOwners(note), {
-    contentId: notePublicId,
-    patch: {
-      id: () => noteMapper.id(),
-      sharing: {
-        // All note sharing entries are deleted
-        deleted: true,
-      },
-    },
-  });
+  // TODO fix
+  // await publishNoteUpdated(ctx, findNoteOwners(note), {
+  //   contentId: notePublicId,
+  //   patch: {
+  //     id: () => noteMapper.id(),
+  //     sharing: {
+  //       // All note sharing entries are deleted
+  //       deleted: true,
+  //     },
+  //   },
+  // });
 
   return {
     note: noteMapper,

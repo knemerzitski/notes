@@ -24,7 +24,7 @@ export type Emitter<Events extends Record<EventType, unknown>> = Omit<
  * Mitt that returns a unsubscribe function when calling on.
  * @see {@link originalMitt}
  */
-export default function mitt<Events extends Record<EventType, unknown>>(
+export function mitt<Events extends Record<EventType, unknown>>(
   all?: EventHandlerMap<Events>
 ): Emitter<Events> {
   const bus = originalMitt(all);

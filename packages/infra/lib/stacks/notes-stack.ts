@@ -4,7 +4,7 @@ import { Construct } from 'constructs';
 
 import { HttpRestApi } from '../api/http-rest-api';
 import { SubscriptionsWebSocketApi } from '../api/subscriptions-websocket-api';
-import { AppDistribution, AppDistributionProps } from '../cdn/AppDistribution';
+import { AppDistribution, AppDistributionProps } from '../cdn/app-distribution';
 import { LambdaHandlers, LambdaHandlersProps } from '../compute/lambda-handlers';
 import {
   PostDeploymentFunction,

@@ -1,4 +1,4 @@
-import mitt, { Emitter } from '~utils/mitt-unsub';
+import { mitt, Emitter } from '~utils/mitt-unsub';
 import {
   ParseError,
   Serializable,

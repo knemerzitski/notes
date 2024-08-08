@@ -12,12 +12,10 @@ const Query_preferences: FieldPolicy<Query['preferences'], Query['preferences']>
   },
 };
 
-const preferencesPolicies: TypePolicies = {
+export const preferencesPolicies: TypePolicies = {
   Query: {
     fields: {
       preferences: Query_preferences,
     },
   },
 };
-
-export default preferencesPolicies;

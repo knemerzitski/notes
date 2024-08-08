@@ -4,7 +4,7 @@ import { ObjectId } from 'mongodb';
 
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
-import isDefined from '~utils/type-guards/isDefined';
+import { isDefined } from '~utils/type-guards/is-defined';
 
 import { MongoQuery } from '../../../../mongodb/query/query';
 import { QueryableNote } from '../../../../mongodb/schema/note/query/queryable-note';
@@ -16,7 +16,7 @@ import {
   type ResolversTypes,
 } from '../../../types.generated';
 import { NoteQueryMapper } from '../../mongo-query-mapper/note';
-import findUserNote from '../../utils/findUserNote';
+import { findUserNote } from '../../utils/find-user-note';
 import { publishNoteDeleted } from '../Subscription/noteDeleted';
 
 export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
