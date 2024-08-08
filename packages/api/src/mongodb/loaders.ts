@@ -6,10 +6,12 @@ import {
   QueryableNoteSearch,
   QueryableNotesSearchLoadKey,
 } from './loaders/notes-search-batch-load';
-import { QueryableNoteLoadKey } from './loaders/queryable-note-batch-load';
 import { QueryableNoteByShareLinkLoadKey } from './loaders/queryable-note-by-share-link-batch-load';
 import { QueryableNoteByShareLinkLoader } from './loaders/queryable-note-by-share-link-loader';
-import { QueryableNoteLoader } from './loaders/queryable-note-loader';
+import {
+  QueryableNoteLoader,
+  QueryableNoteLoaderKey,
+} from './loaders/queryable-note-loader';
 import { QueryableNotesSearchLoader } from './loaders/queryable-notes-search-loader';
 import { QueryableUserLoadKey } from './loaders/queryable-user-batch-load';
 import { QueryableUserLoader } from './loaders/queryable-user-loader';
@@ -31,7 +33,7 @@ export type LoaderEvents = {
     value: DeepQueryResult<QueryableUser>;
   };
   loadedNote: {
-    key: QueryableNoteLoadKey;
+    key: QueryableNoteLoaderKey;
     value: DeepQueryResult<QueryableNote>;
   };
   loadedNotesSearch: {
@@ -55,7 +57,7 @@ export function createMongoDBLoaders(
       eventBus: loadersEventBus,
     }),
     note: new QueryableNoteLoader({
-      ...context,
+      context,
       eventBus: loadersEventBus,
     }),
     notesSearch: new QueryableNotesSearchLoader({

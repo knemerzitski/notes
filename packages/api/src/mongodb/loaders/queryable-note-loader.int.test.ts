@@ -17,9 +17,9 @@ import { NoteSchema } from '../schema/note/note';
 import { UserSchema } from '../schema/user/user';
 
 import {
-  QueryableNoteBatchLoadContext,
   queryableNoteBatchLoad,
-} from './queryable-note-batch-load';
+  QueryableNoteLoaderParams,
+} from './queryable-note-loader';
 
 let populateResult: ReturnType<typeof populateNotes>;
 let user: UserSchema;
@@ -27,7 +27,7 @@ let user_noUserNote: UserSchema;
 let user_hasUserNote: UserSchema;
 let note: NoteSchema;
 
-let context: QueryableNoteBatchLoadContext;
+let context: QueryableNoteLoaderParams['context'];
 
 beforeAll(async () => {
   await resetDatabase();
@@ -75,9 +75,11 @@ it('loads a simple note', async () => {
     queryableNoteBatchLoad(
       [
         {
-          userId: user._id,
-          publicId: note.publicId,
-          noteQuery: {
+          id: {
+            userId: user._id,
+            publicId: note.publicId,
+          },
+          query: {
             publicId: 1,
             userNotes: {
               $query: {
@@ -103,7 +105,10 @@ it('loads a simple note', async () => {
           },
         },
       ],
-      context
+      {
+        global: context,
+        request: undefined,
+      }
     )
   ).resolves.toEqual([
     {
@@ -134,9 +139,11 @@ it('loads all fields', async () => {
     queryableNoteBatchLoad(
       [
         {
-          userId: user._id,
-          publicId: note.publicId,
-          noteQuery: {
+          id: {
+            userId: user._id,
+            publicId: note.publicId,
+          },
+          query: {
             _id: 1,
             publicId: 1,
             userNotes: {
@@ -183,7 +190,10 @@ it('loads all fields', async () => {
           },
         },
       ],
-      context
+      {
+        global: context,
+        request: undefined,
+      }
     )
   ).resolves.toEqual([
     {
@@ -233,9 +243,11 @@ it('loads minimal fields', async () => {
     queryableNoteBatchLoad(
       [
         {
-          userId: user._id,
-          publicId: note.publicId,
-          noteQuery: {
+          id: {
+            userId: user._id,
+            publicId: note.publicId,
+          },
+          query: {
             userNotes: {
               $query: {
                 readOnly: 1,
@@ -244,7 +256,10 @@ it('loads minimal fields', async () => {
           },
         },
       ],
-      context
+      {
+        global: context,
+        request: undefined,
+      }
     )
   ).resolves.toEqual([
     {
@@ -265,9 +280,11 @@ it('loads shareNoteLinks', async () => {
     queryableNoteBatchLoad(
       [
         {
-          userId: user._id,
-          publicId: note.publicId,
-          noteQuery: {
+          id: {
+            userId: user._id,
+            publicId: note.publicId,
+          },
+          query: {
             shareNoteLinks: {
               $query: {
                 publicId: 1,
@@ -277,7 +294,10 @@ it('loads shareNoteLinks', async () => {
           },
         },
       ],
-      context
+      {
+        global: context,
+        request: undefined,
+      }
     )
   ).resolves.toEqual([
     {
@@ -295,14 +315,19 @@ it('throws error for user without userNote', async () => {
   const result = await queryableNoteBatchLoad(
     [
       {
-        userId: user_noUserNote._id,
-        publicId: note.publicId,
-        noteQuery: {
+        id: {
+          userId: user_noUserNote._id,
+          publicId: note.publicId,
+        },
+        query: {
           _id: 1,
         },
       },
     ],
-    context
+    {
+      global: context,
+      request: undefined,
+    }
   );
   expect((result[0] as Error).message).toEqual(
     expect.stringMatching(/Note '.+' not found/)
@@ -314,14 +339,19 @@ it('loads a note for user who has UserNote document', async () => {
     queryableNoteBatchLoad(
       [
         {
-          userId: user_hasUserNote._id,
-          publicId: note.publicId,
-          noteQuery: {
+          id: {
+            userId: user_hasUserNote._id,
+            publicId: note.publicId,
+          },
+          query: {
             _id: 1,
           },
         },
       ],
-      context
+      {
+        global: context,
+        request: undefined,
+      }
     )
   ).resolves.toEqual([
     {

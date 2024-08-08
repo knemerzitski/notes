@@ -41,9 +41,11 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
   const currentUserId = auth.session.user._id;
 
   const note = await mongodb.loaders.note.load({
-    userId: currentUserId,
-    publicId: notePublicId,
-    noteQuery: {
+    id: {
+      userId: currentUserId,
+      publicId: notePublicId,
+    },
+    query: {
       _id: 1,
       userNotes: {
         $query: {
@@ -139,9 +141,11 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
             const [userNoteForInsertion, userNoteForTailText] = await Promise.all([
               mongodb.loaders.note.load(
                 {
-                  publicId: notePublicId,
-                  userId: currentUserId,
-                  noteQuery: {
+                  id: {
+                    publicId: notePublicId,
+                    userId: currentUserId,
+                  },
+                  query: {
                     collabTexts: {
                       [fieldName]: {
                         headText: {
@@ -163,16 +167,16 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
                     },
                   },
                 },
-                {
-                  session,
-                }
+                session
               ),
               maxRecordsCount != null && maxRecordsCount > 0
                 ? mongodb.loaders.note.load(
                     {
-                      publicId: notePublicId,
-                      userId: currentUserId,
-                      noteQuery: {
+                      id: {
+                        publicId: notePublicId,
+                        userId: currentUserId,
+                      },
+                      query: {
                         collabTexts: {
                           [fieldName]: {
                             tailText: {
@@ -193,9 +197,7 @@ export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
                         },
                       },
                     },
-                    {
-                      session,
-                    }
+                    session
                   )
                 : Promise.resolve(null),
             ]);

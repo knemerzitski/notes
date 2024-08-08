@@ -31,7 +31,7 @@ export interface QueryLoaderParams<I, Q extends object, G, R> {
   eventBus?: Emitter<QueryLoaderEvents<I, Q>>;
 }
 
-interface QueryLoaderContext<G, R> {
+export interface QueryLoaderContext<G, R> {
   global: G;
   request: R;
 }
@@ -41,7 +41,7 @@ interface QueryLoaderKey<I, Q extends object, R> {
   context: R;
 }
 
-interface QueryLoaderCacheKey<I, Q extends object> {
+export interface QueryLoaderCacheKey<I, Q extends object> {
   id: I;
   query: DeepQuery<Q>;
 }
@@ -70,6 +70,9 @@ function splitQuery<T extends object>(obj: T) {
 }
 
 /**
+ * Loads a query by splitting it up by each field for reusable caching.
+ * Result values is then merged back together to be returned.
+ *
  * I - Identifies the query
  * Q - Query itself
  * G - Global context - common between all loads and supplied during Loader initialization

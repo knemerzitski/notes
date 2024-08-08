@@ -30,9 +30,11 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
   const currentUserId = auth.session.user._id;
 
   const note = await mongodb.loaders.note.load({
-    userId: currentUserId,
-    publicId: notePublicId,
-    noteQuery: {
+    id: {
+      userId: currentUserId,
+      publicId: notePublicId,
+    },
+    query: {
       _id: 1,
       publicId: 1,
       userNotes: {
@@ -134,19 +136,18 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
     );
   }
 
-  // TODO prime the note value, then just return a loader query
-
   const noteQuery: MongoQuery<QueryableNote> = {
     query() {
       return note;
     },
   };
 
+  // TODO payload should have field "note: Note", instead of root?, inside note is DeletedNote with fields id and content only
+
   const currentUserPayload: ResolversTypes['DeleteNotePayload'] &
     ResolversTypes['NoteDeletedPayload'] = new NoteQueryMapper(currentUserId, noteQuery);
 
-  // Send response
-
+  // Subscription
   await Promise.all([
     await publishNoteDeleted(currentUserId, currentUserPayload, ctx),
     deleteNoteCompletely &&
@@ -155,5 +156,6 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
       ),
   ]);
 
+  // Response
   return currentUserPayload;
 };
