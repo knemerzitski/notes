@@ -43,7 +43,7 @@ type CollabTextRecord implements Node {
 
 input CollabTextRecordInput {
   "Randomly generated string by client"
-  generatedId: String! @length(max: 32)
+  generatedId: String! @length(max: 16)
   "Change to be made on the text"
   change: RevisionChangesetInput!
   "Selection before change is composed"
@@ -67,12 +67,12 @@ type CollabText {
     after: NonNegativeInt
     last: PositiveInt
     before: NonNegativeInt
-  ): CollabTextRecordConnection!
+  ): CollabTextRecordsConnection!
 }
 
 input CreateCollabTextInput {
   "Self-descriptive"
-  initialText: String @length(max: 100000)
+  initialText: String! @length(max: 100000)
 }
 
 type CollabTextPatch {
@@ -87,12 +87,7 @@ type CollabTextPatch {
   isExistingRecord: Boolean
 }
 
-input CollabTextPatchInput {
-  "New record to be inserted"
-  insertRecord: CollabTextRecordInput
-}
-
-type CollabTextRecordConnection implements Connection {
+type CollabTextRecordsConnection implements Connection {
   "Records directly without edges"
   records: [CollabTextRecord!]!
   "Self descriptive"

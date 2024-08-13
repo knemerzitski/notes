@@ -1,20 +1,40 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
-import { assert, beforeAll, expect, it } from 'vitest';
+import mapObject from 'map-obj';
+import { ObjectId } from 'mongodb';
+import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { apolloServer } from '../../../../__test__/helpers/graphql/apollo-server';
-import { createGraphQLResolversContext } from '../../../../__test__/helpers/graphql/graphql-context';
-import { resetDatabase } from '../../../../__test__/helpers/mongodb/mongodb';
-import { populateNotes } from '../../../../__test__/helpers/mongodb/populate/populate';
+import {
+  createGraphQLResolversContext,
+  CreateGraphQLResolversContextOptions,
+} from '../../../../__test__/helpers/graphql/graphql-context';
+import {
+  expectGraphQLResponseData,
+  expectGraphQLResponseErrorMessage,
+} from '../../../../__test__/helpers/graphql/response';
+import {
+  mongoCollectionStats,
+  resetDatabase,
+} from '../../../../__test__/helpers/mongodb/mongodb';
+import { fakeNotePopulateQueue } from '../../../../__test__/helpers/mongodb/populate/note';
+import { userAddNote } from '../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
+import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
 import { NoteSchema } from '../../../../mongodb/schema/note/note';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
-import { GraphQLResolversContext } from '../../../context';
-import { NoteCategory, NoteTextField } from '../../../types.generated';
+import { Note, NoteCategory, NoteTextField } from '../../../types.generated';
+
+
+interface Variables {
+  noteId: ObjectId;
+  recordsLast?: number;
+  fieldName?: NoteTextField;
+}
 
 const QUERY = `#graphql
-  query($contentId: String!, $recordsLast: PositiveInt, $fieldName: NoteTextField){
-    note(contentId: $contentId){
+  query($noteId: ObjectID!, $recordsLast: PositiveInt, $fieldName: NoteTextField){
+    note(noteId: $noteId){
       textFields(name: $fieldName) {
         key
         value {
@@ -37,76 +57,84 @@ const QUERY = `#graphql
   }
 `;
 
-const QUERY_CATEGORY = `#graphql
-  query($contentId: String!){
-    note(contentId: $contentId){
-      categoryName
-    }
-  }
-`;
-
 let user: UserSchema;
+let userReadOnly: UserSchema;
 let note: NoteSchema;
 let noteArchive: NoteSchema;
-let contextValue: GraphQLResolversContext;
+let userNoAccess: UserSchema;
 
 beforeAll(async () => {
   faker.seed(5435);
   await resetDatabase();
 
-  const populateResult = populateNotes(2, {
-    collabTextKeys: Object.values(NoteTextField),
-    collabText() {
-      return {
+  user = fakeUserPopulateQueue();
+  userReadOnly = fakeUserPopulateQueue();
+  userNoAccess = fakeUserPopulateQueue();
+  note = fakeNotePopulateQueue(user, {
+    collabTexts: mapObject(NoteTextField, (_, fieldName) => [
+      fieldName,
+      {
         recordsCount: 2,
-      };
-    },
-    userNote(noteIndex) {
-      if (noteIndex === 1) {
-        return {
-          override: {
-            categoryName: NoteCategory.ARCHIVE,
-          },
-        };
-      }
-      return {
-        override: {
-          categoryName: NoteCategory.DEFAULT,
-        },
-      };
+      },
+    ]),
+  });
+  userAddNote(user, note);
+
+  noteArchive = fakeNotePopulateQueue(user);
+  userAddNote(user, noteArchive, {
+    override: {
+      readOnly: true,
+      categoryName: NoteCategory.ARCHIVE,
     },
   });
 
-  assert(populateResult.data[0] != null);
-  assert(populateResult.data[1] != null);
-
-  user = populateResult.user;
-  note = populateResult.data[0].note;
-  noteArchive = populateResult.data[1].note;
+  userAddNote(userReadOnly, note, {
+    override: {
+      readOnly: true,
+      categoryName: NoteCategory.DEFAULT,
+    },
+  });
 
   await populateExecuteAll();
-
-  contextValue = createGraphQLResolversContext({ user });
 });
 
-it('returns note', async () => {
-  const response = await apolloServer.executeOperation(
+beforeEach(() => {
+  mongoCollectionStats.mockClear();
+});
+
+async function executeOperation(
+  variables: Variables,
+  options?: CreateGraphQLResolversContextOptions,
+  query: string = QUERY
+) {
+  return await apolloServer.executeOperation<
     {
-      query: QUERY,
-      variables: {
-        contentId: note.publicId,
-        recordsLast: 2,
-      },
+      note: Note;
+    },
+    Variables
+  >(
+    {
+      query,
+      variables,
     },
     {
-      contextValue,
+      contextValue: createGraphQLResolversContext(options),
     }
   );
+}
 
-  assert(response.body.kind === 'single');
-  const { data, errors } = response.body.singleResult;
-  expect(errors, JSON.stringify(errors, null, 2)).toBeUndefined();
+it('returns note', async () => {
+  const response = await executeOperation(
+    {
+      noteId: note._id,
+      recordsLast: 2,
+    },
+    { user }
+  );
 
+  const data = expectGraphQLResponseData(response);
+
+  // Response
   expect(data).toEqual({
     note: {
       textFields: [
@@ -167,26 +195,33 @@ it('returns note', async () => {
       ],
     },
   });
+
+  expect(mongoCollectionStats.allStats()).toStrictEqual(
+    expect.objectContaining({
+      readAndModifyCount: 1,
+      readCount: 1,
+    })
+  );
 });
 
-it('returns only specified textField', async () => {
-  const response = await apolloServer.executeOperation(
+it('returns note specified textField', async () => {
+  const response = await executeOperation(
     {
-      query: QUERY,
-      variables: {
-        contentId: note.publicId,
-        recordsLast: 2,
-        fieldName: NoteTextField.TITLE,
-      },
+      noteId: note._id,
+      recordsLast: 2,
+      fieldName: NoteTextField.TITLE,
     },
-    {
-      contextValue,
-    }
+    { user }
   );
 
-  assert(response.body.kind === 'single');
-  const { data, errors } = response.body.singleResult;
-  expect(errors).toBeUndefined();
+  const data = expectGraphQLResponseData(response);
+
+  expect(mongoCollectionStats.allStats()).toStrictEqual(
+    expect.objectContaining({
+      readAndModifyCount: 1,
+      readCount: 1,
+    })
+  );
 
   expect(data).toEqual({
     note: {
@@ -223,46 +258,34 @@ it('returns only specified textField', async () => {
   });
 });
 
-it('returns one note not found error', async () => {
-  const response = await apolloServer.executeOperation(
-    {
-      query: QUERY,
-      variables: {
-        contentId: 'never',
-        recordsLast: 3,
+describe('errors', () => {
+  it('throws note not found if noteId is invalid', async () => {
+    const response = await executeOperation(
+      {
+        noteId: new ObjectId(),
       },
-    },
-    {
-      contextValue,
-    }
-  );
+      { user }
+    );
 
-  assert(response.body.kind === 'single');
-  const { errors } = response.body.singleResult;
-  expect(errors?.length).toStrictEqual(1);
-  expect(errors?.[0]?.message).toEqual(expect.stringMatching(/Note '.+' not found/));
-});
+    expectGraphQLResponseErrorMessage(response, /Note '.+' not found/);
+  });
 
-it('returns note category', async () => {
-  const response = await apolloServer.executeOperation(
-    {
-      query: QUERY_CATEGORY,
-      variables: {
-        contentId: noteArchive.publicId,
+  it('throws note not found if user is not linked to the note', async () => {
+    const response = await executeOperation(
+      {
+        noteId: note._id,
       },
-    },
-    {
-      contextValue,
-    }
-  );
+      { user: userNoAccess }
+    );
 
-  assert(response.body.kind === 'single');
-  const { data, errors } = response.body.singleResult;
-  expect(errors).toBeUndefined();
+    expectGraphQLResponseErrorMessage(response, /Note '.+' not found/);
+  });
 
-  expect(data).toEqual({
-    note: {
-      categoryName: NoteCategory.ARCHIVE,
-    },
+  it('throws error if not authenticated', async () => {
+    const response = await executeOperation({
+      noteId: note._id,
+    });
+
+    expectGraphQLResponseErrorMessage(response, /You are not auth.*/);
   });
 });

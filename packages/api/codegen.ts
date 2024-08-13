@@ -9,6 +9,10 @@ const config: CodegenConfig = {
       //   './types.generated.ts': { content: '/* eslint-disable */' },
       // },
       scalarsOverrides: {
+        ObjectID: {
+          resolver: 'base/resolvers/ObjectID#ObjectID',
+          type: 'mongodb#ObjectId',
+        },
         Changeset: {
           type: '~collab/changeset/changeset#Changeset',
         },
@@ -26,10 +30,9 @@ const config: CodegenConfig = {
          * null on a non-nullable field. Otherwise would have to
          * check for null on each individual field.
          */
-        resolverTypeWrapperSignature:
-          'Promise<T | null | undefined> | T | null | undefined',
+        resolverTypeWrapperSignature: 'Promise<Maybe<T>> | Maybe<T>',
         customResolverFn:
-          '(parent: TParent, args: TArgs, context: TContext, info: GraphQLResolveInfo) => Promise<TResult | null | undefined> | TResult | null | undefined',
+          '(parent: TParent, args: TArgs, context: TContext, info: GraphQLResolveInfo) => Promise<Maybe<TResult>> | Maybe<TResult>',
       },
     }),
   },

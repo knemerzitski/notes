@@ -26,7 +26,7 @@ export interface Revision {
 
 export type RevisionRecordInsertion<TRecord, TInsertRecord> =
   | {
-      processedRecord: TRecord;
+      processedRecord: TRecord & TInsertRecord;
       isExisting: true;
     }
   | {
@@ -127,7 +127,10 @@ export class RevisionRecords<
       this.eventBus.emit('processNewRecord', eventPayload);
       if (eventPayload.isDuplicate) {
         return {
-          processedRecord: record,
+          processedRecord: {
+            ...resultRecord,
+            ...record,
+          },
           isExisting: true,
         };
       }

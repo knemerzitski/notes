@@ -12,11 +12,15 @@ import { mongoCollections } from './mongodb';
 const TIER = process.env.TEST_MONGODB_TIER;
 const hasAtlasSearch = TIER === 'enterprise';
 
-export async function dropAndCreateSearchIndexes() {
+export async function dropSearchIndexes() {
   await dropAllIndexes(mongoCollections, {
     indexes: false,
     searchIndexes: hasAtlasSearch,
   });
+}
+
+export async function dropAndCreateSearchIndexes() {
+  await dropSearchIndexes();
 
   await Promise.all([
     createAllIndexes(mongoCollections, {

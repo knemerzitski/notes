@@ -2,8 +2,7 @@ type Query
 type Mutation
 type Subscription
 
-# eslint-disable-next-line @graphql-eslint/no-unreachable-types
-scalar Date
+scalar DateTime
 "int > 0"
 scalar PositiveInt
 "int >= 0"
@@ -21,6 +20,8 @@ enum Role {
 }
 
 scalar Cursor
+
+scalar ObjectID
 
 type PageInfo {
   "Self descriptive"

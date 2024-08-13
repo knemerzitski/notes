@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
-import { assert, beforeEach, describe, expect, it } from 'vitest';
+import { ObjectId } from 'mongodb';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
 
@@ -22,10 +23,8 @@ import {
   mongoCollectionStats,
   resetDatabase,
 } from '../../../../__test__/helpers/mongodb/mongodb';
-import {
-  populateNotes,
-  userAddNote,
-} from '../../../../__test__/helpers/mongodb/populate/populate';
+import { fakeNotePopulateQueue } from '../../../../__test__/helpers/mongodb/populate/note';
+import { userAddNote } from '../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
 import { NoteSchema } from '../../../../mongodb/schema/note/note';
@@ -35,29 +34,35 @@ import {
   DeleteNoteInput,
   DeleteNotePayload,
   NoteCategory,
-  NoteTextField,
 } from '../../../types.generated';
 
 const MUTATION = `#graphql
   mutation($input: DeleteNoteInput!){
     deleteNote(input: $input) {
-      id
-      contentId
+      note {
+        id
+      }
     }
   }
 `;
 
 const SUBSCRIPTION = `#graphql
   subscription {
-    noteDeleted {
-      id
-      contentId
+    noteEvents {
+      events {
+        __typename
+        ... on NoteDeletedEvent {
+          note {
+            id
+          }
+        }
+      }
     }
   }
 `;
 
-let userOwner: UserSchema;
-let userNotOwner: UserSchema;
+let userOldest: UserSchema;
+let userNewer: UserSchema;
 let userNoAccess: UserSchema;
 
 let note: NoteSchema;
@@ -67,28 +72,23 @@ beforeEach(async () => {
   faker.seed(778);
   await resetDatabase();
 
-  const populateResult = populateNotes(2, {
-    collabTextKeys: Object.values(NoteTextField),
-    userNote() {
-      return {
-        override: {
-          categoryName: NoteCategory.DEFAULT,
-        },
-      };
+  userOldest = fakeUserPopulateQueue();
+  note = fakeNotePopulateQueue(userOldest);
+  userAddNote(userOldest, note, {
+    override: {
+      categoryName: NoteCategory.DEFAULT,
     },
   });
 
-  userOwner = populateResult.user;
-  const note1 = populateResult.data[0]?.note;
-  assert(note1 != null);
-  note = note1;
+  noteSecond = fakeNotePopulateQueue(userOldest);
+  userAddNote(userOldest, noteSecond, {
+    override: {
+      categoryName: NoteCategory.DEFAULT,
+    },
+  });
 
-  const note2 = populateResult.data[1]?.note;
-  assert(note2 != null);
-  noteSecond = note2;
-
-  userNotOwner = fakeUserPopulateQueue();
-  userAddNote(userNotOwner, note, {
+  userNewer = fakeUserPopulateQueue();
+  userAddNote(userNewer, note, {
     override: {
       categoryName: NoteCategory.DEFAULT,
     },
@@ -123,12 +123,12 @@ async function executeOperation(
   );
 }
 
-it('note owner deletes note for everyone', async () => {
+it('older user deletes note for everyone', async () => {
   const response = await executeOperation(
     {
-      contentId: note.publicId,
+      noteId: note._id,
     },
-    { user: userOwner }
+    { user: userOldest }
   );
 
   const data = expectGraphQLResponseData(response);
@@ -136,8 +136,9 @@ it('note owner deletes note for everyone', async () => {
   // Response
   expect(data).toEqual({
     deleteNote: {
-      id: expect.any(String),
-      contentId: note.publicId,
+      note: {
+        id: expect.any(String),
+      },
     },
   });
 
@@ -147,7 +148,7 @@ it('note owner deletes note for everyone', async () => {
   const dbUsers = await mongoCollections.users
     .find({
       _id: {
-        $in: [userOwner._id, userNotOwner._id],
+        $in: [userOldest._id, userNewer._id],
       },
     })
     .toArray();
@@ -180,12 +181,12 @@ it('note owner deletes note for everyone', async () => {
   expect(dbNote).toBeNull();
 });
 
-it('note non-owner delete note only for self, note is not deleted for other users', async () => {
+it('newer user deletes note only for self', async () => {
   const response = await executeOperation(
     {
-      contentId: note.publicId,
+      noteId: note._id,
     },
-    { user: userNotOwner }
+    { user: userNewer }
   );
 
   const data = expectGraphQLResponseData(response);
@@ -193,8 +194,9 @@ it('note non-owner delete note only for self, note is not deleted for other user
   // Response
   expect(data).toEqual({
     deleteNote: {
-      id: expect.any(String),
-      contentId: note.publicId,
+      note: {
+        id: expect.any(String),
+      },
     },
   });
 
@@ -204,7 +206,7 @@ it('note non-owner delete note only for self, note is not deleted for other user
   const dbUsers = await mongoCollections.users
     .find({
       _id: {
-        $in: [userOwner._id, userNotOwner._id],
+        $in: [userOldest._id, userNewer._id],
       },
     })
     .toArray();
@@ -234,16 +236,16 @@ it('note non-owner delete note only for self, note is not deleted for other user
   const dbNote = await mongoCollections.notes.findOne({
     _id: note._id,
   });
-  expect(dbNote, 'Non-owner must not delete note').toBeDefined();
+  expect(dbNote, 'Newer user must not delete note').toBeDefined();
 });
 
 describe('errors', () => {
-  it('throws note not found if contentId is invalid', async () => {
+  it('throws note not found if noteId is invalid', async () => {
     const response = await executeOperation(
       {
-        contentId: 'never',
+        noteId: new ObjectId(),
       },
-      { user: userOwner }
+      { user: userOldest }
     );
 
     expectGraphQLResponseErrorMessage(response, /Note '.+' not found/);
@@ -252,7 +254,7 @@ describe('errors', () => {
   it('throws note not found if user is not linked to the note', async () => {
     const response = await executeOperation(
       {
-        contentId: note.publicId,
+        noteId: note._id,
       },
       { user: userNoAccess }
     );
@@ -262,7 +264,7 @@ describe('errors', () => {
 
   it('throws error if not authenticated', async () => {
     const response = await executeOperation({
-      contentId: note.publicId,
+      noteId: note._id,
     });
 
     expectGraphQLResponseErrorMessage(response, /You are not auth.*/);
@@ -270,7 +272,7 @@ describe('errors', () => {
 });
 
 describe('subscription', () => {
-  it('owner note deletion is published to every user involved', async () => {
+  it('oldest user note deletion is published to every user involved', async () => {
     mockSubscriptionsModel.queryAllByTopic.mockResolvedValue([
       {
         subscription: {
@@ -281,10 +283,10 @@ describe('subscription', () => {
 
     const response = await executeOperation(
       {
-        contentId: note.publicId,
+        noteId: note._id,
       },
       {
-        user: userOwner,
+        user: userOldest,
         createPublisher: createMockedPublisher,
       }
     );
@@ -292,13 +294,11 @@ describe('subscription', () => {
 
     expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenNthCalledWith(
       1,
-      `${SubscriptionTopicPrefix.NOTE_DELETED}:userId=${userOwner._id.toString('base64')}`
+      `${SubscriptionTopicPrefix.NOTE_EVENTS}:userId=${userOldest._id.toString('base64')}`
     );
     expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenNthCalledWith(
       2,
-      `${SubscriptionTopicPrefix.NOTE_DELETED}:userId=${userNotOwner._id.toString(
-        'base64'
-      )}`
+      `${SubscriptionTopicPrefix.NOTE_EVENTS}:userId=${userNewer._id.toString('base64')}`
     );
     expect(mockSubscriptionsModel.queryAllByTopic).toBeCalledTimes(2);
 
@@ -307,9 +307,17 @@ describe('subscription', () => {
         type: 'next',
         payload: {
           data: {
-            noteDeleted: {
-              id: `${note._id.toString('base64')}:${userOwner._id.toString('base64')}`,
-              contentId: note.publicId,
+            noteEvents: {
+              events: [
+                {
+                  __typename: 'NoteDeletedEvent',
+                  note: {
+                    id: `${note._id.toString('base64')}:${userOldest._id.toString(
+                      'base64'
+                    )}`,
+                  },
+                },
+              ],
             },
           },
         },
@@ -320,9 +328,17 @@ describe('subscription', () => {
         type: 'next',
         payload: {
           data: {
-            noteDeleted: {
-              id: `${note._id.toString('base64')}:${userNotOwner._id.toString('base64')}`,
-              contentId: note.publicId,
+            noteEvents: {
+              events: [
+                {
+                  __typename: 'NoteDeletedEvent',
+                  note: {
+                    id: `${note._id.toString('base64')}:${userNewer._id.toString(
+                      'base64'
+                    )}`,
+                  },
+                },
+              ],
             },
           },
         },
@@ -331,7 +347,7 @@ describe('subscription', () => {
     expect(mockSocketApi.post).toBeCalledTimes(2);
   });
 
-  it('non-owner note deletion is published only to self', async () => {
+  it('newer user note deletion is published only to self', async () => {
     mockSubscriptionsModel.queryAllByTopic.mockResolvedValue([
       {
         subscription: {
@@ -342,19 +358,17 @@ describe('subscription', () => {
 
     const response = await executeOperation(
       {
-        contentId: note.publicId,
+        noteId: note._id,
       },
       {
-        user: userNotOwner,
+        user: userNewer,
         createPublisher: createMockedPublisher,
       }
     );
     expectGraphQLResponseData(response);
 
     expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenCalledWith(
-      `${SubscriptionTopicPrefix.NOTE_DELETED}:userId=${userNotOwner._id.toString(
-        'base64'
-      )}`
+      `${SubscriptionTopicPrefix.NOTE_EVENTS}:userId=${userNewer._id.toString('base64')}`
     );
     expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenCalledOnce();
 
@@ -363,9 +377,17 @@ describe('subscription', () => {
         type: 'next',
         payload: {
           data: {
-            noteDeleted: {
-              id: `${note._id.toString('base64')}:${userNotOwner._id.toString('base64')}`,
-              contentId: expect.any(String),
+            noteEvents: {
+              events: [
+                {
+                  __typename: 'NoteDeletedEvent',
+                  note: {
+                    id: `${note._id.toString('base64')}:${userNewer._id.toString(
+                      'base64'
+                    )}`,
+                  },
+                },
+              ],
             },
           },
         },

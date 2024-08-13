@@ -14,15 +14,17 @@ import { RelayPagination } from '../pagination/relay-array-pagination';
 import { UserSchema } from '../schema/user/user';
 
 import {
-  QueryableUserBatchLoadContext,
-  QueryableUserLoadKey,
   queryableUserBatchLoad,
-} from './queryable-user-batch-load';
+  QueryableUserLoaderKey,
+  QueryableUserLoaderParams,
+} from './queryable-user-loader';
 
 let populateResult: ReturnType<typeof populateNotes>;
+let mainNotesIds: ObjectId[];
+let otherNotesIds: ObjectId[];
 let user: UserSchema;
 
-let context: QueryableUserBatchLoadContext;
+let context: QueryableUserLoaderParams['context'];
 
 beforeAll(async () => {
   await resetDatabase();
@@ -35,14 +37,7 @@ beforeAll(async () => {
         initialText: 'head',
       };
     },
-    note(noteIndex) {
-      return {
-        override: {
-          publicId: `publicId_${noteIndex}`,
-        },
-      };
-    },
-    userNote(noteIndex) {
+    noteUser(noteIndex) {
       return {
         override: {
           categoryName:
@@ -52,6 +47,13 @@ beforeAll(async () => {
     },
   });
   user = populateResult.user;
+
+  mainNotesIds = populateResult.data
+    .filter((_, index) => index % 2 === 0)
+    .map((data) => data.note._id);
+  otherNotesIds = populateResult.data
+    .filter((_, index) => index % 2 !== 0)
+    .map((data) => data.note._id);
 
   await populateExecuteAll();
 
@@ -65,8 +67,10 @@ it('loads paginated notes', async () => {
     queryableUserBatchLoad(
       [
         {
-          userId: user._id,
-          userQuery: {
+          id: {
+            userId: user._id,
+          },
+          query: {
             notes: {
               category: {
                 [TestNoteCategory.MAIN]: {
@@ -76,11 +80,11 @@ it('loads paginated notes', async () => {
                         last: 2,
                       },
                       $query: {
-                        publicId: 1,
-                        userNotes: {
+                        _id: 1,
+                        users: {
                           $query: {
                             readOnly: 1,
-                            isOwner: 1,
+                            createdAt: 1,
                           },
                         },
                         collabTexts: {
@@ -107,7 +111,10 @@ it('loads paginated notes', async () => {
           },
         },
       ],
-      context
+      {
+        global: context,
+        request: undefined,
+      }
     )
   ).resolves.toEqual([
     {
@@ -117,10 +124,10 @@ it('loads paginated notes', async () => {
             order: {
               items: [
                 {
-                  publicId: 'publicId_6',
-                  userNotes: [
+                  _id: mainNotesIds.at(-2),
+                  users: [
                     {
-                      isOwner: expect.any(Boolean),
+                      createdAt: expect.any(Date),
                       readOnly: expect.any(Boolean),
                     },
                   ],
@@ -139,10 +146,10 @@ it('loads paginated notes', async () => {
                   },
                 },
                 {
-                  publicId: 'publicId_8',
-                  userNotes: [
+                  _id: mainNotesIds.at(-1),
+                  users: [
                     {
-                      isOwner: expect.any(Boolean),
+                      createdAt: expect.any(Date),
                       readOnly: expect.any(Boolean),
                     },
                   ],
@@ -173,10 +180,12 @@ it('loads many different paginations', async () => {
   function createLoadKey(
     categoryName: TestNoteCategory,
     pagination: RelayPagination<ObjectId>
-  ): QueryableUserLoadKey {
+  ): QueryableUserLoaderKey {
     return {
-      userId: user._id,
-      userQuery: {
+      id: {
+        userId: user._id,
+      },
+      query: {
         notes: {
           category: {
             [categoryName]: {
@@ -184,7 +193,7 @@ it('loads many different paginations', async () => {
                 items: {
                   $pagination: pagination,
                   $query: {
-                    publicId: 1,
+                    _id: 1,
                   },
                 },
               },
@@ -218,36 +227,39 @@ it('loads many different paginations', async () => {
         createLoadKey(TestNoteCategory.MAIN, { last: 1 }), // 8
         createLoadKey(TestNoteCategory.OTHER, {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          after: populateResult.data.at(1)?.note!._id,
+          after: otherNotesIds.at(0),
           first: 1,
         }), // 3
       ],
-      context
+      {
+        global: context,
+        request: undefined,
+      }
     )
   ).resolves.toMatchObject([
     wrapUserNotes(TestNoteCategory.MAIN, [
       {
-        publicId: 'publicId_0',
+        _id: mainNotesIds.at(0),
       },
     ]),
     wrapUserNotes(TestNoteCategory.OTHER, [
       {
-        publicId: 'publicId_9',
+        _id: otherNotesIds.at(-1),
       },
     ]),
     wrapUserNotes(TestNoteCategory.OTHER, [
       {
-        publicId: 'publicId_1',
+        _id: otherNotesIds.at(0),
       },
     ]),
     wrapUserNotes(TestNoteCategory.MAIN, [
       {
-        publicId: 'publicId_8',
+        _id: mainNotesIds.at(-1),
       },
     ]),
     wrapUserNotes(TestNoteCategory.OTHER, [
       {
-        publicId: 'publicId_3',
+        _id: otherNotesIds.at(1),
       },
     ]),
   ]);
@@ -258,8 +270,10 @@ it('loads firstId, lastId with pagination', async () => {
     queryableUserBatchLoad(
       [
         {
-          userId: user._id,
-          userQuery: {
+          id: {
+            userId: user._id,
+          },
+          query: {
             notes: {
               category: {
                 [TestNoteCategory.MAIN]: {
@@ -270,7 +284,6 @@ it('loads firstId, lastId with pagination', async () => {
                       },
                       $query: {
                         _id: 1,
-                        publicId: 1,
                       },
                     },
                     firstId: 1,
@@ -282,7 +295,10 @@ it('loads firstId, lastId with pagination', async () => {
           },
         },
       ],
-      context
+      {
+        global: context,
+        request: undefined,
+      }
     )
   ).resolves.toEqual([
     {
@@ -292,12 +308,11 @@ it('loads firstId, lastId with pagination', async () => {
             order: {
               items: [
                 {
-                  _id: expect.any(ObjectId),
-                  publicId: 'publicId_0',
+                  _id: mainNotesIds.at(0),
                 },
               ],
-              firstId: expect.any(ObjectId),
-              lastId: expect.any(ObjectId),
+              firstId: mainNotesIds.at(0),
+              lastId: mainNotesIds.at(-1),
             },
           },
         },
@@ -311,8 +326,10 @@ it('returns empty array for invalid path', async () => {
     queryableUserBatchLoad(
       [
         {
-          userId: user._id,
-          userQuery: {
+          id: {
+            userId: user._id,
+          },
+          query: {
             notes: {
               category: {
                 invalid_category: {
@@ -332,7 +349,10 @@ it('returns empty array for invalid path', async () => {
           },
         },
       ],
-      context
+      {
+        global: context,
+        request: undefined,
+      }
     )
   ).resolves.toEqual([
     {
@@ -354,8 +374,10 @@ it('loads all notes without pagination', async () => {
     queryableUserBatchLoad(
       [
         {
-          userId: user._id,
-          userQuery: {
+          id: {
+            userId: user._id,
+          },
+          query: {
             notes: {
               category: {
                 [TestNoteCategory.MAIN]: {
@@ -372,7 +394,10 @@ it('loads all notes without pagination', async () => {
           },
         },
       ],
-      context
+      {
+        global: context,
+        request: undefined,
+      }
     )
   ).resolves.toEqual([
     {
@@ -380,9 +405,7 @@ it('loads all notes without pagination', async () => {
         category: {
           [TestNoteCategory.MAIN]: {
             order: {
-              items: [...new Array<undefined>(5)].map(() => ({
-                _id: expect.any(ObjectId),
-              })),
+              items: mainNotesIds.map((id) => ({ _id: id })),
             },
           },
         },

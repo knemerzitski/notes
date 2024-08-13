@@ -1,6 +1,5 @@
-import type { CollabTextRecordConnectionResolvers } from './../../types.generated';
-
-export const CollabTextRecordConnection: CollabTextRecordConnectionResolvers = {
+import type { CollabTextRecordsConnectionResolvers } from './../../types.generated';
+export const CollabTextRecordsConnection: CollabTextRecordsConnectionResolvers = {
   edges: (parent) => {
     return parent.edges();
   },

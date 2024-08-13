@@ -14,7 +14,6 @@ import {
 import { populateExecuteAll } from '../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../__test__/helpers/mongodb/populate/user';
 import { NoteSchema } from '../schema/note/note';
-import { UserSchema } from '../schema/user/user';
 
 import {
   queryableNoteBatchLoad,
@@ -22,9 +21,6 @@ import {
 } from './queryable-note-loader';
 
 let populateResult: ReturnType<typeof populateNotes>;
-let user: UserSchema;
-let user_noUserNote: UserSchema;
-let user_hasUserNote: UserSchema;
 let note: NoteSchema;
 
 let context: QueryableNoteLoaderParams['context'];
@@ -45,23 +41,16 @@ beforeAll(async () => {
         },
       };
     },
-    note(noteIndex) {
-      return {
-        override: {
-          publicId: `publicId_${noteIndex}`,
-        },
-      };
-    },
   });
-  user = populateResult.user;
   const firstNote = populateResult.data[0]?.note;
   assert(firstNote != null);
   note = firstNote;
 
-  user_noUserNote = fakeUserPopulateQueue();
+  // @ts-expect-error
+  const _user_noUsersEntry = fakeUserPopulateQueue();
 
-  user_hasUserNote = fakeUserPopulateQueue();
-  populateUserAddNote(user_hasUserNote, note);
+  const user_hasUsersEntry = fakeUserPopulateQueue();
+  populateUserAddNote(user_hasUsersEntry, note);
 
   await populateExecuteAll();
 
@@ -76,14 +65,13 @@ it('loads a simple note', async () => {
       [
         {
           id: {
-            userId: user._id,
-            publicId: note.publicId,
+            noteId: note._id,
           },
           query: {
-            publicId: 1,
-            userNotes: {
+            _id: 1,
+            users: {
               $query: {
-                isOwner: 1,
+                createdAt: 1,
                 readOnly: 1,
               },
             },
@@ -112,10 +100,10 @@ it('loads a simple note', async () => {
     )
   ).resolves.toEqual([
     {
-      publicId: note.publicId,
-      userNotes: [
-        { readOnly: expect.any(Boolean), isOwner: expect.any(Boolean) },
-        { readOnly: expect.any(Boolean) },
+      _id: note._id,
+      users: [
+        { readOnly: expect.any(Boolean), createdAt: expect.any(Date) },
+        { readOnly: expect.any(Boolean), createdAt: expect.any(Date) },
       ],
       collabTexts: {
         [TestCollabTextKey.TEXT]: {
@@ -140,16 +128,14 @@ it('loads all fields', async () => {
       [
         {
           id: {
-            userId: user._id,
-            publicId: note.publicId,
+            noteId: note._id,
           },
           query: {
             _id: 1,
-            publicId: 1,
-            userNotes: {
+            users: {
               $query: {
                 readOnly: 1,
-                isOwner: 1,
+                createdAt: 1,
                 preferences: {
                   backgroundColor: 1,
                 },
@@ -198,22 +184,22 @@ it('loads all fields', async () => {
   ).resolves.toEqual([
     {
       _id: expect.any(ObjectId),
-      userNotes: [
+      users: [
         {
           readOnly: expect.any(Boolean),
-          isOwner: expect.any(Boolean),
+          createdAt: expect.any(Date),
           preferences: {
             backgroundColor: expect.any(String),
           },
         },
         {
           readOnly: expect.any(Boolean),
+          createdAt: expect.any(Date),
           preferences: {
             backgroundColor: expect.any(String),
           },
         },
       ],
-      publicId: note.publicId,
       collabTexts: {
         [TestCollabTextKey.TEXT]: {
           headText: { changeset: ['head'], revision: expect.any(Number) },
@@ -244,11 +230,10 @@ it('loads minimal fields', async () => {
       [
         {
           id: {
-            userId: user._id,
-            publicId: note.publicId,
+            noteId: note._id,
           },
           query: {
-            userNotes: {
+            users: {
               $query: {
                 readOnly: 1,
               },
@@ -263,7 +248,7 @@ it('loads minimal fields', async () => {
     )
   ).resolves.toEqual([
     {
-      userNotes: [
+      users: [
         {
           readOnly: expect.any(Boolean),
         },
@@ -281,8 +266,7 @@ it('loads shareNoteLinks', async () => {
       [
         {
           id: {
-            userId: user._id,
-            publicId: note.publicId,
+            noteId: note._id,
           },
           query: {
             shareNoteLinks: {
@@ -307,55 +291,6 @@ it('loads shareNoteLinks', async () => {
           expireAccessCount: expect.any(Number),
         },
       ],
-    },
-  ]);
-});
-
-it('throws error for user without userNote', async () => {
-  const result = await queryableNoteBatchLoad(
-    [
-      {
-        id: {
-          userId: user_noUserNote._id,
-          publicId: note.publicId,
-        },
-        query: {
-          _id: 1,
-        },
-      },
-    ],
-    {
-      global: context,
-      request: undefined,
-    }
-  );
-  expect((result[0] as Error).message).toEqual(
-    expect.stringMatching(/Note '.+' not found/)
-  );
-});
-
-it('loads a note for user who has UserNote document', async () => {
-  await expect(
-    queryableNoteBatchLoad(
-      [
-        {
-          id: {
-            userId: user_hasUserNote._id,
-            publicId: note.publicId,
-          },
-          query: {
-            _id: 1,
-          },
-        },
-      ],
-      {
-        global: context,
-        request: undefined,
-      }
-    )
-  ).resolves.toEqual([
-    {
-      _id: expect.any(ObjectId),
     },
   ]);
 });

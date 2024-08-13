@@ -3,15 +3,19 @@ import { NoteCategory, type NoteResolvers } from '../../../graphql/types.generat
 export const Note: Pick<
   NoteResolvers,
   | 'categoryName'
-  | 'contentId'
+  | 'createdAt'
+  | 'deletedAt'
   | 'id'
-  | 'isOwner'
+  | 'noteId'
   | 'preferences'
   | 'readOnly'
   | 'textFields'
 > = {
   id: (parent) => {
     return parent.id();
+  },
+  noteId: (parent) => {
+    return parent.noteId();
   },
   preferences: (parent) => {
     return parent.preferences();
@@ -22,13 +26,13 @@ export const Note: Pick<
   textFields: (parent, args) => {
     return parent.textFields(args);
   },
-  contentId: (parent) => {
-    return parent.contentId();
-  },
-  isOwner: async (parent) => {
-    return parent.isOwner();
+  createdAt: (parent) => {
+    return parent.createdAt();
   },
   categoryName: async (parent) => {
     return (await parent.categoryName()) ?? NoteCategory.DEFAULT;
+  },
+  deletedAt: (parent) => {
+    return parent.deletedAt();
   },
 };

@@ -1,29 +1,25 @@
 import { MongoQuery } from '../../../mongodb/query/query';
 import { CollabTextSchema } from '../../../mongodb/schema/collab-text/collab-text';
 import { CollabTextQueryMapper } from '../../collab/mongo-query-mapper/collab-text';
-import { ResolverTypeWrapper } from '../../types.generated';
-
-interface Parent {
-  id(): ResolverTypeWrapper<string>;
-}
+import { NoteMapper } from '../schema.mappers';
 
 export class NoteCollabTextQueryMapper extends CollabTextQueryMapper {
-  private parent: Parent;
+  private note: Pick<NoteMapper, 'noteIdStr'>;
   private fieldName: string;
 
   constructor(
-    parent: Parent,
+    note: Pick<NoteMapper, 'noteIdStr'>,
     fieldName: string,
     collabText: MongoQuery<CollabTextSchema>
   ) {
     super(collabText);
 
-    this.parent = parent;
+    this.note = note;
     this.fieldName = fieldName;
   }
 
   override async id() {
-    const noteId = await this.parent.id();
+    const noteId = await this.note.noteIdStr();
 
     if (!noteId) return null;
 

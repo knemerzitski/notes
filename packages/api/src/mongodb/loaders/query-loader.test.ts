@@ -210,6 +210,68 @@ it('primes value to cache', async () => {
   });
 });
 
+it('priming without value leaves it empty, load is not called', async () => {
+  const spyBatchLoadFn = vi.fn();
+
+  const loader = new QueryLoader<ShopId, Shop, GlobalContext, Context>({
+    batchLoadFn: spyBatchLoadFn,
+    context: {
+      database,
+    },
+  });
+
+  loader.prime(
+    {
+      id: {
+        shopId: 'first',
+      },
+      query: {
+        id: 1,
+        description: 1,
+      },
+    },
+    {
+      id: 'first',
+      description: 'well',
+    }
+  );
+
+  // Clears description
+  loader.prime(
+    {
+      id: {
+        shopId: 'first',
+      },
+      query: {
+        id: 1,
+        description: 1,
+      },
+    },
+    {
+      id: 'new id',
+    },
+    {
+      clearCache: true,
+    }
+  );
+
+  const result = await loader.load({
+    id: {
+      shopId: 'first',
+    },
+    query: {
+      id: 1,
+    },
+  });
+  expect(spyBatchLoadFn, 'Batch load should have not been called').toHaveBeenCalledTimes(
+    0
+  );
+
+  expect(result).toStrictEqual({
+    id: 'new id',
+  });
+});
+
 it('caches ObjectId as string', async () => {
   const spyBatchLoadFn = vi.fn().mockImplementation((keys) => keys);
 

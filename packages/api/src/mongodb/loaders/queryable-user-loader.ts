@@ -1,95 +1,165 @@
-import DataLoader from 'dataloader';
-import { AggregateOptions } from 'mongodb';
+import { AggregateOptions, ObjectId } from 'mongodb';
 
-import { callFnGrouped } from '~utils/call-fn-grouped';
-
-import { Emitter } from '~utils/mitt-unsub';
+import { groupBy } from '~utils/array/group-by';
+import { Emitter, mitt } from '~utils/mitt-unsub';
 
 import { CollectionName, MongoDBCollections } from '../collections';
 import { MongoDBContext } from '../lambda-context';
 import { LoaderEvents } from '../loaders';
+import { mapQueryAggregateResult } from '../query/map-query-aggregate-result';
+import { MergedDeepObjectQuery, mergeQueries } from '../query/merge-queries';
+import { mergedQueryToPipeline } from '../query/merged-query-to-pipeline';
 import { DeepQueryResult } from '../query/query';
 
-import { QueryableUser } from '../schema/user/query/queryable-user';
+import {
+  QueryableUser,
+  queryableUserDescription,
+} from '../schema/user/query/queryable-user';
 
-import { QueryableUserLoadKey, queryableUserBatchLoad } from './queryable-user-batch-load';
+import {
+  PrimeOptions,
+  QueryLoader,
+  QueryLoaderCacheKey,
+  QueryLoaderContext,
+  QueryLoaderEvents,
+} from './query-loader';
 
-import { getEqualObjectString } from './utils/get-equal-object-string';
+export interface QueryableUserId {
+  /**
+   * User._id
+   */
+  userId: ObjectId;
+}
 
-export interface QueryableUserLoaderContext {
+export type QueryableUserLoaderKey = QueryLoaderCacheKey<QueryableUserId, QueryableUser>;
+
+export interface QueryableUserLoaderParams {
   eventBus?: Emitter<LoaderEvents>;
+  context: GlobalContext;
+}
+
+export type QueryableUserLoadContext = QueryLoaderContext<GlobalContext, RequestContext>;
+
+interface GlobalContext {
   collections: Pick<
     MongoDBContext<MongoDBCollections>['collections'],
     CollectionName.USERS | CollectionName.NOTES
   >;
 }
 
-type QueryableUserLoadKeyWithSession = {
-  userKey: QueryableUserLoadKey;
-} & Pick<AggregateOptions, 'session'>;
+type RequestContext = AggregateOptions['session'];
 
 export class QueryableUserLoader {
-  private readonly context: Readonly<QueryableUserLoaderContext>;
-
-  private readonly loader: DataLoader<
-    QueryableUserLoadKeyWithSession,
-    DeepQueryResult<QueryableUser>,
-    string
+  private readonly loader: QueryLoader<
+    QueryableUserId,
+    QueryableUser,
+    GlobalContext,
+    RequestContext
   >;
 
-  constructor(context: Readonly<QueryableUserLoaderContext>) {
-    this.context = context;
-
-    this.loader = new DataLoader<
-      QueryableUserLoadKeyWithSession,
-      DeepQueryResult<QueryableUser>,
-      string
-    >(
-      async (keys) =>
-        callFnGrouped(
-          keys,
-          (key) => key.session,
-          (keys, session) =>
-            queryableUserBatchLoad(
-              keys.map(({ userKey }) => userKey),
-              this.context,
-              {
-                session,
-              }
-            )
-        ),
-      {
-        cacheKeyFn: (key) => {
-          return getEqualObjectString(key.userKey);
-        },
-      }
-    );
-  }
-
-  async load(
-    key: QueryableUserLoadKey,
-    aggregateOptions?: Pick<AggregateOptions, 'session'>
-  ) {
-    const loaderKey: QueryableUserLoadKeyWithSession = {
-      userKey: key,
-    };
-    if (aggregateOptions?.session) {
-      loaderKey.session = aggregateOptions.session;
-      // Clear key since session implies a transaction where returned value must be always up-to-date
-      return this.loader.clear(loaderKey).load(loaderKey);
-    } else {
-      const result = await this.loader.load(loaderKey);
-
-      // Notify other loaders
-      const eventBus = this.context.eventBus;
-      if (eventBus) {
-        eventBus.emit('loadedUser', {
-          key,
-          value: result,
-        });
-      }
-
-      return result;
+  constructor(params: Readonly<QueryableUserLoaderParams>) {
+    const loaderEventBus = mitt<QueryLoaderEvents<QueryableUserId, QueryableUser>>();
+    if (params.eventBus) {
+      loaderEventBus.on('loaded', (payload) => {
+        params.eventBus?.emit('loadedUser', payload);
+      });
     }
+
+    this.loader = new QueryLoader({
+      eventBus: params.eventBus ? loaderEventBus : undefined,
+      batchLoadFn: (keys, context) => {
+        return queryableUserBatchLoad(keys, context);
+      },
+      context: params.context,
+    });
   }
+
+  prime(
+    key: QueryableUserLoaderKey,
+    value: DeepQueryResult<QueryableUser>,
+    options?: PrimeOptions
+  ) {
+    this.loader.prime(key, value, options);
+  }
+
+  async load(key: QueryableUserLoaderKey, session?: RequestContext) {
+    return this.loader.load(key, {
+      context: session,
+      skipCache: session != null,
+    });
+  }
+}
+
+export interface QueryableUserBatchLoadContext {
+  collections: Pick<
+    MongoDBContext<MongoDBCollections>['collections'],
+    CollectionName.USERS | CollectionName.NOTES
+  >;
+}
+
+export async function queryableUserBatchLoad(
+  keys: readonly QueryableUserLoaderKey[],
+  context: QueryableUserLoadContext
+): Promise<(DeepQueryResult<QueryableUser> | Error | null)[]> {
+  const keysByUserId = groupBy(keys, (key) => key.id.userId.toHexString());
+
+  const results = Object.fromEntries(
+    await Promise.all(
+      Object.entries(keysByUserId).map(async ([userIdStr, sameUserLoadKeys]) => {
+        const userId = ObjectId.createFromHexString(userIdStr);
+
+        // Merge queries
+        const mergedQuery = mergeQueries(
+          {},
+          sameUserLoadKeys.map(({ query }) => query)
+        );
+
+        // Build aggregate pipeline
+        const aggregatePipeline = mergedQueryToPipeline(mergedQuery, {
+          description: queryableUserDescription,
+          customContext: context.global,
+        });
+
+        // Fetch from database
+        const userResult = await context.global.collections.users
+          .aggregate(
+            [
+              {
+                $match: {
+                  _id: userId,
+                },
+              },
+              ...aggregatePipeline,
+            ],
+            {
+              session: context.request,
+            }
+          )
+          .toArray();
+
+        return [
+          userIdStr,
+          {
+            user: userResult[0],
+            mergedQuery,
+          },
+        ];
+      })
+    )
+  ) as Record<
+    string,
+    {
+      user: Document | undefined;
+      mergedQuery: MergedDeepObjectQuery<QueryableUser>;
+    }
+  >;
+
+  return keys.map((key) => {
+    const result = results[key.id.userId.toHexString()];
+    if (!result?.user) return null;
+
+    return mapQueryAggregateResult(key.query, result.mergedQuery, result.user, {
+      descriptions: [queryableUserDescription],
+    });
+  });
 }

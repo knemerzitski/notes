@@ -1,7 +1,5 @@
-import { GraphQLError } from 'graphql';
 import { AggregateOptions, ObjectId } from 'mongodb';
 
-import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import { groupBy } from '~utils/array/group-by';
 import { mitt, Emitter } from '~utils/mitt-unsub';
 
@@ -10,7 +8,7 @@ import { MongoDBContext } from '../lambda-context';
 import { LoaderEvents } from '../loaders';
 
 import { mapQueryAggregateResult } from '../query/map-query-aggregate-result';
-import { mergeQueries, MergedDeepObjectQuery } from '../query/merge-queries';
+import { MergedDeepObjectQuery, mergeQueries } from '../query/merge-queries';
 import { mergedQueryToPipeline } from '../query/merged-query-to-pipeline';
 import { DeepQueryResult } from '../query/query';
 import {
@@ -23,18 +21,18 @@ import {
   QueryLoader,
   QueryLoaderCacheKey,
   QueryLoaderContext,
+  PrimeOptions,
 } from './query-loader';
-
 
 export interface QueryableNoteId {
   /**
-   * Note.userNotes.userId
+   * Note._id
    */
-  userId: ObjectId;
+  noteId: ObjectId;
   /**
-   * Note.publicId
+   * Note.users._id
    */
-  publicId: string;
+  userId?: ObjectId;
 }
 
 export type QueryableNoteLoaderKey = QueryLoaderCacheKey<QueryableNoteId, QueryableNote>;
@@ -86,6 +84,14 @@ export class QueryableNoteLoader {
     }
   }
 
+  prime(
+    key: QueryableNoteLoaderKey,
+    value: DeepQueryResult<QueryableNote>,
+    options?: PrimeOptions
+  ) {
+    this.loader.prime(key, value, options);
+  }
+
   async load(key: QueryableNoteLoaderKey, session?: RequestContext) {
     return this.loader.load(key, {
       context: session,
@@ -94,53 +100,53 @@ export class QueryableNoteLoader {
   }
 
   private primeNotesFromLoadedUser({ key, value }: LoaderEvents['loadedUser']) {
-    if (!key.userQuery.notes?.category) {
+    if (!key.query.notes?.category) {
       return;
     }
 
-    const userId = key.userId;
-    Object.entries(key.userQuery.notes.category).forEach(
-      ([categoryName, categoryMeta]) => {
-        const noteQuery = categoryMeta?.order?.items?.$query;
-        if (!noteQuery) {
-          return;
-        }
-
-        const resultCategoryMeta = value.notes?.category?.[categoryName];
-        if (!resultCategoryMeta) {
-          return;
-        }
-        resultCategoryMeta.order?.items?.forEach((note) => {
-          if (!note.publicId) return;
-          this.loader.prime(
-            {
-              id: {
-                userId,
-                publicId: note.publicId,
-              },
-              query: noteQuery,
-            },
-            note
-          );
-        });
+    Object.entries(key.query.notes.category).forEach(([categoryName, categoryMeta]) => {
+      const noteQuery = categoryMeta?.order?.items?.$query;
+      if (!noteQuery) {
+        return;
       }
-    );
+
+      const resultCategoryMeta = value.notes?.category?.[categoryName];
+      if (!resultCategoryMeta) {
+        return;
+      }
+      resultCategoryMeta.order?.items?.forEach((note) => {
+        if (!note._id) return;
+        this.loader.prime(
+          {
+            id: {
+              noteId: note._id,
+            },
+            query: noteQuery,
+          },
+          note
+        );
+      });
+    });
   }
 }
 
 export async function queryableNoteBatchLoad(
   keys: readonly QueryableNoteLoaderKey[],
   context: QueryableNoteLoadContext
-): Promise<(DeepQueryResult<QueryableNote> | Error)[]> {
-  const keysByUserId = groupBy(keys, ({ id: { userId } }) => userId.toString('hex'));
+): Promise<(DeepQueryResult<QueryableNote> | null)[]> {
+  const keysByUserId = groupBy(
+    keys,
+    ({ id: { userId } }) => userId?.toString('hex') ?? ''
+  );
 
   const notesBy_userId_publicId = Object.fromEntries(
     await Promise.all(
       Object.entries(keysByUserId).map(async ([userIdStr, sameUserLoadKeys]) => {
-        const userId = ObjectId.createFromHexString(userIdStr);
+        const userId =
+          userIdStr.length > 0 ? ObjectId.createFromHexString(userIdStr) : null;
 
-        // Gather publicIds
-        const allPublicIds = sameUserLoadKeys.map(({ id: { publicId } }) => publicId);
+        // Gather noteIds
+        const allNoteIds = sameUserLoadKeys.map(({ id: { noteId } }) => noteId);
 
         // Merge queries
         const mergedQuery = mergeQueries(
@@ -148,8 +154,8 @@ export async function queryableNoteBatchLoad(
           sameUserLoadKeys.map(({ query }) => query)
         );
 
-        // publicId is required later after aggregate
-        mergedQuery.publicId = 1;
+        // _id is required later after aggregate
+        mergedQuery._id = 1;
 
         // Build aggregate pipeline
         const aggregatePipeline = mergedQueryToPipeline(mergedQuery, {
@@ -163,9 +169,9 @@ export async function queryableNoteBatchLoad(
             [
               {
                 $match: {
-                  'userNotes.userId': userId,
-                  publicId: {
-                    $in: allPublicIds,
+                  ...(userId && { 'users._id': userId }),
+                  _id: {
+                    $in: allNoteIds,
                   },
                 },
               },
@@ -178,24 +184,21 @@ export async function queryableNoteBatchLoad(
           .toArray();
 
         // Map userNote by publicId
-        const noteBy_publicId = notesResult.reduce<Record<string, Document>>(
-          (noteMap, note) => {
-            const publicId: unknown = note.publicId;
-            if (typeof publicId !== 'string') {
-              throw new Error('Expected Note.publicId to be defined string');
-            }
+        const noteById = notesResult.reduce<Record<string, Document>>((noteMap, note) => {
+          const noteId = note._id;
+          if (!(noteId instanceof ObjectId)) {
+            throw new Error('Expected Note._id to be defined');
+          }
 
-            noteMap[publicId] = note;
+          noteMap[noteId.toString()] = note;
 
-            return noteMap;
-          },
-          {}
-        );
+          return noteMap;
+        }, {});
 
         return [
           userIdStr,
           {
-            noteBy_publicId,
+            noteById,
             mergedQuery,
           },
         ];
@@ -204,20 +207,16 @@ export async function queryableNoteBatchLoad(
   ) as Record<
     string,
     {
-      noteBy_publicId: Record<string, Document>;
+      noteById: Record<string, Document>;
       mergedQuery: MergedDeepObjectQuery<QueryableNote>;
     }
   >;
 
   return keys.map((key) => {
-    const userResult = notesBy_userId_publicId[key.id.userId.toString()];
-    const note = userResult?.noteBy_publicId[key.id.publicId];
+    const userResult = notesBy_userId_publicId[key.id.userId?.toString() ?? ''];
+    const note = userResult?.noteById[key.id.noteId.toString()];
     if (!note) {
-      return new GraphQLError(`Note '${key.id.publicId}' not found`, {
-        extensions: {
-          code: GraphQLErrorCode.NOT_FOUND,
-        },
-      });
+      return null;
     }
 
     return mapQueryAggregateResult(key.query, userResult.mergedQuery, note, {

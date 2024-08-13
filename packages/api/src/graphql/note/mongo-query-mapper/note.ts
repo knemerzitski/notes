@@ -4,6 +4,7 @@ import { Changeset } from '~collab/changeset/changeset';
 
 import { DeepQueryResult, MongoQuery } from '../../../mongodb/query/query';
 import { QueryableNote } from '../../../mongodb/schema/note/query/queryable-note';
+import { objectIdToStr } from '../../base/resolvers/ObjectID';
 import {
   Maybe,
   NoteCategory,
@@ -12,12 +13,11 @@ import {
 } from '../../types.generated';
 import { NoteMapper } from '../schema.mappers';
 
-import { findUserNote } from '../utils/find-user-note';
+import { findNoteUser } from '../utils/user-note';
 
 import { NoteCollabTextQueryMapper } from './note-collab-text';
 import { NotePreferencesQueryMapper } from './note-preferences';
 
-// TODO rename to NoteMongoMapper
 export class NoteQueryMapper implements NoteMapper {
   private readonly targetUserId: ObjectId;
   private readonly note: MongoQuery<QueryableNote>;
@@ -27,33 +27,28 @@ export class NoteQueryMapper implements NoteMapper {
     this.note = note;
   }
 
-  private getTargetUserNote(note: Maybe<DeepQueryResult<QueryableNote>>) {
-    return findUserNote(this.targetUserId, note);
+  private getTargetNoteUser(note: Maybe<DeepQueryResult<QueryableNote>>) {
+    return findNoteUser(this.targetUserId, note);
   }
 
   async noteId() {
-    return (await this.note.query({ _id: 1 }))?._id?.toString('base64');
+    return (await this.note.query({ _id: 1 }))?._id;
+  }
+
+  async noteIdStr() {
+    return objectIdToStr(await this.noteId());
   }
 
   /**
-   * Id is Note._id:UserNote.userId
+   * Id is Note._id:NoteUser.userId
    */
   async id() {
-    const noteId = await this.noteId();
+    const noteId = await this.noteIdStr();
     if (!noteId) {
       return;
     }
 
-    return `${noteId}:${this.targetUserId.toString('base64')}`;
-  }
-
-  // TODO rename to publicId
-  async contentId() {
-    return (
-      await this.note.query({
-        publicId: 1,
-      })
-    )?.publicId;
+    return `${noteId}:${objectIdToStr(this.targetUserId)}`;
   }
 
   textFields(args?: NotetextFieldsArgs) {
@@ -94,11 +89,11 @@ export class NoteQueryMapper implements NoteMapper {
 
   async readOnly() {
     return (
-      this.getTargetUserNote(
+      this.getTargetNoteUser(
         await this.note.query({
-          userNotes: {
+          users: {
             $query: {
-              userId: 1,
+              _id: 1,
               readOnly: 1,
             },
           },
@@ -110,11 +105,11 @@ export class NoteQueryMapper implements NoteMapper {
   preferences() {
     return new NotePreferencesQueryMapper({
       query: async (query) => {
-        return this.getTargetUserNote(
+        return this.getTargetNoteUser(
           await this.note.query({
-            userNotes: {
+            users: {
               $query: {
-                userId: 1,
+                _id: 1,
                 preferences: query,
               },
             },
@@ -124,19 +119,17 @@ export class NoteQueryMapper implements NoteMapper {
     });
   }
 
-  async isOwner() {
-    return (
-      this.getTargetUserNote(
-        await this.note.query({
-          userNotes: {
-            $query: {
-              userId: 1,
-              isOwner: 1,
-            },
+  async createdAt() {
+    return this.getTargetNoteUser(
+      await this.note.query({
+        users: {
+          $query: {
+            _id: 1,
+            createdAt: 1,
           },
-        })
-      )?.isOwner ?? false
-    );
+        },
+      })
+    )?.createdAt;
   }
 
   async sharing() {
@@ -158,14 +151,31 @@ export class NoteQueryMapper implements NoteMapper {
 
   async categoryName() {
     const note = await this.note.query({
-      userNotes: {
+      users: {
         $query: {
-          userId: 1,
+          _id: 1,
           categoryName: 1,
         },
       },
     });
 
-    return this.getTargetUserNote(note)?.categoryName as NoteCategory;
+    return this.getTargetNoteUser(note)?.categoryName as NoteCategory;
+  }
+
+  async deletedAt() {
+    const note = await this.note.query({
+      users: {
+        $query: {
+          _id: 1,
+          trashed: {
+            expireAt: 1,
+          },
+        },
+      },
+    });
+
+    const noteUser = this.getTargetNoteUser(note);
+
+    return noteUser?.trashed?.expireAt;
   }
 }

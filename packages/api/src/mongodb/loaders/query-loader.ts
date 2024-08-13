@@ -11,24 +11,24 @@ import { DeepQuery, DeepQueryResult } from '../query/query';
 import { getEqualObjectString } from './utils/get-equal-object-string';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type QueryLoaderEvents<I, Q extends object> = {
+export type QueryLoaderEvents<I, Q extends object, QR = Q> = {
   loaded: {
     key: QueryLoaderCacheKey<I, Q>;
-    value: DeepQueryResult<Q>;
+    value: DeepQueryResult<QR>;
   };
 };
 
-export interface QueryLoaderParams<I, Q extends object, G, R> {
+export interface QueryLoaderParams<I, Q extends object, G, R, QR = Q> {
   batchLoadFn: (
     keys: readonly QueryLoaderCacheKey<I, Q>[],
     context: QueryLoaderContext<G, R>
-  ) => MaybePromise<(DeepQueryResult<Q> | Error)[]>;
+  ) => MaybePromise<(DeepQueryResult<QR> | Error | null)[]>;
   loaderOptions?: Omit<
-    DataLoader.Options<QueryLoaderKey<I, Q, R>, DeepQueryResult<Q>, string>,
+    DataLoader.Options<QueryLoaderKey<I, Q, R>, DeepQueryResult<QR>, string>,
     'cacheKeyFn'
   >;
   context?: G;
-  eventBus?: Emitter<QueryLoaderEvents<I, Q>>;
+  eventBus?: Emitter<QueryLoaderEvents<I, Q, QR>>;
 }
 
 export interface QueryLoaderContext<G, R> {
@@ -55,7 +55,7 @@ interface LoadOptions<R> {
   skipCache?: boolean;
 }
 
-interface PrimeOptions {
+export interface PrimeOptions {
   /**
    * Clears cached value before priming. Ensures new value is inserted in the cahce.
    * @default false;
@@ -77,18 +77,23 @@ function splitQuery<T extends object>(obj: T) {
  * Q - Query itself
  * G - Global context - common between all loads and supplied during Loader initialization
  * R - Request context - can be different between loads and supplied during load
+ * QR - Query result shape
  */
-export class QueryLoader<I, Q extends object, G, R> {
-  private readonly eventBus?: Emitter<QueryLoaderEvents<I, Q>>;
+export class QueryLoader<I, Q extends object, G, R, QR = Q> {
+  private readonly eventBus?: Emitter<QueryLoaderEvents<I, Q, QR>>;
   private readonly loader: DataLoader<
     QueryLoaderKey<I, Q, R>,
-    DeepQueryResult<Q>,
+    DeepQueryResult<QR> | null,
     string
   >;
 
-  constructor(params: QueryLoaderParams<I, Q, G, R>) {
+  constructor(params: QueryLoaderParams<I, Q, G, R, QR>) {
     this.eventBus = params.eventBus;
-    this.loader = new DataLoader<QueryLoaderKey<I, Q, R>, DeepQueryResult<Q>, string>(
+    this.loader = new DataLoader<
+      QueryLoaderKey<I, Q, R>,
+      DeepQueryResult<QR> | null,
+      string
+    >(
       (keys) =>
         callFnGrouped(
           keys,
@@ -113,7 +118,7 @@ export class QueryLoader<I, Q extends object, G, R> {
 
   prime(
     key: QueryLoaderCacheKey<I, Q>,
-    value: DeepQueryResult<Q>,
+    value: DeepQueryResult<QR>,
     options?: PrimeOptions
   ) {
     if (!key.query) {
@@ -165,16 +170,17 @@ export class QueryLoader<I, Q extends object, G, R> {
         }
 
         const leafResult = await this.loader.load(leafLoaderKey);
-
-        this.eventBus?.emit('loaded', {
-          key: leafLoaderKey.cache,
-          value: leafResult,
-        });
+        if (leafResult != null) {
+          this.eventBus?.emit('loaded', {
+            key: leafLoaderKey.cache,
+            value: leafResult,
+          });
+        }
 
         return leafResult;
       })
     );
 
-    return mergeObjects(leafResults[0], ...leafResults.slice(1)) as DeepQueryResult<Q>;
+    return mergeObjects(leafResults[0], ...leafResults.slice(1)) as DeepQueryResult<QR>;
   }
 }

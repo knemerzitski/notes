@@ -7,7 +7,6 @@ import {
   isNonNullType,
   isObjectType,
 } from 'graphql';
-import { collectSubfields as _collectSubfields } from 'graphql/execution/collectFields';
 import {
   ExecutionContext,
   defaultFieldResolver,
@@ -22,16 +21,21 @@ import { ExecutionOptions, executeField } from './graphql/execute';
  *
  * Useful for query building in a field which returns list type but count is not known until
  * data is fetched. Build the whole query and do a single fetch with dataloader.
+ *
+ * @param source Object containing replaced fields
+ * @param context Resolver context
+ * @param info Resolver info
+ * @param options
+ * @returns Result of field execution
  */
-export function preExecuteField<TContext>(
-  fieldName: string,
+export function customExecuteFields<TContext>(
+  source: Record<string, unknown>,
   context: TContext,
-  parentInfo: GraphQLResolveInfo,
-  source: unknown,
+  info: GraphQLResolveInfo,
   options?: ExecutionOptions
 ) {
   const exeContext = reuseExecutionContext({
-    info: parentInfo,
+    info: info,
     contextValue: context,
     options: {
       bubbleNull: true,
@@ -39,19 +43,30 @@ export function preExecuteField<TContext>(
     },
   });
 
-  const parentType = unwrapNonNullType(parentInfo.returnType);
-  if (!isObjectType(parentType)) {
+  const returnType = unwrapNonNullType(info.returnType);
+  if (!isObjectType(returnType)) {
     return;
   }
 
-  const selectionSet = parentInfo.fieldNodes[0]?.selectionSet;
+  const selectionSet = info.fieldNodes[0]?.selectionSet;
   if (!selectionSet) return;
 
   const fieldNodes = selectionSet.selections.filter(isFieldNode);
 
-  const fieldPath = addPath(parentInfo.path, fieldName, parentType.name);
+  const executingFields: unknown[] = [];
 
-  return executeField(exeContext, parentType, source, fieldNodes, fieldPath);
+  for (const name of Object.keys(source)) {
+    const fieldNode = fieldNodes.find((fieldNode) => fieldNode.name.value === name);
+    if (!fieldNode) continue;
+
+    const fieldPath = addPath(info.path, name, returnType.name);
+
+    executingFields.push(
+      executeField(exeContext, returnType, source, [fieldNode], fieldPath)
+    );
+  }
+
+  return Promise.all(executingFields);
 }
 
 function reuseExecutionContext<TContext>(args: {

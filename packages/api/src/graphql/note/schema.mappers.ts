@@ -1,3 +1,5 @@
+import { ObjectId } from 'mongodb';
+
 import { Maybe } from '~utils/types';
 
 import { PageInfoMapper } from '../base/schema.mappers';
@@ -12,15 +14,16 @@ import {
 import { NoteCollabTextQueryMapper } from './mongo-query-mapper/note-collab-text';
 
 export interface NoteMapper {
+  noteId(): ResolverTypeWrapper<ObjectId>;
+  noteIdStr(): ResolverTypeWrapper<string>;
   id(): ResolverTypeWrapper<string>;
-  noteId(): ResolverTypeWrapper<string>;
-  contentId(): ResolverTypeWrapper<string>;
-  textFields(args?: NotetextFieldsArgs): NoteTextFieldEntryMapper[];
   readOnly(): ResolverTypeWrapper<boolean>;
-  preferences(): NotePreferencesMapper;
-  isOwner(): ResolverTypeWrapper<boolean>;
-  sharing(): ResolversTypes['NoteSharing'];
+  createdAt(): ResolverTypeWrapper<Date>;
+  textFields(args?: NotetextFieldsArgs): NoteTextFieldEntryMapper[];
   categoryName(): ResolverTypeWrapper<NoteCategory>;
+  preferences(): NotePreferencesMapper;
+  deletedAt(): Maybe<ResolverTypeWrapper<Date>>;
+  sharing(): ResolversTypes['NoteSharing'];
 }
 
 export interface NoteTextFieldEntryMapper {
@@ -32,28 +35,25 @@ export interface NotePreferencesMapper {
   backgroundColor(): ResolverTypeWrapper<string>;
 }
 
+export interface NotePreferencesPatchMapper {
+  backgroundColor?(): ResolverTypeWrapper<string>;
+}
+
 export interface NotePatchMapper {
   id(): ResolverTypeWrapper<string>;
-  contentId(): ResolverTypeWrapper<string>;
-  textFields(): Maybe<ResolversTypes['NoteTextFieldEntryPatch'][]>;
-  preferences(): NotePreferencesMapper;
-  sharing(): ResolversTypes['NoteSharingPatch'];
-  isOwner(): ResolverTypeWrapper<boolean>;
-  readOnly(): ResolverTypeWrapper<boolean>;
-  categoryName(): ResolverTypeWrapper<NoteCategory>;
+  textFields?(): Maybe<ResolversTypes['NoteTextFieldEntryPatch'][]>;
+  categoryName?(): ResolverTypeWrapper<NoteCategory>;
+  preferences?(): NotePreferencesPatchMapper;
+  location?(): ResolversTypes['NoteLocation'];
+  deletedAt?(): ResolverTypeWrapper<Date>;
+  sharing?(): ResolversTypes['NoteSharingPatch'];
 }
 
-export interface UpdateNotePayloadMapper {
-  contentId(): ResolverTypeWrapper<string>;
-  patch?(): Maybe<ResolverTypeWrapper<NotePatchMapper>>;
+export interface DeletedNoteMapper {
+  id(): ResolverTypeWrapper<string>;
 }
 
-export interface NoteUpdatedPayloadMapper {
-  contentId(): ResolverTypeWrapper<string>;
-  patch?(): Maybe<ResolverTypeWrapper<NotePatchMapper>>;
-}
-
-export interface NoteConnectionMapper {
+export interface NotesConnectionMapper {
   notes(): ResolverTypeWrapper<NoteMapper[]>;
   edges(): ResolverTypeWrapper<NoteEdgeMapper[]>;
   pageInfo(): ResolverTypeWrapper<PageInfoMapper>;
@@ -62,14 +62,4 @@ export interface NoteConnectionMapper {
 export interface NoteEdgeMapper {
   node(): ResolverTypeWrapper<NoteMapper>;
   cursor(): ResolversTypes['Cursor'];
-}
-
-export interface DeleteNotePayloadMapper {
-  id(): ResolverTypeWrapper<string>;
-  contentId(): ResolverTypeWrapper<string>;
-}
-
-export interface NoteDeletedPayloadMapper {
-  id(): ResolverTypeWrapper<string>;
-  contentId(): ResolverTypeWrapper<string>;
 }

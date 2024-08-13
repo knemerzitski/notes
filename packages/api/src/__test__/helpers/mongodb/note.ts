@@ -14,6 +14,6 @@ export function findNoteTextField(
   return collabTexts?.[0];
 }
 
-export function findNoteUserNote(userId: ObjectId, note?: NoteSchema | null) {
-  return note?.userNotes.find((userNote) => userNote.userId.equals(userId));
+export function findNoteUser(userId: ObjectId, note?: NoteSchema | null) {
+  return note?.users.find((noteUser) => noteUser._id.equals(userId));
 }

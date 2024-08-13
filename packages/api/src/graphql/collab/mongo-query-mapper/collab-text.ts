@@ -15,7 +15,7 @@ import {
   CollabTexttextAtRevisionArgs,
   ResolverTypeWrapper,
 } from '../../types.generated';
-import { preExecuteField } from '../../utils/pre-execute-field';
+import { customExecuteFields } from '../../utils/custom-execute-fields';
 import { CollabTextMapper, RevisionChangesetMapper } from '../schema.mappers';
 
 import { RevisionChangesetQueryMapper } from './revision-changeset';
@@ -125,12 +125,12 @@ export abstract class CollabTextQueryMapper implements CollabTextMapper {
     let pagination: RelayPagination<number>;
     if (isForwardPagination) {
       pagination = {
-        after,
+        ...(after && { after }),
         first,
       };
     } else {
       pagination = {
-        before,
+        ...(before && { before }),
         last,
       };
     }
@@ -139,24 +139,28 @@ export abstract class CollabTextQueryMapper implements CollabTextMapper {
       records: async () => {
         // Pre resolve to build query and fetch with dataloader to figure out list size
         let actualSize: undefined | number;
-        await preExecuteField('records', ctx, info, {
-          records: () => {
-            return [
-              new CollabTextRecordQueryMapper(this, {
-                query: async (query) => {
-                  const result = await this.collabText.query({
-                    records: {
-                      $query: query,
-                      $pagination: pagination,
-                    },
-                  });
-                  actualSize = actualSize ?? result?.records?.length;
-                  return null;
-                },
-              }),
-            ];
+        await customExecuteFields(
+          {
+            records: () => {
+              return [
+                new CollabTextRecordQueryMapper(this, {
+                  query: async (query) => {
+                    const result = await this.collabText.query({
+                      records: {
+                        $query: query,
+                        $pagination: pagination,
+                      },
+                    });
+                    actualSize = actualSize ?? result?.records?.length;
+                    return null;
+                  },
+                }),
+              ];
+            },
           },
-        });
+          ctx,
+          info
+        );
         if (!actualSize) return [];
 
         return [...new Array<undefined>(actualSize)].map((_, index) => {
@@ -178,31 +182,35 @@ export abstract class CollabTextQueryMapper implements CollabTextMapper {
       edges: async () => {
         // Pre resolve to build query and fetch with dataloader to figure out list size
         let actualSize: undefined | number;
-        await preExecuteField('edges', ctx, info, {
-          edges: () => {
-            const revisionRecordQuery = new CollabTextRecordQueryMapper(this, {
-              query: async (query) => {
-                const result = await this.collabText.query({
-                  records: {
-                    $query: query,
-                    $pagination: pagination,
-                  },
-                });
-                actualSize = actualSize ?? result?.records?.length;
-                return null;
-              },
-            });
-
-            return [
-              {
-                node: () => revisionRecordQuery,
-                cursor: async () => {
-                  return String(await revisionRecordQuery.change().revision());
+        await customExecuteFields(
+          {
+            edges: () => {
+              const revisionRecordQuery = new CollabTextRecordQueryMapper(this, {
+                query: async (query) => {
+                  const result = await this.collabText.query({
+                    records: {
+                      $query: query,
+                      $pagination: pagination,
+                    },
+                  });
+                  actualSize = actualSize ?? result?.records?.length;
+                  return null;
                 },
-              },
-            ];
+              });
+
+              return [
+                {
+                  node: () => revisionRecordQuery,
+                  cursor: async () => {
+                    return String(await revisionRecordQuery.change().revision());
+                  },
+                },
+              ];
+            },
           },
-        });
+          ctx,
+          info
+        );
         if (!actualSize) return [];
 
         return [...new Array<undefined>(actualSize)].map((_, index) => {

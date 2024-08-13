@@ -1,29 +1,43 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
-import { assert, beforeAll, expect, it } from 'vitest';
+import { ObjectId } from 'mongodb';
+import { beforeAll, beforeEach, expect, it } from 'vitest';
 
 import { apolloServer } from '../../../../__test__/helpers/graphql/apollo-server';
-import { createGraphQLResolversContext } from '../../../../__test__/helpers/graphql/graphql-context';
-import { resetDatabase } from '../../../../__test__/helpers/mongodb/mongodb';
+import {
+  createGraphQLResolversContext,
+  CreateGraphQLResolversContextOptions,
+} from '../../../../__test__/helpers/graphql/graphql-context';
+import { expectGraphQLResponseData } from '../../../../__test__/helpers/graphql/response';
+import {
+  mongoCollectionStats,
+  resetDatabase,
+} from '../../../../__test__/helpers/mongodb/mongodb';
 import { populateNotes } from '../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
-import { GraphQLResolversContext } from '../../../context';
-import {
-  NoteCategory,
-  NoteConnection,
-  NoteEdge,
-  NoteTextField,
-} from '../../../types.generated';
+import { objectIdToStr } from '../../../base/resolvers/ObjectID';
+import { NoteCategory, NotesConnection, NoteTextField } from '../../../types.generated';
+
+interface Variables {
+  after?: string;
+  first?: number;
+  before?: string;
+  last?: number;
+  category?: NoteCategory;
+}
 
 const QUERY = `#graphql
   query($after: String, $first: NonNegativeInt, $before: String, $last: NonNegativeInt, $category: NoteCategory) {
     notesConnection(after: $after, first: $first, before: $before, last: $last, category: $category){
+      notes {
+        noteId
+      }
       edges {
         cursor
         node {
           id
-          contentId
+          noteId
           textFields {
             key
             value {
@@ -54,32 +68,42 @@ const QUERY = `#graphql
   }
 `;
 
-let populateResult: ReturnType<typeof populateNotes>;
-let populateResultArchive: ReturnType<typeof populateNotes>;
+const QUERY_MINIMAL = `#graphql
+  query($after: String, $first: NonNegativeInt, $before: String, $last: NonNegativeInt, $category: NoteCategory) {
+    notesConnection(after: $after, first: $first, before: $before, last: $last, category: $category){
+      edges {
+        cursor
+        node {
+          noteId
+        }
+      }
+      pageInfo {
+        hasPreviousPage
+        hasNextPage
+        startCursor
+        endCursor
+      }
+    }
+  }
+`;
+
+let notes: ObjectId[];
+let notesArchive: ObjectId[];
 
 let user: UserSchema;
-
-let contextValue: GraphQLResolversContext;
 
 beforeAll(async () => {
   faker.seed(5435);
   await resetDatabase();
 
-  populateResult = populateNotes(10, {
+  const populateResult = populateNotes(10, {
     collabTextKeys: Object.values(NoteTextField),
     collabText() {
       return {
         recordsCount: 2,
       };
     },
-    note(noteIndex) {
-      return {
-        override: {
-          publicId: `publicId_${noteIndex}`,
-        },
-      };
-    },
-    userNote() {
+    noteUser() {
       return {
         override: {
           categoryName: NoteCategory.DEFAULT,
@@ -88,11 +112,12 @@ beforeAll(async () => {
     },
   });
   user = populateResult.user;
+  notes = populateResult.data.map((data) => data.note._id);
 
-  populateResultArchive = populateNotes(3, {
+  const populateResultArchive = populateNotes(3, {
     collabTextKeys: Object.values(NoteTextField),
     user,
-    userNote() {
+    noteUser() {
       return {
         override: {
           categoryName: NoteCategory.ARCHIVE,
@@ -100,139 +125,234 @@ beforeAll(async () => {
       };
     },
   });
+  notesArchive = populateResultArchive.data.map((data) => data.note._id);
 
   await populateExecuteAll();
-
-  contextValue = createGraphQLResolversContext({ user });
 });
+
+beforeEach(() => {
+  mongoCollectionStats.mockClear();
+});
+
+async function executeOperation(
+  variables: Variables,
+  options?: CreateGraphQLResolversContextOptions,
+  query: string = QUERY
+) {
+  return await apolloServer.executeOperation<
+    {
+      notesConnection: NotesConnection;
+    },
+    Variables
+  >(
+    {
+      query,
+      variables,
+    },
+    {
+      contextValue: createGraphQLResolversContext({
+        user,
+        ...options,
+      }),
+    }
+  );
+}
 
 it('returns last 2 notes, after: 7, first 4 => 8,9 (10 notes total)', async () => {
-  const note7 = populateResult.data[7]?.note;
-  assert(note7 != null);
+  const response = await executeOperation({
+    after: objectIdToStr(notes.at(7)),
+    first: 4,
+  });
 
-  const response = await apolloServer.executeOperation(
-    {
-      query: QUERY,
-      variables: {
-        after: note7._id.toString('base64'),
-        first: 4,
+  const data = expectGraphQLResponseData(response);
+
+  expect(data).toEqual({
+    notesConnection: {
+      notes: notes.slice(8, 10).map((noteId) => ({
+        noteId: objectIdToStr(noteId),
+      })),
+      edges: notes.slice(8, 10).map((noteId) => ({
+        cursor: objectIdToStr(noteId),
+        node: expect.objectContaining({
+          noteId: objectIdToStr(noteId),
+        }),
+      })),
+      pageInfo: {
+        hasPreviousPage: true,
+        hasNextPage: false,
+        startCursor: objectIdToStr(notes.at(8)),
+        endCursor: objectIdToStr(notes.at(9)),
       },
     },
-    {
-      contextValue,
-    }
-  );
+  });
 
-  assert(response.body.kind === 'single');
-  const { data, errors } = response.body.singleResult;
-  expect(errors).toBeUndefined();
-  const typedData = data as { notesConnection: NoteConnection };
-
-  expect(
-    typedData.notesConnection.edges.map((edge) => {
-      if (!edge) return null;
-      return (edge as NoteEdge).node.contentId;
+  expect(mongoCollectionStats.allStats()).toStrictEqual(
+    expect.objectContaining({
+      readAndModifyCount: 1,
+      readCount: 1,
     })
-  ).toStrictEqual(['publicId_8', 'publicId_9']);
+  );
+});
 
-  expect(typedData.notesConnection.pageInfo).toEqual({
+it('returns nothing when cursor is invalid (db is not queried)', async () => {
+  const response = await executeOperation({
+    after: 'never',
+  });
+
+  const data = expectGraphQLResponseData(response);
+
+  expect(data).toEqual({
+    notesConnection: {
+      notes: [],
+      edges: [],
+      pageInfo: {
+        hasPreviousPage: false,
+        hasNextPage: false,
+        startCursor: null,
+        endCursor: null,
+      },
+    },
+  });
+
+  expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(0);
+});
+
+it('returns nothing when cursor does not match a note', async () => {
+  const response = await executeOperation({
+    after: objectIdToStr(new ObjectId()),
+  });
+
+  const data = expectGraphQLResponseData(response);
+
+  expect(data).toEqual({
+    notesConnection: {
+      notes: [],
+      edges: [],
+      pageInfo: {
+        hasPreviousPage: false,
+        hasNextPage: false,
+        startCursor: null,
+        endCursor: null,
+      },
+    },
+  });
+
+  expect(mongoCollectionStats.allStats()).toStrictEqual(
+    expect.objectContaining({
+      readAndModifyCount: 1,
+      readCount: 1,
+    })
+  );
+});
+
+it('returns notes from different archive category', async () => {
+  const response = await executeOperation({
+    first: 10,
+    category: NoteCategory.ARCHIVE,
+  });
+
+  const data = expectGraphQLResponseData(response);
+
+  expect(data).toEqual({
+    notesConnection: {
+      notes: notesArchive.map((noteId) => ({
+        noteId: objectIdToStr(noteId),
+      })),
+      edges: notesArchive.map((noteId) => ({
+        cursor: objectIdToStr(noteId),
+        node: expect.objectContaining({
+          noteId: objectIdToStr(noteId),
+        }),
+      })),
+      pageInfo: {
+        hasPreviousPage: false,
+        hasNextPage: false,
+        startCursor: objectIdToStr(notesArchive.at(0)),
+        endCursor: objectIdToStr(notesArchive.at(-1)),
+      },
+    },
+  });
+
+  expect(mongoCollectionStats.allStats()).toStrictEqual(
+    expect.objectContaining({
+      readAndModifyCount: 1,
+      readCount: 1,
+    })
+  );
+});
+
+function expectSlice(
+  notesConnection: NotesConnection | false,
+  start: number,
+  end: number
+) {
+  if (!notesConnection) return;
+  expect(notesConnection).toEqual({
+    edges: notes.slice(start, end).map((noteId) => ({
+      cursor: objectIdToStr(noteId),
+      node: expect.objectContaining({
+        noteId: objectIdToStr(noteId),
+      }),
+    })),
+    pageInfo: expect.objectContaining({
+      startCursor: objectIdToStr(notes.at(start)),
+      endCursor: objectIdToStr(notes.at(end - 1)),
+    }),
+  });
+}
+
+it('paginates from start to end', async () => {
+  const paginator = {
+    first: 4,
+    after: undefined as string | number | undefined | null,
+    hasNextPage: true,
+    async paginate() {
+      if (!this.hasNextPage) return false;
+
+      const response = await executeOperation(
+        {
+          after: this.after ? String(this.after) : undefined,
+          first: 4,
+        },
+        undefined,
+        QUERY_MINIMAL
+      );
+      const data = expectGraphQLResponseData(response);
+      this.hasNextPage = data.notesConnection.pageInfo.hasNextPage;
+      this.after = data.notesConnection.pageInfo.endCursor;
+      return data.notesConnection;
+    },
+  };
+
+  expectSlice(await paginator.paginate(), 0, 4);
+  expectSlice(await paginator.paginate(), 4, 8);
+  expectSlice(await paginator.paginate(), 8, 10);
+});
+
+it('paginates from end to start', async () => {
+  const paginator = {
+    last: 4,
+    before: undefined as string | number | undefined | null,
     hasPreviousPage: true,
-    hasNextPage: false,
-    startCursor: typedData.notesConnection.edges[0]?.cursor,
-    endCursor: typedData.notesConnection.edges[1]?.cursor,
-  });
-});
+    async paginate() {
+      if (!this.hasPreviousPage) return false;
 
-it('returns nothing when cursor is invalid', async () => {
-  const userNote6 = populateResult.data[6]?.userNote;
-  assert(userNote6 != null);
-
-  const response = await apolloServer.executeOperation(
-    {
-      query: QUERY,
-      variables: {
-        before: 'never',
-      },
+      const response = await executeOperation(
+        {
+          before: this.before ? String(this.before) : undefined,
+          last: 4,
+        },
+        undefined,
+        QUERY_MINIMAL
+      );
+      const data = expectGraphQLResponseData(response);
+      this.hasPreviousPage = data.notesConnection.pageInfo.hasPreviousPage;
+      this.before = data.notesConnection.pageInfo.startCursor;
+      return data.notesConnection;
     },
-    {
-      contextValue,
-    }
-  );
+  };
 
-  assert(response.body.kind === 'single');
-  const { data, errors } = response.body.singleResult;
-  expect(errors).toBeUndefined();
-  expect(data).toEqual({
-    notesConnection: {
-      edges: [],
-      pageInfo: {
-        hasPreviousPage: false,
-        hasNextPage: false,
-        startCursor: null,
-        endCursor: null,
-      },
-    },
-  });
-});
-
-it('returns empty array when cursor is not found', async () => {
-  const note6 = populateResult.data[6]?.note;
-  assert(note6 != null);
-
-  const response = await apolloServer.executeOperation(
-    {
-      query: QUERY,
-      variables: {
-        before: '1234567890abcdef',
-        last: 5,
-      },
-    },
-    {
-      contextValue,
-    }
-  );
-
-  assert(response.body.kind === 'single');
-  const { data, errors } = response.body.singleResult;
-  expect(errors, JSON.stringify(errors, null, 2)).toBeUndefined();
-  expect(data).toEqual({
-    notesConnection: {
-      edges: [],
-      pageInfo: {
-        hasPreviousPage: false,
-        hasNextPage: false,
-        startCursor: null,
-        endCursor: null,
-      },
-    },
-  });
-});
-
-it('returns notes from different category: ARCHIVE', async () => {
-  const response = await apolloServer.executeOperation(
-    {
-      query: QUERY,
-      variables: {
-        first: 10,
-        category: NoteCategory.ARCHIVE,
-      },
-    },
-    {
-      contextValue,
-    }
-  );
-
-  assert(response.body.kind === 'single');
-  const { data, errors } = response.body.singleResult;
-  expect(errors).toBeUndefined();
-  const typedData = data as { notesConnection: NoteConnection };
-
-  expect(
-    typedData.notesConnection.edges.map((edge) => {
-      if (!edge) return null;
-      return (edge as NoteEdge).node.contentId;
-    })
-  ).toStrictEqual(
-    populateResultArchive.data.map(({ note }) => note).map((n) => n.publicId)
-  );
+  expectSlice(await paginator.paginate(), 6, 10);
+  expectSlice(await paginator.paginate(), 2, 6);
+  expectSlice(await paginator.paginate(), 0, 2);
 });

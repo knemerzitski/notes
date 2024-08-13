@@ -2,6 +2,7 @@ import mapObject from 'map-obj';
 
 import { ObjectId } from 'mongodb';
 
+import { isEmptyDeep } from '~utils/object/is-empty-deep';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 
 import { CollectionName, MongoDBCollectionsOnlyNames } from '../../../collections';
@@ -76,6 +77,10 @@ export const queryableUserDescription: DeepAnyDescription<
           }) {
             const concatUserNotesFieldPath = 'notes.category._all.order.items';
 
+            // Skip note lookup if nothing is projected in notes
+            const itemsProject = innerLastProject({ subPath: 'items' });
+            const skipNoteLookup = isEmptyDeep(itemsProject);
+
             return [
               // Paginate each array 'notes.category.$anyKey.order'
               // Result is set to 'notes.category.$anyKey._order'
@@ -107,63 +112,69 @@ export const queryableUserDescription: DeepAnyDescription<
               {
                 $unset: fields.map(({ relativePath }) => relativePath),
               },
-              // Concat all arrays 'notes.category.$anyKey.order' to single array
-              ...relayMultiArrayConcat(
-                concatUserNotesFieldPath,
-                fields.map(
-                  ({ parentRelativePath }) => `${parentRelativePath}._order.items`
-                )
-              ),
-              // Now can unwind since there is a single array
-              {
-                $unwind: {
-                  path: `$${concatUserNotesFieldPath}.array`,
-                  includeArrayIndex: '_index',
-                  preserveNullAndEmptyArrays: true,
-                },
-              },
-              // Lookup UserNote
-              ...user_noteLookup({
-                collectionName: customContext.collections.notes.collectionName,
-                fieldPath: `${concatUserNotesFieldPath}.array`,
-                pipeline: [
-                  ...innerStages({
-                    subPath: 'items',
-                  }),
-                  {
-                    $project: innerLastProject({ subPath: 'items' }),
-                  },
-                ],
-              }),
-              // Ensure array is in same order after $group
-              { $sort: { _index: 1 } },
-              {
-                $group: {
-                  _id: '$_id',
-                  // Get first value from each document which are all same for user
-                  ...(relativeQuery != null && typeof relativeQuery === 'object'
-                    ? mapObject(relativeQuery, (key: string) => [
-                        key,
-                        { $first: `$${key}` },
-                      ])
-                    : {}),
-                  // Using _array at root since cannot group to a nested path
-                  _array: {
-                    $push: `$${concatUserNotesFieldPath}.array`,
-                  },
-                },
-              },
-              // Put array back at path before unwind
-              {
-                $set: {
-                  [`${concatUserNotesFieldPath}.array`]: `$_array`,
-                },
-              },
-              // Split concat array back into original paths
-              ...relayMultiArraySplit(
-                concatUserNotesFieldPath,
-                fields.map(({ relativePath }) => `${relativePath}.items`)
-              ),
+
+              ...(!skipNoteLookup
+                ? [
+                    // Concat all arrays 'notes.category.$anyKey.order' to single array
+                    ...relayMultiArrayConcat(
+                      concatUserNotesFieldPath,
+                      fields.map(
+                        ({ parentRelativePath }) => `${parentRelativePath}._order.items`
+                      )
+                    ),
+                    // Now can unwind since there is a single array
+                    {
+                      $unwind: {
+                        path: `$${concatUserNotesFieldPath}.array`,
+                        includeArrayIndex: '_index',
+                        preserveNullAndEmptyArrays: true,
+                      },
+                    },
+                    // Lookup NoteUser
+                    ...user_noteLookup({
+                      collectionName: customContext.collections.notes.collectionName,
+                      fieldPath: `${concatUserNotesFieldPath}.array`,
+                      pipeline: [
+                        ...innerStages({
+                          subPath: 'items',
+                        }),
+                        {
+                          $project: itemsProject,
+                        },
+                      ],
+                    }),
+                    // Ensure array is in same order after $group
+                    { $sort: { _index: 1 } },
+                    {
+                      $group: {
+                        _id: '$_id',
+                        // Get first value from each document which are all same for user
+                        ...(relativeQuery != null && typeof relativeQuery === 'object'
+                          ? mapObject(relativeQuery, (key: string) => [
+                              key,
+                              { $first: `$${key}` },
+                            ])
+                          : {}),
+                        // Using _array at root since cannot group to a nested path
+                        _array: {
+                          $push: `$${concatUserNotesFieldPath}.array`,
+                        },
+                      },
+                    },
+                    // Put array back at path before unwind
+                    {
+                      $set: {
+                        [`${concatUserNotesFieldPath}.array`]: `$_array`,
+                      },
+                    },
+                    // Split concat array back into original paths
+                    ...relayMultiArraySplit(
+                      concatUserNotesFieldPath,
+                      fields.map(({ relativePath }) => `${relativePath}.items`)
+                    ),
+                  ]
+                : []),
+
               {
                 $set: Object.fromEntries(
                   fields.map(({ query, relativePath, parentRelativePath }) => [

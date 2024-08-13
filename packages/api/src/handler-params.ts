@@ -166,6 +166,9 @@ export const createDefaultIsCurrentConnection: CreateApolloHttpHandlerParams<
 
 export function createDefaultApiOptions(): ApiOptions {
   return {
+    note: {
+      trashDuration: 1000 * 60 * 60 * 24 * 30,
+    },
     collabText: {
       maxRecordsCount: 500,
     },

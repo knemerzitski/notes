@@ -5,11 +5,11 @@ import { mongoCollections } from '../mongodb';
 
 import { FakeCollabTextOptions } from './collab-text';
 import { fakeNote, FakeNoteOptions } from './note';
+import { fakeNoteUser, FakeNoteUserOptions } from './note-user';
 import { populateQueue } from './populate-queue';
 
 import { fakeShareNoteLink, FakeShareNoteLinkOptions } from './share-note-link';
 import { fakeUser } from './user';
-import { fakeUserNote, FakeUserNoteOptions } from './user-note';
 
 export enum TestCollabTextKey {
   TEXT = 'text',
@@ -29,7 +29,7 @@ export interface PopulateNotesOptions {
    * @default [CollabTextKey]
    */
   collabTextKeys?: string[];
-  userNote?: (noteIndex: number) => FakeUserNoteOptions | undefined;
+  noteUser?: (noteIndex: number) => FakeNoteUserOptions | undefined;
   note?: (noteIndex: number) => FakeNoteOptions | undefined;
   collabText?: (
     noteIndex: number,
@@ -57,14 +57,14 @@ export function populateNotes(count: number, options?: PopulateNotesOptions) {
       ? fakeShareNoteLink(user, options?.shareNoteLink?.(noteIndex))
       : undefined;
 
-    const userNote = fakeUserNote(user, options?.userNote?.(noteIndex));
+    const noteUser = fakeNoteUser(user, options?.noteUser?.(noteIndex));
 
     const noteOptions = options?.note?.(noteIndex);
     const note = fakeNote(user, {
       collabTexts: collabTextsOptionsByField,
       ...noteOptions,
       override: {
-        userNotes: [userNote],
+        users: [noteUser],
         shareNoteLinks: shareNoteLink ? [shareNoteLink] : undefined,
         ...noteOptions?.override,
       },
@@ -75,7 +75,7 @@ export function populateNotes(count: number, options?: PopulateNotesOptions) {
 
     return {
       note,
-      userNote,
+      noteUser,
       shareNoteLink,
     };
   });
@@ -111,7 +111,7 @@ export function populateNotesWithText(texts: string[], options?: PopulateNotesOp
 }
 
 export interface PopulateAddNoteToUserOptions {
-  userNote?: FakeUserNoteOptions;
+  noteUser?: FakeNoteUserOptions;
 }
 
 // TODO remove this, use only userAddNote
@@ -120,7 +120,7 @@ export function populateUserAddNote(
   note: NoteSchema,
   options?: PopulateAddNoteToUserOptions
 ) {
-  userAddNote(user, note, options?.userNote);
+  userAddNote(user, note, options?.noteUser);
 
   populateQueue(() => {
     return Promise.all([
@@ -143,15 +143,15 @@ export function populateUserAddNote(
 export function userAddNote(
   user: UserSchema,
   note: NoteSchema,
-  options?: FakeUserNoteOptions
+  options?: FakeNoteUserOptions
 ) {
-  let userNote = note.userNotes.find(({ userId }) => userId.equals(user._id));
-  if (!userNote) {
-    userNote = fakeUserNote(user, options);
-    note.userNotes.push(userNote);
+  let noteUser = note.users.find(({ _id: userId }) => userId.equals(user._id));
+  if (!noteUser) {
+    noteUser = fakeNoteUser(user, options);
+    note.users.push(noteUser);
   }
 
-  const categoryName = userNote.categoryName;
+  const categoryName = noteUser.categoryName;
   let categoryMeta = user.notes.category[categoryName];
   if (!categoryMeta) {
     categoryMeta = {

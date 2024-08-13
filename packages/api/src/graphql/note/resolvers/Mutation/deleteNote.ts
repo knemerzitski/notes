@@ -1,8 +1,4 @@
-import { GraphQLError } from 'graphql';
-
 import { ObjectId } from 'mongodb';
-
-import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
 import { isDefined } from '~utils/type-guards/is-defined';
 
@@ -10,18 +6,35 @@ import { MongoQuery } from '../../../../mongodb/query/query';
 import { QueryableNote } from '../../../../mongodb/schema/note/query/queryable-note';
 import { getNotesArrayPath } from '../../../../mongodb/schema/user/user';
 import { assertAuthenticated } from '../../../base/directives/auth';
+import { GraphQLResolversContext } from '../../../context';
 import {
+  MutationdeleteNoteArgs,
   NoteCategory,
+  RequireFields,
+  ResolversParentTypes,
+  ResolversTypes,
   type MutationResolvers,
-  type ResolversTypes,
 } from '../../../types.generated';
 import { NoteQueryMapper } from '../../mongo-query-mapper/note';
-import { findUserNote } from '../../utils/find-user-note';
-import { publishNoteDeleted } from '../Subscription/noteDeleted';
+import { throwNoteNotFound } from '../../utils/note-errors';
+import { findNoteUser, findOldestNoteUser } from '../../utils/user-note';
+import { publishNoteDeleted } from '../Subscription/noteEvents';
 
 export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
+  parent,
+  args,
+  ctx
+) => {
+  return deleteNoteFn(parent, args, ctx);
+};
+
+export const deleteNoteFn: (
+  parent: ResolversParentTypes['Mutation'],
+  args: RequireFields<MutationdeleteNoteArgs, 'input'>,
+  context: GraphQLResolversContext
+) => Promise<ResolversTypes['DeleteNotePayload']> = async (
   _parent,
-  { input: { contentId: notePublicId } },
+  { input: { noteId } },
   ctx
 ) => {
   const { auth, mongodb } = ctx;
@@ -32,40 +45,34 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
   const note = await mongodb.loaders.note.load({
     id: {
       userId: currentUserId,
-      publicId: notePublicId,
+      noteId,
     },
     query: {
       _id: 1,
-      publicId: 1,
-      userNotes: {
+      users: {
         $query: {
-          userId: 1,
-          isOwner: 1,
+          _id: 1,
+          createdAt: 1,
           categoryName: 1,
         },
       },
     },
   });
 
-  const noteId = note?._id;
-  const userNotes = note?.userNotes ?? [];
-  const userNote = findUserNote(currentUserId, note);
-  const otherUserIds: ObjectId[] =
-    note?.userNotes
-      ?.map((userNote) => userNote.userId)
-      .filter(isDefined)
-      .filter((userId) => !userId.equals(currentUserId)) ?? [];
-
-  if (!noteId || !userNote) {
-    throw new GraphQLError(`Note '${notePublicId}' not found`, {
-      extensions: {
-        code: GraphQLErrorCode.NOT_FOUND,
-      },
-    });
+  const noteUsers = note?.users ?? [];
+  const noteUser = findNoteUser(currentUserId, note);
+  if (!note?._id || !noteUser) {
+    throwNoteNotFound(noteId);
   }
 
-  const deleteNoteCompletely = userNote.isOwner ?? false;
-  if (deleteNoteCompletely) {
+  const oldestNoteUser = findOldestNoteUser(note);
+
+  let publishToUsers: ObjectId[] = [];
+
+  const isCurrentUserOldest = currentUserId.equals(oldestNoteUser?._id);
+  if (isCurrentUserOldest) {
+    // Delete note completely
+    publishToUsers = noteUsers.map((noteUser) => noteUser._id).filter(isDefined);
     await mongodb.client.withSession((session) =>
       session.withTransaction(async (session) => {
         await mongodb.collections.notes.deleteOne(
@@ -75,14 +82,14 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
           { session }
         );
         await mongodb.collections.users.bulkWrite(
-          userNotes.map((userNote) => ({
+          noteUsers.map((noteUser) => ({
             updateOne: {
               filter: {
-                _id: userNote.userId,
+                _id: noteUser._id,
               },
               update: {
                 $pull: {
-                  [getNotesArrayPath(userNote.categoryName ?? NoteCategory.DEFAULT)]:
+                  [getNotesArrayPath(noteUser.categoryName ?? NoteCategory.DEFAULT)]:
                     note._id,
                 },
               },
@@ -93,16 +100,9 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
       })
     );
   } else {
-    const userNote = userNotes.find((userNote) => userNote.userId?.equals(currentUserId));
-    if (!userNote) {
-      throw new GraphQLError(`Note '${notePublicId}' not found`, {
-        extensions: {
-          code: GraphQLErrorCode.NOT_FOUND,
-        },
-      });
-    }
-
-    // Unlink note for current user
+    // Remove user entry from note (unlinked)
+    // Publish deletion only to current user
+    publishToUsers = [currentUserId];
     await mongodb.client.withSession((session) =>
       session.withTransaction(async (session) => {
         await mongodb.collections.notes.updateOne(
@@ -111,8 +111,8 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
           },
           {
             $pull: {
-              userNotes: {
-                userId: currentUserId,
+              users: {
+                _id: currentUserId,
               },
             },
           },
@@ -126,7 +126,7 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
           },
           {
             $pull: {
-              [getNotesArrayPath(userNote.categoryName ?? NoteCategory.DEFAULT)]:
+              [getNotesArrayPath(noteUser.categoryName ?? NoteCategory.DEFAULT)]:
                 note._id,
             },
           },
@@ -142,20 +142,21 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
     },
   };
 
-  // TODO payload should have field "note: Note", instead of root?, inside note is DeletedNote with fields id and content only
-
-  const currentUserPayload: ResolversTypes['DeleteNotePayload'] &
-    ResolversTypes['NoteDeletedPayload'] = new NoteQueryMapper(currentUserId, noteQuery);
-
   // Subscription
-  await Promise.all([
-    await publishNoteDeleted(currentUserId, currentUserPayload, ctx),
-    deleteNoteCompletely &&
-      otherUserIds.map((otherUserId) =>
-        publishNoteDeleted(otherUserId, new NoteQueryMapper(otherUserId, noteQuery), ctx)
-      ),
-  ]);
+  await Promise.all(
+    publishToUsers.map((userId) =>
+      publishNoteDeleted(
+        userId,
+        {
+          note: new NoteQueryMapper(userId, noteQuery),
+        },
+        ctx
+      )
+    )
+  );
 
   // Response
-  return currentUserPayload;
+  return {
+    note: new NoteQueryMapper(currentUserId, noteQuery),
+  };
 };

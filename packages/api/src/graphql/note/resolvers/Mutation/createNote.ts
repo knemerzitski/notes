@@ -6,9 +6,9 @@ import { wrapRetryOnErrorAsync } from '~utils/wrap-retry-on-error';
 import { DeepQueryResult } from '../../../../mongodb/query/query';
 import { CollabTextSchema } from '../../../../mongodb/schema/collab-text/collab-text';
 import { createCollabText } from '../../../../mongodb/schema/collab-text/utils/create-collab-text';
-import { NoteSchema, noteDefaultValues } from '../../../../mongodb/schema/note/note';
+import { NoteSchema } from '../../../../mongodb/schema/note/note';
+import { NoteUserSchema } from '../../../../mongodb/schema/note/note-user';
 import { QueryableNote } from '../../../../mongodb/schema/note/query/queryable-note';
-import { UserNoteSchema } from '../../../../mongodb/schema/note/user-note';
 import { getNotesArrayPath } from '../../../../mongodb/schema/user/user';
 import {
   MongoErrorCodes,
@@ -18,11 +18,10 @@ import { assertAuthenticated } from '../../../base/directives/auth';
 import {
   NoteCategory,
   NoteTextField,
-  ResolversTypes,
   type MutationResolvers,
 } from '../../../types.generated';
 import { NoteQueryMapper } from '../../mongo-query-mapper/note';
-import { publishNoteCreated } from '../Subscription/noteCreated';
+import { publishNoteCreated } from '../Subscription/noteEvents';
 
 const _createNote: NonNullable<MutationResolvers['createNote']> = async (
   _parent,
@@ -35,13 +34,8 @@ const _createNote: NonNullable<MutationResolvers['createNote']> = async (
   const currentUserId = auth.session.user._id;
 
   const seenTextFieldKeys = new Set<string>();
-  const collabTextSchemaEntries = input.note?.textFields
-    ?.filter(
-      (textField) =>
-        textField.value.initialText != null &&
-        textField.value.initialText.trim().length > 0
-    )
-    .map((textField) => {
+  const collabTextSchemaEntries = input.textFields
+    ?.map((textField) => {
       if (seenTextFieldKeys.has(textField.key)) {
         return;
       }
@@ -51,28 +45,27 @@ const _createNote: NonNullable<MutationResolvers['createNote']> = async (
         k: textField.key,
         v: createCollabText({
           creatorUserId: currentUserId,
-          initalText: textField.value.initialText ?? '',
+          initalText: textField.value.initialText,
         }),
       };
     })
     .filter(isDefined);
 
-  const userNote: UserNoteSchema = {
-    userId: currentUserId,
-    isOwner: true,
-    ...(input.note?.preferences && {
+  const noteUser: NoteUserSchema = {
+    _id: currentUserId,
+    createdAt: new Date(),
+    ...(input.preferences && {
       preferences: {
-        ...input.note.preferences,
-        backgroundColor: input.note.preferences.backgroundColor ?? undefined,
+        ...input.preferences,
+        backgroundColor: input.preferences.backgroundColor ?? undefined,
       },
     }),
-    categoryName: input.note?.categoryName ?? NoteCategory.DEFAULT,
+    categoryName: input.categoryName ?? NoteCategory.DEFAULT,
   };
 
   const noteNoCollabTexts: Omit<NoteSchema, 'collabTexts'> = {
     _id: new ObjectId(),
-    publicId: noteDefaultValues.publicId(),
-    userNotes: [userNote],
+    users: [noteUser],
     ...(collabTextSchemaEntries != null &&
       collabTextSchemaEntries.length > 0 && {
         collabTexts: collabTextSchemaEntries,
@@ -98,7 +91,7 @@ const _createNote: NonNullable<MutationResolvers['createNote']> = async (
         },
         {
           $push: {
-            [getNotesArrayPath(userNote.categoryName)]: note._id,
+            [getNotesArrayPath(noteUser.categoryName)]: note._id,
           },
         },
         { session }
@@ -126,15 +119,19 @@ const _createNote: NonNullable<MutationResolvers['createNote']> = async (
     },
   });
 
-  // Send response
-  const payload: ResolversTypes['CreateNotePayload'] &
-    ResolversTypes['NoteCreatedPayload'] = {
+  // Subscription
+  await publishNoteCreated(
+    currentUserId,
+    {
+      note: noteQueryMapper,
+    },
+    ctx
+  );
+
+  // Response
+  return {
     note: noteQueryMapper,
   };
-
-  await publishNoteCreated(currentUserId, payload, ctx);
-
-  return payload;
 };
 
 export const createNote = wrapRetryOnErrorAsync(

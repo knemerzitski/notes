@@ -5,16 +5,13 @@ import { DeepObjectQuery, MongoQuery } from '../../../../mongodb/query/query';
 import { QueryableNote } from '../../../../mongodb/schema/note/query/queryable-note';
 import { QueryableUser } from '../../../../mongodb/schema/user/query/queryable-user';
 import { assertAuthenticated } from '../../../base/directives/auth';
+import { isObjectIdStr, strToObjectId } from '../../../base/resolvers/ObjectID';
 import { NoteCategory, type QueryResolvers } from '../../../types.generated';
-import { preExecuteField } from '../../../utils/pre-execute-field';
+import { customExecuteFields } from '../../../utils/custom-execute-fields';
 import { NoteQueryMapper } from '../../mongo-query-mapper/note';
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 30;
-
-function canObjectIdCreateFromBase64(s: string) {
-  return s.length === 16;
-}
 
 type ExtractCategoryType<T> = T extends {
   [Key in string]?: infer U;
@@ -28,7 +25,7 @@ type QueryableOrderExtra = Omit<
 
 export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
   _parent,
-  args,
+  arg,
   ctx,
   info
 ) => {
@@ -36,13 +33,15 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
     auth,
     mongodb: { loaders },
   } = ctx;
+
   assertAuthenticated(auth);
+  const currentUserId = auth.session.user._id;
 
   // Validate before, after convertable to ObjectId
   if (
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    (args.after && !canObjectIdCreateFromBase64(args.after)) ||
-    (args.before && !canObjectIdCreateFromBase64(args.before))
+    (arg.after && !isObjectIdStr(arg.after)) ||
+    (arg.before && !isObjectIdStr(arg.before))
   ) {
     return {
       notes: () => [],
@@ -56,14 +55,12 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
     };
   }
 
-  const first = args.first != null ? Math.min(MAX_LIMIT, args.first) : DEFAULT_LIMIT;
-  const last = args.last != null ? Math.min(MAX_LIMIT, args.last) : DEFAULT_LIMIT;
-  const after = args.after ? ObjectId.createFromBase64(args.after) : undefined;
-  const before = args.before ? ObjectId.createFromBase64(args.before) : undefined;
+  const first = arg.first != null ? Math.min(MAX_LIMIT, arg.first) : DEFAULT_LIMIT;
+  const last = arg.last != null ? Math.min(MAX_LIMIT, arg.last) : DEFAULT_LIMIT;
+  const after = arg.after ? strToObjectId(arg.after) : undefined;
+  const before = arg.before ? strToObjectId(arg.before) : undefined;
 
-  const currentUserId = auth.session.user._id;
-
-  const isForwardPagination = args.after != null || args.first != null;
+  const isForwardPagination = arg.after != null || arg.first != null;
 
   let pagination: RelayPagination<ObjectId>;
   if (isForwardPagination) {
@@ -78,16 +75,19 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
     };
   }
 
-  const categoryName = args.category ?? NoteCategory.DEFAULT;
+  // TODO first note should be newest..
 
-  // TODO renname, no userNote
-  function loadUser_userNote(
+  const categoryName = arg.category ?? NoteCategory.DEFAULT;
+
+  function loadUser(
     noteQuery: DeepObjectQuery<QueryableNote>,
     additionalOrderQuery?: DeepObjectQuery<QueryableOrderExtra>
   ) {
     return loaders.user.load({
-      userId: currentUserId,
-      userQuery: {
+      id: {
+        userId: currentUserId,
+      },
+      query: {
         notes: {
           category: {
             [categoryName]: {
@@ -113,8 +113,8 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
   function createNoteMongoQueryAtIndex(index: number): MongoQuery<QueryableNote> {
     return {
       query: async (query) => {
-        const user = await loadUser_userNote(query);
-        const items = user.notes?.category?.[categoryName]?.order?.items;
+        const user = await loadUser(query);
+        const items = user?.notes?.category?.[categoryName]?.order?.items;
         if (!items) return;
 
         const realIndex = index < 0 ? index + items.length : index;
@@ -128,21 +128,25 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
     notes: async () => {
       // Pre resolve to build query and fetch with dataloader to figure out list size
       let actualSize: undefined | number;
-      await preExecuteField('notes', ctx, info, {
-        notes: () => {
-          return [
-            new NoteQueryMapper(currentUserId, {
-              async query(query) {
-                const user = await loadUser_userNote(query);
-                actualSize =
-                  actualSize ??
-                  user.notes?.category?.[categoryName]?.order?.items?.length;
-                return null;
-              },
-            }),
-          ];
+      await customExecuteFields(
+        {
+          notes: () => {
+            return [
+              new NoteQueryMapper(currentUserId, {
+                async query(query) {
+                  const user = await loadUser(query);
+                  actualSize =
+                    actualSize ??
+                    user?.notes?.category?.[categoryName]?.order?.items?.length;
+                  return null;
+                },
+              }),
+            ];
+          },
         },
-      });
+        ctx,
+        info
+      );
       if (!actualSize) return [];
 
       return [...new Array<undefined>(actualSize)].map((_, index) => {
@@ -157,27 +161,32 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
     edges: async () => {
       // Pre resolve to build query and fetch with dataloader to figure out list size
       let actualSize: undefined | number;
-      await preExecuteField('edges', ctx, info, {
-        edges: () => {
-          const noteQuery = new NoteQueryMapper(currentUserId, {
-            async query(query) {
-              const user = await loadUser_userNote(query);
-              actualSize =
-                actualSize ?? user.notes?.category?.[categoryName]?.order?.items?.length;
-              return null;
-            },
-          });
-
-          return [
-            {
-              node: () => noteQuery,
-              cursor: () => {
-                return noteQuery.id();
+      await customExecuteFields(
+        {
+          edges: () => {
+            const noteQuery = new NoteQueryMapper(currentUserId, {
+              async query(query) {
+                const user = await loadUser(query);
+                actualSize =
+                  actualSize ??
+                  user?.notes?.category?.[categoryName]?.order?.items?.length;
+                return null;
               },
-            },
-          ];
+            });
+
+            return [
+              {
+                node: () => noteQuery,
+                cursor: () => {
+                  return noteQuery.id();
+                },
+              },
+            ];
+          },
         },
-      });
+        ctx,
+        info
+      );
       if (!actualSize) return [];
 
       return [...new Array<undefined>(actualSize)].map((_, index) => {
@@ -189,7 +198,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
         return {
           node: () => noteQuery,
           cursor: () => {
-            return noteQuery.noteId();
+            return noteQuery.noteIdStr();
           },
         };
       });
@@ -197,7 +206,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
     pageInfo: () => {
       return {
         hasNextPage: async () => {
-          const user = await loadUser_userNote(
+          const user = await loadUser(
             {
               _id: 1,
             },
@@ -206,7 +215,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
             }
           );
 
-          const order = user.notes?.category?.[categoryName]?.order;
+          const order = user?.notes?.category?.[categoryName]?.order;
           const endCursor = order?.items?.[order.items.length - 1]?._id;
           const lastCursor = order?.lastId;
 
@@ -215,7 +224,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
           return hasNextPage ?? false;
         },
         hasPreviousPage: async () => {
-          const user = await loadUser_userNote(
+          const user = await loadUser(
             {
               _id: 1,
             },
@@ -224,7 +233,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
             }
           );
 
-          const order = user.notes?.category?.[categoryName]?.order;
+          const order = user?.notes?.category?.[categoryName]?.order;
           const startCursor = order?.items?.[0]?._id;
           const firstCursor = order?.firstId;
 
@@ -237,14 +246,14 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
             currentUserId,
             createNoteMongoQueryAtIndex(0)
           );
-          return startNoteQuery.noteId();
+          return startNoteQuery.noteIdStr();
         },
         endCursor: async () => {
           const endNoteQuery = new NoteQueryMapper(
             currentUserId,
             createNoteMongoQueryAtIndex(-1)
           );
-          return endNoteQuery.noteId();
+          return endNoteQuery.noteIdStr();
         },
       };
     },

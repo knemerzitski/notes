@@ -1,23 +1,18 @@
 import { ObjectId, SearchIndexDescription } from 'mongodb';
-import { nanoid } from 'nanoid';
 
 import { CollectionDescription } from '../../collections';
 import { Entry } from '../../types';
 import { CollabTextSchema } from '../collab-text/collab-text';
 
+import { NoteUserSchema } from './note-user';
 import { ShareNoteLinkSchema } from './share-note-link';
-import { UserNoteSchema } from './user-note';
 
 export interface NoteSchema {
   _id: ObjectId;
   /**
-   * Unique generated ID used to access note
-   */
-  publicId: string;
-  /**
    * User specific info for this note
    */
-  userNotes: UserNoteSchema[];
+  users: NoteUserSchema[];
   /**
    * Collaborative editing texts by field name.
    * Using array instead of map for easier indexing. \
@@ -30,18 +25,10 @@ export interface NoteSchema {
   shareNoteLinks?: ShareNoteLinkSchema[];
 }
 
-export const noteDefaultValues = {
-  publicId: () => nanoid(64),
-};
-
 export const noteDescription: CollectionDescription = {
   indexSpecs: [
     {
-      key: { publicId: 1 },
-      unique: true,
-    },
-    {
-      key: { 'userNotes.userId': 1, publicId: 1 },
+      key: { 'users._id': 1, _id: 1 },
       unique: true,
     },
     {
@@ -63,11 +50,11 @@ export const noteSearchIndexDescriptions: SearchIndexDescription[] = [
       mappings: {
         dynamic: false,
         fields: {
-          // Filter note by userNotes.userId
-          userNotes: {
+          // Filter note by users._id
+          users: {
             type: 'document',
             fields: {
-              userId: {
+              _id: {
                 type: 'objectId',
               },
             },

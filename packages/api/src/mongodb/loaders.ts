@@ -2,19 +2,21 @@ import { mitt } from '~utils/mitt-unsub';
 
 import { MongoDBCollections } from './collections';
 import { MongoDBContext } from './lambda-context';
-import {
-  QueryableNoteSearch,
-  QueryableNotesSearchLoadKey,
-} from './loaders/notes-search-batch-load';
 import { QueryableNoteByShareLinkLoadKey } from './loaders/queryable-note-by-share-link-batch-load';
 import { QueryableNoteByShareLinkLoader } from './loaders/queryable-note-by-share-link-loader';
 import {
   QueryableNoteLoader,
   QueryableNoteLoaderKey,
 } from './loaders/queryable-note-loader';
-import { QueryableNotesSearchLoader } from './loaders/queryable-notes-search-loader';
-import { QueryableUserLoadKey } from './loaders/queryable-user-batch-load';
-import { QueryableUserLoader } from './loaders/queryable-user-loader';
+import {
+  QueryableNotesSearchLoader,
+  QueryableNotesSearchLoaderKey,
+  QueryableSearchNote,
+} from './loaders/queryable-notes-search-loader';
+import {
+  QueryableUserLoader,
+  QueryableUserLoaderKey,
+} from './loaders/queryable-user-loader';
 import { DeepQueryResult } from './query/query';
 import { QueryableNote } from './schema/note/query/queryable-note';
 import { QueryableUser } from './schema/user/query/queryable-user';
@@ -29,7 +31,7 @@ export interface MongoDBLoaders {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type LoaderEvents = {
   loadedUser: {
-    key: QueryableUserLoadKey;
+    key: QueryableUserLoaderKey;
     value: DeepQueryResult<QueryableUser>;
   };
   loadedNote: {
@@ -37,8 +39,8 @@ export type LoaderEvents = {
     value: DeepQueryResult<QueryableNote>;
   };
   loadedNotesSearch: {
-    key: QueryableNotesSearchLoadKey;
-    value: DeepQueryResult<QueryableNoteSearch>;
+    key: QueryableNotesSearchLoaderKey;
+    value: DeepQueryResult<QueryableSearchNote[]>;
   };
   loadedNoteByShareLink: {
     key: QueryableNoteByShareLinkLoadKey;
@@ -53,7 +55,7 @@ export function createMongoDBLoaders(
 
   return {
     user: new QueryableUserLoader({
-      ...context,
+      context,
       eventBus: loadersEventBus,
     }),
     note: new QueryableNoteLoader({
@@ -61,7 +63,7 @@ export function createMongoDBLoaders(
       eventBus: loadersEventBus,
     }),
     notesSearch: new QueryableNotesSearchLoader({
-      ...context,
+      context,
       eventBus: loadersEventBus,
     }),
     noteByShareLink: new QueryableNoteByShareLinkLoader({

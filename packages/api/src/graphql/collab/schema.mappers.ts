@@ -20,7 +20,13 @@ export interface CollabTextMapper {
     config: RelayArrayPaginationConfig,
     ctx: GraphQLResolversContext,
     info: GraphQLResolveInfo
-  ): CollabTextRecordConnectionMapper;
+  ): CollabTextRecordsConnectionMapper;
+}
+
+export interface CollabTextPatchMapper {
+  id(): ResolverTypeWrapper<string>;
+  isExistingRecord?(): ResolverTypeWrapper<boolean>;
+  newRecord?(): ResolverTypeWrapper<CollabTextRecordMapper>;
 }
 
 export interface CollabTextRecordMapper {
@@ -41,7 +47,7 @@ export interface CollabTextSelectionRangeMapper {
   end(): ResolverTypeWrapper<number>;
 }
 
-export interface CollabTextRecordConnectionMapper {
+export interface CollabTextRecordsConnectionMapper {
   records(): ResolverTypeWrapper<CollabTextRecordMapper[]>;
   edges(): ResolverTypeWrapper<CollabTextRecordEdgeMapper[]>;
   pageInfo(): PageInfoMapper;

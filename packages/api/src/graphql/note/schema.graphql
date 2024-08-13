@@ -1,96 +1,65 @@
-input CreateNoteTextFieldEntryInput {
-  "Note text field type. Either title or content."
-  key: NoteTextField!
-  "Actual value of text field."
-  value: CreateCollabTextInput!
-}
-
-type NoteTextFieldEntry {
-  "Note text field type. Either title or content."
-  key: NoteTextField!
-  "Actual value of text field."
-  value: CollabText!
-}
-
-type NoteTextFieldEntryPatch {
-  "Self-descriptive"
-  key: NoteTextField!
-  "Self-descriptive"
-  value: CollabTextPatch!
-}
-
-input NoteTextFieldEntryPatchInput {
-  key: NoteTextField!
-  value: CollabTextPatchInput!
-}
-
-enum NoteTextField {
-  TITLE
-  CONTENT
-}
-
-enum NoteCategory {
-  DEFAULT
-  STICKY
-  ARCHIVE
-}
+################################ Note ################################
 
 type Note implements Node {
-  "Globally identifies Note"
+  "Globally identifies note over multiple users"
   id: ID!
-  "Identifies note by text content. Multiple users can have same contentId which means note text is same."
-  contentId: String!
-  "All available text fields. If name is defined then only that field is returned."
-  textFields(name: NoteTextField): [NoteTextFieldEntry!]!
-  "Note read-only state. Default is false."
+  "Identifies note by text. Different users can have same noteId."
+  # eslint-disable-next-line @graphql-eslint/no-typename-prefix
+  noteId: ObjectID!
+  "Read-only note text cannot be modified. Default is false."
   readOnly: Boolean
-  "Note preferences such as background color"
-  preferences: NotePreferences
-  "True if user owns this note"
-  isOwner: Boolean!
-  "Category where note belongs"
-  categoryName: NoteCategory!
+  "Date and time when note was created."
+  createdAt: DateTime!
 }
 
 type NotePatch {
   "This patch applies to Note.id"
   id: String!
-  "Changed note text fields"
-  textFields: [NoteTextFieldEntryPatch!]
-  "Changed preferences"
-  preferences: NotePreferencesPatch
-  "Changed note category"
-  categoryName: NoteCategory
 }
 
-input NotePatchInput {
-  textFields: [NoteTextFieldEntryPatchInput!]
-  preferences: NotePreferencesPatchInput
-  categoryName: NoteCategory
+################################ Create Note ################################
+
+input CreateNoteInput {
+  "Ignore this field. It's a placeholder until the type is extended"
+  # eslint-disable-next-line @graphql-eslint/naming-convention
+  _: Boolean
 }
 
-input CreateNotePatchInput {
-  "Initial note text fields"
-  textFields: [CreateNoteTextFieldEntryInput!]
-  preferences: NotePreferencesPatchInput
-  categoryName: NoteCategory
+type CreateNotePayload {
+  "Created note"
+  note: Note!
 }
 
-type NotePreferences {
-  "Note background color"
-  backgroundColor: HexColorCode
+extend type Mutation {
+  "Create a new note"
+  createNote(input: CreateNoteInput!): CreateNotePayload @auth
 }
 
-type NotePreferencesPatch {
-  "Changed note background color"
-  backgroundColor: HexColorCode
+################################ Delete Note ################################
+
+type DeletedNote {
+  "Deleted note ID"
+  id: String!
 }
 
-input NotePreferencesPatchInput {
-  backgroundColor: HexColorCode
+input DeleteNoteInput {
+  "Note to be deleted by Note.noteId"
+  noteId: ObjectID!
 }
 
-type NoteConnection implements Connection {
+type DeleteNotePayload {
+  "Available note info after deletion"
+  note: DeletedNote!
+}
+
+extend type Mutation {
+  "Delete note permanently. Cannot be undone."
+  deleteNote(input: DeleteNoteInput!): DeleteNotePayload! @auth
+}
+
+################################ Query Notes ################################
+
+type NotesConnection implements Connection {
   "Notes directly without edges"
   notes: [Note!]!
   "Self descriptive"
@@ -107,98 +76,289 @@ type NoteEdge implements Edge {
 }
 
 extend type Query {
-  "Paginate notes"
+  "Paginate notes by category. Default is NoteCategory.DEFAULT"
   notesConnection(
     first: NonNegativeInt
     after: String
     last: NonNegativeInt
     before: String
     category: NoteCategory
-  ): NoteConnection! @auth
-  "Get note by content (Note.contentId value)"
-  note(contentId: String!): Note! @auth
-  "Search notes using natural language"
-  notesAdvancedSearchConnection(
+  ): NotesConnection! @auth
+  "Get note by Note.noteId"
+  note(noteId: ObjectID!): Note! @auth
+  "Search for notes by text"
+  notesSearchConnection(
     searchText: String!
     first: NonNegativeInt
     after: String
     last: NonNegativeInt
     before: String
-  ): NoteConnection! @auth
+  ): NotesConnection! @auth
 }
 
-input CreateNoteInput {
-  note: CreateNotePatchInput
-}
-type CreateNotePayload {
-  "Created note"
+################################ Note Events Create/Update/Delete Subscriptions ################################
+
+type NoteCreatedEvent {
+  "Newly created note"
   note: Note!
 }
-extend type Mutation {
-  "Create a new note"
-  createNote(input: CreateNoteInput!): CreateNotePayload @auth
+
+type NoteUpdatedEvent {
+  "Changes made to the note by patch"
+  note: NotePatch!
 }
 
-input UpdateNoteInput {
-  contentId: String!
-  patch: NotePatchInput
-}
-"""
-TODO instead of patch, return the Note itself?
-"""
-type UpdateNotePayload {
-  "Updated note contentId"
-  contentId: String!
-  "Changes made to the note"
-  patch: NotePatch
-}
-extend type Mutation {
-  "Update note"
-  updateNote(input: UpdateNoteInput!): UpdateNotePayload! @auth
+type NoteDeletedEvent {
+  "Info of deleted note"
+  note: DeletedNote!
 }
 
-input DeleteNoteInput {
-  contentId: String!
-}
-type DeleteNotePayload {
-  "Deleted note ID"
-  id: String!
-  "Deleted note contentId"
-  contentId: String!
-}
-extend type Mutation {
-  "Delete note by ID"
-  deleteNote(input: DeleteNoteInput!): DeleteNotePayload! @auth
+union NoteEvent = NoteCreatedEvent | NoteUpdatedEvent | NoteDeletedEvent
+
+type NoteEventsPayload {
+  "A list of notes events"
+  events: [NoteEvent!]
 }
 
-type NoteCreatedPayload {
-  "Created note info"
+extend type Subscription {
+  "Subscribe to all note events related to current user"
+  noteEvents: NoteEventsPayload! @auth
+}
+
+################################ Note Text Fields ################################
+
+extend type Note {
+  "All available text fields. If name is defined then only that field is returned."
+  textFields(name: NoteTextField): [NoteTextFieldEntry!]!
+}
+
+extend type NotePatch {
+  "Changed note text fields"
+  textFields: [NoteTextFieldEntryPatch!]
+}
+
+extend input CreateNoteInput {
+  "Initial note text fields"
+  textFields: [CreateNoteTextFieldEntryInput!]
+}
+
+input CreateNoteTextFieldEntryInput {
+  "Type of text field"
+  key: NoteTextField!
+  "Actual value of text field"
+  value: CreateCollabTextInput!
+}
+
+type NoteTextFieldEntry {
+  "Type of text field"
+  key: NoteTextField!
+  "Actual value of text field"
+  value: CollabText!
+}
+
+type NoteTextFieldEntryPatch {
+  "Type of text field"
+  key: NoteTextField!
+  "Actual value of text field"
+  value: CollabTextPatch!
+}
+
+enum NoteTextField {
+  TITLE
+  CONTENT
+}
+
+input UpdateNoteTextFieldInsertRecordInput {
+  "Note to be updated by Note.noteId"
+  noteId: ObjectID!
+  "Text field where to insert record"
+  textField: NoteTextField!
+  "New record to be inserted"
+  insertRecord: CollabTextRecordInput!
+}
+
+type UpdateNoteTextFieldInsertRecordPayload {
+  """
+  New record added to text field. Could be an existing record that has
+  previously been inserted. Check isExistingRecord field.
+  """
+  newRecord: CollabTextRecord!
+  "True if record has already been inserted before."
+  isExistingRecord: Boolean!
+  "Text field that was updated"
+  textField: NoteTextField!
+  "Note after new record is inserted"
   note: Note!
 }
-extend type Subscription {
-  "A new note was created for current user"
-  noteCreated: NoteCreatedPayload! @auth
+
+extend type Mutation {
+  "Insert new record to text field"
+  updateNoteTextFieldInsertRecord(
+    input: UpdateNoteTextFieldInsertRecordInput!
+  ): UpdateNoteTextFieldInsertRecordPayload! @auth
 }
 
-type NoteUpdatedPayload {
-  "ID of note that was updated"
-  contentId: String!
-  "Changes made to the note"
-  patch: NotePatch!
-}
-extend type Subscription {
-  "An existing note was updated"
-  noteUpdated: NoteUpdatedPayload! @auth
+################################ Note Trash/Untrash ################################
+
+extend type Note {
+  "Note is marked for deletion and will no longer be available after this date."
+  deletedAt: DateTime
 }
 
-type NoteDeletedPayload {
-  "Deleted note ID"
-  id: String!
-  "Deleted note contentId"
-  contentId: String!
+extend type NotePatch {
+  "Note has been trashed and will be deleted after this date."
+  deletedAt: DateTime
 }
 
-extend type Subscription {
-  "A note was deleted"
-  noteDeleted: NoteDeletedPayload! @auth
+input TrashNoteInput {
+  "Note to be trashed by Note.noteId"
+  noteId: ObjectID!
+}
+
+type TrashNotePayload {
+  "Time when note is permanently deleted from trash"
+  deletedAt: DateTime!
+  "Note after it's been trashed."
+  note: Note!
+}
+
+extend type Mutation {
+  "Trash note by ID. It can still be recovered by untrashing the note"
+  trashNote(input: TrashNoteInput!): TrashNotePayload! @auth
+}
+
+################################ Note Category/Move ################################
+
+extend type Note {
+  "Category where note belongs"
+  categoryName: NoteCategory!
+}
+
+extend type NotePatch {
+  "Changed note category"
+  categoryName: NoteCategory
+  "Changed note location"
+  location: NoteLocation
+}
+
+extend input CreateNoteInput {
+  categoryName: NoteCategory
+}
+
+"""
+All note categories
+"""
+enum NoteCategory {
+  DEFAULT
+  STICKY
+  ARCHIVE
+  TRASH
+}
+
+"""
+Notes in these categories can be moved/reordered
+"""
+enum MovableNoteCategory {
+  DEFAULT
+  STICKY
+  ARCHIVE
+}
+
+"""
+Move notes between categories or withing category using anchor note.
+"""
+input NoteLocationInput {
+  "Category where to put or keep the note."
+  categoryName: MovableNoteCategory!
+  """
+  Note.noteId to be defined as anchor.
+  If anchor note doesn't exist then anchor is ignored note is appended to the end.
+  """
+  anchorNoteId: ObjectID
+  "How note is moved relative to anchor note"
+  anchorPosition: ListAnchorPosition
+}
+
+type NoteLocation {
+  "Note category after moving"
+  categoryName: MovableNoteCategory!
+  "Note position relative to anchor"
+  anchorNote: Note
+  "How note is positioned relative to anchorNote. Default is BEFORE"
+  anchorPosition: ListAnchorPosition
+}
+
+enum ListAnchorPosition {
+  AFTER
+  BEFORE
+}
+
+input MoveNoteInput {
+  "Note to be moved by Note.noteId"
+  noteId: ObjectID!
+  "Specify how to move the note. Undefined location can be used to move note out of trash back to original category."
+  location: NoteLocationInput
+}
+
+type MoveNotePayload {
+  "How note was moved"
+  location: NoteLocation!
+  "Note after the move"
+  note: Note!
+}
+
+extend type Mutation {
+  "Move note between categories or reorder within categories"
+  moveNote(input: MoveNoteInput!): MoveNotePayload! @auth
+}
+
+################################ Note Preferences ################################
+
+extend type Note {
+  "Note preferences. Only specific to current user"
+  preferences: NotePreferences
+}
+
+extend type NotePatch {
+  "Changed preferences"
+  preferences: NotePreferencesPatch
+}
+
+extend input CreateNoteInput {
+  preferences: NotePreferencesInput
+}
+
+type NotePreferences {
+  "Note background color"
+  backgroundColor: HexColorCode
+}
+
+type NotePreferencesPatch {
+  "Changed note background color"
+  backgroundColor: HexColorCode
+}
+
+input NotePreferencesInput {
+  backgroundColor: HexColorCode
+}
+
+input UpdateNoteBackgroundColorInput {
+  "Note to be updated by Note.noteId"
+  noteId: ObjectID!
+  "New background color value"
+  backgroundColor: HexColorCode!
+}
+
+type UpdateNoteBackgroundColorPayload {
+  "Direct access to new background color"
+  backgroundColor: HexColorCode!
+  "Note after new background color is applied"
+  note: Note!
+}
+
+extend type Mutation {
+  "Update note preferences backgroundColor"
+  updateNoteBackgroundColor(
+    input: UpdateNoteBackgroundColorInput!
+  ): UpdateNoteBackgroundColorPayload! @auth
 }

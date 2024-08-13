@@ -2,15 +2,15 @@ import { ObjectId } from 'mongodb';
 
 import { isDefined } from '~utils/type-guards/is-defined';
 
-import { noteDefaultValues, NoteSchema } from '../../../../mongodb/schema/note/note';
+import { NoteSchema } from '../../../../mongodb/schema/note/note';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { MongoDeepPartial } from '../../../../mongodb/types';
 import { mongoCollections } from '../mongodb';
 
 import { fakeCollabText, FakeCollabTextOptions } from './collab-text';
+import { fakeNoteUser, fakeNoteUserTrashed } from './note-user';
 import { populateQueue } from './populate-queue';
 import { fakeShareNoteLink } from './share-note-link';
-import { fakeUserNote } from './user-note';
 
 export interface FakeNoteOptions {
   override?: MongoDeepPartial<Omit<NoteSchema, 'collabTexts'>>;
@@ -18,35 +18,37 @@ export interface FakeNoteOptions {
 }
 
 export function fakeNote(
-  ownerUser: Pick<UserSchema, '_id'>,
+  fallbackUser: Pick<UserSchema, '_id'>,
   options?: FakeNoteOptions
 ): NoteSchema {
   return {
     _id: new ObjectId(),
-    publicId: noteDefaultValues.publicId(),
     ...options?.override,
-    userNotes:
-      options?.override?.userNotes?.filter(isDefined).map((userNote) => {
-        const defaultUserNote = fakeUserNote(ownerUser, {
-          override: {
-            isOwner: true,
-          },
-        });
+    users:
+      options?.override?.users?.filter(isDefined).map((noteUser) => {
+        const defaultNoteUser = fakeNoteUser(fallbackUser);
+
+        const { trashed, ...noteUserRest } = noteUser;
 
         return {
-          ...defaultUserNote,
-          ...userNote,
+          ...defaultNoteUser,
+          ...noteUserRest,
+          ...(noteUser.trashed != null && {
+            trashed: fakeNoteUserTrashed({
+              override: noteUser.trashed,
+            }),
+          }),
         };
       }) ?? [],
     ...(options?.collabTexts && {
       collabTexts: Object.entries(options.collabTexts).map(([key, value]) => ({
         k: key,
-        v: fakeCollabText(ownerUser._id, value),
+        v: fakeCollabText(fallbackUser._id, value),
       })),
     }),
     shareNoteLinks:
       options?.override?.shareNoteLinks?.filter(isDefined).map((shareNoteLink) => ({
-        ...fakeShareNoteLink(ownerUser),
+        ...fakeShareNoteLink(fallbackUser),
         ...shareNoteLink,
       })) ?? [],
   };

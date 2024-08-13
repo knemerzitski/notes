@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 import {
@@ -39,7 +38,7 @@ import { fakeNotePopulateQueue } from '../../../../__test__/helpers/mongodb/popu
 import { userAddNote } from '../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
-import { noteDefaultValues, NoteSchema } from '../../../../mongodb/schema/note/note';
+import { NoteSchema } from '../../../../mongodb/schema/note/note';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { SubscriptionTopicPrefix } from '../../../subscriptions';
 import {
@@ -54,9 +53,9 @@ const MUTATION_ALL = `#graphql
     createNote(input: $input) {
       note {
         id
-        contentId
+        noteId
         readOnly
-        isOwner
+        createdAt
         categoryName
         sharing {
           id
@@ -118,15 +117,20 @@ const MUTATION_MINIMAL_TEXTFIELDS = `#graphql
 
 const SUBSCRIPTION = `#graphql
   subscription {
-    noteCreated {
-      note {
-        id
-        contentId
-        textFields {
-          key
-          value {
-            headText {
-              changeset
+    noteEvents {
+      events {
+        __typename
+        ... on NoteCreatedEvent {
+          note {
+            id
+            noteId
+            textFields {
+              key
+              value {
+                headText {
+                  changeset
+                }
+              }
             }
           }
         }
@@ -183,9 +187,9 @@ describe('no existing notes', () => {
       createNote: {
         note: {
           id: expect.any(String),
-          contentId: expect.any(String),
+          noteId: expect.any(String),
           categoryName: NoteCategory.DEFAULT,
-          isOwner: true,
+          createdAt: expect.any(Date),
           readOnly: false,
           sharing: null,
           preferences: {
@@ -237,12 +241,11 @@ describe('no existing notes', () => {
     });
     expect(dbNote).toStrictEqual({
       _id: noteId,
-      publicId: expect.any(String),
-      userNotes: [
+      users: [
         {
-          userId: user._id,
+          _id: user._id,
           categoryName: NoteCategory.DEFAULT,
-          isOwner: true,
+          createdAt: expect.any(Date),
         },
       ],
     });
@@ -251,26 +254,24 @@ describe('no existing notes', () => {
   it('creates note with all inputs', async () => {
     const response = await executeOperation(
       {
-        note: {
-          categoryName: NoteCategory.ARCHIVE,
-          preferences: {
-            backgroundColor: '#cacc52',
-          },
-          textFields: [
-            {
-              key: NoteTextField.TITLE,
-              value: {
-                initialText: 'initial title',
-              },
-            },
-            {
-              key: NoteTextField.CONTENT,
-              value: {
-                initialText: 'initial content',
-              },
-            },
-          ],
+        categoryName: NoteCategory.ARCHIVE,
+        preferences: {
+          backgroundColor: '#cacc52',
         },
+        textFields: [
+          {
+            key: NoteTextField.TITLE,
+            value: {
+              initialText: 'initial title',
+            },
+          },
+          {
+            key: NoteTextField.CONTENT,
+            value: {
+              initialText: 'initial content',
+            },
+          },
+        ],
       },
       { user }
     );
@@ -282,9 +283,9 @@ describe('no existing notes', () => {
       createNote: {
         note: {
           id: expect.any(String),
-          contentId: expect.any(String),
+          noteId: expect.any(String),
           categoryName: NoteCategory.ARCHIVE,
-          isOwner: true,
+          createdAt: expect.any(Date),
           readOnly: false,
           sharing: null,
           preferences: {
@@ -385,12 +386,11 @@ describe('no existing notes', () => {
     });
     expect(dbNote).toStrictEqual({
       _id: noteId,
-      publicId: expect.any(String),
-      userNotes: [
+      users: [
         {
-          userId: user._id,
+          _id: user._id,
           categoryName: NoteCategory.ARCHIVE,
-          isOwner: true,
+          createdAt: expect.any(Date),
           preferences: {
             backgroundColor: '#cacc52',
           },
@@ -458,22 +458,20 @@ describe('no existing notes', () => {
   it('ignores duplicate textFields entries', async () => {
     const response = await executeOperation(
       {
-        note: {
-          textFields: [
-            {
-              key: NoteTextField.CONTENT,
-              value: {
-                initialText: 'a',
-              },
+        textFields: [
+          {
+            key: NoteTextField.CONTENT,
+            value: {
+              initialText: 'a',
             },
-            {
-              key: NoteTextField.CONTENT,
-              value: {
-                initialText: 'b',
-              },
+          },
+          {
+            key: NoteTextField.CONTENT,
+            value: {
+              initialText: 'b',
             },
-          ],
-        },
+          },
+        ],
       },
       { user },
       MUTATION_MINIMAL_TEXTFIELDS
@@ -514,12 +512,11 @@ describe('no existing notes', () => {
     });
     expect(dbNote).toStrictEqual({
       _id: noteId,
-      publicId: expect.any(String),
-      userNotes: [
+      users: [
         {
-          userId: user._id,
+          _id: user._id,
           categoryName: NoteCategory.DEFAULT,
-          isOwner: true,
+          createdAt: expect.any(Date),
         },
       ],
       collabTexts: expect.arrayContaining([
@@ -577,16 +574,14 @@ describe('no existing notes', () => {
     it('throws error if input text is too large', async () => {
       const response = await executeOperation(
         {
-          note: {
-            textFields: [
-              {
-                key: NoteTextField.CONTENT,
-                value: {
-                  initialText: 'a'.repeat(100001),
-                },
+          textFields: [
+            {
+              key: NoteTextField.CONTENT,
+              value: {
+                initialText: 'a'.repeat(100001),
               },
-            ],
-          },
+            },
+          ],
         },
         { user }
       );
@@ -594,28 +589,36 @@ describe('no existing notes', () => {
     });
   });
 
-  describe('spyOn publicId', () => {
-    let spyPublicId: MockInstance<[], string>;
+  describe('spyOn ObjectId', () => {
+    let spyObjectIdGenerate: MockInstance<[time?: number | undefined], Uint8Array>;
 
     beforeAll(() => {
-      spyPublicId = vi.spyOn(noteDefaultValues, 'publicId');
+      spyObjectIdGenerate = vi.spyOn(ObjectId, 'generate');
     });
 
     afterEach(() => {
-      spyPublicId.mockReset();
+      spyObjectIdGenerate.mockReset();
     });
 
     afterAll(() => {
-      spyPublicId.mockRestore();
+      spyObjectIdGenerate.mockRestore();
     });
 
-    it('handles duplicate publicId by rerunning the resolver', async () => {
-      spyPublicId.mockReturnValueOnce('a');
+    it('handles duplicate ObjectId by rerunning the resolver', async () => {
+      spyObjectIdGenerate.mockImplementationOnce(() => {
+        return new Uint8Array(1);
+      });
       expectGraphQLResponseData(await executeOperation({}, { user }));
 
-      // publicId 'a' is now duplicate
-      spyPublicId.mockReturnValueOnce('a');
+      expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(2);
+
+      // ObjectId will now be a duplicate
+      spyObjectIdGenerate.mockImplementationOnce(() => {
+        return new Uint8Array(1);
+      });
       expectGraphQLResponseData(await executeOperation({}, { user }));
+
+      expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(5);
     });
   });
 
@@ -631,16 +634,14 @@ describe('no existing notes', () => {
 
       const response = await executeOperation(
         {
-          note: {
-            textFields: [
-              {
-                key: NoteTextField.CONTENT,
-                value: {
-                  initialText: 'content',
-                },
+          textFields: [
+            {
+              key: NoteTextField.CONTENT,
+              value: {
+                initialText: 'content',
               },
-            ],
-          },
+            },
+          ],
         },
         {
           user,
@@ -650,7 +651,7 @@ describe('no existing notes', () => {
       expectGraphQLResponseData(response);
 
       expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenCalledWith(
-        `${SubscriptionTopicPrefix.NOTE_CREATED}:userId=${user._id.toString('base64')}`
+        `${SubscriptionTopicPrefix.NOTE_EVENTS}:userId=${user._id.toString('base64')}`
       );
       expect(mockSubscriptionsModel.queryAllByTopic).toBeCalledTimes(1);
 
@@ -659,25 +660,30 @@ describe('no existing notes', () => {
           type: 'next',
           payload: {
             data: {
-              noteCreated: {
-                note: {
-                  id: expect.any(String),
-                  contentId: expect.any(String),
-                  textFields: expect.arrayContaining([
-                    {
-                      key: NoteTextField.CONTENT,
-                      value: {
-                        headText: {
-                          changeset: Changeset.fromInsertion('content').serialize(),
+              noteEvents: {
+                events: [
+                  {
+                    __typename: 'NoteCreatedEvent',
+                    note: {
+                      id: expect.any(String),
+                      noteId: expect.any(String),
+                      textFields: expect.arrayContaining([
+                        {
+                          key: NoteTextField.CONTENT,
+                          value: {
+                            headText: {
+                              changeset: Changeset.fromInsertion('content').serialize(),
+                            },
+                          },
                         },
-                      },
+                        {
+                          key: NoteTextField.TITLE,
+                          value: { headText: { changeset: Changeset.EMPTY.serialize() } },
+                        },
+                      ]),
                     },
-                    {
-                      key: NoteTextField.TITLE,
-                      value: { headText: { changeset: Changeset.EMPTY.serialize() } },
-                    },
-                  ]),
-                },
+                  },
+                ],
               },
             },
           },

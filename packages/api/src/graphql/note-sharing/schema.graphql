@@ -24,10 +24,12 @@ input CreateNoteSharingInput {
   "Note.contentId"
   contentId: String!
 }
+
 type CreateNoteSharingPayload {
   "Note that has sharing"
   note: Note!
 }
+
 extend type Mutation {
   "Share existing note"
   createNoteSharing(input: CreateNoteSharingInput!): CreateNoteSharingPayload! @auth
@@ -37,10 +39,12 @@ input DeleteNoteSharingInput {
   "Note.contentId"
   contentId: String!
 }
+
 type DeleteNoteSharingPayload {
   "Note with sharing deleted"
   note: Note!
 }
+
 extend type Mutation {
   "Delete note sharing. Anyone already linked to note still has access. This sharing will no longer work."
   deleteNoteSharing(input: DeleteNoteSharingInput!): DeleteNoteSharingPayload! @auth
@@ -50,10 +54,12 @@ input LinkSharedNoteInput {
   "NoteSharing.id"
   shareId: String!
 }
+
 type LinkSharedNotePayload {
   "Note that has been linked"
   note: Note!
 }
+
 extend type Mutation {
   "Add a link to an existing note for collaborative editing"
   linkSharedNote(input: LinkSharedNoteInput!): LinkSharedNotePayload! @auth
