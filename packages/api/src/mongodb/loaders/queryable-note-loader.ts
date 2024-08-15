@@ -160,7 +160,7 @@ export async function queryableNoteBatchLoad(
         // Build aggregate pipeline
         const aggregatePipeline = mergedQueryToPipeline(mergedQuery, {
           description: queryableNoteDescription,
-          customContext: context,
+          customContext: context.global,
         });
 
         // Fetch from database

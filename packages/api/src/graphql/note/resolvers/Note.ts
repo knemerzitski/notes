@@ -10,6 +10,7 @@ export const Note: Pick<
   | 'preferences'
   | 'readOnly'
   | 'textFields'
+  | 'users'
 > = {
   id: (parent) => {
     return parent.id();
@@ -34,5 +35,8 @@ export const Note: Pick<
   },
   deletedAt: (parent) => {
     return parent.deletedAt();
+  },
+  users: (parent, _args, ctx, info) => {
+    return parent.users(ctx, info);
   },
 };

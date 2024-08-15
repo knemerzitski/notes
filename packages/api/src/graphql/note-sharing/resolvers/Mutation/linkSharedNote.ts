@@ -1,6 +1,6 @@
 import { ErrorWithData } from '~utils/logger';
 
-import { UserNoteSchema } from '../../../../mongodb/schema/note/user-note';
+import { NoteUserSchema } from '../../../../mongodb/schema/note/note-user';
 import { getNotesArrayPath } from '../../../../mongodb/schema/user/user';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { NoteQueryMapper } from '../../../note/mongo-query-mapper/note';
@@ -28,9 +28,9 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
     noteQuery: {
       _id: 1,
       publicId: 1,
-      userNotes: {
+      users: {
         $query: {
-          userId: 1,
+          _id: 1,
         },
       },
     },
@@ -48,14 +48,14 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
   if (!notePublicId) {
     throwExpectedProperty('publicId');
   }
-  if (!note.userNotes) {
+  if (!note.users) {
     throwExpectedProperty('userNotes');
   }
 
   // TODO implement permissions and expiration
 
-  const userIsAlreadyLinked = note.userNotes.some(
-    (userNote) => userNote.userId?.equals(currentUserId)
+  const userIsAlreadyLinked = note.users.some(
+    (userNote) => userNote._id?.equals(currentUserId)
   );
   // Return early since UserNote already exists
   if (userIsAlreadyLinked) {
@@ -77,8 +77,8 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
     throwExpectedProperty('_id');
   }
 
-  const sharedUserNote: UserNoteSchema = {
-    userId: currentUserId,
+  const sharedUserNote: NoteUserSchema = {
+    _id: currentUserId,
     categoryName: NoteCategory.DEFAULT,
   };
 

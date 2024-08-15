@@ -2,7 +2,7 @@ import { GraphQLResolveInfo } from 'graphql';
 
 import { RelayArrayPaginationConfig } from '../../mongodb/pagination/relay-array-pagination';
 import { PageInfoMapper } from '../base/schema.mappers';
-import { GraphQLResolversContext } from '../context';
+import { ApiGraphQLContext } from '../context';
 import {
   CollabTextrecordsConnectionArgs,
   CollabTexttextAtRevisionArgs,
@@ -17,9 +17,7 @@ export interface CollabTextMapper {
   textAtRevision(args: CollabTexttextAtRevisionArgs): RevisionChangesetMapper;
   recordsConnection(
     args: CollabTextrecordsConnectionArgs,
-    config: RelayArrayPaginationConfig,
-    ctx: GraphQLResolversContext,
-    info: GraphQLResolveInfo
+    config: RelayArrayPaginationConfig
   ): CollabTextRecordsConnectionMapper;
 }
 
@@ -48,8 +46,14 @@ export interface CollabTextSelectionRangeMapper {
 }
 
 export interface CollabTextRecordsConnectionMapper {
-  records(): ResolverTypeWrapper<CollabTextRecordMapper[]>;
-  edges(): ResolverTypeWrapper<CollabTextRecordEdgeMapper[]>;
+  records(
+    ctx: ApiGraphQLContext,
+    info: GraphQLResolveInfo
+  ): ResolverTypeWrapper<CollabTextRecordMapper[]>;
+  edges(
+    ctx: ApiGraphQLContext,
+    info: GraphQLResolveInfo
+  ): ResolverTypeWrapper<CollabTextRecordEdgeMapper[]>;
   pageInfo(): PageInfoMapper;
 }
 

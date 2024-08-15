@@ -24,7 +24,7 @@ import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/popu
 import { NoteSchema } from '../../../../mongodb/schema/note/note';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { Note, NoteCategory, NoteTextField } from '../../../types.generated';
-
+import { objectIdToStr } from '../../../base/resolvers/ObjectID';
 
 interface Variables {
   noteId: ObjectId;
@@ -256,6 +256,60 @@ it('returns note specified textField', async () => {
       ],
     },
   });
+});
+
+it('returns note users', async () => {
+  const response = await executeOperation(
+    {
+      noteId: note._id,
+    },
+    { user: userReadOnly },
+    `#graphql
+      query($noteId: ObjectID!){
+        note(noteId: $noteId){
+          noteId
+          users {
+            user {
+              id
+              displayName
+            }
+            higherScope
+          }
+        }
+      }
+    `
+  );
+
+  const data = expectGraphQLResponseData(response);
+
+  expect(data).toEqual({
+    note: {
+      noteId: objectIdToStr(note._id),
+      users: [
+        {
+          user: {
+            id: objectIdToStr(user._id),
+            displayName: user.profile.displayName,
+          },
+          higherScope: true,
+        },
+        {
+          user: {
+            id: objectIdToStr(userReadOnly._id),
+            displayName: userReadOnly.profile.displayName,
+          },
+          higherScope: false,
+        },
+      ],
+    },
+  });
+
+  expect(mongoCollectionStats.allStats()).toStrictEqual(
+    expect.objectContaining({
+      readAndModifyCount: 1,
+      readCount: 1,
+    })
+  );
 });
 
 describe('errors', () => {

@@ -164,7 +164,7 @@ export async function queryableNotesSearchBatchLoad(
                 // Build aggregate pipeline for note
                 const aggregatePipeline = mergedQueryToPipeline(mergedQuery, {
                   description: searchDescription,
-                  customContext: context,
+                  customContext: context.global,
                 });
 
                 // Translate pagination appropriate for $search stage

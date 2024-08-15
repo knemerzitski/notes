@@ -96,6 +96,76 @@ extend type Query {
   ): NotesConnection! @auth
 }
 
+################################ Note Users ################################
+
+
+type NoteUser {
+  "Self-descriptive"
+  user: PublicUser!
+  "This user has higher scope than current user"
+  higherScope: Boolean!
+  "This user has read-only access to the note"
+  readOnly: Boolean!
+}
+
+type NoteUserPatch {
+  "Patch applies to this user"
+  user: PublicUserPatch!
+  "User scope status changed"
+  higherScope: Boolean
+}
+
+extend type Note {
+  "All users (including yourself) who have access to the note"
+  users: [NoteUser!]!
+}
+
+extend type NotePatch {
+  "Changes made to users"
+  users: [NoteUserPatch!]
+  "List of PublicUser.ids that have been deleted from note. If current user is in list then note is no longer accessible."
+  usersDeleted: [String!]
+}
+
+input UpdateNoteDeleteUserInput {
+  "Affected note Note.id"
+  noteId: ObjectID!
+  "PublicUser.id to be deleted"
+  userId: ObjectID!
+}
+
+type UpdateNoteDeleteUserPayload {
+  "PublicUser.id of deleted user"
+  userId: ObjectID!
+}
+
+input UpdateNoteSetUserReadOnlyInput {
+  "Affected note Note.id"
+  noteId: ObjectID!
+  "PublicUser.id to update"
+  userId: ObjectID!
+  "Change user's access to note"
+  readOnly: Boolean!
+}
+
+type UpdateNoteSetUserReadOnlyPayload {
+  "New read-only value of user"
+  readOnly: Boolean!
+  "User with updated read-only value"
+  user: NoteUser!
+  "Note with updated users list"
+  note: Note!
+}
+
+extend type Mutation {
+  "Delete user from accessing the note"
+  updateNoteDeleteUser(input: UpdateNoteDeleteUserInput!): UpdateNoteDeleteUserPayload!
+  "Change user note permissions"
+  updateNoteSetUserReadOnly(
+    input: UpdateNoteSetUserReadOnlyInput!
+  ): UpdateNoteSetUserReadOnlyPayload!
+}
+
 ################################ Note Events Create/Update/Delete Subscriptions ################################
 
 type NoteCreatedEvent {
@@ -315,7 +385,7 @@ extend type Mutation {
 ################################ Note Preferences ################################
 
 extend type Note {
-  "Note preferences. Only specific to current user"
+  "Note preferences. Only visible to current user."
   preferences: NotePreferences
 }
 

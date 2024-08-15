@@ -118,7 +118,6 @@ describe('no search index', () => {
 
 describe('search index created', () => {
   beforeAll(async () => {
-    console.log('create');
     await dropAndCreateSearchIndexes();
   });
 

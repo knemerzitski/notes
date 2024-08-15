@@ -13,6 +13,23 @@ type User {
   profile: UserProfile!
 }
 
+"""
+User info that can be accessed by any other user
+"""
+type PublicUser {
+  "Self-descriptive"
+  id: ObjectID!
+  "Self-descriptive"
+  displayName: String!
+}
+
+type PublicUserPatch {
+  "PublicUser.id that was patched"
+  id: String!
+  "Public user display name has changed"
+  displayName: String
+}
+
 extend type Query {
   "Self-descriptive"
   user: User! @auth

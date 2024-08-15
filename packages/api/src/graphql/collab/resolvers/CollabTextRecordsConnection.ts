@@ -1,12 +1,12 @@
 import type { CollabTextRecordsConnectionResolvers } from './../../types.generated';
 export const CollabTextRecordsConnection: CollabTextRecordsConnectionResolvers = {
-  edges: (parent) => {
-    return parent.edges();
+  edges: (parent, _args, ctx, info) => {
+    return parent.edges(ctx, info);
   },
   pageInfo: (parent) => {
     return parent.pageInfo();
   },
-  records: (parent) => {
-    return parent.records();
+  records: (parent, _args, ctx, info) => {
+    return parent.records(ctx, info);
   },
 };

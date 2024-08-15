@@ -72,13 +72,13 @@ export const queryableUserDescription: DeepAnyDescription<
             fields,
             customContext,
             relativeQuery,
-            subStages: innerStages,
-            subLastProject: innerLastProject,
+            subStages,
+            subLastProject,
           }) {
             const concatUserNotesFieldPath = 'notes.category._all.order.items';
 
             // Skip note lookup if nothing is projected in notes
-            const itemsProject = innerLastProject({ subPath: 'items' });
+            const itemsProject = subLastProject({ subPath: 'items' });
             const skipNoteLookup = isEmptyDeep(itemsProject);
 
             return [
@@ -135,7 +135,7 @@ export const queryableUserDescription: DeepAnyDescription<
                       collectionName: customContext.collections.notes.collectionName,
                       fieldPath: `${concatUserNotesFieldPath}.array`,
                       pipeline: [
-                        ...innerStages({
+                        ...subStages({
                           subPath: 'items',
                         }),
                         {

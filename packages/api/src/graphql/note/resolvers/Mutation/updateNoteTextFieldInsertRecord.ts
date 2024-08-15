@@ -18,12 +18,12 @@ import { assertAuthenticated } from '../../../base/directives/auth';
 import { objectIdToStr } from '../../../base/resolvers/ObjectID';
 import { CollabTextRecordQueryMapper } from '../../../collab/mongo-query-mapper/revision-record';
 import { NoteQueryMapper } from '../../mongo-query-mapper/note';
-import { NoteCollabTextQueryMapper } from '../../mongo-query-mapper/note-collab-text';
 import { throwNoteIsReadOnly, throwNoteNotFound } from '../../utils/note-errors';
 import { findNoteUser } from '../../utils/user-note';
 import { publishNoteUpdated } from '../Subscription/noteEvents';
 
 import type { MutationResolvers } from './../../../types.generated';
+import { NoteCollabTextQueryMapper } from '../../mongo-query-mapper/note-collab-text';
 
 export const updateNoteTextFieldInsertRecord: NonNullable<
   MutationResolvers['updateNoteTextFieldInsertRecord']

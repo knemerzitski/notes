@@ -9,6 +9,7 @@ export enum GraphQLErrorCode {
   UNAUTHORIZED = 'UNAUTHORIZED',
   /**
    * Requested resource was not found.
+   * Extension key 'resource' for enum {@link ResourceType} value
    */
   NOT_FOUND = 'NOT_FOUND',
   /**
@@ -40,4 +41,9 @@ export enum AuthenticationFailedReason {
    * Session was not found in database.
    */
   SESSION_EXPIRED = 'SESSION_EXPIRED',
+}
+
+export enum ResourceType {
+  NOTE = 'NOTE',
+  USER = 'USER',
 }

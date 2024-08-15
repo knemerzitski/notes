@@ -57,7 +57,7 @@ const MUTATION_ALL = `#graphql
         readOnly
         createdAt
         categoryName
-        sharing {
+        shareLink {
           id
         }
         preferences {
@@ -191,7 +191,7 @@ describe('no existing notes', () => {
           categoryName: NoteCategory.DEFAULT,
           createdAt: expect.any(Date),
           readOnly: false,
-          sharing: null,
+          shareLink: null,
           preferences: {
             backgroundColor: null,
           },
@@ -287,7 +287,7 @@ describe('no existing notes', () => {
           categoryName: NoteCategory.ARCHIVE,
           createdAt: expect.any(Date),
           readOnly: false,
-          sharing: null,
+          shareLink: null,
           preferences: {
             backgroundColor: '#cacc52',
           },

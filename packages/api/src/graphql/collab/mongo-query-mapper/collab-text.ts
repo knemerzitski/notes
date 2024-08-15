@@ -9,17 +9,20 @@ import {
 } from '../../../mongodb/pagination/relay-array-pagination';
 import { MongoQuery } from '../../../mongodb/query/query';
 import { CollabTextSchema } from '../../../mongodb/schema/collab-text/collab-text';
-import { GraphQLResolversContext } from '../../context';
+import { ApiGraphQLContext } from '../../context';
 import {
   CollabTextrecordsConnectionArgs,
   CollabTexttextAtRevisionArgs,
   ResolverTypeWrapper,
 } from '../../types.generated';
-import { customExecuteFields } from '../../utils/custom-execute-fields';
 import { CollabTextMapper, RevisionChangesetMapper } from '../schema.mappers';
 
 import { RevisionChangesetQueryMapper } from './revision-changeset';
 import { CollabTextRecordQueryMapper } from './revision-record';
+import {
+  PreFetchedArrayGetItemFn,
+  withPreFetchedArraySize,
+} from '../../utils/with-pre-fetched-array-size';
 
 export abstract class CollabTextQueryMapper implements CollabTextMapper {
   private collabText: MongoQuery<CollabTextSchema>;
@@ -111,9 +114,7 @@ export abstract class CollabTextQueryMapper implements CollabTextMapper {
 
   recordsConnection(
     args: CollabTextrecordsConnectionArgs,
-    config: RelayArrayPaginationConfig,
-    ctx: GraphQLResolversContext,
-    info: GraphQLResolveInfo
+    config: RelayArrayPaginationConfig
   ) {
     const first = applyLimit(args.first, config.defaultLimit, config.maxLimit);
     const last = applyLimit(args.last, config.defaultLimit, config.maxLimit);
@@ -135,104 +136,44 @@ export abstract class CollabTextQueryMapper implements CollabTextMapper {
       };
     }
 
+    const createCollabTextRecordMapper: PreFetchedArrayGetItemFn<
+      CollabTextRecordQueryMapper
+    > = (index: number, updateSize) => {
+      const revisionRecordQuery = new CollabTextRecordQueryMapper(this, {
+        query: async (query) => {
+          const result = await this.collabText.query({
+            records: {
+              $query: query,
+              $pagination: pagination,
+            },
+          });
+          updateSize(result?.records?.length);
+          return result?.records?.[index];
+        },
+      });
+
+      return revisionRecordQuery;
+    };
+
     return {
-      records: async () => {
-        // Pre resolve to build query and fetch with dataloader to figure out list size
-        let actualSize: undefined | number;
-        await customExecuteFields(
-          {
-            records: () => {
-              return [
-                new CollabTextRecordQueryMapper(this, {
-                  query: async (query) => {
-                    const result = await this.collabText.query({
-                      records: {
-                        $query: query,
-                        $pagination: pagination,
-                      },
-                    });
-                    actualSize = actualSize ?? result?.records?.length;
-                    return null;
-                  },
-                }),
-              ];
-            },
-          },
-          ctx,
-          info
-        );
-        if (!actualSize) return [];
-
-        return [...new Array<undefined>(actualSize)].map((_, index) => {
-          const revisionRecordQuery = new CollabTextRecordQueryMapper(this, {
-            query: async (query) => {
-              const result = await this.collabText.query({
-                records: {
-                  $query: query,
-                  $pagination: pagination,
-                },
-              });
-              return result?.records?.[index];
-            },
-          });
-
-          return revisionRecordQuery;
-        });
+      records: (ctx: ApiGraphQLContext, info: GraphQLResolveInfo) => {
+        return withPreFetchedArraySize(createCollabTextRecordMapper, ctx, info);
       },
-      edges: async () => {
-        // Pre resolve to build query and fetch with dataloader to figure out list size
-        let actualSize: undefined | number;
-        await customExecuteFields(
-          {
-            edges: () => {
-              const revisionRecordQuery = new CollabTextRecordQueryMapper(this, {
-                query: async (query) => {
-                  const result = await this.collabText.query({
-                    records: {
-                      $query: query,
-                      $pagination: pagination,
-                    },
-                  });
-                  actualSize = actualSize ?? result?.records?.length;
-                  return null;
-                },
-              });
+      edges: (ctx: ApiGraphQLContext, info: GraphQLResolveInfo) => {
+        return withPreFetchedArraySize(
+          (index, updateSize) => {
+            const revisionRecordQuery = createCollabTextRecordMapper(index, updateSize);
 
-              return [
-                {
-                  node: () => revisionRecordQuery,
-                  cursor: async () => {
-                    return String(await revisionRecordQuery.change().revision());
-                  },
-                },
-              ];
-            },
+            return {
+              node: () => revisionRecordQuery,
+              cursor: async () => {
+                return String(await revisionRecordQuery.change().revision());
+              },
+            };
           },
           ctx,
           info
         );
-        if (!actualSize) return [];
-
-        return [...new Array<undefined>(actualSize)].map((_, index) => {
-          const revisionRecordQuery = new CollabTextRecordQueryMapper(this, {
-            query: async (query) => {
-              const result = await this.collabText.query({
-                records: {
-                  $query: query,
-                  $pagination: pagination,
-                },
-              });
-              return result?.records?.[index];
-            },
-          });
-
-          return {
-            node: () => revisionRecordQuery,
-            cursor: async () => {
-              return String(await revisionRecordQuery.change().revision());
-            },
-          };
-        });
       },
       pageInfo: () => {
         return {

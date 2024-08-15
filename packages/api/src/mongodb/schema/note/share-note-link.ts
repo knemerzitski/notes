@@ -9,6 +9,7 @@ export interface ShareNoteLinkSchema {
   /**
    * Unique generated ID used to access sharing
    */
+  // TODO use ObjectId
   publicId: string;
 
   /**

@@ -17,6 +17,10 @@ import { findNoteUser } from '../utils/user-note';
 
 import { NoteCollabTextQueryMapper } from './note-collab-text';
 import { NotePreferencesQueryMapper } from './note-preferences';
+import { GraphQLResolversContext } from '../../context';
+import { GraphQLResolveInfo } from 'graphql';
+import { createGetUserByIndex, NoteUsersQueryMapper } from './note-users';
+import { withPreFetchedArraySize } from '../../utils/with-pre-fetched-array-size';
 
 export class NoteQueryMapper implements NoteMapper {
   private readonly targetUserId: ObjectId;
@@ -55,34 +59,30 @@ export class NoteQueryMapper implements NoteMapper {
     const fields = args?.name ? [args.name] : Object.values(NoteTextField);
     return fields.map((field) => {
       return {
-        key: () => {
-          return Promise.resolve(field);
-        },
-        value: () => {
-          return new NoteCollabTextQueryMapper(this, field, {
-            query: async (query) => {
-              return (
-                (
-                  await this.note.query({
-                    collabTexts: {
-                      [field]: query,
-                    },
-                  })
-                )?.collabTexts?.[field] ?? {
-                  headText: {
-                    changeset: Changeset.EMPTY.serialize(),
-                    revision: 0,
+        key: field,
+        value: new NoteCollabTextQueryMapper(this, field, {
+          query: async (query) => {
+            return (
+              (
+                await this.note.query({
+                  collabTexts: {
+                    [field]: query,
                   },
-                  tailText: {
-                    changeset: Changeset.EMPTY.serialize(),
-                    revision: 0,
-                  },
-                  records: [],
-                }
-              );
-            },
-          });
-        },
+                })
+              )?.collabTexts?.[field] ?? {
+                headText: {
+                  changeset: Changeset.EMPTY.serialize(),
+                  revision: 0,
+                },
+                tailText: {
+                  changeset: Changeset.EMPTY.serialize(),
+                  revision: 0,
+                },
+                records: [],
+              }
+            );
+          },
+        }),
       };
     });
   }
@@ -177,5 +177,26 @@ export class NoteQueryMapper implements NoteMapper {
     const noteUser = this.getTargetNoteUser(note);
 
     return noteUser?.trashed?.expireAt;
+  }
+
+  async users(ctx: GraphQLResolversContext, info: GraphQLResolveInfo) {
+    return withPreFetchedArraySize(
+      (index, updateSize) =>
+        new NoteUsersQueryMapper(this.targetUserId, createGetUserByIndex(index), {
+          query: async (query) => {
+            const users = (
+              await this.note.query({
+                users: query,
+              })
+            )?.users;
+
+            updateSize(users?.length);
+
+            return users;
+          },
+        }),
+      ctx,
+      info
+    );
   }
 }

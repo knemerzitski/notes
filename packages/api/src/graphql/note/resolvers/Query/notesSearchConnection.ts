@@ -2,7 +2,10 @@ import { QueryableSearchNote } from '../../../../mongodb/loaders/queryable-notes
 import { RelayPagination } from '../../../../mongodb/pagination/relay-array-pagination';
 import { DeepObjectQuery } from '../../../../mongodb/query/query';
 import { assertAuthenticated } from '../../../base/directives/auth';
-import { customExecuteFields } from '../../../utils/custom-execute-fields';
+import {
+  PreFetchedArrayGetItemFn,
+  withPreFetchedArraySize,
+} from '../../../utils/with-pre-fetched-array-size';
 import { NoteQueryMapper } from '../../mongo-query-mapper/note';
 
 import type { QueryResolvers } from './../../../types.generated';
@@ -12,7 +15,7 @@ const MAX_LIMIT = 30;
 
 export const notesSearchConnection: NonNullable<
   QueryResolvers['notesSearchConnection']
-> = (_parent, arg, ctx, info) => {
+> = (_parent, arg, ctx) => {
   const {
     auth,
     mongodb: { loaders },
@@ -72,88 +75,45 @@ export const notesSearchConnection: NonNullable<
     });
   }
 
-  return {
-    async notes() {
-      let actualSize: undefined | number;
-      await customExecuteFields(
-        {
-          notes: () => {
-            return [
-              new NoteQueryMapper(currentUserId, {
-                async query(query) {
-                  const searchResult = await loadSearchNotes({
-                    note: query,
-                  });
-                  actualSize = searchResult?.length;
-                  return null;
-                },
-              }),
-            ];
-          },
-        },
-        ctx,
-        info
-      );
-      if (!actualSize) return [];
-
-      return [...new Array<undefined>(getSearchLength(actualSize))].map((_, index) => {
-        const noteQuery = new NoteQueryMapper(currentUserId, {
-          query: async (query) => {
-            const searchResult = await loadSearchNotes({
-              note: query,
-            });
-            return searchResult?.[getSearchOffset(searchResult.length) + index]?.note;
-          },
+  const createNoteMapper: PreFetchedArrayGetItemFn<NoteQueryMapper> = (
+    index,
+    updateSize
+  ) => {
+    return new NoteQueryMapper(currentUserId, {
+      query: async (query) => {
+        const searchResult = await loadSearchNotes({
+          note: query,
         });
+        if (searchResult?.length != null) {
+          updateSize(getSearchLength(searchResult.length));
+        }
+        return searchResult?.[getSearchOffset(searchResult.length) + index]?.note;
+      },
+    });
+  };
 
-        return noteQuery;
-      });
+  return {
+    notes(ctx, info) {
+      return withPreFetchedArraySize(createNoteMapper, ctx, info);
     },
-    async edges() {
-      let actualSize: undefined | number;
-      await customExecuteFields(
-        {
-          edges: () => {
-            const noteQuery = new NoteQueryMapper(currentUserId, {
-              async query(query) {
-                const searchResult = await loadSearchNotes({
-                  note: query,
-                });
-                actualSize = searchResult?.length;
-                return null;
-              },
-            });
+    edges(ctx, info) {
+      return withPreFetchedArraySize(
+        (index, updateSize) => {
+          const noteQuery = createNoteMapper(index, updateSize);
 
-            return [
-              {
-                node: () => noteQuery,
-                cursor: () => null,
-              },
-            ];
-          },
+          return {
+            node: () => noteQuery,
+            cursor: async () => {
+              const searchResult = await loadSearchNotes({
+                cursor: 1,
+              });
+              return searchResult?.[getSearchOffset(searchResult.length) + index]?.cursor;
+            },
+          };
         },
         ctx,
         info
       );
-      if (!actualSize) return [];
-
-      return [...new Array<undefined>(getSearchLength(actualSize))].map((_, index) => ({
-        node: () =>
-          new NoteQueryMapper(currentUserId, {
-            query: async (query) => {
-              const searchResult = await loadSearchNotes({
-                note: query,
-              });
-              return searchResult?.[getSearchOffset(searchResult.length) + index]?.note;
-            },
-          }),
-        cursor: async () => {
-          const searchResult = await loadSearchNotes({
-            cursor: 1,
-          });
-          return searchResult?.[getSearchOffset(searchResult.length) + index]?.cursor;
-        },
-      }));
     },
     pageInfo() {
       return {

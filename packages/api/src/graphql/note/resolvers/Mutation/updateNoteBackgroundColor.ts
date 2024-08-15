@@ -98,7 +98,7 @@ export const updateNoteBackgroundColor: NonNullable<
     },
     {
       users: note.users?.map((noteUser) => {
-        const isOtherUser = !noteUser._id?.equals(currentUserId);
+        const isOtherUser = !currentUserId.equals(noteUser._id);
         if (isOtherUser) {
           return noteUser;
         }
@@ -119,8 +119,9 @@ export const updateNoteBackgroundColor: NonNullable<
     currentUserId,
     {
       note: {
-        id: () => noteMapper.id(),
+        id: () => noteMapper.id(), // TODO this as func
         preferences: () => ({
+          // TODO others as object?
           backgroundColor: () => backgroundColor,
         }),
       },

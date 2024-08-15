@@ -74,5 +74,9 @@ export type DeepObjectQueryResult<T extends object> = Readonly<{
 }>;
 
 export interface MongoQuery<TDocument> {
-  query(query: DeepQuery<TDocument>): MaybePromise<Maybe<DeepQueryResult<TDocument>>>;
+  query: MongoQueryFn<TDocument>;
 }
+
+export type MongoQueryFn<TDocument> = (
+  query: DeepQuery<TDocument>
+) => MaybePromise<Maybe<DeepQueryResult<TDocument>>>;

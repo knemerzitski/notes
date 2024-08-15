@@ -11,7 +11,10 @@ import {
   ResolversTypes,
 } from '../types.generated';
 
-import { NoteCollabTextQueryMapper } from './mongo-query-mapper/note-collab-text';
+import { CollabTextMapper } from '../collab/schema.mappers';
+import { GraphQLResolveInfo } from 'graphql';
+import { GraphQLResolversContext } from '../context';
+import { PublicUserMapper } from '../user/schema.mappers';
 
 export interface NoteMapper {
   noteId(): ResolverTypeWrapper<ObjectId>;
@@ -23,12 +26,21 @@ export interface NoteMapper {
   categoryName(): ResolverTypeWrapper<NoteCategory>;
   preferences(): NotePreferencesMapper;
   deletedAt(): Maybe<ResolverTypeWrapper<Date>>;
-  sharing(): ResolversTypes['NoteSharing'];
+  users(
+    ctx: GraphQLResolversContext,
+    info: GraphQLResolveInfo
+  ): ResolverTypeWrapper<NoteUserMapper[]>;
+}
+
+export interface NoteUserMapper {
+  user(): PublicUserMapper;
+  higherScope(): ResolverTypeWrapper<boolean>;
+  readOnly(): ResolverTypeWrapper<boolean>;
 }
 
 export interface NoteTextFieldEntryMapper {
-  key(): ResolverTypeWrapper<NoteTextField>;
-  value(): ResolverTypeWrapper<NoteCollabTextQueryMapper>;
+  readonly key: NoteTextField;
+  readonly value: CollabTextMapper;
 }
 
 export interface NotePreferencesMapper {
@@ -41,12 +53,14 @@ export interface NotePreferencesPatchMapper {
 
 export interface NotePatchMapper {
   id(): ResolverTypeWrapper<string>;
-  textFields?(): Maybe<ResolversTypes['NoteTextFieldEntryPatch'][]>;
+  textFields?(): ResolversTypes['NoteTextFieldEntryPatch'][];
   categoryName?(): ResolverTypeWrapper<NoteCategory>;
   preferences?(): NotePreferencesPatchMapper;
   location?(): ResolversTypes['NoteLocation'];
   deletedAt?(): ResolverTypeWrapper<Date>;
-  sharing?(): ResolversTypes['NoteSharingPatch'];
+  readOnly?(): ResolverTypeWrapper<boolean>;
+  users?(): ResolversTypes['NoteUserPatch'][];
+  usersDeleted?(): ResolverTypeWrapper<string[]>;
 }
 
 export interface DeletedNoteMapper {
@@ -54,8 +68,14 @@ export interface DeletedNoteMapper {
 }
 
 export interface NotesConnectionMapper {
-  notes(): ResolverTypeWrapper<NoteMapper[]>;
-  edges(): ResolverTypeWrapper<NoteEdgeMapper[]>;
+  notes(
+    ctx: GraphQLResolversContext,
+    info: GraphQLResolveInfo
+  ): ResolverTypeWrapper<NoteMapper[]>;
+  edges(
+    ctx: GraphQLResolversContext,
+    info: GraphQLResolveInfo
+  ): ResolverTypeWrapper<NoteEdgeMapper[]>;
   pageInfo(): ResolverTypeWrapper<PageInfoMapper>;
 }
 
