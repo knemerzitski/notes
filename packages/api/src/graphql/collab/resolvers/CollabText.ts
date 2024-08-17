@@ -10,9 +10,6 @@ import { PreFetchedArrayGetItemFn } from '../../utils/with-pre-fetched-array-siz
 import { CollabTextRecordMapper } from '../schema.mappers';
 
 export const CollabText: CollabTextResolvers = {
-  id: (parent) => {
-    return parent.id;
-  },
   headText: (parent) => {
     return {
       query: async (query) =>

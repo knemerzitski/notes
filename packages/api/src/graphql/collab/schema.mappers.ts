@@ -14,12 +14,6 @@ export interface CollabTextMapper {
   readonly query: MongoQueryFn<QueryableCollabTextSchema>;
 }
 
-export interface CollabTextPatchMapper {
-  id: ResolverTypeWrapper<string>;
-  isExistingRecord?(): ResolverTypeWrapper<boolean>;
-  newRecord?(): ResolverTypeWrapper<CollabTextRecordMapper>;
-}
-
 export interface CollabTextRecordMapper {
   readonly parentId: ResolverTypeWrapper<string>;
   readonly query: MongoQueryFn<RevisionRecordSchema>;
@@ -34,9 +28,9 @@ export interface CollabTextSelectionRangeMapper {
 }
 
 export interface CollabTextRecordsConnectionMapper {
-  pagination: RelayBoundPagination<number>;
-  getRecord: PreFetchedArrayGetItemFn<CollabTextRecordMapper>;
-  getHeadAndTailRevision: () => ResolverTypeWrapper<
+  readonly pagination: RelayBoundPagination<number>;
+  readonly getRecord: PreFetchedArrayGetItemFn<CollabTextRecordMapper>;
+  readonly getHeadAndTailRevision: () => ResolverTypeWrapper<
     | {
         tailRevision: number;
         headRevision: number;
@@ -46,6 +40,12 @@ export interface CollabTextRecordsConnectionMapper {
 }
 
 export interface CollabTextRecordEdgeMapper {
-  node(): CollabTextRecordMapper;
-  cursor(): ResolversTypes['Cursor'];
+  readonly node: CollabTextRecordMapper;
+  readonly cursor: ResolversTypes['Cursor'];
+}
+
+export interface CollabTextPatchMapper {
+  id: ResolverTypeWrapper<string>;
+  isExistingRecord?(): ResolverTypeWrapper<boolean>;
+  newRecord?(): ResolverTypeWrapper<CollabTextRecordMapper>;
 }

@@ -12,7 +12,7 @@ export const CollabTextRecordsConnection: CollabTextRecordsConnectionResolvers =
         const revisionRecordQuery = parent.getRecord(index, updateSize);
 
         return {
-          node: () => revisionRecordQuery,
+          node: revisionRecordQuery,
           cursor: async () => {
             return (
               await revisionRecordQuery.query({
