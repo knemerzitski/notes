@@ -5,6 +5,7 @@ import { MongoQueryFn } from '../../mongodb/query/query';
 import {
   RevisionChangesetSchema,
   RevisionRecordSchema,
+  SelectionRangeSchema,
 } from '../../mongodb/schema/collab-text/collab-text';
 import { PageInfoMapper } from '../base/schema.mappers';
 import { ApiGraphQLContext } from '../context';
@@ -44,8 +45,7 @@ export interface RevisionChangesetMapper {
 }
 
 export interface CollabTextSelectionRangeMapper {
-  start(): ResolverTypeWrapper<number>;
-  end(): ResolverTypeWrapper<number>;
+  readonly query: MongoQueryFn<SelectionRangeSchema>;
 }
 
 export interface CollabTextRecordsConnectionMapper {

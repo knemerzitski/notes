@@ -1,6 +1,6 @@
 import { objectIdToStr } from '../../base/resolvers/ObjectID';
 import { maybeFn } from '../../utils/maybe-fn';
-import { CollabTextSelectionRangeQueryMapper } from '../mongo-query-mapper/selection-range';
+
 import type { CollabTextRecordResolvers } from './../../types.generated';
 
 export const CollabTextRecord: CollabTextRecordResolvers = {
@@ -18,26 +18,26 @@ export const CollabTextRecord: CollabTextRecordResolvers = {
     return `${parentId}:${record.revision}`;
   },
   afterSelection: (parent) => {
-    return new CollabTextSelectionRangeQueryMapper({
-      query: async (selection) => {
+    return {
+      query: async (query) => {
         return (
           await parent.query({
-            afterSelection: selection,
+            afterSelection: query,
           })
         )?.afterSelection;
       },
-    });
+    };
   },
   beforeSelection: (parent) => {
-    return new CollabTextSelectionRangeQueryMapper({
-      query: async (selection) => {
+    return {
+      query: async (query) => {
         return (
           await parent.query({
-            beforeSelection: selection,
+            beforeSelection: query,
           })
         )?.beforeSelection;
       },
-    });
+    };
   },
   change: (parent) => {
     return {
