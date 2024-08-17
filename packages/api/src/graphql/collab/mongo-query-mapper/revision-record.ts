@@ -1,9 +1,8 @@
 import { MongoQuery } from '../../../mongodb/query/query';
 import { RevisionRecordSchema } from '../../../mongodb/schema/collab-text/collab-text';
 import { ResolverTypeWrapper } from '../../types.generated';
-import { CollabTextRecordMapper } from '../schema.mappers';
+import { CollabTextRecordMapper, RevisionChangesetMapper } from '../schema.mappers';
 
-import { RevisionChangesetQueryMapper } from './revision-changeset';
 import { CollabTextSelectionRangeQueryMapper } from './selection-range';
 
 interface Parent {
@@ -42,12 +41,10 @@ export class CollabTextRecordQueryMapper implements CollabTextRecordMapper {
     )?.creatorUserId?.toString('base64');
   }
 
-  change() {
-    return new RevisionChangesetQueryMapper({
-      query: (change) => {
-        return this.revisionRecord.query(change);
-      },
-    });
+  change(): RevisionChangesetMapper {
+    return {
+      query: (query) => this.revisionRecord.query(query),
+    };
   }
 
   beforeSelection() {

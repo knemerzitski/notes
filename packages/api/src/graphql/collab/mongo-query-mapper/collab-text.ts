@@ -8,21 +8,20 @@ import {
   applyLimit,
 } from '../../../mongodb/pagination/relay-array-pagination';
 import { MongoQuery } from '../../../mongodb/query/query';
+import { QueryableCollabTextSchema } from '../../../mongodb/schema/collab-text/query/collab-text';
 import { ApiGraphQLContext } from '../../context';
 import {
   CollabTextrecordsConnectionArgs,
   CollabTexttextAtRevisionArgs,
   ResolverTypeWrapper,
 } from '../../types.generated';
-import { CollabTextMapper, RevisionChangesetMapper } from '../schema.mappers';
-
-import { RevisionChangesetQueryMapper } from './revision-changeset';
-import { CollabTextRecordQueryMapper } from './revision-record';
 import {
   PreFetchedArrayGetItemFn,
   withPreFetchedArraySize,
 } from '../../utils/with-pre-fetched-array-size';
-import { QueryableCollabTextSchema } from '../../../mongodb/schema/collab-text/query/collab-text';
+import { CollabTextMapper, RevisionChangesetMapper } from '../schema.mappers';
+
+import { CollabTextRecordQueryMapper } from './revision-record';
 
 export abstract class CollabTextQueryMapper implements CollabTextMapper {
   private collabText: MongoQuery<QueryableCollabTextSchema>;
@@ -33,34 +32,32 @@ export abstract class CollabTextQueryMapper implements CollabTextMapper {
 
   abstract id(): ResolverTypeWrapper<string>;
 
-  headText() {
-    return new RevisionChangesetQueryMapper({
-      query: async (change) => {
-        return (
+  headText(): RevisionChangesetMapper {
+    return {
+      query: async (query) =>
+        (
           await this.collabText.query({
-            headText: change,
+            headText: query,
           })
-        )?.headText;
-      },
-    });
+        )?.headText,
+    };
   }
 
-  tailText() {
-    return new RevisionChangesetQueryMapper({
-      query: async (change) => {
-        return (
+  tailText(): RevisionChangesetMapper {
+    return {
+      query: async (query) =>
+        (
           await this.collabText.query({
-            tailText: change,
+            tailText: query,
           })
-        )?.tailText;
-      },
-    });
+        )?.tailText,
+    };
   }
 
   textAtRevision({
     revision: targetRevision,
   }: CollabTexttextAtRevisionArgs): RevisionChangesetMapper {
-    return new RevisionChangesetQueryMapper({
+    return {
       query: async ({ revision, changeset }) => {
         if (!revision && !changeset) return {};
 
@@ -77,23 +74,22 @@ export abstract class CollabTextQueryMapper implements CollabTextMapper {
           };
         }
 
-        const [tailChangeset, rawDocument] = await Promise.all([
-          this.tailText().changeset(),
-          this.collabText.query({
-            records: {
-              $pagination: {
-                before: targetRevision + 1,
-              },
-              changeset: 1,
+        const collabText = await this.collabText.query({
+          tailText: {
+            changeset: 1,
+          },
+          records: {
+            $pagination: {
+              before: targetRevision + 1,
             },
-          }),
-        ]);
-
-        if (tailChangeset == null || rawDocument?.records == null) {
+            changeset: 1,
+          },
+        });
+        if (collabText?.tailText?.changeset == null || collabText.records == null) {
           return null;
         }
 
-        const recordsChangesets = rawDocument.records.map((rawRecord) => {
+        const recordsChangesets = collabText.records.map((rawRecord) => {
           const serializedChangeset = rawRecord.changeset;
           if (serializedChangeset == null) {
             throw new Error('RevisionRecord.changeset is null');
@@ -104,10 +100,13 @@ export abstract class CollabTextQueryMapper implements CollabTextMapper {
 
         return {
           revision: targetRevision,
-          changeset: recordsChangesets.reduce((a, b) => a.compose(b), tailChangeset),
+          changeset: recordsChangesets.reduce(
+            (a, b) => a.compose(b),
+            Changeset.parseValue(collabText.tailText.changeset)
+          ),
         };
       },
-    });
+    };
   }
 
   recordsConnection(
@@ -174,13 +173,35 @@ export abstract class CollabTextQueryMapper implements CollabTextMapper {
         );
       },
       pageInfo: () => {
+        const getHeadAndTailRevision = async () => {
+          const collabText = await this.collabText.query({
+            headText: {
+              revision: 1,
+            },
+            tailText: {
+              revision: 1,
+            },
+          });
+          if (
+            collabText?.headText?.revision == null ||
+            collabText.tailText?.revision == null
+          ) {
+            return;
+          }
+
+          return {
+            tailRevision: collabText.tailText.revision,
+            headRevision: collabText.headText.revision,
+          };
+        };
+
         return {
           hasNextPage: async () => {
-            const [tailRevision, headRevision] = await Promise.all([
-              this.tailText().revision(),
-              this.headText().revision(),
-            ]);
-            if (tailRevision == null || headRevision == null) return false;
+            const collabText = await getHeadAndTailRevision();
+            if (!collabText) {
+              return false;
+            }
+            const { tailRevision, headRevision } = collabText;
 
             if (isForwardPagination) {
               return (after ?? tailRevision) + first < headRevision;
@@ -193,12 +214,11 @@ export abstract class CollabTextQueryMapper implements CollabTextMapper {
             return false;
           },
           hasPreviousPage: async () => {
-            const [tailRevision, headRevision] = await Promise.all([
-              this.tailText().revision(),
-              this.headText().revision(),
-            ]);
-
-            if (tailRevision == null || headRevision == null) return false;
+            const collabText = await getHeadAndTailRevision();
+            if (!collabText) {
+              return false;
+            }
+            const { tailRevision, headRevision } = collabText;
 
             if (isForwardPagination) {
               if (after != null) {
@@ -211,12 +231,11 @@ export abstract class CollabTextQueryMapper implements CollabTextMapper {
             return tailRevision + 1 < (args.before ?? headRevision + 1) - last;
           },
           startCursor: async () => {
-            const [tailRevision, headRevision] = await Promise.all([
-              this.tailText().revision(),
-              this.headText().revision(),
-            ]);
-
-            if (tailRevision == null || headRevision == null) return null;
+            const collabText = await getHeadAndTailRevision();
+            if (!collabText) {
+              return null;
+            }
+            const { tailRevision, headRevision } = collabText;
 
             if (isForwardPagination) {
               if (after != null) {
@@ -233,12 +252,11 @@ export abstract class CollabTextQueryMapper implements CollabTextMapper {
             return Math.max(tailRevision, headRevision - last) + 1;
           },
           endCursor: async () => {
-            const [tailRevision, headRevision] = await Promise.all([
-              this.tailText().revision(),
-              this.headText().revision(),
-            ]);
-
-            if (tailRevision == null || headRevision == null) return null;
+            const collabText = await getHeadAndTailRevision();
+            if (!collabText) {
+              return null;
+            }
+            const { tailRevision, headRevision } = collabText;
 
             if (isForwardPagination) {
               if (after != null) {

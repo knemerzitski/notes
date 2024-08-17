@@ -1,6 +1,8 @@
 import { GraphQLResolveInfo } from 'graphql';
 
 import { RelayArrayPaginationConfig } from '../../mongodb/pagination/relay-array-pagination';
+import { MongoQueryFn } from '../../mongodb/query/query';
+import { RevisionChangesetSchema } from '../../mongodb/schema/collab-text/collab-text';
 import { PageInfoMapper } from '../base/schema.mappers';
 import { ApiGraphQLContext } from '../context';
 import {
@@ -36,8 +38,7 @@ export interface CollabTextRecordMapper {
 }
 
 export interface RevisionChangesetMapper {
-  revision(): ResolverTypeWrapper<number>;
-  changeset(): ResolversTypes['Changeset'];
+  readonly query: MongoQueryFn<RevisionChangesetSchema>;
 }
 
 export interface CollabTextSelectionRangeMapper {
