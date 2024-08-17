@@ -1,7 +1,8 @@
 import { Maybe, MaybePromise } from '~utils/types';
 import { ResolverTypeWrapper } from '../types.generated';
 
-export function maybeFn<T>(wrapper: ResolverTypeWrapper<T>): MaybePromise<Maybe<T>> {
+// TODO utils generic func??
+export function maybeCallFn<T>(wrapper: ResolverTypeWrapper<T>): MaybePromise<Maybe<T>> {
   if (wrapper instanceof Promise) {
     return wrapper;
   }

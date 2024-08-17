@@ -15,14 +15,18 @@ import { RelayPagination } from '../../../../mongodb/pagination/relay-array-pagi
 import { createCollabText } from '../../../../mongodb/schema/collab-text/utils/create-collab-text';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { objectIdToStr } from '../../../base/resolvers/ObjectID';
-import { NoteQueryMapper } from '../../mongo-query-mapper/note';
+import {
+  createNoteCollabTextMapper,
+  NoteQueryMapper,
+} from '../../mongo-query-mapper/note';
 import { throwNoteIsReadOnly, throwNoteNotFound } from '../../utils/note-errors';
 import { findNoteUser } from '../../utils/user-note';
 import { publishNoteUpdated } from '../Subscription/noteEvents';
 
 import type { MutationResolvers } from './../../../types.generated';
-import { NoteCollabTextQueryMapper } from '../../mongo-query-mapper/note-collab-text';
 import { CollabTextRecordMapper } from '../../../collab/schema.mappers';
+import { MongoQueryFn } from '../../../../mongodb/query/query';
+import { QueryableNote } from '../../../../mongodb/schema/note/query/queryable-note';
 
 export const updateNoteTextFieldInsertRecord: NonNullable<
   MutationResolvers['updateNoteTextFieldInsertRecord']
@@ -430,23 +434,22 @@ export const updateNoteTextFieldInsertRecord: NonNullable<
   );
 
   function createMappersForUser(userId: ObjectId) {
+    const queryNote: MongoQueryFn<QueryableNote> = (query) =>
+      mongodb.loaders.note.load({
+        id: {
+          userId: currentUserId,
+          noteId,
+        },
+        query,
+      });
     const noteMapper = new NoteQueryMapper(userId, {
-      query: (query) =>
-        mongodb.loaders.note.load({
-          id: {
-            userId: currentUserId,
-            noteId,
-          },
-          query,
-        }),
+      query: queryNote,
     });
 
-    const collabTextMapper = new NoteCollabTextQueryMapper(noteMapper, textField, {
-      query: () => null,
-    });
+    const collabTextMapper = createNoteCollabTextMapper(textField, queryNote);
 
     const collabTextRecordMapper: CollabTextRecordMapper = {
-      parentId: () => collabTextMapper.id(),
+      parentId: collabTextMapper.id,
       query: () => newRecord,
     };
 
@@ -472,7 +475,7 @@ export const updateNoteTextFieldInsertRecord: NonNullable<
                 {
                   key: textField,
                   value: {
-                    id: () => userMappers.collabText.id(),
+                    id: userMappers.collabText.id,
                     newRecord: () => userMappers.newRecord,
                     isExistingRecord: () => isExistingRecord,
                   },

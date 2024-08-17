@@ -1,12 +1,12 @@
 import { objectIdToStr } from '../../base/resolvers/ObjectID';
-import { maybeFn } from '../../utils/maybe-fn';
+import { maybeCallFn } from '../../utils/maybe-call-fn';
 
 import type { CollabTextRecordResolvers } from './../../types.generated';
 
 export const CollabTextRecord: CollabTextRecordResolvers = {
   id: async (parent) => {
     const [parentId, record] = await Promise.all([
-      maybeFn(parent.parentId),
+      maybeCallFn(parent.parentId),
       parent.query({
         revision: 1,
       }),

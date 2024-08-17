@@ -2,7 +2,7 @@ import { ObjectId } from 'mongodb';
 
 import { Changeset } from '~collab/changeset/changeset';
 
-import { DeepQueryResult, MongoQuery } from '../../../mongodb/query/query';
+import { DeepQueryResult, MongoQuery, MongoQueryFn } from '../../../mongodb/query/query';
 import { QueryableNote } from '../../../mongodb/schema/note/query/queryable-note';
 import { objectIdToStr } from '../../base/resolvers/ObjectID';
 import {
@@ -11,16 +11,55 @@ import {
   NoteTextField,
   NotetextFieldsArgs,
 } from '../../types.generated';
-import { NoteMapper } from '../schema.mappers';
+import { NoteMapper, NoteTextFieldEntryMapper } from '../schema.mappers';
 
 import { findNoteUser } from '../utils/user-note';
 
-import { NoteCollabTextQueryMapper } from './note-collab-text';
 import { NotePreferencesQueryMapper } from './note-preferences';
 import { GraphQLResolversContext } from '../../context';
 import { GraphQLResolveInfo } from 'graphql';
 import { createGetUserByIndex, NoteUsersQueryMapper } from './note-users';
 import { withPreFetchedArraySize } from '../../utils/with-pre-fetched-array-size';
+import { QueryableCollabTextSchema } from '../../../mongodb/schema/collab-text/query/collab-text';
+import { CollabTextMapper } from '../../collab/schema.mappers';
+
+const DEFAULT_COLLAB_TEXT: QueryableCollabTextSchema = {
+  headText: {
+    changeset: Changeset.EMPTY.serialize(),
+    revision: 0,
+  },
+  tailText: {
+    changeset: Changeset.EMPTY.serialize(),
+    revision: 0,
+  },
+  records: [],
+};
+
+export function createNoteCollabTextMapper(
+  fieldName: string,
+  noteQuery: MongoQueryFn<QueryableNote>
+): CollabTextMapper {
+  return {
+    id: async () => {
+      const note = await noteQuery({
+        _id: 1,
+      });
+      const noteIdStr = objectIdToStr(note?._id);
+
+      if (!noteIdStr) return null;
+
+      return `${noteIdStr}:${fieldName}`;
+    },
+    query: async (query) =>
+      (
+        await noteQuery({
+          collabTexts: {
+            [fieldName]: query,
+          },
+        })
+      )?.collabTexts?.[fieldName] ?? DEFAULT_COLLAB_TEXT,
+  };
+}
 
 export class NoteQueryMapper implements NoteMapper {
   private readonly targetUserId: ObjectId;
@@ -55,34 +94,12 @@ export class NoteQueryMapper implements NoteMapper {
     return `${noteId}:${objectIdToStr(this.targetUserId)}`;
   }
 
-  textFields(args?: NotetextFieldsArgs) {
+  textFields(args?: NotetextFieldsArgs): NoteTextFieldEntryMapper[] {
     const fields = args?.name ? [args.name] : Object.values(NoteTextField);
-    return fields.map((field) => {
+    return fields.map((fieldName) => {
       return {
-        key: field,
-        value: new NoteCollabTextQueryMapper(this, field, {
-          query: async (query) => {
-            return (
-              (
-                await this.note.query({
-                  collabTexts: {
-                    [field]: query,
-                  },
-                })
-              )?.collabTexts?.[field] ?? {
-                headText: {
-                  changeset: Changeset.EMPTY.serialize(),
-                  revision: 0,
-                },
-                tailText: {
-                  changeset: Changeset.EMPTY.serialize(),
-                  revision: 0,
-                },
-                records: [],
-              }
-            );
-          },
-        }),
+        key: fieldName,
+        value: createNoteCollabTextMapper(fieldName, (q) => this.note.query(q)),
       };
     });
   }

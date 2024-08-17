@@ -53,6 +53,11 @@ export type RelayPagination<TCursor> =
   | RelayForwardsPagination<TCursor>
   | RelayBackwardsPagination<TCursor>;
 
+export type RelayBoundPagination<TCursor> = Exclude<
+  RelayPagination<TCursor>,
+  RelayBeforeUnboundPagination<TCursor> | RelayAfterUnboundPagination<TCursor>
+>;
+
 /**
  * @returns String that is unique for a pagination.
  */
@@ -62,6 +67,16 @@ export function getPaginationKey<T>(p: RelayPagination<T>): string {
   } else {
     return `b${p.before != null ? String(p.before) : ''}:${p.last ?? ''}`;
   }
+}
+
+export function isForwardPagination<TCursor, T extends RelayPagination<TCursor>>(
+  pagination: T
+  // remove others
+): pagination is Exclude<T, RelayLastPagination | RelayBeforePagination<TCursor>> {
+  return (
+    ('first' in pagination && pagination.first != null) ||
+    ('after' in pagination && pagination.after != null)
+  );
 }
 
 export function isFirstPagination<TCursor>(
