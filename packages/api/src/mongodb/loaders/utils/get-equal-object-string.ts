@@ -5,7 +5,7 @@ import { sortObject } from '~utils/object/sort-object';
 export function getEqualObjectString(obj: unknown) {
   return JSON.stringify(
     sortObject(obj, {
-      sort: sortEverythingExceptObjectId,
+      sort: sortEverythingExceptObjectIdAndDate,
       exclude: excludeIsUndefined,
     }),
     null,
@@ -13,8 +13,9 @@ export function getEqualObjectString(obj: unknown) {
   );
 }
 
-function sortEverythingExceptObjectId(value: object) {
-  return !(value instanceof ObjectId);
+function sortEverythingExceptObjectIdAndDate(value: object) {
+  const excludeClasses = [ObjectId, Date];
+  return !excludeClasses.some((KlassConstructor) => value instanceof KlassConstructor);
 }
 
 function excludeIsUndefined({ value }: { value: unknown }) {

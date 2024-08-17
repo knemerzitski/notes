@@ -26,10 +26,8 @@ export const createNoteSharing: NonNullable<
     noteQuery: {
       _id: 1,
       shareNoteLinks: {
-        $query: {
-          expireAccessCount: 1,
-          expireAt: 1,
-        },
+        expireAccessCount: 1,
+        expireAt: 1,
       },
     },
   });

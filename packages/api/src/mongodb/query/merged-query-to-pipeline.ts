@@ -7,7 +7,7 @@ import { isDefined } from '~utils/type-guards/is-defined';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 
 import { DeepAnyDescription, FieldDescription } from './description';
-import { isMergedArrayQuery, MergedDeepQuery } from './merge-queries';
+import { isMergedQueryArgField, MergedDeepQuery } from './merge-queries';
 
 export function mergedQueryToPipeline<TSchema = unknown, TContext = unknown>(
   rootQuery: MergedDeepQuery<TSchema>,
@@ -232,15 +232,16 @@ export function buildStages<TSchema = unknown, TContext = unknown>(
       const { query, description, rootPath, relativePath } = item;
 
       // Queue next depth
-      const targetQuery = isMergedArrayQuery(query) ? query.$query : query;
-      if (isObjectLike(targetQuery)) {
+      if (isObjectLike(query)) {
         let deeperQueue = depthQueue[currentDepth + 1];
         if (!deeperQueue) {
           deeperQueue = [];
           depthQueue[currentDepth + 1] = deeperQueue;
         }
-        for (const subQueryKey of Object.keys(targetQuery)) {
-          const subQuery = targetQuery[subQueryKey as keyof typeof targetQuery];
+        for (const subQueryKey of Object.keys(query)) {
+          if (isMergedQueryArgField(subQueryKey)) continue;
+
+          const subQuery = query[subQueryKey as keyof typeof query];
           if (subQuery == null) {
             continue;
           }
@@ -271,9 +272,8 @@ function traverseToDepthQueueItem<TSchema, TContext>(
   for (const subQueryKey of path.split('.')) {
     const query = target.query;
     const description = target.description;
-    const targetQuery = isMergedArrayQuery(query) ? query.$query : query;
-    if (isObjectLike(targetQuery)) {
-      const subQuery = targetQuery[subQueryKey as keyof typeof targetQuery];
+    if (isObjectLike(query)) {
+      const subQuery = query[subQueryKey as keyof typeof query];
       if (subQuery == null) {
         return null;
       }
@@ -311,9 +311,19 @@ function groupByDescription<D, T extends { description?: D }>(arr: T[] | undefin
 }
 
 export type MapLastProjectResolver<TSchema = unknown> = (
-  query: MergedDeepQuery<TSchema>,
-  projectValue: unknown
+  context: MapLastProjectContext<TSchema>
 ) => unknown;
+
+export interface MapLastProjectContext<TSchema = unknown> {
+  /**
+   * Raw query used for creating the projection
+   */
+  query: MergedDeepQuery<TSchema>;
+  /**
+   * Actual $project value
+   */
+  projectValue: TSchema extends object ? Record<string, unknown> : unknown;
+}
 
 interface BuildLastProjectValueContext<TSchema = unknown, TContext = unknown> {
   descriptions?: DeepAnyDescription<TSchema, unknown, TContext>[];
@@ -327,10 +337,11 @@ export function buildLastProjectValue<TSchema = unknown, TContext = unknown>(
 
   const descriptions = context?.descriptions ?? [];
 
-  const targetQuery = isMergedArrayQuery(rootQuery) ? rootQuery.$query : rootQuery;
-  if (isObjectLike(targetQuery)) {
-    for (const subQueryKey of Object.keys(targetQuery)) {
-      const subQuery = targetQuery[subQueryKey as keyof typeof targetQuery];
+  if (isObjectLike(rootQuery)) {
+    for (const subQueryKey of Object.keys(rootQuery)) {
+      if (isMergedQueryArgField(subQueryKey)) continue;
+
+      const subQuery = rootQuery[subQueryKey as keyof typeof rootQuery];
       if (subQuery == null) {
         continue;
       }
@@ -372,7 +383,12 @@ export function buildLastProjectValue<TSchema = unknown, TContext = unknown>(
   const resolvers = descriptions.map((desc) => desc.$mapLastProject).filter(isDefined);
 
   resolvers.forEach((resolver) => {
-    const mappedLastProject = resolver(rootQuery, projectValue ?? rootQuery);
+    const mappedLastProject = resolver({
+      query: rootQuery,
+      projectValue: (projectValue ?? rootQuery) as TSchema extends object
+        ? Record<string, unknown>
+        : unknown,
+    });
     if (mappedLastProject != null) {
       let isReplace = false;
       if (typeof mappedLastProject === 'object' && '$replace' in mappedLastProject) {

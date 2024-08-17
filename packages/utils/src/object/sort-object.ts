@@ -9,7 +9,8 @@ interface KeyValueObject {
 
 interface SortObjectOptions {
   /**
-   * Sort object value
+   * Sort this object by going deeper.
+   * Return false for objects that are considered primitive.
    */
   sort?: (value: object) => boolean;
   /**

@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 interface SplitObjectOptions {
   /**
-   * Objects in these keys are kept as is without modification
+   * Keep this key, value pair in each split object. It won't be traversed and is left as is.
    */
-  keepKeysUnmodified?: string[];
+  keepFn?: (key: string, value: unknown) => boolean;
   /**
    * Condition for splitting the value.
    * By default primitive values: number, string, boolean, null, undefined
@@ -46,31 +46,31 @@ export function splitObject<T extends object>(
     }
   }
 
-  const result: Record<string, unknown>[] = [];
+  const splitObjs: Record<string, unknown>[] = [];
 
   // Make a copy of object to be passed down based on 'keepKeysUnmodified'
-  const extraPathObj: Record<string, unknown> = {};
-  if (options?.keepKeysUnmodified && options.keepKeysUnmodified.length > 0) {
+  const commonObj: Record<string, unknown> = {};
+  if (options?.keepFn) {
     for (const [key, value] of entries) {
-      if (options.keepKeysUnmodified.includes(key)) {
-        extraPathObj[key] = value;
+      if (options.keepFn(key, value)) {
+        commonObj[key] = value;
       }
     }
   }
 
   for (const [key, value] of entries) {
     // Ignore keys already in extraPathObj
-    if (key in extraPathObj) continue;
+    if (key in commonObj) continue;
 
     if (isPrim(value)) {
       // Creates nested path of objects with single value
-      result.push(fromParentPathObj({ [key]: value }));
+      splitObjs.push(fromParentPathObj({ ...commonObj, [key]: value }));
     } else if (value != null && typeof value === 'object') {
-      result.push(
+      splitObjs.push(
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         ...splitObject(value, options, (innerObj) =>
           fromParentPathObj({
-            ...extraPathObj,
+            ...commonObj,
             [key]: {
               ...innerObj,
             },
@@ -81,5 +81,5 @@ export function splitObject<T extends object>(
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return
-  return result as any;
+  return splitObjs as any;
 }

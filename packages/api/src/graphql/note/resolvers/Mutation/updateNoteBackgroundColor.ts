@@ -23,11 +23,9 @@ export const updateNoteBackgroundColor: NonNullable<
     query: {
       _id: 1,
       users: {
-        $query: {
-          _id: 1,
-          preferences: {
-            backgroundColor: 1,
-          },
+        _id: 1,
+        preferences: {
+          backgroundColor: 1,
         },
       },
     },
@@ -88,10 +86,8 @@ export const updateNoteBackgroundColor: NonNullable<
       },
       query: {
         users: {
-          $query: {
-            preferences: {
-              backgroundColor: 1,
-            },
+          preferences: {
+            backgroundColor: 1,
           },
         },
       },

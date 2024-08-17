@@ -92,10 +92,8 @@ export class NoteQueryMapper implements NoteMapper {
       this.getTargetNoteUser(
         await this.note.query({
           users: {
-            $query: {
-              _id: 1,
-              readOnly: 1,
-            },
+            _id: 1,
+            readOnly: 1,
           },
         })
       )?.readOnly ?? false
@@ -108,10 +106,8 @@ export class NoteQueryMapper implements NoteMapper {
         return this.getTargetNoteUser(
           await this.note.query({
             users: {
-              $query: {
-                _id: 1,
-                preferences: query,
-              },
+              _id: 1,
+              preferences: query,
             },
           })
         )?.preferences;
@@ -123,10 +119,8 @@ export class NoteQueryMapper implements NoteMapper {
     return this.getTargetNoteUser(
       await this.note.query({
         users: {
-          $query: {
-            _id: 1,
-            createdAt: 1,
-          },
+          _id: 1,
+          createdAt: 1,
         },
       })
     )?.createdAt;
@@ -135,9 +129,7 @@ export class NoteQueryMapper implements NoteMapper {
   async sharing() {
     const note = await this.note.query({
       shareNoteLinks: {
-        $query: {
-          publicId: 1,
-        },
+        publicId: 1,
       },
     });
 
@@ -152,10 +144,8 @@ export class NoteQueryMapper implements NoteMapper {
   async categoryName() {
     const note = await this.note.query({
       users: {
-        $query: {
-          _id: 1,
-          categoryName: 1,
-        },
+        _id: 1,
+        categoryName: 1,
       },
     });
 
@@ -165,11 +155,9 @@ export class NoteQueryMapper implements NoteMapper {
   async deletedAt() {
     const note = await this.note.query({
       users: {
-        $query: {
-          _id: 1,
-          trashed: {
-            expireAt: 1,
-          },
+        _id: 1,
+        trashed: {
+          expireAt: 1,
         },
       },
     });

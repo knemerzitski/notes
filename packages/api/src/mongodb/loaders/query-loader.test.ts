@@ -88,10 +88,8 @@ it('query is split: any future partial query is cached', async () => {
       id: 1,
       description: 1,
       topProducts: {
-        $query: {
-          name: 1,
-          price: 1,
-        },
+        name: 1,
+        price: 1,
       },
     },
   });
@@ -128,9 +126,7 @@ it('query is split: any future partial query is cached', async () => {
     query: {
       id: 1,
       topProducts: {
-        $query: {
-          name: 1,
-        },
+        name: 1,
       },
     },
   });

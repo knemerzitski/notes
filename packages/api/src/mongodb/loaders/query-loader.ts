@@ -9,6 +9,8 @@ import { MaybePromise } from '~utils/types';
 import { DeepQuery, DeepQueryResult } from '../query/query';
 
 import { getEqualObjectString } from './utils/get-equal-object-string';
+import { isObjectLike } from '~utils/type-guards/is-object-like';
+import { isQueryArgField } from '../query/merge-queries';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type QueryLoaderEvents<I, Q extends object, QR = Q> = {
@@ -63,9 +65,11 @@ export interface PrimeOptions {
   clearCache?: boolean;
 }
 
-function splitQuery<T extends object>(obj: T) {
+function splitQuery<T>(obj: T) {
+  if (!isObjectLike(obj)) return [obj];
+
   return splitObject(obj, {
-    keepKeysUnmodified: ['$pagination'],
+    keepFn: isQueryArgField,
   });
 }
 
@@ -121,10 +125,6 @@ export class QueryLoader<I, Q extends object, G, R, QR = Q> {
     value: DeepQueryResult<QR>,
     options?: PrimeOptions
   ) {
-    if (!key.query) {
-      return;
-    }
-
     const cacheIsStale = options?.clearCache ?? false;
 
     splitQuery(key.query).forEach((leafQuery) => {
@@ -150,11 +150,6 @@ export class QueryLoader<I, Q extends object, G, R, QR = Q> {
 
   async load(key: QueryLoaderCacheKey<I, Q>, options?: LoadOptions<R>) {
     const cacheIsStale = options?.skipCache ?? false;
-
-    if (key.query == null) {
-      return;
-    }
-
     const leafResults = await Promise.all(
       splitQuery(key.query).map(async (leafQuery) => {
         const leafLoaderKey: QueryLoaderKey<I, Q, R> = {

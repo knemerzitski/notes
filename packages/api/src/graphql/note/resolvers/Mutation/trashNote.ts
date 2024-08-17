@@ -10,8 +10,6 @@ import { publishNoteUpdated } from '../Subscription/noteEvents';
 
 import { NoteCategory, type MutationResolvers } from './../../../types.generated';
 
-
-
 export const trashNote: NonNullable<MutationResolvers['trashNote']> = async (
   _parent,
   { input: { noteId } },
@@ -30,12 +28,10 @@ export const trashNote: NonNullable<MutationResolvers['trashNote']> = async (
     query: {
       _id: 1,
       users: {
-        $query: {
-          _id: 1,
-          categoryName: 1,
-          trashed: {
-            expireAt: 1,
-          },
+        _id: 1,
+        categoryName: 1,
+        trashed: {
+          expireAt: 1,
         },
       },
     },
@@ -125,11 +121,9 @@ export const trashNote: NonNullable<MutationResolvers['trashNote']> = async (
       },
       query: {
         users: {
-          $query: {
-            trashed: {
-              expireAt: 1,
-              originalCategoryName: 1,
-            },
+          trashed: {
+            expireAt: 1,
+            originalCategoryName: 1,
           },
         },
       },

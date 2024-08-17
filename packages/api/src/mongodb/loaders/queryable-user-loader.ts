@@ -109,10 +109,7 @@ export async function queryableUserBatchLoad(
         const userId = ObjectId.createFromHexString(userIdStr);
 
         // Merge queries
-        const mergedQuery = mergeQueries(
-          {},
-          sameUserLoadKeys.map(({ query }) => query)
-        );
+        const mergedQuery = mergeQueries(sameUserLoadKeys.map(({ query }) => query));
 
         // Build aggregate pipeline
         const aggregatePipeline = mergedQueryToPipeline(mergedQuery, {

@@ -76,7 +76,7 @@ it('loading note from user primes userNote loader', async () => {
                 $pagination: {
                   first: 2,
                 },
-                $query: userNoteQuery,
+                ...userNoteQuery,
               },
             },
           },

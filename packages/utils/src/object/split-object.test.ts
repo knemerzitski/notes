@@ -121,10 +121,8 @@ it.each([
         $pagination: {
           first: 2,
         },
-        $query: {
-          name: 1,
-          quantity: 1,
-        },
+        name: 1,
+        quantity: 1,
       },
     },
     [
@@ -136,9 +134,7 @@ it.each([
           $pagination: {
             first: 2,
           },
-          $query: {
-            name: 1,
-          },
+          name: 1,
         },
       },
       {
@@ -146,9 +142,7 @@ it.each([
           $pagination: {
             first: 2,
           },
-          $query: {
-            quantity: 1,
-          },
+          quantity: 1,
         },
       },
     ],
@@ -157,10 +151,8 @@ it.each([
     {
       publicId: 1,
       userNotes: {
-        $query: {
-          isOwner: 1,
-          readOnly: 1,
-        },
+        isOwner: 1,
+        readOnly: 1,
       },
       collabTexts: {
         title: {
@@ -168,12 +160,10 @@ it.each([
             changeset: 1,
           },
           records: {
-            $query: {
-              revision: 1,
-            },
             $pagination: {
               last: 2,
             },
+            revision: 1,
           },
         },
       },
@@ -184,16 +174,12 @@ it.each([
       },
       {
         userNotes: {
-          $query: {
-            isOwner: 1,
-          },
+          isOwner: 1,
         },
       },
       {
         userNotes: {
-          $query: {
-            readOnly: 1,
-          },
+          readOnly: 1,
         },
       },
       {
@@ -209,22 +195,30 @@ it.each([
         collabTexts: {
           title: {
             records: {
-              $query: {
-                revision: 1,
-              },
               $pagination: {
                 last: 2,
               },
+              revision: 1,
             },
           },
         },
       },
     ],
   ],
+  [
+    {
+      items: { $pagination: { after: undefined, first: 4 }, _id: 1 },
+    },
+    [
+      {
+        items: { $pagination: { after: undefined, first: 4 }, _id: 1 },
+      },
+    ],
+  ],
 ])('%s => %s', (bigQuery, expectedLeaves) => {
   expect(
     splitObject(bigQuery, {
-      keepKeysUnmodified: ['$pagination'],
+      keepFn: (key) => key.startsWith('$'),
     })
   ).toStrictEqual(expectedLeaves);
 });

@@ -79,27 +79,21 @@ it('loads paginated notes', async () => {
                       $pagination: {
                         last: 2,
                       },
-                      $query: {
-                        _id: 1,
-                        users: {
-                          $query: {
-                            readOnly: 1,
-                            createdAt: 1,
+                      _id: 1,
+                      users: {
+                        readOnly: 1,
+                        createdAt: 1,
+                      },
+                      collabTexts: {
+                        [TestCollabTextKey.TEXT]: {
+                          headText: {
+                            changeset: 1,
                           },
-                        },
-                        collabTexts: {
-                          [TestCollabTextKey.TEXT]: {
-                            headText: {
-                              changeset: 1,
+                          records: {
+                            $pagination: {
+                              first: 2,
                             },
-                            records: {
-                              $query: {
-                                revision: 1,
-                              },
-                              $pagination: {
-                                first: 2,
-                              },
-                            },
+                            revision: 1,
                           },
                         },
                       },
@@ -192,9 +186,7 @@ it('loads many different paginations', async () => {
               order: {
                 items: {
                   $pagination: pagination,
-                  $query: {
-                    _id: 1,
-                  },
+                  _id: 1,
                 },
               },
             },
@@ -282,9 +274,7 @@ it('loads firstId, lastId with pagination', async () => {
                       $pagination: {
                         first: 1,
                       },
-                      $query: {
-                        _id: 1,
-                      },
+                      _id: 1,
                     },
                     firstId: 1,
                     lastId: 1,
@@ -338,9 +328,7 @@ it('returns empty array for invalid path', async () => {
                       $pagination: {
                         last: 2,
                       },
-                      $query: {
-                        _id: 1,
-                      },
+                      _id: 1,
                     },
                   },
                 },
@@ -383,9 +371,7 @@ it('loads all notes without pagination', async () => {
                 [TestNoteCategory.MAIN]: {
                   order: {
                     items: {
-                      $query: {
-                        _id: 1,
-                      },
+                      _id: 1,
                     },
                   },
                 },

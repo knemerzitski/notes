@@ -1,7 +1,9 @@
+import { OmitStartsWith } from '~utils/types';
 import { MongoPrimitive } from '../types';
 
 import { MapAggregateResultResolver } from './map-query-aggregate-result';
 import { AddStagesResolver, MapLastProjectResolver } from './merged-query-to-pipeline';
+import { QueryArgPrefix } from './query';
 
 export interface FieldDescription<
   TSchema = unknown,
@@ -28,34 +30,28 @@ export interface FieldDescription<
    */
   $mapAggregateResult?: MapAggregateResultResolver<TSchema, TResult>;
   $anyKey?: DeepAnyDescription<
-    TSchema extends object ? TSchema[keyof TSchema] : unknown,
+    TSchema extends Record<string, unknown> ? TSchema[keyof TSchema] : unknown,
     TResult extends object ? TResult[keyof TResult] : unknown,
     TContext
   >;
 }
 
-export type DeepAnyDescription<
-  T,
-  R = unknown,
-  C = unknown,
-  IsArrayItem = false,
-> = T extends (infer U)[]
-  ? DeepAnyDescription<U, R, C, true>
+export type DeepAnyDescription<T, R = unknown, C = unknown> = T extends (infer U)[]
+  ? DeepAnyDescription<U, R, C>
   : T extends MongoPrimitive
     ? FieldDescription<T, R, C>
     : T extends object
-      ? DeepObjectDescription<T, R, C, IsArrayItem>
+      ? DeepObjectDescription<T, R, C>
       : FieldDescription<T, R, C>;
 
-type DeepObjectDescription<
-  T extends object,
-  R,
-  C,
-  IsArrayItem = false,
-> = FieldDescription<IsArrayItem extends true ? T[] : T, R, C> & {
-  [Key in keyof T]?: DeepAnyDescription<
-    T[Key],
-    R extends object ? R[keyof R] : unknown,
-    C
+type DeepObjectDescription<T extends object, R, C> = FieldDescription<T, R, C> &
+  OmitStartsWith<
+    {
+      [Key in keyof T]?: DeepAnyDescription<
+        T[Key],
+        R extends object ? R[keyof R] : unknown,
+        C
+      >;
+    },
+    QueryArgPrefix
   >;
-};

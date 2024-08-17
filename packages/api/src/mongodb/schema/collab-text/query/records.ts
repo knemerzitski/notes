@@ -3,13 +3,14 @@ import {
   consecutiveIntArrayPagination,
 } from '../../../pagination/consecutive-int-array-pagination';
 import {
-  paginationStringToInt,
   RelayArrayPaginationInput,
   RelayArrayPaginationAggregateResult,
+  RelayPagination,
 } from '../../../pagination/relay-array-pagination';
 import { FieldDescription } from '../../../query/description';
 import { DeepQueryResult } from '../../../query/query';
 import { CollabTextSchema, RevisionRecordSchema } from '../collab-text';
+import { isDefined } from '~utils/type-guards/is-defined';
 
 export type RecordsPaginationOperationOptions = Omit<
   RelayArrayPaginationInput<number>,
@@ -46,9 +47,13 @@ function toCursor(record?: Partial<Pick<RevisionRecordSchema, 'revision'>>) {
   return revision;
 }
 
+export type QueryableRecords = CollabTextSchema['records'] & {
+  $pagination?: RelayPagination<number>;
+};
+
 export const recordsResolvers: FieldDescription<
-  CollabTextSchema['records'],
-  RecordsPaginationResult<DeepQueryResult<CollabTextSchema['records'][0]>>
+  QueryableRecords,
+  RecordsPaginationResult<DeepQueryResult<QueryableRecords[0]>>
 > = {
   $addStages({ fields }) {
     return [
@@ -58,7 +63,7 @@ export const recordsResolvers: FieldDescription<
             `${parentRelativePath}._records`,
             recordsPagination({
               fieldPath: relativePath,
-              paginations: query.$paginations?.map(paginationStringToInt),
+              paginations: query.$args?.map((arg) => arg.$pagination).filter(isDefined),
             }),
           ])
         ),
@@ -73,11 +78,11 @@ export const recordsResolvers: FieldDescription<
       },
     ];
   },
-  $mapLastProject(query) {
+  $mapLastProject({ projectValue }) {
     return {
       $replace: true,
       array: {
-        ...query.$query,
+        ...projectValue,
         revision: 1,
       },
       sizes: 1,
@@ -88,9 +93,6 @@ export const recordsResolvers: FieldDescription<
       return result.array;
     }
 
-    return recordsPaginationMapAggregateResult(
-      paginationStringToInt(query.$pagination),
-      result
-    );
+    return recordsPaginationMapAggregateResult(query.$pagination, result);
   },
 };

@@ -8,7 +8,6 @@ import {
   applyLimit,
 } from '../../../mongodb/pagination/relay-array-pagination';
 import { MongoQuery } from '../../../mongodb/query/query';
-import { CollabTextSchema } from '../../../mongodb/schema/collab-text/collab-text';
 import { ApiGraphQLContext } from '../../context';
 import {
   CollabTextrecordsConnectionArgs,
@@ -23,11 +22,12 @@ import {
   PreFetchedArrayGetItemFn,
   withPreFetchedArraySize,
 } from '../../utils/with-pre-fetched-array-size';
+import { QueryableCollabTextSchema } from '../../../mongodb/schema/collab-text/query/collab-text';
 
 export abstract class CollabTextQueryMapper implements CollabTextMapper {
-  private collabText: MongoQuery<CollabTextSchema>;
+  private collabText: MongoQuery<QueryableCollabTextSchema>;
 
-  constructor(collabText: MongoQuery<CollabTextSchema>) {
+  constructor(collabText: MongoQuery<QueryableCollabTextSchema>) {
     this.collabText = collabText;
   }
 
@@ -81,12 +81,10 @@ export abstract class CollabTextQueryMapper implements CollabTextMapper {
           this.tailText().changeset(),
           this.collabText.query({
             records: {
-              $query: {
-                changeset: 1,
-              },
               $pagination: {
-                before: String(targetRevision + 1),
+                before: targetRevision + 1,
               },
+              changeset: 1,
             },
           }),
         ]);
@@ -143,8 +141,8 @@ export abstract class CollabTextQueryMapper implements CollabTextMapper {
         query: async (query) => {
           const result = await this.collabText.query({
             records: {
-              $query: query,
               $pagination: pagination,
+              ...query,
             },
           });
           updateSize(result?.records?.length);

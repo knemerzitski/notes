@@ -50,11 +50,9 @@ export const deleteNoteFn: (
     query: {
       _id: 1,
       users: {
-        $query: {
-          _id: 1,
-          createdAt: 1,
-          categoryName: 1,
-        },
+        _id: 1,
+        createdAt: 1,
+        categoryName: 1,
       },
     },
   });

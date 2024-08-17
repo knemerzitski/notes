@@ -1,6 +1,5 @@
 import { __InputValue } from 'graphql';
 
-
 import { ObjectId, UpdateFilter } from 'mongodb';
 
 import { DeepQueryResult } from '../../../../mongodb/query/query';
@@ -41,13 +40,11 @@ export const moveNote: NonNullable<MutationResolvers['moveNote']> = async (
         query: {
           _id: 1,
           users: {
-            $query: {
-              _id: 1,
-              categoryName: 1,
-              trashed: {
-                expireAt: 1,
-                originalCategoryName: 1,
-              },
+            _id: 1,
+            categoryName: 1,
+            trashed: {
+              expireAt: 1,
+              originalCategoryName: 1,
             },
           },
         },
@@ -326,13 +323,11 @@ export const moveNote: NonNullable<MutationResolvers['moveNote']> = async (
         },
         query: {
           users: {
-            $query: {
-              _id: 1,
-              categoryName: 1,
-              trashed: {
-                expireAt: 1,
-                originalCategoryName: 1,
-              },
+            _id: 1,
+            categoryName: 1,
+            trashed: {
+              expireAt: 1,
+              originalCategoryName: 1,
             },
           },
         },

@@ -2,7 +2,10 @@ import { CollectionName, MongoDBCollectionsOnlyNames } from '../../../collection
 import { DeepAnyDescription } from '../../../query/description';
 import { AddStagesResolver } from '../../../query/merged-query-to-pipeline';
 import { CollabTextSchema } from '../../collab-text/collab-text';
-import { collabTextDescription } from '../../collab-text/query/collab-text';
+import {
+  collabTextDescription,
+  QueryableCollabTextSchema,
+} from '../../collab-text/query/collab-text';
 import { UserSchema } from '../../user/user';
 import { NoteSchema } from '../note';
 import { NoteUserSchema } from '../note-user';
@@ -10,7 +13,7 @@ import { NoteUserSchema } from '../note-user';
 export type QueryableNote = Omit<NoteSchema, 'collabTexts' | 'users'> & {
   collabTexts?: Record<
     NonNullable<NoteSchema['collabTexts']>[0]['k'],
-    NonNullable<NoteSchema['collabTexts']>[0]['v']
+    QueryableCollabTextSchema
   >;
   users?: (NoteUserSchema & {
     user: Omit<UserSchema, 'notes' | 'thirdParty' | '_id'>;
@@ -24,7 +27,11 @@ export interface QueryableNoteContext {
   >;
 }
 
-export const queryableNoteDescription: DeepAnyDescription<QueryableNote> = {
+export const queryableNoteDescription: DeepAnyDescription<
+  QueryableNote,
+  unknown,
+  QueryableNoteContext
+> = {
   collabTexts: {
     $addStages({
       fields,
@@ -48,18 +55,7 @@ export const queryableNoteDescription: DeepAnyDescription<QueryableNote> = {
   users: {
     // Lookup UserSchema by Note.users._id
     user: {
-      $addStages({
-        customContext,
-        subStages,
-        subLastProject,
-      }: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        customContext: any;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        subStages: any;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        subLastProject: any;
-      }) {
+      $addStages({ customContext, subStages, subLastProject }) {
         return [
           {
             $lookup: {
@@ -103,9 +99,9 @@ export const queryableNoteDescription: DeepAnyDescription<QueryableNote> = {
       },
     },
   },
-  $mapLastProject(query) {
+  $mapLastProject({ projectValue }) {
     return {
-      _id: query._id ?? 0,
+      _id: projectValue._id ?? 0,
     };
   },
 };

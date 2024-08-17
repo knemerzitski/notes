@@ -4,7 +4,7 @@ import { isObjectLike } from '~utils/type-guards/is-object-like';
 
 import { DeepAnyDescription, FieldDescription } from './description';
 import { MergedDeepQuery } from './merge-queries';
-import { DeepQuery, DeepQueryResult, isArrayQuery } from './query';
+import { DeepQuery, DeepQueryResult } from './query';
 
 export type MapAggregateResultResolver<TSchema = unknown, TResult = unknown> = (args: {
   query: DeepQuery<TSchema>;
@@ -51,33 +51,27 @@ export function mapQueryAggregateResult<
     aggregateResult
   ) as DeepQueryResult<TSchema>;
 
-  const targetQuery = isArrayQuery(rootQuery) ? rootQuery.$query : rootQuery;
   if (
-    isObjectLike(targetQuery) &&
+    isObjectLike(rootQuery) &&
     aggregateResult != null &&
     typeof aggregateResult === 'object'
   ) {
-    if (isArrayQuery(rootQuery)) {
-      // must map result right await?
-      if (Array.isArray(aggregateResult)) {
-        const targetMergedQuery = isArrayQuery(rootMergedQuery)
-          ? rootMergedQuery.$query
-          : rootMergedQuery;
-        const descriptionsNoResolver = descriptions.map(
-          ({ $mapAggregateResult, ...rest }) => rest
-        ) as DeepAnyDescription<unknown>[];
+    if (Array.isArray(aggregateResult)) {
+      const descriptionsNoResolver = descriptions.map(
+        ({ $mapAggregateResult, ...rest }) => rest
+      ) as DeepAnyDescription<unknown>[];
 
-        return aggregateResult.map((subAggregateResult) =>
-          mapQueryAggregateResult(targetQuery, targetMergedQuery, subAggregateResult, {
-            descriptions: descriptionsNoResolver,
-          })
-        ) as DeepQueryResult<TSchema>;
-      }
+      return aggregateResult.map((subAggregateResult) =>
+        mapQueryAggregateResult(rootQuery, rootMergedQuery, subAggregateResult, {
+          // @ts-expect-error Ignore typing for dynamic object
+          descriptions: descriptionsNoResolver,
+        })
+      ) as DeepQueryResult<TSchema>;
     } else {
       const newAggregateResult: Record<string, unknown> = {};
 
-      for (const subQueryKey of Object.keys(targetQuery)) {
-        const subQuery = targetQuery[subQueryKey as keyof typeof targetQuery];
+      for (const subQueryKey of Object.keys(rootQuery)) {
+        const subQuery = rootQuery[subQueryKey as keyof typeof rootQuery];
         if (subQuery == null) {
           continue;
         }

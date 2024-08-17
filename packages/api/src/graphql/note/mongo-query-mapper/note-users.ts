@@ -40,10 +40,8 @@ export class NoteUsersQueryMapper implements NoteUserMapper {
       query: async (query) => {
         const { _id, ...restQuery } = query;
         const users = await this.users.query({
-          $query: {
-            ...(_id != null && { _id }),
-            user: restQuery,
-          },
+          ...(_id != null && { _id }),
+          user: restQuery,
         });
         if (!users) return;
 
@@ -60,10 +58,8 @@ export class NoteUsersQueryMapper implements NoteUserMapper {
 
   async higherScope() {
     const users = await this.users.query({
-      $query: {
-        _id: 1,
-        createdAt: 1,
-      },
+      _id: 1,
+      createdAt: 1,
     });
     if (!users) return;
 
@@ -84,10 +80,8 @@ export class NoteUsersQueryMapper implements NoteUserMapper {
 
   async readOnly() {
     const users = await this.users.query({
-      $query: {
-        _id: 1,
-        readOnly: 1,
-      },
+      _id: 1,
+      readOnly: 1,
     });
     if (!users) return;
 

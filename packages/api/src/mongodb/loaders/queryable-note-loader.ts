@@ -47,7 +47,7 @@ export type QueryableNoteLoadContext = QueryLoaderContext<GlobalContext, Request
 interface GlobalContext {
   collections: Pick<
     MongoDBContext<MongoDBCollections>['collections'],
-    CollectionName.NOTES
+    CollectionName.NOTES | CollectionName.USERS
   >;
 }
 
@@ -105,7 +105,7 @@ export class QueryableNoteLoader {
     }
 
     Object.entries(key.query.notes.category).forEach(([categoryName, categoryMeta]) => {
-      const noteQuery = categoryMeta?.order?.items?.$query;
+      const noteQuery = categoryMeta?.order?.items;
       if (!noteQuery) {
         return;
       }
@@ -139,7 +139,7 @@ export async function queryableNoteBatchLoad(
     ({ id: { userId } }) => userId?.toString('hex') ?? ''
   );
 
-  const notesBy_userId_publicId = Object.fromEntries(
+  const notesBy_userId_noteId = Object.fromEntries(
     await Promise.all(
       Object.entries(keysByUserId).map(async ([userIdStr, sameUserLoadKeys]) => {
         const userId =
@@ -149,10 +149,7 @@ export async function queryableNoteBatchLoad(
         const allNoteIds = sameUserLoadKeys.map(({ id: { noteId } }) => noteId);
 
         // Merge queries
-        const mergedQuery = mergeQueries(
-          {},
-          sameUserLoadKeys.map(({ query }) => query)
-        );
+        const mergedQuery = mergeQueries(sameUserLoadKeys.map(({ query }) => query));
 
         // _id is required later after aggregate
         mergedQuery._id = 1;
@@ -213,7 +210,7 @@ export async function queryableNoteBatchLoad(
   >;
 
   return keys.map((key) => {
-    const userResult = notesBy_userId_publicId[key.id.userId?.toString() ?? ''];
+    const userResult = notesBy_userId_noteId[key.id.userId?.toString() ?? ''];
     const note = userResult?.noteById[key.id.noteId.toString()];
     if (!note) {
       return null;

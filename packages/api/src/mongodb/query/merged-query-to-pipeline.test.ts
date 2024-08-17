@@ -72,41 +72,12 @@ describe('buildLastProjectValue', () => {
     });
   });
 
-  describe('hops over array $query', () => {
-    it.each([
-      [
-        {
-          items: {
-            $query: {
-              innerItems: {
-                $query: {
-                  name: 1,
-                },
-              },
-            },
-          },
-        },
-        {
-          items: {
-            innerItems: {
-              name: 1,
-            },
-          },
-        },
-      ],
-    ])('(%s,%s) => %s', (query, expectedResult) => {
-      expect(buildLastProjectValue(query as MergedDeepQuery<unknown>)).toStrictEqual(
-        expectedResult
-      );
-    });
-  });
-
   describe('description $mapLastProject', () => {
     it.each([
       [
         2,
         {
-          $mapLastProject(q: number) {
+          $mapLastProject({ query: q }: { query: number }) {
             return q + 8;
           },
         },
@@ -116,7 +87,7 @@ describe('buildLastProjectValue', () => {
         { a: 2 },
         {
           a: {
-            $mapLastProject(q: number) {
+            $mapLastProject({ query: q }: { query: number }) {
               return q * 2;
             },
           },
@@ -126,15 +97,13 @@ describe('buildLastProjectValue', () => {
       [
         {
           arr: {
-            $query: {
-              text: 1,
-            },
+            text: 1,
           },
         },
         {
           arr: {
-            $mapLastProject(q: { $query: unknown }) {
-              return q.$query;
+            $mapLastProject({ query: q }: { query: number }) {
+              return q;
             },
           },
         },
@@ -166,14 +135,14 @@ describe('buildLastProjectValue', () => {
           types: {
             $anyKey: {
               value: {
-                $mapLastProject(query: number) {
+                $mapLastProject({ query }: { query: number }) {
                   return query * 2;
                 },
               },
             },
             b: {
               value: {
-                $mapLastProject(_query: number, projectValue: number) {
+                $mapLastProject({ projectValue }: { projectValue: number }) {
                   return 'b:' + String(projectValue);
                 },
               },
@@ -259,16 +228,12 @@ describe('buildStages', () => {
       type: {
         a: {
           deep: {
-            $query: {
-              text: 1,
-            },
+            text: 1,
           },
         },
         b: {
           deep: {
-            $query: {
-              number: 1,
-            },
+            number: 1,
           },
         },
       },
@@ -510,15 +475,11 @@ describe('buildStages', () => {
     ]);
   });
 
-  it('calls $addStages within nested array', () => {
+  it('calls $addStages within nested path', () => {
     const query = {
       items: {
-        $query: {
-          innerItems: {
-            $query: {
-              name: 1,
-            },
-          },
+        innerItems: {
+          name: 1,
         },
       },
     };

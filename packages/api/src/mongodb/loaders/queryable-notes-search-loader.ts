@@ -27,6 +27,7 @@ import { fieldsRemoved } from '../query/utils/fields-removed';
 import { NoteSearchIndexName } from '../schema/note/note';
 import {
   QueryableNote,
+  QueryableNoteContext,
   queryableNoteDescription,
 } from '../schema/note/query/queryable-note';
 
@@ -75,7 +76,7 @@ export type QueryableNotesSearchLoadContext = QueryLoaderContext<
 interface GlobalContext {
   collections: Pick<
     MongoDBContext<MongoDBCollections>['collections'],
-    CollectionName.NOTES
+    CollectionName.NOTES | CollectionName.USERS
   >;
 }
 
@@ -122,7 +123,11 @@ export class QueryableNotesSearchLoader {
   }
 }
 
-const searchDescription: DeepAnyDescription<QueryableSearchNote> = {
+const searchDescription: DeepAnyDescription<
+  QueryableSearchNote,
+  unknown,
+  QueryableNoteContext
+> = {
   note: fieldsRemoved(queryableNoteDescription, ['$mapLastProject']),
 };
 
@@ -154,10 +159,7 @@ export async function queryableNotesSearchBatchLoad(
                 const pagination = firstSameArgsKey.id.pagination;
 
                 // Merge queries
-                const mergedQuery = mergeQueries(
-                  {},
-                  sameArgsKeys.map(({ query }) => query)
-                );
+                const mergedQuery = mergeQueries(sameArgsKeys.map(({ query }) => query));
 
                 mergedQuery.cursor = 1;
 

@@ -29,9 +29,7 @@ export const linkSharedNote: NonNullable<MutationResolvers['linkSharedNote']> = 
       _id: 1,
       publicId: 1,
       users: {
-        $query: {
-          _id: 1,
-        },
+        _id: 1,
       },
     },
   });

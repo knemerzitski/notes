@@ -70,10 +70,8 @@ it('loads a simple note', async () => {
           query: {
             _id: 1,
             users: {
-              $query: {
-                createdAt: 1,
-                readOnly: 1,
-              },
+              createdAt: 1,
+              readOnly: 1,
             },
             collabTexts: {
               [TestCollabTextKey.TEXT]: {
@@ -81,12 +79,10 @@ it('loads a simple note', async () => {
                   changeset: 1,
                 },
                 records: {
-                  $query: {
-                    revision: 1,
-                  },
                   $pagination: {
                     last: 2,
                   },
+                  revision: 1,
                 },
               },
             },
@@ -133,12 +129,10 @@ it('loads all fields', async () => {
           query: {
             _id: 1,
             users: {
-              $query: {
-                readOnly: 1,
-                createdAt: 1,
-                preferences: {
-                  backgroundColor: 1,
-                },
+              readOnly: 1,
+              createdAt: 1,
+              preferences: {
+                backgroundColor: 1,
               },
             },
             collabTexts: {
@@ -152,23 +146,21 @@ it('loads all fields', async () => {
                   revision: 1,
                 },
                 records: {
-                  $query: {
-                    revision: 1,
-                    changeset: 1,
-                    creatorUserId: 1,
-                    userGeneratedId: 1,
-                    afterSelection: {
-                      start: 1,
-                      end: 1,
-                    },
-                    beforeSelection: {
-                      start: 1,
-                      end: 1,
-                    },
-                  },
                   $pagination: {
-                    after: '5',
+                    after: 5,
                     first: 1,
+                  },
+                  revision: 1,
+                  changeset: 1,
+                  creatorUserId: 1,
+                  userGeneratedId: 1,
+                  afterSelection: {
+                    start: 1,
+                    end: 1,
+                  },
+                  beforeSelection: {
+                    start: 1,
+                    end: 1,
                   },
                 },
               },
@@ -234,9 +226,7 @@ it('loads minimal fields', async () => {
           },
           query: {
             users: {
-              $query: {
-                readOnly: 1,
-              },
+              readOnly: 1,
             },
           },
         },
@@ -270,10 +260,8 @@ it('loads shareNoteLinks', async () => {
           },
           query: {
             shareNoteLinks: {
-              $query: {
-                publicId: 1,
-                expireAccessCount: 1,
-              },
+              publicId: 1,
+              expireAccessCount: 1,
             },
           },
         },

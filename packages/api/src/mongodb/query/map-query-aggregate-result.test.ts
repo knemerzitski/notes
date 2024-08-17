@@ -38,7 +38,7 @@ describe('result is unmodified without resolvers', () => {
   ])('%s => %s', (query, result, expectedResult) => {
     expect(
       // @ts-expect-error
-      mapQueryAggregateResult(query, mergeQueries({}, [query]), result)
+      mapQueryAggregateResult(query, mergeQueries([query]), result)
     ).toStrictEqual(expectedResult);
   });
 });
@@ -97,7 +97,7 @@ describe('map result with resolver', () => {
       mapQueryAggregateResult(
         query as DeepQuery<unknown>,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mergeQueries({}, [query as DeepObjectQuery<any>]),
+        mergeQueries([query as DeepObjectQuery<any>]),
         result,
         {
           descriptions: [description as DeepAnyDescription<unknown>],
@@ -111,9 +111,7 @@ describe('map array result with resolver', () => {
   it.each([
     [
       {
-        $query: {
-          a: 1,
-        },
+        a: 1,
       },
       [{ a: 2 }, { a: 3 }],
       {
@@ -125,9 +123,7 @@ describe('map array result with resolver', () => {
     ],
     [
       {
-        $query: {
-          a: 1,
-        },
+        a: 1,
       },
       [{ a: 2 }, { a: 3 }],
       {
@@ -142,9 +138,7 @@ describe('map array result with resolver', () => {
     [
       {
         items: {
-          $query: {
-            a: 1,
-          },
+          a: 1,
         },
       },
       {
@@ -168,7 +162,7 @@ describe('map array result with resolver', () => {
       mapQueryAggregateResult(
         query as DeepQuery<unknown>,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mergeQueries({}, [query as DeepObjectQuery<any>]),
+        mergeQueries([query as DeepObjectQuery<any>]),
         result,
         {
           descriptions: [description as DeepAnyDescription<unknown>],
@@ -183,13 +177,9 @@ describe('map nested array resolvers', () => {
     [
       {
         items: {
-          $query: {
-            version: 1,
-            records: {
-              $query: {
-                revision: 1,
-              },
-            },
+          version: 1,
+          records: {
+            revision: 1,
           },
         },
       },
@@ -251,7 +241,7 @@ describe('map nested array resolvers', () => {
       mapQueryAggregateResult(
         query as DeepQuery<unknown>,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mergeQueries({}, [query as DeepObjectQuery<any>]),
+        mergeQueries([query as DeepObjectQuery<any>]),
         result,
         {
           descriptions: [description as DeepAnyDescription<unknown>],

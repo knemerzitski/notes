@@ -12,7 +12,7 @@ import { RevisionRecords } from '~collab/records/revision-records';
 import { isDefined } from '~utils/type-guards/is-defined';
 
 import { RelayPagination } from '../../../../mongodb/pagination/relay-array-pagination';
-import { Cursor } from '../../../../mongodb/query/query';
+import { Cursor, DeepQuery } from '../../../../mongodb/query/query';
 import { createCollabText } from '../../../../mongodb/schema/collab-text/utils/create-collab-text';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { objectIdToStr } from '../../../base/resolvers/ObjectID';
@@ -24,6 +24,36 @@ import { publishNoteUpdated } from '../Subscription/noteEvents';
 
 import type { MutationResolvers } from './../../../types.generated';
 import { NoteCollabTextQueryMapper } from '../../mongo-query-mapper/note-collab-text';
+import { CollabTextSchema } from '../../../../mongodb/schema/collab-text/collab-text';
+import { MergedDeepQuery } from '../../../../mongodb/query/merge-queries';
+
+type QueryableItem =
+  | CollabTextSchema
+  | {
+      records: { $pagination: RelayPagination<Cursor>; $id?: string };
+    };
+
+const r1: DeepQuery<QueryableItem> = {
+  records: {
+    $pagination: {
+      first: 1,
+    },
+    revision: 1,
+  },
+};
+
+const r2: MergedDeepQuery<QueryableItem> = {
+  records: {
+    $args: [
+      {
+        $id: 'hi',
+        $pagination: {
+          after: 1,
+        },
+      },
+    ],
+  },
+};
 
 export const updateNoteTextFieldInsertRecord: NonNullable<
   MutationResolvers['updateNoteTextFieldInsertRecord']
@@ -55,10 +85,8 @@ export const updateNoteTextFieldInsertRecord: NonNullable<
               query: {
                 _id: 1,
                 users: {
-                  $query: {
-                    _id: 1,
-                    readOnly: 1,
-                  },
+                  _id: 1,
+                  readOnly: 1,
                 },
               },
             },
@@ -78,15 +106,13 @@ export const updateNoteTextFieldInsertRecord: NonNullable<
                       revision: 1,
                     },
                     records: {
-                      $query: {
-                        userGeneratedId: 1,
-                        revision: 1,
-                        changeset: 1,
-                        creatorUserId: 1,
-                      },
                       $pagination: {
                         after: insertRecord.change.revision,
                       },
+                      userGeneratedId: 1,
+                      revision: 1,
+                      changeset: 1,
+                      creatorUserId: 1,
                     },
                   },
                 },
@@ -109,13 +135,11 @@ export const updateNoteTextFieldInsertRecord: NonNullable<
                           revision: 1,
                         },
                         records: {
-                          $query: {
-                            revision: 1,
-                            changeset: 1,
-                          },
                           $pagination: {
                             before: insertRecord.change.revision - maxRecordsCount + 2,
                           },
+                          revision: 1,
+                          changeset: 1,
                         },
                       },
                     },
@@ -204,19 +228,17 @@ export const updateNoteTextFieldInsertRecord: NonNullable<
                       },
                       records: {
                         $pagination: pagination,
-                        $query: {
-                          creatorUserId: 1,
-                          userGeneratedId: 1,
-                          revision: 1,
-                          changeset: 1,
-                          beforeSelection: {
-                            start: 1,
-                            end: 1,
-                          },
-                          afterSelection: {
-                            start: 1,
-                            end: 1,
-                          },
+                        creatorUserId: 1,
+                        userGeneratedId: 1,
+                        revision: 1,
+                        changeset: 1,
+                        beforeSelection: {
+                          start: 1,
+                          end: 1,
+                        },
+                        afterSelection: {
+                          start: 1,
+                          end: 1,
                         },
                       },
                     },
@@ -350,19 +372,17 @@ export const updateNoteTextFieldInsertRecord: NonNullable<
                       },
                       records: {
                         $pagination: { last: 1 },
-                        $query: {
-                          creatorUserId: 1,
-                          userGeneratedId: 1,
-                          revision: 1,
-                          changeset: 1,
-                          beforeSelection: {
-                            start: 1,
-                            end: 1,
-                          },
-                          afterSelection: {
-                            start: 1,
-                            end: 1,
-                          },
+                        creatorUserId: 1,
+                        userGeneratedId: 1,
+                        revision: 1,
+                        changeset: 1,
+                        beforeSelection: {
+                          start: 1,
+                          end: 1,
+                        },
+                        afterSelection: {
+                          start: 1,
+                          end: 1,
                         },
                       },
                     },

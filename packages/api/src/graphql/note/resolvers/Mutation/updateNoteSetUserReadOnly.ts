@@ -31,11 +31,9 @@ export const updateNoteSetUserReadOnly: NonNullable<
     query: {
       _id: 1,
       users: {
-        $query: {
-          _id: 1,
-          createdAt: 1,
-          readOnly: 1,
-        },
+        _id: 1,
+        createdAt: 1,
+        readOnly: 1,
       },
     },
   });
@@ -127,9 +125,7 @@ export const updateNoteSetUserReadOnly: NonNullable<
       },
       query: {
         users: {
-          $query: {
-            readOnly: 1,
-          },
+          readOnly: 1,
         },
       },
     },

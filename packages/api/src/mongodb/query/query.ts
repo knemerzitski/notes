@@ -1,61 +1,31 @@
-import { ObjectId } from 'mongodb';
+import { Maybe, MaybePromise, OmitStartsWith, PickStartsWith } from '~utils/types';
 
-import { Maybe, MaybePromise } from '~utils/types';
-
-import { RelayPagination } from '../pagination/relay-array-pagination';
 import { MongoPrimitive } from '../types';
 
-export type ProjectionValue = 1 | undefined;
-export type IdProjectionValue = 0 | ProjectionValue;
-
-export type Cursor = string | number | ObjectId;
+export const QUERY_ARG_PREFIX = '$';
+export type QueryArgPrefix = typeof QUERY_ARG_PREFIX;
 
 /**
- * Type that maps every property to:
- * Primitives: 1 or undefined (for $project)
- * Arrays: Relay pagination
+ * Maps primitives to 1 (for $project stage).
+ * Properties starting with $ sign are passed along as arguments.
  */
 export type DeepQuery<T> = T extends (infer U)[]
-  ? DeepArrayQuery<U>
+  ? DeepQuery<U> & PickStartsWith<T, QueryArgPrefix>
   : T extends MongoPrimitive
-    ? ProjectionValue
+    ? FieldInclusion
     : T extends object
       ? DeepObjectQuery<T>
       : T;
 
 export type DeepObjectQuery<T extends object> = {
-  [Key in keyof T]?: T[Key] extends MongoPrimitive
-    ? Key extends '_id'
-      ? IdProjectionValue
-      : ProjectionValue
-    : DeepQuery<T[Key]>;
+  [Key in keyof T]?: Key extends `${QueryArgPrefix}${string}`
+    ? T[Key]
+    : T[Key] extends MongoPrimitive
+      ? FieldInclusion
+      : DeepQuery<T[Key]>;
 };
 
-export interface DeepArrayQuery<TItem> {
-  $query?: DeepQuery<TItem>;
-  $pagination?: RelayPagination<Cursor>;
-}
-
-export type DeepQueryPartial<T> = T extends (infer U)[]
-  ? DeepQueryPartial<U>[]
-  : T extends MongoPrimitive
-    ? T
-    : T extends object
-      ? DeepObjectQueryPartial<T>
-      : T;
-
-type DeepObjectQueryPartial<T extends object> = {
-  [Key in keyof T]?: T[Key] extends MongoPrimitive ? T[Key] : DeepQueryPartial<T[Key]>;
-};
-
-export function isArrayQuery(value?: unknown): value is DeepArrayQuery<unknown> {
-  const isObject = value != null && typeof value == 'object';
-  if (!isObject) return false;
-
-  const hasQuery =
-    '$query' in value && value.$query != null && typeof value.$query === 'object';
-  return hasQuery;
-}
+export type FieldInclusion = 1;
 
 /**
  * Makes every property optional except Primitives
@@ -69,9 +39,14 @@ export type DeepQueryResult<T> = T extends (infer U)[]
       ? DeepObjectQueryResult<T>
       : T;
 
-export type DeepObjectQueryResult<T extends object> = Readonly<{
-  [Key in keyof T]?: DeepQueryResult<T[Key]>;
-}>;
+export type DeepObjectQueryResult<T extends object> = Readonly<
+  OmitStartsWith<
+    {
+      [Key in keyof T]?: DeepQueryResult<T[Key]>;
+    },
+    QueryArgPrefix
+  >
+>;
 
 export interface MongoQuery<TDocument> {
   query: MongoQueryFn<TDocument>;

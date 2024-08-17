@@ -21,9 +21,7 @@ export const deleteNoteSharing: NonNullable<
     noteQuery: {
       _id: 1,
       shareNoteLinks: {
-        $query: {
-          publicId: 1,
-        },
+        publicId: 1,
       },
     },
   });

@@ -23,6 +23,17 @@ export type ExcludeNullable<T, Key extends keyof NonNullable<T>> = NonNullable<T
   [key in Key]-?: Exclude<NonNullable<T>[key], null | undefined>;
 };
 
+
+/**
+ * @source https://stackoverflow.com/questions/74852202/typescript-pick-only-properties-key-that-starts-with-a-target-string
+ */
+export type PickStartsWith<T extends object, S extends string> = {
+  [K in keyof T as K extends `${S}${infer _R}` ? K : never]: T[K];
+};
+
+export type OmitStartsWith<T extends object, S extends string> = Omit<T, `${S}${string}`>;
+
+
 /**
  * Types copied from package 'ts-essentials'
  * Added option to extend Primitive within DeepPartial

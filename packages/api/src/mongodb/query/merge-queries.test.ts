@@ -1,146 +1,195 @@
-import { describe, expect, it } from 'vitest';
+import { expect, it } from 'vitest';
 
-import { MergedDeepQuery, mergeQueries } from './merge-queries';
-import { DeepQuery } from './query';
+import { mergeQueries } from './merge-queries';
+import { RelayPagination } from '../pagination/relay-array-pagination';
 
-describe('mergeQueries', () => {
-  interface Item {
-    name: string;
-    quantity: number;
-  }
+interface Item {
+  name: string;
+  quantity: number;
+}
 
-  interface SubData {
-    value: number;
-    foo: boolean;
-  }
+interface SubData {
+  value: number;
+  foo: boolean;
+}
 
-  interface Data {
-    title: string;
-    other: string;
-    items: Item[];
-    sub: SubData;
-  }
+interface Data {
+  title: string;
+  other: string;
+  items: Item[];
+  sub: SubData;
+}
 
-  it.each<[DeepQuery<Data>[], MergedDeepQuery<Data>]>([
-    [
-      [
-        {
-          title: 1,
-        },
-        {
-          other: 1,
-        },
-      ],
+type QueryableData =
+  | Data
+  | { items: { $pagination: RelayPagination<number> }; $id1?: string; $id2?: string };
+
+it('merges two root properties', () => {
+  expect(
+    mergeQueries<QueryableData>([
       {
         title: 1,
+      },
+      {
         other: 1,
       },
-    ],
-    [
-      [
-        {
-          sub: {
-            foo: 1,
-          },
-        },
-        {
-          sub: {
-            value: 1,
-          },
-        },
-      ],
+    ])
+  ).toStrictEqual({
+    title: 1,
+    other: 1,
+  });
+});
+
+it('merges two nested properties', () => {
+  expect(
+    mergeQueries<QueryableData>([
       {
         sub: {
           foo: 1,
-          value: 1,
         },
       },
-    ],
-    [
-      [
-        {
-          title: 1,
-        },
-        {
-          sub: {
-            value: 1,
-          },
-        },
-      ],
       {
-        title: 1,
         sub: {
           value: 1,
         },
       },
-    ],
-    [
-      [
+    ])
+  ).toStrictEqual({
+    sub: {
+      foo: 1,
+      value: 1,
+    },
+  });
+});
+
+it('merges two different level nested properties', () => {
+  expect(
+    mergeQueries<QueryableData>([
+      {
+        title: 1,
+      },
+      {
+        sub: {
+          value: 1,
+        },
+      },
+    ])
+  ).toStrictEqual({
+    title: 1,
+    sub: {
+      value: 1,
+    },
+  });
+});
+
+it('merges different arguments into array', () => {
+  expect(
+    mergeQueries<QueryableData>([
+      {
+        items: {
+          $pagination: {
+            first: 5,
+          },
+          name: 1,
+        },
+      },
+      {
+        items: {
+          $pagination: {
+            first: 8,
+          },
+          quantity: 1,
+        },
+      },
+    ])
+  ).toStrictEqual({
+    items: {
+      name: 1,
+      quantity: 1,
+      $args: [
         {
-          items: {
-            $query: {
-              name: 1,
-            },
-            $pagination: {
-              first: 5,
-            },
+          $pagination: {
+            first: 5,
           },
         },
         {
-          items: {
-            $query: {
-              quantity: 1,
-            },
-            $pagination: {
-              first: 8,
-            },
+          $pagination: {
+            first: 8,
           },
         },
       ],
+    },
+  });
+});
+
+it('ignores duplicate arg', () => {
+  expect(
+    mergeQueries<QueryableData>([
       {
         items: {
-          $query: {
-            name: 1,
-            quantity: 1,
+          $pagination: {
+            last: 2,
           },
-          $paginations: [
-            {
-              first: 5,
-            },
-            {
-              first: 8,
-            },
-          ],
+          name: 1,
         },
       },
-    ],
-    [
-      [
+      {
+        items: {
+          $pagination: {
+            last: 2,
+          },
+          quantity: 1,
+        },
+      },
+    ])
+  ).toStrictEqual({
+    items: {
+      $args: [
         {
-          items: {
-            $query: {
-              name: 1,
-            },
-            $pagination: {
-              last: 2,
-            },
+          $pagination: {
+            last: 2,
           },
         },
       ],
+      quantity: 1,
+      name: 1,
+    },
+  });
+});
+
+it('keeps different sets of args', () => {
+  expect(
+    mergeQueries<QueryableData>([
       {
-        items: {
-          $query: {
-            name: 1,
-          },
-          $paginations: [
-            {
-              last: 2,
-            },
-          ],
-        },
+        $id1: 'a1',
+        $id2: 'a2',
+        title: 1,
+      },
+      {
+        $id1: 'b1',
+        $id2: 'b2',
+        other: 1,
+      },
+      {
+        $id2: 'c',
+        other: 1,
+      },
+    ])
+  ).toStrictEqual({
+    $args: [
+      {
+        $id1: 'a1',
+        $id2: 'a2',
+      },
+      {
+        $id1: 'b1',
+        $id2: 'b2',
+      },
+      {
+        $id2: 'c',
       },
     ],
-  ])('%s => %s', (mergeData, expected) => {
-    expect(mergeQueries({}, mergeData)).toStrictEqual(expected);
+    title: 1,
+    other: 1,
   });
 });

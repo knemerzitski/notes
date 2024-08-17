@@ -12,13 +12,14 @@ import {
   relayMultiArrayConcat,
   isRelayArrayPaginationAggregateResult,
   relayArrayPagination,
+  RelayPagination,
 } from '../../../pagination/relay-array-pagination';
-import { asArrayFieldDescription } from '../../../query/as-array-field-description';
 import { DeepAnyDescription } from '../../../query/description';
 import { QueryableNote, queryableNoteDescription } from '../../note/query/queryable-note';
 import { UserSchema } from '../user';
 
 import { User_NoteLookup, user_noteLookup } from './user-note-lookup';
+import { isDefined } from '~utils/type-guards/is-defined';
 
 export type QueryableUser = Omit<UserSchema, 'notes'> & {
   notes: Omit<UserSchema['notes'], 'category'> & {
@@ -26,7 +27,9 @@ export type QueryableUser = Omit<UserSchema, 'notes'> & {
       [Key in string]?: Omit<UserSchema['notes']['category'][Key], 'order'> & {
         order: {
           // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
-          items: User_NoteLookup<QueryableNote>[];
+          items: User_NoteLookup<QueryableNote>[] & {
+            $pagination?: RelayPagination<ObjectId>;
+          };
           firstId: ObjectId;
           lastId: ObjectId;
         };
@@ -36,7 +39,10 @@ export type QueryableUser = Omit<UserSchema, 'notes'> & {
 };
 
 export interface QueryableUserContext {
-  collections: Pick<MongoDBCollectionsOnlyNames, CollectionName.NOTES>;
+  collections: Pick<
+    MongoDBCollectionsOnlyNames,
+    CollectionName.NOTES | CollectionName.USERS
+  >;
 }
 
 export const queryableUserDescription: DeepAnyDescription<
@@ -49,17 +55,16 @@ export const queryableUserDescription: DeepAnyDescription<
       $anyKey: {
         order: {
           items: {
-            ...asArrayFieldDescription(queryableNoteDescription),
-            $mapLastProject(query, projectValue) {
-              if (!query.$query) return;
-
+            ...queryableNoteDescription,
+            $mapLastProject(ctx) {
+              let { projectValue } = ctx;
               // Delete Note._id projection if set to 0
               // Exclusion is not allowed in $project except root _id
               if (queryableNoteDescription.$mapLastProject) {
-                projectValue = queryableNoteDescription.$mapLastProject(
-                  query.$query,
-                  projectValue
-                );
+                projectValue = queryableNoteDescription.$mapLastProject(ctx) as Record<
+                  string,
+                  unknown
+                >;
                 if (isObjectLike(projectValue) && projectValue._id === 0) {
                   delete projectValue._id;
                   return projectValue;
@@ -92,7 +97,9 @@ export const queryableUserDescription: DeepAnyDescription<
                     {
                       items: relayArrayPagination({
                         arrayFieldPath: relativePath,
-                        paginations: query.items?.$paginations,
+                        paginations: query.items?.$args
+                          ?.map((arg) => arg.$pagination)
+                          .filter(isDefined),
                       }),
                       ...(query.firstId && {
                         firstId: {
@@ -193,8 +200,8 @@ export const queryableUserDescription: DeepAnyDescription<
               },
             ];
           },
-          $mapLastProject(query, projectValue) {
-            if (!query.items?.$query || !isObjectLike(projectValue)) return;
+          $mapLastProject({ query, projectValue }) {
+            if (!query.items || !isObjectLike(projectValue)) return;
 
             return {
               $replace: true,
@@ -217,7 +224,7 @@ export const queryableUserDescription: DeepAnyDescription<
               ...result,
               items: relayArrayPaginationMapAggregateResult(
                 query.items?.$pagination,
-                mergedQuery.items?.$paginations,
+                mergedQuery.items?.$args?.map((arg) => arg.$pagination).filter(isDefined),
                 result.items
               ),
             };
@@ -226,7 +233,7 @@ export const queryableUserDescription: DeepAnyDescription<
       },
     },
   },
-  $mapLastProject(query) {
+  $mapLastProject({ query }) {
     return {
       _id: query._id ?? 0,
     };
