@@ -2,18 +2,23 @@ import { GraphQLResolveInfo } from 'graphql';
 
 import { RelayArrayPaginationConfig } from '../../mongodb/pagination/relay-array-pagination';
 import { MongoQueryFn } from '../../mongodb/query/query';
-import { RevisionChangesetSchema } from '../../mongodb/schema/collab-text/collab-text';
+import {
+  RevisionChangesetSchema,
+  RevisionRecordSchema,
+} from '../../mongodb/schema/collab-text/collab-text';
 import { PageInfoMapper } from '../base/schema.mappers';
 import { ApiGraphQLContext } from '../context';
 import {
   CollabTextrecordsConnectionArgs,
   CollabTexttextAtRevisionArgs,
+  Maybe,
   ResolverTypeWrapper,
   ResolversTypes,
 } from '../types.generated';
+import { MaybePromise } from '~utils/types';
 
 export interface CollabTextMapper {
-  id(): ResolverTypeWrapper<string>;
+  id(): MaybePromise<Maybe<string>>;
   headText(): RevisionChangesetMapper;
   tailText(): RevisionChangesetMapper;
   textAtRevision(args: CollabTexttextAtRevisionArgs): RevisionChangesetMapper;
@@ -30,11 +35,8 @@ export interface CollabTextPatchMapper {
 }
 
 export interface CollabTextRecordMapper {
-  id(): ResolverTypeWrapper<string>;
-  creatorUserId(): ResolverTypeWrapper<string>;
-  change(): RevisionChangesetMapper;
-  beforeSelection(): CollabTextSelectionRangeMapper;
-  afterSelection(): CollabTextSelectionRangeMapper;
+  readonly parentId: ResolverTypeWrapper<string>;
+  readonly query: MongoQueryFn<RevisionRecordSchema>;
 }
 
 export interface RevisionChangesetMapper {

@@ -12,11 +12,9 @@ import { RevisionRecords } from '~collab/records/revision-records';
 import { isDefined } from '~utils/type-guards/is-defined';
 
 import { RelayPagination } from '../../../../mongodb/pagination/relay-array-pagination';
-import { Cursor, DeepQuery } from '../../../../mongodb/query/query';
 import { createCollabText } from '../../../../mongodb/schema/collab-text/utils/create-collab-text';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { objectIdToStr } from '../../../base/resolvers/ObjectID';
-import { CollabTextRecordQueryMapper } from '../../../collab/mongo-query-mapper/revision-record';
 import { NoteQueryMapper } from '../../mongo-query-mapper/note';
 import { throwNoteIsReadOnly, throwNoteNotFound } from '../../utils/note-errors';
 import { findNoteUser } from '../../utils/user-note';
@@ -24,36 +22,7 @@ import { publishNoteUpdated } from '../Subscription/noteEvents';
 
 import type { MutationResolvers } from './../../../types.generated';
 import { NoteCollabTextQueryMapper } from '../../mongo-query-mapper/note-collab-text';
-import { CollabTextSchema } from '../../../../mongodb/schema/collab-text/collab-text';
-import { MergedDeepQuery } from '../../../../mongodb/query/merge-queries';
-
-type QueryableItem =
-  | CollabTextSchema
-  | {
-      records: { $pagination: RelayPagination<Cursor>; $id?: string };
-    };
-
-const r1: DeepQuery<QueryableItem> = {
-  records: {
-    $pagination: {
-      first: 1,
-    },
-    revision: 1,
-  },
-};
-
-const r2: MergedDeepQuery<QueryableItem> = {
-  records: {
-    $args: [
-      {
-        $id: 'hi',
-        $pagination: {
-          after: 1,
-        },
-      },
-    ],
-  },
-};
+import { CollabTextRecordMapper } from '../../../collab/schema.mappers';
 
 export const updateNoteTextFieldInsertRecord: NonNullable<
   MutationResolvers['updateNoteTextFieldInsertRecord']
@@ -201,7 +170,7 @@ export const updateNoteTextFieldInsertRecord: NonNullable<
               session,
             }
           );
-          const paginationsToPrime: (RelayPagination<Cursor> | undefined)[] = [
+          const paginationsToPrime: (RelayPagination<number> | undefined)[] = [
             undefined,
             {
               last: 20,
@@ -476,9 +445,10 @@ export const updateNoteTextFieldInsertRecord: NonNullable<
       query: () => null,
     });
 
-    const collabTextRecordMapper = new CollabTextRecordQueryMapper(collabTextMapper, {
+    const collabTextRecordMapper: CollabTextRecordMapper = {
+      parentId: () => collabTextMapper.id(),
       query: () => newRecord,
-    });
+    };
 
     return {
       note: noteMapper,

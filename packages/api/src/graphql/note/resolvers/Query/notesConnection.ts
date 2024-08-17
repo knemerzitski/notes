@@ -116,7 +116,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
     return {
       query: async (query) => {
         const user = await loadUser(query);
-        const items = user.notes?.category?.[categoryName]?.order?.items;
+        const items = user?.notes?.category?.[categoryName]?.order?.items;
         if (!items) return;
 
         const realIndex = index < 0 ? index + items.length : index;
@@ -133,7 +133,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
     return new NoteQueryMapper(currentUserId, {
       query: async (query) => {
         const user = await loadUser(query);
-        const items = user.notes?.category?.[categoryName]?.order?.items;
+        const items = user?.notes?.category?.[categoryName]?.order?.items;
         if (!items) return;
 
         updateSize(items.length);
@@ -177,7 +177,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
             }
           );
 
-          const order = user.notes?.category?.[categoryName]?.order;
+          const order = user?.notes?.category?.[categoryName]?.order;
           const endCursor = order?.items?.[order.items.length - 1]?._id;
           const lastCursor = order?.lastId;
 
@@ -195,7 +195,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
             }
           );
 
-          const order = user.notes?.category?.[categoryName]?.order;
+          const order = user?.notes?.category?.[categoryName]?.order;
           const startCursor = order?.items?.[0]?._id;
           const firstCursor = order?.firstId;
 

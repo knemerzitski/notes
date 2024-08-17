@@ -148,7 +148,10 @@ export class QueryLoader<I, Q extends object, G, R, QR = Q> {
     });
   }
 
-  async load(key: QueryLoaderCacheKey<I, Q>, options?: LoadOptions<R>) {
+  async load(
+    key: QueryLoaderCacheKey<I, Q>,
+    options?: LoadOptions<R>
+  ): Promise<DeepQueryResult<QR> | undefined> {
     const cacheIsStale = options?.skipCache ?? false;
     const leafResults = await Promise.all(
       splitQuery(key.query).map(async (leafQuery) => {

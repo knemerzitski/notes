@@ -1,19 +1,50 @@
+import { objectIdToStr } from '../../base/resolvers/ObjectID';
+import { maybeFn } from '../../utils/maybe-fn';
+import { CollabTextSelectionRangeQueryMapper } from '../mongo-query-mapper/selection-range';
 import type { CollabTextRecordResolvers } from './../../types.generated';
 
 export const CollabTextRecord: CollabTextRecordResolvers = {
-  id: (parent) => {
-    return parent.id();
+  id: async (parent) => {
+    const [parentId, record] = await Promise.all([
+      maybeFn(parent.parentId),
+      parent.query({
+        revision: 1,
+      }),
+    ]);
+    if (parentId == null || record?.revision == null) {
+      return null;
+    }
+
+    return `${parentId}:${record.revision}`;
   },
   afterSelection: (parent) => {
-    return parent.afterSelection();
+    return new CollabTextSelectionRangeQueryMapper({
+      query: async (selection) => {
+        return (
+          await parent.query({
+            afterSelection: selection,
+          })
+        )?.afterSelection;
+      },
+    });
   },
   beforeSelection: (parent) => {
-    return parent.beforeSelection();
+    return new CollabTextSelectionRangeQueryMapper({
+      query: async (selection) => {
+        return (
+          await parent.query({
+            beforeSelection: selection,
+          })
+        )?.beforeSelection;
+      },
+    });
   },
   change: (parent) => {
-    return parent.change();
+    return {
+      query: (query) => parent.query(query),
+    };
   },
-  creatorUserId: (parent) => {
-    return parent.creatorUserId();
+  creatorUserId: async (parent) => {
+    return objectIdToStr((await parent.query({ creatorUserId: 1 }))?.creatorUserId);
   },
 };

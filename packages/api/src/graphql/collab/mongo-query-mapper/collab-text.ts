@@ -7,21 +7,26 @@ import {
   RelayPagination,
   applyLimit,
 } from '../../../mongodb/pagination/relay-array-pagination';
-import { MongoQuery } from '../../../mongodb/query/query';
+import { DeepObjectQuery, MongoQuery } from '../../../mongodb/query/query';
 import { QueryableCollabTextSchema } from '../../../mongodb/schema/collab-text/query/collab-text';
 import { ApiGraphQLContext } from '../../context';
 import {
   CollabTextrecordsConnectionArgs,
   CollabTexttextAtRevisionArgs,
-  ResolverTypeWrapper,
+  Maybe,
 } from '../../types.generated';
 import {
   PreFetchedArrayGetItemFn,
   withPreFetchedArraySize,
 } from '../../utils/with-pre-fetched-array-size';
-import { CollabTextMapper, RevisionChangesetMapper } from '../schema.mappers';
+import {
+  CollabTextMapper,
+  CollabTextRecordMapper,
+  RevisionChangesetMapper,
+} from '../schema.mappers';
 
-import { CollabTextRecordQueryMapper } from './revision-record';
+import { RevisionRecordSchema } from '../../../mongodb/schema/collab-text/collab-text';
+import { MaybePromise } from '~utils/types';
 
 export abstract class CollabTextQueryMapper implements CollabTextMapper {
   private collabText: MongoQuery<QueryableCollabTextSchema>;
@@ -30,7 +35,7 @@ export abstract class CollabTextQueryMapper implements CollabTextMapper {
     this.collabText = collabText;
   }
 
-  abstract id(): ResolverTypeWrapper<string>;
+  abstract id(): MaybePromise<Maybe<string>>;
 
   headText(): RevisionChangesetMapper {
     return {
@@ -134,22 +139,23 @@ export abstract class CollabTextQueryMapper implements CollabTextMapper {
     }
 
     const createCollabTextRecordMapper: PreFetchedArrayGetItemFn<
-      CollabTextRecordQueryMapper
+      CollabTextRecordMapper
     > = (index: number, updateSize) => {
-      const revisionRecordQuery = new CollabTextRecordQueryMapper(this, {
-        query: async (query) => {
-          const result = await this.collabText.query({
-            records: {
-              $pagination: pagination,
-              ...query,
-            },
-          });
-          updateSize(result?.records?.length);
-          return result?.records?.[index];
-        },
-      });
+      const queryRecord = async (query: DeepObjectQuery<RevisionRecordSchema>) => {
+        const collabText = await this.collabText.query({
+          records: {
+            $pagination: pagination,
+            ...query,
+          },
+        });
+        updateSize(collabText?.records?.length);
+        return collabText?.records?.[index];
+      };
 
-      return revisionRecordQuery;
+      return {
+        parentId: () => this.id(),
+        query: queryRecord,
+      };
     };
 
     return {
@@ -165,7 +171,7 @@ export abstract class CollabTextQueryMapper implements CollabTextMapper {
               node: () => revisionRecordQuery,
               cursor: async () => {
                 return (
-                  await revisionRecordQuery.change().query({
+                  await revisionRecordQuery.query({
                     revision: 1,
                   })
                 )?.revision;

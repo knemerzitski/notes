@@ -5,9 +5,11 @@ const config: CodegenConfig = {
   schema: './src/graphql/**/schema.graphql',
   generates: {
     './src/graphql': defineConfig({
-      // add: {
-      //   './types.generated.ts': { content: '/* eslint-disable */' },
-      // },
+      add: {
+        './types.generated.ts': {
+          content: "import { MaybePromise } from '~utils/types';",
+        },
+      },
       scalarsOverrides: {
         ObjectID: {
           resolver: 'base/resolvers/ObjectID#ObjectID',
@@ -30,9 +32,10 @@ const config: CodegenConfig = {
          * null on a non-nullable field. Otherwise would have to
          * check for null on each individual field.
          */
-        resolverTypeWrapperSignature: 'Promise<Maybe<T>> | Maybe<T>',
+        resolverTypeWrapperSignature:
+          'MaybePromise<Maybe<T>> | (() => MaybePromise<Maybe<T>>)',
         customResolverFn:
-          '(parent: TParent, args: TArgs, context: TContext, info: GraphQLResolveInfo) => Promise<Maybe<TResult>> | Maybe<TResult>',
+          '(parent: TParent, args: TArgs, context: TContext, info: GraphQLResolveInfo) => MaybePromise<Maybe<TResult>>',
       },
     }),
   },
