@@ -1,5 +1,5 @@
 import { isForwardPagination } from '../../../mongodb/pagination/relay-array-pagination';
-import { maybeCallFn } from '../../utils/maybe-call-fn';
+import { maybeCallFn } from '~utils/maybe-call-fn';
 import { withPreFetchedArraySize } from '../../utils/with-pre-fetched-array-size';
 import type { CollabTextRecordsConnectionResolvers } from './../../types.generated';
 export const CollabTextRecordsConnection: CollabTextRecordsConnectionResolvers = {

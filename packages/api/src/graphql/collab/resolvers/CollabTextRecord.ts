@@ -1,5 +1,5 @@
 import { objectIdToStr } from '../../base/resolvers/ObjectID';
-import { maybeCallFn } from '../../utils/maybe-call-fn';
+import { maybeCallFn } from '~utils/maybe-call-fn';
 
 import type { CollabTextRecordResolvers } from './../../types.generated';
 
