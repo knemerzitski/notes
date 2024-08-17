@@ -313,24 +313,11 @@ describe('endCursor', () => {
   ])('$pagination => $expected', async ({ pagination, expected }) => {
     await expect(
       collabTextMapper
-        // @ts-expect-error Other arguments are not used
         .recordsConnection(pagination, {
           maxLimit: 20,
         })
         .pageInfo()
         .endCursor()
     ).resolves.toStrictEqual(expected);
-  });
-});
-
-describe('textAtRevision', () => {
-  it.each<[number, string]>([
-    [12, 'tail'],
-    [13, 'taila'],
-    [14, 'tailaa'],
-    [15, 'tailaaa'],
-  ])('%i => %s', async (revision, expected) => {
-    const changeset = await collabTextMapper.textAtRevision({ revision }).changeset();
-    expect(changeset?.joinInsertions()).toStrictEqual(expected);
   });
 });

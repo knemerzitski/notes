@@ -29,7 +29,7 @@ type MockResolverFn<TResult, TParent, TContext, TArgs> = (
   args?: TArgs,
   context?: TContext,
   info?: GraphQLResolveInfo
-) => Promise<TResult> | TResult;
+) => TResult;
 
 function isResolverFn<TResult, TParent, TContext, TArgs>(
   resolver: Resolver<TResult, TParent, TContext, TArgs>
