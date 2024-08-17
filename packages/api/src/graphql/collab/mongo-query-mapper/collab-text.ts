@@ -164,7 +164,11 @@ export abstract class CollabTextQueryMapper implements CollabTextMapper {
             return {
               node: () => revisionRecordQuery,
               cursor: async () => {
-                return String(await revisionRecordQuery.change().revision());
+                return (
+                  await revisionRecordQuery.change().query({
+                    revision: 1,
+                  })
+                )?.revision;
               },
             };
           },
