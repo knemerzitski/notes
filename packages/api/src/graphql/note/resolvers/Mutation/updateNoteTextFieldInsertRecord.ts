@@ -476,8 +476,8 @@ export const updateNoteTextFieldInsertRecord: NonNullable<
                   key: textField,
                   value: {
                     id: userMappers.collabText.id,
-                    newRecord: () => userMappers.newRecord,
-                    isExistingRecord: () => isExistingRecord,
+                    newRecord: userMappers.newRecord,
+                    isExistingRecord: isExistingRecord,
                   },
                 },
               ],

@@ -46,6 +46,6 @@ export interface CollabTextRecordEdgeMapper {
 
 export interface CollabTextPatchMapper {
   id: ResolverTypeWrapper<string>;
-  isExistingRecord?(): ResolverTypeWrapper<boolean>;
-  newRecord?(): ResolverTypeWrapper<CollabTextRecordMapper>;
+  isExistingRecord: ResolverTypeWrapper<boolean>;
+  newRecord: ResolverTypeWrapper<CollabTextRecordMapper>;
 }
