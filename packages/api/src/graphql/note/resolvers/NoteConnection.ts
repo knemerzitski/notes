@@ -1,6 +1,6 @@
-import type { NotesConnectionResolvers } from './../../types.generated';
+import type { NoteConnectionResolvers } from './../../types.generated';
 
-export const NotesConnection: NotesConnectionResolvers = {
+export const NoteConnection: NoteConnectionResolvers = {
   edges: (parent, _arg, ctx, info) => {
     return parent.edges(ctx, info);
   },

@@ -82,7 +82,7 @@ export const CollabText: CollabTextResolvers = {
       },
     };
   },
-  recordsConnection: (parent, args) => {
+  recordConnection: (parent, args) => {
     const defaultLimit = 20;
     const maxLimit = 100;
     const first = applyLimit(args.first, defaultLimit, maxLimit);

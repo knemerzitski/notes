@@ -27,7 +27,7 @@ export interface CollabTextSelectionRangeMapper {
   readonly query: MongoQueryFn<SelectionRangeSchema>;
 }
 
-export interface CollabTextRecordsConnectionMapper {
+export interface CollabTextRecordConnectionMapper {
   readonly pagination: RelayBoundPagination<number>;
   readonly getRecord: PreFetchedArrayGetItemFn<CollabTextRecordMapper>;
   readonly getHeadAndTailRevision: () => ResolverTypeWrapper<

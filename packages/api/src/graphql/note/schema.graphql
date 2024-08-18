@@ -59,7 +59,7 @@ extend type Mutation {
 
 ################################ Query Notes ################################
 
-type NotesConnection implements Connection {
+type NoteConnection implements Connection {
   "Notes directly without edges"
   notes: [Note!]!
   "Self descriptive"
@@ -77,23 +77,23 @@ type NoteEdge implements Edge {
 
 extend type Query {
   "Paginate notes by category. Default is NoteCategory.DEFAULT"
-  notesConnection(
+  noteConnection(
     first: NonNegativeInt
     after: String
     last: NonNegativeInt
     before: String
     category: NoteCategory
-  ): NotesConnection! @auth
+  ): NoteConnection! @auth
   "Get note by Note.noteId"
   note(noteId: ObjectID!): Note! @auth
   "Search for notes by text"
-  notesSearchConnection(
+  noteSearchConnection(
     searchText: String!
     first: NonNegativeInt
     after: String
     last: NonNegativeInt
     before: String
-  ): NotesConnection! @auth
+  ): NoteConnection! @auth
 }
 
 ################################ Note Users ################################

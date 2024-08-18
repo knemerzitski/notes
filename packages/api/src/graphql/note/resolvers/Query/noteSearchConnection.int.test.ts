@@ -21,7 +21,8 @@ import {
 } from '../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
-import { NotesConnection, NoteTextField } from '../../../types.generated';
+import { NoteConnection, NoteTextField } from '../../../types.generated';
+import { UnwrapFieldWrapper } from '../../../../__test__/helpers/graphql/field-wrap';
 
 interface Variables {
   searchText: string;
@@ -33,7 +34,7 @@ interface Variables {
 
 const QUERY = `#graphql
   query($searchText: String! $after: String, $first: NonNegativeInt, $before: String, $last: NonNegativeInt) {
-    notesSearchConnection(searchText: $searchText, after: $after, first: $first, before: $before, last: $last){
+    noteSearchConnection(searchText: $searchText, after: $after, first: $first, before: $before, last: $last){
       notes {
         noteId
         textFields {
@@ -93,7 +94,7 @@ async function executeOperation(
 ) {
   return await apolloServer.executeOperation<
     {
-      notesSearchConnection: NotesConnection;
+      noteSearchConnection: UnwrapFieldWrapper<NoteConnection>;
     },
     Variables
   >(
@@ -110,13 +111,13 @@ async function executeOperation(
   );
 }
 
-function getContentFieldTexts(data: NotesConnection) {
+function getContentFieldTexts(data: UnwrapFieldWrapper<NoteConnection>) {
   return data.notes.map((note) => {
-    const contentField = note.textFields.find(
-      (textField) => textField.key === NoteTextField.CONTENT
+    const contentField = note?.textFields.find(
+      (textField) => textField?.key === NoteTextField.CONTENT
     );
     const contentText = Changeset.parseValue(
-      contentField?.value.headText.changeset
+      contentField?.value?.headText?.changeset
     ).joinInsertions();
 
     return contentText;
@@ -138,8 +139,8 @@ it('paginates notes from start to end', async () => {
     })
   );
 
-  expect(getContentFieldTexts(data.notesSearchConnection)).toStrictEqual(['foo foo foo']);
-  expect(data.notesSearchConnection.pageInfo).toEqual({
+  expect(getContentFieldTexts(data.noteSearchConnection)).toStrictEqual(['foo foo foo']);
+  expect(data.noteSearchConnection.pageInfo).toEqual({
     hasNextPage: true,
     hasPreviousPage: false,
     startCursor: expect.any(String),
@@ -150,12 +151,12 @@ it('paginates notes from start to end', async () => {
   response = await executeOperation({
     searchText: 'foo',
     first: 1,
-    after: data.notesSearchConnection.pageInfo.endCursor,
+    after: data.noteSearchConnection.pageInfo?.endCursor,
   });
   data = expectGraphQLResponseData(response);
 
-  expect(getContentFieldTexts(data.notesSearchConnection)).toStrictEqual(['foo foo']);
-  expect(data.notesSearchConnection.pageInfo).toEqual({
+  expect(getContentFieldTexts(data.noteSearchConnection)).toStrictEqual(['foo foo']);
+  expect(data.noteSearchConnection.pageInfo).toEqual({
     hasNextPage: true,
     hasPreviousPage: true,
     startCursor: expect.any(String),
@@ -166,12 +167,12 @@ it('paginates notes from start to end', async () => {
   response = await executeOperation({
     searchText: 'foo',
     first: 1,
-    after: data.notesSearchConnection.pageInfo.endCursor,
+    after: data.noteSearchConnection.pageInfo?.endCursor,
   });
   data = expectGraphQLResponseData(response);
 
-  expect(getContentFieldTexts(data.notesSearchConnection)).toStrictEqual(['foo']);
-  expect(data.notesSearchConnection.pageInfo).toEqual({
+  expect(getContentFieldTexts(data.noteSearchConnection)).toStrictEqual(['foo']);
+  expect(data.noteSearchConnection.pageInfo).toEqual({
     hasNextPage: false,
     hasPreviousPage: true,
     startCursor: expect.any(String),
@@ -182,12 +183,12 @@ it('paginates notes from start to end', async () => {
   response = await executeOperation({
     searchText: 'foo',
     first: 1,
-    after: data.notesSearchConnection.pageInfo.endCursor,
+    after: data.noteSearchConnection.pageInfo?.endCursor,
   });
   data = expectGraphQLResponseData(response);
 
-  expect(getContentFieldTexts(data.notesSearchConnection)).toStrictEqual([]);
-  expect(data.notesSearchConnection.pageInfo).toEqual({
+  expect(getContentFieldTexts(data.noteSearchConnection)).toStrictEqual([]);
+  expect(data.noteSearchConnection.pageInfo).toEqual({
     hasNextPage: false,
     hasPreviousPage: false,
     startCursor: null,
@@ -202,8 +203,8 @@ it('paginates notes from end to start', async () => {
   });
   let data = expectGraphQLResponseData(response);
 
-  expect(getContentFieldTexts(data.notesSearchConnection)).toStrictEqual(['foo']);
-  expect(data.notesSearchConnection.pageInfo).toEqual({
+  expect(getContentFieldTexts(data.noteSearchConnection)).toStrictEqual(['foo']);
+  expect(data.noteSearchConnection.pageInfo).toEqual({
     hasNextPage: false,
     hasPreviousPage: true,
     startCursor: expect.any(String),
@@ -213,12 +214,12 @@ it('paginates notes from end to start', async () => {
   response = await executeOperation({
     searchText: 'foo',
     last: 1,
-    before: data.notesSearchConnection.pageInfo.startCursor,
+    before: data.noteSearchConnection.pageInfo?.startCursor,
   });
   data = expectGraphQLResponseData(response);
 
-  expect(getContentFieldTexts(data.notesSearchConnection)).toStrictEqual(['foo foo']);
-  expect(data.notesSearchConnection.pageInfo).toEqual({
+  expect(getContentFieldTexts(data.noteSearchConnection)).toStrictEqual(['foo foo']);
+  expect(data.noteSearchConnection.pageInfo).toEqual({
     hasNextPage: true,
     hasPreviousPage: true,
     startCursor: expect.any(String),
@@ -228,12 +229,12 @@ it('paginates notes from end to start', async () => {
   response = await executeOperation({
     searchText: 'foo',
     last: 1,
-    before: data.notesSearchConnection.pageInfo.startCursor,
+    before: data.noteSearchConnection.pageInfo?.startCursor,
   });
   data = expectGraphQLResponseData(response);
 
-  expect(getContentFieldTexts(data.notesSearchConnection)).toStrictEqual(['foo foo foo']);
-  expect(data.notesSearchConnection.pageInfo).toEqual({
+  expect(getContentFieldTexts(data.noteSearchConnection)).toStrictEqual(['foo foo foo']);
+  expect(data.noteSearchConnection.pageInfo).toEqual({
     hasNextPage: true,
     hasPreviousPage: false,
     startCursor: expect.any(String),
@@ -243,12 +244,12 @@ it('paginates notes from end to start', async () => {
   response = await executeOperation({
     searchText: 'foo',
     last: 1,
-    before: data.notesSearchConnection.pageInfo.startCursor,
+    before: data.noteSearchConnection.pageInfo?.startCursor,
   });
   data = expectGraphQLResponseData(response);
 
-  expect(getContentFieldTexts(data.notesSearchConnection)).toStrictEqual([]);
-  expect(data.notesSearchConnection.pageInfo).toEqual({
+  expect(getContentFieldTexts(data.noteSearchConnection)).toStrictEqual([]);
+  expect(data.noteSearchConnection.pageInfo).toEqual({
     hasNextPage: false,
     hasPreviousPage: false,
     startCursor: null,
@@ -264,8 +265,8 @@ it('invalid cursor returns empty array', async () => {
   });
   const data = expectGraphQLResponseData(response);
 
-  expect(getContentFieldTexts(data.notesSearchConnection)).toStrictEqual([]);
-  expect(data.notesSearchConnection.pageInfo).toMatchObject({
+  expect(getContentFieldTexts(data.noteSearchConnection)).toStrictEqual([]);
+  expect(data.noteSearchConnection.pageInfo).toMatchObject({
     hasNextPage: false,
     hasPreviousPage: false,
     startCursor: null,

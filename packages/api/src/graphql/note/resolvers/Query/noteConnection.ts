@@ -27,7 +27,7 @@ type QueryableOrderExtra = Omit<
   'items'
 >;
 
-export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
+export const noteConnection: NonNullable<QueryResolvers['noteConnection']> = (
   _parent,
   arg,
   ctx

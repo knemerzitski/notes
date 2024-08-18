@@ -74,7 +74,7 @@ const MUTATION_ALL = `#graphql
               revision
               changeset
             }
-            recordsConnection(last: 2) {
+            recordConnection(last: 2) {
               records {
                 creatorUserId
                 change {
@@ -206,7 +206,7 @@ describe('no existing notes', () => {
                 changeset: Changeset.EMPTY.serialize(),
                 revision: 0,
               },
-              recordsConnection: {
+              recordConnection: {
                 records: [],
               },
             },
@@ -303,7 +303,7 @@ describe('no existing notes', () => {
                   changeset: Changeset.EMPTY.serialize(),
                   revision: 0,
                 },
-                recordsConnection: {
+                recordConnection: {
                   records: [
                     {
                       creatorUserId: expect.any(String),
@@ -335,7 +335,7 @@ describe('no existing notes', () => {
                   changeset: Changeset.EMPTY.serialize(),
                   revision: 0,
                 },
-                recordsConnection: {
+                recordConnection: {
                   records: [
                     {
                       creatorUserId: expect.any(String),

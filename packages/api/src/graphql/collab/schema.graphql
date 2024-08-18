@@ -62,12 +62,12 @@ type CollabText {
   "Text at specific revision. Is a composition of all previous changesets."
   textAtRevision(revision: NonNegativeInt!): RevisionChangeset!
   "A list of records containing all changes made to the text"
-  recordsConnection(
+  recordConnection(
     first: PositiveInt
     after: NonNegativeInt
     last: PositiveInt
     before: NonNegativeInt
-  ): CollabTextRecordsConnection!
+  ): CollabTextRecordConnection!
 }
 
 input CreateCollabTextInput {
@@ -87,7 +87,7 @@ type CollabTextPatch {
   isExistingRecord: Boolean
 }
 
-type CollabTextRecordsConnection implements Connection {
+type CollabTextRecordConnection implements Connection {
   "Records directly without edges"
   records: [CollabTextRecord!]!
   "Self descriptive"

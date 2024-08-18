@@ -29,7 +29,7 @@ export interface NotePreferencesMapper {
   readonly query: MongoQueryFn<NoteUserSchema['preferences']>;
 }
 
-export interface NotesConnectionMapper {
+export interface NoteConnectionMapper {
   readonly notes: (
     ctx: GraphQLResolversContext,
     info: GraphQLResolveInfo

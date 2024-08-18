@@ -8,14 +8,16 @@ import {
 } from '../../../utils/with-pre-fetched-array-size';
 import { NoteMapper } from '../../schema.mappers';
 
-import type { QueryResolvers } from './../../../types.generated';
+import type { QueryResolvers } from '../../../types.generated';
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 30;
 
-export const notesSearchConnection: NonNullable<
-  QueryResolvers['notesSearchConnection']
-> = (_parent, arg, ctx) => {
+export const noteSearchConnection: NonNullable<QueryResolvers['noteSearchConnection']> = (
+  _parent,
+  arg,
+  ctx
+) => {
   const {
     auth,
     mongodb: { loaders },

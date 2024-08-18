@@ -42,7 +42,7 @@ const QUERY = `#graphql
             revision
             changeset
           }
-          recordsConnection(last: $recordsLast) {
+          recordConnection(last: $recordsLast) {
             edges {
               node {
                 change {
@@ -145,7 +145,7 @@ it('returns note', async () => {
               revision: expect.any(Number),
               changeset: expect.any(Array),
             },
-            recordsConnection: {
+            recordConnection: {
               edges: [
                 {
                   node: {
@@ -172,7 +172,7 @@ it('returns note', async () => {
               revision: expect.any(Number),
               changeset: expect.any(Array),
             },
-            recordsConnection: {
+            recordConnection: {
               edges: [
                 {
                   node: {
@@ -233,7 +233,7 @@ it('returns note specified textField', async () => {
               revision: expect.any(Number),
               changeset: expect.any(Array),
             },
-            recordsConnection: {
+            recordConnection: {
               edges: [
                 {
                   node: {

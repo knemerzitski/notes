@@ -17,7 +17,9 @@ import { populateNotes } from '../../../../__test__/helpers/mongodb/populate/pop
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { objectIdToStr } from '../../../base/resolvers/ObjectID';
-import { NoteCategory, NotesConnection, NoteTextField } from '../../../types.generated';
+import { NoteCategory, NoteConnection, NoteTextField } from '../../../types.generated';
+import { UnwrapFieldWrapper } from '../../../../__test__/helpers/graphql/field-wrap';
+import { Maybe } from '~utils/types';
 
 interface Variables {
   after?: string;
@@ -29,7 +31,7 @@ interface Variables {
 
 const QUERY = `#graphql
   query($after: String, $first: NonNegativeInt, $before: String, $last: NonNegativeInt, $category: NoteCategory) {
-    notesConnection(after: $after, first: $first, before: $before, last: $last, category: $category){
+    noteConnection(after: $after, first: $first, before: $before, last: $last, category: $category){
       notes {
         noteId
       }
@@ -45,7 +47,7 @@ const QUERY = `#graphql
                 revision
                 changeset
               }
-              recordsConnection(last: 2) {
+              recordConnection(last: 2) {
                 edges {
                   node {
                     change {
@@ -70,7 +72,7 @@ const QUERY = `#graphql
 
 const QUERY_MINIMAL = `#graphql
   query($after: String, $first: NonNegativeInt, $before: String, $last: NonNegativeInt, $category: NoteCategory) {
-    notesConnection(after: $after, first: $first, before: $before, last: $last, category: $category){
+    noteConnection(after: $after, first: $first, before: $before, last: $last, category: $category){
       edges {
         cursor
         node {
@@ -141,7 +143,7 @@ async function executeOperation(
 ) {
   return await apolloServer.executeOperation<
     {
-      notesConnection: NotesConnection;
+      noteConnection: UnwrapFieldWrapper<NoteConnection>;
     },
     Variables
   >(
@@ -167,7 +169,7 @@ it('returns last 2 notes, after: 7, first 4 => 8,9 (10 notes total)', async () =
   const data = expectGraphQLResponseData(response);
 
   expect(data).toEqual({
-    notesConnection: {
+    noteConnection: {
       notes: notes.slice(8, 10).map((noteId) => ({
         noteId: objectIdToStr(noteId),
       })),
@@ -202,7 +204,7 @@ it('returns nothing when cursor is invalid (db is not queried)', async () => {
   const data = expectGraphQLResponseData(response);
 
   expect(data).toEqual({
-    notesConnection: {
+    noteConnection: {
       notes: [],
       edges: [],
       pageInfo: {
@@ -225,7 +227,7 @@ it('returns nothing when cursor does not match a note', async () => {
   const data = expectGraphQLResponseData(response);
 
   expect(data).toEqual({
-    notesConnection: {
+    noteConnection: {
       notes: [],
       edges: [],
       pageInfo: {
@@ -254,7 +256,7 @@ it('returns notes from different archive category', async () => {
   const data = expectGraphQLResponseData(response);
 
   expect(data).toEqual({
-    notesConnection: {
+    noteConnection: {
       notes: notesArchive.map((noteId) => ({
         noteId: objectIdToStr(noteId),
       })),
@@ -282,12 +284,12 @@ it('returns notes from different archive category', async () => {
 });
 
 function expectSlice(
-  notesConnection: NotesConnection | false,
+  noteConnection: UnwrapFieldWrapper<NoteConnection> | false,
   start: number,
   end: number
 ) {
-  if (!notesConnection) return;
-  expect(notesConnection).toEqual({
+  if (!noteConnection) return;
+  expect(noteConnection).toEqual({
     edges: notes.slice(start, end).map((noteId) => ({
       cursor: objectIdToStr(noteId),
       node: expect.objectContaining({
@@ -305,7 +307,7 @@ it('paginates from start to end', async () => {
   const paginator = {
     first: 4,
     after: undefined as string | number | undefined | null,
-    hasNextPage: true,
+    hasNextPage: true as Maybe<boolean>,
     async paginate() {
       if (!this.hasNextPage) return false;
 
@@ -318,9 +320,9 @@ it('paginates from start to end', async () => {
         QUERY_MINIMAL
       );
       const data = expectGraphQLResponseData(response);
-      this.hasNextPage = data.notesConnection.pageInfo.hasNextPage;
-      this.after = data.notesConnection.pageInfo.endCursor;
-      return data.notesConnection;
+      this.hasNextPage = data.noteConnection.pageInfo?.hasNextPage;
+      this.after = data.noteConnection.pageInfo?.endCursor;
+      return data.noteConnection;
     },
   };
 
@@ -333,7 +335,7 @@ it('paginates from end to start', async () => {
   const paginator = {
     last: 4,
     before: undefined as string | number | undefined | null,
-    hasPreviousPage: true,
+    hasPreviousPage: true as Maybe<boolean>,
     async paginate() {
       if (!this.hasPreviousPage) return false;
 
@@ -346,9 +348,9 @@ it('paginates from end to start', async () => {
         QUERY_MINIMAL
       );
       const data = expectGraphQLResponseData(response);
-      this.hasPreviousPage = data.notesConnection.pageInfo.hasPreviousPage;
-      this.before = data.notesConnection.pageInfo.startCursor;
-      return data.notesConnection;
+      this.hasPreviousPage = data.noteConnection.pageInfo?.hasPreviousPage;
+      this.before = data.noteConnection.pageInfo?.startCursor;
+      return data.noteConnection;
     },
   };
 
