@@ -7,7 +7,7 @@ const config: CodegenConfig = {
     './src/graphql': defineConfig({
       add: {
         './types.generated.ts': {
-          content: "import { MaybePromise } from '~utils/types';",
+          content: "import { MaybeValue } from '~utils/types';",
         },
       },
       scalarsOverrides: {
@@ -27,15 +27,19 @@ const config: CodegenConfig = {
         contextType: './context#GraphQLResolversContext',
         enumsAsTypes: false,
         /**
-         * Any data fetched from MongoDB is potentially undefined.
-         * Allow GraphQL itself to throw error if resolver returns
-         * null on a non-nullable field. Otherwise would have to
-         * check for null on each individual field.
+         * For TypeScript, make all resolvers nullable and let
+         * GraphQL throw "null on a non-nullable field error" and not
+         * check value indivudually on each resolver.
+         *
+         * Any value that is function or promise gets called or resolved when GraphQL executes.
+         * This allows flexible typing.
          */
-        resolverTypeWrapperSignature:
-          'MaybePromise<Maybe<T>> | (() => MaybePromise<Maybe<T>>)',
         customResolverFn:
-          '(parent: TParent, args: TArgs, context: TContext, info: GraphQLResolveInfo) => MaybePromise<Maybe<TResult>>',
+          '(parent: TParent, args: TArgs, context: TContext, info: GraphQLResolveInfo) => MaybeValue<TResult>',
+        resolverTypeWrapperSignature: 'MaybeValue<T>',
+        wrapFieldDefinitions: true,
+        wrapEntireFieldDefinitions: true,
+        fieldWrapperValue: 'MaybeValue<T>',
       },
     }),
   },
