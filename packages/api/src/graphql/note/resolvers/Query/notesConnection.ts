@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 
 import { RelayPagination } from '../../../../mongodb/pagination/relay-array-pagination';
-import { DeepObjectQuery, MongoQuery } from '../../../../mongodb/query/query';
+import { DeepObjectQuery, MongoQueryFn } from '../../../../mongodb/query/query';
 import { QueryableNote } from '../../../../mongodb/schema/note/query/queryable-note';
 import { QueryableUser } from '../../../../mongodb/schema/user/query/queryable-user';
 import { assertAuthenticated } from '../../../base/directives/auth';
@@ -108,23 +108,18 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
     });
   }
 
-  // TODO return fn not query
   /**
    *
-   * @param index negative value counts from end, -1 is last item
+   * @param index Negative value counts from end, -1 is last item
    * @returns
    */
-  function createNoteMongoQueryAtIndex(index: number): MongoQuery<QueryableNote> {
-    return {
-      query: async (query) => {
-        const user = await loadUser(query);
-        const items = user?.notes?.category?.[categoryName]?.order?.items;
-        if (!items) return;
+  function createNoteQueryFnAtIndex(index: number): MongoQueryFn<QueryableNote> {
+    return async (query) => {
+      const user = await loadUser(query);
+      const items = user?.notes?.category?.[categoryName]?.order?.items;
+      if (!items) return;
 
-        const realIndex = index < 0 ? index + items.length : index;
-
-        return items[realIndex];
-      },
+      return items[index < 0 ? index + items.length : index];
     };
   }
 
@@ -138,9 +133,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
 
         updateSize(items.length);
 
-        const realIndex = index < 0 ? index + items.length : index;
-
-        return items[realIndex];
+        return items[index];
       },
     };
   };
@@ -204,10 +197,10 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
           return hasPreviousPage ?? false;
         },
         startCursor: () => {
-          return Note_noteId_str(createNoteMongoQueryAtIndex(0).query);
+          return Note_noteId_str(createNoteQueryFnAtIndex(0));
         },
         endCursor: () => {
-          return Note_noteId_str(createNoteMongoQueryAtIndex(-1).query);
+          return Note_noteId_str(createNoteQueryFnAtIndex(-1));
         },
       };
     },
