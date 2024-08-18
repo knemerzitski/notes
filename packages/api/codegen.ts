@@ -29,10 +29,10 @@ const config: CodegenConfig = {
         /**
          * For TypeScript, make all resolvers nullable and let
          * GraphQL throw "null on a non-nullable field error" and not
-         * check value indivudually on each resolver.
+         * check value individually on each resolver.
          *
-         * Any value that is function or promise gets called or resolved when GraphQL executes.
-         * This allows flexible typing.
+         * Any value that is a function or a promise gets called or resolved when GraphQL executes.
+         * This allows for flexible typing.
          */
         customResolverFn:
           '(parent: TParent, args: TArgs, context: TContext, info: GraphQLResolveInfo) => MaybeValue<TResult>',
