@@ -477,7 +477,7 @@ export const updateNoteTextFieldInsertRecord: NonNullable<
                   value: {
                     id: userMappers.collabText.id,
                     newRecord: userMappers.newRecord,
-                    isExistingRecord: isExistingRecord,
+                    isExistingRecord,
                   },
                 },
               ],
