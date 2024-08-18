@@ -1,0 +1,91 @@
+################################ Note collaboration ################################
+
+extend type Note {
+  "Note collaboration"
+  collab: NoteCollab!
+}
+
+extend type NotePatch {
+  "Note collaboration changes"
+  collab: NoteCollabPatch
+}
+
+extend input CreateNoteInput {
+  "Initial note collaboration values"
+  collab: CreateNoteCollabInput
+}
+
+enum NoteTextField {
+  TITLE
+  CONTENT
+}
+
+"Note collaborative info"
+type NoteCollab {
+  "Text is read-only and cannot be modified. Default is false."
+  readOnly: Boolean
+  "All available text fields. If arg: name is defined then only that field is returned."
+  textFields(name: NoteTextField): [NoteTextFieldEntry!]!
+}
+
+type NoteCollabPatch {
+  "Changed text read-only status"
+  readOnly: Boolean
+  "Changed note text fields"
+  textFields: [NoteTextFieldEntryPatch!]
+}
+
+type CreateNoteCollabInput {
+  "Initial note text fields"
+  textFields: [CreateNoteTextFieldEntryInput!]
+}
+
+input CreateNoteTextFieldEntryInput {
+  "Type of text field"
+  key: NoteTextField!
+  "Actual value of text field"
+  value: CreateCollabTextInput!
+}
+
+type NoteTextFieldEntry {
+  "Type of text field"
+  key: NoteTextField!
+  "Actual value of text field"
+  value: CollabText!
+}
+
+type NoteTextFieldEntryPatch {
+  "Type of text field"
+  key: NoteTextField!
+  "Actual value of text field"
+  value: CollabTextPatch!
+}
+
+input UpdateNoteTextFieldInsertRecordInput {
+  "Note to be updated by Note.id"
+  noteId: ObjectID!
+  "Text field where to insert record"
+  textField: NoteTextField!
+  "New record to be inserted"
+  insertRecord: CollabTextRecordInput!
+}
+
+type UpdateNoteTextFieldInsertRecordPayload {
+  """
+  New record added to text field. Could be a duplicate record. Check isDuplicateRecord field.
+  """
+  newRecord: CollabTextRecord!
+  "True if record has already been inserted before."
+  isDuplicateRecord: Boolean!
+  "Text field that was updated"
+  textField: NoteTextField!
+  "Note after new record is inserted"
+  note: Note!
+}
+
+extend type Mutation {
+  "Insert new record to text field"
+  updateNoteTextFieldInsertRecord(
+    input: UpdateNoteTextFieldInsertRecordInput!
+  ): UpdateNoteTextFieldInsertRecordPayload! @auth
+}
