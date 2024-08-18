@@ -1,5 +1,3 @@
-# TODO create endpoint for changing own displayName
-
 type PublicUserProfile {
   "User-friendly way to distinguish this user. Can be anything set by the user."
   displayName: String!
