@@ -159,8 +159,8 @@ export const trashNote: NonNullable<MutationResolvers['trashNote']> = async (
     {
       note: {
         id: () => Note_id(noteMapper),
-        categoryName: () => NoteCategory.TRASH,
-        deletedAt: () => newExpireAt,
+        categoryName: NoteCategory.TRASH,
+        deletedAt: newExpireAt,
       },
     },
     ctx

@@ -117,11 +117,10 @@ export const updateNoteBackgroundColor: NonNullable<
     currentUserId,
     {
       note: {
-        id: () => Note_id(noteMapper), // TODO this as func
-        preferences: () => ({
-          // TODO others as object?
-          backgroundColor: () => backgroundColor,
-        }),
+        id: () => Note_id(noteMapper),
+        preferences: {
+          backgroundColor,
+        },
       },
     },
     ctx

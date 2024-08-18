@@ -1,11 +1,6 @@
 import { ObjectId } from 'mongodb';
 
-import {
-  NoteCategory,
-  NoteTextField,
-  ResolverTypeWrapper,
-  ResolversTypes,
-} from '../types.generated';
+import { NoteTextField, ResolverTypeWrapper, ResolversTypes } from '../types.generated';
 
 import { CollabTextMapper } from '../collab/schema.mappers';
 import { GraphQLResolveInfo } from 'graphql';
@@ -49,20 +44,4 @@ export interface NotesConnectionMapper {
 export interface NoteEdgeMapper {
   readonly node: NoteMapper;
   readonly cursor: ResolversTypes['Cursor'];
-}
-
-export interface NotePreferencesPatchMapper {
-  backgroundColor?(): ResolverTypeWrapper<string>;
-}
-
-export interface NotePatchMapper {
-  id(): ResolverTypeWrapper<string>;
-  textFields?(): ResolversTypes['NoteTextFieldEntryPatch'][];
-  categoryName?(): ResolverTypeWrapper<NoteCategory>;
-  preferences?(): NotePreferencesPatchMapper;
-  location?(): ResolversTypes['NoteLocation'];
-  deletedAt?(): ResolverTypeWrapper<Date>;
-  readOnly?(): ResolverTypeWrapper<boolean>;
-  users?(): ResolversTypes['NoteUserPatch'][];
-  usersDeleted?(): ResolverTypeWrapper<string[]>;
 }

@@ -470,7 +470,7 @@ export const updateNoteTextFieldInsertRecord: NonNullable<
           {
             note: {
               id: () => Note_id(userMappers.note),
-              textFields: () => [
+              textFields: [
                 {
                   key: textField,
                   value: {

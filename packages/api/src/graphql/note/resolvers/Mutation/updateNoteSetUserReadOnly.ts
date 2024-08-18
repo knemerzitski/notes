@@ -151,13 +151,11 @@ export const updateNoteSetUserReadOnly: NonNullable<
       {
         note: {
           id: () => Note_id(modifiedNoteMapper),
-          readOnly: () => readOnly,
-          users: () => [
+          users: [
             {
               user: {
                 id: objectIdToStr(modifyUserId) ?? 'ddd',
               },
-              readOnly,
             },
           ],
           // users changed... must let everyone know, and modified user that they are now diff

@@ -376,13 +376,13 @@ export const moveNote: NonNullable<MutationResolvers['moveNote']> = async (
       {
         note: {
           id: () => Note_id(currentUserNoteMapper),
-          location: () => ({
+          location: {
             categoryName: actualLocation.categoryName as MovableNoteCategory,
             anchorPosition: actualLocation.anchorPosition,
             anchorNote: anchorNoteMapper,
-          }),
-          categoryName: () => actualLocation.categoryName as NoteCategory,
-          deletedAt: noteIsTrashed ? () => null : undefined,
+          },
+          categoryName: actualLocation.categoryName as NoteCategory,
+          deletedAt: noteIsTrashed ? null : undefined,
         },
       },
       ctx
