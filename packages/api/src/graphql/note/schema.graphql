@@ -1,336 +1,73 @@
-################################ UserNoteLink ################################
-"""
-Link between user and note. Since this type is queried in context of current
-user, only note information is given.
-"""
-type UserNoteLink implements Node {
+################################ Note ################################
+
+type Note {
   "Self-descriptive"
-  id: ID!
-  "Note that the user can access"
-  note: Note!
-  "Time when user gained access to the note"
-  createdAt: DateTime!
+  id: ObjectID!
 }
 
-type UserNoteLinkPatch {
-  "This patch applies to UserNoteLink.id"
+type NotePatch {
+  "This patch applies to Note.id"
   id: String!
-  "True if UserNoteLink was deleted"
+  "True if Note was deleted"
   deleted: Boolean
 }
 
-################################ Create UserNoteLink ################################
+################################ Create Note ################################
 
-input CreateUserNoteLinkInput {
+input CreateNoteInput {
   "Ignore this field. It's a placeholder until the type is extended"
   _: Boolean
 }
 
-extend input CreateNoteInput {
-  userNoteLink: CreateUserNoteLinkInput
+type CreateNotePayload {
+  note: Note!
 }
 
-extend type CreateNotePayload {
-  "Created link to a new note"
-  userNoteLink: UserNoteLink!
+extend type Mutation {
+  "Create a new note"
+  createNote(input: CreateNoteInput!): CreateNotePayload @auth
 }
 
-################################ Delete UserNoteLink ################################
+################################ Delete Note ################################
 
-extend type DeleteNotePayload {
-  "Deleted UserNoteLink.id"
-  userNoteLinkId: String!
+
+input DeleteNoteInput {
+  "Note to be deleted by Note.id"
+  noteId: ObjectID!
 }
 
-################################ Query UserNoteLink ################################
-
-type UserNoteLinkConnection implements Connection {
-  "Notes directly without edges"
-  notes: [UserNoteLink!]!
-  "Self descriptive"
-  edges: [NoteEdge!]!
-  "Self descriptive"
-  pageInfo: PageInfo!
+type DeleteNotePayload {
+  "Affected Note.id"
+  noteId: String!
+  "If true then note was deleted."
+  deleted: Boolean!
 }
 
-type UserNoteLinkEdge implements Edge {
-  "Self descriptive"
-  node: UserNoteLink!
-  "Self descriptive"
-  cursor: Cursor!
+extend type Mutation {
+  "Delete note permanently. Cannot be undone."
+  deleteNote(input: DeleteNoteInput!): DeleteNotePayload! @auth
 }
 
-extend type Query {
-  "Self-descriptive"
-  userNoteLinkByNoteId(noteId: ObjectID!): UserNoteLink! @auth
-  "Paginate UserNoteLinks by category. Default is NoteCategory.DEFAULT"
-  userNoteLinkConnection(
-    first: NonNegativeInt
-    after: String
-    last: NonNegativeInt
-    before: String
-    category: NoteCategory
-  ): UserNoteLinkConnection! @auth
-  "Search for UserNoteLinks by text"
-  userNoteLinkSearchConnection(
-    searchText: String!
-    first: NonNegativeInt
-    after: String
-    last: NonNegativeInt
-    before: String
-  ): UserNoteLinkConnection! @auth
-}
+################################ Note Events Create/Update/Delete Subscriptions ################################
 
-################################ UserNoteLink Events Create/Update/Delete Subscriptions ################################
-
-extend type NoteCreatedEvent {
+type NoteCreatedEvent {
   "Newly created link to a note"
-  userNoteLink: UserNoteLink!
+  note: Note!
 }
 
-extend type UserPatchEvent {
-  "Changes made to the UserNoteLink by patch"
-  userNoteLink: UserNoteLinkPatch
+type NotePatchEvent {
+  "Changes made to the note by patch"
+  note: NotePatch
 }
 
-################################ UserNoteLink Preferences ################################
+union NoteEvent = NoteCreatedEvent | NotePatchEvent
 
-extend type UserNoteLink {
-  "Note preferences for visual appearance"
-  preferences: NotePreferences
+type NoteEventsPayload {
+  "A list of Note events"
+  events: [NoteEvent!]
 }
 
-extend type UserNoteLinkPatch {
-  "Changed preferences"
-  preferences: NotePreferencesPatch
-}
-
-extend input CreateUserNoteLinkInput {
-  preferences: NotePreferencesInput
-}
-
-type NotePreferences {
-  "Note background color"
-  backgroundColor: HexColorCode
-}
-
-type NotePreferencesPatch {
-  "Changed note background color"
-  backgroundColor: HexColorCode
-}
-
-input NotePreferencesInput {
-  backgroundColor: HexColorCode
-}
-
-input UpdateUserNoteLinkBackgroundColorInput {
-  "Note to be updated by Note.id"
-  noteId: ObjectID!
-  "New background color value"
-  backgroundColor: HexColorCode!
-}
-
-type UpdateUserNoteLinkBackgroundColorPayload {
-  "Direct access to new background color"
-  backgroundColor: HexColorCode!
-  "UserNoteLink after new background color is applied"
-  userNoteLink: UserNoteLink!
-}
-
-extend type Mutation {
-  "Update note preferences backgroundColor"
-  updateUserNoteLinkBackgroundColor(
-    input: UpdateUserNoteLinkBackgroundColorInput!
-  ): UpdateUserNoteLinkBackgroundColorPayload! @auth
-}
-
-################################ UserNoteLink Trash/Untrash ################################
-
-extend type UserNoteLink {
-  "UserNoteLink is marked for deletion and will no longer be available after this date."
-  deletedAt: DateTime
-}
-
-extend type UserNoteLinkPatch {
-  "Note has been trashed and will be deleted after this date."
-  deletedAt: DateTime
-}
-
-input TrashUserNoteLinkInput {
-  "Note to be trashed by Note.id"
-  noteId: ObjectID!
-}
-
-type TrashUserNoteLinkPayload {
-  "Time when note is permanently deleted from trash"
-  deletedAt: DateTime!
-  "UserNoteLink after it's been trashed."
-  userNoteLink: UserNoteLink!
-}
-
-extend type Mutation {
-  "Trash note by Note.id. It can still be recovered by moving it out of trash"
-  trashUserNoteLink(input: TrashUserNoteLinkInput!): TrashUserNoteLinkPayload! @auth
-}
-
-################################ UserNoteLink Category/Move ################################
-
-extend type UserNoteLink {
-  "Category where note belongs"
-  categoryName: NoteCategory!
-}
-
-extend type UserNoteLink {
-  "Changed note category"
-  categoryName: NoteCategory
-  "Changed note location"
-  location: NoteLocation
-}
-
-extend input CreateUserNoteLinkInput {
-  categoryName: NoteCategory
-}
-
-"""
-All note categories
-"""
-enum NoteCategory {
-  DEFAULT
-  STICKY
-  ARCHIVE
-  TRASH
-}
-
-"""
-Notes in these categories can be moved/reordered
-"""
-enum MovableNoteCategory {
-  DEFAULT
-  STICKY
-  ARCHIVE
-}
-
-enum ListAnchorPosition {
-  AFTER
-  BEFORE
-}
-
-"""
-Move notes between categories or withing category using anchor note.
-"""
-input NoteLocationInput {
-  "Category where to put or keep the note."
-  categoryName: MovableNoteCategory!
-  """
-  Note.id to be defined as anchor.
-  If anchor note doesn't exist then anchor is ignored and note is appended to the end.
-  """
-  anchorNoteId: ObjectID
-  "How note is moved relative to anchor note"
-  anchorPosition: ListAnchorPosition
-}
-
-type NoteLocation {
-  "Note category after moving"
-  categoryName: MovableNoteCategory!
-  "Anchor note after moving"
-  anchorUserNoteLink: UserNoteLink
-  "How note is positioned relative to anchorNote. Default is BEFORE"
-  anchorPosition: ListAnchorPosition
-}
-
-input MoveUserNoteLinkInput {
-  "Note to be moved by Note.id"
-  noteId: ObjectID!
-  "Specify how to move the note. Null location can be used to move note out of trash back to original category."
-  location: NoteLocationInput
-}
-
-type MoveUserNoteLinkPayload {
-  "How note was moved"
-  location: NoteLocation!
-  "UserNoteLink after the move"
-  userNoteLink: UserNoteLink!
-}
-
-extend type Mutation {
-  "Move note between categories or reorder within categories"
-  moveNote(input: MoveUserNoteLinkInput!): MoveUserNoteLinkPayload! @auth
-}
-
-################################ OtherUserNoteLink ################################
-
-"""
-In UserNoteLink, specifies another user relative to current user
-"""
-type OtherUserNoteLink {
-  "Self-descriptive"
-  user: PublicUser!
-  "This user has higher scope than current user"
-  higherScope: Boolean!
-  "This user has read-only access to the note"
-  readOnly: Boolean!
-}
-
-type OtherUserNotePatch {
-  "Patch applies to this user"
-  user: PublicUserPatch!
-  "User read-only status changed"
-  readOnly: Boolean
-}
-
-extend type UserNoteLink {
-  "All users excluding current user who have access to the note"
-  otherUsers: [OtherUserNoteLink!]!
-}
-
-extend type UserNoteLinkPatch {
-  "Changes made to other users"
-  otherUsers: [OtherUserNotePatch!]
-  "List of PublicUser.id that have been deleted from otherUsers"
-  otherUsersDeleted: [String!]
-}
-
-input UpdateNoteDeleteUserLinkInput {
-  "Note Note.id to modify"
-  noteId: ObjectID!
-  "PublicUser.id to be deleted"
-  userId: ObjectID!
-}
-
-type UpdateNoteDeleteUserLinkPayload {
-  "PublicUser.id of deleted user"
-  userId: ObjectID!
-  "UserNoteLink with updated users list"
-  userNoteLink: UserNoteLink!
-}
-
-extend type Mutation {
-  "Revoke user access to the note"
-  updateNoteDeleteUserLink(input: UpdateNoteDeleteUserLinkInput!): UpdateNoteDeleteUserLinkPayload!
-}
-
-input UpdateNoteSetUserReadOnlyInput {
-  "Note Note.id to modify"
-  noteId: ObjectID!
-  "PublicUser.id to update"
-  userId: ObjectID!
-  "Change user's access to note"
-  readOnly: Boolean!
-}
-
-type UpdateNoteSetUserReadOnlyPayload {
-  "New read-only value of user"
-  readOnly: Boolean!
-  "User with updated read-only value"
-  user: NoteUser!
-  "UserNoteLink with updated users list"
-  note: UserNoteLLink!
-}
-
-extend type Mutation {
-  "Change user note permissions"
-  updateNoteSetUserReadOnly(
-    input: UpdateNoteSetUserReadOnlyInput!
-  ): UpdateNoteSetUserReadOnlyPayload!
+extend type Subscription {
+  "Subscribe to all note events related to current user"
+  noteEvents: NoteEventsPayload! @auth
 }
