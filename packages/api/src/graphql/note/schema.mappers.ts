@@ -1,6 +1,5 @@
 import { ObjectId } from 'mongodb';
 
-import { PageInfoMapper } from '../base/schema.mappers';
 import {
   NoteCategory,
   NoteTextField,
@@ -35,6 +34,23 @@ export interface NotePreferencesMapper {
   readonly query: MongoQueryFn<NoteUserSchema['preferences']>;
 }
 
+export interface NotesConnectionMapper {
+  readonly notes: (
+    ctx: GraphQLResolversContext,
+    info: GraphQLResolveInfo
+  ) => ResolverTypeWrapper<NoteMapper[]>;
+  readonly edges: (
+    ctx: GraphQLResolversContext,
+    info: GraphQLResolveInfo
+  ) => ResolverTypeWrapper<NoteEdgeMapper[]>;
+  readonly pageInfo: ResolversTypes['PageInfo'];
+}
+
+export interface NoteEdgeMapper {
+  readonly node: NoteMapper;
+  readonly cursor: ResolversTypes['Cursor'];
+}
+
 export interface NotePreferencesPatchMapper {
   backgroundColor?(): ResolverTypeWrapper<string>;
 }
@@ -49,21 +65,4 @@ export interface NotePatchMapper {
   readOnly?(): ResolverTypeWrapper<boolean>;
   users?(): ResolversTypes['NoteUserPatch'][];
   usersDeleted?(): ResolverTypeWrapper<string[]>;
-}
-
-export interface NotesConnectionMapper {
-  notes(
-    ctx: GraphQLResolversContext,
-    info: GraphQLResolveInfo
-  ): ResolverTypeWrapper<NoteMapper[]>;
-  edges(
-    ctx: GraphQLResolversContext,
-    info: GraphQLResolveInfo
-  ): ResolverTypeWrapper<NoteEdgeMapper[]>;
-  pageInfo(): ResolverTypeWrapper<PageInfoMapper>;
-}
-
-export interface NoteEdgeMapper {
-  node(): ResolverTypeWrapper<NoteMapper>;
-  cursor(): ResolversTypes['Cursor'];
 }

@@ -97,10 +97,10 @@ export const notesSearchConnection: NonNullable<
     edges(ctx, info) {
       return withPreFetchedArraySize(
         (index, updateSize) => {
-          const noteQuery = createNoteMapper(index, updateSize);
+          const noteMapper = createNoteMapper(index, updateSize);
 
           return {
-            node: () => noteQuery,
+            node: noteMapper,
             cursor: async () => {
               const searchResult = await loadSearchNotes({
                 cursor: 1,

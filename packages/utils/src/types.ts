@@ -2,6 +2,10 @@ export type Maybe<T> = T | null | undefined;
 
 export type MaybePromise<T> = T | Promise<T>;
 
+export type MaybeFunction<T> = T | (() => T);
+
+export type MaybeValue<T> = MaybeFunction<MaybePromise<Maybe<T>>>;
+
 export interface Entry<Key, Value> {
   key: Key;
   value: Value;
@@ -23,7 +27,6 @@ export type ExcludeNullable<T, Key extends keyof NonNullable<T>> = NonNullable<T
   [key in Key]-?: Exclude<NonNullable<T>[key], null | undefined>;
 };
 
-
 /**
  * @source https://stackoverflow.com/questions/74852202/typescript-pick-only-properties-key-that-starts-with-a-target-string
  */
@@ -32,7 +35,6 @@ export type PickStartsWith<T extends object, S extends string> = {
 };
 
 export type OmitStartsWith<T extends object, S extends string> = Omit<T, `${S}${string}`>;
-
 
 /**
  * Types copied from package 'ts-essentials'

@@ -9,13 +9,13 @@ export const CollabTextRecordsConnection: CollabTextRecordsConnectionResolvers =
   edges: (parent, _args, ctx, info) => {
     return withPreFetchedArraySize(
       (index, updateSize) => {
-        const revisionRecordQuery = parent.getRecord(index, updateSize);
+        const recordMapper = parent.getRecord(index, updateSize);
 
         return {
-          node: revisionRecordQuery,
+          node: recordMapper,
           cursor: async () => {
             return (
-              await revisionRecordQuery.query({
+              await recordMapper.query({
                 revision: 1,
               })
             )?.revision;

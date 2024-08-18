@@ -145,64 +145,60 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
     edges: async (ctx, info) => {
       return withPreFetchedArraySize(
         (index, updateSize) => {
-          const noteQuery = createNoteMapper(index, updateSize);
+          const noteMapper = createNoteMapper(index, updateSize);
 
           return {
-            node: () => noteQuery,
-            cursor: () => {
-              return Note_noteId_str(noteQuery.query);
-            },
+            node: noteMapper,
+            cursor: () => Note_noteId_str(noteMapper.query),
           };
         },
         ctx,
         info
       );
     },
-    pageInfo: () => {
-      return {
-        hasNextPage: async () => {
-          const user = await loadUser(
-            {
-              _id: 1,
-            },
-            {
-              lastId: 1,
-            }
-          );
+    pageInfo: {
+      hasNextPage: async () => {
+        const user = await loadUser(
+          {
+            _id: 1,
+          },
+          {
+            lastId: 1,
+          }
+        );
 
-          const order = user?.notes?.category?.[categoryName]?.order;
-          const endCursor = order?.items?.[order.items.length - 1]?._id;
-          const lastCursor = order?.lastId;
+        const order = user?.notes?.category?.[categoryName]?.order;
+        const endCursor = order?.items?.[order.items.length - 1]?._id;
+        const lastCursor = order?.lastId;
 
-          const hasNextPage = endCursor && !endCursor.equals(lastCursor);
+        const hasNextPage = endCursor && !endCursor.equals(lastCursor);
 
-          return hasNextPage ?? false;
-        },
-        hasPreviousPage: async () => {
-          const user = await loadUser(
-            {
-              _id: 1,
-            },
-            {
-              firstId: 1,
-            }
-          );
+        return hasNextPage ?? false;
+      },
+      hasPreviousPage: async () => {
+        const user = await loadUser(
+          {
+            _id: 1,
+          },
+          {
+            firstId: 1,
+          }
+        );
 
-          const order = user?.notes?.category?.[categoryName]?.order;
-          const startCursor = order?.items?.[0]?._id;
-          const firstCursor = order?.firstId;
+        const order = user?.notes?.category?.[categoryName]?.order;
+        const startCursor = order?.items?.[0]?._id;
+        const firstCursor = order?.firstId;
 
-          const hasPreviousPage = startCursor && !startCursor.equals(firstCursor);
+        const hasPreviousPage = startCursor && !startCursor.equals(firstCursor);
 
-          return hasPreviousPage ?? false;
-        },
-        startCursor: () => {
-          return Note_noteId_str(createNoteQueryFnAtIndex(0));
-        },
-        endCursor: () => {
-          return Note_noteId_str(createNoteQueryFnAtIndex(-1));
-        },
-      };
+        return hasPreviousPage ?? false;
+      },
+      startCursor: () => {
+        return Note_noteId_str(createNoteQueryFnAtIndex(0));
+      },
+      endCursor: () => {
+        return Note_noteId_str(createNoteQueryFnAtIndex(-1));
+      },
     },
   };
 };
