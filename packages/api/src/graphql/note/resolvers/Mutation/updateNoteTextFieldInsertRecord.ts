@@ -15,10 +15,6 @@ import { RelayPagination } from '../../../../mongodb/pagination/relay-array-pagi
 import { createCollabText } from '../../../../mongodb/schema/collab-text/utils/create-collab-text';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { objectIdToStr } from '../../../base/resolvers/ObjectID';
-import {
-  createNoteCollabTextMapper,
-  NoteQueryMapper,
-} from '../../mongo-query-mapper/note';
 import { throwNoteIsReadOnly, throwNoteNotFound } from '../../utils/note-errors';
 import { findNoteUser } from '../../utils/user-note';
 import { publishNoteUpdated } from '../Subscription/noteEvents';
@@ -27,6 +23,8 @@ import type { MutationResolvers } from './../../../types.generated';
 import { CollabTextRecordMapper } from '../../../collab/schema.mappers';
 import { MongoQueryFn } from '../../../../mongodb/query/query';
 import { QueryableNote } from '../../../../mongodb/schema/note/query/queryable-note';
+import { NoteMapper } from '../../schema.mappers';
+import { Note_id, Note_textFields_value } from '../Note';
 
 export const updateNoteTextFieldInsertRecord: NonNullable<
   MutationResolvers['updateNoteTextFieldInsertRecord']
@@ -442,11 +440,12 @@ export const updateNoteTextFieldInsertRecord: NonNullable<
         },
         query,
       });
-    const noteMapper = new NoteQueryMapper(userId, {
+    const noteMapper: NoteMapper = {
+      userId,
       query: queryNote,
-    });
+    };
 
-    const collabTextMapper = createNoteCollabTextMapper(textField, queryNote);
+    const collabTextMapper = Note_textFields_value(textField, queryNote);
 
     const collabTextRecordMapper: CollabTextRecordMapper = {
       parentId: collabTextMapper.id,
@@ -470,7 +469,7 @@ export const updateNoteTextFieldInsertRecord: NonNullable<
           userId,
           {
             note: {
-              id: () => userMappers.note.id(),
+              id: () => Note_id(userMappers.note),
               textFields: () => [
                 {
                   key: textField,

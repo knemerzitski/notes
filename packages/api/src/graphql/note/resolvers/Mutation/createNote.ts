@@ -20,8 +20,8 @@ import {
   NoteTextField,
   type MutationResolvers,
 } from '../../../types.generated';
-import { NoteQueryMapper } from '../../mongo-query-mapper/note';
 import { publishNoteCreated } from '../Subscription/noteEvents';
+import { NoteMapper } from '../../schema.mappers';
 
 const _createNote: NonNullable<MutationResolvers['createNote']> = async (
   _parent,
@@ -113,24 +113,25 @@ const _createNote: NonNullable<MutationResolvers['createNote']> = async (
       }),
   };
 
-  const noteQueryMapper = new NoteQueryMapper(currentUserId, {
+  const noteMapper: NoteMapper = {
+    userId: currentUserId,
     query() {
       return noteQueryResponse;
     },
-  });
+  };
 
   // Subscription
   await publishNoteCreated(
     currentUserId,
     {
-      note: noteQueryMapper,
+      note: noteMapper,
     },
     ctx
   );
 
   // Response
   return {
-    note: noteQueryMapper,
+    note: noteMapper,
   };
 };
 

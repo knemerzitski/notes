@@ -6,7 +6,7 @@ import {
   PreFetchedArrayGetItemFn,
   withPreFetchedArraySize,
 } from '../../../utils/with-pre-fetched-array-size';
-import { NoteQueryMapper } from '../../mongo-query-mapper/note';
+import { NoteMapper } from '../../schema.mappers';
 
 import type { QueryResolvers } from './../../../types.generated';
 
@@ -75,11 +75,9 @@ export const notesSearchConnection: NonNullable<
     });
   }
 
-  const createNoteMapper: PreFetchedArrayGetItemFn<NoteQueryMapper> = (
-    index,
-    updateSize
-  ) => {
-    return new NoteQueryMapper(currentUserId, {
+  const createNoteMapper: PreFetchedArrayGetItemFn<NoteMapper> = (index, updateSize) => {
+    return {
+      userId: currentUserId,
       query: async (query) => {
         const searchResult = await loadSearchNotes({
           note: query,
@@ -89,7 +87,7 @@ export const notesSearchConnection: NonNullable<
         }
         return searchResult?.[getSearchOffset(searchResult.length) + index]?.note;
       },
-    });
+    };
   };
 
   return {

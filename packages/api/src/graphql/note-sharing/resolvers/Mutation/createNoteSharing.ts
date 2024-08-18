@@ -8,7 +8,6 @@ import {
   shareNoteLinkDefaultValues,
 } from '../../../../mongodb/schema/note/share-note-link';
 import { assertAuthenticated } from '../../../base/directives/auth';
-import { NoteQueryMapper } from '../../../note/mongo-query-mapper/note';
 
 import { type MutationResolvers } from './../../../types.generated';
 

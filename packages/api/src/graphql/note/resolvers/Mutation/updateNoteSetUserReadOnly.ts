@@ -6,11 +6,11 @@ import { throwNoteNotFound } from '../../utils/note-errors';
 import { findNoteUser, findOldestNoteUser } from '../../utils/user-note';
 import type { MutationResolvers } from './../../../types.generated';
 import { ErrorWithData } from '~utils/logger';
-import { NoteQueryMapper } from '../../mongo-query-mapper/note';
 import { isDefined } from '~utils/type-guards/is-defined';
 import { publishNoteUpdated } from '../Subscription/noteEvents';
 import { ObjectId } from 'mongodb';
-import { NoteUserMapper } from '../../schema.mappers';
+import { NoteMapper, NoteUserMapper } from '../../schema.mappers';
+import { Note_id } from '../Note';
 
 export const updateNoteSetUserReadOnly: NonNullable<
   MutationResolvers['updateNoteSetUserReadOnly']
@@ -52,8 +52,9 @@ export const updateNoteSetUserReadOnly: NonNullable<
     });
   }
 
-  function createNoteMapperForUser(userId: ObjectId) {
-    return new NoteQueryMapper(userId, {
+  function createNoteMapperForUser(userId: ObjectId): NoteMapper {
+    return {
+      userId,
       query: (query) =>
         mongodb.loaders.note.load({
           id: {
@@ -62,7 +63,7 @@ export const updateNoteSetUserReadOnly: NonNullable<
           },
           query,
         }),
-    });
+    };
   }
 
   const currentUserNoteMapper = createNoteMapperForUser(currentUserId);
@@ -149,7 +150,7 @@ export const updateNoteSetUserReadOnly: NonNullable<
       modifyUserId,
       {
         note: {
-          id: () => modifiedNoteMapper.id(),
+          id: () => Note_id(modifiedNoteMapper),
           readOnly: () => readOnly,
           users: () => [
             {
@@ -171,7 +172,7 @@ export const updateNoteSetUserReadOnly: NonNullable<
         userId,
         {
           note: {
-            id: () => noteMapper.id(),
+            id: () => Note_id(noteMapper),
             // users changed... must let everyone know, and modified user that they are now diff
           },
         },

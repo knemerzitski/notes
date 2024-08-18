@@ -2,13 +2,14 @@ import { ObjectId } from 'mongodb';
 
 import { getNotesArrayPath } from '../../../../mongodb/schema/user/user';
 import { assertAuthenticated } from '../../../base/directives/auth';
-import { NoteQueryMapper } from '../../mongo-query-mapper/note';
 import { throwNoteNotFound } from '../../utils/note-errors';
 import { findNoteUser } from '../../utils/user-note';
 
 import { publishNoteUpdated } from '../Subscription/noteEvents';
 
 import { NoteCategory, type MutationResolvers } from './../../../types.generated';
+import { NoteMapper } from '../../schema.mappers';
+import { Note_id } from '../Note';
 
 export const trashNote: NonNullable<MutationResolvers['trashNote']> = async (
   _parent,
@@ -42,8 +43,9 @@ export const trashNote: NonNullable<MutationResolvers['trashNote']> = async (
     throwNoteNotFound(noteId);
   }
 
-  function createNoteMapperForUser(userId: ObjectId) {
-    return new NoteQueryMapper(userId, {
+  function createNoteMapperForUser(userId: ObjectId): NoteMapper {
+    return {
+      userId,
       query: (query) =>
         mongodb.loaders.note.load({
           id: {
@@ -52,7 +54,7 @@ export const trashNote: NonNullable<MutationResolvers['trashNote']> = async (
           },
           query,
         }),
-    });
+    };
   }
 
   const existingExpireAt = noteUser.trashed?.expireAt;
@@ -156,7 +158,7 @@ export const trashNote: NonNullable<MutationResolvers['trashNote']> = async (
     currentUserId,
     {
       note: {
-        id: () => noteMapper.id(),
+        id: () => Note_id(noteMapper),
         categoryName: () => NoteCategory.TRASH,
         deletedAt: () => newExpireAt,
       },

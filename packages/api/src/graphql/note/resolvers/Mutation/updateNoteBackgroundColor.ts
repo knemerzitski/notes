@@ -1,7 +1,8 @@
 import { assertAuthenticated } from '../../../base/directives/auth';
-import { NoteQueryMapper } from '../../mongo-query-mapper/note';
+import { NoteMapper } from '../../schema.mappers';
 import { throwNoteNotFound } from '../../utils/note-errors';
 import { findNoteUser } from '../../utils/user-note';
+import { Note_id } from '../Note';
 
 import { publishNoteUpdated } from '../Subscription/noteEvents';
 
@@ -36,7 +37,8 @@ export const updateNoteBackgroundColor: NonNullable<
     throwNoteNotFound(noteId);
   }
 
-  const noteMapper = new NoteQueryMapper(currentUserId, {
+  const noteMapper: NoteMapper = {
+    userId: currentUserId,
     query: (query) =>
       mongodb.loaders.note.load({
         id: {
@@ -45,7 +47,7 @@ export const updateNoteBackgroundColor: NonNullable<
         },
         query,
       }),
-  });
+  };
 
   if (noteUser.preferences?.backgroundColor === backgroundColor) {
     // Return early, backgroundColor is already correct
@@ -115,7 +117,7 @@ export const updateNoteBackgroundColor: NonNullable<
     currentUserId,
     {
       note: {
-        id: () => noteMapper.id(), // TODO this as func
+        id: () => Note_id(noteMapper), // TODO this as func
         preferences: () => ({
           // TODO others as object?
           backgroundColor: () => backgroundColor,

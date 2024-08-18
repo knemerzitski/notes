@@ -7,11 +7,12 @@ import { QueryableUser } from '../../../../mongodb/schema/user/query/queryable-u
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { isObjectIdStr, strToObjectId } from '../../../base/resolvers/ObjectID';
 import { NoteCategory, type QueryResolvers } from '../../../types.generated';
-import { NoteQueryMapper } from '../../mongo-query-mapper/note';
 import {
   PreFetchedArrayGetItemFn,
   withPreFetchedArraySize,
 } from '../../../utils/with-pre-fetched-array-size';
+import { NoteMapper } from '../../schema.mappers';
+import { Note_noteId_str } from '../Note';
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 30;
@@ -107,6 +108,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
     });
   }
 
+  // TODO return fn not query
   /**
    *
    * @param index negative value counts from end, -1 is last item
@@ -126,11 +128,9 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
     };
   }
 
-  const createNoteMapper: PreFetchedArrayGetItemFn<NoteQueryMapper> = (
-    index,
-    updateSize
-  ) => {
-    return new NoteQueryMapper(currentUserId, {
+  const createNoteMapper: PreFetchedArrayGetItemFn<NoteMapper> = (index, updateSize) => {
+    return {
+      userId: currentUserId,
       query: async (query) => {
         const user = await loadUser(query);
         const items = user?.notes?.category?.[categoryName]?.order?.items;
@@ -142,7 +142,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
 
         return items[realIndex];
       },
-    });
+    };
   };
 
   return {
@@ -157,7 +157,7 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
           return {
             node: () => noteQuery,
             cursor: () => {
-              return noteQuery.noteIdStr();
+              return Note_noteId_str(noteQuery.query);
             },
           };
         },
@@ -204,18 +204,10 @@ export const notesConnection: NonNullable<QueryResolvers['notesConnection']> = (
           return hasPreviousPage ?? false;
         },
         startCursor: () => {
-          const startNoteQuery = new NoteQueryMapper(
-            currentUserId,
-            createNoteMongoQueryAtIndex(0)
-          );
-          return startNoteQuery.noteIdStr();
+          return Note_noteId_str(createNoteMongoQueryAtIndex(0).query);
         },
         endCursor: () => {
-          const endNoteQuery = new NoteQueryMapper(
-            currentUserId,
-            createNoteMongoQueryAtIndex(-1)
-          );
-          return endNoteQuery.noteIdStr();
+          return Note_noteId_str(createNoteMongoQueryAtIndex(-1).query);
         },
       };
     },

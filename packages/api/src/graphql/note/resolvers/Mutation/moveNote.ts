@@ -6,7 +6,6 @@ import { DeepQueryResult } from '../../../../mongodb/query/query';
 import { QueryableNote } from '../../../../mongodb/schema/note/query/queryable-note';
 import { getNotesArrayPath } from '../../../../mongodb/schema/user/user';
 import { assertAuthenticated } from '../../../base/directives/auth';
-import { NoteQueryMapper } from '../../mongo-query-mapper/note';
 import { throwNoteNotFound } from '../../utils/note-errors';
 import { findNoteUser } from '../../utils/user-note';
 import { publishNoteUpdated } from '../Subscription/noteEvents';
@@ -18,6 +17,8 @@ import {
   NoteCategory,
   type MutationResolvers,
 } from './../../../types.generated';
+import { NoteMapper } from '../../schema.mappers';
+import { Note_id } from '../Note';
 
 export const moveNote: NonNullable<MutationResolvers['moveNote']> = async (
   _parent,
@@ -282,8 +283,9 @@ export const moveNote: NonNullable<MutationResolvers['moveNote']> = async (
     })
   );
 
-  function createNoteMapperForUser(userId: ObjectId) {
-    return new NoteQueryMapper(userId, {
+  function createNoteMapperForUser(userId: ObjectId): NoteMapper {
+    return {
+      userId,
       query: (query) =>
         mongodb.loaders.note.load({
           id: {
@@ -292,23 +294,23 @@ export const moveNote: NonNullable<MutationResolvers['moveNote']> = async (
           },
           query,
         }),
-    });
+    };
   }
 
   const currentUserNoteMapper = createNoteMapperForUser(currentUserId);
 
-  const anchorNoteMapper = actualLocation.anchorId
-    ? new NoteQueryMapper(currentUserId, {
-        query: (query) => {
-          return mongodb.loaders.note.load({
+  const anchorNoteMapper: NoteMapper | null = actualLocation.anchorId
+    ? {
+        userId: currentUserId,
+        query: (query) =>
+          mongodb.loaders.note.load({
             id: {
               userId: currentUserId,
               noteId: actualLocation.anchorId,
             },
             query,
-          });
-        },
-      })
+          }),
+      }
     : null;
 
   if (modified) {
@@ -373,7 +375,7 @@ export const moveNote: NonNullable<MutationResolvers['moveNote']> = async (
       currentUserId,
       {
         note: {
-          id: () => currentUserNoteMapper.id(),
+          id: () => Note_id(currentUserNoteMapper),
           location: () => ({
             categoryName: actualLocation.categoryName as MovableNoteCategory,
             anchorPosition: actualLocation.anchorPosition,

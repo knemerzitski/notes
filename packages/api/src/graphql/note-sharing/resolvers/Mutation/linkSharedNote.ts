@@ -3,7 +3,6 @@ import { ErrorWithData } from '~utils/logger';
 import { NoteUserSchema } from '../../../../mongodb/schema/note/note-user';
 import { getNotesArrayPath } from '../../../../mongodb/schema/user/user';
 import { assertAuthenticated } from '../../../base/directives/auth';
-import { NoteQueryMapper } from '../../../note/mongo-query-mapper/note';
 
 import {
   NoteCategory,

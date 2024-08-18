@@ -3,7 +3,6 @@ import { GraphQLError } from 'graphql';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
 import { assertAuthenticated } from '../../../base/directives/auth';
-import { NoteQueryMapper } from '../../../note/mongo-query-mapper/note';
 
 import type { MutationResolvers } from './../../../types.generated';
 

@@ -1,12 +1,9 @@
 import { ObjectId } from 'mongodb';
 
-import { Maybe } from '~utils/types';
-
 import { PageInfoMapper } from '../base/schema.mappers';
 import {
   NoteCategory,
   NoteTextField,
-  NotetextFieldsArgs,
   ResolverTypeWrapper,
   ResolversTypes,
 } from '../types.generated';
@@ -19,19 +16,8 @@ import { NoteUserSchema } from '../../mongodb/schema/note/note-user';
 import { QueryableNote } from '../../mongodb/schema/note/query/queryable-note';
 
 export interface NoteMapper {
-  noteId(): ResolverTypeWrapper<ObjectId>;
-  noteIdStr(): ResolverTypeWrapper<string>;
-  id(): ResolverTypeWrapper<string>;
-  readOnly(): ResolverTypeWrapper<boolean>;
-  createdAt(): ResolverTypeWrapper<Date>;
-  textFields(args?: NotetextFieldsArgs): NoteTextFieldEntryMapper[];
-  categoryName(): ResolverTypeWrapper<NoteCategory>;
-  preferences(): NotePreferencesMapper;
-  deletedAt(): Maybe<ResolverTypeWrapper<Date>>;
-  users(
-    ctx: GraphQLResolversContext,
-    info: GraphQLResolveInfo
-  ): ResolverTypeWrapper<NoteUserMapper[]>;
+  readonly userId: ObjectId;
+  readonly query: MongoQueryFn<QueryableNote>;
 }
 
 export interface NoteUserMapper {
@@ -63,10 +49,6 @@ export interface NotePatchMapper {
   readOnly?(): ResolverTypeWrapper<boolean>;
   users?(): ResolversTypes['NoteUserPatch'][];
   usersDeleted?(): ResolverTypeWrapper<string[]>;
-}
-
-export interface DeletedNoteMapper {
-  id(): ResolverTypeWrapper<string>;
 }
 
 export interface NotesConnectionMapper {

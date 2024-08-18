@@ -2,37 +2,17 @@ import { ObjectId } from 'mongodb';
 
 import { isDefined } from '~utils/type-guards/is-defined';
 
-import { MongoQuery } from '../../../../mongodb/query/query';
+import { MongoQueryFn } from '../../../../mongodb/query/query';
 import { QueryableNote } from '../../../../mongodb/schema/note/query/queryable-note';
 import { getNotesArrayPath } from '../../../../mongodb/schema/user/user';
 import { assertAuthenticated } from '../../../base/directives/auth';
-import { GraphQLResolversContext } from '../../../context';
-import {
-  MutationdeleteNoteArgs,
-  NoteCategory,
-  RequireFields,
-  ResolversParentTypes,
-  ResolversTypes,
-  type MutationResolvers,
-} from '../../../types.generated';
-import { NoteQueryMapper } from '../../mongo-query-mapper/note';
+import { NoteCategory, type MutationResolvers } from '../../../types.generated';
 import { throwNoteNotFound } from '../../utils/note-errors';
 import { findNoteUser, findOldestNoteUser } from '../../utils/user-note';
 import { publishNoteDeleted } from '../Subscription/noteEvents';
+import { Note_id } from '../Note';
 
 export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
-  parent,
-  args,
-  ctx
-) => {
-  return deleteNoteFn(parent, args, ctx);
-};
-
-export const deleteNoteFn: (
-  parent: ResolversParentTypes['Mutation'],
-  args: RequireFields<MutationdeleteNoteArgs, 'input'>,
-  context: GraphQLResolversContext
-) => Promise<ResolversTypes['DeleteNotePayload']> = async (
   _parent,
   { input: { noteId } },
   ctx
@@ -134,11 +114,7 @@ export const deleteNoteFn: (
     );
   }
 
-  const noteQuery: MongoQuery<QueryableNote> = {
-    query() {
-      return note;
-    },
-  };
+  const noteQuery: MongoQueryFn<QueryableNote> = () => note;
 
   // Subscription
   await Promise.all(
@@ -146,7 +122,12 @@ export const deleteNoteFn: (
       publishNoteDeleted(
         userId,
         {
-          note: new NoteQueryMapper(userId, noteQuery),
+          note: {
+            id: Note_id({
+              userId,
+              query: noteQuery,
+            }),
+          },
         },
         ctx
       )
@@ -155,6 +136,11 @@ export const deleteNoteFn: (
 
   // Response
   return {
-    note: new NoteQueryMapper(currentUserId, noteQuery),
+    note: {
+      id: Note_id({
+        userId: currentUserId,
+        query: noteQuery,
+      }),
+    },
   };
 };
