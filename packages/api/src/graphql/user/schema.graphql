@@ -1,6 +1,13 @@
-type UserProfile {
+# TODO create endpoint for changing own displayName
+
+type PublicUserProfile {
   "User-friendly way to distinguish this user. Can be anything set by the user."
   displayName: String!
+}
+
+type PublicUserProfilePatch {
+  "User display name has changed"
+  displayName: String
 }
 
 """
@@ -10,7 +17,14 @@ type SignedInUser {
   "Self-descriptive"
   id: ID!
   "Self-descriptive"
-  profile: UserProfile!
+  publicProfile: PublicUserProfile!
+}
+
+type SignedInUserPatch {
+  "PublicUser.id that was patched"
+  id: String!
+  "Self-descriptive"
+  publicProfile: PublicUserProfilePatch
 }
 
 """
@@ -20,19 +34,47 @@ type PublicUser {
   "Self-descriptive"
   id: ObjectID!
   "Self-descriptive"
-  displayName: String!
+  profile: PublicUserProfile!
 }
 
 type PublicUserPatch {
   "PublicUser.id that was patched"
   id: String!
-  "Public user display name has changed"
-  displayName: String
+  "Self-descriptive"
+  profile: PublicUserProfilePatch
 }
+
+################################ Update User Display Name ################################
+
+input UpdateUserDisplayNameInput {
+  "SignedInUser.id to update"
+  userId: ObjectID!
+  "New value for display name"
+  displayName: String!
+}
+
+type UpdateUserDisplayNamePayload {
+  "New updated display name"
+  displayName: String!
+  "User after setting new display name"
+  signedInUser: SignedInUser!
+}
+
+extend type Mutation {
+  updateUserDisplayName(input: UpdateUserDisplayNameInput): UpdateUserDisplayNamePayload!
+}
+
+################################ Query User ################################
 
 extend type Query {
   "Get info about currently signed in user"
   signedInUser: SignedInUser! @auth
+}
+
+################################ Sign In ################################
+
+enum AuthProvider {
+  GOOGLE
 }
 
 "User info that is only available during sign in process and is not stored in database."
@@ -43,10 +85,6 @@ type AuthProviderUser {
   email: String!
 }
 
-enum AuthProvider {
-  GOOGLE
-}
-
 input CredentialsInput {
   token: String!
 }
@@ -55,16 +93,20 @@ input SignInInput {
   provider: AuthProvider!
   credentials: CredentialsInput!
 }
+
 type SignInPayload {
   "Signed in user"
   signedInUser: SignedInUser!
   "User info available only during sign in from auth provider"
   authProviderUser: AuthProviderUser!
 }
+
 extend type Mutation {
   "Returns null on failed sign in."
   signIn(input: SignInInput!): SignInPayload
 }
+
+################################ Sign Out ################################
 
 "Sign out of current session unless allSessions or sessionId is specified"
 input SignOutInput {
@@ -73,14 +115,18 @@ input SignOutInput {
   "Sign out a specific user. This has no effect if allUsers is true."
   userId: String
 }
+
 type SignOutPayload {
   "Signin out is successful"
   signedOut: Boolean!
 }
+
 extend type Mutation {
   "Returns signed out http-conly cookie session index or null if user was not signed in."
   signOut(input: SignOutInput): SignOutPayload!
 }
+
+################################ Sync Session Cookies ################################
 
 input SyncSessionCookiesInput {
   "Available user IDs for client."
@@ -91,6 +137,7 @@ type SyncSessionCookiesPayload {
   "User IDs available in http-only cookies. Any missing ID from input can be considered as an expired session."
   availableUserIds: [String!]!
 }
+
 extend type Mutation {
   "Call when session cookies are in invalid state. Server will fix cookies by setting new headers."
   syncSessionCookies(input: SyncSessionCookiesInput!): SyncSessionCookiesPayload!
