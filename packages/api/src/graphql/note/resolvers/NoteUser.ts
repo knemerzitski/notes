@@ -1,6 +1,5 @@
 import { DeepQuery } from '../../../mongodb/query/query';
 import { QueryableNote } from '../../../mongodb/schema/note/query/queryable-note';
-import { PublicUserQueryMapper } from '../../user/mappers/public-user';
 import type { NoteUserResolvers } from './../../types.generated';
 
 export const NoteUser: NoteUserResolvers = {
@@ -12,7 +11,7 @@ export const NoteUser: NoteUserResolvers = {
     )?.readOnly;
   },
   user: (parent) => {
-    return new PublicUserQueryMapper({
+    return {
       query: async (query) => {
         const { _id, ...restQuery } = query;
         const user = await parent.queryUser({
@@ -26,7 +25,7 @@ export const NoteUser: NoteUserResolvers = {
           profile: user.user?.profile,
         };
       },
-    });
+    };
   },
   higherScope: async (parent) => {
     const query: DeepQuery<NonNullable<QueryableNote['users']>[0]> = {

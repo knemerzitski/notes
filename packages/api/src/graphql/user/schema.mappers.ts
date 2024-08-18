@@ -1,7 +1,6 @@
-import { ObjectId } from 'mongodb';
-import { ResolverTypeWrapper } from '../types.generated';
+import { MongoQueryFn } from '../../mongodb/query/query';
+import { UserSchema } from '../../mongodb/schema/user/user';
 
 export interface PublicUserMapper {
-  id(): ResolverTypeWrapper<ObjectId>;
-  displayName(): ResolverTypeWrapper<string>;
+  readonly query: MongoQueryFn<Pick<UserSchema, '_id' | 'profile'>>;
 }
