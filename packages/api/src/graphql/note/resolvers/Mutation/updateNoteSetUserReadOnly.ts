@@ -10,10 +10,7 @@ import { NoteQueryMapper } from '../../mongo-query-mapper/note';
 import { isDefined } from '~utils/type-guards/is-defined';
 import { publishNoteUpdated } from '../Subscription/noteEvents';
 import { ObjectId } from 'mongodb';
-import {
-  createGetUserByMatch,
-  NoteUsersQueryMapper,
-} from '../../mongo-query-mapper/note-users';
+import { NoteUserMapper } from '../../schema.mappers';
 
 export const updateNoteSetUserReadOnly: NonNullable<
   MutationResolvers['updateNoteSetUserReadOnly']
@@ -183,23 +180,29 @@ export const updateNoteSetUserReadOnly: NonNullable<
     }),
   ]);
 
+  const queryAllUsers: NoteUserMapper['queryAllUsers'] = async (query) =>
+    (
+      await mongodb.loaders.note.load({
+        id: {
+          userId: currentUserId,
+          noteId,
+        },
+        query: {
+          users: query,
+        },
+      })
+    )?.users;
+
   // Response
   return {
     readOnly,
-    user: new NoteUsersQueryMapper(currentUserId, createGetUserByMatch(modifyUserId), {
-      query: async (query) =>
-        (
-          await mongodb.loaders.note.load({
-            id: {
-              userId: currentUserId,
-              noteId,
-            },
-            query: {
-              users: query,
-            },
-          })
-        )?.users,
-    }),
+    user: {
+      currentUserId,
+      queryAllUsers,
+      queryUser: async (query) =>
+        (await queryAllUsers(query))?.find((user) => modifyUserId.equals(user._id)),
+    },
+
     note: currentUserNoteMapper,
   };
 };

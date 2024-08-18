@@ -14,9 +14,9 @@ import {
 import { CollabTextMapper } from '../collab/schema.mappers';
 import { GraphQLResolveInfo } from 'graphql';
 import { GraphQLResolversContext } from '../context';
-import { PublicUserMapper } from '../user/schema.mappers';
 import { MongoQueryFn } from '../../mongodb/query/query';
 import { NoteUserSchema } from '../../mongodb/schema/note/note-user';
+import { QueryableNote } from '../../mongodb/schema/note/query/queryable-note';
 
 export interface NoteMapper {
   noteId(): ResolverTypeWrapper<ObjectId>;
@@ -35,9 +35,9 @@ export interface NoteMapper {
 }
 
 export interface NoteUserMapper {
-  user(): PublicUserMapper;
-  higherScope(): ResolverTypeWrapper<boolean>;
-  readOnly(): ResolverTypeWrapper<boolean>;
+  readonly currentUserId: ObjectId;
+  readonly queryUser: MongoQueryFn<NonNullable<QueryableNote['users']>[0]>;
+  readonly queryAllUsers: MongoQueryFn<QueryableNote['users']>;
 }
 
 export interface NoteTextFieldEntryMapper {

@@ -15,13 +15,13 @@ import {
   NoteMapper,
   NotePreferencesMapper,
   NoteTextFieldEntryMapper,
+  NoteUserMapper,
 } from '../schema.mappers';
 
 import { findNoteUser } from '../utils/user-note';
 
 import { GraphQLResolversContext } from '../../context';
 import { GraphQLResolveInfo } from 'graphql';
-import { createGetUserByIndex, NoteUsersQueryMapper } from './note-users';
 import { withPreFetchedArraySize } from '../../utils/with-pre-fetched-array-size';
 import { QueryableCollabTextSchema } from '../../../mongodb/schema/collab-text/query/collab-text';
 import { CollabTextMapper } from '../../collab/schema.mappers';
@@ -187,22 +187,32 @@ export class NoteQueryMapper implements NoteMapper {
     return noteUser?.trashed?.expireAt;
   }
 
-  async users(ctx: GraphQLResolversContext, info: GraphQLResolveInfo) {
+  async users(
+    ctx: GraphQLResolversContext,
+    info: GraphQLResolveInfo
+  ): Promise<NoteUserMapper[]> {
     return withPreFetchedArraySize(
-      (index, updateSize) =>
-        new NoteUsersQueryMapper(this.targetUserId, createGetUserByIndex(index), {
-          query: async (query) => {
-            const users = (
-              await this.note.query({
-                users: query,
-              })
-            )?.users;
+      (index, updateSize) => {
+        const queryAllUsers: NoteUserMapper['queryAllUsers'] = async (query) => {
+          const users = (
+            await this.note.query({
+              users: query,
+            })
+          )?.users;
 
-            updateSize(users?.length);
+          updateSize(users?.length);
 
-            return users;
+          return users;
+        };
+
+        return {
+          currentUserId: this.targetUserId,
+          queryAllUsers,
+          queryUser: async (query) => {
+            return (await queryAllUsers(query))?.[index];
           },
-        }),
+        };
+      },
       ctx,
       info
     );
