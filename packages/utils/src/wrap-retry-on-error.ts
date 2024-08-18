@@ -1,3 +1,6 @@
+import { maybeCallFn } from './maybe-call-fn';
+import { MaybeValue } from './types';
+
 export type RetryOnErrorFn = (error: unknown) => boolean;
 
 export const HARDCODED_MAX_RETRIES = 20;
@@ -29,14 +32,14 @@ export function wrapRetryOnError<T extends unknown[], U>(
 }
 
 export function wrapRetryOnErrorAsync<T extends unknown[], U>(
-  fn: (...args: T) => Promise<U> | U,
+  fn: (...args: T) => MaybeValue<U>,
   retryOnError: RetryOnErrorFn
-): (...args: T) => Promise<U> {
+): (...args: T) => MaybeValue<U> {
   return async (...args) => {
     let retriesRemaining = HARDCODED_MAX_RETRIES;
     do {
       try {
-        return await fn(...args);
+        return maybeCallFn(await fn(...args));
       } catch (err) {
         if (retriesRemaining <= 0) {
           throw err;
