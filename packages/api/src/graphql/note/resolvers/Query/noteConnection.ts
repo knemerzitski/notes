@@ -63,22 +63,20 @@ export const noteConnection: NonNullable<QueryResolvers['noteConnection']> = (
   const after = arg.after ? strToObjectId(arg.after) : undefined;
   const before = arg.before ? strToObjectId(arg.before) : undefined;
 
-  const isForwardPagination = arg.after != null || arg.first != null;
+  const isForwardPagination = arg.before != null || arg.last != null;
 
   let pagination: RelayPagination<ObjectId>;
   if (isForwardPagination) {
     pagination = {
-      after,
-      first,
+      after: before,
+      first: last,
     };
   } else {
     pagination = {
-      before,
-      last,
+      before: after,
+      last: first,
     };
   }
-
-  // TODO first note should be newest..
 
   const categoryName = arg.category ?? NoteCategory.DEFAULT;
 
@@ -163,24 +161,6 @@ export const noteConnection: NonNullable<QueryResolvers['noteConnection']> = (
             _id: 1,
           },
           {
-            lastId: 1,
-          }
-        );
-
-        const order = user?.notes?.category?.[categoryName]?.order;
-        const endCursor = order?.items?.[order.items.length - 1]?._id;
-        const lastCursor = order?.lastId;
-
-        const hasNextPage = endCursor && !endCursor.equals(lastCursor);
-
-        return hasNextPage ?? false;
-      },
-      hasPreviousPage: async () => {
-        const user = await loadUser(
-          {
-            _id: 1,
-          },
-          {
             firstId: 1,
           }
         );
@@ -193,11 +173,29 @@ export const noteConnection: NonNullable<QueryResolvers['noteConnection']> = (
 
         return hasPreviousPage ?? false;
       },
+      hasPreviousPage: async () => {
+        const user = await loadUser(
+          {
+            _id: 1,
+          },
+          {
+            lastId: 1,
+          }
+        );
+
+        const order = user?.notes?.category?.[categoryName]?.order;
+        const endCursor = order?.items?.[order.items.length - 1]?._id;
+        const lastCursor = order?.lastId;
+
+        const hasNextPage = endCursor && !endCursor.equals(lastCursor);
+
+        return hasNextPage ?? false;
+      },
       startCursor: () => {
-        return Note_noteId_str(createNoteQueryFnAtIndex(0));
+        return Note_noteId_str(createNoteQueryFnAtIndex(-1));
       },
       endCursor: () => {
-        return Note_noteId_str(createNoteQueryFnAtIndex(-1));
+        return Note_noteId_str(createNoteQueryFnAtIndex(0));
       },
     },
   };

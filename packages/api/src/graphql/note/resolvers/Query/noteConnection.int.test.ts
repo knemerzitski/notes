@@ -3,7 +3,10 @@ import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 import { beforeAll, beforeEach, expect, it } from 'vitest';
 
+import { Maybe } from '~utils/types';
+
 import { apolloServer } from '../../../../__test__/helpers/graphql/apollo-server';
+import { UnwrapFieldWrapper } from '../../../../__test__/helpers/graphql/field-wrap';
 import {
   createGraphQLResolversContext,
   CreateGraphQLResolversContextOptions,
@@ -18,8 +21,6 @@ import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populat
 import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { objectIdToStr } from '../../../base/resolvers/ObjectID';
 import { NoteCategory, NoteConnection, NoteTextField } from '../../../types.generated';
-import { UnwrapFieldWrapper } from '../../../../__test__/helpers/graphql/field-wrap';
-import { Maybe } from '~utils/types';
 
 interface Variables {
   after?: string;
@@ -160,9 +161,9 @@ async function executeOperation(
   );
 }
 
-it('returns last 2 notes, after: 7, first 4 => 8,9 (10 notes total)', async () => {
+it('returns last 2 notes, after: 2, first 4 => 0,1 (10 notes total)', async () => {
   const response = await executeOperation({
-    after: objectIdToStr(notes.at(7)),
+    after: objectIdToStr(notes.at(2)),
     first: 4,
   });
 
@@ -170,10 +171,10 @@ it('returns last 2 notes, after: 7, first 4 => 8,9 (10 notes total)', async () =
 
   expect(data).toEqual({
     noteConnection: {
-      notes: notes.slice(8, 10).map((noteId) => ({
+      notes: notes.slice(0, 2).map((noteId) => ({
         noteId: objectIdToStr(noteId),
       })),
-      edges: notes.slice(8, 10).map((noteId) => ({
+      edges: notes.slice(0, 2).map((noteId) => ({
         cursor: objectIdToStr(noteId),
         node: expect.objectContaining({
           noteId: objectIdToStr(noteId),
@@ -182,8 +183,8 @@ it('returns last 2 notes, after: 7, first 4 => 8,9 (10 notes total)', async () =
       pageInfo: {
         hasPreviousPage: true,
         hasNextPage: false,
-        startCursor: objectIdToStr(notes.at(8)),
-        endCursor: objectIdToStr(notes.at(9)),
+        startCursor: objectIdToStr(notes.at(1)),
+        endCursor: objectIdToStr(notes.at(0)),
       },
     },
   });
@@ -269,8 +270,8 @@ it('returns notes from different archive category', async () => {
       pageInfo: {
         hasPreviousPage: false,
         hasNextPage: false,
-        startCursor: objectIdToStr(notesArchive.at(0)),
-        endCursor: objectIdToStr(notesArchive.at(-1)),
+        startCursor: objectIdToStr(notesArchive.at(-1)),
+        endCursor: objectIdToStr(notesArchive.at(0)),
       },
     },
   });
@@ -297,8 +298,8 @@ function expectSlice(
       }),
     })),
     pageInfo: expect.objectContaining({
-      startCursor: objectIdToStr(notes.at(start)),
-      endCursor: objectIdToStr(notes.at(end - 1)),
+      startCursor: objectIdToStr(notes.at(end - 1)),
+      endCursor: objectIdToStr(notes.at(start)),
     }),
   });
 }
@@ -326,9 +327,9 @@ it('paginates from start to end', async () => {
     },
   };
 
-  expectSlice(await paginator.paginate(), 0, 4);
-  expectSlice(await paginator.paginate(), 4, 8);
-  expectSlice(await paginator.paginate(), 8, 10);
+  expectSlice(await paginator.paginate(), 6, 10);
+  expectSlice(await paginator.paginate(), 2, 6);
+  expectSlice(await paginator.paginate(), 0, 2);
 });
 
 it('paginates from end to start', async () => {
@@ -354,7 +355,7 @@ it('paginates from end to start', async () => {
     },
   };
 
-  expectSlice(await paginator.paginate(), 6, 10);
-  expectSlice(await paginator.paginate(), 2, 6);
-  expectSlice(await paginator.paginate(), 0, 2);
+  expectSlice(await paginator.paginate(), 0, 4);
+  expectSlice(await paginator.paginate(), 4, 8);
+  expectSlice(await paginator.paginate(), 8, 10);
 });
