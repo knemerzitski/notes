@@ -15,6 +15,8 @@ import { CollabTextMapper } from '../collab/schema.mappers';
 import { GraphQLResolveInfo } from 'graphql';
 import { GraphQLResolversContext } from '../context';
 import { PublicUserMapper } from '../user/schema.mappers';
+import { MongoQueryFn } from '../../mongodb/query/query';
+import { NoteUserSchema } from '../../mongodb/schema/note/note-user';
 
 export interface NoteMapper {
   noteId(): ResolverTypeWrapper<ObjectId>;
@@ -44,7 +46,7 @@ export interface NoteTextFieldEntryMapper {
 }
 
 export interface NotePreferencesMapper {
-  backgroundColor(): ResolverTypeWrapper<string>;
+  readonly query: MongoQueryFn<NoteUserSchema['preferences']>;
 }
 
 export interface NotePreferencesPatchMapper {

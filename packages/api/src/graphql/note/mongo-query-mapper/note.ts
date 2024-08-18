@@ -11,11 +11,14 @@ import {
   NoteTextField,
   NotetextFieldsArgs,
 } from '../../types.generated';
-import { NoteMapper, NoteTextFieldEntryMapper } from '../schema.mappers';
+import {
+  NoteMapper,
+  NotePreferencesMapper,
+  NoteTextFieldEntryMapper,
+} from '../schema.mappers';
 
 import { findNoteUser } from '../utils/user-note';
 
-import { NotePreferencesQueryMapper } from './note-preferences';
 import { GraphQLResolversContext } from '../../context';
 import { GraphQLResolveInfo } from 'graphql';
 import { createGetUserByIndex, NoteUsersQueryMapper } from './note-users';
@@ -117,8 +120,8 @@ export class NoteQueryMapper implements NoteMapper {
     );
   }
 
-  preferences() {
-    return new NotePreferencesQueryMapper({
+  preferences(): NotePreferencesMapper {
+    return {
       query: async (query) => {
         return this.getTargetNoteUser(
           await this.note.query({
@@ -129,7 +132,7 @@ export class NoteQueryMapper implements NoteMapper {
           })
         )?.preferences;
       },
-    });
+    };
   }
 
   async createdAt() {
