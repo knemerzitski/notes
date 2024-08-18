@@ -5,10 +5,10 @@ import {
   ShareNoteLinkSchema,
 } from '../../../../mongodb/schema/note/share-note-link';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
-import { MongoDeepPartial } from '../../../../mongodb/types';
+import { MongoPartialDeep } from '../../../../mongodb/types';
 
 export interface FakeShareNoteLinkOptions {
-  override?: MongoDeepPartial<ShareNoteLinkSchema>;
+  override?: MongoPartialDeep<ShareNoteLinkSchema>;
 }
 
 export function fakeShareNoteLink(

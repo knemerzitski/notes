@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb';
 
-import { DeepPartial, Primitive } from '~utils/types';
+import { PartialDeep, Primitive } from '~utils/types';
 
 /**
  * This interface conforms to $arrayToObject \
@@ -12,8 +12,8 @@ export interface Entry<Key, Value> {
   v: Value;
 }
 
-type AddPrimitives = ObjectId | Date;
+type ExtraPrimitives = ObjectId | Date;
 
-export type MongoPrimitive = Exclude<Primitive, undefined> | AddPrimitives;
+export type MongoPrimitive = Exclude<Primitive, undefined> | ExtraPrimitives;
 
-export type MongoDeepPartial<T> = DeepPartial<T, AddPrimitives, undefined>;
+export type MongoPartialDeep<T> = PartialDeep<T, ExtraPrimitives>;

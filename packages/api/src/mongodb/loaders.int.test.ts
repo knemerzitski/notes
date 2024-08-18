@@ -15,7 +15,7 @@ import {
 import { populateExecuteAll } from '../__test__/helpers/mongodb/populate/populate-queue';
 
 import { createMongoDBLoaders, MongoDBLoaders } from './loaders';
-import { DeepQuery } from './query/query';
+import { QueryDeep } from './query/query';
 import { NoteSchema } from './schema/note/note';
 import { QueryableNote } from './schema/note/query/queryable-note';
 import { UserSchema } from './schema/user/user';
@@ -61,7 +61,7 @@ it('loading note from user primes userNote loader', async () => {
 
   expect(dbCallCount()).toStrictEqual(0);
 
-  const userNoteQuery: DeepQuery<QueryableNote> = {
+  const userNoteQuery: QueryDeep<QueryableNote> = {
     _id: 1,
     publicId: 1,
   };

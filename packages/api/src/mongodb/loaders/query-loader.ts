@@ -6,7 +6,7 @@ import { mergeObjects } from '~utils/object/merge-objects';
 import { splitObject } from '~utils/object/split-object';
 import { MaybePromise } from '~utils/types';
 
-import { DeepQuery, DeepQueryResult } from '../query/query';
+import { QueryDeep, QueryResultDeep } from '../query/query';
 
 import { getEqualObjectString } from './utils/get-equal-object-string';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
@@ -16,7 +16,7 @@ import { isQueryArgField } from '../query/merge-queries';
 export type QueryLoaderEvents<I, Q extends object, QR = Q> = {
   loaded: {
     key: QueryLoaderCacheKey<I, Q>;
-    value: DeepQueryResult<QR>;
+    value: QueryResultDeep<QR>;
   };
 };
 
@@ -24,9 +24,9 @@ export interface QueryLoaderParams<I, Q extends object, G, R, QR = Q> {
   batchLoadFn: (
     keys: readonly QueryLoaderCacheKey<I, Q>[],
     context: QueryLoaderContext<G, R>
-  ) => MaybePromise<(DeepQueryResult<QR> | Error | null)[]>;
+  ) => MaybePromise<(QueryResultDeep<QR> | Error | null)[]>;
   loaderOptions?: Omit<
-    DataLoader.Options<QueryLoaderKey<I, Q, R>, DeepQueryResult<QR>, string>,
+    DataLoader.Options<QueryLoaderKey<I, Q, R>, QueryResultDeep<QR>, string>,
     'cacheKeyFn'
   >;
   context?: G;
@@ -45,7 +45,7 @@ interface QueryLoaderKey<I, Q extends object, R> {
 
 export interface QueryLoaderCacheKey<I, Q extends object> {
   id: I;
-  query: DeepQuery<Q>;
+  query: QueryDeep<Q>;
 }
 
 interface LoadOptions<R> {
@@ -87,7 +87,7 @@ export class QueryLoader<I, Q extends object, G, R, QR = Q> {
   private readonly eventBus?: Emitter<QueryLoaderEvents<I, Q, QR>>;
   private readonly loader: DataLoader<
     QueryLoaderKey<I, Q, R>,
-    DeepQueryResult<QR> | null,
+    QueryResultDeep<QR> | null,
     string
   >;
 
@@ -95,7 +95,7 @@ export class QueryLoader<I, Q extends object, G, R, QR = Q> {
     this.eventBus = params.eventBus;
     this.loader = new DataLoader<
       QueryLoaderKey<I, Q, R>,
-      DeepQueryResult<QR> | null,
+      QueryResultDeep<QR> | null,
       string
     >(
       (keys) =>
@@ -122,7 +122,7 @@ export class QueryLoader<I, Q extends object, G, R, QR = Q> {
 
   prime(
     key: QueryLoaderCacheKey<I, Q>,
-    value: DeepQueryResult<QR>,
+    value: QueryResultDeep<QR>,
     options?: PrimeOptions
   ) {
     const cacheIsStale = options?.clearCache ?? false;
@@ -151,7 +151,7 @@ export class QueryLoader<I, Q extends object, G, R, QR = Q> {
   async load(
     key: QueryLoaderCacheKey<I, Q>,
     options?: LoadOptions<R>
-  ): Promise<DeepQueryResult<QR> | undefined> {
+  ): Promise<QueryResultDeep<QR> | undefined> {
     const cacheIsStale = options?.skipCache ?? false;
     const leafResults = await Promise.all(
       splitQuery(key.query).map(async (leafQuery) => {
@@ -179,6 +179,6 @@ export class QueryLoader<I, Q extends object, G, R, QR = Q> {
       })
     );
 
-    return mergeObjects(leafResults[0], ...leafResults.slice(1)) as DeepQueryResult<QR>;
+    return mergeObjects(leafResults[0], ...leafResults.slice(1)) as QueryResultDeep<QR>;
   }
 }

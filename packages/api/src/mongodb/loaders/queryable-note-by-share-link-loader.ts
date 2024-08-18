@@ -8,7 +8,7 @@ import { Emitter } from '~utils/mitt-unsub';
 import { CollectionName, MongoDBCollections } from '../collections';
 import { MongoDBContext } from '../lambda-context';
 import { LoaderEvents } from '../loaders';
-import { DeepQueryResult } from '../query/query';
+import { QueryResultDeep } from '../query/query';
 
 import { QueryableNote } from '../schema/note/query/queryable-note';
 
@@ -35,7 +35,7 @@ export class QueryableNoteByShareLinkLoader {
 
   private readonly loader: DataLoader<
     QueryableNoteByShareLinkLoadKeyWithSession,
-    DeepQueryResult<QueryableNote>,
+    QueryResultDeep<QueryableNote>,
     string
   >;
 
@@ -44,7 +44,7 @@ export class QueryableNoteByShareLinkLoader {
 
     this.loader = new DataLoader<
       QueryableNoteByShareLinkLoadKeyWithSession,
-      DeepQueryResult<QueryableNote>,
+      QueryResultDeep<QueryableNote>,
       string
     >(
       async (keys) =>

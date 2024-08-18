@@ -1,6 +1,6 @@
 import { QueryableSearchNote } from '../../../../mongodb/loaders/queryable-notes-search-loader';
 import { RelayPagination } from '../../../../mongodb/pagination/relay-array-pagination';
-import { DeepObjectQuery } from '../../../../mongodb/query/query';
+import { ObjectQueryDeep } from '../../../../mongodb/query/query';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import {
   PreFetchedArrayGetItemFn,
@@ -66,7 +66,7 @@ export const noteSearchConnection: NonNullable<QueryResolvers['noteSearchConnect
     return Math.min(searchResultSize, basePaginationLength);
   }
 
-  function loadSearchNotes(query: DeepObjectQuery<QueryableSearchNote>) {
+  function loadSearchNotes(query: ObjectQueryDeep<QueryableSearchNote>) {
     return loaders.notesSearch.load({
       id: {
         userId: currentUserId,

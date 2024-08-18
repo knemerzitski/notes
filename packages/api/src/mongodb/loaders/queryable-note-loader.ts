@@ -8,9 +8,9 @@ import { MongoDBContext } from '../lambda-context';
 import { LoaderEvents } from '../loaders';
 
 import { mapQueryAggregateResult } from '../query/map-query-aggregate-result';
-import { MergedDeepObjectQuery, mergeQueries } from '../query/merge-queries';
+import { MergedObjectQueryDeep, mergeQueries } from '../query/merge-queries';
 import { mergedQueryToPipeline } from '../query/merged-query-to-pipeline';
-import { DeepQueryResult } from '../query/query';
+import { QueryResultDeep } from '../query/query';
 import {
   QueryableNote,
   queryableNoteDescription,
@@ -86,7 +86,7 @@ export class QueryableNoteLoader {
 
   prime(
     key: QueryableNoteLoaderKey,
-    value: DeepQueryResult<QueryableNote>,
+    value: QueryResultDeep<QueryableNote>,
     options?: PrimeOptions
   ) {
     this.loader.prime(key, value, options);
@@ -133,7 +133,7 @@ export class QueryableNoteLoader {
 export async function queryableNoteBatchLoad(
   keys: readonly QueryableNoteLoaderKey[],
   context: QueryableNoteLoadContext
-): Promise<(DeepQueryResult<QueryableNote> | null)[]> {
+): Promise<(QueryResultDeep<QueryableNote> | null)[]> {
   const keysByUserId = groupBy(
     keys,
     ({ id: { userId } }) => userId?.toString('hex') ?? ''
@@ -205,7 +205,7 @@ export async function queryableNoteBatchLoad(
     string,
     {
       noteById: Record<string, Document>;
-      mergedQuery: MergedDeepObjectQuery<QueryableNote>;
+      mergedQuery: MergedObjectQueryDeep<QueryableNote>;
     }
   >;
 

@@ -8,7 +8,7 @@ import {
   RelayPagination,
 } from '../../../pagination/relay-array-pagination';
 import { FieldDescription } from '../../../query/description';
-import { DeepQueryResult } from '../../../query/query';
+import { QueryResultDeep } from '../../../query/query';
 import { CollabTextSchema, RevisionRecordSchema } from '../collab-text';
 import { isDefined } from '~utils/type-guards/is-defined';
 
@@ -53,7 +53,7 @@ export type QueryableRecords = CollabTextSchema['records'] & {
 
 export const recordsResolvers: FieldDescription<
   QueryableRecords,
-  RecordsPaginationResult<DeepQueryResult<QueryableRecords[0]>>
+  RecordsPaginationResult<QueryResultDeep<QueryableRecords[0]>>
 > = {
   $addStages({ fields }) {
     return [

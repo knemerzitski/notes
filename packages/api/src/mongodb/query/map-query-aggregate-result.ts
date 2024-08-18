@@ -3,12 +3,12 @@ import { isDefined } from '~utils/type-guards/is-defined';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 
 import { DeepAnyDescription, FieldDescription } from './description';
-import { MergedDeepQuery } from './merge-queries';
-import { DeepQuery, DeepQueryResult } from './query';
+import { MergedQueryDeep } from './merge-queries';
+import { QueryDeep, QueryResultDeep } from './query';
 
 export type MapAggregateResultResolver<TSchema = unknown, TResult = unknown> = (args: {
-  query: DeepQuery<TSchema>;
-  mergedQuery: MergedDeepQuery<TSchema>;
+  query: QueryDeep<TSchema>;
+  mergedQuery: MergedQueryDeep<TSchema>;
   result: TResult;
 }) => unknown;
 
@@ -25,16 +25,16 @@ export function mapQueryAggregateResult<
   TResult = unknown,
   TContext = unknown,
 >(
-  rootQuery: DeepQuery<TSchema>,
-  rootMergedQuery: MergedDeepQuery<TSchema>,
+  rootQuery: QueryDeep<TSchema>,
+  rootMergedQuery: MergedQueryDeep<TSchema>,
   aggregateResult: unknown,
   context?: MapQueryAggregateResultContext<TSchema, TResult, TContext>
-): DeepQueryResult<TSchema> {
-  if (aggregateResult == null) return aggregateResult as DeepQueryResult<TSchema>;
+): QueryResultDeep<TSchema> {
+  if (aggregateResult == null) return aggregateResult as QueryResultDeep<TSchema>;
 
   const descriptions = context?.descriptions ?? [];
   if (descriptions.length === 0) {
-    return aggregateResult as DeepQueryResult<TSchema>;
+    return aggregateResult as QueryResultDeep<TSchema>;
   }
 
   const resolvers = descriptions
@@ -49,7 +49,7 @@ export function mapQueryAggregateResult<
         result: mappedResultValue as TResult,
       }) ?? mappedResultValue,
     aggregateResult
-  ) as DeepQueryResult<TSchema>;
+  ) as QueryResultDeep<TSchema>;
 
   if (
     isObjectLike(rootQuery) &&
@@ -66,7 +66,7 @@ export function mapQueryAggregateResult<
           // @ts-expect-error Ignore typing for dynamic object
           descriptions: descriptionsNoResolver,
         })
-      ) as DeepQueryResult<TSchema>;
+      ) as QueryResultDeep<TSchema>;
     } else {
       const newAggregateResult: Record<string, unknown> = {};
 
@@ -125,5 +125,5 @@ export function mapQueryAggregateResult<
     }
   }
 
-  return aggregateResult as DeepQueryResult<TSchema>;
+  return aggregateResult as QueryResultDeep<TSchema>;
 }

@@ -17,7 +17,7 @@ import {
 import { populateExecuteAll } from '../../__test__/helpers/mongodb/populate/populate-queue';
 import { UserSchema } from '../schema/user/user';
 
-import { MongoDeepPartial } from '../types';
+import { MongoPartialDeep } from '../types';
 
 import { QueryableNoteLoaderParams } from './queryable-note-loader';
 import {
@@ -47,7 +47,7 @@ function resultsByText(...texts: string[]) {
 
 function createLoaderKey(
   searchText: string,
-  override?: MongoDeepPartial<QueryableNotesSearchLoaderKey>
+  override?: MongoPartialDeep<QueryableNotesSearchLoaderKey>
 ): QueryableNotesSearchLoaderKey {
   return {
     ...override,

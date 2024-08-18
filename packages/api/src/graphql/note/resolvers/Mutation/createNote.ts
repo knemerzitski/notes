@@ -3,7 +3,7 @@ import { ObjectId } from 'mongodb';
 import { isDefined } from '~utils/type-guards/is-defined';
 import { wrapRetryOnErrorAsync } from '~utils/wrap-retry-on-error';
 
-import { DeepQueryResult } from '../../../../mongodb/query/query';
+import { QueryResultDeep } from '../../../../mongodb/query/query';
 import { CollabTextSchema } from '../../../../mongodb/schema/collab-text/collab-text';
 import { createCollabText } from '../../../../mongodb/schema/collab-text/utils/create-collab-text';
 import { NoteSchema } from '../../../../mongodb/schema/note/note';
@@ -100,7 +100,7 @@ const _createNote: NonNullable<MutationResolvers['createNote']> = async (
   );
 
   // Build response mapper
-  const noteQueryResponse: DeepQueryResult<QueryableNote> = {
+  const noteQueryResponse: QueryResultDeep<QueryableNote> = {
     ...noteNoCollabTexts,
     ...(collabTextSchemaEntries != null &&
       collabTextSchemaEntries.length > 0 && {

@@ -3,12 +3,12 @@ import { faker } from '@faker-js/faker';
 import { NoteUserSchema } from '../../../../mongodb/schema/note/note-user';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
 
-import { MongoDeepPartial } from '../../../../mongodb/types';
+import { MongoPartialDeep } from '../../../../mongodb/types';
 
 import { TestNoteCategory } from './populate';
 
 export interface FakeNoteUserOptions {
-  override?: MongoDeepPartial<NoteUserSchema>;
+  override?: MongoPartialDeep<NoteUserSchema>;
   /**
    * @default false
    */
@@ -42,7 +42,7 @@ export function fakeNoteUser(
 }
 
 export interface FakeNoteUserTrashedOptions {
-  override?: MongoDeepPartial<NoteUserSchema['trashed']>;
+  override?: MongoPartialDeep<NoteUserSchema['trashed']>;
 }
 
 export function fakeNoteUserTrashed(options?: FakeNoteUserTrashedOptions) {

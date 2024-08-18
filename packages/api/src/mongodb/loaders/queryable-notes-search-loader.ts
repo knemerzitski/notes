@@ -20,9 +20,9 @@ import {
 
 import { DeepAnyDescription } from '../query/description';
 import { mapQueryAggregateResult } from '../query/map-query-aggregate-result';
-import { MergedDeepObjectQuery, mergeQueries } from '../query/merge-queries';
+import { MergedObjectQueryDeep, mergeQueries } from '../query/merge-queries';
 import { mergedQueryToPipeline } from '../query/merged-query-to-pipeline';
-import { DeepQueryResult } from '../query/query';
+import { QueryResultDeep } from '../query/query';
 import { fieldsRemoved } from '../query/utils/fields-removed';
 import { NoteSearchIndexName } from '../schema/note/note';
 import {
@@ -134,7 +134,7 @@ const searchDescription: DeepAnyDescription<
 export async function queryableNotesSearchBatchLoad(
   keys: readonly QueryableNotesSearchLoaderKey[],
   context: QueryableNotesSearchLoadContext
-): Promise<DeepQueryResult<QueryableSearchNote[]>[]> {
+): Promise<QueryResultDeep<QueryableSearchNote[]>[]> {
   const userIdToKeys = groupBy(keys, (item) => item.id.userId.toHexString());
 
   const userIdToArgsToAggregateResults = Object.fromEntries(
@@ -277,7 +277,7 @@ export async function queryableNotesSearchBatchLoad(
     string,
     Record<
       string,
-      { notesResult: Document[]; mergedQuery: MergedDeepObjectQuery<QueryableSearchNote> }
+      { notesResult: Document[]; mergedQuery: MergedObjectQueryDeep<QueryableSearchNote> }
     >
   >;
 

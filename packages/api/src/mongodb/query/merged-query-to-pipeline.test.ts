@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { DeepAnyDescription } from './description';
-import { MergedDeepQuery } from './merge-queries';
+import { MergedQueryDeep } from './merge-queries';
 import {
   AddStagesContext,
   buildLastProjectValue,
@@ -115,7 +115,7 @@ describe('buildLastProjectValue', () => {
       ],
     ])('(%s,%s) => %s', (query, description, expectedResult) => {
       expect(
-        buildLastProjectValue(query as MergedDeepQuery<unknown>, {
+        buildLastProjectValue(query as MergedQueryDeep<unknown>, {
           descriptions: [description as DeepAnyDescription<unknown>],
         })
       ).toStrictEqual(expectedResult);
@@ -158,7 +158,7 @@ describe('buildLastProjectValue', () => {
       ],
     ])('(%s,%s) => %s', (query, description, expectedResult) => {
       expect(
-        buildLastProjectValue(query as MergedDeepQuery<unknown>, {
+        buildLastProjectValue(query as MergedQueryDeep<unknown>, {
           descriptions: [description as DeepAnyDescription<unknown>],
         })
       ).toStrictEqual(expectedResult);
@@ -214,7 +214,7 @@ describe('buildLastProjectValue', () => {
       ],
     ])('(%s,%s) => %s', (query, description, expectedResult) => {
       expect(
-        buildLastProjectValue(query as MergedDeepQuery<unknown>, {
+        buildLastProjectValue(query as MergedQueryDeep<unknown>, {
           descriptions: [description as DeepAnyDescription<unknown>],
         })
       ).toStrictEqual(expectedResult);
@@ -252,7 +252,7 @@ describe('buildStages', () => {
       } as DeepAnyDescription<unknown>,
     };
 
-    expect(buildStages(query as MergedDeepQuery<unknown>, options)).toStrictEqual([
+    expect(buildStages(query as MergedQueryDeep<unknown>, options)).toStrictEqual([
       'type.a.deep',
       'type.b.deep',
     ]);
@@ -281,7 +281,7 @@ describe('buildStages', () => {
       customContext: 'ctx',
     };
 
-    expect(buildStages(query as MergedDeepQuery<unknown>, options)).toStrictEqual([
+    expect(buildStages(query as MergedQueryDeep<unknown>, options)).toStrictEqual([
       'ctx',
     ]);
   });
@@ -316,7 +316,7 @@ describe('buildStages', () => {
       customContext: 'ctx',
     };
 
-    expect(buildStages(query as MergedDeepQuery<unknown>, options)).toStrictEqual([
+    expect(buildStages(query as MergedQueryDeep<unknown>, options)).toStrictEqual([
       {
         inner: ['ctx'],
       },
@@ -364,7 +364,7 @@ describe('buildStages', () => {
       } as DeepAnyDescription<unknown>,
     };
 
-    expect(buildStages(query as MergedDeepQuery<unknown>, options)).toStrictEqual([
+    expect(buildStages(query as MergedQueryDeep<unknown>, options)).toStrictEqual([
       {
         lookup: ['innerStage'],
       },
@@ -423,7 +423,7 @@ describe('buildStages', () => {
       } as DeepAnyDescription<unknown>,
     };
 
-    expect(buildStages(query as MergedDeepQuery<unknown>, options)).toStrictEqual([
+    expect(buildStages(query as MergedQueryDeep<unknown>, options)).toStrictEqual([
       {
         lookup: [
           'innerStage',
@@ -468,7 +468,7 @@ describe('buildStages', () => {
       customContext: 'ctx',
     };
 
-    expect(buildStages(query as MergedDeepQuery<unknown>, options)).toStrictEqual([
+    expect(buildStages(query as MergedQueryDeep<unknown>, options)).toStrictEqual([
       {
         inner: ['nested.value'],
       },
@@ -498,7 +498,7 @@ describe('buildStages', () => {
       customContext: 'ctx',
     };
 
-    expect(buildStages(query as MergedDeepQuery<unknown>, options)).toStrictEqual([
+    expect(buildStages(query as MergedQueryDeep<unknown>, options)).toStrictEqual([
       'items.innerItems.name',
     ]);
   });

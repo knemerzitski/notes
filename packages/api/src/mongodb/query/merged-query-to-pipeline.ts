@@ -7,10 +7,10 @@ import { isDefined } from '~utils/type-guards/is-defined';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 
 import { DeepAnyDescription, FieldDescription } from './description';
-import { isMergedQueryArgField, MergedDeepQuery } from './merge-queries';
+import { isMergedQueryArgField, MergedQueryDeep } from './merge-queries';
 
 export function mergedQueryToPipeline<TSchema = unknown, TContext = unknown>(
-  rootQuery: MergedDeepQuery<TSchema>,
+  rootQuery: MergedQueryDeep<TSchema>,
   context?: BuildStagesContext<TSchema, TContext>
 ): Document[] {
   return [
@@ -27,7 +27,7 @@ interface BuildStagesContext<TSchema = unknown, TContext = unknown> {
   description?: DeepAnyDescription<TSchema, unknown, TContext>;
   customContext?: TContext;
   rootPath?: string[];
-  relativeQuery?: MergedDeepQuery<unknown>;
+  relativeQuery?: MergedQueryDeep<unknown>;
 }
 
 export type AddStagesResolver<TSchema = unknown, TContext = unknown> = (
@@ -91,28 +91,28 @@ export interface AddStagesContext<TSchema = unknown, TContext = unknown> {
    * Query that is relative to nearest starting point of build process.
    * Unlike fields.query, there is only one relativeQuery.
    */
-  relativeQuery: MergedDeepQuery<unknown>;
+  relativeQuery: MergedQueryDeep<unknown>;
 }
 
 interface AddStagesContextField<TSchema = unknown> {
   /**
    * Query relative to current path of object description.
    */
-  query: MergedDeepQuery<TSchema>;
+  query: MergedQueryDeep<TSchema>;
   rootPath: string;
   relativePath: string;
   parentRelativePath: string;
 }
 
 interface DepthQueueItem<TSchema = unknown, TContext = unknown> {
-  query: MergedDeepQuery<TSchema>;
+  query: MergedQueryDeep<TSchema>;
   description?: DeepAnyDescription<TSchema, unknown, TContext>;
   rootPath: string[];
   relativePath: string[];
 }
 
 export function buildStages<TSchema = unknown, TContext = unknown>(
-  rootQuery: MergedDeepQuery<TSchema>,
+  rootQuery: MergedQueryDeep<TSchema>,
   context?: BuildStagesContext<TSchema, TContext>
 ): Document[] {
   const customContext = context?.customContext;
@@ -130,7 +130,7 @@ export function buildStages<TSchema = unknown, TContext = unknown>(
       },
     ],
   };
-  const ignoreQueries = new Set<MergedDeepQuery<unknown>>();
+  const ignoreQueries = new Set<MergedQueryDeep<unknown>>();
   let currentDepth = 0;
   let queue: DepthQueueItem<TSchema, TContext>[] | undefined;
   while ((queue = depthQueue[currentDepth]) != null) {
@@ -251,7 +251,7 @@ export function buildStages<TSchema = unknown, TContext = unknown>(
             description?.[subQueryKey as keyof typeof description];
 
           deeperQueue.push({
-            query: subQuery as MergedDeepQuery<TSchema>,
+            query: subQuery as MergedQueryDeep<TSchema>,
             description: subDescription as DeepAnyDescription<TSchema, unknown, TContext>,
             rootPath: [...rootPath, subQueryKey],
             relativePath: [...relativePath, subQueryKey],
@@ -282,7 +282,7 @@ function traverseToDepthQueueItem<TSchema, TContext>(
         description?.$anyKey ?? description?.[subQueryKey as keyof typeof description];
 
       target = {
-        query: subQuery as MergedDeepQuery<TSchema>,
+        query: subQuery as MergedQueryDeep<TSchema>,
         description: subDescription as DeepAnyDescription<TSchema, unknown, TContext>,
         rootPath: [...target.rootPath, subQueryKey],
         relativePath: [...target.relativePath, subQueryKey],
@@ -318,7 +318,7 @@ export interface MapLastProjectContext<TSchema = unknown> {
   /**
    * Raw query used for creating the projection
    */
-  query: MergedDeepQuery<TSchema>;
+  query: MergedQueryDeep<TSchema>;
   /**
    * Actual $project value
    */
@@ -330,7 +330,7 @@ interface BuildLastProjectValueContext<TSchema = unknown, TContext = unknown> {
 }
 
 export function buildLastProjectValue<TSchema = unknown, TContext = unknown>(
-  rootQuery: MergedDeepQuery<TSchema>,
+  rootQuery: MergedQueryDeep<TSchema>,
   context?: BuildLastProjectValueContext<TSchema, TContext>
 ): unknown {
   let projectValue: unknown = null;
@@ -367,7 +367,7 @@ export function buildLastProjectValue<TSchema = unknown, TContext = unknown>(
         );
 
       const subProjectValue = buildLastProjectValue(
-        subQuery as MergedDeepQuery<unknown>,
+        subQuery as MergedQueryDeep<unknown>,
         {
           descriptions: [...anyKeySplitDescriptions, ...subDescriptions_noAnyKey],
         }

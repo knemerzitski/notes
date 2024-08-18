@@ -7,9 +7,9 @@ import { CollectionName, MongoDBCollections } from '../collections';
 import { MongoDBContext } from '../lambda-context';
 import { LoaderEvents } from '../loaders';
 import { mapQueryAggregateResult } from '../query/map-query-aggregate-result';
-import { MergedDeepObjectQuery, mergeQueries } from '../query/merge-queries';
+import { MergedObjectQueryDeep, mergeQueries } from '../query/merge-queries';
 import { mergedQueryToPipeline } from '../query/merged-query-to-pipeline';
-import { DeepQueryResult } from '../query/query';
+import { QueryResultDeep } from '../query/query';
 
 import {
   QueryableUser,
@@ -76,7 +76,7 @@ export class QueryableUserLoader {
 
   prime(
     key: QueryableUserLoaderKey,
-    value: DeepQueryResult<QueryableUser>,
+    value: QueryResultDeep<QueryableUser>,
     options?: PrimeOptions
   ) {
     this.loader.prime(key, value, options);
@@ -100,7 +100,7 @@ export interface QueryableUserBatchLoadContext {
 export async function queryableUserBatchLoad(
   keys: readonly QueryableUserLoaderKey[],
   context: QueryableUserLoadContext
-): Promise<(DeepQueryResult<QueryableUser> | Error | null)[]> {
+): Promise<(QueryResultDeep<QueryableUser> | Error | null)[]> {
   const keysByUserId = groupBy(keys, (key) => key.id.userId.toHexString());
 
   const results = Object.fromEntries(
@@ -147,7 +147,7 @@ export async function queryableUserBatchLoad(
     string,
     {
       user: Document | undefined;
-      mergedQuery: MergedDeepObjectQuery<QueryableUser>;
+      mergedQuery: MergedObjectQueryDeep<QueryableUser>;
     }
   >;
 

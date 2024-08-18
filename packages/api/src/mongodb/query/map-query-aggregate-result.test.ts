@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { DeepAnyDescription } from './description';
 import { mapQueryAggregateResult } from './map-query-aggregate-result';
 import { mergeQueries } from './merge-queries';
-import { DeepObjectQuery, DeepQuery } from './query';
+import { ObjectQueryDeep, QueryDeep } from './query';
 
 describe('result is unmodified without resolvers', () => {
   it.each([
@@ -95,9 +95,9 @@ describe('map result with resolver', () => {
   ])('%s => %s', (query, result, description, expectedResult) => {
     expect(
       mapQueryAggregateResult(
-        query as DeepQuery<unknown>,
+        query as QueryDeep<unknown>,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mergeQueries([query as DeepObjectQuery<any>]),
+        mergeQueries([query as ObjectQueryDeep<any>]),
         result,
         {
           descriptions: [description as DeepAnyDescription<unknown>],
@@ -160,9 +160,9 @@ describe('map array result with resolver', () => {
   ])('%s => %s', (query, result, description, expectedResult) => {
     expect(
       mapQueryAggregateResult(
-        query as DeepQuery<unknown>,
+        query as QueryDeep<unknown>,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mergeQueries([query as DeepObjectQuery<any>]),
+        mergeQueries([query as ObjectQueryDeep<any>]),
         result,
         {
           descriptions: [description as DeepAnyDescription<unknown>],
@@ -239,9 +239,9 @@ describe('map nested array resolvers', () => {
   ])('(%s,%s,%s) => %s', (query, result, description, expectedResult) => {
     expect(
       mapQueryAggregateResult(
-        query as DeepQuery<unknown>,
+        query as QueryDeep<unknown>,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mergeQueries([query as DeepObjectQuery<any>]),
+        mergeQueries([query as ObjectQueryDeep<any>]),
         result,
         {
           descriptions: [description as DeepAnyDescription<unknown>],

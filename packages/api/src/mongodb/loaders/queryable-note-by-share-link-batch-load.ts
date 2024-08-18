@@ -9,9 +9,9 @@ import { CollectionName, MongoDBCollections } from '../collections';
 
 import { MongoDBContext } from '../lambda-context';
 import { mapQueryAggregateResult as queryFilterAggregateResult } from '../query/map-query-aggregate-result';
-import { MergedDeepObjectQuery, mergeQueries } from '../query/merge-queries';
+import { MergedObjectQueryDeep, mergeQueries } from '../query/merge-queries';
 import { mergedQueryToPipeline } from '../query/merged-query-to-pipeline';
-import { DeepQuery, DeepQueryResult } from '../query/query';
+import { QueryDeep, QueryResultDeep } from '../query/query';
 
 import {
   QueryableNote,
@@ -26,7 +26,7 @@ export interface QueryableNoteByShareLinkLoadKey {
   /**
    * Fields to retrieve, inclusion projection with inner paginations.
    */
-  noteQuery: DeepQuery<QueryableNote>;
+  noteQuery: QueryDeep<QueryableNote>;
 }
 
 export interface QueryableNoteByShareLinkBatchLoadContext {
@@ -40,7 +40,7 @@ export async function queryableNoteByShareLinkBatchLoad(
   keys: readonly QueryableNoteByShareLinkLoadKey[],
   context: Readonly<QueryableNoteByShareLinkBatchLoadContext>,
   aggregateOptions?: AggregateOptions
-): Promise<(DeepQueryResult<QueryableNote> | Error)[]> {
+): Promise<(QueryResultDeep<QueryableNote> | Error)[]> {
   const keysByShareNoteLinkPublicId = groupBy(keys, (item) => item.shareNoteLinkPublicId);
 
   const noteResultBy_shareNoteLinkPublicId = Object.fromEntries(
@@ -90,7 +90,7 @@ export async function queryableNoteByShareLinkBatchLoad(
     string,
     {
       note: Document | undefined;
-      mergedQuery: MergedDeepObjectQuery<QueryableNote>;
+      mergedQuery: MergedObjectQueryDeep<QueryableNote>;
     }
   >;
 

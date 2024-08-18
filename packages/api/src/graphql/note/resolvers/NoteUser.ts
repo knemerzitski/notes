@@ -1,4 +1,4 @@
-import { DeepQuery } from '../../../mongodb/query/query';
+import { QueryDeep } from '../../../mongodb/query/query';
 import { QueryableNote } from '../../../mongodb/schema/note/query/queryable-note';
 import type { NoteUserResolvers } from './../../types.generated';
 
@@ -28,7 +28,7 @@ export const NoteUser: NoteUserResolvers = {
     };
   },
   higherScope: async (parent) => {
-    const query: DeepQuery<NonNullable<QueryableNote['users']>[0]> = {
+    const query: QueryDeep<NonNullable<QueryableNote['users']>[0]> = {
       _id: 1,
       createdAt: 1,
     };

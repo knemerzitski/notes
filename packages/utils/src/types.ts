@@ -39,7 +39,7 @@ export type OmitStartsWith<T extends object, S extends string> = Omit<T, `${S}${
 /**
  * Types copied from package 'ts-essentials'
  * Added option to extend Primitive within DeepPartial
- *
+ * Renamed Deep to be in suffix
  */
 export type Primitive = string | number | boolean | bigint | symbol | undefined | null;
 
@@ -60,36 +60,33 @@ export type IsTuple<Type> = Type extends readonly unknown[]
     : Type
   : never;
 
-export type DeepPartial<Type, TIn = never, TOut = never> = Type extends Exclude<
-  Builtin | TIn,
-  Error
->
+export type PartialDeep<Type, TIn = never> = Type extends Exclude<Builtin | TIn, Error>
   ? Type
   : Type extends Map<infer Keys, infer Values>
-    ? Map<DeepPartial<Keys, TIn, TOut>, DeepPartial<Values, TIn, TOut>>
+    ? Map<PartialDeep<Keys, TIn>, PartialDeep<Values, TIn>>
     : Type extends ReadonlyMap<infer Keys, infer Values>
-      ? ReadonlyMap<DeepPartial<Keys, TIn, TOut>, DeepPartial<Values, TIn, TOut>>
+      ? ReadonlyMap<PartialDeep<Keys, TIn>, PartialDeep<Values, TIn>>
       : Type extends WeakMap<infer Keys, infer Values>
-        ? WeakMap<DeepPartial<Keys, TIn, TOut>, DeepPartial<Values, TIn, TOut>>
+        ? WeakMap<PartialDeep<Keys, TIn>, PartialDeep<Values, TIn>>
         : Type extends Set<infer Values>
-          ? Set<DeepPartial<Values, TIn, TOut>>
+          ? Set<PartialDeep<Values, TIn>>
           : Type extends ReadonlySet<infer Values>
-            ? ReadonlySet<DeepPartial<Values, TIn, TOut>>
+            ? ReadonlySet<PartialDeep<Values, TIn>>
             : Type extends WeakSet<infer Values>
-              ? WeakSet<DeepPartial<Values, TIn, TOut>>
+              ? WeakSet<PartialDeep<Values, TIn>>
               : Type extends readonly (infer Values)[]
                 ? Type extends IsTuple<Type>
                   ? {
-                      [Key in keyof Type]?: DeepPartial<Type[Key], TIn, TOut>;
+                      [Key in keyof Type]?: PartialDeep<Type[Key], TIn>;
                     }
                   : Type extends Values[]
-                    ? (DeepPartial<Values, TIn, TOut> | undefined)[]
-                    : readonly (DeepPartial<Values, TIn, TOut> | undefined)[]
+                    ? (PartialDeep<Values, TIn> | undefined)[]
+                    : readonly (PartialDeep<Values, TIn> | undefined)[]
                 : Type extends Promise<infer Value>
-                  ? Promise<DeepPartial<Value, TIn, TOut>>
+                  ? Promise<PartialDeep<Value, TIn>>
                   : Type extends object
                     ? {
-                        [Key in keyof Type]?: DeepPartial<Type[Key], TIn, TOut>;
+                        [Key in keyof Type]?: PartialDeep<Type[Key], TIn>;
                       }
                     : IsUnknown<Type> extends true
                       ? unknown

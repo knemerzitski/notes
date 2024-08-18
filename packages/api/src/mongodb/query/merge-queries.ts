@@ -3,7 +3,7 @@ import { getOrCreateObject } from '~utils/object/got-or-create-object';
 import { getOrCreateArray } from '~utils/array/got-or-create-array';
 import { MongoPrimitive } from '../types';
 import {
-  DeepObjectQuery,
+  ObjectQueryDeep,
   FieldInclusion,
   QUERY_ARG_PREFIX,
   QueryArgPrefix,
@@ -15,18 +15,17 @@ import { PickStartsWith, OmitStartsWith } from '~utils/types';
 export const ARGS_FIELD = '$args';
 type ArgsField = typeof ARGS_FIELD;
 
-//TODO put deep at end of name? => MergedQueryDeep?
-export type MergedDeepQuery<T> = T extends (infer U)[]
-  ? MergedDeepQuery<U> & MaybeArgs<T>
+export type MergedQueryDeep<T> = T extends (infer U)[]
+  ? MergedQueryDeep<U> & MaybeArgs<T>
   : T extends MongoPrimitive
     ? FieldInclusion
     : T extends object
-      ? MergedDeepObjectQuery<T>
+      ? MergedObjectQueryDeep<T>
       : T;
 
-export type MergedDeepObjectQuery<T extends object> = OmitStartsWith<
+export type MergedObjectQueryDeep<T extends object> = OmitStartsWith<
   {
-    [Key in keyof T]?: MergedDeepQuery<T[Key]>;
+    [Key in keyof T]?: MergedQueryDeep<T[Key]>;
   },
   QueryArgPrefix
 > &
@@ -45,13 +44,13 @@ export function isQueryArgField(key: string) {
 }
 
 export function mergeQueries<T extends object>(
-  queries: readonly DeepObjectQuery<T>[],
+  queries: readonly ObjectQueryDeep<T>[],
   context?: {
-    mergedQuery: MergedDeepObjectQuery<T>;
+    mergedQuery: MergedObjectQueryDeep<T>;
     path: string;
     argsByPath: Record<string, Set<string>>;
   }
-): MergedDeepObjectQuery<T> {
+): MergedObjectQueryDeep<T> {
   const mergedQuery: Record<string, unknown> = context?.mergedQuery ?? {};
   const argsByPath = context?.argsByPath ?? {};
   const path = context?.path ?? 'ROOT';
@@ -85,11 +84,11 @@ export function mergeQueries<T extends object>(
       if (queryValue === 1) {
         mergedQuery[queryKey] = 1;
       } else if (isObjectLike(queryValue)) {
-        mergeQueries([queryValue as DeepObjectQuery<T>], {
+        mergeQueries([queryValue as ObjectQueryDeep<T>], {
           mergedQuery: getOrCreateObject(
             mergedQuery,
             queryKey
-          ) as MergedDeepObjectQuery<T>,
+          ) as MergedObjectQueryDeep<T>,
           argsByPath,
           path: `${path}.${queryKey}`,
         });
@@ -100,5 +99,5 @@ export function mergeQueries<T extends object>(
     }
   }
 
-  return mergedQuery as MergedDeepObjectQuery<T>;
+  return mergedQuery as MergedObjectQueryDeep<T>;
 }

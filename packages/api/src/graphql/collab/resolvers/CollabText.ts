@@ -4,7 +4,7 @@ import {
   applyLimit,
   RelayBoundPagination,
 } from '../../../mongodb/pagination/relay-array-pagination';
-import { DeepObjectQuery } from '../../../mongodb/query/query';
+import { ObjectQueryDeep } from '../../../mongodb/query/query';
 import { RevisionRecordSchema } from '../../../mongodb/schema/collab-text/collab-text';
 import { PreFetchedArrayGetItemFn } from '../../utils/with-pre-fetched-array-size';
 import { CollabTextRecordMapper } from '../schema.mappers';
@@ -109,7 +109,7 @@ export const CollabText: CollabTextResolvers = {
       index: number,
       updateSize
     ) => {
-      const queryRecord = async (query: DeepObjectQuery<RevisionRecordSchema>) => {
+      const queryRecord = async (query: ObjectQueryDeep<RevisionRecordSchema>) => {
         const collabText = await parent.query({
           records: {
             $pagination: pagination,

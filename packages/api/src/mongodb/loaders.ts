@@ -17,7 +17,7 @@ import {
   QueryableUserLoader,
   QueryableUserLoaderKey,
 } from './loaders/queryable-user-loader';
-import { DeepQueryResult } from './query/query';
+import { QueryResultDeep } from './query/query';
 import { QueryableNote } from './schema/note/query/queryable-note';
 import { QueryableUser } from './schema/user/query/queryable-user';
 
@@ -32,19 +32,19 @@ export interface MongoDBLoaders {
 export type LoaderEvents = {
   loadedUser: {
     key: QueryableUserLoaderKey;
-    value: DeepQueryResult<QueryableUser>;
+    value: QueryResultDeep<QueryableUser>;
   };
   loadedNote: {
     key: QueryableNoteLoaderKey;
-    value: DeepQueryResult<QueryableNote>;
+    value: QueryResultDeep<QueryableNote>;
   };
   loadedNotesSearch: {
     key: QueryableNotesSearchLoaderKey;
-    value: DeepQueryResult<QueryableSearchNote[]>;
+    value: QueryResultDeep<QueryableSearchNote[]>;
   };
   loadedNoteByShareLink: {
     key: QueryableNoteByShareLinkLoadKey;
-    value: DeepQueryResult<QueryableNote>;
+    value: QueryResultDeep<QueryableNote>;
   };
 };
 

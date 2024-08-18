@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 
 import { RelayPagination } from '../../../../mongodb/pagination/relay-array-pagination';
-import { DeepObjectQuery, MongoQueryFn } from '../../../../mongodb/query/query';
+import { ObjectQueryDeep, MongoQueryFn } from '../../../../mongodb/query/query';
 import { QueryableNote } from '../../../../mongodb/schema/note/query/queryable-note';
 import { QueryableUser } from '../../../../mongodb/schema/user/query/queryable-user';
 import { assertAuthenticated } from '../../../base/directives/auth';
@@ -81,8 +81,8 @@ export const noteConnection: NonNullable<QueryResolvers['noteConnection']> = (
   const categoryName = arg.category ?? NoteCategory.DEFAULT;
 
   function loadUser(
-    noteQuery: DeepObjectQuery<QueryableNote>,
-    additionalOrderQuery?: DeepObjectQuery<QueryableOrderExtra>
+    noteQuery: ObjectQueryDeep<QueryableNote>,
+    additionalOrderQuery?: ObjectQueryDeep<QueryableOrderExtra>
   ) {
     return loaders.user.load({
       id: {

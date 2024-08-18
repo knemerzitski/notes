@@ -2,7 +2,7 @@ import { __InputValue } from 'graphql';
 
 import { ObjectId, UpdateFilter } from 'mongodb';
 
-import { DeepQueryResult } from '../../../../mongodb/query/query';
+import { QueryResultDeep } from '../../../../mongodb/query/query';
 import { QueryableNote } from '../../../../mongodb/schema/note/query/queryable-note';
 import { getNotesArrayPath } from '../../../../mongodb/schema/user/user';
 import { assertAuthenticated } from '../../../base/directives/auth';
@@ -408,7 +408,7 @@ interface AnchorLocationInfo {
 }
 
 interface ProcessNoteParams {
-  note: DeepQueryResult<QueryableNote> | undefined;
+  note: QueryResultDeep<QueryableNote> | undefined;
   currentUserId: ObjectId;
   input: MoveNoteInput;
 }
