@@ -4,9 +4,9 @@ type UserProfile {
 }
 
 """
-User information accessible by a query
+User info that the user itself can access
 """
-type User {
+type SignedInUser {
   "Self-descriptive"
   id: ID!
   "Self-descriptive"
@@ -14,7 +14,7 @@ type User {
 }
 
 """
-User info that can be accessed by any other user
+User info that might be accessed by any other user
 """
 type PublicUser {
   "Self-descriptive"
@@ -31,8 +31,8 @@ type PublicUserPatch {
 }
 
 extend type Query {
-  "Self-descriptive"
-  user: User! @auth
+  "Get info about currently signed in user"
+  signedInUser: SignedInUser! @auth
 }
 
 "User info that is only available during sign in process and is not stored in database."
@@ -56,9 +56,9 @@ input SignInInput {
   credentials: CredentialsInput!
 }
 type SignInPayload {
-  "Signed in user."
-  user: User!
-  "User info available only during sign in from auth provider."
+  "Signed in user"
+  signedInUser: SignedInUser!
+  "User info available only during sign in from auth provider"
   authProviderUser: AuthProviderUser!
 }
 extend type Mutation {
@@ -66,7 +66,7 @@ extend type Mutation {
   signIn(input: SignInInput!): SignInPayload
 }
 
-"Sign out of current session unless allSessions or sessionId is specified."
+"Sign out of current session unless allSessions or sessionId is specified"
 input SignOutInput {
   "Sign out all users. Cookies are cleared."
   allUsers: Boolean
