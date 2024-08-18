@@ -83,7 +83,9 @@ export async function withPreFetchedArraySize<TContext, TValue>(
 
   if (!fetchedSize) return [];
 
-  return [...new Array<undefined>(fetchedSize)].map((_, index) => getItem(index, updateSize));
+  return [...new Array<undefined>(fetchedSize)].map((_, index) =>
+    getItem(index, updateSize)
+  );
 }
 
 function reuseExecutionContext<TContext>(args: {

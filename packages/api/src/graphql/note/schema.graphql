@@ -98,7 +98,6 @@ extend type Query {
 
 ################################ Note Users ################################
 
-
 type NoteUser {
   "Self-descriptive"
   user: PublicUser!

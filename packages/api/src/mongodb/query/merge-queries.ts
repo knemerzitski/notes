@@ -36,8 +36,6 @@ type MaybeArgs<T extends object> = keyof PickStartsWith<T, QueryArgPrefix> exten
   ? unknown
   : { [Key in ArgsField]?: PickStartsWith<T, QueryArgPrefix>[] };
 
-
-
 export function isMergedQueryArgField(key: string) {
   return key === ARGS_FIELD;
 }
