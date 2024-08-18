@@ -7,7 +7,7 @@ type Note {
 
 type NotePatch {
   "This patch applies to Note.id"
-  id: String!
+  id: ObjectID!
   "True if Note was deleted"
   deleted: Boolean
 }

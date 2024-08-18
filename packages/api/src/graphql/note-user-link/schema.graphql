@@ -10,6 +10,8 @@ type UserNoteLink implements Node {
   note: Note!
   "Time when user gained access to the note"
   createdAt: DateTime!
+  "Access to note is read-only. Nothing can be modified except preferences."
+  readOnly: Boolean!
 }
 
 type UserNoteLinkPatch {
@@ -17,6 +19,8 @@ type UserNoteLinkPatch {
   id: String!
   "True if UserNoteLink was deleted"
   deleted: Boolean
+  "Changed note read-only access"
+  readOnly: Boolean
 }
 
 ################################ Create UserNoteLink ################################

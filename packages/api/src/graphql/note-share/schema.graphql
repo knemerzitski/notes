@@ -1,74 +1,83 @@
-type NoteShareLink {
-  "Note is shareable by this id"
-  id: ID!
-  "Access to note through this link is read-only. Text cannot be modified. Cannot delete other users."
-  readOnly: Boolean!
-}
-
-type NoteShareLinkPatch {
-  "Share link ichanged"
-  id: String
-  "Link read-only was changed"
-  readOnly: Boolean
-  "Sharing has been deleted"
-  deleted: Boolean
-}
-
+################################ NoteShare ################################
 extend type Note {
-  "Note is shared through the link"
-  shareLink: NoteShareLink
+  "Note is shared through this access"
+  shareAccess: NoteShareAccess
 }
 
 extend type NotePatch {
   "Changes made to note sharing"
-  shareLink: NoteShareLinkPatch
+  shareAccess: NoteShareAccessPatch
 }
 
-input CreateNoteShareLinkInput {
-  "Note to be shared, Note.noteId"
+type NoteShareAccess {
+  "Note is accessible by this id"
+  id: ObjectID!
+  "Access to note through this share is read-only. Read-only note cannot be modified."
+  readOnly: Boolean!
+}
+
+type NoteShareAccessPatch {
+  "This patch applies to NoteShareAccess.id"
+  id: ObjectID!
+  "True if NoteShareAccess has been deleted"
+  deleted: Boolean
+}
+
+################################ Create NoteShareAccess ################################
+
+input ShareNoteInput {
+  "Note to be shared, Note.id"
   noteId: String!
   "Make access to note read-only"
   readOnly: Boolean!
 }
 
-type DeleteNoteShareLinkPayload {
-  "Self-descriptive"
-  shareLink: NoteShareLink!
-  "Note that has been shared"
+type ShareNotePayload {
+  "Note sharing access info"
+  shareAccess: NoteShareAccess!
+  "Note where new share access has been added"
   note: Note!
 }
 
 extend type Mutation {
   "Share existing note"
-  createNoteShareLink(input: CreateNoteShareLinkInput!): DeleteNoteShareLinkPayload! @auth
+  shareNote(input: ShareNoteInput!): ShareNotePayload! @auth
 }
 
-input DeleteShareNoteLinkInput {
-  "Note to to stop sharing, Note.noteId"
+################################ Delete NoteShareAccess ################################
+
+input DeleteNoteShareInput {
+  "Note to to stop sharing, Note.id"
   noteId: String!
 }
 
-type DeleteShareNoteLinkPayload {
-  "Note with shareLink deleted"
+type DeleteNoteSharePayload {
+  "Id of deleted NoteShareAccess.id"
+  shareAccessId: ObjectID!
+  "Note with shareAccess deleted"
   note: Note!
 }
 
 extend type Mutation {
-  "Delete shared note. Anyone already linked to note still has access."
-  deleteNoteShareLink(input: DeleteShareNoteLinkInput!): DeleteShareNoteLinkPayload! @auth
+  "Delete shared note. Existing access is users is kept."
+  deleteNoteShare(input: DeleteNoteShareInput!): DeleteNoteSharePayload! @auth
 }
 
-input LinkNoteInput {
-  "Note to link with by NoteShareLink.id"
-  shareId: String!
+################################ Link Note by ShareNoteAccess ################################
+
+input CreateNoteLinkByShareAccessInput {
+  "Create NoteUserLink by NoteShareAccess.id"
+  shareAccessId: String!
 }
 
-type LinkNotePayload {
-  "Note that has been linked"
-  note: Note!
+type CreateNoteLinkByShareAccessPayload {
+  "Created UserNoteLink by the share access"
+  userNoteLink: UserNoteLink!
 }
 
 extend type Mutation {
   "Add a link to an existing note for collaborative editing"
-  linkNote(input: LinkNoteInput!): LinkNotePayload! @auth
+  createNoteLinkByShareAccess(
+    input: CreateNoteLinkByShareAccessInput!
+  ): CreateNoteLinkByShareAccessPayload! @auth
 }

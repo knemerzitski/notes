@@ -22,15 +22,11 @@ enum NoteTextField {
 
 "Note collaborative info"
 type NoteCollab {
-  "Text is read-only and cannot be modified. Default is false."
-  readOnly: Boolean
   "All available text fields. If arg: name is defined then only that field is returned."
   textFields(name: NoteTextField): [NoteTextFieldEntry!]!
 }
 
 type NoteCollabPatch {
-  "Changed text read-only status"
-  readOnly: Boolean
   "Changed note text fields"
   textFields: [NoteTextFieldEntryPatch!]
 }
