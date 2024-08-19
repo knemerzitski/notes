@@ -23,6 +23,11 @@ scalar Cursor
 
 scalar ObjectID
 
+
+interface Error {
+  message: String!
+}
+
 type PageInfo {
   "Self descriptive"
   hasPreviousPage: Boolean!
