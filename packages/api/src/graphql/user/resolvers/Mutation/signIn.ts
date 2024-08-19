@@ -1,7 +1,7 @@
 import mapObject from 'map-obj';
 import { ObjectId, WithId } from 'mongodb';
 
-import { verifyCredentialToken } from '../../../../auth/google/oauth2';
+import { verifyCredentialToken } from '../../../../services/auth/google/oauth2';
 import { sessionDefaultValues } from '../../../../mongodb/schema/session/session';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { sessionExpiration } from '../../../../session-expiration/mongodb-user-session';

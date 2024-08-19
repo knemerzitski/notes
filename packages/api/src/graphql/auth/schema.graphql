@@ -1,4 +1,4 @@
-################################ Sign In ################################
+################################ Mutation signIn ################################
 
 "User info received from authentication provider"
 type AuthProviderUser {
@@ -39,7 +39,7 @@ extend type Mutation {
   signIn(input: SignInInput!): SignInResult!
 }
 
-################################ Sign Out ################################
+################################ Mutation signOut ################################
 
 "Sign out of current session unless allSessions or sessionId is specified"
 input SignOutInput {
@@ -63,7 +63,7 @@ extend type Mutation {
   signOut(input: SignOutInput): SignOutResult!
 }
 
-################################ Sync Session Cookies ################################
+################################ Mutation syncSessionCookies ################################
 
 input SyncSessionCookiesInput {
   "Available user ids provided by the client"

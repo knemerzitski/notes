@@ -1,4 +1,4 @@
-################################ User ################################
+################################ SignedInUser, PublicUser ################################
 
 """
 User info that the user itself can access
@@ -20,20 +20,19 @@ type PublicUser {
   profile: PublicUserProfile!
 }
 
-
 type PublicUserProfile {
   "User-friendly way to distinguish this user. Can be anything set by the user."
   displayName: String!
 }
 
-################################ Query User ################################
+################################ Query signedInUser ################################
 
 extend type Query {
-  "Get info about currently signed in user"
+  "Get currently signed in user"
   signedInUser: SignedInUser! @auth
 }
 
-################################ User Events Subscriptions ################################
+################################ Subscription signedInUserEvents ################################
 
 union SignedInUserMutations = UpdateUserDisplayNamePayload
 
@@ -47,13 +46,13 @@ extend type Subscription {
   signedInUserEvents: SignedInUserEventsPayload! @auth
 }
 
-################################ Update User Display Name ################################
+################################ Mutation updateUserDisplayName ################################
 
 input UpdateUserDisplayNameInput {
   "SignedInUser.id to update"
   userId: ObjectID!
   "New display name"
-  displayName: String!
+  displayName: String! @length(max: 20)
 }
 
 type UpdateUserDisplayNamePayload {
@@ -65,5 +64,5 @@ type UpdateUserDisplayNamePayload {
 
 extend type Mutation {
   updateUserDisplayName(input: UpdateUserDisplayNameInput): UpdateUserDisplayNamePayload!
+    @auth
 }
-

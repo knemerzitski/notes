@@ -13,7 +13,7 @@ import {
 } from '../../../../__test__/helpers/mongodb/mongodb';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
-import { verifyCredentialToken } from '../../../../auth/google/__mocks__/oauth2';
+import { verifyCredentialToken } from '../../../../services/auth/google/__mocks__/oauth2';
 import { SessionSchema } from '../../../../mongodb/schema/session/session';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { AuthProvider, SignInInput, SignInPayload } from '../../../types.generated';
