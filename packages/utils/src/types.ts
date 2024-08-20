@@ -13,13 +13,13 @@ export interface Entry<Key, Value> {
 
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
-export type DeepReplace<T, Source, Target> = T extends Source
+export type ReplaceDeep<T, Source, Target> = T extends Source
   ? Target
   : T extends (infer U)[]
-    ? DeepReplace<U, Source, Target>[]
+    ? ReplaceDeep<U, Source, Target>[]
     : T extends object
       ? {
-          [Key in keyof T]: DeepReplace<T[Key], Source, Target>;
+          [Key in keyof T]: ReplaceDeep<T[Key], Source, Target>;
         }
       : T;
 

@@ -2,7 +2,7 @@ import { ObjectId } from 'mongodb';
 
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
-import { DeepReplace } from '~utils/types';
+import { ReplaceDeep } from '~utils/types';
 
 import { CollectionName } from '../mongodb/collections';
 import { findByCookieId } from '../mongodb/schema/session/operations/find-by-cookie-id';
@@ -16,7 +16,7 @@ import { CookiesContext } from './cookies-context';
 /**
  * Replaces ObjectId with base64 representation string.
  */
-type SerializedSession = DeepReplace<Session, ObjectId, string>;
+type SerializedSession = ReplaceDeep<Session, ObjectId, string>;
 
 type User = Omit<UserSchema, 'notes'>;
 
