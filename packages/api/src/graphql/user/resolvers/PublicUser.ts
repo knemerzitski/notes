@@ -1,20 +1,11 @@
 import type { PublicUserResolvers } from './../../types.generated';
+import { SignedInUser_id, SignedInUser_publicProfile } from './SignedInUser';
 
 export const PublicUser: PublicUserResolvers = {
-  id: async (parent) => {
-    return (
-      await parent.query({
-        _id: 1,
-      })
-    )?._id;
+  id: (parent, _arg, _ctx) => {
+    return SignedInUser_id(parent.query);
   },
-  displayName: async (parent) => {
-    return (
-      await parent.query({
-        profile: {
-          displayName: 1,
-        },
-      })
-    )?.profile?.displayName;
+  profile: (parent, _arg, _ctx) => {
+    return SignedInUser_publicProfile(parent.query);
   },
 };
