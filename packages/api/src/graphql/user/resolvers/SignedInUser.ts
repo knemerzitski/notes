@@ -6,7 +6,6 @@ import { ObjectId } from 'mongodb';
 export async function SignedInUser_id(
   queryFn: SignedInUserMapper['query']
 ): Promise<Maybe<ObjectId>> {
-  console.log('call2');
   return (await queryFn({ _id: 1 }))?._id;
 }
 
