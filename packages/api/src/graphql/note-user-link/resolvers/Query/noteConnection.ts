@@ -10,7 +10,7 @@ import { NoteCategory, type QueryResolvers } from '../../../types.generated';
 import {
   PreFetchedArrayGetItemFn,
   withPreFetchedArraySize,
-} from '../../../utils/with-pre-fetched-array-size';
+} from '../../../utils/pre-execute';
 import { NoteMapper } from '../../schema.mappers';
 import { Note_noteId_str } from '../Note';
 

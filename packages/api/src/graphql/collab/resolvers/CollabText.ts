@@ -6,7 +6,7 @@ import {
 } from '../../../mongodb/pagination/relay-array-pagination';
 import { ObjectQueryDeep } from '../../../mongodb/query/query';
 import { RevisionRecordSchema } from '../../../mongodb/schema/collab-text/collab-text';
-import { PreFetchedArrayGetItemFn } from '../../utils/with-pre-fetched-array-size';
+import { PreFetchedArrayGetItemFn } from '../../utils/pre-execute';
 import { CollabTextRecordMapper } from '../schema.mappers';
 
 export const CollabText: CollabTextResolvers = {

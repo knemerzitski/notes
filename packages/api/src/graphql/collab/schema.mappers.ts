@@ -7,7 +7,7 @@ import {
 import { ResolverTypeWrapper, ResolversTypes } from '../types.generated';
 import { QueryableCollabTextSchema } from '../../mongodb/schema/collab-text/query/collab-text';
 import { RelayBoundPagination } from '../../mongodb/pagination/relay-array-pagination';
-import { PreFetchedArrayGetItemFn } from '../utils/with-pre-fetched-array-size';
+import { PreFetchedArrayGetItemFn } from '../utils/pre-execute';
 
 export interface CollabTextMapper {
   readonly id: ResolverTypeWrapper<string>;

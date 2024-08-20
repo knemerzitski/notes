@@ -5,7 +5,7 @@ import { assertAuthenticated } from '../../../base/directives/auth';
 import {
   PreFetchedArrayGetItemFn,
   withPreFetchedArraySize,
-} from '../../../utils/with-pre-fetched-array-size';
+} from '../../../utils/pre-execute';
 import { NoteMapper } from '../../schema.mappers';
 
 import type { QueryResolvers } from '../../../types.generated';

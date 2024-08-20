@@ -4,7 +4,7 @@ import { GraphQLResolveInfo } from 'graphql';
 import { afterEach, beforeAll, expect, it, Mock, vi } from 'vitest';
 
 import { expectGraphQLResponseData } from '../../__test__/helpers/graphql/response';
-import { withPreFetchedArraySize } from './with-pre-fetched-array-size';
+import { withPreFetchedArraySize } from './pre-execute';
 
 let itemValueResolveFn: Mock;
 let updateSizeInputFn: Mock;

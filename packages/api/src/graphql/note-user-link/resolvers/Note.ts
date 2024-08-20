@@ -10,7 +10,7 @@ import { QueryableNote } from '../../../mongodb/schema/note/query/queryable-note
 import { objectIdToStr } from '../../base/resolvers/ObjectID';
 import { CollabTextMapper } from '../../collab/schema.mappers';
 import { findNoteUser } from '../utils/user-note';
-import { withPreFetchedArraySize } from '../../utils/with-pre-fetched-array-size';
+import { withPreFetchedArraySize } from '../../utils/pre-execute';
 import { NoteMapper, NoteUserMapper } from '../schema.mappers';
 
 export async function Note_id(parent: NoteMapper) {
