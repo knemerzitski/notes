@@ -88,6 +88,52 @@ export async function withPreFetchedArraySize<TContext, TValue>(
   );
 }
 
+/**
+ * Executes child resolvers for current field while ignoring null errors. Current field must return an object.
+ * Can be used to to early build queries for loaders.
+ *
+ * @param source Value normally returned in resolver
+ * @param context GraphQL Context
+ * @param info Field info
+ */
+export async function preExecuteObjectField<TContext, TValue>(
+  source: TValue,
+  context: TContext,
+  info: GraphQLResolveInfo
+): Promise<TValue | undefined> {
+  const returnType = unwrapNonNullType(info.returnType);
+  if (!isObjectType(returnType)) {
+    return;
+  }
+
+  const selectionSet = info.fieldNodes[0]?.selectionSet;
+  if (!selectionSet) return;
+
+  const exeContext = reuseExecutionContext({
+    info: info,
+    contextValue: context,
+    options: {
+      bubbleNull: true,
+    },
+  });
+
+  const fieldNodes = selectionSet.selections.filter(isFieldNode);
+
+  await Promise.allSettled(
+    fieldNodes.map((fieldNode) =>
+      executeField(
+        exeContext,
+        returnType,
+        source,
+        [fieldNode],
+        addPath(info.path, fieldNode.name.value, returnType.name)
+      )
+    )
+  );
+
+  return source;
+}
+
 function reuseExecutionContext<TContext>(args: {
   info: Pick<
     GraphQLResolveInfo,
