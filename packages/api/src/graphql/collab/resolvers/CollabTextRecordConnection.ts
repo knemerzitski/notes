@@ -1,14 +1,14 @@
 import { maybeCallFn } from '~utils/maybe-call-fn';
 import { isForwardPagination } from '../../../mongodb/pagination/relay-array-pagination';
-import { withPreFetchedArraySize } from '../../utils/pre-execute';
+import { withPreExecuteList } from '../../utils/pre-execute';
 import type { CollabTextRecordConnectionResolvers } from './../../types.generated';
 
 export const CollabTextRecordConnection: CollabTextRecordConnectionResolvers = {
   records: (parent, _args, ctx, info) => {
-    return withPreFetchedArraySize(parent.getRecord, ctx, info);
+    return withPreExecuteList(parent.getRecord, ctx, info);
   },
   edges: (parent, _args, ctx, info) => {
-    return withPreFetchedArraySize(
+    return withPreExecuteList(
       (index, updateSize) => {
         const recordMapper = parent.getRecord(index, updateSize);
 

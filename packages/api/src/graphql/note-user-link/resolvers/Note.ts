@@ -10,7 +10,7 @@ import { QueryableNote } from '../../../mongodb/schema/note/query/queryable-note
 import { objectIdToStr } from '../../base/resolvers/ObjectID';
 import { CollabTextMapper } from '../../collab/schema.mappers';
 import { findNoteUser } from '../utils/user-note';
-import { withPreFetchedArraySize } from '../../utils/pre-execute';
+import { withPreExecuteList } from '../../utils/pre-execute';
 import { NoteMapper, NoteUserMapper } from '../schema.mappers';
 
 export async function Note_id(parent: NoteMapper) {
@@ -155,7 +155,7 @@ export const Note: Pick<
     )?.trashed?.expireAt;
   },
   users: (parent, _args, ctx, info) => {
-    return withPreFetchedArraySize(
+    return withPreExecuteList(
       (index, updateSize) => {
         const queryAllUsers: NoteUserMapper['queryAllUsers'] = async (query) => {
           const users = (

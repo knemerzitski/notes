@@ -4,7 +4,7 @@ import { ObjectQueryDeep } from '../../../../mongodb/query/query';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import {
   PreFetchedArrayGetItemFn,
-  withPreFetchedArraySize,
+  withPreExecuteList,
 } from '../../../utils/pre-execute';
 import { NoteMapper } from '../../schema.mappers';
 
@@ -94,10 +94,10 @@ export const noteSearchConnection: NonNullable<QueryResolvers['noteSearchConnect
 
   return {
     notes(ctx, info) {
-      return withPreFetchedArraySize(createNoteMapper, ctx, info);
+      return withPreExecuteList(createNoteMapper, ctx, info);
     },
     edges(ctx, info) {
-      return withPreFetchedArraySize(
+      return withPreExecuteList(
         (index, updateSize) => {
           const noteMapper = createNoteMapper(index, updateSize);
 

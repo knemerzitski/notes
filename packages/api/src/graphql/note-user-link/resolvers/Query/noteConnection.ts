@@ -9,7 +9,7 @@ import { isObjectIdStr, strToObjectId } from '../../../base/resolvers/ObjectID';
 import { NoteCategory, type QueryResolvers } from '../../../types.generated';
 import {
   PreFetchedArrayGetItemFn,
-  withPreFetchedArraySize,
+  withPreExecuteList,
 } from '../../../utils/pre-execute';
 import { NoteMapper } from '../../schema.mappers';
 import { Note_noteId_str } from '../Note';
@@ -138,10 +138,10 @@ export const noteConnection: NonNullable<QueryResolvers['noteConnection']> = (
 
   return {
     notes: async (ctx, info) => {
-      return withPreFetchedArraySize(createNoteMapper, ctx, info);
+      return withPreExecuteList(createNoteMapper, ctx, info);
     },
     edges: async (ctx, info) => {
-      return withPreFetchedArraySize(
+      return withPreExecuteList(
         (index, updateSize) => {
           const noteMapper = createNoteMapper(index, updateSize);
 

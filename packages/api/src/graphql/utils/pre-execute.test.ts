@@ -4,9 +4,9 @@ import { GraphQLResolveInfo } from 'graphql';
 import { afterEach, beforeAll, describe, expect, it, Mock, vi } from 'vitest';
 
 import { expectGraphQLResponseData } from '../../__test__/helpers/graphql/response';
-import { preExecuteObjectField, withPreFetchedArraySize } from './pre-execute';
+import { preExecuteObjectField, withPreExecuteList } from './pre-execute';
 
-describe('withPreFetchedArraySize', () => {
+describe('withPreExecuteList', () => {
   let itemValueResolveFn: Mock;
   let updateSizeInputFn: Mock;
   let callbackReturnFn: Mock;
@@ -47,7 +47,7 @@ describe('withPreFetchedArraySize', () => {
             ctx: unknown,
             info: GraphQLResolveInfo
           ) {
-            return withPreFetchedArraySize(
+            return withPreExecuteList(
               (index, updateSize) => {
                 indexFn(index);
                 updateSize(updateSizeInputFn());

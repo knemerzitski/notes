@@ -36,7 +36,7 @@ export type PreFetchedArrayGetItemFn<TValue> = (
  * @param info Info of the the list type field
  * @returns A list of items with pre-fetched size.
  */
-export async function withPreFetchedArraySize<TContext, TValue>(
+export async function withPreExecuteList<TContext, TValue>(
   getItem: PreFetchedArrayGetItemFn<TValue>,
   context: TContext,
   info: GraphQLResolveInfo
