@@ -9,7 +9,7 @@ export const signedInUser: NonNullable<QueryResolvers['signedInUser']> = (
   const { auth, mongodb } = ctx;
   assertAuthenticated(auth);
 
-  const currentUserId = auth.session.user._id;
+  const currentUserId = auth.session.userId;
 
   return {
     query: (query) =>

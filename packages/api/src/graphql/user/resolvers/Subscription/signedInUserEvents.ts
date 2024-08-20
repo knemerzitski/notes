@@ -1,9 +1,9 @@
 import { ObjectId } from 'mongodb';
-import { isAuthenticated } from '../../../auth-context';
 import { SubscriptionTopicPrefix } from '../../../subscriptions';
 import type { ResolversTypes, SubscriptionResolvers } from './../../../types.generated';
 import { objectIdToStr } from '../../../base/resolvers/ObjectID';
 import { GraphQLResolversContext } from '../../../context';
+import { isAuthenticated } from '../../../../services/auth/auth';
 
 function getTopicForUser(userId: ObjectId) {
   return `${SubscriptionTopicPrefix.SIGNED_IN_USER_EVENTS}:${objectIdToStr(userId)}`;
@@ -16,7 +16,7 @@ export const signedInUserEvents: NonNullable<
     const { auth, subscribe, denySubscription } = ctx;
     if (!isAuthenticated(auth)) return denySubscription();
 
-    const currentUserId = auth.session.user._id;
+    const currentUserId = auth.session.userId;
 
     return subscribe(getTopicForUser(currentUserId));
   },

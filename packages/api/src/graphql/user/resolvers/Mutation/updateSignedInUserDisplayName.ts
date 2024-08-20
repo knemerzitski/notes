@@ -1,7 +1,4 @@
-import {
-  primeDisplayName,
-  updateDisplayName,
-} from '../../../../services/user/user';
+import { primeDisplayName, updateDisplayName } from '../../../../services/user/user';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { publishSignedInUserMutation } from '../Subscription/signedInUserEvents';
 import type { MutationResolvers, ResolversTypes } from './../../../types.generated';
@@ -16,7 +13,7 @@ export const updateSignedInUserDisplayName: NonNullable<
     input: { displayName },
   } = arg;
 
-  const currentUserId = auth.session.user._id;
+  const currentUserId = auth.session.userId;
 
   await updateDisplayName({
     userId: currentUserId,
