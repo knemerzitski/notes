@@ -41,7 +41,7 @@ export class Cookies {
   /**
    * All available sessions for current client.
    *
-   * Key is User.publicId \
+   * Key is User.id \
    * Value is Session.cookieId (NEVER send this in a response body).
    */
   readonly sessions: Record<string, string>;
@@ -73,7 +73,7 @@ export class Cookies {
 
   /**
    * Remembers session in http-only cookie. \
-   * Assigns 'Set-Cookie' values to {@link multiValueHeaders} to set cookies to match {@link sessionCookie}.
+   * Assigns 'Set-Cookie' values to {@link multiValueHeaders} to match {@link sessions}.
    */
   setCookieHeadersUpdate(multiValueHeaders: Record<string, unknown[]>) {
     if (!('Set-Cookie' in multiValueHeaders)) {

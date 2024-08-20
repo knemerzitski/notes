@@ -1,7 +1,33 @@
-import { SessionSchema } from '../../mongodb/schema/session/session';
+import {
+  sessionDefaultValues,
+  SessionSchema,
+} from '../../mongodb/schema/session/session';
 import { QueryableSessionLoader } from '../../mongodb/loaders/queryable-session-loader';
 import { Collection, ObjectId } from 'mongodb';
-import { SessionDuration } from './session-duration';
+import { SessionDuration } from './duration';
+
+export interface InsertNewSessionParams {
+  userId: ObjectId;
+  duration: SessionDuration;
+  collection: Collection<SessionSchema>;
+}
+
+// TODO test
+export async function insertNewSession({
+  userId,
+  collection,
+  duration,
+}: InsertNewSessionParams): Promise<SessionSchema> {
+  const newSession: SessionSchema = {
+    _id: new ObjectId(),
+    userId,
+    expireAt: duration.newDate(),
+    cookieId: sessionDefaultValues.cookieId(),
+  };
+  await collection.insertOne(newSession);
+
+  return newSession;
+}
 
 export type Session = Pick<SessionSchema, '_id' | 'cookieId' | 'expireAt' | 'userId'>;
 
@@ -10,6 +36,7 @@ interface FindByCookieIdParams {
   loader: QueryableSessionLoader;
 }
 
+// TODO test
 export async function findByCookieId({
   cookieId,
   loader,
@@ -44,6 +71,7 @@ interface UpdateExpireAtParams {
   collection: Collection<SessionSchema>;
 }
 
+// TODO test
 /**
  * Updates session expireAt database
  */
@@ -70,6 +98,7 @@ interface TryRefreshExpireAtParams<T extends Pick<Session, '_id' | 'expireAt'>> 
   sessionDuration: SessionDuration;
 }
 
+// TODO test
 export async function tryRefreshExpireAt<T extends Pick<Session, '_id' | 'expireAt'>>({
   session,
   collection,
@@ -98,6 +127,7 @@ interface PrimeSessionParams {
   loader: QueryableSessionLoader;
 }
 
+// TODO test
 /**
  * Primes all known session values
  */

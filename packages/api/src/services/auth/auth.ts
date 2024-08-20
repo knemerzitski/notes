@@ -1,11 +1,11 @@
 import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
-import { findByCookieId, primeSession, Session, tryRefreshExpireAt } from './session';
+import { findByCookieId, primeSession, Session, tryRefreshExpireAt } from '../session/session';
 import { ReplaceDeep } from '~utils/types';
 import { ObjectId } from 'mongodb';
 import { QueryableSessionLoader } from '../../mongodb/loaders/queryable-session-loader';
-import { Cookies } from './cookies';
+import { Cookies } from '../http/cookies';
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
-import { SessionDuration, SessionDurationConfig } from './session-duration';
+import { SessionDuration, SessionDurationConfig } from '../session/duration';
 
 export type AuthenticationContext = AuthenticatedContext | UnauthenticatedContext;
 

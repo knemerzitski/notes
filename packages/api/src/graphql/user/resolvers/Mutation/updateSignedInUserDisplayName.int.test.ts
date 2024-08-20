@@ -71,17 +71,17 @@ const SUBSCRIPTION = `#graphql
 
 let user: UserSchema;
 
-let updateDisplayNameSpy: MockInstance<
+let spyUpdateDisplayName: MockInstance<
   [serviceUser.UpdateDisplayNameParams],
   Promise<UpdateResult<UserSchema>>
 >;
 
 beforeAll(() => {
-  updateDisplayNameSpy = vi.spyOn(serviceUser, 'updateDisplayName');
+  spyUpdateDisplayName = vi.spyOn(serviceUser, 'updateDisplayName');
 });
 
 afterEach(() => {
-  updateDisplayNameSpy.mockRestore();
+  spyUpdateDisplayName.mockClear();
 });
 
 beforeEach(async () => {
@@ -148,7 +148,7 @@ it('changes user displayName', async () => {
     },
   });
 
-  expect(updateDisplayNameSpy).toHaveBeenCalledWith({
+  expect(spyUpdateDisplayName).toHaveBeenCalledWith({
     userId: user._id,
     displayName: 'new name',
     collection: mongoCollections.users,

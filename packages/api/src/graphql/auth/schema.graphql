@@ -13,10 +13,8 @@ input GoogleJWTAuthInput {
   token: String!
 }
 
-union SignInAuthInput = GoogleJWTAuthInput
-
 input SignInInput {
-  auth: SignInAuthInput!
+  auth: GoogleJWTAuthInput!
 }
 
 type SignInPayload {
@@ -25,7 +23,7 @@ type SignInPayload {
   "User info from auth provider"
   authProviderUser: AuthProviderUser!
   "Available SignedInUser.id's after sign in"
-  availableUserIds: [ObjectID!]!
+  availableUserIds: [String!]!
 }
 
 type SignInFailedError implements Error {
@@ -49,30 +47,28 @@ input SignOutInput {
 
 type SignOutPayload {
   "Available SignedInUser.id's after sign out."
-  availableUserIds: [ObjectID!]!
+  availableUserIds: [String!]!
 }
 
 type SignOutFailedError implements Error {
   message: String!
 }
 
-union SignOutResult = SignOutPayload | SignOutFailedError
-
 extend type Mutation {
   "Sign out a user"
-  signOut(input: SignOutInput): SignOutResult!
+  signOut(input: SignOutInput): SignOutPayload!
 }
 
 ################################ Mutation syncSessionCookies ################################
 
 input SyncSessionCookiesInput {
   "Available user ids provided by the client"
-  availableUserIds: [ObjectID!]!
+  availableUserIds: [String!]!
 }
 
 type SyncSessionCookiesPayload {
   "User ids available in http-only cookies. Any other user id is expired."
-  availableUserIds: [ObjectID!]!
+  availableUserIds: [String!]!
 }
 
 extend type Mutation {

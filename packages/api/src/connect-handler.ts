@@ -20,7 +20,7 @@ import {
   createDefaultMongoDBContext,
 } from './handler-params';
 import { parseAuthenticationContextFromHeaders } from './services/auth/auth';
-import { Cookies, parseCookiesFromHeaders } from './services/auth/cookies';
+import { Cookies, parseCookiesFromHeaders } from './services/http/cookies';
 import { QueryableSessionLoader } from './mongodb/loaders/queryable-session-loader';
 import { MongoDBCollections } from './mongodb/collections';
 import { ApiOptions } from './graphql/api-options';

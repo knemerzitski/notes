@@ -63,6 +63,10 @@ export interface PrimeOptions {
    * @default false;
    */
   clearCache?: boolean;
+  /**
+   * @default false
+   */
+  skipEmitEvent?: boolean;
 }
 
 function splitQuery<T>(obj: T) {
@@ -141,10 +145,12 @@ export class QueryLoader<I, Q extends object, G, R, QR = Q> {
       }
       this.loader.prime(leafLoaderKey, value);
 
-      this.eventBus?.emit('loaded', {
-        key: leafLoaderKey.cache,
-        value,
-      });
+      if (!options?.skipEmitEvent) {
+        this.eventBus?.emit('loaded', {
+          key: leafLoaderKey.cache,
+          value,
+        });
+      }
     });
   }
 

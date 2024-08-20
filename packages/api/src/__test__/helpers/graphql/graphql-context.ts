@@ -21,7 +21,7 @@ import { createMongoDBLoaders } from '../../../mongodb/loaders';
 import { UserSchema } from '../../../mongodb/schema/user/user';
 import { MongoPartialDeep } from '../../../mongodb/types';
 import { mongoCollections, mongoClient } from '../mongodb/mongodb';
-import { Cookies } from '../../../services/auth/cookies';
+import { Cookies } from '../../../services/http/cookies';
 
 export interface CreateGraphQLResolversContextOptions {
   user?: Partial<UserSchema>;

@@ -1,4 +1,4 @@
-import { SessionDurationConfig } from '../services/auth/session-duration';
+import { SessionDurationConfig } from '../services/session/duration';
 
 export interface ApiOptions {
   sessions?: {

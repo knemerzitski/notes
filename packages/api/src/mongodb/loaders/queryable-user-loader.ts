@@ -23,13 +23,18 @@ import {
   QueryLoaderContext,
   QueryLoaderEvents,
 } from './query-loader';
+import { getEqualObjectString } from './utils/get-equal-object-string';
 
-export interface QueryableUserId {
-  /**
-   * User._id
-   */
-  userId: ObjectId;
-}
+export type QueryableUserId =
+  | {
+      /**
+       * User._id
+       */
+      userId: ObjectId;
+    }
+  | {
+      googleUserId: string;
+    };
 
 export type QueryableUserLoaderKey = QueryLoaderCacheKey<QueryableUserId, QueryableUser>;
 
@@ -65,6 +70,10 @@ export class QueryableUserLoader {
       });
     }
 
+    loaderEventBus.on('loaded', (payload) => {
+      this.primeEquivalentOtherId(payload, { skipEmitEvent: true });
+    });
+
     this.loader = new QueryLoader({
       eventBus: params.eventBus ? loaderEventBus : undefined,
       batchLoadFn: (keys, context) => {
@@ -88,6 +97,39 @@ export class QueryableUserLoader {
       skipCache: session != null,
     });
   }
+
+  private primeEquivalentOtherId(
+    { key, value }: LoaderEvents['loadedUser'],
+    options?: PrimeOptions
+  ) {
+    if ('userId' in key.id) {
+      if (value.thirdParty?.google?.id != null) {
+        const googleUserId = value.thirdParty.google.id;
+        this.loader.prime(
+          {
+            id: {
+              googleUserId: googleUserId,
+            },
+            query: key.query,
+          },
+          value,
+          options
+        );
+      }
+    } else if (value._id != null) {
+      const userId = value._id;
+      this.loader.prime(
+        {
+          id: {
+            userId,
+          },
+          query: key.query,
+        },
+        value,
+        options
+      );
+    }
+  }
 }
 
 export interface QueryableUserBatchLoadContext {
@@ -101,15 +143,16 @@ export async function queryableUserBatchLoad(
   keys: readonly QueryableUserLoaderKey[],
   context: QueryableUserLoadContext
 ): Promise<(QueryResultDeep<QueryableUser> | Error | null)[]> {
-  const keysByUserId = groupBy(keys, (key) => key.id.userId.toHexString());
+  const queriesById = groupBy(keys, (key) => getEqualObjectString(key.id));
 
   const results = Object.fromEntries(
     await Promise.all(
-      Object.entries(keysByUserId).map(async ([userIdStr, sameUserLoadKeys]) => {
-        const userId = ObjectId.createFromHexString(userIdStr);
+      Object.entries(queriesById).map(async ([idStr, sameIdLoadKeys]) => {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const firstId = sameIdLoadKeys[0]!.id;
 
         // Merge queries
-        const mergedQuery = mergeQueries(sameUserLoadKeys.map(({ query }) => query));
+        const mergedQuery = mergeQueries(sameIdLoadKeys.map(({ query }) => query));
 
         // Build aggregate pipeline
         const aggregatePipeline = mergedQueryToPipeline(mergedQuery, {
@@ -123,7 +166,11 @@ export async function queryableUserBatchLoad(
             [
               {
                 $match: {
-                  _id: userId,
+                  ...('userId' in firstId
+                    ? { _id: firstId.userId }
+                    : {
+                        'thirdParty.google.id': firstId.googleUserId,
+                      }),
                 },
               },
               ...aggregatePipeline,
@@ -135,7 +182,7 @@ export async function queryableUserBatchLoad(
           .toArray();
 
         return [
-          userIdStr,
+          idStr,
           {
             user: userResult[0],
             mergedQuery,
@@ -152,7 +199,7 @@ export async function queryableUserBatchLoad(
   >;
 
   return keys.map((key) => {
-    const result = results[key.id.userId.toHexString()];
+    const result = results[getEqualObjectString(key.id)];
     if (!result?.user) return null;
 
     return mapQueryAggregateResult(key.query, result.mergedQuery, result.user, {

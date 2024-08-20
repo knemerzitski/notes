@@ -18,7 +18,7 @@ import {
   createDefaultMongoDBContext,
 } from './handler-params';
 import { createMongoDBLoaders } from './mongodb/loaders';
-import { Cookies } from './services/auth/cookies';
+import { Cookies } from './services/http/cookies';
 import { parseAuthenticationContextFromHeaders } from './services/auth/auth';
 
 export function createDefaultParams(): CreateApolloHttpHandlerParams<

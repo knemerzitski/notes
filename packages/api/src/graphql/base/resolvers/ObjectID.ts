@@ -14,8 +14,8 @@ export function strToObjectId(value: string | undefined) {
   return ObjectId.createFromBase64(value);
 }
 
-export function objectIdToStr(id: ObjectId | undefined): string | undefined;
 export function objectIdToStr(id: ObjectId): string;
+export function objectIdToStr(id: ObjectId | undefined): string | undefined;
 export function objectIdToStr(id: ObjectId | undefined) {
   return id?.toString('base64');
 }

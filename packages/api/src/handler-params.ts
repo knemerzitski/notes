@@ -22,7 +22,7 @@ import { resolvers } from './graphql/resolvers.generated';
 import { typeDefs } from './graphql/typeDefs.generated';
 import { createCollectionInstances } from './mongodb/collections';
 import { createMongoDBContext } from './mongodb/lambda-context';
-import { SessionDuration } from './services/auth/session-duration';
+import { SessionDuration } from './services/session/duration';
 
 export function createDefaultGraphQLParams<TContext extends BaseContext>(
   logger: Logger

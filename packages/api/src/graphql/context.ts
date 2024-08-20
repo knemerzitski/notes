@@ -10,7 +10,7 @@ import { MongoDBCollections } from '../mongodb/collections';
 import { MongoDBLoaders } from '../mongodb/loaders';
 
 import { ApiOptions } from './api-options';
-import { Cookies, SerializedCookies } from '../services/auth/cookies';
+import { Cookies, SerializedCookies } from '../services/http/cookies';
 import {
   AuthenticationContext,
   isAuthenticated,
