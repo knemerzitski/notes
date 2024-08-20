@@ -10,19 +10,19 @@ import { MongoDBCollections } from '../mongodb/collections';
 import { MongoDBLoaders } from '../mongodb/loaders';
 
 import { ApiOptions } from './api-options';
+import { Cookies, SerializedCookies } from '../services/auth/cookies';
 import {
   AuthenticationContext,
-  SerializedAuthenticationContext,
   isAuthenticated,
-  parseAuthFromHeaders,
-  parseAuthenticationContextValue,
+  parseAuthenticationContext,
+  parseAuthenticationContextFromHeaders,
   serializeAuthenticationContext,
-} from './auth-context';
-import { SerializedCookiesContext, CookiesContext } from './cookies-context';
+  SerializedAuthenticationContext,
+} from '../services/auth/auth';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type BaseGraphQLContext = {
-  cookies: CookiesContext;
+  cookies: Cookies;
   auth: AuthenticationContext;
 };
 
@@ -33,11 +33,12 @@ export type BaseGraphQLContext = {
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type DynamoDBBaseGraphQLContext = {
-  cookies: SerializedCookiesContext;
+  cookies: SerializedCookies;
   auth: SerializedAuthenticationContext;
 };
 
 export interface ApiGraphQLContext {
+  // TODO rename to mongoDb
   mongodb: {
     client: MongoClient;
     collections: MongoDBCollections;
@@ -113,8 +114,8 @@ export function parseDynamoDBBaseGraphQLContext(
   value: DynamoDBBaseGraphQLContext | undefined
 ) {
   return {
-    auth: parseAuthenticationContextValue(value?.auth),
-    cookies: new CookiesContext({
+    auth: parseAuthenticationContext(value?.auth),
+    cookies: new Cookies({
       sessions: value?.cookies.sessions ?? {},
     }),
   };
@@ -142,11 +143,14 @@ export const handleConnectionInitAuthenticate: WebSocketMessageHandlerParams<
     Object.entries(anyHeaders).map(([key, value]) => [key, String(value)])
   );
 
-  const newAuth = await parseAuthFromHeaders(
+  const newAuth = await parseAuthenticationContextFromHeaders({
     headers,
     cookies,
-    context.graphQLContext.mongodb.collections
-  );
+    sessionParams: {
+      loader: context.graphQLContext.mongodb.loaders.session,
+      sessionDurationConfig: context.graphQLContext.options?.sessions?.user,
+    },
+  });
 
   if (!isAuthenticated(newAuth)) return;
 

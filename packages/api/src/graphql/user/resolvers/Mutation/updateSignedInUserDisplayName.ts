@@ -1,6 +1,6 @@
 import {
-  loaderPrimeDisplayName,
-  dbUpdateDisplayName,
+  primeDisplayName,
+  updateDisplayName,
 } from '../../../../services/user/user';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { publishSignedInUserMutation } from '../Subscription/signedInUserEvents';
@@ -18,13 +18,13 @@ export const updateSignedInUserDisplayName: NonNullable<
 
   const currentUserId = auth.session.user._id;
 
-  await dbUpdateDisplayName({
+  await updateDisplayName({
     userId: currentUserId,
     displayName,
     collection: mongodb.collections.users,
   });
 
-  loaderPrimeDisplayName({
+  primeDisplayName({
     userId: currentUserId,
     displayName,
     loader: mongodb.loaders.user,

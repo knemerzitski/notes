@@ -22,6 +22,7 @@ import {
   createMockMongoDBContext,
   createMockSubscriptionGraphQLParams,
 } from '../handler-params';
+import { createDefaultApiOptions } from '~api/handler-params';
 
 interface MockWebSocketDisconnectHandlerOptions {
   mongodb?: Awaited<ReturnType<typeof createMockMongoDBContext>> | undefined;
@@ -38,6 +39,8 @@ export function mockCreateDefaultParams(
 > {
   let mongodb = options?.mongodb;
   const sockets = options?.sockets;
+
+  const apiOptions = createDefaultApiOptions();
 
   return {
     logger: createLogger('mock:ws-disconnect-handler'),
@@ -56,6 +59,7 @@ export function mockCreateDefaultParams(
           ...mongodb,
           loaders: createMongoDBLoaders(mongodb),
         },
+        options: apiOptions,
       };
     },
     parseDynamoDBGraphQLContext: parseDynamoDBBaseGraphQLContext,

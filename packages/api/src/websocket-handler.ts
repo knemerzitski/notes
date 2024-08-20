@@ -18,6 +18,7 @@ import {
 } from './graphql/context';
 import {
   createDefaultApiGatewayParams,
+  createDefaultApiOptions,
   createDefaultDynamoDBConnectionTtlContext,
   createDefaultDynamoDBParams,
   createDefaultMongoDBContext,
@@ -35,6 +36,8 @@ export function createDefaultParams(): WebSocketHandlerParams<
 
   let mongodb: Awaited<ReturnType<typeof createDefaultMongoDBContext>> | undefined;
 
+  const apiOptions = createDefaultApiOptions();
+
   return {
     logger,
     apiGateway: createDefaultApiGatewayParams(logger),
@@ -44,14 +47,13 @@ export function createDefaultParams(): WebSocketHandlerParams<
       if (!mongodb) {
         mongodb = await createDefaultMongoDBContext(logger);
       }
-      return handleConnectGraphQLAuth(mongodb.collections, event);
+      return handleConnectGraphQLAuth(event, mongodb.collections, apiOptions);
     },
     onConnectionInit: handleConnectionInitAuthenticate,
     async createGraphQLContext() {
       if (!mongodb) {
         mongodb = await createDefaultMongoDBContext(logger);
       }
-
       return {
         ...createErrorBaseSubscriptionResolversContext(name),
         logger: createLogger('ws-gql-context'),
@@ -59,10 +61,11 @@ export function createDefaultParams(): WebSocketHandlerParams<
           ...mongodb,
           loaders: createMongoDBLoaders(mongodb),
         },
+        options: apiOptions,
       };
     },
     parseDynamoDBGraphQLContext: parseDynamoDBBaseGraphQLContext,
-    connection: createDefaultDynamoDBConnectionTtlContext(),
+    connection: createDefaultDynamoDBConnectionTtlContext(apiOptions),
   };
 }
 

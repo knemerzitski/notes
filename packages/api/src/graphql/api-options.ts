@@ -1,4 +1,16 @@
+import { SessionDurationConfig } from '../services/auth/session-duration';
+
 export interface ApiOptions {
+  sessions?: {
+    /**
+     * User sessions stored in MongoDB Sessions collection
+     */
+    user?: SessionDurationConfig;
+    /**
+     * Subscriptions stored in DynamoDB tables
+     */
+    webSocket?: SessionDurationConfig;
+  };
   note?: {
     /**
      * How long note is kept in trash in milliseconds.

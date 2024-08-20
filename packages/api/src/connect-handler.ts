@@ -7,34 +7,44 @@ import {
 } from '~lambda-graphql/connect-handler';
 import { createLogger } from '~utils/logger';
 
-import { parseAuthFromHeaders } from './graphql/auth-context';
 import {
   BaseGraphQLContext,
   parseDynamoDBBaseGraphQLContext,
   serializeBaseGraphQLContext,
   DynamoDBBaseGraphQLContext,
 } from './graphql/context';
-import { parseCookiesFromHeaders, CookiesContext } from './graphql/cookies-context';
 import {
+  createDefaultApiOptions,
   createDefaultDynamoDBConnectionTtlContext,
   createDefaultDynamoDBParams,
   createDefaultMongoDBContext,
 } from './handler-params';
+import { parseAuthenticationContextFromHeaders } from './services/auth/auth';
+import { Cookies, parseCookiesFromHeaders } from './services/auth/cookies';
+import { QueryableSessionLoader } from './mongodb/loaders/queryable-session-loader';
+import { MongoDBCollections } from './mongodb/collections';
+import { ApiOptions } from './graphql/api-options';
 
 export async function handleConnectGraphQLAuth(
-  mongoDBCollections: Parameters<typeof parseAuthFromHeaders>['2'],
-  event: WebSocketConnectEvent
+  event: WebSocketConnectEvent,
+  collections: MongoDBCollections,
+  apiOptions?: ApiOptions,
 ): Promise<DynamoDBBaseGraphQLContext> {
-  const cookiesCtx = CookiesContext.parse(parseCookiesFromHeaders(event.headers));
+  const cookies = Cookies.parse(parseCookiesFromHeaders(event.headers));
 
-  const authCtx = await parseAuthFromHeaders(
-    event.headers,
-    cookiesCtx,
-    mongoDBCollections
-  );
+  const authCtx = await parseAuthenticationContextFromHeaders({
+    headers: event.headers,
+    cookies,
+    sessionParams: {
+      loader: new QueryableSessionLoader({
+        context: { collections },
+      }),
+      sessionDurationConfig: apiOptions?.sessions?.user,
+    },
+  });
 
   return serializeBaseGraphQLContext({
-    cookies: cookiesCtx,
+    cookies: cookies,
     auth: authCtx,
   });
 }
@@ -47,6 +57,8 @@ export function createDefaultParams(): WebSocketConnectHandlerParams<
 
   let mongodb: Awaited<ReturnType<typeof createDefaultMongoDBContext>> | undefined;
 
+  const apiOptions = createDefaultApiOptions();
+
   return {
     logger,
     dynamoDB: createDefaultDynamoDBParams(logger),
@@ -54,10 +66,10 @@ export function createDefaultParams(): WebSocketConnectHandlerParams<
       if (!mongodb) {
         mongodb = await createDefaultMongoDBContext(logger);
       }
-      return handleConnectGraphQLAuth(mongodb.collections, event);
+      return handleConnectGraphQLAuth(event, mongodb.collections, apiOptions);
     },
     parseDynamoDBGraphQLContext: parseDynamoDBBaseGraphQLContext,
-    connection: createDefaultDynamoDBConnectionTtlContext(),
+    connection: createDefaultDynamoDBConnectionTtlContext(apiOptions),
   };
 }
 

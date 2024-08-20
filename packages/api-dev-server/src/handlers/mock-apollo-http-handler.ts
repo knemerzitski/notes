@@ -1,12 +1,10 @@
 import 'source-map-support/register';
 import WebSocket from 'ws';
 
-import { parseAuthFromHeaders } from '~api/graphql/auth-context';
 import {
   GraphQLResolversContext,
   DynamoDBBaseGraphQLContext,
 } from '~api/graphql/context';
-import { CookiesContext, parseCookiesFromHeaders } from '~api/graphql/cookies-context';
 import {
   createDefaultApiOptions,
   createDefaultIsCurrentConnection,
@@ -25,6 +23,8 @@ import {
   createMockDynamoDBParams,
   createMockApiGatewayParams,
 } from '../handler-params';
+import { Cookies, parseCookiesFromHeaders } from '~api/services/auth/cookies';
+import { parseAuthenticationContextFromHeaders } from '~api/services/auth/auth';
 
 interface MockCreateApolloHttpHandlerOptions {
   mongodb?: Awaited<ReturnType<typeof createMockMongoDBContext>> | undefined;
@@ -43,6 +43,8 @@ export function mockCreateDefaultParams(
 
   const logger = createLogger('mock:apollo-http-handler');
 
+  const apiOptions = createDefaultApiOptions();
+
   return {
     logger,
     graphQL: createMockGraphQLParams(),
@@ -51,22 +53,27 @@ export function mockCreateDefaultParams(
         mongodb = await createMockMongoDBContext();
       }
 
-      const cookiesCtx = CookiesContext.parse(parseCookiesFromHeaders(event.headers));
+      const mongoDbLoaders = createMongoDBLoaders(mongodb);
 
-      const authCtx = await parseAuthFromHeaders(
-        event.headers,
-        cookiesCtx,
-        mongodb.collections
-      );
+      const cookies = Cookies.parse(parseCookiesFromHeaders(event.headers));
+
+      const auth = await parseAuthenticationContextFromHeaders({
+        headers: event.headers,
+        cookies,
+        sessionParams: {
+          loader: mongoDbLoaders.session,
+          sessionDurationConfig: apiOptions.sessions?.user,
+        },
+      });
 
       return {
-        cookies: cookiesCtx,
-        auth: authCtx,
+        cookies,
+        auth,
         mongodb: {
           ...mongodb,
-          loaders: createMongoDBLoaders(mongodb),
+          loaders: mongoDbLoaders,
         },
-        options: createDefaultApiOptions(),
+        options: apiOptions,
         subscribe: () => {
           throw new Error('Subscribe should never be called in apollo-http-handler');
         },

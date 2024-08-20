@@ -33,7 +33,7 @@ export function mockCreateDefaultParams(
         mongodb = await createMockMongoDBContext();
       }
 
-      return handleConnectGraphQLAuth(mongodb.collections, event);
+      return handleConnectGraphQLAuth(event, mongodb.collections);
     },
     parseDynamoDBGraphQLContext: parseDynamoDBBaseGraphQLContext,
   };

@@ -17,11 +17,13 @@ export type ReplaceDeep<T, Source, Target> = T extends Source
   ? Target
   : T extends (infer U)[]
     ? ReplaceDeep<U, Source, Target>[]
-    : T extends object
-      ? {
-          [Key in keyof T]: ReplaceDeep<T[Key], Source, Target>;
-        }
-      : T;
+    : T extends Builtin
+      ? T
+      : T extends object
+        ? {
+            [Key in keyof T]: ReplaceDeep<T[Key], Source, Target>;
+          }
+        : T;
 
 export type ExcludeNullable<T, Key extends keyof NonNullable<T>> = NonNullable<T> & {
   [key in Key]-?: Exclude<NonNullable<T>[key], null | undefined>;

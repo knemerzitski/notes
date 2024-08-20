@@ -8,9 +8,7 @@ import {
 import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
 import { createLogger } from '~utils/logger';
 
-import { parseAuthFromHeaders } from './graphql/auth-context';
 import { GraphQLResolversContext, DynamoDBBaseGraphQLContext } from './graphql/context';
-import { CookiesContext } from './graphql/cookies-context';
 import {
   createDefaultApiGatewayParams,
   createDefaultApiOptions,
@@ -20,6 +18,8 @@ import {
   createDefaultMongoDBContext,
 } from './handler-params';
 import { createMongoDBLoaders } from './mongodb/loaders';
+import { Cookies } from './services/auth/cookies';
+import { parseAuthenticationContextFromHeaders } from './services/auth/auth';
 
 export function createDefaultParams(): CreateApolloHttpHandlerParams<
   Omit<GraphQLResolversContext, keyof ApolloHttpGraphQLContext>,
@@ -37,22 +37,29 @@ export function createDefaultParams(): CreateApolloHttpHandlerParams<
         mongodb = await createDefaultMongoDBContext(logger);
       }
 
-      const cookiesCtx = CookiesContext.parseFromHeaders(event.headers);
+      const mongoDbLoaders = createMongoDBLoaders(mongodb);
 
-      const authCtx = await parseAuthFromHeaders(
-        event.headers,
-        cookiesCtx,
-        mongodb.collections
-      );
+      const cookies = Cookies.parseFromHeaders(event.headers);
+
+      const apiOptions = createDefaultApiOptions();
+
+      const auth = await parseAuthenticationContextFromHeaders({
+        headers: event.headers,
+        cookies,
+        sessionParams: {
+          loader: mongoDbLoaders.session,
+          sessionDurationConfig: apiOptions.sessions?.user,
+        },
+      });
 
       return {
-        cookies: cookiesCtx,
-        auth: authCtx,
+        cookies,
+        auth,
         mongodb: {
           ...mongodb,
-          loaders: createMongoDBLoaders(mongodb),
+          loaders: mongoDbLoaders,
         },
-        options: createDefaultApiOptions(),
+        options: apiOptions,
         subscribe: () => {
           throw new Error('Subscribe should never be called in apollo-http-handler');
         },

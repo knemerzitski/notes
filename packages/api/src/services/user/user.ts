@@ -2,7 +2,7 @@ import { Collection, ObjectId } from 'mongodb';
 import { UserSchema } from '../../mongodb/schema/user/user';
 import { QueryableUserLoader } from '../../mongodb/loaders/queryable-user-loader';
 
-interface DBUpdateDisplayNameParams {
+interface UpdateDisplayNameParams {
   userId: ObjectId;
   displayName: string;
 
@@ -12,11 +12,11 @@ interface DBUpdateDisplayNameParams {
 /**
  * Updates displayName in database
  */
-export function dbUpdateDisplayName({
+export function updateDisplayName({
   userId,
   displayName,
   collection,
-}: DBUpdateDisplayNameParams) {
+}: UpdateDisplayNameParams) {
   return collection.updateOne(
     {
       _id: userId,
@@ -39,7 +39,7 @@ interface LoaderPrimeDisplayNameParams {
 /**
  * Primes displayName in loader, cached value is overwritten
  */
-export function loaderPrimeDisplayName({
+export function primeDisplayName({
   userId,
   displayName,
   loader,

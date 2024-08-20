@@ -3,12 +3,12 @@ import { GraphQLError, GraphQLSchema } from 'graphql';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
 import type { DirectiveResolvers } from '../../../graphql/types.generated';
-import {
-  AuthenticatedContext,
-  AuthenticationContext,
-  isAuthenticated,
-} from '../../auth-context';
 import { transformSchemaDirectiveResolver } from '../../utils/transform-schema-directive-resolver';
+import {
+  AuthenticationContext,
+  AuthenticatedContext,
+  isAuthenticated,
+} from '../../../services/auth/auth';
 
 export function assertAuthenticated(
   auth: AuthenticationContext | undefined

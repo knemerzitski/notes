@@ -11,7 +11,10 @@ import {
   handleConnectionInitAuthenticate,
   parseDynamoDBBaseGraphQLContext,
 } from '~api/graphql/context';
-import { createDefaultDynamoDBConnectionTtlContext } from '~api/handler-params';
+import {
+  createDefaultApiOptions,
+  createDefaultDynamoDBConnectionTtlContext,
+} from '~api/handler-params';
 import { createMongoDBLoaders } from '~api/mongodb/loaders';
 import {
   WebSocketHandlerParams,
@@ -42,6 +45,8 @@ export function mockCreateDefaultParams(
   let mongodb = options?.mongodb;
   const sockets = options?.sockets;
 
+  const apiOptions = createDefaultApiOptions();
+
   return {
     logger: createLogger('mock:ws-handler'),
     dynamoDB: createMockDynamoDBParams(),
@@ -52,7 +57,7 @@ export function mockCreateDefaultParams(
         mongodb = await createMockMongoDBContext();
       }
 
-      return handleConnectGraphQLAuth(mongodb.collections, event);
+      return handleConnectGraphQLAuth(event, mongodb.collections);
     },
     async createGraphQLContext() {
       if (!mongodb) {
@@ -66,6 +71,7 @@ export function mockCreateDefaultParams(
           ...mongodb,
           loaders: createMongoDBLoaders(mongodb),
         },
+        options: apiOptions,
       };
     },
     connection: createDefaultDynamoDBConnectionTtlContext(),

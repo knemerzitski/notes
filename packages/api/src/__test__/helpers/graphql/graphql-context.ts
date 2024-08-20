@@ -12,7 +12,6 @@ import {
 import { PartialBy } from '~utils/types';
 
 import { ApiGraphQLContext, GraphQLResolversContext } from '../../../graphql/context';
-import { CookiesContext } from '../../../graphql/cookies-context';
 import { resolvers } from '../../../graphql/resolvers.generated';
 import { typeDefs } from '../../../graphql/typeDefs.generated';
 
@@ -22,6 +21,7 @@ import { createMongoDBLoaders } from '../../../mongodb/loaders';
 import { UserSchema } from '../../../mongodb/schema/user/user';
 import { MongoPartialDeep } from '../../../mongodb/types';
 import { mongoCollections, mongoClient } from '../mongodb/mongodb';
+import { Cookies } from '../../../services/auth/cookies';
 
 export interface CreateGraphQLResolversContextOptions {
   user?: Partial<UserSchema>;
@@ -52,7 +52,7 @@ export function createGraphQLResolversContext(
       loaders: createMongoDBLoaders(mongoDBContext),
       ...mongoDBContext,
     },
-    cookies: new CookiesContext({
+    cookies: new Cookies({
       sessions: {},
     }),
     response: {

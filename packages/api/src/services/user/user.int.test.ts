@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { dbUpdateDisplayName, loaderPrimeDisplayName } from './user';
+import { updateDisplayName, primeDisplayName } from './user';
 import { UserSchema } from '../../mongodb/schema/user/user';
 import { fakeUserPopulateQueue } from '../../__test__/helpers/mongodb/populate/user';
 import {
@@ -33,7 +33,7 @@ beforeEach(async () => {
 
 describe('dbUpdateDisplayName', () => {
   it('updates user displayName', async () => {
-    await dbUpdateDisplayName({
+    await updateDisplayName({
       userId: user._id,
       displayName: 'new name',
       collection: mongoCollections.users,
@@ -63,7 +63,7 @@ describe('loaderPrimeDisplayName', () => {
     });
     const userId = new ObjectId();
 
-    loaderPrimeDisplayName({
+    primeDisplayName({
       userId,
       displayName: 'new name',
       loader,

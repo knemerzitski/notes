@@ -16,6 +16,7 @@ import {
 } from './graphql/context';
 import {
   createDefaultApiGatewayParams,
+  createDefaultApiOptions,
   createDefaultDynamoDBParams,
   createDefaultMongoDBContext,
   createDefaultSubscriptionGraphQLParams,
@@ -31,6 +32,8 @@ export function createDefaultParams(): WebSocketDisconnectHandlerParams<
   const logger = createLogger(name);
 
   let mongodb: Awaited<ReturnType<typeof createDefaultMongoDBContext>> | undefined;
+
+  const apiOptions = createDefaultApiOptions();
 
   return {
     logger,
@@ -49,6 +52,7 @@ export function createDefaultParams(): WebSocketDisconnectHandlerParams<
           ...mongodb,
           loaders: createMongoDBLoaders(mongodb),
         },
+        options: apiOptions,
       };
     },
     parseDynamoDBGraphQLContext: parseDynamoDBBaseGraphQLContext,

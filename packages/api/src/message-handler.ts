@@ -17,6 +17,7 @@ import {
 } from './graphql/context';
 import {
   createDefaultApiGatewayParams,
+  createDefaultApiOptions,
   createDefaultDynamoDBConnectionTtlContext,
   createDefaultDynamoDBParams,
   createDefaultMongoDBContext,
@@ -34,8 +35,10 @@ export function createDefaultParams(): WebSocketMessageHandlerParams<
 
   let mongodb: Awaited<ReturnType<typeof createDefaultMongoDBContext>> | undefined;
 
+  const apiOptions = createDefaultApiOptions();
+
   return {
-    connection: createDefaultDynamoDBConnectionTtlContext(),
+    connection: createDefaultDynamoDBConnectionTtlContext(apiOptions),
     logger,
     dynamoDB: createDefaultDynamoDBParams(logger),
     apiGateway: createDefaultApiGatewayParams(logger),
@@ -52,6 +55,7 @@ export function createDefaultParams(): WebSocketMessageHandlerParams<
           ...mongodb,
           loaders: createMongoDBLoaders(mongodb),
         },
+        options: apiOptions,
       };
     },
     parseDynamoDBGraphQLContext: parseDynamoDBBaseGraphQLContext,

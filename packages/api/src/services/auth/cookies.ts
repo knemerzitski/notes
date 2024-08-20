@@ -1,21 +1,21 @@
 const SECURE_SET_COOKIE = process.env.NODE_ENV === 'production' ? '; Secure' : '';
 
-interface CookiesContextParams {
+interface CookiesParams {
   sessions: Record<string, string>;
 }
 
-export interface SerializedCookiesContext {
-  sessions: CookiesContext['sessions'];
+export interface SerializedCookies {
+  sessions: Cookies['sessions'];
 }
 
 /**
  * Parsed client cookies as a context. Normally parsed from request headers.
  */
-export class CookiesContext {
+export class Cookies {
   static SESSIONS_KEY = 'Sessions';
 
   static parse(cookiesRecord: Readonly<Record<string, string>>) {
-    return new CookiesContext({
+    return new Cookies({
       sessions: Object.fromEntries(
         cookiesRecord[this.SESSIONS_KEY]
           ?.split(',')
@@ -46,7 +46,7 @@ export class CookiesContext {
    */
   readonly sessions: Record<string, string>;
 
-  constructor(config: CookiesContextParams) {
+  constructor(config: CookiesParams) {
     this.sessions = config.sessions;
   }
 
@@ -80,7 +80,7 @@ export class CookiesContext {
       multiValueHeaders['Set-Cookie'] = [];
     }
     multiValueHeaders['Set-Cookie'].push(
-      `${CookiesContext.SESSIONS_KEY}=${Object.entries(this.sessions)
+      `${Cookies.SESSIONS_KEY}=${Object.entries(this.sessions)
         .map(([key, id]) => `${key}:${id}`)
         .join(',')}; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}; Path=/`
     );

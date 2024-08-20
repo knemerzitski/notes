@@ -21,7 +21,7 @@ export interface SessionSchema {
 }
 
 export const sessionDefaultValues = {
-  cookieId: () => nanoid(),
+  cookieId: () => nanoid(48),
 };
 
 export const sessionDescription: CollectionDescription = {

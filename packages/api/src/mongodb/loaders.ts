@@ -20,8 +20,14 @@ import {
 import { QueryResultDeep } from './query/query';
 import { QueryableNote } from './schema/note/query/queryable-note';
 import { QueryableUser } from './schema/user/query/queryable-user';
+import { QueryableSession } from './schema/session/query/queryable-session';
+import {
+  QueryableSessionLoader,
+  QueryableSessionLoaderKey,
+} from './loaders/queryable-session-loader';
 
 export interface MongoDBLoaders {
+  session: QueryableSessionLoader;
   user: QueryableUserLoader;
   note: QueryableNoteLoader;
   notesSearch: QueryableNotesSearchLoader;
@@ -30,6 +36,10 @@ export interface MongoDBLoaders {
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type LoaderEvents = {
+  loadedSession: {
+    key: QueryableSessionLoaderKey;
+    value: QueryResultDeep<QueryableSession>;
+  };
   loadedUser: {
     key: QueryableUserLoaderKey;
     value: QueryResultDeep<QueryableUser>;
@@ -54,6 +64,10 @@ export function createMongoDBLoaders(
   const loadersEventBus = mitt<LoaderEvents>();
 
   return {
+    session: new QueryableSessionLoader({
+      context,
+      eventBus: loadersEventBus,
+    }),
     user: new QueryableUserLoader({
       context,
       eventBus: loadersEventBus,

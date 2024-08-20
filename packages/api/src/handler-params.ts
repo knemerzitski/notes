@@ -22,10 +22,7 @@ import { resolvers } from './graphql/resolvers.generated';
 import { typeDefs } from './graphql/typeDefs.generated';
 import { createCollectionInstances } from './mongodb/collections';
 import { createMongoDBContext } from './mongodb/lambda-context';
-import {
-  defaultTtl,
-  tryRefreshTtl,
-} from './session-expiration/dynamodb-subscription-connection';
+import { SessionDuration } from './services/auth/session-duration';
 
 export function createDefaultGraphQLParams<TContext extends BaseContext>(
   logger: Logger
@@ -135,10 +132,19 @@ export function createDefaultDynamoDBParams(logger: Logger): DynamoDBContextPara
   };
 }
 
-export function createDefaultDynamoDBConnectionTtlContext(): ConnectionTtlContext {
+export function createDefaultDynamoDBConnectionTtlContext(
+  options?: ApiOptions
+): ConnectionTtlContext {
+  const sessionDuration = new SessionDuration(
+    options?.sessions?.webSocket ?? {
+      duration: 3 * 60 * 60, // 3 hours
+      refreshThreshold: 1 / 3, // 1 hour
+    }
+  );
+
   return {
-    defaultTtl,
-    tryRefreshTtl,
+    defaultTtl: sessionDuration.new.bind(sessionDuration),
+    tryRefreshTtl: sessionDuration.tryRefresh.bind(sessionDuration),
   };
 }
 
@@ -166,6 +172,16 @@ export const createDefaultIsCurrentConnection: CreateApolloHttpHandlerParams<
 
 export function createDefaultApiOptions(): ApiOptions {
   return {
+    sessions: {
+      user: {
+        duration: 14 * 24 * 60 * 60, // 14 days,
+        refreshThreshold: 0.5, // 7 days
+      },
+      webSocket: {
+        duration: 3 * 60 * 60, // 3 hours
+        refreshThreshold: 1 / 3, // 1 hour
+      },
+    },
     note: {
       trashDuration: 1000 * 60 * 60 * 24 * 30,
     },
