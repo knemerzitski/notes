@@ -26,7 +26,7 @@ import { Cookies } from '../../../services/auth/cookies';
 export interface CreateGraphQLResolversContextOptions {
   user?: Partial<UserSchema>;
   createPublisher?: (ctx: Omit<GraphQLResolversContext, 'publish'>) => Publisher;
-  mongodb?: PartialBy<ApiGraphQLContext['mongodb'], 'loaders'>;
+  mongodb?: PartialBy<ApiGraphQLContext['mongoDB'], 'loaders'>;
   override?: MongoPartialDeep<GraphQLResolversContext>;
 }
 
@@ -48,7 +48,7 @@ export function createGraphQLResolversContext(
           },
         }
       : null,
-    mongodb: {
+    mongoDB: {
       loaders: createMongoDBLoaders(mongoDBContext),
       ...mongoDBContext,
     },

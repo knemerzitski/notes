@@ -55,7 +55,7 @@ export function createDefaultParams(): WebSocketConnectHandlerParams<
 > {
   const logger = createLogger('ws-connect-handler');
 
-  let mongodb: Awaited<ReturnType<typeof createDefaultMongoDBContext>> | undefined;
+  let mongoDB: Awaited<ReturnType<typeof createDefaultMongoDBContext>> | undefined;
 
   const apiOptions = createDefaultApiOptions();
 
@@ -63,10 +63,10 @@ export function createDefaultParams(): WebSocketConnectHandlerParams<
     logger,
     dynamoDB: createDefaultDynamoDBParams(logger),
     async onConnect({ event }) {
-      if (!mongodb) {
-        mongodb = await createDefaultMongoDBContext(logger);
+      if (!mongoDB) {
+        mongoDB = await createDefaultMongoDBContext(logger);
       }
-      return handleConnectGraphQLAuth(event, mongodb.collections, apiOptions);
+      return handleConnectGraphQLAuth(event, mongoDB.collections, apiOptions);
     },
     parseDynamoDBGraphQLContext: parseDynamoDBBaseGraphQLContext,
     connection: createDefaultDynamoDBConnectionTtlContext(apiOptions),

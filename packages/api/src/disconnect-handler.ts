@@ -31,7 +31,7 @@ export function createDefaultParams(): WebSocketDisconnectHandlerParams<
   const name = 'ws-disconnect-handler';
   const logger = createLogger(name);
 
-  let mongodb: Awaited<ReturnType<typeof createDefaultMongoDBContext>> | undefined;
+  let mongoDB: Awaited<ReturnType<typeof createDefaultMongoDBContext>> | undefined;
 
   const apiOptions = createDefaultApiOptions();
 
@@ -41,16 +41,16 @@ export function createDefaultParams(): WebSocketDisconnectHandlerParams<
     graphQL: createDefaultSubscriptionGraphQLParams(logger),
     dynamoDB: createDefaultDynamoDBParams(logger),
     async createGraphQLContext() {
-      if (!mongodb) {
-        mongodb = await createDefaultMongoDBContext(logger);
+      if (!mongoDB) {
+        mongoDB = await createDefaultMongoDBContext(logger);
       }
 
       return {
         ...createErrorBaseSubscriptionResolversContext(name),
         logger: createLogger('ws-disconnect-gql-context'),
-        mongodb: {
-          ...mongodb,
-          loaders: createMongoDBLoaders(mongodb),
+        mongoDB: {
+          ...mongoDB,
+          loaders: createMongoDBLoaders(mongoDB),
         },
         options: apiOptions,
       };

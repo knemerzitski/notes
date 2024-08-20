@@ -39,7 +39,7 @@ void (async () => {
       logger,
     });
 
-    let mongodb: Awaited<ReturnType<typeof createMockMongoDBContext>> | undefined;
+    let mongoDB: Awaited<ReturnType<typeof createMockMongoDBContext>> | undefined;
 
     const sockets: Record<string, WebSocket> = {};
 
@@ -52,7 +52,7 @@ void (async () => {
               DynamoDBBaseGraphQLContext
             >(
               mockCreateDefaultWebSocketConnectParams({
-                mongodb,
+                mongodb: mongoDB,
               })
             ),
             message: createWebSocketMessageHandler<
@@ -61,7 +61,7 @@ void (async () => {
               DynamoDBBaseGraphQLContext
             >(
               mockCreateDefaultMessageHandlerParams({
-                mongodb,
+                mongodb: mongoDB,
                 sockets,
               })
             ),
@@ -71,14 +71,14 @@ void (async () => {
               DynamoDBBaseGraphQLContext
             >(
               mockCreateDefaultDisconnectHandlerParams({
-                mongodb,
+                mongodb: mongoDB,
                 sockets,
               })
             ),
           }
         : createWebSocketHandler(
             mockCreateDefaultWebSocketHandlerParams({
-              mongodb,
+              mongodb: mongoDB,
               sockets,
             })
           ),
@@ -87,7 +87,7 @@ void (async () => {
         DynamoDBBaseGraphQLContext
       >(
         mockCreateDefaultApolloHttpHandlerParams({
-          mongodb,
+          mongodb: mongoDB,
           sockets,
         })
       ),

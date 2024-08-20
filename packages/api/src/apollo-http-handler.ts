@@ -27,17 +27,17 @@ export function createDefaultParams(): CreateApolloHttpHandlerParams<
 > {
   const logger = createLogger('apollo-http-handler');
 
-  let mongodb: Awaited<ReturnType<typeof createDefaultMongoDBContext>> | undefined;
+  let mongoDB: Awaited<ReturnType<typeof createDefaultMongoDBContext>> | undefined;
 
   return {
     logger,
     graphQL: createDefaultGraphQLParams(logger),
     async createGraphQLContext(_ctx, event) {
-      if (!mongodb) {
-        mongodb = await createDefaultMongoDBContext(logger);
+      if (!mongoDB) {
+        mongoDB = await createDefaultMongoDBContext(logger);
       }
 
-      const mongoDbLoaders = createMongoDBLoaders(mongodb);
+      const mongoDBLoaders = createMongoDBLoaders(mongoDB);
 
       const cookies = Cookies.parseFromHeaders(event.headers);
 
@@ -47,7 +47,7 @@ export function createDefaultParams(): CreateApolloHttpHandlerParams<
         headers: event.headers,
         cookies,
         sessionParams: {
-          loader: mongoDbLoaders.session,
+          loader: mongoDBLoaders.session,
           sessionDurationConfig: apiOptions.sessions?.user,
         },
       });
@@ -55,9 +55,9 @@ export function createDefaultParams(): CreateApolloHttpHandlerParams<
       return {
         cookies,
         auth,
-        mongodb: {
-          ...mongodb,
-          loaders: mongoDbLoaders,
+        mongoDB: {
+          ...mongoDB,
+          loaders: mongoDBLoaders,
         },
         options: apiOptions,
         subscribe: () => {

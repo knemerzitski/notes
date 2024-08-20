@@ -38,8 +38,7 @@ export type DynamoDBBaseGraphQLContext = {
 };
 
 export interface ApiGraphQLContext {
-  // TODO rename to mongoDb
-  mongodb: {
+  mongoDB: {
     client: MongoClient;
     collections: MongoDBCollections;
     loaders: MongoDBLoaders;
@@ -85,8 +84,8 @@ export function createErrorBaseSubscriptionResolversContext(
   }
 
   return {
-    get mongodb() {
-      return createErrorProxy('mongodb') as ApiGraphQLContext['mongodb'];
+    get mongoDB() {
+      return createErrorProxy('mongodb') as ApiGraphQLContext['mongoDB'];
     },
     get request() {
       return createErrorProxy('request') as ApolloHttpGraphQLContext['request'];
@@ -147,7 +146,7 @@ export const handleConnectionInitAuthenticate: WebSocketMessageHandlerParams<
     headers,
     cookies,
     sessionParams: {
-      loader: context.graphQLContext.mongodb.loaders.session,
+      loader: context.graphQLContext.mongoDB.loaders.session,
       sessionDurationConfig: context.graphQLContext.options?.sessions?.user,
     },
   });

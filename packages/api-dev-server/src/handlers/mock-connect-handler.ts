@@ -22,18 +22,18 @@ interface MockWebSocketConnectHandlerOptions {
 export function mockCreateDefaultParams(
   options?: MockWebSocketConnectHandlerOptions
 ): WebSocketConnectHandlerParams<BaseGraphQLContext, DynamoDBBaseGraphQLContext> {
-  let mongodb = options?.mongodb;
+  let mongoDB = options?.mongodb;
 
   return {
     logger: createLogger('mock:ws-connect-handler'),
     connection: createDefaultDynamoDBConnectionTtlContext(),
     dynamoDB: createMockDynamoDBParams(),
     async onConnect({ event }) {
-      if (!mongodb) {
-        mongodb = await createMockMongoDBContext();
+      if (!mongoDB) {
+        mongoDB = await createMockMongoDBContext();
       }
 
-      return handleConnectGraphQLAuth(event, mongodb.collections);
+      return handleConnectGraphQLAuth(event, mongoDB.collections);
     },
     parseDynamoDBGraphQLContext: parseDynamoDBBaseGraphQLContext,
   };

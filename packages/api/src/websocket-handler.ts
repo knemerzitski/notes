@@ -34,7 +34,7 @@ export function createDefaultParams(): WebSocketHandlerParams<
   const name = 'ws-handler';
   const logger = createLogger(name);
 
-  let mongodb: Awaited<ReturnType<typeof createDefaultMongoDBContext>> | undefined;
+  let mongoDB: Awaited<ReturnType<typeof createDefaultMongoDBContext>> | undefined;
 
   const apiOptions = createDefaultApiOptions();
 
@@ -44,22 +44,22 @@ export function createDefaultParams(): WebSocketHandlerParams<
     graphQL: createDefaultSubscriptionGraphQLParams(logger),
     dynamoDB: createDefaultDynamoDBParams(logger),
     async onConnect({ event }) {
-      if (!mongodb) {
-        mongodb = await createDefaultMongoDBContext(logger);
+      if (!mongoDB) {
+        mongoDB = await createDefaultMongoDBContext(logger);
       }
-      return handleConnectGraphQLAuth(event, mongodb.collections, apiOptions);
+      return handleConnectGraphQLAuth(event, mongoDB.collections, apiOptions);
     },
     onConnectionInit: handleConnectionInitAuthenticate,
     async createGraphQLContext() {
-      if (!mongodb) {
-        mongodb = await createDefaultMongoDBContext(logger);
+      if (!mongoDB) {
+        mongoDB = await createDefaultMongoDBContext(logger);
       }
       return {
         ...createErrorBaseSubscriptionResolversContext(name),
         logger: createLogger('ws-gql-context'),
-        mongodb: {
-          ...mongodb,
-          loaders: createMongoDBLoaders(mongodb),
+        mongoDB: {
+          ...mongoDB,
+          loaders: createMongoDBLoaders(mongoDB),
         },
         options: apiOptions,
       };

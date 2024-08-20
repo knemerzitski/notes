@@ -21,10 +21,10 @@ export const handler: Handler = async (event: unknown, context: unknown) => {
       context,
     });
 
-    const mongodb = await createDefaultMongoDBContext(logger);
+    const mongoDB = await createDefaultMongoDBContext(logger);
 
     logger.info('createAllIndexes');
-    await createAllIndexes(mongodb.collections, {
+    await createAllIndexes(mongoDB.collections, {
       searchIndexes: hasAtlasSearch,
     });
 

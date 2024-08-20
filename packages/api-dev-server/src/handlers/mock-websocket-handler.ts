@@ -42,7 +42,7 @@ export function mockCreateDefaultParams(
   BaseGraphQLContext,
   DynamoDBBaseGraphQLContext
 > {
-  let mongodb = options?.mongodb;
+  let mongoDB = options?.mongodb;
   const sockets = options?.sockets;
 
   const apiOptions = createDefaultApiOptions();
@@ -53,23 +53,23 @@ export function mockCreateDefaultParams(
     apiGateway: createMockApiGatewayParams(sockets),
     graphQL: createMockSubscriptionGraphQLParams(),
     async onConnect({ event }) {
-      if (!mongodb) {
-        mongodb = await createMockMongoDBContext();
+      if (!mongoDB) {
+        mongoDB = await createMockMongoDBContext();
       }
 
-      return handleConnectGraphQLAuth(event, mongodb.collections);
+      return handleConnectGraphQLAuth(event, mongoDB.collections);
     },
     async createGraphQLContext() {
-      if (!mongodb) {
-        mongodb = await createMockMongoDBContext();
+      if (!mongoDB) {
+        mongoDB = await createMockMongoDBContext();
       }
 
       return {
         ...createErrorBaseSubscriptionResolversContext(),
         logger: createLogger('mock:ws-gql-context'),
-        mongodb: {
-          ...mongodb,
-          loaders: createMongoDBLoaders(mongodb),
+        mongoDB: {
+          ...mongoDB,
+          loaders: createMongoDBLoaders(mongoDB),
         },
         options: apiOptions,
       };

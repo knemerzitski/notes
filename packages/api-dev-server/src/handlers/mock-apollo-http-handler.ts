@@ -38,7 +38,7 @@ export function mockCreateDefaultParams(
   Omit<GraphQLResolversContext, keyof ApolloHttpGraphQLContext>,
   DynamoDBBaseGraphQLContext
 > {
-  let mongodb = options?.mongodb;
+  let monogDB = options?.mongodb;
   const sockets = options?.sockets;
 
   const logger = createLogger('mock:apollo-http-handler');
@@ -49,11 +49,11 @@ export function mockCreateDefaultParams(
     logger,
     graphQL: createMockGraphQLParams(),
     async createGraphQLContext(_ctx, event) {
-      if (!mongodb) {
-        mongodb = await createMockMongoDBContext();
+      if (!monogDB) {
+        monogDB = await createMockMongoDBContext();
       }
 
-      const mongoDbLoaders = createMongoDBLoaders(mongodb);
+      const mongoDBLoaders = createMongoDBLoaders(monogDB);
 
       const cookies = Cookies.parse(parseCookiesFromHeaders(event.headers));
 
@@ -61,7 +61,7 @@ export function mockCreateDefaultParams(
         headers: event.headers,
         cookies,
         sessionParams: {
-          loader: mongoDbLoaders.session,
+          loader: mongoDBLoaders.session,
           sessionDurationConfig: apiOptions.sessions?.user,
         },
       });
@@ -69,9 +69,9 @@ export function mockCreateDefaultParams(
       return {
         cookies,
         auth,
-        mongodb: {
-          ...mongodb,
-          loaders: mongoDbLoaders,
+        mongoDB: {
+          ...monogDB,
+          loaders: mongoDBLoaders,
         },
         options: apiOptions,
         subscribe: () => {
