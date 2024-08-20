@@ -2,7 +2,7 @@ import { Collection, ObjectId } from 'mongodb';
 import { UserSchema } from '../../mongodb/schema/user/user';
 import { QueryableUserLoader } from '../../mongodb/loaders/queryable-user-loader';
 
-interface UpdateDisplayNameParams {
+export interface UpdateDisplayNameParams {
   userId: ObjectId;
   displayName: string;
 
@@ -50,12 +50,14 @@ export function primeDisplayName({
         userId,
       },
       query: {
+        _id: 1,
         profile: {
           displayName: 1,
         },
       },
     },
     {
+      _id: userId,
       profile: {
         displayName,
       },

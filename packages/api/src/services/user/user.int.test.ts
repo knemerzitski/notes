@@ -31,7 +31,7 @@ beforeEach(async () => {
   mongoCollectionStats.mockClear();
 });
 
-describe('dbUpdateDisplayName', () => {
+describe('updateDisplayName', () => {
   it('updates user displayName', async () => {
     await updateDisplayName({
       userId: user._id,
@@ -54,7 +54,7 @@ describe('dbUpdateDisplayName', () => {
   });
 });
 
-describe('loaderPrimeDisplayName', () => {
+describe('primeDisplayName', () => {
   it('primes user with provided displayName', async () => {
     const loader = new QueryableUserLoader({
       context: {
@@ -81,6 +81,7 @@ describe('loaderPrimeDisplayName', () => {
         },
       })
     ).resolves.toStrictEqual({
+      _id: userId,
       profile: {
         displayName: 'new name',
       },

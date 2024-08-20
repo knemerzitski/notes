@@ -14,7 +14,7 @@ export function assertAuthenticated(
   auth: AuthenticationContext | undefined
 ): asserts auth is AuthenticatedContext {
   if (!isAuthenticated(auth)) {
-    throw new GraphQLError('You are not authorized to perform this action.', {
+    throw new GraphQLError('You must be signed in to perform this action.', {
       extensions: {
         code: GraphQLErrorCode.UNAUTHENTICATED,
         reason: auth?.reason,

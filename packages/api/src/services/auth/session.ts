@@ -93,7 +93,7 @@ export async function tryRefreshExpireAt<T extends Pick<Session, '_id' | 'expire
   };
 }
 
-interface LoaderPrimeDisplayNameParams {
+interface PrimeSessionParams {
   session: Session;
   loader: QueryableSessionLoader;
 }
@@ -101,7 +101,7 @@ interface LoaderPrimeDisplayNameParams {
 /**
  * Primes all known session values
  */
-export function primeSession({ session, loader }: LoaderPrimeDisplayNameParams) {
+export function primeSession({ session, loader }: PrimeSessionParams) {
   loader.prime(
     {
       id: {

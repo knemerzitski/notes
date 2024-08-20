@@ -5,7 +5,7 @@ import { objectIdToStr } from '../../../base/resolvers/ObjectID';
 import { GraphQLResolversContext } from '../../../context';
 import { isAuthenticated } from '../../../../services/auth/auth';
 
-function getTopicForUser(userId: ObjectId) {
+export function getTopicForUser(userId: ObjectId) {
   return `${SubscriptionTopicPrefix.SIGNED_IN_USER_EVENTS}:${objectIdToStr(userId)}`;
 }
 

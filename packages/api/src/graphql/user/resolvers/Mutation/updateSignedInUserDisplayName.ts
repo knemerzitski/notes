@@ -45,6 +45,5 @@ export const updateSignedInUserDisplayName: NonNullable<
   // Publish to subscriptions
   await publishSignedInUserMutation(currentUserId, payload, ctx);
 
-  // Return response
   return payload;
 };

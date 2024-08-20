@@ -2,6 +2,7 @@ import { GraphQLResponse } from '@apollo/server';
 import { assert, expect } from 'vitest';
 
 import { expectp } from '../expectp';
+import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
 export function expectGraphQLResponseData<TData = Record<string, unknown>>(
   response: GraphQLResponse<TData>
@@ -16,9 +17,9 @@ export function expectGraphQLResponseData<TData = Record<string, unknown>>(
   return data;
 }
 
-export function expectGraphQLResponseErrorMessage<TData = Record<string, unknown>>(
+export function expectGraphQLResponseError<TData = Record<string, unknown>>(
   response: GraphQLResponse<TData>,
-  expectedMessage: string | RegExp
+  expected: string | RegExp | GraphQLErrorCode
 ) {
   assert(response.body.kind === 'single');
   const { errors } = response.body.singleResult;
@@ -26,7 +27,14 @@ export function expectGraphQLResponseErrorMessage<TData = Record<string, unknown
   assert(errors != null, 'Expected to have errors array');
 
   expect(errors).toHaveLength(1);
-  expect(errors[0]?.message, JSON.stringify(errors, null, 2)).toEqual(
-    expect.stringMatching(expectedMessage)
-  );
+
+  if (typeof expected === 'string' && Object.keys(GraphQLErrorCode).includes(expected)) {
+    expect(errors[0]?.extensions?.code, JSON.stringify(errors, null, 2)).toEqual(
+      expected
+    );
+  } else {
+    expect(errors[0]?.message, JSON.stringify(errors, null, 2)).toEqual(
+      expect.stringMatching(expected)
+    );
+  }
 }

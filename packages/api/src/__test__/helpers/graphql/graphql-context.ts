@@ -44,7 +44,7 @@ export function createGraphQLResolversContext(
     auth: user
       ? {
           session: {
-            user,
+            userId: user._id,
           },
         }
       : null,
