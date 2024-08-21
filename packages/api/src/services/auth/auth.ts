@@ -1,11 +1,17 @@
 import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
-import { findByCookieId, primeSession, Session, tryRefreshExpireAt } from '../session/session';
+import {
+  findByCookieId,
+  primeSession,
+  Session,
+  tryRefreshExpireAt,
+} from '../session/session';
 import { ReplaceDeep } from '~utils/types';
-import { ObjectId } from 'mongodb';
+import { Collection, ObjectId } from 'mongodb';
 import { QueryableSessionLoader } from '../../mongodb/loaders/queryable-session-loader';
 import { Cookies } from '../http/cookies';
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import { SessionDuration, SessionDurationConfig } from '../session/duration';
+import { SessionSchema } from '../../mongodb/schema/session/session';
 
 export type AuthenticationContext = AuthenticatedContext | UnauthenticatedContext;
 
@@ -83,7 +89,7 @@ export async function parseAuthenticationContextFromHeaders({
       };
     }
 
-    const cookieId = cookies.sessions[userId];
+    const cookieId = cookies.getSessionCookeId(userId);
     if (!cookieId) {
       return {
         reason: AuthenticationFailedReason.USER_NO_SESSION,
@@ -147,6 +153,51 @@ export async function findRefreshSessionByCookieId(
   }
 
   return newSession;
+}
+
+export interface DeleteAllSessionsInCookiesParams {
+  cookies: Cookies;
+  collection: Collection<SessionSchema>;
+}
+
+export async function deleteAllSessionsInCookies({
+  cookies,
+  collection,
+}: DeleteAllSessionsInCookiesParams) {
+  const cookieIds = cookies.getAvailableSessionCookieIds();
+  if (cookieIds.length > 0) {
+    await collection.deleteMany({
+      cookieId: {
+        $in: cookieIds,
+      },
+    });
+  }
+
+  cookies.clearSessions();
+}
+
+export interface DeleteSessionParams {
+  userId: ObjectId;
+  cookieId?: string;
+  cookies: Cookies;
+  collection: Collection<SessionSchema>;
+}
+
+/**
+ * Deletes session from database and Cookies instance
+ */
+export async function deleteSession({
+  userId,
+  cookieId,
+  cookies,
+  collection,
+}: DeleteSessionParams) {
+  if (cookieId) {
+    await collection.deleteOne({
+      cookieId,
+    });
+  }
+  cookies.deleteSessionCookieId(userId);
 }
 
 export function serializeAuthenticationContext(

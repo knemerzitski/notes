@@ -9,7 +9,6 @@ import {
   MongoErrorCodes,
   retryOnMongoError,
 } from '../../../../mongodb/utils/retry-on-mongo-error';
-import { objectIdToStr } from '../../../base/resolvers/ObjectID';
 import { isAuthenticated } from '../../../../services/auth/auth';
 import {
   findUserByGoogleUserId,
@@ -25,6 +24,7 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
   info
 ) => {
   const { mongoDB, cookies, response } = ctx;
+
   if (isAuthenticated(ctx.auth)) {
     const currentUserId = ctx.auth.session.userId;
     return {
@@ -38,7 +38,7 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
             query,
           }),
       },
-      availableUserIds: Object.keys(cookies.sessions),
+      availableUserIds: cookies.getAvailableSessionUserIds(),
     };
   }
 
@@ -110,8 +110,8 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
     collection: mongoDB.collections.sessions,
   });
 
-  cookies.setSession(objectIdToStr(currentUserId), newSession.cookieId);
-  cookies.setCookieHeadersUpdate(response.multiValueHeaders);
+  cookies.setSession(currentUserId, newSession.cookieId);
+  cookies.putCookiesToHeaders(response.multiValueHeaders);
 
   // Set auth after sign in
   ctx.auth = {
@@ -129,7 +129,7 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
           query,
         }),
     },
-    availableUserIds: Object.keys(cookies.sessions),
+    availableUserIds: cookies.getAvailableSessionUserIds(),
     authProviderUser: {
       id: googleUserId,
       email: tmpGoogleEmail,

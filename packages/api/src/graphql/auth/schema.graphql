@@ -48,19 +48,18 @@ extend type Mutation {
 
 ################################ Mutation signOut ################################
 
-"Sign out of current session unless allSessions or sessionId is specified"
 input SignOutInput {
-  " Sign out a specific user by SignedInUser.id. If userId is not specified then all known users are signed out."
-  userId: ObjectID!
+  "Sign out all known users. Field 'userId' is ignored when 'allUsers' is true"
+  allUsers: Boolean
+  "Sign out a specific user by SignedInUser.id. If userId is not specified currently authenticated user is signed out."
+  userId: ObjectID
 }
 
 type SignOutPayload {
+  "SignedInUser.id's that were signed out."
+  signedOutUserIds: [String!]!
   "Available SignedInUser.id's after sign out."
   availableUserIds: [String!]!
-}
-
-type SignOutFailedError implements Error {
-  message: String!
 }
 
 extend type Mutation {

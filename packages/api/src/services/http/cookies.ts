@@ -1,3 +1,6 @@
+import { ObjectId } from 'mongodb';
+import { objectIdToStr } from '../utils/objectid';
+
 const SECURE_SET_COOKIE = process.env.NODE_ENV === 'production' ? '; Secure' : '';
 
 interface CookiesParams {
@@ -44,25 +47,55 @@ export class Cookies {
    * Key is User.id \
    * Value is Session.cookieId (NEVER send this in a response body).
    */
-  readonly sessions: Record<string, string>;
+  private sessions: Record<string, string>;
 
   constructor(config: CookiesParams) {
     this.sessions = config.sessions;
   }
 
-  setSession(userId: string, cookieId: string) {
-    this.sessions[userId] = cookieId;
+  private getSessionKey(userId: ObjectId | string) {
+    return userId instanceof ObjectId ? objectIdToStr(userId) : userId;
   }
 
-  deleteSession(userId: string) {
+  setSession(userId: ObjectId | string, cookieId: string) {
+    this.sessions[this.getSessionKey(userId)] = cookieId;
+  }
+
+  deleteSessionCookieId(userId: ObjectId | string) {
     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-    delete this.sessions[userId];
+    delete this.sessions[this.getSessionKey(userId)];
+  }
+
+  /**
+   * User.id
+   */
+  getAvailableSessionUserIds() {
+    return Object.keys(this.sessions);
+  }
+
+  /**
+   * Session.cookieId (NEVER send this in a response body)
+   */
+  getAvailableSessionCookieIds() {
+    return Object.values(this.sessions);
+  }
+
+  getSessionCookeId(userId: ObjectId | string) {
+    return this.sessions[this.getSessionKey(userId)];
+  }
+
+  clearSessions() {
+    this.sessions = {};
+  }
+
+  hasNoSessions() {
+    return Object.keys(this.sessions).length === 0;
   }
 
   /**
    * Only keep sessions defined in {@link userIds}.
    */
-  filterSessions(userIds: string[]) {
+  filterSessionsByUserId(userIds: string[]) {
     for (const existingUserId of Object.keys(this.sessions)) {
       if (!userIds.includes(existingUserId)) {
         // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
@@ -73,31 +106,26 @@ export class Cookies {
 
   /**
    * Remembers session in http-only cookie. \
-   * Assigns 'Set-Cookie' values to {@link multiValueHeaders} to match {@link sessions}.
+   * Assigns 'Set-Cookie' values to {@link multiValueHeaders} to match {@link sessions}. \
+   * If {@link sessions} is empty then session 'Set-Cookie' is set as expired to clear session value.
    */
-  setCookieHeadersUpdate(multiValueHeaders: Record<string, unknown[]>) {
-    if (!('Set-Cookie' in multiValueHeaders)) {
-      multiValueHeaders['Set-Cookie'] = [];
-    }
-    multiValueHeaders['Set-Cookie'].push(
-      `${Cookies.SESSIONS_KEY}=${Object.entries(this.sessions)
-        .map(([key, id]) => `${key}:${id}`)
-        .join(',')}; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}; Path=/`
-    );
-  }
-
-  /**
-   * Deletes session from http-only cookie. \
-   * Assigns expired 'Set-Cookie' values to {@link multiValueHeaders} to clear relevant cookies.
-   */
-  static setCookieHeadersClear(multiValueHeaders: Record<string, unknown[]>) {
+  putCookiesToHeaders(multiValueHeaders: Record<string, unknown[]>) {
     if (!('Set-Cookie' in multiValueHeaders)) {
       multiValueHeaders['Set-Cookie'] = [];
     }
 
-    multiValueHeaders['Set-Cookie'].push(
-      `${this.SESSIONS_KEY}=; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}; Expires=Thu, 01 Jan 1970 00:00:00 GMT`
-    );
+    const sessionEntries = Object.entries(this.sessions);
+    if (sessionEntries.length > 0) {
+      multiValueHeaders['Set-Cookie'].push(
+        `${Cookies.SESSIONS_KEY}=${Object.entries(this.sessions)
+          .map(([key, id]) => `${key}:${id}`)
+          .join(',')}; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}; Path=/`
+      );
+    } else {
+      multiValueHeaders['Set-Cookie'].push(
+        `${Cookies.SESSIONS_KEY}=; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}; Expires=Thu, 01 Jan 1970 00:00:00 GMT`
+      );
+    }
   }
 }
 

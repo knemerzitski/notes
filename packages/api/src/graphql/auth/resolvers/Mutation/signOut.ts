@@ -1,8 +1,68 @@
+import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
 import type { MutationResolvers } from './../../../types.generated';
+import {
+  deleteAllSessionsInCookies,
+  deleteSession,
+  isAuthenticated,
+} from '../../../../services/auth/auth';
+import { objectIdToStr } from '../../../../services/utils/objectid';
+
+
+// TODO test
+
 export const signOut: NonNullable<MutationResolvers['signOut']> = async (
   _parent,
-  _arg,
-  _ctx
+  arg,
+  ctx
 ) => {
-  /* Implement Mutation.signOut resolver logic here */
+  const { mongoDB, cookies, response } = ctx;
+
+  const { input } = arg;
+
+  let signedOutUserIds: string[] = [];
+  if (input?.allUsers) {
+    // Sign out all users
+    signedOutUserIds = cookies.getAvailableSessionUserIds();
+
+    await deleteAllSessionsInCookies({
+      cookies,
+      collection: mongoDB.collections.sessions,
+    });
+  } else {
+    if (input?.userId) {
+      signedOutUserIds = [objectIdToStr(input.userId)];
+
+      // Sign out specified user
+      await deleteSession({
+        userId: input.userId,
+        cookieId: cookies.getSessionCookeId(input.userId),
+        cookies,
+        collection: mongoDB.collections.sessions,
+      });
+    } else if (isAuthenticated(ctx.auth)) {
+      signedOutUserIds = [objectIdToStr(ctx.auth.session.userId)];
+
+      // Sign out authenticated user
+      await deleteSession({
+        userId: ctx.auth.session.userId,
+        cookieId: ctx.auth.session.cookieId,
+        cookies,
+        collection: mongoDB.collections.sessions,
+      });
+      ctx.auth;
+    }
+  }
+
+  if (isAuthenticated(ctx.auth)) {
+    ctx.auth = {
+      reason: AuthenticationFailedReason.USER_NO_SESSION,
+    };
+  }
+
+  cookies.putCookiesToHeaders(response.multiValueHeaders);
+
+  return {
+    signedOutUserIds,
+    availableUserIds: cookies.getAvailableSessionUserIds(),
+  };
 };
