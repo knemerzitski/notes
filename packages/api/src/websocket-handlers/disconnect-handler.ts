@@ -13,15 +13,15 @@ import {
   createErrorBaseSubscriptionResolversContext,
   parseDynamoDBBaseGraphQLContext,
   DynamoDBBaseGraphQLContext,
-} from './graphql/context';
+} from '../graphql/context';
 import {
   createDefaultApiGatewayParams,
   createDefaultApiOptions,
   createDefaultDynamoDBParams,
   createDefaultMongoDBContext,
   createDefaultSubscriptionGraphQLParams,
-} from './handler-params';
-import { createMongoDBLoaders } from './mongodb/loaders';
+} from '../handler-params';
+import { createMongoDBLoaders } from '../mongodb/loaders';
 
 export function createDefaultParams(): WebSocketDisconnectHandlerParams<
   BaseSubscriptionResolversContext,

@@ -14,7 +14,7 @@ import {
   handleConnectionInitAuthenticate,
   parseDynamoDBBaseGraphQLContext,
   DynamoDBBaseGraphQLContext,
-} from './graphql/context';
+} from '../graphql/context';
 import {
   createDefaultApiGatewayParams,
   createDefaultApiOptions,
@@ -22,8 +22,8 @@ import {
   createDefaultDynamoDBParams,
   createDefaultMongoDBContext,
   createDefaultSubscriptionGraphQLParams,
-} from './handler-params';
-import { createMongoDBLoaders } from './mongodb/loaders';
+} from '../handler-params';
+import { createMongoDBLoaders } from '../mongodb/loaders';
 
 export function createDefaultParams(): WebSocketMessageHandlerParams<
   BaseSubscriptionResolversContext,

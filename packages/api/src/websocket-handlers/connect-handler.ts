@@ -1,5 +1,6 @@
 import 'source-map-support/register';
 import { APIGatewayProxyWebsocketHandlerV2 } from 'aws-lambda';
+
 import {
   createWebSocketConnectHandler,
   WebSocketConnectEvent,
@@ -7,28 +8,28 @@ import {
 } from '~lambda-graphql/connect-handler';
 import { createLogger } from '~utils/logger';
 
+import { ApiOptions } from '../graphql/api-options';
 import {
   BaseGraphQLContext,
   parseDynamoDBBaseGraphQLContext,
   serializeBaseGraphQLContext,
   DynamoDBBaseGraphQLContext,
-} from './graphql/context';
+} from '../graphql/context';
 import {
   createDefaultApiOptions,
   createDefaultDynamoDBConnectionTtlContext,
   createDefaultDynamoDBParams,
   createDefaultMongoDBContext,
-} from './handler-params';
-import { parseAuthenticationContextFromHeaders } from './services/auth/auth';
-import { Cookies, parseCookiesFromHeaders } from './services/http/cookies';
-import { QueryableSessionLoader } from './mongodb/loaders/queryable-session-loader';
-import { MongoDBCollections } from './mongodb/collections';
-import { ApiOptions } from './graphql/api-options';
+} from '../handler-params';
+import { MongoDBCollections } from '../mongodb/collections';
+import { QueryableSessionLoader } from '../mongodb/loaders/queryable-session-loader';
+import { parseAuthenticationContextFromHeaders } from '../services/auth/auth';
+import { Cookies, parseCookiesFromHeaders } from '../services/http/cookies';
 
 export async function handleConnectGraphQLAuth(
   event: WebSocketConnectEvent,
   collections: MongoDBCollections,
-  apiOptions?: ApiOptions,
+  apiOptions?: ApiOptions
 ): Promise<DynamoDBBaseGraphQLContext> {
   const cookies = Cookies.parse(parseCookiesFromHeaders(event.headers));
 
