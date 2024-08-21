@@ -7,7 +7,6 @@ interface FindUserByGoogleUserIdParams {
   loader: QueryableUserLoader;
 }
 
-// TODO test
 export function findUserByGoogleUserId({
   googleUserId,
   loader,
@@ -17,6 +16,7 @@ export function findUserByGoogleUserId({
       googleUserId,
     },
     query: {
+      _id: 1,
       thirdParty: {
         google: {
           id: 1,
@@ -32,7 +32,6 @@ export interface InsertNewUserWithGoogleUserParams {
   collection: Collection<UserSchema>;
 }
 
-// TODO test
 export async function insertNewUserWithGoogleUser({
   id,
   displayName,
@@ -63,7 +62,6 @@ interface PrimeUserWithGoogleUserParams {
   loader: QueryableUserLoader;
 }
 
-// TODO test
 /**
  * Primes displayName in loader, cached value is overwritten
  */

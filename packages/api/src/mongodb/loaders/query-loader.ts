@@ -16,7 +16,7 @@ import { isQueryArgField } from '../query/merge-queries';
 export type QueryLoaderEvents<I, Q extends object, QR = Q> = {
   loaded: {
     key: QueryLoaderCacheKey<I, Q>;
-    value: QueryResultDeep<QR>;
+    value: QueryResultDeep<QR> | null;
   };
 };
 
@@ -157,9 +157,10 @@ export class QueryLoader<I, Q extends object, G, R, QR = Q> {
   async load(
     key: QueryLoaderCacheKey<I, Q>,
     options?: LoadOptions<R>
-  ): Promise<QueryResultDeep<QR> | undefined> {
+  ): Promise<QueryResultDeep<QR> | null> {
     const cacheIsStale = options?.skipCache ?? false;
-    const leafResults = await Promise.all(
+
+    const splitResults = await Promise.all(
       splitQuery(key.query).map(async (leafQuery) => {
         const leafLoaderKey: QueryLoaderKey<I, Q, R> = {
           cache: {
@@ -173,18 +174,25 @@ export class QueryLoader<I, Q extends object, G, R, QR = Q> {
           this.loader.clear(leafLoaderKey);
         }
 
-        const leafResult = await this.loader.load(leafLoaderKey);
-        if (leafResult != null) {
-          this.eventBus?.emit('loaded', {
-            key: leafLoaderKey.cache,
-            value: leafResult,
-          });
-        }
+        const leafValue = await this.loader.load(leafLoaderKey);
 
-        return leafResult;
+        return { leafKey: leafLoaderKey.cache, leafValue };
       })
     );
 
-    return mergeObjects(leafResults[0], ...leafResults.slice(1)) as QueryResultDeep<QR>;
+    const leafValues = splitResults.map((r) => r.leafValue);
+    const mergedValue = mergeObjects(
+      leafValues[0],
+      ...leafValues.slice(1)
+    ) as QueryResultDeep<QR> | null;
+
+    for (const { leafKey } of splitResults) {
+      this.eventBus?.emit('loaded', {
+        key: leafKey,
+        value: mergedValue,
+      });
+    }
+
+    return mergedValue;
   }
 }

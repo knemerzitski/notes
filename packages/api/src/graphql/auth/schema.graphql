@@ -17,24 +17,33 @@ input SignInInput {
   auth: GoogleJWTAuthInput!
 }
 
-type SignInPayload {
+interface SignInResult {
   "Signed in user"
   signedInUser: SignedInUser!
-  "User info from auth provider"
-  authProviderUser: AuthProviderUser!
-  "Available SignedInUser.id's after sign in"
+  "SignedInUser.id's"
   availableUserIds: [String!]!
 }
 
-type SignInFailedError implements Error {
-  message: String!
+type JustSignedInResult implements SignInResult {
+  "Just signed in user"
+  signedInUser: SignedInUser!
+  "Available SignedInUser.id's after sign in"
+  availableUserIds: [String!]!
+  "User info from auth provider"
+  authProviderUser: AuthProviderUser!
 }
 
-union SignInResult = SignInPayload | SignInFailedError
+type AlreadySignedInResult implements SignInResult {
+  "Current already signed in user"
+  signedInUser: SignedInUser!
+  "Current available SignedInUser.id's"
+  availableUserIds: [String!]!
+}
+union SignInPayload = JustSignedInResult | AlreadySignedInResult
 
 extend type Mutation {
   "Sign in using an auth provider"
-  signIn(input: SignInInput!): SignInResult!
+  signIn(input: SignInInput!): SignInPayload!
 }
 
 ################################ Mutation signOut ################################

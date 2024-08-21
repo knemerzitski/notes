@@ -110,7 +110,7 @@ export class QueryableNoteLoader {
         return;
       }
 
-      const resultCategoryMeta = value.notes?.category?.[categoryName];
+      const resultCategoryMeta = value?.notes?.category?.[categoryName];
       if (!resultCategoryMeta) {
         return;
       }

@@ -1,9 +1,8 @@
 import { ObjectId } from 'mongodb';
 import { verifyCredentialToken } from '../../../../services/auth/google/oauth2';
 import { GraphQLResolversContext } from '../../../context';
-import { SignedInUserMapper } from '../../../user/schema.mappers';
 import { preExecuteObjectField } from '../../../utils/pre-execute';
-import type { MutationResolvers } from './../../../types.generated';
+import type { MutationResolvers, ResolversTypes } from './../../../types.generated';
 import { SessionDuration } from '../../../../services/session/duration';
 import { wrapRetryOnErrorAsync } from '~utils/wrap-retry-on-error';
 import {
@@ -27,9 +26,19 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
 ) => {
   const { mongoDB, cookies, response } = ctx;
   if (isAuthenticated(ctx.auth)) {
+    const currentUserId = ctx.auth.session.userId;
     return {
-      __typename: 'SignInFailedError',
-      message: 'Already signed in.',
+      __typename: 'AlreadySignedInResult',
+      signedInUser: {
+        query: (query) =>
+          mongoDB.loaders.user.load({
+            id: {
+              userId: currentUserId,
+            },
+            query,
+          }),
+      },
+      availableUserIds: Object.keys(cookies.sessions),
     };
   }
 
@@ -49,15 +58,22 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
       loader: mongoDB.loaders.user,
     }),
     // Pre fetch required user fields while checking if user exists
-    preExecuteObjectField<GraphQLResolversContext, { signedInUser: SignedInUserMapper }>(
+    preExecuteObjectField<
+      GraphQLResolversContext,
+      Partial<ResolversTypes['SignInPayload']>
+    >(
       {
+        __typename: 'JustSignedInResult',
         signedInUser: {
           query: (query) =>
             mongoDB.loaders.user.load({
               id: {
                 googleUserId,
               },
-              query,
+              query: {
+                _id: 1,
+                ...query,
+              },
             }),
         },
       },
@@ -103,7 +119,7 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
   };
 
   return {
-    __typename: 'SignInPayload',
+    __typename: 'JustSignedInResult',
     signedInUser: {
       query: (query) =>
         mongoDB.loaders.user.load({

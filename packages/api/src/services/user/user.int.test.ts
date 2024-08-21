@@ -1,5 +1,11 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { beforeEach, describe, expect, it } from 'vitest';
-import { updateDisplayName, primeDisplayName } from './user';
+import {
+  updateDisplayName,
+  primeDisplayName,
+  findUserByGoogleUserId,
+  insertNewUserWithGoogleUser,
+} from './user';
 import { UserSchema } from '../../mongodb/schema/user/user';
 import { fakeUserPopulateQueue } from '../../__test__/helpers/mongodb/populate/user';
 import {
@@ -88,5 +94,48 @@ describe('primeDisplayName', () => {
     });
 
     expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(0);
+  });
+});
+
+describe('findUserByGoogleUserId', () => {
+  it('finds user by google id and only returns id', async () => {
+    const loader = new QueryableUserLoader({
+      context: {
+        collections: mongoCollections,
+      },
+    });
+
+    const dbUser = await findUserByGoogleUserId({
+      googleUserId: user.thirdParty!.google!.id!,
+      loader,
+    });
+
+    expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(1);
+
+    expect(dbUser).toStrictEqual({
+      _id: user._id,
+      thirdParty: {
+        google: {
+          id: user.thirdParty?.google?.id,
+        },
+      },
+    });
+  });
+});
+
+describe('insertNewUserWithGoogleUser', () => {
+  it('inserts new user with displayName', async () => {
+    const newUser = await insertNewUserWithGoogleUser({
+      id: '1234',
+      displayName: 'aaa',
+      collection: mongoCollections.users,
+    });
+    expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(1);
+
+    const dbUser = await mongoCollections.users.findOne({
+      _id: newUser._id,
+    });
+
+    expect(dbUser).toStrictEqual(newUser);
   });
 });

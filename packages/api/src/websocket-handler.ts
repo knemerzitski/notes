@@ -7,7 +7,7 @@ import {
 } from '~lambda-graphql/websocket-handler';
 import { createLogger } from '~utils/logger';
 
-import { handleConnectGraphQLAuth } from './connect-handler';
+import { handleConnectGraphQLAuth } from './websocket-handlers/connect-handler';
 import {
   BaseGraphQLContext,
   BaseSubscriptionResolversContext,

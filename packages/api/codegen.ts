@@ -37,8 +37,8 @@ const config: CodegenConfig = {
         customResolverFn:
           '(parent: TParent, args: TArgs, context: TContext, info: GraphQLResolveInfo) => MaybeValue<TResult>',
         resolverTypeWrapperSignature: 'MaybeValue<T>',
-        wrapFieldDefinitions: true,
-        wrapEntireFieldDefinitions: true,
+        wrapFieldDefinitions: false,
+        wrapEntireFieldDefinitions: false,
         fieldWrapperValue: 'MaybeValue<T>',
       },
     }),

@@ -22,6 +22,7 @@ import { UserSchema } from '../../../mongodb/schema/user/user';
 import { MongoPartialDeep } from '../../../mongodb/types';
 import { mongoCollections, mongoClient } from '../mongodb/mongodb';
 import { Cookies } from '../../../services/http/cookies';
+import { objectIdToStr } from '../../../graphql/base/resolvers/ObjectID';
 
 export interface CreateGraphQLResolversContextOptions {
   user?: Partial<UserSchema>;
@@ -53,7 +54,7 @@ export function createGraphQLResolversContext(
       ...mongoDBContext,
     },
     cookies: new Cookies({
-      sessions: {},
+      sessions: user?._id ? { [objectIdToStr(user._id)]: 'unknown' } : {},
     }),
     response: {
       multiValueHeaders: {},

@@ -9,10 +9,13 @@ import {
   SelectionNode,
   FieldNode,
   Kind,
+  isUnionType,
+  GraphQLObjectType,
 } from 'graphql';
 import { ExecutionContext } from 'graphql/execution/execute';
 import { addPath } from 'graphql/jsutils/Path';
 import { executeField, ExecutionOptions } from './graphql/execute';
+import { isObjectLike } from '~utils/type-guards/is-object-like';
 
 export type PreFetchArrayUpdateSizeFn = (size: number | undefined) => void;
 
@@ -101,13 +104,15 @@ export async function preExecuteObjectField<TContext, TValue>(
   context: TContext,
   info: GraphQLResolveInfo
 ): Promise<TValue | undefined> {
-  const returnType = unwrapNonNullType(info.returnType);
-  if (!isObjectType(returnType)) {
+  const returnType = findObjectTypeForSource(source, info.returnType);
+  if (!returnType) {
     return;
   }
 
   const selectionSet = info.fieldNodes[0]?.selectionSet;
   if (!selectionSet) return;
+
+  const fieldNodes = findFieldNodesForType(returnType, selectionSet.selections);
 
   const exeContext = reuseExecutionContext({
     info: info,
@@ -116,8 +121,6 @@ export async function preExecuteObjectField<TContext, TValue>(
       bubbleNull: true,
     },
   });
-
-  const fieldNodes = selectionSet.selections.filter(isFieldNode);
 
   await Promise.allSettled(
     fieldNodes.map((fieldNode) =>
@@ -173,4 +176,63 @@ function unwrapListType(type: GraphQLOutputType) {
 
 function isFieldNode(selection: SelectionNode): selection is FieldNode {
   return selection.kind === Kind.FIELD;
+}
+
+function getTypeName(value: unknown): string | undefined {
+  if (!isObjectLike(value)) return;
+  if (typeof value.__typename !== 'string') return;
+  return value.__typename;
+}
+
+function findObjectTypeForSource(
+  source: unknown,
+  type: GraphQLOutputType
+): GraphQLObjectType | undefined {
+  if (isObjectType(type)) {
+    return type;
+  }
+
+  if (isNonNullType(type)) {
+    return findObjectTypeForSource(source, type.ofType);
+  }
+
+  if (isUnionType(type)) {
+    const __typename = getTypeName(source);
+    if (!__typename) return;
+    const unionTypes = type.getTypes();
+    const matchingType = unionTypes.find((type) => type.name === __typename);
+    if (!matchingType) return;
+
+    return findObjectTypeForSource(source, matchingType);
+  }
+
+  return;
+}
+
+function findFieldNodesForType(
+  type: GraphQLObjectType,
+  selectionSet: readonly SelectionNode[]
+): readonly FieldNode[] {
+  const fieldNodes: FieldNode[] = [];
+
+  const relevantTypes = new Set([type.name, ...type.getInterfaces().map((t) => t.name)]);
+
+  for (const selection of selectionSet) {
+    switch (selection.kind) {
+      case Kind.FIELD:
+        fieldNodes.push(selection);
+        continue;
+      case Kind.INLINE_FRAGMENT:
+        if (selection.typeCondition?.kind !== Kind.NAMED_TYPE) continue;
+        if (!relevantTypes.has(selection.typeCondition.name.value)) continue;
+
+        fieldNodes.push(
+          ...findFieldNodesForType(type, selection.selectionSet.selections)
+        );
+
+        continue;
+    }
+  }
+
+  return fieldNodes;
 }

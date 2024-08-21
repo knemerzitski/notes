@@ -12,7 +12,6 @@ export interface InsertNewSessionParams {
   collection: Collection<SessionSchema>;
 }
 
-// TODO test
 export async function insertNewSession({
   userId,
   collection,
@@ -36,7 +35,6 @@ interface FindByCookieIdParams {
   loader: QueryableSessionLoader;
 }
 
-// TODO test
 export async function findByCookieId({
   cookieId,
   loader,
@@ -65,13 +63,12 @@ export async function findByCookieId({
   };
 }
 
-interface UpdateExpireAtParams {
+export interface UpdateExpireAtParams {
   sessionId: ObjectId;
   expireAt: Date;
   collection: Collection<SessionSchema>;
 }
 
-// TODO test
 /**
  * Updates session expireAt database
  */
@@ -98,7 +95,6 @@ interface TryRefreshExpireAtParams<T extends Pick<Session, '_id' | 'expireAt'>> 
   sessionDuration: SessionDuration;
 }
 
-// TODO test
 export async function tryRefreshExpireAt<T extends Pick<Session, '_id' | 'expireAt'>>({
   session,
   collection,
@@ -127,7 +123,6 @@ interface PrimeSessionParams {
   loader: QueryableSessionLoader;
 }
 
-// TODO test
 /**
  * Primes all known session values
  */

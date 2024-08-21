@@ -1,10 +1,10 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { faker } from '@faker-js/faker';
 import {
   afterEach,
   assert,
   beforeAll,
   beforeEach,
-  describe,
   expect,
   it,
   MockInstance,
@@ -30,6 +30,8 @@ import * as serviceSession from '../../../../services/session/session';
 import * as serviceUser from '../../../../services/user/user';
 import { SessionDuration } from '../../../../services/session/duration';
 import { objectIdToStr } from '../../../base/resolvers/ObjectID';
+import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
+import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 
 vi.mock('../../../../services/auth/google/oauth2');
 
@@ -40,23 +42,21 @@ interface Variables {
 const MUTATION = `#graphql
   mutation SignIn($input: SignInInput!) {
     signIn(input: $input) {
-      ... on SignInPayload {
+      ... on SignInResult {
         signedInUser {
           id
           publicProfile {
             displayName
           }
         }
+        availableUserIds
+      }
+      ... on JustSignedInResult {
         authProviderUser {
           id
           email
         }
-        availableUserIds
       }
-      ... on SignInFailedError {
-        message
-      }
-
     }
   }
 `;
@@ -70,9 +70,23 @@ let spyInsertNewUserWithGoogleUser: MockInstance<
   Promise<UserSchema>
 >;
 
+let user: UserSchema;
+
 beforeAll(() => {
   spyInsertNewSession = vi.spyOn(serviceSession, 'insertNewSession');
   spyInsertNewUserWithGoogleUser = vi.spyOn(serviceUser, 'insertNewUserWithGoogleUser');
+});
+
+beforeEach(async () => {
+  faker.seed(7657);
+  await resetDatabase();
+
+  user = fakeUserPopulateQueue();
+
+  await populateExecuteAll();
+
+  verifyCredentialToken.mockClear();
+  mongoCollectionStats.mockClear();
 });
 
 afterEach(() => {
@@ -103,88 +117,151 @@ async function executeOperation(
   );
 }
 
-describe('new user', () => {
-  beforeEach(async () => {
-    faker.seed(897);
-    await resetDatabase();
-    verifyCredentialToken.mockClear();
+it('creates new user and session on first sign in with google', async () => {
+  const authProviderUser = {
+    id: '12345',
+    email: 'last.first@email.com',
+    name: 'first',
+  };
+  verifyCredentialToken.mockResolvedValueOnce(authProviderUser);
 
-    mongoCollectionStats.mockClear();
-  });
+  const multiValueHeaders: Record<string, (string | number | boolean)[]> = {};
 
-  it('creates new user and session on first sign in with google', async () => {
-    const authProviderUser = {
-      id: '12345',
-      email: 'last.first@email.com',
-      name: 'first',
-    };
-    verifyCredentialToken.mockResolvedValueOnce(authProviderUser);
-
-    const multiValueHeaders: Record<string, (string | number | boolean)[]> = {};
-
-    const response = await executeOperation(
-      {
-        auth: {
-          token: 'irrelevant',
+  const response = await executeOperation(
+    {
+      auth: {
+        token: 'irrelevant',
+      },
+    },
+    {
+      override: {
+        response: {
+          multiValueHeaders,
         },
       },
-      {
-        override: {
-          response: {
-            multiValueHeaders,
-          },
-        },
-      }
-    );
+    }
+  );
 
-    const data = expectGraphQLResponseData(response);
+  const data = expectGraphQLResponseData(response);
 
-    expect(data).toEqual({
-      signIn: {
-        signedInUser: {
-          id: expect.any(String),
-          publicProfile: { displayName: authProviderUser.name },
-        },
-        authProviderUser: { id: authProviderUser.id, email: authProviderUser.email },
-        availableUserIds: [expect.any(String)],
-      },
-    });
+  expect(verifyCredentialToken).toHaveBeenCalledWith('irrelevant');
 
-    expect(verifyCredentialToken).toHaveBeenCalledWith('irrelevant');
-
-    // New ser was inserted to db
-    expect(spyInsertNewUserWithGoogleUser).toHaveBeenCalledWith({
-      id: authProviderUser.id,
-      displayName: authProviderUser.name,
-      collection: mongoCollections.users,
-    });
-
-    const newUserResult = spyInsertNewUserWithGoogleUser.mock.results[0];
-    assert(newUserResult?.type == 'return');
-    const newUser = await newUserResult.value;
-
-    // New session was inserted to db
-    expect(spyInsertNewSession).toHaveBeenCalledWith({
-      userId: newUser._id,
-      duration: expect.any(SessionDuration),
-      collection: mongoCollections.sessions,
-    });
-
-    const newSessionResult = spyInsertNewSession.mock.results[0];
-    assert(newSessionResult?.type == 'return');
-    const newSession = await newSessionResult.value;
-
-    expect(multiValueHeaders).toEqual({
-      'Set-Cookie': [
-        `Sessions=${objectIdToStr(newSession.userId)}:${
-          newSession.cookieId
-        }; HttpOnly; SameSite=Strict; Path=/`,
-      ],
-    });
-
-    expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(3);
+  // New user was inserted to db
+  expect(spyInsertNewUserWithGoogleUser).toHaveBeenCalledWith({
+    id: authProviderUser.id,
+    displayName: authProviderUser.name,
+    collection: mongoCollections.users,
   });
+
+  const newUserResult = spyInsertNewUserWithGoogleUser.mock.results[0];
+  assert(newUserResult?.type == 'return');
+  const newUser = await newUserResult.value;
+
+  expect(data).toEqual({
+    signIn: {
+      signedInUser: {
+        id: objectIdToStr(newUser._id),
+        publicProfile: { displayName: authProviderUser.name },
+      },
+      authProviderUser: { id: authProviderUser.id, email: authProviderUser.email },
+      availableUserIds: [objectIdToStr(newUser._id)],
+    },
+  });
+
+  // New session was inserted to db
+  expect(spyInsertNewSession).toHaveBeenCalledWith({
+    userId: newUser._id,
+    duration: expect.any(SessionDuration),
+    collection: mongoCollections.sessions,
+  });
+
+  const newSessionResult = spyInsertNewSession.mock.results[0];
+  assert(newSessionResult?.type == 'return');
+  const newSession = await newSessionResult.value;
+
+  expect(multiValueHeaders).toEqual({
+    'Set-Cookie': [
+      `Sessions=${objectIdToStr(newSession.userId)}:${
+        newSession.cookieId
+      }; HttpOnly; SameSite=Strict; Path=/`,
+    ],
+  });
+
+  expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(3);
 });
 
-// TODO existing user sign in
-// TODO sign in with already signed in
+it('signs in with existing user by creating new session', async () => {
+  const authProviderUser = {
+    id: user.thirdParty!.google!.id!,
+    email: 'last.first@email.com',
+    name: 'first',
+  };
+  verifyCredentialToken.mockResolvedValueOnce(authProviderUser);
+
+  const response = await executeOperation({
+    auth: {
+      token: 'irrelevant',
+    },
+  });
+
+  const data = expectGraphQLResponseData(response);
+  expect(data).toEqual({
+    signIn: {
+      signedInUser: {
+        id: objectIdToStr(user._id),
+        publicProfile: { displayName: user.profile.displayName },
+      },
+      authProviderUser: { id: authProviderUser.id, email: authProviderUser.email },
+      availableUserIds: [objectIdToStr(user._id)],
+    },
+  });
+
+  // New user creation not called
+  expect(spyInsertNewUserWithGoogleUser).not.toHaveBeenCalled();
+
+  // New session was inserted to db
+  expect(spyInsertNewSession).toHaveBeenCalledWith({
+    userId: user._id,
+    duration: expect.any(SessionDuration),
+    collection: mongoCollections.sessions,
+  });
+
+  expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(2);
+});
+
+it('returns already signed in result with existing auth', async () => {
+  const authProviderUser = {
+    id: user.thirdParty!.google!.id!,
+    email: 'last.first@email.com',
+    name: 'first',
+  };
+  verifyCredentialToken.mockResolvedValueOnce(authProviderUser);
+
+  const response = await executeOperation(
+    {
+      auth: {
+        token: 'irrelevant',
+      },
+    },
+    {
+      user,
+    }
+  );
+
+  const data = expectGraphQLResponseData(response);
+  expect(data).toEqual({
+    signIn: {
+      signedInUser: {
+        id: objectIdToStr(user._id),
+        publicProfile: { displayName: user.profile.displayName },
+      },
+      availableUserIds: [objectIdToStr(user._id)],
+    },
+  });
+
+  expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(1);
+
+  expect(spyInsertNewUserWithGoogleUser).not.toHaveBeenCalled();
+
+  expect(spyInsertNewSession).not.toHaveBeenCalled();
+});

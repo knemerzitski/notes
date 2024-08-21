@@ -38,23 +38,23 @@ export interface MongoDBLoaders {
 export type LoaderEvents = {
   loadedSession: {
     key: QueryableSessionLoaderKey;
-    value: QueryResultDeep<QueryableSession>;
+    value: QueryResultDeep<QueryableSession> | null;
   };
   loadedUser: {
     key: QueryableUserLoaderKey;
-    value: QueryResultDeep<QueryableUser>;
+    value: QueryResultDeep<QueryableUser> | null;
   };
   loadedNote: {
     key: QueryableNoteLoaderKey;
-    value: QueryResultDeep<QueryableNote>;
+    value: QueryResultDeep<QueryableNote> | null;
   };
   loadedNotesSearch: {
     key: QueryableNotesSearchLoaderKey;
-    value: QueryResultDeep<QueryableSearchNote[]>;
+    value: QueryResultDeep<QueryableSearchNote[]> | null;
   };
   loadedNoteByShareLink: {
     key: QueryableNoteByShareLinkLoadKey;
-    value: QueryResultDeep<QueryableNote>;
+    value: QueryResultDeep<QueryableNote> | null;
   };
 };
 

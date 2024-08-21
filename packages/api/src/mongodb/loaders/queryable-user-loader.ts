@@ -103,7 +103,7 @@ export class QueryableUserLoader {
     options?: PrimeOptions
   ) {
     if ('userId' in key.id) {
-      if (value.thirdParty?.google?.id != null) {
+      if (value?.thirdParty?.google?.id != null) {
         const googleUserId = value.thirdParty.google.id;
         this.loader.prime(
           {
@@ -116,7 +116,7 @@ export class QueryableUserLoader {
           options
         );
       }
-    } else if (value._id != null) {
+    } else if (value?._id != null) {
       const userId = value._id;
       this.loader.prime(
         {
