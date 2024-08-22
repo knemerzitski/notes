@@ -31,7 +31,9 @@ export class Cookies {
     });
   }
 
-  static parseFromHeaders(headers: Readonly<Record<string, string | undefined>>) {
+  static parseFromHeaders(
+    headers: Readonly<Record<string, string | undefined>> | undefined
+  ) {
     return this.parse(parseCookiesFromHeaders(headers));
   }
 

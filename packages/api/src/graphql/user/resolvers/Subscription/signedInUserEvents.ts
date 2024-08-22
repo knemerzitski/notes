@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { SubscriptionTopicPrefix } from '../../../subscriptions';
 import type { ResolversTypes, SubscriptionResolvers } from './../../../types.generated';
-import { GraphQLResolversContext } from '../../../context';
+import { GraphQLResolversContext } from '../../../types';
 import { isAuthenticated } from '../../../../services/auth/auth';
 import { objectIdToStr } from '../../../../services/utils/objectid';
 

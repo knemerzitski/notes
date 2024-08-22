@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb';
 import { verifyCredentialToken } from '../../../../services/auth/google/oauth2';
-import { GraphQLResolversContext } from '../../../context';
+import { GraphQLResolversContext } from '../../../types';
 import { preExecuteObjectField } from '../../../utils/pre-execute';
 import type { MutationResolvers, ResolversTypes } from './../../../types.generated';
 import { SessionDuration } from '../../../../services/session/duration';

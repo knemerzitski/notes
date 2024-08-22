@@ -1,28 +1,48 @@
+/**
+ * Parameters/config for the API.
+ * Only this file uses environment variables.
+ */
 import { BaseContext } from '@apollo/server';
 import { ApiGatewayManagementApiClient } from '@aws-sdk/client-apigatewaymanagementapi';
 import { STSClient, AssumeRoleCommand } from '@aws-sdk/client-sts';
 import { ServerApiVersion } from 'mongodb';
 
-import { CustomHeaderName } from '~api-app-shared/custom-headers';
-import { CreateApolloHttpHandlerParams } from '~lambda-graphql/apollo-http-handler';
 import { ApiGatewayContextParams } from '~lambda-graphql/context/apigateway';
 import { DynamoDBContextParams } from '~lambda-graphql/context/dynamodb';
 import {
   ApolloGraphQLContextParams,
   GraphQLContextParams,
 } from '~lambda-graphql/context/graphql';
-import { ConnectionTtlContext } from '~lambda-graphql/dynamodb/models/connection';
 import { Logger } from '~utils/logger';
 
-import { ApiOptions } from './graphql/api-options';
-import { BaseGraphQLContext, DynamoDBBaseGraphQLContext } from './graphql/context';
+import { ApiOptions } from './graphql/types';
 import { applyDirectives } from './graphql/directives';
 import { ApolloServerLogger } from './graphql/plugins/apollo-server-logger';
 import { resolvers } from './graphql/resolvers.generated';
 import { typeDefs } from './graphql/typeDefs.generated';
 import { createCollectionInstances } from './mongodb/collections';
 import { createMongoDBContext } from './mongodb/lambda-context';
-import { SessionDuration } from './services/session/duration';
+
+export function createDefaultApiOptions(): ApiOptions {
+  return {
+    sessions: {
+      user: {
+        duration: 14 * 24 * 60 * 60, // 14 days,
+        refreshThreshold: 0.5, // 7 days
+      },
+      webSocket: {
+        duration: 3 * 60 * 60, // 3 hours
+        refreshThreshold: 1 / 3, // 1 hour
+      },
+    },
+    note: {
+      trashDuration: 1000 * 60 * 60 * 24 * 30,
+    },
+    collabText: {
+      maxRecordsCount: 500,
+    },
+  };
+}
 
 export function createDefaultGraphQLParams<TContext extends BaseContext>(
   logger: Logger
@@ -31,7 +51,7 @@ export function createDefaultGraphQLParams<TContext extends BaseContext>(
 
   return {
     logger,
-    typeDefs, // TODO separate typeDefs
+    typeDefs,
     resolvers: allExceptSubscriptionResolvers,
     transform: applyDirectives,
     apolloServerOptions: {
@@ -43,12 +63,11 @@ export function createDefaultGraphQLParams<TContext extends BaseContext>(
 export function createDefaultSubscriptionGraphQLParams<TContext>(
   logger: Logger
 ): GraphQLContextParams<TContext> {
-  // TODO only pass subscription?
   const { Query, Mutation, ...allExceptQueryMutationResolvers } = resolvers;
 
   return {
     logger,
-    typeDefs, // TODO separate typeDefs
+    typeDefs,
     resolvers: allExceptQueryMutationResolvers,
     transform: applyDirectives,
   };
@@ -132,22 +151,6 @@ export function createDefaultDynamoDBParams(logger: Logger): DynamoDBContextPara
   };
 }
 
-export function createDefaultDynamoDBConnectionTtlContext(
-  options?: ApiOptions
-): ConnectionTtlContext {
-  const sessionDuration = new SessionDuration(
-    options?.sessions?.webSocket ?? {
-      duration: 3 * 60 * 60, // 3 hours
-      refreshThreshold: 1 / 3, // 1 hour
-    }
-  );
-
-  return {
-    defaultTtl: sessionDuration.new.bind(sessionDuration),
-    tryRefreshTtl: sessionDuration.tryRefresh.bind(sessionDuration),
-  };
-}
-
 export function createDefaultApiGatewayParams(logger: Logger): ApiGatewayContextParams {
   return {
     logger,
@@ -157,36 +160,6 @@ export function createDefaultApiGatewayParams(logger: Logger): ApiGatewayContext
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         region: process.env.API_GATEWAY_MANAGEMENT_REGION!,
       });
-    },
-  };
-}
-
-export const createDefaultIsCurrentConnection: CreateApolloHttpHandlerParams<
-  BaseGraphQLContext,
-  DynamoDBBaseGraphQLContext
->['createIsCurrentConnection'] = (_ctx, event) => {
-  const wsConnectionId = event.headers[CustomHeaderName.WS_CONNECTION_ID];
-  if (!wsConnectionId) return;
-  return (connectionId: string) => wsConnectionId === connectionId;
-};
-
-export function createDefaultApiOptions(): ApiOptions {
-  return {
-    sessions: {
-      user: {
-        duration: 14 * 24 * 60 * 60, // 14 days,
-        refreshThreshold: 0.5, // 7 days
-      },
-      webSocket: {
-        duration: 3 * 60 * 60, // 3 hours
-        refreshThreshold: 1 / 3, // 1 hour
-      },
-    },
-    note: {
-      trashDuration: 1000 * 60 * 60 * 24 * 30,
-    },
-    collabText: {
-      maxRecordsCount: 500,
     },
   };
 }

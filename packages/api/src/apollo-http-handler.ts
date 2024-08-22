@@ -6,75 +6,89 @@ import {
   CreateApolloHttpHandlerParams,
 } from '~lambda-graphql/apollo-http-handler';
 import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
-import { createLogger } from '~utils/logger';
+import { createLogger, Logger } from '~utils/logger';
 
-import { GraphQLResolversContext, DynamoDBBaseGraphQLContext } from './graphql/context';
+import { GraphQLResolversContext, DynamoDBBaseGraphQLContext } from './graphql/types';
 import {
   createDefaultApiGatewayParams,
   createDefaultApiOptions,
   createDefaultDynamoDBParams,
   createDefaultGraphQLParams,
-  createDefaultIsCurrentConnection,
   createDefaultMongoDBContext,
-} from './handler-params';
-import { createMongoDBLoaders } from './mongodb/loaders';
-import { Cookies } from './services/http/cookies';
-import { parseAuthenticationContextFromHeaders } from './services/auth/auth';
+} from './parameters';
+import {
+  createApiGraphQLContext,
+  createBaseGraphQLContext,
+} from './services/graphql/context';
+import { createIsCurrentConnection } from './services/handlers/handlers';
 
-export function createDefaultParams(): CreateApolloHttpHandlerParams<
+export interface CreateApolloHttpHandlerDefaultParamsOptions {
+  override?: {
+    logger?: Logger;
+    createMongoDBContext?: typeof createDefaultMongoDBContext;
+    createGraphQLParams?: typeof createDefaultGraphQLParams;
+    createDynamoDBParams?: typeof createDefaultDynamoDBParams;
+    createApiGatewayParams?: typeof createDefaultApiGatewayParams;
+  };
+}
+
+export function createApolloHttpHandlerParams(
+  options?: CreateApolloHttpHandlerDefaultParamsOptions
+): CreateApolloHttpHandlerParams<
   Omit<GraphQLResolversContext, keyof ApolloHttpGraphQLContext>,
   DynamoDBBaseGraphQLContext
 > {
-  const logger = createLogger('apollo-http-handler');
+  const name = 'apollo-http-handler';
+  const logger = options?.override?.logger ?? createLogger(name);
 
   let mongoDB: Awaited<ReturnType<typeof createDefaultMongoDBContext>> | undefined;
 
   return {
     logger,
-    graphQL: createDefaultGraphQLParams(logger),
+    createIsCurrentConnection,
+    graphQL:
+      options?.override?.createGraphQLParams?.(logger) ??
+      createDefaultGraphQLParams(logger),
+    apiGateway:
+      options?.override?.createApiGatewayParams?.(logger) ??
+      createDefaultApiGatewayParams(logger),
+    dynamoDB:
+      options?.override?.createDynamoDBParams?.(logger) ??
+      createDefaultDynamoDBParams(logger),
+
     async createGraphQLContext(_ctx, event) {
       if (!mongoDB) {
-        mongoDB = await createDefaultMongoDBContext(logger);
+        mongoDB = await (options?.override?.createMongoDBContext?.(logger) ??
+          createDefaultMongoDBContext(logger));
       }
 
-      const mongoDBLoaders = createMongoDBLoaders(mongoDB);
+      const apiContext = createApiGraphQLContext({
+        mongoDB,
+        options: createDefaultApiOptions(),
+      });
 
-      const cookies = Cookies.parseFromHeaders(event.headers);
-
-      const apiOptions = createDefaultApiOptions();
-
-      const auth = await parseAuthenticationContextFromHeaders({
+      const baseContext = await createBaseGraphQLContext({
         headers: event.headers,
-        cookies,
         sessionParams: {
-          loader: mongoDBLoaders.session,
-          sessionDurationConfig: apiOptions.sessions?.user,
+          loader: apiContext.mongoDB.loaders.session,
+          sessionDurationConfig: apiContext.options?.sessions?.user,
         },
       });
 
       return {
-        cookies,
-        auth,
-        mongoDB: {
-          ...mongoDB,
-          loaders: mongoDBLoaders,
-        },
-        options: apiOptions,
+        ...baseContext,
+        ...apiContext,
         subscribe: () => {
-          throw new Error('Subscribe should never be called in apollo-http-handler');
+          throw new Error(`Subscribe should never be called in ${name}`);
         },
         denySubscription: () => {
-          throw new Error(
-            'denySubscription should never be called in apollo-http-handler'
-          );
+          throw new Error(`denySubscription should never be called in ${name}`);
         },
       };
     },
-    createIsCurrentConnection: createDefaultIsCurrentConnection,
-    dynamoDB: createDefaultDynamoDBParams(logger),
-    apiGateway: createDefaultApiGatewayParams(logger),
   };
 }
 
-export const handler: APIGatewayProxyHandler =
-  createApolloHttpHandler(createDefaultParams());
+export const handler: APIGatewayProxyHandler = createApolloHttpHandler(
+  createApolloHttpHandlerParams()
+);

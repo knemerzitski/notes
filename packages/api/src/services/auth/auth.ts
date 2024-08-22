@@ -111,7 +111,7 @@ export async function parseAuthenticationContextFromHeaders({
   }
 }
 
-interface FindRefreshSessionByCookieIdParams {
+export interface FindRefreshSessionByCookieIdParams {
   loader: QueryableSessionLoader;
   /**
    * Set null to not refresh session

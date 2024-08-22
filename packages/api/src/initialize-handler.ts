@@ -3,7 +3,7 @@ import { Handler } from 'aws-lambda';
 import 'source-map-support/register';
 import { createLogger } from '~utils/logger';
 
-import { createDefaultMongoDBContext } from './handler-params';
+import { createDefaultMongoDBContext } from './parameters';
 import { createAllIndexes } from './mongodb/collections';
 
 const TIER = process.env.MONGODB_TIER;

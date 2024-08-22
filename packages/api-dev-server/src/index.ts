@@ -1,29 +1,17 @@
 import './load-env';
 
 import WebSocket from 'ws';
-import {
-  BaseGraphQLContext,
-  BaseSubscriptionResolversContext,
-  DynamoDBBaseGraphQLContext,
-  GraphQLResolversContext,
-} from '~api/graphql/context';
 import { createApolloHttpHandler } from '~lambda-graphql/apollo-http-handler';
 import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
-import { createWebSocketConnectHandler } from '~lambda-graphql/connect-handler';
-import { createWebSocketDisconnectHandler } from '~lambda-graphql/disconnect-handler';
-import { createWebSocketMessageHandler } from '~lambda-graphql/message-handler';
 import { createWebSocketHandler } from '~lambda-graphql/websocket-handler';
 import { createLogger } from '~utils/logger';
-import { isEnvVarStringTrue } from '~utils/string/is-env-var-string-true';
-
-import { createMockMongoDBContext } from './handler-params';
-import { mockCreateDefaultParams as mockCreateDefaultApolloHttpHandlerParams } from './handlers/mock-apollo-http-handler';
-import { mockCreateDefaultParams as mockCreateDefaultWebSocketConnectParams } from './handlers/mock-connect-handler';
-import { mockCreateDefaultParams as mockCreateDefaultDisconnectHandlerParams } from './handlers/mock-disconnect-handler';
-import { mockCreateDefaultParams as mockCreateDefaultMessageHandlerParams } from './handlers/mock-message-handler';
-import { mockCreateDefaultParams as mockCreateDefaultWebSocketHandlerParams } from './handlers/mock-websocket-handler';
+import { mockApolloHttpHandlerDefaultParamsOptions } from './handlers/mock-apollo-http-handler';
 import { createLambdaServer } from './lambda-server';
 import { createLambdaGraphQLDynamoDBTables } from './utils/lambda-graphql-dynamodb';
+import { apolloHttpHandlerParams as apolloHttpHandlerCreateDefaultParams } from '~api/apollo-http-handler';
+import { createWebSocketHandlerDefaultParams } from '~api/websocket-handler';
+import { mockWebSocketHandlerDefaultParamsOptions } from './handlers/mock-websocket-handler';
+import { DynamoDBBaseGraphQLContext, GraphQLResolversContext } from '~api/graphql/types';
 
 const logger = createLogger('mock:lambda-graphql-server');
 
@@ -39,57 +27,26 @@ void (async () => {
       logger,
     });
 
-    let mongoDB: Awaited<ReturnType<typeof createMockMongoDBContext>> | undefined;
-
     const sockets: Record<string, WebSocket> = {};
 
     const server = createLambdaServer({
       sockets,
-      webSocketHandler: isEnvVarStringTrue(process.env.ROUTED_WEBSOCKET_HANDLER)
-        ? {
-            connect: createWebSocketConnectHandler<
-              BaseGraphQLContext,
-              DynamoDBBaseGraphQLContext
-            >(
-              mockCreateDefaultWebSocketConnectParams({
-                mongodb: mongoDB,
-              })
-            ),
-            message: createWebSocketMessageHandler<
-              BaseSubscriptionResolversContext,
-              BaseGraphQLContext,
-              DynamoDBBaseGraphQLContext
-            >(
-              mockCreateDefaultMessageHandlerParams({
-                mongodb: mongoDB,
-                sockets,
-              })
-            ),
-            disconnect: createWebSocketDisconnectHandler<
-              BaseSubscriptionResolversContext,
-              BaseGraphQLContext,
-              DynamoDBBaseGraphQLContext
-            >(
-              mockCreateDefaultDisconnectHandlerParams({
-                mongodb: mongoDB,
-                sockets,
-              })
-            ),
-          }
-        : createWebSocketHandler(
-            mockCreateDefaultWebSocketHandlerParams({
-              mongodb: mongoDB,
-              sockets,
-            })
-          ),
+      webSocketHandler: createWebSocketHandler(
+        createWebSocketHandlerDefaultParams(
+          mockWebSocketHandlerDefaultParamsOptions({
+            sockets,
+          })
+        )
+      ),
       apolloHttpHandler: createApolloHttpHandler<
         Omit<GraphQLResolversContext, keyof ApolloHttpGraphQLContext>,
         DynamoDBBaseGraphQLContext
       >(
-        mockCreateDefaultApolloHttpHandlerParams({
-          mongodb: mongoDB,
-          sockets,
-        })
+        apolloHttpHandlerCreateDefaultParams(
+          mockApolloHttpHandlerDefaultParamsOptions({
+            sockets,
+          })
+        )
       ),
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       httpUrl: new URL(process.env.VITE_GRAPHQL_HTTP_URL!),

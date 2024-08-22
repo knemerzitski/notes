@@ -2,24 +2,7 @@ import 'source-map-support/register';
 import { APIGatewayProxyWebsocketHandlerV2 } from 'aws-lambda';
 import WebSocket from 'ws';
 
-import { handleConnectGraphQLAuth } from '~api/connect-handler';
-import {
-  BaseGraphQLContext,
-  BaseSubscriptionResolversContext,
-  DynamoDBBaseGraphQLContext,
-  createErrorBaseSubscriptionResolversContext,
-  handleConnectionInitAuthenticate,
-  parseDynamoDBBaseGraphQLContext,
-} from '~api/graphql/context';
-import {
-  createDefaultApiOptions,
-  createDefaultDynamoDBConnectionTtlContext,
-} from '~api/handler-params';
-import { createMongoDBLoaders } from '~api/mongodb/loaders';
-import {
-  WebSocketHandlerParams,
-  createWebSocketHandler,
-} from '~lambda-graphql/websocket-handler';
+import { createWebSocketHandler } from '~lambda-graphql/websocket-handler';
 import { createLogger } from '~utils/logger';
 
 import {
@@ -27,57 +10,33 @@ import {
   createMockDynamoDBParams,
   createMockMongoDBContext,
   createMockSubscriptionGraphQLParams,
-} from '../handler-params';
+} from '../parameters';
+import {
+  CreateWebSocketHandlerDefaultParamsOptions,
+  createWebSocketHandlerDefaultParams,
+} from '~api/websocket-handler';
+import {
+  BaseGraphQLContext,
+  BaseSubscriptionResolversContext,
+  DynamoDBBaseGraphQLContext,
+} from '~api/graphql/types';
 
-interface MockWebSocketMessageHandlerOptions {
-  mongodb?: Awaited<ReturnType<typeof createMockMongoDBContext>> | undefined;
+export interface MockWebSocketHandlerDefaultParamsOptions {
   sockets?: Record<string, WebSocket>;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function mockCreateDefaultParams(
-  options?: MockWebSocketMessageHandlerOptions
-): WebSocketHandlerParams<
-  BaseSubscriptionResolversContext,
-  BaseGraphQLContext,
-  DynamoDBBaseGraphQLContext
-> {
-  let mongoDB = options?.mongodb;
-  const sockets = options?.sockets;
-
-  const apiOptions = createDefaultApiOptions();
-
+export function mockWebSocketHandlerDefaultParamsOptions(
+  options?: MockWebSocketHandlerDefaultParamsOptions
+): CreateWebSocketHandlerDefaultParamsOptions {
   return {
-    logger: createLogger('mock:ws-handler'),
-    dynamoDB: createMockDynamoDBParams(),
-    apiGateway: createMockApiGatewayParams(sockets),
-    graphQL: createMockSubscriptionGraphQLParams(),
-    async onConnect({ event }) {
-      if (!mongoDB) {
-        mongoDB = await createMockMongoDBContext();
-      }
-
-      return handleConnectGraphQLAuth(event, mongoDB.collections);
+    override: {
+      logger: createLogger('mock:ws-handler'),
+      gqlContextLogger: createLogger('mock:ws-gql-context'),
+      createMongoDBContext: createMockMongoDBContext,
+      createDefaultSubscriptionGraphQLParams: createMockSubscriptionGraphQLParams,
+      createDynamoDBParams: createMockDynamoDBParams,
+      createApiGatewayParams: () => createMockApiGatewayParams(options?.sockets),
     },
-    async createGraphQLContext() {
-      if (!mongoDB) {
-        mongoDB = await createMockMongoDBContext();
-      }
-
-      return {
-        ...createErrorBaseSubscriptionResolversContext(),
-        logger: createLogger('mock:ws-gql-context'),
-        mongoDB: {
-          ...mongoDB,
-          loaders: createMongoDBLoaders(mongoDB),
-        },
-        options: apiOptions,
-      };
-    },
-    connection: createDefaultDynamoDBConnectionTtlContext(),
-    //pingpong: createMockPingPongParams(sockets),
-    parseDynamoDBGraphQLContext: parseDynamoDBBaseGraphQLContext,
-    onConnectionInit: handleConnectionInitAuthenticate,
   };
 }
 
@@ -85,4 +44,4 @@ export const handler: APIGatewayProxyWebsocketHandlerV2 = createWebSocketHandler
   BaseSubscriptionResolversContext,
   BaseGraphQLContext,
   DynamoDBBaseGraphQLContext
->(mockCreateDefaultParams());
+>(createWebSocketHandlerDefaultParams(mockWebSocketHandlerDefaultParamsOptions()));

@@ -11,7 +11,7 @@ import {
 
 import { PartialBy } from '~utils/types';
 
-import { ApiGraphQLContext, GraphQLResolversContext } from '../../../graphql/context';
+import { ApiGraphQLContext, GraphQLResolversContext } from '../../../graphql/types';
 import { resolvers } from '../../../graphql/resolvers.generated';
 import { typeDefs } from '../../../graphql/typeDefs.generated';
 
