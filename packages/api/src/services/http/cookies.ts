@@ -3,12 +3,12 @@ import { objectIdToStr } from '../utils/objectid';
 
 const SECURE_SET_COOKIE = process.env.NODE_ENV === 'production' ? '; Secure' : '';
 
-interface CookiesParams {
+interface CookiesOptions {
   sessions: Record<string, string>;
 }
 
 export interface SerializedCookies {
-  sessions: Cookies['sessions'];
+  sessions?: Cookies['sessions'];
 }
 
 /**
@@ -49,8 +49,8 @@ export class Cookies {
    */
   private sessions: Record<string, string>;
 
-  constructor(config: CookiesParams) {
-    this.sessions = config.sessions;
+  constructor(params?: CookiesOptions) {
+    this.sessions = { ...params?.sessions };
   }
 
   private getSessionKey(userId: ObjectId | string) {

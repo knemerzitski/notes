@@ -186,7 +186,7 @@ export interface DeleteSessionParams {
 /**
  * Deletes session from database and Cookies instance
  */
-export async function deleteSession({
+export async function deleteSessionWithCookies({
   userId,
   cookieId,
   cookies,

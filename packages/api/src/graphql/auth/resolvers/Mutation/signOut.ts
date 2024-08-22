@@ -2,13 +2,10 @@ import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes'
 import type { MutationResolvers } from './../../../types.generated';
 import {
   deleteAllSessionsInCookies,
-  deleteSession,
+  deleteSessionWithCookies,
   isAuthenticated,
 } from '../../../../services/auth/auth';
 import { objectIdToStr } from '../../../../services/utils/objectid';
-
-
-// TODO test
 
 export const signOut: NonNullable<MutationResolvers['signOut']> = async (
   _parent,
@@ -33,7 +30,7 @@ export const signOut: NonNullable<MutationResolvers['signOut']> = async (
       signedOutUserIds = [objectIdToStr(input.userId)];
 
       // Sign out specified user
-      await deleteSession({
+      await deleteSessionWithCookies({
         userId: input.userId,
         cookieId: cookies.getSessionCookeId(input.userId),
         cookies,
@@ -43,7 +40,7 @@ export const signOut: NonNullable<MutationResolvers['signOut']> = async (
       signedOutUserIds = [objectIdToStr(ctx.auth.session.userId)];
 
       // Sign out authenticated user
-      await deleteSession({
+      await deleteSessionWithCookies({
         userId: ctx.auth.session.userId,
         cookieId: ctx.auth.session.cookieId,
         cookies,
