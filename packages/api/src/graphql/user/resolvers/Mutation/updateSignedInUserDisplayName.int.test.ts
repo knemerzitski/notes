@@ -25,12 +25,12 @@ import {
   expectGraphQLResponseData,
   expectGraphQLResponseError,
 } from '../../../../__test__/helpers/graphql/response';
-import { objectIdToStr } from '../../../base/resolvers/ObjectID';
 import * as serviceUser from '../../../../services/user/user';
 import { UpdateResult } from 'mongodb';
 import { getTopicForUser } from '../Subscription/signedInUserEvents';
 import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+import { objectIdToStr } from '../../../../services/utils/objectid';
 
 interface Variables {
   input: UpdateSignedInUserDisplayNameInput;

@@ -29,9 +29,9 @@ import { verifyCredentialToken } from '../../../../services/auth/google/__mocks_
 import * as serviceSession from '../../../../services/session/session';
 import * as serviceUser from '../../../../services/user/user';
 import { SessionDuration } from '../../../../services/session/duration';
-import { objectIdToStr } from '../../../base/resolvers/ObjectID';
 import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
+import { objectIdToStr } from '../../../../services/utils/objectid';
 
 vi.mock('../../../../services/auth/google/oauth2');
 

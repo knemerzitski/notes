@@ -1,9 +1,9 @@
 import { ObjectId } from 'mongodb';
 import { SubscriptionTopicPrefix } from '../../../subscriptions';
 import type { ResolversTypes, SubscriptionResolvers } from './../../../types.generated';
-import { objectIdToStr } from '../../../base/resolvers/ObjectID';
 import { GraphQLResolversContext } from '../../../context';
 import { isAuthenticated } from '../../../../services/auth/auth';
+import { objectIdToStr } from '../../../../services/utils/objectid';
 
 export function getTopicForUser(userId: ObjectId) {
   return `${SubscriptionTopicPrefix.SIGNED_IN_USER_EVENTS}:${objectIdToStr(userId)}`;

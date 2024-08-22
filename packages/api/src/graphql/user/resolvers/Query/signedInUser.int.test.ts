@@ -18,8 +18,8 @@ import {
   expectGraphQLResponseData,
   expectGraphQLResponseError,
 } from '../../../../__test__/helpers/graphql/response';
-import { objectIdToStr } from '../../../base/resolvers/ObjectID';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+import { objectIdToStr } from '../../../../services/utils/objectid';
 
 const QUERY = `#graphql
 query  {
