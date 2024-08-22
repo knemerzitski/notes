@@ -14,8 +14,8 @@ import {
   createMockApiGatewayParams,
 } from '../parameters';
 import {
-  apolloHttpHandlerParams,
   CreateApolloHttpHandlerDefaultParamsOptions,
+  createApolloHttpHandlerParams,
 } from '~api/apollo-http-handler';
 import { DynamoDBBaseGraphQLContext, GraphQLResolversContext } from '~api/graphql/types';
 
@@ -40,4 +40,4 @@ export function mockApolloHttpHandlerDefaultParamsOptions(
 export const handler = createApolloHttpHandler<
   Omit<GraphQLResolversContext, keyof ApolloHttpGraphQLContext>,
   DynamoDBBaseGraphQLContext
->(apolloHttpHandlerParams(mockApolloHttpHandlerDefaultParamsOptions()));
+>(createApolloHttpHandlerParams(mockApolloHttpHandlerDefaultParamsOptions()));

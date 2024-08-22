@@ -8,10 +8,10 @@ import { createLogger } from '~utils/logger';
 import { mockApolloHttpHandlerDefaultParamsOptions } from './handlers/mock-apollo-http-handler';
 import { createLambdaServer } from './lambda-server';
 import { createLambdaGraphQLDynamoDBTables } from './utils/lambda-graphql-dynamodb';
-import { apolloHttpHandlerParams as apolloHttpHandlerCreateDefaultParams } from '~api/apollo-http-handler';
 import { createWebSocketHandlerDefaultParams } from '~api/websocket-handler';
 import { mockWebSocketHandlerDefaultParamsOptions } from './handlers/mock-websocket-handler';
 import { DynamoDBBaseGraphQLContext, GraphQLResolversContext } from '~api/graphql/types';
+import { createApolloHttpHandlerParams } from '~api/apollo-http-handler';
 
 const logger = createLogger('mock:lambda-graphql-server');
 
@@ -42,7 +42,7 @@ void (async () => {
         Omit<GraphQLResolversContext, keyof ApolloHttpGraphQLContext>,
         DynamoDBBaseGraphQLContext
       >(
-        apolloHttpHandlerCreateDefaultParams(
+        createApolloHttpHandlerParams(
           mockApolloHttpHandlerDefaultParamsOptions({
             sockets,
           })
