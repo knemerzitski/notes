@@ -1,9 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { ObjectId } from 'mongodb';
 import { expect, it, vi } from 'vitest';
 
-import { QueryLoaderParams, QueryLoader } from './query-loader';
+import { QueryLoaderParams, QueryLoader, QueryLoaderEvents } from './query-loader';
+import { mitt } from '~utils/mitt-unsub';
+import isEqual from 'lodash.isequal';
 
 interface Product {
   name: string;
@@ -293,5 +296,77 @@ it('caches ObjectId as string', async () => {
 
   expect(spyCacheGet.mock.calls).toStrictEqual([
     [`{"id":{"id":"${objId.toString()}"},"query":{"value":1}}`],
+  ]);
+});
+
+it('calls event loaded with merged value', async () => {
+  const spyBatchLoadFn = vi.fn().mockImplementation((keys) => {
+    return keys.map((key: { query: any }) => {
+      if (isEqual(key.query, { id: 1 })) {
+        return {
+          id: 12,
+        };
+      } else if (isEqual(key.query, { description: 1 })) {
+        return {
+          description: 'the desc',
+        };
+      }
+      throw new Error('oops wrong query: ' + JSON.stringify(key));
+    });
+  });
+
+  const eventBus = mitt<QueryLoaderEvents<any, any>>();
+  const spyEmit = vi.spyOn(eventBus, 'emit');
+
+  const loader = new QueryLoader({
+    batchLoadFn: spyBatchLoadFn,
+    eventBus,
+  });
+
+  await loader.load({
+    id: {
+      shopId: 'first',
+    },
+    query: {
+      id: 1,
+      description: 1,
+    },
+  });
+
+  expect(spyEmit.mock.calls).toStrictEqual([
+    [
+      'loaded',
+      {
+        key: {
+          id: {
+            shopId: 'first',
+          },
+          query: {
+            id: 1,
+          },
+        },
+        value: {
+          id: 12,
+          description: 'the desc',
+        },
+      },
+    ],
+    [
+      'loaded',
+      {
+        key: {
+          id: {
+            shopId: 'first',
+          },
+          query: {
+            description: 1,
+          },
+        },
+        value: {
+          id: 12,
+          description: 'the desc',
+        },
+      },
+    ],
   ]);
 });
