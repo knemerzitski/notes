@@ -11,6 +11,18 @@ interface CreateGraphQLWebSocketOptions {
   headers?: Record<string, string>;
 }
 
+interface WebSocketInterface {
+  ws: WebSocket;
+  subscribe: <TVariables>(
+    sub: {
+      operationName?: string;
+      query?: string;
+      variables?: TVariables;
+    },
+    onNext: (data: any) => void
+  ) => void;
+}
+
 export async function createGraphQLWebSocket(options?: CreateGraphQLWebSocketOptions) {
   const ws = new WebSocket(WS_URL, {
     protocol: GRAPHQL_TRANSPORT_WS_PROTOCOL,
@@ -23,7 +35,7 @@ export async function createGraphQLWebSocket(options?: CreateGraphQLWebSocketOpt
 
   const listeners: Record<string, (data: any) => void> = {};
 
-  return new Promise((res) => {
+  return new Promise<WebSocketInterface>((res) => {
     ws.on('message', (rawData) => {
       const data = JSON.parse(String(rawData));
       if (data.type === 'connected') {
