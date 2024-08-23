@@ -18,7 +18,7 @@ export default defineConfig({
         singleThread: true,
       },
     },
-    watch: false,
+    watch: true,
   },
 });
 

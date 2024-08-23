@@ -128,12 +128,18 @@ export function webSocketConnectHandler<
         ttl: context.connection.defaultTtl(),
       });
 
-      return Promise.resolve({
+      const response = {
         statusCode: 200,
         headers: {
           'Sec-Websocket-Protocol': GRAPHQL_TRANSPORT_WS_PROTOCOL,
         },
+      };
+
+      context.logger.info('event:CONNECT', {
+        response,
       });
+
+      return Promise.resolve(response);
     } catch (err) {
       context.logger.error('event:CONNECT', err as Error, { event });
       throw err;

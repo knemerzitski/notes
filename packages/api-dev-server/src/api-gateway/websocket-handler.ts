@@ -141,9 +141,17 @@ export function apiGatewayProxyWebSocketHandler({
         multiValueHeaders: msg.headersDistinct,
       };
 
-      await connectHandler(event, createLambdaContext(), () => {
+      const res = await connectHandler(event, createLambdaContext(), () => {
         return;
       });
+
+      // Send custom message for e2e testing. This signals that connection_init message can be sent.
+      ws.send(
+        JSON.stringify({
+          type: 'connected',
+          payload: res,
+        })
+      );
     } catch (err) {
       logger.error('handler:CONNECT', err as Error);
       sockets[id].close();

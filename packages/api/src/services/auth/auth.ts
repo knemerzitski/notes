@@ -119,6 +119,7 @@ export interface FindRefreshSessionByCookieIdParams {
   sessionDurationConfig?: SessionDurationConfig | null;
 }
 
+// TODO test
 /**
  * Get session info from database using provided cookieId.
  * Can refresh session if it's about to expire.
@@ -133,7 +134,7 @@ export async function findRefreshSessionByCookieId(
   });
 
   // Session not found in db or expireAt time has passed
-  if (!session || Date.now() <= session.expireAt.getTime()) {
+  if (!session || session.expireAt.getTime() <= Date.now()) {
     throw new AuthenticatedFailedError(AuthenticationFailedReason.SESSION_EXPIRED);
   }
 
@@ -200,6 +201,7 @@ export async function deleteSessionWithCookies({
   cookies.deleteSessionCookieId(userId);
 }
 
+// TODO test
 export function serializeAuthenticationContext(
   auth: AuthenticationContext
 ): SerializedAuthenticationContext {
@@ -210,7 +212,7 @@ export function serializeAuthenticationContext(
     session: {
       ...auth.session,
       _id: auth.session._id.toString('base64'),
-      userId: auth.session._id.toString('base64'),
+      userId: auth.session.userId.toString('base64'),
       expireAt: auth.session.expireAt.getTime(),
     },
   };

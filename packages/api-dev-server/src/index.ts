@@ -12,6 +12,9 @@ import { createWebSocketHandlerDefaultParams } from '~api/websocket-handler';
 import { mockWebSocketHandlerDefaultParamsOptions } from './handlers/mock-websocket-handler';
 import { DynamoDBBaseGraphQLContext, GraphQLResolversContext } from '~api/graphql/types';
 import { createApolloHttpHandlerParams } from '~api/apollo-http-handler';
+import { createInitializeHandler } from '~api/initialize-handler';
+import { createLambdaContext } from './utils/lambda-context';
+import { mockCreateInitializeHandlerOptions } from './handlers/mock-initialize-handler';
 
 const logger = createLogger('mock:lambda-graphql-server');
 
@@ -19,6 +22,15 @@ logger.info('index:NODE_ENV', { NODE_ENV: process.env.NODE_ENV });
 
 void (async () => {
   try {
+    // Run initialize handler once at the start
+    const initalizeHandler = createInitializeHandler(
+      mockCreateInitializeHandlerOptions()
+    );
+
+    await initalizeHandler(undefined, createLambdaContext(), () => {
+      return;
+    });
+
     if (!process.env.MOCK_DYNAMODB_ENDPOINT) {
       throw new Error('Environment variable "MOCK_DYNAMODB_ENDPOINT" must be defined');
     }
