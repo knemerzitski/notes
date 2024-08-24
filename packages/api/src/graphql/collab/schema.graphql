@@ -32,7 +32,7 @@ type CollabTextRecord implements Node {
   "Self-descriptive"
   id: ID!
   "User who created this record"
-  creatorUserId: String!
+  creatorUser: PublicUser!
   "Changes of the record"
   change: RevisionChangeset!
   "Selection before changeset is composed"
@@ -73,18 +73,6 @@ type CollabText {
 input CreateCollabTextInput {
   "Self-descriptive"
   initialText: String! @length(max: 100000)
-}
-
-type CollabTextPatch {
-  "This patch applies to CollabText.id"
-  id: String!
-  """
-  New record added to text. Can be existing record it has
-  previously been inserted. Check isExistingRecord field.
-  """
-  newRecord: CollabTextRecord
-  "True if record has already been inserted."
-  isExistingRecord: Boolean
 }
 
 type CollabTextRecordConnection implements Connection {

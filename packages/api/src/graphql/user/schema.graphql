@@ -6,23 +6,19 @@ User info that current user itself can access
 type SignedInUser {
   "Self-descriptive"
   id: ObjectID!
-  "Self-descriptive"
-  publicProfile: PublicUserProfile!
+  "User data that might be accessed by other users"
+  public: PublicUser!
 }
 
-"""
-User info that might be accessed by another user
-A subset of SignedInUser
-"""
 type PublicUser {
-  "Same as SignedInUser.id"
+  "Same value as SignedInUser.id"
   id: ObjectID!
-  "Same as SignedInUser.publicProfile"
+  "Self-descriptive"
   profile: PublicUserProfile!
 }
 
 type PublicUserProfile {
-  "User-friendly way to distinguish this user. Can be anything set by the user."
+  "Text to be displayed in UI to distinguish this user. Can be anything set by the user."
   displayName: String!
 }
 
@@ -35,7 +31,7 @@ extend type Query {
 
 ################################ Subscription signedInUserEvents ################################
 
-union SignedInUserMutations = UpdateSignedInUserDisplayNamePayload
+union SignedInUserMutations
 
 type SignedInUserEventsPayload {
   "A list of mutations to be applied on currently signed in user"
@@ -66,3 +62,5 @@ extend type Mutation {
     input: UpdateSignedInUserDisplayNameInput!
   ): UpdateSignedInUserDisplayNamePayload! @auth
 }
+
+extend union SignedInUserMutations = UpdateSignedInUserDisplayNamePayload

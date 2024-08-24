@@ -3,33 +3,27 @@
 type Note {
   "Self-descriptive"
   id: ObjectID!
+  "Time when note was last updated"
+  updatedAt: DateTime!
 }
 
-type NotePatch {
-  "This patch applies to Note.id"
-  id: ObjectID!
-  "True if Note was deleted"
-  deleted: Boolean
-}
+################################ Mutation createNote ################################
 
-################################ Create Note ################################
-
-input CreateNoteInput {
-  "Ignore this field. It's a placeholder until the type is extended"
-  _: Boolean
-}
+input CreateNoteInput
 
 type CreateNotePayload {
   note: Note!
 }
+
 
 extend type Mutation {
   "Create a new note"
   createNote(input: CreateNoteInput!): CreateNotePayload @auth
 }
 
-################################ Delete Note ################################
+extend union SignedInUserMutations = CreateNotePayload
 
+################################ Mutation deleteNote ################################
 
 input DeleteNoteInput {
   "Note to be deleted by Note.id"
@@ -39,35 +33,11 @@ input DeleteNoteInput {
 type DeleteNotePayload {
   "Affected Note.id"
   noteId: String!
-  "If true then note was deleted."
-  deleted: Boolean!
 }
 
 extend type Mutation {
-  "Delete note permanently. Cannot be undone."
+  "Deletes note for oldest user (cannot be undone). Newer users can only unlink the note."
   deleteNote(input: DeleteNoteInput!): DeleteNotePayload! @auth
 }
 
-################################ Note Events Create/Update/Delete Subscriptions ################################
-
-type NoteCreatedEvent {
-  "Newly created link to a note"
-  note: Note!
-}
-
-type NotePatchEvent {
-  "Changes made to the note by patch"
-  note: NotePatch
-}
-
-union NoteEvent = NoteCreatedEvent | NotePatchEvent
-
-type NoteEventsPayload {
-  "A list of Note events"
-  events: [NoteEvent!]
-}
-
-extend type Subscription {
-  "Subscribe to all note events related to current user"
-  noteEvents: NoteEventsPayload! @auth
-}
+extend union SignedInUserMutations = DeleteNotePayload

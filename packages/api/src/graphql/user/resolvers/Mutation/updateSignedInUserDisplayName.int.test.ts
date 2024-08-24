@@ -42,8 +42,10 @@ const MUTATION = `#graphql
       displayName
       signedInUser {
         id
-        publicProfile {
-          displayName
+        public {
+          profile {
+            displayName
+          }
         }
       }
     }
@@ -59,8 +61,10 @@ const SUBSCRIPTION = `#graphql
           displayName
           signedInUser {
             id
-            publicProfile {
-              displayName
+            public {
+              profile {
+                displayName
+              }
             }
           }
         }
@@ -141,8 +145,10 @@ it('changes user displayName', async () => {
       displayName: 'new name',
       signedInUser: {
         id: objectIdToStr(user._id),
-        publicProfile: {
-          displayName: 'new name',
+        public: {
+          profile: {
+            displayName: 'new name',
+          },
         },
       },
     },
@@ -195,8 +201,10 @@ it('publishes displayName payload', async () => {
                 displayName: 'new name 2',
                 signedInUser: {
                   id: objectIdToStr(user._id),
-                  publicProfile: {
-                    displayName: 'new name 2',
+                  public: {
+                    profile: {
+                      displayName: 'new name 2',
+                    },
                   },
                 },
               },

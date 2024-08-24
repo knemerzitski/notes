@@ -25,8 +25,10 @@ const QUERY = `#graphql
 query  {
   signedInUser {
     id
-    publicProfile {
-      displayName
+    public {
+      profile {
+        displayName
+      }
     }
   }
 }
@@ -71,8 +73,10 @@ it('returns authenticated user', async () => {
   expect(data).toEqual({
     signedInUser: {
       id: objectIdToStr(user._id),
-      publicProfile: {
-        displayName: user.profile.displayName,
+      public: {
+        profile: {
+          displayName: user.profile.displayName,
+        },
       },
     },
   });

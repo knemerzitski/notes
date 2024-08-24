@@ -1,12 +1,7 @@
-################################ NoteShare ################################
+################################ NoteShareAccess ################################
 extend type Note {
   "Note is shared through this access"
   shareAccess: NoteShareAccess
-}
-
-extend type NotePatch {
-  "Changes made to note sharing"
-  shareAccess: NoteShareAccessPatch
 }
 
 type NoteShareAccess {
@@ -16,18 +11,11 @@ type NoteShareAccess {
   readOnly: Boolean!
 }
 
-type NoteShareAccessPatch {
-  "This patch applies to NoteShareAccess.id"
-  id: ObjectID!
-  "True if NoteShareAccess has been deleted"
-  deleted: Boolean
-}
-
-################################ Create NoteShareAccess ################################
+################################ Mutation shareNote ################################
 
 input ShareNoteInput {
   "Note to be shared, Note.id"
-  noteId: String!
+  noteId: ObjectID!
   "Make access to note read-only"
   readOnly: Boolean!
 }
@@ -44,11 +32,13 @@ extend type Mutation {
   shareNote(input: ShareNoteInput!): ShareNotePayload! @auth
 }
 
-################################ Delete NoteShareAccess ################################
+extend union SignedInUserMutations = ShareNotePayload
 
-input DeleteNoteShareInput {
+################################ Mutation deleteShareNote ################################
+
+input DeleteShareNoteInput {
   "Note to to stop sharing, Note.id"
-  noteId: String!
+  noteId: ObjectID!
 }
 
 type DeleteNoteSharePayload {
@@ -59,15 +49,18 @@ type DeleteNoteSharePayload {
 }
 
 extend type Mutation {
-  "Delete shared note. Existing access is users is kept."
-  deleteNoteShare(input: DeleteNoteShareInput!): DeleteNoteSharePayload! @auth
+  "Stop new access to note. Existing users can still access the note."
+  deleteShareNote(input: DeleteShareNoteInput!): DeleteNoteSharePayload! @auth
 }
 
-################################ Link Note by ShareNoteAccess ################################
+extend union SignedInUserMutations = DeleteNoteSharePayload
+
+
+################################ Mutation createNoteLinkByShareAccess ################################
 
 input CreateNoteLinkByShareAccessInput {
   "Create NoteUserLink by NoteShareAccess.id"
-  shareAccessId: String!
+  shareAccessId: ObjectID!
 }
 
 type CreateNoteLinkByShareAccessPayload {
@@ -81,3 +74,5 @@ extend type Mutation {
     input: CreateNoteLinkByShareAccessInput!
   ): CreateNoteLinkByShareAccessPayload! @auth
 }
+
+extend union SignedInUserMutations = CreateNoteLinkByShareAccessPayload

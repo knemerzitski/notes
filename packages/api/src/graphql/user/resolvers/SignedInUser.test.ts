@@ -1,32 +1,47 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, it, expect, vi } from 'vitest';
-import { SignedInUser_id, SignedInUser_publicProfile } from './SignedInUser';
+import { SignedInUser } from './SignedInUser';
 import { ObjectId } from 'mongodb';
-import { mock } from 'vitest-mock-extended';
+import { mockResolver } from '../../../__test__/helpers/graphql/mock-resolver';
+import { maybeCallFn } from '~utils/maybe-call-fn';
 
-describe('SignedInUser_id', () => {
-  it('returns undefined without query', async () => {
-    const result = await SignedInUser_id(() => ({}));
-    expect(result).toBeUndefined();
+describe('id', () => {
+  const resolveId = mockResolver(SignedInUser.id!);
+
+  it('returns undefined with empty object', async () => {
+    const id = await resolveId({
+      query: () => {
+        return {};
+      },
+    });
+    expect(id).toBeUndefined();
   });
 
   it('returns provided _id', async () => {
     const _id = new ObjectId();
-    const result = await SignedInUser_id(() => ({ _id }));
-    expect(result).toStrictEqual(_id);
+    const id = await resolveId({
+      query: () => {
+        return {
+          _id,
+        };
+      },
+    });
+    expect(id).toStrictEqual(_id);
   });
 });
 
-describe('SignedInUser_publicProfile', () => {
-  it('returns query for profile', async () => {
-    const profileMock = mock();
+describe('public', () => {
+  const resolvePublic = mockResolver(SignedInUser.public!);
 
+  it('returns parent query', async () => {
     const queryFn = vi.fn();
-    queryFn.mockReturnValueOnce({ profile: profileMock });
+    const _public = await maybeCallFn(
+      await resolvePublic({
+        query: queryFn,
+      })
+    );
 
-    const argMock = mock();
-    const profileResult = await SignedInUser_publicProfile(queryFn).query(argMock);
-
-    expect(queryFn).toHaveBeenCalledWith({ profile: argMock });
-    expect(profileResult).toStrictEqual(profileMock);
+    expect(_public?.query).toStrictEqual(queryFn);
   });
 });

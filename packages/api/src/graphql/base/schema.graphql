@@ -7,7 +7,14 @@ scalar DateTime
 scalar PositiveInt
 "int >= 0"
 scalar NonNegativeInt
+"Coloar in range #000000 - #ffffff"
 scalar HexColorCode
+
+"Relay pagination cursor"
+scalar Cursor
+
+"MongoDB ObjectId"
+scalar ObjectID
 
 "Requires user to be authenticated and with access to specific role"
 directive @auth(requires: Role = USER) on OBJECT | FIELD_DEFINITION
@@ -17,15 +24,6 @@ directive @length(max: NonNegativeInt) on FIELD_DEFINITION | INPUT_FIELD_DEFINIT
 
 enum Role {
   USER
-}
-
-scalar Cursor
-
-scalar ObjectID
-
-
-interface Error {
-  message: String!
 }
 
 type PageInfo {

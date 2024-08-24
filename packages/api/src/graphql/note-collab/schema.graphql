@@ -1,13 +1,13 @@
-################################ Note collaboration ################################
+################################ Note collab ################################
+
+enum NoteTextField {
+  TITLE
+  CONTENT
+}
 
 extend type Note {
   "Note collaboration"
   collab: NoteCollab!
-}
-
-extend type NotePatch {
-  "Note collaboration changes"
-  collab: NoteCollabPatch
 }
 
 extend input CreateNoteInput {
@@ -15,20 +15,10 @@ extend input CreateNoteInput {
   collab: CreateNoteCollabInput
 }
 
-enum NoteTextField {
-  TITLE
-  CONTENT
-}
-
 "Note collaborative info"
 type NoteCollab {
   "All available text fields. If arg: name is defined then only that field is returned."
   textFields(name: NoteTextField): [NoteTextFieldEntry!]!
-}
-
-type NoteCollabPatch {
-  "Changed note text fields"
-  textFields: [NoteTextFieldEntryPatch!]
 }
 
 type CreateNoteCollabInput {
@@ -50,12 +40,7 @@ type NoteTextFieldEntry {
   value: CollabText!
 }
 
-type NoteTextFieldEntryPatch {
-  "Type of text field"
-  key: NoteTextField!
-  "Actual value of text field"
-  value: CollabTextPatch!
-}
+################################ updateNoteTextFieldInsertRecord ################################
 
 input UpdateNoteTextFieldInsertRecordInput {
   "Note to be updated by Note.id"
@@ -71,10 +56,12 @@ type UpdateNoteTextFieldInsertRecordPayload {
   New record added to text field. Could be a duplicate record. Check isDuplicateRecord field.
   """
   newRecord: CollabTextRecord!
-  "True if record has already been inserted before."
+  "True if record has already been inserted before. Is always false in subscription."
   isDuplicateRecord: Boolean!
   "Text field that was updated"
   textField: NoteTextField!
+  "CollabText after new record is inserted"
+  collabText: CollabText!
   "Note after new record is inserted"
   note: Note!
 }
@@ -85,3 +72,5 @@ extend type Mutation {
     input: UpdateNoteTextFieldInsertRecordInput!
   ): UpdateNoteTextFieldInsertRecordPayload! @auth
 }
+
+extend union SignedInUserMutations = UpdateNoteTextFieldInsertRecordPayload

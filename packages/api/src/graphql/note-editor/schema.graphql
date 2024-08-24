@@ -1,0 +1,75 @@
+################################ Subscription noteEditorEvents ################################
+
+union NoteEditorMutations
+
+type NoteEditorEventsPayload {
+  "Self-descriptive"
+  mutations: [NoteEditorMutations!]!
+}
+
+extend type Subscription {
+  "Subscribe to all events that are related to editing of specific note"
+  noteEditorEvents(noteId: ObjectID!): NoteEditorEventsPayload! @auth
+}
+
+################################ PublicUserNoteLink ################################
+
+extend type PublicUserNoteLink {
+  "User is currently subscribed to noteEditorEvents"
+  editing: Boolean!
+}
+
+################################ Events User Subscribed/Unsubscribed ################################
+
+type NoteEditorUserSubscribedEvent {
+  "This user started subscribing to note editor events."
+  user: PublicUser!
+  "Affected Note"
+  note: Note!
+}
+
+type NoteEditorUserUnsubscribedEvent {
+  "This user stopped subscribing to note editor events."
+  user: PublicUser!
+  "Affected Note"
+  note: Note!
+}
+
+extend union SignedInUserMutations = NoteEditorUserSubscribedEvent | NoteEditorUserUnsubscribedEvent
+
+################################ Mutation updateNoteEditorSelectionRange ################################
+
+input UpdateNoteEditorSelectionRangeInput {
+  "Note.id "
+  noteId: ObjectID!
+  "Text field where selection range is applied"
+  textField: NoteTextField!
+  "Selection applies to this revision of text"
+  revision: NonNegativeInt!
+  "New selection range"
+  selectionRange: CollabTextSelectionRangeInput!
+}
+
+type UpdateNoteEditorSelectionRangePayload {
+  "latestSelection applies to text at this revision"
+  revision: NonNegativeInt!
+  "Latest updated selection range"
+  latestSelection: CollabTextSelectionRange!
+  "Affected CollabText"
+  collabText: CollabText!
+  "Affected text field"
+  textField: NoteTextField!
+  "Affected Note"
+  note: Note!
+  "Selection applies to this user"
+  user: PublicUser!
+}
+
+extend type Mutation {
+  updateNoteEditorSelectionRange(
+    input: UpdateNoteEditorSelectionRangeInput
+  ): UpdateNoteEditorSelectionRangePayload! @auth
+}
+
+extend union NoteEditorMutations = UpdateNoteEditorSelectionRangePayload
+

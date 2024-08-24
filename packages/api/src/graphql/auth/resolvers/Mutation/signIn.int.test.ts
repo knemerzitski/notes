@@ -45,8 +45,10 @@ const MUTATION = `#graphql
       ... on SignInResult {
         signedInUser {
           id
-          publicProfile {
-            displayName
+          public {
+            profile {
+              displayName
+            }
           }
         }
         availableUserIds
@@ -161,7 +163,9 @@ it('creates new user and session on first sign in with google', async () => {
     signIn: {
       signedInUser: {
         id: objectIdToStr(newUser._id),
-        publicProfile: { displayName: authProviderUser.name },
+        public: {
+          profile: { displayName: authProviderUser.name },
+        },
       },
       authProviderUser: { id: authProviderUser.id, email: authProviderUser.email },
       availableUserIds: [objectIdToStr(newUser._id)],
@@ -209,7 +213,9 @@ it('signs in with existing user by creating new session', async () => {
     signIn: {
       signedInUser: {
         id: objectIdToStr(user._id),
-        publicProfile: { displayName: user.profile.displayName },
+        public: {
+          profile: { displayName: user.profile.displayName },
+        },
       },
       authProviderUser: { id: authProviderUser.id, email: authProviderUser.email },
       availableUserIds: [objectIdToStr(user._id)],
@@ -253,7 +259,9 @@ it('returns already signed in result with existing auth', async () => {
     signIn: {
       signedInUser: {
         id: objectIdToStr(user._id),
-        publicProfile: { displayName: user.profile.displayName },
+        public: {
+          profile: { displayName: user.profile.displayName },
+        },
       },
       availableUserIds: [objectIdToStr(user._id)],
     },

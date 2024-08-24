@@ -1,34 +1,35 @@
 ################################ UserNoteLink ################################
 """
-Link between user and note. Since this type is queried in context of current
-user, only note information is given.
+Link (edge) between signed in user and note.
 """
 type UserNoteLink implements Node {
   "Self-descriptive"
   id: ID!
   "Note that the user can access"
   note: Note!
+  "UserNoteLink data that might be accessed by other users"
+  public: PublicUserNoteLink!
+}
+
+type PublicUserNoteLink {
+  "Self-descriptive"
+  id: ID!
+  "Public user who can access the note"
+  user: PublicUser!
   "Time when user gained access to the note"
   createdAt: DateTime!
-  "Access to note is read-only. Nothing can be modified except preferences."
+  "Access to note is read-only. User cannot modify note."
   readOnly: Boolean!
 }
 
-type UserNoteLinkPatch {
-  "This patch applies to UserNoteLink.id"
-  id: String!
-  "True if UserNoteLink was deleted"
-  deleted: Boolean
-  "Changed note read-only access"
-  readOnly: Boolean
+extend type Note {
+  "All users who can access the note."
+  users: [PublicUserNoteLink!]!
 }
 
-################################ Create UserNoteLink ################################
+################################ Mutation createNote ################################
 
-input CreateUserNoteLinkInput {
-  "Ignore this field. It's a placeholder until the type is extended"
-  _: Boolean
-}
+input CreateUserNoteLinkInput
 
 extend input CreateNoteInput {
   userNoteLink: CreateUserNoteLinkInput
@@ -39,20 +40,34 @@ extend type CreateNotePayload {
   userNoteLink: UserNoteLink!
 }
 
-################################ Delete UserNoteLink ################################
+################################ Mutation deleteNote ################################
+
+enum NoteDeletionType {
+  "Note is permanently deleted (note cannot be recovered)"
+  DELETE
+  "Note was unlinked. User cannot access it but note still exists for other users."
+  UNLINK
+}
+
+extend type DeleteNoteInput {
+  "Delete note for specific user instead of current user. Current must have higher scope/permissions."
+  userId: ObjectID
+}
 
 extend type DeleteNotePayload {
   "Deleted UserNoteLink.id"
   userNoteLinkId: String!
+  "Self-descriptive"
+  deletionType: NoteDeletionType!
 }
 
-################################ Query UserNoteLink ################################
+################################ Query userNoteLinkByNoteId,userNoteLinkConnection,userNoteLinkSearchConnection ################################
 
 type UserNoteLinkConnection implements Connection {
   "Notes directly without edges"
-  notes: [UserNoteLink!]!
+  userNoteLinks: [UserNoteLink!]!
   "Self descriptive"
-  edges: [NoteEdge!]!
+  edges: [UserNoteLinkEdge!]!
   "Self descriptive"
   pageInfo: PageInfo!
 }
@@ -65,7 +80,7 @@ type UserNoteLinkEdge implements Edge {
 }
 
 extend type Query {
-  "Self-descriptive"
+  "Find UserNoteLink by Note.id"
   userNoteLinkByNoteId(noteId: ObjectID!): UserNoteLink! @auth
   "Paginate UserNoteLinks by category. Default is NoteCategory.DEFAULT"
   userNoteLinkConnection(
@@ -85,28 +100,42 @@ extend type Query {
   ): UserNoteLinkConnection! @auth
 }
 
-################################ UserNoteLink Events Create/Update/Delete Subscriptions ################################
+################################ Mutation updateUserNoteLinkReadOnly ################################
 
-extend type NoteCreatedEvent {
-  "Newly created link to a note"
-  userNoteLink: UserNoteLink!
+input UpdateUserNoteLinkReadOnlyInput {
+  "Target Note.id"
+  noteId: ObjectID!
+  "Target User.id"
+  userId: ObjectID!
+  "New PublicUserNoteLink.readOnly value for PublicUser.id"
+  readOnly: Boolean!
 }
 
-extend type UserPatchEvent {
-  "Changes made to the UserNoteLink by patch"
-  userNoteLink: UserNoteLinkPatch
+type UpdateUserNoteLinkReadOnlyPayload {
+  "New PublicUserNoteLink.readOnly value"
+  readOnly: Boolean!
+  "Affected UserNoteLink"
+  publicUserNoteLink: PublicUserNoteLink!
+  "UserNoteLink.user"
+  user: PublicUser!
+  "Related Note"
+  note: Note!
 }
 
-################################ UserNoteLink Preferences ################################
+extend type Mutation {
+  "Change user note permissions"
+  updateUserNoteLinkReadOnly(
+    input: UpdateUserNoteLinkReadOnlyInput!
+  ): UpdateUserNoteLinkReadOnlyPayload!
+}
+
+extend union SignedInUserMutations = UpdateUserNoteLinkReadOnlyPayload
+
+################################ Mutation updateUserNoteLinkBackgroundColor ################################
 
 extend type UserNoteLink {
   "Note preferences for visual appearance"
   preferences: NotePreferences
-}
-
-extend type UserNoteLinkPatch {
-  "Changed preferences"
-  preferences: NotePreferencesPatch
 }
 
 extend input CreateUserNoteLinkInput {
@@ -118,17 +147,12 @@ type NotePreferences {
   backgroundColor: HexColorCode
 }
 
-type NotePreferencesPatch {
-  "Changed note background color"
-  backgroundColor: HexColorCode
-}
-
 input NotePreferencesInput {
   backgroundColor: HexColorCode
 }
 
 input UpdateUserNoteLinkBackgroundColorInput {
-  "Note to be updated by Note.id"
+  "UserNoteLink to be updated by Note.id"
   noteId: ObjectID!
   "New background color value"
   backgroundColor: HexColorCode!
@@ -148,15 +172,12 @@ extend type Mutation {
   ): UpdateUserNoteLinkBackgroundColorPayload! @auth
 }
 
-################################ UserNoteLink Trash/Untrash ################################
+extend union SignedInUserMutations = UpdateUserNoteLinkBackgroundColorPayload
+
+################################ Mutation trashUserNoteLink ################################
 
 extend type UserNoteLink {
   "UserNoteLink is marked for deletion and will no longer be available after this date."
-  deletedAt: DateTime
-}
-
-extend type UserNoteLinkPatch {
-  "Note has been trashed and will be deleted after this date."
   deletedAt: DateTime
 }
 
@@ -177,18 +198,13 @@ extend type Mutation {
   trashUserNoteLink(input: TrashUserNoteLinkInput!): TrashUserNoteLinkPayload! @auth
 }
 
-################################ UserNoteLink Category/Move ################################
+extend union SignedInUserMutations = TrashUserNoteLinkPayload
+
+################################ Mutation moveUserNoteLink ################################
 
 extend type UserNoteLink {
   "Category where note belongs"
   categoryName: NoteCategory!
-}
-
-extend type UserNoteLink {
-  "Changed note category"
-  categoryName: NoteCategory
-  "Changed note location"
-  location: NoteLocation
 }
 
 extend input CreateUserNoteLinkInput {
@@ -220,7 +236,7 @@ enum ListAnchorPosition {
 }
 
 """
-Move notes between categories or withing category using anchor note.
+Move notes between categories or within category using anchor note
 """
 input NoteLocationInput {
   "Category where to put or keep the note."
@@ -259,82 +275,7 @@ type MoveUserNoteLinkPayload {
 
 extend type Mutation {
   "Move note between categories or reorder within categories"
-  moveNote(input: MoveUserNoteLinkInput!): MoveUserNoteLinkPayload! @auth
+  moveUserNoteLink(input: MoveUserNoteLinkInput!): MoveUserNoteLinkPayload! @auth
 }
 
-################################ OtherUserNoteLink ################################
-
-"""
-In UserNoteLink, specifies another user relative to current user
-"""
-type OtherUserNoteLink {
-  "Self-descriptive"
-  user: PublicUser!
-  "This user has higher scope than current user"
-  higherScope: Boolean!
-  "This user has read-only access to the note"
-  readOnly: Boolean!
-}
-
-type OtherUserNotePatch {
-  "Patch applies to this user"
-  user: PublicUserPatch!
-  "User read-only status changed"
-  readOnly: Boolean
-}
-
-extend type UserNoteLink {
-  "All users excluding current user who have access to the note"
-  otherUsers: [OtherUserNoteLink!]!
-}
-
-extend type UserNoteLinkPatch {
-  "Changes made to other users"
-  otherUsers: [OtherUserNotePatch!]
-  "List of PublicUser.id that have been deleted from otherUsers"
-  otherUsersDeleted: [String!]
-}
-
-input UpdateNoteDeleteUserLinkInput {
-  "Note Note.id to modify"
-  noteId: ObjectID!
-  "PublicUser.id to be deleted"
-  userId: ObjectID!
-}
-
-type UpdateNoteDeleteUserLinkPayload {
-  "PublicUser.id of deleted user"
-  userId: ObjectID!
-  "UserNoteLink with updated users list"
-  userNoteLink: UserNoteLink!
-}
-
-extend type Mutation {
-  "Revoke user access to the note"
-  updateNoteDeleteUserLink(input: UpdateNoteDeleteUserLinkInput!): UpdateNoteDeleteUserLinkPayload!
-}
-
-input UpdateNoteSetUserReadOnlyInput {
-  "Note Note.id to modify"
-  noteId: ObjectID!
-  "PublicUser.id to update"
-  userId: ObjectID!
-  "Change user's access to note"
-  readOnly: Boolean!
-}
-
-type UpdateNoteSetUserReadOnlyPayload {
-  "New read-only value of user"
-  readOnly: Boolean!
-  "User with updated read-only value"
-  user: NoteUser!
-  "UserNoteLink with updated users list"
-  note: UserNoteLLink!
-}
-
-extend type Mutation {
-  "Change user note permissions"
-  updateNoteSetUserReadOnly(
-    input: UpdateNoteSetUserReadOnlyInput!
-  ): UpdateNoteSetUserReadOnlyPayload!
-}
+extend union SignedInUserMutations = MoveUserNoteLinkPayload
