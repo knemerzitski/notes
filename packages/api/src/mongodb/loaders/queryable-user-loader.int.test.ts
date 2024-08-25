@@ -1,9 +1,14 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
-import { beforeAll, it, expect } from 'vitest';
+import { beforeAll, it, expect, beforeEach } from 'vitest';
 
-import { resetDatabase, mongoCollections } from '../../__test__/helpers/mongodb/mongodb';
+import {
+  resetDatabase,
+  mongoCollections,
+  mongoCollectionStats,
+} from '../../__test__/helpers/mongodb/mongodb';
 import {
   TestCollabTextKey,
   TestNoteCategory,
@@ -18,11 +23,13 @@ import {
   QueryableUserLoaderKey,
   QueryableUserLoaderParams,
 } from './queryable-user-loader';
+import { fakeUserPopulateQueue } from '../../__test__/helpers/mongodb/populate/user';
 
 let populateResult: ReturnType<typeof populateNotes>;
 let mainNotesIds: ObjectId[];
 let otherNotesIds: ObjectId[];
 let user: UserSchema;
+let user2: UserSchema;
 
 let context: QueryableUserLoaderParams['context'];
 
@@ -55,11 +62,17 @@ beforeAll(async () => {
     .filter((_, index) => index % 2 !== 0)
     .map((data) => data.note._id);
 
+  user2 = fakeUserPopulateQueue();
+
   await populateExecuteAll();
 
   context = {
     collections: mongoCollections,
   };
+});
+
+beforeEach(() => {
+  mongoCollectionStats.mockClear();
 });
 
 it('loads paginated notes', async () => {
@@ -398,4 +411,42 @@ it('loads all notes without pagination', async () => {
       },
     },
   ]);
+});
+
+it('loads two users in a single db call', async () => {
+  await expect(
+    queryableUserBatchLoad(
+      [
+        {
+          id: {
+            userId: user._id,
+          },
+          query: {
+            _id: 1,
+          },
+        },
+        {
+          id: {
+            googleUserId: user2.thirdParty!.google!.id!,
+          },
+          query: {
+            _id: 1,
+          },
+        },
+      ],
+      {
+        global: context,
+        request: undefined,
+      }
+    )
+  ).resolves.toStrictEqual([
+    {
+      _id: user._id,
+    },
+    {
+      _id: user2._id,
+    },
+  ]);
+
+  expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(1);
 });
