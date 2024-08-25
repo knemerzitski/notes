@@ -17,7 +17,7 @@ import { Logger } from '~utils/logger';
 
 import { ApiOptions } from './graphql/types';
 import { applyDirectives } from './graphql/directives';
-import { ApolloServerLogger } from './graphql/plugins/apollo-server-logger';
+import { ApolloServerLogger } from './services/graphql/plugins/apollo-server-logger';
 import { resolvers } from './graphql/resolvers.generated';
 import { typeDefs } from './graphql/typeDefs.generated';
 import { createCollectionInstances } from './mongodb/collections';
