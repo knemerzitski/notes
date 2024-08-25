@@ -34,16 +34,6 @@ interface Category {
   order: ObjectId[];
 }
 
-// TODO move to services?
-/**
- *
- * @param category Enum value NoteCategory
- * @returns
- */
-export function getNotesArrayPath(category: string) {
-  return `notes.category.${category}.order`;
-}
-
 export const userDescription: CollectionDescription = {
   indexSpecs: [
     {

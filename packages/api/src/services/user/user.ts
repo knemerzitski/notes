@@ -2,6 +2,14 @@ import { Collection, ObjectId } from 'mongodb';
 import { UserSchema } from '../../mongodb/schema/user';
 import { QueryableUserLoader } from '../../mongodb/loaders/queryable-user-loader';
 
+/**
+ * @param category Enum value NoteCategory
+ * @returns MongoDB field path to notes array of ObjectIds
+ */
+export function getNotesArrayPath(category: string) {
+  return `notes.category.${category}.order`;
+}
+
 interface FindUserByGoogleUserIdParams {
   googleUserId: string;
   loader: QueryableUserLoader;
