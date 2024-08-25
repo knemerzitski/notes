@@ -3,7 +3,7 @@ import {
   RevisionRecordSchema,
   SelectionRangeSchema,
   CollabTextSchema,
-} from '../../mongodb/schema/collab-text/collab-text';
+} from '../../mongodb/schema/collab-text';
 
 interface CreateCollabTextParams {
   creatorUserId: RevisionRecordSchema['creatorUserId'];

@@ -2,7 +2,7 @@ import { ObjectId } from 'mongodb';
 import {
   sessionDefaultValues,
   SessionSchema,
-} from '../../../../mongodb/schema/session/session';
+} from '../../../../mongodb/schema/session';
 import { MongoPartialDeep } from '../../../../mongodb/types';
 import { faker } from '@faker-js/faker';
 import { populateQueue } from './populate-queue';

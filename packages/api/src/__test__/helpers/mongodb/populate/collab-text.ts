@@ -7,7 +7,7 @@ import { isDefined } from '~utils/type-guards/is-defined';
 import {
   CollabTextSchema,
   RevisionRecordSchema,
-} from '../../../../mongodb/schema/collab-text/collab-text';
+} from '../../../../mongodb/schema/collab-text';
 import { MongoPartialDeep } from '../../../../mongodb/types';
 
 export interface FakeCollabTextOptions {

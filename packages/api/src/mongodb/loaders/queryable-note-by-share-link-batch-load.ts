@@ -7,7 +7,7 @@ import { groupBy } from '~utils/array/group-by';
 
 import { CollectionName, MongoDBCollections } from '../collections';
 
-import { MongoDBContext } from '../lambda-context';
+import { MongoDBContext } from '../context';
 import { mapQueryAggregateResult as queryFilterAggregateResult } from '../query/map-query-aggregate-result';
 import { MergedObjectQueryDeep, mergeQueries } from '../query/merge-queries';
 import { mergedQueryToPipeline } from '../query/merged-query-to-pipeline';

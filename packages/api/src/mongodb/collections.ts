@@ -5,9 +5,9 @@ import {
   NoteSchema,
   noteDescription,
   noteSearchIndexDescriptions,
-} from './schema/note/note';
-import { SessionSchema, sessionDescription } from './schema/session/session';
-import { userDescription, UserSchema } from './schema/user/user';
+} from './schema/note';
+import { SessionSchema, sessionDescription } from './schema/session';
+import { userDescription, UserSchema } from './schema/user';
 
 export interface CollectionDescription {
   indexSpecs?: IndexDescription[];

@@ -8,7 +8,7 @@ import {
 } from '../../../../__test__/helpers/mongodb/mongodb';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
-import { UserSchema } from '../../../../mongodb/schema/user/user';
+import { UserSchema } from '../../../../mongodb/schema/user';
 import {
   UpdateSignedInUserDisplayNameInput,
   UpdateSignedInUserDisplayNamePayload,

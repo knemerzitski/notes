@@ -1,7 +1,7 @@
 import {
   sessionDefaultValues,
   SessionSchema,
-} from '../../mongodb/schema/session/session';
+} from '../../mongodb/schema/session';
 import { QueryableSessionLoader } from '../../mongodb/loaders/queryable-session-loader';
 import { Collection, ObjectId } from 'mongodb';
 import { SessionDuration } from './duration';

@@ -9,8 +9,8 @@ import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populat
 import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
 import { SignOutInput, SignOutPayload } from '../../../types.generated';
 import { fakeSessionPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/session';
-import { SessionSchema } from '../../../../mongodb/schema/session/session';
-import { UserSchema } from '../../../../mongodb/schema/user/user';
+import { SessionSchema } from '../../../../mongodb/schema/session';
+import { UserSchema } from '../../../../mongodb/schema/user';
 import {
   createGraphQLResolversContext,
   CreateGraphQLResolversContextOptions,

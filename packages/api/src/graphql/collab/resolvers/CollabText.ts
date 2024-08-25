@@ -5,9 +5,9 @@ import {
   RelayBoundPagination,
 } from '../../../mongodb/pagination/relay-array-pagination';
 import { ObjectQueryDeep } from '../../../mongodb/query/query';
-import { RevisionRecordSchema } from '../../../mongodb/schema/collab-text/collab-text';
 import { PreFetchedArrayGetItemFn } from '../../utils/pre-execute';
 import { CollabTextRecordMapper } from '../schema.mappers';
+import { QueryableRevisionRecord } from '../../../mongodb/schema/collab-text/query/revision-record';
 
 export const CollabText: CollabTextResolvers = {
   headText: (parent) => {
@@ -109,7 +109,7 @@ export const CollabText: CollabTextResolvers = {
       index: number,
       updateSize
     ) => {
-      const queryRecord = async (query: ObjectQueryDeep<RevisionRecordSchema>) => {
+      const queryRecord = async (query: ObjectQueryDeep<QueryableRevisionRecord>) => {
         const collabText = await parent.query({
           records: {
             $pagination: pagination,

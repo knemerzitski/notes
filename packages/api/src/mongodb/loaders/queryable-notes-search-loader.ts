@@ -4,7 +4,7 @@ import { groupBy } from '~utils/array/group-by';
 import { Emitter, mitt } from '~utils/mitt-unsub';
 
 import { CollectionName, MongoDBCollections } from '../collections';
-import { MongoDBContext } from '../lambda-context';
+import { MongoDBContext } from '../context';
 import { LoaderEvents } from '../loaders';
 
 import {
@@ -24,7 +24,7 @@ import { MergedObjectQueryDeep, mergeQueries } from '../query/merge-queries';
 import { mergedQueryToPipeline } from '../query/merged-query-to-pipeline';
 import { QueryResultDeep } from '../query/query';
 import { fieldsRemoved } from '../query/utils/fields-removed';
-import { NoteSearchIndexName } from '../schema/note/note';
+import { NoteSearchIndexName } from '../schema/note';
 import {
   QueryableNote,
   QueryableNoteContext,

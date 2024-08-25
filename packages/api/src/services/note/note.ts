@@ -1,7 +1,7 @@
 import { MongoClient, ObjectId } from 'mongodb';
-import { NoteSchema } from '../../mongodb/schema/note/note';
-import { NoteUserSchema } from '../../mongodb/schema/note/note-user';
-import { getNotesArrayPath } from '../../mongodb/schema/user/user';
+import { NoteSchema } from '../../mongodb/schema/note';
+import { NoteUserSchema } from '../../mongodb/schema/note-user';
+import { getNotesArrayPath } from '../../mongodb/schema/user';
 import { createCollabText } from '../collab/collab';
 import { CollectionName, MongoDBCollections } from '../../mongodb/collections';
 import { Maybe } from '~utils/types';

@@ -13,7 +13,7 @@ import {
 } from '../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../__test__/helpers/mongodb/populate/user';
-import { NoteSchema } from '../schema/note/note';
+import { NoteSchema } from '../schema/note';
 
 import {
   queryableNoteBatchLoad,

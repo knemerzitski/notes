@@ -21,8 +21,8 @@ import {
   mongoCollectionStats,
   resetDatabase,
 } from '../../../../__test__/helpers/mongodb/mongodb';
-import { SessionSchema } from '../../../../mongodb/schema/session/session';
-import { UserSchema } from '../../../../mongodb/schema/user/user';
+import { SessionSchema } from '../../../../mongodb/schema/session';
+import { UserSchema } from '../../../../mongodb/schema/user';
 import { SignInInput, SignInPayload } from '../../../types.generated';
 import { expectGraphQLResponseData } from '../../../../__test__/helpers/graphql/response';
 import { verifyCredentialToken } from '../../../../services/auth/google/__mocks__/oauth2';

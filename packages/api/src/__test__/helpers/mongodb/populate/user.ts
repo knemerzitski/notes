@@ -4,7 +4,7 @@ import { ObjectId } from 'mongodb';
 
 import { isDefined } from '~utils/type-guards/is-defined';
 
-import { UserSchema } from '../../../../mongodb/schema/user/user';
+import { UserSchema } from '../../../../mongodb/schema/user';
 import { MongoPartialDeep } from '../../../../mongodb/types';
 import { mongoCollections } from '../mongodb';
 

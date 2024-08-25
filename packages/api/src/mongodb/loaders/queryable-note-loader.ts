@@ -4,7 +4,7 @@ import { groupBy } from '~utils/array/group-by';
 import { mitt, Emitter } from '~utils/mitt-unsub';
 
 import { CollectionName, MongoDBCollections } from '../collections';
-import { MongoDBContext } from '../lambda-context';
+import { MongoDBContext } from '../context';
 import { LoaderEvents } from '../loaders';
 
 import { mapQueryAggregateResult } from '../query/map-query-aggregate-result';

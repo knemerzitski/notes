@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { nanoid } from 'nanoid';
 
-import { CollectionDescription } from '../../collections';
+import { CollectionDescription } from '../collections';
 
 export interface SessionSchema {
   _id: ObjectId;

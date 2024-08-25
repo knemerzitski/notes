@@ -8,9 +8,9 @@ import {
   QueryableCollabText,
   queryWithCollabTextSchema,
 } from '../../collab-text/query/collab-text';
-import { UserSchema } from '../../user/user';
-import { NoteCollabSchema, NoteSchema } from '../note';
-import { NoteUserSchema } from '../note-user';
+import { UserSchema } from '../../user';
+import { NoteCollabSchema, NoteSchema } from '../../note';
+import { NoteUserSchema } from '../../note-user';
 
 export type QueryableNote = Omit<NoteSchema, 'collab' | 'users'> & {
   collab: QueryableNoteCollab;

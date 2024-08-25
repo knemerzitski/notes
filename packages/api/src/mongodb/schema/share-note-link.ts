@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 
-import { UserSchema } from '../user/user';
+import { UserSchema } from './user';
 
 /**
  * Note sharing via links

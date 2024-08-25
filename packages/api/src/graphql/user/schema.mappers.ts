@@ -1,5 +1,5 @@
 import { MongoQueryFn } from '../../mongodb/query/query';
-import { UserSchema } from '../../mongodb/schema/user/user';
+import { UserSchema } from '../../mongodb/schema/user';
 
 export interface SignedInUserMapper {
   readonly query: MongoQueryFn<Pick<UserSchema, '_id' | 'profile'>>;

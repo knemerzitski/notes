@@ -3,8 +3,8 @@ import { QueryableUserLoader } from '../../../loaders/queryable-user-loader';
 import { DeepAnyDescription } from '../../../query/description';
 import { ObjectQueryDeep, QueryResultDeep } from '../../../query/query';
 import { isQueryOnlyId } from '../../../query/utils/is-query-only-id';
-import { UserSchema } from '../../user/user';
-import { RevisionRecordSchema } from '../collab-text';
+import { UserSchema } from '../../user';
+import { RevisionRecordSchema } from '../../collab-text';
 
 export type QueryableRevisionRecord = Omit<RevisionRecordSchema, 'creatorUserId'> & {
   creatorUser: Pick<UserSchema, '_id' | 'thirdParty' | 'profile'>;

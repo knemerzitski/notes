@@ -1,7 +1,7 @@
 import { mitt } from '~utils/mitt-unsub';
 
 import { MongoDBCollections } from './collections';
-import { MongoDBContext } from './lambda-context';
+import { MongoDBContext } from './context';
 import { QueryableNoteByShareLinkLoadKey } from './loaders/queryable-note-by-share-link-batch-load';
 import { QueryableNoteByShareLinkLoader } from './loaders/queryable-note-by-share-link-loader';
 import {

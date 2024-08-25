@@ -1,8 +1,8 @@
 import { ObjectId, SearchIndexDescription } from 'mongodb';
 
-import { CollectionDescription } from '../../collections';
-import { Entry } from '../../types';
-import { CollabTextSchema } from '../collab-text/collab-text';
+import { CollectionDescription } from '../collections';
+import { Entry } from '../types';
+import { CollabTextSchema } from './collab-text';
 
 import { NoteUserSchema } from './note-user';
 import { ShareNoteLinkSchema } from './share-note-link';

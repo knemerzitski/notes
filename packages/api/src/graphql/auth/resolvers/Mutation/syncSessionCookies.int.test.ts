@@ -10,7 +10,7 @@ import {
 } from '../../../types.generated';
 import { Cookies } from '../../../../services/http/cookies';
 import { ObjectId } from 'mongodb';
-import { sessionDefaultValues } from '../../../../mongodb/schema/session/session';
+import { sessionDefaultValues } from '../../../../mongodb/schema/session';
 import { objectIdToStr } from '../../../../services/utils/objectid';
 import { expectGraphQLResponseData } from '../../../../__test__/helpers/graphql/response';
 

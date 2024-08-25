@@ -3,8 +3,8 @@ import { faker } from '@faker-js/faker';
 import {
   shareNoteLinkDefaultValues,
   ShareNoteLinkSchema,
-} from '../../../../mongodb/schema/note/share-note-link';
-import { UserSchema } from '../../../../mongodb/schema/user/user';
+} from '../../../../mongodb/schema/share-note-link';
+import { UserSchema } from '../../../../mongodb/schema/user';
 import { MongoPartialDeep } from '../../../../mongodb/types';
 
 export interface FakeShareNoteLinkOptions {

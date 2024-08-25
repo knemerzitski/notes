@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb';
 
-import { CollectionDescription } from '../../collections';
+import { CollectionDescription } from '../collections';
 
 export interface UserSchema {
   _id: ObjectId;

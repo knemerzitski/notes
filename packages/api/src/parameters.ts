@@ -21,7 +21,7 @@ import { ApolloServerLogger } from './graphql/plugins/apollo-server-logger';
 import { resolvers } from './graphql/resolvers.generated';
 import { typeDefs } from './graphql/typeDefs.generated';
 import { createCollectionInstances } from './mongodb/collections';
-import { createMongoDBContext } from './mongodb/lambda-context';
+import { createMongoDBContext } from './mongodb/context';
 
 export function createDefaultApiOptions(): ApiOptions {
   return {

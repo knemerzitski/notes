@@ -15,7 +15,7 @@ import {
   populateNotesWithText,
 } from '../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../__test__/helpers/mongodb/populate/populate-queue';
-import { UserSchema } from '../schema/user/user';
+import { UserSchema } from '../schema/user';
 
 import { MongoPartialDeep } from '../types';
 

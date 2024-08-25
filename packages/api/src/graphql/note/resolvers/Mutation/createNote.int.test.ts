@@ -38,8 +38,8 @@ import { fakeNotePopulateQueue } from '../../../../__test__/helpers/mongodb/popu
 import { userAddNote } from '../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
-import { NoteSchema } from '../../../../mongodb/schema/note/note';
-import { UserSchema } from '../../../../mongodb/schema/user/user';
+import { NoteSchema } from '../../../../mongodb/schema/note';
+import { UserSchema } from '../../../../mongodb/schema/user';
 import {
   CreateNoteInput,
   CreateNotePayload,

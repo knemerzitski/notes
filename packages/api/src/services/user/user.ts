@@ -1,5 +1,5 @@
 import { Collection, ObjectId } from 'mongodb';
-import { UserSchema } from '../../mongodb/schema/user/user';
+import { UserSchema } from '../../mongodb/schema/user';
 import { QueryableUserLoader } from '../../mongodb/loaders/queryable-user-loader';
 
 interface FindUserByGoogleUserIdParams {

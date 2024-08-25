@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb';
 
-import { NoteSchema } from '../../../mongodb/schema/note/note';
+import { NoteSchema } from '../../../mongodb/schema/note';
 
 export function findNoteTextField(
   note: NoteSchema | undefined | null,

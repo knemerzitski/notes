@@ -10,7 +10,7 @@ import {
   RelayPagination,
 } from '../../../pagination/relay-array-pagination';
 import { DeepAnyDescription } from '../../../query/description';
-import { CollabTextSchema, RevisionRecordSchema } from '../collab-text';
+import { CollabTextSchema, RevisionRecordSchema } from '../../collab-text';
 import {
   QueryableRevisionRecord,
   queryWithRevisionRecordSchema,

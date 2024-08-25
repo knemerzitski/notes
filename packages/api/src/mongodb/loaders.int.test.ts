@@ -16,9 +16,9 @@ import { populateExecuteAll } from '../__test__/helpers/mongodb/populate/populat
 
 import { createMongoDBLoaders, MongoDBLoaders } from './loaders';
 import { QueryDeep } from './query/query';
-import { NoteSchema } from './schema/note/note';
+import { NoteSchema } from './schema/note';
 import { QueryableNote } from './schema/note/query/queryable-note';
-import { UserSchema } from './schema/user/user';
+import { UserSchema } from './schema/user';
 
 let populateResult: ReturnType<typeof populateNotes>;
 let user: UserSchema;

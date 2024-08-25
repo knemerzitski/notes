@@ -16,7 +16,7 @@ import {
 } from '../../../pagination/relay-array-pagination';
 import { DeepAnyDescription } from '../../../query/description';
 import { QueryableNote, queryableNoteDescription } from '../../note/query/queryable-note';
-import { UserSchema } from '../user';
+import { UserSchema } from '../../user';
 
 import { isDefined } from '~utils/type-guards/is-defined';
 

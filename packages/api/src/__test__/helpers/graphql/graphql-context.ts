@@ -16,9 +16,9 @@ import { resolvers } from '../../../graphql/resolvers.generated';
 import { typeDefs } from '../../../graphql/typeDefs.generated';
 
 import { MongoDBCollections } from '../../../mongodb/collections';
-import { MongoDBContext } from '../../../mongodb/lambda-context';
+import { MongoDBContext } from '../../../mongodb/context';
 import { createMongoDBLoaders } from '../../../mongodb/loaders';
-import { UserSchema } from '../../../mongodb/schema/user/user';
+import { UserSchema } from '../../../mongodb/schema/user';
 import { MongoPartialDeep } from '../../../mongodb/types';
 import { mongoCollections, mongoClient } from '../mongodb/mongodb';
 import { Cookies } from '../../../services/http/cookies';

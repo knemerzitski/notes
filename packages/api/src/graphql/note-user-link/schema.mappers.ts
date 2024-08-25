@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { MongoQueryFn } from '../../mongodb/query/query';
 import { QueryableNote } from '../../mongodb/schema/note/query/queryable-note';
-import { NoteUserSchema } from '../../mongodb/schema/note/note-user';
+import { NoteUserSchema } from '../../mongodb/schema/note-user';
 import { GraphQLResolveInfo } from 'graphql';
 import { GraphQLResolversContext } from '../types';
 import { ResolverTypeWrapper, ResolversTypes } from '../types.generated';

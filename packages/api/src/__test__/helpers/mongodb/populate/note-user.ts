@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker';
 
-import { NoteUserSchema } from '../../../../mongodb/schema/note/note-user';
-import { UserSchema } from '../../../../mongodb/schema/user/user';
+import { NoteUserSchema } from '../../../../mongodb/schema/note-user';
+import { UserSchema } from '../../../../mongodb/schema/user';
 
 import { MongoPartialDeep } from '../../../../mongodb/types';
 

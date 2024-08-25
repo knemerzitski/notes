@@ -6,7 +6,7 @@ import {
   findUserByGoogleUserId,
   insertNewUserWithGoogleUser,
 } from './user';
-import { UserSchema } from '../../mongodb/schema/user/user';
+import { UserSchema } from '../../mongodb/schema/user';
 import { fakeUserPopulateQueue } from '../../__test__/helpers/mongodb/populate/user';
 import {
   mongoCollections,

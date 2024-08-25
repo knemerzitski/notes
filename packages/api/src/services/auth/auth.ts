@@ -11,7 +11,7 @@ import { QueryableSessionLoader } from '../../mongodb/loaders/queryable-session-
 import { Cookies } from '../http/cookies';
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import { SessionDuration, SessionDurationConfig } from '../session/duration';
-import { SessionSchema } from '../../mongodb/schema/session/session';
+import { SessionSchema } from '../../mongodb/schema/session';
 
 export type AuthenticationContext = AuthenticatedContext | UnauthenticatedContext;
 

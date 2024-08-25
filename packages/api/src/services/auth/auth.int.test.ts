@@ -5,7 +5,7 @@ import {
 } from '../../__test__/helpers/mongodb/mongodb';
 import { populateExecuteAll } from '../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeSessionPopulateQueue } from '../../__test__/helpers/mongodb/populate/session';
-import { SessionSchema } from '../../mongodb/schema/session/session';
+import { SessionSchema } from '../../mongodb/schema/session';
 import { deleteAllSessionsInCookies, deleteSessionWithCookies } from './auth';
 import { Cookies } from '../http/cookies';
 import { ObjectId } from 'mongodb';

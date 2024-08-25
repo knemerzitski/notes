@@ -3,7 +3,7 @@ import { AggregateOptions, ObjectId, Document } from 'mongodb';
 import { Emitter, mitt } from '~utils/mitt-unsub';
 
 import { CollectionName, MongoDBCollections } from '../collections';
-import { MongoDBContext } from '../lambda-context';
+import { MongoDBContext } from '../context';
 import { LoaderEvents } from '../loaders';
 import { mapQueryAggregateResult } from '../query/map-query-aggregate-result';
 import { MergedObjectQueryDeep, mergeQueries } from '../query/merge-queries';

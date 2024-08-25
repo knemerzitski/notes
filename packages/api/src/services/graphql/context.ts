@@ -5,7 +5,7 @@ import {
   DynamoDBBaseGraphQLContext,
 } from '../../graphql/types';
 import { MongoDBCollections } from '../../mongodb/collections';
-import { MongoDBContext } from '../../mongodb/lambda-context';
+import { MongoDBContext } from '../../mongodb/context';
 import { createMongoDBLoaders } from '../../mongodb/loaders';
 import {
   serializeAuthenticationContext,

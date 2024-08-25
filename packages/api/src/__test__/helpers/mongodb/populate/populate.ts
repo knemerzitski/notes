@@ -1,5 +1,5 @@
-import { NoteSchema } from '../../../../mongodb/schema/note/note';
-import { UserSchema } from '../../../../mongodb/schema/user/user';
+import { NoteSchema } from '../../../../mongodb/schema/note';
+import { UserSchema } from '../../../../mongodb/schema/user';
 
 import { mongoCollections } from '../mongodb';
 

@@ -6,7 +6,7 @@ import { callFnGrouped } from '~utils/call-fn-grouped';
 import { Emitter } from '~utils/mitt-unsub';
 
 import { CollectionName, MongoDBCollections } from '../collections';
-import { MongoDBContext } from '../lambda-context';
+import { MongoDBContext } from '../context';
 import { LoaderEvents } from '../loaders';
 import { QueryResultDeep } from '../query/query';
 
