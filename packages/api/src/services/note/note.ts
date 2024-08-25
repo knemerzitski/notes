@@ -1,5 +1,5 @@
 import { MongoClient, ObjectId } from 'mongodb';
-import { NoteCollabSchema, NoteSchema } from '../../mongodb/schema/note';
+import { NoteSchema } from '../../mongodb/schema/note';
 import { NoteUserSchema } from '../../mongodb/schema/note-user';
 import { getNotesArrayPath } from '../../mongodb/schema/user';
 import { createCollabText, queryWithCollabTextSchema } from '../collab/collab';
@@ -9,6 +9,7 @@ import { isDefined } from '~utils/type-guards/is-defined';
 import { QueryableNote, QueryableNoteCollab } from '../../mongodb/descriptions/note';
 import { QueryableUserLoader } from '../../mongodb/loaders/queryable-user-loader';
 import { ObjectQueryDeep, QueryResultDeep } from '../../mongodb/query/query';
+import { CollabSchema } from '../../mongodb/schema/collab';
 
 interface InsertNewNoteParams {
   mongoDB: {
@@ -110,7 +111,7 @@ export async function queryWithNoteSchema({
 
 interface QueryWithNoteCollabSchemaParams {
   query: ObjectQueryDeep<QueryableNoteCollab>;
-  collab: NoteCollabSchema;
+  collab: CollabSchema;
   userLoader: QueryableUserLoader;
 }
 

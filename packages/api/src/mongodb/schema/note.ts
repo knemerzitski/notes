@@ -1,11 +1,9 @@
 import { ObjectId, SearchIndexDescription } from 'mongodb';
 
 import { CollectionDescription } from '../collections';
-import { Entry } from '../types';
-import { CollabTextSchema } from './collab-text';
-
 import { NoteUserSchema } from './note-user';
 import { ShareNoteLinkSchema } from './share-note-link';
+import { CollabSchema } from './collab';
 
 export interface NoteSchema {
   _id: ObjectId;
@@ -16,25 +14,11 @@ export interface NoteSchema {
   /**
    * Note collaborative schema
    */
-  collab?: NoteCollabSchema;
-
+  collab?: CollabSchema;
   /**
    * Note sharing via links
    */
   shareNoteLinks?: ShareNoteLinkSchema[];
-}
-
-export interface NoteCollabSchema {
-  /**
-   * Collaborative editing texts by field name.
-   * Using array instead of map for easier indexing. \
-   * GraphQL uses enum NoteTextField for key.
-   */
-  texts: Entry<string, CollabTextSchema>[];
-  /**
-   * Time when collabTexts was last updated
-   */
-  updatedAt?: Date;
 }
 
 export const noteDescription: CollectionDescription = {

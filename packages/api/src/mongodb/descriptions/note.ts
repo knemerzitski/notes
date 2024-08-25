@@ -1,9 +1,10 @@
 import { CollectionName, MongoDBCollectionsOnlyNames } from '../collections';
 import { DeepAnyDescription } from '../query/description';
 import { UserSchema } from '../schema/user';
-import { NoteCollabSchema, NoteSchema } from '../schema/note';
+import { NoteSchema } from '../schema/note';
 import { NoteUserSchema } from '../schema/note-user';
 import { collabTextDescription, QueryableCollabText } from './collab-text';
+import { CollabSchema } from '../schema/collab';
 
 export type QueryableNote = Omit<NoteSchema, 'collab' | 'users'> & {
   collab: QueryableNoteCollab;
@@ -14,8 +15,8 @@ export type QueryableNoteUser = NoteUserSchema & {
   user: Omit<UserSchema, 'notes' | 'thirdParty' | '_id'>;
 };
 
-export type QueryableNoteCollab = Omit<NoteCollabSchema, 'texts'> & {
-  texts: Record<NoteCollabSchema['texts'][0]['k'], QueryableCollabText>;
+export type QueryableNoteCollab = Omit<CollabSchema, 'texts'> & {
+  texts: Record<CollabSchema['texts'][0]['k'], QueryableCollabText>;
 };
 
 export interface QueryableNoteContext {

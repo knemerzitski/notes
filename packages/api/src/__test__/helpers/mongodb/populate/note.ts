@@ -2,7 +2,7 @@ import { ObjectId } from 'mongodb';
 
 import { isDefined } from '~utils/type-guards/is-defined';
 
-import { NoteCollabSchema, NoteSchema } from '../../../../mongodb/schema/note';
+import { NoteSchema } from '../../../../mongodb/schema/note';
 import { UserSchema } from '../../../../mongodb/schema/user';
 import { MongoPartialDeep } from '../../../../mongodb/types';
 import { mongoCollections } from '../mongodb';
@@ -11,11 +11,12 @@ import { fakeCollabText, FakeCollabTextOptions } from './collab-text';
 import { fakeNoteUser, fakeNoteUserTrashed } from './note-user';
 import { populateQueue } from './populate-queue';
 import { fakeShareNoteLink } from './share-note-link';
+import { CollabSchema } from '../../../../mongodb/schema/collab';
 
 export interface FakeNoteOptions {
   override?: MongoPartialDeep<
     Omit<NoteSchema, 'collab'> & {
-      collab: Omit<NoteCollabSchema, 'texts'>;
+      collab: Omit<CollabSchema, 'texts'>;
     }
   >;
   collabTexts?: Record<string, FakeCollabTextOptions | undefined>;
