@@ -5,9 +5,9 @@ import {
   RelayBoundPagination,
 } from '../../../mongodb/pagination/relay-array-pagination';
 import { ObjectQueryDeep } from '../../../mongodb/query/query';
-import { PreFetchedArrayGetItemFn } from '../../utils/pre-execute';
 import { CollabTextRecordMapper } from '../schema.mappers';
 import { QueryableRevisionRecord } from '../../../mongodb/descriptions/revision-record';
+import { PreFetchedArrayGetItemFn } from '../../../services/graphql/pre-execute';
 
 export const CollabText: CollabTextResolvers = {
   headText: (parent) => {

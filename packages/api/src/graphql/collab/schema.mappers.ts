@@ -6,8 +6,8 @@ import {
 import { ResolverTypeWrapper, ResolversTypes } from '../types.generated';
 import { QueryableCollabText } from '../../mongodb/descriptions/collab-text';
 import { RelayBoundPagination } from '../../mongodb/pagination/relay-array-pagination';
-import { PreFetchedArrayGetItemFn } from '../utils/pre-execute';
 import { QueryableRevisionRecord } from '../../mongodb/descriptions/revision-record';
+import { PreFetchedArrayGetItemFn } from '../../services/graphql/pre-execute';
 
 export interface CollabTextMapper {
   readonly id: ResolverTypeWrapper<string>;
