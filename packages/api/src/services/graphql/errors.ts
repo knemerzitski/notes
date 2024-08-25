@@ -2,8 +2,7 @@ import { GraphQLError } from 'graphql';
 import { ObjectId } from 'mongodb';
 
 import { GraphQLErrorCode, ResourceType } from '~api-app-shared/graphql/error-codes';
-
-import { objectIdToStr } from '../../base/resolvers/ObjectID';
+import { objectIdToStr } from '../utils/objectid';
 
 /**
  * Throws note not found GraphQLError with code GraphQLErrorCode.NOT_FOUND
