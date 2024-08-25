@@ -3,7 +3,7 @@ import { GraphQLError, GraphQLSchema } from 'graphql';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
 import type { DirectiveResolvers } from '../../../graphql/types.generated';
-import { transformSchemaDirectiveResolver } from '../../utils/transform-schema-directive-resolver';
+import { transformSchemaDirectiveResolver } from '../../../services/graphql/transform-schema-directive-resolver';
 import {
   AuthenticationContext,
   AuthenticatedContext,

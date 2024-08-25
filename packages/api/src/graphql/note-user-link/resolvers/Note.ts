@@ -1,5 +1,5 @@
+import { withPreExecuteList } from '../../../services/graphql/pre-execute';
 import { objectIdToStr } from '../../../services/utils/objectid';
-import { withPreExecuteList } from '../../utils/pre-execute';
 import type { NoteResolvers } from './../../types.generated';
 
 export const Note: Pick<NoteResolvers, 'users'> = {

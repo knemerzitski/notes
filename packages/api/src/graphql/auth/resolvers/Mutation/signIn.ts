@@ -1,14 +1,13 @@
 import { ObjectId } from 'mongodb';
 import { verifyCredentialToken } from '../../../../services/auth/google/oauth2';
 import { GraphQLResolversContext } from '../../../types';
-import { preExecuteObjectField } from '../../../utils/pre-execute';
 import type { MutationResolvers, ResolversTypes } from './../../../types.generated';
 import { SessionDuration } from '../../../../services/session/duration';
 import { wrapRetryOnErrorAsync } from '~utils/wrap-retry-on-error';
 import {
   MongoErrorCodes,
   retryOnMongoError,
-} from '../../../../mongodb/utils/retry-on-mongo-error';
+} from '../../../../services/mongodb/retry-on-mongo-error';
 import { isAuthenticated } from '../../../../services/auth/auth';
 import {
   findUserByGoogleUserId,
@@ -16,6 +15,7 @@ import {
   primeUserWithGoogleUser,
 } from '../../../../services/user/user';
 import { insertNewSession } from '../../../../services/session/session';
+import { preExecuteObjectField } from '../../../../services/graphql/pre-execute';
 
 const _signIn: NonNullable<MutationResolvers['signIn']> = async (
   _parent,
