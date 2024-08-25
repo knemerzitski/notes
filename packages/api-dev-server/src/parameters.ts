@@ -1,6 +1,6 @@
 import WebSocket from 'ws';
 import { createCollectionInstances } from '~api/mongodb/collections';
-import { createMongoDBContext } from '~api/mongodb/lambda-context';
+import { createMongoDBContext } from '~api/mongodb/context';
 import { ApiGatewayContextParams } from '~lambda-graphql/context/apigateway';
 import { DynamoDBContextParams } from '~lambda-graphql/context/dynamodb';
 import {
