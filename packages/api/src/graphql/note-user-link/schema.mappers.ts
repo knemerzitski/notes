@@ -12,7 +12,7 @@ export interface UserNoteLinkMapper {
 }
 
 export interface PublicUserNoteLinkMapper {
-  readonly parentId: ResolverTypeWrapper<string>;
+  readonly noteId: ResolverTypeWrapper<ObjectId>;
   readonly query: MongoQueryFn<NonNullable<QueryableNote['users']>[0]>;
 }
 

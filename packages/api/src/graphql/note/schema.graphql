@@ -30,7 +30,7 @@ input DeleteNoteInput {
 
 type DeleteNotePayload {
   "Affected Note.id"
-  noteId: String!
+  noteId: ObjectID!
 }
 
 extend type Mutation {

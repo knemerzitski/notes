@@ -16,7 +16,7 @@ import {
 } from '../../../../__test__/helpers/graphql/graphql-context';
 import {
   expectGraphQLResponseData,
-  expectGraphQLResponseErrorMessage,
+  expectGraphQLResponseError,
 } from '../../../../__test__/helpers/graphql/response';
 import {
   mongoCollections,
@@ -27,34 +27,37 @@ import { fakeNotePopulateQueue } from '../../../../__test__/helpers/mongodb/popu
 import { userAddNote } from '../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
-import { NoteSchema } from '../../../../mongodb/schema/note/note';
-import { UserSchema } from '../../../../mongodb/schema/user/user';
-import { SubscriptionTopicPrefix } from '../../../subscriptions';
+import { NoteSchema } from '../../../../mongodb/schema/note';
+import { UserSchema } from '../../../../mongodb/schema/user';
 import {
   DeleteNoteInput,
   DeleteNotePayload,
   NoteCategory,
+  NoteDeletionType,
 } from '../../../types.generated';
+import { objectIdToStr } from '../../../../services/utils/objectid';
+import { UserNoteLink_id } from '../../../../services/note/note';
+import { getTopicForUser } from '../../../user/resolvers/Subscription/signedInUserEvents';
 
 const MUTATION = `#graphql
   mutation($input: DeleteNoteInput!){
     deleteNote(input: $input) {
-      note {
-        id
-      }
+      noteId
+      userNoteLinkId
+      deletionType
     }
   }
 `;
 
 const SUBSCRIPTION = `#graphql
   subscription {
-    noteEvents {
-      events {
+    signedInUserEvents {
+      mutations {
         __typename
-        ... on NoteDeletedEvent {
-          note {
-            id
-          }
+        ... on DeleteNotePayload {
+          noteId
+          userNoteLinkId
+          deletionType
         }
       }
     }
@@ -123,7 +126,7 @@ async function executeOperation(
   );
 }
 
-it('older user deletes note for everyone', async () => {
+it('oldest user deletes note for everyone', async () => {
   const response = await executeOperation(
     {
       noteId: note._id,
@@ -136,9 +139,9 @@ it('older user deletes note for everyone', async () => {
   // Response
   expect(data).toEqual({
     deleteNote: {
-      note: {
-        id: expect.any(String),
-      },
+      noteId: objectIdToStr(note._id),
+      userNoteLinkId: UserNoteLink_id(note._id, userOldest._id),
+      deletionType: NoteDeletionType.DELETE,
     },
   });
 
@@ -194,9 +197,9 @@ it('newer user deletes note only for self', async () => {
   // Response
   expect(data).toEqual({
     deleteNote: {
-      note: {
-        id: expect.any(String),
-      },
+      noteId: objectIdToStr(note._id),
+      userNoteLinkId: UserNoteLink_id(note._id, userNewer._id),
+      deletionType: NoteDeletionType.UNLINK,
     },
   });
 
@@ -248,7 +251,7 @@ describe('errors', () => {
       { user: userOldest }
     );
 
-    expectGraphQLResponseErrorMessage(response, /Note '.+' not found/);
+    expectGraphQLResponseError(response, /Note '.+' not found/);
   });
 
   it('throws note not found if user is not linked to the note', async () => {
@@ -259,7 +262,7 @@ describe('errors', () => {
       { user: userNoAccess }
     );
 
-    expectGraphQLResponseErrorMessage(response, /Note '.+' not found/);
+    expectGraphQLResponseError(response, /Note '.+' not found/);
   });
 
   it('throws error if not authenticated', async () => {
@@ -267,7 +270,7 @@ describe('errors', () => {
       noteId: note._id,
     });
 
-    expectGraphQLResponseErrorMessage(response, /You are not auth.*/);
+    expectGraphQLResponseError(response, /.*must be signed in.*/);
   });
 });
 
@@ -294,11 +297,11 @@ describe('subscription', () => {
 
     expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenNthCalledWith(
       1,
-      `${SubscriptionTopicPrefix.NOTE_EVENTS}:userId=${userOldest._id.toString('base64')}`
+      getTopicForUser(userOldest._id)
     );
     expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenNthCalledWith(
       2,
-      `${SubscriptionTopicPrefix.NOTE_EVENTS}:userId=${userNewer._id.toString('base64')}`
+      getTopicForUser(userNewer._id)
     );
     expect(mockSubscriptionsModel.queryAllByTopic).toBeCalledTimes(2);
 
@@ -307,15 +310,13 @@ describe('subscription', () => {
         type: 'next',
         payload: {
           data: {
-            noteEvents: {
-              events: [
+            signedInUserEvents: {
+              mutations: [
                 {
-                  __typename: 'NoteDeletedEvent',
-                  note: {
-                    id: `${note._id.toString('base64')}:${userOldest._id.toString(
-                      'base64'
-                    )}`,
-                  },
+                  __typename: 'DeleteNotePayload',
+                  noteId: objectIdToStr(note._id),
+                  userNoteLinkId: UserNoteLink_id(note._id, userOldest._id),
+                  deletionType: NoteDeletionType.DELETE,
                 },
               ],
             },
@@ -328,15 +329,13 @@ describe('subscription', () => {
         type: 'next',
         payload: {
           data: {
-            noteEvents: {
-              events: [
+            signedInUserEvents: {
+              mutations: [
                 {
-                  __typename: 'NoteDeletedEvent',
-                  note: {
-                    id: `${note._id.toString('base64')}:${userNewer._id.toString(
-                      'base64'
-                    )}`,
-                  },
+                  __typename: 'DeleteNotePayload',
+                  noteId: objectIdToStr(note._id),
+                  userNoteLinkId: UserNoteLink_id(note._id, userNewer._id),
+                  deletionType: NoteDeletionType.DELETE,
                 },
               ],
             },
@@ -368,7 +367,7 @@ describe('subscription', () => {
     expectGraphQLResponseData(response);
 
     expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenCalledWith(
-      `${SubscriptionTopicPrefix.NOTE_EVENTS}:userId=${userNewer._id.toString('base64')}`
+      getTopicForUser(userNewer._id)
     );
     expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenCalledOnce();
 
@@ -377,15 +376,13 @@ describe('subscription', () => {
         type: 'next',
         payload: {
           data: {
-            noteEvents: {
-              events: [
+            signedInUserEvents: {
+              mutations: [
                 {
-                  __typename: 'NoteDeletedEvent',
-                  note: {
-                    id: `${note._id.toString('base64')}:${userNewer._id.toString(
-                      'base64'
-                    )}`,
-                  },
+                  __typename: 'DeleteNotePayload',
+                  noteId: objectIdToStr(note._id),
+                  userNoteLinkId: UserNoteLink_id(note._id, userNewer._id),
+                  deletionType: NoteDeletionType.UNLINK,
                 },
               ],
             },

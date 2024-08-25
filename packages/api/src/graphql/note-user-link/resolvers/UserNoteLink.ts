@@ -1,5 +1,4 @@
-import { objectIdToStr } from '../../../services/utils/objectid';
-import { findNoteUser } from '../utils/user-note';
+import { findNoteUser, UserNoteLink_id } from '../../../services/note/note';
 import type { NoteCategory, UserNoteLinkResolvers } from './../../types.generated';
 
 export const UserNoteLink: UserNoteLinkResolvers = {
@@ -13,7 +12,7 @@ export const UserNoteLink: UserNoteLinkResolvers = {
       return;
     }
 
-    return `${noteId}:${objectIdToStr(parent.userId)}`;
+    return UserNoteLink_id(noteId, parent.userId);
   },
   categoryName: async (parent, _arg, _ctx) => {
     return findNoteUser(
@@ -61,14 +60,12 @@ export const UserNoteLink: UserNoteLinkResolvers = {
   },
   public: (parent, _arg, _ctx) => {
     return {
-      parentId: async () =>
-        objectIdToStr(
-          (
-            await parent.query({
-              _id: 1,
-            })
-          )?._id
-        ),
+      noteId: async () =>
+        (
+          await parent.query({
+            _id: 1,
+          })
+        )?._id,
       query: async (query) => {
         const note = await parent.query({
           users: {

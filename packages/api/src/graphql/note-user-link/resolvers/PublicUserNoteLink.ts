@@ -1,23 +1,23 @@
 import { maybeCallFn } from '~utils/maybe-call-fn';
 import type { PublicUserNoteLinkResolvers } from './../../types.generated';
-import { objectIdToStr } from '../../../services/utils/objectid';
+import { UserNoteLink_id } from '../../../services/note/note';
 
 export const PublicUserNoteLink: Pick<
   PublicUserNoteLinkResolvers,
   'createdAt' | 'id' | 'readOnly' | 'user'
 > = {
   id: async (parent, _arg, _ctx) => {
-    const [userId, parentId] = await Promise.all([
+    const [userId, noteId] = await Promise.all([
       Promise.resolve(
         parent.query({
           _id: 1,
         })
       ).then((noteUser) => noteUser?._id),
-      maybeCallFn(parent.parentId),
+      maybeCallFn(parent.noteId),
     ]);
-    if (!userId || !parentId) return;
+    if (!userId || !noteId) return;
 
-    return `${parentId}:${objectIdToStr(userId)}`;
+    return UserNoteLink_id(noteId, userId);
   },
   createdAt: async (parent, _arg, _ctx) => {
     return (

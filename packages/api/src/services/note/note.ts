@@ -10,6 +10,7 @@ import { QueryableUserLoader } from '../../mongodb/loaders/queryable-user-loader
 import { ObjectQueryDeep, QueryResultDeep } from '../../mongodb/query/query';
 import { CollabSchema } from '../../mongodb/schema/collab';
 import { getNotesArrayPath } from '../user/user';
+import { objectIdToStr } from '../utils/objectid';
 
 interface InsertNewNoteParams {
   mongoDB: {
@@ -80,6 +81,95 @@ export async function insertNewNote({
   );
 
   return note;
+}
+
+interface DeleteNoteCompletelyParams {
+  mongoDB: {
+    client: MongoClient;
+    collections: Pick<MongoDBCollections, CollectionName.NOTES | CollectionName.USERS>;
+  };
+  noteId: ObjectId;
+  allNoteUsers: Pick<NoteUserSchema, '_id' | 'categoryName'>[];
+}
+
+export function deleteNoteCompletely({
+  mongoDB,
+  noteId,
+  allNoteUsers,
+}: DeleteNoteCompletelyParams) {
+  return mongoDB.client.withSession((session) =>
+    session.withTransaction(async (session) => {
+      await mongoDB.collections.notes.deleteOne(
+        {
+          _id: noteId,
+        },
+        { session }
+      );
+      await mongoDB.collections.users.bulkWrite(
+        allNoteUsers.map((noteUser) => ({
+          updateOne: {
+            filter: {
+              _id: noteUser._id,
+            },
+            update: {
+              $pull: {
+                [getNotesArrayPath(noteUser.categoryName)]: noteId,
+              },
+            },
+          },
+        })),
+        { session }
+      );
+    })
+  );
+}
+
+interface DeleteNoteFromUserParams {
+  mongoDB: {
+    client: MongoClient;
+    collections: Pick<MongoDBCollections, CollectionName.NOTES | CollectionName.USERS>;
+  };
+  noteId: ObjectId;
+  noteCategoryName: string;
+  userId: ObjectId;
+}
+
+export function deleteNoteFromUser({
+  mongoDB,
+  noteId,
+  userId,
+  noteCategoryName,
+}: DeleteNoteFromUserParams) {
+  return mongoDB.client.withSession((session) =>
+    session.withTransaction(async (session) => {
+      await mongoDB.collections.notes.updateOne(
+        {
+          _id: noteId,
+        },
+        {
+          $pull: {
+            users: {
+              _id: userId,
+            },
+          },
+        },
+        {
+          session,
+        }
+      );
+      await mongoDB.collections.users.updateOne(
+        {
+          _id: userId,
+        },
+        {
+          $pull: {
+            [getNotesArrayPath(noteCategoryName)]: noteId,
+          },
+        },
+        { session }
+      );
+    })
+  );
 }
 
 interface QueryWithNoteSchemaParams {
@@ -176,4 +266,8 @@ export function findNoteTextFieldInSchema(note: Maybe<NoteSchema>, fieldName: st
     .filter((text) => text.k === fieldName)
     .map((collabText) => collabText.v);
   return collabTexts?.[0];
+}
+
+export function UserNoteLink_id(noteId: ObjectId, userId: ObjectId) {
+  return `${objectIdToStr(noteId)}:${objectIdToStr(userId)}`;
 }
