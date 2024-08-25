@@ -149,3 +149,31 @@ export async function queryWithNoteCollabSchema({
     ),
   };
 }
+
+export function findNoteUser(
+  findUserId: ObjectId,
+  note: Maybe<QueryResultDeep<QueryableNote>>
+) {
+  return note?.users?.find(({ _id: userId }) => findUserId.equals(userId));
+}
+
+export function findNoteUserInSchema(userId: ObjectId, note: Maybe<NoteSchema>) {
+  return note?.users.find((noteUser) => noteUser._id.equals(userId));
+}
+
+export function findOldestNoteUser(note: Maybe<QueryResultDeep<QueryableNote>>) {
+  return note?.users?.reduce((oldest, user) => {
+    if (!user.createdAt) return oldest;
+    if (!oldest.createdAt) return user;
+    return oldest.createdAt < user.createdAt ? oldest : user;
+  });
+}
+
+export function findNoteTextFieldInSchema(note: Maybe<NoteSchema>, fieldName: string) {
+  if (!note) return;
+
+  const collabTexts = note.collab?.texts
+    .filter((text) => text.k === fieldName)
+    .map((collabText) => collabText.v);
+  return collabTexts?.[0];
+}
