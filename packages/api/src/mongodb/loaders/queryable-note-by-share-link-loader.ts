@@ -10,7 +10,7 @@ import { MongoDBContext } from '../context';
 import { LoaderEvents } from '../loaders';
 import { QueryResultDeep } from '../query/query';
 
-import { QueryableNote } from '../schema/note/query/queryable-note';
+import { QueryableNote } from '../descriptions/note';
 
 import {
   QueryableNoteByShareLinkLoadKey,

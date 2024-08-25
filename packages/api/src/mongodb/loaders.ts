@@ -18,9 +18,9 @@ import {
   QueryableUserLoaderKey,
 } from './loaders/queryable-user-loader';
 import { QueryResultDeep } from './query/query';
-import { QueryableNote } from './schema/note/query/queryable-note';
-import { QueryableUser } from './schema/user/query/queryable-user';
-import { QueryableSession } from './schema/session/query/queryable-session';
+import { QueryableNote } from './descriptions/note';
+import { QueryableUser } from './descriptions/user';
+import { QueryableSession } from './descriptions/session';
 import {
   QueryableSessionLoader,
   QueryableSessionLoaderKey,

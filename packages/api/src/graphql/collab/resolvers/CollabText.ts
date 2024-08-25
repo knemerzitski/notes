@@ -7,7 +7,7 @@ import {
 import { ObjectQueryDeep } from '../../../mongodb/query/query';
 import { PreFetchedArrayGetItemFn } from '../../utils/pre-execute';
 import { CollabTextRecordMapper } from '../schema.mappers';
-import { QueryableRevisionRecord } from '../../../mongodb/schema/collab-text/query/revision-record';
+import { QueryableRevisionRecord } from '../../../mongodb/descriptions/revision-record';
 
 export const CollabText: CollabTextResolvers = {
   headText: (parent) => {

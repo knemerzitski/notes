@@ -13,7 +13,7 @@ import { ObjectQueryDeep, QueryResultDeep } from '../query/query';
 import {
   QueryableUser,
   queryableUserDescription,
-} from '../schema/user/query/queryable-user';
+} from '../descriptions/user';
 
 import {
   PrimeOptions,

@@ -1,10 +1,10 @@
-import { CollectionName, MongoDBCollectionsOnlyNames } from '../../../collections';
-import { QueryableUserLoader } from '../../../loaders/queryable-user-loader';
-import { DeepAnyDescription } from '../../../query/description';
-import { ObjectQueryDeep, QueryResultDeep } from '../../../query/query';
-import { isQueryOnlyId } from '../../../query/utils/is-query-only-id';
-import { UserSchema } from '../../user';
-import { RevisionRecordSchema } from '../../collab-text';
+import { CollectionName, MongoDBCollectionsOnlyNames } from '../collections';
+import { QueryableUserLoader } from '../loaders/queryable-user-loader';
+import { DeepAnyDescription } from '../query/description';
+import { ObjectQueryDeep, QueryResultDeep } from '../query/query';
+import { isQueryOnlyId } from '../query/utils/is-query-only-id';
+import { UserSchema } from '../schema/user';
+import { RevisionRecordSchema } from '../schema/collab-text';
 
 export type QueryableRevisionRecord = Omit<RevisionRecordSchema, 'creatorUserId'> & {
   creatorUser: Pick<UserSchema, '_id' | 'thirdParty' | 'profile'>;

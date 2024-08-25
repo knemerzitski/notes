@@ -14,7 +14,7 @@ import { QueryResultDeep } from '../query/query';
 import {
   QueryableNote,
   queryableNoteDescription,
-} from '../schema/note/query/queryable-note';
+} from '../descriptions/note';
 
 import {
   QueryLoaderEvents,

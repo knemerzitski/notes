@@ -1,16 +1,12 @@
 import { isDefined } from '~utils/type-guards/is-defined';
-import { CollectionName, MongoDBCollectionsOnlyNames } from '../../../collections';
-import { QueryableUserLoader } from '../../../loaders/queryable-user-loader';
-import { DeepAnyDescription } from '../../../query/description';
-import { ObjectQueryDeep, QueryResultDeep } from '../../../query/query';
-import {
-  collabTextDescription,
-  QueryableCollabText,
-  queryWithCollabTextSchema,
-} from '../../collab-text/query/collab-text';
-import { UserSchema } from '../../user';
-import { NoteCollabSchema, NoteSchema } from '../../note';
-import { NoteUserSchema } from '../../note-user';
+import { CollectionName, MongoDBCollectionsOnlyNames } from '../collections';
+import { QueryableUserLoader } from '../loaders/queryable-user-loader';
+import { DeepAnyDescription } from '../query/description';
+import { ObjectQueryDeep, QueryResultDeep } from '../query/query';
+import { UserSchema } from '../schema/user';
+import { NoteCollabSchema, NoteSchema } from '../schema/note';
+import { NoteUserSchema } from '../schema/note-user';
+import { collabTextDescription, QueryableCollabText, queryWithCollabTextSchema } from './collab-text';
 
 export type QueryableNote = Omit<NoteSchema, 'collab' | 'users'> & {
   collab: QueryableNoteCollab;
@@ -41,7 +37,7 @@ export async function queryWithNoteSchema({
   if (!queryCollab || !collab) {
     return noteNoCollab;
   }
-
+  
   return {
     ...noteNoCollab,
     collab: await queryWithNoteCollabSchema({

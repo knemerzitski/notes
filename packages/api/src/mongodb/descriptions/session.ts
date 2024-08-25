@@ -1,6 +1,6 @@
-import { CollectionName, MongoDBCollectionsOnlyNames } from '../../../collections';
-import { DeepAnyDescription } from '../../../query/description';
-import { SessionSchema } from '../../session';
+import { CollectionName, MongoDBCollectionsOnlyNames } from '../collections';
+import { DeepAnyDescription } from '../query/description';
+import { SessionSchema } from '../schema/session';
 
 export type QueryableSession = SessionSchema;
 

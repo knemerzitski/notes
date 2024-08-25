@@ -29,7 +29,7 @@ import {
   QueryableNote,
   QueryableNoteContext,
   queryableNoteDescription,
-} from '../schema/note/query/queryable-note';
+} from '../descriptions/note';
 
 import {
   QueryLoader,

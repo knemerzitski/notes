@@ -14,7 +14,7 @@ import {
 import { groupByFirst } from '~utils/array/group-by';
 import mapObject from 'map-obj';
 import { insertNewNote } from '../../../../services/note/note';
-import { queryWithNoteSchema } from '../../../../mongodb/schema/note/query/queryable-note';
+import { queryWithNoteSchema } from '../../../../mongodb/descriptions/note';
 
 const _createNote: NonNullable<MutationResolvers['createNote']> = async (
   _parent,

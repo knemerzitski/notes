@@ -5,20 +5,19 @@ import { ObjectId } from 'mongodb';
 import { isEmptyDeep } from '~utils/object/is-empty-deep';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 
-import { CollectionName, MongoDBCollectionsOnlyNames } from '../../../collections';
-import {
-  relayArrayPaginationMapAggregateResult,
-  relayMultiArraySplit,
-  relayMultiArrayConcat,
-  isRelayArrayPaginationAggregateResult,
-  relayArrayPagination,
-  RelayPagination,
-} from '../../../pagination/relay-array-pagination';
-import { DeepAnyDescription } from '../../../query/description';
-import { QueryableNote, queryableNoteDescription } from '../../note/query/queryable-note';
-import { UserSchema } from '../../user';
-
 import { isDefined } from '~utils/type-guards/is-defined';
+import { MongoDBCollectionsOnlyNames, CollectionName } from '../collections';
+import {
+  RelayPagination,
+  relayArrayPagination,
+  relayMultiArrayConcat,
+  relayMultiArraySplit,
+  isRelayArrayPaginationAggregateResult,
+  relayArrayPaginationMapAggregateResult,
+} from '../pagination/relay-array-pagination';
+import { DeepAnyDescription } from '../query/description';
+import { UserSchema } from '../schema/user';
+import { QueryableNote, queryableNoteDescription } from './note';
 
 export type QueryableUser = Omit<UserSchema, 'notes'> & {
   notes: Omit<UserSchema['notes'], 'category'> & {

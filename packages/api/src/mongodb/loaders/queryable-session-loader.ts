@@ -21,7 +21,7 @@ import {
 import {
   QueryableSession,
   queryableSessionDescription,
-} from '../schema/session/query/queryable-session';
+} from '../descriptions/session';
 
 export interface QueryableSessionId {
   /**

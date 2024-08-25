@@ -1,22 +1,22 @@
 import { isDefined } from '~utils/type-guards/is-defined';
-import { CollectionName, MongoDBCollectionsOnlyNames } from '../../../collections';
+import { CollectionName, MongoDBCollectionsOnlyNames } from '../collections';
 import {
   consecutiveIntArrayPagination,
   consecutiveIntArrayPaginationMapAggregateResult,
-} from '../../../pagination/consecutive-int-array-pagination';
+} from '../pagination/consecutive-int-array-pagination';
 import {
   RelayArrayPaginationAggregateResult,
   RelayArrayPaginationInput,
   RelayPagination,
-} from '../../../pagination/relay-array-pagination';
-import { DeepAnyDescription } from '../../../query/description';
-import { CollabTextSchema, RevisionRecordSchema } from '../../collab-text';
+} from '../pagination/relay-array-pagination';
+import { DeepAnyDescription } from '../query/description';
+import { CollabTextSchema, RevisionRecordSchema } from '../schema/collab-text';
 import {
   QueryableRevisionRecord,
   queryWithRevisionRecordSchema,
 } from './revision-record';
-import { ObjectQueryDeep, QueryResultDeep } from '../../../query/query';
-import { QueryableUserLoader } from '../../../loaders/queryable-user-loader';
+import { ObjectQueryDeep, QueryResultDeep } from '../query/query';
+import { QueryableUserLoader } from '../loaders/queryable-user-loader';
 
 type RecordsPaginationOperationOptions = Omit<
   RelayArrayPaginationInput<number>,
