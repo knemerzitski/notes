@@ -8,8 +8,8 @@ export function findNoteTextField(
 ) {
   if (!note) return;
 
-  const collabTexts = note.collabTexts
-    ?.filter((collabText) => collabText.k === fieldName)
+  const collabTexts = note.collab?.texts
+    .filter((collabText) => collabText.k === fieldName)
     .map((collabText) => collabText.v);
   return collabTexts?.[0];
 }

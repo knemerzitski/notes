@@ -258,8 +258,6 @@ describe('no existing notes', () => {
     });
     expect(dbNote).toStrictEqual({
       _id: noteId,
-      collabUpdatedAt: expect.any(Date),
-      collabTexts: [],
       users: [
         {
           _id: user._id,
@@ -433,65 +431,67 @@ describe('no existing notes', () => {
           },
         },
       ],
-      collabUpdatedAt: expect.any(Date),
-      collabTexts: expect.arrayContaining([
-        {
-          k: NoteTextField.TITLE,
-          v: {
-            headText: {
-              changeset: Changeset.fromInsertion('initial title').serialize(),
-              revision: 1,
-            },
-            tailText: {
-              changeset: Changeset.EMPTY.serialize(),
-              revision: 0,
-            },
-            records: [
-              {
+      collab: {
+        updatedAt: expect.any(Date),
+        texts: expect.arrayContaining([
+          {
+            k: NoteTextField.TITLE,
+            v: {
+              headText: {
                 changeset: Changeset.fromInsertion('initial title').serialize(),
                 revision: 1,
-                creatorUserId: user._id,
-                userGeneratedId: expect.any(String),
-                beforeSelection: {
-                  start: 0,
-                },
-                afterSelection: {
-                  start: 13,
-                },
-                createdAt: expect.any(Date),
               },
-            ],
+              tailText: {
+                changeset: Changeset.EMPTY.serialize(),
+                revision: 0,
+              },
+              records: [
+                {
+                  changeset: Changeset.fromInsertion('initial title').serialize(),
+                  revision: 1,
+                  creatorUserId: user._id,
+                  userGeneratedId: expect.any(String),
+                  beforeSelection: {
+                    start: 0,
+                  },
+                  afterSelection: {
+                    start: 13,
+                  },
+                  createdAt: expect.any(Date),
+                },
+              ],
+            },
           },
-        },
-        {
-          k: NoteTextField.CONTENT,
-          v: {
-            headText: {
-              changeset: Changeset.fromInsertion('initial content').serialize(),
-              revision: 1,
-            },
-            tailText: {
-              changeset: Changeset.EMPTY.serialize(),
-              revision: 0,
-            },
-            records: [
-              {
+          {
+            k: NoteTextField.CONTENT,
+            v: {
+              headText: {
                 changeset: Changeset.fromInsertion('initial content').serialize(),
                 revision: 1,
-                creatorUserId: user._id,
-                userGeneratedId: expect.any(String),
-                beforeSelection: {
-                  start: 0,
-                },
-                afterSelection: {
-                  start: 15,
-                },
-                createdAt: expect.any(Date),
               },
-            ],
+              tailText: {
+                changeset: Changeset.EMPTY.serialize(),
+                revision: 0,
+              },
+              records: [
+                {
+                  changeset: Changeset.fromInsertion('initial content').serialize(),
+                  revision: 1,
+                  creatorUserId: user._id,
+                  userGeneratedId: expect.any(String),
+                  beforeSelection: {
+                    start: 0,
+                  },
+                  afterSelection: {
+                    start: 15,
+                  },
+                  createdAt: expect.any(Date),
+                },
+              ],
+            },
           },
-        },
-      ]),
+        ]),
+      },
     });
   });
 
@@ -563,37 +563,39 @@ describe('no existing notes', () => {
           createdAt: expect.any(Date),
         },
       ],
-      collabUpdatedAt: expect.any(Date),
-      collabTexts: expect.arrayContaining([
-        {
-          k: NoteTextField.CONTENT,
-          v: {
-            headText: {
-              changeset: Changeset.fromInsertion('a').serialize(),
-              revision: 1,
-            },
-            tailText: {
-              changeset: Changeset.EMPTY.serialize(),
-              revision: 0,
-            },
-            records: [
-              {
+      collab: {
+        updatedAt: expect.any(Date),
+        texts: expect.arrayContaining([
+          {
+            k: NoteTextField.CONTENT,
+            v: {
+              headText: {
                 changeset: Changeset.fromInsertion('a').serialize(),
                 revision: 1,
-                creatorUserId: user._id,
-                userGeneratedId: expect.any(String),
-                beforeSelection: {
-                  start: 0,
-                },
-                afterSelection: {
-                  start: 1,
-                },
-                createdAt: expect.any(Date),
               },
-            ],
+              tailText: {
+                changeset: Changeset.EMPTY.serialize(),
+                revision: 0,
+              },
+              records: [
+                {
+                  changeset: Changeset.fromInsertion('a').serialize(),
+                  revision: 1,
+                  creatorUserId: user._id,
+                  userGeneratedId: expect.any(String),
+                  beforeSelection: {
+                    start: 0,
+                  },
+                  afterSelection: {
+                    start: 1,
+                  },
+                  createdAt: expect.any(Date),
+                },
+              ],
+            },
           },
-        },
-      ]),
+        ]),
+      },
     });
   });
 

@@ -34,6 +34,7 @@ interface Category {
   order: ObjectId[];
 }
 
+// TODO move to services?
 /**
  *
  * @param category Enum value NoteCategory

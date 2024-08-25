@@ -3,8 +3,6 @@
 type Note {
   "Self-descriptive"
   id: ObjectID!
-  "Time when note was last updated"
-  updatedAt: DateTime!
 }
 
 ################################ Mutation createNote ################################

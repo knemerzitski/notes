@@ -19,6 +19,8 @@ extend input CreateNoteInput {
 type NoteCollab {
   "All available text fields. If arg: name is defined then only that field is returned."
   textFields(name: NoteTextField): [NoteTextFieldEntry!]!
+  "Any collaborative field last updated time"
+  updatedAt: DateTime!
 }
 
 input CreateNoteCollabInput {

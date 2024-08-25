@@ -37,13 +37,24 @@ export const NoteCollab: NoteCollabResolvers = {
           query: async (query) =>
             (
               await parent.query({
-                collabTexts: {
-                  [fieldName]: query,
+                collab: {
+                  texts: {
+                    [fieldName]: query,
+                  },
                 },
               })
-            )?.collabTexts?.[fieldName] ?? DEFAULT_COLLAB_TEXT,
+            )?.collab?.texts?.[fieldName] ?? DEFAULT_COLLAB_TEXT,
         },
       };
     });
+  },
+  updatedAt: async (parent, _arg, _ctx) => {
+    return (
+      await parent.query({
+        collab: {
+          updatedAt: 1,
+        },
+      })
+    )?.collab?.updatedAt;
   },
 };

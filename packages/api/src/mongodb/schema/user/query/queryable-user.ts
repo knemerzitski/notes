@@ -18,7 +18,6 @@ import { DeepAnyDescription } from '../../../query/description';
 import { QueryableNote, queryableNoteDescription } from '../../note/query/queryable-note';
 import { UserSchema } from '../user';
 
-import { User_NoteLookup, user_noteLookup } from './user-note-lookup';
 import { isDefined } from '~utils/type-guards/is-defined';
 
 export type QueryableUser = Omit<UserSchema, 'notes'> & {
@@ -27,7 +26,7 @@ export type QueryableUser = Omit<UserSchema, 'notes'> & {
       [Key in string]?: Omit<UserSchema['notes']['category'][Key], 'order'> & {
         order: {
           // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
-          items: User_NoteLookup<QueryableNote>[] & {
+          items: QueryableNote[] & {
             $pagination?: RelayPagination<ObjectId>;
           };
           firstId: ObjectId;
@@ -137,24 +136,36 @@ export const queryableUserDescription: DeepAnyDescription<
                         preserveNullAndEmptyArrays: true,
                       },
                     },
-                    // Lookup NoteUser
-                    ...user_noteLookup({
-                      collectionName: customContext.collections.notes.collectionName,
-                      fieldPath: `${concatUserNotesFieldPath}.array`,
-                      pipeline: [
-                        ...subStages({
-                          subPath: 'items',
-                        }),
-                        {
-                          $project: itemsProject,
+
+                    // Lookup Notes
+                    {
+                      $lookup: {
+                        from: customContext.collections.notes.collectionName,
+                        foreignField: '_id',
+                        localField: `${concatUserNotesFieldPath}.array`,
+                        as: `${concatUserNotesFieldPath}.array`,
+                        pipeline: [
+                          ...subStages({
+                            subPath: 'items',
+                          }),
+                          {
+                            $project: itemsProject,
+                          },
+                        ],
+                      },
+                    },
+                    {
+                      $set: {
+                        [`${concatUserNotesFieldPath}.array`]: {
+                          $arrayElemAt: [`$${concatUserNotesFieldPath}.array`, 0],
                         },
-                      ],
-                    }),
+                      },
+                    },
+
                     // Ensure array is in same order after $group
                     { $sort: { _index: 1 } },
                     {
                       $group: {
-                        _id: '$_id',
                         // Get first value from each document which are all same for user
                         ...(relativeQuery != null && typeof relativeQuery === 'object'
                           ? mapObject(relativeQuery, (key: string) => [
@@ -166,6 +177,7 @@ export const queryableUserDescription: DeepAnyDescription<
                         _array: {
                           $push: `$${concatUserNotesFieldPath}.array`,
                         },
+                        _id: '$_id',
                       },
                     },
                     // Put array back at path before unwind

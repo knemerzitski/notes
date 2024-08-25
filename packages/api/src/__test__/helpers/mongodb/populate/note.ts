@@ -2,7 +2,7 @@ import { ObjectId } from 'mongodb';
 
 import { isDefined } from '~utils/type-guards/is-defined';
 
-import { NoteSchema } from '../../../../mongodb/schema/note/note';
+import { NoteCollabSchema, NoteSchema } from '../../../../mongodb/schema/note/note';
 import { UserSchema } from '../../../../mongodb/schema/user/user';
 import { MongoPartialDeep } from '../../../../mongodb/types';
 import { mongoCollections } from '../mongodb';
@@ -13,7 +13,11 @@ import { populateQueue } from './populate-queue';
 import { fakeShareNoteLink } from './share-note-link';
 
 export interface FakeNoteOptions {
-  override?: MongoPartialDeep<Omit<NoteSchema, 'collabTexts'>>;
+  override?: MongoPartialDeep<
+    Omit<NoteSchema, 'collab'> & {
+      collab: Omit<NoteCollabSchema, 'texts'>;
+    }
+  >;
   collabTexts?: Record<string, FakeCollabTextOptions | undefined>;
 }
 
@@ -23,7 +27,6 @@ export function fakeNote(
 ): NoteSchema {
   return {
     _id: new ObjectId(),
-    collabUpdatedAt: new Date(),
     ...options?.override,
     users:
       options?.override?.users?.filter(isDefined).map((noteUser) => {
@@ -41,12 +44,16 @@ export function fakeNote(
           }),
         };
       }) ?? [],
-    ...(options?.collabTexts && {
-      collabTexts: Object.entries(options.collabTexts).map(([key, value]) => ({
-        k: key,
-        v: fakeCollabText(fallbackUser._id, value),
-      })),
-    }),
+    collab: {
+      updatedAt: new Date(),
+      ...options?.override?.collab,
+      texts: options?.collabTexts
+        ? Object.entries(options.collabTexts).map(([key, value]) => ({
+            k: key,
+            v: fakeCollabText(fallbackUser._id, value),
+          }))
+        : [],
+    },
     shareNoteLinks:
       options?.override?.shareNoteLinks?.filter(isDefined).map((shareNoteLink) => ({
         ...fakeShareNoteLink(fallbackUser),

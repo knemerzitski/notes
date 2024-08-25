@@ -7,7 +7,7 @@ import {
 
 interface CreateCollabTextParams {
   creatorUserId: RevisionRecordSchema['creatorUserId'];
-  initalText: string;
+  initialText: string;
   afterSelection?: SelectionRangeSchema;
 }
 
@@ -15,13 +15,13 @@ interface CreateCollabTextParams {
  * Create CollabText with inital values
  */
 export function createCollabText({
-  initalText,
+  initialText,
   creatorUserId,
   afterSelection,
 }: CreateCollabTextParams): CollabTextSchema & {
   records: [RevisionRecordSchema, ...RevisionRecordSchema[]];
 } {
-  const changeset = Changeset.fromInsertion(initalText).serialize();
+  const changeset = Changeset.fromInsertion(initialText).serialize();
   return {
     headText: {
       revision: 1,
@@ -41,7 +41,7 @@ export function createCollabText({
           start: 0,
         },
         afterSelection: afterSelection ?? {
-          start: initalText.length,
+          start: initialText.length,
         },
         createdAt: new Date(),
       },

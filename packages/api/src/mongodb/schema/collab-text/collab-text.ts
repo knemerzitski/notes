@@ -23,6 +23,10 @@ export type RevisionRecordSchema<T = unknown> = Omit<
   creatorUserId: ObjectId;
   beforeSelection: SelectionRangeSchema;
   afterSelection: SelectionRangeSchema;
+  /**
+   * When record was inserted to DB
+   */
+  createdAt: Date;
 };
 export type SelectionRangeSchema = PartialBy<SelectionRange, 'end'>;
 export type ChangesetSchema = Changeset;

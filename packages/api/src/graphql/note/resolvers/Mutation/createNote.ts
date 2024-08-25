@@ -1,23 +1,20 @@
-import { isDefined } from '~utils/type-guards/is-defined';
-import { createCollabText } from '../../../../services/collab/collab';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import {
   NoteCategory,
   ResolversTypes,
   type MutationResolvers,
 } from './../../../types.generated';
-import { NoteUserSchema } from '../../../../mongodb/schema/note/note-user';
-import { NoteSchema } from '../../../../mongodb/schema/note/note';
-import { ObjectId } from 'mongodb';
-import { getNotesArrayPath } from '../../../../mongodb/schema/user/user';
 import { NoteMapper } from '../../schema.mappers';
 import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';
-import { isQueryOnlyId } from '../../../../mongodb/query/utils/is-query-only-id';
 import { wrapRetryOnErrorAsync } from '~utils/wrap-retry-on-error';
 import {
   retryOnMongoError,
   MongoErrorCodes,
 } from '../../../../mongodb/utils/retry-on-mongo-error';
+import { groupByFirst } from '~utils/array/group-by';
+import mapObject from 'map-obj';
+import { insertNewNote } from '../../../../services/note/note';
+import { queryWithNoteSchema } from '../../../../mongodb/schema/note/query/queryable-note';
 
 const _createNote: NonNullable<MutationResolvers['createNote']> = async (
   _parent,
@@ -31,118 +28,28 @@ const _createNote: NonNullable<MutationResolvers['createNote']> = async (
 
   const currentUserId = auth.session.userId;
 
-  const seenTextFieldKeys = new Set<string>();
+  const initialTextByTextField = input.collab?.textFields
+    ? mapObject(
+        groupByFirst(input.collab.textFields, (field) => field.key),
+        (key, entry) => [key, { initialText: entry.value.initialText }]
+      )
+    : null;
 
-  const textFieldEntries =
-    input.collab?.textFields
-      ?.map((textField) => {
-        if (seenTextFieldKeys.has(textField.key)) {
-          return;
-        }
-        seenTextFieldKeys.add(textField.key);
-
-        return {
-          k: textField.key,
-          v: createCollabText({
-            creatorUserId: currentUserId,
-            initalText: textField.value.initialText,
-          }),
-        };
-      })
-      .filter(isDefined) ?? [];
-
-  // TODO a service
-  const noteUser: NoteUserSchema = {
-    _id: currentUserId,
-    createdAt: new Date(),
-    ...(input.userNoteLink?.preferences && {
-      preferences: {
-        ...input.userNoteLink.preferences,
-        backgroundColor: input.userNoteLink.preferences.backgroundColor ?? undefined,
-      },
-    }),
+  const note = await insertNewNote({
+    mongoDB,
+    userId: currentUserId,
     categoryName: input.userNoteLink?.categoryName ?? NoteCategory.DEFAULT,
-  };
-
-  // TODO a service?
-  const note: NoteSchema = {
-    _id: new ObjectId(),
-    users: [noteUser],
-    collabUpdatedAt: new Date(),
-    collabTexts: textFieldEntries,
-  };
-
-  // TODO a service
-  await mongoDB.client.withSession((session) =>
-    session.withTransaction(async (session) => {
-      // First request must not be done in parallel or you get NoSuchTransaction error
-      await mongoDB.collections.notes.insertOne(note, { session });
-
-      // Now can do requests in parellel
-      await mongoDB.collections.users.updateOne(
-        {
-          _id: currentUserId,
-        },
-        {
-          $push: {
-            [getNotesArrayPath(noteUser.categoryName)]: note._id,
-          },
-        },
-        { session }
-      );
-    })
-  );
-
-  const note_collabKeyed = {
-    ...note,
-    collabTexts: Object.fromEntries(
-      textFieldEntries.map((collabText) => [collabText.k, collabText.v])
-    ),
-  };
+    backgroundColor: input.userNoteLink?.preferences?.backgroundColor,
+    collabTexts: initialTextByTextField,
+  });
 
   const noteMapper: NoteMapper = {
-    query: async (query) => {
-      const queryCollabTexts = query.collabTexts;
-      if (!queryCollabTexts || Object.keys(note_collabKeyed.collabTexts).length === 0) {
-        return note_collabKeyed;
-      }
-
-      // Load record creatorUser if queried
-      return {
-        ...note_collabKeyed,
-        collabTexts: Object.fromEntries(
-          await Promise.all(
-            Object.entries(note_collabKeyed.collabTexts).map(async ([key, value]) => {
-              const collabText = note_collabKeyed.collabTexts[key];
-              const queryCreatorUser = queryCollabTexts[key]?.records?.creatorUser;
-              if (!collabText || !queryCreatorUser) {
-                return [key, value];
-              }
-
-              return [
-                key,
-                {
-                  ...collabText,
-                  records: await Promise.all(
-                    collabText.records.map(async (record) => ({
-                      ...record,
-                      creatorUser: isQueryOnlyId(queryCreatorUser)
-                        ? { _id: record.creatorUserId }
-                        : await mongoDB.loaders.user.load({
-                            id: {
-                              userId: record.creatorUserId,
-                            },
-                            query: queryCreatorUser,
-                          }),
-                    }))
-                  ),
-                },
-              ];
-            })
-          )
-        ),
-      };
-    },
+    query: (query) =>
+      queryWithNoteSchema({
+        query,
+        note,
+        userLoader: mongoDB.loaders.user,
+      }),
   };
 
   const payload: ResolversTypes['SignedInUserMutations'] = {

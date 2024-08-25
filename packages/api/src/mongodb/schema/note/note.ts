@@ -14,15 +14,27 @@ export interface NoteSchema {
    */
   users: NoteUserSchema[];
   /**
-   * Collaborative editing texts by field name.
-   * Using array instead of map for easier indexing. \
-   * GraphQL uses enum NoteTextField for key.
+   * Note collaborative schema
    */
-  collabTexts?: Entry<string, CollabTextSchema>[];
+  collab?: NoteCollabSchema;
+
   /**
    * Note sharing via links
    */
   shareNoteLinks?: ShareNoteLinkSchema[];
+}
+
+export interface NoteCollabSchema {
+  /**
+   * Collaborative editing texts by field name.
+   * Using array instead of map for easier indexing. \
+   * GraphQL uses enum NoteTextField for key.
+   */
+  texts: Entry<string, CollabTextSchema>[];
+  /**
+   * Time when collabTexts was last updated
+   */
+  updatedAt?: Date;
 }
 
 export const noteDescription: CollectionDescription = {
