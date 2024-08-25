@@ -13,8 +13,7 @@ import {
 } from '../../../../mongodb/utils/retry-on-mongo-error';
 import { groupByFirst } from '~utils/array/group-by';
 import mapObject from 'map-obj';
-import { insertNewNote } from '../../../../services/note/note';
-import { queryWithNoteSchema } from '../../../../mongodb/descriptions/note';
+import { insertNewNote, queryWithNoteSchema } from '../../../../services/note/note';
 
 const _createNote: NonNullable<MutationResolvers['createNote']> = async (
   _parent,

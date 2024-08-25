@@ -1,7 +1,5 @@
 import { CollectionName, MongoDBCollectionsOnlyNames } from '../collections';
-import { QueryableUserLoader } from '../loaders/queryable-user-loader';
 import { DeepAnyDescription } from '../query/description';
-import { ObjectQueryDeep, QueryResultDeep } from '../query/query';
 import { isQueryOnlyId } from '../query/utils/is-query-only-id';
 import { UserSchema } from '../schema/user';
 import { RevisionRecordSchema } from '../schema/collab-text';
@@ -9,45 +7,6 @@ import { RevisionRecordSchema } from '../schema/collab-text';
 export type QueryableRevisionRecord = Omit<RevisionRecordSchema, 'creatorUserId'> & {
   creatorUser: Pick<UserSchema, '_id' | 'thirdParty' | 'profile'>;
 };
-
-export interface QueryWithRevisionRecordSchemaParams {
-  query: ObjectQueryDeep<QueryableRevisionRecord>;
-  record: RevisionRecordSchema;
-  userLoader: QueryableUserLoader;
-}
-
-export async function queryWithRevisionRecordSchema({
-  query,
-  record,
-  userLoader,
-}: QueryWithRevisionRecordSchemaParams): Promise<QueryResultDeep<QueryableRevisionRecord>> {
-  const queryCreatorUser = query.creatorUser;
-  if (!queryCreatorUser) {
-    return record;
-  }
-
-  if (isQueryOnlyId(queryCreatorUser)) {
-    return {
-      ...record,
-      creatorUser: { _id: record.creatorUserId },
-    };
-  }
-
-  const creatorUser = await userLoader.load({
-    id: {
-      userId: record.creatorUserId,
-    },
-    query: queryCreatorUser,
-  });
-  if (!creatorUser) {
-    return record;
-  }
-
-  return {
-    ...record,
-    creatorUser,
-  };
-}
 
 export interface QueryableRevisionRecordContext {
   collections: Pick<MongoDBCollectionsOnlyNames, CollectionName.USERS>;

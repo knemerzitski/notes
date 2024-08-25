@@ -1,12 +1,9 @@
-import { isDefined } from '~utils/type-guards/is-defined';
 import { CollectionName, MongoDBCollectionsOnlyNames } from '../collections';
-import { QueryableUserLoader } from '../loaders/queryable-user-loader';
 import { DeepAnyDescription } from '../query/description';
-import { ObjectQueryDeep, QueryResultDeep } from '../query/query';
 import { UserSchema } from '../schema/user';
 import { NoteCollabSchema, NoteSchema } from '../schema/note';
 import { NoteUserSchema } from '../schema/note-user';
-import { collabTextDescription, QueryableCollabText, queryWithCollabTextSchema } from './collab-text';
+import { collabTextDescription, QueryableCollabText } from './collab-text';
 
 export type QueryableNote = Omit<NoteSchema, 'collab' | 'users'> & {
   collab: QueryableNoteCollab;
@@ -20,74 +17,6 @@ export type QueryableNoteUser = NoteUserSchema & {
 export type QueryableNoteCollab = Omit<NoteCollabSchema, 'texts'> & {
   texts: Record<NoteCollabSchema['texts'][0]['k'], QueryableCollabText>;
 };
-
-interface QueryWithNoteSchemaParams {
-  query: ObjectQueryDeep<QueryableNote>;
-  note: NoteSchema;
-  userLoader: QueryableUserLoader;
-}
-
-export async function queryWithNoteSchema({
-  query,
-  note,
-  userLoader,
-}: QueryWithNoteSchemaParams): Promise<QueryResultDeep<QueryableNote>> {
-  const queryCollab = query.collab;
-  const { collab, ...noteNoCollab } = note;
-  if (!queryCollab || !collab) {
-    return noteNoCollab;
-  }
-  
-  return {
-    ...noteNoCollab,
-    collab: await queryWithNoteCollabSchema({
-      query: queryCollab,
-      collab,
-      userLoader,
-    }),
-  };
-}
-
-interface QueryWithNoteCollabSchemaParams {
-  query: ObjectQueryDeep<QueryableNoteCollab>;
-  collab: NoteCollabSchema;
-  userLoader: QueryableUserLoader;
-}
-
-export async function queryWithNoteCollabSchema({
-  query,
-  collab,
-  userLoader,
-}: QueryWithNoteCollabSchemaParams): Promise<QueryResultDeep<QueryableNoteCollab>> {
-  const queryTexts = query.texts;
-  const { texts, ...collabNoTexts } = collab;
-  if (!queryTexts) {
-    return collabNoTexts;
-  }
-
-  return {
-    ...collab,
-    texts: Object.fromEntries(
-      (
-        await Promise.all(
-          collab.texts.map(async ({ k, v }) => {
-            const queryText = queryTexts[k];
-            if (!queryText) return;
-
-            return [
-              k,
-              await queryWithCollabTextSchema({
-                query: queryText,
-                collabText: v,
-                userLoader,
-              }),
-            ];
-          })
-        )
-      ).filter(isDefined)
-    ),
-  };
-}
 
 export interface QueryableNoteContext {
   collections: Pick<

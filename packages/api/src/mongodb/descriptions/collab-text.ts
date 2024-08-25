@@ -11,12 +11,8 @@ import {
 } from '../pagination/relay-array-pagination';
 import { DeepAnyDescription } from '../query/description';
 import { CollabTextSchema, RevisionRecordSchema } from '../schema/collab-text';
-import {
-  QueryableRevisionRecord,
-  queryWithRevisionRecordSchema,
-} from './revision-record';
-import { ObjectQueryDeep, QueryResultDeep } from '../query/query';
-import { QueryableUserLoader } from '../loaders/queryable-user-loader';
+import { QueryableRevisionRecord } from './revision-record';
+import { QueryResultDeep } from '../query/query';
 
 type RecordsPaginationOperationOptions = Omit<
   RelayArrayPaginationInput<number>,
@@ -58,36 +54,6 @@ export type QueryableCollabText = Omit<CollabTextSchema, 'records'> & {
     $pagination?: RelayPagination<number>;
   })[];
 };
-
-export interface QueryWithCollabTextSchemaParams {
-  query: ObjectQueryDeep<QueryableCollabText>;
-  collabText: CollabTextSchema;
-  userLoader: QueryableUserLoader;
-}
-
-export async function queryWithCollabTextSchema({
-  query,
-  collabText,
-  userLoader,
-}: QueryWithCollabTextSchemaParams): Promise<QueryResultDeep<QueryableCollabText>> {
-  const queryRecords = query.records;
-  if (!queryRecords) {
-    return collabText;
-  }
-
-  return {
-    ...collabText,
-    records: await Promise.all(
-      collabText.records.map((record) =>
-        queryWithRevisionRecordSchema({
-          query: queryRecords,
-          record,
-          userLoader,
-        })
-      )
-    ),
-  };
-}
 
 export interface QueryableCollabTextContext {
   collections: Pick<MongoDBCollectionsOnlyNames, CollectionName.USERS>;
