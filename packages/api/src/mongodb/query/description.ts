@@ -36,6 +36,8 @@ export interface FieldDescription<
   >;
 }
 
+// TODO rename to AnyDescriptionDeep, suffix Deep
+
 export type DeepAnyDescription<T, R = unknown, C = unknown> = T extends (infer U)[]
   ? DeepAnyDescription<U, R, C>
   : T extends MongoPrimitive
@@ -55,3 +57,4 @@ type DeepObjectDescription<T extends object, R, C> = FieldDescription<T, R, C> &
     },
     QueryArgPrefix
   >;
+// must not omit $here?

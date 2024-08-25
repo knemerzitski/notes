@@ -23,6 +23,7 @@ export function fakeNote(
 ): NoteSchema {
   return {
     _id: new ObjectId(),
+    collabUpdatedAt: new Date(),
     ...options?.override,
     users:
       options?.override?.users?.filter(isDefined).map((noteUser) => {

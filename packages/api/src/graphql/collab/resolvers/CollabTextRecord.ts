@@ -1,4 +1,3 @@
-import { objectIdToStr } from '../../base/resolvers/ObjectID';
 import { maybeCallFn } from '~utils/maybe-call-fn';
 
 import type { CollabTextRecordResolvers } from './../../types.generated';
@@ -44,7 +43,21 @@ export const CollabTextRecord: CollabTextRecordResolvers = {
       query: (query) => parent.query(query),
     };
   },
-  creatorUserId: async (parent) => {
-    return objectIdToStr((await parent.query({ creatorUserId: 1 }))?.creatorUserId);
+  creatorUser: (parent, _arg, _ctx) => {
+    return {
+      query: async (query) =>
+        (
+          await parent.query({
+            creatorUser: query,
+          })
+        )?.creatorUser,
+    };
+  },
+  createdAt: async (parent, _arg, _ctx) => {
+    return (
+      await parent.query({
+        createdAt: 1,
+      })
+    )?.createdAt;
   },
 };

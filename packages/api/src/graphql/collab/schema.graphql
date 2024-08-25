@@ -33,12 +33,14 @@ type CollabTextRecord implements Node {
   id: ID!
   "User who created this record"
   creatorUser: PublicUser!
-  "Changes of the record"
+  "Changes this record makes to the text"
   change: RevisionChangeset!
   "Selection before changeset is composed"
   beforeSelection: CollabTextSelectionRange!
   "Selection after changeset is composed"
   afterSelection: CollabTextSelectionRange!
+  "Time when this record was created"
+  createdAt: DateTime!
 }
 
 input CollabTextRecordInput {

@@ -1,22 +1,22 @@
 import { MongoQueryFn } from '../../mongodb/query/query';
 import {
   RevisionChangesetSchema,
-  RevisionRecordSchema,
   SelectionRangeSchema,
 } from '../../mongodb/schema/collab-text/collab-text';
 import { ResolverTypeWrapper, ResolversTypes } from '../types.generated';
-import { QueryableCollabTextSchema } from '../../mongodb/schema/collab-text/query/collab-text';
+import { QueryableCollabText } from '../../mongodb/schema/collab-text/query/collab-text';
 import { RelayBoundPagination } from '../../mongodb/pagination/relay-array-pagination';
 import { PreFetchedArrayGetItemFn } from '../utils/pre-execute';
+import { QueryableRevisionRecord } from '../../mongodb/schema/collab-text/query/revision-record';
 
 export interface CollabTextMapper {
   readonly id: ResolverTypeWrapper<string>;
-  readonly query: MongoQueryFn<QueryableCollabTextSchema>;
+  readonly query: MongoQueryFn<QueryableCollabText>;
 }
 
 export interface CollabTextRecordMapper {
   readonly parentId: ResolverTypeWrapper<string>;
-  readonly query: MongoQueryFn<RevisionRecordSchema>;
+  readonly query: MongoQueryFn<QueryableRevisionRecord>;
 }
 
 export interface RevisionChangesetMapper {

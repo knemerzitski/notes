@@ -49,6 +49,7 @@ export function fakeCollabText(
       userGeneratedId: faker.string.nanoid(6),
       revision: headRevision,
       changeset: headChangeset,
+      createdAt: new Date(),
       ...options,
       beforeSelection: {
         start: 0,

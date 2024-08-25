@@ -1,6 +1,8 @@
 import { Db, MongoClient, MongoClientOptions } from 'mongodb';
 import { Logger } from '~utils/logger';
 
+// TODO rename to simply context?
+
 export interface MongoDBContextParams<TCollections> {
   uri: string;
   options?: MongoClientOptions;

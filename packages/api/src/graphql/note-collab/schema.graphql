@@ -21,7 +21,7 @@ type NoteCollab {
   textFields(name: NoteTextField): [NoteTextFieldEntry!]!
 }
 
-type CreateNoteCollabInput {
+input CreateNoteCollabInput {
   "Initial note text fields"
   textFields: [CreateNoteTextFieldEntryInput!]
 }
