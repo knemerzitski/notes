@@ -13,6 +13,8 @@ export interface Entry<Key, Value> {
 
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
+export type WithRequired<T, TKey extends keyof T> = T & { [Key in TKey]-?: T[Key] };
+
 export type ReplaceDeep<T, Source, Target> = T extends Source
   ? Target
   : T extends (infer U)[]

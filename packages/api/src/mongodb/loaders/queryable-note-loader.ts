@@ -11,10 +11,7 @@ import { mapQueryAggregateResult } from '../query/map-query-aggregate-result';
 import { MergedObjectQueryDeep, mergeQueries } from '../query/merge-queries';
 import { mergedQueryToPipeline } from '../query/merged-query-to-pipeline';
 import { QueryResultDeep } from '../query/query';
-import {
-  QueryableNote,
-  queryableNoteDescription,
-} from '../descriptions/note';
+import { QueryableNote, queryableNoteDescription } from '../descriptions/note';
 
 import {
   QueryLoaderEvents,

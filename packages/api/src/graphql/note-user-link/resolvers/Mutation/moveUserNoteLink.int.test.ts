@@ -18,14 +18,13 @@ import {
 import { mockResolver } from '../../../../__test__/helpers/graphql/mock-resolver';
 import {
   expectGraphQLResponseData,
-  expectGraphQLResponseErrorMessage,
+  expectGraphQLResponseError,
 } from '../../../../__test__/helpers/graphql/response';
 import {
   mongoCollections,
   mongoCollectionStats,
   resetDatabase,
 } from '../../../../__test__/helpers/mongodb/mongodb';
-import { findNoteUser } from '../../../../__test__/helpers/mongodb/note';
 import { fakeNotePopulateQueue } from '../../../../__test__/helpers/mongodb/populate/note';
 import {
   populateNotes,
@@ -33,33 +32,31 @@ import {
 } from '../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
-import { NoteSchema } from '../../../../mongodb/schema/note/note';
-import { UserSchema } from '../../../../mongodb/schema/user/user';
-import { objectIdToStr } from '../../../base/resolvers/ObjectID';
-import { SubscriptionTopicPrefix } from '../../../subscriptions';
+import { NoteSchema } from '../../../../mongodb/schema/note';
+import { UserSchema } from '../../../../mongodb/schema/user';
 import {
   ListAnchorPosition,
-  MoveNoteInput,
-  MoveNotePayload,
   MovableNoteCategory,
+  MoveUserNoteLinkInput,
+  MoveUserNoteLinkPayload,
   NoteCategory,
 } from '../../../types.generated';
-
-import { moveNote } from './moveNote';
+import { findNoteUserInSchema, UserNoteLink_id } from '../../../../services/note/note';
+import { getTopicForUser } from '../../../user/resolvers/Subscription/signedInUserEvents';
+import { moveUserNoteLink } from './moveUserNoteLink';
 
 const MUTATION = `#graphql
-  mutation($input: MoveNoteInput!){
-    moveNote(input: $input) {
+  mutation($input: MoveUserNoteLinkInput!){
+    moveUserNoteLink(input: $input) {
       location {
         categoryName
-        anchorNote {
+        anchorUserNoteLink {
           id
         }
         anchorPosition
       }
-      note {
+      userNoteLink {
         id
-        noteId
         categoryName
         deletedAt
       }
@@ -69,25 +66,25 @@ const MUTATION = `#graphql
 
 const SUBSCRIPTION = `#graphql
   subscription {
-    noteEvents {
-      events {
-        __typename
-        ... on NoteUpdatedEvent {
-          note {
-            id
-            location {
-              categoryName
-              anchorNote {
-                id
-              }
-              anchorPosition  
-            }
-            categoryName
-            deletedAt
-          }
+  signedInUserEvents {
+    mutations {
+      __typename
+      ... on MoveUserNoteLinkPayload {
+        location {
+        categoryName
+        anchorUserNoteLink {
+          id
+        }
+        anchorPosition
+        }
+        userNoteLink {
+          id
+          categoryName
+          deletedAt
         }
       }
-    }    
+    }
+  }   
   }
 `;
 
@@ -128,15 +125,15 @@ beforeEach(async () => {
 });
 
 async function executeOperation(
-  input?: MoveNoteInput,
+  input?: MoveUserNoteLinkInput,
   options?: CreateGraphQLResolversContextOptions,
   query: string = MUTATION
 ) {
   return await apolloServer.executeOperation<
     {
-      moveNote: MoveNotePayload;
+      moveUserNoteLink: MoveUserNoteLinkPayload;
     },
-    { input?: MoveNoteInput }
+    { input?: MoveUserNoteLinkInput }
   >(
     {
       query,
@@ -149,8 +146,6 @@ async function executeOperation(
     }
   );
 }
-
-// TODO test without categoryname, also move out of trash..
 
 describe('note in normal categories', () => {
   let userNoAccess: UserSchema;
@@ -193,19 +188,16 @@ describe('note in normal categories', () => {
 
     // Response
     expect(data).toEqual({
-      moveNote: {
+      moveUserNoteLink: {
         location: {
           categoryName: MovableNoteCategory.ARCHIVE,
           anchorPosition: ListAnchorPosition.AFTER,
-          anchorNote: {
-            id: `${objectIdToStr(userBaseArchiveNoteIds.at(-1))}:${objectIdToStr(
-              user._id
-            )}`,
+          anchorUserNoteLink: {
+            id: UserNoteLink_id(userBaseArchiveNoteIds.at(-1)!, user._id),
           },
         },
-        note: {
-          id: `${objectIdToStr(note._id)}:${objectIdToStr(user._id)}`,
-          noteId: objectIdToStr(note._id),
+        userNoteLink: {
+          id: UserNoteLink_id(note._id, user._id),
           categoryName: MovableNoteCategory.ARCHIVE,
           deletedAt: null,
         },
@@ -238,7 +230,7 @@ describe('note in normal categories', () => {
     const dbNote = await mongoCollections.notes.findOne({
       _id: note._id,
     });
-    const dbNoteUser = findNoteUser(user._id, dbNote);
+    const dbNoteUser = findNoteUserInSchema(user._id, dbNote);
     expect(dbNoteUser?.categoryName, 'Category was not updated in Note').toStrictEqual(
       MovableNoteCategory.ARCHIVE
     );
@@ -264,17 +256,16 @@ describe('note in normal categories', () => {
 
     // Response
     expect(data).toEqual({
-      moveNote: {
+      moveUserNoteLink: {
         location: {
           categoryName: MovableNoteCategory.ARCHIVE,
           anchorPosition: ListAnchorPosition.BEFORE,
-          anchorNote: {
-            id: `${objectIdToStr(userBaseArchiveNoteIds[1])}:${objectIdToStr(user._id)}`,
+          anchorUserNoteLink: {
+            id: UserNoteLink_id(userBaseArchiveNoteIds[1]!, user._id),
           },
         },
-        note: {
-          id: `${objectIdToStr(note._id)}:${objectIdToStr(user._id)}`,
-          noteId: objectIdToStr(note._id),
+        userNoteLink: {
+          id: UserNoteLink_id(note._id, user._id),
           categoryName: MovableNoteCategory.ARCHIVE,
           deletedAt: null,
         },
@@ -311,7 +302,7 @@ describe('note in normal categories', () => {
     const dbNote = await mongoCollections.notes.findOne({
       _id: note._id,
     });
-    const dbNoteUser = findNoteUser(user._id, dbNote);
+    const dbNoteUser = findNoteUserInSchema(user._id, dbNote);
     expect(dbNoteUser?.categoryName, 'Category was not updated in Note').toStrictEqual(
       MovableNoteCategory.ARCHIVE
     );
@@ -336,17 +327,16 @@ describe('note in normal categories', () => {
 
     // Response
     expect(data).toEqual({
-      moveNote: {
+      moveUserNoteLink: {
         location: {
           categoryName: MovableNoteCategory.DEFAULT,
           anchorPosition: ListAnchorPosition.AFTER,
-          anchorNote: {
-            id: `${objectIdToStr(userBaseDefaultNoteIds[0])}:${objectIdToStr(user._id)}`,
+          anchorUserNoteLink: {
+            id: UserNoteLink_id(userBaseDefaultNoteIds[0]!, user._id),
           },
         },
-        note: {
-          id: `${objectIdToStr(note._id)}:${objectIdToStr(user._id)}`,
-          noteId: objectIdToStr(note._id),
+        userNoteLink: {
+          id: UserNoteLink_id(note._id, user._id),
           categoryName: MovableNoteCategory.DEFAULT,
           deletedAt: null,
         },
@@ -383,7 +373,7 @@ describe('note in normal categories', () => {
     const dbNote = await mongoCollections.notes.findOne({
       _id: note._id,
     });
-    const dbNoteUser = findNoteUser(user._id, dbNote);
+    const dbNoteUser = findNoteUserInSchema(user._id, dbNote);
     expect(dbNoteUser?.categoryName).toStrictEqual(MovableNoteCategory.DEFAULT);
   });
 
@@ -406,19 +396,16 @@ describe('note in normal categories', () => {
 
     // Response
     expect(data).toEqual({
-      moveNote: {
+      moveUserNoteLink: {
         location: {
           categoryName: MovableNoteCategory.ARCHIVE,
           anchorPosition: ListAnchorPosition.AFTER,
-          anchorNote: {
-            id: `${objectIdToStr(userBaseArchiveNoteIds.at(-1))}:${objectIdToStr(
-              user._id
-            )}`,
+          anchorUserNoteLink: {
+            id: UserNoteLink_id(userBaseArchiveNoteIds.at(-1)!, user._id),
           },
         },
-        note: {
-          id: `${objectIdToStr(note._id)}:${objectIdToStr(user._id)}`,
-          noteId: objectIdToStr(note._id),
+        userNoteLink: {
+          id: UserNoteLink_id(note._id, user._id),
           categoryName: MovableNoteCategory.ARCHIVE,
           deletedAt: null,
         },
@@ -451,7 +438,7 @@ describe('note in normal categories', () => {
     const dbNote = await mongoCollections.notes.findOne({
       _id: note._id,
     });
-    const dbNoteUser = findNoteUser(user._id, dbNote);
+    const dbNoteUser = findNoteUserInSchema(user._id, dbNote);
     expect(dbNoteUser?.categoryName).toStrictEqual(MovableNoteCategory.ARCHIVE);
   });
 
@@ -474,17 +461,16 @@ describe('note in normal categories', () => {
 
     // Response
     expect(data).toEqual({
-      moveNote: {
+      moveUserNoteLink: {
         location: {
           categoryName: MovableNoteCategory.DEFAULT,
           anchorPosition: ListAnchorPosition.AFTER,
-          anchorNote: {
-            id: `${objectIdToStr(note._id)}:${objectIdToStr(user._id)}`,
+          anchorUserNoteLink: {
+            id: UserNoteLink_id(note._id, user._id),
           },
         },
-        note: {
-          id: `${objectIdToStr(userBaseDefaultNoteIds[0])}:${objectIdToStr(user._id)}`,
-          noteId: objectIdToStr(userBaseDefaultNoteIds[0]),
+        userNoteLink: {
+          id: UserNoteLink_id(userBaseDefaultNoteIds[0]!, user._id),
           categoryName: MovableNoteCategory.DEFAULT,
           deletedAt: null,
         },
@@ -521,7 +507,7 @@ describe('note in normal categories', () => {
     const dbNote = await mongoCollections.notes.findOne({
       _id: userBaseDefaultNoteIds[0],
     });
-    const dbNoteUser = findNoteUser(user._id, dbNote);
+    const dbNoteUser = findNoteUserInSchema(user._id, dbNote);
     expect(dbNoteUser?.categoryName).toStrictEqual(MovableNoteCategory.DEFAULT);
   });
 
@@ -544,15 +530,14 @@ describe('note in normal categories', () => {
 
     // Response
     expect(data).toEqual({
-      moveNote: {
+      moveUserNoteLink: {
         location: {
           categoryName: MovableNoteCategory.DEFAULT,
           anchorPosition: null,
-          anchorNote: null,
+          anchorUserNoteLink: null,
         },
-        note: {
-          id: `${objectIdToStr(note._id)}:${objectIdToStr(user._id)}`,
-          noteId: objectIdToStr(note._id),
+        userNoteLink: {
+          id: UserNoteLink_id(note._id, user._id),
           categoryName: MovableNoteCategory.DEFAULT,
           deletedAt: null,
         },
@@ -585,7 +570,7 @@ describe('note in normal categories', () => {
     const dbNote = await mongoCollections.notes.findOne({
       _id: note._id,
     });
-    const dbNoteUser = findNoteUser(user._id, dbNote);
+    const dbNoteUser = findNoteUserInSchema(user._id, dbNote);
     expect(dbNoteUser?.categoryName).toStrictEqual(MovableNoteCategory.DEFAULT);
   });
 
@@ -606,15 +591,14 @@ describe('note in normal categories', () => {
 
     // Response
     expect(data).toEqual({
-      moveNote: {
+      moveUserNoteLink: {
         location: {
           categoryName: MovableNoteCategory.DEFAULT,
           anchorPosition: null,
-          anchorNote: null,
+          anchorUserNoteLink: null,
         },
-        note: {
-          id: `${objectIdToStr(note._id)}:${objectIdToStr(user._id)}`,
-          noteId: objectIdToStr(note._id),
+        userNoteLink: {
+          id: UserNoteLink_id(note._id, user._id),
           categoryName: MovableNoteCategory.DEFAULT,
           deletedAt: null,
         },
@@ -643,15 +627,14 @@ describe('note in normal categories', () => {
 
     // Response
     expect(data).toEqual({
-      moveNote: {
+      moveUserNoteLink: {
         location: {
           categoryName: MovableNoteCategory.DEFAULT,
           anchorPosition: null,
-          anchorNote: null,
+          anchorUserNoteLink: null,
         },
-        note: {
-          id: `${objectIdToStr(note._id)}:${objectIdToStr(user._id)}`,
-          noteId: objectIdToStr(note._id),
+        userNoteLink: {
+          id: UserNoteLink_id(note._id, user._id),
           categoryName: MovableNoteCategory.DEFAULT,
           deletedAt: null,
         },
@@ -683,15 +666,14 @@ describe('note in normal categories', () => {
 
     // Response
     expect(data).toEqual({
-      moveNote: {
+      moveUserNoteLink: {
         location: {
           categoryName: MovableNoteCategory.ARCHIVE,
           anchorPosition: null,
-          anchorNote: null,
+          anchorUserNoteLink: null,
         },
-        note: {
-          id: `${objectIdToStr(note._id)}:${objectIdToStr(userNotOwner._id)}`,
-          noteId: objectIdToStr(note._id),
+        userNoteLink: {
+          id: UserNoteLink_id(note._id, userNotOwner._id),
           categoryName: MovableNoteCategory.ARCHIVE,
           deletedAt: null,
         },
@@ -724,7 +706,7 @@ describe('note in normal categories', () => {
     const dbNote = await mongoCollections.notes.findOne({
       _id: note._id,
     });
-    const dbNoteUser = findNoteUser(userNotOwner._id, dbNote);
+    const dbNoteUser = findNoteUserInSchema(userNotOwner._id, dbNote);
     expect(dbNoteUser?.categoryName, 'Category was not updated in Note').toStrictEqual(
       MovableNoteCategory.ARCHIVE
     );
@@ -753,7 +735,7 @@ describe('note in normal categories', () => {
     expectGraphQLResponseData(response);
 
     expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenCalledWith(
-      `${SubscriptionTopicPrefix.NOTE_EVENTS}:userId=${user._id.toString('base64')}`
+      getTopicForUser(user._id)
     );
     expect(mockSubscriptionsModel.queryAllByTopic).toBeCalledTimes(1);
 
@@ -762,20 +744,20 @@ describe('note in normal categories', () => {
         type: 'next',
         payload: {
           data: {
-            noteEvents: {
-              events: [
+            signedInUserEvents: {
+              mutations: [
                 {
-                  __typename: 'NoteUpdatedEvent',
-                  note: {
-                    id: expect.any(String),
-                    location: {
-                      categoryName: MovableNoteCategory.ARCHIVE,
-                      anchorNote: {
-                        id: expect.any(String),
-                      },
-                      anchorPosition: ListAnchorPosition.AFTER,
+                  __typename: 'MoveUserNoteLinkPayload',
+                  location: {
+                    categoryName: MovableNoteCategory.ARCHIVE,
+                    anchorPosition: ListAnchorPosition.AFTER,
+                    anchorUserNoteLink: {
+                      id: expect.any(String),
                     },
-                    categoryName: NoteCategory.ARCHIVE,
+                  },
+                  userNoteLink: {
+                    id: expect.any(String),
+                    categoryName: MovableNoteCategory.ARCHIVE,
                     deletedAt: null,
                   },
                 },
@@ -789,7 +771,7 @@ describe('note in normal categories', () => {
   });
 
   it('can set category to any string without GraphQL validation', async () => {
-    const updateNoteResolver = mockResolver(moveNote);
+    const updateNoteResolver = mockResolver(moveUserNoteLink);
     await updateNoteResolver(
       {},
       {
@@ -830,7 +812,7 @@ describe('note in normal categories', () => {
     const dbNote = await mongoCollections.notes.findOne({
       _id: note._id,
     });
-    const dbNoteUser = findNoteUser(user._id, dbNote);
+    const dbNoteUser = findNoteUserInSchema(user._id, dbNote);
     expect(dbNoteUser?.categoryName, 'Category was not updated in Note').toStrictEqual(
       'randomCategory'
     );
@@ -848,7 +830,7 @@ describe('note in normal categories', () => {
         { user }
       );
 
-      expectGraphQLResponseErrorMessage(response, /Note '.+' not found/);
+      expectGraphQLResponseError(response, /Note '.+' not found/);
     });
 
     it('throws note not found if user is not linked to the note', async () => {
@@ -862,7 +844,7 @@ describe('note in normal categories', () => {
         { user: userNoAccess }
       );
 
-      expectGraphQLResponseErrorMessage(response, /Note '.+' not found/);
+      expectGraphQLResponseError(response, /Note '.+' not found/);
     });
 
     it('throws error if not authenticated', async () => {
@@ -873,7 +855,7 @@ describe('note in normal categories', () => {
         },
       });
 
-      expectGraphQLResponseErrorMessage(response, /You are not auth.*/);
+      expectGraphQLResponseError(response, /.*must be signed in.*/);
     });
   });
 });
@@ -913,19 +895,16 @@ describe('note is trashed', () => {
 
     // Response
     expect(data).toEqual({
-      moveNote: {
+      moveUserNoteLink: {
         location: {
           categoryName: MovableNoteCategory.ARCHIVE,
           anchorPosition: ListAnchorPosition.AFTER,
-          anchorNote: {
-            id: `${objectIdToStr(userBaseArchiveNoteIds.at(0))}:${objectIdToStr(
-              user._id
-            )}`,
+          anchorUserNoteLink: {
+            id: UserNoteLink_id(userBaseArchiveNoteIds.at(0)!, user._id),
           },
         },
-        note: {
-          id: `${objectIdToStr(note._id)}:${objectIdToStr(user._id)}`,
-          noteId: objectIdToStr(note._id),
+        userNoteLink: {
+          id: UserNoteLink_id(note._id, user._id),
           categoryName: MovableNoteCategory.ARCHIVE,
           deletedAt: null,
         },
@@ -989,19 +968,16 @@ describe('note is trashed', () => {
 
     // Response
     expect(data).toEqual({
-      moveNote: {
+      moveUserNoteLink: {
         location: {
           categoryName: MovableNoteCategory.ARCHIVE,
           anchorPosition: ListAnchorPosition.AFTER,
-          anchorNote: {
-            id: `${objectIdToStr(userBaseArchiveNoteIds.at(-1))}:${objectIdToStr(
-              user._id
-            )}`,
+          anchorUserNoteLink: {
+            id: UserNoteLink_id(userBaseArchiveNoteIds.at(-1)!, user._id),
           },
         },
-        note: {
-          id: `${objectIdToStr(note._id)}:${objectIdToStr(user._id)}`,
-          noteId: objectIdToStr(note._id),
+        userNoteLink: {
+          id: UserNoteLink_id(note._id, user._id),
           categoryName: MovableNoteCategory.ARCHIVE,
           deletedAt: null,
         },
@@ -1070,7 +1046,7 @@ describe('note is trashed', () => {
     expectGraphQLResponseData(response);
 
     expect(mockSubscriptionsModel.queryAllByTopic).lastCalledWith(
-      `${SubscriptionTopicPrefix.NOTE_EVENTS}:userId=${objectIdToStr(user._id)}`
+      getTopicForUser(user._id)
     );
     expect(mockSubscriptionsModel.queryAllByTopic).toBeCalledTimes(1);
 
@@ -1079,23 +1055,21 @@ describe('note is trashed', () => {
         type: 'next',
         payload: {
           data: {
-            noteEvents: {
-              events: [
+            signedInUserEvents: {
+              mutations: [
                 {
-                  __typename: 'NoteUpdatedEvent',
-                  note: {
-                    id: expect.any(String),
-                    location: {
-                      categoryName: MovableNoteCategory.ARCHIVE,
-                      anchorPosition: ListAnchorPosition.AFTER,
-                      anchorNote: {
-                        id: `${objectIdToStr(
-                          userBaseArchiveNoteIds.at(-1)
-                        )}:${objectIdToStr(user._id)}`,
-                      },
+                  __typename: 'MoveUserNoteLinkPayload',
+                  location: {
+                    categoryName: MovableNoteCategory.ARCHIVE,
+                    anchorPosition: ListAnchorPosition.AFTER,
+                    anchorUserNoteLink: {
+                      id: UserNoteLink_id(userBaseArchiveNoteIds.at(-1)!, user._id),
                     },
+                  },
+                  userNoteLink: {
+                    id: UserNoteLink_id(note._id, user._id),
+                    categoryName: MovableNoteCategory.ARCHIVE,
                     deletedAt: null,
-                    categoryName: NoteCategory.ARCHIVE,
                   },
                 },
               ],
