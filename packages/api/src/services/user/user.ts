@@ -1,6 +1,7 @@
 import { Collection, ObjectId } from 'mongodb';
 import { UserSchema } from '../../mongodb/schema/user';
 import { QueryableUserLoader } from '../../mongodb/loaders/queryable-user-loader';
+import { MongoDBLoaders } from '../../mongodb/loaders';
 
 /**
  * @param category Enum value NoteCategory
@@ -107,17 +108,24 @@ export interface UpdateDisplayNameParams {
   displayName: string;
 
   collection: Collection<UserSchema>;
+  /**
+   * Primes displayName in loader, cached value is overwritten
+   */
+  prime?: {
+    loader: MongoDBLoaders['user'];
+  };
 }
 
 /**
  * Updates displayName in database
  */
-export function updateDisplayName({
+export async function updateDisplayName({
   userId,
   displayName,
   collection,
+  prime,
 }: UpdateDisplayNameParams) {
-  return collection.updateOne(
+  const result = await collection.updateOne(
     {
       _id: userId,
     },
@@ -127,41 +135,29 @@ export function updateDisplayName({
       },
     }
   );
-}
 
-interface LoaderPrimeDisplayNameParams {
-  userId: ObjectId;
-  displayName: string;
-
-  loader: QueryableUserLoader;
-}
-
-/**
- * Primes displayName in loader, cached value is overwritten
- */
-export function primeDisplayName({
-  userId,
-  displayName,
-  loader,
-}: LoaderPrimeDisplayNameParams) {
-  loader.prime(
-    {
-      id: {
-        userId,
-      },
-      query: {
-        _id: 1,
-        profile: {
-          displayName: 1,
+  if (prime) {
+    prime.loader.prime(
+      {
+        id: {
+          userId,
+        },
+        query: {
+          _id: 1,
+          profile: {
+            displayName: 1,
+          },
         },
       },
-    },
-    {
-      _id: userId,
-      profile: {
-        displayName,
+      {
+        _id: userId,
+        profile: {
+          displayName,
+        },
       },
-    },
-    { clearCache: true }
-  );
+      { clearCache: true }
+    );
+  }
+
+  return result;
 }

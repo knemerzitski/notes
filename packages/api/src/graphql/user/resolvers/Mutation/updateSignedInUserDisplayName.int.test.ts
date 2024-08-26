@@ -31,6 +31,7 @@ import { signedInUserTopic } from '../Subscription/signedInUserEvents';
 import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import { objectIdToStr } from '../../../../services/utils/objectid';
+import { QueryableUserLoader } from '../../../../mongodb/loaders/queryable-user-loader';
 
 interface Variables {
   input: UpdateSignedInUserDisplayNameInput;
@@ -158,6 +159,9 @@ it('changes user displayName', async () => {
     userId: user._id,
     displayName: 'new name',
     collection: mongoCollections.users,
+    prime: {
+      loader: expect.any(QueryableUserLoader),
+    },
   });
 
   expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(1);
