@@ -72,7 +72,7 @@ export const moveUserNoteLink: NonNullable<
     },
   };
 
-  if (moveResult.modified) {
+  if (!moveResult.alreadyMoved) {
     await publishSignedInUserMutation(currentUserId, payload, ctx);
   }
 

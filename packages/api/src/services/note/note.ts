@@ -229,9 +229,9 @@ interface UpdateMoveNoteSuccess {
    */
   anchorPosition: 'before' | 'after' | null;
   /**
-   * Note had to be moved. Database was updated.
+   * Note is already moved in correct location. Database was not updated.
    */
-  modified: boolean;
+  alreadyMoved: boolean;
 }
 
 /**
@@ -360,7 +360,7 @@ export async function updateMoveNote({
           categoryName: desiredCategoryName,
           anchorNoteId: null,
           anchorPosition: null,
-          modified: false,
+          alreadyMoved: true,
         };
       }
 
@@ -496,7 +496,7 @@ export async function updateMoveNote({
           categoryName: desiredCategoryName,
           anchorNoteId,
           anchorPosition: anchorPosition ?? ('before' as const),
-          modified: true,
+          alreadyMoved: false,
         };
       } else if (anchorInfo?.lastId != null && !anchorInfo.lastId.equals(noteId)) {
         // Use last note as anchor
@@ -505,7 +505,7 @@ export async function updateMoveNote({
           categoryName: desiredCategoryName,
           anchorNoteId: anchorInfo.lastId,
           anchorPosition: 'after' as const,
-          modified: true,
+          alreadyMoved: false,
         };
       }
 
@@ -515,12 +515,12 @@ export async function updateMoveNote({
         categoryName: desiredCategoryName,
         anchorNoteId: null,
         anchorPosition: null,
-        modified: true,
+        alreadyMoved: false,
       };
     })
   );
 
-  if (result !== 'not_found' && result.modified) {
+  if (result !== 'not_found' && !result.alreadyMoved) {
     if (!skipPrimeResult) {
       mongoDB.loaders.note.prime(
         {
