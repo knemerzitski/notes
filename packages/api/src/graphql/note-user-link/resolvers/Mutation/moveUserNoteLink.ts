@@ -1,8 +1,5 @@
 import { throwNoteNotFound } from '../../../../services/graphql/errors';
-import {
-  primeUpdateMoveNoteSuccess,
-  updateMoveNote,
-} from '../../../../services/note/note';
+import { updateMoveNote } from '../../../../services/note/note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';
 import {
@@ -38,7 +35,7 @@ export const moveUserNoteLink: NonNullable<
     anchorPosition: anchorPositionToStr(arg),
   });
 
-  if (!moveResult) {
+  if (moveResult === 'not_found') {
     throwNoteNotFound(input.noteId);
   }
 
@@ -76,12 +73,6 @@ export const moveUserNoteLink: NonNullable<
   };
 
   if (moveResult.modified) {
-    primeUpdateMoveNoteSuccess({
-      mongoDB,
-      userId: currentUserId,
-      move: moveResult,
-    });
-
     await publishSignedInUserMutation(currentUserId, payload, ctx);
   }
 

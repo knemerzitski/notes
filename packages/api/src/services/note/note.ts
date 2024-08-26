@@ -204,6 +204,11 @@ interface UpdateMoveNoteParams {
    * categoryName to use incase it cannot be found
    */
   defaultCategoryName: string;
+  /**
+   * Skip priming note loader with the result
+   * @default false
+   */
+  skipPrimeResult?: boolean;
 }
 
 interface UpdateMoveNoteSuccess {
@@ -233,7 +238,7 @@ interface UpdateMoveNoteSuccess {
  * Move note using category and anchor for specific position.
  * @returns False if note not found.
  */
-export function updateMoveNote({
+export async function updateMoveNote({
   mongoDB,
   userId,
   noteId,
@@ -241,8 +246,9 @@ export function updateMoveNote({
   anchorNoteId,
   anchorPosition,
   defaultCategoryName,
-}: UpdateMoveNoteParams): Promise<UpdateMoveNoteSuccess | false> {
-  return mongoDB.client.withSession((session) =>
+  skipPrimeResult,
+}: UpdateMoveNoteParams): Promise<UpdateMoveNoteSuccess | 'not_found'> {
+  const result = await mongoDB.client.withSession((session) =>
     session.withTransaction(async (session) => {
       // Fetching everything that's helpful for note moving
       const processedNotePromise = mongoDB.loaders.note
@@ -293,7 +299,7 @@ export function updateMoveNote({
       if (!anchorCategoryName) {
         const processedNote = await processedNotePromise;
         if (!processedNote) {
-          return false as const;
+          return 'not_found';
         }
         anchorCategoryName = processedNote.desiredCategoryName;
       }
@@ -341,7 +347,7 @@ export function updateMoveNote({
         anchorInfoPromise,
       ]);
       if (!processedNote) {
-        return false as const;
+        return 'not_found';
       }
       const { note, isNoteTrashed, existingCategoryName, desiredCategoryName } =
         processedNote;
@@ -489,7 +495,7 @@ export function updateMoveNote({
           note,
           categoryName: desiredCategoryName,
           anchorNoteId,
-          anchorPosition: anchorPosition ?? 'before',
+          anchorPosition: anchorPosition ?? ('before' as const),
           modified: true,
         };
       } else if (anchorInfo?.lastId != null && !anchorInfo.lastId.equals(noteId)) {
@@ -498,7 +504,7 @@ export function updateMoveNote({
           note,
           categoryName: desiredCategoryName,
           anchorNoteId: anchorInfo.lastId,
-          anchorPosition: 'after',
+          anchorPosition: 'after' as const,
           modified: true,
         };
       }
@@ -513,75 +519,65 @@ export function updateMoveNote({
       };
     })
   );
-}
 
-interface PrimeUpdateMoveNoteSuccessParams {
-  mongoDB: {
-    loaders: Pick<MongoDBLoaders, 'note'>;
-  };
-  userId: ObjectId;
-  move: UpdateMoveNoteSuccess;
-}
-
-export function primeUpdateMoveNoteSuccess({
-  mongoDB,
-  userId,
-  move,
-}: PrimeUpdateMoveNoteSuccessParams) {
-  if (!move.modified) return;
-
-  mongoDB.loaders.note.prime(
-    {
-      id: {
-        userId: userId,
-        noteId: move.note._id,
-      },
-      query: {
-        users: {
-          _id: 1,
-          categoryName: 1,
-          trashed: {
-            expireAt: 1,
-            originalCategoryName: 1,
+  if (result !== 'not_found' && result.modified) {
+    if (!skipPrimeResult) {
+      mongoDB.loaders.note.prime(
+        {
+          id: {
+            userId: userId,
+            noteId: result.note._id,
+          },
+          query: {
+            users: {
+              _id: 1,
+              categoryName: 1,
+              trashed: {
+                expireAt: 1,
+                originalCategoryName: 1,
+              },
+            },
           },
         },
-      },
-    },
-    {
-      users: move.note.users?.map((noteUser) => {
-        if (!userId.equals(noteUser._id)) {
-          return noteUser;
-        }
+        {
+          users: result.note.users?.map((noteUser) => {
+            if (!userId.equals(noteUser._id)) {
+              return noteUser;
+            }
 
-        // Exclude trashed
-        const { trashed, ...restNoteUser } = noteUser;
+            // Exclude trashed
+            const { trashed, ...restNoteUser } = noteUser;
 
-        return {
-          ...restNoteUser,
-          categoryName: move.categoryName,
-        };
-      }),
-    },
-    { clearCache: true }
-  );
-
-  if (move.anchorNoteId) {
-    mongoDB.loaders.note.prime(
-      {
-        id: {
-          userId: userId,
-          noteId: move.anchorNoteId,
+            return {
+              ...restNoteUser,
+              categoryName: result.categoryName,
+            };
+          }),
         },
-        query: {
-          _id: 1,
-        },
-      },
-      {
-        _id: move.anchorNoteId,
-      },
-      { clearCache: true }
-    );
+        { clearCache: true }
+      );
+
+      if (result.anchorNoteId) {
+        mongoDB.loaders.note.prime(
+          {
+            id: {
+              userId: userId,
+              noteId: result.anchorNoteId,
+            },
+            query: {
+              _id: 1,
+            },
+          },
+          {
+            _id: result.anchorNoteId,
+          },
+          { clearCache: true }
+        );
+      }
+    }
   }
+
+  return result;
 }
 
 interface UpdateTrashNoteParams {
