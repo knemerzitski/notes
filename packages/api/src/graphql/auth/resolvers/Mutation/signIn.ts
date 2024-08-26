@@ -12,7 +12,6 @@ import { isAuthenticated } from '../../../../services/auth/auth';
 import {
   findUserByGoogleUserId,
   insertNewUserWithGoogleUser,
-  primeUserWithGoogleUser,
 } from '../../../../services/user/user';
 import { insertNewSession } from '../../../../services/session/session';
 import { preExecuteObjectField } from '../../../../services/graphql/pre-execute';
@@ -88,13 +87,11 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
       id: googleUserId,
       displayName: googleDisplayName,
       collection: mongoDB.collections.users,
+      prime: {
+        loader: mongoDB.loaders.user,
+      },
     });
     currentUserId = newUser._id;
-
-    primeUserWithGoogleUser({
-      user: newUser,
-      loader: mongoDB.loaders.user,
-    });
   } else {
     currentUserId = existingUser._id;
   }

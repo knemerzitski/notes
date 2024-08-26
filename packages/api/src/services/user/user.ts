@@ -39,12 +39,19 @@ export interface InsertNewUserWithGoogleUserParams {
   id: string;
   displayName: string;
   collection: Collection<UserSchema>;
+  /**
+   * Primes user in loader
+   */
+  prime?: {
+    loader: MongoDBLoaders['user'];
+  };
 }
 
 export async function insertNewUserWithGoogleUser({
   id,
   displayName,
   collection,
+  prime,
 }: InsertNewUserWithGoogleUserParams) {
   const newUser: UserSchema = {
     _id: new ObjectId(),
@@ -63,46 +70,37 @@ export async function insertNewUserWithGoogleUser({
 
   await collection.insertOne(newUser);
 
-  return newUser;
-}
-
-interface PrimeUserWithGoogleUserParams {
-  user: UserSchema;
-  loader: QueryableUserLoader;
-}
-
-/**
- * Primes displayName in loader, cached value is overwritten
- */
-export function primeUserWithGoogleUser({ user, loader }: PrimeUserWithGoogleUserParams) {
-  loader.prime(
-    {
-      id: {
-        userId: user._id,
-      },
-      query: {
-        _id: 1,
-        thirdParty: {
-          google: {
-            id: 1,
+  if (prime) {
+    prime.loader.prime(
+      {
+        id: {
+          userId: newUser._id,
+        },
+        query: {
+          _id: 1,
+          thirdParty: {
+            google: {
+              id: 1,
+            },
+          },
+          profile: {
+            displayName: 1,
           },
         },
-        profile: {
-          displayName: 1,
-        },
       },
-    },
-    {
-      _id: user._id,
-      profile: user.profile,
-      thirdParty: user.thirdParty,
-    },
-    {
-      clearCache: true,
-    }
-  );
-}
+      {
+        _id: newUser._id,
+        profile: newUser.profile,
+        thirdParty: newUser.thirdParty,
+      },
+      {
+        clearCache: true,
+      }
+    );
+  }
 
+  return newUser;
+}
 export interface UpdateDisplayNameParams {
   userId: ObjectId;
   displayName: string;

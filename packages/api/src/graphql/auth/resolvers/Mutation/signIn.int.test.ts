@@ -32,6 +32,7 @@ import { SessionDuration } from '../../../../services/session/duration';
 import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { objectIdToStr } from '../../../../services/utils/objectid';
+import { QueryableUserLoader } from '../../../../mongodb/loaders/queryable-user-loader';
 
 vi.mock('../../../../services/auth/google/oauth2');
 
@@ -153,6 +154,9 @@ it('creates new user and session on first sign in with google', async () => {
     id: authProviderUser.id,
     displayName: authProviderUser.name,
     collection: mongoCollections.users,
+    prime: {
+      loader: expect.any(QueryableUserLoader),
+    },
   });
 
   const newUserResult = spyInsertNewUserWithGoogleUser.mock.results[0];
