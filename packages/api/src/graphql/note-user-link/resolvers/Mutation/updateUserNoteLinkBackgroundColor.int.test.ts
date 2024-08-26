@@ -16,35 +16,33 @@ import {
 } from '../../../../__test__/helpers/graphql/graphql-context';
 import {
   expectGraphQLResponseData,
-  expectGraphQLResponseErrorMessage,
+  expectGraphQLResponseError,
 } from '../../../../__test__/helpers/graphql/response';
 import {
   mongoCollections,
   mongoCollectionStats,
   resetDatabase,
 } from '../../../../__test__/helpers/mongodb/mongodb';
-import { findNoteUser } from '../../../../__test__/helpers/mongodb/note';
 import { fakeNotePopulateQueue } from '../../../../__test__/helpers/mongodb/populate/note';
 import { userAddNote } from '../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
-import { NoteSchema } from '../../../../mongodb/schema/note/note';
-import { UserSchema } from '../../../../mongodb/schema/user/user';
-import { objectIdToStr } from '../../../base/resolvers/ObjectID';
-import { SubscriptionTopicPrefix } from '../../../subscriptions';
+import { NoteSchema } from '../../../../mongodb/schema/note';
+import { UserSchema } from '../../../../mongodb/schema/user';
 import {
   NoteCategory,
-  UpdateNoteBackgroundColorInput,
-  UpdateNoteBackgroundColorPayload,
+  UpdateUserNoteLinkBackgroundColorInput,
+  UpdateUserNoteLinkBackgroundColorPayload,
 } from '../../../types.generated';
+import { findNoteUserInSchema, UserNoteLink_id } from '../../../../services/note/note';
+import { signedInUserTopic } from '../../../user/resolvers/Subscription/signedInUserEvents';
 
 const MUTATION = `#graphql
-  mutation($input: UpdateNoteBackgroundColorInput!){
-    updateNoteBackgroundColor(input: $input) {
+  mutation($input: UpdateUserNoteLinkBackgroundColorInput!){
+    updateUserNoteLinkBackgroundColor(input: $input) {
       backgroundColor
-      note {
+      userNoteLink {
         id
-        noteId
         preferences {
           backgroundColor
         }
@@ -55,11 +53,12 @@ const MUTATION = `#graphql
 
 const SUBSCRIPTION = `#graphql
   subscription {
-    noteEvents {
-      events {
+    signedInUserEvents {
+      mutations {
         __typename
-        ... on NoteUpdatedEvent {
-          note {
+        ... on UpdateUserNoteLinkBackgroundColorPayload {
+          backgroundColor
+          userNoteLink {
             id
             preferences {
               backgroundColor
@@ -107,15 +106,15 @@ beforeEach(async () => {
 });
 
 async function executeOperation(
-  input?: UpdateNoteBackgroundColorInput,
+  input?: UpdateUserNoteLinkBackgroundColorInput,
   options?: CreateGraphQLResolversContextOptions,
   query: string = MUTATION
 ) {
   return await apolloServer.executeOperation<
     {
-      updateNoteBackgroundColor: UpdateNoteBackgroundColorPayload;
+      updateUserNoteLinkBackgroundColor: UpdateUserNoteLinkBackgroundColorPayload;
     },
-    { input?: UpdateNoteBackgroundColorInput }
+    { input?: UpdateUserNoteLinkBackgroundColorInput }
   >(
     {
       query,
@@ -144,11 +143,10 @@ it('changes backgroundColor', async () => {
 
   // Response
   expect(data).toEqual({
-    updateNoteBackgroundColor: {
+    updateUserNoteLinkBackgroundColor: {
       backgroundColor: '#ffffff',
-      note: {
-        id: `${note._id.toString('base64')}:${user._id.toString('base64')}`,
-        noteId: objectIdToStr(note._id),
+      userNoteLink: {
+        id: UserNoteLink_id(note._id, user._id),
         preferences: {
           backgroundColor: '#ffffff',
         },
@@ -162,7 +160,7 @@ it('changes backgroundColor', async () => {
   const dbNote = await mongoCollections.notes.findOne({
     _id: note._id,
   });
-  const dbNoteUser = findNoteUser(user._id, dbNote);
+  const dbNoteUser = findNoteUserInSchema(user._id, dbNote);
   expect(
     dbNoteUser?.preferences?.backgroundColor,
     'Background clor was not updated in Note'
@@ -184,11 +182,10 @@ it('changes backgroundColor for user with read-only access', async () => {
 
   // Response
   expect(data).toEqual({
-    updateNoteBackgroundColor: {
+    updateUserNoteLinkBackgroundColor: {
       backgroundColor: '#ffffff',
-      note: {
-        id: `${note._id.toString('base64')}:${userReadOnly._id.toString('base64')}`,
-        noteId: objectIdToStr(note._id),
+      userNoteLink: {
+        id: UserNoteLink_id(note._id, userReadOnly._id),
         preferences: {
           backgroundColor: '#ffffff',
         },
@@ -202,7 +199,7 @@ it('changes backgroundColor for user with read-only access', async () => {
   const dbNote = await mongoCollections.notes.findOne({
     _id: note._id,
   });
-  const dbNoteUser = findNoteUser(userReadOnly._id, dbNote);
+  const dbNoteUser = findNoteUserInSchema(userReadOnly._id, dbNote);
   expect(
     dbNoteUser?.preferences?.backgroundColor,
     'Background color was not updated in Note'
@@ -224,11 +221,10 @@ it('makes no changes to db if backgroundColor is already correct', async () => {
 
   // Response
   expect(data).toEqual({
-    updateNoteBackgroundColor: {
+    updateUserNoteLinkBackgroundColor: {
       backgroundColor: '#aaaaaa',
-      note: {
-        id: `${note._id.toString('base64')}:${user._id.toString('base64')}`,
-        noteId: objectIdToStr(note._id),
+      userNoteLink: {
+        id: UserNoteLink_id(note._id, user._id),
         preferences: {
           backgroundColor: '#aaaaaa',
         },
@@ -267,7 +263,7 @@ it('publishes backgroundColor only to current user', async () => {
   expectGraphQLResponseData(response);
 
   expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenCalledWith(
-    `${SubscriptionTopicPrefix.NOTE_EVENTS}:userId=${user._id.toString('base64')}`
+    signedInUserTopic(user._id)
   );
   expect(mockSubscriptionsModel.queryAllByTopic).toBeCalledTimes(1);
 
@@ -276,12 +272,13 @@ it('publishes backgroundColor only to current user', async () => {
       type: 'next',
       payload: {
         data: {
-          noteEvents: {
-            events: [
+          signedInUserEvents: {
+            mutations: [
               {
-                __typename: 'NoteUpdatedEvent',
-                note: {
-                  id: `${note._id.toString('base64')}:${user._id.toString('base64')}`,
+                __typename: 'UpdateUserNoteLinkBackgroundColorPayload',
+                backgroundColor: '#ffffff',
+                userNoteLink: {
+                  id: UserNoteLink_id(note._id, user._id),
                   preferences: {
                     backgroundColor: '#ffffff',
                   },
@@ -306,7 +303,7 @@ describe('errors', () => {
       { user }
     );
 
-    expectGraphQLResponseErrorMessage(response, /Note '.+' not found/);
+    expectGraphQLResponseError(response, /Note '.+' not found/);
   });
 
   it('throws note not found if user is not linked to the note', async () => {
@@ -318,7 +315,7 @@ describe('errors', () => {
       { user: userNoAccess }
     );
 
-    expectGraphQLResponseErrorMessage(response, /Note '.+' not found/);
+    expectGraphQLResponseError(response, /Note '.+' not found/);
   });
 
   it('throws error if not authenticated', async () => {
@@ -327,6 +324,6 @@ describe('errors', () => {
       backgroundColor: '#111111',
     });
 
-    expectGraphQLResponseErrorMessage(response, /You are not auth.*/);
+    expectGraphQLResponseError(response, /.*must be signed in.*/);
   });
 });
