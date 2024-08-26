@@ -1,10 +1,5 @@
 import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
-import {
-  findByCookieId,
-  primeSession,
-  Session,
-  tryRefreshExpireAt,
-} from '../session/session';
+import { findByCookieId, Session, tryRefreshExpireAt } from '../session/session';
 import { ReplaceDeep } from '~utils/types';
 import { Collection, ObjectId } from 'mongodb';
 import { QueryableSessionLoader } from '../../mongodb/loaders/queryable-session-loader';
@@ -147,11 +142,10 @@ export async function findRefreshSessionByCookieId(
     session,
     collection: loader.context.collections.sessions,
     sessionDuration: new SessionDuration(sessionDurationConfig),
+    prime: {
+      loader,
+    },
   });
-  const isSessionRefreshed = newSession !== session;
-  if (isSessionRefreshed) {
-    primeSession({ session: newSession, loader });
-  }
 
   return newSession;
 }

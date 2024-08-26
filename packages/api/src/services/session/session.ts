@@ -1,7 +1,4 @@
-import {
-  sessionDefaultValues,
-  SessionSchema,
-} from '../../mongodb/schema/session';
+import { sessionDefaultValues, SessionSchema } from '../../mongodb/schema/session';
 import { QueryableSessionLoader } from '../../mongodb/loaders/queryable-session-loader';
 import { Collection, ObjectId } from 'mongodb';
 import { SessionDuration } from './duration';
@@ -93,53 +90,53 @@ interface TryRefreshExpireAtParams<T extends Pick<Session, '_id' | 'expireAt'>> 
   session: T;
   collection: Collection<SessionSchema>;
   sessionDuration: SessionDuration;
+  /**
+   * Primes session in loader
+   */
+  prime?: {
+    loader: QueryableSessionLoader;
+  };
 }
 
-export async function tryRefreshExpireAt<T extends Pick<Session, '_id' | 'expireAt'>>({
+export async function tryRefreshExpireAt<
+  T extends Pick<Session, '_id' | 'expireAt' | 'cookieId'>,
+>({
   session,
   collection,
   sessionDuration,
+  prime,
 }: TryRefreshExpireAtParams<T>): Promise<T> {
   const newExpireAt = sessionDuration.tryRefreshDate(session.expireAt);
   const isRefreshed = session.expireAt !== newExpireAt;
   if (!isRefreshed) {
     return session;
   }
-
   await updateExpireAt({
     sessionId: session._id,
     expireAt: newExpireAt,
     collection,
   });
 
+  if (prime) {
+    prime.loader.prime(
+      {
+        id: {
+          cookieId: session.cookieId,
+        },
+        query: {
+          _id: 1,
+          cookieId: 1,
+          expireAt: 1,
+          userId: 1,
+        },
+      },
+      session,
+      { clearCache: true }
+    );
+  }
+
   return {
     ...session,
     expireAt: newExpireAt,
   };
-}
-
-interface PrimeSessionParams {
-  session: Session;
-  loader: QueryableSessionLoader;
-}
-
-/**
- * Primes all known session values
- */
-export function primeSession({ session, loader }: PrimeSessionParams) {
-  loader.prime(
-    {
-      id: {
-        cookieId: session.cookieId,
-      },
-      query: {
-        _id: 1,
-        cookieId: 1,
-        expireAt: 1,
-        userId: 1,
-      },
-    },
-    session,
-    { clearCache: true }
-  );
 }
