@@ -25,7 +25,7 @@ import {
 } from '../../../../__test__/helpers/graphql/graphql-context';
 import {
   expectGraphQLResponseData,
-  expectGraphQLResponseErrorMessage,
+  expectGraphQLResponseError,
 } from '../../../../__test__/helpers/graphql/response';
 import {
   mongoCollections,
@@ -36,19 +36,22 @@ import { fakeNotePopulateQueue } from '../../../../__test__/helpers/mongodb/popu
 import { userAddNote } from '../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
-import { NoteSchema } from '../../../../mongodb/schema/note/note';
-import { UserSchema } from '../../../../mongodb/schema/user/user';
-import { objectIdToStr } from '../../../base/resolvers/ObjectID';
-import { SubscriptionTopicPrefix } from '../../../subscriptions';
-import { NoteCategory, TrashNoteInput, TrashNotePayload } from '../../../types.generated';
+import { NoteSchema } from '../../../../mongodb/schema/note';
+import { UserSchema } from '../../../../mongodb/schema/user';
+import {
+  NoteCategory,
+  TrashUserNoteLinkInput,
+  TrashUserNoteLinkPayload,
+} from '../../../types.generated';
+import { UserNoteLink_id } from '../../../../services/note/note';
+import { signedInUserTopic } from '../../../user/resolvers/Subscription/signedInUserEvents';
 
 const MUTATION = `#graphql
-  mutation($input: TrashNoteInput!){
-    trashNote(input: $input) {
+  mutation($input: TrashUserNoteLinkInput!){
+    trashUserNoteLink(input: $input) {
       deletedAt
-      note {
+      userNoteLink {
         id
-        noteId
         deletedAt
       }
     }
@@ -57,14 +60,15 @@ const MUTATION = `#graphql
 
 const SUBSCRIPTION = `#graphql
   subscription {
-    noteEvents {
-      events {
+    signedInUserEvents {
+      mutations {
         __typename
-        ... on NoteUpdatedEvent {
-          note {
+        ... on TrashUserNoteLinkPayload {
+          deletedAt
+          userNoteLink {
             id
-            categoryName
             deletedAt
+            categoryName
           }
         }
       }
@@ -115,15 +119,15 @@ beforeEach(async () => {
 });
 
 async function executeOperation(
-  input?: TrashNoteInput,
+  input?: TrashUserNoteLinkInput,
   options?: CreateGraphQLResolversContextOptions,
   query: string = MUTATION
 ) {
   return await apolloServer.executeOperation<
     {
-      trashNote: TrashNotePayload;
+      trashUserNoteLink: TrashUserNoteLinkPayload;
     },
-    { input?: TrashNoteInput }
+    { input?: TrashUserNoteLinkInput }
   >(
     {
       query,
@@ -162,11 +166,10 @@ it('user trashes note only for self', async () => {
   const data = expectGraphQLResponseData(response);
   // Response
   expect(data).toEqual({
-    trashNote: {
+    trashUserNoteLink: {
       deletedAt: new Date(3),
-      note: {
-        id: `${objectIdToStr(note._id)}:${objectIdToStr(user._id)}`,
-        noteId: objectIdToStr(note._id),
+      userNoteLink: {
+        id: UserNoteLink_id(note._id, user._id),
         deletedAt: new Date(3),
       },
     },
@@ -261,11 +264,10 @@ it('returns existing trash date if note is already trashed', async () => {
   const data = expectGraphQLResponseData(response);
   // Response
   expect(data).toEqual({
-    trashNote: {
+    trashUserNoteLink: {
       deletedAt: new Date(3),
-      note: {
-        id: `${objectIdToStr(note._id)}:${objectIdToStr(user._id)}`,
-        noteId: objectIdToStr(note._id),
+      userNoteLink: {
+        id: UserNoteLink_id(note._id, user._id),
         deletedAt: new Date(3),
       },
     },
@@ -317,11 +319,10 @@ it('uses api option trashDuration', async () => {
   const data = expectGraphQLResponseData(response);
   // Response
   expect(data).toEqual({
-    trashNote: {
+    trashUserNoteLink: {
       deletedAt: new Date(31),
-      note: {
-        id: `${objectIdToStr(note._id)}:${objectIdToStr(user._id)}`,
-        noteId: objectIdToStr(note._id),
+      userNoteLink: {
+        id: UserNoteLink_id(note._id, user._id),
         deletedAt: new Date(31),
       },
     },
@@ -370,7 +371,7 @@ it('publishes user note trashing only for current user', async () => {
   expectGraphQLResponseData(response);
 
   expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenCalledWith(
-    `${SubscriptionTopicPrefix.NOTE_EVENTS}:userId=${objectIdToStr(userNotOwner._id)}`
+    signedInUserTopic(userNotOwner._id)
   );
   expect(mockSubscriptionsModel.queryAllByTopic).toBeCalledTimes(1);
 
@@ -379,12 +380,13 @@ it('publishes user note trashing only for current user', async () => {
       type: 'next',
       payload: {
         data: {
-          noteEvents: {
-            events: [
+          signedInUserEvents: {
+            mutations: [
               {
-                __typename: 'NoteUpdatedEvent',
-                note: {
-                  id: `${objectIdToStr(note._id)}:${objectIdToStr(userNotOwner._id)}`,
+                __typename: 'TrashUserNoteLinkPayload',
+                deletedAt: new Date(3),
+                userNoteLink: {
+                  id: UserNoteLink_id(note._id, userNotOwner._id),
                   deletedAt: new Date(3),
                   categoryName: NoteCategory.TRASH,
                 },
@@ -407,7 +409,7 @@ describe('errors', () => {
       { user }
     );
 
-    expectGraphQLResponseErrorMessage(response, /Note '.+' not found/);
+    expectGraphQLResponseError(response, /Note '.+' not found/);
   });
 
   it('throws note not found if user is not linked to the note', async () => {
@@ -418,7 +420,7 @@ describe('errors', () => {
       { user: userNoAccess }
     );
 
-    expectGraphQLResponseErrorMessage(response, /Note '.+' not found/);
+    expectGraphQLResponseError(response, /Note '.+' not found/);
   });
 
   it('throws error if not authenticated', async () => {
@@ -426,6 +428,6 @@ describe('errors', () => {
       noteId: note._id,
     });
 
-    expectGraphQLResponseErrorMessage(response, /You are not auth.*/);
+    expectGraphQLResponseError(response, /.*must be signed in.*/);
   });
 });
