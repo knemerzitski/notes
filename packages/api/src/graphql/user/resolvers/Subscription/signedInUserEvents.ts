@@ -5,7 +5,7 @@ import { GraphQLResolversContext } from '../../../types';
 import { isAuthenticated } from '../../../../services/auth/auth';
 import { objectIdToStr } from '../../../../services/utils/objectid';
 
-export function getTopicForUser(userId: ObjectId) {
+export function signedInUserTopic(userId: ObjectId) {
   return `${SubscriptionTopicPrefix.SIGNED_IN_USER_EVENTS}:${objectIdToStr(userId)}`;
 }
 
@@ -18,7 +18,7 @@ export const signedInUserEvents: NonNullable<
 
     const currentUserId = auth.session.userId;
 
-    return subscribe(getTopicForUser(currentUserId));
+    return subscribe(signedInUserTopic(currentUserId));
   },
 };
 
@@ -27,7 +27,7 @@ export async function publishSignedInUserEvents(
   events: ResolversTypes['SignedInUserEventsPayload'],
   { publish }: Pick<GraphQLResolversContext, 'publish'>
 ) {
-  return await publish(getTopicForUser(targetUserId), {
+  return await publish(signedInUserTopic(targetUserId), {
     signedInUserEvents: events,
   });
 }

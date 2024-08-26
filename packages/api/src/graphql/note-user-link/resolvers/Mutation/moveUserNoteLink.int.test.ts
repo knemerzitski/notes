@@ -42,7 +42,7 @@ import {
   NoteCategory,
 } from '../../../types.generated';
 import { findNoteUserInSchema, UserNoteLink_id } from '../../../../services/note/note';
-import { getTopicForUser } from '../../../user/resolvers/Subscription/signedInUserEvents';
+import { signedInUserTopic } from '../../../user/resolvers/Subscription/signedInUserEvents';
 import { moveUserNoteLink } from './moveUserNoteLink';
 
 const MUTATION = `#graphql
@@ -735,7 +735,7 @@ describe('note in normal categories', () => {
     expectGraphQLResponseData(response);
 
     expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenCalledWith(
-      getTopicForUser(user._id)
+      signedInUserTopic(user._id)
     );
     expect(mockSubscriptionsModel.queryAllByTopic).toBeCalledTimes(1);
 
@@ -1046,7 +1046,7 @@ describe('note is trashed', () => {
     expectGraphQLResponseData(response);
 
     expect(mockSubscriptionsModel.queryAllByTopic).lastCalledWith(
-      getTopicForUser(user._id)
+      signedInUserTopic(user._id)
     );
     expect(mockSubscriptionsModel.queryAllByTopic).toBeCalledTimes(1);
 

@@ -27,7 +27,7 @@ import {
 } from '../../../../__test__/helpers/graphql/response';
 import * as serviceUser from '../../../../services/user/user';
 import { UpdateResult } from 'mongodb';
-import { getTopicForUser } from '../Subscription/signedInUserEvents';
+import { signedInUserTopic } from '../Subscription/signedInUserEvents';
 import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import { objectIdToStr } from '../../../../services/utils/objectid';
@@ -185,7 +185,7 @@ it('publishes displayName payload', async () => {
   expectGraphQLResponseData(response);
 
   expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenCalledWith(
-    getTopicForUser(user._id)
+    signedInUserTopic(user._id)
   );
   expect(mockSubscriptionsModel.queryAllByTopic).toBeCalledTimes(1);
 

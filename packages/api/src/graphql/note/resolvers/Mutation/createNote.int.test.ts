@@ -46,7 +46,7 @@ import {
   NoteCategory,
   NoteTextField,
 } from '../../../types.generated';
-import { getTopicForUser } from '../../../user/resolvers/Subscription/signedInUserEvents';
+import { signedInUserTopic } from '../../../user/resolvers/Subscription/signedInUserEvents';
 
 const MUTATION_ALL = `#graphql
   mutation($input: CreateNoteInput!){
@@ -703,7 +703,7 @@ describe('no existing notes', () => {
       expectGraphQLResponseData(response);
 
       expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenCalledWith(
-        getTopicForUser(user._id)
+        signedInUserTopic(user._id)
       );
       expect(mockSubscriptionsModel.queryAllByTopic).toBeCalledTimes(1);
 

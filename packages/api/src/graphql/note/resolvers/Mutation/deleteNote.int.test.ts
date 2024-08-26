@@ -37,7 +37,7 @@ import {
 } from '../../../types.generated';
 import { objectIdToStr } from '../../../../services/utils/objectid';
 import { UserNoteLink_id } from '../../../../services/note/note';
-import { getTopicForUser } from '../../../user/resolvers/Subscription/signedInUserEvents';
+import { signedInUserTopic } from '../../../user/resolvers/Subscription/signedInUserEvents';
 
 const MUTATION = `#graphql
   mutation($input: DeleteNoteInput!){
@@ -297,11 +297,11 @@ describe('subscription', () => {
 
     expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenNthCalledWith(
       1,
-      getTopicForUser(userOldest._id)
+      signedInUserTopic(userOldest._id)
     );
     expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenNthCalledWith(
       2,
-      getTopicForUser(userNewer._id)
+      signedInUserTopic(userNewer._id)
     );
     expect(mockSubscriptionsModel.queryAllByTopic).toBeCalledTimes(2);
 
@@ -367,7 +367,7 @@ describe('subscription', () => {
     expectGraphQLResponseData(response);
 
     expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenCalledWith(
-      getTopicForUser(userNewer._id)
+      signedInUserTopic(userNewer._id)
     );
     expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenCalledOnce();
 
