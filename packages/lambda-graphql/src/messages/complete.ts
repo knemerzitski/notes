@@ -78,7 +78,8 @@ export function createCompleteHandler<
           },
         });
       } else {
-        context.logger.error('messages:complete', err as Error, {
+        context.logger.error('messages:complete', {
+          err,
           connectionId,
           message,
         });

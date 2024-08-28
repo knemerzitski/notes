@@ -6,7 +6,7 @@ import {
   Handler,
 } from 'aws-lambda';
 import { GRAPHQL_TRANSPORT_WS_PROTOCOL } from 'graphql-ws';
-import { Logger } from '~utils/logger';
+import { Logger } from '~utils/logging';
 import { Maybe, MaybePromise } from '~utils/types';
 
 import { lowercaseHeaderKeys } from './apigateway-proxy-event/lowercase-header-keys';
@@ -141,7 +141,7 @@ export function webSocketConnectHandler<
 
       return Promise.resolve(response);
     } catch (err) {
-      context.logger.error('event:CONNECT', err as Error, { event });
+      context.logger.error('event:CONNECT', { err, event });
       throw err;
     }
   };

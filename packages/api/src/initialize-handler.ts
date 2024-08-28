@@ -1,7 +1,7 @@
 import { Handler } from 'aws-lambda';
 
 import 'source-map-support/register';
-import { createLogger, Logger } from '~utils/logger';
+import { createLogger, Logger } from '~utils/logging';
 
 import { createDefaultMongoDBContext } from './parameters';
 import { createAllIndexes } from './mongodb/collections';
@@ -39,7 +39,7 @@ export function createInitializeHandler(
         statusCode: 200,
       };
     } catch (err) {
-      logger.error('initialize', err as Error, { event });
+      logger.error('initialize', { err, event });
       throw err;
     }
   };

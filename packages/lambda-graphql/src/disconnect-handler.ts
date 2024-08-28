@@ -9,7 +9,7 @@ import { GraphQLError, GraphQLSchema, parse } from 'graphql';
 import { buildExecutionContext } from 'graphql/execution/execute';
 import { MessageType } from 'graphql-ws';
 import { isArray } from '~utils/array/is-array';
-import { Logger } from '~utils/logger';
+import { Logger } from '~utils/logging';
 import { Maybe, MaybePromise } from '~utils/types';
 
 import { WebSocketConnectEvent } from './connect-handler';
@@ -250,7 +250,8 @@ export function webSocketDisconnectHandler<
               },
             });
           } else {
-            context.logger.error('event:DISCONNECT:complete', err as Error, {
+            context.logger.error('event:DISCONNECT:complete', {
+              err,
               connectionId,
               subscription: sub,
             });
@@ -266,7 +267,7 @@ export function webSocketDisconnectHandler<
 
       return Promise.resolve(defaultResponse);
     } catch (err) {
-      context.logger.error('event:DISCONNECT', err as Error, { event });
+      context.logger.error('event:DISCONNECT', { err, event });
       throw err;
     }
   };

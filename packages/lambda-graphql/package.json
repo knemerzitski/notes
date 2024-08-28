@@ -28,6 +28,7 @@
     "graphql": "^16.8.1",
     "graphql-ws": "^5.14.2",
     "vite-tsconfig-paths": "^4.3.2",
-    "vitest": "^2.0.4"
+    "vitest": "^2.0.4",
+    "vitest-mock-extended": "^2.0.0"
   }
 }

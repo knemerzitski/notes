@@ -2,7 +2,7 @@ import { ApolloServerOptions, BaseContext } from '@apollo/server';
 import { IExecutableSchemaDefinition, makeExecutableSchema } from '@graphql-tools/schema';
 import { GraphQLSchema } from 'graphql';
 
-import { Logger } from '~utils/logger';
+import { Logger } from '~utils/logging';
 
 export interface GraphQLContextParams<TContext> {
   typeDefs: IExecutableSchemaDefinition<TContext>['typeDefs'];

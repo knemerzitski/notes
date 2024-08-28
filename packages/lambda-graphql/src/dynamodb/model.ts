@@ -8,7 +8,7 @@ import {
   QueryCommandInput,
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
-import { Logger } from '~utils/logger';
+import { Logger } from '~utils/logging';
 
 // import { ReturnValue } from @aws-sdk/client-dynamodb is not available in AWS Lambda
 enum ReturnValue {
@@ -161,7 +161,7 @@ export function newModel<TKey extends object, TItem extends object>({
         }
       } while (LastEvaluatedKey);
     } catch (err) {
-      logger.error('query', err as Error);
+      logger.error('query', err);
       throw err;
     }
   }
@@ -179,7 +179,7 @@ export function newModel<TKey extends object, TItem extends object>({
         logger.info('get:result', { Item });
         return Item as TItem;
       } catch (err) {
-        logger.error('get', err as Error);
+        logger.error('get', err);
         throw err;
       }
     },
@@ -198,7 +198,7 @@ export function newModel<TKey extends object, TItem extends object>({
         if (err instanceof ConditionalCheckFailedException) {
           return false;
         }
-        logger.error('add', err as Error);
+        logger.error('add', err);
         throw err;
       }
     },
@@ -214,7 +214,7 @@ export function newModel<TKey extends object, TItem extends object>({
         );
         return Attributes as TItem;
       } catch (err) {
-        logger.error('put', err as Error);
+        logger.error('put', err);
         throw err;
       }
     },
@@ -246,7 +246,7 @@ export function newModel<TKey extends object, TItem extends object>({
         );
         return Attributes as TItem;
       } catch (err) {
-        logger.error('update', err as Error);
+        logger.error('update', err);
         throw err;
       }
     },
@@ -289,7 +289,7 @@ export function newModel<TKey extends object, TItem extends object>({
         );
         return Attributes as TItem;
       } catch (err) {
-        logger.error('delete', err as Error);
+        logger.error('delete', err);
         throw err;
       }
     },

@@ -181,7 +181,7 @@ export function webSocketHandler<
         );
       }
     } catch (err) {
-      context.logger.error('event:MESSAGE', err as Error, { event });
+      context.logger.error('event:MESSAGE', { err, event });
       throw err;
     }
 

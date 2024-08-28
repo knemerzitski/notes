@@ -4,7 +4,7 @@ import WebSocket from 'ws';
 import { createApolloHttpHandler } from '~lambda-graphql/apollo-http-handler';
 import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
 import { createWebSocketHandler } from '~lambda-graphql/websocket-handler';
-import { createLogger } from '~utils/logger';
+import { createLogger } from '~utils/logging';
 import { mockApolloHttpHandlerDefaultParamsOptions } from './handlers/mock-apollo-http-handler';
 import { createLambdaServer } from './lambda-server';
 import { createLambdaGraphQLDynamoDBTables } from './utils/lambda-graphql-dynamodb';

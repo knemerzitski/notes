@@ -4,7 +4,7 @@ import {
   GraphQLRequestContext,
   GraphQLRequestListener,
 } from '@apollo/server';
-import { Logger } from '~utils/logger';
+import { Logger } from '~utils/logging';
 
 export class ApolloServerLogger<TContext extends BaseContext>
   implements ApolloServerPlugin<TContext>

@@ -11,11 +11,11 @@ import {
 import { faker } from '@faker-js/faker';
 import { beforeAll, it, expect, beforeEach } from 'vitest';
 
-import { emptyLogger } from '~utils/logger';
-
 import { dynamoDBDocumentClient } from '../__test__/helpers/dynamodb';
 
 import { newModel, Table } from './model';
+import { mock } from 'vitest-mock-extended';
+import { Logger } from '~utils/logging';
 
 let table: Table<{ id: string }, Record<string, unknown>>;
 
@@ -58,7 +58,7 @@ beforeEach(async () => {
   table = newModel({
     documentClient: dynamoDBDocumentClient,
     tableName,
-    logger: emptyLogger(),
+    logger: mock<Logger>(),
   });
 
   // Delete existing table

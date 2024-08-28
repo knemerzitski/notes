@@ -3,7 +3,7 @@ import { APIGatewayProxyWebsocketHandlerV2 } from 'aws-lambda';
 import WebSocket from 'ws';
 
 import { createWebSocketHandler } from '~lambda-graphql/websocket-handler';
-import { createLogger } from '~utils/logger';
+import { createLogger } from '~utils/logging';
 
 import {
   createMockApiGatewayParams,

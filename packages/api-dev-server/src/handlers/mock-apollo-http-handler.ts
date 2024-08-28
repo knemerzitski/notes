@@ -5,7 +5,7 @@ import {
   createApolloHttpHandler,
   ApolloHttpGraphQLContext,
 } from '~lambda-graphql/apollo-http-handler';
-import { createLogger } from '~utils/logger';
+import { createLogger } from '~utils/logging';
 
 import {
   createMockGraphQLParams,

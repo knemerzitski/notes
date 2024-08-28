@@ -6,7 +6,7 @@ import {
   CreateApolloHttpHandlerParams,
 } from '~lambda-graphql/apollo-http-handler';
 import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
-import { createLogger, Logger } from '~utils/logger';
+import { createLogger, Logger } from '~utils/logging';
 
 import { GraphQLResolversContext, DynamoDBBaseGraphQLContext } from './graphql/types';
 import {

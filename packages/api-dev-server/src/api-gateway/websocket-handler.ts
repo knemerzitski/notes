@@ -15,7 +15,7 @@ import {
 import { WebSocketDisconnectHandler } from '~lambda-graphql/disconnect-handler';
 import { WebSocketHandler } from '~lambda-graphql/websocket-handler';
 import { isArray } from '~utils/array/is-array';
-import { Logger } from '~utils/logger';
+import { Logger } from '~utils/logging';
 
 import fixtureWebSocketEventConnect from '../../fixtures/websocket/CONNECT.json';
 import fixtureWebSocketEventDisconnect from '../../fixtures/websocket/DISCONNECT.json';
@@ -84,7 +84,7 @@ export function apiGatewayProxyWebSocketHandler({
     });
 
     ws.on('error', (err) => {
-      logger.error('ws:error', err, { id });
+      logger.error('ws:error', { err, id });
     });
 
     ws.on('close', () => {

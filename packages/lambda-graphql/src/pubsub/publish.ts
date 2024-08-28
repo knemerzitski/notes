@@ -116,8 +116,9 @@ export function createPublisher<
               },
             });
           } else {
-            context.logger.error('publish:subscription', err as Error, {
+            context.logger.error('publish:subscription', {
               ...sub.requestContext,
+              err,
               topic,
               payload,
               options,

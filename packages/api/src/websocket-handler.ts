@@ -5,7 +5,7 @@ import {
   WebSocketHandlerParams,
   createWebSocketHandler,
 } from '~lambda-graphql/websocket-handler';
-import { createLogger, Logger } from '~utils/logger';
+import { createLogger, Logger } from '~utils/logging';
 
 import {
   BaseGraphQLContext,

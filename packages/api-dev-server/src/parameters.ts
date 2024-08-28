@@ -9,7 +9,7 @@ import {
 } from '~lambda-graphql/context/graphql';
 import { PingPongContextParams } from '~lambda-graphql/context/pingpong';
 import { createPingPongHandler } from '~lambda-graphql/ping-pong-handler';
-import { createLogger } from '~utils/logger';
+import { createLogger } from '~utils/logging';
 
 import {
   MockApiGatewayManagementApiClient,

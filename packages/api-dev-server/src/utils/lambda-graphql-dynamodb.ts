@@ -6,7 +6,7 @@ import {
 } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { createTableCommandInputs } from '~lambda-graphql/dynamodb/schema';
-import { Logger } from '~utils/logger';
+import { Logger } from '~utils/logging';
 
 export async function createLambdaGraphQLDynamoDBTables({
   endpoint,

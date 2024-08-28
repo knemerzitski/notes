@@ -149,7 +149,8 @@ export function createSubscribeHandler<
       // Wait for Connection TTL refresh to be done
       await ttlRefreshPromise;
     } catch (err) {
-      context.logger.error('messages:subscribe:error', err as Error, {
+      context.logger.error('messages:subscribe:error', {
+        err,
         connectionId,
         message,
       });

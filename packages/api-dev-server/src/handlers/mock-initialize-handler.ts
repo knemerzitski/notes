@@ -2,7 +2,7 @@ import 'source-map-support/register';
 import { APIGatewayProxyWebsocketHandlerV2 } from 'aws-lambda';
 import WebSocket from 'ws';
 
-import { createLogger } from '~utils/logger';
+import { createLogger } from '~utils/logging';
 
 import { createMockMongoDBContext } from '../parameters';
 import {

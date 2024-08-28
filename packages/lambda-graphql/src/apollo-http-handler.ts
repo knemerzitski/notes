@@ -2,7 +2,7 @@ import { BaseContext } from '@apollo/server';
 import { ApolloServer } from '@apollo/server';
 import { APIGatewayProxyEvent, APIGatewayProxyHandler } from 'aws-lambda';
 import { GraphQLSchema } from 'graphql';
-import { Logger } from '~utils/logger';
+import { Logger } from '~utils/logging';
 
 import { lowercaseHeaderKeys } from './apigateway-proxy-event/lowercase-header-keys';
 import { parseGraphQLRequestEvent } from './apigateway-proxy-event/parse-graphql-request-event';
@@ -154,7 +154,7 @@ export function createApolloHttpHandler<
         body: res.body.string,
       };
     } catch (err) {
-      logger.error('apolloHttpHandler', err as Error, { event });
+      logger.error('apolloHttpHandler', { err, event });
       throw err;
     }
   };

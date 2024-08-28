@@ -13,7 +13,7 @@ import {
   PongMessage,
   validateMessage,
 } from 'graphql-ws';
-import { Logger } from '~utils/logger';
+import { Logger } from '~utils/logging';
 import { MaybePromise } from '~utils/types';
 
 import {
@@ -338,7 +338,7 @@ export function webSocketMessageHandler<
 
       return Promise.resolve(defaultResponse);
     } catch (err) {
-      context.logger.error('event:MESSAGE', err as Error, { event });
+      context.logger.error('event:MESSAGE', { err, event });
       throw err;
     }
   };

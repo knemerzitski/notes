@@ -13,7 +13,7 @@ import {
   ApolloGraphQLContextParams,
   GraphQLContextParams,
 } from '~lambda-graphql/context/graphql';
-import { Logger } from '~utils/logger';
+import { Logger } from '~utils/logging';
 
 import { ApiOptions } from './graphql/types';
 import { applyDirectives } from './graphql/directives';
