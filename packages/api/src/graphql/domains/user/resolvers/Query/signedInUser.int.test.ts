@@ -1,25 +1,24 @@
 import { faker } from '@faker-js/faker';
 import { beforeAll, beforeEach, expect, it } from 'vitest';
-
-import { apolloServer } from '../../../../__test__/helpers/graphql/apollo-server';
+import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+import { apolloServer } from '../../../../../__test__/helpers/graphql/apollo-server';
 import {
-  mongoCollectionStats,
-  resetDatabase,
-} from '../../../../__test__/helpers/mongodb/mongodb';
-import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
-import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
-import { UserSchema } from '../../../../mongodb/schema/user';
-import {
-  createGraphQLResolversContext,
   CreateGraphQLResolversContextOptions,
-} from '../../../../__test__/helpers/graphql/graphql-context';
-import { SignedInUser } from '../../../types.generated';
+  createGraphQLResolversContext,
+} from '../../../../../__test__/helpers/graphql/graphql-context';
 import {
   expectGraphQLResponseData,
   expectGraphQLResponseError,
-} from '../../../../__test__/helpers/graphql/response';
-import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
-import { objectIdToStr } from '../../../../services/utils/objectid';
+} from '../../../../../__test__/helpers/graphql/response';
+import {
+  resetDatabase,
+  mongoCollectionStats,
+} from '../../../../../__test__/helpers/mongodb/mongodb';
+import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/populate/populate-queue';
+import { fakeUserPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/user';
+import { UserSchema } from '../../../../../mongodb/schema/user';
+import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
+import { SignedInUser } from '../../../types.generated';
 
 const QUERY = `#graphql
 query  {

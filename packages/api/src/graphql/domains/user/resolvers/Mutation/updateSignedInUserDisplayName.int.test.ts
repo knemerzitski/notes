@@ -1,37 +1,38 @@
 /* eslint-disable @typescript-eslint/unbound-method */
+
 import { faker } from '@faker-js/faker';
-import { afterEach, beforeAll, beforeEach, expect, it, MockInstance, vi } from 'vitest';
+import { UpdateResult } from 'mongodb';
+import { MockInstance, beforeAll, vi, afterEach, beforeEach, it, expect } from 'vitest';
+import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
+import { apolloServer } from '../../../../../__test__/helpers/graphql/apollo-server';
+import {
+  CreateGraphQLResolversContextOptions,
+  createGraphQLResolversContext,
+  mockSubscriptionsModel,
+  createMockedPublisher,
+  mockSocketApi,
+} from '../../../../../__test__/helpers/graphql/graphql-context';
+import {
+  expectGraphQLResponseData,
+  expectGraphQLResponseError,
+} from '../../../../../__test__/helpers/graphql/response';
 import {
   resetDatabase,
   mongoCollectionStats,
   mongoCollections,
-} from '../../../../__test__/helpers/mongodb/mongodb';
-import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
-import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
-import { UserSchema } from '../../../../mongodb/schema/user';
+} from '../../../../../__test__/helpers/mongodb/mongodb';
+import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/populate/populate-queue';
+import { fakeUserPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/user';
+import { QueryableUserLoader } from '../../../../../mongodb/loaders/queryable-user-loader';
+import { UserSchema } from '../../../../../mongodb/schema/user';
+import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import {
   UpdateSignedInUserDisplayNameInput,
   UpdateSignedInUserDisplayNamePayload,
 } from '../../../types.generated';
-import {
-  createGraphQLResolversContext,
-  CreateGraphQLResolversContextOptions,
-  createMockedPublisher,
-  mockSocketApi,
-  mockSubscriptionsModel,
-} from '../../../../__test__/helpers/graphql/graphql-context';
-import { apolloServer } from '../../../../__test__/helpers/graphql/apollo-server';
-import {
-  expectGraphQLResponseData,
-  expectGraphQLResponseError,
-} from '../../../../__test__/helpers/graphql/response';
-import * as serviceUser from '../../../../services/user/user';
-import { UpdateResult } from 'mongodb';
 import { signedInUserTopic } from '../Subscription/signedInUserEvents';
-import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
-import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
-import { objectIdToStr } from '../../../../services/utils/objectid';
-import { QueryableUserLoader } from '../../../../mongodb/loaders/queryable-user-loader';
+import * as serviceUser from '../../../../../services/user/user';
 
 interface Variables {
   input: UpdateSignedInUserDisplayNameInput;

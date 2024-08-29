@@ -1,7 +1,7 @@
 import { maybeCallFn } from '~utils/maybe-call-fn';
 import { isForwardPagination } from '../../../../mongodb/pagination/relay-array-pagination';
 import type { CollabTextRecordConnectionResolvers } from '../../types.generated';
-import { withPreExecuteList } from '../../../../services/graphql/pre-execute';
+import { withPreExecuteList } from '../../../utils/pre-execute';
 
 export const CollabTextRecordConnection: CollabTextRecordConnectionResolvers = {
   records: (parent, _args, ctx, info) => {

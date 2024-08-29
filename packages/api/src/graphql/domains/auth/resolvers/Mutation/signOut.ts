@@ -1,11 +1,11 @@
 import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
 import type { MutationResolvers } from './../../../types.generated';
+import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import {
   deleteAllSessionsInCookies,
   deleteSessionWithCookies,
   isAuthenticated,
-} from '../../../../services/auth/auth';
-import { objectIdToStr } from '../../../../services/utils/objectid';
+} from '../../../../../services/auth/auth';
 
 export const signOut: NonNullable<MutationResolvers['signOut']> = async (
   _parent,

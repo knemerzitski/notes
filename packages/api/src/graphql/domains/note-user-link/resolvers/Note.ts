@@ -1,4 +1,4 @@
-import { withPreExecuteList } from '../../../../services/graphql/pre-execute';
+import { withPreExecuteList } from '../../../utils/pre-execute';
 import type { NoteResolvers } from '../../types.generated';
 
 export const Note: Pick<NoteResolvers, 'users'> = {
@@ -6,7 +6,6 @@ export const Note: Pick<NoteResolvers, 'users'> = {
     return withPreExecuteList(
       (index, updateSize) => {
         return {
-          // TODO fixes bug
           noteId: async () =>
             (
               await parent.query({

@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, it, expect } from 'vitest';
-import { mockResolver } from '../../../__test__/helpers/graphql/mock-resolver';
 import { PublicUserProfile } from './PublicUserProfile';
+import { mockResolver } from '../../../../__test__/helpers/graphql/mock-resolver';
 
 describe('displayName', () => {
   const resolveDisplayName = mockResolver(PublicUserProfile.displayName!);

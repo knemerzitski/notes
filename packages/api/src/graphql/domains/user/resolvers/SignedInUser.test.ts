@@ -3,8 +3,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { SignedInUser } from './SignedInUser';
 import { ObjectId } from 'mongodb';
-import { mockResolver } from '../../../__test__/helpers/graphql/mock-resolver';
 import { maybeCallFn } from '~utils/maybe-call-fn';
+import { mockResolver } from '../../../../__test__/helpers/graphql/mock-resolver';
 
 describe('id', () => {
   const resolveId = mockResolver(SignedInUser.id!);
