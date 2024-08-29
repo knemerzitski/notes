@@ -17,7 +17,7 @@ export function createApolloServer() {
 
   return new ApolloServer<GraphQLResolversContext>({
     schema,
-    nodeEnv: 'test',
+    nodeEnv: 'development',
     plugins: [],
     formatError,
   });

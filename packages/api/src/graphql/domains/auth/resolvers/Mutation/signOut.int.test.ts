@@ -1,25 +1,25 @@
 import { faker } from '@faker-js/faker';
 import { afterEach, beforeAll, beforeEach, expect, it, MockInstance, vi } from 'vitest';
+import * as serviceAuth from '../../../../../services/auth/auth';
+import { SignOutInput, SignOutPayload } from '../../../types.generated';
+import { apolloServer } from '../../../../../__test__/helpers/graphql/apollo-server';
+import {
+  CreateGraphQLResolversContextOptions,
+  createGraphQLResolversContext,
+} from '../../../../../__test__/helpers/graphql/graphql-context';
+import { expectGraphQLResponseData } from '../../../../../__test__/helpers/graphql/response';
 import {
   resetDatabase,
   mongoCollectionStats,
   mongoCollections,
-} from '../../../../__test__/helpers/mongodb/mongodb';
-import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
-import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
-import { SignOutInput, SignOutPayload } from '../../../types.generated';
-import { fakeSessionPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/session';
-import { SessionSchema } from '../../../../mongodb/schema/session';
-import { UserSchema } from '../../../../mongodb/schema/user';
-import {
-  createGraphQLResolversContext,
-  CreateGraphQLResolversContextOptions,
-} from '../../../../__test__/helpers/graphql/graphql-context';
-import { apolloServer } from '../../../../__test__/helpers/graphql/apollo-server';
-import { expectGraphQLResponseData } from '../../../../__test__/helpers/graphql/response';
-import { objectIdToStr } from '../../../../services/utils/objectid';
-import * as serviceAuth from '../../../../services/auth/auth';
-import { Cookies } from '../../../../services/http/cookies';
+} from '../../../../../__test__/helpers/mongodb/mongodb';
+import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/populate/populate-queue';
+import { fakeSessionPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/session';
+import { fakeUserPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/user';
+import { SessionSchema } from '../../../../../mongodb/schema/session';
+import { UserSchema } from '../../../../../mongodb/schema/user';
+import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
+import { Cookies } from '../../../../../services/http/cookies';
 
 interface Variables {
   input: SignOutInput;
@@ -34,7 +34,10 @@ const MUTATION = `#graphql
   }
 `;
 
-let spyDeleteSessionWithCookies: MockInstance<[serviceAuth.DeleteSessionParams], Promise<void>>;
+let spyDeleteSessionWithCookies: MockInstance<
+  [serviceAuth.DeleteSessionParams],
+  Promise<void>
+>;
 let spyDeleteAllSessionsInCookies: MockInstance<
   [serviceAuth.DeleteAllSessionsInCookiesParams],
   Promise<void>

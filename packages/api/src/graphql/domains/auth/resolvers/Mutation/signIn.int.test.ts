@@ -10,31 +10,30 @@ import {
   MockInstance,
   vi,
 } from 'vitest';
-
-import { apolloServer } from '../../../../__test__/helpers/graphql/apollo-server';
+import * as serviceSession from '../../../../../services/session/session';
+import * as serviceUser from '../../../../../services/user/user';
+import { apolloServer } from '../../../../../__test__/helpers/graphql/apollo-server';
 import {
-  createGraphQLResolversContext,
   CreateGraphQLResolversContextOptions,
-} from '../../../../__test__/helpers/graphql/graphql-context';
+  createGraphQLResolversContext,
+} from '../../../../../__test__/helpers/graphql/graphql-context';
+import { expectGraphQLResponseData } from '../../../../../__test__/helpers/graphql/response';
 import {
-  mongoCollections,
-  mongoCollectionStats,
   resetDatabase,
-} from '../../../../__test__/helpers/mongodb/mongodb';
-import { SessionSchema } from '../../../../mongodb/schema/session';
-import { UserSchema } from '../../../../mongodb/schema/user';
+  mongoCollectionStats,
+  mongoCollections,
+} from '../../../../../__test__/helpers/mongodb/mongodb';
+import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/populate/populate-queue';
+import { fakeUserPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/user';
+import { QueryableUserLoader } from '../../../../../mongodb/loaders/queryable-user-loader';
+import { SessionSchema } from '../../../../../mongodb/schema/session';
+import { UserSchema } from '../../../../../mongodb/schema/user';
+import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
+import { verifyCredentialToken } from '../../../../../services/auth/google/__mocks__/oauth2';
+import { SessionDuration } from '../../../../../services/session/duration';
 import { SignInInput, SignInPayload } from '../../../types.generated';
-import { expectGraphQLResponseData } from '../../../../__test__/helpers/graphql/response';
-import { verifyCredentialToken } from '../../../../services/auth/google/__mocks__/oauth2';
-import * as serviceSession from '../../../../services/session/session';
-import * as serviceUser from '../../../../services/user/user';
-import { SessionDuration } from '../../../../services/session/duration';
-import { fakeUserPopulateQueue } from '../../../../__test__/helpers/mongodb/populate/user';
-import { populateExecuteAll } from '../../../../__test__/helpers/mongodb/populate/populate-queue';
-import { objectIdToStr } from '../../../../services/utils/objectid';
-import { QueryableUserLoader } from '../../../../mongodb/loaders/queryable-user-loader';
 
-vi.mock('../../../../services/auth/google/oauth2');
+vi.mock('../../../../../services/auth/google/oauth2');
 
 interface Variables {
   input: SignInInput;
@@ -120,7 +119,7 @@ async function executeOperation(
   );
 }
 
-it('creates new user and session on first sign in with google', async () => {
+it.only('creates new user and session on first sign in with google', async () => {
   const authProviderUser = {
     id: '12345',
     email: 'last.first@email.com',

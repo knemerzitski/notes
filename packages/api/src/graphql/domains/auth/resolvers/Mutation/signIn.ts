@@ -1,14 +1,20 @@
-import { ObjectId } from "mongodb";
-import { wrapRetryOnErrorAsync } from "~utils/wrap-retry-on-error";
-import { retryOnMongoError, MongoErrorCodes } from "../../../../../mongodb/utils/retry-on-mongo-error";
-import { isAuthenticated } from "../../../../../services/auth/auth";
-import { verifyCredentialToken } from "../../../../../services/auth/google/oauth2";
-import { SessionDuration } from "../../../../../services/session/duration";
-import { insertNewSession } from "../../../../../services/session/session";
-import { findUserByGoogleUserId, insertNewUserWithGoogleUser } from "../../../../../services/user/user";
-import { GraphQLResolversContext } from "../../../../types";
-import { preExecuteObjectField } from "../../../../utils/pre-execute";
-import { MutationResolvers, ResolversTypes } from "../../../types.generated";
+import { ObjectId } from 'mongodb';
+import { wrapRetryOnErrorAsync } from '~utils/wrap-retry-on-error';
+import {
+  retryOnMongoError,
+  MongoErrorCodes,
+} from '../../../../../mongodb/utils/retry-on-mongo-error';
+import { isAuthenticated } from '../../../../../services/auth/auth';
+import { SessionDuration } from '../../../../../services/session/duration';
+import { insertNewSession } from '../../../../../services/session/session';
+import {
+  findUserByGoogleUserId,
+  insertNewUserWithGoogleUser,
+} from '../../../../../services/user/user';
+import { GraphQLResolversContext } from '../../../../types';
+import { preExecuteObjectField } from '../../../../utils/pre-execute';
+import { MutationResolvers, ResolversTypes } from '../../../types.generated';
+import { verifyCredentialToken } from '../../../../../services/auth/google/oauth2';
 
 const _signIn: NonNullable<MutationResolvers['signIn']> = async (
   _parent,

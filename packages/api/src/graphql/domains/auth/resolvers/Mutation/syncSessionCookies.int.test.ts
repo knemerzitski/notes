@@ -1,18 +1,18 @@
+import { ObjectId } from 'mongodb';
 import { expect, it } from 'vitest';
-import { apolloServer } from '../../../../__test__/helpers/graphql/apollo-server';
+import { apolloServer } from '../../../../../__test__/helpers/graphql/apollo-server';
 import {
   CreateGraphQLResolversContextOptions,
   createGraphQLResolversContext,
-} from '../../../../__test__/helpers/graphql/graphql-context';
+} from '../../../../../__test__/helpers/graphql/graphql-context';
+import { expectGraphQLResponseData } from '../../../../../__test__/helpers/graphql/response';
+import { sessionDefaultValues } from '../../../../../mongodb/schema/session';
+import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
+import { Cookies } from '../../../../../services/http/cookies';
 import {
   SyncSessionCookiesInput,
   SyncSessionCookiesPayload,
 } from '../../../types.generated';
-import { Cookies } from '../../../../services/http/cookies';
-import { ObjectId } from 'mongodb';
-import { sessionDefaultValues } from '../../../../mongodb/schema/session';
-import { objectIdToStr } from '../../../../services/utils/objectid';
-import { expectGraphQLResponseData } from '../../../../__test__/helpers/graphql/response';
 
 interface Variables {
   input: SyncSessionCookiesInput;
