@@ -15,7 +15,7 @@ import {
   webSocketConnectHandler,
 } from './connect-handler';
 import { createApiGatewayContext } from './context/apigateway';
-import { createDynamoDbContext } from './context/dynamodb';
+import { createDynamoDBContext } from './context/dynamodb';
 import { createGraphQLContext } from './context/graphql';
 import { createPingPongContext } from './context/pingpong';
 import {
@@ -121,7 +121,7 @@ export function createWebSocketHandler<
   logger.info('createWebSocketHandler');
 
   const graphQL = createGraphQLContext(params.graphQL);
-  const dynamoDB = createDynamoDbContext<TDynamoDBGraphQLContext>(params.dynamoDB);
+  const dynamoDB = createDynamoDBContext<TDynamoDBGraphQLContext>(params.dynamoDB);
   const apiGateway = createApiGatewayContext(params.apiGateway);
   const pingpong = params.pingpong ? createPingPongContext(params.pingpong) : undefined;
 

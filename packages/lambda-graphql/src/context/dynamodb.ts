@@ -26,10 +26,10 @@ export interface DynamoDBContext<TDynamoDBGraphQLContext extends DynamoDBRecord>
   subscriptions: SubscriptionTable<TDynamoDBGraphQLContext>;
 }
 
-export function createDynamoDbContext<TDynamoDBGraphQLContext extends DynamoDBRecord>(
+export function createDynamoDBContext<TDynamoDBGraphQLContext extends DynamoDBRecord>(
   params: DynamoDBContextParams
 ): DynamoDBContext<TDynamoDBGraphQLContext> {
-  params.logger.info('buildDynamoDbContext:new', {
+  params.logger.info('buildDynamoDBContext:new', {
     params: params.clientConfig,
   });
 

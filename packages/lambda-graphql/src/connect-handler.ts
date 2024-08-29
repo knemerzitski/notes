@@ -10,7 +10,7 @@ import { Logger } from '~utils/logging';
 import { Maybe, MaybePromise } from '~utils/types';
 
 import { lowercaseHeaderKeys } from './apigateway-proxy-event/lowercase-header-keys';
-import { DynamoDBContextParams, createDynamoDbContext } from './context/dynamodb';
+import { DynamoDBContextParams, createDynamoDBContext } from './context/dynamodb';
 import {
   ConnectionTable,
   ConnectionTtlContext,
@@ -81,7 +81,7 @@ export function createWebSocketConnectHandler<
 
   logger.info('createWebSocketConnectHandler');
 
-  const dynamoDB = createDynamoDbContext<TDynamoDBGraphQLContext>(params.dynamoDB);
+  const dynamoDB = createDynamoDBContext<TDynamoDBGraphQLContext>(params.dynamoDB);
 
   const context: WebSocketConnectHandlerContext<
     TBaseGraphQLContext,

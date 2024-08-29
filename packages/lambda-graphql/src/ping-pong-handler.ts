@@ -8,7 +8,7 @@ import {
   WebSocketApi,
   createApiGatewayContext,
 } from './context/apigateway';
-import { DynamoDBContextParams, createDynamoDbContext } from './context/dynamodb';
+import { DynamoDBContextParams, createDynamoDBContext } from './context/dynamodb';
 import { PingPongContextParams, PingPongMachineInput } from './context/pingpong';
 import { ConnectionTable, DynamoDBRecord } from './dynamodb/models/connection';
 
@@ -42,7 +42,7 @@ export function createPingPongHandler<TDynamoDBGraphQLContext extends DynamoDBRe
 
   logger.info('createPingPongHandler');
 
-  const dynamoDB = createDynamoDbContext<TDynamoDBGraphQLContext>(params.dynamoDB);
+  const dynamoDB = createDynamoDBContext<TDynamoDBGraphQLContext>(params.dynamoDB);
   const apiGateway = createApiGatewayContext(params.apiGateway);
 
   const context: PingPongHandlerContext<TDynamoDBGraphQLContext> = {
