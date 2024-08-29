@@ -5,6 +5,7 @@ import {
   GraphQLRequestListener,
 } from '@apollo/server';
 import { Logger } from '~utils/logging';
+import { unwrapResolverError } from '@apollo/server/errors';
 
 export class ApolloServerLogger<TContext extends BaseContext>
   implements ApolloServerPlugin<TContext>
@@ -29,14 +30,23 @@ export class ApolloServerLogger<TContext extends BaseContext>
 
     return Promise.resolve({
       didEncounterErrors: async (ctx) => {
-        const firstError = ctx.errors[0];
-        if (!firstError) return Promise.resolve();
+        const errors = ctx.errors;
+        if (errors.length === 0) return Promise.resolve();
 
-        this.logger.error(`request:errors`, firstError, {
-          allErrors: ctx.errors,
-        });
-
-        return Promise.resolve();
+        this.logger.error(
+          'request:errors',
+          errors.map((error) => {
+            const originalError = unwrapResolverError(error);
+            if (originalError !== error) {
+              return {
+                graphQLError: proxyMaskStack(error),
+                originalError: originalError,
+              };
+            } else {
+              return error;
+            }
+          })
+        );
       },
       willSendResponse: () => {
         const requestDuration =
@@ -51,4 +61,30 @@ export class ApolloServerLogger<TContext extends BaseContext>
       },
     });
   }
+}
+
+/**
+ * Error with property 'stack' proxied to undefined
+ */
+function proxyMaskStack(error: unknown) {
+  if (!(error instanceof Error)) {
+    return error;
+  }
+
+  return new Proxy(error, {
+    get: (...args) => {
+      const [_target, p] = args;
+      if (p === 'stack') {
+        return;
+      }
+      return Reflect.get(...args);
+    },
+    has(...args) {
+      const [_target, p] = args;
+      if (p === 'stack') {
+        return false;
+      }
+      return Reflect.get(...args);
+    },
+  });
 }

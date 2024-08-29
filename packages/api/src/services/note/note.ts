@@ -753,6 +753,51 @@ export async function updateTrashNote({
 }
 
 interface UpdateNoteBackgroundColorParams {
+  collection: Collection<NoteSchema>;
+  /**
+   * User who can access the note
+   */
+  userId: ObjectId;
+  /**
+   * Note to trash
+   */
+  noteId: ObjectId;
+  /**
+   * New background color value
+   */
+  backgroundColor: string;
+}
+
+/**
+ * Update note background color for a specific user
+ */
+export async function updateNoteBackgroundColor({
+  collection,
+  userId,
+  noteId,
+  backgroundColor,
+}: UpdateNoteBackgroundColorParams) {
+  const noteUserArrayFilter = 'noteUser';
+  return await collection.updateOne(
+    {
+      _id: noteId,
+    },
+    {
+      $set: {
+        [`users.$[${noteUserArrayFilter}].preferences.backgroundColor`]: backgroundColor,
+      },
+    },
+    {
+      arrayFilters: [
+        {
+          [`${noteUserArrayFilter}._id`]: userId,
+        },
+      ],
+    }
+  );
+}
+
+interface UpdateNoteReadOnlyParams {
   mongoDB: {
     client: MongoClient;
     collections: Pick<MongoDBCollections, CollectionName.NOTES>;

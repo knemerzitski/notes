@@ -22,6 +22,7 @@ import { resolvers } from './graphql/resolvers.generated';
 import { typeDefs } from './graphql/typeDefs.generated';
 import { createCollectionInstances } from './mongodb/collections';
 import { createMongoDBContext } from './mongodb/context';
+import { formatError } from './graphql/errors';
 
 export function createDefaultApiOptions(): ApiOptions {
   return {
@@ -56,6 +57,7 @@ export function createDefaultGraphQLParams<TContext extends BaseContext>(
     transform: applyDirectives,
     apolloServerOptions: {
       plugins: [new ApolloServerLogger(logger)],
+      formatError,
     },
   };
 }

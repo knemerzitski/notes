@@ -6,6 +6,7 @@ import { GraphQLResolversContext } from '../../../graphql/types';
 import { applyDirectives } from '../../../graphql/directives';
 import { resolvers } from '../../../graphql/resolvers.generated';
 import { typeDefs } from '../../../graphql/typeDefs.generated';
+import { formatError } from '../../../graphql/errors';
 
 export function createApolloServer() {
   const { schema } = createGraphQLContext({
@@ -16,8 +17,9 @@ export function createApolloServer() {
 
   return new ApolloServer<GraphQLResolversContext>({
     schema,
-    includeStacktraceInErrorResponses: process.env.NODE_ENV !== 'production',
+    nodeEnv: 'test',
     plugins: [],
+    formatError,
   });
 }
 

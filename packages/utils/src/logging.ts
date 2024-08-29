@@ -1,5 +1,4 @@
 import debug, { Debugger } from 'debug';
-import { mapDeep } from './object/map-deep';
 import { isObjectLike } from './type-guards/is-object-like';
 
 /**
@@ -65,37 +64,14 @@ export interface Logger {
   namespace: string;
 }
 
-function mapTransformErrors(data: LogData) {
-  return mapDeep(
-    data,
-    (value) => {
-      if (value instanceof Error) {
-        const { name, message, stack, ...rest } = value;
-        return {
-          name,
-          message,
-          ...rest,
-          stack: value.stack?.toString().split('\n'),
-        };
-      }
-
-      return value;
-    },
-    {
-      maxDepth: 5,
-    }
-  );
-}
-
 function logEntry(log: Debugger, entry: LogEntry) {
-  if (!entry.data) {
+  if (entry.data === undefined) {
     log(LOG_FORMATS.plain, entry.message);
   } else {
-    const mappedData = mapTransformErrors(entry.data);
-    if (isObjectLike(mappedData)) {
-      log(LOG_FORMATS.withObjectData, entry.message, mappedData);
+    if (isObjectLike(entry.data)) {
+      log(LOG_FORMATS.withObjectData, entry.message, entry.data);
     } else {
-      log(LOG_FORMATS.withPlainData, entry.message, mappedData);
+      log(LOG_FORMATS.withPlainData, entry.message, entry.data);
     }
   }
 }
@@ -104,17 +80,45 @@ function extendNamespace(mainNamespace: string, namespace: string) {
   return mainNamespace + DELIMITER + namespace;
 }
 
+function jsonFormatterReplacer(_key: string, value: unknown) {
+  // All Error properties (including non-enumerable)
+  if (value instanceof Error) {
+    const error: Record<string, unknown> = {};
+    for (const key of Object.getOwnPropertyNames(value)) {
+      // @ts-expect-error Error object can be index accessed
+      const val = value[key];
+      if (key === 'stack') {
+        error[key] = val?.toString().split('\n');
+      } else {
+        error[key] = val;
+      }
+    }
+    return error;
+  }
+
+  return value;
+}
+
+debug.formatters.j = (value) => {
+  return JSON.stringify(value, jsonFormatterReplacer, 2);
+};
+
 export function createLogger(namespace: string): Logger {
   return _prepLoggerWithNamespace(namespace, {
     byNamespace: {},
   });
 }
 
+interface PrepLoggerWithNamespaceContext {
+  /**
+   * Existing logger by namespace memo
+   */
+  byNamespace: Record<string, Debugger>;
+}
+
 function _prepLoggerWithNamespace(
   mainNamespace: string,
-  ctx: {
-    byNamespace: Record<string, Debugger>;
-  }
+  ctx: PrepLoggerWithNamespaceContext
 ): Logger {
   function logEntryLogger(subNamespace: string): LogFn {
     const logNamespace = extendNamespace(mainNamespace, subNamespace);
@@ -124,7 +128,10 @@ function _prepLoggerWithNamespace(
         log = debug(logNamespace);
         ctx.byNamespace[logNamespace] = log;
       }
-      logEntry(log, { message, data });
+      logEntry(log, {
+        message,
+        data,
+      });
     };
   }
 

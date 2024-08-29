@@ -1,5 +1,5 @@
 import { Db, MongoClient, MongoClientOptions } from 'mongodb';
-import { Logger } from '~utils/logger';
+import { Logger } from '~utils/logging';
 
 export interface MongoDBContextParams<TCollections> {
   uri: string;
@@ -39,7 +39,7 @@ export async function createMongoDBContext<TCollections>(
       collections,
     };
   } catch (err) {
-    params.logger.error('createMongoDBContext:connect', err as Error);
+    params.logger.error('createMongoDBContext:connect', err);
     throw err;
   }
 }
