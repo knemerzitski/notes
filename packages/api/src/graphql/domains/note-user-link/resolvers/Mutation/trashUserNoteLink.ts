@@ -1,4 +1,4 @@
-import { throwNoteNotFound } from '../../../../../services/graphql/errors';
+import { throwNoteNotFound } from '../../../../__EXCLUDE/errors';
 import { updateTrashNote } from '../../../../../services/note/note';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';

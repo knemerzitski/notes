@@ -1,5 +1,5 @@
-import { MongoQueryFn } from '../../mongodb/query/query';
-import { QueryableNote } from '../../mongodb/descriptions/note';
+import { QueryableNote } from '../../../mongodb/descriptions/note';
+import { MongoQueryFn } from '../../../mongodb/query/query';
 
 export interface NoteMapper {
   readonly query: MongoQueryFn<QueryableNote>;

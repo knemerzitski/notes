@@ -1,12 +1,12 @@
 import { GraphQLError } from 'graphql';
 import { GraphQLErrorCode, ResourceType } from '~api-app-shared/graphql/error-codes';
-import { throwNoteNotFound } from '../../../../../services/graphql/errors';
+import { throwNoteNotFound } from '../../../../__EXCLUDE/errors';
 import {
   findNoteUser,
   getNoteUsersIds,
   updateNoteReadOnly,
 } from '../../../../../services/note/note';
-import { objectIdToStr } from '../../../../../services/utils/objectid';
+import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { assertAuthenticated } from '../../../base/directives/auth';
 import type { MutationResolvers, ResolversTypes } from '../../../types.generated';
 import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';

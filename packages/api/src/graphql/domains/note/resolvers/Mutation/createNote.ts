@@ -10,7 +10,7 @@ import { wrapRetryOnErrorAsync } from '~utils/wrap-retry-on-error';
 import {
   retryOnMongoError,
   MongoErrorCodes,
-} from '../../../../../services/mongodb/retry-on-mongo-error';
+} from '../../../../../mongodb/utils/retry-on-mongo-error';
 import { groupByFirst } from '~utils/array/group-by';
 import mapObject from 'map-obj';
 import { insertNewNote, queryWithNoteSchema } from '../../../../../services/note/note';

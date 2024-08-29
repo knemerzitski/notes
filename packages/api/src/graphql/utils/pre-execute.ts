@@ -15,7 +15,7 @@ import {
 import { ExecutionContext } from 'graphql/execution/execute';
 import { addPath } from 'graphql/jsutils/Path';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
-import { executeField, ExecutionOptions } from './external-graphql/execute';
+import { executeField, ExecutionOptions } from '../../graphql/external/execute';
 
 export type PreFetchArrayUpdateSizeFn = (size: number | undefined) => void;
 

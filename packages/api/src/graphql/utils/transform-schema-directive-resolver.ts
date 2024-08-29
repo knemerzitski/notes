@@ -7,7 +7,7 @@ import {
 } from '@graphql-tools/utils';
 import { GraphQLFieldConfig, GraphQLSchema, defaultFieldResolver } from 'graphql';
 
-import { DirectiveResolverFn, NextResolverFn } from '../../graphql/domains/types.generated';
+import { DirectiveResolverFn, NextResolverFn } from '../domains/types.generated';
 
 /**
  * @param schema

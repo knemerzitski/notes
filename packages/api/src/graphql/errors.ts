@@ -1,8 +1,6 @@
 import { GraphQLError, GraphQLFormattedError } from 'graphql';
 import { unwrapResolverError } from '@apollo/server/errors';
-import { GraphQLErrorCode, ResourceType } from '~api-app-shared/graphql/error-codes';
-import { NoteNotFoundError } from '../services/note/errors';
-import { objectIdToStr } from '../services/utils/objectid';
+import { formatError as note_formatError } from './errors/note';
 
 type ErrorFormatter = (error: unknown) => Error | undefined;
 
@@ -28,19 +26,6 @@ export function formatError(
     ...formattedError,
     message: 'Something went wrong!',
   };
-}
-
-function note_formatError(error: unknown) {
-  if (error instanceof NoteNotFoundError) {
-    return new GraphQLError(`Note '${objectIdToStr(error.noteId)}' not found`, {
-      extensions: {
-        code: GraphQLErrorCode.NOT_FOUND,
-        resource: ResourceType.NOTE,
-      },
-    });
-  }
-
-  return;
 }
 
 /**

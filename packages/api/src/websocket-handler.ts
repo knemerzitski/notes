@@ -30,7 +30,7 @@ import {
   createApiGraphQLContext,
   headersToSerializedBaseGraphQLContext,
   parseDynamoDBBaseGraphQLContext,
-} from './services/graphql/context';
+} from './graphql/context';
 
 export interface CreateWebSocketHandlerDefaultParamsOptions {
   override?: {

@@ -12,7 +12,7 @@ import {
 import { mongoCollections, resetDatabase } from '../helpers/mongodb/mongodb';
 import { faker } from '@faker-js/faker';
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
-import { strToObjectId } from '../../services/utils/objectid';
+import { strToObjectId } from '../../mongodb/utils/objectid';
 import { HttpSession } from '../helpers/e2e/http-session';
 import { fetchGraphQL } from '../helpers/e2e/fetch-graphql';
 import { createGraphQLWebSocket } from '../helpers/e2e/websocket';

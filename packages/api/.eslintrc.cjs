@@ -18,7 +18,7 @@ module.exports = {
   overrides: [
     {
       // Ignore filename casing for generates resolver files
-      files: ['./src/graphql/domains/*/resolvers/**'],
+      files: ['./src/graphql/domains/*/resolvers/**', './src/graphql/external/**'],
       rules: {
         'unicorn/filename-case': ['off'],
       },

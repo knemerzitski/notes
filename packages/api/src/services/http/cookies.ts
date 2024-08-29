@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import { objectIdToStr } from '../utils/objectid';
+import { objectIdToStr } from '../../mongodb/utils/objectid';
 
 const SECURE_SET_COOKIE = process.env.NODE_ENV === 'production' ? '; Secure' : '';
 

@@ -3,17 +3,17 @@ import {
   ApiOptions,
   BaseGraphQLContext,
   DynamoDBBaseGraphQLContext,
-} from '../../graphql/types';
-import { MongoDBCollections } from '../../mongodb/collections';
-import { MongoDBContext } from '../../mongodb/context';
-import { createMongoDBLoaders } from '../../mongodb/loaders';
+} from './types';
+import { MongoDBCollections } from '../mongodb/collections';
+import { MongoDBContext } from '../mongodb/context';
+import { createMongoDBLoaders } from '../mongodb/loaders';
 import {
   serializeAuthenticationContext,
   parseAuthenticationContext,
   FindRefreshSessionByCookieIdParams,
   parseAuthenticationContextFromHeaders,
-} from '../auth/auth';
-import { Cookies } from '../http/cookies';
+} from '../services/auth/auth';
+import { Cookies } from '../services/http/cookies';
 
 export interface CreateBaseGraphQLContextParams {
   headers: Readonly<Record<string, string | undefined>> | undefined;

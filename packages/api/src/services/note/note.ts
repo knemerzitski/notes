@@ -1,4 +1,4 @@
-import { MongoClient, ObjectId, UpdateFilter } from 'mongodb';
+import { Collection, MongoClient, ObjectId, UpdateFilter } from 'mongodb';
 import { NoteSchema } from '../../mongodb/schema/note';
 import { NoteUserSchema } from '../../mongodb/schema/note-user';
 import { createCollabText, queryWithCollabTextSchema } from '../collab/collab';
@@ -10,7 +10,7 @@ import { QueryableUserLoader } from '../../mongodb/loaders/queryable-user-loader
 import { ObjectQueryDeep, QueryResultDeep } from '../../mongodb/query/query';
 import { CollabSchema } from '../../mongodb/schema/collab';
 import { getNotesArrayPath } from '../user/user';
-import { objectIdToStr } from '../utils/objectid';
+import { objectIdToStr } from '../../mongodb/utils/objectid';
 import { MongoDBLoaders } from '../../mongodb/loaders';
 
 interface InsertNewNoteParams {

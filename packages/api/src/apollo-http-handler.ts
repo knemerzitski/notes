@@ -19,7 +19,7 @@ import {
 import {
   createApiGraphQLContext,
   createBaseGraphQLContext,
-} from './services/graphql/context';
+} from './graphql/context';
 import { createIsCurrentConnection } from './services/handlers/handlers';
 
 export interface CreateApolloHttpHandlerDefaultParamsOptions {

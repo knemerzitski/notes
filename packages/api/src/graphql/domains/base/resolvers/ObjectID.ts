@@ -4,7 +4,7 @@ import {
   isObjectIdStr,
   objectIdToStr,
   strToObjectId,
-} from '../../../../services/utils/objectid';
+} from '../../../../mongodb/utils/objectid';
 
 function assertBase64StrLen16(value: unknown): asserts value is string {
   if (typeof value !== 'string' || !isObjectIdStr(value)) {

@@ -12,7 +12,7 @@ import {
 import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
 import { WebSocketMessageHandlerParams } from '~lambda-graphql/message-handler';
 import { isAuthenticated, parseAuthenticationContextFromHeaders } from '../auth/auth';
-import { serializeBaseGraphQLContext } from '../graphql/context';
+import { serializeBaseGraphQLContext } from '../../graphql/context';
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import { ConnectionTtlContext } from '~lambda-graphql/dynamodb/models/connection';
 import { SessionDuration } from '../session/duration';
