@@ -1,6 +1,6 @@
 import { throwNoteNotFound } from '../../../../services/graphql/errors';
 import { updateMoveNote } from '../../../../services/note/note';
-import { assertAuthenticated } from '../../../base/directives/auth';
+import { assertAuthenticated } from '../../../domains/base/directives/auth';
 import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';
 import {
   ListAnchorPosition,
@@ -11,7 +11,7 @@ import {
   RequireFields,
   ResolversTypes,
   type MutationResolvers,
-} from './../../../types.generated';
+} from '../../../domains/types.generated';
 
 export const moveUserNoteLink: NonNullable<
   MutationResolvers['moveUserNoteLink']

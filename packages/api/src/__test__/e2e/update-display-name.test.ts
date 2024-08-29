@@ -8,7 +8,7 @@ import {
   SignOutPayload,
   UpdateSignedInUserDisplayNameInput,
   UpdateSignedInUserDisplayNamePayload,
-} from '../../graphql/types.generated';
+} from '../../graphql/domains/types.generated';
 import { mongoCollections, resetDatabase } from '../helpers/mongodb/mongodb';
 import { faker } from '@faker-js/faker';
 import { CustomHeaderName } from '~api-app-shared/custom-headers';

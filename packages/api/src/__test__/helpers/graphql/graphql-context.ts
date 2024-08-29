@@ -12,8 +12,8 @@ import {
 import { PartialBy } from '~utils/types';
 
 import { ApiGraphQLContext, GraphQLResolversContext } from '../../../graphql/types';
-import { resolvers } from '../../../graphql/resolvers.generated';
-import { typeDefs } from '../../../graphql/typeDefs.generated';
+import { resolvers } from '../../../graphql/domains/resolvers.generated';
+import { typeDefs } from '../../../graphql/domains/typeDefs.generated';
 
 import { MongoDBCollections } from '../../../mongodb/collections';
 import { MongoDBContext } from '../../../mongodb/context';

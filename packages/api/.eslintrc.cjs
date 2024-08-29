@@ -4,7 +4,7 @@ module.exports = {
     project: ['./tsconfig.json'],
     tsconfigRootDir: __dirname,
   },
-  ignorePatterns: ['src/graphql/*.generated.ts', 'node_modules', 'out'],
+  ignorePatterns: ['src/graphql/domains/*.generated.ts', 'node_modules', 'out'],
   settings: {
     'import/resolver': {
       typescript: {
@@ -18,7 +18,7 @@ module.exports = {
   overrides: [
     {
       // Ignore filename casing for generates resolver files
-      files: ['./src/graphql/*/resolvers/**', './src/graphql/utils/graphql/**'],
+      files: ['./src/graphql/domains/*/resolvers/**'],
       rules: {
         'unicorn/filename-case': ['off'],
       },

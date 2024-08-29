@@ -42,7 +42,7 @@ import {
   NoteCategory,
   TrashUserNoteLinkInput,
   TrashUserNoteLinkPayload,
-} from '../../../types.generated';
+} from '../../../domains/types.generated';
 import { UserNoteLink_id } from '../../../../services/note/note';
 import { signedInUserTopic } from '../../../user/resolvers/Subscription/signedInUserEvents';
 

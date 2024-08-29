@@ -1,4 +1,4 @@
-import { FieldWrapper } from '../../../graphql/types.generated';
+import { FieldWrapper } from '../../../graphql/domains/types.generated';
 
 export type UnwrapFieldWrapper<T> = T extends FieldWrapper<infer F>
   ? F extends (infer FU)[]

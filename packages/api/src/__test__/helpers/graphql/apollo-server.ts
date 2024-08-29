@@ -4,8 +4,8 @@ import { createGraphQLContext } from '~lambda-graphql/context/graphql';
 
 import { GraphQLResolversContext } from '../../../graphql/types';
 import { applyDirectives } from '../../../graphql/directives';
-import { resolvers } from '../../../graphql/resolvers.generated';
-import { typeDefs } from '../../../graphql/typeDefs.generated';
+import { resolvers } from '../../../graphql/domains/resolvers.generated';
+import { typeDefs } from '../../../graphql/domains/typeDefs.generated';
 import { formatError } from '../../../graphql/errors';
 
 export function createApolloServer() {

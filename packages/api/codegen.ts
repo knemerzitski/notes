@@ -2,9 +2,9 @@ import { defineConfig } from '@eddeee888/gcg-typescript-resolver-files';
 import { CodegenConfig } from '@graphql-codegen/cli';
 
 const config: CodegenConfig = {
-  schema: './src/graphql/*/schema.graphql',
+  schema: './src/graphql/domains/*/schema.graphql',
   generates: {
-    './src/graphql': defineConfig({
+    './src/graphql/domains': defineConfig({
       add: {
         './types.generated.ts': {
           content: "import { MaybeValue } from '~utils/types';",

@@ -1,8 +1,7 @@
-import { throwNoteNotFound } from '../../../../services/graphql/errors';
-import { updateNoteBackgroundColor } from '../../../../services/note/note';
-import { assertAuthenticated } from '../../../base/directives/auth';
+import { updateNoteBackgroundColorWithLoader } from '../../../../services/note/with-loader';
+import { assertAuthenticated } from '../../../domains/base/directives/auth';
 import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';
-import type { MutationResolvers, ResolversTypes } from './../../../types.generated';
+import type { MutationResolvers, ResolversTypes } from '../../../domains/types.generated';
 
 export const updateUserNoteLinkBackgroundColor: NonNullable<
   MutationResolvers['updateUserNoteLinkBackgroundColor']
@@ -14,16 +13,12 @@ export const updateUserNoteLinkBackgroundColor: NonNullable<
 
   const currentUserId = auth.session.userId;
 
-  const bgResult = await updateNoteBackgroundColor({
+  const bgResult = await updateNoteBackgroundColorWithLoader({
     backgroundColor: input.backgroundColor,
     mongoDB,
     noteId: input.noteId,
     userId: currentUserId,
   });
-
-  if (bgResult === 'not_found') {
-    throwNoteNotFound(input.noteId);
-  }
 
   const payload: ResolversTypes['SignedInUserMutations'] = {
     __typename: 'UpdateUserNoteLinkBackgroundColorPayload',

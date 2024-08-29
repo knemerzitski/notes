@@ -33,7 +33,7 @@ import {
   NoteCategory,
   UpdateUserNoteLinkBackgroundColorInput,
   UpdateUserNoteLinkBackgroundColorPayload,
-} from '../../../types.generated';
+} from '../../../domains/types.generated';
 import { findNoteUserInSchema, UserNoteLink_id } from '../../../../services/note/note';
 import { signedInUserTopic } from '../../../user/resolvers/Subscription/signedInUserEvents';
 
