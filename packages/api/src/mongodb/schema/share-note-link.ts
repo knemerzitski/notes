@@ -1,46 +1,61 @@
 import { nanoid } from 'nanoid';
 
-import { UserSchema } from './user';
+import {
+  boolean,
+  date,
+  defaulted,
+  Infer,
+  instance,
+  number,
+  object,
+  optional,
+  string,
+} from 'superstruct';
+import { ObjectId } from 'mongodb';
 
 /**
  * Note sharing via links
  */
-export interface ShareNoteLinkSchema {
+export type ShareNoteLinkSchema = Infer<typeof ShareNoteLinkSchema>;
+
+const SimplePermissionsSchema = object({
+  readOnly: optional(boolean()),
+});
+
+/**
+ * Note sharing via links
+ */
+export const ShareNoteLinkSchema = object({
   /**
    * Unique generated ID used to access sharing
    */
   // TODO use ObjectId
-  publicId: string;
+  publicId: defaulted(string(), () => nanoid(32)),
 
   /**
    * User who created this link
    */
-  creatorUserId: UserSchema['_id'];
-
+  creatorUserId: instance(ObjectId),
   /**
    * Permissions depending on user role
    */
-  permissions?: {
-    guest?: SimplePermissions;
-    user?: SimplePermissions;
-  };
+  permissions: optional(
+    object({
+      guest: optional(SimplePermissionsSchema),
+      user: optional(SimplePermissionsSchema),
+    })
+  ),
 
   /**
    * Optional delete document  after certain time
    */
-  expireAt?: Date;
+  expireAt: optional(date()),
   /**
    * Optional should delete document when value reaches 0.
    * Access count should be decremented every time document is accessed.
    * Logic is handled in resolvers, not by database.
    */
-  expireAccessCount?: number;
-}
+  expireAccessCount: optional(number()),
+});
 
-interface SimplePermissions {
-  readOnly?: boolean;
-}
-
-export const shareNoteLinkDefaultValues = {
-  publicId: () => nanoid(32),
-};
+type SimplePermissionsSchema = Infer<typeof SimplePermissionsSchema>;

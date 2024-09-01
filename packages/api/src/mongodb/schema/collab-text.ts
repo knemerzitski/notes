@@ -1,32 +1,64 @@
 import { ObjectId } from 'mongodb';
+import {
+  array,
+  coerce,
+  date,
+  Infer,
+  instance,
+  number,
+  object,
+  optional,
+  string,
+  unknown,
+} from 'superstruct';
 
 import { Changeset } from '~collab/changeset/changeset';
-import { SelectionRange } from '~collab/client/selection-range';
-import { RevisionChangeset, ServerRevisionRecord } from '~collab/records/record';
-import { PartialBy } from '~utils/types';
 
-/**
- * Embedded document for Note
- */
-export interface CollabTextSchema<T = unknown> {
-  headText: RevisionChangesetSchema<T>;
-  tailText: RevisionChangesetSchema<T>;
-  records: RevisionRecordSchema<T>[];
-}
+export const ChangesetSchema = coerce(instance(Changeset), unknown(), (value) =>
+  Changeset.parseValue(value)
+);
 
-export type RevisionChangesetSchema<T = unknown> = RevisionChangeset<T>;
+export type ChangesetSchema = Infer<typeof ChangesetSchema>;
 
-export type RevisionRecordSchema<T = unknown> = Omit<
-  ServerRevisionRecord<T>,
-  'creatorUserId' | 'beforeSelection' | 'afterSelection'
-> & {
-  creatorUserId: ObjectId;
-  beforeSelection: SelectionRangeSchema;
-  afterSelection: SelectionRangeSchema;
+export const RevisionChangesetSchema = object({
+  changeset: ChangesetSchema,
+  revision: number(),
+});
+
+export type RevisionChangesetSchema = Infer<typeof RevisionChangesetSchema>;
+
+export const SelectionRangeSchema = object({
+  /**
+   * Range start value
+   */
+  start: number(),
+  /**
+   * If undefined then start === end
+   */
+  end: optional(number()),
+});
+
+export type SelectionRangeSchema = Infer<typeof SelectionRangeSchema>;
+
+export const RevisionRecordSchema = object({
+  afterSelection: SelectionRangeSchema,
+  beforeSelection: SelectionRangeSchema,
+  changeset: ChangesetSchema,
   /**
    * When record was inserted to DB
    */
-  createdAt: Date;
-};
-export type SelectionRangeSchema = PartialBy<SelectionRange, 'end'>;
-export type ChangesetSchema = Changeset;
+  createdAt: date(),
+  creatorUserId: instance(ObjectId),
+  revision: number(),
+  userGeneratedId: string(),
+});
+
+export type RevisionRecordSchema = Infer<typeof RevisionRecordSchema>;
+
+export const CollabTextSchema = object({
+  headText: RevisionChangesetSchema,
+  tailText: RevisionChangesetSchema,
+  records: array(RevisionRecordSchema),
+});
+
+export type CollabTextSchema = Infer<typeof CollabTextSchema>;

@@ -2,27 +2,26 @@ import { ObjectId } from 'mongodb';
 import { nanoid } from 'nanoid';
 
 import { CollectionDescription } from '../collections';
+import { date, defaulted, Infer, instance, object, string } from 'superstruct';
 
-export interface SessionSchema {
-  _id: ObjectId;
+export const SessionSchema = object({
+  _id: instance(ObjectId),
   /**
    * ID that is stored in users cookie headers
    * @default nanoid()
    */
-  cookieId: string;
+  cookieId: defaulted(string(), () => nanoid(48)),
   /**
    * ID of user who this session belongs to
    */
-  userId: ObjectId;
+  userId: instance(ObjectId),
   /**
    * When cookie expires and is deleted from database (expireAfterSeconds index)
    */
-  expireAt: Date;
-}
+  expireAt: date(),
+});
 
-export const sessionDefaultValues = {
-  cookieId: () => nanoid(48),
-};
+export type SessionSchema = Infer<typeof SessionSchema>;
 
 export const sessionDescription: CollectionDescription = {
   indexSpecs: [

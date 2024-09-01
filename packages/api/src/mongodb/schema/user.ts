@@ -1,38 +1,47 @@
 import { ObjectId } from 'mongodb';
 
 import { CollectionDescription } from '../collections';
+import { array, Infer, instance, object, optional, record, string } from 'superstruct';
 
-export interface UserSchema {
-  _id: ObjectId;
-  /**
-   * Any third-party related information
-   */
-  thirdParty?: {
-    google?: {
-      /**
-       * Google authentication JWT payload subject field.
-       * In other words user ID returned by Google Sign-In.
-       */
-      id?: string;
-    };
-  };
-  profile: {
-    displayName: string;
-  };
-  notes: {
-    /**
-     * Key is enum value NoteCategory
-     */
-    category: Record<string, Category>;
-  };
-}
-
-interface Category {
+const NoteCategorySchema = object({
   /**
    * An ordered list of Note._id
    */
-  order: ObjectId[];
-}
+  order: array(instance(ObjectId)),
+});
+
+type NoteCategorySchema = Infer<typeof NoteCategorySchema>;
+
+export const UserSchema = object({
+  _id: instance(ObjectId),
+  /**
+   * Any third-party related information
+   */
+  thirdParty: optional(
+    object({
+      google: optional(
+        object({
+          /**
+           * Google authentication JWT payload subject field.
+           * In other words user ID returned by Google Sign-In.
+           */
+          id: optional(string()),
+        })
+      ),
+    })
+  ),
+  profile: object({
+    displayName: string(),
+  }),
+  notes: object({
+    /**
+     * Key is enum value NoteCategory
+     */
+    category: record(string(), NoteCategorySchema),
+  }),
+});
+
+export type UserSchema = Infer<typeof UserSchema>;
 
 export const userDescription: CollectionDescription = {
   indexSpecs: [

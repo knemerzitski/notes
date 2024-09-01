@@ -4,22 +4,23 @@ import { CollectionDescription } from '../collections';
 import { NoteUserSchema } from './note-user';
 import { ShareNoteLinkSchema } from './share-note-link';
 import { CollabSchema } from './collab';
+import { array, Infer, instance, object, optional } from 'superstruct';
 
-export interface NoteSchema {
-  _id: ObjectId;
+export const NoteSchema = object({
+  _id: instance(ObjectId),
   /**
-   * User specific info for this note
+   * One to many relationship between note and user.
    */
-  users: NoteUserSchema[];
+  users: array(NoteUserSchema),
   /**
-   * Note collaborative schema
+   * Note text collaboration schema
    */
-  collab?: CollabSchema;
-  /**
-   * Note sharing via links
-   */
-  shareNoteLinks?: ShareNoteLinkSchema[];
-}
+  collab: optional(CollabSchema),
+
+  shareNoteLinks: optional(array(ShareNoteLinkSchema)),
+});
+
+export type NoteSchema = Infer<typeof NoteSchema>;
 
 export const noteDescription: CollectionDescription = {
   indexSpecs: [
