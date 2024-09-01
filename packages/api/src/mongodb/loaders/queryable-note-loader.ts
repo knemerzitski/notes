@@ -10,7 +10,7 @@ import { LoaderEvents } from '../loaders';
 import { mapQueryAggregateResult } from '../query/map-query-aggregate-result';
 import { MergedObjectQueryDeep, mergeQueries } from '../query/merge-queries';
 import { mergedQueryToPipeline } from '../query/merged-query-to-pipeline';
-import { QueryResultDeep } from '../query/query';
+import { QueryDeep, QueryResultDeep } from '../query/query';
 import { QueryableNote, queryableNoteDescription } from '../descriptions/note';
 
 import {
@@ -19,7 +19,11 @@ import {
   QueryLoaderCacheKey,
   QueryLoaderContext,
   PrimeOptions,
+  QueryLoaderError,
 } from './query-loader';
+import { objectIdToStr } from '../utils/objectid';
+import { PickerDeep } from '~utils/types';
+import { MongoPrimitive } from '../types';
 
 export interface QueryableNoteId {
   /**
@@ -50,6 +54,18 @@ interface GlobalContext {
 
 type RequestContext = AggregateOptions['session'];
 
+export class NoteNoteFoundQueryLoaderError extends QueryLoaderError<
+  QueryableNoteId,
+  QueryableNote
+> {
+  override readonly key: QueryableNoteLoaderKey;
+
+  constructor(key: QueryableNoteLoaderKey) {
+    super(`Note '${objectIdToStr(key.id.noteId)}' not found`, key);
+    this.key = key;
+  }
+}
+
 export class QueryableNoteLoader {
   private readonly loader: QueryLoader<
     QueryableNoteId,
@@ -66,12 +82,16 @@ export class QueryableNoteLoader {
       });
     }
 
-    this.loader = new QueryLoader({
+    this.loader = new QueryLoader<
+      QueryableNoteId,
+      QueryableNote,
+      GlobalContext,
+      RequestContext
+    >({
       eventBus: params.eventBus ? loaderEventBus : undefined,
-      batchLoadFn: (keys, context) => {
-        return queryableNoteBatchLoad(keys, context);
-      },
+      batchLoadFn: (keys, context) => queryableNoteBatchLoad(keys, context),
       context: params.context,
+      validator: QueryableNote,
     });
 
     if (params.eventBus) {
@@ -89,10 +109,23 @@ export class QueryableNoteLoader {
     this.loader.prime(key, value, options);
   }
 
-  async load(key: QueryableNoteLoaderKey, session?: RequestContext) {
+  load<
+    V extends QueryDeep<QueryableNote> & PickerDeep<QueryableNote, MongoPrimitive>,
+    B extends boolean,
+  >(
+    key: {
+      id: QueryableNoteId;
+      query: V;
+    },
+    options?: {
+      session?: RequestContext;
+      validate?: B;
+    }
+  ) {
     return this.loader.load(key, {
-      context: session,
-      skipCache: session != null,
+      context: options?.session,
+      skipCache: options?.session != null,
+      validate: options?.validate,
     });
   }
 
@@ -107,7 +140,7 @@ export class QueryableNoteLoader {
         return;
       }
 
-      const resultCategoryMeta = value?.notes?.category?.[categoryName];
+      const resultCategoryMeta = value.notes?.category?.[categoryName];
       if (!resultCategoryMeta) {
         return;
       }
@@ -130,7 +163,7 @@ export class QueryableNoteLoader {
 export async function queryableNoteBatchLoad(
   keys: readonly QueryableNoteLoaderKey[],
   context: QueryableNoteLoadContext
-): Promise<(QueryResultDeep<QueryableNote> | null)[]> {
+): Promise<(QueryResultDeep<QueryableNote> | Error)[]> {
   const keysByUserId = groupBy(
     keys,
     ({ id: { userId } }) => userId?.toString('hex') ?? ''
@@ -177,14 +210,10 @@ export async function queryableNoteBatchLoad(
           )
           .toArray();
 
-        // Map userNote by publicId
         const noteById = notesResult.reduce<Record<string, Document>>((noteMap, note) => {
-          const noteId = note._id;
-          if (!(noteId instanceof ObjectId)) {
-            throw new Error('Expected Note._id to be defined');
+          if (note._id instanceof ObjectId) {
+            noteMap[note._id.toString()] = note;
           }
-
-          noteMap[noteId.toString()] = note;
 
           return noteMap;
         }, {});
@@ -210,7 +239,7 @@ export async function queryableNoteBatchLoad(
     const userResult = notesBy_userId_noteId[key.id.userId?.toString() ?? ''];
     const note = userResult?.noteById[key.id.noteId.toString()];
     if (!note) {
-      return null;
+      return new NoteNoteFoundQueryLoaderError(key);
     }
 
     return mapQueryAggregateResult(key.query, userResult.mergedQuery, note, {

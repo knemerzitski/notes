@@ -15,6 +15,8 @@ export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 export type WithRequired<T, TKey extends keyof T> = T & { [Key in TKey]-?: T[Key] };
 
+export type ReplaceWith<T extends object, R extends object> = Omit<T, keyof R> & R;
+
 export type ReplaceDeep<T, Source, Target> = T extends Source
   ? Target
   : T extends (infer U)[]
@@ -29,6 +31,42 @@ export type ReplaceDeep<T, Source, Target> = T extends Source
 
 export type ExcludeNullable<T, Key extends keyof NonNullable<T>> = NonNullable<T> & {
   [key in Key]-?: Exclude<NonNullable<T>[key], null | undefined>;
+};
+
+export type PickValue = 1;
+
+export type PickerDeep<T, P> = T extends (infer U)[]
+  ? PickerDeep<U, P>
+  : T extends P
+    ? PickValue
+    : T extends object
+      ? PickerObjectDeep<T, P>
+      : never;
+type PickerObjectDeep<T extends object, P> = {
+  [Key in keyof T]?: T[Key] extends P ? PickValue : PickerDeep<T[Key], P>;
+};
+
+export type PickDeep<T, V extends PickerDeep<T, P>, P> = T extends (infer U)[]
+  ? V extends PickerDeep<U, P>
+    ? PickDeep<U, V, P>[]
+    : never
+  : T extends P
+    ? T
+    : T extends object
+      ? PickObjectDeep<T, V, P>
+      : never;
+type PickObjectDeep<T extends object, V extends PickerDeep<T, P>, P> = {
+  [Key in keyof V]: V[Key] extends PickValue
+    ? Key extends keyof T
+      ? T[Key]
+      : never
+    : V[Key] extends object
+      ? Key extends keyof T
+        ? V[Key] extends PickerDeep<T[Key], P>
+          ? PickDeep<T[Key], V[Key], P>
+          : never
+        : never
+      : never;
 };
 
 /**

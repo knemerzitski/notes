@@ -7,17 +7,22 @@ import { expect, it, vi } from 'vitest';
 import { QueryLoaderParams, QueryLoader, QueryLoaderEvents } from './query-loader';
 import { mitt } from '~utils/mitt-unsub';
 import isEqual from 'lodash.isequal';
+import { array, Infer, number, object, string, unknown } from 'superstruct';
 
-interface Product {
-  name: string;
-  price: number;
-}
+const Product = object({
+  name: string(),
+  price: number(),
+});
 
-interface Shop {
-  id: string;
-  description: string;
-  topProducts: Product[];
-}
+type Product = Infer<typeof Product>;
+
+const Shop = object({
+  id: string(),
+  description: string(),
+  topProducts: array(Product),
+});
+
+type Shop = Infer<typeof Shop>;
 
 interface Context {
   session: string;
@@ -81,21 +86,28 @@ it('query is split: any future partial query is cached', async () => {
     context: {
       database,
     },
+    validator: Shop,
   });
 
-  let result = await loader.load({
-    id: {
-      shopId: 'first',
-    },
-    query: {
-      id: 1,
-      description: 1,
-      topProducts: {
-        name: 1,
-        price: 1,
+  const result = await loader.load(
+    {
+      id: {
+        shopId: 'first',
+      },
+      query: {
+        id: 1,
+        description: 1,
+        topProducts: {
+          name: 1,
+          price: 1,
+        },
       },
     },
-  });
+    {
+      validate: true,
+    }
+  );
+
   expect(result).toStrictEqual({
     id: 'first',
     description: 'the best shop',
@@ -110,7 +122,7 @@ it('query is split: any future partial query is cached', async () => {
     'Expected load to be called 4 times.'
   ).toHaveLength(4);
 
-  result = await loader.load({
+  const result2 = await loader.load({
     id: {
       shopId: 'first',
     },
@@ -119,32 +131,38 @@ it('query is split: any future partial query is cached', async () => {
       description: 1,
     },
   });
-  expect(result?.description).toStrictEqual('the best shop');
+  expect(result2.description).toStrictEqual('the best shop');
   expect(spyBatchLoadFn).toHaveBeenCalledTimes(1);
 
-  result = await loader.load({
-    id: {
-      shopId: 'first',
-    },
-    query: {
-      id: 1,
-      topProducts: {
-        name: 1,
+  const result3 = await loader.load(
+    {
+      id: {
+        shopId: 'first',
+      },
+      query: {
+        id: 1,
+        topProducts: {
+          name: 1,
+        },
       },
     },
-  });
-  expect(result?.topProducts?.map((p) => p.name)).toStrictEqual(['pc', 'tree']);
+    {
+      validate: true,
+    }
+  );
+  expect(result3.topProducts.map((p) => p.name)).toStrictEqual(['pc', 'tree']);
   expect(spyBatchLoadFn).toHaveBeenCalledTimes(1);
 });
 
 it('passes request context to load function', async () => {
-  const spyBatchLoadFn = vi.fn().mockResolvedValueOnce([{}]);
+  const spyBatchLoadFn = vi.fn().mockResolvedValueOnce([{ id: 'b' }]);
 
   const loader = new QueryLoader<ShopId, Shop, GlobalContext, Context>({
     batchLoadFn: spyBatchLoadFn,
     context: {
       database,
     },
+    validator: Shop,
   });
 
   await loader.load(
@@ -160,6 +178,7 @@ it('passes request context to load function', async () => {
       context: {
         session: 'the session',
       },
+      validate: true,
     }
   );
   expect(spyBatchLoadFn.mock.calls[0][1].request).toStrictEqual({
@@ -175,6 +194,7 @@ it('primes value to cache', async () => {
     context: {
       database,
     },
+    validator: Shop,
   });
 
   loader.prime(
@@ -217,6 +237,7 @@ it('priming without value leaves it empty, load is not called', async () => {
     context: {
       database,
     },
+    validator: Shop,
   });
 
   loader.prime(
@@ -272,7 +293,7 @@ it('priming without value leaves it empty, load is not called', async () => {
 });
 
 it('caches ObjectId as string', async () => {
-  const spyBatchLoadFn = vi.fn().mockImplementation((keys) => keys);
+  const spyBatchLoadFn = vi.fn().mockImplementation(() => [{ value: 'a' }]);
 
   const cache = new Map();
   const spyCacheGet = vi.spyOn(cache, 'get');
@@ -282,6 +303,7 @@ it('caches ObjectId as string', async () => {
     loaderOptions: {
       cacheMap: cache,
     },
+    validator: object({ value: string() }),
   });
   const objId = new ObjectId();
 
@@ -321,6 +343,7 @@ it('calls event loaded with merged value', async () => {
   const loader = new QueryLoader({
     batchLoadFn: spyBatchLoadFn,
     eventBus,
+    validator: unknown(),
   });
 
   await loader.load({
