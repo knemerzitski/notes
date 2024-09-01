@@ -55,19 +55,20 @@ export type PickDeep<T, V extends PickerDeep<T, P>, P> = T extends (infer U)[]
     : T extends object
       ? PickObjectDeep<T, V, P>
       : never;
-type PickObjectDeep<T extends object, V extends PickerDeep<T, P>, P> = {
-  [Key in keyof V]: V[Key] extends PickValue
-    ? Key extends keyof T
+
+type OmitNever<T> = { [Key in keyof T as T[Key] extends never ? never : Key]: T[Key] };
+
+type PickObjectDeep<T extends object, V extends PickerDeep<T, P>, P> = OmitNever<{
+  [Key in keyof T]: Key extends keyof V
+    ? V[Key] extends PickValue
       ? T[Key]
-      : never
-    : V[Key] extends object
-      ? Key extends keyof T
+      : Exclude<T[Key], undefined> extends object
         ? V[Key] extends PickerDeep<T[Key], P>
           ? PickDeep<T[Key], V[Key], P>
           : never
         : never
-      : never;
-};
+    : never;
+}>;
 
 /**
  * @source https://stackoverflow.com/questions/74852202/typescript-pick-only-properties-key-that-starts-with-a-target-string
