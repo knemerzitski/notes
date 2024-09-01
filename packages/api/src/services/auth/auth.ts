@@ -7,6 +7,7 @@ import { Cookies } from '../http/cookies';
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import { SessionDuration, SessionDurationConfig } from '../session/duration';
 import { SessionSchema } from '../../mongodb/schema/session';
+import { UnauthenticatedServiceError } from './errors';
 
 export type AuthenticationContext = AuthenticatedContext | UnauthenticatedContext;
 
@@ -47,16 +48,18 @@ type SerializedSession = ReplaceDeep<
   number
 >;
 
-export function isAuthenticated(
+export function assertAuthenticated(
   auth: AuthenticationContext | undefined
-): auth is AuthenticatedContext {
-  return !!auth && !('reason' in auth);
+): asserts auth is AuthenticatedContext {
+  if (!isAuthenticated(auth)) {
+    throw new UnauthenticatedServiceError(auth);
+  }
 }
 
-export function isUnauthenticated(
-  auth: AuthenticationContext | undefined
-): auth is UnauthenticatedContext {
-  return !!auth && 'reason' in auth;
+export function isAuthenticated<T extends AuthenticationContext>(
+  auth: T | undefined
+): auth is Exclude<T, UnauthenticatedContext> {
+  return !!auth && !('reason' in auth);
 }
 
 export interface ParseAuthenticationContextFromHeadersParams {

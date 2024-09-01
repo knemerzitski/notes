@@ -1,28 +1,8 @@
-import { GraphQLError, GraphQLSchema } from 'graphql';
-
-import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+import { GraphQLSchema } from 'graphql';
 
 import type { DirectiveResolvers } from '../../types.generated';
 import { transformSchemaDirectiveResolver } from '../../../utils/transform-schema-directive-resolver';
-import {
-  AuthenticationContext,
-  AuthenticatedContext,
-  isAuthenticated,
-} from '../../../../services/auth/auth';
-
-export function assertAuthenticated(
-  auth: AuthenticationContext | undefined
-): asserts auth is AuthenticatedContext {
-  if (!isAuthenticated(auth)) {
-    // TODO throw service error? this code should be in service?
-    throw new GraphQLError('You must be signed in to perform this action.', {
-      extensions: {
-        code: GraphQLErrorCode.UNAUTHENTICATED,
-        reason: auth?.reason,
-      },
-    });
-  }
-}
+import { assertAuthenticated } from '../../../../services/auth/auth';
 
 export const auth: NonNullable<DirectiveResolvers['auth']> = async (
   next,

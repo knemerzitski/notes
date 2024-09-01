@@ -1,10 +1,11 @@
 import { GraphQLError, GraphQLFormattedError } from 'graphql';
 import { unwrapResolverError } from '@apollo/server/errors';
 import { formatError as note_formatError } from './errors/note';
+import { formatError as auth_formatError } from './errors/auth';
 
 type ErrorFormatter = (error: unknown) => Error | undefined;
 
-const errorFormatters: ErrorFormatter[] = [note_formatError];
+const errorFormatters: ErrorFormatter[] = [auth_formatError, note_formatError];
 
 export function formatError(
   formattedError: GraphQLFormattedError,
