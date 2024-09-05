@@ -4,7 +4,7 @@ import { CollectionDescription } from '../collections';
 import { NoteUserSchema } from './note-user';
 import { ShareNoteLinkSchema } from './share-note-link';
 import { CollabSchema } from './collab';
-import { array, Infer, instance, object, optional } from 'superstruct';
+import { array, Infer, InferRaw, instance, object, optional } from 'superstruct';
 
 export const NoteSchema = object({
   _id: instance(ObjectId),
@@ -19,6 +19,8 @@ export const NoteSchema = object({
 
   shareNoteLinks: optional(array(ShareNoteLinkSchema)),
 });
+
+export type DBNoteSchema = InferRaw<typeof NoteSchema>;
 
 export type NoteSchema = Infer<typeof NoteSchema>;
 

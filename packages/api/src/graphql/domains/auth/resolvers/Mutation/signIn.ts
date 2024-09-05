@@ -7,14 +7,15 @@ import {
 import { isAuthenticated } from '../../../../../services/auth/auth';
 import { SessionDuration } from '../../../../../services/session/duration';
 import { insertNewSession } from '../../../../../services/session/session';
-import {
-  findUserByGoogleUserId,
-  insertNewUserWithGoogleUser,
-} from '../../../../../services/user/user';
+import { insertNewUserWithGoogleUser } from '../../../../../services/user/user';
 import { GraphQLResolversContext } from '../../../../types';
 import { preExecuteObjectField } from '../../../../utils/pre-execute';
 import { MutationResolvers, ResolversTypes } from '../../../types.generated';
 import { verifyCredentialToken } from '../../../../../services/auth/google/oauth2';
+import {
+  findUserByGoogleUserId,
+  primeNewGoogleUser,
+} from '../../../../../services/user/user-loader';
 
 const _signIn: NonNullable<MutationResolvers['signIn']> = async (
   _parent,
@@ -29,13 +30,9 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
     return {
       __typename: 'AlreadySignedInResult',
       signedInUser: {
-        query: (query) =>
-          mongoDB.loaders.user.load({
-            id: {
-              userId: currentUserId,
-            },
-            query,
-          }),
+        query: mongoDB.loaders.user.createQueryFn({
+          userId: currentUserId,
+        }),
       },
       availableUserIds: cookies.getAvailableSessionUserIds(),
     };
@@ -64,16 +61,17 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
       {
         __typename: 'JustSignedInResult',
         signedInUser: {
-          query: (query) =>
-            mongoDB.loaders.user.load({
-              id: {
-                googleUserId,
-              },
-              query: {
+          query: mongoDB.loaders.user.createQueryFn(
+            {
+              googleUserId,
+            },
+            {
+              mapQuery: (query) => ({
                 _id: 1,
                 ...query,
-              },
-            }),
+              }),
+            }
+          ),
         },
       },
       ctx,
@@ -82,15 +80,14 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
   ]);
 
   let currentUserId: ObjectId;
-  if (!existingUser?._id) {
+  if (!existingUser) {
     const newUser = await insertNewUserWithGoogleUser({
       id: googleUserId,
       displayName: googleDisplayName,
       collection: mongoDB.collections.users,
-      prime: {
-        loader: mongoDB.loaders.user,
-      },
     });
+    primeNewGoogleUser({ newUser, loader: mongoDB.loaders.user });
+
     currentUserId = newUser._id;
   } else {
     currentUserId = existingUser._id;
@@ -118,13 +115,9 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
   return {
     __typename: 'JustSignedInResult',
     signedInUser: {
-      query: (query) =>
-        mongoDB.loaders.user.load({
-          id: {
-            userId: currentUserId,
-          },
-          query,
-        }),
+      query: mongoDB.loaders.user.createQueryFn({
+        userId: currentUserId,
+      }),
     },
     availableUserIds: cookies.getAvailableSessionUserIds(),
     authProviderUser: {

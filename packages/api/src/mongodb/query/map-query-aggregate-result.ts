@@ -4,7 +4,7 @@ import { isObjectLike } from '~utils/type-guards/is-object-like';
 
 import { DeepAnyDescription, FieldDescription } from './description';
 import { MergedQueryDeep } from './merge-queries';
-import { QueryDeep, QueryResultDeep } from './query';
+import { PartialQueryResultDeep, QueryDeep } from './query';
 
 export type MapAggregateResultResolver<TSchema = unknown, TResult = unknown> = (args: {
   query: QueryDeep<TSchema>;
@@ -29,12 +29,12 @@ export function mapQueryAggregateResult<
   rootMergedQuery: MergedQueryDeep<TSchema>,
   aggregateResult: unknown,
   context?: MapQueryAggregateResultContext<TSchema, TResult, TContext>
-): QueryResultDeep<TSchema> {
-  if (aggregateResult == null) return aggregateResult as QueryResultDeep<TSchema>;
+): PartialQueryResultDeep<TSchema> {
+  if (aggregateResult == null) return aggregateResult as PartialQueryResultDeep<TSchema>;
 
   const descriptions = context?.descriptions ?? [];
   if (descriptions.length === 0) {
-    return aggregateResult as QueryResultDeep<TSchema>;
+    return aggregateResult as PartialQueryResultDeep<TSchema>;
   }
 
   const resolvers = descriptions
@@ -49,7 +49,7 @@ export function mapQueryAggregateResult<
         result: mappedResultValue as TResult,
       }) ?? mappedResultValue,
     aggregateResult
-  ) as QueryResultDeep<TSchema>;
+  ) as PartialQueryResultDeep<TSchema>;
 
   if (
     isObjectLike(rootQuery) &&
@@ -66,7 +66,7 @@ export function mapQueryAggregateResult<
           // @ts-expect-error Ignore typing for dynamic object
           descriptions: descriptionsNoResolver,
         })
-      ) as QueryResultDeep<TSchema>;
+      ) as PartialQueryResultDeep<TSchema>;
     } else {
       const newAggregateResult: Record<string, unknown> = {};
 
@@ -125,5 +125,5 @@ export function mapQueryAggregateResult<
     }
   }
 
-  return aggregateResult as QueryResultDeep<TSchema>;
+  return aggregateResult as PartialQueryResultDeep<TSchema>;
 }

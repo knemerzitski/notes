@@ -2,12 +2,12 @@ import mapObject from 'map-obj';
 import { Collection, Db, IndexDescription, SearchIndexDescription } from 'mongodb';
 
 import {
-  NoteSchema,
   noteDescription,
+  DBNoteSchema,
   noteSearchIndexDescriptions,
 } from './schema/note';
-import { SessionSchema, sessionDescription } from './schema/session';
-import { userDescription, UserSchema } from './schema/user';
+import { DBSessionSchema, sessionDescription } from './schema/session';
+import { userDescription, DBUserSchema } from './schema/user';
 
 export interface CollectionDescription {
   indexSpecs?: IndexDescription[];
@@ -24,13 +24,13 @@ export enum CollectionName {
 
 interface CollectionDefinitions {
   [CollectionName.SESSIONS]: {
-    schema: Collection<SessionSchema>;
+    schema: Collection<DBSessionSchema>;
   };
   [CollectionName.USERS]: {
-    schema: Collection<UserSchema>;
+    schema: Collection<DBUserSchema>;
   };
   [CollectionName.NOTES]: {
-    schema: Collection<NoteSchema>;
+    schema: Collection<DBNoteSchema>;
   };
 }
 

@@ -16,9 +16,10 @@ import {
 } from '../../../../../__test__/helpers/mongodb/mongodb';
 import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/user';
-import { UserSchema } from '../../../../../mongodb/schema/user';
+import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { SignedInUser } from '../../../types.generated';
+import { logAll } from '../../../../../__test__/helpers/log-all';
 
 const QUERY = `#graphql
 query  {
@@ -33,7 +34,7 @@ query  {
 }
 `;
 
-let user: UserSchema;
+let user: DBUserSchema;
 
 beforeAll(async () => {
   faker.seed(987786);
@@ -44,6 +45,8 @@ beforeAll(async () => {
   await populateExecuteAll();
 });
 
+let contextValue: ReturnType<typeof createGraphQLResolversContext>;
+
 beforeEach(() => {
   mongoCollectionStats.mockClear();
 });
@@ -52,6 +55,8 @@ async function executeOperation(
   options?: CreateGraphQLResolversContextOptions,
   query: string = QUERY
 ) {
+  contextValue = createGraphQLResolversContext(options);
+
   return await apolloServer.executeOperation<{
     signedInUser: SignedInUser;
   }>(
@@ -59,7 +64,7 @@ async function executeOperation(
       query,
     },
     {
-      contextValue: createGraphQLResolversContext(options),
+      contextValue,
     }
   );
 }
@@ -68,6 +73,8 @@ it('returns authenticated user', async () => {
   const response = await executeOperation({ user });
 
   const data = expectGraphQLResponseData(response);
+
+  logAll(data);
 
   expect(data).toEqual({
     signedInUser: {

@@ -1,66 +1,97 @@
-import DataLoader from 'dataloader';
+import DataLoader, { CacheMap } from 'dataloader';
 
 import { callFnGrouped } from '~utils/call-fn-grouped';
-import { mergeObjects } from '~utils/object/merge-objects';
+import { mergedObjects } from '~utils/object/merge-objects';
 import { splitObject } from '~utils/object/split-object';
-import { MaybePromise, PickDeep, PickerDeep } from '~utils/types';
+import { Maybe, MaybePromise } from '~utils/types';
 
-import { QueryDeep, QueryResultDeep } from '../query/query';
+import {
+  MongoQueryFn,
+  PartialQueryResultDeep,
+  QueryDeep,
+  QueryPickerDeep,
+  QueryResultDeep,
+} from '../query/query';
 
 import { getEqualObjectString } from './utils/get-equal-object-string';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 import { isQueryArgField } from '../query/merge-queries';
-import { Struct, validate } from 'superstruct';
+import { create, Infer, InferRaw, Struct } from 'superstruct';
 import { pickdeep } from '~utils/superstruct/pickdeep';
-import { MongoPrimitive } from '../types';
 import { Emitter } from '~utils/mitt-unsub';
 import { memoize1 } from '~utils/memoize1';
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type QueryLoaderEvents<I, Q, QR = Q> = {
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-explicit-any
+export type QueryLoaderEvents<I, S extends Struct<any, any, any>> = {
   loaded: {
-    key: QueryLoaderCacheKey<I, Q>;
-    value: QueryResultDeep<QR>;
+    key: QueryLoaderCacheKey<I, QueryDeep<InferRaw<S> | Infer<S>>>;
+    value: ResultWithType<S>;
   };
 };
 
-export interface QueryLoaderParams<I, Q, G, R, QR = Q> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ResultWithType<S extends Struct<any, any, any>> =
+  | {
+      result: PartialQueryResultDeep<InferRaw<S>>;
+      type: 'raw';
+    }
+  | {
+      result: PartialQueryResultDeep<Infer<S>>;
+      type: 'validated';
+    };
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+interface AnyResultWithType<S extends Struct<any, any, any>> {
+  result: PartialQueryResultDeep<InferRaw<S> | Infer<S>>;
+  /**
+   * @default 'validated'
+   */
+  type: 'raw' | 'validated';
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface QueryLoaderParams<I, S extends Struct<any, any, any>, CG, CR> {
   batchLoadFn: (
-    keys: readonly QueryLoaderCacheKey<I, Q>[],
-    context: QueryLoaderContext<G, R>
-  ) => MaybePromise<(QueryResultDeep<QR> | Error)[]>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  validator: Struct<any, any>;
+    keys: readonly QueryLoaderKey<I, InferRaw<S>, CR>['cache'][],
+    context: QueryLoaderContext<CG, CR>
+  ) => MaybePromise<(PartialQueryResultDeep<InferRaw<S>> | Error)[]>;
+  struct: S;
   loaderOptions?: Omit<
-    DataLoader.Options<QueryLoaderKey<I, Q, R>, CacheData<QR, unknown>, string>,
+    DataLoader.Options<QueryLoaderKey<I, InferRaw<S>, CR>, CacheData<S>, string>,
     'cacheKeyFn'
   >;
-  context?: G;
-  eventBus?: Emitter<QueryLoaderEvents<I, Q, QR>>;
+  context?: CG;
+  eventBus?: Emitter<QueryLoaderEvents<I, S>>;
 }
 
-export interface QueryLoaderContext<G, R> {
-  global: G;
-  request: R;
+export interface QueryLoaderContext<CG, CR> {
+  global: CG;
+  request: CR;
 }
 
-interface QueryLoaderKey<I, Q, R> {
-  cache: QueryLoaderCacheKey<I, Q>;
-  context: R;
+export interface QueryLoaderKey<I, Q, CR> {
+  cache: QueryLoaderCacheKey<I, QueryDeep<Q>>;
+  context: CR;
 }
 
-export interface QueryLoaderCacheKey<I, Q> {
+interface QueryLoaderCacheKey<I, Q> {
   id: I;
-  query: QueryDeep<Q> & PickerDeep<Q, MongoPrimitive>;
+  query: Q;
 }
 
-interface LoadOptions<R> {
+export interface LoadOptions<R, T extends 'any' | 'raw' | 'validated' = 'any'> {
   context?: R;
   /**
    * Clears cached value before loading again. Cache is refreshed with newest value.
    * @default false;
    */
-  skipCache?: boolean;
+  clearCache?: boolean;
+  /**
+   * any - Could be either 'raw' or 'validated'
+   * raw - Result is directly from batchLoadFn without modifications
+   * validation - Result is validated by struct and is guaranteed to match schema
+   */
+  resultType?: T;
 }
 
 export interface PrimeOptions {
@@ -69,16 +100,28 @@ export interface PrimeOptions {
    * @default false;
    */
   clearCache?: boolean;
-  /**
-   * @default false
-   */
-  skipEmitEvent?: boolean;
+}
+
+export type SessionOptions<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  T extends LoadOptions<any> | PrimeOptions | CreateQueryFnOptions<any, any>,
+> = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  session?: T extends LoadOptions<infer R> | CreateQueryFnOptions<infer R, any>
+    ? R
+    : never;
+} & Omit<T, 'context' | 'clearCache'>;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface CreateQueryFnOptions<R, S extends Struct<any, any, any>>
+  extends Omit<LoadOptions<R>, 'resultType'> {
+  mapQuery?: (query: QueryPickerDeep<InferRaw<S>>) => Maybe<QueryPickerDeep<InferRaw<S>>>;
 }
 
 export class QueryLoaderError<I, Q extends object> extends Error {
-  readonly key: QueryLoaderCacheKey<I, Q>;
+  readonly key: QueryLoaderCacheKey<I, QueryDeep<Q>>;
 
-  constructor(message: string, key: QueryLoaderCacheKey<I, Q>) {
+  constructor(message: string, key: QueryLoaderCacheKey<I, QueryDeep<Q>>) {
     super(message);
     this.key = key;
   }
@@ -94,50 +137,58 @@ function splitQuery<T>(obj: T) {
 
 const memoizedGetEqualObjectString = memoize1(getEqualObjectString);
 
-interface CacheData<QR, V> {
+interface RawResult<Q> {
   /**
-   * Data received from batchLoadFn
+   * Raw unmodified result from batchLoadFn
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  raw: QueryResultDeep<QR>;
-  /**
-   * Data after passing through validator
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  validated?: V;
+  raw: PartialQueryResultDeep<Q>;
 }
+
+interface ValidatedResult<Q> {
+  /**
+   * Result that has been coerced and validated
+   */
+  validated: PartialQueryResultDeep<Q>;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type CacheData<S extends Struct<any, any, any>> =
+  | RawResult<InferRaw<S>>
+  | ValidatedResult<Infer<S>>
+  | (RawResult<InferRaw<S>> & ValidatedResult<Infer<S>>);
 
 /**
  * Loads a query by splitting it up by each field for reusable caching.
  * Result values is then merged back together to be returned.
  *
  * I - Identifies the query
- * Q - Query itself
- * G - Global context - common between all loads and supplied during Loader initialization
- * R - Request context - can be different between loads and supplied during load
- * QR - Query result shape
+ * S - result structure
+ * CG - Context global - Context passed during loader initialization and stays constant between requests.
+ * CR - Context request - Can be unque for each load call.
  */
-export class QueryLoader<I, Q, G = unknown, R = unknown, QR = Q> {
-  private readonly eventBus?: Emitter<QueryLoaderEvents<I, Q, QR>>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export class QueryLoader<I, S extends Struct<any, any, any>, CG = unknown, CR = unknown> {
+  private readonly eventBus?: Emitter<QueryLoaderEvents<I, S>>;
   private readonly loader: DataLoader<
-    QueryLoaderKey<I, Q, R>,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    CacheData<QR, any>,
+    QueryLoaderKey<I, InferRaw<S>, CR>,
+    CacheData<S>,
     string
   >;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private readonly validator: Struct<any, any>;
-  private readonly validatorCache = new Map<string, Struct>();
+  private readonly loaderCacheMap: CacheMap<string, Promise<CacheData<S>>>;
 
-  constructor(params: QueryLoaderParams<I, Q, G, R, QR>) {
+  private readonly struct: S;
+  private readonly subStructCache = new Map<string, Struct>();
+
+  constructor(params: QueryLoaderParams<I, S, CG, CR>) {
     this.eventBus = params.eventBus;
-    this.validator = params.validator;
+    this.struct = params.struct;
+
+    this.loaderCacheMap = params.loaderOptions?.cacheMap ?? new Map();
 
     this.loader = new DataLoader<
-      QueryLoaderKey<I, Q, R>,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      CacheData<QR, any>,
+      QueryLoaderKey<I, InferRaw<S>, CR>,
+      CacheData<S>,
       string
     >(
       async (keys) =>
@@ -148,7 +199,7 @@ export class QueryLoader<I, Q, G = unknown, R = unknown, QR = Q> {
             return params.batchLoadFn(
               keys.map((key) => key.cache),
               {
-                global: params.context as G,
+                global: params.context as CG,
                 request: context,
               }
             );
@@ -165,40 +216,64 @@ export class QueryLoader<I, Q, G = unknown, R = unknown, QR = Q> {
         ),
       {
         ...params.loaderOptions,
-        cacheKeyFn: (key) => {
-          return memoizedGetEqualObjectString(key.cache);
-        },
+        cacheMap: this.loaderCacheMap,
+        cacheKeyFn: (key) => memoizedGetEqualObjectString(key.cache),
       }
     );
   }
 
+  /**
+   * Prevent cyclic emitting same loaded value using a Set
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private readonly emitLoadedIds = new Set<any>();
+
+  private emitLoaded(payload: QueryLoaderEvents<I, S>['loaded']) {
+    const result = payload.value.result;
+    if (this.emitLoadedIds.has(result)) return;
+    try {
+      this.emitLoadedIds.add(result);
+      this.eventBus?.emit('loaded', payload);
+    } finally {
+      this.emitLoadedIds.delete(result);
+    }
+  }
+
   prime(
-    key: QueryLoaderCacheKey<I, Q>,
-    value: QueryResultDeep<QR>,
+    key: QueryLoaderCacheKey<I, QueryDeep<InferRaw<S>>>,
+    value: AnyResultWithType<S>,
     options?: PrimeOptions
   ) {
     const cacheIsStale = options?.clearCache ?? false;
 
     splitQuery(key.query).forEach((leafQuery) => {
-      const leafLoaderKey: QueryLoaderKey<I, Q, R> = {
+      const leafLoaderKey: QueryLoaderKey<I, InferRaw<S>, CR> = {
         cache: {
           id: key.id,
           query: leafQuery,
         },
-        context: null as R,
+        context: null as CR,
       };
 
+      let isAlreadyCached = false;
       if (cacheIsStale) {
         this.loader.clear(leafLoaderKey);
+      } else {
+        isAlreadyCached = this.isKeyCached(leafLoaderKey.cache);
       }
 
-      this.loader.prime(leafLoaderKey, {
-        raw: value,
-        validated: value,
-      });
+      if (value.type === 'raw') {
+        this.loader.prime(leafLoaderKey, {
+          raw: value.result,
+        });
+      } else {
+        this.loader.prime(leafLoaderKey, {
+          validated: value.result,
+        });
+      }
 
-      if (!options?.skipEmitEvent) {
-        this.eventBus?.emit('loaded', {
+      if (!isAlreadyCached) {
+        this.emitLoaded({
           key: leafLoaderKey.cache,
           value,
         });
@@ -206,61 +281,22 @@ export class QueryLoader<I, Q, G = unknown, R = unknown, QR = Q> {
     });
   }
 
-  private getValidatorForQuery(query: QueryLoaderCacheKey<I, Q>['query']) {
-    const queryStr = getEqualObjectString(query);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let validator: any = this.validatorCache.get(queryStr);
-    if (!validator) {
-      validator = pickdeep(this.validator, {
-        convertObjectToType: true,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      })<MongoPrimitive>()(query as any);
-      this.validatorCache.set(queryStr, validator);
-    }
-    return validator;
-  }
+  async load<
+    V extends QueryPickerDeep<InferRaw<S> & Infer<S>>,
+    T extends 'any' | 'raw' | 'validated' = 'any',
+  >(
+    key: QueryLoaderCacheKey<I, V>,
+    options?: LoadOptions<CR, T>
+  ): Promise<
+    T extends 'any'
+      ? PartialQueryResultDeep<InferRaw<S> | Infer<S>, V>
+      : T extends 'raw'
+        ? PartialQueryResultDeep<InferRaw<S>, V>
+        : QueryResultDeep<Infer<S>, V>
+  > {
+    const cacheIsStale = options?.clearCache ?? false;
 
-  private getValidatedData(
-    key: QueryLoaderKey<I, Q, R>,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: CacheData<QR, any>
-  ) {
-    if (data.validated !== undefined) {
-      return data.validated;
-    }
-
-    const [validationErr, validatedResult] = validate(
-      data.raw,
-      this.getValidatorForQuery(key.cache.query),
-      {
-        coerce: true,
-      }
-    );
-    data.validated = validationErr ?? validatedResult;
-
-    this.loader.clear(key).prime(key, data);
-
-    return data.validated;
-  }
-
-  private getRawData(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: CacheData<QR, any>
-  ) {
-    return data.raw;
-  }
-
-  async load<V extends QueryDeep<Q> & PickerDeep<Q, MongoPrimitive>, B extends boolean>(
-    key: {
-      id: I;
-      query: V;
-    },
-    options?: LoadOptions<R> & {
-      validate?: B;
-    }
-  ): Promise<B extends true ? PickDeep<Q, V, MongoPrimitive> : QueryResultDeep<QR>> {
-    const cacheIsStale = options?.skipCache ?? false;
-    const validateResult = options?.validate ?? false;
+    const mapResultFn = this.getResultFn(options?.resultType ?? 'any');
 
     const splitResults = await Promise.all(
       splitQuery(key.query).map(async (leafQuery) => {
@@ -269,35 +305,156 @@ export class QueryLoader<I, Q, G = unknown, R = unknown, QR = Q> {
             id: key.id,
             query: leafQuery,
           },
-          context: options?.context as R,
+          context: options?.context as CR,
         };
 
+        let isAlreadyCached = false;
         if (cacheIsStale) {
           this.loader.clear(leafLoaderKey);
+        } else {
+          isAlreadyCached = this.isKeyCached(leafLoaderKey.cache);
         }
 
+        // console.log(leafLoaderKey);
         const leafValue = await this.loader.load(leafLoaderKey);
+
+        const mappedValue = mapResultFn(leafLoaderKey, leafValue);
 
         return {
           leafKey: leafLoaderKey.cache,
-          leafValue: validateResult
-            ? this.getValidatedData(leafLoaderKey, leafValue)
-            : this.getRawData(leafValue),
+          leafValue: mappedValue.result,
+          type: mappedValue.type,
+          isAlreadyCached,
         };
       })
     );
 
     const leafValues = splitResults.map((r) => r.leafValue);
-    const mergedValue = mergeObjects(leafValues[0], ...leafValues.slice(1));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const mergedValue: any = mergedObjects(...leafValues);
 
-    for (const { leafKey } of splitResults) {
-      this.eventBus?.emit('loaded', {
+    for (const { isAlreadyCached, leafKey, type } of splitResults) {
+      if (isAlreadyCached) {
+        continue;
+      }
+
+      this.emitLoaded({
         key: leafKey,
-        value: mergedValue as QueryResultDeep<QR>,
+        value: {
+          result: mergedValue,
+          type,
+        },
       });
     }
 
+    return mergedValue;
+  }
+
+  createQueryFn(id: I, options?: CreateQueryFnOptions<CR, S>): MongoQueryFn<S> {
+    return <
+      V extends QueryPickerDeep<InferRaw<S>>,
+      T extends 'any' | 'raw' | 'validated' = 'any',
+    >(
+      query: V,
+      resultType?: T
+    ) => {
+      query = options?.mapQuery?.(query) ?? query;
+
+      return this.load(
+        {
+          id,
+          query,
+        },
+        {
+          ...options,
+          resultType,
+        }
+      );
+    };
+  }
+
+  private getSubStructForQuery(query: QueryDeep<InferRaw<S> | Infer<S>>) {
+    const queryStr = getEqualObjectString(query);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return mergedValue as any;
+    let validator: any = this.subStructCache.get(queryStr);
+    if (!validator) {
+      validator = pickdeep(this.struct, {
+        convertObjectToType: true,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      })()(query as any);
+      this.subStructCache.set(queryStr, validator);
+    }
+    return validator;
+  }
+
+  private getValidatedResult(
+    key: QueryLoaderKey<I, InferRaw<S>, CR>,
+    data: CacheData<S>
+  ) {
+    if ('validated' in data) {
+      return { result: data.validated, type: 'validated' as const };
+    }
+
+    const validatedResult = create(data.raw, this.getSubStructForQuery(key.cache.query));
+
+    const newData: RawResult<InferRaw<S>> & ValidatedResult<Infer<S>> = {
+      raw: data.raw,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      validated: validatedResult as any,
+    };
+
+    this.loader.clear(key).prime(key, newData);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return { result: newData.validated as any, type: 'validated' as const };
+  }
+
+  private getRawResult(key: QueryLoaderKey<I, InferRaw<S>, CR>, data: CacheData<S>) {
+    if ('raw' in data) {
+      return { result: data.raw, type: 'raw' as const };
+    }
+
+    // Get raw result from validated
+    const rawValidatedResult = create(
+      data.validated,
+      this.getSubStructForQuery(key.cache.query),
+      undefined,
+      true
+    );
+
+    const newData: RawResult<InferRaw<S>> & ValidatedResult<Infer<S>> = {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      raw: rawValidatedResult as any,
+      validated: data.validated,
+    };
+
+    this.loader.clear(key).prime(key, newData);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return { result: newData.raw as any, type: 'raw' as const };
+  }
+
+  private getAnyResult(_key: QueryLoaderKey<I, InferRaw<S>, CR>, data: CacheData<S>) {
+    if ('raw' in data) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return { result: data.raw as any, type: 'raw' as const };
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return { result: data.validated as any, type: 'validated' as const };
+  }
+
+  private getResultFn(type: 'raw' | 'validated' | 'any') {
+    switch (type) {
+      case 'raw':
+        return this.getRawResult.bind(this);
+      case 'validated':
+        return this.getValidatedResult.bind(this);
+      default:
+        return this.getAnyResult.bind(this);
+    }
+  }
+
+  private isKeyCached<Q>(cacheKey: QueryLoaderCacheKey<I, Q>) {
+    return this.loaderCacheMap.get(memoizedGetEqualObjectString(cacheKey)) != null;
   }
 }

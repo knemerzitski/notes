@@ -6,25 +6,32 @@ import { CollectionName, MongoDBCollections } from '../collections';
 import { MongoDBContext } from '../context';
 import { LoaderEvents } from '../loaders';
 import { mapQueryAggregateResult } from '../query/map-query-aggregate-result';
-import { MergedObjectQueryDeep, mergeQueries } from '../query/merge-queries';
+import { MergedQueryDeep, mergeQueries } from '../query/merge-queries';
 import { mergedQueryToPipeline } from '../query/merged-query-to-pipeline';
-import { ObjectQueryDeep, QueryResultDeep } from '../query/query';
+import {
+  MongoQueryFn,
+  PartialQueryResultDeep,
+  QueryDeep,
+  QueryPickerDeep,
+} from '../query/query';
+
+import { QueryableUser, queryableUserDescription } from '../descriptions/user';
 
 import {
-  QueryableUser,
-  queryableUserDescription,
-} from '../descriptions/user';
-
-import {
+  CreateQueryFnOptions,
+  LoadOptions,
   PrimeOptions,
   QueryLoader,
-  QueryLoaderCacheKey,
   QueryLoaderContext,
+  QueryLoaderError,
   QueryLoaderEvents,
+  QueryLoaderKey,
+  SessionOptions,
 } from './query-loader';
 import { isDefined } from '~utils/type-guards/is-defined';
 import { groupBy } from '~utils/array/group-by';
 import { getEqualObjectString } from './utils/get-equal-object-string';
+import { Infer, InferRaw } from 'superstruct';
 
 export type QueryableUserId =
   | {
@@ -37,7 +44,11 @@ export type QueryableUserId =
       googleUserId: string;
     };
 
-export type QueryableUserLoaderKey = QueryLoaderCacheKey<QueryableUserId, QueryableUser>;
+export type QueryableUserLoaderKey = QueryLoaderKey<
+  QueryableUserId,
+  InferRaw<typeof QueryableUser>,
+  QueryableUserLoadContext
+>['cache'];
 
 export interface QueryableUserLoaderParams {
   eventBus?: Emitter<LoaderEvents>;
@@ -55,16 +66,29 @@ interface GlobalContext {
 
 type RequestContext = AggregateOptions['session'];
 
+export class UserNotFoundQueryLoaderError extends QueryLoaderError<
+  QueryableUserId,
+  InferRaw<typeof QueryableUser>
+> {
+  override readonly key: QueryableUserLoaderKey;
+
+  constructor(key: QueryableUserLoaderKey) {
+    super('User not found', key);
+    this.key = key;
+  }
+}
+
 export class QueryableUserLoader {
   private readonly loader: QueryLoader<
     QueryableUserId,
-    QueryableUser,
+    typeof QueryableUser,
     GlobalContext,
     RequestContext
   >;
 
   constructor(params: Readonly<QueryableUserLoaderParams>) {
-    const loaderEventBus = mitt<QueryLoaderEvents<QueryableUserId, QueryableUser>>();
+    const loaderEventBus =
+      mitt<QueryLoaderEvents<QueryableUserId, typeof QueryableUser>>();
     if (params.eventBus) {
       loaderEventBus.on('loaded', (payload) => {
         params.eventBus?.emit('loadedUser', payload);
@@ -72,7 +96,7 @@ export class QueryableUserLoader {
     }
 
     loaderEventBus.on('loaded', (payload) => {
-      this.primeEquivalentOtherId(payload, { skipEmitEvent: true });
+      this.primeEquivalentOtherId(payload);
     });
 
     this.loader = new QueryLoader({
@@ -81,21 +105,38 @@ export class QueryableUserLoader {
         return queryableUserBatchLoad(keys, context);
       },
       context: params.context,
+      struct: QueryableUser,
     });
   }
 
   prime(
-    key: QueryableUserLoaderKey,
-    value: QueryResultDeep<QueryableUser>,
-    options?: PrimeOptions
-  ) {
-    this.loader.prime(key, value, options);
+    ...args: Parameters<typeof this.loader.prime>
+  ): ReturnType<typeof this.loader.prime> {
+    this.loader.prime(...args);
   }
 
-  async load(key: QueryableUserLoaderKey, session?: RequestContext) {
+  load<
+    V extends QueryPickerDeep<Infer<typeof QueryableUser>>,
+    T extends 'any' | 'raw' | 'validated' = 'any',
+  >(
+    key: Parameters<typeof this.loader.load<V, T>>[0],
+    options?: SessionOptions<LoadOptions<RequestContext, T>>
+  ): ReturnType<typeof this.loader.load<V, T>> {
     return this.loader.load(key, {
-      context: session,
-      skipCache: session != null,
+      ...options,
+      context: options?.session,
+      clearCache: options?.session != null,
+    });
+  }
+
+  createQueryFn(
+    id: QueryableUserId,
+    options?: SessionOptions<CreateQueryFnOptions<RequestContext, typeof QueryableUser>>
+  ): MongoQueryFn<typeof QueryableUser> {
+    return this.loader.createQueryFn(id, {
+      ...options,
+      context: options?.session,
+      clearCache: options?.session != null,
     });
   }
 
@@ -103,9 +144,10 @@ export class QueryableUserLoader {
     { key, value }: LoaderEvents['loadedUser'],
     options?: PrimeOptions
   ) {
+    const result = value.result;
     if ('userId' in key.id) {
-      if (value?.thirdParty?.google?.id != null) {
-        const googleUserId = value.thirdParty.google.id;
+      if (result.thirdParty?.google?.id != null) {
+        const googleUserId = result.thirdParty.google.id;
         this.loader.prime(
           {
             id: {
@@ -117,8 +159,8 @@ export class QueryableUserLoader {
           options
         );
       }
-    } else if (value?._id != null) {
-      const userId = value._id;
+    } else if (result._id != null) {
+      const userId = result._id;
       this.loader.prime(
         {
           id: {
@@ -142,42 +184,44 @@ export interface QueryableUserBatchLoadContext {
 
 interface BatchLoadIdProcessor<T> {
   getIds(): T[];
-  addIdToQuery(query: ObjectQueryDeep<QueryableUser>): void;
+  addIdToQuery(query: QueryDeep<InferRaw<typeof QueryableUser>>): void;
   getMatchStage(): Document | undefined;
   addResult(result: Document): void;
   getResultById(id: QueryableUserId): Document | undefined;
 }
 
 class UserIdProcessor implements BatchLoadIdProcessor<ObjectId> {
-  private readonly ids: ObjectId[];
+  private readonly ids: Set<ObjectId>;
   private readonly resultById: Record<string, Document> = {};
 
   constructor(keys: readonly QueryableUserLoaderKey[]) {
-    this.ids = keys
-      .map((key) => ('userId' in key.id ? key.id.userId : undefined))
-      .filter(isDefined);
+    this.ids = new Set(
+      keys
+        .map((key) => ('userId' in key.id ? key.id.userId : undefined))
+        .filter(isDefined)
+    );
   }
 
   getIds(): ObjectId[] {
-    return this.ids;
+    return [...this.ids];
   }
 
-  addIdToQuery(query: ObjectQueryDeep<QueryableUser>): void {
-    if (this.ids.length === 0) return;
+  addIdToQuery(query: QueryDeep<InferRaw<typeof QueryableUser>>): void {
+    if (this.ids.size === 0) return;
     query._id = 1;
   }
 
   getMatchStage(): Document | undefined {
-    if (this.ids.length === 0) return;
+    if (this.ids.size === 0) return;
     return {
       _id: {
-        $in: this.ids,
+        $in: this.getIds(),
       },
     };
   }
 
   addResult(result: Document): void {
-    if (this.ids.length === 0) return;
+    if (this.ids.size === 0) return;
 
     const userId = result._id;
     if (!(userId instanceof ObjectId)) {
@@ -194,21 +238,23 @@ class UserIdProcessor implements BatchLoadIdProcessor<ObjectId> {
 }
 
 class GoogleUserIdProcessor implements BatchLoadIdProcessor<string> {
-  private readonly ids: string[];
+  private readonly ids: Set<string>;
   private readonly resultById: Record<string, Document> = {};
 
   constructor(keys: readonly QueryableUserLoaderKey[]) {
-    this.ids = keys
-      .map((key) => ('googleUserId' in key.id ? key.id.googleUserId : undefined))
-      .filter(isDefined);
+    this.ids = new Set(
+      keys
+        .map((key) => ('googleUserId' in key.id ? key.id.googleUserId : undefined))
+        .filter(isDefined)
+    );
   }
 
   getIds(): string[] {
-    return this.ids;
+    return [...this.ids];
   }
 
-  addIdToQuery(query: ObjectQueryDeep<QueryableUser>): void {
-    if (this.ids.length === 0) return;
+  addIdToQuery(query: QueryDeep<InferRaw<typeof QueryableUser>>): void {
+    if (this.ids.size === 0) return;
 
     query.thirdParty = {
       ...query.thirdParty,
@@ -220,16 +266,16 @@ class GoogleUserIdProcessor implements BatchLoadIdProcessor<string> {
   }
 
   getMatchStage(): Document | undefined {
-    if (this.ids.length === 0) return;
+    if (this.ids.size === 0) return;
     return {
       'thirdParty.google.id': {
-        $in: this.ids,
+        $in: this.getIds(),
       },
     };
   }
 
   addResult(result: Document): void {
-    if (this.ids.length === 0) return;
+    if (this.ids.size === 0) return;
 
     const googleUserId = result.thirdParty?.google?.id;
     if (typeof googleUserId !== 'string') {
@@ -248,13 +294,13 @@ class GoogleUserIdProcessor implements BatchLoadIdProcessor<string> {
 export async function queryableUserBatchLoad(
   keys: readonly QueryableUserLoaderKey[],
   context: QueryableUserLoadContext
-): Promise<(QueryResultDeep<QueryableUser> | Error | null)[]> {
+): Promise<(PartialQueryResultDeep<InferRaw<typeof QueryableUser>> | Error)[]> {
   const idProcessors: BatchLoadIdProcessor<unknown>[] = [
     new UserIdProcessor(keys),
     new GoogleUserIdProcessor(keys),
   ];
 
-  const idQuery: ObjectQueryDeep<QueryableUser> = {};
+  const idQuery: QueryDeep<InferRaw<typeof QueryableUser>> = {};
   idProcessors.forEach((p) => {
     p.addIdToQuery(idQuery);
   });
@@ -301,7 +347,7 @@ export async function queryableUserBatchLoad(
       }
     }
 
-    return null;
+    return new UserNotFoundQueryLoaderError(key);
   });
 }
 
@@ -310,7 +356,7 @@ export async function queryableUserBatchLoad(
 async function queryableUserBatchLoadSeparatePerId(
   keys: readonly QueryableUserLoaderKey[],
   context: QueryableUserLoadContext
-): Promise<(QueryResultDeep<QueryableUser> | Error | null)[]> {
+): Promise<(PartialQueryResultDeep<InferRaw<typeof QueryableUser>> | Error | null)[]> {
   const queriesById = groupBy(keys, (key) => getEqualObjectString(key.id));
 
   const results = Object.fromEntries(
@@ -362,7 +408,7 @@ async function queryableUserBatchLoadSeparatePerId(
     string,
     {
       user: Document | undefined;
-      mergedQuery: MergedObjectQueryDeep<QueryableUser>;
+      mergedQuery: MergedQueryDeep<InferRaw<typeof QueryableUser>>;
     }
   >;
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, it, expect, vi } from 'vitest';
@@ -5,27 +6,28 @@ import { SignedInUser } from './SignedInUser';
 import { ObjectId } from 'mongodb';
 import { maybeCallFn } from '~utils/maybe-call-fn';
 import { mockResolver } from '../../../../__test__/helpers/graphql/mock-resolver';
+import { wrapPartialQuery } from '../../../../mongodb/query/query';
 
 describe('id', () => {
   const resolveId = mockResolver(SignedInUser.id!);
 
-  it('returns undefined with empty object', async () => {
-    const id = await resolveId({
-      query: () => {
+  it('returns undefined with empty object', () => {
+    const id = resolveId({
+      query: wrapPartialQuery(() => {
         return {};
-      },
+      }),
     });
     expect(id).toBeUndefined();
   });
 
-  it('returns provided _id', async () => {
+  it('returns provided _id', () => {
     const _id = new ObjectId();
-    const id = await resolveId({
-      query: () => {
+    const id = resolveId({
+      query: wrapPartialQuery(() => {
         return {
           _id,
         };
-      },
+      }),
     });
     expect(id).toStrictEqual(_id);
   });
@@ -37,7 +39,7 @@ describe('public', () => {
   it('returns parent query', async () => {
     const queryFn = vi.fn();
     const _public = await maybeCallFn(
-      await resolvePublic({
+      resolvePublic({
         query: queryFn,
       })
     );

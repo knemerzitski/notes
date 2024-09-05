@@ -1,16 +1,25 @@
 import { ObjectId } from 'mongodb';
 
 import { CollectionDescription } from '../collections';
-import { array, Infer, instance, object, optional, record, string } from 'superstruct';
+import {
+  array,
+  Infer,
+  InferRaw,
+  instance,
+  object,
+  optional,
+  record,
+  string,
+} from 'superstruct';
 
-const NoteCategorySchema = object({
+export const NoteCategorySchema = object({
   /**
    * An ordered list of Note._id
    */
   order: array(instance(ObjectId)),
 });
 
-type NoteCategorySchema = Infer<typeof NoteCategorySchema>;
+export type NoteCategorySchema = Infer<typeof NoteCategorySchema>;
 
 export const UserSchema = object({
   _id: instance(ObjectId),
@@ -40,6 +49,8 @@ export const UserSchema = object({
     category: record(string(), NoteCategorySchema),
   }),
 });
+
+export type DBUserSchema = InferRaw<typeof UserSchema>;
 
 export type UserSchema = Infer<typeof UserSchema>;
 

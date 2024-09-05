@@ -14,8 +14,11 @@ import {
 
 import { Changeset } from '~collab/changeset/changeset';
 
-export const ChangesetSchema = coerce(instance(Changeset), unknown(), (value) =>
-  Changeset.parseValue(value)
+export const ChangesetSchema = coerce(
+  instance(Changeset),
+  unknown(),
+  (value) => Changeset.parseValue(value),
+  (changeset) => changeset.serialize()
 );
 
 export type ChangesetSchema = Infer<typeof ChangesetSchema>;
@@ -62,3 +65,4 @@ export const CollabTextSchema = object({
 });
 
 export type CollabTextSchema = Infer<typeof CollabTextSchema>;
+

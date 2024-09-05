@@ -2,28 +2,23 @@ import { isObjectLike } from '~utils/type-guards/is-object-like';
 import { getOrCreateObject } from '~utils/object/got-or-create-object';
 import { getOrCreateArray } from '~utils/array/got-or-create-array';
 import { MongoPrimitive } from '../types';
-import {
-  ObjectQueryDeep,
-  FieldInclusion,
-  QUERY_ARG_PREFIX,
-  QueryArgPrefix,
-} from './query';
+import { QUERY_ARG_PREFIX, QueryArgPrefix, QueryObjectDeep } from './query';
 import mapObject, { mapObjectSkip } from 'map-obj';
 import { getEqualObjectString } from '../loaders/utils/get-equal-object-string';
-import { PickStartsWith, OmitStartsWith } from '~utils/types';
+import { PickStartsWith, OmitStartsWith, PickValue } from '~utils/types';
 
 export const ARGS_FIELD = '$args';
 type ArgsField = typeof ARGS_FIELD;
 
-export type MergedQueryDeep<T> = T extends (infer U)[]
-  ? MergedQueryDeep<U> & MaybeArgs<T>
-  : T extends MongoPrimitive
-    ? FieldInclusion
+export type MergedQueryDeep<T, P = MongoPrimitive> = T extends P
+  ? PickValue
+  : T extends (infer U)[]
+    ? MergedQueryDeep<U> & MaybeArgs<T>
     : T extends object
-      ? MergedObjectQueryDeep<T>
+      ? MergedQueryObjectDeep<T>
       : T;
 
-export type MergedObjectQueryDeep<T extends object> = OmitStartsWith<
+type MergedQueryObjectDeep<T extends object> = OmitStartsWith<
   {
     [Key in keyof T]?: MergedQueryDeep<T[Key]>;
   },
@@ -44,18 +39,19 @@ export function isQueryArgField(key: string) {
 }
 
 export function mergeQueries<T extends object>(
-  queries: readonly ObjectQueryDeep<T>[],
+  queries: readonly QueryObjectDeep<T>[],
   context?: {
-    mergedQuery: MergedObjectQueryDeep<T>;
+    mergedQuery: MergedQueryObjectDeep<T>;
     path: string;
     argsByPath: Record<string, Set<string>>;
   }
-): MergedObjectQueryDeep<T> {
+): MergedQueryObjectDeep<T> {
   const mergedQuery: Record<string, unknown> = context?.mergedQuery ?? {};
   const argsByPath = context?.argsByPath ?? {};
   const path = context?.path ?? 'ROOT';
 
   for (const query of queries) {
+    if (!isObjectLike(query)) continue;
     // Extract args by $ prefix
     const argsObj = mapObject(query, (key, value) => {
       if (typeof key !== 'string' || !isQueryArgField(key)) return mapObjectSkip;
@@ -84,11 +80,11 @@ export function mergeQueries<T extends object>(
       if (queryValue === 1) {
         mergedQuery[queryKey] = 1;
       } else if (isObjectLike(queryValue)) {
-        mergeQueries([queryValue as ObjectQueryDeep<T>], {
+        mergeQueries([queryValue as QueryObjectDeep<T>], {
           mergedQuery: getOrCreateObject(
             mergedQuery,
             queryKey
-          ) as MergedObjectQueryDeep<T>,
+          ) as MergedQueryObjectDeep<T>,
           argsByPath,
           path: `${path}.${queryKey}`,
         });
@@ -99,5 +95,5 @@ export function mergeQueries<T extends object>(
     }
   }
 
-  return mergedQuery as MergedObjectQueryDeep<T>;
+  return mergedQuery as MergedQueryObjectDeep<T>;
 }

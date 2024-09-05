@@ -2,8 +2,8 @@ import { ObjectId } from 'mongodb';
 
 import { isDefined } from '~utils/type-guards/is-defined';
 
-import { NoteSchema } from '../../../../mongodb/schema/note';
-import { UserSchema } from '../../../../mongodb/schema/user';
+import { DBNoteSchema } from '../../../../mongodb/schema/note';
+import { DBUserSchema } from '../../../../mongodb/schema/user';
 import { MongoPartialDeep } from '../../../../mongodb/types';
 import { mongoCollections } from '../mongodb';
 
@@ -15,7 +15,7 @@ import { CollabSchema } from '../../../../mongodb/schema/collab';
 
 export interface FakeNoteOptions {
   override?: MongoPartialDeep<
-    Omit<NoteSchema, 'collab'> & {
+    Omit<DBNoteSchema, 'collab'> & {
       collab: Omit<CollabSchema, 'texts'>;
     }
   >;
@@ -23,9 +23,9 @@ export interface FakeNoteOptions {
 }
 
 export function fakeNote(
-  fallbackUser: Pick<UserSchema, '_id'>,
+  fallbackUser: Pick<DBUserSchema, '_id'>,
   options?: FakeNoteOptions
-): NoteSchema {
+): DBNoteSchema {
   return {
     _id: new ObjectId(),
     ...options?.override,

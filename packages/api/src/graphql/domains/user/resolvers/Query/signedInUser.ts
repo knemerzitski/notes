@@ -1,4 +1,4 @@
-import { assertAuthenticated } from '../../../base/directives/auth';
+import { assertAuthenticated } from '../../../../../services/auth/auth';
 import type { QueryResolvers } from './../../../types.generated';
 
 export const signedInUser: NonNullable<QueryResolvers['signedInUser']> = (
@@ -12,12 +12,8 @@ export const signedInUser: NonNullable<QueryResolvers['signedInUser']> = (
   const currentUserId = auth.session.userId;
 
   return {
-    query: (query) =>
-      mongoDB.loaders.user.load({
-        id: {
-          userId: currentUserId,
-        },
-        query,
-      }),
+    query: mongoDB.loaders.user.createQueryFn({
+      userId: currentUserId,
+    }),
   };
 };

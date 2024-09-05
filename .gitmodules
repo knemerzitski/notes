@@ -1,0 +1,3 @@
+[submodule "packages/superstruct"]
+	path = packages/superstruct
+	url = https://github.com/knemerzitski/superstruct.git

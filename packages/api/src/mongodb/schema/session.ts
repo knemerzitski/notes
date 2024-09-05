@@ -2,7 +2,7 @@ import { ObjectId } from 'mongodb';
 import { nanoid } from 'nanoid';
 
 import { CollectionDescription } from '../collections';
-import { date, defaulted, Infer, instance, object, string } from 'superstruct';
+import { date, defaulted, Infer, InferRaw, instance, object, string } from 'superstruct';
 
 export const SessionSchema = object({
   _id: instance(ObjectId),
@@ -20,6 +20,8 @@ export const SessionSchema = object({
    */
   expireAt: date(),
 });
+
+export type DBSessionSchema = InferRaw<typeof SessionSchema>;
 
 export type SessionSchema = Infer<typeof SessionSchema>;
 

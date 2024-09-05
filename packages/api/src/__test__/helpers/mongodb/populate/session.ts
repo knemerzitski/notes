@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 import {
   sessionDefaultValues,
-  SessionSchema,
+  DBSessionSchema,
 } from '../../../../mongodb/schema/session';
 import { MongoPartialDeep } from '../../../../mongodb/types';
 import { faker } from '@faker-js/faker';
@@ -9,10 +9,10 @@ import { populateQueue } from './populate-queue';
 import { mongoCollections } from '../mongodb';
 
 export interface FakeSessionOptions {
-  override?: MongoPartialDeep<SessionSchema>;
+  override?: MongoPartialDeep<DBSessionSchema>;
 }
 
-export function fakeSession(options?: FakeSessionOptions): SessionSchema {
+export function fakeSession(options?: FakeSessionOptions): DBSessionSchema {
   return {
     _id: new ObjectId(),
     cookieId: sessionDefaultValues.cookieId(),

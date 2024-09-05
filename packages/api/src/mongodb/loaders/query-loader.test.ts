@@ -2,394 +2,515 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { ObjectId } from 'mongodb';
-import { expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { QueryLoaderParams, QueryLoader, QueryLoaderEvents } from './query-loader';
+import { QueryLoader, QueryLoaderEvents } from './query-loader';
 import { mitt } from '~utils/mitt-unsub';
 import isEqual from 'lodash.isequal';
-import { array, Infer, number, object, string, unknown } from 'superstruct';
+import { coerce, number, object, string } from 'superstruct';
+import { mock } from 'vitest-mock-extended';
 
-const Product = object({
-  name: string(),
-  price: number(),
-});
+describe('context', () => {
+  it('passes global context to batchLoadFn', async () => {
+    const batchLoadFn = vi.fn().mockImplementation((k) => k);
+    const globalContextMock = mock();
 
-type Product = Infer<typeof Product>;
+    const loader = new QueryLoader<any, any>({
+      batchLoadFn,
+      struct: mock(),
+      context: globalContextMock,
+    });
 
-const Shop = object({
-  id: string(),
-  description: string(),
-  topProducts: array(Product),
-});
+    await loader.load({
+      id: null,
+      query: null,
+    });
 
-type Shop = Infer<typeof Shop>;
-
-interface Context {
-  session: string;
-}
-
-interface ShopId {
-  shopId: string;
-}
-
-interface GlobalContext {
-  database: () => Promise<Database>;
-}
-
-interface Database {
-  shops: Shop[];
-}
-
-async function database(): Promise<Database> {
-  return Promise.resolve({
-    shops: [
-      {
-        id: 'first',
-        description: 'the best shop',
-        topProducts: [
-          {
-            name: 'pc',
-            price: 1000,
-          },
-          {
-            name: 'tree',
-            price: 5000,
-          },
-        ],
-      },
-    ],
-  });
-}
-
-const batchLoadFn: QueryLoaderParams<
-  ShopId,
-  Shop,
-  GlobalContext,
-  Context
->['batchLoadFn'] = async (keys, ctx) => {
-  const db = await ctx.global.database();
-
-  return keys.map((key) => {
-    const shop = db.shops.find((shop) => shop.id === key.id.shopId);
-    if (!shop) {
-      return Error(`Shop '${key.id.shopId}' not found`);
-    }
-    return shop;
-  });
-};
-
-it('query is split: any future partial query is cached', async () => {
-  const spyBatchLoadFn = vi.fn().mockImplementation(batchLoadFn);
-
-  const loader = new QueryLoader<ShopId, Shop, GlobalContext, Context>({
-    batchLoadFn: spyBatchLoadFn,
-    context: {
-      database,
-    },
-    validator: Shop,
-  });
-
-  const result = await loader.load(
-    {
-      id: {
-        shopId: 'first',
-      },
-      query: {
-        id: 1,
-        description: 1,
-        topProducts: {
-          name: 1,
-          price: 1,
-        },
-      },
-    },
-    {
-      validate: true,
-    }
-  );
-
-  expect(result).toStrictEqual({
-    id: 'first',
-    description: 'the best shop',
-    topProducts: [
-      { name: 'pc', price: 1000 },
-      { name: 'tree', price: 5000 },
-    ],
-  });
-  expect(spyBatchLoadFn).toHaveBeenCalledTimes(1);
-  expect(
-    spyBatchLoadFn.mock.calls[0][0],
-    'Expected load to be called 4 times.'
-  ).toHaveLength(4);
-
-  const result2 = await loader.load({
-    id: {
-      shopId: 'first',
-    },
-    query: {
-      id: 1,
-      description: 1,
-    },
-  });
-  expect(result2.description).toStrictEqual('the best shop');
-  expect(spyBatchLoadFn).toHaveBeenCalledTimes(1);
-
-  const result3 = await loader.load(
-    {
-      id: {
-        shopId: 'first',
-      },
-      query: {
-        id: 1,
-        topProducts: {
-          name: 1,
-        },
-      },
-    },
-    {
-      validate: true,
-    }
-  );
-  expect(result3.topProducts.map((p) => p.name)).toStrictEqual(['pc', 'tree']);
-  expect(spyBatchLoadFn).toHaveBeenCalledTimes(1);
-});
-
-it('passes request context to load function', async () => {
-  const spyBatchLoadFn = vi.fn().mockResolvedValueOnce([{ id: 'b' }]);
-
-  const loader = new QueryLoader<ShopId, Shop, GlobalContext, Context>({
-    batchLoadFn: spyBatchLoadFn,
-    context: {
-      database,
-    },
-    validator: Shop,
-  });
-
-  await loader.load(
-    {
-      id: {
-        shopId: 'first',
-      },
-      query: {
-        id: 1,
-      },
-    },
-    {
-      context: {
-        session: 'the session',
-      },
-      validate: true,
-    }
-  );
-  expect(spyBatchLoadFn.mock.calls[0][1].request).toStrictEqual({
-    session: 'the session',
-  });
-});
-
-it('primes value to cache', async () => {
-  const spyBatchLoadFn = vi.fn();
-
-  const loader = new QueryLoader<ShopId, Shop, GlobalContext, Context>({
-    batchLoadFn: spyBatchLoadFn,
-    context: {
-      database,
-    },
-    validator: Shop,
-  });
-
-  loader.prime(
-    {
-      id: {
-        shopId: 'first',
-      },
-      query: {
-        id: 1,
-        description: 1,
-      },
-    },
-    {
-      id: 'first',
-      description: 'well',
-    }
-  );
-
-  const result = await loader.load({
-    id: {
-      shopId: 'first',
-    },
-    query: {
-      description: 1,
-    },
-  });
-  expect(spyBatchLoadFn, 'Value was not primed').toHaveBeenCalledTimes(0);
-
-  expect(result).toStrictEqual({
-    id: 'first',
-    description: 'well',
-  });
-});
-
-it('priming without value leaves it empty, load is not called', async () => {
-  const spyBatchLoadFn = vi.fn();
-
-  const loader = new QueryLoader<ShopId, Shop, GlobalContext, Context>({
-    batchLoadFn: spyBatchLoadFn,
-    context: {
-      database,
-    },
-    validator: Shop,
-  });
-
-  loader.prime(
-    {
-      id: {
-        shopId: 'first',
-      },
-      query: {
-        id: 1,
-        description: 1,
-      },
-    },
-    {
-      id: 'first',
-      description: 'well',
-    }
-  );
-
-  // Clears description
-  loader.prime(
-    {
-      id: {
-        shopId: 'first',
-      },
-      query: {
-        id: 1,
-        description: 1,
-      },
-    },
-    {
-      id: 'new id',
-    },
-    {
-      clearCache: true,
-    }
-  );
-
-  const result = await loader.load({
-    id: {
-      shopId: 'first',
-    },
-    query: {
-      id: 1,
-    },
-  });
-  expect(spyBatchLoadFn, 'Batch load should have not been called').toHaveBeenCalledTimes(
-    0
-  );
-
-  expect(result).toStrictEqual({
-    id: 'new id',
-  });
-});
-
-it('caches ObjectId as string', async () => {
-  const spyBatchLoadFn = vi.fn().mockImplementation(() => [{ value: 'a' }]);
-
-  const cache = new Map();
-  const spyCacheGet = vi.spyOn(cache, 'get');
-
-  const loader = new QueryLoader<{ id: ObjectId }, { value: string }, never, never>({
-    batchLoadFn: spyBatchLoadFn,
-    loaderOptions: {
-      cacheMap: cache,
-    },
-    validator: object({ value: string() }),
-  });
-  const objId = new ObjectId();
-
-  await loader.load({
-    id: {
-      id: objId,
-    },
-    query: {
-      value: 1,
-    },
-  });
-
-  expect(spyCacheGet.mock.calls).toStrictEqual([
-    [`{"id":{"id":"${objId.toString()}"},"query":{"value":1}}`],
-  ]);
-});
-
-it('calls event loaded with merged value', async () => {
-  const spyBatchLoadFn = vi.fn().mockImplementation((keys) => {
-    return keys.map((key: { query: any }) => {
-      if (isEqual(key.query, { id: 1 })) {
-        return {
-          id: 12,
-        };
-      } else if (isEqual(key.query, { description: 1 })) {
-        return {
-          description: 'the desc',
-        };
-      }
-      throw new Error('oops wrong query: ' + JSON.stringify(key));
+    expect(batchLoadFn).toHaveBeenCalledWith(expect.anything(), {
+      global: globalContextMock,
+      request: undefined,
     });
   });
 
-  const eventBus = mitt<QueryLoaderEvents<any, any>>();
-  const spyEmit = vi.spyOn(eventBus, 'emit');
+  it('passes request context to batchLoadFn', async () => {
+    const batchLoadFn = vi.fn().mockImplementation((k) => k);
 
-  const loader = new QueryLoader({
-    batchLoadFn: spyBatchLoadFn,
-    eventBus,
-    validator: unknown(),
+    const loader = new QueryLoader<any, any>({
+      batchLoadFn,
+      struct: mock(),
+    });
+
+    const requestContextMock = mock();
+
+    await loader.load(
+      {
+        id: null,
+        query: null,
+      },
+      {
+        context: requestContextMock,
+      }
+    );
+
+    expect(batchLoadFn).toHaveBeenCalledWith(expect.anything(), {
+      global: undefined,
+      request: requestContextMock,
+    });
   });
 
-  await loader.load({
-    id: {
-      shopId: 'first',
-    },
-    query: {
-      id: 1,
-      description: 1,
-    },
+  it('batches load calls with same request context', async () => {
+    const batchLoadFn = vi.fn().mockImplementation((k) => k);
+
+    const loader = new QueryLoader<any, any>({
+      batchLoadFn,
+      struct: mock(),
+    });
+
+    const requestContextMock = mock();
+
+    await Promise.all([
+      loader.load(
+        {
+          id: null,
+          query: 1,
+        },
+        {
+          context: requestContextMock,
+        }
+      ),
+      loader.load(
+        {
+          id: null,
+          query: 2,
+        },
+        {
+          context: requestContextMock,
+        }
+      ),
+    ]);
+
+    expect(batchLoadFn).toHaveBeenCalledOnce();
   });
 
-  expect(spyEmit.mock.calls).toStrictEqual([
-    [
-      'loaded',
+  it('splits load calls for each different request context', async () => {
+    const batchLoadFn = vi.fn().mockImplementation((k) => k);
+
+    const loader = new QueryLoader<any, any>({
+      batchLoadFn,
+      struct: mock(),
+    });
+
+    const requestContextMock = mock();
+    const requestContextMock2 = mock();
+
+    await Promise.all([
+      loader.load(
+        {
+          id: null,
+          query: 1,
+        },
+        {
+          context: requestContextMock,
+        }
+      ),
+      loader.load(
+        {
+          id: null,
+          query: 2,
+        },
+        {
+          context: requestContextMock2,
+        }
+      ),
+    ]);
+
+    expect(batchLoadFn).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('load/prime', () => {
+  it('fetches subsequent request from cache', async () => {
+    const batchLoadFn = vi.fn().mockImplementation((k) => k);
+
+    const loader = new QueryLoader<any, any>({
+      batchLoadFn,
+      struct: mock(),
+    });
+
+    await loader.load({
+      id: null,
+      query: 1,
+    });
+    await loader.load({
+      id: null,
+      query: 1,
+    });
+
+    expect(batchLoadFn).toHaveBeenCalledOnce();
+  });
+
+  it('batches requests loaded in same event loop', async () => {
+    const batchLoadFn = vi.fn().mockImplementation((k) => k);
+
+    const loader = new QueryLoader<any, any>({
+      batchLoadFn,
+      struct: mock(),
+    });
+
+    await Promise.all([
+      loader.load({
+        id: null,
+        query: 1,
+      }),
+      loader.load({
+        id: null,
+        query: 2,
+      }),
+    ]);
+
+    expect(batchLoadFn).toBeCalledWith(
+      [
+        {
+          id: null,
+          query: 1,
+        },
+        {
+          id: null,
+          query: 2,
+        },
+      ],
+      expect.anything()
+    );
+  });
+
+  it('load option skipCache', async () => {
+    const batchLoadFn = vi.fn().mockImplementation((k) => k);
+
+    const loader = new QueryLoader<any, any>({
+      batchLoadFn,
+      struct: mock(),
+    });
+
+    await loader.load({
+      id: null,
+      query: 1,
+    });
+    await loader.load(
       {
-        key: {
-          id: {
-            shopId: 'first',
-          },
+        id: null,
+        query: 1,
+      },
+      {
+        clearCache: true,
+      }
+    );
+
+    expect(batchLoadFn).toHaveBeenCalledTimes(2);
+  });
+
+  it('calls batchLoadFn by splitting the query', async () => {
+    const batchLoadFn = vi.fn().mockImplementation((k) => k.map((a: any) => a.query));
+
+    const loader = new QueryLoader<any, any>({
+      batchLoadFn,
+      struct: mock(),
+    });
+
+    await loader.load({
+      id: null,
+      query: {
+        a: 1,
+        b: 1,
+      },
+    });
+
+    expect(batchLoadFn).toHaveBeenCalledWith(
+      [
+        {
+          id: null,
           query: {
-            id: 1,
+            a: 1,
           },
         },
-        value: {
-          id: 12,
-          description: 'the desc',
+        {
+          id: null,
+          query: {
+            b: 1,
+          },
+        },
+      ],
+      expect.anything()
+    );
+  });
+
+  it('loading partial query loads from cache', async () => {
+    const batchLoadFn = vi.fn().mockImplementation((k) => k.map((a: any) => a.query));
+
+    const loader = new QueryLoader<any, any>({
+      batchLoadFn,
+      struct: mock(),
+    });
+
+    await loader.load({
+      id: null,
+      query: {
+        a: 1,
+        b: 1,
+      },
+    });
+    await loader.load({
+      id: null,
+      query: {
+        b: 1,
+      },
+    });
+    expect(batchLoadFn).toHaveBeenCalledOnce();
+  });
+
+  it('priming partial query loads from cache', async () => {
+    const batchLoadFn = vi.fn().mockImplementation((k) => k.map((a: any) => a.query));
+
+    const loader = new QueryLoader<any, any>({
+      batchLoadFn,
+      struct: mock(),
+    });
+
+    loader.prime(
+      {
+        id: null,
+        query: {
+          a: 1,
+          b: 1,
         },
       },
-    ],
-    [
-      'loaded',
       {
-        key: {
-          id: {
-            shopId: 'first',
+        result: {
+          a: 'a',
+          b: 'b',
+        },
+        type: 'raw',
+      }
+    );
+
+    await expect(
+      loader.load({
+        id: null,
+        query: {
+          b: 1,
+        },
+      })
+    ).resolves.toStrictEqual({
+      a: 'a',
+      b: 'b',
+    });
+  });
+
+  it('caches ObjectId as a string', async () => {
+    const batchLoadFn = vi.fn().mockImplementation(() => [{ value: 'a' }]);
+
+    const cache = new Map();
+    const cacheGetSpy = vi.spyOn(cache, 'get');
+
+    const loader = new QueryLoader<any, any>({
+      batchLoadFn: batchLoadFn,
+      loaderOptions: {
+        cacheMap: cache,
+      },
+      struct: mock(),
+    });
+    const objId = new ObjectId();
+
+    await loader.load({
+      id: {
+        objId,
+      },
+      query: {
+        value: 1,
+      },
+    });
+
+    expect(cacheGetSpy).toHaveBeenCalledWith(
+      `{"id":{"objId":"${objId.toString()}"},"query":{"value":1}}`
+    );
+  });
+});
+
+describe('event loaded', () => {
+  it('prevents cycling loaded event emitting', async () => {
+    const batchLoadFn = vi.fn().mockImplementation((k) => k);
+
+    const eventBus = mitt<QueryLoaderEvents<any, any>>();
+
+    const loader = new QueryLoader<any, any>({
+      batchLoadFn,
+      eventBus,
+      struct: mock(),
+    });
+    eventBus.on('loaded', () => {
+      loader.prime(
+        {
+          id: null,
+          query: 1,
+        },
+        {
+          result: null,
+          type: 'raw',
+        },
+        {
+          clearCache: true,
+        }
+      );
+    });
+
+    await loader.load({
+      id: null,
+      query: 1,
+    });
+  });
+
+  it('calls loaded event with merged value', async () => {
+    const batchLoadFn = vi.fn().mockImplementation((keys) => {
+      return keys.map((key: { query: any }) => {
+        if (isEqual(key.query, { id: 1 })) {
+          return {
+            id: 'id',
+          };
+        } else if (isEqual(key.query, { description: 1 })) {
+          return {
+            description: 'desc',
+          };
+        }
+        return null;
+      });
+    });
+
+    const eventBus = mitt<QueryLoaderEvents<any, any>>();
+    const emitSpy = vi.spyOn(eventBus, 'emit');
+
+    const loader = new QueryLoader({
+      batchLoadFn: batchLoadFn,
+      eventBus,
+      struct: mock(),
+    });
+
+    await loader.load({
+      id: null,
+      query: {
+        id: 1,
+        description: 1,
+      },
+    });
+
+    const value = {
+      result: {
+        id: 'id',
+        description: 'desc',
+      },
+      type: 'raw',
+    };
+
+    expect(emitSpy.mock.calls).toStrictEqual([
+      [
+        'loaded',
+        {
+          key: {
+            id: null,
+            query: {
+              id: 1,
+            },
           },
+          value,
+        },
+      ],
+      [
+        'loaded',
+        {
+          key: {
+            id: null,
+            query: {
+              description: 1,
+            },
+          },
+          value,
+        },
+      ],
+    ]);
+  });
+});
+
+describe('validation', () => {
+  const Foo = object({
+    str_rawNr: coerce(
+      string(),
+      number(),
+      (nr) => String(nr),
+      (str) => Number.parseInt(str)
+    ),
+  });
+
+  const batchLoadFn = vi.fn().mockImplementation((keys) =>
+    keys.map(() => ({
+      str_rawNr: 10,
+    }))
+  );
+
+  let loader: QueryLoader<null, typeof Foo>;
+  beforeEach(() => {
+    loader = new QueryLoader({
+      batchLoadFn: batchLoadFn,
+      struct: Foo,
+    });
+    batchLoadFn.mockClear();
+  });
+
+  it('returns validated data', async () => {
+    await expect(
+      loader.load(
+        {
+          id: null,
           query: {
-            description: 1,
+            str_rawNr: 1,
           },
         },
-        value: {
-          id: 12,
-          description: 'the desc',
+        {
+          resultType: 'validated',
+        }
+      )
+    ).resolves.toStrictEqual({
+      str_rawNr: '10',
+    });
+  });
+
+  it('loads raw result that has been primed with validated result', async () => {
+    loader.prime(
+      {
+        id: null,
+        query: {
+          str_rawNr: 1,
         },
       },
-    ],
-  ]);
+      {
+        result: {
+          str_rawNr: '15',
+        },
+        type: 'validated',
+      }
+    );
+
+    await expect(
+      loader.load(
+        {
+          id: null,
+          query: {
+            str_rawNr: 1,
+          },
+        },
+        {
+          resultType: 'raw',
+        }
+      )
+    ).resolves.toStrictEqual({
+      str_rawNr: 15,
+    });
+  });
 });

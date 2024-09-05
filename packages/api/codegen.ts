@@ -24,7 +24,7 @@ const config: CodegenConfig = {
       },
       typesPluginsConfig: {
         noSchemaStitching: false,
-        contextType: './types#GraphQLResolversContext',
+        contextType: '../types#GraphQLResolversContext',
         enumsAsTypes: false,
         /**
          * For TypeScript, make all resolvers nullable and let

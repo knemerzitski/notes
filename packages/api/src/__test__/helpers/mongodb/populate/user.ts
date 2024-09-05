@@ -4,17 +4,17 @@ import { ObjectId } from 'mongodb';
 
 import { isDefined } from '~utils/type-guards/is-defined';
 
-import { UserSchema } from '../../../../mongodb/schema/user';
+import { DBUserSchema } from '../../../../mongodb/schema/user';
 import { MongoPartialDeep } from '../../../../mongodb/types';
 import { mongoCollections } from '../mongodb';
 
 import { populateQueue } from './populate-queue';
 
 export interface FakeUserOptions {
-  override?: MongoPartialDeep<UserSchema>;
+  override?: MongoPartialDeep<DBUserSchema>;
 }
 
-export function fakeUser(options?: FakeUserOptions): UserSchema {
+export function fakeUser(options?: FakeUserOptions): DBUserSchema {
   return {
     _id: new ObjectId(),
     ...options?.override,

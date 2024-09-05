@@ -19,7 +19,7 @@ export const NoteUserSchema = object({
    * Read-only note text cannot be modified.
    * @default false
    */
-  readonly: optional(boolean()),
+  readOnly: optional(boolean()),
   preferences: optional(
     object({
       backgroundColor: optional(string()),

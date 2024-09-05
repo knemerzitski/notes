@@ -1,5 +1,5 @@
-import { NoteSchema } from '../../../../mongodb/schema/note';
-import { UserSchema } from '../../../../mongodb/schema/user';
+import { DBNoteSchema } from '../../../../mongodb/schema/note';
+import { DBUserSchema } from '../../../../mongodb/schema/user';
 
 import { mongoCollections } from '../mongodb';
 
@@ -21,7 +21,7 @@ export enum TestNoteCategory {
 }
 
 export interface PopulateNotesOptions {
-  user?: UserSchema;
+  user?: DBUserSchema;
   skipInsert?: {
     shareNoteLink?: boolean;
   };
@@ -41,7 +41,7 @@ export interface PopulateNotesOptions {
 export function populateNotes(count: number, options?: PopulateNotesOptions) {
   const user = options?.user ?? fakeUser();
 
-  const notes: NoteSchema[] = [];
+  const notes: DBNoteSchema[] = [];
 
   const collabTextKeys = options?.collabTextKeys ?? Object.values(TestCollabTextKey);
 
@@ -94,7 +94,7 @@ export function populateNotes(count: number, options?: PopulateNotesOptions) {
 }
 
 export interface PopulateNotesWithTextParams {
-  user?: UserSchema;
+  user?: DBUserSchema;
 }
 
 export function populateNotesWithText(texts: string[], options?: PopulateNotesOptions) {
@@ -116,8 +116,8 @@ export interface PopulateAddNoteToUserOptions {
 
 // TODO remove this, use only userAddNote
 export function populateUserAddNote(
-  user: UserSchema,
-  note: NoteSchema,
+  user: DBUserSchema,
+  note: DBNoteSchema,
   options?: PopulateAddNoteToUserOptions
 ) {
   userAddNote(user, note, options?.noteUser);
@@ -141,8 +141,8 @@ export function populateUserAddNote(
 }
 
 export function userAddNote(
-  user: UserSchema,
-  note: NoteSchema,
+  user: DBUserSchema,
+  note: DBNoteSchema,
   options?: FakeNoteUserOptions
 ) {
   let noteUser = note.users.find(({ _id: userId }) => userId.equals(user._id));

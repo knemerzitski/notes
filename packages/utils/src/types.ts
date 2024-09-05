@@ -17,58 +17,69 @@ export type WithRequired<T, TKey extends keyof T> = T & { [Key in TKey]-?: T[Key
 
 export type ReplaceWith<T extends object, R extends object> = Omit<T, keyof R> & R;
 
-export type ReplaceDeep<T, Source, Target> = T extends Source
-  ? Target
-  : T extends (infer U)[]
-    ? ReplaceDeep<U, Source, Target>[]
-    : T extends Builtin
-      ? T
-      : T extends object
-        ? {
-            [Key in keyof T]: ReplaceDeep<T[Key], Source, Target>;
-          }
-        : T;
+export type OmitNever<T> = {
+  [Key in keyof T as T[Key] extends never ? never : Key]: T[Key];
+};
+
+export type ReplaceDeep<T, Source, Target, Stop = never> = T extends Stop
+  ? T
+  : T extends Source
+    ? Target
+    : T extends (infer U)[]
+      ? ReplaceDeep<U, Source, Target, Stop>[]
+      : T extends Builtin
+        ? T
+        : T extends object
+          ? {
+              [Key in keyof T]: ReplaceDeep<T[Key], Source, Target, Stop>;
+            }
+          : T;
 
 export type ExcludeNullable<T, Key extends keyof NonNullable<T>> = NonNullable<T> & {
   [key in Key]-?: Exclude<NonNullable<T>[key], null | undefined>;
 };
 
+export type ReadonlyDeep<T, Stop = never> = T extends Stop
+  ? T
+  : T extends (infer U)[]
+    ? ReadonlyDeep<Readonly<U>, Stop>[]
+    : T extends object
+      ? Readonly<{
+          [Key in keyof T]: ReadonlyDeep<T[Key], Stop>;
+        }>
+      : T;
+
 export type PickValue = 1;
 
-export type PickerDeep<T, P> = T extends (infer U)[]
-  ? PickerDeep<U, P>
-  : T extends P
-    ? PickValue
+export type PickerDeep<T, P> = T extends P
+  ? PickValue
+  : T extends (infer U)[]
+    ? PickerDeep<U, P>
     : T extends object
-      ? PickerObjectDeep<T, P>
-      : never;
-type PickerObjectDeep<T extends object, P> = {
-  [Key in keyof T]?: T[Key] extends P ? PickValue : PickerDeep<T[Key], P>;
-};
-
-export type PickDeep<T, V extends PickerDeep<T, P>, P> = T extends (infer U)[]
-  ? V extends PickerDeep<U, P>
-    ? PickDeep<U, V, P>[]
-    : never
-  : T extends P
-    ? T
-    : T extends object
-      ? PickObjectDeep<T, V, P>
+      ? {
+          [Key in keyof T]?: T[Key] extends P ? PickValue : PickerDeep<T[Key], P>;
+        }
       : never;
 
-type OmitNever<T> = { [Key in keyof T as T[Key] extends never ? never : Key]: T[Key] };
-
-type PickObjectDeep<T extends object, V extends PickerDeep<T, P>, P> = OmitNever<{
-  [Key in keyof T]: Key extends keyof V
-    ? V[Key] extends PickValue
-      ? T[Key]
-      : Exclude<T[Key], undefined> extends object
-        ? V[Key] extends PickerDeep<T[Key], P>
-          ? PickDeep<T[Key], V[Key], P>
-          : never
-        : never
-    : never;
-}>;
+export type PickDeep<T, V extends PickerDeep<T, P>, P> = T extends P
+  ? T
+  : T extends (infer U)[]
+    ? V extends PickerDeep<U, P>
+      ? PickDeep<U, V, P>[]
+      : never
+    : T extends object
+      ? OmitNever<{
+          [Key in keyof T]: Key extends keyof V
+            ? V[Key] extends PickValue
+              ? T[Key]
+              : Exclude<T[Key], undefined> extends object
+                ? V[Key] extends PickerDeep<T[Key], P>
+                  ? PickDeep<T[Key], V[Key], P>
+                  : never
+                : never
+            : never;
+        }>
+      : never;
 
 /**
  * @source https://stackoverflow.com/questions/74852202/typescript-pick-only-properties-key-that-starts-with-a-target-string
@@ -103,33 +114,33 @@ export type IsTuple<Type> = Type extends readonly unknown[]
     : Type
   : never;
 
-export type PartialDeep<Type, TIn = never> = Type extends Exclude<Builtin | TIn, Error>
+export type PartialDeep<Type, Stop = never> = Type extends Exclude<Builtin | Stop, Error>
   ? Type
   : Type extends Map<infer Keys, infer Values>
-    ? Map<PartialDeep<Keys, TIn>, PartialDeep<Values, TIn>>
+    ? Map<PartialDeep<Keys, Stop>, PartialDeep<Values, Stop>>
     : Type extends ReadonlyMap<infer Keys, infer Values>
-      ? ReadonlyMap<PartialDeep<Keys, TIn>, PartialDeep<Values, TIn>>
+      ? ReadonlyMap<PartialDeep<Keys, Stop>, PartialDeep<Values, Stop>>
       : Type extends WeakMap<infer Keys, infer Values>
-        ? WeakMap<PartialDeep<Keys, TIn>, PartialDeep<Values, TIn>>
+        ? WeakMap<PartialDeep<Keys, Stop>, PartialDeep<Values, Stop>>
         : Type extends Set<infer Values>
-          ? Set<PartialDeep<Values, TIn>>
+          ? Set<PartialDeep<Values, Stop>>
           : Type extends ReadonlySet<infer Values>
-            ? ReadonlySet<PartialDeep<Values, TIn>>
+            ? ReadonlySet<PartialDeep<Values, Stop>>
             : Type extends WeakSet<infer Values>
-              ? WeakSet<PartialDeep<Values, TIn>>
+              ? WeakSet<PartialDeep<Values, Stop>>
               : Type extends readonly (infer Values)[]
                 ? Type extends IsTuple<Type>
                   ? {
-                      [Key in keyof Type]?: PartialDeep<Type[Key], TIn>;
+                      [Key in keyof Type]?: PartialDeep<Type[Key], Stop>;
                     }
                   : Type extends Values[]
-                    ? (PartialDeep<Values, TIn> | undefined)[]
-                    : readonly (PartialDeep<Values, TIn> | undefined)[]
+                    ? (PartialDeep<Values, Stop> | undefined)[]
+                    : readonly (PartialDeep<Values, Stop> | undefined)[]
                 : Type extends Promise<infer Value>
-                  ? Promise<PartialDeep<Value, TIn>>
+                  ? Promise<PartialDeep<Value, Stop>>
                   : Type extends object
                     ? {
-                        [Key in keyof Type]?: PartialDeep<Type[Key], TIn>;
+                        [Key in keyof Type]?: PartialDeep<Type[Key], Stop>;
                       }
                     : IsUnknown<Type> extends true
                       ? unknown

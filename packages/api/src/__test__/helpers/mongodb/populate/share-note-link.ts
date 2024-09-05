@@ -4,7 +4,7 @@ import {
   shareNoteLinkDefaultValues,
   ShareNoteLinkSchema,
 } from '../../../../mongodb/schema/share-note-link';
-import { UserSchema } from '../../../../mongodb/schema/user';
+import { DBUserSchema } from '../../../../mongodb/schema/user';
 import { MongoPartialDeep } from '../../../../mongodb/types';
 
 export interface FakeShareNoteLinkOptions {
@@ -12,7 +12,7 @@ export interface FakeShareNoteLinkOptions {
 }
 
 export function fakeShareNoteLink(
-  creatorUser: Pick<UserSchema, '_id'>,
+  creatorUser: Pick<DBUserSchema, '_id'>,
   options?: FakeShareNoteLinkOptions
 ): ShareNoteLinkSchema {
   return {

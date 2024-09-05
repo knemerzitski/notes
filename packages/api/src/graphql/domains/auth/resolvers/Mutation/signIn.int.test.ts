@@ -25,9 +25,8 @@ import {
 } from '../../../../../__test__/helpers/mongodb/mongodb';
 import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/user';
-import { QueryableUserLoader } from '../../../../../mongodb/loaders/queryable-user-loader';
-import { SessionSchema } from '../../../../../mongodb/schema/session';
-import { UserSchema } from '../../../../../mongodb/schema/user';
+import { DBSessionSchema } from '../../../../../mongodb/schema/session';
+import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { verifyCredentialToken } from '../../../../../services/auth/google/__mocks__/oauth2';
 import { SessionDuration } from '../../../../../services/session/duration';
@@ -65,14 +64,14 @@ const MUTATION = `#graphql
 
 let spyInsertNewSession: MockInstance<
   [serviceSession.InsertNewSessionParams],
-  Promise<SessionSchema>
+  Promise<DBSessionSchema>
 >;
 let spyInsertNewUserWithGoogleUser: MockInstance<
   [serviceUser.InsertNewUserWithGoogleUserParams],
-  Promise<UserSchema>
+  Promise<DBUserSchema>
 >;
 
-let user: UserSchema;
+let user: DBUserSchema;
 
 beforeAll(() => {
   spyInsertNewSession = vi.spyOn(serviceSession, 'insertNewSession');
@@ -119,7 +118,7 @@ async function executeOperation(
   );
 }
 
-it.only('creates new user and session on first sign in with google', async () => {
+it('creates new user and session on first sign in with google', async () => {
   const authProviderUser = {
     id: '12345',
     email: 'last.first@email.com',
@@ -153,9 +152,6 @@ it.only('creates new user and session on first sign in with google', async () =>
     id: authProviderUser.id,
     displayName: authProviderUser.name,
     collection: mongoCollections.users,
-    prime: {
-      loader: expect.any(QueryableUserLoader),
-    },
   });
 
   const newUserResult = spyInsertNewUserWithGoogleUser.mock.results[0];

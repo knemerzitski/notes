@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker';
 
 import { NoteUserSchema } from '../../../../mongodb/schema/note-user';
-import { UserSchema } from '../../../../mongodb/schema/user';
+import { DBUserSchema } from '../../../../mongodb/schema/user';
 
 import { MongoPartialDeep } from '../../../../mongodb/types';
 
@@ -18,7 +18,7 @@ export interface FakeNoteUserOptions {
 let createCounter = 0;
 
 export function fakeNoteUser(
-  user: Pick<UserSchema, '_id'>,
+  user: Pick<DBUserSchema, '_id'>,
   options?: FakeNoteUserOptions
 ): NoteUserSchema {
   const { trashed: trashedOverride, ...override } = options?.override ?? {};

@@ -18,14 +18,14 @@ import { typeDefs } from '../../../graphql/domains/typeDefs.generated';
 import { MongoDBCollections } from '../../../mongodb/collections';
 import { MongoDBContext } from '../../../mongodb/context';
 import { createMongoDBLoaders } from '../../../mongodb/loaders';
-import { UserSchema } from '../../../mongodb/schema/user';
+import { DBUserSchema } from '../../../mongodb/schema/user';
 import { MongoPartialDeep } from '../../../mongodb/types';
 import { mongoCollections, mongoClient } from '../mongodb/mongodb';
 import { Cookies } from '../../../services/http/cookies';
 import { objectIdToStr } from '../../../mongodb/utils/objectid';
 
 export interface CreateGraphQLResolversContextOptions {
-  user?: Partial<UserSchema>;
+  user?: Partial<DBUserSchema>;
   createPublisher?: (ctx: Omit<GraphQLResolversContext, 'publish'>) => Publisher;
   mongodb?: PartialBy<ApiGraphQLContext['mongoDB'], 'loaders'>;
   override?: MongoPartialDeep<GraphQLResolversContext>;
