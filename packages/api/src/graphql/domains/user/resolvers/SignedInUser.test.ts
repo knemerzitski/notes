@@ -6,24 +6,24 @@ import { SignedInUser } from './SignedInUser';
 import { ObjectId } from 'mongodb';
 import { maybeCallFn } from '~utils/maybe-call-fn';
 import { mockResolver } from '../../../../__test__/helpers/graphql/mock-resolver';
-import { wrapPartialQuery } from '../../../../mongodb/query/query';
+import { wrapOnlyRawQueryFn } from '../../../../mongodb/query/query';
 
 describe('id', () => {
   const resolveId = mockResolver(SignedInUser.id!);
 
-  it('returns undefined with empty object', () => {
-    const id = resolveId({
-      query: wrapPartialQuery(() => {
+  it('returns undefined with empty object', async () => {
+    const id = await resolveId({
+      query: wrapOnlyRawQueryFn(() => {
         return {};
       }),
     });
     expect(id).toBeUndefined();
   });
 
-  it('returns provided _id', () => {
+  it('returns provided _id', async () => {
     const _id = new ObjectId();
-    const id = resolveId({
-      query: wrapPartialQuery(() => {
+    const id = await resolveId({
+      query: wrapOnlyRawQueryFn(() => {
         return {
           _id,
         };

@@ -1,156 +1,199 @@
 import isEqual from 'lodash.isequal';
-import { ObjectId } from 'mongodb';
+import { Infer, never, number, object, optional, Struct, union } from 'superstruct';
 
 import { isNonEmptyArray } from '~utils/array/is-non-empty-array';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
+import { memoize1 } from '~utils/memoize1';
 
-export interface RelayFirstPagination {
-  after?: never;
-  first: number;
-}
+// #################### first, after ######################
 
-export interface RelayAfterUnboundPagination<TCursor> {
-  after: TCursor;
-  first?: never;
-}
+export const RelayFirstPagination = object({
+  first: number(),
+  after: optional(never()),
+});
 
-export interface RelayAfterBoundPagination<TCursor> {
-  after: TCursor;
-  first: number;
-}
+export type RelayFirstPagination = Infer<typeof RelayFirstPagination>;
 
-export type RelayAfterPagination<TCursor> =
-  | RelayAfterUnboundPagination<TCursor>
-  | RelayAfterBoundPagination<TCursor>;
+export const RelayAfterUnboundPagination = memoize1(
+  <TCursor>(
+    cursor: Struct<TCursor, null>
+  ): Struct<
+    { first?: undefined; after: TCursor },
+    { first: Struct<undefined, null>; after: Struct<TCursor, null> }
+  > =>
+    // @ts-expect-error superstruct incorrectly types generic
+    object({
+      first: optional(never()),
+      after: cursor,
+    })
+);
 
-export interface RelayLastPagination {
-  before?: never;
-  last: number;
-}
+export type RelayAfterUnboundPagination<TCursor> = Infer<
+  ReturnType<typeof RelayAfterUnboundPagination<TCursor>>
+>;
 
-export interface RelayBeforeUnboundPagination<TCursor> {
-  before: TCursor;
-  last?: never;
-}
+export const RelayAfterBoundPagination = memoize1(
+  <TCursor>(
+    cursor: Struct<TCursor, null>
+  ): Struct<
+    { first: number; after: TCursor },
+    { first: Struct<number, null>; after: Struct<TCursor, null> }
+  > =>
+    // @ts-expect-error superstruct incorrectly types generic
+    object({
+      first: number(),
+      after: cursor,
+    })
+);
 
-export interface RelayBeforeBoundPagination<TCursor> {
-  before: TCursor;
-  last: number;
-}
+export type RelayAfterBoundPagination<TCursor> = Infer<
+  ReturnType<typeof RelayAfterBoundPagination<TCursor>>
+>;
 
-export type RelayBeforePagination<TCursor> =
-  | RelayBeforeUnboundPagination<TCursor>
-  | RelayBeforeBoundPagination<TCursor>;
+export const RelayAfterPagination = memoize1(
+  <TCursor>(
+    cursor: Struct<TCursor, null>
+  ): Struct<
+    { first?: number | undefined; after: TCursor },
+    { first: Struct<number | undefined, null>; after: Struct<TCursor, null> }
+  > =>
+    // @ts-expect-error superstruct incorrectly types generic
+    object({
+      first: optional(number()),
+      after: cursor,
+    })
+);
 
-export type RelayForwardsPagination<TCursor> =
-  | RelayFirstPagination
-  | RelayAfterPagination<TCursor>;
-export type RelayBackwardsPagination<TCursor> =
-  | RelayLastPagination
-  | RelayBeforePagination<TCursor>;
+export type RelayAfterPagination<TCursor> = Infer<
+  ReturnType<typeof RelayAfterPagination<TCursor>>
+>;
 
-export type RelayPagination<TCursor> =
-  | RelayForwardsPagination<TCursor>
-  | RelayBackwardsPagination<TCursor>;
+// #################### last, before ######################
 
-export type RelayBoundPagination<TCursor> = Exclude<
-  RelayPagination<TCursor>,
-  RelayBeforeUnboundPagination<TCursor> | RelayAfterUnboundPagination<TCursor>
+export const RelayLastPagination = object({
+  last: number(),
+  before: optional(never()),
+});
+
+export type RelayLastPagination = Infer<typeof RelayLastPagination>;
+
+export const RelayBeforeUnboundPagination = memoize1(
+  <TCursor>(
+    cursor: Struct<TCursor, null>
+  ): Struct<
+    { last?: undefined; before: TCursor },
+    { last: Struct<undefined, null>; before: Struct<TCursor, null> }
+  > =>
+    // @ts-expect-error superstruct incorrectly types generic
+    object({
+      last: optional(never()),
+      before: cursor,
+    })
+);
+
+export type RelayBeforeUnboundPagination<TCursor> = Infer<
+  ReturnType<typeof RelayBeforeUnboundPagination<TCursor>>
+>;
+
+export const RelayBeforeBoundPagination = memoize1(
+  <TCursor>(
+    cursor: Struct<TCursor, null>
+  ): Struct<
+    { last: number; before: TCursor },
+    { last: Struct<number, null>; before: Struct<TCursor, null> }
+  > =>
+    // @ts-expect-error superstruct incorrectly types generic
+    object({
+      last: number(),
+      before: cursor,
+    })
+);
+
+export type RelayBeforeBoundPagination<TCursor> = Infer<
+  ReturnType<typeof RelayBeforeBoundPagination<TCursor>>
+>;
+
+export const RelayBeforePagination = memoize1(
+  <TCursor>(
+    cursor: Struct<TCursor, null>
+  ): Struct<
+    { last?: number | undefined; before: TCursor },
+    { last: Struct<number | undefined, null>; before: Struct<TCursor, null> }
+  > =>
+    // @ts-expect-error superstruct incorrectly types generic
+    object({
+      last: optional(number()),
+      before: cursor,
+    })
+);
+
+export type RelayBeforePagination<TCursor> = Infer<
+  ReturnType<typeof RelayBeforePagination<TCursor>>
+>;
+
+// #################### mix ######################
+
+export const RelayForwardsPagination = memoize1(
+  <TCursor>(cursor: Struct<TCursor, null>) =>
+    union([RelayFirstPagination, RelayAfterPagination(cursor)])
+);
+
+export type RelayForwardsPagination<TCursor> = Infer<
+  ReturnType<typeof RelayForwardsPagination<TCursor>>
+>;
+
+export const RelayBackwardsPagination = memoize1(
+  <TCursor>(cursor: Struct<TCursor, null>) =>
+    union([RelayLastPagination, RelayBeforePagination(cursor)])
+);
+
+export type RelayBackwardsPagination<TCursor> = Infer<
+  ReturnType<typeof RelayBackwardsPagination<TCursor>>
+>;
+
+export const RelayPagination = memoize1(<TCursor>(cursor: Struct<TCursor, null>) =>
+  union([RelayForwardsPagination(cursor), RelayBackwardsPagination(cursor)])
+);
+
+export type RelayPagination<TCursor> = Infer<ReturnType<typeof RelayPagination<TCursor>>>;
+
+export const RelayBoundPagination = memoize1(<TCursor>(cursor: Struct<TCursor, null>) =>
+  union([
+    RelayFirstPagination,
+    RelayAfterBoundPagination(cursor),
+    RelayLastPagination,
+    RelayBeforeBoundPagination(cursor),
+  ])
+);
+
+export type RelayBoundPagination<TCursor> = Infer<
+  ReturnType<typeof RelayBoundPagination<TCursor>>
 >;
 
 /**
  * @returns String that is unique for a pagination.
  */
-export function getPaginationKey<T>(p: RelayPagination<T>): string {
-  if ('after' in p || 'first' in p) {
-    return `a${p.after != null ? String(p.after) : ''}:${p.first ?? ''}`;
+export function getPaginationKey<T>(
+  p: RelayPagination<T>,
+  cursor: Struct<T, null>
+): string {
+  if (RelayForwardsPagination(cursor).is(p)) {
+    if (RelayFirstPagination.is(p)) {
+      return `a:${p.first}`;
+    } else if (RelayAfterBoundPagination(cursor).is(p)) {
+      return `a${String(p.after)}:${p.first}`;
+    } else {
+      return `a${String(p.after)}`;
+    }
   } else {
-    return `b${p.before != null ? String(p.before) : ''}:${p.last ?? ''}`;
+    if (RelayLastPagination.is(p)) {
+      return `b:${p.last}`;
+    } else if (RelayBeforeBoundPagination(cursor).is(p)) {
+      return `b${String(p.before)}:${p.last}`;
+    } else {
+      return `b${String(p.before)}`;
+    }
   }
-}
-
-export function isForwardPagination<TCursor, T extends RelayPagination<TCursor>>(
-  pagination: T
-  // remove others
-): pagination is Exclude<T, RelayLastPagination | RelayBeforePagination<TCursor>> {
-  return (
-    ('first' in pagination && pagination.first != null) ||
-    ('after' in pagination && pagination.after != null)
-  );
-}
-
-export function isFirstPagination<TCursor>(
-  pagination: RelayPagination<TCursor>
-): pagination is RelayFirstPagination {
-  return (
-    'first' in pagination &&
-    pagination.first != null &&
-    (!('after' in pagination) || pagination.after == null)
-  );
-}
-
-export function isLastPagination<TCursor>(
-  pagination: RelayPagination<TCursor>
-): pagination is RelayLastPagination {
-  return (
-    'last' in pagination &&
-    pagination.last != null &&
-    (!('before' in pagination) || pagination.before == null)
-  );
-}
-
-export function isAfterPagination<TCursor>(
-  pagination: RelayPagination<TCursor>
-): pagination is RelayAfterPagination<TCursor> {
-  return 'after' in pagination && pagination.after != null;
-}
-
-export function isAfterUnboundPagination<TCursor>(
-  pagination: RelayPagination<TCursor>
-): pagination is RelayAfterUnboundPagination<TCursor> {
-  return (
-    'after' in pagination &&
-    pagination.after != null &&
-    (!('first' in pagination) || pagination.first == null)
-  );
-}
-
-export function isAfterBoundPagination<TCursor>(
-  pagination: RelayPagination<TCursor>
-): pagination is RelayAfterBoundPagination<TCursor> {
-  return (
-    'after' in pagination &&
-    pagination.after != null &&
-    'first' in pagination &&
-    pagination.first != null
-  );
-}
-
-export function isBeforePagination<TCursor>(
-  pagination: RelayPagination<TCursor>
-): pagination is RelayBeforePagination<TCursor> {
-  return 'before' in pagination && pagination.before != null;
-}
-
-export function isBeforeUnboundPagination<TCursor>(
-  pagination: RelayPagination<TCursor>
-): pagination is RelayBeforeUnboundPagination<TCursor> {
-  return (
-    'before' in pagination &&
-    pagination.before != null &&
-    (!('last' in pagination) || pagination.last == null)
-  );
-}
-
-export function isBeforeBoundPagination<TCursor>(
-  pagination: RelayPagination<TCursor>
-): pagination is RelayBeforeBoundPagination<TCursor> {
-  return (
-    'before' in pagination &&
-    pagination.before != null &&
-    'last' in pagination &&
-    pagination.last != null
-  );
 }
 
 /**
@@ -338,36 +381,6 @@ export function sliceBefore<T>({
       },
     },
   };
-}
-
-export function paginationStringToInt<TCursor extends ObjectId | string | number>(
-  pagination: RelayPagination<TCursor>
-): RelayPagination<number> {
-  if (isAfterPagination(pagination)) {
-    if (pagination.after instanceof ObjectId) {
-      throw new Error('Cursor cannot be ObjectId');
-    }
-    return {
-      first: pagination.first,
-      after:
-        typeof pagination.after === 'string'
-          ? Number.parseInt(pagination.after)
-          : pagination.after,
-    };
-  } else if (isBeforePagination(pagination)) {
-    if (pagination.before instanceof ObjectId) {
-      throw new Error('Cursor cannot be ObjectId');
-    }
-    return {
-      before:
-        typeof pagination.before === 'string'
-          ? Number.parseInt(pagination.before)
-          : pagination.before,
-      last: pagination.last,
-    };
-  }
-
-  return pagination;
 }
 
 export function applyLimit(
@@ -704,7 +717,8 @@ export function relayArrayPaginationMapAggregateResult<TCursor, TItem>(
     | NonNullable<RelayArrayPaginationInput<TCursor>['paginations']>[0]
     | undefined,
   allPaginations: RelayArrayPaginationInput<TCursor>['paginations'] = [],
-  aggregateResult: RelayArrayPaginationAggregateResult<TItem>
+  aggregateResult: RelayArrayPaginationAggregateResult<TItem>,
+  cursor: Struct<TCursor, null>
 ): TItem[] {
   if (!pagination || aggregateResult.array.length === 0) {
     return aggregateResult.array;
@@ -712,17 +726,17 @@ export function relayArrayPaginationMapAggregateResult<TCursor, TItem>(
 
   const sizes = aggregateResult.sizes;
   if (sizes) {
-    if (isFirstPagination(pagination)) {
+    if (RelayFirstPagination.is(pagination)) {
       return aggregateResult.array.slice(0, Math.min(pagination.first, sizes[0]));
-    } else if (isLastPagination(pagination)) {
+    } else if (RelayLastPagination.is(pagination)) {
       const end = sizes[0] + sizes[1];
       return aggregateResult.array.slice(Math.max(sizes[0], end - pagination.last), end);
-    } else if (isAfterPagination(pagination)) {
+    } else if (RelayAfterPagination(cursor).is(pagination)) {
       let afterIndex = 2;
       let afterSize = sizes[0] + sizes[1];
 
       for (const otherPagination of allPaginations) {
-        if (isAfterPagination(otherPagination)) {
+        if (RelayAfterPagination(cursor).is(otherPagination)) {
           const nextSize = sizes[afterIndex];
           if (nextSize == null) {
             throw new Error(`Expected size at index ${afterIndex}`);
@@ -737,7 +751,7 @@ export function relayArrayPaginationMapAggregateResult<TCursor, TItem>(
       }
     } else {
       let beforeIndex = allPaginations.reduce(
-        (a, b) => a + (isAfterPagination(b) ? 1 : 0),
+        (a, b) => a + (RelayAfterPagination(cursor).is(b) ? 1 : 0),
         2
       );
       let beforeSize = sizes
@@ -745,7 +759,7 @@ export function relayArrayPaginationMapAggregateResult<TCursor, TItem>(
         .reduce((a, b) => a + b, sizes[0] + sizes[1]);
 
       for (const otherPagination of allPaginations) {
-        if (isBeforePagination(otherPagination)) {
+        if (RelayBeforePagination(cursor).is(otherPagination)) {
           const nextSize = sizes[beforeIndex];
           if (nextSize == null) {
             throw new Error(`Expected size at index ${beforeIndex}`);
@@ -761,12 +775,12 @@ export function relayArrayPaginationMapAggregateResult<TCursor, TItem>(
       }
     }
   } else {
-    if (isFirstPagination(pagination)) {
+    if (RelayFirstPagination.is(pagination)) {
       return aggregateResult.array.slice(
         0,
         Math.min(pagination.first, aggregateResult.array.length)
       );
-    } else if (isLastPagination(pagination)) {
+    } else if (RelayLastPagination.is(pagination)) {
       const start = 0;
       const end = aggregateResult.array.length;
       return aggregateResult.array.slice(Math.max(start, end - pagination.last), end);

@@ -9,17 +9,15 @@ import {
   MongoQueryFn,
   PartialQueryResultDeep,
   QueryDeep,
-  QueryPickerDeep,
   QueryResultDeep,
 } from '../query/query';
 
-import { getEqualObjectString } from './utils/get-equal-object-string';
+import { memoizedGetEqualObjectString } from './utils/get-equal-object-string';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 import { isQueryArgField } from '../query/merge-queries';
-import { create, Infer, InferRaw, Struct } from 'superstruct';
-import { pickdeep } from '~utils/superstruct/pickdeep';
+import { Infer, InferRaw, Struct } from 'superstruct';
 import { Emitter } from '~utils/mitt-unsub';
-import { memoize1 } from '~utils/memoize1';
+import { StructQuery } from '../query/struct-query';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-explicit-any
 export type QueryLoaderEvents<I, S extends Struct<any, any, any>> = {
@@ -87,9 +85,9 @@ export interface LoadOptions<R, T extends 'any' | 'raw' | 'validated' = 'any'> {
    */
   clearCache?: boolean;
   /**
-   * any - Could be either 'raw' or 'validated'
-   * raw - Result is directly from batchLoadFn without modifications
-   * validation - Result is validated by struct and is guaranteed to match schema
+   * - any - Could be either 'raw' or 'validated'
+   * - raw - Result is directly from batchLoadFn without modifications
+   * - validation - Result is validated by struct and is guaranteed to match schema
    */
   resultType?: T;
 }
@@ -115,7 +113,7 @@ export type SessionOptions<
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface CreateQueryFnOptions<R, S extends Struct<any, any, any>>
   extends Omit<LoadOptions<R>, 'resultType'> {
-  mapQuery?: (query: QueryPickerDeep<InferRaw<S>>) => Maybe<QueryPickerDeep<InferRaw<S>>>;
+  mapQuery?: <V extends QueryDeep<InferRaw<S>>>(query: V) => Maybe<V>;
 }
 
 export class QueryLoaderError<I, Q extends object> extends Error {
@@ -134,8 +132,6 @@ function splitQuery<T>(obj: T) {
     keepFn: isQueryArgField,
   });
 }
-
-const memoizedGetEqualObjectString = memoize1(getEqualObjectString);
 
 interface RawResult<Q> {
   /**
@@ -162,7 +158,7 @@ type CacheData<S extends Struct<any, any, any>> =
  * Result values is then merged back together to be returned.
  *
  * I - Identifies the query
- * S - result structure
+ * S - Result structure
  * CG - Context global - Context passed during loader initialization and stays constant between requests.
  * CR - Context request - Can be unque for each load call.
  */
@@ -177,12 +173,12 @@ export class QueryLoader<I, S extends Struct<any, any, any>, CG = unknown, CR = 
 
   private readonly loaderCacheMap: CacheMap<string, Promise<CacheData<S>>>;
 
-  private readonly struct: S;
-  private readonly subStructCache = new Map<string, Struct>();
+  private readonly structQuery: StructQuery<S>;
 
   constructor(params: QueryLoaderParams<I, S, CG, CR>) {
     this.eventBus = params.eventBus;
-    this.struct = params.struct;
+
+    this.structQuery = StructQuery.get(params.struct);
 
     this.loaderCacheMap = params.loaderOptions?.cacheMap ?? new Map();
 
@@ -282,17 +278,17 @@ export class QueryLoader<I, S extends Struct<any, any, any>, CG = unknown, CR = 
   }
 
   async load<
-    V extends QueryPickerDeep<InferRaw<S> & Infer<S>>,
+    V extends QueryDeep<InferRaw<S> & Infer<S>>,
     T extends 'any' | 'raw' | 'validated' = 'any',
   >(
     key: QueryLoaderCacheKey<I, V>,
     options?: LoadOptions<CR, T>
   ): Promise<
-    T extends 'any'
-      ? PartialQueryResultDeep<InferRaw<S> | Infer<S>, V>
+    T extends 'validated'
+      ? QueryResultDeep<Infer<S>, V>
       : T extends 'raw'
         ? PartialQueryResultDeep<InferRaw<S>, V>
-        : QueryResultDeep<Infer<S>, V>
+        : PartialQueryResultDeep<InferRaw<S> | Infer<S>, V>
   > {
     const cacheIsStale = options?.clearCache ?? false;
 
@@ -352,7 +348,7 @@ export class QueryLoader<I, S extends Struct<any, any, any>, CG = unknown, CR = 
 
   createQueryFn(id: I, options?: CreateQueryFnOptions<CR, S>): MongoQueryFn<S> {
     return <
-      V extends QueryPickerDeep<InferRaw<S>>,
+      V extends QueryDeep<InferRaw<S>>,
       T extends 'any' | 'raw' | 'validated' = 'any',
     >(
       query: V,
@@ -373,20 +369,6 @@ export class QueryLoader<I, S extends Struct<any, any, any>, CG = unknown, CR = 
     };
   }
 
-  private getSubStructForQuery(query: QueryDeep<InferRaw<S> | Infer<S>>) {
-    const queryStr = getEqualObjectString(query);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let validator: any = this.subStructCache.get(queryStr);
-    if (!validator) {
-      validator = pickdeep(this.struct, {
-        convertObjectToType: true,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      })()(query as any);
-      this.subStructCache.set(queryStr, validator);
-    }
-    return validator;
-  }
-
   private getValidatedResult(
     key: QueryLoaderKey<I, InferRaw<S>, CR>,
     data: CacheData<S>
@@ -395,7 +377,10 @@ export class QueryLoader<I, S extends Struct<any, any, any>, CG = unknown, CR = 
       return { result: data.validated, type: 'validated' as const };
     }
 
-    const validatedResult = create(data.raw, this.getSubStructForQuery(key.cache.query));
+    const validatedResult = this.structQuery.rawValueToValidated(
+      data.raw,
+      key.cache.query
+    );
 
     const newData: RawResult<InferRaw<S>> & ValidatedResult<Infer<S>> = {
       raw: data.raw,
@@ -414,12 +399,9 @@ export class QueryLoader<I, S extends Struct<any, any, any>, CG = unknown, CR = 
       return { result: data.raw, type: 'raw' as const };
     }
 
-    // Get raw result from validated
-    const rawValidatedResult = create(
+    const rawValidatedResult = this.structQuery.validatedValueToRaw(
       data.validated,
-      this.getSubStructForQuery(key.cache.query),
-      undefined,
-      true
+      key.cache.query
     );
 
     const newData: RawResult<InferRaw<S>> & ValidatedResult<Infer<S>> = {

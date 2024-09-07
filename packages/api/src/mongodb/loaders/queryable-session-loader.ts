@@ -7,21 +7,21 @@ import { CollectionName, MongoDBCollections } from '../collections';
 import { MongoDBContext } from '../context';
 import { LoaderEvents } from '../loaders';
 import { mapQueryAggregateResult } from '../query/map-query-aggregate-result';
-import { MergedObjectQueryDeep, mergeQueries } from '../query/merge-queries';
+import { MergedQueryDeep, mergeQueries } from '../query/merge-queries';
 import { mergedQueryToPipeline } from '../query/merged-query-to-pipeline';
-import { QueryResultDeep } from '../query/query';
+import { PartialQueryResultDeep, QueryDeep } from '../query/query';
 
 import {
-  PrimeOptions,
+  LoadOptions,
   QueryLoader,
-  QueryLoaderCacheKey,
   QueryLoaderContext,
+  QueryLoaderError,
   QueryLoaderEvents,
+  QueryLoaderKey,
+  SessionOptions,
 } from './query-loader';
-import {
-  QueryableSession,
-  queryableSessionDescription,
-} from '../descriptions/session';
+import { QueryableSession, queryableSessionDescription } from '../descriptions/session';
+import { Infer, InferRaw } from 'superstruct';
 
 export interface QueryableSessionId {
   /**
@@ -30,10 +30,11 @@ export interface QueryableSessionId {
   cookieId: string;
 }
 
-export type QueryableSessionLoaderKey = QueryLoaderCacheKey<
+export type QueryableSessionLoaderKey = QueryLoaderKey<
   QueryableSessionId,
-  QueryableSession
->;
+  InferRaw<typeof QueryableSession>,
+  QueryableSessionLoadContext
+>['cache'];
 
 export interface QueryableSessionLoaderParams {
   eventBus?: Emitter<LoaderEvents>;
@@ -54,10 +55,22 @@ interface GlobalContext {
 
 type RequestContext = AggregateOptions['session'];
 
+export class SessionNotFoundQueryLoaderError extends QueryLoaderError<
+  QueryableSessionId,
+  InferRaw<typeof QueryableSession>
+> {
+  override readonly key: QueryableSessionLoaderKey;
+
+  constructor(key: QueryableSessionLoaderKey) {
+    super('Session not found', key);
+    this.key = key;
+  }
+}
+
 export class QueryableSessionLoader {
   private readonly loader: QueryLoader<
     QueryableSessionId,
-    QueryableSession,
+    typeof QueryableSession,
     GlobalContext,
     RequestContext
   >;
@@ -68,7 +81,7 @@ export class QueryableSessionLoader {
     this.context = params.context;
 
     const loaderEventBus =
-      mitt<QueryLoaderEvents<QueryableSessionId, QueryableSession>>();
+      mitt<QueryLoaderEvents<QueryableSessionId, typeof QueryableSession>>();
     if (params.eventBus) {
       loaderEventBus.on('loaded', (payload) => {
         params.eventBus?.emit('loadedSession', payload);
@@ -81,21 +94,27 @@ export class QueryableSessionLoader {
         return queryableSessionBatchLoad(keys, context);
       },
       context: params.context,
+      struct: QueryableSession,
     });
   }
 
   prime(
-    key: QueryableSessionLoaderKey,
-    value: QueryResultDeep<QueryableSession>,
-    options?: PrimeOptions
-  ) {
-    this.loader.prime(key, value, options);
+    ...args: Parameters<typeof this.loader.prime>
+  ): ReturnType<typeof this.loader.prime> {
+    this.loader.prime(...args);
   }
 
-  async load(key: QueryableSessionLoaderKey, session?: RequestContext) {
+  load<
+    V extends QueryDeep<Infer<typeof QueryableSession>>,
+    T extends 'any' | 'raw' | 'validated' = 'any',
+  >(
+    key: Parameters<typeof this.loader.load<V, T>>[0],
+    options?: SessionOptions<LoadOptions<RequestContext, T>>
+  ): ReturnType<typeof this.loader.load<V, T>> {
     return this.loader.load(key, {
-      context: session,
-      skipCache: session != null,
+      ...options,
+      context: options?.session,
+      clearCache: options?.session != null,
     });
   }
 }
@@ -110,7 +129,7 @@ export interface QueryableSessionBatchLoadContext {
 export async function queryableSessionBatchLoad(
   keys: readonly QueryableSessionLoaderKey[],
   context: QueryableSessionLoadContext
-): Promise<(QueryResultDeep<QueryableSession> | Error | null)[]> {
+): Promise<(PartialQueryResultDeep<InferRaw<typeof QueryableSession>> | Error)[]> {
   const keysByCookieId = groupBy(keys, (key) => key.id.cookieId);
 
   const results = Object.fromEntries(
@@ -155,13 +174,15 @@ export async function queryableSessionBatchLoad(
     string,
     {
       session: Document | undefined;
-      mergedQuery: MergedObjectQueryDeep<QueryableSession>;
+      mergedQuery: MergedQueryDeep<InferRaw<typeof QueryableSession>>;
     }
   >;
 
   return keys.map((key) => {
     const result = results[key.id.cookieId];
-    if (!result?.session) return null;
+    if (!result?.session) {
+      return new SessionNotFoundQueryLoaderError(key);
+    }
 
     return mapQueryAggregateResult(key.query, result.mergedQuery, result.session, {
       descriptions: [queryableSessionDescription],

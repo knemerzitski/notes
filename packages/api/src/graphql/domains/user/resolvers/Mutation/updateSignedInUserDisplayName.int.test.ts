@@ -24,8 +24,7 @@ import {
 } from '../../../../../__test__/helpers/mongodb/mongodb';
 import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/user';
-import { QueryableUserLoader } from '../../../../../mongodb/loaders/queryable-user-loader';
-import { UserSchema } from '../../../../../mongodb/schema/user';
+import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import {
   UpdateSignedInUserDisplayNameInput,
@@ -75,11 +74,11 @@ const SUBSCRIPTION = `#graphql
   }
 `;
 
-let user: UserSchema;
+let user: DBUserSchema;
 
 let spyUpdateDisplayName: MockInstance<
   [serviceUser.UpdateDisplayNameParams],
-  Promise<UpdateResult<UserSchema>>
+  Promise<UpdateResult<DBUserSchema>>
 >;
 
 beforeAll(() => {
@@ -160,9 +159,6 @@ it('changes user displayName', async () => {
     userId: user._id,
     displayName: 'new name',
     collection: mongoCollections.users,
-    prime: {
-      loader: expect.any(QueryableUserLoader),
-    },
   });
 
   expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(1);

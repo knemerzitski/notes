@@ -6,7 +6,7 @@ import { QueryableSessionLoader } from '../../mongodb/loaders/queryable-session-
 import { Cookies } from '../http/cookies';
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import { SessionDuration, SessionDurationConfig } from '../session/duration';
-import { SessionSchema } from '../../mongodb/schema/session';
+import { DBSessionSchema } from '../../mongodb/schema/session';
 import { UnauthenticatedServiceError } from './errors';
 
 export type AuthenticationContext = AuthenticatedContext | UnauthenticatedContext;
@@ -155,7 +155,7 @@ export async function findRefreshSessionByCookieId(
 
 export interface DeleteAllSessionsInCookiesParams {
   cookies: Cookies;
-  collection: Collection<SessionSchema>;
+  collection: Collection<DBSessionSchema>;
 }
 
 export async function deleteAllSessionsInCookies({
@@ -178,7 +178,7 @@ export interface DeleteSessionParams {
   userId: ObjectId;
   cookieId?: string;
   cookies: Cookies;
-  collection: Collection<SessionSchema>;
+  collection: Collection<DBSessionSchema>;
 }
 
 /**

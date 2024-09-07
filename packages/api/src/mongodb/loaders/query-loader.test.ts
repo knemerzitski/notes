@@ -23,7 +23,7 @@ describe('context', () => {
 
     await loader.load({
       id: null,
-      query: null,
+      query: null as any,
     });
 
     expect(batchLoadFn).toHaveBeenCalledWith(expect.anything(), {
@@ -45,7 +45,7 @@ describe('context', () => {
     await loader.load(
       {
         id: null,
-        query: null,
+        query: null as any,
       },
       {
         context: requestContextMock,
@@ -81,7 +81,7 @@ describe('context', () => {
       loader.load(
         {
           id: null,
-          query: 2,
+          query: 2 as any,
         },
         {
           context: requestContextMock,
@@ -116,7 +116,7 @@ describe('context', () => {
       loader.load(
         {
           id: null,
-          query: 2,
+          query: 2 as any,
         },
         {
           context: requestContextMock2,
@@ -164,7 +164,7 @@ describe('load/prime', () => {
       }),
       loader.load({
         id: null,
-        query: 2,
+        query: 2 as any,
       }),
     ]);
 
@@ -353,7 +353,7 @@ describe('event loaded', () => {
           query: 1,
         },
         {
-          result: null,
+          result: null as any,
           type: 'raw',
         },
         {

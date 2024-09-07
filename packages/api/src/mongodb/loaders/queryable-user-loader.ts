@@ -8,12 +8,7 @@ import { LoaderEvents } from '../loaders';
 import { mapQueryAggregateResult } from '../query/map-query-aggregate-result';
 import { MergedQueryDeep, mergeQueries } from '../query/merge-queries';
 import { mergedQueryToPipeline } from '../query/merged-query-to-pipeline';
-import {
-  MongoQueryFn,
-  PartialQueryResultDeep,
-  QueryDeep,
-  QueryPickerDeep,
-} from '../query/query';
+import { MongoQueryFn, PartialQueryResultDeep, QueryDeep } from '../query/query';
 
 import { QueryableUser, queryableUserDescription } from '../descriptions/user';
 
@@ -116,7 +111,7 @@ export class QueryableUserLoader {
   }
 
   load<
-    V extends QueryPickerDeep<Infer<typeof QueryableUser>>,
+    V extends QueryDeep<Infer<typeof QueryableUser>>,
     T extends 'any' | 'raw' | 'validated' = 'any',
   >(
     key: Parameters<typeof this.loader.load<V, T>>[0],

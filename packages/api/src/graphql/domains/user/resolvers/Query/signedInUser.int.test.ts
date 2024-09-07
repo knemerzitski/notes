@@ -19,7 +19,6 @@ import { fakeUserPopulateQueue } from '../../../../../__test__/helpers/mongodb/p
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { SignedInUser } from '../../../types.generated';
-import { logAll } from '../../../../../__test__/helpers/log-all';
 
 const QUERY = `#graphql
 query  {
@@ -73,8 +72,6 @@ it('returns authenticated user', async () => {
   const response = await executeOperation({ user });
 
   const data = expectGraphQLResponseData(response);
-
-  logAll(data);
 
   expect(data).toEqual({
     signedInUser: {

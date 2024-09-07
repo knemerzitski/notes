@@ -1,8 +1,5 @@
 import { ObjectId } from 'mongodb';
-import {
-  sessionDefaultValues,
-  DBSessionSchema,
-} from '../../../../mongodb/schema/session';
+import { DBSessionSchema, SessionSchema } from '../../../../mongodb/schema/session';
 import { MongoPartialDeep } from '../../../../mongodb/types';
 import { faker } from '@faker-js/faker';
 import { populateQueue } from './populate-queue';
@@ -13,13 +10,12 @@ export interface FakeSessionOptions {
 }
 
 export function fakeSession(options?: FakeSessionOptions): DBSessionSchema {
-  return {
+  return SessionSchema.create({
     _id: new ObjectId(),
-    cookieId: sessionDefaultValues.cookieId(),
     expireAt: faker.date.soon({ days: 7 }),
     userId: new ObjectId(),
     ...options?.override,
-  };
+  });
 }
 
 export const fakeSessionPopulateQueue: typeof fakeSession = (options) => {

@@ -1,6 +1,9 @@
 import { ObjectId } from 'mongodb';
+import { memoize1 } from '~utils/memoize1';
 
 import { sortObject } from '~utils/object/sort-object';
+
+export const memoizedGetEqualObjectString = memoize1(getEqualObjectString);
 
 export function getEqualObjectString(obj: unknown) {
   return JSON.stringify(

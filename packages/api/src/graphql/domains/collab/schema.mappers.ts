@@ -11,20 +11,20 @@ import { PreFetchedArrayGetItemFn } from '../../utils/pre-execute';
 
 export interface CollabTextMapper {
   readonly id: ResolverTypeWrapper<string>;
-  readonly query: MongoQueryFn<QueryableCollabText>;
+  readonly query: MongoQueryFn<typeof QueryableCollabText>;
 }
 
 export interface CollabTextRecordMapper {
   readonly parentId: ResolverTypeWrapper<string>;
-  readonly query: MongoQueryFn<QueryableRevisionRecord>;
+  readonly query: MongoQueryFn<typeof QueryableRevisionRecord>;
 }
 
 export interface RevisionChangesetMapper {
-  readonly query: MongoQueryFn<RevisionChangesetSchema>;
+  readonly query: MongoQueryFn<typeof RevisionChangesetSchema>;
 }
 
 export interface CollabTextSelectionRangeMapper {
-  readonly query: MongoQueryFn<SelectionRangeSchema>;
+  readonly query: MongoQueryFn<typeof SelectionRangeSchema>;
 }
 
 export interface CollabTextRecordConnectionMapper {
@@ -42,10 +42,4 @@ export interface CollabTextRecordConnectionMapper {
 export interface CollabTextRecordEdgeMapper {
   readonly node: CollabTextRecordMapper;
   readonly cursor: ResolversTypes['Cursor'];
-}
-
-export interface CollabTextPatchMapper {
-  readonly id: ResolverTypeWrapper<string>;
-  readonly isExistingRecord: ResolverTypeWrapper<boolean>;
-  readonly newRecord: ResolverTypeWrapper<CollabTextRecordMapper>;
 }

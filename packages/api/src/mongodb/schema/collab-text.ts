@@ -65,4 +65,3 @@ export const CollabTextSchema = object({
 });
 
 export type CollabTextSchema = Infer<typeof CollabTextSchema>;
-

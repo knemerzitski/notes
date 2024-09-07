@@ -10,7 +10,7 @@ import { LoaderEvents } from '../loaders';
 import { mapQueryAggregateResult } from '../query/map-query-aggregate-result';
 import { MergedQueryDeep, mergeQueries } from '../query/merge-queries';
 import { mergedQueryToPipeline } from '../query/merged-query-to-pipeline';
-import { MongoQueryFn, PartialQueryResultDeep, QueryPickerDeep } from '../query/query';
+import { MongoQueryFn, PartialQueryResultDeep, QueryDeep } from '../query/query';
 import { QueryableNote, queryableNoteDescription } from '../descriptions/note';
 
 import {
@@ -106,7 +106,7 @@ export class QueryableNoteLoader {
   }
 
   load<
-    V extends QueryPickerDeep<Infer<typeof QueryableNote>>,
+    V extends QueryDeep<Infer<typeof QueryableNote>>,
     T extends 'any' | 'raw' | 'validated' = 'any',
   >(
     key: Parameters<typeof this.loader.load<V, T>>[0],

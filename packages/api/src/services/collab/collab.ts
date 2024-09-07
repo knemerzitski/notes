@@ -4,11 +4,13 @@ import {
   SelectionRangeSchema,
   CollabTextSchema,
 } from '../../mongodb/schema/collab-text';
-import { QueryableRevisionRecord } from '../../mongodb/descriptions/revision-record';
 import { QueryableUserLoader } from '../../mongodb/loaders/queryable-user-loader';
-import { ObjectQueryDeep, QueryResultDeep } from '../../mongodb/query/query';
+import { StrictMongoQueryFn } from '../../mongodb/query/query';
 import { isQueryOnlyId } from '../../mongodb/query/utils/is-query-only-id';
+import { InferRaw } from 'superstruct';
+import { StructQuery } from '../../mongodb/query/struct-query';
 import { QueryableCollabText } from '../../mongodb/descriptions/collab-text';
+import { QueryableRevisionRecord } from '../../mongodb/descriptions/revision-record';
 
 interface CreateCollabTextParams {
   creatorUserId: RevisionRecordSchema['creatorUserId'];
@@ -23,8 +25,11 @@ export function createCollabText({
   initialText,
   creatorUserId,
   afterSelection,
-}: CreateCollabTextParams): CollabTextSchema & {
-  records: [RevisionRecordSchema, ...RevisionRecordSchema[]];
+}: CreateCollabTextParams): InferRaw<typeof CollabTextSchema> & {
+  records: [
+    InferRaw<typeof CollabTextSchema>['records'][0],
+    ...InferRaw<typeof CollabTextSchema>['records'],
+  ];
 } {
   const changeset = Changeset.fromInsertion(initialText).serialize();
   return {
@@ -55,72 +60,72 @@ export function createCollabText({
 }
 
 export interface QueryWithCollabTextSchemaParams {
-  query: ObjectQueryDeep<QueryableCollabText>;
-  collabText: CollabTextSchema;
+  collabText: InferRaw<typeof CollabTextSchema>;
   userLoader: QueryableUserLoader;
 }
 
-export async function queryWithCollabTextSchema({
-  query,
+export function queryWithCollabTextSchema({
   collabText,
   userLoader,
-}: QueryWithCollabTextSchemaParams): Promise<QueryResultDeep<QueryableCollabText>> {
-  const queryRecords = query.records;
-  if (!queryRecords) {
-    return collabText;
-  }
+}: QueryWithCollabTextSchemaParams): StrictMongoQueryFn<typeof QueryableCollabText> {
+  return StructQuery.get(QueryableCollabText).createStrictQueryFnFromRaw(
+    async (query) => {
+      const queryRecords = query.records;
+      if (!queryRecords) {
+        return collabText;
+      }
 
-  return {
-    ...collabText,
-    records: await Promise.all(
-      collabText.records.map((record) =>
-        queryWithRevisionRecordSchema({
-          query: queryRecords,
-          record,
-          userLoader,
-        })
-      )
-    ),
-  };
+      return {
+        ...collabText,
+        records: await Promise.all(
+          collabText.records.map((record) =>
+            queryWithRevisionRecordSchema({
+              record,
+              userLoader,
+            })(queryRecords)
+          )
+        ),
+      };
+    }
+  );
 }
 
 export interface QueryWithRevisionRecordSchemaParams {
-  query: ObjectQueryDeep<QueryableRevisionRecord>;
-  record: RevisionRecordSchema;
+  record: InferRaw<typeof RevisionRecordSchema>;
   userLoader: QueryableUserLoader;
 }
 
-export async function queryWithRevisionRecordSchema({
-  query,
+export function queryWithRevisionRecordSchema({
   record,
   userLoader,
-}: QueryWithRevisionRecordSchemaParams): Promise<
-  QueryResultDeep<QueryableRevisionRecord>
+}: QueryWithRevisionRecordSchemaParams): StrictMongoQueryFn<
+  typeof QueryableRevisionRecord
 > {
-  const queryCreatorUser = query.creatorUser;
-  if (!queryCreatorUser) {
-    return record;
-  }
+  return StructQuery.get(QueryableRevisionRecord).createStrictQueryFnFromRaw(
+    async (query) => {
+      const queryCreatorUser = query.creatorUser;
+      if (!queryCreatorUser) {
+        return record;
+      }
 
-  if (isQueryOnlyId(queryCreatorUser)) {
-    return {
-      ...record,
-      creatorUser: { _id: record.creatorUserId },
-    };
-  }
+      if (isQueryOnlyId(queryCreatorUser)) {
+        return {
+          ...record,
+          creatorUser: { _id: record.creatorUserId },
+        };
+      }
 
-  const creatorUser = await userLoader.load({
-    id: {
-      userId: record.creatorUserId,
-    },
-    query: queryCreatorUser,
-  });
-  if (!creatorUser) {
-    return record;
-  }
+      const creatorUser = await userLoader.load({
+        id: {
+          userId: record.creatorUserId,
+        },
+        query: queryCreatorUser,
+      });
 
-  return {
-    ...record,
-    creatorUser,
-  };
+      return {
+        ...record,
+        creatorUser,
+      };
+    }
+  );
 }

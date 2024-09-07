@@ -4,7 +4,7 @@
   "private": "true",
   "type": "module",
   "scripts": {
-    "test:int": "vitest -c ./vitest.config.integration.ts",
+    "test:int": "vitest run -c ./vitest.config.integration.ts",
     "test:int:watch": "vitest watch -c ./vitest.config.integration.ts",
     "test": "npm run test:int",
     "prettify": "prettier --write --ignore-unknown src",

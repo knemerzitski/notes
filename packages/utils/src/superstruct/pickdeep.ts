@@ -4,6 +4,7 @@ import { isObjectLike } from '../type-guards/is-object-like';
 import { PickerDeep, PickDeep, PickValue } from '../types';
 
 /**
+ * TODO test if can pick property from infer or inferraw?
  * Recursive version of pick using a picker object.
  *
  * Curried function order:
@@ -11,11 +12,11 @@ import { PickerDeep, PickDeep, PickValue } from '../types';
  * - Type of values that can be picked \<P\>()
  * - Picker object ({...picker})
  */
-export function pickdeep<T, S>(struct: Struct<T, S>, options?: PickDeepOptions) {
+export function pickdeep<T, S, R>(struct: Struct<T, S, R>, options?: PickDeepOptions) {
   function curryPrimitive<P>() {
-    function curryPick<V extends PickerDeep<T & S, P>>(
+    function curryPick<V extends PickerDeep<T & S & R, P>>(
       pick: V
-    ): Struct<PickDeep<T, V, P>, PickDeep<S, V, P>> {
+    ): Struct<PickDeep<T, V, P>, PickDeep<S, V, P>, PickDeep<R, V, P>> {
       return _pickdeep(struct, pick, options);
     }
     return curryPick;
@@ -34,8 +35,8 @@ interface PickDeepOptions {
 /**
  * Without typescript safety and non-curry.
  */
-function _pickdeep<T, S>(
-  struct: Struct<T, S>,
+function _pickdeep<T, S, R>(
+  struct: Struct<T, S, R>,
   pick: PickValue | Record<string, unknown>,
   options?: PickDeepOptions
 ): any {

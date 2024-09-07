@@ -5,6 +5,7 @@ import { mockResolver } from '../../../../__test__/helpers/graphql/mock-resolver
 import { CollabText } from './CollabText';
 import { Changeset } from '~collab/changeset/changeset';
 import { maybeCallFn } from '~utils/maybe-call-fn';
+import { wrapOnlyValidatedQueryFn } from '../../../../mongodb/query/query';
 
 describe('textAtRevision', () => {
   const textAtRevision = mockResolver(CollabText.textAtRevision!);
@@ -39,13 +40,13 @@ describe('textAtRevision', () => {
           textAtRevision(
             {
               id: 'random',
-              query: () => ({
+              query: wrapOnlyValidatedQueryFn(() => ({
                 tailText: {
                   changeset: Changeset.fromInsertion('a'),
                   revision: 4,
                 },
                 records: [],
-              }),
+              })),
             },
             { revision: 4 }
           )
@@ -64,7 +65,7 @@ describe('textAtRevision', () => {
           textAtRevision(
             {
               id: 'random',
-              query: () => ({
+              query: wrapOnlyValidatedQueryFn(() => ({
                 tailText: {
                   changeset: Changeset.fromInsertion('a'),
                   revision: 4,
@@ -75,7 +76,7 @@ describe('textAtRevision', () => {
                     revision: 5,
                   },
                 ],
-              }),
+              })),
             },
             { revision: 5 }
           )
@@ -94,7 +95,7 @@ describe('textAtRevision', () => {
           textAtRevision(
             {
               id: 'random',
-              query: () => ({
+              query: wrapOnlyValidatedQueryFn(() => ({
                 tailText: {
                   changeset: Changeset.fromInsertion('a'),
                   revision: 4,
@@ -109,7 +110,7 @@ describe('textAtRevision', () => {
                     revision: 6,
                   },
                 ],
-              }),
+              })),
             },
             { revision: 6 }
           )
@@ -119,5 +120,35 @@ describe('textAtRevision', () => {
         changeset: 1,
       })
     ).resolves.toStrictEqual({ revision: 6, changeset: Changeset.fromInsertion('abc') });
+  });
+
+  it('returns null for future revision', async () => {
+    await expect(
+      (
+        await maybeCallFn(
+          textAtRevision(
+            {
+              id: 'random',
+              query: wrapOnlyValidatedQueryFn(() => ({
+                tailText: {
+                  changeset: Changeset.fromInsertion('a'),
+                  revision: 4,
+                },
+                records: [
+                  {
+                    changeset: Changeset.parseValue([0, 'b']),
+                    revision: 5,
+                  },
+                ],
+              })),
+            },
+            { revision: 6 }
+          )
+        )
+      )?.query({
+        revision: 1,
+        changeset: 1,
+      })
+    ).resolves.toBeFalsy()
   });
 });

@@ -102,11 +102,8 @@ export type Builtin = Primitive | Function | Date | Error | RegExp;
 
 export type IsAny<Type> = 0 extends 1 & Type ? true : false;
 
-export type IsUnknown<Type> = IsAny<Type> extends true
-  ? false
-  : unknown extends Type
-    ? true
-    : false;
+export type IsUnknown<Type> =
+  IsAny<Type> extends true ? false : unknown extends Type ? true : false;
 
 export type IsTuple<Type> = Type extends readonly unknown[]
   ? unknown[] extends Type
@@ -114,34 +111,35 @@ export type IsTuple<Type> = Type extends readonly unknown[]
     : Type
   : never;
 
-export type PartialDeep<Type, Stop = never> = Type extends Exclude<Builtin | Stop, Error>
-  ? Type
-  : Type extends Map<infer Keys, infer Values>
-    ? Map<PartialDeep<Keys, Stop>, PartialDeep<Values, Stop>>
-    : Type extends ReadonlyMap<infer Keys, infer Values>
-      ? ReadonlyMap<PartialDeep<Keys, Stop>, PartialDeep<Values, Stop>>
-      : Type extends WeakMap<infer Keys, infer Values>
-        ? WeakMap<PartialDeep<Keys, Stop>, PartialDeep<Values, Stop>>
-        : Type extends Set<infer Values>
-          ? Set<PartialDeep<Values, Stop>>
-          : Type extends ReadonlySet<infer Values>
-            ? ReadonlySet<PartialDeep<Values, Stop>>
-            : Type extends WeakSet<infer Values>
-              ? WeakSet<PartialDeep<Values, Stop>>
-              : Type extends readonly (infer Values)[]
-                ? Type extends IsTuple<Type>
-                  ? {
-                      [Key in keyof Type]?: PartialDeep<Type[Key], Stop>;
-                    }
-                  : Type extends Values[]
-                    ? (PartialDeep<Values, Stop> | undefined)[]
-                    : readonly (PartialDeep<Values, Stop> | undefined)[]
-                : Type extends Promise<infer Value>
-                  ? Promise<PartialDeep<Value, Stop>>
-                  : Type extends object
+export type PartialDeep<Type, Stop = never> =
+  Type extends Exclude<Builtin | Stop, Error>
+    ? Type
+    : Type extends Map<infer Keys, infer Values>
+      ? Map<PartialDeep<Keys, Stop>, PartialDeep<Values, Stop>>
+      : Type extends ReadonlyMap<infer Keys, infer Values>
+        ? ReadonlyMap<PartialDeep<Keys, Stop>, PartialDeep<Values, Stop>>
+        : Type extends WeakMap<infer Keys, infer Values>
+          ? WeakMap<PartialDeep<Keys, Stop>, PartialDeep<Values, Stop>>
+          : Type extends Set<infer Values>
+            ? Set<PartialDeep<Values, Stop>>
+            : Type extends ReadonlySet<infer Values>
+              ? ReadonlySet<PartialDeep<Values, Stop>>
+              : Type extends WeakSet<infer Values>
+                ? WeakSet<PartialDeep<Values, Stop>>
+                : Type extends readonly (infer Values)[]
+                  ? Type extends IsTuple<Type>
                     ? {
                         [Key in keyof Type]?: PartialDeep<Type[Key], Stop>;
                       }
-                    : IsUnknown<Type> extends true
-                      ? unknown
-                      : Partial<Type>;
+                    : Type extends Values[]
+                      ? (PartialDeep<Values, Stop> | undefined)[]
+                      : readonly (PartialDeep<Values, Stop> | undefined)[]
+                  : Type extends Promise<infer Value>
+                    ? Promise<PartialDeep<Value, Stop>>
+                    : Type extends object
+                      ? {
+                          [Key in keyof Type]?: PartialDeep<Type[Key], Stop>;
+                        }
+                      : IsUnknown<Type> extends true
+                        ? unknown
+                        : Partial<Type>;

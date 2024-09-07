@@ -6,13 +6,13 @@ import {
   createGraphQLResolversContext,
 } from '../../../../../__test__/helpers/graphql/graphql-context';
 import { expectGraphQLResponseData } from '../../../../../__test__/helpers/graphql/response';
-import { sessionDefaultValues } from '../../../../../mongodb/schema/session';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { Cookies } from '../../../../../services/http/cookies';
 import {
   SyncSessionCookiesInput,
   SyncSessionCookiesPayload,
 } from '../../../types.generated';
+import { SessionSchema } from '../../../../../mongodb/schema/session';
 
 interface Variables {
   input: SyncSessionCookiesInput;
@@ -51,11 +51,11 @@ async function executeOperation(
 
 it('removes userIds in cookies not known to client', async () => {
   const userId = new ObjectId();
-  const cookieId = sessionDefaultValues.cookieId();
+  const cookieId = SessionSchema.schema.cookieId.create(undefined);
 
   const cookies = new Cookies();
   cookies.setSession(userId, cookieId);
-  cookies.setSession(new ObjectId(), sessionDefaultValues.cookieId());
+  cookies.setSession(new ObjectId(), SessionSchema.schema.cookieId.create(undefined));
 
   const multiValueHeaders: Record<string, (string | number | boolean)[]> = {};
 
@@ -92,7 +92,7 @@ it('removes userIds in cookies not known to client', async () => {
 it('ignores unknown client userIds not in cookies', async () => {
   const userId = new ObjectId();
   const unknownUserId = new ObjectId();
-  const cookieId = sessionDefaultValues.cookieId();
+  const cookieId = SessionSchema.schema.cookieId.create(undefined);
 
   const cookies = new Cookies();
   cookies.setSession(userId, cookieId);

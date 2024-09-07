@@ -3,13 +3,14 @@
 import { describe, it, expect } from 'vitest';
 import { PublicUserProfile } from './PublicUserProfile';
 import { mockResolver } from '../../../../__test__/helpers/graphql/mock-resolver';
+import { wrapOnlyRawQueryFn } from '../../../../mongodb/query/query';
 
 describe('displayName', () => {
   const resolveDisplayName = mockResolver(PublicUserProfile.displayName!);
 
   it('returns undefined without query', async () => {
     const displayName = await resolveDisplayName({
-      query: () => ({}),
+      query: wrapOnlyRawQueryFn(() => ({})),
     });
 
     expect(displayName).toStrictEqual(undefined);
@@ -17,9 +18,9 @@ describe('displayName', () => {
 
   it('returns undefined with empty value', async () => {
     const displayName = await resolveDisplayName({
-      query: () => ({
+      query: wrapOnlyRawQueryFn(() => ({
         displayName: undefined,
-      }),
+      })),
     });
 
     expect(displayName).toBeUndefined();
@@ -27,9 +28,9 @@ describe('displayName', () => {
 
   it('returns provided displayName', async () => {
     const displayName = await resolveDisplayName({
-      query: () => ({
+      query: wrapOnlyRawQueryFn(() => ({
         displayName: 'myname',
-      }),
+      })),
     });
 
     expect(displayName).toStrictEqual('myname');

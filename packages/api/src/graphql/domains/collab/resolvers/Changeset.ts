@@ -19,8 +19,7 @@ export const Changeset = new GraphQLScalarType({
     if (value instanceof ChangesetClass) {
       return value.serialize();
     }
-
-    throw new Error('GraphQL Changeset Scalar serializer expected a `Changeset` object');
+    return ChangesetClass.parseValue(value).serialize();
   },
   parseValue: (value) => {
     if (value instanceof ChangesetClass) {

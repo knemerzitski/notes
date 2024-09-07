@@ -6,7 +6,7 @@ import {
   mongoCollections,
 } from '../../__test__/helpers/mongodb/mongodb';
 import { populateExecuteAll } from '../../__test__/helpers/mongodb/populate/populate-queue';
-import { SessionSchema } from '../../mongodb/schema/session';
+import { DBSessionSchema } from '../../mongodb/schema/session';
 import { fakeSessionPopulateQueue } from '../../__test__/helpers/mongodb/populate/session';
 import { QueryableSessionLoader } from '../../mongodb/loaders/queryable-session-loader';
 import { SessionDuration } from './duration';
@@ -49,7 +49,7 @@ describe('insertNewSession', () => {
 });
 
 describe('existing session', () => {
-  let session: SessionSchema;
+  let session: DBSessionSchema;
 
   beforeEach(async () => {
     session = fakeSessionPopulateQueue();

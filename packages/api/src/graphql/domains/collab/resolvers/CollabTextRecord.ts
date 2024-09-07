@@ -1,6 +1,14 @@
 import { maybeCallFn } from '~utils/maybe-call-fn';
 
 import type { CollabTextRecordResolvers } from '../../types.generated';
+import { createMapQueryFn, MongoQueryFnStruct } from '../../../../mongodb/query/query';
+import {
+  RevisionChangesetSchema,
+  SelectionRangeSchema,
+} from '../../../../mongodb/schema/collab-text';
+import { PublicUserMapper } from '../../user/schema.mappers';
+
+type PublicUser = MongoQueryFnStruct<PublicUserMapper['query']>;
 
 export const CollabTextRecord: CollabTextRecordResolvers = {
   id: async (parent) => {
@@ -18,39 +26,34 @@ export const CollabTextRecord: CollabTextRecordResolvers = {
   },
   afterSelection: (parent) => {
     return {
-      query: async (query) => {
-        return (
-          await parent.query({
-            afterSelection: query,
-          })
-        )?.afterSelection;
-      },
+      query: createMapQueryFn(parent.query)<typeof SelectionRangeSchema>()(
+        (query) => ({ afterSelection: query }),
+        (result) => result.afterSelection
+      ),
     };
   },
   beforeSelection: (parent) => {
     return {
-      query: async (query) => {
-        return (
-          await parent.query({
-            beforeSelection: query,
-          })
-        )?.beforeSelection;
-      },
+      query: createMapQueryFn(parent.query)<typeof SelectionRangeSchema>()(
+        (query) => ({ beforeSelection: query }),
+        (result) => result.beforeSelection
+      ),
     };
   },
   change: (parent) => {
     return {
-      query: (query) => parent.query(query),
+      query: createMapQueryFn(parent.query)<typeof RevisionChangesetSchema>()(
+        (query) => query,
+        (result) => result
+      ),
     };
   },
-  creatorUser: (parent, _arg, _ctx) => {
+  creatorUser: (parent) => {
     return {
-      query: async (query) =>
-        (
-          await parent.query({
-            creatorUser: query,
-          })
-        )?.creatorUser,
+      query: createMapQueryFn(parent.query)<PublicUser>()(
+        (query) => ({ creatorUser: query }),
+        (result) => result.creatorUser
+      ),
     };
   },
   createdAt: async (parent, _arg, _ctx) => {

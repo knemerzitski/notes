@@ -1,85 +1,92 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Changeset } from '~collab/changeset/changeset';
 import type { CollabTextResolvers } from '../../types.generated';
 import {
   applyLimit,
   RelayBoundPagination,
 } from '../../../../mongodb/pagination/relay-array-pagination';
-import { ObjectQueryDeep } from '../../../../mongodb/query/query';
 import { CollabTextRecordMapper } from '../schema.mappers';
-import { QueryableRevisionRecord } from '../../../../mongodb/descriptions/revision-record';
 import { PreFetchedArrayGetItemFn } from '../../../utils/pre-execute';
+import { createMapQueryFn } from '../../../../mongodb/query/query';
+import { RevisionChangesetSchema } from '../../../../mongodb/schema/collab-text';
+import { StructQuery } from '../../../../mongodb/query/struct-query';
+import { QueryableRevisionRecord } from '../../../../mongodb/descriptions/revision-record';
 
 export const CollabText: CollabTextResolvers = {
   headText: (parent) => {
     return {
-      query: async (query) =>
-        (
-          await parent.query({
-            headText: query,
-          })
-        )?.headText,
+      query: createMapQueryFn(parent.query)<typeof RevisionChangesetSchema>()(
+        (query) => ({ headText: query }),
+        (result) => result.headText
+      ),
     };
   },
   tailText: (parent) => {
     return {
-      query: async (query) =>
-        (
-          await parent.query({
-            tailText: query,
-          })
-        )?.tailText,
+      query: createMapQueryFn(parent.query)<typeof RevisionChangesetSchema>()(
+        (query) => ({ tailText: query }),
+        (result) => result.tailText
+      ),
     };
   },
   textAtRevision: (parent, { revision: targetRevision }) => {
     return {
-      query: async ({ revision, changeset }) => {
-        if (!revision && !changeset) return {};
+      query: StructQuery.get(RevisionChangesetSchema).createQueryFnFromValidated(
+        async ({ revision, changeset }) => {
+          if (!revision && !changeset) return {};
 
-        if (!changeset) {
-          return {
-            revision: targetRevision,
-          };
-        }
-
-        if (targetRevision <= 0) {
-          return {
-            revision: 0,
-            changeset: Changeset.EMPTY,
-          };
-        }
-
-        const collabText = await parent.query({
-          tailText: {
-            changeset: 1,
-          },
-          records: {
-            $pagination: {
-              before: targetRevision + 1,
-            },
-            changeset: 1,
-          },
-        });
-        if (collabText?.tailText?.changeset == null || collabText.records == null) {
-          return null;
-        }
-
-        const recordsChangesets = collabText.records.map((rawRecord) => {
-          const serializedChangeset = rawRecord.changeset;
-          if (serializedChangeset == null) {
-            throw new Error('RevisionRecord.changeset is null');
+          if (!changeset) {
+            return {
+              revision: targetRevision,
+            };
           }
 
-          return Changeset.parseValue(serializedChangeset);
-        });
+          if (targetRevision <= 0) {
+            return {
+              revision: 0,
+              changeset: Changeset.EMPTY,
+            };
+          }
 
-        return {
-          revision: targetRevision,
-          changeset: recordsChangesets.reduce(
-            (a, b) => a.compose(b),
-            Changeset.parseValue(collabText.tailText.changeset)
-          ),
-        };
-      },
+          const collabText = await parent.query(
+            {
+              tailText: {
+                revision: 1,
+                changeset: 1,
+              },
+              records: {
+                $pagination: {
+                  before: targetRevision + 1,
+                },
+                revision: 1,
+                changeset: 1,
+              },
+            },
+            'validated'
+          );
+          if (!collabText) return null;
+
+          const lastRecord = collabText.records[collabText.records.length - 1];
+          if (!lastRecord) {
+            if (collabText.tailText.revision !== targetRevision) {
+              return null;
+            }
+            return collabText.tailText;
+          }
+
+          if (lastRecord.revision !== targetRevision) {
+            return null;
+          }
+
+          return {
+            revision: targetRevision,
+            changeset: collabText.records.reduce(
+              (a, b) => a.compose(b.changeset),
+              collabText.tailText.changeset
+            ),
+          };
+        }
+      ),
     };
   },
   recordConnection: (parent, args) => {
@@ -109,16 +116,20 @@ export const CollabText: CollabTextResolvers = {
       index: number,
       updateSize
     ) => {
-      const queryRecord = async (query: ObjectQueryDeep<QueryableRevisionRecord>) => {
-        const collabText = await parent.query({
+      const queryRecord = createMapQueryFn(parent.query)<
+        typeof QueryableRevisionRecord
+      >()(
+        (query) => ({
           records: {
             $pagination: pagination,
             ...query,
           },
-        });
-        updateSize(collabText?.records?.length);
-        return collabText?.records?.[index];
-      };
+        }),
+        (collabText) => {
+          updateSize(collabText.records?.length);
+          return collabText.records?.[index];
+        }
+      );
 
       return {
         parentId: parent.id,
@@ -127,20 +138,18 @@ export const CollabText: CollabTextResolvers = {
     };
 
     async function getHeadAndTailRevision() {
-      const collabText = await parent.query({
-        headText: {
-          revision: 1,
+      const collabText = await parent.query(
+        {
+          headText: {
+            revision: 1,
+          },
+          tailText: {
+            revision: 1,
+          },
         },
-        tailText: {
-          revision: 1,
-        },
-      });
-      if (
-        collabText?.headText?.revision == null ||
-        collabText.tailText?.revision == null
-      ) {
-        return;
-      }
+        'validated'
+      );
+      if (!collabText) return;
 
       return {
         tailRevision: collabText.tailText.revision,

@@ -1,31 +1,35 @@
-import { sessionDefaultValues, SessionSchema } from '../../mongodb/schema/session';
+import { DBSessionSchema, SessionSchema } from '../../mongodb/schema/session';
 import { QueryableSessionLoader } from '../../mongodb/loaders/queryable-session-loader';
 import { Collection, ObjectId } from 'mongodb';
 import { SessionDuration } from './duration';
+import { create } from 'superstruct';
 
 export interface InsertNewSessionParams {
   userId: ObjectId;
   duration: SessionDuration;
-  collection: Collection<SessionSchema>;
+  collection: Collection<DBSessionSchema>;
 }
 
 export async function insertNewSession({
   userId,
   collection,
   duration,
-}: InsertNewSessionParams): Promise<SessionSchema> {
-  const newSession: SessionSchema = {
-    _id: new ObjectId(),
-    userId,
-    expireAt: duration.newDate(),
-    cookieId: sessionDefaultValues.cookieId(),
-  };
+}: InsertNewSessionParams): Promise<DBSessionSchema> {
+  const newSession = create(
+    {
+      _id: new ObjectId(),
+      userId,
+      expireAt: duration.newDate(),
+    },
+    SessionSchema
+  );
+
   await collection.insertOne(newSession);
 
   return newSession;
 }
 
-export type Session = Pick<SessionSchema, '_id' | 'cookieId' | 'expireAt' | 'userId'>;
+export type Session = Pick<DBSessionSchema, '_id' | 'cookieId' | 'expireAt' | 'userId'>;
 
 interface FindByCookieIdParams {
   cookieId: string;
@@ -48,7 +52,7 @@ export async function findByCookieId({
     },
   });
 
-  if (!session?._id || !session.cookieId || !session.expireAt || !session.userId) {
+  if (!session._id || !session.cookieId || !session.expireAt || !session.userId) {
     return null;
   }
 
@@ -63,7 +67,7 @@ export async function findByCookieId({
 export interface UpdateExpireAtParams {
   sessionId: ObjectId;
   expireAt: Date;
-  collection: Collection<SessionSchema>;
+  collection: Collection<DBSessionSchema>;
 }
 
 /**
@@ -88,7 +92,7 @@ export function updateExpireAt({
 
 interface TryRefreshExpireAtParams<T extends Pick<Session, '_id' | 'expireAt'>> {
   session: T;
-  collection: Collection<SessionSchema>;
+  collection: Collection<DBSessionSchema>;
   sessionDuration: SessionDuration;
   /**
    * Primes session in loader

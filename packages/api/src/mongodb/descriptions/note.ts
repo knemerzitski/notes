@@ -1,23 +1,42 @@
 import { CollectionName, MongoDBCollectionsOnlyNames } from '../collections';
 import { DeepAnyDescription } from '../query/description';
-import { UserSchema } from '../schema/user';
-import { NoteSchema } from '../schema/note';
 import { NoteUserSchema } from '../schema/note-user';
 import { collabTextDescription, QueryableCollabText } from './collab-text';
 import { CollabSchema } from '../schema/collab';
+import {
+  array,
+  assign,
+  InferRaw,
+  object,
+  omit,
+  optional,
+  record,
+  string,
+} from 'superstruct';
+import { UserSchema } from '../schema/user';
+import { NoteSchema } from '../schema/note';
 
-export type QueryableNote = Omit<NoteSchema, 'collab' | 'users'> & {
-  collab: QueryableNoteCollab;
-  users?: QueryableNoteUser[];
-};
+export const QueryableNoteUser = assign(
+  NoteUserSchema,
+  object({
+    user: omit(UserSchema, ['notes', 'thirdParty', '_id']),
+  })
+);
 
-export type QueryableNoteUser = NoteUserSchema & {
-  user: Omit<UserSchema, 'notes' | 'thirdParty' | '_id'>;
-};
+export const QueryableNoteCollab = assign(
+  CollabSchema,
+  object({
+    texts: record(string(), QueryableCollabText),
+  })
+);
 
-export type QueryableNoteCollab = Omit<CollabSchema, 'texts'> & {
-  texts: Record<CollabSchema['texts'][0]['k'], QueryableCollabText>;
-};
+export const QueryableNote = assign(
+  NoteSchema,
+  object({
+    collab: optional(QueryableNoteCollab),
+    users: array(QueryableNoteUser),
+  })
+);
 
 export interface QueryableNoteContext {
   collections: Pick<
@@ -27,7 +46,7 @@ export interface QueryableNoteContext {
 }
 
 export const queryableNoteDescription: DeepAnyDescription<
-  QueryableNote,
+  InferRaw<typeof QueryableNote>,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   any,
   QueryableNoteContext

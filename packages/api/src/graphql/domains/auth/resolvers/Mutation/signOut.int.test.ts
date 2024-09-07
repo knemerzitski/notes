@@ -16,8 +16,8 @@ import {
 import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeSessionPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/session';
 import { fakeUserPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/user';
-import { SessionSchema } from '../../../../../mongodb/schema/session';
-import { UserSchema } from '../../../../../mongodb/schema/user';
+import { DBSessionSchema } from '../../../../../mongodb/schema/session';
+import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { Cookies } from '../../../../../services/http/cookies';
 
@@ -43,8 +43,8 @@ let spyDeleteAllSessionsInCookies: MockInstance<
   Promise<void>
 >;
 
-let user: UserSchema;
-let session: SessionSchema;
+let user: DBUserSchema;
+let session: DBSessionSchema;
 
 beforeAll(() => {
   spyDeleteSessionWithCookies = vi.spyOn(serviceAuth, 'deleteSessionWithCookies');

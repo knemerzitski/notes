@@ -16,25 +16,51 @@ import {
   relayArrayPaginationMapAggregateResult,
 } from '../pagination/relay-array-pagination';
 import { DeepAnyDescription } from '../query/description';
-import { UserSchema } from '../schema/user';
+import { NoteCategorySchema, UserSchema } from '../schema/user';
 import { QueryableNote, queryableNoteDescription } from './note';
+import {
+  array,
+  assign,
+  InferRaw,
+  instance,
+  object,
+  optional,
+  record,
+  string,
+} from 'superstruct';
 
-export type QueryableUser = Omit<UserSchema, 'notes'> & {
-  notes: Omit<UserSchema['notes'], 'category'> & {
-    category: {
-      [Key in string]?: Omit<UserSchema['notes']['category'][Key], 'order'> & {
-        order: {
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
-          items: QueryableNote[] & {
-            $pagination?: RelayPagination<ObjectId>;
-          };
-          firstId: ObjectId;
-          lastId: ObjectId;
-        };
-      };
-    };
-  };
-};
+const typeObjectId = instance(ObjectId);
+
+export const QueryableUser = assign(
+  UserSchema,
+  object({
+    notes: assign(
+      UserSchema.schema.notes,
+      object({
+        category: record(
+          string(),
+          assign(
+            NoteCategorySchema,
+            object({
+              order: object({
+                items: array(
+                  assign(
+                    QueryableNote,
+                    object({
+                      $pagination: optional(RelayPagination(typeObjectId)),
+                    })
+                  )
+                ),
+                firstId: typeObjectId,
+                lastId: typeObjectId,
+              }),
+            })
+          )
+        ),
+      })
+    ),
+  })
+);
 
 export interface QueryableUserContext {
   collections: Pick<
@@ -44,7 +70,7 @@ export interface QueryableUserContext {
 }
 
 export const queryableUserDescription: DeepAnyDescription<
-  QueryableUser,
+  InferRaw<typeof QueryableUser>,
   unknown,
   QueryableUserContext
 > = {
@@ -236,7 +262,8 @@ export const queryableUserDescription: DeepAnyDescription<
               items: relayArrayPaginationMapAggregateResult(
                 query.items?.$pagination,
                 mergedQuery.items?.$args?.map((arg) => arg.$pagination).filter(isDefined),
-                result.items
+                result.items,
+                typeObjectId
               ),
             };
           },

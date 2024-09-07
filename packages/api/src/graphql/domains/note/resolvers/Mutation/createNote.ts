@@ -1,4 +1,3 @@
-import { assertAuthenticated } from '../../../base/directives/auth';
 import {
   NoteCategory,
   ResolversTypes,
@@ -14,6 +13,7 @@ import {
 import { groupByFirst } from '~utils/array/group-by';
 import mapObject from 'map-obj';
 import { insertNewNote, queryWithNoteSchema } from '../../../../../services/note/note';
+import { assertAuthenticated } from '../../../../../services/auth/auth';
 
 const _createNote: NonNullable<MutationResolvers['createNote']> = async (
   _parent,
@@ -43,12 +43,10 @@ const _createNote: NonNullable<MutationResolvers['createNote']> = async (
   });
 
   const noteMapper: NoteMapper = {
-    query: (query) =>
-      queryWithNoteSchema({
-        query,
-        note,
-        userLoader: mongoDB.loaders.user,
-      }),
+    query: queryWithNoteSchema({
+      note,
+      userLoader: mongoDB.loaders.user,
+    }),
   };
 
   const payload: ResolversTypes['SignedInUserMutations'] = {

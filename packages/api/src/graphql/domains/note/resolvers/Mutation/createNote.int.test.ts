@@ -38,8 +38,8 @@ import { fakeNotePopulateQueue } from '../../../../../__test__/helpers/mongodb/p
 import { userAddNote } from '../../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/user';
-import { NoteSchema } from '../../../../../mongodb/schema/note';
-import { UserSchema } from '../../../../../mongodb/schema/user';
+import { DBNoteSchema } from '../../../../../mongodb/schema/note';
+import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import {
   CreateNoteInput,
   CreateNotePayload,
@@ -174,7 +174,7 @@ async function executeOperation(
   );
 }
 
-let user: UserSchema;
+let user: DBUserSchema;
 
 beforeEach(async () => {
   faker.seed(778);
@@ -749,7 +749,7 @@ describe('no existing notes', () => {
 });
 
 describe('have existing note', () => {
-  let existingNote: NoteSchema;
+  let existingNote: DBNoteSchema;
   beforeEach(async () => {
     existingNote = fakeNotePopulateQueue(user);
 

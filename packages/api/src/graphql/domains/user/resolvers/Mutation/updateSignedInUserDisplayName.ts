@@ -1,5 +1,6 @@
+import { assertAuthenticated } from '../../../../../services/auth/auth';
 import { updateDisplayName } from '../../../../../services/user/user';
-import { assertAuthenticated } from '../../../base/directives/auth';
+import { primeNewDisplayName } from '../../../../../services/user/user-loader';
 import { publishSignedInUserMutation } from '../Subscription/signedInUserEvents';
 import type { MutationResolvers, ResolversTypes } from './../../../types.generated';
 
@@ -9,33 +10,29 @@ export const updateSignedInUserDisplayName: NonNullable<
   const { auth, mongoDB } = ctx;
   assertAuthenticated(auth);
 
-  const {
-    input: { displayName },
-  } = arg;
+  const { input } = arg;
 
   const currentUserId = auth.session.userId;
 
   await updateDisplayName({
     userId: currentUserId,
-    displayName,
+    displayName: input.displayName,
     collection: mongoDB.collections.users,
-    prime: {
-      loader: mongoDB.loaders.user,
-    },
+  });
+  primeNewDisplayName({
+    userId: currentUserId,
+    newDisplayName: input.displayName,
+    loader: mongoDB.loaders.user,
   });
 
   // Prepare payload
   const payload: ResolversTypes['SignedInUserMutations'] = {
     __typename: 'UpdateSignedInUserDisplayNamePayload',
-    displayName,
+    displayName: input.displayName,
     signedInUser: {
-      query: (query) =>
-        mongoDB.loaders.user.load({
-          id: {
-            userId: currentUserId,
-          },
-          query,
-        }),
+      query: mongoDB.loaders.user.createQueryFn({
+        userId: currentUserId,
+      }),
     },
   };
 

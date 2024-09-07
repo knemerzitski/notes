@@ -12,7 +12,8 @@ import {
 import { DeepAnyDescription } from '../query/description';
 import { CollabTextSchema, RevisionRecordSchema } from '../schema/collab-text';
 import { QueryableRevisionRecord } from './revision-record';
-import { QueryResultDeep } from '../query/query';
+import { PartialQueryResultDeep } from '../query/query';
+import { array, assign, InferRaw, number, object, omit, optional } from 'superstruct';
 
 type RecordsPaginationOperationOptions = Omit<
   RelayArrayPaginationInput<number>,
@@ -49,20 +50,30 @@ function toCursor(record?: Partial<Pick<RevisionRecordSchema, 'revision'>>) {
   return revision;
 }
 
-export type QueryableCollabText = Omit<CollabTextSchema, 'records'> & {
-  records: (QueryableRevisionRecord & {
-    $pagination?: RelayPagination<number>;
-  })[];
-};
+export const QueryableCollabText = assign(
+  omit(CollabTextSchema, ['records']),
+  object({
+    records: array(
+      assign(
+        QueryableRevisionRecord,
+        object({
+          $pagination: optional(RelayPagination(number())),
+        })
+      )
+    ),
+  })
+);
 
 export interface QueryableCollabTextContext {
   collections: Pick<MongoDBCollectionsOnlyNames, CollectionName.USERS>;
 }
 
 export const collabTextDescription: DeepAnyDescription<
-  QueryableCollabText,
+  InferRaw<typeof QueryableCollabText>,
   {
-    records: RecordsPaginationResult<QueryResultDeep<QueryableRevisionRecord>>;
+    records: RecordsPaginationResult<
+      PartialQueryResultDeep<InferRaw<typeof QueryableRevisionRecord>>
+    >;
   },
   QueryableCollabTextContext
 > = {
