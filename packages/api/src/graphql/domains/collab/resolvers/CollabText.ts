@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Changeset } from '~collab/changeset/changeset';
 import type { CollabTextResolvers } from '../../types.generated';
 import {

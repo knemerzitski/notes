@@ -1,5 +1,4 @@
 import { Collection, MongoClient, ObjectId, UpdateFilter } from 'mongodb';
-import { NoteSchema } from '../../mongodb/schema/note';
 import { NoteUserSchema } from '../../mongodb/schema/note-user';
 import { createCollabText, queryWithCollabTextSchema } from '../collab/collab';
 import { CollectionName, MongoDBCollections } from '../../mongodb/collections';
@@ -12,6 +11,15 @@ import { CollabSchema } from '../../mongodb/schema/collab';
 import { getNotesArrayPath } from '../user/user';
 import { objectIdToStr } from '../../mongodb/utils/objectid';
 import { MongoDBLoaders } from '../../mongodb/loaders';
+import {
+  NoteNotFoundServiceError,
+  NoteUserNotFoundServiceError,
+  NoteUserUnauthorizedServiceError,
+} from './errors';
+import { StructQuery } from '../../mongodb/query/struct-query';
+import { InferRaw } from 'superstruct';
+import { DBNoteSchema } from '../../mongodb/schema/note';
+import { MongoReadonlyDeep } from '../../mongodb/types';
 
 interface InsertNewNoteParams {
   mongoDB: {
@@ -44,7 +52,7 @@ export async function insertNewNote({
     ...(preferences && { preferences }),
   };
 
-  const note: NoteSchema = {
+  const note: DBNoteSchema = {
     _id: new ObjectId(),
     users: [noteUser],
     ...(collabTexts && {
@@ -90,7 +98,7 @@ interface DeleteNoteCompletelyParams {
     collections: Pick<MongoDBCollections, CollectionName.NOTES | CollectionName.USERS>;
   };
   noteId: ObjectId;
-  allNoteUsers: Pick<NoteUserSchema, '_id' | 'categoryName'>[];
+  allNoteUsers: MongoReadonlyDeep<{ _id: ObjectId; categoryName: string }[]>;
 }
 
 export function deleteNoteCompletely({
@@ -130,16 +138,20 @@ interface DeleteNoteFromUserParams {
     client: MongoClient;
     collections: Pick<MongoDBCollections, CollectionName.NOTES | CollectionName.USERS>;
   };
+  /**
+   * Affected note
+   */
   noteId: ObjectId;
-  noteCategoryName: string;
-  userId: ObjectId;
+  /**
+   * User whose note is deleted
+   */
+  noteUser: MongoReadonlyDeep<{ _id: ObjectId; categoryName: string }>;
 }
 
 export function deleteNoteFromUser({
   mongoDB,
   noteId,
-  userId,
-  noteCategoryName,
+  noteUser,
 }: DeleteNoteFromUserParams) {
   return mongoDB.client.withSession((session) =>
     session.withTransaction(async (session) => {
@@ -150,7 +162,7 @@ export function deleteNoteFromUser({
         {
           $pull: {
             users: {
-              _id: userId,
+              _id: noteUser._id,
             },
           },
         },
@@ -160,11 +172,11 @@ export function deleteNoteFromUser({
       );
       await mongoDB.collections.users.updateOne(
         {
-          _id: userId,
+          _id: noteUser._id,
         },
         {
           $pull: {
-            [getNotesArrayPath(noteCategoryName)]: noteId,
+            [getNotesArrayPath(noteUser.categoryName)]: noteId,
           },
         },
         { session }
@@ -173,6 +185,94 @@ export function deleteNoteFromUser({
   );
 }
 
+interface DeleteNoteParams {
+  mongoDB: {
+    client: MongoClient;
+    collections: Pick<MongoDBCollections, CollectionName.NOTES | CollectionName.USERS>;
+    loaders: Pick<MongoDBLoaders, 'note'>;
+  };
+  /**
+   * Who is deleting the note
+   */
+  scopeUserId: ObjectId;
+  /**
+   * User whose note is deleted
+   */
+  targetUserId: ObjectId;
+  /**
+   * Note to be deleted
+   */
+  noteId: ObjectId;
+}
+
+export async function deleteNoteWithScope({
+  mongoDB,
+  scopeUserId,
+  targetUserId,
+  noteId,
+}: DeleteNoteParams) {
+  const note = await mongoDB.loaders.note.load(
+    {
+      id: {
+        userId: scopeUserId,
+        noteId,
+      },
+      query: {
+        _id: 1,
+        users: {
+          _id: 1,
+          createdAt: 1,
+          categoryName: 1,
+        },
+      },
+    },
+    {
+      resultType: 'validated',
+    }
+  );
+
+  const scopeNoteUser = findNoteUser(scopeUserId, note);
+  if (!scopeNoteUser) {
+    throw new NoteNotFoundServiceError(noteId);
+  }
+  const targetNoteUser = findNoteUser(targetUserId, note);
+  if (!targetNoteUser) {
+    throw new NoteUserNotFoundServiceError(targetUserId, noteId);
+  }
+
+  if (!isNoteUserOlder(scopeNoteUser, targetNoteUser)) {
+    throw new NoteUserUnauthorizedServiceError(
+      scopeNoteUser._id,
+      targetNoteUser._id,
+      'Delete note for user'
+    );
+  }
+
+  const isTargetUserOldest = isNoteUserOldest(targetNoteUser, note);
+  if (isTargetUserOldest) {
+    // Target user is oldest: delete note completely
+    await deleteNoteCompletely({
+      mongoDB,
+      allNoteUsers: note.users,
+      noteId,
+    });
+    return {
+      type: 'deleted_completely' as const,
+      note,
+    };
+  } else {
+    // Target user is not oldest: unlink note for self
+    await deleteNoteFromUser({
+      mongoDB,
+      noteId,
+      noteUser: targetNoteUser,
+    });
+    return {
+      type: 'unlinked_target_user' as const,
+      note,
+    };
+  }
+}
 interface UpdateMoveNoteParams {
   mongoDB: {
     client: MongoClient;
@@ -916,16 +1016,15 @@ export async function updateNoteBackgroundColor({
 }
 
 interface QueryWithNoteSchemaParams {
-  query: ObjectQueryDeep<QueryableNote>;
-  note: NoteSchema;
+  note: DBNoteSchema;
   userLoader: QueryableUserLoader;
 }
 
-export async function queryWithNoteSchema({
-  query,
+export function queryWithNoteSchema({
   note,
   userLoader,
-}: QueryWithNoteSchemaParams): Promise<QueryResultDeep<QueryableNote>> {
+}: QueryWithNoteSchemaParams): StrictMongoQueryFn<typeof QueryableNote> {
+  return StructQuery.get(QueryableNote).createStrictQueryFnFromRaw(async (query) => {
   const queryCollab = query.collab;
   const { collab, ...noteNoCollab } = note;
   if (!queryCollab || !collab) {
@@ -935,24 +1034,24 @@ export async function queryWithNoteSchema({
   return {
     ...noteNoCollab,
     collab: await queryWithNoteCollabSchema({
-      query: queryCollab,
       collab,
       userLoader,
-    }),
+      })(queryCollab),
   };
+  });
 }
 
 interface QueryWithNoteCollabSchemaParams {
-  query: ObjectQueryDeep<QueryableNoteCollab>;
-  collab: CollabSchema;
+  collab: InferRaw<typeof CollabSchema>;
   userLoader: QueryableUserLoader;
 }
 
-export async function queryWithNoteCollabSchema({
-  query,
+export function queryWithNoteCollabSchema({
   collab,
   userLoader,
-}: QueryWithNoteCollabSchemaParams): Promise<QueryResultDeep<QueryableNoteCollab>> {
+}: QueryWithNoteCollabSchemaParams): StrictMongoQueryFn<typeof QueryableNoteCollab> {
+  return StructQuery.get(QueryableNoteCollab).createStrictQueryFnFromRaw(
+    async (query) => {
   const queryTexts = query.texts;
   const { texts, ...collabNoTexts } = collab;
   if (!queryTexts) {
@@ -971,35 +1070,60 @@ export async function queryWithNoteCollabSchema({
             return [
               k,
               await queryWithCollabTextSchema({
-                query: queryText,
                 collabText: v,
                 userLoader,
-              }),
+                  })(queryText),
             ];
           })
         )
       ).filter(isDefined)
     ),
   };
+    }
+  );
 }
 
-export function findNoteUser(
+export function findNoteUser<T extends MongoReadonlyDeep<{ users: { _id: ObjectId }[] }>>(
   findUserId: ObjectId,
-  note: Maybe<QueryResultDeep<QueryableNote>>
-) {
-  return note?.users?.find(({ _id: userId }) => findUserId.equals(userId));
+  note: T
+): T['users'][0] | undefined {
+  return note.users.find(({ _id: userId }) => findUserId.equals(userId));
 }
 
-export function findNoteUserInSchema(userId: ObjectId, note: Maybe<NoteSchema>) {
+export function findOldestNoteUser<
+  T extends MongoReadonlyDeep<{ users: { createdAt: Date }[] }>,
+>(note: T): T['users'][0] | undefined {
+  return note.users.reduce((oldest, user) =>
+    oldest.createdAt < user.createdAt ? oldest : user
+  );
+}
+export function isNoteUserOlder<
+  T extends MongoReadonlyDeep<{ _id: ObjectId; createdAt: Date }>,
+>(olderNoteUser: T, targetNoteUser: T): boolean {
+  if (olderNoteUser._id.equals(targetNoteUser._id)) {
+    // Self is always older
+    return true;
+  }
+
+  return olderNoteUser.createdAt < targetNoteUser.createdAt;
+}
+
+export function isNoteUserOldest<
+  T extends MongoReadonlyDeep<{ users: { _id: ObjectId; createdAt: Date }[] }>,
+>(noteUser: T['users'][0], note: T) {
+  const oldestNoteUser = findOldestNoteUser(note);
+  if (!oldestNoteUser) return false;
+  return oldestNoteUser._id.equals(noteUser._id);
+}
+
+export function getNoteUsersIds<
+  T extends MongoReadonlyDeep<{ users: readonly { _id: ObjectId }[] }>,
+>(note: T): ObjectId[] {
+  return note.users.map((noteUser) => noteUser._id);
+}
+
+export function findNoteUserInSchema(userId: ObjectId, note: Maybe<DBNoteSchema>) {
   return note?.users.find((noteUser) => noteUser._id.equals(userId));
-}
-
-export function findOldestNoteUser(note: Maybe<QueryResultDeep<QueryableNote>>) {
-  return note?.users?.reduce((oldest, user) => {
-    if (!user.createdAt) return oldest;
-    if (!oldest.createdAt) return user;
-    return oldest.createdAt < user.createdAt ? oldest : user;
-  });
 }
 
 export function findNoteTextFieldInSchema(note: Maybe<NoteSchema>, fieldName: string) {

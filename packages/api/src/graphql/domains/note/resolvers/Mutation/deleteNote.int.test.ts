@@ -27,25 +27,23 @@ import { fakeNotePopulateQueue } from '../../../../../__test__/helpers/mongodb/p
 import { userAddNote } from '../../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/user';
-import { NoteSchema } from '../../../../../mongodb/schema/note';
-import { UserSchema } from '../../../../../mongodb/schema/user';
+import { DBNoteSchema } from '../../../../../mongodb/schema/note';
+import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import {
   DeleteNoteInput,
   DeleteNotePayload,
   NoteCategory,
-  NoteDeletionType,
 } from '../../../types.generated';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { UserNoteLink_id } from '../../../../../services/note/note';
 import { signedInUserTopic } from '../../../user/resolvers/Subscription/signedInUserEvents';
-import { logAll } from '../../../../../__test__/helpers/log-all';
 
 const MUTATION = `#graphql
   mutation($input: DeleteNoteInput!){
     deleteNote(input: $input) {
       noteId
       userNoteLinkId
-      deletionType
+      publicUserNoteLinkId
     }
   }
 `;
@@ -58,19 +56,19 @@ const SUBSCRIPTION = `#graphql
         ... on DeleteNotePayload {
           noteId
           userNoteLinkId
-          deletionType
+          publicUserNoteLinkId
         }
       }
     }
   }
 `;
 
-let userOldest: UserSchema;
-let userNewer: UserSchema;
-let userNoAccess: UserSchema;
+let userOldest: DBUserSchema;
+let userNewer: DBUserSchema;
+let userNoAccess: DBUserSchema;
 
-let note: NoteSchema;
-let noteSecond: NoteSchema;
+let note: DBNoteSchema;
+let noteSecond: DBNoteSchema;
 
 beforeEach(async () => {
   faker.seed(778);
@@ -142,7 +140,7 @@ it('oldest user deletes note for everyone', async () => {
     deleteNote: {
       noteId: objectIdToStr(note._id),
       userNoteLinkId: UserNoteLink_id(note._id, userOldest._id),
-      deletionType: NoteDeletionType.DELETE,
+      publicUserNoteLinkId: UserNoteLink_id(note._id, userOldest._id),
     },
   });
 
@@ -198,9 +196,9 @@ it('newer user deletes note only for self', async () => {
   // Response
   expect(data).toEqual({
     deleteNote: {
-      noteId: objectIdToStr(note._id),
+      noteId: null,
       userNoteLinkId: UserNoteLink_id(note._id, userNewer._id),
-      deletionType: NoteDeletionType.UNLINK,
+      publicUserNoteLinkId: UserNoteLink_id(note._id, userNewer._id),
     },
   });
 
@@ -240,11 +238,18 @@ it('newer user deletes note only for self', async () => {
   const dbNote = await mongoCollections.notes.findOne({
     _id: note._id,
   });
-  expect(dbNote, 'Newer user must not delete note').toBeDefined();
+  expect(dbNote).toEqual(
+    expect.objectContaining({
+      users: [
+        expect.objectContaining({
+          _id: userOldest._id,
+        }),
+      ],
+    })
+  );
 });
 
 it('oldest user deletes other user note', async () => {
-  // TODO both users must get published
   const response = await executeOperation(
     {
       noteId: note._id,
@@ -255,18 +260,12 @@ it('oldest user deletes other user note', async () => {
 
   const data = expectGraphQLResponseData(response);
 
-  // affected user => gets unlink payload
-  // current user gets what?
-
-  logAll(data);
-  return;
-
   // Response
   expect(data).toEqual({
     deleteNote: {
-      noteId: objectIdToStr(note._id),
-      userNoteLinkId: UserNoteLink_id(note._id, userOldest._id),
-      deletionType: NoteDeletionType.DELETE,
+      noteId: null,
+      userNoteLinkId: null,
+      publicUserNoteLinkId: UserNoteLink_id(note._id, userNewer._id),
     },
   });
 
@@ -286,7 +285,7 @@ it('oldest user deletes other user note', async () => {
       notes: {
         category: {
           [NoteCategory.DEFAULT]: {
-            order: [noteSecond._id],
+            order: [note._id, noteSecond._id],
           },
         },
       },
@@ -306,7 +305,15 @@ it('oldest user deletes other user note', async () => {
   const dbNote = await mongoCollections.notes.findOne({
     _id: note._id,
   });
-  expect(dbNote).toBeNull();
+  expect(dbNote).toEqual(
+    expect.objectContaining({
+      users: [
+        expect.objectContaining({
+          _id: userOldest._id,
+        }),
+      ],
+    })
+  );
 });
 
 describe('errors', () => {
@@ -342,7 +349,7 @@ describe('errors', () => {
 });
 
 describe('subscription', () => {
-  it('oldest user note deletion is published to every user involved', async () => {
+  it('oldest user note deletion is published correctly', async () => {
     mockSubscriptionsModel.queryAllByTopic.mockResolvedValue([
       {
         subscription: {
@@ -383,7 +390,7 @@ describe('subscription', () => {
                   __typename: 'DeleteNotePayload',
                   noteId: objectIdToStr(note._id),
                   userNoteLinkId: UserNoteLink_id(note._id, userOldest._id),
-                  deletionType: NoteDeletionType.DELETE,
+                  publicUserNoteLinkId: UserNoteLink_id(note._id, userOldest._id),
                 },
               ],
             },
@@ -402,7 +409,7 @@ describe('subscription', () => {
                   __typename: 'DeleteNotePayload',
                   noteId: objectIdToStr(note._id),
                   userNoteLinkId: UserNoteLink_id(note._id, userNewer._id),
-                  deletionType: NoteDeletionType.DELETE,
+                  publicUserNoteLinkId: UserNoteLink_id(note._id, userNewer._id),
                 },
               ],
             },
@@ -413,7 +420,7 @@ describe('subscription', () => {
     expect(mockSocketApi.post).toBeCalledTimes(2);
   });
 
-  it('newer user note deletion is published only to self', async () => {
+  it('newer user note deletion is published correctly', async () => {
     mockSubscriptionsModel.queryAllByTopic.mockResolvedValue([
       {
         subscription: {
@@ -433,12 +440,17 @@ describe('subscription', () => {
     );
     expectGraphQLResponseData(response);
 
-    expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenCalledWith(
+    expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenNthCalledWith(
+      1,
+      signedInUserTopic(userOldest._id)
+    );
+    expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenNthCalledWith(
+      2,
       signedInUserTopic(userNewer._id)
     );
-    expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenCalledOnce();
+    expect(mockSubscriptionsModel.queryAllByTopic).toBeCalledTimes(2);
 
-    expect(mockSocketApi.post).toHaveBeenLastCalledWith({
+    expect(mockSocketApi.post).toHaveBeenNthCalledWith(1, {
       message: expect.objectContaining({
         type: 'next',
         payload: {
@@ -447,9 +459,9 @@ describe('subscription', () => {
               mutations: [
                 {
                   __typename: 'DeleteNotePayload',
-                  noteId: objectIdToStr(note._id),
-                  userNoteLinkId: UserNoteLink_id(note._id, userNewer._id),
-                  deletionType: NoteDeletionType.UNLINK,
+                  noteId: null,
+                  userNoteLinkId: null,
+                  publicUserNoteLinkId: UserNoteLink_id(note._id, userNewer._id),
                 },
               ],
             },
@@ -457,6 +469,97 @@ describe('subscription', () => {
         },
       }),
     });
-    expect(mockSocketApi.post).toHaveBeenCalledOnce();
+    expect(mockSocketApi.post).toHaveBeenNthCalledWith(2, {
+      message: expect.objectContaining({
+        type: 'next',
+        payload: {
+          data: {
+            signedInUserEvents: {
+              mutations: [
+                {
+                  __typename: 'DeleteNotePayload',
+                  noteId: null,
+                  userNoteLinkId: UserNoteLink_id(note._id, userNewer._id),
+                  publicUserNoteLinkId: UserNoteLink_id(note._id, userNewer._id),
+                },
+              ],
+            },
+          },
+        },
+      }),
+    });
+    expect(mockSocketApi.post).toHaveBeenCalledTimes(2);
+  });
+
+  it('older user deleting new user note is published correctly', async () => {
+    mockSubscriptionsModel.queryAllByTopic.mockResolvedValue([
+      {
+        subscription: {
+          query: SUBSCRIPTION,
+        },
+      } as unknown as Subscription,
+    ]);
+
+    const response = await executeOperation(
+      {
+        noteId: note._id,
+        userId: userNewer._id,
+      },
+      {
+        user: userOldest,
+        createPublisher: createMockedPublisher,
+      }
+    );
+    expectGraphQLResponseData(response);
+
+    expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenNthCalledWith(
+      1,
+      signedInUserTopic(userOldest._id)
+    );
+    expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenNthCalledWith(
+      2,
+      signedInUserTopic(userNewer._id)
+    );
+    expect(mockSubscriptionsModel.queryAllByTopic).toBeCalledTimes(2);
+
+    expect(mockSocketApi.post).toHaveBeenNthCalledWith(1, {
+      message: expect.objectContaining({
+        type: 'next',
+        payload: {
+          data: {
+            signedInUserEvents: {
+              mutations: [
+                {
+                  __typename: 'DeleteNotePayload',
+                  noteId: null,
+                  userNoteLinkId: null,
+                  publicUserNoteLinkId: UserNoteLink_id(note._id, userNewer._id),
+                },
+              ],
+            },
+          },
+        },
+      }),
+    });
+    expect(mockSocketApi.post).toHaveBeenNthCalledWith(2, {
+      message: expect.objectContaining({
+        type: 'next',
+        payload: {
+          data: {
+            signedInUserEvents: {
+              mutations: [
+                {
+                  __typename: 'DeleteNotePayload',
+                  noteId: null,
+                  userNoteLinkId: UserNoteLink_id(note._id, userNewer._id),
+                  publicUserNoteLinkId: UserNoteLink_id(note._id, userNewer._id),
+                },
+              ],
+            },
+          },
+        },
+      }),
+    });
+    expect(mockSocketApi.post).toHaveBeenCalledTimes(2);
   });
 });

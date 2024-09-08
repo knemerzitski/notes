@@ -2,7 +2,10 @@ import { ObjectId } from 'mongodb';
 import { ServiceError } from '../errors';
 import { objectIdToStr } from '../../mongodb/utils/objectid';
 
-export type NoteServiceErrorCode = 'NOTE_NOT_FOUND' | 'NOTE_USER_NOT_FOUND';
+export type NoteServiceErrorCode =
+  | 'NOTE_NOT_FOUND'
+  | 'NOTE_USER_NOT_FOUND'
+  | 'NOTE_USER_UNAUTHORIZED';
 
 export class NoteServiceError extends ServiceError<NoteServiceErrorCode> {}
 
@@ -26,5 +29,19 @@ export class NoteUserNotFoundServiceError extends NoteServiceError {
     );
     this.userId = userId;
     this.noteId = noteId;
+  }
+}
+
+export class NoteUserUnauthorizedServiceError extends NoteServiceError {
+  readonly scopeUserId: ObjectId;
+  readonly targetUserId: ObjectId;
+
+  constructor(scopeUserId: ObjectId, targetUserId: ObjectId, message: string) {
+    super(
+      'NOTE_USER_UNAUTHORIZED',
+      `Note user '${objectIdToStr(scopeUserId)}' has no authorization over note user '${objectIdToStr(targetUserId)}': ${message}`
+    );
+    this.scopeUserId = scopeUserId;
+    this.targetUserId = targetUserId;
   }
 }

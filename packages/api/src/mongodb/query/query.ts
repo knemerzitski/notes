@@ -7,6 +7,7 @@ import {
   PickStartsWith,
   PickValue,
   OmitNever,
+  OmitUndefined,
 } from '~utils/types';
 
 import { MongoPrimitive } from '../types';
@@ -43,19 +44,21 @@ export type QueryResultDeep<
         ? QueryResultDeep<U, V, P>[]
         : never
       : T extends object
-        ? OmitNever<{
-            [Key in keyof T]: Key extends `${QueryArgPrefix}${string}`
-              ? never
-              : Key extends keyof V
-                ? V[Key] extends PickValue
-                  ? T[Key]
-                  : Exclude<T[Key], undefined> extends object
-                    ? V[Key] extends QueryDeep<T[Key], P>
-                      ? QueryResultDeep<T[Key], V[Key], P>
+        ? OmitNever<
+            OmitUndefined<{
+              [Key in keyof T]: Key extends `${QueryArgPrefix}${string}`
+                ? never
+                : Key extends keyof V
+                  ? V[Key] extends PickValue
+                    ? T[Key]
+                    : Exclude<T[Key], undefined> extends object
+                      ? V[Key] extends QueryDeep<T[Key], P>
+                        ? QueryResultDeep<T[Key], V[Key], P>
+                        : never
                       : never
-                    : never
-                : never;
-          }>
+                  : never;
+            }>
+          >
         : never
 >;
 
