@@ -1,4 +1,3 @@
-import { ObjectId } from 'mongodb';
 import {
   QueryableUserLoader,
   UserNotFoundQueryLoaderError,
@@ -69,44 +68,6 @@ export function primeNewGoogleUser({ newUser, loader }: PrimeNewGoogleUserParams
         _id: newUser._id,
         profile: newUser.profile,
         thirdParty: newUser.thirdParty,
-      },
-      type: 'validated',
-    },
-    {
-      clearCache: true,
-    }
-  );
-}
-
-export interface PrimeNewDisplayNameParams {
-  userId: ObjectId;
-  newDisplayName: string;
-  loader: QueryableUserLoader;
-}
-
-export function primeNewDisplayName({
-  userId,
-  newDisplayName,
-  loader,
-}: PrimeNewDisplayNameParams) {
-  loader.prime(
-    {
-      id: {
-        userId,
-      },
-      query: {
-        _id: 1,
-        profile: {
-          displayName: 1,
-        },
-      },
-    },
-    {
-      result: {
-        _id: userId,
-        profile: {
-          displayName: newDisplayName,
-        },
       },
       type: 'validated',
     },

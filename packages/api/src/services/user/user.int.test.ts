@@ -30,29 +30,6 @@ beforeEach(async () => {
   mongoCollectionStats.mockClear();
 });
 
-describe('updateDisplayName', () => {
-  it('updates user displayName', async () => {
-    await updateDisplayName({
-      userId: user._id,
-      displayName: 'new name',
-      collection: mongoCollections.users,
-    });
-
-    expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(1);
-
-    const dbUser = await mongoCollections.users.findOne({
-      _id: user._id,
-    });
-    expect(dbUser).toStrictEqual(
-      expect.objectContaining({
-        profile: {
-          displayName: 'new name',
-        },
-      })
-    );
-  });
-});
-
 describe('insertNewUserWithGoogleUser', () => {
   it('inserts new user with displayName', async () => {
     const newUser = await insertNewUserWithGoogleUser({

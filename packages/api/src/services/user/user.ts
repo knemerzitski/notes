@@ -39,29 +39,3 @@ export async function insertNewUserWithGoogleUser({
 
   return newUser;
 }
-export interface UpdateDisplayNameParams {
-  userId: ObjectId;
-  displayName: string;
-
-  collection: Collection<DBUserSchema>;
-}
-
-/**
- * Updates displayName in database
- */
-export async function updateDisplayName({
-  userId,
-  displayName,
-  collection,
-}: UpdateDisplayNameParams) {
-  return collection.updateOne(
-    {
-      _id: userId,
-    },
-    {
-      $set: {
-        'profile.displayName': displayName,
-      },
-    }
-  );
-}

@@ -31,7 +31,7 @@ import {
   UpdateSignedInUserDisplayNamePayload,
 } from '../../../types.generated';
 import { signedInUserTopic } from '../Subscription/signedInUserEvents';
-import * as serviceUser from '../../../../../services/user/user';
+import * as modelUpdateDisplayName from '../../../../../mongodb/models/user/update-display-name';
 
 interface Variables {
   input: UpdateSignedInUserDisplayNameInput;
@@ -77,12 +77,12 @@ const SUBSCRIPTION = `#graphql
 let user: DBUserSchema;
 
 let spyUpdateDisplayName: MockInstance<
-  [serviceUser.UpdateDisplayNameParams],
+  [modelUpdateDisplayName.UpdateDisplayNameParams],
   Promise<UpdateResult<DBUserSchema>>
 >;
 
 beforeAll(() => {
-  spyUpdateDisplayName = vi.spyOn(serviceUser, 'updateDisplayName');
+  spyUpdateDisplayName = vi.spyOn(modelUpdateDisplayName, 'updateDisplayName');
 });
 
 afterEach(() => {
