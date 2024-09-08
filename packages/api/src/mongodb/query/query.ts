@@ -54,7 +54,9 @@ export type QueryResultDeep<
                     : Exclude<T[Key], undefined> extends object
                       ? V[Key] extends QueryDeep<T[Key], P>
                         ? QueryResultDeep<T[Key], V[Key], P>
-                        : never
+                        : T[Key] extends P
+                          ? T[Key]
+                          : never
                       : never
                   : never;
             }>

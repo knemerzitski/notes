@@ -1,23 +1,23 @@
 import { ObjectId } from 'mongodb';
 import { MongoQueryFn } from '../../../mongodb/query/query';
-import { QueryableNote } from '../../../mongodb/descriptions/note';
 import { NoteUserSchema } from '../../../mongodb/schema/note-user';
 import { GraphQLResolveInfo } from 'graphql';
 import { GraphQLResolversContext } from '../../types';
 import { ResolverTypeWrapper, ResolversTypes } from '../types.generated';
+import { QueryableNote, QueryableNoteUser } from '../../../mongodb/descriptions/note';
 
 export interface UserNoteLinkMapper {
   readonly userId: ObjectId;
-  readonly query: MongoQueryFn<QueryableNote>;
+  readonly query: MongoQueryFn<typeof QueryableNote>;
 }
 
 export interface PublicUserNoteLinkMapper {
   readonly noteId: ResolverTypeWrapper<ObjectId>;
-  readonly query: MongoQueryFn<NonNullable<QueryableNote['users']>[0]>;
+  readonly query: MongoQueryFn<typeof QueryableNoteUser>;
 }
 
 export interface NotePreferencesMapper {
-  readonly query: MongoQueryFn<NoteUserSchema['preferences']>;
+  readonly query: MongoQueryFn<typeof NoteUserSchema.schema.preferences>;
 }
 
 export interface UserNoteLinkConnectionMapper {

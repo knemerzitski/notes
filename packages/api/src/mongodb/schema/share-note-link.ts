@@ -1,16 +1,4 @@
-import { nanoid } from 'nanoid';
-
-import {
-  boolean,
-  date,
-  defaulted,
-  Infer,
-  instance,
-  number,
-  object,
-  optional,
-  string,
-} from 'superstruct';
+import { boolean, date, Infer, instance, number, object, optional } from 'superstruct';
 import { ObjectId } from 'mongodb';
 
 /**
@@ -29,8 +17,7 @@ export const ShareNoteLinkSchema = object({
   /**
    * Unique generated ID used to access sharing
    */
-  // TODO use ObjectId
-  publicId: defaulted(string(), () => nanoid(32)),
+  _id: instance(ObjectId),
 
   /**
    * User who created this link

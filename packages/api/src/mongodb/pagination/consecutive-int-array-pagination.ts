@@ -11,15 +11,14 @@ import {
   RelayArrayPaginationAggregateResult,
   RelayBeforeBoundPagination,
   RelayPagination,
-  isAfterBoundPagination,
-  isAfterUnboundPagination,
-  isBeforeBoundPagination,
-  isBeforeUnboundPagination,
-  isFirstPagination,
-  isLastPagination,
   sliceFirst,
   sliceLast,
+  RelayFirstPagination,
+  RelayLastPagination,
+  RelayAfterUnboundPagination,
+  RelayBeforeUnboundPagination,
 } from './relay-array-pagination';
+import { STRUCT_NUMBER } from '../constants';
 
 export function consecutiveIntArrayPagination(
   input: RelayArrayPaginationInput<number>
@@ -226,14 +225,14 @@ export function consecutiveIntArrayPaginationMapAggregateResult<TItem>(
 ): TItem[] {
   const sizes = output.sizes;
 
-  if (isFirstPagination(pagination)) {
+  if (RelayFirstPagination.is(pagination)) {
     const end = sizes ? sizes[0] : output.array.length;
     return output.array.slice(0, Math.min(pagination.first, end));
-  } else if (isLastPagination(pagination)) {
+  } else if (RelayLastPagination.is(pagination)) {
     const start = sizes ? sizes[0] : 0;
     const end = sizes ? sizes[0] + sizes[1] : output.array.length;
     return output.array.slice(Math.max(start, end - pagination.last), end);
-  } else if (isAfterUnboundPagination(pagination)) {
+  } else if (RelayAfterUnboundPagination(STRUCT_NUMBER).is(pagination)) {
     const startCursor = pagination.after + 1;
     const startSize = sizes?.[0] ?? 0;
     const firstEndItem = output.array[startSize];
@@ -244,7 +243,7 @@ export function consecutiveIntArrayPaginationMapAggregateResult<TItem>(
     const end = sizes ? start + sizes[1] : output.array.length;
 
     return output.array.slice(start, end);
-  } else if (isBeforeUnboundPagination(pagination)) {
+  } else if (RelayBeforeUnboundPagination(STRUCT_NUMBER).is(pagination)) {
     const endCursor = pagination.before;
     const item0 = output.array[0];
     if (item0 == null) {
@@ -256,13 +255,13 @@ export function consecutiveIntArrayPaginationMapAggregateResult<TItem>(
 
     return output.array.slice(0, end);
   } else {
-    let startCursor: number;
-    let endCursor: number;
-    if (isAfterBoundPagination(pagination)) {
+    let startCursor = 0;
+    let endCursor = 0;
+    if (RelayAfterBoundPagination(STRUCT_NUMBER).is(pagination)) {
       const { after, first } = pagination;
       startCursor = after + 1;
       endCursor = startCursor + first;
-    } else {
+    } else if (RelayBeforeBoundPagination(STRUCT_NUMBER).is(pagination)) {
       const { before, last } = pagination;
       startCursor = before - last;
       endCursor = before;
@@ -306,25 +305,30 @@ export function consecutiveIntArrayPaginationMapAggregateResult<TItem>(
 
 function calcMaxFirst<TCursor>(paginations: RelayPagination<TCursor>[]) {
   return paginations.reduce(
-    (a, b) => (isFirstPagination(b) ? Math.max(a, b.first) : a),
+    (a, b) => (RelayFirstPagination.is(b) ? Math.max(a, b.first) : a),
     0
   );
 }
 
 function calcMaxLast<TCursor>(paginations: RelayPagination<TCursor>[]) {
-  return paginations.reduce((a, b) => (isLastPagination(b) ? Math.max(a, b.last) : a), 0);
+  return paginations.reduce(
+    (a, b) => (RelayLastPagination.is(b) ? Math.max(a, b.last) : a),
+    0
+  );
 }
 
 function calcMinAfterUnbound(paginations: RelayPagination<number>[]) {
   return paginations.reduce(
-    (a, b) => (isAfterUnboundPagination(b) ? Math.min(a, b.after) : a),
+    (a, b) =>
+      RelayAfterUnboundPagination(STRUCT_NUMBER).is(b) ? Math.min(a, b.after) : a,
     Infinity
   );
 }
 
 function calcMaxBeforeUnbound(paginations: RelayPagination<number>[]) {
   return paginations.reduce(
-    (a, b) => (isBeforeUnboundPagination(b) ? Math.max(a, b.before) : a),
+    (a, b) =>
+      RelayBeforeUnboundPagination(STRUCT_NUMBER).is(b) ? Math.max(a, b.before) : a,
     -Infinity
   );
 }
@@ -332,7 +336,10 @@ function calcMaxBeforeUnbound(paginations: RelayPagination<number>[]) {
 function calcUniqueBoundPaginations(paginations: RelayPagination<number>[]) {
   const uniquePaginations = new BoundPaginationUnion();
   for (const p of paginations) {
-    if (isAfterBoundPagination(p) || isBeforeBoundPagination(p)) {
+    if (
+      RelayAfterBoundPagination(STRUCT_NUMBER).is(p) ||
+      RelayBeforeBoundPagination(STRUCT_NUMBER).is(p)
+    ) {
       uniquePaginations.add(p);
     }
   }
@@ -350,7 +357,7 @@ export class BoundPaginationUnion {
   }
 
   add(range: RelayAfterBoundPagination<number> | RelayBeforeBoundPagination<number>) {
-    const { after, first } = isAfterBoundPagination(range)
+    const { after, first } = RelayAfterBoundPagination(STRUCT_NUMBER).is(range)
       ? { after: range.after, first: range.first }
       : { after: range.before - range.last - 1, first: range.last };
 

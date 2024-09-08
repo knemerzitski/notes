@@ -1,21 +1,15 @@
-import { findNoteUser, UserNoteLink_id } from '../../../../services/note/note';
+import { QueryableNoteUser } from '../../../../mongodb/descriptions/note';
+import { createMapQueryFn } from '../../../../mongodb/query/query';
+import { findNoteUserMaybe } from '../../../../services/note/note';
+import { UserNoteLink_id_fromQueryFn } from '../../../../services/note/user-note-link-id';
 import type { NoteCategory, UserNoteLinkResolvers } from '../../types.generated';
 
 export const UserNoteLink: UserNoteLinkResolvers = {
   id: async (parent, _arg, _ctx) => {
-    const noteId = (
-      await parent.query({
-        _id: 1,
-      })
-    )?._id;
-    if (!noteId) {
-      return;
-    }
-
-    return UserNoteLink_id(noteId, parent.userId);
+    return UserNoteLink_id_fromQueryFn(parent.query, parent.userId);
   },
   categoryName: async (parent, _arg, _ctx) => {
-    return findNoteUser(
+    return findNoteUserMaybe(
       parent.userId,
       await parent.query({
         users: {
@@ -26,7 +20,7 @@ export const UserNoteLink: UserNoteLinkResolvers = {
     )?.categoryName as NoteCategory;
   },
   deletedAt: async (parent, _arg, _ctx) => {
-    return findNoteUser(
+    return findNoteUserMaybe(
       parent.userId,
       await parent.query({
         users: {
@@ -45,17 +39,17 @@ export const UserNoteLink: UserNoteLinkResolvers = {
   },
   preferences: (parent, _arg, _ctx) => {
     return {
-      query: async (query) => {
-        return findNoteUser(
-          parent.userId,
-          await parent.query({
-            users: {
-              _id: 1,
-              preferences: query,
-            },
-          })
-        )?.preferences;
-      },
+      query: createMapQueryFn(parent.query)<
+        typeof QueryableNoteUser.schema.preferences
+      >()(
+        (query) => ({
+          users: {
+            _id: 1,
+            preferences: query,
+          },
+        }),
+        (note) => findNoteUserMaybe(parent.userId, note)?.preferences
+      ),
     };
   },
   public: (parent, _arg, _ctx) => {
@@ -66,16 +60,15 @@ export const UserNoteLink: UserNoteLinkResolvers = {
             _id: 1,
           })
         )?._id,
-      query: async (query) => {
-        const note = await parent.query({
+      query: createMapQueryFn(parent.query)<typeof QueryableNoteUser>()(
+        (query) => ({
           users: {
-            ...query,
             _id: 1,
+            ...query,
           },
-        });
-
-        return findNoteUser(parent.userId, note);
-      },
+        }),
+        (note) => findNoteUserMaybe(parent.userId, note)
+      ),
     };
   },
 };

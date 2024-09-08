@@ -1,3 +1,5 @@
+import { QueryableNoteUser } from '../../../../mongodb/descriptions/note';
+import { createMapQueryFn } from '../../../../mongodb/query/query';
 import { withPreExecuteList } from '../../../utils/pre-execute';
 import type { NoteResolvers } from '../../types.generated';
 
@@ -12,20 +14,18 @@ export const Note: Pick<NoteResolvers, 'users'> = {
                 _id: 1,
               })
             )?._id,
-          query: async (query) => {
-            const users = (
-              await parent.query({
-                users: {
-                  ...query,
-                  _id: 1,
-                },
-              })
-            )?.users;
-
-            updateSize(users?.length);
-
-            return users?.[index];
-          },
+          query: createMapQueryFn(parent.query)<typeof QueryableNoteUser>()(
+            (query) => ({
+              users: {
+                ...query,
+                _id: 1,
+              },
+            }),
+            (note) => {
+              updateSize?.(note.users?.length);
+              return note.users?.[index];
+            }
+          ),
         };
       },
       ctx,

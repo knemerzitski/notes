@@ -1,6 +1,8 @@
 import { maybeCallFn } from '~utils/maybe-call-fn';
 import type { PublicUserNoteLinkResolvers } from '../../types.generated';
-import { UserNoteLink_id } from '../../../../services/note/note';
+import { UserNoteLink_id } from '../../../../services/note/user-note-link-id';
+import { PublicUserMapper } from '../../user/schema.mappers';
+import { createMapQueryFn, MongoQueryFnStruct } from '../../../../mongodb/query/query';
 
 export const PublicUserNoteLink: Pick<
   PublicUserNoteLinkResolvers,
@@ -37,19 +39,24 @@ export const PublicUserNoteLink: Pick<
   },
   user: (parent, _arg, _ctx) => {
     return {
-      query: async (query) => {
-        const { _id, ...restQuery } = query;
-        const user = await parent.query({
-          ...(_id != null && { _id }),
-          user: restQuery,
-        });
-        if (!user) return;
-
-        return {
-          _id: user._id,
-          profile: user.user?.profile,
-        };
-      },
+      query: createMapQueryFn(parent.query)<
+        MongoQueryFnStruct<PublicUserMapper['query']>
+      >()(
+        (query) => {
+          const { _id, ...restQuery } = query;
+          return {
+            _id,
+            user: restQuery,
+            createdAt: 1,
+          };
+        },
+        (noteUser) => {
+          return {
+            _id: noteUser._id,
+            ...noteUser.user,
+          };
+        }
+      ),
     };
   },
 };

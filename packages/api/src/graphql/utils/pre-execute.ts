@@ -21,7 +21,7 @@ export type PreFetchArrayUpdateSizeFn = (size: number | undefined) => void;
 
 export type PreFetchedArrayGetItemFn<TValue> = (
   index: number,
-  updateSize: PreFetchArrayUpdateSizeFn
+  updateSize?: PreFetchArrayUpdateSizeFn
 ) => TValue;
 
 /**

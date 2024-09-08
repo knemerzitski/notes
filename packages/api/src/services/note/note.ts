@@ -1089,7 +1089,3 @@ export function findNoteTextFieldInSchema(note: Maybe<NoteSchema>, fieldName: st
     .map((collabText) => collabText.v);
   return collabTexts?.[0];
 }
-
-export function UserNoteLink_id(noteId: ObjectId, userId: ObjectId) {
-  return `${objectIdToStr(noteId)}:${objectIdToStr(userId)}`;
-}

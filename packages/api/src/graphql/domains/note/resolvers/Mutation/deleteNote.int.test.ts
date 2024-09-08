@@ -35,8 +35,8 @@ import {
   NoteCategory,
 } from '../../../types.generated';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
-import { UserNoteLink_id } from '../../../../../services/note/note';
 import { signedInUserTopic } from '../../../user/resolvers/Subscription/signedInUserEvents';
+import { UserNoteLink_id } from '../../../../../services/note/user-note-link-id';
 
 const MUTATION = `#graphql
   mutation($input: DeleteNoteInput!){

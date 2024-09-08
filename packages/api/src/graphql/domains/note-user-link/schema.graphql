@@ -78,9 +78,9 @@ extend type Query {
   "Paginate UserNoteLinks by category. Default is NoteCategory.DEFAULT"
   userNoteLinkConnection(
     first: NonNegativeInt
-    after: String
+    after: ObjectID
     last: NonNegativeInt
-    before: String
+    before: ObjectID
     category: NoteCategory
   ): UserNoteLinkConnection! @auth
   "Search for UserNoteLinks by text"

@@ -31,32 +31,31 @@ import {
 
 const typeObjectId = instance(ObjectId);
 
+export const QueryableUser_NotesCategory = assign(
+  NoteCategorySchema,
+  object({
+    order: object({
+      items: array(
+        assign(
+          QueryableNote,
+          object({
+            $pagination: optional(RelayPagination(typeObjectId)),
+          })
+        )
+      ),
+      firstId: typeObjectId,
+      lastId: typeObjectId,
+    }),
+  })
+);
+
 export const QueryableUser = assign(
   UserSchema,
   object({
     notes: assign(
       UserSchema.schema.notes,
       object({
-        category: record(
-          string(),
-          assign(
-            NoteCategorySchema,
-            object({
-              order: object({
-                items: array(
-                  assign(
-                    QueryableNote,
-                    object({
-                      $pagination: optional(RelayPagination(typeObjectId)),
-                    })
-                  )
-                ),
-                firstId: typeObjectId,
-                lastId: typeObjectId,
-              }),
-            })
-          )
-        ),
+        category: record(string(), QueryableUser_NotesCategory),
       })
     ),
   })

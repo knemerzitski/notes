@@ -114,10 +114,9 @@ export const CollabText: CollabTextResolvers = {
     const getRecord: PreFetchedArrayGetItemFn<CollabTextRecordMapper> = (
       index: number,
       updateSize
-    ) => {
-      const queryRecord = createMapQueryFn(parent.query)<
-        typeof QueryableRevisionRecord
-      >()(
+    ) => ({
+      parentId: parent.id,
+      query: createMapQueryFn(parent.query)<typeof QueryableRevisionRecord>()(
         (query) => ({
           records: {
             $pagination: pagination,
@@ -125,16 +124,11 @@ export const CollabText: CollabTextResolvers = {
           },
         }),
         (collabText) => {
-          updateSize(collabText.records?.length);
+          updateSize?.(collabText.records?.length);
           return collabText.records?.[index];
         }
-      );
-
-      return {
-        parentId: parent.id,
-        query: queryRecord,
-      };
-    };
+      ),
+    });
 
     async function getHeadAndTailRevision() {
       const collabText = await parent.query(
