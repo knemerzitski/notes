@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { MongoDBCollections, CollectionName } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
-import { findNoteUser, updateNoteBackgroundColor } from './note';
+import { findNoteUser } from './note';
 import { NoteNotFoundServiceError } from './errors';
 import { QueryableNoteLoader } from '../../mongodb/loaders/queryable-note-loader';
 import { MongoReadonlyDeep } from '../../mongodb/types';
@@ -63,7 +63,7 @@ export async function updateNoteBackgroundColorWithLoader({
     };
   }
 
-  await updateNoteBackgroundColor({
+  await updateBackgroundColor({
     collection: mongoDB.collections.notes,
     userId,
     noteId,
