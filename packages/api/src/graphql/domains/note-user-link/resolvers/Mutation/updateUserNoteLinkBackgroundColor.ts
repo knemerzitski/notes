@@ -1,7 +1,4 @@
-import {
-  primeNewBackgroundColor,
-  updateNoteBackgroundColorWithLoader,
-} from '../../../../../services/note/with-loader';
+import { updateBackgroundColor } from '../../../../../services/note/update-background-color';
 import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';
 import type { MutationResolvers, ResolversTypes } from '../../../types.generated';
 import { assertAuthenticated } from '../../../../../services/auth/auth';
@@ -16,7 +13,7 @@ export const updateUserNoteLinkBackgroundColor: NonNullable<
 
   const currentUserId = auth.session.userId;
 
-  const { type: bgResultType, note } = await updateNoteBackgroundColorWithLoader({
+  const { type: bgResultType } = await updateBackgroundColor({
     backgroundColor: input.backgroundColor,
     mongoDB,
     noteId: input.noteId,
@@ -36,14 +33,6 @@ export const updateUserNoteLinkBackgroundColor: NonNullable<
   };
 
   if (bgResultType !== 'already_background_color') {
-    primeNewBackgroundColor({
-      noteId: input.noteId,
-      noteUsers: note.users,
-      userId: currentUserId,
-      newBackgroundColor: input.backgroundColor,
-      loader: mongoDB.loaders.note,
-    });
-
     await publishSignedInUserMutation(currentUserId, payload, ctx);
   }
 

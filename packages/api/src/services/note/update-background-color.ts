@@ -3,10 +3,9 @@ import { MongoDBCollections, CollectionName } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
 import { findNoteUser } from './note';
 import { NoteNotFoundServiceError } from './errors';
-import { QueryableNoteLoader } from '../../mongodb/loaders/queryable-note-loader';
-import { MongoReadonlyDeep } from '../../mongodb/types';
+import { updateBackgroundColor as mongoDB_updateBackgroundColor } from '../../mongodb/models/note/update-background-color';
 
-interface UpdateNoteBackgroundColorParams {
+interface UpdateBackgroundColorParams {
   mongoDB: {
     collections: Pick<MongoDBCollections, CollectionName.NOTES>;
     loaders: Pick<MongoDBLoaders, 'note'>;
@@ -16,21 +15,21 @@ interface UpdateNoteBackgroundColorParams {
    */
   userId: ObjectId;
   /**
-   * Note to trash
+   * Note to update
    */
   noteId: ObjectId;
   /**
-   * New background color value
+   * New background color
    */
   backgroundColor: string;
 }
 
-export async function updateNoteBackgroundColorWithLoader({
+export async function updateBackgroundColor({
   mongoDB,
   userId,
   noteId,
   backgroundColor,
-}: UpdateNoteBackgroundColorParams) {
+}: UpdateBackgroundColorParams) {
   const note = await mongoDB.loaders.note.load(
     {
       id: {
@@ -63,43 +62,14 @@ export async function updateNoteBackgroundColorWithLoader({
     };
   }
 
-  await updateBackgroundColor({
+  await mongoDB_updateBackgroundColor({
     collection: mongoDB.collections.notes,
     userId,
     noteId,
     backgroundColor,
   });
 
-  return {
-    type: 'success',
-    note,
-  };
-}
-
-export interface PrimeNewBackgroundColorParams<
-  T extends MongoReadonlyDeep<
-    { _id: ObjectId; preferences?: { backgroundColor?: string } }[]
-  >,
-> {
-  userId: ObjectId;
-  noteId: ObjectId;
-  noteUsers: T;
-  newBackgroundColor: string;
-  loader: QueryableNoteLoader;
-}
-
-export function primeNewBackgroundColor<
-  T extends MongoReadonlyDeep<
-    { _id: ObjectId; preferences?: { backgroundColor?: string } }[]
-  >,
->({
-  userId,
-  noteId,
-  noteUsers,
-  newBackgroundColor,
-  loader,
-}: PrimeNewBackgroundColorParams<T>) {
-  loader.prime(
+  mongoDB.loaders.note.prime(
     {
       id: {
         userId,
@@ -115,7 +85,7 @@ export function primeNewBackgroundColor<
     },
     {
       result: {
-        users: noteUsers.map((noteUser) => {
+        users: note.users.map((noteUser) => {
           const isOtherUser = !userId.equals(noteUser._id);
           if (isOtherUser) {
             return noteUser;
@@ -124,7 +94,7 @@ export function primeNewBackgroundColor<
             ...noteUser,
             preferences: {
               ...noteUser.preferences,
-              backgroundColor: newBackgroundColor,
+              backgroundColor: backgroundColor,
             },
           };
         }),
@@ -133,4 +103,9 @@ export function primeNewBackgroundColor<
     },
     { clearCache: true }
   );
+
+  return {
+    type: 'success',
+    note,
+  };
 }
