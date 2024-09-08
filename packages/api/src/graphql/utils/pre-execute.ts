@@ -11,11 +11,11 @@ import {
   Kind,
   isUnionType,
   GraphQLObjectType,
+  executeField,
 } from 'graphql';
-import { ExecutionContext } from 'graphql/execution/execute';
+import { ExecutionContext, ExecutionOptions } from 'graphql/execution/execute';
 import { addPath } from 'graphql/jsutils/Path';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
-import { executeField, ExecutionOptions } from '../../graphql/external/execute';
 
 export type PreFetchArrayUpdateSizeFn = (size: number | undefined) => void;
 

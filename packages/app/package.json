@@ -42,7 +42,7 @@
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
-    "graphql": "^16.8.1",
+    "graphql": "npm:@knemerzitski/graphql@16.9.1",
     "jsdom": "^24.0.0",
     "map-obj": "^5.0.2",
     "react": "^18.2.0",

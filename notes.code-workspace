@@ -3,6 +3,12 @@
     {
       "path": ".",
     },
+    {
+      "path": "../superstruct"
+    },
+    {
+      "path": "../graphql-js"
+    }
   ],
   "settings": {
     "search.exclude": {
