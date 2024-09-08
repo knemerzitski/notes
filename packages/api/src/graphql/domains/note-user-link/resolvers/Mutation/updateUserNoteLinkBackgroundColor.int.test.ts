@@ -27,8 +27,8 @@ import { fakeNotePopulateQueue } from '../../../../../__test__/helpers/mongodb/p
 import { userAddNote } from '../../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/user';
-import { NoteSchema } from '../../../../../mongodb/schema/note';
-import { UserSchema } from '../../../../../mongodb/schema/user';
+import { DBNoteSchema } from '../../../../../mongodb/schema/note';
+import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import {
   NoteCategory,
   UpdateUserNoteLinkBackgroundColorInput,
@@ -70,10 +70,10 @@ const SUBSCRIPTION = `#graphql
   }
 `;
 
-let user: UserSchema;
-let userReadOnly: UserSchema;
-let note: NoteSchema;
-let userNoAccess: UserSchema;
+let user: DBUserSchema;
+let userReadOnly: DBUserSchema;
+let note: DBNoteSchema;
+let userNoAccess: DBUserSchema;
 
 beforeEach(async () => {
   faker.seed(5532);

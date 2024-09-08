@@ -1,7 +1,10 @@
-import { updateNoteBackgroundColorWithLoader } from '../../../../../services/note/with-loader';
-import { assertAuthenticated } from '../../../base/directives/auth';
+import {
+  primeNewBackgroundColor,
+  updateNoteBackgroundColorWithLoader,
+} from '../../../../../services/note/with-loader';
 import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';
 import type { MutationResolvers, ResolversTypes } from '../../../types.generated';
+import { assertAuthenticated } from '../../../../../services/auth/auth';
 
 export const updateUserNoteLinkBackgroundColor: NonNullable<
   MutationResolvers['updateUserNoteLinkBackgroundColor']
@@ -13,7 +16,7 @@ export const updateUserNoteLinkBackgroundColor: NonNullable<
 
   const currentUserId = auth.session.userId;
 
-  const bgResult = await updateNoteBackgroundColorWithLoader({
+  const { type: bgResultType, note } = await updateNoteBackgroundColorWithLoader({
     backgroundColor: input.backgroundColor,
     mongoDB,
     noteId: input.noteId,
@@ -25,18 +28,22 @@ export const updateUserNoteLinkBackgroundColor: NonNullable<
     backgroundColor: input.backgroundColor,
     userNoteLink: {
       userId: currentUserId,
-      query: (query) =>
-        mongoDB.loaders.note.load({
-          id: {
-            userId: currentUserId,
-            noteId: input.noteId,
-          },
-          query,
-        }),
+      query: mongoDB.loaders.note.createQueryFn({
+        userId: currentUserId,
+        noteId: input.noteId,
+      }),
     },
   };
 
-  if (bgResult !== 'already_background_color') {
+  if (bgResultType !== 'already_background_color') {
+    primeNewBackgroundColor({
+      noteId: input.noteId,
+      noteUsers: note.users,
+      userId: currentUserId,
+      newBackgroundColor: input.backgroundColor,
+      loader: mongoDB.loaders.note,
+    });
+
     await publishSignedInUserMutation(currentUserId, payload, ctx);
   }
 

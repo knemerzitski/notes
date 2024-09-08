@@ -1,12 +1,13 @@
-import { MongoClient, ObjectId } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { MongoDBCollections, CollectionName } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
-import { NoteNotFoundError } from './errors';
 import { findNoteUser, updateNoteBackgroundColor } from './note';
+import { NoteNotFoundServiceError } from './errors';
+import { QueryableNoteLoader } from '../../mongodb/loaders/queryable-note-loader';
+import { MongoReadonlyDeep } from '../../mongodb/types';
 
 interface UpdateNoteBackgroundColorParams {
   mongoDB: {
-    client: MongoClient;
     collections: Pick<MongoDBCollections, CollectionName.NOTES>;
     loaders: Pick<MongoDBLoaders, 'note'>;
   };
@@ -22,11 +23,6 @@ interface UpdateNoteBackgroundColorParams {
    * New background color value
    */
   backgroundColor: string;
-  /**
-   * Skip priming note loader with the result
-   * @default false
-   */
-  skipPrimeResult?: boolean;
 }
 
 export async function updateNoteBackgroundColorWithLoader({
@@ -34,32 +30,37 @@ export async function updateNoteBackgroundColorWithLoader({
   userId,
   noteId,
   backgroundColor,
-  skipPrimeResult,
 }: UpdateNoteBackgroundColorParams) {
-  const note = await mongoDB.loaders.note.load({
-    id: {
-      userId,
-      noteId,
-    },
-    query: {
-      _id: 1,
-      users: {
+  const note = await mongoDB.loaders.note.load(
+    {
+      id: {
+        userId,
+        noteId,
+      },
+      query: {
         _id: 1,
-        preferences: {
-          backgroundColor: 1,
+        users: {
+          _id: 1,
+          preferences: {
+            backgroundColor: 1,
+          },
         },
       },
     },
-  });
-
+    {
+      resultType: 'validated',
+    }
+  );
   const noteUser = findNoteUser(userId, note);
-  if (!note?._id || !noteUser) {
-    throw new NoteNotFoundError(noteId);
+  if (!noteUser) {
+    throw new NoteNotFoundServiceError(noteId);
   }
 
   if (noteUser.preferences?.backgroundColor === backgroundColor) {
-    // Return early, backgroundColor is already correct
-    return 'already_background_color';
+    return {
+      type: 'already_background_color',
+      note,
+    };
   }
 
   await updateNoteBackgroundColor({
@@ -69,23 +70,52 @@ export async function updateNoteBackgroundColorWithLoader({
     backgroundColor,
   });
 
-  if (!skipPrimeResult) {
-    mongoDB.loaders.note.prime(
-      {
-        id: {
-          userId,
-          noteId,
-        },
-        query: {
-          users: {
-            preferences: {
-              backgroundColor: 1,
-            },
+  return {
+    type: 'success',
+    note,
+  };
+}
+
+export interface PrimeNewBackgroundColorParams<
+  T extends MongoReadonlyDeep<
+    { _id: ObjectId; preferences?: { backgroundColor?: string } }[]
+  >,
+> {
+  userId: ObjectId;
+  noteId: ObjectId;
+  noteUsers: T;
+  newBackgroundColor: string;
+  loader: QueryableNoteLoader;
+}
+
+export function primeNewBackgroundColor<
+  T extends MongoReadonlyDeep<
+    { _id: ObjectId; preferences?: { backgroundColor?: string } }[]
+  >,
+>({
+  userId,
+  noteId,
+  noteUsers,
+  newBackgroundColor,
+  loader,
+}: PrimeNewBackgroundColorParams<T>) {
+  loader.prime(
+    {
+      id: {
+        userId,
+        noteId,
+      },
+      query: {
+        users: {
+          preferences: {
+            backgroundColor: 1,
           },
         },
       },
-      {
-        users: note.users?.map((noteUser) => {
+    },
+    {
+      result: {
+        users: noteUsers.map((noteUser) => {
           const isOtherUser = !userId.equals(noteUser._id);
           if (isOtherUser) {
             return noteUser;
@@ -94,14 +124,13 @@ export async function updateNoteBackgroundColorWithLoader({
             ...noteUser,
             preferences: {
               ...noteUser.preferences,
-              backgroundColor,
+              backgroundColor: newBackgroundColor,
             },
           };
         }),
       },
-      { clearCache: true }
-    );
-  }
-
-  return;
+      type: 'validated',
+    },
+    { clearCache: true }
+  );
 }

@@ -6,7 +6,7 @@ import { Maybe, WithRequired } from '~utils/types';
 import { isDefined } from '~utils/type-guards/is-defined';
 import { QueryableNote, QueryableNoteCollab } from '../../mongodb/descriptions/note';
 import { QueryableUserLoader } from '../../mongodb/loaders/queryable-user-loader';
-import { ObjectQueryDeep, QueryResultDeep } from '../../mongodb/query/query';
+import { QueryResultDeep, StrictMongoQueryFn } from '../../mongodb/query/query';
 import { CollabSchema } from '../../mongodb/schema/collab';
 import { getNotesArrayPath } from '../user/user';
 import { objectIdToStr } from '../../mongodb/utils/objectid';
