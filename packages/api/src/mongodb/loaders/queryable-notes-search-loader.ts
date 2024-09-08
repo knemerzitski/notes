@@ -9,20 +9,20 @@ import { LoaderEvents } from '../loaders';
 
 import {
   getPaginationKey,
-  isAfterBoundPagination,
-  isAfterPagination,
-  isBeforeBoundPagination,
-  isBeforePagination,
-  isFirstPagination,
-  isLastPagination,
+  RelayAfterBoundPagination,
+  RelayAfterPagination,
+  RelayBeforeBoundPagination,
+  RelayBeforePagination,
+  RelayFirstPagination,
+  RelayLastPagination,
   RelayPagination,
 } from '../pagination/relay-array-pagination';
 
 import { DeepAnyDescription } from '../query/description';
 import { mapQueryAggregateResult } from '../query/map-query-aggregate-result';
-import { MergedObjectQueryDeep, mergeQueries } from '../query/merge-queries';
+import { MergedQueryDeep, mergeQueries } from '../query/merge-queries';
 import { mergedQueryToPipeline } from '../query/merged-query-to-pipeline';
-import { QueryResultDeep } from '../query/query';
+import { MongoQueryFn, PartialQueryResultDeep, QueryDeep } from '../query/query';
 import { fieldsRemoved } from '../query/utils/fields-removed';
 import { NoteSearchIndexName } from '../schema/note';
 import {
@@ -32,11 +32,16 @@ import {
 } from '../descriptions/note';
 
 import {
+  CreateQueryFnOptions,
+  LoadOptions,
   QueryLoader,
-  QueryLoaderCacheKey,
   QueryLoaderContext,
   QueryLoaderEvents,
+  QueryLoaderKey,
+  SessionOptions,
 } from './query-loader';
+import { array, Infer, InferRaw, object, string } from 'superstruct';
+import { STRUCT_STRING } from '../constants';
 
 export interface QueryableNotesSearchId {
   /**
@@ -53,15 +58,18 @@ export interface QueryableNotesSearchId {
   pagination?: RelayPagination<string>;
 }
 
-export interface QueryableSearchNote {
-  note: QueryableNote;
-  cursor: string;
-}
+export const QueryableSearchNote = object({
+  note: QueryableNote,
+  cursor: string(),
+});
 
-export type QueryableNotesSearchLoaderKey = QueryLoaderCacheKey<
+export const QueryableSearchNotes = array(QueryableSearchNote);
+
+export type QueryableNotesSearchLoaderKey = QueryLoaderKey<
   QueryableNotesSearchId,
-  QueryableSearchNote
->;
+  InferRaw<typeof QueryableSearchNotes>,
+  QueryableNotesSearchLoadContext
+>['cache'];
 
 export interface QueryableNotesSearchLoaderParams {
   eventBus?: Emitter<LoaderEvents>;
@@ -85,21 +93,14 @@ type RequestContext = AggregateOptions['session'];
 export class QueryableNotesSearchLoader {
   private readonly loader: QueryLoader<
     QueryableNotesSearchId,
-    QueryableSearchNote,
+    typeof QueryableSearchNotes,
     GlobalContext,
-    RequestContext,
-    QueryableSearchNote[]
+    RequestContext
   >;
 
   constructor(params: Readonly<QueryableNotesSearchLoaderParams>) {
     const loaderEventBus =
-      mitt<
-        QueryLoaderEvents<
-          QueryableNotesSearchId,
-          QueryableSearchNote,
-          QueryableSearchNote[]
-        >
-      >();
+      mitt<QueryLoaderEvents<QueryableNotesSearchId, typeof QueryableSearchNotes>>();
     if (params.eventBus) {
       loaderEventBus.on('loaded', (payload) => {
         params.eventBus?.emit('loadedNotesSearch', payload);
@@ -112,19 +113,40 @@ export class QueryableNotesSearchLoader {
         return queryableNotesSearchBatchLoad(keys, context);
       },
       context: params.context,
+      struct: QueryableSearchNotes,
     });
   }
 
-  async load(key: QueryableNotesSearchLoaderKey, session?: RequestContext) {
+  load<
+    V extends QueryDeep<Infer<typeof QueryableSearchNotes>>,
+    T extends 'any' | 'raw' | 'validated' = 'any',
+  >(
+    key: Parameters<typeof this.loader.load<V, T>>[0],
+    options?: SessionOptions<LoadOptions<RequestContext, T>>
+  ): ReturnType<typeof this.loader.load<V, T>> {
     return this.loader.load(key, {
-      context: session,
-      skipCache: session != null,
+      ...options,
+      context: options?.session,
+      clearCache: options?.session != null,
+    });
+  }
+
+  createQueryFn(
+    id: QueryableNotesSearchId,
+    options?: SessionOptions<
+      CreateQueryFnOptions<RequestContext, typeof QueryableSearchNotes>
+    >
+  ): MongoQueryFn<typeof QueryableSearchNotes> {
+    return this.loader.createQueryFn(id, {
+      ...options,
+      context: options?.session,
+      clearCache: options?.session != null,
     });
   }
 }
 
 const searchDescription: DeepAnyDescription<
-  QueryableSearchNote,
+  InferRaw<typeof QueryableSearchNotes>,
   unknown,
   QueryableNoteContext
 > = {
@@ -134,7 +156,7 @@ const searchDescription: DeepAnyDescription<
 export async function queryableNotesSearchBatchLoad(
   keys: readonly QueryableNotesSearchLoaderKey[],
   context: QueryableNotesSearchLoadContext
-): Promise<QueryResultDeep<QueryableSearchNote[]>[]> {
+): Promise<(PartialQueryResultDeep<InferRaw<typeof QueryableSearchNotes>> | Error)[]> {
   const userIdToKeys = groupBy(keys, (item) => item.id.userId.toHexString());
 
   const userIdToArgsToAggregateResults = Object.fromEntries(
@@ -175,19 +197,19 @@ export async function queryableNotesSearchBatchLoad(
                 let searchAfter: string | undefined;
                 let searchBefore: string | undefined;
                 if (pagination) {
-                  if (isAfterPagination(pagination)) {
+                  if (RelayAfterPagination(STRUCT_STRING).is(pagination)) {
                     searchAfter = pagination.after;
-                    if (isAfterBoundPagination(pagination)) {
+                    if (RelayAfterBoundPagination(STRUCT_STRING).is(pagination)) {
                       limit = pagination.first;
                     }
-                  } else if (isBeforePagination(pagination)) {
+                  } else if (RelayBeforePagination(STRUCT_STRING).is(pagination)) {
                     searchBefore = pagination.before;
-                    if (isBeforeBoundPagination(pagination)) {
+                    if (RelayBeforeBoundPagination(STRUCT_STRING).is(pagination)) {
                       limit = pagination.last;
                     }
-                  } else if (isFirstPagination(pagination)) {
+                  } else if (RelayFirstPagination.is(pagination)) {
                     limit = pagination.first;
-                  } else if (isLastPagination(pagination)) {
+                  } else if (RelayLastPagination.is(pagination)) {
                     limit = pagination.last;
                     sortReverse = true;
                   }
@@ -219,7 +241,7 @@ export async function queryableNotesSearchBatchLoad(
                             must: [
                               {
                                 text: {
-                                  path: 'collabTexts.v.headText.changeset',
+                                  path: 'collab.texts.v.headText.changeset',
                                   query: searchText,
                                 },
                               },
@@ -277,7 +299,10 @@ export async function queryableNotesSearchBatchLoad(
     string,
     Record<
       string,
-      { notesResult: Document[]; mergedQuery: MergedObjectQueryDeep<QueryableSearchNote> }
+      {
+        notesResult: Document[];
+        mergedQuery: MergedQueryDeep<InferRaw<typeof QueryableSearchNotes>>;
+      }
     >
   >;
 
@@ -300,5 +325,8 @@ export async function queryableNotesSearchBatchLoad(
 }
 
 function notesSearchIdToStr(key: QueryableNotesSearchId) {
-  return key.searchText + (key.pagination ? ':' + getPaginationKey(key.pagination) : '');
+  return (
+    key.searchText +
+    (key.pagination ? ':' + getPaginationKey(key.pagination, STRUCT_STRING) : '')
+  );
 }

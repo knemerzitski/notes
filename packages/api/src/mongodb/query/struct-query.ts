@@ -1,5 +1,4 @@
 import { Struct, InferRaw, Infer, create } from 'superstruct';
-import { isPlainObject } from 'superstruct/dist/utils';
 import { pickdeep } from '~utils/superstruct/pickdeep';
 import { MaybePromise, Maybe } from '~utils/types';
 import {
@@ -14,6 +13,7 @@ import {
 } from './query';
 import { valueToQuery } from './utils/value-to-query';
 import { memoize1 } from '~utils/memoize1';
+import { isPlainObject } from '~utils/type-guards/is-plain-object';
 
 // util func
 

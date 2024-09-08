@@ -59,18 +59,23 @@ export const noteSearchIndexDescriptions: SearchIndexDescription[] = [
             },
           },
           // collabTexts headText changeset string value
-          collabTexts: {
+          collab: {
             type: 'document',
             fields: {
-              v: {
+              texts: {
                 type: 'document',
                 fields: {
-                  headText: {
+                  v: {
                     type: 'document',
                     fields: {
-                      changeset: {
-                        type: 'string',
-                        analyzer: 'lucene.english',
+                      headText: {
+                        type: 'document',
+                        fields: {
+                          changeset: {
+                            type: 'string',
+                            analyzer: 'lucene.english',
+                          },
+                        },
                       },
                     },
                   },
