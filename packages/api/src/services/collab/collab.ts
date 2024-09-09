@@ -1,9 +1,4 @@
-import { Changeset } from '~collab/changeset/changeset';
-import {
-  RevisionRecordSchema,
-  SelectionRangeSchema,
-  CollabTextSchema,
-} from '../../mongodb/schema/collab-text';
+import { RevisionRecordSchema, CollabTextSchema } from '../../mongodb/schema/collab-text';
 import { QueryableUserLoader } from '../../mongodb/loaders/queryable-user-loader';
 import { StrictMongoQueryFn } from '../../mongodb/query/query';
 import { isQueryOnlyId } from '../../mongodb/query/utils/is-query-only-id';
@@ -11,53 +6,6 @@ import { InferRaw } from 'superstruct';
 import { StructQuery } from '../../mongodb/query/struct-query';
 import { QueryableCollabText } from '../../mongodb/descriptions/collab-text';
 import { QueryableRevisionRecord } from '../../mongodb/descriptions/revision-record';
-
-interface CreateCollabTextParams {
-  creatorUserId: RevisionRecordSchema['creatorUserId'];
-  initialText: string;
-  afterSelection?: SelectionRangeSchema;
-}
-
-/**
- * Create CollabText with inital values
- */
-export function createCollabText({
-  initialText,
-  creatorUserId,
-  afterSelection,
-}: CreateCollabTextParams): InferRaw<typeof CollabTextSchema> & {
-  records: [
-    InferRaw<typeof CollabTextSchema>['records'][0],
-    ...InferRaw<typeof CollabTextSchema>['records'],
-  ];
-} {
-  const changeset = Changeset.fromInsertion(initialText).serialize();
-  return {
-    headText: {
-      revision: 1,
-      changeset,
-    },
-    tailText: {
-      revision: 0,
-      changeset: Changeset.EMPTY.serialize(),
-    },
-    records: [
-      {
-        creatorUserId,
-        userGeneratedId: '',
-        revision: 1,
-        changeset,
-        beforeSelection: {
-          start: 0,
-        },
-        afterSelection: afterSelection ?? {
-          start: initialText.length,
-        },
-        createdAt: new Date(),
-      },
-    ],
-  };
-}
 
 export interface QueryWithCollabTextSchemaParams {
   collabText: InferRaw<typeof CollabTextSchema>;

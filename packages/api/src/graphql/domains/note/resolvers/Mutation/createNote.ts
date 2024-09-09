@@ -12,8 +12,9 @@ import {
 } from '../../../../../mongodb/utils/retry-on-mongo-error';
 import { groupByFirst } from '~utils/array/group-by';
 import mapObject from 'map-obj';
-import { insertNewNote, queryWithNoteSchema } from '../../../../../services/note/note';
+import { queryWithNoteSchema } from '../../../../../services/note/note';
 import { assertAuthenticated } from '../../../../../services/auth/auth';
+import { insertNote } from '../../../../../services/note/insert-note';
 
 const _createNote: NonNullable<MutationResolvers['createNote']> = async (
   _parent,
@@ -34,7 +35,7 @@ const _createNote: NonNullable<MutationResolvers['createNote']> = async (
       )
     : null;
 
-  const note = await insertNewNote({
+  const note = await insertNote({
     mongoDB,
     userId: currentUserId,
     categoryName: input.userNoteLink?.categoryName ?? NoteCategory.DEFAULT,

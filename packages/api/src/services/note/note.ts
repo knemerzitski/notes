@@ -6,91 +6,19 @@ import { Maybe, WithRequired } from '~utils/types';
 import { isDefined } from '~utils/type-guards/is-defined';
 import { QueryableNote, QueryableNoteCollab } from '../../mongodb/descriptions/note';
 import { QueryableUserLoader } from '../../mongodb/loaders/queryable-user-loader';
-import { QueryResultDeep, StrictMongoQueryFn } from '../../mongodb/query/query';
+import {
+  PartialQueryResultDeep,
+  QueryResultDeep,
+  StrictMongoQueryFn,
+} from '../../mongodb/query/query';
 import { CollabSchema } from '../../mongodb/schema/collab';
 import { getNotesArrayPath } from '../user/user';
-import { objectIdToStr } from '../../mongodb/utils/objectid';
 import { MongoDBLoaders } from '../../mongodb/loaders';
-import {
-  NoteNotFoundServiceError,
-  NoteUserNotFoundServiceError,
-  NoteUserUnauthorizedServiceError,
-} from './errors';
+import { NoteNotFoundServiceError } from './errors';
 import { StructQuery } from '../../mongodb/query/struct-query';
 import { InferRaw } from 'superstruct';
 import { DBNoteSchema } from '../../mongodb/schema/note';
 import { MongoReadonlyDeep } from '../../mongodb/types';
-
-interface InsertNewNoteParams {
-  mongoDB: {
-    client: MongoClient;
-    collections: Pick<MongoDBCollections, CollectionName.NOTES | CollectionName.USERS>;
-  };
-  userId: ObjectId;
-  backgroundColor?: Maybe<string>;
-  categoryName: string;
-  collabTexts?: Maybe<Record<string, { initialText: string }>>;
-}
-
-export async function insertNewNote({
-  mongoDB,
-  userId,
-  backgroundColor,
-  categoryName,
-  collabTexts,
-}: InsertNewNoteParams) {
-  let preferences: NoteUserSchema['preferences'] | undefined;
-  if (backgroundColor) {
-    preferences = {
-      backgroundColor,
-    };
-  }
-  const noteUser: NoteUserSchema = {
-    _id: userId,
-    createdAt: new Date(),
-    categoryName,
-    ...(preferences && { preferences }),
-  };
-
-  const note: DBNoteSchema = {
-    _id: new ObjectId(),
-    users: [noteUser],
-    ...(collabTexts && {
-      collab: {
-        updatedAt: new Date(),
-        texts: Object.entries(collabTexts).map(([key, value]) => ({
-          k: key,
-          v: createCollabText({
-            creatorUserId: userId,
-            initialText: value.initialText,
-          }),
-        })),
-      },
-    }),
-  };
-
-  await mongoDB.client.withSession((session) =>
-    session.withTransaction(async (session) => {
-      // First request must not be done in parallel or you get NoSuchTransaction error
-      await mongoDB.collections.notes.insertOne(note, { session });
-
-      // Now can do requests in parellel
-      await mongoDB.collections.users.updateOne(
-        {
-          _id: userId,
-        },
-        {
-          $push: {
-            [getNotesArrayPath(noteUser.categoryName)]: note._id,
-          },
-        },
-        { session }
-      );
-    })
-  );
-
-  return note;
-}
 
 interface UpdateMoveNoteParams {
   mongoDB: {
