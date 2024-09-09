@@ -1,11 +1,11 @@
-import { Collection, ObjectId } from 'mongodb';
-import { DBNoteSchema } from '../../schema/note';
+import { ClientSession, ObjectId } from 'mongodb';
+import { MongoDBCollections, CollectionName } from '../../collections';
 
 interface UpdateBackgroundColorParams {
-  /**
-   * Collection to update
-   */
-  collection: Collection<DBNoteSchema>;
+  mongoDB: {
+    session?: ClientSession;
+    collections: Pick<MongoDBCollections, CollectionName.NOTES>;
+  };
   /**
    * User who can access the note
    */
@@ -24,13 +24,13 @@ interface UpdateBackgroundColorParams {
  * Update specific user note background color
  */
 export function updateBackgroundColor({
-  collection,
+  mongoDB,
   userId,
   noteId,
   backgroundColor,
 }: UpdateBackgroundColorParams) {
   const noteUserArrayFilter = 'noteUser';
-  return collection.updateOne(
+  return mongoDB.collections.notes.updateOne(
     {
       _id: noteId,
     },
@@ -45,6 +45,7 @@ export function updateBackgroundColor({
           [`${noteUserArrayFilter}._id`]: userId,
         },
       ],
+      session: mongoDB.session,
     }
   );
 }

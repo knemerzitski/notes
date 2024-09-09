@@ -3,7 +3,7 @@ import { MongoDBCollections, CollectionName } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
 import { findNoteUser } from './note';
 import { NoteNotFoundServiceError } from './errors';
-import { updateBackgroundColor as mongoDB_updateBackgroundColor } from '../../mongodb/models/note/update-background-color';
+import { updateBackgroundColor as model_updateBackgroundColor } from '../../mongodb/models/note/update-background-color';
 
 interface UpdateBackgroundColorParams {
   mongoDB: {
@@ -62,8 +62,8 @@ export async function updateBackgroundColor({
     };
   }
 
-  await mongoDB_updateBackgroundColor({
-    collection: mongoDB.collections.notes,
+  await model_updateBackgroundColor({
+    mongoDB,
     userId,
     noteId,
     backgroundColor,

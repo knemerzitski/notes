@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
 
@@ -25,7 +25,10 @@ import {
 } from '../../../../../__test__/helpers/mongodb/mongodb';
 import { fakeNotePopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/note';
 import { userAddNote } from '../../../../../__test__/helpers/mongodb/populate/populate';
-import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/populate/populate-queue';
+import {
+  populateExecuteAll,
+  populateQueue,
+} from '../../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/user';
 import { DBNoteSchema } from '../../../../../mongodb/schema/note';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
@@ -37,6 +40,7 @@ import {
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { signedInUserTopic } from '../../../user/resolvers/Subscription/signedInUserEvents';
 import { UserNoteLink_id } from '../../../../../services/note/user-note-link-id';
+import * as model_deleteNote from '../../../../../mongodb/models/note/delete-note';
 
 const MUTATION = `#graphql
   mutation($input: DeleteNoteInput!){
@@ -314,6 +318,62 @@ it('oldest user deletes other user note', async () => {
       ],
     })
   );
+});
+
+it('new note user is added while note is being deleted: note user will not have dangling note reference', async () => {
+  const originalDeleteNote = model_deleteNote.deleteNote;
+  const spyDeleteNote = vi.spyOn(model_deleteNote, 'deleteNote');
+
+  const newDanglingUser = fakeUserPopulateQueue({
+    override: {
+      profile: {
+        displayName: 'user with dangling note',
+      },
+    },
+  });
+  async function addNoteUser() {
+    userAddNote(newDanglingUser, note, {
+      override: {
+        categoryName: NoteCategory.DEFAULT,
+      },
+    });
+    populateQueue(() => mongoCollections.notes.replaceOne({ _id: note._id }, note));
+    await populateExecuteAll();
+  }
+
+  spyDeleteNote.mockImplementationOnce((...args) => {
+    return addNoteUser().then(() => originalDeleteNote(...args));
+  });
+
+  const response = await executeOperation(
+    {
+      noteId: note._id,
+    },
+    { user: userOldest }
+  );
+
+  expectGraphQLResponseData(response);
+
+  expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(7);
+
+  // Database, User
+  const dbUsers = await mongoCollections.users
+    .find({
+      _id: newDanglingUser._id,
+    })
+    .toArray();
+
+  expect(dbUsers).toEqual([
+    expect.objectContaining({
+      notes: {
+        category: {
+          [NoteCategory.DEFAULT]: {
+            order: [],
+          },
+        },
+      },
+    }),
+  ]);
 });
 
 describe('errors', () => {

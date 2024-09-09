@@ -1,10 +1,10 @@
-import { deleteNoteWithScope } from '../../../../../services/note/note';
 import { DeleteNotePayload, type MutationResolvers } from '../../../types.generated';
 import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';
 import { ObjectId } from 'mongodb';
 import { assertAuthenticated } from '../../../../../services/auth/auth';
 import { WithRequired } from '~utils/types';
 import { UserNoteLink_id } from '../../../../../services/note/user-note-link-id';
+import { deleteNote as service_deleteNote } from '../../../../../services/note/delete-note';
 
 export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
   _parent,
@@ -20,7 +20,7 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
 
   const targetUserId = input.userId ?? currentUserId;
 
-  const { type: noteDeleteType, note } = await deleteNoteWithScope({
+  const { type: noteDeleteType, note } = await service_deleteNote({
     mongoDB,
     noteId: input.noteId,
     scopeUserId: currentUserId,
