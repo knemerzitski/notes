@@ -441,7 +441,7 @@ export interface RelayArrayPaginationAggregateResult<TItem> {
    * Array containing all paginations.
    * Order of array: [maxFirst, maxLast, ...after, ...before].
    */
-  array: TItem[];
+  array: readonly TItem[];
   /**
    * Size of slices for pagination in {@link array}.
    * Order of sizes: [maxFirst, maxLast, ...after, ...before]
@@ -719,7 +719,7 @@ export function relayArrayPaginationMapAggregateResult<TCursor, TItem>(
   allPaginations: RelayArrayPaginationInput<TCursor>['paginations'] = [],
   aggregateResult: RelayArrayPaginationAggregateResult<TItem>,
   cursor: Struct<TCursor, null>
-): TItem[] {
+): readonly TItem[] {
   if (!pagination || aggregateResult.array.length === 0) {
     return aggregateResult.array;
   }

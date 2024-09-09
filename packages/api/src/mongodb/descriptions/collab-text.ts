@@ -14,6 +14,7 @@ import { CollabTextSchema, RevisionRecordSchema } from '../schema/collab-text';
 import { QueryableRevisionRecord } from './revision-record';
 import { PartialQueryResultDeep } from '../query/query';
 import { array, assign, InferRaw, number, object, omit, optional } from 'superstruct';
+import { StructQuery } from '../query/struct-query';
 
 type RecordsPaginationOperationOptions = Omit<
   RelayArrayPaginationInput<number>,
@@ -34,7 +35,9 @@ function recordsPagination(options: RecordsPaginationOperationOptions) {
 }
 
 function recordsPaginationMapAggregateResult<
-  T extends Partial<Pick<RevisionRecordSchema, 'revision'>>,
+  T extends PartialQueryResultDeep<
+    Pick<InferRaw<typeof RevisionRecordSchema>, 'revision'>
+  >,
 >(
   pagination: NonNullable<RelayArrayPaginationInput<number>['paginations']>[0],
   result: RelayArrayPaginationAggregateResult<T>
@@ -42,12 +45,14 @@ function recordsPaginationMapAggregateResult<
   return consecutiveIntArrayPaginationMapAggregateResult(pagination, result, toCursor);
 }
 
-function toCursor(record?: Partial<Pick<RevisionRecordSchema, 'revision'>>) {
-  const revision = record?.revision;
-  if (revision == null) {
-    throw new Error('Expected record.revision to be defined');
-  }
-  return revision;
+function toCursor(
+  record: PartialQueryResultDeep<Pick<InferRaw<typeof RevisionRecordSchema>, 'revision'>>
+) {
+  const validatedRevision = StructQuery.get(
+    QueryableRevisionRecord.schema.revision
+  ).rawValueToValidated(record.revision);
+
+  return validatedRevision;
 }
 
 export const QueryableCollabText = assign(
