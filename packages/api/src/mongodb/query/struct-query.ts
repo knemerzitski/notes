@@ -10,6 +10,7 @@ import {
   PartialQueryResultDeep,
   MongoQueryFn,
   StrictMongoQueryFn,
+  QueryResultDeep,
 } from './query';
 import { valueToQuery } from './utils/value-to-query';
 import { memoize1 } from '~utils/memoize1';
@@ -49,18 +50,18 @@ export class StructQuery<S extends Struct<any, any, any>> {
   }
 
   rawValueToValidated<V extends QueryDeep<InferRaw<S>>>(
-    rawValue: PartialQueryResultDeep<InferRaw<S>>,
+    rawValue: Maybe<PartialQueryResultDeep<InferRaw<S>>>,
     query = valueToQuery(rawValue) as V
-  ): PartialQueryResultDeep<Infer<S>> {
+  ): QueryResultDeep<Infer<S>, V> {
     // convert value to query???
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-explicit-any
     return create(rawValue, this.getSubStructForQuery(query)) as any;
   }
 
   validatedValueToRaw<V extends QueryDeep<Infer<S>>>(
-    validatedValue: PartialQueryResultDeep<Infer<S>>,
+    validatedValue: Maybe<PartialQueryResultDeep<Infer<S>>>,
     query = valueToQuery(validatedValue) as V
-  ): PartialQueryResultDeep<InferRaw<S>> {
+  ): QueryResultDeep<InferRaw<S>, V> {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     return create(
       validatedValue,
