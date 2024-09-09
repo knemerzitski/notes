@@ -67,8 +67,8 @@ const SUBSCRIPTION = `#graphql
   }
 `;
 
-let userOldest: DBUserSchema;
-let userNewer: DBUserSchema;
+let userOwner: DBUserSchema;
+let userNotOwner: DBUserSchema;
 let userNoAccess: DBUserSchema;
 
 let note: DBNoteSchema;
@@ -78,24 +78,25 @@ beforeEach(async () => {
   faker.seed(778);
   await resetDatabase();
 
-  userOldest = fakeUserPopulateQueue();
-  note = fakeNotePopulateQueue(userOldest);
-  userAddNote(userOldest, note, {
+  userOwner = fakeUserPopulateQueue();
+  note = fakeNotePopulateQueue(userOwner);
+  userAddNote(userOwner, note, {
     override: {
       categoryName: NoteCategory.DEFAULT,
     },
   });
 
-  noteSecond = fakeNotePopulateQueue(userOldest);
-  userAddNote(userOldest, noteSecond, {
+  noteSecond = fakeNotePopulateQueue(userOwner);
+  userAddNote(userOwner, noteSecond, {
     override: {
       categoryName: NoteCategory.DEFAULT,
     },
   });
 
-  userNewer = fakeUserPopulateQueue();
-  userAddNote(userNewer, note, {
+  userNotOwner = fakeUserPopulateQueue();
+  userAddNote(userNotOwner, note, {
     override: {
+      isOwner: false,
       categoryName: NoteCategory.DEFAULT,
     },
   });
@@ -129,12 +130,12 @@ async function executeOperation(
   );
 }
 
-it('oldest user deletes note for everyone', async () => {
+it('only owner user deletes note for everyone', async () => {
   const response = await executeOperation(
     {
       noteId: note._id,
     },
-    { user: userOldest }
+    { user: userOwner }
   );
 
   const data = expectGraphQLResponseData(response);
@@ -143,8 +144,8 @@ it('oldest user deletes note for everyone', async () => {
   expect(data).toEqual({
     deleteNote: {
       noteId: objectIdToStr(note._id),
-      userNoteLinkId: UserNoteLink_id(note._id, userOldest._id),
-      publicUserNoteLinkId: UserNoteLink_id(note._id, userOldest._id),
+      userNoteLinkId: UserNoteLink_id(note._id, userOwner._id),
+      publicUserNoteLinkId: UserNoteLink_id(note._id, userOwner._id),
     },
   });
 
@@ -154,7 +155,7 @@ it('oldest user deletes note for everyone', async () => {
   const dbUsers = await mongoCollections.users
     .find({
       _id: {
-        $in: [userOldest._id, userNewer._id],
+        $in: [userOwner._id, userNotOwner._id],
       },
     })
     .toArray();
@@ -187,12 +188,12 @@ it('oldest user deletes note for everyone', async () => {
   expect(dbNote).toBeNull();
 });
 
-it('newer user deletes note only for self', async () => {
+it('other user deletes note only for self', async () => {
   const response = await executeOperation(
     {
       noteId: note._id,
     },
-    { user: userNewer }
+    { user: userNotOwner }
   );
 
   const data = expectGraphQLResponseData(response);
@@ -201,8 +202,8 @@ it('newer user deletes note only for self', async () => {
   expect(data).toEqual({
     deleteNote: {
       noteId: null,
-      userNoteLinkId: UserNoteLink_id(note._id, userNewer._id),
-      publicUserNoteLinkId: UserNoteLink_id(note._id, userNewer._id),
+      userNoteLinkId: UserNoteLink_id(note._id, userNotOwner._id),
+      publicUserNoteLinkId: UserNoteLink_id(note._id, userNotOwner._id),
     },
   });
 
@@ -212,7 +213,7 @@ it('newer user deletes note only for self', async () => {
   const dbUsers = await mongoCollections.users
     .find({
       _id: {
-        $in: [userOldest._id, userNewer._id],
+        $in: [userOwner._id, userNotOwner._id],
       },
     })
     .toArray();
@@ -246,20 +247,20 @@ it('newer user deletes note only for self', async () => {
     expect.objectContaining({
       users: [
         expect.objectContaining({
-          _id: userOldest._id,
+          _id: userOwner._id,
         }),
       ],
     })
   );
 });
 
-it('oldest user deletes other user note', async () => {
+it('owner user deletes other user note', async () => {
   const response = await executeOperation(
     {
       noteId: note._id,
-      userId: userNewer._id,
+      userId: userNotOwner._id,
     },
-    { user: userOldest }
+    { user: userOwner }
   );
 
   const data = expectGraphQLResponseData(response);
@@ -269,7 +270,7 @@ it('oldest user deletes other user note', async () => {
     deleteNote: {
       noteId: null,
       userNoteLinkId: null,
-      publicUserNoteLinkId: UserNoteLink_id(note._id, userNewer._id),
+      publicUserNoteLinkId: UserNoteLink_id(note._id, userNotOwner._id),
     },
   });
 
@@ -279,7 +280,7 @@ it('oldest user deletes other user note', async () => {
   const dbUsers = await mongoCollections.users
     .find({
       _id: {
-        $in: [userOldest._id, userNewer._id],
+        $in: [userOwner._id, userNotOwner._id],
       },
     })
     .toArray();
@@ -313,14 +314,14 @@ it('oldest user deletes other user note', async () => {
     expect.objectContaining({
       users: [
         expect.objectContaining({
-          _id: userOldest._id,
+          _id: userOwner._id,
         }),
       ],
     })
   );
 });
 
-it('new note user is added while note is being deleted: note user will not have dangling note reference', async () => {
+it('new other note user is added while note is being deleted: note user will not have dangling note reference', async () => {
   const originalDeleteNote = model_deleteNote.deleteNote;
   const spyDeleteNote = vi.spyOn(model_deleteNote, 'deleteNote');
 
@@ -334,6 +335,7 @@ it('new note user is added while note is being deleted: note user will not have 
   async function addNoteUser() {
     userAddNote(newDanglingUser, note, {
       override: {
+        isOwner: false,
         categoryName: NoteCategory.DEFAULT,
       },
     });
@@ -349,7 +351,7 @@ it('new note user is added while note is being deleted: note user will not have 
     {
       noteId: note._id,
     },
-    { user: userOldest }
+    { user: userOwner }
   );
 
   expectGraphQLResponseData(response);
@@ -382,7 +384,7 @@ describe('errors', () => {
       {
         noteId: new ObjectId(),
       },
-      { user: userOldest }
+      { user: userOwner }
     );
 
     expectGraphQLResponseError(response, /Note '.+' not found/);
@@ -409,7 +411,7 @@ describe('errors', () => {
 });
 
 describe('subscription', () => {
-  it('oldest user note deletion is published correctly', async () => {
+  it('owner user note deletion is published correctly', async () => {
     mockSubscriptionsModel.queryAllByTopic.mockResolvedValue([
       {
         subscription: {
@@ -423,7 +425,7 @@ describe('subscription', () => {
         noteId: note._id,
       },
       {
-        user: userOldest,
+        user: userOwner,
         createPublisher: createMockedPublisher,
       }
     );
@@ -431,11 +433,11 @@ describe('subscription', () => {
 
     expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenNthCalledWith(
       1,
-      signedInUserTopic(userOldest._id)
+      signedInUserTopic(userOwner._id)
     );
     expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenNthCalledWith(
       2,
-      signedInUserTopic(userNewer._id)
+      signedInUserTopic(userNotOwner._id)
     );
     expect(mockSubscriptionsModel.queryAllByTopic).toBeCalledTimes(2);
 
@@ -449,8 +451,8 @@ describe('subscription', () => {
                 {
                   __typename: 'DeleteNotePayload',
                   noteId: objectIdToStr(note._id),
-                  userNoteLinkId: UserNoteLink_id(note._id, userOldest._id),
-                  publicUserNoteLinkId: UserNoteLink_id(note._id, userOldest._id),
+                  userNoteLinkId: UserNoteLink_id(note._id, userOwner._id),
+                  publicUserNoteLinkId: UserNoteLink_id(note._id, userOwner._id),
                 },
               ],
             },
@@ -468,8 +470,8 @@ describe('subscription', () => {
                 {
                   __typename: 'DeleteNotePayload',
                   noteId: objectIdToStr(note._id),
-                  userNoteLinkId: UserNoteLink_id(note._id, userNewer._id),
-                  publicUserNoteLinkId: UserNoteLink_id(note._id, userNewer._id),
+                  userNoteLinkId: UserNoteLink_id(note._id, userNotOwner._id),
+                  publicUserNoteLinkId: UserNoteLink_id(note._id, userNotOwner._id),
                 },
               ],
             },
@@ -480,7 +482,7 @@ describe('subscription', () => {
     expect(mockSocketApi.post).toBeCalledTimes(2);
   });
 
-  it('newer user note deletion is published correctly', async () => {
+  it('other user note deletion is published correctly', async () => {
     mockSubscriptionsModel.queryAllByTopic.mockResolvedValue([
       {
         subscription: {
@@ -494,7 +496,7 @@ describe('subscription', () => {
         noteId: note._id,
       },
       {
-        user: userNewer,
+        user: userNotOwner,
         createPublisher: createMockedPublisher,
       }
     );
@@ -502,11 +504,11 @@ describe('subscription', () => {
 
     expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenNthCalledWith(
       1,
-      signedInUserTopic(userOldest._id)
+      signedInUserTopic(userOwner._id)
     );
     expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenNthCalledWith(
       2,
-      signedInUserTopic(userNewer._id)
+      signedInUserTopic(userNotOwner._id)
     );
     expect(mockSubscriptionsModel.queryAllByTopic).toBeCalledTimes(2);
 
@@ -521,7 +523,7 @@ describe('subscription', () => {
                   __typename: 'DeleteNotePayload',
                   noteId: null,
                   userNoteLinkId: null,
-                  publicUserNoteLinkId: UserNoteLink_id(note._id, userNewer._id),
+                  publicUserNoteLinkId: UserNoteLink_id(note._id, userNotOwner._id),
                 },
               ],
             },
@@ -539,8 +541,8 @@ describe('subscription', () => {
                 {
                   __typename: 'DeleteNotePayload',
                   noteId: null,
-                  userNoteLinkId: UserNoteLink_id(note._id, userNewer._id),
-                  publicUserNoteLinkId: UserNoteLink_id(note._id, userNewer._id),
+                  userNoteLinkId: UserNoteLink_id(note._id, userNotOwner._id),
+                  publicUserNoteLinkId: UserNoteLink_id(note._id, userNotOwner._id),
                 },
               ],
             },
@@ -551,7 +553,7 @@ describe('subscription', () => {
     expect(mockSocketApi.post).toHaveBeenCalledTimes(2);
   });
 
-  it('older user deleting new user note is published correctly', async () => {
+  it('owner user deleting new user note is published correctly', async () => {
     mockSubscriptionsModel.queryAllByTopic.mockResolvedValue([
       {
         subscription: {
@@ -563,10 +565,10 @@ describe('subscription', () => {
     const response = await executeOperation(
       {
         noteId: note._id,
-        userId: userNewer._id,
+        userId: userNotOwner._id,
       },
       {
-        user: userOldest,
+        user: userOwner,
         createPublisher: createMockedPublisher,
       }
     );
@@ -574,11 +576,11 @@ describe('subscription', () => {
 
     expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenNthCalledWith(
       1,
-      signedInUserTopic(userOldest._id)
+      signedInUserTopic(userOwner._id)
     );
     expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenNthCalledWith(
       2,
-      signedInUserTopic(userNewer._id)
+      signedInUserTopic(userNotOwner._id)
     );
     expect(mockSubscriptionsModel.queryAllByTopic).toBeCalledTimes(2);
 
@@ -593,7 +595,7 @@ describe('subscription', () => {
                   __typename: 'DeleteNotePayload',
                   noteId: null,
                   userNoteLinkId: null,
-                  publicUserNoteLinkId: UserNoteLink_id(note._id, userNewer._id),
+                  publicUserNoteLinkId: UserNoteLink_id(note._id, userNotOwner._id),
                 },
               ],
             },
@@ -611,8 +613,8 @@ describe('subscription', () => {
                 {
                   __typename: 'DeleteNotePayload',
                   noteId: null,
-                  userNoteLinkId: UserNoteLink_id(note._id, userNewer._id),
-                  publicUserNoteLinkId: UserNoteLink_id(note._id, userNewer._id),
+                  userNoteLinkId: UserNoteLink_id(note._id, userNotOwner._id),
+                  publicUserNoteLinkId: UserNoteLink_id(note._id, userNotOwner._id),
                 },
               ],
             },

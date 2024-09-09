@@ -6,7 +6,7 @@ import {
   NoteUserNotFoundServiceError,
   NoteUserUnauthorizedServiceError,
 } from './errors';
-import { findNoteUser, isNoteUserOlder, isNoteUserOldest } from './note';
+import { findNoteUser, noteOwnersCount } from './note';
 import { deleteNote as model_deleteNote } from '../../mongodb/models/note/delete-note';
 import { deleteUserFromNote as model_deleteUserFromNote } from '../../mongodb/models/note/delete-user-from-note';
 
@@ -48,6 +48,7 @@ export function deleteNote({
             _id: 1,
             users: {
               _id: 1,
+              isOwner: 1,
               createdAt: 1,
               categoryName: 1,
             },
@@ -68,7 +69,11 @@ export function deleteNote({
         throw new NoteUserNotFoundServiceError(targetUserId, noteId);
       }
 
-      if (!isNoteUserOlder(scopeNoteUser, targetNoteUser)) {
+      const isSelfDelete = scopeNoteUser._id.equals(targetNoteUser._id);
+      const isOwner = scopeNoteUser.isOwner;
+      const isDeletingOtherUser = !isSelfDelete;
+
+      if (!isOwner && isDeletingOtherUser) {
         throw new NoteUserUnauthorizedServiceError(
           scopeNoteUser._id,
           targetNoteUser._id,
@@ -76,9 +81,9 @@ export function deleteNote({
         );
       }
 
-      const isTargetUserOldest = isNoteUserOldest(targetNoteUser, note);
-      if (isTargetUserOldest) {
-        // Target user is oldest: delete note completely
+      const isOnlyOwner = noteOwnersCount(note) <= 1;
+      if (isSelfDelete && isOwner && isOnlyOwner) {
+        // Target user is only owner of the note: delete note completely
         await model_deleteNote({
           mongoDB: {
             session,
@@ -92,7 +97,7 @@ export function deleteNote({
           note,
         };
       } else {
-        // Target user is not oldest: unlink note for self
+        // Target user is not: only unlink note
         await model_deleteUserFromNote({
           mongoDB: {
             session,

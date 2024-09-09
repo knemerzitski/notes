@@ -818,6 +818,12 @@ export function isNoteUserOldest<
   return oldestNoteUser._id.equals(noteUser._id);
 }
 
+export function noteOwnersCount<
+  T extends MongoReadonlyDeep<{ users: { isOwner?: boolean }[] }>,
+>(note: T) {
+  return note.users.reduce((count, noteUser) => count + (noteUser.isOwner ? 1 : 0), 0);
+}
+
 export function getNoteUsersIds<
   T extends MongoReadonlyDeep<{ users: readonly { _id: ObjectId }[] }>,
 >(note: T): ObjectId[] {

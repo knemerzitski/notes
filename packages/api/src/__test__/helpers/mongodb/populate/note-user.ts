@@ -27,6 +27,7 @@ export function fakeNoteUser(
     _id: user._id,
     readOnly: !!faker.number.int({ max: 1 }),
     categoryName: TestNoteCategory.MAIN,
+    isOwner: true,
     createdAt: new Date(Date.now() + createCounter++),
     ...override,
     preferences: {

@@ -16,8 +16,8 @@ type PublicUserNoteLink {
   id: ID!
   "Public user who can access the note"
   user: PublicUser!
-  "Time when user gained access to the note"
-  createdAt: DateTime!
+  "User is owner of the note"
+  isOwner: Boolean!
   "Access to note is read-only. User cannot modify note."
   readOnly: Boolean!
 }

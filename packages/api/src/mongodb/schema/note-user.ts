@@ -10,11 +10,15 @@ export const NoteUserSchema = object({
    */
   _id: instance(ObjectId),
   /**
-   * When user entry was created in note. User with older entry has more permissions over newer one.
-   * Only user with oldest createdAt can delete the note. Others can only remove the user entry.
+   * When user entry was created in note.
    * @default false
    */
   createdAt: date(),
+  /**
+   * Note owner can change properties of other note users: readOnly or delete user from note.
+   * @default false
+   */
+  isOwner: optional(boolean()),
   /**
    * Read-only note text cannot be modified.
    * @default false

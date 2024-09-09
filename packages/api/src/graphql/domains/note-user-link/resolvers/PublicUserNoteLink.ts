@@ -6,7 +6,7 @@ import { createMapQueryFn, MongoQueryFnStruct } from '../../../../mongodb/query/
 
 export const PublicUserNoteLink: Pick<
   PublicUserNoteLinkResolvers,
-  'createdAt' | 'id' | 'readOnly' | 'user'
+  'id' | 'isOwner' | 'readOnly' | 'user'
 > = {
   id: async (parent, _arg, _ctx) => {
     const [userId, noteId] = await Promise.all([
@@ -21,12 +21,14 @@ export const PublicUserNoteLink: Pick<
 
     return UserNoteLink_id(noteId, userId);
   },
-  createdAt: async (parent, _arg, _ctx) => {
+  isOwner: async (parent, _arg, _ctx) => {
     return (
-      await parent.query({
-        createdAt: 1,
-      })
-    )?.createdAt;
+      (
+        await parent.query({
+          isOwner: 1,
+        })
+      )?.isOwner ?? false
+    );
   },
   readOnly: async (parent, _arg, _ctx) => {
     return (
