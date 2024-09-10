@@ -1,13 +1,13 @@
-import { ClientSession, ObjectId } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { getNotesArrayPath } from '../../../services/user/user';
 import { MongoDBCollections, CollectionName } from '../../collections';
 import { MongoReadonlyDeep } from '../../types';
+import { TransactionContext } from '../../utils/with-transaction';
 
 interface DeleteUserFromNoteParams {
   mongoDB: {
-    session?: ClientSession;
     collections: Pick<MongoDBCollections, CollectionName.NOTES | CollectionName.USERS>;
-  };
+  } & Pick<TransactionContext, 'runSingleOperation'>;
   /**
    * Target note id
    */
@@ -24,31 +24,35 @@ export function deleteUserFromNote({
   noteUser,
 }: DeleteUserFromNoteParams) {
   return Promise.all([
-    mongoDB.collections.notes.updateOne(
-      {
-        _id: noteId,
-      },
-      {
-        $pull: {
-          users: {
-            _id: noteUser._id,
+    mongoDB.runSingleOperation((session) =>
+      mongoDB.collections.notes.updateOne(
+        {
+          _id: noteId,
+        },
+        {
+          $pull: {
+            users: {
+              _id: noteUser._id,
+            },
           },
         },
-      },
-      {
-        session: mongoDB.session,
-      }
+        {
+          session,
+        }
+      )
     ),
-    mongoDB.collections.users.updateOne(
-      {
-        _id: noteUser._id,
-      },
-      {
-        $pull: {
-          [getNotesArrayPath(noteUser.categoryName)]: noteId,
+    mongoDB.runSingleOperation((session) =>
+      mongoDB.collections.users.updateOne(
+        {
+          _id: noteUser._id,
         },
-      },
-      { session: mongoDB.session }
+        {
+          $pull: {
+            [getNotesArrayPath(noteUser.categoryName)]: noteId,
+          },
+        },
+        { session }
+      )
     ),
   ]);
 }
