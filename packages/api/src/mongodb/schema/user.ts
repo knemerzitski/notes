@@ -3,6 +3,7 @@ import { ObjectId } from 'mongodb';
 import { CollectionDescription } from '../collections';
 import {
   array,
+  defaulted,
   Infer,
   InferRaw,
   instance,
@@ -22,7 +23,7 @@ export const NoteCategorySchema = object({
 export type NoteCategorySchema = Infer<typeof NoteCategorySchema>;
 
 export const UserSchema = object({
-  _id: instance(ObjectId),
+  _id: defaulted(instance(ObjectId), () => new ObjectId()),
   /**
    * Any third-party related information
    */
@@ -42,12 +43,18 @@ export const UserSchema = object({
   profile: object({
     displayName: string(),
   }),
-  notes: object({
-    /**
-     * Key is enum value NoteCategory
-     */
-    category: record(string(), NoteCategorySchema),
-  }),
+  notes: defaulted(
+    defaulted(
+      object({
+        /**
+         * Key is enum value NoteCategory
+         */
+        category: defaulted(record(string(), NoteCategorySchema), () => ({})),
+      }),
+      () => ({})
+    ),
+    () => ({})
+  ),
 });
 
 export type DBUserSchema = InferRaw<typeof UserSchema>;

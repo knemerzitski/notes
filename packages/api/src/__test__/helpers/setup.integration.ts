@@ -4,6 +4,7 @@ import { afterAll, beforeAll } from 'vitest';
 import { createAllIndexes } from '../../mongodb/collections';
 
 import { mongoClient, mongoCollections } from './mongodb/mongodb';
+import './extend';
 
 beforeAll(async () => {
   faker.seed(125);

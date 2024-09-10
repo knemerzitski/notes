@@ -5,9 +5,7 @@ import {
   mongoCollectionStats,
   mongoCollections,
 } from '../../../__test__/helpers/mongodb/mongodb';
-import { populateExecuteAll } from '../../../__test__/helpers/mongodb/populate/populate-queue';
-import { fakeUserPopulateQueue } from '../../../__test__/helpers/mongodb/populate/user';
-import { DBUserSchema } from '../../schema/user';
+import { DBUserSchema, UserSchema } from '../../schema/user';
 import { updateDisplayName } from './update-display-name';
 
 let user: DBUserSchema;
@@ -16,15 +14,13 @@ beforeEach(async () => {
   faker.seed(5532);
   await resetDatabase();
 
-  user = fakeUserPopulateQueue({
-    override: {
-      profile: {
-        displayName: 'initial',
-      },
+  user = UserSchema.create({
+    profile: {
+      displayName: 'initial name',
     },
   });
 
-  await populateExecuteAll();
+  await mongoCollections.users.insertOne(user);
 
   mongoCollectionStats.mockClear();
 });
