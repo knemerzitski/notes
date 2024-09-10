@@ -36,15 +36,15 @@ import { fakeNotePopulateQueue } from '../../../../../__test__/helpers/mongodb/p
 import { userAddNote } from '../../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/user';
-import { NoteSchema } from '../../../../../mongodb/schema/note';
-import { UserSchema } from '../../../../../mongodb/schema/user';
+import { DBNoteSchema } from '../../../../../mongodb/schema/note';
+import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import {
   NoteCategory,
   TrashUserNoteLinkInput,
   TrashUserNoteLinkPayload,
 } from '../../../types.generated';
-import { UserNoteLink_id } from '../../../../../services/note/note';
 import { signedInUserTopic } from '../../../user/resolvers/Subscription/signedInUserEvents';
+import { UserNoteLink_id } from '../../../../../services/note/user-note-link-id';
 
 const MUTATION = `#graphql
   mutation($input: TrashUserNoteLinkInput!){
@@ -76,10 +76,10 @@ const SUBSCRIPTION = `#graphql
   }
 `;
 
-let user: UserSchema;
-let userNotOwner: UserSchema;
-let userNoAccess: UserSchema;
-let note: NoteSchema;
+let user: DBUserSchema;
+let userNotOwner: DBUserSchema;
+let userNoAccess: DBUserSchema;
+let note: DBNoteSchema;
 let spyDateNow: MockInstance<[], number>;
 
 beforeAll(() => {

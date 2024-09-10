@@ -1,12 +1,11 @@
-import { throwNoteNotFound } from '../../../../__EXCLUDE/errors';
-import { updateTrashNote } from '../../../../../services/note/note';
-import { assertAuthenticated } from '../../../base/directives/auth';
 import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';
 import {
   NoteCategory,
   ResolversTypes,
   type MutationResolvers,
 } from '../../../types.generated';
+import { assertAuthenticated } from '../../../../../services/auth/auth';
+import { updateTrashNote } from '../../../../../services/note/update-trash-note';
 
 export const trashUserNoteLink: NonNullable<
   MutationResolvers['trashUserNoteLink']
@@ -20,34 +19,25 @@ export const trashUserNoteLink: NonNullable<
 
   const trashResult = await updateTrashNote({
     mongoDB,
-    defaultCategoryName: NoteCategory.DEFAULT,
     trashCategoryName: NoteCategory.TRASH,
     noteId: input.noteId,
     userId: currentUserId,
     trashDuration: ctx.options?.note?.trashDuration,
   });
 
-  if (trashResult === 'not_found') {
-    throwNoteNotFound(input.noteId);
-  }
-
   const payload: ResolversTypes['SignedInUserMutations'] = {
     __typename: 'TrashUserNoteLinkPayload',
     deletedAt: trashResult.expireAt,
     userNoteLink: {
       userId: currentUserId,
-      query: (query) =>
-        mongoDB.loaders.note.load({
-          id: {
-            noteId: input.noteId,
-            userId: currentUserId,
-          },
-          query,
-        }),
+      query: mongoDB.loaders.note.createQueryFn({
+        userId: currentUserId,
+        noteId: input.noteId,
+      }),
     },
   };
 
-  if (!trashResult.alreadyTrashed) {
+  if (trashResult.type !== 'already_trashed') {
     await publishSignedInUserMutation(currentUserId, payload, ctx);
   }
 

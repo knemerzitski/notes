@@ -160,3 +160,24 @@ it('picks nested object in optional array', () => {
     })
   ).toBeFalsy();
 });
+
+it('keeps struct optional', () => {
+  const All = object({
+    t: string(),
+    nested: optional(
+      object({
+        a: number(),
+      })
+    ),
+  });
+
+  const OnlyNested = pickdeep(All, {
+    convertObjectToType: true,
+  })<Primitive>()({
+    nested: {
+      a: 1,
+    },
+  });
+
+  OnlyNested.create({});
+});

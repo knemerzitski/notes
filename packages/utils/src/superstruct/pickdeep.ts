@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { array, object, Struct, type } from 'superstruct';
+import { Struct, never } from 'superstruct';
 import { isObjectLike } from '../type-guards/is-object-like';
 import { PickerDeep, PickDeep, PickValue } from '../types';
 
@@ -44,41 +44,111 @@ function _pickdeep<T, S, R>(
     return struct;
   }
 
-  const { schema } = struct;
-
   if (struct.type === 'array') {
-    if (!(schema instanceof Struct)) {
+    if (!(struct.schema instanceof Struct)) {
       return struct;
     }
-    return array(_pickdeep(schema, pick, options));
+    return arrayFromStruct(_pickdeep(struct.schema, pick, options), struct);
   }
 
-  if (!isObjectLike(schema)) {
+  if (!isObjectLike(struct.schema)) {
     return struct;
   }
 
-  const resultSchema: any = {};
+  const pickedSchema: any = {};
 
   for (const key of Object.keys(pick)) {
     const subPick = pick[key];
-    const subStruct = schema[key];
+    const subStruct = struct.schema[key];
     if (!subStruct) continue;
 
     if (subPick === 1) {
-      resultSchema[key] = subStruct;
+      pickedSchema[key] = subStruct;
     } else if (isObjectLike(subPick) && subStruct instanceof Struct) {
-      resultSchema[key] = _pickdeep(subStruct, subPick, options);
+      pickedSchema[key] = _pickdeep(subStruct, subPick, options);
     }
   }
 
-  if (options?.convertObjectToType) {
-    return type(resultSchema) as any;
+  if (
+    struct.type === 'type' ||
+    (options?.convertObjectToType && struct.type === 'object')
+  ) {
+    return typeFromStruct(pickedSchema, struct) as any;
+  } else if (struct.type === 'object') {
+    return objectFromStruct(pickedSchema, struct);
   }
 
-  switch (struct.type) {
-    case 'type':
-      return type(resultSchema) as any;
-    default:
-      return object(resultSchema) as any;
+  throw new Error(`Unexpected struct type '${struct.type}'`);
+}
+
+function isObject(x: unknown): x is object {
+  return typeof x === 'object' && x != null;
+}
+
+export function objectFromStruct(schema: any, struct: Struct<any, any, any>): any {
+  if (struct.type !== 'object') {
+    throw new Error('Struct must be object to make a copy');
   }
+
+  const knowns = schema ? Object.keys(schema) : [];
+  const Never = never();
+  return new Struct({
+    ...struct,
+    schema,
+    *entries(value) {
+      if (schema && isObject(value)) {
+        const unknowns = new Set(Object.keys(value));
+
+        for (const key of knowns) {
+          unknowns.delete(key);
+          // @ts-expect-error Ignore the error
+          yield [key, value[key], schema[key]];
+        }
+
+        for (const key of unknowns) {
+          // @ts-expect-error Ignore the error
+          yield [key, value[key], Never];
+        }
+      }
+    },
+  });
+}
+
+export function typeFromStruct(schema: any, struct: Struct<any, any, any>) {
+  if (struct.type !== 'object' && struct.type !== 'type') {
+    throw new Error('Struct must be type or object to make a copy');
+  }
+
+  const keys = Object.keys(schema);
+  return new Struct({
+    ...struct,
+    type: 'type',
+    schema,
+    *entries(value) {
+      if (isObject(value)) {
+        for (const k of keys) {
+          // @ts-expect-error Ignore the error
+          yield [k, value[k], schema[k]];
+        }
+      }
+    },
+  });
+}
+
+export function arrayFromStruct(Element: any, struct: Struct<any, any, any>): any {
+  if (struct.type !== 'array') {
+    throw new Error('Struct must be array to make a copy');
+  }
+
+  return new Struct({
+    ...struct,
+    schema: Element,
+    *entries(value) {
+      if (Element && Array.isArray(value)) {
+        for (const [i, v] of value.entries()) {
+          yield [i, v, Element];
+        }
+      }
+    },
+  });
 }

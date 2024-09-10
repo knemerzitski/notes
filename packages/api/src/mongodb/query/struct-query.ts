@@ -38,7 +38,7 @@ export class StructQuery<S extends Struct<any, any, any>> {
       ? memoizedGetEqualObjectString(query)
       : getEqualObjectString(query);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let validator: any = this.subStructCache.get(queryStr);
+    let validator = this.subStructCache.get(queryStr);
     if (!validator) {
       validator = pickdeep(this.struct, {
         convertObjectToType: true,
@@ -53,7 +53,6 @@ export class StructQuery<S extends Struct<any, any, any>> {
     rawValue: Maybe<PartialQueryResultDeep<InferRaw<S>>>,
     query = valueToQuery(rawValue) as V
   ): QueryResultDeep<Infer<S>, V> {
-    // convert value to query???
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-explicit-any
     return create(rawValue, this.getSubStructForQuery(query)) as any;
   }
