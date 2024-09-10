@@ -94,7 +94,7 @@ export interface LoadOptions<R, T extends 'any' | 'raw' | 'validated' = 'any'> {
 
 export interface PrimeOptions {
   /**
-   * Clears cached value before priming. Ensures new value is inserted in the cahce.
+   * Clears cached value before priming. Ensures new value is inserted in the cache.
    * @default false;
    */
   clearCache?: boolean;
