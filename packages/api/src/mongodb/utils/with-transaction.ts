@@ -7,7 +7,7 @@ import {
 
 type WithTransactionCallback<T> = (ctx: TransactionContext) => Promise<T>;
 
-interface TransactionContext {
+export interface TransactionContext {
   /**
    * Run a operation single at a time. Do not put multiple
    * operations in a single call. Simply call this function multiple times.

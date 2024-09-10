@@ -64,7 +64,7 @@ export async function updateBackgroundColor({
 
   await model_updateBackgroundColor({
     mongoDB,
-    userId,
+    noteUser,
     noteId,
     backgroundColor,
   });

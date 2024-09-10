@@ -27,14 +27,16 @@ import { fakeNotePopulateQueue } from '../../../../../__test__/helpers/mongodb/p
 import { userAddNote } from '../../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/user';
-import { NoteSchema } from '../../../../../mongodb/schema/note';
-import { UserSchema } from '../../../../../mongodb/schema/user';
+import { DBNoteSchema } from '../../../../../mongodb/schema/note';
+import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import {
   UpdateUserNoteLinkReadOnlyInput,
   UpdateUserNoteLinkReadOnlyPayload,
 } from '../../../types.generated';
-import { findNoteUserInSchema, UserNoteLink_id } from '../../../../../services/note/note';
+import { findNoteUserInSchema } from '../../../../../services/note/note';
 import { signedInUserTopic } from '../../../user/resolvers/Subscription/signedInUserEvents';
+import { UserNoteLink_id } from '../../../../../services/note/user-note-link-id';
+import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 
 const MUTATION = `#graphql
   mutation($input: UpdateUserNoteLinkReadOnlyInput!){
@@ -43,9 +45,9 @@ const MUTATION = `#graphql
       publicUserNoteLink {
         id
         readOnly
-      }
-      user {
-        id
+        user {
+          id
+        }
       }
       note {
         id
@@ -59,13 +61,17 @@ const SUBSCRIPTION = `#graphql
     signedInUserEvents {
       mutations {
         __typename
-        ... on UpdateUserNoteLinkBackgroundColorPayload {
-          backgroundColor
-          userNoteLink {
+        ... on UpdateUserNoteLinkReadOnlyPayload {
+          readOnly
+          publicUserNoteLink {
             id
-            preferences {
-              backgroundColor
+            readOnly
+            user {
+              id
             }
+          }
+          note {
+            id
           }
         }
       }
@@ -73,27 +79,28 @@ const SUBSCRIPTION = `#graphql
   }
 `;
 
-let user: UserSchema;
-let userReadOnly: UserSchema;
-let note: NoteSchema;
-let userNoAccess: UserSchema;
+let userOwner: DBUserSchema;
+let userReadOnly: DBUserSchema;
+let note: DBNoteSchema;
+let userNoAccess: DBUserSchema;
 
 beforeEach(async () => {
   faker.seed(5532);
   await resetDatabase();
 
-  user = fakeUserPopulateQueue();
+  userOwner = fakeUserPopulateQueue();
   userReadOnly = fakeUserPopulateQueue();
   userNoAccess = fakeUserPopulateQueue();
-  note = fakeNotePopulateQueue(user);
+  note = fakeNotePopulateQueue(userOwner);
 
-  userAddNote(user, note, {
+  userAddNote(userOwner, note, {
     override: {
       readOnly: false,
     },
   });
   userAddNote(userReadOnly, note, {
     override: {
+      isOwner: false,
       readOnly: true,
     },
   });
@@ -126,60 +133,15 @@ async function executeOperation(
   );
 }
 
-it.only('oldest user changes other user readOnly', async () => {
+it('owner user changes other user readOnly', async () => {
   const response = await executeOperation(
     {
       noteId: note._id,
-      readOnly: false,
       userId: userReadOnly._id,
+      readOnly: false,
     },
     {
-      user,
-    }
-  );
-
-  // TODO in the middle of implementing..
-  const data = expectGraphQLResponseData(response);
-
-  // Response
-  // expect(data).toEqual({
-  //   updateUserNoteLinkReadOnly: {
-  //     readOnly: false,
-  //     publicUserNoteLink: {
-  //       id: UserNoteLink_id(note._id, userReadOnly._id),
-  //       readOnly: false,
-  //     },
-  //     user: {
-  //       id: objectIdToStr(userReadOnly._id),
-  //     },
-  //     note: {
-  //       id: objectIdToStr(note._id),
-  //     },
-  //   },
-  // });
-
-  expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(2);
-  return;
-
-  // Database, Note
-  const dbNote = await mongoCollections.notes.findOne({
-    _id: note._id,
-  });
-  const dbNoteUser = findNoteUserInSchema(user._id, dbNote);
-  expect(
-    dbNoteUser?.preferences?.backgroundColor,
-    'Background clor was not updated in Note'
-  ).toStrictEqual(dbNoteUser?.preferences?.backgroundColor);
-});
-
-it('changes backgroundColor for user with read-only access', async () => {
-  const response = await executeOperation(
-    {
-      noteId: note._id,
-      backgroundColor: '#ffffff',
-    },
-    {
-      user: userReadOnly,
+      user: userOwner,
     }
   );
 
@@ -187,13 +149,17 @@ it('changes backgroundColor for user with read-only access', async () => {
 
   // Response
   expect(data).toEqual({
-    updateUserNoteLinkBackgroundColor: {
-      backgroundColor: '#ffffff',
-      userNoteLink: {
+    updateUserNoteLinkReadOnly: {
+      readOnly: false,
+      publicUserNoteLink: {
         id: UserNoteLink_id(note._id, userReadOnly._id),
-        preferences: {
-          backgroundColor: '#ffffff',
+        readOnly: false,
+        user: {
+          id: objectIdToStr(userReadOnly._id),
         },
+      },
+      note: {
+        id: objectIdToStr(note._id),
       },
     },
   });
@@ -205,20 +171,17 @@ it('changes backgroundColor for user with read-only access', async () => {
     _id: note._id,
   });
   const dbNoteUser = findNoteUserInSchema(userReadOnly._id, dbNote);
-  expect(
-    dbNoteUser?.preferences?.backgroundColor,
-    'Background color was not updated in Note'
-  ).toStrictEqual('#ffffff');
+  expect(dbNoteUser?.readOnly).toStrictEqual(false);
 });
 
-it('makes no changes to db if backgroundColor is already correct', async () => {
+it('owner user changes own readOnly', async () => {
   const response = await executeOperation(
     {
       noteId: note._id,
-      backgroundColor: '#aaaaaa',
+      readOnly: true,
     },
     {
-      user,
+      user: userOwner,
     }
   );
 
@@ -226,16 +189,43 @@ it('makes no changes to db if backgroundColor is already correct', async () => {
 
   // Response
   expect(data).toEqual({
-    updateUserNoteLinkBackgroundColor: {
-      backgroundColor: '#aaaaaa',
-      userNoteLink: {
-        id: UserNoteLink_id(note._id, user._id),
-        preferences: {
-          backgroundColor: '#aaaaaa',
+    updateUserNoteLinkReadOnly: {
+      readOnly: true,
+      publicUserNoteLink: {
+        id: UserNoteLink_id(note._id, userOwner._id),
+        readOnly: true,
+        user: {
+          id: objectIdToStr(userOwner._id),
         },
+      },
+      note: {
+        id: objectIdToStr(note._id),
       },
     },
   });
+
+  expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(2);
+
+  // Database, Note
+  const dbNote = await mongoCollections.notes.findOne({
+    _id: note._id,
+  });
+  const dbNoteUser = findNoteUserInSchema(userOwner._id, dbNote);
+  expect(dbNoteUser?.readOnly).toStrictEqual(true);
+});
+
+it('makes no changes to db if readOnly is already correct', async () => {
+  const response = await executeOperation(
+    {
+      noteId: note._id,
+      readOnly: false,
+    },
+    {
+      user: userOwner,
+    }
+  );
+
+  expectGraphQLResponseData(response);
 
   expect(mongoCollectionStats.allStats()).toStrictEqual(
     expect.objectContaining({
@@ -245,7 +235,7 @@ it('makes no changes to db if backgroundColor is already correct', async () => {
   );
 });
 
-it('publishes backgroundColor only to current user', async () => {
+it('publishes readOnly correclty', async () => {
   mockSubscriptionsModel.queryAllByTopic.mockResolvedValue([
     {
       subscription: {
@@ -257,10 +247,10 @@ it('publishes backgroundColor only to current user', async () => {
   const response = await executeOperation(
     {
       noteId: note._id,
-      backgroundColor: '#ffffff',
+      readOnly: true,
     },
     {
-      user,
+      user: userOwner,
       createPublisher: createMockedPublisher,
     }
   );
@@ -268,9 +258,12 @@ it('publishes backgroundColor only to current user', async () => {
   expectGraphQLResponseData(response);
 
   expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenCalledWith(
-    signedInUserTopic(user._id)
+    signedInUserTopic(userOwner._id)
   );
-  expect(mockSubscriptionsModel.queryAllByTopic).toBeCalledTimes(1);
+  expect(mockSubscriptionsModel.queryAllByTopic).toHaveBeenCalledWith(
+    signedInUserTopic(userReadOnly._id)
+  );
+  expect(mockSubscriptionsModel.queryAllByTopic).toBeCalledTimes(2);
 
   expect(mockSocketApi.post).toHaveBeenLastCalledWith({
     message: expect.objectContaining({
@@ -280,13 +273,17 @@ it('publishes backgroundColor only to current user', async () => {
           signedInUserEvents: {
             mutations: [
               {
-                __typename: 'UpdateUserNoteLinkBackgroundColorPayload',
-                backgroundColor: '#ffffff',
-                userNoteLink: {
-                  id: UserNoteLink_id(note._id, user._id),
-                  preferences: {
-                    backgroundColor: '#ffffff',
+                __typename: 'UpdateUserNoteLinkReadOnlyPayload',
+                readOnly: true,
+                publicUserNoteLink: {
+                  id: UserNoteLink_id(note._id, userOwner._id),
+                  readOnly: true,
+                  user: {
+                    id: objectIdToStr(userOwner._id),
                   },
+                },
+                note: {
+                  id: objectIdToStr(note._id),
                 },
               },
             ],
@@ -295,7 +292,7 @@ it('publishes backgroundColor only to current user', async () => {
       },
     }),
   });
-  expect(mockSocketApi.post).toBeCalledTimes(1);
+  expect(mockSocketApi.post).toBeCalledTimes(2);
 });
 
 describe('errors', () => {
@@ -303,9 +300,9 @@ describe('errors', () => {
     const response = await executeOperation(
       {
         noteId: new ObjectId(),
-        backgroundColor: '#111111',
+        readOnly: true,
       },
-      { user }
+      { user: userOwner }
     );
 
     expectGraphQLResponseError(response, /Note '.+' not found/);
@@ -315,7 +312,7 @@ describe('errors', () => {
     const response = await executeOperation(
       {
         noteId: note._id,
-        backgroundColor: '#111111',
+        readOnly: true,
       },
       { user: userNoAccess }
     );
@@ -326,7 +323,7 @@ describe('errors', () => {
   it('throws error if not authenticated', async () => {
     const response = await executeOperation({
       noteId: note._id,
-      backgroundColor: '#111111',
+      readOnly: true,
     });
 
     expectGraphQLResponseError(response, /.*must be signed in.*/);

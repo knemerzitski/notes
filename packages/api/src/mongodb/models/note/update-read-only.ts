@@ -2,7 +2,7 @@ import { ClientSession, ObjectId } from 'mongodb';
 import { MongoDBCollections, CollectionName } from '../../collections';
 import { MongoReadonlyDeep } from '../../types';
 
-interface UpdateBackgroundColorParams {
+interface UpdateReadOnlyParams {
   mongoDB: {
     session?: ClientSession;
     collections: Pick<MongoDBCollections, CollectionName.NOTES>;
@@ -13,20 +13,20 @@ interface UpdateBackgroundColorParams {
    */
   noteId: ObjectId;
   /**
-   * New user note preferences background color
+   * New user note readOnly
    */
-  backgroundColor: string;
+  readOnly: boolean;
 }
 
 /**
  * Update specific user note background color
  */
-export function updateBackgroundColor({
+export function updateReadOnly({
   mongoDB,
   noteUser,
   noteId,
-  backgroundColor,
-}: UpdateBackgroundColorParams) {
+  readOnly,
+}: UpdateReadOnlyParams) {
   const noteUserArrayFilter = 'noteUser';
   return mongoDB.collections.notes.updateOne(
     {
@@ -34,7 +34,7 @@ export function updateBackgroundColor({
     },
     {
       $set: {
-        [`users.$[${noteUserArrayFilter}].preferences.backgroundColor`]: backgroundColor,
+        [`users.$[${noteUserArrayFilter}].readOnly`]: readOnly,
       },
     },
     {

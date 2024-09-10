@@ -43,7 +43,7 @@ extend type CreateNotePayload {
 ################################ Mutation deleteNote ################################
 
 extend type DeleteNoteInput {
-  "Delete note for specific user instead of current user. Current must have higher scope/permissions."
+  "Delete note from specified user. If not defined then current user is used. Current user must be note owner."
   userId: ObjectID
 }
 
@@ -98,8 +98,8 @@ extend type Query {
 input UpdateUserNoteLinkReadOnlyInput {
   "Target Note.id"
   noteId: ObjectID!
-  "Target User.id"
-  userId: ObjectID!
+  "Specified note user. If not defined then current user is used. Current user must be note owner."
+  userId: ObjectID
   "New PublicUserNoteLink.readOnly value for PublicUser.id"
   readOnly: Boolean!
 }
@@ -109,8 +109,6 @@ type UpdateUserNoteLinkReadOnlyPayload {
   readOnly: Boolean!
   "Affected PublicUserNoteLink"
   publicUserNoteLink: PublicUserNoteLink!
-  "PublicUserNoteLink.user"
-  user: PublicUser!
   "Related Note"
   note: Note!
 }

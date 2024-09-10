@@ -49,7 +49,6 @@ export const PublicUserNoteLink: Pick<
           return {
             _id,
             user: restQuery,
-            createdAt: 1,
           };
         },
         (noteUser) => {

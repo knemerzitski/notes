@@ -1,18 +1,10 @@
-import { GraphQLError } from 'graphql';
-import { GraphQLErrorCode, ResourceType } from '~api-app-shared/graphql/error-codes';
-import { throwNoteNotFound } from '../../../../__EXCLUDE/errors';
-import {
-  findNoteUser,
-  getNoteUsersIds,
-  updateNoteReadOnly,
-} from '../../../../../services/note/note';
-import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
-import { assertAuthenticated } from '../../../base/directives/auth';
+import { findNoteUserMaybe, getNoteUsersIds } from '../../../../../services/note/note';
 import type { MutationResolvers, ResolversTypes } from '../../../types.generated';
 import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';
-import { QueryableNote } from '../../../../../mongodb/descriptions/note';
-import { MongoQueryFn } from '../../../../../mongodb/query/query';
-import { isQueryOnlyId } from '../../../../../mongodb/query/utils/is-query-only-id';
+import { createMapQueryFn } from '../../../../../mongodb/query/query';
+import { assertAuthenticated } from '../../../../../services/auth/auth';
+import { updateReadOnly } from '../../../../../services/note/update-read-only';
+import { QueryableNoteUser } from '../../../../../mongodb/descriptions/note';
 
 export const updateUserNoteLinkReadOnly: NonNullable<
   MutationResolvers['updateUserNoteLinkReadOnly']
@@ -24,87 +16,41 @@ export const updateUserNoteLinkReadOnly: NonNullable<
 
   const currentUserId = auth.session.userId;
 
-  const readOnlyResult = await updateNoteReadOnly({
+  const targetUserId = input.userId ?? currentUserId;
+
+  const { type: readOnlyResultType, note } = await updateReadOnly({
     mongoDB,
     noteId: input.noteId,
-    readOnly: input.readOnly,
     scopeUserId: currentUserId,
-    targetUserId: input.userId,
+    targetUserId,
+    readOnly: input.readOnly,
   });
 
-  switch (readOnlyResult) {
-    case 'note_not_found':
-      throwNoteNotFound(input.noteId);
-    // eslint-disable-next-line no-fallthrough
-    case 'target_user_not_found':
-      throw new GraphQLError(`Note user '${objectIdToStr(input.userId)}' not found`, {
-        extensions: {
-          code: GraphQLErrorCode.NOT_FOUND,
-          resource: ResourceType.USER,
-        },
-      });
-    case 'scope_user_not_older_than_target_user':
-      throw new GraphQLError('Not authorized to change user readOnly field', {
-        extensions: {
-          code: GraphQLErrorCode.UNAUTHORIZED,
-        },
-      });
-  }
-
-  const noteQuery: MongoQueryFn<QueryableNote> = (query) =>
-    mongoDB.loaders.note.load({
-      id: {
-        userId: currentUserId,
-        noteId: input.noteId,
-      },
-      query,
-    });
+  const noteQuery = mongoDB.loaders.note.createQueryFn({
+    userId: currentUserId,
+    noteId: input.noteId,
+  });
 
   const payload: ResolversTypes['SignedInUserMutations'] = {
     __typename: 'UpdateUserNoteLinkReadOnlyPayload',
     readOnly: input.readOnly,
     publicUserNoteLink: {
       noteId: input.noteId,
-      query: async (query) => {
-        const note = await noteQuery({
-          users: {
-            ...query,
-            _id: 1,
-          },
-        });
-
-        return findNoteUser(input.userId, note);
-      },
+      query: createMapQueryFn(noteQuery)<typeof QueryableNoteUser>()(
+        (query) => ({ users: { ...query, _id: 1 } }),
+        (note) => findNoteUserMaybe(targetUserId, note)
+      ),
     },
     note: {
       query: noteQuery,
     },
-    user: {
-      query: (query) => {
-        if (isQueryOnlyId(query)) {
-          return {
-            _id: input.userId,
-          };
-        }
-
-        return mongoDB.loaders.user.load({
-          id: {
-            userId: input.userId,
-          },
-          query,
-        });
-      },
-    },
   };
 
-  if (readOnlyResult !== 'already_read_only') {
-    // Publish to everyone that can access the readOnly value
-    const publishUsers = getNoteUsersIds(readOnlyResult.note);
-    if (publishUsers) {
-      await Promise.all(
-        publishUsers.map((userId) => publishSignedInUserMutation(userId, payload, ctx))
-      );
-    }
+  if (readOnlyResultType !== 'already_read_only') {
+    const publishUsers = getNoteUsersIds(note);
+    await Promise.all(
+      publishUsers.map((userId) => publishSignedInUserMutation(userId, payload, ctx))
+    );
   }
 
   return payload;
