@@ -7,7 +7,8 @@ import { TransactionContext } from '../../utils/with-transaction';
 interface DeleteUserFromNoteParams {
   mongoDB: {
     collections: Pick<MongoDBCollections, CollectionName.NOTES | CollectionName.USERS>;
-  } & Pick<TransactionContext, 'runSingleOperation'>;
+    runSingleOperation?: TransactionContext['runSingleOperation'];
+  };
   /**
    * Target note id
    */
@@ -23,8 +24,10 @@ export function deleteUserFromNote({
   noteId,
   noteUser,
 }: DeleteUserFromNoteParams) {
+  const runSingleOperation = mongoDB.runSingleOperation ?? ((run) => run());
+
   return Promise.all([
-    mongoDB.runSingleOperation((session) =>
+    runSingleOperation((session) =>
       mongoDB.collections.notes.updateOne(
         {
           _id: noteId,
@@ -41,7 +44,7 @@ export function deleteUserFromNote({
         }
       )
     ),
-    mongoDB.runSingleOperation((session) =>
+    runSingleOperation((session) =>
       mongoDB.collections.users.updateOne(
         {
           _id: noteUser._id,

@@ -81,7 +81,6 @@ export async function updateTrashNote({
       };
     }
 
-    const existingCategoryName = noteUser.categoryName;
     const expireAt = new Date(Date.now() + (trashDuration ?? 1000 * 60 * 60 * 24 * 30));
 
     await model_updateTrashNote({
@@ -92,7 +91,6 @@ export async function updateTrashNote({
       noteId,
       noteUser,
       expireAt,
-      existingCategoryName,
       trashCategoryName,
     });
 
@@ -125,7 +123,7 @@ export async function updateTrashNote({
               trashed: {
                 ...noteUser.trashed,
                 expireAt,
-                originalCategoryName: existingCategoryName,
+                originalCategoryName: noteUser.categoryName,
               },
             };
           }),

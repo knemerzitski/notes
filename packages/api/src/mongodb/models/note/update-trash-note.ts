@@ -7,17 +7,14 @@ import { MongoReadonlyDeep } from '../../types';
 interface UpdateTrashNoteParams {
   mongoDB: {
     collections: Pick<MongoDBCollections, CollectionName.NOTES | CollectionName.USERS>;
-  } & Pick<TransactionContext, 'runSingleOperation'>;
+    runSingleOperation?: TransactionContext['runSingleOperation'];
+  };
   noteId: ObjectId;
-  noteUser: MongoReadonlyDeep<{ _id: ObjectId }>;
+  noteUser: MongoReadonlyDeep<{ _id: ObjectId; categoryName: string }>;
   /**
    * Date when note expires in trash and is deleted
    */
   expireAt: Date;
-  /**
-   * Note user existting category
-   */
-  existingCategoryName: string;
   /**
    * Name of trash category
    */
@@ -29,12 +26,13 @@ export function updateTrashNote({
   noteId,
   noteUser,
   expireAt,
-  existingCategoryName,
   trashCategoryName,
 }: UpdateTrashNoteParams) {
+  const runSingleOperation = mongoDB.runSingleOperation ?? ((run) => run());
+
   const noteUserArrayFilter = 'noteUser';
   return Promise.all([
-    mongoDB.runSingleOperation((session) =>
+    runSingleOperation((session) =>
       mongoDB.collections.notes.updateOne(
         {
           _id: noteId,
@@ -43,7 +41,7 @@ export function updateTrashNote({
           $set: {
             [`users.$[${noteUserArrayFilter}].trashed`]: {
               expireAt,
-              originalCategoryName: existingCategoryName,
+              originalCategoryName: noteUser.categoryName,
             },
             [`users.$[${noteUserArrayFilter}].categoryName`]: trashCategoryName,
           },
@@ -58,14 +56,14 @@ export function updateTrashNote({
         }
       )
     ),
-    mongoDB.runSingleOperation((session) =>
+    runSingleOperation((session) =>
       mongoDB.collections.users.updateOne(
         {
           _id: noteUser._id,
         },
         {
           $pull: {
-            [getNotesArrayPath(existingCategoryName)]: noteId,
+            [getNotesArrayPath(noteUser.categoryName)]: noteId,
           },
           $push: {
             [getNotesArrayPath(trashCategoryName)]: noteId,
