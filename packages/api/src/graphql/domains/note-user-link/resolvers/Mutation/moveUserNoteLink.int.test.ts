@@ -32,8 +32,8 @@ import {
 } from '../../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/user';
-import { NoteSchema } from '../../../../../mongodb/schema/note';
-import { UserSchema } from '../../../../../mongodb/schema/user';
+import { DBNoteSchema } from '../../../../../mongodb/schema/note';
+import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import {
   ListAnchorPosition,
   MovableNoteCategory,
@@ -41,9 +41,10 @@ import {
   MoveUserNoteLinkPayload,
   NoteCategory,
 } from '../../../types.generated';
-import { findNoteUserInSchema, UserNoteLink_id } from '../../../../../services/note/note';
+import { findNoteUserInSchema } from '../../../../../services/note/note';
 import { signedInUserTopic } from '../../../user/resolvers/Subscription/signedInUserEvents';
 import { moveUserNoteLink } from './moveUserNoteLink';
+import { UserNoteLink_id } from '../../../../../services/note/user-note-link-id';
 
 const MUTATION = `#graphql
   mutation($input: MoveUserNoteLinkInput!){
@@ -88,9 +89,9 @@ const SUBSCRIPTION = `#graphql
   }
 `;
 
-let user: UserSchema;
-let userNotOwner: UserSchema;
-let note: NoteSchema;
+let user: DBUserSchema;
+let userNotOwner: DBUserSchema;
+let note: DBNoteSchema;
 let userBaseDefaultNoteIds: ObjectId[];
 let userBaseArchiveNoteIds: ObjectId[];
 
@@ -148,7 +149,7 @@ async function executeOperation(
 }
 
 describe('note in normal categories', () => {
-  let userNoAccess: UserSchema;
+  let userNoAccess: DBUserSchema;
 
   beforeEach(async () => {
     userNoAccess = fakeUserPopulateQueue();
@@ -613,7 +614,7 @@ describe('note in normal categories', () => {
     );
   });
 
-  it('makes no changes if nothing is specified for normal note', async () => {
+  it('makes no changes if nothing is specified for non-trashed note', async () => {
     const response = await executeOperation(
       {
         noteId: note._id,
@@ -643,8 +644,8 @@ describe('note in normal categories', () => {
 
     expect(mongoCollectionStats.allStats()).toStrictEqual(
       expect.objectContaining({
-        readAndModifyCount: 2,
-        readCount: 2,
+        readAndModifyCount: 1,
+        readCount: 1,
       })
     );
   });

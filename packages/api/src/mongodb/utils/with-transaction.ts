@@ -21,7 +21,7 @@ export interface TransactionContext {
   session: ClientSession;
 }
 
-type RunOperationCallback<T> = (session: ClientSession) => Promise<T>;
+type RunOperationCallback<T> = (session?: ClientSession) => Promise<T>;
 
 export async function withTransaction<T>(
   mongoClient: MongoClient,

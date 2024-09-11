@@ -1,17 +1,15 @@
-import { throwNoteNotFound } from '../../../../__EXCLUDE/errors';
-import { updateMoveNote } from '../../../../../services/note/note';
-import { assertAuthenticated } from '../../../base/directives/auth';
 import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';
 import {
   ListAnchorPosition,
   Maybe,
   MovableNoteCategory,
   MutationmoveUserNoteLinkArgs,
-  NoteCategory,
   RequireFields,
   ResolversTypes,
   type MutationResolvers,
 } from '../../../types.generated';
+import { assertAuthenticated } from '../../../../../services/auth/auth';
+import { updateMoveCategory } from '../../../../../services/note/update-move-category';
 
 export const moveUserNoteLink: NonNullable<
   MutationResolvers['moveUserNoteLink']
@@ -21,63 +19,60 @@ export const moveUserNoteLink: NonNullable<
 
   const { input } = arg;
 
-  input.location?.anchorPosition;
-
   const currentUserId = auth.session.userId;
 
-  const moveResult = await updateMoveNote({
+  const moveResult = await updateMoveCategory({
     mongoDB,
-    defaultCategoryName: NoteCategory.DEFAULT,
     noteId: input.noteId,
     userId: currentUserId,
-    anchorCategoryName: input.location?.categoryName,
-    anchorNoteId: input.location?.anchorNoteId,
-    anchorPosition: anchorPositionToStr(arg),
+    categoryName: input.location?.categoryName,
+    anchor: getAnchor(arg),
   });
 
-  if (moveResult === 'not_found') {
-    throwNoteNotFound(input.noteId);
-  }
-
-  const anchorNoteId = moveResult.anchorNoteId;
   const payload: ResolversTypes['SignedInUserMutations'] = {
     __typename: 'MoveUserNoteLinkPayload',
     location: {
       categoryName: moveResult.categoryName as MovableNoteCategory,
-      anchorPosition: strToAnchorPosition(moveResult.anchorPosition),
-      anchorUserNoteLink: anchorNoteId
+      anchorPosition: strToAnchorPosition(moveResult.anchor?.position),
+      anchorUserNoteLink: moveResult.anchor?.id
         ? {
             userId: currentUserId,
-            query: (query) =>
-              mongoDB.loaders.note.load({
-                id: {
-                  userId: currentUserId,
-                  noteId: anchorNoteId,
-                },
-                query,
-              }),
+            query: mongoDB.loaders.note.createQueryFn({
+              userId: currentUserId,
+              noteId: moveResult.anchor.id,
+            }),
           }
         : null,
     },
     userNoteLink: {
       userId: currentUserId,
-      query: (query) =>
-        mongoDB.loaders.note.load({
-          id: {
-            userId: currentUserId,
-            noteId: moveResult.note._id,
-          },
-          query,
-        }),
+      query: mongoDB.loaders.note.createQueryFn({
+        userId: currentUserId,
+        noteId: input.noteId,
+      }),
     },
   };
 
-  if (!moveResult.alreadyMoved) {
+  if (moveResult.type !== 'already_category_name') {
     await publishSignedInUserMutation(currentUserId, payload, ctx);
   }
 
   return payload;
 };
+
+function getAnchor(
+  arg: RequireFields<MutationmoveUserNoteLinkArgs, 'input'>
+): Parameters<typeof updateMoveCategory>[0]['anchor'] {
+  const position = anchorPositionToStr(arg);
+  if (!arg.input.location?.anchorNoteId || !position) {
+    return;
+  }
+
+  return {
+    noteId: arg.input.location.anchorNoteId,
+    position,
+  };
+}
 
 function anchorPositionToStr(arg: RequireFields<MutationmoveUserNoteLinkArgs, 'input'>) {
   const pos = arg.input.location?.anchorPosition;
