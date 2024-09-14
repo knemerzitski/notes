@@ -3,7 +3,7 @@ import DataLoader, { CacheMap } from 'dataloader';
 import { callFnGrouped } from '~utils/call-fn-grouped';
 import { mergedObjects } from '~utils/object/merge-objects';
 import { splitObject } from '~utils/object/split-object';
-import { Maybe, MaybePromise } from '~utils/types';
+import { Maybe, MaybePromise, PartialBy } from '~utils/types';
 
 import {
   MongoQueryFn,
@@ -18,6 +18,7 @@ import { isQueryArgField } from '../query/merge-queries';
 import { Infer, InferRaw, Struct } from 'superstruct';
 import { Emitter } from '~utils/mitt-unsub';
 import { StructQuery } from '../query/struct-query';
+import { valueToQueries, VisitorFn } from '../query/utils/value-to-query';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-explicit-any
 export type QueryLoaderEvents<I, S extends Struct<any, any, any>> = {
@@ -92,17 +93,18 @@ export interface LoadOptions<R, T extends 'any' | 'raw' | 'validated' = 'any'> {
   resultType?: T;
 }
 
-export interface PrimeOptions {
+export interface PrimeOptions<S> {
   /**
    * Clears cached value before priming. Ensures new value is inserted in the cache.
    * @default false;
    */
   clearCache?: boolean;
+  queryVisitor?: VisitorFn<S>;
 }
 
 export type SessionOptions<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  T extends LoadOptions<any> | PrimeOptions | CreateQueryFnOptions<any, any>,
+  T extends LoadOptions<any> | PrimeOptions<any> | CreateQueryFnOptions<any, any>,
 > = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   session?: T extends LoadOptions<infer R> | CreateQueryFnOptions<infer R, any>
@@ -236,45 +238,53 @@ export class QueryLoader<I, S extends Struct<any, any, any>, CG = unknown, CR = 
   }
 
   prime(
-    key: QueryLoaderCacheKey<I, QueryDeep<InferRaw<S>>>,
+    key: PartialBy<QueryLoaderCacheKey<I, QueryDeep<InferRaw<S> | Infer<S>>>, 'query'>,
     value: AnyResultWithType<S>,
-    options?: PrimeOptions
+    options?: PrimeOptions<InferRaw<S> | Infer<S>>
   ) {
     const cacheIsStale = options?.clearCache ?? false;
 
-    splitQuery(key.query).forEach((leafQuery) => {
-      const leafLoaderKey: QueryLoaderKey<I, InferRaw<S>, CR> = {
-        cache: {
-          id: key.id,
-          query: leafQuery,
-        },
-        context: null as CR,
-      };
-
-      let isAlreadyCached = false;
-      if (cacheIsStale) {
-        this.loader.clear(leafLoaderKey);
-      } else {
-        isAlreadyCached = this.isKeyCached(leafLoaderKey.cache);
-      }
-
-      if (value.type === 'raw') {
-        this.loader.prime(leafLoaderKey, {
-          raw: value.result,
+    const queries = key.query
+      ? [key.query]
+      : valueToQueries(value.result, {
+          visitorFn: options?.queryVisitor,
         });
-      } else {
-        this.loader.prime(leafLoaderKey, {
-          validated: value.result,
-        });
-      }
 
-      if (!isAlreadyCached) {
-        this.emitLoaded({
-          key: leafLoaderKey.cache,
-          value,
-        });
-      }
-    });
+    for (const query of queries) {
+      splitQuery(query).forEach((leafQuery) => {
+        const leafLoaderKey: QueryLoaderKey<I, InferRaw<S>, CR> = {
+          cache: {
+            id: key.id,
+            query: leafQuery,
+          },
+          context: null as CR,
+        };
+
+        let isAlreadyCached = false;
+        if (cacheIsStale) {
+          this.loader.clear(leafLoaderKey);
+        } else {
+          isAlreadyCached = this.isKeyCached(leafLoaderKey.cache);
+        }
+
+        if (value.type === 'raw') {
+          this.loader.prime(leafLoaderKey, {
+            raw: value.result,
+          });
+        } else {
+          this.loader.prime(leafLoaderKey, {
+            validated: value.result,
+          });
+        }
+
+        if (!isAlreadyCached) {
+          this.emitLoaded({
+            key: leafLoaderKey.cache,
+            value,
+          });
+        }
+      });
+    }
   }
 
   async load<
