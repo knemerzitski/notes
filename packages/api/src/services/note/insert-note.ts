@@ -5,6 +5,7 @@ import { createCollabText } from '../../mongodb/models/collab/create-collab-text
 import { DBNoteSchema } from '../../mongodb/schema/note';
 import { NoteUserSchema } from '../../mongodb/schema/note-user';
 import { insertNote as model_insertNote } from '../../mongodb/models/note/insert-note';
+import { withTransaction } from '../../mongodb/utils/with-transaction';
 
 interface InsertNoteParams {
   mongoDB: {
@@ -33,6 +34,7 @@ export async function insertNote({
   const noteUser: NoteUserSchema = {
     _id: userId,
     createdAt: new Date(),
+    isOwner: true,
     categoryName,
     ...(preferences && { preferences }),
   };
@@ -54,18 +56,16 @@ export async function insertNote({
     }),
   };
 
-  await mongoDB.client.withSession((session) =>
-    session.withTransaction((session) =>
-      model_insertNote({
-        mongoDB: {
-          session,
-          collections: mongoDB.collections,
-        },
-        userId,
-        note,
-        noteUser,
-      })
-    )
+  await withTransaction(mongoDB.client, ({ runSingleOperation }) =>
+    model_insertNote({
+      mongoDB: {
+        runSingleOperation,
+        collections: mongoDB.collections,
+      },
+      userId,
+      note,
+      noteUser,
+    })
   );
 
   return note;

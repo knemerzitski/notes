@@ -59,7 +59,7 @@ const MUTATION_ALL = `#graphql
         }
         public {
           id
-          createdAt
+          isOwner
           readOnly
         }
       }
@@ -80,7 +80,7 @@ const MUTATION_ALL = `#graphql
                 revision
                 changeset
               }
-              recordConnection(last: 2) {
+              recordConnection {
                 records {
                   creatorUser {
                     id
@@ -203,7 +203,7 @@ describe('no existing notes', () => {
           },
           public: {
             id: expect.any(String),
-            createdAt: expect.any(Date),
+            isOwner: true,
             readOnly: false,
           },
         },
@@ -262,6 +262,7 @@ describe('no existing notes', () => {
         {
           _id: user._id,
           categoryName: NoteCategory.DEFAULT,
+          isOwner: true,
           createdAt: expect.any(Date),
         },
       ],
@@ -310,7 +311,7 @@ describe('no existing notes', () => {
           },
           public: {
             id: expect.any(String),
-            createdAt: expect.any(Date),
+            isOwner: true,
             readOnly: false,
           },
         },
@@ -425,6 +426,7 @@ describe('no existing notes', () => {
         {
           _id: user._id,
           categoryName: NoteCategory.ARCHIVE,
+          isOwner: true,
           createdAt: expect.any(Date),
           preferences: {
             backgroundColor: '#cacc52',
@@ -560,6 +562,7 @@ describe('no existing notes', () => {
         {
           _id: user._id,
           categoryName: NoteCategory.DEFAULT,
+          isOwner: true,
           createdAt: expect.any(Date),
         },
       ],
