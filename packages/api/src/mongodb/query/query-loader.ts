@@ -10,15 +10,15 @@ import {
   PartialQueryResultDeep,
   QueryDeep,
   QueryResultDeep,
-} from '../query/query';
+} from './query';
 
-import { memoizedGetEqualObjectString } from './utils/get-equal-object-string';
+import { memoizedGetEqualObjectString } from '../loaders/utils/get-equal-object-string';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
-import { isQueryArgField } from '../query/merge-queries';
+import { isQueryArgField } from './merge-queries';
 import { Infer, InferRaw, Struct } from 'superstruct';
 import { Emitter } from '~utils/mitt-unsub';
-import { StructQuery } from '../query/struct-query';
-import { valueToQueries, VisitorFn } from '../query/utils/value-to-query';
+import { StructQuery } from './struct-query';
+import { valueToQueries, VisitorFn } from './utils/value-to-query';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-explicit-any
 export type QueryLoaderEvents<I, S extends Struct<any, any, any>> = {

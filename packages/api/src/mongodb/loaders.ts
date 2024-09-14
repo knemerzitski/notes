@@ -10,7 +10,7 @@ import {
   QueryableSessionId,
   QueryableSessionLoader,
 } from './loaders/queryable-session-loader';
-import { QueryLoaderEvents } from './loaders/query-loader';
+import { QueryLoaderEvents } from './query/query-loader';
 import {
   QueryableNotesSearchId,
   QueryableNotesSearchLoader,

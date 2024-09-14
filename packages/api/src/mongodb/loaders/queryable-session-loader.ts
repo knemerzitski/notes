@@ -19,7 +19,7 @@ import {
   QueryLoaderEvents,
   QueryLoaderKey,
   SessionOptions,
-} from './query-loader';
+} from '../query/query-loader';
 import { QueryableSession, queryableSessionDescription } from '../descriptions/session';
 import { Infer, InferRaw } from 'superstruct';
 

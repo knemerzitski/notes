@@ -22,7 +22,7 @@ import {
   QueryLoaderEvents,
   QueryLoaderKey,
   SessionOptions,
-} from './query-loader';
+} from '../query/query-loader';
 import { isDefined } from '~utils/type-guards/is-defined';
 import { groupBy } from '~utils/array/group-by';
 import { getEqualObjectString } from './utils/get-equal-object-string';

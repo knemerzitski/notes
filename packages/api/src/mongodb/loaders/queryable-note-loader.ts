@@ -19,7 +19,7 @@ import {
   QueryLoaderError,
   QueryLoaderEvents,
   QueryLoaderKey,
-} from './query-loader';
+} from '../query/query-loader';
 import { objectIdToStr } from '../utils/objectid';
 import { Infer, InferRaw } from 'superstruct';
 

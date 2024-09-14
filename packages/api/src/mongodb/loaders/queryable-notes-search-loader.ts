@@ -39,7 +39,7 @@ import {
   QueryLoaderEvents,
   QueryLoaderKey,
   SessionOptions,
-} from './query-loader';
+} from '../query/query-loader';
 import { array, Infer, InferRaw, object, string } from 'superstruct';
 import { STRUCT_STRING } from '../constants';
 
