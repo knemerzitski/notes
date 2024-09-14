@@ -4,7 +4,7 @@ import { NoteUserSchema } from '../../../mongodb/schema/note-user';
 import { GraphQLResolveInfo } from 'graphql';
 import { GraphQLResolversContext } from '../../types';
 import { ResolverTypeWrapper, ResolversTypes } from '../types.generated';
-import { QueryableNote, QueryableNoteUser } from '../../../mongodb/descriptions/note';
+import { QueryableNote, QueryableNoteUser } from '../../../mongodb/loaders/note/descriptions/note';
 
 export interface UserNoteLinkMapper {
   readonly userId: ObjectId;

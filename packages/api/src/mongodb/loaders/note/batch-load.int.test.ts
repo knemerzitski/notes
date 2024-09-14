@@ -5,20 +5,20 @@ import { beforeAll, it, assert, expect } from 'vitest';
 
 import { Changeset } from '~collab/changeset/changeset';
 
-import { resetDatabase, mongoCollections } from '../../__test__/helpers/mongodb/mongodb';
+import { resetDatabase, mongoCollections } from '../../../__test__/helpers/mongodb/mongodb';
 import {
   TestCollabTextKey,
   populateUserAddNote,
   populateNotes,
-} from '../../__test__/helpers/mongodb/populate/populate';
-import { populateExecuteAll } from '../../__test__/helpers/mongodb/populate/populate-queue';
-import { fakeUserPopulateQueue } from '../../__test__/helpers/mongodb/populate/user';
-import { DBNoteSchema } from '../schema/note';
+} from '../../../__test__/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../__test__/helpers/mongodb/populate/populate-queue';
+import { fakeUserPopulateQueue } from '../../../__test__/helpers/mongodb/populate/user';
+import { DBNoteSchema } from '../../schema/note';
 
 import {
-  queryableNoteBatchLoad,
   QueryableNoteLoaderParams,
-} from './note';
+} from './loader';
+import { batchLoad } from './batch-load';
 
 let populateResult: ReturnType<typeof populateNotes>;
 let note: DBNoteSchema;
@@ -61,7 +61,7 @@ beforeAll(async () => {
 
 it('loads a simple note', async () => {
   await expect(
-    queryableNoteBatchLoad(
+    batchLoad(
       [
         {
           id: {
@@ -120,7 +120,7 @@ it('loads a simple note', async () => {
 
 it('loads all fields', async () => {
   await expect(
-    queryableNoteBatchLoad(
+    batchLoad(
       [
         {
           id: {
@@ -218,7 +218,7 @@ it('loads all fields', async () => {
 
 it('loads minimal fields', async () => {
   await expect(
-    queryableNoteBatchLoad(
+    batchLoad(
       [
         {
           id: {
@@ -252,7 +252,7 @@ it('loads minimal fields', async () => {
 
 it('loads shareNoteLinks', async () => {
   await expect(
-    queryableNoteBatchLoad(
+    batchLoad(
       [
         {
           id: {

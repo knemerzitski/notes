@@ -6,7 +6,7 @@ import { isEmptyDeep } from '~utils/object/is-empty-deep';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 
 import { isDefined } from '~utils/type-guards/is-defined';
-import { MongoDBCollectionsOnlyNames, CollectionName } from '../collections';
+import { MongoDBCollectionsOnlyNames, CollectionName } from '../../collections';
 import {
   RelayPagination,
   relayArrayPagination,
@@ -14,10 +14,10 @@ import {
   relayMultiArraySplit,
   isRelayArrayPaginationAggregateResult,
   relayArrayPaginationMapAggregateResult,
-} from '../pagination/relay-array-pagination';
-import { DeepAnyDescription } from '../query/description';
-import { NoteCategorySchema, UserSchema } from '../schema/user';
-import { QueryableNote, queryableNoteDescription } from './note';
+} from '../../pagination/relay-array-pagination';
+import { DeepAnyDescription } from '../../query/description';
+import { NoteCategorySchema, UserSchema } from '../../schema/user';
+import { QueryableNote, queryableNoteDescription } from '../note/descriptions/note';
 import {
   array,
   assign,

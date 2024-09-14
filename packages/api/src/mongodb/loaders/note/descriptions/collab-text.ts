@@ -1,21 +1,21 @@
 import { isDefined } from '~utils/type-guards/is-defined';
-import { CollectionName, MongoDBCollectionsOnlyNames } from '../collections';
+import { CollectionName, MongoDBCollectionsOnlyNames } from '../../../collections';
 import {
   consecutiveIntArrayPagination,
   consecutiveIntArrayPaginationMapAggregateResult,
-} from '../pagination/consecutive-int-array-pagination';
+} from '../../../pagination/consecutive-int-array-pagination';
 import {
   RelayArrayPaginationAggregateResult,
   RelayArrayPaginationInput,
   RelayPagination,
-} from '../pagination/relay-array-pagination';
-import { DeepAnyDescription } from '../query/description';
-import { CollabTextSchema, RevisionRecordSchema } from '../schema/collab-text';
+} from '../../../pagination/relay-array-pagination';
+import { DeepAnyDescription } from '../../../query/description';
+import { CollabTextSchema, RevisionRecordSchema } from '../../../schema/collab-text';
 import {
   QueryableRevisionRecord,
   revisionRecordSchemaToQueryable,
 } from './revision-record';
-import { PartialQueryResultDeep } from '../query/query';
+import { PartialQueryResultDeep } from '../../../query/query';
 import {
   array,
   assign,
@@ -26,7 +26,7 @@ import {
   omit,
   optional,
 } from 'superstruct';
-import { StructQuery } from '../query/struct-query';
+import { StructQuery } from '../../../query/struct-query';
 
 type RecordsPaginationOperationOptions = Omit<
   RelayArrayPaginationInput<number>,

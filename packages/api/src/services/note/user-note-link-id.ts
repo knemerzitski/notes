@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb';
 import { objectIdToStr } from '../../mongodb/utils/objectid';
-import { QueryableNote } from '../../mongodb/descriptions/note';
+import { QueryableNote } from '../../mongodb/loaders/note/descriptions/note';
 import { MongoQueryFn } from '../../mongodb/query/query';
 
 export function UserNoteLink_id(noteId: ObjectId, userId: ObjectId): string {

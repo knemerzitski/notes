@@ -9,7 +9,7 @@ import { PreFetchedArrayGetItemFn } from '../../../utils/pre-execute';
 import { createMapQueryFn } from '../../../../mongodb/query/query';
 import { RevisionChangesetSchema } from '../../../../mongodb/schema/collab-text';
 import { StructQuery } from '../../../../mongodb/query/struct-query';
-import { QueryableRevisionRecord } from '../../../../mongodb/descriptions/revision-record';
+import { QueryableRevisionRecord } from '../../../../mongodb/loaders/note/descriptions/revision-record';
 
 export const CollabText: CollabTextResolvers = {
   headText: (parent) => {

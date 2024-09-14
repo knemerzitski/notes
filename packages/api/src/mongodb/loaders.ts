@@ -2,21 +2,21 @@ import { mitt } from '~utils/mitt-unsub';
 
 import { MongoDBCollections } from './collections';
 import { MongoDBContext } from './context';
-import { QueryableNoteId, QueryableNoteLoader } from './loaders/note';
-import { QueryableUserId, QueryableUserLoader } from './loaders/user';
-import { QueryableNote } from './descriptions/note';
-import { QueryableUser } from './descriptions/user';
+import { QueryableNoteId, QueryableNoteLoader } from './loaders/note/loader';
+import { QueryableUserId, QueryableUserLoader } from './loaders/user/loader';
+import { QueryableNote } from './loaders/note/descriptions/note';
+import { QueryableUser } from './loaders/user/description';
 import {
   QueryableSessionId,
   QueryableSessionLoader,
-} from './loaders/session';
+} from './loaders/session/loader';
 import { QueryLoaderEvents } from './query/query-loader';
 import {
   QueryableNotesSearchId,
   QueryableNotesSearchLoader,
-  QueryableSearchNotes,
-} from './loaders/notes-search';
-import { QueryableSession } from './descriptions/session';
+} from './loaders/notes-search/loader';
+import { QueryableSession } from './loaders/session/description';
+import { QueryableSearchNotes } from './loaders/notes-search/description';
 
 export interface MongoDBLoaders {
   session: QueryableSessionLoader;

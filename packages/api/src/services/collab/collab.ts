@@ -1,11 +1,11 @@
 import { RevisionRecordSchema, CollabTextSchema } from '../../mongodb/schema/collab-text';
-import { QueryableUserLoader } from '../../mongodb/loaders/user';
+import { QueryableUserLoader } from '../../mongodb/loaders/user/loader';
 import { StrictMongoQueryFn } from '../../mongodb/query/query';
 import { isQueryOnlyId } from '../../mongodb/query/utils/is-query-only-id';
 import { InferRaw } from 'superstruct';
 import { StructQuery } from '../../mongodb/query/struct-query';
-import { QueryableCollabText } from '../../mongodb/descriptions/collab-text';
-import { QueryableRevisionRecord } from '../../mongodb/descriptions/revision-record';
+import { QueryableCollabText } from '../../mongodb/loaders/note/descriptions/collab-text';
+import { QueryableRevisionRecord } from '../../mongodb/loaders/note/descriptions/revision-record';
 
 export interface QueryWithCollabTextSchemaParams {
   collabText: InferRaw<typeof CollabTextSchema>;

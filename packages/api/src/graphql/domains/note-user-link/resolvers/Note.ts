@@ -1,4 +1,4 @@
-import { QueryableNoteUser } from '../../../../mongodb/descriptions/note';
+import { QueryableNoteUser } from '../../../../mongodb/loaders/note/descriptions/note';
 import { createMapQueryFn } from '../../../../mongodb/query/query';
 import { withPreExecuteList } from '../../../utils/pre-execute';
 import type { NoteResolvers } from '../../types.generated';

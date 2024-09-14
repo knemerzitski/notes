@@ -1,17 +1,13 @@
 import { AggregateOptions, ObjectId } from 'mongodb';
 
-import { groupBy } from '~utils/array/group-by';
 import { mitt, Emitter } from '~utils/mitt-unsub';
 
-import { CollectionName, MongoDBCollections } from '../collections';
-import { MongoDBContext } from '../context';
-import { LoaderEvents } from '../loaders';
+import { CollectionName, MongoDBCollections } from '../../collections';
+import { MongoDBContext } from '../../context';
+import { LoaderEvents } from '../../loaders';
 
-import { mapQueryAggregateResult } from '../query/map-query-aggregate-result';
-import { MergedQueryDeep, mergeQueries } from '../query/merge-queries';
-import { mergedQueryToPipeline } from '../query/merged-query-to-pipeline';
-import { MongoQueryFn, PartialQueryResultDeep, QueryDeep } from '../query/query';
-import { QueryableNote, queryableNoteDescription } from '../descriptions/note';
+import { MongoQueryFn, QueryDeep } from '../../query/query';
+import { QueryableNote } from './descriptions/note';
 
 import {
   QueryLoader,
@@ -19,9 +15,10 @@ import {
   QueryLoaderError,
   QueryLoaderEvents,
   QueryLoaderKey,
-} from '../query/query-loader';
-import { objectIdToStr } from '../utils/objectid';
+} from '../../query/query-loader';
+import { objectIdToStr } from '../../utils/objectid';
 import { Infer, InferRaw } from 'superstruct';
+import { batchLoad } from './batch-load';
 
 export interface QueryableNoteId {
   /**
@@ -87,7 +84,7 @@ export class QueryableNoteLoader {
 
     this.loader = new QueryLoader({
       eventBus: params.eventBus ? loaderEventBus : undefined,
-      batchLoadFn: (keys, context) => queryableNoteBatchLoad(keys, context),
+      batchLoadFn: (keys, context) => batchLoad(keys, context),
       context: params.context,
       struct: QueryableNote,
     });
@@ -169,92 +166,4 @@ export class QueryableNoteLoader {
       });
     });
   }
-}
-
-export async function queryableNoteBatchLoad(
-  keys: readonly QueryableNoteLoaderKey[],
-  context: QueryableNoteLoadContext
-): Promise<(PartialQueryResultDeep<InferRaw<typeof QueryableNote>> | Error)[]> {
-  const keysByUserId = groupBy(
-    keys,
-    ({ id: { userId } }) => userId?.toString('hex') ?? ''
-  );
-
-  const notesBy_userId_noteId = Object.fromEntries(
-    await Promise.all(
-      Object.entries(keysByUserId).map(async ([userIdStr, sameUserLoadKeys]) => {
-        const userId =
-          userIdStr.length > 0 ? ObjectId.createFromHexString(userIdStr) : null;
-
-        // Gather noteIds
-        const allNoteIds = sameUserLoadKeys.map(({ id: { noteId } }) => noteId);
-
-        // Merge queries
-        const mergedQuery = mergeQueries(sameUserLoadKeys.map(({ query }) => query));
-
-        // _id is required later after aggregate
-        mergedQuery._id = 1;
-
-        // Build aggregate pipeline
-        const aggregatePipeline = mergedQueryToPipeline(mergedQuery, {
-          description: queryableNoteDescription,
-          customContext: context.global,
-        });
-
-        // Fetch from database
-        const notesResult = await context.global.collections.notes
-          .aggregate(
-            [
-              {
-                $match: {
-                  ...(userId && { 'users._id': userId }),
-                  _id: {
-                    $in: allNoteIds,
-                  },
-                },
-              },
-              ...aggregatePipeline,
-            ],
-            {
-              session: context.request,
-            }
-          )
-          .toArray();
-
-        const noteById = notesResult.reduce<Record<string, Document>>((noteMap, note) => {
-          if (note._id instanceof ObjectId) {
-            noteMap[note._id.toString()] = note;
-          }
-
-          return noteMap;
-        }, {});
-
-        return [
-          userIdStr,
-          {
-            noteById,
-            mergedQuery,
-          },
-        ];
-      })
-    )
-  ) as Record<
-    string,
-    {
-      noteById: Record<string, Document>;
-      mergedQuery: MergedQueryDeep<InferRaw<typeof QueryableNote>>;
-    }
-  >;
-
-  return keys.map((key) => {
-    const userResult = notesBy_userId_noteId[key.id.userId?.toString() ?? ''];
-    const note = userResult?.noteById[key.id.noteId.toString()];
-    if (!note) {
-      return new NoteNotFoundQueryLoaderError(key);
-    }
-
-    return mapQueryAggregateResult(key.query, userResult.mergedQuery, note, {
-      descriptions: [queryableNoteDescription],
-    });
-  });
 }

@@ -7,9 +7,9 @@ import {
   withPreExecuteList,
 } from '../../../../utils/pre-execute';
 import { createMapQueryFn } from '../../../../../mongodb/query/query';
-import { QueryableNote } from '../../../../../mongodb/descriptions/note';
+import { QueryableNote } from '../../../../../mongodb/loaders/note/descriptions/note';
 import { UserNoteLinkMapper } from '../../schema.mappers';
-import { QueryableUser_NotesCategory } from '../../../../../mongodb/descriptions/user';
+import { QueryableUser_NotesCategory } from '../../../../../mongodb/loaders/user/description';
 import { Note_id_fromQueryFn } from '../../../../../services/note/note-id';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 

@@ -5,7 +5,7 @@ import {
   mongoCollectionStats,
   resetDatabase,
 } from '../../__test__/helpers/mongodb/mongodb';
-import { QueryableUserLoader } from '../../mongodb/loaders/user';
+import { QueryableUserLoader } from '../../mongodb/loaders/user/loader';
 import { findUserByGoogleUserId } from './user-loader';
 import { faker } from '@faker-js/faker';
 import { populateExecuteAll } from '../../__test__/helpers/mongodb/populate/populate-queue';

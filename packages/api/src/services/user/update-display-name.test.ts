@@ -4,7 +4,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { updateDisplayName } from './update-display-name';
 import { updateDisplayName as model_updateDisplayName } from '../../mongodb/models/user/update-display-name';
 import { mock, mockDeep } from 'vitest-mock-extended';
-import { QueryableUserLoader } from '../../mongodb/loaders/user';
+import { QueryableUserLoader } from '../../mongodb/loaders/user/loader';
 
 vi.mock('../../mongodb/models/user/update-display-name');
 

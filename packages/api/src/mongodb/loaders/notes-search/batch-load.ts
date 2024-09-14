@@ -1,159 +1,16 @@
-import { AggregateOptions, ObjectId } from 'mongodb';
+import { InferRaw } from "superstruct";
+import { groupBy } from "~utils/array/group-by";
+import { STRUCT_STRING } from "../../constants";
+import { RelayAfterPagination, RelayAfterBoundPagination, RelayBeforePagination, RelayBeforeBoundPagination, RelayFirstPagination, RelayLastPagination, getPaginationKey } from "../../pagination/relay-array-pagination";
+import { mapQueryAggregateResult } from "../../query/map-query-aggregate-result";
+import { mergeQueries, MergedQueryDeep } from "../../query/merge-queries";
+import { mergedQueryToPipeline } from "../../query/merged-query-to-pipeline";
+import { PartialQueryResultDeep } from "../../query/query";
+import { NoteSearchIndexName } from "../../schema/note";
+import { notesSearchDescription, QueryableSearchNotes } from "./description";
+import { QueryableNotesSearchLoaderKey, QueryableNotesSearchLoadContext, QueryableNotesSearchId } from "./loader";
 
-import { groupBy } from '~utils/array/group-by';
-import { Emitter, mitt } from '~utils/mitt-unsub';
-
-import { CollectionName, MongoDBCollections } from '../collections';
-import { MongoDBContext } from '../context';
-import { LoaderEvents } from '../loaders';
-
-import {
-  getPaginationKey,
-  RelayAfterBoundPagination,
-  RelayAfterPagination,
-  RelayBeforeBoundPagination,
-  RelayBeforePagination,
-  RelayFirstPagination,
-  RelayLastPagination,
-  RelayPagination,
-} from '../pagination/relay-array-pagination';
-
-import { DeepAnyDescription } from '../query/description';
-import { mapQueryAggregateResult } from '../query/map-query-aggregate-result';
-import { MergedQueryDeep, mergeQueries } from '../query/merge-queries';
-import { mergedQueryToPipeline } from '../query/merged-query-to-pipeline';
-import { MongoQueryFn, PartialQueryResultDeep, QueryDeep } from '../query/query';
-import { fieldsRemoved } from '../query/utils/fields-removed';
-import { NoteSearchIndexName } from '../schema/note';
-import {
-  QueryableNote,
-  QueryableNoteContext,
-  queryableNoteDescription,
-} from '../descriptions/note';
-
-import {
-  CreateQueryFnOptions,
-  LoadOptions,
-  QueryLoader,
-  QueryLoaderContext,
-  QueryLoaderEvents,
-  QueryLoaderKey,
-  SessionOptions,
-} from '../query/query-loader';
-import { array, Infer, InferRaw, object, string } from 'superstruct';
-import { STRUCT_STRING } from '../constants';
-
-export interface QueryableNotesSearchId {
-  /**
-   * Note.users._id
-   */
-  userId: ObjectId;
-  /**
-   * Text to find in note
-   */
-  searchText: string;
-  /**
-   * Paginate search results
-   */
-  pagination?: RelayPagination<string>;
-}
-
-export const QueryableSearchNote = object({
-  note: QueryableNote,
-  cursor: string(),
-});
-
-export const QueryableSearchNotes = array(QueryableSearchNote);
-
-export type QueryableNotesSearchLoaderKey = QueryLoaderKey<
-  QueryableNotesSearchId,
-  InferRaw<typeof QueryableSearchNotes>,
-  QueryableNotesSearchLoadContext
->['cache'];
-
-export interface QueryableNotesSearchLoaderParams {
-  eventBus?: Emitter<LoaderEvents>;
-  context: GlobalContext;
-}
-
-export type QueryableNotesSearchLoadContext = QueryLoaderContext<
-  GlobalContext,
-  RequestContext
->;
-
-interface GlobalContext {
-  collections: Pick<
-    MongoDBContext<MongoDBCollections>['collections'],
-    CollectionName.NOTES | CollectionName.USERS
-  >;
-}
-
-type RequestContext = AggregateOptions['session'];
-
-export class QueryableNotesSearchLoader {
-  private readonly loader: QueryLoader<
-    QueryableNotesSearchId,
-    typeof QueryableSearchNotes,
-    GlobalContext,
-    RequestContext
-  >;
-
-  constructor(params: Readonly<QueryableNotesSearchLoaderParams>) {
-    const loaderEventBus =
-      mitt<QueryLoaderEvents<QueryableNotesSearchId, typeof QueryableSearchNotes>>();
-    if (params.eventBus) {
-      loaderEventBus.on('loaded', (payload) => {
-        params.eventBus?.emit('loadedNotesSearch', payload);
-      });
-    }
-
-    this.loader = new QueryLoader({
-      eventBus: params.eventBus ? loaderEventBus : undefined,
-      batchLoadFn: (keys, context) => {
-        return queryableNotesSearchBatchLoad(keys, context);
-      },
-      context: params.context,
-      struct: QueryableSearchNotes,
-    });
-  }
-
-  load<
-    V extends QueryDeep<Infer<typeof QueryableSearchNotes>>,
-    T extends 'any' | 'raw' | 'validated' = 'any',
-  >(
-    key: Parameters<typeof this.loader.load<V, T>>[0],
-    options?: SessionOptions<LoadOptions<RequestContext, T>>
-  ): ReturnType<typeof this.loader.load<V, T>> {
-    return this.loader.load(key, {
-      ...options,
-      context: options?.session,
-      clearCache: options?.session != null,
-    });
-  }
-
-  createQueryFn(
-    id: QueryableNotesSearchId,
-    options?: SessionOptions<
-      CreateQueryFnOptions<RequestContext, typeof QueryableSearchNotes>
-    >
-  ): MongoQueryFn<typeof QueryableSearchNotes> {
-    return this.loader.createQueryFn(id, {
-      ...options,
-      context: options?.session,
-      clearCache: options?.session != null,
-    });
-  }
-}
-
-const searchDescription: DeepAnyDescription<
-  InferRaw<typeof QueryableSearchNotes>,
-  unknown,
-  QueryableNoteContext
-> = {
-  note: fieldsRemoved(queryableNoteDescription, ['$mapLastProject']),
-};
-
-export async function queryableNotesSearchBatchLoad(
+export async function batchLoad(
   keys: readonly QueryableNotesSearchLoaderKey[],
   context: QueryableNotesSearchLoadContext
 ): Promise<(PartialQueryResultDeep<InferRaw<typeof QueryableSearchNotes>> | Error)[]> {
@@ -187,7 +44,7 @@ export async function queryableNotesSearchBatchLoad(
 
                 // Build aggregate pipeline for note
                 const aggregatePipeline = mergedQueryToPipeline(mergedQuery, {
-                  description: searchDescription,
+                  description: notesSearchDescription,
                   customContext: context.global,
                 });
 
@@ -318,7 +175,7 @@ export async function queryableNotesSearchBatchLoad(
 
     return argsResults.notesResult.map((noteResult) => {
       return mapQueryAggregateResult(key.query, argsResults.mergedQuery, noteResult, {
-        descriptions: [searchDescription],
+        descriptions: [notesSearchDescription],
       });
     });
   });

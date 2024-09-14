@@ -8,22 +8,22 @@ import {
   resetDatabase,
   mongoCollections,
   mongoCollectionStats,
-} from '../../__test__/helpers/mongodb/mongodb';
+} from '../../../__test__/helpers/mongodb/mongodb';
 import {
   TestCollabTextKey,
   TestNoteCategory,
   populateNotes,
-} from '../../__test__/helpers/mongodb/populate/populate';
-import { populateExecuteAll } from '../../__test__/helpers/mongodb/populate/populate-queue';
-import { RelayPagination } from '../pagination/relay-array-pagination';
-import { DBUserSchema } from '../schema/user';
+} from '../../../__test__/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../__test__/helpers/mongodb/populate/populate-queue';
+import { RelayPagination } from '../../pagination/relay-array-pagination';
+import { DBUserSchema } from '../../schema/user';
 
 import {
   queryableUserBatchLoad,
   QueryableUserLoaderKey,
   QueryableUserLoaderParams,
-} from './user';
-import { fakeUserPopulateQueue } from '../../__test__/helpers/mongodb/populate/user';
+} from './loader';
+import { fakeUserPopulateQueue } from '../../../__test__/helpers/mongodb/populate/user';
 
 let populateResult: ReturnType<typeof populateNotes>;
 let mainNotesIds: ObjectId[];

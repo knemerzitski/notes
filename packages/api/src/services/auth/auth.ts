@@ -2,7 +2,7 @@ import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes'
 import { findByCookieId, Session, tryRefreshExpireAt } from '../session/session';
 import { ReplaceDeep } from '~utils/types';
 import { Collection, ObjectId } from 'mongodb';
-import { QueryableSessionLoader } from '../../mongodb/loaders/session';
+import { QueryableSessionLoader } from '../../mongodb/loaders/session/loader';
 import { Cookies } from '../http/cookies';
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import { SessionDuration, SessionDurationConfig } from '../session/duration';

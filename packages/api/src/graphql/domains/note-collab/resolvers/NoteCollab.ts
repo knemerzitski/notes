@@ -1,5 +1,5 @@
 import { Changeset } from '~collab/changeset/changeset';
-import { QueryableCollabText } from '../../../../mongodb/descriptions/collab-text';
+import { QueryableCollabText } from '../../../../mongodb/loaders/note/descriptions/collab-text';
 import { objectIdToStr } from '../../../../mongodb/utils/objectid';
 import { NoteTextField, type NoteCollabResolvers } from '../../types.generated';
 

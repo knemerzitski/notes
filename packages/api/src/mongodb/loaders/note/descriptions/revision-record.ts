@@ -1,8 +1,8 @@
-import { CollectionName, MongoDBCollectionsOnlyNames } from '../collections';
-import { DeepAnyDescription } from '../query/description';
-import { isQueryOnlyId } from '../query/utils/is-query-only-id';
-import { UserSchema } from '../schema/user';
-import { RevisionRecordSchema } from '../schema/collab-text';
+import { CollectionName, MongoDBCollectionsOnlyNames } from '../../../collections';
+import { DeepAnyDescription } from '../../../query/description';
+import { isQueryOnlyId } from '../../../query/utils/is-query-only-id';
+import { UserSchema } from '../../../schema/user';
+import { RevisionRecordSchema } from '../../../schema/collab-text';
 import { assign, Infer, InferRaw, object, omit, pick } from 'superstruct';
 
 export const QueryableRevisionRecord = assign(

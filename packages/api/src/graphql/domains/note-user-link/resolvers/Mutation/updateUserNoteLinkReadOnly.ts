@@ -4,7 +4,7 @@ import { publishSignedInUserMutation } from '../../../user/resolvers/Subscriptio
 import { createMapQueryFn } from '../../../../../mongodb/query/query';
 import { assertAuthenticated } from '../../../../../services/auth/auth';
 import { updateReadOnly } from '../../../../../services/note/update-read-only';
-import { QueryableNoteUser } from '../../../../../mongodb/descriptions/note';
+import { QueryableNoteUser } from '../../../../../mongodb/loaders/note/descriptions/note';
 
 export const updateUserNoteLinkReadOnly: NonNullable<
   MutationResolvers['updateUserNoteLinkReadOnly']

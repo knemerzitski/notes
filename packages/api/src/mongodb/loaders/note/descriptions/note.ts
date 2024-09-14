@@ -1,12 +1,12 @@
-import { CollectionName, MongoDBCollectionsOnlyNames } from '../collections';
-import { DeepAnyDescription } from '../query/description';
-import { NoteUserSchema } from '../schema/note-user';
+import { CollectionName, MongoDBCollectionsOnlyNames } from '../../../collections';
+import { DeepAnyDescription } from '../../../query/description';
+import { NoteUserSchema } from '../../../schema/note-user';
 import {
   collabTextDescription,
   collabTextSchemaToQueryable,
   QueryableCollabText,
 } from './collab-text';
-import { CollabSchema } from '../schema/collab';
+import { CollabSchema } from '../../../schema/collab';
 import {
   array,
   assign,
@@ -18,8 +18,8 @@ import {
   record,
   string,
 } from 'superstruct';
-import { UserSchema } from '../schema/user';
-import { NoteSchema } from '../schema/note';
+import { UserSchema } from '../../../schema/user';
+import { NoteSchema } from '../../../schema/note';
 
 export const QueryableNoteUser = assign(
   NoteUserSchema,

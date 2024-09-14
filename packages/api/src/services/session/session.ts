@@ -1,5 +1,5 @@
 import { DBSessionSchema, SessionSchema } from '../../mongodb/schema/session';
-import { QueryableSessionLoader } from '../../mongodb/loaders/session';
+import { QueryableSessionLoader } from '../../mongodb/loaders/session/loader';
 import { Collection, ObjectId } from 'mongodb';
 import { SessionDuration } from './duration';
 import { create } from 'superstruct';

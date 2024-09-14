@@ -1,4 +1,4 @@
-import { QueryableNoteUser } from '../../../../mongodb/descriptions/note';
+import { QueryableNoteUser } from '../../../../mongodb/loaders/note/descriptions/note';
 import { createMapQueryFn } from '../../../../mongodb/query/query';
 import { findNoteUserMaybe } from '../../../../services/note/note';
 import { UserNoteLink_id_fromQueryFn } from '../../../../services/note/user-note-link-id';

@@ -1,4 +1,4 @@
-import { QueryableNote } from '../../../mongodb/descriptions/note';
+import { QueryableNote } from '../../../mongodb/loaders/note/descriptions/note';
 import { MongoQueryFn } from '../../../mongodb/query/query';
 
 export interface NoteShareAccessMapper {

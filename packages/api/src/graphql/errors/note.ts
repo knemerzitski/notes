@@ -6,7 +6,7 @@ import {
 } from '../../services/note/errors';
 import { objectIdToStr } from '../../mongodb/utils/objectid';
 import { ObjectId } from 'mongodb';
-import { NoteNotFoundQueryLoaderError } from '../../mongodb/loaders/note';
+import { NoteNotFoundQueryLoaderError } from '../../mongodb/loaders/note/loader';
 
 class NoteNotFoundError extends GraphQLError {
   constructor(noteId: ObjectId) {

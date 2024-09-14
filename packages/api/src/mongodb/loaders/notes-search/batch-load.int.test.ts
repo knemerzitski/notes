@@ -7,23 +7,24 @@ import { Changeset } from '~collab/changeset/changeset';
 import {
   dropAndCreateSearchIndexes,
   dropSearchIndexes,
-} from '../../__test__/helpers/mongodb/indexes';
-import { resetDatabase, mongoCollections } from '../../__test__/helpers/mongodb/mongodb';
+} from '../../../__test__/helpers/mongodb/indexes';
+import {
+  resetDatabase,
+  mongoCollections,
+} from '../../../__test__/helpers/mongodb/mongodb';
 import {
   TestCollabTextKey,
   populateNotes,
   populateNotesWithText,
-} from '../../__test__/helpers/mongodb/populate/populate';
-import { populateExecuteAll } from '../../__test__/helpers/mongodb/populate/populate-queue';
-import { DBUserSchema } from '../schema/user';
+} from '../../../__test__/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../__test__/helpers/mongodb/populate/populate-queue';
+import { DBUserSchema } from '../../schema/user';
 
-import { MongoPartialDeep } from '../types';
+import { MongoPartialDeep } from '../../types';
 
-import { QueryableNoteLoaderParams } from './note';
-import {
-  queryableNotesSearchBatchLoad,
-  QueryableNotesSearchLoaderKey,
-} from './notes-search';
+import { QueryableNoteLoaderParams } from '../note/loader';
+import { QueryableNotesSearchLoaderKey } from './loader';
+import { batchLoad } from './batch-load';
 
 let populateResult: ReturnType<typeof populateNotes>;
 let user: DBUserSchema;
@@ -96,7 +97,7 @@ describe('no search index', () => {
   });
 
   it('returns empty array without search index', async () => {
-    const result = await queryableNotesSearchBatchLoad(
+    const result = await batchLoad(
       [
         createLoaderKey('foo', {
           id: {
@@ -122,7 +123,7 @@ describe('search index created', () => {
   });
 
   it('finds a note, first: 1', async () => {
-    const result = await queryableNotesSearchBatchLoad(
+    const result = await batchLoad(
       [
         createLoaderKey('foo', {
           id: {
@@ -142,7 +143,7 @@ describe('search index created', () => {
   });
 
   it('continues pagination with a cursor', async () => {
-    const result1 = await queryableNotesSearchBatchLoad(
+    const result1 = await batchLoad(
       [
         createLoaderKey('foo', {
           id: {
@@ -162,7 +163,7 @@ describe('search index created', () => {
     const cursor = result1[0]?.[0]?.cursor;
     assert(cursor != null);
 
-    const result2 = await queryableNotesSearchBatchLoad(
+    const result2 = await batchLoad(
       [
         createLoaderKey('foo', {
           id: {
@@ -183,7 +184,7 @@ describe('search index created', () => {
   });
 
   it('returns empty array on no match', async () => {
-    const result = await queryableNotesSearchBatchLoad([createLoaderKey('random')], {
+    const result = await batchLoad([createLoaderKey('random')], {
       global: context,
       request: undefined,
     });
