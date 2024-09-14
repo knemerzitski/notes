@@ -1,11 +1,16 @@
 import { CollectionName, MongoDBCollectionsOnlyNames } from '../collections';
 import { DeepAnyDescription } from '../query/description';
 import { NoteUserSchema } from '../schema/note-user';
-import { collabTextDescription, QueryableCollabText } from './collab-text';
+import {
+  collabTextDescription,
+  collabTextSchemaToQueryable,
+  QueryableCollabText,
+} from './collab-text';
 import { CollabSchema } from '../schema/collab';
 import {
   array,
   assign,
+  Infer,
   InferRaw,
   object,
   omit,
@@ -37,6 +42,24 @@ export const QueryableNote = assign(
     users: array(QueryableNoteUser),
   })
 );
+
+export function noteSchemaToQueryable<
+  T extends InferRaw<typeof NoteSchema> | Infer<typeof NoteSchema>,
+>(note: T) {
+  return {
+    ...note,
+    collab: {
+      ...note.collab,
+      texts: note.collab?.texts
+        ? Object.fromEntries(
+            note.collab.texts.map((text) => {
+              return [text.k, collabTextSchemaToQueryable(text.v)];
+            })
+          )
+        : undefined,
+    },
+  };
+}
 
 export interface QueryableNoteContext {
   collections: Pick<

@@ -13,6 +13,7 @@ import {
 } from 'superstruct';
 
 import { Changeset } from '~collab/changeset/changeset';
+import { SelectionRange } from '~collab/client/selection-range';
 
 export const ChangesetSchema = coerce(
   instance(Changeset),
@@ -45,7 +46,12 @@ export type SelectionRangeSchema = Infer<typeof SelectionRangeSchema>;
 
 export const RevisionRecordSchema = object({
   afterSelection: SelectionRangeSchema,
-  beforeSelection: SelectionRangeSchema,
+  beforeSelection: coerce(
+    SelectionRangeSchema,
+    SelectionRangeSchema,
+    (value) => value,
+    (value) => SelectionRange.collapseSame(value)
+  ),
   changeset: ChangesetSchema,
   /**
    * When record was inserted to DB

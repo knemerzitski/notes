@@ -11,9 +11,21 @@ import {
 } from '../pagination/relay-array-pagination';
 import { DeepAnyDescription } from '../query/description';
 import { CollabTextSchema, RevisionRecordSchema } from '../schema/collab-text';
-import { QueryableRevisionRecord } from './revision-record';
+import {
+  QueryableRevisionRecord,
+  revisionRecordSchemaToQueryable,
+} from './revision-record';
 import { PartialQueryResultDeep } from '../query/query';
-import { array, assign, InferRaw, number, object, omit, optional } from 'superstruct';
+import {
+  array,
+  assign,
+  Infer,
+  InferRaw,
+  number,
+  object,
+  omit,
+  optional,
+} from 'superstruct';
 import { StructQuery } from '../query/struct-query';
 
 type RecordsPaginationOperationOptions = Omit<
@@ -68,6 +80,15 @@ export const QueryableCollabText = assign(
     ),
   })
 );
+
+export function collabTextSchemaToQueryable<
+  T extends InferRaw<typeof CollabTextSchema> | Infer<typeof CollabTextSchema>,
+>(collabText: T) {
+  return {
+    ...collabText,
+    records: collabText.records.map(revisionRecordSchemaToQueryable),
+  };
+}
 
 export interface QueryableCollabTextContext {
   collections: Pick<MongoDBCollectionsOnlyNames, CollectionName.USERS>;
