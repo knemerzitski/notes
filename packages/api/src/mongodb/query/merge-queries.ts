@@ -4,7 +4,7 @@ import { getOrCreateArray } from '~utils/array/got-or-create-array';
 import { MongoPrimitive } from '../types';
 import { QUERY_ARG_PREFIX, QueryArgPrefix, QueryObjectDeep } from './query';
 import mapObject, { mapObjectSkip } from 'map-obj';
-import { getEqualObjectString } from '../loaders/utils/get-equal-object-string';
+import { getEqualObjectString } from './utils/get-equal-object-string';
 import { PickStartsWith, OmitStartsWith, PickValue } from '~utils/types';
 
 export const ARGS_FIELD = '$args';

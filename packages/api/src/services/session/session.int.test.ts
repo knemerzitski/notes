@@ -8,7 +8,7 @@ import {
 import { populateExecuteAll } from '../../__test__/helpers/mongodb/populate/populate-queue';
 import { DBSessionSchema } from '../../mongodb/schema/session';
 import { fakeSessionPopulateQueue } from '../../__test__/helpers/mongodb/populate/session';
-import { QueryableSessionLoader } from '../../mongodb/loaders/queryable-session-loader';
+import { QueryableSessionLoader } from '../../mongodb/loaders/session';
 import { SessionDuration } from './duration';
 import { ObjectId } from 'mongodb';
 import {

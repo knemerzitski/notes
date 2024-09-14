@@ -4,7 +4,7 @@ import { MaybePromise, Maybe } from '~utils/types';
 import {
   memoizedGetEqualObjectString,
   getEqualObjectString,
-} from '../loaders/utils/get-equal-object-string';
+} from './utils/get-equal-object-string';
 import {
   QueryDeep,
   PartialQueryResultDeep,

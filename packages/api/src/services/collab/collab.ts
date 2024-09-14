@@ -1,5 +1,5 @@
 import { RevisionRecordSchema, CollabTextSchema } from '../../mongodb/schema/collab-text';
-import { QueryableUserLoader } from '../../mongodb/loaders/queryable-user-loader';
+import { QueryableUserLoader } from '../../mongodb/loaders/user';
 import { StrictMongoQueryFn } from '../../mongodb/query/query';
 import { isQueryOnlyId } from '../../mongodb/query/utils/is-query-only-id';
 import { InferRaw } from 'superstruct';

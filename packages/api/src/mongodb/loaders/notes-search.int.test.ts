@@ -15,18 +15,18 @@ import {
   populateNotesWithText,
 } from '../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../__test__/helpers/mongodb/populate/populate-queue';
-import { UserSchema } from '../schema/user';
+import { DBUserSchema } from '../schema/user';
 
 import { MongoPartialDeep } from '../types';
 
-import { QueryableNoteLoaderParams } from './queryable-note-loader';
+import { QueryableNoteLoaderParams } from './note';
 import {
   queryableNotesSearchBatchLoad,
   QueryableNotesSearchLoaderKey,
-} from './queryable-notes-search-loader';
+} from './notes-search';
 
 let populateResult: ReturnType<typeof populateNotes>;
-let user: UserSchema;
+let user: DBUserSchema;
 
 let context: QueryableNoteLoaderParams['context'];
 

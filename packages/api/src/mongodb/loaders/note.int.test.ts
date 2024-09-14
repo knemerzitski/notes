@@ -13,15 +13,15 @@ import {
 } from '../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../__test__/helpers/mongodb/populate/user';
-import { NoteSchema } from '../schema/note';
+import { DBNoteSchema } from '../schema/note';
 
 import {
   queryableNoteBatchLoad,
   QueryableNoteLoaderParams,
-} from './queryable-note-loader';
+} from './note';
 
 let populateResult: ReturnType<typeof populateNotes>;
-let note: NoteSchema;
+let note: DBNoteSchema;
 
 let context: QueryableNoteLoaderParams['context'];
 

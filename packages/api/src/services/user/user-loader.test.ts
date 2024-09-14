@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb';
 import { describe, it, expect } from 'vitest';
-import { QueryableUserLoader } from '../../mongodb/loaders/queryable-user-loader';
+import { QueryableUserLoader } from '../../mongodb/loaders/user';
 import { primeNewDisplayName } from './user-loader';
 import { mock } from 'vitest-mock-extended';
 

@@ -16,20 +16,20 @@ import {
 } from '../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../__test__/helpers/mongodb/populate/populate-queue';
 import { RelayPagination } from '../pagination/relay-array-pagination';
-import { UserSchema } from '../schema/user';
+import { DBUserSchema } from '../schema/user';
 
 import {
   queryableUserBatchLoad,
   QueryableUserLoaderKey,
   QueryableUserLoaderParams,
-} from './queryable-user-loader';
+} from './user';
 import { fakeUserPopulateQueue } from '../../__test__/helpers/mongodb/populate/user';
 
 let populateResult: ReturnType<typeof populateNotes>;
 let mainNotesIds: ObjectId[];
 let otherNotesIds: ObjectId[];
-let user: UserSchema;
-let user2: UserSchema;
+let user: DBUserSchema;
+let user2: DBUserSchema;
 
 let context: QueryableUserLoaderParams['context'];
 

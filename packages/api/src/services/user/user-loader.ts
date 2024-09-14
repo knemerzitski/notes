@@ -1,7 +1,7 @@
 import {
   QueryableUserLoader,
   UserNotFoundQueryLoaderError,
-} from '../../mongodb/loaders/queryable-user-loader';
+} from '../../mongodb/loaders/user';
 import { DBUserSchema } from '../../mongodb/schema/user';
 
 interface FindUserByGoogleUserIdParams {

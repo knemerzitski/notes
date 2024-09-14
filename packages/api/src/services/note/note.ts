@@ -3,7 +3,7 @@ import { queryWithCollabTextSchema } from '../collab/collab';
 import { Maybe } from '~utils/types';
 import { isDefined } from '~utils/type-guards/is-defined';
 import { QueryableNote, QueryableNoteCollab } from '../../mongodb/descriptions/note';
-import { QueryableUserLoader } from '../../mongodb/loaders/queryable-user-loader';
+import { QueryableUserLoader } from '../../mongodb/loaders/user';
 import { PartialQueryResultDeep, StrictMongoQueryFn } from '../../mongodb/query/query';
 import { CollabSchema } from '../../mongodb/schema/collab';
 import { StructQuery } from '../../mongodb/query/struct-query';

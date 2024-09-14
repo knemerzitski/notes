@@ -25,7 +25,7 @@ import {
 } from '../query/query-loader';
 import { isDefined } from '~utils/type-guards/is-defined';
 import { groupBy } from '~utils/array/group-by';
-import { getEqualObjectString } from './utils/get-equal-object-string';
+import { getEqualObjectString } from '../query/utils/get-equal-object-string';
 import { Infer, InferRaw } from 'superstruct';
 
 export type QueryableUserId =
@@ -137,7 +137,7 @@ export class QueryableUserLoader {
 
   private primeEquivalentOtherId(
     { key, value }: LoaderEvents['loadedUser'],
-    options?: PrimeOptions
+    options?: PrimeOptions<InferRaw<typeof QueryableUser>>
   ) {
     const result = value.result;
     if ('userId' in key.id) {

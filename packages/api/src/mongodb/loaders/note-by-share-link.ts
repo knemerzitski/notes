@@ -1,22 +1,96 @@
-import { GraphQLError } from 'graphql';
+import DataLoader from 'dataloader';
 import { AggregateOptions } from 'mongodb';
 
-import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+import { callFnGrouped } from '~utils/call-fn-grouped';
 
-import { groupBy } from '~utils/array/group-by';
+import { Emitter } from '~utils/mitt-unsub';
 
 import { CollectionName, MongoDBCollections } from '../collections';
-
 import { MongoDBContext } from '../context';
-import { mapQueryAggregateResult as queryFilterAggregateResult } from '../query/map-query-aggregate-result';
-import { MergedObjectQueryDeep, mergeQueries } from '../query/merge-queries';
-import { mergedQueryToPipeline } from '../query/merged-query-to-pipeline';
-import { QueryDeep, QueryResultDeep } from '../query/query';
+import { LoaderEvents } from '../loaders';
+import { QueryResultDeep } from '../query/query';
 
-import {
-  QueryableNote,
-  queryableNoteDescription,
-} from '../descriptions/note';
+import { QueryableNote } from '../descriptions/note';
+
+import { getEqualObjectString } from '../query/utils/get-equal-object-string';
+
+export interface QueryableNoteByShareLinkLoaderContext {
+  eventBus?: Emitter<LoaderEvents>;
+  collections: Pick<
+    MongoDBContext<MongoDBCollections>['collections'],
+    CollectionName.NOTES
+  >;
+}
+
+type QueryableNoteByShareLinkLoadKeyWithSession = {
+  noteKey: QueryableNoteByShareLinkLoadKey;
+} & Pick<AggregateOptions, 'session'>;
+
+export class QueryableNoteByShareLinkLoader {
+  private readonly context: Readonly<QueryableNoteByShareLinkLoaderContext>;
+
+  private readonly loader: DataLoader<
+    QueryableNoteByShareLinkLoadKeyWithSession,
+    QueryResultDeep<QueryableNote>,
+    string
+  >;
+
+  constructor(context: Readonly<QueryableNoteByShareLinkLoaderContext>) {
+    this.context = context;
+
+    this.loader = new DataLoader<
+      QueryableNoteByShareLinkLoadKeyWithSession,
+      QueryResultDeep<QueryableNote>,
+      string
+    >(
+      async (keys) =>
+        callFnGrouped(
+          keys,
+          (key) => key.session,
+          (keys, session) =>
+            queryableNoteByShareLinkBatchLoad(
+              keys.map(({ noteKey }) => noteKey),
+              this.context,
+              {
+                session,
+              }
+            )
+        ),
+      {
+        cacheKeyFn: (key) => {
+          return getEqualObjectString(key.noteKey);
+        },
+      }
+    );
+  }
+
+  async load(
+    key: QueryableNoteByShareLinkLoadKey,
+    aggregateOptions?: Pick<AggregateOptions, 'session'>
+  ) {
+    const loaderKey: QueryableNoteByShareLinkLoadKeyWithSession = {
+      noteKey: key,
+    };
+    if (aggregateOptions?.session) {
+      loaderKey.session = aggregateOptions.session;
+      // Clear key since session implies a transaction where returned value must be always up-to-date
+      return this.loader.clear(loaderKey).load(loaderKey);
+    } else {
+      const result = await this.loader.load(loaderKey);
+
+      const eventBus = this.context.eventBus;
+      if (eventBus) {
+        eventBus.emit('loadedNoteByShareLink', {
+          key,
+          value: result,
+        });
+      }
+
+      return result;
+    }
+  }
+}
+
 
 export interface QueryableNoteByShareLinkLoadKey {
   /**
@@ -114,3 +188,5 @@ export async function queryableNoteByShareLinkBatchLoad(
     );
   });
 }
+
+

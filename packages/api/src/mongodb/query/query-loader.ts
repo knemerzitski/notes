@@ -12,7 +12,7 @@ import {
   QueryResultDeep,
 } from './query';
 
-import { memoizedGetEqualObjectString } from '../loaders/utils/get-equal-object-string';
+import { memoizedGetEqualObjectString } from './utils/get-equal-object-string';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 import { isQueryArgField } from './merge-queries';
 import { Infer, InferRaw, Struct } from 'superstruct';

@@ -1,5 +1,5 @@
 import { QueryableNote } from '../../../../../mongodb/descriptions/note';
-import { QueryableSearchNote } from '../../../../../mongodb/loaders/queryable-notes-search-loader';
+import { QueryableSearchNote } from '../../../../../mongodb/loaders/notes-search';
 import { RelayPagination } from '../../../../../mongodb/pagination/relay-array-pagination';
 import { createMapQueryFn, MongoQueryFn } from '../../../../../mongodb/query/query';
 import { assertAuthenticated } from '../../../../../services/auth/auth';
