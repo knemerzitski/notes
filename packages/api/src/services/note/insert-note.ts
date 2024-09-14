@@ -15,7 +15,7 @@ interface InsertNoteParams {
   userId: ObjectId;
   backgroundColor?: Maybe<string>;
   categoryName: string;
-  collabTexts?: Maybe<Record<string, { initialText: string }>>;
+  collabText?: { initialText: string };
 }
 
 export async function insertNote({
@@ -23,7 +23,7 @@ export async function insertNote({
   userId,
   backgroundColor,
   categoryName,
-  collabTexts,
+  collabText,
 }: InsertNoteParams) {
   let preferences: NoteUserSchema['preferences'] | undefined;
   if (backgroundColor) {
@@ -42,17 +42,11 @@ export async function insertNote({
   const note: DBNoteSchema = {
     _id: new ObjectId(),
     users: [noteUser],
-    ...(collabTexts && {
-      collab: {
-        updatedAt: new Date(),
-        texts: Object.entries(collabTexts).map(([key, value]) => ({
-          k: key,
-          v: createCollabText({
-            creatorUserId: userId,
-            initialText: value.initialText,
-          }),
-        })),
-      },
+    ...(collabText && {
+      collabText: createCollabText({
+        creatorUserId: userId,
+        initialText: collabText.initialText,
+      }),
     }),
   };
 

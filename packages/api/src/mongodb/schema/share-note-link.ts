@@ -1,9 +1,8 @@
-import { boolean, date, Infer, instance, number, object, optional } from 'superstruct';
+import { boolean, date, Infer, InferRaw, instance, number, object, optional } from 'superstruct';
 import { ObjectId } from 'mongodb';
 
-/**
- * Note sharing via links
- */
+export type DBShareNoteLinkSchema = InferRaw<typeof ShareNoteLinkSchema>;
+
 export type ShareNoteLinkSchema = Infer<typeof ShareNoteLinkSchema>;
 
 const SimplePermissionsSchema = object({

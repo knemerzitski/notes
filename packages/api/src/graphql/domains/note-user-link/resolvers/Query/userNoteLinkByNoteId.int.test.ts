@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
-import mapObject from 'map-obj';
 import { ObjectId } from 'mongodb';
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
@@ -23,39 +22,30 @@ import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/popu
 import { fakeUserPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/user';
 import { DBNoteSchema } from '../../../../../mongodb/schema/note';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
-import {
-  NoteCategory,
-  NoteTextField,
-  UserNoteLink,
-} from '../../../../domains/types.generated';
+import { NoteCategory, UserNoteLink } from '../../../../domains/types.generated';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { UserNoteLink_id } from '../../../../../services/note/user-note-link-id';
-import { findNoteUser } from '../../../../../services/note/note';
 
 interface Variables {
   noteId: ObjectId;
   recordsLast?: number;
-  fieldName?: NoteTextField;
 }
 
 const QUERY = `#graphql
-  query($noteId: ObjectID!, $recordsLast: PositiveInt, $fieldName: NoteTextField){
+  query($noteId: ObjectID!, $recordsLast: PositiveInt){
     userNoteLinkByNoteId(noteId: $noteId){
       note {
         collab {
-          textFields(name: $fieldName) {
-            key
-            value {
-              headText {
-                revision
-                changeset
-              }
-              recordConnection(last: $recordsLast) {
-                edges {
-                  node {
-                    change {
-                      revision
-                    }
+          text {
+            headText {
+              revision
+              changeset
+            }
+            recordConnection(last: $recordsLast) {
+              edges {
+                node {
+                  change {
+                    revision
                   }
                 }
               }
@@ -81,12 +71,9 @@ beforeAll(async () => {
   userReadOnly = fakeUserPopulateQueue();
   userNoAccess = fakeUserPopulateQueue();
   note = fakeNotePopulateQueue(user, {
-    collabTexts: mapObject(NoteTextField, (_, fieldName) => [
-      fieldName,
-      {
-        recordsCount: 2,
-      },
-    ]),
+    collabText: {
+      recordsCount: 2,
+    },
   });
   userAddNote(user, note);
 
@@ -149,62 +136,30 @@ it('returns note', async () => {
     userNoteLinkByNoteId: {
       note: {
         collab: {
-          textFields: [
-            {
-              key: 'CONTENT',
-              value: {
-                headText: {
-                  revision: expect.any(Number),
-                  changeset: expect.any(Array),
-                },
-                recordConnection: {
-                  edges: [
-                    {
-                      node: {
-                        change: {
-                          revision: expect.any(Number),
-                        },
-                      },
-                    },
-                    {
-                      node: {
-                        change: {
-                          revision: expect.any(Number),
-                        },
-                      },
-                    },
-                  ],
-                },
-              },
+          text: {
+            headText: {
+              revision: expect.any(Number),
+              changeset: expect.any(Array),
             },
-            {
-              key: 'TITLE',
-              value: {
-                headText: {
-                  revision: expect.any(Number),
-                  changeset: expect.any(Array),
-                },
-                recordConnection: {
-                  edges: [
-                    {
-                      node: {
-                        change: {
-                          revision: expect.any(Number),
-                        },
-                      },
+            recordConnection: {
+              edges: [
+                {
+                  node: {
+                    change: {
+                      revision: expect.any(Number),
                     },
-                    {
-                      node: {
-                        change: {
-                          revision: expect.any(Number),
-                        },
-                      },
-                    },
-                  ],
+                  },
                 },
-              },
+                {
+                  node: {
+                    change: {
+                      revision: expect.any(Number),
+                    },
+                  },
+                },
+              ],
             },
-          ],
+          },
         },
       },
     },
@@ -216,64 +171,6 @@ it('returns note', async () => {
       readCount: 1,
     })
   );
-});
-
-it('returns note specified textField', async () => {
-  const response = await executeOperation(
-    {
-      noteId: note._id,
-      recordsLast: 2,
-      fieldName: NoteTextField.TITLE,
-    },
-    { user }
-  );
-
-  const data = expectGraphQLResponseData(response);
-
-  expect(mongoCollectionStats.allStats()).toStrictEqual(
-    expect.objectContaining({
-      readAndModifyCount: 1,
-      readCount: 1,
-    })
-  );
-
-  expect(data).toEqual({
-    userNoteLinkByNoteId: {
-      note: {
-        collab: {
-          textFields: [
-            {
-              key: 'TITLE',
-              value: {
-                headText: {
-                  revision: expect.any(Number),
-                  changeset: expect.any(Array),
-                },
-                recordConnection: {
-                  edges: [
-                    {
-                      node: {
-                        change: {
-                          revision: expect.any(Number),
-                        },
-                      },
-                    },
-                    {
-                      node: {
-                        change: {
-                          revision: expect.any(Number),
-                        },
-                      },
-                    },
-                  ],
-                },
-              },
-            },
-          ],
-        },
-      },
-    },
-  });
 });
 
 it('returns note users', async () => {
@@ -295,7 +192,7 @@ it('returns note users', async () => {
                   displayName
                 }
               }
-              createdAt
+              isOwner
             }
           }
         }
@@ -318,7 +215,7 @@ it('returns note users', async () => {
                 displayName: user.profile.displayName,
               },
             },
-            createdAt: findNoteUser(user._id, note)?.createdAt,
+            isOwner: true,
           },
           {
             user: {
@@ -327,7 +224,7 @@ it('returns note users', async () => {
                 displayName: userReadOnly.profile.displayName,
               },
             },
-            createdAt: findNoteUser(userReadOnly._id, note)?.createdAt,
+            isOwner: true,
           },
         ],
       },

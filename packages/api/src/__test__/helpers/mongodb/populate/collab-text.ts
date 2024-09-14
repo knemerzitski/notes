@@ -5,26 +5,26 @@ import { Changeset } from '~collab/changeset/changeset';
 import { isDefined } from '~utils/type-guards/is-defined';
 
 import {
-  CollabTextSchema,
-  RevisionRecordSchema,
+  DBCollabTextSchema,
+  DBRevisionRecordSchema,
 } from '../../../../mongodb/schema/collab-text';
 import { MongoPartialDeep } from '../../../../mongodb/types';
 
 export interface FakeCollabTextOptions {
   initialText?: string;
-  override?: MongoPartialDeep<CollabTextSchema>;
+  override?: MongoPartialDeep<DBCollabTextSchema>;
   revisionOffset?: number;
   recordsCount?: number;
   record?: (
     recordIndex: number,
     revision: number
-  ) => MongoPartialDeep<RevisionRecordSchema> | undefined;
+  ) => MongoPartialDeep<DBRevisionRecordSchema> | undefined;
 }
 
 export function fakeCollabText(
-  creatorUserId: RevisionRecordSchema['creatorUserId'],
+  creatorUserId: DBRevisionRecordSchema['creatorUserId'],
   options?: FakeCollabTextOptions
-): CollabTextSchema {
+): DBCollabTextSchema {
   const revisionOffset = Math.max(options?.revisionOffset ?? 0, 0);
   const recordsCount = options?.recordsCount ?? 1;
   const headRevision =
@@ -42,8 +42,8 @@ export function fakeCollabText(
   const headChangeset = Changeset.fromInsertion(initialText).serialize();
 
   function fakeRecord(
-    options?: MongoPartialDeep<RevisionRecordSchema>
-  ): RevisionRecordSchema {
+    options?: MongoPartialDeep<DBRevisionRecordSchema>
+  ): DBRevisionRecordSchema {
     return {
       creatorUserId: creatorUserId,
       userGeneratedId: faker.string.nanoid(6),
@@ -74,6 +74,7 @@ export function fakeCollabText(
     });
 
   return {
+    updatedAt: new Date(),
     ...options?.override,
     headText: {
       revision: headRevision,

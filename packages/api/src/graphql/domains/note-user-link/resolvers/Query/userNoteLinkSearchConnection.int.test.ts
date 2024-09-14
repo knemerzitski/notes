@@ -21,12 +21,7 @@ import {
 } from '../../../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
-import {
-  NoteTextField,
-  UserNoteLinkConnection,
-} from '../../../../domains/types.generated';
-import { logAll } from '../../../../../__test__/helpers/log-all';
-import { CollectionName } from '../../../../../mongodb/collections';
+import { UserNoteLinkConnection } from '../../../../domains/types.generated';
 
 interface Variables {
   searchText: string;
@@ -43,12 +38,9 @@ const QUERY = `#graphql
         note {
           id
           collab {
-            textFields {
-              key
-              value {
-                headText {
-                  changeset
-                }
+            text {
+              headText {
+                changeset
               }
             }
           }
@@ -79,12 +71,14 @@ beforeAll(async () => {
   faker.seed(42347);
   await resetDatabase();
 
-  populateResult = populateNotesWithText(
-    ['bar bar', 'foo foo', 'bar', 'foo foo foo', 'bar bar bar', 'foo'],
-    {
-      collabTextKeys: Object.values(NoteTextField),
-    }
-  );
+  populateResult = populateNotesWithText([
+    'bar bar',
+    'foo foo',
+    'bar',
+    'foo foo foo',
+    'bar bar bar',
+    'foo',
+  ]);
 
   user = populateResult.user;
 
@@ -121,19 +115,12 @@ async function executeOperation(
   );
 }
 
-function getContentFieldTexts(data: {
-  userNoteLinkSearchConnection: UserNoteLinkConnection;
-}) {
-  return data.userNoteLinkSearchConnection.userNoteLinks.map((userNoteLink) => {
-    const contentField = userNoteLink.note.collab.textFields.find(
-      (textField) => textField.key === NoteTextField.CONTENT
-    );
-    const contentText = Changeset.parseValue(
-      contentField?.value.headText.changeset
-    ).joinInsertions();
-
-    return contentText;
-  });
+function getTexts(data: { userNoteLinkSearchConnection: UserNoteLinkConnection }) {
+  return data.userNoteLinkSearchConnection.userNoteLinks.map((userNoteLink) =>
+    Changeset.parseValue(
+      userNoteLink.note.collab.text.headText.changeset
+    ).joinInsertions()
+  );
 }
 
 it('paginates notes from start to end', async () => {
@@ -151,7 +138,7 @@ it('paginates notes from start to end', async () => {
     })
   );
 
-  expect(getContentFieldTexts(data)).toStrictEqual(['foo foo foo']);
+  expect(getTexts(data)).toStrictEqual(['foo foo foo']);
   expect(data.userNoteLinkSearchConnection.pageInfo).toEqual({
     hasNextPage: true,
     hasPreviousPage: false,
@@ -167,7 +154,7 @@ it('paginates notes from start to end', async () => {
   });
   data = expectGraphQLResponseData(response);
 
-  expect(getContentFieldTexts(data)).toStrictEqual(['foo foo']);
+  expect(getTexts(data)).toStrictEqual(['foo foo']);
   expect(data.userNoteLinkSearchConnection.pageInfo).toEqual({
     hasNextPage: true,
     hasPreviousPage: true,
@@ -183,7 +170,7 @@ it('paginates notes from start to end', async () => {
   });
   data = expectGraphQLResponseData(response);
 
-  expect(getContentFieldTexts(data)).toStrictEqual(['foo']);
+  expect(getTexts(data)).toStrictEqual(['foo']);
   expect(data.userNoteLinkSearchConnection.pageInfo).toEqual({
     hasNextPage: false,
     hasPreviousPage: true,
@@ -199,7 +186,7 @@ it('paginates notes from start to end', async () => {
   });
   data = expectGraphQLResponseData(response);
 
-  expect(getContentFieldTexts(data)).toStrictEqual([]);
+  expect(getTexts(data)).toStrictEqual([]);
   expect(data.userNoteLinkSearchConnection.pageInfo).toEqual({
     hasNextPage: false,
     hasPreviousPage: false,
@@ -215,7 +202,7 @@ it('paginates notes from end to start', async () => {
   });
   let data = expectGraphQLResponseData(response);
 
-  expect(getContentFieldTexts(data)).toStrictEqual(['foo']);
+  expect(getTexts(data)).toStrictEqual(['foo']);
   expect(data.userNoteLinkSearchConnection.pageInfo).toEqual({
     hasNextPage: false,
     hasPreviousPage: true,
@@ -230,7 +217,7 @@ it('paginates notes from end to start', async () => {
   });
   data = expectGraphQLResponseData(response);
 
-  expect(getContentFieldTexts(data)).toStrictEqual(['foo foo']);
+  expect(getTexts(data)).toStrictEqual(['foo foo']);
   expect(data.userNoteLinkSearchConnection.pageInfo).toEqual({
     hasNextPage: true,
     hasPreviousPage: true,
@@ -245,7 +232,7 @@ it('paginates notes from end to start', async () => {
   });
   data = expectGraphQLResponseData(response);
 
-  expect(getContentFieldTexts(data)).toStrictEqual(['foo foo foo']);
+  expect(getTexts(data)).toStrictEqual(['foo foo foo']);
   expect(data.userNoteLinkSearchConnection.pageInfo).toEqual({
     hasNextPage: true,
     hasPreviousPage: false,
@@ -260,7 +247,7 @@ it('paginates notes from end to start', async () => {
   });
   data = expectGraphQLResponseData(response);
 
-  expect(getContentFieldTexts(data)).toStrictEqual([]);
+  expect(getTexts(data)).toStrictEqual([]);
   expect(data.userNoteLinkSearchConnection.pageInfo).toEqual({
     hasNextPage: false,
     hasPreviousPage: false,
@@ -273,11 +260,11 @@ it('invalid cursor returns empty array', async () => {
   const response = await executeOperation({
     searchText: 'bar',
     first: 1,
-    after: 'CAIVisvKPg==',
+    after: 'CAIlvsvKPg==',
   });
   const data = expectGraphQLResponseData(response);
 
-  expect(getContentFieldTexts(data)).toStrictEqual([]);
+  expect(getTexts(data)).toStrictEqual([]);
   expect(data.userNoteLinkSearchConnection.pageInfo).toMatchObject({
     hasNextPage: false,
     hasPreviousPage: false,

@@ -11,15 +11,10 @@ import { fakeCollabText, FakeCollabTextOptions } from './collab-text';
 import { fakeNoteUser, fakeNoteUserTrashed } from './note-user';
 import { populateQueue } from './populate-queue';
 import { fakeShareNoteLink } from './share-note-link';
-import { CollabSchema } from '../../../../mongodb/schema/collab';
 
 export interface FakeNoteOptions {
-  override?: MongoPartialDeep<
-    Omit<DBNoteSchema, 'collab'> & {
-      collab: Omit<CollabSchema, 'texts'>;
-    }
-  >;
-  collabTexts?: Record<string, FakeCollabTextOptions | undefined>;
+  override?: MongoPartialDeep<Omit<DBNoteSchema, 'collabText'>>;
+  collabText?: FakeCollabTextOptions;
 }
 
 export function fakeNote(
@@ -45,16 +40,7 @@ export function fakeNote(
           }),
         };
       }) ?? [],
-    collab: {
-      updatedAt: new Date(),
-      ...options?.override?.collab,
-      texts: options?.collabTexts
-        ? Object.entries(options.collabTexts).map(([key, value]) => ({
-            k: key,
-            v: fakeCollabText(fallbackUser._id, value),
-          }))
-        : [],
-    },
+    collabText: fakeCollabText(fallbackUser._id, options?.collabText),
     shareNoteLinks:
       options?.override?.shareNoteLinks?.filter(isDefined).map((shareNoteLink) => ({
         ...fakeShareNoteLink(fallbackUser),

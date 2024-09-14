@@ -1,13 +1,10 @@
 import { ObjectId } from 'mongodb';
 import { queryWithCollabTextSchema } from '../collab/collab';
 import { Maybe } from '~utils/types';
-import { isDefined } from '~utils/type-guards/is-defined';
-import { QueryableNote, QueryableNoteCollab } from '../../mongodb/loaders/note/descriptions/note';
+import { QueryableNote } from '../../mongodb/loaders/note/descriptions/note';
 import { QueryableUserLoader } from '../../mongodb/loaders/user/loader';
 import { PartialQueryResultDeep, StrictMongoQueryFn } from '../../mongodb/query/query';
-import { CollabSchema } from '../../mongodb/schema/collab';
 import { StructQuery } from '../../mongodb/query/struct-query';
-import { InferRaw } from 'superstruct';
 import { DBNoteSchema } from '../../mongodb/schema/note';
 import { MongoReadonlyDeep } from '../../mongodb/types';
 
@@ -21,62 +18,20 @@ export function queryWithNoteSchema({
   userLoader,
 }: QueryWithNoteSchemaParams): StrictMongoQueryFn<typeof QueryableNote> {
   return StructQuery.get(QueryableNote).createStrictQueryFnFromRaw(async (query) => {
-  const queryCollab = query.collab;
-  const { collab, ...noteNoCollab } = note;
-  if (!queryCollab || !collab) {
-    return noteNoCollab;
-  }
-
-  return {
-    ...noteNoCollab,
-    collab: await queryWithNoteCollabSchema({
-      collab,
-      userLoader,
-      })(queryCollab),
-  };
-  });
-}
-
-interface QueryWithNoteCollabSchemaParams {
-  collab: InferRaw<typeof CollabSchema>;
-  userLoader: QueryableUserLoader;
-}
-
-export function queryWithNoteCollabSchema({
-  collab,
-  userLoader,
-}: QueryWithNoteCollabSchemaParams): StrictMongoQueryFn<typeof QueryableNoteCollab> {
-  return StructQuery.get(QueryableNoteCollab).createStrictQueryFnFromRaw(
-    async (query) => {
-  const queryTexts = query.texts;
-  const { texts, ...collabNoTexts } = collab;
-  if (!queryTexts) {
-    return collabNoTexts;
-  }
-
-  return {
-    ...collab,
-    texts: Object.fromEntries(
-      (
-        await Promise.all(
-          collab.texts.map(async ({ k, v }) => {
-            const queryText = queryTexts[k];
-            if (!queryText) return;
-
-            return [
-              k,
-              await queryWithCollabTextSchema({
-                collabText: v,
-                userLoader,
-                  })(queryText),
-            ];
-          })
-        )
-      ).filter(isDefined)
-    ),
-  };
+    const queryCollabText = query.collabText;
+    const { collabText, ...noteNoCollab } = note;
+    if (!queryCollabText || !collabText) {
+      return noteNoCollab;
     }
-  );
+
+    return {
+      ...noteNoCollab,
+      collabText: await queryWithCollabTextSchema({
+        collabText,
+        userLoader,
+      })(queryCollabText),
+    };
+  });
 }
 
 export function findNoteUser<T extends MongoReadonlyDeep<{ users: { _id: ObjectId }[] }>>(
@@ -86,6 +41,13 @@ export function findNoteUser<T extends MongoReadonlyDeep<{ users: { _id: ObjectI
   return note.users.find(({ _id: userId }) => findUserId.equals(userId));
 }
 
+export function findNoteUserMaybe<
+  T extends Maybe<PartialQueryResultDeep<{ users: { _id: ObjectId }[] }>>,
+>(findUserId: ObjectId, note: T): NonNullable<NonNullable<T>['users']>[0] | undefined {
+  return note?.users?.find((noteUser) => findUserId.equals(noteUser?._id));
+}
+
+// TODO remove?
 export function findOldestNoteUser<
   T extends MongoReadonlyDeep<{ users: { createdAt: Date }[] }>,
 >(note: T): T['users'][0] | undefined {
@@ -93,6 +55,8 @@ export function findOldestNoteUser<
     oldest.createdAt < user.createdAt ? oldest : user
   );
 }
+
+// TODO remove?
 export function isNoteUserOlder<
   T extends MongoReadonlyDeep<{ _id: ObjectId; createdAt: Date }>,
 >(olderNoteUser: T, targetNoteUser: T): boolean {
@@ -104,6 +68,7 @@ export function isNoteUserOlder<
   return olderNoteUser.createdAt < targetNoteUser.createdAt;
 }
 
+// TODO remove?
 export function isNoteUserOldest<
   T extends MongoReadonlyDeep<{ users: { _id: ObjectId; createdAt: Date }[] }>,
 >(noteUser: T['users'][0], note: T) {
@@ -126,13 +91,4 @@ export function getNoteUsersIds<
 
 export function findNoteUserInSchema(userId: ObjectId, note: Maybe<DBNoteSchema>) {
   return note?.users.find((noteUser) => noteUser._id.equals(userId));
-}
-
-export function findNoteTextFieldInSchema(note: Maybe<NoteSchema>, fieldName: string) {
-  if (!note) return;
-
-  const collabTexts = note.collab?.texts
-    .filter((text) => text.k === fieldName)
-    .map((collabText) => collabText.v);
-  return collabTexts?.[0];
 }

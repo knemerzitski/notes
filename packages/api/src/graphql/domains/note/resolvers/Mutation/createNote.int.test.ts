@@ -44,7 +44,6 @@ import {
   CreateNoteInput,
   CreateNotePayload,
   NoteCategory,
-  NoteTextField,
 } from '../../../types.generated';
 import { signedInUserTopic } from '../../../user/resolvers/Subscription/signedInUserEvents';
 
@@ -69,55 +68,33 @@ const MUTATION_ALL = `#graphql
           id
         }
         collab {
-          textFields {
-            key
-            value {
-              headText {
-                revision
-                changeset
-              }
-              tailText {
-                revision
-                changeset
-              }
-              recordConnection {
-                records {
-                  creatorUser {
-                    id
-                  }
-                  change {
-                    changeset
-                    revision
-                  }
-                  beforeSelection {
-                    start
-                    end
-                  }
-                  afterSelection {
-                    start
-                    end
-                  }
-                  createdAt
-                }
-              }
+          text {
+            headText {
+              revision
+              changeset
             }
-        }
-        }
-      }
-    }
-  }
-`;
-
-const MUTATION_MINIMAL_TEXTFIELDS = `#graphql
-  mutation($input: CreateNoteInput!){
-    createNote(input: $input) {
-      note {
-        collab {
-          textFields(name: CONTENT) {
-            key
-            value {
-              headText {
-                revision
+            tailText {
+              revision
+              changeset
+            }
+            recordConnection {
+              records {
+                creatorUser {
+                  id
+                }
+                change {
+                  changeset
+                  revision
+                }
+                beforeSelection {
+                  start
+                  end
+                }
+                afterSelection {
+                  start
+                  end
+                }
+                createdAt
               }
             }
           }
@@ -135,12 +112,9 @@ const SUBSCRIPTION = `#graphql
           note {
             id
             collab {
-              textFields {
-                key
-                value {
-                  headText {
-                    changeset
-                  }
+              text {
+                headText {
+                  changeset
                 }
               }
             }
@@ -211,22 +185,19 @@ describe('no existing notes', () => {
           id: expect.any(String),
           shareAccess: null,
           collab: {
-            textFields: Object.values(NoteTextField).map((fieldName) => ({
-              key: fieldName,
-              value: {
-                headText: {
-                  changeset: Changeset.EMPTY.serialize(),
-                  revision: 0,
-                },
-                tailText: {
-                  changeset: Changeset.EMPTY.serialize(),
-                  revision: 0,
-                },
-                recordConnection: {
-                  records: [],
-                },
+            text: {
+              headText: {
+                changeset: Changeset.EMPTY.serialize(),
+                revision: 0,
               },
-            })),
+              tailText: {
+                changeset: Changeset.EMPTY.serialize(),
+                revision: 0,
+              },
+              recordConnection: {
+                records: [],
+              },
+            },
           },
         },
       },
@@ -279,20 +250,9 @@ describe('no existing notes', () => {
           },
         },
         collab: {
-          textFields: [
-            {
-              key: NoteTextField.TITLE,
-              value: {
-                initialText: 'initial title',
-              },
-            },
-            {
-              key: NoteTextField.CONTENT,
-              value: {
-                initialText: 'initial content',
-              },
-            },
-          ],
+          text: {
+            initialText: 'initial content',
+          },
         },
       },
       { user }
@@ -319,79 +279,38 @@ describe('no existing notes', () => {
           id: expect.any(String),
           shareAccess: null,
           collab: {
-            textFields: expect.arrayContaining([
-              {
-                key: NoteTextField.CONTENT,
-                value: {
-                  headText: {
-                    changeset: Changeset.fromInsertion('initial content').serialize(),
-                    revision: 1,
-                  },
-                  tailText: {
-                    changeset: Changeset.EMPTY.serialize(),
-                    revision: 0,
-                  },
-                  recordConnection: {
-                    records: [
-                      {
-                        creatorUser: {
-                          id: expect.any(String),
-                        },
-                        change: {
-                          changeset:
-                            Changeset.fromInsertion('initial content').serialize(),
-                          revision: 1,
-                        },
-                        beforeSelection: {
-                          start: 0,
-                          end: null,
-                        },
-                        afterSelection: {
-                          start: 15,
-                          end: null,
-                        },
-                        createdAt: expect.any(Date),
-                      },
-                    ],
-                  },
-                },
+            text: {
+              headText: {
+                changeset: Changeset.fromInsertion('initial content').serialize(),
+                revision: 1,
               },
-              {
-                key: NoteTextField.TITLE,
-                value: {
-                  headText: {
-                    changeset: Changeset.fromInsertion('initial title').serialize(),
-                    revision: 1,
-                  },
-                  tailText: {
-                    changeset: Changeset.EMPTY.serialize(),
-                    revision: 0,
-                  },
-                  recordConnection: {
-                    records: [
-                      {
-                        creatorUser: {
-                          id: expect.any(String),
-                        },
-                        change: {
-                          changeset: Changeset.fromInsertion('initial title').serialize(),
-                          revision: 1,
-                        },
-                        beforeSelection: {
-                          start: 0,
-                          end: null,
-                        },
-                        afterSelection: {
-                          start: 13,
-                          end: null,
-                        },
-                        createdAt: expect.any(Date),
-                      },
-                    ],
-                  },
-                },
+              tailText: {
+                changeset: Changeset.EMPTY.serialize(),
+                revision: 0,
               },
-            ]),
+              recordConnection: {
+                records: [
+                  {
+                    creatorUser: {
+                      id: expect.any(String),
+                    },
+                    change: {
+                      changeset: Changeset.fromInsertion('initial content').serialize(),
+                      revision: 1,
+                    },
+                    beforeSelection: {
+                      start: 0,
+                      end: null,
+                    },
+                    afterSelection: {
+                      start: 15,
+                      end: null,
+                    },
+                    createdAt: expect.any(Date),
+                  },
+                ],
+              },
+            },
           },
         },
       },
@@ -433,171 +352,31 @@ describe('no existing notes', () => {
           },
         },
       ],
-      collab: {
+      collabText: {
         updatedAt: expect.any(Date),
-        texts: expect.arrayContaining([
-          {
-            k: NoteTextField.TITLE,
-            v: {
-              headText: {
-                changeset: Changeset.fromInsertion('initial title').serialize(),
-                revision: 1,
-              },
-              tailText: {
-                changeset: Changeset.EMPTY.serialize(),
-                revision: 0,
-              },
-              records: [
-                {
-                  changeset: Changeset.fromInsertion('initial title').serialize(),
-                  revision: 1,
-                  creatorUserId: user._id,
-                  userGeneratedId: expect.any(String),
-                  beforeSelection: {
-                    start: 0,
-                  },
-                  afterSelection: {
-                    start: 13,
-                  },
-                  createdAt: expect.any(Date),
-                },
-              ],
-            },
-          },
-          {
-            k: NoteTextField.CONTENT,
-            v: {
-              headText: {
-                changeset: Changeset.fromInsertion('initial content').serialize(),
-                revision: 1,
-              },
-              tailText: {
-                changeset: Changeset.EMPTY.serialize(),
-                revision: 0,
-              },
-              records: [
-                {
-                  changeset: Changeset.fromInsertion('initial content').serialize(),
-                  revision: 1,
-                  creatorUserId: user._id,
-                  userGeneratedId: expect.any(String),
-                  beforeSelection: {
-                    start: 0,
-                  },
-                  afterSelection: {
-                    start: 15,
-                  },
-                  createdAt: expect.any(Date),
-                },
-              ],
-            },
-          },
-        ]),
-      },
-    });
-  });
-
-  it('ignores duplicate textFields entries', async () => {
-    const response = await executeOperation(
-      {
-        collab: {
-          textFields: [
-            {
-              key: NoteTextField.CONTENT,
-              value: {
-                initialText: 'a',
-              },
-            },
-            {
-              key: NoteTextField.CONTENT,
-              value: {
-                initialText: 'b',
-              },
-            },
-          ],
+        headText: {
+          changeset: Changeset.fromInsertion('initial content').serialize(),
+          revision: 1,
         },
-      },
-      { user },
-      MUTATION_MINIMAL_TEXTFIELDS
-    );
-
-    const data = expectGraphQLResponseData(response);
-
-    // Response
-    expect(data).toEqual({
-      createNote: {
-        note: {
-          collab: {
-            textFields: expect.arrayContaining([
-              {
-                key: NoteTextField.CONTENT,
-                value: {
-                  headText: {
-                    revision: 1,
-                  },
-                },
-              },
-            ]),
-          },
+        tailText: {
+          changeset: Changeset.EMPTY.serialize(),
+          revision: 0,
         },
-      },
-    });
-
-    expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(2);
-
-    // Database, User
-    const dbUser = await mongoCollections.users.findOne({
-      _id: user._id,
-    });
-    const noteId = dbUser?.notes.category[NoteCategory.DEFAULT]?.order[0];
-    assert(noteId != null);
-
-    // Database, Note
-    const dbNote = await mongoCollections.notes.findOne({
-      _id: noteId,
-    });
-    expect(dbNote).toStrictEqual({
-      _id: noteId,
-      users: [
-        {
-          _id: user._id,
-          categoryName: NoteCategory.DEFAULT,
-          isOwner: true,
-          createdAt: expect.any(Date),
-        },
-      ],
-      collab: {
-        updatedAt: expect.any(Date),
-        texts: expect.arrayContaining([
+        records: [
           {
-            k: NoteTextField.CONTENT,
-            v: {
-              headText: {
-                changeset: Changeset.fromInsertion('a').serialize(),
-                revision: 1,
-              },
-              tailText: {
-                changeset: Changeset.EMPTY.serialize(),
-                revision: 0,
-              },
-              records: [
-                {
-                  changeset: Changeset.fromInsertion('a').serialize(),
-                  revision: 1,
-                  creatorUserId: user._id,
-                  userGeneratedId: expect.any(String),
-                  beforeSelection: {
-                    start: 0,
-                  },
-                  afterSelection: {
-                    start: 1,
-                  },
-                  createdAt: expect.any(Date),
-                },
-              ],
+            changeset: Changeset.fromInsertion('initial content').serialize(),
+            revision: 1,
+            creatorUserId: user._id,
+            userGeneratedId: expect.any(String),
+            beforeSelection: {
+              start: 0,
             },
+            afterSelection: {
+              start: 15,
+            },
+            createdAt: expect.any(Date),
           },
-        ]),
+        ],
       },
     });
   });
@@ -626,14 +405,9 @@ describe('no existing notes', () => {
       const response = await executeOperation(
         {
           collab: {
-            textFields: [
-              {
-                key: NoteTextField.CONTENT,
-                value: {
-                  initialText: 'a'.repeat(100001),
-                },
-              },
-            ],
+            text: {
+              initialText: 'a'.repeat(100001),
+            },
           },
         },
         { user }
@@ -688,14 +462,9 @@ describe('no existing notes', () => {
       const response = await executeOperation(
         {
           collab: {
-            textFields: [
-              {
-                key: NoteTextField.CONTENT,
-                value: {
-                  initialText: 'content',
-                },
-              },
-            ],
+            text: {
+              initialText: 'content',
+            },
           },
         },
         {
@@ -721,22 +490,11 @@ describe('no existing notes', () => {
                     note: {
                       id: expect.any(String),
                       collab: {
-                        textFields: expect.arrayContaining([
-                          {
-                            key: NoteTextField.CONTENT,
-                            value: {
-                              headText: {
-                                changeset: Changeset.fromInsertion('content').serialize(),
-                              },
-                            },
+                        text: {
+                          headText: {
+                            changeset: Changeset.fromInsertion('content').serialize(),
                           },
-                          {
-                            key: NoteTextField.TITLE,
-                            value: {
-                              headText: { changeset: Changeset.EMPTY.serialize() },
-                            },
-                          },
-                        ]),
+                        },
                       },
                     },
                   },

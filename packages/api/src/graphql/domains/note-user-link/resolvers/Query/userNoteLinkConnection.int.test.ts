@@ -21,7 +21,6 @@ import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/popu
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import {
   NoteCategory,
-  NoteTextField,
   UserNoteLinkConnection,
 } from '../../../../domains/types.generated';
 import { objectIdToStr, strToObjectId } from '../../../../../mongodb/utils/objectid';
@@ -50,19 +49,16 @@ const QUERY = `#graphql
           note {
             id
             collab {
-              textFields {
-                key
-                value {
-                  headText {
-                    revision
-                    changeset
-                  }
-                  recordConnection(last: 2) {
-                    edges {
-                      node {
-                        change {
-                          revision
-                        }
+              text {
+                headText {
+                  revision
+                  changeset
+                }
+                recordConnection(last: 2) {
+                  edges {
+                    node {
+                      change {
+                        revision
                       }
                     }
                   }
@@ -113,7 +109,6 @@ beforeAll(async () => {
   await resetDatabase();
 
   const populateResult = populateNotes(10, {
-    collabTextKeys: Object.values(NoteTextField),
     collabText() {
       return {
         recordsCount: 2,
@@ -131,7 +126,6 @@ beforeAll(async () => {
   notes = populateResult.data.map((data) => data.note._id);
 
   const populateResultArchive = populateNotes(3, {
-    collabTextKeys: Object.values(NoteTextField),
     user,
     noteUser() {
       return {

@@ -20,6 +20,8 @@ export const NoteCategorySchema = object({
   order: array(instance(ObjectId)),
 });
 
+export type DBNoteCategorySchema = InferRaw<typeof NoteCategorySchema>;
+
 export type NoteCategorySchema = Infer<typeof NoteCategorySchema>;
 
 export const UserSchema = object({

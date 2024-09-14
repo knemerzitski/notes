@@ -10,8 +10,6 @@ import {
   retryOnMongoError,
   MongoErrorCodes,
 } from '../../../../../mongodb/utils/retry-on-mongo-error';
-import { groupByFirst } from '~utils/array/group-by';
-import mapObject from 'map-obj';
 import { queryWithNoteSchema } from '../../../../../services/note/note';
 import { assertAuthenticated } from '../../../../../services/auth/auth';
 import { insertNote } from '../../../../../services/note/insert-note';
@@ -28,19 +26,18 @@ const _createNote: NonNullable<MutationResolvers['createNote']> = async (
 
   const currentUserId = auth.session.userId;
 
-  const initialTextByTextField = input.collab?.textFields
-    ? mapObject(
-        groupByFirst(input.collab.textFields, (field) => field.key),
-        (key, entry) => [key, { initialText: entry.value.initialText }]
-      )
-    : null;
+  const collabInitialText = input.collab?.text?.initialText;
 
   const note = await insertNote({
     mongoDB,
     userId: currentUserId,
     categoryName: input.userNoteLink?.categoryName ?? NoteCategory.DEFAULT,
     backgroundColor: input.userNoteLink?.preferences?.backgroundColor,
-    collabTexts: initialTextByTextField,
+    collabText: collabInitialText
+      ? {
+          initialText: collabInitialText,
+        }
+      : undefined,
   });
 
   const noteMapper: NoteMapper = {

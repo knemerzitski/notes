@@ -1,10 +1,5 @@
 ################################ Note collab ################################
 
-enum NoteTextField {
-  TITLE
-  CONTENT
-}
-
 extend type Note {
   "Note collaboration"
   collab: NoteCollab!
@@ -17,29 +12,13 @@ extend input CreateNoteInput {
 
 "Note collaborative info"
 type NoteCollab {
-  "All available text fields. If arg: name is defined then only that field is returned."
-  textFields(name: NoteTextField): [NoteTextFieldEntry!]!
-  "Any collaborative field last updated time"
-  updatedAt: DateTime!
+  "Note collaborative text"
+  text: CollabText!
 }
 
 input CreateNoteCollabInput {
   "Initial note text fields"
-  textFields: [CreateNoteTextFieldEntryInput!]
-}
-
-input CreateNoteTextFieldEntryInput {
-  "Type of text field"
-  key: NoteTextField!
-  "Actual value of text field"
-  value: CreateCollabTextInput!
-}
-
-type NoteTextFieldEntry {
-  "Type of text field"
-  key: NoteTextField!
-  "Actual value of text field"
-  value: CollabText!
+  text: CreateCollabTextInput
 }
 
 ################################ updateNoteTextFieldInsertRecord ################################
@@ -47,8 +26,6 @@ type NoteTextFieldEntry {
 input UpdateNoteTextFieldInsertRecordInput {
   "Note to be updated by Note.id"
   noteId: ObjectID!
-  "Text field where to insert record"
-  textField: NoteTextField!
   "New record to be inserted"
   insertRecord: CollabTextRecordInput!
 }
@@ -60,8 +37,6 @@ type UpdateNoteTextFieldInsertRecordPayload {
   newRecord: CollabTextRecord!
   "True if record has already been inserted before. Is always false in subscription."
   isDuplicateRecord: Boolean!
-  "Text field that was updated"
-  textField: NoteTextField!
   "CollabText after new record is inserted"
   collabText: CollabText!
   "Note after new record is inserted"

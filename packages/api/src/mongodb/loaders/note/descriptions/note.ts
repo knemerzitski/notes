@@ -6,18 +6,7 @@ import {
   collabTextSchemaToQueryable,
   QueryableCollabText,
 } from './collab-text';
-import { CollabSchema } from '../../../schema/collab';
-import {
-  array,
-  assign,
-  Infer,
-  InferRaw,
-  object,
-  omit,
-  optional,
-  record,
-  string,
-} from 'superstruct';
+import { array, assign, Infer, InferRaw, object, omit, optional } from 'superstruct';
 import { UserSchema } from '../../../schema/user';
 import { NoteSchema } from '../../../schema/note';
 
@@ -28,17 +17,10 @@ export const QueryableNoteUser = assign(
   })
 );
 
-export const QueryableNoteCollab = assign(
-  CollabSchema,
-  object({
-    texts: record(string(), QueryableCollabText),
-  })
-);
-
 export const QueryableNote = assign(
   NoteSchema,
   object({
-    collab: optional(QueryableNoteCollab),
+    collabText: optional(QueryableCollabText),
     users: array(QueryableNoteUser),
   })
 );
@@ -48,16 +30,9 @@ export function noteSchemaToQueryable<
 >(note: T) {
   return {
     ...note,
-    collab: {
-      ...note.collab,
-      texts: note.collab?.texts
-        ? Object.fromEntries(
-            note.collab.texts.map((text) => {
-              return [text.k, collabTextSchemaToQueryable(text.v)];
-            })
-          )
-        : undefined,
-    },
+    collabText: note.collabText
+      ? collabTextSchemaToQueryable(note.collabText)
+      : undefined,
   };
 }
 
@@ -74,27 +49,7 @@ export const queryableNoteDescription: DeepAnyDescription<
   any,
   QueryableNoteContext
 > = {
-  collab: {
-    //@ts-expect-error ignore
-    texts: {
-      $addStages({ fields }) {
-        // collabTexts array into object
-        return [
-          {
-            $set: Object.fromEntries(
-              fields.map(({ relativePath }) => [
-                relativePath,
-                {
-                  $arrayToObject: `$${relativePath}`,
-                },
-              ])
-            ),
-          },
-        ];
-      },
-      $anyKey: collabTextDescription,
-    },
-  },
+  collabText: collabTextDescription,
   users: {
     // Lookup UserSchema by Note.users._id
     user: {

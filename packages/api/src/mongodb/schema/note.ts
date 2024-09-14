@@ -3,8 +3,8 @@ import { ObjectId, SearchIndexDescription } from 'mongodb';
 import { CollectionDescription } from '../collections';
 import { NoteUserSchema } from './note-user';
 import { ShareNoteLinkSchema } from './share-note-link';
-import { CollabSchema } from './collab';
 import { array, Infer, InferRaw, instance, object, optional } from 'superstruct';
+import { CollabTextSchema } from './collab-text';
 
 export const NoteSchema = object({
   _id: instance(ObjectId),
@@ -13,9 +13,9 @@ export const NoteSchema = object({
    */
   users: array(NoteUserSchema),
   /**
-   * Note text collaboration schema
+   * Note collaborative text
    */
-  collab: optional(CollabSchema),
+  collabText: optional(CollabTextSchema),
 
   shareNoteLinks: optional(array(ShareNoteLinkSchema)),
 });
@@ -59,25 +59,15 @@ export const noteSearchIndexDescriptions: SearchIndexDescription[] = [
             },
           },
           // collabTexts headText changeset string value
-          collab: {
+          collabText: {
             type: 'document',
             fields: {
-              texts: {
+              headText: {
                 type: 'document',
                 fields: {
-                  v: {
-                    type: 'document',
-                    fields: {
-                      headText: {
-                        type: 'document',
-                        fields: {
-                          changeset: {
-                            type: 'string',
-                            analyzer: 'lucene.english',
-                          },
-                        },
-                      },
-                    },
+                  changeset: {
+                    type: 'string',
+                    analyzer: 'lucene.english',
                   },
                 },
               },

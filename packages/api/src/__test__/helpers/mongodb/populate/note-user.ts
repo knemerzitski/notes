@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 
-import { NoteUserSchema } from '../../../../mongodb/schema/note-user';
+import { DBNoteUserSchema } from '../../../../mongodb/schema/note-user';
 import { DBUserSchema } from '../../../../mongodb/schema/user';
 
 import { MongoPartialDeep } from '../../../../mongodb/types';
@@ -8,7 +8,7 @@ import { MongoPartialDeep } from '../../../../mongodb/types';
 import { TestNoteCategory } from './populate';
 
 export interface FakeNoteUserOptions {
-  override?: MongoPartialDeep<NoteUserSchema>;
+  override?: MongoPartialDeep<DBNoteUserSchema>;
   /**
    * @default false
    */
@@ -20,7 +20,7 @@ let createCounter = 0;
 export function fakeNoteUser(
   user: Pick<DBUserSchema, '_id'>,
   options?: FakeNoteUserOptions
-): NoteUserSchema {
+): DBNoteUserSchema {
   const { trashed: trashedOverride, ...override } = options?.override ?? {};
 
   return {
@@ -43,7 +43,7 @@ export function fakeNoteUser(
 }
 
 export interface FakeNoteUserTrashedOptions {
-  override?: MongoPartialDeep<NoteUserSchema['trashed']>;
+  override?: MongoPartialDeep<DBNoteUserSchema['trashed']>;
 }
 
 export function fakeNoteUserTrashed(options?: FakeNoteUserTrashedOptions) {

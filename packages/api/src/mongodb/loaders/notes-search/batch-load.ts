@@ -98,7 +98,7 @@ export async function batchLoad(
                             must: [
                               {
                                 text: {
-                                  path: 'collab.texts.v.headText.changeset',
+                                  path: 'collabText.headText.changeset',
                                   query: searchText,
                                 },
                               },

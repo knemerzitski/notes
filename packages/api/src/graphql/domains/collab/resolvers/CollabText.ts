@@ -156,4 +156,11 @@ export const CollabText: CollabTextResolvers = {
       getHeadAndTailRevision,
     };
   },
+  updatedAt: async (parent, _arg, _ctx) => {
+    return (
+      await parent.query({
+        updatedAt: 1,
+      })
+    )?.updatedAt;
+  },
 };

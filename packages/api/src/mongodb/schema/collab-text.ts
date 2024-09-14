@@ -4,6 +4,7 @@ import {
   coerce,
   date,
   Infer,
+  InferRaw,
   instance,
   number,
   object,
@@ -22,12 +23,16 @@ export const ChangesetSchema = coerce(
   (changeset) => changeset.serialize()
 );
 
+export type DBChangesetSchema = InferRaw<typeof ChangesetSchema>;
+
 export type ChangesetSchema = Infer<typeof ChangesetSchema>;
 
 export const RevisionChangesetSchema = object({
   changeset: ChangesetSchema,
   revision: number(),
 });
+
+export type DBRevisionChangesetSchema = InferRaw<typeof RevisionChangesetSchema>;
 
 export type RevisionChangesetSchema = Infer<typeof RevisionChangesetSchema>;
 
@@ -41,6 +46,8 @@ export const SelectionRangeSchema = object({
    */
   end: optional(number()),
 });
+
+export type DBSelectionRangeSchema = InferRaw<typeof SelectionRangeSchema>;
 
 export type SelectionRangeSchema = Infer<typeof SelectionRangeSchema>;
 
@@ -57,10 +64,13 @@ export const RevisionRecordSchema = object({
    * When record was inserted to DB
    */
   createdAt: date(),
+  //TODO change to creatorUser: {_id: ObjectId}
   creatorUserId: instance(ObjectId),
   revision: number(),
   userGeneratedId: string(),
 });
+
+export type DBRevisionRecordSchema = InferRaw<typeof RevisionRecordSchema>;
 
 export type RevisionRecordSchema = Infer<typeof RevisionRecordSchema>;
 
@@ -68,6 +78,12 @@ export const CollabTextSchema = object({
   headText: RevisionChangesetSchema,
   tailText: RevisionChangesetSchema,
   records: array(RevisionRecordSchema),
+  /**
+   * Time when text was last updated
+   */
+  updatedAt: date(),
 });
+
+export type DBCollabTextSchema = InferRaw<typeof CollabTextSchema>;
 
 export type CollabTextSchema = Infer<typeof CollabTextSchema>;

@@ -1,18 +1,18 @@
 import { faker } from '@faker-js/faker';
 
-import { ShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link';
+import { DBShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link';
 import { DBUserSchema } from '../../../../mongodb/schema/user';
 import { MongoPartialDeep } from '../../../../mongodb/types';
 import { ObjectId } from 'mongodb';
 
 export interface FakeShareNoteLinkOptions {
-  override?: MongoPartialDeep<ShareNoteLinkSchema>;
+  override?: MongoPartialDeep<DBShareNoteLinkSchema>;
 }
 
 export function fakeShareNoteLink(
   creatorUser: Pick<DBUserSchema, '_id'>,
   options?: FakeShareNoteLinkOptions
-): ShareNoteLinkSchema {
+): DBShareNoteLinkSchema {
   return {
     _id: new ObjectId(),
     expireAccessCount: faker.number.int({ min: 2, max: 20 }),

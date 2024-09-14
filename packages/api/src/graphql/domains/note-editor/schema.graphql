@@ -42,8 +42,6 @@ extend union SignedInUserMutations = NoteEditorUserSubscribedEvent | NoteEditorU
 input UpdateNoteEditorSelectionRangeInput {
   "Note.id "
   noteId: ObjectID!
-  "Text field where selection range is applied"
-  textField: NoteTextField!
   "Selection applies to this revision of text"
   revision: NonNegativeInt!
   "New selection range"
@@ -57,8 +55,6 @@ type UpdateNoteEditorSelectionRangePayload {
   latestSelection: CollabTextSelectionRange!
   "Affected CollabText"
   collabText: CollabText!
-  "Affected text field"
-  textField: NoteTextField!
   "Affected Note"
   note: Note!
   "Selection applies to this user"

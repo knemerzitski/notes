@@ -1,5 +1,7 @@
 import { ObjectId } from 'mongodb';
-import { object, string, instance, date, Infer, optional, boolean } from 'superstruct';
+import { object, string, instance, date, Infer, optional, boolean, InferRaw } from 'superstruct';
+
+// TODO restructure {note: {...NoteUserSchema}, rest is user fields}
 
 /**
  * User's access to a note with customizations.
@@ -51,5 +53,7 @@ export const NoteUserSchema = object({
     })
   ),
 });
+
+export type DBNoteUserSchema = InferRaw<typeof NoteUserSchema>;
 
 export type NoteUserSchema = Infer<typeof NoteUserSchema>;

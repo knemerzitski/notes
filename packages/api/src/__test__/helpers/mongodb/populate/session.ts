@@ -10,12 +10,16 @@ export interface FakeSessionOptions {
 }
 
 export function fakeSession(options?: FakeSessionOptions): DBSessionSchema {
-  return SessionSchema.create({
-    _id: new ObjectId(),
-    expireAt: faker.date.soon({ days: 7 }),
-    userId: new ObjectId(),
-    ...options?.override,
-  });
+  return SessionSchema.create(
+    {
+      _id: new ObjectId(),
+      expireAt: faker.date.soon({ days: 7 }),
+      userId: new ObjectId(),
+      ...options?.override,
+    },
+    undefined,
+    true
+  );
 }
 
 export const fakeSessionPopulateQueue: typeof fakeSession = (options) => {

@@ -5,6 +5,7 @@ import {
   SelectionRangeSchema,
   CollabTextSchema,
 } from '../../schema/collab-text';
+import { SelectionRange } from '~collab/client/selection-range';
 
 interface CreateCollabTextParams {
   creatorUserId: RevisionRecordSchema['creatorUserId'];
@@ -25,8 +26,13 @@ export function createCollabText({
 }: CreateCollabTextParams): DBCollabTextSchema & {
   records: [Records[0], ...Records];
 } {
+  afterSelection = afterSelection
+    ? SelectionRange.collapseSame(afterSelection)
+    : undefined;
+
   const changeset = Changeset.fromInsertion(initialText).serialize();
   return {
+    updatedAt: new Date(),
     headText: {
       revision: 1,
       changeset,
