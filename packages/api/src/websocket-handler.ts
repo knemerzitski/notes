@@ -25,7 +25,7 @@ import {
   createErrorBaseSubscriptionResolversContext,
   createDynamoDBConnectionTtlContext,
   handleConnectionInitAuthenticate,
-} from './services/handlers/handlers';
+} from './utils/handlers';
 import {
   createApiGraphQLContext,
   headersToSerializedBaseGraphQLContext,
