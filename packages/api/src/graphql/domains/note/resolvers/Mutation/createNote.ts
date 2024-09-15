@@ -10,7 +10,6 @@ import {
   retryOnMongoError,
   MongoErrorCodes,
 } from '../../../../../mongodb/utils/retry-on-mongo-error';
-import { queryWithNoteSchema } from '../../../../../services/note/note';
 import { assertAuthenticated } from '../../../../../services/auth/auth';
 import { insertNote } from '../../../../../services/note/insert-note';
 
@@ -41,9 +40,9 @@ const _createNote: NonNullable<MutationResolvers['createNote']> = async (
   });
 
   const noteMapper: NoteMapper = {
-    query: queryWithNoteSchema({
-      note,
-      userLoader: mongoDB.loaders.user,
+    query: mongoDB.loaders.note.createQueryFn({
+      noteId: note._id,
+      userId: currentUserId,
     }),
   };
 

@@ -1,16 +1,18 @@
 import { MongoClient, ObjectId } from 'mongodb';
 import { Maybe } from '~utils/types';
 import { MongoDBCollections, CollectionName } from '../../mongodb/collections';
-import { createCollabText } from '../../mongodb/models/collab/create-collab-text';
-import { DBNoteSchema } from '../../mongodb/schema/note';
+import { createCollabText } from '../../mongodb/models/note/create-collab-text';
+import { NoteSchema } from '../../mongodb/schema/note';
 import { NoteUserSchema } from '../../mongodb/schema/note-user';
 import { insertNote as model_insertNote } from '../../mongodb/models/note/insert-note';
 import { withTransaction } from '../../mongodb/utils/with-transaction';
+import { MongoDBLoaders } from '../../mongodb/loaders';
 
 interface InsertNoteParams {
   mongoDB: {
     client: MongoClient;
     collections: Pick<MongoDBCollections, CollectionName.NOTES | CollectionName.USERS>;
+    loaders: Pick<MongoDBLoaders, 'note'>;
   };
   userId: ObjectId;
   backgroundColor?: Maybe<string>;
@@ -31,22 +33,20 @@ export async function insertNote({
       backgroundColor,
     };
   }
-  const noteUser: NoteUserSchema = {
-    _id: userId,
-    createdAt: new Date(),
-    isOwner: true,
-    categoryName,
-    ...(preferences && { preferences }),
-  };
-
-  const note: DBNoteSchema = {
+  const note: NoteSchema = {
     _id: new ObjectId(),
-    users: [noteUser],
-    ...(collabText && {
-      collabText: createCollabText({
-        creatorUserId: userId,
-        initialText: collabText.initialText,
-      }),
+    users: [
+      {
+        _id: userId,
+        createdAt: new Date(),
+        isOwner: true,
+        categoryName,
+        ...(preferences && { preferences }),
+      },
+    ],
+    collabText: createCollabText({
+      creatorUserId: userId,
+      initialText: collabText?.initialText ?? '',
     }),
   };
 
@@ -56,10 +56,37 @@ export async function insertNote({
         runSingleOperation,
         collections: mongoDB.collections,
       },
-      userId,
       note,
-      noteUser,
     })
+  );
+
+  mongoDB.loaders.note.prime(
+    {
+      id: {
+        noteId: note._id,
+        userId,
+      },
+    },
+    note,
+    {
+      valueToQueryOptions: {
+        fillStruct: NoteSchema,
+        visitorFn: ({ addPermutationsByPath }) => {
+          addPermutationsByPath('collabText.records', [
+            {
+              $pagination: {
+                last: 1,
+              },
+            },
+            {
+              $pagination: {
+                last: 20,
+              },
+            },
+          ]);
+        },
+      },
+    }
   );
 
   return note;

@@ -13,7 +13,7 @@ import { DeepAnyDescription } from '../../../query/description';
 import { CollabTextSchema, RevisionRecordSchema } from '../../../schema/collab-text';
 import {
   QueryableRevisionRecord,
-  revisionRecordSchemaToQueryable,
+  queryableRevisionRecordDescription,
 } from './revision-record';
 import { PartialQueryResultDeep } from '../../../query/query';
 import {
@@ -26,7 +26,6 @@ import {
   omit,
   optional,
 } from 'superstruct';
-import { StructQuery } from '../../../query/struct-query';
 
 type RecordsPaginationOperationOptions = Omit<
   RelayArrayPaginationInput<number>,
@@ -60,11 +59,7 @@ function recordsPaginationMapAggregateResult<
 function toCursor(
   record: PartialQueryResultDeep<Pick<InferRaw<typeof RevisionRecordSchema>, 'revision'>>
 ) {
-  const validatedRevision = StructQuery.get(
-    QueryableRevisionRecord.schema.revision
-  ).rawValueToValidated(record.revision);
-
-  return validatedRevision;
+  return QueryableRevisionRecord.schema.revision.create(record.revision);
 }
 
 export const QueryableCollabText = assign(
@@ -83,15 +78,6 @@ export const QueryableCollabText = assign(
 
 export type QueryableCollabText = Infer<typeof QueryableCollabText>;
 
-export function collabTextSchemaToQueryable<
-  T extends InferRaw<typeof CollabTextSchema> | Infer<typeof CollabTextSchema>,
->(collabText: T) {
-  return {
-    ...collabText,
-    records: collabText.records.map(revisionRecordSchemaToQueryable),
-  };
-}
-
 export interface QueryableCollabTextContext {
   collections: Pick<MongoDBCollectionsOnlyNames, CollectionName.USERS>;
 }
@@ -106,6 +92,7 @@ export const collabTextDescription: DeepAnyDescription<
   QueryableCollabTextContext
 > = {
   records: {
+    ...queryableRevisionRecordDescription,
     $addStages({ fields }) {
       return [
         {

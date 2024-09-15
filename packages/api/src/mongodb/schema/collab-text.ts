@@ -66,8 +66,9 @@ export const RevisionRecordSchema = object({
    * When record was inserted to DB
    */
   createdAt: date(),
-  //TODO change to creatorUser: {_id: ObjectId}
-  creatorUserId: instance(ObjectId),
+  creatorUser: object({
+    _id: instance(ObjectId),
+  }),
   revision: number(),
   userGeneratedId: string(),
 });

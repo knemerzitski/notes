@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { valueToQueries, valueToQuery } from './value-to-query';
+import { object, optional, string } from 'superstruct';
 
 describe('valueToQuery', () => {
   it.each([
@@ -119,6 +120,27 @@ it('visitorFn mergeByPath', () => {
           del: 1,
         },
       },
+    },
+  ]);
+});
+
+it('struct fills in optional values', () => {
+  expect(
+    valueToQueries(
+      {
+        b: 'val',
+      },
+      {
+        fillStruct: object({
+          a: optional(string()),
+          b: string(),
+        }),
+      }
+    )
+  ).toStrictEqual([
+    {
+      a: 1,
+      b: 1,
     },
   ]);
 });

@@ -3,7 +3,7 @@ import DataLoader, { CacheMap } from 'dataloader';
 import { callFnGrouped } from '~utils/call-fn-grouped';
 import { mergedObjects } from '~utils/object/merge-objects';
 import { splitObject } from '~utils/object/split-object';
-import { Maybe, MaybePromise, PartialBy } from '~utils/types';
+import { Maybe, MaybePromise } from '~utils/types';
 
 import {
   MongoQueryFn,
@@ -17,8 +17,8 @@ import { isObjectLike } from '~utils/type-guards/is-object-like';
 import { isQueryArgField } from './merge-queries';
 import { Infer, InferRaw, Struct } from 'superstruct';
 import { Emitter } from '~utils/mitt-unsub';
-import { valueToQueries, VisitorFn } from './utils/value-to-query';
 import { zip } from '~utils/array/zip';
+import { valueToQueries } from './utils/value-to-query';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-explicit-any
 export type QueryLoaderEvents<I, S extends Struct<any, any, any>> = {
@@ -78,7 +78,8 @@ export interface PrimeOptions<S> {
    * @default false;
    */
   skipClearCache?: boolean;
-  queryVisitor?: VisitorFn<S>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  valueToQueryOptions?: Parameters<typeof valueToQueries<S, any>>[1];
 }
 
 export type SessionOptions<
@@ -203,17 +204,19 @@ export class QueryLoader<I, S extends Struct<any, any, any>, CG = unknown, CR = 
   }
 
   prime(
-    key: PartialBy<QueryLoaderCacheKey<I, QueryDeep<Infer<S>>>, 'query'>,
+    key: Omit<QueryLoaderCacheKey<I, QueryDeep<Infer<S>>>, 'query'> & {
+      query?: QueryDeep<Infer<S>> | QueryDeep<Infer<S>>[];
+    },
     value: PartialQueryResultDeep<Infer<S>>,
     options?: PrimeOptions<Infer<S>>
   ) {
     const cacheIsStale = options?.skipClearCache ?? true;
 
     const queries = key.query
-      ? [key.query]
-      : valueToQueries(value, {
-          visitorFn: options?.queryVisitor,
-        });
+      ? Array.isArray(key.query)
+        ? key.query
+        : [key.query]
+      : valueToQueries(value, options?.valueToQueryOptions);
 
     for (const query of queries) {
       splitQuery(query).forEach((leafQuery) => {

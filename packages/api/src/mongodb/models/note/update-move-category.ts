@@ -1,9 +1,9 @@
 import { ObjectId, UpdateFilter } from 'mongodb';
-import { getNotesArrayPath } from '../../../services/user/user'; // TODO nono here
 import { MongoDBCollections, CollectionName } from '../../collections';
 import { TransactionContext } from '../../utils/with-transaction';
 import { MongoReadonlyDeep } from '../../types';
 import { Maybe } from '~utils/types';
+import { notesArrayPath } from '../user/utils/notes-array-path';
 
 interface UpdateMoveCategoryParams {
   mongoDB: {
@@ -65,10 +65,10 @@ export function updateMoveCategory({
           },
           {
             $pull: {
-              [getNotesArrayPath(noteUser.categoryName)]: noteId,
+              [notesArrayPath(noteUser.categoryName)]: noteId,
             },
             $push: {
-              [getNotesArrayPath(categoryName)]: anchor
+              [notesArrayPath(categoryName)]: anchor
                 ? {
                     $each: [noteId],
                     $position: anchor.index + (anchor.position === 'after' ? 1 : 0),
@@ -95,7 +95,7 @@ export function updateMoveCategory({
                 },
                 update: {
                   $pull: {
-                    [getNotesArrayPath(noteUser.categoryName)]: noteId,
+                    [notesArrayPath(noteUser.categoryName)]: noteId,
                   },
                 },
               },
@@ -107,7 +107,7 @@ export function updateMoveCategory({
                 },
                 update: {
                   $push: {
-                    [getNotesArrayPath(categoryName)]: anchor
+                    [notesArrayPath(categoryName)]: anchor
                       ? {
                           $each: [noteId],
                           $position: anchor.index + (anchor.position === 'after' ? 1 : 0),

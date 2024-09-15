@@ -1,4 +1,3 @@
-import { InferRaw } from 'superstruct';
 import { Changeset } from '~collab/changeset/changeset';
 import {
   RevisionRecordSchema,
@@ -8,13 +7,12 @@ import {
 import { SelectionRange } from '~collab/client/selection-range';
 
 interface CreateCollabTextParams {
-  creatorUserId: RevisionRecordSchema['creatorUserId'];
+  creatorUserId: RevisionRecordSchema['creatorUser']['_id'];
   initialText: string;
   afterSelection?: SelectionRangeSchema;
 }
 
-type DBCollabTextSchema = InferRaw<typeof CollabTextSchema>;
-type Records = DBCollabTextSchema['records'];
+type Records = CollabTextSchema['records'];
 
 /**
  * Create CollabText with inital values
@@ -23,14 +21,14 @@ export function createCollabText({
   initialText,
   creatorUserId,
   afterSelection,
-}: CreateCollabTextParams): DBCollabTextSchema & {
+}: CreateCollabTextParams): CollabTextSchema & {
   records: [Records[0], ...Records];
 } {
   afterSelection = afterSelection
     ? SelectionRange.collapseSame(afterSelection)
     : undefined;
 
-  const changeset = Changeset.fromInsertion(initialText).serialize();
+  const changeset = Changeset.fromInsertion(initialText);
   return {
     updatedAt: new Date(),
     headText: {
@@ -39,11 +37,13 @@ export function createCollabText({
     },
     tailText: {
       revision: 0,
-      changeset: Changeset.EMPTY.serialize(),
+      changeset: Changeset.EMPTY,
     },
     records: [
       {
-        creatorUserId,
+        creatorUser: {
+          _id: creatorUserId,
+        },
         userGeneratedId: '',
         revision: 1,
         changeset,

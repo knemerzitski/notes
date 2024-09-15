@@ -3,27 +3,17 @@ import { DeepAnyDescription } from '../../../query/description';
 import { isQueryOnlyId } from '../../../query/utils/is-query-only-id';
 import { UserSchema } from '../../../schema/user';
 import { RevisionRecordSchema } from '../../../schema/collab-text';
-import { assign, Infer, InferRaw, object, omit, pick } from 'superstruct';
+import { assign, Infer, InferRaw, object, pick } from 'superstruct';
+import mapObject from 'map-obj';
 
 export const QueryableRevisionRecord = assign(
-  omit(RevisionRecordSchema, ['creatorUserId']),
+  RevisionRecordSchema,
   object({
-    creatorUser: pick(UserSchema, ['_id', 'thirdParty', 'profile']),
+    creatorUser: pick(UserSchema, ['_id', 'profile']),
   })
 );
 
 export type QueryableRevisionRecord = Infer<typeof QueryableRevisionRecord>;
-
-export function revisionRecordSchemaToQueryable<
-  T extends InferRaw<typeof RevisionRecordSchema> | Infer<typeof RevisionRecordSchema>,
->(record: T) {
-  return {
-    ...record,
-    creatorUser: {
-      _id: record.creatorUserId,
-    },
-  };
-}
 
 export interface QueryableRevisionRecordContext {
   collections: Pick<MongoDBCollectionsOnlyNames, CollectionName.USERS>;
@@ -35,27 +25,27 @@ export const queryableRevisionRecordDescription: DeepAnyDescription<
   QueryableRevisionRecordContext
 > = {
   creatorUser: {
-    $addStages({ fields, customContext, subStages, subLastProject }) {
+    $addStages({ fields, customContext, subStages, subLastProject, relativeQuery }) {
       return fields.flatMap<Document>(({ query, parentRelativePath }) => {
         if (isQueryOnlyId(query)) {
-          return [
-            {
-              $set: {
-                creatorUser: {
-                  _id: `${parentRelativePath}.creatorUserId`,
-                },
-              },
-            },
-          ];
+          return [];
         }
 
         return [
           {
+            $unwind: {
+              path: `$${parentRelativePath}.array`,
+              includeArrayIndex: '_index',
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          // Lookup Users
+          {
             $lookup: {
               from: customContext.collections.users.collectionName,
               foreignField: '_id',
-              localField: `${parentRelativePath}.creatorUserId`,
-              as: `${parentRelativePath}.creatorUser`,
+              localField: `${parentRelativePath}.array.creatorUser._id`,
+              as: `${parentRelativePath}.array.creatorUser`,
               pipeline: [
                 ...subStages(),
                 {
@@ -66,9 +56,30 @@ export const queryableRevisionRecordDescription: DeepAnyDescription<
           },
           {
             $set: {
-              [`${parentRelativePath}.creatorUser`]: {
-                $arrayElemAt: [`$${parentRelativePath}.creatorUser`, 0],
+              [`${parentRelativePath}.array.creatorUser`]: {
+                $arrayElemAt: [`$${parentRelativePath}.array.creatorUser`, 0],
               },
+            },
+          },
+          // Ensure array is in same order after $group
+          { $sort: { _index: 1 } },
+          {
+            $group: {
+              // Get first value from each document which are all same for user
+              ...(relativeQuery != null && typeof relativeQuery === 'object'
+                ? mapObject(relativeQuery, (key: string) => [key, { $first: `$${key}` }])
+                : {}),
+              // Using _array at root since cannot group to a nested path
+              _array: {
+                $push: `$${parentRelativePath}.array`,
+              },
+              _id: '$_id',
+            },
+          },
+          // Put array back at path before unwind
+          {
+            $set: {
+              [`${parentRelativePath}.array`]: `$_array`,
             },
           },
         ];

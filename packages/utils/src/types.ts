@@ -17,17 +17,19 @@ export type WithRequired<T, TKey extends keyof T> = T & { [Key in TKey]-?: T[Key
 
 export type ReplaceWith<T extends object, R extends object> = Omit<T, keyof R> & R;
 
-export type PickByPath<T, S extends string> = T extends (infer U)[]
-  ? PickByPath<U, S>
-  : T extends object
-    ? S extends `${infer Key}.${infer U}`
-      ? Key extends keyof T
-        ? PickByPath<T[Key], U>
-        : never
-      : S extends keyof T
-        ? T[S]
-        : never
-    : never;
+export type PickByPath<T, S extends string> = S extends ''
+  ? T
+  : T extends (infer U)[]
+    ? PickByPath<U, S>
+    : T extends object
+      ? S extends `${infer Key}.${infer U}`
+        ? Key extends keyof T
+          ? PickByPath<T[Key], U>
+          : never
+        : S extends keyof T
+          ? T[S]
+          : never
+      : never;
 
 export type OmitNever<T> = {
   [Key in keyof T as T[Key] extends never ? never : Key]: T[Key];

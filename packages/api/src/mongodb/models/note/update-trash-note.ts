@@ -1,8 +1,8 @@
 import { ObjectId } from 'mongodb';
-import { getNotesArrayPath } from '../../../services/user/user';
 import { MongoDBCollections, CollectionName } from '../../collections';
 import { TransactionContext } from '../../utils/with-transaction';
 import { MongoReadonlyDeep } from '../../types';
+import { notesArrayPath } from '../user/utils/notes-array-path';
 
 interface UpdateTrashNoteParams {
   mongoDB: {
@@ -63,10 +63,10 @@ export function updateTrashNote({
         },
         {
           $pull: {
-            [getNotesArrayPath(noteUser.categoryName)]: noteId,
+            [notesArrayPath(noteUser.categoryName)]: noteId,
           },
           $push: {
-            [getNotesArrayPath(trashCategoryName)]: noteId,
+            [notesArrayPath(trashCategoryName)]: noteId,
           },
         },
         { session }

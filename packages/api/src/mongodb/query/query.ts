@@ -99,7 +99,9 @@ export function createMapQueryFn<From>(fromQuery: MongoQueryFn<From>) {
 }
 
 export function createValueQueryFn<S>(
-  getValue: <V extends QueryDeep<S>>(query: V) => MaybePromise<PartialQueryResultDeep<S>>,
+  getValue: <V extends QueryDeep<S>>(
+    query: V
+  ) => MaybePromise<Maybe<PartialQueryResultDeep<S>>>,
   options?: {
     mapQuery?: <V extends QueryDeep<S>>(query: V) => V;
   }

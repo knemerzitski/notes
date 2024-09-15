@@ -1,12 +1,16 @@
-import { ObjectId } from "mongodb";
-import { InferRaw } from "superstruct";
-import { groupBy } from "~utils/array/group-by";
-import { mapQueryAggregateResult } from "../../query/map-query-aggregate-result";
-import { mergeQueries, MergedQueryDeep } from "../../query/merge-queries";
-import { mergedQueryToPipeline } from "../../query/merged-query-to-pipeline";
-import { PartialQueryResultDeep } from "../../query/query";
-import { QueryableNote, queryableNoteDescription } from "./descriptions/note";
-import { QueryableNoteLoaderKey, QueryableNoteLoadContext, NoteNotFoundQueryLoaderError } from "./loader";
+import { ObjectId } from 'mongodb';
+import { InferRaw } from 'superstruct';
+import { groupBy } from '~utils/array/group-by';
+import { mapQueryAggregateResult } from '../../query/map-query-aggregate-result';
+import { mergeQueries, MergedQueryDeep } from '../../query/merge-queries';
+import { mergedQueryToPipeline } from '../../query/merged-query-to-pipeline';
+import { PartialQueryResultDeep } from '../../query/query';
+import { QueryableNote, queryableNoteDescription } from './descriptions/note';
+import {
+  QueryableNoteLoaderKey,
+  QueryableNoteLoadContext,
+  NoteNotFoundQueryLoaderError,
+} from './loader';
 
 export async function batchLoad(
   keys: readonly QueryableNoteLoaderKey[],

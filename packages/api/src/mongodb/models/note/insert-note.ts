@@ -1,23 +1,24 @@
-import { ObjectId } from 'mongodb';
-import { getNotesArrayPath } from '../../../services/user/user'; // !!!! THIS A NONO
 import { MongoDBCollections, CollectionName } from '../../collections';
-import { DBNoteSchema } from '../../schema/note';
-import { NoteUserSchema } from '../../schema/note-user';
-import { InferRaw } from 'superstruct';
+import { DBNoteSchema, NoteSchema } from '../../schema/note';
 import { TransactionContext } from '../../utils/with-transaction';
+import { notesArrayPath } from '../user/utils/notes-array-path';
 
 interface InsertNoteParams {
   mongoDB: {
     runSingleOperation?: TransactionContext['runSingleOperation'];
     collections: Pick<MongoDBCollections, CollectionName.NOTES | CollectionName.USERS>;
   };
-  userId: ObjectId;
-  note: DBNoteSchema;
-  noteUser: InferRaw<typeof NoteUserSchema>;
+  note: NoteSchema | DBNoteSchema;
 }
 
-export async function insertNote({ mongoDB, userId, note, noteUser }: InsertNoteParams) {
+export async function insertNote({ mongoDB, note }: InsertNoteParams) {
   const runSingleOperation = mongoDB.runSingleOperation ?? ((run) => run());
+
+  if (note.users.length === 0) {
+    throw new Error('Cannot insert note without a user');
+  }
+
+  note = NoteSchema.createRaw(note);
 
   return Promise.all([
     runSingleOperation((session) =>
@@ -26,15 +27,19 @@ export async function insertNote({ mongoDB, userId, note, noteUser }: InsertNote
       })
     ),
     runSingleOperation((session) =>
-      mongoDB.collections.users.updateOne(
-        {
-          _id: userId,
-        },
-        {
-          $push: {
-            [getNotesArrayPath(noteUser.categoryName)]: note._id,
+      mongoDB.collections.users.bulkWrite(
+        note.users.map((noteUser) => ({
+          updateOne: {
+            filter: {
+              _id: noteUser._id,
+            },
+            update: {
+              $push: {
+                [notesArrayPath(noteUser.categoryName)]: note._id,
+              },
+            },
           },
-        },
+        })),
         { session }
       )
     ),

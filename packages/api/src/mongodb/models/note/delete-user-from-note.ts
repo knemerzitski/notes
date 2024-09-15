@@ -1,8 +1,8 @@
 import { ObjectId } from 'mongodb';
-import { getNotesArrayPath } from '../../../services/user/user';
 import { MongoDBCollections, CollectionName } from '../../collections';
 import { MongoReadonlyDeep } from '../../types';
 import { TransactionContext } from '../../utils/with-transaction';
+import { notesArrayPath } from '../user/utils/notes-array-path';
 
 interface DeleteUserFromNoteParams {
   mongoDB: {
@@ -51,7 +51,7 @@ export function deleteUserFromNote({
         },
         {
           $pull: {
-            [getNotesArrayPath(noteUser.categoryName)]: noteId,
+            [notesArrayPath(noteUser.categoryName)]: noteId,
           },
         },
         { session }

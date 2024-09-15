@@ -1,7 +1,14 @@
 import { ObjectId } from 'mongodb';
-import { object, string, instance, date, Infer, optional, boolean, InferRaw } from 'superstruct';
-
-// TODO restructure {note: {...NoteUserSchema}, rest is user fields}
+import {
+  object,
+  string,
+  instance,
+  date,
+  Infer,
+  optional,
+  boolean,
+  InferRaw,
+} from 'superstruct';
 
 /**
  * User's access to a note with customizations.

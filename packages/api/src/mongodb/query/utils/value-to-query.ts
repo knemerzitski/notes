@@ -4,6 +4,7 @@ import { QueryDeep } from '../query';
 import { isMongoPrimitive } from './is-mongo-primitive';
 import { PickByPath } from '~utils/types';
 import { mergedObjects } from '~utils/object/merge-objects';
+import { Struct } from 'superstruct';
 
 export type VisitorFn<T> = (ctx: {
   addPermutationsByPath: PermutationsByPathFn<T>;
@@ -20,9 +21,26 @@ export type MergeByPathFn<T> = <S extends string>(
   mergeObject: QueryDeep<PickByPath<T, S>>
 ) => void;
 
-export function valueToQueries<T>(
+function* getEntries<T extends object>(
   value: T,
-  options?: { visitorFn?: VisitorFn<T> },
+  struct?: Struct<T>
+): Iterable<[string | number, unknown, Struct<any> | Struct<never> | null]> {
+  if (struct) {
+    yield* struct.entries(value, {
+      branch: [],
+      path: [],
+    });
+    return;
+  }
+
+  for (const [subKey, subValue] of Object.entries(value)) {
+    yield [subKey, subValue, null];
+  }
+}
+
+export function valueToQueries<T,S=T>(
+  value: T,
+  options?: { visitorFn?: VisitorFn<T>; fillStruct?: Struct<S> },
   ctx?: { path?: string }
 ): QueryDeep<T>[] {
   const path = ctx?.path ?? '';
@@ -32,10 +50,6 @@ export function valueToQueries<T>(
     return [1 as any];
   }
 
-  if (Array.isArray(value)) {
-    return mergedObjects(...value.map((v) => valueToQueries(v, options, ctx))) as any;
-  }
-
   if (isObjectLike(value)) {
     let results: Record<string, unknown>[] = [{}];
 
@@ -43,13 +57,13 @@ export function valueToQueries<T>(
       const addPermutationsByPath: PermutationsByPathFn<T> = (condPath, variants) => {
         if (isPath(path, condPath)) {
           results = variants.flatMap((variant) =>
-            results.map((result) => (variant === 1 ? result : { ...result, ...variant }))
+            results.map((result) => mergedObjects(result, variant) as any)
           );
         }
       };
-      const mergeByPath: MergeByPathFn<T> = (condPath, permutationObjects) => {
+      const mergeByPath: MergeByPathFn<T> = (condPath, mergeValue) => {
         if (isPath(path, condPath)) {
-          results = results.map((result) => ({ ...result, ...permutationObjects }));
+          results = results.map((result) => mergedObjects(result, mergeValue)) as any[];
         }
       };
       visitorFn({
@@ -58,13 +72,46 @@ export function valueToQueries<T>(
       });
     }
 
-    for (const [subKey, subValue] of Object.entries(value)) {
-      const subQueries = valueToQueries(subValue, options as any, {
-        path: getPath(path, subKey),
-      });
-      results = subQueries.flatMap((subQuery) =>
-        results.map((result) => ({ ...result, [subKey]: subQuery }))
+    const isArray = Array.isArray(value);
+
+    for (const entry of getEntries(value, options?.fillStruct as any)) {
+      const subKey = entry[0];
+      let subValue = entry[1];
+      const subStruct = entry[2];
+
+      if (subValue === undefined && subStruct) {
+        if (['record'].includes(subStruct.type)) {
+          continue;
+        } else if (['object'].includes(subStruct.type)) {
+          subValue = {};
+        } else if (['array'].includes(subStruct.type)) {
+          subValue = [{}];
+        }
+      }
+
+      const subQueries = valueToQueries(
+        subValue,
+        {
+          ...options,
+          fillStruct: subStruct,
+        } as any,
+        {
+          path: getPath(path, String(subKey)),
+        }
       );
+
+      if (isArray) {
+        results = subQueries.flatMap((subQuery) =>
+          results.map((result) => mergedObjects(subQuery, result) as any)
+        );
+      } else {
+        results = subQueries.flatMap((subQuery) =>
+          results.map((result) => ({
+            ...result,
+            [subKey]: mergedObjects(subQuery, result[subKey]),
+          }))
+        );
+      }
     }
 
     return results as any[];
