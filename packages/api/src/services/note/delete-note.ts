@@ -56,7 +56,6 @@ export function deleteNote({
           },
         },
         {
-          resultType: 'validated',
           session,
         }
       )

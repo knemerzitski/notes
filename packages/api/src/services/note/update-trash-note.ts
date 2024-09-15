@@ -61,7 +61,6 @@ export async function updateTrashNote({
           },
         },
         {
-          resultType: 'validated',
           session,
         }
       )
@@ -111,26 +110,22 @@ export async function updateTrashNote({
         },
       },
       {
-        result: {
-          users: note.users.map((noteUser) => {
-            if (!userId.equals(noteUser._id)) {
-              return noteUser;
-            }
+        users: note.users.map((noteUser) => {
+          if (!userId.equals(noteUser._id)) {
+            return noteUser;
+          }
 
-            return {
-              ...noteUser,
-              categoryName: trashCategoryName,
-              trashed: {
-                ...noteUser.trashed,
-                expireAt,
-                originalCategoryName: noteUser.categoryName,
-              },
-            };
-          }),
-        },
-        type: 'validated',
-      },
-      { clearCache: true }
+          return {
+            ...noteUser,
+            categoryName: trashCategoryName,
+            trashed: {
+              ...noteUser.trashed,
+              expireAt,
+              originalCategoryName: noteUser.categoryName,
+            },
+          };
+        }),
+      }
     );
 
     return {

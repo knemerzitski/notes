@@ -1,8 +1,6 @@
-import { createMapQueryFn, MongoQueryFnStruct } from '../../../../mongodb/query/query';
-import { PublicUserProfileMapper } from '../schema.mappers';
+import { createMapQueryFn } from '../../../../mongodb/query/query';
+import { UserSchema } from '../../../../mongodb/schema/user';
 import type { PublicUserResolvers } from './../../types.generated';
-
-type PublicUserProfile = MongoQueryFnStruct<PublicUserProfileMapper['query']>;
 
 export const PublicUser: PublicUserResolvers = {
   id: async (parent, _arg, _ctx) => {
@@ -10,7 +8,7 @@ export const PublicUser: PublicUserResolvers = {
   },
   profile: (parent) => {
     return {
-      query: createMapQueryFn(parent.query)<PublicUserProfile>()(
+      query: createMapQueryFn(parent.query)<UserSchema['profile']>()(
         (query) => ({ profile: query }),
         (result) => result.profile
       ),

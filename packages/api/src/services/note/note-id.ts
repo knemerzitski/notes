@@ -7,7 +7,7 @@ export function Note_id(noteId: ObjectId): ObjectId {
 }
 
 export async function Note_id_fromQueryFn(
-  query: MongoQueryFn<typeof QueryableNote>
+  query: MongoQueryFn<QueryableNote>
 ): Promise<ObjectId | undefined> {
   return (await query({ _id: 1 }))?._id;
 }

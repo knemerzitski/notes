@@ -7,8 +7,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { QueryLoader, QueryLoaderEvents } from './query-loader';
 import { mitt } from '~utils/mitt-unsub';
 import isEqual from 'lodash.isequal';
-import { coerce, number, object, string } from 'superstruct';
+import { coerce, define, number, object, string } from 'superstruct';
 import { mock } from 'vitest-mock-extended';
+
+const STRUCT_OK = define('ok', () => true);
 
 describe('context', () => {
   it('passes global context to batchLoadFn', async () => {
@@ -17,7 +19,7 @@ describe('context', () => {
 
     const loader = new QueryLoader<any, any>({
       batchLoadFn,
-      struct: mock(),
+      struct: STRUCT_OK,
       context: globalContextMock,
     });
 
@@ -37,7 +39,7 @@ describe('context', () => {
 
     const loader = new QueryLoader<any, any>({
       batchLoadFn,
-      struct: mock(),
+      struct: STRUCT_OK,
     });
 
     const requestContextMock = mock();
@@ -63,7 +65,7 @@ describe('context', () => {
 
     const loader = new QueryLoader<any, any>({
       batchLoadFn,
-      struct: mock(),
+      struct: STRUCT_OK,
     });
 
     const requestContextMock = mock();
@@ -97,7 +99,7 @@ describe('context', () => {
 
     const loader = new QueryLoader<any, any>({
       batchLoadFn,
-      struct: mock(),
+      struct: STRUCT_OK,
     });
 
     const requestContextMock = mock();
@@ -134,7 +136,7 @@ describe('load/prime', () => {
 
     const loader = new QueryLoader<any, any>({
       batchLoadFn,
-      struct: mock(),
+      struct: STRUCT_OK,
     });
 
     await loader.load({
@@ -154,7 +156,7 @@ describe('load/prime', () => {
 
     const loader = new QueryLoader<any, any>({
       batchLoadFn,
-      struct: mock(),
+      struct: STRUCT_OK,
     });
 
     await Promise.all([
@@ -188,7 +190,7 @@ describe('load/prime', () => {
 
     const loader = new QueryLoader<any, any>({
       batchLoadFn,
-      struct: mock(),
+      struct: STRUCT_OK,
     });
 
     await loader.load({
@@ -213,7 +215,7 @@ describe('load/prime', () => {
 
     const loader = new QueryLoader<any, any>({
       batchLoadFn,
-      struct: mock(),
+      struct: STRUCT_OK,
     });
 
     await loader.load({
@@ -248,7 +250,7 @@ describe('load/prime', () => {
 
     const loader = new QueryLoader<any, any>({
       batchLoadFn,
-      struct: mock(),
+      struct: STRUCT_OK,
     });
 
     await loader.load({
@@ -272,7 +274,7 @@ describe('load/prime', () => {
 
     const loader = new QueryLoader<any, any>({
       batchLoadFn,
-      struct: mock(),
+      struct: STRUCT_OK,
     });
 
     loader.prime(
@@ -284,11 +286,8 @@ describe('load/prime', () => {
         },
       },
       {
-        result: {
-          a: 'a',
-          b: 'b',
-        },
-        type: 'raw',
+        a: 'a',
+        b: 'b',
       }
     );
 
@@ -316,7 +315,7 @@ describe('load/prime', () => {
       loaderOptions: {
         cacheMap: cache,
       },
-      struct: mock(),
+      struct: STRUCT_OK,
     });
     const objId = new ObjectId();
 
@@ -344,7 +343,7 @@ describe('event loaded', () => {
     const loader = new QueryLoader<any, any>({
       batchLoadFn,
       eventBus,
-      struct: mock(),
+      struct: STRUCT_OK,
     });
     eventBus.on('loaded', () => {
       loader.prime(
@@ -352,13 +351,7 @@ describe('event loaded', () => {
           id: null,
           query: 1,
         },
-        {
-          result: null as any,
-          type: 'raw',
-        },
-        {
-          clearCache: true,
-        }
+        null as any
       );
     });
 
@@ -390,7 +383,7 @@ describe('event loaded', () => {
     const loader = new QueryLoader({
       batchLoadFn: batchLoadFn,
       eventBus,
-      struct: mock(),
+      struct: STRUCT_OK,
     });
 
     await loader.load({
@@ -402,11 +395,8 @@ describe('event loaded', () => {
     });
 
     const value = {
-      result: {
-        id: 'id',
-        description: 'desc',
-      },
-      type: 'raw',
+      id: 'id',
+      description: 'desc',
     };
 
     expect(emitSpy.mock.calls).toStrictEqual([
@@ -465,52 +455,14 @@ describe('validation', () => {
 
   it('returns validated data', async () => {
     await expect(
-      loader.load(
-        {
-          id: null,
-          query: {
-            str_rawNr: 1,
-          },
-        },
-        {
-          resultType: 'validated',
-        }
-      )
-    ).resolves.toStrictEqual({
-      str_rawNr: '10',
-    });
-  });
-
-  it('loads raw result that has been primed with validated result', async () => {
-    loader.prime(
-      {
+      loader.load({
         id: null,
         query: {
           str_rawNr: 1,
         },
-      },
-      {
-        result: {
-          str_rawNr: '15',
-        },
-        type: 'validated',
-      }
-    );
-
-    await expect(
-      loader.load(
-        {
-          id: null,
-          query: {
-            str_rawNr: 1,
-          },
-        },
-        {
-          resultType: 'raw',
-        }
-      )
+      })
     ).resolves.toStrictEqual({
-      str_rawNr: 15,
+      str_rawNr: '10',
     });
   });
 });

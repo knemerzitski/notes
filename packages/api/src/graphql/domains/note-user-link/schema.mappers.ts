@@ -8,16 +8,16 @@ import { QueryableNote, QueryableNoteUser } from '../../../mongodb/loaders/note/
 
 export interface UserNoteLinkMapper {
   readonly userId: ObjectId;
-  readonly query: MongoQueryFn<typeof QueryableNote>;
+  readonly query: MongoQueryFn<QueryableNote>;
 }
 
 export interface PublicUserNoteLinkMapper {
   readonly noteId: ResolverTypeWrapper<ObjectId>;
-  readonly query: MongoQueryFn<typeof QueryableNoteUser>;
+  readonly query: MongoQueryFn<QueryableNoteUser>;
 }
 
 export interface NotePreferencesMapper {
-  readonly query: MongoQueryFn<typeof NoteUserSchema.schema.preferences>;
+  readonly query: MongoQueryFn<NoteUserSchema['preferences']>;
 }
 
 export interface UserNoteLinkConnectionMapper {

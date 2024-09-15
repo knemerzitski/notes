@@ -5,7 +5,8 @@ import { mockResolver } from '../../../../__test__/helpers/graphql/mock-resolver
 import { CollabText } from './CollabText';
 import { Changeset } from '~collab/changeset/changeset';
 import { maybeCallFn } from '~utils/maybe-call-fn';
-import { wrapOnlyValidatedQueryFn } from '../../../../mongodb/query/query';
+import { createPartialValueQueryFn } from '../../../../mongodb/query/query';
+import { QueryableCollabText } from '../../../../mongodb/loaders/note/descriptions/collab-text';
 
 describe('textAtRevision', () => {
   const textAtRevision = mockResolver(CollabText.textAtRevision!);
@@ -40,7 +41,7 @@ describe('textAtRevision', () => {
           textAtRevision(
             {
               id: 'random',
-              query: wrapOnlyValidatedQueryFn(() => ({
+              query: createPartialValueQueryFn<QueryableCollabText>(() => ({
                 tailText: {
                   changeset: Changeset.fromInsertion('a'),
                   revision: 4,
@@ -65,7 +66,7 @@ describe('textAtRevision', () => {
           textAtRevision(
             {
               id: 'random',
-              query: wrapOnlyValidatedQueryFn(() => ({
+              query: createPartialValueQueryFn<QueryableCollabText>(() => ({
                 tailText: {
                   changeset: Changeset.fromInsertion('a'),
                   revision: 4,
@@ -95,7 +96,7 @@ describe('textAtRevision', () => {
           textAtRevision(
             {
               id: 'random',
-              query: wrapOnlyValidatedQueryFn(() => ({
+              query: createPartialValueQueryFn<QueryableCollabText>(() => ({
                 tailText: {
                   changeset: Changeset.fromInsertion('a'),
                   revision: 4,
@@ -129,7 +130,7 @@ describe('textAtRevision', () => {
           textAtRevision(
             {
               id: 'random',
-              query: wrapOnlyValidatedQueryFn(() => ({
+              query: createPartialValueQueryFn<QueryableCollabText>(() => ({
                 tailText: {
                   changeset: Changeset.fromInsertion('a'),
                   revision: 4,
@@ -149,6 +150,6 @@ describe('textAtRevision', () => {
         revision: 1,
         changeset: 1,
       })
-    ).resolves.toBeFalsy()
+    ).resolves.toBeFalsy();
   });
 });

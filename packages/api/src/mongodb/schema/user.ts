@@ -25,7 +25,7 @@ export type DBNoteCategorySchema = InferRaw<typeof NoteCategorySchema>;
 export type NoteCategorySchema = Infer<typeof NoteCategorySchema>;
 
 export const UserSchema = object({
-  _id: defaulted(instance(ObjectId), () => new ObjectId()),
+  _id: instance(ObjectId),
   /**
    * Any third-party related information
    */

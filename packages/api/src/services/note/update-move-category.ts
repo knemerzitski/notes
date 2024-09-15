@@ -79,7 +79,6 @@ export async function updateMoveCategory({
             },
           },
           {
-            resultType: 'validated',
             session,
           }
         )
@@ -200,24 +199,20 @@ export async function updateMoveCategory({
         },
       },
       {
-        result: {
-          users: note.users.map((noteUser) => {
-            if (!userId.equals(noteUser._id)) {
-              return noteUser;
-            }
+        users: note.users.map((noteUser) => {
+          if (!userId.equals(noteUser._id)) {
+            return noteUser;
+          }
 
-            // Exclude trashed
-            const { trashed, ...restNoteUser } = noteUser;
+          // Exclude trashed
+          const { trashed, ...restNoteUser } = noteUser;
 
-            return {
-              ...restNoteUser,
-              categoryName: desiredCategoryName,
-            };
-          }),
-        },
-        type: 'validated',
-      },
-      { clearCache: true }
+          return {
+            ...restNoteUser,
+            categoryName: desiredCategoryName,
+          };
+        }),
+      }
     );
 
     if (resultAnchor) {
@@ -232,12 +227,8 @@ export async function updateMoveCategory({
           },
         },
         {
-          result: {
-            _id: resultAnchor.id,
-          },
-          type: 'validated',
-        },
-        { clearCache: true }
+          _id: resultAnchor.id,
+        }
       );
     }
 

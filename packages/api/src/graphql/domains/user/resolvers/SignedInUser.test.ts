@@ -6,14 +6,15 @@ import { SignedInUser } from './SignedInUser';
 import { ObjectId } from 'mongodb';
 import { maybeCallFn } from '~utils/maybe-call-fn';
 import { mockResolver } from '../../../../__test__/helpers/graphql/mock-resolver';
-import { wrapOnlyRawQueryFn } from '../../../../mongodb/query/query';
+import { createPartialValueQueryFn } from '../../../../mongodb/query/query';
+import { UserSchema } from '../../../../mongodb/schema/user';
 
 describe('id', () => {
   const resolveId = mockResolver(SignedInUser.id!);
 
   it('returns undefined with empty object', async () => {
     const id = await resolveId({
-      query: wrapOnlyRawQueryFn(() => {
+      query: createPartialValueQueryFn<Pick<UserSchema, '_id' | 'profile'>>(() => {
         return {};
       }),
     });
@@ -23,7 +24,7 @@ describe('id', () => {
   it('returns provided _id', async () => {
     const _id = new ObjectId();
     const id = await resolveId({
-      query: wrapOnlyRawQueryFn(() => {
+      query: createPartialValueQueryFn<Pick<UserSchema, '_id' | 'profile'>>(() => {
         return {
           _id,
         };

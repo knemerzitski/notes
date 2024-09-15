@@ -14,7 +14,7 @@ export const Note: Pick<NoteResolvers, 'users'> = {
                 _id: 1,
               })
             )?._id,
-          query: createMapQueryFn(parent.query)<typeof QueryableNoteUser>()(
+          query: createMapQueryFn(parent.query)<QueryableNoteUser>()(
             (query) => ({
               users: {
                 ...query,
@@ -22,8 +22,8 @@ export const Note: Pick<NoteResolvers, 'users'> = {
               },
             }),
             (note) => {
-              updateSize?.(note.users?.length);
-              return note.users?.[index];
+              updateSize?.(note.users.length);
+              return note.users[index];
             }
           ),
         };

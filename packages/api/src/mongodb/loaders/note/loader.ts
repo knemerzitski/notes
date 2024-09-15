@@ -17,7 +17,6 @@ import {
   QueryLoaderKey,
 } from '../../query/query-loader';
 import { objectIdToStr } from '../../utils/objectid';
-import { Infer, InferRaw } from 'superstruct';
 import { batchLoad } from './batch-load';
 
 export interface QueryableNoteId {
@@ -33,7 +32,7 @@ export interface QueryableNoteId {
 
 export type QueryableNoteLoaderKey = QueryLoaderKey<
   QueryableNoteId,
-  InferRaw<typeof QueryableNote>,
+  QueryableNote,
   QueryableNoteLoadContext
 >['cache'];
 
@@ -55,7 +54,7 @@ type RequestContext = AggregateOptions['session'];
 
 export class NoteNotFoundQueryLoaderError extends QueryLoaderError<
   QueryableNoteId,
-  InferRaw<typeof QueryableNote>
+  QueryableNote
 > {
   override readonly key: QueryableNoteLoaderKey;
 
@@ -102,16 +101,12 @@ export class QueryableNoteLoader {
     this.loader.prime(...args);
   }
 
-  load<
-    V extends QueryDeep<Infer<typeof QueryableNote>>,
-    T extends 'any' | 'raw' | 'validated' = 'any',
-  >(
-    key: Parameters<typeof this.loader.load<V, T>>[0],
+  load<V extends QueryDeep<QueryableNote>>(
+    key: Parameters<typeof this.loader.load<V>>[0],
     options?: {
-      resultType?: T;
       session?: RequestContext;
     }
-  ): ReturnType<typeof this.loader.load<V, T>> {
+  ): ReturnType<typeof this.loader.load<V>> {
     return this.loader.load(key, {
       ...options,
       context: options?.session,
@@ -124,7 +119,7 @@ export class QueryableNoteLoader {
     options?: {
       session?: RequestContext;
     }
-  ): MongoQueryFn<typeof QueryableNote> {
+  ): MongoQueryFn<QueryableNote> {
     return this.loader.createQueryFn(id, {
       context: options?.session,
       clearCache: options?.session != null,
@@ -136,15 +131,13 @@ export class QueryableNoteLoader {
       return;
     }
 
-    const result = value.result;
-
     Object.entries(key.query.notes.category).forEach(([categoryName, categoryMeta]) => {
       const noteQuery = categoryMeta?.order?.items;
       if (!noteQuery) {
         return;
       }
 
-      const resultCategoryMeta = result.notes?.category?.[categoryName];
+      const resultCategoryMeta = value.notes?.category?.[categoryName];
       if (!resultCategoryMeta) {
         return;
       }
@@ -158,10 +151,7 @@ export class QueryableNoteLoader {
             },
             query: noteQuery,
           },
-          {
-            result: note,
-            type: value.type,
-          }
+          note
         );
       });
     });

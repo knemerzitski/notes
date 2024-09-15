@@ -21,6 +21,7 @@ import { QueryableNote, queryableNoteDescription } from '../note/descriptions/no
 import {
   array,
   assign,
+  Infer,
   InferRaw,
   instance,
   object,
@@ -43,11 +44,13 @@ export const QueryableUser_NotesCategory = assign(
           })
         )
       ),
-      firstId: typeObjectId,
-      lastId: typeObjectId,
+      firstId: optional(typeObjectId),
+      lastId: optional(typeObjectId),
     }),
   })
 );
+
+export type QueryableUser_NotesCategory = Infer<typeof QueryableUser_NotesCategory>;
 
 export const QueryableUser = assign(
   UserSchema,
@@ -60,6 +63,8 @@ export const QueryableUser = assign(
     ),
   })
 );
+
+export type QueryableUser = Infer<typeof QueryableUser>;
 
 export interface QueryableUserContext {
   collections: Pick<

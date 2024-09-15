@@ -6,12 +6,12 @@ import {
   PreFetchedArrayGetItemFn,
   withPreExecuteList,
 } from '../../../../utils/pre-execute';
-import { createMapQueryFn } from '../../../../../mongodb/query/query';
 import { QueryableNote } from '../../../../../mongodb/loaders/note/descriptions/note';
 import { UserNoteLinkMapper } from '../../schema.mappers';
 import { QueryableUser_NotesCategory } from '../../../../../mongodb/loaders/user/description';
-import { Note_id_fromQueryFn } from '../../../../../services/note/note-id';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
+import { createMapQueryFn } from '../../../../../mongodb/query/query';
+import { Note_id_fromQueryFn } from '../../../../../services/note/note-id';
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 30;
@@ -50,9 +50,9 @@ export const userNoteLinkConnection: NonNullable<
     userId: currentUserId,
   });
 
-  const noteCategoryQueryFn = createMapQueryFn(userQueryFn)<
-    typeof QueryableUser_NotesCategory
-  >()(
+  const noteCategoryQueryFn = createMapQueryFn(
+    userQueryFn
+  )<QueryableUser_NotesCategory>()(
     (query) => ({
       _id: 1,
       notes: {
@@ -70,7 +70,7 @@ export const userNoteLinkConnection: NonNullable<
         },
       },
     }),
-    (user) => user.notes?.category?.[categoryName]
+    (user) => user.notes.category[categoryName]
   );
 
   const createUserNoteLinkMapper: PreFetchedArrayGetItemFn<UserNoteLinkMapper> = (
@@ -78,15 +78,14 @@ export const userNoteLinkConnection: NonNullable<
     updateSize
   ) => ({
     userId: currentUserId,
-    query: createMapQueryFn(noteCategoryQueryFn)<typeof QueryableNote>()(
+    query: createMapQueryFn(noteCategoryQueryFn)<QueryableNote>()(
       (query) => ({
         order: {
           items: query,
         },
       }),
       (noteCategory) => {
-        const items = noteCategory.order?.items;
-        if (!items) return;
+        const items = noteCategory.order.items;
         updateSize?.(items.length);
         return items[index < 0 ? index + items.length : index];
       }
@@ -124,7 +123,7 @@ export const userNoteLinkConnection: NonNullable<
         });
 
         const order = noteCategory?.order;
-        const startCursor = order?.items?.[0]?._id;
+        const startCursor = order?.items[0]?._id;
         const firstCursor = order?.firstId;
 
         const hasPreviousPage = startCursor && !startCursor.equals(firstCursor);
@@ -142,7 +141,7 @@ export const userNoteLinkConnection: NonNullable<
         });
 
         const order = noteCategory?.order;
-        const endCursor = order?.items?.[order.items.length - 1]?._id;
+        const endCursor = order?.items[order.items.length - 1]?._id;
         const lastCursor = order?.lastId;
 
         const hasNextPage = endCursor && !endCursor.equals(lastCursor);

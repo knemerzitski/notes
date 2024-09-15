@@ -1,5 +1,8 @@
 import { DBSessionSchema, SessionSchema } from '../../mongodb/schema/session';
-import { QueryableSessionLoader } from '../../mongodb/loaders/session/loader';
+import {
+  QueryableSessionLoader,
+  SessionNotFoundQueryLoaderError,
+} from '../../mongodb/loaders/session/loader';
 import { Collection, ObjectId } from 'mongodb';
 import { SessionDuration } from './duration';
 import { create } from 'superstruct';
@@ -40,28 +43,31 @@ export async function findByCookieId({
   cookieId,
   loader,
 }: FindByCookieIdParams): Promise<Session | null> {
-  const session = await loader.load({
-    id: {
-      cookieId,
-    },
-    query: {
-      _id: 1,
-      cookieId: 1,
-      expireAt: 1,
-      userId: 1,
-    },
-  });
+  try {
+    const session = await loader.load({
+      id: {
+        cookieId,
+      },
+      query: {
+        _id: 1,
+        cookieId: 1,
+        expireAt: 1,
+        userId: 1,
+      },
+    });
 
-  if (!session._id || !session.cookieId || !session.expireAt || !session.userId) {
-    return null;
+    return {
+      _id: session._id,
+      cookieId: session.cookieId,
+      expireAt: session.expireAt,
+      userId: session.userId,
+    };
+  } catch (err) {
+    if (err instanceof SessionNotFoundQueryLoaderError) {
+      return null;
+    }
+    throw err;
   }
-
-  return {
-    _id: session._id,
-    cookieId: session.cookieId,
-    expireAt: session.expireAt,
-    userId: session.userId,
-  };
 }
 
 export interface UpdateExpireAtParams {
@@ -134,8 +140,7 @@ export async function tryRefreshExpireAt<
           userId: 1,
         },
       },
-      session,
-      { clearCache: true }
+      session
     );
   }
 

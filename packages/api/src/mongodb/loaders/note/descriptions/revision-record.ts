@@ -12,6 +12,8 @@ export const QueryableRevisionRecord = assign(
   })
 );
 
+export type QueryableRevisionRecord = Infer<typeof QueryableRevisionRecord>;
+
 export function revisionRecordSchemaToQueryable<
   T extends InferRaw<typeof RevisionRecordSchema> | Infer<typeof RevisionRecordSchema>,
 >(record: T) {

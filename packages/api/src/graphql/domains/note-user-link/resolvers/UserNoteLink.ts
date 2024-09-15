@@ -1,5 +1,6 @@
 import { QueryableNoteUser } from '../../../../mongodb/loaders/note/descriptions/note';
 import { createMapQueryFn } from '../../../../mongodb/query/query';
+import { NoteUserSchema } from '../../../../mongodb/schema/note-user';
 import { findNoteUserMaybe } from '../../../../services/note/note';
 import { UserNoteLink_id_fromQueryFn } from '../../../../services/note/user-note-link-id';
 import type { NoteCategory, UserNoteLinkResolvers } from '../../types.generated';
@@ -39,9 +40,7 @@ export const UserNoteLink: UserNoteLinkResolvers = {
   },
   preferences: (parent, _arg, _ctx) => {
     return {
-      query: createMapQueryFn(parent.query)<
-        typeof QueryableNoteUser.schema.preferences
-      >()(
+      query: createMapQueryFn(parent.query)<NoteUserSchema['preferences']>()(
         (query) => ({
           users: {
             _id: 1,
@@ -60,7 +59,7 @@ export const UserNoteLink: UserNoteLinkResolvers = {
             _id: 1,
           })
         )?._id,
-      query: createMapQueryFn(parent.query)<typeof QueryableNoteUser>()(
+      query: createMapQueryFn(parent.query)<QueryableNoteUser>()(
         (query) => ({
           users: {
             _id: 1,

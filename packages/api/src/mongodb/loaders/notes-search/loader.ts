@@ -19,7 +19,7 @@ import {
   QueryLoaderKey,
   SessionOptions,
 } from '../../query/query-loader';
-import { Infer, InferRaw } from 'superstruct';
+import { Infer } from 'superstruct';
 import { QueryableSearchNotes } from './description';
 import { batchLoad } from './batch-load';
 
@@ -40,7 +40,7 @@ export interface QueryableNotesSearchId {
 
 export type QueryableNotesSearchLoaderKey = QueryLoaderKey<
   QueryableNotesSearchId,
-  InferRaw<typeof QueryableSearchNotes>,
+  Infer<typeof QueryableSearchNotes>,
   QueryableNotesSearchLoadContext
 >['cache'];
 
@@ -90,13 +90,10 @@ export class QueryableNotesSearchLoader {
     });
   }
 
-  load<
-    V extends QueryDeep<Infer<typeof QueryableSearchNotes>>,
-    T extends 'any' | 'raw' | 'validated' = 'any',
-  >(
-    key: Parameters<typeof this.loader.load<V, T>>[0],
-    options?: SessionOptions<LoadOptions<RequestContext, T>>
-  ): ReturnType<typeof this.loader.load<V, T>> {
+  load<V extends QueryDeep<Infer<typeof QueryableSearchNotes>>>(
+    key: Parameters<typeof this.loader.load<V>>[0],
+    options?: SessionOptions<LoadOptions<RequestContext>>
+  ): ReturnType<typeof this.loader.load<V>> {
     return this.loader.load(key, {
       ...options,
       context: options?.session,

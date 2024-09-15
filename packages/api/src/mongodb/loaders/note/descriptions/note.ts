@@ -17,6 +17,8 @@ export const QueryableNoteUser = assign(
   })
 );
 
+export type QueryableNoteUser = Infer<typeof QueryableNoteUser>;
+
 export const QueryableNote = assign(
   NoteSchema,
   object({
@@ -24,6 +26,8 @@ export const QueryableNote = assign(
     users: array(QueryableNoteUser),
   })
 );
+
+export type QueryableNote = Infer<typeof QueryableNote>;
 
 export function noteSchemaToQueryable<
   T extends InferRaw<typeof NoteSchema> | Infer<typeof NoteSchema>,

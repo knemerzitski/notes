@@ -81,6 +81,8 @@ export const QueryableCollabText = assign(
   })
 );
 
+export type QueryableCollabText = Infer<typeof QueryableCollabText>;
+
 export function collabTextSchemaToQueryable<
   T extends InferRaw<typeof CollabTextSchema> | Infer<typeof CollabTextSchema>,
 >(collabText: T) {

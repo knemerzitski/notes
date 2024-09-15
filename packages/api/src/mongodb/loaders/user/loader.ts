@@ -20,7 +20,6 @@ import {
   QueryLoaderKey,
   SessionOptions,
 } from '../../query/query-loader';
-import { Infer, InferRaw } from 'superstruct';
 import { batchLoad } from './batch-load';
 
 export type QueryableUserId =
@@ -36,7 +35,7 @@ export type QueryableUserId =
 
 export type QueryableUserLoaderKey = QueryLoaderKey<
   QueryableUserId,
-  InferRaw<typeof QueryableUser>,
+  QueryableUser,
   QueryableUserLoadContext
 >['cache'];
 
@@ -58,7 +57,7 @@ type RequestContext = AggregateOptions['session'];
 
 export class UserNotFoundQueryLoaderError extends QueryLoaderError<
   QueryableUserId,
-  InferRaw<typeof QueryableUser>
+  QueryableUser
 > {
   override readonly key: QueryableUserLoaderKey;
 
@@ -105,13 +104,10 @@ export class QueryableUserLoader {
     this.loader.prime(...args);
   }
 
-  load<
-    V extends QueryDeep<Infer<typeof QueryableUser>>,
-    T extends 'any' | 'raw' | 'validated' = 'any',
-  >(
-    key: Parameters<typeof this.loader.load<V, T>>[0],
-    options?: SessionOptions<LoadOptions<RequestContext, T>>
-  ): ReturnType<typeof this.loader.load<V, T>> {
+  load<V extends QueryDeep<QueryableUser>>(
+    key: Parameters<typeof this.loader.load<V>>[0],
+    options?: SessionOptions<LoadOptions<RequestContext>>
+  ): ReturnType<typeof this.loader.load<V>> {
     return this.loader.load(key, {
       ...options,
       context: options?.session,
@@ -121,8 +117,8 @@ export class QueryableUserLoader {
 
   createQueryFn(
     id: QueryableUserId,
-    options?: SessionOptions<CreateQueryFnOptions<RequestContext, typeof QueryableUser>>
-  ): MongoQueryFn<typeof QueryableUser> {
+    options?: SessionOptions<CreateQueryFnOptions<RequestContext, QueryableUser>>
+  ): MongoQueryFn<QueryableUser> {
     return this.loader.createQueryFn(id, {
       ...options,
       context: options?.session,
@@ -132,12 +128,11 @@ export class QueryableUserLoader {
 
   private primeEquivalentOtherId(
     { key, value }: LoaderEvents['loadedUser'],
-    options?: PrimeOptions<InferRaw<typeof QueryableUser>>
+    options?: PrimeOptions<QueryableUser>
   ) {
-    const result = value.result;
     if ('userId' in key.id) {
-      if (result.thirdParty?.google?.id != null) {
-        const googleUserId = result.thirdParty.google.id;
+      if (value.thirdParty?.google?.id != null) {
+        const googleUserId = value.thirdParty.google.id;
         this.loader.prime(
           {
             id: {
@@ -149,8 +144,8 @@ export class QueryableUserLoader {
           options
         );
       }
-    } else if (result._id != null) {
-      const userId = result._id;
+    } else if (value._id != null) {
+      const userId = value._id;
       this.loader.prime(
         {
           id: {

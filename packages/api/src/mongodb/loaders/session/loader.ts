@@ -17,7 +17,7 @@ import {
   SessionOptions,
 } from '../../query/query-loader';
 import { QueryableSession } from './description';
-import { Infer, InferRaw } from 'superstruct';
+import { Infer } from 'superstruct';
 import { batchLoad } from './batch-load';
 
 export interface QueryableSessionId {
@@ -29,7 +29,7 @@ export interface QueryableSessionId {
 
 export type QueryableSessionLoaderKey = QueryLoaderKey<
   QueryableSessionId,
-  InferRaw<typeof QueryableSession>,
+  Infer<typeof QueryableSession>,
   QueryableSessionLoadContext
 >['cache'];
 
@@ -54,7 +54,7 @@ type RequestContext = AggregateOptions['session'];
 
 export class SessionNotFoundQueryLoaderError extends QueryLoaderError<
   QueryableSessionId,
-  InferRaw<typeof QueryableSession>
+  Infer<typeof QueryableSession>
 > {
   override readonly key: QueryableSessionLoaderKey;
 
@@ -101,13 +101,10 @@ export class QueryableSessionLoader {
     this.loader.prime(...args);
   }
 
-  load<
-    V extends QueryDeep<Infer<typeof QueryableSession>>,
-    T extends 'any' | 'raw' | 'validated' = 'any',
-  >(
-    key: Parameters<typeof this.loader.load<V, T>>[0],
-    options?: SessionOptions<LoadOptions<RequestContext, T>>
-  ): ReturnType<typeof this.loader.load<V, T>> {
+  load<V extends QueryDeep<Infer<typeof QueryableSession>>>(
+    key: Parameters<typeof this.loader.load<V>>[0],
+    options?: SessionOptions<LoadOptions<RequestContext>>
+  ): ReturnType<typeof this.loader.load<V>> {
     return this.loader.load(key, {
       ...options,
       context: options?.session,

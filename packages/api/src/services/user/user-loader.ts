@@ -14,24 +14,19 @@ export async function findUserByGoogleUserId({
   loader,
 }: FindUserByGoogleUserIdParams) {
   try {
-    return await loader.load(
-      {
-        id: {
-          googleUserId,
-        },
-        query: {
-          _id: 1,
-          thirdParty: {
-            google: {
-              id: 1,
-            },
+    return await loader.load({
+      id: {
+        googleUserId,
+      },
+      query: {
+        _id: 1,
+        thirdParty: {
+          google: {
+            id: 1,
           },
         },
       },
-      {
-        resultType: 'validated',
-      }
-    );
+    });
   } catch (err) {
     if (err instanceof UserNotFoundQueryLoaderError) {
       return null;
@@ -64,15 +59,9 @@ export function primeNewGoogleUser({ newUser, loader }: PrimeNewGoogleUserParams
       },
     },
     {
-      result: {
-        _id: newUser._id,
-        profile: newUser.profile,
-        thirdParty: newUser.thirdParty,
-      },
-      type: 'validated',
-    },
-    {
-      clearCache: true,
+      _id: newUser._id,
+      profile: newUser.profile,
+      thirdParty: newUser.thirdParty,
     }
   );
 }

@@ -3,14 +3,15 @@
 import { describe, it, expect } from 'vitest';
 import { PublicUserProfile } from './PublicUserProfile';
 import { mockResolver } from '../../../../__test__/helpers/graphql/mock-resolver';
-import { wrapOnlyRawQueryFn } from '../../../../mongodb/query/query';
+import { UserSchema } from '../../../../mongodb/schema/user';
+import { createPartialValueQueryFn } from '../../../../mongodb/query/query';
 
 describe('displayName', () => {
   const resolveDisplayName = mockResolver(PublicUserProfile.displayName!);
 
   it('returns undefined without query', async () => {
     const displayName = await resolveDisplayName({
-      query: wrapOnlyRawQueryFn(() => ({})),
+      query: createPartialValueQueryFn<UserSchema['profile']>(() => ({})),
     });
 
     expect(displayName).toStrictEqual(undefined);
@@ -18,7 +19,7 @@ describe('displayName', () => {
 
   it('returns undefined with empty value', async () => {
     const displayName = await resolveDisplayName({
-      query: wrapOnlyRawQueryFn(() => ({
+      query: createPartialValueQueryFn<UserSchema['profile']>(() => ({
         displayName: undefined,
       })),
     });
@@ -28,7 +29,7 @@ describe('displayName', () => {
 
   it('returns provided displayName', async () => {
     const displayName = await resolveDisplayName({
-      query: wrapOnlyRawQueryFn(() => ({
+      query: createPartialValueQueryFn<UserSchema['profile']>(() => ({
         displayName: 'myname',
       })),
     });

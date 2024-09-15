@@ -6,15 +6,15 @@ import {
 } from '../../../../mongodb/pagination/relay-array-pagination';
 import { CollabTextRecordMapper } from '../schema.mappers';
 import { PreFetchedArrayGetItemFn } from '../../../utils/pre-execute';
-import { createMapQueryFn } from '../../../../mongodb/query/query';
-import { RevisionChangesetSchema } from '../../../../mongodb/schema/collab-text';
-import { StructQuery } from '../../../../mongodb/query/struct-query';
 import { QueryableRevisionRecord } from '../../../../mongodb/loaders/note/descriptions/revision-record';
+import { GraphQLError } from 'graphql';
+import { createMapQueryFn, createValueQueryFn } from '../../../../mongodb/query/query';
+import { RevisionChangesetSchema } from '../../../../mongodb/schema/collab-text';
 
 export const CollabText: CollabTextResolvers = {
   headText: (parent) => {
     return {
-      query: createMapQueryFn(parent.query)<typeof RevisionChangesetSchema>()(
+      query: createMapQueryFn(parent.query)<RevisionChangesetSchema>()(
         (query) => ({ headText: query }),
         (result) => result.headText
       ),
@@ -22,7 +22,7 @@ export const CollabText: CollabTextResolvers = {
   },
   tailText: (parent) => {
     return {
-      query: createMapQueryFn(parent.query)<typeof RevisionChangesetSchema>()(
+      query: createMapQueryFn(parent.query)<RevisionChangesetSchema>()(
         (query) => ({ tailText: query }),
         (result) => result.tailText
       ),
@@ -30,7 +30,7 @@ export const CollabText: CollabTextResolvers = {
   },
   textAtRevision: (parent, { revision: targetRevision }) => {
     return {
-      query: StructQuery.get(RevisionChangesetSchema).createQueryFnFromValidated(
+      query: createValueQueryFn<RevisionChangesetSchema>(
         async ({ revision, changeset }) => {
           if (!revision && !changeset) return {};
 
@@ -47,34 +47,31 @@ export const CollabText: CollabTextResolvers = {
             };
           }
 
-          const collabText = await parent.query(
-            {
-              tailText: {
-                revision: 1,
-                changeset: 1,
-              },
-              records: {
-                $pagination: {
-                  before: targetRevision + 1,
-                },
-                revision: 1,
-                changeset: 1,
-              },
+          const collabText = await parent.query({
+            tailText: {
+              revision: 1,
+              changeset: 1,
             },
-            'validated'
-          );
+            records: {
+              $pagination: {
+                before: targetRevision + 1,
+              },
+              revision: 1,
+              changeset: 1,
+            },
+          });
           if (!collabText) return null;
 
           const lastRecord = collabText.records[collabText.records.length - 1];
           if (!lastRecord) {
             if (collabText.tailText.revision !== targetRevision) {
-              return null;
+              throw new GraphQLError(`Invalid revision ${targetRevision}`);
             }
             return collabText.tailText;
           }
 
           if (lastRecord.revision !== targetRevision) {
-            return null;
+            throw new GraphQLError(`Invalid revision ${targetRevision}`);
           }
 
           return {
@@ -116,7 +113,7 @@ export const CollabText: CollabTextResolvers = {
       updateSize
     ) => ({
       parentId: parent.id,
-      query: createMapQueryFn(parent.query)<typeof QueryableRevisionRecord>()(
+      query: createMapQueryFn(parent.query)<QueryableRevisionRecord>()(
         (query) => ({
           records: {
             $pagination: pagination,
@@ -124,24 +121,21 @@ export const CollabText: CollabTextResolvers = {
           },
         }),
         (collabText) => {
-          updateSize?.(collabText.records?.length);
-          return collabText.records?.[index];
+          updateSize?.(collabText.records.length);
+          return collabText.records[index];
         }
       ),
     });
 
     async function getHeadAndTailRevision() {
-      const collabText = await parent.query(
-        {
-          headText: {
-            revision: 1,
-          },
-          tailText: {
-            revision: 1,
-          },
+      const collabText = await parent.query({
+        headText: {
+          revision: 1,
         },
-        'validated'
-      );
+        tailText: {
+          revision: 1,
+        },
+      });
       if (!collabText) return;
 
       return {

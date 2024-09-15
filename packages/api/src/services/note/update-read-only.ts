@@ -40,31 +40,26 @@ export async function updateReadOnly({
   noteId,
   readOnly,
 }: UpdateReadOnlyParams) {
-  const note = await mongoDB.loaders.note.load(
-    {
-      id: {
-        userId: scopeUserId,
-        noteId,
-      },
-      query: {
+  const note = await mongoDB.loaders.note.load({
+    id: {
+      userId: scopeUserId,
+      noteId,
+    },
+    query: {
+      _id: 1,
+      users: {
         _id: 1,
-        users: {
-          _id: 1,
-          isOwner: 1,
-          readOnly: 1,
-        },
+        isOwner: 1,
+        readOnly: 1,
       },
     },
-    {
-      resultType: 'validated',
-    }
-  );
+  });
 
   const scopeNoteUser = findNoteUser(scopeUserId, note);
   if (!scopeNoteUser) {
     throw new NoteNotFoundServiceError(noteId);
   }
-  
+
   const targetNoteUser = findNoteUser(targetUserId, note);
   if (!targetNoteUser) {
     throw new NoteUserNotFoundServiceError(targetUserId, noteId);
@@ -108,21 +103,17 @@ export async function updateReadOnly({
       },
     },
     {
-      result: {
-        users: note.users.map((noteUser) => {
-          const isOtherUser = !targetUserId.equals(noteUser._id);
-          if (isOtherUser) {
-            return noteUser;
-          }
-          return {
-            ...noteUser,
-            readOnly,
-          };
-        }),
-      },
-      type: 'validated',
-    },
-    { clearCache: true }
+      users: note.users.map((noteUser) => {
+        const isOtherUser = !targetUserId.equals(noteUser._id);
+        if (isOtherUser) {
+          return noteUser;
+        }
+        return {
+          ...noteUser,
+          readOnly,
+        };
+      }),
+    }
   );
 
   return {

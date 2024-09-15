@@ -1,14 +1,12 @@
 import { maybeCallFn } from '~utils/maybe-call-fn';
 
 import type { CollabTextRecordResolvers } from '../../types.generated';
-import { createMapQueryFn, MongoQueryFnStruct } from '../../../../mongodb/query/query';
+import { createMapQueryFn } from '../../../../mongodb/query/query';
 import {
   RevisionChangesetSchema,
   SelectionRangeSchema,
 } from '../../../../mongodb/schema/collab-text';
-import { PublicUserMapper } from '../../user/schema.mappers';
-
-type PublicUser = MongoQueryFnStruct<PublicUserMapper['query']>;
+import { UserSchema } from '../../../../mongodb/schema/user';
 
 export const CollabTextRecord: CollabTextRecordResolvers = {
   id: async (parent) => {
@@ -26,7 +24,7 @@ export const CollabTextRecord: CollabTextRecordResolvers = {
   },
   afterSelection: (parent) => {
     return {
-      query: createMapQueryFn(parent.query)<typeof SelectionRangeSchema>()(
+      query: createMapQueryFn(parent.query)<SelectionRangeSchema>()(
         (query) => ({ afterSelection: query }),
         (result) => result.afterSelection
       ),
@@ -34,7 +32,7 @@ export const CollabTextRecord: CollabTextRecordResolvers = {
   },
   beforeSelection: (parent) => {
     return {
-      query: createMapQueryFn(parent.query)<typeof SelectionRangeSchema>()(
+      query: createMapQueryFn(parent.query)<SelectionRangeSchema>()(
         (query) => ({ beforeSelection: query }),
         (result) => result.beforeSelection
       ),
@@ -42,7 +40,7 @@ export const CollabTextRecord: CollabTextRecordResolvers = {
   },
   change: (parent) => {
     return {
-      query: createMapQueryFn(parent.query)<typeof RevisionChangesetSchema>()(
+      query: createMapQueryFn(parent.query)<RevisionChangesetSchema>()(
         (query) => query,
         (result) => result
       ),
@@ -50,7 +48,7 @@ export const CollabTextRecord: CollabTextRecordResolvers = {
   },
   creatorUser: (parent) => {
     return {
-      query: createMapQueryFn(parent.query)<PublicUser>()(
+      query: createMapQueryFn(parent.query)<Pick<UserSchema, '_id' | 'profile'>>()(
         (query) => ({ creatorUser: query }),
         (result) => result.creatorUser
       ),

@@ -8,7 +8,7 @@ export function UserNoteLink_id(noteId: ObjectId, userId: ObjectId): string {
 }
 
 export async function UserNoteLink_id_fromQueryFn(
-  query: MongoQueryFn<typeof QueryableNote>,
+  query: MongoQueryFn<QueryableNote>,
   userId: ObjectId
 ): Promise<string | null> {
   const noteId = (

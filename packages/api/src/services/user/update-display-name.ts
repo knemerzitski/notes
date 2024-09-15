@@ -36,16 +36,10 @@ export async function updateDisplayName({
       },
     },
     {
-      result: {
-        _id: userId,
-        profile: {
-          displayName,
-        },
+      _id: userId,
+      profile: {
+        displayName,
       },
-      type: 'validated',
-    },
-    {
-      clearCache: true,
     }
   );
 }

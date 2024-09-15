@@ -64,13 +64,10 @@ it('primes loader with new displayName', async () => {
       },
     },
     {
-      result: {
-        _id: userId,
-        profile: {
-          displayName,
-        },
+      _id: userId,
+      profile: {
+        displayName,
       },
-      type: 'validated',
     },
     {
       clearCache: true,

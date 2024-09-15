@@ -30,26 +30,21 @@ export async function updateBackgroundColor({
   noteId,
   backgroundColor,
 }: UpdateBackgroundColorParams) {
-  const note = await mongoDB.loaders.note.load(
-    {
-      id: {
-        userId,
-        noteId,
-      },
-      query: {
+  const note = await mongoDB.loaders.note.load({
+    id: {
+      userId,
+      noteId,
+    },
+    query: {
+      _id: 1,
+      users: {
         _id: 1,
-        users: {
-          _id: 1,
-          preferences: {
-            backgroundColor: 1,
-          },
+        preferences: {
+          backgroundColor: 1,
         },
       },
     },
-    {
-      resultType: 'validated',
-    }
-  );
+  });
   const noteUser = findNoteUser(userId, note);
   if (!noteUser) {
     throw new NoteNotFoundServiceError(noteId);
@@ -84,24 +79,20 @@ export async function updateBackgroundColor({
       },
     },
     {
-      result: {
-        users: note.users.map((noteUser) => {
-          const isOtherUser = !userId.equals(noteUser._id);
-          if (isOtherUser) {
-            return noteUser;
-          }
-          return {
-            ...noteUser,
-            preferences: {
-              ...noteUser.preferences,
-              backgroundColor: backgroundColor,
-            },
-          };
-        }),
-      },
-      type: 'validated',
-    },
-    { clearCache: true }
+      users: note.users.map((noteUser) => {
+        const isOtherUser = !userId.equals(noteUser._id);
+        if (isOtherUser) {
+          return noteUser;
+        }
+        return {
+          ...noteUser,
+          preferences: {
+            ...noteUser.preferences,
+            backgroundColor: backgroundColor,
+          },
+        };
+      }),
+    }
   );
 
   return {
