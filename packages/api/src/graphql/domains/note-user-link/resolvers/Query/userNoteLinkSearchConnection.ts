@@ -1,6 +1,6 @@
 import { QueryableNote } from '../../../../../mongodb/loaders/note/descriptions/note';
-import { QueryableSearchNote } from '../../../../../mongodb/loaders/notes-search/loader';
-import { RelayPagination } from '../../../../../mongodb/pagination/relay-array-pagination';
+import { QueryableSearchNote } from '../../../../../mongodb/loaders/notes-search/description';
+import { CursorPagination } from '../../../../../mongodb/pagination/cursor-struct';
 import { createMapQueryFn, MongoQueryFn } from '../../../../../mongodb/query/query';
 import { assertAuthenticated } from '../../../../../services/auth/auth';
 import {
@@ -30,7 +30,7 @@ export const userNoteLinkSearchConnection: NonNullable<
 
   let basePaginationOffset: number;
   let basePaginationLength: number;
-  let pagination: RelayPagination<string>;
+  let pagination: CursorPagination<string>;
   if (isForwardPagination) {
     basePaginationOffset = 0;
     basePaginationLength = first;
@@ -68,9 +68,9 @@ export const userNoteLinkSearchConnection: NonNullable<
   });
 
   const createSearchNoteAtIndexQueryFn: PreFetchedArrayGetItemFn<
-    MongoQueryFn<typeof QueryableSearchNote>
+    MongoQueryFn<QueryableSearchNote>
   > = (index, updateSize) =>
-    createMapQueryFn(notesSearchQueryFn)<typeof QueryableSearchNote>()(
+    createMapQueryFn(notesSearchQueryFn)<QueryableSearchNote>()(
       (query) => query,
       (notes) => {
         updateSize?.(getSearchLength(notes.length));
@@ -83,9 +83,9 @@ export const userNoteLinkSearchConnection: NonNullable<
     updateSize
   ) => ({
     userId: currentUserId,
-    query: createMapQueryFn(createSearchNoteAtIndexQueryFn(index, updateSize))<
-      typeof QueryableNote
-    >()(
+    query: createMapQueryFn(
+      createSearchNoteAtIndexQueryFn(index, updateSize)
+    )<QueryableNote>()(
       (query) => ({ note: query }),
       (result) => result.note
     ),

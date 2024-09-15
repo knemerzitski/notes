@@ -8,13 +8,12 @@ import { isObjectLike } from '~utils/type-guards/is-object-like';
 import { isDefined } from '~utils/type-guards/is-defined';
 import { MongoDBCollectionsOnlyNames, CollectionName } from '../../collections';
 import {
-  RelayPagination,
-  relayArrayPagination,
-  relayMultiArrayConcat,
-  relayMultiArraySplit,
-  isRelayArrayPaginationAggregateResult,
-  relayArrayPaginationMapAggregateResult,
-} from '../../pagination/relay-array-pagination';
+  cursorArrayPagination,
+  cursorMultiArrayConcat,
+  cursorMultiArraySplit,
+  isCursorArrayPaginationAggregateResult,
+  cursorArrayPaginationMapAggregateResult,
+} from '../../pagination/cursor-array-pagination';
 import { DeepAnyDescription } from '../../query/description';
 import { NoteCategorySchema, UserSchema } from '../../schema/user';
 import { QueryableNote, queryableNoteDescription } from '../note/descriptions/note';
@@ -29,6 +28,7 @@ import {
   record,
   string,
 } from 'superstruct';
+import { CursorPagination } from '../../pagination/cursor-struct';
 
 const typeObjectId = instance(ObjectId);
 
@@ -40,7 +40,7 @@ export const QueryableUser_NotesCategory = assign(
         assign(
           QueryableNote,
           object({
-            $pagination: optional(RelayPagination(typeObjectId)),
+            $pagination: optional(CursorPagination(typeObjectId)),
           })
         )
       ),
@@ -123,7 +123,7 @@ export const queryableUserDescription: DeepAnyDescription<
                   fields.map(({ query, parentRelativePath, relativePath }) => [
                     `${parentRelativePath}._order`,
                     {
-                      items: relayArrayPagination({
+                      items: cursorArrayPagination({
                         arrayFieldPath: relativePath,
                         paginations: query.items?.$args
                           ?.map((arg) => arg.$pagination)
@@ -151,7 +151,7 @@ export const queryableUserDescription: DeepAnyDescription<
               ...(!skipNoteLookup
                 ? [
                     // Concat all arrays 'notes.category.$anyKey.order' to single array
-                    ...relayMultiArrayConcat(
+                    ...cursorMultiArrayConcat(
                       concatUserNotesFieldPath,
                       fields.map(
                         ({ parentRelativePath }) => `${parentRelativePath}._order.items`
@@ -216,7 +216,7 @@ export const queryableUserDescription: DeepAnyDescription<
                       },
                     },
                     // Split concat array back into original paths
-                    ...relayMultiArraySplit(
+                    ...cursorMultiArraySplit(
                       concatUserNotesFieldPath,
                       fields.map(({ relativePath }) => `${relativePath}.items`)
                     ),
@@ -257,13 +257,13 @@ export const queryableUserDescription: DeepAnyDescription<
             if (!isObjectLike(result)) {
               return;
             }
-            if (!isRelayArrayPaginationAggregateResult(result.items)) {
+            if (!isCursorArrayPaginationAggregateResult(result.items)) {
               return;
             }
 
             return {
               ...result,
-              items: relayArrayPaginationMapAggregateResult(
+              items: cursorArrayPaginationMapAggregateResult(
                 query.items?.$pagination,
                 mergedQuery.items?.$args?.map((arg) => arg.$pagination).filter(isDefined),
                 result.items,

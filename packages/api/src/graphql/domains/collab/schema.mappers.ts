@@ -5,9 +5,9 @@ import {
 } from '../../../mongodb/schema/collab-text';
 import { ResolverTypeWrapper, ResolversTypes } from '../types.generated';
 import { QueryableCollabText } from '../../../mongodb/loaders/note/descriptions/collab-text';
-import { RelayBoundPagination } from '../../../mongodb/pagination/relay-array-pagination';
 import { QueryableRevisionRecord } from '../../../mongodb/loaders/note/descriptions/revision-record';
 import { PreFetchedArrayGetItemFn } from '../../utils/pre-execute';
+import { CursorBoundPagination } from '../../../mongodb/pagination/cursor-struct';
 
 export interface CollabTextMapper {
   readonly id: ResolverTypeWrapper<string>;
@@ -28,7 +28,7 @@ export interface CollabTextSelectionRangeMapper {
 }
 
 export interface CollabTextRecordConnectionMapper {
-  readonly pagination: RelayBoundPagination<number>;
+  readonly pagination: CursorBoundPagination<number>;
   readonly getRecord: PreFetchedArrayGetItemFn<CollabTextRecordMapper>;
   readonly getHeadAndTailRevision: () => ResolverTypeWrapper<
     | {

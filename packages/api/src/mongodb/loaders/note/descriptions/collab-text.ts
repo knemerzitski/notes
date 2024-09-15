@@ -5,10 +5,9 @@ import {
   consecutiveIntArrayPaginationMapAggregateResult,
 } from '../../../pagination/consecutive-int-array-pagination';
 import {
-  RelayArrayPaginationAggregateResult,
-  RelayArrayPaginationInput,
-  RelayPagination,
-} from '../../../pagination/relay-array-pagination';
+  CursorArrayPaginationAggregateResult,
+  CursorArrayPaginationInput,
+} from '../../../pagination/cursor-array-pagination';
 import { DeepAnyDescription } from '../../../query/description';
 import { CollabTextSchema, RevisionRecordSchema } from '../../../schema/collab-text';
 import {
@@ -26,16 +25,17 @@ import {
   omit,
   optional,
 } from 'superstruct';
+import { CursorPagination } from '../../../pagination/cursor-struct';
 
 type RecordsPaginationOperationOptions = Omit<
-  RelayArrayPaginationInput<number>,
+  CursorArrayPaginationInput<number>,
   'arrayFieldPath' | 'arrayItemPath'
 > & {
   fieldPath?: string;
 };
 
 type RecordsPaginationResult<T = RevisionRecordSchema> =
-  RelayArrayPaginationAggregateResult<T>;
+  CursorArrayPaginationAggregateResult<T>;
 
 function recordsPagination(options: RecordsPaginationOperationOptions) {
   return consecutiveIntArrayPagination({
@@ -50,8 +50,8 @@ function recordsPaginationMapAggregateResult<
     Pick<InferRaw<typeof RevisionRecordSchema>, 'revision'>
   >,
 >(
-  pagination: NonNullable<RelayArrayPaginationInput<number>['paginations']>[0],
-  result: RelayArrayPaginationAggregateResult<T>
+  pagination: NonNullable<CursorArrayPaginationInput<number>['paginations']>[0],
+  result: CursorArrayPaginationAggregateResult<T>
 ): T[] {
   return consecutiveIntArrayPaginationMapAggregateResult(pagination, result, toCursor);
 }
@@ -69,7 +69,7 @@ export const QueryableCollabText = assign(
       assign(
         QueryableRevisionRecord,
         object({
-          $pagination: optional(RelayPagination(number())),
+          $pagination: optional(CursorPagination(number())),
         })
       )
     ),

@@ -8,11 +8,10 @@ import {
   consecutiveIntArrayPagination,
 } from './consecutive-int-array-pagination';
 import {
-  RelayAfterBoundPagination,
-  RelayArrayPaginationInput,
-  RelayArrayPaginationAggregateResult,
-  RelayBeforeBoundPagination,
-} from './relay-array-pagination';
+  CursorArrayPaginationInput,
+  CursorArrayPaginationAggregateResult,
+} from './cursor-array-pagination';
+import { CursorAfterBoundPagination, CursorBeforeBoundPagination } from './cursor-struct';
 
 interface ArrayDocument {
   items: number[];
@@ -35,10 +34,10 @@ describe('consecutiveIntArrayPagination', () => {
   describe('valid path', () => {
     it.each<{
       input: Omit<
-        RelayArrayPaginationInput<number>,
+        CursorArrayPaginationInput<number>,
         'arrayFieldPath' | 'searchExpression'
       >;
-      expectedOutput: Partial<RelayArrayPaginationAggregateResult<number>>;
+      expectedOutput: Partial<CursorArrayPaginationAggregateResult<number>>;
     }>([
       // [1, 2, 3, 4, 5, 6, 7, 8, 9]
       {
@@ -158,7 +157,7 @@ describe('consecutiveIntArrayPagination', () => {
       });
 
       const results = await arrayCollection
-        .aggregate<{ paginations: RelayArrayPaginationAggregateResult<number> }>([
+        .aggregate<{ paginations: CursorArrayPaginationAggregateResult<number> }>([
           {
             $match: {
               _id: documentId,
@@ -217,7 +216,7 @@ describe('consecutiveIntArrayPagination', () => {
         paginations: [p],
       });
       const results = await arrayCollection
-        .aggregate<{ paginations: RelayArrayPaginationAggregateResult<number> }>([
+        .aggregate<{ paginations: CursorArrayPaginationAggregateResult<number> }>([
           {
             $match: {
               _id: documentId,
@@ -249,8 +248,8 @@ describe('BoundPaginationUnion', () => {
   describe('add', () => {
     it.each<
       [
-        (RelayAfterBoundPagination<number> | RelayBeforeBoundPagination<number>)[],
-        RelayAfterBoundPagination<number>[],
+        (CursorAfterBoundPagination<number> | CursorBeforeBoundPagination<number>)[],
+        CursorAfterBoundPagination<number>[],
       ]
     >([
       [[{ after: 3, first: 2 }], [{ after: 3, first: 2 }]],
@@ -315,10 +314,10 @@ describe('BoundPaginationUnion', () => {
   describe('remove', () => {
     it.each<
       [
-        (RelayAfterBoundPagination<number> | RelayBeforeBoundPagination<number>)[],
+        (CursorAfterBoundPagination<number> | CursorBeforeBoundPagination<number>)[],
         Parameters<BoundPaginationUnion['remove']>[0],
         number,
-        RelayAfterBoundPagination<number>[],
+        CursorAfterBoundPagination<number>[],
       ]
     >([
       [[{ after: 2, first: 3 }], { after: 1 }, 1, []],

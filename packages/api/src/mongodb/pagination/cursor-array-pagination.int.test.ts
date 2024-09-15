@@ -7,16 +7,16 @@ import { isNonEmptyArray } from '~utils/array/is-non-empty-array';
 import { mongoDB } from '../../__test__/helpers/mongodb/mongodb';
 
 import {
-  RelayArrayPaginationInput,
-  RelayArrayPaginationAggregateResult,
+  CursorArrayPaginationInput,
+  CursorArrayPaginationAggregateResult,
   SliceAfterAggregateResult,
   SliceBeforeAggregateResult,
   sliceAfter,
   sliceBefore,
   sliceFirst,
   sliceLast,
-  relayArrayPagination,
-} from './relay-array-pagination';
+  cursorArrayPagination,
+} from './cursor-array-pagination';
 
 interface SubDocument {
   key: number;
@@ -31,7 +31,7 @@ interface ArrayDocument {
   simple: string[];
 }
 
-describe('relayArrayPagination', () => {
+describe('cursorArrayPagination', () => {
   const arrayCollection = mongoDB.collection<ArrayDocument>('array');
   // Each array has 10 elements
   const document: ArrayDocument = {
@@ -311,14 +311,14 @@ describe('relayArrayPagination', () => {
     });
   });
 
-  describe('relayArrayPagination', () => {
+  describe('cursorArrayPagination', () => {
     describe('valid input', () => {
       it.each<{
         input: Omit<
-          RelayArrayPaginationInput<string>,
+          CursorArrayPaginationInput<string>,
           'arrayFieldPath' | 'searchExpression'
         >;
-        expectedOutput: Partial<RelayArrayPaginationAggregateResult<string>>;
+        expectedOutput: Partial<CursorArrayPaginationAggregateResult<string>>;
       }>([
         // ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
         {
@@ -467,13 +467,13 @@ describe('relayArrayPagination', () => {
           },
         },
       ])('input $input => $expectedOutput', async ({ input, expectedOutput }) => {
-        const pagination = relayArrayPagination({
+        const pagination = cursorArrayPagination({
           arrayFieldPath: 'simple',
           ...input,
         });
 
         const results = await arrayCollection
-          .aggregate<{ paginations: RelayArrayPaginationAggregateResult<SubDocument> }>([
+          .aggregate<{ paginations: CursorArrayPaginationAggregateResult<SubDocument> }>([
             {
               $match: {
                 _id: documentId,
@@ -527,13 +527,13 @@ describe('relayArrayPagination', () => {
           },
         ],
       ])('input %s', async (p) => {
-        const pagination = relayArrayPagination({
+        const pagination = cursorArrayPagination({
           arrayFieldPath: 'nonexistant.invalid',
           paginations: [p],
         });
 
         const results = await arrayCollection
-          .aggregate<{ paginations: RelayArrayPaginationAggregateResult<SubDocument> }>([
+          .aggregate<{ paginations: CursorArrayPaginationAggregateResult<SubDocument> }>([
             {
               $match: {
                 _id: documentId,

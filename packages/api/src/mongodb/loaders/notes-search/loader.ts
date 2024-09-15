@@ -6,8 +6,6 @@ import { CollectionName, MongoDBCollections } from '../../collections';
 import { MongoDBContext } from '../../context';
 import { LoaderEvents } from '../../loaders';
 
-import { RelayPagination } from '../../pagination/relay-array-pagination';
-
 import { MongoQueryFn, QueryDeep } from '../../query/query';
 
 import {
@@ -22,6 +20,7 @@ import {
 import { Infer } from 'superstruct';
 import { QueryableSearchNotes } from './description';
 import { batchLoad } from './batch-load';
+import { CursorPagination } from '../../pagination/cursor-struct';
 
 export interface QueryableNotesSearchId {
   /**
@@ -35,7 +34,7 @@ export interface QueryableNotesSearchId {
   /**
    * Paginate search results
    */
-  pagination?: RelayPagination<string>;
+  pagination?: CursorPagination<string>;
 }
 
 export type QueryableNotesSearchLoaderKey = QueryLoaderKey<
@@ -103,10 +102,8 @@ export class QueryableNotesSearchLoader {
 
   createQueryFn(
     id: QueryableNotesSearchId,
-    options?: SessionOptions<
-      CreateQueryFnOptions<RequestContext, typeof QueryableSearchNotes>
-    >
-  ): MongoQueryFn<typeof QueryableSearchNotes> {
+    options?: SessionOptions<CreateQueryFnOptions<RequestContext, QueryableSearchNotes>>
+  ): MongoQueryFn<QueryableSearchNotes> {
     return this.loader.createQueryFn(id, {
       ...options,
       context: options?.session,

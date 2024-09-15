@@ -2,15 +2,15 @@ import { describe, expect, it } from 'vitest';
 
 import { consecutiveIntArrayPaginationMapAggregateResult } from './consecutive-int-array-pagination';
 import {
-  RelayArrayPaginationInput,
-  RelayArrayPaginationAggregateResult,
-} from './relay-array-pagination';
+  CursorArrayPaginationInput,
+  CursorArrayPaginationAggregateResult,
+} from './cursor-array-pagination';
 
 function mapAllPaginations<TItem>(
-  input: RelayArrayPaginationInput<number>['paginations'],
-  output: RelayArrayPaginationAggregateResult<TItem>,
+  input: CursorArrayPaginationInput<number>['paginations'],
+  output: CursorArrayPaginationAggregateResult<TItem>,
   toCursor: (item: TItem) => number
-): TItem[][] {
+): (readonly TItem[])[] {
   if (!input || input.length === 0) return [output.array];
 
   return input.map((pagination) =>
@@ -20,8 +20,8 @@ function mapAllPaginations<TItem>(
 
 describe('consecutiveIntArrayPaginationMapAggregateResult', () => {
   it.each<{
-    input: RelayArrayPaginationInput<number>['paginations'];
-    output: RelayArrayPaginationAggregateResult<number>;
+    input: CursorArrayPaginationInput<number>['paginations'];
+    output: CursorArrayPaginationAggregateResult<number>;
     expected: number[][];
   }>([
     // [1,2,3,4,5,6,7,8,9]

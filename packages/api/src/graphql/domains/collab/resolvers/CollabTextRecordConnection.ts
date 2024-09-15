@@ -1,8 +1,8 @@
 import { maybeCallFn } from '~utils/maybe-call-fn';
 import type { CollabTextRecordConnectionResolvers } from '../../types.generated';
 import { withPreExecuteList } from '../../../utils/pre-execute';
-import { RelayForwardsPagination } from '../../../../mongodb/pagination/relay-array-pagination';
 import { STRUCT_NUMBER } from '../../../../mongodb/constants';
+import { CursorForwardsPagination } from '../../../../mongodb/pagination/cursor-struct';
 
 export const CollabTextRecordConnection: CollabTextRecordConnectionResolvers = {
   records: (parent, _args, ctx, info) => {
@@ -39,7 +39,7 @@ export const CollabTextRecordConnection: CollabTextRecordConnectionResolvers = {
         }
         const { tailRevision, headRevision } = collabText;
 
-        if (RelayForwardsPagination(STRUCT_NUMBER).is(pagination)) {
+        if (CursorForwardsPagination(STRUCT_NUMBER).is(pagination)) {
           return (pagination.after ?? tailRevision) + pagination.first < headRevision;
         }
 
@@ -56,7 +56,7 @@ export const CollabTextRecordConnection: CollabTextRecordConnectionResolvers = {
         }
         const { tailRevision, headRevision } = collabText;
 
-        if (RelayForwardsPagination(STRUCT_NUMBER).is(pagination)) {
+        if (CursorForwardsPagination(STRUCT_NUMBER).is(pagination)) {
           if (pagination.after != null) {
             return tailRevision < pagination.after;
           }
@@ -75,7 +75,7 @@ export const CollabTextRecordConnection: CollabTextRecordConnectionResolvers = {
         }
         const { tailRevision, headRevision } = collabText;
 
-        if (RelayForwardsPagination(STRUCT_NUMBER).is(pagination)) {
+        if (CursorForwardsPagination(STRUCT_NUMBER).is(pagination)) {
           if (pagination.after != null) {
             return Math.max(tailRevision + 1, pagination.after + 1);
           }
@@ -96,7 +96,7 @@ export const CollabTextRecordConnection: CollabTextRecordConnectionResolvers = {
         }
         const { tailRevision, headRevision } = collabText;
 
-        if (RelayForwardsPagination(STRUCT_NUMBER).is(pagination)) {
+        if (CursorForwardsPagination(STRUCT_NUMBER).is(pagination)) {
           if (pagination.after != null) {
             return Math.min(headRevision, pagination.after + pagination.first);
           }

@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 
 import { mergeQueries } from './merge-queries';
-import { RelayPagination } from '../pagination/relay-array-pagination';
+import { CursorPagination } from '../pagination/cursor-struct';
 
 interface Item {
   name: string;
@@ -22,7 +22,7 @@ interface Data {
 
 type QueryableData =
   | Data
-  | { items: { $pagination: RelayPagination<number> }; $id1?: string; $id2?: string };
+  | { items: { $pagination: CursorPagination<number> }; $id1?: string; $id2?: string };
 
 it('merges two root properties', () => {
   expect(

@@ -1,26 +1,28 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  RelayArrayPaginationInput,
-  RelayArrayPaginationAggregateResult,
-  relayArrayPaginationMapAggregateResult,
-} from './relay-array-pagination';
+  CursorArrayPaginationInput,
+  CursorArrayPaginationAggregateResult,
+  cursorArrayPaginationMapAggregateResult,
+} from './cursor-array-pagination';
+import { string, Struct } from 'superstruct';
 
 function mapAllPaginations<TCursor, TItem>(
-  input: RelayArrayPaginationInput<TCursor>['paginations'],
-  output: RelayArrayPaginationAggregateResult<TItem>
-): TItem[][] {
+  input: CursorArrayPaginationInput<TCursor>['paginations'],
+  output: CursorArrayPaginationAggregateResult<TItem>,
+  cursor: Struct<TCursor, null>
+): (readonly TItem[])[] {
   if (!input || input.length === 0) return [output.array];
 
   return input.map((pagination) =>
-    relayArrayPaginationMapAggregateResult(pagination, input, output)
+    cursorArrayPaginationMapAggregateResult(pagination, input, output, cursor)
   );
 }
 
-describe('relayArrayPaginationMapAggregateResult', () => {
+describe('cursorArrayPaginationMapAggregateResult', () => {
   it.each<{
-    input: RelayArrayPaginationInput<string>['paginations'];
-    output: RelayArrayPaginationAggregateResult<string>;
+    input: CursorArrayPaginationInput<string>['paginations'];
+    output: CursorArrayPaginationAggregateResult<string>;
     expected: string[][];
   }>([
     {
@@ -162,12 +164,12 @@ describe('relayArrayPaginationMapAggregateResult', () => {
       expected: [['3'], ['9', '10', '11']],
     },
   ])('(%s,%s) => %s', ({ input, output, expected }) => {
-    expect(mapAllPaginations(input, output)).toStrictEqual(expected);
+    expect(mapAllPaginations(input, output, string())).toStrictEqual(expected);
   });
 
   it.each<{
-    input: RelayArrayPaginationInput<string>['paginations'];
-    output: RelayArrayPaginationAggregateResult<string>;
+    input: CursorArrayPaginationInput<string>['paginations'];
+    output: CursorArrayPaginationAggregateResult<string>;
   }>([
     {
       input: [
@@ -199,6 +201,6 @@ describe('relayArrayPaginationMapAggregateResult', () => {
       },
     },
   ])('(%s,%s) => error', ({ input, output }) => {
-    expect(() => mapAllPaginations(input, output)).toThrow();
+    expect(() => mapAllPaginations(input, output, string())).toThrow();
   });
 });

@@ -10,11 +10,13 @@ import { MongoQueryFn, QueryDeep } from '../../query/query';
 import { QueryableNote } from './descriptions/note';
 
 import {
+  CreateQueryFnOptions,
   QueryLoader,
   QueryLoaderContext,
   QueryLoaderError,
   QueryLoaderEvents,
   QueryLoaderKey,
+  SessionOptions,
 } from '../../query/query-loader';
 import { objectIdToStr } from '../../utils/objectid';
 import { batchLoad } from './batch-load';
@@ -116,11 +118,10 @@ export class QueryableNoteLoader {
 
   createQueryFn(
     id: QueryableNoteId,
-    options?: {
-      session?: RequestContext;
-    }
+    options?: SessionOptions<CreateQueryFnOptions<RequestContext, QueryableNote>>
   ): MongoQueryFn<QueryableNote> {
     return this.loader.createQueryFn(id, {
+      ...options,
       context: options?.session,
       clearCache: options?.session != null,
     });

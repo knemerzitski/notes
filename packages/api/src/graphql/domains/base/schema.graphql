@@ -10,7 +10,7 @@ scalar NonNegativeInt
 "Coloar in range #000000 - #ffffff"
 scalar HexColorCode
 
-"Relay pagination cursor"
+"Opaque cursor for pagination. Can be a string or number."
 scalar Cursor
 
 "MongoDB ObjectId"

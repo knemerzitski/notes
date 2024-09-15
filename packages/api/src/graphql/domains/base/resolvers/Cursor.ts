@@ -12,7 +12,7 @@ function assertStringOrInt(value: unknown): asserts value is string | number {
 
 export const Cursor = new GraphQLScalarType({
   name: 'Cursor',
-  description: 'Relay connection cursor. Either a string or number.',
+  description: 'Opaque cursor for pagination. Can be a string or number.',
   serialize: (value) => {
     assertStringOrInt(value);
     return value;

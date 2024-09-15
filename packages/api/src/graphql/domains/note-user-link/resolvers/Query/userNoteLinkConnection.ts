@@ -1,5 +1,4 @@
 import { ObjectId } from 'mongodb';
-import { RelayPagination } from '../../../../../mongodb/pagination/relay-array-pagination';
 import { assertAuthenticated } from '../../../../../services/auth/auth';
 import { NoteCategory, type QueryResolvers } from '../../../types.generated';
 import {
@@ -12,6 +11,7 @@ import { QueryableUser_NotesCategory } from '../../../../../mongodb/loaders/user
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { createMapQueryFn } from '../../../../../mongodb/query/query';
 import { Note_id_fromQueryFn } from '../../../../../services/note/note-id';
+import { CursorPagination } from '../../../../../mongodb/pagination/cursor-struct';
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 30;
@@ -31,7 +31,7 @@ export const userNoteLinkConnection: NonNullable<
 
   const isForwardPagination = arg.before != null || arg.last != null;
 
-  let pagination: RelayPagination<ObjectId>;
+  let pagination: CursorPagination<ObjectId>;
   if (isForwardPagination) {
     pagination = {
       after: before,

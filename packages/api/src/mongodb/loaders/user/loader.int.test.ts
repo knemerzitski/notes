@@ -15,7 +15,6 @@ import {
   populateNotes,
 } from '../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../__test__/helpers/mongodb/populate/populate-queue';
-import { RelayPagination } from '../../pagination/relay-array-pagination';
 import { DBUserSchema } from '../../schema/user';
 
 import {
@@ -24,6 +23,7 @@ import {
   QueryableUserLoaderParams,
 } from './loader';
 import { fakeUserPopulateQueue } from '../../../__test__/helpers/mongodb/populate/user';
+import { CursorPagination } from '../../pagination/cursor-struct';
 
 let populateResult: ReturnType<typeof populateNotes>;
 let mainNotesIds: ObjectId[];
@@ -186,7 +186,7 @@ it('loads paginated notes', async () => {
 it('loads many different paginations', async () => {
   function createLoadKey(
     categoryName: TestNoteCategory,
-    pagination: RelayPagination<ObjectId>
+    pagination: CursorPagination<ObjectId>
   ): QueryableUserLoaderKey {
     return {
       id: {

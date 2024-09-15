@@ -1,14 +1,26 @@
-import { InferRaw } from "superstruct";
-import { groupBy } from "~utils/array/group-by";
-import { STRUCT_STRING } from "../../constants";
-import { RelayAfterPagination, RelayAfterBoundPagination, RelayBeforePagination, RelayBeforeBoundPagination, RelayFirstPagination, RelayLastPagination, getPaginationKey } from "../../pagination/relay-array-pagination";
-import { mapQueryAggregateResult } from "../../query/map-query-aggregate-result";
-import { mergeQueries, MergedQueryDeep } from "../../query/merge-queries";
-import { mergedQueryToPipeline } from "../../query/merged-query-to-pipeline";
-import { PartialQueryResultDeep } from "../../query/query";
-import { NoteSearchIndexName } from "../../schema/note";
-import { notesSearchDescription, QueryableSearchNotes } from "./description";
-import { QueryableNotesSearchLoaderKey, QueryableNotesSearchLoadContext, QueryableNotesSearchId } from "./loader";
+import { InferRaw } from 'superstruct';
+import { groupBy } from '~utils/array/group-by';
+import { STRUCT_STRING } from '../../constants';
+import { mapQueryAggregateResult } from '../../query/map-query-aggregate-result';
+import { mergeQueries, MergedQueryDeep } from '../../query/merge-queries';
+import { mergedQueryToPipeline } from '../../query/merged-query-to-pipeline';
+import { PartialQueryResultDeep } from '../../query/query';
+import { NoteSearchIndexName } from '../../schema/note';
+import { notesSearchDescription, QueryableSearchNotes } from './description';
+import {
+  QueryableNotesSearchLoaderKey,
+  QueryableNotesSearchLoadContext,
+  QueryableNotesSearchId,
+} from './loader';
+import {
+  CursorAfterPagination,
+  CursorAfterBoundPagination,
+  CursorBeforePagination,
+  CursorBeforeBoundPagination,
+  CursorFirstPagination,
+  CursorLastPagination,
+  getPaginationKey,
+} from '../../pagination/cursor-struct';
 
 export async function batchLoad(
   keys: readonly QueryableNotesSearchLoaderKey[],
@@ -54,19 +66,19 @@ export async function batchLoad(
                 let searchAfter: string | undefined;
                 let searchBefore: string | undefined;
                 if (pagination) {
-                  if (RelayAfterPagination(STRUCT_STRING).is(pagination)) {
+                  if (CursorAfterPagination(STRUCT_STRING).is(pagination)) {
                     searchAfter = pagination.after;
-                    if (RelayAfterBoundPagination(STRUCT_STRING).is(pagination)) {
+                    if (CursorAfterBoundPagination(STRUCT_STRING).is(pagination)) {
                       limit = pagination.first;
                     }
-                  } else if (RelayBeforePagination(STRUCT_STRING).is(pagination)) {
+                  } else if (CursorBeforePagination(STRUCT_STRING).is(pagination)) {
                     searchBefore = pagination.before;
-                    if (RelayBeforeBoundPagination(STRUCT_STRING).is(pagination)) {
+                    if (CursorBeforeBoundPagination(STRUCT_STRING).is(pagination)) {
                       limit = pagination.last;
                     }
-                  } else if (RelayFirstPagination.is(pagination)) {
+                  } else if (CursorFirstPagination.is(pagination)) {
                     limit = pagination.first;
-                  } else if (RelayLastPagination.is(pagination)) {
+                  } else if (CursorLastPagination.is(pagination)) {
                     limit = pagination.last;
                     sortReverse = true;
                   }

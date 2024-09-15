@@ -1,15 +1,13 @@
 import { Changeset } from '~collab/changeset/changeset';
 import type { CollabTextResolvers } from '../../types.generated';
-import {
-  applyLimit,
-  RelayBoundPagination,
-} from '../../../../mongodb/pagination/relay-array-pagination';
+import { applyLimit } from '../../../../mongodb/pagination/cursor-array-pagination';
 import { CollabTextRecordMapper } from '../schema.mappers';
 import { PreFetchedArrayGetItemFn } from '../../../utils/pre-execute';
 import { QueryableRevisionRecord } from '../../../../mongodb/loaders/note/descriptions/revision-record';
 import { GraphQLError } from 'graphql';
 import { createMapQueryFn, createValueQueryFn } from '../../../../mongodb/query/query';
 import { RevisionChangesetSchema } from '../../../../mongodb/schema/collab-text';
+import { CursorBoundPagination } from '../../../../mongodb/pagination/cursor-struct';
 
 export const CollabText: CollabTextResolvers = {
   headText: (parent) => {
@@ -95,7 +93,7 @@ export const CollabText: CollabTextResolvers = {
 
     const isForwardPagination = args.after != null || args.first != null;
 
-    let pagination: RelayBoundPagination<number>;
+    let pagination: CursorBoundPagination<number>;
     if (isForwardPagination) {
       pagination = {
         ...(after && { after }),

@@ -1,27 +1,28 @@
+import { Document } from 'mongodb';
+
+import {
+  CursorArrayPaginationInput,
+  CursorArrayPaginationAggregateResult,
+  sliceFirst,
+  sliceLast,
+} from './cursor-array-pagination';
+import { STRUCT_NUMBER } from '../constants';
+import {
+  CursorFirstPagination,
+  CursorLastPagination,
+  CursorAfterUnboundPagination,
+  CursorBeforeUnboundPagination,
+  CursorAfterBoundPagination,
+  CursorBeforeBoundPagination,
+  CursorPagination,
+} from './cursor-struct';
+
 /**
  * Consecutive increasing ordered non-repeating array: [4,5,6,7,8,9], [-2,-1,0,1].
  * Invalid arrays: [2,3,3,4,5], [2,3,5], [4,3,2].
  */
-
-import { Document } from 'mongodb';
-
-import {
-  RelayAfterBoundPagination,
-  RelayArrayPaginationInput,
-  RelayArrayPaginationAggregateResult,
-  RelayBeforeBoundPagination,
-  RelayPagination,
-  sliceFirst,
-  sliceLast,
-  RelayFirstPagination,
-  RelayLastPagination,
-  RelayAfterUnboundPagination,
-  RelayBeforeUnboundPagination,
-} from './relay-array-pagination';
-import { STRUCT_NUMBER } from '../constants';
-
 export function consecutiveIntArrayPagination(
-  input: RelayArrayPaginationInput<number>
+  input: CursorArrayPaginationInput<number>
 ): Document {
   if (input.paginations && input.paginations.length > 0) {
     const limitedPaginations =
@@ -219,20 +220,20 @@ function getRangeIntersection(a: Range, b: Range) {
 }
 
 export function consecutiveIntArrayPaginationMapAggregateResult<TItem>(
-  pagination: NonNullable<RelayArrayPaginationInput<number>['paginations']>[0],
-  output: RelayArrayPaginationAggregateResult<TItem>,
+  pagination: NonNullable<CursorArrayPaginationInput<number>['paginations']>[0],
+  output: CursorArrayPaginationAggregateResult<TItem>,
   toCursor: (item: TItem) => number
 ): TItem[] {
   const sizes = output.sizes;
 
-  if (RelayFirstPagination.is(pagination)) {
+  if (CursorFirstPagination.is(pagination)) {
     const end = sizes ? sizes[0] : output.array.length;
     return output.array.slice(0, Math.min(pagination.first, end));
-  } else if (RelayLastPagination.is(pagination)) {
+  } else if (CursorLastPagination.is(pagination)) {
     const start = sizes ? sizes[0] : 0;
     const end = sizes ? sizes[0] + sizes[1] : output.array.length;
     return output.array.slice(Math.max(start, end - pagination.last), end);
-  } else if (RelayAfterUnboundPagination(STRUCT_NUMBER).is(pagination)) {
+  } else if (CursorAfterUnboundPagination(STRUCT_NUMBER).is(pagination)) {
     const startCursor = pagination.after + 1;
     const startSize = sizes?.[0] ?? 0;
     const firstEndItem = output.array[startSize];
@@ -243,7 +244,7 @@ export function consecutiveIntArrayPaginationMapAggregateResult<TItem>(
     const end = sizes ? start + sizes[1] : output.array.length;
 
     return output.array.slice(start, end);
-  } else if (RelayBeforeUnboundPagination(STRUCT_NUMBER).is(pagination)) {
+  } else if (CursorBeforeUnboundPagination(STRUCT_NUMBER).is(pagination)) {
     const endCursor = pagination.before;
     const item0 = output.array[0];
     if (item0 == null) {
@@ -257,11 +258,11 @@ export function consecutiveIntArrayPaginationMapAggregateResult<TItem>(
   } else {
     let startCursor = 0;
     let endCursor = 0;
-    if (RelayAfterBoundPagination(STRUCT_NUMBER).is(pagination)) {
+    if (CursorAfterBoundPagination(STRUCT_NUMBER).is(pagination)) {
       const { after, first } = pagination;
       startCursor = after + 1;
       endCursor = startCursor + first;
-    } else if (RelayBeforeBoundPagination(STRUCT_NUMBER).is(pagination)) {
+    } else if (CursorBeforeBoundPagination(STRUCT_NUMBER).is(pagination)) {
       const { before, last } = pagination;
       startCursor = before - last;
       endCursor = before;
@@ -303,42 +304,42 @@ export function consecutiveIntArrayPaginationMapAggregateResult<TItem>(
   }
 }
 
-function calcMaxFirst<TCursor>(paginations: RelayPagination<TCursor>[]) {
+function calcMaxFirst<TCursor>(paginations: CursorPagination<TCursor>[]) {
   return paginations.reduce(
-    (a, b) => (RelayFirstPagination.is(b) ? Math.max(a, b.first) : a),
+    (a, b) => (CursorFirstPagination.is(b) ? Math.max(a, b.first) : a),
     0
   );
 }
 
-function calcMaxLast<TCursor>(paginations: RelayPagination<TCursor>[]) {
+function calcMaxLast<TCursor>(paginations: CursorPagination<TCursor>[]) {
   return paginations.reduce(
-    (a, b) => (RelayLastPagination.is(b) ? Math.max(a, b.last) : a),
+    (a, b) => (CursorLastPagination.is(b) ? Math.max(a, b.last) : a),
     0
   );
 }
 
-function calcMinAfterUnbound(paginations: RelayPagination<number>[]) {
+function calcMinAfterUnbound(paginations: CursorPagination<number>[]) {
   return paginations.reduce(
     (a, b) =>
-      RelayAfterUnboundPagination(STRUCT_NUMBER).is(b) ? Math.min(a, b.after) : a,
+      CursorAfterUnboundPagination(STRUCT_NUMBER).is(b) ? Math.min(a, b.after) : a,
     Infinity
   );
 }
 
-function calcMaxBeforeUnbound(paginations: RelayPagination<number>[]) {
+function calcMaxBeforeUnbound(paginations: CursorPagination<number>[]) {
   return paginations.reduce(
     (a, b) =>
-      RelayBeforeUnboundPagination(STRUCT_NUMBER).is(b) ? Math.max(a, b.before) : a,
+      CursorBeforeUnboundPagination(STRUCT_NUMBER).is(b) ? Math.max(a, b.before) : a,
     -Infinity
   );
 }
 
-function calcUniqueBoundPaginations(paginations: RelayPagination<number>[]) {
+function calcUniqueBoundPaginations(paginations: CursorPagination<number>[]) {
   const uniquePaginations = new BoundPaginationUnion();
   for (const p of paginations) {
     if (
-      RelayAfterBoundPagination(STRUCT_NUMBER).is(p) ||
-      RelayBeforeBoundPagination(STRUCT_NUMBER).is(p)
+      CursorAfterBoundPagination(STRUCT_NUMBER).is(p) ||
+      CursorBeforeBoundPagination(STRUCT_NUMBER).is(p)
     ) {
       uniquePaginations.add(p);
     }
@@ -351,13 +352,13 @@ function calcUniqueBoundPaginations(paginations: RelayPagination<number>[]) {
  * Also orders paginations in ascending order.
  */
 export class BoundPaginationUnion {
-  private _slices: RelayAfterBoundPagination<number>[] = [];
-  get slices(): readonly RelayAfterBoundPagination<number>[] {
+  private _slices: CursorAfterBoundPagination<number>[] = [];
+  get slices(): readonly CursorAfterBoundPagination<number>[] {
     return this._slices;
   }
 
-  add(range: RelayAfterBoundPagination<number> | RelayBeforeBoundPagination<number>) {
-    const { after, first } = RelayAfterBoundPagination(STRUCT_NUMBER).is(range)
+  add(range: CursorAfterBoundPagination<number> | CursorBeforeBoundPagination<number>) {
+    const { after, first } = CursorAfterBoundPagination(STRUCT_NUMBER).is(range)
       ? { after: range.after, first: range.first }
       : { after: range.before - range.last - 1, first: range.last };
 
@@ -387,8 +388,8 @@ export class BoundPaginationUnion {
    */
   remove(
     rangeStart:
-      | Pick<RelayAfterBoundPagination<number>, 'after'>
-      | Pick<RelayBeforeBoundPagination<number>, 'before'>
+      | Pick<CursorAfterBoundPagination<number>, 'after'>
+      | Pick<CursorBeforeBoundPagination<number>, 'before'>
   ) {
     if ('after' in rangeStart) {
       const { after } = rangeStart;
