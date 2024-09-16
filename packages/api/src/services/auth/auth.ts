@@ -1,6 +1,5 @@
 import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
-import { findByCookieId, Session, tryRefreshExpireAt } from '../session/session';
-import { ReplaceDeep } from '~utils/types';
+import { tryRefreshExpireAt } from '../session/try-refresh-expire-at';
 import { Collection, ObjectId } from 'mongodb';
 import { QueryableSessionLoader } from '../../mongodb/loaders/session/loader';
 import { Cookies } from '../http/cookies';
@@ -8,14 +7,41 @@ import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import { SessionDuration, SessionDurationConfig } from '../session/duration';
 import { DBSessionSchema } from '../../mongodb/schema/session';
 import { UnauthenticatedServiceError } from './errors';
+import { QueryableSession } from '../../mongodb/loaders/session/description';
+import { object, instance, string, date, coerce, number, InferRaw } from 'superstruct';
+import { findByCookieId } from '../session/find-by-cookie-id';
+import { CollectionName } from '../../mongodb/collections';
 
 export type AuthenticationContext = AuthenticatedContext | UnauthenticatedContext;
+
+const base64ObjectId = coerce(
+  instance(ObjectId),
+  string(),
+  (base64Str) => ObjectId.createFromBase64(base64Str),
+  (objId) => objId.toString('base64')
+);
+
+const timeDate = coerce(
+  date(),
+  number(),
+  (timeNr) => new Date(timeNr),
+  (date) => date.getTime()
+);
+
+const SerializedQueryableSession = object({
+  _id: base64ObjectId,
+  cookieId: string(),
+  userId: base64ObjectId,
+  expireAt: timeDate,
+});
+
+export type SerializedQueryableSession = InferRaw<typeof SerializedQueryableSession>;
 
 export interface AuthenticatedContext {
   /**
    * Current active session
    */
-  session: Session;
+  session: QueryableSession;
 }
 
 export interface UnauthenticatedContext {
@@ -36,17 +62,8 @@ export type SerializedAuthenticationContext =
   | UnauthenticatedContext;
 
 export type SerializedAuthenticatedContext = Omit<AuthenticatedContext, 'session'> & {
-  session: SerializedSession;
+  session: SerializedQueryableSession;
 };
-
-/**
- * Replaces ObjectId with base64 representation string.
- */
-type SerializedSession = ReplaceDeep<
-  ReplaceDeep<Session, ObjectId, string>,
-  Date,
-  number
->;
 
 export function assertAuthenticated(
   auth: AuthenticationContext | undefined
@@ -128,7 +145,11 @@ export async function findRefreshSessionByCookieId(
 ): Promise<AuthenticatedContext['session']> {
   const session = await findByCookieId({
     cookieId,
-    loader: loader,
+    mongoDB: {
+      loaders: {
+        session: loader,
+      },
+    },
   });
 
   // Session not found in db or expireAt time has passed
@@ -143,10 +164,15 @@ export async function findRefreshSessionByCookieId(
   // Refresh session
   const newSession = await tryRefreshExpireAt({
     session,
-    collection: loader.context.collections.sessions,
+    // collection: loader.context.collections.sessions,
     sessionDuration: new SessionDuration(sessionDurationConfig),
-    prime: {
-      loader,
+    mongoDB: {
+      collections: {
+        [CollectionName.SESSIONS]: loader.context.collections.sessions,
+      },
+      loaders: {
+        session: loader,
+      },
     },
   });
 
@@ -206,12 +232,7 @@ export function serializeAuthenticationContext(
 
   return {
     ...auth,
-    session: {
-      ...auth.session,
-      _id: auth.session._id.toString('base64'),
-      userId: auth.session.userId.toString('base64'),
-      expireAt: auth.session.expireAt.getTime(),
-    },
+    session: SerializedQueryableSession.createRaw(auth.session),
   };
 }
 
@@ -228,11 +249,6 @@ export function parseAuthenticationContext(
 
   return {
     ...auth,
-    session: {
-      ...auth.session,
-      _id: ObjectId.createFromBase64(auth.session._id),
-      userId: ObjectId.createFromBase64(auth.session.userId),
-      expireAt: new Date(auth.session.expireAt),
-    },
+    session: SerializedQueryableSession.create(auth.session),
   };
 }

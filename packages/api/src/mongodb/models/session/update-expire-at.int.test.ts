@@ -1,0 +1,49 @@
+import { faker } from '@faker-js/faker';
+import { beforeEach, it, expect } from 'vitest';
+import {
+  resetDatabase,
+  mongoCollectionStats,
+  mongoCollections,
+} from '../../../__test__/helpers/mongodb/mongodb';
+import { populateExecuteAll } from '../../../__test__/helpers/mongodb/populate/populate-queue';
+import { fakeSessionPopulateQueue } from '../../../__test__/helpers/mongodb/populate/session';
+import { DBSessionSchema } from '../../schema/session';
+import { updateExpireAt } from './update-expire-at';
+
+let session: DBSessionSchema;
+
+beforeEach(async () => {
+  faker.seed(5532);
+  await resetDatabase();
+
+  session = fakeSessionPopulateQueue();
+
+  await populateExecuteAll();
+
+  mongoCollectionStats.mockClear();
+});
+
+it('updates expireAt with provided value', async () => {
+  const newExpireAt = new Date(Date.now() + 10000);
+
+  await updateExpireAt({
+    sessionId: session._id,
+    expireAt: newExpireAt,
+    mongoDB: {
+      collections: mongoCollections,
+    },
+  });
+
+  expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(1);
+
+  const dbSession = await mongoCollections.sessions.findOne({
+    _id: session._id,
+  });
+
+  expect(dbSession).toStrictEqual(
+    expect.objectContaining({
+      _id: session._id,
+      expireAt: newExpireAt,
+    })
+  );
+});

@@ -1,11 +1,12 @@
-import { ClientSession, ObjectId } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { MongoDBCollections, CollectionName } from '../../collections';
 import { MongoReadonlyDeep } from '../../types';
+import { TransactionContext } from '../../utils/with-transaction';
 
 interface UpdateReadOnlyParams {
   mongoDB: {
-    session?: ClientSession;
     collections: Pick<MongoDBCollections, CollectionName.NOTES>;
+    runSingleOperation?: TransactionContext['runSingleOperation'];
   };
   noteUser: MongoReadonlyDeep<{ _id: ObjectId }>;
   /**
@@ -27,23 +28,27 @@ export function updateReadOnly({
   noteId,
   readOnly,
 }: UpdateReadOnlyParams) {
+  const runSingleOperation = mongoDB.runSingleOperation ?? ((run) => run());
+
   const noteUserArrayFilter = 'noteUser';
-  return mongoDB.collections.notes.updateOne(
-    {
-      _id: noteId,
-    },
-    {
-      $set: {
-        [`users.$[${noteUserArrayFilter}].readOnly`]: readOnly,
+  return runSingleOperation((session) =>
+    mongoDB.collections.notes.updateOne(
+      {
+        _id: noteId,
       },
-    },
-    {
-      arrayFilters: [
-        {
-          [`${noteUserArrayFilter}._id`]: noteUser._id,
+      {
+        $set: {
+          [`users.$[${noteUserArrayFilter}].readOnly`]: readOnly,
         },
-      ],
-      session: mongoDB.session,
-    }
+      },
+      {
+        arrayFilters: [
+          {
+            [`${noteUserArrayFilter}._id`]: noteUser._id,
+          },
+        ],
+        session,
+      }
+    )
   );
 }

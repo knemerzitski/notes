@@ -6,7 +6,6 @@ import {
 } from '../../../../../mongodb/utils/retry-on-mongo-error';
 import { isAuthenticated } from '../../../../../services/auth/auth';
 import { SessionDuration } from '../../../../../services/session/duration';
-import { insertNewSession } from '../../../../../services/session/session';
 import { insertNewUserWithGoogleUser } from '../../../../../services/user/user';
 import { GraphQLResolversContext } from '../../../../types';
 import { preExecuteObjectField } from '../../../../utils/pre-execute';
@@ -16,6 +15,7 @@ import {
   findUserByGoogleUserId,
   primeNewGoogleUser,
 } from '../../../../../services/user/user-loader';
+import { insertSession } from '../../../../../services/session/insert-session';
 
 const _signIn: NonNullable<MutationResolvers['signIn']> = async (
   _parent,
@@ -93,7 +93,8 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
     currentUserId = existingUser._id;
   }
 
-  const newSession = await insertNewSession({
+  const newSession = await insertSession({
+    mongoDB,
     userId: currentUserId,
     duration: new SessionDuration(
       ctx.options?.sessions?.user ?? {
@@ -101,7 +102,6 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
         refreshThreshold: 0.5, // 7 days
       }
     ),
-    collection: mongoDB.collections.sessions,
   });
 
   cookies.setSession(currentUserId, newSession.cookieId);

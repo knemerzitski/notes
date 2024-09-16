@@ -36,7 +36,7 @@ export const updateUserNoteLinkReadOnly: NonNullable<
     readOnly: input.readOnly,
     publicUserNoteLink: {
       noteId: input.noteId,
-      query: createMapQueryFn(noteQuery)<typeof QueryableNoteUser>()(
+      query: createMapQueryFn(noteQuery)<QueryableNoteUser>()(
         (query) => ({ users: { ...query, _id: 1 } }),
         (note) => findNoteUserMaybe(targetUserId, note)
       ),

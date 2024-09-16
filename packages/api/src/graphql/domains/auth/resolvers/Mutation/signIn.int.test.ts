@@ -10,7 +10,7 @@ import {
   MockInstance,
   vi,
 } from 'vitest';
-import * as serviceSession from '../../../../../services/session/session';
+import * as insert_session from '../../../../../services/session/insert-session';
 import * as serviceUser from '../../../../../services/user/user';
 import { apolloServer } from '../../../../../__test__/helpers/graphql/apollo-server';
 import {
@@ -62,8 +62,8 @@ const MUTATION = `#graphql
   }
 `;
 
-let spyInsertNewSession: MockInstance<
-  [serviceSession.InsertNewSessionParams],
+let spyInsertSession: MockInstance<
+  [insert_session.InsertSessionParams],
   Promise<DBSessionSchema>
 >;
 let spyInsertNewUserWithGoogleUser: MockInstance<
@@ -74,7 +74,7 @@ let spyInsertNewUserWithGoogleUser: MockInstance<
 let user: DBUserSchema;
 
 beforeAll(() => {
-  spyInsertNewSession = vi.spyOn(serviceSession, 'insertNewSession');
+  spyInsertSession = vi.spyOn(insert_session, 'insertSession');
   spyInsertNewUserWithGoogleUser = vi.spyOn(serviceUser, 'insertNewUserWithGoogleUser');
 });
 
@@ -91,7 +91,7 @@ beforeEach(async () => {
 });
 
 afterEach(() => {
-  spyInsertNewSession.mockClear();
+  spyInsertSession.mockClear();
   spyInsertNewUserWithGoogleUser.mockClear();
 });
 
@@ -172,13 +172,14 @@ it('creates new user and session on first sign in with google', async () => {
   });
 
   // New session was inserted to db
-  expect(spyInsertNewSession).toHaveBeenCalledWith({
-    userId: newUser._id,
-    duration: expect.any(SessionDuration),
-    collection: mongoCollections.sessions,
-  });
+  expect(spyInsertSession).toHaveBeenCalledWith(
+    expect.objectContaining({
+      userId: newUser._id,
+      duration: expect.any(SessionDuration),
+    })
+  );
 
-  const newSessionResult = spyInsertNewSession.mock.results[0];
+  const newSessionResult = spyInsertSession.mock.results[0];
   assert(newSessionResult?.type == 'return');
   const newSession = await newSessionResult.value;
 
@@ -225,11 +226,12 @@ it('signs in with existing user by creating new session', async () => {
   expect(spyInsertNewUserWithGoogleUser).not.toHaveBeenCalled();
 
   // New session was inserted to db
-  expect(spyInsertNewSession).toHaveBeenCalledWith({
-    userId: user._id,
-    duration: expect.any(SessionDuration),
-    collection: mongoCollections.sessions,
-  });
+  expect(spyInsertSession).toHaveBeenCalledWith(
+    expect.objectContaining({
+      userId: user._id,
+      duration: expect.any(SessionDuration),
+    })
+  );
 
   expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(2);
 });
@@ -270,5 +272,5 @@ it('returns already signed in result with existing auth', async () => {
 
   expect(spyInsertNewUserWithGoogleUser).not.toHaveBeenCalled();
 
-  expect(spyInsertNewSession).not.toHaveBeenCalled();
+  expect(spyInsertSession).not.toHaveBeenCalled();
 });
