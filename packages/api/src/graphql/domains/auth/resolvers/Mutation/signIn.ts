@@ -4,9 +4,8 @@ import {
   retryOnMongoError,
   MongoErrorCodes,
 } from '../../../../../mongodb/utils/retry-on-mongo-error';
-import { isAuthenticated } from '../../../../../services/auth/auth';
 import { SessionDuration } from '../../../../../services/session/duration';
-import { insertNewUserWithGoogleUser } from '../../../../../services/user/user';
+import { insertUserWithGoogleUser } from '../../../../../services/user/insert-user-with-google-user';
 import { GraphQLResolversContext } from '../../../../types';
 import { preExecuteObjectField } from '../../../../utils/pre-execute';
 import { MutationResolvers, ResolversTypes } from '../../../types.generated';
@@ -16,6 +15,7 @@ import {
   primeNewGoogleUser,
 } from '../../../../../services/user/user-loader';
 import { insertSession } from '../../../../../services/session/insert-session';
+import { isAuthenticated } from '../../../../../services/auth/is-authenticated';
 
 const _signIn: NonNullable<MutationResolvers['signIn']> = async (
   _parent,
@@ -81,10 +81,10 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
 
   let currentUserId: ObjectId;
   if (!existingUser) {
-    const newUser = await insertNewUserWithGoogleUser({
+    const newUser = await insertUserWithGoogleUser({
       id: googleUserId,
       displayName: googleDisplayName,
-      collection: mongoDB.collections.users,
+      mongoDB,
     });
     primeNewGoogleUser({ newUser, loader: mongoDB.loaders.user });
 

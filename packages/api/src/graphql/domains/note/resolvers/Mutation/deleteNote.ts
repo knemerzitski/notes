@@ -1,7 +1,7 @@
 import { DeleteNotePayload, type MutationResolvers } from '../../../types.generated';
 import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';
 import { ObjectId } from 'mongodb';
-import { assertAuthenticated } from '../../../../../services/auth/auth';
+import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import { WithRequired } from '~utils/types';
 import { UserNoteLink_id } from '../../../../../services/note/user-note-link-id';
 import { deleteNote as service_deleteNote } from '../../../../../services/note/delete-note';

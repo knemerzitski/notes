@@ -1,4 +1,4 @@
-import { assertAuthenticated } from '../../../../../services/auth/auth';
+import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import type { QueryResolvers } from '../../../types.generated';
 
 export const userNoteLinkByNoteId: NonNullable<QueryResolvers['userNoteLinkByNoteId']> = (

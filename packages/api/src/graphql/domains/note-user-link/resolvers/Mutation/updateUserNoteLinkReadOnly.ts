@@ -2,7 +2,7 @@ import { findNoteUserMaybe, getNoteUsersIds } from '../../../../../services/note
 import type { MutationResolvers, ResolversTypes } from '../../../types.generated';
 import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';
 import { createMapQueryFn } from '../../../../../mongodb/query/query';
-import { assertAuthenticated } from '../../../../../services/auth/auth';
+import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import { updateReadOnly } from '../../../../../services/note/update-read-only';
 import { QueryableNoteUser } from '../../../../../mongodb/loaders/note/descriptions/note';
 

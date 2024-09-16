@@ -8,7 +8,7 @@ import {
   ResolversTypes,
   type MutationResolvers,
 } from '../../../types.generated';
-import { assertAuthenticated } from '../../../../../services/auth/auth';
+import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import { updateMoveCategory } from '../../../../../services/note/update-move-category';
 
 export const moveUserNoteLink: NonNullable<

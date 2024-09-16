@@ -10,10 +10,10 @@ import { createMongoDBLoaders } from '../mongodb/loaders';
 import {
   serializeAuthenticationContext,
   parseAuthenticationContext,
-  FindRefreshSessionByCookieIdParams,
-  parseAuthenticationContextFromHeaders,
-} from '../services/auth/auth';
+} from '../services/auth/authentication-context';
 import { Cookies } from '../services/http/cookies';
+import { parseAuthenticationContextFromHeaders } from '../services/auth/parse-authentication-context-from-headers';
+import { FindRefreshSessionByCookieIdParams } from '../services/auth/find-refresh-session-by-cookie-id';
 
 export interface CreateBaseGraphQLContextParams {
   headers: Readonly<Record<string, string | undefined>> | undefined;

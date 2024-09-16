@@ -1,6 +1,6 @@
 import { GraphQLError } from 'graphql';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
-import { UnauthenticatedContext } from '../../services/auth/auth';
+import { UnauthenticatedContext } from '../../services/auth/authentication-context';
 import { UnauthenticatedServiceError } from '../../services/auth/errors';
 
 class UnauthenticatedError extends GraphQLError {

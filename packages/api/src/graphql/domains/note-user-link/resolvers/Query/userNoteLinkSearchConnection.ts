@@ -2,7 +2,7 @@ import { QueryableNote } from '../../../../../mongodb/loaders/note/descriptions/
 import { QueryableSearchNote } from '../../../../../mongodb/loaders/notes-search/description';
 import { CursorPagination } from '../../../../../mongodb/pagination/cursor-struct';
 import { createMapQueryFn, MongoQueryFn } from '../../../../../mongodb/query/query';
-import { assertAuthenticated } from '../../../../../services/auth/auth';
+import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import {
   PreFetchedArrayGetItemFn,
   withPreExecuteList,

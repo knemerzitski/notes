@@ -29,7 +29,9 @@ it('updates user displayName', async () => {
   await updateDisplayName({
     userId: user._id,
     displayName: 'new name',
-    collection: mongoCollections.users,
+    mongoDB: {
+      collections: mongoCollections,
+    },
   });
 
   expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(1);

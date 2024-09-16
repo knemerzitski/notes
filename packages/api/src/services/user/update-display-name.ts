@@ -20,7 +20,7 @@ export async function updateDisplayName({
   await mongoDB_updateDisplayName({
     userId,
     displayName,
-    collection: mongoDB.collections.users,
+    mongoDB,
   });
 
   mongoDB.loaders.user.prime(

@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { afterEach, beforeAll, beforeEach, expect, it, MockInstance, vi } from 'vitest';
-import * as serviceAuth from '../../../../../services/auth/auth';
+import * as delete_session_with_cookies from '../../../../../services/auth/delete-session-with-cookies';
+import * as delete_all_session_in_cookies from '../../../../../services/auth/delete-all-sessions-in-cookies';
 import { SignOutInput, SignOutPayload } from '../../../types.generated';
 import { apolloServer } from '../../../../../__test__/helpers/graphql/apollo-server';
 import {
@@ -11,7 +12,6 @@ import { expectGraphQLResponseData } from '../../../../../__test__/helpers/graph
 import {
   resetDatabase,
   mongoCollectionStats,
-  mongoCollections,
 } from '../../../../../__test__/helpers/mongodb/mongodb';
 import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeSessionPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/session';
@@ -35,11 +35,11 @@ const MUTATION = `#graphql
 `;
 
 let spyDeleteSessionWithCookies: MockInstance<
-  [serviceAuth.DeleteSessionParams],
+  [delete_session_with_cookies.DeleteSessionWithCookiesParams],
   Promise<void>
 >;
 let spyDeleteAllSessionsInCookies: MockInstance<
-  [serviceAuth.DeleteAllSessionsInCookiesParams],
+  [delete_all_session_in_cookies.DeleteAllSessionsInCookiesParams],
   Promise<void>
 >;
 
@@ -47,8 +47,14 @@ let user: DBUserSchema;
 let session: DBSessionSchema;
 
 beforeAll(() => {
-  spyDeleteSessionWithCookies = vi.spyOn(serviceAuth, 'deleteSessionWithCookies');
-  spyDeleteAllSessionsInCookies = vi.spyOn(serviceAuth, 'deleteAllSessionsInCookies');
+  spyDeleteSessionWithCookies = vi.spyOn(
+    delete_session_with_cookies,
+    'deleteSessionWithCookies'
+  );
+  spyDeleteAllSessionsInCookies = vi.spyOn(
+    delete_all_session_in_cookies,
+    'deleteAllSessionsInCookies'
+  );
 });
 
 beforeEach(async () => {
@@ -119,12 +125,13 @@ it('signs out specific user', async () => {
     },
   });
 
-  expect(spyDeleteSessionWithCookies).toHaveBeenCalledWith({
-    userId: user._id,
-    cookieId: session.cookieId,
-    cookies,
-    collection: mongoCollections.sessions,
-  });
+  expect(spyDeleteSessionWithCookies).toHaveBeenCalledWith(
+    expect.objectContaining({
+      userId: user._id,
+      cookieId: session.cookieId,
+      cookies,
+    })
+  );
 });
 
 it('signs out all users', async () => {
@@ -151,8 +158,9 @@ it('signs out all users', async () => {
     },
   });
 
-  expect(spyDeleteAllSessionsInCookies).toHaveBeenCalledWith({
-    cookies,
-    collection: mongoCollections.sessions,
-  });
+  expect(spyDeleteAllSessionsInCookies).toHaveBeenCalledWith(
+    expect.objectContaining({
+      cookies,
+    })
+  );
 });

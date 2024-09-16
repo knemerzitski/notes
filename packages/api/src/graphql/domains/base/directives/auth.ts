@@ -2,7 +2,7 @@ import { GraphQLSchema } from 'graphql';
 
 import type { DirectiveResolvers } from '../../types.generated';
 import { transformSchemaDirectiveResolver } from '../../../utils/transform-schema-directive-resolver';
-import { assertAuthenticated } from '../../../../services/auth/auth';
+import { assertAuthenticated } from '../../../../services/auth/assert-authenticated';
 
 export const auth: NonNullable<DirectiveResolvers['auth']> = async (
   next,

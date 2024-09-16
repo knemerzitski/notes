@@ -1,11 +1,9 @@
 import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
 import type { MutationResolvers } from './../../../types.generated';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
-import {
-  deleteAllSessionsInCookies,
-  deleteSessionWithCookies,
-  isAuthenticated,
-} from '../../../../../services/auth/auth';
+import { isAuthenticated } from '../../../../../services/auth/is-authenticated';
+import { deleteAllSessionsInCookies } from '../../../../../services/auth/delete-all-sessions-in-cookies';
+import { deleteSessionWithCookies } from '../../../../../services/auth/delete-session-with-cookies';
 
 export const signOut: NonNullable<MutationResolvers['signOut']> = async (
   _parent,
@@ -23,7 +21,7 @@ export const signOut: NonNullable<MutationResolvers['signOut']> = async (
 
     await deleteAllSessionsInCookies({
       cookies,
-      collection: mongoDB.collections.sessions,
+      mongoDB,
     });
   } else {
     if (input?.userId) {
@@ -34,7 +32,7 @@ export const signOut: NonNullable<MutationResolvers['signOut']> = async (
         userId: input.userId,
         cookieId: cookies.getSessionCookeId(input.userId),
         cookies,
-        collection: mongoDB.collections.sessions,
+        mongoDB,
       });
     } else if (isAuthenticated(ctx.auth)) {
       signedOutUserIds = [objectIdToStr(ctx.auth.session.userId)];
@@ -44,7 +42,7 @@ export const signOut: NonNullable<MutationResolvers['signOut']> = async (
         userId: ctx.auth.session.userId,
         cookieId: ctx.auth.session.cookieId,
         cookies,
-        collection: mongoDB.collections.sessions,
+        mongoDB,
       });
       ctx.auth;
     }

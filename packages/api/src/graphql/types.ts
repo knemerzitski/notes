@@ -11,7 +11,7 @@ import { Cookies, SerializedCookies } from '../services/http/cookies';
 import {
   AuthenticationContext,
   SerializedAuthenticationContext,
-} from '../services/auth/auth';
+} from '../services/auth/authentication-context';
 import { SessionDurationConfig } from '../services/session/duration';
 
 export interface ApiOptions {

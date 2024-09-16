@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import { assertAuthenticated } from '../../../../../services/auth/auth';
+import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import { NoteCategory, type QueryResolvers } from '../../../types.generated';
 import {
   PreFetchedArrayGetItemFn,

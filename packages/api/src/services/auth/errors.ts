@@ -1,5 +1,5 @@
 import { ServiceError } from '../errors';
-import { UnauthenticatedContext } from './auth';
+import { UnauthenticatedContext } from './authentication-context';
 
 export type AuthServiceErrorCode = 'UNAUTHENTICATED';
 

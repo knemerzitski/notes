@@ -4,7 +4,7 @@ import {
   ResolversTypes,
   type MutationResolvers,
 } from '../../../types.generated';
-import { assertAuthenticated } from '../../../../../services/auth/auth';
+import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import { updateTrashNote } from '../../../../../services/note/update-trash-note';
 
 export const trashUserNoteLink: NonNullable<

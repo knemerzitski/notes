@@ -5,8 +5,8 @@ import { withTransaction } from '../../mongodb/utils/with-transaction';
 import { findNoteUser } from './note';
 import { NoteNotFoundServiceError } from './errors';
 import { Maybe } from '~utils/types';
-import { getNotesArrayPath } from '../user/user';
 import { updateMoveCategory as model_updateMoveCategory } from '../../mongodb/models/note/update-move-category';
+import { notesArrayPath } from '../../mongodb/models/user/utils/notes-array-path';
 
 interface UpdateMoveCategoryParams {
   mongoDB: {
@@ -126,13 +126,13 @@ export async function updateMoveCategory({
                 anchorIndex: anchor?.noteId
                   ? {
                       $indexOfArray: [
-                        `$${getNotesArrayPath(desiredCategoryName)}`,
+                        `$${notesArrayPath(desiredCategoryName)}`,
                         anchor.noteId,
                       ],
                     }
                   : null,
                 lastId: {
-                  $last: `$${getNotesArrayPath(desiredCategoryName)}`,
+                  $last: `$${notesArrayPath(desiredCategoryName)}`,
                 },
               },
             },

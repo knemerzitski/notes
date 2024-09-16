@@ -10,7 +10,7 @@ import {
   retryOnMongoError,
   MongoErrorCodes,
 } from '../../../../../mongodb/utils/retry-on-mongo-error';
-import { assertAuthenticated } from '../../../../../services/auth/auth';
+import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import { insertNote } from '../../../../../services/note/insert-note';
 
 const _createNote: NonNullable<MutationResolvers['createNote']> = async (

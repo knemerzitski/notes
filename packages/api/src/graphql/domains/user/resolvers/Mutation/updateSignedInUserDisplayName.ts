@@ -1,4 +1,4 @@
-import { assertAuthenticated } from '../../../../../services/auth/auth';
+import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import { updateDisplayName } from '../../../../../services/user/update-display-name';
 import { publishSignedInUserMutation } from '../Subscription/signedInUserEvents';
 import type { MutationResolvers, ResolversTypes } from './../../../types.generated';

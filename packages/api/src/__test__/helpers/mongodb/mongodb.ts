@@ -3,6 +3,7 @@ import { Collection, MongoClient } from 'mongodb';
 import { CollectionName, createCollectionInstances } from '../../../mongodb/collections';
 
 import { CollectionsStats } from './collection-stats';
+import { createMongoDBLoaders } from '../../../mongodb/loaders';
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const DB_URI = process.env.TEST_MONGODB_URI!;
@@ -35,3 +36,13 @@ export const { mongoClient, mongoDB, mongoCollections, resetDatabase } =
 export const mongoCollectionStats = new CollectionsStats(
   mongoCollections as unknown as Record<CollectionName, Collection>
 );
+
+export function createMongoDBApiContext(collections = mongoCollections) {
+  return {
+    collections,
+    loaders: createMongoDBLoaders({
+      client: mongoClient,
+      collections: mongoCollections,
+    }),
+  };
+}

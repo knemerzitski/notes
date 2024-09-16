@@ -20,7 +20,6 @@ import {
 import {
   resetDatabase,
   mongoCollectionStats,
-  mongoCollections,
 } from '../../../../../__test__/helpers/mongodb/mongodb';
 import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/user';
@@ -31,7 +30,7 @@ import {
   UpdateSignedInUserDisplayNamePayload,
 } from '../../../types.generated';
 import { signedInUserTopic } from '../Subscription/signedInUserEvents';
-import * as modelUpdateDisplayName from '../../../../../mongodb/models/user/update-display-name';
+import * as update_display_name from '../../../../../mongodb/models/user/update-display-name';
 
 interface Variables {
   input: UpdateSignedInUserDisplayNameInput;
@@ -77,12 +76,12 @@ const SUBSCRIPTION = `#graphql
 let user: DBUserSchema;
 
 let spyUpdateDisplayName: MockInstance<
-  [modelUpdateDisplayName.UpdateDisplayNameParams],
+  [update_display_name.UpdateDisplayNameParams],
   Promise<UpdateResult<DBUserSchema>>
 >;
 
 beforeAll(() => {
-  spyUpdateDisplayName = vi.spyOn(modelUpdateDisplayName, 'updateDisplayName');
+  spyUpdateDisplayName = vi.spyOn(update_display_name, 'updateDisplayName');
 });
 
 afterEach(() => {
@@ -155,11 +154,12 @@ it('changes user displayName', async () => {
     },
   });
 
-  expect(spyUpdateDisplayName).toHaveBeenCalledWith({
-    userId: user._id,
-    displayName: 'new name',
-    collection: mongoCollections.users,
-  });
+  expect(spyUpdateDisplayName).toHaveBeenCalledWith(
+    expect.objectContaining({
+      userId: user._id,
+      displayName: 'new name',
+    })
+  );
 
   expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(1);
 });
