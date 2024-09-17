@@ -29,15 +29,15 @@ export function fakeUser(options?: FakeUserOptions): DBUserSchema {
         ...options?.override?.thirdParty?.google,
       },
     },
-    notes: {
-      ...options?.override?.notes,
-      category: options?.override?.notes?.category
-        ? mapObject(options.override.notes.category, (categoryName, category) => {
+    note: {
+      ...options?.override?.note,
+      categories: options?.override?.note?.categories
+        ? mapObject(options.override.note.categories, (categoryName, category) => {
             if (!categoryName || !category) return mapObjectSkip;
 
             const mergedCategory = {
               ...category,
-              order: category.order?.filter(isDefined) ?? [],
+              noteIds: category.noteIds?.filter(isDefined) ?? [],
             };
 
             return [categoryName, mergedCategory];

@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { afterEach, expect, it, vi } from 'vitest';
-import { updateDisplayName } from './update-display-name';
+import { updateDisplayName, UpdateDisplayNameParams } from './update-display-name';
 import { updateDisplayName as model_updateDisplayName } from '../../mongodb/models/user/update-display-name';
 import { mock, mockDeep } from 'vitest-mock-extended';
-import { QueryableUserLoader } from '../../mongodb/loaders/user/loader';
 
 vi.mock('../../mongodb/models/user/update-display-name');
 
@@ -15,43 +14,33 @@ afterEach(() => {
 it('calls model_updateDisplayName', async () => {
   const userId = mock<any>();
   const displayName = mock<any>();
-  const collection = mock<any>();
+  const mongoDB = mockDeep<any>();
 
   await updateDisplayName({
     displayName,
-    mongoDB: {
-      collections: {
-        users: collection,
-      },
-      loaders: mockDeep(),
-    },
+    mongoDB,
     userId,
   });
 
   expect(model_updateDisplayName).toHaveBeenCalledWith({
     userId,
     displayName,
-    collection,
+    mongoDB,
   });
 });
 
 it('primes loader with new displayName', async () => {
   const userId = mock<any>();
   const displayName = mock<any>();
-  const userLoader = mock<QueryableUserLoader>();
+  const mongoDB = mockDeep<UpdateDisplayNameParams['mongoDB']>();
 
   await updateDisplayName({
     displayName,
-    mongoDB: {
-      collections: mockDeep(),
-      loaders: {
-        user: userLoader,
-      },
-    },
+    mongoDB,
     userId,
   });
 
-  expect(userLoader.prime).toHaveBeenCalledWith(
+  expect(mongoDB.loaders.user.prime).toHaveBeenCalledWith(
     {
       id: {
         userId,
@@ -68,9 +57,6 @@ it('primes loader with new displayName', async () => {
       profile: {
         displayName,
       },
-    },
-    {
-      clearCache: true,
     }
   );
 });

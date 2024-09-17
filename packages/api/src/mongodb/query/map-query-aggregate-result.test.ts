@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 
-import { DeepAnyDescription } from './description';
+import { DescriptionDeep } from './description';
 import { mapQueryAggregateResult } from './map-query-aggregate-result';
 import { mergeQueries } from './merge-queries';
-import { ObjectQueryDeep, QueryDeep } from './query';
+import { QueryObjectDeep, QueryDeep } from './query';
 
 describe('result is unmodified without resolvers', () => {
   it.each([
@@ -97,10 +97,10 @@ describe('map result with resolver', () => {
       mapQueryAggregateResult(
         query as QueryDeep<unknown>,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mergeQueries([query as ObjectQueryDeep<any>]),
+        mergeQueries([query as QueryObjectDeep<any>]),
         result,
         {
-          descriptions: [description as DeepAnyDescription<unknown>],
+          descriptions: [description as DescriptionDeep<unknown>],
         }
       )
     ).toStrictEqual(expectedResult);
@@ -162,10 +162,10 @@ describe('map array result with resolver', () => {
       mapQueryAggregateResult(
         query as QueryDeep<unknown>,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mergeQueries([query as ObjectQueryDeep<any>]),
+        mergeQueries([query as QueryObjectDeep<any>]),
         result,
         {
-          descriptions: [description as DeepAnyDescription<unknown>],
+          descriptions: [description as DescriptionDeep<unknown>],
         }
       )
     ).toStrictEqual(expectedResult);
@@ -241,10 +241,10 @@ describe('map nested array resolvers', () => {
       mapQueryAggregateResult(
         query as QueryDeep<unknown>,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mergeQueries([query as ObjectQueryDeep<any>]),
+        mergeQueries([query as QueryObjectDeep<any>]),
         result,
         {
-          descriptions: [description as DeepAnyDescription<unknown>],
+          descriptions: [description as DescriptionDeep<unknown>],
         }
       )
     ).toStrictEqual(expectedResult);

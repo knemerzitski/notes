@@ -6,7 +6,7 @@ import { isDefined } from '~utils/type-guards/is-defined';
 
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 
-import { DeepAnyDescription, FieldDescription } from './description';
+import { DescriptionDeep, FieldDescription } from './description';
 import { isMergedQueryArgField, MergedQueryDeep } from './merge-queries';
 
 export function mergedQueryToPipeline<TSchema = unknown, TContext = unknown>(
@@ -24,7 +24,7 @@ export function mergedQueryToPipeline<TSchema = unknown, TContext = unknown>(
 }
 
 interface BuildStagesContext<TSchema = unknown, TContext = unknown> {
-  description?: DeepAnyDescription<TSchema, unknown, TContext>;
+  description?: DescriptionDeep<TSchema, unknown, TContext>;
   customContext?: TContext;
   rootPath?: string[];
   relativeQuery?: MergedQueryDeep<unknown>;
@@ -106,7 +106,7 @@ interface AddStagesContextField<TSchema = unknown> {
 
 interface DepthQueueItem<TSchema = unknown, TContext = unknown> {
   query: MergedQueryDeep<TSchema>;
-  description?: DeepAnyDescription<TSchema, unknown, TContext>;
+  description?: DescriptionDeep<TSchema, unknown, TContext>;
   rootPath: string[];
   relativePath: string[];
 }
@@ -146,7 +146,7 @@ export function buildStages<TSchema = unknown, TContext = unknown>(
       currentDepthQueue[0]?.description;
       for (const entry of groupByDescription(currentDepthQueue)) {
         const [description, fields] = entry as [
-          DeepAnyDescription<TSchema, unknown, TContext>,
+          DescriptionDeep<TSchema, unknown, TContext>,
           DepthQueueItem<TSchema, TContext>[],
         ];
         const buildInnerStages: AddStagesContext['subStages'] = (options) => {
@@ -252,7 +252,7 @@ export function buildStages<TSchema = unknown, TContext = unknown>(
 
           deeperQueue.push({
             query: subQuery as MergedQueryDeep<TSchema>,
-            description: subDescription as DeepAnyDescription<TSchema, unknown, TContext>,
+            description: subDescription as DescriptionDeep<TSchema, unknown, TContext>,
             rootPath: [...rootPath, subQueryKey],
             relativePath: [...relativePath, subQueryKey],
           });
@@ -283,7 +283,7 @@ function traverseToDepthQueueItem<TSchema, TContext>(
 
       target = {
         query: subQuery as MergedQueryDeep<TSchema>,
-        description: subDescription as DeepAnyDescription<TSchema, unknown, TContext>,
+        description: subDescription as DescriptionDeep<TSchema, unknown, TContext>,
         rootPath: [...target.rootPath, subQueryKey],
         relativePath: [...target.relativePath, subQueryKey],
       };
@@ -326,7 +326,7 @@ export interface MapLastProjectContext<TSchema = unknown> {
 }
 
 interface BuildLastProjectValueContext<TSchema = unknown, TContext = unknown> {
-  descriptions?: DeepAnyDescription<TSchema, unknown, TContext>[];
+  descriptions?: DescriptionDeep<TSchema, unknown, TContext>[];
 }
 
 export function buildLastProjectValue<TSchema = unknown, TContext = unknown>(

@@ -29,27 +29,25 @@ export interface FieldDescription<
    * Return undefined to not make any changes.
    */
   $mapAggregateResult?: MapAggregateResultResolver<TSchema, TResult>;
-  $anyKey?: DeepAnyDescription<
+  $anyKey?: DescriptionDeep<
     TSchema extends Record<string, unknown> ? TSchema[keyof TSchema] : unknown,
     TResult extends object ? TResult[keyof TResult] : unknown,
     TContext
   >;
 }
 
-// TODO rename to AnyDescriptionDeep, suffix Deep
-
-export type DeepAnyDescription<T, R = unknown, C = unknown> = T extends (infer U)[]
-  ? DeepAnyDescription<U, R, C>
+export type DescriptionDeep<T, R = unknown, C = unknown> = T extends (infer U)[]
+  ? DescriptionDeep<U, R, C>
   : T extends MongoPrimitive
     ? FieldDescription<T, R, C>
     : T extends object
-      ? DeepObjectDescription<T, R, C>
+      ? DescriptionObjectDeep<T, R, C>
       : FieldDescription<T, R, C>;
 
-type DeepObjectDescription<T extends object, R, C> = FieldDescription<T, R, C> &
+type DescriptionObjectDeep<T extends object, R, C> = FieldDescription<T, R, C> &
   OmitStartsWith<
     {
-      [Key in keyof T]?: DeepAnyDescription<
+      [Key in keyof T]?: DescriptionDeep<
         T[Key],
         R extends object ? R[keyof R] : unknown,
         C

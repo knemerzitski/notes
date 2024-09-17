@@ -13,7 +13,6 @@ import {
   mongoCollections,
 } from '../../../__test__/helpers/mongodb/mongodb';
 import {
-  TestCollabTextKey,
   populateNotes,
   populateNotesWithText,
 } from '../../../__test__/helpers/mongodb/populate/populate';
@@ -35,11 +34,9 @@ function resultsByText(...texts: string[]) {
   return texts.map((text) => ({
     cursor: expect.any(String),
     note: {
-      collabTexts: {
-        [TestCollabTextKey.TEXT]: {
-          headText: {
-            changeset: Changeset.fromInsertion(text).serialize(),
-          },
+      collabText: {
+        headText: {
+          changeset: Changeset.fromInsertion(text).serialize(),
         },
       },
     },
@@ -63,11 +60,9 @@ function createLoaderKey(
       ...override?.query,
       note: {
         //@ts-expect-error
-        collabTexts: {
-          [TestCollabTextKey.TEXT]: {
-            headText: {
-              changeset: 1,
-            },
+        collabText: {
+          headText: {
+            changeset: 1,
           },
         },
         ...override?.query?.note,

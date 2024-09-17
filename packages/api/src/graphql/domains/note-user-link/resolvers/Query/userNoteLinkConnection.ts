@@ -55,22 +55,19 @@ export const userNoteLinkConnection: NonNullable<
   )<QueryableUser_NotesCategory>()(
     (query) => ({
       _id: 1,
-      notes: {
-        category: {
+      note: {
+        categories: {
           [categoryName]: {
             ...query,
-            order: {
-              ...query.order,
-              items: {
-                ...query.order?.items,
-                $pagination: pagination,
-              },
+            notes: {
+              ...query.notes,
+              $pagination: pagination,
             },
           },
         },
       },
     }),
-    (user) => user.notes.category[categoryName]
+    (user) => user.note.categories[categoryName]
   );
 
   const createUserNoteLinkMapper: PreFetchedArrayGetItemFn<UserNoteLinkMapper> = (
@@ -80,14 +77,12 @@ export const userNoteLinkConnection: NonNullable<
     userId: currentUserId,
     query: createMapQueryFn(noteCategoryQueryFn)<QueryableNote>()(
       (query) => ({
-        order: {
-          items: query,
-        },
+        notes: query,
       }),
       (noteCategory) => {
-        const items = noteCategory.order.items;
-        updateSize?.(items.length);
-        return items[index < 0 ? index + items.length : index];
+        const notes = noteCategory.notes;
+        updateSize?.(notes.length);
+        return notes[index < 0 ? index + notes.length : index];
       }
     ),
   });
@@ -114,17 +109,15 @@ export const userNoteLinkConnection: NonNullable<
     pageInfo: {
       hasNextPage: async () => {
         const noteCategory = await noteCategoryQueryFn({
-          order: {
-            firstId: 1,
-            items: {
-              _id: 1,
-            },
+          firstNoteId: 1,
+          notes: {
+            _id: 1,
           },
         });
 
-        const order = noteCategory?.order;
-        const startCursor = order?.items[0]?._id;
-        const firstCursor = order?.firstId;
+        const notes = noteCategory?.notes;
+        const startCursor = notes?.[0]?._id;
+        const firstCursor = noteCategory?.firstNoteId;
 
         const hasPreviousPage = startCursor && !startCursor.equals(firstCursor);
 
@@ -132,17 +125,15 @@ export const userNoteLinkConnection: NonNullable<
       },
       hasPreviousPage: async () => {
         const noteCategory = await noteCategoryQueryFn({
-          order: {
-            lastId: 1,
-            items: {
-              _id: 1,
-            },
+          lastNoteId: 1,
+          notes: {
+            _id: 1,
           },
         });
 
-        const order = noteCategory?.order;
-        const endCursor = order?.items[order.items.length - 1]?._id;
-        const lastCursor = order?.lastId;
+        const notes = noteCategory?.notes;
+        const endCursor = notes?.[notes.length - 1]?._id;
+        const lastCursor = noteCategory?.lastNoteId;
 
         const hasNextPage = endCursor && !endCursor.equals(lastCursor);
 

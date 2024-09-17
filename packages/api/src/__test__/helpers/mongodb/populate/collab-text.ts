@@ -22,7 +22,7 @@ export interface FakeCollabTextOptions {
 }
 
 export function fakeCollabText(
-  creatorUserId: DBRevisionRecordSchema['creatorUserId'],
+  creatorUserId: DBRevisionRecordSchema['creatorUser']['_id'],
   options?: FakeCollabTextOptions
 ): DBCollabTextSchema {
   const revisionOffset = Math.max(options?.revisionOffset ?? 0, 0);
@@ -45,12 +45,15 @@ export function fakeCollabText(
     options?: MongoPartialDeep<DBRevisionRecordSchema>
   ): DBRevisionRecordSchema {
     return {
-      creatorUserId: creatorUserId,
       userGeneratedId: faker.string.nanoid(6),
       revision: headRevision,
       changeset: headChangeset,
       createdAt: new Date(),
       ...options,
+      creatorUser: {
+        ...options?.creatorUser,
+        _id: creatorUserId,
+      },
       beforeSelection: {
         start: 0,
         ...options?.beforeSelection,

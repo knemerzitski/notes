@@ -4,7 +4,7 @@ import {
   QueryableNoteContext,
   queryableNoteDescription,
 } from '../note/descriptions/note';
-import { DeepAnyDescription } from '../../query/description';
+import { DescriptionDeep } from '../../query/description';
 import { fieldsRemoved } from '../../query/utils/fields-removed';
 
 export const QueryableSearchNote = object({
@@ -18,7 +18,7 @@ export const QueryableSearchNotes = array(QueryableSearchNote);
 
 export type QueryableSearchNotes = Infer<typeof QueryableSearchNotes>;
 
-export const notesSearchDescription: DeepAnyDescription<
+export const notesSearchDescription: DescriptionDeep<
   InferRaw<typeof QueryableSearchNotes>,
   unknown,
   QueryableNoteContext

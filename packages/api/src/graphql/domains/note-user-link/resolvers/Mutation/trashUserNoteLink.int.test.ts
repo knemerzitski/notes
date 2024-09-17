@@ -184,13 +184,13 @@ it('user trashes note only for self', async () => {
   expect(dbUser).toEqual(
     expect.objectContaining({
       _id: user._id,
-      notes: {
-        category: {
+      note: {
+        categories: {
           [NoteCategory.TRASH]: {
-            order: [note._id],
+            noteIds: [note._id],
           },
           [NoteCategory.DEFAULT]: {
-            order: [],
+            noteIds: [],
           },
         },
       },
@@ -202,10 +202,10 @@ it('user trashes note only for self', async () => {
   expect(dbUserNotOwner).toEqual(
     expect.objectContaining({
       _id: userNotOwner._id,
-      notes: {
-        category: {
+      note: {
+        categories: {
           [NoteCategory.ARCHIVE]: {
-            order: [note._id],
+            noteIds: [note._id],
           },
         },
       },

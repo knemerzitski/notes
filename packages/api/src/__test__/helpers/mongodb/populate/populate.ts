@@ -135,12 +135,12 @@ export function userAddNote(
   }
 
   const categoryName = noteUser.categoryName;
-  let categoryMeta = user.notes.category[categoryName];
+  let categoryMeta = user.note.categories[categoryName];
   if (!categoryMeta) {
     categoryMeta = {
-      order: [],
+      noteIds: [],
     };
-    user.notes.category[categoryName] = categoryMeta;
+    user.note.categories[categoryName] = categoryMeta;
   }
-  categoryMeta.order.push(note._id);
+  categoryMeta.noteIds.push(note._id);
 }

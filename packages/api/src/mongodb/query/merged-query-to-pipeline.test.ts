@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { DeepAnyDescription } from './description';
+import { DescriptionDeep } from './description';
 import { MergedQueryDeep } from './merge-queries';
 import {
   AddStagesContext,
@@ -116,7 +116,7 @@ describe('buildLastProjectValue', () => {
     ])('(%s,%s) => %s', (query, description, expectedResult) => {
       expect(
         buildLastProjectValue(query as MergedQueryDeep<unknown>, {
-          descriptions: [description as DeepAnyDescription<unknown>],
+          descriptions: [description as DescriptionDeep<unknown>],
         })
       ).toStrictEqual(expectedResult);
     });
@@ -159,7 +159,7 @@ describe('buildLastProjectValue', () => {
     ])('(%s,%s) => %s', (query, description, expectedResult) => {
       expect(
         buildLastProjectValue(query as MergedQueryDeep<unknown>, {
-          descriptions: [description as DeepAnyDescription<unknown>],
+          descriptions: [description as DescriptionDeep<unknown>],
         })
       ).toStrictEqual(expectedResult);
     });
@@ -215,7 +215,7 @@ describe('buildLastProjectValue', () => {
     ])('(%s,%s) => %s', (query, description, expectedResult) => {
       expect(
         buildLastProjectValue(query as MergedQueryDeep<unknown>, {
-          descriptions: [description as DeepAnyDescription<unknown>],
+          descriptions: [description as DescriptionDeep<unknown>],
         })
       ).toStrictEqual(expectedResult);
     });
@@ -249,7 +249,7 @@ describe('buildStages', () => {
             },
           },
         },
-      } as DeepAnyDescription<unknown>,
+      } as DescriptionDeep<unknown>,
     };
 
     expect(buildStages(query as MergedQueryDeep<unknown>, options)).toStrictEqual([
@@ -277,7 +277,7 @@ describe('buildStages', () => {
             },
           },
         },
-      } as DeepAnyDescription<unknown>,
+      } as DescriptionDeep<unknown>,
       customContext: 'ctx',
     };
 
@@ -312,7 +312,7 @@ describe('buildStages', () => {
             },
           },
         },
-      } as DeepAnyDescription<unknown>,
+      } as DescriptionDeep<unknown>,
       customContext: 'ctx',
     };
 
@@ -361,7 +361,7 @@ describe('buildStages', () => {
             },
           },
         },
-      } as DeepAnyDescription<unknown>,
+      } as DescriptionDeep<unknown>,
     };
 
     expect(buildStages(query as MergedQueryDeep<unknown>, options)).toStrictEqual([
@@ -420,7 +420,7 @@ describe('buildStages', () => {
             },
           },
         },
-      } as DeepAnyDescription<unknown>,
+      } as DescriptionDeep<unknown>,
     };
 
     expect(buildStages(query as MergedQueryDeep<unknown>, options)).toStrictEqual([
@@ -464,7 +464,7 @@ describe('buildStages', () => {
             },
           },
         },
-      } as DeepAnyDescription<unknown>,
+      } as DescriptionDeep<unknown>,
       customContext: 'ctx',
     };
 
@@ -494,7 +494,7 @@ describe('buildStages', () => {
             },
           },
         },
-      } as DeepAnyDescription<unknown>,
+      } as DescriptionDeep<unknown>,
       customContext: 'ctx',
     };
 

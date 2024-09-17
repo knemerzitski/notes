@@ -214,13 +214,13 @@ describe('note in normal categories', () => {
     expect(dbUser).toEqual(
       expect.objectContaining({
         _id: user._id,
-        notes: {
-          category: {
+        note: {
+          categories: {
             [MovableNoteCategory.ARCHIVE]: {
-              order: [...userBaseArchiveNoteIds, note._id],
+              noteIds: [...userBaseArchiveNoteIds, note._id],
             },
             [MovableNoteCategory.DEFAULT]: {
-              order: userBaseDefaultNoteIds,
+              noteIds: userBaseDefaultNoteIds,
             },
           },
         },
@@ -282,17 +282,17 @@ describe('note in normal categories', () => {
     expect(dbUser).toEqual(
       expect.objectContaining({
         _id: user._id,
-        notes: {
-          category: {
+        note: {
+          categories: {
             [MovableNoteCategory.ARCHIVE]: {
-              order: [
+              noteIds: [
                 ...userBaseArchiveNoteIds.slice(0, 1),
                 note._id,
                 ...userBaseArchiveNoteIds.slice(1),
               ],
             },
             [MovableNoteCategory.DEFAULT]: {
-              order: userBaseDefaultNoteIds,
+              noteIds: userBaseDefaultNoteIds,
             },
           },
         },
@@ -353,13 +353,13 @@ describe('note in normal categories', () => {
     expect(dbUser).toEqual(
       expect.objectContaining({
         _id: user._id,
-        notes: {
-          category: {
+        note: {
+          categories: {
             [MovableNoteCategory.ARCHIVE]: {
-              order: userBaseArchiveNoteIds,
+              noteIds: userBaseArchiveNoteIds,
             },
             [MovableNoteCategory.DEFAULT]: {
-              order: [
+              noteIds: [
                 ...userBaseDefaultNoteIds.slice(0, 1),
                 note._id,
                 ...userBaseDefaultNoteIds.slice(1),
@@ -422,13 +422,13 @@ describe('note in normal categories', () => {
     expect(dbUser).toEqual(
       expect.objectContaining({
         _id: user._id,
-        notes: {
-          category: {
+        note: {
+          categories: {
             [MovableNoteCategory.ARCHIVE]: {
-              order: [...userBaseArchiveNoteIds, note._id],
+              noteIds: [...userBaseArchiveNoteIds, note._id],
             },
             [MovableNoteCategory.DEFAULT]: {
-              order: userBaseDefaultNoteIds,
+              noteIds: userBaseDefaultNoteIds,
             },
           },
         },
@@ -487,13 +487,13 @@ describe('note in normal categories', () => {
     expect(dbUser).toEqual(
       expect.objectContaining({
         _id: user._id,
-        notes: {
-          category: {
+        note: {
+          categories: {
             [MovableNoteCategory.ARCHIVE]: {
-              order: userBaseArchiveNoteIds,
+              noteIds: userBaseArchiveNoteIds,
             },
             [MovableNoteCategory.DEFAULT]: {
-              order: [
+              noteIds: [
                 ...userBaseDefaultNoteIds.slice(1),
                 note._id,
                 ...userBaseDefaultNoteIds.slice(0, 1),
@@ -554,13 +554,13 @@ describe('note in normal categories', () => {
     expect(dbUser).toEqual(
       expect.objectContaining({
         _id: user._id,
-        notes: {
-          category: {
+        note: {
+          categories: {
             [MovableNoteCategory.ARCHIVE]: {
-              order: userBaseArchiveNoteIds,
+              noteIds: userBaseArchiveNoteIds,
             },
             [MovableNoteCategory.DEFAULT]: {
-              order: [...userBaseDefaultNoteIds, note._id],
+              noteIds: [...userBaseDefaultNoteIds, note._id],
             },
           },
         },
@@ -690,13 +690,13 @@ describe('note in normal categories', () => {
     expect(dbUser).toEqual(
       expect.objectContaining({
         _id: userNotOwner._id,
-        notes: {
-          category: {
+        note: {
+          categories: {
             [MovableNoteCategory.ARCHIVE]: {
-              order: [note._id],
+              noteIds: [note._id],
             },
             [MovableNoteCategory.DEFAULT]: {
-              order: [],
+              noteIds: [],
             },
           },
         },
@@ -793,16 +793,16 @@ describe('note in normal categories', () => {
     expect(dbUser).toEqual(
       expect.objectContaining({
         _id: user._id,
-        notes: {
-          category: {
+        note: {
+          categories: {
             [MovableNoteCategory.ARCHIVE]: {
-              order: userBaseArchiveNoteIds,
+              noteIds: userBaseArchiveNoteIds,
             },
             [MovableNoteCategory.DEFAULT]: {
-              order: userBaseDefaultNoteIds,
+              noteIds: userBaseDefaultNoteIds,
             },
             randomCategory: {
-              order: [note._id],
+              noteIds: [note._id],
             },
           },
         },
@@ -921,20 +921,20 @@ describe('note is trashed', () => {
     expect(dbUser).toEqual(
       expect.objectContaining({
         _id: user._id,
-        notes: {
-          category: {
+        note: {
+          categories: {
             [MovableNoteCategory.DEFAULT]: {
-              order: userBaseDefaultNoteIds,
+              noteIds: userBaseDefaultNoteIds,
             },
             [MovableNoteCategory.ARCHIVE]: {
-              order: [
+              noteIds: [
                 ...userBaseArchiveNoteIds.slice(0, 1),
                 note._id,
                 ...userBaseArchiveNoteIds.slice(1),
               ],
             },
             [NoteCategory.TRASH]: {
-              order: [],
+              noteIds: [],
             },
           },
         },
@@ -994,16 +994,16 @@ describe('note is trashed', () => {
     expect(dbUser).toEqual(
       expect.objectContaining({
         _id: user._id,
-        notes: {
-          category: {
+        note: {
+          categories: {
             [MovableNoteCategory.DEFAULT]: {
-              order: userBaseDefaultNoteIds,
+              noteIds: userBaseDefaultNoteIds,
             },
             [MovableNoteCategory.ARCHIVE]: {
-              order: [...userBaseArchiveNoteIds, note._id],
+              noteIds: [...userBaseArchiveNoteIds, note._id],
             },
             [NoteCategory.TRASH]: {
-              order: [],
+              noteIds: [],
             },
           },
         },

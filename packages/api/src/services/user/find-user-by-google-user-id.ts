@@ -2,7 +2,6 @@ import {
   QueryableUserLoader,
   UserNotFoundQueryLoaderError,
 } from '../../mongodb/loaders/user/loader';
-import { DBUserSchema } from '../../mongodb/schema/user';
 
 interface FindUserByGoogleUserIdParams {
   googleUserId: string;
@@ -33,35 +32,4 @@ export async function findUserByGoogleUserId({
     }
     throw err;
   }
-}
-
-export interface PrimeNewGoogleUserParams {
-  newUser: DBUserSchema;
-  loader: QueryableUserLoader;
-}
-
-export function primeNewGoogleUser({ newUser, loader }: PrimeNewGoogleUserParams) {
-  loader.prime(
-    {
-      id: {
-        userId: newUser._id,
-      },
-      query: {
-        _id: 1,
-        thirdParty: {
-          google: {
-            id: 1,
-          },
-        },
-        profile: {
-          displayName: 1,
-        },
-      },
-    },
-    {
-      _id: newUser._id,
-      profile: newUser.profile,
-      thirdParty: newUser.thirdParty,
-    }
-  );
 }

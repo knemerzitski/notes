@@ -10,20 +10,16 @@ import {
   mongoCollectionStats,
 } from '../../../__test__/helpers/mongodb/mongodb';
 import {
-  TestCollabTextKey,
   TestNoteCategory,
   populateNotes,
 } from '../../../__test__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../__test__/helpers/mongodb/populate/populate-queue';
 import { DBUserSchema } from '../../schema/user';
 
-import {
-  queryableUserBatchLoad,
-  QueryableUserLoaderKey,
-  QueryableUserLoaderParams,
-} from './loader';
+import { QueryableUserLoaderKey, QueryableUserLoaderParams } from './loader';
 import { fakeUserPopulateQueue } from '../../../__test__/helpers/mongodb/populate/user';
 import { CursorPagination } from '../../pagination/cursor-struct';
+import { batchLoad } from './batch-load';
 
 let populateResult: ReturnType<typeof populateNotes>;
 let mainNotesIds: ObjectId[];
@@ -77,38 +73,34 @@ beforeEach(() => {
 
 it('loads paginated notes', async () => {
   await expect(
-    queryableUserBatchLoad(
+    batchLoad(
       [
         {
           id: {
             userId: user._id,
           },
           query: {
-            notes: {
-              category: {
+            note: {
+              categories: {
                 [TestNoteCategory.MAIN]: {
-                  order: {
-                    items: {
-                      $pagination: {
-                        last: 2,
+                  notes: {
+                    $pagination: {
+                      last: 2,
+                    },
+                    _id: 1,
+                    users: {
+                      readOnly: 1,
+                      createdAt: 1,
+                    },
+                    collabText: {
+                      headText: {
+                        changeset: 1,
                       },
-                      _id: 1,
-                      users: {
-                        readOnly: 1,
-                        createdAt: 1,
-                      },
-                      collabTexts: {
-                        [TestCollabTextKey.TEXT]: {
-                          headText: {
-                            changeset: 1,
-                          },
-                          records: {
-                            $pagination: {
-                              first: 2,
-                            },
-                            revision: 1,
-                          },
+                      records: {
+                        $pagination: {
+                          first: 2,
                         },
+                        revision: 1,
                       },
                     },
                   },
@@ -125,57 +117,51 @@ it('loads paginated notes', async () => {
     )
   ).resolves.toEqual([
     {
-      notes: {
-        category: {
+      note: {
+        categories: {
           [TestNoteCategory.MAIN]: {
-            order: {
-              items: [
-                {
-                  _id: mainNotesIds.at(-2),
-                  users: [
+            notes: [
+              {
+                _id: mainNotesIds.at(-2),
+                users: [
+                  {
+                    createdAt: expect.any(Date),
+                    readOnly: expect.any(Boolean),
+                  },
+                ],
+                collabText: {
+                  headText: { changeset: ['head'] },
+                  records: [
                     {
-                      createdAt: expect.any(Date),
-                      readOnly: expect.any(Boolean),
+                      revision: 1,
+                    },
+                    {
+                      revision: 2,
                     },
                   ],
-                  collabTexts: {
-                    [TestCollabTextKey.TEXT]: {
-                      headText: { changeset: ['head'] },
-                      records: [
-                        {
-                          revision: 1,
-                        },
-                        {
-                          revision: 2,
-                        },
-                      ],
-                    },
-                  },
                 },
-                {
-                  _id: mainNotesIds.at(-1),
-                  users: [
+              },
+              {
+                _id: mainNotesIds.at(-1),
+                users: [
+                  {
+                    createdAt: expect.any(Date),
+                    readOnly: expect.any(Boolean),
+                  },
+                ],
+                collabText: {
+                  headText: { changeset: ['head'] },
+                  records: [
                     {
-                      createdAt: expect.any(Date),
-                      readOnly: expect.any(Boolean),
+                      revision: 1,
+                    },
+                    {
+                      revision: 2,
                     },
                   ],
-                  collabTexts: {
-                    [TestCollabTextKey.TEXT]: {
-                      headText: { changeset: ['head'] },
-                      records: [
-                        {
-                          revision: 1,
-                        },
-                        {
-                          revision: 2,
-                        },
-                      ],
-                    },
-                  },
                 },
-              ],
-            },
+              },
+            ],
           },
         },
       },
@@ -193,14 +179,12 @@ it('loads many different paginations', async () => {
         userId: user._id,
       },
       query: {
-        notes: {
-          category: {
+        note: {
+          categories: {
             [categoryName]: {
-              order: {
-                items: {
-                  $pagination: pagination,
-                  _id: 1,
-                },
+              notes: {
+                $pagination: pagination,
+                _id: 1,
               },
             },
           },
@@ -211,12 +195,10 @@ it('loads many different paginations', async () => {
 
   function wrapUserNotes(categoryName: TestNoteCategory, userNotes: unknown) {
     return {
-      notes: {
-        category: {
+      note: {
+        categories: {
           [categoryName]: {
-            order: {
-              items: userNotes,
-            },
+            notes: userNotes,
           },
         },
       },
@@ -224,7 +206,7 @@ it('loads many different paginations', async () => {
   }
 
   await expect(
-    queryableUserBatchLoad(
+    batchLoad(
       [
         createLoadKey(TestNoteCategory.MAIN, { first: 1 }), // 0
         createLoadKey(TestNoteCategory.OTHER, { last: 1 }), // 9
@@ -272,26 +254,24 @@ it('loads many different paginations', async () => {
 
 it('loads firstId, lastId with pagination', async () => {
   await expect(
-    queryableUserBatchLoad(
+    batchLoad(
       [
         {
           id: {
             userId: user._id,
           },
           query: {
-            notes: {
-              category: {
+            note: {
+              categories: {
                 [TestNoteCategory.MAIN]: {
-                  order: {
-                    items: {
-                      $pagination: {
-                        first: 1,
-                      },
-                      _id: 1,
+                  notes: {
+                    $pagination: {
+                      first: 1,
                     },
-                    firstId: 1,
-                    lastId: 1,
+                    _id: 1,
                   },
+                  firstNoteId: 1,
+                  lastNoteId: 1,
                 },
               },
             },
@@ -305,18 +285,16 @@ it('loads firstId, lastId with pagination', async () => {
     )
   ).resolves.toEqual([
     {
-      notes: {
-        category: {
+      note: {
+        categories: {
           [TestNoteCategory.MAIN]: {
-            order: {
-              items: [
-                {
-                  _id: mainNotesIds.at(0),
-                },
-              ],
-              firstId: mainNotesIds.at(0),
-              lastId: mainNotesIds.at(-1),
-            },
+            notes: [
+              {
+                _id: mainNotesIds.at(0),
+              },
+            ],
+            firstNoteId: mainNotesIds.at(0),
+            lastNoteId: mainNotesIds.at(-1),
           },
         },
       },
@@ -326,23 +304,21 @@ it('loads firstId, lastId with pagination', async () => {
 
 it('returns empty array for invalid path', async () => {
   await expect(
-    queryableUserBatchLoad(
+    batchLoad(
       [
         {
           id: {
             userId: user._id,
           },
           query: {
-            notes: {
-              category: {
+            note: {
+              categories: {
                 invalid_category: {
-                  order: {
-                    items: {
-                      $pagination: {
-                        last: 2,
-                      },
-                      _id: 1,
+                  notes: {
+                    $pagination: {
+                      last: 2,
                     },
+                    _id: 1,
                   },
                 },
               },
@@ -357,12 +333,10 @@ it('returns empty array for invalid path', async () => {
     )
   ).resolves.toEqual([
     {
-      notes: {
-        category: {
+      note: {
+        categories: {
           invalid_category: {
-            order: {
-              items: [],
-            },
+            notes: [],
           },
         },
       },
@@ -372,20 +346,18 @@ it('returns empty array for invalid path', async () => {
 
 it('loads all notes without pagination', async () => {
   await expect(
-    queryableUserBatchLoad(
+    batchLoad(
       [
         {
           id: {
             userId: user._id,
           },
           query: {
-            notes: {
-              category: {
+            note: {
+              categories: {
                 [TestNoteCategory.MAIN]: {
-                  order: {
-                    items: {
-                      _id: 1,
-                    },
+                  notes: {
+                    _id: 1,
                   },
                 },
               },
@@ -400,12 +372,10 @@ it('loads all notes without pagination', async () => {
     )
   ).resolves.toEqual([
     {
-      notes: {
-        category: {
+      note: {
+        categories: {
           [TestNoteCategory.MAIN]: {
-            order: {
-              items: mainNotesIds.map((id) => ({ _id: id })),
-            },
+            notes: mainNotesIds.map((id) => ({ _id: id })),
           },
         },
       },
@@ -415,7 +385,7 @@ it('loads all notes without pagination', async () => {
 
 it('loads two users in a single db call', async () => {
   await expect(
-    queryableUserBatchLoad(
+    batchLoad(
       [
         {
           id: {

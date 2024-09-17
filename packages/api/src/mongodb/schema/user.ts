@@ -15,9 +15,9 @@ import {
 
 export const NoteCategorySchema = object({
   /**
-   * An ordered list of Note._id
+   * An ordered list of Note._id's
    */
-  order: array(instance(ObjectId)),
+  noteIds: array(instance(ObjectId)),
 });
 
 export type DBNoteCategorySchema = InferRaw<typeof NoteCategorySchema>;
@@ -45,13 +45,13 @@ export const UserSchema = object({
   profile: object({
     displayName: string(),
   }),
-  notes: defaulted(
+  note: defaulted(
     defaulted(
       object({
         /**
          * Key is enum value NoteCategory
          */
-        category: defaulted(record(string(), NoteCategorySchema), () => ({})),
+        categories: defaulted(record(string(), NoteCategorySchema), () => ({})),
       }),
       () => ({})
     ),

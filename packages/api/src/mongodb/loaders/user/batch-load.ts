@@ -1,14 +1,19 @@
-import { ObjectId, Document } from "mongodb";
-import { InferRaw } from "superstruct";
-import { groupBy } from "~utils/array/group-by";
-import { isDefined } from "~utils/type-guards/is-defined";
-import { mapQueryAggregateResult } from "../../query/map-query-aggregate-result";
-import { mergeQueries, MergedQueryDeep } from "../../query/merge-queries";
-import { mergedQueryToPipeline } from "../../query/merged-query-to-pipeline";
-import { QueryDeep, PartialQueryResultDeep } from "../../query/query";
-import { getEqualObjectString } from "../../query/utils/get-equal-object-string";
-import { QueryableUser, queryableUserDescription } from "./description";
-import { QueryableUserId, QueryableUserLoaderKey, QueryableUserLoadContext, UserNotFoundQueryLoaderError } from "./loader";
+import { ObjectId, Document } from 'mongodb';
+import { InferRaw } from 'superstruct';
+import { groupBy } from '~utils/array/group-by';
+import { isDefined } from '~utils/type-guards/is-defined';
+import { mapQueryAggregateResult } from '../../query/map-query-aggregate-result';
+import { mergeQueries, MergedQueryDeep } from '../../query/merge-queries';
+import { mergedQueryToPipeline } from '../../query/merged-query-to-pipeline';
+import { QueryDeep, PartialQueryResultDeep } from '../../query/query';
+import { getEqualObjectString } from '../../query/utils/get-equal-object-string';
+import { QueryableUser, queryableUserDescription } from './description';
+import {
+  QueryableUserId,
+  QueryableUserLoaderKey,
+  QueryableUserLoadContext,
+  UserNotFoundQueryLoaderError,
+} from './loader';
 
 interface BatchLoadIdProcessor<T> {
   getIds(): T[];

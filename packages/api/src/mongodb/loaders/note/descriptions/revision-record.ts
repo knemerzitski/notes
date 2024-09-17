@@ -1,5 +1,5 @@
 import { CollectionName, MongoDBCollectionsOnlyNames } from '../../../collections';
-import { DeepAnyDescription } from '../../../query/description';
+import { DescriptionDeep } from '../../../query/description';
 import { isQueryOnlyId } from '../../../query/utils/is-query-only-id';
 import { UserSchema } from '../../../schema/user';
 import { RevisionRecordSchema } from '../../../schema/collab-text';
@@ -19,7 +19,7 @@ export interface QueryableRevisionRecordContext {
   collections: Pick<MongoDBCollectionsOnlyNames, CollectionName.USERS>;
 }
 
-export const queryableRevisionRecordDescription: DeepAnyDescription<
+export const queryableRevisionRecordDescription: DescriptionDeep<
   InferRaw<typeof QueryableRevisionRecord>,
   unknown,
   QueryableRevisionRecordContext

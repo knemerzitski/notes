@@ -164,7 +164,7 @@ describe('no existing notes', () => {
     mongoCollectionStats.mockClear();
   });
 
-  it.only('creates note without specifying any input', async () => {
+  it('creates note without specifying any input', async () => {
     const response = await executeOperation({}, { user });
 
     const data = expectGraphQLResponseData(response);
@@ -231,16 +231,16 @@ describe('no existing notes', () => {
     });
     expect(dbUser).toStrictEqual(
       expect.objectContaining({
-        notes: {
-          category: {
+        note: {
+          categories: {
             [NoteCategory.DEFAULT]: {
-              order: [expect.any(ObjectId)],
+              noteIds: [expect.any(ObjectId)],
             },
           },
         },
       })
     );
-    const noteId = dbUser?.notes.category[NoteCategory.DEFAULT]?.order[0];
+    const noteId = dbUser?.note.categories[NoteCategory.DEFAULT]?.noteIds[0];
     assert(noteId != null);
 
     // Database, Note
@@ -371,16 +371,16 @@ describe('no existing notes', () => {
     });
     expect(dbUser).toStrictEqual(
       expect.objectContaining({
-        notes: {
-          category: {
+        note: {
+          categories: {
             [NoteCategory.ARCHIVE]: {
-              order: [expect.any(ObjectId)],
+              noteIds: [expect.any(ObjectId)],
             },
           },
         },
       })
     );
-    const noteId = dbUser?.notes.category[NoteCategory.ARCHIVE]?.order[0];
+    const noteId = dbUser?.note.categories[NoteCategory.ARCHIVE]?.noteIds[0];
     assert(noteId != null);
 
     // Database, Note
@@ -442,8 +442,8 @@ describe('no existing notes', () => {
       });
       expect(dbUser, 'Expected User collection to be unmodified').toStrictEqual(
         expect.objectContaining({
-          notes: {
-            category: {},
+          note: {
+            categories: {},
           },
         })
       );
@@ -585,12 +585,12 @@ describe('have existing note', () => {
     const dbUser = await mongoCollections.users.findOne({
       _id: user._id,
     });
-    expect(dbUser, 'Note was not pushed to end of "order" array').toStrictEqual(
+    expect(dbUser, 'Note was not pushed to end of "noteIds" array').toStrictEqual(
       expect.objectContaining({
-        notes: {
-          category: {
+        note: {
+          categories: {
             [NoteCategory.DEFAULT]: {
-              order: [existingNote._id, expect.any(ObjectId)],
+              noteIds: [existingNote._id, expect.any(ObjectId)],
             },
           },
         },

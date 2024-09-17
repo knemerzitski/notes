@@ -1,5 +1,5 @@
 import { CollectionName, MongoDBCollectionsOnlyNames } from '../../../collections';
-import { DeepAnyDescription } from '../../../query/description';
+import { DescriptionDeep } from '../../../query/description';
 import { NoteUserSchema } from '../../../schema/note-user';
 import { collabTextDescription, QueryableCollabText } from './collab-text';
 import { array, assign, Infer, InferRaw, object, omit, optional } from 'superstruct';
@@ -9,7 +9,7 @@ import { NoteSchema } from '../../../schema/note';
 export const QueryableNoteUser = assign(
   NoteUserSchema,
   object({
-    user: omit(UserSchema, ['notes', 'thirdParty', '_id']),
+    user: omit(UserSchema, ['note', 'thirdParty', '_id']),
   })
 );
 
@@ -32,7 +32,7 @@ export interface QueryableNoteContext {
   >;
 }
 
-export const queryableNoteDescription: DeepAnyDescription<
+export const queryableNoteDescription: DescriptionDeep<
   InferRaw<typeof QueryableNote>,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   any,

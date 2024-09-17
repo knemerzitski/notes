@@ -8,7 +8,7 @@ import {
   CursorArrayPaginationAggregateResult,
   CursorArrayPaginationInput,
 } from '../../../pagination/cursor-array-pagination';
-import { DeepAnyDescription } from '../../../query/description';
+import { DescriptionDeep } from '../../../query/description';
 import { CollabTextSchema, RevisionRecordSchema } from '../../../schema/collab-text';
 import {
   QueryableRevisionRecord,
@@ -82,7 +82,7 @@ export interface QueryableCollabTextContext {
   collections: Pick<MongoDBCollectionsOnlyNames, CollectionName.USERS>;
 }
 
-export const collabTextDescription: DeepAnyDescription<
+export const collabTextDescription: DescriptionDeep<
   InferRaw<typeof QueryableCollabText>,
   {
     records: RecordsPaginationResult<

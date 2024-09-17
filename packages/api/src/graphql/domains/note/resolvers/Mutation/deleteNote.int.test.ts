@@ -162,19 +162,19 @@ it('only owner user deletes note for everyone', async () => {
 
   expect(dbUsers).toEqual([
     expect.objectContaining({
-      notes: {
-        category: {
+      note: {
+        categories: {
           [NoteCategory.DEFAULT]: {
-            order: [noteSecond._id],
+            noteIds: [noteSecond._id],
           },
         },
       },
     }),
     expect.objectContaining({
-      notes: {
-        category: {
+      note: {
+        categories: {
           [NoteCategory.DEFAULT]: {
-            order: [],
+            noteIds: [],
           },
         },
       },
@@ -220,19 +220,19 @@ it('other user deletes note only for self', async () => {
 
   expect(dbUsers).toEqual([
     expect.objectContaining({
-      notes: {
-        category: {
+      note: {
+        categories: {
           [NoteCategory.DEFAULT]: {
-            order: [note._id, noteSecond._id],
+            noteIds: [note._id, noteSecond._id],
           },
         },
       },
     }),
     expect.objectContaining({
-      notes: {
-        category: {
+      note: {
+        categories: {
           [NoteCategory.DEFAULT]: {
-            order: [],
+            noteIds: [],
           },
         },
       },
@@ -287,19 +287,19 @@ it('owner user deletes other user note', async () => {
 
   expect(dbUsers).toEqual([
     expect.objectContaining({
-      notes: {
-        category: {
+      note: {
+        categories: {
           [NoteCategory.DEFAULT]: {
-            order: [note._id, noteSecond._id],
+            noteIds: [note._id, noteSecond._id],
           },
         },
       },
     }),
     expect.objectContaining({
-      notes: {
-        category: {
+      note: {
+        categories: {
           [NoteCategory.DEFAULT]: {
-            order: [],
+            noteIds: [],
           },
         },
       },
@@ -367,10 +367,10 @@ it('new other note user is added while note is being deleted: note user will not
 
   expect(dbUsers).toEqual([
     expect.objectContaining({
-      notes: {
-        category: {
+      note: {
+        categories: {
           [NoteCategory.DEFAULT]: {
-            order: [],
+            noteIds: [],
           },
         },
       },

@@ -7,6 +7,7 @@ import {
 } from '../../../__test__/helpers/mongodb/mongodb';
 import { DBUserSchema, UserSchema } from '../../schema/user';
 import { updateDisplayName } from './update-display-name';
+import { ObjectId } from 'mongodb';
 
 let user: DBUserSchema;
 
@@ -15,6 +16,7 @@ beforeEach(async () => {
   await resetDatabase();
 
   user = UserSchema.create({
+    _id: new ObjectId(),
     profile: {
       displayName: 'initial name',
     },

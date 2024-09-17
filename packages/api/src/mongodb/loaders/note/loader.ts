@@ -20,6 +20,7 @@ import {
 } from '../../query/query-loader';
 import { objectIdToStr } from '../../utils/objectid';
 import { batchLoad } from './batch-load';
+import { queryArgsRemoved } from '../../query/utils/query-args-removed';
 
 export interface QueryableNoteId {
   /**
@@ -128,29 +129,43 @@ export class QueryableNoteLoader {
   }
 
   private primeNotesFromLoadedUser({ key, value }: LoaderEvents['loadedUser']) {
-    if (!key.query.notes?.category) {
+    if (!key.query.note?.categories) {
       return;
     }
 
-    Object.entries(key.query.notes.category).forEach(([categoryName, categoryMeta]) => {
-      const noteQuery = categoryMeta?.order?.items;
+    Object.entries(key.query.note.categories).forEach(([categoryName, categoryMeta]) => {
+      const noteQuery = categoryMeta?.notes;
       if (!noteQuery) {
         return;
       }
+      const noteQueryNoArgs = queryArgsRemoved(noteQuery);
 
-      const resultCategoryMeta = value.notes?.category?.[categoryName];
+      const resultCategoryMeta = value.note?.categories?.[categoryName];
       if (!resultCategoryMeta) {
         return;
       }
-      resultCategoryMeta.order?.items?.forEach((note) => {
+      resultCategoryMeta.notes?.forEach((note) => {
         if (!note?._id) return;
+
+        if ('userId' in key.id) {
+          this.loader.prime(
+            {
+              id: {
+                userId: key.id.userId,
+                noteId: note._id,
+              },
+              query: noteQueryNoArgs,
+            },
+            note
+          );
+        }
 
         this.loader.prime(
           {
             id: {
               noteId: note._id,
             },
-            query: noteQuery,
+            query: noteQueryNoArgs,
           },
           note
         );

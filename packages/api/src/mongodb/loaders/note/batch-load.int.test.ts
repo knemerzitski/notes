@@ -5,9 +5,11 @@ import { beforeAll, it, assert, expect } from 'vitest';
 
 import { Changeset } from '~collab/changeset/changeset';
 
-import { resetDatabase, mongoCollections } from '../../../__test__/helpers/mongodb/mongodb';
 import {
-  TestCollabTextKey,
+  resetDatabase,
+  mongoCollections,
+} from '../../../__test__/helpers/mongodb/mongodb';
+import {
   populateUserAddNote,
   populateNotes,
 } from '../../../__test__/helpers/mongodb/populate/populate';
@@ -15,9 +17,7 @@ import { populateExecuteAll } from '../../../__test__/helpers/mongodb/populate/p
 import { fakeUserPopulateQueue } from '../../../__test__/helpers/mongodb/populate/user';
 import { DBNoteSchema } from '../../schema/note';
 
-import {
-  QueryableNoteLoaderParams,
-} from './loader';
+import { QueryableNoteLoaderParams } from './loader';
 import { batchLoad } from './batch-load';
 
 let populateResult: ReturnType<typeof populateNotes>;
@@ -73,17 +73,15 @@ it('loads a simple note', async () => {
               createdAt: 1,
               readOnly: 1,
             },
-            collabTexts: {
-              [TestCollabTextKey.TEXT]: {
-                headText: {
-                  changeset: 1,
+            collabText: {
+              headText: {
+                changeset: 1,
+              },
+              records: {
+                $pagination: {
+                  last: 2,
                 },
-                records: {
-                  $pagination: {
-                    last: 2,
-                  },
-                  revision: 1,
-                },
+                revision: 1,
               },
             },
           },
@@ -101,18 +99,16 @@ it('loads a simple note', async () => {
         { readOnly: expect.any(Boolean), createdAt: expect.any(Date) },
         { readOnly: expect.any(Boolean), createdAt: expect.any(Date) },
       ],
-      collabTexts: {
-        [TestCollabTextKey.TEXT]: {
-          headText: { changeset: ['head'] },
-          records: [
-            {
-              revision: 9,
-            },
-            {
-              revision: 10,
-            },
-          ],
-        },
+      collabText: {
+        headText: { changeset: ['head'] },
+        records: [
+          {
+            revision: 9,
+          },
+          {
+            revision: 10,
+          },
+        ],
       },
     },
   ]);
@@ -135,33 +131,33 @@ it('loads all fields', async () => {
                 backgroundColor: 1,
               },
             },
-            collabTexts: {
-              [TestCollabTextKey.TEXT]: {
-                headText: {
-                  changeset: 1,
-                  revision: 1,
+            collabText: {
+              headText: {
+                changeset: 1,
+                revision: 1,
+              },
+              tailText: {
+                changeset: 1,
+                revision: 1,
+              },
+              records: {
+                $pagination: {
+                  after: 5,
+                  first: 1,
                 },
-                tailText: {
-                  changeset: 1,
-                  revision: 1,
+                revision: 1,
+                changeset: 1,
+                creatorUser: {
+                  _id: 1,
                 },
-                records: {
-                  $pagination: {
-                    after: 5,
-                    first: 1,
-                  },
-                  revision: 1,
-                  changeset: 1,
-                  creatorUserId: 1,
-                  userGeneratedId: 1,
-                  afterSelection: {
-                    start: 1,
-                    end: 1,
-                  },
-                  beforeSelection: {
-                    start: 1,
-                    end: 1,
-                  },
+                userGeneratedId: 1,
+                afterSelection: {
+                  start: 1,
+                  end: 1,
+                },
+                beforeSelection: {
+                  start: 1,
+                  end: 1,
                 },
               },
             },
@@ -192,25 +188,25 @@ it('loads all fields', async () => {
           },
         },
       ],
-      collabTexts: {
-        [TestCollabTextKey.TEXT]: {
-          headText: { changeset: ['head'], revision: expect.any(Number) },
-          tailText: { changeset: [], revision: expect.any(Number) },
-          records: [
-            {
-              revision: 6,
-              changeset: ['r_6'],
-              creatorUserId: expect.any(ObjectId),
-              userGeneratedId: expect.any(String),
-              afterSelection: {
-                start: 4,
-              },
-              beforeSelection: {
-                start: 0,
-              },
+      collabText: {
+        headText: { changeset: ['head'], revision: expect.any(Number) },
+        tailText: { changeset: [], revision: expect.any(Number) },
+        records: [
+          {
+            revision: 6,
+            changeset: ['r_6'],
+            creatorUser: {
+              _id: expect.any(ObjectId),
             },
-          ],
-        },
+            userGeneratedId: expect.any(String),
+            afterSelection: {
+              start: 4,
+            },
+            beforeSelection: {
+              start: 0,
+            },
+          },
+        ],
       },
     },
   ]);
@@ -260,7 +256,7 @@ it('loads shareNoteLinks', async () => {
           },
           query: {
             shareNoteLinks: {
-              publicId: 1,
+              _id: 1,
               expireAccessCount: 1,
             },
           },
@@ -275,7 +271,7 @@ it('loads shareNoteLinks', async () => {
     {
       shareNoteLinks: [
         {
-          publicId: expect.any(String),
+          _id: expect.any(ObjectId),
           expireAccessCount: expect.any(Number),
         },
       ],

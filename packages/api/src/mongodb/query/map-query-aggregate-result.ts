@@ -2,7 +2,7 @@ import { isDefined } from '~utils/type-guards/is-defined';
 
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 
-import { DeepAnyDescription, FieldDescription } from './description';
+import { DescriptionDeep, FieldDescription } from './description';
 import { MergedQueryDeep } from './merge-queries';
 import { PartialQueryResultDeep, QueryDeep } from './query';
 
@@ -17,7 +17,7 @@ interface MapQueryAggregateResultContext<
   TResult = unknown,
   TContext = unknown,
 > {
-  descriptions?: DeepAnyDescription<TSchema, TResult, TContext>[];
+  descriptions?: DescriptionDeep<TSchema, TResult, TContext>[];
 }
 
 export function mapQueryAggregateResult<
@@ -59,7 +59,7 @@ export function mapQueryAggregateResult<
     if (Array.isArray(aggregateResult)) {
       const descriptionsNoResolver = descriptions.map(
         ({ $mapAggregateResult, ...rest }) => rest
-      ) as DeepAnyDescription<unknown>[];
+      ) as DescriptionDeep<unknown>[];
 
       return aggregateResult.map((subAggregateResult) =>
         mapQueryAggregateResult(rootQuery, rootMergedQuery, subAggregateResult, {

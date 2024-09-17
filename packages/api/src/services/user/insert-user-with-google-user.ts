@@ -33,20 +33,32 @@ export async function insertUserWithGoogleUser({
     mongoDB,
   });
 
-  // TODO refactor userschema and queryableuser to match
-  // mongoDB.loaders.user.prime(
-  //   {
-  //     id: {
-  //       googleUserId: id,
-  //     },
-  //   },
-  //   user,
-  //   {
-  //     valueToQueryOptions: {
-  //       fillStruct: UserSchema,
-  //     },
-  //   }
-  // );
+  mongoDB.loaders.user.prime(
+    {
+      id: {
+        googleUserId: id,
+      },
+    },
+    user,
+    {
+      valueToQueryOptions: {
+        fillStruct: UserSchema,
+      },
+    }
+  );
+  mongoDB.loaders.user.prime(
+    {
+      id: {
+        userId: user._id,
+      },
+    },
+    user,
+    {
+      valueToQueryOptions: {
+        fillStruct: UserSchema,
+      },
+    }
+  );
 
   return user;
 }

@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
-import { afterEach, assert, beforeAll, expect, it, vi } from 'vitest';
+import { afterEach, assert, beforeAll, beforeEach, expect, it, vi } from 'vitest';
 
 import {
   resetDatabase,
   mongoCollections,
   mongoClient,
+  mongoCollectionStats,
 } from '../__test__/helpers/mongodb/mongodb';
 import {
   populateNotes,
@@ -16,13 +17,13 @@ import { populateExecuteAll } from '../__test__/helpers/mongodb/populate/populat
 
 import { createMongoDBLoaders, MongoDBLoaders } from './loaders';
 import { QueryDeep } from './query/query';
-import { NoteSchema } from './schema/note';
-import { QueryableNote } from './descriptions/note';
-import { UserSchema } from './schema/user';
+import { DBNoteSchema } from './schema/note';
+import { QueryableNote } from './loaders/note/descriptions/note';
+import { DBUserSchema } from './schema/user';
 
 let populateResult: ReturnType<typeof populateNotes>;
-let user: UserSchema;
-let note: NoteSchema;
+let user: DBUserSchema;
+let note: DBNoteSchema;
 
 let loaders: MongoDBLoaders;
 
@@ -44,40 +45,31 @@ beforeAll(async () => {
   });
 });
 
-function databaseCallsCountGetter() {
-  const collections = Object.values(mongoCollections);
-
-  const spyCollections = collections.map((col) => vi.spyOn(col, 'aggregate'));
-
-  return () => spyCollections.reduce((sum, col) => sum + col.mock.calls.length, 0);
-}
+beforeEach(() => {
+  mongoCollectionStats.mockClear();
+});
 
 afterEach(() => {
   vi.restoreAllMocks();
 });
 
-it('loading note from user primes userNote loader', async () => {
-  const dbCallCount = databaseCallsCountGetter();
-
-  expect(dbCallCount()).toStrictEqual(0);
-
-  const userNoteQuery: QueryDeep<QueryableNote> = {
+it('loading note from user primes note loader', async () => {
+  const noteQuery: QueryDeep<QueryableNote> = {
     _id: 1,
-    publicId: 1,
   };
   const userResult = await loaders.user.load({
-    userId: user._id,
-    userQuery: {
-      notes: {
-        category: {
+    id: {
+      userId: user._id,
+    },
+    query: {
+      note: {
+        categories: {
           [TestNoteCategory.MAIN]: {
-            order: {
-              items: {
-                $pagination: {
-                  first: 2,
-                },
-                ...userNoteQuery,
+            notes: {
+              $pagination: {
+                first: 2,
               },
+              ...noteQuery,
             },
           },
         },
@@ -86,41 +78,35 @@ it('loading note from user primes userNote loader', async () => {
   });
 
   expect(userResult).toStrictEqual({
-    notes: {
-      category: {
+    note: {
+      categories: {
         [TestNoteCategory.MAIN]: {
-          order: {
-            items: [
-              {
-                _id: expect.any(ObjectId),
-                publicId: expect.any(String),
-              },
-              {
-                _id: expect.any(ObjectId),
-                publicId: expect.any(String),
-              },
-            ],
-          },
+          notes: [
+            {
+              _id: expect.any(ObjectId),
+            },
+            {
+              _id: expect.any(ObjectId),
+            },
+          ],
         },
       },
     },
   });
 
-  expect(dbCallCount()).toStrictEqual(1);
+  expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(1);
 
-  const quickUserNoteResult = await loaders.note.load({
-    userId: user._id,
-    publicId: note.publicId,
-    noteQuery: userNoteQuery,
+  const noteResult = await loaders.note.load({
+    id: {
+      noteId: note._id,
+      userId: user._id,
+    },
+    query: noteQuery,
   });
 
-  expect(quickUserNoteResult).toStrictEqual({
+  expect(noteResult).toStrictEqual({
     _id: expect.any(ObjectId),
-    publicId: expect.any(String),
   });
 
-  expect(
-    dbCallCount(),
-    'QueryableUserNoteLoader is not reusing result form QueryableUserLoader'
-  ).toStrictEqual(1);
+  expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(1);
 });

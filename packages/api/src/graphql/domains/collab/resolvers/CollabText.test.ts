@@ -123,8 +123,8 @@ describe('textAtRevision', () => {
     ).resolves.toStrictEqual({ revision: 6, changeset: Changeset.fromInsertion('abc') });
   });
 
-  it('returns null for future revision', async () => {
-    await expect(
+  it('throws error for future revision', async () => {
+    await expect(async () =>
       (
         await maybeCallFn(
           textAtRevision(
@@ -150,6 +150,6 @@ describe('textAtRevision', () => {
         revision: 1,
         changeset: 1,
       })
-    ).resolves.toBeFalsy();
+    ).rejects.toThrowError(new Error('Invalid revision 6'));
   });
 });
