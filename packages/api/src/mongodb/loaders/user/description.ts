@@ -29,7 +29,6 @@ import {
   string,
 } from 'superstruct';
 import { CursorPagination } from '../../pagination/cursor-struct';
-import { AddStagesContext } from '../../query/merged-query-to-pipeline';
 
 const typeObjectId = instance(ObjectId);
 
@@ -220,7 +219,7 @@ export const queryableUserDescription: DescriptionDeep<
           },
         },
         firstNoteId: {
-          $addStages({ fields }: AddStagesContext<ObjectId, QueryableUserContext>) {
+          $addStages({ fields }) {
             return [
               {
                 $set: Object.fromEntries(
@@ -236,7 +235,7 @@ export const queryableUserDescription: DescriptionDeep<
           },
         },
         lastNoteId: {
-          $addStages({ fields }: AddStagesContext<ObjectId, QueryableUserContext>) {
+          $addStages({ fields }) {
             return [
               {
                 $set: Object.fromEntries(

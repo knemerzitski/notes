@@ -36,21 +36,22 @@ export interface FieldDescription<
   >;
 }
 
-export type DescriptionDeep<T, R = unknown, C = unknown> = T extends (infer U)[]
-  ? DescriptionDeep<U, R, C>
-  : T extends MongoPrimitive
-    ? FieldDescription<T, R, C>
+export type DescriptionDeep<T, R = unknown, C = unknown, P = MongoPrimitive> = T extends P
+  ? FieldDescription<T, R, C>
+  : T extends (infer U)[]
+    ? DescriptionDeep<U, R, C>
     : T extends object
-      ? DescriptionObjectDeep<T, R, C>
-      : FieldDescription<T, R, C>;
+      ? DescriptionObjectDeep<T, R, C, P>
+      : never;
 
-type DescriptionObjectDeep<T extends object, R, C> = FieldDescription<T, R, C> &
+type DescriptionObjectDeep<T extends object, R, C, P> = FieldDescription<T, R, C> &
   OmitStartsWith<
     {
       [Key in keyof T]?: DescriptionDeep<
         T[Key],
         R extends object ? R[keyof R] : unknown,
-        C
+        C,
+        P
       >;
     },
     QueryArgPrefix
