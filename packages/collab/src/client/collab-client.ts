@@ -1,7 +1,6 @@
 import { mitt, Emitter } from '~utils/mitt-unsub';
-import { Serializable, assertIsObject } from '~utils/serialize';
-
-import { Changeset, SerializedChangeset } from '../changeset/changeset';
+import { Changeset, ChangesetStruct } from '../changeset';
+import { object, optional } from 'superstruct';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CollabClientEvents = {
@@ -56,11 +55,11 @@ export enum ChangeSource {
   RESET,
 }
 
-export interface SerializedCollabClient {
-  server?: SerializedChangeset;
-  submitted?: SerializedChangeset;
-  local?: SerializedChangeset;
-}
+export const CollabClientOptionsStruct = object({
+  server: optional(ChangesetStruct),
+  submitted: optional(ChangesetStruct),
+  local: optional(ChangesetStruct),
+});
 
 export interface CollabClientOptions {
   eventBus?: Emitter<CollabClientEvents>;
@@ -71,7 +70,7 @@ export interface CollabClientOptions {
   view?: Changeset;
 }
 
-export class CollabClient implements Serializable<SerializedCollabClient> {
+export class CollabClient {
   readonly eventBus: Emitter<CollabClientEvents>;
 
   private _server!: Changeset;
@@ -195,7 +194,7 @@ export class CollabClient implements Serializable<SerializedCollabClient> {
   /**
    * Composes external change to server changeset and updates rest accordingly to match server.
    */
-  handleExternalChange(external: Changeset) {
+  handleExternalChange(external: Changeset): CollabClientEvents['handledExternalChange'] {
     // A - server, X - submitted, Y - local, B - external,
     // V - view, D - external change relative to view
     // Text before external change: AXY = V
@@ -241,27 +240,15 @@ export class CollabClient implements Serializable<SerializedCollabClient> {
     return event;
   }
 
-  serialize(): SerializedCollabClient {
-    return {
-      server: !this.server.isEqual(Changeset.EMPTY) ? this.server.serialize() : undefined,
-      submitted: this.haveSubmittedChanges() ? this.submitted.serialize() : undefined,
-      local: this.haveLocalChanges() ? this.local.serialize() : undefined,
-    };
+  serialize() {
+    return CollabClientOptionsStruct.createRaw({
+      server: !this.server.isEqual(Changeset.EMPTY) ? this.server : undefined,
+      submitted: this.haveSubmittedChanges() ? this.submitted : undefined,
+      local: this.haveLocalChanges() ? this.local : undefined,
+    });
   }
 
   static parseValue(value: unknown): CollabClientOptions {
-    assertIsObject(value);
-
-    const valueMaybe = value as {
-      server?: unknown;
-      submitted?: unknown;
-      local?: unknown;
-    };
-
-    return {
-      server: Changeset.parseValueMaybe(valueMaybe.server) ?? undefined,
-      submitted: Changeset.parseValueMaybe(valueMaybe.submitted) ?? undefined,
-      local: Changeset.parseValueMaybe(valueMaybe.local) ?? undefined,
-    };
+    return CollabClientOptionsStruct.create(value);
   }
 }

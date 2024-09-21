@@ -4,25 +4,16 @@ import { nanoid } from 'nanoid';
 import { mitt, Emitter } from '~utils/mitt-unsub';
 import {
   OrderedMessageBuffer,
-  OrderedMessageBufferOptions,
+  OrderedMessageBufferParams,
+  OrderedMessageBufferParamsStruct,
   ProcessingEvents,
-  SerializedOrderedMessageBuffer,
 } from '~utils/ordered-message-buffer';
 import { OrderedMessageBufferEvents } from '~utils/ordered-message-buffer';
 import {
-  ParseError,
-  Serializable,
-  assertHasProperties,
-  parseNumber,
-} from '~utils/serialize';
-import { PartialBy } from '~utils/types';
-
-import { Changeset, SerializedChangeset } from '../changeset/changeset';
-import {
   RevisionChangeset,
-  SerializedSubmittedRevisionRecord,
-  ServerRevisionRecord,
+  ServerRevisionRecordStruct,
   SubmittedRevisionRecord,
+  SubmittedRevisionRecordStruct,
 } from '../records/record';
 
 import { deletionCountOperation, insertionOperation } from './changeset-operations';
@@ -30,17 +21,19 @@ import {
   CollabClient,
   CollabClientEvents,
   CollabClientOptions,
-  SerializedCollabClient,
+  CollabClientOptionsStruct,
 } from './collab-client';
 import {
   CollabHistory,
   CollabHistoryOptions,
+  CollabHistoryOptionsStruct,
   LocalChangesetEditorHistoryEvents,
-  SerializedCollabHistory,
 } from './collab-history';
-import { SelectionRange } from './selection-range';
 import { SubmittedRecord } from './submitted-record';
 import { UserRecords } from './user-records';
+import { Changeset } from '../changeset';
+import { assign, Infer, object, omit, optional, union, literal } from 'superstruct';
+import { SelectionRange } from './selection-range';
 
 export type CollabEditorEvents = CollabClientEvents &
   Omit<OrderedMessageBufferEvents<UnprocessedRecord>, 'processingMessages'> &
@@ -95,64 +88,39 @@ type EditorEvents = {
   missingRevisions: { start: number; end: number };
 };
 
-type LocalRecord<TChangeset = Changeset> = PartialBy<
-  ServerRevisionRecord<TChangeset>,
-  'userGeneratedId' | 'creatorUserId'
->;
-type ExternalRecord<TChangeset = Changeset> = PartialBy<
-  Omit<ServerRevisionRecord<TChangeset>, 'userGeneratedId'>,
-  'beforeSelection' | 'afterSelection' | 'creatorUserId'
->;
+const LocalRecordStruct = assign(
+  ServerRevisionRecordStruct,
+  object({
+    userGeneratedId: optional(ServerRevisionRecordStruct.schema.userGeneratedId),
+    creatorUserId: optional(ServerRevisionRecordStruct.schema.creatorUserId),
+  })
+);
 
-export type EditorRevisionRecord<TChangeset = Changeset> =
-  | LocalRecord<TChangeset>
-  | ExternalRecord<TChangeset>;
+const ExternalRecordStruct = assign(
+  omit(ServerRevisionRecordStruct, ['userGeneratedId']),
+  object({
+    beforeSelection: optional(ServerRevisionRecordStruct.schema.beforeSelection),
+    afterSelection: optional(ServerRevisionRecordStruct.schema.afterSelection),
+    creatorUserId: optional(ServerRevisionRecordStruct.schema.creatorUserId),
+  })
+);
 
-export enum UnprocessedRecordType {
-  SUBMITTED_ACKNOWLEDGED,
-  EXTERNAL_CHANGE,
-}
+const EditorRevisionRecordStruct = union([LocalRecordStruct, ExternalRecordStruct]);
 
-export type UnprocessedRecord<TChangeset = Changeset> =
-  | {
-      type: UnprocessedRecordType.SUBMITTED_ACKNOWLEDGED;
-      record: EditorRevisionRecord<TChangeset>;
-    }
-  | {
-      type: UnprocessedRecordType.EXTERNAL_CHANGE;
-      record: EditorRevisionRecord<TChangeset>;
-    };
+export type EditorRevisionRecord = Infer<typeof EditorRevisionRecordStruct>;
 
-// eslint-disable-next-line @typescript-eslint/no-namespace
-namespace UnprocessedRecord {
-  export function getVersion(message: UnprocessedRecord) {
-    return message.record.revision;
-  }
+const UnprocessedRecordStruct = union([
+  object({
+    type: literal('SUBMITTED_ACKNOWLEDGED'),
+    record: EditorRevisionRecordStruct,
+  }),
+  object({
+    type: literal('EXTERNAL_CHANGE'),
+    record: EditorRevisionRecordStruct,
+  }),
+]);
 
-  export function serialize(message: UnprocessedRecord) {
-    return {
-      ...message,
-      record: EditorServerRecord.serialize(message.record),
-    };
-  }
-
-  export function parseValue(value: unknown): UnprocessedRecord {
-    assertHasProperties(value, ['type', 'record']);
-
-    const type = value.type;
-    if (
-      type !== UnprocessedRecordType.EXTERNAL_CHANGE &&
-      type !== UnprocessedRecordType.SUBMITTED_ACKNOWLEDGED
-    ) {
-      throw new ParseError(`Unknown record type ${String(type)}`);
-    }
-
-    return {
-      type,
-      record: EditorServerRecord.parseValue(value.record),
-    };
-  }
-}
+export type UnprocessedRecord = Infer<typeof UnprocessedRecordStruct>;
 
 export interface HistoryOperationOptions {
   /**
@@ -161,56 +129,17 @@ export interface HistoryOperationOptions {
   merge: boolean;
 }
 
-export interface SerializedCollabEditor {
-  client: Omit<SerializedCollabClient, 'submitted'>;
-  submittedRecord?: SerializedSubmittedRevisionRecord;
-  recordsBuffer?: SerializedOrderedMessageBuffer<UnprocessedRecord<SerializedChangeset>>;
-  history: Omit<SerializedCollabHistory, 'tailRevision' | 'tailText'>;
-}
+const CollabEditorOptionsStruct = object({
+  client: omit(CollabClientOptionsStruct, ['submitted']), // instead of omit make it optional?
+  submittedRecord: optional(SubmittedRevisionRecordStruct),
+  recordsBuffer: optional(OrderedMessageBufferParamsStruct(UnprocessedRecordStruct)),
+  history: omit(CollabHistoryOptionsStruct, ['tailRevision', 'tailText']),
+});
 
-// eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace EditorServerRecord {
-  export function serialize(
-    record: EditorRevisionRecord
-  ): EditorRevisionRecord<SerializedChangeset> {
-    return {
-      revision: record.revision,
-      creatorUserId: (record as { creatorUserId?: ExternalRecord['creatorUserId'] })
-        .creatorUserId,
-      beforeSelection: record.beforeSelection,
-      afterSelection: record.afterSelection,
-      changeset: record.changeset.serialize(),
-    };
-  }
-
-  export function parseValue(value: unknown): EditorRevisionRecord {
-    assertHasProperties(value, ['revision', 'changeset']);
-
-    const typedValue = value as typeof value & {
-      beforeSelection?: unknown;
-      afterSelection?: unknown;
-      creatorUserId?: unknown;
-    };
-
-    return {
-      changeset: Changeset.parseValue(typedValue.changeset),
-      revision: parseNumber(typedValue.revision),
-      creatorUserId: typedValue.creatorUserId
-        ? String(typedValue.creatorUserId)
-        : undefined,
-      beforeSelection: SelectionRange.parseValueMaybe(typedValue.beforeSelection),
-      afterSelection: SelectionRange.parseValueMaybe(typedValue.afterSelection),
-    };
-  }
-}
-
-type UnprocessedRecordsBuffer = OrderedMessageBuffer<
-  UnprocessedRecord,
-  UnprocessedRecord<SerializedChangeset>
->;
+type UnprocessedRecordsBuffer = OrderedMessageBuffer<typeof UnprocessedRecordStruct>;
 
 type UnprocessedRecordsBufferOptions = Omit<
-  OrderedMessageBufferOptions<UnprocessedRecord, UnprocessedRecord<SerializedChangeset>>,
+  OrderedMessageBufferParams<typeof UnprocessedRecordStruct>,
   'getVersion' | 'serializeMessage'
 >;
 
@@ -218,13 +147,15 @@ export interface CollabEditorOptions {
   eventBus?: Emitter<CollabEditorEvents>;
   generateSubmitId?: () => string;
   userRecords?: UserRecords;
-  recordsBuffer?: UnprocessedRecordsBuffer | UnprocessedRecordsBufferOptions;
+  recordsBuffer?:
+    | UnprocessedRecordsBuffer
+    | Omit<UnprocessedRecordsBufferOptions, 'messageMapper'>;
   client?: CollabClient | CollabClientOptions;
   history?: CollabHistory | Omit<CollabHistoryOptions, 'client'>;
   submittedRecord?: SubmittedRecord;
 }
 
-export class CollabEditor implements Serializable<SerializedCollabEditor> {
+export class CollabEditor {
   readonly eventBus: Emitter<CollabEditorEvents>;
   private generateSubmitId: () => string;
 
@@ -269,11 +200,13 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
 
   private unsubscribeFromEvents: () => void;
 
-  static newFromHeadText(headText: RevisionChangeset): CollabEditor {
+  static newFromHeadText: (headText: RevisionChangeset) => CollabEditor = (headText) => {
     return new CollabEditor(CollabEditor.headTextAsOptions(headText));
-  }
+  };
 
-  static headTextAsOptions(headText: RevisionChangeset): CollabEditorOptions {
+  static headTextAsOptions: (headText: RevisionChangeset) => CollabEditorOptions = (
+    headText
+  ) => {
     return {
       recordsBuffer: {
         version: headText.revision,
@@ -282,7 +215,7 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
         server: headText.changeset,
       },
     };
-  }
+  };
 
   constructor(options?: CollabEditorOptions) {
     const headText: RevisionChangeset = {
@@ -290,7 +223,7 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
       revision:
         options?.recordsBuffer instanceof OrderedMessageBuffer
           ? options.recordsBuffer.currentVersion
-          : options?.recordsBuffer?.version ?? 0,
+          : (options?.recordsBuffer?.version ?? 0),
     };
 
     const subscribedListeners: (() => void)[] = [];
@@ -325,12 +258,16 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
         : new OrderedMessageBuffer({
             version: headText.revision,
             ...options?.recordsBuffer,
-            getVersion: UnprocessedRecord.getVersion,
-            serializeMessage: UnprocessedRecord.serialize,
+            messageMapper: {
+              struct: UnprocessedRecordStruct,
+              version(message) {
+                return message.record.revision;
+              },
+            },
           });
     subscribedListeners.push(
       this.recordsBuffer.eventBus.on('nextMessage', (message) => {
-        if (message.type == UnprocessedRecordType.SUBMITTED_ACKNOWLEDGED) {
+        if (message.type == 'SUBMITTED_ACKNOWLEDGED') {
           this._submittedRecord = null;
           this._client.submittedChangesAcknowledged();
         } else {
@@ -539,7 +476,7 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
    */
   submittedChangesAcknowledged(record: EditorRevisionRecord) {
     this.recordsBuffer.add({
-      type: UnprocessedRecordType.SUBMITTED_ACKNOWLEDGED,
+      type: 'SUBMITTED_ACKNOWLEDGED',
       record: record,
     });
   }
@@ -550,7 +487,7 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
    */
   handleExternalChange(record: EditorRevisionRecord) {
     this.recordsBuffer.add({
-      type: UnprocessedRecordType.EXTERNAL_CHANGE,
+      type: 'EXTERNAL_CHANGE',
       record: record,
     });
   }
@@ -641,66 +578,37 @@ export class CollabEditor implements Serializable<SerializedCollabEditor> {
     return this._history.redo();
   }
 
-  serialize(historyRemoveServerEntries = true): SerializedCollabEditor {
-    const s_client = this._client.serialize();
-    // Using submittedRecord
-    delete s_client.submitted;
-
-    const s_history: PartialBy<SerializedCollabHistory, 'tailText' | 'tailRevision'> =
-      this._history.serialize(historyRemoveServerEntries);
-    // tailRevision and text can be retrieved from headText
-    delete s_history.tailRevision;
-    delete s_history.tailText;
-
-    const recordsBuffer = this.recordsBuffer.serialize();
-
-    return {
-      client: s_client,
-      submittedRecord: this._submittedRecord?.serialize(),
-      ...(recordsBuffer.version !== OrderedMessageBuffer.DEFAULT_VERSION ||
-      recordsBuffer.messages.length > 0
-        ? { recordsBuffer }
-        : {}),
-      history: s_history,
-    };
+  serialize(historyRemoveServerEntries = true) {
+    return CollabEditorOptionsStruct.maskRaw({
+      client: this._client.serialize(),
+      submittedRecord: this._submittedRecord,
+      recordsBuffer: this.recordsBuffer.serialize(),
+      history: this._history.serialize(historyRemoveServerEntries),
+    });
   }
 
-  static parseValue(value: {
-    recordsBuffer?: unknown;
-  }): Pick<
+  static parseValue(
+    value: unknown
+  ): Pick<
     CollabEditorOptions,
     'client' | 'submittedRecord' | 'recordsBuffer' | 'history'
   > {
-    assertHasProperties(value, ['client', 'history']);
-
-    const client = CollabClient.parseValue(value.client);
-
-    const submittedRecordMaybe = SubmittedRecord.parseValueMaybe(
-      (value as { submittedRecord?: unknown }).submittedRecord
-    );
-    const submittedRecord = submittedRecordMaybe
-      ? new SubmittedRecord(submittedRecordMaybe)
-      : undefined;
-    client.submitted = submittedRecord?.changeset;
-
-    const recordsBuffer = value.recordsBuffer
-      ? OrderedMessageBuffer.parseValue(value.recordsBuffer, (message) =>
-          UnprocessedRecord.parseValue(message)
-        )
-      : {
-          version: OrderedMessageBuffer.DEFAULT_VERSION,
-          messages: [],
-        };
-
-    const history = CollabHistory.parseValue(value.history);
-    history.tailRevision = recordsBuffer.version;
-    history.tailText = client.server;
+    const options = CollabEditorOptionsStruct.create(value);
 
     return {
-      client,
-      submittedRecord,
-      recordsBuffer,
-      history,
+      ...options,
+      client: {
+        ...options.client,
+        submitted: options.submittedRecord?.changeset,
+      },
+      history: {
+        ...options.history,
+        tailRevision: options.recordsBuffer?.version,
+        tailText: options.client.server,
+      },
+      submittedRecord: options.submittedRecord
+        ? new SubmittedRecord(options.submittedRecord)
+        : undefined,
     };
   }
 }

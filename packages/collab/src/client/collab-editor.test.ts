@@ -1,9 +1,9 @@
 import { assert, describe, expect, it } from 'vitest';
 
 import { newSelectionRange } from '../__test__/helpers/collab-editor-selection-range';
-import { Changeset } from '../changeset/changeset';
 
 import { CollabEditor } from './collab-editor';
+import { Changeset } from '../changeset';
 
 const cs = (...values: unknown[]) => Changeset.parseValue(values);
 

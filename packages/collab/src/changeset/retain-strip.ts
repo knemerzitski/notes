@@ -1,12 +1,14 @@
-import { Strip } from './strip';
-import { Strips } from './strips';
+import { Strip, Strips, RetainStripStruct, ChangesetCreateError } from '.';
 
 /**
  * Represents retained characters range in a text.
  * RetainStrip is immutable.
  */
 export class RetainStrip extends Strip {
-  static create(startIndex: number, endIndex: number): RetainStrip | Strip {
+  static create: (startIndex: number, endIndex: number) => RetainStrip | Strip = (
+    startIndex,
+    endIndex
+  ) => {
     if (endIndex < startIndex || endIndex < 0) {
       return Strip.EMPTY;
     }
@@ -15,7 +17,11 @@ export class RetainStrip extends Strip {
     endIndex = Math.max(startIndex, endIndex);
 
     return new RetainStrip(startIndex, endIndex);
-  }
+  };
+
+  static is: (strip: Strip) => strip is RetainStrip = (strip) => {
+    return strip instanceof RetainStrip;
+  };
 
   readonly startIndex: number;
 
@@ -37,10 +43,12 @@ export class RetainStrip extends Strip {
   constructor(startIndex: number, endIndex: number = startIndex) {
     super();
     if (startIndex < 0) {
-      throw new Error(`startIndex must be non-negative (0 <= ${startIndex})`);
+      throw new ChangesetCreateError(
+        `startIndex must be non-negative (0 <= ${startIndex})`
+      );
     }
     if (endIndex < startIndex) {
-      throw new Error(
+      throw new ChangesetCreateError(
         `endIndex must be greater or equal to startIndex (${startIndex} <= ${endIndex})`
       );
     }
@@ -119,26 +127,10 @@ export class RetainStrip extends Strip {
   }
 
   serialize() {
-    if (this.startIndex !== this.endIndex) {
-      return [this.startIndex, this.endIndex];
-    } else {
-      return this.startIndex;
-    }
+    return RetainStripStruct.createRaw(this);
   }
 
-  static override parseValue(value: unknown) {
-    if (Array.isArray(value) && typeof value[0] === 'number') {
-      return RetainStrip.create(
-        value[0],
-        typeof value[1] === 'number' ? value[1] : value[0]
-      );
-    } else if (typeof value === 'number') {
-      return RetainStrip.create(value, value);
-    }
-    return Strip.NULL;
-  }
-}
-
-export function isRetainStrip(strip: Strip): strip is RetainStrip {
-  return strip instanceof RetainStrip;
+  static override parseValue: (value: unknown) => RetainStrip = (value) => {
+    return RetainStripStruct.create(value);
+  };
 }

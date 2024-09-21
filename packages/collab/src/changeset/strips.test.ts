@@ -1,13 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+import { InsertStrip, RetainStrip, Strip, Strips } from '.';
 
-import { InsertStrip } from './insert-strip';
-import { RetainStrip } from './retain-strip';
-import { Strip } from './strip';
-import { Strips } from './strips';
-
-const s = Strip.parseValue.bind(Strip);
-const ss = Strips.parseValue.bind(Strips);
+const s = Strip.parseValue;
+const ss = Strips.parseValue;
 
 describe('static', () => {
   it('EMPTY has no values', () => {

@@ -1,17 +1,37 @@
-import { ParseError, Serializable } from '~utils/serialize';
-
-import { InsertStrip } from './insert-strip';
-import { RetainStrip } from './retain-strip';
-import { Strips } from './strips';
-
-export type SerializedStrip = unknown;
+import { Strips, EmptyStripStruct, StripStruct } from '.';
 
 /**
  * Strip represents a range of similar properties in a changeset.
  * Strip is immutable.
  */
-export abstract class Strip implements Serializable<SerializedStrip> {
-  abstract length: number;
+export abstract class Strip {
+  static readonly EMPTY = new (class extends Strip {
+    length = 0;
+
+    reference() {
+      return Strips.EMPTY;
+    }
+    slice() {
+      return this;
+    }
+    concat(strip: Strip) {
+      return new Strips([strip]);
+    }
+    isEqual(strip: Strip): boolean {
+      return strip === this;
+    }
+    toString() {
+      return '(EMPTY)';
+    }
+    serialize() {
+      return EmptyStripStruct.createRaw(this);
+    }
+    parseValue: (value: unknown) => Strip = (value) => {
+      return EmptyStripStruct.create(value);
+    };
+  })();
+
+  abstract readonly length: number;
 
   /**
    * Returns strips that references values from a {@link strips}
@@ -35,51 +55,7 @@ export abstract class Strip implements Serializable<SerializedStrip> {
 
   abstract toString(): string;
 
-  abstract serialize(): SerializedStrip;
-
-  static parseValue(value: unknown): Strip {
-    for (const StripKlass of [InsertStrip, RetainStrip, Strip.EMPTY]) {
-      const strip = StripKlass.parseValue(value);
-      if (strip !== Strip.NULL) {
-        return strip;
-      }
-    }
-
-    throw new ParseError(`Value '${String(value)}' cannot be parsed to a Strip.`);
-  }
-}
-
-export class EmptyStrip extends Strip {
-  length = 0;
-
-  reference() {
-    return Strips.EMPTY;
-  }
-  slice() {
-    return this;
-  }
-  concat(strip: Strip) {
-    return Strips.from(strip);
-  }
-  isEqual(strip: Strip): boolean {
-    return strip === this;
-  }
-  toString() {
-    return '(EMPTY)';
-  }
-  serialize() {
-    return null;
-  }
-  parseValue(value: unknown) {
-    if (value == null) {
-      return this;
-    }
-    return Strip.NULL;
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace Strip {
-  export const EMPTY = new EmptyStrip();
-  export const NULL = new EmptyStrip();
+  static parseValue: (value: unknown) => Strip = (value) => {
+    return StripStruct.create(value);
+  };
 }

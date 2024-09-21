@@ -1,12 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { createFakeServerRevisionRecordData } from '../../../../__EXCLUDE/populate';
-import { Changeset } from '../changeset/changeset';
 import { Entry } from '../client/collab-history';
-import { ChangesetRevisionRecords } from '../records/changeset-revision-records';
-import { newServerRecords } from '../records/server-records';
 
 import { createHelperCollabEditingEnvironment } from './helpers/server-client';
+import { RevisionRecords } from '../records/revision-records';
+import { Changeset } from '../changeset';
+import { fakeServerRevisionRecord } from './helpers/populate';
 
 function historyEntriesInfo(entries: readonly Entry[]) {
   return entries.map((e) => ({
@@ -113,21 +112,19 @@ describe('restore with undo', () => {
   beforeEach(() => {
     helper = createHelperCollabEditingEnvironment({
       server: {
-        changesetRecords: new ChangesetRevisionRecords({
-          revisionRecords: newServerRecords({
-            records: [
-              createFakeServerRevisionRecordData({
-                changeset: Changeset.parseValue(['']),
-                revision: 1,
-                creatorUserId: 'A',
-              }),
-              createFakeServerRevisionRecordData({
-                changeset: Changeset.parseValue(['123']),
-                revision: 2,
-                creatorUserId: 'A',
-              }),
-            ],
-          }),
+        records: new RevisionRecords({
+          records: [
+            fakeServerRevisionRecord({
+              changeset: Changeset.parseValue(['']),
+              revision: 1,
+              creatorUserId: 'A',
+            }),
+            fakeServerRevisionRecord({
+              changeset: Changeset.parseValue(['123']),
+              revision: 2,
+              creatorUserId: 'A',
+            }),
+          ],
         }),
       },
       clientNames: ['A'],

@@ -4,7 +4,7 @@
  * @returns Index of item in set or -1 if not found.
  */
 export function consecutiveOrderedSetIndexOf<T>(
-  set: T[],
+  set: readonly T[],
   rank: number,
   rankFn: (item: T) => number
 ) {
@@ -26,12 +26,15 @@ export function consecutiveOrderedSetIndexOf<T>(
  * Doesn't check every element, only boundaries.
  * @returns True if array seems to be sorted and has no duplicate elements.
  */
-export function isConsecutiveOrderedSet<T>(set: T[], compareFn: (a: T, b: T) => number) {
+export function isConsecutiveOrderedSet<T>(
+  set: readonly T[],
+  compareFn: (a: T, b: T) => number
+) {
   return isConsecutive(set, 0, set.length, compareFn);
 }
 
 function isConsecutive<T>(
-  set: T[],
+  set: readonly T[],
   start: number,
   end: number,
   compareFn: (a: T, b: T) => number

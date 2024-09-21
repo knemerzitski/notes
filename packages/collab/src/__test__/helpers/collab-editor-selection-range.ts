@@ -1,7 +1,7 @@
 import { mitt, Emitter } from '~utils/mitt-unsub';
 
-import { Changeset } from '../../changeset/changeset';
 import { CollabEditor } from '../../client/collab-editor';
+import { Changeset } from '../../changeset';
 import { SelectionRange } from '../../client/selection-range';
 
 /**

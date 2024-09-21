@@ -1,6 +1,4 @@
-import { RetainStrip } from './retain-strip';
-import { Strip } from './strip';
-import { Strips } from './strips';
+import { Strip, Strips, RetainStrip, InsertStripStruct, ChangesetCreateError } from '.';
 
 /**
  * Represents string insertion in a text.
@@ -15,12 +13,16 @@ export class InsertStrip extends Strip {
     return new InsertStrip(value);
   }
 
+  static is: (strip: Strip) => strip is InsertStrip = (strip) => {
+    return strip instanceof InsertStrip;
+  };
+
   readonly value: string;
 
   constructor(value: string) {
     super();
     if (value.length === 0) {
-      throw new Error('value cannot be empty');
+      throw new ChangesetCreateError('value cannot be empty');
     }
     this.value = value;
   }
@@ -84,17 +86,10 @@ export class InsertStrip extends Strip {
   }
 
   serialize() {
-    return this.value;
+    return InsertStripStruct.createRaw(this);
   }
 
-  static override parseValue(value: unknown) {
-    if (typeof value === 'string') {
-      return InsertStrip.create(value);
-    }
-    return Strip.NULL;
-  }
-}
-
-export function isInsertStrip(strip: Strip): strip is InsertStrip {
-  return strip instanceof InsertStrip;
+  static override parseValue: (value: unknown) => InsertStrip = (value) => {
+    return InsertStripStruct.create(value);
+  };
 }

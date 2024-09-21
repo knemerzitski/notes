@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { Changeset } from '../changeset/changeset';
-
 import { CollabClient } from './collab-client';
 import { AnyEntry, CollabHistory } from './collab-history';
+import { Changeset } from '../changeset';
 
 function createEntry(changeset: unknown, isTail?: boolean): AnyEntry {
   if (isTail) {

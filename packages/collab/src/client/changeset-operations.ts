@@ -1,7 +1,4 @@
-import { Changeset } from '../changeset/changeset';
-import { InsertStrip } from '../changeset/insert-strip';
-import { RetainStrip } from '../changeset/retain-strip';
-
+import { Changeset, InsertStrip, RetainStrip } from '../changeset';
 import { SelectionRange } from './selection-range';
 
 export interface ChangesetOperation {

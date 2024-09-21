@@ -11,9 +11,7 @@ import {
 } from '../../client/collab-editor';
 import { CollabHistory } from '../../client/collab-history';
 import { UserRecords } from '../../client/user-records';
-import { ChangesetRevisionRecords } from '../../records/changeset-revision-records';
 import { ServerRevisionRecord } from '../../records/record';
-import { newServerRecords } from '../../records/server-records';
 
 import { newSelectionRange } from './collab-editor-selection-range';
 import { LocalServerRecords, LocalServerRecordsParams } from './server-records';
@@ -21,6 +19,8 @@ import {
   getValueWithSelection,
   parseTextWithMultipleSelections,
 } from './text-with-selection';
+import { RevisionRecords } from '../../records/revision-records';
+import { processRecordInsertion } from '../../records/process-record-insertion';
 
 export function createHelperCollabEditingEnvironment<TClientName extends string>(
   options: {
@@ -32,9 +32,7 @@ export function createHelperCollabEditingEnvironment<TClientName extends string>
   }
 ) {
   const server = new LocalServerRecords<ServerRevisionRecord>({
-    changesetRecords: new ChangesetRevisionRecords({
-      revisionRecords: newServerRecords(),
-    }),
+    records: new RevisionRecords(),
     ...options.server,
   });
 
@@ -212,25 +210,32 @@ function createCollabEditorAndRevisionTailRecordsHelper<TClientName extends stri
 
     return {
       serverReceive: () => {
-        const recordInsertion = localRecords.changesetRecords.insert({
-          ...submittedRecord,
-          creatorUserId: userId,
+        const recordInsertion = processRecordInsertion({
+          records: localRecords.records.items,
+          newRecord: {
+            ...submittedRecord,
+            creatorUserId: userId,
+          },
         });
 
+        if (recordInsertion.type === 'new') {
+          localRecords.records.push(recordInsertion.record);
+        }
+
         function clientAcknowledge() {
-          editor.submittedChangesAcknowledged(recordInsertion.processedRecord);
-          return recordInsertion.processedRecord;
+          editor.submittedChangesAcknowledged(recordInsertion.record);
+          return recordInsertion.record;
         }
 
         function sendToOtherClients(clientNames: TClientName[] = allOtherNames) {
           clientNames.forEach((otherName) => {
-            if (name === otherName) return;
+            if (name === otherName || recordInsertion.type == 'duplicate') return;
 
             const otherEditor = otherEditors[otherName];
 
-            otherEditor.handleExternalChange(recordInsertion.processedRecord);
+            otherEditor.handleExternalChange(recordInsertion.record);
           });
-          return recordInsertion.processedRecord;
+          return recordInsertion.record;
         }
 
         function acknowledgeAndSendToOtherClients(
@@ -238,7 +243,7 @@ function createCollabEditorAndRevisionTailRecordsHelper<TClientName extends stri
         ) {
           clientAcknowledge();
           sendToOtherClients(clientNames);
-          return recordInsertion.processedRecord;
+          return recordInsertion.record;
         }
 
         return {

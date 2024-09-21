@@ -11,4 +11,19 @@ module.exports = {
       },
     },
   },
+  rules: {
+    'import/no-restricted-paths': [
+      'error',
+      {
+        basePath: `${__dirname}/src`,
+        zones: [
+          {
+            target: '!(changeset2)',
+            from: 'changeset2/!(index.ts)',
+            message: 'Import from entry point "changeset/index.ts" instead',
+          },
+        ],
+      },
+    ],
+  },
 };

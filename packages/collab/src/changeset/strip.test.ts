@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-
-import { Strip } from './strip';
-import { Strips } from './strips';
+import { Strip, Strips } from '.';
 
 describe('EMPTY', () => {
   it('has length 0', () => {

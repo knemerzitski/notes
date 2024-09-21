@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-
-import { RetainStrip } from './retain-strip';
-import { Strip } from './strip';
-import { Strips } from './strips';
+import { RetainStrip, Strip, Strips } from '.';
 
 const s = Strip.parseValue.bind(Strip);
 const ss = Strips.parseValue.bind(Strips);
@@ -139,11 +136,14 @@ describe('toString', () => {
 
 describe('serialize/parseValue', () => {
   it.each([
-    [3, new RetainStrip(3, 3), undefined],
-    [[-4, 3], new RetainStrip(0, 3), [0, 3]],
-    [[5, 10], new RetainStrip(5, 10), undefined],
-  ])('%s', (serialized, strip, expectedSerialized) => {
+    [3, new RetainStrip(3, 3)],
+    [[5, 10], new RetainStrip(5, 10)],
+  ])('%s', (serialized, strip) => {
     expect(RetainStrip.parseValue(serialized)).toStrictEqual(strip);
-    expect(strip.serialize()).toStrictEqual(expectedSerialized ?? serialized);
+    expect(strip.serialize()).toStrictEqual(serialized);
+  });
+
+  it.each([[[-4, 3]]])('%s', (serialized) => {
+    expect(() => RetainStrip.parseValue(serialized)).toThrowError();
   });
 });

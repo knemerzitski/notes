@@ -1,31 +1,35 @@
-import { Serializable } from '~utils/serialize';
-
-import { InsertStrip } from './insert-strip';
-import { RetainStrip } from './retain-strip';
-import { Strip } from './strip';
-import { SerializedStrips, Strips } from './strips';
-
-export type SerializedChangeset = SerializedStrips;
+import { Maybe } from '~utils/types';
+import {
+  ChangesetStruct,
+  RetainStrip,
+  InsertStrip,
+  Strip,
+  Strips,
+  ChangesetCreateError,
+  ChangesetOperationError,
+} from '.';
 
 /**
  * Represents a change to a text (list of characters, or a string).
  * Changeset strips is compact and retain indexes are ordered.
  * Changeset is immutable.
  */
-export class Changeset implements Serializable<SerializedChangeset> {
+export class Changeset {
+  static readonly EMPTY: Changeset = new this();
+
   /**
    * Convinience method to create Changeset from spread syntax.
    */
-  static from(...strips: readonly Strip[]) {
+  static from: (...strips: readonly Strip[]) => Changeset = (...strips) => {
     return new Changeset(strips);
-  }
+  };
 
   /**
    * Quickly create a text insertion changeset that replaces all previous content.
    */
-  static fromInsertion(insertText: string) {
+  static fromInsertion: (insertText: string) => Changeset = (insertText) => {
     return new Changeset([InsertStrip.create(insertText)]);
-  }
+  };
 
   /**
    * Strips is always compact.
@@ -48,7 +52,7 @@ export class Changeset implements Serializable<SerializedChangeset> {
     }
 
     if (!this.strips.isRetainIndexesOrdered()) {
-      throw new Error(
+      throw new ChangesetCreateError(
         `Changeset strips retain indexes are not ascending ordered: ${String(
           this.strips
         )}`
@@ -71,7 +75,7 @@ export class Changeset implements Serializable<SerializedChangeset> {
         other.strips.values.flatMap((strip) => {
           const refStrips = strip.reference(this.strips);
           if (refStrips.length !== strip.length) {
-            throw new Error(
+            throw new ChangesetOperationError(
               `Unable to compose ${String(this)} * ${String(
                 other
               )}. Cannot index '${String(strip)}' in ${String(this.strips)}.`
@@ -267,7 +271,7 @@ export class Changeset implements Serializable<SerializedChangeset> {
         ) {
           const insertionStrip = newFirst.strips.values[newFirstInsertIndex];
           if (!insertionStrip) {
-            throw new Error(
+            throw new ChangesetOperationError(
               `Unexpected missing strip in newFirst '${String(
                 newFirst
               )}' at index ${newFirstInsertIndex}`
@@ -291,12 +295,16 @@ export class Changeset implements Serializable<SerializedChangeset> {
           newFirstInsertPos += insertionStrip.length;
         }
         if (!foundMatch) {
-          throw new Error(`Strip '${String(strip)}' not found in ${String(newFirst)}`);
+          throw new ChangesetOperationError(
+            `Strip '${String(strip)}' not found in ${String(newFirst)}`
+          );
         }
       } else if (strip instanceof RetainStrip) {
         const refStrips = strip.reference(this.strips);
         if (refStrips.length !== strip.length) {
-          throw new Error(`Cannot index '${String(strip)}' in ${String(this.strips)}.`);
+          throw new ChangesetOperationError(
+            `Cannot index '${String(strip)}' in ${String(this.strips)}.`
+          );
         }
 
         for (const refStrip of refStrips.values) {
@@ -311,7 +319,7 @@ export class Changeset implements Serializable<SerializedChangeset> {
             ) {
               const retainStrip = newFirst.strips.values[newFirstRetainIndex];
               if (!retainStrip) {
-                throw new Error(
+                throw new ChangesetOperationError(
                   `Unexpected missing strip in newFirst '${String(
                     newFirst
                   )}' at index ${newFirstRetainIndex}`
@@ -352,7 +360,7 @@ export class Changeset implements Serializable<SerializedChangeset> {
               newFirstRetainPos += retainStrip.length;
             }
             if (foundLength !== refStrip.length) {
-              throw new Error(
+              throw new ChangesetOperationError(
                 `Strip '${String(refStrip)}' referenced from '${String(
                   strip
                 )}' not found in ${String(newFirst)}`
@@ -559,22 +567,16 @@ export class Changeset implements Serializable<SerializedChangeset> {
     return `(${this.strips.maxIndex + 1} -> ${this.strips.length})${String(this.strips)}`;
   }
 
-  serialize(): SerializedChangeset {
-    return this.strips.serialize();
+  serialize() {
+    return ChangesetStruct.createRaw(this);
   }
 
-  static parseValue(value: unknown): Changeset {
-    if (value instanceof Changeset) return value;
-    return new Changeset(Strips.parseValue(value));
-  }
+  static parseValue: (value: unknown) => Changeset = (value) => {
+    return ChangesetStruct.create(value);
+  };
 
-  static parseValueMaybe(value: unknown) {
+  static parseValueMaybe: (value: unknown) => Maybe<Changeset> = (value) => {
     if (value === undefined) return;
     return this.parseValue(value);
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace Changeset {
-  export const EMPTY = new Changeset();
+  };
 }

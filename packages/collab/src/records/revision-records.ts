@@ -1,148 +1,117 @@
-import { mitt, Emitter } from '~utils/mitt-unsub';
-import { consecutiveOrderedSetIndexOf } from '~utils/ordered-set/consecutive-ordered-set';
-
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type RevisionRecordsEvents<TRecord, TInsertRecord> = {
-  processNewRecord: {
-    /**
-     * New record to be inserted. Must update it with {@link existingRecords}.
-     */
-    newRecord: TInsertRecord;
-    /**
-     * Existing record that has already been inserted after {@link newRecord}.
-     */
-    existingRecord: Readonly<TRecord>;
-    /**
-     * Set true if {@link newRecord} is a duplicate of {@link existingRecord}.
-     * Further record's wont be processed and {@link existingRecord} is returned instead.
-     */
-    isDuplicate: boolean;
-  };
-};
-
-export interface Revision {
-  revision: number;
-}
-
-export type RevisionRecordInsertion<TRecord, TInsertRecord> =
-  | {
-      processedRecord: TRecord & TInsertRecord;
-      isExisting: true;
-    }
-  | {
-      processedRecord: TInsertRecord;
-      isExisting: false;
-    };
+import { Changeset } from '../changeset';
+import { RevisionRecord, RevisionChangeset } from './record';
+import { RevisionArray } from './revision-array';
 
 export interface RevisionRecordsOptions<
-  TRecord extends Revision = Revision,
-  TInsertRecord extends TRecord = TRecord,
+  TRecord extends Readonly<RevisionRecord> = RevisionRecord,
 > {
-  records?: TRecord[];
-  eventBus?: Emitter<RevisionRecordsEvents<TRecord, TInsertRecord>>;
-}
-
-function rankRecord(record: Revision) {
-  return record.revision;
+  records?: readonly TRecord[];
+  tailText?: Readonly<RevisionChangeset>;
 }
 
 /**
- * An array of immutable records.
+ * Changeset records with a tailText
  */
-export class RevisionRecords<
-  TRecord extends Revision = Revision,
-  TInsertRecord extends TRecord = TRecord,
-> {
-  readonly eventBus: Emitter<RevisionRecordsEvents<TRecord, TInsertRecord>>;
+export class RevisionRecords<TRecord extends Readonly<RevisionRecord> = RevisionRecord> {
+  private _records: TRecord[];
 
-  records: TRecord[];
+  private readonly revisionArray: RevisionArray<TRecord>;
 
-  get newestRevision() {
-    return this.indexToRevision(-1);
+  get headRevision() {
+    return this.revisionArray.newestRevision ?? this._tailText.revision;
   }
 
-  get oldestRevision() {
-    return this.indexToRevision(0);
+  get items(): readonly TRecord[] {
+    return this._records;
   }
 
-  constructor(options?: RevisionRecordsOptions<TRecord, TInsertRecord>) {
-    this.records = [...(options?.records ?? [])];
-    this.eventBus = options?.eventBus ?? mitt();
+  get tailRevision() {
+    return this._tailText.revision;
   }
 
-  revisionToIndex(revision: number) {
-    return consecutiveOrderedSetIndexOf(this.records, revision, rankRecord);
+  private _tailText: RevisionChangeset;
+
+  /**
+   * First record is composed on this text.
+   */
+  get tailText(): Readonly<RevisionChangeset> {
+    return this._tailText;
   }
 
-  indexToRevision(index: number) {
-    if (index < 0) {
-      index += this.records.length;
-    }
-    return this.records[index]?.revision;
+  constructor(params?: RevisionRecordsOptions<TRecord>) {
+    this._records = [...(params?.records ?? [])];
+    this._tailText = params?.tailText ?? {
+      changeset: Changeset.EMPTY,
+      revision: 0,
+    };
+
+    this.revisionArray = new RevisionArray(this._records);
+  }
+
+  push(record: TRecord) {
+    this._records.push(record);
   }
 
   /**
-   * Insert new record that applies to revision specifid in {@link newRecord}.
-   * Before the record is pushed to end, it's processed by all already existing future records.
-   * Calls event 'processNewRecord'.
+   * Merge oldest records into tailText. Merged records are deleted.
    */
-  insert(newRecord: TInsertRecord): RevisionRecordInsertion<TRecord, TInsertRecord> {
-    const newestRevision = this.newestRevision ?? newRecord.revision;
-    if (newRecord.revision > newestRevision) {
-      throw new Error(
-        `Insert record '${newRecord.revision}' cannot be newer than newest record ${newestRevision}`
-      );
-    }
+  mergeToTail(count: number) {
+    if (count <= 0) return;
 
-    const deltaRevision = newRecord.revision - newestRevision;
-    const startRecordIndex = this.records.length + deltaRevision;
-    if (startRecordIndex < 0) {
-      throw new Error(
-        `Missing older records to insert record '${newRecord.revision}'. Oldest record is '${this.oldestRevision}'.`
-      );
-    }
-
-    const resultRecord: TInsertRecord = {
-      ...newRecord,
-      revision: newestRevision + 1,
-    };
-    let expectedNextRevision = newRecord.revision + 1;
-    for (let i = startRecordIndex; i < this.records.length; i++) {
-      const record = this.records[i];
+    let mergedTailText = this._tailText.changeset;
+    let expectedRevision = this._tailText.revision + 1;
+    for (let i = 0; i < count; i++) {
+      const record = this._records[i];
       if (!record) continue;
-      if (expectedNextRevision !== record.revision) {
+      if (expectedRevision !== record.revision) {
         throw new Error(
-          `Expected next record '${expectedNextRevision}' but is '${record.revision}'`
+          `Expected next record revision to be '${expectedRevision}' but is '${
+            record.revision
+          }' for ${String(record.changeset)} at revision ${record.revision}`
         );
       }
-
-      const eventPayload: RevisionRecordsEvents<
-        TRecord,
-        TInsertRecord
-      >['processNewRecord'] = {
-        existingRecord: record,
-        newRecord: resultRecord,
-        isDuplicate: false,
-      };
-      this.eventBus.emit('processNewRecord', eventPayload);
-      if (eventPayload.isDuplicate) {
-        return {
-          processedRecord: {
-            ...resultRecord,
-            ...record,
-          },
-          isExisting: true,
-        };
-      }
-
-      expectedNextRevision++;
+      mergedTailText = mergedTailText.compose(record.changeset);
+      expectedRevision++;
     }
 
-    this.records.push(resultRecord);
+    this._records = this._records.slice(count);
+
+    this._tailText = {
+      changeset: mergedTailText,
+      revision: expectedRevision - 1,
+    };
+  }
+
+  getTextAt(revision: number) {
+    if (revision === this.tailRevision) {
+      return this.tailText;
+    }
+
+    const index = this.revisionArray.revisionToIndex(revision);
+    if (index === -1) {
+      throw new Error(`Expected record at revision '${revision}'`);
+    }
 
     return {
-      processedRecord: resultRecord,
-      isExisting: false,
+      changeset: this._records
+        .slice(0, index + 1)
+        .reduce((a, b) => a.compose(b.changeset), this._tailText.changeset),
+      revision,
     };
+  }
+
+  /**
+   * Composition of all records on tailText.
+   */
+  getHeadText(): RevisionChangeset {
+    return this.getTextAt(this.headRevision);
+  }
+
+  revisionToIndex(revision: number) {
+    return this.revisionArray.revisionToIndex(revision);
+  }
+
+  indexToRevision(index: number) {
+    return this.revisionArray.indexToRevision(index);
   }
 }

@@ -1,12 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
+import { Changeset, InsertStrip, RetainStrip, Strip, Strips } from '.';
 
-import { Changeset } from './changeset';
-import { InsertStrip } from './insert-strip';
-import { RetainStrip } from './retain-strip';
-import { Strip } from './strip';
-import { Strips } from './strips';
-
-const cs = Changeset.parseValue.bind(Changeset);
+const cs = Changeset.parseValue;
 
 describe('compose', () => {
   it.each([

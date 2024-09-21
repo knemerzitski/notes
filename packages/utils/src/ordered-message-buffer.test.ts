@@ -1,23 +1,25 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { OrderedMessageBuffer } from './ordered-message-buffer';
+import { number, object, string } from 'superstruct';
 
-interface Message {
-  version: number;
-  payload: string;
-}
+const MessageStruct = object({
+  version: number(),
+  payload: string(),
+});
 
-function serializeMessage(msg: Message) {
-  return msg;
-}
-
-let buffer: OrderedMessageBuffer<Message>;
+let buffer: OrderedMessageBuffer<typeof MessageStruct>;
 
 beforeEach(() => {
   // Initial: version 10, messages: [12, 13],
   buffer = new OrderedMessageBuffer({
+    messageMapper: {
+      struct: MessageStruct,
+      version(message) {
+        return message.version;
+      },
+    },
     version: 10,
-    getVersion: (m) => m.version,
     messages: [
       {
         version: 13,
@@ -28,7 +30,6 @@ beforeEach(() => {
         payload: '_12',
       },
     ],
-    serializeMessage,
   });
 });
 

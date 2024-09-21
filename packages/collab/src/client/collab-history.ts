@@ -1,14 +1,6 @@
 import { mitt, Emitter } from '~utils/mitt-unsub';
-import {
-  ParseError,
-  Serializable,
-  assertHasProperties,
-  parseNumber,
-  parseNumberMaybe,
-} from '~utils/serialize';
-import { PartialBy } from '~utils/types';
+import { Maybe, PartialBy } from '~utils/types';
 
-import { Changeset, SerializedChangeset } from '../changeset/changeset';
 import {
   RevisionChangeset,
   ServerRevisionRecord,
@@ -17,8 +9,10 @@ import {
 
 import { ChangesetOperation } from './changeset-operations';
 import { CollabClient } from './collab-client';
-import { SelectionRange } from './selection-range';
 import { UserRecords } from './user-records';
+import { Changeset, ChangesetStruct } from '../changeset';
+import { array, Infer, literal, number, object, union } from 'superstruct';
+import { SelectionRange, SelectionRangeStruct } from './selection-range';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type LocalChangesetEditorHistoryEvents = {
@@ -39,35 +33,36 @@ export type LocalChangesetEditorHistoryEvents = {
   };
 };
 
-export interface SerializedCollabHistory {
-  entries: Entry<SerializedChangeset>[];
+const OperationStruct = object({
+  changeset: ChangesetStruct,
+  selection: SelectionRangeStruct,
+});
 
-  tailText: SerializedChangeset;
-  tailRevision: number;
+export type Operation = Infer<typeof OperationStruct>;
 
-  tailComposition?: SerializedChangeset;
+export const EntryStruct = object({
+  execute: OperationStruct,
+  undo: OperationStruct,
+});
 
-  lastExecutedIndex: {
-    server: number;
-    submitted: number;
-    local: number;
-  };
-}
+export type Entry = Infer<typeof EntryStruct>;
+
+export const CollabHistoryOptionsStruct = object({
+  entries: array(EntryStruct),
+  tailText: ChangesetStruct,
+  tailRevision: number(),
+  tailComposition: union([ChangesetStruct, literal(null)]),
+  lastExecutedIndex: object({
+    server: number(),
+    submitted: number(),
+    local: number(),
+  }),
+});
 
 export type HistoryServerRecord = Pick<ServerRevisionRecord, 'changeset' | 'revision'> &
   Partial<
     Pick<ServerRevisionRecord, 'beforeSelection' | 'afterSelection' | 'creatorUserId'>
   >;
-
-export interface Operation<TChangeset = Changeset> {
-  changeset: TChangeset;
-  selection: SelectionRange;
-}
-
-export interface Entry<TChangeset = Changeset> {
-  execute: Operation<TChangeset>;
-  undo: Operation<TChangeset>;
-}
 
 export interface AddEntry {
   execute: Operation;
@@ -101,14 +96,14 @@ export interface CollabHistoryOptions {
   tailRevision?: number;
   tailText?: Changeset;
   lastExecutedIndex?: LastExecutedIndex;
-  tailComposition?: Changeset;
+  tailComposition?: Maybe<Changeset>;
 }
 
 /**
  * Maintains a history of {@link CollabClient.local} changeset.
  * External changes alter history as if change has always been there.
  */
-export class CollabHistory implements Serializable<SerializedCollabHistory> {
+export class CollabHistory {
   static readonly DEFAULT_TAIL_REVISION = 0;
 
   readonly eventBus: Emitter<LocalChangesetEditorHistoryEvents>;
@@ -775,7 +770,7 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
     }
   }
 
-  serialize(removeServerEntries = true): SerializedCollabHistory {
+  serialize(removeServerEntries = true) {
     let entries = this.entries;
     let lastExecutedIndex = this.lastExecutedIndex;
     if (removeServerEntries) {
@@ -788,22 +783,13 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
       };
     }
 
-    return {
-      entries: entries.map((entry) => ({
-        execute: {
-          ...entry.execute,
-          changeset: entry.execute.changeset.serialize(),
-        },
-        undo: {
-          ...entry.undo,
-          changeset: entry.undo.changeset.serialize(),
-        },
-      })),
+    return CollabHistoryOptionsStruct.createRaw({
+      entries,
       tailRevision: this._tailRevision,
-      tailText: this._tailText.serialize(),
-      tailComposition: this.tailComposition?.serialize(),
+      tailText: this._tailText,
+      tailComposition: this.tailComposition,
       lastExecutedIndex,
-    };
+    });
   }
 
   static parseValue(
@@ -812,54 +798,6 @@ export class CollabHistory implements Serializable<SerializedCollabHistory> {
     CollabHistoryOptions,
     'entries' | 'tailRevision' | 'tailText' | 'lastExecutedIndex' | 'tailComposition'
   > {
-    assertHasProperties(value, ['entries', 'lastExecutedIndex']);
-
-    if (!Array.isArray(value.entries)) {
-      throw new ParseError(
-        `Expected 'entries' to be an array, found '${String(value.entries)}'`
-      );
-    }
-
-    const valueOptional = value as {
-      tailRevision?: unknown;
-      tailText?: unknown;
-      tailComposition?: unknown;
-    };
-
-    return {
-      entries: value.entries.map((entry) => parseEntry(entry)),
-      tailRevision: parseNumberMaybe(valueOptional.tailRevision),
-      tailText: Changeset.parseValueMaybe(valueOptional.tailText),
-      lastExecutedIndex: parseLastExecutedIndex(value.lastExecutedIndex),
-      tailComposition: Changeset.parseValueMaybe(valueOptional.tailComposition),
-    };
+    return CollabHistoryOptionsStruct.create(value);
   }
-}
-
-function parseEntry(value: unknown): Entry {
-  assertHasProperties(value, ['execute', 'undo']);
-
-  return {
-    execute: parseOperation(value.execute),
-    undo: parseOperation(value.undo),
-  };
-}
-
-function parseOperation(value: unknown): Operation {
-  assertHasProperties(value, ['changeset', 'selection']);
-
-  return {
-    changeset: Changeset.parseValue(value.changeset),
-    selection: SelectionRange.parseValue(value.selection),
-  };
-}
-
-function parseLastExecutedIndex(value: unknown): LastExecutedIndex {
-  assertHasProperties(value, ['server', 'submitted', 'local']);
-
-  return {
-    server: parseNumber(value.server),
-    submitted: parseNumber(value.submitted),
-    local: parseNumber(value.local),
-  };
 }

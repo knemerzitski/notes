@@ -1,11 +1,6 @@
+import { memoize1 } from './memoize1';
 import { mitt, Emitter } from './mitt-unsub';
-import {
-  ParseError,
-  Serializable,
-  assertHasProperties,
-  parseOrDefault,
-} from './serialize';
-import { isDefined } from './type-guards/is-defined';
+import { array, Infer, number, object, Struct } from 'superstruct';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type OrderedMessageBufferEvents<TMessage> = {
@@ -23,17 +18,20 @@ export type OrderedMessageBufferEvents<TMessage> = {
    * No more messages left to process.
    */
   messagesProcessed: undefined;
-
   /**
    * Need messages from start to end (inclusive) to process all stashes messages.
    */
   missingMessages: { start: number; end: number };
 };
 
-export interface SerializedOrderedMessageBuffer<TSerializedMessage> {
-  version: number;
-  messages: TSerializedMessage[];
-}
+export const OrderedMessageBufferParamsStruct = memoize1(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  <T extends Struct<any, any>>(MessageStruct: T) =>
+    object({
+      version: number(),
+      messages: array(MessageStruct),
+    })
+);
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ProcessingEvents<TMessage> = {
@@ -47,14 +45,26 @@ export type ProcessingEvents<TMessage> = {
   messagesProcessed: undefined;
 };
 
-export interface OrderedMessageBufferOptions<TMessage, TSerializedMessage = TMessage> {
+interface MessageMapper<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  TMessageStruct extends Struct<any, any>,
+  TMessage = Infer<TMessageStruct>,
+> {
+  struct: TMessageStruct;
+  version: (message: TMessage) => number;
+}
+
+export interface OrderedMessageBufferParams<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  TMessageStruct extends Struct<any, any>,
+  TMessage = Infer<TMessageStruct>,
+> {
+  messageMapper: MessageMapper<TMessageStruct, TMessage>;
   /**
    * @default 0
    */
   version?: number;
   messages?: Readonly<Readonly<TMessage>>[];
-  getVersion: (message: TMessage) => number;
-  serializeMessage: (message: TMessage) => TSerializedMessage;
   eventBus?: Emitter<OrderedMessageBufferEvents<TMessage>>;
 }
 
@@ -63,9 +73,11 @@ export interface OrderedMessageBufferOptions<TMessage, TSerializedMessage = TMes
  * Old messages are discarded and future ones are stored
  * until missing messages are present.
  */
-export class OrderedMessageBuffer<TMessage, TSerializedMessage = TMessage>
-  implements Serializable<SerializedOrderedMessageBuffer<TSerializedMessage>>
-{
+export class OrderedMessageBuffer<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  TMessageStruct extends Struct<any, any>,
+  TMessage = Infer<TMessageStruct>,
+> {
   static readonly DEFAULT_VERSION = 0;
 
   readonly eventBus: Emitter<OrderedMessageBufferEvents<TMessage>>;
@@ -76,8 +88,7 @@ export class OrderedMessageBuffer<TMessage, TSerializedMessage = TMessage>
     return this._currentVersion;
   }
 
-  private getVersion: (message: TMessage) => number;
-  private serializeMessage: (message: TMessage) => TSerializedMessage;
+  private readonly messageMapper: MessageMapper<TMessageStruct, TMessage>;
 
   private maxStashedVersion: number | null = null;
 
@@ -87,14 +98,18 @@ export class OrderedMessageBuffer<TMessage, TSerializedMessage = TMessage>
 
   stashedMessagesMap: Map<number, TMessage>;
 
-  constructor(options: OrderedMessageBufferOptions<TMessage, TSerializedMessage>) {
-    this.eventBus = options.eventBus ?? mitt();
+  private readonly struct: ReturnType<
+    typeof OrderedMessageBufferParamsStruct<TMessageStruct>
+  >;
+
+  constructor(params: OrderedMessageBufferParams<TMessageStruct>) {
+    this.struct = OrderedMessageBufferParamsStruct(params.messageMapper.struct);
+    this.messageMapper = params.messageMapper;
+    this.eventBus = params.eventBus ?? mitt();
     this.processingEventBus = mitt();
-    this._currentVersion = options.version ?? OrderedMessageBuffer.DEFAULT_VERSION;
-    this.getVersion = options.getVersion;
-    this.serializeMessage = options.serializeMessage;
+    this._currentVersion = params.version ?? OrderedMessageBuffer.DEFAULT_VERSION;
     this.stashedMessagesMap = new Map<number, TMessage>();
-    options.messages?.forEach((message) => {
+    params.messages?.forEach((message) => {
       this.add(message);
     });
   }
@@ -132,7 +147,7 @@ export class OrderedMessageBuffer<TMessage, TSerializedMessage = TMessage>
    * If next message become available then it is emitted from {@link messageBus}.
    */
   add(message: Readonly<TMessage>, startProcessing = true) {
-    const version = this.getVersion(message);
+    const version = this.messageMapper.version(message);
 
     if (version <= this._currentVersion) {
       // Ignore old message
@@ -255,32 +270,25 @@ export class OrderedMessageBuffer<TMessage, TSerializedMessage = TMessage>
     };
   }
 
-  serialize(): SerializedOrderedMessageBuffer<TSerializedMessage> {
-    return {
-      version: this._currentVersion,
-      messages: [...this.stashedMessagesMap.values()].map((msg) =>
-        this.serializeMessage(msg)
-      ),
-    };
-  }
-
-  static parseValue<T, U = T>(
-    value: unknown,
-    parseMessage: (msg: unknown) => T
-  ): Pick<OrderedMessageBufferOptions<T, U>, 'version' | 'messages'> {
-    assertHasProperties(value, ['version', 'messages']);
-
-    if (!Array.isArray(value.messages)) {
-      throw new ParseError(
-        `Expected 'messages' to be an array, found '${String(value.messages)}'`
-      );
+  serialize() {
+    if (
+      this._currentVersion === OrderedMessageBuffer.DEFAULT_VERSION &&
+      this.stashedMessagesMap.size === 0
+    ) {
+      return;
     }
 
-    return {
-      version: Number(value.version),
-      messages: value.messages
-        .map((msg) => parseOrDefault(() => parseMessage(msg), undefined))
-        .filter(isDefined),
-    };
+    return this.struct.createRaw({
+      version: this._currentVersion,
+      messages: [...this.stashedMessagesMap.values()],
+    });
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  static parseValue<TMessageStruct extends Struct<any, any>>(
+    value: unknown,
+    messageStruct: TMessageStruct
+  ): Pick<OrderedMessageBufferParams<TMessageStruct>, 'version' | 'messages'> {
+    return OrderedMessageBufferParamsStruct(messageStruct).create(value);
   }
 }

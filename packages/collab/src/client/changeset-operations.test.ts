@@ -1,10 +1,9 @@
 import { assert, describe, expect, it } from 'vitest';
 
-import { Changeset } from '../changeset/changeset';
-
 import { deletionCountOperation, insertionOperation } from './changeset-operations';
+import { Changeset } from '../changeset';
 
-const cs = Changeset.parseValue.bind(Changeset);
+const cs = Changeset.parseValue;
 
 describe('insertionOperation', () => {
   it.each([

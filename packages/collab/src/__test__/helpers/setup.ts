@@ -1,9 +1,6 @@
 import util, { InspectOptionsStylized } from 'util';
 
-import { Changeset } from '../../changeset/changeset';
-import { InsertStrip } from '../../changeset/insert-strip';
-import { RetainStrip } from '../../changeset/retain-strip';
-import { Strips } from '../../changeset/strips';
+import { Strips, RetainStrip, InsertStrip, Changeset, Strip } from '../../changeset';
 
 /**
  * Display Changeset as a stylized string
@@ -47,4 +44,12 @@ RetainStrip.prototype[util.inspect.custom] = function (
         'number'
       )}`
     : stylize(String(this.startIndex), 'number');
+};
+
+// @ts-expect-error "Dynamic injection"
+Strip.EMPTY.__proto__[util.inspect.custom] = function (
+  _depth: number,
+  { stylize }: InspectOptionsStylized
+) {
+  return stylize(this.toString(), 'undefined');
 };

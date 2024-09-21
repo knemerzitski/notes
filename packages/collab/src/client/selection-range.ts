@@ -1,15 +1,26 @@
-import { assertHasProperties, parseNumber } from '~utils/serialize';
-import { PartialBy } from '~utils/types';
+import { Maybe, PartialBy } from '~utils/types';
 
-import { Changeset } from '../changeset/changeset';
+import { coerce, Infer, number, object, optional } from 'superstruct';
+import { Changeset } from '../changeset';
 
-export interface SelectionRange {
-  /**
-   * If start is greater than end, then both are treated as value of end
-   */
-  start: number;
-  end: number;
-}
+const ExpandedSelectionRangeStruct = object({
+  start: number(),
+  end: number(),
+});
+
+const CollapsedSelectionRangeStruct = object({
+  start: number(),
+  end: optional(number()),
+});
+
+export const SelectionRangeStruct = coerce(
+  ExpandedSelectionRangeStruct,
+  CollapsedSelectionRangeStruct,
+  (value) => SelectionRange.expandSame(value),
+  (value) => SelectionRange.collapseSame(value)
+);
+
+export type SelectionRange = Infer<typeof ExpandedSelectionRangeStruct>;
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace SelectionRange {
@@ -23,15 +34,17 @@ export namespace SelectionRange {
   }
 
   export function from(start?: number, end?: number): SelectionRange;
-  export function from(selection?: Readonly<SelectionRange>): SelectionRange;
   export function from(
-    selection: Readonly<SelectionRange> | number = 0,
+    selection?: Readonly<PartialBy<SelectionRange, 'end'>>
+  ): SelectionRange;
+  export function from(
+    selection: Readonly<PartialBy<SelectionRange, 'end'>> | number = 0,
     end?: number
   ): SelectionRange {
     if (typeof selection === 'number') {
       return { start: selection, end: end ?? selection };
     } else {
-      return { start: selection.start, end: selection.end };
+      return { start: selection.start, end: selection.end ?? selection.start };
     }
   }
 
@@ -68,7 +81,9 @@ export namespace SelectionRange {
   /**
    * Removes end if start === end
    */
-  export function collapseSame(range: SelectionRange): PartialBy<SelectionRange, 'end'> {
+  export function collapseSame(
+    range: PartialBy<SelectionRange, 'end'>
+  ): PartialBy<SelectionRange, 'end'> {
     if (range.start === range.end) {
       return {
         start: range.start,
@@ -86,7 +101,7 @@ export namespace SelectionRange {
     end,
   }: {
     start: number;
-    end?: number | null | undefined;
+    end?: Maybe<number>;
   }): SelectionRange {
     if (end == null) {
       return {
@@ -125,13 +140,7 @@ export namespace SelectionRange {
   }
 
   export function parseValue(value: unknown): SelectionRange {
-    assertHasProperties(value, ['start']);
-
-    const start = parseNumber(value.start);
-    return {
-      start,
-      end: 'end' in value ? parseNumber(value.end) : start,
-    };
+    return SelectionRangeStruct.create(value);
   }
 
   export function parseValueMaybe(value: unknown): SelectionRange | undefined {

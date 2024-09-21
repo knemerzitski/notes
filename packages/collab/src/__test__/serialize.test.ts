@@ -1,20 +1,18 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { beforeEach, expect, it } from 'vitest';
 
-import { Changeset } from '../changeset/changeset';
 import { CollabEditor } from '../client/collab-editor';
-import { ChangesetRevisionRecords } from '../records/changeset-revision-records';
-import { newServerRecords } from '../records/server-records';
 
 import { createHelperCollabEditingEnvironment } from './helpers/server-client';
+import { RevisionRecords } from '../records/revision-records';
+import { Changeset } from '../changeset';
 
 let helper: ReturnType<typeof createHelperCollabEditingEnvironment<'A' | 'B'>>;
 
 beforeEach(() => {
   helper = createHelperCollabEditingEnvironment({
     server: {
-      changesetRecords: new ChangesetRevisionRecords({
-        revisionRecords: newServerRecords(),
+      records: new RevisionRecords({
         tailText: {
           changeset: Changeset.parseValue(['[ZERO]']),
           revision: 4,

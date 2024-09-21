@@ -1,21 +1,17 @@
-import { ParseError, Serializable } from '~utils/serialize';
-
-import { isInsertStrip } from './insert-strip';
-import { RetainStrip } from './retain-strip';
-import { SerializedStrip, Strip } from './strip';
-
-export type SerializedStrips = SerializedStrip[];
+import { Strip, RetainStrip, InsertStrip, StripsStruct } from '.';
 
 /**
  * A strip array with convinience methods.
  */
-export class Strips implements Serializable<SerializedStrips> {
+export class Strips {
+  static readonly EMPTY: Strips = new this();
+
   /**
    * Convinience method to create Strips from spread syntax.
    */
-  static from(...values: readonly Strip[]) {
+  static from: (...values: readonly Strip[]) => Strips = (...values) => {
     return new Strips(values);
-  }
+  };
 
   readonly values: readonly Strip[];
 
@@ -160,7 +156,7 @@ export class Strips implements Serializable<SerializedStrips> {
 
   joinInsertions() {
     return this.values
-      .filter(isInsertStrip)
+      .filter(InsertStrip.is)
       .map((strip) => strip.value)
       .join('');
   }
@@ -177,26 +173,11 @@ export class Strips implements Serializable<SerializedStrips> {
     return `[${this.values.join(', ')}]`;
   }
 
-  serialize(): SerializedStrips {
-    return this.values.map((strip) => strip.serialize());
+  serialize() {
+    return StripsStruct.createRaw(this);
   }
 
-  static parseValue(value?: unknown): Strips {
-    if (!value) return Strips.EMPTY;
-
-    if (!Array.isArray(value)) {
-      throw new ParseError(`Expected an array, found '${String(value)}'`);
-    }
-
-    if (value.length === 0) {
-      return Strips.EMPTY;
-    }
-
-    return new Strips(value.map((v) => Strip.parseValue(v)));
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace Strips {
-  export const EMPTY = new Strips();
+  static parseValue: (value?: unknown) => Strips = (value) => {
+    return StripsStruct.create(value);
+  };
 }

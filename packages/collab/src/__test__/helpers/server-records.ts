@@ -1,31 +1,31 @@
 import { ServerRecordsFacade } from '../../client/user-records';
-import { ChangesetRevisionRecords } from '../../records/changeset-revision-records';
 import { RevisionChangeset, RevisionRecord } from '../../records/record';
+import { RevisionRecords } from '../../records/revision-records';
 
 export interface LocalServerRecordsParams<TRecord extends RevisionRecord> {
-  changesetRecords: ChangesetRevisionRecords<TRecord>;
+  records: RevisionRecords<TRecord>;
 }
 
 /**
  * Records are stored directly in instance.
  */
-export class LocalServerRecords<TRecord extends RevisionChangeset>
+export class LocalServerRecords<TRecord extends RevisionRecord>
   implements ServerRecordsFacade<TRecord>
 {
-  readonly changesetRecords: ChangesetRevisionRecords<TRecord>;
+  readonly records: RevisionRecords<TRecord>;
 
   get tailText() {
-    return this.changesetRecords.tailText;
+    return this.records.tailText;
   }
 
-  constructor({ changesetRecords }: LocalServerRecordsParams<TRecord>) {
-    this.changesetRecords = changesetRecords;
+  constructor({ records }: LocalServerRecordsParams<TRecord>) {
+    this.records = records;
   }
 
   newestRecordsIterable(headRevision: number): Iterable<Readonly<TRecord>> {
-    const headIndex = this.changesetRecords.revisionToIndex(headRevision);
+    const headIndex = this.records.revisionToIndex(headRevision);
     let index = headIndex;
-    const records = headIndex >= 0 ? [...this.changesetRecords.records] : [];
+    const records = headIndex >= 0 ? [...this.records.items] : [];
     return {
       [Symbol.iterator]: () => ({
         next: () => {
@@ -44,10 +44,10 @@ export class LocalServerRecords<TRecord extends RevisionChangeset>
   }
 
   getHeadText() {
-    return this.changesetRecords.getHeadText();
+    return this.records.getHeadText();
   }
 
   getTextAt(revision: number): Readonly<RevisionChangeset> {
-    return this.changesetRecords.getTextAt(revision);
+    return this.records.getTextAt(revision);
   }
 }
