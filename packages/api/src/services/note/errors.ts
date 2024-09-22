@@ -9,7 +9,8 @@ export type NoteServiceErrorCode =
   | 'NOTE_UNAUTHORIZED'
   | 'NOTE_USER_NOT_FOUND'
   | 'NOTE_USER_UNAUTHORIZED'
-  | 'NOTE_COLLAB_RECORD_INSERT';
+  | 'NOTE_COLLAB_RECORD_INSERT'
+  | 'NOTE_SHARE_LINK_NOTE_FOUND';
 
 export class NoteServiceError extends ServiceError<NoteServiceErrorCode> {}
 
@@ -42,6 +43,18 @@ export class NoteNotFoundServiceError extends NoteServiceError {
   constructor(noteId: ObjectId) {
     super('NOTE_NOT_FOUND', `Note '${objectIdToStr(noteId)}' not found`);
     this.noteId = noteId;
+  }
+}
+
+export class NoteByShareLinkNotFoundServiceError extends NoteServiceError {
+  readonly shareLinkId: ObjectId;
+
+  constructor(shareLinkId: ObjectId) {
+    super(
+      'NOTE_SHARE_LINK_NOTE_FOUND',
+      `Note by share link '${objectIdToStr(shareLinkId)}' not found`
+    );
+    this.shareLinkId = shareLinkId;
   }
 }
 

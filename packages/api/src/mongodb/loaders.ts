@@ -6,10 +6,7 @@ import { QueryableNoteId, QueryableNoteLoader } from './loaders/note/loader';
 import { QueryableUserId, QueryableUserLoader } from './loaders/user/loader';
 import { QueryableNote } from './loaders/note/descriptions/note';
 import { QueryableUser } from './loaders/user/description';
-import {
-  QueryableSessionId,
-  QueryableSessionLoader,
-} from './loaders/session/loader';
+import { QueryableSessionId, QueryableSessionLoader } from './loaders/session/loader';
 import { QueryLoaderEvents } from './query/query-loader';
 import {
   QueryableNotesSearchId,
@@ -17,13 +14,17 @@ import {
 } from './loaders/notes-search/loader';
 import { QueryableSession } from './loaders/session/description';
 import { QueryableSearchNotes } from './loaders/notes-search/description';
+import {
+  QueryableNoteByShareLinkId,
+  QueryableNoteByShareLinkLoader,
+} from './loaders/note-by-share-link/loader';
 
 export interface MongoDBLoaders {
   session: QueryableSessionLoader;
   user: QueryableUserLoader;
   note: QueryableNoteLoader;
   notesSearch: QueryableNotesSearchLoader;
-  // noteByShareLink: QueryableNoteByShareLinkLoader;
+  noteByShareLink: QueryableNoteByShareLinkLoader;
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -35,12 +36,10 @@ export type LoaderEvents = {
     QueryableNotesSearchId,
     typeof QueryableSearchNotes
   >['loaded'];
-  // loadedNoteByShareLink: {
-  //   key: QueryableNoteByShareLinkLoadKey;
-  //   // value: PartialQueryResultDeep<QueryableNote>;
-  //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  //   value: PartialQueryResultDeep<any>;
-  // };
+  loadedNoteByShareLink: QueryLoaderEvents<
+    QueryableNoteByShareLinkId,
+    typeof QueryableNote
+  >['loaded'];
 };
 
 export function createMongoDBLoaders(
@@ -65,9 +64,9 @@ export function createMongoDBLoaders(
       context,
       eventBus: loadersEventBus,
     }),
-    // noteByShareLink: new QueryableNoteByShareLinkLoader({
-    //   ...context,
-    //   eventBus: loadersEventBus,
-    // }),
+    noteByShareLink: new QueryableNoteByShareLinkLoader({
+      context,
+      eventBus: loadersEventBus,
+    }),
   };
 }

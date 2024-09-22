@@ -64,7 +64,7 @@ export async function batchLoad(
 
         const noteById = notesResult.reduce<Record<string, Document>>((noteMap, note) => {
           if (note._id instanceof ObjectId) {
-            noteMap[note._id.toString()] = note;
+            noteMap[note._id.toString('hex')] = note;
           }
 
           return noteMap;
@@ -88,8 +88,8 @@ export async function batchLoad(
   >;
 
   return keys.map((key) => {
-    const userResult = notesBy_userId_noteId[key.id.userId?.toString() ?? ''];
-    const note = userResult?.noteById[key.id.noteId.toString()];
+    const userResult = notesBy_userId_noteId[key.id.userId?.toString('hex') ?? ''];
+    const note = userResult?.noteById[key.id.noteId.toString('hex')];
     if (!note) {
       return new NoteNotFoundQueryLoaderError(key);
     }
