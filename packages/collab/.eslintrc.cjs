@@ -18,8 +18,8 @@ module.exports = {
         basePath: `${__dirname}/src`,
         zones: [
           {
-            target: '!(changeset2)',
-            from: 'changeset2/!(index.ts)',
+            target: '!(changeset)',
+            from: 'changeset/!(index.ts)',
             message: 'Import from entry point "changeset/index.ts" instead',
           },
         ],

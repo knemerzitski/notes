@@ -1,4 +1,4 @@
-import { Changeset } from '~collab/changeset/changeset';
+import { Changeset } from '~collab/changeset';
 import type { CollabTextResolvers } from '../../types.generated';
 import { applyLimit } from '../../../../mongodb/pagination/cursor-array-pagination';
 import { CollabTextRecordMapper } from '../schema.mappers';

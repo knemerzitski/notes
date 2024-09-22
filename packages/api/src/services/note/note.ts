@@ -4,6 +4,7 @@ import { PartialQueryResultDeep } from '../../mongodb/query/query';
 import { DBNoteSchema } from '../../mongodb/schema/note';
 import { MongoReadonlyDeep } from '../../mongodb/types';
 
+// TODO util funcions?
 export function findNoteUser<T extends MongoReadonlyDeep<{ users: { _id: ObjectId }[] }>>(
   findUserId: ObjectId,
   note: T

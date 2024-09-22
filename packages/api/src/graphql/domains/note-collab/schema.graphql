@@ -21,16 +21,16 @@ input CreateNoteCollabInput {
   text: CreateCollabTextInput
 }
 
-################################ updateNoteTextFieldInsertRecord ################################
+################################ updateNoteInsertRecord ################################
 
-input UpdateNoteTextFieldInsertRecordInput {
+input UpdateNoteInsertRecordInput {
   "Note to be updated by Note.id"
   noteId: ObjectID!
   "New record to be inserted"
   insertRecord: CollabTextRecordInput!
 }
 
-type UpdateNoteTextFieldInsertRecordPayload {
+type UpdateNoteInsertRecordPayload {
   """
   New record added to text field. Could be a duplicate record. Check isDuplicateRecord field.
   """
@@ -44,10 +44,10 @@ type UpdateNoteTextFieldInsertRecordPayload {
 }
 
 extend type Mutation {
-  "Insert new record to text field"
-  updateNoteTextFieldInsertRecord(
-    input: UpdateNoteTextFieldInsertRecordInput!
-  ): UpdateNoteTextFieldInsertRecordPayload! @auth
+  "Insert new record to note"
+  updateNoteInsertRecord(
+    input: UpdateNoteInsertRecordInput!
+  ): UpdateNoteInsertRecordPayload! @auth
 }
 
-extend union SignedInUserMutations = UpdateNoteTextFieldInsertRecordPayload
+extend union SignedInUserMutations = UpdateNoteInsertRecordPayload

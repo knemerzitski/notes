@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import { Changeset } from '~collab/changeset/changeset';
+import { Changeset } from '~collab/changeset';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 import { MongoPrimitive } from '../../types';
 

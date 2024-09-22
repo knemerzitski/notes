@@ -1,5 +1,5 @@
 import { GraphQLScalarType, Kind, ValueNode } from 'graphql';
-import { Changeset as ChangesetClass } from '~collab/changeset/changeset';
+import { Changeset as ChangesetClass } from '~collab/changeset';
 
 function valueFromAST(value: ValueNode): unknown {
   if (value.kind === Kind.LIST) {

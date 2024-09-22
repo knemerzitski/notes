@@ -27,7 +27,7 @@ import { objectIdToStr } from '../../../mongodb/utils/objectid';
 export interface CreateGraphQLResolversContextOptions {
   user?: Partial<DBUserSchema>;
   createPublisher?: (ctx: Omit<GraphQLResolversContext, 'publish'>) => Publisher;
-  mongodb?: PartialBy<ApiGraphQLContext['mongoDB'], 'loaders'>;
+  mongoDB?: PartialBy<ApiGraphQLContext['mongoDB'], 'loaders'>;
   override?: MongoPartialDeep<GraphQLResolversContext>;
 }
 
@@ -36,7 +36,7 @@ export function createGraphQLResolversContext(
 ): GraphQLResolversContext {
   const user = options?.user;
 
-  const mongoDBContext: MongoDBContext<MongoDBCollections> = options?.mongodb ?? {
+  const mongoDBContext: MongoDBContext<MongoDBCollections> = options?.mongoDB ?? {
     client: mongoClient,
     collections: mongoCollections,
   };

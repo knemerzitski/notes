@@ -2,7 +2,7 @@
 import { faker } from '@faker-js/faker';
 import { beforeAll, beforeEach, expect, it } from 'vitest';
 
-import { Changeset } from '~collab/changeset/changeset';
+import { Changeset } from '~collab/changeset';
 
 import { apolloServer } from '../../../../../__test__/helpers/graphql/apollo-server';
 import {

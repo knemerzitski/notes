@@ -44,10 +44,13 @@ export async function insertNote({
         ...(preferences && { preferences }),
       },
     ],
-    collabText: createCollabText({
-      creatorUserId: userId,
-      initialText: collabText?.initialText ?? '',
-    }),
+    collabText:
+      collabText?.initialText != null
+        ? createCollabText({
+            creatorUserId: userId,
+            initialText: collabText.initialText,
+          })
+        : undefined,
   };
 
   await withTransaction(mongoDB.client, ({ runSingleOperation }) =>

@@ -409,7 +409,7 @@ describe('errors', () => {
       { user }
     );
 
-    expectGraphQLResponseError(response, /Note '.+' not found/);
+    expectGraphQLResponseError(response, /note not found/i);
   });
 
   it('throws note not found if user is not linked to the note', async () => {
@@ -420,7 +420,7 @@ describe('errors', () => {
       { user: userNoAccess }
     );
 
-    expectGraphQLResponseError(response, /Note '.+' not found/);
+    expectGraphQLResponseError(response, /note not found/i);
   });
 
   it('throws error if not authenticated', async () => {
@@ -428,6 +428,6 @@ describe('errors', () => {
       noteId: note._id,
     });
 
-    expectGraphQLResponseError(response, /.*must be signed in.*/);
+    expectGraphQLResponseError(response, /must be signed in/i);
   });
 });

@@ -270,7 +270,6 @@ export class QueryLoader<I, S extends Struct<any, any, any>, CG = unknown, CR = 
           isAlreadyCached = this.isKeyCached(leafLoaderKey.cache);
         }
 
-        // console.log(leafLoaderKey);
         const leafValue = await this.loader.load(leafLoaderKey);
 
         return {

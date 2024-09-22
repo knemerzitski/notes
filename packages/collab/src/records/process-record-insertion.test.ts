@@ -158,7 +158,7 @@ it('throws error if record insertion requires older not available records', () =
       }),
     })
   ).toThrow(
-    `Missing older records to insert new record. Oldest revision: 5, Insert revision: '3'`
+    `Missing older records to insert new record. Oldest revision: 5, Insert revision: 3`
   );
 });
 

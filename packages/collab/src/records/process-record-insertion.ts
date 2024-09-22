@@ -80,10 +80,18 @@ export function processRecordInsertion<
     );
   }
 
-  if (headText && newestRevision !== headText.revision) {
-    throw new Error(
-      `Unexpected headText and newest revision is not equal. Newest revision: ${newestRevision}, headText.revision: ${headText.revision}`
-    );
+  if (headText) {
+    if (records.newestRevision == null && newRecord.revision !== headText.revision) {
+      throw new InsertRecordError(
+        'REVISION_INVALID',
+        `Cannot insert record with revision higher than headText.revision. headText.revision: ${headText.revision}, Insert revision: ${newRecord.revision}`
+      );
+    }
+    if (newestRevision !== headText.revision) {
+      throw new Error(
+        `Unexpected headText and newest revision is not equal. Newest revision: ${newestRevision}, headText.revision: ${headText.revision}`
+      );
+    }
   }
 
   const deltaRevision = newRecord.revision - newestRevision;
@@ -91,7 +99,7 @@ export function processRecordInsertion<
   if (startRecordIndex < 0) {
     throw new InsertRecordError(
       'REVISION_OLD',
-      `Missing older records to insert new record. Oldest revision: ${records.oldestRevision}, Insert revision: '${newRecord.revision}'`
+      `Missing older records to insert new record. Oldest revision: ${records.oldestRevision}, Insert revision: ${newRecord.revision}`
     );
   }
 

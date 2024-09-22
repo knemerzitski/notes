@@ -1,4 +1,4 @@
-import { Changeset } from '~collab/changeset/changeset';
+import { Changeset } from '~collab/changeset';
 import {
   RevisionRecordSchema,
   SelectionRangeSchema,

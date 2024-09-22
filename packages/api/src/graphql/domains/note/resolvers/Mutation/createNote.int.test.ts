@@ -14,7 +14,7 @@ import {
   vi,
 } from 'vitest';
 
-import { Changeset } from '~collab/changeset/changeset';
+import { Changeset } from '~collab/changeset';
 import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
 
 import { apolloServer } from '../../../../../__test__/helpers/graphql/apollo-server';
@@ -46,7 +46,6 @@ import {
   NoteCategory,
 } from '../../../types.generated';
 import { signedInUserTopic } from '../../../user/resolvers/Subscription/signedInUserEvents';
-import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 
 const MUTATION_ALL = `#graphql
   mutation($input: CreateNoteInput!){
@@ -189,33 +188,14 @@ describe('no existing notes', () => {
             text: {
               headText: {
                 changeset: Changeset.EMPTY.serialize(),
-                revision: 1,
+                revision: 0,
               },
               tailText: {
                 changeset: Changeset.EMPTY.serialize(),
                 revision: 0,
               },
               recordConnection: {
-                records: [
-                  {
-                    afterSelection: {
-                      start: 0,
-                      end: null,
-                    },
-                    beforeSelection: {
-                      start: 0,
-                      end: null,
-                    },
-                    change: {
-                      changeset: Changeset.EMPTY.serialize(),
-                      revision: 1,
-                    },
-                    createdAt: expect.any(Date),
-                    creatorUser: {
-                      id: objectIdToStr(user._id),
-                    },
-                  },
-                ],
+                records: [],
               },
             },
           },
@@ -257,34 +237,7 @@ describe('no existing notes', () => {
           createdAt: expect.any(Date),
         },
       ],
-      collabText: {
-        updatedAt: expect.any(Date),
-        headText: {
-          changeset: Changeset.EMPTY.serialize(),
-          revision: 1,
-        },
-        tailText: {
-          changeset: Changeset.EMPTY.serialize(),
-          revision: 0,
-        },
-        records: [
-          {
-            changeset: Changeset.EMPTY.serialize(),
-            revision: 1,
-            creatorUser: {
-              _id: user._id,
-            },
-            userGeneratedId: expect.any(String),
-            beforeSelection: {
-              start: 0,
-            },
-            afterSelection: {
-              start: 0,
-            },
-            createdAt: expect.any(Date),
-          },
-        ],
-      },
+      collabText: null,
     });
   });
 
@@ -434,7 +387,7 @@ describe('no existing notes', () => {
   describe('errors', () => {
     it('throws error if not authenticated', async () => {
       const response = await executeOperation({}, { user: undefined });
-      expectGraphQLResponseError(response, /.*must be signed in.*/);
+      expectGraphQLResponseError(response, /must be signed in/i);
 
       // Database not modified
       const dbUser = await mongoCollections.users.findOne({
@@ -462,7 +415,7 @@ describe('no existing notes', () => {
         },
         { user }
       );
-      expectGraphQLResponseError(response, /got invalid value/);
+      expectGraphQLResponseError(response, /got invalid value/i);
     });
   });
 

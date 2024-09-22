@@ -831,7 +831,7 @@ describe('note in normal categories', () => {
         { user }
       );
 
-      expectGraphQLResponseError(response, /Note '.+' not found/);
+      expectGraphQLResponseError(response, /note not found/i);
     });
 
     it('throws note not found if user is not linked to the note', async () => {
@@ -845,7 +845,7 @@ describe('note in normal categories', () => {
         { user: userNoAccess }
       );
 
-      expectGraphQLResponseError(response, /Note '.+' not found/);
+      expectGraphQLResponseError(response, /note not found/i);
     });
 
     it('throws error if not authenticated', async () => {
@@ -856,7 +856,7 @@ describe('note in normal categories', () => {
         },
       });
 
-      expectGraphQLResponseError(response, /.*must be signed in.*/);
+      expectGraphQLResponseError(response, /must be signed in/i);
     });
   });
 });

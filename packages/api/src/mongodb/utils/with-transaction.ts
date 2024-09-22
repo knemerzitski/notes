@@ -27,6 +27,10 @@ export async function withTransaction<T>(
   mongoClient: MongoClient,
   executor: WithTransactionCallback<T>,
   options?: {
+    /**
+     * @default false
+     */
+    skipAwaitFirstOperation?: boolean;
     session?: ClientSessionOptions;
     transaction?: TransactionOptions;
   }
@@ -38,7 +42,9 @@ export async function withTransaction<T>(
       session,
       runSingleOperation: async (run) => {
         if (firstOperation instanceof Promise) {
-          await firstOperation;
+          if (!options?.skipAwaitFirstOperation) {
+            await firstOperation;
+          }
           firstOperation = 'done';
         }
 

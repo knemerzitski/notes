@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import { mockResolver } from '../../../../__test__/helpers/graphql/mock-resolver';
 import { CollabText } from './CollabText';
-import { Changeset } from '~collab/changeset/changeset';
+import { Changeset } from '~collab/changeset';
 import { maybeCallFn } from '~utils/maybe-call-fn';
 import { createPartialValueQueryFn } from '../../../../mongodb/query/query';
 import { QueryableCollabText } from '../../../../mongodb/loaders/note/descriptions/collab-text';

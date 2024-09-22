@@ -18,12 +18,17 @@ export enum GraphQLErrorCode {
   READ_ONLY = 'READ_ONLY',
   /**
    * Provided input/argument for requesting the resource is invalid.
+   * Extension key 'input' for enum {@link InputType} value
    */
   INVALID_INPUT = 'INVALID_INPUT',
   /**
    * Unable to process the operation because it would create an invalid state.
    */
   INVALID_OPERATION = 'INVALID_OPERATION',
+  /**
+   * Resource is outdated for modifications. Must fetch newest resource version.
+   */
+  OUTDATED = 'OUTDATED',
 }
 
 export enum AuthenticationFailedReason {
@@ -46,4 +51,11 @@ export enum AuthenticationFailedReason {
 export enum ResourceType {
   NOTE = 'NOTE',
   USER = 'USER',
+  REVISION = 'REVISION',
+  CHANGESET = 'CHANGESET',
+}
+
+export enum InputType {
+  REVISION = 'REVISION',
+  CHANGESET = 'CHANGESET',
 }

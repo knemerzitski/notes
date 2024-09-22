@@ -16,7 +16,7 @@ const config: CodegenConfig = {
           type: 'mongodb#ObjectId',
         },
         Changeset: {
-          type: '~collab/changeset/changeset#Changeset',
+          type: '~collab/changeset#Changeset',
         },
         Cursor: {
           type: 'string | number',

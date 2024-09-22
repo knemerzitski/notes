@@ -3,7 +3,7 @@ import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 import { beforeAll, it, assert, expect } from 'vitest';
 
-import { Changeset } from '~collab/changeset/changeset';
+import { Changeset } from '~collab/changeset';
 
 import {
   resetDatabase,

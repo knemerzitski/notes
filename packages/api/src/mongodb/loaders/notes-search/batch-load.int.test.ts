@@ -2,7 +2,7 @@
 import { faker } from '@faker-js/faker';
 import { beforeAll, it, expect, assert, describe } from 'vitest';
 
-import { Changeset } from '~collab/changeset/changeset';
+import { Changeset } from '~collab/changeset';
 
 import {
   dropAndCreateSearchIndexes,

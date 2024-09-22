@@ -13,7 +13,7 @@ import {
   unknown,
 } from 'superstruct';
 
-import { Changeset } from '~collab/changeset/changeset';
+import { Changeset } from '~collab/changeset';
 import { SelectionRange } from '~collab/client/selection-range';
 
 export const ChangesetSchema = coerce(

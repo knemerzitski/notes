@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import { Changeset } from '~collab/changeset/changeset';
+import { Changeset } from '~collab/changeset';
 
 import { PartialDeep, Primitive, ReadonlyDeep } from '~utils/types';
 

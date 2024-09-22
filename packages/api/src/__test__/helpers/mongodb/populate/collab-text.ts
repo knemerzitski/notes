@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 
-import { Changeset } from '~collab/changeset/changeset';
+import { Changeset } from '~collab/changeset';
 
 import { isDefined } from '~utils/type-guards/is-defined';
 
@@ -64,7 +64,7 @@ export function fakeCollabText(
       },
     };
   }
-
+  
   const records =
     options?.override?.records?.filter(isDefined).map(fakeRecord) ??
     [...new Array<undefined>(recordsCount)].map((_, index) => {
