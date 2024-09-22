@@ -38,8 +38,10 @@ it('creates new user, updates displayName and publishes it to websocket', async 
             ... on SignInResult {
               signedInUser {
                 id
-                publicProfile {
-                  displayName
+                public {
+                  profile {
+                    displayName
+                  }
                 }
               }
             }
@@ -61,7 +63,7 @@ it('creates new user, updates displayName and publishes it to websocket', async 
     fetchFn
   );
   const userId = signInResult.data?.signIn.signedInUser.id;
-  expect(userId).toBeDefined();
+  expect(userId, JSON.stringify(signInResult.errors, null, 2)).toBeDefined();
   const userIdStr = String(userId);
 
   // Set user for subsequent requests
