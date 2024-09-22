@@ -41,8 +41,8 @@ export function fakeNote(
         };
       }) ?? [],
     collabText: fakeCollabText(fallbackUser._id, options?.collabText),
-    shareNoteLinks:
-      options?.override?.shareNoteLinks?.filter(isDefined).map((shareNoteLink) => ({
+    shareLinks:
+      options?.override?.shareLinks?.filter(isDefined).map((shareNoteLink) => ({
         ...fakeShareNoteLink(fallbackUser),
         ...shareNoteLink,
       })) ?? [],

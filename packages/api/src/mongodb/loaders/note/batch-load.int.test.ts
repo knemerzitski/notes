@@ -246,7 +246,7 @@ it('loads minimal fields', async () => {
   ]);
 });
 
-it('loads shareNoteLinks', async () => {
+it('loads shareLinks', async () => {
   await expect(
     batchLoad(
       [
@@ -255,7 +255,7 @@ it('loads shareNoteLinks', async () => {
             noteId: note._id,
           },
           query: {
-            shareNoteLinks: {
+            shareLinks: {
               _id: 1,
               expireAccessCount: 1,
             },
@@ -269,7 +269,7 @@ it('loads shareNoteLinks', async () => {
     )
   ).resolves.toEqual([
     {
-      shareNoteLinks: [
+      shareLinks: [
         {
           _id: expect.any(ObjectId),
           expireAccessCount: expect.any(Number),

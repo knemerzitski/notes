@@ -27,7 +27,7 @@ export interface PopulateNotesOptions {
   noteUser?: (noteIndex: number) => FakeNoteUserOptions | undefined;
   note?: (noteIndex: number) => FakeNoteOptions | undefined;
   collabText?: (noteIndex: number) => FakeCollabTextOptions | undefined;
-  shareNoteLink?: (noteIndex: number) => FakeShareNoteLinkOptions | undefined;
+  shareLink?: (noteIndex: number) => FakeShareNoteLinkOptions | undefined;
 }
 
 export function populateNotes(count: number, options?: PopulateNotesOptions) {
@@ -36,8 +36,8 @@ export function populateNotes(count: number, options?: PopulateNotesOptions) {
   const notes: DBNoteSchema[] = [];
 
   const data = [...new Array<undefined>(count)].map((_, noteIndex) => {
-    const shareNoteLink = !options?.skipInsert
-      ? fakeShareNoteLink(user, options?.shareNoteLink?.(noteIndex))
+    const shareLink = !options?.skipInsert
+      ? fakeShareNoteLink(user, options?.shareLink?.(noteIndex))
       : undefined;
 
     const noteUser = fakeNoteUser(user, options?.noteUser?.(noteIndex));
@@ -48,7 +48,7 @@ export function populateNotes(count: number, options?: PopulateNotesOptions) {
       ...noteOptions,
       override: {
         users: [noteUser],
-        shareNoteLinks: shareNoteLink ? [shareNoteLink] : undefined,
+        shareLinks: shareLink ? [shareLink] : undefined,
         ...noteOptions?.override,
       },
     });
@@ -59,7 +59,7 @@ export function populateNotes(count: number, options?: PopulateNotesOptions) {
     return {
       note,
       noteUser,
-      shareNoteLink,
+      shareNoteLink: shareLink,
     };
   });
 

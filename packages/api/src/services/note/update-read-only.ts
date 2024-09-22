@@ -65,21 +65,20 @@ export async function updateReadOnly({
     throw new NoteUserNotFoundServiceError(targetUserId, noteId);
   }
 
-  if (targetNoteUser.readOnly === readOnly) {
-    return {
-      type: 'already_read_only' as const,
-      note,
-    };
-  }
-
   const isOwner = scopeNoteUser.isOwner;
-
   if (!isOwner) {
     throw new NoteUserUnauthorizedServiceError(
       scopeNoteUser._id,
       targetNoteUser._id,
       'Update note user readOnly'
     );
+  }
+
+  if (targetNoteUser.readOnly === readOnly) {
+    return {
+      type: 'already_read_only' as const,
+      note,
+    };
   }
 
   await model_updateReadOnly({

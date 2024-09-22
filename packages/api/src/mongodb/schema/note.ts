@@ -17,7 +17,7 @@ export const NoteSchema = object({
    */
   collabText: optional(CollabTextSchema),
 
-  shareNoteLinks: optional(array(ShareNoteLinkSchema)),
+  shareLinks: optional(array(ShareNoteLinkSchema)),
 });
 
 export type DBNoteSchema = InferRaw<typeof NoteSchema>;
@@ -31,7 +31,7 @@ export const noteDescription: CollectionDescription = {
       unique: true,
     },
     {
-      key: { 'shareNoteLinks.publicId': 1 },
+      key: { 'shareLinks._id': 1 },
       sparse: true,
       unique: true,
     },

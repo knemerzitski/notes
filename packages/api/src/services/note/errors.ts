@@ -6,6 +6,7 @@ import { ChangesetError } from '~collab/changeset';
 export type NoteServiceErrorCode =
   | 'NOTE_NOT_FOUND'
   | 'NOTE_READ_ONLY'
+  | 'NOTE_UNAUTHORIZED'
   | 'NOTE_USER_NOT_FOUND'
   | 'NOTE_USER_UNAUTHORIZED'
   | 'NOTE_COLLAB_RECORD_INSERT';
@@ -41,6 +42,18 @@ export class NoteNotFoundServiceError extends NoteServiceError {
   constructor(noteId: ObjectId) {
     super('NOTE_NOT_FOUND', `Note '${objectIdToStr(noteId)}' not found`);
     this.noteId = noteId;
+  }
+}
+
+export class NoteUnauthorizedServiceError extends NoteServiceError {
+  readonly userId: ObjectId;
+
+  constructor(userId: ObjectId, message: string) {
+    super(
+      'NOTE_UNAUTHORIZED',
+      `Note user '${objectIdToStr(userId)}' lacks permissions: ${message}`
+    );
+    this.userId = userId;
   }
 }
 

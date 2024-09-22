@@ -8,19 +8,17 @@ export const Note: Pick<NoteResolvers, 'shareAccess'> = {
     async (parent) =>
       (
         await parent.query({
-          shareNoteLinks: {
+          shareLinks: {
             _id: 1,
           },
         })
-      )?.shareNoteLinks != null,
+      )?.shareLinks != null,
     (parent, _arg, _ctx) => {
       return {
-        query: createMapQueryFn(parent.query)<
-          typeof QueryableNote.schema.shareNoteLinks
-        >()(
-          (query) => ({ shareNoteLinks: query }),
+        query: createMapQueryFn(parent.query)<QueryableNote['shareLinks']>()(
+          (query) => ({ shareLinks: query }),
           (result) => {
-            return result.shareNoteLinks;
+            return result.shareLinks;
           }
         ),
       };

@@ -33,7 +33,7 @@ export const ShareNoteLinkSchema = object({
   ),
 
   /**
-   * Optional delete document  after certain time
+   * Optional delete share link after certain time
    */
   expireAt: optional(date()),
   /**
