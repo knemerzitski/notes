@@ -41,19 +41,19 @@ input DeleteShareNoteInput {
   noteId: ObjectID!
 }
 
-type DeleteNoteSharePayload {
-  "Id of deleted NoteShareAccess.id"
-  shareAccessId: ObjectID!
+type DeleteShareNotePayload {
+  "Id of deleted NoteShareAccess.id. Null if already deleted."
+  shareAccessId: ObjectID
   "Note with shareAccess deleted"
   note: Note!
 }
 
 extend type Mutation {
   "Stop new access to note. Existing users can still access the note."
-  deleteShareNote(input: DeleteShareNoteInput!): DeleteNoteSharePayload! @auth
+  deleteShareNote(input: DeleteShareNoteInput!): DeleteShareNotePayload! @auth
 }
 
-extend union SignedInUserMutations = DeleteNoteSharePayload
+extend union SignedInUserMutations = DeleteShareNotePayload
 
 
 ################################ Mutation createNoteLinkByShareAccess ################################
