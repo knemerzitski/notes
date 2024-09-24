@@ -1,4 +1,3 @@
-import { GraphQLError } from 'graphql';
 import { ExecutionContext } from 'graphql/execution/execute';
 import { MaybePromise } from '~utils/types';
 
@@ -11,8 +10,17 @@ export interface PubSubEvent {
 
 export interface SubscribeOptions<T extends PubSubEvent> {
   filter?: T['payload'];
+  /**
+   * Before subscription is persisted
+   */
   onSubscribe?: () => MaybePromise<void>;
+  /**
+   * After subscription has been persisted
+   */
   onAfterSubscribe?: () => MaybePromise<void>;
+  /**
+   * Subscription is complete and will be deleted from persistence
+   */
   onComplete?: () => MaybePromise<void>;
 }
 
