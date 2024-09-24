@@ -32,7 +32,7 @@ export async function parseAuthenticationContextFromHeaders({
       };
     }
 
-    const cookieId = cookies.getSessionCookeId(userId);
+    const cookieId = cookies.getSessionCookieId(userId);
     if (!cookieId) {
       return {
         reason: AuthenticationFailedReason.USER_NO_SESSION,

@@ -30,7 +30,7 @@ export const signOut: NonNullable<MutationResolvers['signOut']> = async (
       // Sign out specified user
       await deleteSessionWithCookies({
         userId: input.userId,
-        cookieId: cookies.getSessionCookeId(input.userId),
+        cookieId: cookies.getSessionCookieId(input.userId),
         cookies,
         mongoDB,
       });

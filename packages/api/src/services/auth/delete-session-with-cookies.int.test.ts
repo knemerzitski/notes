@@ -40,5 +40,5 @@ it('deletes session from db and removes cookieId', async () => {
     })
   ).resolves.toBeNull();
 
-  expect(cookies.getSessionCookeId(userId)).toBeUndefined();
+  expect(cookies.getSessionCookieId(userId)).toBeUndefined();
 });

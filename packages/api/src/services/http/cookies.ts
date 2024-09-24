@@ -82,7 +82,7 @@ export class Cookies {
     return Object.values(this.sessions);
   }
 
-  getSessionCookeId(userId: ObjectId | string) {
+  getSessionCookieId(userId: ObjectId | string) {
     return this.sessions[this.getSessionKey(userId)];
   }
 
