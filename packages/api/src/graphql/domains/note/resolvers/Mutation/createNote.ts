@@ -22,7 +22,7 @@ const _createNote: NonNullable<MutationResolvers['createNote']> = async (
   assertAuthenticated(auth);
 
   const { input } = arg;
-  
+
   const currentUserId = auth.session.userId;
 
   const collabInitialText = input.collabText?.initialText;

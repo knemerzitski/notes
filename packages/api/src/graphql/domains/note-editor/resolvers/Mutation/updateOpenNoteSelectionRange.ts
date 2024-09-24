@@ -8,15 +8,15 @@ import {
   mapNoteToCollabTextQueryFn,
 } from '../../../../../services/note/note-collab';
 import type { MutationResolvers, ResolversTypes } from '../../../types.generated';
-import { publishNoteEditorMutation } from '../Subscription/noteEditorEvents';
+import { publishOpenNoteMutation } from '../Subscription/openNoteEvents';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import { NoteNotFoundServiceError } from '../../../../../services/note/errors';
 import { QueryableNoteUser } from '../../../../../mongodb/loaders/note/descriptions/note';
 import { SelectionRangeSchema } from '../../../../../mongodb/schema/collab-text';
 
-export const updateNoteEditorSelectionRange: NonNullable<
-  MutationResolvers['updateNoteEditorSelectionRange']
+export const updateOpenNoteSelectionRange: NonNullable<
+  MutationResolvers['updateOpenNoteSelectionRange']
 > = async (_parent, arg, ctx) => {
   const { auth, mongoDB, connectionId } = ctx;
   assertAuthenticated(auth);
@@ -70,7 +70,7 @@ export const updateNoteEditorSelectionRange: NonNullable<
   if (!noteUser.editing?.connectionIds.includes(connectionId)) {
     throw new GraphQLError(
       'Current connection is not in editing mode. ' +
-        'Must subscribe to "noteEditorEvents" to use mutation "updateNoteEditorSelectionRange"'
+        'Must subscribe to "openNoteEvents" to use mutation "updateOpenNoteSelectionRange"'
     );
   }
 
@@ -127,9 +127,9 @@ export const updateNoteEditorSelectionRange: NonNullable<
     userId: currentUserId,
   });
 
-  const payload: ResolversTypes['NoteEditorMutations'] = {
-    __typename: 'UpdateNoteEditorSelectionRangePayload',
-    textEditState: {
+  const payload: ResolversTypes['OpenNoteMutations'] = {
+    __typename: 'UpdateOpenNoteSelectionRangePayload',
+    collabTextState: {
       query: createValueQueryFn<
         NonNullable<NonNullable<QueryableNoteUser['editing']>['collabText']>
       >(() => editingCollabText),
@@ -146,7 +146,7 @@ export const updateNoteEditorSelectionRange: NonNullable<
     },
   };
 
-  await publishNoteEditorMutation(input.noteId, payload, ctx);
+  await publishOpenNoteMutation(input.noteId, payload, ctx);
 
   return payload;
 };

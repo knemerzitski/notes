@@ -1,67 +1,55 @@
-################################ UserCollabTextEditState ################################
+################################ UserCollabTextState ################################
 
-type UserCollabTextEditState {
+type UserCollabTextState {
   "latestSelection applies to text at this revision"
   revision: NonNegativeInt!
   "Latest updated selection range"
   latestSelection: CollabTextSelectionRange!
 }
 
-################################ Subscription noteEditorEvents ################################
+################################ Subscription openNoteEvents ################################
+union OpenNoteMutations
 
-union NoteEditorMutations
-
-type NoteEditorEventsPayload {
+type OpenNoteEventsPayload {
   "Self-descriptive"
-  mutations: [NoteEditorMutations!]
+  mutations: [OpenNoteMutations!]
 }
 
 extend type Subscription {
-  # TODO rename to noteTextEditEvents
-  "Subscribe to all events that are related to editing of specific note"
-  noteEditorEvents(noteId: ObjectID!): NoteEditorEventsPayload! @auth
+  "Subscribe to all events that are relevant to a opened note"
+  openNoteEvents(noteId: ObjectID!): OpenNoteEventsPayload! @auth
 }
-
-################################ NoteEditorEventsSubscribed ################################
-
-"This payload will be sent when user has successfully subscribed to noteEditorEvents"
-type NoteEditorEventsSubscribed {
-  "Always true"
-  subscribed: Boolean!
-}
-
-extend union SignedInUserMutations = NoteEditorEventsSubscribed
 
 ################################ PublicUserNoteLink ################################
 
 extend type PublicUserNoteLink {
-  "If defined then user is currently subscribed to noteEditorEvents and is editing note"
-  textEditState: UserCollabTextEditState
+  "Defined when is currently subscribed to openNoteEvents and is viewing note"
+  collabTextState: UserCollabTextState
 }
 
 ################################ Events User Subscribed/Unsubscribed ################################
 
-type NoteEditorUserSubscribedEvent {
-  "This user started subscribing to note editor events."
+type OpenNoteUserSubscribedEvent {
+  "This user is subscribed to open note events"
   user: PublicUser!
   "Affected Note"
   note: Note!
 }
 
-type NoteEditorUserUnsubscribedEvent {
-  "This user stopped subscribing to note editor events."
+type OpenNoteUserUnsubscribedEvent {
+  "This user is no longer subscribed to open note events."
   user: PublicUser!
   "Affected Note"
   note: Note!
 }
 
 extend union SignedInUserMutations =
-  | NoteEditorUserSubscribedEvent
-  | NoteEditorUserUnsubscribedEvent
+  | OpenNoteUserSubscribedEvent
+  | OpenNoteUserUnsubscribedEvent
 
-################################ Mutation updateNoteEditorSelectionRange ################################
+################################ Mutation updateOpenNoteSelectionRange ################################
 
-input UpdateNoteEditorSelectionRangeInput {
+input UpdateOpenNoteSelectionRangeInput {
   "Note.id"
   noteId: ObjectID!
   "Selection applies to this revision of text"
@@ -70,22 +58,23 @@ input UpdateNoteEditorSelectionRangeInput {
   selectionRange: CollabTextSelectionRangeInput!
 }
 
-type UpdateNoteEditorSelectionRangePayload {
-  "Editing state for CollabText"
-  textEditState: UserCollabTextEditState!
-  "CollabText that is being edited"
+type UpdateOpenNoteSelectionRangePayload {
+  "User CollabText state"
+  collabTextState: UserCollabTextState!
+  "Self-descriptive"
   collabText: CollabText!
-  "This note CollabText is being edited"
+  "The open note"
   note: Note!
-  "Editing state applies to this user"
+  "CollabText state applies to this user"
   user: PublicUser!
 }
 
 extend type Mutation {
-  updateNoteEditorSelectionRange(
-    input: UpdateNoteEditorSelectionRangeInput!
-  ): UpdateNoteEditorSelectionRangePayload! @auth
+  updateOpenNoteSelectionRange(
+    input: UpdateOpenNoteSelectionRangeInput!
+  ): UpdateOpenNoteSelectionRangePayload! @auth
 }
 
-extend union NoteEditorMutations = UpdateNoteEditorSelectionRangePayload
-extend union SignedInUserMutations = UpdateNoteEditorSelectionRangePayload
+extend union OpenNoteMutations = UpdateOpenNoteSelectionRangePayload
+
+extend union SignedInUserMutations = UpdateOpenNoteSelectionRangePayload

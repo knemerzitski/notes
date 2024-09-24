@@ -1,8 +1,8 @@
 import { createMapQueryFn } from '../../../../mongodb/query/query';
 import { SelectionRangeSchema } from '../../../../mongodb/schema/collab-text';
-import type { UserCollabTextEditStateResolvers } from './../../types.generated';
+import type { UserCollabTextStateResolvers } from './../../types.generated';
 
-export const UserCollabTextEditState: UserCollabTextEditStateResolvers = {
+export const UserCollabTextState: UserCollabTextStateResolvers = {
   latestSelection: (parent) => {
     return {
       query: createMapQueryFn(parent.query)<SelectionRangeSchema>()(

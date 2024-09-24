@@ -24,7 +24,7 @@ export function noteEditorTopic(noteId: ObjectId) {
   return `${SubscriptionTopicPrefix.NOTE_EDITOR_EVENTS}:${objectIdToStr(noteId)}`;
 }
 
-export const noteEditorEvents: NonNullable<SubscriptionResolvers['noteEditorEvents']> = {
+export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']> = {
   subscribe: (_parent, arg, ctx) => {
     const { auth, subscribe, mongoDB, connectionId } = ctx;
 
@@ -90,7 +90,7 @@ export const noteEditorEvents: NonNullable<SubscriptionResolvers['noteEditorEven
         });
 
         const subscribedPayload: ResolversTypes['SignedInUserMutations'] = {
-          __typename: 'NoteEditorUserSubscribedEvent',
+          __typename: 'OpenNoteUserSubscribedEvent',
           user: {
             query: userQuery,
           },
@@ -140,26 +140,22 @@ export const noteEditorEvents: NonNullable<SubscriptionResolvers['noteEditorEven
           publishSignedInUserMutations(
             currentUserId,
             [
-              // Let user know what subscription has been processed
-              {
-                __typename: 'NoteEditorEventsSubscribed',
-                subscribed: true,
-              },
+              // Let user know that subscription has been processed
+              subscribedPayload,
               ...note.users
                 .map((noteUser) => {
                   if (!noteUser.editing?.collabText) return;
                   const editingCollabText = noteUser.editing.collabText;
 
                   return {
-                    __typename: 'UpdateNoteEditorSelectionRangePayload' as const,
-                    textEditState: {
+                    __typename: 'UpdateOpenNoteSelectionRangePayload' as const,
+                    collabTextState: {
                       query: createValueQueryFn<
                         NonNullable<
                           NonNullable<QueryableNoteUser['editing']>['collabText']
                         >
                       >(() => editingCollabText),
                     },
-                    // TODO why this if can already access it thorugh note, remove it from here and from all others where just collabText is given..
                     collabText: {
                       id: CollabText_id_fromNoteQueryFn(noteQuery),
                       query: mapNoteToCollabTextQueryFn(noteQuery),
@@ -252,7 +248,7 @@ export const noteEditorEvents: NonNullable<SubscriptionResolvers['noteEditorEven
                 editing.connectionIds.includes(connectionId)
               ) {
                 const unsubscribedPayload: ResolversTypes['SignedInUserMutations'] = {
-                  __typename: 'NoteEditorUserUnsubscribedEvent',
+                  __typename: 'OpenNoteUserUnsubscribedEvent',
                   user: {
                     query: mongoDB.loaders.user.createQueryFn({
                       userId: currentUserId,
@@ -296,35 +292,35 @@ export const noteEditorEvents: NonNullable<SubscriptionResolvers['noteEditorEven
   },
 };
 
-export async function publishNoteEditorEvents(
+export async function publishOpenNoteEvents(
   targetNoteId: ObjectId,
-  payload: ResolversTypes['NoteEditorEventsPayload'],
+  payload: ResolversTypes['OpenNoteEventsPayload'],
   { publish }: Pick<GraphQLResolversContext, 'publish'>,
   options?: PublisherOptions
 ) {
   return await publish(
     noteEditorTopic(targetNoteId),
     {
-      noteEditorEvents: payload,
+      openNoteEvents: payload,
     },
     options
   );
 }
 
-export function publishNoteEditorMutations(
+export function publishOpenNoteMutations(
   targetNoteId: ObjectId,
-  mutations: ResolversTypes['NoteEditorMutations'][],
+  mutations: ResolversTypes['OpenNoteMutations'][],
   ctx: Pick<GraphQLResolversContext, 'publish'>,
   options?: PublisherOptions
 ) {
-  return publishNoteEditorEvents(targetNoteId, { mutations }, ctx, options);
+  return publishOpenNoteEvents(targetNoteId, { mutations }, ctx, options);
 }
 
-export function publishNoteEditorMutation(
+export function publishOpenNoteMutation(
   targetNoteId: ObjectId,
-  mutation: ResolversTypes['NoteEditorMutations'],
+  mutation: ResolversTypes['OpenNoteMutations'],
   ctx: Pick<GraphQLResolversContext, 'publish'>,
   options?: PublisherOptions
 ) {
-  return publishNoteEditorEvents(targetNoteId, { mutations: [mutation] }, ctx, options);
+  return publishOpenNoteEvents(targetNoteId, { mutations: [mutation] }, ctx, options);
 }

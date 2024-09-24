@@ -3,8 +3,8 @@ import { createMapQueryFn } from '../../../../mongodb/query/query';
 import { wrapResolverPreExecuteCheck } from '../../../utils/wrap-resolver-pre-execute-check';
 import type { PublicUserNoteLinkResolvers } from '../../types.generated';
 
-export const PublicUserNoteLink: Pick<PublicUserNoteLinkResolvers, 'textEditState'> = {
-  textEditState: wrapResolverPreExecuteCheck(
+export const PublicUserNoteLink: Pick<PublicUserNoteLinkResolvers, 'collabTextState'> = {
+  collabTextState: wrapResolverPreExecuteCheck(
     async (parent) =>
       (
         await parent.query({

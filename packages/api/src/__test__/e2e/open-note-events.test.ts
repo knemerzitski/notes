@@ -14,10 +14,6 @@ import { createGraphQLWebSocket } from '../helpers/e2e/websocket';
 import { Cookies } from '../../services/http/cookies';
 import { userAddNote } from '../helpers/mongodb/populate/populate';
 import { fetchGraphQL } from '../helpers/e2e/fetch-graphql';
-import {
-  UpdateNoteEditorSelectionRangeInput,
-  UpdateNoteEditorSelectionRangePayload,
-} from '../../graphql/domains/types.generated';
 import { mitt } from '~utils/mitt-unsub';
 import { createDeferred } from '~utils/deferred';
 import {
@@ -25,10 +21,14 @@ import {
   expectGraphQLResponseError,
 } from '../helpers/graphql/response';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+import {
+  UpdateOpenNoteSelectionRangeInput,
+  UpdateOpenNoteSelectionRangePayload,
+} from '../../graphql/domains/types.generated';
 
 const USER_EVENTS_SUBSCRIPTION = `#graphql
-  fragment MySelectionRange on UpdateNoteEditorSelectionRangePayload {
-    textEditState {
+  fragment MySelectionRange on UpdateOpenNoteSelectionRangePayload {
+    collabTextState {
       revision
       latestSelection {
         start
@@ -50,10 +50,12 @@ const USER_EVENTS_SUBSCRIPTION = `#graphql
     signedInUserEvents {
       mutations {
         __typename
-        ... on NoteEditorEventsSubscribed {
-          subscribed
+        ... on OpenNoteUserSubscribedEvent {
+          user {
+            id
+          }
         }
-        ... on UpdateNoteEditorSelectionRangePayload {
+        ... on UpdateOpenNoteSelectionRangePayload {
           ...MySelectionRange
         }
       }
@@ -63,8 +65,8 @@ const USER_EVENTS_SUBSCRIPTION = `#graphql
 `;
 
 const NOTE_EVENTS_SUBSCRIPTION = `#graphql
-  fragment MySelectionRange on UpdateNoteEditorSelectionRangePayload {
-    textEditState {
+  fragment MySelectionRange on UpdateOpenNoteSelectionRangePayload {
+    collabTextState {
       revision
       latestSelection {
         start
@@ -83,10 +85,10 @@ const NOTE_EVENTS_SUBSCRIPTION = `#graphql
   }
 
   subscription NoteEvents($noteId: ObjectID!) {
-    noteEditorEvents(noteId: $noteId) {
+    openNoteEvents(noteId: $noteId) {
       mutations {
         __typename
-        ... on UpdateNoteEditorSelectionRangePayload {
+        ... on UpdateOpenNoteSelectionRangePayload {
           ...MySelectionRange
         }
       }
@@ -95,9 +97,9 @@ const NOTE_EVENTS_SUBSCRIPTION = `#graphql
 `;
 
 const UPDATE_EDITOR = `#graphql
-  mutation UpdateNoteEditorSelectionRange($input: UpdateNoteEditorSelectionRangeInput!) {
-    updateNoteEditorSelectionRange(input: $input) {
-      textEditState {
+  mutation UpdateNoteEditorSelectionRange($input: UpdateOpenNoteSelectionRangeInput!) {
+    updateOpenNoteSelectionRange(input: $input) {
+      collabTextState {
         revision
         latestSelection {
           start
@@ -153,8 +155,8 @@ async function createHttpOperations(db: ReturnType<typeof createDBdata>) {
 function createGraphQLOperations(http: Awaited<ReturnType<typeof createHttpOperations>>) {
   function subscribeSignedInUserEvents() {
     const eventBus = mitt<{
-      NoteEditorEventsSubscribed: Record<string, any>;
-      UpdateNoteEditorSelectionRangePayload: Record<string, any>;
+      OpenNoteUserSubscribedEvent: Record<string, any>;
+      UpdateOpenNoteSelectionRangePayload: Record<string, any>;
       error: Record<string, any>;
     }>();
 
@@ -179,7 +181,7 @@ function createGraphQLOperations(http: Awaited<ReturnType<typeof createHttpOpera
 
   function subscribeNoteEditorEvents() {
     const eventBus = mitt<{
-      UpdateNoteEditorSelectionRangePayload: Record<string, any>;
+      UpdateOpenNoteSelectionRangePayload: Record<string, any>;
       error: Record<string, any>;
     }>();
 
@@ -196,7 +198,7 @@ function createGraphQLOperations(http: Awaited<ReturnType<typeof createHttpOpera
           console.error(data);
           throw new Error('Subscribe received error');
         }
-        for (const mutation of data.payload.data.noteEditorEvents.mutations) {
+        for (const mutation of data.payload.data.openNoteEvents.mutations) {
           eventBus.emit(mutation.__typename, mutation);
         }
       }
@@ -206,10 +208,10 @@ function createGraphQLOperations(http: Awaited<ReturnType<typeof createHttpOpera
   }
 
   async function updateNoteEditorSelectionRange(
-    input: Omit<UpdateNoteEditorSelectionRangeInput, 'noteId'>
+    input: Omit<UpdateOpenNoteSelectionRangeInput, 'noteId'>
   ) {
     return fetchGraphQL<{
-      updateNoteEditorSelectionRange: UpdateNoteEditorSelectionRangePayload;
+      updateNoteEditorSelectionRange: UpdateOpenNoteSelectionRangePayload;
     }>(
       {
         query: UPDATE_EDITOR,
@@ -234,7 +236,7 @@ function createGraphQLOperations(http: Awaited<ReturnType<typeof createHttpOpera
 
 function createEditorApi(op: ReturnType<typeof createGraphQLOperations>) {
   type Event =
-    | { type: 'subscribed' }
+    | { type: 'subscribed'; userId: string }
     | { type: 'initial_selection_updated'; start: number }
     | { type: 'selection_updated'; start: number };
 
@@ -243,16 +245,20 @@ function createEditorApi(op: ReturnType<typeof createGraphQLOperations>) {
   const events: Event[] = [];
 
   const signedInEvents = op.subscribeSignedInUserEvents();
-  signedInEvents.on('NoteEditorEventsSubscribed', () => {
+  signedInEvents.on('OpenNoteUserSubscribedEvent', (payload) => {
     events.push({
       type: 'subscribed',
+      userId: payload.user.id,
     });
-    noteOpened.resolve(true);
+
+    if (payload.user.id === objectIdToStr(op.user._id)) {
+      noteOpened.resolve(true);
+    }
   });
-  signedInEvents.on('UpdateNoteEditorSelectionRangePayload', (payload) => {
+  signedInEvents.on('UpdateOpenNoteSelectionRangePayload', (payload) => {
     events.push({
       type: 'initial_selection_updated',
-      start: payload.textEditState.latestSelection.start,
+      start: payload.collabTextState.latestSelection.start,
     });
   });
   signedInEvents.on('error', () => {
@@ -280,10 +286,10 @@ function createEditorApi(op: ReturnType<typeof createGraphQLOperations>) {
 
   function openNote() {
     const noteEvents = op.subscribeNoteEditorEvents();
-    noteEvents.on('UpdateNoteEditorSelectionRangePayload', (payload) => {
+    noteEvents.on('UpdateOpenNoteSelectionRangePayload', (payload) => {
       events.push({
         type: 'selection_updated',
-        start: payload.textEditState.latestSelection.start,
+        start: payload.collabTextState.latestSelection.start,
       });
     });
   }
@@ -316,6 +322,7 @@ it('subscribes to noteEditorEvents and receives initial selection and updates', 
 
   user1.openNote();
   await user1.noteOpened;
+
   await user1.setSelectionStart(1);
 
   user2.openNote();
@@ -326,12 +333,14 @@ it('subscribes to noteEditorEvents and receives initial selection and updates', 
   await user2.setSelectionStart(4);
 
   expect(user1.events).toStrictEqual([
-    { type: 'subscribed' },
+    { type: 'subscribed', userId: objectIdToStr(opApi1.user._id) },
+    { type: 'subscribed', userId: objectIdToStr(opApi2.user._id) },
     { type: 'selection_updated', start: 2 },
     { type: 'selection_updated', start: 4 },
   ]);
   expect(user2.events).toStrictEqual([
-    { type: 'subscribed' },
+    { type: 'subscribed', userId: objectIdToStr(opApi1.user._id) },
+    { type: 'subscribed', userId: objectIdToStr(opApi2.user._id) },
     { type: 'initial_selection_updated', start: 1 },
     { type: 'selection_updated', start: 3 },
   ]);
