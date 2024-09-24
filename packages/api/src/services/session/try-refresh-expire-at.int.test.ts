@@ -30,7 +30,7 @@ it('leaves recent session unmodified', async () => {
   const refreshedSession = await tryRefreshExpireAt({
     session,
     sessionDuration: new SessionDuration({
-      duration: 15,
+      duration: 1000 * 15,
       refreshThreshold: 0.2, // 3
     }),
     mongoDB: {
@@ -64,7 +64,7 @@ it('refreshes old session and returns new one', async () => {
   mongoCollectionStats.mockClear();
 
   const duration = new SessionDuration({
-    duration: 15,
+    duration: 1000 * 15,
     refreshThreshold: 0.2, // 3
   });
   const mockedExpireAtTime = Date.now() + 10000;

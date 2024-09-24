@@ -28,16 +28,16 @@ export function createDefaultApiOptions(): ApiOptions {
   return {
     sessions: {
       user: {
-        duration: 14 * 24 * 60 * 60, // 14 days,
+        duration: 1000 * 60 * 60 * 24 * 14, // 14 days,
         refreshThreshold: 0.5, // 7 days
       },
       webSocket: {
-        duration: 3 * 60 * 60, // 3 hours
+        duration: 1000 * 60 * 60 * 3, // 3 hours
         refreshThreshold: 1 / 3, // 1 hour
       },
     },
     note: {
-      trashDuration: 1000 * 60 * 60 * 24 * 30,
+      trashDuration: 1000 * 60 * 60 * 24 * 30, // 30 days
       noteEditingDuration: 1000 * 60 * 60, // 1 hour
     },
     collabText: {

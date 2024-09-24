@@ -102,7 +102,7 @@ export function createDynamoDBConnectionTtlContext(
 ): ConnectionTtlContext {
   const sessionDuration = new SessionDuration(
     options?.sessions?.webSocket ?? {
-      duration: 3 * 60 * 60, // 3 hours
+      duration: 1000 * 60 * 60 * 3, // 3 hours
       refreshThreshold: 1 / 3, // 1 hour
     }
   );

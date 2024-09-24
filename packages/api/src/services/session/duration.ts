@@ -1,28 +1,32 @@
 export interface SessionDurationConfig {
   /**
-   * Session duration in seconds
+   * Session duration in milliseconds
    */
   readonly duration: number;
   /**
    * Condition for refreshing existing time to max duration. Threshold is percentage of
    * duration expressed with value between 0 and 1. \
    * For exmaple threshold 0.5 allows refreshing time when in half past duration.
+   *
+   * @default 0.5
    */
-  readonly refreshThreshold: number;
+  readonly refreshThreshold?: number;
 }
 
 export class SessionDuration {
-  private readonly config: SessionDurationConfig;
+  private readonly duration: number;
+  private readonly refreshThreshold: number;
 
   constructor(config: SessionDurationConfig) {
-    this.config = config;
+    this.duration = config.duration;
+    this.refreshThreshold = config.refreshThreshold ?? 0.5;
   }
 
   /**
    * @returns Unix timestamp + config.duration
    */
   new(): number {
-    return Math.floor(Date.now() + this.config.duration * 1000);
+    return Math.floor(Date.now() + this.duration);
   }
 
   /**
@@ -42,7 +46,7 @@ export class SessionDuration {
   tryRefresh(time: number): number {
     const now = Date.now();
 
-    if (time - now <= this.config.duration * this.config.refreshThreshold * 1000) {
+    if (time - now <= this.duration * this.refreshThreshold) {
       return this.new();
     }
 

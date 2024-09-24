@@ -94,7 +94,7 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
     userId: currentUserId,
     duration: new SessionDuration(
       ctx.options?.sessions?.user ?? {
-        duration: 14 * 24 * 60 * 60, // 14 days,
+        duration: 1000 * 60 * 60 * 24 * 14, // 14 days,
         refreshThreshold: 0.5, // 7 days
       }
     ),
