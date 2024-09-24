@@ -20,7 +20,6 @@ import {
   createDefaultMongoDBContext,
   createDefaultSubscriptionGraphQLParams,
 } from './parameters';
-import { createMongoDBLoaders } from './mongodb/loaders';
 import { PingPongContextParams } from '~lambda-graphql/context/pingpong';
 import {
   createErrorBaseSubscriptionResolversContext,
@@ -85,7 +84,7 @@ export function createWebSocketHandlerDefaultParams(
       const apiContext: ApiGraphQLContext = {
         ...createApiGraphQLContext({
           mongoDB,
-          options: createDefaultApiOptions(),
+          options: apiOptions,
         }),
         connectionId: event.requestContext.connectionId,
       };
@@ -93,7 +92,7 @@ export function createWebSocketHandlerDefaultParams(
       return headersToSerializedBaseGraphQLContext(event.headers, apiContext);
     },
 
-    async createGraphQLContext() {
+    async createGraphQLContext(_ctx, event) {
       if (!mongoDB) {
         mongoDB = await (options?.override?.createMongoDBContext?.(logger) ??
           createDefaultMongoDBContext(logger));
@@ -101,11 +100,11 @@ export function createWebSocketHandlerDefaultParams(
       return {
         ...createErrorBaseSubscriptionResolversContext(name),
         logger: options?.override?.gqlContextLogger ?? createLogger('ws-gql-context'),
-        mongoDB: {
-          ...mongoDB,
-          loaders: createMongoDBLoaders(mongoDB),
-        },
-        options: apiOptions,
+        ...createApiGraphQLContext({
+          mongoDB,
+          options: apiOptions,
+        }),
+        connectionId: event.requestContext.connectionId,
       };
     },
   };

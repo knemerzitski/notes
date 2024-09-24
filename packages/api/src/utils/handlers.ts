@@ -20,7 +20,7 @@ import { parseAuthenticationContextFromHeaders } from '../services/auth/parse-au
 
 export function createErrorBaseSubscriptionResolversContext(
   name = 'websocket-handler'
-): Omit<BaseSubscriptionResolversContext, 'logger'> {
+): Omit<BaseSubscriptionResolversContext, 'logger' | 'connectionId'> {
   function createErrorProxy(propertyName: string) {
     return new Proxy(
       {},
