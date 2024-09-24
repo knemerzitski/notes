@@ -40,3 +40,85 @@ extend type Mutation {
 }
 
 extend union SignedInUserMutations = UpdateNoteInsertRecordPayload
+
+################################ UserCollabTextState ################################
+
+type UserCollabTextState {
+  "latestSelection applies to text at this revision"
+  revision: NonNegativeInt!
+  "Latest updated selection range"
+  latestSelection: CollabTextSelectionRange!
+}
+
+################################ Subscription openNoteEvents ################################
+union OpenNoteMutations
+
+type OpenNoteEventsPayload {
+  "Self-descriptive"
+  mutations: [OpenNoteMutations!]
+}
+
+extend type Subscription {
+  "Subscribe to all events that are relevant to a opened note"
+  openNoteEvents(noteId: ObjectID!): OpenNoteEventsPayload! @auth
+}
+
+################################ PublicUserNoteLink ################################
+
+extend type PublicUserNoteLink {
+  "Defined when is currently subscribed to openNoteEvents and is viewing note"
+  collabTextState: UserCollabTextState
+}
+
+################################ Events User Subscribed/Unsubscribed ################################
+
+type OpenNoteUserSubscribedEvent {
+  "This user is subscribed to open note events"
+  user: PublicUser!
+  "Affected Note"
+  note: Note!
+}
+
+type OpenNoteUserUnsubscribedEvent {
+  "This user is no longer subscribed to open note events."
+  user: PublicUser!
+  "Affected Note"
+  note: Note!
+}
+
+extend union SignedInUserMutations =
+  | OpenNoteUserSubscribedEvent
+  | OpenNoteUserUnsubscribedEvent
+
+################################ Mutation updateOpenNoteSelectionRange ################################
+
+input UpdateOpenNoteSelectionRangeInput {
+  "Note.id"
+  noteId: ObjectID!
+  "Selection applies to this revision of text"
+  revision: NonNegativeInt!
+  "New selection range"
+  selectionRange: CollabTextSelectionRangeInput!
+}
+
+type UpdateOpenNoteSelectionRangePayload {
+  "User CollabText state"
+  collabTextState: UserCollabTextState!
+  "Self-descriptive"
+  collabText: CollabText!
+  "The open note"
+  note: Note!
+  "CollabText state applies to this user"
+  user: PublicUser!
+}
+
+extend type Mutation {
+  updateOpenNoteSelectionRange(
+    input: UpdateOpenNoteSelectionRangeInput!
+  ): UpdateOpenNoteSelectionRangePayload! @auth
+}
+
+extend union OpenNoteMutations = UpdateOpenNoteSelectionRangePayload
+
+extend union SignedInUserMutations = UpdateOpenNoteSelectionRangePayload
+
