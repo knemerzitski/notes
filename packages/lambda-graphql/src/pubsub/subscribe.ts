@@ -18,10 +18,7 @@ export interface SubscribeOptions<T extends PubSubEvent> {
 
 export interface SubscriberResult<T extends PubSubEvent> extends SubscribeOptions<T> {
   topic: T['topic'];
-  deny: false;
 }
-
-type DenySubscriber = () => AsyncIterable<never> & { deny: true };
 
 type Subscriber<T extends PubSubEvent> = (
   topic: T['topic'],
@@ -33,16 +30,10 @@ export interface SubscriptionContext<T extends PubSubEvent = PubSubEvent> {
    * Subscribe to a topic with options.
    */
   subscribe: Subscriber<T>;
-  /**
-   * Call this function to not subscribe.
-   * E.g when authentication information is not available.
-   * @returns AsyncIterable that does nothing with {deny: true}
-   */
-  denySubscription: DenySubscriber;
 }
 
 export type SubscriptionIterable<T extends PubSubEvent = PubSubEvent> = ReturnType<
-  Subscriber<T> | DenySubscriber
+  Subscriber<T>
 >;
 
 export function createSubscriptionContext<
@@ -64,11 +55,6 @@ export function createSubscriptionContext<
       ...neverAsyncIteratorSymbol,
       ...options,
       topic,
-      deny: false,
-    }),
-    denySubscription: () => ({
-      ...neverAsyncIteratorSymbol,
-      deny: true,
     }),
   };
 }
@@ -87,12 +73,8 @@ export async function getSubscribeFieldResult(
     contextValue,
     info
   )) as SubscriptionIterable;
-  if (subscribeFieldResult.deny) {
-    throw new GraphQLError(`Access denied`);
-  }
-
   if (!subscribeFieldResult.topic) {
-    throw new Error(`Topic from field resolver is undefined`);
+    throw new Error(`Expected a topic from field resolver but is undefined`);
   }
 
   return subscribeFieldResult;

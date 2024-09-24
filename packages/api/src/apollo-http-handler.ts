@@ -86,9 +86,6 @@ export function createApolloHttpHandlerDefaultParams(
         subscribe: () => {
           throw new Error(`Subscribe should never be called in ${name}`);
         },
-        denySubscription: () => {
-          throw new Error(`denySubscription should never be called in ${name}`);
-        },
       };
     },
   };

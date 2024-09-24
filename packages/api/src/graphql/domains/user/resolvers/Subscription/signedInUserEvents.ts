@@ -3,7 +3,7 @@ import type { ResolversTypes, SubscriptionResolvers } from './../../../types.gen
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { SubscriptionTopicPrefix } from '../../../../subscriptions';
 import { GraphQLResolversContext } from '../../../../types';
-import { isAuthenticated } from '../../../../../services/auth/is-authenticated';
+import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 
 export function signedInUserTopic(userId: ObjectId) {
   return `${SubscriptionTopicPrefix.SIGNED_IN_USER_EVENTS}:${objectIdToStr(userId)}`;
@@ -13,8 +13,8 @@ export const signedInUserEvents: NonNullable<
   SubscriptionResolvers['signedInUserEvents']
 > = {
   subscribe: (_parent, _arg, ctx) => {
-    const { auth, subscribe, denySubscription } = ctx;
-    if (!isAuthenticated(auth)) return denySubscription();
+    const { auth, subscribe } = ctx;
+    assertAuthenticated(auth);
 
     const currentUserId = auth.session.userId;
 
