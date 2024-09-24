@@ -84,7 +84,7 @@ export namespace SelectionRange {
   export function collapseSame(
     range: PartialBy<SelectionRange, 'end'>
   ): PartialBy<SelectionRange, 'end'> {
-    if (range.start === range.end) {
+    if (range.start === range.end || range.end == null) {
       return {
         start: range.start,
       };
