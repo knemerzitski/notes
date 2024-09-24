@@ -19,11 +19,11 @@ export function fakeSession(options?: FakeSessionOptions): DBSessionSchema {
 }
 
 export const fakeSessionPopulateQueue: typeof fakeSession = (options) => {
-  const user = fakeSession(options);
+  const session = fakeSession(options);
 
   populateQueue(async () => {
-    await mongoCollections.sessions.insertOne(user);
+    await mongoCollections.sessions.insertOne(session);
   });
 
-  return user;
+  return session;
 };
