@@ -27,14 +27,14 @@ export interface PublisherOptions {
    * only other connections need to be notified.
    * @default false
    */
-  publishToCurrentConnection: boolean;
+  publishToCurrentConnection?: boolean;
 
   /**
    * Filter subscriptions based on payload content equality.
    * On false all topic subscriptions are notified.
    * @default false
    */
-  filterPayload: boolean;
+  filterPayload?: boolean;
 }
 
 export type Publisher = (
