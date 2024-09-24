@@ -12,6 +12,7 @@ import {
   createSubscriptionContext,
   getSubscribeFieldResult,
 } from '../pubsub/subscribe';
+import { createPublisher } from '../pubsub/publish';
 
 export function createSubscribeHandler<
   TGraphQLContext,
@@ -75,17 +76,23 @@ export function createSubscribeHandler<
         connection.graphQLContext
       );
 
-      const graphQLContext: SubscriptionContext & TGraphQLContext & TBaseGraphQLContext =
-        {
-          ...context.graphQLContext,
-          ...connectionGraphQLContext,
-          ...createSubscriptionContext(),
-        };
+      const graphQLContextValue: SubscriptionContext &
+        TGraphQLContext &
+        TBaseGraphQLContext = {
+        ...context.graphQLContext,
+        ...connectionGraphQLContext,
+        ...createSubscriptionContext(),
+        publish: createPublisher<TGraphQLContext, TDynamoDBGraphQLContext>({
+          context,
+          getGraphQLContext: () => graphQLContextValue,
+          isCurrentConnection: (id: string) => connectionId === id,
+        }),
+      };
 
       const execContext = buildExecutionContext({
         schema: context.schema,
         document,
-        contextValue: graphQLContext,
+        contextValue: graphQLContextValue,
         variableValues: message.payload.variables,
         operationName: message.payload.operationName,
       });

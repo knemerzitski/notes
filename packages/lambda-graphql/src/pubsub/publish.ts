@@ -11,9 +11,8 @@ interface CreatePublisherParams<
   TGraphQLContext,
   TDynamoDBGraphQLContext extends DynamoDBRecord,
 > {
-  context: ApolloHttpHandlerContext<TDynamoDBGraphQLContext> & {
-    graphQLContext: TGraphQLContext;
-  };
+  context: ApolloHttpHandlerContext<TDynamoDBGraphQLContext>;
+  getGraphQLContext: () => TGraphQLContext;
   /**
    * @returns {boolean} {@link connectionId} belongs to client of current request.
    */
@@ -48,6 +47,7 @@ export function createPublisher<
   TDynamoDBGraphQLContext extends DynamoDBRecord,
 >({
   context,
+  getGraphQLContext,
   isCurrentConnection = () => false,
 }: CreatePublisherParams<TGraphQLContext, TDynamoDBGraphQLContext>): Publisher {
   const { logger, models, schema, socketApi } = context;
@@ -81,6 +81,8 @@ export function createPublisher<
       return true;
     }
 
+    const contextValue = getGraphQLContext();
+
     const subcriptionPostPromises = subscriptions
       .filter(isRelevantSubscription)
       .map(async (sub) => {
@@ -90,7 +92,7 @@ export function createPublisher<
             schema: schema,
             document: parse(sub.subscription.query),
             rootValue: payload,
-            contextValue: context.graphQLContext,
+            contextValue,
             variableValues: sub.subscription.variables,
             operationName: sub.subscription.operationName,
           });

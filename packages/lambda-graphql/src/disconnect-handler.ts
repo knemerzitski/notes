@@ -150,7 +150,7 @@ export function createWebSocketDisconnectHandler<
 }
 
 export function webSocketDisconnectHandler<
-  TGraphQLContext extends WebSocketDisconnectGraphQLContext,
+  TGraphQLContext extends Omit<WebSocketDisconnectGraphQLContext, 'publish'>,
   TBaseGraphQLContext,
   TDynamoDBGraphQLContext extends DynamoDBRecord,
 >(
@@ -174,25 +174,10 @@ export function webSocketDisconnectHandler<
         connectionId,
       });
 
-      const partialGraphQLContext: TGraphQLContext & {
-        publish?: TGraphQLContext['publish'];
-      } = {
-        ...(await context.createGraphQLContext(context, event)),
-      };
-
-      const isCurrentConnection = (id: string) => connectionId === id;
-      partialGraphQLContext.publish = createPublisher<
-        Omit<TGraphQLContext, 'publish'>,
-        TDynamoDBGraphQLContext
-      >({
-        context: {
-          ...context,
-          graphQLContext: partialGraphQLContext,
-        },
-        isCurrentConnection,
-      });
-
-      const graphQLContext: TGraphQLContext = partialGraphQLContext;
+      const graphQLContext: TGraphQLContext = await context.createGraphQLContext(
+        context,
+        event
+      );
 
       context.logger.info('messages:disconnect:onDisconnect', {
         onDisconnect: !!context.onDisconnect,
@@ -212,19 +197,24 @@ export function webSocketDisconnectHandler<
             sub.connectionGraphQLContext
           );
 
-          const execContextValue: SubscriptionContext &
+          const graphQLContextValue: SubscriptionContext &
             TGraphQLContext &
             TBaseGraphQLContext = {
             ...context,
             ...graphQLContext,
             ...baseGraphQLContext,
             ...createSubscriptionContext(),
+            publish: createPublisher<TGraphQLContext, TDynamoDBGraphQLContext>({
+              context,
+              getGraphQLContext: () => graphQLContext,
+              isCurrentConnection: (id: string) => connectionId === id,
+            }),
           };
 
           const execContext = buildExecutionContext({
             schema: context.schema,
             document: parse(sub.subscription.query),
-            contextValue: execContextValue,
+            contextValue: graphQLContextValue,
             variableValues: sub.subscription.variables,
             operationName: sub.subscription.operationName,
           });

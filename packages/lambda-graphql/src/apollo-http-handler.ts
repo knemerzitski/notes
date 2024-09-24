@@ -108,7 +108,7 @@ export function createApolloHttpHandler<
       const responseMultiValueHeadersFromResolvers: ApolloHttpGraphQLContext['response']['multiValueHeaders'] =
         {};
 
-      const graphQLContext: GraphQLContext & { publish: Publisher } = {
+      const graphQLContext: GraphQLContext = {
         ...(await params.createGraphQLContext(context, event)),
         request: {
           headers: event.headers,
@@ -119,20 +119,12 @@ export function createApolloHttpHandler<
           multiValueHeaders: responseMultiValueHeadersFromResolvers,
         },
         logger,
-        publish() {
-          throw new Error('Publish has not been initialized');
-        },
+        publish: createPublisher<GraphQLContext, TDynamoDBGraphQLContext>({
+          context,
+          getGraphQLContext: () => graphQLContext,
+          isCurrentConnection: params.createIsCurrentConnection?.(context, event),
+        }),
       };
-
-      const isCurrentConnection = params.createIsCurrentConnection?.(context, event);
-
-      graphQLContext.publish = createPublisher<GraphQLContext, TDynamoDBGraphQLContext>({
-        context: {
-          ...context,
-          graphQLContext,
-        },
-        isCurrentConnection,
-      });
 
       const res = await apollo.executeHTTPGraphQLRequest({
         httpGraphQLRequest,

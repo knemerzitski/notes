@@ -39,7 +39,7 @@ import { createConnectionInitHandler } from './messages/connection_init';
 import { createPingHandler } from './messages/ping';
 import { createPongHandler } from './messages/pong';
 import { createSubscribeHandler } from './messages/subscribe';
-import { Publisher, createPublisher } from './pubsub/publish';
+import { Publisher } from './pubsub/publish';
 
 interface DirectParams<
   TGraphQLContext,
@@ -209,7 +209,7 @@ export function createMessageHandlers<
 }
 
 export function createWebSocketMessageHandler<
-  TGraphQLContext extends WebSocketMessageGraphQLContext,
+  TGraphQLContext extends Omit<WebSocketMessageGraphQLContext, 'publish'>,
   TBaseGraphQLContext,
   TDynamoDBGraphQLContext extends DynamoDBRecord,
 >(
@@ -259,7 +259,7 @@ export function createWebSocketMessageHandler<
 }
 
 export function webSocketMessageHandler<
-  TGraphQLContext extends WebSocketMessageGraphQLContext,
+  TGraphQLContext extends Omit<WebSocketMessageGraphQLContext, 'publish'>,
   TBaseGraphQLContext,
   TDynamoDBGraphQLContext extends DynamoDBRecord,
 >(
@@ -291,25 +291,10 @@ export function webSocketMessageHandler<
         throw new Error(`Unsupported message type ${message.type}`);
       }
 
-      const partialGraphQLContext: TGraphQLContext & {
-        publish?: TGraphQLContext['publish'];
-      } = {
-        ...(await context.createGraphQLContext(context, event)),
-      };
-
-      const isCurrentConnection = (id: string) => connectionId === id;
-      partialGraphQLContext.publish = createPublisher<
-        Omit<TGraphQLContext, 'publish'>,
-        TDynamoDBGraphQLContext
-      >({
-        context: {
-          ...context,
-          graphQLContext: partialGraphQLContext,
-        },
-        isCurrentConnection,
-      });
-
-      const graphQLContext: TGraphQLContext = partialGraphQLContext;
+      const graphQLContext: TGraphQLContext = await context.createGraphQLContext(
+        context,
+        event
+      );
 
       const messageHandler = messageHandlers[message.type];
 

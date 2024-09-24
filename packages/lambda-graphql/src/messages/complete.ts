@@ -11,6 +11,7 @@ import {
   createSubscriptionContext,
   getSubscribeFieldResult,
 } from '../pubsub/subscribe';
+import { createPublisher } from '../pubsub/publish';
 
 /**
  * Removes subscription item from DynamoDB table; id `${connectionId}:${message.id}`
@@ -42,17 +43,22 @@ export function createCompleteHandler<
         subscription.connectionGraphQLContext
       );
 
-      const graphQLContext: SubscriptionContext & TGraphQLContext & TBaseGraphQLContext =
+      const graphQLContextValue: SubscriptionContext & TGraphQLContext & TBaseGraphQLContext =
         {
           ...context.graphQLContext,
           ...baseGraphQLContext,
           ...createSubscriptionContext(),
+          publish: createPublisher<TGraphQLContext, TDynamoDBGraphQLContext>({
+            context,
+            getGraphQLContext: () => graphQLContextValue,
+            isCurrentConnection: (id: string) => connectionId === id,
+          }),
         };
 
       const execContext = buildExecutionContext({
         schema: context.schema,
         document: parse(subscription.subscription.query),
-        contextValue: graphQLContext,
+        contextValue: graphQLContextValue,
         variableValues: subscription.subscription.variables,
         operationName: subscription.subscription.operationName,
       });
