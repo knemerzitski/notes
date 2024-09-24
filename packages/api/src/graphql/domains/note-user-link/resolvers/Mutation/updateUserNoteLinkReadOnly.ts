@@ -47,9 +47,9 @@ export const updateUserNoteLinkReadOnly: NonNullable<
   };
 
   if (readOnlyResultType !== 'already_read_only') {
-    const publishUsers = getNoteUsersIds(note);
+    const publishUserIds = getNoteUsersIds(note);
     await Promise.all(
-      publishUsers.map((userId) => publishSignedInUserMutation(userId, payload, ctx))
+      publishUserIds.map((userId) => publishSignedInUserMutation(userId, payload, ctx))
     );
   }
 
