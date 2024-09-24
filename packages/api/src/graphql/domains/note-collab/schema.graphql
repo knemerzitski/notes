@@ -1,24 +1,13 @@
-################################ Note collab ################################
+################################ Note collabText ################################
 
 extend type Note {
-  "Note collaboration"
-  collab: NoteCollab!
+  "Note collaboration text"
+  collabText: CollabText!
 }
 
 extend input CreateNoteInput {
   "Initial note collaboration values"
-  collab: CreateNoteCollabInput
-}
-
-"Note collaborative info"
-type NoteCollab {
-  "Note collaborative text"
-  text: CollabText!
-}
-
-input CreateNoteCollabInput {
-  "Initial note text fields"
-  text: CreateCollabTextInput
+  collabText: CreateCollabTextInput
 }
 
 ################################ updateNoteInsertRecord ################################

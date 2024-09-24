@@ -48,18 +48,16 @@ const QUERY = `#graphql
           id
           note {
             id
-            collab {
-              text {
-                headText {
-                  revision
-                  changeset
-                }
-                recordConnection(last: 2) {
-                  edges {
-                    node {
-                      change {
-                        revision
-                      }
+            collabText {
+              headText {
+                revision
+                changeset
+              }
+              recordConnection(last: 2) {
+                edges {
+                  node {
+                    change {
+                      revision
                     }
                   }
                 }

@@ -22,10 +22,10 @@ const _createNote: NonNullable<MutationResolvers['createNote']> = async (
   assertAuthenticated(auth);
 
   const { input } = arg;
-
+  
   const currentUserId = auth.session.userId;
 
-  const collabInitialText = input.collab?.text?.initialText;
+  const collabInitialText = input.collabText?.initialText;
 
   const note = await insertNote({
     mongoDB,

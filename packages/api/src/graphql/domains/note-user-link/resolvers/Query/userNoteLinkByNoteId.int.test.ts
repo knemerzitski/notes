@@ -35,18 +35,16 @@ const QUERY = `#graphql
   query($noteId: ObjectID!, $recordsLast: PositiveInt){
     userNoteLinkByNoteId(noteId: $noteId){
       note {
-        collab {
-          text {
-            headText {
-              revision
-              changeset
-            }
-            recordConnection(last: $recordsLast) {
-              edges {
-                node {
-                  change {
-                    revision
-                  }
+        collabText {
+          headText {
+            revision
+            changeset
+          }
+          recordConnection(last: $recordsLast) {
+            edges {
+              node {
+                change {
+                  revision
                 }
               }
             }
@@ -135,30 +133,28 @@ it('returns note', async () => {
   expect(data).toEqual({
     userNoteLinkByNoteId: {
       note: {
-        collab: {
-          text: {
-            headText: {
-              revision: expect.any(Number),
-              changeset: expect.any(Array),
-            },
-            recordConnection: {
-              edges: [
-                {
-                  node: {
-                    change: {
-                      revision: expect.any(Number),
-                    },
+        collabText: {
+          headText: {
+            revision: expect.any(Number),
+            changeset: expect.any(Array),
+          },
+          recordConnection: {
+            edges: [
+              {
+                node: {
+                  change: {
+                    revision: expect.any(Number),
                   },
                 },
-                {
-                  node: {
-                    change: {
-                      revision: expect.any(Number),
-                    },
+              },
+              {
+                node: {
+                  change: {
+                    revision: expect.any(Number),
                   },
                 },
-              ],
-            },
+              },
+            ],
           },
         },
       },

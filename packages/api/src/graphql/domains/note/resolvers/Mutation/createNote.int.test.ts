@@ -67,35 +67,33 @@ const MUTATION_ALL = `#graphql
         shareAccess {
           id
         }
-        collab {
-          text {
-            headText {
-              revision
-              changeset
-            }
-            tailText {
-              revision
-              changeset
-            }
-            recordConnection {
-              records {
-                creatorUser {
-                  id
-                }
-                change {
-                  changeset
-                  revision
-                }
-                beforeSelection {
-                  start
-                  end
-                }
-                afterSelection {
-                  start
-                  end
-                }
-                createdAt
+        collabText {
+          headText {
+            revision
+            changeset
+          }
+          tailText {
+            revision
+            changeset
+          }
+          recordConnection {
+            records {
+              creatorUser {
+                id
               }
+              change {
+                changeset
+                revision
+              }
+              beforeSelection {
+                start
+                end
+              }
+              afterSelection {
+                start
+                end
+              }
+              createdAt
             }
           }
         }
@@ -111,11 +109,9 @@ const SUBSCRIPTION = `#graphql
         ... on CreateNotePayload {
           note {
             id
-            collab {
-              text {
-                headText {
-                  changeset
-                }
+            collabText {
+              headText {
+                changeset
               }
             }
           }
@@ -184,19 +180,17 @@ describe('no existing notes', () => {
         note: {
           id: expect.any(String),
           shareAccess: null,
-          collab: {
-            text: {
-              headText: {
-                changeset: Changeset.EMPTY.serialize(),
-                revision: 0,
-              },
-              tailText: {
-                changeset: Changeset.EMPTY.serialize(),
-                revision: 0,
-              },
-              recordConnection: {
-                records: [],
-              },
+          collabText: {
+            headText: {
+              changeset: Changeset.EMPTY.serialize(),
+              revision: 0,
+            },
+            tailText: {
+              changeset: Changeset.EMPTY.serialize(),
+              revision: 0,
+            },
+            recordConnection: {
+              records: [],
             },
           },
         },
@@ -250,10 +244,8 @@ describe('no existing notes', () => {
             backgroundColor: '#cacc52',
           },
         },
-        collab: {
-          text: {
-            initialText: 'initial content',
-          },
+        collabText: {
+          initialText: 'initial content',
         },
       },
       { user }
@@ -279,38 +271,36 @@ describe('no existing notes', () => {
         note: {
           id: expect.any(String),
           shareAccess: null,
-          collab: {
-            text: {
-              headText: {
-                changeset: Changeset.fromInsertion('initial content').serialize(),
-                revision: 1,
-              },
-              tailText: {
-                changeset: Changeset.EMPTY.serialize(),
-                revision: 0,
-              },
-              recordConnection: {
-                records: [
-                  {
-                    creatorUser: {
-                      id: expect.any(String),
-                    },
-                    change: {
-                      changeset: Changeset.fromInsertion('initial content').serialize(),
-                      revision: 1,
-                    },
-                    beforeSelection: {
-                      start: 0,
-                      end: null,
-                    },
-                    afterSelection: {
-                      start: 15,
-                      end: null,
-                    },
-                    createdAt: expect.any(Date),
+          collabText: {
+            headText: {
+              changeset: Changeset.fromInsertion('initial content').serialize(),
+              revision: 1,
+            },
+            tailText: {
+              changeset: Changeset.EMPTY.serialize(),
+              revision: 0,
+            },
+            recordConnection: {
+              records: [
+                {
+                  creatorUser: {
+                    id: expect.any(String),
                   },
-                ],
-              },
+                  change: {
+                    changeset: Changeset.fromInsertion('initial content').serialize(),
+                    revision: 1,
+                  },
+                  beforeSelection: {
+                    start: 0,
+                    end: null,
+                  },
+                  afterSelection: {
+                    start: 15,
+                    end: null,
+                  },
+                  createdAt: expect.any(Date),
+                },
+              ],
             },
           },
         },
@@ -407,10 +397,8 @@ describe('no existing notes', () => {
     it('throws error if input text is too large', async () => {
       const response = await executeOperation(
         {
-          collab: {
-            text: {
-              initialText: 'a'.repeat(100001),
-            },
+          collabText: {
+            initialText: 'a'.repeat(100001),
           },
         },
         { user }
@@ -464,10 +452,8 @@ describe('no existing notes', () => {
 
       const response = await executeOperation(
         {
-          collab: {
-            text: {
-              initialText: 'content',
-            },
+          collabText: {
+            initialText: 'content',
           },
         },
         {
@@ -492,11 +478,9 @@ describe('no existing notes', () => {
                   {
                     note: {
                       id: expect.any(String),
-                      collab: {
-                        text: {
-                          headText: {
-                            changeset: Changeset.fromInsertion('content').serialize(),
-                          },
+                      collabText: {
+                        headText: {
+                          changeset: Changeset.fromInsertion('content').serialize(),
                         },
                       },
                     },

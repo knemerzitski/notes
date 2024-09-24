@@ -37,11 +37,9 @@ const QUERY = `#graphql
       userNoteLinks {
         note {
           id
-          collab {
-            text {
-              headText {
-                changeset
-              }
+          collabText {
+            headText {
+              changeset
             }
           }
         }
@@ -117,9 +115,7 @@ async function executeOperation(
 
 function getTexts(data: { userNoteLinkSearchConnection: UserNoteLinkConnection }) {
   return data.userNoteLinkSearchConnection.userNoteLinks.map((userNoteLink) =>
-    Changeset.parseValue(
-      userNoteLink.note.collab.text.headText.changeset
-    ).joinInsertions()
+    Changeset.parseValue(userNoteLink.note.collabText.headText.changeset).joinInsertions()
   );
 }
 
