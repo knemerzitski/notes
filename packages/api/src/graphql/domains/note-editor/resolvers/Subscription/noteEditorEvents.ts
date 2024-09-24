@@ -26,7 +26,6 @@ export function noteEditorTopic(noteId: ObjectId) {
 
 export const noteEditorEvents: NonNullable<SubscriptionResolvers['noteEditorEvents']> = {
   subscribe: (_parent, arg, ctx) => {
-
     const { auth, subscribe, mongoDB, connectionId } = ctx;
 
     const noteId = arg.noteId;
