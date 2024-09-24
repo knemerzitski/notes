@@ -16,6 +16,7 @@ import { strToObjectId } from '../../mongodb/utils/objectid';
 import { HttpSession } from '../helpers/e2e/http-session';
 import { fetchGraphQL } from '../helpers/e2e/fetch-graphql';
 import { createGraphQLWebSocket } from '../helpers/e2e/websocket';
+import { expectGraphQLResponseData } from '../helpers/graphql/response';
 
 beforeEach(async () => {
   faker.seed(76572);
@@ -27,7 +28,7 @@ it('creates new user, updates displayName and publishes it to websocket', async 
   const fetchFn = httpSession.fetch.bind(httpSession);
 
   // Sign in first time
-  const { result: signInResult } = await fetchGraphQL<
+  const { graphQLResponse: signInResponse } = await fetchGraphQL<
     { signIn: SignInPayload },
     { input: SignInInput }
   >(
@@ -62,19 +63,19 @@ it('creates new user, updates displayName and publishes it to websocket', async 
     },
     fetchFn
   );
-  const userId = signInResult.data?.signIn.signedInUser.id;
-  expect(userId, JSON.stringify(signInResult.errors, null, 2)).toBeDefined();
+  const signInData = expectGraphQLResponseData(signInResponse);
+  const userId = signInData.signIn.signedInUser.id;
   const userIdStr = String(userId);
 
   // Set user for subsequent requests
   httpSession.setHeader(CustomHeaderName.USER_ID, userIdStr);
 
   // Start WebSocket subscription
-  const graphQLWs = await createGraphQLWebSocket({
+  const ws = await createGraphQLWebSocket({
     headers: httpSession.getHeaders(),
   });
   const wsNextUpdateDisplayNameFn = vi.fn();
-  graphQLWs.subscribe(
+  ws.subscribe(
     {
       query: `#graphql
       subscription UserEvents {
@@ -92,7 +93,7 @@ it('creates new user, updates displayName and publishes it to websocket', async 
   );
 
   // Update displayName
-  const { result: updateDisplayNameResult } = await fetchGraphQL<
+  const { graphQLResponse: updateDisplayNameResponse } = await fetchGraphQL<
     { updateSignedInUserDisplayName: UpdateSignedInUserDisplayNamePayload },
     { input: UpdateSignedInUserDisplayNameInput }
   >(
@@ -113,9 +114,10 @@ it('creates new user, updates displayName and publishes it to websocket', async 
     fetchFn
   );
 
-  expect(
-    updateDisplayNameResult.data?.updateSignedInUserDisplayName.displayName
-  ).toStrictEqual('Bar Name');
+  const updateDisplayNameData = expectGraphQLResponseData(updateDisplayNameResponse);
+  expect(updateDisplayNameData.updateSignedInUserDisplayName.displayName).toStrictEqual(
+    'Bar Name'
+  );
   expect(wsNextUpdateDisplayNameFn).toHaveBeenCalledWith({
     id: expect.any(String),
     type: 'next',
@@ -127,7 +129,7 @@ it('creates new user, updates displayName and publishes it to websocket', async 
   });
 
   // Sign out
-  const { result: signOutResult } = await fetchGraphQL<
+  const { graphQLResponse: signOutResponse } = await fetchGraphQL<
     { signOut: SignOutPayload },
     { input: SignOutInput }
   >(
@@ -142,7 +144,8 @@ it('creates new user, updates displayName and publishes it to websocket', async 
     },
     fetchFn
   );
-  expect(signOutResult.data?.signOut.availableUserIds).toHaveLength(0);
+  const signOutData = expectGraphQLResponseData(signOutResponse);
+  expect(signOutData.signOut.availableUserIds).toHaveLength(0);
 
   // Validate database actually has user with changed displayName
   const dbUser = await mongoCollections.users.findOne({

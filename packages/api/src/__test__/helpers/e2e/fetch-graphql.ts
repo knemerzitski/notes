@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/consistent-indexed-object-style */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { GraphQLResponse, HeaderMap } from '@apollo/server';
 import { FormattedExecutionResult } from 'graphql';
 
 const HTTP_URL = process.env.VITE_GRAPHQL_HTTP_URL!;
@@ -17,8 +18,8 @@ export async function fetchGraphQL<
     variables?: TVariables;
   },
   fetchFn: FetchFn = fetch
-): Promise<{ result: FormattedExecutionResult<TData>; response: Response }> {
-  const response = await fetchFn(HTTP_URL, {
+) {
+  const httpResponse = await fetchFn(HTTP_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -31,7 +32,16 @@ export async function fetchGraphQL<
   });
 
   return {
-    result: (await response.json()) as FormattedExecutionResult<TData>,
-    response,
+    graphQLResponse: {
+      body: {
+        kind: 'single',
+        singleResult: (await httpResponse.json()) as FormattedExecutionResult<TData>,
+      },
+      http: {
+        headers: new HeaderMap(httpResponse.headers.entries()),
+        status: httpResponse.status,
+      },
+    } satisfies GraphQLResponse<TData>,
+    httpResponse,
   };
 }

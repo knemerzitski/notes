@@ -19,8 +19,10 @@ import { DBNoteSchema } from '../../schema/note';
 
 import { QueryableNoteLoaderParams } from './loader';
 import { batchLoad } from './batch-load';
+import { DBUserSchema } from '../../schema/user';
 
 let populateResult: ReturnType<typeof populateNotes>;
+let user: DBUserSchema;
 let note: DBNoteSchema;
 
 let context: QueryableNoteLoaderParams['context'];
@@ -42,6 +44,7 @@ beforeAll(async () => {
       };
     },
   });
+  user = populateResult.user;
   const firstNote = populateResult.data[0]?.note;
   assert(firstNote != null);
   note = firstNote;
@@ -276,5 +279,53 @@ it('loads shareLinks', async () => {
         },
       ],
     },
+  ]);
+});
+
+it('loads users.editing', async () => {
+  await mongoCollections.noteEditing.insertOne({
+    noteId: note._id,
+    userId: user._id,
+    revision: 10,
+    latestSelection: {
+      start: 12,
+    },
+    connectionIds: [],
+    expireAt: new Date(Date.now() + 100000),
+  });
+
+  const result = await batchLoad(
+    [
+      {
+        id: {
+          noteId: note._id,
+        },
+        query: {
+          users: {
+            _id: 1,
+            editing: {
+              revision: 1,
+            },
+          },
+        },
+      },
+    ],
+    {
+      global: context,
+      request: undefined,
+    }
+  );
+
+  expect(result).toEqual([
+    expect.objectContaining({
+      users: expect.arrayContaining([
+        {
+          _id: user._id,
+          editing: {
+            revision: 10,
+          },
+        },
+      ]),
+    }),
   ]);
 });

@@ -31,6 +31,11 @@ export interface ApiOptions {
      * @default 1000 * 60 * 60 * 24 * 30 // 30 days
      */
     trashDuration?: number;
+    /**
+     * How long note editing document is stored in milliseconds
+     * @default 1000 * 60 * 60 // 1 hour
+     */
+    noteEditingDuration?: number;
   };
   collabText?: {
     /**
@@ -69,6 +74,11 @@ export interface ApiGraphQLContext {
     loaders: MongoDBLoaders;
   };
   options?: ApiOptions;
+  /**
+   * Current user connectionId.
+   * Same user might send requests using different connectionId's at the same time.
+   */
+  connectionId: string | undefined;
 }
 
 export type GraphQLResolversContext = ApolloHttpGraphQLContext &

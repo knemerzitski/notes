@@ -8,7 +8,11 @@ import {
 import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
 import { createLogger, Logger } from '~utils/logging';
 
-import { GraphQLResolversContext, DynamoDBBaseGraphQLContext } from './graphql/types';
+import {
+  GraphQLResolversContext,
+  DynamoDBBaseGraphQLContext,
+  ApiGraphQLContext,
+} from './graphql/types';
 import {
   createDefaultApiGatewayParams,
   createDefaultApiOptions,
@@ -16,11 +20,9 @@ import {
   createDefaultGraphQLParams,
   createDefaultMongoDBContext,
 } from './parameters';
-import {
-  createApiGraphQLContext,
-  createBaseGraphQLContext,
-} from './graphql/context';
+import { createApiGraphQLContext, createBaseGraphQLContext } from './graphql/context';
 import { createIsCurrentConnection } from './utils/handlers';
+import { CustomHeaderName } from '~api-app-shared/custom-headers';
 
 export interface CreateApolloHttpHandlerDefaultParamsOptions {
   override?: {
@@ -62,10 +64,13 @@ export function createApolloHttpHandlerParams(
           createDefaultMongoDBContext(logger));
       }
 
-      const apiContext = createApiGraphQLContext({
-        mongoDB,
-        options: createDefaultApiOptions(),
-      });
+      const apiContext: ApiGraphQLContext = {
+        ...createApiGraphQLContext({
+          mongoDB,
+          options: createDefaultApiOptions(),
+        }),
+        connectionId: event.headers[CustomHeaderName.WS_CONNECTION_ID],
+      };
 
       const baseContext = await createBaseGraphQLContext({
         headers: event.headers,

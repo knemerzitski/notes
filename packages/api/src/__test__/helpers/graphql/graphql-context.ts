@@ -85,7 +85,6 @@ export function createMockedPublisher(ctx: Omit<GraphQLResolversContext, 'publis
         typeDefs,
         logger: mockDeep(),
       }).schema,
-      graphQLContext: mockDeep(),
       socketApi: mockSocketApi,
       logger: mockDeep(),
       models: {
@@ -93,5 +92,6 @@ export function createMockedPublisher(ctx: Omit<GraphQLResolversContext, 'publis
         subscriptions: mockSubscriptionsModel,
       },
     },
+    getGraphQLContext: () => mockDeep(),
   });
 }

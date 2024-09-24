@@ -38,6 +38,7 @@ export function createDefaultApiOptions(): ApiOptions {
     },
     note: {
       trashDuration: 1000 * 60 * 60 * 24 * 30,
+      noteEditingDuration: 1000 * 60 * 60, // 1 hour
     },
     collabText: {
       maxRecordsCount: 500,

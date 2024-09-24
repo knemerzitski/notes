@@ -8,6 +8,7 @@ import {
 import { createLogger, Logger } from '~utils/logging';
 
 import {
+  ApiGraphQLContext,
   BaseGraphQLContext,
   BaseSubscriptionResolversContext,
   DynamoDBBaseGraphQLContext,
@@ -81,10 +82,13 @@ export function createWebSocketHandlerDefaultParams(
           createDefaultMongoDBContext(logger));
       }
 
-      const apiContext = createApiGraphQLContext({
-        mongoDB,
-        options: createDefaultApiOptions(),
-      });
+      const apiContext: ApiGraphQLContext = {
+        ...createApiGraphQLContext({
+          mongoDB,
+          options: createDefaultApiOptions(),
+        }),
+        connectionId: event.requestContext.connectionId,
+      };
 
       return headersToSerializedBaseGraphQLContext(event.headers, apiContext);
     },

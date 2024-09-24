@@ -46,7 +46,7 @@ export interface CreateApiGraphQLContextParams {
 export function createApiGraphQLContext({
   mongoDB,
   options,
-}: CreateApiGraphQLContextParams): ApiGraphQLContext {
+}: CreateApiGraphQLContextParams): Omit<ApiGraphQLContext, 'connectionId'> {
   const mongoDBLoaders = createMongoDBLoaders(mongoDB);
 
   return {

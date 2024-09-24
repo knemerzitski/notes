@@ -36,7 +36,7 @@ export type DBRevisionChangesetSchema = InferRaw<typeof RevisionChangesetSchema>
 
 export type RevisionChangesetSchema = Infer<typeof RevisionChangesetSchema>;
 
-export const SelectionRangeSchema = object({
+const _SelectionRange = object({
   /**
    * Range start value
    */
@@ -47,9 +47,9 @@ export const SelectionRangeSchema = object({
   end: optional(number()),
 });
 
-const CollapsedSelectionRangeSchema = coerce(
-  SelectionRangeSchema,
-  SelectionRangeSchema,
+export const SelectionRangeSchema = coerce(
+  _SelectionRange,
+  _SelectionRange,
   (value) => value,
   (value) => SelectionRange.collapseSame(value)
 );
@@ -59,8 +59,8 @@ export type DBSelectionRangeSchema = InferRaw<typeof SelectionRangeSchema>;
 export type SelectionRangeSchema = Infer<typeof SelectionRangeSchema>;
 
 export const RevisionRecordSchema = object({
-  afterSelection: CollapsedSelectionRangeSchema,
-  beforeSelection: CollapsedSelectionRangeSchema,
+  afterSelection: SelectionRangeSchema,
+  beforeSelection: SelectionRangeSchema,
   changeset: ChangesetSchema,
   /**
    * When record was inserted to DB

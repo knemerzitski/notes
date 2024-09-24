@@ -11,8 +11,9 @@ interface CreateGraphQLWebSocketOptions {
   headers?: Record<string, string>;
 }
 
-interface WebSocketInterface {
+export interface WebSocketInterface {
   ws: WebSocket;
+  connectionId: string;
   subscribe: <TVariables>(
     sub: {
       operationName?: string;
@@ -46,8 +47,12 @@ export async function createGraphQLWebSocket(options?: CreateGraphQLWebSocketOpt
           })
         );
       } else if (data.type === 'connection_ack') {
+        if (!data.payload.connectionId) {
+          throw new Error('Expected "connectionId" in "connection_ack" payload');
+        }
         res({
           ws,
+          connectionId: data.payload.connectionId,
           subscribe: <TVariables>(
             sub: {
               operationName?: string;
