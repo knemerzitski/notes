@@ -11,7 +11,7 @@ import { createLambdaGraphQLDynamoDBTables } from './utils/lambda-graphql-dynamo
 import { createWebSocketHandlerDefaultParams } from '~api/websocket-handler';
 import { mockWebSocketHandlerDefaultParamsOptions } from './handlers/mock-websocket-handler';
 import { DynamoDBBaseGraphQLContext, GraphQLResolversContext } from '~api/graphql/types';
-import { createApolloHttpHandlerParams } from '~api/apollo-http-handler';
+import { createApolloHttpHandlerDefaultParams } from '~api/apollo-http-handler';
 import { createInitializeHandler } from '~api/initialize-handler';
 import { createLambdaContext } from './utils/lambda-context';
 import { mockCreateInitializeHandlerOptions } from './handlers/mock-initialize-handler';
@@ -54,7 +54,7 @@ void (async () => {
         Omit<GraphQLResolversContext, keyof ApolloHttpGraphQLContext>,
         DynamoDBBaseGraphQLContext
       >(
-        createApolloHttpHandlerParams(
+        createApolloHttpHandlerDefaultParams(
           mockApolloHttpHandlerDefaultParamsOptions({
             sockets,
           })

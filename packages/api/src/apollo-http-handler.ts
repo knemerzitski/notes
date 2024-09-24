@@ -34,7 +34,7 @@ export interface CreateApolloHttpHandlerDefaultParamsOptions {
   };
 }
 
-export function createApolloHttpHandlerParams(
+export function createApolloHttpHandlerDefaultParams(
   options?: CreateApolloHttpHandlerDefaultParamsOptions
 ): CreateApolloHttpHandlerParams<
   Omit<GraphQLResolversContext, keyof ApolloHttpGraphQLContext>,
@@ -95,5 +95,5 @@ export function createApolloHttpHandlerParams(
 }
 
 export const handler: APIGatewayProxyHandler = createApolloHttpHandler(
-  createApolloHttpHandlerParams()
+  createApolloHttpHandlerDefaultParams()
 );
