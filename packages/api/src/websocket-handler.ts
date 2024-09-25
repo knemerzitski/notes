@@ -31,6 +31,7 @@ import {
   headersToSerializedBaseGraphQLContext,
   parseDynamoDBBaseGraphQLContext,
 } from './graphql/context';
+import { formatError } from './graphql/errors';
 
 export interface CreateWebSocketHandlerDefaultParamsOptions {
   override?: {
@@ -60,6 +61,10 @@ export function createWebSocketHandlerDefaultParams(
 
   return {
     logger,
+    formatError,
+    formatErrorOptions: {
+      includeStacktrace: process.env.NODE_ENV === 'development',
+    },
     graphQL:
       options?.override?.createDefaultSubscriptionGraphQLParams?.(logger) ??
       createDefaultSubscriptionGraphQLParams(logger),

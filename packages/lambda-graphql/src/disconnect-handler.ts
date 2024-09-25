@@ -5,7 +5,7 @@ import {
   APIGatewayProxyWebsocketEventV2,
   Handler,
 } from 'aws-lambda';
-import { GraphQLError, GraphQLSchema, parse } from 'graphql';
+import { GraphQLSchema, parse } from 'graphql';
 import { buildExecutionContext } from 'graphql/execution/execute';
 import { MessageType } from 'graphql-ws';
 import { isArray } from '~utils/array/is-array';
@@ -24,10 +24,16 @@ import { ConnectionTable, DynamoDBRecord } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
 import { Publisher, createPublisher } from './pubsub/publish';
 import {
+  SubscribeHookError,
   SubscriptionContext,
   createSubscriptionContext,
   getSubscribeFieldResult,
 } from './pubsub/subscribe';
+import {
+  FormatError,
+  FormatErrorOptions,
+  formatUnknownError,
+} from './graphql/format-unknown-error';
 
 interface DirectParams<
   TGraphQLContext,
@@ -58,6 +64,8 @@ interface DirectParams<
     >;
     event: WebSocketConnectEvent;
   }) => Maybe<MaybePromise<TDynamoDBGraphQLContext>>;
+  formatError?: FormatError;
+  formatErrorOptions?: FormatErrorOptions;
 }
 
 export interface WebSocketDisconnectHandlerParams<
@@ -81,6 +89,7 @@ export interface WebSocketDisconnectHandlerContext<
     subscriptions: SubscriptionTable<TDynamoDBGraphQLContext>;
   };
   socketApi: WebSocketApi;
+  formatError: FormatError;
   createGraphQLContext: WebSocketDisconnectHandlerParams<
     TGraphQLContext,
     TBaseGraphQLContext,
@@ -138,6 +147,7 @@ export function createWebSocketDisconnectHandler<
     'graphQLContext'
   > = {
     ...params,
+    formatError: params.formatError ?? ((err) => err),
     schema: graphQL.schema,
     models: {
       connections: dynamoDB.connections,
@@ -211,7 +221,7 @@ export function webSocketDisconnectHandler<
             }),
           };
 
-          const execContext = buildExecutionContext({
+          const exeContext = buildExecutionContext({
             schema: context.schema,
             document: parse(sub.subscription.query),
             contextValue: graphQLContextValue,
@@ -219,33 +229,44 @@ export function webSocketDisconnectHandler<
             operationName: sub.subscription.operationName,
           });
 
-          if (isArray(execContext)) {
-            throw new AggregateError(execContext);
+          if (isArray(exeContext)) {
+            throw new AggregateError(exeContext);
           }
 
-          const { onComplete } = await getSubscribeFieldResult(execContext);
+          const { onComplete } = await getSubscribeFieldResult(exeContext);
 
           context.logger.info('event:DISCONNECT:onComplete', {
             onComplete: !!onComplete,
           });
-          await onComplete?.();
-        } catch (err) {
-          if (err instanceof GraphQLError) {
-            return context.socketApi.post({
-              ...event.requestContext,
-              message: {
-                type: MessageType.Error,
-                id: sub.subscriptionId,
-                payload: [err],
-              },
-            });
-          } else {
-            context.logger.error('event:DISCONNECT:complete', {
-              err,
-              connectionId,
-              subscription: sub,
-            });
+          try {
+            await onComplete?.();
+          } catch (err) {
+            throw new SubscribeHookError('onComplete', exeContext, err);
           }
+        } catch (err) {
+          const { exeContext, hookName, cause } = SubscribeHookError.unwrap(err);
+          const postError = cause ?? err;
+
+          context.logger.error('event:DISCONNECT:complete', {
+            err: postError,
+            connectionId,
+            subscription: sub,
+          });
+
+          return context.socketApi.post({
+            ...event.requestContext,
+            message: {
+              type: MessageType.Error,
+              id: sub.subscriptionId,
+              payload: [
+                formatUnknownError(postError, context.formatError, {
+                  ...context.formatErrorOptions,
+                  exeContext,
+                  extraPath: hookName,
+                }),
+              ],
+            },
+          });
         }
 
         await context.models.subscriptions.delete({ id: sub.id });

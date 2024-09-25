@@ -134,6 +134,7 @@ export function createWebSocketHandler<
     'graphQLContext' | 'eventHandlers'
   > = {
     ...params,
+    formatError: params.formatError ?? ((err) => err),
     schema: graphQL.schema,
     models: {
       connections: dynamoDB.connections,

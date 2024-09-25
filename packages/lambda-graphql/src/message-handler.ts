@@ -40,6 +40,7 @@ import { createPingHandler } from './messages/ping';
 import { createPongHandler } from './messages/pong';
 import { createSubscribeHandler } from './messages/subscribe';
 import { Publisher } from './pubsub/publish';
+import { FormatError, FormatErrorOptions } from './graphql/format-unknown-error';
 
 interface DirectParams<
   TGraphQLContext,
@@ -89,6 +90,8 @@ interface DirectParams<
   parseDynamoDBGraphQLContext: (
     value: TDynamoDBGraphQLContext | undefined
   ) => TBaseGraphQLContext;
+  formatError?: FormatError;
+  formatErrorOptions?: FormatErrorOptions;
 }
 
 export interface WebSocketMessageHandlerParams<
@@ -131,6 +134,7 @@ export interface WebSocketMessageHandlerContext<
     TBaseGraphQLContext,
     TDynamoDBGraphQLContext
   >;
+  formatError: FormatError;
   createGraphQLContext: WebSocketMessageHandlerParams<
     TGraphQLContext,
     TBaseGraphQLContext,
@@ -237,6 +241,7 @@ export function createWebSocketMessageHandler<
     'graphQLContext'
   > = {
     ...params,
+    formatError: params.formatError ?? ((err) => err),
     schema: graphQL.schema,
     models: {
       connections: dynamoDB.connections,

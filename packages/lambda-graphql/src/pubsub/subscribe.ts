@@ -24,6 +24,36 @@ export interface SubscribeOptions<T extends PubSubEvent> {
   onComplete?: () => MaybePromise<void>;
 }
 
+type SubscribeHookName = 'onSubscribe' | 'onAfterSubscribe' | 'onComplete';
+
+export class SubscribeHookError extends Error {
+  static unwrap(error: unknown): Partial<{
+    exeContext: ExecutionContext;
+    hookName: string;
+    cause: unknown;
+  }> {
+    if (error instanceof SubscribeHookError) {
+      return error;
+    } else {
+      return {};
+    }
+  }
+
+  readonly hookName: SubscribeHookName;
+  readonly exeContext: ExecutionContext;
+  override readonly cause: unknown;
+
+  constructor(hookName: SubscribeHookName, exeContext: ExecutionContext, cause: unknown) {
+    super(`Error when calling subscribe hook ${hookName}`, {
+      cause,
+    });
+
+    this.hookName = hookName;
+    this.exeContext = exeContext;
+    this.cause = cause;
+  }
+}
+
 export interface SubscriberResult<T extends PubSubEvent> extends SubscribeOptions<T> {
   topic: T['topic'];
 }

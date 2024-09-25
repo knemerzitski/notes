@@ -1,5 +1,3 @@
-// must call an endpoint with normal request???
-
 import { beforeEach, expect, it, vi } from 'vitest';
 import {
   SignInInput,

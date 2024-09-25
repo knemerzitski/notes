@@ -1,4 +1,4 @@
-import { GraphQLError, OperationTypeNode, parse } from 'graphql';
+import { OperationTypeNode, parse } from 'graphql';
 import { buildExecutionContext } from 'graphql/execution/execute';
 import { MessageType } from 'graphql-ws';
 import { isArray } from '~utils/array/is-array';
@@ -8,11 +8,13 @@ import { Subscription } from '../dynamodb/models/subscription';
 import { validateQuery } from '../graphql/validate-query';
 import { MessageHandler } from '../message-handler';
 import {
+  SubscribeHookError,
   SubscriptionContext,
   createSubscriptionContext,
   getSubscribeFieldResult,
 } from '../pubsub/subscribe';
 import { createPublisher } from '../pubsub/publish';
+import { formatUnknownError } from '../graphql/format-unknown-error';
 
 export function createSubscribeHandler<
   TGraphQLContext,
@@ -31,6 +33,7 @@ export function createSubscribeHandler<
       messageId: message.id,
       query: message.payload.query,
     });
+
     try {
       const connection = await context.models.connections.get({
         id: connectionId,
@@ -67,7 +70,11 @@ export function createSubscribeHandler<
           message: {
             type: MessageType.Error,
             id: message.id,
-            payload: errors,
+            payload: errors.map((error) =>
+              formatUnknownError(error, context.formatError, {
+                ...context.formatErrorOptions,
+              })
+            ),
           },
         });
       }
@@ -89,7 +96,7 @@ export function createSubscribeHandler<
         }),
       };
 
-      const execContext = buildExecutionContext({
+      const exeContextOrErrors = buildExecutionContext({
         schema: context.schema,
         document,
         contextValue: graphQLContextValue,
@@ -97,19 +104,24 @@ export function createSubscribeHandler<
         operationName: message.payload.operationName,
       });
 
-      // execContext as an array contains GraphQL errors
-      if (isArray(execContext)) {
+      // exeContext as an array contains GraphQL errors
+      if (isArray(exeContextOrErrors)) {
         return context.socketApi.post({
           ...event.requestContext,
           message: {
             type: MessageType.Error,
             id: message.id,
-            payload: execContext,
+            payload: exeContextOrErrors.map((error) =>
+              formatUnknownError(error, context.formatError, {
+                ...context.formatErrorOptions,
+              })
+            ),
           },
         });
       }
+      const exeContext = exeContextOrErrors;
 
-      const operation = execContext.operation.operation;
+      const operation = exeContext.operation.operation;
       if (operation !== OperationTypeNode.SUBSCRIPTION) {
         throw new Error(
           `Invalid operation '${operation}'. Only subscriptions are supported.`
@@ -117,12 +129,17 @@ export function createSubscribeHandler<
       }
 
       const { topic, filter, onSubscribe, onAfterSubscribe } =
-        await getSubscribeFieldResult(execContext);
+        await getSubscribeFieldResult(exeContext);
 
       context.logger.info('messages:subscribe:onSubscribe', {
         onSubscribe: !!onSubscribe,
       });
-      await onSubscribe?.();
+
+      try {
+        await onSubscribe?.();
+      } catch (err) {
+        throw new SubscribeHookError('onSubscribe', exeContext, err);
+      }
 
       const subscription: Subscription<TDynamoDBGraphQLContext> = {
         id: `${connection.id}:${message.id}`,
@@ -150,30 +167,37 @@ export function createSubscribeHandler<
       } catch (err) {
         // Delete subscription on error in onAfterSubscribe
         await context.models.subscriptions.delete({ id: subscription.id });
-        throw err;
+        throw new SubscribeHookError('onAfterSubscribe', exeContext, err);
       }
 
       // Wait for Connection TTL refresh to be done
       await ttlRefreshPromise;
     } catch (err) {
+      const { exeContext, hookName, cause } = SubscribeHookError.unwrap(err);
+      const postError = cause ?? err;
+
       context.logger.error('messages:subscribe:error', {
-        err,
+        err: postError,
         connectionId,
         message,
       });
-      // Post GraphQLError
-      if (err instanceof GraphQLError) {
-        return context.socketApi.post({
-          ...event.requestContext,
-          message: {
-            type: MessageType.Error,
-            id: message.id,
-            payload: [err],
-          },
-        });
-      } else {
-        throw err;
-      }
+
+      await context.socketApi.post({
+        ...event.requestContext,
+        message: {
+          type: MessageType.Error,
+          id: message.id,
+          payload: [
+            formatUnknownError(postError, context.formatError, {
+              ...context.formatErrorOptions,
+              exeContext,
+              extraPath: hookName,
+            }),
+          ],
+        },
+      });
+
+      throw err;
     }
   };
 }

@@ -6,6 +6,7 @@ import {
 } from '@apollo/server';
 import { Logger } from '~utils/logging';
 import { unwrapResolverError } from '@apollo/server/errors';
+import { GraphQLError } from 'graphql';
 
 export class ApolloServerLogger<TContext extends BaseContext>
   implements ApolloServerPlugin<TContext>
@@ -33,20 +34,7 @@ export class ApolloServerLogger<TContext extends BaseContext>
         const errors = ctx.errors;
         if (errors.length === 0) return Promise.resolve();
 
-        this.logger.error(
-          'request:errors',
-          errors.map((error) => {
-            const originalError = unwrapResolverError(error);
-            if (originalError !== error) {
-              return {
-                graphQLError: proxyMaskStack(error),
-                originalError: originalError,
-              };
-            } else {
-              return error;
-            }
-          })
-        );
+        this.logger.error('request:errors', errors.map(mapErrorWithOriginal));
       },
       willSendResponse: () => {
         const requestDuration =
@@ -63,28 +51,31 @@ export class ApolloServerLogger<TContext extends BaseContext>
   }
 }
 
-/**
- * Error with property 'stack' proxied to undefined
- */
-function proxyMaskStack(error: unknown) {
+function mapErrorWithOriginal(error: GraphQLError) {
+  const originalError = unwrapResolverError(error);
+  if (originalError === error) {
+    return error;
+  }
+
+  if (!(originalError instanceof Error) || originalError.stack !== error.stack) {
+    return error;
+  }
+
+  // Stack is equal in 'error' and 'originalError', remove it from 'error'
+
+  return {
+    graphQLError: errorWithoutStack(error),
+    originalError: originalError,
+  };
+}
+
+function errorWithoutStack(error: unknown) {
   if (!(error instanceof Error)) {
     return error;
   }
 
-  return new Proxy(error, {
-    get: (...args) => {
-      const [_target, p] = args;
-      if (p === 'stack') {
-        return;
-      }
-      return Reflect.get(...args);
-    },
-    has(...args) {
-      const [_target, p] = args;
-      if (p === 'stack') {
-        return false;
-      }
-      return Reflect.get(...args);
-    },
-  });
+  const copy = Object.assign(Object.create(Object.getPrototypeOf(error)), error);
+  delete copy.stack;
+
+  return copy;
 }

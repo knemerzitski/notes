@@ -87,6 +87,11 @@ export function createApolloHttpHandler<
     socketApi: apiGateway.socketApi,
   };
 
+  const includeStacktraceInErrorResponses =
+    graphQL.apolloServerOptions.includeStacktraceInErrorResponses ??
+    process.env.NODE_ENV === 'development';
+  const formatError = graphQL.apolloServerOptions.formatError ?? ((err) => err);
+
   type GraphQLContext = ApolloHttpGraphQLContext & TGraphQLContext;
   const apollo = new ApolloServer<GraphQLContext>({
     ...graphQL.apolloServerOptions,
@@ -120,7 +125,13 @@ export function createApolloHttpHandler<
         },
         logger,
         publish: createPublisher<GraphQLContext, TDynamoDBGraphQLContext>({
-          context,
+          context: {
+            ...context,
+            formatError,
+            formatErrorOptions: {
+              includeStacktrace: includeStacktraceInErrorResponses,
+            },
+          },
           getGraphQLContext: () => graphQLContext,
           isCurrentConnection: params.createIsCurrentConnection?.(context, event),
         }),

@@ -1,17 +1,32 @@
-import { GraphQLError, execute, parse } from 'graphql';
+import { execute, GraphQLSchema, parse } from 'graphql';
 import { MessageType, NextMessage } from 'graphql-ws';
 
-import { ApolloHttpHandlerContext } from '../apollo-http-handler';
 import { DynamoDBRecord } from '../dynamodb/models/connection';
-import { Subscription } from '../dynamodb/models/subscription';
+import { Subscription, SubscriptionTable } from '../dynamodb/models/subscription';
 
 import { PubSubEvent } from './subscribe';
+import {
+  FormatError,
+  FormatErrorOptions,
+  formatUnknownError,
+} from '../graphql/format-unknown-error';
+import { Logger } from '~utils/logging';
+import { WebSocketApi } from '../context/apigateway';
 
 interface CreatePublisherParams<
   TGraphQLContext,
   TDynamoDBGraphQLContext extends DynamoDBRecord,
 > {
-  context: ApolloHttpHandlerContext<TDynamoDBGraphQLContext>;
+  context: {
+    logger: Logger;
+    models: {
+      subscriptions: SubscriptionTable<TDynamoDBGraphQLContext>;
+    };
+    schema: GraphQLSchema;
+    socketApi: WebSocketApi;
+    formatError: FormatError;
+    formatErrorOptions?: FormatErrorOptions;
+  };
   getGraphQLContext: () => TGraphQLContext;
   /**
    * @returns {boolean} {@link connectionId} belongs to client of current request.
@@ -108,25 +123,27 @@ export function createPublisher<
             message,
           });
         } catch (err) {
-          if (err instanceof GraphQLError) {
-            return context.socketApi.post({
-              ...sub.requestContext,
-              message: {
-                type: MessageType.Error,
-                id: sub.subscriptionId,
-                payload: [err],
-              },
-            });
-          } else {
-            context.logger.error('publish:subscription', {
-              ...sub.requestContext,
-              err,
-              topic,
-              payload,
-              options,
-              subscription: sub,
-            });
-          }
+          context.logger.error('publish:subscription', {
+            ...sub.requestContext,
+            err,
+            topic,
+            payload,
+            options,
+            subscription: sub,
+          });
+
+          return context.socketApi.post({
+            ...sub.requestContext,
+            message: {
+              type: MessageType.Error,
+              id: sub.subscriptionId,
+              payload: [
+                formatUnknownError(err, context.formatError, {
+                  ...context.formatErrorOptions,
+                }),
+              ],
+            },
+          });
         }
       });
 

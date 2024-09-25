@@ -19,7 +19,7 @@ export function formatError(
   for (const formatErr of errorFormatters) {
     const modifiedError = formatErr(originalError);
     if (modifiedError) {
-      return wrapResolverError(modifiedError, error);
+      return wrapResolverError(modifiedError, formattedError);
     }
   }
 
@@ -32,17 +32,26 @@ export function formatError(
 /**
  * Restore GraphQLError options from initial error if it's undefined
  */
-function wrapResolverError(error: Error, initialError: unknown): Error {
-  if (!(error instanceof GraphQLError) || !(initialError instanceof GraphQLError)) {
-    return error;
+function wrapResolverError(
+  targetError: Error,
+  formattedError: GraphQLFormattedError
+): Error {
+  if (
+    !(targetError instanceof GraphQLError) ||
+    !(formattedError instanceof GraphQLError)
+  ) {
+    return targetError;
   }
 
-  return new GraphQLError(error.message, {
-    nodes: error.nodes ?? initialError.nodes,
-    source: error.source ?? initialError.source,
-    positions: error.positions ?? initialError.positions,
-    path: error.path ?? initialError.path,
-    originalError: error.originalError ?? initialError.originalError,
-    extensions: error.extensions,
+  return new GraphQLError(targetError.message, {
+    nodes: targetError.nodes ?? formattedError.nodes,
+    source: targetError.source ?? formattedError.source,
+    positions: targetError.positions ?? formattedError.positions,
+    path: targetError.path ?? formattedError.path,
+    originalError: targetError.originalError ?? formattedError.originalError,
+    extensions: {
+      ...formattedError.extensions,
+      ...targetError.extensions,
+    },
   });
 }
