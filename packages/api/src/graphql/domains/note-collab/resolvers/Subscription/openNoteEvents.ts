@@ -31,7 +31,7 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
     const noteId = arg.noteId;
 
     if (!connectionId) {
-      throw new Error('Expected connectionId in graphQL context to be defined');
+      throw new Error('connectionId is not defined in subscribe GraphQL context');
     }
 
     function loadNoteForSubscribe(userId: ObjectId) {
@@ -75,7 +75,6 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
 
         const noteUser = findNoteUser(currentUserId, note);
         if (!noteUser) {
-          // TODO move to service
           throw new NoteNotFoundServiceError(noteId);
         }
 
@@ -211,7 +210,6 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
 
             const noteUser = findNoteUser(currentUserId, note);
             if (!noteUser) {
-              // TODO move to service
               throw new NoteNotFoundServiceError(noteId);
             }
 
