@@ -20,8 +20,8 @@ import { assertAuthenticated } from '../../../../../services/auth/assert-authent
 import { QueryableNoteUser } from '../../../../../mongodb/loaders/note/descriptions/note';
 import { isDefined } from '~utils/type-guards/is-defined';
 
-export function noteEditorTopic(noteId: ObjectId) {
-  return `${SubscriptionTopicPrefix.NOTE_EDITOR_EVENTS}:${objectIdToStr(noteId)}`;
+export function openNoteTopic(noteId: ObjectId) {
+  return `${SubscriptionTopicPrefix.OPEN_NOTE_EVENTS}:${objectIdToStr(noteId)}`;
 }
 
 export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']> = {
@@ -44,7 +44,7 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
           _id: 1,
           users: {
             _id: 1,
-            editing: {
+            openNote: {
               collabText: {
                 revision: 1,
                 latestSelection: {
@@ -58,7 +58,7 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
       });
     }
 
-    return subscribe(noteEditorTopic(noteId), {
+    return subscribe(openNoteTopic(noteId), {
       async onSubscribe() {
         assertAuthenticated(auth);
         const currentUserId = auth.session.userId;
@@ -79,7 +79,7 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
           throw new NoteNotFoundServiceError(noteId);
         }
 
-        const isCurrentUserAlreadyEditing = !!noteUser.editing;
+        const hasCurrentUserAlreadyOpenedNote = !!noteUser.openNote;
 
         const userQuery = mongoDB.loaders.user.createQueryFn({
           userId: currentUserId,
@@ -99,14 +99,12 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
           },
         };
 
-        // TODO also send current user letting know that you're now editing??
-
         await Promise.all([
-          // Only when editing first time
-          ...(!isCurrentUserAlreadyEditing
+          // Only when opening note the first time
+          ...(!hasCurrentUserAlreadyOpenedNote
             ? [
-                // Remember that current user is editing
-                mongoDB.collections.noteEditing.updateOne(
+                // Remember that current user has opened the note
+                mongoDB.collections.openNotes.updateOne(
                   {
                     noteId,
                     userId: currentUserId,
@@ -119,7 +117,7 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
                     $set: {
                       expireAt: new Date(
                         Date.now() +
-                          (ctx.options?.note?.noteEditingDuration ?? 1000 * 60 * 60)
+                          (ctx.options?.note?.openNoteDuration ?? 1000 * 60 * 60)
                       ),
                     },
                     $addToSet: {
@@ -130,13 +128,13 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
                     upsert: true,
                   }
                 ),
-                // Let every other user know that current user is editing note
+                // Let every other user know that current user has opened the note
                 ...getNoteUsersIds(note).map((userId) =>
                   publishSignedInUserMutation(userId, subscribedPayload, ctx)
                 ),
               ]
             : []),
-          // Send all other users editing state to current user
+          // Send all other users open note state to current user
           publishSignedInUserMutations(
             currentUserId,
             [
@@ -144,17 +142,17 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
               subscribedPayload,
               ...note.users
                 .map((noteUser) => {
-                  if (!noteUser.editing?.collabText) return;
-                  const editingCollabText = noteUser.editing.collabText;
+                  if (!noteUser.openNote?.collabText) return;
+                  const openCollabText = noteUser.openNote.collabText;
 
                   return {
                     __typename: 'UpdateOpenNoteSelectionRangePayload' as const,
                     collabTextState: {
                       query: createValueQueryFn<
                         NonNullable<
-                          NonNullable<QueryableNoteUser['editing']>['collabText']
+                          NonNullable<QueryableNoteUser['openNote']>['collabText']
                         >
-                      >(() => editingCollabText),
+                      >(() => openCollabText),
                     },
                     collabText: {
                       id: CollabText_id_fromNoteQueryFn(noteQuery),
@@ -184,7 +182,7 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
 
         const currentUserId = auth.session.userId;
 
-        // Delete note editing for current connectionId
+        // Delete openNote for current connectionId
         await withTransaction(
           mongoDB.client,
           async ({ runSingleOperation }) => {
@@ -199,7 +197,7 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
                     _id: 1,
                     users: {
                       _id: 1,
-                      editing: {
+                      openNote: {
                         connectionIds: 1,
                       },
                     },
@@ -217,15 +215,15 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
               throw new NoteNotFoundServiceError(noteId);
             }
 
-            const editing = noteUser.editing;
-            if (!editing) return;
+            const openNote = noteUser.openNote;
+            if (!openNote) return;
 
-            if (editing.connectionIds.length > 1) {
+            if (openNote.connectionIds.length > 1) {
               // Have connectionIds in db and there is more than one
-              if (editing.connectionIds.includes(connectionId)) {
-                // Must only remove current connectionId, user is still editing through another client
+              if (openNote.connectionIds.includes(connectionId)) {
+                // Must only remove current connectionId, user still has note open through another connection
                 await runSingleOperation((session) =>
-                  mongoDB.collections.noteEditing.updateOne(
+                  mongoDB.collections.openNotes.updateOne(
                     {
                       noteId,
                       userId: currentUserId,
@@ -244,8 +242,8 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
             } else {
               // 1 or 0 connectionIds
               if (
-                editing.connectionIds.length === 0 ||
-                editing.connectionIds.includes(connectionId)
+                openNote.connectionIds.length === 0 ||
+                openNote.connectionIds.includes(connectionId)
               ) {
                 const unsubscribedPayload: ResolversTypes['SignedInUserMutations'] = {
                   __typename: 'OpenNoteUserUnsubscribedEvent',
@@ -267,7 +265,7 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
                 await Promise.all([
                   // Either no connectionids or only current connectionId, can delete document
                   runSingleOperation((session) =>
-                    mongoDB.collections.noteEditing.deleteOne(
+                    mongoDB.collections.openNotes.deleteOne(
                       {
                         noteId,
                         userId: currentUserId,
@@ -277,7 +275,7 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
                       }
                     )
                   ),
-                  // Let every other user know that current user is no longer editing note
+                  // Let every other user know that current user has closed the note
                   ...allNoteUsers.map((userId) =>
                     publishSignedInUserMutation(userId, unsubscribedPayload, ctx)
                   ),
@@ -299,7 +297,7 @@ export async function publishOpenNoteEvents(
   options?: PublisherOptions
 ) {
   return await publish(
-    noteEditorTopic(targetNoteId),
+    openNoteTopic(targetNoteId),
     {
       openNoteEvents: payload,
     },

@@ -8,7 +8,7 @@ import {
 } from './schema/note';
 import { DBSessionSchema, sessionDescription } from './schema/session';
 import { userDescription, DBUserSchema } from './schema/user';
-import { DBNoteEditingSchema, noteEditingDescription } from './schema/note-editing';
+import { DBOpenNoteSchema, openNoteDescription } from './schema/open-note';
 
 export interface CollectionDescription {
   indexSpecs?: IndexDescription[];
@@ -21,7 +21,7 @@ export enum CollectionName {
   SESSIONS = 'sessions',
   USERS = 'users',
   NOTES = 'notes',
-  NOTE_EDITING = 'noteEditing',
+  OPEN_NOTES = 'openNotes',
 }
 
 interface CollectionDefinitions {
@@ -34,8 +34,8 @@ interface CollectionDefinitions {
   [CollectionName.NOTES]: {
     schema: Collection<DBNoteSchema>;
   };
-  [CollectionName.NOTE_EDITING]: {
-    schema: Collection<DBNoteEditingSchema>;
+  [CollectionName.OPEN_NOTES]: {
+    schema: Collection<DBOpenNoteSchema>;
   };
 }
 
@@ -45,7 +45,7 @@ export const collectionDescriptions: Partial<
   [CollectionName.SESSIONS]: sessionDescription,
   [CollectionName.USERS]: userDescription,
   [CollectionName.NOTES]: noteDescription,
-  [CollectionName.NOTE_EDITING]: noteEditingDescription,
+  [CollectionName.OPEN_NOTES]: openNoteDescription,
 };
 
 export const collectionSearchIndexDescriptions: Partial<

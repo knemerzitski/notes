@@ -282,13 +282,15 @@ it('loads shareLinks', async () => {
   ]);
 });
 
-it('loads users.editing', async () => {
-  await mongoCollections.noteEditing.insertOne({
+it('loads users.openNote', async () => {
+  await mongoCollections.openNotes.insertOne({
     noteId: note._id,
     userId: user._id,
-    revision: 10,
-    latestSelection: {
-      start: 12,
+    collabText: {
+      revision: 10,
+      latestSelection: {
+        start: 12,
+      },
     },
     connectionIds: [],
     expireAt: new Date(Date.now() + 100000),
@@ -303,8 +305,10 @@ it('loads users.editing', async () => {
         query: {
           users: {
             _id: 1,
-            editing: {
-              revision: 1,
+            openNote: {
+              collabText: {
+                revision: 1,
+              },
             },
           },
         },
@@ -321,8 +325,10 @@ it('loads users.editing', async () => {
       users: expect.arrayContaining([
         {
           _id: user._id,
-          editing: {
-            revision: 10,
+          openNote: {
+            collabText: {
+              revision: 10,
+            },
           },
         },
       ]),

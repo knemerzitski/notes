@@ -14,17 +14,17 @@ import {
 } from 'superstruct';
 import { SelectionRangeSchema } from './collab-text';
 
-export const NoteEditingSchema = object({
+export const OpenNoteSchema = object({
   /**
-   * Note that is being edited
+   * Note that has been opened
    */
   noteId: instance(ObjectId),
   /**
-   * User who is editing the note
+   * User who has opened the note
    */
   userId: instance(ObjectId),
   /**
-   * Note collaborative text editing state
+   * Note collaborative text state
    */
   collabText: optional(
     object({
@@ -43,16 +43,16 @@ export const NoteEditingSchema = object({
    */
   expireAt: date(),
   /**
-   * An array of unique connection ids. User can edit note using multiple connections at the same time.
+   * An array of unique connection ids. User can open note using multiple connections at the same time.
    */
   connectionIds: array(string()),
 });
 
-export type DBNoteEditingSchema = InferRaw<typeof NoteEditingSchema>;
+export type DBOpenNoteSchema = InferRaw<typeof OpenNoteSchema>;
 
-export type NoteEditingSchema = Infer<typeof NoteEditingSchema>;
+export type OpenNoteSchema = Infer<typeof OpenNoteSchema>;
 
-export const noteEditingDescription: CollectionDescription = {
+export const openNoteDescription: CollectionDescription = {
   indexSpecs: [
     {
       key: { noteId: 1 },

@@ -8,21 +8,21 @@ export const PublicUserNoteLink: Pick<PublicUserNoteLinkResolvers, 'collabTextSt
     async (parent) =>
       (
         await parent.query({
-          editing: {
+          openNote: {
             collabText: {
               revision: 1,
             },
           },
         })
-      )?.editing?.collabText != null,
+      )?.openNote?.collabText != null,
     (parent, _arg, _ctx) => {
       return {
         query: createMapQueryFn(parent.query)<
-          NonNullable<NonNullable<QueryableNoteUser['editing']>['collabText']>
+          NonNullable<NonNullable<QueryableNoteUser['openNote']>['collabText']>
         >()(
-          (query) => ({ editing: { collabText: query } }),
+          (query) => ({ openNote: { collabText: query } }),
           (result) => {
-            return result.editing?.collabText;
+            return result.openNote?.collabText;
           }
         ),
       };

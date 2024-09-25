@@ -3,6 +3,6 @@ import { MongoQueryFn } from '../../../mongodb/query/query';
 
 export interface UserCollabTextStateMapper {
   readonly query: MongoQueryFn<
-    NonNullable<NonNullable<QueryableNoteUser['editing']>['collabText']>
+    NonNullable<NonNullable<QueryableNoteUser['openNote']>['collabText']>
   >;
 }

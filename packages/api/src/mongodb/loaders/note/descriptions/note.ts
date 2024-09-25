@@ -5,13 +5,13 @@ import { collabTextDescription, QueryableCollabText } from './collab-text';
 import { array, assign, Infer, InferRaw, object, omit, optional } from 'superstruct';
 import { UserSchema } from '../../../schema/user';
 import { NoteSchema } from '../../../schema/note';
-import { NoteEditingSchema } from '../../../schema/note-editing';
+import { OpenNoteSchema } from '../../../schema/open-note';
 
 export const QueryableNoteUser = assign(
   NoteUserSchema,
   object({
     user: omit(UserSchema, ['note', 'thirdParty', '_id']),
-    editing: optional(omit(NoteEditingSchema, ['userId', 'noteId'])),
+    openNote: optional(omit(OpenNoteSchema, ['userId', 'noteId'])),
   })
 );
 
@@ -30,7 +30,7 @@ export type QueryableNote = Infer<typeof QueryableNote>;
 export interface QueryableNoteContext {
   collections: Pick<
     MongoDBCollectionsOnlyNames,
-    CollectionName.NOTES | CollectionName.USERS | CollectionName.NOTE_EDITING
+    CollectionName.NOTES | CollectionName.USERS | CollectionName.OPEN_NOTES
   >;
 }
 
@@ -100,18 +100,18 @@ export const queryableNoteDescription: DescriptionDeep<
         ];
       },
     },
-    // Lookup NoteEditingSchema: Note.users._id = NoteEditingSchema.userId and Note._id = NoteEditingSchema.noteId
-    editing: {
+    // Lookup OpenNoteSchema: Note.users._id = OpenNoteSchema.userId and Note._id = OpenNoteSchema.noteId
+    openNote: {
       $addStages({ customContext, subStages, subLastProject }) {
         return [
           {
             $lookup: {
-              from: customContext.collections.noteEditing.collectionName,
+              from: customContext.collections.openNotes.collectionName,
               let: {
                 userId: '$users._id',
                 noteId: '$_id',
               },
-              as: '_users_editing',
+              as: '_users_openNote',
               pipeline: [
                 {
                   $match: {
@@ -145,15 +145,15 @@ export const queryableNoteDescription: DescriptionDeep<
                         $let: {
                           vars: {
                             index: {
-                              $indexOfArray: ['$_users_editing.userId', '$$this._id'],
+                              $indexOfArray: ['$_users_openNote.userId', '$$this._id'],
                             },
                           },
                           in: {
                             $cond: [
                               { $gte: ['$$index', 0] },
                               {
-                                editing: {
-                                  $arrayElemAt: ['$_users_editing', '$$index'],
+                                openNote: {
+                                  $arrayElemAt: ['$_users_openNote', '$$index'],
                                 },
                               },
                               null,

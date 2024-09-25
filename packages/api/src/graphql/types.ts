@@ -32,10 +32,10 @@ export interface ApiOptions {
      */
     trashDuration?: number;
     /**
-     * How long note editing document is stored in milliseconds
+     * How long open note document is stored in milliseconds
      * @default 1000 * 60 * 60 // 1 hour
      */
-    noteEditingDuration?: number;
+    openNoteDuration?: number;
   };
   collabText?: {
     /**

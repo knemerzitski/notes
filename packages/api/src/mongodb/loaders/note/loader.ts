@@ -49,7 +49,7 @@ export type QueryableNoteLoadContext = QueryLoaderContext<GlobalContext, Request
 interface GlobalContext {
   collections: Pick<
     MongoDBContext<MongoDBCollections>['collections'],
-    CollectionName.NOTES | CollectionName.USERS | CollectionName.NOTE_EDITING
+    CollectionName.NOTES | CollectionName.USERS | CollectionName.OPEN_NOTES
   >;
 }
 

@@ -1,6 +1,6 @@
 import { GraphQLError } from 'graphql';
 import { createValueQueryFn } from '../../../../../mongodb/query/query';
-import { DBNoteEditingSchema } from '../../../../../mongodb/schema/note-editing';
+import { DBOpenNoteSchema } from '../../../../../mongodb/schema/open-note';
 import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import { findNoteUser } from '../../../../../services/note/note';
 import {
@@ -46,7 +46,7 @@ export const updateOpenNoteSelectionRange: NonNullable<
       _id: 1,
       users: {
         _id: 1,
-        editing: {
+        openNote: {
           connectionIds: 1,
         },
       },
@@ -67,9 +67,9 @@ export const updateOpenNoteSelectionRange: NonNullable<
     throw new NoteNotFoundServiceError(input.noteId);
   }
 
-  if (!noteUser.editing?.connectionIds.includes(connectionId)) {
+  if (!noteUser.openNote?.connectionIds.includes(connectionId)) {
     throw new GraphQLError(
-      'Current connection is not in editing mode. ' +
+      'Current connection has not opened the note.' +
         'Must subscribe to "openNoteEvents" to use mutation "updateOpenNoteSelectionRange"'
     );
   }
@@ -86,7 +86,7 @@ export const updateOpenNoteSelectionRange: NonNullable<
     }
   }
 
-  const editingCollabText: DBNoteEditingSchema['collabText'] = {
+  const openCollabText: DBOpenNoteSchema['collabText'] = {
     revision: input.revision,
     latestSelection: SelectionRangeSchema.createRaw({
       start: input.selectionRange.start,
@@ -94,7 +94,7 @@ export const updateOpenNoteSelectionRange: NonNullable<
     }),
   };
 
-  await mongoDB.collections.noteEditing.updateOne(
+  await mongoDB.collections.openNotes.updateOne(
     {
       noteId: input.noteId,
       userId: currentUserId,
@@ -106,9 +106,9 @@ export const updateOpenNoteSelectionRange: NonNullable<
       },
       $set: {
         expireAt: new Date(
-          Date.now() + (ctx.options?.note?.noteEditingDuration ?? 1000 * 60 * 60)
+          Date.now() + (ctx.options?.note?.openNoteDuration ?? 1000 * 60 * 60)
         ),
-        collabText: editingCollabText,
+        collabText: openCollabText,
       },
       $addToSet: {
         connectionIds: ctx.connectionId,
@@ -131,8 +131,8 @@ export const updateOpenNoteSelectionRange: NonNullable<
     __typename: 'UpdateOpenNoteSelectionRangePayload',
     collabTextState: {
       query: createValueQueryFn<
-        NonNullable<NonNullable<QueryableNoteUser['editing']>['collabText']>
-      >(() => editingCollabText),
+        NonNullable<NonNullable<QueryableNoteUser['openNote']>['collabText']>
+      >(() => openCollabText),
     },
     collabText: {
       id: CollabText_id_fromNoteQueryFn(noteQuery),
