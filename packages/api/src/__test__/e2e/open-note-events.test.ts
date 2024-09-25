@@ -348,5 +348,5 @@ it('subscribes to noteEditorEvents and receives initial selection and updates', 
 
 it('throws error if attempting to update selection when not subscribed to noteEditorEvents', async () => {
   const user = createEditorApi(opApi1);
-  await user.setSelectionStart(1, /not opened the note/);
+  await user.setSelectionStart(1, /note has not been opened/i);
 });

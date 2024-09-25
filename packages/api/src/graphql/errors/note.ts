@@ -6,7 +6,9 @@ import {
 } from '~api-app-shared/graphql/error-codes';
 import {
   NoteCollabRecordInsertError,
+  NoteCollabTextInvalidRevisionError,
   NoteNotFoundServiceError,
+  NoteNotOpenedServiceError,
   NoteReadOnlyServiceError,
   NoteUserNotFoundServiceError,
 } from '../../services/note/errors';
@@ -82,6 +84,19 @@ function newNoteErrorMapper() {
     }
     return;
   });
+
+  mapper.add(
+    NoteNotOpenedServiceError,
+    () =>
+      new GraphQLError('Note has not been opened. Must subscribe to "openNoteEvents".')
+  );
+  mapper.add(
+    NoteCollabTextInvalidRevisionError,
+    (error) =>
+      new GraphQLError(
+        `Invalid revision. Expected between [${error.minRevision},${error.maxRevision}]`
+      )
+  );
 
   return mapper;
 }

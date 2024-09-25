@@ -10,7 +10,9 @@ export type NoteServiceErrorCode =
   | 'NOTE_USER_NOT_FOUND'
   | 'NOTE_USER_UNAUTHORIZED'
   | 'NOTE_COLLAB_RECORD_INSERT'
-  | 'NOTE_SHARE_LINK_NOTE_FOUND';
+  | 'NOTE_SHARE_LINK_NOTE_FOUND'
+  | 'NOTE_NOT_OPENED'
+  | 'NOTE_COLLAB_TEXT_INVALID_REVISION';
 
 export class NoteServiceError extends ServiceError<NoteServiceErrorCode> {}
 
@@ -95,5 +97,49 @@ export class NoteUserUnauthorizedServiceError extends NoteServiceError {
     );
     this.scopeUserId = scopeUserId;
     this.targetUserId = targetUserId;
+  }
+}
+
+export class NoteNotOpenedServiceError extends NoteServiceError {
+  readonly userId: ObjectId;
+  readonly noteId: ObjectId;
+  readonly connectionId: string | undefined;
+
+  constructor(userId: ObjectId, noteId: ObjectId, connectionId: string | undefined) {
+    super(
+      'NOTE_NOT_OPENED',
+      `User '${objectIdToStr(userId)}' on connection '${connectionId}' has not opened note '${objectIdToStr(noteId)}'.`
+    );
+    this.userId = userId;
+    this.noteId = noteId;
+    this.connectionId = connectionId;
+  }
+}
+
+export class NoteCollabTextInvalidRevisionError extends NoteServiceError {
+  readonly revision: number;
+  readonly minRevision: number | null;
+  readonly maxRevision: number | null;
+
+  constructor(revision: number, minRevision: number | null, maxRevision: number | null) {
+    let message: string;
+    if (minRevision != null && maxRevision != null) {
+      if (minRevision !== maxRevision) {
+        message = `Expected revision "${revision}" to be between ${minRevision} and ${maxRevision}`;
+      } else {
+        message = `Expected revision "${revision}" to equal ${minRevision}`;
+      }
+    } else if (minRevision != null) {
+      message = `Expected revision "${revision}" to be greater or equal to ${minRevision}`;
+    } else if (maxRevision != null) {
+      message = `Expected revision "${revision}" to be less than or equal to ${maxRevision}`;
+    } else {
+      message = `Expected revision "${revision}" to not be invalid`;
+    }
+    super('NOTE_COLLAB_TEXT_INVALID_REVISION', message);
+
+    this.revision = revision;
+    this.minRevision = minRevision;
+    this.maxRevision = minRevision;
   }
 }
