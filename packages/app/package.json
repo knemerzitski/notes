@@ -7,7 +7,7 @@
     "vite:dev": "vite --host",
     "vite:preview": "vite preview --host",
     "vite:build": "tsc && vite build",
-    "graphql:compile": "graphql-codegen",
+    "graphql:gen": "graphql-codegen",
     "graphql:watch": "graphql-codegen -w",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest watch",
@@ -19,7 +19,7 @@
     "type-check": "tsc --noEmit",
     "lint": "npm run type-check && npm run eslint",
     "dev": "npm run vite:dev & npm run graphql:watch",
-    "build": "npm run graphql:compile && npm run vite:build"
+    "build": "npm run graphql:gen && npm run vite:build"
   },
   "dependencies": {
     "@apollo/client": "^3.10.3",

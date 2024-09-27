@@ -23,7 +23,7 @@
     "prettify": "npm run prettify --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "dev": "npm run db:start && npm run api:dev & npm run app:dev",
-    "graphql:compile": "npm run graphql:compile --workspaces --if-present",
+    "graphql:gen": "npm run graphql:gen --workspaces --if-present",
     "build": "npm run -w api build && npm run -w app build",
     "synth": "npm run -w infra synth",
     "deploy": "npm run -w infra deploy",
