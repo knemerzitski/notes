@@ -1,5 +1,5 @@
 import { isObjectLike } from '~utils/type-guards/is-object-like';
-import { getOrCreateObject } from '~utils/object/got-or-create-object';
+import { getOrCreateObject } from '~utils/object/get-or-create-object';
 import { getOrCreateArray } from '~utils/array/got-or-create-array';
 import { MongoPrimitive } from '../types';
 import { QUERY_ARG_PREFIX, QueryArgPrefix, QueryObjectDeep } from './query';
