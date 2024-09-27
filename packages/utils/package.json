@@ -16,7 +16,6 @@
     "@types/debug": "^4.1.12",
     "debug": "^4.3.4",
     "map-obj": "^5.0.2",
-    "mitt": "npm:@knemerzitski/mitt@^3.0.2",
     "superstruct": "npm:@knemerzitski/superstruct@^2.2.5",
     "vitest": "^1.4.0"
   }
