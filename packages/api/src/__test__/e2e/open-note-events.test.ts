@@ -14,7 +14,7 @@ import { createGraphQLWebSocket } from '../helpers/e2e/websocket';
 import { Cookies } from '../../services/http/cookies';
 import { userAddNote } from '../helpers/mongodb/populate/populate';
 import { fetchGraphQL } from '../helpers/e2e/fetch-graphql';
-import { mitt } from '~utils/mitt-unsub';
+import mitt from 'mitt';
 import { createDeferred } from '~utils/deferred';
 import {
   expectGraphQLResponseData,

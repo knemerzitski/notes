@@ -1,4 +1,4 @@
-import { mitt, Emitter } from '~utils/mitt-unsub';
+import mitt, { Emitter } from 'mitt';
 import { Changeset, ChangesetStruct } from '../changeset';
 import { object, optional } from 'superstruct';
 

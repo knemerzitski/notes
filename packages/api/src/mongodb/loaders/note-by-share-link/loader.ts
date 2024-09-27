@@ -1,6 +1,6 @@
 import { AggregateOptions, ObjectId } from 'mongodb';
 
-import { Emitter, mitt } from '~utils/mitt-unsub';
+import mitt, { Emitter } from 'mitt';
 
 import { CollectionName, MongoDBCollections } from '../../collections';
 import { MongoDBContext } from '../../context';

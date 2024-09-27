@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { nanoid } from 'nanoid';
 
-import { mitt, Emitter } from '~utils/mitt-unsub';
+import mitt, { Emitter } from 'mitt';
 import {
   OrderedMessageBuffer,
   OrderedMessageBufferParams,

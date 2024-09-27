@@ -1,4 +1,4 @@
-import { mitt } from '~utils/mitt-unsub';
+import mitt from 'mitt';
 
 import { MongoDBCollections } from './collections';
 import { MongoDBContext } from './context';

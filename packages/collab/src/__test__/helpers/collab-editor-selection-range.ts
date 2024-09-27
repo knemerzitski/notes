@@ -1,4 +1,4 @@
-import { mitt, Emitter } from '~utils/mitt-unsub';
+import mitt, { Emitter } from 'mitt';
 
 import { CollabEditor } from '../../client/collab-editor';
 import { Changeset } from '../../changeset';

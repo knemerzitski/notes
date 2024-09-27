@@ -1,5 +1,5 @@
 import { memoize1 } from './memoize1';
-import { mitt, Emitter } from './mitt-unsub';
+import mitt, { Emitter } from 'mitt';
 import { array, Infer, number, object, Struct } from 'superstruct';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

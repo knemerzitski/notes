@@ -16,7 +16,7 @@ import { memoizedGetEqualObjectString } from './utils/get-equal-object-string';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 import { isQueryArgField } from './merge-queries';
 import { Infer, InferRaw, Struct } from 'superstruct';
-import { Emitter } from '~utils/mitt-unsub';
+import { Emitter } from 'mitt';
 import { zip } from '~utils/array/zip';
 import { valueToQueries } from './utils/value-to-query';
 

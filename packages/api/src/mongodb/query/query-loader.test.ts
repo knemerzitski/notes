@@ -5,7 +5,7 @@ import { ObjectId } from 'mongodb';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { QueryLoader, QueryLoaderEvents } from './query-loader';
-import { mitt } from '~utils/mitt-unsub';
+import mitt from 'mitt';
 import isEqual from 'lodash.isequal';
 import { coerce, define, number, object, string } from 'superstruct';
 import { mock } from 'vitest-mock-extended';
