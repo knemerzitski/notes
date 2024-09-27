@@ -133,7 +133,9 @@ it('creates new user and session on first sign in with google', async () => {
   const response = await executeOperation(
     {
       auth: {
-        token: 'irrelevant',
+        google: {
+          token: 'irrelevant',
+        },
       },
     },
     {
@@ -207,7 +209,9 @@ it('signs in with existing user by creating new session', async () => {
 
   const response = await executeOperation({
     auth: {
-      token: 'irrelevant',
+      google: {
+        token: 'irrelevant',
+      },
     },
   });
 
@@ -250,7 +254,9 @@ it('returns already signed in result with existing auth', async () => {
   const response = await executeOperation(
     {
       auth: {
-        token: 'irrelevant',
+        google: {
+          token: 'irrelevant',
+        },
       },
     },
     {

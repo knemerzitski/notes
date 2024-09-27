@@ -37,7 +37,7 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
 
   const { input } = arg;
 
-  const googleAuthToken = input.auth.token;
+  const googleAuthToken = input.auth.google.token;
 
   const {
     id: googleUserId,
@@ -117,6 +117,7 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
     },
     availableUserIds: cookies.getAvailableSessionUserIds(),
     authProviderUser: {
+      __typename: 'GoogleAuthProviderUser',
       id: googleUserId,
       email: tmpGoogleEmail,
     },

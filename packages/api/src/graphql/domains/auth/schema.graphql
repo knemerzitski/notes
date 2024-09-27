@@ -1,20 +1,16 @@
 ################################ Mutation signIn ################################
 
-"User info received from authentication provider"
-type AuthProviderUser {
+interface AuthProviderUser {
   "User ID"
   id: ID!
-  "User email. Not stored in database and only available with sign in payload."
+  "User email. Not stored in database and only available with signIn payload."
   email: String!
 }
 
-input GoogleJWTAuthInput {
-  "JSON Web Token"
-  token: String!
-}
+input SignInAuthInput @oneOf
 
 input SignInInput {
-  auth: GoogleJWTAuthInput!
+  auth: SignInAuthInput!
 }
 
 interface SignInResult {
@@ -44,6 +40,24 @@ union SignInPayload = JustSignedInResult | AlreadySignedInResult
 extend type Mutation {
   "Sign in using an auth provider"
   signIn(input: SignInInput!): SignInPayload!
+}
+
+################################ Mutation signIn - GOOGLE ################################
+
+input GoogleSignInAuthInput {
+  "JSON Web Token"
+  token: String!
+}
+
+extend input SignInAuthInput {
+  google: GoogleSignInAuthInput
+}
+
+type GoogleAuthProviderUser implements AuthProviderUser {
+  "JWT payload field 'sub'"
+  id: ID!
+  "JWT payload field 'email'"
+  email: String!
 }
 
 ################################ Mutation signOut ################################
