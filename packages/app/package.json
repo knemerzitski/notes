@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "prepare": "npm run graphql:gen",
     "vite:dev": "vite --host",
     "vite:preview": "vite preview --host",
     "vite:build": "tsc && vite build",
@@ -43,6 +44,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
     "graphql": "npm:@knemerzitski/graphql@16.9.1",
+    "superstruct": "npm:@knemerzitski/superstruct@^2.2.5",
     "jsdom": "^24.0.0",
     "map-obj": "^5.0.2",
     "react": "^18.2.0",

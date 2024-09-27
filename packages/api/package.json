@@ -4,6 +4,7 @@
   "private": "true",
   "type": "module",
   "scripts": {
+    "prepare": "npm run graphql:gen",
     "graphql:gen": "graphql-codegen",
     "graphql:watch": "graphql-codegen -w",
     "test:unit": "vitest run -c ./vitest.config.unit.ts",
