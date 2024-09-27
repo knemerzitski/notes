@@ -4,11 +4,14 @@
       "path": ".",
     },
     {
-      "path": "../superstruct"
+      "path": "../superstruct",
     },
     {
-      "path": "../graphql-js"
-    }
+      "path": "../graphql-js",
+    },
+    {
+      "path": "../mitt",
+    },
   ],
   "settings": {
     "search.exclude": {
