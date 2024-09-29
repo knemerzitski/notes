@@ -27,9 +27,13 @@ void (async () => {
       mockCreateInitializeHandlerOptions()
     );
 
-    await initalizeHandler(undefined, createLambdaContext(), () => {
-      return;
-    });
+    try {
+      await initalizeHandler(undefined, createLambdaContext(), () => {
+        return;
+      });
+    } catch (err) {
+      logger.error('Initialize failed', err);
+    }
 
     if (!process.env.MOCK_DYNAMODB_ENDPOINT) {
       throw new Error('Environment variable "MOCK_DYNAMODB_ENDPOINT" must be defined');
