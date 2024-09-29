@@ -1,37 +1,14 @@
-import { RevisionChangeset } from '../records/record';
-
 import { EditorRevisionRecord } from './collab-editor';
-
-/**
- * Simple facade for querying server records.
- */
-export interface ServerRecordsFacade<TRecord> {
-  /**
-   * tailText is a composition of all previous records before oldest record.
-   */
-  readonly tailText: Readonly<RevisionChangeset>;
-
-  /**
-   * Iterates through records from newest (headRevision) to oldest
-   */
-  newestRecordsIterable(headRevision: number): Iterable<Readonly<TRecord>>;
-
-  /**
-   * Get text at specific revision
-   */
-  getTextAt(revision: number): Readonly<RevisionChangeset>;
-}
-
-interface UserRecordsParams {
-  serverRecords: ServerRecordsFacade<EditorRevisionRecord>;
-  userId?: string;
-}
+import { ServerRecordsFacade } from './types';
 
 export class UserRecords {
   private serverRecords: ServerRecordsFacade<EditorRevisionRecord>;
   private userId?: string;
 
-  constructor(params: UserRecordsParams) {
+  constructor(params: {
+    serverRecords: ServerRecordsFacade<EditorRevisionRecord>;
+    userId?: string;
+  }) {
     this.serverRecords = params.serverRecords;
     this.userId = params.userId;
   }

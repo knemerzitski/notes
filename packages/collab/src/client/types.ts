@@ -1,6 +1,7 @@
 import { Emitter } from 'mitt';
 import { Changeset } from '../changeset';
 import { SelectionRange } from './selection-range';
+import { RevisionChangeset } from '../records/record';
 
 export interface SimpleTextEvents {
   handledExternalChanges: readonly Readonly<{ changeset: Changeset; revision: number }>[];
@@ -53,4 +54,24 @@ export interface SelectionChangeset {
    * Selection before changeset is composed
    */
   beforeSelection?: SelectionRange;
+}
+
+/**
+ * Simple facade for querying server records.
+ */
+export interface ServerRecordsFacade<TRecord> {
+  /**
+   * tailText is a composition of all previous records before oldest record.
+   */
+  readonly tailText: Readonly<RevisionChangeset>;
+
+  /**
+   * Iterates through records from newest (headRevision) to oldest
+   */
+  newestRecordsIterable(headRevision: number): Iterable<Readonly<TRecord>>;
+
+  /**
+   * Get text at specific revision
+   */
+  getTextAt(revision: number): Readonly<RevisionChangeset>;
 }
