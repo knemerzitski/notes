@@ -72,14 +72,14 @@ function createStruct<K extends string>(keys: readonly K[]): StringRecordStruct 
   );
 }
 
-class MultiJsonText<K extends string, S extends StringRecordStruct> {
+export class MultiJsonText<K extends string, S extends StringRecordStruct> {
   private readonly viewsCache;
   private readonly service;
 
   private syncDuringProcessingMessages = false;
   private localPushCounter = 0;
 
-  private readonly textViewsMap;
+  private readonly textViewsMap: Record<K, KeySimpleText>;
 
   private readonly eventsOff;
 
@@ -185,7 +185,7 @@ class MultiJsonText<K extends string, S extends StringRecordStruct> {
     this.viewsCache.cleanUp();
   }
 
-  getText(key: K): KeySimpleText {
+  getText(key: K): SimpleText {
     return this.textViewsMap[key];
   }
 
@@ -222,7 +222,7 @@ class MultiJsonText<K extends string, S extends StringRecordStruct> {
   }
 }
 
-class ViewTextMemosCache<K extends string, S extends StringRecordStruct> {
+export class ViewTextMemosCache<K extends string, S extends StringRecordStruct> {
   private readonly struct;
   private readonly service;
 
@@ -481,7 +481,7 @@ class KeySimpleText implements SimpleText {
   }
 }
 
-class ViewTextMemo<K extends string, S extends StringRecordStruct> {
+export class ViewTextMemo<K extends string, S extends StringRecordStruct> {
   private readonly struct: S;
   private readonly viewText: InferRaw<S>;
 
