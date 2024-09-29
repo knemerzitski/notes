@@ -17,6 +17,9 @@ export abstract class Strip {
     concat(strip: Strip) {
       return new Strips([strip]);
     }
+    offset() {
+      return this;
+    }
     isEqual(strip: Strip): boolean {
       return strip === this;
     }
@@ -50,6 +53,8 @@ export abstract class Strip {
    * Add together both strips. Effect of both strips is retained and represented in returned value.
    */
   abstract concat(other: Strip): Strips;
+
+  abstract offset(value: number): Strip;
 
   abstract isEqual(other: Strip): boolean;
 

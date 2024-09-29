@@ -16,7 +16,6 @@ import {
   SubmittedRevisionRecordStruct,
 } from '../records/record';
 
-import { deletionCountOperation, insertionOperation } from './changeset-operations';
 import {
   CollabClient,
   CollabClientEvents,
@@ -33,7 +32,7 @@ import { SubmittedRecord } from './submitted-record';
 import { UserRecords } from './user-records';
 import { Changeset } from '../changeset';
 import { assign, Infer, object, omit, optional, union, literal } from 'superstruct';
-import { SelectionRange } from './selection-range';
+import { SelectionChangeset, SimpleTextOperationOptions } from './types';
 
 export type CollabEditorEvents = CollabClientEvents &
   Omit<OrderedMessageBufferEvents<UnprocessedRecord>, 'processingMessages'> &
@@ -76,6 +75,10 @@ type EditorEvents = {
   processingMessages: {
     eventBus: Emitter<EditorProcessingEvents>;
   };
+  handledExternalChanges: readonly Readonly<{
+    event: CollabClientEvents['handledExternalChange'];
+    revision: number;
+  }>[];
   submittedRecord: {
     /**
      * Record that is ready to be submitted to the server.
@@ -122,13 +125,6 @@ const UnprocessedRecordStruct = union([
 
 export type UnprocessedRecord = Infer<typeof UnprocessedRecordStruct>;
 
-export interface HistoryOperationOptions {
-  /**
-   * Merge text into latest history entry.
-   */
-  merge: boolean;
-}
-
 const CollabEditorOptionsStruct = object({
   client: omit(CollabClientOptionsStruct, ['submitted']), // instead of omit make it optional?
   submittedRecord: optional(SubmittedRevisionRecordStruct),
@@ -155,6 +151,7 @@ export interface CollabEditorOptions {
   submittedRecord?: SubmittedRecord;
 }
 
+// TODO rename to CollabComposition
 export class CollabEditor {
   readonly eventBus: Emitter<CollabEditorEvents>;
   private generateSubmitId: () => string;
@@ -162,6 +159,14 @@ export class CollabEditor {
   private _userRecords?: UserRecords | null;
   get userRecords() {
     return this._userRecords;
+  }
+  set userRecords(value) {
+    value = value ?? null;
+
+    this._userRecords = value;
+    this.eventBus.emit('userRecordsUpdated', {
+      userRecords: value,
+    });
   }
 
   private recordsBuffer: UnprocessedRecordsBuffer;
@@ -193,8 +198,11 @@ export class CollabEditor {
     };
   }
 
-  private _viewText = '';
+  private _viewText: string | null = null;
   get viewText() {
+    if (this._viewText === null) {
+      this._viewText = this._client.view.joinInsertions();
+    }
     return this._viewText;
   }
 
@@ -241,12 +249,10 @@ export class CollabEditor {
         ? options.client
         : new CollabClient(options?.client);
     subscribedListeners.push(
-      this._client.eventBus.on('viewChanged', ({ view }) => {
-        this._viewText = view.strips.joinInsertions();
+      this._client.eventBus.on('viewChanged', () => {
+        this._viewText = null;
       })
     );
-
-    this._viewText = this._client.view.joinInsertions();
 
     // Submitted record
     this._submittedRecord = options?.submittedRecord ?? null;
@@ -293,7 +299,7 @@ export class CollabEditor {
     this.eventBus = options?.eventBus ?? mitt();
 
     // Records of a specific user
-    this.setUserRecords(options?.userRecords ?? null);
+    this.userRecords = options?.userRecords ?? null;
 
     subscribedListeners.push(
       this._client.eventBus.on('*', (type, e) => {
@@ -321,10 +327,19 @@ export class CollabEditor {
         });
 
         let hadExternalChanges = false;
+        const externalChangePayloads: {
+          event: CollabClientEvents['handledExternalChange'];
+          revision: number;
+        }[] = [];
         const unsubHandledExternalChange = this._client.eventBus.on(
           'handledExternalChange',
           (e) => {
             processingBus.emit('handledExternalChange', e);
+            externalChangePayloads.push({
+              event: e,
+              revision: this.recordsBuffer.currentVersion,
+            });
+            // also info about view?
             hadExternalChanges = true;
           }
         );
@@ -334,6 +349,7 @@ export class CollabEditor {
             processingBus.emit('messagesProcessed', {
               hadExternalChanges,
             });
+            this.eventBus.emit('handledExternalChanges', externalChangePayloads);
           } finally {
             processingBus.all.clear();
             unsubHandledExternalChange();
@@ -417,14 +433,6 @@ export class CollabEditor {
     });
   }
 
-  // TODO use simple set
-  setUserRecords(userRecords: UserRecords | null) {
-    this._userRecords = userRecords;
-    this.eventBus.emit('userRecordsUpdated', {
-      userRecords,
-    });
-  }
-
   getMissingRevisions() {
     return this.recordsBuffer.getMissingVersions();
   }
@@ -454,9 +462,6 @@ export class CollabEditor {
   submitChanges(): SubmittedRevisionRecord | undefined | null {
     if (this._client.submitChanges()) {
       const historySelection = this._history.getSubmitSelection();
-      if (!historySelection) {
-        throw new Error('Expected to have selection from history to submit changes.');
-      }
 
       this._submittedRecord = new SubmittedRecord({
         ...historySelection,
@@ -492,51 +497,11 @@ export class CollabEditor {
     });
   }
 
-  /**
-   * Insert text after caret position.
-   * Anything selected is deleted.
-   */
-  insertText(
-    insertText: string,
-    selection: SelectionRange,
-    options?: HistoryOperationOptions
+  pushSelectionChangeset(
+    value: SelectionChangeset,
+    options?: SimpleTextOperationOptions
   ) {
-    const op = insertionOperation(insertText, this.viewText, selection);
-    if (options?.merge) {
-      this.historyMergedCall(() => {
-        this._history.pushChangesetOperation(op);
-      });
-    } else {
-      this._history.pushChangesetOperation(op);
-    }
-  }
-
-  private historyMergedCall(fn: () => void) {
-    const beforeIndex = this._history.localIndex;
-    fn();
-    const afterIndex = this._history.localIndex;
-    this._history.merge(beforeIndex, afterIndex);
-  }
-
-  /**
-   * Delete based on current caret position towards left (Same as pressing backspace on a keyboard).
-   * Anything selected is deleted and counts as 1 {@link count}.
-   */
-  deleteTextCount(
-    count = 1,
-    selection: SelectionRange,
-    options?: HistoryOperationOptions
-  ) {
-    const op = deletionCountOperation(count, this.viewText, selection);
-    if (!op) return;
-
-    if (options?.merge) {
-      this.historyMergedCall(() => {
-        this._history.pushChangesetOperation(op);
-      });
-    } else {
-      this._history.pushChangesetOperation(op);
-    }
+    this._history.pushSelectionChangeset(value, options);
   }
 
   /**

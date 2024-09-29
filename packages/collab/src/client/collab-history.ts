@@ -7,12 +7,12 @@ import {
   SubmittedRevisionRecord,
 } from '../records/record';
 
-import { ChangesetOperation } from './changeset-operations';
 import { CollabClient } from './collab-client';
 import { UserRecords } from './user-records';
 import { Changeset, ChangesetStruct } from '../changeset';
 import { array, Infer, literal, number, object, union } from 'superstruct';
 import { SelectionRange, SelectionRangeStruct } from './selection-range';
+import { SelectionChangeset, SimpleTextOperationOptions } from './types';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type LocalChangesetEditorHistoryEvents = {
@@ -221,13 +221,19 @@ export class CollabHistory {
     return this.entries.reduce((a, b) => a.compose(b.execute.changeset), this._tailText);
   }
 
-  getSubmitSelection():
-    | Pick<SubmittedRevisionRecord, 'afterSelection' | 'beforeSelection'>
-    | undefined {
+  getSubmitSelection(): Pick<
+    SubmittedRevisionRecord,
+    'afterSelection' | 'beforeSelection'
+  > {
     if (this.lastExecutedIndex.server < this.lastExecutedIndex.local) {
       const before = this.entries[this.lastExecutedIndex.server + 1];
       const after = this.entries[this.lastExecutedIndex.local];
-      if (!before || !after) return;
+      if (!before || !after) {
+        return {
+          beforeSelection: SelectionRange.ZERO,
+          afterSelection: SelectionRange.ZERO,
+        };
+      }
       return {
         beforeSelection: before.undo.selection,
         afterSelection: after.execute.selection,
@@ -236,7 +242,12 @@ export class CollabHistory {
       // this.lastExecutedIndex.server >= this.lastExecutedIndex.local
       const before = this.entries[this.lastExecutedIndex.server];
       const after = this.entries[this.lastExecutedIndex.local];
-      if (!before) return;
+      if (!before) {
+        return {
+          beforeSelection: SelectionRange.ZERO,
+          afterSelection: SelectionRange.ZERO,
+        };
+      }
       return {
         beforeSelection: before.execute.selection,
         afterSelection: after ? after.execute.selection : before.undo.selection,
@@ -257,27 +268,46 @@ export class CollabHistory {
     return this.entries[index];
   }
 
-  pushChangesetOperation({
-    changeset,
-    inverseChangeset,
-    selection,
-    inverseSelection,
-  }: ChangesetOperation) {
-    const entry: Entry = {
-      execute: {
-        changeset,
-        selection,
-      },
-      undo: {
-        changeset: inverseChangeset,
-        selection: inverseSelection,
-      },
-    };
+  pushSelectionChangeset(
+    value: SelectionChangeset,
+    options?: SimpleTextOperationOptions
+  ) {
+    if (value.changeset.isIdentity(this.getHeadText())) {
+      return;
+    }
+
+    const merge = options?.merge ?? false;
+    const beforeIndex = this.localIndex;
+
+    const lastEntry = this._entries[this.lastExecutedIndex.local];
 
     this.deleteNewerEntries(this.lastExecutedIndex.local);
 
-    this.push([entry]);
+    this.push([
+      {
+        execute: {
+          changeset: value.changeset,
+          selection: value.afterSelection,
+        },
+        undo: {
+          selection: value.beforeSelection ??
+            lastEntry?.execute.selection ?? {
+              start: 0,
+              end: 0,
+            },
+        },
+      },
+    ]);
     this.redo(); // applies pushed entry
+
+    if (merge) {
+      const afterIndex = this.localIndex;
+      if (beforeIndex < 0) {
+        this.mergeToTail(afterIndex + 1);
+      } else {
+        this.merge(beforeIndex, afterIndex);
+      }
+    }
   }
 
   restoreFromUserRecords(

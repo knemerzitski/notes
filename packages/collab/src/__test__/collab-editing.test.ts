@@ -165,7 +165,7 @@ describe('two clients', () => {
     receivedB.clientAcknowledge();
     receivedA.sendToOtherClients();
 
-    helper.expectTextsConverted('at the same time [1>]both typing[0>]');
+    helper.expectTextsConverged('at the same time [1>]both typing[0>]');
   });
 
   it('converges changes from a client with a higher latency', () => {
@@ -211,7 +211,7 @@ describe('two clients', () => {
     receivedA_2.sendToOtherClients();
     client.B.submitChangesInstant();
 
-    helper.expectTextsConverted(
+    helper.expectTextsConverged(
       'At start typing first sentence. Woo![0>]\n\n\nSomewhere in the middle editing together.[1>]'
     );
   });
@@ -232,7 +232,7 @@ describe('two clients', () => {
     receivedA.sendToOtherClients();
     receivedB.clientAcknowledge();
 
-    helper.expectTextsConverted(
+    helper.expectTextsConverged(
       'Do always[1>] modify what im typing. Second sentence.[0>]'
     );
 
@@ -247,7 +247,7 @@ describe('two clients', () => {
     receivedB.clientAcknowledge();
     receivedA.sendToOtherClients();
 
-    helper.expectTextsConverted(
+    helper.expectTextsConverged(
       'IMPORTANT: [0>]Rewrote first sentence.[1>] Second sentence.'
     );
   });
@@ -281,7 +281,7 @@ describe('three clients', () => {
     receivedA.acknowledgeAndSendToOtherClients();
     receivedB.acknowledgeAndSendToOtherClients();
 
-    helper.expectTextsConverted(
+    helper.expectTextsConverged(
       'initial document. A:a text[0>], B:b text[1>], C:c text[2>]'
     );
 
@@ -299,7 +299,7 @@ describe('three clients', () => {
     receivedC.acknowledgeAndSendToOtherClients();
     receivedA.acknowledgeAndSendToOtherClients();
 
-    helper.expectTextsConverted(
+    helper.expectTextsConverged(
       'without "in" here:[1>]itial document extra[2>]. A:a number[0>], B:b text, C:c text'
     );
   });

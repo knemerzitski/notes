@@ -60,6 +60,10 @@ export class InsertStrip extends Strip {
     return Strips.from(this, other);
   }
 
+  offset() {
+    return this;
+  }
+
   /**
    * Insert strip as retained strip
    * @param offset Retain index offset

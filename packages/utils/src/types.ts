@@ -81,7 +81,7 @@ export type PickerDeep<T, P> = T extends P
         }
       : never;
 
-export type PickDeep<T, V extends PickerDeep<T, P>, P> = T extends P
+export type PickDeep<T, V extends PickerDeep<T, P>, P = Primitive> = T extends P
   ? T
   : T extends (infer U)[]
     ? V extends PickerDeep<U, P>

@@ -4,6 +4,7 @@ import { object, optional } from 'superstruct';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CollabClientEvents = {
+  // TODO make it all readonly....
   viewChanged: {
     /**
      * New view changeset.
@@ -212,10 +213,15 @@ export class CollabClient {
     // V' = VD
     const newView = this._view.compose(viewComposable);
 
-    const event = {
+    const event: CollabClientEvents['handledExternalChange'] = {
       externalChange: external,
       viewComposable,
-      before: this,
+      before: {
+        server: this._server,
+        submitted: this._submitted,
+        local: this._local,
+        view: this._view,
+      },
       after: {
         server: newServer,
         submitted: newSubmitted,

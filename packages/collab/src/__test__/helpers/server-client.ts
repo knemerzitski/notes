@@ -4,11 +4,7 @@ import { assert, expect } from 'vitest';
 import { OrderedMessageBuffer } from '~utils/ordered-message-buffer';
 
 import { CollabClient } from '../../client/collab-client';
-import {
-  CollabEditor,
-  CollabEditorOptions,
-  HistoryOperationOptions,
-} from '../../client/collab-editor';
+import { CollabEditor, CollabEditorOptions } from '../../client/collab-editor';
 import { CollabHistory } from '../../client/collab-history';
 import { UserRecords } from '../../client/user-records';
 import { ServerRevisionRecord } from '../../records/record';
@@ -21,6 +17,8 @@ import {
 } from './text-with-selection';
 import { RevisionRecords } from '../../records/revision-records';
 import { processRecordInsertion } from '../../records/process-record-insertion';
+import { SimpleTextEditor } from '../../client/editors/simple-text';
+import { SimpleTextOperationOptions } from '../../client/types';
 
 export function createHelperCollabEditingEnvironment<TClientName extends string>(
   options: {
@@ -66,7 +64,7 @@ export function createHelperCollabEditingEnvironment<TClientName extends string>
     addNewClient(name, name, options.editor?.[name]);
   });
 
-  function expectTextsConverted(
+  function expectTextsConverged(
     textWithCursors: string,
     clientNames: string[] = Object.keys(clientsHelperMap)
   ) {
@@ -90,7 +88,7 @@ export function createHelperCollabEditingEnvironment<TClientName extends string>
       ReturnType<typeof createClientHelper>
     >,
     addNewClient,
-    expectTextsConverted,
+    expectTextsConverged,
   };
 }
 
@@ -158,6 +156,7 @@ function createClientHelper<TName extends string>(
 
 function createCollabEditorHelper(editor: CollabEditor) {
   const { selectionRange } = newSelectionRange(editor);
+  const plainText = new SimpleTextEditor(editor);
   return {
     editor,
     selectionRange,
@@ -176,11 +175,11 @@ function createCollabEditorHelper(editor: CollabEditor) {
     setCaretPosition(pos: number) {
       selectionRange.set(pos);
     },
-    insertText(value: string, options?: HistoryOperationOptions) {
-      editor.insertText(value, selectionRange, options);
+    insertText(value: string, options?: SimpleTextOperationOptions) {
+      plainText.insert(value, selectionRange, options);
     },
-    deleteTextCount(count = 1, options?: HistoryOperationOptions) {
-      editor.deleteTextCount(count, selectionRange, options);
+    deleteTextCount(count = 1, options?: SimpleTextOperationOptions) {
+      plainText.delete(count, selectionRange, options);
     },
   };
 }

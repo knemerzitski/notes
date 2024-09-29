@@ -4,6 +4,7 @@ import { newSelectionRange } from '../__test__/helpers/collab-editor-selection-r
 
 import { CollabEditor } from './collab-editor';
 import { Changeset } from '../changeset';
+import { SimpleTextEditor } from './editors/simple-text';
 
 const cs = (...values: unknown[]) => Changeset.parseValue(values);
 
@@ -26,12 +27,13 @@ describe('constructor', () => {
 describe('haveSubmittedChanges', () => {
   it('has submitted changes if any text was inserted', () => {
     const editor = new CollabEditor();
+    const plainText = new SimpleTextEditor(editor);
     const { selectionRange } = newSelectionRange(editor);
 
     expect(editor.haveSubmittedChanges()).toBeFalsy();
     editor.submitChanges();
     expect(editor.haveSubmittedChanges()).toBeFalsy();
-    editor.insertText('hi', selectionRange);
+    plainText.insert('hi', selectionRange);
     expect(editor.haveSubmittedChanges()).toBeFalsy();
     editor.submitChanges();
     expect(editor.haveSubmittedChanges()).toBeTruthy();
@@ -46,10 +48,11 @@ describe('submitChanges', () => {
 
   it('returns submitted changes with revision', () => {
     const editor = new CollabEditor();
+    const plainText = new SimpleTextEditor(editor);
     const { selectionRange } = newSelectionRange(editor);
 
     const changeset = cs('first insert');
-    editor.insertText('first insert', selectionRange);
+    plainText.insert('first insert', selectionRange);
 
     const changes = editor.submitChanges();
 
@@ -62,8 +65,9 @@ describe('submitChanges', () => {
 describe('handleSubmittedChangesAcknowledged', () => {
   it('handles next revision correctly', () => {
     const editor = new CollabEditor();
+    const plainText = new SimpleTextEditor(editor);
     const { selectionRange } = newSelectionRange(editor);
-    editor.insertText('changes', selectionRange);
+    plainText.insert('changes', selectionRange);
 
     const submitRecord = editor.submitChanges();
     assert(submitRecord != null);
@@ -125,9 +129,10 @@ describe('handleSubmittedChangesAcknowledged', () => {
 describe('handleExternalChange', () => {
   it('handles next external change correctly', () => {
     const editor = new CollabEditor();
+    const plainText = new SimpleTextEditor(editor);
     const { selectionRange } = newSelectionRange(editor);
 
-    editor.insertText('server', selectionRange);
+    plainText.insert('server', selectionRange);
     expect(selectionRange.start).toStrictEqual(6);
     const record = editor.submitChanges();
     assert(record != null);
@@ -135,12 +140,12 @@ describe('handleExternalChange', () => {
       ...record,
       revision: 1,
     });
-    editor.insertText('; submitted', selectionRange);
+    plainText.insert('; submitted', selectionRange);
     expect(selectionRange.start).toStrictEqual(17);
     editor.submitChanges();
-    editor.insertText('; local', selectionRange);
+    plainText.insert('; local', selectionRange);
     expect(selectionRange.start).toStrictEqual(24);
-    editor.insertText('; more', selectionRange);
+    plainText.insert('; more', selectionRange);
     expect(selectionRange.start).toStrictEqual(30);
 
     editor.handleExternalChange({
@@ -191,17 +196,19 @@ describe('handleExternalChange', () => {
 describe('insertText', () => {
   it('inserts "hello world"', () => {
     const editor = new CollabEditor();
+    const plainText = new SimpleTextEditor(editor);
     const { selectionRange } = newSelectionRange(editor);
-    editor.insertText('hello world', selectionRange);
+    plainText.insert('hello world', selectionRange);
     expect(editor.viewText).toStrictEqual('hello world');
   });
 
   it('inserts between existing', () => {
     const editor = new CollabEditor();
+    const plainText = new SimpleTextEditor(editor);
     const { selectionRange } = newSelectionRange(editor);
-    editor.insertText('hello world', selectionRange);
+    plainText.insert('hello world', selectionRange);
     selectionRange.set(5);
-    editor.insertText(' between', selectionRange);
+    plainText.insert(' between', selectionRange);
     expect(editor.viewText).toStrictEqual('hello between world');
   });
 });

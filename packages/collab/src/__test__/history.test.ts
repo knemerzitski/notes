@@ -323,7 +323,7 @@ describe('two clients', () => {
     client.B.insertText('ALL: ');
     client.B.submitChangesInstant();
 
-    helper.expectTextsConverted('ALL: [1>]hello between [0>]world');
+    helper.expectTextsConverged('ALL: [1>]hello between [0>]world');
 
     client.A.setCaretPosition(-1);
     client.A.editor.undo();

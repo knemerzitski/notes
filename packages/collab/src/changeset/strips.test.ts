@@ -103,6 +103,43 @@ describe('slice', () => {
   });
 });
 
+describe('sliceByRetain', () => {
+  it.each([
+    [[], [0, 0], []],
+    [[2, 'a', 4], [2, 2], []],
+    [
+      [1, 2, 'a', 4],
+      [2, 5],
+      [2, 'a', 4],
+    ],
+    [
+      [1, 2, 'a', 4],
+      [2, 3],
+      [2, 'a'],
+    ],
+    [
+      ['a', [2, 5], 'bc', [8, 14]],
+      [4, 9],
+      [[4, 5], 'bc', [8]],
+    ],
+    [
+      ['a', [2, 5], 'bc', 's', [8, 14]],
+      [4, 9],
+      [[4, 5], 'bc', 's', [8]],
+    ],
+    [
+      ['a', [2, 5], 'bc', [9, 10], 's', [14, 20]],
+      [4, 15],
+      [[4, 5], 'bc', [9, 10], 's', [14]],
+    ],
+    [['a', [2, 5], 'bc', [9, 10], 's', [14, 20]], [16, 25], [[16, 20]]],
+  ])('%s.sliceByRetain(%s) = %s', (strs, [sliceStart, sliceEnd], expected) => {
+    expect(ss(strs).sliceByRetain(sliceStart, sliceEnd).toString()).toStrictEqual(
+      ss(expected).toString()
+    );
+  });
+});
+
 describe('at', () => {
   it.each([
     ['first character of second strip', ['abc', 'def'], 4, 'e'],
@@ -115,6 +152,16 @@ describe('at', () => {
     } else {
       expect(strip).toBeUndefined();
     }
+  });
+});
+
+describe('offset', () => {
+  it.each([
+    [['abc'], 2, ['abc']],
+    [[[2, 4], 'abc', 8], 3, [[5, 7], 'abc', 11]],
+    [[], 3, []],
+  ])('at(%s) = %s', (raw, offset, expected) => {
+    expect(ss(raw).offset(offset).serialize()).toStrictEqual(expected);
   });
 });
 

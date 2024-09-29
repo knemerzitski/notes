@@ -1,4 +1,5 @@
 import { Strip, RetainStrip, InsertStrip, StripsStruct } from '.';
+import { rangeRelation } from '~utils/range-relation';
 
 /**
  * A strip array with convinience methods.
@@ -44,14 +45,14 @@ export class Strips {
    * @param end The index to the end. Is exclusive - end index is not included.
    * Unspecified value continues until the end.
    */
-  slice(start = 0, end?: number): Strips {
+  slice(start = 0, end = this.length): Strips {
     if (start < 0) {
       start += this.length;
     }
-    if (end && end < 0) {
+    if (end < 0) {
       end += this.length + 1;
     }
-    if (start === end) return Strips.EMPTY;
+    if (start === end || end < start) return Strips.EMPTY;
 
     const result: Strip[] = [];
     let pos = 0;
@@ -67,7 +68,7 @@ export class Strips {
       }
 
       pos = nextPos;
-      if (end && pos >= end) {
+      if (pos >= end) {
         // Next strip will start past end
         break;
       }
@@ -75,7 +76,61 @@ export class Strips {
 
     if (result.length === 0) return Strips.EMPTY;
 
-    return new Strips(result);
+    return this.transferCompact(new Strips(result));
+  }
+
+  /**
+   * Slices by actual values in RetainStrip.
+   * E.g ["a",2-5,"bc",8-14].sliceByRetain(4,9) = [4-5,"bc",8]
+   * @param start
+   * @param end Exclusive
+   */
+  sliceByRetain(start = 0, end = start + 1): Strips {
+    const result: Strip[] = [];
+    let isOverlapping = false;
+
+    for (const strip of this.values) {
+      if (strip instanceof RetainStrip) {
+        const { overlap, position } = rangeRelation(
+          strip.startIndex,
+          strip.endIndex,
+          start,
+          end - 1
+        );
+        if (overlap) {
+          isOverlapping = true;
+          result.push(
+            new RetainStrip(
+              Math.max(start, strip.startIndex),
+              Math.min(end - 1, strip.endIndex)
+            )
+          );
+          if (position === 'outside' || position === 'right') {
+            break;
+          }
+        } else {
+          if (position === 'right') {
+            break;
+          }
+        }
+      } else if (isOverlapping) {
+        result.push(strip);
+      }
+    }
+
+    if (result.length === 0) return Strips.EMPTY;
+
+    return this.transferCompact(new Strips(result));
+  }
+
+  /**
+   * Shrink from edges
+   */
+  shrink(left: number, right: number) {
+    const start = left;
+    const end = this.length - right;
+
+    return this.slice(start, end);
   }
 
   /**
@@ -84,11 +139,20 @@ export class Strips {
    * A negative index will count back from the last strip.
    */
   at(index: number): Strip | undefined {
+    if (index < 0) {
+      index += this.length;
+    }
     const { values } = this.slice(index, index + 1);
     if (values.length === 1) {
       return values[0];
     }
     return;
+  }
+
+  offset(value: number): Strips {
+    return this.transferCompact(
+      new Strips(this.values.map((strip) => strip.offset(value)))
+    );
   }
 
   /**
@@ -167,6 +231,13 @@ export class Strips {
 
   hasRetainStrips() {
     return this.values.some((strip) => strip instanceof RetainStrip);
+  }
+
+  private transferCompact(newStrips: Strips) {
+    if (!newStrips.isCompact) {
+      newStrips.isCompact = this.isCompact;
+    }
+    return newStrips;
   }
 
   toString() {
