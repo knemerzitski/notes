@@ -165,7 +165,7 @@ export class CollabHistory {
     return this.lastExecutedIndex.local;
   }
 
-  private unsubscribeFromEvents: () => void;
+  private readonly eventsOff: (() => void)[];
 
   constructor(options?: CollabHistoryOptions) {
     this.eventBus = options?.eventBus ?? mitt();
@@ -183,7 +183,7 @@ export class CollabHistory {
 
     this._entries = options?.entries ?? [];
 
-    const subscribedListeners = [
+    this.eventsOff = [
       this.client.eventBus.on('submitChanges', () => {
         this.lastExecutedIndex.submitted = this.lastExecutedIndex.local;
       }),
@@ -194,11 +194,6 @@ export class CollabHistory {
         this.adjustHistoryToExternalChange(externalChange);
       }),
     ];
-    this.unsubscribeFromEvents = () => {
-      subscribedListeners.forEach((unsub) => {
-        unsub();
-      });
-    };
   }
 
   reset(options?: Pick<CollabHistoryOptions, 'tailRevision'>) {
@@ -219,7 +214,9 @@ export class CollabHistory {
    * Removes event listeners from client. This instance becomes useless.
    */
   cleanUp() {
-    this.unsubscribeFromEvents();
+    this.eventsOff.forEach((off) => {
+      off();
+    });
   }
 
   /**

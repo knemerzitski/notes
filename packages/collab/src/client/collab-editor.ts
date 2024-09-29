@@ -205,8 +205,6 @@ export class CollabEditor {
     return this._viewText;
   }
 
-  private unsubscribeFromEvents: () => void;
-
   static newFromHeadText: (headText: RevisionChangeset) => CollabEditor = (headText) => {
     return new CollabEditor(CollabEditor.headTextAsOptions(headText));
   };
@@ -224,6 +222,8 @@ export class CollabEditor {
     };
   };
 
+  private readonly eventsOff: (() => void)[];
+
   constructor(options?: CollabEditorOptions) {
     const headText: RevisionChangeset = {
       changeset: options?.client?.server ?? Changeset.EMPTY,
@@ -233,12 +233,7 @@ export class CollabEditor {
           : (options?.recordsBuffer?.version ?? 0),
     };
 
-    const subscribedListeners: (() => void)[] = [];
-    this.unsubscribeFromEvents = () => {
-      subscribedListeners.forEach((unsub) => {
-        unsub();
-      });
-    };
+    this.eventsOff = [];
 
     this.generateSubmitId = options?.generateSubmitId ?? (() => nanoid(6));
 
@@ -247,7 +242,7 @@ export class CollabEditor {
       options?.client instanceof CollabClient
         ? options.client
         : new CollabClient(options?.client);
-    subscribedListeners.push(
+    this.eventsOff.push(
       this._client.eventBus.on('viewChanged', () => {
         this._viewText = null;
       })
@@ -270,7 +265,7 @@ export class CollabEditor {
               },
             },
           });
-    subscribedListeners.push(
+    this.eventsOff.push(
       this.recordsBuffer.eventBus.on('nextMessage', (message) => {
         if (message.type == 'SUBMITTED_ACKNOWLEDGED') {
           this._submittedRecord = null;
@@ -300,26 +295,26 @@ export class CollabEditor {
     // Records of a specific user
     this.userRecords = options?.userRecords ?? null;
 
-    subscribedListeners.push(
+    this.eventsOff.push(
       this._client.eventBus.on('*', (type, e) => {
         this.eventBus.emit(type, e);
       })
     );
 
-    subscribedListeners.push(
+    this.eventsOff.push(
       this._history.eventBus.on('*', (type, e) => {
         this.eventBus.emit(type, e);
       })
     );
 
-    subscribedListeners.push(
+    this.eventsOff.push(
       this.recordsBuffer.eventBus.on('nextMessage', (e) => {
         this.eventBus.emit('nextMessage', e);
       })
     );
 
     const processingBus = mitt<EditorProcessingEvents>();
-    subscribedListeners.push(
+    this.eventsOff.push(
       this.recordsBuffer.eventBus.on('processingMessages', (e) => {
         e.eventBus.on('nextMessage', (e) => {
           processingBus.emit('nextMessage', e);
@@ -361,7 +356,7 @@ export class CollabEditor {
       })
     );
 
-    subscribedListeners.push(
+    this.eventsOff.push(
       this.recordsBuffer.eventBus.on('messagesProcessed', () => {
         this.eventBus.emit('headRevisionChanged', {
           revision: this.headRevision,
@@ -370,7 +365,7 @@ export class CollabEditor {
       })
     );
 
-    subscribedListeners.push(
+    this.eventsOff.push(
       this.recordsBuffer.eventBus.on('missingMessages', (e) => {
         this.eventBus.emit('missingRevisions', e);
       })
@@ -381,7 +376,9 @@ export class CollabEditor {
    * Removes event listeners from editor. This instance becomes useless.
    */
   cleanUp() {
-    this.unsubscribeFromEvents();
+    this.eventsOff.forEach((off) => {
+      off();
+    });
   }
 
   /**
