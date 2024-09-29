@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { coerce, defaulted, Infer, InferRaw, string, Struct, type } from 'superstruct';
-import { CollabService, CollabEditorEvents } from '../collab-service';
+import { CollabService, CollabServiceEvents } from '../collab-service';
 import { SelectionRange } from '../selection-range';
 import { indexOfDiff, lengthOffsetOfDiff } from '~utils/string/diff';
 import {
@@ -36,7 +36,7 @@ export function defineCreateMultiJsonTextByService<K extends string>(keys: reado
   const struct = createStruct(keys);
   return (
     service: ConstructorParameters<typeof MultiJsonText<K, StringRecordStruct>>[1]
-  ) => new MultiJsonText(struct, service);
+  ) => new MultiJsonText<K, StringRecordStruct>(struct, service);
 }
 
 function createStruct<K extends string>(keys: readonly K[]): StringRecordStruct {
@@ -85,7 +85,10 @@ class MultiJsonText<K extends string, S extends StringRecordStruct> {
 
   constructor(
     struct: S,
-    service: Pick<CollabService, 'viewText' | 'pushSelectionChangeset' | 'headRevision'> & {
+    service: Pick<
+      CollabService,
+      'viewText' | 'pushSelectionChangeset' | 'headRevision'
+    > & {
       eventBus: EmitterPickEvents<
         CollabService['eventBus'],
         | 'viewChanged'
@@ -412,7 +415,7 @@ class KeySimpleText implements SimpleText {
     this.eventBus.emit('selectionChanged', this.selectionTransform(selection));
   }
 
-  parentHandledExternalChange(payload: CollabEditorEvents['handledExternalChanges']) {
+  parentHandledExternalChange(payload: CollabServiceEvents['handledExternalChanges']) {
     const haveEvents =
       !!this.eventBus.all.get('handledExternalChanges')?.length ||
       !!this.eventBus.all.get('*')?.length;

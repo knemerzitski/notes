@@ -1,12 +1,12 @@
-import { EditorRevisionRecord } from './collab-service';
+import { CollabServiceRecord } from './collab-service';
 import { ServerRecordsFacade } from './types';
 
 export class UserRecords {
-  private serverRecords: ServerRecordsFacade<EditorRevisionRecord>;
+  private serverRecords: ServerRecordsFacade<CollabServiceRecord>;
   private userId?: string;
 
   constructor(params: {
-    serverRecords: ServerRecordsFacade<EditorRevisionRecord>;
+    serverRecords: ServerRecordsFacade<CollabServiceRecord>;
     userId?: string;
   }) {
     this.serverRecords = params.serverRecords;
@@ -17,7 +17,7 @@ export class UserRecords {
     return this.serverRecords.getTextAt(revision);
   }
 
-  isOwnRecord(record: EditorRevisionRecord) {
+  isOwnRecord(record: CollabServiceRecord) {
     return isOwnRecord(record, this.userId);
   }
 
@@ -44,10 +44,10 @@ export class UserRecords {
     headRevision: number,
     desiredOwnCount: number
   ): {
-    records: EditorRevisionRecord[];
+    records: CollabServiceRecord[];
     ownCount: number;
   } {
-    const records: EditorRevisionRecord[] = [];
+    const records: CollabServiceRecord[] = [];
     let ownCount = 0;
     for (const record of this.serverRecords.newestRecordsIterable(headRevision)) {
       records.push(record);
@@ -67,6 +67,6 @@ export class UserRecords {
   }
 }
 
-export function isOwnRecord(record: EditorRevisionRecord, userId?: string | symbol) {
+export function isOwnRecord(record: CollabServiceRecord, userId?: string | symbol) {
   return !userId || !record.creatorUserId || record.creatorUserId === userId;
 }

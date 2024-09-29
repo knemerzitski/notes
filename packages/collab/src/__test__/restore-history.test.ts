@@ -63,11 +63,11 @@ describe('persist history in revision records', () => {
         server: server.localRecords.getHeadText().changeset,
       },
     });
-    const restoredEditorB = clientB2.service;
-    restoredEditorB.historyRestore(client.B.service.history.entries.length);
+    const restoredServiceB = clientB2.service;
+    restoredServiceB.historyRestore(client.B.service.history.entries.length);
 
     expect(historyEntriesInfo(client.B.service.history.entries)).toStrictEqual(
-      historyEntriesInfo(restoredEditorB.history.entries)
+      historyEntriesInfo(restoredServiceB.history.entries)
     );
   });
 
@@ -97,10 +97,10 @@ describe('persist history in revision records', () => {
       },
     });
 
-    const restoredEditorB = clientB2.service;
-    restoredEditorB.historyRestore(client.B.service.history.entries.length);
+    const restoredServiceB = clientB2.service;
+    restoredServiceB.historyRestore(client.B.service.history.entries.length);
 
-    expect(historyEntriesInfo(restoredEditorB.history.entries)).toStrictEqual(
+    expect(historyEntriesInfo(restoredServiceB.history.entries)).toStrictEqual(
       historyEntriesInfo(client.B.service.history.entries)
     );
   });

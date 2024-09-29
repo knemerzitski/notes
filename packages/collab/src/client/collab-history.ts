@@ -14,7 +14,7 @@ import { array, Infer, literal, number, object, union } from 'superstruct';
 import { SelectionRange, SelectionRangeStruct } from './selection-range';
 import { SelectionChangeset, SimpleTextOperationOptions } from './types';
 
-export interface LocalChangesetEditorHistoryEvents {
+export interface CollabHistoryEvents {
   appliedTypingOperation: ReadonlyDeep<
     {
       operation: Operation;
@@ -98,7 +98,7 @@ interface LastExecutedIndex {
 }
 
 export interface CollabHistoryOptions {
-  eventBus?: Emitter<LocalChangesetEditorHistoryEvents>;
+  eventBus?: Emitter<CollabHistoryEvents>;
   client?: CollabClient;
   entries?: Entry[];
   tailRevision?: number;
@@ -114,7 +114,7 @@ export interface CollabHistoryOptions {
 export class CollabHistory {
   static readonly DEFAULT_TAIL_REVISION = 0;
 
-  readonly eventBus: Emitter<LocalChangesetEditorHistoryEvents>;
+  readonly eventBus: Emitter<CollabHistoryEvents>;
 
   private client: CollabClient;
 

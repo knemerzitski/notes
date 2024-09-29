@@ -26,7 +26,7 @@ import {
   CollabHistory,
   CollabHistoryOptions,
   CollabHistoryOptionsStruct,
-  LocalChangesetEditorHistoryEvents,
+  CollabHistoryEvents,
 } from './collab-history';
 import { SubmittedRecord } from './submitted-record';
 import { UserRecords } from './user-records';
@@ -34,12 +34,12 @@ import { Changeset } from '../changeset';
 import { assign, Infer, object, omit, optional, union, literal } from 'superstruct';
 import { SelectionChangeset, SimpleTextOperationOptions } from './types';
 
-export type CollabEditorEvents = CollabClientEvents &
+export type CollabServiceEvents = CollabClientEvents &
   Omit<OrderedMessageBufferEvents<UnprocessedRecord>, 'processingMessages'> &
-  LocalChangesetEditorHistoryEvents &
-  EditorEvents;
+  CollabHistoryEvents &
+  CustomCollabServiceEvents;
 
-type EditorProcessingEvents = Omit<
+type CollabServiceProcessingEvents = Omit<
   ProcessingEvents<UnprocessedRecord>,
   'messagesProcessed'
 > & {
@@ -48,7 +48,7 @@ type EditorProcessingEvents = Omit<
   };
 } & Pick<CollabClientEvents, 'handledExternalChange'>;
 
-interface EditorEvents {
+interface CustomCollabServiceEvents {
   headRevisionChanged: Readonly<{
     /**
      * New revision.
@@ -72,7 +72,7 @@ interface EditorEvents {
     userRecords: UserRecords | null;
   }>;
   processingMessages: Readonly<{
-    eventBus: Emitter<EditorProcessingEvents>;
+    eventBus: Emitter<CollabServiceProcessingEvents>;
   }>;
   handledExternalChanges: readonly Readonly<{
     event: CollabClientEvents['handledExternalChange'];
@@ -107,24 +107,24 @@ const ExternalRecordStruct = assign(
   })
 );
 
-const EditorRevisionRecordStruct = union([LocalRecordStruct, ExternalRecordStruct]);
+const CollabServiceRecordStruct = union([LocalRecordStruct, ExternalRecordStruct]);
 
-export type EditorRevisionRecord = Infer<typeof EditorRevisionRecordStruct>;
+export type CollabServiceRecord = Infer<typeof CollabServiceRecordStruct>;
 
 const UnprocessedRecordStruct = union([
   object({
     type: literal('SUBMITTED_ACKNOWLEDGED'),
-    record: EditorRevisionRecordStruct,
+    record: CollabServiceRecordStruct,
   }),
   object({
     type: literal('EXTERNAL_CHANGE'),
-    record: EditorRevisionRecordStruct,
+    record: CollabServiceRecordStruct,
   }),
 ]);
 
 export type UnprocessedRecord = Infer<typeof UnprocessedRecordStruct>;
 
-const CollabEditorOptionsStruct = object({
+const CollabServiceOptionsStruct = object({
   client: omit(CollabClientOptionsStruct, ['submitted']), // instead of omit make it optional?
   submittedRecord: optional(SubmittedRevisionRecordStruct),
   recordsBuffer: optional(OrderedMessageBufferParamsStruct(UnprocessedRecordStruct)),
@@ -138,8 +138,8 @@ type UnprocessedRecordsBufferOptions = Omit<
   'getVersion' | 'serializeMessage'
 >;
 
-export interface CollabEditorOptions {
-  eventBus?: Emitter<CollabEditorEvents>;
+export interface CollabServiceOptions {
+  eventBus?: Emitter<CollabServiceEvents>;
   generateSubmitId?: () => string;
   userRecords?: UserRecords;
   recordsBuffer?:
@@ -159,7 +159,7 @@ export interface CollabEditorOptions {
  * Single place to handle records received by server and to create a submittable record.
  */
 export class CollabService {
-  readonly eventBus: Emitter<CollabEditorEvents>;
+  readonly eventBus: Emitter<CollabServiceEvents>;
   private generateSubmitId: () => string;
 
   private _userRecords?: UserRecords | null;
@@ -216,7 +216,7 @@ export class CollabService {
     return new CollabService(CollabService.headTextAsOptions(headText));
   };
 
-  static headTextAsOptions: (headText: RevisionChangeset) => CollabEditorOptions = (
+  static headTextAsOptions: (headText: RevisionChangeset) => CollabServiceOptions = (
     headText
   ) => {
     return {
@@ -231,7 +231,7 @@ export class CollabService {
 
   private readonly eventsOff: (() => void)[];
 
-  constructor(options?: CollabEditorOptions) {
+  constructor(options?: CollabServiceOptions) {
     const headText: RevisionChangeset = {
       changeset: options?.client?.server ?? Changeset.EMPTY,
       revision:
@@ -320,7 +320,7 @@ export class CollabService {
       })
     );
 
-    const processingBus = mitt<EditorProcessingEvents>();
+    const processingBus = mitt<CollabServiceProcessingEvents>();
     this.eventsOff.push(
       this.recordsBuffer.eventBus.on('processingMessages', (e) => {
         e.eventBus.on('nextMessage', (e) => {
@@ -482,7 +482,7 @@ export class CollabService {
   /**
    * Acknowledge submitted changes.
    */
-  submittedChangesAcknowledged(record: EditorRevisionRecord) {
+  submittedChangesAcknowledged(record: CollabServiceRecord) {
     this.recordsBuffer.add({
       type: 'SUBMITTED_ACKNOWLEDGED',
       record: record,
@@ -493,7 +493,7 @@ export class CollabService {
    * Handles external change that is created by another client during
    * collab editing.
    */
-  handleExternalChange(record: EditorRevisionRecord) {
+  handleExternalChange(record: CollabServiceRecord) {
     this.recordsBuffer.add({
       type: 'EXTERNAL_CHANGE',
       record: record,
@@ -547,7 +547,7 @@ export class CollabService {
   }
 
   serialize(historyRemoveServerEntries = true) {
-    return CollabEditorOptionsStruct.maskRaw({
+    return CollabServiceOptionsStruct.maskRaw({
       client: this._client.serialize(),
       submittedRecord: this._submittedRecord,
       recordsBuffer: this.recordsBuffer.serialize(),
@@ -558,10 +558,10 @@ export class CollabService {
   static parseValue(
     value: unknown
   ): Pick<
-    CollabEditorOptions,
+    CollabServiceOptions,
     'client' | 'submittedRecord' | 'recordsBuffer' | 'history'
   > {
-    const options = CollabEditorOptionsStruct.create(value);
+    const options = CollabServiceOptionsStruct.create(value);
 
     return {
       ...options,

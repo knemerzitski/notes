@@ -33,24 +33,24 @@ export function newSelectionRange(service: CollabService) {
   };
 }
 
-interface CollabEditorSelectionRangeEvents {
+interface CollabServiceSelectionRangeEvents {
   selectionChanged: ReadonlyDeep<{
     newSelection: SelectionRange;
   }>;
 }
 
-export interface CollabEditorSelectionRangeOptions {
+export interface CollabServiceSelectionRangeOptions {
   /**
    * Length is upper bound for selection range.
    */
   getLength(): number;
-  eventBus?: Emitter<CollabEditorSelectionRangeEvents>;
+  eventBus?: Emitter<CollabServiceSelectionRangeEvents>;
 }
 
 export class CollabServiceSelectionRange implements SelectionRange {
-  readonly eventBus: Emitter<CollabEditorSelectionRangeEvents>;
+  readonly eventBus: Emitter<CollabServiceSelectionRangeEvents>;
 
-  private props: CollabEditorSelectionRangeOptions;
+  private props: CollabServiceSelectionRangeOptions;
 
   private _start = 0;
   get start() {
@@ -73,7 +73,7 @@ export class CollabServiceSelectionRange implements SelectionRange {
     return this.props.getLength();
   }
 
-  constructor(props: CollabEditorSelectionRangeOptions) {
+  constructor(props: CollabServiceSelectionRangeOptions) {
     this.props = props;
 
     this.eventBus = props.eventBus ?? mitt();
