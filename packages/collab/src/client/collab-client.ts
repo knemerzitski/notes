@@ -2,10 +2,8 @@ import mitt, { Emitter } from 'mitt';
 import { Changeset, ChangesetStruct } from '../changeset';
 import { object, optional } from 'superstruct';
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type CollabClientEvents = {
-  // TODO make it all readonly....
-  viewChanged: {
+export interface CollabClientEvents {
+  viewChanged: Readonly<{
     /**
      * New view changeset.
      */
@@ -21,16 +19,16 @@ export type CollabClientEvents = {
      * What caused view to change. Either external or local change.
      */
     source: ChangeSource;
-  };
-  haveLocalChanges: {
+  }>;
+  haveLocalChanges: Readonly<{
     /**
      * Local changes
      */
     local: Changeset;
-  };
+  }>;
   submitChanges?: never;
   submittedChangesAcknowledged?: never;
-  handledExternalChange: {
+  handledExternalChange: Readonly<{
     /**
      * External change
      */
@@ -42,13 +40,13 @@ export type CollabClientEvents = {
     /**
      * State before the change
      */
-    before: Pick<CollabClient, 'server' | 'submitted' | 'local' | 'view'>;
+    before: Readonly<Pick<CollabClient, 'server' | 'submitted' | 'local' | 'view'>>;
     /**
      * State after the change
      */
-    after: Pick<CollabClient, 'server' | 'submitted' | 'local' | 'view'>;
-  };
-};
+    after: Readonly<Pick<CollabClient, 'server' | 'submitted' | 'local' | 'view'>>;
+  }>;
+}
 
 export enum ChangeSource {
   LOCAL,

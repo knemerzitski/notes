@@ -20,13 +20,13 @@ import { Emitter } from 'mitt';
 import { zip } from '~utils/array/zip';
 import { valueToQueries } from './utils/value-to-query';
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-explicit-any
-export type QueryLoaderEvents<I, S extends Struct<any, any, any>> = {
-  loaded: {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface QueryLoaderEvents<I, S extends Struct<any, any, any>> {
+  loaded: Readonly<{
     key: QueryLoaderCacheKey<I, QueryDeep<Infer<S>>>;
     value: PartialQueryResultDeep<Infer<S>>;
-  };
-};
+  }>;
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface QueryLoaderParams<I, S extends Struct<any, any, any>, CG, CR> {

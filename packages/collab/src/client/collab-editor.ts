@@ -48,9 +48,8 @@ type EditorProcessingEvents = Omit<
   };
 } & Pick<CollabClientEvents, 'handledExternalChange'>;
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-type EditorEvents = {
-  headRevisionChanged: {
+interface EditorEvents {
+  headRevisionChanged: Readonly<{
     /**
      * New revision.
      */
@@ -59,37 +58,37 @@ type EditorEvents = {
      * Changeset that matches this revision.
      */
     changeset: Changeset;
-  };
-  replacedHeadText: {
+  }>;
+  replacedHeadText: Readonly<{
     /**
      * New headText.
      */
     headText: RevisionChangeset;
-  };
-  userRecordsUpdated: {
+  }>;
+  userRecordsUpdated: Readonly<{
     /**
      * User records has new data or it's been replaced with a different instance.
      */
     userRecords: UserRecords | null;
-  };
-  processingMessages: {
+  }>;
+  processingMessages: Readonly<{
     eventBus: Emitter<EditorProcessingEvents>;
-  };
+  }>;
   handledExternalChanges: readonly Readonly<{
     event: CollabClientEvents['handledExternalChange'];
     revision: number;
   }>[];
-  submittedRecord: {
+  submittedRecord: Readonly<{
     /**
      * Record that is ready to be submitted to the server.
      */
     submittedRecord: SubmittedRecord;
-  };
+  }>;
   /**
    * Need records from start to end (inclusive) to continue editing.
    */
-  missingRevisions: { start: number; end: number };
-};
+  missingRevisions: Readonly<{ start: number; end: number }>;
+}
 
 const LocalRecordStruct = assign(
   ServerRevisionRecordStruct,

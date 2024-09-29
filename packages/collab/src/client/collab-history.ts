@@ -1,5 +1,5 @@
 import mitt, { Emitter } from 'mitt';
-import { Maybe, PartialBy } from '~utils/types';
+import { Maybe, PartialBy, ReadonlyDeep } from '~utils/types';
 
 import {
   RevisionChangeset,
@@ -14,24 +14,32 @@ import { array, Infer, literal, number, object, union } from 'superstruct';
 import { SelectionRange, SelectionRangeStruct } from './selection-range';
 import { SelectionChangeset, SimpleTextOperationOptions } from './types';
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type LocalChangesetEditorHistoryEvents = {
-  appliedTypingOperation: {
-    operation: Operation;
-  };
-  appliedUndo: {
-    operation: Operation;
-  };
-  appliedRedo: {
-    operation: Operation;
-  };
-  addedTailRecords: {
+export interface LocalChangesetEditorHistoryEvents {
+  appliedTypingOperation: ReadonlyDeep<
+    {
+      operation: Operation;
+    },
+    Changeset
+  >;
+  appliedUndo: ReadonlyDeep<
+    {
+      operation: Operation;
+    },
+    Changeset
+  >;
+  appliedRedo: ReadonlyDeep<
+    {
+      operation: Operation;
+    },
+    Changeset
+  >;
+  addedTailRecords: ReadonlyDeep<{
     /**
      * Count of added records. Can undo that many more times.
      */
     count: number;
-  };
-};
+  }>;
+}
 
 const OperationStruct = object({
   changeset: ChangesetStruct,

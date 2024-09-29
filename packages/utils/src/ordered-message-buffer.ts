@@ -2,18 +2,17 @@ import { memoize1 } from './memoize1';
 import mitt, { Emitter } from 'mitt';
 import { array, Infer, number, object, Struct } from 'superstruct';
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type OrderedMessageBufferEvents<TMessage> = {
+export interface OrderedMessageBufferEvents<TMessage> {
   /**
    * Starting to process messages
    */
-  processingMessages: {
+  processingMessages: Readonly<{
     eventBus: Emitter<ProcessingEvents<TMessage>>;
-  };
+  }>;
   /**
    * Message is processed
    */
-  nextMessage: TMessage;
+  nextMessage: Readonly<TMessage>;
   /**
    * No more messages left to process.
    */
@@ -21,8 +20,8 @@ export type OrderedMessageBufferEvents<TMessage> = {
   /**
    * Need messages from start to end (inclusive) to process all stashes messages.
    */
-  missingMessages: { start: number; end: number };
-};
+  missingMessages: Readonly<{ start: number; end: number }>;
+}
 
 export const OrderedMessageBufferParamsStruct = memoize1(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

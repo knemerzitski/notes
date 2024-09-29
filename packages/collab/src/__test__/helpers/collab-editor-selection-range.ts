@@ -3,6 +3,7 @@ import mitt, { Emitter } from 'mitt';
 import { CollabEditor } from '../../client/collab-editor';
 import { Changeset } from '../../changeset';
 import { SelectionRange } from '../../client/selection-range';
+import { ReadonlyDeep } from '~utils/types';
 
 /**
  * Make sure to call cleanUp after you're done using the SelectionRange.
@@ -32,12 +33,11 @@ export function newSelectionRange(editor: CollabEditor) {
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-type CollabEditorSelectionRangeEvents = {
-  selectionChanged: {
-    newSelection: Readonly<SelectionRange>;
-  };
-};
+interface CollabEditorSelectionRangeEvents {
+  selectionChanged: ReadonlyDeep<{
+    newSelection: SelectionRange;
+  }>;
+}
 
 export interface CollabEditorSelectionRangeOptions {
   /**
