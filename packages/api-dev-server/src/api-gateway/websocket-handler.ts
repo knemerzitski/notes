@@ -146,12 +146,14 @@ export function apiGatewayProxyWebSocketHandler({
       });
 
       // Send custom message for e2e testing. This signals that connection_init message can be sent.
-      ws.send(
-        JSON.stringify({
-          type: 'connected',
-          payload: res,
-        })
-      );
+      if (process.env.NODE_ENV === 'test') {
+        ws.send(
+          JSON.stringify({
+            type: 'connected',
+            payload: res,
+          })
+        );
+      }
     } catch (err) {
       logger.error('handler:CONNECT', err as Error);
       sockets[id].close();
