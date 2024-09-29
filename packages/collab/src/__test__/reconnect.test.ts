@@ -28,8 +28,8 @@ describe('single user', () => {
 
     const headText = server.localRecords.getHeadText();
 
-    clientB.editor.replaceHeadText(headText);
-    clientB.editor.undo();
+    clientB.service.replaceHeadText(headText);
+    clientB.service.undo();
 
     expect(clientB.valueWithSelection()).toStrictEqual('abc>');
   });

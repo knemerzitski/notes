@@ -28,9 +28,9 @@ describe('single client', () => {
     client.A.deleteTextCount();
     expect(client.A.valueWithSelection()).toStrictEqual('hello > world');
 
-    client.A.editor.undo();
+    client.A.service.undo();
     expect(client.A.valueWithSelection()).toStrictEqual('hello >between< world');
-    client.A.editor.redo();
+    client.A.service.redo();
     expect(client.A.valueWithSelection()).toStrictEqual('hello > world');
   });
 
@@ -313,10 +313,10 @@ describe('two clients', () => {
     client.A.submitChangesInstant();
 
     expect(client.A.valueWithSelection()).toStrictEqual('hello between >world');
-    client.A.editor.undo();
+    client.A.service.undo();
     expect(client.A.valueWithSelection()).toStrictEqual('hello >world');
     client.A.setCaretPosition(0);
-    client.A.editor.redo();
+    client.A.service.redo();
     expect(client.A.valueWithSelection()).toStrictEqual('hello between >world');
 
     client.B.setCaretPosition(0);
@@ -326,13 +326,13 @@ describe('two clients', () => {
     helper.expectTextsConverged('ALL: [1>]hello between [0>]world');
 
     client.A.setCaretPosition(-1);
-    client.A.editor.undo();
+    client.A.service.undo();
     expect(client.A.valueWithSelection()).toStrictEqual('ALL: hello >world');
-    client.A.editor.undo();
+    client.A.service.undo();
     expect(client.A.valueWithSelection()).toStrictEqual('ALL: >');
-    client.A.editor.redo();
+    client.A.service.redo();
     expect(client.A.valueWithSelection()).toStrictEqual('ALL: hello world>');
-    client.A.editor.redo();
+    client.A.service.redo();
     expect(client.A.valueWithSelection()).toStrictEqual('ALL: hello between >world');
   });
 });

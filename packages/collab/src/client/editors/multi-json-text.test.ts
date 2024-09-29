@@ -1,11 +1,11 @@
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { CollabEditor } from '../collab-editor';
-import { defineCreateMultiJsonTextEditor } from './multi-json-text';
+import { CollabService } from '../collab-service';
+import { defineCreateMultiJsonTextByService } from './multi-json-text';
 import { Changeset } from '~/changeset';
 
-function setEditorText(editor: CollabEditor, value: string) {
-  editor.pushSelectionChangeset(
+function setServiceText(service: CollabService, value: string) {
+  service.pushSelectionChangeset(
     {
       changeset: Changeset.fromInsertion(value),
       afterSelection: { start: 0, end: 0 },
@@ -21,60 +21,60 @@ describe('one text', () => {
     CONTENT = 'c',
   }
 
-  const createMultiJsonTextEditor = defineCreateMultiJsonTextEditor<TextType>(
+  const createMultiJsonTextByService = defineCreateMultiJsonTextByService<TextType>(
     Object.values(TextType)
   );
 
-  let editor: CollabEditor;
-  let multiJsonTextEditor: ReturnType<typeof createMultiJsonTextEditor>;
+  let service: CollabService;
+  let multiJsonText: ReturnType<typeof createMultiJsonTextByService>;
 
   beforeEach(() => {
-    editor = new CollabEditor();
-    multiJsonTextEditor = createMultiJsonTextEditor(editor);
+    service = new CollabService();
+    multiJsonText = createMultiJsonTextByService(service);
   });
 
   it('keeps insert within bounds', () => {
-    const text = multiJsonTextEditor.getText(TextType.CONTENT);
+    const text = multiJsonText.getText(TextType.CONTENT);
 
     text.insert('foo', {
       start: 0,
       end: 0,
     });
-    expect(editor.viewText).toStrictEqual('{"c":"foo"}');
+    expect(service.viewText).toStrictEqual('{"c":"foo"}');
     expect(text.value).toStrictEqual('foo');
 
     text.insert('bar', {
       start: 5000,
       end: 10000,
     });
-    expect(editor.viewText).toStrictEqual('{"c":"foobar"}');
+    expect(service.viewText).toStrictEqual('{"c":"foobar"}');
     expect(text.value).toStrictEqual('foobar');
 
     text.insert('d', {
       start: -10000,
       end: 10000,
     });
-    expect(editor.viewText).toStrictEqual('{"c":"d"}');
+    expect(service.viewText).toStrictEqual('{"c":"d"}');
     expect(text.value).toStrictEqual('d');
   });
 
   it('keeps delete within bounds', () => {
-    setEditorText(editor, '{"c":"d"}');
-    const text = multiJsonTextEditor.getText(TextType.CONTENT);
+    setServiceText(service, '{"c":"d"}');
+    const text = multiJsonText.getText(TextType.CONTENT);
 
     text.delete(100, {
       start: -10000,
       end: 10000,
     });
-    expect(editor.viewText).toStrictEqual('{"c":""}');
+    expect(service.viewText).toStrictEqual('{"c":""}');
     expect(text.value).toStrictEqual('');
   });
 
   it('leaves unknown properties unmodified', () => {
-    setEditorText(editor, '{"c":"d", "ignore": 5}');
-    const text = multiJsonTextEditor.getText(TextType.CONTENT);
+    setServiceText(service, '{"c":"d", "ignore": 5}');
+    const text = multiJsonText.getText(TextType.CONTENT);
     text.insert('a', { start: 1, end: 1 });
-    expect(editor.viewText).toStrictEqual('{"c":"da","ignore":5}');
+    expect(service.viewText).toStrictEqual('{"c":"da","ignore":5}');
   });
 });
 
@@ -83,43 +83,43 @@ describe('two texts', () => {
     CONTENT = 'c',
     TITLE = 't',
   }
-  const createMultiJsonTextEditor = defineCreateMultiJsonTextEditor<TextType>(
+  const createMultiJsonTextByService = defineCreateMultiJsonTextByService<TextType>(
     Object.values(TextType)
   );
 
-  let editor: CollabEditor;
-  let multiJsonTextEditor: ReturnType<typeof createMultiJsonTextEditor>;
+  let service: CollabService;
+  let multiJsonText: ReturnType<typeof createMultiJsonTextByService>;
 
   beforeEach(() => {
-    editor = new CollabEditor();
-    multiJsonTextEditor = createMultiJsonTextEditor(editor);
+    service = new CollabService();
+    multiJsonText = createMultiJsonTextByService(service);
   });
 
   it('inserts content', () => {
-    const text = multiJsonTextEditor.getText(TextType.CONTENT);
+    const text = multiJsonText.getText(TextType.CONTENT);
     text.insert('foo', {
       start: 0,
       end: 0,
     });
 
-    expect(editor.viewText).toStrictEqual('{"c":"foo","t":""}');
+    expect(service.viewText).toStrictEqual('{"c":"foo","t":""}');
     expect(text.value).toStrictEqual('foo');
   });
 
   it('inserts title', () => {
-    const text = multiJsonTextEditor.getText(TextType.TITLE);
+    const text = multiJsonText.getText(TextType.TITLE);
     text.insert('bar', {
       start: 0,
       end: 0,
     });
 
-    expect(editor.viewText).toStrictEqual('{"c":"","t":"bar"}');
+    expect(service.viewText).toStrictEqual('{"c":"","t":"bar"}');
     expect(text.value).toStrictEqual('bar');
   });
 
-  it('adjusts to changing editor viewText', () => {
-    const content = multiJsonTextEditor.getText(TextType.CONTENT);
-    const title = multiJsonTextEditor.getText(TextType.TITLE);
+  it('adjusts to changing service viewText', () => {
+    const content = multiJsonText.getText(TextType.CONTENT);
+    const title = multiJsonText.getText(TextType.TITLE);
 
     content.insert('foo', {
       start: 0,
@@ -129,9 +129,9 @@ describe('two texts', () => {
       start: 0,
       end: 0,
     });
-    expect(editor.viewText).toStrictEqual('{"c":"foo","t":"bar"}');
+    expect(service.viewText).toStrictEqual('{"c":"foo","t":"bar"}');
 
-    setEditorText(editor, '{"t":"title","c":"content"}');
+    setServiceText(service, '{"t":"title","c":"content"}');
     expect(content.value).toStrictEqual('content');
     expect(title.value).toStrictEqual('title');
 
@@ -139,28 +139,28 @@ describe('two texts', () => {
       start: 1,
       end: 2,
     });
-    setEditorText(editor, '{"t":"tttle","c":"content"}');
+    setServiceText(service, '{"t":"tttle","c":"content"}');
   });
 
   describe('invalid viewText structure', () => {
     it('plain text => moved to first key', () => {
-      const content = multiJsonTextEditor.getText(TextType.CONTENT);
-      const title = multiJsonTextEditor.getText(TextType.TITLE);
-      setEditorText(editor, 'oops messed up format');
+      const content = multiJsonText.getText(TextType.CONTENT);
+      const title = multiJsonText.getText(TextType.TITLE);
+      setServiceText(service, 'oops messed up format');
       expect(content.value).toStrictEqual('oops messed up format');
       expect(title.value).toStrictEqual('');
     });
     it('invalid json', () => {
-      const title = multiJsonTextEditor.getText(TextType.TITLE);
-      setEditorText(editor, '{c:"val"}');
+      const title = multiJsonText.getText(TextType.TITLE);
+      setServiceText(service, '{c:"val"}');
       title.insert('ok', { start: 0, end: 0 });
-      expect(editor.viewText).toStrictEqual('{"c":"{c:\\"val\\"}","t":"ok"}');
+      expect(service.viewText).toStrictEqual('{"c":"{c:\\"val\\"}","t":"ok"}');
     });
   });
 
   it('emits correct events', () => {
-    const title = multiJsonTextEditor.getText(TextType.TITLE);
-    const content = multiJsonTextEditor.getText(TextType.CONTENT);
+    const title = multiJsonText.getText(TextType.TITLE);
+    const content = multiJsonText.getText(TextType.CONTENT);
 
     const contentEvents = vi.fn();
     content.eventBus.on('*', contentEvents);
@@ -168,40 +168,40 @@ describe('two texts', () => {
     const titleEvents = vi.fn();
     title.eventBus.on('*', titleEvents);
 
-    let record = editor.submitChanges();
+    let record = service.submitChanges();
     assert(record != null);
-    editor.submittedChangesAcknowledged({
+    service.submittedChangesAcknowledged({
       ...record,
-      revision: editor.headRevision + 1,
+      revision: service.headRevision + 1,
     });
 
     content.insert('hi', { start: 0, end: 0 });
-    editor.handleExternalChange({
+    service.handleExternalChange({
       changeset: Changeset.parseValue([[0, 12], 'hello', [13, 14]]),
       revision: 2,
     });
     content.insert('END', { start: 100, end: 100 });
     content.insert('a', { start: 0, end: 0 });
 
-    editor.handleExternalChange({
+    service.handleExternalChange({
       changeset: Changeset.parseValue([[0, 17], 'A', [18, 19]]),
       revision: 3,
     });
 
-    editor.handleExternalChange({
+    service.handleExternalChange({
       changeset: Changeset.parseValue(['DEL']),
       revision: 4,
     });
 
-    record = editor.submitChanges();
+    record = service.submitChanges();
     if (record) {
-      editor.submittedChangesAcknowledged({
+      service.submittedChangesAcknowledged({
         ...record,
-        revision: editor.headRevision + 1,
+        revision: service.headRevision + 1,
       });
     }
 
-    editor.handleExternalChange({
+    service.handleExternalChange({
       changeset: Changeset.parseValue([[0, 14], '_OK', [15, 23]]),
       revision: 6,
     });
@@ -250,8 +250,8 @@ describe('two texts', () => {
   });
 
   it('emits correct events 2', () => {
-    const title = multiJsonTextEditor.getText(TextType.TITLE);
-    const content = multiJsonTextEditor.getText(TextType.CONTENT);
+    const title = multiJsonText.getText(TextType.TITLE);
+    const content = multiJsonText.getText(TextType.CONTENT);
 
     const contentEvents = vi.fn();
     content.eventBus.on('*', contentEvents);
@@ -259,46 +259,46 @@ describe('two texts', () => {
     const titleEvents = vi.fn();
     title.eventBus.on('*', titleEvents);
 
-    let record = editor.submitChanges();
+    let record = service.submitChanges();
     if (record) {
-      editor.submittedChangesAcknowledged({
+      service.submittedChangesAcknowledged({
         ...record,
-        revision: editor.headRevision + 1,
+        revision: service.headRevision + 1,
       });
     }
 
     content.insert('hi', { start: 0, end: 0 });
-    editor.handleExternalChange({
+    service.handleExternalChange({
       changeset: Changeset.parseValue([[0, 12], 'hello', [13, 14]]),
       revision: 2,
     });
     content.insert('END', { start: 100, end: 100 });
     content.insert('a', { start: 0, end: 0 });
 
-    editor.handleExternalChange({
+    service.handleExternalChange({
       changeset: Changeset.parseValue([[0, 17], 'A', [18, 19]]),
       revision: 3,
     });
 
-    editor.handleExternalChange({
+    service.handleExternalChange({
       changeset: Changeset.parseValue(['DEL']),
       revision: 4,
     });
 
-    record = editor.submitChanges();
+    record = service.submitChanges();
     if (record) {
-      editor.submittedChangesAcknowledged({
+      service.submittedChangesAcknowledged({
         ...record,
-        revision: editor.headRevision + 1,
+        revision: service.headRevision + 1,
       });
     }
 
-    editor.handleExternalChange({
+    service.handleExternalChange({
       changeset: Changeset.parseValue([[0, 17], '!', [18, 26]]),
       revision: 7,
     });
 
-    editor.handleExternalChange({
+    service.handleExternalChange({
       changeset: Changeset.parseValue([[0, 14], '_OK', [15, 23]]),
       revision: 6,
     });

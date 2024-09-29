@@ -1,4 +1,4 @@
-import { CollabEditor } from '../../client/collab-editor';
+import { CollabService } from '../../client/collab-service';
 import { SelectionRange } from '../../client/selection-range';
 
 /**
@@ -76,7 +76,7 @@ export function parseTextWithMultipleSelections(textWithSelection: string) {
 }
 
 export function getValueWithSelection(
-  { viewText }: Pick<CollabEditor, 'viewText'>,
+  { viewText }: Pick<CollabService, 'viewText'>,
   { start, end }: SelectionRange
 ) {
   if (start === end) {

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { coerce, defaulted, Infer, InferRaw, string, Struct, type } from 'superstruct';
-import { CollabEditor, CollabEditorEvents } from '../collab-editor';
+import { CollabService, CollabEditorEvents } from '../collab-service';
 import { SelectionRange } from '../selection-range';
 import { indexOfDiff, lengthOffsetOfDiff } from '~utils/string/diff';
 import {
@@ -32,11 +32,11 @@ interface KeyViewText {
   lengthOffset: number;
 }
 
-export function defineCreateMultiJsonTextEditor<K extends string>(keys: readonly K[]) {
+export function defineCreateMultiJsonTextByService<K extends string>(keys: readonly K[]) {
   const struct = createStruct(keys);
   return (
-    editor: ConstructorParameters<typeof MultiJsonText<K, StringRecordStruct>>[1]
-  ) => new MultiJsonText(struct, editor);
+    service: ConstructorParameters<typeof MultiJsonText<K, StringRecordStruct>>[1]
+  ) => new MultiJsonText(struct, service);
 }
 
 function createStruct<K extends string>(keys: readonly K[]): StringRecordStruct {
@@ -74,7 +74,7 @@ function createStruct<K extends string>(keys: readonly K[]): StringRecordStruct 
 
 class MultiJsonText<K extends string, S extends StringRecordStruct> {
   private readonly viewsCache;
-  private readonly editor;
+  private readonly service;
 
   private syncDuringProcessingMessages = false;
   private localPushCounter = 0;
@@ -85,9 +85,9 @@ class MultiJsonText<K extends string, S extends StringRecordStruct> {
 
   constructor(
     struct: S,
-    editor: Pick<CollabEditor, 'viewText' | 'pushSelectionChangeset' | 'headRevision'> & {
+    service: Pick<CollabService, 'viewText' | 'pushSelectionChangeset' | 'headRevision'> & {
       eventBus: EmitterPickEvents<
-        CollabEditor['eventBus'],
+        CollabService['eventBus'],
         | 'viewChanged'
         | 'appliedTypingOperation'
         | 'handledExternalChanges'
@@ -98,13 +98,13 @@ class MultiJsonText<K extends string, S extends StringRecordStruct> {
   ) {
     const keys = Object.keys(struct.schema) as K[];
 
-    this.editor = editor;
-    this.viewsCache = new ViewTextMemosCache<K, S>(struct, editor);
+    this.service = service;
+    this.viewsCache = new ViewTextMemosCache<K, S>(struct, service);
 
-    const keySimpleTextParent: ConstructorParameters<typeof KeySimpleText>[0]['editor'] =
+    const keySimpleTextParent: ConstructorParameters<typeof KeySimpleText>[0]['service'] =
       {
         get viewText() {
-          return editor.viewText;
+          return service.viewText;
         },
         pushSelectionChangeset: this.pushSelectionChangeset.bind(this),
       };
@@ -113,7 +113,7 @@ class MultiJsonText<K extends string, S extends StringRecordStruct> {
       keys.map((key) => [
         key,
         new KeySimpleText({
-          editor: keySimpleTextParent,
+          service: keySimpleTextParent,
           view: new ViewTextMemosCacheKeyView(this.viewsCache, key),
           prevView: new ViewTextMemosCacheKeyPrevView(this.viewsCache, key),
           getClosestOlderRevisionView: (revision) => {
@@ -134,7 +134,7 @@ class MultiJsonText<K extends string, S extends StringRecordStruct> {
     const textViewsList = Object.values<KeySimpleText>(this.textViewsMap);
 
     this.eventsOff = [
-      editor.eventBus.on('viewChanged', () => {
+      service.eventBus.on('viewChanged', () => {
         const view = this.viewsCache.newView();
         if (this.localPushCounter === 0) {
           // Change happened outside this context, must ensure text is in sync with object structure
@@ -150,15 +150,15 @@ class MultiJsonText<K extends string, S extends StringRecordStruct> {
           textView.valueUpdated();
         });
       }),
-      editor.eventBus.on('appliedTypingOperation', ({ operation: { selection } }) => {
+      service.eventBus.on('appliedTypingOperation', ({ operation: { selection } }) => {
         textViewsList.forEach((textView) => {
           textView.parentSelectionUpdated(selection);
         });
       }),
-      editor.eventBus.on('processingMessages', () => {
+      service.eventBus.on('processingMessages', () => {
         this.syncDuringProcessingMessages = false;
       }),
-      editor.eventBus.on('handledExternalChanges', (payload) => {
+      service.eventBus.on('handledExternalChanges', (payload) => {
         if (this.syncDuringProcessingMessages) {
           return;
         }
@@ -193,14 +193,14 @@ class MultiJsonText<K extends string, S extends StringRecordStruct> {
     try {
       this.localPushCounter++;
       // make this an external change instead??
-      this.editor.pushSelectionChangeset(setChangeset, options);
+      this.service.pushSelectionChangeset(setChangeset, options);
     } finally {
       this.localPushCounter--;
     }
   }
 
   private syncView(view: ViewTextMemo<K, S>, merge = false) {
-    if (this.editor.viewText !== view.objStr) {
+    if (this.service.viewText !== view.objStr) {
       this.syncDuringProcessingMessages = true;
       // when this happens prevent other events?
       this.pushSelectionChangeset(
@@ -221,7 +221,7 @@ class MultiJsonText<K extends string, S extends StringRecordStruct> {
 
 class ViewTextMemosCache<K extends string, S extends StringRecordStruct> {
   private readonly struct;
-  private readonly editor;
+  private readonly service;
 
   private readonly views: ViewTextAtRevision<K, S>[] = [];
 
@@ -239,18 +239,18 @@ class ViewTextMemosCache<K extends string, S extends StringRecordStruct> {
 
   constructor(
     struct: S,
-    editor: Pick<CollabEditor, 'viewText' | 'headRevision'> & {
-      eventBus: EmitterPickEvents<CollabEditor['eventBus'], 'headRevisionChanged'>;
+    service: Pick<CollabService, 'viewText' | 'headRevision'> & {
+      eventBus: EmitterPickEvents<CollabService['eventBus'], 'headRevisionChanged'>;
     }
   ) {
     this.struct = struct;
-    this.editor = editor;
+    this.service = service;
 
     this._view = this.newView();
     this.pushView(this._view);
 
     this.eventsOff = [
-      editor.eventBus.on('headRevisionChanged', ({ revision }) => {
+      service.eventBus.on('headRevisionChanged', ({ revision }) => {
         // Remove unused revisions
         const index = this.views.findLastIndex((item) => item.revision === revision);
         if (index > 0) {
@@ -267,13 +267,13 @@ class ViewTextMemosCache<K extends string, S extends StringRecordStruct> {
   }
 
   newView() {
-    return new ViewTextMemo<K, S>(this.struct, this.editor.viewText);
+    return new ViewTextMemo<K, S>(this.struct, this.service.viewText);
   }
 
   pushView(view: ViewTextMemo<K, S>) {
-    const revision = this.editor.headRevision;
+    const revision = this.service.headRevision;
     const item: ViewTextAtRevision<K, S> = {
-      revision: this.editor.headRevision,
+      revision: this.service.headRevision,
       memo: view,
     };
 
@@ -347,7 +347,7 @@ class ViewTextMemosCacheKeyPrevView<K extends string, S extends StringRecordStru
 class KeySimpleText implements SimpleText {
   readonly eventBus: Emitter<SimpleTextEvents>;
 
-  private readonly editor;
+  private readonly service;
 
   private readonly view;
   private readonly prevView;
@@ -366,20 +366,20 @@ class KeySimpleText implements SimpleText {
   }
 
   constructor({
-    editor,
+    service,
     view,
     prevView,
     getClosestOlderRevisionView,
   }: {
-    editor: {
-      viewText: CollabEditor['viewText'];
-      pushSelectionChangeset: CollabEditor['pushSelectionChangeset'];
+    service: {
+      viewText: CollabService['viewText'];
+      pushSelectionChangeset: CollabService['pushSelectionChangeset'];
     };
     view: KeyViewText;
     prevView: KeyViewText;
     getClosestOlderRevisionView: (revision: number) => KeyViewText | undefined;
   }) {
-    this.editor = editor;
+    this.service = service;
 
     this.view = view;
     this.prevView = prevView;
@@ -456,10 +456,10 @@ class KeySimpleText implements SimpleText {
     selection: SelectionRange,
     options?: SimpleTextOperationOptions
   ): void {
-    this.editor.pushSelectionChangeset(
+    this.service.pushSelectionChangeset(
       insertToSelectionChangeset(
         insertText,
-        this.editor.viewText,
+        this.service.viewText,
         this.selectionTransformInverse(selection)
       ),
       options
@@ -467,10 +467,10 @@ class KeySimpleText implements SimpleText {
   }
 
   delete(count = 1, selection: SelectionRange, options?: SimpleTextOperationOptions) {
-    this.editor.pushSelectionChangeset(
+    this.service.pushSelectionChangeset(
       deleteCountToSelectionChangeset(
         Math.min(this.length, count),
-        this.editor.viewText,
+        this.service.viewText,
         this.selectionTransformInverse(selection)
       ),
       options

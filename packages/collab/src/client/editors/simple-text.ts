@@ -1,5 +1,5 @@
 import mitt, { Emitter, EmitterPickEvents } from 'mitt';
-import { CollabEditor } from '../collab-editor';
+import { CollabService } from '../collab-service';
 import { SelectionRange } from '../selection-range';
 import { SimpleText, SimpleTextEvents, SimpleTextOperationOptions } from '../types';
 import { deleteCountToSelectionChangeset } from './utils/delete-count-to-selection-changeset';
@@ -8,34 +8,34 @@ import { insertToSelectionChangeset } from './utils/insert-to-selection-changese
 export class SimpleTextEditor implements SimpleText {
   readonly eventBus: Emitter<SimpleTextEvents>;
 
-  private readonly editor;
+  private readonly service;
 
   get value() {
-    return this.editor.viewText;
+    return this.service.viewText;
   }
 
   private eventsOff: (() => void)[];
 
   constructor(
-    editor: Pick<CollabEditor, 'viewText' | 'pushSelectionChangeset'> & {
+    service: Pick<CollabService, 'viewText' | 'pushSelectionChangeset'> & {
       eventBus: EmitterPickEvents<
-        CollabEditor['eventBus'],
+        CollabService['eventBus'],
         'viewChanged' | 'appliedTypingOperation' | 'handledExternalChanges'
       >;
     }
   ) {
-    this.editor = editor;
+    this.service = service;
 
     this.eventBus = mitt();
 
     this.eventsOff = [
-      editor.eventBus.on('viewChanged', () => {
-        this.eventBus.emit('valueChanged', editor.viewText);
+      service.eventBus.on('viewChanged', () => {
+        this.eventBus.emit('valueChanged', service.viewText);
       }),
-      editor.eventBus.on('appliedTypingOperation', ({ operation }) => {
+      service.eventBus.on('appliedTypingOperation', ({ operation }) => {
         this.eventBus.emit('selectionChanged', operation.selection);
       }),
-      editor.eventBus.on('handledExternalChanges', (events) => {
+      service.eventBus.on('handledExternalChanges', (events) => {
         this.eventBus.emit(
           'handledExternalChanges',
           events.map(({ event, revision }) => ({
@@ -58,15 +58,15 @@ export class SimpleTextEditor implements SimpleText {
     selection: SelectionRange,
     options?: SimpleTextOperationOptions
   ) {
-    this.editor.pushSelectionChangeset(
-      insertToSelectionChangeset(insertText, this.editor.viewText, selection),
+    this.service.pushSelectionChangeset(
+      insertToSelectionChangeset(insertText, this.service.viewText, selection),
       options
     );
   }
 
   delete(count = 1, selection: SelectionRange, options?: SimpleTextOperationOptions) {
-    this.editor.pushSelectionChangeset(
-      deleteCountToSelectionChangeset(count, this.editor.viewText, selection),
+    this.service.pushSelectionChangeset(
+      deleteCountToSelectionChangeset(count, this.service.viewText, selection),
       options
     );
   }

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { beforeEach, expect, it } from 'vitest';
 
-import { CollabEditor } from '../client/collab-editor';
+import { CollabService } from '../client/collab-service';
 
 import { createHelperCollabEditingEnvironment } from './helpers/server-client';
 import { RevisionRecords } from '../records/revision-records';
@@ -23,7 +23,7 @@ beforeEach(() => {
   });
 });
 
-it('restores serialized editor', () => {
+it('restores serialized service', () => {
   const { client } = helper;
 
   client.A.setCaretPosition(6);
@@ -44,10 +44,10 @@ it('restores serialized editor', () => {
   client.B.submitChanges().serverReceive();
   sendingA.serverReceive().acknowledgeAndSendToOtherClients();
 
-  const expectedSerialized = client.A.editor.serialize();
+  const expectedSerialized = client.A.service.serialize();
 
-  const parsedOptions = CollabEditor.parseValue(expectedSerialized);
-  const actualReserialized = new CollabEditor(parsedOptions).serialize();
+  const parsedOptions = CollabService.parseValue(expectedSerialized);
+  const actualReserialized = new CollabService(parsedOptions).serialize();
 
   expect(actualReserialized).toStrictEqual(expectedSerialized);
 });
@@ -62,10 +62,10 @@ it('submits correct selection when undo before server index', () => {
   client.A.insertText('[b0]');
   client.A.insertText('[b1]');
   client.A.submitChangesInstant();
-  client.A.editor.undo();
-  client.A.editor.undo();
+  client.A.service.undo();
+  client.A.service.undo();
 
-  expect(client.A.editor.submitChanges()).toEqual({
+  expect(client.A.service.submitChanges()).toEqual({
     userGeneratedId: expect.any(String),
     revision: 6,
     changeset: Changeset.parseValue([

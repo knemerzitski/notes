@@ -1,4 +1,4 @@
-import { EditorRevisionRecord } from './collab-editor';
+import { EditorRevisionRecord } from './collab-service';
 import { ServerRecordsFacade } from './types';
 
 export class UserRecords {

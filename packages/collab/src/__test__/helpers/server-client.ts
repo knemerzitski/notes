@@ -4,12 +4,12 @@ import { assert, expect } from 'vitest';
 import { OrderedMessageBuffer } from '~utils/ordered-message-buffer';
 
 import { CollabClient } from '../../client/collab-client';
-import { CollabEditor, CollabEditorOptions } from '../../client/collab-editor';
+import { CollabService, CollabEditorOptions } from '../../client/collab-service';
 import { CollabHistory } from '../../client/collab-history';
 import { UserRecords } from '../../client/user-records';
 import { ServerRevisionRecord } from '../../records/record';
 
-import { newSelectionRange } from './collab-editor-selection-range';
+import { newSelectionRange } from './collab-service-selection-range';
 import { LocalServerRecords, LocalServerRecordsParams } from './server-records';
 import {
   getValueWithSelection,
@@ -24,7 +24,7 @@ export function createHelperCollabEditingEnvironment<TClientName extends string>
   options: {
     server?: LocalServerRecordsParams<ServerRevisionRecord>;
     clientNames?: TClientName[];
-    editor?: Partial<Record<TClientName, CollabEditorOptions>>;
+    service?: Partial<Record<TClientName, CollabEditorOptions>>;
   } = {
     clientNames: [],
   }
@@ -40,7 +40,7 @@ export function createHelperCollabEditingEnvironment<TClientName extends string>
   const disconnectedClients = new Set<string>();
 
   function getOtherEditors(name: string) {
-    return mapObject(clientsHelperMap, (otherName, { editor: otherEditor }) => {
+    return mapObject(clientsHelperMap, (otherName, { service: otherEditor }) => {
       if (name === otherName || disconnectedClients.has(otherName)) return mapObjectSkip;
       return [otherName, otherEditor];
     });
@@ -61,7 +61,7 @@ export function createHelperCollabEditingEnvironment<TClientName extends string>
   }
 
   options.clientNames?.forEach((name) => {
-    addNewClient(name, name, options.editor?.[name]);
+    addNewClient(name, name, options.service?.[name]);
   });
 
   function expectTextsConverged(
@@ -97,7 +97,7 @@ function createClientHelper<TName extends string>(
   userId = name,
   currentOptions: CollabEditorOptions,
   server: LocalServerRecords<ServerRevisionRecord>,
-  getOtherEditors: () => { [K in TName]: CollabEditor }
+  getOtherEditors: () => { [K in TName]: CollabService }
 ) {
   const {
     client: clientOptions,
@@ -124,7 +124,7 @@ function createClientHelper<TName extends string>(
           client,
         });
 
-  const editor = new CollabEditor({
+  const service = new CollabService({
     ...editorOptions,
     recordsBuffer: {
       version: server.tailText.revision,
@@ -143,24 +143,24 @@ function createClientHelper<TName extends string>(
     client,
     history,
     name,
-    ...createCollabEditorHelper(editor),
+    ...createCollabEditorHelper(service),
     ...createCollabEditorAndRevisionTailRecordsHelper<TName>(
       name,
       userId,
-      editor,
+      service,
       server,
       getOtherEditors
     ),
   };
 }
 
-function createCollabEditorHelper(editor: CollabEditor) {
-  const { selectionRange } = newSelectionRange(editor);
-  const plainText = new SimpleTextEditor(editor);
+function createCollabEditorHelper(service: CollabService) {
+  const { selectionRange } = newSelectionRange(service);
+  const plainText = new SimpleTextEditor(service);
   return {
-    editor,
+    service,
     selectionRange,
-    valueWithSelection: () => getValueWithSelection(editor, selectionRange),
+    valueWithSelection: () => getValueWithSelection(service, selectionRange),
     setCaretFromValue: (textWithCursors: string) => {
       const pos1 = textWithCursors.indexOf('>');
       const pos2 = textWithCursors.indexOf('<');
@@ -196,12 +196,12 @@ function createRevisionTailRecordsHelper(
 function createCollabEditorAndRevisionTailRecordsHelper<TClientName extends string>(
   name: TClientName,
   userId = name,
-  editor: CollabEditor,
+  service: CollabService,
   localRecords: LocalServerRecords<ServerRevisionRecord>,
-  getOtherEditors: () => { [Key in TClientName]: CollabEditor }
+  getOtherEditors: () => { [Key in TClientName]: CollabService }
 ) {
   function submitChanges() {
-    const submittedRecord = editor.submitChanges();
+    const submittedRecord = service.submitChanges();
     assert(submittedRecord != null);
 
     const otherEditors = getOtherEditors();
@@ -222,7 +222,7 @@ function createCollabEditorAndRevisionTailRecordsHelper<TClientName extends stri
         }
 
         function clientAcknowledge() {
-          editor.submittedChangesAcknowledged(recordInsertion.record);
+          service.submittedChangesAcknowledged(recordInsertion.record);
           return recordInsertion.record;
         }
 

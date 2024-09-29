@@ -63,10 +63,10 @@ describe('persist history in revision records', () => {
         server: server.localRecords.getHeadText().changeset,
       },
     });
-    const restoredEditorB = clientB2.editor;
-    restoredEditorB.historyRestore(client.B.editor.history.entries.length);
+    const restoredEditorB = clientB2.service;
+    restoredEditorB.historyRestore(client.B.service.history.entries.length);
 
-    expect(historyEntriesInfo(client.B.editor.history.entries)).toStrictEqual(
+    expect(historyEntriesInfo(client.B.service.history.entries)).toStrictEqual(
       historyEntriesInfo(restoredEditorB.history.entries)
     );
   });
@@ -97,11 +97,11 @@ describe('persist history in revision records', () => {
       },
     });
 
-    const restoredEditorB = clientB2.editor;
-    restoredEditorB.historyRestore(client.B.editor.history.entries.length);
+    const restoredEditorB = clientB2.service;
+    restoredEditorB.historyRestore(client.B.service.history.entries.length);
 
     expect(historyEntriesInfo(restoredEditorB.history.entries)).toStrictEqual(
-      historyEntriesInfo(client.B.editor.history.entries)
+      historyEntriesInfo(client.B.service.history.entries)
     );
   });
 });
@@ -128,7 +128,7 @@ describe('restore with undo', () => {
         }),
       },
       clientNames: ['A'],
-      editor: {
+      service: {
         A: {
           client: {
             server: Changeset.parseValue(['123']),
@@ -144,12 +144,12 @@ describe('restore with undo', () => {
   it('undoes until very last server record', () => {
     const { client } = helper;
 
-    expect(client.A.editor.canUndo()).toBeTruthy();
+    expect(client.A.service.canUndo()).toBeTruthy();
     expect(client.A.valueWithSelection()).toStrictEqual('>123');
-    expect(client.A.editor.undo()).toBeTruthy();
+    expect(client.A.service.undo()).toBeTruthy();
     expect(client.A.valueWithSelection()).toStrictEqual('>');
-    expect(client.A.editor.canUndo()).toBeTruthy();
-    expect(client.A.editor.undo()).toBeFalsy();
+    expect(client.A.service.canUndo()).toBeTruthy();
+    expect(client.A.service.undo()).toBeFalsy();
     expect(client.A.valueWithSelection()).toStrictEqual('>');
   });
 });

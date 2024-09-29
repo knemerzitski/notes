@@ -150,8 +150,15 @@ export interface CollabEditorOptions {
   submittedRecord?: SubmittedRecord;
 }
 
-// TODO rename to CollabComposition
-export class CollabEditor {
+/**
+ * Composition of collab instances that are bound by events:
+ * - CollabClient - Client collab state by changesets: server, submitted, local, view
+ * - CollabHistory - Keeps track of local changeset changes and allows to redo/undo those changes.
+ * - UserRecords - Facade for server records that enables fetching n-count of specific user records from server to restore older history entries.
+ *
+ * Single place to handle records received by server and to create a submittable record.
+ */
+export class CollabService {
   readonly eventBus: Emitter<CollabEditorEvents>;
   private generateSubmitId: () => string;
 
@@ -205,8 +212,8 @@ export class CollabEditor {
     return this._viewText;
   }
 
-  static newFromHeadText: (headText: RevisionChangeset) => CollabEditor = (headText) => {
-    return new CollabEditor(CollabEditor.headTextAsOptions(headText));
+  static newFromHeadText: (headText: RevisionChangeset) => CollabService = (headText) => {
+    return new CollabService(CollabService.headTextAsOptions(headText));
   };
 
   static headTextAsOptions: (headText: RevisionChangeset) => CollabEditorOptions = (
@@ -373,7 +380,7 @@ export class CollabEditor {
   }
 
   /**
-   * Removes event listeners from editor. This instance becomes useless.
+   * Removes event listeners from service. This instance becomes useless.
    */
   cleanUp() {
     this.eventsOff.forEach((off) => {
@@ -382,7 +389,7 @@ export class CollabEditor {
   }
 
   /**
-   * Completely resets editor state and clears all data.
+   * Completely resets service state and clears all data.
    */
   reset() {
     this._client.reset();

@@ -1,6 +1,6 @@
 import mitt, { Emitter } from 'mitt';
 
-import { CollabEditor } from '../../client/collab-editor';
+import { CollabService } from '../../client/collab-service';
 import { Changeset } from '../../changeset';
 import { SelectionRange } from '../../client/selection-range';
 import { ReadonlyDeep } from '~utils/types';
@@ -8,17 +8,17 @@ import { ReadonlyDeep } from '~utils/types';
 /**
  * Make sure to call cleanUp after you're done using the SelectionRange.
  */
-export function newSelectionRange(editor: CollabEditor) {
-  const selectionRange = new CollabEditorSelectionRange({
+export function newSelectionRange(service: CollabService) {
+  const selectionRange = new CollabServiceSelectionRange({
     getLength: () => {
-      return editor.viewText.length;
+      return service.viewText.length;
     },
   });
   const subscriptions = [
-    editor.eventBus.on('handledExternalChange', ({ viewComposable }) => {
+    service.eventBus.on('handledExternalChange', ({ viewComposable }) => {
       selectionRange.closestRetainedPosition(viewComposable);
     }),
-    editor.eventBus.on('appliedTypingOperation', ({ operation }) => {
+    service.eventBus.on('appliedTypingOperation', ({ operation }) => {
       selectionRange.set(operation.selection);
     }),
   ];
@@ -47,7 +47,7 @@ export interface CollabEditorSelectionRangeOptions {
   eventBus?: Emitter<CollabEditorSelectionRangeEvents>;
 }
 
-export class CollabEditorSelectionRange implements SelectionRange {
+export class CollabServiceSelectionRange implements SelectionRange {
   readonly eventBus: Emitter<CollabEditorSelectionRangeEvents>;
 
   private props: CollabEditorSelectionRangeOptions;

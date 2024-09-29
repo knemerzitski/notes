@@ -109,8 +109,8 @@ describe('single client', () => {
     client.A.insertText('hello world');
     client.A.insertText(' one', { merge: true });
     expect(client.A.valueWithSelection()).toStrictEqual('hello world one>');
-    expect(client.A.editor.history.entries).toHaveLength(1);
-    client.A.editor.undo();
+    expect(client.A.service.history.entries).toHaveLength(1);
+    client.A.service.undo();
     expect(client.A.valueWithSelection()).toStrictEqual('>');
   });
 
