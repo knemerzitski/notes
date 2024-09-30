@@ -50,11 +50,13 @@ it('creates new user, updates displayName and publishes it to websocket', async 
       variables: {
         input: {
           auth: {
-            token: JSON.stringify({
-              id: '1',
-              name: 'Foo Bar',
-              email: 'foo.bar@localhost.com',
-            }),
+            google: {
+              token: JSON.stringify({
+                id: '1',
+                name: 'Foo Bar',
+                email: 'foo.bar@localhost.com',
+              }),
+            },
           },
         },
       },
