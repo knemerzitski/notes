@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    /* Modules */
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+
+    /* Completeness */
+    "skipLibCheck": true,
+
+    /* Type Checking */
+    "strictNullChecks": true,
+
+    /* Projects */
+    "composite": true,
+
+    /* Interop Constraints */
+    "allowSyntheticDefaultImports": true
+  },
+  "include": ["vite.config.ts", "vitest.config.ts", "codegen.ts", "cypress.config.ts"]
+}
