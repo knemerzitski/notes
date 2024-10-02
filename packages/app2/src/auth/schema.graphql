@@ -1,0 +1,21 @@
+extend type SignedInUser {
+  "Current session has expired and is unusable. Must sign in again."
+  isSessionExpired: Boolean!
+  "User email. This is stored only on client-side during sign-in and not in the server."
+  email: String!
+  "Find a provider by type"
+  authProviderUser(type: AuthProviderUserType!): AuthProviderUser
+  "Known providers that have been used to sign in"
+  authProviderUsers: [AuthProviderUser!]!
+}
+
+enum AuthProviderUserType {
+  GOOGLE
+}
+
+extend type Query {
+  "Self-descriptive"
+  signedInUsers(id: ID): [SignedInUser!]!
+  "Current user that is being used during network requests."
+  currentSignedInUser: SignedInUser
+}
