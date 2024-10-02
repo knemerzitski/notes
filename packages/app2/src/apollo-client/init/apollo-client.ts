@@ -6,9 +6,9 @@ import { CachePersistor } from 'apollo3-cache-persist';
 import { localStorageKey, LocalStoragePrefix } from '~/local-storage';
 import { TypePoliciesPersistentStorage } from '../policy/persist';
 import { WebSocketClient } from '../websocket-client';
-import { createLinks } from './create-links';
+import { createLinks } from './links';
 import { AppContext, GlobalRequestVariables, TypePoliciesList } from '../types';
-import { createTypePolicies } from './create-type-policies';
+import { createTypePolicies } from './type-policies';
 
 export function createApolloClient({
   httpUri,

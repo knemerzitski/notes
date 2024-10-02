@@ -1,4 +1,4 @@
-import { createApolloClient } from './init/create-apollo-client';
+import { createApolloClient } from './init/apollo-client';
 import possibleTypes from '../__generated__/possibleTypes.json';
 import { TypePoliciesList } from './types';
 import { getCurrentSignedInUserId } from '../user/signed-in-user';
