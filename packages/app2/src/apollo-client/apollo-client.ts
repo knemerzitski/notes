@@ -7,7 +7,7 @@ import {
   Reference,
 } from '@apollo/client';
 import { EvictOptions, EvictTag, GcOptions, TypePoliciesEvictor } from './policy/evict';
-import { withOverrideCurrentUserId } from '../auth/signed-in-user';
+import { withOverrideCurrentUserId } from '../user/signed-in-user';
 import { WebSocketClient } from './websocket-client';
 import { CachePersistor } from 'apollo3-cache-persist';
 import { StatsLink } from './link/stats';

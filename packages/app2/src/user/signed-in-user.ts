@@ -15,6 +15,46 @@ const SIGNED_IN_USER = gql(`
   }
 `);
 
+const SIGNED_IN_USERS_WRITE = gql(`
+  query SignedInUsersWrite {
+    signedInUsers @client {
+      id
+      __typename
+    }
+  }
+`);
+
+export function addSignedInUser(
+  userId: string,
+  cache: Pick<ApolloCache<unknown>, 'updateQuery'>
+) {
+  return cache.updateQuery(
+    {
+      query: SIGNED_IN_USERS_WRITE,
+    },
+    (data) => {
+      const user = {
+        __typename: 'SignedInUser' as const,
+        id: userId,
+      };
+
+      if (!data) {
+        return {
+          signedInUsers: [user],
+        };
+      }
+
+      if (data.signedInUsers.some(({ id }) => id === userId)) {
+        return;
+      }
+
+      return {
+        signedInUsers: [...data.signedInUsers, user],
+      };
+    }
+  );
+}
+
 export function setCurrentSignedInUser(
   userId: Maybe<string>,
   cache: Pick<ApolloCache<unknown>, 'updateQuery'>
@@ -36,6 +76,21 @@ export function setCurrentSignedInUser(
     }
   );
   return result?.currentSignedInUser?.id == userId;
+}
+
+export function getCurrentSignedInUserId(
+  cache: Pick<ApolloCache<unknown>, 'readQuery'>
+): Maybe<string> {
+  if (userIdOverride.override) {
+    return userIdOverride.userId;
+  }
+
+  const data = cache.readQuery({
+    query: SIGNED_IN_USER,
+    returnPartialData: true,
+  });
+  if (!data) return;
+  return findAvailableUserId(data);
 }
 
 const userIdOverride = {
@@ -63,21 +118,6 @@ export function withOverrideCurrentUserId<T>(
   } finally {
     clearOverrideUser();
   }
-}
-
-export function getCurrentSignedInUserId(
-  cache: Pick<ApolloCache<unknown>, 'readQuery'>
-): Maybe<string> {
-  if (userIdOverride.override) {
-    return userIdOverride.userId;
-  }
-
-  const data = cache.readQuery({
-    query: SIGNED_IN_USER,
-    returnPartialData: true,
-  });
-  if (!data) return;
-  return findAvailableUserId(data);
 }
 
 function findAvailableUserId(data: PartialDeep<SignedInUserQuery>) {

@@ -10,6 +10,7 @@
     "vite:build": "tsc && vite build",
     "graphql:gen": "graphql-codegen",
     "graphql:watch": "graphql-codegen -w",
+    "graphql:gen-types": "vite-node scripts/gen-possible-types.ts -f src/__generated__",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest watch",
     "test:comp": "cypress run --component",

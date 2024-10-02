@@ -1,30 +1,33 @@
-import { ApolloClient, InMemoryCache } from '@apollo/client';
+import { ApolloClient, InMemoryCache, PossibleTypesMap } from '@apollo/client';
 import { CustomApolloClient } from '../apollo-client';
 import { TypePoliciesEvictor } from '../policy/evict';
-import { createTypePolicies, TypePoliciesList } from './create-type-policies';
 import { Maybe } from '~utils/types';
 import { CachePersistor } from 'apollo3-cache-persist';
 import { localStorageKey, LocalStoragePrefix } from '~/local-storage';
 import { TypePoliciesPersistentStorage } from '../policy/persist';
-import { AppContext } from './app-context';
 import { WebSocketClient } from '../websocket-client';
 import { createLinks } from './create-links';
-import { GlobalRequestVariables } from '../types';
+import { AppContext, GlobalRequestVariables, TypePoliciesList } from '../types';
+import { createTypePolicies } from './create-type-policies';
 
 export function createApolloClient({
   httpUri,
   wsUrl,
+  possibleTypes,
   typePoliciesList,
   context,
 }: {
   httpUri: string;
   wsUrl: string | undefined;
+  possibleTypes?: PossibleTypesMap;
   typePoliciesList: TypePoliciesList;
   context: {
     getUserId(cache: InMemoryCache): Maybe<string>;
   };
 }): CustomApolloClient {
-  const cache = new InMemoryCache();
+  const cache = new InMemoryCache({
+    possibleTypes,
+  });
 
   const appContext: AppContext = {
     get userId() {

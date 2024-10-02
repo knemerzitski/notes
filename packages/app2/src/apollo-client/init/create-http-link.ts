@@ -1,8 +1,7 @@
 import { HttpLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
-import { AppContext } from './app-context';
-import { GlobalRequestVariables } from '../types';
+import { AppContext, GlobalRequestVariables } from '../types';
 
 export function createHttpLinks(httpUri: string, appContext: Pick<AppContext, 'userId'>) {
   const httpLink = new HttpLink({

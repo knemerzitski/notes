@@ -1,6 +1,8 @@
-import { getCurrentSignedInUserId } from '~/auth/signed-in-user';
 import { createApolloClient } from './init/create-apollo-client';
-import { TypePoliciesList } from './init/create-type-policies';
+import possibleTypes from '../__generated__/possibleTypes.json';
+import { TypePoliciesList } from './types';
+import { getCurrentSignedInUserId } from '../user/signed-in-user';
+import { userPolicies } from '../user/policies';
 
 const HTTP_URL =
   import.meta.env.MODE === 'production'
@@ -12,9 +14,7 @@ const WS_URL =
     ? import.meta.env.VITE_GRAPHQL_WS_URL
     : `ws://${location.host}/graphql-ws`;
 
-const TYPE_POLICIES_LIST: TypePoliciesList = [
-  // TODO add type policies here
-];
+const TYPE_POLICIES_LIST: TypePoliciesList = [userPolicies];
 
 export function createDefaultApolloClientParams(): Parameters<
   typeof createApolloClient
@@ -22,6 +22,7 @@ export function createDefaultApolloClientParams(): Parameters<
   return {
     httpUri: HTTP_URL,
     wsUrl: WS_URL,
+    possibleTypes,
     typePoliciesList: TYPE_POLICIES_LIST,
     context: {
       getUserId: getCurrentSignedInUserId,

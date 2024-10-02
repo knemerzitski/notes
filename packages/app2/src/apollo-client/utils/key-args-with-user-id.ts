@@ -1,7 +1,7 @@
 import { KeyArgsFunction, KeySpecifier } from '@apollo/client/cache/inmemory/policies';
 import { keyArgsFnFromSpecifier } from '@apollo/client/cache/inmemory/key-extractor';
-import { TypePoliciesContext } from '../init/create-type-policies';
 import { isDefined } from '~utils/type-guards/is-defined';
+import { TypePoliciesContext } from '../types';
 
 const SEPARATOR = '-';
 

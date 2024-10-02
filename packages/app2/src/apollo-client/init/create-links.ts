@@ -7,8 +7,8 @@ import { ErrorLink } from '../link/error';
 import { createHttpLinks } from './create-http-link';
 import { createWsLinks } from './create-ws-links';
 import { WebSocketClient } from '../websocket-client';
-import { AppContext } from './app-context';
 import { passthrough } from '../link/passthrough';
+import { AppContext } from '../types';
 
 export function createLinks({
   httpUri,

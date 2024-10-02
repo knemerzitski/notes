@@ -1,5 +1,5 @@
 import { TypePolicies } from '@apollo/client';
-import { CustomTypePolicies } from '../init/create-type-policies';
+import { CustomTypePolicies } from '../types';
 
 /**
  * @returns Merged policies by concatenating fields with Object.assign

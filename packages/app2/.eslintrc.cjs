@@ -1,6 +1,12 @@
 module.exports = {
   env: { browser: true, es2020: true },
-  ignorePatterns: ['out', 'node_modules', '.eslintrc.cjs', 'src/__generated__'],
+  ignorePatterns: [
+    'out',
+    'node_modules',
+    '.eslintrc.cjs',
+    'src/__generated__',
+    'scripts',
+  ],
   settings: {
     'import/resolver': {
       typescript: {
