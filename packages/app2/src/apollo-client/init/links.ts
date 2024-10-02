@@ -1,4 +1,4 @@
-import { split } from '@apollo/client';
+import { ApolloLink, split } from '@apollo/client';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { Kind, OperationTypeNode } from 'graphql';
 import { WaitLink } from '../link/wait';
@@ -39,7 +39,7 @@ export function createLinks({
       );
     },
     wsLink,
-    headerWsConnectionIdLink.concat(headerUserIdLink).concat(httpLink)
+    ApolloLink.from([headerWsConnectionIdLink, headerUserIdLink, httpLink])
   );
 
   const statsLink = new StatsLink();
@@ -53,7 +53,7 @@ export function createLinks({
   const errorLink = new ErrorLink();
 
   return {
-    link: statsLink.concat(waitLink).concat(errorLink).concat(httpWsSplitLink),
+    link: ApolloLink.from([statsLink, waitLink, errorLink, httpWsSplitLink]),
     statsLink,
     errorLink,
   };
