@@ -18,7 +18,8 @@ export type TypePoliciesList = (CreateTypePoliciesFn | CustomTypePolicies)[];
 
 export type CustomTypePolicies = TypePolicies & PersistTypePolicies & EvictTypePolicies;
 
-export type CustomTypePolicy = CustomTypePolicies extends Record<string,infer R> ? R : never;
+export type CustomTypePolicy =
+  CustomTypePolicies extends Record<string, infer R> ? R : never;
 
 export interface TypePoliciesContext {
   /**
@@ -32,3 +33,4 @@ export interface TypePoliciesContext {
 }
 
 export type CreateTypePoliciesFn = (context: TypePoliciesContext) => CustomTypePolicies;
+export type CreateTypePolicyFn = (context: TypePoliciesContext) => CustomTypePolicy;

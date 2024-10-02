@@ -1,7 +1,7 @@
-import { CustomTypePolicy, TypePoliciesContext } from '../../apollo-client/types';
+import { CreateTypePolicyFn } from '../../apollo-client/types';
 import { fieldArrayToMap } from '../../apollo-client/utils/field-array-to-map';
 
-export function SignedInUser(_ctx: TypePoliciesContext): CustomTypePolicy {
+export const SignedInUser: CreateTypePolicyFn = function () {
   return {
     fields: {
       isSessionExpired(existing = false) {
@@ -32,4 +32,4 @@ export function SignedInUser(_ctx: TypePoliciesContext): CustomTypePolicy {
       },
     },
   };
-}
+};

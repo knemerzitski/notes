@@ -1,8 +1,8 @@
 import { EvictTag } from '../../apollo-client/policy/evict';
-import { CustomTypePolicy, TypePoliciesContext } from '../../apollo-client/types';
+import { CreateTypePolicyFn, TypePoliciesContext } from '../../apollo-client/types';
 import { keyArgsWithUserId } from '../../apollo-client/utils/key-args-with-user-id';
 
-export function Query(ctx: TypePoliciesContext): CustomTypePolicy {
+export const Query: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
   return {
     fields: {
       signedInUser: {
@@ -19,4 +19,4 @@ export function Query(ctx: TypePoliciesContext): CustomTypePolicy {
       },
     },
   };
-}
+};
