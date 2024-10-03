@@ -1,14 +1,15 @@
 import { CssBaseline } from '@mui/material';
 
-import { GlobalStyles } from './global-styles';
-import { CustomThemeProvider } from './theme/context/theme';
-import { createThemeOptions } from './theme-options';
+import { GlobalStyles } from './theme/global-styles';
+import { MyThemeProvider } from './theme/context/theme';
+import { createThemeOptions } from './theme/theme-options';
+
 
 export function App() {
   return (
-    <CustomThemeProvider createThemeOptions={createThemeOptions}>
+    <MyThemeProvider createThemeOptions={createThemeOptions}>
       <CssBaseline />
       <GlobalStyles />
-    </CustomThemeProvider>
+    </MyThemeProvider>
   );
 }

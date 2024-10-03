@@ -31,14 +31,21 @@ export class ErrorLink extends ApolloLink {
    *  [Error.SKIP_EVENTS]: ['NOT_FOUND']
    * }`
    */
-  static NO_EMIT = '_ErrorLink_skip';
+  static NO_EMIT = '_ErrorLink-no_emit';
 
   constructor() {
     super();
     this.eventBus = mitt<ErrorEvents>();
   }
 
-  public override request(operation: Operation, forward: NextLink) {
+  public override request(
+    operation: Operation,
+    forward?: NextLink
+  ): Observable<FetchResult> | null {
+    if (forward == null) {
+      return null;
+    }
+
     const ctx = operation.getContext();
 
     return new Observable<FetchResult>((observer: Observer<FetchResult>) => {

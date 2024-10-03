@@ -1,8 +1,10 @@
-import { createApolloClient } from './init/apollo-client';
-import possibleTypes from '../__generated__/possibleTypes.json';
-import { TypePoliciesList } from './types';
+import './apollo/dev';
+
 import { getCurrentSignedInUserId } from '../user/signed-in-user';
+import possibleTypes from '../__generated__/possible-types.json';
 import { userPolicies } from '../user/policies';
+import { TypePoliciesList } from './types';
+import { createGraphQLService } from './service';
 
 const HTTP_URL =
   import.meta.env.MODE === 'production'
@@ -16,8 +18,8 @@ const WS_URL =
 
 const TYPE_POLICIES_LIST: TypePoliciesList = [userPolicies];
 
-export function createDefaultApolloClientParams(): Parameters<
-  typeof createApolloClient
+export function createDefaultGraphQLServiceParams(): Parameters<
+  typeof createGraphQLService
 >[0] {
   return {
     httpUri: HTTP_URL,
@@ -28,4 +30,8 @@ export function createDefaultApolloClientParams(): Parameters<
       getUserId: getCurrentSignedInUserId,
     },
   };
+}
+
+export function createDefaultGraphQLService() {
+  return createGraphQLService(createDefaultGraphQLServiceParams());
 }

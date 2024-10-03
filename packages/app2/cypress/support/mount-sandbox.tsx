@@ -3,8 +3,8 @@ import { mount } from 'cypress/react18';
 import { ReactNode } from 'react';
 
 import './commands';
-import { GlobalStyles } from '../../src/global-styles';
-import { themeOptions } from '../../src/theme-options';
+import { GlobalStyles } from '../../src/theme/global-styles';
+import { createThemeOptions } from '../../src/theme/theme-options';
 
 /**
  * Mount in a experimental sandbox to tinker with components.
@@ -12,7 +12,7 @@ import { themeOptions } from '../../src/theme-options';
  * window in Mui Card.
  */
 export const mountSandbox: typeof mount = (jsx: ReactNode, ...restArgs) => {
-  const theme = createTheme(themeOptions('dark'));
+  const theme = createTheme(createThemeOptions('dark'));
 
   return mount(
     <ThemeProvider theme={theme}>

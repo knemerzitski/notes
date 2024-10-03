@@ -30,7 +30,14 @@ export class WaitLink extends ApolloLink {
     this.waitTime = options.waitTime ?? 1000;
   }
 
-  override request(operation: Operation, forward: NextLink) {
+  public override request(
+    operation: Operation,
+    forward?: NextLink
+  ): Observable<FetchResult> | null {
+    if (forward == null) {
+      return null;
+    }
+
     const subs = new Map<Observer<FetchResult>, Subscription | undefined>();
 
     let sub: Observable<FetchResult> | null = null;

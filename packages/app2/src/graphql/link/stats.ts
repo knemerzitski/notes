@@ -42,7 +42,14 @@ export class StatsLink extends ApolloLink {
     this.eventBus = mitt<OperationEvents>();
   }
 
-  public override request(operation: Operation, forward: NextLink) {
+  public override request(
+    operation: Operation,
+    forward?: NextLink
+  ): Observable<FetchResult> | null {
+    if (forward == null) {
+      return null;
+    }
+
     const definition = getMainDefinition(operation.query);
     if (definition.kind !== Kind.OPERATION_DEFINITION) {
       return forward(operation);

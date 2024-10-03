@@ -6,58 +6,39 @@ import {
   NormalizedCacheObject,
   Reference,
 } from '@apollo/client';
-import { EvictOptions, EvictTag, GcOptions, TypePoliciesEvictor } from './policy/evict';
-import { withOverrideCurrentUserId } from '../user/signed-in-user';
-import { WebSocketClient } from './websocket-client';
-import { CachePersistor } from 'apollo3-cache-persist';
-import { StatsLink } from './link/stats';
-import { ErrorLink } from './link/error';
+import { EvictOptions, EvictTag, GcOptions, TypePoliciesEvictor } from '../policy/evict';
+import { withOverrideCurrentUserId } from '../../user/signed-in-user';
 
-export class CustomApolloClient {
+type Client = Omit<ApolloClient<NormalizedCacheObject>, 'cache' | 'writeFragment'> & {
+  cache: Cache;
+};
+
+type Cache = Omit<
+  ApolloClient<NormalizedCacheObject>['cache'],
+  'gc' | 'evict' | 'writeFragment'
+>;
+
+export class MyApolloClient {
   private readonly _client;
-  get client(): Omit<ApolloClient<NormalizedCacheObject>, 'cache' | 'writeFragment'> & {
-    cache: Omit<
-      ApolloClient<NormalizedCacheObject>['cache'],
-      'gc' | 'evict' | 'writeFragment'
-    >;
-  } {
+  get client(): Client {
     return this._client;
+  }
+
+  get cache(): Cache {
+    return this._client.cache;
   }
 
   private readonly evictor;
 
-  private readonly wsClient;
-
-  readonly persistor;
-
-  readonly statsLink;
-  readonly errorLink;
-
   constructor({
     client,
     evictor,
-    wsClient,
-    persistor,
-    statsLink,
-    errorLink,
   }: {
     client: ApolloClient<NormalizedCacheObject>;
     evictor: Pick<TypePoliciesEvictor, 'gc' | 'evict' | 'evictByTag'>;
-    wsClient?: Pick<WebSocketClient, 'restart'>;
-    persistor: Pick<CachePersistor<NormalizedCacheObject>, 'persist'>;
-    statsLink: Pick<StatsLink, 'byType' | 'eventBus'>;
-    errorLink: Pick<ErrorLink, 'eventBus'>;
   }) {
     this._client = client;
     this.evictor = evictor;
-    this.wsClient = wsClient;
-    this.persistor = persistor;
-    this.statsLink = statsLink;
-    this.errorLink = errorLink;
-  }
-
-  restartSubscriptionClient() {
-    this.wsClient?.restart();
   }
 
   writeFragment<TData = unknown, TVariables = unknown>(

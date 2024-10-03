@@ -37,6 +37,8 @@
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
     "@vitejs/plugin-react-swc": "^3.3.2",
+    "apollo-link-queue": "^3.1.0",
+    "apollo-link-serialize": "^4.0.0",
     "apollo3-cache-persist": "^0.15.0",
     "cypress": "^13.6.3",
     "eslint-config-prettier": "^9.0.0",

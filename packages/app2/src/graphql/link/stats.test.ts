@@ -3,6 +3,7 @@ import { ApolloClient, gql, InMemoryCache } from '@apollo/client';
 import { MockedResponse, MockLink } from '@apollo/client/testing';
 import { it, vi, expect } from 'vitest';
 import { StatsLink } from './stats';
+import { GraphQLError } from 'graphql';
 
 const QUERY = gql(`
   query Foo {
@@ -41,6 +42,26 @@ const mocks: MockedResponse<any, any>[] = [
       },
     },
   },
+  {
+    request: {
+      query: MUTATION,
+      variables: {
+        graphQLError: true,
+      },
+    },
+    result: {
+      errors: [new GraphQLError('validation err')],
+    },
+  },
+  {
+    request: {
+      query: MUTATION,
+      variables: {
+        networkError: true,
+      },
+    },
+    error: new Error('network err'),
+  },
 ];
 
 it('calls events with correct stats', async () => {
@@ -61,11 +82,37 @@ it('calls events with correct stats', async () => {
   await client.mutate({
     mutation: MUTATION,
   });
+  try {
+    await client.mutate({
+      mutation: MUTATION,
+      variables: {
+        graphQLError: true,
+      },
+      errorPolicy: 'none',
+    });
+  } catch (err) {
+    // Ignore error
+  }
+  try {
+    await client.mutate({
+      mutation: MUTATION,
+      variables: {
+        networkError: true,
+      },
+      errorPolicy: 'none',
+    });
+  } catch (err) {
+    // Ignore error
+  }
 
   expect(onFn.mock.calls).toStrictEqual([
     ['query', { ongoing: 1, total: 1 }],
     ['query', { ongoing: 0, total: 1 }],
     ['mutation', { ongoing: 1, total: 1 }],
     ['mutation', { ongoing: 0, total: 1 }],
+    ['mutation', { ongoing: 1, total: 2 }],
+    ['mutation', { ongoing: 0, total: 2 }],
+    ['mutation', { ongoing: 1, total: 3 }],
+    ['mutation', { ongoing: 0, total: 3 }],
   ]);
 });

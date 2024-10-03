@@ -5,19 +5,19 @@ import { Maybe, PartialDeep } from '~utils/types';
 
 const SIGNED_IN_USER = gql(`
   query SignedInUser {
-    signedInUsers @client {
+    signedInUsers {
       id
       isSessionExpired
     }
-    currentSignedInUser @client {
+    currentSignedInUser {
       id
     }
   }
 `);
 
-const SIGNED_IN_USERS_WRITE = gql(`
-  query SignedInUsersWrite {
-    signedInUsers @client {
+const SIGNED_IN_USERS = gql(`
+  query SignedInUsers {
+    signedInUsers {
       id
       __typename
     }
@@ -30,7 +30,7 @@ export function addSignedInUser(
 ) {
   return cache.updateQuery(
     {
-      query: SIGNED_IN_USERS_WRITE,
+      query: SIGNED_IN_USERS,
     },
     (data) => {
       const user = {

@@ -2,6 +2,7 @@ import { TypePolicies } from '@apollo/client';
 import { EvictTypePolicies } from './policy/evict';
 import { PersistTypePolicies } from './policy/persist';
 import { Maybe } from '~utils/types';
+import { createGraphQLService } from './service';
 
 export enum GlobalRequestVariables {
   USER_ID = '_userId',
@@ -34,3 +35,5 @@ export interface TypePoliciesContext {
 
 export type CreateTypePoliciesFn = (context: TypePoliciesContext) => CustomTypePolicies;
 export type CreateTypePolicyFn = (context: TypePoliciesContext) => CustomTypePolicy;
+
+export type GraphQLService = ReturnType<typeof createGraphQLService>;

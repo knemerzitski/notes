@@ -1,6 +1,6 @@
-import { EvictTag } from '../../apollo-client/policy/evict';
-import { CreateTypePolicyFn, TypePoliciesContext } from '../../apollo-client/types';
-import { keyArgsWithUserId } from '../../apollo-client/utils/key-args-with-user-id';
+import { EvictTag } from '../../graphql/policy/evict';
+import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
+import { keyArgsWithUserId } from '../../graphql/utils/key-args-with-user-id';
 
 export const Query: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
   return {

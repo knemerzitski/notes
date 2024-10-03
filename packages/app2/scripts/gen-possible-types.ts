@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
 
+const FILENAME = 'possible-types.json';
+
 const relEnvPath = `../../../${
   process.env.NODE_ENV === 'test' ? '.env.test' : '.env.local'
 }`;
@@ -62,7 +64,7 @@ async function generatePossibleTypes({
     }
   });
 
-  const writePath = path.join(outPath, 'possibleTypes.json');
+  const writePath = path.join(outPath, FILENAME);
   fs.writeFile(writePath, JSON.stringify(possibleTypes), (err) => {
     if (err) {
       console.error(`Error writing "${writePath}"`, err);

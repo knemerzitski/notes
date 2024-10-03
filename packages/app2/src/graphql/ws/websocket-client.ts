@@ -7,7 +7,7 @@ import {
 } from 'graphql-ws';
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
-import { AppContext } from './types';
+import { AppContext } from '../types';
 
 export class WebSocketClient {
   readonly client;

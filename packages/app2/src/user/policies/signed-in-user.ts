@@ -1,5 +1,5 @@
-import { CreateTypePolicyFn } from '../../apollo-client/types';
-import { fieldArrayToMap } from '../../apollo-client/utils/field-array-to-map';
+import { CreateTypePolicyFn } from '../../graphql/types';
+import { fieldArrayToMap } from '../../graphql/utils/field-array-to-map';
 
 export const SignedInUser: CreateTypePolicyFn = function () {
   return {

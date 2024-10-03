@@ -1,5 +1,5 @@
 import { ApolloCache, InMemoryCache, Reference, TypePolicies } from '@apollo/client';
-import { typenameToRootId, typenameFromId } from '../utils/typename';
+import { typenameToRootId, typenameFromId } from '../utils/id';
 import { objectValueArrayPermutations } from '~utils/object/object-value-array-permutations';
 import { collectShallowCopy } from '~utils/object/collect';
 

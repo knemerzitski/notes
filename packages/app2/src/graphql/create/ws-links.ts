@@ -1,5 +1,5 @@
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
-import { WebSocketClient } from '../websocket-client';
+import { WebSocketClient } from '../ws/websocket-client';
 import { setContext } from '@apollo/client/link/context';
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import { passthrough } from '../link/passthrough';
