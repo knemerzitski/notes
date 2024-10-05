@@ -1,15 +1,5 @@
-import { CssBaseline } from '@mui/material';
-
-import { GlobalStyles } from './theme/global-styles';
-import { MyThemeProvider } from './theme/context/theme';
-import { createThemeOptions } from './theme/theme-options';
-
+import { AppThemeProvider } from './theme/components/AppThemeProvider';
 
 export function App() {
-  return (
-    <MyThemeProvider createThemeOptions={createThemeOptions}>
-      <CssBaseline />
-      <GlobalStyles />
-    </MyThemeProvider>
-  );
+  return <AppThemeProvider>Hello App!</AppThemeProvider>
 }

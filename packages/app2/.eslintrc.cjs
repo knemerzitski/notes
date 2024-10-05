@@ -32,6 +32,18 @@ module.exports = {
       },
     },
     {
+      // React components must be in PascalCase
+      files: ['./src/*/components/**'],
+      rules: {
+        'unicorn/filename-case': [
+          'error',
+          {
+            case: 'pascalCase',
+          },
+        ],
+      },
+    },
+    {
       files: ['src/**/*.cy.[jt]s?(x)'],
       extends: ['plugin:cypress/recommended'],
       env: {
