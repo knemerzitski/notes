@@ -16,7 +16,7 @@
     "mongo-express:stop": "cd ./docker/mongo-express && docker compose down",
     "db:start": "npm run mongodb:start & npm run dynamodb:start",
     "db:stop": "npm run mongodb:stop & npm run dynamodb:stop",
-    "api:dev": "npm run -w dev-server dev & npm run -w api graphql:watch",
+    "api:dev": "npm run -w dev-server dev",
     "app:dev": "npm run -w app dev",
     "test": "npm run test --workspaces --if-present",
     "prepare": "husky install",
