@@ -9,7 +9,7 @@ export function build(options: Pick<BuildOptions, 'entryPoints' | 'outfile'>) {
   return _build({
     entryPoints: options.entryPoints,
     outfile: options.outfile,
-    tsconfig: join(__dirname, 'tsconfig.build.json'),
+    tsconfig: join(__dirname, '../tsconfig.build.json'),
 
     target: 'node18',
     platform: 'node',
