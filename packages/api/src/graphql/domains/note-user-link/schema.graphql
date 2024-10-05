@@ -3,7 +3,7 @@
 Link (edge) between signed in user and note.
 """
 type UserNoteLink implements Node {
-  "Self-descriptive"
+  "Note.id:User.id"
   id: ID!
   "Note that the user can access"
   note: Note!
