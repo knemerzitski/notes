@@ -1,15 +1,17 @@
-import { mergeTypePolicies } from '../utils/merge-type-policies';
-import { TypePoliciesList, TypePoliciesContext, CustomTypePolicies } from '../types';
+import { TypePoliciesList, TypePoliciesContext } from '../types';
+import { InMemoryCache, TypePolicies } from '@apollo/client';
 
 export function createTypePolicies(
-  typePoliciesList: TypePoliciesList,
+  typePolicies: TypePoliciesList,
   context: TypePoliciesContext
-): CustomTypePolicies {
-  const typePolicies = typePoliciesList.map((fnOrTyp) =>
+): TypePolicies[] {
+  return typePolicies.map((fnOrTyp) =>
     typeof fnOrTyp === 'function' ? fnOrTyp(context) : fnOrTyp
   );
+}
 
-  const mergedTypePolicies = mergeTypePolicies(typePolicies);
-
-  return mergedTypePolicies;
+export function addTypePolicies(typePolicies: TypePolicies[], cache: InMemoryCache) {
+  for (const typePolicy of typePolicies) {
+    cache.policies.addTypePolicies(typePolicy);
+  }
 }

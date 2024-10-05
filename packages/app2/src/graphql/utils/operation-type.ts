@@ -1,26 +1,22 @@
 import { getMainDefinition } from '@apollo/client/utilities';
 import { DocumentNode, Kind, OperationTypeNode } from 'graphql';
 
-export function isQuery(query: DocumentNode) {
+export function getOperationKind(query: DocumentNode) {
   const definition = getMainDefinition(query);
-  return (
-    definition.kind === Kind.OPERATION_DEFINITION &&
-    definition.operation === OperationTypeNode.QUERY
-  );
+  if (definition.kind !== Kind.OPERATION_DEFINITION) {
+    return;
+  }
+  return definition.operation;
+}
+
+export function isQuery(query: DocumentNode) {
+  return getOperationKind(query) === OperationTypeNode.QUERY;
 }
 
 export function isMutation(query: DocumentNode) {
-  const definition = getMainDefinition(query);
-  return (
-    definition.kind === Kind.OPERATION_DEFINITION &&
-    definition.operation === OperationTypeNode.MUTATION
-  );
+  return getOperationKind(query) === OperationTypeNode.MUTATION;
 }
 
 export function isSubscription(query: DocumentNode) {
-  const definition = getMainDefinition(query);
-  return (
-    definition.kind === Kind.OPERATION_DEFINITION &&
-    definition.operation === OperationTypeNode.SUBSCRIPTION
-  );
+  return getOperationKind(query) === OperationTypeNode.SUBSCRIPTION;
 }

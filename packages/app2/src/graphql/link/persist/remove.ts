@@ -1,22 +1,31 @@
-import { ApolloCache, isReference, Reference } from '@apollo/client';
+import { ApolloCache } from '@apollo/client';
 import { ApolloOperation } from '../../../__generated__/graphql';
+import { isObjectLike } from '~utils/type-guards/is-object-like';
 
 export function removeOngoingOperation(
-  id: ApolloOperation['id'] | Reference,
-  cache: Pick<ApolloCache<unknown>, 'evict' | 'identify' | 'gc'>
+  id: ApolloOperation['id'],
+  cache: Pick<ApolloCache<unknown>, 'evict' | 'identify' | 'modify'>
 ) {
-  const result = cache.evict({
-    id: isReference(id)
-      ? cache.identify(id)
-      : cache.identify({
-          __typename: 'ApolloOperation',
-          id,
-        }),
+  cache.evict({
+    id: cache.identify({
+      __typename: 'ApolloOperation',
+      id,
+    }),
   });
 
-  if (result) {
-    cache.gc();
-  }
+  cache.modify({
+    fields: {
+      ongoingOperations(existing = {}) {
+        if (!isObjectLike(existing)) {
+          return existing;
+        }
 
-  return result;
+        const modified = { ...existing };
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+        delete modified[id];
+
+        return modified;
+      },
+    },
+  });
 }

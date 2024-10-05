@@ -47,15 +47,9 @@ export function createLinks({
     throttle?: number;
   };
 }) {
-  // ErrorLink is utilized in a React component
   const statsLink = new StatsLink();
-
-  // ErrorLink is utilized in a React component
   const errorLink = new ErrorLink();
-
   const persistLink = new PersistLink(cache);
-
-  // QueueLink open/close is called from a React component
   const queueLink = new QueueLink();
   const serializingLink = new SerializingLink();
   const retryLink = new RetryLink();

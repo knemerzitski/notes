@@ -7,7 +7,7 @@ const SEPARATOR = '-';
 
 /**
  * Returns new keyArgs that always includes current user id in key.
- * Can be used to separate query for each user.
+ * Can be used to separate query for each user in same cache.
  */
 export function keyArgsWithUserId(
   policiesCtx: TypePoliciesContext,

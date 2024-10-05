@@ -1,6 +1,6 @@
 import { ApolloCache } from '@apollo/client';
-import { gql } from '../__generated__';
-import { SignedInUserQuery } from '../__generated__/graphql';
+import { gql } from '../../__generated__';
+import { SignedInUserQuery } from '../../__generated__/graphql';
 import { Maybe, PartialDeep } from '~utils/types';
 
 const SIGNED_IN_USER = gql(`

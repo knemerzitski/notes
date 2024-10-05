@@ -4,17 +4,19 @@ import {
   InMemoryCache,
   PossibleTypesMap,
 } from '@apollo/client';
-import { MyApolloClient as MyApolloClient } from './apollo/apollo-client';
-import { TypePoliciesEvictor } from './policy/evict';
-import { CachePersistor } from 'apollo3-cache-persist';
-import { TypePoliciesPersistentStorage } from './policy/persist';
+import { CachePersistor, LocalStorageWrapper } from 'apollo3-cache-persist';
 import { WebSocketClient } from './ws/websocket-client';
 import { createHttpWsLink, createLinks } from './create/links';
-import { AppContext, GlobalRequestVariables, TypePoliciesList } from './types';
-import { createTypePolicies } from './create/type-policies';
-import { fieldArrayToMap } from './utils/field-array-to-map';
+import {
+  AppContext,
+  GlobalRequestVariables,
+  TypePoliciesList,
+  UpdateHandlersByName,
+} from './types';
+import { addTypePolicies, createTypePolicies } from './create/type-policies';
 import { localStorageKey, LocalStoragePrefix } from '../local-storage';
 import { Maybe } from '~utils/types';
+import { TaggedEvict, TaggedEvictOptionsList } from './utils/tagged-evict';
 
 export function createGraphQLService({
   httpUri,
@@ -22,6 +24,8 @@ export function createGraphQLService({
   terminatingLink,
   possibleTypes,
   typePoliciesList,
+  evictOptionsList,
+  updateHandlersByName,
   storage,
   context,
 }: {
@@ -30,15 +34,13 @@ export function createGraphQLService({
   terminatingLink?: ApolloLink;
   possibleTypes?: PossibleTypesMap;
   typePoliciesList: TypePoliciesList;
+  evictOptionsList: TaggedEvictOptionsList;
+  updateHandlersByName: UpdateHandlersByName;
   storage?: Storage;
   context: {
     getUserId(cache: InMemoryCache): Maybe<string>;
   };
 }) {
-  const cache = new InMemoryCache({
-    possibleTypes,
-  });
-
   const appContext: AppContext = {
     get userId() {
       return context.getUserId(cache);
@@ -49,29 +51,19 @@ export function createGraphQLService({
     appContext,
     variablesUserIdKey: GlobalRequestVariables.USER_ID,
   });
-  cache.policies.addTypePolicies(typePolicies);
 
-  // TODO tmp, add policy somewhere else?
-  cache.policies.addTypePolicies({
-    Query: {
-      fields: {
-        persistedMutations: fieldArrayToMap('id'),
-      },
-    },
-    PersistedMutation: {
-      merge: true,
-    },
+  const cache = new InMemoryCache({
+    possibleTypes,
+    gcExplicitWrites: true,
   });
+  addTypePolicies(typePolicies, cache);
+
+  const taggedEvict = new TaggedEvict(evictOptionsList);
 
   const persistor = new CachePersistor({
     cache,
     key: localStorageKey(LocalStoragePrefix.APOLLO, 'cache'),
-    storage: new TypePoliciesPersistentStorage({
-      cache,
-      storage: storage ?? window.localStorage,
-      serialize: (value) => JSON.stringify(value),
-      typePolicies,
-    }),
+    storage: storage ?? new LocalStorageWrapper(window.localStorage),
   });
 
   const wsClient = wsUrl
@@ -102,21 +94,17 @@ export function createGraphQLService({
     },
   });
 
-  const apolloClient = new MyApolloClient({
-    client: new ApolloClient({
-      cache,
-      link: ApolloLink.from([links.link, httpWsLink]),
-    }),
-    evictor: new TypePoliciesEvictor({
-      cache,
-      typePolicies,
-    }),
+  const apolloClient = new ApolloClient({
+    cache,
+    link: ApolloLink.from([links.link, httpWsLink]),
   });
 
   return {
-    apolloClient,
+    client: apolloClient,
     persistor,
     wsClient,
     links: links.pick,
+    updateHandlersByName,
+    taggedEvict,
   };
 }

@@ -18,7 +18,7 @@ export function addOngoingOperation(
   operation: ApolloOperation,
   cache: Pick<ApolloCache<unknown>, 'writeQuery'>
 ) {
-  const ref = cache.writeQuery({
+  cache.writeQuery({
     query: ADD_ONGOING_OPERATION,
     data: {
       ongoingOperations: [
@@ -30,11 +30,5 @@ export function addOngoingOperation(
     },
   });
 
-  if (!ref) {
-    throw new Error(
-      'Expected a reference as result when writing query "AddOngoingOperation"'
-    );
-  }
-
-  return ref;
+  return operation;
 }

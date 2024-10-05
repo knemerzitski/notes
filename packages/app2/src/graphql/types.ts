@@ -1,6 +1,9 @@
-import { TypePolicies } from '@apollo/client';
-import { EvictTypePolicies } from './policy/evict';
-import { PersistTypePolicies } from './policy/persist';
+import {
+  ApolloCache,
+  MutationUpdaterFunction,
+  TypePolicies,
+  TypePolicy,
+} from '@apollo/client';
 import { Maybe } from '~utils/types';
 import { createGraphQLService } from './service';
 
@@ -15,12 +18,7 @@ export interface AppContext {
   readonly userId: Maybe<string>;
 }
 
-export type TypePoliciesList = (CreateTypePoliciesFn | CustomTypePolicies)[];
-
-export type CustomTypePolicies = TypePolicies & PersistTypePolicies & EvictTypePolicies;
-
-export type CustomTypePolicy =
-  CustomTypePolicies extends Record<string, infer R> ? R : never;
+export type TypePoliciesList = (CreateTypePoliciesFn | TypePolicies)[];
 
 export interface TypePoliciesContext {
   /**
@@ -33,7 +31,12 @@ export interface TypePoliciesContext {
   readonly variablesUserIdKey: string;
 }
 
-export type CreateTypePoliciesFn = (context: TypePoliciesContext) => CustomTypePolicies;
-export type CreateTypePolicyFn = (context: TypePoliciesContext) => CustomTypePolicy;
+export type CreateTypePoliciesFn = (context: TypePoliciesContext) => TypePolicies;
+export type CreateTypePolicyFn = (context: TypePoliciesContext) => TypePolicy;
 
 export type GraphQLService = ReturnType<typeof createGraphQLService>;
+
+export type UpdateHandlersByName = Record<
+  string,
+  MutationUpdaterFunction<unknown, unknown, unknown, ApolloCache<unknown>>
+>;
