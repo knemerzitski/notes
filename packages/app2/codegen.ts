@@ -12,7 +12,7 @@ const config: CodegenConfig = {
       },
       config: {
         scalars: {
-          ID: { input: 'string', output: 'string | number' },
+          ID: { input: 'string', output: 'string' },
           Date: {
             input: 'Date',
             output: 'Date | string',
