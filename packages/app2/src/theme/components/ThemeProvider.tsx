@@ -14,16 +14,20 @@ export function ThemeProvider({
   children: ReactNode;
 }) {
   // TODO theme color mode configurable
-
   const theme = useMemo(
     () => createTheme(createThemeOptions('dark')),
     [createThemeOptions]
   );
 
+  const globalStyles = useMemo(
+    () => createGlobalStyles(theme),
+    [createGlobalStyles, theme]
+  );
+
   return (
     <MuiThemeProvider theme={theme}>
       <CssBaseline />
-      <MuiGlobalStyles styles={createGlobalStyles(theme)} />
+      <MuiGlobalStyles styles={globalStyles} />
       {children}
     </MuiThemeProvider>
   );

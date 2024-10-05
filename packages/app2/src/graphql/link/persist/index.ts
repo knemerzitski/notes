@@ -8,7 +8,6 @@ import {
   InMemoryCache,
   ApolloCache,
 } from '@apollo/client';
-import { randomUUID } from 'crypto';
 import { addOngoingOperation } from './add';
 import { removeOngoingOperation } from './remove';
 import { isMutation } from '../../utils/operation-type';
@@ -24,7 +23,7 @@ export class PersistLink extends ApolloLink {
   constructor(cache: InMemoryCache, options?: { generateId: () => string }) {
     super();
     this.cache = cache;
-    this.generateId = options?.generateId ?? randomUUID;
+    this.generateId = options?.generateId ?? crypto.randomUUID.bind(crypto);
   }
 
   public override request(
