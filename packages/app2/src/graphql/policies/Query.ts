@@ -1,4 +1,4 @@
-import { CreateTypePolicyFn } from '../../graphql/types';
+import { CreateTypePolicyFn } from '../types';
 import { fieldArrayToMap } from '../utils/field-array-to-map';
 
 export const Query: CreateTypePolicyFn = function () {

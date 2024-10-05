@@ -32,13 +32,37 @@ module.exports = {
       },
     },
     {
-      // React components must be in PascalCase
+      // PascalCase: React components
       files: ['./src/*/components/**'],
       rules: {
         'unicorn/filename-case': [
           'error',
           {
             case: 'pascalCase',
+          },
+        ],
+      },
+    },
+    {
+      // PascalCase: GraphQL type policies
+      files: ['./src/*/policies/*'],
+      rules: {
+        'unicorn/filename-case': [
+          'error',
+          {
+            case: 'pascalCase',
+          },
+        ],
+      },
+    },
+    {
+      // camelCase: GraphQL field policies
+      files: ['./src/*/policies/*/*'],
+      rules: {
+        'unicorn/filename-case': [
+          'error',
+          {
+            case: 'camelCase',
           },
         ],
       },
