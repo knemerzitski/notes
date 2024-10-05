@@ -1,8 +1,9 @@
-import { exec } from 'child_process';
-import { join } from 'path';
-
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
+
+import { assertMongoDBIsRunning } from '../utils/src/running-processes';
+
+assertMongoDBIsRunning();
 
 // eslint-disable-next-line import/no-default-export
 export default defineConfig({
@@ -21,16 +22,4 @@ export default defineConfig({
     },
     watch: true,
   },
-});
-
-// Ensure MongoDB container is running
-const mongoDBDockerPath = join(__dirname, '../../docker/mongodb');
-exec(`cd ${mongoDBDockerPath} && docker compose ps`, (err, stdout) => {
-  if (!err && !stdout.includes('mongod')) {
-    console.error(
-      `MongoDB container is not running. Integration tests cannot run without it.\n` +
-        `Please start MongoDB container with commad 'npm run mongodb:start'`
-    );
-    process.exit(1);
-  }
 });
