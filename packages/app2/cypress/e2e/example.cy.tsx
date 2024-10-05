@@ -1,0 +1,3 @@
+it('example', () => {
+  cy.visit('/');
+});
