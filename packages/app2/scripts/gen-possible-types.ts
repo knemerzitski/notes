@@ -1,6 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
+import { format as prettierFormat } from 'prettier';
+import { exec } from 'child_process';
 
 const FILENAME = 'possible-types.json';
 
@@ -15,7 +19,7 @@ const HTTP_URL = process.env.VITE_GRAPHQL_HTTP_URL!;
 
 const args = readArgs();
 
-generatePossibleTypes({
+await generatePossibleTypes({
   fetchUrl: HTTP_URL,
   outPath: args.file,
 });
@@ -31,47 +35,80 @@ async function generatePossibleTypes({
   outPath: string;
 }) {
   console.log(`Fetching possible types from "${fetchUrl}"`);
-  const res = await fetch(fetchUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      variables: {},
-      query: `
-        {
-          __schema {
-            types {
-              kind
-              name
-              possibleTypes {
-                name
+  const res = await fetchWithReattempt(
+    (count) => {
+      return fetch(fetchUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          variables: {},
+          query: `
+            {
+              __schema {
+                types {
+                  kind
+                  name
+                  possibleTypes {
+                    name
+                  }
+                }
               }
             }
-          }
-        }
-      `,
-    }),
-  });
+          `,
+        }),
+        signal: count === 0 ? AbortSignal.timeout(1) : undefined,
+      });
+    },
+    () => {
+      console.log('GraphQL server is not running. Starting it temporarily');
+      exec(`npm run -w dev-server server:build && npm run -w dev-server start-detached`);
+      return () => {
+        console.log('Shutting down GraphQL server');
+        exec(`npm run -w dev-server stop`);
+      };
+    }
+  );
 
-  const result = await res.json();
+  const result: any = await res.json();
 
-  const possibleTypes = {};
+  const possibleTypes: any = {};
 
-  result.data.__schema.types.forEach((supertype) => {
+  result.data.__schema.types.forEach((supertype: any) => {
     if (supertype.possibleTypes) {
       possibleTypes[supertype.name] = supertype.possibleTypes.map(
-        (subtype) => subtype.name
+        (subtype: any) => subtype.name
       );
     }
   });
 
-  const writePath = path.join(outPath, FILENAME);
-  fs.writeFile(writePath, JSON.stringify(possibleTypes), (err) => {
-    if (err) {
-      console.error(`Error writing "${writePath}"`, err);
-    } else {
-      console.log(`Fragment types successfully extracted to "${writePath}"`);
-    }
+  const resultPrettyString = await prettierFormat(JSON.stringify(possibleTypes), {
+    parser: 'json',
   });
+
+  const writePath = path.join(outPath, FILENAME);
+  fs.writeFileSync(writePath, resultPrettyString);
+  console.log(`Fragment types successfully extracted to "${writePath}"`);
+}
+
+async function fetchWithReattempt<T>(
+  fn: (count: number) => Promise<T>,
+  onFail?: () => (() => void) | undefined,
+  count = 0
+): Promise<T> {
+  try {
+    return await fn(count);
+  } catch (err) {
+    if (onFail) {
+      const cleanUp = onFail();
+      try {
+        return await fetchWithReattempt(fn, undefined, count + 1);
+      } finally {
+        cleanUp?.();
+      }
+    } else {
+      throw err;
+    }
+  }
 }
 
 function readArgs() {
