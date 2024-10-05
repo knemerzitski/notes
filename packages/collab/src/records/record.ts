@@ -8,7 +8,7 @@ const RevisionStruct = object({
 
 export type Revision = Infer<typeof RevisionStruct>;
 
-const RevisionChangesetStruct = assign(
+export const RevisionChangesetStruct = assign(
   RevisionStruct,
   object({
     changeset: ChangesetStruct,
