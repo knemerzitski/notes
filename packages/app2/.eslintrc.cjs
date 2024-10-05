@@ -44,6 +44,18 @@ module.exports = {
       },
     },
     {
+      // camelCase: React hooks
+      files: ['./src/*/hooks/**'],
+      rules: {
+        'unicorn/filename-case': [
+          'error',
+          {
+            case: 'camelCase',
+          },
+        ],
+      },
+    },
+    {
       // PascalCase: GraphQL type policies
       files: ['./src/*/policies/*'],
       rules: {
