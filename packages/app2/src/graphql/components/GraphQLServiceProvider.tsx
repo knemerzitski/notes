@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/filename-case */
 import { ReactNode } from 'react';
 import { GraphQLService } from '../types';
 import { QueueLinkProvider } from '../context/queue-link';
