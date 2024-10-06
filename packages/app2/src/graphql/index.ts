@@ -42,7 +42,7 @@ export function createDefaultGraphQLServiceParams(): Parameters<
     evictOptionsList: EVICT_OPTIONS_LIST,
     mutationOperations: MUTATION_OPERATIONS,
     storageKey: localStorageKey(LocalStoragePrefix.APOLLO, 'cache'),
-    storage: new LocalStorageWrapper(localStorage),
+    storage: new LocalStorageWrapper(window.localStorage),
     context: {
       getUserId: getCurrentSignedInUserId,
     },
