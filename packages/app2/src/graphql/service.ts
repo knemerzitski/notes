@@ -10,13 +10,14 @@ import { createHttpWsLink, createLinks } from './create/links';
 import {
   AppContext,
   GlobalRequestVariables,
+  MutationOperations,
   TypePoliciesList,
-  UpdateHandlersByName,
 } from './types';
 import { addTypePolicies, createTypePolicies } from './create/type-policies';
 import { localStorageKey, LocalStoragePrefix } from '../local-storage';
 import { Maybe } from '~utils/types';
 import { TaggedEvict, TaggedEvictOptionsList } from './utils/tagged-evict';
+import { createUpdateHandlersByName } from './create/update-handlers-by-name';
 
 export function createGraphQLService({
   httpUri,
@@ -25,7 +26,7 @@ export function createGraphQLService({
   possibleTypes,
   typePoliciesList,
   evictOptionsList,
-  updateHandlersByName,
+  mutationOperations,
   storage,
   context,
 }: {
@@ -35,12 +36,14 @@ export function createGraphQLService({
   possibleTypes?: PossibleTypesMap;
   typePoliciesList: TypePoliciesList;
   evictOptionsList: TaggedEvictOptionsList;
-  updateHandlersByName: UpdateHandlersByName;
+  mutationOperations: MutationOperations;
   storage?: Storage;
   context: {
     getUserId(cache: InMemoryCache): Maybe<string>;
   };
 }) {
+  const updateHandlersByName = createUpdateHandlersByName(mutationOperations);
+
   const appContext: AppContext = {
     get userId() {
       return context.getUserId(cache);

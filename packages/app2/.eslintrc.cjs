@@ -56,6 +56,18 @@ module.exports = {
       },
     },
     {
+      // PascalCase: GraphQL mutations
+      files: ['./src/*/mutations/**'],
+      rules: {
+        'unicorn/filename-case': [
+          'error',
+          {
+            case: 'pascalCase',
+          },
+        ],
+      },
+    },
+    {
       // PascalCase: GraphQL type policies
       files: ['./src/*/policies/*'],
       rules: {

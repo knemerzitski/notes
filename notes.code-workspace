@@ -18,6 +18,9 @@
     {
       "path": "../apollo-cache-persist",
     },
+    {
+      "path": "../apollo-link-serialize",
+    },
   ],
   "settings": {
     "search.exclude": {

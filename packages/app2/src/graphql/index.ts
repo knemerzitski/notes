@@ -2,8 +2,8 @@ import './dev';
 
 import { getCurrentSignedInUserId } from '../user/utils/signed-in-user';
 import possibleTypes from '../__generated__/possible-types.json';
-import { userEvictOptions, userPolicies } from '../user/policies';
-import { TypePoliciesList, UpdateHandlersByName } from './types';
+import { userEvictOptions, userMutations, userPolicies } from '../user/policies';
+import { MutationOperations, TypePoliciesList } from './types';
 import { createGraphQLService } from './service';
 import { graphQLPolicies } from './policies';
 import { TaggedEvictOptionsList } from './utils/tagged-evict';
@@ -22,9 +22,7 @@ const TYPE_POLICIES_LIST: TypePoliciesList = [graphQLPolicies, userPolicies];
 
 const EVICT_OPTIONS_LIST: TaggedEvictOptionsList = [...userEvictOptions];
 
-const UPDATE_HANDLER_BY_NAME: UpdateHandlersByName = {
-  // TODO add mutation update handlers here...
-};
+const MUTATION_OPERATIONS: MutationOperations = [...userMutations];
 
 export function createDefaultGraphQLServiceParams(): Parameters<
   typeof createGraphQLService
@@ -35,7 +33,7 @@ export function createDefaultGraphQLServiceParams(): Parameters<
     possibleTypes,
     typePoliciesList: TYPE_POLICIES_LIST,
     evictOptionsList: EVICT_OPTIONS_LIST,
-    updateHandlersByName: UPDATE_HANDLER_BY_NAME,
+    mutationOperations: MUTATION_OPERATIONS,
     context: {
       getUserId: getCurrentSignedInUserId,
     },
