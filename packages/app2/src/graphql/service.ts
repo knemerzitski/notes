@@ -4,7 +4,7 @@ import {
   InMemoryCache,
   PossibleTypesMap,
 } from '@apollo/client';
-import { CachePersistor, LocalStorageWrapper } from 'apollo3-cache-persist';
+import { CachePersistor, PersistentStorage } from 'apollo3-cache-persist';
 import { WebSocketClient } from './ws/websocket-client';
 import { createHttpWsLink, createLinks } from './create/links';
 import {
@@ -14,7 +14,6 @@ import {
   TypePoliciesList,
 } from './types';
 import { addTypePolicies, createTypePolicies } from './create/type-policies';
-import { localStorageKey, LocalStoragePrefix } from '../local-storage';
 import { Maybe } from '~utils/types';
 import { TaggedEvict, TaggedEvictOptionsList } from './utils/tagged-evict';
 import { createUpdateHandlersByName } from './create/update-handlers-by-name';
@@ -27,6 +26,7 @@ export function createGraphQLService({
   typePoliciesList,
   evictOptionsList,
   mutationOperations,
+  storageKey,
   storage,
   context,
 }: {
@@ -37,7 +37,8 @@ export function createGraphQLService({
   typePoliciesList: TypePoliciesList;
   evictOptionsList: TaggedEvictOptionsList;
   mutationOperations: MutationOperations;
-  storage?: Storage;
+  storageKey: string;
+  storage: PersistentStorage<string>;
   context: {
     getUserId(cache: InMemoryCache): Maybe<string>;
   };
@@ -65,8 +66,8 @@ export function createGraphQLService({
 
   const persistor = new CachePersistor({
     cache,
-    key: localStorageKey(LocalStoragePrefix.APOLLO, 'cache'),
-    storage: storage ?? new LocalStorageWrapper(window.localStorage),
+    key: storageKey,
+    storage,
   });
 
   const wsClient = wsUrl

@@ -1,0 +1,15 @@
+enum ColorMode {
+  SYSTEM
+  LIGHT
+  DARK
+}
+
+type DevicePreferences {
+  "App theme color mode"
+  colorMode: ColorMode!
+}
+
+extend type Query {
+  "Preferences that apply to this device"
+  devicePreferences: DevicePreferences!
+}

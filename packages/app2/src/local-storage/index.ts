@@ -3,7 +3,7 @@
  */
 export enum LocalStoragePrefix {
   APOLLO = 'apollo',
-  THEME = 'theme',
+  PREFERENCES = 'preferences',
 }
 
 export function localStorageKey(prefix: LocalStoragePrefix, value: string) {

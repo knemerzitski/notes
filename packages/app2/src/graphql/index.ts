@@ -7,6 +7,9 @@ import { MutationOperations, TypePoliciesList } from './types';
 import { createGraphQLService } from './service';
 import { graphQLPolicies } from './policies';
 import { TaggedEvictOptionsList } from './utils/tagged-evict';
+import { localStorageKey, LocalStoragePrefix } from '../local-storage';
+import { LocalStorageWrapper } from 'apollo3-cache-persist';
+import { devicePreferencesPolicies } from '../device-preferences/policies';
 
 const HTTP_URL =
   import.meta.env.MODE === 'production'
@@ -18,7 +21,11 @@ const WS_URL =
     ? import.meta.env.VITE_GRAPHQL_WS_URL
     : `ws://${location.host}/graphql-ws`;
 
-const TYPE_POLICIES_LIST: TypePoliciesList = [graphQLPolicies, userPolicies];
+const TYPE_POLICIES_LIST: TypePoliciesList = [
+  graphQLPolicies,
+  userPolicies,
+  devicePreferencesPolicies,
+];
 
 const EVICT_OPTIONS_LIST: TaggedEvictOptionsList = [...userEvictOptions];
 
@@ -34,6 +41,8 @@ export function createDefaultGraphQLServiceParams(): Parameters<
     typePoliciesList: TYPE_POLICIES_LIST,
     evictOptionsList: EVICT_OPTIONS_LIST,
     mutationOperations: MUTATION_OPERATIONS,
+    storageKey: localStorageKey(LocalStoragePrefix.APOLLO, 'cache'),
+    storage: new LocalStorageWrapper(localStorage),
     context: {
       getUserId: getCurrentSignedInUserId,
     },

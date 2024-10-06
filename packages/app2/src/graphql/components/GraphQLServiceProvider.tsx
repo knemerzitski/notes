@@ -7,22 +7,30 @@ import { PersistLinkProvider } from '../context/persist-link';
 import { ResumePersistedOngoingOperations } from './ResumePersistedOngoingOperations';
 import { UpdateHandlersByNameProvider } from '../context/update-handlers-by-name';
 import { ApolloProvider } from '@apollo/client';
+import { CachePersistorProvider } from '../context/cache-persistor';
+import { RestorePersistedCache } from './RestorePersistedCache';
 
 export function GraphQLServiceProvider({
   value,
   children,
+  restoringCacheFallback,
 }: {
   value: GraphQLService;
   children: ReactNode;
+  restoringCacheFallback?: ReactNode;
 }) {
   return (
     <ApolloProvider client={value.client}>
       <UpdateHandlersByNameProvider value={value.updateHandlersByName}>
         <QueueLinkProvider value={value.links.queueLink}>
           <PersistLinkProvider value={value.links.persistLink}>
-            <GateOnlineQueueLink />
-            <ResumePersistedOngoingOperations />
-            {children}
+            <CachePersistorProvider value={value.persistor}>
+              <GateOnlineQueueLink />
+              <RestorePersistedCache fallback={restoringCacheFallback}>
+                <ResumePersistedOngoingOperations />
+                {children}
+              </RestorePersistedCache>
+            </CachePersistorProvider>
           </PersistLinkProvider>
         </QueueLinkProvider>
       </UpdateHandlersByNameProvider>
