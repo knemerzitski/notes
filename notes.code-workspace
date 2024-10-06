@@ -3,24 +3,6 @@
     {
       "path": ".",
     },
-    {
-      "path": "../superstruct",
-    },
-    {
-      "path": "../graphql-js",
-    },
-    {
-      "path": "../mitt",
-    },
-    {
-      "path": "../apollo-client",
-    },
-    {
-      "path": "../apollo-cache-persist",
-    },
-    {
-      "path": "../apollo-link-serialize",
-    },
   ],
   "settings": {
     "search.exclude": {
