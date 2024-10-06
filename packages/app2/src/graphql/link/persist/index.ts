@@ -12,13 +12,16 @@ import { addOngoingOperation } from './add';
 import { removeOngoingOperation } from './remove';
 import { isMutation } from '../../utils/operation-type';
 import { hasOngoingOperation } from './has';
+import { CountMap } from '~utils/count-map';
 
 export class PersistLink extends ApolloLink {
   private readonly cache;
 
   static PERSIST = '_PersistLink-persist';
 
-  private readonly generateId;
+  readonly generateId;
+
+  private readonly ongoingCountMap = new CountMap<string>();
 
   constructor(cache: InMemoryCache, options?: { generateId: () => string }) {
     super();
@@ -39,10 +42,17 @@ export class PersistLink extends ApolloLink {
     const persist = context[PersistLink.PERSIST];
 
     if (!persist || !isMutation(operation.query)) {
+      // Cannot persist, skip this link
       return forward(operation);
     }
 
     const operationId = typeof persist !== 'string' ? this.generateId() : persist;
+
+    if (this.ongoingCountMap.get(operationId) > 0) {
+      // Operation with same id is already ongoing, cancel this one
+      return null;
+    }
+
     if (typeof persist !== 'string' || !hasOngoingOperation(persist, this.cache)) {
       context[PersistLink.PERSIST] = operationId;
       addOngoingOperation(
@@ -57,9 +67,21 @@ export class PersistLink extends ApolloLink {
       );
     }
 
-    return forward(operation).map((value) => {
-      removeOngoingOperation(operationId, this.cache);
-      return value;
+    return new Observable((observer) => {
+      this.ongoingCountMap.inc(operationId);
+
+      const sub = forward(operation)
+        .map((value) => {
+          // Remove operation from cache only when recevied a response from server
+          removeOngoingOperation(operationId, this.cache);
+          return value;
+        })
+        .subscribe(observer);
+
+      return () => {
+        this.ongoingCountMap.dec(operationId);
+        sub.unsubscribe();
+      };
     });
   }
 }

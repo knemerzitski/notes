@@ -1,5 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ApolloClient, ApolloLink, gql, InMemoryCache } from '@apollo/client';
+import {
+  ApolloClient,
+  ApolloLink,
+  FetchResult,
+  gql,
+  InMemoryCache,
+  NextLink,
+  Observable,
+  Operation,
+} from '@apollo/client';
 import { MockedResponse, MockLink } from '@apollo/client/testing';
 import { it, vi, expect } from 'vitest';
 import { mock } from 'vitest-mock-extended';
@@ -7,6 +16,8 @@ import { GraphQLError } from 'graphql';
 import { PersistLink } from '.';
 import { addTypePolicies, createTypePolicies } from '../../create/type-policies';
 import { graphQLPolicies } from '../../policies';
+import { resumeOngoingOperations } from './resume';
+import QueueLink from 'apollo-link-queue';
 
 const MUTATION = gql(`
   mutation Foo {
@@ -177,4 +188,63 @@ it('no mutation in cache on GraphQL error', async () => {
       },
     }
   `);
+});
+
+it('ignores ongoing mutation with duplicate persist id', () => {
+  const cache = new InMemoryCache();
+  addTypePolicies(createTypePolicies([graphQLPolicies], mock()), cache);
+
+  class OngoingIdsLink extends ApolloLink {
+    readonly ongoingIds: string[] = [];
+
+    override request(
+      operation: Operation,
+      forward?: NextLink
+    ): Observable<FetchResult> | null {
+      if (!forward) {
+        return null;
+      }
+
+      const id = operation.getContext()[PersistLink.PERSIST];
+
+      return new Observable((observer) => {
+        this.ongoingIds.push(id);
+        const sub = forward(operation).subscribe(observer);
+        return () => {
+          const idx = this.ongoingIds.indexOf(id);
+          if (idx != -1) {
+            this.ongoingIds.splice(idx, 1);
+          }
+          sub.unsubscribe();
+        };
+      });
+    }
+  }
+
+  const persistLink = new PersistLink(cache);
+  const ongoingIdsLink = new OngoingIdsLink();
+  const queueLink = new QueueLink();
+  const client = new ApolloClient({
+    cache,
+    link: ApolloLink.from([persistLink, ongoingIdsLink, queueLink]),
+  });
+
+  queueLink.close();
+
+  void client.mutate({
+    mutation: MUTATION,
+    context: {
+      [PersistLink.PERSIST]: true,
+    },
+  });
+
+  void Promise.allSettled([
+    ...resumeOngoingOperations(client, {}),
+    ...resumeOngoingOperations(client, {}),
+  ]);
+
+  expect(
+    ongoingIdsLink.ongoingIds,
+    'There should not be running more than 1 mutation with same persist id'
+  ).toHaveLength(1);
 });
