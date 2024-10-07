@@ -36,7 +36,7 @@ export const Query: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
         return existing;
       },
       localUser(existing = null, { cache }) {
-        if (existing == null) {
+        if (existing == null && !ctx.isCacheLocked) {
           return initializeWriteLocalUser(cache);
         }
 

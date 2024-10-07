@@ -33,6 +33,11 @@ export interface TypePoliciesContext {
    * Variable key that can be used in keyArgs to access user id used in request.
    */
   readonly variablesUserIdKey: string;
+  /**
+   * Cache is currently locked (e.g. when being restored from persistence). Do not modify cache while it's locked.
+   *
+   */
+  readonly isCacheLocked: boolean;
 }
 
 export type CreateTypePoliciesFn = (context: TypePoliciesContext) => TypePolicies;

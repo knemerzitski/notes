@@ -10,6 +10,7 @@ import { ApolloProvider } from '@apollo/client';
 import { CachePersistorProvider } from '../context/cache-persistor';
 import { RestorePersistedCache } from './RestorePersistedCache';
 import { ConfirmLeaveOnPendingPersistCache } from './ConfirmLeaveOnPendingPersistCache';
+import { CacheRestorerProvider } from '../context/cache-restorer';
 
 export function GraphQLServiceProvider({
   value,
@@ -26,12 +27,14 @@ export function GraphQLServiceProvider({
         <QueueLinkProvider value={value.links.queueLink}>
           <PersistLinkProvider value={value.links.persistLink}>
             <CachePersistorProvider value={value.persistor}>
-              <GateOnlineQueueLink />
-              <ConfirmLeaveOnPendingPersistCache triggerPersist={true} />
-              <RestorePersistedCache fallback={restoringCacheFallback}>
-                <ResumePersistedOngoingOperations />
-                {children}
-              </RestorePersistedCache>
+              <CacheRestorerProvider value={value.restorer}>
+                <GateOnlineQueueLink />
+                <ConfirmLeaveOnPendingPersistCache triggerPersist={true} />
+                <RestorePersistedCache fallback={restoringCacheFallback}>
+                  <ResumePersistedOngoingOperations />
+                  {children}
+                </RestorePersistedCache>
+              </CacheRestorerProvider>
             </CachePersistorProvider>
           </PersistLinkProvider>
         </QueueLinkProvider>

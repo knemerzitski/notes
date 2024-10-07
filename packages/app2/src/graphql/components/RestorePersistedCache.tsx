@@ -1,19 +1,7 @@
-import { ReactNode, useEffect, useRef, useState } from 'react';
-import { useCachePersistor } from '../context/cache-persistor';
+import { ReactNode, useEffect, useState } from 'react';
 import { IsCacheRestoredProvider } from '../context/is-cache-restored';
-
-type Status =
-  | {
-      type: 'init';
-    }
-  | {
-      type: 'restoring';
-      persistor: ReturnType<typeof useCachePersistor>;
-    }
-  | {
-      type: 'done';
-      persistor: ReturnType<typeof useCachePersistor>;
-    };
+import { useApolloClient } from '@apollo/client';
+import { useCacheRestorer } from '../context/cache-restorer';
 
 export function RestorePersistedCache({
   children,
@@ -22,27 +10,19 @@ export function RestorePersistedCache({
   children?: ReactNode;
   fallback?: ReactNode;
 }) {
-  const persistor = useCachePersistor();
-
-  const [isRestored, setIsRestored] = useState(false);
-  const statusRef = useRef<Status>({ type: 'init' });
+  const client = useApolloClient();
+  const restorer = useCacheRestorer();
+  const [isRestored, setIsRestored] = useState(restorer.status === 'done');
 
   useEffect(() => {
-    if (statusRef.current.type !== 'init' && statusRef.current.persistor === persistor) {
+    if (restorer.status !== 'init') {
       return;
     }
 
-    setIsRestored(false);
-    statusRef.current = {
-      type: 'restoring',
-      persistor,
-    };
-
-    void persistor.restore().finally(() => {
-      statusRef.current.type = 'done';
+    void restorer.restore().finally(() => {
       setIsRestored(true);
     });
-  }, [persistor]);
+  }, [restorer, client]);
 
   return (
     <IsCacheRestoredProvider value={isRestored}>

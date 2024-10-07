@@ -11,13 +11,11 @@ export function ConfirmLeaveOnPendingPersistCache({
    */
   triggerPersist?: boolean;
 }) {
-  const persistor = useCachePersistor(true);
+  const persistor = useCachePersistor();
 
   useBeforeUnload(
     useCallback(
       (e) => {
-        if (!persistor) return;
-
         if (persistor.isPending()) {
           e.preventDefault();
           if (triggerPersist) {
