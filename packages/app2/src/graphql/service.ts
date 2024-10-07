@@ -71,7 +71,7 @@ export function createGraphQLService({
   });
 
   const restorer = new CacheRestorer(persistor);
-  if (skipRestoreCache) {
+  if (!skipRestoreCache) {
     void restorer.restore();
   }
 

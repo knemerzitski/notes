@@ -15,10 +15,6 @@ export function RestorePersistedCache({
   const [isRestored, setIsRestored] = useState(restorer.status === 'done');
 
   useEffect(() => {
-    if (restorer.status !== 'init') {
-      return;
-    }
-
     void restorer.restore().finally(() => {
       setIsRestored(true);
     });
