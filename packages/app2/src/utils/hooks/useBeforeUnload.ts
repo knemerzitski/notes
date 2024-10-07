@@ -1,17 +1,18 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
+
+/**
+ * Triggers listener on `beforeunload` event.
+ * @param listener Must be from `useCallback` or an external function to not
+ * add/remove listener on every rerender
+ */
 
 export function useBeforeUnload(
   listener: (this: Window, event: BeforeUnloadEvent) => void
 ) {
-  const listenerRef = useRef(listener);
-  listenerRef.current = listener;
-
   useEffect(() => {
-    const _listener = listenerRef.current;
-
-    window.addEventListener('beforeunload', _listener);
+    window.addEventListener('beforeunload', listener);
     return () => {
-      window.removeEventListener('beforeunload', _listener);
+      window.removeEventListener('beforeunload', listener);
     };
-  }, []);
+  }, [listener]);
 }
