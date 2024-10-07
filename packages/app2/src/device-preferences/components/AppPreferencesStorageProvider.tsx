@@ -1,12 +1,13 @@
-import { ReactNode, useRef } from 'react';
+import { ReactNode } from 'react';
 import { PreferencesStorageProvider } from '../context/preferences-storage';
 import { createDefaultPreferencesStorage } from '..';
+import { useConstant } from '../../utils/hooks/useConstant';
 
 export function AppPreferencesStorageProvider({ children }: { children: ReactNode }) {
-  const preferencesStorage = useRef(createDefaultPreferencesStorage());
+  const preferencesStorage = useConstant(() => createDefaultPreferencesStorage());
 
   return (
-    <PreferencesStorageProvider value={preferencesStorage.current}>
+    <PreferencesStorageProvider value={preferencesStorage}>
       {children}
     </PreferencesStorageProvider>
   );

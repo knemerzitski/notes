@@ -11,6 +11,8 @@ export interface Entry<Key, Value> {
   value: Value;
 }
 
+export type ExcludeUndefined<T> = Exclude<T, undefined>;
+
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 export type WithRequired<T, TKey extends keyof T> = T & { [Key in TKey]-?: T[Key] };

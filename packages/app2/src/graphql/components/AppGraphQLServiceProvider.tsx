@@ -1,7 +1,8 @@
 /* eslint-disable unicorn/filename-case */
-import { ReactNode, useRef } from 'react';
+import { ReactNode } from 'react';
 import { GraphQLServiceProvider } from './GraphQLServiceProvider';
 import { createDefaultGraphQLService } from '..';
+import { useConstant } from '../../utils/hooks/useConstant';
 
 export function AppGraphQLServiceProvider({
   children,
@@ -10,11 +11,11 @@ export function AppGraphQLServiceProvider({
   children: ReactNode;
   restoringCacheFallback?: ReactNode;
 }) {
-  const service = useRef(createDefaultGraphQLService());
+  const service = useConstant(() => createDefaultGraphQLService());
 
   return (
     <GraphQLServiceProvider
-      value={service.current}
+      value={service}
       restoringCacheFallback={restoringCacheFallback}
     >
       {children}
