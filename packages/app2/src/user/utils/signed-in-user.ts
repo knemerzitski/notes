@@ -3,11 +3,11 @@ import { gql } from '../../__generated__';
 import { SignedInUserQuery } from '../../__generated__/graphql';
 import { Maybe, PartialDeep } from '~utils/types';
 
-const SIGNED_IN_USER = gql(`
+const CURRENT_SIGNED_IN_USER = gql(`
   query SignedInUser {
-    signedInUsers {
+    signedInUsers(localOnly: false) {
       id
-      isSessionExpired
+      sessionExpired
     }
     currentSignedInUser {
       id
@@ -17,11 +17,17 @@ const SIGNED_IN_USER = gql(`
 
 const SIGNED_IN_USERS = gql(`
   query SignedInUsers {
-    signedInUsers {
+    signedInUsers(localOnly: false) {
       id
       __typename
     }
   }
+`);
+
+const SIGNED_IN_USER_ID = gql(`
+  fragment SignedInUserId on SignedInUser {
+    id
+  }  
 `);
 
 export function addSignedInUser(
@@ -61,21 +67,24 @@ export function setCurrentSignedInUser(
 ) {
   const result = cache.updateQuery(
     {
-      query: SIGNED_IN_USER,
+      query: CURRENT_SIGNED_IN_USER,
       overwrite: true,
     },
     (data) => {
       if (!data) return;
-      if (data.currentSignedInUser?.id === userId) return;
+      if (data.currentSignedInUser.id === userId) return;
 
       return {
         ...data,
         currentSignedInUser:
-          (userId ? data.signedInUsers.find(({ id }) => id === userId) : null) ?? null,
+          (userId ? data.signedInUsers.find(({ id }) => id === userId) : null) ??
+          // Allow setting currentSignedInUser to null, field policy will return localUser instead
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (null as any),
       };
     }
   );
-  return result?.currentSignedInUser?.id == userId;
+  return result?.currentSignedInUser.id == userId;
 }
 
 export function getCurrentSignedInUserId(
@@ -86,11 +95,26 @@ export function getCurrentSignedInUserId(
   }
 
   const data = cache.readQuery({
-    query: SIGNED_IN_USER,
+    query: CURRENT_SIGNED_IN_USER,
     returnPartialData: true,
   });
   if (!data) return;
   return findAvailableUserId(data);
+}
+
+export function hasSignedInUser(
+  userId: string,
+  cache: Pick<ApolloCache<unknown>, 'readFragment' | 'identify'>
+) {
+  const signedInUser = cache.readFragment({
+    fragment: SIGNED_IN_USER_ID,
+    id: cache.identify({
+      __typename: 'SignedInUser',
+      id: userId,
+    }),
+  });
+
+  return signedInUser != null;
 }
 
 const userIdOverride = {
@@ -124,7 +148,7 @@ function findAvailableUserId(data: PartialDeep<SignedInUserQuery>) {
   let currentId = data.currentSignedInUser?.id;
   if (!currentId) {
     const firstUser =
-      data.signedInUsers?.find((user) => !user?.isSessionExpired) ??
+      data.signedInUsers?.find((user) => !user?.sessionExpired) ??
       data.signedInUsers?.[0];
     if (firstUser) {
       currentId = firstUser.id;

@@ -51,6 +51,7 @@
     "jsdom": "^24.0.0",
     "map-obj": "^5.0.2",
     "mitt": "npm:@knemerzitski/mitt@^3.0.4",
+    "nanoid": "^5.0.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-error-boundary": "^4.0.12",

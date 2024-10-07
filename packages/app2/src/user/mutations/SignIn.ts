@@ -25,5 +25,27 @@ export const SIGN_IN = createMutationOperation(
       }
     }
   }
-`)
+`),
+  (cache, result) => {
+    const data = result.data;
+    if (!data) return;
+
+    if (data.signIn.__typename === 'JustSignedInResult') {
+      // Add authProviderUser to SignedInUser.authProviderUsers
+      cache.writeFragment({
+        fragment: gql(`
+          fragment SignInAddAuthProviderUser on SignedInUser {
+            authProviderUsers {
+              id
+              email
+            }
+          }
+        `),
+        id: cache.identify(data.signIn.signedInUser),
+        data: {
+          authProviderUsers: [data.signIn.authProviderUser],
+        },
+      });
+    }
+  }
 );

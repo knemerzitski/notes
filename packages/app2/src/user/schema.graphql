@@ -1,12 +1,14 @@
 extend type SignedInUser {
   "Current session has expired and is unusable. Must sign in again."
-  isSessionExpired: Boolean!
+  sessionExpired: Boolean!
   "User email. This is stored only on client-side during sign-in and not in the server."
   email: String!
   "Find a provider by type"
   authProviderUser(type: AuthProviderUserType!): AuthProviderUser
   "Known providers that have been used to sign in"
   authProviderUsers: [AuthProviderUser!]!
+  "User is only used on the device locally. No network requests are made."
+  localOnly: Boolean!
 }
 
 enum AuthProviderUserType {
@@ -14,8 +16,10 @@ enum AuthProviderUserType {
 }
 
 extend type Query {
-  "Self-descriptive"
-  signedInUsers(id: ID): [SignedInUser!]!
-  "Current user that is being used during network requests."
-  currentSignedInUser: SignedInUser
+  "List of all available users. Always includes localUser."
+  signedInUsers(localOnly: Boolean): [SignedInUser!]!
+  "Currently selected user. All operations are executed using scope of this user. Defaults to localUser."
+  currentSignedInUser: SignedInUser!
+  "Always available local user"
+  localUser: SignedInUser!
 }
