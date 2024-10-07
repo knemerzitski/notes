@@ -5,7 +5,7 @@ export function createDefaultPreferencesStorageParams(): ConstructorParameters<
   typeof PreferencesStorage
 >[0] {
   return {
-    key: localStorageKey(LocalStoragePrefix.PREFERENCES, 'device'),
+    key: localStorageKey(LocalStoragePrefix.BOOTSTRAP, 'preferences'),
     storage: window.localStorage,
   };
 }
