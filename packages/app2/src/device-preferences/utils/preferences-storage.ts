@@ -1,13 +1,38 @@
 import { ColorMode } from '../../__generated__/graphql';
-import { coerce, defaulted, enums, Infer, nullable, string, type } from 'superstruct';
+import {
+  coerce,
+  defaulted,
+  enums,
+  Infer,
+  nullable,
+  string,
+  type,
+  unknown,
+} from 'superstruct';
 
-const PreferencesStruct = coerce(
-  type({
-    colorMode: defaulted(enums(Object.values(ColorMode)), () => ColorMode.SYSTEM),
-  }),
-  nullable(string()),
-  (value) => (value ? JSON.parse(value) : {}),
-  (value) => JSON.stringify(value)
+const PreferencesStruct = defaulted(
+  coerce(
+    type({
+      colorMode: coerce(enums(Object.values(ColorMode)), unknown(), (value) => {
+        if (Object.values(ColorMode).includes(value as ColorMode)) {
+          return value;
+        }
+        return ColorMode.SYSTEM;
+      }),
+    }),
+    nullable(string()),
+    (value) => {
+      if (!value) return {};
+
+      try {
+        return JSON.parse(value);
+      } catch (_err) {
+        return {};
+      }
+    },
+    (value) => JSON.stringify(value)
+  ),
+  () => ({})
 );
 
 /**
@@ -17,7 +42,13 @@ export class PreferencesStorage {
   private readonly key;
   private readonly storage;
 
-  constructor({ key, storage }: { key: string; storage: Storage }) {
+  constructor({
+    key,
+    storage,
+  }: {
+    key: string;
+    storage: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
+  }) {
     this.key = key;
     this.storage = storage;
   }
