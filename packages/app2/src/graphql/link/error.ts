@@ -11,8 +11,7 @@ interface ErrorEvents {
     readonly firstError: GraphQLError;
     readonly context: Context;
     /**
-     * Set to true to let other listeners to know what error
-     * has been handled
+     * Set to true to let other listeners know what error has been handled
      * @default false
      */
     handled: boolean;
@@ -28,7 +27,7 @@ export class ErrorLink extends ApolloLink {
    *
    * E.g. do not emit resource not found for the operation: \
    * `context: {
-   *  [Error.SKIP_EVENTS]: ['NOT_FOUND']
+   *  [Error.NO_EMIT]: [GraphQLErrorCode.NOT_FOUND]
    * }`
    */
   static NO_EMIT = '_ErrorLink-no_emit';
