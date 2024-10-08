@@ -8,6 +8,21 @@ module.exports = {
       },
     },
   },
+  rules: {
+    'no-restricted-imports': [
+      'error',
+      {
+        paths: [
+          {
+            name: '@tanstack/router-devtools',
+            importNames: ['TanStackRouterDevtools'],
+            message:
+              'Please use TanStackRouterDevtools from ./components/TanStackRouterDevTools instead.',
+          },
+        ],
+      },
+    ],
+  },
   overrides: [
     {
       files: ['*.[t]s?(x)'],

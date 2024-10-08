@@ -2,12 +2,15 @@ import { AppPreferencesStorageProvider } from './device-preferences/components/A
 import { AppGraphQLServiceProvider } from './graphql/components/AppGraphQLServiceProvider';
 import { AppThemeProvider } from './theme/components/AppThemeProvider';
 import { AppFallbackRestoringCache } from './utils/components/AppFallbackRestoringCache';
+import { AppRouterProvider } from './routes/components/AppRouterProvider';
 
 export function App() {
   return (
     <AppPreferencesStorageProvider>
       <AppGraphQLServiceProvider restoringCacheFallback={<AppFallbackRestoringCache />}>
-        <AppThemeProvider>Hello App!</AppThemeProvider>
+        <AppThemeProvider>
+          <AppRouterProvider />
+        </AppThemeProvider>
       </AppGraphQLServiceProvider>
     </AppPreferencesStorageProvider>
   );
