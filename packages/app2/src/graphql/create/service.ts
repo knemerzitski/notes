@@ -9,6 +9,7 @@ import { WebSocketClient } from '../ws/websocket-client';
 import { createHttpWsLink, createLinks } from './links';
 import {
   AppContext,
+  CacheReadyCallbacks,
   GlobalRequestVariables,
   MutationOperations,
   TypePoliciesList,
@@ -18,6 +19,7 @@ import { Maybe } from '~utils/types';
 import { TaggedEvict, TaggedEvictOptionsList } from '../utils/tagged-evict';
 import { createUpdateHandlersByName } from './update-handlers-by-name';
 import { CacheRestorer } from '../utils/cache-restorer';
+import { createRunCacheReadyCallbacks } from './cache-ready-callbacks';
 
 export function createGraphQLService({
   httpUri,
@@ -25,6 +27,7 @@ export function createGraphQLService({
   terminatingLink,
   possibleTypes,
   typePoliciesList,
+  cacheReadyCallbacks,
   evictOptionsList,
   mutationOperations,
   storageKey,
@@ -37,6 +40,7 @@ export function createGraphQLService({
   terminatingLink?: ApolloLink;
   possibleTypes?: PossibleTypesMap;
   typePoliciesList: TypePoliciesList;
+  cacheReadyCallbacks: CacheReadyCallbacks;
   evictOptionsList: TaggedEvictOptionsList;
   mutationOperations: MutationOperations;
   storageKey: string;
@@ -74,6 +78,12 @@ export function createGraphQLService({
   if (!skipRestoreCache) {
     void restorer.restore();
   }
+
+  createRunCacheReadyCallbacks({
+    callbacks: cacheReadyCallbacks,
+    restorer,
+    cache,
+  });
 
   const typePolicies = createTypePolicies(typePoliciesList, {
     appContext,

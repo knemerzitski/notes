@@ -2,7 +2,6 @@ import { Reference } from '@apollo/client';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
 import { keyArgsWithUserId } from '../../graphql/utils/key-args-with-user-id';
 import { EvictTag, TaggedEvictOptionsList } from '../../graphql/utils/tagged-evict';
-import { initializeWriteLocalUser } from '../utils/local-user';
 
 export const Query: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
   return {
@@ -31,13 +30,6 @@ export const Query: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
             }
           }
           return readField('localUser');
-        }
-
-        return existing;
-      },
-      localUser(existing = null, { cache }) {
-        if (existing == null && !ctx.isCacheLocked) {
-          return initializeWriteLocalUser(cache);
         }
 
         return existing;

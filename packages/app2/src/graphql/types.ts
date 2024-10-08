@@ -2,6 +2,7 @@ import {
   ApolloCache,
   DefaultContext,
   DocumentNode,
+  InMemoryCache,
   MutationUpdaterFunction,
   OperationVariables,
   TypedDocumentNode,
@@ -42,6 +43,12 @@ export interface TypePoliciesContext {
 
 export type CreateTypePoliciesFn = (context: TypePoliciesContext) => TypePolicies;
 export type CreateTypePolicyFn = (context: TypePoliciesContext) => TypePolicy;
+
+/**
+ * Invoked when cache is ready (e.g. restored)
+ */
+export type CacheReadyCallback = (cache: InMemoryCache) => void;
+export type CacheReadyCallbacks = CacheReadyCallback[];
 
 export type MutationOperation<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -2,8 +2,13 @@ import './graphql/dev';
 
 import { getCurrentSignedInUserId } from './user/utils/signed-in-user';
 import possibleTypes from './__generated__/possible-types.json';
-import { userEvictOptions, userMutations, userPolicies } from './user/policies';
-import { MutationOperations, TypePoliciesList } from './graphql/types';
+import {
+  userEvictOptions,
+  userCacheReadyCallback,
+  userMutations,
+  userPolicies,
+} from './user/policies';
+import { CacheReadyCallbacks, MutationOperations, TypePoliciesList } from './graphql/types';
 import { createGraphQLService } from './graphql/create/service';
 import { graphQLPolicies } from './graphql/policies';
 import { TaggedEvictOptionsList } from './graphql/utils/tagged-evict';
@@ -31,6 +36,8 @@ const EVICT_OPTIONS_LIST: TaggedEvictOptionsList = [...userEvictOptions];
 
 const MUTATION_OPERATIONS: MutationOperations = [...userMutations];
 
+const CACHE_READY_CALLBACKS: CacheReadyCallbacks = [userCacheReadyCallback];
+
 export function createDefaultGraphQLServiceParams(): Parameters<
   typeof createGraphQLService
 >[0] {
@@ -39,6 +46,7 @@ export function createDefaultGraphQLServiceParams(): Parameters<
     wsUrl: WS_URL,
     possibleTypes,
     typePoliciesList: TYPE_POLICIES_LIST,
+    cacheReadyCallbacks: CACHE_READY_CALLBACKS,
     evictOptionsList: EVICT_OPTIONS_LIST,
     mutationOperations: MUTATION_OPERATIONS,
     storageKey: localStorageKey(LocalStoragePrefix.APOLLO, 'cache'),
