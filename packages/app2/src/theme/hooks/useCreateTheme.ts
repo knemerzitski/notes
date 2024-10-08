@@ -2,8 +2,8 @@ import { useMediaQuery, createTheme } from '@mui/material';
 import { useMemo } from 'react';
 import { ColorMode } from '../../__generated__/graphql';
 import { useColorMode } from '../../device-preferences/hooks/useColorMode';
-import { CreateGlobalStylesFn } from '../global-styles';
-import { CreateThemeOptionsFn } from '../theme-options';
+import { CreateGlobalStylesFn } from '../../global-styles';
+import { CreateThemeOptionsFn } from '../../theme-options';
 
 export interface UseCreateThemeOptions {
   createThemeOptions: CreateThemeOptionsFn;
