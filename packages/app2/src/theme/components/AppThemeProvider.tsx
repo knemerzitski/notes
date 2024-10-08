@@ -6,8 +6,10 @@ import { ThemeProvider } from './ThemeProvider';
 export function AppThemeProvider({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider
-      createThemeOptions={createThemeOptions}
-      createGlobalStyles={createGlobalStyles}
+      createOptions={{
+        createGlobalStyles,
+        createThemeOptions,
+      }}
     >
       {children}
     </ThemeProvider>
