@@ -4,7 +4,7 @@ import { getCurrentSignedInUserId } from './user/utils/signed-in-user';
 import possibleTypes from './__generated__/possible-types.json';
 import { userEvictOptions, userMutations, userPolicies } from './user/policies';
 import { MutationOperations, TypePoliciesList } from './graphql/types';
-import { createGraphQLService } from './graphql/service';
+import { createGraphQLService } from './graphql/create/service';
 import { graphQLPolicies } from './graphql/policies';
 import { TaggedEvictOptionsList } from './graphql/utils/tagged-evict';
 import { localStorageKey, LocalStoragePrefix } from './local-storage';

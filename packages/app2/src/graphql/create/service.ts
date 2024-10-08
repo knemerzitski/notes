@@ -5,19 +5,19 @@ import {
   PossibleTypesMap,
 } from '@apollo/client';
 import { CachePersistor, PersistentStorage } from 'apollo3-cache-persist';
-import { WebSocketClient } from './ws/websocket-client';
-import { createHttpWsLink, createLinks } from './create/links';
+import { WebSocketClient } from '../ws/websocket-client';
+import { createHttpWsLink, createLinks } from './links';
 import {
   AppContext,
   GlobalRequestVariables,
   MutationOperations,
   TypePoliciesList,
-} from './types';
-import { addTypePolicies, createTypePolicies } from './create/type-policies';
+} from '../types';
+import { addTypePolicies, createTypePolicies } from './type-policies';
 import { Maybe } from '~utils/types';
-import { TaggedEvict, TaggedEvictOptionsList } from './utils/tagged-evict';
-import { createUpdateHandlersByName } from './create/update-handlers-by-name';
-import { CacheRestorer } from './utils/cache-restorer';
+import { TaggedEvict, TaggedEvictOptionsList } from '../utils/tagged-evict';
+import { createUpdateHandlersByName } from './update-handlers-by-name';
+import { CacheRestorer } from '../utils/cache-restorer';
 
 export function createGraphQLService({
   httpUri,

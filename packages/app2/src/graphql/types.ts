@@ -9,7 +9,7 @@ import {
   TypePolicy,
 } from '@apollo/client';
 import { Maybe } from '~utils/types';
-import { createGraphQLService } from './service';
+import { createGraphQLService } from './create/service';
 
 export enum GlobalRequestVariables {
   USER_ID = '_userId',
