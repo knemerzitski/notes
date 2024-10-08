@@ -1,15 +1,15 @@
-import './dev';
+import './graphql/dev';
 
-import { getCurrentSignedInUserId } from '../user/utils/signed-in-user';
-import possibleTypes from '../__generated__/possible-types.json';
-import { userEvictOptions, userMutations, userPolicies } from '../user/policies';
-import { MutationOperations, TypePoliciesList } from './types';
-import { createGraphQLService } from './service';
-import { graphQLPolicies } from './policies';
-import { TaggedEvictOptionsList } from './utils/tagged-evict';
-import { localStorageKey, LocalStoragePrefix } from '../local-storage';
+import { getCurrentSignedInUserId } from './user/utils/signed-in-user';
+import possibleTypes from './__generated__/possible-types.json';
+import { userEvictOptions, userMutations, userPolicies } from './user/policies';
+import { MutationOperations, TypePoliciesList } from './graphql/types';
+import { createGraphQLService } from './graphql/service';
+import { graphQLPolicies } from './graphql/policies';
+import { TaggedEvictOptionsList } from './graphql/utils/tagged-evict';
+import { localStorageKey, LocalStoragePrefix } from './local-storage';
 import { LocalStorageWrapper } from 'apollo3-cache-persist';
-import { devicePreferencesPolicies } from '../device-preferences/policies';
+import { devicePreferencesPolicies } from './device-preferences/policies';
 
 const HTTP_URL =
   import.meta.env.MODE === 'production'

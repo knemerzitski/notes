@@ -1,7 +1,7 @@
 /* eslint-disable unicorn/filename-case */
 import { ReactNode } from 'react';
 import { GraphQLServiceProvider } from './GraphQLServiceProvider';
-import { createDefaultGraphQLService } from '..';
+import { createDefaultGraphQLService } from '../../graphql-service';
 import { useConstant } from '../../utils/hooks/useConstant';
 
 export function AppGraphQLServiceProvider({
