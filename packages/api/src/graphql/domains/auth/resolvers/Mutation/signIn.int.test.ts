@@ -283,3 +283,42 @@ it('returns already signed in result with existing auth', async () => {
 
   expect(spyInsertSession).not.toHaveBeenCalled();
 });
+
+it('signs in new user while already authenticated with another user', async () => {
+  const authProviderUser = {
+    id: user.thirdParty!.google!.id! + 'new',
+    email: 'aaaaa@email.com',
+    name: 'second',
+  };
+  verifyCredentialToken.mockResolvedValueOnce(authProviderUser);
+
+  const response = await executeOperation(
+    {
+      auth: {
+        google: {
+          token: 'irrelevant',
+        },
+      },
+    },
+    {
+      user,
+    }
+  );
+
+  const data = expectGraphQLResponseData(response);
+  expect(data).toEqual({
+    signIn: {
+      authProviderUser: {
+        id: authProviderUser.id,
+        email: authProviderUser.email,
+      },
+      signedInUser: {
+        id: expect.any(String),
+        public: {
+          profile: { displayName: 'second' },
+        },
+      },
+      availableUserIds: [objectIdToStr(user._id), expect.any(String)],
+    },
+  });
+});

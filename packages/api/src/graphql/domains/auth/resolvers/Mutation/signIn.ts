@@ -22,19 +22,6 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
 ) => {
   const { mongoDB, cookies, response } = ctx;
 
-  if (isAuthenticated(ctx.auth)) {
-    const currentUserId = ctx.auth.session.userId;
-    return {
-      __typename: 'AlreadySignedInResult',
-      signedInUser: {
-        query: mongoDB.loaders.user.createQueryFn({
-          userId: currentUserId,
-        }),
-      },
-      availableUserIds: cookies.getAvailableSessionUserIds(),
-    };
-  }
-
   const { input } = arg;
 
   const googleAuthToken = input.auth.google.token;
@@ -76,7 +63,7 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
     ),
   ]);
 
-  let currentUserId: ObjectId;
+  let signedInUserId: ObjectId;
   if (!existingUser) {
     const newUser = await insertUserWithGoogleUser({
       id: googleUserId,
@@ -84,14 +71,29 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
       mongoDB,
     });
 
-    currentUserId = newUser._id;
+    signedInUserId = newUser._id;
   } else {
-    currentUserId = existingUser._id;
+    signedInUserId = existingUser._id;
+  }
+
+  if (isAuthenticated(ctx.auth)) {
+    const currentUserId = ctx.auth.session.userId;
+    if (currentUserId.equals(signedInUserId)) {
+      return {
+        __typename: 'AlreadySignedInResult',
+        signedInUser: {
+          query: mongoDB.loaders.user.createQueryFn({
+            userId: currentUserId,
+          }),
+        },
+        availableUserIds: cookies.getAvailableSessionUserIds(),
+      };
+    }
   }
 
   const newSession = await insertSession({
     mongoDB,
-    userId: currentUserId,
+    userId: signedInUserId,
     duration: new SessionDuration(
       ctx.options?.sessions?.user ?? {
         duration: 1000 * 60 * 60 * 24 * 14, // 14 days,
@@ -100,7 +102,7 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
     ),
   });
 
-  cookies.setSession(currentUserId, newSession.cookieId);
+  cookies.setSession(signedInUserId, newSession.cookieId);
   cookies.putCookiesToHeaders(response.multiValueHeaders);
 
   // Set auth after sign in
@@ -112,7 +114,7 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
     __typename: 'JustSignedInResult',
     signedInUser: {
       query: mongoDB.loaders.user.createQueryFn({
-        userId: currentUserId,
+        userId: signedInUserId,
       }),
     },
     availableUserIds: cookies.getAvailableSessionUserIds(),
