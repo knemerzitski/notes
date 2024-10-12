@@ -8,6 +8,9 @@ export default defineConfig({
   plugins: [react(), tsconfigPaths()],
   envDir: '../../',
   test: {
+    coverage: {
+      provider: 'v8',
+    },
     include: ['src/**/*.test.{ts,tsx}'],
     setupFiles: ['src/__test__/helpers/setup.ts'],
     environment: 'jsdom',
