@@ -47,8 +47,14 @@ module.exports = {
       },
     },
     {
-      // PascalCase: React components
-      files: ['./src/*/components/**'],
+      files: [
+        // React and styled components
+        './src/{*,*/*}/{components,styles}/**',
+        // GraphQL mutations
+        './src/*/mutations/**',
+        // GraphQL type policies
+        './src/*/policies/*',
+      ],
       rules: {
         'unicorn/filename-case': [
           'error',
@@ -59,44 +65,13 @@ module.exports = {
       },
     },
     {
-      // camelCase: React hooks
-      files: ['./src/*/hooks/**'],
-      rules: {
-        'unicorn/filename-case': [
-          'error',
-          {
-            case: 'camelCase',
-          },
-        ],
-      },
-    },
-    {
-      // PascalCase: GraphQL mutations
-      files: ['./src/*/mutations/**'],
-      rules: {
-        'unicorn/filename-case': [
-          'error',
-          {
-            case: 'pascalCase',
-          },
-        ],
-      },
-    },
-    {
-      // PascalCase: GraphQL type policies
-      files: ['./src/*/policies/*'],
-      rules: {
-        'unicorn/filename-case': [
-          'error',
-          {
-            case: 'pascalCase',
-          },
-        ],
-      },
-    },
-    {
-      // camelCase: GraphQL field policies
-      files: ['./src/*/policies/*/*'],
+      files: [
+        // React hooks
+        './src/*/hooks/**',
+        './src/*/*/hooks/**',
+        // GraphQL field policies
+        './src/*/policies/*/*',
+      ],
       rules: {
         'unicorn/filename-case': [
           'error',
