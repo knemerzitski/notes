@@ -3,7 +3,7 @@ import { createRouterContext, router } from '../../router';
 import { useMemo } from 'react';
 import { useApolloClient } from '@apollo/client';
 
-export function AppRouterProvider() {
+export function AppRoutesModuleProvider() {
   const apolloClient = useApolloClient();
 
   const context = useMemo(

@@ -21,14 +21,14 @@ export function useCachePersistor(nullable?: boolean): Maybe<ProvidedCachePersis
 }
 
 export function CachePersistorProvider({
-  value,
+  persistor,
   children,
 }: {
-  value: ProvidedCachePersistor;
+  persistor: ProvidedCachePersistor;
   children: ReactNode;
 }) {
   return (
-    <CachePersistorContext.Provider value={value}>
+    <CachePersistorContext.Provider value={persistor}>
       {children}
     </CachePersistorContext.Provider>
   );

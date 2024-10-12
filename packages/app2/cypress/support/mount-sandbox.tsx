@@ -3,7 +3,7 @@ import { mount } from 'cypress/react18';
 import { ReactNode } from 'react';
 
 import './commands';
-import { AppThemeProvider } from '../../src/theme/components/AppThemeProvider';
+import { AppThemeModuleProvider } from '../../src/theme/components/AppThemeModuleProvider';
 
 /**
  * Mount in a experimental sandbox to tinker with components.
@@ -12,7 +12,7 @@ import { AppThemeProvider } from '../../src/theme/components/AppThemeProvider';
  */
 export const mountSandbox: typeof mount = (jsx: ReactNode, ...restArgs) => {
   return mount(
-    <AppThemeProvider>
+    <AppThemeModuleProvider>
       <Box
         sx={{
           width: '100vw',
@@ -32,7 +32,7 @@ export const mountSandbox: typeof mount = (jsx: ReactNode, ...restArgs) => {
           {jsx}
         </Card>
       </Box>
-    </AppThemeProvider>,
+    </AppThemeModuleProvider>,
     ...restArgs
   );
 };

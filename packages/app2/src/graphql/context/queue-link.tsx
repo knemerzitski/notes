@@ -17,11 +17,13 @@ export function useQueueLink(nullable?: boolean): Maybe<ProvidedQueueLink> {
 }
 
 export function QueueLinkProvider({
-  value,
+  queueLink,
   children,
 }: {
-  value: ProvidedQueueLink;
+  queueLink: ProvidedQueueLink;
   children: ReactNode;
 }) {
-  return <QueueLinkContext.Provider value={value}>{children}</QueueLinkContext.Provider>;
+  return (
+    <QueueLinkContext.Provider value={queueLink}>{children}</QueueLinkContext.Provider>
+  );
 }

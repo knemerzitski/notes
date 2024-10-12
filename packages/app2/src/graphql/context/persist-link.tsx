@@ -17,13 +17,15 @@ export function usePersistLink(nullable?: boolean): Maybe<ProvidedPersistLink> {
 }
 
 export function PersistLinkProvider({
-  value,
+  persistLink,
   children,
 }: {
-  value: ProvidedPersistLink;
+  persistLink: ProvidedPersistLink;
   children: ReactNode;
 }) {
   return (
-    <PersistLinkContext.Provider value={value}>{children}</PersistLinkContext.Provider>
+    <PersistLinkContext.Provider value={persistLink}>
+      {children}
+    </PersistLinkContext.Provider>
   );
 }

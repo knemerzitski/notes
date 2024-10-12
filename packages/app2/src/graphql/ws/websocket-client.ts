@@ -8,6 +8,7 @@ import {
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 import { AppContext } from '../types';
+import { isLocalId } from '../../utils/is-local-id';
 
 export class WebSocketClient {
   readonly client;
@@ -53,7 +54,7 @@ export class WebSocketClient {
   private connectionParams() {
     // Send authentication in connection init
     const userId = this.context.userId;
-    if (!userId) return;
+    if (!userId || isLocalId(userId)) return;
 
     const payload: ConnectionInitMessage['payload'] = {
       headers: {

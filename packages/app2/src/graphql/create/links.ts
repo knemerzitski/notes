@@ -12,6 +12,7 @@ import QueueLink from 'apollo-link-queue';
 import SerializingLink from 'apollo-link-serialize';
 import { isSubscription } from '../utils/operation-type';
 import { PersistLink } from '../link/persist';
+import apolloLogger from 'apollo-link-logger';
 
 export function createHttpWsLink({
   httpUri,
@@ -45,8 +46,14 @@ export function createLinks({
      * Throttle each request by milliseconds
      */
     throttle?: number;
+    /**
+     * Include a logger link
+     * @default false
+     */
+    logging?: boolean;
   };
 }) {
+  const loggerLink = debug?.logging ? apolloLogger : passthrough();
   const statsLink = new StatsLink();
   const errorLink = new ErrorLink();
   const persistLink = new PersistLink(cache);
@@ -62,8 +69,9 @@ export function createLinks({
 
   return {
     link: ApolloLink.from([
-      statsLink,
+      loggerLink,
       errorLink,
+      statsLink,
       persistLink,
       queueLink,
       serializingLink,

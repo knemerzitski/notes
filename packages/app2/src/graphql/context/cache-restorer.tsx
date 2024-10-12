@@ -17,14 +17,14 @@ export function useCacheRestorer(nullable?: boolean): Maybe<ProvidedCacheRestore
 }
 
 export function CacheRestorerProvider({
-  value,
+  restorer,
   children,
 }: {
-  value: ProvidedCacheRestorer;
+  restorer: ProvidedCacheRestorer;
   children: ReactNode;
 }) {
   return (
-    <CacheRestorerContext.Provider value={value}>
+    <CacheRestorerContext.Provider value={restorer}>
       {children}
     </CacheRestorerContext.Provider>
   );

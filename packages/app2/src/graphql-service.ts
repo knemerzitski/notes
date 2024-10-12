@@ -1,6 +1,5 @@
 import './graphql/dev';
 
-import { getCurrentSignedInUserId } from './user/utils/signed-in-user';
 import possibleTypes from './__generated__/possible-types.json';
 import {
   userEvictOptions,
@@ -8,13 +7,18 @@ import {
   userMutations,
   userPolicies,
 } from './user/policies';
-import { CacheReadyCallbacks, MutationOperations, TypePoliciesList } from './graphql/types';
+import {
+  CacheReadyCallbacks,
+  MutationOperations,
+  TypePoliciesList,
+} from './graphql/types';
 import { createGraphQLService } from './graphql/create/service';
 import { graphQLPolicies } from './graphql/policies';
 import { TaggedEvictOptionsList } from './graphql/utils/tagged-evict';
 import { localStorageKey, LocalStoragePrefix } from './local-storage';
 import { LocalStorageWrapper } from 'apollo3-cache-persist';
 import { devicePreferencesPolicies } from './device-preferences/policies';
+import { getCurrentUserId } from './user/utils/signed-in-user/get-current';
 
 const HTTP_URL =
   import.meta.env.MODE === 'production'
@@ -52,8 +56,15 @@ export function createDefaultGraphQLServiceParams(): Parameters<
     storageKey: localStorageKey(LocalStoragePrefix.APOLLO, 'cache'),
     storage: new LocalStorageWrapper(window.localStorage),
     context: {
-      getUserId: getCurrentSignedInUserId,
+      getUserId: getCurrentUserId,
     },
+    linksDebug:
+      import.meta.env.MODE !== 'production'
+        ? {
+            throttle: 0,
+            logging: true,
+          }
+        : undefined,
   };
 }
 

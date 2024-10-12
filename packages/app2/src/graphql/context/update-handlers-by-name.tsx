@@ -14,14 +14,14 @@ export function useUpdateHandlersByName(): UpdateHandlersByName {
 }
 
 export function UpdateHandlersByNameProvider({
-  value,
+  handlers,
   children,
 }: {
-  value: UpdateHandlersByName;
+  handlers: UpdateHandlersByName;
   children: ReactNode;
 }) {
   return (
-    <UpdateHandlersByNameContext.Provider value={value}>
+    <UpdateHandlersByNameContext.Provider value={handlers}>
       {children}
     </UpdateHandlersByNameContext.Provider>
   );
