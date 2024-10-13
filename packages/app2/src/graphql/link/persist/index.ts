@@ -13,6 +13,36 @@ import { removeOngoingOperation } from './remove';
 import { isMutation } from '../../utils/document/is-mutation';
 import { hasOngoingOperation } from './has';
 import { CountMap } from '~utils/count-map';
+import { hasDirectives, removeDirectivesFromDocument } from '@apollo/client/utilities';
+
+const PERSIST_DIRECTIVE = 'persist';
+
+function hasPersistDirective(operation: Operation) {
+  return hasDirectives([PERSIST_DIRECTIVE], operation.query);
+}
+
+function removePersistDirective(operation: Operation): Operation {
+  if (!hasPersistDirective(operation)) {
+    return operation;
+  }
+
+  return {
+    extensions: operation.extensions,
+    operationName: operation.operationName,
+    variables: operation.variables,
+    setContext: operation.setContext,
+    getContext: operation.getContext,
+    query:
+      removeDirectivesFromDocument(
+        [
+          {
+            name: PERSIST_DIRECTIVE,
+          },
+        ],
+        operation.query
+      ) ?? operation.query,
+  };
+}
 
 export class PersistLink extends ApolloLink {
   private readonly cache;
@@ -39,11 +69,16 @@ export class PersistLink extends ApolloLink {
 
     const context = operation.getContext();
 
-    const persist = context[PersistLink.PERSIST];
+    const hasDirective = hasPersistDirective(operation);
+    const persist = context[PersistLink.PERSIST] || hasDirective;
 
     if (!persist || !isMutation(operation.query)) {
       // Cannot persist, skip this link
       return forward(operation);
+    }
+
+    if (hasDirective) {
+      operation = removePersistDirective(operation);
     }
 
     const operationId = typeof persist !== 'string' ? this.generateId() : persist;

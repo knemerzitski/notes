@@ -4,6 +4,12 @@ These fields are not sent to the GraphQL server.
 """
 directive @client on FIELD
 
+"""
+The @persist directive will persist operation in cache until it has received a response from server.
+When app is reopened, all unfinished mutations are resumed.
+"""
+directive @persist on FIELD
+
 union SerializeKey = Int | Float | String | Boolean | ID
 
 """
