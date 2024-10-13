@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { resumeOngoingOperations } from '../link/persist/resume';
 import { useApolloClient } from '@apollo/client';
-import { useUpdateHandlersByName } from '../context/update-handlers-by-name';
+import { useGetDocumentUpdater } from '../context/get-document-updater';
 
 type Status =
   | {
@@ -10,17 +10,17 @@ type Status =
   | {
       type: 'resuming';
       client: ReturnType<typeof useApolloClient>;
-      updateHandlersByName: ReturnType<typeof useUpdateHandlersByName>;
+      getDocumentUpdater: ReturnType<typeof useGetDocumentUpdater>;
     }
   | {
       type: 'done';
       client: ReturnType<typeof useApolloClient>;
-      updateHandlersByName: ReturnType<typeof useUpdateHandlersByName>;
+      getDocumentUpdater: ReturnType<typeof useGetDocumentUpdater>;
     };
 
 export function ResumePersistedOngoingOperations() {
   const client = useApolloClient();
-  const updateHandlersByName = useUpdateHandlersByName();
+  const getDocumentUpdater = useGetDocumentUpdater();
 
   const statusRef = useRef<Status>({ type: 'init' });
 
@@ -28,7 +28,7 @@ export function ResumePersistedOngoingOperations() {
     if (
       statusRef.current.type !== 'init' &&
       statusRef.current.client === client &&
-      statusRef.current.updateHandlersByName == updateHandlersByName
+      statusRef.current.getDocumentUpdater == getDocumentUpdater
     ) {
       return;
     }
@@ -36,15 +36,15 @@ export function ResumePersistedOngoingOperations() {
     statusRef.current = {
       type: 'resuming',
       client,
-      updateHandlersByName,
+      getDocumentUpdater,
     };
 
-    void Promise.allSettled(
-      resumeOngoingOperations(client, updateHandlersByName)
-    ).finally(() => {
-      statusRef.current.type = 'done';
-    });
-  }, [client, updateHandlersByName]);
+    void Promise.allSettled(resumeOngoingOperations(client, getDocumentUpdater)).finally(
+      () => {
+        statusRef.current.type = 'done';
+      }
+    );
+  }, [client, getDocumentUpdater]);
 
   return null;
 }

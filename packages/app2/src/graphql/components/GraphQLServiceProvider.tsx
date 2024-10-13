@@ -5,7 +5,7 @@ import { QueueLinkProvider } from '../context/queue-link';
 import { GateOnlineQueueLink } from './GateOnlineQueueLink';
 import { PersistLinkProvider } from '../context/persist-link';
 import { ResumePersistedOngoingOperations } from './ResumePersistedOngoingOperations';
-import { UpdateHandlersByNameProvider } from '../context/update-handlers-by-name';
+import { GetDocumentUpdaterProvider } from '../context/get-document-updater';
 import { ApolloProvider } from '@apollo/client';
 import { CachePersistorProvider } from '../context/cache-persistor';
 import { RestorePersistedCache } from './RestorePersistedCache';
@@ -25,7 +25,7 @@ export function GraphQLServiceProvider({
 }) {
   return (
     <ApolloProvider client={service.client}>
-      <UpdateHandlersByNameProvider handlers={service.updateHandlersByName}>
+      <GetDocumentUpdaterProvider getUpdater={service.documentUpdaterMap.get}>
         <QueueLinkProvider queueLink={service.links.queueLink}>
           <PersistLinkProvider persistLink={service.links.persistLink}>
             <ErrorLinkProvider errorLink={service.links.errorLink}>
@@ -44,7 +44,7 @@ export function GraphQLServiceProvider({
             </ErrorLinkProvider>
           </PersistLinkProvider>
         </QueueLinkProvider>
-      </UpdateHandlersByNameProvider>
+      </GetDocumentUpdaterProvider>
     </ApolloProvider>
   );
 }

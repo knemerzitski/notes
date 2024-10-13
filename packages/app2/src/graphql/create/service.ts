@@ -11,15 +11,15 @@ import {
   AppContext,
   CacheReadyCallbacks,
   GlobalRequestVariables,
-  MutationOperations,
+  DocumentUpdateDefinitions,
   TypePoliciesList,
 } from '../types';
 import { addTypePolicies, createTypePolicies } from './type-policies';
 import { Maybe } from '~utils/types';
 import { TaggedEvict, TaggedEvictOptionsList } from '../utils/tagged-evict';
-import { createUpdateHandlersByName } from './update-handlers-by-name';
 import { CacheRestorer } from '../utils/cache-restorer';
 import { createRunCacheReadyCallbacks } from './cache-ready-callbacks';
+import { createDocumentUpdaterMap } from './document-updater-map';
 
 export function createGraphQLService({
   httpUri,
@@ -29,7 +29,7 @@ export function createGraphQLService({
   typePoliciesList,
   cacheReadyCallbacks,
   evictOptionsList,
-  mutationOperations,
+  documentUpdateDefinitions,
   storageKey,
   storage,
   context,
@@ -43,7 +43,7 @@ export function createGraphQLService({
   typePoliciesList: TypePoliciesList;
   cacheReadyCallbacks: CacheReadyCallbacks;
   evictOptionsList: TaggedEvictOptionsList;
-  mutationOperations: MutationOperations;
+  documentUpdateDefinitions: DocumentUpdateDefinitions;
   storageKey: string;
   storage: PersistentStorage<string>;
   /**
@@ -57,7 +57,7 @@ export function createGraphQLService({
   };
   linksDebug?: Parameters<typeof createLinks>[0]['debug'];
 }) {
-  const updateHandlersByName = createUpdateHandlersByName(mutationOperations);
+  const documentUpdaterMap = createDocumentUpdaterMap(documentUpdateDefinitions);
 
   const appContext: AppContext = {
     get userId() {
@@ -141,7 +141,7 @@ export function createGraphQLService({
     restorer,
     wsClient,
     links: links.pick,
-    updateHandlersByName,
+    documentUpdaterMap,
     taggedEvict,
   };
 }

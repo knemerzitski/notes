@@ -10,7 +10,7 @@ import {
 } from '@apollo/client';
 import { addOngoingOperation } from './add';
 import { removeOngoingOperation } from './remove';
-import { isMutation } from '../../utils/operation-type';
+import { isMutation } from '../../utils/document/is-mutation';
 import { hasOngoingOperation } from './has';
 import { CountMap } from '~utils/count-map';
 

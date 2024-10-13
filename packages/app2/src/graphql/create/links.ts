@@ -10,7 +10,7 @@ import { AppContext } from '../types';
 import { RetryLink } from '@apollo/client/link/retry';
 import QueueLink from 'apollo-link-queue';
 import SerializingLink from 'apollo-link-serialize';
-import { isSubscription } from '../utils/operation-type';
+import { isSubscription } from '../utils/document/is-subscription';
 import { PersistLink } from '../link/persist';
 import apolloLogger from 'apollo-link-logger';
 

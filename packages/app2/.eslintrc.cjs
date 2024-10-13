@@ -19,6 +19,11 @@ module.exports = {
             message:
               'Please use TanStackRouterDevtools from ./components/TanStackRouterDevTools instead.',
           },
+          {
+            name: '@apollo/client',
+            importNames: ['useMutation'],
+            message: 'Please use useMutation from ./graphql/hooks/useMutation instead.',
+          },
         ],
       },
     ],

@@ -1,14 +1,28 @@
-import { ApolloCache, ApolloClient } from '@apollo/client';
+import {
+  ApolloCache,
+  ApolloClient,
+  DefaultContext,
+  MutationUpdaterFunction,
+  OperationVariables,
+} from '@apollo/client';
 import { getAllOngoingOperations } from './get-all';
-import { getOperationKind } from '../../utils/operation-type';
 import { OperationTypeNode } from 'graphql';
-import { UpdateHandlersByName } from '../../types';
+import { getOperationKind } from '../../utils/document/get-operation-kind';
 
 export function resumeOngoingOperations(
   apolloClient: Pick<ApolloClient<unknown>, 'mutate'> & {
     cache: Pick<ApolloCache<unknown>, 'readQuery' | 'evict' | 'identify' | 'modify'>;
   },
-  updateHandlerByName: UpdateHandlersByName
+  getUpdater: (name: string) =>
+    | MutationUpdaterFunction<
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        any,
+        OperationVariables,
+        DefaultContext,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ApolloCache<any>
+      >
+    | undefined
 ) {
   const ongoingOperations = getAllOngoingOperations(apolloClient.cache);
 
@@ -26,7 +40,7 @@ export function resumeOngoingOperations(
       variables: JSON.parse(op.variables),
       context: JSON.parse(op.context),
       optimisticResponse: context.optimisticResponse,
-      update: updateHandlerByName[op.operationName],
+      update: getUpdater(op.operationName),
     });
   });
 }

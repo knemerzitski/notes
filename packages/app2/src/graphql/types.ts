@@ -50,9 +50,7 @@ export type CreateTypePolicyFn = (context: TypePoliciesContext) => TypePolicy;
 export type CacheReadyCallback = (cache: InMemoryCache) => void;
 export type CacheReadyCallbacks = CacheReadyCallback[];
 
-export type MutationOperation<
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  THaveUpdateFn extends boolean = any,
+export interface DocumentUpdateDefinition<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   TData = any,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -60,31 +58,41 @@ export type MutationOperation<
   TContext = DefaultContext,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   TCache extends ApolloCache<any> = ApolloCache<any>,
-> = {
-  mutation: DocumentNode | TypedDocumentNode<TData, TVariables>;
-} & (THaveUpdateFn extends true
-  ? {
-      update: MutationUpdaterFunction<
-        NoInfer<TData>,
-        NoInfer<TVariables>,
-        TContext,
-        TCache
-      >;
-    }
-  : { update?: never });
+> {
+  readonly document: DocumentNode | TypedDocumentNode<TData, TVariables>;
+  readonly update?: MutationUpdaterFunction<
+    NoInfer<TData>,
+    NoInfer<TVariables>,
+    TContext,
+    TCache
+  >;
+}
 
-export type MutationOperations = MutationOperation[];
+export type DocumentUpdateDefinitions = DocumentUpdateDefinition[];
 
-export type UpdateHandlersByName = Record<
-  string,
-  MutationUpdaterFunction<
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    any,
-    OperationVariables,
-    DefaultContext,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ApolloCache<any>
-  >
->;
+export interface DocumentUpdaterMap {
+  set: (
+    document: DocumentNode,
+    update: MutationUpdaterFunction<
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      any,
+      OperationVariables,
+      DefaultContext,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ApolloCache<any>
+    >
+  ) => void;
+  get: (documentOrOperationName: DocumentNode | string) =>
+    | MutationUpdaterFunction<
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        any,
+        OperationVariables,
+        DefaultContext,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ApolloCache<any>
+      >
+    | undefined;
+  delete: (documentOrOperationName: DocumentNode | string) => void;
+}
 
 export type GraphQLService = ReturnType<typeof createGraphQLService>;

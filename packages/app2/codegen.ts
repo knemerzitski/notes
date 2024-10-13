@@ -1,4 +1,5 @@
 import { CodegenConfig } from '@graphql-codegen/cli';
+import { ClientPresetConfig } from '@graphql-codegen/client-preset';
 
 const config: CodegenConfig = {
   schema: '../api/src/graphql/domains/*/schema.graphql',
@@ -9,7 +10,8 @@ const config: CodegenConfig = {
       schema: './src/**/schema.graphql',
       presetConfig: {
         gqlTagName: 'gql',
-      },
+        fragmentMasking: { unmaskFunctionName: 'getFragmentData' },
+      } satisfies ClientPresetConfig,
       config: {
         scalars: {
           ID: { input: 'string', output: 'string' },
