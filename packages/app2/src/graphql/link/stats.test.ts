@@ -5,7 +5,7 @@ import { it, vi, expect } from 'vitest';
 import { StatsLink } from './stats';
 import { GraphQLError } from 'graphql';
 
-const QUERY = gql(`
+const Query = gql(`
   query Foo {
     foo {
       bar
@@ -13,7 +13,7 @@ const QUERY = gql(`
   }  
 `);
 
-const MUTATION = gql(`
+const Mutation = gql(`
   mutation Foo {
     foo
   }  
@@ -22,7 +22,7 @@ const MUTATION = gql(`
 const mocks: MockedResponse<any, any>[] = [
   {
     request: {
-      query: QUERY,
+      query: Query,
     },
     result: {
       data: {
@@ -34,7 +34,7 @@ const mocks: MockedResponse<any, any>[] = [
   },
   {
     request: {
-      query: MUTATION,
+      query: Mutation,
     },
     result: {
       data: {
@@ -44,7 +44,7 @@ const mocks: MockedResponse<any, any>[] = [
   },
   {
     request: {
-      query: MUTATION,
+      query: Mutation,
       variables: {
         graphQLError: true,
       },
@@ -55,7 +55,7 @@ const mocks: MockedResponse<any, any>[] = [
   },
   {
     request: {
-      query: MUTATION,
+      query: Mutation,
       variables: {
         networkError: true,
       },
@@ -77,14 +77,14 @@ it('calls events with correct stats', async () => {
   });
 
   await client.query({
-    query: QUERY,
+    query: Query,
   });
   await client.mutate({
-    mutation: MUTATION,
+    mutation: Mutation,
   });
   try {
     await client.mutate({
-      mutation: MUTATION,
+      mutation: Mutation,
       variables: {
         graphQLError: true,
       },
@@ -95,7 +95,7 @@ it('calls events with correct stats', async () => {
   }
   try {
     await client.mutate({
-      mutation: MUTATION,
+      mutation: Mutation,
       variables: {
         networkError: true,
       },

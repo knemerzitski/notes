@@ -2,8 +2,8 @@ import { ApolloCache } from '@apollo/client';
 import { gql } from '../../../__generated__';
 import { ApolloOperation } from '../../../__generated__/graphql';
 
-const ADD_ONGOING_OPERATION = gql(`
-  query AddOngoingOperation {
+const AddOngoingOperation_Query = gql(`
+  query AddOngoingOperation_Query {
     ongoingOperations {
       id
       operationName
@@ -15,12 +15,13 @@ const ADD_ONGOING_OPERATION = gql(`
 `);
 
 export function addOngoingOperation(
-  operation: ApolloOperation,
+  operation: Omit<ApolloOperation, '__typename'>,
   cache: Pick<ApolloCache<unknown>, 'writeQuery'>
 ) {
   cache.writeQuery({
-    query: ADD_ONGOING_OPERATION,
+    query: AddOngoingOperation_Query,
     data: {
+      __typename: 'Query',
       ongoingOperations: [
         {
           __typename: 'ApolloOperation',

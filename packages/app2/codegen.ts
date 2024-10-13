@@ -29,6 +29,7 @@ const config: CodegenConfig = {
           typeNames: 'change-case-all#pascalCase',
           enumValues: 'change-case-all#upperCase',
         },
+        nonOptionalTypename: true,
       },
     },
   },

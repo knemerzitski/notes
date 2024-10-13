@@ -8,7 +8,7 @@ import { resumeOngoingOperations } from './resume';
 import { addTypePolicies, createTypePolicies } from '../../create/type-policies';
 import { graphQLPolicies } from '../../policies';
 
-const MUTATION = gql(`
+const Mutation = gql(`
   mutation Foo {
     foo {
       bar
@@ -19,7 +19,7 @@ const MUTATION = gql(`
 const mocks: MockedResponse<any, any>[] = [
   {
     request: {
-      query: MUTATION,
+      query: Mutation,
       variables: {
         networkError: true,
       },
@@ -28,7 +28,7 @@ const mocks: MockedResponse<any, any>[] = [
   },
   {
     request: {
-      query: MUTATION,
+      query: Mutation,
       variables: {
         networkError: true,
       },
@@ -62,7 +62,7 @@ it('resumes cached error and calls updateFn', async () => {
 
   try {
     await client.mutate({
-      mutation: MUTATION,
+      mutation: Mutation,
       variables: {
         networkError: true,
       },

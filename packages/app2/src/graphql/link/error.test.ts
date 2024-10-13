@@ -5,7 +5,7 @@ import { it, vi, expect } from 'vitest';
 import { ErrorLink } from './error';
 import { GraphQLError } from 'graphql';
 
-const MUTATION = gql(`
+const Mutation = gql(`
   mutation Foo {
     foo
   }  
@@ -14,7 +14,7 @@ const MUTATION = gql(`
 const mocks: MockedResponse<any, any>[] = [
   {
     request: {
-      query: MUTATION,
+      query: Mutation,
     },
     result: {
       errors: [
@@ -41,7 +41,7 @@ it('emits error', async () => {
   });
 
   await client.mutate({
-    mutation: MUTATION,
+    mutation: Mutation,
     errorPolicy: 'all',
   });
 
@@ -66,7 +66,7 @@ it('skips emitting error code specified in context', async () => {
   });
 
   await client.mutate({
-    mutation: MUTATION,
+    mutation: Mutation,
     errorPolicy: 'all',
     context: {
       [ErrorLink.NO_EMIT]: ['NOT_FOUND'],

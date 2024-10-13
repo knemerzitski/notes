@@ -5,8 +5,8 @@ import { useCallback } from 'react';
 import { ColorMode } from '../../__generated__/graphql';
 import { useIsCacheRestored } from '../../graphql/context/is-cache-restored';
 
-const COLOR_MODE = gql(`
-  query ColorMode {
+const UseColorMode_Query = gql(`
+  query UseColorMode_Query {
     devicePreferences {
       colorMode
     }
@@ -18,7 +18,7 @@ export function useColorMode() {
   const preferenceStorage = usePreferencesStorage(true);
   const client = useApolloClient();
 
-  const { data } = useQuery(COLOR_MODE, {
+  const { data } = useQuery(UseColorMode_Query, {
     fetchPolicy: 'cache-only',
   });
 
@@ -32,8 +32,9 @@ export function useColorMode() {
     (newColorMode: ColorMode) => {
       if (isCacheRestored) {
         client.writeQuery({
-          query: COLOR_MODE,
+          query: UseColorMode_Query,
           data: {
+            __typename: 'Query',
             devicePreferences: {
               __typename: 'DevicePreferences',
               colorMode: newColorMode,

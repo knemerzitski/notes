@@ -4,7 +4,7 @@ import { MockedResponse, MockLink } from '@apollo/client/testing';
 import { WaitLink } from './wait';
 import { it, expect } from 'vitest';
 
-const QUERY = gql(`
+const Query = gql(`
   query Foo {
     foo {
       bar
@@ -15,7 +15,7 @@ const QUERY = gql(`
 const mocks: MockedResponse<any, any>[] = [
   {
     request: {
-      query: QUERY,
+      query: Query,
     },
     result: {
       data: {
@@ -40,7 +40,7 @@ it('delays the request', async () => {
 
   const startTime = Date.now();
   await client.query({
-    query: QUERY,
+    query: Query,
   });
 
   const elapsedTime = Date.now() - startTime;

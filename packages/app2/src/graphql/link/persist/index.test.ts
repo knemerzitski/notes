@@ -19,7 +19,7 @@ import { graphQLPolicies } from '../../policies';
 import { resumeOngoingOperations } from './resume';
 import QueueLink from 'apollo-link-queue';
 
-const MUTATION = gql(`
+const Mutation = gql(`
   mutation Foo {
     foo {
       bar
@@ -30,7 +30,7 @@ const MUTATION = gql(`
 const mocks: MockedResponse<any, any>[] = [
   {
     request: {
-      query: MUTATION,
+      query: Mutation,
     },
     result: {
       data: {
@@ -42,7 +42,7 @@ const mocks: MockedResponse<any, any>[] = [
   },
   {
     request: {
-      query: MUTATION,
+      query: Mutation,
       variables: {
         graphQLError: true,
       },
@@ -53,7 +53,7 @@ const mocks: MockedResponse<any, any>[] = [
   },
   {
     request: {
-      query: MUTATION,
+      query: Mutation,
       variables: {
         networkError: true,
       },
@@ -80,7 +80,7 @@ it('stores mutation in cache on network error', async () => {
 
   try {
     await client.mutate({
-      mutation: MUTATION,
+      mutation: Mutation,
       variables: {
         networkError: true,
       },
@@ -131,7 +131,7 @@ it('no mutation in cache on successful response', async () => {
   });
 
   await client.mutate({
-    mutation: MUTATION,
+    mutation: Mutation,
     context: {
       [PersistLink.PERSIST]: true,
     },
@@ -168,7 +168,7 @@ it('no mutation in cache on GraphQL error', async () => {
 
   try {
     await client.mutate({
-      mutation: MUTATION,
+      mutation: Mutation,
       variables: {
         graphQLError: true,
       },
@@ -232,7 +232,7 @@ it('ignores ongoing mutation with duplicate persist id', () => {
   queueLink.close();
 
   void client.mutate({
-    mutation: MUTATION,
+    mutation: Mutation,
     context: {
       [PersistLink.PERSIST]: true,
     },
