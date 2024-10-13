@@ -1,13 +1,25 @@
-import { FieldPolicy, Reference } from '@apollo/client';
+import {
+  FieldFunctionOptions,
+  FieldPolicy,
+  FieldReadFunction,
+  Reference,
+} from '@apollo/client';
 import { SafeReadonly } from '@apollo/client/cache/core/types/common';
 
 export interface FieldArrayToMapOptions<
-  TKey extends string,
-  TValue extends string,
-  TEntry extends { [Key in TKey]: TValue } | Reference,
+  TKeyName extends string,
+  TKeyValue extends string,
+  TItem extends { [Key in TKeyName]: TKeyValue } | Reference,
 > {
   argName?: string;
-  defaultRead?: Partial<Record<TValue, TEntry>>;
+  read?: FieldReadFunction<
+    Partial<Record<TKeyValue, TItem>>,
+    SafeReadonly<Partial<Record<TKeyValue, TItem>>> | undefined
+  >;
+  mergeFilterIncoming?: (
+    incoming: readonly TItem[],
+    options: FieldFunctionOptions
+  ) => readonly TItem[] | undefined;
 }
 
 // TODO test
@@ -16,38 +28,48 @@ export interface FieldArrayToMapOptions<
  * into a map by the key.
  */
 export function fieldArrayToMap<
-  TKey extends string,
-  TValue extends string,
-  TEntry extends { [Key in TKey]: TValue } | Reference,
+  TKeyName extends string,
+  TKeyValue extends string,
+  TItem extends { [Key in TKeyName]: TKeyValue } | Reference,
 >(
-  keyName: TKey,
-  options: FieldArrayToMapOptions<TKey, TValue, TEntry> = {}
-): FieldPolicy<Partial<Record<TValue, TEntry>>, TEntry[]> {
-  const { argName = keyName, defaultRead } = options;
+  keyName: TKeyName,
+  rootOptions: FieldArrayToMapOptions<TKeyName, TKeyValue, TItem> = {}
+): FieldPolicy<Partial<Record<TKeyValue, TItem>>, TItem[]> {
+  const { argName = keyName } = rootOptions;
   return {
     keyArgs: false,
-    read(existing = defaultRead, { args }) {
+    read(existing, options) {
+      const { args } = options;
+
+      existing = rootOptions.read?.(existing, options) ?? existing;
+
       if (!existing) return;
 
-      const key = args?.[argName] as TValue | undefined;
-      if (!key) return Object.values(existing) as TEntry[];
-      const entry = existing[key] as TEntry | undefined;
+      const key = args?.[argName] as TKeyValue | undefined;
+      if (!key) return Object.values(existing) as TItem[];
+      const entry = existing[key] as TItem | undefined;
       if (!entry) return;
       return [entry];
     },
-    merge(existing, incoming, { mergeObjects, isReference, readField }) {
-      const merged = existing ? { ...existing } : ({} as Partial<Record<TValue, TEntry>>);
+    merge(existing, incoming, options) {
+      const { mergeObjects, isReference, readField } = options;
+      const merged = existing
+        ? { ...existing }
+        : ({} as Partial<Record<TKeyValue, TItem>>);
+
+      incoming = rootOptions.mergeFilterIncoming?.(incoming, options) ?? incoming;
+
       incoming.forEach((incomingEntry) => {
-        let keyValue: TValue;
+        let keyValue: TKeyValue;
         if (isReference(incomingEntry)) {
           const readKey = readField({
             from: incomingEntry,
             fieldName: keyName,
           });
           if (!readKey) return;
-          keyValue = String(readKey) as TValue;
+          keyValue = String(readKey) as TKeyValue;
         } else {
-          const entry = incomingEntry as { [Key in TKey]: TValue };
+          const entry = incomingEntry as { [Key in TKeyName]: TKeyValue };
           keyValue = entry[keyName];
         }
 
@@ -57,7 +79,7 @@ export function fieldArrayToMap<
           : incomingEntry;
       });
 
-      return merged as SafeReadonly<Partial<Record<TValue, TEntry>>>;
+      return merged as SafeReadonly<Partial<Record<TKeyValue, TItem>>>;
     },
   };
 }
