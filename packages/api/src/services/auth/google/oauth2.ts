@@ -1,6 +1,6 @@
 import { OAuth2Client } from 'google-auth-library';
 
-import { isTruthy } from '~utils/type-guards/is-truthy';
+import { isEnvironmentVariableTruthy } from '~utils/string/is-environment-variable-truthy';
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const CLIENT_ID = process.env.VITE_GOOGLE_CLIENT_ID!;
@@ -10,7 +10,7 @@ const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
 const MOCK =
   process.env.NODE_ENV === 'production'
     ? false
-    : isTruthy(process.env.VITE_MOCK_GOOGLE_AUTH);
+    : isEnvironmentVariableTruthy(process.env.VITE_MOCK_GOOGLE_AUTH);
 
 export interface Result {
   id: string;
