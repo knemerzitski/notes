@@ -5,10 +5,10 @@ import {
   DocumentUpdaterMap,
 } from '../types';
 import { DocumentNode, Kind } from 'graphql';
-import { operationDefinitionFragmentPaths } from '../utils/document/fragments-paths';
+import { operationDefinitionFragmentPaths } from '../utils/fragments-paths';
 import { updateWithFragments } from '../utils/update-with-fragments';
 import { isDefined } from '~utils/type-guards/is-defined';
-import { getFragmentTypeCondition } from '../utils/document/get-fragment-type-condition';
+import { getFragmentTypeCondition } from '../utils/get-fragment-type-condition';
 
 export function createDocumentUpdaterMap(
   updateDefinitions: DocumentUpdateDefinitions
