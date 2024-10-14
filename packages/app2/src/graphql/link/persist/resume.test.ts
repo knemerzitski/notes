@@ -76,11 +76,7 @@ it('resumes cached error and calls updateFn', async () => {
 
   const mutationUpdateFn = vi.fn();
 
-  await Promise.allSettled(
-    resumeOngoingOperations(client, {
-      Foo: mutationUpdateFn,
-    })
-  );
+  await Promise.allSettled(resumeOngoingOperations(client, () => mutationUpdateFn));
 
   expect(cache.extract()).toMatchInlineSnapshot(`
     {

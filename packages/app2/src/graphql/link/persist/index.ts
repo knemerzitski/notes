@@ -7,6 +7,7 @@ import {
   DefaultContext,
   InMemoryCache,
   ApolloCache,
+  DocumentNode,
 } from '@apollo/client';
 import { addOngoingOperation } from './add';
 import { removeOngoingOperation } from './remove';
@@ -14,12 +15,26 @@ import { isMutation } from '../../utils/document/is-mutation';
 import { hasOngoingOperation } from './has';
 import { CountMap } from '~utils/count-map';
 import { hasDirectives, removeDirectivesFromDocument } from '@apollo/client/utilities';
+import { memoize1 } from '~utils/memoize1';
 
 const PERSIST_DIRECTIVE = 'persist';
 
 function hasPersistDirective(operation: Operation) {
   return hasDirectives([PERSIST_DIRECTIVE], operation.query);
 }
+
+const transformRemovePersist = memoize1((document: DocumentNode) => {
+  return (
+    removeDirectivesFromDocument(
+      [
+        {
+          name: PERSIST_DIRECTIVE,
+        },
+      ],
+      document
+    ) ?? document
+  );
+});
 
 function removePersistDirective(operation: Operation): Operation {
   if (!hasPersistDirective(operation)) {
@@ -32,15 +47,7 @@ function removePersistDirective(operation: Operation): Operation {
     variables: operation.variables,
     setContext: operation.setContext,
     getContext: operation.getContext,
-    query:
-      removeDirectivesFromDocument(
-        [
-          {
-            name: PERSIST_DIRECTIVE,
-          },
-        ],
-        operation.query
-      ) ?? operation.query,
+    query: transformRemovePersist(operation.query),
   };
 }
 
