@@ -27,7 +27,7 @@ export function createDocumentUpdaterMap(
       continue;
     }
 
-    // Modify operations to invoke fragments updater when operation update is invoked
+    // Modify operations to invoke fragments update when operation update is invoked
     const update = updateWithFragments(
       operationUpdaterByName.get(operationName),
       operationDefinitionFragmentPaths(definition)
