@@ -9,6 +9,7 @@ import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 import { AppContext } from '../types';
 import { isLocalId } from '../../utils/is-local-id';
+import { createDeferred, Deferred } from '~utils/deferred';
 
 export class WebSocketClient {
   readonly client;
@@ -22,6 +23,17 @@ export class WebSocketClient {
   get connectionId() {
     return this._connectionId;
   }
+
+  /**
+   * Current userId that was sent during connection_init
+   * Server assumes that this is current user
+   */
+  private _userId: string | null = null;
+  get userId() {
+    return this._userId;
+  }
+
+  private userIdDeferred: Deferred<string> | null = null;
 
   constructor(context: Pick<AppContext, 'userId'>, options: ClientOptions) {
     this.context = context;
@@ -39,7 +51,27 @@ export class WebSocketClient {
     });
   }
 
+  asyncUserId(): Promise<string> {
+    if (!this._userId) {
+      if (!this.userIdDeferred) {
+        this.userIdDeferred = createDeferred<string>();
+      }
+      return this.userIdDeferred.promise;
+    }
+
+    return Promise.resolve(this._userId);
+  }
+
   restart() {
+    this._userId = null;
+    this.userIdDeferred = null;
+
+    const userId = this.context.userId;
+    if (isLocalId(userId)) {
+      // Don't restart if user is local
+      return;
+    }
+
     if (this.socket != null) {
       this.restartRequested = false;
       if (this.socket.readyState === WebSocket.OPEN) {
@@ -55,6 +87,9 @@ export class WebSocketClient {
     // Send authentication in connection init
     const userId = this.context.userId;
     if (!userId || isLocalId(userId)) return;
+
+    this._userId = userId;
+    this.userIdDeferred?.resolve(userId);
 
     const payload: ConnectionInitMessage['payload'] = {
       headers: {
