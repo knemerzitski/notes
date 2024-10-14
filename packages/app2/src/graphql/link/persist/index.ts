@@ -11,10 +11,9 @@ import {
 } from '@apollo/client';
 import { addOngoingOperation } from './add';
 import { removeOngoingOperation } from './remove';
-import { isMutation } from '../../utils/document/is-mutation';
 import { hasOngoingOperation } from './has';
 import { CountMap } from '~utils/count-map';
-import { hasDirectives, removeDirectivesFromDocument } from '@apollo/client/utilities';
+import { hasDirectives, isMutationOperation, removeDirectivesFromDocument } from '@apollo/client/utilities';
 import { memoize1 } from '~utils/memoize1';
 
 const PERSIST_DIRECTIVE = 'persist';
@@ -79,7 +78,7 @@ export class PersistLink extends ApolloLink {
     const hasDirective = hasPersistDirective(operation);
     const persist = context[PersistLink.PERSIST] || hasDirective;
 
-    if (!persist || !isMutation(operation.query)) {
+    if (!persist || !isMutationOperation(operation.query)) {
       // Cannot persist, skip this link
       return forward(operation);
     }

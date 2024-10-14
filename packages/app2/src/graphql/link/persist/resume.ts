@@ -6,8 +6,7 @@ import {
   OperationVariables,
 } from '@apollo/client';
 import { getAllOngoingOperations } from './get-all';
-import { OperationTypeNode } from 'graphql';
-import { getOperationKind } from '../../utils/document/get-operation-kind';
+import { isMutationOperation } from '@apollo/client/utilities';
 
 export function resumeOngoingOperations(
   apolloClient: Pick<ApolloClient<unknown>, 'mutate'> & {
@@ -42,9 +41,8 @@ export function resumeOngoingOperations(
     const context = JSON.parse(op.context);
     const variables = JSON.parse(op.variables);
 
-    const kind = getOperationKind(query);
-    if (kind !== OperationTypeNode.MUTATION) {
-      throw new Error(`Can only resume a mutation but got "${kind}"`);
+    if (!isMutationOperation(query)) {
+      throw new Error('Can only resume a mutation');
     }
 
     if (options?.filterFn) {

@@ -8,13 +8,13 @@ import { AppContext } from '../types';
 import { RetryLink } from '@apollo/client/link/retry';
 import QueueLink from 'apollo-link-queue';
 import SerializingLink from 'apollo-link-serialize';
-import { isSubscription } from '../utils/document/is-subscription';
 import { PersistLink } from '../link/persist';
 import apolloLogger from 'apollo-link-logger';
 import { CurrentUserLink } from '../link/current-user';
 import { headerUserIdLink } from '../link/header/user-id';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { createHeaderWsConnectionIdLink } from '../link/header/ws-connection-id';
+import { isSubscriptionOperation } from '@apollo/client/utilities';
 
 export function createHttpWsLink({
   httpUri,
@@ -34,7 +34,7 @@ export function createHttpWsLink({
     : passthrough();
 
   const httpWsSplitLink = split(
-    ({ query }) => isSubscription(query),
+    ({ query }) => isSubscriptionOperation(query),
     wsLink,
     ApolloLink.from([headerWsConnectionIdLink, headerUserIdLink, httpLink])
   );

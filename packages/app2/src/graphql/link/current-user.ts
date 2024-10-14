@@ -5,11 +5,15 @@ import {
   FetchResult,
   GraphQLRequest,
 } from '@apollo/client';
-import { hasDirectives, Observable, Observer } from '@apollo/client/utilities';
+import {
+  hasDirectives,
+  isSubscriptionOperation,
+  Observable,
+  Observer,
+} from '@apollo/client/utilities';
 import { AppContext, GlobalOperationVariables } from '../types';
 import { isLocalId } from '../../utils/is-local-id';
 import { WebSocketClient } from '../ws/websocket-client';
-import { isSubscription } from '../utils/document/is-subscription';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 import { Maybe } from '~utils/types';
 import SerializingLink from 'apollo-link-serialize';
@@ -32,7 +36,7 @@ export class CurrentUserLink extends ApolloLink {
     // TODO what if session is expired?
 
     const userId = this.appContext.userId;
-    if (this.wsClient && isSubscription(operation.query)) {
+    if (this.wsClient && isSubscriptionOperation(operation.query)) {
       const wsUserId = await this.wsClient.asyncUserId();
       if (wsUserId !== userId) {
         return new Error(
