@@ -12,7 +12,7 @@ import {
 import { Maybe } from '~utils/types';
 import { createGraphQLService } from './create/service';
 
-export enum GlobalRequestVariables {
+export enum GlobalOperationVariables {
   USER_ID = '_userId',
 }
 

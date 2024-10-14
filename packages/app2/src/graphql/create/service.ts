@@ -10,7 +10,7 @@ import { createHttpWsLink, createLinks } from './links';
 import {
   AppContext,
   CacheReadyCallbacks,
-  GlobalRequestVariables,
+  GlobalOperationVariables,
   DocumentUpdateDefinitions,
   TypePoliciesList,
 } from '../types';
@@ -89,7 +89,7 @@ export function createGraphQLService({
 
   const typePolicies = createTypePolicies(typePoliciesList, {
     appContext,
-    variablesUserIdKey: GlobalRequestVariables.USER_ID,
+    variablesUserIdKey: GlobalOperationVariables.USER_ID,
     get isCacheLocked() {
       return restorer.status !== 'done';
     },
