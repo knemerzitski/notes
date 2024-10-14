@@ -1,9 +1,7 @@
-import { ApolloLink, InMemoryCache, split } from '@apollo/client';
+import { ApolloLink, HttpLink, InMemoryCache, split } from '@apollo/client';
 import { WaitLink } from '../link/wait';
 import { StatsLink } from '../link/stats';
 import { ErrorLink } from '../link/error';
-import { createHttpLinks } from './http-links';
-import { createWsLinks } from './ws-links';
 import { WebSocketClient } from '../ws/websocket-client';
 import { passthrough } from '../link/passthrough';
 import { AppContext } from '../types';
@@ -13,19 +11,27 @@ import SerializingLink from 'apollo-link-serialize';
 import { isSubscription } from '../utils/document/is-subscription';
 import { PersistLink } from '../link/persist';
 import apolloLogger from 'apollo-link-logger';
+import { CurrentUserLink } from '../link/current-user';
+import { headerUserIdLink } from '../link/header/user-id';
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
+import { createHeaderWsConnectionIdLink } from '../link/header/ws-connection-id';
 
 export function createHttpWsLink({
   httpUri,
   wsClient,
-  appContext,
 }: {
   httpUri: string;
   wsClient?: WebSocketClient;
-  appContext: Pick<AppContext, 'userId'>;
 }) {
-  const { headerUserIdLink, httpLink } = createHttpLinks(httpUri, appContext);
+  const httpLink = new HttpLink({
+    uri: httpUri,
+  });
 
-  const { wsLink, headerWsConnectionIdLink } = createWsLinks(wsClient);
+  const wsLink = wsClient ? new GraphQLWsLink(wsClient.client) : passthrough();
+
+  const headerWsConnectionIdLink = wsClient
+    ? createHeaderWsConnectionIdLink(wsClient)
+    : passthrough();
 
   const httpWsSplitLink = split(
     ({ query }) => isSubscription(query),
@@ -37,9 +43,13 @@ export function createHttpWsLink({
 }
 
 export function createLinks({
+  appContext,
+  wsClient,
   cache,
   debug,
 }: {
+  appContext: Pick<AppContext, 'userId'>;
+  wsClient?: WebSocketClient;
   cache: InMemoryCache;
   debug?: {
     /**
@@ -53,6 +63,7 @@ export function createLinks({
     logging?: boolean;
   };
 }) {
+  const currentUserLink = new CurrentUserLink(appContext, wsClient);
   const loggerLink = debug?.logging ? apolloLogger : passthrough();
   const statsLink = new StatsLink();
   const errorLink = new ErrorLink();
@@ -69,6 +80,7 @@ export function createLinks({
 
   return {
     link: ApolloLink.from([
+      currentUserLink,
       loggerLink,
       errorLink,
       statsLink,

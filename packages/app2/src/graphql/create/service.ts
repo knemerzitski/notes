@@ -116,11 +116,12 @@ export function createGraphQLService({
     terminatingLink ??
     createHttpWsLink({
       httpUri,
-      appContext,
       wsClient,
     });
 
   const links = createLinks({
+    appContext,
+    wsClient,
     cache,
     debug: linksDebug,
   });
