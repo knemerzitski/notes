@@ -1,4 +1,4 @@
-import { CreateTypePoliciesFn } from '../graphql/types';
+import { CreateTypePoliciesFn } from './types';
 import { Query } from './policies/Query';
 
 export const graphQLPolicies: CreateTypePoliciesFn = function (ctx) {
