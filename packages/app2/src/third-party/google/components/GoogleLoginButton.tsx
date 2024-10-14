@@ -1,5 +1,5 @@
 import { LinearProgress, useTheme } from '@mui/material';
-import { lazy, useEffect, useRef } from 'react';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 
 import { useGoogleAuth } from '../context/google-auth';
 import { GOOGLE } from '../../../third-party';
@@ -83,12 +83,14 @@ export function GoogleLoginButton({
 
   if (GOOGLE.mock) {
     return (
-      <MockGoogleLoginButton
-        idConfig={idConfig}
-        buttonConfig={buttonConfig}
-        onSuccess={onSuccess}
-        onError={onError}
-      />
+      <Suspense fallback={<LinearProgress />}>
+        <MockGoogleLoginButton
+          idConfig={idConfig}
+          buttonConfig={buttonConfig}
+          onSuccess={onSuccess}
+          onError={onError}
+        />
+      </Suspense>
     );
   }
 
