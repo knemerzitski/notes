@@ -1,16 +1,7 @@
-import {
-  ApolloCache,
-  DefaultContext,
-  DocumentNode,
-  InMemoryCache,
-  MutationUpdaterFunction,
-  OperationVariables,
-  TypedDocumentNode,
-  TypePolicies,
-  TypePolicy,
-} from '@apollo/client';
+import { InMemoryCache, TypePolicies, TypePolicy } from '@apollo/client';
 import { Maybe } from '~utils/types';
 import { createGraphQLService } from './create/service';
+import { MutationDefinition } from './utils/mutation-definition';
 
 export enum GlobalOperationVariables {
   USER_ID = '_userId',
@@ -50,49 +41,6 @@ export type CreateTypePolicyFn = (context: TypePoliciesContext) => TypePolicy;
 export type CacheReadyCallback = (cache: InMemoryCache) => void;
 export type CacheReadyCallbacks = CacheReadyCallback[];
 
-export interface DocumentUpdateDefinition<
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  TData = any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  TVariables = any,
-  TContext = DefaultContext,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  TCache extends ApolloCache<any> = ApolloCache<any>,
-> {
-  readonly document: DocumentNode | TypedDocumentNode<TData, TVariables>;
-  readonly update?: MutationUpdaterFunction<
-    NoInfer<TData>,
-    NoInfer<TVariables>,
-    TContext,
-    TCache
-  >;
-}
-
-export type DocumentUpdateDefinitions = DocumentUpdateDefinition[];
-
-export interface DocumentUpdaterMap {
-  set: (
-    document: DocumentNode,
-    update: MutationUpdaterFunction<
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      any,
-      OperationVariables,
-      DefaultContext,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ApolloCache<any>
-    >
-  ) => void;
-  get: (documentOrOperationName: DocumentNode | string) =>
-    | MutationUpdaterFunction<
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        any,
-        OperationVariables,
-        DefaultContext,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ApolloCache<any>
-      >
-    | undefined;
-  delete: (documentOrOperationName: DocumentNode | string) => void;
-}
+export type MutationDefinitions = MutationDefinition[];
 
 export type GraphQLService = ReturnType<typeof createGraphQLService>;

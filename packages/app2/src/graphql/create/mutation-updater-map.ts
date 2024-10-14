@@ -1,22 +1,50 @@
 import { getMainDefinition } from '@apollo/client/utilities';
-import {
-  DocumentUpdateDefinition,
-  DocumentUpdateDefinitions,
-  DocumentUpdaterMap,
-} from '../types';
 import { DocumentNode, Kind } from 'graphql';
 import { operationDefinitionFragmentPaths } from '../utils/fragments-paths';
 import { updateWithFragments } from '../utils/update-with-fragments';
 import { isDefined } from '~utils/type-guards/is-defined';
 import { getFragmentTypeCondition } from '../utils/get-fragment-type-condition';
+import {
+  MutationUpdaterFunction,
+  OperationVariables,
+  DefaultContext,
+  ApolloCache,
+} from '@apollo/client';
+import { MutationDefinitions } from '../types';
+import { MutationDefinition } from '../utils/mutation-definition';
 
-export function createDocumentUpdaterMap(
-  updateDefinitions: DocumentUpdateDefinitions
-): DocumentUpdaterMap {
-  const operationUpdaterByName = definitionsToDocumentUpdaterMap(updateDefinitions);
-  const updateDefinitionByName = createDefinitionsByName(updateDefinitions);
+export interface MutationUpdaterFunctionMap {
+  set: (
+    document: DocumentNode,
+    update: MutationUpdaterFunction<
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      any,
+      OperationVariables,
+      DefaultContext,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ApolloCache<any>
+    >
+  ) => void;
+  get: (documentOrOperationName: DocumentNode | string) =>
+    | MutationUpdaterFunction<
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        any,
+        OperationVariables,
+        DefaultContext,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ApolloCache<any>
+      >
+    | undefined;
+  delete: (documentOrOperationName: DocumentNode | string) => void;
+}
 
-  for (const { document } of updateDefinitions) {
+export function createMutationUpdaterFunctionMap(
+  definitions: MutationDefinitions
+): MutationUpdaterFunctionMap {
+  const operationUpdaterByName = definitionsToMap(definitions);
+  const updateDefinitionByName = createDefinitionByName(definitions);
+
+  for (const { document } of definitions) {
     const definition = getMainDefinition(document);
     if (definition.kind !== Kind.OPERATION_DEFINITION) {
       continue;
@@ -53,10 +81,8 @@ export function createDocumentUpdaterMap(
   return operationUpdaterByName;
 }
 
-function definitionsToDocumentUpdaterMap(
-  updateDefinitions: DocumentUpdateDefinitions
-): DocumentUpdaterMap {
-  const updaterByName: Record<string, ReturnType<DocumentUpdaterMap['get']>> = {};
+function definitionsToMap(definitions: MutationDefinitions): MutationUpdaterFunctionMap {
+  const updaterByName: Record<string, ReturnType<MutationUpdaterFunctionMap['get']>> = {};
 
   function getName(documentOrName: DocumentNode | string) {
     if (typeof documentOrName !== 'string') {
@@ -67,7 +93,7 @@ function definitionsToDocumentUpdaterMap(
     return documentOrName;
   }
 
-  const set: DocumentUpdaterMap['set'] = (document, update) => {
+  const set: MutationUpdaterFunctionMap['set'] = (document, update) => {
     const definition = getMainDefinition(document);
 
     const operationName = definition.name?.value;
@@ -82,7 +108,7 @@ function definitionsToDocumentUpdaterMap(
     updaterByName[operationName] = update;
   };
 
-  const get: DocumentUpdaterMap['get'] = (documentOrName) => {
+  const get: MutationUpdaterFunctionMap['get'] = (documentOrName) => {
     const name = getName(documentOrName);
     if (!name) {
       return;
@@ -91,7 +117,7 @@ function definitionsToDocumentUpdaterMap(
     return updaterByName[name];
   };
 
-  const _delete: DocumentUpdaterMap['delete'] = (documentOrName) => {
+  const _delete: MutationUpdaterFunctionMap['delete'] = (documentOrName) => {
     const name = getName(documentOrName);
     if (!name) {
       return;
@@ -101,7 +127,7 @@ function definitionsToDocumentUpdaterMap(
     delete updaterByName[name];
   };
 
-  for (const { document, update } of updateDefinitions) {
+  for (const { document, update } of definitions) {
     if (update) {
       set(document, update);
     }
@@ -114,8 +140,8 @@ function definitionsToDocumentUpdaterMap(
   };
 }
 
-function createDefinitionsByName(definitions: DocumentUpdateDefinitions) {
-  const definitionByName: Record<string, DocumentUpdateDefinition> = {};
+function createDefinitionByName(definitions: MutationDefinitions) {
+  const definitionByName: Record<string, MutationDefinition> = {};
 
   for (const definition of definitions) {
     const name = getMainDefinition(definition.document).name?.value;

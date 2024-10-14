@@ -1,17 +1,17 @@
 import { useEffect, useRef } from 'react';
 import { resumeOngoingOperations } from '../link/persist/resume';
 import { useApolloClient } from '@apollo/client';
-import { useGetDocumentUpdater } from '../context/get-document-updater';
+import { useGetMutationUpdaterFn } from '../context/get-mutation-updater-fn';
 
 export function ResumePersistedOngoingOperations() {
   const client = useApolloClient();
-  const getDocumentUpdater = useGetDocumentUpdater();
+  const getMutationUpdaterFn = useGetMutationUpdaterFn();
 
   const resumedOperationIdsRef = useRef(new Set<string>());
 
   useEffect(() => {
     void Promise.allSettled(
-      resumeOngoingOperations(client, getDocumentUpdater, {
+      resumeOngoingOperations(client, getMutationUpdaterFn, {
         filterFn: (op) => {
           if (resumedOperationIdsRef.current.has(op.id)) {
             return false;
@@ -28,7 +28,7 @@ export function ResumePersistedOngoingOperations() {
         }
       }
     });
-  }, [client, getDocumentUpdater]);
+  }, [client, getMutationUpdaterFn]);
 
   return null;
 }

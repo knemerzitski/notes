@@ -10,12 +10,12 @@ import {
   useApolloClient,
   MutationUpdaterFunction,
 } from '@apollo/client';
-import { useGetDocumentUpdater } from '../context/get-document-updater';
-import { DocumentUpdateDefinition } from '../types';
+import { useGetMutationUpdaterFn } from '../context/get-mutation-updater-fn';
 import { useCallback } from 'react';
 import { gql } from '../../__generated__';
 import { IgnoreModifier } from '@apollo/client/cache/core/types/common';
 import { useUserId } from '../../user/context/user-id';
+import { MutationDefinition } from '../utils/mutation-definition';
 
 const UseMutation_Query = gql(`
   query UseMutation_Query($id: ID) {
@@ -40,14 +40,14 @@ export function useMutation<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   TCache extends ApolloCache<any> = ApolloCache<any>,
 >(
-  definition: DocumentUpdateDefinition<TData, TVariables, TContext, TCache>,
+  definition: MutationDefinition<TData, TVariables, TContext, TCache>,
   options?: Omit<
     MutationHookOptions<NoInfer<TData>, NoInfer<TVariables>, TContext, TCache>,
     'update'
   >
 ): MutationTuple<TData, TVariables, TContext, TCache> {
   const client = useApolloClient();
-  const getDocumentUpdater = useGetDocumentUpdater();
+  const getMutationUpdaterFn = useGetMutationUpdaterFn();
 
   const userId = useUserId(true);
   const { data } = useQuery(UseMutation_Query, {
@@ -58,7 +58,7 @@ export function useMutation<
 
   const localOnly = data?.signedInUserById?.localOnly ?? false;
 
-  const update = getDocumentUpdater(definition.document) as
+  const update = getMutationUpdaterFn(definition.document) as
     | MutationUpdaterFunction<TData, TVariables, TContext, TCache>
     | undefined;
 
