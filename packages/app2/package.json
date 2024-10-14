@@ -43,7 +43,7 @@
     "@vitest/coverage-v8": "~1.4.0",
     "apollo-link-logger": "^2.0.1",
     "apollo-link-queue": "^3.1.0",
-    "apollo-link-serialize": "npm:@knemerzitski/apollo-link-serialize@^5.0.1",
+    "apollo-link-serialize": "npm:@knemerzitski/apollo-link-serialize@^5.1.1",
     "apollo3-cache-persist": "npm:@knemerzitski/apollo3-cache-persist@^0.16.0",
     "cypress": "^13.6.3",
     "eslint-config-prettier": "^9.0.0",
