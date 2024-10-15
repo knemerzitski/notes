@@ -1,13 +1,13 @@
 import { CircularProgress } from '@mui/material';
-import { AppThemeProvider } from '../../theme/components/AppThemeProvider';
+import { AppThemeModuleProvider } from '../../theme/components/AppThemeModuleProvider';
 import { PageCenterBox } from './PageCenterBox';
 
 export function AppFallbackRestoringCache() {
   return (
-    <AppThemeProvider>
+    <AppThemeModuleProvider>
       <PageCenterBox>
         <CircularProgress />
       </PageCenterBox>
-    </AppThemeProvider>
+    </AppThemeModuleProvider>
   );
 }

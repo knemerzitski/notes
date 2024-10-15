@@ -90,6 +90,11 @@ export const themeOptions: MultiThemeOptions = {
         scrollEnd: '0px 0px 5px 2px rgba(0,0,0,0.2)',
       },
       components: {
+        MuiDialog: {
+          defaultProps: {
+            closeAfterTransition: false,
+          },
+        },
         MuiTooltip: {
           defaultProps: {
             // enterDelay: 300,

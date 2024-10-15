@@ -65,7 +65,8 @@
     "vite": "^4.4.5",
     "vite-tsconfig-paths": "^4.3.2",
     "vitest": "~1.4",
-    "vitest-mock-extended": "^2.0.2"
+    "vitest-mock-extended": "^2.0.2",
+    "zen-observable-ts": "^1.2.5"
   },
   "peerDependencies": {
     "@parcel/watcher": "^2.3.0"
