@@ -12,8 +12,12 @@ import {
 import { addOngoingOperation } from './add';
 import { removeOngoingOperation } from './remove';
 import { hasOngoingOperation } from './has';
-import { CountMap } from '~utils/count-map';
-import { hasDirectives, isMutationOperation, removeDirectivesFromDocument } from '@apollo/client/utilities';
+import { CountMap } from '~utils/map/count-map';
+import {
+  hasDirectives,
+  isMutationOperation,
+  removeDirectivesFromDocument,
+} from '@apollo/client/utilities';
 import { memoize1 } from '~utils/memoize1';
 
 const PERSIST_DIRECTIVE = 'persist';
@@ -57,7 +61,7 @@ export class PersistLink extends ApolloLink {
 
   readonly generateId;
 
-  private readonly ongoingCountMap = new CountMap<string>();
+  private readonly ongoingCountMap = new CountMap<string>(new Map());
 
   constructor(cache: InMemoryCache, options?: { generateId: () => string }) {
     super();
