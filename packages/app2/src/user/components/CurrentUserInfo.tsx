@@ -3,6 +3,8 @@ import { useQuery } from '@apollo/client';
 import { EmailSubtitle } from '../styled-components/EmailSubtitle';
 import { UserAvatar } from './UserAvatar';
 import { UserIdProvider } from '../context/user-id';
+import { EditableDisplayName } from './EditableDisplayName';
+import { FullWidthColumnBox } from '../../utils/styled-components/FullWidthColumnBox';
 
 const CurrentUserInfo_Query = gql(`
   query CurrentUserInfo_Query {
@@ -22,7 +24,10 @@ export function CurrentUserInfo() {
   return (
     <UserIdProvider userId={user.id}>
       <UserAvatar size="large" />
-      {!user.localOnly && <EmailSubtitle>{user.email}</EmailSubtitle>}
+      <FullWidthColumnBox>
+        <EditableDisplayName />
+        {!user.localOnly && <EmailSubtitle>{user.email}</EmailSubtitle>}
+      </FullWidthColumnBox>
     </UserIdProvider>
   );
 }
