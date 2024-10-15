@@ -20,10 +20,10 @@ interface BlockUiOptions {
    */
   message: string;
   /**
-   * Prevent block from being cancelled by the user.
-   * @default false
+   * Handler when user cancels the block. If not defined
+   * then block cannot be cancelled.
    */
-  cancellable?: boolean;
+  onCancel?: () => void;
 }
 
 type UnblockUiClosure = () => void;
@@ -68,6 +68,7 @@ function UncloseableContextDialog({ options }: { options: BlockUiOptions }) {
   const { open, delayStatus, reset } = useSmoothOpen(useIsOpen(), handleExited);
 
   function handleClose() {
+    options.onCancel?.();
     onClose();
   }
 
@@ -86,7 +87,7 @@ function UncloseableContextDialog({ options }: { options: BlockUiOptions }) {
       <CenterDialogContent>
         <CircularProgress />
       </CenterDialogContent>
-      {options.cancellable && (
+      {options.onCancel && (
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
         </DialogActions>
