@@ -16,6 +16,8 @@ enum AuthProviderUserType {
 }
 
 extend type Query {
+  "Find local user by ID"
+  signedInUserById(id: ID): SignedInUser
   "List of all available users. Always includes localUser."
   signedInUsers(localOnly: Boolean): [SignedInUser!]!
   "Currently selected user. All operations are executed using scope of this user. Defaults to localUser."

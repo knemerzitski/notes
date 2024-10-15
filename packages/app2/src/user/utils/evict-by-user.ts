@@ -1,6 +1,6 @@
 import { ApolloCache, Cache } from '@apollo/client';
-import { withOverrideCurrentUserId } from './signed-in-user';
 import { EvictTag, TaggedEvict } from '../../graphql/utils/tagged-evict';
+import { withOverrideCurrentUserId } from './signed-in-user/get-current';
 
 export function evictByUser(
   userId: string | undefined,

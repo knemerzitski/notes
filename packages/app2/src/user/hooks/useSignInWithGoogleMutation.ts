@@ -1,0 +1,58 @@
+import { useApolloClient } from '@apollo/client';
+import { useCallback } from 'react';
+import { SignIn } from '../mutations/SignIn';
+import { useBlockUi } from '../../utils/context/block-ui';
+import { setCurrentUser } from '../utils/signed-in-user/set-current';
+import { useMutation } from '../../graphql/hooks/useMutation';
+
+export function useSignInWithGoogleMutation() {
+  const client = useApolloClient();
+  const blockUi = useBlockUi();
+
+  const [signInMutation] = useMutation(SignIn);
+
+  return useCallback(
+    async (response: google.accounts.id.CredentialResponse) => {
+      const controller = new AbortController();
+
+      const unblock = blockUi({
+        message: 'Signing in with Google',
+        onCancel: () => {
+          controller.abort(new Error('User aborted'));
+        },
+      });
+
+      try {
+        const result = await signInMutation({
+          variables: {
+            input: {
+              auth: {
+                google: {
+                  token: response.credential,
+                },
+              },
+            },
+          },
+          context: {
+            fetchOptions: {
+              signal: controller.signal,
+            },
+          },
+        });
+
+        const data = result.data;
+
+        if (!data) return false;
+
+        const userId = data.signIn.signedInUser.id;
+
+        setCurrentUser(userId, client.cache);
+
+        return true;
+      } finally {
+        unblock();
+      }
+    },
+    [signInMutation, client, blockUi]
+  );
+}

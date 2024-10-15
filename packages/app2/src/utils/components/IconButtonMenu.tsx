@@ -1,24 +1,38 @@
 import { IconButton, IconButtonProps, Menu, MenuProps } from '@mui/material';
-import { useId, useState, MouseEvent, ReactNode, useCallback } from 'react';
+import { useId, useState, MouseEvent, ReactNode, useCallback, ElementType } from 'react';
 import { OnCloseProvider } from '../context/on-close';
 
 export function IconButtonMenu({
   children,
-  IconButtonProps,
-  MenuProps,
+  slots,
+  slotProps,
 }: {
   children: ReactNode;
-  IconButtonProps?: Omit<
-    IconButtonProps,
-    'id' | 'aria-controls' | 'aria-haspopup' | 'aria-expanded' | 'onMouseDown' | 'onClick'
-  >;
-  MenuProps?: Omit<
-    MenuProps,
-    'id' | 'anchorEl' | 'open' | 'onClose' | 'disableScrollLock' | 'onClick'
-  > & {
-    MenuListProps: Omit<MenuProps['MenuListProps'], 'aria-labelledby'>;
+  slots?: {
+    iconButton?: ElementType;
+    menu?: ElementType;
+  };
+  slotProps?: {
+    iconButton?: Omit<
+      IconButtonProps,
+      | 'id'
+      | 'aria-controls'
+      | 'aria-haspopup'
+      | 'aria-expanded'
+      | 'onMouseDown'
+      | 'onClick'
+    >;
+    menu?: Omit<
+      MenuProps,
+      'id' | 'anchorEl' | 'open' | 'onClose' | 'disableScrollLock' | 'onClick'
+    > & {
+      MenuListProps: Omit<MenuProps['MenuListProps'], 'aria-labelledby'>;
+    };
   };
 }) {
+  const IconButtonSlot = slots?.iconButton ?? IconButton;
+  const MenuSlot = slots?.menu ?? Menu;
+
   const buttonId = useId();
   const menuId = useId();
 
@@ -45,8 +59,8 @@ export function IconButtonMenu({
 
   return (
     <>
-      <IconButton
-        {...IconButtonProps}
+      <IconButtonSlot
+        {...slotProps?.iconButton}
         id={buttonId}
         aria-controls={menuOpen ? menuId : undefined}
         aria-haspopup={true}
@@ -55,21 +69,21 @@ export function IconButtonMenu({
         onClick={handleOpen}
       />
 
-      <Menu
-        {...MenuProps}
+      <MenuSlot
+        {...slotProps?.menu}
         id={menuId}
         anchorEl={anchorEl}
         open={menuOpen}
         onClose={handleClose}
         MenuListProps={{
-          ...MenuProps?.MenuListProps,
+          ...slotProps?.menu?.MenuListProps,
           'aria-labelledby': anchorEl?.id,
         }}
         disableScrollLock
         onClick={handleClickMenu}
       >
         <OnCloseProvider onClose={handleClose}>{children}</OnCloseProvider>
-      </Menu>
+      </MenuSlot>
     </>
   );
 }

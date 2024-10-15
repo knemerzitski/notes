@@ -1,13 +1,16 @@
 import {
   CacheReadyCallback,
   CreateTypePoliciesFn,
-  MutationOperations,
+  MutationDefinitions,
 } from '../graphql/types';
 import { TaggedEvictOptionsList } from '../graphql/utils/tagged-evict';
-import { SIGN_IN } from './mutations/SignIn';
+import { SignIn } from './mutations/SignIn';
+import { SignOut } from './mutations/SignOut';
+import { UpdateSignedInUserDisplayName } from './mutations/UpdateSignedInUserDisplayName';
+import { UpdateSignedInUserDisplayNamePayload } from './mutations/UpdateSignedInUserDisplayNamePayload';
 import { evictOptions as Query_evictOptions, Query } from './policies/Query';
 import { SignedInUser } from './policies/SignedInUser';
-import { primeLocalUser } from './utils/local-user';
+import { primeLocalUser } from './utils/local-user/prime';
 
 export const userPolicies: CreateTypePoliciesFn = function (ctx) {
   return {
@@ -16,7 +19,12 @@ export const userPolicies: CreateTypePoliciesFn = function (ctx) {
   };
 };
 
-export const userMutations: MutationOperations = [SIGN_IN];
+export const userMutationDefinitions: MutationDefinitions = [
+  SignIn,
+  SignOut,
+  UpdateSignedInUserDisplayName,
+  UpdateSignedInUserDisplayNamePayload,
+];
 
 export const userEvictOptions: TaggedEvictOptionsList = [...Query_evictOptions];
 

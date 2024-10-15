@@ -31,7 +31,9 @@ export const SignedInUser: CreateTypePolicyFn = function () {
         return existing;
       },
       authProviderUsers: fieldArrayToMap('__typename', {
-        defaultRead: {},
+        read(existing = {}) {
+          return existing;
+        },
       }),
       authProviderUser(_existing, { args, readField }) {
         const type = args?.type;
