@@ -7,7 +7,7 @@ import { useIsCacheRestored } from '../../graphql/context/is-cache-restored';
 
 const UseColorMode_Query = gql(`
   query UseColorMode_Query {
-    devicePreferences {
+    devicePreferences @client {
       colorMode
     }
   }
@@ -18,9 +18,7 @@ export function useColorMode() {
   const preferenceStorage = usePreferencesStorage(true);
   const client = useApolloClient();
 
-  const { data } = useQuery(UseColorMode_Query, {
-    fetchPolicy: 'cache-only',
-  });
+  const { data } = useQuery(UseColorMode_Query);
 
   const colorMode = isCacheRestored
     ? (data?.devicePreferences.colorMode ??
