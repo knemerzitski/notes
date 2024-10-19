@@ -8,7 +8,7 @@ export function useRemoveUser() {
 
   return useCallback(
     (userId: string) => {
-      removeUsers([userId], client.cache);
+      removeUsers([userId], client.cache, client.defaultContext.taggedEvict);
     },
     [client]
   );

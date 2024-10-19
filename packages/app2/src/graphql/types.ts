@@ -4,6 +4,7 @@ import { createGraphQLService } from './create/service';
 import { MutationDefinition } from './utils/mutation-definition';
 import { GateController } from './link/gate';
 import '@apollo/client';
+import { TaggedEvict } from './utils/tagged-evict';
 
 declare module '@apollo/client' {
   interface DefaultContext {
@@ -12,6 +13,10 @@ declare module '@apollo/client' {
      * If gate is closed then operations are buffered until it's opened.
      */
     getUserGate?: (userId: string) => Pick<GateController, 'open' | 'close'>;
+    /**
+     * Evict data from cache by tags.
+     */
+    taggedEvict?: TaggedEvict;
   }
 }
 

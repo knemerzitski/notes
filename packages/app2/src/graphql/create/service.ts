@@ -99,7 +99,7 @@ export function createGraphQLService({
       return restorer.status !== 'done';
     },
   });
-  
+
   addTypePolicies(typePolicies, cache);
 
   const taggedEvict = new TaggedEvict(evictOptionsList);
@@ -132,6 +132,7 @@ export function createGraphQLService({
 
   const defaultContext: DefaultContext = {
     getUserGate,
+    taggedEvict,
   };
 
   const apolloClient = new ApolloClient({

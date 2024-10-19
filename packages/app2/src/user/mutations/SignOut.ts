@@ -10,10 +10,10 @@ export const SignOut = mutationDefinition(
       }
     }
   `),
-  (cache, result) => {
+  (cache, result, { context }) => {
     const data = result.data;
     if (!data) return;
 
-    removeUsers(data.signOut.signedOutUserIds, cache);
+    removeUsers(data.signOut.signedOutUserIds, cache, context?.taggedEvict);
   }
 );

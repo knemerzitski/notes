@@ -2,6 +2,8 @@ import { ApolloCache } from '@apollo/client';
 import { gql } from '../../../__generated__';
 import { getCurrentUserId } from './get-current';
 import { setCurrentUser } from './set-current';
+import { evictByUser } from '../../utils/evict-by-user';
+import { TaggedEvict } from '../../../graphql/utils/tagged-evict';
 
 const RemoveUsers_Query = gql(`
   query RemoveUsers_Query {
@@ -18,7 +20,11 @@ const RemoveUsers_Query = gql(`
  */
 export function removeUsers(
   removeUserIds: string[] | null,
-  cache: Pick<ApolloCache<unknown>, 'readQuery' | 'writeQuery' | 'updateQuery'>
+  cache: Pick<
+    ApolloCache<unknown>,
+    'readQuery' | 'writeQuery' | 'updateQuery' | 'evict' | 'gc'
+  >,
+  taggedEvict?: TaggedEvict
 ) {
   // Clear currentUserId if it's in array or array is undefined
   const currentUserId = getCurrentUserId(cache);
@@ -28,10 +34,7 @@ export function removeUsers(
     }
   }
 
-  // TODO must call taggedEvict with EvictTag with withOverrideCurrentUserId (util evictByUser)
-  // TODO call gc?
-
-  return cache.updateQuery(
+  const data = cache.updateQuery(
     {
       query: RemoveUsers_Query,
       overwrite: true,
@@ -52,4 +55,17 @@ export function removeUsers(
       };
     }
   );
+
+  if (taggedEvict) {
+    const actualRemovedUserIds =
+      removeUserIds ?? data?.signedInUsers.map((user) => user.id) ?? [];
+    for (const userId of actualRemovedUserIds) {
+      evictByUser(userId, {
+        cache,
+        taggedEvict,
+      });
+    }
+  }
+
+  cache.gc();
 }

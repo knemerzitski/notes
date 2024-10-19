@@ -97,7 +97,15 @@ export const evictOptions: TaggedEvictOptionsList = [
     options: [
       {
         id: 'ROOT_QUERY',
+        fieldName: 'currentSignedInUser',
+      },
+      {
+        id: 'ROOT_QUERY',
         fieldName: 'signedInUser',
+      },
+      {
+        id: 'ROOT_QUERY',
+        fieldName: 'signedInUserById',
       },
     ],
   },
