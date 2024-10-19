@@ -48,6 +48,10 @@ export interface ShowModalOptions {
    * How many times can this modal reappear if it was interruped by another modal
    */
   maxShowCount?: number;
+  /**
+   * Invoked when modal is a duplicate and won't be shown
+   */
+  onDuplicate?: () => void;
 }
 
 type Modal = ReactNode;
@@ -108,7 +112,7 @@ export function SerialModalsProvider({
   const showModal: ShowModalClosure = useCallback(
     (newModal, options) => {
       setQueue((prev) => {
-        return addToQueue(
+        const next = addToQueue(
           {
             modal: newModal,
             status: 'ready',
@@ -119,6 +123,13 @@ export function SerialModalsProvider({
           },
           prev
         );
+        const wasNewModalAdded = prev !== next;
+
+        if (!wasNewModalAdded) {
+          options?.onDuplicate?.();
+        }
+
+        return next;
       });
 
       return () => {
@@ -184,34 +195,6 @@ function updateStatusClosing(states: readonly ModalState[]): readonly ModalState
   ];
 }
 
-function addSameKeyRemoveDuplicates(newItem: ModalState, items: readonly ModalState[]) {
-  let added = false;
-
-  items = items.flatMap((item, index) => {
-    if (item.key !== newItem.key) {
-      return item;
-    }
-
-    if (index === 0) {
-      added = true;
-      return [
-        {
-          ...item,
-          remainingShowCount: 0,
-          status: 'closing' as const,
-        },
-        newItem,
-      ];
-    }
-    return [];
-  });
-
-  return {
-    items,
-    added,
-  };
-}
-
 /**
  * @returns Items with {@link newItem}
  */
@@ -219,9 +202,7 @@ function addToQueue(
   newItem: ModalState,
   items: readonly ModalState[]
 ): readonly ModalState[] {
-  const sameKeyResult = addSameKeyRemoveDuplicates(newItem, items);
-  items = sameKeyResult.items;
-  if (sameKeyResult.added) {
+  if (newItem.key != null && items.find((item) => item.key === newItem.key)) {
     return items;
   }
 
