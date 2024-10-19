@@ -180,9 +180,12 @@ export function createGraphQLService({
     taggedEvict,
     getUserGate,
     /**
-     * Removes window event listeners. Service will no longer function properly
+     * Removes window event listeners. Stops ApolloClient.
+     * 
+     * Service will no longer function properly.
      */
     dispose: () => {
+      apolloClient.stop();
       disposeOnlineGate();
     },
   };

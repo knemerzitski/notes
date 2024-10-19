@@ -1,0 +1,296 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { createDefaultGraphQLServiceParams } from '../../graphql-service';
+import { createGraphQLService } from '../create/service';
+import { afterEach, expect, it, vi } from 'vitest';
+import { createUsersForCache } from '../../__tests__/helpers/populate/users';
+import { setCurrentUser } from '../../user/models/signed-in-user/set-current';
+import { render, renderHook } from '@testing-library/react';
+import { useUpdateDisplayNameMutation } from '../../user/hooks/useUpdateDisplayNameMutation';
+import { GraphQLServiceProvider } from '../components/GraphQLServiceProvider';
+import { ReactNode } from '@tanstack/react-router';
+import { ApolloCache, ApolloLink, gql, Observable } from '@apollo/client';
+import { GraphQLError } from 'graphql';
+
+function readDisplayName(
+  userId: string,
+  cache: ApolloCache<unknown>,
+  optimistic: boolean
+) {
+  const user: any = cache.readFragment({
+    fragment: gql(`
+      fragment f on SignedInUser {
+        public {
+          profile {
+            displayName
+          }
+        }
+      }  
+    `),
+    id: `SignedInUser:${userId}`,
+    optimistic,
+  });
+
+  return user.public.profile.displayName;
+}
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
+it('remembers displayName mutation when app goes offline and resumes when online', async () => {
+  const onLineSpy = vi.spyOn(window.navigator, 'onLine', 'get');
+
+  const userA = 'aaaaaaaaaaaaaaaa';
+
+  const storage = new Map();
+  storage.set(
+    'cache',
+    JSON.stringify(
+      createUsersForCache({
+        users: [
+          {
+            id: userA,
+          },
+          {
+            id: 'bbbbbbbbbbbbbbbb',
+          },
+        ],
+      })
+    )
+  );
+
+  const params = createDefaultGraphQLServiceParams();
+  params.storageKey = 'cache';
+  params.storage = {
+    getItem(key) {
+      return storage.get(key);
+    },
+    setItem(key, value) {
+      storage.set(key, value);
+    },
+    removeItem(key) {
+      storage.delete(key);
+    },
+  };
+
+  params.linkOptions = {
+    ...params.linkOptions,
+    debug: {
+      ...params.linkOptions?.debug,
+      logging: false,
+    },
+  };
+
+  params.terminatingLink = new ApolloLink(() =>
+    Observable.of({
+      data: {
+        updateSignedInUserDisplayName: {
+          signedInUser: {
+            id: userA,
+            public: {
+              id: userA,
+              profile: {
+                displayName: 'new name',
+                __typename: 'PublicUserProfile',
+              },
+              __typename: 'PublicUser',
+            },
+            __typename: 'SignedInUser',
+          },
+          __typename: 'UpdateSignedInUserDisplayNamePayload',
+        },
+      },
+    })
+  );
+
+  async function runDisplayNameMutationAndPersist() {
+    const service = createGraphQLService(params);
+    const cache = service.client.cache;
+    await service.restorer.restored();
+    setCurrentUser(userA, cache);
+
+    const {
+      result: { current: updateDisplayName },
+    } = renderHook(() => useUpdateDisplayNameMutation(), {
+      wrapper: ({ children }: { children: ReactNode }) => {
+        return (
+          <GraphQLServiceProvider service={service}>{children}</GraphQLServiceProvider>
+        );
+      },
+    });
+
+    void updateDisplayName('new name');
+
+    // Wait for links to execute
+    await new Promise(process.nextTick.bind(process));
+
+    await service.persistor.persist();
+    service.dispose();
+  }
+
+  async function expectPersistedNormalAndOptimisticDisplayName() {
+    const service = createGraphQLService(params);
+    const cache = service.client.cache;
+    await service.restorer.restored();
+
+    // Resumes persisted operations
+    render(<GraphQLServiceProvider service={service}>{null}</GraphQLServiceProvider>);
+
+    expect(readDisplayName(userA, cache, false)).toStrictEqual(userA);
+    expect(
+      readDisplayName(userA, cache, true),
+      'Operation was not persisted or resumed'
+    ).toStrictEqual('new name');
+
+    service.dispose();
+  }
+
+  async function expectMutationResumedWhenOnline() {
+    const service = createGraphQLService(params);
+    const cache = service.client.cache;
+    await service.restorer.restored();
+
+    // Resumes persisted operations
+    render(<GraphQLServiceProvider service={service}>{null}</GraphQLServiceProvider>);
+
+    // Wait for link to process mutation
+    await new Promise(process.nextTick.bind(process));
+
+    expect(
+      readDisplayName(userA, cache, false),
+      'Operation did not finish'
+    ).toStrictEqual('new name');
+    expect(readDisplayName(userA, cache, true)).toStrictEqual('new name');
+
+    service.dispose();
+  }
+
+  onLineSpy.mockReturnValue(false);
+  await runDisplayNameMutationAndPersist();
+  await expectPersistedNormalAndOptimisticDisplayName();
+  onLineSpy.mockReturnValue(true);
+  await expectMutationResumedWhenOnline();
+});
+
+it('remembers displayName mutation when session expires', async () => {
+  const userA = 'aaaaaaaaaaaaaaaa';
+
+  const storage = new Map();
+  storage.set(
+    'cache',
+    JSON.stringify(
+      createUsersForCache({
+        users: [
+          {
+            id: userA,
+          },
+          {
+            id: 'bbbbbbbbbbbbbbbb',
+          },
+        ],
+      })
+    )
+  );
+
+  const params = createDefaultGraphQLServiceParams();
+  params.storageKey = 'cache';
+  params.storage = {
+    getItem(key) {
+      return storage.get(key);
+    },
+    setItem(key, value) {
+      storage.set(key, value);
+    },
+    removeItem(key) {
+      storage.delete(key);
+    },
+  };
+
+  params.linkOptions = {
+    ...params.linkOptions,
+    debug: {
+      ...params.linkOptions?.debug,
+      logging: false,
+    },
+  };
+
+  let counter = 0;
+  const linkObservable = new Observable<any>((sub) => {
+    if (counter === 0) {
+      sub.next({
+        errors: [
+          new GraphQLError('Session expired', {
+            extensions: {
+              code: 'UNAUTHENTICATED',
+              reason: 'SESSION_EXPIRED',
+            },
+          }),
+        ],
+        data: null,
+      });
+    } else if (counter === 1) {
+      sub.next({
+        data: {
+          updateSignedInUserDisplayName: {
+            signedInUser: {
+              id: userA,
+              public: {
+                id: userA,
+                profile: {
+                  displayName: 'new name',
+                  __typename: 'PublicUserProfile',
+                },
+                __typename: 'PublicUser',
+              },
+              __typename: 'SignedInUser',
+            },
+            __typename: 'UpdateSignedInUserDisplayNamePayload',
+          },
+        },
+      });
+    }
+
+    counter++;
+    sub.complete();
+  });
+
+  params.terminatingLink = new ApolloLink(() => linkObservable);
+
+  // Create service
+  const service = createGraphQLService(params);
+  const cache = service.client.cache;
+  await service.restorer.restored();
+  setCurrentUser(userA, cache);
+
+  // Render mutation hook and call it
+  const {
+    result: { current: updateDisplayName },
+  } = renderHook(() => useUpdateDisplayNameMutation(), {
+    wrapper: ({ children }: { children: ReactNode }) => {
+      return (
+        <GraphQLServiceProvider service={service}>{children}</GraphQLServiceProvider>
+      );
+    },
+  });
+  void updateDisplayName('new name');
+
+  // Wait for links to execute
+  await new Promise(process.nextTick.bind(process));
+
+  // Mutation is optimistic and hasn't finished
+  expect(readDisplayName(userA, cache, false)).toStrictEqual(userA);
+  expect(readDisplayName(userA, cache, true)).toStrictEqual('new name');
+
+  // Open gate as if session is no longer expired and server will return correct result
+  const gate = service.getUserGate(userA);
+  gate.open();
+
+  // Wait for links to execute
+  await new Promise(process.nextTick.bind(process));
+
+  expect(
+    readDisplayName(userA, cache, false),
+    'Mutation did not finish. A link is not sending it through.'
+  ).toStrictEqual('new name');
+  expect(readDisplayName(userA, cache, true)).toStrictEqual('new name');
+});
