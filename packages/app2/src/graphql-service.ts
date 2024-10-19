@@ -18,7 +18,7 @@ import { TaggedEvictOptionsList } from './graphql/utils/tagged-evict';
 import { localStorageKey, LocalStoragePrefix } from './local-storage';
 import { LocalStorageWrapper } from 'apollo3-cache-persist';
 import { devicePreferencesPolicies } from './device-preferences/policies';
-import { getCurrentUserId } from './user/utils/signed-in-user/get-current';
+import { getCurrentUserId } from './user/models/signed-in-user/get-current';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
 const HTTP_URL =
