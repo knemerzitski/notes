@@ -13,11 +13,11 @@ export class CountMap<T> {
     return this.definedMap.get(key);
   }
 
-  inc(key: T) {
+  increment(key: T) {
     this.map.set(key, this.definedMap.get(key) + 1);
   }
 
-  dec(key: T) {
+  decrement(key: T) {
     this.map.set(key, this.definedMap.get(key) - 1);
   }
 }

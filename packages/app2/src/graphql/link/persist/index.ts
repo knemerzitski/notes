@@ -113,7 +113,7 @@ export class PersistLink extends ApolloLink {
     }
 
     return new Observable((observer) => {
-      this.ongoingCountMap.inc(operationId);
+      this.ongoingCountMap.increment(operationId);
 
       const sub = forward(operation)
         .map((value) => {
@@ -124,7 +124,7 @@ export class PersistLink extends ApolloLink {
         .subscribe(observer);
 
       return () => {
-        this.ongoingCountMap.dec(operationId);
+        this.ongoingCountMap.decrement(operationId);
         sub.unsubscribe();
       };
     });

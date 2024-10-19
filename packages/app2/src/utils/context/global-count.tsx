@@ -100,8 +100,8 @@ function createCountService() {
 
   return {
     getObservableById: (key: Id) => idObservableMap.get(key).countObservable,
-    inc: countMap.inc.bind(countMap),
-    dec: countMap.dec.bind(countMap),
+    increment: countMap.increment.bind(countMap),
+    decrement: countMap.decrement.bind(countMap),
     get: countMap.get.bind(countMap),
     update: updateIds,
   };
@@ -122,9 +122,9 @@ export function GlobalCountProvider({
 
   const subscribe: SubscribeClosure = useCallback(
     (id) => {
-      countService.inc(id);
+      countService.increment(id);
       return () => {
-        countService.dec(id);
+        countService.decrement(id);
       };
     },
     [countService]
