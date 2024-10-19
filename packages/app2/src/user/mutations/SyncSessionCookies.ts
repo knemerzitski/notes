@@ -1,8 +1,8 @@
 import { ApolloCache } from '@apollo/client';
 import { gql } from '../../__generated__';
 import { mutationDefinition } from '../../graphql/utils/mutation-definition';
-import { getUserIds } from '../utils/signed-in-user/get-ids';
-import { setUserSessionExpired } from '../utils/signed-in-user/set-session-expired';
+import { getUserIds } from '../models/signed-in-user/get-ids';
+import { setUserSessionExpired } from '../models/signed-in-user/set-session-expired';
 
 export const SyncSessionCookies = mutationDefinition(
   gql(`

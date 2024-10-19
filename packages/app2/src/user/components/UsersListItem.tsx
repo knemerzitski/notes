@@ -9,7 +9,7 @@ import { DisplayName } from '../styled-components/DisplayName';
 import { useUserId } from '../context/user-id';
 import { UserMoreOptionsButton } from './UserMoreOptionsButton';
 import { useOnClose } from '../../utils/context/on-close';
-import { setCurrentUser } from '../utils/signed-in-user/set-current';
+import { setCurrentUser } from '../models/signed-in-user/set-current';
 import { SelectableListItem } from '../../utils/styled-components/SelectableListItem';
 import { StartIconButton } from '../../utils/styled-components/StartIconButton';
 

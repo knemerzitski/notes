@@ -1,7 +1,7 @@
 import { gql } from '../../__generated__';
 import { mutationDefinition } from '../../graphql/utils/mutation-definition';
-import { addUser } from '../utils/signed-in-user/add';
-import { addUserAuthProvider } from '../utils/signed-in-user/add-auth-provider';
+import { addUser } from '../models/signed-in-user/add';
+import { addUserAuthProvider } from '../models/signed-in-user/add-auth-provider';
 
 export const SignIn = mutationDefinition(
   gql(`

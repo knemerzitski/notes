@@ -2,7 +2,7 @@ import { useApolloClient } from '@apollo/client';
 import { useCallback } from 'react';
 import { SignOut } from '../mutations/SignOut';
 import { SignedInUser } from '../../__generated__/graphql';
-import { getUserIds } from '../utils/signed-in-user/get-ids';
+import { getUserIds } from '../models/signed-in-user/get-ids';
 import { useMutation } from '../../graphql/hooks/useMutation';
 
 export function useSignOutMutation() {

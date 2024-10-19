@@ -7,7 +7,7 @@ import { useUpdateDisplayNameMutation } from '../../user/hooks/useUpdateDisplayN
 import { ReactNode } from '@tanstack/react-router';
 import { GraphQLServiceProvider } from '../components/GraphQLServiceProvider';
 import { ApolloLink, Observable } from '@apollo/client';
-import { setCurrentUser } from '../../user/utils/signed-in-user/set-current';
+import { setCurrentUser } from '../../user/models/signed-in-user/set-current';
 
 it('does not serialize different user same mutations', async () => {
   const A_userId = 'ZwjzAA054CFCvxuO';
@@ -15,9 +15,11 @@ it('does not serialize different user same mutations', async () => {
 
   const params = createDefaultGraphQLServiceParams();
   params.wsUrl = undefined;
-  params.linksDebug = {
-    ...params.linksDebug,
-    logging: false,
+  params.linkOptions = {
+    ...params.linkOptions,
+    debug: {
+      logging: true,
+    },
   };
 
   const observableFn = vi.fn();

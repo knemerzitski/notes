@@ -1,7 +1,7 @@
 import { useApolloClient } from '@apollo/client';
 import { gql } from '../../__generated__';
 import { useEffect, useRef } from 'react';
-import { getCurrentUserId } from '../utils/signed-in-user/get-current';
+import { getCurrentUserId } from '../models/signed-in-user/get-current';
 import { Maybe } from '~utils/types';
 import { useWebSocketClient } from '../../graphql/context/websocket-client';
 

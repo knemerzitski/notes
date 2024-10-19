@@ -1,6 +1,6 @@
 import { gql } from '../../__generated__';
 import { mutationDefinition } from '../../graphql/utils/mutation-definition';
-import { removeUsers } from '../utils/signed-in-user/remove';
+import { removeUsers } from '../models/signed-in-user/remove';
 
 export const SignOut = mutationDefinition(
   gql(`

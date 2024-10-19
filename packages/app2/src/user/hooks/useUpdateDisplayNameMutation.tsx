@@ -4,7 +4,7 @@ import {
   PublicUserProfile,
   UpdateSignedInUserDisplayNamePayloadFragmentDoc,
 } from '../../__generated__/graphql';
-import { getCurrentUserId } from '../utils/signed-in-user/get-current';
+import { getCurrentUserId } from '../models/signed-in-user/get-current';
 import { UpdateSignedInUserDisplayName } from '../mutations/UpdateSignedInUserDisplayName';
 import { makeFragmentData } from '../../__generated__';
 import { useMutation } from '../../graphql/hooks/useMutation';
