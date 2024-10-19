@@ -11,7 +11,7 @@ import { UpdateSignedInUserDisplayNamePayload } from './mutations/UpdateSignedIn
 import { LocalSignedInUser } from './policies/LocalSignedInUser';
 import { evictOptions as Query_evictOptions, Query } from './policies/Query';
 import { SignedInUser } from './policies/SignedInUser';
-import { primeLocalUser } from './utils/local-user/prime';
+import { primeLocalUser } from './models/local-user/prime';
 
 export const userPolicies: CreateTypePoliciesFn = function (ctx) {
   return {
