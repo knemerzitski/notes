@@ -2,7 +2,7 @@ import {
   GoogleLoginButton as ThirdPartyGoogleLoginButton,
   GoogleLoginProps,
 } from '../../third-party/google/components/GoogleLoginButton';
-import { useShowError } from '../../utils/context/show-error';
+import { useShowError } from '../../utils/context/show-message';
 import { useSignInWithGoogleMutation } from '../hooks/useSignInWithGoogleMutation';
 
 export function GoogleLoginButton(props: Partial<GoogleLoginProps>) {
@@ -26,6 +26,10 @@ export function GoogleLoginButton(props: Partial<GoogleLoginProps>) {
   }
 
   return (
-    <ThirdPartyGoogleLoginButton {...props} onSuccess={handleSuccess} onError={handleError} />
+    <ThirdPartyGoogleLoginButton
+      {...props}
+      onSuccess={handleSuccess}
+      onError={handleError}
+    />
   );
 }
