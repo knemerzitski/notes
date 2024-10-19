@@ -2,6 +2,18 @@ import { InMemoryCache, TypePolicies, TypePolicy } from '@apollo/client';
 import { Maybe } from '~utils/types';
 import { createGraphQLService } from './create/service';
 import { MutationDefinition } from './utils/mutation-definition';
+import { GateController } from './link/gate';
+import '@apollo/client';
+
+declare module '@apollo/client' {
+  interface DefaultContext {
+    /**
+     * User gate controls whether specific user operations are sent to the server. \
+     * If gate is closed then operations are buffered until it's opened.
+     */
+    getUserGate?: (userId: string) => Pick<GateController, 'open' | 'close'>;
+  }
+}
 
 export enum GlobalOperationVariables {
   USER_ID = '_userId',

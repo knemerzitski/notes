@@ -23,7 +23,9 @@ const SignInModal_Query = gql(`
           displayName
         }
       }
-      sessionExpired
+      local {
+        sessionExpired
+      }
     }
   }
 `);
@@ -56,7 +58,7 @@ export function SignInModal({
       <DialogContent>
         <DialogContentText>
           {user?.public.profile.displayName}
-          {user?.sessionExpired && (
+          {user?.local.sessionExpired && (
             <>
               <Break />
               Session has expired. Sign in to continue.

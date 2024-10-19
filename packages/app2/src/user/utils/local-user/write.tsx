@@ -5,16 +5,16 @@ import { WriteLocalUserQueryQuery } from '../../../__generated__/graphql';
 const WriteLocalUser_Query = gql(`
   query WriteLocalUser_Query {
     localUser {
-      __typename
       id
       localOnly
       public {
-        __typename
         id
         profile {
-          __typename
           displayName
         }
+      }
+      local {
+        id
       }
     }
   }

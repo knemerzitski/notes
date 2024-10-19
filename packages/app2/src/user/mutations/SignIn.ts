@@ -5,7 +5,7 @@ import { addUserAuthProvider } from '../utils/signed-in-user/add-auth-provider';
 
 export const SignIn = mutationDefinition(
   gql(`
-  mutation SignIn($input: SignInInput!) {
+  mutation SignIn($input: SignInInput!) @noauth {
     signIn(input: $input) {
       __typename
       ... on SignInResult {
@@ -28,18 +28,22 @@ export const SignIn = mutationDefinition(
     }
   }
 `),
-  (cache, result) => {
+  (cache, result, { context }) => {
     const data = result.data;
     if (!data) return;
 
+    const userId = data.signIn.signedInUser.id;
+
     if (data.signIn.__typename === 'JustSignedInResult') {
-      addUserAuthProvider(
-        data.signIn.signedInUser.id,
-        data.signIn.authProviderUser,
-        cache
-      );
+      addUserAuthProvider(userId, data.signIn.authProviderUser, cache);
     }
 
-    addUser(data.signIn.signedInUser.id, cache);
+    addUser(userId, cache);
+
+    // Enable sending user specific requests to the server
+    if (context?.getUserGate) {
+      const gate = context.getUserGate(userId);
+      gate.open();
+    }
   }
 );

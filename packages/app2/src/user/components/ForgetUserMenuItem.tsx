@@ -7,7 +7,9 @@ import { useRemoveUser } from '../hooks/useRemoveUser';
 const ForgetUserMenuItem_Query = gql(`
   query ForgetUserMenuItem_Query($id: ID!) {
     signedInUserById(id: $id) @client {
-      sessionExpired
+      local {
+        sessionExpired
+      }
       localOnly
     }
   }
@@ -26,7 +28,7 @@ export function ForgetUserMenuItem() {
   const user = data?.signedInUserById;
   if (!user) return null;
 
-  if (!user.sessionExpired || user.localOnly) return null;
+  if (!user.local.sessionExpired || user.localOnly) return null;
 
   function handleForgetUser() {
     removeUser(userId);

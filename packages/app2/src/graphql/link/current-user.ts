@@ -17,25 +17,47 @@ import { WebSocketClient } from '../ws/websocket-client';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 import { Maybe } from '~utils/types';
 import SerializingLink from 'apollo-link-serialize';
+import { DirectiveFlag } from '../utils/directive-flag';
 
 const SERIALIZE_DIRECTIVE = 'serialize';
+const NOAUTH_DIRECTIVE = 'noauth';
 
 /**
  * Check and mark operations based on current user.
  * Prevent operations that do not match current user id or has an invalid user id.
  */
 export class CurrentUserLink extends ApolloLink {
+  private readonly noauthDirective;
+
   constructor(
     private readonly appContext: Pick<AppContext, 'userId'>,
     private readonly wsClient?: Pick<WebSocketClient, 'asyncUserId'>
   ) {
     super();
+
+    this.noauthDirective = new DirectiveFlag(NOAUTH_DIRECTIVE);
   }
 
   private async validateMarkOperation(operation: Operation) {
-    // TODO what if session is expired?
+    // Do not mark operations that have @noauth directive
+    if (this.noauthDirective.has(operation)) {
+      this.noauthDirective.remove(operation);
+      return;
+    }
 
     const userId = this.appContext.userId;
+
+    // userId empty
+    if (!userId) {
+      return new Error('Prevented an operation without userId');
+    }
+
+    // userId local
+    if (isLocalId(userId)) {
+      return new Error(`Prevented an operation with local userId ${userId}`);
+    }
+
+    // Subscription operation
     if (this.wsClient && isSubscriptionOperation(operation.query)) {
       const wsUserId = await this.wsClient.asyncUserId();
       if (wsUserId !== userId) {

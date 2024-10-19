@@ -1,6 +1,12 @@
+################################ SignedInUser ################################
+
+enum AuthProviderUserType {
+  GOOGLE
+}
+
 extend type SignedInUser {
-  "Current session has expired and is unusable. Must sign in again."
-  sessionExpired: Boolean!
+  "Always mutable subtype of SignedInUser even when it has data from optimistic response"
+  local: LocalSignedInUser!
   "User email. This is stored only on client-side during sign-in and not in the server."
   email: String!
   "Find a provider by type"
@@ -9,10 +15,6 @@ extend type SignedInUser {
   authProviderUsers: [AuthProviderUser!]!
   "User is only used on the device locally. No network requests are made."
   localOnly: Boolean!
-}
-
-enum AuthProviderUserType {
-  GOOGLE
 }
 
 extend type Query {
@@ -25,3 +27,33 @@ extend type Query {
   "Always available local user"
   localUser: SignedInUser!
 }
+
+################################ LocalSignedInUser ################################
+
+"""
+SignedInUser state that can always be modified with writeQuery/writeFragemt and
+it will be reflected in UI regardless of optimistic responses.
+"""
+type LocalSignedInUser {
+  "SignedInUser.id"
+  id: ID!
+  "Current session has expired and is unusable. Must sign in again."
+  sessionExpired: Boolean!
+}
+
+enum UserMessageType {
+  ERROR
+  WARNING
+}
+
+type UserMessage {
+  id: ID!
+  type: UserMessageType!
+  text: String!
+}
+
+extend type LocalSignedInUser {
+  messages: [UserMessage!]!
+}
+
+

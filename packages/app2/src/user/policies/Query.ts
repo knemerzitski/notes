@@ -10,11 +10,19 @@ export const Query: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
       signedInUser: {
         keyArgs: keyArgsWithUserId(ctx),
       },
-      signedInUserById(_existing, { args, toReference }) {
-        return toReference({
-          __typename: 'SignedInUser',
-          id: args?.id,
-        });
+      signedInUserById: {
+        keyArgs: false,
+        read(_existing, { args, toReference }) {
+          const id = args?.id;
+          if (!id) {
+            return null;
+          }
+
+          return toReference({
+            __typename: 'SignedInUser',
+            id: args.id,
+          });
+        },
       },
       signedInUsers: fieldArrayToMap('id', {
         read(existing, { readField, args }) {

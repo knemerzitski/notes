@@ -6,6 +6,7 @@ import {
   FetchResult,
   Observable,
 } from '@apollo/client';
+import { Subscription } from 'zen-observable-ts';
 
 interface WaitLinkOptions {
   /**
@@ -14,8 +15,6 @@ interface WaitLinkOptions {
    */
   waitTime?: number;
 }
-
-type Subscription = ReturnType<Observable<FetchResult>['subscribe']>;
 
 /**
  * Wait a period of time before forwarding operation.
@@ -38,23 +37,28 @@ export class WaitLink extends ApolloLink {
       return null;
     }
 
-    const subs = new Map<Observer<FetchResult>, Subscription | undefined>();
+    const observers = new Map<Observer<FetchResult>, Subscription | null>();
 
-    let sub: Observable<FetchResult> | null = null;
+    let observable: Observable<FetchResult> | null = null;
     setTimeout(() => {
-      sub = forward(operation);
-      for (const existingSub of subs.keys()) {
-        if (!subs.get(existingSub)) {
-          subs.set(existingSub, sub.subscribe(existingSub));
-        }
+      observable = forward(operation);
+      for (const observer of observers.keys()) {
+        observers.set(observer, observable.subscribe(observer));
       }
     }, this.waitTime);
 
     return new Observable<FetchResult>((observer: Observer<FetchResult>) => {
-      subs.set(observer, sub?.subscribe(observer));
+      if (observable) {
+        const sub = observable.subscribe(observer);
+        return () => {
+          sub.unsubscribe();
+        };
+      }
+
+      observers.set(observer, null);
       return () => {
-        subs.get(observer)?.unsubscribe();
-        subs.delete(observer);
+        observers.get(observer)?.unsubscribe();
+        observers.delete(observer);
       };
     });
   }

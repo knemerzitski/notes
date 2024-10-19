@@ -8,7 +8,9 @@ import { useOnClose } from '../../utils/context/on-close';
 const SignOutMenuItem_Query = gql(`
   query SignOutMenuItem_Query($id: ID!) {
     signedInUserById(id: $id) @client {
-      sessionExpired
+      local {
+        sessionExpired
+      }
       localOnly
     }
   }
@@ -28,7 +30,7 @@ export function SignOutMenuItem() {
   const user = data?.signedInUserById;
   if (!user) return null;
 
-  if (user.sessionExpired || user.localOnly) return null;
+  if (user.local.sessionExpired || user.localOnly) return null;
 
   function handleSignOut() {
     closeMenu();

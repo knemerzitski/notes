@@ -23,7 +23,9 @@ const UserListItem_Query = gql(`
         }
       }
       email
-      sessionExpired
+      local {
+        sessionExpired
+      }
       localOnly
     }
   }
@@ -59,7 +61,7 @@ export function UserListItem(props?: Parameters<typeof SelectableListItem>[0]) {
         <ListItemText>
           <Box display="flex" alignItems="center" justifyContent="space-between">
             <DisplayName>{name}</DisplayName>
-            {user.sessionExpired && <SessionExpired>Session expired</SessionExpired>}
+            {user.local.sessionExpired && <SessionExpired>Session expired</SessionExpired>}
           </Box>
           {!user.localOnly && <EmailSubtitleSmall>{user.email}</EmailSubtitleSmall>}
         </ListItemText>

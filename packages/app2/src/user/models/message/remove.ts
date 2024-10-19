@@ -1,0 +1,67 @@
+import { ApolloCache } from '@apollo/client';
+import { gql } from '../../../__generated__';
+import { SignedInUser, UserMessage } from '../../../__generated__/graphql';
+
+const RemoveUserMessages_Query = gql(`
+  query RemoveUserMessages_Query($id: ID!) {
+    signedInUserById(id: $id) {
+      id
+      local {
+        id
+        messages {
+          id
+        }
+      }
+    }
+  }
+`);
+
+/**
+ * Remove everything related to user from cache.
+ * @param removeUserIds userIds to remove or null to remove all users
+ * @param cache
+ */
+export function removeUserMessages(
+  userId: SignedInUser['id'],
+  messageIds: UserMessage['id'][],
+  cache: Pick<
+    ApolloCache<unknown>,
+    'readQuery' | 'writeQuery' | 'updateQuery' | 'evict' | 'identify'
+  >
+) {
+  cache.updateQuery(
+    {
+      query: RemoveUserMessages_Query,
+      variables: {
+        id: userId,
+      },
+      overwrite: true,
+    },
+    (data) => {
+      if (!data?.signedInUserById) return;
+
+      return {
+        __typename: 'Query' as const,
+        signedInUserById: {
+          __typename: 'SignedInUser' as const,
+          id: userId,
+          local: {
+            __typename: 'LocalSignedInUser' as const,
+            id: userId,
+            messages: data.signedInUserById.local.messages.filter(
+              (msg) => !messageIds.includes(msg.id)
+            ),
+          },
+        },
+      };
+    }
+  );
+  for (const id of messageIds) {
+    cache.evict({
+      id: cache.identify({
+        __typename: 'UserMessage',
+        id,
+      }),
+    });
+  }
+}

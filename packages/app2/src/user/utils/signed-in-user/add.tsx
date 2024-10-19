@@ -5,6 +5,10 @@ const AddUser_Query = gql(`
   query AddUser_Query {
     signedInUsers {
       id
+      local {
+        id
+        sessionExpired
+      }
     }
   }
 `);
@@ -18,6 +22,11 @@ export function addUser(userId: string, cache: Pick<ApolloCache<unknown>, 'write
         {
           __typename: 'SignedInUser',
           id: userId,
+          local: {
+            __typename: 'LocalSignedInUser',
+            id: userId,
+            sessionExpired: false,
+          },
         },
       ],
     },

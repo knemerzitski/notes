@@ -9,8 +9,16 @@ const AUTH_PROVIDER_MAPPING: Record<string, string> = {
 export const SignedInUser: CreateTypePolicyFn = function () {
   return {
     fields: {
-      sessionExpired(existing = false) {
-        return existing;
+      local(_existing, { readField, toReference }) {
+        const id = readField('id');
+        if (id == null) {
+          return null;
+        }
+
+        return toReference({
+          __typename: 'LocalSignedInUser',
+          id,
+        });
       },
       email(existing = 'unknown@localhost', { readField }) {
         const isLocalOnly = readField('localOnly');

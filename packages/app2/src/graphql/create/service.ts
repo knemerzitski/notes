@@ -1,12 +1,13 @@
 import {
   ApolloClient,
   ApolloLink,
+  DefaultContext,
   InMemoryCache,
   PossibleTypesMap,
 } from '@apollo/client';
 import { CachePersistor, PersistentStorage } from 'apollo3-cache-persist';
 import { WebSocketClient } from '../ws/websocket-client';
-import { createHttpWsLink, createLinks } from './links';
+import { createLinks } from './links';
 import {
   AppContext,
   CacheReadyCallbacks,
@@ -20,6 +21,10 @@ import { TaggedEvict, TaggedEvictOptionsList } from '../utils/tagged-evict';
 import { CacheRestorer } from '../utils/cache-restorer';
 import { createRunCacheReadyCallbacks } from './cache-ready-callbacks';
 import { createMutationUpdaterFunctionMap } from './mutation-updater-map';
+import { createOnlineGate } from '../utils/online-gate';
+import { createUsersGates, initUsersGates } from '../utils/user-gate';
+import { createErrorLink } from './error-link';
+import { createHttpWsLink } from './http-ws-link';
 
 export function createGraphQLService({
   httpUri,
@@ -94,7 +99,7 @@ export function createGraphQLService({
       return restorer.status !== 'done';
     },
   });
-
+  
   addTypePolicies(typePolicies, cache);
 
   const taggedEvict = new TaggedEvict(evictOptionsList);
@@ -112,13 +117,6 @@ export function createGraphQLService({
       )
     : undefined;
 
-  const httpWsLink =
-    terminatingLink ??
-    createHttpWsLink({
-      httpUri,
-      wsClient,
-    });
-
   const links = createLinks({
     appContext,
     wsClient,
@@ -126,15 +124,50 @@ export function createGraphQLService({
     options: linkOptions,
   });
 
+  const disposeOnlineGate = createOnlineGate(links.pick.gateLink);
+  const getUserGate = createUsersGates(links.pick.gateLink);
+  void restorer.restored().then(() => {
+    initUsersGates(getUserGate, cache);
+  });
+
+  const defaultContext: DefaultContext = {
+    getUserGate,
+  };
+
   const apolloClient = new ApolloClient({
     cache,
-    link: ApolloLink.from([links.link, httpWsLink]),
+    assumeImmutableResults: false,
     defaultOptions: {
       mutate: {
         errorPolicy: linkOptions?.debug?.logging ? 'all' : undefined,
+        context: defaultContext,
+      },
+      query: {
+        context: defaultContext,
+      },
+      watchQuery: {
+        context: defaultContext,
       },
     },
+    mergeContext: true,
+    defaultContext,
   });
+
+  const errorLink = createErrorLink({
+    appContext,
+    client: apolloClient,
+    mutationUpdaterFnMap,
+    getUserGate,
+  });
+
+  const httpWsLink =
+    terminatingLink ??
+    createHttpWsLink({
+      httpUri,
+      wsClient,
+    });
+
+  apolloClient.setLink(ApolloLink.from([errorLink, links.link, httpWsLink]));
 
   return {
     client: apolloClient,
@@ -144,5 +177,12 @@ export function createGraphQLService({
     links: links.pick,
     mutationUpdaterFnMap,
     taggedEvict,
+    getUserGate,
+    /**
+     * Removes window event listeners. Service will no longer function properly
+     */
+    dispose: () => {
+      disposeOnlineGate();
+    },
   };
 }

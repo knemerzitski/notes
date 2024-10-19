@@ -17,7 +17,7 @@ import { PersistLink } from '.';
 import { addTypePolicies, createTypePolicies } from '../../create/type-policies';
 import { graphQLPolicies } from '../../policies';
 import { resumeOngoingOperations } from './resume';
-import QueueLink from 'apollo-link-queue';
+import { GateLink } from '../gate';
 
 const Mutation = gql(`
   mutation Foo {
@@ -223,13 +223,14 @@ it('ignores ongoing mutation with duplicate persist id', () => {
 
   const persistLink = new PersistLink(cache);
   const ongoingIdsLink = new OngoingIdsLink();
-  const queueLink = new QueueLink();
+  const gateLink = new GateLink();
   const client = new ApolloClient({
     cache,
-    link: ApolloLink.from([persistLink, ongoingIdsLink, queueLink]),
+    link: ApolloLink.from([persistLink, ongoingIdsLink, gateLink]),
   });
 
-  queueLink.close();
+  const gate = gateLink.create();
+  gate.close();
 
   void client.mutate({
     mutation: Mutation,
@@ -239,8 +240,8 @@ it('ignores ongoing mutation with duplicate persist id', () => {
   });
 
   void Promise.allSettled([
-    ...resumeOngoingOperations(client, {}),
-    ...resumeOngoingOperations(client, {}),
+    ...resumeOngoingOperations(client, () => undefined),
+    ...resumeOngoingOperations(client, () => undefined),
   ]);
 
   expect(

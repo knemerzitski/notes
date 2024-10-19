@@ -18,5 +18,9 @@ export function generateLocalUser(
         displayName: 'Local Account',
       },
     },
+    local: {
+      __typename: 'LocalSignedInUser',
+      id,
+    },
   } satisfies WriteLocalUserQueryQuery['localUser'];
 }
