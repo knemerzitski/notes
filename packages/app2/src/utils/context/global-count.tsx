@@ -5,12 +5,12 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 import { CountMap } from '~utils/map/count-map';
 import { DefinedMap } from '~utils/map/defined-map';
 import { ObservableMap } from '~utils/map/observable-map';
-import { useConstant } from '../hooks/useConstant';
 import { Observable, SubscriptionObserver } from 'zen-observable-ts';
 import { Maybe } from '~utils/types';
 
@@ -114,7 +114,7 @@ export function GlobalCountProvider({
   children: ReactNode;
   ids: Id[];
 }) {
-  const countService = useConstant(createCountService);
+  const countService = useMemo(createCountService, []);
 
   useEffect(() => {
     countService.update(ids);

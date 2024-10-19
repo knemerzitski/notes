@@ -2,7 +2,8 @@
 import { ReactNode } from 'react';
 import { GraphQLServiceProvider } from './GraphQLServiceProvider';
 import { createDefaultGraphQLService } from '../../graphql-service';
-import { useConstant } from '../../utils/hooks/useConstant';
+
+const service = createDefaultGraphQLService();
 
 export function AppGraphQLModuleProvider({
   children,
@@ -14,8 +15,6 @@ export function AppGraphQLModuleProvider({
    */
   restoringCacheFallback?: ReactNode;
 }) {
-  const service = useConstant(() => createDefaultGraphQLService());
-
   return (
     <GraphQLServiceProvider
       service={service}
