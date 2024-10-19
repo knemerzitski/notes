@@ -10,6 +10,7 @@ import { PersistLink } from '../link/persist';
 import apolloLogger from 'apollo-link-logger';
 import { CurrentUserLink } from '../link/current-user';
 import { GateLink } from '../link/gate';
+import { ClearRootSubscriptionLink } from '../link/clear-root-subscription';
 
 export function createLinks({
   appContext,
@@ -35,6 +36,7 @@ export function createLinks({
     };
   };
 }) {
+  const clearRootSubscripionLink = new ClearRootSubscriptionLink();
   const currentUserLink = new CurrentUserLink(appContext, wsClient);
   const loggerLink = options?.debug?.logging ? apolloLogger : passthrough();
   const statsLink = new StatsLink();
@@ -51,6 +53,7 @@ export function createLinks({
 
   return {
     link: ApolloLink.from([
+      clearRootSubscripionLink,
       currentUserLink,
       loggerLink,
       statsLink,
@@ -66,6 +69,7 @@ export function createLinks({
       waitLink,
     ]),
     pick: {
+      clearRootSubscripionLink,
       currentUserLink,
       loggerLink,
       statsLink,
