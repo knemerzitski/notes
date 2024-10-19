@@ -46,11 +46,13 @@ export function createLinks({
   appContext,
   wsClient,
   cache,
-  debug,
+  options,
 }: {
   appContext: Pick<AppContext, 'userId'>;
   wsClient?: WebSocketClient;
   cache: InMemoryCache;
+  options?: {
+    persist?: ConstructorParameters<typeof PersistLink>[1];
   debug?: {
     /**
      * Throttle each request by milliseconds
@@ -61,14 +63,14 @@ export function createLinks({
      * @default false
      */
     logging?: boolean;
+    };
   };
 }) {
   const currentUserLink = new CurrentUserLink(appContext, wsClient);
   const loggerLink = debug?.logging ? apolloLogger : passthrough();
   const statsLink = new StatsLink();
-  const errorLink = new ErrorLink();
-  const persistLink = new PersistLink(cache);
-  const queueLink = new QueueLink();
+  const persistLink = new PersistLink(cache, options?.persist);
+  const gateLink = new GateLink();
   const serializingLink = new SerializingLink();
   const retryLink = new RetryLink();
 

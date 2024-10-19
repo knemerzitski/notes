@@ -19,6 +19,7 @@ import { localStorageKey, LocalStoragePrefix } from './local-storage';
 import { LocalStorageWrapper } from 'apollo3-cache-persist';
 import { devicePreferencesPolicies } from './device-preferences/policies';
 import { getCurrentUserId } from './user/utils/signed-in-user/get-current';
+import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
 const HTTP_URL =
   import.meta.env.MODE === 'production'
@@ -58,13 +59,18 @@ export function createDefaultGraphQLServiceParams(): Parameters<
     context: {
       getUserId: getCurrentUserId,
     },
-    linksDebug:
-      import.meta.env.MODE !== 'production'
-        ? {
-            throttle: 0,
-            logging: true,
-          }
-        : undefined,
+    linkOptions: {
+      persist: {
+        persistErrorCodes: [GraphQLErrorCode.UNAUTHENTICATED],
+      },
+      debug:
+        import.meta.env.MODE !== 'production'
+          ? {
+              throttle: 0,
+              logging: true,
+            }
+          : undefined,
+    },
   };
 }
 

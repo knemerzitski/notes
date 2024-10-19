@@ -34,7 +34,7 @@ export function createGraphQLService({
   storage,
   context,
   skipRestoreCache = false,
-  linksDebug,
+  linkOptions,
 }: {
   httpUri: string;
   wsUrl: string | undefined;
@@ -55,7 +55,7 @@ export function createGraphQLService({
   context: {
     getUserId(cache: InMemoryCache): Maybe<string>;
   };
-  linksDebug?: Parameters<typeof createLinks>[0]['debug'];
+  linkOptions?: Parameters<typeof createLinks>[0]['options'];
 }) {
   const mutationUpdaterFnMap = createMutationUpdaterFunctionMap(mutationDefinitions);
 
@@ -123,7 +123,7 @@ export function createGraphQLService({
     appContext,
     wsClient,
     cache,
-    debug: linksDebug,
+    options: linkOptions,
   });
 
   const apolloClient = new ApolloClient({
@@ -131,7 +131,7 @@ export function createGraphQLService({
     link: ApolloLink.from([links.link, httpWsLink]),
     defaultOptions: {
       mutate: {
-        errorPolicy: linksDebug?.logging ? 'all' : undefined,
+        errorPolicy: linkOptions?.debug?.logging ? 'all' : undefined,
       },
     },
   });

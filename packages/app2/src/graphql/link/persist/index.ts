@@ -7,66 +7,48 @@ import {
   DefaultContext,
   InMemoryCache,
   ApolloCache,
-  DocumentNode,
 } from '@apollo/client';
 import { addOngoingOperation } from './add';
 import { removeOngoingOperation } from './remove';
 import { hasOngoingOperation } from './has';
 import { CountMap } from '~utils/map/count-map';
-import {
-  hasDirectives,
-  isMutationOperation,
-  removeDirectivesFromDocument,
-} from '@apollo/client/utilities';
-import { memoize1 } from '~utils/memoize1';
+import { isMutationOperation } from '@apollo/client/utilities';
+import { DirectiveFlag } from '../../utils/directive-flag';
+import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
 const PERSIST_DIRECTIVE = 'persist';
-
-function hasPersistDirective(operation: Operation) {
-  return hasDirectives([PERSIST_DIRECTIVE], operation.query);
-}
-
-const transformRemovePersist = memoize1((document: DocumentNode) => {
-  return (
-    removeDirectivesFromDocument(
-      [
-        {
-          name: PERSIST_DIRECTIVE,
-        },
-      ],
-      document
-    ) ?? document
-  );
-});
-
-function removePersistDirective(operation: Operation): Operation {
-  if (!hasPersistDirective(operation)) {
-    return operation;
-  }
-
-  return {
-    extensions: operation.extensions,
-    operationName: operation.operationName,
-    variables: operation.variables,
-    setContext: operation.setContext,
-    getContext: operation.getContext,
-    query: transformRemovePersist(operation.query),
-  };
-}
 
 export class PersistLink extends ApolloLink {
   private readonly cache;
 
-  static PERSIST = '_PersistLink-persist';
+  static readonly PERSIST = '_PersistLink-persist';
 
   readonly generateId;
 
   private readonly ongoingCountMap = new CountMap<string>(new Map());
 
-  constructor(cache: InMemoryCache, options?: { generateId: () => string }) {
+  private readonly persistDirective;
+
+  private readonly persistErrorCodes: Set<GraphQLErrorCode>;
+
+  constructor(
+    cache: InMemoryCache,
+    options?: {
+      generateId?: () => string;
+      /**
+       * If operation response contains error with `{extensions: {code: GraphQLErrorCode}}`
+       * then operation is persisted.
+       */
+      persistErrorCodes?: GraphQLErrorCode[];
+    }
+  ) {
     super();
     this.cache = cache;
     this.generateId = options?.generateId ?? crypto.randomUUID.bind(crypto);
+
+    this.persistDirective = new DirectiveFlag(PERSIST_DIRECTIVE);
+
+    this.persistErrorCodes = new Set(options?.persistErrorCodes);
   }
 
   public override request(
@@ -79,7 +61,7 @@ export class PersistLink extends ApolloLink {
 
     const context = operation.getContext();
 
-    const hasDirective = hasPersistDirective(operation);
+    const hasDirective = this.persistDirective.has(operation);
     const persist = context[PersistLink.PERSIST] || hasDirective;
 
     if (!persist || !isMutationOperation(operation.query)) {
@@ -88,7 +70,7 @@ export class PersistLink extends ApolloLink {
     }
 
     if (hasDirective) {
-      operation = removePersistDirective(operation);
+      this.persistDirective.remove(operation);
     }
 
     const operationId = typeof persist !== 'string' ? this.generateId() : persist;
@@ -117,8 +99,17 @@ export class PersistLink extends ApolloLink {
 
       const sub = forward(operation)
         .map((value) => {
-          // Remove operation from cache only when recevied a response from server
-          removeOngoingOperation(operationId, this.cache);
+          const hasPersistErrorCode =
+            value.errors?.some((error) =>
+              this.persistErrorCodes.has(
+                String(error.extensions.code) as GraphQLErrorCode
+              )
+            ) ?? false;
+          if (!hasPersistErrorCode) {
+            // Remove operation from cache only when recevied a response from server that excludes `persistErrorCodes`
+            removeOngoingOperation(operationId, this.cache);
+          }
+
           return value;
         })
         .subscribe(observer);
