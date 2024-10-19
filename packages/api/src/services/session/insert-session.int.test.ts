@@ -5,7 +5,7 @@ import {
   resetDatabase,
   mongoCollectionStats,
   mongoCollections,
-} from '../../__test__/helpers/mongodb/mongodb';
+} from '../../__tests__/helpers/mongodb/mongodb';
 import { SessionDuration } from './duration';
 import { insertSession } from './insert-session';
 import { QueryableSessionLoader } from '../../mongodb/loaders/session/loader';

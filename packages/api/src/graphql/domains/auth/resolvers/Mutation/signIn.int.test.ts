@@ -12,18 +12,18 @@ import {
 } from 'vitest';
 import * as insert_session from '../../../../../services/session/insert-session';
 import * as insert_user_with_google_user from '../../../../../services/user/insert-user-with-google-user';
-import { apolloServer } from '../../../../../__test__/helpers/graphql/apollo-server';
+import { apolloServer } from '../../../../../__tests__/helpers/graphql/apollo-server';
 import {
   CreateGraphQLResolversContextOptions,
   createGraphQLResolversContext,
-} from '../../../../../__test__/helpers/graphql/graphql-context';
-import { expectGraphQLResponseData } from '../../../../../__test__/helpers/graphql/response';
+} from '../../../../../__tests__/helpers/graphql/graphql-context';
+import { expectGraphQLResponseData } from '../../../../../__tests__/helpers/graphql/response';
 import {
   resetDatabase,
   mongoCollectionStats,
-} from '../../../../../__test__/helpers/mongodb/mongodb';
-import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/populate/populate-queue';
-import { fakeUserPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/user';
+} from '../../../../../__tests__/helpers/mongodb/mongodb';
+import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/populate/populate-queue';
+import { fakeUserPopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/user';
 import { DBSessionSchema } from '../../../../../mongodb/schema/session';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';

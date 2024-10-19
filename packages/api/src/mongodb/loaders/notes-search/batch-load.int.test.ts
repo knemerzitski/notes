@@ -7,16 +7,16 @@ import { Changeset } from '~collab/changeset';
 import {
   dropAndCreateSearchIndexes,
   dropSearchIndexes,
-} from '../../../__test__/helpers/mongodb/indexes';
+} from '../../../__tests__/helpers/mongodb/indexes';
 import {
   resetDatabase,
   mongoCollections,
-} from '../../../__test__/helpers/mongodb/mongodb';
+} from '../../../__tests__/helpers/mongodb/mongodb';
 import {
   populateNotes,
   populateNotesWithText,
-} from '../../../__test__/helpers/mongodb/populate/populate';
-import { populateExecuteAll } from '../../../__test__/helpers/mongodb/populate/populate-queue';
+} from '../../../__tests__/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../__tests__/helpers/mongodb/populate/populate-queue';
 import { DBUserSchema } from '../../schema/user';
 
 import { MongoPartialDeep } from '../../types';

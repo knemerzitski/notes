@@ -7,31 +7,31 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
 
-import { apolloServer } from '../../../../../__test__/helpers/graphql/apollo-server';
+import { apolloServer } from '../../../../../__tests__/helpers/graphql/apollo-server';
 import {
   createMockedPublisher,
   createGraphQLResolversContext,
   mockSocketApi,
   mockSubscriptionsModel,
   CreateGraphQLResolversContextOptions,
-} from '../../../../../__test__/helpers/graphql/graphql-context';
-import { mockResolver } from '../../../../../__test__/helpers/graphql/mock-resolver';
+} from '../../../../../__tests__/helpers/graphql/graphql-context';
+import { mockResolver } from '../../../../../__tests__/helpers/graphql/mock-resolver';
 import {
   expectGraphQLResponseData,
   expectGraphQLResponseError,
-} from '../../../../../__test__/helpers/graphql/response';
+} from '../../../../../__tests__/helpers/graphql/response';
 import {
   mongoCollections,
   mongoCollectionStats,
   resetDatabase,
-} from '../../../../../__test__/helpers/mongodb/mongodb';
-import { fakeNotePopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/note';
+} from '../../../../../__tests__/helpers/mongodb/mongodb';
+import { fakeNotePopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/note';
 import {
   populateNotes,
   userAddNote,
-} from '../../../../../__test__/helpers/mongodb/populate/populate';
-import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/populate/populate-queue';
-import { fakeUserPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/user';
+} from '../../../../../__tests__/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/populate/populate-queue';
+import { fakeUserPopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/user';
 import { DBNoteSchema } from '../../../../../mongodb/schema/note';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import {

@@ -4,7 +4,7 @@
 
 import { beforeEach, expect, it } from 'vitest';
 
-import { resetDatabase } from '~api/__test__/helpers/mongodb/mongodb';
+import { resetDatabase } from '~api/__tests__/helpers/mongodb/mongodb';
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
 
 // TODO use api e2e test helpers

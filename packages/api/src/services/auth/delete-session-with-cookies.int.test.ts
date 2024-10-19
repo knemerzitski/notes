@@ -2,9 +2,9 @@ import { beforeEach, it, expect } from 'vitest';
 import {
   mongoCollectionStats,
   mongoCollections,
-} from '../../__test__/helpers/mongodb/mongodb';
-import { populateExecuteAll } from '../../__test__/helpers/mongodb/populate/populate-queue';
-import { fakeSessionPopulateQueue } from '../../__test__/helpers/mongodb/populate/session';
+} from '../../__tests__/helpers/mongodb/mongodb';
+import { populateExecuteAll } from '../../__tests__/helpers/mongodb/populate/populate-queue';
+import { fakeSessionPopulateQueue } from '../../__tests__/helpers/mongodb/populate/session';
 import { DBSessionSchema } from '../../mongodb/schema/session';
 import { Cookies } from '../http/cookies';
 import { ObjectId } from 'mongodb';

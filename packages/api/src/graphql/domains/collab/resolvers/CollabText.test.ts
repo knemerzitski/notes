@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, expect, it } from 'vitest';
-import { mockResolver } from '../../../../__test__/helpers/graphql/mock-resolver';
+import { mockResolver } from '../../../../__tests__/helpers/graphql/mock-resolver';
 import { CollabText } from './CollabText';
 import { Changeset } from '~collab/changeset';
 import { maybeCallFn } from '~utils/maybe-call-fn';

@@ -6,18 +6,18 @@ import { beforeAll, beforeEach, expect, it } from 'vitest';
 
 import { Maybe } from '~utils/types';
 
-import { apolloServer } from '../../../../../__test__/helpers/graphql/apollo-server';
+import { apolloServer } from '../../../../../__tests__/helpers/graphql/apollo-server';
 import {
   createGraphQLResolversContext,
   CreateGraphQLResolversContextOptions,
-} from '../../../../../__test__/helpers/graphql/graphql-context';
-import { expectGraphQLResponseData } from '../../../../../__test__/helpers/graphql/response';
+} from '../../../../../__tests__/helpers/graphql/graphql-context';
+import { expectGraphQLResponseData } from '../../../../../__tests__/helpers/graphql/response';
 import {
   mongoCollectionStats,
   resetDatabase,
-} from '../../../../../__test__/helpers/mongodb/mongodb';
-import { populateNotes } from '../../../../../__test__/helpers/mongodb/populate/populate';
-import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/populate/populate-queue';
+} from '../../../../../__tests__/helpers/mongodb/mongodb';
+import { populateNotes } from '../../../../../__tests__/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/populate/populate-queue';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import {
   NoteCategory,

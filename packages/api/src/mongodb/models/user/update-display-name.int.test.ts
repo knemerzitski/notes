@@ -4,7 +4,7 @@ import {
   resetDatabase,
   mongoCollectionStats,
   mongoCollections,
-} from '../../../__test__/helpers/mongodb/mongodb';
+} from '../../../__tests__/helpers/mongodb/mongodb';
 import { DBUserSchema, UserSchema } from '../../schema/user';
 import { updateDisplayName } from './update-display-name';
 import { ObjectId } from 'mongodb';

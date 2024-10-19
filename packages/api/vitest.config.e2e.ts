@@ -16,8 +16,8 @@ export default defineConfig({
   envDir: '../../',
   envPrefix: ['TEST_', 'MOCK_', 'VITE_'],
   test: {
-    include: ['src/__test__/e2e/**/*.test.ts'],
-    setupFiles: ['src/__test__/helpers/setup.e2e.ts'],
+    include: ['src/__tests__/e2e/**/*.test.ts'],
+    setupFiles: ['src/__tests__/helpers/setup.e2e.ts'],
     pool: 'threads',
     poolOptions: {
       threads: {

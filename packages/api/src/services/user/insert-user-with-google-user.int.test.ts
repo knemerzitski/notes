@@ -6,7 +6,7 @@ import {
   mongoCollections,
   mongoCollectionStats,
   resetDatabase,
-} from '../../__test__/helpers/mongodb/mongodb';
+} from '../../__tests__/helpers/mongodb/mongodb';
 import { faker } from '@faker-js/faker';
 
 beforeEach(async () => {

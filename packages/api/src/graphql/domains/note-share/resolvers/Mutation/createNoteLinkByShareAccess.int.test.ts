@@ -3,19 +3,19 @@
 import { faker } from '@faker-js/faker';
 import { assert, beforeEach, expect, it } from 'vitest';
 
-import { apolloServer } from '../../../../../__test__/helpers/graphql/apollo-server';
+import { apolloServer } from '../../../../../__tests__/helpers/graphql/apollo-server';
 import {
   createGraphQLResolversContext,
   CreateGraphQLResolversContextOptions,
-} from '../../../../../__test__/helpers/graphql/graphql-context';
+} from '../../../../../__tests__/helpers/graphql/graphql-context';
 import {
   mongoCollections,
   mongoCollectionStats,
   resetDatabase,
-} from '../../../../../__test__/helpers/mongodb/mongodb';
-import { populateNotes } from '../../../../../__test__/helpers/mongodb/populate/populate';
-import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/populate/populate-queue';
-import { fakeUserPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/user';
+} from '../../../../../__tests__/helpers/mongodb/mongodb';
+import { populateNotes } from '../../../../../__tests__/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/populate/populate-queue';
+import { fakeUserPopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/user';
 import { ShareNoteLinkSchema } from '../../../../../mongodb/schema/share-note-link';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import {
@@ -23,7 +23,7 @@ import {
   CreateNoteLinkByShareAccessPayload,
   NoteCategory,
 } from '../../../types.generated';
-import { expectGraphQLResponseData } from '../../../../../__test__/helpers/graphql/response';
+import { expectGraphQLResponseData } from '../../../../../__tests__/helpers/graphql/response';
 import { UserNoteLink_id } from '../../../../../services/note/user-note-link-id';
 import { DBNoteSchema } from '../../../../../mongodb/schema/note';
 

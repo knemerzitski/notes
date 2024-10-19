@@ -18,7 +18,7 @@ export default defineConfig({
   envDir: '../../',
   envPrefix: 'TEST_',
   test: {
-    include: ['lib/**/*.int.test.ts', '__test__/**/*.int.test.ts'],
+    include: ['lib/**/*.int.test.ts', '__tests__/**/*.int.test.ts'],
     pool: 'threads',
     poolOptions: {
       threads: {

@@ -5,7 +5,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { SignedInUser } from './SignedInUser';
 import { ObjectId } from 'mongodb';
 import { maybeCallFn } from '~utils/maybe-call-fn';
-import { mockResolver } from '../../../../__test__/helpers/graphql/mock-resolver';
+import { mockResolver } from '../../../../__tests__/helpers/graphql/mock-resolver';
 import { createPartialValueQueryFn } from '../../../../mongodb/query/query';
 import { UserSchema } from '../../../../mongodb/schema/user';
 

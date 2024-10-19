@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, it, expect } from 'vitest';
 import { PublicUserProfile } from './PublicUserProfile';
-import { mockResolver } from '../../../../__test__/helpers/graphql/mock-resolver';
+import { mockResolver } from '../../../../__tests__/helpers/graphql/mock-resolver';
 import { UserSchema } from '../../../../mongodb/schema/user';
 import { createPartialValueQueryFn } from '../../../../mongodb/query/query';
 

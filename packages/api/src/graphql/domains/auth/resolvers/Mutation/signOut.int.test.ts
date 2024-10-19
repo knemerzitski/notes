@@ -3,19 +3,19 @@ import { afterEach, beforeAll, beforeEach, expect, it, MockInstance, vi } from '
 import * as delete_session_with_cookies from '../../../../../services/auth/delete-session-with-cookies';
 import * as delete_all_session_in_cookies from '../../../../../services/auth/delete-all-sessions-in-cookies';
 import { SignOutInput, SignOutPayload } from '../../../types.generated';
-import { apolloServer } from '../../../../../__test__/helpers/graphql/apollo-server';
+import { apolloServer } from '../../../../../__tests__/helpers/graphql/apollo-server';
 import {
   CreateGraphQLResolversContextOptions,
   createGraphQLResolversContext,
-} from '../../../../../__test__/helpers/graphql/graphql-context';
-import { expectGraphQLResponseData } from '../../../../../__test__/helpers/graphql/response';
+} from '../../../../../__tests__/helpers/graphql/graphql-context';
+import { expectGraphQLResponseData } from '../../../../../__tests__/helpers/graphql/response';
 import {
   resetDatabase,
   mongoCollectionStats,
-} from '../../../../../__test__/helpers/mongodb/mongodb';
-import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/populate/populate-queue';
-import { fakeSessionPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/session';
-import { fakeUserPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/user';
+} from '../../../../../__tests__/helpers/mongodb/mongodb';
+import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/populate/populate-queue';
+import { fakeSessionPopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/session';
+import { fakeUserPopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/user';
 import { DBSessionSchema } from '../../../../../mongodb/schema/session';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
