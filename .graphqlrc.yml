@@ -1,4 +1,4 @@
 schema:
   - './packages/api/src/graphql/domains/*/schema.graphql'
-  - './packages/app/src/**/schema.graphql'
-documents: './packages/app/src/**/*.{graphql,js,ts,jsx,tsx}'
+  - './packages/app2/src/*/schema.graphql'
+documents: './packages/app2/src/**/*.{ts,tsx}'
