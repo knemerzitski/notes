@@ -2,20 +2,20 @@
 import {
   ApolloCache,
   useMutation as useApolloMutation,
-  DefaultContext,
   MutationHookOptions,
   MutationTuple,
   OperationVariables,
   useQuery,
   useApolloClient,
   MutationUpdaterFunction,
+  DefaultContext,
 } from '@apollo/client';
 import { useGetMutationUpdaterFn } from '../context/get-mutation-updater-fn';
 import { useCallback } from 'react';
 import { gql } from '../../__generated__';
-import { IgnoreModifier } from '@apollo/client/cache/core/types/common';
 import { useUserId } from '../../user/context/user-id';
 import { MutationDefinition } from '../utils/mutation-definition';
+import { optimisticResponseMutation } from '../utils/optimistic-response-mutation';
 
 const UseMutation_Query = gql(`
   query UseMutation_Query($id: ID) {
@@ -24,8 +24,6 @@ const UseMutation_Query = gql(`
     }
   }
 `);
-
-const IGNORE: IgnoreModifier = Object.create(null);
 
 /**
  * Uses mutation with pre-defined update function.
@@ -36,7 +34,7 @@ export function useMutation<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   TData = any,
   TVariables = OperationVariables,
-  TContext = DefaultContext,
+  TContext extends DefaultContext = DefaultContext,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   TCache extends ApolloCache<any> = ApolloCache<any>,
 >(
@@ -58,67 +56,31 @@ export function useMutation<
 
   const localOnly = data?.signedInUserById?.localOnly ?? false;
 
-  const update = getMutationUpdaterFn(definition.document) as
-    | MutationUpdaterFunction<TData, TVariables, TContext, TCache>
-    | undefined;
-
   const apolloMutationTuple = useApolloMutation<TData, TVariables, TContext, TCache>(
     definition.document,
     {
       ...options,
-      update,
+      update: getMutationUpdaterFn(definition.document) as MutationUpdaterFunction<
+        TData,
+        TVariables,
+        TContext,
+        TCache
+      >,
     }
   );
 
   const localMutation: MutationTuple<TData, TVariables, TContext, TCache>[0] =
     useCallback(
-      (options) => {
-        if (!options) {
-          return false;
-        }
-
-        const { variables, optimisticResponse, context } = options;
-
-        const data =
-          typeof optimisticResponse === 'function'
-            ? //@ts-expect-error Function is callable
-              optimisticResponse(variables, { IGNORE })
-            : optimisticResponse;
-
-        if (data === IGNORE) {
-          return false;
-        }
-
-        client.cache.writeQuery({
-          query: definition.document,
-          variables,
-          id: 'ROOT_MUTATION',
-          data,
-        });
-
-        if (!options.keepRootFields) {
-          client.cache.modify({
-            id: 'ROOT_MUTATION',
-            fields(value, { fieldName, DELETE }) {
-              return fieldName === '__typename' ? value : DELETE;
-            },
-          });
-        }
-
-        (options.update ?? update)?.(
-          client.cache as TCache,
-          {
-            data,
-          },
-          {
-            context,
-            variables,
-          }
-        );
-
-        return data;
-      },
-      [client, definition, update]
+      (options) =>
+        optimisticResponseMutation({
+          client,
+          mutation: definition.document,
+          update: getMutationUpdaterFn(
+            options?.mutation ?? definition.document
+          ) as MutationUpdaterFunction<TData, TVariables, TContext, TCache>,
+          ...options,
+        }),
+      [client, definition, getMutationUpdaterFn]
     );
 
   return localOnly ? [localMutation, apolloMutationTuple[1]] : apolloMutationTuple;
