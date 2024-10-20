@@ -9,7 +9,7 @@ import {
   ApolloCache,
 } from '@apollo/client';
 import { addOngoingOperation } from './add';
-import { removeOngoingOperation } from './remove';
+import { removeOngoingOperations } from './remove';
 import { hasOngoingOperation } from './has';
 import { CountMap } from '~utils/map/count-map';
 import { isMutationOperation } from '@apollo/client/utilities';
@@ -107,7 +107,7 @@ export class PersistLink extends ApolloLink {
             ) ?? false;
           if (!hasPersistErrorCode) {
             // Remove operation from cache only when recevied a response from server that excludes `persistErrorCodes`
-            removeOngoingOperation(operationId, this.cache);
+            removeOngoingOperations([operationId], this.cache);
           }
 
           return value;

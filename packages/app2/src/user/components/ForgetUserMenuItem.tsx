@@ -1,12 +1,22 @@
 import { MenuItem } from '@mui/material';
 import { useUserId } from '../context/user-id';
 import { gql } from '../../__generated__';
-import { useQuery } from '@apollo/client';
+import { useApolloClient, useQuery } from '@apollo/client';
 import { useRemoveUser } from '../hooks/useRemoveUser';
+import { useIsOnline } from '../../utils/hooks/useIsOnline';
+import { useShowConfirm } from '../../utils/context/show-confirm';
+import { useOnClose } from '../../utils/context/on-close';
+import { hasUserOngoingOperations } from '../../graphql/link/persist/has-user';
+import { confirmUnsavedChanges } from '../utils/confirm-unsaved-changes';
 
 const ForgetUserMenuItem_Query = gql(`
   query ForgetUserMenuItem_Query($id: ID!) {
     signedInUserById(id: $id) @client {
+      public {
+        profile {
+          displayName
+        }
+      }
       local {
         sessionExpired
       }
@@ -16,7 +26,11 @@ const ForgetUserMenuItem_Query = gql(`
 `);
 
 export function ForgetUserMenuItem() {
+  const client = useApolloClient();
+  const isOnline = useIsOnline();
   const removeUser = useRemoveUser();
+  const showConfirm = useShowConfirm();
+  const closeMenu = useOnClose();
 
   const userId = useUserId();
   const { data } = useQuery(ForgetUserMenuItem_Query, {
@@ -25,13 +39,23 @@ export function ForgetUserMenuItem() {
     },
   });
 
-  const user = data?.signedInUserById;
-  if (!user) return null;
+  const _user = data?.signedInUserById;
+  if (!_user) return null;
+  const user = _user;
 
-  if (!user.local.sessionExpired || user.localOnly) return null;
+  if (isOnline && (!user.local.sessionExpired || user.localOnly)) return null;
 
   function handleForgetUser() {
-    removeUser(userId);
+    closeMenu();
+
+    confirmUnsavedChanges({
+      title: `Forget "${user.public.profile.displayName}"?`,
+      condition: hasUserOngoingOperations([userId], client.cache),
+      onSuccess: () => {
+        removeUser(userId);
+      },
+      showConfirm,
+    });
   }
 
   return <MenuItem onClick={handleForgetUser}>Forget</MenuItem>;

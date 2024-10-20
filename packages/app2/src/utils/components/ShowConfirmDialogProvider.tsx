@@ -24,6 +24,7 @@ export function ShowConfirmDialogProvider({ children }: { children: ReactNode })
       showModal(
         <ConfirmModal
           key={key}
+          title={options?.title}
           message={message}
           onSuccess={options?.onSuccess}
           onCancel={options?.onCancel}

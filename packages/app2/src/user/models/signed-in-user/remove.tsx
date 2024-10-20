@@ -4,6 +4,8 @@ import { getCurrentUserId } from './get-current';
 import { setCurrentUser } from './set-current';
 import { evictByUser } from '../../utils/evict-by-user';
 import { TaggedEvict } from '../../../graphql/utils/tagged-evict';
+import { removeOngoingOperations } from '../../../graphql/link/persist/remove';
+import { getAllUserOngoingOperationsIds } from '../../../graphql/link/persist/get-all-user';
 
 const RemoveUsers_Query = gql(`
   query RemoveUsers_Query {
@@ -22,7 +24,7 @@ export function removeUsers(
   removeUserIds: string[] | null,
   cache: Pick<
     ApolloCache<unknown>,
-    'readQuery' | 'writeQuery' | 'updateQuery' | 'evict' | 'gc'
+    'readQuery' | 'writeQuery' | 'updateQuery' | 'evict' | 'gc' | 'identify' | 'modify'
   >,
   taggedEvict?: TaggedEvict
 ) {
@@ -56,9 +58,11 @@ export function removeUsers(
     }
   );
 
+  // Evict user related fields
+  const actualRemovedUserIds =
+    removeUserIds ?? data?.signedInUsers.map((user) => user.id) ?? [];
+
   if (taggedEvict) {
-    const actualRemovedUserIds =
-      removeUserIds ?? data?.signedInUsers.map((user) => user.id) ?? [];
     for (const userId of actualRemovedUserIds) {
       evictByUser(userId, {
         cache,
@@ -66,6 +70,13 @@ export function removeUsers(
       });
     }
   }
+
+  // Remove persisted operations related to removed users
+  const allUsersOperationsIds = getAllUserOngoingOperationsIds(
+    actualRemovedUserIds,
+    cache
+  );
+  removeOngoingOperations(allUsersOperationsIds, cache);
 
   cache.gc();
 }

@@ -1,11 +1,12 @@
-import { useQuery } from '@apollo/client';
+import { useApolloClient, useQuery } from '@apollo/client';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useSignOutMutation } from '../hooks/useSignOutMutation';
 import { gql } from '../../__generated__';
 import { useOnClose } from '../../utils/context/on-close';
 import { CenterButton } from '../../utils/styled-components/CenterButton';
-
-// TODO confirm dialog before sign out?
+import { useShowConfirm } from '../../utils/context/show-confirm';
+import { confirmUnsavedChanges } from '../utils/confirm-unsaved-changes';
+import { hasUserOngoingOperations } from '../../graphql/link/persist/has-user';
 
 const SignOutAllUsersButton_Query = gql(`
   query SignOutAllUsersButton_Query {
@@ -16,8 +17,10 @@ const SignOutAllUsersButton_Query = gql(`
 `);
 
 export function SignOutAllUsersButton() {
+  const client = useApolloClient();
   const closeParent = useOnClose();
   const signOut = useSignOutMutation();
+  const showConfirm = useShowConfirm();
 
   const { data } = useQuery(SignOutAllUsersButton_Query);
   if (!data) return null;
@@ -25,8 +28,16 @@ export function SignOutAllUsersButton() {
   if (data.signedInUsers.length === 0) return null;
 
   function handleSignOut() {
-    closeParent();
-    void signOut();
+    confirmUnsavedChanges({
+      title: 'Sign out all users?',
+      condition: hasUserOngoingOperations(null, client.cache),
+      onSuccess: () => {
+        closeParent();
+
+        void signOut();
+      },
+      showConfirm,
+    });
   }
 
   return (
