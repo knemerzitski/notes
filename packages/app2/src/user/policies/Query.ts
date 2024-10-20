@@ -33,10 +33,12 @@ export const Query: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
           existing = existing ?? {};
 
           // Add localUser to result
-          const localUser = readField('localUser') as Reference;
-          const localUserId = readField('id', localUser);
-          if (typeof localUserId === 'string') {
-            return { [localUserId]: localUser, ...existing };
+          const localUser = readField('localUser') as Reference | undefined;
+          if (localUser) {
+            const localUserId = readField('id', localUser);
+            if (typeof localUserId === 'string') {
+              return { [localUserId]: localUser, ...existing };
+            }
           }
 
           return existing;
