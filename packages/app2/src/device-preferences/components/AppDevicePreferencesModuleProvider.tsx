@@ -10,7 +10,7 @@ export function AppDevicePreferencesModuleProvider({
   children: ReactNode;
 }) {
   return (
-    <PreferencesStorageProvider value={preferencesStorage}>
+    <PreferencesStorageProvider storage={preferencesStorage}>
       {children}
     </PreferencesStorageProvider>
   );

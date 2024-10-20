@@ -24,14 +24,14 @@ export function usePreferencesStorage(
 }
 
 export function PreferencesStorageProvider({
-  value,
+  storage,
   children,
 }: {
-  value: ProvidedPreferencesStorage;
+  storage: ProvidedPreferencesStorage;
   children: ReactNode;
 }) {
   return (
-    <PreferencesStorageContext.Provider value={value}>
+    <PreferencesStorageContext.Provider value={storage}>
       {children}
     </PreferencesStorageContext.Provider>
   );
