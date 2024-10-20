@@ -2,7 +2,7 @@ import { AppDevicePreferencesModuleProvider } from './device-preferences/compone
 import { AppGraphQLModuleProvider } from './graphql/components/AppGraphQLModuleProvider';
 import { AppThemeModuleProvider } from './theme/components/AppThemeModuleProvider';
 import { AppFallbackRestoringCache } from './utils/components/AppFallbackRestoringCache';
-import { AppRoutesModuleProvider } from './routes/components/AppRoutesModuleProvider';
+import { AppRoutesModuleProvider } from './utils/components/AppRoutesModuleProvider';
 import { AppUtilsModuleProvider } from './utils/components/AppUtilsModuleProvider';
 import { AppUserModuleProvider } from './user/components/AppUserModuleProvider';
 import { AppThirdPartyModuleProvider } from './third-party/components/AppThirdPartyModuleProvider';
