@@ -10,6 +10,7 @@ import { RestorePersistedCache } from './RestorePersistedCache';
 import { ConfirmLeaveOnPendingPersistCache } from './ConfirmLeaveOnPendingPersistCache';
 import { CacheRestorerProvider } from '../context/cache-restorer';
 import { WebSocketClientProvider } from '../context/websocket-client';
+import { StatsLinkProvider } from '../context/stats-link';
 
 export function GraphQLServiceProvider({
   service,
@@ -24,17 +25,19 @@ export function GraphQLServiceProvider({
     <ApolloProvider client={service.client}>
       <GetMutationUpdaterFnProvider getter={service.mutationUpdaterFnMap.get}>
         <PersistLinkProvider persistLink={service.links.persistLink}>
-          <CachePersistorProvider persistor={service.persistor}>
-            <CacheRestorerProvider restorer={service.restorer}>
-              <ConfirmLeaveOnPendingPersistCache triggerPersist={true} />
-              <RestorePersistedCache fallback={restoringCacheFallback}>
-                <ResumePersistedOngoingOperations />
-                <WebSocketClientProvider wsClient={service.wsClient}>
-                  {children}
-                </WebSocketClientProvider>
-              </RestorePersistedCache>
-            </CacheRestorerProvider>
-          </CachePersistorProvider>
+          <StatsLinkProvider statsLink={service.links.statsLink}>
+            <CachePersistorProvider persistor={service.persistor}>
+              <CacheRestorerProvider restorer={service.restorer}>
+                <ConfirmLeaveOnPendingPersistCache triggerPersist={true} />
+                <RestorePersistedCache fallback={restoringCacheFallback}>
+                  <ResumePersistedOngoingOperations />
+                  <WebSocketClientProvider wsClient={service.wsClient}>
+                    {children}
+                  </WebSocketClientProvider>
+                </RestorePersistedCache>
+              </CacheRestorerProvider>
+            </CachePersistorProvider>
+          </StatsLinkProvider>
         </PersistLinkProvider>
       </GetMutationUpdaterFnProvider>
     </ApolloProvider>
