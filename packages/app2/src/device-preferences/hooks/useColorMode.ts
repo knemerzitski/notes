@@ -24,7 +24,7 @@ export function useColorMode() {
     ? (data?.devicePreferences.colorMode ??
       preferenceStorage?.getColorMode() ??
       ColorMode.SYSTEM)
-    : preferenceStorage?.getColorMode();
+    : (preferenceStorage?.getColorMode() ?? ColorMode.SYSTEM);
 
   const setColorMode = useCallback(
     (newColorMode: ColorMode) => {
@@ -46,5 +46,5 @@ export function useColorMode() {
     [client, preferenceStorage, isCacheRestored]
   );
 
-  return [colorMode, setColorMode];
+  return [colorMode, setColorMode] as const;
 }

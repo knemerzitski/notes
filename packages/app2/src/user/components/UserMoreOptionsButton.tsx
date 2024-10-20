@@ -6,6 +6,7 @@ import { SignOutMenuItem } from './SignOutMenuItem';
 import { useUserId } from '../context/user-id';
 import { useQuery } from '@apollo/client';
 import { gql } from '../../__generated__';
+import { Tooltip } from '@mui/material';
 
 const UserMoreOptionsButton_Query = gql(`
   query UserMoreOptionsButton_Query($id: ID!) {
@@ -51,7 +52,11 @@ export function UserMoreOptionsButton({
         ...iconButtonMenuProps?.slotProps,
         iconButton: {
           ...iconButtonMenuProps?.slotProps?.iconButton,
-          children: <MoreHorizIcon />,
+          children: (
+            <Tooltip title="More options">
+              <MoreHorizIcon />
+            </Tooltip>
+          ),
         },
       }}
     >

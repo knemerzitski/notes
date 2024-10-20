@@ -21,7 +21,7 @@ export function useCreateTheme({
     colorMode === ColorMode.DARK ||
     (colorMode === ColorMode.SYSTEM && devicePrefersDarkMode);
 
-  const themeMode = prefersDarkMode ? 'dark' : 'light';
+  const paletteMode = prefersDarkMode ? 'dark' : 'light';
 
   const theme = useMemo(() => {
     const baseTheme = createTheme(themeOptions.base(paletteMode));

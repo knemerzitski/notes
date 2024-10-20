@@ -7,13 +7,11 @@ import { SignedInUserEventsSubscription } from './SignedInUserEventsSubscription
 
 export function AppUserModuleProvider({ children }: { children: ReactNode }) {
   return (
-    <>
+    <CurrentUserIdProvider>
       <CurrentUserChangedRefresh />
       <SignedInUserEventsSubscription />
-      <CurrentUserIdProvider>
-        <ShowCachedUserMessages />
-      </CurrentUserIdProvider>
+      <ShowCachedUserMessages />
       <SignInModalProvider>{children}</SignInModalProvider>
-    </>
+    </CurrentUserIdProvider>
   );
 }

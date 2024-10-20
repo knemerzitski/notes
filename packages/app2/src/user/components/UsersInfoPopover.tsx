@@ -28,7 +28,6 @@ export function UsersInfoPopover({
         }}
       >
         <AbsoluteCornerIconButton
-          color="inherit"
           aria-label="close account options"
           onClick={onClose}
         >
