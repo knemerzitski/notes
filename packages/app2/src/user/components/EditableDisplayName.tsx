@@ -1,16 +1,23 @@
 import { useQuery } from '@apollo/client';
 import { getFragmentData, gql } from '../../__generated__';
 import { useUserId } from '../context/user-id';
-import { DisplayNameTitle } from '../styled-components/DisplayNameTitle';
-import { ClickAwayListener, IconButton, TextFieldProps, Tooltip } from '@mui/material';
+import { DisplayNameTitle } from './DisplayNameTitle';
+import {
+  Box,
+  ClickAwayListener,
+  css,
+  IconButton,
+  styled,
+  TextFieldProps,
+  Tooltip,
+} from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import { useState } from 'react';
 import { useUpdateDisplayNameMutation } from '../hooks/useUpdateDisplayNameMutation';
 import { useUndoAction } from '../../utils/context/undo-action';
 import { EditableDisplayNameSignedInUserFragmentFragmentDoc } from '../../__generated__/graphql';
 import CheckIcon from '@mui/icons-material/Check';
-import { DisplayNameTitleTextField } from '../styled-components/DisplayNameTitleTextField';
-import { EditableDisplayNameBox } from '../styled-components/EditableDisplayNameBox';
+import { DisplayNameTitleTextField } from './DisplayNameTitleTextField';
 
 const EditableDisplayName_Query = gql(`
   query EditableDisplayName_Query($id: ID!) {
@@ -78,7 +85,7 @@ export function EditableDisplayName() {
     setIsEditing(false);
 
     if (name !== editName) {
-      undoAction('Name Update Cancelled', () => {
+      undoAction('Name update cancelled', () => {
         setIsEditing(true);
         setEditName(editName);
       });
@@ -115,7 +122,7 @@ export function EditableDisplayName() {
       touchEvent="onTouchStart"
       mouseEvent="onMouseDown"
     >
-      <EditableDisplayNameBox>
+      <RootBox>
         {isEditing ? (
           <DisplayNameTitleTextField
             value={editName}
@@ -142,7 +149,19 @@ export function EditableDisplayName() {
             <span>{isEditing ? <CheckIcon /> : <EditIcon />}</span>
           </Tooltip>
         </IconButton>
-      </EditableDisplayNameBox>
+      </RootBox>
     </ClickAwayListener>
   );
 }
+
+const RootBox = styled(Box)(
+  ({ theme }) => css`
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-width: 0;
+    gap: ${theme.spacing(1)};
+  `
+);

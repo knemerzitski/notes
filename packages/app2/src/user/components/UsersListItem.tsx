@@ -3,9 +3,9 @@ import { ListItemAvatar, ListItemText, Box, ListItemButton, Badge } from '@mui/m
 import { useApolloClient, useQuery } from '@apollo/client';
 import { gql } from '../../__generated__';
 import { UserAvatar } from './UserAvatar';
-import { SessionExpired } from '../styled-components/SessionExpired';
-import { EmailSubtitleSmall } from '../styled-components/EmailSubtitleSmall';
-import { DisplayName } from '../styled-components/DisplayName';
+import { SessionExpired } from './SessionExpired';
+import { EmailSubtitleSmall } from './EmailSubtitleSmall';
+import { DisplayName } from './DisplayName';
 import { useUserId } from '../context/user-id';
 import { UserMoreOptionsButton } from './UserMoreOptionsButton';
 import { useOnClose } from '../../utils/context/on-close';
