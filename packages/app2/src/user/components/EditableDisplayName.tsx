@@ -122,7 +122,7 @@ export function EditableDisplayName() {
       touchEvent="onTouchStart"
       mouseEvent="onMouseDown"
     >
-      <RootBox>
+      <RootBoxStyled>
         {isEditing ? (
           <DisplayNameTitleTextField
             value={editName}
@@ -149,12 +149,12 @@ export function EditableDisplayName() {
             <span>{isEditing ? <CheckIcon /> : <EditIcon />}</span>
           </Tooltip>
         </IconButton>
-      </RootBox>
+      </RootBoxStyled>
     </ClickAwayListener>
   );
 }
 
-const RootBox = styled(Box)(
+const RootBoxStyled = styled(Box)(
   ({ theme }) => css`
     display: flex;
     flex-flow: row nowrap;

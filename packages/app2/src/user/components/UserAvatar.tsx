@@ -4,10 +4,10 @@ import { Avatar } from '@mui/material';
 import { FirstLetter } from '../../utils/components/FirstLetter';
 import PersonIcon from '@mui/icons-material/Person';
 import { useUserId } from '../context/user-id';
-import { TextBackgroundAvatar } from '../../utils/styled-components/TextBackgroundAvatar';
-import { LargeAvatar } from '../../utils/styled-components/LargeAvatar';
-import { LargePersonIcon } from '../../utils/styled-components/LargePersionIcon';
-import { LargeTextBackgroundAvatar } from '../../utils/styled-components/LargeTextBackgroundAvatar';
+import { TextBackgroundAvatar } from '../../utils/components/TextBackgroundAvatar';
+import { LargeAvatar } from '../../utils/components/LargeAvatar';
+import { LargePersonIcon } from '../../utils/components/LargePersionIcon';
+import { LargeTextBackgroundAvatar } from '../../utils/components/LargeTextBackgroundAvatar';
 
 // TODO links: when multiple users and resuming operations, block if not current user...
 

@@ -1,4 +1,13 @@
-import { ListItemAvatar, ListItemText, Box, ListItemButton, Badge } from '@mui/material';
+import {
+  ListItemAvatar,
+  ListItemText,
+  Box,
+  ListItemButton,
+  Badge,
+  css,
+  IconButton,
+  styled,
+} from '@mui/material';
 
 import { useApolloClient, useQuery } from '@apollo/client';
 import { gql } from '../../__generated__';
@@ -10,8 +19,7 @@ import { useUserId } from '../context/user-id';
 import { UserMoreOptionsButton } from './UserMoreOptionsButton';
 import { useOnClose } from '../../utils/context/on-close';
 import { setCurrentUser } from '../models/signed-in-user/set-current';
-import { SelectableListItem } from '../../utils/styled-components/SelectableListItem';
-import { StartIconButton } from '../../utils/styled-components/StartIconButton';
+import { ActivableListItem } from '../../utils/components/ActivableListItem';
 
 const UserListItem_Query = gql(`
   query UserListItem_Query($id: ID!) {
@@ -31,7 +39,7 @@ const UserListItem_Query = gql(`
   }
 `);
 
-export function UserListItem(props?: Parameters<typeof SelectableListItem>[0]) {
+export function UserListItem(props?: Parameters<typeof ActivableListItem>[0]) {
   const client = useApolloClient();
   const closeParent = useOnClose();
 
@@ -53,7 +61,7 @@ export function UserListItem(props?: Parameters<typeof SelectableListItem>[0]) {
   }
 
   return (
-    <SelectableListItem {...props}>
+    <ActivableListItem {...props}>
       <ListItemButton onClick={handleClickUser}>
         <ListItemAvatar>
           <UserAvatar />
@@ -61,14 +69,16 @@ export function UserListItem(props?: Parameters<typeof SelectableListItem>[0]) {
         <ListItemText>
           <Box display="flex" alignItems="center" justifyContent="space-between">
             <DisplayName>{name}</DisplayName>
-            {user.local.sessionExpired && <SessionExpired>Session expired</SessionExpired>}
+            {user.local.sessionExpired && (
+              <SessionExpired>Session expired</SessionExpired>
+            )}
           </Box>
           {!user.localOnly && <EmailSubtitleSmall>{user.email}</EmailSubtitleSmall>}
         </ListItemText>
         <UserMoreOptionsButton
           iconButtonMenuProps={{
             slots: {
-              iconButton: StartIconButton,
+              iconButton: MoreOptionsIconButton,
             },
             slotProps: {
               iconButton: {
@@ -80,6 +90,10 @@ export function UserListItem(props?: Parameters<typeof SelectableListItem>[0]) {
         />
         <Badge slotProps={{ badge: { className: 'my-badge' } }} />
       </ListItemButton>
-    </SelectableListItem>
+    </ActivableListItem>
   );
 }
+
+const MoreOptionsIconButton = styled(IconButton)(css`
+  align-self: flex-start;
+`);

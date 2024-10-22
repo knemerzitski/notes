@@ -1,10 +1,16 @@
-import { MenuItem, ListItemIcon, ListItemText, Typography } from '@mui/material';
+import {
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Typography,
+  css,
+  styled,
+} from '@mui/material';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import { ColorModeText } from './ColorModeText';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { useSelectNavigableMenu } from '../../utils/context/navigable-menu';
 import { SettingsButtonMenuKey } from '../../utils/components/SettingsButton';
-import { RightListItemIcon } from '../../utils/styled-components/RightListItemIcon';
 
 export function ColorModeMenuItem() {
   const selectMenu = useSelectNavigableMenu();
@@ -23,9 +29,13 @@ export function ColorModeMenuItem() {
           Appearance: <ColorModeText />
         </Typography>
       </ListItemText>
-      <RightListItemIcon>
+      <ListItemIconStyled>
         <NavigateNextIcon />
-      </RightListItemIcon>
+      </ListItemIconStyled>
     </MenuItem>
   );
 }
+
+export const ListItemIconStyled = styled(ListItemIcon)(css`
+  justify-content: right;
+`);

@@ -1,4 +1,8 @@
-import { Box, styled } from '@mui/material';
-import { pageCenterStyle } from '../styles/page-center';
+import { Box, css, styled } from '@mui/material';
 
-export const PageCenterBox = styled(Box)(pageCenterStyle);
+export const PageCenterBox = styled(Box)(css`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100dvh;
+`);

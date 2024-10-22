@@ -1,8 +1,7 @@
 import { createContext, ReactNode, useCallback, useContext, useState } from 'react';
 import { useOnClose } from './on-close';
-import { IconButton, Typography } from '@mui/material';
+import { Box, css, IconButton, styled, Typography } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { NavigableMenuTitleBox } from '../styled-components/NavigableMenuTitleBox';
 
 type MenuKey =
   | { type: 'custom'; value: string }
@@ -66,12 +65,12 @@ export function NavigableMenuProvider({
   return (
     <>
       {isSubMenu && (
-        <NavigableMenuTitleBox>
+        <TitleBackBox>
           <IconButton aria-label="back" onClick={handleClickBack}>
             <ArrowBackIcon />
           </IconButton>
           <Typography>{schema.title}</Typography>
-        </NavigableMenuTitleBox>
+        </TitleBackBox>
       )}
 
       <SelectNavigableMenuContext.Provider value={handleSelectMenu}>
@@ -80,3 +79,14 @@ export function NavigableMenuProvider({
     </>
   );
 }
+
+const TitleBackBox = styled(Box)(
+  ({ theme }) => css`
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    gap: ${theme.spacing(0.5)};
+    padding: ${theme.spacing(0.5)} ${theme.spacing(1)};
+    border-bottom: 1px solid ${theme.palette.divider};
+  `
+);

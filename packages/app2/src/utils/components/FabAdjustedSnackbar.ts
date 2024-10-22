@@ -1,6 +1,7 @@
-import { css, SnackbarProps, Theme } from '@mui/material';
+import { css, Snackbar, SnackbarProps, styled, Theme } from '@mui/material';
+import { mergeShouldForwardProp } from '../merge-should-forward-prop';
 
-export const fabAdjustedStyle = {
+const fabAdjustedStyle = {
   style: ({
     isRenderingFab,
     anchorOrigin = { vertical: 'bottom' },
@@ -12,6 +13,7 @@ export const fabAdjustedStyle = {
     if (!isRenderingFab || anchorOrigin.vertical !== 'bottom') {
       return;
     }
+    fabAdjustedStyle;
 
     return css`
       ${theme.breakpoints.up('xs')} {
@@ -24,3 +26,7 @@ export const fabAdjustedStyle = {
   },
   props: ['isRenderingFab'],
 };
+
+export const FabAdjustedSnackbar = styled(Snackbar, {
+  shouldForwardProp: mergeShouldForwardProp(fabAdjustedStyle.props),
+})(fabAdjustedStyle.style);

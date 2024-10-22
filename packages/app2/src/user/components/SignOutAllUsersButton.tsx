@@ -3,10 +3,10 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import { useSignOutMutation } from '../hooks/useSignOutMutation';
 import { gql } from '../../__generated__';
 import { useOnClose } from '../../utils/context/on-close';
-import { CenterButton } from '../../utils/styled-components/CenterButton';
 import { useShowConfirm } from '../../utils/context/show-confirm';
 import { confirmUnsavedChanges } from '../utils/confirm-unsaved-changes';
 import { hasUserOngoingOperations } from '../../graphql/link/persist/has-user';
+import { Button } from '@mui/material';
 
 const SignOutAllUsersButton_Query = gql(`
   query SignOutAllUsersButton_Query {
@@ -41,7 +41,7 @@ export function SignOutAllUsersButton() {
   }
 
   return (
-    <CenterButton
+    <Button
       color="inherit"
       variant="text"
       onClick={handleSignOut}
@@ -49,6 +49,6 @@ export function SignOutAllUsersButton() {
     >
       <LogoutIcon />
       Sign out all accounts
-    </CenterButton>
+    </Button>
   );
 }

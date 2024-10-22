@@ -10,7 +10,7 @@ import { useOnClose } from './on-close';
 import { useOnExited } from './on-exited';
 import { createContext, ReactNode, SyntheticEvent, useCallback, useContext } from 'react';
 import { CloseHandler, ShowModalOptions, useShowModal } from './serial-modals';
-import { FabAdjustedSnackbar } from '../styled-components/FabAdjustedSnackbar';
+import { FabAdjustedSnackbar } from '../components/FabAdjustedSnackbar';
 import { useGlobalIsPositive } from './global-count';
 
 interface ShowSnackbarAlertContextProps extends SnackbarAlertProps {

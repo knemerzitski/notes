@@ -3,7 +3,9 @@ import {
   CircularProgress,
   Dialog,
   DialogActions,
+  DialogContent,
   DialogTitle,
+  styled,
 } from '@mui/material';
 import { createContext, ReactNode, useCallback, useContext, useId } from 'react';
 import { useShowModal } from './serial-modals';
@@ -12,7 +14,6 @@ import { useOnClose } from './on-close';
 import { useOnExited } from './on-exited';
 import { BlockUiBackdrop } from '../components/BlockUiBackdrop';
 import { useSmoothOpen } from '../hooks/useSmoothOpen';
-import { CenterDialogContent } from '../styled-components/CenterDialogContent';
 
 interface BlockUiOptions {
   /**
@@ -84,9 +85,9 @@ function UncloseableContextDialog({ options }: { options: BlockUiOptions }) {
       }}
     >
       <DialogTitle>{options.message}</DialogTitle>
-      <CenterDialogContent>
+      <DialogContentStyled>
         <CircularProgress />
-      </CenterDialogContent>
+      </DialogContentStyled>
       {options.onCancel && (
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
@@ -95,3 +96,9 @@ function UncloseableContextDialog({ options }: { options: BlockUiOptions }) {
     </Dialog>
   );
 }
+
+export const DialogContentStyled = styled(DialogContent)(`
+  text-align: center;
+  align-items: center;
+  justify-items: center;
+`);

@@ -53,8 +53,8 @@ module.exports = {
     },
     {
       files: [
-        // React and styled components
-        './src/{*,*/*}/{components,styled-components}/**',
+        // React components
+        './src/{*,*/*}/components/**',
         // GraphQL mutations
         './src/*/mutations/**',
         // GraphQL type policies

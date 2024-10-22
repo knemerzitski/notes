@@ -1,8 +1,6 @@
-import CloseIcon from '@mui/icons-material/Close';
-import { PopoverProps, Tooltip } from '@mui/material';
+import { css, Popover, PopoverProps, styled } from '@mui/material';
 import { UsersInfo } from './UsersInfo';
-import { AbsoluteCornerIconButton } from '../../utils/styled-components/AbsoluteCornerIconButton';
-import { ContainedBigRoundedPopover } from '../../utils/styled-components/ContainedBigRoundedPopover';
+import { TopCornerCloseButton } from '../../utils/components/TopCornerCloseButton';
 
 export function UsersInfoPopover({
   open,
@@ -14,7 +12,7 @@ export function UsersInfoPopover({
 }) {
   return (
     <>
-      <ContainedBigRoundedPopover
+      <RootPopoverStyled
         open={open}
         onClose={onClose}
         disableScrollLock
@@ -27,16 +25,20 @@ export function UsersInfoPopover({
           },
         }}
       >
-        <AbsoluteCornerIconButton
-          aria-label="close account options"
-          onClick={onClose}
-        >
-          <Tooltip title="Close">
-            <CloseIcon />
-          </Tooltip>
-        </AbsoluteCornerIconButton>
+        <TopCornerCloseButton aria-label="close account options" onClick={onClose} />
         <UsersInfo />
-      </ContainedBigRoundedPopover>
+      </RootPopoverStyled>
     </>
   );
 }
+
+export const RootPopoverStyled = styled(Popover)(
+  ({ theme }) => css`
+    .MuiPopover-paper {
+      padding-top: ${theme.spacing(2.5)};
+      padding-bottom: ${theme.spacing(2.5)};
+      border-radius: ${theme.shape.borderRadius * 2}px;
+      width: min(400px, 100vw);
+    }
+  `
+);

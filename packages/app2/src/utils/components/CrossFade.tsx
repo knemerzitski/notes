@@ -1,7 +1,5 @@
-import { Fade, BoxProps, FadeProps } from '@mui/material';
+import { Fade, BoxProps, FadeProps, Box, css, styled } from '@mui/material';
 import { ReactNode } from 'react';
-import { RelativeOneEmBox } from '../styled-components/RelativeOneEmBox';
-import { AbsoluteTopLeftBox } from '../styled-components/AbsoluteTopLeftBox';
 
 /**
  * Fade between elements based on in condition.
@@ -21,12 +19,24 @@ export function CrossFade({
   }[];
 }) {
   return (
-    <RelativeOneEmBox {...BoxProps}>
+    <RootBox {...BoxProps}>
       {elements.map((item, index) => (
         <Fade key={index} in={item.in} {...FadeProps} {...item.FadeProps}>
-          <AbsoluteTopLeftBox {...item.BoxProps}>{item.element}</AbsoluteTopLeftBox>
+          <InFadeBox {...item.BoxProps}>{item.element}</InFadeBox>
         </Fade>
       ))}
-    </RelativeOneEmBox>
+    </RootBox>
   );
 }
+
+export const RootBox = styled(Box)(css`
+  position: relative;
+  width: 1em;
+  height: 1em;
+`);
+
+export const InFadeBox = styled(Box)(css`
+  position: absolute;
+  left: 0;
+  top: 0;
+`);

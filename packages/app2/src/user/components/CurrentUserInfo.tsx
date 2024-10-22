@@ -4,7 +4,7 @@ import { EmailSubtitle } from './EmailSubtitle';
 import { UserAvatar } from './UserAvatar';
 import { UserIdProvider } from '../context/user-id';
 import { EditableDisplayName } from './EditableDisplayName';
-import { FullWidthColumnBox } from '../../utils/styled-components/FullWidthColumnBox';
+import { FullWidthColumnBox } from '../../utils/components/FullWidthColumnBox';
 
 const CurrentUserInfo_Query = gql(`
   query CurrentUserInfo_Query {

@@ -1,4 +1,4 @@
-import { TopZIndexBackdrop } from '../styled-components/TopZIndexBackdrop';
+import { TopZIndexBackdrop } from './TopZIndexBackdrop';
 
 /**
  * Invisible backdrop that prevents user from interacting with the app

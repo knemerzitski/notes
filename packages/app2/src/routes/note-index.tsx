@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-export const Route = createFileRoute('/_my_layout/note/')({
+export const Route = createFileRoute('/_root_layout/note/')({
   component: NoteIndex,
 })
 
