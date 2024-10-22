@@ -7,6 +7,7 @@ import {
   DefaultContext,
   InMemoryCache,
   ApolloCache,
+  DocumentNode,
 } from '@apollo/client';
 import { addOngoingOperation } from './add';
 import { removeOngoingOperations } from './remove';
@@ -18,6 +19,8 @@ import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
 const PERSIST_DIRECTIVE = 'persist';
 
+const persistDirective = new DirectiveFlag(PERSIST_DIRECTIVE);
+
 export class PersistLink extends ApolloLink {
   private readonly cache;
 
@@ -26,8 +29,6 @@ export class PersistLink extends ApolloLink {
   readonly generateId;
 
   private readonly ongoingCountMap = new CountMap<string>(new Map());
-
-  private readonly persistDirective;
 
   private readonly persistErrorCodes: Set<GraphQLErrorCode>;
 
@@ -46,8 +47,6 @@ export class PersistLink extends ApolloLink {
     this.cache = cache;
     this.generateId = options?.generateId ?? crypto.randomUUID.bind(crypto);
 
-    this.persistDirective = new DirectiveFlag(PERSIST_DIRECTIVE);
-
     this.persistErrorCodes = new Set(options?.persistErrorCodes);
   }
 
@@ -61,7 +60,7 @@ export class PersistLink extends ApolloLink {
 
     const context = operation.getContext();
 
-    const hasDirective = this.persistDirective.has(operation);
+    const hasDirective = persistDirective.has(operation);
     const persist = context[PersistLink.PERSIST] || hasDirective;
 
     if (!persist || !isMutationOperation(operation.query)) {
@@ -70,7 +69,7 @@ export class PersistLink extends ApolloLink {
     }
 
     if (hasDirective) {
-      this.persistDirective.remove(operation);
+      persistDirective.remove(operation);
     }
 
     const operationId = typeof persist !== 'string' ? this.generateId() : persist;
@@ -128,4 +127,10 @@ function contextNoCache(context: DefaultContext) {
     return rest;
   }
   return context;
+}
+
+export function hasPersistDirective(document: DocumentNode) {
+  return persistDirective.has({
+    query: document,
+  });
 }

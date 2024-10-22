@@ -4,6 +4,7 @@ import {
   NextLink,
   FetchResult,
   GraphQLRequest,
+  DocumentNode,
 } from '@apollo/client';
 import {
   hasDirectives,
@@ -22,26 +23,24 @@ import { DirectiveFlag } from '../utils/directive-flag';
 const SERIALIZE_DIRECTIVE = 'serialize';
 const NOAUTH_DIRECTIVE = 'noauth';
 
+const noauthDirective = new DirectiveFlag(NOAUTH_DIRECTIVE);
+
 /**
  * Check and mark operations based on current user.
  * Prevent operations that do not match current user id or has an invalid user id.
  */
 export class CurrentUserLink extends ApolloLink {
-  private readonly noauthDirective;
-
   constructor(
     private readonly appContext: Pick<AppContext, 'userId'>,
     private readonly wsClient?: Pick<WebSocketClient, 'asyncUserId'>
   ) {
     super();
-
-    this.noauthDirective = new DirectiveFlag(NOAUTH_DIRECTIVE);
   }
 
   private async validateMarkOperation(operation: Operation) {
     // Do not mark operations that have @noauth directive
-    if (this.noauthDirective.has(operation)) {
-      this.noauthDirective.remove(operation);
+    if (noauthDirective.has(operation)) {
+      noauthDirective.remove(operation);
       return;
     }
 
@@ -153,4 +152,10 @@ export function getOperationOrRequestUserId(
     return userId;
   }
   return;
+}
+
+export function hasNoAuthDirective(document: DocumentNode) {
+  return noauthDirective.has({
+    query: document,
+  });
 }

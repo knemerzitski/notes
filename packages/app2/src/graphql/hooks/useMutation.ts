@@ -5,25 +5,15 @@ import {
   MutationHookOptions,
   MutationTuple,
   OperationVariables,
-  useQuery,
   useApolloClient,
   MutationUpdaterFunction,
   DefaultContext,
 } from '@apollo/client';
 import { useGetMutationUpdaterFn } from '../context/get-mutation-updater-fn';
 import { useCallback } from 'react';
-import { gql } from '../../__generated__';
-import { useUserId } from '../../user/context/user-id';
 import { MutationDefinition } from '../utils/mutation-definition';
 import { optimisticResponseMutation } from '../utils/optimistic-response-mutation';
-
-const UseMutation_Query = gql(`
-  query UseMutation_Query($id: ID) {
-    signedInUserById(id: $id) @client {
-      localOnly
-    }
-  }
-`);
+import { useIsRemoteOperation } from './useIsRemoteOperation';
 
 /**
  * Uses mutation with pre-defined update function.
@@ -47,14 +37,7 @@ export function useMutation<
   const client = useApolloClient();
   const getMutationUpdaterFn = useGetMutationUpdaterFn();
 
-  const userId = useUserId(true);
-  const { data } = useQuery(UseMutation_Query, {
-    variables: {
-      id: userId,
-    },
-  });
-
-  const localOnly = data?.signedInUserById?.localOnly ?? false;
+  const isRemoteOperation = useIsRemoteOperation(definition.document);
 
   const apolloMutationTuple = useApolloMutation<TData, TVariables, TContext, TCache>(
     definition.document,
@@ -83,5 +66,7 @@ export function useMutation<
       [client, definition, getMutationUpdaterFn]
     );
 
-  return localOnly ? [localMutation, apolloMutationTuple[1]] : apolloMutationTuple;
+  return isRemoteOperation
+    ? apolloMutationTuple
+    : [localMutation, apolloMutationTuple[1]];
 }

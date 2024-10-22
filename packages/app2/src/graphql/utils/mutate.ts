@@ -8,17 +8,9 @@ import {
 } from '@apollo/client';
 import { MutationUpdaterFunctionMap } from '../create/mutation-updater-map';
 import { Maybe } from '~utils/types';
-import { gql } from '../../__generated__';
 import { optimisticResponseMutation } from './optimistic-response-mutation';
 import { MutationDefinition } from './mutation-definition';
-
-const Mutate_Query = gql(`
-  query Mutate_Query($id: ID) {
-    signedInUserById(id: $id) {
-      localOnly
-    }
-  }
-`);
+import { isRemoteOperation } from './is-remote-operation';
 
 export function mutate<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -42,16 +34,12 @@ export function mutate<
     options?: Omit<MutationOptions<TData, TVariables, TContext>, 'mutation'>;
   }
 ): Promise<FetchResult<TData>> {
-  const data = client.cache.readQuery({
-    query: Mutate_Query,
-    variables: {
-      id: userId,
-    },
-  });
-
-  const localOnly = data?.signedInUserById?.localOnly ?? false;
-
-  if (!localOnly) {
+  if (
+    isRemoteOperation(definition.document, {
+      cache: client.cache,
+      userId,
+    })
+  ) {
     return client.mutate({
       update: getMutationUpdaterFn(definition.document),
       ...options,
