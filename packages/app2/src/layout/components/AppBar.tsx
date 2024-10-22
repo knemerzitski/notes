@@ -48,14 +48,13 @@ export function AppBar({
   );
 }
 
-const baseStyle = ({ theme }: { theme: Theme }) => {
+const darkModeStyle = ({ theme }: { theme: Theme }) => {
   if (theme.palette.mode !== 'dark') {
     return;
   }
 
   return css`
     border-bottom: 1px solid ${theme.palette.divider};
-    z-index: ${theme.zIndex.drawer + 1};
   `;
 };
 
@@ -80,4 +79,4 @@ const shadowTransition = {
 
 const AppBarStyled = styled(MuiAppBar, {
   shouldForwardProp: mergeShouldForwardProp(shadowTransition.props),
-})(baseStyle, shadowTransition.style);
+})(darkModeStyle, shadowTransition.style);

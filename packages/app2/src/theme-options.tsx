@@ -130,6 +130,8 @@ export const themeOptions: MultiThemeOptions = {
         },
       },
       zIndex: {
+        drawer: 1100,
+        appBar: 1200,
         top: 1600,
       },
     };
