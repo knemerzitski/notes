@@ -4,6 +4,7 @@ import { usePreferencesStorage } from '../context/preferences-storage';
 import { useCallback } from 'react';
 import { ColorMode } from '../../__generated__/graphql';
 import { useIsCacheRestored } from '../../graphql/context/is-cache-restored';
+import { setColorMode } from '../models/color-mode/set';
 
 const UseColorMode_Query = gql(`
   query UseColorMode_Query {
@@ -26,19 +27,10 @@ export function useColorMode() {
       ColorMode.SYSTEM)
     : (preferenceStorage?.getColorMode() ?? ColorMode.SYSTEM);
 
-  const setColorMode = useCallback(
+  const _setColorMode = useCallback(
     (newColorMode: ColorMode) => {
       if (isCacheRestored) {
-        client.writeQuery({
-          query: UseColorMode_Query,
-          data: {
-            __typename: 'Query',
-            devicePreferences: {
-              __typename: 'DevicePreferences',
-              colorMode: newColorMode,
-            },
-          },
-        });
+        setColorMode(newColorMode, client.cache);
       }
 
       preferenceStorage?.setColorMode(newColorMode);
@@ -46,5 +38,5 @@ export function useColorMode() {
     [client, preferenceStorage, isCacheRestored]
   );
 
-  return [colorMode, setColorMode] as const;
+  return [colorMode, _setColorMode] as const;
 }

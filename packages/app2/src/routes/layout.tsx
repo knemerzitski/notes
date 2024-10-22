@@ -1,15 +1,15 @@
-import { createFileRoute, Outlet } from '@tanstack/react-router'
+import { createFileRoute, Outlet } from '@tanstack/react-router';
 
-export const Route = createFileRoute('/_my_layout')({
+import { AppBarDrawerLayout } from '../layout/components/AppBarDrawerLayout';
+
+export const Route = createFileRoute('/_root_layout')({
   component: Layout,
-})
+});
 
 function Layout() {
   return (
-    <>
-      Layout
+    <AppBarDrawerLayout>
       <Outlet />
-      Layout
-    </>
-  )
+    </AppBarDrawerLayout>
+  );
 }

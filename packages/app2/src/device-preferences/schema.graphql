@@ -7,6 +7,12 @@ enum ColorMode {
 type DevicePreferences {
   "App theme color mode"
   colorMode: ColorMode!
+  desktop: DesktopDevicePreferences!
+}
+
+type DesktopDevicePreferences {
+  "UI element app drawer is pened permanently"
+  appDrawerOpen: Boolean!
 }
 
 extend type Query {

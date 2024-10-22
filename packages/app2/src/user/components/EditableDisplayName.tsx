@@ -97,7 +97,7 @@ export function EditableDisplayName() {
 
     if (name.trim() !== editName.trim()) {
       void updateDisplayNameMutation(editName.trim());
-      undoAction('Name Updated', () => {
+      undoAction('Name updated', () => {
         void updateDisplayNameMutation(name);
       });
     }

@@ -7,11 +7,11 @@ export function useIsMobile(): boolean {
 }
 
 export function IsMobileProvider({
-  value,
+  isMobile,
   children,
 }: {
-  value: boolean;
+  isMobile: boolean;
   children: ReactNode;
 }) {
-  return <IsMobileContext.Provider value={value}>{children}</IsMobileContext.Provider>;
+  return <IsMobileContext.Provider value={isMobile}>{children}</IsMobileContext.Provider>;
 }

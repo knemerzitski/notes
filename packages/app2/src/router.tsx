@@ -18,7 +18,7 @@ export const router = createRouter({
   routeTree,
   routeMasks: createRouteMasks(routeTree),
   // Context is defined in `AppRouterProvider` component by calling `createRouterContext`
-  // This enabled injecting dependencies from a React hook or context.
+  // This enables injecting dependencies from a React hook or context.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   context: undefined as any,
 });

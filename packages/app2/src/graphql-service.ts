@@ -32,9 +32,9 @@ const WS_URL =
     : `ws://${location.host}/graphql-ws`;
 
 const TYPE_POLICIES_LIST: TypePoliciesList = [
+  devicePreferencesPolicies,
   graphQLPolicies,
   userPolicies,
-  devicePreferencesPolicies,
 ];
 
 const EVICT_OPTIONS_LIST: TaggedEvictOptionsList = [...userEvictOptions];

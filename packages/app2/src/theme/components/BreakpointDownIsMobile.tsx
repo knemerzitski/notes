@@ -15,5 +15,5 @@ export function BreakpointDownIsMobile({
   const theme = useTheme();
   const isBreakpointOrSmaller = useMediaQuery(theme.breakpoints.down(breakpointDown));
 
-  return <IsMobileProvider value={isBreakpointOrSmaller}>{children}</IsMobileProvider>;
+  return <IsMobileProvider isMobile={isBreakpointOrSmaller}>{children}</IsMobileProvider>;
 }
