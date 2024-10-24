@@ -78,7 +78,7 @@ export const StripsStruct = coerce(
 
 export const ChangesetStruct = coerce(
   instance(Changeset),
-  array(unknown()),
+  optional(array(unknown())),
   (value) => new Changeset(StripsStruct.create(value)),
   (changeset) => createRaw(changeset.strips, StripsStruct)
 );

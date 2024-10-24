@@ -1,5 +1,25 @@
+import { RevisionChangeset } from '../records/record';
 import { CollabServiceRecord } from './collab-service';
-import { ServerRecordsFacade } from './types';
+
+/**
+ * Simple facade for querying server records.
+ */
+export interface ServerRecordsFacade<TRecord> {
+  /**
+   * tailText is a composition of all previous records before oldest record.
+   */
+  readonly tailText: Readonly<RevisionChangeset>;
+
+  /**
+   * Iterates through records from newest (headRevision) to oldest
+   */
+  newestRecordsIterable(headRevision: number): Iterable<Readonly<TRecord>>;
+
+  /**
+   * Get text at specific revision
+   */
+  getTextAt(revision: number): Readonly<RevisionChangeset>;
+}
 
 export class UserRecords {
   private serverRecords: ServerRecordsFacade<CollabServiceRecord>;

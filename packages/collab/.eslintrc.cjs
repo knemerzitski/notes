@@ -22,6 +22,11 @@ module.exports = {
             from: 'changeset/!(index.ts)',
             message: 'Import from entry point "changeset/index.ts" instead',
           },
+          {
+            target: '!(editor/json-text)',
+            from: 'editor/json-text/!(index.ts)',
+            message: 'Import from entry point "editor/json-text/index.ts" instead',
+          },
         ],
       },
     ],

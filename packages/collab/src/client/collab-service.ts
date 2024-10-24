@@ -31,8 +31,18 @@ import {
 import { SubmittedRecord } from './submitted-record';
 import { UserRecords } from './user-records';
 import { Changeset } from '../changeset';
-import { assign, Infer, object, omit, optional, union, literal } from 'superstruct';
-import { SelectionChangeset, SimpleTextOperationOptions } from './types';
+import {
+  assign,
+  Infer,
+  object,
+  omit,
+  optional,
+  union,
+  literal,
+  nullable,
+} from 'superstruct';
+import { SimpleTextOperationOptions } from '../editor/types';
+import { SelectionChangeset } from './types';
 
 export type CollabServiceEvents = CollabClientEvents &
   Omit<OrderedMessageBufferEvents<UnprocessedRecord>, 'processingMessages'> &
@@ -126,7 +136,7 @@ export type UnprocessedRecord = Infer<typeof UnprocessedRecordStruct>;
 
 const CollabServiceOptionsStruct = object({
   client: omit(CollabClientOptionsStruct, ['submitted']), // instead of omit make it optional?
-  submittedRecord: optional(SubmittedRevisionRecordStruct),
+  submittedRecord: nullable(SubmittedRevisionRecordStruct),
   recordsBuffer: optional(OrderedMessageBufferParamsStruct(UnprocessedRecordStruct)),
   history: omit(CollabHistoryOptionsStruct, ['tailRevision', 'tailText']),
 });
@@ -504,6 +514,7 @@ export class CollabService {
     value: SelectionChangeset,
     options?: SimpleTextOperationOptions
   ) {
+    // console.log('push', value);
     this._history.pushSelectionChangeset(value, options);
   }
 

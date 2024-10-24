@@ -4,7 +4,7 @@ import { newSelectionRange } from '../__tests__/helpers/collab-service-selection
 
 import { CollabService } from './collab-service';
 import { Changeset } from '../changeset';
-import { SimpleTextEditor } from './editors/simple-text';
+import { SimpleTextEditor } from '../editor/simple-text';
 
 const cs = (...values: unknown[]) => Changeset.parseValue(values);
 

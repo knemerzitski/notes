@@ -12,7 +12,8 @@ import { UserRecords } from './user-records';
 import { Changeset, ChangesetStruct } from '../changeset';
 import { array, Infer, literal, number, object, union } from 'superstruct';
 import { SelectionRange, SelectionRangeStruct } from './selection-range';
-import { SelectionChangeset, SimpleTextOperationOptions } from './types';
+import { SimpleTextOperationOptions } from '../editor/types';
+import { SelectionChangeset } from './types';
 
 export interface CollabHistoryEvents {
   appliedTypingOperation: ReadonlyDeep<

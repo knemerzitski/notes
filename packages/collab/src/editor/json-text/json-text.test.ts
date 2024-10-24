@@ -1,8 +1,17 @@
-import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterEach,
+  assert,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  MockInstance,
+  vi,
+} from 'vitest';
 
-import { CollabService } from '../collab-service';
-import { defineCreateMultiJsonTextByService } from './multi-json-text';
+import { CollabService } from '../../client/collab-service';
 import { Changeset } from '~/changeset';
+import { defineCreateJsonTextFromService } from './create-service-json-text';
 
 function setServiceText(service: CollabService, value: string) {
   service.pushSelectionChangeset(
@@ -21,7 +30,7 @@ describe('one text', () => {
     CONTENT = 'c',
   }
 
-  const createMultiJsonTextByService = defineCreateMultiJsonTextByService<TextType>(
+  const createMultiJsonTextByService = defineCreateJsonTextFromService<TextType>(
     Object.values(TextType)
   );
 
@@ -76,6 +85,163 @@ describe('one text', () => {
     text.insert('a', { start: 1, end: 1 });
     expect(service.viewText).toStrictEqual('{"c":"da","ignore":5}');
   });
+
+  it('stringifes inserted text', () => {
+    const text = multiJsonText.getText(TextType.CONTENT);
+
+    text.insert('\n', {
+      start: 0,
+      end: 0,
+    });
+
+    expect(service.viewText).toMatchInlineSnapshot(`"{"c":"\\n"}"`);
+    expect(text.value).toMatchInlineSnapshot(`
+      "
+      "
+    `);
+  });
+
+  it('inserts json with escaped characters', () => {
+    service.pushSelectionChangeset({
+      changeset: Changeset.fromInsertion(
+        JSON.stringify('start\n\n[sel\n\nected]\n\nend')
+      ),
+      afterSelection: {
+        start: 0,
+        end: 0,
+      },
+    });
+
+    const text = multiJsonText.getText(TextType.CONTENT);
+
+    text.insert('r\neplaced', {
+      start: 7,
+      end: 19,
+    });
+    expect(text.value).toStrictEqual('start\n\nr\neplaced\n\nend');
+    expect(service.viewText).toMatchInlineSnapshot(
+      `"{"c":"start\\n\\nr\\neplaced\\n\\nend"}"`
+    );
+  });
+
+  it('deletes json with escaped characters', () => {
+    service.pushSelectionChangeset({
+      changeset: Changeset.fromInsertion(
+        JSON.stringify('\n\nstart\n\n[sel\n\nected]\n\nend')
+      ),
+      afterSelection: {
+        start: 0,
+        end: 0,
+      },
+    });
+
+    const text = multiJsonText.getText(TextType.CONTENT);
+    text.delete(2, {
+      start: 9,
+      end: 21,
+    });
+
+    expect(text.value).toStrictEqual('\n\nstart\n\n\nend');
+    expect(service.viewText).toMatchInlineSnapshot(`"{"c":"\\n\\nstart\\n\\n\\nend"}"`);
+  });
+
+  it('emits external change json with escaped characters', () => {
+    const content = multiJsonText.getText(TextType.CONTENT);
+
+    const contentEvents = vi.fn();
+    content.eventBus.on('*', contentEvents);
+
+    content.insert('\n', {
+      start: 0,
+      end: 0,
+    });
+
+    const record = service.submitChanges();
+    assert(record != null);
+    service.submittedChangesAcknowledged({
+      ...record,
+      revision: service.headRevision + 1,
+    });
+
+    service.handleExternalChange({
+      changeset: Changeset.parseValue([[0, 7], 'a', [8, 9]]),
+      revision: service.headRevision + 1,
+    });
+
+    expect(service.viewText).toMatchInlineSnapshot(`"{"c":"\\na"}"`);
+    expect(content.value).toMatchInlineSnapshot(`
+      "
+      a"
+    `);
+
+    expect(contentEvents.mock.calls).toStrictEqual([
+      ['valueChanged', '\n'],
+      ['selectionChanged', { start: 1, end: 1 }],
+      ['valueChanged', '\na'],
+      [
+        'handledExternalChanges',
+        [{ changeset: Changeset.parseValue([0, 'a']), revision: 2 }],
+      ],
+    ]);
+  });
+
+  it('emits external change json with escaped characters 2', () => {
+    const content = multiJsonText.getText(TextType.CONTENT);
+
+    const contentEvents = vi.fn();
+    content.eventBus.on('*', contentEvents);
+
+    content.insert('\n\n', {
+      start: 0,
+      end: 0,
+    });
+
+    const record = service.submitChanges();
+    assert(record != null);
+    service.submittedChangesAcknowledged({
+      ...record,
+      revision: service.headRevision + 1,
+    });
+
+    service.handleExternalChange({
+      changeset: Changeset.parseValue([[0, 9], 'a\\nb', [10, 11]]),
+      revision: service.headRevision + 1,
+    });
+
+    expect(service.viewText).toMatchInlineSnapshot(`"{"c":"\\n\\na\\nb"}"`);
+    expect(content.value).toMatchInlineSnapshot(`
+      "
+
+      a
+      b"
+    `);
+
+    expect(contentEvents.mock.calls).toStrictEqual([
+      ['valueChanged', '\n\n'],
+      ['selectionChanged', { start: 2, end: 2 }],
+      ['valueChanged', '\n\na\nb'],
+      [
+        'handledExternalChanges',
+        [{ changeset: Changeset.parseValue([[0, 1], 'a\nb']), revision: 2 }],
+      ],
+    ]);
+  });
+
+  it('redo deleted text selection is parsed', () => {
+    const content = multiJsonText.getText(TextType.CONTENT);
+
+    content.insert('dkflag\n', {
+      start: 0,
+      end: 0,
+    });
+
+    content.delete(1, {
+      start: 1,
+      end: 1,
+    });
+
+    service.undo();
+  });
 });
 
 describe('two texts', () => {
@@ -83,16 +249,24 @@ describe('two texts', () => {
     CONTENT = 'c',
     TITLE = 't',
   }
-  const createMultiJsonTextByService = defineCreateMultiJsonTextByService<TextType>(
+  const createMultiJsonTextByService = defineCreateJsonTextFromService<TextType>(
     Object.values(TextType)
   );
 
   let service: CollabService;
   let multiJsonText: ReturnType<typeof createMultiJsonTextByService>;
+  let errorSpy: MockInstance;
 
   beforeEach(() => {
     service = new CollabService();
     multiJsonText = createMultiJsonTextByService(service);
+    errorSpy = vi.spyOn(console, 'error');
+    errorSpy.mockImplementation(() => {
+      // do nothing
+    });
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('inserts content', () => {
@@ -104,10 +278,13 @@ describe('two texts', () => {
 
     expect(service.viewText).toStrictEqual('{"c":"foo","t":""}');
     expect(text.value).toStrictEqual('foo');
+
+    expect(errorSpy).not.toHaveBeenCalledOnce();
   });
 
   it('inserts title', () => {
     const text = multiJsonText.getText(TextType.TITLE);
+
     text.insert('bar', {
       start: 0,
       end: 0,
@@ -115,6 +292,8 @@ describe('two texts', () => {
 
     expect(service.viewText).toStrictEqual('{"c":"","t":"bar"}');
     expect(text.value).toStrictEqual('bar');
+
+    expect(errorSpy).not.toHaveBeenCalledOnce();
   });
 
   it('adjusts to changing service viewText', () => {
@@ -140,6 +319,8 @@ describe('two texts', () => {
       end: 2,
     });
     setServiceText(service, '{"t":"tttle","c":"content"}');
+
+    expect(errorSpy).not.toHaveBeenCalledOnce();
   });
 
   describe('invalid viewText structure', () => {
@@ -149,12 +330,21 @@ describe('two texts', () => {
       setServiceText(service, 'oops messed up format');
       expect(content.value).toStrictEqual('oops messed up format');
       expect(title.value).toStrictEqual('');
+
+      expect(errorSpy).toHaveBeenCalledOnce();
     });
     it('invalid json', () => {
+      const errorSpy = vi.spyOn(console, 'error');
+      errorSpy.mockImplementation(() => {
+        // do nothing
+      });
+
       const title = multiJsonText.getText(TextType.TITLE);
       setServiceText(service, '{c:"val"}');
       title.insert('ok', { start: 0, end: 0 });
       expect(service.viewText).toStrictEqual('{"c":"{c:\\"val\\"}","t":"ok"}');
+
+      expect(errorSpy).toHaveBeenCalledOnce();
     });
   });
 
@@ -222,7 +412,6 @@ describe('two texts', () => {
         [{ changeset: Changeset.parseValue([[0, 5]]), revision: 3 }],
       ],
       ['valueChanged', 'DELahiEND'],
-      ['selectionChanged', { start: 0, end: 0 }],
       ['valueChanged', 'DELahiEND_OK'],
       [
         'handledExternalChanges',
@@ -231,22 +420,20 @@ describe('two texts', () => {
     ]);
 
     expect(titleEvents.mock.calls).toStrictEqual([
-      ['selectionChanged', { start: 0, end: 0 }],
       ['valueChanged', 'hello'],
       [
         'handledExternalChanges',
         [{ changeset: Changeset.parseValue(['hello']), revision: 2 }],
       ],
-      ['selectionChanged', { start: 0, end: 0 }],
-      ['selectionChanged', { start: 0, end: 0 }],
       ['valueChanged', 'helloA'],
       [
         'handledExternalChanges',
         [{ changeset: Changeset.parseValue([[0, 4], 'A']), revision: 3 }],
       ],
       ['valueChanged', ''],
-      ['selectionChanged', { start: 0, end: 0 }],
     ]);
+
+    expect(errorSpy).toHaveBeenCalledOnce();
   });
 
   it('emits correct events 2', () => {
@@ -319,7 +506,6 @@ describe('two texts', () => {
         [{ changeset: Changeset.parseValue([[0, 5]]), revision: 3 }],
       ],
       ['valueChanged', 'DELahiEND'],
-      ['selectionChanged', { start: 0, end: 0 }],
       ['valueChanged', 'DELahiEND_OK'],
       ['valueChanged', 'DELahiEND_OK!'],
       [
@@ -332,21 +518,19 @@ describe('two texts', () => {
     ]);
 
     expect(titleEvents.mock.calls).toStrictEqual([
-      ['selectionChanged', { start: 0, end: 0 }],
       ['valueChanged', 'hello'],
       [
         'handledExternalChanges',
         [{ changeset: Changeset.parseValue(['hello']), revision: 2 }],
       ],
-      ['selectionChanged', { start: 0, end: 0 }],
-      ['selectionChanged', { start: 0, end: 0 }],
       ['valueChanged', 'helloA'],
       [
         'handledExternalChanges',
         [{ changeset: Changeset.parseValue([[0, 4], 'A']), revision: 3 }],
       ],
       ['valueChanged', ''],
-      ['selectionChanged', { start: 0, end: 0 }],
     ]);
+
+    expect(errorSpy).toHaveBeenCalledOnce();
   });
 });

@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { Changeset } from '../../../changeset';
+import { Changeset } from '../changeset';
 import { insertToSelectionChangeset } from './insert-to-selection-changeset';
 
 const cs = Changeset.parseValue;

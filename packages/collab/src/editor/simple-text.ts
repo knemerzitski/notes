@@ -1,9 +1,9 @@
 import mitt, { Emitter, EmitterPickEvents } from 'mitt';
-import { CollabService } from '../collab-service';
-import { SelectionRange } from '../selection-range';
-import { SimpleText, SimpleTextEvents, SimpleTextOperationOptions } from '../types';
-import { deleteCountToSelectionChangeset } from './utils/delete-count-to-selection-changeset';
-import { insertToSelectionChangeset } from './utils/insert-to-selection-changeset';
+import { CollabService } from '../client/collab-service';
+import { SelectionRange } from '../client/selection-range';
+import { SimpleText, SimpleTextEvents, SimpleTextOperationOptions } from './types';
+import { deleteCountToSelectionChangeset } from '../utils/delete-count-to-selection-changeset';
+import { insertToSelectionChangeset } from '../utils/insert-to-selection-changeset';
 
 export class SimpleTextEditor implements SimpleText {
   readonly eventBus: Emitter<SimpleTextEvents>;

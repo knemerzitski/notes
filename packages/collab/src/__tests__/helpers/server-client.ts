@@ -17,8 +17,8 @@ import {
 } from './text-with-selection';
 import { RevisionRecords } from '../../records/revision-records';
 import { processRecordInsertion } from '../../records/process-record-insertion';
-import { SimpleTextEditor } from '../../client/editors/simple-text';
-import { SimpleTextOperationOptions } from '../../client/types';
+import { SimpleTextEditor } from '../../editor/simple-text';
+import { SimpleTextOperationOptions } from '../../editor/types';
 
 export function createHelperCollabEditingEnvironment<TClientName extends string>(
   options: {
