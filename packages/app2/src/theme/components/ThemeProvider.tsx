@@ -3,7 +3,7 @@ import { CssBaseline, GlobalStyles } from '@mui/material';
 import { ReactNode } from 'react';
 
 import { useCreateTheme, UseCreateThemeOptions } from '../hooks/useCreateTheme';
-import { BreakpointDownIsMobile } from './BreakpointDownIsMobile';
+import { ResponsiveIsMobile } from './ResponsiveIsMobile';
 
 export function ThemeProvider({
   createOptions,
@@ -18,7 +18,7 @@ export function ThemeProvider({
     <MuiThemeProvider theme={theme}>
       <CssBaseline />
       <GlobalStyles styles={globalStyles} />
-      <BreakpointDownIsMobile breakpointDown="sm">{children}</BreakpointDownIsMobile>
+      <ResponsiveIsMobile>{children}</ResponsiveIsMobile>
     </MuiThemeProvider>
   );
 }

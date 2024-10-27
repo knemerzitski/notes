@@ -4,9 +4,18 @@ enum ColorMode {
   DARK
 }
 
+enum LayoutMode {
+  RESPONSIVE
+  DESKTOP
+  MOBILE
+}
+
+
 type DevicePreferences {
   "App theme color mode"
   colorMode: ColorMode!
+  "App responsive layout"
+  layoutMode: LayoutMode!
   desktop: DesktopDevicePreferences!
 }
 

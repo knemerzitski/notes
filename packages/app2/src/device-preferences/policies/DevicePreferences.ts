@@ -1,4 +1,4 @@
-import { ColorMode } from '../../__generated__/graphql';
+import { ColorMode, LayoutMode } from '../../__generated__/graphql';
 import { CreateTypePolicyFn } from '../../graphql/types';
 
 export const DevicePreferences: CreateTypePolicyFn = function () {
@@ -6,6 +6,9 @@ export const DevicePreferences: CreateTypePolicyFn = function () {
     merge: true,
     fields: {
       colorMode(existing = ColorMode.SYSTEM) {
+        return existing;
+      },
+      layoutMode(existing = LayoutMode.RESPONSIVE) {
         return existing;
       },
       desktop(
