@@ -58,6 +58,7 @@ type UpdateSignedInUserDisplayNamePayload {
 }
 
 extend type Mutation {
+  "Update user display name"
   updateSignedInUserDisplayName(
     input: UpdateSignedInUserDisplayNameInput!
   ): UpdateSignedInUserDisplayNamePayload! @auth

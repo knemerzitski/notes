@@ -15,6 +15,10 @@ const config: CodegenConfig = {
           resolver: 'base/resolvers/ObjectID#ObjectID',
           type: 'mongodb#ObjectId',
         },
+        UserNoteLinkID: {
+          resolver: 'note-user-link/resolvers/UserNoteLinkID#UserNoteLinkID',
+          type: '../../services/note/user-note-link-id#UserNoteLinkId',
+        },
         Changeset: {
           type: '~collab/changeset#Changeset',
         },

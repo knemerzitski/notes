@@ -1,4 +1,8 @@
 ################################ UserNoteLink ################################
+
+"Identifier for UserNoteLink.id, serializes to string"
+scalar UserNoteLinkID
+
 """
 Link (edge) between signed in user and note.
 """
@@ -54,7 +58,7 @@ extend type DeleteNotePayload {
   publicUserNoteLinkId: String
 }
 
-################################ Query userNoteLinkByNoteId,userNoteLinkConnection,userNoteLinkSearchConnection ################################
+################################ Query userNoteLink,userNoteLinkConnection,userNoteLinkSearchConnection ################################
 
 type UserNoteLinkConnection implements Connection {
   "Notes directly without edges"
@@ -72,9 +76,18 @@ type UserNoteLinkEdge implements Edge {
   cursor: Cursor!
 }
 
+input UserNoteLinkByInput @oneOf {
+  "UserNoteLink.id"
+  id: UserNoteLinkID
+  "UserNoteLink.id"
+  userNoteLinkId: UserNoteLinkID
+  "userNoteLink.note.id"
+  noteId: ObjectID
+}
+
 extend type Query {
   "Find UserNoteLink by Note.id"
-  userNoteLinkByNoteId(noteId: ObjectID!): UserNoteLink! @auth
+  userNoteLink(by: UserNoteLinkByInput!): UserNoteLink! @auth
   "Paginate UserNoteLinks by category. Default is NoteCategory.DEFAULT"
   userNoteLinkConnection(
     first: NonNegativeInt

@@ -22,7 +22,7 @@ import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/pop
 import { fakeUserPopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/user';
 import { DBNoteSchema } from '../../../../../mongodb/schema/note';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
-import { NoteCategory, UserNoteLink } from '../../../../domains/types.generated';
+import { NoteCategory, UserNoteLink } from '../../../types.generated';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { UserNoteLink_id } from '../../../../../services/note/user-note-link-id';
 
@@ -33,7 +33,7 @@ interface Variables {
 
 const QUERY = `#graphql
   query($noteId: ObjectID!, $recordsLast: PositiveInt){
-    userNoteLinkByNoteId(noteId: $noteId){
+    userNoteLink(by: {noteId: $noteId}){
       note {
         collabText {
           headText {
@@ -104,7 +104,7 @@ async function executeOperation(
 ) {
   return await apolloServer.executeOperation<
     {
-      userNoteLinkByNoteId: UserNoteLink;
+      userNoteLink: UserNoteLink;
     },
     Variables
   >(
@@ -131,7 +131,7 @@ it('returns note', async () => {
 
   // Response
   expect(data).toEqual({
-    userNoteLinkByNoteId: {
+    userNoteLink: {
       note: {
         collabText: {
           headText: {
@@ -177,7 +177,7 @@ it('returns note users', async () => {
     { user: userReadOnly },
     `#graphql
       query($noteId: ObjectID!){
-        userNoteLinkByNoteId(noteId: $noteId){
+        userNoteLink(by: {noteId: $noteId}){
           id
           note {
             id
@@ -199,7 +199,7 @@ it('returns note users', async () => {
   const data = expectGraphQLResponseData(response);
 
   expect(data).toEqual({
-    userNoteLinkByNoteId: {
+    userNoteLink: {
       id: UserNoteLink_id(note._id, userReadOnly._id),
       note: {
         id: objectIdToStr(note._id),

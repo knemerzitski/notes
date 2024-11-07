@@ -16,6 +16,8 @@ import { NoteNotFoundQueryLoaderError } from '../../mongodb/loaders/note/loader'
 import { ErrorMapper } from './utils/error-mapper';
 import { InsertRecordError } from '~collab/records/process-record-insertion';
 import { ChangesetOperationError } from '~collab/changeset';
+import { ObjectId } from 'mongodb';
+import { objectIdToStr } from '../../mongodb/utils/objectid';
 
 class NoteNotFoundError extends GraphQLError {
   constructor() {
@@ -47,6 +49,19 @@ class NoteReadOnlyError extends GraphQLError {
         resource: ResourceType.NOTE,
       },
     });
+  }
+}
+
+export class NoteUnauthorizedUserError extends GraphQLError {
+  constructor(currentUserId: ObjectId, noteAccessUserId: ObjectId) {
+    super(
+      `Attempted to access note as user "${objectIdToStr(noteAccessUserId)}" while authenticated as user "${objectIdToStr(currentUserId)}"`,
+      {
+        extensions: {
+          code: GraphQLErrorCode.UNAUTHORIZED,
+        },
+      }
+    );
   }
 }
 

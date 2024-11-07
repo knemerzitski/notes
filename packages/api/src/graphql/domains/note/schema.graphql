@@ -16,7 +16,7 @@ type CreateNotePayload {
 
 extend type Mutation {
   "Create a new note"
-  createNote(input: CreateNoteInput!): CreateNotePayload @auth
+  createNote(input: CreateNoteInput!): CreateNotePayload! @auth
 }
 
 extend union SignedInUserMutations = CreateNotePayload
