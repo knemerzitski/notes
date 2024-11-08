@@ -166,7 +166,7 @@ async function executeOperation(
   );
 }
 
-it('returns last 2 notes, after: 2, first 4 => 0,1 (10 notes total)', async () => {
+it('returns last 2 notes, after: 2, first 4 => 1,0 (10 notes total)', async () => {
   const response = await executeOperation({
     after: notes.at(2),
     first: 4,
@@ -176,12 +176,12 @@ it('returns last 2 notes, after: 2, first 4 => 0,1 (10 notes total)', async () =
 
   expect(data).toEqual({
     userNoteLinkConnection: {
-      userNoteLinks: notes.slice(0, 2).map((noteId) => ({
+      userNoteLinks: notes.slice(0, 2).reverse().map((noteId) => ({
         note: {
           id: objectIdToStr(noteId),
         },
       })),
-      edges: notes.slice(0, 2).map((noteId) => ({
+      edges: notes.slice(0, 2).reverse().map((noteId) => ({
         cursor: objectIdToStr(noteId),
         node: expect.objectContaining({
           id: UserNoteLink_id(noteId, user._id),
@@ -245,12 +245,12 @@ it('returns notes from different archive category', async () => {
 
   expect(data).toEqual({
     userNoteLinkConnection: {
-      userNoteLinks: notesArchive.map((noteId) => ({
+      userNoteLinks: [...notesArchive].reverse().map((noteId) => ({
         note: {
           id: objectIdToStr(noteId),
         },
       })),
-      edges: notesArchive.map((noteId) => ({
+      edges: [...notesArchive].reverse().map((noteId) => ({
         cursor: objectIdToStr(noteId),
         node: expect.objectContaining({
           id: UserNoteLink_id(noteId, user._id),
@@ -276,21 +276,24 @@ it('returns notes from different archive category', async () => {
   );
 });
 
-function expectSlice(
+function expectSliceInReverse(
   connection: UserNoteLinkConnection | false,
   start: number,
   end: number
 ) {
   if (!connection) return;
   expect(connection).toEqual({
-    edges: notes.slice(start, end).map((noteId) => ({
-      cursor: objectIdToStr(noteId),
-      node: expect.objectContaining({
-        note: {
-          id: objectIdToStr(noteId),
-        },
-      }),
-    })),
+    edges: notes
+      .slice(start, end)
+      .reverse()
+      .map((noteId) => ({
+        cursor: objectIdToStr(noteId),
+        node: expect.objectContaining({
+          note: {
+            id: objectIdToStr(noteId),
+          },
+        }),
+      })),
     pageInfo: expect.objectContaining({
       startCursor: objectIdToStr(notes.at(end - 1)),
       endCursor: objectIdToStr(notes.at(start)),
@@ -321,9 +324,9 @@ it('paginates from start to end', async () => {
     },
   };
 
-  expectSlice(await paginator.paginate(), 6, 10);
-  expectSlice(await paginator.paginate(), 2, 6);
-  expectSlice(await paginator.paginate(), 0, 2);
+  expectSliceInReverse(await paginator.paginate(), 6, 10);
+  expectSliceInReverse(await paginator.paginate(), 2, 6);
+  expectSliceInReverse(await paginator.paginate(), 0, 2);
 });
 
 it('paginates from end to start', async () => {
@@ -351,7 +354,7 @@ it('paginates from end to start', async () => {
     },
   };
 
-  expectSlice(await paginator.paginate(), 0, 4);
-  expectSlice(await paginator.paginate(), 4, 8);
-  expectSlice(await paginator.paginate(), 8, 10);
+  expectSliceInReverse(await paginator.paginate(), 0, 4);
+  expectSliceInReverse(await paginator.paginate(), 4, 8);
+  expectSliceInReverse(await paginator.paginate(), 8, 10);
 });

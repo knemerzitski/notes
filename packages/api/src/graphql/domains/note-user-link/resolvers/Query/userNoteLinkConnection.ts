@@ -82,7 +82,14 @@ export const userNoteLinkConnection: NonNullable<
       (noteCategory) => {
         const notes = noteCategory.notes;
         updateSize?.(notes.length);
-        return notes[index < 0 ? index + notes.length : index];
+
+        let reversedIndex = index;
+        if (reversedIndex < 0) {
+          reversedIndex += notes.length;
+        }
+        reversedIndex = notes.length - reversedIndex - 1;
+
+        return notes[reversedIndex];
       }
     ),
   });
@@ -140,9 +147,9 @@ export const userNoteLinkConnection: NonNullable<
         return hasNextPage ?? false;
       },
       startCursor: async () =>
-        objectIdToStr(await Note_id_fromQueryFn(createUserNoteLinkMapper(-1).query)),
-      endCursor: async () =>
         objectIdToStr(await Note_id_fromQueryFn(createUserNoteLinkMapper(0).query)),
+      endCursor: async () =>
+        objectIdToStr(await Note_id_fromQueryFn(createUserNoteLinkMapper(-1).query)),
     },
   };
 };
