@@ -192,7 +192,7 @@ describe('note in normal categories', () => {
       moveUserNoteLink: {
         location: {
           categoryName: MovableNoteCategory.ARCHIVE,
-          anchorPosition: ListAnchorPosition.AFTER,
+          anchorPosition: ListAnchorPosition.BEFORE,
           anchorUserNoteLink: {
             id: UserNoteLink_id(userBaseArchiveNoteIds.at(-1)!, user._id),
           },
@@ -237,13 +237,13 @@ describe('note in normal categories', () => {
     );
   });
 
-  it('moves note before specific anchor note to another category', async () => {
+  it('moves note after specific anchor note to another category', async () => {
     const response = await executeOperation(
       {
         noteId: note._id,
         location: {
           categoryName: MovableNoteCategory.ARCHIVE,
-          anchorPosition: ListAnchorPosition.BEFORE,
+          anchorPosition: ListAnchorPosition.AFTER,
           // Before middle note, so note will be second one in list
           anchorNoteId: userBaseArchiveNoteIds[1],
         },
@@ -260,7 +260,7 @@ describe('note in normal categories', () => {
       moveUserNoteLink: {
         location: {
           categoryName: MovableNoteCategory.ARCHIVE,
-          anchorPosition: ListAnchorPosition.BEFORE,
+          anchorPosition: ListAnchorPosition.AFTER,
           anchorUserNoteLink: {
             id: UserNoteLink_id(userBaseArchiveNoteIds[1]!, user._id),
           },
@@ -315,7 +315,7 @@ describe('note in normal categories', () => {
         noteId: note._id,
         location: {
           categoryName: MovableNoteCategory.DEFAULT,
-          anchorPosition: ListAnchorPosition.AFTER,
+          anchorPosition: ListAnchorPosition.BEFORE,
           anchorNoteId: userBaseDefaultNoteIds[0],
         },
       },
@@ -331,7 +331,7 @@ describe('note in normal categories', () => {
       moveUserNoteLink: {
         location: {
           categoryName: MovableNoteCategory.DEFAULT,
-          anchorPosition: ListAnchorPosition.AFTER,
+          anchorPosition: ListAnchorPosition.BEFORE,
           anchorUserNoteLink: {
             id: UserNoteLink_id(userBaseDefaultNoteIds[0]!, user._id),
           },
@@ -384,7 +384,7 @@ describe('note in normal categories', () => {
         noteId: note._id,
         location: {
           categoryName: MovableNoteCategory.ARCHIVE,
-          anchorPosition: ListAnchorPosition.BEFORE,
+          anchorPosition: ListAnchorPosition.AFTER,
           anchorNoteId: new ObjectId(),
         },
       },
@@ -400,7 +400,7 @@ describe('note in normal categories', () => {
       moveUserNoteLink: {
         location: {
           categoryName: MovableNoteCategory.ARCHIVE,
-          anchorPosition: ListAnchorPosition.AFTER,
+          anchorPosition: ListAnchorPosition.BEFORE,
           anchorUserNoteLink: {
             id: UserNoteLink_id(userBaseArchiveNoteIds.at(-1)!, user._id),
           },
@@ -465,7 +465,7 @@ describe('note in normal categories', () => {
       moveUserNoteLink: {
         location: {
           categoryName: MovableNoteCategory.DEFAULT,
-          anchorPosition: ListAnchorPosition.AFTER,
+          anchorPosition: ListAnchorPosition.BEFORE,
           anchorUserNoteLink: {
             id: UserNoteLink_id(note._id, user._id),
           },
@@ -751,7 +751,7 @@ describe('note in normal categories', () => {
                   __typename: 'MoveUserNoteLinkPayload',
                   location: {
                     categoryName: MovableNoteCategory.ARCHIVE,
-                    anchorPosition: ListAnchorPosition.AFTER,
+                    anchorPosition: ListAnchorPosition.BEFORE,
                     anchorUserNoteLink: {
                       id: expect.any(String),
                     },
@@ -884,7 +884,7 @@ describe('note is trashed', () => {
         location: {
           categoryName: MovableNoteCategory.ARCHIVE,
           anchorNoteId: userBaseArchiveNoteIds.at(0),
-          anchorPosition: ListAnchorPosition.AFTER,
+          anchorPosition: ListAnchorPosition.BEFORE,
         },
       },
       {
@@ -899,7 +899,7 @@ describe('note is trashed', () => {
       moveUserNoteLink: {
         location: {
           categoryName: MovableNoteCategory.ARCHIVE,
-          anchorPosition: ListAnchorPosition.AFTER,
+          anchorPosition: ListAnchorPosition.BEFORE,
           anchorUserNoteLink: {
             id: UserNoteLink_id(userBaseArchiveNoteIds.at(0)!, user._id),
           },
@@ -972,7 +972,7 @@ describe('note is trashed', () => {
       moveUserNoteLink: {
         location: {
           categoryName: MovableNoteCategory.ARCHIVE,
-          anchorPosition: ListAnchorPosition.AFTER,
+          anchorPosition: ListAnchorPosition.BEFORE,
           anchorUserNoteLink: {
             id: UserNoteLink_id(userBaseArchiveNoteIds.at(-1)!, user._id),
           },
@@ -1062,7 +1062,7 @@ describe('note is trashed', () => {
                   __typename: 'MoveUserNoteLinkPayload',
                   location: {
                     categoryName: MovableNoteCategory.ARCHIVE,
-                    anchorPosition: ListAnchorPosition.AFTER,
+                    anchorPosition: ListAnchorPosition.BEFORE,
                     anchorUserNoteLink: {
                       id: UserNoteLink_id(userBaseArchiveNoteIds.at(-1)!, user._id),
                     },

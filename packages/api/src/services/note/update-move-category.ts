@@ -37,6 +37,7 @@ interface UpdateMoveCategoryParams {
      */
     position: 'after' | 'before';
   }>;
+  defaultAnchorPosition?: 'after' | 'before';
 }
 
 interface DBAnchor {
@@ -55,6 +56,7 @@ export async function updateMoveCategory({
   noteId,
   categoryName,
   anchor,
+  defaultAnchorPosition = 'after',
 }: UpdateMoveCategoryParams) {
   return withTransaction(mongoDB.client, async ({ runSingleOperation }) => {
     // Fetching everything from note that's helpful for move
@@ -177,7 +179,7 @@ export async function updateMoveCategory({
       (dbAnchor?.lastId != null && !dbAnchor.lastId.equals(noteId)
         ? {
             id: dbAnchor.lastId,
-            position: 'after',
+            position: defaultAnchorPosition,
           }
         : null);
 

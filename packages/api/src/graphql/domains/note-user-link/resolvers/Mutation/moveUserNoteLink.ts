@@ -77,10 +77,10 @@ function getAnchor(
 function anchorPositionToStr(arg: RequireFields<MutationmoveUserNoteLinkArgs, 'input'>) {
   const pos = arg.input.location?.anchorPosition;
   if (!pos) return;
-  return pos === ListAnchorPosition.BEFORE ? 'before' : 'after';
+  return pos === ListAnchorPosition.AFTER ? 'before' : 'after';
 }
 
 function strToAnchorPosition(pos: Maybe<'after' | 'before'>) {
   if (!pos) return;
-  return pos === 'before' ? ListAnchorPosition.BEFORE : ListAnchorPosition.AFTER;
+  return pos === 'after' ? ListAnchorPosition.BEFORE : ListAnchorPosition.AFTER;
 }
