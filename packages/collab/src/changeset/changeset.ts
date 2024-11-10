@@ -571,6 +571,10 @@ export class Changeset {
     return ChangesetStruct.createRaw(this);
   }
 
+  toJSON(){
+    return this.serialize();
+  }
+
   static parseValue: (value: unknown) => Changeset = (value) => {
     return ChangesetStruct.create(value);
   };
