@@ -265,6 +265,7 @@ describe('two texts', () => {
       // do nothing
     });
   });
+
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -533,4 +534,122 @@ describe('two texts', () => {
 
     expect(errorSpy).toHaveBeenCalledOnce();
   });
+});
+
+it('serialize/parseValue multiJsonText without errors', () => {
+  enum TextType {
+    CONTENT = 'c',
+    TITLE = 't',
+  }
+  const createMultiJsonTextByService = defineCreateJsonTextFromService<TextType>(
+    Object.values(TextType)
+  );
+
+  const service = new CollabService();
+  const multiJsonText = createMultiJsonTextByService(service);
+
+  const text = multiJsonText.getText(TextType.CONTENT);
+  text.insert('foo', {
+    start: 0,
+    end: 0,
+  });
+
+  const service2 = new CollabService(CollabService.parseValue(service.serialize()));
+  const multiJsonText2 = createMultiJsonTextByService(service2);
+  const text2 = multiJsonText2.getText(TextType.CONTENT);
+  text2.insert('bar', {
+    start: 3,
+    end: 3,
+  });
+  expect(service2.serialize()).toMatchInlineSnapshot(`
+    {
+      "client": {
+        "local": [
+          "{"c":"foobar","t":""}",
+        ],
+        "server": undefined,
+      },
+      "history": {
+        "entries": [
+          {
+            "execute": {
+              "changeset": [
+                [
+                  0,
+                  5,
+                ],
+                "foo",
+                [
+                  6,
+                  14,
+                ],
+              ],
+              "selection": {
+                "start": 9,
+              },
+            },
+            "undo": {
+              "changeset": [
+                [
+                  0,
+                  5,
+                ],
+                [
+                  9,
+                  17,
+                ],
+              ],
+              "selection": {
+                "start": 6,
+              },
+            },
+          },
+          {
+            "execute": {
+              "changeset": [
+                [
+                  0,
+                  8,
+                ],
+                "bar",
+                [
+                  9,
+                  17,
+                ],
+              ],
+              "selection": {
+                "start": 12,
+              },
+            },
+            "undo": {
+              "changeset": [
+                [
+                  0,
+                  8,
+                ],
+                [
+                  12,
+                  20,
+                ],
+              ],
+              "selection": {
+                "start": 9,
+              },
+            },
+          },
+        ],
+        "lastExecutedIndex": {
+          "local": 1,
+          "server": -1,
+          "submitted": -1,
+        },
+        "tailComposition": null,
+        "tailText": [
+          "{"c":"","t":""}",
+        ],
+      },
+      "recordsBuffer": undefined,
+      "submittedRecord": null,
+    }
+  `);
 });

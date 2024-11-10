@@ -14,6 +14,7 @@ import { array, Infer, literal, number, object, union } from 'superstruct';
 import { SelectionRange, SelectionRangeStruct } from './selection-range';
 import { SimpleTextOperationOptions } from '../editor/types';
 import { SelectionChangeset } from './types';
+import { OptionalChangesetStruct } from '../changeset/struct';
 
 export interface CollabHistoryEvents {
   appliedTypingOperation: ReadonlyDeep<
@@ -58,7 +59,7 @@ export type Entry = Infer<typeof EntryStruct>;
 
 export const CollabHistoryOptionsStruct = object({
   entries: array(EntryStruct),
-  tailText: ChangesetStruct,
+  tailText: OptionalChangesetStruct,
   tailRevision: number(),
   tailComposition: union([ChangesetStruct, literal(null)]),
   lastExecutedIndex: object({
@@ -806,10 +807,10 @@ export class CollabHistory {
     }
   }
 
-  serialize(removeServerEntries = true) {
+  serialize(keepServerEntries = false) {
     let entries = this.entries;
     let lastExecutedIndex = this.lastExecutedIndex;
-    if (removeServerEntries) {
+    if (!keepServerEntries) {
       const offset = this.lastExecutedIndex.server + 1;
       entries = this._entries.slice(offset);
       lastExecutedIndex = {
@@ -822,10 +823,22 @@ export class CollabHistory {
     return CollabHistoryOptionsStruct.createRaw({
       entries,
       tailRevision: this._tailRevision,
-      tailText: this._tailText,
+      tailText: this.getTailTextForSerialize(keepServerEntries),
       tailComposition: this.tailComposition,
       lastExecutedIndex,
     });
+  }
+
+  private getTailTextForSerialize(keepServerEntries = false) {
+    if (this._tailText.isEqual(this.client.server)) {
+      return;
+    }
+
+    if (this.lastExecutedIndex.server < 0 || keepServerEntries) {
+      return this._tailText;
+    }
+
+    return;
   }
 
   static parseValue(

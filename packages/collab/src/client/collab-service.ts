@@ -138,7 +138,7 @@ const CollabServiceOptionsStruct = object({
   client: omit(CollabClientOptionsStruct, ['submitted']), // instead of omit make it optional?
   submittedRecord: nullable(SubmittedRevisionRecordStruct),
   recordsBuffer: optional(OrderedMessageBufferParamsStruct(UnprocessedRecordStruct)),
-  history: omit(CollabHistoryOptionsStruct, ['tailRevision', 'tailText']),
+  history: omit(CollabHistoryOptionsStruct, ['tailRevision']),
 });
 
 type UnprocessedRecordsBuffer = OrderedMessageBuffer<typeof UnprocessedRecordStruct>;
@@ -300,7 +300,7 @@ export class CollabService {
       options?.history instanceof CollabHistory
         ? options.history
         : new CollabHistory({
-            tailText: headText.changeset,
+            tailText: options?.history?.tailText ?? headText.changeset,
             tailRevision: headText.revision,
             ...options?.history,
             client: this._client,
@@ -514,7 +514,6 @@ export class CollabService {
     value: SelectionChangeset,
     options?: SimpleTextOperationOptions
   ) {
-    // console.log('push', value);
     this._history.pushSelectionChangeset(value, options);
   }
 
@@ -557,12 +556,12 @@ export class CollabService {
     return this._history.redo();
   }
 
-  serialize(historyRemoveServerEntries = true) {
+  serialize(historyKeepServerEntries = false) {
     return CollabServiceOptionsStruct.maskRaw({
       client: this._client.serialize(),
       submittedRecord: this._submittedRecord,
       recordsBuffer: this.recordsBuffer.serialize(),
-      history: this._history.serialize(historyRemoveServerEntries),
+      history: this._history.serialize(historyKeepServerEntries),
     });
   }
 
@@ -583,7 +582,6 @@ export class CollabService {
       history: {
         ...options.history,
         tailRevision: options.recordsBuffer?.version,
-        tailText: options.client.server,
       },
       submittedRecord: options.submittedRecord
         ? new SubmittedRecord(options.submittedRecord)
