@@ -1,6 +1,7 @@
 import mitt, { Emitter } from 'mitt';
-import { Changeset, ChangesetStruct } from '../changeset';
-import { object, optional } from 'superstruct';
+import { Changeset } from '../changeset';
+import { object } from 'superstruct';
+import { OptionalChangesetStruct } from '../changeset/struct';
 
 export interface CollabClientEvents {
   viewChanged: Readonly<{
@@ -55,9 +56,9 @@ export enum ChangeSource {
 }
 
 export const CollabClientOptionsStruct = object({
-  server: optional(ChangesetStruct),
-  submitted: optional(ChangesetStruct),
-  local: optional(ChangesetStruct),
+  server: OptionalChangesetStruct,
+  submitted: OptionalChangesetStruct,
+  local: OptionalChangesetStruct,
 });
 
 export interface CollabClientOptions {

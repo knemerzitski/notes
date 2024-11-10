@@ -268,3 +268,13 @@ describe('handleExternalChange', () => {
     expect(client.local.toString()).toStrictEqual(initial.getIdentity().toString());
   });
 });
+
+it('serialize/parseValue to same state', () => {
+  const client = new CollabClient({ server: cs('server') });
+  const client2 = new CollabClient(CollabClient.parseValue(client.serialize()));
+
+  expect(client2.server.toString()).toStrictEqual(client.server.toString());
+  expect(client2.submitted.toString()).toStrictEqual(client.submitted.toString());
+  expect(client2.local.toString()).toStrictEqual(client.local.toString());
+  expect(client2.view.toString()).toStrictEqual(client.view.toString());
+});

@@ -67,18 +67,34 @@ export const StripStruct = union([
   EmptyStripStruct,
 ]);
 
-const StripsValuesStruct = optional(array(StripStruct));
+const StripsValuesStruct = array(StripStruct);
 
 export const StripsStruct = coerce(
   instance(Strips),
-  optional(array(unknown())),
-  (value) => new Strips(StripsValuesStruct.create(value)),
+  array(unknown()),
+  (value) => {
+    if (value.length === 0) {
+      return Strips.EMPTY;
+    }
+    return new Strips(StripsValuesStruct.create(value));
+  },
   (strips) => createRaw(strips.values, StripsValuesStruct)
 );
 
 export const ChangesetStruct = coerce(
   instance(Changeset),
-  optional(array(unknown())),
-  (value) => new Changeset(StripsStruct.create(value)),
+  array(unknown()),
+  (value) => {
+    if (value.length === 0) {
+      return Changeset.EMPTY;
+    }
+    return new Changeset(StripsStruct.create(value));
+  },
   (changeset) => createRaw(changeset.strips, StripsStruct)
 );
+
+const OptionalStruct = define<undefined>(
+  'Undefined',
+  (value) => typeof value === 'undefined'
+);
+export const OptionalChangesetStruct = union([OptionalStruct, ChangesetStruct]);
