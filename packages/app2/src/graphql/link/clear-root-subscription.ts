@@ -31,20 +31,14 @@ export class ClearRootSubscriptionLink extends ApolloLink {
       return forward(operation);
     }
 
-    const observable = forward(operation);
-
-    const sub = observable.subscribe({
-      next() {
-        cache.modify({
-          id: 'ROOT_SUBSCRIPTION',
-          fields(value, { fieldName, DELETE }) {
-            return fieldName === '__typename' ? value : DELETE;
-          },
-        });
-      },
-      complete() {
-        sub.unsubscribe();
-      },
+    const observable = forward(operation).map((value) => {
+      cache.modify({
+        id: 'ROOT_SUBSCRIPTION',
+        fields(value, { fieldName, DELETE }) {
+          return fieldName === '__typename' ? value : DELETE;
+        },
+      });
+      return value;
     });
 
     return observable;
