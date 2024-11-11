@@ -73,6 +73,7 @@ export function FixedWidthFloatableDrawer({
 const drawerBaseStyle = ({ theme }: { theme: Theme }) => {
   return css`
     ${drawerPaddingStyle({ theme })}
+    overflow-x: hidden;
 
     transition: ${theme.transitions.create(['width', 'box-shadow'], {
       easing: theme.transitions.easing.sharp,
