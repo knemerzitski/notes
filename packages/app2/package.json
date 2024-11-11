@@ -24,7 +24,7 @@
     "build": "npm run graphql:gen && npm run vite:build"
   },
   "dependencies": {
-    "@apollo/client": "npm:@knemerzitski/apollo-client@^3.11.3",
+    "@apollo/client": "npm:@knemerzitski/apollo-client@^3.12.0",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@graphql-codegen/cli": "^5.0.0",
