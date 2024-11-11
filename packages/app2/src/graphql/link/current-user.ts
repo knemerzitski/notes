@@ -48,12 +48,14 @@ export class CurrentUserLink extends ApolloLink {
 
     // userId empty
     if (!userId) {
-      return new Error('Prevented an operation without userId');
+      return new Error(`Prevented operation "${operation.operationName}" without userId`);
     }
 
     // userId local
     if (isLocalId(userId)) {
-      return new Error(`Prevented an operation with local userId ${userId}`);
+      return new Error(
+        `Prevented operation "${operation.operationName}" with local userId "${userId}"`
+      );
     }
 
     // Subscription operation
@@ -61,7 +63,7 @@ export class CurrentUserLink extends ApolloLink {
       const wsUserId = await this.wsClient.asyncUserId();
       if (wsUserId !== userId) {
         return new Error(
-          `Prevented a subscription on WebSocket that does not ` +
+          `Prevented subscription "${operation.operationName}" on WebSocket that does not ` +
             `belong to current user. Current User: "${userId}", WebSocket User: ${wsUserId}`
         );
       }
