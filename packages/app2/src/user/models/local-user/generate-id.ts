@@ -1,6 +1,6 @@
 import { ApolloCache } from '@apollo/client';
 import { generateLocalId } from '../../../utils/generate-local-id';
-import { hasUserFragment } from './has-fragment';
+import { hasUserFragment } from '../signed-in-user/has-fragment';
 
 export function generateSignedInUserId(
   cache: Pick<ApolloCache<unknown>, 'readFragment' | 'identify'>
