@@ -31,7 +31,7 @@ export const updateUserNoteLinkReadOnly: NonNullable<
     noteId: input.noteId,
   });
 
-  const payload: ResolversTypes['SignedInUserMutations'] = {
+  const payload: ResolversTypes['SignedInUserMutation'] = {
     __typename: 'UpdateUserNoteLinkReadOnlyPayload',
     readOnly: input.readOnly,
     publicUserNoteLink: {

@@ -20,7 +20,7 @@ export const updateUserNoteLinkBackgroundColor: NonNullable<
     userId: currentUserId,
   });
 
-  const payload: ResolversTypes['SignedInUserMutations'] = {
+  const payload: ResolversTypes['SignedInUserMutation'] = {
     __typename: 'UpdateUserNoteLinkBackgroundColorPayload',
     backgroundColor: input.backgroundColor,
     userNoteLink: {

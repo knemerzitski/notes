@@ -46,7 +46,7 @@ const _createNote: NonNullable<MutationResolvers['createNote']> = async (
     }),
   };
 
-  const payload: ResolversTypes['SignedInUserMutations'] = {
+  const payload: ResolversTypes['SignedInUserMutation'] = {
     __typename: 'CreateNotePayload',
     userNoteLink: {
       userId: currentUserId,

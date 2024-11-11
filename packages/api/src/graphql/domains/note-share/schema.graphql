@@ -32,7 +32,7 @@ extend type Mutation {
   shareNote(input: ShareNoteInput!): ShareNotePayload! @auth
 }
 
-extend union SignedInUserMutations = ShareNotePayload
+extend union SignedInUserMutation = ShareNotePayload
 
 ################################ Mutation deleteShareNote ################################
 
@@ -53,7 +53,7 @@ extend type Mutation {
   deleteShareNote(input: DeleteShareNoteInput!): DeleteShareNotePayload! @auth
 }
 
-extend union SignedInUserMutations = DeleteShareNotePayload
+extend union SignedInUserMutation = DeleteShareNotePayload
 
 
 ################################ Mutation createNoteLinkByShareAccess ################################
@@ -75,4 +75,4 @@ extend type Mutation {
   ): CreateNoteLinkByShareAccessPayload! @auth
 }
 
-extend union SignedInUserMutations = CreateNoteLinkByShareAccessPayload
+extend union SignedInUserMutation = CreateNoteLinkByShareAccessPayload

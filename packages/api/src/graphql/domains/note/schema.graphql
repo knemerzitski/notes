@@ -19,7 +19,7 @@ extend type Mutation {
   createNote(input: CreateNoteInput!): CreateNotePayload! @auth
 }
 
-extend union SignedInUserMutations = CreateNotePayload
+extend union SignedInUserMutation = CreateNotePayload
 
 ################################ Mutation deleteNote ################################
 
@@ -38,4 +38,4 @@ extend type Mutation {
   deleteNote(input: DeleteNoteInput!): DeleteNotePayload! @auth
 }
 
-extend union SignedInUserMutations = DeleteNotePayload
+extend union SignedInUserMutation = DeleteNotePayload

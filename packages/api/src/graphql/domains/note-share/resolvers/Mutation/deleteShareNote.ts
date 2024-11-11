@@ -27,7 +27,7 @@ export const deleteShareNote: NonNullable<MutationResolvers['deleteShareNote']> 
     noteId: input.noteId,
   });
 
-  const payload: ResolversTypes['SignedInUserMutations'] = {
+  const payload: ResolversTypes['SignedInUserMutation'] = {
     __typename: 'DeleteShareNotePayload',
     shareAccessId: deleteResult.shareLinks?.[0]?._id,
     note: {

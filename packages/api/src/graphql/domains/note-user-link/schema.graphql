@@ -133,7 +133,7 @@ extend type Mutation {
   ): UpdateUserNoteLinkReadOnlyPayload!
 }
 
-extend union SignedInUserMutations = UpdateUserNoteLinkReadOnlyPayload
+extend union SignedInUserMutation = UpdateUserNoteLinkReadOnlyPayload
 
 ################################ Mutation updateUserNoteLinkBackgroundColor ################################
 
@@ -176,7 +176,7 @@ extend type Mutation {
   ): UpdateUserNoteLinkBackgroundColorPayload! @auth
 }
 
-extend union SignedInUserMutations = UpdateUserNoteLinkBackgroundColorPayload
+extend union SignedInUserMutation = UpdateUserNoteLinkBackgroundColorPayload
 
 ################################ Mutation trashUserNoteLink ################################
 
@@ -202,7 +202,7 @@ extend type Mutation {
   trashUserNoteLink(input: TrashUserNoteLinkInput!): TrashUserNoteLinkPayload! @auth
 }
 
-extend union SignedInUserMutations = TrashUserNoteLinkPayload
+extend union SignedInUserMutation = TrashUserNoteLinkPayload
 
 ################################ Mutation moveUserNoteLink ################################
 
@@ -282,4 +282,4 @@ extend type Mutation {
   moveUserNoteLink(input: MoveUserNoteLinkInput!): MoveUserNoteLinkPayload! @auth
 }
 
-extend union SignedInUserMutations = MoveUserNoteLinkPayload
+extend union SignedInUserMutation = MoveUserNoteLinkPayload

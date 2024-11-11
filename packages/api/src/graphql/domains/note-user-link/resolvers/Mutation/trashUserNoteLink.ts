@@ -25,7 +25,7 @@ export const trashUserNoteLink: NonNullable<
     trashDuration: ctx.options?.note?.trashDuration,
   });
 
-  const payload: ResolversTypes['SignedInUserMutations'] = {
+  const payload: ResolversTypes['SignedInUserMutation'] = {
     __typename: 'TrashUserNoteLinkPayload',
     deletedAt: trashResult.expireAt,
     userNoteLink: {

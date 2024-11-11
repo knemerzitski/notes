@@ -31,11 +31,11 @@ extend type Query {
 
 ################################ Subscription signedInUserEvents ################################
 
-union SignedInUserMutations
+union SignedInUserMutation
 
 type SignedInUserEventsPayload {
   "A list of mutations to be applied on currently signed in user"
-  mutations: [SignedInUserMutations!]
+  mutations: [SignedInUserMutation!]
 }
 
 extend type Subscription {
@@ -64,4 +64,4 @@ extend type Mutation {
   ): UpdateSignedInUserDisplayNamePayload! @auth
 }
 
-extend union SignedInUserMutations = UpdateSignedInUserDisplayNamePayload
+extend union SignedInUserMutation = UpdateSignedInUserDisplayNamePayload

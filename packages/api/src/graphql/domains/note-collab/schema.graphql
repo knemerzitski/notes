@@ -39,7 +39,7 @@ extend type Mutation {
   ): UpdateNoteInsertRecordPayload! @auth
 }
 
-extend union SignedInUserMutations = UpdateNoteInsertRecordPayload
+extend union SignedInUserMutation = UpdateNoteInsertRecordPayload
 
 ################################ UserCollabTextState ################################
 
@@ -86,7 +86,7 @@ type OpenNoteUserUnsubscribedEvent {
   note: Note!
 }
 
-extend union SignedInUserMutations =
+extend union SignedInUserMutation =
   | OpenNoteUserSubscribedEvent
   | OpenNoteUserUnsubscribedEvent
 
@@ -120,5 +120,5 @@ extend type Mutation {
 
 extend union OpenNoteMutations = UpdateOpenNoteSelectionRangePayload
 
-extend union SignedInUserMutations = UpdateOpenNoteSelectionRangePayload
+extend union SignedInUserMutation = UpdateOpenNoteSelectionRangePayload
 

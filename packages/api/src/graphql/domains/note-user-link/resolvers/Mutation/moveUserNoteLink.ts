@@ -29,7 +29,7 @@ export const moveUserNoteLink: NonNullable<
     anchor: getAnchor(arg),
   });
 
-  const payload: ResolversTypes['SignedInUserMutations'] = {
+  const payload: ResolversTypes['SignedInUserMutation'] = {
     __typename: 'MoveUserNoteLinkPayload',
     location: {
       categoryName: moveResult.categoryName as MovableNoteCategory,

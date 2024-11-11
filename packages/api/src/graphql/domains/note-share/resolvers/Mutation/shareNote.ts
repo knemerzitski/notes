@@ -30,7 +30,7 @@ export const shareNote: NonNullable<MutationResolvers['shareNote']> = async (
     noteId: input.noteId,
   });
 
-  const payload: ResolversTypes['SignedInUserMutations'] = {
+  const payload: ResolversTypes['SignedInUserMutation'] = {
     __typename: 'ShareNotePayload',
     shareAccess: {
       query: createMapQueryFn(noteQuery)<QueryableNote['shareLinks']>()(

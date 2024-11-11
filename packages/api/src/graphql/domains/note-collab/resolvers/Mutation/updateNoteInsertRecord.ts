@@ -47,7 +47,7 @@ export const updateNoteInsertRecord: NonNullable<
   });
   const collabTextIdQuery = CollabText_id_fromNoteQueryFn(noteQuery);
 
-  const payload: ResolversTypes['SignedInUserMutations'] = {
+  const payload: ResolversTypes['SignedInUserMutation'] = {
     __typename: 'UpdateNoteInsertRecordPayload',
     isDuplicateRecord: insertionResult.type === 'duplicate',
     newRecord: {
