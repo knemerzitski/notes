@@ -8,22 +8,25 @@ directive @client on FIELD
 The @persist directive will persist operation in cache until it has received a response from server.
 When app is reopened, all unfinished mutations are resumed.
 """
-directive @persist on FIELD
+directive @persist on MUTATION
 
 """
 Operations with @noauth directive will not be tied to any user. They will be sent as if user is not signed in.
 """
-directive @noauth on FIELD
+directive @noauth on MUTATION
 
 
-union SerializeKey = Int | Float | String | Boolean | ID
+"""
+Any primitive: Int | Float | String | Boolean | ID
+"""
+scalar SerializeKey
 
 """
 You can indicate requests that should be serialized by providing a serialization key.
 All requests with the same serialization key will be queued behind one another in the order they are executed.
 The key can be expressed via the @serialize(key: …) directive. The directive takes a key argument of type List.
 """
-directive @serialize(key: [SerializeKey!]!) on FIELD
+directive @serialize(key: [SerializeKey!]!) on MUTATION
 
 ################################ Query ongoingOperations ################################
 
