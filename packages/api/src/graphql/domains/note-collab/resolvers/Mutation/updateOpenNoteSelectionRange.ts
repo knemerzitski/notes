@@ -40,7 +40,7 @@ export const updateOpenNoteSelectionRange: NonNullable<
     userId: currentUserId,
   });
 
-  const payload: ResolversTypes['OpenNoteMutations'] = {
+  const payload: ResolversTypes['OpenNoteMutation'] = {
     __typename: 'UpdateOpenNoteSelectionRangePayload',
     collabTextState: {
       query: createValueQueryFn<

@@ -305,7 +305,7 @@ export async function publishOpenNoteEvents(
 
 export function publishOpenNoteMutations(
   targetNoteId: ObjectId,
-  mutations: ResolversTypes['OpenNoteMutations'][],
+  mutations: ResolversTypes['OpenNoteMutation'][],
   ctx: Pick<GraphQLResolversContext, 'publish'>,
   options?: PublisherOptions
 ) {
@@ -314,7 +314,7 @@ export function publishOpenNoteMutations(
 
 export function publishOpenNoteMutation(
   targetNoteId: ObjectId,
-  mutation: ResolversTypes['OpenNoteMutations'],
+  mutation: ResolversTypes['OpenNoteMutation'],
   ctx: Pick<GraphQLResolversContext, 'publish'>,
   options?: PublisherOptions
 ) {

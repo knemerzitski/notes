@@ -51,11 +51,11 @@ type UserCollabTextState {
 }
 
 ################################ Subscription openNoteEvents ################################
-union OpenNoteMutations
+union OpenNoteMutation
 
 type OpenNoteEventsPayload {
   "Self-descriptive"
-  mutations: [OpenNoteMutations!]
+  mutations: [OpenNoteMutation!]
 }
 
 extend type Subscription {
@@ -118,7 +118,7 @@ extend type Mutation {
   ): UpdateOpenNoteSelectionRangePayload! @auth
 }
 
-extend union OpenNoteMutations = UpdateOpenNoteSelectionRangePayload
+extend union OpenNoteMutation = UpdateOpenNoteSelectionRangePayload
 
 extend union SignedInUserMutation = UpdateOpenNoteSelectionRangePayload
 
