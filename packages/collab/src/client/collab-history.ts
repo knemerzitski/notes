@@ -116,7 +116,10 @@ export interface CollabHistoryOptions {
 export class CollabHistory {
   static readonly DEFAULT_TAIL_REVISION = 0;
 
-  readonly eventBus: Emitter<CollabHistoryEvents>;
+  private readonly _eventBus: Emitter<CollabHistoryEvents>;
+  get eventBus(): Pick<Emitter<CollabHistoryEvents>, 'on' | 'off'> {
+    return this._eventBus;
+  }
 
   private client: CollabClient;
 
@@ -170,7 +173,7 @@ export class CollabHistory {
   private readonly eventsOff: (() => void)[];
 
   constructor(options?: CollabHistoryOptions) {
-    this.eventBus = options?.eventBus ?? mitt();
+    this._eventBus = options?.eventBus ?? mitt();
     this.client = options?.client ?? new CollabClient();
 
     this._tailText = options?.tailText ?? this.client.server;
@@ -377,7 +380,7 @@ export class CollabHistory {
     }
 
     if (depth === 0 && restoredCount > 0) {
-      this.eventBus.emit('addedTailRecords', {
+      this._eventBus.emit('addedTailRecords', {
         count: restoredCount,
       });
     }
@@ -413,7 +416,7 @@ export class CollabHistory {
     if (entry) {
       this.lastExecutedIndex.local--;
       this.applyTypingOperation(entry.undo);
-      this.eventBus.emit('appliedUndo', { operation: entry.undo });
+      this._eventBus.emit('appliedUndo', { operation: entry.undo });
       return true;
     }
     return false;
@@ -428,7 +431,7 @@ export class CollabHistory {
     if (entry) {
       this.lastExecutedIndex.local++;
       this.applyTypingOperation(entry.execute);
-      this.eventBus.emit('appliedRedo', { operation: entry.execute });
+      this._eventBus.emit('appliedRedo', { operation: entry.execute });
       return true;
     }
     return false;
@@ -436,7 +439,7 @@ export class CollabHistory {
 
   private applyTypingOperation(op: Operation) {
     this.client.composeLocalChange(op.changeset);
-    this.eventBus.emit('appliedTypingOperation', { operation: op });
+    this._eventBus.emit('appliedTypingOperation', { operation: op });
   }
 
   private adjustHistoryToExternalChange(externalChangeset: Changeset) {

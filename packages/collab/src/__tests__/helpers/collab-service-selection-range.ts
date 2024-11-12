@@ -48,7 +48,10 @@ export interface CollabServiceSelectionRangeOptions {
 }
 
 export class CollabServiceSelectionRange implements SelectionRange {
-  readonly eventBus: Emitter<CollabServiceSelectionRangeEvents>;
+  private readonly _eventBus: Emitter<CollabServiceSelectionRangeEvents>;
+  get eventBus(): Pick<Emitter<CollabServiceSelectionRangeEvents>, 'on' | 'off'> {
+    return this._eventBus;
+  }
 
   private props: CollabServiceSelectionRangeOptions;
 
@@ -76,7 +79,7 @@ export class CollabServiceSelectionRange implements SelectionRange {
   constructor(props: CollabServiceSelectionRangeOptions) {
     this.props = props;
 
-    this.eventBus = props.eventBus ?? mitt();
+    this._eventBus = props.eventBus ?? mitt();
   }
 
   set(start: number, end?: number): void;
@@ -99,7 +102,7 @@ export class CollabServiceSelectionRange implements SelectionRange {
     this._start = newSelection.start;
     this._end = newSelection.end;
 
-    this.eventBus.emit('selectionChanged', {
+    this._eventBus.emit('selectionChanged', {
       newSelection,
     });
   }

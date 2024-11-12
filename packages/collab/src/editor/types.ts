@@ -9,7 +9,7 @@ export interface SimpleTextEvents {
 }
 
 export interface SimpleText {
-  readonly eventBus: Emitter<SimpleTextEvents>;
+  readonly eventBus: Pick<Emitter<SimpleTextEvents>, 'on' | 'off'>;
 
   readonly value: string;
 

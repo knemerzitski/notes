@@ -8,7 +8,10 @@ import { StructJsonFormatter } from './struct-json-formatter';
 import { KeyViewText } from './types';
 
 export class KeySimpleText implements SimpleText {
-  readonly eventBus: Emitter<SimpleTextEvents>;
+  private readonly _eventBus: Emitter<SimpleTextEvents>;
+  get eventBus(): Pick<Emitter<SimpleTextEvents>, 'on' | 'off'> {
+    return this._eventBus;
+  }
 
   private readonly service;
 
@@ -45,12 +48,12 @@ export class KeySimpleText implements SimpleText {
 
     this.formatter = formatter;
 
-    this.eventBus = mitt();
+    this._eventBus = mitt();
   }
 
   serviceViewChanged() {
     if (this.prevView.value !== this.view.value) {
-      this.eventBus.emit('valueChanged', this.view.value);
+      this._eventBus.emit('valueChanged', this.view.value);
     }
   }
 
@@ -71,7 +74,7 @@ export class KeySimpleText implements SimpleText {
     );
 
     const start = selectionStartText.length;
-    this.eventBus.emit('selectionChanged', {
+    this._eventBus.emit('selectionChanged', {
       start,
       end: start + selectedText.length,
     });
@@ -79,8 +82,8 @@ export class KeySimpleText implements SimpleText {
 
   serviceHandledExternalChange(payload: CollabServiceEvents['handledExternalChanges']) {
     const haveEvents =
-      !!this.eventBus.all.get('handledExternalChanges')?.length ||
-      !!this.eventBus.all.get('*')?.length;
+      !!this._eventBus.all.get('handledExternalChanges')?.length ||
+      !!this._eventBus.all.get('*')?.length;
     if (!haveEvents) {
       return;
     }
@@ -132,7 +135,7 @@ export class KeySimpleText implements SimpleText {
       return;
     }
 
-    this.eventBus.emit('handledExternalChanges', transformedEvents);
+    this._eventBus.emit('handledExternalChanges', transformedEvents);
   }
 
   insert(

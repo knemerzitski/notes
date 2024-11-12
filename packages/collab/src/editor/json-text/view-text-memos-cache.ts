@@ -1,8 +1,8 @@
-import { EmitterPickEvents } from 'mitt';
-import { CollabService } from '../../client/collab-service';
+import { CollabService, CollabServiceEvents } from '../../client/collab-service';
 import { StructJsonFormatter } from './struct-json-formatter';
 import { StringRecordStruct } from './types';
 import { ViewTextMemo } from './view-text-memo';
+import { LimitedEmitter } from '../../utils/types';
 
 interface ViewTextAtRevision<K extends string, S extends StringRecordStruct> {
   revision: number;
@@ -30,7 +30,10 @@ export class ViewTextMemosCache<K extends string, S extends StringRecordStruct> 
   constructor(
     formatter: StructJsonFormatter<K, S>,
     service: Pick<CollabService, 'viewText' | 'headRevision'> & {
-      eventBus: EmitterPickEvents<CollabService['eventBus'], 'headRevisionChanged'>;
+      eventBus: Pick<
+        LimitedEmitter<Pick<CollabServiceEvents, 'headRevisionChanged'>>,
+        'on'
+      >;
     }
   ) {
     this.formatter = formatter;

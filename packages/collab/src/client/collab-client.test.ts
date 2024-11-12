@@ -62,6 +62,7 @@ describe('composeLocalChange', () => {
   it('emits viewChanged', () => {
     const change = cs([0, 5], '[A]', [6, 14]);
 
+    //@ts-expect-error Allow spying during testing
     const emit = vi.spyOn(client.eventBus, 'emit');
     client.composeLocalChange(change);
     expect(emit).toBeCalledWith('viewChanged', {
