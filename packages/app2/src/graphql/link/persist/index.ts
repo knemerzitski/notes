@@ -61,7 +61,7 @@ export class PersistLink extends ApolloLink {
     const context = operation.getContext();
 
     const hasDirective = persistDirective.has(operation);
-    const persist = context[PersistLink.PERSIST] || hasDirective;
+    const persist = context[PersistLink.PERSIST] ?? hasDirective;
 
     if (!persist || !isMutationOperation(operation.query)) {
       // Cannot persist, skip this link
