@@ -33,6 +33,18 @@ module.exports = {
         ],
       },
     ],
+    'no-restricted-imports': [
+      'error',
+      {
+        paths: [
+          {
+            name: 'graphql',
+            message:
+              'Please import from CommonJS instead "graphql/index.js" (To match realm from "@graphql-tools")',
+          },
+        ],
+      },
+    ],
   },
   overrides: [
     {

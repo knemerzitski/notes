@@ -1,4 +1,4 @@
-import { GraphQLScalarType, Kind } from 'graphql';
+import { GraphQLScalarType, Kind } from 'graphql/index.js';
 
 function assertStringOrInt(value: unknown): asserts value is string | number {
   if (typeof value !== 'string' && typeof value !== 'number') {

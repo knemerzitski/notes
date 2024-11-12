@@ -1,4 +1,4 @@
-import { GraphQLError, GraphQLFormattedError } from 'graphql';
+import { GraphQLError, GraphQLFormattedError } from 'graphql/index.js';
 import { ExecutionContext } from 'graphql/execution/execute';
 import { Path } from 'graphql/jsutils/Path';
 import { getResolverArgs } from './get-resolver-args';

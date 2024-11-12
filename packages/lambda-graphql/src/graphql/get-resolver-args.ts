@@ -4,7 +4,7 @@ import {
   GraphQLField,
   GraphQLResolveInfo,
   getArgumentValues,
-} from 'graphql';
+} from 'graphql/index.js';
 import { collectFields } from 'graphql/execution/collectFields';
 import {
   ExecutionContext,

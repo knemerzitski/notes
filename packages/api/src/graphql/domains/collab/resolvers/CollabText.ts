@@ -4,7 +4,7 @@ import { applyLimit } from '../../../../mongodb/pagination/cursor-array-paginati
 import { CollabTextRecordMapper } from '../schema.mappers';
 import { PreFetchedArrayGetItemFn } from '../../../utils/pre-execute';
 import { QueryableRevisionRecord } from '../../../../mongodb/loaders/note/descriptions/revision-record';
-import { GraphQLError } from 'graphql';
+import { GraphQLError } from 'graphql/index.js';
 import { createMapQueryFn, createValueQueryFn } from '../../../../mongodb/query/query';
 import { RevisionChangesetSchema } from '../../../../mongodb/schema/collab-text';
 import { CursorBoundPagination } from '../../../../mongodb/pagination/cursor-struct';

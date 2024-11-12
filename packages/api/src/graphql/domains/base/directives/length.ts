@@ -1,4 +1,4 @@
-import { GraphQLScalarType, GraphQLSchema } from 'graphql';
+import { GraphQLScalarType, GraphQLSchema } from 'graphql/index.js';
 
 import { lengthDirectiveArgs } from '../../types.generated';
 import { transformSchemaInputDirectiveResolver } from '../../../utils/transform-schema-input-directive-resolver';

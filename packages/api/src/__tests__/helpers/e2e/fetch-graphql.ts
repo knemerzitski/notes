@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/consistent-indexed-object-style */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { GraphQLResponse, HeaderMap } from '@apollo/server';
-import { FormattedExecutionResult } from 'graphql';
+import { FormattedExecutionResult } from 'graphql/index.js';
 
 const HTTP_URL = process.env.VITE_GRAPHQL_HTTP_URL!;
 

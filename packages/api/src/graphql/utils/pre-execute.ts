@@ -12,7 +12,7 @@ import {
   isUnionType,
   GraphQLObjectType,
   executeField,
-} from 'graphql';
+} from 'graphql/index.js';
 import { ExecutionContext, ExecutionOptions } from 'graphql/execution/execute';
 import { addPath } from 'graphql/jsutils/Path';
 import { isObjectLike } from '~utils/type-guards/is-object-like';

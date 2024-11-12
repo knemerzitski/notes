@@ -1,7 +1,7 @@
 import { BaseContext } from '@apollo/server';
 import { ApolloServer } from '@apollo/server';
 import { APIGatewayProxyEvent, APIGatewayProxyHandler } from 'aws-lambda';
-import { GraphQLSchema } from 'graphql';
+import { GraphQLSchema } from 'graphql/index.js';
 import { Logger } from '~utils/logging';
 
 import { lowercaseHeaderKeys } from './apigateway-proxy-event/lowercase-header-keys';

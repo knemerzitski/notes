@@ -1,4 +1,4 @@
-import { GraphQLScalarType, Kind } from 'graphql';
+import { GraphQLScalarType, Kind } from 'graphql/index.js';
 import { UserNoteLinkId } from '../../../../services/note/user-note-link-id';
 
 export const UserNoteLinkID = new GraphQLScalarType({

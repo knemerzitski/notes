@@ -1,4 +1,4 @@
-import { execute, GraphQLSchema, parse } from 'graphql';
+import { execute, GraphQLSchema, parse } from 'graphql/index.js';
 import { MessageType, NextMessage } from 'graphql-ws';
 
 import { DynamoDBRecord } from '../dynamodb/models/connection';

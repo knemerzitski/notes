@@ -5,7 +5,7 @@ import {
   GenericFieldMapper,
   NamedTypeMapper,
 } from '@graphql-tools/utils';
-import { GraphQLFieldConfig, GraphQLSchema, defaultFieldResolver } from 'graphql';
+import { GraphQLFieldConfig, GraphQLSchema, defaultFieldResolver } from 'graphql/index.js';
 
 import { DirectiveResolverFn, NextResolverFn } from '../domains/types.generated';
 

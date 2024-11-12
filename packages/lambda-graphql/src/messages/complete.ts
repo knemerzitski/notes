@@ -1,5 +1,5 @@
 import AggregateError from 'aggregate-error';
-import { GraphQLError, parse } from 'graphql';
+import { GraphQLError, parse } from 'graphql/index.js';
 import { buildExecutionContext } from 'graphql/execution/execute';
 import { MessageType } from 'graphql-ws';
 import { isArray } from '~utils/array/is-array';

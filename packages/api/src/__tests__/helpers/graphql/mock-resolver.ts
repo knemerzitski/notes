@@ -1,4 +1,4 @@
-import { FieldNode, GraphQLResolveInfo, SelectionSetNode } from 'graphql';
+import { FieldNode, GraphQLResolveInfo, SelectionSetNode } from 'graphql/index.js';
 
 import { Resolver } from '../../../graphql/domains/types.generated';
 

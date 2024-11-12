@@ -4,7 +4,7 @@ import {
   APIGatewayProxyWebsocketEventV2,
   Handler,
 } from 'aws-lambda';
-import { GraphQLSchema } from 'graphql';
+import { GraphQLSchema } from 'graphql/index.js';
 import {
   ConnectionInitMessage,
   Message,
