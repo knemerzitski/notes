@@ -14,6 +14,8 @@ import { useCallback } from 'react';
 import { MutationDefinition } from '../utils/mutation-definition';
 import { optimisticResponseMutation } from '../utils/optimistic-response-mutation';
 import { useIsRemoteOperation } from './useIsRemoteOperation';
+import { GlobalOperationVariables } from '../types';
+import { useUserId } from '../../user/context/user-id';
 
 /**
  * Uses mutation with pre-defined update function.
@@ -36,6 +38,7 @@ export function useMutation<
 ): MutationTuple<TData, TVariables, TContext, TCache> {
   const client = useApolloClient();
   const getMutationUpdaterFn = useGetMutationUpdaterFn();
+  const userId = useUserId(true);
 
   const isRemoteOperation = useIsRemoteOperation(definition.document);
 
@@ -43,6 +46,10 @@ export function useMutation<
     definition.document,
     {
       ...options,
+      variables: {
+        ...options?.variables,
+        [GlobalOperationVariables.USER_ID]: userId,
+      } as TVariables,
       update: getMutationUpdaterFn(definition.document) as MutationUpdaterFunction<
         TData,
         TVariables,
@@ -62,8 +69,12 @@ export function useMutation<
             options?.mutation ?? definition.document
           ) as MutationUpdaterFunction<TData, TVariables, TContext, TCache>,
           ...options,
+          variables: {
+            ...options?.variables,
+            [GlobalOperationVariables.USER_ID]: userId,
+          } as TVariables,
         }),
-      [client, definition, getMutationUpdaterFn]
+      [client, definition, getMutationUpdaterFn, userId]
     );
 
   return isRemoteOperation
