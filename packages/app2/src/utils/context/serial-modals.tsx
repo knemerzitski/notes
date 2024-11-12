@@ -52,6 +52,11 @@ export interface ShowModalOptions {
    * Invoked when modal is a duplicate and won't be shown
    */
   onDuplicate?: () => void;
+
+  /**
+   * Invoked when modal is removed from queue.. IS invoked regardless if modal was shown or not.
+   */
+  onRemoved?: () => void;
 }
 
 type Modal = ReactNode;
@@ -66,6 +71,8 @@ interface ModalState {
   readonly uninterruptible: boolean;
   readonly immediate: boolean;
   readonly key?: string;
+  readonly ignoreOnRemoved?: boolean;
+  readonly onRemoved?: () => void;
 }
 
 /**
@@ -105,6 +112,10 @@ export function SerialModalsProvider({
   const handleModalExited = useCallback(() => {
     // Modal is no longer visible and has been shown, remove it
     setQueue((prev) => {
+      const active = prev[0];
+      if (active && !active.ignoreOnRemoved) {
+        active.onRemoved?.();
+      }
       return prev.slice(1);
     });
   }, []);
@@ -120,6 +131,7 @@ export function SerialModalsProvider({
             uninterruptible: options?.uninterruptible ?? false,
             immediate: options?.immediate ?? false,
             key: options?.key,
+            onRemoved: options?.onRemoved,
           },
           prev
         );
@@ -202,8 +214,24 @@ function addToQueue(
   newItem: ModalState,
   items: readonly ModalState[]
 ): readonly ModalState[] {
-  if (newItem.key != null && items.find((item) => item.key === newItem.key)) {
-    return items;
+  if (newItem.key != null) {
+    let sameKeyIndex = items.findIndex((item) => item.key === newItem.key);
+    if (sameKeyIndex !== -1) {
+      if (sameKeyIndex === 0) {
+        // Close or remove active
+        items = removeByIndex(sameKeyIndex, items);
+        // Find next same key
+        sameKeyIndex = items.findIndex(
+          (item, index) => index !== 0 && item.key === newItem.key
+        );
+        if (sameKeyIndex === -1) {
+          // No next same key, add it as next? return value returned by removeByIndex
+          return [...items.slice(0, 1), newItem, ...items.slice(1)];
+        }
+      }
+
+      return [...items.slice(0, sameKeyIndex), newItem, ...items.slice(sameKeyIndex + 1)];
+    }
   }
 
   if (!newItem.immediate) {
@@ -241,6 +269,8 @@ function addToQueue(
       return [
         {
           ...active,
+          // Do not invoke onRemoved since modal will be shown again later
+          ignoreOnRemoved: true,
           status: 'closing',
         },
         newItem,
@@ -262,6 +292,13 @@ function removeByModal(
   items: readonly ModalState[]
 ): readonly ModalState[] {
   const index = items.findIndex((item) => item.modal === modal);
+  return removeByIndex(index, items);
+}
+
+function removeByIndex(
+  index: number,
+  items: readonly ModalState[]
+): readonly ModalState[] {
   if (index === -1) {
     return items;
   }
@@ -278,6 +315,10 @@ function removeByModal(
       case 'closing':
         return items;
     }
+  }
+
+  if (!item.ignoreOnRemoved) {
+    item.onRemoved?.();
   }
 
   return [...items.slice(0, index), ...items.slice(index + 1)];

@@ -41,11 +41,12 @@ export function SnackbarUndoActionProvider({ children }: { children: ReactNode }
           ),
         },
         modalOptions: {
-          key: id,
+          key: `${id}:${options?.key ?? message}`,
+          onRemoved: options?.onRemoved,
         },
       });
 
-      return;
+      return closeSnackbar;
     },
     [showSnackbarAlert, id]
   );

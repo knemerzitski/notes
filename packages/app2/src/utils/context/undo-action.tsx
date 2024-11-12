@@ -6,17 +6,28 @@ interface UndoActionOptions {
    * @default 10_000
    */
   duration?: number;
+  /**
+   * Key to uniquely identify undo action
+   */
+  key?: string;
+  /**
+   * Action is removed and is no longer displayed to the user.
+   */
+  onRemoved?: () => void;
 }
 
+type CloseUndoClosure = () => void;
 type UndoClosure = () => void;
 export type UndoActionClosure = (
   message: string,
   undo: UndoClosure,
   options?: UndoActionOptions
-) => void;
+) => CloseUndoClosure;
 
 const UndoActionContext = createContext<UndoActionClosure>(() => {
-  // do nothing
+  return () => {
+    // do nothing
+  };
 });
 
 export function useUndoAction(): UndoActionClosure {
