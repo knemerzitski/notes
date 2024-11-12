@@ -1,11 +1,21 @@
 import { IconButton, IconButtonProps, Menu, MenuProps } from '@mui/material';
-import { useId, useState, MouseEvent, ReactNode, useCallback, ElementType } from 'react';
+import {
+  useId,
+  useState,
+  MouseEvent,
+  ReactNode,
+  useCallback,
+  ElementType,
+  useRef,
+} from 'react';
 import { OnCloseProvider } from '../context/on-close';
 
 export function IconButtonMenu({
   children,
   slots,
   slotProps,
+  onOpen,
+  onClose,
 }: {
   children: ReactNode;
   slots?: {
@@ -26,9 +36,11 @@ export function IconButtonMenu({
       MenuProps,
       'id' | 'anchorEl' | 'open' | 'onClose' | 'disableScrollLock' | 'onClick'
     > & {
-      MenuListProps: Omit<MenuProps['MenuListProps'], 'aria-labelledby'>;
+      MenuListProps?: Omit<MenuProps['MenuListProps'], 'aria-labelledby'>;
     };
   };
+  onOpen?: () => void;
+  onClose?: () => void;
 }) {
   const IconButtonSlot = slots?.iconButton ?? IconButton;
   const MenuSlot = slots?.menu ?? Menu;
@@ -40,6 +52,12 @@ export function IconButtonMenu({
 
   const menuOpen = anchorEl != null;
 
+  const onOpenRef = useRef(onOpen);
+  onOpenRef.current = onOpen;
+
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
   function handleMouseDown(e: MouseEvent<HTMLElement>) {
     e.stopPropagation();
   }
@@ -47,10 +65,12 @@ export function IconButtonMenu({
   function handleOpen(e: MouseEvent<HTMLElement>) {
     e.stopPropagation();
     setAnchorEl(e.currentTarget);
+    onOpenRef.current?.();
   }
 
   const handleClose = useCallback(() => {
     setAnchorEl(null);
+    onCloseRef.current?.();
   }, []);
 
   function handleClickMenu(e: MouseEvent<HTMLElement>) {
