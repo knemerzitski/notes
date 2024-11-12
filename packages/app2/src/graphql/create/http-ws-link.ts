@@ -5,6 +5,7 @@ import { headerUserIdLink } from '../link/header/user-id';
 import { createHeaderWsConnectionIdLink } from '../link/header/ws-connection-id';
 import { passthrough } from '../link/passthrough';
 import { WebSocketClient } from '../ws/websocket-client';
+import { WebSocketClientSetOperationUserIdLink as WsSetOperationUserIdLink } from '../link/ws-set-operation-user-id';
 
 export function createHttpWsLink({
   httpUri,
@@ -17,7 +18,12 @@ export function createHttpWsLink({
     uri: httpUri,
   });
 
-  const wsLink = wsClient ? new GraphQLWsLink(wsClient.client) : passthrough();
+  const wsLink = wsClient
+    ? ApolloLink.from([
+        new WsSetOperationUserIdLink(wsClient),
+        new GraphQLWsLink(wsClient.client),
+      ])
+    : passthrough();
 
   const headerWsConnectionIdLink = wsClient
     ? createHeaderWsConnectionIdLink(wsClient)

@@ -125,7 +125,7 @@ export class CurrentUserLink extends ApolloLink {
  * Using variables instead of context
  * USER_ID variable can be used in Query field keyArgs to separate same query for each user
  */
-function setOperationUserId(operation: Operation, userId: Maybe<string>) {
+export function setOperationUserId(operation: Operation, userId: Maybe<string>) {
   if (!userId) {
     return;
   }
@@ -148,11 +148,12 @@ function setOperationUserId(operation: Operation, userId: Maybe<string>) {
 
 export function getOperationOrRequestUserId(
   operation: Pick<Operation, 'variables'> | Pick<GraphQLRequest, 'variables'>
-) {
+): string | undefined {
   const userId = operation.variables?.[GlobalOperationVariables.USER_ID];
   if (typeof userId === 'string') {
     return userId;
   }
+
   return;
 }
 
