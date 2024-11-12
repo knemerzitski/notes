@@ -4,13 +4,19 @@ import { Tooltip } from '@mui/material';
 import { NavigableMenuProvider } from '../context/navigable-menu';
 import { SettingsMenuList } from './SettingsMenuList';
 import { ColorModeMenuList } from '../../device-preferences/components/ColorModeMenuList';
+import { LayoutMenuList } from '../../device-preferences/components/LayoutMenuList';
 
-export type SettingsButtonMenuKey = 'root' | 'appearance';
+export type SettingsButtonMenuKey = 'root' | 'appearance' | 'layout';
 
 const menusInfo: Parameters<typeof NavigableMenuProvider>[0]['menuSchema'] = [
   {
     key: 'root' satisfies SettingsButtonMenuKey,
     element: <SettingsMenuList />,
+  },
+  {
+    key: 'layout' satisfies SettingsButtonMenuKey,
+    title: 'Layout',
+    element: <LayoutMenuList />,
   },
   {
     key: 'appearance' satisfies SettingsButtonMenuKey,
