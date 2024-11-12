@@ -76,7 +76,7 @@ function ConfirmModal({
     onExited();
   }
 
-  function handleOK() {
+  function handleOk() {
     if (!isDoneRef.current) {
       isDoneRef.current = true;
       onSuccess?.();
@@ -100,10 +100,10 @@ function ConfirmModal({
         </DialogContent>
       )}
       <DialogActions>
-        <Button onClick={handleClose} variant="outlined">
+        <Button onClick={handleClose}>
           Cancel
         </Button>
-        <Button onClick={handleOK} variant="contained">
+        <Button onClick={handleOk}>
           Confirm
         </Button>
       </DialogActions>
