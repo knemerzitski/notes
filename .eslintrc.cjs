@@ -40,7 +40,7 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['*.[t]s?(x)'],
+      files: ['*.ts?(x)'],
       extends: [
         'plugin:@typescript-eslint/strict-type-checked',
         'plugin:@typescript-eslint/stylistic-type-checked',
@@ -86,44 +86,39 @@ module.exports = {
       },
     },
     {
-      files: ['./packages/app/src/**/*.[jt]s?(x)'],
+      files: ['./packages/app2/src/**/!(*.test|*.cy).ts?(x)'],
       processor: '@graphql-eslint/graphql',
     },
     {
-      files: ['./packages/api/src/**/*.graphql', './packages/app/src/**/*.graphql'],
+      files: ['./packages/api/src/**/*.graphql', './packages/app2/src/**/*.graphql'],
       extends: [
         'plugin:@graphql-eslint/schema-recommended',
         'plugin:@graphql-eslint/operations-recommended',
       ],
       rules: {
-        '@graphql-eslint/description-style': 'off',
-        '@graphql-eslint/require-description': [
+        '@graphql-eslint/naming-convention': [
           'error',
           {
-            OperationDefinition: false,
-            FieldDefinition: true,
-            DirectiveDefinition: true,
-          },
-        ],
-        '@graphql-eslint/executable-definitions': 'off',
-        '@graphql-eslint/strict-id-in-types': 'off',
-        '@graphql-eslint/no-unused-fragments': 'off',
-        '@typescript-eslint/no-unused-vars': [
-          'error',
-          {
-            ignoreRestSiblings: true,
-            argsIgnorePattern: '_',
-            destructuredArrayIgnorePattern: '^_',
+            // Allow prefixing operation names with Query, Mutation or Subscription
+            OperationDefinition: {},
           },
         ],
       },
-      parserOptions: {
-        schema: [
-          './packages/api/src/**/schema.graphql',
-          './packages/app/src/**/schema.graphql',
-        ],
-        operations: ['./packages/app/src/**/*.{graphql,js,ts,jsx,tsx}'],
-      },
+      // TODO remove below rules
+      // rules: {
+      //   '@graphql-eslint/description-style': 'off',
+      //   '@graphql-eslint/require-description': [
+      //     'error',
+      //     {
+      //       OperationDefinition: false,
+      //       FieldDefinition: true,
+      //       DirectiveDefinition: true,
+      //     },
+      //   ],
+      //   '@graphql-eslint/executable-definitions': 'off',
+      //   '@graphql-eslint/strict-id-in-types': 'off',
+      //   '@graphql-eslint/no-unused-fragments': 'off',
+      // },
     },
   ],
 };
