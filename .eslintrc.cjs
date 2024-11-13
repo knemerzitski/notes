@@ -105,6 +105,7 @@ module.exports = {
         ],
         '@graphql-eslint/executable-definitions': 'off',
         '@graphql-eslint/strict-id-in-types': 'off',
+        '@graphql-eslint/no-unused-fragments': 'off',
       },
     },
   ],
