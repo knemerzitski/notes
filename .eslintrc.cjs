@@ -103,22 +103,9 @@ module.exports = {
             OperationDefinition: {},
           },
         ],
+        '@graphql-eslint/executable-definitions': 'off',
+        '@graphql-eslint/strict-id-in-types': 'off',
       },
-      // TODO remove below rules
-      // rules: {
-      //   '@graphql-eslint/description-style': 'off',
-      //   '@graphql-eslint/require-description': [
-      //     'error',
-      //     {
-      //       OperationDefinition: false,
-      //       FieldDefinition: true,
-      //       DirectiveDefinition: true,
-      //     },
-      //   ],
-      //   '@graphql-eslint/executable-definitions': 'off',
-      //   '@graphql-eslint/strict-id-in-types': 'off',
-      //   '@graphql-eslint/no-unused-fragments': 'off',
-      // },
     },
   ],
 };

@@ -1,30 +1,51 @@
 ################################ SignedInUser ################################
 
+"""
+TODO desc
+"""
 enum AuthProviderUserType {
   GOOGLE
 }
 
 extend type SignedInUser {
-  "Always mutable subtype of SignedInUser even when it has data from optimistic response"
+  """
+  Always mutable subtype of SignedInUser even when it has data from optimistic response
+  """
   local: LocalSignedInUser!
-  "User email. This is stored only on client-side during sign-in and not in the server."
+  """
+  User email. This is stored only on client-side during sign-in and not in the server.
+  """
   email: String!
-  "Find a provider by type"
+  """
+  Find a provider by type
+  """
   authProviderUser(type: AuthProviderUserType!): AuthProviderUser
-  "Known providers that have been used to sign in"
+  """
+  Known providers that have been used to sign in
+  """
   authProviderUsers: [AuthProviderUser!]!
-  "User is only used on the device locally. No network requests are made."
+  """
+  User is only used on the device locally. No network requests are made.
+  """
   localOnly: Boolean!
 }
 
 extend type Query {
-  "Find local user by ID"
+  """
+  Find local user by ID
+  """
   signedInUserById(id: ID): SignedInUser
-  "List of all available users. Always includes localUser."
+  """
+  List of all available users. Always includes localUser.
+  """
   signedInUsers(localOnly: Boolean): [SignedInUser!]!
-  "Currently selected user. All operations are executed using scope of this user. Defaults to localUser."
+  """
+  Currently selected user. All operations are executed using scope of this user. Defaults to localUser.
+  """
   currentSignedInUser: SignedInUser!
-  "Always available local user"
+  """
+  Always available local user
+  """
   localUser: SignedInUser!
 }
 
@@ -35,17 +56,29 @@ SignedInUser state that can always be modified with writeQuery/writeFragemt and
 it will be reflected in UI regardless of optimistic responses.
 """
 type LocalSignedInUser {
-  "SignedInUser.id"
+  """
+  SignedInUser.id
+  """
   id: ID!
-  "Current session has expired and is unusable. Must sign in again."
+  """
+  Current session has expired and is unusable. Must sign in again.
+  """
   sessionExpired: Boolean!
 }
 
+################################ LocalSignedInUser.messages ################################
+
+"""
+TODO desc
+"""
 enum UserMessageType {
   ERROR
   WARNING
 }
 
+"""
+TODO desc
+"""
 type UserMessage {
   id: ID!
   type: UserMessageType!
@@ -55,5 +88,3 @@ type UserMessage {
 extend type LocalSignedInUser {
   messages: [UserMessage!]!
 }
-
-

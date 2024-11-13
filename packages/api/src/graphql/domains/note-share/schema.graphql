@@ -1,34 +1,60 @@
 ################################ NoteShareAccess ################################
+
 extend type Note {
-  "Note is shared through this access"
+  """
+  Note is shared through this access
+  """
   shareAccess: NoteShareAccess
 }
 
+"""
+TODO desc
+"""
 type NoteShareAccess {
-  "Note is accessible by this id"
+  """
+  Note is accessible by this id
+  """
   id: ObjectID!
-  "Access to note through this share is read-only. Read-only note cannot be modified."
+  """
+  Access to note through this share is read-only. Read-only note cannot be modified.
+  """
   readOnly: Boolean!
 }
 
 ################################ Mutation shareNote ################################
 
+"""
+TODO desc
+"""
 input ShareNoteInput {
-  "Note to be shared, Note.id"
+  """
+  Note to be shared, Note.id
+  """
   noteId: ObjectID!
-  "Make access to note read-only"
+  """
+  Make access to note read-only
+  """
   readOnly: Boolean!
 }
 
+"""
+TODO desc
+"""
 type ShareNotePayload {
-  "Note sharing access info"
+  """
+  Note sharing access info
+  """
   shareAccess: NoteShareAccess!
-  "Note where new share access has been added"
+  """
+  Note where new share access has been added
+  """
   note: Note!
 }
 
 extend type Mutation {
-  "Share existing note"
+  """
+  Share existing note
+  """
   shareNote(input: ShareNoteInput!): ShareNotePayload! @auth
 }
 
@@ -36,40 +62,65 @@ extend union SignedInUserMutation = ShareNotePayload
 
 ################################ Mutation deleteShareNote ################################
 
+"""
+TODO desc
+"""
 input DeleteShareNoteInput {
-  "Note to to stop sharing, Note.id"
+  """
+  Note to to stop sharing, Note.id
+  """
   noteId: ObjectID!
 }
 
+"""
+TODO desc
+"""
 type DeleteShareNotePayload {
-  "Id of deleted NoteShareAccess.id. Null if already deleted."
+  """
+  Id of deleted NoteShareAccess.id. Null if already deleted.
+  """
   shareAccessId: ObjectID
-  "Note with shareAccess deleted"
+  """
+  Note with shareAccess deleted
+  """
   note: Note!
 }
 
 extend type Mutation {
-  "Stop new access to note. Existing users can still access the note."
+  """
+  Stop new access to note. Existing users can still access the note.
+  """
   deleteShareNote(input: DeleteShareNoteInput!): DeleteShareNotePayload! @auth
 }
 
 extend union SignedInUserMutation = DeleteShareNotePayload
 
-
 ################################ Mutation createNoteLinkByShareAccess ################################
 
+"""
+TODO desc
+"""
 input CreateNoteLinkByShareAccessInput {
-  "Create NoteUserLink by NoteShareAccess.id"
+  """
+  Create NoteUserLink by NoteShareAccess.id
+  """
   shareAccessId: ObjectID!
 }
 
+"""
+TODO desc
+"""
 type CreateNoteLinkByShareAccessPayload {
-  "Created UserNoteLink by the share access"
+  """
+  Created UserNoteLink by the share access
+  """
   userNoteLink: UserNoteLink!
 }
 
 extend type Mutation {
-  "Add a link to an existing note for collaborative editing"
+  """
+  Add a link to an existing note for collaborative editing
+  """
   createNoteLinkByShareAccess(
     input: CreateNoteLinkByShareAccessInput!
   ): CreateNoteLinkByShareAccessPayload! @auth

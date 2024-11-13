@@ -1,30 +1,49 @@
+"""
+TODO desc
+"""
 enum ColorMode {
   SYSTEM
   LIGHT
   DARK
 }
 
+"""
+TODO desc
+"""
 enum LayoutMode {
   RESPONSIVE
   DESKTOP
   MOBILE
 }
 
-
+"""
+TODO desc
+"""
 type DevicePreferences {
-  "App theme color mode"
+  """
+  App theme color mode
+  """
   colorMode: ColorMode!
-  "App responsive layout"
+  """
+  App responsive layout
+  """
   layoutMode: LayoutMode!
   desktop: DesktopDevicePreferences!
 }
 
+"""
+TODO desc
+"""
 type DesktopDevicePreferences {
-  "UI element app drawer is pened permanently"
+  """
+  UI element app drawer is pened permanently
+  """
   appDrawerOpen: Boolean!
 }
 
 extend type Query {
-  "Preferences that apply to this device"
+  """
+  Preferences that apply to this device
+  """
   devicePreferences: DevicePreferences!
 }

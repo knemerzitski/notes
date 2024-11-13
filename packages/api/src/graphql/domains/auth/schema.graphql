@@ -1,51 +1,98 @@
 ################################ Mutation signIn ################################
 
+"""
+User info received from a authentication provider
+"""
 interface AuthProviderUser {
-  "User ID"
+  """
+  User ID
+  """
   id: ID!
-  "User email. Not stored in database and only available with signIn payload."
+  """
+  User email. Not stored in database and only available with signIn payload.
+  """
   email: String!
 }
 
+"""
+TODO desc
+"""
 input SignInAuthInput @oneOf
 
+"""
+TODO desc
+"""
 input SignInInput {
   auth: SignInAuthInput!
 }
 
+"""
+TODO desc
+"""
 interface SignInResult {
-  "Signed in user"
+  """
+  Signed in user
+  """
   signedInUser: SignedInUser!
-  "SignedInUser.id's"
+  """
+  SignedInUser.id's
+  """
   availableUserIds: [String!]!
 }
 
+"""
+TODO desc
+"""
 type JustSignedInResult implements SignInResult {
-  "Just signed in user"
+  """
+  Just signed in user
+  """
   signedInUser: SignedInUser!
-  "Available SignedInUser.id's after sign in"
+  """
+  Available SignedInUser.id's after sign in
+  """
   availableUserIds: [String!]!
-  "User info from auth provider"
+  """
+  User info from auth provider
+  """
   authProviderUser: AuthProviderUser!
 }
 
+"""
+TODO desc
+"""
 type AlreadySignedInResult implements SignInResult {
-  "Current already signed in user"
+  """
+  Current already signed in user
+  """
   signedInUser: SignedInUser!
-  "Current available SignedInUser.id's"
+  """
+  Current available SignedInUser.id's
+  """
   availableUserIds: [String!]!
 }
+
+"""
+TODO desc
+"""
 union SignInPayload = JustSignedInResult | AlreadySignedInResult
 
 extend type Mutation {
-  "Sign in using an auth provider"
+  """
+  Sign in using an auth provider
+  """
   signIn(input: SignInInput!): SignInPayload!
 }
 
 ################################ Mutation signIn - GOOGLE ################################
 
+"""
+TODO desc
+"""
 input GoogleSignInAuthInput {
-  "JSON Web Token"
+  """
+  JSON Web Token
+  """
   token: String!
 }
 
@@ -53,47 +100,82 @@ extend input SignInAuthInput {
   google: GoogleSignInAuthInput
 }
 
+"""
+TODO desc
+"""
 type GoogleAuthProviderUser implements AuthProviderUser {
-  "JWT payload field 'sub'"
+  """
+  JWT payload field 'sub'
+  """
   id: ID!
-  "JWT payload field 'email'"
+  """
+  JWT payload field 'email'
+  """
   email: String!
 }
 
 ################################ Mutation signOut ################################
 
+"""
+TODO desc
+"""
 input SignOutInput {
-  "Sign out all known users. Field 'userId' is ignored when 'allUsers' is true"
+  """
+  Sign out all known users. Field 'userId' is ignored when 'allUsers' is true
+  """
   allUsers: Boolean
-  "Sign out a specific user by SignedInUser.id. If userId is not specified currently authenticated user is signed out."
+  """
+  Sign out a specific user by SignedInUser.id. If userId is not specified currently authenticated user is signed out.
+  """
   userId: ObjectID
 }
 
+"""
+TODO desc
+"""
 type SignOutPayload {
-  "SignedInUser.id's that were signed out."
+  """
+  SignedInUser.id's that were signed out.
+  """
   signedOutUserIds: [String!]!
-  "Available SignedInUser.id's after sign out."
+  """
+  Available SignedInUser.id's after sign out.
+  """
   availableUserIds: [String!]!
 }
 
 extend type Mutation {
-  "Sign out a user"
+  """
+  Sign out a user
+  """
   signOut(input: SignOutInput): SignOutPayload!
 }
 
 ################################ Mutation syncSessionCookies ################################
 
+"""
+TODO desc
+"""
 input SyncSessionCookiesInput {
-  "Available user ids provided by the client"
+  """
+  Available user ids provided by the client
+  """
   availableUserIds: [String!]!
 }
 
+"""
+TODO desc
+"""
 type SyncSessionCookiesPayload {
-  "User ids available in http-only cookies. Any other user id is expired."
+  """
+  User ids available in http-only cookies. Any other user id is expired.
+  """
   availableUserIds: [String!]!
 }
 
 extend type Mutation {
-  "Synchronize http-only session cookies. Only sessions available both in client and server are kept."
+  """
+  Synchronize http-only session cookies. Only sessions available both in client and server are kept.
+  """
   syncSessionCookies(input: SyncSessionCookiesInput!): SyncSessionCookiesPayload!
 }
