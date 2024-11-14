@@ -14,6 +14,17 @@ extend input CreateNoteInput {
   collabText: CreateCollabTextInput
 }
 
+extend type CreateNotePayload {
+  """
+  TODO desc
+  """
+  collabText: CollabText
+  """
+  TODO desc
+  """
+  firstCollabTextRecord: CollabTextRecord
+}
+
 ################################ updateNoteInsertRecord ################################
 
 """

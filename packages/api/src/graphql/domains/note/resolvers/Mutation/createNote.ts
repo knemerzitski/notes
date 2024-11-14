@@ -12,6 +12,12 @@ import {
 } from '../../../../../mongodb/utils/retry-on-mongo-error';
 import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import { insertNote } from '../../../../../services/note/insert-note';
+import {
+  CollabText_id_fromNoteQueryFn,
+  mapNoteToCollabTextQueryFn,
+} from '../../../../../services/note/note-collab';
+import { createValueQueryFn } from '../../../../../mongodb/query/query';
+import { QueryableRevisionRecord } from '../../../../../mongodb/loaders/note/descriptions/revision-record';
 
 const _createNote: NonNullable<MutationResolvers['createNote']> = async (
   _parent,
@@ -45,9 +51,22 @@ const _createNote: NonNullable<MutationResolvers['createNote']> = async (
       userId: currentUserId,
     }),
   };
+  const collabTextIdQuery = CollabText_id_fromNoteQueryFn(noteMapper.query);
 
   const payload: ResolversTypes['SignedInUserMutation'] = {
     __typename: 'CreateNotePayload',
+    ...(note.collabText && {
+      firstCollabTextRecord: {
+        parentId: collabTextIdQuery,
+        query: createValueQueryFn<QueryableRevisionRecord>(
+          () => note.collabText?.records[0]
+        ),
+      },
+      collabText: {
+        id: collabTextIdQuery,
+        query: mapNoteToCollabTextQueryFn(noteMapper.query),
+      },
+    }),
     userNoteLink: {
       userId: currentUserId,
       query: noteMapper.query,
