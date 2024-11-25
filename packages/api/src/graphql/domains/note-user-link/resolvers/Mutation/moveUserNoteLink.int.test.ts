@@ -443,7 +443,7 @@ describe('note in normal categories', () => {
     expect(dbNoteUser?.categoryName).toStrictEqual(MovableNoteCategory.ARCHIVE);
   });
 
-  it('moves note to end of category if anchor note is invalid in same category', async () => {
+  it('makes no change if anchor note is invalid in same category', async () => {
     const response = await executeOperation(
       {
         noteId: userBaseDefaultNoteIds[0]!,
@@ -478,7 +478,7 @@ describe('note in normal categories', () => {
       },
     });
 
-    expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(3);
+    expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(2);
 
     // Database, User
     const dbUser = await mongoCollections.users.findOne({
@@ -493,11 +493,7 @@ describe('note in normal categories', () => {
               noteIds: userBaseArchiveNoteIds,
             },
             [MovableNoteCategory.DEFAULT]: {
-              noteIds: [
-                ...userBaseDefaultNoteIds.slice(1),
-                note._id,
-                ...userBaseDefaultNoteIds.slice(0, 1),
-              ],
+              noteIds: [...userBaseDefaultNoteIds, note._id],
             },
           },
         },
@@ -545,7 +541,7 @@ describe('note in normal categories', () => {
       },
     });
 
-    expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(3);
+    expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(2);
 
     // Database, User
     const dbUser = await mongoCollections.users.findOne({

@@ -45,6 +45,8 @@ interface DBAnchor {
   anchorIndex: number | null;
   // Last note id in list. Null if list is empty.
   lastId: ObjectId | null;
+  // Note is at specified index. Value is -1 or null if index is unknown
+  noteIndex: number | null;
 }
 
 /**
@@ -60,7 +62,7 @@ export async function updateMoveCategory({
 }: UpdateMoveCategoryParams) {
   return withTransaction(mongoDB.client, async ({ runSingleOperation }) => {
     // Fetching everything from note that's helpful for move
-    const processedNotePromise = runSingleOperation((session) =>
+    const { note, noteUser } = await runSingleOperation((session) =>
       mongoDB.loaders.note
         .load(
           {
@@ -99,7 +101,6 @@ export async function updateMoveCategory({
 
     // Must know categoryName before can proceed
     if (!categoryName) {
-      const { noteUser } = await processedNotePromise;
       categoryName = noteUser.trashed?.originalCategoryName;
     }
 
@@ -107,13 +108,14 @@ export async function updateMoveCategory({
       // Category name not in params and note isn't trashed
       return {
         type: 'already_category_name' as const,
-        categoryName: (await processedNotePromise).noteUser.categoryName,
+        categoryName: noteUser.categoryName,
       };
     }
 
+    const currentCategoryName = noteUser.categoryName;
     const desiredCategoryName = categoryName;
 
-    const anchorInfoPromise = runSingleOperation((session) =>
+    const dbAnchor = await runSingleOperation((session) =>
       mongoDB.collections.users
         .aggregate<DBAnchor>(
           [
@@ -133,6 +135,9 @@ export async function updateMoveCategory({
                       ],
                     }
                   : null,
+                noteIndex: {
+                  $indexOfArray: [`$${notesArrayPath(currentCategoryName)}`, noteId],
+                },
                 lastId: {
                   $last: `$${notesArrayPath(desiredCategoryName)}`,
                 },
@@ -147,11 +152,6 @@ export async function updateMoveCategory({
         .then((users) => users[0])
     );
 
-    const [{ note, noteUser }, dbAnchor] = await Promise.all([
-      processedNotePromise,
-      anchorInfoPromise,
-    ]);
-
     const isNoteInCorrectCategory = noteUser.categoryName === desiredCategoryName;
     const haveNothingToMove = isNoteInCorrectCategory && anchor == null;
     if (haveNothingToMove) {
@@ -160,6 +160,9 @@ export async function updateMoveCategory({
         categoryName: desiredCategoryName,
       };
     }
+
+    const noteIndex =
+      dbAnchor?.noteIndex != null && dbAnchor.noteIndex >= 0 ? dbAnchor.noteIndex : null;
 
     const validAnchor = getValidAnchor(dbAnchor, anchor);
 
@@ -170,6 +173,7 @@ export async function updateMoveCategory({
       },
       categoryName: desiredCategoryName,
       noteId,
+      noteIndex,
       noteUser,
       anchor: validAnchor,
     });
