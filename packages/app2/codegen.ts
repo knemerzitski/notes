@@ -19,10 +19,15 @@ const config: CodegenConfig = {
           HexColorCode: 'string',
           NonNegativeInt: 'number',
           PositiveInt: 'number',
-          Changeset: 'unknown',
+          Changeset: '~collab/changeset#Changeset',
           Cursor: 'string | number',
           ObjectID: 'string',
+          UserNoteLinkID: 'string',
+          CollabService: '~collab/client/collab-service#CollabService',
+          NoteTextFieldEditor: '../note/external-state/note#NoteTextFieldEditor',
+          SerializeKey: 'string | number | boolean',
         },
+        // TODO use enumValues for NoteTextFieldName
         enumsAsTypes: false,
         namingConvention: {
           typeNames: 'change-case-all#pascalCase',

@@ -1,6 +1,6 @@
 import './graphql/dev';
 
-import possibleTypes from './__generated__/possible-types.json';
+import generatedPossibleTypes from './__generated__/possible-types.json';
 import {
   userEvictOptions,
   userCacheReadyCallback,
@@ -20,6 +20,8 @@ import { LocalStorageWrapper } from 'apollo3-cache-persist';
 import { devicePreferencesPolicies } from './device-preferences/policies';
 import { getCurrentUserId } from './user/models/signed-in-user/get-current';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+import { noteEvictOptions, noteMutationDefinitions, notePolicies, notePossibleTypes } from './note/policies';
+import { PossibleTypesMap } from '@apollo/client';
 
 const HTTP_URL =
   import.meta.env.MODE === 'production'
@@ -35,11 +37,23 @@ const TYPE_POLICIES_LIST: TypePoliciesList = [
   devicePreferencesPolicies,
   graphQLPolicies,
   userPolicies,
+  notePolicies,
 ];
 
-const EVICT_OPTIONS_LIST: TaggedEvictOptionsList = [...userEvictOptions];
+const EVICT_OPTIONS_LIST: TaggedEvictOptionsList = [
+  ...userEvictOptions,
+  ...noteEvictOptions,
+];
 
-const MUTATION_DEFINITIONS: MutationDefinitions = [...userMutationDefinitions];
+const MUTATION_DEFINITIONS: MutationDefinitions = [
+  ...userMutationDefinitions,
+  ...noteMutationDefinitions,
+];
+
+const POSSIBLE_TYPES_LIST: PossibleTypesMap[] = [
+  generatedPossibleTypes,
+  notePossibleTypes
+];
 
 const CACHE_READY_CALLBACKS: CacheReadyCallbacks = [userCacheReadyCallback];
 
@@ -49,7 +63,7 @@ export function createDefaultGraphQLServiceParams(): Parameters<
   return {
     httpUri: HTTP_URL,
     wsUrl: WS_URL,
-    possibleTypes,
+    possibleTypesList: POSSIBLE_TYPES_LIST,
     typePoliciesList: TYPE_POLICIES_LIST,
     cacheReadyCallbacks: CACHE_READY_CALLBACKS,
     evictOptionsList: EVICT_OPTIONS_LIST,

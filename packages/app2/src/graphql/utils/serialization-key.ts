@@ -9,4 +9,12 @@ export function userSerializationKey(
   return `User:${userId}:${type}`;
 }
 
+type NoteSerializationType = 'move' | 'insertText';
 
+export function noteSerializationKey(
+  noteId: Note['id'],
+  userId: SignedInUser['id'],
+  type: NoteSerializationType
+) {
+  return `Note:${noteId}:${userId}:${type}`;
+}

@@ -31,7 +31,7 @@ export function createGraphQLService({
   httpUri,
   wsUrl,
   terminatingLink,
-  possibleTypes,
+  possibleTypesList,
   typePoliciesList,
   cacheReadyCallbacks,
   evictOptionsList,
@@ -45,7 +45,7 @@ export function createGraphQLService({
   httpUri: string;
   wsUrl: string | undefined;
   terminatingLink?: ApolloLink;
-  possibleTypes?: PossibleTypesMap;
+  possibleTypesList?: PossibleTypesMap[];
   typePoliciesList: TypePoliciesList;
   cacheReadyCallbacks: CacheReadyCallbacks;
   evictOptionsList: TaggedEvictOptionsList;
@@ -72,11 +72,15 @@ export function createGraphQLService({
   };
 
   const cache = new InMemoryCache({
-    possibleTypes,
     gcExplicitWrites: true,
   });
 
+  possibleTypesList?.forEach((possibleTypes) => {
+    cache.policies.addPossibleTypes(possibleTypes);
+  });
+
   const persistor = new CachePersistor({
+    //@ts-expect-error TODO fix this
     cache,
     key: storageKey,
     storage,
@@ -153,7 +157,6 @@ export function createGraphQLService({
 
   const apolloClient = new ApolloClient({
     cache,
-    assumeImmutableResults: false,
     defaultOptions: {
       mutate: {
         errorPolicy: linkOptions?.debug?.logging ? 'all' : undefined,

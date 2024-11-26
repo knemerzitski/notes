@@ -6,6 +6,6 @@ export const virtualRouteConfig = rootRoute('root.tsx', [
     route('/notes', 'notes.tsx'),
     route('/archive', 'archive.tsx'),
     route('/trash', 'trash.tsx'),
-    route('/note', 'note.tsx', [index('note-index.tsx')]),
+    route('/note/$noteId', 'note.tsx'),
   ]),
 ]);

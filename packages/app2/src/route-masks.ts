@@ -8,13 +8,5 @@ export function createRouteMasks(routeTree: typeof generatedRouteTree) {
       from: '/notes',
       to: '/',
     }),
-    // createRouteMask({
-    //   routeTree,
-    //   from: '/notes/$noteId/modal',
-    //   to: '/note/$noteId',
-    //   params: (prev) => ({
-    //     noteId: prev.noteId,
-    //   }),
-    // }),
   ];
 }

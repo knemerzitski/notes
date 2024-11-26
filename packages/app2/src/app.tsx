@@ -6,6 +6,8 @@ import { AppRoutesModuleProvider } from './utils/components/AppRoutesModuleProvi
 import { AppUtilsModuleProvider } from './utils/components/AppUtilsModuleProvider';
 import { AppUserModuleProvider } from './user/components/AppUserModuleProvider';
 import { AppThirdPartyModuleProvider } from './third-party/components/AppThirdPartyModuleProvider';
+import { AppNoteModuleProvider } from './note/components/AppNoteModuleProvider';
+import { AppDndModuleProvider } from './dnd/components/AppDndModuleProvider';
 
 export function App() {
   return (
@@ -15,7 +17,11 @@ export function App() {
           <AppThirdPartyModuleProvider>
             <AppUtilsModuleProvider>
               <AppUserModuleProvider>
-                <AppRoutesModuleProvider />
+                <AppDndModuleProvider>
+                  <AppNoteModuleProvider>
+                    <AppRoutesModuleProvider />
+                  </AppNoteModuleProvider>
+                </AppDndModuleProvider>
               </AppUserModuleProvider>
             </AppUtilsModuleProvider>
           </AppThirdPartyModuleProvider>

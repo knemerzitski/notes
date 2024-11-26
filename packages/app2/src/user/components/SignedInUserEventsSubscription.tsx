@@ -1,4 +1,4 @@
-import { useApolloClient, useQuery } from '@apollo/client';
+import { useApolloClient } from '@apollo/client';
 import { gql } from '../../__generated__';
 import { useEffect } from 'react';
 import { useGetMutationUpdaterFn } from '../../graphql/context/get-mutation-updater-fn';
@@ -9,8 +9,12 @@ const SignedInUserEventsSubscription_Subscription = gql(`
   subscription SignedInUserEventsSubscription_Subscription {
     signedInUserEvents {
       mutations {
-        __typename
         ...UpdateSignedInUserDisplayNamePayload
+        ...CreateNotePayload
+        ...UpdateNoteInsertRecordPayload
+        ...TrashUserNoteLinkPayload
+        ...MoveUserNoteLinkPayload
+        ...DeleteNotePayload
       }
     }
   }  

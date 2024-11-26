@@ -29,7 +29,10 @@ declare module '@apollo/client' {
      * Evict data from cache by tags.
      */
     taggedEvict?: TaggedEvict;
-
+    /**
+     * Note id that is tied to fetch createNote
+     */
+    localNoteId?: string;
     /**
      * Current operation response is from a subscription
      */
@@ -68,6 +71,10 @@ export interface TypePoliciesContext {
 
 export type CreateTypePoliciesFn = (context: TypePoliciesContext) => TypePolicies;
 export type CreateTypePolicyFn = (context: TypePoliciesContext) => TypePolicy;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type CreateFieldPolicyFn<T = any> = (
+  context: TypePoliciesContext
+) => FieldPolicy<T> | FieldReadFunction<T>;
 
 /**
  * Invoked when cache is ready (e.g. restored)
