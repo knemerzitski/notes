@@ -1,6 +1,7 @@
 import { AuthProviderUserType } from '../../__generated__/graphql';
 import { CreateTypePolicyFn } from '../../graphql/types';
 import { fieldArrayToMap } from '../../graphql/utils/field-array-to-map';
+import { isLocalId } from '../../utils/is-local-id';
 
 const AUTH_PROVIDER_MAPPING: Record<string, string> = {
   [AuthProviderUserType.GOOGLE]: 'GoogleAuthProviderUser',

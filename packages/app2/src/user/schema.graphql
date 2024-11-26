@@ -91,3 +91,19 @@ type UserMessage {
 extend type LocalSignedInUser {
   messages: [UserMessage!]!
 }
+
+################################ LocalSignedInUser.operations ################################
+
+"""
+TODO desc
+"""
+interface UserOperation {
+  id: ID!
+}
+
+extend type LocalSignedInUser {
+  """
+  Operations that need to be processed.
+  """
+  operations: [UserOperation!]!
+}

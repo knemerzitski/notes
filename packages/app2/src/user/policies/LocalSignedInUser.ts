@@ -8,6 +8,11 @@ export const LocalSignedInUser: CreateTypePolicyFn = function () {
         return existing;
       },
       messages: fieldArrayToMap('id'),
+      operations: fieldArrayToMap('id', {
+        read(existing = {}) {
+          return existing;
+        },
+      }),
     },
   };
 };
