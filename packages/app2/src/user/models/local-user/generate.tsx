@@ -9,7 +9,6 @@ export function generateLocalUser(
   return {
     __typename: 'SignedInUser',
     id,
-    localOnly: true,
     public: {
       __typename: 'PublicUser',
       id,

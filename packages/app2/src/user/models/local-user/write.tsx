@@ -6,7 +6,6 @@ const WriteLocalUser_Query = gql(`
   query WriteLocalUser_Query {
     localUser {
       id
-      localOnly
       public {
         id
         profile {

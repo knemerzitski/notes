@@ -61,8 +61,9 @@ export const SignedInUser: CreateTypePolicyFn = function () {
 
         return null;
       },
-      localOnly(existing = false) {
-        return existing;
+      localOnly(_existing, { readField }) {
+        const id = readField('id');
+        return isLocalId(id);
       },
       public: {
         merge: true,
