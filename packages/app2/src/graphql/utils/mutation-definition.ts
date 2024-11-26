@@ -28,7 +28,7 @@ export interface MutationDefinition<
 
 export function mutationDefinition<
   TData = any,
-  TVariables = OperationVariables,
+  TVariables extends OperationVariables = OperationVariables,
   TContext = DefaultContext,
   TCache extends ApolloCache<any> = ApolloCache<any>,
 >(

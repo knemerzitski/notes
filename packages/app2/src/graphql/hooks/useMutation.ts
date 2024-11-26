@@ -8,6 +8,9 @@ import {
   useApolloClient,
   MutationUpdaterFunction,
   DefaultContext,
+  FetchResult,
+  MutationFunctionOptions,
+  MutationResult,
 } from '@apollo/client';
 import { useGetMutationUpdaterFn } from '../context/get-mutation-updater-fn';
 import { useCallback } from 'react';
@@ -16,6 +19,15 @@ import { optimisticResponseMutation } from '../utils/optimistic-response-mutatio
 import { useIsRemoteOperation } from './useIsRemoteOperation';
 import { GlobalOperationVariables } from '../types';
 import { useUserId } from '../../user/context/user-id';
+
+interface ExtraOptions {
+  /**
+   * Execute as a local mutation. Data will not be sent to server.
+   * Only cache is updated with optimisticResponse.
+   * @default false
+   */
+  local?: boolean;
+}
 
 /**
  * Uses mutation with pre-defined update function.
@@ -34,30 +46,38 @@ export function useMutation<
   options?: Omit<
     MutationHookOptions<NoInfer<TData>, NoInfer<TVariables>, TContext, TCache>,
     'update'
-  >
-): MutationTuple<TData, TVariables, TContext, TCache> {
+  > &
+    ExtraOptions
+): [
+  mutate: (
+    options?: MutationFunctionOptions<TData, TVariables, TContext, TCache> & ExtraOptions
+  ) => Promise<FetchResult<TData>>,
+  result: MutationResult<TData>,
+] {
   const client = useApolloClient();
   const getMutationUpdaterFn = useGetMutationUpdaterFn();
   const userId = useUserId(true);
 
   const isRemoteOperation = useIsRemoteOperation(definition.document);
 
-  const apolloMutationTuple = useApolloMutation<TData, TVariables, TContext, TCache>(
-    definition.document,
-    {
-      ...options,
-      variables: {
-        ...options?.variables,
-        [GlobalOperationVariables.USER_ID]: userId,
-      } as TVariables,
-      update: getMutationUpdaterFn(definition.document) as MutationUpdaterFunction<
-        TData,
-        TVariables,
-        TContext,
-        TCache
-      >,
-    }
-  );
+  const [remoteMutation, remoteResult] = useApolloMutation<
+    TData,
+    TVariables,
+    TContext,
+    TCache
+  >(definition.document, {
+    ...options,
+    variables: {
+      ...options?.variables,
+      [GlobalOperationVariables.USER_ID]: userId,
+    } as TVariables,
+    update: getMutationUpdaterFn(definition.document) as MutationUpdaterFunction<
+      TData,
+      TVariables,
+      TContext,
+      TCache
+    >,
+  });
 
   const localMutation: MutationTuple<TData, TVariables, TContext, TCache>[0] =
     useCallback(
@@ -77,7 +97,17 @@ export function useMutation<
       [client, definition, getMutationUpdaterFn, userId]
     );
 
-  return isRemoteOperation
-    ? apolloMutationTuple
-    : [localMutation, apolloMutationTuple[1]];
+  const mutation: (
+    options?: MutationFunctionOptions<TData, TVariables, TContext, TCache> & ExtraOptions
+  ) => Promise<FetchResult<TData>> = useCallback(
+    (options) => {
+      if (isRemoteOperation && !options?.local) {
+        return remoteMutation(options);
+      }
+      return localMutation(options);
+    },
+    [isRemoteOperation, localMutation, remoteMutation]
+  );
+
+  return [mutation, remoteResult];
 }

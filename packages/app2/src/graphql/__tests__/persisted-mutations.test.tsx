@@ -10,6 +10,7 @@ import { GraphQLServiceProvider } from '../components/GraphQLServiceProvider';
 import { ReactNode } from '@tanstack/react-router';
 import { ApolloCache, ApolloLink, gql, Observable } from '@apollo/client';
 import { GraphQLError } from 'graphql';
+import { CurrentUserIdProvider } from '../../user/components/CurrentUserIdProvider';
 
 function readDisplayName(
   userId: string,
@@ -114,7 +115,9 @@ it('remembers displayName mutation when app goes offline and resumes when online
     } = renderHook(() => useUpdateDisplayNameMutation(), {
       wrapper: ({ children }: { children: ReactNode }) => {
         return (
-          <GraphQLServiceProvider service={service}>{children}</GraphQLServiceProvider>
+          <GraphQLServiceProvider service={service}>
+            <CurrentUserIdProvider>{children}</CurrentUserIdProvider>
+          </GraphQLServiceProvider>
         );
       },
     });
@@ -214,9 +217,10 @@ it('remembers displayName mutation when session expires', async () => {
     },
   };
 
-  let counter = 0;
+  let observableReturnType: 'session_expired' | 'display_name' = 'session_expired';
+
   const linkObservable = new Observable<any>((sub) => {
-    if (counter === 0) {
+    if (observableReturnType === 'session_expired') {
       sub.next({
         errors: [
           new GraphQLError('Session expired', {
@@ -228,7 +232,7 @@ it('remembers displayName mutation when session expires', async () => {
         ],
         data: null,
       });
-    } else if (counter === 1) {
+    } else {
       sub.next({
         data: {
           updateSignedInUserDisplayName: {
@@ -250,7 +254,6 @@ it('remembers displayName mutation when session expires', async () => {
       });
     }
 
-    counter++;
     sub.complete();
   });
 
@@ -268,7 +271,9 @@ it('remembers displayName mutation when session expires', async () => {
   } = renderHook(() => useUpdateDisplayNameMutation(), {
     wrapper: ({ children }: { children: ReactNode }) => {
       return (
-        <GraphQLServiceProvider service={service}>{children}</GraphQLServiceProvider>
+        <GraphQLServiceProvider service={service}>
+          <CurrentUserIdProvider>{children}</CurrentUserIdProvider>
+        </GraphQLServiceProvider>
       );
     },
   });
@@ -282,6 +287,7 @@ it('remembers displayName mutation when session expires', async () => {
   expect(readDisplayName(userA, cache, true)).toStrictEqual('new name');
 
   // Open gate as if session is no longer expired and server will return correct result
+  observableReturnType = 'display_name';
   const gate = service.getUserGate(userA);
   gate.open();
 

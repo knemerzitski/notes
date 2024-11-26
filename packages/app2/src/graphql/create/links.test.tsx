@@ -8,6 +8,7 @@ import { ReactNode } from '@tanstack/react-router';
 import { GraphQLServiceProvider } from '../components/GraphQLServiceProvider';
 import { ApolloLink, Observable } from '@apollo/client';
 import { setCurrentUser } from '../../user/models/signed-in-user/set-current';
+import { CurrentUserIdProvider } from '../../user/components/CurrentUserIdProvider';
 
 it('does not serialize different user same mutations', async () => {
   const A_userId = 'ZwjzAA054CFCvxuO';
@@ -73,7 +74,11 @@ it('does not serialize different user same mutations', async () => {
   });
 
   function Wrapper({ children }: { children: ReactNode }) {
-    return <GraphQLServiceProvider service={service}>{children}</GraphQLServiceProvider>;
+    return (
+      <GraphQLServiceProvider service={service}>
+        <CurrentUserIdProvider>{children}</CurrentUserIdProvider>
+      </GraphQLServiceProvider>
+    );
   }
 
   setCurrentUser(A_userId, cache);
