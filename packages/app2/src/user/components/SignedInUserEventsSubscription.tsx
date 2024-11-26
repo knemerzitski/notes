@@ -2,16 +2,9 @@ import { useApolloClient, useQuery } from '@apollo/client';
 import { gql } from '../../__generated__';
 import { useEffect } from 'react';
 import { useGetMutationUpdaterFn } from '../../graphql/context/get-mutation-updater-fn';
+import { apolloClientSubscribe } from '../../graphql/utils/apollo-client-subscribe';
+import { useIsLocalOnlyUser } from '../hooks/useIsLocalOnlyUser';
 
-const SignedInUserEventsSubscription_Query = gql(`
-  query SignedInUserEventsSubscription_Query {
-    currentSignedInUser @client {
-      localOnly
-    }
-  }
-`);
-
-// Subscribe to mutation payloads
 const SignedInUserEventsSubscription_Subscription = gql(`
   subscription SignedInUserEventsSubscription_Subscription {
     signedInUserEvents {
@@ -24,20 +17,21 @@ const SignedInUserEventsSubscription_Subscription = gql(`
 `);
 
 export function SignedInUserEventsSubscription() {
-  const { data } = useQuery(SignedInUserEventsSubscription_Query);
+  const isLocalOnlyUser = useIsLocalOnlyUser();
 
-  const localOnly = data?.currentSignedInUser.localOnly;
+  if (isLocalOnlyUser) {
+    return null;
+  }
 
+  return <Subscription />;
+}
+
+function Subscription() {
   const client = useApolloClient();
   const getMutationUpdaterFn = useGetMutationUpdaterFn();
 
   useEffect(() => {
-    if (localOnly) {
-      // Do no subscribe as local user
-      return;
-    }
-
-    const observable = client.subscribe({
+    const observable = apolloClientSubscribe(client, {
       query: SignedInUserEventsSubscription_Subscription,
     });
 
@@ -56,7 +50,11 @@ export function SignedInUserEventsSubscription() {
               ...value,
               data: mutation,
             },
-            {}
+            {
+              context: {
+                isSubscriptionOperation: true,
+              },
+            }
           );
         }
       },
@@ -65,7 +63,7 @@ export function SignedInUserEventsSubscription() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [client, getMutationUpdaterFn, localOnly]);
+  }, [client, getMutationUpdaterFn]);
 
   return null;
 }
