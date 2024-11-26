@@ -17,6 +17,7 @@ interface OperationEntry {
  * Gate can only be modified by this controller.
  */
 export interface GateController {
+  isOpen: boolean;
   open: () => void;
   close: () => void;
   /**
@@ -91,6 +92,9 @@ export class GateLink extends ApolloLink {
     };
 
     return {
+      get isOpen() {
+        return isOpen;
+      },
       open,
       close,
       dispose: _delete,
@@ -149,6 +153,9 @@ export class GateLink extends ApolloLink {
     };
 
     return {
+      get isOpen() {
+        return isOpen;
+      },
       open,
       close,
       dispose: _delete,
