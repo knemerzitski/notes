@@ -12,7 +12,6 @@ import {
 import { addOngoingOperation } from './add';
 import { removeOngoingOperations } from './remove';
 import { hasOngoingOperation } from './has';
-import { CountMap } from '~utils/map/count-map';
 import { isMutationOperation } from '@apollo/client/utilities';
 import { DirectiveFlag } from '../../utils/directive-flag';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
@@ -32,7 +31,7 @@ export class PersistLink extends ApolloLink {
 
   readonly generateId;
 
-  private readonly ongoingCountMap = new CountMap<string>(new Map());
+  private readonly observableByOperationId = new Map<string, Observable<FetchResult>>();
 
   private readonly persistErrorCodes: Set<GraphQLErrorCode>;
 
@@ -72,19 +71,18 @@ export class PersistLink extends ApolloLink {
       return forward(operation);
     }
 
+    // Remove @persist directive as server will not recognize it
     if (hasDirective) {
       persistDirective.remove(operation);
     }
 
     const operationId = typeof persist !== 'string' ? this.generateId() : persist;
 
-    if (this.ongoingCountMap.get(operationId) > 0) {
-      // Operation with same id is already ongoing, cancel this one
-      return null;
-    }
-
     if (typeof persist !== 'string' || !hasOngoingOperation(persist, this.cache)) {
       context[PersistLink.PERSIST] = operationId;
+      operation.setContext({
+        [PersistLink.PERSIST]: operationId,
+      });
       addOngoingOperation(
         {
           id: operationId,
@@ -97,29 +95,32 @@ export class PersistLink extends ApolloLink {
       );
     }
 
-    return new Observable((observer) => {
-      this.ongoingCountMap.increment(operationId);
+    // Reuse existing observable until observer unsubscribes
+    const existingObservable = this.observableByOperationId.get(operationId);
+    if (existingObservable) {
+      return existingObservable;
+    }
 
-      const sub = forward(operation)
-        .map((value) => {
-          const hasPersistErrorCode =
-            value.errors?.some((error) =>
-              this.persistErrorCodes.has(
-                String(error.extensions.code) as GraphQLErrorCode
-              )
-            ) ?? false;
-          if (!hasPersistErrorCode) {
-            // Remove operation from cache only when recevied a response from server that excludes `persistErrorCodes`
-            removeOngoingOperations([operationId], this.cache);
-          }
+    const observable = forward(operation).map((value) => {
+      const hasPersistErrorCode =
+        value.errors?.some((error) =>
+          this.persistErrorCodes.has(String(error.extensions.code) as GraphQLErrorCode)
+        ) ?? false;
+      if (!hasPersistErrorCode) {
+        // Remove operation from cache only when recevied a response from server that excludes `persistErrorCodes`
+        removeOngoingOperations([operationId], this.cache);
+      }
 
-          return value;
-        })
-        .subscribe(observer);
+      return value;
+    });
+
+    return new Observable<FetchResult>((observer) => {
+      this.observableByOperationId.set(operationId, observable);
+      const sub = observable.subscribe(observer);
 
       return () => {
-        this.ongoingCountMap.decrement(operationId);
         sub.unsubscribe();
+        this.observableByOperationId.delete(operationId);
       };
     });
   }

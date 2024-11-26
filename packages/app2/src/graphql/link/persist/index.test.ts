@@ -190,12 +190,12 @@ it('no mutation in cache on GraphQL error', async () => {
   `);
 });
 
-it('ignores ongoing mutation with duplicate persist id', () => {
+it('will not forward more than one mutation with same id', () => {
   const cache = new InMemoryCache();
   addTypePolicies(createTypePolicies([graphQLPolicies], mock()), cache);
 
   class OngoingIdsLink extends ApolloLink {
-    readonly ongoingIds: string[] = [];
+    readonly forwardedIds: string[] = [];
 
     override request(
       operation: Operation,
@@ -205,19 +205,10 @@ it('ignores ongoing mutation with duplicate persist id', () => {
         return null;
       }
 
-      const id = operation.getContext()[PersistLink.PERSIST];
+      const id = operation.getContext()[PersistLink.PERSIST] as string;
+      this.forwardedIds.push(id);
 
-      return new Observable((observer) => {
-        this.ongoingIds.push(id);
-        const sub = forward(operation).subscribe(observer);
-        return () => {
-          const idx = this.ongoingIds.indexOf(id);
-          if (idx != -1) {
-            this.ongoingIds.splice(idx, 1);
-          }
-          sub.unsubscribe();
-        };
-      });
+      return forward(operation);
     }
   }
 
@@ -235,7 +226,7 @@ it('ignores ongoing mutation with duplicate persist id', () => {
   void client.mutate({
     mutation: Mutation,
     context: {
-      [PersistLink.PERSIST]: true,
+      [PersistLink.PERSIST]: '1',
     },
   });
 
@@ -245,7 +236,51 @@ it('ignores ongoing mutation with duplicate persist id', () => {
   ]);
 
   expect(
-    ongoingIdsLink.ongoingIds,
-    'There should not be running more than 1 mutation with same persist id'
+    ongoingIdsLink.forwardedIds,
+    'There should be exatcly one mutation with same persist id'
   ).toHaveLength(1);
+});
+
+it('returns same response for an operation with same id', async () => {
+  const cache = new InMemoryCache();
+  addTypePolicies(createTypePolicies([graphQLPolicies], mock()), cache);
+
+  const persistLink = new PersistLink(cache);
+  const client = new ApolloClient({
+    cache,
+    link: ApolloLink.from([
+      persistLink,
+      new MockLink([
+        {
+          request: {
+            query: Mutation,
+          },
+          result: {
+            data: {
+              foo: {
+                bar: 'hi',
+              },
+            },
+          },
+        },
+      ]),
+    ]),
+  });
+
+  const r1 = client.mutate({
+    mutation: Mutation,
+    context: {
+      [PersistLink.PERSIST]: '1',
+    },
+  });
+  const r2 = client.mutate({
+    mutation: Mutation,
+    context: {
+      [PersistLink.PERSIST]: '1',
+    },
+  });
+
+  const result = await Promise.all([r1, r2]);
+
+  expect(result[0]).toEqual(result[1]);
 });
