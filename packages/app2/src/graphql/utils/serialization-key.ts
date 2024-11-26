@@ -1,20 +1,18 @@
 import { Note, SignedInUser } from '../../__generated__/graphql';
 
-type UserSerializationType = 'displayName';
+// TODO use @serialize directly if userId is only parameter
 
-export function userSerializationKey(
-  userId: SignedInUser['id'],
-  type: UserSerializationType
-) {
-  return `User:${userId}:${type}`;
+export function userSerializationKey_fieldDisplayName(userId: SignedInUser['id']) {
+  return `User:${userId}:displayName`;
 }
 
-type NoteSerializationType = 'move' | 'insertText';
-
-export function noteSerializationKey(
+export function noteSerializationKey_fieldText(
   noteId: Note['id'],
-  userId: SignedInUser['id'],
-  type: NoteSerializationType
+  userId: SignedInUser['id']
 ) {
-  return `Note:${noteId}:${userId}:${type}`;
+  return `Note:${noteId}:${userId}:insertText`;
+}
+
+export function noteSerializationKey_orderMatters(userId: SignedInUser['id']) {
+  return `Note:${userId}:orderMatters`;
 }

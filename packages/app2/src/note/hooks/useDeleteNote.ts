@@ -9,7 +9,7 @@ import { getUserNoteLinkId, parseUserNoteLinkByInput } from '../utils/id';
 import { DeleteNote } from '../mutations/DeleteNote';
 import { makeFragmentData } from '../../__generated__';
 import { isLocalOnlyNote } from '../models/local-note/is-local-only';
-import { noteSerializationKey } from '../../graphql/utils/serialization-key';
+import { noteSerializationKey_orderMatters } from '../../graphql/utils/serialization-key';
 
 export function useDeleteNote() {
   const client = useApolloClient();
@@ -28,7 +28,7 @@ export function useDeleteNote() {
           },
         },
         context: {
-          serializationKey: noteSerializationKey(noteId, userId, 'move'),
+          serializationKey: noteSerializationKey_orderMatters(userId),
         },
         errorPolicy: 'all',
         optimisticResponse: {

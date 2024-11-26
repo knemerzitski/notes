@@ -20,7 +20,7 @@ import {
 } from '../models/note/connection-category-name';
 import { makeFragmentData } from '../../__generated__';
 import { isLocalOnlyNote } from '../models/local-note/is-local-only';
-import { noteSerializationKey } from '../../graphql/utils/serialization-key';
+import { noteSerializationKey_orderMatters } from '../../graphql/utils/serialization-key';
 
 export function useMoveNote() {
   const client = useApolloClient();
@@ -52,7 +52,7 @@ export function useMoveNote() {
         },
         errorPolicy: 'all',
         context: {
-          serializationKey: noteSerializationKey(noteId, userId, 'move'),
+          serializationKey: noteSerializationKey_orderMatters(userId),
         },
         optimisticResponse: {
           __typename: 'Mutation',

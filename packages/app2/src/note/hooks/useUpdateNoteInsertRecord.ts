@@ -8,7 +8,7 @@ import { getCollabTextId } from '../utils/id';
 import { PersistLink } from '../../graphql/link/persist';
 import { hasOngoingOperation } from '../../graphql/link/persist/has';
 import { useApolloClient } from '@apollo/client';
-import { noteSerializationKey } from '../../graphql/utils/serialization-key';
+import { noteSerializationKey_fieldText } from '../../graphql/utils/serialization-key';
 import { getCurrentUserId } from '../../user/models/signed-in-user/get-current';
 
 export function useUpdateNoteInsertRecord() {
@@ -39,7 +39,7 @@ export function useUpdateNoteInsertRecord() {
         },
         context: {
           [PersistLink.PERSIST]: operationId,
-          serializationKey: noteSerializationKey(noteId, userId, 'insertText'),
+          serializationKey: noteSerializationKey_fieldText(noteId, userId),
         },
         errorPolicy: 'all',
       });
