@@ -11,6 +11,7 @@ import { Tooltip } from '@mui/material';
 const UserMoreOptionsButton_Query = gql(`
   query UserMoreOptionsButton_Query($id: ID!) {
     signedInUserById(id: $id) @client {
+      id
       localOnly
     }
   }

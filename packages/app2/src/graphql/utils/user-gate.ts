@@ -9,6 +9,7 @@ const InitUsersGates_Query = gql(`
     signedInUsers(localOnly: false) {
       id
       local {
+        id
         sessionExpired
       }
     }

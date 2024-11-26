@@ -13,11 +13,13 @@ const SignOutMenuItem_Query = gql(`
   query SignOutMenuItem_Query($id: ID!) {
     signedInUserById(id: $id) @client {
       public {
+        id
         profile {
           displayName
         }
       }
       local {
+        id
         sessionExpired
       }
       localOnly

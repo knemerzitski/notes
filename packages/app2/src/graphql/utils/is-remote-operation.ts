@@ -7,6 +7,7 @@ import { isObjectLike } from '~utils/type-guards/is-object-like';
 const IsRemoteOperation_Query = gql(`
   query IsRemoteOperation_Query($id: ID) {
     signedInUserById(id: $id) @client {
+      id
       localOnly
     }
   }

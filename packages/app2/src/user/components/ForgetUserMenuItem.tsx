@@ -12,12 +12,15 @@ import { confirmUnsavedChanges } from '../utils/confirm-unsaved-changes';
 const ForgetUserMenuItem_Query = gql(`
   query ForgetUserMenuItem_Query($id: ID!) {
     signedInUserById(id: $id) @client {
+      id
       public {
+        id
         profile {
           displayName
         }
       }
       local {
+        id
         sessionExpired
       }
       localOnly

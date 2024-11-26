@@ -11,6 +11,7 @@ import { useOnClose } from '../../utils/context/on-close';
 const SignInProvidersList_Query = gql(`
   query SignInProvidersList_Query($id: ID) {
     signedInUserById(id: $id) @client {
+      id
       authProviderUser(type: GOOGLE) {
         id
       }

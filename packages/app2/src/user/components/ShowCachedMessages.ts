@@ -9,7 +9,9 @@ import { UserMessageType } from '../../__generated__/graphql';
 const ShowCachedMessages_Query = gql(`
   query ShowCachedMessages_Query($id: ID!) {
     signedInUserById(id: $id) @client {
+      id
       local {
+        id
         messages  {
           id
           type

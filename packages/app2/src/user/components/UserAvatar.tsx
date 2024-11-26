@@ -16,6 +16,7 @@ const UserAvatar_Query = gql(`
     signedInUserById(id: $id) @client {
       id
       public {
+        id
         profile {
           displayName
         }

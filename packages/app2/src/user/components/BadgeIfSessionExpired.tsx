@@ -7,7 +7,9 @@ import { useUserId } from '../context/user-id';
 const BadgeIfSessionExpired_Query = gql(`
   query BadgeIfSessionExpired_Query($id: ID!) {
     signedInUserById(id: $id) @client {
+      id
       local {
+        id
         sessionExpired
       }
       localOnly

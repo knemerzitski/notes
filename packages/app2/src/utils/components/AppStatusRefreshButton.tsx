@@ -13,6 +13,7 @@ import { gql } from '../../__generated__';
 const AppStatusRefreshButton_Query = gql(`
   query AppStatusRefreshButton_Query($id: ID!) {
     signedInUserById(id: $id) @client {
+      id
       localOnly
     }
   }
