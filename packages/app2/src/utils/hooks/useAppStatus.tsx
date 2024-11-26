@@ -2,6 +2,22 @@ import { useState, useRef, useEffect } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import { useStatsLink } from '../../graphql/context/stats-link';
 import { useUserId } from '../../user/context/user-id';
+import { gql } from '../../__generated__';
+import { useApolloClient } from '@apollo/client';
+
+const UseAppStatus_Query = gql(`
+  query UseAppStatus_Query {
+    currentSignedInUser @client {
+      id
+      local {
+        id
+        unsavedNotes {
+          id
+        }
+      }
+    }
+  }
+`);
 
 type Status = 'offline' | 'loading' | 'synchronized' | 'refresh';
 
@@ -12,9 +28,11 @@ export function useAppStatus(options?: {
    */
   synchronizedDuration?: number;
 }): Status {
+  const client = useApolloClient();
   const statsLink = useStatsLink();
   const userId = useUserId();
   const ongoingCountRef = useRef(0);
+  const userHasUnsavedNotesRef = useRef(false);
 
   const [status, setStatus] = useState<Status>('refresh');
 
@@ -22,28 +40,15 @@ export function useAppStatus(options?: {
     setStatus('refresh');
   }, options?.synchronizedDuration ?? 1500);
 
-  // Loading while have ongoing operations
+  // Loading while have ongoing operations or user has unsaved notes
   useEffect(() => {
-    const globalEventBus = statsLink.getEventBus();
-    const userEventBus = statsLink.getEventBus(userId);
-
-    ongoingCountRef.current = statsLink.getOngoingCount(userId);
-
-    function update() {
-      const prevOngoingCount = ongoingCountRef.current;
-      ongoingCountRef.current = statsLink.getOngoingCount(userId);
-
-      const ongoingCountHasChanged = prevOngoingCount !== ongoingCountRef.current;
-      if (!ongoingCountHasChanged) {
-        return;
-      }
-
+    function updateStatus() {
       setStatus((prev) => {
         if (prev === 'offline') {
           return prev;
         }
 
-        if (ongoingCountRef.current > 0) {
+        if (ongoingCountRef.current > 0 || userHasUnsavedNotesRef.current) {
           setStatusRefreshDebounced.cancel();
           return 'loading';
         } else {
@@ -53,21 +58,48 @@ export function useAppStatus(options?: {
       });
     }
 
-    const globalUnsub = globalEventBus.on('*', update);
-    const userUnsub = userEventBus.on('*', update);
+    const noUserEventBus = statsLink.getUserEventBus();
+    const userEventBus = statsLink.getUserEventBus(userId);
 
-    update();
+    userHasUnsavedNotesRef.current =
+      (client.readQuery({
+        query: UseAppStatus_Query,
+      })?.currentSignedInUser.local.unsavedNotes.length ?? 0) > 0;
+
+    const queryObservable = client.watchQuery({
+      query: UseAppStatus_Query,
+    });
+
+    const querySubscription = queryObservable.subscribe({
+      next(value) {
+        userHasUnsavedNotesRef.current =
+          value.data.currentSignedInUser.local.unsavedNotes.length > 0;
+        updateStatus();
+      },
+    });
+
+    ongoingCountRef.current = statsLink.getOngoingCount(userId);
+
+    const noUserUnsub = noUserEventBus.on('*', () => {
+      ongoingCountRef.current = statsLink.getOngoingCount(userId);
+      updateStatus();
+    });
+    const userUnsub = userEventBus.on('*', () => {
+      ongoingCountRef.current = statsLink.getOngoingCount(userId);
+      updateStatus();
+    });
 
     return () => {
-      globalUnsub();
+      noUserUnsub();
       userUnsub();
+      querySubscription.unsubscribe();
     };
-  }, [statsLink, userId, setStatusRefreshDebounced]);
+  }, [statsLink, userId, setStatusRefreshDebounced, client]);
 
   // Online restore original status
   useEffect(() => {
     function isOnline() {
-      if (ongoingCountRef.current > 0) {
+      if (ongoingCountRef.current > 0 || userHasUnsavedNotesRef.current) {
         setStatusRefreshDebounced.cancel();
         setStatus('loading');
       } else {
