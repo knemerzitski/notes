@@ -26,6 +26,9 @@ export function useUpdateDisplayNameMutation() {
             displayName,
           },
         },
+        context: {
+          serializationKey: userSerializationKey(userId, 'displayName'),
+        },
         optimisticResponse: {
           __typename: 'Mutation',
           updateSignedInUserDisplayName: {

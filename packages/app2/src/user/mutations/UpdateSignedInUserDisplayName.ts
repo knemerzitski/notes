@@ -3,7 +3,7 @@ import { mutationDefinition } from '../../graphql/utils/mutation-definition';
 
 export const UpdateSignedInUserDisplayName = mutationDefinition(
   gql(`
-    mutation UpdateSignedInUserDisplayName($input: UpdateSignedInUserDisplayNameInput!) @persist @serialize(key: ["displayName"])  {
+    mutation UpdateSignedInUserDisplayName($input: UpdateSignedInUserDisplayNameInput!) @persist  {
       updateSignedInUserDisplayName(input: $input) {
         ...UpdateSignedInUserDisplayNamePayload
       }

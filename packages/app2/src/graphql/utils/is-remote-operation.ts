@@ -5,8 +5,8 @@ import { Maybe } from '~utils/types';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 
 const IsRemoteOperation_Query = gql(`
-  query IsRemoteOperation_Query($id: ID) {
-    signedInUserById(id: $id) @client {
+  query IsRemoteOperation_Query($id: ID!) {
+    signedInUser(by: { id: $id }) @client {
       id
       localOnly
     }
@@ -14,7 +14,7 @@ const IsRemoteOperation_Query = gql(`
 `);
 
 /**
- * Document is meant as remote operation if
+ * Document is remote operation if
  * user is not local or document has \@noauth directive
  */
 export function isRemoteOperation(
@@ -39,11 +39,12 @@ export function isRemoteOperation(
     const data = cache.readQuery({
       query: IsRemoteOperation_Query,
       variables: {
-        id: userId,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        id: userId!,
       },
     });
 
-    localOnly = data?.signedInUserById?.localOnly;
+    localOnly = data?.signedInUser?.localOnly;
   } else {
     localOnly = objOrLocalOnly;
   }
