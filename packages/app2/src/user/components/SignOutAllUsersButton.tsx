@@ -6,7 +6,7 @@ import { useOnClose } from '../../utils/context/on-close';
 import { useShowConfirm } from '../../utils/context/show-confirm';
 import { confirmUnsavedChanges } from '../utils/confirm-unsaved-changes';
 import { hasUserOngoingOperations } from '../../graphql/link/persist/has-user';
-import { Button } from '@mui/material';
+import { Button, css, styled } from '@mui/material';
 
 const SignOutAllUsersButton_Query = gql(`
   query SignOutAllUsersButton_Query {
@@ -41,7 +41,7 @@ export function SignOutAllUsersButton() {
   }
 
   return (
-    <Button
+    <ButtonStyled
       color="inherit"
       variant="text"
       onClick={handleSignOut}
@@ -49,6 +49,10 @@ export function SignOutAllUsersButton() {
     >
       <LogoutIcon />
       Sign out all accounts
-    </Button>
+    </ButtonStyled>
   );
 }
+
+const ButtonStyled = styled(Button)(css`
+  line-height: 0px;
+`);
