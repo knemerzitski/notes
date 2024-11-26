@@ -59,6 +59,8 @@ module.exports = {
         './src/*/mutations/**',
         // GraphQL type policies
         './src/*/policies/*',
+        // GraphQL scalar policies
+        './src/*/scalars/*',
       ],
       rules: {
         'unicorn/filename-case': [
