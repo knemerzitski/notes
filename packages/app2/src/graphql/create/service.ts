@@ -25,6 +25,7 @@ import { createOnlineGate } from '../utils/online-gate';
 import { createUsersGates, initUsersGates } from '../utils/user-gate';
 import { createErrorLink } from './error-link';
 import { createHttpWsLink } from './http-ws-link';
+import { isQueryOperation } from '@apollo/client/utilities';
 
 export function createGraphQLService({
   httpUri,
@@ -128,6 +129,21 @@ export function createGraphQLService({
   const getUserGate = createUsersGates(links.pick.gateLink);
   void restorer.restored().then(() => {
     initUsersGates(getUserGate, cache);
+  });
+
+  // When app starts, block all queries until mutations have been procesed.
+  // Reduces data inconsistency between server and client
+  const queryGate = links.pick.gateLink.create((operation) => {
+    return isQueryOperation(operation.query);
+  });
+  queryGate.close();
+  const offQueryGateOpen = links.pick.statsLink.getGlobalEventBus().on('*', () => {
+    const hasNoMutations = links.pick.statsLink.getGlobalStats().mutation.ongoing == 0;
+    if (hasNoMutations) {
+      // No longer need to listen to stats events
+      offQueryGateOpen();
+      queryGate.open();
+    }
   });
 
   const defaultContext: DefaultContext = {
