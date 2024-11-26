@@ -19,31 +19,44 @@ export type UserAllOperationStats = { [Key in string]: AllOperationStats };
  * have been run in total.
  */
 export class StatsLink extends ApolloLink {
-  private readonly statsByUser;
-  private readonly definedStatsByUser;
+  private readonly globalStatsData;
+  private readonly statsDataByUser;
+  private readonly definedStatsDataByUser;
 
   constructor() {
     super();
-    this.statsByUser = new Map<string, UserStats>();
-    this.definedStatsByUser = new DefinedMap(this.statsByUser, () => new UserStats());
+    this.globalStatsData = new StatsData();
+    this.statsDataByUser = new Map<string, StatsData>();
+    this.definedStatsDataByUser = new DefinedMap(
+      this.statsDataByUser,
+      () => new StatsData()
+    );
   }
 
-  getEventBus(
+  getGlobalEventBus(): Pick<Emitter<AllOperationStats>, 'on' | 'off'> {
+    return this.globalStatsData.eventBus;
+  }
+
+  getGlobalStats(): ReadonlyDeep<AllOperationStats> {
+    return this.globalStatsData.byType;
+  }
+
+  getUserEventBus(
     userId?: string | undefined
   ): Pick<Emitter<AllOperationStats>, 'on' | 'off'> {
-    return this.definedStatsByUser.get(userId ?? '').eventBus;
+    return this.definedStatsDataByUser.get(userId ?? '').eventBus;
   }
 
-  getStats(userId?: string | undefined): ReadonlyDeep<AllOperationStats> {
-    return this.definedStatsByUser.get(userId ?? '').byType;
+  getUserStats(userId?: string | undefined): ReadonlyDeep<AllOperationStats> {
+    return this.definedStatsDataByUser.get(userId ?? '').byType;
   }
 
   /**
    * @returns Ongoing operations count. Excluding subscriptions.
    */
   getOngoingCount(userId?: string | undefined) {
-    const globalStats = this.getStats();
-    const userStats = this.getStats(userId);
+    const globalStats = this.getUserStats();
+    const userStats = this.getUserStats(userId);
 
     return (
       globalStats.query.ongoing +
@@ -54,8 +67,8 @@ export class StatsLink extends ApolloLink {
   }
 
   getOngoingQueriesCount(userId?: string | undefined) {
-    const globalStats = this.getStats();
-    const userStats = this.getStats(userId);
+    const globalStats = this.getUserStats();
+    const userStats = this.getUserStats(userId);
 
     return globalStats.query.ongoing + userStats.query.ongoing;
   }
@@ -75,25 +88,36 @@ export class StatsLink extends ApolloLink {
     const type = definition.operation;
     const userId = getOperationOrRequestUserId(operation) ?? '';
 
-    const userStats = this.definedStatsByUser.get(userId);
-    const stats = userStats.byType[type];
-    stats.ongoing++;
-    stats.total++;
+    const userStatsData = this.definedStatsDataByUser.get(userId);
+    const userStats = userStatsData.byType[type];
+    userStats.ongoing++;
+    userStats.total++;
 
-    userStats.eventBus.emit(type, { ...stats });
+    const globalStats = this.globalStatsData.byType[type];
+    globalStats.ongoing++;
+    globalStats.total++;
+
+    this.globalStatsData.eventBus.emit(type, { ...userStats });
+    userStatsData.eventBus.emit(type, { ...userStats });
+
+    const observable = forward(operation);
 
     return new Observable<FetchResult>((observer: Observer<FetchResult>) => {
-      const sub = forward(operation).subscribe(observer);
+      const sub = observable.subscribe(observer);
       return () => {
-        stats.ongoing--;
-        userStats.eventBus.emit(type, { ...stats });
+        userStats.ongoing--;
+        globalStats.ongoing--;
+
+        this.globalStatsData.eventBus.emit(type, { ...userStats });
+        userStatsData.eventBus.emit(type, { ...userStats });
+
         sub.unsubscribe();
       };
     });
   }
 }
 
-class UserStats {
+class StatsData {
   readonly eventBus = mitt<AllOperationStats>();
   readonly byType: AllOperationStats = {
     query: {

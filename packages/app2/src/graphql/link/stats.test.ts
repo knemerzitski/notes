@@ -69,7 +69,7 @@ it('calls events with correct stats', async () => {
   const statsLink = new StatsLink();
 
   const onFn = vi.fn();
-  statsLink.eventBus.on('*', onFn);
+  statsLink.getUserEventBus(undefined).on('*', onFn);
 
   const client = new ApolloClient({
     cache: new InMemoryCache(),

@@ -4,7 +4,7 @@ import { StatsLink } from '../link/stats';
 
 type ProvidedStatsLink = Pick<
   StatsLink,
-  'getEventBus' | 'getStats' | 'getOngoingCount' | 'getOngoingQueriesCount'
+  'getUserEventBus' | 'getUserStats' | 'getOngoingCount' | 'getOngoingQueriesCount'
 >;
 
 const StatsLinkContext = createContext<ProvidedStatsLink | null>(null);
