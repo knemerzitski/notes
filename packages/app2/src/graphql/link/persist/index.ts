@@ -24,7 +24,11 @@ const persistDirective = new DirectiveFlag(PERSIST_DIRECTIVE);
 export class PersistLink extends ApolloLink {
   private readonly cache;
 
-  static readonly PERSIST = '_PersistLink-persist';
+  /**
+   * Operation id or true to generate an id.
+   * Id is used to prevent persisting duplicate operations.
+   */
+  static readonly PERSIST = 'persistId';
 
   readonly generateId;
 

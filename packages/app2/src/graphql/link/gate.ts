@@ -36,7 +36,7 @@ interface GateReader {
  * Pause operations until all gates related to those operations are open.
  */
 export class GateLink extends ApolloLink {
-  static readonly SKIP = '_GateLink-skip';
+  static readonly SKIP = 'gateSkip';
 
   private readonly gates = new Set<GateReader>();
 

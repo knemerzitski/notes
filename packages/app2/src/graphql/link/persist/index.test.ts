@@ -96,7 +96,7 @@ it('stores mutation in cache on network error', async () => {
     {
       "ApolloOperation:fooId": {
         "__typename": "ApolloOperation",
-        "context": "{"_PersistLink-persist":"fooId","forceFetch":true,"clientAwareness":{}}",
+        "context": "{"persistId":"fooId","forceFetch":true,"clientAwareness":{}}",
         "id": "fooId",
         "operationName": "Foo",
         "query": "{"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"Foo"},"variableDefinitions":[],"directives":[],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"foo"},"arguments":[],"directives":[],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"bar"},"arguments":[],"directives":[]},{"kind":"Field","name":{"kind":"Name","value":"__typename"}}]}}]}}],"loc":{"start":0,"end":50}}",
