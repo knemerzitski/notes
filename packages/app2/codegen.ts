@@ -15,10 +15,7 @@ const config: CodegenConfig = {
       config: {
         scalars: {
           ID: { input: 'string', output: 'string' },
-          Date: {
-            input: 'Date',
-            output: 'Date | string',
-          },
+          DateTime: 'Date',
           HexColorCode: 'string',
           NonNegativeInt: 'number',
           PositiveInt: 'number',
