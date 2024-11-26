@@ -5,6 +5,7 @@ import {
   Reference,
 } from '@apollo/client';
 import { SafeReadonly } from '@apollo/client/cache/core/types/common';
+import { KeySpecifier, KeyArgsFunction } from '@apollo/client/cache/inmemory/policies';
 
 export interface FieldArrayToMapOptions<
   TKeyName extends string,
@@ -12,6 +13,7 @@ export interface FieldArrayToMapOptions<
   TItem extends { [Key in TKeyName]: TKeyValue } | Reference,
 > {
   argName?: string;
+  keyArgs?: false | KeySpecifier | KeyArgsFunction | undefined;
   read?: FieldReadFunction<
     Partial<Record<TKeyValue, TItem>>,
     SafeReadonly<Partial<Record<TKeyValue, TItem>>> | undefined
@@ -22,7 +24,6 @@ export interface FieldArrayToMapOptions<
   ) => readonly TItem[] | undefined;
 }
 
-// TODO test
 /**
  * Creates a field policy which translates an array with unique keyed items
  * into a map by the key.
@@ -35,9 +36,9 @@ export function fieldArrayToMap<
   keyName: TKeyName,
   rootOptions: FieldArrayToMapOptions<TKeyName, TKeyValue, TItem> = {}
 ): FieldPolicy<Partial<Record<TKeyValue, TItem>>, TItem[]> {
-  const { argName = keyName } = rootOptions;
+  const { argName = keyName, keyArgs = false } = rootOptions;
   return {
-    keyArgs: false,
+    keyArgs,
     read(existing, options) {
       const { args } = options;
 
