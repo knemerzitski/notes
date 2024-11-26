@@ -4,7 +4,7 @@ import { SignedInUser, UserMessage } from '../../../__generated__/graphql';
 
 const RemoveUserMessages_Query = gql(`
   query RemoveUserMessages_Query($id: ID!) {
-    signedInUserById(id: $id) {
+    signedInUser(by: { id: $id }) {
       id
       local {
         id
@@ -38,17 +38,17 @@ export function removeUserMessages(
       overwrite: true,
     },
     (data) => {
-      if (!data?.signedInUserById) return;
+      if (!data?.signedInUser) return;
 
       return {
-        __typename: 'Query' as const,
-        signedInUserById: {
-          __typename: 'SignedInUser' as const,
+        ...data,
+        signedInUser: {
+          ...data.signedInUser,
           id: userId,
           local: {
-            __typename: 'LocalSignedInUser' as const,
+            ...data.signedInUser.local,
             id: userId,
-            messages: data.signedInUserById.local.messages.filter(
+            messages: data.signedInUser.local.messages.filter(
               (msg) => !messageIds.includes(msg.id)
             ),
           },
@@ -56,6 +56,7 @@ export function removeUserMessages(
       };
     }
   );
+  // TODO instead of evict, in policy set keyargs false
   for (const id of messageIds) {
     cache.evict({
       id: cache.identify({

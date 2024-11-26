@@ -4,7 +4,7 @@ import { AddUserMessagesQueryQuery, SignedInUser } from '../../../__generated__/
 
 const AddUserMessages_Query = gql(`
   query AddUserMessages_Query {
-    signedInUserById {
+    signedInUser {
       id
       local {
         id
@@ -22,7 +22,7 @@ const AddUserMessages_Query = gql(`
 export function addUserMessages(
   userId: SignedInUser['id'],
   messages: Omit<
-    NonNullable<AddUserMessagesQueryQuery['signedInUserById']>['local']['messages'][0],
+    NonNullable<AddUserMessagesQueryQuery['signedInUser']>['local']['messages'][0],
     '__typename'
   >[],
   cache: Pick<ApolloCache<unknown>, 'writeQuery'>
@@ -31,7 +31,7 @@ export function addUserMessages(
     query: AddUserMessages_Query,
     data: {
       __typename: 'Query',
-      signedInUserById: {
+      signedInUser: {
         __typename: 'SignedInUser',
         id: userId,
         local: {

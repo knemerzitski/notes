@@ -6,7 +6,7 @@ import { useOnClose } from '../../utils/context/on-close';
 
 const SignInMenuItem_Query = gql(`
   query SignInMenuItem_Query($id: ID!) {
-    signedInUserById(id: $id) @client {
+    signedInUser(by: { id: $id }) @client {
       id
       local {
         id
@@ -28,7 +28,7 @@ export function SignInMenuItem(props: Omit<MenuItemProps, 'onClick'>) {
     },
   });
 
-  const user = data?.signedInUserById;
+  const user = data?.signedInUser;
   if (!user) return null;
 
   if (!user.local.sessionExpired || user.localOnly) return null;

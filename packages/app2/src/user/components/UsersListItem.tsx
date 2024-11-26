@@ -23,15 +23,17 @@ import { ActivableListItem } from '../../utils/components/ActivableListItem';
 
 const UserListItem_Query = gql(`
   query UserListItem_Query($id: ID!) {
-    signedInUserById(id: $id) @client {
+    signedInUser(by: { id: $id }) @client {
       id
       public {
+        id
         profile {
           displayName
         }
       }
       email
       local {
+        id
         sessionExpired
       }
       localOnly
@@ -50,7 +52,7 @@ export function UserListItem(props?: Parameters<typeof ActivableListItem>[0]) {
     },
   });
 
-  const user = data?.signedInUserById;
+  const user = data?.signedInUser;
   if (!user) return null;
 
   const name = user.public.profile.displayName;

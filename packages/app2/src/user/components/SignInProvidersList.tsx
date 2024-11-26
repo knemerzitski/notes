@@ -9,8 +9,8 @@ import { GoogleLoginButton } from './GoogleLoginButton';
 import { useOnClose } from '../../utils/context/on-close';
 
 const SignInProvidersList_Query = gql(`
-  query SignInProvidersList_Query($id: ID) {
-    signedInUserById(id: $id) @client {
+  query SignInProvidersList_Query($id: ID!) {
+    signedInUser(by: { id: $id }) @client {
       id
       authProviderUser(type: GOOGLE) {
         id
@@ -45,11 +45,12 @@ export function SignInProvidersList({
   const userIdHint = useUserId(true);
   const { data } = useQuery(SignInProvidersList_Query, {
     variables: {
-      id: userIdHint,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      id: userIdHint!,
     },
   });
 
-  const login_hint = data?.signedInUserById?.authProviderUser?.id;
+  const login_hint = data?.signedInUser?.authProviderUser?.id;
 
   function handleSuccess() {
     onSuccess?.();

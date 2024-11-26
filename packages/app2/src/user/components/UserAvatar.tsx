@@ -9,11 +9,9 @@ import { LargeAvatar } from '../../utils/components/LargeAvatar';
 import { LargePersonIcon } from '../../utils/components/LargePersionIcon';
 import { LargeTextBackgroundAvatar } from '../../utils/components/LargeTextBackgroundAvatar';
 
-// TODO links: when multiple users and resuming operations, block if not current user...
-
 const UserAvatar_Query = gql(`
   query UserAvatar_Query($id: ID!) {
-    signedInUserById(id: $id) @client {
+    signedInUser(by: { id: $id }) @client {
       id
       public {
         id
@@ -35,7 +33,7 @@ export function UserAvatar({ size = 'normal' }: { size?: 'normal' | 'large' }) {
     },
   });
 
-  const user = data?.signedInUserById;
+  const user = data?.signedInUser;
   if (!user) return null;
 
   const name = user.public.profile.displayName;

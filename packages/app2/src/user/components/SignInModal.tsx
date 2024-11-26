@@ -15,8 +15,8 @@ import { SignInProvidersList } from './SignInProvidersList';
 import { Break } from '../../utils/components/Break';
 
 const SignInModal_Query = gql(`
-  query SignInModal_Query($id: ID) {
-    signedInUserById(id: $id) @client {
+  query SignInModal_Query($id: ID!) {
+    signedInUser(by: { id: $id }) @client {
       id
       public {
         id
@@ -44,11 +44,12 @@ export function SignInModal({
   const userId = useUserId(true);
   const { data } = useQuery(SignInModal_Query, {
     variables: {
-      id: userId,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      id: userId!,
     },
   });
 
-  const user = data?.signedInUserById;
+  const user = data?.signedInUser;
 
   function handleClose() {
     onClose?.();

@@ -12,7 +12,7 @@ import { gql } from '../../__generated__';
 
 const AppStatusRefreshButton_Query = gql(`
   query AppStatusRefreshButton_Query($id: ID!) {
-    signedInUserById(id: $id) @client {
+    signedInUser(by: { id: $id }) @client {
       id
       localOnly
     }
@@ -32,7 +32,7 @@ export function AppStatusRefreshButton() {
     },
   });
 
-  const isLocalOnlyUser = data?.signedInUserById?.localOnly ?? false;
+  const isLocalOnlyUser = data?.signedInUser?.localOnly ?? false;
 
   // Prevent refetching queries from spam click
   const fetcingQueriesRef = useRef(statsLink.getOngoingQueriesCount(userId) > 0);

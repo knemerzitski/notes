@@ -30,11 +30,14 @@ extend type SignedInUser {
   localOnly: Boolean!
 }
 
+extend input SignedInUserByInput @oneOf {
+  """
+  Get user by id
+  """
+  id: ID
+}
+
 extend type Query {
-  """
-  Find local user by ID
-  """
-  signedInUserById(id: ID): SignedInUser
   """
   List of all available users. Always includes localUser.
   """

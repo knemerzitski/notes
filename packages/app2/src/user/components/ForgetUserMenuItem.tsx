@@ -11,7 +11,7 @@ import { confirmUnsavedChanges } from '../utils/confirm-unsaved-changes';
 
 const ForgetUserMenuItem_Query = gql(`
   query ForgetUserMenuItem_Query($id: ID!) {
-    signedInUserById(id: $id) @client {
+    signedInUser(by: { id: $id }) @client {
       id
       public {
         id
@@ -42,7 +42,7 @@ export function ForgetUserMenuItem() {
     },
   });
 
-  const _user = data?.signedInUserById;
+  const _user = data?.signedInUser;
   if (!_user) return null;
   const user = _user;
 

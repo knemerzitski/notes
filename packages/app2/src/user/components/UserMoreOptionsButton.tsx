@@ -10,7 +10,7 @@ import { Tooltip } from '@mui/material';
 
 const UserMoreOptionsButton_Query = gql(`
   query UserMoreOptionsButton_Query($id: ID!) {
-    signedInUserById(id: $id) @client {
+    signedInUser(by: { id: $id }) @client {
       id
       localOnly
     }
@@ -38,7 +38,7 @@ export function UserMoreOptionsButton({
     },
   });
 
-  const user = data?.signedInUserById;
+  const user = data?.signedInUser;
   if (!user) return null;
 
   if (user.localOnly) {

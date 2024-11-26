@@ -6,7 +6,7 @@ import { useUserId } from '../context/user-id';
 
 const BadgeIfSessionExpired_Query = gql(`
   query BadgeIfSessionExpired_Query($id: ID!) {
-    signedInUserById(id: $id) @client {
+    signedInUser(by: { id: $id }) @client {
       id
       local {
         id
@@ -25,7 +25,7 @@ export function BadgeIfSessionExpired({ children }: { children: ReactElement }) 
     },
   });
 
-  if (!data?.signedInUserById?.local.sessionExpired) return children;
+  if (!data?.signedInUser?.local.sessionExpired) return children;
 
   return <WarningBadge>{children}</WarningBadge>;
 }

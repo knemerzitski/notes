@@ -3,25 +3,32 @@ import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
 import { keyArgsWithUserId } from '../../graphql/utils/key-args-with-user-id';
 import { EvictTag, TaggedEvictOptionsList } from '../../graphql/utils/tagged-evict';
 import { fieldArrayToMap } from '../../graphql/utils/field-array-to-map';
+import { isObjectLike } from '~utils/type-guards/is-object-like';
 
 export const Query: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
   return {
     fields: {
       signedInUser: {
         keyArgs: keyArgsWithUserId(ctx),
-      },
-      signedInUserById: {
-        keyArgs: false,
         read(_existing, { args, toReference }) {
-          const id = args?.id;
-          if (!id) {
+          if (!args || !isObjectLike(args)) {
+            // redirect to currentUser if no args?
             return null;
           }
 
-          return toReference({
-            __typename: 'SignedInUser',
-            id: args.id,
-          });
+          const by = args.by;
+          if (!isObjectLike(by)) {
+            return null;
+          }
+
+          if (typeof by.id === 'string') {
+            return toReference({
+              __typename: 'SignedInUser',
+              id: by.id,
+            });
+          }
+
+          return null;
         },
       },
       signedInUsers: fieldArrayToMap('id', {
@@ -104,10 +111,6 @@ export const evictOptions: TaggedEvictOptionsList = [
       {
         id: 'ROOT_QUERY',
         fieldName: 'signedInUser',
-      },
-      {
-        id: 'ROOT_QUERY',
-        fieldName: 'signedInUserById',
       },
     ],
   },

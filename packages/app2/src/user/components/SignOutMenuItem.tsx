@@ -11,7 +11,8 @@ import { confirmUnsavedChanges } from '../utils/confirm-unsaved-changes';
 
 const SignOutMenuItem_Query = gql(`
   query SignOutMenuItem_Query($id: ID!) {
-    signedInUserById(id: $id) @client {
+    signedInUser(by: { id: $id }) @client {
+      id
       public {
         id
         profile {
@@ -41,7 +42,7 @@ export function SignOutMenuItem() {
     },
   });
 
-  const _user = data?.signedInUserById;
+  const _user = data?.signedInUser;
   if (!_user) return null;
   const user = _user;
 

@@ -40,11 +40,23 @@ type PublicUserProfile {
 
 ################################ Query signedInUser ################################
 
+"""
+Contains no fields. Used by client schema for extending.
+"""
+input SignedInUserByInput @oneOf {
+  """
+  Placeholder to define the input. Never used.
+  """
+  # eslint-disable-next-line @graphql-eslint/naming-convention
+  _: Boolean
+}
+
 extend type Query {
   """
   Get currently signed in user
+  Optionally provide by input to get specific user instead
   """
-  signedInUser: SignedInUser! @auth
+  signedInUser(by: SignedInUserByInput): SignedInUser @auth
 }
 
 ################################ Subscription signedInUserEvents ################################

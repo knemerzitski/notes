@@ -3,8 +3,8 @@ import { gql } from '../../../__generated__';
 import { SignedInUser } from '../../../__generated__/graphql';
 
 const SetUserSessionExpired_Query = gql(`
-  query SetUserSessionExpired_Query($id: ID) {
-    signedInUserById(id: $id) {
+  query SetUserSessionExpired_Query($id: ID!) {
+    signedInUser(by: { id: $id }) {
       id
       local {
         id
@@ -24,7 +24,7 @@ export function setUserSessionExpired(
     query: SetUserSessionExpired_Query,
     data: {
       __typename: 'Query',
-      signedInUserById: {
+      signedInUser: {
         __typename: 'SignedInUser',
         id: userId,
         local: {

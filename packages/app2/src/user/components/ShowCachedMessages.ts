@@ -8,7 +8,7 @@ import { UserMessageType } from '../../__generated__/graphql';
 
 const ShowCachedMessages_Query = gql(`
   query ShowCachedMessages_Query($id: ID!) {
-    signedInUserById(id: $id) @client {
+    signedInUser(by: { id: $id }) @client {
       id
       local {
         id
@@ -34,13 +34,12 @@ export function ShowCachedUserMessages() {
 
   const showMessage = useShowMessage();
 
-  const messages = data?.signedInUserById?.local.messages;
+  const messages = data?.signedInUser?.local.messages;
 
   useEffect(() => {
     if (!messages) {
       return;
     }
-
     const nextMessage = messages[messages.length - 1];
     if (!nextMessage) {
       return;
@@ -49,8 +48,10 @@ export function ShowCachedUserMessages() {
     showMessage(nextMessage.text, {
       severity: mapSeverity(nextMessage.type),
       onDone() {
+        // remove also when have shown long enoudh
         removeUserMessages(userId, [nextMessage.id], client.cache);
       },
+      // TODO callback when showing message for some time?
     });
   }, [client, messages, userId, showMessage]);
 

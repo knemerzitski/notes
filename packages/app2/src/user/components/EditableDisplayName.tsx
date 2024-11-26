@@ -21,12 +21,13 @@ import { DisplayNameTitleTextField } from './DisplayNameTitleTextField';
 
 const EditableDisplayName_Query = gql(`
   query EditableDisplayName_Query($id: ID!) {
-    signedInUserById(id: $id) @client {
+    signedInUser(by: { id: $id }) @client {
       ...EditableDisplayName_SignedInUserFragment
     }
   }
 
   fragment EditableDisplayName_SignedInUserFragment on SignedInUser {
+    id
     public {
       id
       profile {
@@ -51,7 +52,7 @@ export function EditableDisplayName() {
     },
   });
 
-  const _user = data?.signedInUserById;
+  const _user = data?.signedInUser;
   if (!_user) return null;
 
   const user = getFragmentData(EditableDisplayNameSignedInUserFragmentFragmentDoc, _user);
@@ -86,6 +87,7 @@ export function EditableDisplayName() {
     setIsEditing(false);
 
     if (name !== editName) {
+      // TODO reappear popover for edit?
       undoAction('Name update cancelled', () => {
         setIsEditing(true);
         setEditName(editName);
