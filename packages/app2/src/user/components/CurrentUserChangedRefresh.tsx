@@ -15,7 +15,6 @@ const CurrentUserChangedRefresh_Query = gql(`
 
 /**
  * When current user changes:
- * - Refetch queries
  * - Restart WebSocket
  */
 export function CurrentUserChangedRefresh() {
@@ -26,7 +25,6 @@ export function CurrentUserChangedRefresh() {
   useEffect(() => {
     function userChanged() {
       wsClient?.restart();
-      void client.reFetchObservableQueries(true);
     }
 
     const observable = client.watchQuery({
