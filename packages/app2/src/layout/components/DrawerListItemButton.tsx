@@ -2,8 +2,12 @@ import { css, styled, ListItemButton, Theme, ListItemButtonProps } from '@mui/ma
 import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
 import { useSetAppDrawerOpen } from '../context/app-drawer-state';
 import { useIsMobile } from '../../theme/context/is-mobile';
+import { forwardRef } from 'react';
 
-export function DrawerListItemButton(props: Parameters<typeof ListItemButtonStyled>[0]) {
+export const DrawerListItemButton = forwardRef<
+  HTMLDivElement,
+  Parameters<typeof ListItemButtonStyled>[0]
+>(function DrawerListItemButton(props, ref) {
   const isMobile = useIsMobile();
   const setAppDrawerOpen = useSetAppDrawerOpen();
 
@@ -16,8 +20,8 @@ export function DrawerListItemButton(props: Parameters<typeof ListItemButtonStyl
     }
   };
 
-  return <ListItemButtonStyled {...props} onClick={handleClick} />;
-}
+  return <ListItemButtonStyled ref={ref} {...props} onClick={handleClick} />;
+});
 
 const baseStyle = ({ theme }: { theme: Theme }) => css`
   min-height: ${theme.spacing(6)};

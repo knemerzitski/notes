@@ -7,7 +7,7 @@ import {
   AnyRouter,
   RegisteredRouter,
   ToPathOption,
-  useNavigate,
+  createLink,
 } from '@tanstack/react-router';
 
 export function DrawerNavListItemButton<
@@ -23,24 +23,19 @@ export function DrawerNavListItemButton<
   icon: ReactNode;
   text: ReactNode;
 }) {
-  const navigate = useNavigate();
   const isPathname = useIsPathname(to, {
     startsWith: true,
   });
 
   const isActive = isPathname;
 
-  function handleClick() {
-    // @ts-expect-error Type hinting works, good enough
-    void navigate({
-      to,
-    });
-  }
-
   return (
-    <DrawerListItemButton active={isActive} onClick={handleClick}>
+    // @ts-expect-error Type hints work outside this component
+    <DrawerListItemButtonLink active={isActive} to={to} preload="intent">
       <DrawerListItemIcon>{icon}</DrawerListItemIcon>
       <DrawerListItemText>{text}</DrawerListItemText>
-    </DrawerListItemButton>
+    </DrawerListItemButtonLink>
   );
 }
+
+const DrawerListItemButtonLink = createLink(DrawerListItemButton);
