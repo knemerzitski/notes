@@ -39,7 +39,7 @@ type Edge = ReplaceNoteInConnectionQueryQuery['userNoteLinkConnection']['edges']
 export function replaceNoteInConnection(
   oldBy: UserNoteLinkByInput,
   newBy: UserNoteLinkByInput,
-  cache: Pick<ApolloCache<unknown>, 'readQuery' | 'updateQuery'>
+  cache: Pick<ApolloCache<unknown>, 'readQuery' | 'updateQuery' | 'evict' | 'identify'>
 ):
   | { type: 'MoveUserNoteLinkInput'; input: MoveUserNoteLinkInput }
   | { type: 'TrashUserNoteLinkInput'; input: TrashUserNoteLinkInput }

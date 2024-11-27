@@ -23,6 +23,7 @@ export function noteExists(
       variables: {
         by,
       },
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     })?.userNoteLink?.note.id != null
   );
 }

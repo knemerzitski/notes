@@ -15,7 +15,6 @@ import { evictOptions as Query_evictOptions, Query } from './policies/Query';
 import { RevisionChangeset } from './policies/RevisionChangeset';
 import { UserNoteLink } from './policies/UserNoteLink';
 import { UserNoteLinkConnection } from './policies/UserNoteLinkConnection';
-import { UserNoteLinkCreate } from './policies/UserNoteLinkCreate';
 import { UpdateNoteInsertRecordPayload } from './mutations/UpdateNoteInsertRecordPayload';
 import { TrashUserNoteLinkPayload } from './mutations/TrashUserNoteLinkPayload';
 import { MoveUserNoteLinkPayload } from './mutations/MoveUserNoteLinkPayload';
@@ -34,7 +33,6 @@ export const notePolicies: CreateTypePoliciesFn = function (ctx) {
     CollabTextRecord: CollabTextRecord(ctx),
     CollabTextRecordConnection: CollabTextRecordConnection(ctx),
     UserNoteLinkConnection: UserNoteLinkConnection(ctx),
-    UserNoteLinkCreate: UserNoteLinkCreate(ctx),
     LocalSignedInUser: LocalSignedInUser(ctx),
   };
 };

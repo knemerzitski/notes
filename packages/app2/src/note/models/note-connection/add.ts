@@ -5,9 +5,9 @@ import {
   UserNoteLinkByInput,
 } from '../../../__generated__/graphql';
 import { gql } from '../../../__generated__';
-import { getConnectionCategoryName } from '../note/connection-category-name';
 import { noteExists } from '../note/exists';
 import { getUserNoteLinkIdFromByInput } from '../../utils/id';
+import { getCategoryName } from '../note/category-name';
 
 const AddNoteToConnection_Query = gql(`
   query AddNoteToConnection_Query($by: UserNoteLinkByInput!, $category: NoteCategory!) {
@@ -41,7 +41,7 @@ export function addNoteToConnection(
 
   const userNoteLinkId = getUserNoteLinkIdFromByInput(by, cache);
 
-  const categoryName = getConnectionCategoryName(by, cache) ?? NoteCategory.DEFAULT;
+  const categoryName = getCategoryName(by, cache) ?? NoteCategory.DEFAULT;
 
   const newEdge: AddNoteToConnectionQueryQuery['userNoteLinkConnection']['edges'][0] & {
     node: AddNoteToConnectionQueryQuery['userNoteLink'];
@@ -55,7 +55,6 @@ export function addNoteToConnection(
     },
   };
 
-  // TODO correct pageInfo too?, need it on add?
   cache.updateQuery(
     {
       query: AddNoteToConnection_Query,
@@ -63,7 +62,6 @@ export function addNoteToConnection(
         by,
         category: categoryName,
       },
-      // TODO overwrite all updates?
       overwrite: true,
     },
     (data) => {
