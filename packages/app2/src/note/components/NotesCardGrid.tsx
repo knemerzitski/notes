@@ -51,7 +51,6 @@ export const NotesCardGrid = forwardRef(function NotesCardGrid(
 const BoxStyled = styled(Box)(
   ({ theme }) => css`
     display: grid;
-    justify-content: center;
 
     ${theme.breakpoints.up('xs')} {
       grid-template-columns: 100%;
@@ -59,7 +58,7 @@ const BoxStyled = styled(Box)(
     }
 
     ${theme.breakpoints.up('sm')} {
-      grid-template-columns: repeat(auto-fit, 256px);
+      grid-template-columns: repeat(auto-fit, minmax(256px, 1fr));
       gap: ${theme.spacing(2)};
     }
   `
@@ -68,12 +67,12 @@ const BoxStyled = styled(Box)(
 const NoteCardWrapper = styled(Box)(
   ({ theme }) => css`
     ${theme.breakpoints.up('xs')} {
-      height: auto;
+      height: 200px;
     }
 
     ${theme.breakpoints.up('sm')} {
-      width: 256px;
       height: 256px;
+      max-width: 384px;
     }
   `
 );
