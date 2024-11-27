@@ -1,6 +1,6 @@
 import { useApolloClient } from '@apollo/client';
 import { useUserId } from '../../user/context/user-id';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   CreateNotePayloadFragmentDoc,
   Note,
@@ -48,6 +48,8 @@ export function useCreateNote(): {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [userId, client, newNoteIdCounter]
   );
+  const latestNewLocalNoteIdRef = useRef(newLocalNoteId);
+  latestNewLocalNoteIdRef.current = newLocalNoteId;
 
   const noteId = overrideNoteId ?? newLocalNoteId;
 
@@ -106,10 +108,14 @@ export function useCreateNote(): {
         return false;
       }
 
-      const payload = getFragmentData(CreateNotePayloadFragmentDoc, data.createNote);
-      // This noteId is no longer local
-      const noteId = payload.userNoteLink.note.id;
-      setOverrideNoteId(noteId);
+      if (latestNewLocalNoteIdRef.current === noteId) {
+        // Override noteId only if latest localNoteId is same as at start
+        const payload = getFragmentData(CreateNotePayloadFragmentDoc, data.createNote);
+        // This noteId is no longer local
+        const noteId = payload.userNoteLink.note.id;
+        setOverrideNoteId(noteId);
+      }
+
       return true;
     });
   }, [client, noteId, createNoteMutation, isLocalOnlyUser]);
@@ -133,6 +139,7 @@ export function useCreateNote(): {
 
       setNewNoteIdCounter((prev) => prev + 1);
       setOverrideNoteId(null);
+      setNotePendingStatus({ noteId }, null, client.cache);
     }
 
     return false;
