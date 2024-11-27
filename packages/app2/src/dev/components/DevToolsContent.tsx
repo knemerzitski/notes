@@ -5,6 +5,7 @@ import { DashCard } from './DashCard';
 import { UnsavedCollabServiceNotesTable } from './UnsavedCollabServiceNotesTable';
 import { PendingNotesTable } from './PendingNotesTable';
 import { ExcludedConnectionNotesTable } from './ExcludedConnectionNotesTable';
+import { DefaultConnectionNotesTable } from './DefaultConnectionNotesTable';
 
 export function DevToolsContent() {
   return (
@@ -35,6 +36,10 @@ export function DevToolsContent() {
 
       <DashCard label="Excluded Connection Notes">
         <ExcludedConnectionNotesTable />
+      </DashCard>
+
+      <DashCard label="Default Connection Notes">
+        <DefaultConnectionNotesTable />
       </DashCard>
     </Box>
   );
