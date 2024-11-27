@@ -13,6 +13,7 @@ import { getCategoryName } from '../models/note/category-name';
 import { useApolloClient } from '@apollo/client';
 import { DeletedInDays } from './DeletedInDays';
 import { gql } from '../../__generated__';
+import { NoteAlwaysButtons } from './NoteAlwaysButtons';
 
 const _NoteCard_UserNoteLinkFragment = gql(`
   fragment NoteCard_UserNoteLinkFragment on UserNoteLink {
@@ -110,6 +111,7 @@ export const NoteCard = forwardRef<HTMLDivElement, PaperProps>(
         slots={{
           suffix: (
             <ToolbarBox active={isActive}>
+              <NoteAlwaysButtons />
               <NoteMoreOptionsButton
                 IconButtonMenuProps={{
                   slotProps: {
@@ -222,6 +224,7 @@ const ToolbarBox = styled(Box, {
       easing: theme.transitions.easing.easeOut,
       duration: theme.transitions.duration.shortest,
     })};
+    gap: ${theme.spacing(1)};
   `,
   toolbarActive.style
 );

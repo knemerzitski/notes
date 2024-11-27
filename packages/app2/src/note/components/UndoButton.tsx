@@ -9,7 +9,9 @@ import { UndoButtonQueryQuery } from '../../__generated__/graphql';
 const UndoButton_Query = gql(`
   query UndoButton_Query($id: ObjectID!) {
     userNoteLink(by: { noteId: $id }) @client {
+      id
       note {
+        id
         collabService
       }
     }

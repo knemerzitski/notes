@@ -1,13 +1,17 @@
 import { css, AppBar, styled, Box, AppBarProps } from '@mui/material';
-import { NoteToolbarButtons } from './NoteToolbarButtons';
+import { NoteAlwaysButtons } from './NoteAlwaysButtons';
 import { EdgeEndCloseButton } from './EdgeEndCloseButton';
+import { NoteEditingButtons } from './NoteEditingButtons';
+import { NoteMoreOptionsButton } from './NoteMoreOptionsButton';
 
 export function NoteToolbar(props: Omit<AppBarProps, 'position' | 'component'>) {
   return (
     <AppBarStyled {...props}>
       <SpaceBetweenBox>
         <ButtonsBox>
-          <NoteToolbarButtons />
+          <NoteAlwaysButtons />
+          <NoteEditingButtons />
+          <NoteMoreOptionsButton />
         </ButtonsBox>
         <EdgeEndCloseButton />
       </SpaceBetweenBox>
