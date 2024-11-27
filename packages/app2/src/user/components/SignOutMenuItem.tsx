@@ -8,6 +8,7 @@ import { useIsOnline } from '../../utils/hooks/useIsOnline';
 import { hasUserOngoingOperations } from '../../graphql/link/persist/has-user';
 import { useShowConfirm } from '../../utils/context/show-confirm';
 import { confirmUnsavedChanges } from '../utils/confirm-unsaved-changes';
+import { useFetchedRoutes } from '../../utils/context/fetched-routes';
 
 const SignOutMenuItem_Query = gql(`
   query SignOutMenuItem_Query($id: ID!) {
@@ -34,6 +35,7 @@ export function SignOutMenuItem() {
   const signOutMutation = useSignOutMutation();
   const closeMenu = useOnClose();
   const showConfirm = useShowConfirm();
+  const fetchedRoutes = useFetchedRoutes();
 
   const userId = useUserId();
   const { data } = useQuery(SignOutMenuItem_Query, {
@@ -55,7 +57,9 @@ export function SignOutMenuItem() {
       title: `Sign out "${user.public.profile.displayName}"?`,
       condition: hasUserOngoingOperations([userId], client.cache),
       onSuccess: () => {
-        void signOutMutation(userId);
+        void signOutMutation(userId).finally(() => {
+          fetchedRoutes.clear(userId);
+        });
       },
       showConfirm,
     });

@@ -7,6 +7,7 @@ import { useShowConfirm } from '../../utils/context/show-confirm';
 import { confirmUnsavedChanges } from '../utils/confirm-unsaved-changes';
 import { hasUserOngoingOperations } from '../../graphql/link/persist/has-user';
 import { Button, css, styled } from '@mui/material';
+import { useFetchedRoutes } from '../../utils/context/fetched-routes';
 
 const SignOutAllUsersButton_Query = gql(`
   query SignOutAllUsersButton_Query {
@@ -21,6 +22,7 @@ export function SignOutAllUsersButton() {
   const closeParent = useOnClose();
   const signOut = useSignOutMutation();
   const showConfirm = useShowConfirm();
+  const fetchedRoutes = useFetchedRoutes();
 
   const { data } = useQuery(SignOutAllUsersButton_Query);
   if (!data) return null;
@@ -34,7 +36,9 @@ export function SignOutAllUsersButton() {
       onSuccess: () => {
         closeParent();
 
-        void signOut();
+        void signOut().finally(() => {
+          fetchedRoutes.clearAll();
+        });
       },
       showConfirm,
     });

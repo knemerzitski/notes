@@ -13,7 +13,11 @@ import { getCurrentUserId } from '../../user/models/signed-in-user/get-current';
 export interface FetchedRoutes {
   add: (routeId: string) => void;
   has: (routeId: string) => boolean;
-  clear: () => void;
+  clear: (userId?: SignedInUser['id']) => void;
+  /**
+   * Clear routes for all users
+   */
+  clearAll: () => void;
 }
 
 const FetchedRoutesContext = createContext<FetchedRoutes | null>(null);
@@ -47,12 +51,17 @@ export function FetchedRoutesProvider({ children }: { children: ReactNode }) {
     [client]
   );
 
-  const clear = useCallback(() => {
-    const userId = getCurrentUserId(client.cache) ?? null;
+  const clear = useCallback(
+    (userId = getCurrentUserId(client.cache) ?? null) => {
+      const fetchedRoutes = fetchedRoutesByUserRef.current.get(userId);
+      fetchedRoutes?.clear();
+    },
+    [client]
+  );
 
-    const fetchedRoutes = fetchedRoutesByUserRef.current.get(userId);
-    fetchedRoutes?.clear();
-  }, [client]);
+  const clearAll = useCallback(() => {
+    fetchedRoutesByUserRef.current.clear();
+  }, []);
 
   const has = useCallback(
     (routeId: string) => {
@@ -69,8 +78,9 @@ export function FetchedRoutesProvider({ children }: { children: ReactNode }) {
       add,
       clear,
       has,
+      clearAll,
     }),
-    [add, clear, has]
+    [add, clear, has, clearAll]
   );
 
   return (
