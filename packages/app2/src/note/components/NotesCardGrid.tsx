@@ -71,8 +71,10 @@ const NoteCardWrapper = styled(Box)(
     }
 
     ${theme.breakpoints.up('sm')} {
+      width: 100%;
       height: 256px;
       max-width: 384px;
+      justify-self: center;
     }
   `
 );
