@@ -9,7 +9,7 @@ export const LocalSignedInUser: CreateTypePolicyFn = function () {
           return existing;
         },
       }),
-      unsavedNotes: fieldArrayToMap('id', {
+      unsavedCollabServices: fieldArrayToMap('id', {
         read(existing = {}) {
           return existing;
         },

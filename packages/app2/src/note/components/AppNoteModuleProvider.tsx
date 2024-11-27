@@ -1,11 +1,11 @@
 import { ReactNode } from '@tanstack/react-router';
-import { UnsavedNotesCollabEditing } from './UnsavedNotesCollabEditing';
+import { UnsavedCollabServices } from './UnsavedCollabServices';
 import { ProcessNoteUserOperations } from './ProcessNoteUserOperations';
 
 export function AppNoteModuleProvider({ children }: { children: ReactNode }) {
   return (
     <>
-      <UnsavedNotesCollabEditing />
+      <UnsavedCollabServices />
       <ProcessNoteUserOperations />
       {children}
     </>

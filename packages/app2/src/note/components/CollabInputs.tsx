@@ -1,6 +1,6 @@
 import { CollabTitleInput } from './CollabTitleInput';
 import { CollabContentInput } from './CollabContentInput';
-import { CollabEditing } from './CollabEditing';
+import { CollabService } from './CollabService';
 
 //collabinputs on its own and then all
 
@@ -13,7 +13,7 @@ export function CollabInputs({
 }) {
   return (
     <>
-      <CollabEditing />
+      <CollabService />
       <CollabTitleInput {...CollabTitleInputProps} />
       <CollabContentInput {...CollabContentInputProps} />
     </>

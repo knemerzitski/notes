@@ -11,6 +11,7 @@ import { addRecordToConnection } from '../models/record-connection/add';
 import { setNotePendingStatus } from '../models/local-note/set-status';
 import { getOperationUserId } from '../../graphql/utils/get-operation-user-id';
 import { convertLocalToRemoteNote } from '../models/convert-local-to-remote-note';
+import { isExcludeNoteFromConnection } from '../models/local-note/is-exclude';
 
 /**
  * Will acknowledge submitted changes in service

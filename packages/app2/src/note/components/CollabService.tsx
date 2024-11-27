@@ -1,6 +1,6 @@
 import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
 import { useIsLocalOnlyNote } from '../hooks/useIsLocalOnlyNote';
-import { ServiceUnsavedNoteTracker } from './ServiceUnsavedNoteTracker';
+import { UnsavedCollabServiceTracker } from './UnsavedCollabServiceTracker';
 import { LocalChangesToSubmittedRecordDebounced } from './LocalChangesToSubmittedRecordDebounced';
 import { PersistCollabServiceChanges } from './PersistCollabServiceChanges';
 import { SubmittedRecordMutation } from './SubmittedRecordMutation';
@@ -9,15 +9,21 @@ import { useEffect, useState } from 'react';
 import { ReactNode } from '@tanstack/react-router';
 import mitt from 'mitt';
 
-export function CollabEditing() {
+/**
+ * Run events related to CollabService:
+ * - Keep track if CollabService is out of date.
+ * - Local changes into a submitted record
+ * - Submitted recordm mutation
+ */
+export function CollabService() {
   return (
-    <SingletonNote>
-      <RunEditing />
-    </SingletonNote>
+    <NoteSingleton>
+      <Run />
+    </NoteSingleton>
   );
 }
 
-function RunEditing() {
+function Run() {
   const isLocalOnlyUser = useIsLocalOnlyUser();
   const isLocalOnlyNote = useIsLocalOnlyNote();
 
@@ -25,8 +31,8 @@ function RunEditing() {
 
   return (
     <>
-      <BaseCollabEditing />
-      {isLocalOnly ? <LocalCollabEditing /> : <RemoteCollabEditing />}
+      <Base />
+      {isLocalOnly ? <Local /> : <Remote />}
     </>
   );
 }
@@ -39,7 +45,7 @@ const eventBus = mitt<{
 /**
  * Render `children` at most once regardless where component is used
  */
-function SingletonNote({ children }: { children: ReactNode }) {
+function NoteSingleton({ children }: { children: ReactNode }) {
   const noteId = useNoteId();
   const [_, renderCounter] = useState(0);
 
@@ -70,7 +76,7 @@ function SingletonNote({ children }: { children: ReactNode }) {
   return children;
 }
 
-function BaseCollabEditing() {
+function Base() {
   return (
     <>
       <PersistCollabServiceChanges />
@@ -78,15 +84,15 @@ function BaseCollabEditing() {
   );
 }
 
-function LocalCollabEditing() {
+function Local() {
   return <></>;
 }
 
-function RemoteCollabEditing() {
+function Remote() {
   return (
     <>
+      <UnsavedCollabServiceTracker />
       <LocalChangesToSubmittedRecordDebounced />
-      <ServiceUnsavedNoteTracker />
       <SubmittedRecordMutation />
     </>
   );

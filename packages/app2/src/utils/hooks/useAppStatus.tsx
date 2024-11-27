@@ -11,7 +11,7 @@ const UseAppStatus_Query = gql(`
       id
       local {
         id
-        unsavedNotes {
+        unsavedCollabServices {
           id
         }
       }
@@ -64,7 +64,7 @@ export function useAppStatus(options?: {
     userHasUnsavedNotesRef.current =
       (client.readQuery({
         query: UseAppStatus_Query,
-      })?.currentSignedInUser.local.unsavedNotes.length ?? 0) > 0;
+      })?.currentSignedInUser.local.unsavedCollabServices.length ?? 0) > 0;
 
     const queryObservable = client.watchQuery({
       query: UseAppStatus_Query,
@@ -73,7 +73,7 @@ export function useAppStatus(options?: {
     const querySubscription = queryObservable.subscribe({
       next(value) {
         userHasUnsavedNotesRef.current =
-          value.data.currentSignedInUser.local.unsavedNotes.length > 0;
+          value.data.currentSignedInUser.local.unsavedCollabServices.length > 0;
         updateStatus();
       },
     });

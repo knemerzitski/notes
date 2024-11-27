@@ -3,14 +3,13 @@ import { useEffect } from 'react';
 
 import { CollabService } from '~collab/client/collab-service';
 import { gql } from '../../__generated__';
-import { addUnsavedNote } from '../models/unsaved-notes/add';
-import { removeUnsavedNote } from '../models/unsaved-notes/remove';
 import { useUserNoteLinkId } from '../context/user-note-link-id';
+import { updateUnsavedCollabService } from '../models/update-unsaved-collab-service';
 
 // TODO fragment for for loader
 
-const ServiceUnsavedNoteTracker_query = gql(`
-  query ServiceUnsavedNoteTracker_query($by: UserNoteLinkByInput!) {
+const UnsavedCollabServiceTracker_Query = gql(`
+  query UnsavedCollabServiceTracker_Query($by: UserNoteLinkByInput!) {
     userNoteLink(by: $by) @client {
       id
       note {
@@ -25,10 +24,10 @@ function isServiceUpToDate(service: CollabService) {
   return !service.haveSubmittedChanges() && !service.haveLocalChanges();
 }
 
-export function ServiceUnsavedNoteTracker() {
+export function UnsavedCollabServiceTracker() {
   const client = useApolloClient();
   const userNoteLinkId = useUserNoteLinkId();
-  const { data } = useQuery(ServiceUnsavedNoteTracker_query, {
+  const { data } = useQuery(UnsavedCollabServiceTracker_Query, {
     variables: {
       by: {
         userNoteLinkId,
@@ -45,21 +44,13 @@ export function ServiceUnsavedNoteTracker() {
     const service = maybeService;
 
     function update() {
-      if (!isServiceUpToDate(service)) {
-        addUnsavedNote(
-          {
-            userNoteLinkId,
-          },
-          client.cache
-        );
-      } else {
-        removeUnsavedNote(
-          {
-            userNoteLinkId,
-          },
-          client.cache
-        );
-      }
+      updateUnsavedCollabService(
+        {
+          userNoteLinkId,
+        },
+        isServiceUpToDate(service),
+        client.cache
+      );
     }
 
     update();

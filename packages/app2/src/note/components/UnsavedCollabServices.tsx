@@ -1,16 +1,16 @@
 import { useQuery } from '@apollo/client';
 import { gql } from '../../__generated__';
-import { CollabEditing } from './CollabEditing';
+import { CollabService } from './CollabService';
 import { NoteIdProvider } from '../context/note-id';
 import { useUserId } from '../../user/context/user-id';
 
-const UnsavedNotesCollabEditing_Query = gql(`
-  query UnsavedNotesCollabEditing_Query($id: ID!) {
+const UnsavedCollabServices_Query = gql(`
+  query UnsavedCollabServices_Query($id: ID!) {
     signedInUser(by: { id: $id }) @client {
       id
       local {
         id
-        unsavedNotes {
+        unsavedCollabServices {
           id
           note {
             id
@@ -21,18 +21,18 @@ const UnsavedNotesCollabEditing_Query = gql(`
   }
 `);
 
-export function UnsavedNotesCollabEditing() {
+export function UnsavedCollabServices() {
   const userId = useUserId();
-  const { data } = useQuery(UnsavedNotesCollabEditing_Query, {
+  const { data } = useQuery(UnsavedCollabServices_Query, {
     variables: {
       id: userId,
     },
   });
 
   return (
-    data?.signedInUser?.local.unsavedNotes.map(({ note }) => (
+    data?.signedInUser?.local.unsavedCollabServices.map(({ note }) => (
       <NoteIdProvider key={note.id} noteId={note.id}>
-        <CollabEditing />
+        <CollabService />
       </NoteIdProvider>
     )) ?? null
   );

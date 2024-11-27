@@ -102,13 +102,14 @@ extend type LocalSignedInUser {
   pendingNotes: [UserNoteLink!]!
 }
 
-################################ LocalSignedInUser.unsavedNotes ################################
+################################ LocalSignedInUser.unsavedCollabServices ################################
 
 extend type LocalSignedInUser {
   """
-  List of notes that have unsaved changes. Must send changes to server.
+  List of notes that has CollabService with either local or unsubmitted changes.
+  These notes must be synchronized with the server.
   """
-  unsavedNotes: [UserNoteLink!]!
+  unsavedCollabServices: [UserNoteLink!]!
 }
 
 ################################ UserOperation ################################

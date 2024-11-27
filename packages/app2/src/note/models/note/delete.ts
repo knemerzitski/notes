@@ -3,7 +3,7 @@ import { UserNoteLinkByInput } from '../../../__generated__/graphql';
 import { removeNoteFromConnection } from '../note-connection/remove';
 import { getUserNoteLinkIdFromByInput } from '../../utils/id';
 import { setNotePendingStatus } from '../local-note/set-status';
-import { removeUnsavedNote } from '../unsaved-notes/remove';
+import { updateUnsavedCollabService } from '../update-unsaved-collab-service';
 
 export function deleteNote(
   by: UserNoteLinkByInput,
@@ -21,7 +21,7 @@ export function deleteNote(
     cache
   );
   setNotePendingStatus(by, null, cache);
-  removeUnsavedNote(by, cache);
+  updateUnsavedCollabService(by, true, cache);
 
   cache.evict({
     id: cache.identify({
