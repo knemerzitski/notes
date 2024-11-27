@@ -37,7 +37,6 @@ export class TaggedEvict {
     return this.byTag.get(tag);
   }
 
-  // TODO test
   evictByTag(
     tag: EvictTag,
     cache: Pick<ApolloCache<unknown>, 'evict'>,

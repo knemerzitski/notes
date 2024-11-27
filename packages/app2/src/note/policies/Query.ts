@@ -4,7 +4,7 @@ import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
 import { keyArgsWithUserId } from '../../graphql/utils/key-args-with-user-id';
 import { EvictTag, TaggedEvictOptionsList } from '../../graphql/utils/tagged-evict';
 import { getUserNoteLinkId } from '../utils/id';
-import { objectValueArrayPermutations } from '~utils/object/object-value-array-permutations';
+import { objectValueArrayPermutationsValues } from '~utils/object/object-value-array-permutations';
 import { relayStylePagination } from '../../graphql/utils/relay-style-pagination';
 import { isReference } from '@apollo/client';
 
@@ -124,9 +124,8 @@ export const evictOptions: TaggedEvictOptionsList = [
       },
       // Evict all categories
       ...[
-        ...objectValueArrayPermutations({
+        ...objectValueArrayPermutationsValues({
           category: Object.values(NoteCategory),
-          local: [undefined, true],
         }),
       ].map((args) => ({
         id: 'ROOT_QUERY',
