@@ -2,8 +2,8 @@ import { ApolloCache } from '@apollo/client';
 import { gql } from '../../../__generated__';
 import { UserNoteLinkByInput } from '../../../__generated__/graphql';
 
-const GetNoteCreateStatus_Query = gql(`
-  query GetNoteCreateStatus_Query($by: UserNoteLinkByInput!) {
+const GetNotePendingStatus_Query = gql(`
+  query GetNotePendingStatus_Query($by: UserNoteLinkByInput!) {
     userNoteLink(by: $by) {
       id
       pendingStatus
@@ -11,12 +11,12 @@ const GetNoteCreateStatus_Query = gql(`
   }
 `);
 
-export function getNoteCreateStatus(
+export function getNotePendingStatus(
   by: UserNoteLinkByInput,
   cache: Pick<ApolloCache<unknown>, 'readQuery'>
 ) {
   const data = cache.readQuery({
-    query: GetNoteCreateStatus_Query,
+    query: GetNotePendingStatus_Query,
     variables: {
       by,
     },

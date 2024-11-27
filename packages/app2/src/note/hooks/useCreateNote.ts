@@ -15,7 +15,7 @@ import { addNoteToConnection } from '../models/note-connection/add';
 import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
 import { getFragmentData } from '../../__generated__';
 import { getOrCreatePendingNote } from '../models/local-note/get-or-create-pending';
-import { getNoteCreateStatus } from '../models/local-note/get-status';
+import { getNotePendingStatus } from '../models/local-note/get-status';
 import { setNotePendingStatus } from '../models/local-note/set-status';
 import { getUserNoteLinkId } from '../utils/id';
 import { clearExcludeNoteFromConnection } from '../models/local-note/clear-exclude';
@@ -54,7 +54,7 @@ export function useCreateNote(): {
   useCategoryChanged(noteId, (categoryName) => {
     const isNoteDeleted = categoryName === false;
     if (isNoteDeleted || categoryName === NoteCategory.TRASH) {
-      const currentStatus = getNoteCreateStatus({ noteId }, client.cache);
+      const currentStatus = getNotePendingStatus({ noteId }, client.cache);
       if (currentStatus !== NotePendingStatus.EMPTY) {
         if (!isNoteDeleted) {
           setTimeout(() => {
@@ -74,7 +74,7 @@ export function useCreateNote(): {
   });
 
   const create = useCallback(() => {
-    const currentStatus = getNoteCreateStatus({ noteId }, client.cache);
+    const currentStatus = getNotePendingStatus({ noteId }, client.cache);
     if (currentStatus !== NotePendingStatus.EMPTY) {
       return Promise.resolve(false);
     }
@@ -115,7 +115,7 @@ export function useCreateNote(): {
   }, [client, noteId, createNoteMutation, isLocalOnlyUser]);
 
   const complete = useCallback(() => {
-    const currentStatus = getNoteCreateStatus({ noteId }, client.cache);
+    const currentStatus = getNotePendingStatus({ noteId }, client.cache);
 
     if (currentStatus !== NotePendingStatus.EMPTY) {
       clearExcludeNoteFromConnection(
