@@ -27,7 +27,7 @@ export function getConnectionCategoryName(
 }
 
 /**
- * Update field `connectionCategoryName` with value from `categoryName`
+ * Update field `connectionCategoryName` with value from `categoryName` if it's not defined
  */
 export function updateConnectionCategoryName(
   by: UserNoteLinkByInput,
@@ -49,7 +49,8 @@ export function updateConnectionCategoryName(
         ...data,
         userNoteLink: {
           ...data.userNoteLink,
-          connectionCategoryName: data.userNoteLink.categoryName,
+          connectionCategoryName:
+            data.userNoteLink.connectionCategoryName ?? data.userNoteLink.categoryName,
         },
       };
     }

@@ -11,11 +11,7 @@ export const UserNoteLink: CreateTypePolicyFn = function (_ctx: TypePoliciesCont
       originalCategoryName(existing = null) {
         return existing;
       },
-      connectionCategoryName(existing = null, { readField }) {
-        if (existing === null) {
-          return readField('categoryName');
-        }
-
+      connectionCategoryName(existing = null) {
         return existing;
       },
       deletedAt: DateTimeNullable,
