@@ -1,9 +1,9 @@
 import { Outlet, createRootRouteWithContext } from '@tanstack/react-router';
-import { Suspense } from 'react';
-import { TanStackRouterDevtools } from '../utils/components/TanStackRouterDevTools';
 import { RouterContext } from '../router';
 import { coerce, number, optional, string, type } from 'superstruct';
 import { RouteNoteDialog } from '../note/components/RouteNoteDialog';
+import { RouteDevModuleProvider } from '../dev/components/RouteDevModuleProvider';
+import { RouteUserModuleProvider } from '../user/components/RouteUserModuleProvider';
 
 // TODO loader for note dialog or a global first loader??
 
@@ -23,13 +23,13 @@ function Root() {
 
   return (
     <>
+      <RouteUserModuleProvider />
+
       <Outlet />
 
-      <Suspense>
-        <TanStackRouterDevtools />
-      </Suspense>
-
       {noteId && <RouteNoteDialog noteId={noteId} />}
+
+      <RouteDevModuleProvider />
     </>
   );
 }

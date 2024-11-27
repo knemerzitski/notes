@@ -9,6 +9,7 @@ import {
 } from './user/policies';
 import {
   CacheReadyCallbacks,
+  GraphQLServiceAction,
   MutationDefinitions,
   TypePoliciesList,
 } from './graphql/types';
@@ -20,8 +21,14 @@ import { LocalStorageWrapper } from 'apollo3-cache-persist';
 import { devicePreferencesPolicies } from './device-preferences/policies';
 import { getCurrentUserId } from './user/models/signed-in-user/get-current';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
-import { noteEvictOptions, noteMutationDefinitions, notePolicies, notePossibleTypes } from './note/policies';
+import {
+  noteEvictOptions,
+  noteMutationDefinitions,
+  notePolicies,
+  notePossibleTypes,
+} from './note/policies';
 import { PossibleTypesMap } from '@apollo/client';
+import { devGraphQLServiceActions } from './dev';
 
 const HTTP_URL =
   import.meta.env.MODE === 'production'
@@ -52,12 +59,12 @@ const MUTATION_DEFINITIONS: MutationDefinitions = [
 
 const POSSIBLE_TYPES_LIST: PossibleTypesMap[] = [
   generatedPossibleTypes,
-  notePossibleTypes
+  notePossibleTypes,
 ];
 
 const CACHE_READY_CALLBACKS: CacheReadyCallbacks = [userCacheReadyCallback];
 
-const SERVICE_ACTIONS: GraphQLServiceAction[] = [];
+const SERVICE_ACTIONS: GraphQLServiceAction[] = [...devGraphQLServiceActions];
 
 export function createDefaultGraphQLServiceParams(): Parameters<
   typeof createGraphQLService
@@ -87,6 +94,7 @@ export function createDefaultGraphQLServiceParams(): Parameters<
             }
           : undefined,
     },
+    actions: SERVICE_ACTIONS,
   };
 }
 
