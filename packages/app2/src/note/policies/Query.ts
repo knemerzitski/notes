@@ -1,5 +1,5 @@
 import { isObjectLike } from '~utils/type-guards/is-object-like';
-import { NoteCategory } from '../../__generated__/graphql';
+import { Note, NoteCategory } from '../../__generated__/graphql';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
 import { keyArgsWithUserId } from '../../graphql/utils/key-args-with-user-id';
 import { EvictTag, TaggedEvictOptionsList } from '../../graphql/utils/tagged-evict';
@@ -7,6 +7,14 @@ import { getUserNoteLinkId } from '../utils/id';
 import { objectValueArrayPermutationsValues } from '~utils/object/object-value-array-permutations';
 import { relayStylePagination } from '../../graphql/utils/relay-style-pagination';
 import { isReference } from '@apollo/client';
+
+function throwNoteNotFoundError(noteId?: Note['id']): never {
+  if (noteId) {
+    throw new Error(`Note "${noteId}" not found`);
+  } else {
+    throw new Error('Query is missing note id');
+  }
+}
 
 export const Query: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
   return {
@@ -16,17 +24,17 @@ export const Query: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
         read(_existing, { args, toReference }) {
           // Read using UserNoteLinkByInput (argument by)
           if (!args || !isObjectLike(args)) {
-            return null;
+            throwNoteNotFoundError();
           }
           const by = args.by;
           if (!isObjectLike(by)) {
-            return null;
+            throwNoteNotFoundError();
           }
 
           if (typeof by.noteId === 'string') {
             const userId = ctx.appContext.userId;
             if (userId == null) {
-              return null;
+              throwNoteNotFoundError(by.noteId);
             }
 
             return toReference({
@@ -37,7 +45,7 @@ export const Query: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
 
           const id = by.id ?? by.userNoteLinkId;
           if (typeof id !== 'string') {
-            return null;
+            throwNoteNotFoundError(String(id));
           }
 
           return toReference({
