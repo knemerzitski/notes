@@ -57,6 +57,8 @@ const POSSIBLE_TYPES_LIST: PossibleTypesMap[] = [
 
 const CACHE_READY_CALLBACKS: CacheReadyCallbacks = [userCacheReadyCallback];
 
+const SERVICE_ACTIONS: GraphQLServiceAction[] = [];
+
 export function createDefaultGraphQLServiceParams(): Parameters<
   typeof createGraphQLService
 >[0] {

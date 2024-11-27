@@ -12,6 +12,7 @@ import {
   AppContext,
   CacheReadyCallbacks,
   GlobalOperationVariables,
+  GraphQLServiceAction,
   MutationDefinitions,
   TypePoliciesList,
 } from '../types';
@@ -41,6 +42,7 @@ export function createGraphQLService({
   context,
   skipRestoreCache = false,
   linkOptions,
+  actions,
 }: {
   httpUri: string;
   wsUrl: string | undefined;
@@ -62,6 +64,7 @@ export function createGraphQLService({
     getUserId(cache: InMemoryCache): Maybe<string>;
   };
   linkOptions?: Parameters<typeof createLinks>[0]['options'];
+  actions?: GraphQLServiceAction[];
 }) {
   const mutationUpdaterFnMap = createMutationUpdaterFunctionMap(mutationDefinitions);
 
@@ -189,7 +192,7 @@ export function createGraphQLService({
 
   apolloClient.setLink(ApolloLink.from([errorLink, links.link, httpWsLink]));
 
-  return {
+  const result = {
     client: apolloClient,
     persistor,
     restorer,
@@ -200,7 +203,7 @@ export function createGraphQLService({
     getUserGate,
     /**
      * Removes window event listeners. Stops ApolloClient.
-     * 
+     *
      * Service will no longer function properly.
      */
     dispose: () => {
@@ -208,4 +211,10 @@ export function createGraphQLService({
       disposeOnlineGate();
     },
   };
+
+  actions?.forEach((fn) => {
+    fn(result);
+  });
+
+  return result;
 }

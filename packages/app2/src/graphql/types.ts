@@ -85,3 +85,5 @@ export type CacheReadyCallbacks = CacheReadyCallback[];
 export type MutationDefinitions = MutationDefinition[];
 
 export type GraphQLService = ReturnType<typeof createGraphQLService>;
+
+export type GraphQLServiceAction = (service: GraphQLService) => void;
