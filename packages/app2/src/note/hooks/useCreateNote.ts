@@ -5,7 +5,7 @@ import {
   CreateNotePayloadFragmentDoc,
   Note,
   NoteCategory,
-  NoteCreateStatus,
+  NotePendingStatus,
 } from '../../__generated__/graphql';
 import { CreateNote } from '../mutations/CreateNote';
 import { useMutation } from '../../graphql/hooks/useMutation';
@@ -14,14 +14,11 @@ import { useCategoryChanged } from './useCategoryChanged';
 import { addNoteToConnection } from '../models/note-connection/add';
 import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
 import { getFragmentData } from '../../__generated__';
-import { getOrAddEmptyCreateNoteId } from '../models/local-note/get-or-add-empty';
+import { getOrCreatePendingNote } from '../models/local-note/get-or-create-pending';
 import { getNoteCreateStatus } from '../models/local-note/get-status';
-import { setNoteCreateStatus } from '../models/local-note/set-status';
+import { setNotePendingStatus } from '../models/local-note/set-status';
 import { getUserNoteLinkId } from '../utils/id';
 import { clearExcludeNoteFromConnection } from '../models/local-note/clear-exclude';
-
-// TODO test what if complete is never called?
-// when opening this component, check last id, it should be same, just complete it right away?
 
 export function useCreateNote(): {
   noteId: Note['id'];
@@ -46,7 +43,7 @@ export function useCreateNote(): {
   const [newNoteIdCounter, setNewNoteIdCounter] = useState(0);
 
   const newLocalNoteId = useMemo(
-    () => getOrAddEmptyCreateNoteId(userId, client.cache),
+    () => getOrCreatePendingNote(userId, client.cache),
     // Using newNoteIdCounter to invoke getOrAddEmptyCreateNoteId again
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [userId, client, newNoteIdCounter]
@@ -58,7 +55,7 @@ export function useCreateNote(): {
     const isNoteDeleted = categoryName === false;
     if (isNoteDeleted || categoryName === NoteCategory.TRASH) {
       const currentStatus = getNoteCreateStatus({ noteId }, client.cache);
-      if (currentStatus !== NoteCreateStatus.EMPTY) {
+      if (currentStatus !== NotePendingStatus.EMPTY) {
         if (!isNoteDeleted) {
           setTimeout(() => {
             clearExcludeNoteFromConnection(
@@ -78,19 +75,19 @@ export function useCreateNote(): {
 
   const create = useCallback(() => {
     const currentStatus = getNoteCreateStatus({ noteId }, client.cache);
-    if (currentStatus !== NoteCreateStatus.EMPTY) {
+    if (currentStatus !== NotePendingStatus.EMPTY) {
       return Promise.resolve(false);
     }
 
     if (isLocalOnlyUser) {
-      setNoteCreateStatus({ noteId }, NoteCreateStatus.DONE, client.cache);
+      setNotePendingStatus({ noteId }, NotePendingStatus.DONE, client.cache);
       return Promise.resolve(true);
     }
 
     const service = getCollabService({ noteId }, client.cache);
     const submittedRecord = service.submitChanges();
 
-    setNoteCreateStatus({ noteId }, NoteCreateStatus.SUBMITTING, client.cache);
+    setNotePendingStatus({ noteId }, NotePendingStatus.SUBMITTING, client.cache);
 
     return createNoteMutation({
       variables: {
@@ -120,7 +117,7 @@ export function useCreateNote(): {
   const complete = useCallback(() => {
     const currentStatus = getNoteCreateStatus({ noteId }, client.cache);
 
-    if (currentStatus !== NoteCreateStatus.EMPTY) {
+    if (currentStatus !== NotePendingStatus.EMPTY) {
       clearExcludeNoteFromConnection(
         {
           noteId,

@@ -3,7 +3,7 @@ import { gql } from '../../__generated__';
 import {
   Note,
   NoteCategory,
-  NoteCreateStatus,
+  NotePendingStatus,
   UserNoteLink,
 } from '../../__generated__/graphql';
 import { useEffect, useRef } from 'react';
@@ -13,7 +13,7 @@ import { getUserNoteLinkId } from '../utils/id';
 const UseCategoryChanged_UserNoteLinkFragment = gql(`
   fragment UseCategoryChanged_UserNoteLinkFragment on UserNoteLink {
     categoryName
-    createStatus
+    pendingStatus
   }
 `);
 
@@ -48,7 +48,7 @@ export function useCategoryChanged(
         return;
       }
 
-      if (value.data.createStatus === NoteCreateStatus.CONVERTING) {
+      if (value.data.pendingStatus === NotePendingStatus.CONVERTING) {
         // Do not trigger callback when local note is being replaced with a remote one
         return;
       }

@@ -25,7 +25,7 @@ export const UserNoteLink: CreateTypePolicyFn = function (_ctx: TypePoliciesCont
       excludeFromConnection(existing = false) {
         return existing;
       },
-      createStatus(existing = null) {
+      pendingStatus(existing = null) {
         return existing;
       },
     },

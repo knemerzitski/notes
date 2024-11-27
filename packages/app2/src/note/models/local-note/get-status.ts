@@ -6,7 +6,7 @@ const GetNoteCreateStatus_Query = gql(`
   query GetNoteCreateStatus_Query($by: UserNoteLinkByInput!) {
     userNoteLink(by: $by) {
       id
-      createStatus
+      pendingStatus
     }
   }
 `);
@@ -22,5 +22,5 @@ export function getNoteCreateStatus(
     },
   });
 
-  return data?.userNoteLink.createStatus;
+  return data?.userNoteLink.pendingStatus;
 }

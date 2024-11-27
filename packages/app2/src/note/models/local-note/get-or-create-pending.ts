@@ -1,22 +1,40 @@
 import { ApolloCache } from '@apollo/client';
 import { gql } from '../../../__generated__';
-import { getUserNoteLinkId, getCollabTextId } from '../../utils/id';
-import { generateNoteId } from './generate-id';
 import {
-  AddCreateNoteQueryQuery,
-  NoteCreateStatus,
+  GetOrCreatePendingNoteAddQueryQuery,
+  NotePendingStatus,
 } from '../../../__generated__/graphql';
 import { Changeset } from '~collab/changeset';
+import { generateNoteId } from './generate-id';
+import { getCollabTextId, getUserNoteLinkId } from '../../utils/id';
 
-const AddCreateNote_Query = gql(`
-  query AddCreateNote_Query($id: ID!) {
+const GetOrCreatePendingNote_Query = gql(`
+  query GetOrCreatePendingNote_Query($id: ID!) {
     signedInUser(by: { id: $id }) {
       id
       local {
         id
-        createNotes {
+        pendingNotes {
           id
-          createStatus
+          pendingStatus
+          note {
+            id
+          }        
+        }
+      }
+    }
+  }
+`);
+
+const GetOrCreatePendingNoteAdd_Query = gql(`
+  query GetOrCreatePendingNoteAdd_Query($id: ID!) {
+    signedInUser(by: { id: $id }) {
+      id
+      local {
+        id
+        pendingNotes {
+          id
+          pendingStatus
           excludeFromConnection
           note {
             id
@@ -34,7 +52,33 @@ const AddCreateNote_Query = gql(`
   }
 `);
 
-export function addCreateNote(
+export function getOrCreatePendingNote(
+  userId: string,
+  cache: Pick<
+    ApolloCache<unknown>,
+    'writeQuery' | 'readFragment' | 'identify' | 'readQuery'
+  >
+) {
+  const data = cache.readQuery({
+    query: GetOrCreatePendingNote_Query,
+    variables: {
+      id: userId,
+    },
+  });
+
+  const firstEmptyNoteLink = data?.signedInUser?.local.pendingNotes.find(
+    (noteLink) => noteLink.pendingStatus === NotePendingStatus.EMPTY
+  );
+  if (firstEmptyNoteLink) {
+    return firstEmptyNoteLink.note.id;
+  }
+
+  const noteLink = add(userId, cache);
+
+  return noteLink.note.id;
+}
+
+function add(
   userId: string,
   cache: Pick<ApolloCache<unknown>, 'writeQuery' | 'readFragment' | 'identify'>
 ) {
@@ -43,11 +87,11 @@ export function addCreateNote(
   const collabTextId = getCollabTextId(noteId);
 
   const userNoteLink: NonNullable<
-    AddCreateNoteQueryQuery['signedInUser']
-  >['local']['createNotes'][0] = {
+    GetOrCreatePendingNoteAddQueryQuery['signedInUser']
+  >['local']['pendingNotes'][0] = {
     __typename: 'UserNoteLink',
     id: userNoteLinkId,
-    createStatus: NoteCreateStatus.EMPTY,
+    pendingStatus: NotePendingStatus.EMPTY,
     excludeFromConnection: true,
     note: {
       __typename: 'Note',
@@ -64,9 +108,8 @@ export function addCreateNote(
     },
   };
 
-  // TODO test if writes to cache?
   cache.writeQuery({
-    query: AddCreateNote_Query,
+    query: GetOrCreatePendingNoteAdd_Query,
     data: {
       __typename: 'Query',
       signedInUser: {
@@ -75,7 +118,7 @@ export function addCreateNote(
         local: {
           __typename: 'LocalSignedInUser',
           id: userId,
-          createNotes: [userNoteLink],
+          pendingNotes: [userNoteLink],
         },
       },
     },

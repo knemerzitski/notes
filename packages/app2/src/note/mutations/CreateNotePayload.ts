@@ -1,14 +1,14 @@
 import { getFragmentData, gql } from '../../__generated__';
 import {
   AddRecordToConnectionCollabTextRecordFragmentFragmentDoc,
-  NoteCreateStatus,
+  NotePendingStatus,
 } from '../../__generated__/graphql';
 import { mutationDefinition } from '../../graphql/utils/mutation-definition';
 import { collabTextRecordToCollabServiceRecord } from '../utils/map-record';
 import { getCollabService } from '../models/note/get-collab-service';
 import { addNoteToConnection } from '../models/note-connection/add';
 import { addRecordToConnection } from '../models/record-connection/add';
-import { setNoteCreateStatus } from '../models/local-note/set-status';
+import { setNotePendingStatus } from '../models/local-note/set-status';
 import { getOperationUserId } from '../../graphql/utils/get-operation-user-id';
 import { convertLocalToRemoteNote } from '../models/convert-local-to-remote-note';
 
@@ -69,10 +69,15 @@ export const CreateNotePayload = mutationDefinition(
         }
       );
 
-      // Update status for both notes...
-      setNoteCreateStatus({ noteId: localNoteId }, NoteCreateStatus.CONVERTING, cache);
-      // TODO remote note dont need status DONE?
-      setNoteCreateStatus({ id: data.userNoteLink.id }, NoteCreateStatus.DONE, cache);
+      setNotePendingStatus({ noteId: localNoteId }, NotePendingStatus.CONVERTING, cache);
+
+      setNotePendingStatus(
+        { id: data.userNoteLink.id },
+        isExcludeNoteFromConnection({ id: data.userNoteLink.id }, cache)
+          ? NotePendingStatus.DONE
+          : null,
+        cache
+      );
     }
 
     if (context?.isSubscriptionOperation) {

@@ -103,9 +103,6 @@ export const Query: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
         },
         isOrderedSet: true,
       }),
-      createNotes: {
-        keyArgs: keyArgsWithUserId(ctx),
-      },
     },
   };
 };
@@ -114,10 +111,6 @@ export const evictOptions: TaggedEvictOptionsList = [
   {
     tag: EvictTag.CURRENT_USER,
     options: [
-      {
-        id: 'ROOT_QUERY',
-        fieldName: 'creatingNotes',
-      },
       {
         id: 'ROOT_QUERY',
         fieldName: 'userNoteLink',

@@ -60,12 +60,12 @@ type NoteTextField {
   editor: NoteTextFieldEditor!
 }
 
-################################ LocalSignedInUser.createNotes ################################
+################################ LocalSignedInUser.pendingNotes ################################
 
 """
 TODO desc
 """
-enum NoteCreateStatus {
+enum NotePendingStatus {
   """
   An empty note that can be used to start creating a new note
   """
@@ -87,7 +87,7 @@ enum NoteCreateStatus {
 }
 
 extend type UserNoteLink {
-  createStatus: NoteCreateStatus
+  pendingStatus: NotePendingStatus
   """
   Note is excluded from being show in connection
   """
@@ -96,9 +96,10 @@ extend type UserNoteLink {
 
 extend type LocalSignedInUser {
   """
-  A list of notes that need to be processed for creation.
+  A list of notes tied to creating new notes.
+  Each note should have non-null field `pendingStatus`.
   """
-  createNotes: [UserNoteLink!]!
+  pendingNotes: [UserNoteLink!]!
 }
 
 ################################ LocalSignedInUser.unsavedNotes ################################
@@ -129,12 +130,10 @@ type TrashNoteUserOperation implements UserOperation {
 }
 
 """
-Invoke mutation `MoveNOte`
+Invoke mutation `MoveNote`
 """
 type MoveNoteUserOperation implements UserOperation {
   id: ID!
   userNoteLink: UserNoteLink!
   location: NoteLocation
 }
-
-

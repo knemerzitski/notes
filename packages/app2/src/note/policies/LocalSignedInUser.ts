@@ -4,7 +4,7 @@ import { fieldArrayToMap } from '../../graphql/utils/field-array-to-map';
 export const LocalSignedInUser: CreateTypePolicyFn = function () {
   return {
     fields: {
-      createNotes: fieldArrayToMap('id', {
+      pendingNotes: fieldArrayToMap('id', {
         read(existing = {}) {
           return existing;
         },

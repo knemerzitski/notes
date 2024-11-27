@@ -167,7 +167,7 @@ export function convertLocalToRemoteNote(
   }
 
   // On next tick, delete local note since it has been replaced by remote one
-  // Use timeout to give time to process any immediate change (e.g NoteCreateStatus.CONVERTING)
+  // Use timeout to give time to process any immediate change (e.g NotePendingStatus.CONVERTING)
   excludeNoteFromConnection(
     {
       noteId: localNoteId,
