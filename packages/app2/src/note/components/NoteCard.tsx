@@ -144,7 +144,7 @@ export const PureNoteCard = forwardRef<
     <PaperStyled {...restProps} ref={ref}>
       {slots?.prefix}
       {/* TODO create badge */}
-      {noteId}
+      {import.meta.env.DEV && noteId}
       <TitleTypography />
       <ContentTypography />
       <DeletedInDaysStyled />
