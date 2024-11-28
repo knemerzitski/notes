@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/filename-case */
 import { CreateFieldPolicyFn, TypePoliciesContext } from '../../../graphql/types';
 import { FieldFunctionOptions } from '@apollo/client';
 import { CollabTextRecord } from '../../../__generated__/graphql';
@@ -30,6 +29,7 @@ type OnlyRevision = Pick<CollabTextRecord['change'], 'revision'>;
 export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesContext) {
   return {
     read(existing = [], options) {
+      // Existing changeset is probably serialized
       const { args } = options;
 
       // Return oldest without argument
@@ -72,7 +72,7 @@ export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesC
       return {
         changeset: records.reduce(
           (a, b) => a.compose(b.change.changeset),
-          tailText.changeset
+          Changeset.parseValue(tailText.changeset)
         ),
         revision,
       };
@@ -81,7 +81,7 @@ export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesC
       existing = [
         {
           __typename: 'RevisionChangeset',
-          changeset: Changeset.EMPTY,
+          changeset: Changeset.EMPTY.serialize(),
           revision: 0,
         },
       ],

@@ -6,7 +6,6 @@ import { MockLink } from '@apollo/client/testing';
 import { it, expect, beforeAll, describe, beforeEach } from 'vitest';
 import { createDefaultGraphQLServiceParams } from '../../../graphql-service';
 import { createGraphQLService } from '../../../graphql/create/service';
-import { Changeset } from '~collab/changeset';
 
 const TextAtRevision_CollabTextFragment = gql(`
   fragment TestTextAtRevision on CollabText {
@@ -48,14 +47,12 @@ describe('read', () => {
           {
             __typename: 'RevisionChangeset',
             revision: 3,
-            // TODO fix scalar not invoked
-            changeset: Changeset.parseValue(['a']),
+            changeset: ['a'],
           },
           {
             __typename: 'RevisionChangeset',
             revision: 5,
-            // TODO fix scalar not invoked
-            changeset: Changeset.parseValue(['abc']),
+            changeset: ['abc'],
           },
         ],
         recordConnection: {
@@ -167,15 +164,17 @@ describe('read', () => {
   });
 });
 
-// TODO update tests
-describe.skip('merge', () => {
+describe('merge', () => {
   beforeEach(() => {
-    cache = createCache();
-    const _collabTextRef = cache.identify({
+    const serviceParams = createDefaultGraphQLServiceParams();
+    serviceParams.terminatingLink = new MockLink([]);
+    const service = createGraphQLService(serviceParams);
+    cache = service.client.cache;
+
+    collabTextDataId = cache.identify({
       id: collabTextId,
       __typename: 'CollabText',
-    });
-    collabTextDataId = _collabTextRef!;
+    })!;
 
     cache.restore({
       [collabTextDataId]: {
@@ -209,7 +208,7 @@ describe.skip('merge', () => {
   it('inserts new revision', () => {
     cache.writeFragment({
       id: collabTextDataId,
-      fragment: FRAGMENT,
+      fragment: TextAtRevision_CollabTextFragment,
       data: {
         textAtRevision: {
           revision: 4,
@@ -227,7 +226,7 @@ describe.skip('merge', () => {
   it('merges with existing', () => {
     cache.writeFragment({
       id: collabTextDataId,
-      fragment: FRAGMENT,
+      fragment: TextAtRevision_CollabTextFragment,
       data: {
         textAtRevision: {
           revision: 50,
@@ -243,10 +242,11 @@ describe.skip('merge', () => {
     });
   });
 
-  it('ignores revision if it can be calculated from records', () => {
+  // TODO fix test
+  it.skip('ignores revision if it can be calculated from records', () => {
     cache.writeFragment({
       id: collabTextDataId,
-      fragment: FRAGMENT,
+      fragment: TextAtRevision_CollabTextFragment,
       data: {
         textAtRevision: {
           revision: 21,
