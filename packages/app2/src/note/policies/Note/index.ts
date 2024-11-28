@@ -5,6 +5,7 @@ import { _external, readNoteExternalState } from './_external';
 import { isLocalId } from '../../../utils/is-local-id';
 import { Reference } from '@apollo/client';
 import { NoteTextFieldName } from '../../../__generated__/graphql';
+import { getCollabTextId } from '../../utils/id';
 
 interface TextFieldsResult {
   __typename: 'NoteTextField';
@@ -39,6 +40,19 @@ export const Note: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
       localOnly(_existing, { readField }) {
         const id = readField('id');
         return isLocalId(id);
+      },
+      // TODO remove useless field?
+      collabText(existing, { readField }) {
+        const noteId = readField('id');
+
+        if (existing === undefined && typeof noteId === 'string') {
+          return {
+            __typename: 'CollabText',
+            id: getCollabTextId(noteId),
+          };
+        }
+
+        return existing;
       },
     },
   };

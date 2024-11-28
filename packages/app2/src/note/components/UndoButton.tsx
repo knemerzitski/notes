@@ -18,6 +18,8 @@ const UndoButton_Query = gql(`
   }
 `);
 
+// TODO useCollabService
+
 export function UndoButton(props: Omit<Parameters<typeof NoteDefined>[0], 'note'>) {
   const noteId = useNoteId();
   const { data } = useQuery(UndoButton_Query, {

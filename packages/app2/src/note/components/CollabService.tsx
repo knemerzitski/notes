@@ -10,6 +10,7 @@ import { ReactNode } from '@tanstack/react-router';
 import mitt from 'mitt';
 import { SyncHeadText } from './SyncHeadText';
 import { SyncMissingRecords } from './SyncMissingRecords';
+import { HistoryRestoration } from './HistoryRestoration';
 
 /**
  * Run events related to CollabService:
@@ -98,6 +99,7 @@ function Remote() {
       <SubmittedRecordMutation />
       <SyncHeadText />
       <SyncMissingRecords />
+      <HistoryRestoration />
     </>
   );
 }
