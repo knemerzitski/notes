@@ -1,17 +1,17 @@
 import { getFragmentData, gql } from '../../__generated__';
 import {
-  AddRecordToConnectionCollabTextRecordFragmentFragmentDoc,
+  MapRecordCollabTextRecordFragmentFragmentDoc,
   NotePendingStatus,
 } from '../../__generated__/graphql';
 import { mutationDefinition } from '../../graphql/utils/mutation-definition';
-import { collabTextRecordToCollabServiceRecord } from '../utils/map-record';
+import { cacheRecordToCollabServiceRecord } from '../utils/map-record';
 import { getCollabService } from '../models/note/get-collab-service';
 import { addNoteToConnection } from '../models/note-connection/add';
 import { addRecordToConnection } from '../models/record-connection/add';
 import { setNotePendingStatus } from '../models/local-note/set-status';
-import { getOperationUserId } from '../../graphql/utils/get-operation-user-id';
 import { convertLocalToRemoteNote } from '../models/convert-local-to-remote-note';
 import { isExcludeNoteFromConnection } from '../models/local-note/is-exclude';
+import { parseUserNoteLinkId } from '../utils/id';
 
 /**
  * Will acknowledge submitted changes in service
@@ -20,7 +20,7 @@ export const CreateNotePayload = mutationDefinition(
   gql(`
   fragment CreateNotePayload on CreateNotePayload {
     firstCollabTextRecord {
-      ...AddRecordToConnection_CollabTextRecordFragment
+      ...MapRecord_CollabTextRecordFragment
     }
     userNoteLink {
       id
@@ -46,14 +46,14 @@ export const CreateNotePayload = mutationDefinition(
     const { context } = options;
 
     const firstRecord = getFragmentData(
-      AddRecordToConnectionCollabTextRecordFragmentFragmentDoc,
+      MapRecordCollabTextRecordFragmentFragmentDoc,
       data.firstCollabTextRecord
     );
     if (!firstRecord) {
       throw new Error('Create note unexpected missing first collab record');
     }
 
-    const userId = getOperationUserId(options);
+    const { userId } = parseUserNoteLinkId(data.userNoteLink.id);
 
     const localNoteId = context?.localNoteId;
     if (localNoteId) {
@@ -93,8 +93,6 @@ export const CreateNotePayload = mutationDefinition(
     addRecordToConnection(data.userNoteLink.note.collabText.id, firstRecord, cache);
 
     const service = getCollabService({ userNoteLinkId: data.userNoteLink.id }, cache);
-    service.submittedChangesAcknowledged(
-      collabTextRecordToCollabServiceRecord(firstRecord)
-    );
+    service.submittedChangesAcknowledged(cacheRecordToCollabServiceRecord(firstRecord));
   }
 );

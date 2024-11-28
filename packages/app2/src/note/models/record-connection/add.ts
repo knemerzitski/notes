@@ -1,37 +1,16 @@
 import { ApolloCache } from '@apollo/client';
 import {
-  AddRecordToConnectionCollabTextRecordFragmentFragment,
   CollabText,
+  MapRecordCollabTextRecordFragmentFragment,
 } from '../../../__generated__/graphql';
 import { gql } from '../../../__generated__';
-
-const _AddRecordToConnection_CollabTextRecordFragment = gql(`
-  fragment AddRecordToConnection_CollabTextRecordFragment on CollabTextRecord {
-    id
-    creatorUser {
-      id
-    }
-    change {
-      revision
-      changeset
-    }
-    beforeSelection {
-      start
-      end
-    }
-    afterSelection {
-      start
-      end
-    }
-  }
-`);
 
 const AddRecordToConnection_CollabTextFragment = gql(`
   fragment AddRecordToConnection_CollabTextFragment on CollabText {
     recordConnection {
       edges {
         node {
-          ...AddRecordToConnection_CollabTextRecordFragment
+          ...MapRecord_CollabTextRecordFragment
         }
       }
     }
@@ -40,7 +19,7 @@ const AddRecordToConnection_CollabTextFragment = gql(`
 
 export function addRecordToConnection(
   collabTextId: CollabText['id'],
-  record: AddRecordToConnectionCollabTextRecordFragmentFragment,
+  record: MapRecordCollabTextRecordFragmentFragment,
   cache: Pick<ApolloCache<unknown>, 'writeFragment'>
 ) {
   cache.writeFragment({

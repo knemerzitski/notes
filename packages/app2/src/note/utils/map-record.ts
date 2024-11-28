@@ -1,7 +1,39 @@
 import { SubmittedRecord } from '~collab/client/submitted-record';
-import { CollabTextRecord, CollabTextRecordInput } from '../../__generated__/graphql';
+import {
+  CollabTextRecordInput,
+  MapRecordCollabTextRecordFragmentFragment,
+} from '../../__generated__/graphql';
 import { CollabServiceRecord } from '~collab/client/collab-service';
+import { gql } from '../../__generated__';
 
+/**
+ * Record structure that is always fetched from the server and stored in cache.
+ */
+const _MapRecord_CollabTextRecordFragment = gql(`
+  fragment MapRecord_CollabTextRecordFragment on CollabTextRecord {
+    id
+    creatorUser {
+      id
+    }
+    change {
+      revision
+      changeset
+    }
+    beforeSelection {
+      start
+      end
+    }
+    afterSelection {
+      start
+      end
+    }
+  }
+`);
+
+/**
+ * Map SubmittedRecord from CollabService to appropriate
+ * record for server consumption.
+ */
 export function submittedRecordToCollabTextRecordInput(
   record: SubmittedRecord
 ): CollabTextRecordInput {
@@ -16,10 +48,12 @@ export function submittedRecordToCollabTextRecordInput(
   };
 }
 
-export function collabTextRecordToCollabServiceRecord(
-  record: Pick<CollabTextRecord, 'change' | 'afterSelection' | 'beforeSelection'> & {
-    creatorUser: Pick<CollabTextRecord['creatorUser'], 'id'>;
-  }
+/**
+ * Map record received from server (that is stored in ApolloCache)
+ * to appropriate record for CollabService consumption.
+ */
+export function cacheRecordToCollabServiceRecord(
+  record: MapRecordCollabTextRecordFragmentFragment
 ): CollabServiceRecord {
   return {
     creatorUserId: record.creatorUser.id,

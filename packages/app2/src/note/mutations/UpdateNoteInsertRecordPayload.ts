@@ -1,15 +1,15 @@
 import { getFragmentData, gql } from '../../__generated__';
-import { AddRecordToConnectionCollabTextRecordFragmentFragmentDoc } from '../../__generated__/graphql';
+import { MapRecordCollabTextRecordFragmentFragmentDoc } from '../../__generated__/graphql';
 import { mutationDefinition } from '../../graphql/utils/mutation-definition';
 import { getCollabService } from '../models/note/get-collab-service';
 import { addRecordToConnection } from '../models/record-connection/add';
-import { collabTextRecordToCollabServiceRecord } from '../utils/map-record';
+import { cacheRecordToCollabServiceRecord } from '../utils/map-record';
 
 export const UpdateNoteInsertRecordPayload = mutationDefinition(
   gql(`
     fragment UpdateNoteInsertRecordPayload on UpdateNoteInsertRecordPayload {
       newRecord {
-        ...AddRecordToConnection_CollabTextRecordFragment
+        ...MapRecord_CollabTextRecordFragment
       }
       collabText {
         id
@@ -27,7 +27,7 @@ export const UpdateNoteInsertRecordPayload = mutationDefinition(
     const { newRecord: newRecordFragment, note, collabText } = data;
 
     const newRecord = getFragmentData(
-      AddRecordToConnectionCollabTextRecordFragmentFragmentDoc,
+      MapRecordCollabTextRecordFragmentFragmentDoc,
       newRecordFragment
     );
 
@@ -37,11 +37,9 @@ export const UpdateNoteInsertRecordPayload = mutationDefinition(
     const service = getCollabService({ noteId: note.id }, cache);
 
     if (context?.isSubscriptionOperation) {
-      service.handleExternalChange(collabTextRecordToCollabServiceRecord(newRecord));
+      service.handleExternalChange(cacheRecordToCollabServiceRecord(newRecord));
     } else {
-      service.submittedChangesAcknowledged(
-        collabTextRecordToCollabServiceRecord(newRecord)
-      );
+      service.submittedChangesAcknowledged(cacheRecordToCollabServiceRecord(newRecord));
     }
   }
 );

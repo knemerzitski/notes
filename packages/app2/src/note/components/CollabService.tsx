@@ -8,6 +8,8 @@ import { useNoteId } from '../context/note-id';
 import { useEffect, useState } from 'react';
 import { ReactNode } from '@tanstack/react-router';
 import mitt from 'mitt';
+import { SyncHeadText } from './SyncHeadText';
+import { SyncMissingRecords } from './SyncMissingRecords';
 
 /**
  * Run events related to CollabService:
@@ -94,6 +96,8 @@ function Remote() {
       <UnsavedCollabServiceTracker />
       <LocalChangesToSubmittedRecordDebounced />
       <SubmittedRecordMutation />
+      <SyncHeadText />
+      <SyncMissingRecords />
     </>
   );
 }
