@@ -19,13 +19,13 @@ export const userNoteLink: NonNullable<QueryResolvers['userNoteLink']> = (
   if (by.noteId) {
     noteId = by.noteId;
   } else if (by.id != null) {
-    if (by.id.userId !== currentUserId) {
+    if (!by.id.userId.equals(currentUserId)) {
       throw new NoteUnauthorizedUserError(currentUserId, by.id.userId);
     }
 
     noteId = by.id.noteId;
   } else {
-    if (by.userNoteLinkId.userId !== currentUserId) {
+    if (!by.userNoteLinkId.userId.equals(currentUserId)) {
       throw new NoteUnauthorizedUserError(currentUserId, by.userNoteLinkId.userId);
     }
 
