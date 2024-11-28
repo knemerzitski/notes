@@ -1,46 +1,70 @@
-import { Box, Divider } from '@mui/material';
-import { OngoingOperationsCountsTable } from './OngoingOperationsCountsTable';
-import { SimulateOfflineToggleButton } from './SimulateOfflineToggleButton';
-import { DashCard } from './DashCard';
-import { UnsavedCollabServiceNotesTable } from './UnsavedCollabServiceNotesTable';
-import { PendingNotesTable } from './PendingNotesTable';
-import { ExcludedConnectionNotesTable } from './ExcludedConnectionNotesTable';
-import { DefaultConnectionNotesTable } from './DefaultConnectionNotesTable';
+import { Box, Tab, Tabs } from '@mui/material';
+import { ActiveNoteDashCards } from './ActiveNoteDashCards';
+import { GlobalDashCards } from './GlobalDashCards';
+import { DevActiveNoteIdProvider } from './DevActiveNoteIdProvider';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
-export function DevToolsContent() {
+function TabPanel(props: {
+  children?: React.ReactNode;
+  index: number;
+  parentIndex: number;
+}) {
+  const { children, parentIndex: parentIndex, index } = props;
+
+  if (parentIndex !== index) {
+    return null;
+  }
+
   return (
     <Box
       sx={{
+        p: 1,
         display: 'flex',
         flexFlow: 'row wrap',
         gap: 1,
+        pb: 7,
       }}
     >
-      <DashCard label="GraphQL Gate">
-        <SimulateOfflineToggleButton />
-      </DashCard>
+      {children}
+    </Box>
+  );
+}
 
-      <Divider />
+export function DevToolsContent() {
+  const [devToolsTabIndex, setDevToolsTabIndex] = useLocalStorage<number>(
+    'devToolsTabIndex',
+    0
+  );
 
-      <DashCard label="Ongoing Operations">
-        <OngoingOperationsCountsTable />
-      </DashCard>
+  const index = devToolsTabIndex ?? 0;
 
-      <DashCard label="Unsaved CollabServices">
-        <UnsavedCollabServiceNotesTable />
-      </DashCard>
+  const handleChange = (_event: React.SyntheticEvent, newIndex: number) => {
+    setDevToolsTabIndex(newIndex);
+  };
 
-      <DashCard label="Pending Notes">
-        <PendingNotesTable />
-      </DashCard>
-
-      <DashCard label="Excluded Connection Notes">
-        <ExcludedConnectionNotesTable />
-      </DashCard>
-
-      <DashCard label="Default Connection Notes">
-        <DefaultConnectionNotesTable />
-      </DashCard>
+  return (
+    <Box sx={{ width: '100%', height: '100%', overflowY: 'hidden' }}>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Tabs value={index} onChange={handleChange} aria-label="basic tabs example">
+          <Tab label="Global" />
+          <Tab label="Active Note" />
+        </Tabs>
+      </Box>
+      <Box
+        sx={{
+          height: '100%',
+          overflowY: 'auto',
+        }}
+      >
+        <TabPanel parentIndex={index} index={0}>
+          <GlobalDashCards />
+        </TabPanel>
+        <TabPanel parentIndex={index} index={1}>
+          <DevActiveNoteIdProvider>
+            <ActiveNoteDashCards />
+          </DevActiveNoteIdProvider>
+        </TabPanel>
+      </Box>
     </Box>
   );
 }

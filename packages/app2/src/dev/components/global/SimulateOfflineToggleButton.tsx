@@ -1,7 +1,7 @@
 import { Button } from '@mui/material';
 import { useState } from 'react';
-import { GraphQLServiceAction } from '../../graphql/types';
-import { GateController } from '../../graphql/link/gate';
+import { GraphQLServiceAction } from '../../../graphql/types';
+import { GateController } from '../../../graphql/link/gate';
 
 const STORAGE_KEY = 'devToolsOnline';
 
@@ -26,6 +26,7 @@ function readDevIsOnline() {
   return JSON.parse(value);
 }
 
+// TODO doesn't block subscriptions data
 export function SimulateOfflineToggleButton() {
   const [isOpen, setIsOpen] = useState(offlineController?.isOpen ?? false);
 

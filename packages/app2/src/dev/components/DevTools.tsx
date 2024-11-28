@@ -137,8 +137,7 @@ function FloatingDevTools() {
             height: resolvedHeight,
           }}
           sx={{
-            p: 1,
-            overflowY: 'auto',
+            pt: 1,
           }}
         >
           <DevToolsContent />

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useStatsLink } from '../../graphql/context/stats-link';
-import { useUserId } from '../../user/context/user-id';
+import { useStatsLink } from '../../../graphql/context/stats-link';
+import { useUserId } from '../../../user/context/user-id';
 import {
   Paper,
   Table,

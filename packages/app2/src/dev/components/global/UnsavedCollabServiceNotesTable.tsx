@@ -7,9 +7,9 @@ import {
   TableHead,
   TableRow,
 } from '@mui/material';
-import { gql } from '../../__generated__';
+import { gql } from '../../../__generated__';
 import { useQuery } from '@apollo/client';
-import { useUserId } from '../../user/context/user-id';
+import { useUserId } from '../../../user/context/user-id';
 import CheckIcon from '@mui/icons-material/Check';
 import RemoveIcon from '@mui/icons-material/Remove';
 
