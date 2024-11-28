@@ -173,19 +173,46 @@ export class CollabService {
   get eventBus(): Pick<Emitter<CollabServiceEvents>, 'on' | 'off'> {
     return this._eventBus;
   }
-  
+
   private generateSubmitId: () => string;
 
   private _userRecords?: UserRecords | null;
+  private readonly userRecordsEventsOff: (() => void)[] = [];
   get userRecords() {
     return this._userRecords;
   }
   set userRecords(value) {
+    if (value == this._userRecords) {
+      return;
+    }
+
     value = value ?? null;
 
-    this._userRecords = value;
+    const oldUserRecords = this._userRecords;
+    const newUserRecord = value ?? null;
+    this._userRecords = newUserRecord;
+
+    // Clear previous events
+    if (oldUserRecords != null) {
+      this.userRecordsEventsOff.forEach((off) => {
+        off();
+      });
+      this.userRecordsEventsOff.length = 0;
+    }
+
+    // Bind new events
+    if (newUserRecord) {
+      this.userRecordsEventsOff.push(
+        newUserRecord.eventBus.on('recordsUpdated', () => {
+          this._eventBus.emit('userRecordsUpdated', {
+            userRecords: value,
+          });
+        })
+      );
+    }
+
     this._eventBus.emit('userRecordsUpdated', {
-      userRecords: value,
+      userRecords: newUserRecord,
     });
   }
 
