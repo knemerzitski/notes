@@ -235,6 +235,62 @@ it('returns note users', async () => {
   );
 });
 
+it('textAtRevision', async () => {
+  const QUERY_TEXT_AT_REVISION = `#graphql
+    query($noteId: ObjectID!, $tailRevision: NonNegativeInt!){
+      userNoteLink(by: {noteId: $noteId}){
+        note {
+          collabText {
+            textAtRevision(revision: $tailRevision) {
+              revision
+              changeset
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  const response = await apolloServer.executeOperation<
+    {
+      userNoteLink: UserNoteLink;
+    },
+    { noteId: ObjectId; tailRevision: number }
+  >(
+    {
+      query: QUERY_TEXT_AT_REVISION,
+      variables: {
+        noteId: note._id,
+        tailRevision: 1,
+      },
+    },
+    {
+      contextValue: createGraphQLResolversContext({
+        user,
+      }),
+    }
+  );
+
+  const data = expectGraphQLResponseData(response);
+
+  expect(data).toMatchInlineSnapshot(`
+    {
+      "userNoteLink": {
+        "note": {
+          "collabText": {
+            "textAtRevision": {
+              "changeset": [
+                "canal fabulous",
+              ],
+              "revision": 1,
+            },
+          },
+        },
+      },
+    }
+  `);
+});
+
 describe('errors', () => {
   it('throws note not found if noteId is invalid', async () => {
     const response = await executeOperation(

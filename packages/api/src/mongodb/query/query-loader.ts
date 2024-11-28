@@ -1,7 +1,6 @@
 import DataLoader, { CacheMap } from 'dataloader';
 
 import { callFnGrouped } from '~utils/call-fn-grouped';
-import { mergedObjects } from '~utils/object/merge-objects';
 import { splitObject } from '~utils/object/split-object';
 import { Maybe, MaybePromise } from '~utils/types';
 
@@ -19,6 +18,7 @@ import { Infer, InferRaw, Struct } from 'superstruct';
 import { Emitter } from 'mitt';
 import { zip } from '~utils/array/zip';
 import { valueToQueries } from './utils/value-to-query';
+import { mergeObjectsByKeyPath } from './utils/merge-objects-by-key-path';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface QueryLoaderEvents<I, S extends Struct<any, any, any>> {
@@ -280,9 +280,10 @@ export class QueryLoader<I, S extends Struct<any, any, any>, CG = unknown, CR = 
       })
     );
 
-    const leafValues = splitResults.map((r) => r.leafValue);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const mergedValue: any = mergedObjects(...leafValues);
+    const mergedValue: any = mergeObjectsByKeyPath(
+      splitResults.map(({ leafKey, leafValue }) => [leafKey.query, leafValue])
+    );
 
     for (const { isAlreadyCached, leafKey } of splitResults) {
       if (isAlreadyCached) {
