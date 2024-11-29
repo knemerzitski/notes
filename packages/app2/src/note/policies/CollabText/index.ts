@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/filename-case */
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../../graphql/types';
 import { textAtRevision } from './textAtRevision';
 
@@ -7,6 +6,12 @@ export const CollabText: CreateTypePolicyFn = function (ctx: TypePoliciesContext
     fields: {
       recordConnection: {
         keyArgs: false,
+        merge(existing, incoming) {
+          return {
+            ...existing,
+            ...incoming,
+          };
+        },
       },
       textAtRevision: textAtRevision(ctx),
     },

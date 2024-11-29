@@ -36,6 +36,7 @@ export function convertLocalToRemoteNote(
       | 'identify'
       | 'readFragment'
       | 'writeFragment'
+      | 'evict'
     >;
   }
 ) {
