@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { ApolloCache, gql, NormalizedCacheObject } from '@apollo/client';
 import { MockLink } from '@apollo/client/testing';
 import { it, expect, beforeAll, describe, beforeEach } from 'vitest';
 import { createDefaultGraphQLServiceParams } from '../../../graphql-service';
 import { createGraphQLService } from '../../../graphql/create/service';
+import { getCollabTextId } from '../../utils/id';
 
 const TextAtRevision_CollabTextFragment = gql(`
-  fragment TestTextAtRevision on CollabText {
+  fragment TextAtRevision_CollabTextFragment on CollabText {
     textAtRevision(revision: $revision) {
       revision
       changeset
@@ -17,8 +17,9 @@ const TextAtRevision_CollabTextFragment = gql(`
 `);
 
 let cache: ApolloCache<NormalizedCacheObject>;
+
+const noteId = '1';
 let collabTextDataId: string;
-const collabTextId = '1';
 
 describe('read', () => {
   beforeAll(() => {
@@ -28,7 +29,7 @@ describe('read', () => {
     cache = service.client.cache;
 
     collabTextDataId = cache.identify({
-      id: collabTextId,
+      id: getCollabTextId(noteId),
       __typename: 'CollabText',
     })!;
 
@@ -172,7 +173,7 @@ describe('merge', () => {
     cache = service.client.cache;
 
     collabTextDataId = cache.identify({
-      id: collabTextId,
+      id: getCollabTextId(noteId),
       __typename: 'CollabText',
     })!;
 
@@ -182,21 +183,28 @@ describe('merge', () => {
         id: '1',
         textAtRevision: [
           {
+            __typename: 'RevisionChangeset',
             revision: 20,
           },
           {
+            __typename: 'RevisionChangeset',
             revision: 50,
             foo: 'bar',
           },
         ],
-        recordsConnection: {
-          records: [
+        recordConnection: {
+          __typename: 'CollabTextRecordConnection',
+          edges: [
             {
-              __typename: 'CollabTextRecord',
-              id: '1',
-              change: {
-                revision: 21,
-                changeset: ['a'],
+              __typename: 'CollabTextRecordEdge',
+              node: {
+                __typename: 'CollabTextRecord',
+                id: '1',
+                change: {
+                  __typename: 'RevisionChangeset',
+                  revision: 21,
+                  changeset: ['a'],
+                },
               },
             },
           ],
@@ -236,32 +244,10 @@ describe('merge', () => {
     });
 
     expect(cache.extract()[collabTextDataId]?.textAtRevision).toContainEqual({
+      __typename: 'RevisionChangeset',
       revision: 50,
       changeset: ['foo must exist'],
       foo: 'bar',
-    });
-  });
-
-  // TODO fix test
-  it.skip('ignores revision if it can be calculated from records', () => {
-    cache.writeFragment({
-      id: collabTextDataId,
-      fragment: TextAtRevision_CollabTextFragment,
-      data: {
-        textAtRevision: {
-          revision: 21,
-          changeset: ['ignored'],
-        },
-      },
-      variables: {
-        // Passing id by variable is required since readField cannot return id
-        collabTextId,
-      },
-    });
-
-    expect(cache.extract()[collabTextDataId]?.textAtRevision).not.toContainEqual({
-      revision: 21,
-      changeset: ['ignored'],
     });
   });
 });

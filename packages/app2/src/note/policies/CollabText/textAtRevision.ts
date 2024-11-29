@@ -1,9 +1,10 @@
 import { CreateFieldPolicyFn, TypePoliciesContext } from '../../../graphql/types';
 import { FieldFunctionOptions } from '@apollo/client';
-import { CollabTextRecord } from '../../../__generated__/graphql';
+import { CollabText, CollabTextRecord } from '../../../__generated__/graphql';
 import { gql } from '../../../__generated__';
 import { binarySearchIndexOf } from '~utils/array/binary-search';
 import { Changeset } from '~collab/changeset';
+import { firstRevisionChangeset } from '../../utils/map-record';
 
 const PolicyTextAtRevision_CollabTextFragment = gql(`
   fragment PolicyTextAtRevision_CollabTextFragment on CollabText {
@@ -27,8 +28,10 @@ type OnlyRevision = Pick<CollabTextRecord['change'], 'revision'>;
  * still belongs to Note type.
  */
 export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesContext) {
+  const defaultExisting = [firstRevisionChangeset()];
   return {
-    read(existing = [], options) {
+    read(existing = defaultExisting, options) {
+      // read(existing = [], options) {
       // Existing changeset is probably serialized
       const { args } = options;
 
@@ -58,7 +61,7 @@ export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesC
         return;
       }
 
-      const records = getRecords(
+      const records = readRecords(
         {
           after: tailText.revision,
           first: revision - tailText.revision,
@@ -77,17 +80,8 @@ export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesC
         revision,
       };
     },
-    merge(
-      existing = [
-        {
-          __typename: 'RevisionChangeset',
-          changeset: Changeset.EMPTY.serialize(),
-          revision: 0,
-        },
-      ],
-      incoming,
-      options
-    ) {
+    merge(existing = defaultExisting, incoming, options) {
+      // merge(existing = [], incoming, options) {
       const { mergeObjects } = options;
 
       // Find closest older revision
@@ -97,23 +91,23 @@ export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesC
         compareRevisions
       );
 
-      // Check if can compose text from records
-      if (!exists) {
-        const tailText = existing[index - 1];
-        if (tailText) {
-          const records = getRecords(
-            {
-              after: tailText.revision,
-              first: incoming.revision - tailText.revision,
-            },
-            options
-          );
-          // Can compose incoming from records. Don't add.
-          if (records) {
-            return existing;
-          }
-        }
-      }
+      // Cannot read sibling fields in merge function
+      // if (!exists) {
+      //   const tailText = existing[index - 1];
+      //   if (tailText) {
+      //     const records = readRecords(
+      //       {
+      //         after: tailText.revision,
+      //         first: incoming.revision - tailText.revision,
+      //       },
+      //       options
+      //     );
+      //     // Can compose incoming from records. Don't add.
+      //     if (records) {
+      //       return existing;
+      //     }
+      //   }
+      // }
 
       if (exists) {
         return [
@@ -132,18 +126,16 @@ function compareRevisions(a: OnlyRevision, b: OnlyRevision) {
   return a.revision - b.revision;
 }
 
-function getRecords(
+function readRecords(
   { after, first }: { after: number; first: number },
-  {
-    readField,
-    cache,
-    variables,
-  }: Pick<FieldFunctionOptions, 'readField' | 'cache' | 'variables'>,
-  id = variables?.collabTextId ? String(variables.collabTextId) : readField('id')
+  options: Pick<FieldFunctionOptions, 'readField' | 'cache' | 'variables'>,
+  collabTextId?: CollabText['id']
 ) {
+  const { readField, cache } = options;
+  collabTextId = readField('id');
   const collabTextDataId = cache.identify({
     __typename: 'CollabText',
-    id,
+    id: collabTextId,
   });
   if (!collabTextDataId) {
     return;

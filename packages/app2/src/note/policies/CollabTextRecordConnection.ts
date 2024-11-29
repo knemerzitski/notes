@@ -28,7 +28,6 @@ export const CollabTextRecordConnection: CreateTypePolicyFn = function (
       edges: {
         keyArgs: false,
         read(existing: Maybe<Edge[]>, { args, variables }) {
-          // TODO default empty array?
           if (!existing) return;
 
           const argsAfter = args?.after ?? variables?.after;

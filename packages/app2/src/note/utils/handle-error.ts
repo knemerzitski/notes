@@ -15,7 +15,7 @@ export function handleNoteError(
   noteId: Note['id'],
   cache: Pick<
     ApolloCache<unknown>,
-    'readQuery' | 'updateQuery' | 'identify' | 'gc' | 'evict'
+    'readQuery' | 'updateQuery' | 'identify' | 'gc' | 'evict' | 'modify' | 'writeQuery'
   >,
   errors: readonly GraphQLError[] | undefined,
   operation: Parameters<typeof getOperationOrRequestUserId>[0] | undefined

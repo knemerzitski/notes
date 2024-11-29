@@ -2,9 +2,11 @@ import { SubmittedRecord } from '~collab/client/submitted-record';
 import {
   CollabTextRecordInput,
   MapRecordCollabTextRecordFragmentFragment,
+  RevisionChangeset,
 } from '../../__generated__/graphql';
 import { CollabServiceRecord } from '~collab/client/collab-service';
 import { gql } from '../../__generated__';
+import { Changeset } from '~collab/changeset';
 
 /**
  * Record structure that is always fetched from the server and stored in cache.
@@ -67,5 +69,13 @@ export function cacheRecordToCollabServiceRecord(
       start: record.beforeSelection.start,
       end: record.beforeSelection.end ?? record.beforeSelection.start,
     },
+  };
+}
+
+export function firstRevisionChangeset(): RevisionChangeset {
+  return {
+    __typename: 'RevisionChangeset',
+    changeset: Changeset.EMPTY,
+    revision: 0,
   };
 }
