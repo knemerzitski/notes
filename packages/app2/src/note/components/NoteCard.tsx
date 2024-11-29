@@ -34,7 +34,6 @@ export const NoteCard = forwardRef<HTMLDivElement, PaperProps>(
 
     const navigate = useNavigate();
 
-    // TODO fix when opening note first time it wont disappear?
     const isNoteOpen = useIsNoteOpen(noteId);
 
     // Paper is active when hovering or more options menu is open
@@ -74,6 +73,8 @@ export const NoteCard = forwardRef<HTMLDivElement, PaperProps>(
             noteId,
           },
         },
+      }).finally(() => {
+        updateIsActive();
       });
     };
 
@@ -87,10 +88,14 @@ export const NoteCard = forwardRef<HTMLDivElement, PaperProps>(
       setIsActive(false);
     };
 
-    function handleExitedMoreOptionsMenu() {
+    function updateIsActive() {
       requestAnimationFrame(() => {
         setIsActive(isPaperHover());
       });
+    }
+
+    function handleExitedMoreOptionsMenu() {
+      updateIsActive();
     }
 
     return (
