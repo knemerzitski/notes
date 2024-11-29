@@ -1,5 +1,5 @@
 import { DocumentNode, GraphQLError, GraphQLSchema, validate } from 'graphql/index.js';
-import { assertValidExecutionArguments } from 'graphql/execution/execute';
+import { assertValidExecutionArguments } from 'graphql/execution/execute.js';
 
 export function validateQuery({
   schema,

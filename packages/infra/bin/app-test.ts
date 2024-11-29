@@ -1,4 +1,4 @@
-import 'source-map-support/register';
+import 'source-map-support/register.js';
 import path from 'path';
 
 import { App } from 'aws-cdk-lib';

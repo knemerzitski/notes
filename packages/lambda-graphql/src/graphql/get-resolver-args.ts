@@ -5,14 +5,14 @@ import {
   GraphQLResolveInfo,
   getArgumentValues,
 } from 'graphql/index.js';
-import { collectFields } from 'graphql/execution/collectFields';
+import { collectFields } from 'graphql/execution/collectFields.js';
 import {
   ExecutionContext,
   buildResolveInfo,
   getFieldDef,
-} from 'graphql/execution/execute';
-import { Maybe } from 'graphql/jsutils/Maybe';
-import { addPath } from 'graphql/jsutils/Path';
+} from 'graphql/execution/execute.js';
+import { Maybe } from 'graphql/jsutils/Maybe.js';
+import { addPath } from 'graphql/jsutils/Path.js';
 
 interface ResolverArgs {
   field: Maybe<GraphQLField<unknown, unknown>>;

@@ -50,7 +50,7 @@ describe('wrapRetryOnErrorAsync', () => {
     expect(callCount).toBeGreaterThan(1);
   });
 
-  it.skip('retries 3 times', async () => {
+  it('retries 3 times', async () => {
     let callCount = 0;
 
     const fn = wrapRetryOnErrorAsync(() => {

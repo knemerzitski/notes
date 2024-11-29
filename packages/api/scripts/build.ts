@@ -13,6 +13,8 @@ export function build(options: Pick<BuildOptions, 'entryPoints' | 'outfile'>) {
 
     target: 'node18',
     platform: 'node',
+    
+    format: 'esm',
 
     bundle: true,
     external: ['@aws-sdk/*'],
