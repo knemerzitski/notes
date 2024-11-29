@@ -11,6 +11,10 @@ import {
   TableBody,
 } from '@mui/material';
 import RemoveIcon from '@mui/icons-material/Remove';
+import { Changeset } from '~collab/changeset';
+import { PartialDeep } from '~utils/types';
+import { DevNoteRecordsTableQueryQuery } from '../../../__generated__/graphql';
+import { isDefined } from '~utils/type-guards/is-defined';
 
 const DevNoteRecordsTable_Query = gql(`
   query DevNoteRecordsTable_Query($by: UserNoteLinkByInput!) {
@@ -49,11 +53,14 @@ export function DevNoteRecordsTable() {
     },
     returnPartialData: true,
   });
-  if (!data) {
+
+  const partialData: PartialDeep<DevNoteRecordsTableQueryQuery, Changeset> | undefined =
+    data;
+  if (!partialData) {
     return null;
   }
 
-  const collabText = data?.userNoteLink.note.collabText;
+  const collabText = partialData.userNoteLink?.note?.collabText;
 
   return (
     <TableContainer
@@ -71,13 +78,18 @@ export function DevNoteRecordsTable() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {collabText.recordConnection?.edges.map(({ node }) => (
-            <TableRow key={node.id}>
-              <TableCell>{node.change.revision}</TableCell>
-              <TableCell>{node.change.changeset.toString()}</TableCell>
-              <TableCell>{node.createdAt?.toString() ?? <RemoveIcon />}</TableCell>
-            </TableRow>
-          ))}
+          {collabText?.recordConnection?.edges
+            ?.map((edge) => edge?.node)
+            .filter(isDefined)
+            .map((node, index) => (
+              <TableRow key={node.id ?? index}>
+                <TableCell>{node.change?.revision ?? <RemoveIcon />}</TableCell>
+                <TableCell>
+                  {node.change?.changeset?.toString() ?? <RemoveIcon />}
+                </TableCell>
+                <TableCell>{node.createdAt?.toString() ?? <RemoveIcon />}</TableCell>
+              </TableRow>
+            ))}
         </TableBody>
       </Table>
     </TableContainer>

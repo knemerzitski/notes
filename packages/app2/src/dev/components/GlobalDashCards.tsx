@@ -1,10 +1,10 @@
-import { Divider } from '@mui/material';
 import { OngoingOperationsCountsTable } from './global/OngoingOperationsCountsTable';
 import { SimulateOfflineToggleButton } from './global/SimulateOfflineToggleButton';
 import { DashCard } from './DashCard';
 import { UnsavedCollabServiceNotesTable } from './global/UnsavedCollabServiceNotesTable';
 import { PendingNotesTable } from './global/PendingNotesTable';
 import { ExcludedConnectionNotesTable } from './global/ExcludedConnectionNotesTable';
+import { CacheGcButton } from './global/CacheGcButton';
 // import { DefaultConnectionNotesTable } from './DefaultConnectionNotesTable';
 
 export function GlobalDashCards() {
@@ -14,7 +14,9 @@ export function GlobalDashCards() {
         <SimulateOfflineToggleButton />
       </DashCard>
 
-      <Divider />
+      <DashCard label="Cache GC">
+        <CacheGcButton />
+      </DashCard>
 
       <DashCard label="Ongoing Operations">
         <OngoingOperationsCountsTable />
