@@ -109,10 +109,14 @@ export function HistoryRestoration({
         );
 
         const tailRevision = Math.max(0, recordsBeforeRevision - recordsLast - 1);
-        const skipTailRevision = cacheRecordsFacade.hasTextAt(tailRevision);
-        const skipRecords = recordsLast === 0;
+        const skipTailRevision =
+          tailRevision <= 0 || cacheRecordsFacade.hasTextAt(tailRevision);
+        // First revision is 1, so recordsLast must be > 1 to fetch
+        const skipRecords = recordsLast <= 1;
 
-        if (skipRecords && skipTailRevision) return;
+        if (skipRecords && skipTailRevision) {
+          return;
+        }
 
         await client.query({
           query: HistoryRestoration_Query,
@@ -126,6 +130,7 @@ export function HistoryRestoration({
             skipTailRevision,
             skipRecords,
           },
+          fetchPolicy: 'network-only',
         });
 
         // Cache update will emit 'userRecordsUpdated' event from CacheRecordsFacade
