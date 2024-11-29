@@ -77,7 +77,7 @@ module.exports = {
         './src/*/hooks/**',
         './src/*/*/hooks/**',
         // GraphQL field policies
-        './src/*/policies/*/*',
+        './src/*/policies/{*,*/*}/*',
       ],
       rules: {
         'unicorn/filename-case': [
