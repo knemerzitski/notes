@@ -16,10 +16,7 @@ export function mergeObjectsByKeyPath<T>(entries: Entry[], ctx?: { target: any }
   const target = ctx?.target ?? (Array.isArray(entries[0]?.[1]) ? [] : {});
 
   for (const [pickObj, valueObj] of entries) {
-    if (!isObjectLike(pickObj)) {
-      throw new Error(`Merge by path invalid key "${String(pickObj)}"`);
-    }
-    if (!isObjectLike(valueObj)) {
+    if (!isObjectLike(pickObj) || !isObjectLike(valueObj)) {
       continue;
     }
 
