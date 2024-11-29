@@ -86,11 +86,11 @@ module.exports = {
       },
     },
     {
-      files: ['./packages/app2/src/**/!(*.test|*.cy).ts?(x)'],
+      files: ['./packages/app/src/**/!(*.test|*.cy).ts?(x)'],
       processor: '@graphql-eslint/graphql',
     },
     {
-      files: ['./packages/api/src/**/*.graphql', './packages/app2/src/**/*.graphql'],
+      files: ['./packages/api/src/**/*.graphql', './packages/app/src/**/*.graphql'],
       extends: [
         'plugin:@graphql-eslint/schema-recommended',
         'plugin:@graphql-eslint/operations-recommended',
