@@ -16,7 +16,9 @@ import { HistoryRestoration } from './HistoryRestoration';
  * Run events related to CollabService:
  * - Keep track if CollabService is out of date.
  * - Local changes into a submitted record
- * - Submitted recordm mutation
+ * - Submitted record mutation
+ * - Fetch missing records
+ * - Restore history
  */
 export function CollabService() {
   return (

@@ -32,7 +32,9 @@ const SyncMissingRecords_Query = gql(`
 
 // TODO write tests
 /**
- * Fetch missing records according to CollabService event `missingRevisions`
+ * Fetch missing records according to CollabService event `missingRevisions`.
+ * Might miss records during short network outage and then suddenly receive
+ * an external change with higher revision.
  */
 export function SyncMissingRecords({
   fetchDelay = 200,
@@ -113,7 +115,7 @@ export function SyncMissingRecords({
     return collabService.eventBus.on('missingRevisions', () => {
       void fetchMissingRecords();
     });
-  }, [client, noteId, collabService]);
+  }, [client, noteId, collabService, fetchDelay]);
 
   return null;
 }
