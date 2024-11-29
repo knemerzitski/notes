@@ -7,6 +7,7 @@ import { gql } from '../../../__generated__';
 
 const AddRecordToConnection_CollabTextFragment = gql(`
   fragment AddRecordToConnection_CollabTextFragment on CollabText {
+    id
     recordConnection {
       edges {
         node {
@@ -20,14 +21,18 @@ const AddRecordToConnection_CollabTextFragment = gql(`
 export function addRecordToConnection(
   collabTextId: CollabText['id'],
   record: MapRecordCollabTextRecordFragmentFragment,
-  cache: Pick<ApolloCache<unknown>, 'writeFragment'>
+  cache: Pick<ApolloCache<unknown>, 'writeFragment' | 'identify'>
 ) {
   cache.writeFragment({
     fragment: AddRecordToConnection_CollabTextFragment,
     fragmentName: 'AddRecordToConnection_CollabTextFragment',
-    id: collabTextId,
+    id: cache.identify({
+      __typename: 'CollabText',
+      id: collabTextId,
+    }),
     data: {
       __typename: 'CollabText',
+      id: collabTextId,
       recordConnection: {
         __typename: 'CollabTextRecordConnection',
         edges: [{ __typename: 'CollabTextRecordEdge', node: record }],
