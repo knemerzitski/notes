@@ -56,7 +56,7 @@ export function UnsavedCollabServiceTracker() {
     update();
 
     const eventBusOff = service.eventBus.on(
-      ['haveLocalChanges', 'submittedChangesAcknowledged', 'replacedHeadText'],
+      ['viewChanged', 'submittedChangesAcknowledged', 'replacedHeadText'],
       update
     );
 
