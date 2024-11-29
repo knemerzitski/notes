@@ -1,6 +1,8 @@
 import { useQuery } from '@apollo/client';
 import { gql } from '../../__generated__';
 import { useNoteId } from '../context/note-id';
+import { CollabService } from '~collab/client/collab-service';
+import { Maybe } from '~utils/types';
 
 const UseCollabService_Query = gql(`
   query UseCollabService_Query($by: UserNoteLinkByInput!) {
@@ -14,7 +16,9 @@ const UseCollabService_Query = gql(`
   }
 `);
 
-export function useCollabService() {
+export function useCollabService(nullable: true): Maybe<CollabService>;
+export function useCollabService(nullable?: false): CollabService;
+export function useCollabService(nullable?: boolean): Maybe<CollabService> {
   const noteId = useNoteId();
   const { data } = useQuery(UseCollabService_Query, {
     variables: {
@@ -24,9 +28,9 @@ export function useCollabService() {
     },
   });
 
-  if (!data) {
+  if (!data && !nullable) {
     throw new Error(`Failed to query CollabService for note "${noteId}"`);
   }
 
-  return data.userNoteLink.note.collabService;
+  return data?.userNoteLink.note.collabService;
 }
