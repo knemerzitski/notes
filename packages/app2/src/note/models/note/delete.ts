@@ -4,12 +4,13 @@ import { removeNoteFromConnection } from '../note-connection/remove';
 import { getUserNoteLinkIdFromByInput } from '../../utils/id';
 import { setNotePendingStatus } from '../local-note/set-status';
 import { updateUnsavedCollabService } from '../update-unsaved-collab-service';
+import { cacheGc } from '../../../graphql/utils/cache-gc';
 
 export function deleteNote(
   by: UserNoteLinkByInput,
   cache: Pick<
     ApolloCache<unknown>,
-    'readQuery' | 'updateQuery' | 'writeQuery' | 'identify' | 'gc' | 'evict'
+    'readQuery' | 'updateQuery' | 'writeQuery' | 'identify' | 'gc' | 'evict' | 'modify'
   >
 ) {
   const userNoteLinkId = getUserNoteLinkIdFromByInput(by, cache);
@@ -30,5 +31,5 @@ export function deleteNote(
     }),
   });
 
-  cache.gc();
+  cacheGc(cache);
 }

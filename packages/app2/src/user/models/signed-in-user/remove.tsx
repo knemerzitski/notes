@@ -6,6 +6,7 @@ import { evictByUser } from '../../utils/evict-by-user';
 import { TaggedEvict } from '../../../graphql/utils/tagged-evict';
 import { removeOngoingOperations } from '../../../graphql/link/persist/remove';
 import { getAllUserOngoingOperationsIds } from '../../../graphql/link/persist/get-all-user';
+import { cacheGc } from '../../../graphql/utils/cache-gc';
 
 const RemoveUsers_Query = gql(`
   query RemoveUsers_Query {
@@ -78,5 +79,5 @@ export function removeUsers(
   );
   removeOngoingOperations(allUsersOperationsIds, cache);
 
-  cache.gc();
+  cacheGc(cache);
 }
