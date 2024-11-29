@@ -41,7 +41,7 @@ export const NotesCardGrid = forwardRef(function NotesCardGrid(
     <BoxStyled ref={ref}>
       {noteIds.map((renderNoteId) => (
         <NoteIdProvider key={renderNoteId} noteId={renderNoteId}>
-          <NoteCardWrapper>{noteCard}</NoteCardWrapper>
+          {noteCard}
         </NoteIdProvider>
       ))}
     </BoxStyled>
@@ -54,27 +54,31 @@ const BoxStyled = styled(Box)(
 
     ${theme.breakpoints.up('xs')} {
       grid-template-columns: 100%;
+      grid-auto-rows: 200px;
       gap: ${theme.spacing(1)};
     }
 
     ${theme.breakpoints.up('sm')} {
-      grid-template-columns: repeat(auto-fit, minmax(256px, 1fr));
+      grid-auto-rows: 256px;
+      grid-template-columns: repeat(auto-fill, minmax(256px, 1fr));
       gap: ${theme.spacing(2)};
     }
   `
 );
 
-const NoteCardWrapper = styled(Box)(
-  ({ theme }) => css`
-    ${theme.breakpoints.up('xs')} {
-      height: 200px;
-    }
+// Card size is managed by parent layout `BoxStyled`
+// const NoteCardWrapper = styled(Box)(
+//   ({ theme }) => css`
+//     ${theme.breakpoints.up('xs')} {
+//       height: 200px;
+//     }
 
-    ${theme.breakpoints.up('sm')} {
-      width: 100%;
-      height: 256px;
-      max-width: 384px;
-      justify-self: center;
-    }
-  `
-);
+//     ${theme.breakpoints.up('sm')} {
+//       width: 100%;
+//       height: 100%;
+//       height: 256px;
+//       max-width: 384px;
+//       justify-self: center;
+//     }
+//   `
+// );
