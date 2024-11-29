@@ -1,20 +1,36 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ApolloCache, gql, NormalizedCacheObject } from '@apollo/client';
-import { it, expect, beforeEach, describe } from 'vitest';
+import { it, expect, beforeEach, describe, vi, afterEach } from 'vitest';
 import { NoteCategory, ListAnchorPosition } from '../../../__generated__/graphql';
 import { createDefaultGraphQLServiceParams } from '../../../graphql-service';
 import { createGraphQLService } from '../../../graphql/create/service';
 import { getUserNoteLinkId } from '../../utils/id';
 import { moveNoteInConnection } from './move';
+import * as generateId from '../../../user/models/local-user/generate-id';
+import { setCurrentUser } from '../../../user/models/signed-in-user/set-current';
 
 let cache: ApolloCache<NormalizedCacheObject>;
 const userId = 'a';
+const danglingNoteId = 'dangling';
 
 beforeEach(() => {
+  vi.spyOn(generateId, 'generateSignedInUserId').mockReturnValueOnce(userId);
   const params = createDefaultGraphQLServiceParams();
-  params.context.getUserId = () => userId;
   const service = createGraphQLService(params);
   cache = service.client.cache;
+
+  const cacheObj = {};
+  createNotesAndAddToList(['1', '2', '3', '4'], 'default', cacheObj);
+  createNotesAndAddToList(['a', 'b', 'c', 'd'], 'archive', cacheObj);
+  createNotesAndAddToList([], 'empty', cacheObj);
+  createNote(danglingNoteId, 'unknown', cacheObj);
+  cache.restore(cacheObj);
+  setCurrentUser(userId, cache);
+});
+
+afterEach(() => {
+  vi.clearAllMocks();
 });
 
 function _userNoteLinkId(noteId: string) {
@@ -27,7 +43,7 @@ function createNote(
   cacheObj: NormalizedCacheObject
 ) {
   cacheObj[`Note:${noteId}`] = {
-    __typename: 'UserNoteLink',
+    __typename: 'Note',
     id: noteId,
   };
 
@@ -71,6 +87,9 @@ function addNoteToList(
       __ref: `UserNoteLink:${getUserNoteLinkId(noteId, userId)}`,
     },
   });
+
+  const noteLink = cacheObj[`UserNoteLink:${getUserNoteLinkId(noteId, userId)}`]!;
+  noteLink.connectionCategoryName = categoryName;
 }
 
 function createNotesAndAddToList(
@@ -107,17 +126,6 @@ function getCacheNoteIds(categoryName: string): string[] {
 
   return data.userNoteLinkConnection.edges.map((edge: any) => edge.node.note.id);
 }
-
-const danglingNoteId = 'dangling';
-
-beforeEach(() => {
-  const cacheObj = {};
-  createNotesAndAddToList(['1', '2', '3', '4'], 'default', cacheObj);
-  createNotesAndAddToList(['a', 'b', 'c', 'd'], 'archive', cacheObj);
-  createNotesAndAddToList([], 'empty', cacheObj);
-  createNote(danglingNoteId, 'unknown', cacheObj);
-  cache.restore(cacheObj);
-});
 
 describe('same category', () => {
   it('left to right, after', () => {
@@ -406,8 +414,8 @@ describe('no anchor', () => {
   });
 });
 
-it('note not found returns false', () => {
-  expect(
+it('note not found throws error', () => {
+  expect(() =>
     moveNoteInConnection(
       {
         noteId: 'ABC',
@@ -417,5 +425,5 @@ it('note not found returns false', () => {
       },
       cache
     )
-  ).toBeFalsy();
+  ).toThrow();
 });
