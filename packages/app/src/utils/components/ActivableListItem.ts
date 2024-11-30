@@ -21,4 +21,4 @@ const backgroundColorActive = {
 
 export const ActivableListItem = styled(ListItem, {
   shouldForwardProp: mergeShouldForwardProp(backgroundColorActive.props),
-})(backgroundColorActive.style);
+})<{ active?: boolean }>(backgroundColorActive.style);
