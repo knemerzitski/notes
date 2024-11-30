@@ -1,10 +1,9 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useState, useCallback } from 'react';
-import { NoteCategory } from '../../__generated__/graphql';
 import { OnCloseProvider } from '../../utils/context/on-close';
 import { NoteIdProvider } from '../context/note-id';
-import { useCategoryChanged } from '../hooks/useCategoryChanged';
 import { NoteDialog } from './NoteDialog';
+import { useOnNoteNotEditable } from '../hooks/useOnNoteNotEditable';
 
 /**
  * Note dialog that is based on query search ?noteId=...
@@ -25,11 +24,9 @@ export function RouteNoteDialog({ noteId }: { noteId: string }) {
     });
   }
 
-  useCategoryChanged(noteId, (categoryName) => {
-    const isNoteDeleted = categoryName === false;
-    if (isNoteDeleted || categoryName === NoteCategory.TRASH) {
-      handleClose();
-    }
+  // Close dialog when note can no longer be edited
+  useOnNoteNotEditable(noteId, () => {
+    handleClose();
   });
 
   return (

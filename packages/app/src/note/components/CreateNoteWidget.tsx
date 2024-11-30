@@ -6,8 +6,7 @@ import { CollabInputsColumn } from './CollabInputsColumn';
 import { OnCloseProvider } from '../../utils/context/on-close';
 import { useCreateNote } from '../hooks/useCreateNote';
 import { NoteToolbar } from './NoteToolbar';
-import { useCategoryChanged } from '../hooks/useCategoryChanged';
-import { NoteCategory } from '../../__generated__/graphql';
+import { useOnNoteNotEditable } from '../hooks/useOnNoteNotEditable';
 
 export function CreateNoteWidget() {
   const createNote = useCreateNote();
@@ -16,11 +15,8 @@ export function CreateNoteWidget() {
 
   const [isExpanded, setIsExpanded] = useState(false);
 
-  useCategoryChanged(noteId, (categoryName) => {
-    const isNoteDeleted = categoryName === false;
-    if (isNoteDeleted || categoryName === NoteCategory.TRASH) {
-      setIsExpanded(false);
-    }
+  useOnNoteNotEditable(noteId, () => {
+    setIsExpanded(false);
   });
 
   function handleExpand() {
