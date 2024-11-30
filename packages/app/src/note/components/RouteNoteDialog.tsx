@@ -3,6 +3,7 @@ import { useState, useCallback } from 'react';
 import { OnCloseProvider } from '../../utils/context/on-close';
 import { NoteIdProvider } from '../context/note-id';
 import { NoteDialog } from './NoteDialog';
+import { noteEditDialogId } from '../../utils/element-id';
 import { useOnNoteNotEditable } from '../hooks/useOnNoteNotEditable';
 
 /**
@@ -31,7 +32,14 @@ export function RouteNoteDialog({ noteId }: { noteId: string }) {
   return (
     <NoteIdProvider noteId={noteId}>
       <OnCloseProvider onClose={handleClose}>
-        <NoteDialog open={open} onClose={handleClose} onTransitionExited={handleExited} />
+        <NoteDialog
+          open={open}
+          onClose={handleClose}
+          onTransitionExited={handleExited}
+          PaperProps={{
+            id: noteEditDialogId(noteId),
+          }}
+        />
       </OnCloseProvider>
     </NoteIdProvider>
   );

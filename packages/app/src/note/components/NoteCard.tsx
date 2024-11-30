@@ -14,6 +14,7 @@ import { useApolloClient } from '@apollo/client';
 import { DeletedInDays } from './DeletedInDays';
 import { gql } from '../../__generated__';
 import { NoteAlwaysButtons } from './NoteAlwaysButtons';
+import { noteEditDialogId } from '../../utils/element-id';
 
 const _NoteCard_UserNoteLinkFragment = gql(`
   fragment NoteCard_UserNoteLinkFragment on UserNoteLink {
@@ -41,7 +42,14 @@ export const NoteCard = forwardRef<HTMLDivElement, PaperProps>(
 
     if (isNoteOpen) {
       // Hide card when note is opened in a dialog
-      return <Box {...props} />;
+      return (
+        <Box
+          aria-label="hidden opened note"
+          aria-controls={noteEditDialogId(noteId)}
+          aria-expanded={true}
+          {...props}
+        />
+      );
     }
 
     function isPaperHover() {
@@ -108,6 +116,8 @@ export const NoteCard = forwardRef<HTMLDivElement, PaperProps>(
           }
           paperElRef.current = el;
         }}
+        aria-label="open note dialog"
+        aria-haspopup={true}
         {...props}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
