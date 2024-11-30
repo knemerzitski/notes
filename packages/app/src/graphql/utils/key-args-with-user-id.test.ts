@@ -7,6 +7,7 @@ it('no args, no userId => undefined', () => {
       userId: null,
     },
     variablesUserIdKey: 'userId',
+    isCacheLocked: false,
   });
 
   expect(
@@ -25,6 +26,7 @@ it('args, no userId => no userId in keyArgs', () => {
         userId: null,
       },
       variablesUserIdKey: 'userId',
+      isCacheLocked: false,
     },
     ['foo']
   );
@@ -48,6 +50,7 @@ it('args, userId in appContext => userId added to suffix', () => {
         userId: 'a',
       },
       variablesUserIdKey: 'userId',
+      isCacheLocked: false,
     },
     ['foo']
   );
@@ -70,6 +73,7 @@ it('userId in variables has priority over appContext', () => {
       userId: 'a',
     },
     variablesUserIdKey: 'userId',
+    isCacheLocked: false,
   });
 
   expect(
