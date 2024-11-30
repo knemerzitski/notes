@@ -6,6 +6,7 @@ import { findNoteUser } from './note';
 import { insertNoteUser } from '../../mongodb/models/note/insert-note-user';
 import { NoteUserSchema } from '../../mongodb/schema/note-user';
 import { withTransaction } from '../../mongodb/utils/with-transaction';
+import { NoteByShareLinkNotFoundQueryLoaderError } from '../../mongodb/loaders/note-by-share-link/loader';
 
 export async function insertUserByShareLink({
   mongoDB,
@@ -34,104 +35,113 @@ export async function insertUserByShareLink({
   return withTransaction(
     mongoDB.client,
     async ({ runSingleOperation, session }) => {
-      const note = await mongoDB.loaders.noteByShareLink.load(
-        {
-          id: {
-            shareLinkId,
-          },
-          query: {
-            _id: 1,
-            users: {
-              _id: 1,
-              categoryName: 1,
-              createdAt: 1,
-              readOnly: 1,
+      try {
+        const note = await mongoDB.loaders.noteByShareLink.load(
+          {
+            id: {
+              shareLinkId,
             },
-            shareLinks: {
+            query: {
               _id: 1,
-              expireAccessCount: 1,
-              expireAt: 1,
-              permissions: {
-                user: {
-                  readOnly: 1,
+              users: {
+                _id: 1,
+                categoryName: 1,
+                createdAt: 1,
+                readOnly: 1,
+              },
+              shareLinks: {
+                _id: 1,
+                expireAccessCount: 1,
+                expireAt: 1,
+                permissions: {
+                  user: {
+                    readOnly: 1,
+                  },
                 },
               },
             },
           },
-        },
-        {
-          session,
+          {
+            session,
+          }
+        );
+
+        const now = Date.now();
+        const shareLink = note.shareLinks?.find(
+          ({ _id, expireAccessCount, expireAt }) => {
+            if (!shareLinkId.equals(_id)) return false;
+
+            if (expireAccessCount != null && expireAccessCount <= 0) {
+              return false;
+            }
+
+            if (expireAt && expireAt.getTime() <= now) {
+              return false;
+            }
+
+            return true;
+          }
+        );
+
+        if (!shareLink) {
+          throw new NoteByShareLinkNotFoundServiceError(shareLinkId);
         }
-      );
 
-      const now = Date.now();
-      const shareLink = note.shareLinks?.find(({ _id, expireAccessCount, expireAt }) => {
-        if (!shareLinkId.equals(_id)) return false;
-
-        if (expireAccessCount != null && expireAccessCount <= 0) {
-          return false;
+        const noteUser = findNoteUser(userId, note);
+        if (noteUser) {
+          return {
+            type: 'already_user' as const,
+            noteUser,
+            note,
+          };
         }
 
-        if (expireAt && expireAt.getTime() <= now) {
-          return false;
-        }
+        const newNoteUser: NoteUserSchema = {
+          _id: userId,
+          categoryName,
+          createdAt: new Date(),
+          readOnly: shareLink.permissions?.user?.readOnly ?? false,
+        };
 
-        return true;
-      });
+        await insertNoteUser({
+          mongoDB: {
+            ...mongoDB,
+            runSingleOperation,
+          },
+          noteId: note._id,
+          noteUser: newNoteUser,
+          shareLink:
+            shareLink.expireAccessCount != null
+              ? {
+                  _id: shareLink._id,
+                  expireAccessCount: shareLink.expireAccessCount - 1,
+                }
+              : undefined,
+        });
 
-      if (!shareLink) {
-        throw new NoteByShareLinkNotFoundServiceError(shareLinkId);
-      }
+        mongoDB.loaders.noteByShareLink.prime(
+          {
+            id: {
+              shareLinkId,
+            },
+          },
+          {
+            _id: note._id,
+            users: [...note.users, newNoteUser],
+          }
+        );
 
-      const noteUser = findNoteUser(userId, note);
-      if (noteUser) {
         return {
-          type: 'already_user' as const,
-          noteUser,
+          type: 'success' as const,
+          noteUser: newNoteUser,
           note,
         };
-      }
-
-      const newNoteUser: NoteUserSchema = {
-        _id: userId,
-        categoryName,
-        createdAt: new Date(),
-        readOnly: shareLink.permissions?.user?.readOnly ?? false,
-      };
-
-      await insertNoteUser({
-        mongoDB: {
-          ...mongoDB,
-          runSingleOperation,
-        },
-        noteId: note._id,
-        noteUser: newNoteUser,
-        shareLink:
-          shareLink.expireAccessCount != null
-            ? {
-                _id: shareLink._id,
-                expireAccessCount: shareLink.expireAccessCount - 1,
-              }
-            : undefined,
-      });
-
-      mongoDB.loaders.noteByShareLink.prime(
-        {
-          id: {
-            shareLinkId,
-          },
-        },
-        {
-          _id: note._id,
-          users: [...note.users, newNoteUser],
+      } catch (err) {
+        if (err instanceof NoteByShareLinkNotFoundQueryLoaderError) {
+          throw new NoteByShareLinkNotFoundServiceError(shareLinkId);
         }
-      );
-
-      return {
-        type: 'success' as const,
-        noteUser: newNoteUser,
-        note,
-      };
+        throw err;
+      }
     },
     {
       skipAwaitFirstOperation: true,

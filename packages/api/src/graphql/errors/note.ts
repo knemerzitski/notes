@@ -5,6 +5,7 @@ import {
   ResourceType,
 } from '~api-app-shared/graphql/error-codes';
 import {
+  NoteByShareLinkNotFoundServiceError,
   NoteCollabRecordInsertError,
   NoteCollabTextInvalidRevisionError,
   NoteNotFoundServiceError,
@@ -71,6 +72,7 @@ function newNoteErrorMapper() {
   mapper.add(NoteUserNotFoundServiceError, () => new NoteUserNotFoundError());
   mapper.add(NoteNotFoundQueryLoaderError, () => new NoteNotFoundError());
   mapper.add(NoteReadOnlyServiceError, () => new NoteReadOnlyError());
+  mapper.add(NoteByShareLinkNotFoundServiceError, () => new NoteNotFoundError());
 
   mapper.add(NoteCollabRecordInsertError, (error) => {
     if (error.cause instanceof InsertRecordError) {
