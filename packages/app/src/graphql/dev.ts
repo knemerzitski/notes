@@ -5,8 +5,7 @@ import { CollabService } from '~collab/client/collab-service';
 import { KeySimpleText } from '~collab/editor/json-text';
 import { SimpleTextEditor } from '~collab/editor/simple-text';
 
-// TODO are messages excluded from production bundle?
-if (import.meta.env.MODE !== 'production') {
+if (!import.meta.env.PROD) {
   loadDevMessages();
   loadErrorMessages();
 

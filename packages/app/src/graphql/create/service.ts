@@ -83,7 +83,6 @@ export function createGraphQLService({
   });
 
   const persistor = new CachePersistor({
-    //@ts-expect-error TODO fix this
     cache,
     key: storageKey,
     storage,
@@ -160,6 +159,7 @@ export function createGraphQLService({
 
   const apolloClient = new ApolloClient({
     cache,
+    assumeImmutableResults: import.meta.env.PROD,
     defaultOptions: {
       mutate: {
         errorPolicy: linkOptions?.debug?.logging ? 'all' : undefined,

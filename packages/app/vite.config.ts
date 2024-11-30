@@ -14,14 +14,11 @@ export default ({ mode }: { mode: string }) => {
 
   return defineConfig({
     plugins: [
-      // @ts-expect-error Incompatible plugin typing, upgrade vite?
       react(),
-      // @ts-expect-error Incompatible plugin typing, upgrade vite?
       TanStackRouterVite({
         virtualRouteConfig,
         generatedRouteTree: 'src/__generated__/routeTree.gen.ts',
       }),
-      // @ts-expect-error Incompatible plugin typing, upgrade vite?
       tsconfigPaths(),
     ],
     build: {
