@@ -19,8 +19,7 @@ export function RouteNoteDialog({ noteId }: { noteId: string }) {
   function handleExited() {
     void navigate({
       to: '.',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      search: (prev: any) => ({ ...prev, noteId: undefined }),
+      search: (prev) => ({ ...prev, noteId: undefined }),
     });
   }
 
