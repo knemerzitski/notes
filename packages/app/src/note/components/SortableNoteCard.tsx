@@ -51,15 +51,12 @@ export const SortableNoteCard = forwardRef<
         }
         setNodeRef(el);
       }}
-      sx={{
-        // TODO styled
-        touchAction: isMobile ? 'manipulation' : undefined,
-      }}
       style={{
         ...props.style,
         transform: CSS.Transform.toString(transform),
         transition,
       }}
+      isMobile={isMobile}
       isDragging={isDragging}
       {...attributes}
       {...listeners}
@@ -68,6 +65,19 @@ export const SortableNoteCard = forwardRef<
     />
   );
 });
+
+export const mobileManipulation = {
+  style: ({ isMobile }: { isMobile: boolean }) => {
+    if (isMobile) {
+      return css`
+        touch-action: manipulation;
+      `;
+    }
+
+    return;
+  },
+  props: ['isMobile'],
+};
 
 export const draggingHidden = {
   style: ({ isDragging }: { isDragging: boolean }) => {
@@ -83,5 +93,11 @@ export const draggingHidden = {
 };
 
 const NoteCardStyled = styled(NoteCard, {
-  shouldForwardProp: mergeShouldForwardProp(draggingHidden.props),
-})(draggingHidden.style);
+  shouldForwardProp: mergeShouldForwardProp(
+    mobileManipulation.props,
+    draggingHidden.props
+  ),
+})<{ isDragging: boolean; isMobile: boolean }>(
+  mobileManipulation.style,
+  draggingHidden.style
+);

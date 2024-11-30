@@ -54,4 +54,6 @@ const mobileGap = {
 
 const MainBoxStyled = styled(Box, {
   shouldForwardProp: mergeShouldForwardProp(mobileGap.props),
-})(baseStyle, mobileGap.style);
+})<{
+  isMobile?: boolean;
+}>(baseStyle, mobileGap.style);

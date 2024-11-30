@@ -1,33 +1,35 @@
-import { css, AppBar, styled, Box, AppBarProps } from '@mui/material';
+import { css, styled, Box, Paper } from '@mui/material';
 import { NoteAlwaysButtons } from './NoteAlwaysButtons';
 import { EdgeEndCloseButton } from './EdgeEndCloseButton';
 import { NoteEditingButtons } from './NoteEditingButtons';
 import { NoteMoreOptionsButton } from './NoteMoreOptionsButton';
+import { forwardRef } from 'react';
 
-export function NoteToolbar(props: Omit<AppBarProps, 'position' | 'component'>) {
-  return (
-    <AppBarStyled {...props}>
-      <SpaceBetweenBox>
-        <ButtonsBox>
-          <NoteAlwaysButtons />
-          <NoteEditingButtons />
-          <NoteMoreOptionsButton />
-        </ButtonsBox>
-        <EdgeEndCloseButton />
-      </SpaceBetweenBox>
-    </AppBarStyled>
-  );
-}
+export const NoteToolbar = forwardRef<HTMLDivElement, Parameters<typeof PaperStyled>[0]>(
+  function NoteToolbar({ elevation = 0, ...restProps }, ref) {
+    return (
+      <PaperStyled ref={ref} elevation={elevation} {...restProps}>
+        <SpaceBetweenBox>
+          <ButtonsBox>
+            <NoteAlwaysButtons />
+            <NoteEditingButtons />
+            <NoteMoreOptionsButton />
+          </ButtonsBox>
+          <EdgeEndCloseButton />
+        </SpaceBetweenBox>
+      </PaperStyled>
+    );
+  }
+);
 
-const AppBarStyled = styled(AppBar)({});
-
-AppBarStyled.defaultProps = {
-  //@ts-expect-error It does change component element
-  component: 'div',
-  elevation: 0,
-  position: 'relative',
-  color: 'default',
-};
+const PaperStyled = styled(Paper)(({ theme }) => {
+  if (theme.palette.mode === 'light') {
+    return css`
+      background-color: ${theme.palette.grey['100']};
+    `;
+  }
+  return;
+});
 
 const SpaceBetweenBox = styled(Box)(css`
   display: flex;

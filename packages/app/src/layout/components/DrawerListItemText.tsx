@@ -33,4 +33,4 @@ const drawerExpand = {
 
 const ListItemTextStyled = styled(ListItemText, {
   shouldForwardProp: mergeShouldForwardProp(drawerExpand.props),
-})(drawerExpand.style);
+})<{ isDrawerExpanded?: boolean }>(drawerExpand.style);

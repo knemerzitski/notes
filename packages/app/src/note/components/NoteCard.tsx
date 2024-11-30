@@ -145,10 +145,13 @@ export const PureNoteCard = forwardRef<
       suffix?: ReactNode;
     };
   }
->(function PureNoteCard({ slots, ...restProps }, ref) {
+>(function PureNoteCard(
+  { slots, elevation = 0, variant = 'outlined', ...restProps },
+  ref
+) {
   const noteId = useNoteId();
   return (
-    <PaperStyled {...restProps} ref={ref}>
+    <PaperStyled {...restProps} elevation={elevation} variant={variant} ref={ref}>
       {slots?.prefix}
       {/* TODO create badge */}
       {import.meta.env.DEV && noteId}
@@ -206,11 +209,7 @@ const darkModeActive = {
 
 const PaperStyled = styled(Paper, {
   shouldForwardProp: mergeShouldForwardProp(baseActive.props, darkModeActive.props),
-})(baseStyle, baseActive.style, darkModeActive.style);
-
-PaperStyled.defaultProps = {
-  variant: 'outlined',
-};
+})<{ active?: boolean }>(baseStyle, baseActive.style, darkModeActive.style);
 
 const toolbarActive = {
   style: ({ active = false }: { active?: boolean }) => css`

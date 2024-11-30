@@ -1,15 +1,32 @@
-import { css, Dialog, DialogProps, styled } from '@mui/material';
+import { css, Dialog, styled } from '@mui/material';
 import { CollabInputsColumn } from './CollabInputsColumn';
 import { NoteToolbar } from './NoteToolbar';
+import { forwardRef } from 'react';
 
-export function NoteDialog(props?: DialogProps) {
-  return (
-    <DialogStyled open={true} {...props}>
-      <CollabInputsColumn />
-      <NoteToolbar />
-    </DialogStyled>
-  );
-}
+export const NoteDialog = forwardRef<HTMLDivElement, Parameters<typeof DialogStyled>[0]>(
+  function NoteDialog(
+    { open = true, maxWidth = 'sm', fullWidth = true, PaperProps, ...restProps },
+    ref
+  ) {
+    return (
+      <DialogStyled
+        ref={ref}
+        open={open}
+        maxWidth={maxWidth}
+        fullWidth={fullWidth}
+        PaperProps={{
+          variant: 'outlined',
+          elevation: 0,
+          ...PaperProps,
+        }}
+        {...restProps}
+      >
+        <CollabInputsColumn />
+        <NoteToolbar />
+      </DialogStyled>
+    );
+  }
+);
 
 const DialogStyled = styled(Dialog)(
   ({ theme }) => css`
@@ -19,12 +36,3 @@ const DialogStyled = styled(Dialog)(
     }
   `
 );
-
-DialogStyled.defaultProps = {
-  maxWidth: 'sm',
-  fullWidth: true,
-  PaperProps: {
-    variant: 'outlined',
-    elevation: 0,
-  },
-};

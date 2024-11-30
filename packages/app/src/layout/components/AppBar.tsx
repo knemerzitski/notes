@@ -79,4 +79,4 @@ const shadowTransition = {
 
 const AppBarStyled = styled(MuiAppBar, {
   shouldForwardProp: mergeShouldForwardProp(shadowTransition.props),
-})(darkModeStyle, shadowTransition.style);
+})<{ showBoxShadow?: boolean }>(darkModeStyle, shadowTransition.style);

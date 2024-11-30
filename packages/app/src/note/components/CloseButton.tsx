@@ -1,20 +1,23 @@
-import styled from '@emotion/styled';
 import { Button, ButtonProps } from '@mui/material';
 import { useOnClose } from '../../utils/context/on-close';
+import { forwardRef } from 'react';
 
-export function CloseButton(props: Omit<ButtonProps, 'onClick'>) {
-  const onClose = useOnClose();
+export const CloseButton = forwardRef<HTMLButtonElement, ButtonProps>(
+  function CloseButton(
+    { size = 'small', children = 'Close', ...restProps }: ButtonProps,
+    ref
+  ) {
+    const onClose = useOnClose();
 
-  function handleClick() {
-    onClose();
+    const handleClick: ButtonProps['onClick'] = function (e) {
+      restProps.onClick?.(e);
+      onClose();
+    };
+
+    return (
+      <Button ref={ref} size={size} {...restProps} onClick={handleClick}>
+        {children}
+      </Button>
+    );
   }
-
-  return <ButtonStyled {...props} onClick={handleClick} />;
-}
-
-const ButtonStyled = styled(Button)();
-
-CloseButton.defaultProps = {
-  size: 'small',
-  children: 'Close',
-};
+);
