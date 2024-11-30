@@ -1,6 +1,7 @@
 import mitt, { Emitter } from 'mitt';
-import { Changeset, ChangesetStruct } from '../changeset';
-import { object, optional } from 'superstruct';
+import { Changeset } from '../changeset';
+import { object } from 'superstruct';
+import { OptionalChangesetStruct } from '../changeset/struct';
 
 export interface CollabClientEvents {
   viewChanged: Readonly<{
@@ -55,9 +56,9 @@ export enum ChangeSource {
 }
 
 export const CollabClientOptionsStruct = object({
-  server: optional(ChangesetStruct),
-  submitted: optional(ChangesetStruct),
-  local: optional(ChangesetStruct),
+  server: OptionalChangesetStruct,
+  submitted: OptionalChangesetStruct,
+  local: OptionalChangesetStruct,
 });
 
 export interface CollabClientOptions {
@@ -70,8 +71,11 @@ export interface CollabClientOptions {
 }
 
 export class CollabClient {
-  readonly eventBus: Emitter<CollabClientEvents>;
-
+  private readonly _eventBus: Emitter<CollabClientEvents>;
+  get eventBus(): Pick<Emitter<CollabClientEvents>, 'on' | 'off'> {
+    return this._eventBus;
+  }
+  
   private _server!: Changeset;
   get server() {
     return this._server;
@@ -93,7 +97,7 @@ export class CollabClient {
   }
 
   constructor(options?: CollabClientOptions) {
-    this.eventBus = options?.eventBus ?? mitt();
+    this._eventBus = options?.eventBus ?? mitt();
 
     this.reset(options);
   }
@@ -105,7 +109,7 @@ export class CollabClient {
     this._view =
       options?.view ?? this._server.compose(this._submitted).compose(this._local);
 
-    this.eventBus.emit('viewChanged', {
+    this._eventBus.emit('viewChanged', {
       view: this._view,
       change: this._server,
       source: ChangeSource.RESET,
@@ -135,14 +139,14 @@ export class CollabClient {
       this._local = newLocal;
       this._view = newView;
 
-      this.eventBus.emit('viewChanged', {
+      this._eventBus.emit('viewChanged', {
         view: this._view,
         change,
         source: ChangeSource.LOCAL,
       });
 
       if (!hadLocalChanges && this.haveLocalChanges()) {
-        this.eventBus.emit('haveLocalChanges', { local: newLocal });
+        this._eventBus.emit('haveLocalChanges', { local: newLocal });
       }
     }
   }
@@ -171,7 +175,7 @@ export class CollabClient {
     this._submitted = this._local;
     this._local = this._submitted.getIdentity();
 
-    this.eventBus.emit('submitChanges');
+    this._eventBus.emit('submitChanges');
 
     return true;
   }
@@ -186,7 +190,7 @@ export class CollabClient {
     this._server = this._server.compose(this._submitted);
     this._submitted = this._server.getIdentity();
 
-    this.eventBus.emit('submittedChangesAcknowledged');
+    this._eventBus.emit('submittedChangesAcknowledged');
     return true;
   }
 
@@ -233,13 +237,13 @@ export class CollabClient {
     this._local = newLocal;
     this._view = newView;
 
-    this.eventBus.emit('viewChanged', {
+    this._eventBus.emit('viewChanged', {
       view: this._view,
       change: viewComposable,
       source: ChangeSource.EXTERNAL,
     });
 
-    this.eventBus.emit('handledExternalChange', event);
+    this._eventBus.emit('handledExternalChange', event);
 
     return event;
   }

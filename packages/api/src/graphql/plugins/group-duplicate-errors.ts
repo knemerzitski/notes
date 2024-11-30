@@ -5,7 +5,7 @@ import {
   GraphQLRequestContext,
   GraphQLRequestListener,
 } from '@apollo/server';
-import { GraphQLFormattedError } from 'graphql';
+import { GraphQLFormattedError } from 'graphql/index.js';
 
 function createErrorKey(err: GraphQLFormattedError) {
   return (

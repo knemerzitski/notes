@@ -10,18 +10,12 @@ import {
   object,
   optional,
   string,
-  unknown,
 } from 'superstruct';
 
-import { Changeset } from '~collab/changeset';
+import { ChangesetStruct } from '~collab/changeset';
 import { SelectionRange } from '~collab/client/selection-range';
 
-export const ChangesetSchema = coerce(
-  instance(Changeset),
-  unknown(),
-  (value) => Changeset.parseValue(value),
-  (changeset) => changeset.serialize()
-);
+export const ChangesetSchema = ChangesetStruct;
 
 export type DBChangesetSchema = InferRaw<typeof ChangesetSchema>;
 

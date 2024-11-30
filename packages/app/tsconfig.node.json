@@ -17,5 +17,12 @@
     /* Interop Constraints */
     "allowSyntheticDefaultImports": true
   },
-  "include": ["vite.config.ts", "vitest.config.ts", "codegen.ts", "cypress.config.ts"]
+  "include": [
+    "vite.config.ts",
+    "vitest.config.ts",
+    "codegen.ts",
+    "cypress.config.ts",
+    "virtual-routes.config.ts"
+  ],
+  "exclude": ["scripts"]
 }

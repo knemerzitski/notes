@@ -31,8 +31,18 @@ import {
 import { SubmittedRecord } from './submitted-record';
 import { UserRecords } from './user-records';
 import { Changeset } from '../changeset';
-import { assign, Infer, object, omit, optional, union, literal } from 'superstruct';
-import { SelectionChangeset, SimpleTextOperationOptions } from './types';
+import {
+  assign,
+  Infer,
+  object,
+  omit,
+  optional,
+  union,
+  literal,
+  nullable,
+} from 'superstruct';
+import { SimpleTextOperationOptions } from '../editor/types';
+import { SelectionChangeset } from './types';
 
 export type CollabServiceEvents = CollabClientEvents &
   Omit<OrderedMessageBufferEvents<UnprocessedRecord>, 'processingMessages'> &
@@ -126,9 +136,9 @@ export type UnprocessedRecord = Infer<typeof UnprocessedRecordStruct>;
 
 const CollabServiceOptionsStruct = object({
   client: omit(CollabClientOptionsStruct, ['submitted']), // instead of omit make it optional?
-  submittedRecord: optional(SubmittedRevisionRecordStruct),
+  submittedRecord: nullable(SubmittedRevisionRecordStruct),
   recordsBuffer: optional(OrderedMessageBufferParamsStruct(UnprocessedRecordStruct)),
-  history: omit(CollabHistoryOptionsStruct, ['tailRevision', 'tailText']),
+  history: omit(CollabHistoryOptionsStruct, ['tailRevision']),
 });
 
 type UnprocessedRecordsBuffer = OrderedMessageBuffer<typeof UnprocessedRecordStruct>;
@@ -159,19 +169,50 @@ export interface CollabServiceOptions {
  * Single place to handle records received by server and to create a submittable record.
  */
 export class CollabService {
-  readonly eventBus: Emitter<CollabServiceEvents>;
+  private readonly _eventBus: Emitter<CollabServiceEvents>;
+  get eventBus(): Pick<Emitter<CollabServiceEvents>, 'on' | 'off'> {
+    return this._eventBus;
+  }
+
   private generateSubmitId: () => string;
 
   private _userRecords?: UserRecords | null;
+  private readonly userRecordsEventsOff: (() => void)[] = [];
   get userRecords() {
     return this._userRecords;
   }
   set userRecords(value) {
+    if (value == this._userRecords) {
+      return;
+    }
+
     value = value ?? null;
 
-    this._userRecords = value;
-    this.eventBus.emit('userRecordsUpdated', {
-      userRecords: value,
+    const oldUserRecords = this._userRecords;
+    const newUserRecord = value ?? null;
+    this._userRecords = newUserRecord;
+
+    // Clear previous events
+    if (oldUserRecords != null) {
+      this.userRecordsEventsOff.forEach((off) => {
+        off();
+      });
+      this.userRecordsEventsOff.length = 0;
+    }
+
+    // Bind new events
+    if (newUserRecord) {
+      this.userRecordsEventsOff.push(
+        newUserRecord.eventBus.on('recordsUpdated', () => {
+          this._eventBus.emit('userRecordsUpdated', {
+            userRecords: value,
+          });
+        })
+      );
+    }
+
+    this._eventBus.emit('userRecordsUpdated', {
+      userRecords: newUserRecord,
     });
   }
 
@@ -290,33 +331,33 @@ export class CollabService {
       options?.history instanceof CollabHistory
         ? options.history
         : new CollabHistory({
-            tailText: headText.changeset,
+            tailText: options?.history?.tailText ?? headText.changeset,
             tailRevision: headText.revision,
             ...options?.history,
             client: this._client,
           });
 
     // Link events
-    this.eventBus = options?.eventBus ?? mitt();
+    this._eventBus = options?.eventBus ?? mitt();
 
     // Records of a specific user
     this.userRecords = options?.userRecords ?? null;
 
     this.eventsOff.push(
       this._client.eventBus.on('*', (type, e) => {
-        this.eventBus.emit(type, e);
+        this._eventBus.emit(type, e);
       })
     );
 
     this.eventsOff.push(
       this._history.eventBus.on('*', (type, e) => {
-        this.eventBus.emit(type, e);
+        this._eventBus.emit(type, e);
       })
     );
 
     this.eventsOff.push(
       this.recordsBuffer.eventBus.on('nextMessage', (e) => {
-        this.eventBus.emit('nextMessage', e);
+        this._eventBus.emit('nextMessage', e);
       })
     );
 
@@ -350,14 +391,14 @@ export class CollabService {
             processingBus.emit('messagesProcessed', {
               hadExternalChanges,
             });
-            this.eventBus.emit('handledExternalChanges', externalChangePayloads);
+            this._eventBus.emit('handledExternalChanges', externalChangePayloads);
           } finally {
             processingBus.all.clear();
             unsubHandledExternalChange();
           }
         });
 
-        this.eventBus.emit('processingMessages', {
+        this._eventBus.emit('processingMessages', {
           eventBus: processingBus,
         });
       })
@@ -365,7 +406,7 @@ export class CollabService {
 
     this.eventsOff.push(
       this.recordsBuffer.eventBus.on('messagesProcessed', () => {
-        this.eventBus.emit('headRevisionChanged', {
+        this._eventBus.emit('headRevisionChanged', {
           revision: this.headRevision,
           changeset: this._client.server,
         });
@@ -374,7 +415,7 @@ export class CollabService {
 
     this.eventsOff.push(
       this.recordsBuffer.eventBus.on('missingMessages', (e) => {
-        this.eventBus.emit('missingRevisions', e);
+        this._eventBus.emit('missingRevisions', e);
       })
     );
   }
@@ -396,11 +437,11 @@ export class CollabService {
     this._history.reset();
     this.recordsBuffer.reset();
 
-    this.eventBus.emit('headRevisionChanged', {
+    this._eventBus.emit('headRevisionChanged', {
       revision: this.headRevision,
       changeset: this._client.server,
     });
-    this.eventBus.emit('replacedHeadText', {
+    this._eventBus.emit('replacedHeadText', {
       headText: this.headText,
     });
   }
@@ -427,11 +468,11 @@ export class CollabService {
     });
     this.recordsBuffer.setVersion(headText.revision);
 
-    this.eventBus.emit('headRevisionChanged', {
+    this._eventBus.emit('headRevisionChanged', {
       revision: this.headRevision,
       changeset: this._client.server,
     });
-    this.eventBus.emit('replacedHeadText', {
+    this._eventBus.emit('replacedHeadText', {
       headText: this.headText,
     });
   }
@@ -473,7 +514,7 @@ export class CollabService {
         changeset: this._client.submitted,
       });
 
-      this.eventBus.emit('submittedRecord', { submittedRecord: this._submittedRecord });
+      this._eventBus.emit('submittedRecord', { submittedRecord: this._submittedRecord });
     }
 
     return this._submittedRecord;
@@ -546,12 +587,12 @@ export class CollabService {
     return this._history.redo();
   }
 
-  serialize(historyRemoveServerEntries = true) {
+  serialize(historyKeepServerEntries = false) {
     return CollabServiceOptionsStruct.maskRaw({
       client: this._client.serialize(),
       submittedRecord: this._submittedRecord,
       recordsBuffer: this.recordsBuffer.serialize(),
-      history: this._history.serialize(historyRemoveServerEntries),
+      history: this._history.serialize(historyKeepServerEntries),
     });
   }
 
@@ -572,7 +613,6 @@ export class CollabService {
       history: {
         ...options.history,
         tailRevision: options.recordsBuffer?.version,
-        tailText: options.client.server,
       },
       submittedRecord: options.submittedRecord
         ? new SubmittedRecord(options.submittedRecord)

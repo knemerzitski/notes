@@ -4,12 +4,12 @@ import {
   mongoCollections,
   mongoCollectionStats,
   resetDatabase,
-} from '../../__test__/helpers/mongodb/mongodb';
+} from '../../__tests__/helpers/mongodb/mongodb';
 import { QueryableUserLoader } from '../../mongodb/loaders/user/loader';
 import { findUserByGoogleUserId } from './find-user-by-google-user-id';
 import { faker } from '@faker-js/faker';
-import { populateExecuteAll } from '../../__test__/helpers/mongodb/populate/populate-queue';
-import { fakeUserPopulateQueue } from '../../__test__/helpers/mongodb/populate/user';
+import { populateExecuteAll } from '../../__tests__/helpers/mongodb/populate/populate-queue';
+import { fakeUserPopulateQueue } from '../../__tests__/helpers/mongodb/populate/user';
 import { DBUserSchema } from '../../mongodb/schema/user';
 
 let user: DBUserSchema;

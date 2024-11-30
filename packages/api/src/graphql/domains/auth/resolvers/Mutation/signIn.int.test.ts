@@ -12,18 +12,18 @@ import {
 } from 'vitest';
 import * as insert_session from '../../../../../services/session/insert-session';
 import * as insert_user_with_google_user from '../../../../../services/user/insert-user-with-google-user';
-import { apolloServer } from '../../../../../__test__/helpers/graphql/apollo-server';
+import { apolloServer } from '../../../../../__tests__/helpers/graphql/apollo-server';
 import {
   CreateGraphQLResolversContextOptions,
   createGraphQLResolversContext,
-} from '../../../../../__test__/helpers/graphql/graphql-context';
-import { expectGraphQLResponseData } from '../../../../../__test__/helpers/graphql/response';
+} from '../../../../../__tests__/helpers/graphql/graphql-context';
+import { expectGraphQLResponseData } from '../../../../../__tests__/helpers/graphql/response';
 import {
   resetDatabase,
   mongoCollectionStats,
-} from '../../../../../__test__/helpers/mongodb/mongodb';
-import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/populate/populate-queue';
-import { fakeUserPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/user';
+} from '../../../../../__tests__/helpers/mongodb/mongodb';
+import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/populate/populate-queue';
+import { fakeUserPopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/user';
 import { DBSessionSchema } from '../../../../../mongodb/schema/session';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
@@ -282,4 +282,43 @@ it('returns already signed in result with existing auth', async () => {
   expect(spyInsertUserWithGoogleUser).not.toHaveBeenCalled();
 
   expect(spyInsertSession).not.toHaveBeenCalled();
+});
+
+it('signs in new user while already authenticated with another user', async () => {
+  const authProviderUser = {
+    id: user.thirdParty!.google!.id! + 'new',
+    email: 'aaaaa@email.com',
+    name: 'second',
+  };
+  verifyCredentialToken.mockResolvedValueOnce(authProviderUser);
+
+  const response = await executeOperation(
+    {
+      auth: {
+        google: {
+          token: 'irrelevant',
+        },
+      },
+    },
+    {
+      user,
+    }
+  );
+
+  const data = expectGraphQLResponseData(response);
+  expect(data).toEqual({
+    signIn: {
+      authProviderUser: {
+        id: authProviderUser.id,
+        email: authProviderUser.email,
+      },
+      signedInUser: {
+        id: expect.any(String),
+        public: {
+          profile: { displayName: 'second' },
+        },
+      },
+      availableUserIds: [objectIdToStr(user._id), expect.any(String)],
+    },
+  });
 });

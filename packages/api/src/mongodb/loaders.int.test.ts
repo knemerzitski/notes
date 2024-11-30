@@ -8,12 +8,12 @@ import {
   mongoCollections,
   mongoClient,
   mongoCollectionStats,
-} from '../__test__/helpers/mongodb/mongodb';
+} from '../__tests__/helpers/mongodb/mongodb';
 import {
   populateNotes,
   TestNoteCategory,
-} from '../__test__/helpers/mongodb/populate/populate';
-import { populateExecuteAll } from '../__test__/helpers/mongodb/populate/populate-queue';
+} from '../__tests__/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../__tests__/helpers/mongodb/populate/populate-queue';
 
 import { createMongoDBLoaders, MongoDBLoaders } from './loaders';
 import { QueryDeep } from './query/query';

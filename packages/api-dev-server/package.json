@@ -2,10 +2,11 @@
   "name": "dev-server",
   "version": "0.0.0",
   "private": "true",
+  "type": "module",
   "scripts": {
-    "server:build": "esbuild src/index.ts --outdir=./out --loader:.graphql=text --bundle --platform=node --packages=external --sourcemap",
+    "server:build": "esbuild src/index.ts --outdir=./out --loader:.graphql=text --bundle --platform=node --format=esm --packages=external --sourcemap",
     "server:build:watch": "npm run server:build -- --watch=forever",
-    "start:watch": "DEBUG=*:ERROR nodemon ./out/index.js",
+    "start:watch": "DEBUG=*:ERROR,*:INFO nodemon ./out/index.js",
     "build:http": "vite-node ../api/build.ts src/handlers/mock-apollo-http-handler.ts --outfile out-handlers/mock-apollo-http-handler/index.js",
     "build:handlers": "npm run build:http",
     "prettify": "prettier --write --ignore-unknown src",

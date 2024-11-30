@@ -1,16 +1,16 @@
-import { assign, Infer, number, object, string } from 'superstruct';
+import { assign, Infer, number, object, string, type } from 'superstruct';
 import { SelectionRangeStruct } from '../client/selection-range';
 import { ChangesetStruct } from '../changeset';
 
-const RevisionStruct = object({
+const RevisionStruct = type({
   revision: number(),
 });
 
 export type Revision = Infer<typeof RevisionStruct>;
 
-const RevisionChangesetStruct = assign(
+export const RevisionChangesetStruct = assign(
   RevisionStruct,
-  object({
+  type({
     changeset: ChangesetStruct,
   })
 );

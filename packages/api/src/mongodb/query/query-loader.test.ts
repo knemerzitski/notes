@@ -269,7 +269,7 @@ describe('load/prime', () => {
     expect(batchLoadFn).toHaveBeenCalledOnce();
   });
 
-  it('priming partial query loads from cache', async () => {
+  it('querying part of primed object loads from cache', async () => {
     const batchLoadFn = vi.fn().mockImplementation((k) => k.map((a: any) => a.query));
 
     const loader = new QueryLoader<any, any>({
@@ -299,7 +299,6 @@ describe('load/prime', () => {
         },
       })
     ).resolves.toStrictEqual({
-      a: 'a',
       b: 'b',
     });
   });

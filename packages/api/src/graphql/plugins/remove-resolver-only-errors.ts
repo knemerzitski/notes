@@ -5,7 +5,7 @@ import {
   GraphQLRequestContext,
   GraphQLRequestListener,
 } from '@apollo/server';
-import { GraphQLError, GraphQLErrorOptions } from 'graphql';
+import { GraphQLError, GraphQLErrorOptions } from 'graphql/index.js';
 
 const REMOVE_ERROR_MARK = 'removeResolverOnlyError';
 

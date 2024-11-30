@@ -11,6 +11,10 @@ interface UpdateMoveCategoryParams {
     runSingleOperation?: TransactionContext['runSingleOperation'];
   };
   noteId: ObjectId;
+  /**
+   * Current note index, must be >= 0
+   */
+  noteIndex?: Maybe<number>;
   noteUser: MongoReadonlyDeep<{
     _id: ObjectId;
     categoryName: string;
@@ -43,6 +47,7 @@ interface UpdateMoveCategoryParams {
 export function updateMoveCategory({
   mongoDB,
   noteId,
+  noteIndex,
   noteUser,
   categoryName,
   anchor,
@@ -51,10 +56,34 @@ export function updateMoveCategory({
     throw new Error(`Expected anchor.index to be non-negative but is ${anchor.index}`);
   }
 
+  const isNoteInCorrectCategory = noteUser.categoryName === categoryName;
+
+  if (anchor != null && noteIndex != null) {
+    if (isNoteInCorrectCategory) {
+      if (noteIndex === anchor.index) {
+        // Anchor is same as moving note, final order won't change
+        return Promise.resolve();
+      }
+
+      const finalIndex =
+        anchor.index +
+        (anchor.position === 'after' ? 1 : 0) +
+        (noteIndex < anchor.index ? -1 : 0);
+
+      if (noteIndex === finalIndex) {
+        // Already pointing to same index, no move needed
+        return;
+      }
+    }
+  }
+
+  if (anchor == null && isNoteInCorrectCategory) {
+    return;
+  }
+
   const runSingleOperation = mongoDB.runSingleOperation ?? ((run) => run());
   const updatePromises: Promise<unknown>[] = [];
 
-  const isNoteInCorrectCategory = noteUser.categoryName === categoryName;
   if (!isNoteInCorrectCategory) {
     // Move note in user document from one category to other
     updatePromises.push(
@@ -110,7 +139,10 @@ export function updateMoveCategory({
                     [notesArrayPath(categoryName)]: anchor
                       ? {
                           $each: [noteId],
-                          $position: anchor.index + (anchor.position === 'after' ? 1 : 0),
+                          $position:
+                            anchor.index +
+                            (anchor.position === 'after' ? 1 : 0) +
+                            (noteIndex != null && noteIndex < anchor.index ? -1 : 0),
                         }
                       : noteId,
                   },

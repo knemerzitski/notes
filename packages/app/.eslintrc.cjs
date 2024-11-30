@@ -8,6 +8,26 @@ module.exports = {
       },
     },
   },
+  rules: {
+    'no-restricted-imports': [
+      'error',
+      {
+        paths: [
+          {
+            name: '@tanstack/router-devtools',
+            importNames: ['TanStackRouterDevtools'],
+            message:
+              'Please use TanStackRouterDevtools from ./components/TanStackRouterDevTools instead.',
+          },
+          {
+            name: '@apollo/client',
+            importNames: ['useMutation'],
+            message: 'Please use useMutation from ./graphql/hooks/useMutation instead.',
+          },
+        ],
+      },
+    ],
+  },
   overrides: [
     {
       files: ['*.[t]s?(x)'],
@@ -29,6 +49,43 @@ module.exports = {
       rules: {
         'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
         'react-hooks/exhaustive-deps': ['error'],
+      },
+    },
+    {
+      files: [
+        // React components
+        './src/{*,*/*}/components/**',
+        // GraphQL mutations
+        './src/*/mutations/**',
+        // GraphQL type policies
+        './src/*/policies/*',
+        // GraphQL scalar policies
+        './src/*/scalars/*',
+      ],
+      rules: {
+        'unicorn/filename-case': [
+          'error',
+          {
+            case: 'pascalCase',
+          },
+        ],
+      },
+    },
+    {
+      files: [
+        // React hooks
+        './src/*/hooks/**',
+        './src/*/*/hooks/**',
+        // GraphQL field policies
+        './src/*/policies/{*,*/*}/*',
+      ],
+      rules: {
+        'unicorn/filename-case': [
+          'error',
+          {
+            case: 'camelCase',
+          },
+        ],
       },
     },
     {

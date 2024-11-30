@@ -4,7 +4,7 @@ import { assert, beforeAll, describe, expect, it } from 'vitest';
 
 import { isNonEmptyArray } from '~utils/array/is-non-empty-array';
 
-import { mongoDB } from '../../__test__/helpers/mongodb/mongodb';
+import { mongoDB } from '../../__tests__/helpers/mongodb/mongodb';
 
 import {
   CursorArrayPaginationInput,

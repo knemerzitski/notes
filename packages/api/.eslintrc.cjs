@@ -33,11 +33,23 @@ module.exports = {
         ],
       },
     ],
+    'no-restricted-imports': [
+      'error',
+      {
+        paths: [
+          {
+            name: 'graphql',
+            message:
+              'Please import from CommonJS instead "graphql/index.js" (To match realm from "@graphql-tools")',
+          },
+        ],
+      },
+    ],
   },
   overrides: [
     {
-      // Ignore filename casing for generates resolver files
-      files: ['./src/graphql/domains/*/resolvers/**', './src/graphql/external/**'],
+      // Ignore filename casing for generated resolver files
+      files: ['./src/graphql/domains/*/resolvers/**'],
       rules: {
         'unicorn/filename-case': ['off'],
       },

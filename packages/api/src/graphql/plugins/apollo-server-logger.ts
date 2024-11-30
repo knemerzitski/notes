@@ -6,7 +6,7 @@ import {
 } from '@apollo/server';
 import { Logger } from '~utils/logging';
 import { unwrapResolverError } from '@apollo/server/errors';
-import { GraphQLError } from 'graphql';
+import { GraphQLError } from 'graphql/index.js';
 
 export class ApolloServerLogger<TContext extends BaseContext>
   implements ApolloServerPlugin<TContext>

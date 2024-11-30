@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ApolloServer } from '@apollo/server';
-import { GraphQLResolveInfo } from 'graphql';
+import { GraphQLResolveInfo } from 'graphql/index.js';
 import { afterEach, beforeAll, describe, expect, it, Mock, vi } from 'vitest';
 
 import { preExecuteObjectField, withPreExecuteList } from './pre-execute';
-import { expectGraphQLResponseData } from '../../__test__/helpers/graphql/response';
+import { expectGraphQLResponseData } from '../../__tests__/helpers/graphql/response';
 
 describe('withPreExecuteList', () => {
   let itemValueResolveFn: Mock;
@@ -50,7 +50,7 @@ describe('withPreExecuteList', () => {
             return withPreExecuteList(
               (index, updateSize) => {
                 indexFn(index);
-                updateSize(updateSizeInputFn());
+                updateSize?.(updateSizeInputFn());
                 return callbackReturnFn();
               },
               ctx,

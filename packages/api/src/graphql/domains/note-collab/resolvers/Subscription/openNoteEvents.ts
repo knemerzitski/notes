@@ -88,7 +88,7 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
           userId: currentUserId,
         });
 
-        const subscribedPayload: ResolversTypes['SignedInUserMutations'] = {
+        const subscribedPayload: ResolversTypes['SignedInUserMutation'] = {
           __typename: 'OpenNoteUserSubscribedEvent',
           user: {
             query: userQuery,
@@ -243,7 +243,7 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
                 openNote.connectionIds.length === 0 ||
                 openNote.connectionIds.includes(connectionId)
               ) {
-                const unsubscribedPayload: ResolversTypes['SignedInUserMutations'] = {
+                const unsubscribedPayload: ResolversTypes['SignedInUserMutation'] = {
                   __typename: 'OpenNoteUserUnsubscribedEvent',
                   user: {
                     query: mongoDB.loaders.user.createQueryFn({
@@ -305,7 +305,7 @@ export async function publishOpenNoteEvents(
 
 export function publishOpenNoteMutations(
   targetNoteId: ObjectId,
-  mutations: ResolversTypes['OpenNoteMutations'][],
+  mutations: ResolversTypes['OpenNoteMutation'][],
   ctx: Pick<GraphQLResolversContext, 'publish'>,
   options?: PublisherOptions
 ) {
@@ -314,7 +314,7 @@ export function publishOpenNoteMutations(
 
 export function publishOpenNoteMutation(
   targetNoteId: ObjectId,
-  mutation: ResolversTypes['OpenNoteMutations'],
+  mutation: ResolversTypes['OpenNoteMutation'],
   ctx: Pick<GraphQLResolversContext, 'publish'>,
   options?: PublisherOptions
 ) {

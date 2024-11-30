@@ -38,7 +38,8 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitAny": true,
     "noImplicitThis": true,
-    "noUnusedLocals": true,
+    // Using @typescript-eslint/no-unused-vars instead which alloes ignoring by leading underscore
+    "noUnusedLocals": false,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": false,
     "strictPropertyInitialization": false,

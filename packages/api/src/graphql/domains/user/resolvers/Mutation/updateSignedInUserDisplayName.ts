@@ -20,7 +20,7 @@ export const updateSignedInUserDisplayName: NonNullable<
   });
 
   // Prepare payload
-  const payload: ResolversTypes['SignedInUserMutations'] = {
+  const payload: ResolversTypes['SignedInUserMutation'] = {
     __typename: 'UpdateSignedInUserDisplayNamePayload',
     displayName: input.displayName,
     signedInUser: {

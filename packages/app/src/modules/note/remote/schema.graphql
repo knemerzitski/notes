@@ -1,4 +1,0 @@
-extend type Query {
-  "Active Notes submitted record are sent to server and external changes are saved."
-  allActiveNotes: [Note!]!
-}

@@ -1,10 +1,11 @@
-import { GraphQLError } from 'graphql';
+import { GraphQLError } from 'graphql/index.js';
 import {
   GraphQLErrorCode,
   InputType,
   ResourceType,
 } from '~api-app-shared/graphql/error-codes';
 import {
+  NoteByShareLinkNotFoundServiceError,
   NoteCollabRecordInsertError,
   NoteCollabTextInvalidRevisionError,
   NoteNotFoundServiceError,
@@ -16,6 +17,8 @@ import { NoteNotFoundQueryLoaderError } from '../../mongodb/loaders/note/loader'
 import { ErrorMapper } from './utils/error-mapper';
 import { InsertRecordError } from '~collab/records/process-record-insertion';
 import { ChangesetOperationError } from '~collab/changeset';
+import { ObjectId } from 'mongodb';
+import { objectIdToStr } from '../../mongodb/utils/objectid';
 
 class NoteNotFoundError extends GraphQLError {
   constructor() {
@@ -50,12 +53,26 @@ class NoteReadOnlyError extends GraphQLError {
   }
 }
 
+export class NoteUnauthorizedUserError extends GraphQLError {
+  constructor(currentUserId: ObjectId, noteAccessUserId: ObjectId) {
+    super(
+      `Attempted to access note as user "${objectIdToStr(noteAccessUserId)}" while authenticated as user "${objectIdToStr(currentUserId)}"`,
+      {
+        extensions: {
+          code: GraphQLErrorCode.UNAUTHORIZED,
+        },
+      }
+    );
+  }
+}
+
 function newNoteErrorMapper() {
   const mapper = new ErrorMapper();
   mapper.add(NoteNotFoundServiceError, () => new NoteNotFoundError());
   mapper.add(NoteUserNotFoundServiceError, () => new NoteUserNotFoundError());
   mapper.add(NoteNotFoundQueryLoaderError, () => new NoteNotFoundError());
   mapper.add(NoteReadOnlyServiceError, () => new NoteReadOnlyError());
+  mapper.add(NoteByShareLinkNotFoundServiceError, () => new NoteNotFoundError());
 
   mapper.add(NoteCollabRecordInsertError, (error) => {
     if (error.cause instanceof InsertRecordError) {

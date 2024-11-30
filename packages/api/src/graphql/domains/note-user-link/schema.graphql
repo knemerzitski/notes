@@ -1,34 +1,62 @@
 ################################ UserNoteLink ################################
+
+"""
+Identifier for UserNoteLink.id, serializes to string
+"""
+scalar UserNoteLinkID
+
 """
 Link (edge) between signed in user and note.
 """
 type UserNoteLink implements Node {
-  "Self-descriptive"
+  """
+  Note.id:User.id
+  """
   id: ID!
-  "Note that the user can access"
+  """
+  Note that the user can access
+  """
   note: Note!
-  "UserNoteLink data that might be accessed by other users"
+  """
+  UserNoteLink data that might be accessed by other users
+  """
   public: PublicUserNoteLink!
 }
 
+"""
+TODO desc
+"""
 type PublicUserNoteLink {
-  "Self-descriptive"
+  """
+  Self-descriptive
+  """
   id: ID!
-  "Public user who can access the note"
+  """
+  Public user who can access the note
+  """
   user: PublicUser!
-  "User is owner of the note"
+  """
+  User is owner of the note
+  """
   isOwner: Boolean!
-  "Access to note is read-only. User cannot modify note."
+  """
+  Access to note is read-only. User cannot modify note.
+  """
   readOnly: Boolean!
 }
 
 extend type Note {
-  "All users who can access the note."
+  """
+  All users who can access the note.
+  """
   users: [PublicUserNoteLink!]!
 }
 
 ################################ Mutation createNote ################################
 
+"""
+TODO desc
+"""
 input CreateUserNoteLinkInput
 
 extend input CreateNoteInput {
@@ -36,46 +64,92 @@ extend input CreateNoteInput {
 }
 
 extend type CreateNotePayload {
-  "Created link to a new note"
+  """
+  Created link to a new note
+  """
   userNoteLink: UserNoteLink!
 }
 
 ################################ Mutation deleteNote ################################
 
 extend type DeleteNoteInput {
-  "Delete note from specified user. If not defined then current user is used. Current user must be note owner."
+  """
+  Delete note from specified user. If not defined then current user is used. Current user must be note owner.
+  """
   userId: ObjectID
 }
 
 extend type DeleteNotePayload {
-  "Deleted UserNoteLink.id"
+  """
+  Deleted UserNoteLink.id
+  """
   userNoteLinkId: String
-  "Deleted PublicUserNoteLink.id"
+  """
+  Deleted PublicUserNoteLink.id
+  """
   publicUserNoteLinkId: String
 }
 
-################################ Query userNoteLinkByNoteId,userNoteLinkConnection,userNoteLinkSearchConnection ################################
+################################ Query userNoteLink,userNoteLinkConnection,userNoteLinkSearchConnection ################################
 
+"""
+TODO desc
+"""
 type UserNoteLinkConnection implements Connection {
-  "Notes directly without edges"
+  """
+  Notes directly without edges
+  """
   userNoteLinks: [UserNoteLink!]!
-  "Self descriptive"
+  """
+  Self descriptive
+  """
   edges: [UserNoteLinkEdge!]!
-  "Self descriptive"
+  """
+  Self descriptive
+  """
   pageInfo: PageInfo!
 }
 
+"""
+TODO desc
+"""
 type UserNoteLinkEdge implements Edge {
-  "Self descriptive"
+  """
+  Self descriptive
+  """
   node: UserNoteLink!
-  "Self descriptive"
+  """
+  Self descriptive
+  """
   cursor: Cursor!
 }
 
+"""
+TODO desc
+"""
+input UserNoteLinkByInput @oneOf {
+  """
+  UserNoteLink.id
+  """
+  id: UserNoteLinkID
+  """
+  UserNoteLink.id
+  """
+  userNoteLinkId: UserNoteLinkID
+  """
+  userNoteLink.note.id
+  """
+  noteId: ObjectID
+}
+
 extend type Query {
-  "Find UserNoteLink by Note.id"
-  userNoteLinkByNoteId(noteId: ObjectID!): UserNoteLink! @auth
-  "Paginate UserNoteLinks by category. Default is NoteCategory.DEFAULT"
+  """
+  Find UserNoteLink by Note.id
+  """
+  userNoteLink(by: UserNoteLinkByInput!): UserNoteLink! @auth
+  """
+  Paginate UserNoteLinks by category. Default is NoteCategory.DEFAULT
+  """
   userNoteLinkConnection(
     first: NonNegativeInt
     after: ObjectID
@@ -83,7 +157,9 @@ extend type Query {
     before: ObjectID
     category: NoteCategory
   ): UserNoteLinkConnection! @auth
-  "Search for UserNoteLinks by text"
+  """
+  Search for UserNoteLinks by text
+  """
   userNoteLinkSearchConnection(
     searchText: String!
     first: NonNegativeInt
@@ -95,37 +171,59 @@ extend type Query {
 
 ################################ Mutation updateUserNoteLinkReadOnly ################################
 
+"""
+TODO desc
+"""
 input UpdateUserNoteLinkReadOnlyInput {
-  "Target Note.id"
+  """
+  Target Note.id
+  """
   noteId: ObjectID!
-  "Specified note user. If not defined then current user is used. Current user must be note owner."
+  """
+  Specified note user. If not defined then current user is used. Current user must be note owner.
+  """
   userId: ObjectID
-  "New PublicUserNoteLink.readOnly value for PublicUser.id"
+  """
+  New PublicUserNoteLink.readOnly value for PublicUser.id
+  """
   readOnly: Boolean!
 }
 
+"""
+TODO desc
+"""
 type UpdateUserNoteLinkReadOnlyPayload {
-  "New PublicUserNoteLink.readOnly value"
+  """
+  New PublicUserNoteLink.readOnly value
+  """
   readOnly: Boolean!
-  "Affected PublicUserNoteLink"
+  """
+  Affected PublicUserNoteLink
+  """
   publicUserNoteLink: PublicUserNoteLink!
-  "Related Note"
+  """
+  Related Note
+  """
   note: Note!
 }
 
 extend type Mutation {
-  "Change user note permissions"
+  """
+  Change user note permissions
+  """
   updateUserNoteLinkReadOnly(
     input: UpdateUserNoteLinkReadOnlyInput!
   ): UpdateUserNoteLinkReadOnlyPayload!
 }
 
-extend union SignedInUserMutations = UpdateUserNoteLinkReadOnlyPayload
+extend union SignedInUserMutation = UpdateUserNoteLinkReadOnlyPayload
 
 ################################ Mutation updateUserNoteLinkBackgroundColor ################################
 
 extend type UserNoteLink {
-  "Note preferences for visual appearance"
+  """
+  Note preferences for visual appearance
+  """
   preferences: NotePreferences
 }
 
@@ -133,68 +231,110 @@ extend input CreateUserNoteLinkInput {
   preferences: NotePreferencesInput
 }
 
+"""
+TODO desc
+"""
 type NotePreferences {
-  "Note background color"
+  """
+  Note background color
+  """
   backgroundColor: HexColorCode
 }
 
+"""
+TODO desc
+"""
 input NotePreferencesInput {
   backgroundColor: HexColorCode
 }
 
+"""
+TODO desc
+"""
 input UpdateUserNoteLinkBackgroundColorInput {
-  "UserNoteLink to be updated by Note.id"
+  """
+  UserNoteLink to be updated by Note.id
+  """
   noteId: ObjectID!
-  "New background color value"
+  """
+  New background color value
+  """
   backgroundColor: HexColorCode!
 }
 
+"""
+TODO desc
+"""
 type UpdateUserNoteLinkBackgroundColorPayload {
-  "Direct access to new background color"
+  """
+  Direct access to new background color
+  """
   backgroundColor: HexColorCode!
-  "UserNoteLink after new background color is applied"
+  """
+  UserNoteLink after new background color is applied
+  """
   userNoteLink: UserNoteLink!
 }
 
 extend type Mutation {
-  "Update note preferences backgroundColor"
+  """
+  Update note preferences backgroundColor
+  """
   updateUserNoteLinkBackgroundColor(
     input: UpdateUserNoteLinkBackgroundColorInput!
   ): UpdateUserNoteLinkBackgroundColorPayload! @auth
 }
 
-extend union SignedInUserMutations = UpdateUserNoteLinkBackgroundColorPayload
+extend union SignedInUserMutation = UpdateUserNoteLinkBackgroundColorPayload
 
 ################################ Mutation trashUserNoteLink ################################
 
 extend type UserNoteLink {
-  "UserNoteLink is marked for deletion and will no longer be available after this date."
+  """
+  UserNoteLink is marked for deletion and will no longer be available after this date.
+  """
   deletedAt: DateTime
 }
 
+"""
+TODO desc
+"""
 input TrashUserNoteLinkInput {
-  "Note to be trashed by Note.id"
+  """
+  Note to be trashed by Note.id
+  """
   noteId: ObjectID!
 }
 
+"""
+TODO desc
+"""
 type TrashUserNoteLinkPayload {
-  "Time when note is permanently deleted from trash"
+  """
+  Time when note is permanently deleted from trash
+  """
   deletedAt: DateTime!
-  "UserNoteLink after it's been trashed."
+  """
+  UserNoteLink after it's been trashed.
+  """
   userNoteLink: UserNoteLink!
 }
 
 extend type Mutation {
-  "Trash note by Note.id. It can still be recovered by moving it out of trash"
+  """
+  Trash note by Note.id. It can still be recovered by moving it out of trash
+  """
   trashUserNoteLink(input: TrashUserNoteLinkInput!): TrashUserNoteLinkPayload! @auth
 }
 
-extend union SignedInUserMutations = TrashUserNoteLinkPayload
+extend union SignedInUserMutation = TrashUserNoteLinkPayload
 
 ################################ Mutation moveUserNoteLink ################################
 
 extend type UserNoteLink {
-  "Category where note belongs"
+  """
+  Category where note belongs
+  """
   categoryName: NoteCategory!
 }
 
@@ -221,6 +361,9 @@ enum MovableNoteCategory {
   ARCHIVE
 }
 
+"""
+TODO desc
+"""
 enum ListAnchorPosition {
   AFTER
   BEFORE
@@ -230,43 +373,72 @@ enum ListAnchorPosition {
 Move notes between categories or within category using anchor note
 """
 input NoteLocationInput {
-  "Category where to put or keep the note."
+  """
+  Category where to put or keep the note.
+  """
   categoryName: MovableNoteCategory!
   """
   Note.id to be defined as anchor.
   If anchor note doesn't exist then anchor is ignored and note is appended to the end.
   """
   anchorNoteId: ObjectID
-  "How note is moved relative to anchor note"
+  """
+  How note is moved relative to anchor note
+  """
   anchorPosition: ListAnchorPosition
 }
 
+"""
+TODO desc
+"""
 type NoteLocation {
-  "Note category after moving"
+  """
+  Note category after moving
+  """
   categoryName: MovableNoteCategory!
-  "Anchor note after moving"
+  """
+  Anchor note after moving
+  """
   anchorUserNoteLink: UserNoteLink
-  "How note is positioned relative to anchorNote. Default is BEFORE"
+  """
+  How note is positioned relative to anchorNote. Default is BEFORE
+  """
   anchorPosition: ListAnchorPosition
 }
 
+"""
+TODO desc
+"""
 input MoveUserNoteLinkInput {
-  "Note to be moved by Note.id"
+  """
+  Note to be moved by Note.id
+  """
   noteId: ObjectID!
-  "Specify how to move the note. Null location can be used to move note out of trash back to original category."
+  """
+  Specify how to move the note. Null location can be used to move note out of trash back to original category.
+  """
   location: NoteLocationInput
 }
 
+"""
+TODO desc
+"""
 type MoveUserNoteLinkPayload {
-  "How note was moved"
+  """
+  How note was moved
+  """
   location: NoteLocation!
-  "UserNoteLink after the move"
+  """
+  UserNoteLink after the move
+  """
   userNoteLink: UserNoteLink!
 }
 
 extend type Mutation {
-  "Move note between categories or reorder within categories"
+  """
+  Move note between categories or reorder within categories
+  """
   moveUserNoteLink(input: MoveUserNoteLinkInput!): MoveUserNoteLinkPayload! @auth
 }
 
-extend union SignedInUserMutations = MoveUserNoteLinkPayload
+extend union SignedInUserMutation = MoveUserNoteLinkPayload

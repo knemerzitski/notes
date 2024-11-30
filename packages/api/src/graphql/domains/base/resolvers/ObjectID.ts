@@ -1,4 +1,4 @@
-import { GraphQLScalarType, Kind } from 'graphql';
+import { GraphQLScalarType, Kind } from 'graphql/index.js';
 import { ObjectId } from 'mongodb';
 import {
   isObjectIdStr,

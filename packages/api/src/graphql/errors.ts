@@ -1,4 +1,4 @@
-import { GraphQLError, GraphQLFormattedError } from 'graphql';
+import { GraphQLError, GraphQLFormattedError } from 'graphql/index.js';
 import { unwrapResolverError } from '@apollo/server/errors';
 import { formatError as note_formatError } from './errors/note';
 import { formatError as auth_formatError } from './errors/auth';

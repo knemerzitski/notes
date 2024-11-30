@@ -1,10 +1,9 @@
-import { Box, Card, CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import { Box, Card } from '@mui/material';
 import { mount } from 'cypress/react18';
 import { ReactNode } from 'react';
 
 import './commands';
-import { GlobalStyles } from '../../src/global-styles';
-import { themeOptions } from '../../src/theme-options';
+import { AppThemeModuleProvider } from '../../src/theme/components/AppThemeModuleProvider';
 
 /**
  * Mount in a experimental sandbox to tinker with components.
@@ -12,12 +11,8 @@ import { themeOptions } from '../../src/theme-options';
  * window in Mui Card.
  */
 export const mountSandbox: typeof mount = (jsx: ReactNode, ...restArgs) => {
-  const theme = createTheme(themeOptions('dark'));
-
   return mount(
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <GlobalStyles />
+    <AppThemeModuleProvider>
       <Box
         sx={{
           width: '100vw',
@@ -37,7 +32,7 @@ export const mountSandbox: typeof mount = (jsx: ReactNode, ...restArgs) => {
           {jsx}
         </Card>
       </Box>
-    </ThemeProvider>,
+    </AppThemeModuleProvider>,
     ...restArgs
   );
 };

@@ -1,15 +1,20 @@
 export interface Deferred<T> {
   promise: Promise<T>;
-  resolve(value: T | PromiseLike<T>): void;
-  reject(reason?: unknown): void;
+  resolve: DeferredResolve<T>;
+  reject: (reason?: unknown) => void;
 }
+
+type DeferredResolve<T> = T extends undefined
+  ? () => void
+  : (value: T | PromiseLike<T>) => void;
 
 /**
  * Creates a new Promise and passes resolve, reject in return object.
  * @returns
  */
-export function createDeferred<T>(): Deferred<T> {
+export function createDeferred<T = undefined>(): Deferred<T> {
   const obj: Omit<Deferred<T>, 'promise'> = {
+    //@ts-expect-error Ignore error
     resolve: () => {
       throw new Error('Promise has not started yet');
     },
@@ -19,6 +24,7 @@ export function createDeferred<T>(): Deferred<T> {
   };
 
   const promise = new Promise<T>((resolve, reject) => {
+    //@ts-expect-error Ignore error
     obj.resolve = resolve;
     obj.reject = reject;
   });

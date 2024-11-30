@@ -24,7 +24,7 @@ export const createNoteLinkByShareAccess: NonNullable<
     shareLinkId: input.shareAccessId,
   });
 
-  const payload: ResolversTypes['SignedInUserMutations'] = {
+  const payload: ResolversTypes['SignedInUserMutation'] = {
     __typename: 'CreateNoteLinkByShareAccessPayload',
     userNoteLink: {
       userId: currentUserId,

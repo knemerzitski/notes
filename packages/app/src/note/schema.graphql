@@ -1,0 +1,140 @@
+"""
+TODO desc
+"""
+scalar CollabService
+
+"""
+TODO desc
+"""
+scalar NoteTextFieldEditor
+
+"""
+TODO desc
+"""
+enum NoteTextFieldName {
+  CONTENT
+  TITLE
+}
+
+extend type UserNoteLink {
+  """
+  Note category before it was trashed
+  """
+  originalCategoryName: MovableNoteCategory
+  """
+  Connection where note is stored
+  """
+  connectionCategoryName: NoteCategory
+}
+
+extend type Note {
+  """
+  Operation responsible for creating this note on the server.
+  """
+  createOperation: ApolloOperation
+  """
+  Service responsible for managing collaborative text
+  """
+  collabService: CollabService!
+  """
+  Note text fields derived from collabText
+  """
+  textField(name: NoteTextFieldName!): NoteTextField!
+  """
+  Note is only used on the device locally. No network requests are made.
+  """
+  localOnly: Boolean!
+}
+
+"""
+TODO desc
+"""
+type NoteTextField {
+  """
+  Read-only text value
+  """
+  value: String!
+  """
+  An editor for mutating the field value
+  """
+  editor: NoteTextFieldEditor!
+}
+
+################################ LocalSignedInUser.pendingNotes ################################
+
+"""
+TODO desc
+"""
+enum NotePendingStatus {
+  """
+  An empty note that can be used to start creating a new note
+  """
+  EMPTY
+  """
+  Note creation is being submitted to the server.
+  Submitting note will have `localNoteId` as context variable in the mutation.
+  It will be used in mutation update function to copy state from local to remote note.
+  """
+  SUBMITTING
+  """
+  Note has been submitted to the server and creation is done
+  """
+  DONE
+  """
+  A local note that is being converted to a remote one
+  """
+  CONVERTING
+}
+
+extend type UserNoteLink {
+  pendingStatus: NotePendingStatus
+  """
+  Note is excluded from being show in connection
+  """
+  excludeFromConnection: Boolean!
+}
+
+extend type LocalSignedInUser {
+  """
+  A list of notes tied to creating new notes.
+  Each note should have non-null field `pendingStatus`.
+  """
+  pendingNotes: [UserNoteLink!]!
+}
+
+################################ LocalSignedInUser.unsavedCollabServices ################################
+
+extend type LocalSignedInUser {
+  """
+  List of notes that has CollabService with either local or unsubmitted changes.
+  These notes must be synchronized with the server.
+  """
+  unsavedCollabServices: [UserNoteLink!]!
+}
+
+################################ UserOperation ################################
+
+"""
+Invoke mutation `DeleteNote`
+"""
+type DeleteNoteUserOperation implements UserOperation {
+  id: ID!
+  userNoteLink: UserNoteLink!
+}
+
+"""
+Invoke mutation `TrashNote`
+"""
+type TrashNoteUserOperation implements UserOperation {
+  id: ID!
+  userNoteLink: UserNoteLink!
+}
+
+"""
+Invoke mutation `MoveNote`
+"""
+type MoveNoteUserOperation implements UserOperation {
+  id: ID!
+  userNoteLink: UserNoteLink!
+  location: NoteLocation
+}

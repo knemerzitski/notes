@@ -1,11 +1,11 @@
 import { ObjectId } from 'mongodb';
 import { expect, it } from 'vitest';
-import { apolloServer } from '../../../../../__test__/helpers/graphql/apollo-server';
+import { apolloServer } from '../../../../../__tests__/helpers/graphql/apollo-server';
 import {
   CreateGraphQLResolversContextOptions,
   createGraphQLResolversContext,
-} from '../../../../../__test__/helpers/graphql/graphql-context';
-import { expectGraphQLResponseData } from '../../../../../__test__/helpers/graphql/response';
+} from '../../../../../__tests__/helpers/graphql/graphql-context';
+import { expectGraphQLResponseData } from '../../../../../__tests__/helpers/graphql/response';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { Cookies } from '../../../../../services/http/cookies';
 import {

@@ -8,16 +8,16 @@ import {
   resetDatabase,
   mongoCollections,
   mongoCollectionStats,
-} from '../../../__test__/helpers/mongodb/mongodb';
+} from '../../../__tests__/helpers/mongodb/mongodb';
 import {
   TestNoteCategory,
   populateNotes,
-} from '../../../__test__/helpers/mongodb/populate/populate';
-import { populateExecuteAll } from '../../../__test__/helpers/mongodb/populate/populate-queue';
+} from '../../../__tests__/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../__tests__/helpers/mongodb/populate/populate-queue';
 import { DBUserSchema } from '../../schema/user';
 
 import { QueryableUserLoaderKey, QueryableUserLoaderParams } from './loader';
-import { fakeUserPopulateQueue } from '../../../__test__/helpers/mongodb/populate/user';
+import { fakeUserPopulateQueue } from '../../../__tests__/helpers/mongodb/populate/user';
 import { CursorPagination } from '../../pagination/cursor-struct';
 import { batchLoad } from './batch-load';
 

@@ -62,6 +62,7 @@ describe('composeLocalChange', () => {
   it('emits viewChanged', () => {
     const change = cs([0, 5], '[A]', [6, 14]);
 
+    //@ts-expect-error Allow spying during testing
     const emit = vi.spyOn(client.eventBus, 'emit');
     client.composeLocalChange(change);
     expect(emit).toBeCalledWith('viewChanged', {
@@ -267,4 +268,14 @@ describe('handleExternalChange', () => {
     expect(client.submitted.toString()).toStrictEqual(initial.getIdentity().toString());
     expect(client.local.toString()).toStrictEqual(initial.getIdentity().toString());
   });
+});
+
+it('serialize/parseValue to same state', () => {
+  const client = new CollabClient({ server: cs('server') });
+  const client2 = new CollabClient(CollabClient.parseValue(client.serialize()));
+
+  expect(client2.server.toString()).toStrictEqual(client.server.toString());
+  expect(client2.submitted.toString()).toStrictEqual(client.submitted.toString());
+  expect(client2.local.toString()).toStrictEqual(client.local.toString());
+  expect(client2.view.toString()).toStrictEqual(client.view.toString());
 });

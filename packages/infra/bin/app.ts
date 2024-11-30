@@ -1,9 +1,9 @@
-import 'source-map-support/register';
+import 'source-map-support/register.js';
 import path from 'path';
 
 import { App } from 'aws-cdk-lib';
 
-import { isEnvVarStringTrue } from '~utils/string/is-env-var-string-true';
+import { isEnvironmentVariableTruthy } from '~utils/string/is-environment-variable-truthy';
 
 import { NotesStack, NotesStackProps } from '../lib/stacks/notes-stack';
 import {
@@ -93,7 +93,7 @@ new NotesStack(app, 'NotesStack', {
     },
     distribution: {
       certificateArn: definedEnvs.CLOUDFRONT_CERTIFICATE_ARN,
-      disableCache: isEnvVarStringTrue(process.env.DEBUG_DISABLE_CDN_CACHING),
+      disableCache: isEnvironmentVariableTruthy(process.env.DEBUG_DISABLE_CDN_CACHING),
       viewerRequestFunction: {
         inFile: path.join(PROJECT_DIR, 'lib/cloudfront-functions/viewer-request.ts'),
         outFile: path.join(PROJECT_DIR, 'out/viewer-request.js'),

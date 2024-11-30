@@ -1,7 +1,50 @@
+import mitt, { Emitter } from 'mitt';
+import { RevisionChangeset } from '../records/record';
 import { CollabServiceRecord } from './collab-service';
-import { ServerRecordsFacade } from './types';
+
+export interface ServerRecordsFacadeEvents<TRecord> {
+  recordsUpdated: {
+    source: ServerRecordsFacade<TRecord>;
+  };
+}
+
+/**
+ * Simple facade for querying server records.
+ */
+export interface ServerRecordsFacade<TRecord> {
+  readonly eventBus: Pick<Emitter<ServerRecordsFacadeEvents<TRecord>>, 'on' | 'off'>;
+  /**
+   * tailText is a composition of all previous records before oldest record.
+   */
+  readonly tailText: Readonly<RevisionChangeset>;
+
+  /**
+   * Iterates through records from newest (headRevision) to oldest
+   */
+  newestRecordsIterable(headRevision: number): Iterable<Readonly<TRecord>>;
+
+  /**
+   * Get text at specific revision
+   */
+  getTextAt(revision: number): Readonly<RevisionChangeset>;
+
+  // run this fun to let know have new records?
+}
+
+export interface UserRecordsEvents {
+  recordsUpdated: {
+    source: UserRecords;
+  };
+}
 
 export class UserRecords {
+  private readonly _eventBus: Emitter<UserRecordsEvents> = mitt();
+  get eventBus(): Pick<Emitter<UserRecordsEvents>, 'on' | 'off'> {
+    return this._eventBus;
+  }
+
+  private readonly eventsOff: (() => void)[];
+
   private serverRecords: ServerRecordsFacade<CollabServiceRecord>;
   private userId?: string;
 
@@ -11,6 +54,22 @@ export class UserRecords {
   }) {
     this.serverRecords = params.serverRecords;
     this.userId = params.userId;
+
+    this.eventsOff = [];
+
+    this.eventsOff.push(
+      this.serverRecords.eventBus.on('recordsUpdated', () => {
+        this._eventBus.emit('recordsUpdated', {
+          source: this,
+        });
+      })
+    );
+  }
+
+  cleanUp() {
+    this.eventsOff.forEach((off) => {
+      off();
+    });
   }
 
   getTextAt(revision: number) {

@@ -4,9 +4,9 @@ import {
   resetDatabase,
   mongoCollectionStats,
   mongoCollections,
-} from '../../__test__/helpers/mongodb/mongodb';
-import { populateExecuteAll } from '../../__test__/helpers/mongodb/populate/populate-queue';
-import { fakeSessionPopulateQueue } from '../../__test__/helpers/mongodb/populate/session';
+} from '../../__tests__/helpers/mongodb/mongodb';
+import { populateExecuteAll } from '../../__tests__/helpers/mongodb/populate/populate-queue';
+import { fakeSessionPopulateQueue } from '../../__tests__/helpers/mongodb/populate/session';
 import { SessionDuration } from './duration';
 import { tryRefreshExpireAt } from './try-refresh-expire-at';
 import { QueryableSessionLoader } from '../../mongodb/loaders/session/loader';

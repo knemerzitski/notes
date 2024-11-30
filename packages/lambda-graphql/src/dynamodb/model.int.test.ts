@@ -11,7 +11,7 @@ import {
 import { faker } from '@faker-js/faker';
 import { beforeAll, it, expect, beforeEach } from 'vitest';
 
-import { dynamoDBDocumentClient } from '../__test__/helpers/dynamodb';
+import { dynamoDBDocumentClient } from '../__tests__/helpers/dynamodb';
 
 import { newModel, Table } from './model';
 import { mock } from 'vitest-mock-extended';

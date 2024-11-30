@@ -7,7 +7,7 @@ import {
   GraphQLSchema,
   isNonNullType,
   isScalarType,
-} from 'graphql';
+} from 'graphql/index.js';
 
 function assertGetScalarType<
   F extends GraphQLFieldConfig<unknown, unknown> | GraphQLInputFieldConfig,

@@ -10,6 +10,6 @@
       "~utils/*": ["../utils/src/*"]
     }
   },
-  "include": ["src", "codegen.ts", "vitest.config*.ts", "build.ts"],
-  "exclude": ["src/graphql/domains/*.generated.ts", "node_modules"]
+  "include": ["src", "codegen.ts", "vitest.config*.ts"],
+  "exclude": ["src/graphql/domains/*.generated.ts", "node_modules", "scripts"]
 }

@@ -1,4 +1,4 @@
-import { GraphQLSchema } from 'graphql';
+import { GraphQLSchema } from 'graphql/index.js';
 
 import type { DirectiveResolvers } from '../../types.generated';
 import { transformSchemaDirectiveResolver } from '../../../utils/transform-schema-directive-resolver';

@@ -39,7 +39,7 @@ export async function publishSignedInUserEvents(
 
 export function publishSignedInUserMutations(
   targetUserId: ObjectId,
-  mutations: ResolversTypes['SignedInUserMutations'][],
+  mutations: ResolversTypes['SignedInUserMutation'][],
   ctx: Pick<GraphQLResolversContext, 'publish'>,
   options?: PublisherOptions
 ) {
@@ -48,7 +48,7 @@ export function publishSignedInUserMutations(
 
 export function publishSignedInUserMutation(
   targetUserId: ObjectId,
-  mutation: ResolversTypes['SignedInUserMutations'],
+  mutation: ResolversTypes['SignedInUserMutation'],
   ctx: Pick<GraphQLResolversContext, 'publish'>,
   options?: PublisherOptions
 ) {

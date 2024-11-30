@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { afterEach, expect, it, vi } from 'vitest';
 import { updateDisplayName } from '../../../../../services/user/update-display-name';
-import { mockResolver } from '../../../../../__test__/helpers/graphql/mock-resolver';
+import { mockResolver } from '../../../../../__tests__/helpers/graphql/mock-resolver';
 import { updateSignedInUserDisplayName } from './updateSignedInUserDisplayName';
 import { mock, mockDeep } from 'vitest-mock-extended';
 import { GraphQLResolversContext } from '../../../../types';

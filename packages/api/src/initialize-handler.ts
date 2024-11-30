@@ -1,6 +1,6 @@
 import { Handler } from 'aws-lambda';
 
-import 'source-map-support/register';
+import 'source-map-support/register.js';
 import { createLogger, Logger } from '~utils/logging';
 
 import { createDefaultMongoDBContext } from './parameters';

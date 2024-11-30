@@ -1,114 +1,200 @@
 ################################ Note collabText ################################
 
 extend type Note {
-  "Note collaboration text"
+  """
+  Note collaboration text
+  """
   collabText: CollabText!
 }
 
 extend input CreateNoteInput {
-  "Initial note collaboration values"
+  """
+  Initial note collaboration values
+  """
   collabText: CreateCollabTextInput
+}
+
+extend type CreateNotePayload {
+  """
+  TODO desc
+  """
+  collabText: CollabText
+  """
+  TODO desc
+  """
+  firstCollabTextRecord: CollabTextRecord
 }
 
 ################################ updateNoteInsertRecord ################################
 
+"""
+TODO desc
+"""
 input UpdateNoteInsertRecordInput {
-  "Note to be updated by Note.id"
+  """
+  Note to be updated by Note.id
+  """
   noteId: ObjectID!
-  "New record to be inserted"
+  """
+  New record to be inserted
+  """
   insertRecord: CollabTextRecordInput!
 }
 
+"""
+TODO desc
+"""
 type UpdateNoteInsertRecordPayload {
   """
   New record added to text field. Could be a duplicate record. Check isDuplicateRecord field.
   """
   newRecord: CollabTextRecord!
-  "True if record has already been inserted before. Is always false in subscription."
+  """
+  True if record has already been inserted before. Is always false in subscription.
+  """
   isDuplicateRecord: Boolean!
-  "CollabText after new record is inserted"
+  """
+  CollabText after new record is inserted
+  """
   collabText: CollabText!
-  "Note after new record is inserted"
+  """
+  Note after new record is inserted
+  """
   note: Note!
 }
 
 extend type Mutation {
-  "Insert new record to note"
+  """
+  Insert new record to note
+  """
   updateNoteInsertRecord(
     input: UpdateNoteInsertRecordInput!
   ): UpdateNoteInsertRecordPayload! @auth
 }
 
-extend union SignedInUserMutations = UpdateNoteInsertRecordPayload
+extend union SignedInUserMutation = UpdateNoteInsertRecordPayload
 
 ################################ UserCollabTextState ################################
 
+"""
+TODO desc
+"""
 type UserCollabTextState {
-  "latestSelection applies to text at this revision"
+  """
+  latestSelection applies to text at this revision
+  """
   revision: NonNegativeInt!
-  "Latest updated selection range"
+  """
+  Latest updated selection range
+  """
   latestSelection: CollabTextSelectionRange!
 }
 
 ################################ Subscription openNoteEvents ################################
-union OpenNoteMutations
+"""
+TODO desc
+"""
+union OpenNoteMutation
 
+"""
+TODO desc
+"""
 type OpenNoteEventsPayload {
-  "Self-descriptive"
-  mutations: [OpenNoteMutations!]
+  """
+  Self-descriptive
+  """
+  mutations: [OpenNoteMutation!]
 }
 
 extend type Subscription {
-  "Subscribe to all events that are relevant to a opened note"
+  """
+  Subscribe to all events that are relevant to a opened note
+  """
   openNoteEvents(noteId: ObjectID!): OpenNoteEventsPayload! @auth
 }
 
 ################################ PublicUserNoteLink ################################
 
 extend type PublicUserNoteLink {
-  "Defined when is currently subscribed to openNoteEvents and is viewing note"
+  """
+  Defined when is currently subscribed to openNoteEvents and is viewing note
+  """
   collabTextState: UserCollabTextState
 }
 
 ################################ Events User Subscribed/Unsubscribed ################################
 
+"""
+TODO desc
+"""
 type OpenNoteUserSubscribedEvent {
-  "This user is subscribed to open note events"
+  """
+  This user is subscribed to open note events
+  """
   user: PublicUser!
-  "Affected Note"
+  """
+  Affected Note
+  """
   note: Note!
 }
 
+"""
+TODO desc
+"""
 type OpenNoteUserUnsubscribedEvent {
-  "This user is no longer subscribed to open note events."
+  """
+  This user is no longer subscribed to open note events.
+  """
   user: PublicUser!
-  "Affected Note"
+  """
+  Affected Note
+  """
   note: Note!
 }
 
-extend union SignedInUserMutations =
+extend union SignedInUserMutation =
   | OpenNoteUserSubscribedEvent
   | OpenNoteUserUnsubscribedEvent
 
 ################################ Mutation updateOpenNoteSelectionRange ################################
 
+"""
+TODO desc
+"""
 input UpdateOpenNoteSelectionRangeInput {
-  "Note.id"
+  """
+  Note.id
+  """
   noteId: ObjectID!
-  "Selection applies to this revision of text"
+  """
+  Selection applies to this revision of text
+  """
   revision: NonNegativeInt!
-  "New selection range"
+  """
+  New selection range
+  """
   selectionRange: CollabTextSelectionRangeInput!
 }
 
+"""
+TODO desc
+"""
 type UpdateOpenNoteSelectionRangePayload {
-  "User CollabText state"
+  """
+  User CollabText state
+  """
   collabTextState: UserCollabTextState!
-  "Self-descriptive"
+  """
+  Self-descriptive
+  """
   collabText: CollabText!
-  "The open note"
+  """
+  The open note
+  """
   note: Note!
-  "CollabText state applies to this user"
+  """
+  CollabText state applies to this user
+  """
   user: PublicUser!
 }
 
@@ -118,7 +204,6 @@ extend type Mutation {
   ): UpdateOpenNoteSelectionRangePayload! @auth
 }
 
-extend union OpenNoteMutations = UpdateOpenNoteSelectionRangePayload
+extend union OpenNoteMutation = UpdateOpenNoteSelectionRangePayload
 
-extend union SignedInUserMutations = UpdateOpenNoteSelectionRangePayload
-
+extend union SignedInUserMutation = UpdateOpenNoteSelectionRangePayload

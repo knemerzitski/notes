@@ -8,13 +8,13 @@ import { Changeset } from '~collab/changeset';
 import {
   resetDatabase,
   mongoCollections,
-} from '../../../__test__/helpers/mongodb/mongodb';
+} from '../../../__tests__/helpers/mongodb/mongodb';
 import {
   populateUserAddNote,
   populateNotes,
-} from '../../../__test__/helpers/mongodb/populate/populate';
-import { populateExecuteAll } from '../../../__test__/helpers/mongodb/populate/populate-queue';
-import { fakeUserPopulateQueue } from '../../../__test__/helpers/mongodb/populate/user';
+} from '../../../__tests__/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../__tests__/helpers/mongodb/populate/populate-queue';
+import { fakeUserPopulateQueue } from '../../../__tests__/helpers/mongodb/populate/user';
 import { DBNoteSchema } from '../../schema/note';
 
 import { QueryableNoteLoaderParams } from './loader';

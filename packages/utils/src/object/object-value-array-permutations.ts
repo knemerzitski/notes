@@ -62,3 +62,16 @@ export function* objectValueArrayPermutations(
     }
   }
 }
+
+export function objectValueArrayPermutationsValues(
+  obj?: Record<string, unknown[]>
+): Record<string, unknown>[] {
+  const result: Record<string, unknown>[] = [];
+  if (obj) {
+    for (const value of objectValueArrayPermutations(obj)) {
+      result.push({ ...value });
+    }
+  }
+
+  return result;
+}

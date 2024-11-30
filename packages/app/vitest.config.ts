@@ -4,12 +4,14 @@ import { defineConfig } from 'vitest/config';
 
 // eslint-disable-next-line import/no-default-export
 export default defineConfig({
-  // @ts-expect-error Type conflict between 'vitest/config' and '@vitejs/plugin-react-swc'
   plugins: [react(), tsconfigPaths()],
   envDir: '../../',
   test: {
+    coverage: {
+      provider: 'v8',
+    },
     include: ['src/**/*.test.{ts,tsx}'],
-    setupFiles: ['src/__test__/helpers/setup.ts'],
+    setupFiles: ['src/__tests__/helpers/setup.ts'],
     environment: 'jsdom',
   },
 });

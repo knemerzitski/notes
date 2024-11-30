@@ -1,4 +1,9 @@
 schema:
   - './packages/api/src/graphql/domains/*/schema.graphql'
-  - './packages/app/src/**/schema.graphql'
-documents: './packages/app/src/**/*.{graphql,js,ts,jsx,tsx}'
+  - './packages/app/src/*/schema.graphql'
+documents: './packages/app/src/**/*.{ts,tsx}'
+extensions:
+  languageService:
+    # Use eslint for linting instead of VScode GraphQL Plugin
+    # Allows for more customization. E.g. exclude tests files
+    enableValidation: false

@@ -18,7 +18,7 @@ import {
 } from '../../../../mongodb/pagination/cursor-struct';
 import { STRUCT_NUMBER } from '../../../../mongodb/constants';
 import { QueryableRevisionRecord } from '../../../../mongodb/loaders/note/descriptions/revision-record';
-import { mockResolver } from '../../../../__test__/helpers/graphql/mock-resolver';
+import { mockResolver } from '../../../../__tests__/helpers/graphql/mock-resolver';
 import { CollabTextRecordConnection } from './CollabTextRecordConnection';
 import { maybeCallFn } from '~utils/maybe-call-fn';
 

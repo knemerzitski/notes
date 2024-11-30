@@ -7,31 +7,31 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
 
-import { apolloServer } from '../../../../../__test__/helpers/graphql/apollo-server';
+import { apolloServer } from '../../../../../__tests__/helpers/graphql/apollo-server';
 import {
   createMockedPublisher,
   createGraphQLResolversContext,
   mockSocketApi,
   mockSubscriptionsModel,
   CreateGraphQLResolversContextOptions,
-} from '../../../../../__test__/helpers/graphql/graphql-context';
-import { mockResolver } from '../../../../../__test__/helpers/graphql/mock-resolver';
+} from '../../../../../__tests__/helpers/graphql/graphql-context';
+import { mockResolver } from '../../../../../__tests__/helpers/graphql/mock-resolver';
 import {
   expectGraphQLResponseData,
   expectGraphQLResponseError,
-} from '../../../../../__test__/helpers/graphql/response';
+} from '../../../../../__tests__/helpers/graphql/response';
 import {
   mongoCollections,
   mongoCollectionStats,
   resetDatabase,
-} from '../../../../../__test__/helpers/mongodb/mongodb';
-import { fakeNotePopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/note';
+} from '../../../../../__tests__/helpers/mongodb/mongodb';
+import { fakeNotePopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/note';
 import {
   populateNotes,
   userAddNote,
-} from '../../../../../__test__/helpers/mongodb/populate/populate';
-import { populateExecuteAll } from '../../../../../__test__/helpers/mongodb/populate/populate-queue';
-import { fakeUserPopulateQueue } from '../../../../../__test__/helpers/mongodb/populate/user';
+} from '../../../../../__tests__/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/populate/populate-queue';
+import { fakeUserPopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/user';
 import { DBNoteSchema } from '../../../../../mongodb/schema/note';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import {
@@ -192,7 +192,7 @@ describe('note in normal categories', () => {
       moveUserNoteLink: {
         location: {
           categoryName: MovableNoteCategory.ARCHIVE,
-          anchorPosition: ListAnchorPosition.AFTER,
+          anchorPosition: ListAnchorPosition.BEFORE,
           anchorUserNoteLink: {
             id: UserNoteLink_id(userBaseArchiveNoteIds.at(-1)!, user._id),
           },
@@ -237,13 +237,13 @@ describe('note in normal categories', () => {
     );
   });
 
-  it('moves note before specific anchor note to another category', async () => {
+  it('moves note after specific anchor note to another category', async () => {
     const response = await executeOperation(
       {
         noteId: note._id,
         location: {
           categoryName: MovableNoteCategory.ARCHIVE,
-          anchorPosition: ListAnchorPosition.BEFORE,
+          anchorPosition: ListAnchorPosition.AFTER,
           // Before middle note, so note will be second one in list
           anchorNoteId: userBaseArchiveNoteIds[1],
         },
@@ -260,7 +260,7 @@ describe('note in normal categories', () => {
       moveUserNoteLink: {
         location: {
           categoryName: MovableNoteCategory.ARCHIVE,
-          anchorPosition: ListAnchorPosition.BEFORE,
+          anchorPosition: ListAnchorPosition.AFTER,
           anchorUserNoteLink: {
             id: UserNoteLink_id(userBaseArchiveNoteIds[1]!, user._id),
           },
@@ -315,7 +315,7 @@ describe('note in normal categories', () => {
         noteId: note._id,
         location: {
           categoryName: MovableNoteCategory.DEFAULT,
-          anchorPosition: ListAnchorPosition.AFTER,
+          anchorPosition: ListAnchorPosition.BEFORE,
           anchorNoteId: userBaseDefaultNoteIds[0],
         },
       },
@@ -331,7 +331,7 @@ describe('note in normal categories', () => {
       moveUserNoteLink: {
         location: {
           categoryName: MovableNoteCategory.DEFAULT,
-          anchorPosition: ListAnchorPosition.AFTER,
+          anchorPosition: ListAnchorPosition.BEFORE,
           anchorUserNoteLink: {
             id: UserNoteLink_id(userBaseDefaultNoteIds[0]!, user._id),
           },
@@ -384,7 +384,7 @@ describe('note in normal categories', () => {
         noteId: note._id,
         location: {
           categoryName: MovableNoteCategory.ARCHIVE,
-          anchorPosition: ListAnchorPosition.BEFORE,
+          anchorPosition: ListAnchorPosition.AFTER,
           anchorNoteId: new ObjectId(),
         },
       },
@@ -400,7 +400,7 @@ describe('note in normal categories', () => {
       moveUserNoteLink: {
         location: {
           categoryName: MovableNoteCategory.ARCHIVE,
-          anchorPosition: ListAnchorPosition.AFTER,
+          anchorPosition: ListAnchorPosition.BEFORE,
           anchorUserNoteLink: {
             id: UserNoteLink_id(userBaseArchiveNoteIds.at(-1)!, user._id),
           },
@@ -443,7 +443,7 @@ describe('note in normal categories', () => {
     expect(dbNoteUser?.categoryName).toStrictEqual(MovableNoteCategory.ARCHIVE);
   });
 
-  it('moves note to end of category if anchor note is invalid in same category', async () => {
+  it('makes no change if anchor note is invalid in same category', async () => {
     const response = await executeOperation(
       {
         noteId: userBaseDefaultNoteIds[0]!,
@@ -465,7 +465,7 @@ describe('note in normal categories', () => {
       moveUserNoteLink: {
         location: {
           categoryName: MovableNoteCategory.DEFAULT,
-          anchorPosition: ListAnchorPosition.AFTER,
+          anchorPosition: ListAnchorPosition.BEFORE,
           anchorUserNoteLink: {
             id: UserNoteLink_id(note._id, user._id),
           },
@@ -478,7 +478,7 @@ describe('note in normal categories', () => {
       },
     });
 
-    expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(3);
+    expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(2);
 
     // Database, User
     const dbUser = await mongoCollections.users.findOne({
@@ -493,11 +493,7 @@ describe('note in normal categories', () => {
               noteIds: userBaseArchiveNoteIds,
             },
             [MovableNoteCategory.DEFAULT]: {
-              noteIds: [
-                ...userBaseDefaultNoteIds.slice(1),
-                note._id,
-                ...userBaseDefaultNoteIds.slice(0, 1),
-              ],
+              noteIds: [...userBaseDefaultNoteIds, note._id],
             },
           },
         },
@@ -545,7 +541,7 @@ describe('note in normal categories', () => {
       },
     });
 
-    expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(3);
+    expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(2);
 
     // Database, User
     const dbUser = await mongoCollections.users.findOne({
@@ -751,7 +747,7 @@ describe('note in normal categories', () => {
                   __typename: 'MoveUserNoteLinkPayload',
                   location: {
                     categoryName: MovableNoteCategory.ARCHIVE,
-                    anchorPosition: ListAnchorPosition.AFTER,
+                    anchorPosition: ListAnchorPosition.BEFORE,
                     anchorUserNoteLink: {
                       id: expect.any(String),
                     },
@@ -884,7 +880,7 @@ describe('note is trashed', () => {
         location: {
           categoryName: MovableNoteCategory.ARCHIVE,
           anchorNoteId: userBaseArchiveNoteIds.at(0),
-          anchorPosition: ListAnchorPosition.AFTER,
+          anchorPosition: ListAnchorPosition.BEFORE,
         },
       },
       {
@@ -899,7 +895,7 @@ describe('note is trashed', () => {
       moveUserNoteLink: {
         location: {
           categoryName: MovableNoteCategory.ARCHIVE,
-          anchorPosition: ListAnchorPosition.AFTER,
+          anchorPosition: ListAnchorPosition.BEFORE,
           anchorUserNoteLink: {
             id: UserNoteLink_id(userBaseArchiveNoteIds.at(0)!, user._id),
           },
@@ -972,7 +968,7 @@ describe('note is trashed', () => {
       moveUserNoteLink: {
         location: {
           categoryName: MovableNoteCategory.ARCHIVE,
-          anchorPosition: ListAnchorPosition.AFTER,
+          anchorPosition: ListAnchorPosition.BEFORE,
           anchorUserNoteLink: {
             id: UserNoteLink_id(userBaseArchiveNoteIds.at(-1)!, user._id),
           },
@@ -1062,7 +1058,7 @@ describe('note is trashed', () => {
                   __typename: 'MoveUserNoteLinkPayload',
                   location: {
                     categoryName: MovableNoteCategory.ARCHIVE,
-                    anchorPosition: ListAnchorPosition.AFTER,
+                    anchorPosition: ListAnchorPosition.BEFORE,
                     anchorUserNoteLink: {
                       id: UserNoteLink_id(userBaseArchiveNoteIds.at(-1)!, user._id),
                     },

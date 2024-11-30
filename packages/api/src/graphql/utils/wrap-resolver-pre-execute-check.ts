@@ -1,4 +1,4 @@
-import { GraphQLResolveInfo } from 'graphql';
+import { GraphQLResolveInfo } from 'graphql/index.js';
 import { preExecuteObjectField } from './pre-execute';
 
 /**

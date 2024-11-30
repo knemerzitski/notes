@@ -12,7 +12,9 @@ import { UserRecords } from './user-records';
 import { Changeset, ChangesetStruct } from '../changeset';
 import { array, Infer, literal, number, object, union } from 'superstruct';
 import { SelectionRange, SelectionRangeStruct } from './selection-range';
-import { SelectionChangeset, SimpleTextOperationOptions } from './types';
+import { SimpleTextOperationOptions } from '../editor/types';
+import { SelectionChangeset } from './types';
+import { OptionalChangesetStruct } from '../changeset/struct';
 
 export interface CollabHistoryEvents {
   appliedTypingOperation: ReadonlyDeep<
@@ -57,7 +59,7 @@ export type Entry = Infer<typeof EntryStruct>;
 
 export const CollabHistoryOptionsStruct = object({
   entries: array(EntryStruct),
-  tailText: ChangesetStruct,
+  tailText: OptionalChangesetStruct,
   tailRevision: number(),
   tailComposition: union([ChangesetStruct, literal(null)]),
   lastExecutedIndex: object({
@@ -114,7 +116,10 @@ export interface CollabHistoryOptions {
 export class CollabHistory {
   static readonly DEFAULT_TAIL_REVISION = 0;
 
-  readonly eventBus: Emitter<CollabHistoryEvents>;
+  private readonly _eventBus: Emitter<CollabHistoryEvents>;
+  get eventBus(): Pick<Emitter<CollabHistoryEvents>, 'on' | 'off'> {
+    return this._eventBus;
+  }
 
   private client: CollabClient;
 
@@ -168,7 +173,7 @@ export class CollabHistory {
   private readonly eventsOff: (() => void)[];
 
   constructor(options?: CollabHistoryOptions) {
-    this.eventBus = options?.eventBus ?? mitt();
+    this._eventBus = options?.eventBus ?? mitt();
     this.client = options?.client ?? new CollabClient();
 
     this._tailText = options?.tailText ?? this.client.server;
@@ -375,7 +380,7 @@ export class CollabHistory {
     }
 
     if (depth === 0 && restoredCount > 0) {
-      this.eventBus.emit('addedTailRecords', {
+      this._eventBus.emit('addedTailRecords', {
         count: restoredCount,
       });
     }
@@ -411,7 +416,7 @@ export class CollabHistory {
     if (entry) {
       this.lastExecutedIndex.local--;
       this.applyTypingOperation(entry.undo);
-      this.eventBus.emit('appliedUndo', { operation: entry.undo });
+      this._eventBus.emit('appliedUndo', { operation: entry.undo });
       return true;
     }
     return false;
@@ -426,7 +431,7 @@ export class CollabHistory {
     if (entry) {
       this.lastExecutedIndex.local++;
       this.applyTypingOperation(entry.execute);
-      this.eventBus.emit('appliedRedo', { operation: entry.execute });
+      this._eventBus.emit('appliedRedo', { operation: entry.execute });
       return true;
     }
     return false;
@@ -434,7 +439,7 @@ export class CollabHistory {
 
   private applyTypingOperation(op: Operation) {
     this.client.composeLocalChange(op.changeset);
-    this.eventBus.emit('appliedTypingOperation', { operation: op });
+    this._eventBus.emit('appliedTypingOperation', { operation: op });
   }
 
   private adjustHistoryToExternalChange(externalChangeset: Changeset) {
@@ -805,10 +810,10 @@ export class CollabHistory {
     }
   }
 
-  serialize(removeServerEntries = true) {
+  serialize(keepServerEntries = false) {
     let entries = this.entries;
     let lastExecutedIndex = this.lastExecutedIndex;
-    if (removeServerEntries) {
+    if (!keepServerEntries) {
       const offset = this.lastExecutedIndex.server + 1;
       entries = this._entries.slice(offset);
       lastExecutedIndex = {
@@ -821,10 +826,22 @@ export class CollabHistory {
     return CollabHistoryOptionsStruct.createRaw({
       entries,
       tailRevision: this._tailRevision,
-      tailText: this._tailText,
+      tailText: this.getTailTextForSerialize(keepServerEntries),
       tailComposition: this.tailComposition,
       lastExecutedIndex,
     });
+  }
+
+  private getTailTextForSerialize(keepServerEntries = false) {
+    if (this._tailText.isEqual(this.client.server)) {
+      return;
+    }
+
+    if (this.lastExecutedIndex.server < 0 || keepServerEntries) {
+      return this._tailText;
+    }
+
+    return;
   }
 
   static parseValue(

@@ -231,7 +231,7 @@ describe('isEqual', () => {
 
 describe('toString', () => {
   it('joins values with comma and wraps it in brackets', () => {
-    expect(ss().toString()).toStrictEqual('[]');
+    expect(ss([]).toString()).toStrictEqual('[]');
     expect(ss(['one']).toString()).toStrictEqual('["one"]');
     expect(ss(['first', 55]).toString()).toStrictEqual('["first", 55]');
   });

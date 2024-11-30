@@ -1,5 +1,5 @@
-import { OperationTypeNode, parse } from 'graphql';
-import { buildExecutionContext } from 'graphql/execution/execute';
+import { OperationTypeNode, parse } from 'graphql/index.js';
+import { buildExecutionContext } from 'graphql/execution/execute.js';
 import { MessageType } from 'graphql-ws';
 import { isArray } from '~utils/array/is-array';
 

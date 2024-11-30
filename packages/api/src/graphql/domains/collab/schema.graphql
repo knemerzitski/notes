@@ -1,96 +1,189 @@
+"""
+TODO desc
+"""
 scalar Changeset
 
+"""
+TODO desc
+"""
 type RevisionChangeset {
-  "Revision number"
+  """
+  Revision number
+  """
   revision: NonNegativeInt!
-  "A set of text changes"
+  """
+  A set of text changes
+  """
   changeset: Changeset!
 }
 
+"""
+TODO desc
+"""
 input RevisionChangesetInput {
-  "Changeset applies to text at this revision"
+  """
+  Changeset applies to text at this revision
+  """
   revision: NonNegativeInt!
-  "New changes to be applied to text"
+  """
+  New changes to be applied to text
+  """
   changeset: Changeset! @length(max: 10000)
 }
 
+"""
+TODO desc
+"""
 type CollabTextSelectionRange {
-  "Start index of selection"
+  """
+  Start index of selection
+  """
   start: NonNegativeInt!
-  "End index of selection. If null then start === end."
+  """
+  End index of selection. If null then start === end.
+  """
   end: NonNegativeInt
 }
 
+"""
+TODO desc
+"""
 input CollabTextSelectionRangeInput {
-  "Start index of selection"
+  """
+  Start index of selection
+  """
   start: NonNegativeInt!
-  "End index of selection. If null then start === end."
+  """
+  End index of selection. If null then start === end.
+  """
   end: NonNegativeInt
 }
 
+"""
+TODO desc
+"""
 type CollabTextRecord implements Node {
-  "Self-descriptive"
+  """
+  Self-descriptive
+  """
   id: ID!
-  "User who created this record"
+  """
+  User who created this record
+  """
   creatorUser: PublicUser!
-  "Changes this record makes to the text"
+  """
+  Changes this record makes to the text
+  """
   change: RevisionChangeset!
-  "Selection before changeset is composed"
+  """
+  Selection before changeset is composed
+  """
   beforeSelection: CollabTextSelectionRange!
-  "Selection after changeset is composed"
+  """
+  Selection after changeset is composed
+  """
   afterSelection: CollabTextSelectionRange!
-  "Time when this record was created"
+  """
+  Time when this record was created
+  """
   createdAt: DateTime!
 }
 
+"""
+TODO desc
+"""
 input CollabTextRecordInput {
-  "Randomly generated string by client"
+  """
+  Randomly generated string by client
+  """
   generatedId: String! @length(max: 16)
-  "Change to be made on the text"
+  """
+  Change to be made on the text
+  """
   change: RevisionChangesetInput!
-  "Selection before change is composed"
+  """
+  Selection before change is composed
+  """
   beforeSelection: CollabTextSelectionRangeInput!
-  "Selection after change is composed"
+  """
+  Selection after change is composed
+  """
   afterSelection: CollabTextSelectionRangeInput!
 }
 
+"""
+TODO desc
+"""
 type CollabText {
-  "Self-descriptive"
+  """
+  Self-descriptive
+  """
   id: ID!
-  "Latest revision of this text."
+  """
+  Latest revision of this text.
+  """
   headText: RevisionChangeset!
-  "Oldest available revision of this text. tailText.compose(...records) => headText"
+  """
+  Oldest available revision of this text. tailText.compose(...records) => headText
+  """
   tailText: RevisionChangeset!
-  "Text at specific revision. Is a composition of all previous changesets."
+  """
+  Text at specific revision. Is a composition of all previous changesets.
+  """
   textAtRevision(revision: NonNegativeInt!): RevisionChangeset!
-  "A list of records containing all changes made to the text"
+  """
+  A list of records containing all changes made to the text
+  """
   recordConnection(
     first: PositiveInt
     after: NonNegativeInt
     last: PositiveInt
     before: NonNegativeInt
   ): CollabTextRecordConnection!
-  "Time when newest record was inserted"
+  """
+  Time when newest record was inserted
+  """
   updatedAt: DateTime!
 }
 
+"""
+TODO desc
+"""
 input CreateCollabTextInput {
-  "Self-descriptive"
+  """
+  Self-descriptive
+  """
   initialText: String! @length(max: 100000)
 }
 
+"""
+TODO desc
+"""
 type CollabTextRecordConnection implements Connection {
-  "Records directly without edges"
+  """
+  Records directly without edges
+  """
   records: [CollabTextRecord!]!
-  "Self descriptive"
+  """
+  Self descriptive
+  """
   edges: [CollabTextRecordEdge!]!
-  "Self descriptive"
+  """
+  Self descriptive
+  """
   pageInfo: PageInfo!
 }
 
+"""
+TODO desc
+"""
 type CollabTextRecordEdge implements Edge {
-  "Self descriptive"
+  """
+  Self descriptive
+  """
   node: CollabTextRecord!
-  "Self descriptive"
+  """
+  Self descriptive
+  """
   cursor: Cursor!
 }

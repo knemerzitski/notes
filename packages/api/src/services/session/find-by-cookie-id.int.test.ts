@@ -4,10 +4,10 @@ import {
   resetDatabase,
   mongoCollectionStats,
   mongoCollections,
-} from '../../__test__/helpers/mongodb/mongodb';
-import { populateExecuteAll } from '../../__test__/helpers/mongodb/populate/populate-queue';
+} from '../../__tests__/helpers/mongodb/mongodb';
+import { populateExecuteAll } from '../../__tests__/helpers/mongodb/populate/populate-queue';
 import { DBSessionSchema } from '../../mongodb/schema/session';
-import { fakeSessionPopulateQueue } from '../../__test__/helpers/mongodb/populate/session';
+import { fakeSessionPopulateQueue } from '../../__tests__/helpers/mongodb/populate/session';
 import { QueryableSessionLoader } from '../../mongodb/loaders/session/loader';
 import { findByCookieId } from './find-by-cookie-id';
 

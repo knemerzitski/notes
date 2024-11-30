@@ -1,6 +1,6 @@
 import { ApolloServerOptions, BaseContext } from '@apollo/server';
 import { IExecutableSchemaDefinition, makeExecutableSchema } from '@graphql-tools/schema';
-import { GraphQLSchema } from 'graphql';
+import { GraphQLSchema } from 'graphql/index.js';
 
 import { Logger } from '~utils/logging';
 
