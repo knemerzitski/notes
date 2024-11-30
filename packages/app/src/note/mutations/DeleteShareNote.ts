@@ -2,18 +2,18 @@ import { gql } from '../../__generated__';
 import { mutationDefinition } from '../../graphql/utils/mutation-definition';
 import { handleNoteError } from '../utils/handle-error';
 
-export const MoveUserNoteLink = mutationDefinition(
+export const DeleteShareNote = mutationDefinition(
   gql(`
-  mutation MoveUserNoteLink($input: MoveUserNoteLinkInput!) @persist {
-    moveUserNoteLink(input: $input) {
-      ...MoveUserNoteLinkPayload
+  mutation DeleteShareNote($input: DeleteShareNoteInput!) @persist {
+    deleteShareNote(input:  $input) {
+      ...DeleteShareNotePayload
     }
   }
 `),
   (cache, { errors }, options) => {
     const { variables } = options;
     if (!variables) {
-      throw new Error('Expected variables to be defined for mutation "MoveNote"');
+      throw new Error('Expected variables to be defined for mutation "ShareNote"');
     }
     const noteId = variables.input.noteId;
     if (handleNoteError(noteId, cache, errors, options)) {

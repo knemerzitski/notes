@@ -1,14 +1,12 @@
 import { DevSetActiveNoteIdButton } from '../../dev/components/DevSetActiveNoteIdButton';
 import { ArchiveOrUnarchiveButton } from './ArchiveOrUnarchiveButton';
-
-
+import { OpenSharingDialogButton } from './OpenSharingDialogButton';
 
 export function NoteAlwaysButtons() {
-  // TODO manage sharing button
-
   return (
     <>
       <DevSetActiveNoteIdButton />
+      <OpenSharingDialogButton />
       <ArchiveOrUnarchiveButton />
     </>
   );

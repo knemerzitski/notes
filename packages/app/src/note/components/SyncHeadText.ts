@@ -68,6 +68,7 @@ export function SyncHeadText() {
           userNoteLinkId,
         },
       },
+      fetchPolicy: 'cache-only',
     });
 
     const sub = observable.subscribe((value) => {

@@ -40,6 +40,9 @@ export const Note: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
         const id = readField('id');
         return isLocalId(id);
       },
+      shareAccess(existing = null) {
+        return existing;
+      },
     },
   };
 };

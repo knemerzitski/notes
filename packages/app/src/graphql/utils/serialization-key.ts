@@ -16,3 +16,7 @@ export function noteSerializationKey_fieldText(
 export function noteSerializationKey_orderMatters(userId: SignedInUser['id']) {
   return `Note:${userId}:orderMatters`;
 }
+
+export function noteSerializationKey_sharing(userId: SignedInUser['id']) {
+  return `Note:${userId}:sharing`;
+}

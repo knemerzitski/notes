@@ -21,6 +21,12 @@ import { MoveUserNoteLinkPayload } from './mutations/MoveUserNoteLinkPayload';
 import { DeleteNotePayload } from './mutations/DeleteNotePayload';
 import { CreateNotePayload } from './mutations/CreateNotePayload';
 import { PossibleTypesMap } from '@apollo/client';
+import { ShareNotePayload } from './mutations/ShareNotePayload';
+import { ShareNote } from './mutations/ShareNote';
+import { DeleteShareNote } from './mutations/DeleteShareNote';
+import { DeleteShareNotePayload } from './mutations/DeleteShareNotePayload';
+import { CreateNoteLinkByShareAccess } from './mutations/CreateNoteLinkByShareAccess';
+import { CreateNoteLinkByShareAccessPayload } from './mutations/CreateNoteLinkByShareAccessPayload';
 
 export const notePolicies: CreateTypePoliciesFn = function (ctx) {
   return {
@@ -56,6 +62,12 @@ export const noteMutationDefinitions: MutationDefinitions = [
   DeleteNotePayload,
   UpdateNoteInsertRecord,
   UpdateNoteInsertRecordPayload,
+  ShareNote,
+  ShareNotePayload,
+  DeleteShareNote,
+  DeleteShareNotePayload,
+  CreateNoteLinkByShareAccess,
+  CreateNoteLinkByShareAccessPayload,
 ];
 
 export const noteEvictOptions: TaggedEvictOptionsList = [...Query_evictOptions];
