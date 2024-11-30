@@ -1,5 +1,8 @@
-import { ThemeProvider as MuiThemeProvider } from '@emotion/react';
-import { CssBaseline, GlobalStyles } from '@mui/material';
+import {
+  CssBaseline,
+  GlobalStyles,
+  ThemeProvider as MuiThemeProvider,
+} from '@mui/material';
 import { ReactNode } from 'react';
 
 import { useCreateTheme, UseCreateThemeOptions } from '../hooks/useCreateTheme';
