@@ -125,7 +125,14 @@ export class CurrentUserLink extends ApolloLink {
  * Using variables instead of context
  * USER_ID variable can be used in Query field keyArgs to separate same query for each user
  */
-export function setOperationUserId(operation: Operation, userId: Maybe<string>) {
+export function setOperationUserId(
+  operation:
+    | {
+        variables: Operation['variables'];
+      }
+    | Operation,
+  userId: Maybe<string>
+) {
   if (!userId) {
     return;
   }
@@ -138,7 +145,7 @@ export function setOperationUserId(operation: Operation, userId: Maybe<string>) 
   }
 
   // If document has @serialize directive then add userId to separate seriaization per user
-  if (hasDirectives([SERIALIZE_DIRECTIVE], operation.query)) {
+  if ('query' in operation && hasDirectives([SERIALIZE_DIRECTIVE], operation.query)) {
     operation.setContext((prev: unknown) => ({
       ...(isObjectLike(prev) ? prev : {}),
       [SerializingLink.SERIALIZE_DIRECTIVE]: `userId:${userId}`,
