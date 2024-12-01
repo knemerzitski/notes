@@ -24,7 +24,7 @@
     "eslint": "eslint . --max-warnings 0",
     "type-check": "tsc --noEmit",
     "lint": "npm run type-check && npm run eslint",
-    "build": "rm -rf out/* && npm run build:http && npm run build:websocket && npm run build:initialize"
+    "build": "rimraf out/* && npm run build:http && npm run build:websocket && npm run build:initialize"
   },
   "dependencies": {
     "@apollo/server": "^4.9.5",
