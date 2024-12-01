@@ -4,10 +4,7 @@ import { beforeAll, it, expect, assert, describe } from 'vitest';
 
 import { Changeset } from '~collab/changeset';
 
-import {
-  dropAndCreateSearchIndexes,
-  dropSearchIndexes,
-} from '../../../__tests__/helpers/mongodb/indexes';
+import { dropAndCreateSearchIndexes } from '../../../__tests__/helpers/mongodb/indexes';
 import {
   resetDatabase,
   mongoCollections,
@@ -88,7 +85,7 @@ beforeAll(async () => {
 
 describe('no search index', () => {
   beforeAll(async () => {
-    await dropSearchIndexes();
+    await dropAndCreateSearchIndexes('only-drop');
   });
 
   it('returns empty array without search index', async () => {
