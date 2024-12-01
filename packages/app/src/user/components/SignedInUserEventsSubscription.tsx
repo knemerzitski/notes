@@ -16,7 +16,7 @@ const SignedInUserEventsSubscription_Subscription = gql(`
         ...MoveUserNoteLinkPayload
         ...DeleteNotePayload
         ...ShareNotePayload
-        ...DeleteNotePayload
+        ...DeleteShareNotePayload
         ...CreateNoteLinkByShareAccessPayload
       }
     }
