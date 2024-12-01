@@ -7,6 +7,6 @@ export const commonProps: Readonly<
   NodejsFunctionProps & Omit<TriggerFunctionProps, 'code'>
 > = {
   handler: 'index.handler',
-  runtime: Runtime.NODEJS_18_X,
+  runtime: Runtime.NODEJS_22_X,
   logRetention: RetentionDays.ONE_DAY,
 };
