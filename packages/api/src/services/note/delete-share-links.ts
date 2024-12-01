@@ -68,6 +68,6 @@ export async function deleteShareLinks({
   return {
     type: 'success' as const,
     note,
-    shareLinks: [] as typeof note.shareLinks,
+    shareLinks,
   };
 }

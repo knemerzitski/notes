@@ -16,8 +16,6 @@ export const DeleteShareNotePayload = mutationDefinition(
       return;
     }
 
-    if (!data.shareAccessId) {
-      deleteNoteShareAccess(data.note.id, cache);
-    }
+    deleteNoteShareAccess(data.note.id, cache);
   }
 );
