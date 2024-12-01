@@ -17,5 +17,6 @@
     // Disable VSCode vitest as it doesn't support monorepo
     "vitest.exclude": ["**"],
     "explorer.fileNesting.expand": false,
+    "eslint.useFlatConfig": true,
   },
 }
