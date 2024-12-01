@@ -1,11 +1,22 @@
 {
   "name": "notes",
+  "version": "0.0.0",
+  "private": true,
   "workspaces": [
     "packages/*"
   ],
-  "private": true,
   "type": "module",
-  "version": "0.0.0",
+  "description": "A single page note keeping app with collaborative editing capabilities powered by AWS Lambda.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/knemerzitski/notes.git"
+  },
+  "author": "Kevin Nemeržitski",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/knemerzitski/notes/issues"
+  },
+  "homepage": "https://github.com/knemerzitski/notes#readme",
   "scripts": {
     "dynamodb:start": "cd ./docker/dynamodb && docker compose up -d",
     "dynamodb:stop": "cd ./docker/dynamodb && docker compose down",
