@@ -14,6 +14,7 @@ import { StateMongoDB, StateMongoDBProps } from '../database/state-mongodb';
 import { WebSocketDynamoDB } from '../database/websocket-dynamodb';
 import { Domains, DomainsProps } from '../dns/domains';
 import { AppStaticFiles } from '../storage/app-static-files';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 
 export interface NotesStackProps extends StackProps {
   customProps: {
@@ -41,14 +42,18 @@ export class NotesStack extends Stack {
     super(scope, id, props);
     const customProps = props.customProps;
 
+    const mongoDBHandlers: NodejsFunction[] = [];
+
     // Lambda handlers
     const handlers = new LambdaHandlers(this, 'LambdaHandlers', customProps.lambda);
+    mongoDBHandlers.push(...handlers.getAll());
+
     const postDeployHandler = new PostDeploymentFunction(
       this,
       'PostDeployment',
       customProps.postDeployment
     );
-    const mongoDBHandlers = [...handlers.getAll(), postDeployHandler.function];
+    mongoDBHandlers.push(postDeployHandler.function);
 
     // DynamoDB
     const webSocketDynamoDB = new WebSocketDynamoDB(this, 'WebSocketDynamo');
