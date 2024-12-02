@@ -8,7 +8,7 @@ import cypressPlugin from 'eslint-plugin-cypress/flat';
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   ...rootConfig,
-  { ignores: ['src/__generated__'] },
+  { ignores: ['src/__generated__', 'scripts'] },
   { files: ['**/*.ts?(x)'] },
   {
     languageOptions: {
