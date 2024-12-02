@@ -7,7 +7,7 @@ export enum LocalStoragePrefix {
    */
   APOLLO = 'apollo',
   /**
-   * Only needed during inital startup of the app
+   * Only needed during initial start of the app
    */
   BOOTSTRAP = 'bootstrap',
 }

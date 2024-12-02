@@ -16,7 +16,7 @@ import {
 import { createGraphQLService } from './graphql/create/service';
 import { graphQLPolicies } from './graphql/policies';
 import { TaggedEvictOptionsList } from './graphql/utils/tagged-evict';
-import { localStorageKey, LocalStoragePrefix } from './local-storage';
+import { localStorageKey, LocalStoragePrefix } from './bootstrap/utils/local-storage-key';
 import { LocalStorageWrapper } from 'apollo3-cache-persist';
 import { devicePreferencesPolicies } from './device-preferences/policies';
 import { getCurrentUserId } from './user/models/signed-in-user/get-current';

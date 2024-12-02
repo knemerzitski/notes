@@ -1,6 +1,6 @@
 import { useApolloClient, useQuery } from '@apollo/client';
 import { gql } from '../../__generated__';
-import { usePreferencesStorage } from '../context/preferences-storage';
+import { useBootstrapCache } from '../../bootstrap/context/bootstrap-cache';
 import { useCallback } from 'react';
 import { ColorMode } from '../../__generated__/graphql';
 import { useIsCacheRestored } from '../../graphql/context/is-cache-restored';
@@ -16,16 +16,16 @@ const UseColorMode_Query = gql(`
 
 export function useColorMode() {
   const isCacheRestored = useIsCacheRestored();
-  const preferenceStorage = usePreferencesStorage(true);
+  const bootstrapCache = useBootstrapCache(true);
   const client = useApolloClient();
 
   const { data } = useQuery(UseColorMode_Query);
 
   const colorMode = isCacheRestored
     ? (data?.devicePreferences.colorMode ??
-      preferenceStorage?.getColorMode() ??
+      bootstrapCache?.get('colorMode') ??
       ColorMode.SYSTEM)
-    : (preferenceStorage?.getColorMode() ?? ColorMode.SYSTEM);
+    : (bootstrapCache?.get('colorMode') ?? ColorMode.SYSTEM);
 
   const _setColorMode = useCallback(
     (newColorMode: ColorMode) => {
@@ -33,9 +33,9 @@ export function useColorMode() {
         setColorMode(newColorMode, client.cache);
       }
 
-      preferenceStorage?.setColorMode(newColorMode);
+      bootstrapCache?.set('colorMode', newColorMode);
     },
-    [client, preferenceStorage, isCacheRestored]
+    [client, bootstrapCache, isCacheRestored]
   );
 
   return [colorMode, _setColorMode] as const;

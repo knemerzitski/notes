@@ -1,4 +1,4 @@
-import { AppDevicePreferencesModuleProvider } from './device-preferences/components/AppDevicePreferencesModuleProvider';
+import { AppBootstrapModuleProvider } from './bootstrap/components/AppBootstrapModuleProvider';
 import { AppGraphQLModuleProvider } from './graphql/components/AppGraphQLModuleProvider';
 import { AppThemeModuleProvider } from './theme/components/AppThemeModuleProvider';
 import { AppFallbackRestoringCache } from './utils/components/AppFallbackRestoringCache';
@@ -11,7 +11,7 @@ import { AppDndModuleProvider } from './dnd/components/AppDndModuleProvider';
 
 export function App() {
   return (
-    <AppDevicePreferencesModuleProvider>
+    <AppBootstrapModuleProvider>
       <AppGraphQLModuleProvider restoringCacheFallback={<AppFallbackRestoringCache />}>
         <AppThemeModuleProvider>
           <AppThirdPartyModuleProvider>
@@ -27,6 +27,6 @@ export function App() {
           </AppThirdPartyModuleProvider>
         </AppThemeModuleProvider>
       </AppGraphQLModuleProvider>
-    </AppDevicePreferencesModuleProvider>
+    </AppBootstrapModuleProvider>
   );
 }
