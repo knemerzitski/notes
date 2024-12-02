@@ -65,7 +65,7 @@ function uriHasExtension(uri: string) {
   return true;
 }
 
-// eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
+// eslint-disable-next-line no-unused-vars
 function handler(event: Event): Event['request'] | Event['response'] {
   const request = event.request;
   if (!request) return request;
