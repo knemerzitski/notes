@@ -1,5 +1,5 @@
 import 'source-map-support/register.js';
-import path from 'path';
+import { join } from 'node:path';
 
 import { App } from 'aws-cdk-lib';
 
@@ -70,16 +70,16 @@ new NotesStack(app, 'NotesStack', {
   },
   customProps: {
     postDeployment: {
-      codePath: path.join(PROJECT_DIR, '../api/out/initialize-handler'),
+      codePath: join(PROJECT_DIR, '../api/out/initialize-handler'),
       environment: commonLambdaEnvironment,
     },
     lambda: {
       apolloHttp: {
-        codePath: path.join(PROJECT_DIR, '../api/out/apollo-http-handler'),
+        codePath: join(PROJECT_DIR, '../api/out/apollo-http-handler'),
         environment: runtimeLambdaEnvironment,
       },
       webSocket: {
-        codePath: path.join(PROJECT_DIR, '../api/out/websocket-handler'),
+        codePath: join(PROJECT_DIR, '../api/out/websocket-handler'),
         environment: runtimeLambdaEnvironment,
       },
     },
@@ -95,12 +95,12 @@ new NotesStack(app, 'NotesStack', {
       certificateArn: definedEnvs.CLOUDFRONT_CERTIFICATE_ARN,
       disableCache: isEnvironmentVariableTruthy(process.env.DEBUG_DISABLE_CDN_CACHING),
       viewerRequestFunction: {
-        inFile: path.join(PROJECT_DIR, 'lib/cloudfront-functions/viewer-request.ts'),
-        outFile: path.join(PROJECT_DIR, 'out/viewer-request.js'),
+        inFile: join(PROJECT_DIR, 'lib/cloudfront-functions/viewer-request.ts'),
+        outFile: join(PROJECT_DIR, 'out/viewer-request.js'),
       },
     },
     app: {
-      outPath: path.join(PROJECT_DIR, '../app/out'),
+      outPath: join(PROJECT_DIR, '../app/out'),
     },
   },
 });

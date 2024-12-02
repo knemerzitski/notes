@@ -1,4 +1,4 @@
-import path from 'path';
+import { join } from 'node:path';
 
 import dotenv from 'dotenv';
 
@@ -14,7 +14,7 @@ export function loadEnvironmentVariables() {
   }
 
   paths.forEach((relPath) => {
-    const envPath = path.join(PROJECT_DIR, relPath);
+    const envPath = join(PROJECT_DIR, relPath);
     const out = dotenv.config({ path: envPath });
     if (out.parsed) {
       console.log(`Loaded environment variables from '${envPath.toString()}'`);

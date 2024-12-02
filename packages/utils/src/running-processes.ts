@@ -1,5 +1,5 @@
-import { exec } from 'child_process';
-import { join } from 'path';
+import { exec } from 'node:child_process';
+import { join } from 'node:path';
 
 export function assertMongoDBIsRunning() {
   const mongoDBDockerPath = join(__dirname, '../../../docker/mongodb');

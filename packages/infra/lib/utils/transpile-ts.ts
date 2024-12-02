@@ -1,6 +1,6 @@
-import { execSync } from 'child_process';
-import { mkdir, readFileSync, writeFileSync } from 'fs';
-import path from 'path';
+import { execSync } from 'node:child_process';
+import { mkdir, readFileSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 
 import { TranspileOptions as _TranspileOptions, transpileModule } from 'typescript';
 
@@ -49,7 +49,7 @@ export interface TranspileOptionsAsFile extends TranspileOptions {
 export function transpileTypeScriptToFile(options: TranspileOptionsAsFile) {
   const transpiledCode = transpileTypeScript(options);
 
-  mkdir(path.dirname(options.outFile), { recursive: true }, (err) => {
+  mkdir(dirname(options.outFile), { recursive: true }, (err) => {
     if (err) throw err;
   });
   writeFileSync(options.outFile, transpiledCode);
@@ -64,7 +64,8 @@ export function eslintFile(filePath: string) {
     execSync(`npx eslint --no-ignore ${filePath}`, {
       stdio: 'inherit',
     });
-  } catch (err) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (_err) {
     process.exit(1);
   }
   process.env.DEBUG = tmpDebug;

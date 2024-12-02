@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import fs from 'fs';
-import path from 'path';
+import { writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import dotenv from 'dotenv';
 import { format as prettierFormat } from 'prettier';
-import { exec } from 'child_process';
+import { exec } from 'node:child_process';
 
 const FILENAME = 'possible-types.json';
 
@@ -12,7 +12,7 @@ const relEnvPath = `../../../${
   process.env.NODE_ENV === 'test' ? '.env.test' : '.env.local'
 }`;
 
-const envPath = path.join(__dirname, relEnvPath);
+const envPath = join(__dirname, relEnvPath);
 dotenv.config({ path: envPath });
 
 const HTTP_URL = process.env.VITE_GRAPHQL_HTTP_URL!;
@@ -85,8 +85,8 @@ async function generatePossibleTypes({
     parser: 'json',
   });
 
-  const writePath = path.join(outPath, FILENAME);
-  fs.writeFileSync(writePath, resultPrettyString);
+  const writePath = join(outPath, FILENAME);
+  writeFileSync(writePath, resultPrettyString);
   console.log(`Fragment types successfully extracted to "${writePath}"`);
 }
 

@@ -1,5 +1,5 @@
 import 'source-map-support/register.js';
-import path from 'path';
+import { join } from 'node:path';
 
 import { App } from 'aws-cdk-lib';
 
@@ -43,7 +43,7 @@ await createLambdaGraphQLDynamoDBTables({
 new TestNotesStack(app, 'TESTINGONLYNotesStack', {
   customProps: {
     apolloHttpLambda: {
-      codePath: path.join(
+      codePath: join(
         PROJECT_DIR,
         '../api-dev-server/out-handlers/mock-apollo-http-handler'
       ),
