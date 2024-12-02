@@ -11,7 +11,7 @@ export function useIsNoteOpen(noteId: Note['id']) {
   const [isOpen, setIsOpen] = useState(router.state.location.search.noteId === noteId);
 
   useEffect(() => {
-    setIsOpen(router.state.location.search === noteId);
+    setIsOpen(router.state.location.search.noteId === noteId);
     return router.subscribe('onLoad', ({ toLocation }) => {
       const searchNoteId = (toLocation.search as Record<string, unknown>).noteId;
       setIsOpen(searchNoteId === noteId);

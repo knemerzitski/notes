@@ -12,7 +12,7 @@ export function useIsNoteSharingOpen(noteId: Note['id']) {
   );
 
   useEffect(() => {
-    setIsOpen(router.state.location.search === noteId);
+    setIsOpen(router.state.location.search.sharingNoteId === noteId);
     return router.subscribe('onLoad', ({ toLocation }) => {
       const searchNoteId = (toLocation.search as Record<string, unknown>).sharingNoteId;
       setIsOpen(searchNoteId === noteId);
