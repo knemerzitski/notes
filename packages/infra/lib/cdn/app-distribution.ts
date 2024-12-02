@@ -20,7 +20,11 @@ import {
   OriginRequestQueryStringBehavior,
   Function,
 } from 'aws-cdk-lib/aws-cloudfront';
-import { S3Origin, RestApiOrigin, HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import {
+  RestApiOrigin,
+  HttpOrigin,
+  S3BucketOrigin,
+} from 'aws-cdk-lib/aws-cloudfront-origins';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { ScriptTarget, ModuleKind } from 'typescript';
@@ -92,7 +96,7 @@ export class AppDistribution extends Construct {
         .flat(),
       defaultRootObject: 'index.html',
       defaultBehavior: {
-        origin: new S3Origin(props.defaultOriginFiles),
+        origin: S3BucketOrigin.withOriginAccessControl(props.defaultOriginFiles),
         compress: true,
         allowedMethods: AllowedMethods.ALLOW_GET_HEAD,
         viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
