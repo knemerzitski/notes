@@ -22,7 +22,7 @@ export class PostDeploymentFunction extends Construct {
     this.function = new TriggerFunction(this, 'TriggerFn', {
       ...commonProps,
       code: Code.fromAsset(props.codePath),
-      timeout: Duration.seconds(3),
+      timeout: Duration.seconds(15),
       memorySize: 128,
       environment: props.environment,
     });
