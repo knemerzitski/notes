@@ -15,6 +15,7 @@ import { hasOngoingOperation } from './has';
 import { isMutationOperation } from '@apollo/client/utilities';
 import { DirectiveFlag } from '../../utils/directive-flag';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+import { nanoid } from 'nanoid';
 
 const PERSIST_DIRECTIVE = 'persist';
 
@@ -48,7 +49,7 @@ export class PersistLink extends ApolloLink {
   ) {
     super();
     this.cache = cache;
-    this.generateId = options?.generateId ?? crypto.randomUUID.bind(crypto);
+    this.generateId = options?.generateId ?? nanoid;
 
     this.persistErrorCodes = new Set(options?.persistErrorCodes);
   }

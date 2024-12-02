@@ -14,13 +14,14 @@ import { addUserMessages } from '../../user/models/message/add';
 import { isDefined } from '~utils/type-guards/is-defined';
 import { GateController } from '../link/gate';
 import { UserMessageType } from '../../__generated__/graphql';
+import { nanoid } from 'nanoid';
 
 export function createErrorLink({
   client,
   mutationUpdaterFnMap,
   appContext,
   getUserGate,
-  generateMessageId = crypto.randomUUID.bind(crypto),
+  generateMessageId = nanoid,
 }: {
   client: ApolloClient<object>;
   mutationUpdaterFnMap: Pick<MutationUpdaterFunctionMap, 'get'>;
