@@ -1,50 +1,13 @@
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { build, BuildOptions } from 'esbuild';
+import config from '../esbuild.config';
 
-import { build as _build, BuildOptions } from 'esbuild';
+await myBuild(readArgs());
 
-await build(readArgs());
-
-export function build(options: Pick<BuildOptions, 'entryPoints' | 'outfile'>) {
-  return _build({
+export function myBuild(options: Pick<BuildOptions, 'entryPoints' | 'outfile'>) {
+  return build({
+    ...config,
     entryPoints: options.entryPoints,
     outfile: options.outfile,
-    tsconfig: join(__dirname, '../tsconfig.build.json'),
-
-    target: 'node18',
-    platform: 'node',
-    
-    format: 'esm',
-
-    bundle: true,
-    external: ['@aws-sdk/*'],
-    minify: true,
-    sourcemap: true,
-    sourcesContent: false,
-
-    loader: {
-      '.graphql': 'text',
-      // Excludes json from source map but keeps files separate
-      // which if fine since it all gets bundled into zip
-      '.json': 'copy',
-    },
-    logLevel: 'info',
-    plugins: [
-      {
-        name: 'excludeNodeModulesFromSourceMaps',
-        setup(build) {
-          // Don't generate source maps for vendor javascript files
-          build.onLoad({ filter: /node_modules.*(\.[cm]?[jt]sx?)$/ }, (args) => {
-            return {
-              contents:
-                readFileSync(args.path, 'utf8') +
-                '\n//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIiJdLCJtYXBwaW5ncyI6IkEifQ==',
-              loader: 'default',
-            };
-          });
-        },
-      },
-    ],
   });
 }
 

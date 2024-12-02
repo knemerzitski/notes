@@ -4,10 +4,10 @@
   "private": "true",
   "type": "module",
   "scripts": {
-    "server:build": "esbuild src/index.ts --outdir=./out --loader:.graphql=text --bundle --platform=node --format=esm --packages=external --sourcemap",
+    "server:build": "esbuild src/index.ts --outfile=./out/index.mjs --loader:.graphql=text --bundle --platform=node --format=esm --packages=external --sourcemap",
     "server:build:watch": "npm run server:build -- --watch=forever",
-    "start:watch": "DEBUG=*:ERROR,*:INFO nodemon ./out/index.js",
-    "build:http": "vite-node ../api/build.ts src/handlers/mock-apollo-http-handler.ts --outfile out-handlers/mock-apollo-http-handler/index.js",
+    "start:watch": "DEBUG=*:ERROR,*:INFO nodemon ./out/index.mjs",
+    "build:http": "vite-node ../api/scripts/build.ts src/handlers/mock-apollo-http-handler.ts --outfile out-handlers/mock-apollo-http-handler/index.cjs",
     "build:handlers": "npm run build:http",
     "prettify": "prettier --write --ignore-unknown src",
     "eslint": "eslint . --max-warnings 0",
@@ -15,10 +15,10 @@
     "lint": "npm run type-check && npm run eslint",
     "dev": "npm run server:build:watch & npm run start:watch",
     "dev:test": "npm run server:build:watch & NODE_ENV=test npm run start:watch",
-    "start": "DEBUG=*:ERROR node ./out/index.js",
-    "start-detached": "DEBUG=*:ERROR node ./out/index.js detached > /dev/null 2>&1 &",
+    "start": "DEBUG=*:ERROR node ./out/index.mjs",
+    "start-detached": "DEBUG=*:ERROR node ./out/index.mjs detached > /dev/null 2>&1 &",
     "wait:test": "wait-port 127.0.0.1:4010 -t 15000",
-    "stop": "pkill -fo 'node ./out/index.js detached'"
+    "stop": "pkill -fo 'node ./out/index.mjs detached'"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.454.0",
