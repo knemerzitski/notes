@@ -13,12 +13,13 @@ import {
   MutationResult,
 } from '@apollo/client';
 import { useGetMutationUpdaterFn } from '../context/get-mutation-updater-fn';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { MutationDefinition } from '../utils/mutation-definition';
 import { optimisticResponseMutation } from '../utils/optimistic-response-mutation';
 import { useIsRemoteOperation } from './useIsRemoteOperation';
 import { GlobalOperationVariables } from '../types';
 import { useUserId } from '../../user/context/user-id';
+import { hasNoAuthDirective } from '../link/current-user';
 
 interface ExtraOptions {
   /**
@@ -60,6 +61,17 @@ export function useMutation<
 
   const isRemoteOperation = useIsRemoteOperation(definition.document);
 
+  // Add hidden variable userId if operation doesn't have directive @noauth
+  const extraVariables = useMemo(
+    () =>
+      hasNoAuthDirective(definition.document)
+        ? {}
+        : {
+            [GlobalOperationVariables.USER_ID]: userId,
+          },
+    [definition, userId]
+  );
+
   const [remoteMutation, remoteResult] = useApolloMutation<
     TData,
     TVariables,
@@ -69,7 +81,7 @@ export function useMutation<
     ...options,
     variables: {
       ...options?.variables,
-      [GlobalOperationVariables.USER_ID]: userId,
+      ...extraVariables,
     } as TVariables,
     update: getMutationUpdaterFn(definition.document) as MutationUpdaterFunction<
       TData,
@@ -91,10 +103,10 @@ export function useMutation<
           ...options,
           variables: {
             ...options?.variables,
-            [GlobalOperationVariables.USER_ID]: userId,
+            ...extraVariables,
           } as TVariables,
         }),
-      [client, definition, getMutationUpdaterFn, userId]
+      [client, definition, getMutationUpdaterFn, extraVariables]
     );
 
   const mutation: (
