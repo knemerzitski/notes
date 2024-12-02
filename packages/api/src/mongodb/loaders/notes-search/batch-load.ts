@@ -91,7 +91,7 @@ export async function batchLoad(
                       // Find all possible notes with searchText
                       {
                         $search: {
-                          index: NoteSearchIndexName.COLLAB_TEXTS_HEAD_TEXT,
+                          index: NoteSearchIndexName.COLLAB_TEXT_HEAD_TEXT,
                           ...(searchAfter && {
                             searchAfter,
                           }),

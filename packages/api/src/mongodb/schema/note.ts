@@ -39,12 +39,12 @@ export const noteDescription: CollectionDescription = {
 };
 
 export enum NoteSearchIndexName {
-  COLLAB_TEXTS_HEAD_TEXT = 'collabTextsHeadText',
+  COLLAB_TEXT_HEAD_TEXT = 'collabTextHeadText',
 }
 
 export const noteSearchIndexDescriptions: SearchIndexDescription[] = [
   {
-    name: NoteSearchIndexName.COLLAB_TEXTS_HEAD_TEXT,
+    name: NoteSearchIndexName.COLLAB_TEXT_HEAD_TEXT,
     definition: {
       mappings: {
         dynamic: false,
