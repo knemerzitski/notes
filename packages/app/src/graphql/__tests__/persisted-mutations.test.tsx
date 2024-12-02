@@ -73,6 +73,7 @@ it('remembers displayName mutation when app goes offline and resumes when online
       storage.delete(key);
     },
   };
+  params.purgeCache = false;
 
   params.linkOptions = {
     ...params.linkOptions,
@@ -208,6 +209,7 @@ it('remembers displayName mutation when session expires', async () => {
       storage.delete(key);
     },
   };
+  params.purgeCache = false;
 
   params.linkOptions = {
     ...params.linkOptions,

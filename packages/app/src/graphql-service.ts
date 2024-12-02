@@ -38,10 +38,6 @@ const APOLLO_CACHE_VERSION = '1';
 // Any future cache breaking change must have a update/rollback to adjust cache
 const PURGE_APOLLO_CACHE = !processCacheVersion(bootstrapCache, APOLLO_CACHE_VERSION);
 
-if (PURGE_APOLLO_CACHE) {
-  console.log('Purging cache');
-}
-
 const HTTP_URL =
   import.meta.env.MODE === 'production'
     ? import.meta.env.VITE_GRAPHQL_HTTP_URL
