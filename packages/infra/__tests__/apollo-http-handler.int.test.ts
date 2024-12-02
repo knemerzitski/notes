@@ -27,17 +27,28 @@ async function fetchSignIn(): Promise<User> {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      operationName: 'UseSignInWithGoogle',
+      operationName: 'SignIn',
       variables: {
         input: {
-          provider: 'GOOGLE',
-          credentials: {
-            token: '{"id":"1","name":"test","email":"test@test"}',
+          auth: {
+            google: {
+              token: '{"id":"1","name":"test","email":"test@test"}',
+            },
           },
         },
       },
-      query:
-        'mutation UseSignInWithGoogle($input: SignInInput!) {\n  signIn(input: $input) {\n    user {\n      id\n      profile {\n        displayName\n        __typename\n      }\n      __typename\n    }\n    authProviderUser {\n      id\n      email\n      __typename\n    }\n    __typename\n  }\n}',
+      query: `#graphql
+        mutation SignIn($input: SignInInput!){
+          signIn(input: $input) {
+            __typename
+            ... on SignInResult {
+              signedInUser {
+                id
+              }
+            }
+          }
+        }
+      `,
     }),
   });
 
@@ -62,23 +73,23 @@ async function fetchCreateNote(user: User, content: string): Promise<User> {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      operationName: 'UseCreateNote',
+      operationName: 'CreateNote',
       variables: {
         input: {
-          note: {
-            textFields: [
-              {
-                key: 'CONTENT',
-                value: {
-                  initialText: content,
-                },
-              },
-            ],
+          collabText: {
+            initialText: content,
           },
         },
       },
-      query:
-        'mutation UseCreateNote($input: CreateNoteInput!) {\n  createNote(input: $input) {\n    note {\n      id\n      contentId\n      textFields {\n        key\n        value {\n          id\n          headText {\n            revision\n            changeset\n            __typename\n          }\n          recordsConnection {\n            records {\n              id\n              creatorUserId\n              change {\n                revision\n                changeset\n                __typename\n              }\n              beforeSelection {\n                start\n                end\n                __typename\n              }\n              afterSelection {\n                start\n                end\n                __typename\n              }\n              __typename\n            }\n            __typename\n          }\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}',
+      query: `#graphql
+        mutation CreateNote($input: CreateNoteInput!) {
+          createNote(input:$input) {
+            userNoteLink {
+              id
+            }
+          }
+        }
+      `,
     }),
   });
 
@@ -103,12 +114,32 @@ async function fetchNotes(user: User) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      operationName: 'NotesRouteNotesConnection',
+      operationName: 'Notes_Query',
       variables: {
-        last: 100,
+        first: 100,
       },
-      query:
-        'query NotesRouteNotesConnection($last: NonNegativeInt!, $before: String) {\n  notesConnection(last: $last, before: $before) {\n    notes {\n      id\n      contentId\n      isOwner\n      textFields {\n        key\n        value {\n          id\n          headText {\n            revision\n            changeset\n            __typename\n          }\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    pageInfo {\n      hasPreviousPage\n      startCursor\n      __typename\n    }\n    __typename\n  }\n}',
+      query: `#graphql
+        query Notes_Query($first: NonNegativeInt) {
+          userNoteLinkConnection(first: $first) {
+            edges {
+              node {
+                id
+                categoryName
+                note {
+                  id
+                  collabText {
+                    id
+                    headText {
+                      revision
+                      changeset
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      `,
     }),
   });
 
@@ -129,49 +160,25 @@ it(
 
     expect(notes).toStrictEqual({
       data: {
-        notesConnection: {
-          notes: [
+        userNoteLinkConnection: {
+          edges: [
             {
-              id: expect.any(String),
-              contentId: expect.any(String),
-              isOwner: true,
-              textFields: [
-                {
-                  key: 'CONTENT',
-                  value: {
-                    id: expect.any(String),
+              node: {
+                categoryName: 'DEFAULT',
+                id: expect.any(String),
+                note: {
+                  collabText: {
                     headText: {
-                      revision: 1,
                       changeset: ['hello new note'],
-                      __typename: 'RevisionChangeset',
-                    },
-                    __typename: 'CollabText',
-                  },
-                  __typename: 'NoteTextFieldEntry',
-                },
-                {
-                  key: 'TITLE',
-                  value: {
-                    id: expect.any(String),
-                    headText: {
                       revision: 1,
-                      changeset: [],
-                      __typename: 'RevisionChangeset',
                     },
-                    __typename: 'CollabText',
+                    id: expect.any(String),
                   },
-                  __typename: 'NoteTextFieldEntry',
+                  id: expect.any(String),
                 },
-              ],
-              __typename: 'Note',
+              },
             },
           ],
-          pageInfo: {
-            hasPreviousPage: false,
-            startCursor: expect.any(String),
-            __typename: 'PageInfo',
-          },
-          __typename: 'NoteConnection',
         },
       },
     });
