@@ -20,6 +20,9 @@ loadEnvironmentVariables();
 const app = new App();
 
 const definedEnvs = assertGetEnvironmentVariables([
+  'CDK_DEFAULT_ACCOUNT',
+  'CDK_DEFAULT_REGION',
+
   'DOMAINS',
   'CLOUDFRONT_CERTIFICATE_ARN',
 
@@ -65,8 +68,8 @@ const runtimeLambdaEnvironment = {
 
 new NotesStack(app, 'NotesStack', {
   env: {
-    account: process.env.CDK_DEFAULT_ACCOUNT,
-    region: process.env.CDK_DEFAULT_REGION,
+    account: definedEnvs.CDK_DEFAULT_ACCOUNT,
+    region: definedEnvs.CDK_DEFAULT_REGION,
   },
   customProps: {
     postDeployment: {
