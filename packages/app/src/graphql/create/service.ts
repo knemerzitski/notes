@@ -41,6 +41,7 @@ export function createGraphQLService({
   storage,
   context,
   skipRestoreCache = false,
+  purgeCache = false,
   linkOptions,
   actions,
 }: {
@@ -60,6 +61,11 @@ export function createGraphQLService({
    * @default false
    */
   skipRestoreCache?: boolean;
+  /**
+   * Deletes the cache
+   * @default false
+   */
+  purgeCache?: boolean;
   context: {
     getUserId(cache: InMemoryCache): Maybe<string>;
   };
@@ -87,6 +93,10 @@ export function createGraphQLService({
     key: storageKey,
     storage,
   });
+
+  if (purgeCache) {
+    void persistor.purge();
+  }
 
   const restorer = new CacheRestorer(persistor);
   if (!skipRestoreCache) {

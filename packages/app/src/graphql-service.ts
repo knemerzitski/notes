@@ -29,6 +29,18 @@ import {
 } from './note/policies';
 import { PossibleTypesMap } from '@apollo/client';
 import { devGraphQLServiceActions } from './dev';
+import { bootstrapCache } from './bootstrap';
+import { processCacheVersion } from './graphql/utils/process-cache-version';
+
+const APOLLO_CACHE_VERSION = '1';
+
+// DESTRUCTIVE, CACHE VERSION MISMATCH
+// Any future cache breaking change must have a update/rollback to adjust cache
+const PURGE_APOLLO_CACHE = !processCacheVersion(bootstrapCache, APOLLO_CACHE_VERSION);
+
+if (PURGE_APOLLO_CACHE) {
+  console.log('Purging cache');
+}
 
 const HTTP_URL =
   import.meta.env.MODE === 'production'
@@ -95,6 +107,7 @@ export function createDefaultGraphQLServiceParams(): Parameters<
           : undefined,
     },
     actions: SERVICE_ACTIONS,
+    purgeCache: PURGE_APOLLO_CACHE,
   };
 }
 
