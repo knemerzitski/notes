@@ -408,7 +408,7 @@ describe('no existing notes', () => {
   });
 
   describe('spyOn ObjectId', () => {
-    let spyObjectIdGenerate: MockInstance<[time?: number | undefined], Uint8Array>;
+    let spyObjectIdGenerate: MockInstance<(time?: number | undefined) => Uint8Array>;
 
     beforeAll(() => {
       spyObjectIdGenerate = vi.spyOn(ObjectId, 'generate');

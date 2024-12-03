@@ -49,7 +49,6 @@ beforeAll(async () => {
   assert(firstNote != null);
   note = firstNote;
 
-  // @ts-expect-error
   const _user_noUsersEntry = fakeUserPopulateQueue();
 
   const user_hasUsersEntry = fakeUserPopulateQueue();

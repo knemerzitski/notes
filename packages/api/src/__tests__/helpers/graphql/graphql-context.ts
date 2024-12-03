@@ -87,8 +87,8 @@ export function createMockedPublisher(ctx: Omit<GraphQLResolversContext, 'publis
       }).schema,
       socketApi: mockSocketApi,
       logger: mockDeep(),
+      formatError: (err) => err,
       models: {
-        connections: mockDeep(),
         subscriptions: mockSubscriptionsModel,
       },
     },

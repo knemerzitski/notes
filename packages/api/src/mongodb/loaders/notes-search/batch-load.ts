@@ -186,6 +186,7 @@ export async function batchLoad(
     }
 
     return argsResults.notesResult.map((noteResult) => {
+      // @ts-expect-error QueryObjectDeep issue
       return mapQueryAggregateResult(key.query, argsResults.mergedQuery, noteResult, {
         descriptions: [notesSearchDescription],
       });

@@ -49,7 +49,7 @@ export type QueryableUserLoadContext = QueryLoaderContext<GlobalContext, Request
 interface GlobalContext {
   collections: Pick<
     MongoDBContext<MongoDBCollections>['collections'],
-    CollectionName.USERS | CollectionName.NOTES
+    CollectionName.USERS | CollectionName.NOTES | CollectionName.OPEN_NOTES
   >;
 }
 

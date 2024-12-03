@@ -35,12 +35,12 @@ const MUTATION = `#graphql
 `;
 
 let spyDeleteSessionWithCookies: MockInstance<
-  [delete_session_with_cookies.DeleteSessionWithCookiesParams],
-  Promise<void>
+  (params: delete_session_with_cookies.DeleteSessionWithCookiesParams) => Promise<void>
 >;
 let spyDeleteAllSessionsInCookies: MockInstance<
-  [delete_all_session_in_cookies.DeleteAllSessionsInCookiesParams],
-  Promise<void>
+  (
+    params: delete_all_session_in_cookies.DeleteAllSessionsInCookiesParams
+  ) => Promise<void>
 >;
 
 let user: DBUserSchema;

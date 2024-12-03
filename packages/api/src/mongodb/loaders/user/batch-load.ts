@@ -174,6 +174,7 @@ export async function batchLoad(
     for (const processor of idProcessors) {
       const result = processor.getResultById(key.id);
       if (result) {
+        // @ts-expect-error QueryObjectDeep issue
         return mapQueryAggregateResult(key.query, mergedQuery, result, {
           descriptions: [queryableUserDescription],
         });
@@ -184,9 +185,7 @@ export async function batchLoad(
   });
 }
 
-// @ts-expect-error Keep function for backup
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function queryableUserBatchLoadSeparatePerId(
+async function _queryableUserBatchLoadSeparatePerId(
   keys: readonly QueryableUserLoaderKey[],
   context: QueryableUserLoadContext
 ): Promise<(PartialQueryResultDeep<InferRaw<typeof QueryableUser>> | Error | null)[]> {
@@ -249,6 +248,7 @@ async function queryableUserBatchLoadSeparatePerId(
     const result = results[getEqualObjectString(key.id)];
     if (!result?.user) return null;
 
+    // @ts-expect-error QueryObjectDeep issue
     return mapQueryAggregateResult(key.query, result.mergedQuery, result.user, {
       descriptions: [queryableUserDescription],
     });

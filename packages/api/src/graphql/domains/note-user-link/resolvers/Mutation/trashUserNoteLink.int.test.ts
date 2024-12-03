@@ -80,7 +80,7 @@ let user: DBUserSchema;
 let userNotOwner: DBUserSchema;
 let userNoAccess: DBUserSchema;
 let note: DBNoteSchema;
-let spyDateNow: MockInstance<[], number>;
+let spyDateNow: MockInstance<() => number>;
 
 beforeAll(() => {
   spyDateNow = vi.spyOn(Date, 'now');

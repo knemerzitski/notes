@@ -62,12 +62,13 @@ const MUTATION = `#graphql
 `;
 
 let spyInsertSession: MockInstance<
-  [insert_session.InsertSessionParams],
-  Promise<DBSessionSchema>
+  (_params: insert_session.InsertSessionParams) => Promise<DBSessionSchema>
 >;
+
 let spyInsertUserWithGoogleUser: MockInstance<
-  Parameters<typeof insert_user_with_google_user.insertUserWithGoogleUser>,
-  Promise<DBUserSchema>
+  (
+    params: Parameters<typeof insert_user_with_google_user.insertUserWithGoogleUser>[0]
+  ) => Promise<DBUserSchema>
 >;
 
 let user: DBUserSchema;

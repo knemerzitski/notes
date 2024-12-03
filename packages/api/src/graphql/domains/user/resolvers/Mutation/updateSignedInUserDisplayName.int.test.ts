@@ -76,8 +76,9 @@ const SUBSCRIPTION = `#graphql
 let user: DBUserSchema;
 
 let spyUpdateDisplayName: MockInstance<
-  [update_display_name.UpdateDisplayNameParams],
-  Promise<UpdateResult<DBUserSchema>>
+  (
+    params: update_display_name.UpdateDisplayNameParams
+  ) => Promise<UpdateResult<DBUserSchema>>
 >;
 
 beforeAll(() => {

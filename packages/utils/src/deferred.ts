@@ -4,7 +4,7 @@ export interface Deferred<T> {
   reject: (reason?: unknown) => void;
 }
 
-type DeferredResolve<T> = T extends undefined
+type DeferredResolve<T> = undefined extends T
   ? () => void
   : (value: T | PromiseLike<T>) => void;
 
@@ -14,7 +14,6 @@ type DeferredResolve<T> = T extends undefined
  */
 export function createDeferred<T = undefined>(): Deferred<T> {
   const obj: Omit<Deferred<T>, 'promise'> = {
-    //@ts-expect-error Ignore error
     resolve: () => {
       throw new Error('Promise has not started yet');
     },

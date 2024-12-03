@@ -369,7 +369,7 @@ export function buildLastProjectValue<TSchema = unknown, TContext = unknown>(
       const subProjectValue = buildLastProjectValue(
         subQuery as MergedQueryDeep<unknown>,
         {
-          descriptions: [...anyKeySplitDescriptions, ...subDescriptions_noAnyKey],
+          descriptions: [...anyKeySplitDescriptions, ...subDescriptions_noAnyKey] as any,
         }
       );
       if (subProjectValue != null) {

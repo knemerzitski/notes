@@ -67,7 +67,7 @@ export type QueryableUser = Infer<typeof QueryableUser>;
 export interface QueryableUserContext {
   collections: Pick<
     MongoDBCollectionsOnlyNames,
-    CollectionName.NOTES | CollectionName.USERS
+    CollectionName.NOTES | CollectionName.USERS | CollectionName.OPEN_NOTES
   >;
 }
 

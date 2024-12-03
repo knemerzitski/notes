@@ -47,7 +47,7 @@ export type QueryableNoteByShareLinkLoadContext = QueryLoaderContext<
 interface GlobalContext {
   collections: Pick<
     MongoDBContext<MongoDBCollections>['collections'],
-    CollectionName.NOTES | CollectionName.USERS
+    CollectionName.NOTES | CollectionName.USERS | CollectionName.OPEN_NOTES
   >;
 }
 

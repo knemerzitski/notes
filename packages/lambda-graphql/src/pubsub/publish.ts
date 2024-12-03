@@ -118,10 +118,12 @@ export function createPublisher<
             payload: filteredPayload,
           };
 
-          return socketApi.post({
+          await socketApi.post({
             ...sub.requestContext,
             message,
           });
+
+          return;
         } catch (err) {
           context.logger.error('publish:subscription', {
             ...sub.requestContext,

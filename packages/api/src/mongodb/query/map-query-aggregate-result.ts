@@ -63,7 +63,6 @@ export function mapQueryAggregateResult<
 
       return aggregateResult.map((subAggregateResult) =>
         mapQueryAggregateResult(rootQuery, rootMergedQuery, subAggregateResult, {
-          // @ts-expect-error Ignore typing for dynamic object
           descriptions: descriptionsNoResolver,
         })
       ) as PartialQueryResultDeep<TSchema>;
@@ -109,6 +108,7 @@ export function mapQueryAggregateResult<
           );
 
         subAggregateResult = mapQueryAggregateResult(
+          //@ts-expect-error Ignore type error
           subQuery,
           subMergedQuery,
           subAggregateResult,
