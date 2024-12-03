@@ -9,13 +9,18 @@ import {
   ApolloCache,
   DocumentNode,
 } from '@apollo/client';
-import { addOngoingOperation } from './add';
-import { removeOngoingOperations } from './remove';
-import { hasOngoingOperation } from './has';
+
 import { isMutationOperation } from '@apollo/client/utilities';
-import { DirectiveFlag } from '../../utils/directive-flag';
-import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+
 import { nanoid } from 'nanoid';
+import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+
+import { DirectiveFlag } from '../../utils/directive-flag';
+
+import { addOngoingOperation } from './add';
+import { hasOngoingOperation } from './has';
+import { removeOngoingOperations } from './remove';
+
 
 const PERSIST_DIRECTIVE = 'persist';
 

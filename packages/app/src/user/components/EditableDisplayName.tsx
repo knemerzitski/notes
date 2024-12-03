@@ -1,7 +1,7 @@
 import { useQuery } from '@apollo/client';
-import { getFragmentData, gql } from '../../__generated__';
-import { useUserId } from '../context/user-id';
-import { DisplayNameTitle } from './DisplayNameTitle';
+
+import CheckIcon from '@mui/icons-material/Check';
+import EditIcon from '@mui/icons-material/Edit';
 import {
   Box,
   ClickAwayListener,
@@ -11,12 +11,20 @@ import {
   TextFieldProps,
   Tooltip,
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
+
 import { useState } from 'react';
-import { useUpdateDisplayNameMutation } from '../hooks/useUpdateDisplayNameMutation';
-import { useUndoAction } from '../../utils/context/undo-action';
+
+import { getFragmentData, gql } from '../../__generated__';
 import { EditableDisplayNameSignedInUserFragmentFragmentDoc } from '../../__generated__/graphql';
-import CheckIcon from '@mui/icons-material/Check';
+import { useUndoAction } from '../../utils/context/undo-action';
+import { useUserId } from '../context/user-id';
+
+import { useUpdateDisplayNameMutation } from '../hooks/useUpdateDisplayNameMutation';
+
+import { DisplayNameTitle } from './DisplayNameTitle';
+
+
+
 import { DisplayNameTitleTextField } from './DisplayNameTitleTextField';
 
 const EditableDisplayName_Query = gql(`

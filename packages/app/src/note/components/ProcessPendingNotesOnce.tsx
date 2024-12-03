@@ -1,10 +1,12 @@
 import { useApolloClient, useQuery } from '@apollo/client';
-import { gql } from '../../__generated__';
-import { useUserId } from '../../user/context/user-id';
+
 import { useEffect } from 'react';
-import { setNotePendingStatus } from '../models/local-note/set-status';
+
+import { gql } from '../../__generated__';
 import { NotePendingStatus } from '../../__generated__/graphql';
+import { useUserId } from '../../user/context/user-id';
 import { clearExcludeNoteFromConnection } from '../models/local-note/clear-exclude';
+import { setNotePendingStatus } from '../models/local-note/set-status';
 import { addNoteToConnection } from '../models/note-connection/add';
 
 const ProcessPendingNotesOnce_Query = gql(`

@@ -1,5 +1,7 @@
 import { ApolloLink, FetchResult, NextLink, Observable, Operation } from '@apollo/client';
+
 import { WebSocketClient } from '../ws/websocket-client';
+
 import { setOperationUserId } from './current-user';
 
 export class WebSocketClientSetOperationUserIdLink extends ApolloLink {

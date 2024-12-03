@@ -1,14 +1,22 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { expect, it, vi } from 'vitest';
-import { createDefaultGraphQLServiceParams } from '../../graphql-service';
-import { createGraphQLService } from './service';
-import { renderHook } from '@testing-library/react';
-import { useUpdateDisplayNameMutation } from '../../user/hooks/useUpdateDisplayNameMutation';
-import { ReactNode } from '@tanstack/react-router';
-import { GraphQLServiceProvider } from '../components/GraphQLServiceProvider';
+ 
 import { ApolloLink, Observable } from '@apollo/client';
-import { setCurrentUser } from '../../user/models/signed-in-user/set-current';
+import { ReactNode } from '@tanstack/react-router';
+import { renderHook } from '@testing-library/react';
+import { expect, it, vi } from 'vitest';
+
+import { createDefaultGraphQLServiceParams } from '../../graphql-service';
+
 import { CurrentUserIdProvider } from '../../user/components/CurrentUserIdProvider';
+import { useUpdateDisplayNameMutation } from '../../user/hooks/useUpdateDisplayNameMutation';
+
+import { setCurrentUser } from '../../user/models/signed-in-user/set-current';
+import { GraphQLServiceProvider } from '../components/GraphQLServiceProvider';
+
+import { createGraphQLService } from './service';
+
+
+
+
 
 it('does not serialize different user same mutations', async () => {
   const A_userId = 'ZwjzAA054CFCvxuO';

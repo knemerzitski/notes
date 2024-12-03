@@ -1,11 +1,13 @@
 import { Operation, useApolloClient } from '@apollo/client';
-import { gql } from '../../__generated__';
+
+import isEqual from 'lodash.isequal';
 import { useEffect, useRef, useState } from 'react';
-import { getAllOngoingOperations } from '../link/persist/get-all';
+
+import { gql } from '../../__generated__';
+import { ApolloOperation, Maybe, SignedInUser } from '../../__generated__/graphql';
 import { useUserId } from '../../user/context/user-id';
 import { setOperationUserId } from '../link/current-user';
-import { ApolloOperation, Maybe, SignedInUser } from '../../__generated__/graphql';
-import isEqual from 'lodash.isequal';
+import { getAllOngoingOperations } from '../link/persist/get-all';
 
 const UseIsExecutingOperation_Query = gql(`
   query UseIsExecutingOperation_Query {
@@ -17,7 +19,7 @@ const UseIsExecutingOperation_Query = gql(`
   }
 `);
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unnecessary-type-parameters
 export function useIsExecutingOperation<TVariables extends Record<string, any>>(
   operationName: Maybe<string>,
   variables?: TVariables
@@ -99,10 +101,12 @@ function isSameOperation(
 
   setOperationUserId(checkOperation, cond.userId);
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const ongoingVariables = JSON.parse(ongoingOperation.variables);
 
   const definedVariablesMatch = Object.entries(checkOperation.variables).every(
     ([key, value]) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       return isEqual(ongoingVariables[key], value);
     }
   );

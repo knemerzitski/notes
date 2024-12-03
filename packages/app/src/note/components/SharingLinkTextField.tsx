@@ -1,13 +1,15 @@
-import { Box, TextField, CircularProgress, css, styled } from '@mui/material';
-import { getShareUrl } from '../utils/get-share-url';
 import { useFragment } from '@apollo/client';
-import { useNoteId } from '../context/note-id';
-import { useIsCreatingShareLink } from '../hooks/useIsCreatingShareLink';
+import { Box, TextField, CircularProgress, css, styled } from '@mui/material';
+
 import { gql } from '../../__generated__';
 import { useSmoothValue } from '../../utils/hooks/useSmoothValue';
+import { useNoteId } from '../context/note-id';
+import { useIsCreatingShareLink } from '../hooks/useIsCreatingShareLink';
+import { getShareUrl } from '../utils/get-share-url';
 
 const SharingLinkTextField_NoteFragment = gql(`
   fragment SharingLinkTextField_NoteFragment on Note {
+    id
     shareAccess {
       id
     }

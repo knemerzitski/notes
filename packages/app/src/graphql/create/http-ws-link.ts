@@ -1,11 +1,12 @@
 import { HttpLink, split, ApolloLink } from '@apollo/client';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { isSubscriptionOperation } from '@apollo/client/utilities';
+
 import { headerUserIdLink } from '../link/header/user-id';
 import { createHeaderWsConnectionIdLink } from '../link/header/ws-connection-id';
 import { passthrough } from '../link/passthrough';
-import { WebSocketClient } from '../ws/websocket-client';
 import { WebSocketClientSetOperationUserIdLink as WsSetOperationUserIdLink } from '../link/ws-set-operation-user-id';
+import { WebSocketClient } from '../ws/websocket-client';
 
 export function createHttpWsLink({
   httpUri,

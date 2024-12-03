@@ -12,13 +12,18 @@ import {
   Observable,
   Observer,
 } from '@apollo/client/utilities';
-import { AppContext, GlobalOperationVariables } from '../types';
-import { isLocalId } from '../../utils/is-local-id';
-import { WebSocketClient } from '../ws/websocket-client';
-import { isObjectLike } from '~utils/type-guards/is-object-like';
-import { Maybe } from '~utils/types';
+
 import SerializingLink from 'apollo-link-serialize';
+import { isObjectLike } from '~utils/type-guards/is-object-like';
+
+import { Maybe } from '~utils/types';
+
+import { isLocalId } from '../../utils/is-local-id';
+import { AppContext, GlobalOperationVariables } from '../types';
 import { DirectiveFlag } from '../utils/directive-flag';
+import { WebSocketClient } from '../ws/websocket-client';
+
+
 
 const SERIALIZE_DIRECTIVE = 'serialize';
 const NOAUTH_DIRECTIVE = 'noauth';
@@ -156,6 +161,7 @@ export function setOperationUserId(
 export function getOperationOrRequestUserId(
   operation: Pick<Operation, 'variables'> | Pick<GraphQLRequest, 'variables'>
 ): string | undefined {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const userId = operation.variables?.[GlobalOperationVariables.USER_ID];
   if (typeof userId === 'string') {
     return userId;

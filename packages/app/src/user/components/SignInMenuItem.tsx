@@ -1,8 +1,10 @@
-import { gql, useQuery } from '@apollo/client';
+import { useQuery } from '@apollo/client';
 import { MenuItem, MenuItemProps } from '@mui/material';
-import { useUserId } from '../context/user-id';
-import { useOpenSignInModal } from '../context/sign-in-modal';
+
+import { gql } from '../../__generated__';
 import { useOnClose } from '../../utils/context/on-close';
+import { useOpenSignInModal } from '../context/sign-in-modal';
+import { useUserId } from '../context/user-id';
 
 const SignInMenuItem_Query = gql(`
   query SignInMenuItem_Query($id: ID!) {
@@ -11,6 +13,7 @@ const SignInMenuItem_Query = gql(`
       local {
         id
         sessionExpired
+        __typename
       }
       localOnly
     }

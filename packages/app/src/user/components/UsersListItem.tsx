@@ -1,3 +1,4 @@
+import { useApolloClient, useQuery } from '@apollo/client';
 import {
   ListItemAvatar,
   ListItemText,
@@ -9,17 +10,22 @@ import {
   styled,
 } from '@mui/material';
 
-import { useApolloClient, useQuery } from '@apollo/client';
 import { gql } from '../../__generated__';
-import { UserAvatar } from './UserAvatar';
-import { SessionExpired } from './SessionExpired';
-import { EmailSubtitleSmall } from './EmailSubtitleSmall';
-import { DisplayName } from './DisplayName';
-import { useUserId } from '../context/user-id';
-import { UserMoreOptionsButton } from './UserMoreOptionsButton';
-import { useOnClose } from '../../utils/context/on-close';
-import { setCurrentUser } from '../models/signed-in-user/set-current';
+
 import { ActivableListItem } from '../../utils/components/ActivableListItem';
+import { useOnClose } from '../../utils/context/on-close';
+import { useUserId } from '../context/user-id';
+
+import { setCurrentUser } from '../models/signed-in-user/set-current';
+
+import { DisplayName } from './DisplayName';
+import { EmailSubtitleSmall } from './EmailSubtitleSmall';
+import { SessionExpired } from './SessionExpired';
+import { UserAvatar } from './UserAvatar';
+
+
+import { UserMoreOptionsButton } from './UserMoreOptionsButton';
+
 
 const UserListItem_Query = gql(`
   query UserListItem_Query($id: ID!) {

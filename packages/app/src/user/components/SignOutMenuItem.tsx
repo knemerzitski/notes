@@ -1,14 +1,15 @@
 import { useApolloClient, useQuery } from '@apollo/client';
 import { MenuItem } from '@mui/material';
+
+import { gql } from '../../__generated__';
+import { hasUserOngoingOperations } from '../../graphql/link/persist/has-user';
+import { useFetchedRoutes } from '../../utils/context/fetched-routes';
+import { useOnClose } from '../../utils/context/on-close';
+import { useShowConfirm } from '../../utils/context/show-confirm';
+import { useIsOnline } from '../../utils/hooks/useIsOnline';
 import { useUserId } from '../context/user-id';
 import { useSignOutMutation } from '../hooks/useSignOutMutation';
-import { gql } from '../../__generated__';
-import { useOnClose } from '../../utils/context/on-close';
-import { useIsOnline } from '../../utils/hooks/useIsOnline';
-import { hasUserOngoingOperations } from '../../graphql/link/persist/has-user';
-import { useShowConfirm } from '../../utils/context/show-confirm';
 import { confirmUnsavedChanges } from '../utils/confirm-unsaved-changes';
-import { useFetchedRoutes } from '../../utils/context/fetched-routes';
 
 const SignOutMenuItem_Query = gql(`
   query SignOutMenuItem_Query($id: ID!) {

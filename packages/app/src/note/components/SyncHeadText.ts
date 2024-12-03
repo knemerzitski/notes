@@ -1,9 +1,9 @@
 import { useApolloClient } from '@apollo/client';
 import { useEffect } from 'react';
 
-import { useUserNoteLinkId } from '../context/user-note-link-id';
 import { getFragmentData, gql } from '../../__generated__';
 import { MapRecordCollabTextRecordFragmentFragmentDoc } from '../../__generated__/graphql';
+import { useUserNoteLinkId } from '../context/user-note-link-id';
 import { cacheRecordToCollabServiceRecord } from '../utils/map-record';
 
 const SyncHeadTextWatch_Query = gql(`

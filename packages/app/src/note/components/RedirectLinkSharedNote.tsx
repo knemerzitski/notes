@@ -1,12 +1,13 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useRef } from 'react';
-import { useCreateNoteLinkByShareAccess } from '../hooks/useCreateNoteLinkByShareAccess';
+
+import { getFragmentData } from '../../__generated__';
 import {
   CreateNoteLinkByShareAccessPayloadFragmentDoc,
   NoteShareAccess,
 } from '../../__generated__/graphql';
-import { getFragmentData } from '../../__generated__';
 import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
+import { useCreateNoteLinkByShareAccess } from '../hooks/useCreateNoteLinkByShareAccess';
 
 export function RedirectLinkSharedNote({ shareId }: { shareId: NoteShareAccess['id'] }) {
   const navigate = useNavigate();

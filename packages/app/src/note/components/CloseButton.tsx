@@ -1,6 +1,8 @@
 import { Button, ButtonProps } from '@mui/material';
-import { useOnClose } from '../../utils/context/on-close';
+
 import { forwardRef } from 'react';
+
+import { useOnClose } from '../../utils/context/on-close';
 
 export const CloseButton = forwardRef<HTMLButtonElement, ButtonProps>(
   function CloseButton(

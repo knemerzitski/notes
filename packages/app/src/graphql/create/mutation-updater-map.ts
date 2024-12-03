@@ -1,17 +1,19 @@
-import { getMainDefinition } from '@apollo/client/utilities';
-import { DocumentNode, Kind } from 'graphql';
-import { operationDefinitionFragmentPaths } from '../utils/fragments-paths';
-import { updateWithFragments } from '../utils/update-with-fragments';
-import { isDefined } from '~utils/type-guards/is-defined';
-import { getFragmentTypeCondition } from '../utils/get-fragment-type-condition';
 import {
   MutationUpdaterFunction,
   OperationVariables,
   DefaultContext,
   ApolloCache,
 } from '@apollo/client';
+import { getMainDefinition } from '@apollo/client/utilities';
+import { DocumentNode, Kind } from 'graphql/index';
+
+import { isDefined } from '~utils/type-guards/is-defined';
+
 import { MutationDefinitions } from '../types';
+import { operationDefinitionFragmentPaths } from '../utils/fragments-paths';
+import { getFragmentTypeCondition } from '../utils/get-fragment-type-condition';
 import { MutationDefinition } from '../utils/mutation-definition';
+import { updateWithFragments } from '../utils/update-with-fragments';
 
 export interface MutationUpdaterFunctionMap {
   set: (

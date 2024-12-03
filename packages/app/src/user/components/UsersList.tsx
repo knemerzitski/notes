@@ -1,9 +1,12 @@
-import { ListProps } from '@mui/material';
-import { ColumnList } from '../../utils/components/ColumnList';
-import { UserListItem } from './UsersListItem';
-import { UserIdProvider } from '../context/user-id';
-import { gql } from '../../__generated__';
 import { useQuery } from '@apollo/client';
+import { ListProps } from '@mui/material';
+
+import { gql } from '../../__generated__';
+import { ColumnList } from '../../utils/components/ColumnList';
+
+import { UserIdProvider } from '../context/user-id';
+
+import { UserListItem } from './UsersListItem';
 
 const UsersList_Query = gql(`
   query UsersList_Query {

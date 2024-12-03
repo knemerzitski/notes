@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { ApolloLink, execute, GraphQLRequest, Observable } from '@apollo/client';
-import { it, expect, vi } from 'vitest';
-import { GateLink } from './gate';
 import { Kind } from 'graphql';
+import { it, expect, vi } from 'vitest';
+
+import { GateLink } from './gate';
 
 // TODO as general testing utility?
 async function runLink(link: ApolloLink, inputValues: string[]) {

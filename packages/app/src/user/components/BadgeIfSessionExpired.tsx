@@ -1,8 +1,12 @@
-import { ReactElement } from 'react';
-import { gql } from '../../__generated__';
 import { useQuery } from '@apollo/client';
-import { WarningBadge } from './WarningBadge';
+import { ReactElement } from 'react';
+
+import { gql } from '../../__generated__';
+
 import { useUserId } from '../context/user-id';
+
+import { WarningBadge } from './WarningBadge';
+
 
 const BadgeIfSessionExpired_Query = gql(`
   query BadgeIfSessionExpired_Query($id: ID!) {

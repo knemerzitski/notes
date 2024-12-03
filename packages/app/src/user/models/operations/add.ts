@@ -1,7 +1,9 @@
 import { ApolloCache } from '@apollo/client';
+
+import { DistributivePartialBy } from '~utils/types';
+
 import { gql } from '../../../__generated__';
 import { AddUserOperationQueryQuery, SignedInUser } from '../../../__generated__/graphql';
-import { DistributivePartialBy } from '~utils/types';
 
 const AddUserOperation_Query = gql(`
   query AddUserOperation_Query($id: ID!) {

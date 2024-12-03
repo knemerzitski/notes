@@ -1,6 +1,7 @@
 import { createFileRoute, defer } from '@tanstack/react-router';
-import { TrashMain } from '../note/components/TrashMain';
+
 import { gql } from '../__generated__';
+import { TrashMain } from '../note/components/TrashMain';
 import { routeFetchPolicy } from '../utils/route-fetch-policy';
 
 const RouteTrash_Query = gql(`

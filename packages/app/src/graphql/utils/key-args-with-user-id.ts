@@ -1,6 +1,7 @@
-import { KeyArgsFunction, KeySpecifier } from '@apollo/client/cache/inmemory/policies';
 import { keyArgsFnFromSpecifier } from '@apollo/client/cache/inmemory/key-extractor';
+import { KeyArgsFunction, KeySpecifier } from '@apollo/client/cache/inmemory/policies';
 import { isDefined } from '~utils/type-guards/is-defined';
+
 import { TypePoliciesContext } from '../types';
 
 const SEPARATOR = '-';
@@ -16,12 +17,14 @@ export function keyArgsWithUserId(
   const baseKeyArgsFn = getKeyArgsFn(keyArgs);
 
   return (args, argsCtx) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const userId =
       argsCtx.variables?.[policiesCtx.variablesUserIdKey] ??
       policiesCtx.appContext.userId;
 
     const suffix = userId
       ? JSON.stringify({
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           userId: userId,
         })
       : undefined;

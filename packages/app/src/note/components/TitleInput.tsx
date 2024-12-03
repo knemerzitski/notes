@@ -1,6 +1,8 @@
 import { css, styled } from '@mui/material';
-import { PlainInput } from '../../utils/components/PlainInput';
+
 import { forwardRef } from 'react';
+
+import { PlainInput } from '../../utils/components/PlainInput';
 
 export const TitleInput = forwardRef<unknown, Parameters<typeof PlainInputStyled>[0]>(
   function TitleInput({ placeholder = 'Title', ...restProps }, ref) {

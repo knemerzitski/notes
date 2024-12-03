@@ -1,5 +1,5 @@
-import { mutationDefinition } from '../../graphql/utils/mutation-definition';
 import { gql } from '../../__generated__';
+import { mutationDefinition } from '../../graphql/utils/mutation-definition';
 
 export const UpdateSignedInUserDisplayNamePayload = mutationDefinition(
   gql(`

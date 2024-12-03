@@ -28,6 +28,9 @@ type DevicePreferences {
   App responsive layout
   """
   layoutMode: LayoutMode!
+  """
+  TODO desc
+  """
   desktop: DesktopDevicePreferences!
 }
 

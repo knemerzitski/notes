@@ -1,11 +1,16 @@
 import { useApolloClient } from '@apollo/client';
+
+import { useEffect, useRef } from 'react';
+
+import { UserRecords } from '~collab/client/user-records';
+
+import { gql } from '../../__generated__';
+import { useUserId } from '../../user/context/user-id';
 import { useNoteId } from '../context/note-id';
 import { useCollabService } from '../hooks/useCollabService';
-import { useEffect, useRef } from 'react';
 import { CacheRecordsFacade } from '../utils/cache-records-facade';
-import { UserRecords } from '~collab/client/user-records';
-import { useUserId } from '../../user/context/user-id';
-import { gql } from '../../__generated__';
+
+
 
 const HistoryRestoration_Query = gql(`
   query HistoryRestoration_Query($by: UserNoteLinkByInput!, 

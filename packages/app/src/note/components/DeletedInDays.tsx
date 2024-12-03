@@ -1,6 +1,7 @@
 import { Tooltip, Typography, TypographyProps } from '@mui/material';
-import { useDeletedInDays } from '../hooks/useDeletedInDays';
+
 import { gql } from '../../__generated__';
+import { useDeletedInDays } from '../hooks/useDeletedInDays';
 
 const _DeletedInDays_UserNoteLinkFragment = gql(`
   fragment DeletedInDays_UserNoteLinkFragment on UserNoteLink {

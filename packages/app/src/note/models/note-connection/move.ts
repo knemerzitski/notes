@@ -1,5 +1,7 @@
 import { ApolloCache } from '@apollo/client';
 import { Maybe } from '~utils/types';
+
+import { gql } from '../../../__generated__';
 import {
   NoteLocation,
   NoteCategory,
@@ -7,10 +9,9 @@ import {
   ListAnchorPosition,
   UserNoteLinkByInput,
 } from '../../../__generated__/graphql';
-import { gql } from '../../../__generated__';
+import { getUserNoteLinkIdFromByInput } from '../../utils/id';
 import { getConnectionCategoryName } from '../note/connection-category-name';
 import { noteExists } from '../note/exists';
-import { getUserNoteLinkIdFromByInput } from '../../utils/id';
 
 const MoveNoteInConnection_Query = gql(`
   query MoveNoteInConnection_Query($by: UserNoteLinkByInput!, $oldCategory: NoteCategory, $newCategory: NoteCategory) {

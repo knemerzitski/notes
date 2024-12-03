@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ApolloClient, gql, InMemoryCache } from '@apollo/client';
 import { MockedResponse, MockLink } from '@apollo/client/testing';
-import { WaitLink } from './wait';
+
 import { it, expect } from 'vitest';
+
+import { WaitLink } from './wait';
 
 const Query = gql(`
   query Foo {

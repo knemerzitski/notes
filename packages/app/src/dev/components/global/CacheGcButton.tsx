@@ -1,5 +1,6 @@
-import { Button } from '@mui/material';
 import { useApolloClient } from '@apollo/client';
+import { Button } from '@mui/material';
+
 import { cacheGc } from '../../../graphql/utils/cache-gc';
 
 // TODO doesn't block subscriptions data

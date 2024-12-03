@@ -6,6 +6,7 @@ import {
   MenuList,
   Typography,
 } from '@mui/material';
+
 import { LayoutMode } from '../../__generated__/graphql';
 import { useSelectNavigableMenu } from '../../utils/context/navigable-menu';
 import { useLayoutMode } from '../hooks/useLayoutMode';

@@ -1,12 +1,14 @@
+import { isReference } from '@apollo/client';
+import { objectValueArrayPermutationsValues } from '~utils/object/object-value-array-permutations';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
+
 import { Note, NoteCategory } from '../../__generated__/graphql';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
 import { keyArgsWithUserId } from '../../graphql/utils/key-args-with-user-id';
+import { relayStylePagination } from '../../graphql/utils/relay-style-pagination';
 import { EvictTag, TaggedEvictOptionsList } from '../../graphql/utils/tagged-evict';
 import { getUserNoteLinkId } from '../utils/id';
-import { objectValueArrayPermutationsValues } from '~utils/object/object-value-array-permutations';
-import { relayStylePagination } from '../../graphql/utils/relay-style-pagination';
-import { isReference } from '@apollo/client';
+
 
 function throwNoteNotFoundError(noteId?: Note['id']): never {
   if (noteId) {

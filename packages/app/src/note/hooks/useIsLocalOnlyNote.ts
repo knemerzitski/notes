@@ -1,5 +1,6 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import { useQuery } from '@apollo/client';
+
 import { gql } from '../../__generated__';
 import { useNoteId } from '../context/note-id';
 

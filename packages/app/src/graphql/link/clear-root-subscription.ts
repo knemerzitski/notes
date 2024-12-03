@@ -26,6 +26,7 @@ export class ClearRootSubscriptionLink extends ApolloLink {
     }
 
     const context = operation.getContext();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const cache = context.cache;
     if (!(cache instanceof InMemoryCache)) {
       return forward(operation);
@@ -35,6 +36,7 @@ export class ClearRootSubscriptionLink extends ApolloLink {
       cache.modify({
         id: 'ROOT_SUBSCRIPTION',
         fields(value, { fieldName, DELETE }) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
           return fieldName === '__typename' ? value : DELETE;
         },
       });

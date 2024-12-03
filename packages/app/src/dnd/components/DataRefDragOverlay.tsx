@@ -1,7 +1,8 @@
 import { DataRef, useDndMonitor, DragOverlay } from '@dnd-kit/core';
-import { useState } from 'react';
-import { renderDragOverlayFromDndData } from '../utils/data-drag-overlay';
 import { useTheme } from '@mui/material';
+import { useState } from 'react';
+
+import { renderDragOverlayFromDndData } from '../utils/data-drag-overlay';
 
 /**
  * Renders overlay component function from item dnd data property

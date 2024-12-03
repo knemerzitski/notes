@@ -1,12 +1,16 @@
+import { useQuery } from '@apollo/client';
 import { List, ListItem, ListProps } from '@mui/material';
 
-import { SignedInUser } from '~/__generated__/graphql';
 import { PickDeep } from '~utils/types';
+
+import { SignedInUser } from '~/__generated__/graphql';
+
 import { gql } from '../../__generated__';
-import { useUserId } from '../context/user-id';
-import { useQuery } from '@apollo/client';
-import { GoogleLoginButton } from './GoogleLoginButton';
 import { useOnClose } from '../../utils/context/on-close';
+import { useUserId } from '../context/user-id';
+
+import { GoogleLoginButton } from './GoogleLoginButton';
+
 
 const SignInProvidersList_Query = gql(`
   query SignInProvidersList_Query($id: ID!) {

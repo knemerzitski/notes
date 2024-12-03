@@ -3,10 +3,13 @@ import { ApolloClient, ApolloLink, gql, InMemoryCache } from '@apollo/client';
 import { MockedResponse, MockLink } from '@apollo/client/testing';
 import { it, vi, expect } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import { PersistLink } from '.';
-import { resumeOngoingOperations } from './resume';
+
 import { addTypePolicies, createTypePolicies } from '../../create/type-policies';
 import { graphQLPolicies } from '../../policies';
+
+import { resumeOngoingOperations } from './resume';
+
+import { PersistLink } from '.';
 
 const Mutation = gql(`
   mutation Foo {
@@ -70,7 +73,8 @@ it('resumes cached error and calls updateFn', async () => {
         [PersistLink.PERSIST]: true,
       },
     });
-  } catch (err) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (_err) {
     // ignore error
   }
 

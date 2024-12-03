@@ -10,7 +10,7 @@ import { KeySpecifier, KeyArgsFunction } from '@apollo/client/cache/inmemory/pol
 export interface FieldArrayToMapOptions<
   TKeyName extends string,
   TKeyValue extends string,
-  TItem extends { [Key in TKeyName]: TKeyValue } | Reference,
+  TItem extends Record<TKeyName, TKeyValue> | Reference,
 > {
   argName?: string;
   keyArgs?: false | KeySpecifier | KeyArgsFunction | undefined;
@@ -31,7 +31,7 @@ export interface FieldArrayToMapOptions<
 export function fieldArrayToMap<
   TKeyName extends string,
   TKeyValue extends string,
-  TItem extends { [Key in TKeyName]: TKeyValue } | Reference,
+  TItem extends Record<TKeyName, TKeyValue> | Reference,
 >(
   keyName: TKeyName,
   rootOptions: FieldArrayToMapOptions<TKeyName, TKeyValue, TItem> = {}
@@ -68,9 +68,10 @@ export function fieldArrayToMap<
             fieldName: keyName,
           });
           if (!readKey) return;
+          // eslint-disable-next-line @typescript-eslint/no-base-to-string
           keyValue = String(readKey) as TKeyValue;
         } else {
-          const entry = incomingEntry as { [Key in TKeyName]: TKeyValue };
+          const entry = incomingEntry as Record<TKeyName, TKeyValue>;
           keyValue = entry[keyName];
         }
 

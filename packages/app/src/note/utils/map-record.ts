@@ -1,12 +1,14 @@
+import { Changeset } from '~collab/changeset';
+import { CollabServiceRecord } from '~collab/client/collab-service';
 import { SubmittedRecord } from '~collab/client/submitted-record';
+
+import { gql } from '../../__generated__';
 import {
   CollabTextRecordInput,
   MapRecordCollabTextRecordFragmentFragment,
   RevisionChangeset,
 } from '../../__generated__/graphql';
-import { CollabServiceRecord } from '~collab/client/collab-service';
-import { gql } from '../../__generated__';
-import { Changeset } from '~collab/changeset';
+
 
 /**
  * Record structure that is always fetched from the server and stored in cache.

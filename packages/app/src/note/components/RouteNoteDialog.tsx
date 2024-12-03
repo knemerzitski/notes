@@ -1,10 +1,13 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useState, useCallback } from 'react';
+
 import { OnCloseProvider } from '../../utils/context/on-close';
-import { NoteIdProvider } from '../context/note-id';
-import { NoteDialog } from './NoteDialog';
 import { noteEditDialogId } from '../../utils/element-id';
+import { NoteIdProvider } from '../context/note-id';
+
 import { useOnNoteNotEditable } from '../hooks/useOnNoteNotEditable';
+
+import { NoteDialog } from './NoteDialog';
 
 /**
  * Note dialog that is based on query search ?noteId=...

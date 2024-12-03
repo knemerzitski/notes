@@ -1,4 +1,3 @@
-import { ColorMode } from '../../__generated__/graphql';
 import {
   coerce,
   defaulted,
@@ -9,6 +8,8 @@ import {
   type,
   unknown,
 } from 'superstruct';
+
+import { ColorMode } from '../../__generated__/graphql';
 
 const BootstrapCacheStruct = defaulted(
   coerce(
@@ -30,6 +31,7 @@ const BootstrapCacheStruct = defaulted(
       }
 
       try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const parsedValue = JSON.parse(value);
         if (typeof parsedValue !== 'object') {
           return {};

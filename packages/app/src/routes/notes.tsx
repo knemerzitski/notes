@@ -1,6 +1,7 @@
 import { createFileRoute, defer } from '@tanstack/react-router';
-import { NotesMain } from '../note/components/NotesMain';
+
 import { gql } from '../__generated__';
+import { NotesMain } from '../note/components/NotesMain';
 import { routeFetchPolicy } from '../utils/route-fetch-policy';
 
 const RouteNotes_Query = gql(`

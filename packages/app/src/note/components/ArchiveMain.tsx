@@ -1,6 +1,7 @@
 import { gql } from '../../__generated__';
 import { FullWidthCenterMain } from '../../layout/components/FullWidthCenterMain';
 import { FullWidthCenterRow } from '../../layout/components/FullWidthCenterRow';
+
 import { ArchiveNotesConnectionGrid } from './ArchiveNotesConnectionGrid';
 import { EmptyInfoTopMargin } from './EmptyInfoTopMargin';
 

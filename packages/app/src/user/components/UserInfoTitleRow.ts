@@ -1,4 +1,5 @@
 import { Box, css, styled } from '@mui/material';
+
 import { userInfoRowStyle } from '../styles/user-info-row';
 
 export const UserInfoTitleRow = styled(Box)(

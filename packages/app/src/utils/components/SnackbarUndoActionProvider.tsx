@@ -1,7 +1,8 @@
+import { Box, Button, css, styled } from '@mui/material';
 import { ReactNode, useCallback, useId } from 'react';
+
 import { useShowSnackbarAlert } from '../context/snackbar-alert';
 import { UndoActionClosure, UndoActionProvider } from '../context/undo-action';
-import { Box, Button, css, styled } from '@mui/material';
 
 export function SnackbarUndoActionProvider({ children }: { children: ReactNode }) {
   const id = useId();

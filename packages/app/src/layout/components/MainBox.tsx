@@ -1,7 +1,9 @@
 import { css } from '@emotion/react';
 import { Box, styled, Theme } from '@mui/material';
-import { useIsMobile } from '../../theme/context/is-mobile';
+
 import { ReactNode } from 'react';
+
+import { useIsMobile } from '../../theme/context/is-mobile';
 import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
 
 export function MainBox({ children }: { children: ReactNode }) {

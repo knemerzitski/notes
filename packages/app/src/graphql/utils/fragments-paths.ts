@@ -4,7 +4,7 @@ import {
   FragmentSpreadNode,
   Kind,
   OperationDefinitionNode,
-} from 'graphql';
+} from 'graphql/index';
 
 export function operationDefinitionFragmentPaths(
   operation: OperationDefinitionNode
@@ -37,7 +37,7 @@ function selectionSet(
 
   for (const selection of selectionSet.selections) {
     const fn = findFragmentFnByKind[selection.kind];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
     result.push(...fn(selection as any, ctx));
   }
 
@@ -62,6 +62,7 @@ function fragmentSpread(
   node: FragmentSpreadNode,
   ctx: FindFragmentPathsContext = { path: [] }
 ): FragmentPaths {
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   node.name.value;
 
   return [

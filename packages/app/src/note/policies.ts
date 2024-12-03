@@ -1,10 +1,24 @@
+import { PossibleTypesMap } from '@apollo/client';
+
 import { CreateTypePoliciesFn, MutationDefinitions } from '../graphql/types';
 import { TaggedEvictOptionsList } from '../graphql/utils/tagged-evict';
+
 import { CreateNote } from './mutations/CreateNote';
+import { CreateNoteLinkByShareAccess } from './mutations/CreateNoteLinkByShareAccess';
+import { CreateNoteLinkByShareAccessPayload } from './mutations/CreateNoteLinkByShareAccessPayload';
+import { CreateNotePayload } from './mutations/CreateNotePayload';
 import { DeleteNote } from './mutations/DeleteNote';
-import { UpdateNoteInsertRecord } from './mutations/UpdateNoteInsertRecord';
+import { DeleteNotePayload } from './mutations/DeleteNotePayload';
+import { DeleteShareNote } from './mutations/DeleteShareNote';
+import { DeleteShareNotePayload } from './mutations/DeleteShareNotePayload';
 import { MoveUserNoteLink } from './mutations/MoveUserNoteLink';
+import { MoveUserNoteLinkPayload } from './mutations/MoveUserNoteLinkPayload';
+import { ShareNote } from './mutations/ShareNote';
+import { ShareNotePayload } from './mutations/ShareNotePayload';
 import { TrashUserNoteLink } from './mutations/TrashUserNoteLink';
+import { TrashUserNoteLinkPayload } from './mutations/TrashUserNoteLinkPayload';
+import { UpdateNoteInsertRecord } from './mutations/UpdateNoteInsertRecord';
+import { UpdateNoteInsertRecordPayload } from './mutations/UpdateNoteInsertRecordPayload';
 import { CollabText } from './policies/CollabText';
 import { CollabTextRecord } from './policies/CollabTextRecord';
 import { CollabTextRecordConnection } from './policies/CollabTextRecordConnection';
@@ -15,18 +29,6 @@ import { evictOptions as Query_evictOptions, Query } from './policies/Query';
 import { RevisionChangeset } from './policies/RevisionChangeset';
 import { UserNoteLink } from './policies/UserNoteLink';
 import { UserNoteLinkConnection } from './policies/UserNoteLinkConnection';
-import { UpdateNoteInsertRecordPayload } from './mutations/UpdateNoteInsertRecordPayload';
-import { TrashUserNoteLinkPayload } from './mutations/TrashUserNoteLinkPayload';
-import { MoveUserNoteLinkPayload } from './mutations/MoveUserNoteLinkPayload';
-import { DeleteNotePayload } from './mutations/DeleteNotePayload';
-import { CreateNotePayload } from './mutations/CreateNotePayload';
-import { PossibleTypesMap } from '@apollo/client';
-import { ShareNotePayload } from './mutations/ShareNotePayload';
-import { ShareNote } from './mutations/ShareNote';
-import { DeleteShareNote } from './mutations/DeleteShareNote';
-import { DeleteShareNotePayload } from './mutations/DeleteShareNotePayload';
-import { CreateNoteLinkByShareAccess } from './mutations/CreateNoteLinkByShareAccess';
-import { CreateNoteLinkByShareAccessPayload } from './mutations/CreateNoteLinkByShareAccessPayload';
 
 export const notePolicies: CreateTypePoliciesFn = function (ctx) {
   return {

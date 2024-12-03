@@ -1,8 +1,10 @@
 import { Box, Tab, Tabs } from '@mui/material';
-import { ActiveNoteDashCards } from './ActiveNoteDashCards';
-import { GlobalDashCards } from './GlobalDashCards';
-import { DevActiveNoteIdProvider } from './DevActiveNoteIdProvider';
+
 import { useLocalStorage } from '../hooks/useLocalStorage';
+
+import { ActiveNoteDashCards } from './ActiveNoteDashCards';
+import { DevActiveNoteIdProvider } from './DevActiveNoteIdProvider';
+import { GlobalDashCards } from './GlobalDashCards';
 
 function TabPanel(props: {
   children?: React.ReactNode;

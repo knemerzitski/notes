@@ -1,9 +1,11 @@
 import { useQuery } from '@apollo/client';
+
+import { ComponentType } from 'react';
+
 import { gql } from '../../__generated__';
+import { CollabInputQueryQuery, NoteTextFieldName } from '../../__generated__/graphql';
 import { useNoteId } from '../context/note-id';
 import { useCollabHtmlInput } from '../hooks/useCollabHtmlInput';
-import { CollabInputQueryQuery, NoteTextFieldName } from '../../__generated__/graphql';
-import { ComponentType } from 'react';
 
 const CollabInput_Query = gql(`
   query CollabInput_Query($id: ObjectID!, $fieldName: NoteTextFieldName!) {

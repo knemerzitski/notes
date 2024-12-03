@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
-import { TanStackRouterDevtools } from './TanStackRouterDevTools';
+
 import { DevTools } from './DevTools';
+import { TanStackRouterDevtools } from './TanStackRouterDevTools';
 
 function Content() {
   return (

@@ -1,6 +1,8 @@
 import { gql } from '@apollo/client';
 import { ReactNode } from 'react';
+
 import { NoteCategory } from '../../__generated__/graphql';
+
 import { EmptyTrashInfo } from './EmptyTrashInfo';
 import { NotesConnectionGrid } from './NotesConnectionGrid';
 

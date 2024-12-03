@@ -1,16 +1,19 @@
-import { ListItemIcon, ListItemText, MenuItem } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { useOnClose } from '../../utils/context/on-close';
-import { useDeleteNote } from '../hooks/useDeleteNote';
-import { useShowConfirm } from '../../utils/context/show-confirm';
 import { useFragment } from '@apollo/client';
-import { NoteCategory } from '../../__generated__/graphql';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { ListItemIcon, ListItemText, MenuItem } from '@mui/material';
+
 import { gql } from '../../__generated__';
-import { useUserNoteLinkId } from '../context/user-note-link-id';
+import { NoteCategory } from '../../__generated__/graphql';
+import { useOnClose } from '../../utils/context/on-close';
+import { useShowConfirm } from '../../utils/context/show-confirm';
 import { useNoteId } from '../context/note-id';
+import { useUserNoteLinkId } from '../context/user-note-link-id';
+import { useDeleteNote } from '../hooks/useDeleteNote';
+
 
 const DeleteForeverNoteMenuItem_UserNoteLinkFragment = gql(`
   fragment DeleteForeverNoteMenuItem_UserNoteLinkFragment on UserNoteLink {
+    id
     categoryName
   }
 `);

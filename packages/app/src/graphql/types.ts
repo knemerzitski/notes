@@ -5,14 +5,16 @@ import {
   TypePolicies,
   TypePolicy,
 } from '@apollo/client';
-import { Maybe } from '~utils/types';
-import { createGraphQLService } from './create/service';
-import { MutationDefinition } from './utils/mutation-definition';
-import { GateController, GateLink } from './link/gate';
-import '@apollo/client';
-import { TaggedEvict } from './utils/tagged-evict';
 import SerializingLink from 'apollo-link-serialize';
+import { Maybe } from '~utils/types';
+
+import { createGraphQLService } from './create/service';
+import { GateController, GateLink } from './link/gate';
 import { PersistLink } from './link/persist';
+import { MutationDefinition } from './utils/mutation-definition';
+import { TaggedEvict } from './utils/tagged-evict';
+
+
 
 declare module '@apollo/client' {
   interface DefaultContext {

@@ -1,8 +1,10 @@
 import { ApolloCache, DocumentNode } from '@apollo/client';
+
+import { isObjectLike } from '~utils/type-guards/is-object-like';
+import { Maybe } from '~utils/types';
+
 import { gql } from '../../__generated__';
 import { hasNoAuthDirective } from '../link/current-user';
-import { Maybe } from '~utils/types';
-import { isObjectLike } from '~utils/type-guards/is-object-like';
 
 const IsRemoteOperation_Query = gql(`
   query IsRemoteOperation_Query($id: ID!) {

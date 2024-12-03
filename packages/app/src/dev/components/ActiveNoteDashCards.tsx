@@ -1,10 +1,10 @@
+import { DashCard } from './DashCard';
+import { DashRow } from './DashRow';
 import { CollabServiceStatus } from './active-note/CollabServiceStatus';
 import { CurrentNoteId } from './active-note/CurrentNoteId';
 import { DevNoteHeadAndTailText } from './active-note/DevNoteHeadAndTailText';
 import { DevNoteRecordsTable } from './active-note/DevNoteRecordsTable';
 import { PrintLogCollabService } from './active-note/PrintLogCollabService';
-import { DashCard } from './DashCard';
-import { DashRow } from './DashRow';
 
 export function ActiveNoteDashCards() {
   return (

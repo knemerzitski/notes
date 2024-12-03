@@ -1,4 +1,5 @@
 import { Button, ButtonProps, CircularProgress, css, styled } from '@mui/material';
+
 import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
 
 export function LoadMoreButton({

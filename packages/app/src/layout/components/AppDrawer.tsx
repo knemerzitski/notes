@@ -1,5 +1,7 @@
 import { ReactNode } from 'react';
+
 import { useIsMobile } from '../../theme/context/is-mobile';
+
 import { FixedWidthFloatableDrawer } from './FixedWidthFloatableDrawer';
 import { SwipeableDrawer } from './SwipeableDrawer';
 

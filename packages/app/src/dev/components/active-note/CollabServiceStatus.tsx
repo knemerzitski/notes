@@ -1,6 +1,3 @@
-import { useQuery } from '@apollo/client';
-import { gql } from '../../../__generated__';
-import { useNoteId } from '../../../note/context/note-id';
 import {
   TableContainer,
   Paper,
@@ -10,8 +7,10 @@ import {
   TableCell,
   TableBody,
 } from '@mui/material';
-import { useCollabService } from '../../../note/hooks/useCollabService';
+
 import { useEffect, useState } from 'react';
+
+import { useCollabService } from '../../../note/hooks/useCollabService';
 
 export function CollabServiceStatus() {
   const [_renderCounter, setRenderCounter] = useState(0);

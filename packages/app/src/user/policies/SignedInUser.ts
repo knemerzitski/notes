@@ -31,12 +31,14 @@ export const SignedInUser: CreateTypePolicyFn = function () {
         const authProviderUsers = readField('authProviderUsers');
         if (Array.isArray(authProviderUsers)) {
           for (const authProviderUser of authProviderUsers) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             const email = readField('email', authProviderUser);
             if (email) {
               return email;
             }
           }
         }
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return existing;
       },
       authProviderUsers: fieldArrayToMap('__typename', {
@@ -45,16 +47,20 @@ export const SignedInUser: CreateTypePolicyFn = function () {
         },
       }),
       authProviderUser(_existing, { args, readField }) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const type = args?.type;
         if (!type) return null;
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         const targetTypename = AUTH_PROVIDER_MAPPING[type];
 
         const authProviderUsers = readField('authProviderUsers');
         if (Array.isArray(authProviderUsers)) {
           for (const authProviderUser of authProviderUsers) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             const __typename = readField('__typename', authProviderUser);
             if (__typename === targetTypename) {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-return
               return authProviderUser;
             }
           }

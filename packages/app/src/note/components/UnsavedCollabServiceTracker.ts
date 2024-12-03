@@ -2,6 +2,7 @@ import { useApolloClient, useQuery } from '@apollo/client';
 import { useEffect } from 'react';
 
 import { CollabService } from '~collab/client/collab-service';
+
 import { gql } from '../../__generated__';
 import { useUserNoteLinkId } from '../context/user-note-link-id';
 import { updateUnsavedCollabService } from '../models/update-unsaved-collab-service';

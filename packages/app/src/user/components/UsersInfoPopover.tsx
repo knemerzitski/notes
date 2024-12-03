@@ -1,6 +1,8 @@
 import { css, Popover, PopoverProps, styled } from '@mui/material';
-import { UsersInfo } from './UsersInfo';
+
 import { TopCornerCloseButton } from '../../utils/components/TopCornerCloseButton';
+
+import { UsersInfo } from './UsersInfo';
 
 export function UsersInfoPopover({
   open,

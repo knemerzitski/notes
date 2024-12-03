@@ -6,10 +6,11 @@ import {
   MessageType,
 } from 'graphql-ws';
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
-import { isObjectLike } from '~utils/type-guards/is-object-like';
-import { AppContext } from '../types';
-import { isLocalId } from '../../utils/is-local-id';
 import { createDeferred, Deferred } from '~utils/deferred';
+import { isObjectLike } from '~utils/type-guards/is-object-like';
+
+import { isLocalId } from '../../utils/is-local-id';
+import { AppContext } from '../types';
 
 export class WebSocketClient {
   readonly client;

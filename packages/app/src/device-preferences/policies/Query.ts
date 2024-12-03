@@ -8,6 +8,7 @@ export const Query: CreateTypePolicyFn = function () {
           __typename: 'DevicePreferences',
         }
       ) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return existing;
       },
     },

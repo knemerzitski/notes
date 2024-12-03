@@ -1,6 +1,8 @@
 import { ApolloCache } from '@apollo/client';
-import { ApolloOperation } from '../../../__generated__/graphql';
+
 import { isObjectLike } from '~utils/type-guards/is-object-like';
+
+import { ApolloOperation } from '../../../__generated__/graphql';
 
 export function removeOngoingOperations(
   ids: ApolloOperation['id'][],
@@ -19,6 +21,7 @@ export function removeOngoingOperations(
     fields: {
       ongoingOperations(existing = {}) {
         if (!isObjectLike(existing)) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
           return existing;
         }
 

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NormalizedCacheObject } from '@apollo/client';
+
 import { createUserForCache } from './user';
 
 export function createUsersForCache({
@@ -30,5 +31,6 @@ export function createUsersForCache({
     },
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return data;
 }

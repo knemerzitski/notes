@@ -1,18 +1,19 @@
 import { useApolloClient } from '@apollo/client';
 import { useCallback } from 'react';
+
+import { makeFragmentData } from '../../__generated__';
 import {
   NoteCategory,
   TrashUserNoteLinkPayloadFragmentDoc,
   UserNoteLinkByInput,
 } from '../../__generated__/graphql';
 import { useMutation } from '../../graphql/hooks/useMutation';
-import { TrashUserNoteLink } from '../mutations/TrashUserNoteLink';
-import { getUserNoteLinkId, parseUserNoteLinkByInput } from '../utils/id';
+import { noteSerializationKey_orderMatters } from '../../graphql/utils/serialization-key';
+import { isLocalOnlyNote } from '../models/local-note/is-local-only';
 import { updateConnectionCategoryName } from '../models/note/connection-category-name';
 import { updateOriginalCategoryName } from '../models/note/original-category-name';
-import { makeFragmentData } from '../../__generated__';
-import { isLocalOnlyNote } from '../models/local-note/is-local-only';
-import { noteSerializationKey_orderMatters } from '../../graphql/utils/serialization-key';
+import { TrashUserNoteLink } from '../mutations/TrashUserNoteLink';
+import { getUserNoteLinkId, parseUserNoteLinkByInput } from '../utils/id';
 
 export function useTrashNote() {
   const client = useApolloClient();

@@ -1,10 +1,11 @@
+import { useQuery } from '@apollo/client';
 import UndoIcon from '@mui/icons-material/Undo';
 import { IconButton, IconButtonProps, Tooltip } from '@mui/material';
 import { useEffect, useState } from 'react';
+
 import { gql } from '../../__generated__';
-import { useNoteId } from '../context/note-id';
-import { useQuery } from '@apollo/client';
 import { UndoButtonQueryQuery } from '../../__generated__/graphql';
+import { useNoteId } from '../context/note-id';
 
 const UndoButton_Query = gql(`
   query UndoButton_Query($id: ObjectID!) {

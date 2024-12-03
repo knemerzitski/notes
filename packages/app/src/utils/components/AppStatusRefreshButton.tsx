@@ -1,16 +1,21 @@
-import { CircularProgress, IconButton, Tooltip } from '@mui/material';
-import { CrossFade } from './CrossFade';
-import RefreshIcon from '@mui/icons-material/Refresh';
+import { useQuery } from '@apollo/client';
 import CloudDoneIcon from '@mui/icons-material/CloudDone';
 import CloudOffIcon from '@mui/icons-material/CloudOff';
-import { useAppStatus } from '../hooks/useAppStatus';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import { CircularProgress, IconButton, Tooltip } from '@mui/material';
+
+
+import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useRef } from 'react';
+
+import { gql } from '../../__generated__';
 import { useStatsLink } from '../../graphql/context/stats-link';
 import { useUserId } from '../../user/context/user-id';
-import { useQuery } from '@apollo/client';
-import { gql } from '../../__generated__';
-import { useNavigate } from '@tanstack/react-router';
+
 import { useFetchedRoutes } from '../context/fetched-routes';
+import { useAppStatus } from '../hooks/useAppStatus';
+
+import { CrossFade } from './CrossFade';
 
 const AppStatusRefreshButton_Query = gql(`
   query AppStatusRefreshButton_Query($id: ID!) {

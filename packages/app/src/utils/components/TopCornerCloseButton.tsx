@@ -1,5 +1,5 @@
-import { Tooltip, IconButton, css, IconButtonProps, styled } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { Tooltip, IconButton, css, IconButtonProps, styled } from '@mui/material';
 
 export function TopCornerCloseButton(props?: Omit<IconButtonProps, 'children'>) {
   return (

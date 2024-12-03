@@ -1,9 +1,12 @@
-import { CollabServiceOptions, CollabService } from '~collab/client/collab-service';
-import { defineCreateJsonTextFromService } from '~collab/editor/json-text';
-import { NoteFieldExternalState } from './note-field';
 import mapObject from 'map-obj';
 import { coerce, instance, type, unknown } from 'superstruct';
+import { CollabServiceOptions, CollabService } from '~collab/client/collab-service';
+import { defineCreateJsonTextFromService } from '~collab/editor/json-text';
+
 import { NoteTextFieldName } from '../../__generated__/graphql';
+
+import { NoteFieldExternalState } from './note-field';
+
 
 const createJsonTextFromService = defineCreateJsonTextFromService(
   Object.values(NoteTextFieldName)

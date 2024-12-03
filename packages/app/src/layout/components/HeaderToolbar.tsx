@@ -1,9 +1,12 @@
 import { css, styled, Toolbar } from '@mui/material';
+
 import { UsersInfoPopoverButton } from '../../user/components/UsersInfoPopoverButton';
-import { ToggleAppDrawerButton } from './ToggleAppDrawerButton';
+
 import { AppStatusRefreshButton } from '../../utils/components/AppStatusRefreshButton';
-import { SettingsButton } from '../../utils/components/SettingsButton';
 import { IconButtonsRow } from '../../utils/components/IconButtonsRow';
+import { SettingsButton } from '../../utils/components/SettingsButton';
+
+import { ToggleAppDrawerButton } from './ToggleAppDrawerButton';
 
 export function HeaderToolbar() {
   return (

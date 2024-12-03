@@ -1,7 +1,3 @@
-import { ReactNode } from '@tanstack/react-router';
-import { useCallback, useId, useRef } from 'react';
-import { useShowModal } from '../context/serial-modals';
-import { ShowConfirmClosure, ShowConfirmProvider } from '../context/show-confirm';
 import {
   Dialog,
   DialogTitle,
@@ -10,9 +6,14 @@ import {
   DialogActions,
   Button,
 } from '@mui/material';
+import { ReactNode } from '@tanstack/react-router';
+import { useCallback, useId, useRef } from 'react';
+
 import { useIsOpen } from '../context/is-open';
 import { useOnClose } from '../context/on-close';
 import { useOnExited } from '../context/on-exited';
+import { useShowModal } from '../context/serial-modals';
+import { ShowConfirmClosure, ShowConfirmProvider } from '../context/show-confirm';
 
 export function ShowConfirmDialogProvider({ children }: { children: ReactNode }) {
   const id = useId();

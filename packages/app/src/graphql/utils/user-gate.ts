@@ -1,8 +1,9 @@
+import { ApolloCache } from '@apollo/client';
 import { DefinedMap } from '~utils/map/defined-map';
+
+import { gql } from '../../__generated__';
 import { getOperationOrRequestUserId } from '../link/current-user';
 import { GateController, GateLink } from '../link/gate';
-import { ApolloCache } from '@apollo/client';
-import { gql } from '../../__generated__';
 
 const InitUsersGates_Query = gql(`
   query InitUsersGates_Query{

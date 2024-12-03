@@ -1,7 +1,8 @@
-import { ReactNode } from 'react';
-import { useIsAppDrawerOpen, useSetAppDrawerOpen } from '../context/app-drawer-state';
-import { isIOS } from '../../utils/is-ios';
 import { css, styled, SwipeableDrawer as MuiSwipeableDrawer } from '@mui/material';
+import { ReactNode } from 'react';
+
+import { isIOS } from '../../utils/is-ios';
+import { useIsAppDrawerOpen, useSetAppDrawerOpen } from '../context/app-drawer-state';
 import { drawerPaddingStyle } from '../styles/drawer-padding';
 
 const userAgentIOS = isIOS();

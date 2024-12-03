@@ -1,10 +1,12 @@
 import { useApolloClient } from '@apollo/client';
-import { getFragmentData, gql } from '../../__generated__';
-import { useCollabService } from '../hooks/useCollabService';
+
 import { useEffect } from 'react';
+
+import { getFragmentData, gql } from '../../__generated__';
 import { MapRecordCollabTextRecordFragmentFragmentDoc } from '../../__generated__/graphql';
-import { cacheRecordToCollabServiceRecord } from '../utils/map-record';
 import { useNoteId } from '../context/note-id';
+import { useCollabService } from '../hooks/useCollabService';
+import { cacheRecordToCollabServiceRecord } from '../utils/map-record';
 
 const SyncMissingRecords_Query = gql(`
   query SyncMissingRecords_Query($by: UserNoteLinkByInput!, $after: NonNegativeInt!, $first: PositiveInt!) {

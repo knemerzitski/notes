@@ -1,11 +1,17 @@
-import { DocumentNode } from 'graphql';
+import {
+  ApolloCache,
+  DocumentNode,
+  FieldFunctionOptions,
+  Reference,
+} from '@apollo/client';
+
+import { CollabService } from '~collab/client/collab-service';
+import { RevisionChangesetStruct } from '~collab/records/record';
+import { isObjectLike } from '~utils/type-guards/is-object-like';
+
 import { CreateFieldPolicyFn, TypePoliciesContext } from '../../../graphql/types';
 import { NoteExternalState } from '../../external-state/note';
 import { readNoteRef } from '../../utils/read-note-ref';
-import { isObjectLike } from '~utils/type-guards/is-object-like';
-import { ApolloCache, FieldFunctionOptions, Reference } from '@apollo/client';
-import { RevisionChangesetStruct } from '~collab/records/record';
-import { CollabService } from '~collab/client/collab-service';
 
 const FIELD_NAME = '_external';
 

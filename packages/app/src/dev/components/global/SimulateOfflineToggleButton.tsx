@@ -1,7 +1,8 @@
 import { Button } from '@mui/material';
 import { useState } from 'react';
-import { GraphQLServiceAction } from '../../../graphql/types';
+
 import { GateController } from '../../../graphql/link/gate';
+import { GraphQLServiceAction } from '../../../graphql/types';
 
 const STORAGE_KEY = 'devToolsOnline';
 
@@ -23,6 +24,7 @@ function readDevIsOnline() {
   if (!value) {
     return;
   }
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return JSON.parse(value);
 }
 

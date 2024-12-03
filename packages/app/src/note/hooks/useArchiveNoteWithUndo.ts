@@ -1,14 +1,16 @@
-import { useCallback, useMemo } from 'react';
-import { useNoteId } from '../context/note-id';
-import { useUndoAction } from '../../utils/context/undo-action';
-import { useMoveNote } from './useMoveNote';
 import { useApolloClient } from '@apollo/client';
-import { MovableNoteCategory } from '../../__generated__/graphql';
+import { useCallback, useMemo } from 'react';
+
 import { gql } from '../../__generated__';
-import { getUserNoteLinkId } from '../utils/id';
+import { MovableNoteCategory } from '../../__generated__/graphql';
 import { useUserId } from '../../user/context/user-id';
+import { useUndoAction } from '../../utils/context/undo-action';
+import { useNoteId } from '../context/note-id';
 import { getCategoryName } from '../models/note/category-name';
+import { getUserNoteLinkId } from '../utils/id';
 import { toMovableNoteCategory } from '../utils/note-category';
+
+import { useMoveNote } from './useMoveNote';
 
 const UseArchiveNoteWithUndo_UserNoteLinkFragment = gql(`
   fragment UseArchiveNoteWithUndo_UserNoteLinkFragment on UserNoteLink {

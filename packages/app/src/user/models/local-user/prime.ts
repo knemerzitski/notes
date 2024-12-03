@@ -1,6 +1,7 @@
 import { ApolloCache } from '@apollo/client';
-import { hasLocalUser } from './has';
+
 import { generateLocalUser } from './generate';
+import { hasLocalUser } from './has';
 import { writeLocalUser } from './write';
 
 /**

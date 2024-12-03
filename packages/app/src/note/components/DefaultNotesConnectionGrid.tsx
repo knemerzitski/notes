@@ -1,5 +1,6 @@
 import { gql } from '../../__generated__';
 import { NoteCategory } from '../../__generated__/graphql';
+
 import { EmptyNotesInfo } from './EmptyNotesInfo';
 import { NotesConnectionGrid } from './NotesConnectionGrid';
 

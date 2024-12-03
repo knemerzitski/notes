@@ -1,6 +1,8 @@
-import { WriteLocalUserQueryQuery } from '../../../__generated__/graphql';
-import { generateSignedInUserId } from './generate-id';
 import { ApolloCache } from '@apollo/client';
+
+import { WriteLocalUserQueryQuery } from '../../../__generated__/graphql';
+
+import { generateSignedInUserId } from './generate-id';
 
 export function generateLocalUser(
   cache: Pick<ApolloCache<unknown>, 'readFragment' | 'identify'>

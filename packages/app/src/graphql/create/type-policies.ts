@@ -1,5 +1,6 @@
-import { TypePoliciesList, TypePoliciesContext } from '../types';
 import { InMemoryCache, TypePolicies } from '@apollo/client';
+
+import { TypePoliciesList, TypePoliciesContext } from '../types';
 
 export function createTypePolicies(
   typePolicies: TypePoliciesList,

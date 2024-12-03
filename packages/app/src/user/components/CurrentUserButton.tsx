@@ -1,4 +1,5 @@
 import { IconButtonProps, IconButton, Tooltip } from '@mui/material';
+
 import { BadgeIfSessionExpired } from './BadgeIfSessionExpired';
 import { UserAvatar } from './UserAvatar';
 

@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
-import { useScript } from '../../../utils/hooks/useScript';
+
 import { GOOGLE } from '../../../third-party';
+import { useScript } from '../../../utils/hooks/useScript';
 
 export interface UseLoadClientScriptOptions {
   onLoad?: () => void;

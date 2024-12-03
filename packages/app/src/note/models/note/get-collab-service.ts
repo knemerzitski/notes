@@ -1,7 +1,9 @@
 import { ApolloCache } from '@apollo/client';
+
+import { CollabService } from '~collab/client/collab-service';
+
 import { gql } from '../../../__generated__';
 import { UserNoteLinkByInput } from '../../../__generated__/graphql';
-import { CollabService } from '~collab/client/collab-service';
 
 const GetCollabService_Query = gql(`
   query GetCollabService_Query($by: UserNoteLinkByInput!) {

@@ -1,15 +1,17 @@
-import { ListItemIcon, ListItemText, MenuItem } from '@mui/material';
-import { useOnClose } from '../../utils/context/on-close';
-import { useRestoreNoteWithUndo } from '../hooks/useRestoreNoteWithUndo';
-import RestoreIcon from '@mui/icons-material/Restore';
-import { gql } from '../../__generated__';
 import { useFragment } from '@apollo/client';
-import {} from '../context/note-id';
+import RestoreIcon from '@mui/icons-material/Restore';
+import { ListItemIcon, ListItemText, MenuItem } from '@mui/material';
+
+import { gql } from '../../__generated__';
+
 import { NoteCategory } from '../../__generated__/graphql';
+import { useOnClose } from '../../utils/context/on-close';
 import { useUserNoteLinkId } from '../context/user-note-link-id';
+import { useRestoreNoteWithUndo } from '../hooks/useRestoreNoteWithUndo';
 
 const RestoreNoteMenuItem_UserNoteLinkFragment = gql(`
   fragment RestoreNoteMenuItem_UserNoteLinkFragment on UserNoteLink {
+    id
     categoryName
   }
 `);
@@ -19,6 +21,7 @@ export function RestoreNoteMenuItem() {
   const restoreNoteWithUndo = useRestoreNoteWithUndo();
 
   const userNoteLinkId = useUserNoteLinkId();
+
   const { complete, data: userNoteLink } = useFragment({
     fragment: RestoreNoteMenuItem_UserNoteLinkFragment,
     from: {

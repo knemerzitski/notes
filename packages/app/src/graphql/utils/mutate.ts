@@ -6,17 +6,20 @@ import {
   MutationOptions,
   OperationVariables,
 } from '@apollo/client';
-import { MutationUpdaterFunctionMap } from '../create/mutation-updater-map';
+
 import { Maybe } from '~utils/types';
-import { optimisticResponseMutation } from './optimistic-response-mutation';
-import { MutationDefinition } from './mutation-definition';
+
+import { MutationUpdaterFunctionMap } from '../create/mutation-updater-map';
+
 import { isRemoteOperation } from './is-remote-operation';
+import { MutationDefinition } from './mutation-definition';
+import { optimisticResponseMutation } from './optimistic-response-mutation';
 
 export function mutate<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   TData = any,
   TVariables extends OperationVariables = OperationVariables,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   TContext extends DefaultContext = DefaultContext,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   TCache extends ApolloCache<any> = ApolloCache<any>,

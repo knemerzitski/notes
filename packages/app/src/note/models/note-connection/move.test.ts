@@ -2,13 +2,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ApolloCache, gql, NormalizedCacheObject } from '@apollo/client';
 import { it, expect, beforeEach, describe, vi, afterEach } from 'vitest';
+
 import { NoteCategory, ListAnchorPosition } from '../../../__generated__/graphql';
-import { createDefaultGraphQLServiceParams } from '../../../graphql-service';
 import { createGraphQLService } from '../../../graphql/create/service';
-import { getUserNoteLinkId } from '../../utils/id';
-import { moveNoteInConnection } from './move';
+import { createDefaultGraphQLServiceParams } from '../../../graphql-service';
 import * as generateId from '../../../user/models/local-user/generate-id';
 import { setCurrentUser } from '../../../user/models/signed-in-user/set-current';
+import { getUserNoteLinkId } from '../../utils/id';
+
+import { moveNoteInConnection } from './move';
+
 
 let cache: ApolloCache<NormalizedCacheObject>;
 const userId = 'a';
@@ -79,8 +82,10 @@ function addNoteToList(
         hasNextPage: false,
       },
     };
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     ROOT_QUERY[key] = connection;
   }
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   connection.edges.push({
     __typename: 'UserNoteLinkEdge',
     node: {
@@ -104,6 +109,7 @@ function createNotesAndAddToList(
 }
 
 function getCacheNoteIds(categoryName: string): string[] {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const data: any = cache.readQuery({
     query: gql(`
       query {
@@ -124,6 +130,7 @@ function getCacheNoteIds(categoryName: string): string[] {
     },
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   return data.userNoteLinkConnection.edges.map((edge: any) => edge.node.note.id);
 }
 

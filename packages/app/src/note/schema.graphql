@@ -87,6 +87,9 @@ enum NotePendingStatus {
 }
 
 extend type UserNoteLink {
+  """
+  TODO desc
+  """
   pendingStatus: NotePendingStatus
   """
   Note is excluded from being show in connection
@@ -118,7 +121,13 @@ extend type LocalSignedInUser {
 Invoke mutation `DeleteNote`
 """
 type DeleteNoteUserOperation implements UserOperation {
+  """
+  TODO desc
+  """
   id: ID!
+  """
+  TODO desc
+  """
   userNoteLink: UserNoteLink!
 }
 
@@ -126,7 +135,13 @@ type DeleteNoteUserOperation implements UserOperation {
 Invoke mutation `TrashNote`
 """
 type TrashNoteUserOperation implements UserOperation {
+  """
+  TODO desc
+  """
   id: ID!
+  """
+  TODO desc
+  """
   userNoteLink: UserNoteLink!
 }
 
@@ -134,7 +149,16 @@ type TrashNoteUserOperation implements UserOperation {
 Invoke mutation `MoveNote`
 """
 type MoveNoteUserOperation implements UserOperation {
+  """
+  TODO desc
+  """
   id: ID!
+  """
+  TODO desc
+  """
   userNoteLink: UserNoteLink!
+  """
+  TODO desc
+  """
   location: NoteLocation
 }

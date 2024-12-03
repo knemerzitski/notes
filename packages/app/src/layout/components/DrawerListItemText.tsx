@@ -1,6 +1,7 @@
+import { css, styled, ListItemText, ListItemTextProps, Theme } from '@mui/material';
+
 import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
 import { useIsAppDrawerOpen, useIsAppDrawerFloating } from '../context/app-drawer-state';
-import { css, styled, ListItemText, ListItemTextProps, Theme } from '@mui/material';
 
 export function DrawerListItemText(props: ListItemTextProps) {
   const isDrawerOpen = useIsAppDrawerOpen();

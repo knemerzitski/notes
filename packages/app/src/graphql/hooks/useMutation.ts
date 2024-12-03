@@ -12,14 +12,18 @@ import {
   MutationFunctionOptions,
   MutationResult,
 } from '@apollo/client';
-import { useGetMutationUpdaterFn } from '../context/get-mutation-updater-fn';
+
 import { useCallback, useMemo } from 'react';
+
+import { useUserId } from '../../user/context/user-id';
+import { useGetMutationUpdaterFn } from '../context/get-mutation-updater-fn';
+import { hasNoAuthDirective } from '../link/current-user';
+import { GlobalOperationVariables } from '../types';
 import { MutationDefinition } from '../utils/mutation-definition';
 import { optimisticResponseMutation } from '../utils/optimistic-response-mutation';
+
 import { useIsRemoteOperation } from './useIsRemoteOperation';
-import { GlobalOperationVariables } from '../types';
-import { useUserId } from '../../user/context/user-id';
-import { hasNoAuthDirective } from '../link/current-user';
+
 
 interface ExtraOptions {
   /**

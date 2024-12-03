@@ -1,12 +1,15 @@
 import { ApolloCache } from '@apollo/client';
+
 import { gql } from '../../../__generated__';
+
+import { getAllUserOngoingOperationsIds } from '../../../graphql/link/persist/get-all-user';
+import { removeOngoingOperations } from '../../../graphql/link/persist/remove';
+import { cacheGc } from '../../../graphql/utils/cache-gc';
+import { TaggedEvict } from '../../../graphql/utils/tagged-evict';
+import { evictByUser } from '../../utils/evict-by-user';
+
 import { getCurrentUserId } from './get-current';
 import { setCurrentUser } from './set-current';
-import { evictByUser } from '../../utils/evict-by-user';
-import { TaggedEvict } from '../../../graphql/utils/tagged-evict';
-import { removeOngoingOperations } from '../../../graphql/link/persist/remove';
-import { getAllUserOngoingOperationsIds } from '../../../graphql/link/persist/get-all-user';
-import { cacheGc } from '../../../graphql/utils/cache-gc';
 
 const RemoveUsers_Query = gql(`
   query RemoveUsers_Query {

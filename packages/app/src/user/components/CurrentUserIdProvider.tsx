@@ -1,7 +1,10 @@
-import { gql } from '../../__generated__';
 import { useQuery } from '@apollo/client';
-import { UserIdProvider } from '../context/user-id';
+
 import { ReactNode } from 'react';
+
+import { gql } from '../../__generated__';
+import { UserIdProvider } from '../context/user-id';
+
 
 const CurrentUserIdProvider_Query = gql(`
   query CurrentUserIdProvider_Query {

@@ -1,5 +1,7 @@
 import { useApolloClient } from '@apollo/client';
 import { useCallback } from 'react';
+
+import { makeFragmentData } from '../../__generated__';
 import {
   MovableNoteCategory,
   MoveUserNoteLinkInput,
@@ -8,19 +10,18 @@ import {
   UserNoteLinkByInput,
 } from '../../__generated__/graphql';
 import { useMutation } from '../../graphql/hooks/useMutation';
+import { noteSerializationKey_orderMatters } from '../../graphql/utils/serialization-key';
+import { isLocalOnlyNote } from '../models/local-note/is-local-only';
+import {
+  getConnectionCategoryName,
+  updateConnectionCategoryName,
+} from '../models/note/connection-category-name';
+import { MoveUserNoteLink } from '../mutations/MoveUserNoteLink';
 import {
   getUserNoteLinkId,
   getUserNoteLinkIdFromByInput,
   parseUserNoteLinkByInput,
 } from '../utils/id';
-import { MoveUserNoteLink } from '../mutations/MoveUserNoteLink';
-import {
-  getConnectionCategoryName,
-  updateConnectionCategoryName,
-} from '../models/note/connection-category-name';
-import { makeFragmentData } from '../../__generated__';
-import { isLocalOnlyNote } from '../models/local-note/is-local-only';
-import { noteSerializationKey_orderMatters } from '../../graphql/utils/serialization-key';
 
 export function useMoveNote() {
   const client = useApolloClient();

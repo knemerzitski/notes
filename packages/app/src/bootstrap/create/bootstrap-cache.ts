@@ -1,5 +1,5 @@
-import { localStorageKey, LocalStoragePrefix } from '../utils/local-storage-key';
 import { BootstrapCache } from '../utils/bootstrap-cache';
+import { localStorageKey, LocalStoragePrefix } from '../utils/local-storage-key';
 
 export function createDefaultBootstrapCacheParams(): ConstructorParameters<
   typeof BootstrapCache

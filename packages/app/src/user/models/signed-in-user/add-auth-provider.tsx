@@ -1,4 +1,5 @@
 import { ApolloCache } from '@apollo/client';
+
 import { gql } from '../../../__generated__';
 import {
   AddUserAuthProviderSignedInUserFragmentFragment,
@@ -7,6 +8,7 @@ import {
 
 const AddUserAuthProvider_SignedInUserFragment = gql(`
   fragment AddUserAuthProvider_SignedInUserFragment on SignedInUser {
+    id
     authProviderUsers {
       id
       email

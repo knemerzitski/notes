@@ -1,8 +1,10 @@
 import { binarySearchIndexOf } from '~utils/array/binary-search';
+
+import { binarySearchConsecutiveOrderedSubset } from '~utils/ordered-set/consecutive-ordered-set';
+import { mergeOrderedSet } from '~utils/ordered-set/merge-ordered-set';
+
 import { CollabTextRecord, Maybe, PageInfo } from '../../__generated__/graphql';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
-import { mergeOrderedSet } from '~utils/ordered-set/merge-ordered-set';
-import { binarySearchConsecutiveOrderedSubset } from '~utils/ordered-set/consecutive-ordered-set';
 
 interface Edge {
   node: {
@@ -30,9 +32,13 @@ export const CollabTextRecordConnection: CreateTypePolicyFn = function (
         read(existing: Maybe<Edge[]>, { args, variables }) {
           if (!existing) return;
 
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           const argsAfter = args?.after ?? variables?.after;
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           const argsLast = args?.last ?? variables?.last;
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           const argsFirst = args?.first ?? variables?.first;
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           const argsBefore = args?.before ?? variables?.before;
 
           if (argsAfter != null) {

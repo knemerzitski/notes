@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { ApolloCache, gql, NormalizedCacheObject } from '@apollo/client';
-import { it, beforeEach, expect, beforeAll, describe } from 'vitest';
-import { createDefaultGraphQLServiceParams } from '../../graphql-service';
 import { MockLink } from '@apollo/client/testing';
+import { it, beforeEach, expect, beforeAll, describe } from 'vitest';
+
 import { createGraphQLService } from '../../graphql/create/service';
+import { createDefaultGraphQLServiceParams } from '../../graphql-service';
 import { getCollabTextRecordId } from '../utils/id';
 
 const Edges_CollabTextFragment = gql(`
@@ -76,6 +77,7 @@ describe('read', () => {
     });
 
     expect(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
       collabText?.recordConnection.edges.map((edge: any) => edge.node.change.revision)
     ).toStrictEqual([4, 5, 6, 7, 9, 10, 11, 15, 16]);
   });
@@ -101,6 +103,7 @@ describe('read', () => {
       });
 
       expect(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
         collabText?.recordConnection.edges.map((edge: any) => edge.node.change.revision)
       ).toStrictEqual(expected);
     });
@@ -126,6 +129,7 @@ describe('read', () => {
       });
 
       expect(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
         collabText?.recordConnection.edges.map((edge: any) => edge.node.change.revision)
       ).toStrictEqual(expected);
     });
@@ -168,6 +172,7 @@ describe('merge', () => {
         id: collabTextId,
         fragment: PageInfo_CollabTextFragment,
       });
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
       return collabText?.recordConnection.pageInfo.hasPreviousPage;
     }
 

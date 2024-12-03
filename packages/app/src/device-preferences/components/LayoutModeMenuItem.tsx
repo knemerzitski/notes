@@ -1,3 +1,5 @@
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import ViewQuiltIcon from '@mui/icons-material/ViewQuilt';
 import {
   MenuItem,
   ListItemIcon,
@@ -6,11 +8,12 @@ import {
   css,
   styled,
 } from '@mui/material';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import { useSelectNavigableMenu } from '../../utils/context/navigable-menu';
+
 import { SettingsButtonMenuKey } from '../../utils/components/SettingsButton';
+import { useSelectNavigableMenu } from '../../utils/context/navigable-menu';
+
 import { LayoutModeText } from './LayoutModeText';
-import ViewQuiltIcon from '@mui/icons-material/ViewQuilt';
+
 
 export function LayoutModeMenuItem() {
   const selectMenu = useSelectNavigableMenu();

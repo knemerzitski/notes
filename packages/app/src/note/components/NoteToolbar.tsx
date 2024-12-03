@@ -1,9 +1,12 @@
 import { css, styled, Box, Paper } from '@mui/material';
-import { NoteAlwaysButtons } from './NoteAlwaysButtons';
+
+import { forwardRef } from 'react';
+
 import { EdgeEndCloseButton } from './EdgeEndCloseButton';
+import { NoteAlwaysButtons } from './NoteAlwaysButtons';
 import { NoteEditingButtons } from './NoteEditingButtons';
 import { NoteMoreOptionsButton } from './NoteMoreOptionsButton';
-import { forwardRef } from 'react';
+
 
 export const NoteToolbar = forwardRef<HTMLDivElement, Parameters<typeof PaperStyled>[0]>(
   function NoteToolbar({ elevation = 0, ...restProps }, ref) {

@@ -1,5 +1,7 @@
 import { createContext, ReactNode, useCallback, useContext, useState } from 'react';
+
 import { SignInModal } from '../components/SignInModal';
+
 import { UserIdProvider } from './user-id';
 
 // create a base interface

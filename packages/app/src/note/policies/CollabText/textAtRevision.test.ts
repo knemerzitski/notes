@@ -3,8 +3,9 @@
 import { ApolloCache, gql, NormalizedCacheObject } from '@apollo/client';
 import { MockLink } from '@apollo/client/testing';
 import { it, expect, beforeAll, describe, beforeEach } from 'vitest';
-import { createDefaultGraphQLServiceParams } from '../../../graphql-service';
+
 import { createGraphQLService } from '../../../graphql/create/service';
+import { createDefaultGraphQLServiceParams } from '../../../graphql-service';
 import { getCollabTextId } from '../../utils/id';
 
 const TextAtRevision_CollabTextFragment = gql(`
@@ -102,6 +103,7 @@ describe('read', () => {
   });
 
   it('returns exact textAtRevision: 5', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const collabText: any = cache.readFragment({
       id: collabTextDataId,
       fragment: TextAtRevision_CollabTextFragment,
@@ -110,11 +112,14 @@ describe('read', () => {
       },
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(collabText?.textAtRevision.revision).toStrictEqual(5);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     expect(collabText?.textAtRevision.changeset.serialize()).toStrictEqual(['abc']);
   });
 
   it('composes text from records: 3 * 4', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const collabText: any = cache.readFragment({
       id: collabTextDataId,
       fragment: TextAtRevision_CollabTextFragment,
@@ -123,11 +128,14 @@ describe('read', () => {
       },
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(collabText?.textAtRevision.revision).toStrictEqual(4);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     expect(collabText?.textAtRevision.changeset.serialize()).toStrictEqual(['ab']);
   });
 
   it('composes text from records: 5 * 6', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const collabText: any = cache.readFragment({
       id: collabTextDataId,
       fragment: TextAtRevision_CollabTextFragment,
@@ -136,22 +144,28 @@ describe('read', () => {
       },
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(collabText?.textAtRevision.revision).toStrictEqual(6);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     expect(collabText?.textAtRevision.changeset.serialize()).toStrictEqual(['abcd']);
   });
 
   it('returns oldest revision without arguments', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const collabText: any = cache.readFragment({
       id: collabTextDataId,
       fragment: TextAtRevision_CollabTextFragment,
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(collabText?.textAtRevision.revision).toStrictEqual(3);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     expect(collabText?.textAtRevision.changeset.serialize()).toStrictEqual(['a']);
   });
 
   describe('returns null for unreachable revisions', () => {
     it.each([2, 7, 9])('revision %s', (revision) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const collabText: any = cache.readFragment({
         id: collabTextDataId,
         fragment: TextAtRevision_CollabTextFragment,

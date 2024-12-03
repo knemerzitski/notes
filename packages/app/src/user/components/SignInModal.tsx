@@ -1,3 +1,4 @@
+import { useQuery } from '@apollo/client';
 import {
   Button,
   Dialog,
@@ -9,10 +10,11 @@ import {
 } from '@mui/material';
 
 import { gql } from '../../__generated__';
-import { useQuery } from '@apollo/client';
-import { useUserId } from '../context/user-id';
-import { SignInProvidersList } from './SignInProvidersList';
 import { Break } from '../../utils/components/Break';
+import { useUserId } from '../context/user-id';
+
+import { SignInProvidersList } from './SignInProvidersList';
+
 
 const SignInModal_Query = gql(`
   query SignInModal_Query($id: ID!) {

@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react';
-import { resumeOngoingOperations } from '../link/persist/resume';
 import { useApolloClient } from '@apollo/client';
+import { useEffect, useRef } from 'react';
+
 import { useGetMutationUpdaterFn } from '../context/get-mutation-updater-fn';
+import { resumeOngoingOperations } from '../link/persist/resume';
 
 export function ResumePersistedOngoingOperations() {
   const client = useApolloClient();

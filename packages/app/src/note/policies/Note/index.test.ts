@@ -1,10 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { MockLink } from '@apollo/client/testing';
-import { createDefaultGraphQLServiceParams } from '../../../graphql-service';
-import { createGraphQLService } from '../../../graphql/create/service';
-import { expect, it } from 'vitest';
 import { gql } from '@apollo/client';
+import { MockLink } from '@apollo/client/testing';
+
+import { expect, it } from 'vitest';
 import { CollabService } from '~collab/client/collab-service';
+
+import { createGraphQLService } from '../../../graphql/create/service';
+import { createDefaultGraphQLServiceParams } from '../../../graphql-service';
+
 import { NoteTextFieldEditor } from '../../external-state/note';
 
 it('writes NoteExternalState to cache on first read and allows modifications', () => {
@@ -34,6 +37,7 @@ it('writes NoteExternalState to cache on first read and allows modifications', (
     },
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const note: any = cache.readFragment({
     fragment: gql(`
       fragment Test2 on Note {
@@ -46,14 +50,17 @@ it('writes NoteExternalState to cache on first read and allows modifications', (
     `),
     id: 'Note:1',
   });
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   const editor = note.textField.editor as NoteTextFieldEditor;
   editor.insert('hello', {
     start: 0,
     end: 3,
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   cache.restore(JSON.parse(JSON.stringify(cache.extract())));
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const restoredNote: any = cache.readFragment({
     fragment: gql(`
       fragment Test1 on Note {
@@ -62,6 +69,7 @@ it('writes NoteExternalState to cache on first read and allows modifications', (
     `),
     id: 'Note:1',
   });
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   const collabService = restoredNote.collabService as CollabService;
 
   expect(collabService.viewText).toMatchInlineSnapshot(

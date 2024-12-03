@@ -1,13 +1,15 @@
-import { Switch } from '@mui/material';
-import { gql } from '../../__generated__';
 import { useFragment } from '@apollo/client';
+import { Switch } from '@mui/material';
+
+import { gql } from '../../__generated__';
 import { useNoteId } from '../context/note-id';
-import { useShareNote } from '../hooks/useShareNote';
 import { useDeleteShareNote } from '../hooks/useDeleteShareNote';
 import { useIsCreatingShareLink } from '../hooks/useIsCreatingShareLink';
+import { useShareNote } from '../hooks/useShareNote';
 
 const ToggleSharingSwitch_NoteFragment = gql(`
   fragment ToggleSharingSwitch_NoteFragment on Note {
+    id
     shareAccess {
       id
     }

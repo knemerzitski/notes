@@ -1,12 +1,17 @@
 import { ApolloCache } from '@apollo/client';
+
+import { Changeset } from '~collab/changeset';
+
 import { gql } from '../../../__generated__';
 import {
   GetOrCreatePendingNoteAddQueryQuery,
   NotePendingStatus,
 } from '../../../__generated__/graphql';
-import { Changeset } from '~collab/changeset';
-import { generateNoteId } from './generate-id';
+
 import { getCollabTextId, getUserNoteLinkId } from '../../utils/id';
+
+import { generateNoteId } from './generate-id';
+
 
 const GetOrCreatePendingNote_Query = gql(`
   query GetOrCreatePendingNote_Query($id: ID!) {

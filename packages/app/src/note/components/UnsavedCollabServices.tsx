@@ -1,8 +1,11 @@
 import { useQuery } from '@apollo/client';
+
 import { gql } from '../../__generated__';
-import { CollabService } from './CollabService';
-import { NoteIdProvider } from '../context/note-id';
+
 import { useUserId } from '../../user/context/user-id';
+import { NoteIdProvider } from '../context/note-id';
+
+import { CollabService } from './CollabService';
 
 const UnsavedCollabServices_Query = gql(`
   query UnsavedCollabServices_Query($id: ID!) {

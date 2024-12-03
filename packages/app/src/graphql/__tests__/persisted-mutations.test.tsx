@@ -1,22 +1,25 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createDefaultGraphQLServiceParams } from '../../graphql-service';
-import { createGraphQLService } from '../create/service';
-import { afterEach, expect, it, vi } from 'vitest';
-import { createUsersForCache } from '../../__tests__/helpers/populate/users';
-import { setCurrentUser } from '../../user/models/signed-in-user/set-current';
-import { render, renderHook } from '@testing-library/react';
-import { useUpdateDisplayNameMutation } from '../../user/hooks/useUpdateDisplayNameMutation';
-import { GraphQLServiceProvider } from '../components/GraphQLServiceProvider';
-import { ReactNode } from '@tanstack/react-router';
 import { ApolloCache, ApolloLink, gql, Observable } from '@apollo/client';
+import { ReactNode } from '@tanstack/react-router';
+import { render, renderHook } from '@testing-library/react';
 import { GraphQLError } from 'graphql';
+import { afterEach, expect, it, vi } from 'vitest';
+
+import { createUsersForCache } from '../../__tests__/helpers/populate/users';
+import { createDefaultGraphQLServiceParams } from '../../graphql-service';
 import { CurrentUserIdProvider } from '../../user/components/CurrentUserIdProvider';
+import { useUpdateDisplayNameMutation } from '../../user/hooks/useUpdateDisplayNameMutation';
+import { setCurrentUser } from '../../user/models/signed-in-user/set-current';
+import { GraphQLServiceProvider } from '../components/GraphQLServiceProvider';
+
+import { createGraphQLService } from '../create/service';
 
 function readDisplayName(
   userId: string,
   cache: ApolloCache<unknown>,
   optimistic: boolean
 ) {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const user: any = cache.readFragment({
     fragment: gql(`
       fragment f on SignedInUser {
@@ -31,6 +34,7 @@ function readDisplayName(
     optimistic,
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
   return user.public.profile.displayName;
 }
 
@@ -64,6 +68,7 @@ it('remembers displayName mutation when app goes offline and resumes when online
   params.storageKey = 'cache';
   params.storage = {
     getItem(key) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return storage.get(key);
     },
     setItem(key, value) {
@@ -200,6 +205,7 @@ it('remembers displayName mutation when session expires', async () => {
   params.storageKey = 'cache';
   params.storage = {
     getItem(key) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return storage.get(key);
     },
     setItem(key, value) {

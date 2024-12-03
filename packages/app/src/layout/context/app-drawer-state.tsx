@@ -1,3 +1,4 @@
+import { useApolloClient } from '@apollo/client';
 import {
   createContext,
   ReactNode,
@@ -6,10 +7,10 @@ import {
   useContext,
   useState,
 } from 'react';
-import { useIsMobile } from '../../theme/context/is-mobile';
-import { useApolloClient } from '@apollo/client';
+
 import { isAppDrawerOpen } from '../../device-preferences/models/app-drawer/is';
 import { setAppDrawerOpen } from '../../device-preferences/models/app-drawer/set';
+import { useIsMobile } from '../../theme/context/is-mobile';
 import { mapSetState } from '../../utils/map-set-state';
 
 const IsAppDrawerOpenContext = createContext<boolean | null>(null);

@@ -1,12 +1,16 @@
-import { IconButton, IconButtonProps, Tooltip } from '@mui/material';
-import { useIsLocalOnlyNote } from '../hooks/useIsLocalOnlyNote';
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
-import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
+import { IconButton, IconButtonProps, Tooltip } from '@mui/material';
+
+
 import { useNavigate } from '@tanstack/react-router';
-import { useNoteId } from '../context/note-id';
-import { useIsNoteSharingOpen } from '../hooks/useIsNoteSharingOpen';
+
+import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
+
 import { noteSharingDialogId } from '../../utils/element-id';
+import { useNoteId } from '../context/note-id';
+import { useIsLocalOnlyNote } from '../hooks/useIsLocalOnlyNote';
 import { useIsNoteEditable } from '../hooks/useIsNoteEditable';
+import { useIsNoteSharingOpen } from '../hooks/useIsNoteSharingOpen';
 
 // TODO fix when clicking it CreateNoteWidget then widget closes, ClickAwayListener issue?
 

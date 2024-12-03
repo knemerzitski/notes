@@ -1,16 +1,25 @@
-import { forwardRef, useMemo } from 'react';
-import { CSS } from '@dnd-kit/utilities';
-import { NoteCard } from './NoteCard';
-import { useNoteId } from '../context/note-id';
-import { setDndData } from '../../dnd/utils/dnd-data';
-import { DndType } from '../../dnd/types';
-import { css, styled } from '@mui/material';
-import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
-import { getNoteDndId } from '../../dnd/utils/id';
-import { setDragOverlayInDndData } from '../../dnd/utils/data-drag-overlay';
 import { useSortable } from '@dnd-kit/sortable';
-import { DragOverlayNoteCard } from './DragOverlayNoteCard';
+import { CSS } from '@dnd-kit/utilities';
+
+
+
+import { css, styled } from '@mui/material';
+import { forwardRef, useMemo } from 'react';
+
+import { DndType } from '../../dnd/types';
+
+import { setDragOverlayInDndData } from '../../dnd/utils/data-drag-overlay';
+import { setDndData } from '../../dnd/utils/dnd-data';
+import { getNoteDndId } from '../../dnd/utils/id';
+
+
+
 import { useIsMobile } from '../../theme/context/is-mobile';
+import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
+import { useNoteId } from '../context/note-id';
+
+import { DragOverlayNoteCard } from './DragOverlayNoteCard';
+import { NoteCard } from './NoteCard';
 
 export const SortableNoteCard = forwardRef<
   HTMLDivElement,

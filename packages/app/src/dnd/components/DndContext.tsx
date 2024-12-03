@@ -9,9 +9,11 @@ import {
 } from '@dnd-kit/core';
 import { Portal } from '@mui/material';
 import { ReactNode } from 'react';
-import { OnDragCursorGrab } from './OnDragCursorGrab';
+
 import { coordinateGetter as multipleContainersCoordinateGetter } from '../utils/multiple-containers-keyboard-coordinates';
+
 import { DndDataDragOverlay } from './DataRefDragOverlay';
+import { OnDragCursorGrab } from './OnDragCursorGrab';
 
 export function DndContext({ children }: { children: ReactNode }) {
   const sensors = useSensors(

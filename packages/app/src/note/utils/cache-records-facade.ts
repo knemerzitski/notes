@@ -1,22 +1,28 @@
 import { ApolloCache } from '@apollo/client';
+import mitt, { Emitter } from 'mitt';
 import { CollabServiceRecord } from '~collab/client/collab-service';
 import {
   ServerRecordsFacade,
   ServerRecordsFacadeEvents,
 } from '~collab/client/user-records';
+
+import { RevisionChangeset } from '~collab/records/record';
+
 import { getFragmentData, gql } from '../../__generated__';
-import { getCollabTextId } from './id';
-import { identifyOrError } from '../../graphql/utils/identify';
+
 import {
   MapRecordCollabTextRecordFragmentFragment,
   MapRecordCollabTextRecordFragmentFragmentDoc,
 } from '../../__generated__/graphql';
+import { identifyOrError } from '../../graphql/utils/identify';
+
+import { getCollabTextId } from './id';
+
 import { cacheRecordToCollabServiceRecord } from './map-record';
-import { RevisionChangeset } from '~collab/records/record';
-import mitt, { Emitter } from 'mitt';
 
 const CacheRecordsFacadeTextAtRevision_CollabTextFragment = gql(`
   fragment CacheRecordsFacadeTextAtRevision_CollabTextFragment on CollabText {
+    id
     textAtRevision(revision: $revision) {
       revision
       changeset
@@ -26,6 +32,7 @@ const CacheRecordsFacadeTextAtRevision_CollabTextFragment = gql(`
 
 const CacheRecordsFacadeReadRecords_CollabTextFragment = gql(`
   fragment CacheRecordsFacadeReadRecords_CollabTextFragment on CollabText {
+    id
     recordConnection(after: $after, first: $first) {
       edges {
         node {
@@ -38,6 +45,7 @@ const CacheRecordsFacadeReadRecords_CollabTextFragment = gql(`
 
 const CacheRecordsFacadeWatch_CollabTextFragment = gql(`
   fragment CacheRecordsFacadeWatch_CollabTextFragment on CollabText {
+    id
     recordConnection {
       edges {
         node {

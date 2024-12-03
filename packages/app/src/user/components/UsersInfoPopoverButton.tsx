@@ -1,8 +1,10 @@
 import { IconButtonProps } from '@mui/material';
 import { useId, useState, MouseEvent } from 'react';
+
+import { OnCloseProvider } from '../../utils/context/on-close';
+
 import { CurrentUserButton } from './CurrentUserButton';
 import { UsersInfoPopover } from './UsersInfoPopover';
-import { OnCloseProvider } from '../../utils/context/on-close';
 
 export function UsersInfoPopoverButton({
   ButtonProps,

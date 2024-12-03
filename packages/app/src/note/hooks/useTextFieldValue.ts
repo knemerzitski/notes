@@ -1,7 +1,8 @@
-import { gql } from '../../__generated__';
-import { useNoteId } from '../context/note-id';
-import { NoteTextFieldName } from '../../__generated__/graphql';
 import { useQuery } from '@apollo/client';
+
+import { gql } from '../../__generated__';
+import { NoteTextFieldName } from '../../__generated__/graphql';
+import { useNoteId } from '../context/note-id';
 
 // textField is derived from headText
 const _UseTextFieldValue_NoteFragment = gql(`
@@ -20,7 +21,9 @@ const _UseTextFieldValue_NoteFragment = gql(`
 const UseTextFieldValue_Query = gql(`
   query UseTextFieldValue_Query($id: ObjectID!, $name: NoteTextFieldName!) {
     userNoteLink(by: { noteId: $id }) @client {
+      id
       note {
+        id
         textField(name: $name) {
           value
         }

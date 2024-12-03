@@ -1,6 +1,6 @@
 import { useQuery } from '@apollo/client';
-import { gql } from '../../../__generated__';
-import { useNoteId } from '../../../note/context/note-id';
+
+import RemoveIcon from '@mui/icons-material/Remove';
 import {
   TableContainer,
   Paper,
@@ -10,11 +10,13 @@ import {
   TableCell,
   TableBody,
 } from '@mui/material';
-import RemoveIcon from '@mui/icons-material/Remove';
 import { Changeset } from '~collab/changeset';
-import { PartialDeep } from '~utils/types';
-import { DevNoteRecordsTableQueryQuery } from '../../../__generated__/graphql';
 import { isDefined } from '~utils/type-guards/is-defined';
+import { PartialDeep } from '~utils/types';
+
+import { gql } from '../../../__generated__';
+import { DevNoteRecordsTableQueryQuery } from '../../../__generated__/graphql';
+import { useNoteId } from '../../../note/context/note-id';
 
 const DevNoteRecordsTable_Query = gql(`
   query DevNoteRecordsTable_Query($by: UserNoteLinkByInput!) {

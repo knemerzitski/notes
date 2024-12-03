@@ -1,9 +1,10 @@
 import { ApolloCache } from '@apollo/client';
+
+import { gql } from '../../../__generated__';
 import {
   CollabText,
   MapRecordCollabTextRecordFragmentFragment,
 } from '../../../__generated__/graphql';
-import { gql } from '../../../__generated__';
 
 const AddRecordToConnection_CollabTextFragment = gql(`
   fragment AddRecordToConnection_CollabTextFragment on CollabText {

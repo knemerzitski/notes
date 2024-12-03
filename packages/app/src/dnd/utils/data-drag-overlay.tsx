@@ -29,6 +29,7 @@ function getDragOverlayDndData(
     return;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const value = data.current[DATA_KEY];
   if (isObjectLike(value) && 'element' in value) {
     return value as unknown as DndDataDragOverlayOptions;

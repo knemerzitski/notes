@@ -1,15 +1,17 @@
-import { getFragmentData, gql } from '../../__generated__';
-import { Maybe, NoteCategory } from '../../__generated__/graphql';
-import { ReactNode, useMemo, useState } from 'react';
-import { SortableNotesContext } from './SortableNotesContext';
-import { NotesCardGrid } from './NotesCardGrid';
-import { SortableNoteCard } from './SortableNoteCard';
 import { useQuery } from '@apollo/client';
 import { Alert, Box, css, styled } from '@mui/material';
-import { toMovableNoteCategory } from '../utils/note-category';
-import { NoteIdsProvider } from '../context/note-ids';
+import { ReactNode, useMemo, useState } from 'react';
+
+import { getFragmentData, gql } from '../../__generated__';
+import { Maybe, NoteCategory } from '../../__generated__/graphql';
 import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
+import { NoteIdsProvider } from '../context/note-ids';
+import { toMovableNoteCategory } from '../utils/note-category';
+
 import { LoadMoreButton } from './LoadMoreButton';
+import { NotesCardGrid } from './NotesCardGrid';
+import { SortableNoteCard } from './SortableNoteCard';
+import { SortableNotesContext } from './SortableNotesContext';
 
 const NotesConnectionGrid_UserNoteLinkConnectionFragment = gql(`
   fragment NotesConnectionGrid_UserNoteLinkConnectionFragment on UserNoteLinkConnection {

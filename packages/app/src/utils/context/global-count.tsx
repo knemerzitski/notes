@@ -8,10 +8,10 @@ import {
   useMemo,
   useState,
 } from 'react';
+import { Observable, SubscriptionObserver } from 'zen-observable-ts';
 import { CountMap } from '~utils/map/count-map';
 import { DefinedMap } from '~utils/map/defined-map';
 import { ObservableMap } from '~utils/map/observable-map';
-import { Observable, SubscriptionObserver } from 'zen-observable-ts';
 import { Maybe } from '~utils/types';
 
 type Id = unknown;

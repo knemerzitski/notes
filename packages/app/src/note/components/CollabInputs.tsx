@@ -1,6 +1,6 @@
-import { CollabTitleInput } from './CollabTitleInput';
 import { CollabContentInput } from './CollabContentInput';
 import { CollabService } from './CollabService';
+import { CollabTitleInput } from './CollabTitleInput';
 
 export function CollabInputs({
   CollabTitleInputProps,

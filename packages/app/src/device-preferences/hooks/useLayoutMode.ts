@@ -1,6 +1,8 @@
 import { useApolloClient, useQuery } from '@apollo/client';
-import { gql } from '../../__generated__';
+
 import { useCallback } from 'react';
+
+import { gql } from '../../__generated__';
 import { LayoutMode } from '../../__generated__/graphql';
 import { setLayoutMode } from '../models/layout-mode/set';
 

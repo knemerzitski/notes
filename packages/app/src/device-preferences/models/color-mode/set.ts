@@ -1,4 +1,5 @@
 import { ApolloCache } from '@apollo/client';
+
 import { gql } from '../../../__generated__';
 import { ColorMode } from '../../../__generated__/graphql';
 

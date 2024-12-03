@@ -1,6 +1,8 @@
 import { useApolloClient } from '@apollo/client';
-import { gql } from '../../__generated__';
+
 import { useEffect } from 'react';
+
+import { gql } from '../../__generated__';
 import { useGetMutationUpdaterFn } from '../../graphql/context/get-mutation-updater-fn';
 import { apolloClientSubscribe } from '../../graphql/utils/apollo-client-subscribe';
 import { useIsLocalOnlyUser } from '../hooks/useIsLocalOnlyUser';

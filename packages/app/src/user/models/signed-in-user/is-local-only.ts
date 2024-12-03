@@ -1,7 +1,8 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import { ApolloCache } from '@apollo/client';
-import { SignedInUser } from '../../../__generated__/graphql';
+
 import { gql } from '../../../__generated__';
+import { SignedInUser } from '../../../__generated__/graphql';
 
 const IsLocalOnlyUser_Query = gql(`
   query IsLocalOnlyUser_Query($id: ID!) {

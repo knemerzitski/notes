@@ -8,7 +8,7 @@ import cypressPlugin from 'eslint-plugin-cypress/flat';
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   ...rootConfig,
-  { ignores: ['src/__generated__', 'scripts'] },
+  { ignores: ['src/__generated__', 'scripts', 'out', 'coverage'] },
   { files: ['**/*.ts?(x)'] },
   {
     languageOptions: {
@@ -38,7 +38,20 @@ export default [
     rules: {
       ...reactHooksPlugin.configs.recommended.rules,
       'react-hooks/exhaustive-deps': ['error'],
-      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      'react-refresh/only-export-components': ['off'],
+    },
+  },
+
+  // Typescript
+  {
+    files: ['**/*.{ts,tsx}'],
+    rules: {
+      // Temporary hack: VSCode ESLint doesn't update after graphql-codegen. This stops showing errors no-unsafe after every change.
+      // '@typescript-eslint/no-unsafe-assignment': 'warn',
+      // '@typescript-eslint/no-unsafe-member-access': 'warn',
+      // '@typescript-eslint/no-unsafe-call': 'warn',
+      // '@typescript-eslint/no-unsafe-argument': 'warn',
+      // '@typescript-eslint/no-unsafe-return': 'warn',
     },
   },
 

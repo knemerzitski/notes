@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+
 import { keyArgsWithUserId } from './key-args-with-user-id';
 
 it('no args, no userId => undefined', () => {

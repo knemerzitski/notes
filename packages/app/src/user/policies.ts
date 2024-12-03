@@ -4,6 +4,8 @@ import {
   MutationDefinitions,
 } from '../graphql/types';
 import { TaggedEvictOptionsList } from '../graphql/utils/tagged-evict';
+
+import { primeLocalUser } from './models/local-user/prime';
 import { SignIn } from './mutations/SignIn';
 import { SignOut } from './mutations/SignOut';
 import { UpdateSignedInUserDisplayName } from './mutations/UpdateSignedInUserDisplayName';
@@ -11,7 +13,6 @@ import { UpdateSignedInUserDisplayNamePayload } from './mutations/UpdateSignedIn
 import { LocalSignedInUser } from './policies/LocalSignedInUser';
 import { evictOptions as Query_evictOptions, Query } from './policies/Query';
 import { SignedInUser } from './policies/SignedInUser';
-import { primeLocalUser } from './models/local-user/prime';
 import { UserOperation } from './policies/UserOperation';
 
 export const userPolicies: CreateTypePoliciesFn = function (ctx) {

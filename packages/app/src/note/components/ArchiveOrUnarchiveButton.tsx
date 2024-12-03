@@ -1,8 +1,10 @@
-import { gql } from '../../__generated__';
-import { useNoteId } from '../context/note-id';
 import { useQuery } from '@apollo/client';
-import { toMovableNoteCategory } from '../utils/note-category';
+
+import { gql } from '../../__generated__';
 import { MovableNoteCategory } from '../../__generated__/graphql';
+import { useNoteId } from '../context/note-id';
+import { toMovableNoteCategory } from '../utils/note-category';
+
 import { ArchiveButton } from './ArchiveButton';
 import { UnarchiveButton } from './UnarchiveButton';
 

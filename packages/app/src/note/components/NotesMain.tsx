@@ -1,8 +1,9 @@
-import { DefaultNotesConnectionGrid } from './DefaultNotesConnectionGrid';
 import { gql } from '../../__generated__';
 import { FullWidthCenterMain } from '../../layout/components/FullWidthCenterMain';
 import { FullWidthCenterRow } from '../../layout/components/FullWidthCenterRow';
+
 import { CreateNoteWidget } from './CreateNoteWidget';
+import { DefaultNotesConnectionGrid } from './DefaultNotesConnectionGrid';
 
 const _NoteMain_QueryFragment = gql(`
   fragment NoteMain_QueryFragment on Query {

@@ -1,7 +1,9 @@
-import { RouterProvider } from '@tanstack/react-router';
-import { createRouterContext, router } from '../../router';
-import { useMemo } from 'react';
 import { useApolloClient } from '@apollo/client';
+import { RouterProvider } from '@tanstack/react-router';
+
+import { useMemo } from 'react';
+
+import { createRouterContext, router } from '../../router';
 import { FetchedRoutesProvider, useFetchedRoutes } from '../context/fetched-routes';
 
 export function AppRoutesModuleProvider() {

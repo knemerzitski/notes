@@ -1,6 +1,8 @@
 import { ApolloCache } from '@apollo/client';
-import { gql } from '../../../__generated__';
+
 import { Maybe } from '~utils/types';
+
+import { gql } from '../../../__generated__';
 import { SignedInUser } from '../../../__generated__/graphql';
 
 const SetCurrentUser_Query = gql(`
@@ -20,6 +22,7 @@ export function setCurrentUser(
     query: SetCurrentUser_Query,
     data: {
       __typename: 'Query',
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       currentSignedInUser: userId
         ? {
             __typename: 'SignedInUser',

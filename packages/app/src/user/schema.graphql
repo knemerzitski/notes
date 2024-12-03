@@ -83,12 +83,24 @@ enum UserMessageType {
 TODO desc
 """
 type UserMessage {
+  """
+  TODO desc
+  """
   id: ID!
+  """
+  TODO desc
+  """
   type: UserMessageType!
+  """
+  TODO desc
+  """
   text: String!
 }
 
 extend type LocalSignedInUser {
+  """
+  TODO desc
+  """
   messages: [UserMessage!]!
 }
 
@@ -98,6 +110,9 @@ extend type LocalSignedInUser {
 TODO desc
 """
 interface UserOperation {
+  """
+  TODO desc
+  """
   id: ID!
 }
 

@@ -4,14 +4,14 @@ import {
   NotePendingStatus,
 } from '../../__generated__/graphql';
 import { mutationDefinition } from '../../graphql/utils/mutation-definition';
-import { cacheRecordToCollabServiceRecord } from '../utils/map-record';
+import { convertLocalToRemoteNote } from '../models/convert-local-to-remote-note';
+import { isExcludeNoteFromConnection } from '../models/local-note/is-exclude';
+import { setNotePendingStatus } from '../models/local-note/set-status';
 import { getCollabService } from '../models/note/get-collab-service';
 import { addNoteToConnection } from '../models/note-connection/add';
 import { addRecordToConnection } from '../models/record-connection/add';
-import { setNotePendingStatus } from '../models/local-note/set-status';
-import { convertLocalToRemoteNote } from '../models/convert-local-to-remote-note';
-import { isExcludeNoteFromConnection } from '../models/local-note/is-exclude';
 import { parseUserNoteLinkId } from '../utils/id';
+import { cacheRecordToCollabServiceRecord } from '../utils/map-record';
 
 /**
  * Will acknowledge submitted changes in service

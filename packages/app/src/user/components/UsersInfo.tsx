@@ -1,11 +1,12 @@
+import { Box, Divider } from '@mui/material';
+
 import { CurrentUserInfo } from './CurrentUserInfo';
-import { UsersList } from './UsersList';
 import { SignInProvidersList } from './SignInProvidersList';
 import { SignOutAllUsersButton } from './SignOutAllUsersButton';
-import { UserInfoTitleRow } from './UserInfoTitleRow';
 import { UserInfoRow } from './UserInfoRow';
+import { UserInfoTitleRow } from './UserInfoTitleRow';
 import { UsersInfoColumn } from './UsersInfoColumn';
-import { Box, Divider } from '@mui/material';
+import { UsersList } from './UsersList';
 
 export function UsersInfo() {
   return (

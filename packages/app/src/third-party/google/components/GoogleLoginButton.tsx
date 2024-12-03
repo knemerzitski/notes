@@ -1,8 +1,8 @@
 import { LinearProgress, useTheme } from '@mui/material';
 import { lazy, Suspense, useEffect, useRef } from 'react';
 
-import { useGoogleAuth } from '../context/google-auth';
 import { GOOGLE } from '../../../third-party';
+import { useGoogleAuth } from '../context/google-auth';
 
 const MockGoogleLoginButton = import.meta.env.PROD
   ? () => null

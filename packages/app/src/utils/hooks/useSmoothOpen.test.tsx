@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { afterAll, beforeAll, it, vi, expect } from 'vitest';
+
 import { useSmoothOpen } from './useSmoothOpen';
 
 beforeAll(() => {

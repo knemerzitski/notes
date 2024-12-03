@@ -1,7 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { ApolloClient, gql, InMemoryCache } from '@apollo/client';
-import { it, expect } from 'vitest';
-import { DateTime } from './DateTime';
 import { MockLink } from '@apollo/client/testing';
+import { it, expect } from 'vitest';
+
+import { DateTime } from './DateTime';
 
 const QUERY = gql`
   query {

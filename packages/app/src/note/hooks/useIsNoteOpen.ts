@@ -1,6 +1,8 @@
 import { useRouter } from '@tanstack/react-router';
-import { Note } from '../../__generated__/graphql';
+
 import { useEffect, useState } from 'react';
+
+import { Note } from '../../__generated__/graphql';
 
 /**
  * Note is open when search query contains `noteId` and equals the parameter {@link noteId}

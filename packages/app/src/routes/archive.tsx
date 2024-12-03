@@ -1,6 +1,7 @@
 import { createFileRoute, defer } from '@tanstack/react-router';
-import { ArchiveMain } from '../note/components/ArchiveMain';
+
 import { gql } from '../__generated__';
+import { ArchiveMain } from '../note/components/ArchiveMain';
 import { routeFetchPolicy } from '../utils/route-fetch-policy';
 
 const RouteArchive_Query = gql(`

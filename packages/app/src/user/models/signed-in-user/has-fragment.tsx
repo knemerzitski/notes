@@ -1,4 +1,5 @@
 import { ApolloCache } from '@apollo/client';
+
 import { gql } from '../../../__generated__';
 
 const HasUserFragment_SignedInUserFragment = gql(`

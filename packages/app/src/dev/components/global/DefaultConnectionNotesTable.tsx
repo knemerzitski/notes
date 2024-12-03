@@ -1,3 +1,5 @@
+import { useQuery } from '@apollo/client';
+import RemoveIcon from '@mui/icons-material/Remove';
 import {
   Paper,
   Table,
@@ -7,9 +9,8 @@ import {
   TableHead,
   TableRow,
 } from '@mui/material';
+
 import { gql } from '../../../__generated__';
-import { useQuery } from '@apollo/client';
-import RemoveIcon from '@mui/icons-material/Remove';
 
 const DefaultConnectionNotesTable_Query = gql(`
   query DefaultConnectionNotesTable_Query {
@@ -44,10 +45,6 @@ export function DefaultConnectionNotesTable() {
   const edges = data.userNoteLinkConnection.edges.filter(
     (edge) => !edge.node.excludeFromConnection
   );
-
-  if (!edges) {
-    return null;
-  }
 
   return (
     <TableContainer

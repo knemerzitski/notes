@@ -1,7 +1,9 @@
 /* eslint-disable unicorn/filename-case */
 import { ReactNode } from 'react';
-import { GraphQLServiceProvider } from './GraphQLServiceProvider';
+
 import { createDefaultGraphQLService } from '../../graphql-service';
+
+import { GraphQLServiceProvider } from './GraphQLServiceProvider';
 
 const service = createDefaultGraphQLService();
 

@@ -1,8 +1,10 @@
+import { useQuery } from '@apollo/client';
 import { useEffect } from 'react';
 import { useDebouncedCallback, Options } from 'use-debounce';
-import { gql } from '../../__generated__';
+
 import { CollabService } from '~collab/client/collab-service';
-import { useQuery } from '@apollo/client';
+
+import { gql } from '../../__generated__';
 import { useNoteId } from '../context/note-id';
 
 // TODO fragment for for loader

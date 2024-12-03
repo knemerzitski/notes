@@ -1,16 +1,19 @@
+import { ReactNode } from '@tanstack/react-router';
+import mitt from 'mitt';
+import { useEffect, useState } from 'react';
+
 import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
+import { useNoteId } from '../context/note-id';
 import { useIsLocalOnlyNote } from '../hooks/useIsLocalOnlyNote';
-import { UnsavedCollabServiceTracker } from './UnsavedCollabServiceTracker';
+
+import { HistoryRestoration } from './HistoryRestoration';
 import { LocalChangesToSubmittedRecordDebounced } from './LocalChangesToSubmittedRecordDebounced';
 import { PersistCollabServiceChanges } from './PersistCollabServiceChanges';
 import { SubmittedRecordMutation } from './SubmittedRecordMutation';
-import { useNoteId } from '../context/note-id';
-import { useEffect, useState } from 'react';
-import { ReactNode } from '@tanstack/react-router';
-import mitt from 'mitt';
+
 import { SyncHeadText } from './SyncHeadText';
 import { SyncMissingRecords } from './SyncMissingRecords';
-import { HistoryRestoration } from './HistoryRestoration';
+import { UnsavedCollabServiceTracker } from './UnsavedCollabServiceTracker';
 
 /**
  * Run events related to CollabService:
@@ -78,6 +81,7 @@ function NoteSingleton({ children }: { children: ReactNode }) {
     return null;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return children;
 }
 

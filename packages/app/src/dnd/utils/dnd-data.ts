@@ -1,4 +1,5 @@
 import { Data } from '@dnd-kit/core';
+
 import { DndData } from '../types';
 
 export function getDndData(
@@ -8,6 +9,7 @@ export function getDndData(
     return;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const type = data.current.type;
   if (typeof type === 'string') {
     return data.current as DndData;

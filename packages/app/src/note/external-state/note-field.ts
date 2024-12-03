@@ -1,4 +1,5 @@
 import { makeVar } from '@apollo/client';
+
 import { NoteTextFieldEditor } from './note';
 
 interface NoteFieldExternalStateParams {

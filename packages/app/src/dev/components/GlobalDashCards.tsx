@@ -1,10 +1,10 @@
-import { OngoingOperationsCountsTable } from './global/OngoingOperationsCountsTable';
-import { SimulateOfflineToggleButton } from './global/SimulateOfflineToggleButton';
 import { DashCard } from './DashCard';
-import { UnsavedCollabServiceNotesTable } from './global/UnsavedCollabServiceNotesTable';
-import { PendingNotesTable } from './global/PendingNotesTable';
-import { ExcludedConnectionNotesTable } from './global/ExcludedConnectionNotesTable';
 import { CacheGcButton } from './global/CacheGcButton';
+import { ExcludedConnectionNotesTable } from './global/ExcludedConnectionNotesTable';
+import { OngoingOperationsCountsTable } from './global/OngoingOperationsCountsTable';
+import { PendingNotesTable } from './global/PendingNotesTable';
+import { SimulateOfflineToggleButton } from './global/SimulateOfflineToggleButton';
+import { UnsavedCollabServiceNotesTable } from './global/UnsavedCollabServiceNotesTable';
 // import { DefaultConnectionNotesTable } from './DefaultConnectionNotesTable';
 
 export function GlobalDashCards() {

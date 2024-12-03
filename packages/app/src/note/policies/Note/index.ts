@@ -1,10 +1,12 @@
-import { CollabService } from '~collab/client/collab-service';
-import { CreateTypePolicyFn, TypePoliciesContext } from '../../../graphql/types';
-import { readNoteRef } from '../../utils/read-note-ref';
-import { _external, readNoteExternalState } from './_external';
-import { isLocalId } from '../../../utils/is-local-id';
 import { Reference } from '@apollo/client';
+import { CollabService } from '~collab/client/collab-service';
+
 import { NoteTextFieldName } from '../../../__generated__/graphql';
+import { CreateTypePolicyFn, TypePoliciesContext } from '../../../graphql/types';
+import { isLocalId } from '../../../utils/is-local-id';
+import { readNoteRef } from '../../utils/read-note-ref';
+
+import { _external, readNoteExternalState } from './_external';
 
 interface TextFieldsResult {
   __typename: 'NoteTextField';
@@ -23,6 +25,7 @@ export const Note: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
       textField(_existing, options): TextFieldsResult {
         const { readField, args } = options;
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const name = args?.name;
         if (typeof name !== 'string') {
           throw new Error(`Expected arg "name" to be a string but is "${String(name)}"`);
@@ -41,6 +44,7 @@ export const Note: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
         return isLocalId(id);
       },
       shareAccess(existing = null) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return existing;
       },
     },

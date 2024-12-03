@@ -1,4 +1,7 @@
 import { useApolloClient } from '@apollo/client';
+
+import { useEffect, useRef } from 'react';
+
 import { gql } from '../../__generated__';
 import {
   Note,
@@ -6,12 +9,12 @@ import {
   NotePendingStatus,
   UserNoteLink,
 } from '../../__generated__/graphql';
-import { useEffect, useRef } from 'react';
 import { useUserId } from '../../user/context/user-id';
 import { getUserNoteLinkId } from '../utils/id';
 
 const UseCategoryChanged_UserNoteLinkFragment = gql(`
   fragment UseCategoryChanged_UserNoteLinkFragment on UserNoteLink {
+    id
     categoryName
     pendingStatus
   }

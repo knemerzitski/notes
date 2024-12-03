@@ -1,12 +1,14 @@
 import { useApolloClient } from '@apollo/client';
-import { gql } from '../../__generated__';
+
 import { useEffect } from 'react';
-import { useUserId } from '../../user/context/user-id';
-import { useDeleteNote } from '../hooks/useDeleteNote';
-import { useTrashNote } from '../hooks/useTrashNote';
-import { removeUserOperations } from '../../user/models/operations/remove';
-import { useMoveNote } from '../hooks/useMoveNote';
+
+import { gql } from '../../__generated__';
 import { MovableNoteCategory } from '../../__generated__/graphql';
+import { useUserId } from '../../user/context/user-id';
+import { removeUserOperations } from '../../user/models/operations/remove';
+import { useDeleteNote } from '../hooks/useDeleteNote';
+import { useMoveNote } from '../hooks/useMoveNote';
+import { useTrashNote } from '../hooks/useTrashNote';
 
 const ProcessNoteUserOperations_Query = gql(`
   query ProcessNoteUserOperations_Query($id: ID!) {

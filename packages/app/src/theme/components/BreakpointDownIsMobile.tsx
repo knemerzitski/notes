@@ -1,5 +1,6 @@
 import { Breakpoint, useMediaQuery, useTheme } from '@mui/material';
 import { ReactNode } from '@tanstack/react-router';
+
 import { IsMobileProvider } from '../context/is-mobile';
 
 export function BreakpointDownIsMobile({

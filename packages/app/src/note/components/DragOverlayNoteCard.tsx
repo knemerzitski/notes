@@ -1,9 +1,11 @@
 import { css, styled } from '@mui/material';
+
 import { Note } from '../../__generated__/graphql';
 import { useIsMobile } from '../../theme/context/is-mobile';
-import { NoteIdProvider } from '../context/note-id';
-import { PureNoteCard } from './NoteCard';
 import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
+import { NoteIdProvider } from '../context/note-id';
+
+import { PureNoteCard } from './NoteCard';
 
 export function DragOverlayNoteCard({ noteId }: { noteId: Note['id'] }) {
   const isMobile = useIsMobile();

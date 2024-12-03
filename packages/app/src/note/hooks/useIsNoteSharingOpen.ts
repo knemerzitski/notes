@@ -1,6 +1,8 @@
 import { useRouter } from '@tanstack/react-router';
-import { Note } from '../../__generated__/graphql';
+
 import { useEffect, useState } from 'react';
+
+import { Note } from '../../__generated__/graphql';
 
 /**
  * Note sharing dialog is open when search query contains `sharingNoteId` and equals the parameter {@link noteId}

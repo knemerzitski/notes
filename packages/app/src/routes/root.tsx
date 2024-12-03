@@ -1,13 +1,15 @@
 import { Outlet, createRootRouteWithContext, defer } from '@tanstack/react-router';
-import { RouterContext } from '../router';
+
 import { coerce, number, optional, string, type } from 'superstruct';
-import { RouteNoteDialog } from '../note/components/RouteNoteDialog';
-import { RouteDevModuleProvider } from '../dev/components/RouteDevModuleProvider';
-import { RouteUserModuleProvider } from '../user/components/RouteUserModuleProvider';
-import { RouteNoteSharingDialog } from '../note/components/RouteNoteSharingDialog';
+
 import { gql } from '../__generated__';
-import { routeFetchPolicy } from '../utils/route-fetch-policy';
+import { RouteDevModuleProvider } from '../dev/components/RouteDevModuleProvider';
 import { RedirectLinkSharedNote } from '../note/components/RedirectLinkSharedNote';
+import { RouteNoteDialog } from '../note/components/RouteNoteDialog';
+import { RouteNoteSharingDialog } from '../note/components/RouteNoteSharingDialog';
+import { RouterContext } from '../router';
+import { RouteUserModuleProvider } from '../user/components/RouteUserModuleProvider';
+import { routeFetchPolicy } from '../utils/route-fetch-policy';
 
 const RouteRoot_Query = gql(`
   query RouteRoot_Query($noteId: ObjectID!) {

@@ -1,6 +1,7 @@
 import { ApolloCache } from '@apollo/client';
-import { UserNoteLinkByInput } from '../../../__generated__/graphql';
+
 import { gql } from '../../../__generated__';
+import { UserNoteLinkByInput } from '../../../__generated__/graphql';
 
 const NoteExists_Query = gql(`
   query NoteExists_Query($by: UserNoteLinkByInput!) {

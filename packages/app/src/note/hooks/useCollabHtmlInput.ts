@@ -1,10 +1,14 @@
-/* eslint-disable unicorn/filename-case */
+ 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Options, useDebouncedCallback } from 'use-debounce';
-import { useHtmlInput } from './useHtmlInput';
-import { SelectionRange } from '~collab/client/selection-range';
-import { NoteTextFieldEditor } from '../external-state/note';
+
 import { CollabService } from '~collab/client/collab-service';
+import { SelectionRange } from '~collab/client/selection-range';
+
+import { NoteTextFieldEditor } from '../external-state/note';
+
+import { useHtmlInput } from './useHtmlInput';
+
 
 interface UseHTMLInputCollabEditorOptions {
   merge?: {

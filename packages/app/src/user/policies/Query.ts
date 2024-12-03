@@ -1,9 +1,11 @@
 import { Reference } from '@apollo/client';
+
+import { isObjectLike } from '~utils/type-guards/is-object-like';
+
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
+import { fieldArrayToMap } from '../../graphql/utils/field-array-to-map';
 import { keyArgsWithUserId } from '../../graphql/utils/key-args-with-user-id';
 import { EvictTag, TaggedEvictOptionsList } from '../../graphql/utils/tagged-evict';
-import { fieldArrayToMap } from '../../graphql/utils/field-array-to-map';
-import { isObjectLike } from '~utils/type-guards/is-object-like';
 
 export const Query: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
   return {
@@ -74,10 +76,12 @@ export const Query: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
 
         // Ensure current exists in signedInUsers
         if (existing != null) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           const currentUserId = readField('id', existing);
           if (currentUserId == null) {
             existing = null;
           }
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           existing = signedInUsers.some((user) => currentUserId === readField('id', user))
             ? existing
             : null;
@@ -91,9 +95,11 @@ export const Query: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
               return user;
             }
           }
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
           return readField('localUser');
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return existing;
       },
     },

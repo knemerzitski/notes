@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/prefer-optional-chain */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
@@ -9,8 +12,10 @@ import {
   makeReference,
   Reference,
 } from '@apollo/client';
-import { relayStylePagination, TRelayPageInfo } from './relay-style-pagination';
+
 import { describe, it, expect } from 'vitest';
+
+import { relayStylePagination, TRelayPageInfo } from './relay-style-pagination';
 
 describe('copied tests from @apollo/client/utilities/policies/pagination', () => {
   describe('relayStylePagination', () => {

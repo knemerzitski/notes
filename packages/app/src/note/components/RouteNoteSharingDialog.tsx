@@ -1,11 +1,15 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useState, useCallback } from 'react';
-import { OnCloseProvider } from '../../utils/context/on-close';
-import { NoteIdProvider } from '../context/note-id';
-import { noteSharingDialogId } from '../../utils/element-id';
-import { NoteSharingDialog } from './NoteSharingDialog';
-import { useOnNoteNotEditable } from '../hooks/useOnNoteNotEditable';
+
 import { gql } from '../../__generated__';
+import { OnCloseProvider } from '../../utils/context/on-close';
+import { noteSharingDialogId } from '../../utils/element-id';
+import { NoteIdProvider } from '../context/note-id';
+
+import { useOnNoteNotEditable } from '../hooks/useOnNoteNotEditable';
+
+import { NoteSharingDialog } from './NoteSharingDialog';
+
 
 const _RouteNoteSharingDialog_NoteFragment = gql(`
   fragment RouteNoteSharingDialog_NoteFragment on Note {

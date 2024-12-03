@@ -1,10 +1,13 @@
-import { Tooltip } from '@mui/material';
-import { IconButtonMenu } from '../../utils/components/IconButtonMenu';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { TrashDeleteNoteMenuItem } from './TrashDeleteNoteMenuItem';
-import { RestoreNoteMenuItem } from './RestoreNoteMenuItem';
-import { DeleteForeverNoteMenuItem } from './DeleteForeverNoteMenuItem';
+import { Tooltip } from '@mui/material';
+
 import { gql } from '../../__generated__';
+import { IconButtonMenu } from '../../utils/components/IconButtonMenu';
+
+import { DeleteForeverNoteMenuItem } from './DeleteForeverNoteMenuItem';
+import { RestoreNoteMenuItem } from './RestoreNoteMenuItem';
+import { TrashDeleteNoteMenuItem } from './TrashDeleteNoteMenuItem';
+
 
 const _NoteMoreOptionsButton_UserNoteLinkFragment = gql(`
   fragment NoteMoreOptionsButton_UserNoteLinkFragment on UserNoteLink {

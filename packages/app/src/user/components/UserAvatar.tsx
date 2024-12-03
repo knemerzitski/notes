@@ -1,13 +1,15 @@
 import { useQuery } from '@apollo/client';
-import { gql } from '../../__generated__';
-import { Avatar } from '@mui/material';
-import { FirstLetter } from '../../utils/components/FirstLetter';
+
 import PersonIcon from '@mui/icons-material/Person';
-import { useUserId } from '../context/user-id';
-import { TextBackgroundAvatar } from '../../utils/components/TextBackgroundAvatar';
+import { Avatar } from '@mui/material';
+
+import { gql } from '../../__generated__';
+import { FirstLetter } from '../../utils/components/FirstLetter';
 import { LargeAvatar } from '../../utils/components/LargeAvatar';
 import { LargePersonIcon } from '../../utils/components/LargePersionIcon';
 import { LargeTextBackgroundAvatar } from '../../utils/components/LargeTextBackgroundAvatar';
+import { TextBackgroundAvatar } from '../../utils/components/TextBackgroundAvatar';
+import { useUserId } from '../context/user-id';
 
 const UserAvatar_Query = gql(`
   query UserAvatar_Query($id: ID!) {

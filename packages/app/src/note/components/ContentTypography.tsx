@@ -1,7 +1,8 @@
 import { styled, Typography } from '@mui/material';
+
+import { gql } from '../../__generated__';
 import { NoteTextFieldName } from '../../__generated__/graphql';
 import { useTextFieldValue } from '../hooks/useTextFieldValue';
-import { gql } from '../../__generated__';
 
 const _ContentTypography_NoteFragment = gql(`
   fragment ContentTypography_NoteFragment on Note {

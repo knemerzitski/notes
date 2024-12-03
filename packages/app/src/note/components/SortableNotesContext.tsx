@@ -1,14 +1,18 @@
-import { ListAnchorPosition, Note, NoteCategory } from '../../__generated__/graphql';
-import { useMemo, useState } from 'react';
-import { arrayMove, rectSortingStrategy, SortableContext } from '@dnd-kit/sortable';
-import { getNoteDndId } from '../../dnd/utils/id';
-import { useMoveNote } from '../hooks/useMoveNote';
 import { useDndMonitor } from '@dnd-kit/core';
-import { getDndData } from '../../dnd/utils/dnd-data';
-import { DndType } from '../../dnd/types';
+import { arrayMove, rectSortingStrategy, SortableContext } from '@dnd-kit/sortable';
 import { ReactNode } from '@tanstack/react-router';
-import { toMovableNoteCategory } from '../utils/note-category';
+import { useMemo, useState } from 'react';
+
+import { ListAnchorPosition, Note, NoteCategory } from '../../__generated__/graphql';
+
+import { DndType } from '../../dnd/types';
+import { getDndData } from '../../dnd/utils/dnd-data';
+import { getNoteDndId } from '../../dnd/utils/id';
 import { NoteIdsProvider, useNoteIds } from '../context/note-ids';
+import { useMoveNote } from '../hooks/useMoveNote';
+
+
+import { toMovableNoteCategory } from '../utils/note-category';
 
 export function SortableNotesContext({
   category,

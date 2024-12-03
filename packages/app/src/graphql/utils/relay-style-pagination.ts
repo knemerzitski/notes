@@ -9,9 +9,9 @@ import { FieldFunctionOptions, FieldPolicy, Reference } from '@apollo/client';
 import { SafeReadonly } from '@apollo/client/cache/core/types/common';
 import { mergeDeep } from '@apollo/client/utilities';
 import { __rest } from 'tslib';
+import { weavedReplace } from '~utils/array/weaved-replace';
 import { logAll } from '~utils/log-all';
 
-import { weavedReplace } from '~utils/array/weaved-replace';
 import { Maybe } from '~utils/types';
 
 type KeyArgs = FieldPolicy['keyArgs'];
@@ -136,6 +136,7 @@ export function relayStylePagination<TNode extends Reference = Reference>(
 
       const { startCursor = null, endCursor = null } = existing.pageInfo ?? {};
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return {
         // Some implementations return additional Connection fields, such
         // as existing.totalCount. These fields are saved by the merge
@@ -322,17 +323,18 @@ export function relayStylePagination<TNode extends Reference = Reference>(
         if (!prefix.length) {
           // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           if (void 0 !== hasPreviousPage) pageInfo.hasPreviousPage = hasPreviousPage;
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+
           if (void 0 !== startCursor) pageInfo.startCursor = startCursor;
         }
         if (!suffix.length) {
           // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           if (void 0 !== hasNextPage) pageInfo.hasNextPage = hasNextPage;
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+
           if (void 0 !== endCursor) pageInfo.endCursor = endCursor;
         }
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return {
         ...getExtras(existing),
         ...getExtras(incoming),
@@ -344,6 +346,7 @@ export function relayStylePagination<TNode extends Reference = Reference>(
 }
 
 // Returns any unrecognized properties of the given object.
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 const getExtras = (obj: Record<string, unknown>) => __rest(obj, notExtras);
 const notExtras = ['edges', 'pageInfo'];
 

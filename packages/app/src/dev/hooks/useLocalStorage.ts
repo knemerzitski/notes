@@ -26,6 +26,7 @@ export function useLocalStorage<T>(
     const initialValue = getItem(key) as T | undefined;
 
     if (initialValue == null) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call
       setValue(typeof defaultValue === 'function' ? defaultValue() : defaultValue);
     } else {
       setValue(initialValue);
@@ -36,9 +37,11 @@ export function useLocalStorage<T>(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (updater: any) => {
       setValue((old) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         let newVal = updater;
 
         if (typeof updater == 'function') {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
           newVal = updater(old);
         }
         try {
@@ -47,6 +50,7 @@ export function useLocalStorage<T>(
           //
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return newVal;
       });
     },

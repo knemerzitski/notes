@@ -1,20 +1,30 @@
+import { useApolloClient } from '@apollo/client';
 import { alpha, Box, css, Paper, PaperProps, styled, Theme } from '@mui/material';
-import { forwardRef, ReactNode, useRef, useState } from 'react';
-import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
-import { isElHover } from '../../utils/is-el-hover';
-import { TitleTypography } from './TitleTypography';
-import { ContentTypography } from './ContentTypography';
 import { useNavigate } from '@tanstack/react-router';
+import { forwardRef, ReactNode, useRef, useState } from 'react';
+
+import { gql } from '../../__generated__';
+import { NoteCategory } from '../../__generated__/graphql';
+import { noteEditDialogId } from '../../utils/element-id';
+import { isElHover } from '../../utils/is-el-hover';
+import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
+
+
 import { useNoteId } from '../context/note-id';
 import { useIsNoteOpen } from '../hooks/useIsNoteOpen';
-import { NoteMoreOptionsButton } from './NoteMoreOptionsButton';
-import { NoteCategory } from '../../__generated__/graphql';
+
+
 import { getCategoryName } from '../models/note/category-name';
-import { useApolloClient } from '@apollo/client';
+
+import { ContentTypography } from './ContentTypography';
+
 import { DeletedInDays } from './DeletedInDays';
-import { gql } from '../../__generated__';
+
+
 import { NoteAlwaysButtons } from './NoteAlwaysButtons';
-import { noteEditDialogId } from '../../utils/element-id';
+import { NoteMoreOptionsButton } from './NoteMoreOptionsButton';
+import { TitleTypography } from './TitleTypography';
+
 
 const _NoteCard_UserNoteLinkFragment = gql(`
   fragment NoteCard_UserNoteLinkFragment on UserNoteLink {

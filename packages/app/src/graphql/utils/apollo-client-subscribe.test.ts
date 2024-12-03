@@ -1,7 +1,8 @@
 import { gql, ApolloLink, InMemoryCache, ApolloClient } from '@apollo/client';
-import { Observable } from 'zen-observable-ts';
-import { apolloClientSubscribe } from './apollo-client-subscribe';
 import { expect, it, vi } from 'vitest';
+import { Observable } from 'zen-observable-ts';
+
+import { apolloClientSubscribe } from './apollo-client-subscribe';
 
 it('returns value that has been processed by type policies', async () => {
   const SUBSCRIPTION = gql`

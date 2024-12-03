@@ -1,4 +1,4 @@
-# eslint-disable @graphql-eslint/no-unreachable-types
+ 
 
 """
 The @client directive allows you to resolve client-only data alongside your server data.

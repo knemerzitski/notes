@@ -1,10 +1,12 @@
-import { Typography } from '@mui/material';
-import { gql } from '../../__generated__';
 import { useFragment } from '@apollo/client';
+import { Typography } from '@mui/material';
+
+import { gql } from '../../__generated__';
 import { useNoteId } from '../context/note-id';
 
 const SharingStatusTypography_NoteFragment = gql(`
   fragment SharingStatusTypography_NoteFragment on Note {
+    id
     shareAccess {
       id
     }

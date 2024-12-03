@@ -1,4 +1,5 @@
 import { createContext, ReactNode, useContext } from 'react';
+
 import { Maybe, Note } from '../../__generated__/graphql';
 
 const NoteIdsContext = createContext<Note['id'][] | null>(null);

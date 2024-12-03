@@ -1,6 +1,6 @@
+import { useApolloClient } from '@apollo/client';
 import { useCallback } from 'react';
 
-import { useApolloClient } from '@apollo/client';
 import { removeUsers } from '../models/signed-in-user/remove';
 
 export function useRemoveUser() {

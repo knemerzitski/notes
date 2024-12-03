@@ -1,5 +1,6 @@
 import { createContext, ReactNode, useContext } from 'react';
 import { Maybe } from '~utils/types';
+
 import { UserNoteLink } from '../../__generated__/graphql';
 
 const UserNoteLinkIdContext = createContext<UserNoteLink['id'] | null>(null);

@@ -1,3 +1,4 @@
+import { useApolloClient } from '@apollo/client';
 import {
   createContext,
   ReactNode,
@@ -6,8 +7,8 @@ import {
   useMemo,
   useRef,
 } from 'react';
+
 import { SignedInUser } from '../../__generated__/graphql';
-import { useApolloClient } from '@apollo/client';
 import { getCurrentUserId } from '../../user/models/signed-in-user/get-current';
 
 export interface FetchedRoutes {

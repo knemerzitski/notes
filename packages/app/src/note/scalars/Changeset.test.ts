@@ -1,8 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { ApolloClient, gql, InMemoryCache } from '@apollo/client';
-import { it, expect } from 'vitest';
 import { MockLink } from '@apollo/client/testing';
-import { Changeset } from './Changeset';
+import { it, expect } from 'vitest';
+
 import { Changeset as CollabChangeset } from '~collab/changeset';
+
+import { Changeset } from './Changeset';
 
 const QUERY = gql`
   query {

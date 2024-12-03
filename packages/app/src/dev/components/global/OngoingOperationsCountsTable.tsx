@@ -1,6 +1,3 @@
-import { useEffect, useState } from 'react';
-import { useStatsLink } from '../../../graphql/context/stats-link';
-import { useUserId } from '../../../user/context/user-id';
 import {
   Paper,
   Table,
@@ -10,6 +7,10 @@ import {
   TableHead,
   TableRow,
 } from '@mui/material';
+import { useEffect, useState } from 'react';
+
+import { useStatsLink } from '../../../graphql/context/stats-link';
+import { useUserId } from '../../../user/context/user-id';
 
 function copyStats(statsLink: ReturnType<typeof useStatsLink>, userId: string) {
   return {

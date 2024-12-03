@@ -1,10 +1,11 @@
+import { useQuery } from '@apollo/client';
 import RedoIcon from '@mui/icons-material/Redo';
 import { IconButton, IconButtonProps, Tooltip } from '@mui/material';
 import { useEffect, useState } from 'react';
+
 import { gql } from '../../__generated__';
-import { useNoteId } from '../context/note-id';
-import { useQuery } from '@apollo/client';
 import { RedoButtonQueryQuery } from '../../__generated__/graphql';
+import { useNoteId } from '../context/note-id';
 
 const RedoButton_Query = gql(`
   query RedoButton_Query($id: ObjectID!) {

@@ -1,13 +1,14 @@
 import { ApolloCache } from '@apollo/client';
+
+import { gql } from '../../../__generated__';
 import {
   AddNoteToConnectionQueryQuery,
   NoteCategory,
   UserNoteLinkByInput,
 } from '../../../__generated__/graphql';
-import { gql } from '../../../__generated__';
-import { noteExists } from '../note/exists';
 import { getUserNoteLinkIdFromByInput } from '../../utils/id';
 import { getCategoryName } from '../note/category-name';
+import { noteExists } from '../note/exists';
 
 const AddNoteToConnection_Query = gql(`
   query AddNoteToConnection_Query($by: UserNoteLinkByInput!, $category: NoteCategory!) {

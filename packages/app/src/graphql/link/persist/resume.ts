@@ -5,8 +5,10 @@ import {
   MutationUpdaterFunction,
   OperationVariables,
 } from '@apollo/client';
-import { getAllOngoingOperations } from './get-all';
+
 import { isMutationOperation } from '@apollo/client/utilities';
+
+import { getAllOngoingOperations } from './get-all';
 
 export function resumeOngoingOperations(
   apolloClient: Pick<ApolloClient<unknown>, 'mutate'> & {
@@ -37,10 +39,14 @@ export function resumeOngoingOperations(
   const ongoingOperations = getAllOngoingOperations(apolloClient.cache);
 
   return ongoingOperations.map(async (op) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const query = JSON.parse(op.query);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const context = JSON.parse(op.context);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const variables = JSON.parse(op.variables);
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     if (!isMutationOperation(query)) {
       throw new Error('Can only resume a mutation');
     }
@@ -49,7 +55,9 @@ export function resumeOngoingOperations(
       const canProceed = options.filterFn({
         id: op.id,
         query,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         variables,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         context,
       });
       if (!canProceed) {
@@ -60,9 +68,13 @@ export function resumeOngoingOperations(
     return {
       id: op.id,
       result: await apolloClient.mutate({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         mutation: query,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         variables,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         context,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         optimisticResponse: context.optimisticResponse,
         update: getUpdater(op.operationName),
       }),

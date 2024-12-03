@@ -1,4 +1,6 @@
 import { ApolloCache } from '@apollo/client';
+
+import { gql } from '../../../__generated__';
 import {
   ListAnchorPosition,
   MoveUserNoteLinkInput,
@@ -7,12 +9,15 @@ import {
   TrashUserNoteLinkInput,
   UserNoteLinkByInput,
 } from '../../../__generated__/graphql';
-import { gql } from '../../../__generated__';
-import { getConnectionCategoryName } from '../note/connection-category-name';
-import { moveNoteInConnection } from './move';
 import { getUserNoteLinkIdFromByInput, parseUserNoteLinkByInput } from '../../utils/id';
-import { removeNoteFromConnection } from './remove';
 import { toMovableNoteCategory } from '../../utils/note-category';
+import { getConnectionCategoryName } from '../note/connection-category-name';
+
+import { moveNoteInConnection } from './move';
+
+
+import { removeNoteFromConnection } from './remove';
+
 
 const ReplaceNoteInConnection_Query = gql(`
   query ReplaceNoteInConnection_Query($category: NoteCategory!) {

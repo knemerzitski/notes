@@ -1,12 +1,18 @@
 import { ClickAwayListener, css, Paper, styled } from '@mui/material';
-import { NoteIdProvider } from '../context/note-id';
+
 import { useState } from 'react';
+
+import { OnCloseProvider } from '../../utils/context/on-close';
+import { NoteIdProvider } from '../context/note-id';
+
+import { useCreateNote } from '../hooks/useCreateNote';
+
+import { useOnNoteNotEditable } from '../hooks/useOnNoteNotEditable';
+
 import { CollabContentInput } from './CollabContentInput';
 import { CollabInputsColumn } from './CollabInputsColumn';
-import { OnCloseProvider } from '../../utils/context/on-close';
-import { useCreateNote } from '../hooks/useCreateNote';
+
 import { NoteToolbar } from './NoteToolbar';
-import { useOnNoteNotEditable } from '../hooks/useOnNoteNotEditable';
 
 export function CreateNoteWidget() {
   const createNote = useCreateNote();
@@ -84,7 +90,7 @@ function ExpandedWidget({
       touchEvent="onTouchStart"
       mouseEvent="onMouseDown"
     >
-      <BasePaperStyled>
+      <BasePaperStyled variant="outlined">
         <CollabInputsColumn
           CollabInputsProps={{
             CollabTitleInputProps: {
@@ -109,10 +115,6 @@ const BasePaperStyled = styled(Paper)(
     width: min(100%, 600px);
   `
 );
-
-BasePaperStyled.defaultProps = {
-  variant: 'outlined',
-};
 
 const CollapsedPaperStyled = styled(BasePaperStyled)(
   ({ theme }) => css`

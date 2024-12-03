@@ -1,9 +1,11 @@
 import { useFragment } from '@apollo/client';
+
 import { gql } from '../../__generated__';
 import { useUserNoteLinkId } from '../context/user-note-link-id';
 
 const UseDeletedInDays_UserNoteLinkFragment = gql(`
   fragment UseDeletedInDays_UserNoteLinkFragment on UserNoteLink {
+    id
     deletedAt
   }
 `);

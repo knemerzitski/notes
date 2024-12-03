@@ -72,7 +72,7 @@ export function useHtmlInput({
     const beforeSelection = selectionRef.current;
     const type = e.nativeEvent.inputType;
 
-    if (type.match(/insert/i) != null || e.nativeEvent.data) {
+    if ((/insert/i.exec(type)) != null || e.nativeEvent.data) {
       e.preventDefault();
       const start = e.target.selectionStart ?? 0;
       const value = e.target.value;
@@ -81,17 +81,17 @@ export function useHtmlInput({
         insertValue: value.substring(beforeSelection.start, start),
       });
     } else if (
-      type.match(/delete/i) != null ||
+      (/delete/i.exec(type)) != null ||
       (e.nativeEvent instanceof KeyboardEvent && e.nativeEvent.code === 'Backspace')
     ) {
       e.preventDefault();
       onDeleteRef.current?.({
         beforeSelection,
       });
-    } else if (type.match(/undo/i)) {
+    } else if (/undo/i.exec(type)) {
       e.preventDefault();
       onUndoRef.current?.();
-    } else if (type.match(/redo/i)) {
+    } else if (/redo/i.exec(type)) {
       e.preventDefault();
       onRedoRef.current?.();
     }

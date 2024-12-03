@@ -1,3 +1,6 @@
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import {
   MenuItem,
   ListItemIcon,
@@ -6,11 +9,11 @@ import {
   css,
   styled,
 } from '@mui/material';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
-import { ColorModeText } from './ColorModeText';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import { useSelectNavigableMenu } from '../../utils/context/navigable-menu';
+
 import { SettingsButtonMenuKey } from '../../utils/components/SettingsButton';
+import { useSelectNavigableMenu } from '../../utils/context/navigable-menu';
+
+import { ColorModeText } from './ColorModeText';
 
 export function ColorModeMenuItem() {
   const selectMenu = useSelectNavigableMenu();

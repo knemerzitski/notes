@@ -1,7 +1,9 @@
 import { css, Dialog, styled } from '@mui/material';
+
+import { forwardRef } from 'react';
+
 import { CollabInputsColumn } from './CollabInputsColumn';
 import { NoteToolbar } from './NoteToolbar';
-import { forwardRef } from 'react';
 
 export const NoteDialog = forwardRef<HTMLDivElement, Parameters<typeof DialogStyled>[0]>(
   function NoteDialog(

@@ -9,7 +9,7 @@ interface GoogleAuthContextProps {
 
 const GoogleAuthContext = createContext<GoogleAuthContextProps | null>(null);
 
-// eslint-disable-next-line react-refresh/only-export-components
+ 
 export function useGoogleAuth() {
   const ctx = useContext(GoogleAuthContext);
   if (ctx === null) {

@@ -1,8 +1,10 @@
 import { useApolloClient, useQuery } from '@apollo/client';
-import { gql } from '../../__generated__';
-import { useBootstrapCache } from '../../bootstrap/context/bootstrap-cache';
+
 import { useCallback } from 'react';
+
+import { gql } from '../../__generated__';
 import { ColorMode } from '../../__generated__/graphql';
+import { useBootstrapCache } from '../../bootstrap/context/bootstrap-cache';
 import { useIsCacheRestored } from '../../graphql/context/is-cache-restored';
 import { setColorMode } from '../models/color-mode/set';
 

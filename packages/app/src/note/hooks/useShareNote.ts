@@ -1,10 +1,11 @@
 import { useApolloClient } from '@apollo/client';
 import { useCallback } from 'react';
+
 import { UserNoteLinkByInput } from '../../__generated__/graphql';
 import { useMutation } from '../../graphql/hooks/useMutation';
-import { parseUserNoteLinkByInput } from '../utils/id';
 import { noteSerializationKey_sharing } from '../../graphql/utils/serialization-key';
 import { ShareNote } from '../mutations/ShareNote';
+import { parseUserNoteLinkByInput } from '../utils/id';
 
 export function useShareNote() {
   const client = useApolloClient();

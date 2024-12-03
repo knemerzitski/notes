@@ -1,4 +1,5 @@
 import { Avatar, styled } from '@mui/material';
+
 import { mergeShouldForwardProp } from '../merge-should-forward-prop';
 import { textBackgroundColor } from '../styles/text-background-color';
 

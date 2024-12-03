@@ -1,5 +1,6 @@
 import { ApolloCache } from '@apollo/client';
 import { Maybe } from '~utils/types';
+
 import { gql } from '../../../__generated__';
 
 const GetCurrentUserId_Query = gql(`

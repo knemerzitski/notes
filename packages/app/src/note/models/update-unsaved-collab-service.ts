@@ -1,10 +1,11 @@
 import { ApolloCache } from '@apollo/client';
+
+import { gql } from '../../__generated__';
 import {
   SignedInUser,
   UserNoteLink,
   UserNoteLinkByInput,
 } from '../../__generated__/graphql';
-import { gql } from '../../__generated__';
 import { getUserNoteLinkIdFromByInput, parseUserNoteLinkByInput } from '../utils/id';
 
 const UpdateUnsavedCollabService = gql(`

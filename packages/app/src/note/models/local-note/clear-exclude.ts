@@ -1,4 +1,5 @@
 import { ApolloCache } from '@apollo/client';
+
 import { UserNoteLinkByInput } from '../../../__generated__/graphql';
 import { getUserNoteLinkIdFromByInput } from '../../utils/id';
 

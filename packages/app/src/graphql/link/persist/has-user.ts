@@ -1,4 +1,5 @@
 import { ApolloCache } from '@apollo/client';
+
 import { getAllUserOngoingOperationsIds } from './get-all-user';
 
 export function hasUserOngoingOperations(

@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { BootstrapCache } from './bootstrap-cache';
+
 import { ColorMode } from '../../__generated__/graphql';
+
+import { BootstrapCache } from './bootstrap-cache';
 
 class MapStorage implements Pick<Storage, 'getItem' | 'setItem' | 'removeItem'> {
   constructor(public readonly map: Map<string, string>) {}
@@ -35,7 +37,9 @@ describe('recover from invalid data', () => {
 
     expect(JSON.parse(storage.map.get('boot') ?? '')).toStrictEqual(
       expect.objectContaining({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         colorMode: expect.any(String),
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         apolloCacheVersion: expect.any(String),
       })
     );

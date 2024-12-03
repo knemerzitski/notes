@@ -2,17 +2,19 @@ import { ApolloLink, Operation, NextLink, FetchResult } from '@apollo/client';
 import { Observable, Observer, getMainDefinition } from '@apollo/client/utilities';
 import { OperationTypeNode, Kind } from 'graphql';
 import mitt, { Emitter } from 'mitt';
-import { getOperationOrRequestUserId } from './current-user';
+
 import { DefinedMap } from '~utils/map/defined-map';
 import { ReadonlyDeep } from '~utils/types';
+
+import { getOperationOrRequestUserId } from './current-user';
 
 interface OperationStats {
   ongoing: number;
   total: number;
 }
 
-export type AllOperationStats = { [Key in OperationTypeNode]: OperationStats };
-export type UserAllOperationStats = { [Key in string]: AllOperationStats };
+export type AllOperationStats = Record<OperationTypeNode, OperationStats>;
+export type UserAllOperationStats = Record<string, AllOperationStats>;
 
 /**
  * Keeps track of how many operations are ongoing and how many
@@ -42,19 +44,19 @@ export class StatsLink extends ApolloLink {
   }
 
   getUserEventBus(
-    userId?: string | undefined
+    userId?: string  
   ): Pick<Emitter<AllOperationStats>, 'on' | 'off'> {
     return this.definedStatsDataByUser.get(userId ?? '').eventBus;
   }
 
-  getUserStats(userId?: string | undefined): ReadonlyDeep<AllOperationStats> {
+  getUserStats(userId?: string  ): ReadonlyDeep<AllOperationStats> {
     return this.definedStatsDataByUser.get(userId ?? '').byType;
   }
 
   /**
    * @returns Ongoing operations count. Excluding subscriptions.
    */
-  getOngoingCount(userId?: string | undefined) {
+  getOngoingCount(userId?: string  ) {
     const globalStats = this.getUserStats();
     const userStats = this.getUserStats(userId);
 
@@ -66,7 +68,7 @@ export class StatsLink extends ApolloLink {
     );
   }
 
-  getOngoingQueriesCount(userId?: string | undefined) {
+  getOngoingQueriesCount(userId?: string  ) {
     const globalStats = this.getUserStats();
     const userStats = this.getUserStats(userId);
 

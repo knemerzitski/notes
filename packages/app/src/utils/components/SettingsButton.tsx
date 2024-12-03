@@ -1,10 +1,13 @@
 import SettingsIcon from '@mui/icons-material/Settings';
-import { IconButtonMenu } from './IconButtonMenu';
+
 import { Tooltip } from '@mui/material';
-import { NavigableMenuProvider } from '../context/navigable-menu';
-import { SettingsMenuList } from './SettingsMenuList';
+
 import { ColorModeMenuList } from '../../device-preferences/components/ColorModeMenuList';
 import { LayoutMenuList } from '../../device-preferences/components/LayoutMenuList';
+import { NavigableMenuProvider } from '../context/navigable-menu';
+
+import { IconButtonMenu } from './IconButtonMenu';
+import { SettingsMenuList } from './SettingsMenuList';
 
 export type SettingsButtonMenuKey = 'root' | 'appearance' | 'layout';
 

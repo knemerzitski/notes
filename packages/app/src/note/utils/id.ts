@@ -1,4 +1,5 @@
 import { ApolloCache } from '@apollo/client';
+
 import {
   Note,
   SignedInUser,

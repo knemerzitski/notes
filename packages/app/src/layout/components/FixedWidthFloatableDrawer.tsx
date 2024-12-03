@@ -1,14 +1,15 @@
 import { css, Drawer, DrawerProps, styled, Theme, useTheme } from '@mui/material';
+import { ReactNode } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
+
+import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
 import {
   useIsAppDrawerFloating,
   useIsAppDrawerOpen,
   useSetAppDrawerFloating,
   useSetAppDrawerOpen,
 } from '../context/app-drawer-state';
-import { ReactNode } from 'react';
 import { drawerPaddingStyle } from '../styles/drawer-padding';
-import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
 
 export function FixedWidthFloatableDrawer({
   width = 240,

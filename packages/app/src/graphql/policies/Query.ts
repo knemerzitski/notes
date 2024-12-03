@@ -7,6 +7,7 @@ export const Query: CreateTypePolicyFn = function () {
       ongoingOperation(_existing, { args, toReference }) {
         return toReference({
           __typename: 'ApolloOperation',
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           id: args?.id,
         });
       },

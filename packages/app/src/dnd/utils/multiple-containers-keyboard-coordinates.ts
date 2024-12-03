@@ -43,6 +43,7 @@ export const coordinateGetter: KeyboardCoordinateGetter = (
       if (data) {
         const { type, children } = data;
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if (type === 'container' && children?.length > 0) {
           if (active.data.current?.type !== 'container') {
             return;

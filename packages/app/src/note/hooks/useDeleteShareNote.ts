@@ -1,14 +1,15 @@
 import { useApolloClient } from '@apollo/client';
 import { useCallback } from 'react';
+
+import { makeFragmentData } from '../../__generated__';
 import {
   DeleteShareNotePayloadFragmentDoc,
   UserNoteLinkByInput,
 } from '../../__generated__/graphql';
 import { useMutation } from '../../graphql/hooks/useMutation';
-import { parseUserNoteLinkByInput } from '../utils/id';
 import { noteSerializationKey_sharing } from '../../graphql/utils/serialization-key';
 import { DeleteShareNote } from '../mutations/DeleteShareNote';
-import { makeFragmentData } from '../../__generated__';
+import { parseUserNoteLinkByInput } from '../utils/id';
 
 export function useDeleteShareNote() {
   const client = useApolloClient();

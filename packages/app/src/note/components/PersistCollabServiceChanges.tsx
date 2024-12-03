@@ -1,10 +1,11 @@
+import { useQuery } from '@apollo/client';
 import { useEffect } from 'react';
 import { useDebouncedCallback, Options } from 'use-debounce';
+
 import { gql } from '../../__generated__';
-import { useNoteId } from '../context/note-id';
-import { useQuery } from '@apollo/client';
 import { useCachePersistor } from '../../graphql/context/cache-persistor';
 import { useBeforeUnload } from '../../utils/hooks/useBeforeUnload';
+import { useNoteId } from '../context/note-id';
 
 const PersistCollabServiceChanges_Query = gql(`
   query PersistCollabServiceChanges_Query($id: ObjectID!) {
@@ -53,7 +54,7 @@ export function PersistCollabServiceChanges({
   useBeforeUnload((e) => {
     if (debouncedPersist.isPending()) {
       e.preventDefault();
-      debouncedPersist.flush();
+      void debouncedPersist.flush();
     }
   });
 
@@ -69,7 +70,7 @@ export function PersistCollabServiceChanges({
 
     return () => {
       eventBusOff();
-      debouncedPersist.flush();
+      void debouncedPersist.flush();
     };
   }, [debouncedPersist, maybeService]);
 

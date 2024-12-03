@@ -1,9 +1,12 @@
 import { createContext, ReactNode, useContext } from 'react';
 import { Maybe } from '~utils/types';
+
 import { Note } from '../../__generated__/graphql';
 import { useUserId } from '../../user/context/user-id';
-import { UserNoteLinkIdProvider } from './user-note-link-id';
+
 import { getUserNoteLinkId } from '../utils/id';
+
+import { UserNoteLinkIdProvider } from './user-note-link-id';
 
 const NoteIdContext = createContext<Note['id'] | null>(null);
 

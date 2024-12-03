@@ -1,3 +1,6 @@
+import { useQuery } from '@apollo/client';
+import CheckIcon from '@mui/icons-material/Check';
+import RemoveIcon from '@mui/icons-material/Remove';
 import {
   Paper,
   Table,
@@ -7,11 +10,10 @@ import {
   TableHead,
   TableRow,
 } from '@mui/material';
+
 import { gql } from '../../../__generated__';
-import { useQuery } from '@apollo/client';
 import { useUserId } from '../../../user/context/user-id';
-import CheckIcon from '@mui/icons-material/Check';
-import RemoveIcon from '@mui/icons-material/Remove';
+
 
 const PendingNotesTable_Query = gql(`
   query PendingNotesTable_Query($id: ID!){

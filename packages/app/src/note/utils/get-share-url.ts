@@ -1,6 +1,7 @@
-import { Maybe } from '~utils/types';
-import { NoteShareAccess } from '../../__generated__/graphql';
 import { defaultStringifySearch } from '@tanstack/react-router';
+import { Maybe } from '~utils/types';
+
+import { NoteShareAccess } from '../../__generated__/graphql';
 
 const NULL_SHARING_LINK = 'https://...';
 

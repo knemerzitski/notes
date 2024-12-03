@@ -1,16 +1,20 @@
 /* eslint-disable unicorn/filename-case */
-import { ReactNode } from 'react';
-import { GraphQLService } from '../types';
-import { PersistLinkProvider } from '../context/persist-link';
-import { ResumePersistedOngoingOperations } from './ResumePersistedOngoingOperations';
-import { GetMutationUpdaterFnProvider } from '../context/get-mutation-updater-fn';
 import { ApolloProvider } from '@apollo/client';
+import { ReactNode } from 'react';
+
 import { CachePersistorProvider } from '../context/cache-persistor';
-import { RestorePersistedCache } from './RestorePersistedCache';
-import { ConfirmLeaveOnPendingPersistCache } from './ConfirmLeaveOnPendingPersistCache';
+
 import { CacheRestorerProvider } from '../context/cache-restorer';
-import { WebSocketClientProvider } from '../context/websocket-client';
+import { GetMutationUpdaterFnProvider } from '../context/get-mutation-updater-fn';
+import { PersistLinkProvider } from '../context/persist-link';
 import { StatsLinkProvider } from '../context/stats-link';
+import { WebSocketClientProvider } from '../context/websocket-client';
+import { GraphQLService } from '../types';
+
+import { ConfirmLeaveOnPendingPersistCache } from './ConfirmLeaveOnPendingPersistCache';
+
+import { RestorePersistedCache } from './RestorePersistedCache';
+import { ResumePersistedOngoingOperations } from './ResumePersistedOngoingOperations';
 
 export function GraphQLServiceProvider({
   service,

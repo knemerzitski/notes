@@ -1,12 +1,13 @@
-import { MenuItem } from '@mui/material';
-import { useUserId } from '../context/user-id';
-import { gql } from '../../__generated__';
 import { useApolloClient, useQuery } from '@apollo/client';
-import { useRemoveUser } from '../hooks/useRemoveUser';
-import { useIsOnline } from '../../utils/hooks/useIsOnline';
-import { useShowConfirm } from '../../utils/context/show-confirm';
-import { useOnClose } from '../../utils/context/on-close';
+import { MenuItem } from '@mui/material';
+
+import { gql } from '../../__generated__';
 import { hasUserOngoingOperations } from '../../graphql/link/persist/has-user';
+import { useOnClose } from '../../utils/context/on-close';
+import { useShowConfirm } from '../../utils/context/show-confirm';
+import { useIsOnline } from '../../utils/hooks/useIsOnline';
+import { useUserId } from '../context/user-id';
+import { useRemoveUser } from '../hooks/useRemoveUser';
 import { confirmUnsavedChanges } from '../utils/confirm-unsaved-changes';
 
 const ForgetUserMenuItem_Query = gql(`

@@ -7,10 +7,12 @@ import {
   Theme,
   css,
 } from '@mui/material';
-import { useIsMobile } from '../../theme/context/is-mobile';
+
 import { ReactNode } from 'react';
-import { useIsAppDrawerOpen } from '../context/app-drawer-state';
+
+import { useIsMobile } from '../../theme/context/is-mobile';
 import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
+import { useIsAppDrawerOpen } from '../context/app-drawer-state';
 
 export function AppBar({
   AppBarProps,

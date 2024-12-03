@@ -1,5 +1,6 @@
 import MenuIcon from '@mui/icons-material/Menu';
 import { Tooltip, IconButton, IconButtonProps } from '@mui/material';
+
 import { useSetAppDrawerOpen } from '../context/app-drawer-state';
 
 export function ToggleAppDrawerButton({

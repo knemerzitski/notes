@@ -1,8 +1,11 @@
 import { useQuery } from '@apollo/client';
+
+import { CollabService } from '~collab/client/collab-service';
+
+import { Maybe } from '~utils/types';
+
 import { gql } from '../../__generated__';
 import { useNoteId } from '../context/note-id';
-import { CollabService } from '~collab/client/collab-service';
-import { Maybe } from '~utils/types';
 
 const UseCollabService_Query = gql(`
   query UseCollabService_Query($by: UserNoteLinkByInput!) {

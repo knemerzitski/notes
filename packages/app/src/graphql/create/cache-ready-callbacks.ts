@@ -1,6 +1,7 @@
 import { InMemoryCache } from '@apollo/client';
-import { CacheRestorer } from '../utils/cache-restorer';
+
 import { CacheReadyCallbacks } from '../types';
+import { CacheRestorer } from '../utils/cache-restorer';
 
 export function createRunCacheReadyCallbacks({
   callbacks,

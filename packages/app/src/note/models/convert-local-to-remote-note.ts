@@ -1,17 +1,20 @@
 import { ApolloCache, makeReference } from '@apollo/client';
+
 import { Maybe, SignedInUser, UserNoteLinkByInput } from '../../__generated__/graphql';
-import { isLocalId } from '../../utils/is-local-id';
-import { noteExists } from './note/exists';
+
 import { addUserOperations } from '../../user/models/operations/add';
 import { getCurrentUserId } from '../../user/models/signed-in-user/get-current';
+import { isLocalId } from '../../utils/is-local-id';
+import { setNoteExternalStateFromOtherNote } from '../policies/Note/_external';
 import {
   getUserNoteLinkId,
   getUserNoteLinkIdFromByInput,
   parseUserNoteLinkByInput,
 } from '../utils/id';
-import { setNoteExternalStateFromOtherNote } from '../policies/Note/_external';
-import { isExcludeNoteFromConnection } from './local-note/is-exclude';
+
 import { excludeNoteFromConnection } from './local-note/exclude';
+import { isExcludeNoteFromConnection } from './local-note/is-exclude';
+import { noteExists } from './note/exists';
 import { replaceNoteInConnection } from './note-connection/replace';
 
 /**

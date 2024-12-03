@@ -1,15 +1,20 @@
+import { gql, NormalizedCacheObject } from '@apollo/client';
+import { MockLink } from '@apollo/client/testing';
 import { renderHook } from '@testing-library/react';
-import { it, vi, expect } from 'vitest';
-import { useCategoryChanged } from './useCategoryChanged';
 import { ReactNode } from 'react';
+import { it, vi, expect } from 'vitest';
+
+import { NoteCategory } from '../../__generated__/graphql';
 import { GraphQLServiceProvider } from '../../graphql/components/GraphQLServiceProvider';
+
 import { createGraphQLService } from '../../graphql/create/service';
 import { createDefaultGraphQLServiceParams } from '../../graphql-service';
-import { MockLink } from '@apollo/client/testing';
 import { UserIdProvider } from '../../user/context/user-id';
-import { gql, NormalizedCacheObject } from '@apollo/client';
+
+
 import { getUserNoteLinkId } from '../utils/id';
-import { NoteCategory } from '../../__generated__/graphql';
+
+import { useCategoryChanged } from './useCategoryChanged';
 
 const userId = 'a';
 

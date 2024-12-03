@@ -1,12 +1,17 @@
 import { ApolloCache } from '@apollo/client';
 import { GraphQLError } from 'graphql';
+
+import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+
 import { Note } from '../../__generated__/graphql';
 import { getOperationOrRequestUserId } from '../../graphql/link/current-user';
-import { getUserNoteLinkId } from './id';
-import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
-import { isErrorCode } from '../../graphql/utils/is-error-code';
-import { deleteNote } from '../models/note/delete';
+
 import { getOperationUserId } from '../../graphql/utils/get-operation-user-id';
+import { isErrorCode } from '../../graphql/utils/is-error-code';
+
+import { deleteNote } from '../models/note/delete';
+
+import { getUserNoteLinkId } from './id';
 
 /**
  * Deletes note from cache if recevied error `NOT_FOUND`.

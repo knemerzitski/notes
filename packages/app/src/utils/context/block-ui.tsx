@@ -8,12 +8,16 @@ import {
   styled,
 } from '@mui/material';
 import { createContext, ReactNode, useCallback, useContext, useId } from 'react';
-import { useShowModal } from './serial-modals';
+
+import { BlockUiBackdrop } from '../components/BlockUiBackdrop';
+
+import { useSmoothOpen } from '../hooks/useSmoothOpen';
+
 import { useIsOpen } from './is-open';
 import { useOnClose } from './on-close';
 import { useOnExited } from './on-exited';
-import { BlockUiBackdrop } from '../components/BlockUiBackdrop';
-import { useSmoothOpen } from '../hooks/useSmoothOpen';
+
+import { useShowModal } from './serial-modals';
 
 interface BlockUiOptions {
   /**

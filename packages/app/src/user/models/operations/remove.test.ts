@@ -1,7 +1,9 @@
 import { ApolloCache, NormalizedCacheObject } from '@apollo/client';
 import { it, beforeEach, expect } from 'vitest';
-import { createDefaultGraphQLServiceParams } from '../../../graphql-service';
+
 import { createGraphQLService } from '../../../graphql/create/service';
+import { createDefaultGraphQLServiceParams } from '../../../graphql-service';
+
 import { addUserOperations } from './add';
 import { removeUserOperations } from './remove';
 

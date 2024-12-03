@@ -1,8 +1,9 @@
 import { ApolloCache } from '@apollo/client';
-import { UserNoteLinkByInput } from '../../../__generated__/graphql';
+
 import { gql } from '../../../__generated__';
-import { getConnectionCategoryName } from '../note/connection-category-name';
+import { UserNoteLinkByInput } from '../../../__generated__/graphql';
 import { getUserNoteLinkIdFromByInput } from '../../utils/id';
+import { getConnectionCategoryName } from '../note/connection-category-name';
 
 const RemoveNoteFromConnection_Query = gql(`
   query RemoveNoteFromConnection_Query($category: NoteCategory!) {

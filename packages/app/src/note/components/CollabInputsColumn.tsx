@@ -1,4 +1,5 @@
 import { Box, BoxProps, css, styled } from '@mui/material';
+
 import { CollabInputs } from './CollabInputs';
 
 export function CollabInputsColumn({

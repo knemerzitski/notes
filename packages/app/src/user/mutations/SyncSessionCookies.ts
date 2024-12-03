@@ -1,4 +1,5 @@
 import { ApolloCache } from '@apollo/client';
+
 import { gql } from '../../__generated__';
 import { mutationDefinition } from '../../graphql/utils/mutation-definition';
 import { getUserIds } from '../models/signed-in-user/get-ids';

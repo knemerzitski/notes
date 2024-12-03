@@ -9,12 +9,12 @@ import {
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
 
 export interface MutationDefinition<
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   TData = any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   TVariables = any,
   TContext = DefaultContext,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   TCache extends ApolloCache<any> = ApolloCache<any>,
 > {
   readonly document: DocumentNode | TypedDocumentNode<TData, TVariables>;

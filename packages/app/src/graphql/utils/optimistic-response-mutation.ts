@@ -9,6 +9,7 @@ import {
 import { IgnoreModifier } from '@apollo/client/cache/core/types/common';
 import { GraphQLError } from 'graphql';
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const IGNORE: IgnoreModifier = Object.create(null);
 
 export const optimisticResponseMutation = function <
@@ -43,6 +44,7 @@ export const optimisticResponseMutation = function <
 
   const { variables, optimisticResponse, context } = options;
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const data =
     typeof optimisticResponse === 'function'
       ? //@ts-expect-error Function is callable
@@ -59,6 +61,7 @@ export const optimisticResponseMutation = function <
     query: mutation,
     variables,
     id: 'ROOT_MUTATION',
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     data,
   });
 
@@ -66,6 +69,7 @@ export const optimisticResponseMutation = function <
     client.cache.modify({
       id: 'ROOT_MUTATION',
       fields(value, { fieldName, DELETE }) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return fieldName === '__typename' ? value : DELETE;
       },
     });
@@ -74,6 +78,7 @@ export const optimisticResponseMutation = function <
   options.update?.(
     client.cache as TCache,
     {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       data,
     },
     {
@@ -83,6 +88,7 @@ export const optimisticResponseMutation = function <
   );
 
   return Promise.resolve({
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     data,
   });
 };

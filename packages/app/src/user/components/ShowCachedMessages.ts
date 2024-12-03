@@ -1,10 +1,12 @@
 import { useApolloClient, useQuery } from '@apollo/client';
-import { gql } from '../../__generated__';
+
 import { useEffect } from 'react';
-import { ShowMessageOptions, useShowMessage } from '../../utils/context/show-message';
-import { removeUserMessages } from '../models/message/remove';
-import { useUserId } from '../context/user-id';
+
+import { gql } from '../../__generated__';
 import { UserMessageType } from '../../__generated__/graphql';
+import { ShowMessageOptions, useShowMessage } from '../../utils/context/show-message';
+import { useUserId } from '../context/user-id';
+import { removeUserMessages } from '../models/message/remove';
 
 const ShowCachedMessages_Query = gql(`
   query ShowCachedMessages_Query($id: ID!) {

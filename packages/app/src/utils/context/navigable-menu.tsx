@@ -1,7 +1,8 @@
-import { createContext, ReactNode, useCallback, useContext, useState } from 'react';
-import { useOnClose } from './on-close';
-import { Box, css, IconButton, styled, Typography } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { Box, css, IconButton, styled, Typography } from '@mui/material';
+import { createContext, ReactNode, useCallback, useContext, useState } from 'react';
+
+import { useOnClose } from './on-close';
 
 type MenuKey =
   | { type: 'custom'; value: string }

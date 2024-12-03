@@ -1,4 +1,5 @@
 import { ApolloCache } from '@apollo/client';
+
 import { generateLocalId } from '../../../utils/generate-local-id';
 import { hasUserFragment } from '../signed-in-user/has-fragment';
 

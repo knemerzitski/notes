@@ -1,9 +1,12 @@
-/* eslint-disable unicorn/filename-case */
+ 
 import { Changeset } from '~collab/changeset';
-import { useCollabHtmlInput } from './useCollabHtmlInput';
-import { NoteExternalState, NoteTextFieldEditor } from '../external-state/note';
+
 import { CollabService } from '~collab/client/collab-service';
+
 import { NoteTextFieldName } from '../../__generated__/graphql';
+import { NoteExternalState, NoteTextFieldEditor } from '../external-state/note';
+
+import { useCollabHtmlInput } from './useCollabHtmlInput';
 
 let noteState: NoteExternalState;
 let editor: NoteTextFieldEditor;
@@ -17,7 +20,7 @@ beforeEach(() => {
   cy.mount(<InputEditing />);
 });
 
-// eslint-disable-next-line react-refresh/only-export-components
+ 
 function InputEditing() {
   const {
     inputRef: ref,

@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ApolloClient, gql, InMemoryCache } from '@apollo/client';
 import { MockedResponse, MockLink } from '@apollo/client/testing';
-import { it, vi, expect } from 'vitest';
-import { StatsLink } from './stats';
 import { GraphQLError } from 'graphql';
+import { it, vi, expect } from 'vitest';
+
+import { StatsLink } from './stats';
 
 const Query = gql(`
   query Foo {
@@ -90,7 +91,8 @@ it('calls events with correct stats', async () => {
       },
       errorPolicy: 'none',
     });
-  } catch (err) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (_err) {
     // Ignore error
   }
   try {
@@ -101,7 +103,8 @@ it('calls events with correct stats', async () => {
       },
       errorPolicy: 'none',
     });
-  } catch (err) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (_err) {
     // Ignore error
   }
 

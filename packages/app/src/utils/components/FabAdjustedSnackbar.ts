@@ -1,4 +1,5 @@
 import { css, Snackbar, SnackbarProps, styled, Theme } from '@mui/material';
+
 import { mergeShouldForwardProp } from '../merge-should-forward-prop';
 
 const fabAdjustedStyle = {
@@ -13,7 +14,6 @@ const fabAdjustedStyle = {
     if (!isRenderingFab || anchorOrigin.vertical !== 'bottom') {
       return;
     }
-    fabAdjustedStyle;
 
     return css`
       ${theme.breakpoints.up('xs')} {

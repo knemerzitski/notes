@@ -1,11 +1,14 @@
-import { IconButton, IconButtonProps, Tooltip } from '@mui/material';
-import { gql } from '../../__generated__';
-import { useNoteId } from '../context/note-id';
 import { useQuery } from '@apollo/client';
+import ArchiveIcon from '@mui/icons-material/Archive';
+import { IconButton, IconButtonProps, Tooltip } from '@mui/material';
+
+import { gql } from '../../__generated__';
+import { MovableNoteCategory } from '../../__generated__/graphql';
+import { useNoteId } from '../context/note-id';
 import { useArchiveNoteWithUndo } from '../hooks/useArchiveNoteWithUndo';
 import { toMovableNoteCategory } from '../utils/note-category';
-import ArchiveIcon from '@mui/icons-material/Archive';
-import { MovableNoteCategory } from '../../__generated__/graphql';
+
+
 
 const ArchiveButton_Query = gql(`
   query ArchiveButton_Query($id: ObjectID!) {

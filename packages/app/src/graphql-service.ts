@@ -1,36 +1,37 @@
 import './graphql/dev';
 
+import { PossibleTypesMap } from '@apollo/client';
+import { LocalStorageWrapper } from 'apollo3-cache-persist';
+import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+
 import generatedPossibleTypes from './__generated__/possible-types.json';
-import {
-  userEvictOptions,
-  userCacheReadyCallback,
-  userMutationDefinitions,
-  userPolicies,
-} from './user/policies';
+import { bootstrapCache } from './bootstrap';
+import { localStorageKey, LocalStoragePrefix } from './bootstrap/utils/local-storage-key';
+import { devGraphQLServiceActions } from './dev';
+import { devicePreferencesPolicies } from './device-preferences/policies';
+import { createGraphQLService } from './graphql/create/service';
+import { graphQLPolicies } from './graphql/policies';
 import {
   CacheReadyCallbacks,
   GraphQLServiceAction,
   MutationDefinitions,
   TypePoliciesList,
 } from './graphql/types';
-import { createGraphQLService } from './graphql/create/service';
-import { graphQLPolicies } from './graphql/policies';
+import { processCacheVersion } from './graphql/utils/process-cache-version';
 import { TaggedEvictOptionsList } from './graphql/utils/tagged-evict';
-import { localStorageKey, LocalStoragePrefix } from './bootstrap/utils/local-storage-key';
-import { LocalStorageWrapper } from 'apollo3-cache-persist';
-import { devicePreferencesPolicies } from './device-preferences/policies';
-import { getCurrentUserId } from './user/models/signed-in-user/get-current';
-import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import {
   noteEvictOptions,
   noteMutationDefinitions,
   notePolicies,
   notePossibleTypes,
 } from './note/policies';
-import { PossibleTypesMap } from '@apollo/client';
-import { devGraphQLServiceActions } from './dev';
-import { bootstrapCache } from './bootstrap';
-import { processCacheVersion } from './graphql/utils/process-cache-version';
+import { getCurrentUserId } from './user/models/signed-in-user/get-current';
+import {
+  userEvictOptions,
+  userCacheReadyCallback,
+  userMutationDefinitions,
+  userPolicies,
+} from './user/policies';
 
 const APOLLO_CACHE_VERSION = '1';
 

@@ -1,5 +1,6 @@
 import { createContext, ReactNode, useContext } from 'react';
 import { Maybe } from '~utils/types';
+
 import { SignedInUser } from '../../__generated__/graphql';
 
 const UserIdContext = createContext<SignedInUser['id'] | null>(null);

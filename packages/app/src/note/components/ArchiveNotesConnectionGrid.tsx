@@ -1,6 +1,8 @@
 import { ReactNode } from 'react';
+
 import { gql } from '../../__generated__';
 import { NoteCategory } from '../../__generated__/graphql';
+
 import { EmptyArchiveInfo } from './EmptyArchiveInfo';
 import { NotesConnectionGrid } from './NotesConnectionGrid';
 

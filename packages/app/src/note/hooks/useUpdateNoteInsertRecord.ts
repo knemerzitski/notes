@@ -1,15 +1,17 @@
+import { useApolloClient } from '@apollo/client';
 import { useCallback } from 'react';
-import { useMutation } from '../../graphql/hooks/useMutation';
-import { UpdateNoteInsertRecord } from '../mutations/UpdateNoteInsertRecord';
+
 import { SubmittedRecord } from '~collab/client/submitted-record';
-import { submittedRecordToCollabTextRecordInput } from '../utils/map-record';
+
 import { Note } from '../../__generated__/graphql';
-import { getCollabTextId } from '../utils/id';
+import { useMutation } from '../../graphql/hooks/useMutation';
 import { PersistLink } from '../../graphql/link/persist';
 import { hasOngoingOperation } from '../../graphql/link/persist/has';
-import { useApolloClient } from '@apollo/client';
 import { noteSerializationKey_fieldText } from '../../graphql/utils/serialization-key';
 import { getCurrentUserId } from '../../user/models/signed-in-user/get-current';
+import { UpdateNoteInsertRecord } from '../mutations/UpdateNoteInsertRecord';
+import { getCollabTextId } from '../utils/id';
+import { submittedRecordToCollabTextRecordInput } from '../utils/map-record';
 
 export function useUpdateNoteInsertRecord() {
   const client = useApolloClient();

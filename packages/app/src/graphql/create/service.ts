@@ -5,9 +5,11 @@ import {
   InMemoryCache,
   PossibleTypesMap,
 } from '@apollo/client';
+import { isQueryOperation } from '@apollo/client/utilities';
 import { CachePersistor, PersistentStorage } from 'apollo3-cache-persist';
-import { WebSocketClient } from '../ws/websocket-client';
-import { createLinks } from './links';
+
+import { Maybe } from '~utils/types';
+
 import {
   AppContext,
   CacheReadyCallbacks,
@@ -16,17 +18,19 @@ import {
   MutationDefinitions,
   TypePoliciesList,
 } from '../types';
-import { addTypePolicies, createTypePolicies } from './type-policies';
-import { Maybe } from '~utils/types';
-import { TaggedEvict, TaggedEvictOptionsList } from '../utils/tagged-evict';
 import { CacheRestorer } from '../utils/cache-restorer';
-import { createRunCacheReadyCallbacks } from './cache-ready-callbacks';
-import { createMutationUpdaterFunctionMap } from './mutation-updater-map';
+
 import { createOnlineGate } from '../utils/online-gate';
+import { TaggedEvict, TaggedEvictOptionsList } from '../utils/tagged-evict';
 import { createUsersGates, initUsersGates } from '../utils/user-gate';
+import { WebSocketClient } from '../ws/websocket-client';
+
+import { createRunCacheReadyCallbacks } from './cache-ready-callbacks';
 import { createErrorLink } from './error-link';
 import { createHttpWsLink } from './http-ws-link';
-import { isQueryOperation } from '@apollo/client/utilities';
+import { createLinks } from './links';
+import { createMutationUpdaterFunctionMap } from './mutation-updater-map';
+import { addTypePolicies, createTypePolicies } from './type-policies';
 
 export function createGraphQLService({
   httpUri,

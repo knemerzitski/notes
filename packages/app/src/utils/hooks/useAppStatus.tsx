@@ -1,9 +1,10 @@
+import { useApolloClient } from '@apollo/client';
 import { useState, useRef, useEffect } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
+
+import { gql } from '../../__generated__';
 import { useStatsLink } from '../../graphql/context/stats-link';
 import { useUserId } from '../../user/context/user-id';
-import { gql } from '../../__generated__';
-import { useApolloClient } from '@apollo/client';
 
 const UseAppStatus_Query = gql(`
   query UseAppStatus_Query {

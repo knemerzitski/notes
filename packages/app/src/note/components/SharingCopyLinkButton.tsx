@@ -1,13 +1,16 @@
-import { Button } from '@mui/material';
-import { useShowSnackbarAlert } from '../../utils/context/snackbar-alert';
-import { useId } from 'react';
-import { gql } from '../../__generated__';
 import { useFragment } from '@apollo/client';
+import { Button } from '@mui/material';
+
+import { useId } from 'react';
+
+import { gql } from '../../__generated__';
+import { useShowSnackbarAlert } from '../../utils/context/snackbar-alert';
 import { useNoteId } from '../context/note-id';
 import { getShareUrl } from '../utils/get-share-url';
 
 const SharingCopyLinkButton_NoteFragment = gql(`
   fragment SharingCopyLinkButton_NoteFragment on Note {
+    id
     shareAccess {
       id
     }

@@ -1,7 +1,8 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import { ApolloCache } from '@apollo/client';
-import { UserNoteLinkByInput } from '../../../__generated__/graphql';
+
 import { gql } from '../../../__generated__';
+import { UserNoteLinkByInput } from '../../../__generated__/graphql';
 
 const IsLocalOnlyNote_Query = gql(`
   query IsLocalOnlyNote_Query($by: UserNoteLinkByInput!) {

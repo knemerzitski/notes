@@ -1,7 +1,8 @@
-import { ReactNode, useEffect, useState } from 'react';
-import { IsCacheRestoredProvider } from '../context/is-cache-restored';
 import { useApolloClient } from '@apollo/client';
+import { ReactNode, useEffect, useState } from 'react';
+
 import { useCacheRestorer } from '../context/cache-restorer';
+import { IsCacheRestoredProvider } from '../context/is-cache-restored';
 
 export function RestorePersistedCache({
   children,

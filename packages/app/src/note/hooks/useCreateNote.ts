@@ -1,24 +1,29 @@
 import { useApolloClient } from '@apollo/client';
-import { useUserId } from '../../user/context/user-id';
+
 import { useCallback, useMemo, useRef, useState } from 'react';
+
+import { getFragmentData } from '../../__generated__';
 import {
   CreateNotePayloadFragmentDoc,
   Note,
   NoteCategory,
   NotePendingStatus,
 } from '../../__generated__/graphql';
-import { CreateNote } from '../mutations/CreateNote';
 import { useMutation } from '../../graphql/hooks/useMutation';
-import { getCollabService } from '../models/note/get-collab-service';
-import { useCategoryChanged } from './useCategoryChanged';
-import { addNoteToConnection } from '../models/note-connection/add';
+import { useUserId } from '../../user/context/user-id';
 import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
-import { getFragmentData } from '../../__generated__';
+import { clearExcludeNoteFromConnection } from '../models/local-note/clear-exclude';
 import { getOrCreatePendingNote } from '../models/local-note/get-or-create-pending';
 import { getNotePendingStatus } from '../models/local-note/get-status';
 import { setNotePendingStatus } from '../models/local-note/set-status';
+import { getCollabService } from '../models/note/get-collab-service';
+import { addNoteToConnection } from '../models/note-connection/add';
+import { CreateNote } from '../mutations/CreateNote';
+
 import { getUserNoteLinkId } from '../utils/id';
-import { clearExcludeNoteFromConnection } from '../models/local-note/clear-exclude';
+
+import { useCategoryChanged } from './useCategoryChanged';
+
 
 export function useCreateNote(): {
   noteId: Note['id'];

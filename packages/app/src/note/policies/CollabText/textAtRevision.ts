@@ -1,16 +1,21 @@
-import { CreateFieldPolicyFn, TypePoliciesContext } from '../../../graphql/types';
 import { FieldFunctionOptions } from '@apollo/client';
-import { CollabText, CollabTextRecord } from '../../../__generated__/graphql';
-import { gql } from '../../../__generated__';
-import { binarySearchIndexOf } from '~utils/array/binary-search';
+
 import { Changeset } from '~collab/changeset';
+import { binarySearchIndexOf } from '~utils/array/binary-search';
+
+import { gql } from '../../../__generated__';
+import { CollabText, CollabTextRecord } from '../../../__generated__/graphql';
+
+import { CreateFieldPolicyFn, TypePoliciesContext } from '../../../graphql/types';
 import { firstRevisionChangeset } from '../../utils/map-record';
 
 const PolicyTextAtRevision_CollabTextFragment = gql(`
   fragment PolicyTextAtRevision_CollabTextFragment on CollabText {
+    id
     recordConnection(after: $after, first: $first) {
       edges {
         node {
+          id
           change {
           revision
           changeset
@@ -37,6 +42,7 @@ export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesC
 
       // Return oldest without argument
       if (args?.revision == null) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
         return existing[0];
       }
 
@@ -45,25 +51,30 @@ export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesC
 
       // Find closest older revision
       const { index, exists } = binarySearchIndexOf(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         existing,
         { revision },
         compareRevisions
       );
 
       if (exists) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
         return existing[index]!;
       }
 
       // Compose text from closest older tailText
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       const tailText = existing[index - 1];
       if (!tailText) {
         return;
       }
 
+       
       const records = readRecords(
         {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
           after: tailText.revision,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           first: revision - tailText.revision,
         },
         options
@@ -73,8 +84,11 @@ export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesC
       }
 
       return {
+         
         changeset: records.reduce(
+           
           (a, b) => a.compose(b.change.changeset),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           Changeset.parseValue(tailText.changeset)
         ),
         revision,
@@ -86,7 +100,9 @@ export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesC
 
       // Find closest older revision
       const { index, exists } = binarySearchIndexOf(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         existing,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         { revision: incoming.revision },
         compareRevisions
       );
@@ -110,13 +126,18 @@ export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesC
       // }
 
       if (exists) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return [
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
           ...existing.slice(0, index),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           mergeObjects(existing[index], incoming),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
           ...existing.slice(index + 1),
         ];
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       return [...existing.slice(0, index), incoming, ...existing.slice(index)];
     },
   };
@@ -154,5 +175,6 @@ function readRecords(
     return;
   }
 
+   
   return collabText.recordConnection.edges.map((edge) => edge.node);
 }

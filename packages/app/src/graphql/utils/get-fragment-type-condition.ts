@@ -1,5 +1,6 @@
+import { DocumentNode } from '@apollo/client';
 import { getMainDefinition } from '@apollo/client/utilities';
-import { DocumentNode, Kind } from 'graphql';
+import { Kind } from 'graphql';
 
 export function getFragmentTypeCondition(document: DocumentNode): string | undefined {
   const definition = getMainDefinition(document);

@@ -6,9 +6,10 @@ import {
   MenuList,
   Typography,
 } from '@mui/material';
+
 import { ColorMode } from '../../__generated__/graphql';
-import { useColorMode } from '../hooks/useColorMode';
 import { useSelectNavigableMenu } from '../../utils/context/navigable-menu';
+import { useColorMode } from '../hooks/useColorMode';
 
 export const colorModes = [
   {
