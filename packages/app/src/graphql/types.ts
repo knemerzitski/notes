@@ -14,8 +14,6 @@ import { PersistLink } from './link/persist';
 import { MutationDefinition } from './utils/mutation-definition';
 import { TaggedEvict } from './utils/tagged-evict';
 
-
-
 declare module '@apollo/client' {
   interface DefaultContext {
     [SerializingLink.SERIALIZE]?: string;

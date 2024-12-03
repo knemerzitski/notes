@@ -8,7 +8,6 @@ import { DeleteForeverNoteMenuItem } from './DeleteForeverNoteMenuItem';
 import { RestoreNoteMenuItem } from './RestoreNoteMenuItem';
 import { TrashDeleteNoteMenuItem } from './TrashDeleteNoteMenuItem';
 
-
 const _NoteMoreOptionsButton_UserNoteLinkFragment = gql(`
   fragment NoteMoreOptionsButton_UserNoteLinkFragment on UserNoteLink {
     ...TrashDeleteNoteMenuItem_UserNoteLinkFragment

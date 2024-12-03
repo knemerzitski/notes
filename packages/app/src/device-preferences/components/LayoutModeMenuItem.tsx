@@ -14,7 +14,6 @@ import { useSelectNavigableMenu } from '../../utils/context/navigable-menu';
 
 import { LayoutModeText } from './LayoutModeText';
 
-
 export function LayoutModeMenuItem() {
   const selectMenu = useSelectNavigableMenu();
 

@@ -1,4 +1,3 @@
- 
 import { faker } from '@faker-js/faker';
 import { assert, beforeEach, expect, it } from 'vitest';
 

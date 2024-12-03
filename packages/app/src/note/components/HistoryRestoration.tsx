@@ -10,8 +10,6 @@ import { useNoteId } from '../context/note-id';
 import { useCollabService } from '../hooks/useCollabService';
 import { CacheRecordsFacade } from '../utils/cache-records-facade';
 
-
-
 const HistoryRestoration_Query = gql(`
   query HistoryRestoration_Query($by: UserNoteLinkByInput!, 
                             $recordsBeforeRevision: NonNegativeInt!, $recordsLast: PositiveInt!, $skipRecords: Boolean!

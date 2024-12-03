@@ -9,7 +9,6 @@ import { MongoPrimitive } from '../types';
 
 import { QUERY_ARG_PREFIX, QueryArgPrefix, QueryObjectDeep } from './query';
 
-
 import { getEqualObjectString } from './utils/get-equal-object-string';
 
 export const ARGS_FIELD = '$args';

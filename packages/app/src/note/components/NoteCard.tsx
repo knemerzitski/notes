@@ -9,10 +9,8 @@ import { noteEditDialogId } from '../../utils/element-id';
 import { isElHover } from '../../utils/is-el-hover';
 import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
 
-
 import { useNoteId } from '../context/note-id';
 import { useIsNoteOpen } from '../hooks/useIsNoteOpen';
-
 
 import { getCategoryName } from '../models/note/category-name';
 
@@ -20,11 +18,9 @@ import { ContentTypography } from './ContentTypography';
 
 import { DeletedInDays } from './DeletedInDays';
 
-
 import { NoteAlwaysButtons } from './NoteAlwaysButtons';
 import { NoteMoreOptionsButton } from './NoteMoreOptionsButton';
 import { TitleTypography } from './TitleTypography';
-
 
 const _NoteCard_UserNoteLinkFragment = gql(`
   fragment NoteCard_UserNoteLinkFragment on UserNoteLink {

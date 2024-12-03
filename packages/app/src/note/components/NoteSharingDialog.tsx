@@ -19,7 +19,6 @@ import { SharingLinkTextField } from './SharingLinkTextField';
 import { SharingStatusTypography } from './SharingStatusTypography';
 import { ToggleSharingSwitch } from './ToggleSharingSwitch';
 
-
 const _NoteSharingDialog_NoteFragment = gql(`
   fragment NoteSharingDialog_NoteFragment on Note {
     ...ToggleSharingSwitch_NoteFragment

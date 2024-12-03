@@ -1,4 +1,3 @@
- 
 import { ApolloCache } from '@apollo/client';
 
 import { gql } from '../../../__generated__';

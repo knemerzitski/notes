@@ -5,7 +5,6 @@ import { ReactNode } from 'react';
 import { gql } from '../../__generated__';
 import { UserIdProvider } from '../context/user-id';
 
-
 const CurrentUserIdProvider_Query = gql(`
   query CurrentUserIdProvider_Query {
     currentSignedInUser @client {

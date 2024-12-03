@@ -9,9 +9,6 @@ import { EditableDisplayName } from './EditableDisplayName';
 import { EmailSubtitle } from './EmailSubtitle';
 import { UserAvatar } from './UserAvatar';
 
-
-
-
 const CurrentUserInfo_Query = gql(`
   query CurrentUserInfo_Query {
     currentSignedInUser @client {

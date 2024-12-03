@@ -29,6 +29,7 @@ export function addUserAuthProvider(
     }),
     data: {
       __typename: 'SignedInUser',
+      id: userId,
       authProviderUsers: [authProvider],
     },
   });

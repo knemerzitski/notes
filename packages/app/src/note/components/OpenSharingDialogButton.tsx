@@ -1,7 +1,6 @@
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import { IconButton, IconButtonProps, Tooltip } from '@mui/material';
 
-
 import { useNavigate } from '@tanstack/react-router';
 
 import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';

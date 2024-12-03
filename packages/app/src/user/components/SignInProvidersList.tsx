@@ -11,7 +11,6 @@ import { useUserId } from '../context/user-id';
 
 import { GoogleLoginButton } from './GoogleLoginButton';
 
-
 const SignInProvidersList_Query = gql(`
   query SignInProvidersList_Query($id: ID!) {
     signedInUser(by: { id: $id }) @client {

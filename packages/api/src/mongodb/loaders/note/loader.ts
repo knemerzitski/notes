@@ -1,4 +1,3 @@
-
 import mitt, { Emitter } from 'mitt';
 import { AggregateOptions, ObjectId } from 'mongodb';
 
@@ -7,7 +6,6 @@ import { MongoDBContext } from '../../context';
 import { LoaderEvents } from '../../loaders';
 
 import { MongoQueryFn, QueryDeep } from '../../query/query';
-
 
 import {
   CreateQueryFnOptions,

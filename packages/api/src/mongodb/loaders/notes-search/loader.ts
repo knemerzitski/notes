@@ -1,7 +1,6 @@
 import mitt, { Emitter } from 'mitt';
 import { AggregateOptions, ObjectId } from 'mongodb';
 
-
 import { Infer } from 'superstruct';
 
 import { CollectionName, MongoDBCollections } from '../../collections';
@@ -23,7 +22,6 @@ import {
 
 import { batchLoad } from './batch-load';
 import { QueryableSearchNotes } from './description';
-
 
 export interface QueryableNotesSearchId {
   /**

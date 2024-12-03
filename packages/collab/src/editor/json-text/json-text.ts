@@ -13,7 +13,6 @@ import { ViewTextKeyView } from './view-text-key-view';
 import { ViewTextMemo } from './view-text-memo';
 import { ViewTextMemosCache } from './view-text-memos-cache';
 
-
 export class JsonText<K extends string, S extends StringRecordStruct> {
   private readonly viewsCache;
   private readonly service;

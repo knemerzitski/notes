@@ -9,9 +9,7 @@ import { AppDrawer } from './AppDrawer';
 import { DrawerNavigationList } from './DrawerNavigationList';
 import { HeaderToolbar } from './HeaderToolbar';
 
-
 import { MainBox } from './MainBox';
-
 
 export function AppBarDrawerLayout({ children }: { children: ReactNode }) {
   return (

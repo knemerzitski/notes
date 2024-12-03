@@ -1,7 +1,6 @@
 import mitt, { Emitter } from 'mitt';
 import { AggregateOptions } from 'mongodb';
 
-
 import { Infer } from 'superstruct';
 
 import { CollectionName, MongoDBCollections } from '../../collections';

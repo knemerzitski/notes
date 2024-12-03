@@ -15,7 +15,6 @@ import { useUserId } from '../context/user-id';
 
 import { SignInProvidersList } from './SignInProvidersList';
 
-
 const SignInModal_Query = gql(`
   query SignInModal_Query($id: ID!) {
     signedInUser(by: { id: $id }) @client {

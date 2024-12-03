@@ -1,4 +1,3 @@
- 
 import { useQuery } from '@apollo/client';
 
 import { gql } from '../../__generated__';

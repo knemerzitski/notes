@@ -13,7 +13,6 @@ import {
 } from '../lib/utils/env';
 import { PROJECT_DIR } from '../lib/utils/project-dir';
 
-
 assertDynamoDBIsRunning();
 
 /**

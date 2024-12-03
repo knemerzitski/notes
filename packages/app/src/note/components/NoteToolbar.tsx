@@ -7,7 +7,6 @@ import { NoteAlwaysButtons } from './NoteAlwaysButtons';
 import { NoteEditingButtons } from './NoteEditingButtons';
 import { NoteMoreOptionsButton } from './NoteMoreOptionsButton';
 
-
 export const NoteToolbar = forwardRef<HTMLDivElement, Parameters<typeof PaperStyled>[0]>(
   function NoteToolbar({ elevation = 0, ...restProps }, ref) {
     return (

@@ -16,8 +16,6 @@ import { useOnClose } from './on-close';
 import { useOnExited } from './on-exited';
 import { CloseHandler, ShowModalOptions, useShowModal } from './serial-modals';
 
-
-
 interface ShowSnackbarAlertContextProps extends SnackbarAlertProps {
   modalOptions?: ShowModalOptions;
 }

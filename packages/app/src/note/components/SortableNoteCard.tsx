@@ -1,8 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-
-
 import { css, styled } from '@mui/material';
 import { forwardRef, useMemo } from 'react';
 
@@ -11,8 +9,6 @@ import { DndType } from '../../dnd/types';
 import { setDragOverlayInDndData } from '../../dnd/utils/data-drag-overlay';
 import { setDndData } from '../../dnd/utils/dnd-data';
 import { getNoteDndId } from '../../dnd/utils/id';
-
-
 
 import { useIsMobile } from '../../theme/context/is-mobile';
 import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';

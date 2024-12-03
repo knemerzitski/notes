@@ -1,5 +1,3 @@
- 
-
 """
 The @client directive allows you to resolve client-only data alongside your server data.
 These fields are not sent to the GraphQL server.

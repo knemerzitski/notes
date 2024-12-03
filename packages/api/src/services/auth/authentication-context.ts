@@ -4,7 +4,6 @@ import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes'
 
 import { QueryableSession } from '../../mongodb/loaders/session/description';
 
-
 import { isAuthenticated } from './is-authenticated';
 
 export type AuthenticationContext = AuthenticatedContext | UnauthenticatedContext;

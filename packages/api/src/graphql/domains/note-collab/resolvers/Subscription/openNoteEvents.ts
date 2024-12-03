@@ -23,9 +23,6 @@ import {
   publishSignedInUserMutations,
 } from '../../../user/resolvers/Subscription/signedInUserEvents';
 
-
-
-
 export function openNoteTopic(noteId: ObjectId) {
   return `${SubscriptionTopicPrefix.OPEN_NOTE_EVENTS}:${objectIdToStr(noteId)}`;
 }

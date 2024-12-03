@@ -14,7 +14,6 @@ import { GraphQLError } from 'graphql';
 import { it, vi, expect } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-
 import { addTypePolicies, createTypePolicies } from '../../create/type-policies';
 import { graphQLPolicies } from '../../policies';
 
@@ -93,7 +92,7 @@ it('stores mutation in cache on network error', async () => {
         [PersistLink.PERSIST]: true,
       },
     });
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_err) {
     // ignore error
   }
@@ -182,7 +181,7 @@ it('no mutation in cache on GraphQL error', async () => {
         [PersistLink.PERSIST]: true,
       },
     });
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_err) {
     //Ignore error
   }

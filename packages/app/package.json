@@ -8,7 +8,7 @@
     "graphql:gen:types": "vite-node scripts/gen-possible-types.ts -f src/__generated__",
     "graphql:gen": "npm run graphql:gen:code && npm run graphql:gen:types",
     "graphql:w": "graphql-codegen -w",
-    "build": "npm run graphql:gen && npm run graphql:gen-types && npm run vite:build",
+    "build": "npm run vite:build",
     "test:unit": "vitest run",
     "test:unit:w": "vitest watch",
     "test:comp": "cypress run --component",

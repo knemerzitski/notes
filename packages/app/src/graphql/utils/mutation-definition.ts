@@ -9,12 +9,9 @@ import {
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
 
 export interface MutationDefinition<
-   
   TData = any,
-   
   TVariables = any,
   TContext = DefaultContext,
-   
   TCache extends ApolloCache<any> = ApolloCache<any>,
 > {
   readonly document: DocumentNode | TypedDocumentNode<TData, TVariables>;

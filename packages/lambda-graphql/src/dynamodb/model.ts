@@ -225,7 +225,6 @@ export function newModel<TKey extends object, TItem extends object>({
         const itemWithoutKeys: TItemNoKeys = Object.entries(item)
           .filter(([key]) => !(key in Key))
           .reduce((acc, [key, val]) => {
-             
             acc[key as keyof TItemNoKeys] = val as TItem[Exclude<
               keyof TItem,
               keyof TKey

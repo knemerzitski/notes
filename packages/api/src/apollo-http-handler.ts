@@ -5,7 +5,8 @@ import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import {
   createApolloHttpHandler,
   CreateApolloHttpHandlerParams,
- ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
+  ApolloHttpGraphQLContext,
+} from '~lambda-graphql/apollo-http-handler';
 import { createLogger, Logger } from '~utils/logging';
 
 import { createApiGraphQLContext, createBaseGraphQLContext } from './graphql/context';

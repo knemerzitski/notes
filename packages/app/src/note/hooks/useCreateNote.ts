@@ -24,7 +24,6 @@ import { getUserNoteLinkId } from '../utils/id';
 
 import { useCategoryChanged } from './useCategoryChanged';
 
-
 export function useCreateNote(): {
   noteId: Note['id'];
   /**

@@ -11,7 +11,6 @@ import { createGraphQLService } from '../../graphql/create/service';
 import { createDefaultGraphQLServiceParams } from '../../graphql-service';
 import { UserIdProvider } from '../../user/context/user-id';
 
-
 import { getUserNoteLinkId } from '../utils/id';
 
 import { useCategoryChanged } from './useCategoryChanged';

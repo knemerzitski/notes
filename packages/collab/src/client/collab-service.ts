@@ -1,4 +1,3 @@
- 
 import mitt, { Emitter } from 'mitt';
 import { nanoid } from 'nanoid';
 
@@ -17,7 +16,8 @@ import {
   OrderedMessageBufferParams,
   OrderedMessageBufferParamsStruct,
   ProcessingEvents,
- OrderedMessageBufferEvents } from '~utils/ordered-message-buffer';
+  OrderedMessageBufferEvents,
+} from '~utils/ordered-message-buffer';
 
 import { Changeset } from '../changeset';
 import { SimpleTextOperationOptions } from '../editor/types';

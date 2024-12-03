@@ -23,9 +23,7 @@ import { EmailSubtitleSmall } from './EmailSubtitleSmall';
 import { SessionExpired } from './SessionExpired';
 import { UserAvatar } from './UserAvatar';
 
-
 import { UserMoreOptionsButton } from './UserMoreOptionsButton';
-
 
 const UserListItem_Query = gql(`
   query UserListItem_Query($id: ID!) {

@@ -10,8 +10,6 @@ import { ShowConfirmDialogProvider } from './ShowConfirmDialogProvider';
 import { ShowSnackbarMessageProvider } from './ShowSnackbarMessageProvider';
 import { SnackbarUndoActionProvider } from './SnackbarUndoActionProvider';
 
-
-
 const GLOBAL_COUNT_IDS = [Fab];
 
 export function AppUtilsModuleProvider({ children }: { children: ReactNode }) {

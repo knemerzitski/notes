@@ -8,7 +8,6 @@ import { mongoCollections } from '../mongodb';
 
 import { populateQueue } from './populate-queue';
 
-
 export interface FakeSessionOptions {
   override?: MongoPartialDeep<DBSessionSchema>;
 }

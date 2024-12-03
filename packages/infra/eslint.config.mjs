@@ -5,7 +5,7 @@ import globals from 'globals';
 export default [
   ...rootConfig,
   {
-    ignores: ['cdk.out', 'scripts', 'out'],
+    ignores: ['cdk.out', 'scripts', 'out', 'lib/cloudfront-functions/viewer-request.ts'],
   },
   {
     languageOptions: {

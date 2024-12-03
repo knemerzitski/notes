@@ -47,7 +47,6 @@ import { signedInUserTopic } from '../../../user/resolvers/Subscription/signedIn
 
 import { moveUserNoteLink } from './moveUserNoteLink';
 
-
 const MUTATION = `#graphql
   mutation($input: MoveUserNoteLinkInput!){
     moveUserNoteLink(input: $input) {

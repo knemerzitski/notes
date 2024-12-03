@@ -19,7 +19,6 @@ export function mutate<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   TData = any,
   TVariables extends OperationVariables = OperationVariables,
-   
   TContext extends DefaultContext = DefaultContext,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   TCache extends ApolloCache<any> = ApolloCache<any>,

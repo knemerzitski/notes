@@ -8,7 +8,6 @@ import { DBSessionSchema, SessionSchema } from '../../mongodb/schema/session';
 
 import { SessionDuration } from './duration';
 
-
 export interface InsertSessionParams {
   mongoDB: {
     collections: Pick<MongoDBCollections, CollectionName.SESSIONS>;

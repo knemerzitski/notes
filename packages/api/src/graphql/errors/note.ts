@@ -23,8 +23,6 @@ import {
 
 import { ErrorMapper } from './utils/error-mapper';
 
-
-
 class NoteNotFoundError extends GraphQLError {
   constructor() {
     super('Note not found', {

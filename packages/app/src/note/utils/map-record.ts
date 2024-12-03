@@ -9,7 +9,6 @@ import {
   RevisionChangeset,
 } from '../../__generated__/graphql';
 
-
 /**
  * Record structure that is always fetched from the server and stored in cache.
  */

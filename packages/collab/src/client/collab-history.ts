@@ -14,10 +14,8 @@ import {
 import { CollabClient } from './collab-client';
 import { SelectionRange, SelectionRangeStruct } from './selection-range';
 
-
 import { SelectionChangeset } from './types';
 import { UserRecords } from './user-records';
-
 
 export interface CollabHistoryEvents {
   appliedTypingOperation: ReadonlyDeep<

@@ -43,20 +43,18 @@ export class StatsLink extends ApolloLink {
     return this.globalStatsData.byType;
   }
 
-  getUserEventBus(
-    userId?: string  
-  ): Pick<Emitter<AllOperationStats>, 'on' | 'off'> {
+  getUserEventBus(userId?: string): Pick<Emitter<AllOperationStats>, 'on' | 'off'> {
     return this.definedStatsDataByUser.get(userId ?? '').eventBus;
   }
 
-  getUserStats(userId?: string  ): ReadonlyDeep<AllOperationStats> {
+  getUserStats(userId?: string): ReadonlyDeep<AllOperationStats> {
     return this.definedStatsDataByUser.get(userId ?? '').byType;
   }
 
   /**
    * @returns Ongoing operations count. Excluding subscriptions.
    */
-  getOngoingCount(userId?: string  ) {
+  getOngoingCount(userId?: string) {
     const globalStats = this.getUserStats();
     const userStats = this.getUserStats(userId);
 
@@ -68,7 +66,7 @@ export class StatsLink extends ApolloLink {
     );
   }
 
-  getOngoingQueriesCount(userId?: string  ) {
+  getOngoingQueriesCount(userId?: string) {
     const globalStats = this.getUserStats();
     const userStats = this.getUserStats(userId);
 

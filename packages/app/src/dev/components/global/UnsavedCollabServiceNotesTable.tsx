@@ -14,7 +14,6 @@ import {
 import { gql } from '../../../__generated__';
 import { useUserId } from '../../../user/context/user-id';
 
-
 const UnsavedCollabServiceNotesTable_Query = gql(`
   query UnsavedCollabServiceNotesTable_Query($id: ID!){
     signedInUser(by: { id: $id }) {

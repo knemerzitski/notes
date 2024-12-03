@@ -1,4 +1,3 @@
- 
 import { it, expect, describe } from 'vitest';
 
 import { binarySearchIndexOf } from './binary-search';

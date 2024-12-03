@@ -7,7 +7,7 @@
     "build:server": "esbuild src/index.ts --outfile=./out/server/index.mjs --loader:.graphql=text --bundle --platform=node --format=esm --packages=external --sourcemap",
     "build:server:w": "npm run build:server -- --watch=forever",
     "build:http": "vite-node ../api/scripts/build.ts src/handlers/mock-apollo-http-handler.ts --outfile ./out/mock-apollo-http-handler/index.cjs",
-    "build": "rimraf out/* && build:server && npm run build:http",
+    "build": "rimraf out/* && npm run build:server && npm run build:http",
     "start": "DEBUG=*:ERROR,*:INFO node ./out/server/index.mjs",
     "start:w": "DEBUG=*:ERROR,*:INFO nodemon ./out/server/index.mjs",
     "start:detached": "DEBUG=*:ERROR NODE_ENV=test node ./out/server/index.mjs > /dev/null 2>&1 & wait-port 127.0.0.1:4010 -t 15000",

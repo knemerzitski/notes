@@ -10,7 +10,6 @@ import { useNoteId } from '../context/note-id';
 import { useUserNoteLinkId } from '../context/user-note-link-id';
 import { useDeleteNote } from '../hooks/useDeleteNote';
 
-
 const DeleteForeverNoteMenuItem_UserNoteLinkFragment = gql(`
   fragment DeleteForeverNoteMenuItem_UserNoteLinkFragment on UserNoteLink {
     id

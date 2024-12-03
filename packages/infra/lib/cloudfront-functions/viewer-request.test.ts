@@ -1,7 +1,6 @@
- 
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { DeepPartial } from 'ts-essentials';
-import { it, vi, expect , afterEach, beforeEach, describe } from 'vitest';
+import { it, vi, expect, afterEach, beforeEach, describe } from 'vitest';
 
 import { exportedForTesting_handler } from './viewer-request';
 

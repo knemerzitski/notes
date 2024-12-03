@@ -12,7 +12,6 @@ import { getUserNoteLinkId } from '../../utils/id';
 
 import { moveNoteInConnection } from './move';
 
-
 let cache: ApolloCache<NormalizedCacheObject>;
 const userId = 'a';
 const danglingNoteId = 'dangling';

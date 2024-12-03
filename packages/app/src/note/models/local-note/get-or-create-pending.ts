@@ -12,7 +12,6 @@ import { getCollabTextId, getUserNoteLinkId } from '../../utils/id';
 
 import { generateNoteId } from './generate-id';
 
-
 const GetOrCreatePendingNote_Query = gql(`
   query GetOrCreatePendingNote_Query($id: ID!) {
     signedInUser(by: { id: $id }) {

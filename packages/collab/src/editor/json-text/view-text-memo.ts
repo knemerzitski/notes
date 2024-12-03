@@ -52,9 +52,8 @@ export class ViewTextMemo<K extends string, S extends StringRecordStruct> {
     if (this._positionByKey == null) {
       this._positionByKey = Object.fromEntries(
         // Find all key value pairs, e.g. json stringified '{"a": "b"}' matches {1: 'a', 2: 'b'}
-        [...this.viewText.matchAll(/"((?:[^"\\]|\\.)*)":"((?:[^"\\]|\\.)*)"/g)]
-           
-          .map((match) => {
+        [...this.viewText.matchAll(/"((?:[^"\\]|\\.)*)":"((?:[^"\\]|\\.)*)"/g)].map(
+          (match) => {
             const index = match.index;
             const key = match[1] ?? '';
             const value = (match[2] as string | undefined) ?? '';
@@ -66,7 +65,8 @@ export class ViewTextMemo<K extends string, S extends StringRecordStruct> {
                 length: value.length,
               },
             ];
-          })
+          }
+        )
       ) as Record<K, JsonValuePosition>;
     }
     return this._positionByKey;

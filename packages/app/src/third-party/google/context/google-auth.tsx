@@ -9,7 +9,6 @@ interface GoogleAuthContextProps {
 
 const GoogleAuthContext = createContext<GoogleAuthContextProps | null>(null);
 
- 
 export function useGoogleAuth() {
   const ctx = useContext(GoogleAuthContext);
   if (ctx === null) {

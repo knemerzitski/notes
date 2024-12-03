@@ -7,7 +7,6 @@ import { IsMobileProvider } from '../context/is-mobile';
 
 import { BreakpointDownIsMobile } from './BreakpointDownIsMobile';
 
-
 export function ResponsiveIsMobile({ children }: { children: ReactNode }) {
   const [layoutMode] = useLayoutMode();
 

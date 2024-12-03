@@ -10,7 +10,6 @@ import { useOnNoteNotEditable } from '../hooks/useOnNoteNotEditable';
 
 import { NoteSharingDialog } from './NoteSharingDialog';
 
-
 const _RouteNoteSharingDialog_NoteFragment = gql(`
   fragment RouteNoteSharingDialog_NoteFragment on Note {
     ...NoteSharingDialog_NoteFragment

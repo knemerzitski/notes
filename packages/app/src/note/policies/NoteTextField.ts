@@ -7,7 +7,6 @@ import { readNoteRef } from '../utils/read-note-ref';
 
 import { readNoteExternalState } from './Note/_external';
 
-
 function readFieldName({
   readField,
 }: Pick<FieldFunctionOptions, 'readField'>): NoteTextFieldName {

@@ -73,7 +73,7 @@ it('resumes cached error and calls updateFn', async () => {
         [PersistLink.PERSIST]: true,
       },
     });
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_err) {
     // ignore error
   }

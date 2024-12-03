@@ -19,10 +19,6 @@ import { mutate } from '../utils/mutate';
 
 import { MutationUpdaterFunctionMap } from './mutation-updater-map';
 
-
-
-
-
 export function createErrorLink({
   client,
   mutationUpdaterFnMap,

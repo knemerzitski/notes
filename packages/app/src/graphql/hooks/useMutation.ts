@@ -24,7 +24,6 @@ import { optimisticResponseMutation } from '../utils/optimistic-response-mutatio
 
 import { useIsRemoteOperation } from './useIsRemoteOperation';
 
-
 interface ExtraOptions {
   /**
    * Execute as a local mutation. Data will not be sent to server.

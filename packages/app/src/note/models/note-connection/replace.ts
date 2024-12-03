@@ -15,9 +15,7 @@ import { getConnectionCategoryName } from '../note/connection-category-name';
 
 import { moveNoteInConnection } from './move';
 
-
 import { removeNoteFromConnection } from './remove';
-
 
 const ReplaceNoteInConnection_Query = gql(`
   query ReplaceNoteInConnection_Query($category: NoteCategory!) {

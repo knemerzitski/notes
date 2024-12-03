@@ -8,8 +8,6 @@ import { useNoteId } from '../context/note-id';
 import { useArchiveNoteWithUndo } from '../hooks/useArchiveNoteWithUndo';
 import { toMovableNoteCategory } from '../utils/note-category';
 
-
-
 const ArchiveButton_Query = gql(`
   query ArchiveButton_Query($id: ObjectID!) {
     userNoteLink(by: { noteId: $id }) @client {

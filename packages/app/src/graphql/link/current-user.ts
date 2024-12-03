@@ -23,8 +23,6 @@ import { AppContext, GlobalOperationVariables } from '../types';
 import { DirectiveFlag } from '../utils/directive-flag';
 import { WebSocketClient } from '../ws/websocket-client';
 
-
-
 const SERIALIZE_DIRECTIVE = 'serialize';
 const NOAUTH_DIRECTIVE = 'noauth';
 

@@ -7,7 +7,6 @@ import { NoteTextFieldName } from '../../__generated__/graphql';
 
 import { NoteFieldExternalState } from './note-field';
 
-
 const createJsonTextFromService = defineCreateJsonTextFromService(
   Object.values(NoteTextFieldName)
 );

@@ -11,8 +11,6 @@ import { useShowConfirm } from '../../utils/context/show-confirm';
 import { useSignOutMutation } from '../hooks/useSignOutMutation';
 import { confirmUnsavedChanges } from '../utils/confirm-unsaved-changes';
 
-
-
 const SignOutAllUsersButton_Query = gql(`
   query SignOutAllUsersButton_Query {
     signedInUsers(localOnly: false) @client {

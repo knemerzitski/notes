@@ -21,7 +21,6 @@ import { addOngoingOperation } from './add';
 import { hasOngoingOperation } from './has';
 import { removeOngoingOperations } from './remove';
 
-
 const PERSIST_DIRECTIVE = 'persist';
 
 const persistDirective = new DirectiveFlag(PERSIST_DIRECTIVE);

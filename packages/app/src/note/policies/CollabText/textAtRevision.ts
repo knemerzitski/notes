@@ -69,7 +69,6 @@ export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesC
         return;
       }
 
-       
       const records = readRecords(
         {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
@@ -84,9 +83,7 @@ export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesC
       }
 
       return {
-         
         changeset: records.reduce(
-           
           (a, b) => a.compose(b.change.changeset),
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           Changeset.parseValue(tailText.changeset)
@@ -175,6 +172,5 @@ function readRecords(
     return;
   }
 
-   
   return collabText.recordConnection.edges.map((edge) => edge.node);
 }

@@ -24,9 +24,7 @@ import {
   CollabTextRecordMapper,
 } from '../schema.mappers';
 
-
 import { CollabTextRecordConnection } from './CollabTextRecordConnection';
-
 
 describe('pageInfo', () => {
   function createMapper(

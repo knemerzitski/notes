@@ -7,7 +7,6 @@ import { useUserId } from '../context/user-id';
 
 import { WarningBadge } from './WarningBadge';
 
-
 const BadgeIfSessionExpired_Query = gql(`
   query BadgeIfSessionExpired_Query($id: ID!) {
     signedInUser(by: { id: $id }) @client {

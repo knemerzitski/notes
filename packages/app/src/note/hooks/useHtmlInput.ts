@@ -72,7 +72,7 @@ export function useHtmlInput({
     const beforeSelection = selectionRef.current;
     const type = e.nativeEvent.inputType;
 
-    if ((/insert/i.exec(type)) != null || e.nativeEvent.data) {
+    if (/insert/i.exec(type) != null || e.nativeEvent.data) {
       e.preventDefault();
       const start = e.target.selectionStart ?? 0;
       const value = e.target.value;
@@ -81,7 +81,7 @@ export function useHtmlInput({
         insertValue: value.substring(beforeSelection.start, start),
       });
     } else if (
-      (/delete/i.exec(type)) != null ||
+      /delete/i.exec(type) != null ||
       (e.nativeEvent instanceof KeyboardEvent && e.nativeEvent.code === 'Backspace')
     ) {
       e.preventDefault();

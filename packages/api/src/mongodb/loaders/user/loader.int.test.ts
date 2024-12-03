@@ -214,7 +214,6 @@ it('loads many different paginations', async () => {
         createLoadKey(TestNoteCategory.OTHER, { first: 1 }), // 1
         createLoadKey(TestNoteCategory.MAIN, { last: 1 }), // 8
         createLoadKey(TestNoteCategory.OTHER, {
-           
           after: otherNotesIds.at(0),
           first: 1,
         }), // 3

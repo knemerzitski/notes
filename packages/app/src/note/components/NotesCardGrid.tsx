@@ -9,8 +9,6 @@ import { useNoteIds } from '../context/note-ids';
 
 import { NoteCard } from './NoteCard';
 
-
-
 const _NotesCardGrid_UserNoteLinkFragment = gql(`
   fragment NotesCardGrid_UserNoteLinkFragment on UserNoteLink {
     ...NoteCard_UserNoteLinkFragment

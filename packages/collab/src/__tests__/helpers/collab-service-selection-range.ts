@@ -6,7 +6,6 @@ import { Changeset } from '../../changeset';
 import { CollabService } from '../../client/collab-service';
 import { SelectionRange } from '../../client/selection-range';
 
-
 /**
  * Make sure to call cleanUp after you're done using the SelectionRange.
  */

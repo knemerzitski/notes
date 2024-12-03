@@ -11,7 +11,6 @@ import { GraphQLResolversContext } from '../../../../types';
 
 import type { ResolversTypes, SubscriptionResolvers } from './../../../types.generated';
 
-
 export function signedInUserTopic(userId: ObjectId) {
   return `${SubscriptionTopicPrefix.SIGNED_IN_USER_EVENTS}:${objectIdToStr(userId)}`;
 }

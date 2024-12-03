@@ -23,8 +23,6 @@ import { useUpdateDisplayNameMutation } from '../hooks/useUpdateDisplayNameMutat
 
 import { DisplayNameTitle } from './DisplayNameTitle';
 
-
-
 import { DisplayNameTitleTextField } from './DisplayNameTitleTextField';
 
 const EditableDisplayName_Query = gql(`

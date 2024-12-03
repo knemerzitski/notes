@@ -1,4 +1,3 @@
- 
 import { Changeset } from '~collab/changeset';
 
 import { CollabService } from '~collab/client/collab-service';
@@ -20,7 +19,6 @@ beforeEach(() => {
   cy.mount(<InputEditing />);
 });
 
- 
 function InputEditing() {
   const {
     inputRef: ref,

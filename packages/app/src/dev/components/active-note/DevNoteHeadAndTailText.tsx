@@ -18,8 +18,6 @@ import { gql } from '../../../__generated__';
 import { DebugNoteHeadTextQueryQuery } from '../../../__generated__/graphql';
 import { useNoteId } from '../../../note/context/note-id';
 
-
-
 const DebugNoteHeadText_Query = gql(`
   query DebugNoteHeadText_Query($by: UserNoteLinkByInput!) {
     userNoteLink(by: $by){

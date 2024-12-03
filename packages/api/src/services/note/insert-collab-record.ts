@@ -16,7 +16,6 @@ import { updateSetCollabText } from '../../mongodb/models/note/update-set-collab
 import { RevisionRecordSchema } from '../../mongodb/schema/collab-text';
 import { NoteSchema } from '../../mongodb/schema/note';
 
-
 import { MongoReadonlyDeep } from '../../mongodb/types';
 import { objectIdToStr } from '../../mongodb/utils/objectid';
 import { withTransaction } from '../../mongodb/utils/with-transaction';
@@ -27,7 +26,6 @@ import {
   NoteReadOnlyServiceError,
 } from './errors';
 import { findNoteUser } from './note';
-
 
 type ExistingRecord = Pick<
   RevisionRecordSchema,

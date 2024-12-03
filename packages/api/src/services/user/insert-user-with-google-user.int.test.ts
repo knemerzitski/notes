@@ -1,4 +1,3 @@
- 
 import { faker } from '@faker-js/faker';
 import { beforeEach, expect, it } from 'vitest';
 

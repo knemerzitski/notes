@@ -11,7 +11,6 @@ import { getNoteDndId } from '../../dnd/utils/id';
 import { NoteIdsProvider, useNoteIds } from '../context/note-ids';
 import { useMoveNote } from '../hooks/useMoveNote';
 
-
 import { toMovableNoteCategory } from '../utils/note-category';
 
 export function SortableNotesContext({

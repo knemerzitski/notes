@@ -5,7 +5,10 @@ import { createApolloHttpHandlerDefaultParams } from '~api/apollo-http-handler';
 import { DynamoDBBaseGraphQLContext, GraphQLResolversContext } from '~api/graphql/types';
 import { createInitializeHandler } from '~api/initialize-handler';
 import { createWebSocketHandlerDefaultParams } from '~api/websocket-handler';
-import { createApolloHttpHandler , ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
+import {
+  createApolloHttpHandler,
+  ApolloHttpGraphQLContext,
+} from '~lambda-graphql/apollo-http-handler';
 import { createWebSocketHandler } from '~lambda-graphql/websocket-handler';
 import { createLogger } from '~utils/logging';
 
@@ -15,8 +18,6 @@ import { mockWebSocketHandlerDefaultParamsOptions } from './handlers/mock-websoc
 import { createLambdaServer } from './lambda-server';
 import { createLambdaContext } from './utils/lambda-context';
 import { createLambdaGraphQLDynamoDBTables } from './utils/lambda-graphql-dynamodb';
-
-
 
 const logger = createLogger('mock:lambda-graphql-server');
 

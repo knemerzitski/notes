@@ -1,4 +1,3 @@
- 
 import { ApolloLink, Observable } from '@apollo/client';
 import { ReactNode } from '@tanstack/react-router';
 import { renderHook } from '@testing-library/react';
@@ -13,10 +12,6 @@ import { setCurrentUser } from '../../user/models/signed-in-user/set-current';
 import { GraphQLServiceProvider } from '../components/GraphQLServiceProvider';
 
 import { createGraphQLService } from './service';
-
-
-
-
 
 it('does not serialize different user same mutations', async () => {
   const A_userId = 'ZwjzAA054CFCvxuO';

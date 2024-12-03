@@ -9,7 +9,6 @@ import { relayStylePagination } from '../../graphql/utils/relay-style-pagination
 import { EvictTag, TaggedEvictOptionsList } from '../../graphql/utils/tagged-evict';
 import { getUserNoteLinkId } from '../utils/id';
 
-
 function throwNoteNotFoundError(noteId?: Note['id']): never {
   if (noteId) {
     throw new Error(`Note "${noteId}" not found`);
