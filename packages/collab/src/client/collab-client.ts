@@ -75,7 +75,7 @@ export class CollabClient {
   get eventBus(): Pick<Emitter<CollabClientEvents>, 'on' | 'off'> {
     return this._eventBus;
   }
-  
+
   private _server!: Changeset;
   get server() {
     return this._server;

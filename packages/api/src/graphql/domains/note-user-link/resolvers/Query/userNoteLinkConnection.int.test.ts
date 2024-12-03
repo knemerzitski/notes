@@ -176,20 +176,26 @@ it('returns last 2 notes, after: 2, first 4 => 1,0 (10 notes total)', async () =
 
   expect(data).toEqual({
     userNoteLinkConnection: {
-      userNoteLinks: notes.slice(0, 2).reverse().map((noteId) => ({
-        note: {
-          id: objectIdToStr(noteId),
-        },
-      })),
-      edges: notes.slice(0, 2).reverse().map((noteId) => ({
-        cursor: objectIdToStr(noteId),
-        node: expect.objectContaining({
-          id: UserNoteLink_id(noteId, user._id),
-          note: expect.objectContaining({
+      userNoteLinks: notes
+        .slice(0, 2)
+        .reverse()
+        .map((noteId) => ({
+          note: {
             id: objectIdToStr(noteId),
+          },
+        })),
+      edges: notes
+        .slice(0, 2)
+        .reverse()
+        .map((noteId) => ({
+          cursor: objectIdToStr(noteId),
+          node: expect.objectContaining({
+            id: UserNoteLink_id(noteId, user._id),
+            note: expect.objectContaining({
+              id: objectIdToStr(noteId),
+            }),
           }),
-        }),
-      })),
+        })),
       pageInfo: {
         hasPreviousPage: true,
         hasNextPage: false,

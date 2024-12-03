@@ -13,15 +13,14 @@ export interface Entry<Key, Value> {
 
 // @source https://stackoverflow.com/questions/57103834/typescript-omit-a-property-from-all-interfaces-in-a-union-but-keep-the-union-s
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type DistributiveOmit<T, K extends keyof any> = T extends any
-  ? Omit<T, K>
-  : never;
+export type DistributiveOmit<T, K extends keyof any> = T extends any ? Omit<T, K> : never;
 
 export type ExcludeUndefined<T> = Exclude<T, undefined>;
 
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
-export type DistributivePartialBy<T, K extends keyof T> = DistributiveOmit<T, K> & Partial<Pick<T, K>>;
+export type DistributivePartialBy<T, K extends keyof T> = DistributiveOmit<T, K> &
+  Partial<Pick<T, K>>;
 
 export type WithRequired<T, TKey extends keyof T> = T & { [Key in TKey]-?: T[Key] };
 

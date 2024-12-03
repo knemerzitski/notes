@@ -16,4 +16,3 @@ export interface NoteCategoryDndData {
 }
 
 export type DndData = NoteDndData | NoteCategoryDndData;
-

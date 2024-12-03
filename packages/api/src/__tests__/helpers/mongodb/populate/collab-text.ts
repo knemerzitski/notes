@@ -64,7 +64,7 @@ export function fakeCollabText(
       },
     };
   }
-  
+
   const records =
     options?.override?.records?.filter(isDefined).map(fakeRecord) ??
     [...new Array<undefined>(recordsCount)].map((_, index) => {

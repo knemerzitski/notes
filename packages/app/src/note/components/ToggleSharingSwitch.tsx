@@ -26,7 +26,7 @@ export function ToggleSharingSwitch() {
       id: noteId,
     },
   });
-  
+
   const isCreatingShareLink = useIsCreatingShareLink(noteId);
   const isSharingEnabled = note.shareAccess != null;
 

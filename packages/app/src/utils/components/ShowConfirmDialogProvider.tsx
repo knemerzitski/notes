@@ -100,12 +100,8 @@ function ConfirmModal({
         </DialogContent>
       )}
       <DialogActions>
-        <Button onClick={handleClose}>
-          Cancel
-        </Button>
-        <Button onClick={handleOk}>
-          Confirm
-        </Button>
+        <Button onClick={handleClose}>Cancel</Button>
+        <Button onClick={handleOk}>Confirm</Button>
       </DialogActions>
     </Dialog>
   );

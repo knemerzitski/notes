@@ -14,10 +14,10 @@ export class UserNoteLinkId {
   }
 
   static parseValue(value: unknown): UserNoteLinkId {
-    if(value instanceof UserNoteLinkId){
+    if (value instanceof UserNoteLinkId) {
       return value;
     }
-    
+
     if (typeof value === 'string') {
       const result = parseUserNoteLinkId(value);
       if (result !== false) {

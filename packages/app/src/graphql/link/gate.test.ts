@@ -86,4 +86,3 @@ it('forwards operations based on filtered gates', async () => {
     runLink(gateLink, ['global', 'a1', '1b', 'ab', 'a2', '2b'])
   ).resolves.toStrictEqual(['global', 'a1', 'a2', '1b', '2b', 'ab']);
 });
-

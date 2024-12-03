@@ -43,17 +43,18 @@ export function createCompleteHandler<
         subscription.connectionGraphQLContext
       );
 
-      const graphQLContextValue: SubscriptionContext & TGraphQLContext & TBaseGraphQLContext =
-        {
-          ...context.graphQLContext,
-          ...baseGraphQLContext,
-          ...createSubscriptionContext(),
-          publish: createPublisher<TGraphQLContext, TDynamoDBGraphQLContext>({
-            context,
-            getGraphQLContext: () => graphQLContextValue,
-            isCurrentConnection: (id: string) => connectionId === id,
-          }),
-        };
+      const graphQLContextValue: SubscriptionContext &
+        TGraphQLContext &
+        TBaseGraphQLContext = {
+        ...context.graphQLContext,
+        ...baseGraphQLContext,
+        ...createSubscriptionContext(),
+        publish: createPublisher<TGraphQLContext, TDynamoDBGraphQLContext>({
+          context,
+          getGraphQLContext: () => graphQLContextValue,
+          isCurrentConnection: (id: string) => connectionId === id,
+        }),
+      };
 
       const execContext = buildExecutionContext({
         schema: context.schema,

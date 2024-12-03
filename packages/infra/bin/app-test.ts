@@ -43,10 +43,7 @@ await createLambdaGraphQLDynamoDBTables({
 new TestNotesStack(app, 'TESTINGONLYNotesStack', {
   customProps: {
     apolloHttpLambda: {
-      codePath: join(
-        PROJECT_DIR,
-        '../api-dev-server/out/mock-apollo-http-handler'
-      ),
+      codePath: join(PROJECT_DIR, '../api-dev-server/out/mock-apollo-http-handler'),
       environment: {
         NODE_ENV,
         DEBUG: process.env.LAMBDA_DEBUG_ARG ?? '*',

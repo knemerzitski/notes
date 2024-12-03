@@ -571,7 +571,7 @@ export class Changeset {
     return ChangesetStruct.createRaw(this);
   }
 
-  toJSON(){
+  toJSON() {
     return this.serialize();
   }
 

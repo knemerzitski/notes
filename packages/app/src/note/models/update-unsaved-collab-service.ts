@@ -83,7 +83,9 @@ function remove(
 
       const unsavedCollabServices = data.signedInUser.local.unsavedCollabServices;
 
-      const index = unsavedCollabServices.findIndex((noteLink) => noteLink.id === userNoteLinkId);
+      const index = unsavedCollabServices.findIndex(
+        (noteLink) => noteLink.id === userNoteLinkId
+      );
       if (index === -1) {
         return;
       }

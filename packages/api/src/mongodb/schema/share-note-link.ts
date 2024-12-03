@@ -1,4 +1,13 @@
-import { boolean, date, Infer, InferRaw, instance, number, object, optional } from 'superstruct';
+import {
+  boolean,
+  date,
+  Infer,
+  InferRaw,
+  instance,
+  number,
+  object,
+  optional,
+} from 'superstruct';
 import { ObjectId } from 'mongodb';
 
 export type DBShareNoteLinkSchema = InferRaw<typeof ShareNoteLinkSchema>;

@@ -38,7 +38,7 @@ function* getEntries<T extends object>(
   }
 }
 
-export function valueToQueries<T,S=T>(
+export function valueToQueries<T, S = T>(
   value: T,
   options?: { visitorFn?: VisitorFn<T>; fillStruct?: Struct<S> },
   ctx?: { path?: string }
