@@ -1,5 +1,6 @@
 import { CfnOutput, Stack, StackProps } from 'aws-cdk-lib';
 import { CompositePrincipal, Role } from 'aws-cdk-lib/aws-iam';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Construct } from 'constructs';
 
 import { HttpRestApi } from '../api/http-rest-api';
@@ -14,7 +15,6 @@ import { StateMongoDB, StateMongoDBProps } from '../database/state-mongodb';
 import { WebSocketDynamoDB } from '../database/websocket-dynamodb';
 import { Domains, DomainsProps } from '../dns/domains';
 import { AppStaticFiles } from '../storage/app-static-files';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 
 export interface NotesStackProps extends StackProps {
   customProps: {

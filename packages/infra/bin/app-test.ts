@@ -5,6 +5,7 @@ import { App } from 'aws-cdk-lib';
 
 import { createLambdaGraphQLDynamoDBTables } from '~api-dev-server/utils/lambda-graphql-dynamodb';
 
+import { assertDynamoDBIsRunning } from '../../utils/src/running-processes';
 import { TestNotesStack } from '../lib/stacks/test-notes-stack';
 import {
   assertGetEnvironmentVariables,
@@ -12,7 +13,6 @@ import {
 } from '../lib/utils/env';
 import { PROJECT_DIR } from '../lib/utils/project-dir';
 
-import { assertDynamoDBIsRunning } from '../../utils/src/running-processes';
 
 assertDynamoDBIsRunning();
 

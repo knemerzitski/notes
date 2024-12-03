@@ -5,7 +5,7 @@ import globals from 'globals';
 export default [
   ...rootConfig,
   {
-    ignores: ['cdk.out', 'scripts'],
+    ignores: ['cdk.out', 'scripts', 'out'],
   },
   {
     languageOptions: {

@@ -5,7 +5,6 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 // eslint-disable-next-line import/no-default-export
 export default () => {
   return defineConfig({
-    // @ts-expect-error Ignore typing mismatch, still works
     plugins: [tsconfigPaths()],
   });
 };
