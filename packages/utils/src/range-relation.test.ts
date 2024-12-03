@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { RangeRelation, rangeRelation } from './range-relation';
 
 describe('equal length ranges', () => {

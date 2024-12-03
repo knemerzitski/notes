@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { expect, it } from 'vitest';
+
 import { zip } from './zip';
 
 it.each([
@@ -34,6 +34,7 @@ it.each([
 
 it('throws error if array lengths are different', () => {
   expect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     [...zip([1], [1, 2])];
   }).toThrow();
 });

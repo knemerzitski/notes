@@ -42,10 +42,12 @@ export function mapDeep(
       ? isObjectLike(value)
       : isPlainObject(value) || Array.isArray(value)
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return
     return Object.entries(value as object).reduce<any>(
       (result, [subKey, subValue]) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         result[subKey] = mapDeep(subValue, mapFn, options, depth + 1);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return result;
       },
       Array.isArray(value) ? [] : {}

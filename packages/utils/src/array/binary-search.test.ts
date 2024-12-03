@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
+ 
 import { it, expect, describe } from 'vitest';
 
 import { binarySearchIndexOf } from './binary-search';

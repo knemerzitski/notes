@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { weavedReplace } from './weaved-replace';
 
 function isString<T>(value: T): value is T & string {

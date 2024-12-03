@@ -126,7 +126,7 @@ export type OmitStartsWith<T extends object, S extends string> = Omit<T, `${S}${
  */
 export type Primitive = string | number | boolean | bigint | symbol | undefined | null;
 
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 export type Builtin = Primitive | Function | Date | Error | RegExp;
 
 export type IsAny<Type> = 0 extends 1 & Type ? true : false;

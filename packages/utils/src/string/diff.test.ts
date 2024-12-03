@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { indexOfDiff, lengthOffsetOfDiff } from './diff';
 
 describe('indexOfDiff', () => {

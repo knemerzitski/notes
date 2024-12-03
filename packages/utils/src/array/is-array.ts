@@ -1,4 +1,5 @@
 // TODO move to type-guards
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 export function isArray<T, TItem>(
   maybeArr: T | readonly TItem[]
 ): maybeArr is readonly TItem[];

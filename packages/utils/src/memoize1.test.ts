@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { memoize1, memoize1Plain } from './memoize1';
 
 describe('memoize1Plain', () => {

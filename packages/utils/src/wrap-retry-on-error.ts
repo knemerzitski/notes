@@ -39,7 +39,7 @@ export function wrapRetryOnErrorAsync<T extends unknown[], U>(
     let retriesRemaining = HARDCODED_MAX_RETRIES;
     do {
       try {
-        return maybeCallFn(await fn(...args));
+        return await maybeCallFn(await fn(...args));
       } catch (err) {
         if (retriesRemaining <= 0) {
           throw err;

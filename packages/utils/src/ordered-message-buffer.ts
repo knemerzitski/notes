@@ -1,6 +1,7 @@
-import { memoize1 } from './memoize1';
 import mitt, { Emitter } from 'mitt';
 import { array, Infer, number, object, Struct } from 'superstruct';
+
+import { memoize1 } from './memoize1';
 
 export interface OrderedMessageBufferEvents<TMessage> {
   /**

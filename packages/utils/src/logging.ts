@@ -1,4 +1,5 @@
 import debug, { Debugger } from 'debug';
+
 import { isObjectLike } from './type-guards/is-object-like';
 
 /**
@@ -86,8 +87,10 @@ function jsonFormatterReplacer(_key: string, value: unknown) {
     const error: Record<string, unknown> = {};
     for (const key of Object.getOwnPropertyNames(value)) {
       // @ts-expect-error Error object can be index accessed
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const val = value[key];
       if (key === 'stack') {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         error[key] = val?.toString().split('\n');
       } else {
         error[key] = val;

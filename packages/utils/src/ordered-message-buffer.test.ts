@@ -1,7 +1,7 @@
+import { number, object, string } from 'superstruct';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { OrderedMessageBuffer } from './ordered-message-buffer';
-import { number, object, string } from 'superstruct';
 
 const MessageStruct = object({
   version: number(),
