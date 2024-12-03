@@ -43,7 +43,8 @@
     "ci:step:test": "npm run test",
     "ci:step:synth": "npm run synth",
     "ci:step:deploy": "npm run deploy",
-    "ci:synth": "npm run ci:step:lint && npm run ci:step:build && npm run ci:step:test && npm run ci:step:synth",
+    "ci:test": "npm run ci:step:lint && npm run ci:step:build && npm run ci:step:test",
+    "ci:synth": "npm run ci:test && npm run ci:step:synth",
     "ci:deploy": "npm run ci:synth && npm run deploy"
   },
   "validate-branch-name": {
