@@ -22,12 +22,13 @@ export default [
   },
 
   {
+    files: ['**/*.ts?(x)'],
     rules: {
       '@typescript-eslint/ban-ts-comment': 'off',
       'import/no-restricted-paths': [
         'error',
         {
-          basePath: `${__dirname}/src`,
+          basePath: `${import.meta.dirname}/src`,
           zones: [
             {
               target: 'mongodb/**',

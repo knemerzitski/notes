@@ -1,17 +1,11 @@
 import globals from 'globals';
 import pluginJs from '@eslint/js';
 import tsEslint from 'typescript-eslint';
-import { fileURLToPath } from 'node:url';
-import path from 'node:path';
 import graphQLPlugin from '@graphql-eslint/eslint-plugin';
 import importPlugin from 'eslint-plugin-import';
 import unicornPlugin from 'eslint-plugin-unicorn';
 import configPrettier from 'eslint-config-prettier';
 // import configPrettierRecommended from 'eslint-plugin-prettier/recommended';
-
-// TODO remove after upgrading from node 18 and use `import.meta.dirname`
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 /** @type {import('eslint').Linter.Config[]} */
 /** @type {import('@typescript-eslint/utils').TSESLint.FlatConfig.ConfigFile} */
@@ -64,16 +58,13 @@ export default [
     languageOptions: {
       parserOptions: {
         projectService: true,
-        // TODO use import.meta.dirname, Node.js >=20.11.0 / >= 21.2.0
-        // tsconfigRootDir: import.meta.dirname,
-        tsconfigRootDir: __dirname,
+        tsconfigRootDir: import.meta.dirname,
       },
     },
   },
   {
     files: ['**/*.{ts,tsx}'],
     rules: {
-      '@typescript-eslint/no-unused-vars': ['error', { ignoreRestSiblings: true }],
       '@typescript-eslint/no-invalid-void-type': 'off',
       '@typescript-eslint/no-unused-vars': [
         'error',
