@@ -71,7 +71,7 @@ export function apiGatewayProxyWebSocketHandler({
       void (async () => {
         try {
           await messageHandler(
-            createWebSocketEvent(id, 'MESSAGE', String(data)),
+            createWebSocketEvent(id, 'MESSAGE', JSON.stringify(data)),
             createLambdaContext(),
             () => {
               return;

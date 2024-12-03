@@ -2,6 +2,15 @@ import 'source-map-support/register.js';
 import { APIGatewayProxyWebsocketHandlerV2 } from 'aws-lambda';
 import WebSocket from 'ws';
 
+import {
+  BaseGraphQLContext,
+  BaseSubscriptionResolversContext,
+  DynamoDBBaseGraphQLContext,
+} from '~api/graphql/types';
+import {
+  CreateWebSocketHandlerDefaultParamsOptions,
+  createWebSocketHandlerDefaultParams,
+} from '~api/websocket-handler';
 import { createWebSocketHandler } from '~lambda-graphql/websocket-handler';
 import { createLogger } from '~utils/logging';
 
@@ -11,15 +20,6 @@ import {
   createMockMongoDBContext,
   createMockSubscriptionGraphQLParams,
 } from '../parameters';
-import {
-  CreateWebSocketHandlerDefaultParamsOptions,
-  createWebSocketHandlerDefaultParams,
-} from '~api/websocket-handler';
-import {
-  BaseGraphQLContext,
-  BaseSubscriptionResolversContext,
-  DynamoDBBaseGraphQLContext,
-} from '~api/graphql/types';
 
 export interface MockWebSocketHandlerDefaultParamsOptions {
   sockets?: Record<string, WebSocket>;

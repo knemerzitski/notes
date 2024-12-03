@@ -2,6 +2,11 @@ import 'source-map-support/register.js';
 import WebSocket from 'ws';
 
 import {
+  CreateApolloHttpHandlerDefaultParamsOptions,
+  createApolloHttpHandlerDefaultParams,
+} from '~api/apollo-http-handler';
+import { DynamoDBBaseGraphQLContext, GraphQLResolversContext } from '~api/graphql/types';
+import {
   createApolloHttpHandler,
   ApolloHttpGraphQLContext,
 } from '~lambda-graphql/apollo-http-handler';
@@ -13,11 +18,6 @@ import {
   createMockDynamoDBParams,
   createMockApiGatewayParams,
 } from '../parameters';
-import {
-  CreateApolloHttpHandlerDefaultParamsOptions,
-  createApolloHttpHandlerDefaultParams,
-} from '~api/apollo-http-handler';
-import { DynamoDBBaseGraphQLContext, GraphQLResolversContext } from '~api/graphql/types';
 
 export interface MockCreateApolloHttpHandlerDefaultParamsOptions {
   sockets?: Record<string, WebSocket>;

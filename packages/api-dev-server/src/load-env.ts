@@ -1,7 +1,8 @@
-import dotenv from 'dotenv';
 
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+import dotenv from 'dotenv';
 
 // packages/api-dev-server/out/server.index.mjs
 const __dirname = dirname(fileURLToPath(import.meta.url));
