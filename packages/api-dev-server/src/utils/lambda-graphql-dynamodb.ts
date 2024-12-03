@@ -5,8 +5,27 @@ import {
   ResourceNotFoundException,
 } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
+import waitPort from 'wait-port';
+import { assertDynamoDBIsReachable } from '~lambda-graphql/__tests__/helpers/dynamodb';
 import { createTableCommandInputs } from '~lambda-graphql/dynamodb/schema';
 import { Logger } from '~utils/logging';
+
+export async function waitForDynamoDBPort(endpoint: string, logger: Logger) {
+  logger.info('waitForDynamoDBPort', 'Connecting...');
+  const endpointUrl = new URL(endpoint);
+  const { open } = await waitPort({
+    host: endpointUrl.hostname,
+    port: Number(endpointUrl.port),
+    path: endpointUrl.pathname,
+    timeout: 10000,
+    output: 'silent',
+  });
+  if (!open) {
+    throw new Error(`DynamoDB server is not reachable on endpoint "${endpoint}"`);
+  }
+
+  logger.info('waitForDynamoDBPort', `Connected "${endpoint}"`);
+}
 
 export async function createLambdaGraphQLDynamoDBTables({
   endpoint,
@@ -28,6 +47,8 @@ export async function createLambdaGraphQLDynamoDBTables({
       removeUndefinedValues: true,
     },
   });
+
+  await assertDynamoDBIsReachable(documentClient);
 
   const createTableCommands = createTableCommandInputs();
   for (const cmd of createTableCommands) {

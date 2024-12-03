@@ -1,10 +1,5 @@
 import rootConfig from '../../eslint.config.mjs';
 import globals from 'globals';
-import { fileURLToPath } from 'node:url';
-import path from 'node:path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -20,7 +15,7 @@ export default [
       'import/no-restricted-paths': [
         'error',
         {
-          basePath: `${__dirname}/src`,
+          basePath: `${import.meta.dirname}/src`,
           zones: [
             {
               target: '!(changeset)',

@@ -4,7 +4,7 @@ import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import dotenv from 'dotenv';
 import { format as prettierFormat } from 'prettier';
-import { exec } from 'node:child_process';
+import { execSync } from 'node:child_process';
 
 const FILENAME = 'possible-types.json';
 
@@ -35,79 +35,56 @@ async function generatePossibleTypes({
   outPath: string;
 }) {
   console.log(`Fetching possible types from "${fetchUrl}"`);
-  const res = await fetchWithReattempt(
-    (count) => {
-      return fetch(fetchUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          variables: {},
-          query: `
-            {
-              __schema {
-                types {
-                  kind
-                  name
-                  possibleTypes {
-                    name
-                  }
-                }
+
+  const port = new URL(fetchUrl).port;
+
+  console.log(`Starting a temporary GraphQL server on port ${port}...`);
+  execSync(`export PORT=${port} NO_DB_MODE=1 DEBUG=*:ERROR,*:INFO; npm run -w dev-server start:detached`);
+
+  try {
+    const res = await fetch(fetchUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        variables: {},
+        query: `
+        {
+          __schema {
+            types {
+              kind
+              name
+              possibleTypes {
+                name
               }
             }
-          `,
-        }),
-        signal: count === 0 ? AbortSignal.timeout(1) : undefined,
-      });
-    },
-    () => {
-      console.log('GraphQL server is not running. Starting it temporarily');
-      exec(`npm run -w dev-server build:server && npm run -w dev-server start:detached`);
-      return () => {
-        console.log('Shutting down GraphQL server');
-        exec(`npm run -w dev-server stop:detached`);
-      };
-    }
-  );
+          }
+        }
+      `,
+      }),
+    });
 
-  const result: any = await res.json();
+    const result: any = await res.json();
 
-  const possibleTypes: any = {};
+    const possibleTypes: any = {};
 
-  result.data.__schema.types.forEach((supertype: any) => {
-    if (supertype.possibleTypes) {
-      possibleTypes[supertype.name] = supertype.possibleTypes.map(
-        (subtype: any) => subtype.name
-      );
-    }
-  });
-
-  const resultPrettyString = await prettierFormat(JSON.stringify(possibleTypes), {
-    parser: 'json',
-  });
-
-  const writePath = join(outPath, FILENAME);
-  writeFileSync(writePath, resultPrettyString);
-  console.log(`Fragment types successfully extracted to "${writePath}"`);
-}
-
-async function fetchWithReattempt<T>(
-  fn: (count: number) => Promise<T>,
-  onFail?: () => (() => void) | undefined,
-  count = 0
-): Promise<T> {
-  try {
-    return await fn(count);
-  } catch (err) {
-    if (onFail) {
-      const cleanUp = onFail();
-      try {
-        return await fetchWithReattempt(fn, undefined, count + 1);
-      } finally {
-        cleanUp?.();
+    result.data.__schema.types.forEach((supertype: any) => {
+      if (supertype.possibleTypes) {
+        possibleTypes[supertype.name] = supertype.possibleTypes.map(
+          (subtype: any) => subtype.name
+        );
       }
-    } else {
-      throw err;
-    }
+    });
+
+    const resultPrettyString = await prettierFormat(JSON.stringify(possibleTypes), {
+      parser: 'json',
+    });
+
+    const writePath = join(outPath, FILENAME);
+    writeFileSync(writePath, resultPrettyString);
+    console.log(`Fragment types successfully extracted to "${writePath}"`);
+  } finally {
+    console.log('Shutting down GraphQL server');
+    execSync(`export PORT=${port}; npm run -w dev-server stop`);
   }
 }
 

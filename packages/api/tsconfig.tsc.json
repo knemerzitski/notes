@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  // Files excluded from type-checking
+  "exclude": [
+    "../api-app-shared/src",
+    "../lambda-graphql/src",
+    "../collab/src",
+    "../utils/src"
+  ]
+}

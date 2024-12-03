@@ -4,17 +4,19 @@
   "private": "true",
   "type": "module",
   "scripts": {
+    "clean": "rimraf .eslintcache",
     "test:unit": "vitest run",
     "test:unit:w": "vitest watch",
     "test": "npm run test:unit",
     "prettify": "prettier --write --ignore-unknown src",
-    "eslint": "eslint . --max-warnings 0",
-    "type-check": "tsc --noEmit",
+    "eslint": "eslint . --cache --max-warnings 0",
+    "type-check": "tsc --noEmit --project tsconfig.tsc.json",
     "lint": "npm run type-check && npm run eslint"
   },
   "dependencies": {
     "@types/debug": "^4.1.12",
     "debug": "^4.3.4",
+    "dotenv": "^16.4.7",
     "map-obj": "^5.0.2",
     "superstruct": "npm:@knemerzitski/superstruct@^2.2.5",
     "vitest": "^2.1.4",

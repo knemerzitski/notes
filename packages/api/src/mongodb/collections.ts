@@ -1,5 +1,11 @@
 import mapObject from 'map-obj';
-import { Collection, Db, IndexDescription, SearchIndexDescription } from 'mongodb';
+import {
+  Collection,
+  Db,
+  IndexDescription,
+  MongoServerError,
+  SearchIndexDescription,
+} from 'mongodb';
 
 import {
   noteDescription,
@@ -112,8 +118,32 @@ export function createAllIndexes(
           const colName = rawKey as CollectionName;
 
           const collection = collections[colName];
-          const result = await collection.createSearchIndexes(searchDescriptions);
-          return [colName, result];
+
+          const maxAttempts = 10;
+          const retryDelay = 1000;
+
+          let attemptNr = 0;
+          while (attemptNr++ < maxAttempts) {
+            try {
+              const result = await collection.createSearchIndexes(searchDescriptions);
+              return [colName, result];
+            } catch (err) {
+              if (err instanceof MongoServerError) {
+                if (err.codeName === 'NamespaceNotFound') {
+                  // Retry after a delay on NamespaceNotFound
+                  await new Promise((res) => {
+                    setTimeout(res, retryDelay);
+                  });
+                  continue;
+                }
+              }
+              throw err;
+            }
+          }
+
+          throw new Error(
+            `Failed to createSearchIndexes after ${maxAttempts} attempts on "${colName}" (NamespaceNotFound)`
+          );
         })
       : []),
   ]);

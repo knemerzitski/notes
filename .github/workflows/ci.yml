@@ -1,0 +1,276 @@
+name: CI up to ci:test
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 22.x
+  DEBUG_FORMAT: object
+  APP_ORIGIN: http://localhost
+  VITE_GRAPHQL_HTTP_URL: http://localhost:4010/graphql
+  VITE_GRAPHQL_WS_URL: ws://localhost:4010/graphql
+  MONGODB_URI: mongodb://localhost:27017/notesCi?replicaSet=rs0
+  DYNAMODB_ENDPOINT: http://localhost:8000
+  MONGODB_TIER: enterprise
+  VITE_MOCK_GOOGLE_AUTH: true
+  # Eslint print time spent on rules
+  TIMING: 1
+
+jobs:
+  build:
+    name: GraphQL codegen, Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Clean install
+        run: npm ci
+
+      # Artifact packages/api/src/graphql/domains/*.generated.ts
+      - name: Api GraphQL codegen
+        run: npm run -w api graphql:gen
+
+      # Artifact packages/api/out/**
+      - name: Build api
+        run: npm run -w api build
+
+      # Artifact packages/api-dev-server/out/**
+      - name: Build dev server for testing
+        run: npm run -w dev-server build
+
+      # Artifact packages/app/src/__generated__/**
+      # Artifact packages/api-dev-server/server.log
+      - name: App GraphQL codegen, Possible types from Api
+        run: npm run -w app graphql:gen
+
+      # Artifact packages/app/out/**
+      - name: Build app
+        run: npm run -w app build
+
+      - name: Upload server log from types gen
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: graphql_types-dev_server_log
+          path: |
+            packages/api-dev-server/server.log
+          retention-days: 2
+
+      - name: Upload GraphQL codegen
+        uses: actions/upload-artifact@v4
+        with:
+          name: graphql_gen
+          # Common path ancestor ./packages/
+          path: |
+            packages/api/src/graphql/domains/*.generated.ts
+            packages/app/src/__generated__/**
+          retention-days: 2        
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          # Common path ancestor ./packages/
+          path: |
+            packages/api/out/**
+            packages/app/out/**
+            packages/api-dev-server/out/**
+          retention-days: 2
+  lint:
+    name: Type check, eslint
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package:
+          [api, api-app-shared, dev-server, app, collab, infra, lambda-graphql, utils]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Download Graphql codegen artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: graphql_gen
+          path: packages
+
+      - name: Clean install
+        run: npm ci
+
+      - name: Type check
+        run: npm run -w ${{ matrix.package }} type-check
+
+      - name: Eslint
+        run: npm run -w ${{ matrix.package }} eslint
+  test_unit:
+    name: Unit tests
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: [api, app, collab, infra, utils]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Download GraphQL codegen artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: graphql_gen
+          path: packages
+
+      - name: Clean install
+        run: npm ci
+
+      - name: Run tests
+        run: npm run -w ${{ matrix.package }} test:unit
+  test_int:
+    name: Integration tests
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: [api, infra, lambda-graphql]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Download GraphQL codegen artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: graphql_gen
+          path: packages
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: packages
+
+      - name: Clean install
+        run: npm ci
+
+      - name: Initialize docker
+        run: npm run docker:init
+
+      - name: Start MongoDB container
+        run: npm run mongodb:start
+
+      - name: Start DynamoDB container
+        run: npm run dynamodb:start
+
+      # matrix.package == 'infra' =>  Artifact packages/infra/server.log
+      - name: Run integration tests
+        run: npm run -w ${{ matrix.package }} test:int
+
+      - name: Upload AWS Rest API server logs
+        if: ${{ matrix.package == 'infra' && !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.package }}-infra_server_log
+          path: |
+            packages/infra/server.log
+          retention-days: 2
+  test_comp:
+    name: App component tests
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Download GraphQL codegen artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: graphql_gen
+          path: packages
+
+      - name: Clean install
+        run: npm ci
+
+      - name: Run component tests
+        run: npm run -w app test:comp
+  test_e2e:
+    name: End-to-end tests
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: [api]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: packages
+
+      - name: Clean install
+        run: npm ci
+
+      - name: Initialize docker
+        run: npm run docker:init
+
+      - name: Start MongoDB container
+        run: npm run mongodb:start
+
+      - name: Start DynamoDB container
+        run: npm run dynamodb:start
+
+      # Artifact packages/api-dev-server/server.log
+      - name: Run end-to-end tests
+        run: npm run -w ${{ matrix.package }} test:e2e
+
+      - name: Upload server logs
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.package }}-dev_server_log
+          path: |
+            packages/api-dev-server/server.log
+          retention-days: 2

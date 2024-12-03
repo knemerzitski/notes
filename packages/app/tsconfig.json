@@ -15,6 +15,6 @@
       "~utils/*": ["../utils/src/*"]
     }
   },
-  "include": ["src", "cypress"],
+  "include": ["src", "cypress", "../api-app-shared/src", "../collab/src", "../utils/src"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

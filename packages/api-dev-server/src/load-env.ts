@@ -1,14 +1,9 @@
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { loadEnvironmentVariables } from '~utils/env';
+import { createLogger } from '~utils/logging';
+import { logNodeInfo } from '~utils/node';
 
-import dotenv from 'dotenv';
+const logger = createLogger('load-env');
 
-// packages/api-dev-server/out/server.index.mjs
-const __dirname = dirname(fileURLToPath(import.meta.url));
+logNodeInfo(logger);
 
-const relEnvPath = `../../../../${
-  process.env.NODE_ENV === 'test' ? '.env.test' : '.env.local'
-}`;
-
-const envPath = join(__dirname, relEnvPath);
-dotenv.config({ path: envPath });
+loadEnvironmentVariables(logger);

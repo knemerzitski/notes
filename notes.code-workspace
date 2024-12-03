@@ -14,9 +14,9 @@
       "*.ts": "${capture}.js, ${capture}.*.ts, ${capture}.cy.tsx",
       "*.tsx": "${capture}.jsx, ${capture}.*.tsx",
     },
-    // Disable VSCode vitest as it doesn't support monorepo
-    "vitest.exclude": ["**"],
     "explorer.fileNesting.expand": false,
     "eslint.useFlatConfig": true,
+    "javascript.preferences.importModuleSpecifier": "project-relative",
+    "typescript.preferences.importModuleSpecifier": "project-relative",
   },
 }

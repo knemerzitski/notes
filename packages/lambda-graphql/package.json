@@ -4,12 +4,13 @@
   "private": "true",
   "type": "module",
   "scripts": {
+    "clean": "rimraf .eslintcache",
     "test:int": "vitest run -c ./vitest.config.integration.ts",
     "test:int:w": "vitest watch -c ./vitest.config.integration.ts",
     "test": "npm run test:int",
     "prettify": "prettier --write --ignore-unknown src",
-    "eslint": "eslint . --max-warnings 0",
-    "type-check": "tsc --noEmit",
+    "eslint": "eslint . --cache --max-warnings 0",
+    "type-check": "tsc --noEmit --project tsconfig.tsc.json",
     "lint": "npm run type-check && npm run eslint"
   },
   "dependencies": {

@@ -26,6 +26,16 @@
   "ts-node": {
     "require": ["tsconfig-paths/register"]
   },
-  "include": ["lib", "bin", "__tests__", "vite.config.ts", "vitest.config*.ts"],
-  "exclude": ["node_modules", "cdk.out", "out"]
+  "include": [
+    "lib",
+    "bin",
+    "__tests__",
+    "../utils/src",
+    "../api-app-shared/src",
+    "../lambda-graphql/src",
+    "../api-dev-server/src",
+    "../api/src",
+    "../collab/src",
+    "scripts"
+  ]
 }

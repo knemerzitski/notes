@@ -1,15 +1,13 @@
-version: '3.8'
 services:
   dynamodb-local:
     command: '-jar DynamoDBLocal.jar -sharedDb -inMemory'
     image: 'amazon/dynamodb-local'
     container_name: dynamodb-local
     networks:
-      - sam-api-network   
+      - sam-api-network
     ports:
       - '8000:8000'
     working_dir: /home/dynamodblocal
-
 
 networks:
   sam-api-network:

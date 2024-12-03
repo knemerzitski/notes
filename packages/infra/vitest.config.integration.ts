@@ -15,9 +15,12 @@ assertSamApiIsRunning();
 export default defineConfig({
   plugins: [tsconfigPaths()],
   envDir: '../../',
-  envPrefix: 'TEST_',
   test: {
     include: ['lib/**/*.int.test.ts', '__tests__/**/*.int.test.ts'],
+    setupFiles: [
+      '__tests__/helpers/load-env.ts',
+      '__tests__/helpers/setup.integration.ts',
+    ],
     pool: 'threads',
     poolOptions: {
       threads: {

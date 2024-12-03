@@ -10,41 +10,62 @@ import {
   ApolloHttpGraphQLContext,
 } from '~lambda-graphql/apollo-http-handler';
 import { createWebSocketHandler } from '~lambda-graphql/websocket-handler';
+import { assertGetEnvironmentVariables } from '~utils/env';
 import { createLogger } from '~utils/logging';
+
+import { isEnvironmentVariableTruthy } from '~utils/string/is-environment-variable-truthy';
 
 import { mockApolloHttpHandlerDefaultParamsOptions } from './handlers/mock-apollo-http-handler';
 import { mockCreateInitializeHandlerOptions } from './handlers/mock-initialize-handler';
 import { mockWebSocketHandlerDefaultParamsOptions } from './handlers/mock-websocket-handler';
 import { createLambdaServer } from './lambda-server';
 import { createLambdaContext } from './utils/lambda-context';
-import { createLambdaGraphQLDynamoDBTables } from './utils/lambda-graphql-dynamodb';
+import {
+  createLambdaGraphQLDynamoDBTables,
+  waitForDynamoDBPort,
+} from './utils/lambda-graphql-dynamodb';
+import { waitForMongoDBPort } from './utils/mongodb';
 
 const logger = createLogger('mock:lambda-graphql-server');
 
-logger.info('index:NODE_ENV', { NODE_ENV: process.env.NODE_ENV });
+const env = assertGetEnvironmentVariables(['MONGODB_URI', 'DYNAMODB_ENDPOINT']);
+
+const noDBMode = isEnvironmentVariableTruthy(process.env.NO_DB_MODE);
+if (noDBMode) {
+  logger.info('index', 'Running server in NO_DB_MODE. Not connecting to any databases.');
+}
 
 void (async () => {
   try {
-    // Run initialize handler once at the start
-    const initalizeHandler = createInitializeHandler(
-      mockCreateInitializeHandlerOptions()
-    );
+    if (!noDBMode) {
+      await Promise.all([
+        waitForMongoDBPort(env.MONGODB_URI, logger),
+        waitForDynamoDBPort(env.DYNAMODB_ENDPOINT, logger),
+      ]);
+    }
 
-    try {
-      await initalizeHandler(undefined, createLambdaContext(), () => {
+    if (!noDBMode) {
+      // Run initialize handler once at the start
+      const initalizeHandler = createInitializeHandler(
+        mockCreateInitializeHandlerOptions()
+      );
+
+      const initializeResult = initalizeHandler(undefined, createLambdaContext(), () => {
         return;
       });
-    } catch (err) {
-      logger.error('Initialize failed', err);
+      if (initializeResult instanceof Promise) {
+        initializeResult.catch((err: unknown) => {
+          logger.error('Initialize failed', err);
+        });
+      }
     }
 
-    if (!process.env.MOCK_DYNAMODB_ENDPOINT) {
-      throw new Error('Environment variable "MOCK_DYNAMODB_ENDPOINT" must be defined');
+    if (!noDBMode) {
+      await createLambdaGraphQLDynamoDBTables({
+        endpoint: env.DYNAMODB_ENDPOINT,
+        logger,
+      });
     }
-    await createLambdaGraphQLDynamoDBTables({
-      endpoint: process.env.MOCK_DYNAMODB_ENDPOINT,
-      logger,
-    });
 
     const sockets: Record<string, WebSocket> = {};
 
@@ -72,6 +93,7 @@ void (async () => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       wsUrl: new URL(process.env.VITE_GRAPHQL_WS_URL!),
       logger,
+      skipDBConnect: noDBMode,
     });
 
     const gracefulShutdown = () => {

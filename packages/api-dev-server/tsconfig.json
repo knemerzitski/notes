@@ -11,5 +11,12 @@
       "~api-app-shared/*": ["../api-app-shared/src/*"]
     }
   },
-  "include": ["src"]
+  "include": [
+    "src",
+    "../utils/src",
+    "../api/src",
+    "../lambda-graphql/src",
+    "../collab/src",
+    "../api-app-shared/src"
+  ]
 }

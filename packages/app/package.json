@@ -4,8 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "clean": "rimraf out/* .eslintcache coverage/*",
     "graphql:gen:code": "graphql-codegen",
-    "graphql:gen:types": "vite-node scripts/gen-possible-types.ts -f src/__generated__",
+    "graphql:gen:types": "VITE_GRAPHQL_HTTP_URL=http://localhost:4020/graphql vite-node scripts/gen-possible-types.ts -f src/__generated__",
     "graphql:gen": "npm run graphql:gen:code && npm run graphql:gen:types",
     "graphql:w": "graphql-codegen -w",
     "build": "npm run vite:build",
@@ -19,8 +20,8 @@
     "dev": "npm run graphql:w & npm run vite:dev",
     "cypress": "cypress open",
     "prettify": "prettier --write --ignore-unknown src cypress",
-    "eslint": "eslint . --max-warnings 0",
-    "type-check": "tsc --noEmit",
+    "eslint": "eslint . --cache --max-warnings 0",
+    "type-check": "tsc --noEmit --project tsconfig.tsc.json",
     "lint": "npm run type-check && npm run eslint"
   },
   "dependencies": {

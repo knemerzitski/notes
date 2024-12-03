@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 // Runs GraphQL API with an actual lambda Docker container
@@ -8,6 +9,9 @@ import { resetDatabase } from '~api/__tests__/helpers/mongodb/mongodb';
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
 
 // TODO use api e2e test helpers
+
+const fetchUrl = new URL(process.env.AWS_REST_API_URL!);
+fetchUrl.pathname = 'graphql';
 
 beforeEach(async () => {
   await resetDatabase();
@@ -21,7 +25,7 @@ interface User {
 }
 
 async function fetchSignIn(): Promise<User> {
-  const res = await fetch('http://127.0.0.1:3000/graphql', {
+  const res = await fetch(fetchUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -66,7 +70,7 @@ async function fetchSignIn(): Promise<User> {
 }
 
 async function fetchCreateNote(user: User, content: string): Promise<User> {
-  const res = await fetch('http://127.0.0.1:3000/graphql', {
+  const res = await fetch(fetchUrl, {
     method: 'POST',
     headers: {
       ...user.headers,
@@ -107,7 +111,7 @@ async function fetchCreateNote(user: User, content: string): Promise<User> {
 }
 
 async function fetchNotes(user: User) {
-  const res = await fetch('http://127.0.0.1:3000/graphql', {
+  const res = await fetch(fetchUrl, {
     method: 'POST',
     headers: {
       ...user.headers,

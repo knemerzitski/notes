@@ -79,7 +79,7 @@ beforeEach(async () => {
           'AWS SDK error wrapper for Error: connect ECONNREFUSED'
         )
       ) {
-        (err as Error).message += ' (Run `npm run test:unit:prepare` before tests)';
+        (err as Error).message += ` (Run "npm run db:start" before tests)`;
       }
       throw err;
     }

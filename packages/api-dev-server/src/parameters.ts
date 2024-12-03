@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import { createCollectionInstances } from '~api/mongodb/collections';
+import { createCollectionInstances, MongoDBCollections } from '~api/mongodb/collections';
 import { createMongoDBContext } from '~api/mongodb/context';
 import {
   createDefaultGraphQLParams,
@@ -13,7 +13,10 @@ import {
 } from '~lambda-graphql/context/graphql';
 import { PingPongContextParams } from '~lambda-graphql/context/pingpong';
 import { createPingPongHandler } from '~lambda-graphql/ping-pong-handler';
+import { assertGetEnvironmentVariables } from '~utils/env';
 import { createLogger } from '~utils/logging';
+
+import { isEnvironmentVariableTruthy } from '~utils/string/is-environment-variable-truthy';
 
 import {
   MockApiGatewayManagementApiClient,
@@ -35,17 +38,29 @@ export function createMockSubscriptionGraphQLParams<
   );
 }
 
-export async function createMockMongoDBContext() {
-  if (!process.env.MOCK_MONGODB_URI) {
-    throw new Error('Environment variable "MOCK_MONGODB_URI" must be defined');
+export async function createMockMongoDBContext(): ReturnType<
+  typeof createMongoDBContext<MongoDBCollections>
+> {
+  const env = assertGetEnvironmentVariables(['MONGODB_URI']);
+
+  const noDBMode = isEnvironmentVariableTruthy(process.env.NO_DB_MODE);
+  if (noDBMode) {
+    return new Proxy(
+      {},
+      {
+        get() {
+          return `Cannot use MongoDB. Server is running in NO_DB_MODE.`;
+        },
+      }
+    ) as ReturnType<typeof createMongoDBContext<MongoDBCollections>>;
   }
 
-  const timeout = 2000;
+  const timeout = 10000;
 
   return await createMongoDBContext({
     logger: createLogger('mock:mongodb'),
     createCollectionInstances,
-    uri: process.env.MOCK_MONGODB_URI,
+    uri: env.MONGODB_URI,
     options: {
       connectTimeoutMS: timeout,
       socketTimeoutMS: timeout,
@@ -56,15 +71,13 @@ export async function createMockMongoDBContext() {
 }
 
 export function createMockDynamoDBParams(): DynamoDBContextParams {
-  if (!process.env.MOCK_DYNAMODB_ENDPOINT) {
-    throw new Error('Environment variable "MOCK_DYNAMODB_ENDPOINT" must be defined');
-  }
+  const env = assertGetEnvironmentVariables(['DYNAMODB_ENDPOINT']);
 
   return {
     logger: createLogger('mock:dynamodb'),
     clientConfig: {
       region: 'eu-west-1',
-      endpoint: process.env.MOCK_DYNAMODB_ENDPOINT,
+      endpoint: env.DYNAMODB_ENDPOINT,
       credentials: {
         accessKeyId: 'dummykey123',
         secretAccessKey: 'dummysecretkey123',

@@ -3,11 +3,15 @@
  */
 
 import { exit } from 'process';
-import { loadEnvironmentVariables } from '../lib/utils/env';
+import { loadEnvironmentVariables } from '~utils/env';
 
 loadEnvironmentVariables();
 
-if (process.env.AWS_CDK) {
+function isTruthy(value: string | undefined) {
+  return value === 'true' || value === '1';
+}
+
+if (isTruthy(process.env.AWS_CDK)) {
   process.exit(0);
 } else {
   console.error(`Expected environment variable "AWS" to be defined`);

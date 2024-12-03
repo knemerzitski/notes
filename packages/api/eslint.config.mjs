@@ -5,12 +5,7 @@ import globals from 'globals';
 export default [
   ...rootConfig,
   {
-    ignores: [
-      'src/graphql/domains/*.generated.ts',
-      'out',
-      'esbuild.config.ts',
-      'scripts',
-    ],
+    ignores: ['src/graphql/domains/*.generated.ts', 'scripts', 'codegen.ts'],
   },
   {
     languageOptions: {
