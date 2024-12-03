@@ -2,9 +2,10 @@ import { assert, describe, expect, it } from 'vitest';
 
 import { newSelectionRange } from '../__tests__/helpers/collab-service-selection-range';
 
-import { CollabService } from './collab-service';
 import { Changeset } from '../changeset';
 import { SimpleTextEditor } from '../editor/simple-text';
+
+import { CollabService } from './collab-service';
 
 const cs = (...values: unknown[]) => Changeset.parseValue(values);
 

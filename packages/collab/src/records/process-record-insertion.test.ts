@@ -1,9 +1,13 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { it, expect } from 'vitest';
-import { processRecordInsertion } from './process-record-insertion';
-import { Changeset } from '../changeset';
-import { ServerRevisionRecord } from './record';
+
 import { mock } from 'vitest-mock-extended';
+
+import { Changeset } from '../changeset';
+
+import { processRecordInsertion } from './process-record-insertion';
+import { ServerRevisionRecord } from './record';
 
 const records: ServerRevisionRecord[] = [
   {

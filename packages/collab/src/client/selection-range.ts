@@ -1,6 +1,6 @@
+import { coerce, Infer, number, object, optional } from 'superstruct';
 import { Maybe, PartialBy } from '~utils/types';
 
-import { coerce, Infer, number, object, optional } from 'superstruct';
 import { Changeset } from '../changeset';
 
 const ExpandedSelectionRangeStruct = object({

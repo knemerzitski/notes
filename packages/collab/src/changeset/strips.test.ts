@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { InsertStrip, RetainStrip, Strip, Strips } from '.';
 
 const s = Strip.parseValue;

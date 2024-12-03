@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+
 import { Changeset } from '../changeset';
 import { SelectionRange } from '../client/selection-range';
 

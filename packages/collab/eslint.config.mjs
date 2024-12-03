@@ -15,6 +15,7 @@ export default [
     },
   },
   {
+    files: ['**/*.ts?(x)'],
     rules: {
       'import/no-restricted-paths': [
         'error',

@@ -1,6 +1,10 @@
 import mitt, { Emitter } from 'mitt';
+import { array, Infer, literal, number, object, union } from 'superstruct';
 import { Maybe, PartialBy, ReadonlyDeep } from '~utils/types';
 
+import { Changeset, ChangesetStruct } from '../changeset';
+import { OptionalChangesetStruct } from '../changeset/struct';
+import { SimpleTextOperationOptions } from '../editor/types';
 import {
   RevisionChangeset,
   ServerRevisionRecord,
@@ -8,13 +12,12 @@ import {
 } from '../records/record';
 
 import { CollabClient } from './collab-client';
-import { UserRecords } from './user-records';
-import { Changeset, ChangesetStruct } from '../changeset';
-import { array, Infer, literal, number, object, union } from 'superstruct';
 import { SelectionRange, SelectionRangeStruct } from './selection-range';
-import { SimpleTextOperationOptions } from '../editor/types';
+
+
 import { SelectionChangeset } from './types';
-import { OptionalChangesetStruct } from '../changeset/struct';
+import { UserRecords } from './user-records';
+
 
 export interface CollabHistoryEvents {
   appliedTypingOperation: ReadonlyDeep<

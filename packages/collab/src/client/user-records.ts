@@ -1,5 +1,7 @@
 import mitt, { Emitter } from 'mitt';
+
 import { RevisionChangeset } from '../records/record';
+
 import { CollabServiceRecord } from './collab-service';
 
 export interface ServerRecordsFacadeEvents<TRecord> {

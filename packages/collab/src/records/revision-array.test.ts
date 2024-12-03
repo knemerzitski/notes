@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { RevisionArray } from './revision-array';
+
 import { Changeset } from '../changeset';
+
+import { RevisionArray } from './revision-array';
 
 describe('constructor', () => {
   it('has no items and revisions are undefined', () => {

@@ -1,8 +1,10 @@
 import { CollabService, CollabServiceEvents } from '../../client/collab-service';
+
+import { LimitedEmitter } from '../../utils/types';
+
 import { StructJsonFormatter } from './struct-json-formatter';
 import { StringRecordStruct } from './types';
 import { ViewTextMemo } from './view-text-memo';
-import { LimitedEmitter } from '../../utils/types';
 
 interface ViewTextAtRevision<K extends string, S extends StringRecordStruct> {
   revision: number;

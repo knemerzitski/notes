@@ -1,4 +1,5 @@
 import { Changeset } from '../changeset';
+
 import { SelectionRange } from './selection-range';
 
 export interface SelectionChangeset {

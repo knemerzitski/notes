@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-import { ChangeSource, CollabClient } from './collab-client';
 import { Changeset } from '../changeset';
+
+import { ChangeSource, CollabClient } from './collab-client';
 
 const cs = (...values: unknown[]) => Changeset.parseValue(values);
 

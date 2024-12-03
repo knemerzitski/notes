@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { Changeset } from '../changeset';
 import { Entry } from '../client/collab-history';
 
-import { createHelperCollabEditingEnvironment } from './helpers/server-client';
 import { RevisionRecords } from '../records/revision-records';
-import { Changeset } from '../changeset';
+
 import { fakeServerRevisionRecord } from './helpers/populate';
+import { createHelperCollabEditingEnvironment } from './helpers/server-client';
 
 function historyEntriesInfo(entries: readonly Entry[]) {
   return entries.map((e) => ({

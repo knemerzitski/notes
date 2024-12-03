@@ -1,6 +1,8 @@
 import mitt, { Emitter } from 'mitt';
-import { Changeset } from '../changeset';
+
 import { object } from 'superstruct';
+
+import { Changeset } from '../changeset';
 import { OptionalChangesetStruct } from '../changeset/struct';
 
 export interface CollabClientEvents {

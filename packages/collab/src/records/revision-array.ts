@@ -1,4 +1,5 @@
 import { consecutiveOrderedSetIndexOf } from '~utils/ordered-set/consecutive-ordered-set';
+
 import { Revision } from './record';
 
 function rankRecord(record: Revision) {

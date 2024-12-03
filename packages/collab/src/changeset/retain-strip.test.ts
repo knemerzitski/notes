@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { RetainStrip, Strip, Strips } from '.';
 
 const s = Strip.parseValue.bind(Strip);

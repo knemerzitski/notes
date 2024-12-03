@@ -1,9 +1,11 @@
 import mitt, { Emitter } from 'mitt';
 import { isDefined } from '~utils/type-guards/is-defined';
+
 import { Changeset, InsertStrip, RetainStrip, Strip } from '../../changeset';
 import { CollabService, CollabServiceEvents } from '../../client/collab-service';
 import { SelectionRange } from '../../client/selection-range';
 import { SimpleText, SimpleTextEvents, SimpleTextOperationOptions } from '../types';
+
 import { StructJsonFormatter } from './struct-json-formatter';
 import { KeyViewText } from './types';
 

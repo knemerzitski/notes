@@ -1,4 +1,5 @@
 import { Infer, InferRaw } from 'superstruct';
+
 import { StructJsonFormatter } from './struct-json-formatter';
 import { StringRecordStruct } from './types';
 
@@ -52,7 +53,7 @@ export class ViewTextMemo<K extends string, S extends StringRecordStruct> {
       this._positionByKey = Object.fromEntries(
         // Find all key value pairs, e.g. json stringified '{"a": "b"}' matches {1: 'a', 2: 'b'}
         [...this.viewText.matchAll(/"((?:[^"\\]|\\.)*)":"((?:[^"\\]|\\.)*)"/g)]
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+           
           .map((match) => {
             const index = match.index;
             const key = match[1] ?? '';

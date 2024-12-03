@@ -14,6 +14,7 @@ import {
   union,
   unknown,
 } from 'superstruct';
+
 import { Changeset, InsertStrip, RetainStrip, Strip, Strips } from '.';
 
 const IsEmptyStripStruct = define<Strip>('EMPTY', (v) => v === Strip.EMPTY);

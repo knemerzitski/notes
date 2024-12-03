@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { Changeset, InsertStrip, RetainStrip, Strip, Strips } from '.';
 
 const cs = Changeset.parseValue;

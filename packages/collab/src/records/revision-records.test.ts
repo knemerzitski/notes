@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { Changeset } from '../changeset';
+
 import { RevisionRecords } from './revision-records';
 
 let revisionRecords: RevisionRecords;

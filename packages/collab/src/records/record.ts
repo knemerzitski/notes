@@ -1,6 +1,7 @@
 import { assign, Infer, number, object, string, type } from 'superstruct';
-import { SelectionRangeStruct } from '../client/selection-range';
+
 import { ChangesetStruct } from '../changeset';
+import { SelectionRangeStruct } from '../client/selection-range';
 
 const RevisionStruct = type({
   revision: number(),

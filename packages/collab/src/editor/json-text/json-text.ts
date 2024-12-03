@@ -1,16 +1,18 @@
+import { Changeset } from '../../changeset';
 import { CollabService, CollabServiceEvents } from '../../client/collab-service';
 import { SelectionRange } from '../../client/selection-range';
-import { SimpleText, SimpleTextOperationOptions } from '../types';
-import { Changeset } from '../../changeset';
 import { SelectionChangeset } from '../../client/types';
-import { StructJsonFormatter } from './struct-json-formatter';
-import { ViewTextMemo } from './view-text-memo';
-import { StringRecordStruct } from './types';
-import { ViewTextKeyView } from './view-text-key-view';
-import { ViewTextKeyPrevView } from './view-text-key-prev-view';
-import { ViewTextMemosCache } from './view-text-memos-cache';
-import { KeySimpleText } from './key-simple-text';
 import { LimitedEmitter } from '../../utils/types';
+import { SimpleText, SimpleTextOperationOptions } from '../types';
+
+import { KeySimpleText } from './key-simple-text';
+import { StructJsonFormatter } from './struct-json-formatter';
+import { StringRecordStruct } from './types';
+import { ViewTextKeyPrevView } from './view-text-key-prev-view';
+import { ViewTextKeyView } from './view-text-key-view';
+import { ViewTextMemo } from './view-text-memo';
+import { ViewTextMemosCache } from './view-text-memos-cache';
+
 
 export class JsonText<K extends string, S extends StringRecordStruct> {
   private readonly viewsCache;

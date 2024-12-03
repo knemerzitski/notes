@@ -1,4 +1,5 @@
 import { coerce, defaulted, Infer, InferRaw, string, type } from 'superstruct';
+
 import { JsonFormatter, StringRecordStruct } from './types';
 
 export class StructJsonFormatter<
@@ -21,6 +22,7 @@ export class StructJsonFormatter<
   }
 
   parseString(value: string): string {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return JSON.parse(`"${value}"`);
   }
 
@@ -44,6 +46,7 @@ function createStringRecordStruct<K extends string>(
       }
 
       try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const jsonValue = JSON.parse(value);
         if (typeof jsonValue === 'string' && keys[0]) {
           return {

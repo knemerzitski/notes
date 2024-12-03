@@ -9,8 +9,10 @@ import {
   vi,
 } from 'vitest';
 
-import { CollabService } from '../../client/collab-service';
 import { Changeset } from '~/changeset';
+
+import { CollabService } from '../../client/collab-service';
+
 import { defineCreateJsonTextFromService } from './create-service-json-text';
 
 function setServiceText(service: CollabService, value: string) {

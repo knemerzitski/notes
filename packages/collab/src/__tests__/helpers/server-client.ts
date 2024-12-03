@@ -4,10 +4,15 @@ import { assert, expect } from 'vitest';
 import { OrderedMessageBuffer } from '~utils/ordered-message-buffer';
 
 import { CollabClient } from '../../client/collab-client';
-import { CollabService, CollabServiceOptions } from '../../client/collab-service';
 import { CollabHistory } from '../../client/collab-history';
+import { CollabService, CollabServiceOptions } from '../../client/collab-service';
 import { UserRecords } from '../../client/user-records';
+import { SimpleTextEditor } from '../../editor/simple-text';
+import { SimpleTextOperationOptions } from '../../editor/types';
+import { processRecordInsertion } from '../../records/process-record-insertion';
 import { ServerRevisionRecord } from '../../records/record';
+
+import { RevisionRecords } from '../../records/revision-records';
 
 import { newSelectionRange } from './collab-service-selection-range';
 import { LocalServerRecords, LocalServerRecordsParams } from './server-records';
@@ -15,10 +20,6 @@ import {
   getValueWithSelection,
   parseTextWithMultipleSelections,
 } from './text-with-selection';
-import { RevisionRecords } from '../../records/revision-records';
-import { processRecordInsertion } from '../../records/process-record-insertion';
-import { SimpleTextEditor } from '../../editor/simple-text';
-import { SimpleTextOperationOptions } from '../../editor/types';
 
 export function createHelperCollabEditingEnvironment<TClientName extends string>(
   options: {
@@ -99,7 +100,7 @@ function createClientHelper<TName extends string>(
   userId = name,
   currentOptions: CollabServiceOptions,
   server: LocalServerRecords<ServerRevisionRecord>,
-  getOtherServices: () => { [K in TName]: CollabService }
+  getOtherServices: () => Record<TName, CollabService>
 ) {
   const {
     client: clientOptions,
@@ -200,7 +201,7 @@ function createCollabServiceAndRevisionTailRecordsHelper<TClientName extends str
   userId = name,
   service: CollabService,
   localRecords: LocalServerRecords<ServerRevisionRecord>,
-  getOtherServices: () => { [Key in TClientName]: CollabService }
+  getOtherServices: () => Record<TClientName, CollabService>
 ) {
   function submitChanges() {
     const submittedRecord = service.submitChanges();

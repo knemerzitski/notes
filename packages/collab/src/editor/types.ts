@@ -1,4 +1,5 @@
 import { Emitter } from 'mitt';
+
 import { Changeset } from '../changeset';
 import { SelectionRange } from '../client/selection-range';
 

@@ -1,6 +1,8 @@
 import { ReadonlyDeep } from '~utils/types';
+
 import { Changeset, ChangesetOperationError } from '../changeset';
 import { SelectionRange } from '../client/selection-range';
+
 import { RevisionChangeset, ServerRevisionRecord } from './record';
 import { RevisionArray } from './revision-array';
 

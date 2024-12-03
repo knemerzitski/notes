@@ -1,14 +1,26 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
+ 
+import mitt, { Emitter } from 'mitt';
 import { nanoid } from 'nanoid';
 
-import mitt, { Emitter } from 'mitt';
+import {
+  assign,
+  Infer,
+  object,
+  omit,
+  optional,
+  union,
+  literal,
+  nullable,
+} from 'superstruct';
 import {
   OrderedMessageBuffer,
   OrderedMessageBufferParams,
   OrderedMessageBufferParamsStruct,
   ProcessingEvents,
-} from '~utils/ordered-message-buffer';
-import { OrderedMessageBufferEvents } from '~utils/ordered-message-buffer';
+ OrderedMessageBufferEvents } from '~utils/ordered-message-buffer';
+
+import { Changeset } from '../changeset';
+import { SimpleTextOperationOptions } from '../editor/types';
 import {
   RevisionChangeset,
   ServerRevisionRecordStruct,
@@ -29,20 +41,8 @@ import {
   CollabHistoryEvents,
 } from './collab-history';
 import { SubmittedRecord } from './submitted-record';
-import { UserRecords } from './user-records';
-import { Changeset } from '../changeset';
-import {
-  assign,
-  Infer,
-  object,
-  omit,
-  optional,
-  union,
-  literal,
-  nullable,
-} from 'superstruct';
-import { SimpleTextOperationOptions } from '../editor/types';
 import { SelectionChangeset } from './types';
+import { UserRecords } from './user-records';
 
 export type CollabServiceEvents = CollabClientEvents &
   Omit<OrderedMessageBufferEvents<UnprocessedRecord>, 'processingMessages'> &

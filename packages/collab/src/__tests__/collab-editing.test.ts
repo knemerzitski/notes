@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { createHelperCollabEditingEnvironment } from './helpers/server-client';
 import { Changeset } from '../changeset';
+
+import { createHelperCollabEditingEnvironment } from './helpers/server-client';
 
 const cs = (...values: unknown[]) => Changeset.parseValue(values);
 

@@ -1,5 +1,6 @@
-import { Strip, RetainStrip, InsertStrip, StripsStruct } from '.';
 import { rangeRelation } from '~utils/range-relation';
+
+import { Strip, RetainStrip, InsertStrip, StripsStruct } from '.';
 
 /**
  * A strip array with convinience methods.
