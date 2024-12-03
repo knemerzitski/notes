@@ -21,7 +21,7 @@
     "test:e2e:w": "vitest watch -c ./vitest.config.e2e.ts",
     "test": "npm run test:unit && npm run test:int && npm run test:e2e",
     "prettify": "prettier --write --ignore-unknown src",
-    "eslint": "eslint . --fix --max-warnings 0",
+    "eslint": "eslint . --max-warnings 0",
     "type-check": "tsc --noEmit",
     "lint": "npm run type-check && npm run eslint"
   },

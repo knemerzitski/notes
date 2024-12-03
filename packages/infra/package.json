@@ -17,7 +17,7 @@
     "test:int": "npm run assert-aws-cdk && (npm run test:int:pre && npm run test:int:run; npm run test:int:post)",
     "test": "npm run test:unit && (npm run assert-aws-cdk 2> /dev/null && npm run test:int || echo 'Skipped integration tests')",
     "prettify": "prettier --write --ignore-unknown bin lib",
-    "eslint": "eslint . --fix --max-warnings 0",
+    "eslint": "eslint . --max-warnings 0",
     "type-check": "tsc --noEmit",
     "lint": "npm run type-check && npm run eslint",
     "cdk": "NODE_ENV=production cdk",

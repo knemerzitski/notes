@@ -8,7 +8,7 @@
     "test:int:w": "vitest watch -c ./vitest.config.integration.ts",
     "test": "npm run test:int",
     "prettify": "prettier --write --ignore-unknown src",
-    "eslint": "eslint . --fix --max-warnings 0",
+    "eslint": "eslint . --max-warnings 0",
     "type-check": "tsc --noEmit",
     "lint": "npm run type-check && npm run eslint"
   },

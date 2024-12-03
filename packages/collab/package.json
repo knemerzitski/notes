@@ -8,7 +8,7 @@
     "test:unit:w": "vitest watch",
     "test": "npm run test:unit",
     "prettify": "prettier --write --ignore-unknown src",
-    "eslint": "eslint . --fix --max-warnings 0",
+    "eslint": "eslint . --max-warnings 0",
     "type-check": "tsc --noEmit",
     "lint": "npm run type-check && npm run eslint"
   },
