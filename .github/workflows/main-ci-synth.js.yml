@@ -1,0 +1,86 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: CI up to ci:synth on main
+
+on:
+  push:
+    branches: ['ci']
+  pull_request:
+    branches: ['ci']
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APP_ORIGIN: http://localhost
+  VITE_GRAPHQL_HTTP_URL: http://localhost:4000/graphql
+  VITE_GRAPHQL_WS_URL: ws://localhost:4000/graphql
+  DEBUG_FORMAT: object
+  MOCK_MONGODB_URI: mongodb://localhost:27017/notesDev?replicaSet=rs0
+  MOCK_DYNAMODB_ENDPOINT: http://localhost:8000
+  MONGODB_TIER: 'enterprise'
+  VITE_MOCK_GOOGLE_AUTH: true
+
+jobs:
+  graphql_codegen:
+    name: Generate GraphQL types, operations and fragments
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [22.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - run: npm ci
+
+      - run: npm run -w dev-server build:server
+      - run: npm run -w dev-server start:detached:log
+      - run: sleep 10
+      - uses: actions/upload-artifact@v4
+        with:
+          name: detached_log
+          path: packages/api-dev-server/server-detached.log
+          retention-days: 1
+      - run: npm run -w dev-server stop:detached
+
+      # Artifact packages/api/src/graphql/domains/*.generated.ts
+      # - run: npm run -w api graphql:gen
+      # Artifact packages/app/src/__generated__/**
+      # - run: npm run -w app graphql:gen
+
+      # - name: Upload GraphQL codegen artifacts
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: graphql_codegen
+      #     path: |
+      #       packages/api/src/graphql/domains/*.generated.ts
+      #       packages/app/src/__generated__/**
+  # lint:
+  #   name: Typecheck and eslint all packages
+  #   needs: graphql_codegen
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       node-version: [22.x]
+  #   steps:
+  #     - name: Download GraphQL codegen artifacts
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: graphql_codegen
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+  #     - name: Use Node.js ${{ matrix.node-version }}
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: ${{ matrix.node-version }}
+  #         cache: 'npm'
+  #     - run: npm ci
+  #     - run: npm run lint
