@@ -71,7 +71,8 @@ export function apiGatewayProxyWebSocketHandler({
       void (async () => {
         try {
           await messageHandler(
-            createWebSocketEvent(id, 'MESSAGE', JSON.stringify(data)),
+            // eslint-disable-next-line @typescript-eslint/no-base-to-string
+            createWebSocketEvent(id, 'MESSAGE', String(data)),
             createLambdaContext(),
             () => {
               return;
