@@ -5,8 +5,8 @@ import {
   APIGatewayProxyWebsocketEventV2,
   Handler,
 } from 'aws-lambda';
-import { GraphQLSchema, parse } from 'graphql/index.js';
 import { buildExecutionContext } from 'graphql/execution/execute.js';
+import { GraphQLSchema, parse } from 'graphql/index.js';
 import { MessageType } from 'graphql-ws';
 import { isArray } from '~utils/array/is-array';
 import { Logger } from '~utils/logging';
@@ -22,6 +22,11 @@ import { DynamoDBContextParams, createDynamoDBContext } from './context/dynamodb
 import { GraphQLContextParams, createGraphQLContext } from './context/graphql';
 import { ConnectionTable, DynamoDBRecord } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
+import {
+  FormatError,
+  FormatErrorOptions,
+  formatUnknownError,
+} from './graphql/format-unknown-error';
 import { Publisher, createPublisher } from './pubsub/publish';
 import {
   SubscribeHookError,
@@ -29,11 +34,6 @@ import {
   createSubscriptionContext,
   getSubscribeFieldResult,
 } from './pubsub/subscribe';
-import {
-  FormatError,
-  FormatErrorOptions,
-  formatUnknownError,
-} from './graphql/format-unknown-error';
 
 interface DirectParams<
   TGraphQLContext,
@@ -276,7 +276,7 @@ export function webSocketDisconnectHandler<
 
       await Promise.allSettled([connectionDeletion, ...subscriptionDeletions]);
 
-      return Promise.resolve(defaultResponse);
+      return defaultResponse;
     } catch (err) {
       context.logger.error('event:DISCONNECT', { err, event });
       throw err;

@@ -1,17 +1,19 @@
 import { execute, GraphQLSchema, parse } from 'graphql/index.js';
 import { MessageType, NextMessage } from 'graphql-ws';
 
+import { Logger } from '~utils/logging';
+
+import { WebSocketApi } from '../context/apigateway';
 import { DynamoDBRecord } from '../dynamodb/models/connection';
 import { Subscription, SubscriptionTable } from '../dynamodb/models/subscription';
 
-import { PubSubEvent } from './subscribe';
 import {
   FormatError,
   FormatErrorOptions,
   formatUnknownError,
 } from '../graphql/format-unknown-error';
-import { Logger } from '~utils/logging';
-import { WebSocketApi } from '../context/apigateway';
+
+import { PubSubEvent } from './subscribe';
 
 interface CreatePublisherParams<
   TGraphQLContext,

@@ -35,6 +35,7 @@ export type PingPongHandler = Handler<
   MaybePromise<PingPongMachineInput>
 >;
 
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 export function createPingPongHandler<TDynamoDBGraphQLContext extends DynamoDBRecord>(
   params: PingPongHandlerParams
 ) {

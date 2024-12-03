@@ -1,6 +1,7 @@
-import { GraphQLError, GraphQLFormattedError } from 'graphql/index.js';
 import { ExecutionContext } from 'graphql/execution/execute.js';
+import { GraphQLError, GraphQLFormattedError } from 'graphql/index.js';
 import { Path } from 'graphql/jsutils/Path.js';
+
 import { getResolverArgs } from './get-resolver-args';
 
 function collectPath(path: Path): string[] {

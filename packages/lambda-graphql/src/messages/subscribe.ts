@@ -1,20 +1,20 @@
-import { OperationTypeNode, parse } from 'graphql/index.js';
 import { buildExecutionContext } from 'graphql/execution/execute.js';
+import { OperationTypeNode, parse } from 'graphql/index.js';
 import { MessageType } from 'graphql-ws';
 import { isArray } from '~utils/array/is-array';
 
 import { DynamoDBRecord } from '../dynamodb/models/connection';
 import { Subscription } from '../dynamodb/models/subscription';
+import { formatUnknownError } from '../graphql/format-unknown-error';
 import { validateQuery } from '../graphql/validate-query';
 import { MessageHandler } from '../message-handler';
+import { createPublisher } from '../pubsub/publish';
 import {
   SubscribeHookError,
   SubscriptionContext,
   createSubscriptionContext,
   getSubscribeFieldResult,
 } from '../pubsub/subscribe';
-import { createPublisher } from '../pubsub/publish';
-import { formatUnknownError } from '../graphql/format-unknown-error';
 
 export function createSubscribeHandler<
   TGraphQLContext,
@@ -65,7 +65,8 @@ export function createSubscribeHandler<
       });
       if (errors) {
         context.logger.info('messages:subscribe:validateQueryError', { errors });
-        return context.socketApi.post({
+        // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
+        return await context.socketApi.post({
           ...event.requestContext,
           message: {
             type: MessageType.Error,
@@ -106,7 +107,8 @@ export function createSubscribeHandler<
 
       // exeContext as an array contains GraphQL errors
       if (isArray(exeContextOrErrors)) {
-        return context.socketApi.post({
+        // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
+        return await context.socketApi.post({
           ...event.requestContext,
           message: {
             type: MessageType.Error,

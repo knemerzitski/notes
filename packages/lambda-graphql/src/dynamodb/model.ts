@@ -225,7 +225,7 @@ export function newModel<TKey extends object, TItem extends object>({
         const itemWithoutKeys: TItemNoKeys = Object.entries(item)
           .filter(([key]) => !(key in Key))
           .reduce((acc, [key, val]) => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+             
             acc[key as keyof TItemNoKeys] = val as TItem[Exclude<
               keyof TItem,
               keyof TKey

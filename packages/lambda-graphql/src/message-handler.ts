@@ -34,13 +34,13 @@ import {
   DynamoDBRecord,
 } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
+import { FormatError, FormatErrorOptions } from './graphql/format-unknown-error';
 import { createCompleteHandler } from './messages/complete';
 import { createConnectionInitHandler } from './messages/connection_init';
 import { createPingHandler } from './messages/ping';
 import { createPongHandler } from './messages/pong';
 import { createSubscribeHandler } from './messages/subscribe';
 import { Publisher } from './pubsub/publish';
-import { FormatError, FormatErrorOptions } from './graphql/format-unknown-error';
 
 interface DirectParams<
   TGraphQLContext,
@@ -326,7 +326,7 @@ export function webSocketMessageHandler<
         await context.socketApi.delete(event.requestContext);
       }
 
-      return Promise.resolve(defaultResponse);
+      return defaultResponse;
     } catch (err) {
       context.logger.error('event:MESSAGE', { err, event });
       throw err;

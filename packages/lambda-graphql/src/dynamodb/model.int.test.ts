@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 import {
   CreateTableCommand,
   DeleteTableCommand,
@@ -11,11 +12,13 @@ import {
 import { faker } from '@faker-js/faker';
 import { beforeAll, it, expect, beforeEach } from 'vitest';
 
+import { mock } from 'vitest-mock-extended';
+
+import { Logger } from '~utils/logging';
+
 import { dynamoDBDocumentClient } from '../__tests__/helpers/dynamodb';
 
 import { newModel, Table } from './model';
-import { mock } from 'vitest-mock-extended';
-import { Logger } from '~utils/logging';
 
 let table: Table<{ id: string }, Record<string, unknown>>;
 

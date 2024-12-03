@@ -139,7 +139,7 @@ export function webSocketConnectHandler<
         response,
       });
 
-      return Promise.resolve(response);
+      return response;
     } catch (err) {
       context.logger.error('event:CONNECT', { err, event });
       throw err;

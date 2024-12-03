@@ -1,3 +1,9 @@
+import { collectFields } from 'graphql/execution/collectFields.js';
+import {
+  ExecutionContext,
+  buildResolveInfo,
+  getFieldDef,
+} from 'graphql/execution/execute.js';
 import {
   ASTNode,
   GraphQLError,
@@ -5,12 +11,6 @@ import {
   GraphQLResolveInfo,
   getArgumentValues,
 } from 'graphql/index.js';
-import { collectFields } from 'graphql/execution/collectFields.js';
-import {
-  ExecutionContext,
-  buildResolveInfo,
-  getFieldDef,
-} from 'graphql/execution/execute.js';
 import { Maybe } from 'graphql/jsutils/Maybe.js';
 import { addPath } from 'graphql/jsutils/Path.js';
 
