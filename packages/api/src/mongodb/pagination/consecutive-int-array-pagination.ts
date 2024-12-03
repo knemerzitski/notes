@@ -1,12 +1,13 @@
 import { Document } from 'mongodb';
 
+import { STRUCT_NUMBER } from '../constants';
+
 import {
   CursorArrayPaginationInput,
   CursorArrayPaginationAggregateResult,
   sliceFirst,
   sliceLast,
 } from './cursor-array-pagination';
-import { STRUCT_NUMBER } from '../constants';
 import {
   CursorFirstPagination,
   CursorLastPagination,

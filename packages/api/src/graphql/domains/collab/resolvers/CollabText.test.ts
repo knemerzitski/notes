@@ -1,12 +1,16 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, expect, it } from 'vitest';
-import { mockResolver } from '../../../../__tests__/helpers/graphql/mock-resolver';
-import { CollabText } from './CollabText';
+
 import { Changeset } from '~collab/changeset';
 import { maybeCallFn } from '~utils/maybe-call-fn';
-import { createPartialValueQueryFn } from '../../../../mongodb/query/query';
+
+import { mockResolver } from '../../../../__tests__/helpers/graphql/mock-resolver';
 import { QueryableCollabText } from '../../../../mongodb/loaders/note/descriptions/collab-text';
+import { createPartialValueQueryFn } from '../../../../mongodb/query/query';
+
+import { CollabText } from './CollabText';
 
 describe('textAtRevision', () => {
   const textAtRevision = mockResolver(CollabText.textAtRevision!);

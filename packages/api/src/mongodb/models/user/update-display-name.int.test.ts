@@ -1,13 +1,15 @@
 import { faker } from '@faker-js/faker';
+import { ObjectId } from 'mongodb';
 import { beforeEach, it, expect } from 'vitest';
+
 import {
   resetDatabase,
   mongoCollectionStats,
   mongoCollections,
 } from '../../../__tests__/helpers/mongodb/mongodb';
 import { DBUserSchema, UserSchema } from '../../schema/user';
+
 import { updateDisplayName } from './update-display-name';
-import { ObjectId } from 'mongodb';
 
 let user: DBUserSchema;
 

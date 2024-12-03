@@ -1,6 +1,6 @@
 import { MongoDBCollections, CollectionName } from '../../collections';
-import { TransactionContext } from '../../utils/with-transaction';
 import { DBUserSchema, UserSchema } from '../../schema/user';
+import { TransactionContext } from '../../utils/with-transaction';
 
 export async function insertUser({
   mongoDB,

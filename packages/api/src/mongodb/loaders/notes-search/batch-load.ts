@@ -1,17 +1,7 @@
 import { InferRaw } from 'superstruct';
 import { groupBy } from '~utils/array/group-by';
+
 import { STRUCT_STRING } from '../../constants';
-import { mapQueryAggregateResult } from '../../query/map-query-aggregate-result';
-import { mergeQueries, MergedQueryDeep } from '../../query/merge-queries';
-import { mergedQueryToPipeline } from '../../query/merged-query-to-pipeline';
-import { PartialQueryResultDeep } from '../../query/query';
-import { NoteSearchIndexName } from '../../schema/note';
-import { notesSearchDescription, QueryableSearchNotes } from './description';
-import {
-  QueryableNotesSearchLoaderKey,
-  QueryableNotesSearchLoadContext,
-  QueryableNotesSearchId,
-} from './loader';
 import {
   CursorAfterPagination,
   CursorAfterBoundPagination,
@@ -21,6 +11,18 @@ import {
   CursorLastPagination,
   getPaginationKey,
 } from '../../pagination/cursor-struct';
+import { mapQueryAggregateResult } from '../../query/map-query-aggregate-result';
+import { mergeQueries, MergedQueryDeep } from '../../query/merge-queries';
+import { mergedQueryToPipeline } from '../../query/merged-query-to-pipeline';
+import { PartialQueryResultDeep } from '../../query/query';
+import { NoteSearchIndexName } from '../../schema/note';
+
+import { notesSearchDescription, QueryableSearchNotes } from './description';
+import {
+  QueryableNotesSearchLoaderKey,
+  QueryableNotesSearchLoadContext,
+  QueryableNotesSearchId,
+} from './loader';
 
 export async function batchLoad(
   keys: readonly QueryableNotesSearchLoaderKey[],

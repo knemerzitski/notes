@@ -1,13 +1,13 @@
+import { QueryableNoteUser } from '../../../../../mongodb/loaders/note/descriptions/note';
 import { createValueQueryFn } from '../../../../../mongodb/query/query';
 import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import {
   CollabText_id_fromNoteQueryFn,
   mapNoteToCollabTextQueryFn,
 } from '../../../../../services/note/note-collab';
+import { updateOpenNoteSelectionRange as service_updateOpenNoteSelectionRange } from '../../../../../services/note/update-open-note-selection-range';
 import type { MutationResolvers, ResolversTypes } from '../../../types.generated';
 import { publishOpenNoteMutation } from '../Subscription/openNoteEvents';
-import { QueryableNoteUser } from '../../../../../mongodb/loaders/note/descriptions/note';
-import { updateOpenNoteSelectionRange as service_updateOpenNoteSelectionRange } from '../../../../../services/note/update-open-note-selection-range';
 
 export const updateOpenNoteSelectionRange: NonNullable<
   MutationResolvers['updateOpenNoteSelectionRange']

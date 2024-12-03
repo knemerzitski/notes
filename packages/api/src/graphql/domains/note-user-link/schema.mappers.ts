@@ -1,13 +1,14 @@
-import { ObjectId } from 'mongodb';
-import { MongoQueryFn } from '../../../mongodb/query/query';
-import { NoteUserSchema } from '../../../mongodb/schema/note-user';
 import { GraphQLResolveInfo } from 'graphql/index.js';
-import { GraphQLResolversContext } from '../../types';
-import { ResolverTypeWrapper, ResolversTypes } from '../types.generated';
+import { ObjectId } from 'mongodb';
+
 import {
   QueryableNote,
   QueryableNoteUser,
 } from '../../../mongodb/loaders/note/descriptions/note';
+import { MongoQueryFn } from '../../../mongodb/query/query';
+import { NoteUserSchema } from '../../../mongodb/schema/note-user';
+import { GraphQLResolversContext } from '../../types';
+import { ResolverTypeWrapper, ResolversTypes } from '../types.generated';
 
 export interface UserNoteLinkMapper {
   readonly userId: ObjectId;

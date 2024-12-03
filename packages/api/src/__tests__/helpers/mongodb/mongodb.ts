@@ -2,8 +2,9 @@ import { Collection, MongoClient } from 'mongodb';
 
 import { CollectionName, createCollectionInstances } from '../../../mongodb/collections';
 
-import { CollectionsStats } from './collection-stats';
 import { createMongoDBLoaders } from '../../../mongodb/loaders';
+
+import { CollectionsStats } from './collection-stats';
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const DB_URI = process.env.TEST_MONGODB_URI!;

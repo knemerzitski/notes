@@ -1,9 +1,3 @@
-import {
-  ApiGraphQLContext,
-  ApiOptions,
-  BaseGraphQLContext,
-  DynamoDBBaseGraphQLContext,
-} from './types';
 import { MongoDBCollections } from '../mongodb/collections';
 import { MongoDBContext } from '../mongodb/context';
 import { createMongoDBLoaders } from '../mongodb/loaders';
@@ -11,9 +5,16 @@ import {
   serializeAuthenticationContext,
   parseAuthenticationContext,
 } from '../services/auth/authentication-context';
-import { Cookies } from '../services/http/cookies';
-import { parseAuthenticationContextFromHeaders } from '../services/auth/parse-authentication-context-from-headers';
 import { FindRefreshSessionByCookieIdParams } from '../services/auth/find-refresh-session-by-cookie-id';
+import { parseAuthenticationContextFromHeaders } from '../services/auth/parse-authentication-context-from-headers';
+import { Cookies } from '../services/http/cookies';
+
+import {
+  ApiGraphQLContext,
+  ApiOptions,
+  BaseGraphQLContext,
+  DynamoDBBaseGraphQLContext,
+} from './types';
 
 export interface CreateBaseGraphQLContextParams {
   headers: Readonly<Record<string, string | undefined>> | undefined;

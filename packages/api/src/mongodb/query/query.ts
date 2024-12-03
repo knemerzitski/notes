@@ -87,18 +87,19 @@ export function createMapQueryFn<From>(fromQuery: MongoQueryFn<From>) {
     ): MongoQueryFn<To> =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async (query): Promise<any> => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
       const result = await fromQuery(mapQuery(query as any));
       if (result == null) {
         return null;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
       return mapResult(result as any);
     };
 }
 
 export function createValueQueryFn<S>(
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
   getValue: <V extends QueryDeep<S>>(
     query: V
   ) => MaybePromise<Maybe<PartialQueryResultDeep<S>>>,
@@ -109,18 +110,19 @@ export function createValueQueryFn<S>(
   return (query) => {
     query = options?.mapQuery?.(query) ?? query;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return
     return getValue(query) as any;
   };
 }
 
 export function createPartialValueQueryFn<S>(
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
   getValue: <V extends QueryDeep<S>>(
     query: V
   ) => MaybePromise<Maybe<PartialQueryResultDeep<S>>>
 ): MongoQueryFn<S> {
   return (query) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return
     return getValue(query) as any;
   };
 }

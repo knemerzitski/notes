@@ -2,22 +2,22 @@ import mitt from 'mitt';
 
 import { MongoDBCollections } from './collections';
 import { MongoDBContext } from './context';
-import { QueryableNoteId, QueryableNoteLoader } from './loaders/note/loader';
-import { QueryableUserId, QueryableUserLoader } from './loaders/user/loader';
 import { QueryableNote } from './loaders/note/descriptions/note';
-import { QueryableUser } from './loaders/user/description';
-import { QueryableSessionId, QueryableSessionLoader } from './loaders/session/loader';
-import { QueryLoaderEvents } from './query/query-loader';
+import { QueryableNoteId, QueryableNoteLoader } from './loaders/note/loader';
+import {
+  QueryableNoteByShareLinkId,
+  QueryableNoteByShareLinkLoader,
+} from './loaders/note-by-share-link/loader';
+import { QueryableSearchNotes } from './loaders/notes-search/description';
 import {
   QueryableNotesSearchId,
   QueryableNotesSearchLoader,
 } from './loaders/notes-search/loader';
 import { QueryableSession } from './loaders/session/description';
-import { QueryableSearchNotes } from './loaders/notes-search/description';
-import {
-  QueryableNoteByShareLinkId,
-  QueryableNoteByShareLinkLoader,
-} from './loaders/note-by-share-link/loader';
+import { QueryableSessionId, QueryableSessionLoader } from './loaders/session/loader';
+import { QueryableUser } from './loaders/user/description';
+import { QueryableUserId, QueryableUserLoader } from './loaders/user/loader';
+import { QueryLoaderEvents } from './query/query-loader';
 
 export interface MongoDBLoaders {
   session: QueryableSessionLoader;

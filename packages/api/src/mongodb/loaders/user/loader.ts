@@ -1,13 +1,12 @@
-import { AggregateOptions, ObjectId } from 'mongodb';
 
 import mitt, { Emitter } from 'mitt';
+import { AggregateOptions, ObjectId } from 'mongodb';
 
 import { CollectionName, MongoDBCollections } from '../../collections';
 import { MongoDBContext } from '../../context';
 import { LoaderEvents } from '../../loaders';
 import { MongoQueryFn, QueryDeep } from '../../query/query';
 
-import { QueryableUser } from './description';
 
 import {
   CreateQueryFnOptions,
@@ -20,7 +19,9 @@ import {
   QueryLoaderKey,
   SessionOptions,
 } from '../../query/query-loader';
+
 import { batchLoad } from './batch-load';
+import { QueryableUser } from './description';
 
 export type QueryableUserId =
   | {

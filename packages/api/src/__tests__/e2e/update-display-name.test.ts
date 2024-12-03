@@ -1,4 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { faker } from '@faker-js/faker';
 import { beforeEach, expect, it, vi } from 'vitest';
+import { CustomHeaderName } from '~api-app-shared/custom-headers';
+
 import {
   SignInInput,
   SignInPayload,
@@ -7,14 +11,13 @@ import {
   UpdateSignedInUserDisplayNameInput,
   UpdateSignedInUserDisplayNamePayload,
 } from '../../graphql/domains/types.generated';
-import { mongoCollections, resetDatabase } from '../helpers/mongodb/mongodb';
-import { faker } from '@faker-js/faker';
-import { CustomHeaderName } from '~api-app-shared/custom-headers';
+
 import { strToObjectId } from '../../mongodb/utils/objectid';
-import { HttpSession } from '../helpers/e2e/http-session';
 import { fetchGraphQL } from '../helpers/e2e/fetch-graphql';
+import { HttpSession } from '../helpers/e2e/http-session';
 import { createGraphQLWebSocket } from '../helpers/e2e/websocket';
 import { expectGraphQLResponseData } from '../helpers/graphql/response';
+import { mongoCollections, resetDatabase } from '../helpers/mongodb/mongodb';
 
 beforeEach(async () => {
   faker.seed(76572);

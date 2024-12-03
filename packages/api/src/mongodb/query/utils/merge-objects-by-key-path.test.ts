@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+
 import { mergeObjectsByKeyPath } from './merge-objects-by-key-path';
 
 it.each([

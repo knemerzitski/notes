@@ -1,10 +1,11 @@
+import mapObject from 'map-obj';
+import { assign, Infer, InferRaw, object, pick } from 'superstruct';
+
 import { CollectionName, MongoDBCollectionsOnlyNames } from '../../../collections';
 import { DescriptionDeep } from '../../../query/description';
 import { isQueryOnlyId } from '../../../query/utils/is-query-only-id';
-import { UserSchema } from '../../../schema/user';
 import { RevisionRecordSchema } from '../../../schema/collab-text';
-import { assign, Infer, InferRaw, object, pick } from 'superstruct';
-import mapObject from 'map-obj';
+import { UserSchema } from '../../../schema/user';
 
 export const QueryableRevisionRecord = assign(
   RevisionRecordSchema,

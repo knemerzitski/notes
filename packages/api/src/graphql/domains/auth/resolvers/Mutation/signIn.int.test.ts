@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { faker } from '@faker-js/faker';
 import {
@@ -10,8 +11,7 @@ import {
   MockInstance,
   vi,
 } from 'vitest';
-import * as insert_session from '../../../../../services/session/insert-session';
-import * as insert_user_with_google_user from '../../../../../services/user/insert-user-with-google-user';
+
 import { apolloServer } from '../../../../../__tests__/helpers/graphql/apollo-server';
 import {
   CreateGraphQLResolversContextOptions,
@@ -29,6 +29,8 @@ import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { verifyCredentialToken } from '../../../../../services/auth/google/__mocks__/oauth2';
 import { SessionDuration } from '../../../../../services/session/duration';
+import * as insert_session from '../../../../../services/session/insert-session';
+import * as insert_user_with_google_user from '../../../../../services/user/insert-user-with-google-user';
 import { SignInInput, SignInPayload } from '../../../types.generated';
 
 vi.mock('../../../../../services/auth/google/oauth2');

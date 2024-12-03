@@ -1,9 +1,11 @@
 import { InferRaw } from 'superstruct';
 import { groupBy } from '~utils/array/group-by';
+
 import { mapQueryAggregateResult } from '../../query/map-query-aggregate-result';
 import { mergeQueries, MergedQueryDeep } from '../../query/merge-queries';
 import { mergedQueryToPipeline } from '../../query/merged-query-to-pipeline';
 import { PartialQueryResultDeep } from '../../query/query';
+
 import { QueryableSession, queryableSessionDescription } from './description';
 import {
   QueryableSessionLoaderKey,

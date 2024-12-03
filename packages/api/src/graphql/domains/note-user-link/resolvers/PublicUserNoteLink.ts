@@ -1,8 +1,9 @@
 import { maybeCallFn } from '~utils/maybe-call-fn';
-import type { PublicUserNoteLinkResolvers } from '../../types.generated';
-import { UserNoteLink_id } from '../../../../services/note/user-note-link-id';
+
 import { createMapQueryFn } from '../../../../mongodb/query/query';
 import { UserSchema } from '../../../../mongodb/schema/user';
+import { UserNoteLink_id } from '../../../../services/note/user-note-link-id';
+import type { PublicUserNoteLinkResolvers } from '../../types.generated';
 
 export const PublicUserNoteLink: Pick<
   PublicUserNoteLinkResolvers,

@@ -1,6 +1,7 @@
-import { QueryObjectDeep } from '../query';
 import mapObject, { mapObjectSkip } from 'map-obj';
+
 import { isQueryArgField } from '../merge-queries';
+import { QueryObjectDeep } from '../query';
 
 /**
  * @returns Query that has args removed shallowly.

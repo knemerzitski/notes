@@ -1,10 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, it, expect } from 'vitest';
-import { PublicUserProfile } from './PublicUserProfile';
+
 import { mockResolver } from '../../../../__tests__/helpers/graphql/mock-resolver';
-import { UserSchema } from '../../../../mongodb/schema/user';
 import { createPartialValueQueryFn } from '../../../../mongodb/query/query';
+import { UserSchema } from '../../../../mongodb/schema/user';
+
+import { PublicUserProfile } from './PublicUserProfile';
 
 describe('displayName', () => {
   const resolveDisplayName = mockResolver(PublicUserProfile.displayName!);

@@ -1,7 +1,9 @@
 import { ObjectId } from 'mongodb';
-import { ServiceError } from '../errors';
-import { objectIdToStr } from '../../mongodb/utils/objectid';
+
 import { ChangesetError } from '~collab/changeset';
+
+import { objectIdToStr } from '../../mongodb/utils/objectid';
+import { ServiceError } from '../errors';
 
 export type NoteServiceErrorCode =
   | 'NOTE_NOT_FOUND'

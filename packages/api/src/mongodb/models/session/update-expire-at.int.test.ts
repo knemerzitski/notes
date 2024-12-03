@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { beforeEach, it, expect } from 'vitest';
+
 import {
   resetDatabase,
   mongoCollectionStats,
@@ -8,6 +9,7 @@ import {
 import { populateExecuteAll } from '../../../__tests__/helpers/mongodb/populate/populate-queue';
 import { fakeSessionPopulateQueue } from '../../../__tests__/helpers/mongodb/populate/session';
 import { DBSessionSchema } from '../../schema/session';
+
 import { updateExpireAt } from './update-expire-at';
 
 let session: DBSessionSchema;

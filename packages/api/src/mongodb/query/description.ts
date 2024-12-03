@@ -1,4 +1,5 @@
 import { OmitStartsWith } from '~utils/types';
+
 import { MongoPrimitive } from '../types';
 
 import { MapAggregateResultResolver } from './map-query-aggregate-result';

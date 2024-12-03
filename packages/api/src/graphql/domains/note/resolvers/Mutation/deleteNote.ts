@@ -1,10 +1,12 @@
+import { ObjectId } from 'mongodb';
+
+import { WithRequired } from '~utils/types';
+
+import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
+import { deleteNote as service_deleteNote } from '../../../../../services/note/delete-note';
+import { UserNoteLink_id } from '../../../../../services/note/user-note-link-id';
 import { DeleteNotePayload, type MutationResolvers } from '../../../types.generated';
 import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';
-import { ObjectId } from 'mongodb';
-import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
-import { WithRequired } from '~utils/types';
-import { UserNoteLink_id } from '../../../../../services/note/user-note-link-id';
-import { deleteNote as service_deleteNote } from '../../../../../services/note/delete-note';
 
 export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
   _parent,

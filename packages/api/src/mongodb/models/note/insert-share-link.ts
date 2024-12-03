@@ -1,8 +1,10 @@
 import { ObjectId } from 'mongodb';
-import { MongoDBCollections, CollectionName } from '../../collections';
-import { TransactionContext } from '../../utils/with-transaction';
+
 import { createRaw } from 'superstruct';
+
+import { MongoDBCollections, CollectionName } from '../../collections';
 import { DBShareNoteLinkSchema, ShareNoteLinkSchema } from '../../schema/share-note-link';
+import { TransactionContext } from '../../utils/with-transaction';
 
 export async function insertShareLink({
   mongoDB,

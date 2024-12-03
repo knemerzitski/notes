@@ -14,8 +14,10 @@ export class ErrorMapper {
 
   get(error: unknown): GraphQLError | undefined {
     if (isObjectLike(error) && 'constructor' in error) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const handler = this.map.get(error.constructor);
       if (handler) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
         return handler(error);
       }
     }

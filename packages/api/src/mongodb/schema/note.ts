@@ -1,10 +1,12 @@
 import { ObjectId, SearchIndexDescription } from 'mongodb';
 
+import { array, Infer, InferRaw, instance, object, optional } from 'superstruct';
+
 import { CollectionDescription } from '../collections';
+
+import { CollabTextSchema } from './collab-text';
 import { NoteUserSchema } from './note-user';
 import { ShareNoteLinkSchema } from './share-note-link';
-import { array, Infer, InferRaw, instance, object, optional } from 'superstruct';
-import { CollabTextSchema } from './collab-text';
 
 export const NoteSchema = object({
   _id: instance(ObjectId),

@@ -19,8 +19,9 @@ import { DBUserSchema } from '../../schema/user';
 import { MongoPartialDeep } from '../../types';
 
 import { QueryableNoteLoaderParams } from '../note/loader';
-import { QueryableNotesSearchLoaderKey } from './loader';
+
 import { batchLoad } from './batch-load';
+import { QueryableNotesSearchLoaderKey } from './loader';
 
 let populateResult: ReturnType<typeof populateNotes>;
 let user: DBUserSchema;

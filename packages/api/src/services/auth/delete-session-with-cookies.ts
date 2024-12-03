@@ -1,7 +1,8 @@
 import { ObjectId } from 'mongodb';
-import { Cookies } from '../http/cookies';
-import { deleteByCookieId } from '../../mongodb/models/session/delete-by-cookie-id';
+
 import { CollectionName, MongoDBCollections } from '../../mongodb/collections';
+import { deleteByCookieId } from '../../mongodb/models/session/delete-by-cookie-id';
+import { Cookies } from '../http/cookies';
 
 export interface DeleteSessionWithCookiesParams {
   userId: ObjectId;

@@ -1,4 +1,5 @@
 import { ObjectId } from 'mongodb';
+
 import { QueryableNote } from '../../mongodb/loaders/note/descriptions/note';
 import { MongoQueryFn } from '../../mongodb/query/query';
 

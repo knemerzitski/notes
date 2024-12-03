@@ -1,30 +1,36 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { faker } from '@faker-js/faker';
-import { beforeEach, expect, it } from 'vitest';
-import { resetDatabase } from '../helpers/mongodb/mongodb';
-import { fakeUserPopulateQueue } from '../helpers/mongodb/populate/user';
-import { populateExecuteAll } from '../helpers/mongodb/populate/populate-queue';
-import { DBNoteSchema } from '../../mongodb/schema/note';
-import { fakeNotePopulateQueue } from '../helpers/mongodb/populate/note';
-import { fakeSessionPopulateQueue } from '../helpers/mongodb/populate/session';
-import { HttpSession } from '../helpers/e2e/http-session';
-import { CustomHeaderName } from '~api-app-shared/custom-headers';
-import { objectIdToStr } from '../../mongodb/utils/objectid';
-import { createGraphQLWebSocket } from '../helpers/e2e/websocket';
-import { Cookies } from '../../services/http/cookies';
-import { userAddNote } from '../helpers/mongodb/populate/populate';
-import { fetchGraphQL } from '../helpers/e2e/fetch-graphql';
 import mitt from 'mitt';
-import { createDeferred } from '~utils/deferred';
-import {
-  expectGraphQLResponseData,
-  expectGraphQLResponseError,
-} from '../helpers/graphql/response';
+import { beforeEach, expect, it } from 'vitest';
+
+import { CustomHeaderName } from '~api-app-shared/custom-headers';
+
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+import { createDeferred } from '~utils/deferred';
+
 import {
   UpdateOpenNoteSelectionRangeInput,
   UpdateOpenNoteSelectionRangePayload,
 } from '../../graphql/domains/types.generated';
+import { DBNoteSchema } from '../../mongodb/schema/note';
+import { objectIdToStr } from '../../mongodb/utils/objectid';
+import { Cookies } from '../../services/http/cookies';
+import { fetchGraphQL } from '../helpers/e2e/fetch-graphql';
+import { HttpSession } from '../helpers/e2e/http-session';
+import { createGraphQLWebSocket } from '../helpers/e2e/websocket';
+import {
+  expectGraphQLResponseData,
+  expectGraphQLResponseError,
+} from '../helpers/graphql/response';
+import { resetDatabase } from '../helpers/mongodb/mongodb';
+import { fakeNotePopulateQueue } from '../helpers/mongodb/populate/note';
+import { userAddNote } from '../helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../helpers/mongodb/populate/populate-queue';
+import { fakeSessionPopulateQueue } from '../helpers/mongodb/populate/session';
+import { fakeUserPopulateQueue } from '../helpers/mongodb/populate/user';
 
 const USER_EVENTS_SUBSCRIPTION = `#graphql
   fragment MySelectionRange on UpdateOpenNoteSelectionRangePayload {

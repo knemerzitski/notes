@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { beforeEach, it, expect, vi } from 'vitest';
+
 import {
   resetDatabase,
   mongoCollectionStats,
@@ -7,9 +8,11 @@ import {
 } from '../../__tests__/helpers/mongodb/mongodb';
 import { populateExecuteAll } from '../../__tests__/helpers/mongodb/populate/populate-queue';
 import { fakeSessionPopulateQueue } from '../../__tests__/helpers/mongodb/populate/session';
+
+import { QueryableSessionLoader } from '../../mongodb/loaders/session/loader';
+
 import { SessionDuration } from './duration';
 import { tryRefreshExpireAt } from './try-refresh-expire-at';
-import { QueryableSessionLoader } from '../../mongodb/loaders/session/loader';
 
 beforeEach(async () => {
   faker.seed(5532);

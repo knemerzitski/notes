@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-base-to-string */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { WebSocket } from 'ws';
 import { GRAPHQL_TRANSPORT_WS_PROTOCOL, ConnectionInitMessage } from 'graphql-ws';
 import { nanoid } from 'nanoid';
+import { WebSocket } from 'ws';
 
 const WS_URL = process.env.VITE_GRAPHQL_WS_URL!;
 
@@ -14,6 +17,7 @@ interface CreateGraphQLWebSocketOptions {
 export interface WebSocketInterface {
   ws: WebSocket;
   connectionId: string;
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
   subscribe: <TVariables>(
     sub: {
       operationName?: string;
@@ -53,6 +57,7 @@ export async function createGraphQLWebSocket(options?: CreateGraphQLWebSocketOpt
         res({
           ws,
           connectionId: data.payload.connectionId,
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
           subscribe: <TVariables>(
             sub: {
               operationName?: string;

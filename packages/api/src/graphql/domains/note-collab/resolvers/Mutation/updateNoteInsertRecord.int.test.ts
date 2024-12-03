@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/unbound-method */
 import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
@@ -31,12 +32,12 @@ import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/pop
 import { fakeUserPopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/user';
 import { DBNoteSchema } from '../../../../../mongodb/schema/note';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
+import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import {
   NoteCategory,
   UpdateNoteInsertRecordInput,
   UpdateNoteInsertRecordPayload,
 } from '../../../types.generated';
-import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { signedInUserTopic } from '../../../user/resolvers/Subscription/signedInUserEvents';
 
 const MUTATION = `#graphql

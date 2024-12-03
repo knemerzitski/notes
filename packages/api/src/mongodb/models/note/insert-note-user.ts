@@ -1,7 +1,8 @@
 import { ObjectId } from 'mongodb';
+
 import { MongoDBCollections, CollectionName } from '../../collections';
-import { TransactionContext } from '../../utils/with-transaction';
 import { DBNoteUserSchema, NoteUserSchema } from '../../schema/note-user';
+import { TransactionContext } from '../../utils/with-transaction';
 import { notesArrayPath } from '../user/utils/notes-array-path';
 
 export async function insertNoteUser({

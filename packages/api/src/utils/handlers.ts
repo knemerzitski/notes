@@ -1,7 +1,14 @@
+import { CustomHeaderName } from '~api-app-shared/custom-headers';
+import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
 import {
   ApolloHttpGraphQLContext,
   CreateApolloHttpHandlerParams,
 } from '~lambda-graphql/apollo-http-handler';
+import { ConnectionTtlContext } from '~lambda-graphql/dynamodb/models/connection';
+import { WebSocketMessageHandlerParams } from '~lambda-graphql/message-handler';
+
+import { serializeBaseGraphQLContext } from '../graphql/context';
+
 import {
   ApiGraphQLContext,
   ApiOptions,
@@ -9,14 +16,10 @@ import {
   BaseSubscriptionResolversContext,
   DynamoDBBaseGraphQLContext,
 } from '../graphql/types';
-import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
-import { WebSocketMessageHandlerParams } from '~lambda-graphql/message-handler';
-import { serializeBaseGraphQLContext } from '../graphql/context';
-import { CustomHeaderName } from '~api-app-shared/custom-headers';
-import { ConnectionTtlContext } from '~lambda-graphql/dynamodb/models/connection';
-import { SessionDuration } from '../services/session/duration';
+
 import { isAuthenticated } from '../services/auth/is-authenticated';
 import { parseAuthenticationContextFromHeaders } from '../services/auth/parse-authentication-context-from-headers';
+import { SessionDuration } from '../services/session/duration';
 
 export function createErrorBaseSubscriptionResolversContext(
   name = 'websocket-handler'
@@ -26,7 +29,7 @@ export function createErrorBaseSubscriptionResolversContext(
       {},
       {
         get() {
-          `${propertyName} is not available in ${name}`;
+          return `${propertyName} is not available in ${name}`;
         },
       }
     );

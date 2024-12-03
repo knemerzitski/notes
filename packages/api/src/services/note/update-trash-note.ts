@@ -1,10 +1,12 @@
 import { MongoClient, ObjectId } from 'mongodb';
+
 import { MongoDBCollections, CollectionName } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
-import { withTransaction } from '../../mongodb/utils/with-transaction';
-import { findNoteUser } from './note';
-import { NoteNotFoundServiceError } from './errors';
 import { updateTrashNote as model_updateTrashNote } from '../../mongodb/models/note/update-trash-note';
+import { withTransaction } from '../../mongodb/utils/with-transaction';
+
+import { NoteNotFoundServiceError } from './errors';
+import { findNoteUser } from './note';
 
 interface UpdateTrashNoteParams {
   mongoDB: {

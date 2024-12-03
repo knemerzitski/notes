@@ -1,7 +1,8 @@
 import { expect, it } from 'vitest';
 
-import { mergeQueries } from './merge-queries';
 import { CursorPagination } from '../pagination/cursor-struct';
+
+import { mergeQueries } from './merge-queries';
 
 interface Item {
   name: string;

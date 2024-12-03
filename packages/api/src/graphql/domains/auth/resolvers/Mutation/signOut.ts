@@ -1,9 +1,11 @@
 import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
-import type { MutationResolvers } from './../../../types.generated';
+
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
-import { isAuthenticated } from '../../../../../services/auth/is-authenticated';
 import { deleteAllSessionsInCookies } from '../../../../../services/auth/delete-all-sessions-in-cookies';
 import { deleteSessionWithCookies } from '../../../../../services/auth/delete-session-with-cookies';
+import { isAuthenticated } from '../../../../../services/auth/is-authenticated';
+
+import type { MutationResolvers } from './../../../types.generated';
 
 export const signOut: NonNullable<MutationResolvers['signOut']> = async (
   _parent,
@@ -44,7 +46,6 @@ export const signOut: NonNullable<MutationResolvers['signOut']> = async (
         cookies,
         mongoDB,
       });
-      ctx.auth;
     }
   }
 

@@ -1,11 +1,17 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { afterEach, expect, it, vi } from 'vitest';
-import { updateDisplayName } from '../../../../../services/user/update-display-name';
-import { mockResolver } from '../../../../../__tests__/helpers/graphql/mock-resolver';
-import { updateSignedInUserDisplayName } from './updateSignedInUserDisplayName';
+
 import { mock, mockDeep } from 'vitest-mock-extended';
+
+import { mockResolver } from '../../../../../__tests__/helpers/graphql/mock-resolver';
+import { updateDisplayName } from '../../../../../services/user/update-display-name';
+
 import { GraphQLResolversContext } from '../../../../types';
+
+import { updateSignedInUserDisplayName } from './updateSignedInUserDisplayName';
 
 vi.mock('../../../../../services/user/update-display-name');
 

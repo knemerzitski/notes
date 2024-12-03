@@ -1,9 +1,13 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { afterEach, expect, it, vi } from 'vitest';
-import { updateDisplayName, UpdateDisplayNameParams } from './update-display-name';
-import { updateDisplayName as model_updateDisplayName } from '../../mongodb/models/user/update-display-name';
+
 import { mock, mockDeep } from 'vitest-mock-extended';
+
+import { updateDisplayName as model_updateDisplayName } from '../../mongodb/models/user/update-display-name';
+
+import { updateDisplayName, UpdateDisplayNameParams } from './update-display-name';
 
 vi.mock('../../mongodb/models/user/update-display-name');
 

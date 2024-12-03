@@ -1,10 +1,10 @@
-import { findNoteUserMaybe, getNoteUsersIds } from '../../../../../services/note/note';
-import type { MutationResolvers, ResolversTypes } from '../../../types.generated';
-import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';
+import { QueryableNoteUser } from '../../../../../mongodb/loaders/note/descriptions/note';
 import { createMapQueryFn } from '../../../../../mongodb/query/query';
 import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
+import { findNoteUserMaybe, getNoteUsersIds } from '../../../../../services/note/note';
 import { updateReadOnly } from '../../../../../services/note/update-read-only';
-import { QueryableNoteUser } from '../../../../../mongodb/loaders/note/descriptions/note';
+import type { MutationResolvers, ResolversTypes } from '../../../types.generated';
+import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';
 
 export const updateUserNoteLinkReadOnly: NonNullable<
   MutationResolvers['updateUserNoteLinkReadOnly']

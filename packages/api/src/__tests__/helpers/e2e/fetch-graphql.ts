@@ -10,6 +10,7 @@ type FetchFn = (input: string | URL | Request, init?: RequestInit) => Promise<Re
 
 export async function fetchGraphQL<
   TData = Record<string, unknown>,
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
   TVariables extends { [name: string]: any } = { [name: string]: any },
 >(
   request: {

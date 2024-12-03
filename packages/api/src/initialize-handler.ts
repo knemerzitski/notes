@@ -3,8 +3,8 @@ import { Handler } from 'aws-lambda';
 import 'source-map-support/register.js';
 import { createLogger, Logger } from '~utils/logging';
 
-import { createDefaultMongoDBContext } from './parameters';
 import { createAllIndexes } from './mongodb/collections';
+import { createDefaultMongoDBContext } from './parameters';
 
 const TIER = process.env.MONGODB_TIER;
 const hasAtlasSearch = TIER === 'enterprise';

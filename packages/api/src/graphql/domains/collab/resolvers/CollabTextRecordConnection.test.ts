@@ -1,26 +1,32 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { describe, expect, it } from 'vitest';
-import {
-  CollabTextRecordConnectionMapper,
-  CollabTextRecordMapper,
-} from '../schema.mappers';
-import {
-  createValueQueryFn,
-  PartialQueryResultDeep,
-} from '../../../../mongodb/query/query';
-import { Changeset } from '~collab/changeset';
 import { ObjectId } from 'mongodb';
+import { describe, expect, it } from 'vitest';
+
+import { Changeset } from '~collab/changeset';
+
+import { maybeCallFn } from '~utils/maybe-call-fn';
+
+import { mockResolver } from '../../../../__tests__/helpers/graphql/mock-resolver';
+import { STRUCT_NUMBER } from '../../../../mongodb/constants';
+import { QueryableRevisionRecord } from '../../../../mongodb/loaders/note/descriptions/revision-record';
 import {
   CursorAfterPagination,
   CursorBoundPagination,
   CursorFirstPagination,
   CursorLastPagination,
 } from '../../../../mongodb/pagination/cursor-struct';
-import { STRUCT_NUMBER } from '../../../../mongodb/constants';
-import { QueryableRevisionRecord } from '../../../../mongodb/loaders/note/descriptions/revision-record';
-import { mockResolver } from '../../../../__tests__/helpers/graphql/mock-resolver';
+import {
+  createValueQueryFn,
+  PartialQueryResultDeep,
+} from '../../../../mongodb/query/query';
+import {
+  CollabTextRecordConnectionMapper,
+  CollabTextRecordMapper,
+} from '../schema.mappers';
+
+
 import { CollabTextRecordConnection } from './CollabTextRecordConnection';
-import { maybeCallFn } from '~utils/maybe-call-fn';
+
 
 describe('pageInfo', () => {
   function createMapper(

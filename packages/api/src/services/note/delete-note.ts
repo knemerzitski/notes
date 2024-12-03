@@ -1,15 +1,18 @@
 import { MongoClient, ObjectId } from 'mongodb';
+
 import { MongoDBCollections, CollectionName } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
+
+import { deleteNote as model_deleteNote } from '../../mongodb/models/note/delete-note';
+import { deleteUserFromNote as model_deleteUserFromNote } from '../../mongodb/models/note/delete-user-from-note';
+import { withTransaction } from '../../mongodb/utils/with-transaction';
+
 import {
   NoteNotFoundServiceError,
   NoteUserNotFoundServiceError,
   NoteUserUnauthorizedServiceError,
 } from './errors';
 import { findNoteUser, noteOwnersCount } from './note';
-import { deleteNote as model_deleteNote } from '../../mongodb/models/note/delete-note';
-import { deleteUserFromNote as model_deleteUserFromNote } from '../../mongodb/models/note/delete-user-from-note';
-import { withTransaction } from '../../mongodb/utils/with-transaction';
 
 interface DeleteNoteParams {
   mongoDB: {

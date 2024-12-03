@@ -1,16 +1,19 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { faker } from '@faker-js/faker';
 import { it, expect, beforeEach } from 'vitest';
+
 import {
   mongoCollections,
   mongoCollectionStats,
   resetDatabase,
 } from '../../__tests__/helpers/mongodb/mongodb';
-import { QueryableUserLoader } from '../../mongodb/loaders/user/loader';
-import { findUserByGoogleUserId } from './find-user-by-google-user-id';
-import { faker } from '@faker-js/faker';
+
 import { populateExecuteAll } from '../../__tests__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../__tests__/helpers/mongodb/populate/user';
+import { QueryableUserLoader } from '../../mongodb/loaders/user/loader';
 import { DBUserSchema } from '../../mongodb/schema/user';
+
+import { findUserByGoogleUserId } from './find-user-by-google-user-id';
 
 let user: DBUserSchema;
 

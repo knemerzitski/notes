@@ -3,6 +3,7 @@ import { Struct } from 'superstruct';
 
 import { isNonEmptyArray } from '~utils/array/is-non-empty-array';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
+
 import {
   CursorAfterPagination,
   CursorBeforePagination,

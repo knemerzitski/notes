@@ -1,8 +1,9 @@
 import { maybeCallFn } from '~utils/maybe-call-fn';
-import type { CollabTextRecordConnectionResolvers } from '../../types.generated';
-import { withPreExecuteList } from '../../../utils/pre-execute';
+
 import { STRUCT_NUMBER } from '../../../../mongodb/constants';
 import { CursorForwardsPagination } from '../../../../mongodb/pagination/cursor-struct';
+import { withPreExecuteList } from '../../../utils/pre-execute';
+import type { CollabTextRecordConnectionResolvers } from '../../types.generated';
 
 export const CollabTextRecordConnection: CollabTextRecordConnectionResolvers = {
   records: (parent, _args, ctx, info) => {

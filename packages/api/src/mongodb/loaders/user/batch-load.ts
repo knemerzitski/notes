@@ -2,11 +2,13 @@ import { ObjectId, Document } from 'mongodb';
 import { InferRaw } from 'superstruct';
 import { groupBy } from '~utils/array/group-by';
 import { isDefined } from '~utils/type-guards/is-defined';
+
 import { mapQueryAggregateResult } from '../../query/map-query-aggregate-result';
 import { mergeQueries, MergedQueryDeep } from '../../query/merge-queries';
 import { mergedQueryToPipeline } from '../../query/merged-query-to-pipeline';
 import { QueryDeep, PartialQueryResultDeep } from '../../query/query';
 import { getEqualObjectString } from '../../query/utils/get-equal-object-string';
+
 import { QueryableUser, queryableUserDescription } from './description';
 import {
   QueryableUserId,
@@ -56,6 +58,7 @@ class UserIdProcessor implements BatchLoadIdProcessor<ObjectId> {
   addResult(result: Document): void {
     if (this.ids.size === 0) return;
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const userId = result._id;
     if (!(userId instanceof ObjectId)) {
       throw new Error('Expected User._id to be defined');
@@ -110,6 +113,7 @@ class GoogleUserIdProcessor implements BatchLoadIdProcessor<string> {
   addResult(result: Document): void {
     if (this.ids.size === 0) return;
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const googleUserId = result.thirdParty?.google?.id;
     if (typeof googleUserId !== 'string') {
       throw new Error('Expected User.thirdParty.google.id to be string');

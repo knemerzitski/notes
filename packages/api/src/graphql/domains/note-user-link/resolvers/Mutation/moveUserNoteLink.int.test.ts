@@ -34,6 +34,8 @@ import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/pop
 import { fakeUserPopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/user';
 import { DBNoteSchema } from '../../../../../mongodb/schema/note';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
+import { findNoteUserInSchema } from '../../../../../services/note/note';
+import { UserNoteLink_id } from '../../../../../services/note/user-note-link-id';
 import {
   ListAnchorPosition,
   MovableNoteCategory,
@@ -41,10 +43,10 @@ import {
   MoveUserNoteLinkPayload,
   NoteCategory,
 } from '../../../types.generated';
-import { findNoteUserInSchema } from '../../../../../services/note/note';
 import { signedInUserTopic } from '../../../user/resolvers/Subscription/signedInUserEvents';
+
 import { moveUserNoteLink } from './moveUserNoteLink';
-import { UserNoteLink_id } from '../../../../../services/note/user-note-link-id';
+
 
 const MUTATION = `#graphql
   mutation($input: MoveUserNoteLinkInput!){

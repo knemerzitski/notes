@@ -1,11 +1,11 @@
-import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';
+import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
+import { updateTrashNote } from '../../../../../services/note/update-trash-note';
 import {
   NoteCategory,
   ResolversTypes,
   type MutationResolvers,
 } from '../../../types.generated';
-import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
-import { updateTrashNote } from '../../../../../services/note/update-trash-note';
+import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';
 
 export const trashUserNoteLink: NonNullable<
   MutationResolvers['trashUserNoteLink']

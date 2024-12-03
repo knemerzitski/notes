@@ -1,13 +1,16 @@
 import { MongoClient, ObjectId } from 'mongodb';
+
 import { MongoDBCollections, CollectionName } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
+
+import { updateReadOnly as model_updateReadOnly } from '../../mongodb/models/note/update-read-only';
+
 import {
   NoteNotFoundServiceError,
   NoteUserNotFoundServiceError,
   NoteUserUnauthorizedServiceError,
 } from './errors';
 import { findNoteUser } from './note';
-import { updateReadOnly as model_updateReadOnly } from '../../mongodb/models/note/update-read-only';
 
 interface UpdateReadOnlyParams {
   mongoDB: {

@@ -1,9 +1,10 @@
 import { faker } from '@faker-js/faker';
 
+import { ObjectId } from 'mongodb';
+
 import { DBShareNoteLinkSchema } from '../../../../mongodb/schema/share-note-link';
 import { DBUserSchema } from '../../../../mongodb/schema/user';
 import { MongoPartialDeep } from '../../../../mongodb/types';
-import { ObjectId } from 'mongodb';
 
 export interface FakeShareNoteLinkOptions {
   override?: MongoPartialDeep<DBShareNoteLinkSchema>;

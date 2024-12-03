@@ -1,4 +1,5 @@
 import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
+
 import type { QueryResolvers } from './../../../types.generated';
 
 export const signedInUser: NonNullable<QueryResolvers['signedInUser']> = (

@@ -1,9 +1,11 @@
 import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
+
 import { CollectionName } from '../../mongodb/collections';
 import { QueryableSessionLoader } from '../../mongodb/loaders/session/loader';
 import { SessionDurationConfig, SessionDuration } from '../session/duration';
 import { findByCookieId } from '../session/find-by-cookie-id';
 import { tryRefreshExpireAt } from '../session/try-refresh-expire-at';
+
 import { AuthenticatedContext, AuthenticatedFailedError } from './authentication-context';
 
 export interface FindRefreshSessionByCookieIdParams {

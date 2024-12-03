@@ -1,11 +1,12 @@
 import { object, string, array, InferRaw, Infer } from 'superstruct';
+
+import { DescriptionDeep } from '../../query/description';
+import { fieldsRemoved } from '../../query/utils/fields-removed';
 import {
   QueryableNote,
   QueryableNoteContext,
   queryableNoteDescription,
 } from '../note/descriptions/note';
-import { DescriptionDeep } from '../../query/description';
-import { fieldsRemoved } from '../../query/utils/fields-removed';
 
 export const QueryableSearchNote = object({
   note: QueryableNote,

@@ -1,9 +1,11 @@
 import { Infer } from 'superstruct';
+
+import { Changeset } from '~collab/changeset';
+
 import { QueryableCollabText } from '../../mongodb/loaders/note/descriptions/collab-text';
 import { QueryableNote } from '../../mongodb/loaders/note/descriptions/note';
 import { createMapQueryFn, MongoQueryFn } from '../../mongodb/query/query';
 import { objectIdToStr } from '../../mongodb/utils/objectid';
-import { Changeset } from '~collab/changeset';
 
 export async function CollabText_id_fromNoteQueryFn(
   query: MongoQueryFn<QueryableNote>

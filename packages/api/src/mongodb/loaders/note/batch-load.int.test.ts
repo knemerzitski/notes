@@ -17,9 +17,10 @@ import { populateExecuteAll } from '../../../__tests__/helpers/mongodb/populate/
 import { fakeUserPopulateQueue } from '../../../__tests__/helpers/mongodb/populate/user';
 import { DBNoteSchema } from '../../schema/note';
 
-import { QueryableNoteLoaderParams } from './loader';
-import { batchLoad } from './batch-load';
 import { DBUserSchema } from '../../schema/user';
+
+import { batchLoad } from './batch-load';
+import { QueryableNoteLoaderParams } from './loader';
 
 let populateResult: ReturnType<typeof populateNotes>;
 let user: DBUserSchema;

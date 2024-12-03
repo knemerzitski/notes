@@ -1,3 +1,4 @@
+import { ObjectId } from 'mongodb';
 import {
   boolean,
   date,
@@ -8,7 +9,6 @@ import {
   object,
   optional,
 } from 'superstruct';
-import { ObjectId } from 'mongodb';
 
 export type DBShareNoteLinkSchema = InferRaw<typeof ShareNoteLinkSchema>;
 

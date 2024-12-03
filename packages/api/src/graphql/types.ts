@@ -7,11 +7,11 @@ import { MongoDBCollections } from '../mongodb/collections';
 
 import { MongoDBLoaders } from '../mongodb/loaders';
 
-import { Cookies, SerializedCookies } from '../services/http/cookies';
 import {
   AuthenticationContext,
   SerializedAuthenticationContext,
 } from '../services/auth/authentication-context';
+import { Cookies, SerializedCookies } from '../services/http/cookies';
 import { SessionDurationConfig } from '../services/session/duration';
 
 export interface ApiOptions {

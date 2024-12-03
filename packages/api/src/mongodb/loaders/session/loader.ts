@@ -1,6 +1,8 @@
+import mitt, { Emitter } from 'mitt';
 import { AggregateOptions } from 'mongodb';
 
-import mitt, { Emitter } from 'mitt';
+
+import { Infer } from 'superstruct';
 
 import { CollectionName, MongoDBCollections } from '../../collections';
 import { MongoDBContext } from '../../context';
@@ -16,9 +18,9 @@ import {
   QueryLoaderKey,
   SessionOptions,
 } from '../../query/query-loader';
-import { QueryableSession } from './description';
-import { Infer } from 'superstruct';
+
 import { batchLoad } from './batch-load';
+import { QueryableSession } from './description';
 
 export interface QueryableSessionId {
   /**

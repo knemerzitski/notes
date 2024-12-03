@@ -1,13 +1,15 @@
 import { ObjectId } from 'mongodb';
+
+import { createRaw } from 'superstruct';
+
 import { MongoDBCollections, CollectionName } from '../../collections';
-import { TransactionContext } from '../../utils/with-transaction';
 import {
   DBRevisionChangesetSchema,
   DBRevisionRecordSchema,
   RevisionChangesetSchema,
   RevisionRecordSchema,
 } from '../../schema/collab-text';
-import { createRaw } from 'superstruct';
+import { TransactionContext } from '../../utils/with-transaction';
 
 interface InsertRecordParams {
   mongoDB: {

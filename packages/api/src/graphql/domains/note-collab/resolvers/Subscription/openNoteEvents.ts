@@ -1,24 +1,30 @@
 import { ObjectId } from 'mongodb';
-import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
-import { SubscriptionTopicPrefix } from '../../../../subscriptions';
-import type { ResolversTypes, SubscriptionResolvers } from '../../../types.generated';
-import { GraphQLResolversContext } from '../../../../types';
-import {
-  publishSignedInUserMutation,
-  publishSignedInUserMutations,
-} from '../../../user/resolvers/Subscription/signedInUserEvents';
-import { findNoteUser, getNoteUsersIds } from '../../../../../services/note/note';
+
+import { PublisherOptions } from '~lambda-graphql/pubsub/publish';
+
+import { isDefined } from '~utils/type-guards/is-defined';
+
+import { QueryableNoteUser } from '../../../../../mongodb/loaders/note/descriptions/note';
 import { createValueQueryFn } from '../../../../../mongodb/query/query';
+import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
+import { withTransaction } from '../../../../../mongodb/utils/with-transaction';
+import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
+import { NoteNotFoundServiceError } from '../../../../../services/note/errors';
+import { findNoteUser, getNoteUsersIds } from '../../../../../services/note/note';
 import {
   CollabText_id_fromNoteQueryFn,
   mapNoteToCollabTextQueryFn,
 } from '../../../../../services/note/note-collab';
-import { PublisherOptions } from '~lambda-graphql/pubsub/publish';
-import { withTransaction } from '../../../../../mongodb/utils/with-transaction';
-import { NoteNotFoundServiceError } from '../../../../../services/note/errors';
-import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
-import { QueryableNoteUser } from '../../../../../mongodb/loaders/note/descriptions/note';
-import { isDefined } from '~utils/type-guards/is-defined';
+import { SubscriptionTopicPrefix } from '../../../../subscriptions';
+import { GraphQLResolversContext } from '../../../../types';
+import type { ResolversTypes, SubscriptionResolvers } from '../../../types.generated';
+import {
+  publishSignedInUserMutation,
+  publishSignedInUserMutations,
+} from '../../../user/resolvers/Subscription/signedInUserEvents';
+
+
+
 
 export function openNoteTopic(noteId: ObjectId) {
   return `${SubscriptionTopicPrefix.OPEN_NOTE_EVENTS}:${objectIdToStr(noteId)}`;

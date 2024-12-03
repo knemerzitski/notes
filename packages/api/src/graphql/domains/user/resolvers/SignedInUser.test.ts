@@ -1,13 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+ 
+ 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { describe, it, expect, vi } from 'vitest';
-import { SignedInUser } from './SignedInUser';
 import { ObjectId } from 'mongodb';
+import { describe, it, expect, vi } from 'vitest';
 import { maybeCallFn } from '~utils/maybe-call-fn';
+
 import { mockResolver } from '../../../../__tests__/helpers/graphql/mock-resolver';
 import { createPartialValueQueryFn } from '../../../../mongodb/query/query';
 import { UserSchema } from '../../../../mongodb/schema/user';
+
+import { SignedInUser } from './SignedInUser';
 
 describe('id', () => {
   const resolveId = mockResolver(SignedInUser.id!);

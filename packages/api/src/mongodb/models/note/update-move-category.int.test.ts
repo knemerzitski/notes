@@ -1,13 +1,16 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { beforeEach, describe, expect, it } from 'vitest';
-import { fakeUserPopulateQueue } from '../../../__tests__/helpers/mongodb/populate/user';
 import { faker } from '@faker-js/faker';
+import { beforeEach, describe, expect, it } from 'vitest';
+
 import {
   mongoCollections,
   resetDatabase,
 } from '../../../__tests__/helpers/mongodb/mongodb';
 import { populateExecuteAll } from '../../../__tests__/helpers/mongodb/populate/populate-queue';
+import { fakeUserPopulateQueue } from '../../../__tests__/helpers/mongodb/populate/user';
 import { DBUserSchema } from '../../schema/user';
+
 import { updateMoveCategory } from './update-move-category';
 
 let user: DBUserSchema;

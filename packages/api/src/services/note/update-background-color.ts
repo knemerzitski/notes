@@ -1,9 +1,12 @@
 import { ObjectId } from 'mongodb';
+
 import { MongoDBCollections, CollectionName } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
-import { findNoteUser } from './note';
-import { NoteNotFoundServiceError } from './errors';
+
 import { updateBackgroundColor as model_updateBackgroundColor } from '../../mongodb/models/note/update-background-color';
+
+import { NoteNotFoundServiceError } from './errors';
+import { findNoteUser } from './note';
 
 interface UpdateBackgroundColorParams {
   mongoDB: {

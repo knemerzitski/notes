@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/unbound-method */
 
 import { faker } from '@faker-js/faker';
@@ -5,6 +6,7 @@ import { UpdateResult } from 'mongodb';
 import { MockInstance, beforeAll, vi, afterEach, beforeEach, it, expect } from 'vitest';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
+
 import { apolloServer } from '../../../../../__tests__/helpers/graphql/apollo-server';
 import {
   CreateGraphQLResolversContextOptions,
@@ -23,6 +25,7 @@ import {
 } from '../../../../../__tests__/helpers/mongodb/mongodb';
 import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/user';
+import * as update_display_name from '../../../../../mongodb/models/user/update-display-name';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import {
@@ -30,7 +33,6 @@ import {
   UpdateSignedInUserDisplayNamePayload,
 } from '../../../types.generated';
 import { signedInUserTopic } from '../Subscription/signedInUserEvents';
-import * as update_display_name from '../../../../../mongodb/models/user/update-display-name';
 
 interface Variables {
   input: UpdateSignedInUserDisplayNameInput;

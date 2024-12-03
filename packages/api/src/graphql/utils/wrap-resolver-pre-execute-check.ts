@@ -1,4 +1,5 @@
 import { GraphQLResolveInfo } from 'graphql/index.js';
+
 import { preExecuteObjectField } from './pre-execute';
 
 /**

@@ -22,9 +22,9 @@ import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/pop
 import { fakeUserPopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/user';
 import { DBNoteSchema } from '../../../../../mongodb/schema/note';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
-import { NoteCategory, UserNoteLink } from '../../../types.generated';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { UserNoteLink_id } from '../../../../../services/note/user-note-link-id';
+import { NoteCategory, UserNoteLink } from '../../../types.generated';
 
 interface Variables {
   noteId: ObjectId;

@@ -1,12 +1,12 @@
 import { maybeCallFn } from '~utils/maybe-call-fn';
 
-import type { CollabTextRecordResolvers } from '../../types.generated';
 import { createMapQueryFn } from '../../../../mongodb/query/query';
 import {
   RevisionChangesetSchema,
   SelectionRangeSchema,
 } from '../../../../mongodb/schema/collab-text';
 import { UserSchema } from '../../../../mongodb/schema/user';
+import type { CollabTextRecordResolvers } from '../../types.generated';
 
 export const CollabTextRecord: CollabTextRecordResolvers = {
   id: async (parent) => {

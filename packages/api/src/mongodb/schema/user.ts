@@ -1,6 +1,5 @@
 import { ObjectId } from 'mongodb';
 
-import { CollectionDescription } from '../collections';
 import {
   array,
   defaulted,
@@ -12,6 +11,8 @@ import {
   record,
   string,
 } from 'superstruct';
+
+import { CollectionDescription } from '../collections';
 
 export const NoteCategorySchema = object({
   /**

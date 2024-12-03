@@ -1,4 +1,6 @@
+import { ObjectId } from 'mongodb';
 import { beforeEach, it, expect } from 'vitest';
+
 import {
   mongoCollectionStats,
   mongoCollections,
@@ -7,7 +9,7 @@ import { populateExecuteAll } from '../../__tests__/helpers/mongodb/populate/pop
 import { fakeSessionPopulateQueue } from '../../__tests__/helpers/mongodb/populate/session';
 import { DBSessionSchema } from '../../mongodb/schema/session';
 import { Cookies } from '../http/cookies';
-import { ObjectId } from 'mongodb';
+
 import { deleteAllSessionsInCookies } from './delete-all-sessions-in-cookies';
 
 let session: DBSessionSchema;

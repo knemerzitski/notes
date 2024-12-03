@@ -1,12 +1,15 @@
 import { MongoClient, ObjectId } from 'mongodb';
+
+import { Maybe } from '~utils/types';
+
 import { MongoDBCollections, CollectionName } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
-import { withTransaction } from '../../mongodb/utils/with-transaction';
-import { findNoteUser } from './note';
-import { NoteNotFoundServiceError } from './errors';
-import { Maybe } from '~utils/types';
 import { updateMoveCategory as model_updateMoveCategory } from '../../mongodb/models/note/update-move-category';
 import { notesArrayPath } from '../../mongodb/models/user/utils/notes-array-path';
+import { withTransaction } from '../../mongodb/utils/with-transaction';
+
+import { NoteNotFoundServiceError } from './errors';
+import { findNoteUser } from './note';
 
 interface UpdateMoveCategoryParams {
   mongoDB: {

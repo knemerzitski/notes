@@ -1,13 +1,13 @@
+import { QueryableCollabText } from '../../../mongodb/loaders/note/descriptions/collab-text';
+import { QueryableRevisionRecord } from '../../../mongodb/loaders/note/descriptions/revision-record';
+import { CursorBoundPagination } from '../../../mongodb/pagination/cursor-struct';
 import { MongoQueryFn } from '../../../mongodb/query/query';
 import {
   RevisionChangesetSchema,
   SelectionRangeSchema,
 } from '../../../mongodb/schema/collab-text';
-import { ResolverTypeWrapper, ResolversTypes } from '../types.generated';
-import { QueryableCollabText } from '../../../mongodb/loaders/note/descriptions/collab-text';
-import { QueryableRevisionRecord } from '../../../mongodb/loaders/note/descriptions/revision-record';
 import { PreFetchedArrayGetItemFn } from '../../utils/pre-execute';
-import { CursorBoundPagination } from '../../../mongodb/pagination/cursor-struct';
+import { ResolverTypeWrapper, ResolversTypes } from '../types.generated';
 
 export interface CollabTextMapper {
   readonly id: ResolverTypeWrapper<string>;

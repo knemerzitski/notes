@@ -1,20 +1,3 @@
-import { isDefined } from '~utils/type-guards/is-defined';
-import { CollectionName, MongoDBCollectionsOnlyNames } from '../../../collections';
-import {
-  consecutiveIntArrayPagination,
-  consecutiveIntArrayPaginationMapAggregateResult,
-} from '../../../pagination/consecutive-int-array-pagination';
-import {
-  CursorArrayPaginationAggregateResult,
-  CursorArrayPaginationInput,
-} from '../../../pagination/cursor-array-pagination';
-import { DescriptionDeep } from '../../../query/description';
-import { CollabTextSchema, RevisionRecordSchema } from '../../../schema/collab-text';
-import {
-  QueryableRevisionRecord,
-  queryableRevisionRecordDescription,
-} from './revision-record';
-import { PartialQueryResultDeep } from '../../../query/query';
 import {
   array,
   assign,
@@ -25,7 +8,26 @@ import {
   omit,
   optional,
 } from 'superstruct';
+import { isDefined } from '~utils/type-guards/is-defined';
+
+import { CollectionName, MongoDBCollectionsOnlyNames } from '../../../collections';
+import {
+  consecutiveIntArrayPagination,
+  consecutiveIntArrayPaginationMapAggregateResult,
+} from '../../../pagination/consecutive-int-array-pagination';
+import {
+  CursorArrayPaginationAggregateResult,
+  CursorArrayPaginationInput,
+} from '../../../pagination/cursor-array-pagination';
 import { CursorPagination } from '../../../pagination/cursor-struct';
+import { DescriptionDeep } from '../../../query/description';
+import { PartialQueryResultDeep } from '../../../query/query';
+import { CollabTextSchema, RevisionRecordSchema } from '../../../schema/collab-text';
+
+import {
+  QueryableRevisionRecord,
+  queryableRevisionRecordDescription,
+} from './revision-record';
 
 type RecordsPaginationOperationOptions = Omit<
   CursorArrayPaginationInput<number>,

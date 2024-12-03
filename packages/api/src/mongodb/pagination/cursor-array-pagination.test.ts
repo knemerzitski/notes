@@ -1,3 +1,4 @@
+import { string, Struct } from 'superstruct';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -5,7 +6,6 @@ import {
   CursorArrayPaginationAggregateResult,
   cursorArrayPaginationMapAggregateResult,
 } from './cursor-array-pagination';
-import { string, Struct } from 'superstruct';
 
 function mapAllPaginations<TCursor, TItem>(
   input: CursorArrayPaginationInput<TCursor>['paginations'],

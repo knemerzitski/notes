@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/unbound-method */
 import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
@@ -408,7 +409,7 @@ describe('no existing notes', () => {
   });
 
   describe('spyOn ObjectId', () => {
-    let spyObjectIdGenerate: MockInstance<(time?: number | undefined) => Uint8Array>;
+    let spyObjectIdGenerate: MockInstance<(time?: number) => Uint8Array>;
 
     beforeAll(() => {
       spyObjectIdGenerate = vi.spyOn(ObjectId, 'generate');

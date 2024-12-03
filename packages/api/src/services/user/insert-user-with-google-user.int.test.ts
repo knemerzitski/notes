@@ -1,13 +1,15 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
+ 
+import { faker } from '@faker-js/faker';
 import { beforeEach, expect, it } from 'vitest';
-import { insertUserWithGoogleUser } from './insert-user-with-google-user';
+
 import {
   createMongoDBApiContext,
   mongoCollections,
   mongoCollectionStats,
   resetDatabase,
 } from '../../__tests__/helpers/mongodb/mongodb';
-import { faker } from '@faker-js/faker';
+
+import { insertUserWithGoogleUser } from './insert-user-with-google-user';
 
 beforeEach(async () => {
   faker.seed(5532);

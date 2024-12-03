@@ -12,7 +12,9 @@ type Entry = [any, any];
  * picks that property.
  * @returns New object that is merged according to pick objects.
  */
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 export function mergeObjectsByKeyPath<T>(entries: Entry[], ctx?: { target: any }): T {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const target = ctx?.target ?? (Array.isArray(entries[0]?.[1]) ? [] : {});
 
   for (const [pickObj, valueObj] of entries) {
@@ -22,8 +24,10 @@ export function mergeObjectsByKeyPath<T>(entries: Entry[], ctx?: { target: any }
 
     if (Array.isArray(valueObj)) {
       for (let i = 0; i < valueObj.length; i++) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         target[i] = target[i] ?? (Array.isArray(valueObj[i]) ? [] : {});
         mergeObjectsByKeyPath([[pickObj, valueObj[i]]], {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
           target: target[i],
         });
       }
@@ -33,15 +37,19 @@ export function mergeObjectsByKeyPath<T>(entries: Entry[], ctx?: { target: any }
           continue;
         }
         if (pickValue === 1) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           target[pickKey] = valueObj[pickKey];
         } else if (isObjectLike(pickValue)) {
           if (!isObjectLike(valueObj[pickKey])) {
             continue;
           }
 
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
           target[pickKey] =
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             target[pickKey] ?? (Array.isArray(valueObj[pickKey]) ? [] : {});
           mergeObjectsByKeyPath([[pickValue, valueObj[pickKey]]], {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
             target: target[pickKey],
           });
         } else {
@@ -51,5 +59,6 @@ export function mergeObjectsByKeyPath<T>(entries: Entry[], ctx?: { target: any }
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return target;
 }

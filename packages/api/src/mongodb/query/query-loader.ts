@@ -1,9 +1,14 @@
 import DataLoader, { CacheMap } from 'dataloader';
 
+import { Emitter } from 'mitt';
+import { Infer, InferRaw, Struct } from 'superstruct';
+import { zip } from '~utils/array/zip';
 import { callFnGrouped } from '~utils/call-fn-grouped';
 import { splitObject } from '~utils/object/split-object';
+import { isObjectLike } from '~utils/type-guards/is-object-like';
 import { Maybe, MaybePromise } from '~utils/types';
 
+import { isQueryArgField } from './merge-queries';
 import {
   MongoQueryFn,
   PartialQueryResultDeep,
@@ -12,13 +17,9 @@ import {
 } from './query';
 
 import { memoizedGetEqualObjectString } from './utils/get-equal-object-string';
-import { isObjectLike } from '~utils/type-guards/is-object-like';
-import { isQueryArgField } from './merge-queries';
-import { Infer, InferRaw, Struct } from 'superstruct';
-import { Emitter } from 'mitt';
-import { zip } from '~utils/array/zip';
-import { valueToQueries } from './utils/value-to-query';
+
 import { mergeObjectsByKeyPath } from './utils/merge-objects-by-key-path';
+import { valueToQueries } from './utils/value-to-query';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface QueryLoaderEvents<I, S extends Struct<any, any, any>> {
@@ -92,7 +93,6 @@ export type SessionOptions<
     : never;
 } & Omit<T, 'context' | 'clearCache'>;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface CreateQueryFnOptions<R, Q> extends LoadOptions<R> {
   mapQuery?: <V extends QueryDeep<Q>>(query: V) => Maybe<V>;
 }
@@ -164,6 +164,7 @@ export class QueryLoader<I, S extends Struct<any, any, any>, CG = unknown, CR = 
           }
         );
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return [...zip(keys, results)].map(([key, result]) => {
           if (result instanceof Error) {
             return result;
@@ -174,6 +175,7 @@ export class QueryLoader<I, S extends Struct<any, any, any>, CG = unknown, CR = 
             validation: key.cache.query,
           });
 
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
           return error ?? value;
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         }) as any;
@@ -280,7 +282,7 @@ export class QueryLoader<I, S extends Struct<any, any, any>, CG = unknown, CR = 
       })
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
     const mergedValue: any = mergeObjectsByKeyPath(
       splitResults.map(({ leafKey, leafValue }) => [leafKey.query, leafValue])
     );
@@ -292,10 +294,12 @@ export class QueryLoader<I, S extends Struct<any, any, any>, CG = unknown, CR = 
 
       this.emitLoaded({
         key: leafKey,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         value: mergedValue,
       });
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return mergedValue;
   }
 
@@ -303,6 +307,7 @@ export class QueryLoader<I, S extends Struct<any, any, any>, CG = unknown, CR = 
     id: I,
     options?: CreateQueryFnOptions<CR, Infer<S>>
   ): MongoQueryFn<Infer<S>> {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
     return <V extends QueryDeep<Infer<S>>>(query: V) => {
       query = options?.mapQuery?.(query) ?? query;
 

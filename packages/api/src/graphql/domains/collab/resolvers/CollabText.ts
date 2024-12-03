@@ -1,13 +1,14 @@
-import { Changeset } from '~collab/changeset';
-import type { CollabTextResolvers } from '../../types.generated';
-import { applyLimit } from '../../../../mongodb/pagination/cursor-array-pagination';
-import { CollabTextRecordMapper } from '../schema.mappers';
-import { PreFetchedArrayGetItemFn } from '../../../utils/pre-execute';
-import { QueryableRevisionRecord } from '../../../../mongodb/loaders/note/descriptions/revision-record';
 import { GraphQLError } from 'graphql/index.js';
+import { Changeset } from '~collab/changeset';
+
+import { QueryableRevisionRecord } from '../../../../mongodb/loaders/note/descriptions/revision-record';
+import { applyLimit } from '../../../../mongodb/pagination/cursor-array-pagination';
+import { CursorBoundPagination } from '../../../../mongodb/pagination/cursor-struct';
 import { createMapQueryFn, createValueQueryFn } from '../../../../mongodb/query/query';
 import { RevisionChangesetSchema } from '../../../../mongodb/schema/collab-text';
-import { CursorBoundPagination } from '../../../../mongodb/pagination/cursor-struct';
+import { PreFetchedArrayGetItemFn } from '../../../utils/pre-execute';
+import type { CollabTextResolvers } from '../../types.generated';
+import { CollabTextRecordMapper } from '../schema.mappers';
 
 export const CollabText: CollabTextResolvers = {
   headText: (parent) => {

@@ -143,7 +143,6 @@ export function buildStages<TSchema = unknown, TContext = unknown>(
       if (!currentDepthQueue) continue;
 
       // Process all fields of same depth
-      currentDepthQueue[0]?.description;
       for (const entry of groupByDescription(currentDepthQueue)) {
         const [description, fields] = entry as [
           DescriptionDeep<TSchema, unknown, TContext>,
@@ -369,6 +368,7 @@ export function buildLastProjectValue<TSchema = unknown, TContext = unknown>(
       const subProjectValue = buildLastProjectValue(
         subQuery as MergedQueryDeep<unknown>,
         {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
           descriptions: [...anyKeySplitDescriptions, ...subDescriptions_noAnyKey] as any,
         }
       );

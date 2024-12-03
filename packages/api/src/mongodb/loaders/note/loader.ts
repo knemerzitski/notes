@@ -1,13 +1,13 @@
-import { AggregateOptions, ObjectId } from 'mongodb';
 
 import mitt, { Emitter } from 'mitt';
+import { AggregateOptions, ObjectId } from 'mongodb';
 
 import { CollectionName, MongoDBCollections } from '../../collections';
 import { MongoDBContext } from '../../context';
 import { LoaderEvents } from '../../loaders';
 
 import { MongoQueryFn, QueryDeep } from '../../query/query';
-import { QueryableNote } from './descriptions/note';
+
 
 import {
   CreateQueryFnOptions,
@@ -18,9 +18,11 @@ import {
   QueryLoaderKey,
   SessionOptions,
 } from '../../query/query-loader';
-import { objectIdToStr } from '../../utils/objectid';
-import { batchLoad } from './batch-load';
 import { queryArgsRemoved } from '../../query/utils/query-args-removed';
+import { objectIdToStr } from '../../utils/objectid';
+
+import { batchLoad } from './batch-load';
+import { QueryableNote } from './descriptions/note';
 
 export interface QueryableNoteId {
   /**

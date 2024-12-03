@@ -8,6 +8,7 @@ import {
   createGraphQLResolversContext,
   CreateGraphQLResolversContextOptions,
 } from '../../../../../__tests__/helpers/graphql/graphql-context';
+import { expectGraphQLResponseData } from '../../../../../__tests__/helpers/graphql/response';
 import {
   mongoCollections,
   mongoCollectionStats,
@@ -16,16 +17,15 @@ import {
 import { populateNotes } from '../../../../../__tests__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/user';
+import { DBNoteSchema } from '../../../../../mongodb/schema/note';
 import { ShareNoteLinkSchema } from '../../../../../mongodb/schema/share-note-link';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
+import { UserNoteLink_id } from '../../../../../services/note/user-note-link-id';
 import {
   CreateNoteLinkByShareAccessInput,
   CreateNoteLinkByShareAccessPayload,
   NoteCategory,
 } from '../../../types.generated';
-import { expectGraphQLResponseData } from '../../../../../__tests__/helpers/graphql/response';
-import { UserNoteLink_id } from '../../../../../services/note/user-note-link-id';
-import { DBNoteSchema } from '../../../../../mongodb/schema/note';
 
 const MUTATION = `#graphql
   mutation($input: CreateNoteLinkByShareAccessInput!){

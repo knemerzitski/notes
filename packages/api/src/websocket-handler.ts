@@ -1,12 +1,19 @@
 import 'source-map-support/register.js';
 import { APIGatewayProxyWebsocketHandlerV2 } from 'aws-lambda';
 
+import { PingPongContextParams } from '~lambda-graphql/context/pingpong';
 import {
   WebSocketHandlerParams,
   createWebSocketHandler,
 } from '~lambda-graphql/websocket-handler';
 import { createLogger, Logger } from '~utils/logging';
 
+import {
+  createApiGraphQLContext,
+  headersToSerializedBaseGraphQLContext,
+  parseDynamoDBBaseGraphQLContext,
+} from './graphql/context';
+import { formatError } from './graphql/errors';
 import {
   ApiGraphQLContext,
   BaseGraphQLContext,
@@ -20,18 +27,11 @@ import {
   createDefaultMongoDBContext,
   createDefaultSubscriptionGraphQLParams,
 } from './parameters';
-import { PingPongContextParams } from '~lambda-graphql/context/pingpong';
 import {
   createErrorBaseSubscriptionResolversContext,
   createDynamoDBConnectionTtlContext,
   handleConnectionInitAuthenticate,
 } from './utils/handlers';
-import {
-  createApiGraphQLContext,
-  headersToSerializedBaseGraphQLContext,
-  parseDynamoDBBaseGraphQLContext,
-} from './graphql/context';
-import { formatError } from './graphql/errors';
 
 export interface CreateWebSocketHandlerDefaultParamsOptions {
   override?: {

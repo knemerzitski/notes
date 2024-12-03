@@ -1,17 +1,18 @@
 import { ObjectId } from 'mongodb';
+
+import { QueryableNote } from '../../../../../mongodb/loaders/note/descriptions/note';
+import { QueryableUser_NotesCategory } from '../../../../../mongodb/loaders/user/description';
+import { CursorPagination } from '../../../../../mongodb/pagination/cursor-struct';
+import { createMapQueryFn } from '../../../../../mongodb/query/query';
+import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
-import { NoteCategory, type QueryResolvers } from '../../../types.generated';
+import { Note_id_fromQueryFn } from '../../../../../services/note/note-id';
 import {
   PreFetchedArrayGetItemFn,
   withPreExecuteList,
 } from '../../../../utils/pre-execute';
-import { QueryableNote } from '../../../../../mongodb/loaders/note/descriptions/note';
+import { NoteCategory, type QueryResolvers } from '../../../types.generated';
 import { UserNoteLinkMapper } from '../../schema.mappers';
-import { QueryableUser_NotesCategory } from '../../../../../mongodb/loaders/user/description';
-import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
-import { createMapQueryFn } from '../../../../../mongodb/query/query';
-import { Note_id_fromQueryFn } from '../../../../../services/note/note-id';
-import { CursorPagination } from '../../../../../mongodb/pagination/cursor-struct';
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 30;

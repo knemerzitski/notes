@@ -2,21 +2,6 @@ import mapObject from 'map-obj';
 
 import { ObjectId } from 'mongodb';
 
-import { isEmptyDeep } from '~utils/object/is-empty-deep';
-import { isObjectLike } from '~utils/type-guards/is-object-like';
-
-import { isDefined } from '~utils/type-guards/is-defined';
-import { MongoDBCollectionsOnlyNames, CollectionName } from '../../collections';
-import {
-  cursorArrayPagination,
-  cursorMultiArrayConcat,
-  cursorMultiArraySplit,
-  isCursorArrayPaginationAggregateResult,
-  cursorArrayPaginationMapAggregateResult,
-} from '../../pagination/cursor-array-pagination';
-import { DescriptionDeep } from '../../query/description';
-import { NoteCategorySchema, UserSchema } from '../../schema/user';
-import { QueryableNote, queryableNoteDescription } from '../note/descriptions/note';
 import {
   array,
   assign,
@@ -28,7 +13,22 @@ import {
   record,
   string,
 } from 'superstruct';
+import { isEmptyDeep } from '~utils/object/is-empty-deep';
+import { isDefined } from '~utils/type-guards/is-defined';
+import { isObjectLike } from '~utils/type-guards/is-object-like';
+
+import { MongoDBCollectionsOnlyNames, CollectionName } from '../../collections';
+import {
+  cursorArrayPagination,
+  cursorMultiArrayConcat,
+  cursorMultiArraySplit,
+  isCursorArrayPaginationAggregateResult,
+  cursorArrayPaginationMapAggregateResult,
+} from '../../pagination/cursor-array-pagination';
 import { CursorPagination } from '../../pagination/cursor-struct';
+import { DescriptionDeep } from '../../query/description';
+import { NoteCategorySchema, UserSchema } from '../../schema/user';
+import { QueryableNote, queryableNoteDescription } from '../note/descriptions/note';
 
 const typeObjectId = instance(ObjectId);
 

@@ -10,6 +10,7 @@ import {
 } from 'graphql/index.js';
 
 function assertGetScalarType<
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
   F extends GraphQLFieldConfig<unknown, unknown> | GraphQLInputFieldConfig,
 >(fieldConfig: F) {
   if (isNonNullType(fieldConfig.type) && isScalarType(fieldConfig.type.ofType)) {

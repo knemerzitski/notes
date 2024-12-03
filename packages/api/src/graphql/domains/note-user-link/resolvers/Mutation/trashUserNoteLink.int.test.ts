@@ -38,13 +38,13 @@ import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/pop
 import { fakeUserPopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/user';
 import { DBNoteSchema } from '../../../../../mongodb/schema/note';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
+import { UserNoteLink_id } from '../../../../../services/note/user-note-link-id';
 import {
   NoteCategory,
   TrashUserNoteLinkInput,
   TrashUserNoteLinkPayload,
 } from '../../../types.generated';
 import { signedInUserTopic } from '../../../user/resolvers/Subscription/signedInUserEvents';
-import { UserNoteLink_id } from '../../../../../services/note/user-note-link-id';
 
 const MUTATION = `#graphql
   mutation($input: TrashUserNoteLinkInput!){

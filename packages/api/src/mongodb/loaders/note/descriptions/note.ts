@@ -1,11 +1,14 @@
+import { array, assign, Infer, InferRaw, object, omit, optional } from 'superstruct';
+
 import { CollectionName, MongoDBCollectionsOnlyNames } from '../../../collections';
 import { DescriptionDeep } from '../../../query/description';
-import { NoteUserSchema } from '../../../schema/note-user';
-import { collabTextDescription, QueryableCollabText } from './collab-text';
-import { array, assign, Infer, InferRaw, object, omit, optional } from 'superstruct';
-import { UserSchema } from '../../../schema/user';
 import { NoteSchema } from '../../../schema/note';
+import { NoteUserSchema } from '../../../schema/note-user';
+
 import { OpenNoteSchema } from '../../../schema/open-note';
+import { UserSchema } from '../../../schema/user';
+
+import { collabTextDescription, QueryableCollabText } from './collab-text';
 
 export const QueryableNoteUser = assign(
   NoteUserSchema,

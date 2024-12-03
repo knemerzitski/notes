@@ -1,8 +1,9 @@
 import { GraphQLResponse } from '@apollo/server';
 import { assert, expect } from 'vitest';
 
-import { expectp } from '../expectp';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+
+import { expectp } from '../expectp';
 
 export function expectGraphQLResponseData<TData = Record<string, unknown>>(
   response: GraphQLResponse<TData>

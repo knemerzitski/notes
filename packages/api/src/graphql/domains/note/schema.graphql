@@ -21,6 +21,9 @@ input CreateNoteInput
 TODO desc
 """
 type CreateNotePayload {
+  """
+  TODO desc
+  """
   note: Note!
 }
 

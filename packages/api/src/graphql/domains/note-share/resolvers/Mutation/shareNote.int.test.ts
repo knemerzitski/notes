@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
+import { ObjectId } from 'mongodb';
 import { assert, beforeEach, expect, it } from 'vitest';
 
 import { apolloServer } from '../../../../../__tests__/helpers/graphql/apollo-server';
@@ -7,6 +8,7 @@ import {
   createGraphQLResolversContext,
   CreateGraphQLResolversContextOptions,
 } from '../../../../../__tests__/helpers/graphql/graphql-context';
+import { expectGraphQLResponseData } from '../../../../../__tests__/helpers/graphql/response';
 import {
   mongoCollections,
   mongoCollectionStats,
@@ -16,10 +18,8 @@ import { populateNotes } from '../../../../../__tests__/helpers/mongodb/populate
 import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/populate/populate-queue';
 import { DBNoteSchema } from '../../../../../mongodb/schema/note';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
-import { ShareNoteInput, ShareNotePayload } from '../../../types.generated';
-import { expectGraphQLResponseData } from '../../../../../__tests__/helpers/graphql/response';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
-import { ObjectId } from 'mongodb';
+import { ShareNoteInput, ShareNotePayload } from '../../../types.generated';
 
 const MUTATION = `#graphql
   mutation($input: ShareNoteInput!){

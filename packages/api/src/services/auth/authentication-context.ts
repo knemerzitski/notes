@@ -1,7 +1,10 @@
-import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
 import { ObjectId } from 'mongodb';
-import { QueryableSession } from '../../mongodb/loaders/session/description';
 import { object, instance, string, date, coerce, number, InferRaw } from 'superstruct';
+import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
+
+import { QueryableSession } from '../../mongodb/loaders/session/description';
+
+
 import { isAuthenticated } from './is-authenticated';
 
 export type AuthenticationContext = AuthenticatedContext | UnauthenticatedContext;

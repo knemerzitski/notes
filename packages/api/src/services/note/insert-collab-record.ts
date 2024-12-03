@@ -1,25 +1,33 @@
 import { MongoClient, ObjectId } from 'mongodb';
+
+import { ChangesetError } from '~collab/changeset';
+import { SelectionRange } from '~collab/client/selection-range';
+import { processRecordInsertion } from '~collab/records/process-record-insertion';
+
+import { RevisionChangeset, ServerRevisionRecord } from '~collab/records/record';
+import { RevisionRecords } from '~collab/records/revision-records';
+
 import { CollectionName, MongoDBCollections } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
+import { createCollabText } from '../../mongodb/models/note/create-collab-text';
+
+import { insertRecord as model_insertRecord } from '../../mongodb/models/note/insert-record';
+import { updateSetCollabText } from '../../mongodb/models/note/update-set-collab-text';
 import { RevisionRecordSchema } from '../../mongodb/schema/collab-text';
+import { NoteSchema } from '../../mongodb/schema/note';
+
+
+import { MongoReadonlyDeep } from '../../mongodb/types';
+import { objectIdToStr } from '../../mongodb/utils/objectid';
 import { withTransaction } from '../../mongodb/utils/with-transaction';
-import { findNoteUser } from './note';
+
 import {
   NoteCollabRecordInsertError,
   NoteNotFoundServiceError,
   NoteReadOnlyServiceError,
 } from './errors';
-import { createCollabText } from '../../mongodb/models/note/create-collab-text';
-import { processRecordInsertion } from '~collab/records/process-record-insertion';
-import { RevisionChangeset, ServerRevisionRecord } from '~collab/records/record';
-import { RevisionRecords } from '~collab/records/revision-records';
-import { insertRecord as model_insertRecord } from '../../mongodb/models/note/insert-record';
-import { updateSetCollabText } from '../../mongodb/models/note/update-set-collab-text';
-import { NoteSchema } from '../../mongodb/schema/note';
-import { SelectionRange } from '~collab/client/selection-range';
-import { objectIdToStr } from '../../mongodb/utils/objectid';
-import { MongoReadonlyDeep } from '../../mongodb/types';
-import { ChangesetError } from '~collab/changeset';
+import { findNoteUser } from './note';
+
 
 type ExistingRecord = Pick<
   RevisionRecordSchema,

@@ -1,5 +1,6 @@
 import { createMapQueryFn } from '../../../../mongodb/query/query';
 import { UserSchema } from '../../../../mongodb/schema/user';
+
 import type { PublicUserResolvers } from './../../types.generated';
 
 export const PublicUser: PublicUserResolvers = {

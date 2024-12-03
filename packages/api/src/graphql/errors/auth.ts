@@ -1,5 +1,6 @@
 import { GraphQLError } from 'graphql/index.js';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+
 import { UnauthenticatedContext } from '../../services/auth/authentication-context';
 import { UnauthenticatedServiceError } from '../../services/auth/errors';
 

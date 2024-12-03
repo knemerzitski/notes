@@ -1,11 +1,7 @@
-import {
-  NoteCategory,
-  ResolversTypes,
-  type MutationResolvers,
-} from '../../../types.generated';
-import { NoteMapper } from '../../schema.mappers';
-import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';
 import { wrapRetryOnErrorAsync } from '~utils/wrap-retry-on-error';
+
+import { QueryableRevisionRecord } from '../../../../../mongodb/loaders/note/descriptions/revision-record';
+import { createValueQueryFn } from '../../../../../mongodb/query/query';
 import {
   retryOnMongoError,
   MongoErrorCodes,
@@ -16,8 +12,13 @@ import {
   CollabText_id_fromNoteQueryFn,
   mapNoteToCollabTextQueryFn,
 } from '../../../../../services/note/note-collab';
-import { createValueQueryFn } from '../../../../../mongodb/query/query';
-import { QueryableRevisionRecord } from '../../../../../mongodb/loaders/note/descriptions/revision-record';
+import {
+  NoteCategory,
+  ResolversTypes,
+  type MutationResolvers,
+} from '../../../types.generated';
+import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';
+import { NoteMapper } from '../../schema.mappers';
 
 const _createNote: NonNullable<MutationResolvers['createNote']> = async (
   _parent,

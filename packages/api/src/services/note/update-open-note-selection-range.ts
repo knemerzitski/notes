@@ -1,17 +1,21 @@
 // export function update
 
 import { ObjectId } from 'mongodb';
+
 import { MongoDBCollections, CollectionName } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
-import { findNoteUser } from './note';
+
+import { upsertOpenNote } from '../../mongodb/models/note/upsert-open-note';
+import { SelectionRangeSchema } from '../../mongodb/schema/collab-text';
+
+import { DBOpenNoteSchema, OpenNoteSchema } from '../../mongodb/schema/open-note';
+
 import {
   NoteCollabTextInvalidRevisionError,
   NoteNotFoundServiceError,
   NoteNotOpenedServiceError,
 } from './errors';
-import { SelectionRangeSchema } from '../../mongodb/schema/collab-text';
-import { DBOpenNoteSchema, OpenNoteSchema } from '../../mongodb/schema/open-note';
-import { upsertOpenNote } from '../../mongodb/models/note/upsert-open-note';
+import { findNoteUser } from './note';
 
 export async function updateOpenNoteSelectionRange({
   mongoDB,

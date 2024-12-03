@@ -1,13 +1,14 @@
 import 'source-map-support/register.js';
 import { APIGatewayProxyHandler } from 'aws-lambda';
 
+import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import {
   createApolloHttpHandler,
   CreateApolloHttpHandlerParams,
-} from '~lambda-graphql/apollo-http-handler';
-import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
+ ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
 import { createLogger, Logger } from '~utils/logging';
 
+import { createApiGraphQLContext, createBaseGraphQLContext } from './graphql/context';
 import {
   GraphQLResolversContext,
   DynamoDBBaseGraphQLContext,
@@ -20,9 +21,7 @@ import {
   createDefaultGraphQLParams,
   createDefaultMongoDBContext,
 } from './parameters';
-import { createApiGraphQLContext, createBaseGraphQLContext } from './graphql/context';
 import { createIsCurrentConnection } from './utils/handlers';
-import { CustomHeaderName } from '~api-app-shared/custom-headers';
 
 export interface CreateApolloHttpHandlerDefaultParamsOptions {
   override?: {

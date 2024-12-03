@@ -1,6 +1,8 @@
 import { ObjectId } from 'mongodb';
+
 import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import { NoteUnauthorizedUserError } from '../../../../errors/note';
+
 import type { QueryResolvers } from './../../../types.generated';
 
 export const userNoteLink: NonNullable<QueryResolvers['userNoteLink']> = (

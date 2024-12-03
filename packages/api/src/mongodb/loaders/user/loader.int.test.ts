@@ -14,12 +14,13 @@ import {
   populateNotes,
 } from '../../../__tests__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../__tests__/helpers/mongodb/populate/populate-queue';
-import { DBUserSchema } from '../../schema/user';
 
-import { QueryableUserLoaderKey, QueryableUserLoaderParams } from './loader';
 import { fakeUserPopulateQueue } from '../../../__tests__/helpers/mongodb/populate/user';
 import { CursorPagination } from '../../pagination/cursor-struct';
+import { DBUserSchema } from '../../schema/user';
+
 import { batchLoad } from './batch-load';
+import { QueryableUserLoaderKey, QueryableUserLoaderParams } from './loader';
 
 let populateResult: ReturnType<typeof populateNotes>;
 let mainNotesIds: ObjectId[];
@@ -213,7 +214,7 @@ it('loads many different paginations', async () => {
         createLoadKey(TestNoteCategory.OTHER, { first: 1 }), // 1
         createLoadKey(TestNoteCategory.MAIN, { last: 1 }), // 8
         createLoadKey(TestNoteCategory.OTHER, {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+           
           after: otherNotesIds.at(0),
           first: 1,
         }), // 3

@@ -19,12 +19,12 @@ import {
 import { populateNotes } from '../../../../../__tests__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/populate/populate-queue';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
+import { objectIdToStr, strToObjectId } from '../../../../../mongodb/utils/objectid';
+import { UserNoteLink_id } from '../../../../../services/note/user-note-link-id';
 import {
   NoteCategory,
   UserNoteLinkConnection,
 } from '../../../../domains/types.generated';
-import { objectIdToStr, strToObjectId } from '../../../../../mongodb/utils/objectid';
-import { UserNoteLink_id } from '../../../../../services/note/user-note-link-id';
 
 interface Variables {
   after?: Maybe<ObjectId>;

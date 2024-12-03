@@ -1,6 +1,8 @@
 import { CustomHeaderName } from '~api-app-shared/custom-headers';
 import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
+
 import { Cookies } from '../http/cookies';
+
 import { AuthenticatedFailedError } from './authentication-context';
 import {
   FindRefreshSessionByCookieIdParams,

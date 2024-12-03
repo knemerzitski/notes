@@ -1,4 +1,5 @@
-import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';
+import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
+import { updateMoveCategory } from '../../../../../services/note/update-move-category';
 import {
   ListAnchorPosition,
   Maybe,
@@ -8,8 +9,7 @@ import {
   ResolversTypes,
   type MutationResolvers,
 } from '../../../types.generated';
-import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
-import { updateMoveCategory } from '../../../../../services/note/update-move-category';
+import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';
 
 export const moveUserNoteLink: NonNullable<
   MutationResolvers['moveUserNoteLink']

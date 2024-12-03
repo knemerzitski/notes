@@ -1,9 +1,12 @@
 import { MongoClient, ObjectId } from 'mongodb';
+
 import { MongoDBCollections, CollectionName } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
+
+import { deleteShareLinks as model_deleteShareLinks } from '../../mongodb/models/note/delete-share-links';
+
 import { NoteNotFoundServiceError, NoteUnauthorizedServiceError } from './errors';
 import { findNoteUser } from './note';
-import { deleteShareLinks as model_deleteShareLinks } from '../../mongodb/models/note/delete-share-links';
 
 export async function deleteShareLinks({
   mongoDB,

@@ -1,14 +1,18 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import isEqual from 'lodash.isequal';
+import mitt from 'mitt';
 import { ObjectId } from 'mongodb';
+import { coerce, define, number, object, string } from 'superstruct';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { QueryLoader, QueryLoaderEvents } from './query-loader';
-import mitt from 'mitt';
-import isEqual from 'lodash.isequal';
-import { coerce, define, number, object, string } from 'superstruct';
 import { mock } from 'vitest-mock-extended';
+
+import { QueryLoader, QueryLoaderEvents } from './query-loader';
 
 const STRUCT_OK = define('ok', () => true);
 

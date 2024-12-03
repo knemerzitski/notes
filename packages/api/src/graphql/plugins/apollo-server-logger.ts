@@ -4,9 +4,9 @@ import {
   GraphQLRequestContext,
   GraphQLRequestListener,
 } from '@apollo/server';
-import { Logger } from '~utils/logging';
 import { unwrapResolverError } from '@apollo/server/errors';
 import { GraphQLError } from 'graphql/index.js';
+import { Logger } from '~utils/logging';
 
 export class ApolloServerLogger<TContext extends BaseContext>
   implements ApolloServerPlugin<TContext>
@@ -64,6 +64,7 @@ function mapErrorWithOriginal(error: GraphQLError) {
   // Stack is equal in 'error' and 'originalError', remove it from 'error'
 
   return {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     graphQLError: errorWithoutStack(error),
     originalError: originalError,
   };
@@ -74,8 +75,11 @@ function errorWithoutStack(error: unknown) {
     return error;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
   const copy = Object.assign(Object.create(Object.getPrototypeOf(error)), error);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   delete copy.stack;
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return copy;
 }

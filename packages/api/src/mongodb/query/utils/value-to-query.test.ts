@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest';
-import { valueToQueries, valueToQuery } from './value-to-query';
 import { object, optional, string } from 'superstruct';
+import { describe, expect, it } from 'vitest';
+
+import { valueToQueries, valueToQuery } from './value-to-query';
 
 describe('valueToQuery', () => {
   it.each([

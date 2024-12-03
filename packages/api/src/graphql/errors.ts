@@ -1,7 +1,8 @@
-import { GraphQLError, GraphQLFormattedError } from 'graphql/index.js';
 import { unwrapResolverError } from '@apollo/server/errors';
-import { formatError as note_formatError } from './errors/note';
+import { GraphQLError, GraphQLFormattedError } from 'graphql/index.js';
+
 import { formatError as auth_formatError } from './errors/auth';
+import { formatError as note_formatError } from './errors/note';
 
 type ErrorFormatter = (error: unknown) => Error | undefined;
 

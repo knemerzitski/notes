@@ -1,10 +1,16 @@
 import { ObjectId } from 'mongodb';
-import type { ResolversTypes, SubscriptionResolvers } from './../../../types.generated';
-import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
-import { SubscriptionTopicPrefix } from '../../../../subscriptions';
-import { GraphQLResolversContext } from '../../../../types';
-import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
+
 import { PublisherOptions } from '~lambda-graphql/pubsub/publish';
+
+import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
+
+import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
+import { SubscriptionTopicPrefix } from '../../../../subscriptions';
+
+import { GraphQLResolversContext } from '../../../../types';
+
+import type { ResolversTypes, SubscriptionResolvers } from './../../../types.generated';
+
 
 export function signedInUserTopic(userId: ObjectId) {
   return `${SubscriptionTopicPrefix.SIGNED_IN_USER_EVENTS}:${objectIdToStr(userId)}`;

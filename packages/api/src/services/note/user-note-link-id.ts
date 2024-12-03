@@ -1,7 +1,8 @@
 import { ObjectId } from 'mongodb';
-import { objectIdToStr, strToObjectId } from '../../mongodb/utils/objectid';
+
 import { QueryableNote } from '../../mongodb/loaders/note/descriptions/note';
 import { MongoQueryFn } from '../../mongodb/query/query';
+import { objectIdToStr, strToObjectId } from '../../mongodb/utils/objectid';
 
 export class UserNoteLinkId {
   constructor(

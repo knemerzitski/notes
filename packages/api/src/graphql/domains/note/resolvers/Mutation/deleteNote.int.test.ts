@@ -30,17 +30,17 @@ import {
   populateQueue,
 } from '../../../../../__tests__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/user';
+import * as model_deleteNote from '../../../../../mongodb/models/note/delete-note';
 import { DBNoteSchema } from '../../../../../mongodb/schema/note';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
+import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
+import { UserNoteLink_id } from '../../../../../services/note/user-note-link-id';
 import {
   DeleteNoteInput,
   DeleteNotePayload,
   NoteCategory,
 } from '../../../types.generated';
-import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { signedInUserTopic } from '../../../user/resolvers/Subscription/signedInUserEvents';
-import { UserNoteLink_id } from '../../../../../services/note/user-note-link-id';
-import * as model_deleteNote from '../../../../../mongodb/models/note/delete-note';
 
 const MUTATION = `#graphql
   mutation($input: DeleteNoteInput!){

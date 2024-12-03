@@ -1,7 +1,8 @@
 import { ObjectId } from 'mongodb';
+
 import { MongoDBCollections, CollectionName } from '../../collections';
-import { TransactionContext } from '../../utils/with-transaction';
 import { CollabTextSchema, DBCollabTextSchema } from '../../schema/collab-text';
+import { TransactionContext } from '../../utils/with-transaction';
 
 export function updateSetCollabText({
   mongoDB,

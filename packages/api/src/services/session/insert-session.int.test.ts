@@ -1,14 +1,17 @@
 import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 import { beforeEach, it, expect } from 'vitest';
+
 import {
   resetDatabase,
   mongoCollectionStats,
   mongoCollections,
 } from '../../__tests__/helpers/mongodb/mongodb';
+
+import { QueryableSessionLoader } from '../../mongodb/loaders/session/loader';
+
 import { SessionDuration } from './duration';
 import { insertSession } from './insert-session';
-import { QueryableSessionLoader } from '../../mongodb/loaders/session/loader';
 
 beforeEach(async () => {
   faker.seed(5532);

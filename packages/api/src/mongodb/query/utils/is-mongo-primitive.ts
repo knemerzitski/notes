@@ -1,6 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { Changeset } from '~collab/changeset';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
+
 import { MongoPrimitive } from '../../types';
 
 export function isMongoPrimitive(value: unknown): value is MongoPrimitive {

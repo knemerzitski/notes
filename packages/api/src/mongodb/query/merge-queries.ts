@@ -1,11 +1,16 @@
-import { isObjectLike } from '~utils/type-guards/is-object-like';
-import { getOrCreateObject } from '~utils/object/get-or-create-object';
-import { getOrCreateArray } from '~utils/array/got-or-create-array';
-import { MongoPrimitive } from '../types';
-import { QUERY_ARG_PREFIX, QueryArgPrefix, QueryObjectDeep } from './query';
 import mapObject, { mapObjectSkip } from 'map-obj';
-import { getEqualObjectString } from './utils/get-equal-object-string';
+import { getOrCreateArray } from '~utils/array/got-or-create-array';
+import { getOrCreateObject } from '~utils/object/get-or-create-object';
+import { isObjectLike } from '~utils/type-guards/is-object-like';
+
 import { PickStartsWith, OmitStartsWith, PickValue } from '~utils/types';
+
+import { MongoPrimitive } from '../types';
+
+import { QUERY_ARG_PREFIX, QueryArgPrefix, QueryObjectDeep } from './query';
+
+
+import { getEqualObjectString } from './utils/get-equal-object-string';
 
 export const ARGS_FIELD = '$args';
 type ArgsField = typeof ARGS_FIELD;
@@ -28,7 +33,7 @@ type MergedQueryObjectDeep<T extends object> = OmitStartsWith<
 
 type MaybeArgs<T extends object> = keyof PickStartsWith<T, QueryArgPrefix> extends never
   ? unknown
-  : { [Key in ArgsField]?: PickStartsWith<T, QueryArgPrefix>[] };
+  : Partial<Record<ArgsField, PickStartsWith<T, QueryArgPrefix>[]>>;
 
 export function isMergedQueryArgField(key: string) {
   return key === ARGS_FIELD;

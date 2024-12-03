@@ -1,16 +1,20 @@
+import { ObjectId } from 'mongodb';
 import { InferRaw } from 'superstruct';
+
+import { groupBy } from '~utils/array/group-by';
+
+import { mapQueryAggregateResult } from '../../query/map-query-aggregate-result';
+import { MergedQueryDeep, mergeQueries } from '../../query/merge-queries';
+import { mergedQueryToPipeline } from '../../query/merged-query-to-pipeline';
 import { PartialQueryResultDeep } from '../../query/query';
+
+import { QueryableNote, queryableNoteDescription } from '../note/descriptions/note';
+
 import {
   NoteByShareLinkNotFoundQueryLoaderError,
   QueryableNoteByShareLinkLoadContext,
   QueryableNoteByShareLinkLoaderKey,
 } from './loader';
-import { QueryableNote, queryableNoteDescription } from '../note/descriptions/note';
-import { groupBy } from '~utils/array/group-by';
-import { MergedQueryDeep, mergeQueries } from '../../query/merge-queries';
-import { ObjectId } from 'mongodb';
-import { mergedQueryToPipeline } from '../../query/merged-query-to-pipeline';
-import { mapQueryAggregateResult } from '../../query/map-query-aggregate-result';
 
 export async function batchLoad(
   keys: readonly QueryableNoteByShareLinkLoaderKey[],

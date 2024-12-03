@@ -1,8 +1,10 @@
 import { ObjectId, UpdateFilter } from 'mongodb';
-import { MongoDBCollections, CollectionName } from '../../collections';
-import { TransactionContext } from '../../utils/with-transaction';
-import { MongoReadonlyDeep } from '../../types';
+
 import { Maybe } from '~utils/types';
+
+import { MongoDBCollections, CollectionName } from '../../collections';
+import { MongoReadonlyDeep } from '../../types';
+import { TransactionContext } from '../../utils/with-transaction';
 import { notesArrayPath } from '../user/utils/notes-array-path';
 
 interface UpdateMoveCategoryParams {

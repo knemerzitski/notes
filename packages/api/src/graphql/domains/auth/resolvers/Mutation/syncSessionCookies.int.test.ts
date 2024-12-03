@@ -1,18 +1,19 @@
 import { ObjectId } from 'mongodb';
 import { expect, it } from 'vitest';
+
 import { apolloServer } from '../../../../../__tests__/helpers/graphql/apollo-server';
 import {
   CreateGraphQLResolversContextOptions,
   createGraphQLResolversContext,
 } from '../../../../../__tests__/helpers/graphql/graphql-context';
 import { expectGraphQLResponseData } from '../../../../../__tests__/helpers/graphql/response';
+import { SessionSchema } from '../../../../../mongodb/schema/session';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { Cookies } from '../../../../../services/http/cookies';
 import {
   SyncSessionCookiesInput,
   SyncSessionCookiesPayload,
 } from '../../../types.generated';
-import { SessionSchema } from '../../../../../mongodb/schema/session';
 
 interface Variables {
   input: SyncSessionCookiesInput;

@@ -1,8 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { afterEach, beforeAll, beforeEach, expect, it, MockInstance, vi } from 'vitest';
-import * as delete_session_with_cookies from '../../../../../services/auth/delete-session-with-cookies';
-import * as delete_all_session_in_cookies from '../../../../../services/auth/delete-all-sessions-in-cookies';
-import { SignOutInput, SignOutPayload } from '../../../types.generated';
+
 import { apolloServer } from '../../../../../__tests__/helpers/graphql/apollo-server';
 import {
   CreateGraphQLResolversContextOptions,
@@ -19,7 +17,10 @@ import { fakeUserPopulateQueue } from '../../../../../__tests__/helpers/mongodb/
 import { DBSessionSchema } from '../../../../../mongodb/schema/session';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
+import * as delete_all_session_in_cookies from '../../../../../services/auth/delete-all-sessions-in-cookies';
+import * as delete_session_with_cookies from '../../../../../services/auth/delete-session-with-cookies';
 import { Cookies } from '../../../../../services/http/cookies';
+import { SignOutInput, SignOutPayload } from '../../../types.generated';
 
 interface Variables {
   input: SignOutInput;

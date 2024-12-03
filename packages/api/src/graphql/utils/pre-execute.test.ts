@@ -1,10 +1,14 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import { ApolloServer } from '@apollo/server';
 import { GraphQLResolveInfo } from 'graphql/index.js';
 import { afterEach, beforeAll, describe, expect, it, Mock, vi } from 'vitest';
 
-import { preExecuteObjectField, withPreExecuteList } from './pre-execute';
 import { expectGraphQLResponseData } from '../../__tests__/helpers/graphql/response';
+
+import { preExecuteObjectField, withPreExecuteList } from './pre-execute';
 
 describe('withPreExecuteList', () => {
   let itemValueResolveFn: Mock;

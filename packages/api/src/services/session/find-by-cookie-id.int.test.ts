@@ -1,14 +1,16 @@
 import { faker } from '@faker-js/faker';
 import { beforeEach, it, expect } from 'vitest';
+
 import {
   resetDatabase,
   mongoCollectionStats,
   mongoCollections,
 } from '../../__tests__/helpers/mongodb/mongodb';
 import { populateExecuteAll } from '../../__tests__/helpers/mongodb/populate/populate-queue';
-import { DBSessionSchema } from '../../mongodb/schema/session';
 import { fakeSessionPopulateQueue } from '../../__tests__/helpers/mongodb/populate/session';
 import { QueryableSessionLoader } from '../../mongodb/loaders/session/loader';
+import { DBSessionSchema } from '../../mongodb/schema/session';
+
 import { findByCookieId } from './find-by-cookie-id';
 
 let session: DBSessionSchema;

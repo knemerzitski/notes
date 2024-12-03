@@ -1,8 +1,9 @@
-import { SessionSchema } from '../../mongodb/schema/session';
-import { SessionDuration } from './duration';
-import { updateExpireAt } from '../../mongodb/models/session/update-expire-at';
 import { CollectionName, MongoDBCollections } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
+import { updateExpireAt } from '../../mongodb/models/session/update-expire-at';
+import { SessionSchema } from '../../mongodb/schema/session';
+
+import { SessionDuration } from './duration';
 
 interface TryRefreshExpireAtParams<T extends Pick<SessionSchema, '_id' | 'expireAt'>> {
   mongoDB: {

@@ -1,3 +1,4 @@
+import { ExecutionContext, ExecutionOptions } from 'graphql/execution/execute.js';
 import {
   GraphQLResolveInfo,
   isObjectType,
@@ -13,7 +14,6 @@ import {
   GraphQLObjectType,
   executeField,
 } from 'graphql/index.js';
-import { ExecutionContext, ExecutionOptions } from 'graphql/execution/execute.js';
 import { addPath } from 'graphql/jsutils/Path.js';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 
@@ -39,11 +39,11 @@ export type PreFetchedArrayGetItemFn<TValue> = (
  * @param info Info of the the list type field
  * @returns A list of items with pre-fetched size.
  */
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 export async function withPreExecuteList<TContext, TValue>(
   getItem: PreFetchedArrayGetItemFn<TValue>,
   context: TContext,
   info: GraphQLResolveInfo
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<TValue[]> {
   const returnType = unwrapNonNullType(
     unwrapListType(unwrapNonNullType(info.returnType))
@@ -99,6 +99,7 @@ export async function withPreExecuteList<TContext, TValue>(
  * @param context GraphQL Context
  * @param info Field info
  */
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 export async function preExecuteObjectField<TContext, TValue>(
   source: TValue,
   context: TContext,
@@ -137,6 +138,7 @@ export async function preExecuteObjectField<TContext, TValue>(
   return source;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 function reuseExecutionContext<TContext>(args: {
   info: Pick<
     GraphQLResolveInfo,

@@ -199,6 +199,9 @@ type UpdateOpenNoteSelectionRangePayload {
 }
 
 extend type Mutation {
+  """
+  TODO desc
+  """
   updateOpenNoteSelectionRange(
     input: UpdateOpenNoteSelectionRangeInput!
   ): UpdateOpenNoteSelectionRangePayload! @auth

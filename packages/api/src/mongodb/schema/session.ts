@@ -1,8 +1,9 @@
 import { ObjectId } from 'mongodb';
 import { nanoid } from 'nanoid';
 
-import { CollectionDescription } from '../collections';
 import { date, defaulted, Infer, InferRaw, instance, object, string } from 'superstruct';
+
+import { CollectionDescription } from '../collections';
 
 export const SessionSchema = object({
   _id: instance(ObjectId),

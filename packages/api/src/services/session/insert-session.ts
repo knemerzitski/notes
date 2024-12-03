@@ -1,9 +1,13 @@
 import { ObjectId } from 'mongodb';
+
 import { MongoDBCollections, CollectionName } from '../../mongodb/collections';
-import { insertSession as model_insertSession } from '../../mongodb/models/session/insert-session';
 import { MongoDBLoaders } from '../../mongodb/loaders';
-import { SessionDuration } from './duration';
+import { insertSession as model_insertSession } from '../../mongodb/models/session/insert-session';
+
 import { DBSessionSchema, SessionSchema } from '../../mongodb/schema/session';
+
+import { SessionDuration } from './duration';
+
 
 export interface InsertSessionParams {
   mongoDB: {

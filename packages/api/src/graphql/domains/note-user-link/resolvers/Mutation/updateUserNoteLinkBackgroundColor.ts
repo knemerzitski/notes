@@ -1,7 +1,7 @@
-import { updateBackgroundColor } from '../../../../../services/note/update-background-color';
-import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';
-import type { MutationResolvers, ResolversTypes } from '../../../types.generated';
 import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
+import { updateBackgroundColor } from '../../../../../services/note/update-background-color';
+import type { MutationResolvers, ResolversTypes } from '../../../types.generated';
+import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';
 
 export const updateUserNoteLinkBackgroundColor: NonNullable<
   MutationResolvers['updateUserNoteLinkBackgroundColor']

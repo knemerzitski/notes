@@ -1,6 +1,5 @@
 import { ObjectId } from 'mongodb';
 
-import { CollectionDescription } from '../collections';
 import {
   array,
   date,
@@ -12,6 +11,9 @@ import {
   optional,
   string,
 } from 'superstruct';
+
+import { CollectionDescription } from '../collections';
+
 import { SelectionRangeSchema } from './collab-text';
 
 export const OpenNoteSchema = object({

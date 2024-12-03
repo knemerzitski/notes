@@ -1,10 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { isObjectLike } from '~utils/type-guards/is-object-like';
-import { QueryDeep } from '../query';
-import { isMongoPrimitive } from './is-mongo-primitive';
-import { PickByPath } from '~utils/types';
-import { mergedObjects } from '~utils/object/merge-objects';
 import { Struct } from 'superstruct';
+import { mergedObjects } from '~utils/object/merge-objects';
+import { isObjectLike } from '~utils/type-guards/is-object-like';
+
+import { PickByPath } from '~utils/types';
+
+import { QueryDeep } from '../query';
+
+import { isMongoPrimitive } from './is-mongo-primitive';
 
 export type VisitorFn<T> = (ctx: {
   addPermutationsByPath: PermutationsByPathFn<T>;
@@ -47,6 +50,7 @@ export function valueToQueries<T, S = T>(
   const visitorFn: VisitorFn<any> | undefined = options?.visitorFn;
 
   if (isMongoPrimitive(value)) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return [1 as any];
   }
 
@@ -56,13 +60,16 @@ export function valueToQueries<T, S = T>(
     if (visitorFn) {
       const addPermutationsByPath: PermutationsByPathFn<T> = (condPath, variants) => {
         if (isPath(path, condPath)) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           results = variants.flatMap((variant) =>
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             results.map((result) => mergedObjects(result, variant) as any)
           );
         }
       };
       const mergeByPath: MergeByPathFn<T> = (condPath, mergeValue) => {
         if (isPath(path, condPath)) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           results = results.map((result) => mergedObjects(result, mergeValue)) as any[];
         }
       };
@@ -74,6 +81,7 @@ export function valueToQueries<T, S = T>(
 
     const isArray = Array.isArray(value);
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     for (const entry of getEntries(value, options?.fillStruct as any)) {
       const subKey = entry[0];
       let subValue = entry[1];
@@ -91,6 +99,7 @@ export function valueToQueries<T, S = T>(
 
       const subQueries = valueToQueries(
         subValue,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         {
           ...options,
           fillStruct: subStruct,
@@ -101,7 +110,9 @@ export function valueToQueries<T, S = T>(
       );
 
       if (isArray) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         results = subQueries.flatMap((subQuery) =>
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
           results.map((result) => mergedObjects(subQuery, result) as any)
         );
       } else {
@@ -114,6 +125,7 @@ export function valueToQueries<T, S = T>(
       }
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return results as any[];
   }
 
@@ -149,5 +161,6 @@ function getPath(...parts: string[]) {
 }
 
 export function valueToQuery<T>(value: T): QueryDeep<T> {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return valueToQueries(value)[0] as any;
 }

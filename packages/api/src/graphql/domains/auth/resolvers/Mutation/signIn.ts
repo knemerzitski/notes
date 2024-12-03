@@ -1,18 +1,19 @@
 import { ObjectId } from 'mongodb';
 import { wrapRetryOnErrorAsync } from '~utils/wrap-retry-on-error';
+
 import {
   retryOnMongoError,
   MongoErrorCodes,
 } from '../../../../../mongodb/utils/retry-on-mongo-error';
+import { verifyCredentialToken } from '../../../../../services/auth/google/oauth2';
+import { isAuthenticated } from '../../../../../services/auth/is-authenticated';
 import { SessionDuration } from '../../../../../services/session/duration';
+import { insertSession } from '../../../../../services/session/insert-session';
+import { findUserByGoogleUserId } from '../../../../../services/user/find-user-by-google-user-id';
 import { insertUserWithGoogleUser } from '../../../../../services/user/insert-user-with-google-user';
 import { GraphQLResolversContext } from '../../../../types';
 import { preExecuteObjectField } from '../../../../utils/pre-execute';
 import { MutationResolvers, ResolversTypes } from '../../../types.generated';
-import { verifyCredentialToken } from '../../../../../services/auth/google/oauth2';
-import { findUserByGoogleUserId } from '../../../../../services/user/find-user-by-google-user-id';
-import { insertSession } from '../../../../../services/session/insert-session';
-import { isAuthenticated } from '../../../../../services/auth/is-authenticated';
 
 const _signIn: NonNullable<MutationResolvers['signIn']> = async (
   _parent,

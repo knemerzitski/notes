@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+ 
 import { faker } from '@faker-js/faker';
 import { assert, beforeEach, expect, it } from 'vitest';
 
@@ -7,6 +7,7 @@ import {
   createGraphQLResolversContext,
   CreateGraphQLResolversContextOptions,
 } from '../../../../../__tests__/helpers/graphql/graphql-context';
+import { expectGraphQLResponseData } from '../../../../../__tests__/helpers/graphql/response';
 import {
   mongoCollections,
   mongoCollectionStats,
@@ -17,9 +18,8 @@ import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/pop
 import { DBNoteSchema } from '../../../../../mongodb/schema/note';
 import { ShareNoteLinkSchema } from '../../../../../mongodb/schema/share-note-link';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
-import { DeleteShareNoteInput, DeleteShareNotePayload } from '../../../types.generated';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
-import { expectGraphQLResponseData } from '../../../../../__tests__/helpers/graphql/response';
+import { DeleteShareNoteInput, DeleteShareNotePayload } from '../../../types.generated';
 
 const MUTATION = `#graphql
   mutation($input: DeleteShareNoteInput!){

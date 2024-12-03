@@ -6,9 +6,9 @@ import {
   DBNoteSchema,
   noteSearchIndexDescriptions,
 } from './schema/note';
+import { DBOpenNoteSchema, openNoteDescription } from './schema/open-note';
 import { DBSessionSchema, sessionDescription } from './schema/session';
 import { userDescription, DBUserSchema } from './schema/user';
-import { DBOpenNoteSchema, openNoteDescription } from './schema/open-note';
 
 export interface CollectionDescription {
   indexSpecs?: IndexDescription[];
