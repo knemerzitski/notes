@@ -30,11 +30,12 @@ export default [
       sourceType: 'module',
       globals: globals.builtin,
     },
+  },
+  {
     plugins: {
       unicorn: unicornPlugin,
     },
   },
-
   {
     // Default filename casing kebab-case
     rules: {

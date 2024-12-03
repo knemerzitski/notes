@@ -61,10 +61,10 @@ async function generatePossibleTypes({
     },
     () => {
       console.log('GraphQL server is not running. Starting it temporarily');
-      exec(`npm run -w dev-server server:build && npm run -w dev-server start-detached`);
+      exec(`npm run -w dev-server build:server && npm run -w dev-server start:detached`);
       return () => {
         console.log('Shutting down GraphQL server');
-        exec(`npm run -w dev-server stop`);
+        exec(`npm run -w dev-server stop:detached`);
       };
     }
   );

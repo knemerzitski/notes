@@ -48,9 +48,10 @@ const config: CodegenConfig = {
     }),
   },
   ignoreNoDocuments: true,
-  hooks: {
-    afterAllFileWrite: ['prettier --write --ignore-unkown'],
-  },
+  // Disabled prettier since it's slow. Instead prettier will be run before committing
+  // hooks: {
+  //   afterAllFileWrite: ['prettier --write --ignore-unkown'],
+  // },
 };
 
 // eslint-disable-next-line import/no-default-export

@@ -3,7 +3,7 @@
  */
 
 import { exit } from 'process';
-import { loadEnvironmentVariables } from './lib/utils/env';
+import { loadEnvironmentVariables } from '../lib/utils/env';
 
 loadEnvironmentVariables();
 

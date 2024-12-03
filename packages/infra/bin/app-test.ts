@@ -45,7 +45,7 @@ new TestNotesStack(app, 'TESTINGONLYNotesStack', {
     apolloHttpLambda: {
       codePath: join(
         PROJECT_DIR,
-        '../api-dev-server/out-handlers/mock-apollo-http-handler'
+        '../api-dev-server/out/mock-apollo-http-handler'
       ),
       environment: {
         NODE_ENV,

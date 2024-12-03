@@ -5,7 +5,7 @@ import globals from 'globals';
 export default [
   ...rootConfig,
   {
-    ignores: ['cdk.out', 'assert-aws-cdk.ts'],
+    ignores: ['cdk.out', 'scripts'],
   },
   {
     languageOptions: {

@@ -5,7 +5,7 @@ import globals from 'globals';
 export default [
   ...rootConfig,
   {
-    ignores: ['out-handlers'],
+    ignores: ['out'],
   },
   {
     languageOptions: {
