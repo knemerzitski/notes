@@ -120,7 +120,7 @@ jobs:
 
       # Artifact packages/app/out/**
       - name: Build app
-        run: npm run -w api build
+        run: npm run -w app build
 
       # Artifact packages/api-dev-server/out/**
       - name: Build dev server for testing
@@ -134,7 +134,7 @@ jobs:
           path: |
             packages/api/out/**
             packages/app/out/**
-            packages/dev-server/out/**
+            packages/api-dev-server/out/**
           retention-days: 2
   # test_unit:
   #   name: Unit testing
