@@ -64,13 +64,16 @@ jobs:
     strategy:
       matrix:
         package:
-          [api, api-app-shared, dev-server, app, collab, infra, lambda-graphql, utils]
+          # [api, api-app-shared, dev-server, app, collab, infra, lambda-graphql, utils]
+          [api]
     steps:
       - name: Download GraphQL codegen artifacts
         uses: actions/download-artifact@v4
         with:
           name: graphql_codegen
           path: packages
+      - run: ls -la packages/api/src/graphql/domains
+      - run: ls -la packages/app/src
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Use Node.js ${{ env.NODE_VERSION }}
