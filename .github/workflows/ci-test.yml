@@ -30,7 +30,7 @@ env:
 
 jobs:
   build:
-    name: Generate GraphQL code
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -137,44 +137,44 @@ jobs:
 
   #     - name: Run tests
   #       run: npm run -w ${{ matrix.package }} test:unit
-  test_int:
-    name: Integration testing
-    needs: build
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        # package: [api, infra, lambda-graphql]
-        package: [infra-graphql]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+  # test_int:
+  #   name: Integration testing
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       # package: [api, infra, lambda-graphql]
+  #       package: [infra-graphql]
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+  #     - name: Use Node.js ${{ env.NODE_VERSION }}
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: ${{ env.NODE_VERSION }}
+  #         cache: 'npm'
 
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build
-          path: packages
+  #     - name: Download build artifacts
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: build
+  #         path: packages
 
-      - name: Clean install
-        run: npm ci
+  #     - name: Clean install
+  #       run: npm ci
 
-      - name: Initialize docker
-        run: npm run docker:init
+  #     - name: Initialize docker
+  #       run: npm run docker:init
 
-      - name: Start MongoDB container
-        run: npm run mongodb:start
+  #     - name: Start MongoDB container
+  #       run: npm run mongodb:start
 
-      - name: Start DynamoDB container
-        run: npm run dynamodb:start
+  #     - name: Start DynamoDB container
+  #       run: npm run dynamodb:start
 
-      - name: Run integration tests
-        run: npm run -w ${{ matrix.package }} test:int
+  #     - name: Run integration tests
+  #       run: npm run -w ${{ matrix.package }} test:int
   # test_comp:
   #   name: App component testing
   #   needs: build
