@@ -53,6 +53,8 @@ jobs:
 
       - run: npm run -w api graphql:gen
       - run: npm run -w dev-server build
+      - run: pwd
+      - run: ls -la .
       - run: ls -la packages/api-dev-server/out
       - run: DEBUG=*:ERROR,*:INFO NODE_ENV=test node packages/api-dev-server/out/server/index.mjs > dev-server.log 2>&1 &
       - run: sleep 10

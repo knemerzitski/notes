@@ -13,3 +13,5 @@ const envPath = join(import.meta.dirname, relEnvPath);
 console.log('load env', envPath)
 
 dotenv.config({ path: envPath });
+
+console.log(process.env);
