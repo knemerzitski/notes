@@ -244,10 +244,10 @@ jobs:
         run: kill $(lsof -t -i:4010) || true
 
       - name: Upload dev server logs
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: dev_server_logs
           path: |
             dev-server.log
           retention-days: 2
-        if: !cancelled()
