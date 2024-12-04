@@ -22,22 +22,20 @@ env:
   MOCK_DYNAMODB_ENDPOINT: http://localhost:8000
   MONGODB_TIER: 'enterprise'
   VITE_MOCK_GOOGLE_AUTH: true
+  # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+  NODE_VERSION: 22.x
 
 jobs:
   graphql_codegen:
     name: Generate GraphQL types, operations and fragments
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - name: Clean install
         run: npm ci
@@ -54,6 +52,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: graphql_codegen
+          # Common path ancestor ./packages/
           path: |
             packages/api/src/graphql/domains/*.generated.ts
             packages/app/src/__generated__/**
@@ -69,12 +68,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: graphql_codegen
+          path: packages
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci
       - run: npm run lint
