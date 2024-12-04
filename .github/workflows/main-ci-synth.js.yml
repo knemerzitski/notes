@@ -15,15 +15,22 @@ concurrency:
 
 env:
   APP_ORIGIN: http://localhost
-  VITE_GRAPHQL_HTTP_URL: http://localhost:4000/graphql
-  VITE_GRAPHQL_WS_URL: ws://localhost:4000/graphql
+  VITE_GRAPHQL_HTTP_URL: http://localhost:4010/graphql
+  VITE_GRAPHQL_WS_URL: ws://localhost:4010/graphql
   DEBUG_FORMAT: json
-  MOCK_MONGODB_URI: mongodb://localhost:27017/notesDev?replicaSet=rs0
+  MOCK_MONGODB_URI: mongodb://localhost:27017/notesTest?replicaSet=rs0
   MOCK_DYNAMODB_ENDPOINT: http://localhost:8000
-  MONGODB_TIER: 'enterprise'
+  MONGODB_TIER: enterprise
   VITE_MOCK_GOOGLE_AUTH: true
   # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
   NODE_VERSION: 22.x
+  
+  TEST_MONGODB_URI: mongodb://localhost:27017/notesTest?replicaSet=rs0
+  TEST_DYNAMODB_ENDPOINT: http://localhost:8000
+  TEST_DOCKER_MONGODB_URI: mongodb://mongod:27017/notesTest?replicaSet=rs0&directConnection=true
+  TEST_DOCKER_DYNAMODB_ENDPOINT: http://dynamodb-local:8000
+  TEST_MONGODB_TIER: enterprise
+  TEST_DEBUG_FORMAT: object
 
 jobs:
   test_e2e_tmp:
