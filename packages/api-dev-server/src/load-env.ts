@@ -1,14 +1,15 @@
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 
 import dotenv from 'dotenv';
 
-// packages/api-dev-server/out/server.index.mjs
-const __dirname = dirname(fileURLToPath(import.meta.url));
+
+console.log(process.env);
 
 const relEnvPath = `../../../../${
   process.env.NODE_ENV === 'test' ? '.env.test' : '.env.local'
 }`;
 
-const envPath = join(__dirname, relEnvPath);
+const envPath = join(import.meta.dirname, relEnvPath);
+console.log('load env', envPath)
+
 dotenv.config({ path: envPath });
