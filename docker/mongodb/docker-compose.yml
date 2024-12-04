@@ -40,3 +40,4 @@ networks:
     name: mongo-network
   sam-api-network:
     name: sam-api-network
+    external: true

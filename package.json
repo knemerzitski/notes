@@ -19,6 +19,7 @@
   "homepage": "https://github.com/knemerzitski/notes#readme",
   "scripts": {
     "prepare": "husky install",
+    "docker:init": "docker network ls | grep sam-api-network || docker network create sam-api-network",
     "dynamodb:start": "cd ./docker/dynamodb && docker compose up -d",
     "dynamodb:stop": "cd ./docker/dynamodb && docker compose down",
     "mongodb:start": "cd ./docker/mongodb && docker compose up -d",
@@ -26,7 +27,7 @@
     "mongosh": "cd ./docker/mongodb && docker compose exec -it mongod /bin/bash -c 'mongosh'",
     "mongo-express:start": "cd ./docker/mongo-express && docker compose up -d",
     "mongo-express:stop": "cd ./docker/mongo-express && docker compose down",
-    "db:start": "npm run mongodb:start & npm run dynamodb:start",
+    "db:start": "npm run docker:init && (npm run mongodb:start & npm run dynamodb:start)",
     "db:stop": "npm run mongodb:stop & npm run dynamodb:stop",
     "api:dev": "npm run db:start && npm run -w dev-server dev",
     "app:dev": "npm run -w app dev",
