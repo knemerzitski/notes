@@ -21,7 +21,7 @@ interface User {
 }
 
 async function fetchSignIn(): Promise<User> {
-  const res = await fetch('http://127.0.0.1:3000/graphql', {
+  const res = await fetch('http://localhost:3000/graphql', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -66,7 +66,7 @@ async function fetchSignIn(): Promise<User> {
 }
 
 async function fetchCreateNote(user: User, content: string): Promise<User> {
-  const res = await fetch('http://127.0.0.1:3000/graphql', {
+  const res = await fetch('http://localhost:3000/graphql', {
     method: 'POST',
     headers: {
       ...user.headers,
@@ -107,7 +107,7 @@ async function fetchCreateNote(user: User, content: string): Promise<User> {
 }
 
 async function fetchNotes(user: User) {
-  const res = await fetch('http://127.0.0.1:3000/graphql', {
+  const res = await fetch('http://localhost:3000/graphql', {
     method: 'POST',
     headers: {
       ...user.headers,

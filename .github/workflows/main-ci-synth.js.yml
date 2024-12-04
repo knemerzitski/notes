@@ -202,6 +202,9 @@ jobs:
       - name: Check DynamoDB connection
         run: npx wait-port localhost:8000 -t 15000
 
+      - name: Check DynamoDB connection2
+        run: npx wait-port http://dynamodb-local:8000 -t 15000 || true
+
       - name: Run integration tests
         run: npm run -w ${{ matrix.package }} test:int
   test_comp:

@@ -29,7 +29,7 @@ export function assertDynamoDBIsRunning() {
 
 export function assertSamApiIsRunning() {
   // Ensure sam local api is running
-  exec(`curl -I -X OPTIONS http://127.0.0.1:3000/graphql`, (err, stdout) => {
+  exec(`curl -I -X OPTIONS http://localhost:3000/graphql`, (err, stdout) => {
     if (!err && !stdout.startsWith('HTTP/1.1 200 OK')) {
       console.error(
         `SAM local API is not running.\n` +
