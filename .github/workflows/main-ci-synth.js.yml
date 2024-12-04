@@ -27,7 +27,7 @@ env:
 
 jobs:
   graphql_codegen:
-    name: Generate GraphQL types, operations and fragments
+    name: Generate GraphQL code
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -56,14 +56,15 @@ jobs:
           path: |
             packages/api/src/graphql/domains/*.generated.ts
             packages/app/src/__generated__/**
+          retention-days: 2
   lint:
-    name: Typecheck and eslint all packages
+    name: Typecheck, eslint
     needs: graphql_codegen
     runs-on: ubuntu-latest
     strategy:
       matrix:
         package:
-          [api, api-app-shared, api-dev-server, app, collab, infra, lambda-graphql, utils]
+          [api, api-app-shared, dev-server, app, collab, infra, lambda-graphql, utils]
     steps:
       - name: Download GraphQL codegen artifacts
         uses: actions/download-artifact@v4
