@@ -58,14 +58,13 @@ jobs:
             packages/app/src/__generated__/**
           retention-days: 2
   lint:
-    name: Typecheck, eslint
+    name: Type check, eslint
     needs: graphql_codegen
     runs-on: ubuntu-latest
     strategy:
       matrix:
         package:
-          # [api, api-app-shared, dev-server, app, collab, infra, lambda-graphql, utils]
-          [api]
+          [api, api-app-shared, dev-server, app, collab, infra, lambda-graphql, utils]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -80,4 +79,7 @@ jobs:
           name: graphql_codegen
           path: packages
       - run: npm ci
-      - run: npm run -w ${{ matrix.package }} lint
+      - name: Type check
+        run: npm run -w ${{ matrix.package }} type-check
+      - name: Eslint
+        run: npm run -w ${{ matrix.package }} eslint
