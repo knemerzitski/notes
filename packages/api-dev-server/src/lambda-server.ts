@@ -20,6 +20,7 @@ export function createLambdaServer({
   httpUrl,
   wsUrl,
   logger,
+  skipDBConnect = false,
 }: {
   sockets: Record<string, WebSocket>;
   apolloHttpHandler: APIGatewayProxyHandler;
@@ -27,6 +28,10 @@ export function createLambdaServer({
   httpUrl: URL;
   wsUrl: URL;
   logger: Logger;
+  /**
+   * @default false
+   */
+  skipDBConnect?: boolean;
 }) {
   if (wsUrl.port != httpUrl.port) {
     logger.warning(
@@ -40,26 +45,28 @@ export function createLambdaServer({
   const app = express();
   const httpServer = createServer(app);
 
-  const wsServer = new WebSocketServer({
-    server: httpServer,
-    path: wsUrl.pathname,
-  });
+  if (!skipDBConnect) {
+    const wsServer = new WebSocketServer({
+      server: httpServer,
+      path: wsUrl.pathname,
+    });
 
-  wsServer.on('listening', () => {
-    logger.info('wsServer:listening', { wsUrl: wsUrl.toString() });
-  });
+    wsServer.on('listening', () => {
+      logger.info('wsServer:listening', { wsUrl: wsUrl.toString() });
+    });
 
-  const webSocketConnectionHandler = apiGatewayProxyWebSocketHandler({
-    sockets,
-    handler: webSocketHandler,
-    logger,
-  });
+    const webSocketConnectionHandler = apiGatewayProxyWebSocketHandler({
+      sockets,
+      handler: webSocketHandler,
+      logger,
+    });
 
-  wsServer.on('connection', (ws, msg) => {
-    void (async () => {
-      await webSocketConnectionHandler(ws, msg);
-    })();
-  });
+    wsServer.on('connection', (ws, msg) => {
+      void (async () => {
+        await webSocketConnectionHandler(ws, msg);
+      })();
+    });
+  }
 
   app.use(
     httpUrl.pathname,

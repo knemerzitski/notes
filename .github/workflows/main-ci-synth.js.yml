@@ -39,49 +39,42 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-      - run: npm ci
-      - run: npm run -w api graphql:gen
-      - run: npm run db:start
-      - run: npm run -w dev-server build:server
-      - run: npm run -w dev-server start:detached:log
-      - run: sleep 10
-      - uses: actions/upload-artifact@v4
-        with:
-          name: detached_log
-          path: packages/api-dev-server/server-detached.log
-          retention-days: 1
-      - run: npm run -w dev-server stop:detached
-
+      - name: Clean install
+        run: npm ci
+      
       # Artifact packages/api/src/graphql/domains/*.generated.ts
-      # - run: npm run -w api graphql:gen
-      # Artifact packages/app/src/__generated__/**
-      # - run: npm run -w app graphql:gen
+      - name: Api GraphQL codegen
+        run: npm run -w api graphql:gen
 
-      # - name: Upload GraphQL codegen artifacts
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: graphql_codegen
-      #     path: |
-      #       packages/api/src/graphql/domains/*.generated.ts
-      #       packages/app/src/__generated__/**
-  # lint:
-  #   name: Typecheck and eslint all packages
-  #   needs: graphql_codegen
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       node-version: [22.x]
-  #   steps:
-  #     - name: Download GraphQL codegen artifacts
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: graphql_codegen
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v4
-  #     - name: Use Node.js ${{ matrix.node-version }}
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: ${{ matrix.node-version }}
-  #         cache: 'npm'
-  #     - run: npm ci
-  #     - run: npm run lint
+      # Artifact packages/app/src/__generated__/**
+      - name: App GraphQL codegen and extract possible types from Api
+        run: npm run -w app graphql:gen
+
+      - name: Upload GraphQL codegen artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: graphql_codegen
+          path: |
+            packages/api/src/graphql/domains/*.generated.ts
+            packages/app/src/__generated__/**
+  lint:
+    name: Typecheck and eslint all packages
+    needs: graphql_codegen
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [22.x]
+    steps:
+      - name: Download GraphQL codegen artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: graphql_codegen
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint

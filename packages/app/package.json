@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "graphql:gen:code": "graphql-codegen",
-    "graphql:gen:types": "vite-node scripts/gen-possible-types.ts -f src/__generated__",
+    "graphql:gen:types": "VITE_GRAPHQL_HTTP_URL=http://localhost:4020/graphql vite-node scripts/gen-possible-types.ts -f src/__generated__",
     "graphql:gen": "npm run graphql:gen:code && npm run graphql:gen:types",
     "graphql:w": "graphql-codegen -w",
     "build": "npm run vite:build",

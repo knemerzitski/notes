@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import { createCollectionInstances } from '~api/mongodb/collections';
+import { createCollectionInstances, MongoDBCollections } from '~api/mongodb/collections';
 import { createMongoDBContext } from '~api/mongodb/context';
 import {
   createDefaultGraphQLParams,
@@ -20,6 +20,7 @@ import {
   MockEmtpyApiGatewayManagementApiClient,
 } from './api-gateway/mock-apigatewaymanagementapi';
 import { MockPingPongSFNClient } from './pingpong/mock-pingpong-sfnclient';
+import { isEnvironmentVariableTruthy } from '~utils/string/is-environment-variable-truthy';
 
 export function createMockGraphQLParams<
   TContext extends object,
@@ -35,9 +36,23 @@ export function createMockSubscriptionGraphQLParams<
   );
 }
 
-export async function createMockMongoDBContext() {
+export async function createMockMongoDBContext(): ReturnType<
+  typeof createMongoDBContext<MongoDBCollections>
+> {
   if (!process.env.MOCK_MONGODB_URI) {
     throw new Error('Environment variable "MOCK_MONGODB_URI" must be defined');
+  }
+
+  const SERVER_SKIP_DB_CONNECT = isEnvironmentVariableTruthy(process.env.SERVER_SKIP_DB_CONNECT);
+  if (SERVER_SKIP_DB_CONNECT) {
+    return new Proxy(
+      {},
+      {
+        get() {
+          return `Cannot use MongoDB. SERVER_SKIP_DB_CONNECT has been set.`;
+        },
+      }
+    ) as ReturnType<typeof createMongoDBContext<MongoDBCollections>>;
   }
 
   const timeout = 2000;

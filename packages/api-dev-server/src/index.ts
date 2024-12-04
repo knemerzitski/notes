@@ -18,33 +18,50 @@ import { mockWebSocketHandlerDefaultParamsOptions } from './handlers/mock-websoc
 import { createLambdaServer } from './lambda-server';
 import { createLambdaContext } from './utils/lambda-context';
 import { createLambdaGraphQLDynamoDBTables } from './utils/lambda-graphql-dynamodb';
+import { isEnvironmentVariableTruthy } from '~utils/string/is-environment-variable-truthy';
 
 const logger = createLogger('mock:lambda-graphql-server');
 
 logger.info('index:NODE_ENV', { NODE_ENV: process.env.NODE_ENV });
 
+const SERVER_SKIP_DB_CONNECT = isEnvironmentVariableTruthy(
+  process.env.SERVER_SKIP_DB_CONNECT
+);
+
+if (SERVER_SKIP_DB_CONNECT) {
+  logger.info(
+    'index',
+    'SERVER_SKIP_DB_CONNECT is defined. Not connecting to any databases.'
+  );
+}
+
 void (async () => {
   try {
-    // Run initialize handler once at the start
-    const initalizeHandler = createInitializeHandler(
-      mockCreateInitializeHandlerOptions()
-    );
+    if (!SERVER_SKIP_DB_CONNECT) {
+      // Run initialize handler once at the start
+      const initalizeHandler = createInitializeHandler(
+        mockCreateInitializeHandlerOptions()
+      );
 
-    try {
-      await initalizeHandler(undefined, createLambdaContext(), () => {
-        return;
-      });
-    } catch (err) {
-      logger.error('Initialize failed', err);
+      try {
+        await initalizeHandler(undefined, createLambdaContext(), () => {
+          return;
+        });
+      } catch (err) {
+        logger.error('Initialize failed', err);
+      }
     }
 
     if (!process.env.MOCK_DYNAMODB_ENDPOINT) {
       throw new Error('Environment variable "MOCK_DYNAMODB_ENDPOINT" must be defined');
     }
-    await createLambdaGraphQLDynamoDBTables({
-      endpoint: process.env.MOCK_DYNAMODB_ENDPOINT,
-      logger,
-    });
+
+    if (!SERVER_SKIP_DB_CONNECT) {
+      await createLambdaGraphQLDynamoDBTables({
+        endpoint: process.env.MOCK_DYNAMODB_ENDPOINT,
+        logger,
+      });
+    }
 
     const sockets: Record<string, WebSocket> = {};
 
@@ -72,6 +89,7 @@ void (async () => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       wsUrl: new URL(process.env.VITE_GRAPHQL_WS_URL!),
       logger,
+      skipDBConnect: SERVER_SKIP_DB_CONNECT,
     });
 
     const gracefulShutdown = () => {
