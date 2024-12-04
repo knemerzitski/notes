@@ -12,13 +12,14 @@ import {
 import { createWebSocketHandler } from '~lambda-graphql/websocket-handler';
 import { createLogger } from '~utils/logging';
 
+import { isEnvironmentVariableTruthy } from '~utils/string/is-environment-variable-truthy';
+
 import { mockApolloHttpHandlerDefaultParamsOptions } from './handlers/mock-apollo-http-handler';
 import { mockCreateInitializeHandlerOptions } from './handlers/mock-initialize-handler';
 import { mockWebSocketHandlerDefaultParamsOptions } from './handlers/mock-websocket-handler';
 import { createLambdaServer } from './lambda-server';
 import { createLambdaContext } from './utils/lambda-context';
 import { createLambdaGraphQLDynamoDBTables } from './utils/lambda-graphql-dynamodb';
-import { isEnvironmentVariableTruthy } from '~utils/string/is-environment-variable-truthy';
 
 const logger = createLogger('mock:lambda-graphql-server');
 

@@ -15,12 +15,13 @@ import { PingPongContextParams } from '~lambda-graphql/context/pingpong';
 import { createPingPongHandler } from '~lambda-graphql/ping-pong-handler';
 import { createLogger } from '~utils/logging';
 
+import { isEnvironmentVariableTruthy } from '~utils/string/is-environment-variable-truthy';
+
 import {
   MockApiGatewayManagementApiClient,
   MockEmtpyApiGatewayManagementApiClient,
 } from './api-gateway/mock-apigatewaymanagementapi';
 import { MockPingPongSFNClient } from './pingpong/mock-pingpong-sfnclient';
-import { isEnvironmentVariableTruthy } from '~utils/string/is-environment-variable-truthy';
 
 export function createMockGraphQLParams<
   TContext extends object,
