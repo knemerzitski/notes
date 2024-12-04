@@ -39,7 +39,7 @@ jobs:
           cache: 'npm'
       - name: Clean install
         run: npm ci
-      
+
       # Artifact packages/api/src/graphql/domains/*.generated.ts
       - name: Api GraphQL codegen
         run: npm run -w api graphql:gen
@@ -62,7 +62,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [22.x]
+        package:
+          [api, api-app-shared, api-dev-server, app, collab, infra, lambda-graphql, utils]
     steps:
       - name: Download GraphQL codegen artifacts
         uses: actions/download-artifact@v4
@@ -77,4 +78,4 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci
-      - run: npm run lint
+      - run: npm run -w ${{ matrix.package }} lint
