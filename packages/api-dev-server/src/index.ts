@@ -23,7 +23,7 @@ import { createLambdaGraphQLDynamoDBTables } from './utils/lambda-graphql-dynamo
 
 const logger = createLogger('mock:lambda-graphql-server');
 
-logger.info('index:NODE_ENV', { NODE_ENV: process.env.NODE_ENV });
+logger.info('index', { nodeVersion: process.version, NODE_ENV: process.env.NODE_ENV });
 
 const SERVER_SKIP_DB_CONNECT = isEnvironmentVariableTruthy(
   process.env.SERVER_SKIP_DB_CONNECT

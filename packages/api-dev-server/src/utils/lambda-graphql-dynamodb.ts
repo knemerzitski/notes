@@ -30,20 +30,31 @@ export async function createLambdaGraphQLDynamoDBTables({
   });
 
   const createTableCommands = createTableCommandInputs();
-  try {
-    for (const cmd of createTableCommands) {
-      if (!cmd.TableName) {
-        throw new Error(`Missing table name`);
+  let counter = 5;
+  while (counter-- > 0) {
+    try {
+      for (const cmd of createTableCommands) {
+        if (!cmd.TableName) {
+          throw new Error(`Missing table name`);
+        }
+
+        logger?.info('dynamodb:createTable', { TableName: cmd.TableName });
+
+        await deleteTableIfExists(documentClient, cmd.TableName);
+        await documentClient.send(new CreateTableCommand(cmd));
       }
-
-      logger?.info('dynamodb:createTable', { TableName: cmd.TableName });
-
-      await deleteTableIfExists(documentClient, cmd.TableName);
-      await documentClient.send(new CreateTableCommand(cmd));
+    } catch (err) {
+      if (err instanceof Error && err.message === 'socket hang up') {
+        logger?.error('dynamodb:createTable:error.retry in 2s', err);
+        await new Promise((res) => {
+          setTimeout(res, 2000);
+        });
+        continue;
+      }
+      logger?.error('dynamodb:createTable:error', err);
+      logger?.error('dynamodb:createTable:error', err?.constructor?.name);
+      throw err;
     }
-  } catch (err) {
-    logger?.error('dynamodb:createTable:error', err);
-    logger?.error('dynamodb:createTable:error', err?.constructor?.name);
   }
 }
 
