@@ -44,7 +44,10 @@ export async function createLambdaGraphQLDynamoDBTables({
         await documentClient.send(new CreateTableCommand(cmd));
       }
     } catch (err) {
-      if (err instanceof Error && err.message === 'socket hang up') {
+      if (
+        err instanceof Error &&
+        (err.message === 'socket hang up' || err.message === 'read ECONNRESET')
+      ) {
         logger?.error('dynamodb:createTable:error.retry in 2s', err);
         await new Promise((res) => {
           setTimeout(res, 2000);
@@ -52,7 +55,6 @@ export async function createLambdaGraphQLDynamoDBTables({
         continue;
       }
       logger?.error('dynamodb:createTable:error', err);
-      logger?.error('dynamodb:createTable:error', err?.constructor?.name);
       throw err;
     }
   }
