@@ -29,13 +29,12 @@ env:
   NODE_VERSION: 22.x
 
 jobs:
-  build:
-    name: Build
+  tmp:
+    name: Temporary
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
         with:
@@ -45,6 +44,8 @@ jobs:
       - name: Clean install
         run: npm ci
 
+      #######################
+
       # Artifact packages/api/src/graphql/domains/*.generated.ts
       - name: Api GraphQL codegen
         run: npm run -w api graphql:gen
@@ -52,6 +53,15 @@ jobs:
       # Artifact packages/app/src/__generated__/**
       - name: App GraphQL codegen and extract possible types from Api
         run: npm run -w app graphql:gen
+
+      - name: Upload GraphQL gen server logs
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: graphql_gen_server_logs
+          path: |
+            packages/api-dev-server/graphql-gen-server.log
+          retention-days: 2
 
       # Artifact packages/api/out/**
       - name: Build api
@@ -77,6 +87,101 @@ jobs:
             packages/app/src/__generated__/**
             packages/app/out/**
           retention-days: 2
+
+      #######################
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: packages
+
+      - name: Initialize docker
+        run: npm run docker:init
+
+      - name: Start MongoDB container
+        run: npm run mongodb:start
+
+      - name: Start DynamoDB container
+        run: npm run dynamodb:start
+
+      - name: Start detached dev server
+        run: DEBUG=*:ERROR,*:INFO NODE_ENV=test node packages/api-dev-server/out/server/index.mjs > dev-server.log 2>&1 &
+
+      - name: Wait for dev server to be reachable
+        run: npx wait-port localhost:4010 -t 10000
+
+      - name: Run end-to-end tests
+        run: npm run -w api test:e2e:run
+
+      - name: Stop dev server
+        run: npx kill-port 4010
+
+      - name: Upload dev server logs
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: dev_server_logs
+          path: |
+            dev-server.log
+          retention-days: 2
+  # build:
+  #   name: Build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+
+  #     - name: Use Node.js ${{ env.NODE_VERSION }}
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: ${{ env.NODE_VERSION }}
+  #         cache: 'npm'
+
+  #     - name: Clean install
+  #       run: npm ci
+
+  #     # Artifact packages/api/src/graphql/domains/*.generated.ts
+  #     - name: Api GraphQL codegen
+  #       run: npm run -w api graphql:gen
+
+  #     # Artifact packages/app/src/__generated__/**
+  #     - name: App GraphQL codegen and extract possible types from Api
+  #       run: npm run -w app graphql:gen
+
+  #     - name: Upload GraphQL gen server logs
+  #       if: ${{ !cancelled() }}
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: graphql_gen_server_logs
+  #         path: |
+  #           packages/api-dev-server/graphql-gen-server.log
+  #         retention-days: 2
+
+  #     # Artifact packages/api/out/**
+  #     - name: Build api
+  #       run: npm run -w api build
+
+  #     # Artifact packages/app/out/**
+  #     - name: Build app
+  #       run: npm run -w app build
+
+  #     # Artifact packages/api-dev-server/out/**
+  #     - name: Build dev server for testing
+  #       run: npm run -w dev-server build
+
+  #     - name: Upload GraphQL codegen artifacts
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: build
+  #         # Common path ancestor ./packages/
+  #         path: |
+  #           packages/api/src/graphql/domains/*.generated.ts
+  #           packages/api/out/**
+  #           packages/api-dev-server/out/**
+  #           packages/app/src/__generated__/**
+  #           packages/app/out/**
+  #         retention-days: 2
   # lint:
   #   name: Type check, eslint
   #   needs: build
@@ -200,54 +305,54 @@ jobs:
 
   #     - name: Run component tests
   #       run: npm run -w app test:comp
-  test_e2e_api:
-    name: End-to-end api testing
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+  # test_e2e_api:
+  #   name: End-to-end api testing
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+  #     - name: Use Node.js ${{ env.NODE_VERSION }}
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: ${{ env.NODE_VERSION }}
+  #         cache: 'npm'
 
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build
-          path: packages
+  #     - name: Download build artifacts
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: build
+  #         path: packages
 
-      - name: Clean install
-        run: npm ci
+  #     - name: Clean install
+  #       run: npm ci
 
-      - name: Initialize docker
-        run: npm run docker:init
+  #     - name: Initialize docker
+  #       run: npm run docker:init
 
-      - name: Start MongoDB container
-        run: npm run mongodb:start
+  #     - name: Start MongoDB container
+  #       run: npm run mongodb:start
 
-      - name: Start DynamoDB container
-        run: npm run dynamodb:start
+  #     - name: Start DynamoDB container
+  #       run: npm run dynamodb:start
 
-      - name: Start detached dev server
-        run: DEBUG=*:ERROR,*:INFO node packages/api-dev-server/out/server/index.mjs > dev-server.log 2>&1 &
+  #     - name: Start detached dev server
+  #       run: DEBUG=*:ERROR,*:INFO node packages/api-dev-server/out/server/index.mjs > dev-server.log 2>&1 &
 
-      - name: Wait for dev server to be reachable
-        run: npx wait-port localhost:4010 -t 15000
+  #     - name: Wait for dev server to be reachable
+  #       run: npx wait-port localhost:4010 -t 15000
 
-      - name: Run end-to-end tests
-        run: npm run -w api test:e2e:run
+  #     - name: Run end-to-end tests
+  #       run: npm run -w api test:e2e:run
 
-      - name: Stop dev server
-        run: kill $(lsof -t -i:4010) || true
+  #     - name: Stop dev server
+  #       run: npx kill-port 4010
 
-      - name: Upload dev server logs
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: dev_server_logs
-          path: |
-            dev-server.log
-          retention-days: 2
+  #     - name: Upload dev server logs
+  #       if: ${{ !cancelled() }}
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: dev_server_logs
+  #         path: |
+  #           dev-server.log
+  #         retention-days: 2

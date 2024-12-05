@@ -9,7 +9,7 @@
     "synth:test": "NODE_ENV=test cdk synth -a 'vite-node bin/app-test.ts' --no-staging --quiet",
     "start": "sam local start-api --warm-containers EAGER --host localhost -p 3000 --docker-network sam-api-network -t cdk.out/TESTINGONLYNotesStack.template.json",
     "start:detached": "sam local start-api --skip-pull-image --warm-containers EAGER --host localhost -p 3000 --docker-network sam-api-network -t cdk.out/TESTINGONLYNotesStack.template.json > /dev/null 2>&1 & wait-port localhost:3000 -t 15000",
-    "stop": "kill $(lsof -t -i:3000)",
+    "stop": "kill-port 3000",
     "test:int:pre": "npm run synth:test && npm run start:detached",
     "test:int:run": "vitest run -c ./vitest.config.integration.ts",
     "test:int:post": "npm run stop",

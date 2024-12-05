@@ -30,15 +30,20 @@ export async function createLambdaGraphQLDynamoDBTables({
   });
 
   const createTableCommands = createTableCommandInputs();
-  for (const cmd of createTableCommands) {
-    if (!cmd.TableName) {
-      throw new Error(`Missing table name`);
+  try {
+    for (const cmd of createTableCommands) {
+      if (!cmd.TableName) {
+        throw new Error(`Missing table name`);
+      }
+
+      logger?.info('dynamodb:createTable', { TableName: cmd.TableName });
+
+      await deleteTableIfExists(documentClient, cmd.TableName);
+      await documentClient.send(new CreateTableCommand(cmd));
     }
-
-    logger?.info('dynamodb:createTable', { TableName: cmd.TableName });
-
-    await deleteTableIfExists(documentClient, cmd.TableName);
-    await documentClient.send(new CreateTableCommand(cmd));
+  } catch (err) {
+    logger?.error('dynamodb:createTable:error', err);
+    logger?.error('dynamodb:createTable:error', err?.constructor?.name);
   }
 }
 
