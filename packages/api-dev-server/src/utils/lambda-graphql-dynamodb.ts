@@ -22,6 +22,7 @@ export async function createLambdaGraphQLDynamoDBTables({
       accessKeyId: 'dummykey123',
       secretAccessKey: 'dummysecretkey123',
     },
+    maxAttempts: 5,
   });
   const documentClient = DynamoDBDocumentClient.from(client, {
     marshallOptions: {
@@ -29,33 +30,35 @@ export async function createLambdaGraphQLDynamoDBTables({
     },
   });
 
+  const maxAttempts = 3;
+  const retryDelay = 2000; // ms
+  const retryErrorMessages = ['socket hang up', 'read ECONNRESET'];
+
   const createTableCommands = createTableCommandInputs();
-  let counter = 5;
-  while (counter-- > 0) {
+  let attemptNr = 0;
+  while (attemptNr++ < maxAttempts) {
     try {
       for (const cmd of createTableCommands) {
         if (!cmd.TableName) {
           throw new Error(`Missing table name`);
         }
 
-        logger?.info('dynamodb:createTable', { TableName: cmd.TableName });
+        logger?.info('dynamodb:createTable', { TableName: cmd.TableName, attemptNr });
 
         await deleteTableIfExists(documentClient, cmd.TableName);
         await documentClient.send(new CreateTableCommand(cmd));
       }
-    } catch (err) {
-      if (
-        err instanceof Error &&
-        (err.message === 'socket hang up' || err.message === 'read ECONNRESET')
-      ) {
-        logger?.error('dynamodb:createTable:error.retry in 2s', err);
+
+      break;
+    } catch (error) {
+      if (error instanceof Error && retryErrorMessages.includes(error.message)) {
+        logger?.info('dynamodb:createTable:retry', { error: error });
         await new Promise((res) => {
-          setTimeout(res, 2000);
+          setTimeout(res, retryDelay);
         });
         continue;
       }
-      logger?.error('dynamodb:createTable:error', err);
-      throw err;
+      throw error;
     }
   }
 }
