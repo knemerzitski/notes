@@ -33,7 +33,6 @@ export async function createLambdaGraphQLDynamoDBTables({
   endpoint: string;
   logger?: Logger;
 }) {
-  const retryDelay = 1000;
   const client = new DynamoDBClient({
     region: 'eu-west-1',
     endpoint,
@@ -42,18 +41,6 @@ export async function createLambdaGraphQLDynamoDBTables({
       secretAccessKey: 'dummysecretkey123',
     },
     maxAttempts: 5,
-    retryStrategy: {
-      retry(next, args) {
-        logger?.warning('dynamodb:createTable:retry', { delay: retryDelay });
-
-        return new Promise((res) => {
-          setTimeout(() => {
-            logger?.warning('dynamodb:createTable:retry');
-            res(next(args));
-          }, 1000);
-        });
-      },
-    },
   });
   const documentClient = DynamoDBDocumentClient.from(client, {
     marshallOptions: {
@@ -61,16 +48,36 @@ export async function createLambdaGraphQLDynamoDBTables({
     },
   });
 
+  const maxAttempts = 10;
+  const retryDelay = 1000; // ms
+  const retryErrorMessages = ['socket hang up', 'read ECONNRESET'];
+
   const createTableCommands = createTableCommandInputs();
-  for (const cmd of createTableCommands) {
-    if (!cmd.TableName) {
-      throw new Error(`Missing table name`);
+  let attemptNr = 0;
+  while (attemptNr++ < maxAttempts) {
+    try {
+      for (const cmd of createTableCommands) {
+        if (!cmd.TableName) {
+          throw new Error(`Missing table name`);
+        }
+
+        logger?.info('dynamodb:createTable', { TableName: cmd.TableName, attemptNr });
+
+        await deleteTableIfExists(documentClient, cmd.TableName);
+        await documentClient.send(new CreateTableCommand(cmd));
+      }
+
+      break;
+    } catch (error) {
+      if (error instanceof Error && retryErrorMessages.includes(error.message)) {
+        logger?.info('dynamodb:createTable:retry', { error: error });
+        await new Promise((res) => {
+          setTimeout(res, retryDelay);
+        });
+        continue;
+      }
+      throw error;
     }
-
-    logger?.info('dynamodb:createTable', { TableName: cmd.TableName });
-
-    await deleteTableIfExists(documentClient, cmd.TableName);
-    await documentClient.send(new CreateTableCommand(cmd));
   }
 }
 

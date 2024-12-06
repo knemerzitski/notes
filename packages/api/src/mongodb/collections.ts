@@ -119,11 +119,11 @@ export function createAllIndexes(
 
           const collection = collections[colName];
 
-          const maxAttemptCount = 10;
+          const maxAttempts = 10;
           const retryDelay = 1000;
 
           let attemptNr = 0;
-          while (attemptNr++ < maxAttemptCount) {
+          while (attemptNr++ < maxAttempts) {
             try {
               const result = await collection.createSearchIndexes(searchDescriptions);
               return [colName, result];
@@ -142,7 +142,7 @@ export function createAllIndexes(
           }
 
           throw new Error(
-            `Failed to createSearchIndexes after ${maxAttemptCount} attempts on "${colName}" (NamespaceNotFound)`
+            `Failed to createSearchIndexes after ${maxAttempts} attempts on "${colName}" (NamespaceNotFound)`
           );
         })
       : []),
