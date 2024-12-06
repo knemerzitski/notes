@@ -95,6 +95,11 @@ it('creates new user, updates displayName and publishes it to websocket', async 
     wsNextUpdateDisplayNameFn
   );
 
+  // Subscription might not have been persisted yet
+  await new Promise((res) => {
+    setTimeout(res, 50);
+  });
+
   // Update displayName
   const { graphQLResponse: updateDisplayNameResponse } = await fetchGraphQL<
     { updateSignedInUserDisplayName: UpdateSignedInUserDisplayNamePayload },
