@@ -19,7 +19,11 @@ import { mockCreateInitializeHandlerOptions } from './handlers/mock-initialize-h
 import { mockWebSocketHandlerDefaultParamsOptions } from './handlers/mock-websocket-handler';
 import { createLambdaServer } from './lambda-server';
 import { createLambdaContext } from './utils/lambda-context';
-import { createLambdaGraphQLDynamoDBTables } from './utils/lambda-graphql-dynamodb';
+import {
+  createLambdaGraphQLDynamoDBTables,
+  waitForDynamoDB,
+} from './utils/lambda-graphql-dynamodb';
+import { waitForMongoDB } from './utils/mongodb';
 
 const logger = createLogger('mock:lambda-graphql-server');
 
@@ -38,6 +42,20 @@ if (SERVER_SKIP_DB_CONNECT) {
 
 void (async () => {
   try {
+    if (!process.env.MOCK_MONGODB_URI) {
+      throw new Error('Environment variable "MOCK_MONGODB_URI" must be defined');
+    }
+    if (!process.env.MOCK_DYNAMODB_ENDPOINT) {
+      throw new Error('Environment variable "MOCK_DYNAMODB_ENDPOINT" must be defined');
+    }
+
+    if (!SERVER_SKIP_DB_CONNECT) {
+      await Promise.all([
+        waitForMongoDB(process.env.MOCK_MONGODB_URI, logger),
+        waitForDynamoDB(process.env.MOCK_DYNAMODB_ENDPOINT, logger),
+      ]);
+    }
+
     if (!SERVER_SKIP_DB_CONNECT) {
       // Run initialize handler once at the start
       const initalizeHandler = createInitializeHandler(
@@ -51,10 +69,6 @@ void (async () => {
       } catch (err) {
         logger.error('Initialize failed', err);
       }
-    }
-
-    if (!process.env.MOCK_DYNAMODB_ENDPOINT) {
-      throw new Error('Environment variable "MOCK_DYNAMODB_ENDPOINT" must be defined');
     }
 
     if (!SERVER_SKIP_DB_CONNECT) {
