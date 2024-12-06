@@ -44,7 +44,9 @@ export async function createMockMongoDBContext(): ReturnType<
     throw new Error('Environment variable "MOCK_MONGODB_URI" must be defined');
   }
 
-  const SERVER_SKIP_DB_CONNECT = isEnvironmentVariableTruthy(process.env.SERVER_SKIP_DB_CONNECT);
+  const SERVER_SKIP_DB_CONNECT = isEnvironmentVariableTruthy(
+    process.env.SERVER_SKIP_DB_CONNECT
+  );
   if (SERVER_SKIP_DB_CONNECT) {
     return new Proxy(
       {},
@@ -56,7 +58,7 @@ export async function createMockMongoDBContext(): ReturnType<
     ) as ReturnType<typeof createMongoDBContext<MongoDBCollections>>;
   }
 
-  const timeout = 2000;
+  const timeout = 10000;
 
   return await createMongoDBContext({
     logger: createLogger('mock:mongodb'),

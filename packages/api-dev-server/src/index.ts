@@ -62,12 +62,13 @@ void (async () => {
         mockCreateInitializeHandlerOptions()
       );
 
-      try {
-        await initalizeHandler(undefined, createLambdaContext(), () => {
-          return;
+      const initializeResult = initalizeHandler(undefined, createLambdaContext(), () => {
+        return;
+      });
+      if (initializeResult instanceof Promise) {
+        initializeResult.catch((err: unknown) => {
+          logger.error('Initialize failed', err);
         });
-      } catch (err) {
-        logger.error('Initialize failed', err);
       }
     }
 
