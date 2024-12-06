@@ -33,12 +33,26 @@ export async function createLambdaGraphQLDynamoDBTables({
   endpoint: string;
   logger?: Logger;
 }) {
+  const retryDelay = 1000;
   const client = new DynamoDBClient({
     region: 'eu-west-1',
     endpoint,
     credentials: {
       accessKeyId: 'dummykey123',
       secretAccessKey: 'dummysecretkey123',
+    },
+    maxAttempts: 5,
+    retryStrategy: {
+      retry(next, args) {
+        logger?.warning('dynamodb:createTable:retry', { delay: retryDelay });
+
+        return new Promise((res) => {
+          setTimeout(() => {
+            logger?.warning('dynamodb:createTable:retry');
+            res(next(args));
+          }, 1000);
+        });
+      },
     },
   });
   const documentClient = DynamoDBDocumentClient.from(client, {
