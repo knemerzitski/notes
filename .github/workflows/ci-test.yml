@@ -105,8 +105,8 @@ jobs:
       - name: Start DynamoDB container
         run: npm run dynamodb:start
 
-      - name: Wait for DynamoDB to be reachable
-        run: npx wait-port localhost:8000 -t 10000        
+      # - name: Wait for DynamoDB to be reachable
+      # run: npx wait-port localhost:8000 -t 10000
 
       - name: Start detached dev server
         run: DEBUG=*:ERROR,*:INFO NODE_ENV=test node packages/api-dev-server/out/server/index.mjs > dev-server.log 2>&1 &
