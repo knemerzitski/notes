@@ -65,6 +65,16 @@ jobs:
             packages/api-dev-server/graphql-gen-server.log
           retention-days: 2
 
+      - name: Upload GraphQL codegen
+        uses: actions/upload-artifact@v4
+        with:
+          name: graphql_gen
+          # Common path ancestor ./packages/
+          path: |
+            packages/api/src/graphql/domains/*.generated.ts
+            packages/app/src/__generated__/**
+          retention-days: 2          
+
       # Artifact packages/api/out/**
       - name: Build api
         run: npm run -w api build
@@ -77,15 +87,13 @@ jobs:
       - name: Build dev server for testing
         run: npm run -w dev-server build
 
-      - name: Upload build and GraphQL codegen
+      - name: Upload build
         uses: actions/upload-artifact@v4
         with:
           name: build
           # Common path ancestor ./packages/
           path: |
-            packages/api/src/graphql/domains/*.generated.ts
             packages/api/out/**
-            packages/app/src/__generated__/**
             packages/app/out/**
             packages/api-dev-server/out/**
           retention-days: 2
@@ -107,10 +115,10 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: Download build artifacts
+      - name: Download Graphql codegen artifacts
         uses: actions/download-artifact@v4
         with:
-          name: build
+          name: graphql_gen
           path: packages
 
       - name: Clean install
@@ -138,10 +146,10 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: Download build artifacts
+      - name: Download GraphQL codegen artifacts
         uses: actions/download-artifact@v4
         with:
-          name: build
+          name: graphql_gen
           path: packages
 
       - name: Clean install
@@ -165,6 +173,12 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+
+      - name: Download GraphQL codegen artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: graphql_gen
+          path: packages    
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
@@ -200,10 +214,10 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: Download build artifacts
+      - name: Download GraphQL codegen artifacts
         uses: actions/download-artifact@v4
         with:
-          name: build
+          name: graphql_gen
           path: packages
 
       - name: Clean install
