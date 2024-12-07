@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "clean": "rimraf out/* cdk.out/* .eslintcache",
     "assert-aws-cdk": "vite-node ./scripts/assert-aws-cdk.ts",
     "synth:test": "NODE_ENV=test cdk synth -a 'vite-node bin/app-test.ts' --no-staging --quiet",
     "test:unit": "vitest run -c ./vitest.config.unit.ts",

@@ -203,7 +203,6 @@ jobs:
           path: |
             packages/infra/server.log
           retention-days: 2
-
   test_comp:
     name: App component tests
     needs: build
