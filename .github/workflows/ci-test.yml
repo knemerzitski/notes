@@ -44,10 +44,22 @@ jobs:
       - name: Api GraphQL codegen
         run: npm run -w api graphql:gen
 
+      # Artifact packages/api/out/**
+      - name: Build api
+        run: npm run -w api build
+
+      # Artifact packages/api-dev-server/out/**
+      - name: Build dev server for testing
+        run: npm run -w dev-server build
+
       # Artifact packages/app/src/__generated__/**
       # Artifact packages/api-dev-server/server.log
       - name: App GraphQL codegen, Possible types from Api
         run: npm run -w app graphql:gen
+
+      # Artifact packages/app/out/**
+      - name: Build app
+        run: npm run -w app build
 
       - name: Upload server log from types gen
         if: ${{ !cancelled() }}
@@ -66,19 +78,7 @@ jobs:
           path: |
             packages/api/src/graphql/domains/*.generated.ts
             packages/app/src/__generated__/**
-          retention-days: 2
-
-      # Artifact packages/api/out/**
-      - name: Build api
-        run: npm run -w api build
-
-      # Artifact packages/app/out/**
-      - name: Build app
-        run: npm run -w app build
-
-      # Artifact packages/api-dev-server/out/**
-      - name: Build dev server for testing
-        run: npm run -w dev-server build
+          retention-days: 2        
 
       - name: Upload build
         uses: actions/upload-artifact@v4
