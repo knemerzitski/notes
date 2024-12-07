@@ -11,6 +11,11 @@
       "~utils/*": ["../utils/src/*"]
     }
   },
-  "include": ["src", "codegen.ts", "vitest.config*.ts"],
-  "exclude": ["src/graphql/domains/*.generated.ts", "node_modules", "scripts"]
+  "include": [
+    "src",
+    "../api-app-shared/src",
+    "../lambda-graphql/src",
+    "../collab/src",
+    "../utils/src"
+  ]
 }

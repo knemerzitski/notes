@@ -9,8 +9,7 @@ import {
   vi,
 } from 'vitest';
 
-import { Changeset } from '~/changeset';
-
+import { Changeset } from '../../changeset';
 import { CollabService } from '../../client/collab-service';
 
 import { defineCreateJsonTextFromService } from './create-service-json-text';

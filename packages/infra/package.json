@@ -18,7 +18,7 @@
     "test": "npm run test:unit && npm run test:int",
     "prettify": "prettier --write --ignore-unknown bin lib",
     "eslint": "eslint . --cache --max-warnings 0",
-    "type-check": "tsc --noEmit",
+    "type-check": "tsc --noEmit --project tsconfig.tsc.json",
     "lint": "npm run type-check && npm run eslint",
     "cdk": "NODE_ENV=production cdk",
     "synth": "NODE_ENV=production cdk synth",

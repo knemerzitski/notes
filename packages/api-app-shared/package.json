@@ -6,7 +6,7 @@
   "scripts": {
     "prettify": "prettier --write --ignore-unknown src",
     "eslint": "eslint . --cache --max-warnings 0",
-    "type-check": "tsc --noEmit",
+    "type-check": "tsc --noEmit --project tsconfig.tsc.json",
     "lint": "npm run type-check && npm run eslint"
   }
 }

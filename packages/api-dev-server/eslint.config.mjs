@@ -5,9 +5,6 @@ import globals from 'globals';
 export default [
   ...rootConfig,
   {
-    ignores: ['out'],
-  },
-  {
     languageOptions: {
       globals: globals.node,
     },

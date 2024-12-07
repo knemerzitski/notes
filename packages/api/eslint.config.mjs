@@ -7,8 +7,6 @@ export default [
   {
     ignores: [
       'src/graphql/domains/*.generated.ts',
-      'out',
-      'esbuild.config.ts',
       'scripts',
     ],
   },
