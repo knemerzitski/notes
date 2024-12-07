@@ -17,7 +17,7 @@
     "dev": "npm run build:server:w & npm run start:w",
     "dev:test": "npm run build:server:w & NODE_ENV=test npm run start:w",
     "prettify": "prettier --write --ignore-unknown src",
-    "eslint": "eslint . --max-warnings 0",
+    "eslint": "eslint . --cache --max-warnings 0",
     "type-check": "tsc --noEmit",
     "lint": "npm run type-check && npm run eslint"
   },

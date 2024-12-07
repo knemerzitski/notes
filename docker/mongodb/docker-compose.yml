@@ -1,6 +1,4 @@
 # Reference: https://www.mongodb.com/developer/products/atlas/atlas-search-local-unit-testing/
-version: '3.8'
-
 services:
   mongod:
     container_name: mongod

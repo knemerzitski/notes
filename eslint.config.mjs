@@ -11,14 +11,6 @@ import configPrettier from 'eslint-config-prettier';
 /** @type {import('@typescript-eslint/utils').TSESLint.FlatConfig.ConfigFile} */
 export default [
   {
-    ignores: [
-      '**/node_modules',
-      '**/out',
-      '**/dist',
-      '**/eslint.config.mjs',
-      '**/graphql.config.ts',
-      '**/.prettierrc.cjs',
-    ],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
@@ -167,4 +159,16 @@ export default [
   },
   configPrettier,
   // eslintPluginPrettierRecommended,
+
+  // Ignores
+  {
+    ignores: [
+      '**/node_modules',
+      '**/out',
+      '**/dist',
+      '**/eslint.config.mjs',
+      '**/graphql.config.ts',
+      '**/.prettierrc.cjs',
+    ],
+  },
 ];
