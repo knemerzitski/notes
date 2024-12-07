@@ -5,10 +5,10 @@ import {
   ResourceNotFoundException,
 } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
-import { createTableCommandInputs } from '~lambda-graphql/dynamodb/schema';
-import { assertDynamoDBIsReachable } from '~lambda-graphql/__tests__/helpers/dynamodb';
-import { Logger } from '~utils/logging';
 import waitPort from 'wait-port';
+import { assertDynamoDBIsReachable } from '~lambda-graphql/__tests__/helpers/dynamodb';
+import { createTableCommandInputs } from '~lambda-graphql/dynamodb/schema';
+import { Logger } from '~utils/logging';
 
 export async function waitForDynamoDBPort(endpoint: string, logger: Logger) {
   logger.info('waitForDynamoDBPort', 'Connecting...');
