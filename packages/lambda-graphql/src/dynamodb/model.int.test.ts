@@ -16,10 +16,7 @@ import { mock } from 'vitest-mock-extended';
 
 import { Logger } from '~utils/logging';
 
-import {
-  assertDynamoDBIsReachable,
-  dynamoDBDocumentClient,
-} from '../__tests__/helpers/dynamodb';
+import { dynamoDBDocumentClient } from '../__tests__/helpers/dynamodb';
 
 import { newModel, Table } from './model';
 
@@ -54,10 +51,8 @@ function asSavedItem<T extends { undefinedValue: undefined }>(
   return savedItem;
 }
 
-beforeAll(async () => {
+beforeAll(() => {
   faker.seed(89);
-
-  await assertDynamoDBIsReachable(dynamoDBDocumentClient);
 });
 
 beforeEach(async () => {
