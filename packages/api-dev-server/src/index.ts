@@ -21,9 +21,9 @@ import { createLambdaServer } from './lambda-server';
 import { createLambdaContext } from './utils/lambda-context';
 import {
   createLambdaGraphQLDynamoDBTables,
-  waitForDynamoDB,
+  waitForDynamoDBPort,
 } from './utils/lambda-graphql-dynamodb';
-import { waitForMongoDB } from './utils/mongodb';
+import { waitForMongoDBPort } from './utils/mongodb';
 
 const logger = createLogger('mock:lambda-graphql-server');
 
@@ -51,8 +51,8 @@ void (async () => {
 
     if (!SERVER_SKIP_DB_CONNECT) {
       await Promise.all([
-        waitForMongoDB(process.env.MOCK_MONGODB_URI, logger),
-        waitForDynamoDB(process.env.MOCK_DYNAMODB_ENDPOINT, logger),
+        waitForMongoDBPort(process.env.MOCK_MONGODB_URI, logger),
+        waitForDynamoDBPort(process.env.MOCK_DYNAMODB_ENDPOINT, logger),
       ]);
     }
 

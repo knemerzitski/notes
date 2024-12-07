@@ -1,8 +1,8 @@
 import waitPort from 'wait-port';
 import { Logger } from '~utils/logging';
 
-export async function waitForMongoDB(uri: string, logger: Logger) {
-  logger.info('waitForMongoDB', 'Connecting...');
+export async function waitForMongoDBPort(uri: string, logger: Logger) {
+  logger.info('waitForMongoDBPort', 'Connecting...');
   const uriUrl = new URL(uri);
   const { open } = await waitPort({
     host: uriUrl.hostname,
@@ -15,5 +15,5 @@ export async function waitForMongoDB(uri: string, logger: Logger) {
     throw new Error(`MongoDB server is not reachable on uri "${uri}"`);
   }
 
-  logger.info('waitForMongoDB', `Connected "${uri}"`);
+  logger.info('waitForMongoDBPort', `Connected "${uri}"`);
 }

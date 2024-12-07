@@ -6,11 +6,12 @@ import {
 } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { createTableCommandInputs } from '~lambda-graphql/dynamodb/schema';
+import { assertDynamoDBIsReachable } from '~lambda-graphql/__tests__/helpers/dynamodb';
 import { Logger } from '~utils/logging';
 import waitPort from 'wait-port';
 
-export async function waitForDynamoDB(endpoint: string, logger: Logger) {
-  logger.info('waitForDynamoDB', 'Connecting...');
+export async function waitForDynamoDBPort(endpoint: string, logger: Logger) {
+  logger.info('waitForDynamoDBPort', 'Connecting...');
   const endpointUrl = new URL(endpoint);
   const { open } = await waitPort({
     host: endpointUrl.hostname,
@@ -23,7 +24,7 @@ export async function waitForDynamoDB(endpoint: string, logger: Logger) {
     throw new Error(`DynamoDB server is not reachable on endpoint "${endpoint}"`);
   }
 
-  logger.info('waitForDynamoDB', `Connected "${endpoint}"`);
+  logger.info('waitForDynamoDBPort', `Connected "${endpoint}"`);
 }
 
 export async function createLambdaGraphQLDynamoDBTables({
@@ -40,7 +41,6 @@ export async function createLambdaGraphQLDynamoDBTables({
       accessKeyId: 'dummykey123',
       secretAccessKey: 'dummysecretkey123',
     },
-    maxAttempts: 5,
   });
   const documentClient = DynamoDBDocumentClient.from(client, {
     marshallOptions: {
@@ -48,36 +48,18 @@ export async function createLambdaGraphQLDynamoDBTables({
     },
   });
 
-  const maxAttempts = 10;
-  const retryDelay = 1000; // ms
-  const retryErrorMessages = ['socket hang up', 'read ECONNRESET'];
+  await assertDynamoDBIsReachable(documentClient);
 
   const createTableCommands = createTableCommandInputs();
-  let attemptNr = 0;
-  while (attemptNr++ < maxAttempts) {
-    try {
-      for (const cmd of createTableCommands) {
-        if (!cmd.TableName) {
-          throw new Error(`Missing table name`);
-        }
-
-        logger?.info('dynamodb:createTable', { TableName: cmd.TableName, attemptNr });
-
-        await deleteTableIfExists(documentClient, cmd.TableName);
-        await documentClient.send(new CreateTableCommand(cmd));
-      }
-
-      break;
-    } catch (error) {
-      if (error instanceof Error && retryErrorMessages.includes(error.message)) {
-        logger?.info('dynamodb:createTable:retry', { error: error });
-        await new Promise((res) => {
-          setTimeout(res, retryDelay);
-        });
-        continue;
-      }
-      throw error;
+  for (const cmd of createTableCommands) {
+    if (!cmd.TableName) {
+      throw new Error(`Missing table name`);
     }
+
+    logger?.info('dynamodb:createTable', { TableName: cmd.TableName });
+
+    await deleteTableIfExists(documentClient, cmd.TableName);
+    await documentClient.send(new CreateTableCommand(cmd));
   }
 }
 
