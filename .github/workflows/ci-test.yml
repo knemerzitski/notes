@@ -261,13 +261,13 @@ jobs:
 
       # Artifact packages/api-dev-server/dev-server.log
       - name: Run end-to-end tests
-        run: npm run -w ${{matrix.package }} test:e2e
+        run: npm run -w ${{ matrix.package }} test:e2e
 
       - name: Upload dev server logs
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: dev_server_logs
+          name: ${{ matrix.package }}-dev_server_logs
           path: |
              packages/api-dev-server/dev-server.log
           retention-days: 2
