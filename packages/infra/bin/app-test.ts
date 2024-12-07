@@ -5,55 +5,72 @@ import { App } from 'aws-cdk-lib';
 
 import { createLambdaGraphQLDynamoDBTables } from '~api-dev-server/utils/lambda-graphql-dynamodb';
 
+import { loadEnvironmentVariables, assertGetEnvironmentVariables } from '~utils/env';
+import { createLogger } from '~utils/logging';
+import { logNodeInfo } from '~utils/node';
+import { getProjectRootDir } from '~utils/project-dir';
+
 import { assertDynamoDBIsRunning } from '../../utils/src/running-processes';
 import { TestNotesStack } from '../lib/stacks/test-notes-stack';
-import {
-  assertGetEnvironmentVariables,
-  loadEnvironmentVariables,
-} from '../lib/utils/env';
-import { PROJECT_DIR } from '../lib/utils/project-dir';
-
-assertDynamoDBIsRunning();
 
 /**
  * DO NOT DEPLOY, ONLY FOR TESTING APP
  */
 
+assertDynamoDBIsRunning();
+
 const NODE_ENV = process.env.NODE_ENV ?? 'test';
 
-console.log(`Running CDK in '${NODE_ENV}' environment`);
-loadEnvironmentVariables();
+const logger = createLogger('infra-app-test');
+
+logNodeInfo(logger);
+loadEnvironmentVariables(logger);
 
 const app = new App();
 
-const definedVars = assertGetEnvironmentVariables([
+const rootDir = getProjectRootDir();
+
+const env = assertGetEnvironmentVariables([
   'VITE_GRAPHQL_HTTP_URL',
   'VITE_MOCK_GOOGLE_AUTH',
-  'TEST_DOCKER_MONGODB_URI',
-  'TEST_DOCKER_DYNAMODB_ENDPOINT',
-  'MOCK_DYNAMODB_ENDPOINT',
+
+  'MONGODB_URI',
+  'DOCKER_MONGODB_SERVICE_NAME',
+
+  'DYNAMODB_ENDPOINT',
+  'DOCKER_DYNAMODB_SERVICE_NAME',
 ]);
+
+// Replace host with docker service name
+const mongoDBUrl = new URL(env.MONGODB_URI);
+mongoDBUrl.host = env.DOCKER_MONGODB_SERVICE_NAME;
+mongoDBUrl.searchParams.set('directConnection', 'true');
+const dockerMongoDBUri = mongoDBUrl.toString();
+
+const dynamoDBUrl = new URL(env.DYNAMODB_ENDPOINT);
+dynamoDBUrl.host = env.DOCKER_DYNAMODB_SERVICE_NAME;
+const dockerDynamoDBEndpoint = dynamoDBUrl.toString();
 
 // Ensure DynamoDB tables are created
 await createLambdaGraphQLDynamoDBTables({
-  endpoint: definedVars.MOCK_DYNAMODB_ENDPOINT,
+  endpoint: env.DYNAMODB_ENDPOINT,
 });
 
 new TestNotesStack(app, 'TESTINGONLYNotesStack', {
   customProps: {
     apolloHttpLambda: {
-      codePath: join(PROJECT_DIR, '../api-dev-server/out/mock-apollo-http-handler'),
+      codePath: join(rootDir, 'packages/api-dev-server/out/mock-apollo-http-handler'),
       environment: {
         NODE_ENV,
         DEBUG: process.env.LAMBDA_DEBUG_ARG ?? '*',
-        MOCK_MONGODB_URI: definedVars.TEST_DOCKER_MONGODB_URI,
-        MOCK_DYNAMODB_ENDPOINT: definedVars.TEST_DOCKER_DYNAMODB_ENDPOINT,
-        VITE_GRAPHQL_HTTP_URL: definedVars.VITE_GRAPHQL_HTTP_URL,
-        VITE_MOCK_GOOGLE_AUTH: definedVars.VITE_MOCK_GOOGLE_AUTH,
+        MONGODB_URI: dockerMongoDBUri,
+        DYNAMODB_ENDPOINT: dockerDynamoDBEndpoint,
+        VITE_GRAPHQL_HTTP_URL: env.VITE_GRAPHQL_HTTP_URL,
+        VITE_MOCK_GOOGLE_AUTH: env.VITE_MOCK_GOOGLE_AUTH,
       },
     },
     api: {
-      url: definedVars.VITE_GRAPHQL_HTTP_URL,
+      url: env.VITE_GRAPHQL_HTTP_URL,
     },
   },
 });

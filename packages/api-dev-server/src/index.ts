@@ -10,6 +10,7 @@ import {
   ApolloHttpGraphQLContext,
 } from '~lambda-graphql/apollo-http-handler';
 import { createWebSocketHandler } from '~lambda-graphql/websocket-handler';
+import { assertGetEnvironmentVariables } from '~utils/env';
 import { createLogger } from '~utils/logging';
 
 import { isEnvironmentVariableTruthy } from '~utils/string/is-environment-variable-truthy';
@@ -27,36 +28,23 @@ import { waitForMongoDBPort } from './utils/mongodb';
 
 const logger = createLogger('mock:lambda-graphql-server');
 
-logger.info('index', { nodeVersion: process.version, NODE_ENV: process.env.NODE_ENV });
+const env = assertGetEnvironmentVariables(['MONGODB_URI', 'DYNAMODB_ENDPOINT']);
 
-const SERVER_SKIP_DB_CONNECT = isEnvironmentVariableTruthy(
-  process.env.SERVER_SKIP_DB_CONNECT
-);
-
-if (SERVER_SKIP_DB_CONNECT) {
-  logger.info(
-    'index',
-    'SERVER_SKIP_DB_CONNECT is defined. Not connecting to any databases.'
-  );
+const noDBMode = isEnvironmentVariableTruthy(process.env.NO_DB_MODE);
+if (noDBMode) {
+  logger.info('index', 'Running server in NO_DB_MODE. Not connecting to any databases.');
 }
 
 void (async () => {
   try {
-    if (!process.env.MOCK_MONGODB_URI) {
-      throw new Error('Environment variable "MOCK_MONGODB_URI" must be defined');
-    }
-    if (!process.env.MOCK_DYNAMODB_ENDPOINT) {
-      throw new Error('Environment variable "MOCK_DYNAMODB_ENDPOINT" must be defined');
-    }
-
-    if (!SERVER_SKIP_DB_CONNECT) {
+    if (!noDBMode) {
       await Promise.all([
-        waitForMongoDBPort(process.env.MOCK_MONGODB_URI, logger),
-        waitForDynamoDBPort(process.env.MOCK_DYNAMODB_ENDPOINT, logger),
+        waitForMongoDBPort(env.MONGODB_URI, logger),
+        waitForDynamoDBPort(env.DYNAMODB_ENDPOINT, logger),
       ]);
     }
 
-    if (!SERVER_SKIP_DB_CONNECT) {
+    if (!noDBMode) {
       // Run initialize handler once at the start
       const initalizeHandler = createInitializeHandler(
         mockCreateInitializeHandlerOptions()
@@ -72,9 +60,9 @@ void (async () => {
       }
     }
 
-    if (!SERVER_SKIP_DB_CONNECT) {
+    if (!noDBMode) {
       await createLambdaGraphQLDynamoDBTables({
-        endpoint: process.env.MOCK_DYNAMODB_ENDPOINT,
+        endpoint: env.DYNAMODB_ENDPOINT,
         logger,
       });
     }
@@ -105,7 +93,7 @@ void (async () => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       wsUrl: new URL(process.env.VITE_GRAPHQL_WS_URL!),
       logger,
-      skipDBConnect: SERVER_SKIP_DB_CONNECT,
+      skipDBConnect: noDBMode,
     });
 
     const gracefulShutdown = () => {

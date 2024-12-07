@@ -8,7 +8,7 @@ import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 export function createDynamoDBContext() {
   const client = new DynamoDBClient({
     region: 'eu-west-1',
-    endpoint: process.env.TEST_DYNAMODB_ENDPOINT,
+    endpoint: process.env.DYNAMODB_ENDPOINT,
     credentials: {
       accessKeyId: 'dummykey123',
       secretAccessKey: 'dummysecretkey123',

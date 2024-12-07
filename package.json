@@ -29,7 +29,7 @@
     "mongo-express:stop": "cd ./docker/mongo-express && docker compose down",
     "db:start": "npm run docker:init && (npm run mongodb:start & npm run dynamodb:start)",
     "db:stop": "npm run mongodb:stop & npm run dynamodb:stop",
-    "api:dev": "npm run db:start && npm run -w dev-server dev",
+    "api:dev": "export DEBUG=*:ERROR,*:INFO; npm run db:start && npm run -w dev-server dev",
     "app:dev": "npm run -w app dev",
     "dev": "npm run api:dev & npm run app:dev",
     "build": "npm run build --workspaces --if-present",

@@ -9,10 +9,12 @@ assertMongoDBIsRunning();
 export default defineConfig({
   plugins: [tsconfigPaths()],
   envDir: '../../',
-  envPrefix: 'TEST_',
   test: {
     include: ['src/**/*.int.test.ts'],
-    setupFiles: ['src/__tests__/helpers/setup.integration.ts'],
+    setupFiles: [
+      'src/__tests__/helpers/load-env.ts',
+      'src/__tests__/helpers/setup.integration.ts',
+    ],
     pool: 'threads',
     poolOptions: {
       threads: {

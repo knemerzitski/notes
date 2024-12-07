@@ -9,7 +9,7 @@ import {
 
 import { mongoCollections } from './mongodb';
 
-const TIER = process.env.TEST_MONGODB_TIER;
+const TIER = process.env.MONGODB_TIER;
 const hasAtlasSearch = TIER === 'enterprise';
 
 interface SearchIndex {

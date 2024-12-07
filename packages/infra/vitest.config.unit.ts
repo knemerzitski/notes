@@ -5,7 +5,6 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   plugins: [tsconfigPaths()],
   envDir: '../../',
-  envPrefix: 'TEST_',
   test: {
     include: ['!lib/**/*.int.test.ts', '!__tests__', 'lib/**/*.test.ts'],
   },

@@ -1,11 +1,9 @@
-import { join } from 'node:path';
+import { loadEnvironmentVariables } from '~utils/env';
+import { createLogger } from '~utils/logging';
+import { logNodeInfo } from '~utils/node';
 
-import dotenv from 'dotenv';
+const logger = createLogger('load-env');
 
+logNodeInfo(logger);
 
-const relEnvPath = `../../../../${
-  process.env.NODE_ENV === 'test' ? '.env.test' : '.env.local'
-}`;
-
-const envPath = join(import.meta.dirname, relEnvPath);
-dotenv.config({ path: envPath });
+loadEnvironmentVariables(logger);

@@ -36,8 +36,10 @@ async function generatePossibleTypes({
 }) {
   console.log(`Fetching possible types from "${fetchUrl}"`);
 
-  console.log('Starting a temporary GraphQL server...');
-  execSync('npm run -w dev-server start:graphql:gen');
+  const port = new URL(fetchUrl).port;
+
+  console.log(`Starting a temporary GraphQL server on port ${port}...`);
+  execSync(`export PORT=${port} NO_DB_MODE=1 DEBUG=*:ERROR,*:INFO; npm run -w dev-server start:detached`);
 
   try {
     const res = await fetch(fetchUrl, {
@@ -82,7 +84,7 @@ async function generatePossibleTypes({
     console.log(`Fragment types successfully extracted to "${writePath}"`);
   } finally {
     console.log('Shutting down GraphQL server');
-    execSync('npm run -w dev-server stop:graphql:gen');
+    execSync(`export PORT=${port}; npm run -w dev-server stop`);
   }
 }
 

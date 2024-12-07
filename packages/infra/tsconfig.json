@@ -35,6 +35,7 @@
     "../lambda-graphql/src",
     "../api-dev-server/src",
     "../api/src",
-    "../collab/src"
+    "../collab/src",
+    "scripts"
   ]
 }

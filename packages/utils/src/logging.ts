@@ -2,29 +2,16 @@ import debug, { Debugger } from 'debug';
 
 import { isObjectLike } from './type-guards/is-object-like';
 
-/**
- * Read env var 'TEST_DEBUG_FORMAT' or 'DEBUG_FORMAT'
- * @returns 'json' or 'object'
- */
-function getEnvDebugFormat() {
-  let f: string | undefined;
-
-  if (process.env.NODE_ENV === 'test') {
-    f = process.env.TEST_DEBUG_FORMAT;
-  } else {
-    f = process.env.DEBUG_FORMAT;
-  }
-
-  return f ?? 'json';
+function createLoggerContext() {
+  return {
+    delimiter: ':',
+    plain: '%s',
+    withObjectData: (process.env.DEBUG_FORMAT ?? 'json') === 'object' ? '%s %O' : '%s %j',
+    withPlainData: '%s %s',
+  } as const;
 }
 
-const DELIMITER = ':';
-
-const LOG_FORMATS = {
-  plain: '%s',
-  withObjectData: getEnvDebugFormat() === 'object' ? '%s %O' : '%s %j',
-  withPlainData: '%s %s',
-} as const;
+type LoggerContext = ReturnType<typeof createLoggerContext>;
 
 enum LogLevel {
   DEBUG = 'DEBUG',
@@ -65,20 +52,20 @@ export interface Logger {
   namespace: string;
 }
 
-function logEntry(log: Debugger, entry: LogEntry) {
+function logEntry(log: Debugger, entry: LogEntry, ctx: LoggerContext) {
   if (entry.data === undefined) {
-    log(LOG_FORMATS.plain, entry.message);
+    log(ctx.plain, entry.message);
   } else {
     if (isObjectLike(entry.data)) {
-      log(LOG_FORMATS.withObjectData, entry.message, entry.data);
+      log(ctx.withObjectData, entry.message, entry.data);
     } else {
-      log(LOG_FORMATS.withPlainData, entry.message, entry.data);
+      log(ctx.withPlainData, entry.message, entry.data);
     }
   }
 }
 
-function extendNamespace(mainNamespace: string, namespace: string) {
-  return mainNamespace + DELIMITER + namespace;
+function extendNamespace(mainNamespace: string, namespace: string, ctx: LoggerContext) {
+  return mainNamespace + ctx.delimiter + namespace;
 }
 
 function jsonFormatterReplacer(_key: string, value: unknown) {
@@ -109,6 +96,7 @@ debug.formatters.j = (value) => {
 export function createLogger(namespace: string): Logger {
   return _prepLoggerWithNamespace(namespace, {
     byNamespace: {},
+    ctx: createLoggerContext(),
   });
 }
 
@@ -117,6 +105,7 @@ interface PrepLoggerWithNamespaceContext {
    * Existing logger by namespace memo
    */
   byNamespace: Record<string, Debugger>;
+  ctx: LoggerContext;
 }
 
 function _prepLoggerWithNamespace(
@@ -124,17 +113,21 @@ function _prepLoggerWithNamespace(
   ctx: PrepLoggerWithNamespaceContext
 ): Logger {
   function logEntryLogger(subNamespace: string): LogFn {
-    const logNamespace = extendNamespace(mainNamespace, subNamespace);
+    const logNamespace = extendNamespace(mainNamespace, subNamespace, ctx.ctx);
     let log = ctx.byNamespace[logNamespace];
     return (message, data) => {
       if (!log) {
         log = debug(logNamespace);
         ctx.byNamespace[logNamespace] = log;
       }
-      logEntry(log, {
-        message,
-        data,
-      });
+      logEntry(
+        log,
+        {
+          message,
+          data,
+        },
+        ctx.ctx
+      );
     };
   }
 
@@ -144,7 +137,7 @@ function _prepLoggerWithNamespace(
     warning: logEntryLogger(LogLevel.WARNING),
     error: logEntryLogger(LogLevel.ERROR),
     extend: (namespace) =>
-      _prepLoggerWithNamespace(extendNamespace(mainNamespace, namespace), ctx),
+      _prepLoggerWithNamespace(extendNamespace(mainNamespace, namespace, ctx.ctx), ctx),
     namespace: mainNamespace,
   };
 }

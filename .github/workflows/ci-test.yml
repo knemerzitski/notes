@@ -11,24 +11,17 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  NODE_VERSION: 22.x
+  DEBUG_FORMAT: object
   APP_ORIGIN: http://localhost
   VITE_GRAPHQL_HTTP_URL: http://localhost:4010/graphql
   VITE_GRAPHQL_WS_URL: ws://localhost:4010/graphql
-  DEBUG_FORMAT: json
-  MOCK_MONGODB_URI: mongodb://localhost:27017/notesTest?replicaSet=rs0
-  MOCK_DYNAMODB_ENDPOINT: http://localhost:8000
+  MONGODB_URI: mongodb://localhost:27017/notesCi?replicaSet=rs0
+  DYNAMODB_ENDPOINT: http://localhost:8000
   MONGODB_TIER: enterprise
   VITE_MOCK_GOOGLE_AUTH: true
-  TEST_MONGODB_URI: mongodb://localhost:27017/notesTest?replicaSet=rs0
-  TEST_DYNAMODB_ENDPOINT: http://localhost:8000
-  TEST_DOCKER_MONGODB_URI: mongodb://mongod:27017/notesTest?replicaSet=rs0&directConnection=true
-  TEST_DOCKER_DYNAMODB_ENDPOINT: http://dynamodb-local:8000
-  TEST_MONGODB_TIER: enterprise
-  TEST_DEBUG_FORMAT: object
-  # Eslint print time spent on a rule
+  # Eslint print time spent on rules
   TIMING: 1
-
-  NODE_VERSION: 22.x
 
 jobs:
   build:
@@ -52,17 +45,17 @@ jobs:
         run: npm run -w api graphql:gen
 
       # Artifact packages/app/src/__generated__/**
-      # Artifact packages/api-dev-server/graphql-gen-server.log
+      # Artifact packages/api-dev-server/server.log
       - name: App GraphQL codegen, Possible types from Api
         run: npm run -w app graphql:gen
 
-      - name: Upload GraphQL gen server logs
+      - name: Upload server log from types gen
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: graphql_gen_server_logs
+          name: graphql_types-dev_server_log
           path: |
-            packages/api-dev-server/graphql-gen-server.log
+            packages/api-dev-server/server.log
           retention-days: 2
 
       - name: Upload GraphQL codegen
@@ -73,7 +66,7 @@ jobs:
           path: |
             packages/api/src/graphql/domains/*.generated.ts
             packages/app/src/__generated__/**
-          retention-days: 2          
+          retention-days: 2
 
       # Artifact packages/api/out/**
       - name: Build api
@@ -178,7 +171,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: graphql_gen
-          path: packages    
+          path: packages
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
@@ -198,8 +191,19 @@ jobs:
       - name: Start DynamoDB container
         run: npm run dynamodb:start
 
+      # matrix.package == 'infra' =>  Artifact packages/infra/server.log
       - name: Run integration tests
         run: npm run -w ${{ matrix.package }} test:int
+
+      - name: Upload AWS Rest API server logs
+        if: ${{ matrix.package == 'infra' && !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.package }}-infra_server_log
+          path: |
+            packages/infra/server.log
+          retention-days: 2
+
   test_comp:
     name: App component tests
     needs: build
@@ -259,15 +263,15 @@ jobs:
       - name: Start DynamoDB container
         run: npm run dynamodb:start
 
-      # Artifact packages/api-dev-server/dev-server.log
+      # Artifact packages/api-dev-server/server.log
       - name: Run end-to-end tests
         run: npm run -w ${{ matrix.package }} test:e2e
 
-      - name: Upload dev server logs
+      - name: Upload server logs
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.package }}-dev_server_logs
+          name: ${{ matrix.package }}-dev_server_log
           path: |
-             packages/api-dev-server/dev-server.log
+            packages/api-dev-server/server.log
           retention-days: 2

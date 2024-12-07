@@ -7,7 +7,7 @@ import { createMongoDBLoaders } from '../../../mongodb/loaders';
 import { CollectionsStats } from './collection-stats';
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-const DB_URI = process.env.TEST_MONGODB_URI!;
+const DB_URI = process.env.MONGODB_URI!;
 
 export async function createMongoDBContext() {
   const mongoClient = new MongoClient(DB_URI, {});

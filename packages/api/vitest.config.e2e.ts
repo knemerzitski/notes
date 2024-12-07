@@ -9,14 +9,19 @@ import {
 assertMongoDBIsRunning();
 assertDynamoDBIsRunning();
 
+// Project root directory
+const envDir = '../../';
+
 // eslint-disable-next-line import/no-default-export
 export default defineConfig({
   plugins: [tsconfigPaths()],
-  envDir: '../../',
-  envPrefix: ['TEST_', 'MOCK_', 'VITE_'],
+  envDir,
   test: {
     include: ['src/__tests__/e2e/**/*.test.ts'],
-    setupFiles: ['src/__tests__/helpers/setup.e2e.ts'],
+    setupFiles: [
+      'src/__tests__/helpers/load-env.ts',
+      'src/__tests__/helpers/setup.e2e.ts',
+    ],
     pool: 'threads',
     poolOptions: {
       threads: {
