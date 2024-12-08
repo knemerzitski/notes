@@ -38,6 +38,7 @@
     "prettify": "npm run prettify --workspaces --if-present",
     "type-check": "npm run type-check --workspaces --if-present",
     "eslint": "npm run eslint --workspaces --if-present",
+    "eslint:fix": "npm run eslint --workspaces --if-present -- --fix",
     "lint": "npm run lint --workspaces --if-present",
     "graphql:gen": "npm run graphql:gen --workspaces --if-present",
     "synth": "npm run -w infra synth",
