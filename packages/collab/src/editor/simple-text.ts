@@ -59,6 +59,10 @@ export class SimpleTextEditor implements SimpleText {
     ];
   }
 
+  getCollabServiceSelection(selection: SelectionRange): SelectionRange {
+    return selection;
+  }
+
   cleanUp() {
     this.eventsOff.forEach((off) => {
       off();

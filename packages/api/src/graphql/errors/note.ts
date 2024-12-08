@@ -108,7 +108,11 @@ function newNoteErrorMapper() {
   mapper.add(
     NoteNotOpenedServiceError,
     () =>
-      new GraphQLError('Note has not been opened. Must subscribe to "openNoteEvents".')
+      new GraphQLError('Note has not been opened. Must subscribe to "openNoteEvents".', {
+        extensions: {
+          code: GraphQLErrorCode.INVALID_OPERATION,
+        },
+      })
   );
   mapper.add(
     NoteCollabTextInvalidRevisionError,

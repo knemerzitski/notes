@@ -3,10 +3,7 @@ import { Maybe } from '~utils/types';
 
 import { StatsLink } from '../link/stats';
 
-type ProvidedStatsLink = Pick<
-  StatsLink,
-  'getUserEventBus' | 'getUserStats' | 'getOngoingCount' | 'getOngoingQueriesCount'
->;
+type ProvidedStatsLink = Pick<StatsLink, 'getUserEventBus' | 'getUserOngoing'>;
 
 const StatsLinkContext = createContext<ProvidedStatsLink | null>(null);
 

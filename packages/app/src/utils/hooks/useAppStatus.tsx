@@ -1,4 +1,5 @@
 import { useApolloClient } from '@apollo/client';
+import { OperationTypeNode } from 'graphql';
 import { useState, useRef, useEffect } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
@@ -69,6 +70,7 @@ export function useAppStatus(options?: {
 
     const queryObservable = client.watchQuery({
       query: UseAppStatus_Query,
+      fetchPolicy: 'cache-only',
     });
 
     const querySubscription = queryObservable.subscribe({
@@ -79,14 +81,14 @@ export function useAppStatus(options?: {
       },
     });
 
-    ongoingCountRef.current = statsLink.getOngoingCount(userId);
+    ongoingCountRef.current = getOngoingQueryAndMutationCount(userId, statsLink);
 
-    const noUserUnsub = noUserEventBus.on('*', () => {
-      ongoingCountRef.current = statsLink.getOngoingCount(userId);
+    const noUserUnsub = noUserEventBus.on('byType', () => {
+      ongoingCountRef.current = getOngoingQueryAndMutationCount(userId, statsLink);
       updateStatus();
     });
-    const userUnsub = userEventBus.on('*', () => {
-      ongoingCountRef.current = statsLink.getOngoingCount(userId);
+    const userUnsub = userEventBus.on('byType', () => {
+      ongoingCountRef.current = getOngoingQueryAndMutationCount(userId, statsLink);
       updateStatus();
     });
 
@@ -131,4 +133,22 @@ export function useAppStatus(options?: {
   }, [setStatusRefreshDebounced]);
 
   return status;
+}
+
+function getOngoingQueryAndMutationCount(
+  userId: string | undefined,
+  statsLink: ReturnType<typeof useStatsLink>
+) {
+  let count = 0;
+  const noUser = statsLink.getUserOngoing(userId);
+  count +=
+    noUser.byType(OperationTypeNode.QUERY) + noUser.byType(OperationTypeNode.MUTATION);
+
+  if (userId && userId !== '') {
+    const user = statsLink.getUserOngoing(userId);
+    count +=
+      user.byType(OperationTypeNode.QUERY) + user.byType(OperationTypeNode.MUTATION);
+  }
+
+  return count;
 }

@@ -4,7 +4,9 @@ import { useEffect } from 'react';
 
 import { gql } from '../../__generated__';
 import { useGetMutationUpdaterFn } from '../../graphql/context/get-mutation-updater-fn';
+import { GlobalOperationVariables } from '../../graphql/types';
 import { apolloClientSubscribe } from '../../graphql/utils/apollo-client-subscribe';
+import { useUserId } from '../context/user-id';
 import { useIsLocalOnlyUser } from '../hooks/useIsLocalOnlyUser';
 
 const SignedInUserEventsSubscription_Subscription = gql(`
@@ -20,6 +22,9 @@ const SignedInUserEventsSubscription_Subscription = gql(`
         ...ShareNotePayload
         ...DeleteShareNotePayload
         ...CreateNoteLinkByShareAccessPayload
+        ...OpenNoteUserSubscribedEvent
+        ...OpenNoteUserUnsubscribedEvent
+        ...UpdateOpenNoteSelectionRangePayload
       }
     }
   }  
@@ -37,15 +42,26 @@ export function SignedInUserEventsSubscription() {
 
 function Subscription() {
   const client = useApolloClient();
+  const userId = useUserId();
   const getMutationUpdaterFn = useGetMutationUpdaterFn();
 
   useEffect(() => {
     const observable = apolloClientSubscribe(client, {
       query: SignedInUserEventsSubscription_Subscription,
+      variables: {
+        // Force a new subscription when user changes
+        // @ts-expect-error Is is a valid variable locally
+        [GlobalOperationVariables.USER_ID]: userId,
+      },
     });
 
+    let subscriptionStopped = false;
     const subscription = observable.subscribe({
       next(value) {
+        if (subscriptionStopped) {
+          return;
+        }
+
         const mutations = value.data?.signedInUserEvents.mutations;
         if (!mutations) {
           return;
@@ -70,9 +86,12 @@ function Subscription() {
     });
 
     return () => {
-      subscription.unsubscribe();
+      subscriptionStopped = true;
+      setTimeout(() => {
+        subscription.unsubscribe();
+      });
     };
-  }, [client, getMutationUpdaterFn]);
+  }, [client, getMutationUpdaterFn, userId]);
 
   return null;
 }

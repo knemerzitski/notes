@@ -6,7 +6,6 @@ import { useEffect, useRef } from 'react';
 import { Maybe } from '~utils/types';
 
 import { gql } from '../../__generated__';
-import { useWebSocketClient } from '../../graphql/context/websocket-client';
 import { getCurrentUserId } from '../models/signed-in-user/get-current';
 
 const CurrentUserChangedRefresh_Query = gql(`

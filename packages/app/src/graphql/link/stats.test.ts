@@ -108,14 +108,120 @@ it('calls events with correct stats', async () => {
     // Ignore error
   }
 
-  expect(onFn.mock.calls).toStrictEqual([
-    ['query', { ongoing: 1, total: 1 }],
-    ['query', { ongoing: 0, total: 1 }],
-    ['mutation', { ongoing: 1, total: 1 }],
-    ['mutation', { ongoing: 0, total: 1 }],
-    ['mutation', { ongoing: 1, total: 2 }],
-    ['mutation', { ongoing: 0, total: 2 }],
-    ['mutation', { ongoing: 1, total: 3 }],
-    ['mutation', { ongoing: 0, total: 3 }],
-  ]);
+  expect(onFn.mock.calls).toMatchInlineSnapshot(`
+    [
+      [
+        "byType",
+        {
+          "ongoingCount": 1,
+          "type": "query",
+        },
+      ],
+      [
+        "byName",
+        {
+          "ongoingCount": 1,
+          "operationName": "Foo",
+        },
+      ],
+      [
+        "byType",
+        {
+          "ongoingCount": 0,
+          "type": "query",
+        },
+      ],
+      [
+        "byName",
+        {
+          "ongoingCount": 0,
+          "operationName": "Foo",
+        },
+      ],
+      [
+        "byType",
+        {
+          "ongoingCount": 1,
+          "type": "mutation",
+        },
+      ],
+      [
+        "byName",
+        {
+          "ongoingCount": 1,
+          "operationName": "Foo",
+        },
+      ],
+      [
+        "byType",
+        {
+          "ongoingCount": 0,
+          "type": "mutation",
+        },
+      ],
+      [
+        "byName",
+        {
+          "ongoingCount": 0,
+          "operationName": "Foo",
+        },
+      ],
+      [
+        "byType",
+        {
+          "ongoingCount": 1,
+          "type": "mutation",
+        },
+      ],
+      [
+        "byName",
+        {
+          "ongoingCount": 1,
+          "operationName": "Foo",
+        },
+      ],
+      [
+        "byType",
+        {
+          "ongoingCount": 0,
+          "type": "mutation",
+        },
+      ],
+      [
+        "byName",
+        {
+          "ongoingCount": 0,
+          "operationName": "Foo",
+        },
+      ],
+      [
+        "byType",
+        {
+          "ongoingCount": 1,
+          "type": "mutation",
+        },
+      ],
+      [
+        "byName",
+        {
+          "ongoingCount": 1,
+          "operationName": "Foo",
+        },
+      ],
+      [
+        "byType",
+        {
+          "ongoingCount": 0,
+          "type": "mutation",
+        },
+      ],
+      [
+        "byName",
+        {
+          "ongoingCount": 0,
+          "operationName": "Foo",
+        },
+      ],
+    ]
+  `);
 });

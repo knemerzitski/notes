@@ -139,6 +139,7 @@ export function createWebSocketHandler<
     models: {
       connections: dynamoDB.connections,
       subscriptions: dynamoDB.subscriptions,
+      completedSubscription: dynamoDB.completedSubscriptions,
     },
     socketApi: apiGateway.socketApi,
     startPingPong: pingpong?.startPingPong,

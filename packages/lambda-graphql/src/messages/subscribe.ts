@@ -130,7 +130,7 @@ export function createSubscribeHandler<
         );
       }
 
-      const { topic, filter, onSubscribe, onAfterSubscribe } =
+      const { topic, filter, onSubscribe, onAfterSubscribe, onComplete } =
         await getSubscribeFieldResult(exeContext);
 
       context.logger.info('messages:subscribe:onSubscribe', {
@@ -165,11 +165,27 @@ export function createSubscribeHandler<
         onAfterSubscribe: !!onAfterSubscribe,
       });
       try {
-        await onAfterSubscribe?.();
+        await onAfterSubscribe?.(subscription.id);
       } catch (err) {
         // Delete subscription on error in onAfterSubscribe
         await context.models.subscriptions.delete({ id: subscription.id });
         throw new SubscribeHookError('onAfterSubscribe', exeContext, err);
+      }
+
+      // Check if subscription has already been completed, if so then execute onComplete and delete subscription
+      const completedSubscription = await context.models.completedSubscription.get({
+        id: subscription.id,
+      });
+      if (completedSubscription) {
+        // Subscription is already completed
+        context.logger.info('messages:subscribe:onComplete', {
+          onComplete: !!onComplete,
+        });
+        await onComplete?.(subscription.id);
+
+        await context.models.subscriptions.delete({
+          id: subscription.id,
+        });
       }
 
       // Wait for Connection TTL refresh to be done

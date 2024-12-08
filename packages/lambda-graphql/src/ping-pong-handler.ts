@@ -76,21 +76,22 @@ export function pingPongHandler<TDynamoDBGraphQLContext extends DynamoDBRecord>(
         state: 'REVIEW',
         seconds: context.pingpong.delay,
       };
+    } else if (input.state === 'REVIEW') {
+      // Expect pong returned
+      const connection = await context.models.connections.get({ id: input.connectionId });
+      if (connection?.hasPonged) {
+        context.logger.info('hasPonged');
+        return {
+          ...input,
+          state: 'PING',
+          seconds: context.pingpong.timeout,
+        };
+      }
+
+      // Didn't respond to ping, delete connection
+      await context.socketApi.delete({ ...input });
     }
 
-    // Expect pong returned
-    const connection = await context.models.connections.get({ id: input.connectionId });
-    if (connection?.hasPonged) {
-      context.logger.info('hasPonged');
-      return {
-        ...input,
-        state: 'PING',
-        seconds: context.pingpong.timeout,
-      };
-    }
-
-    // Didn't respond to ping, delete connection
-    await context.socketApi.delete({ ...input });
     return {
       ...input,
       state: 'ABORT',

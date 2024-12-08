@@ -17,11 +17,11 @@ export interface SubscribeOptions<T extends PubSubEvent> {
   /**
    * After subscription has been persisted
    */
-  onAfterSubscribe?: () => MaybePromise<void>;
+  onAfterSubscribe?: (subscriptionId: string) => MaybePromise<void>;
   /**
    * Subscription is complete and will be deleted from persistence
    */
-  onComplete?: () => MaybePromise<void>;
+  onComplete?: (subscriptionId: string) => MaybePromise<void>;
 }
 
 type SubscribeHookName = 'onSubscribe' | 'onAfterSubscribe' | 'onComplete';

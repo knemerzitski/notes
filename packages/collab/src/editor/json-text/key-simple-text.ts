@@ -59,6 +59,26 @@ export class KeySimpleText implements SimpleText {
     }
   }
 
+  getCollabServiceSelection(selection: SelectionRange): SelectionRange {
+    // Text to JSON
+    const selectionStartJson = this.formatter.stringifyString(
+      this.view.value.slice(0, selection.start)
+    );
+    const selectedJson = this.formatter.stringifyString(
+      this.view.value.slice(selection.start, selection.end)
+    );
+
+    selection = SelectionRange.clamp(selection, this.view.value.length);
+    const start = this.view.jsonValueOffset + selectionStartJson.length;
+    selection = {
+      start,
+      end: start + selectedJson.length,
+    };
+    selection = SelectionRange.clamp(selection, this.service.viewText.length);
+
+    return selection;
+  }
+
   serviceSelectionChanged(selection: SelectionRange) {
     if (selection.start < this.view.jsonValueOffset) {
       return;
@@ -146,20 +166,7 @@ export class KeySimpleText implements SimpleText {
     options?: SimpleTextOperationOptions
   ): void {
     // Text to JSON
-    const selectionStartJson = this.formatter.stringifyString(
-      this.view.value.slice(0, selection.start)
-    );
-    const selectedJson = this.formatter.stringifyString(
-      this.view.value.slice(selection.start, selection.end)
-    );
-
-    selection = SelectionRange.clamp(selection, this.view.value.length);
-    const start = this.view.jsonValueOffset + selectionStartJson.length;
-    selection = {
-      start,
-      end: start + selectedJson.length,
-    };
-    selection = SelectionRange.clamp(selection, this.service.viewText.length);
+    selection = this.getCollabServiceSelection(selection);
 
     insertText = this.formatter.stringifyString(insertText);
 

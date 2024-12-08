@@ -35,7 +35,7 @@ export const NotesCardGrid = forwardRef(function NotesCardGrid(
     return (
       <BoxStyled>
         {[...new Array<undefined>(defaultLoadingCount)].map((_value, index) => (
-          <Skeleton key={index} height={256} variant="rounded" animation="wave" />
+          <SkeletonStyled key={index} variant="rounded" animation="wave" />
         ))}
       </BoxStyled>
     );
@@ -66,6 +66,18 @@ const BoxStyled = styled(Box)(
       grid-auto-rows: 256px;
       grid-template-columns: repeat(auto-fill, minmax(256px, 1fr));
       gap: ${theme.spacing(2)};
+    }
+  `
+);
+
+const SkeletonStyled = styled(Skeleton)(
+  ({ theme }) => css`
+    ${theme.breakpoints.up('xs')} {
+      height: 200px;
+    }
+
+    ${theme.breakpoints.up('sm')} {
+      height: 256px;
     }
   `
 );

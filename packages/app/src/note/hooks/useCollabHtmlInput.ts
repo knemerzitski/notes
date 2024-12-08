@@ -1,12 +1,21 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+  FormEventHandler,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { Options, useDebouncedCallback } from 'use-debounce';
 
 import { CollabService } from '~collab/client/collab-service';
 import { SelectionRange } from '~collab/client/selection-range';
 
+import { useNoteId } from '../context/note-id';
 import { NoteTextFieldEditor } from '../external-state/note';
 
 import { useHtmlInput } from './useHtmlInput';
+import { useUpdateOpenNoteSelectionRange } from './useUpdateOpenNoteSelectionRange';
 
 interface UseHTMLInputCollabEditorOptions {
   merge?: {
@@ -23,7 +32,7 @@ interface UseHTMLInputCollabEditorOptions {
 
 export function useCollabHtmlInput(
   editor: NoteTextFieldEditor,
-  service: Pick<CollabService, 'undo' | 'redo'>,
+  service: Pick<CollabService, 'undo' | 'redo' | 'headRevision'>,
   options?: UseHTMLInputCollabEditorOptions
 ) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -127,7 +136,7 @@ export function useCollabHtmlInput(
     }
   }
 
-  const { handleSelect, handleInput, handleKeyDown } = useHtmlInput({
+  const htmlInput = useHtmlInput({
     onInsert({ beforeSelection, insertValue }) {
       editor.insert(insertValue, latestSelectionRef.current ?? beforeSelection, {
         merge: isMergeChangesRef.current,
@@ -148,11 +157,50 @@ export function useCollabHtmlInput(
     },
   });
 
+  const updateOpenNoteSelectionRange = useUpdateOpenNoteSelectionRange();
+
+  // TODO debounce selection update, ignore when selection is on same index, external change??
+  const noteId = useNoteId();
+  const prevSelectionRef = useRef<SelectionRange | null>(null);
+  const htmlInputHandleSelect = htmlInput.handleSelect;
+  const handleSelect: FormEventHandler<HTMLInputElement> = useCallback(
+    (e) => {
+      htmlInputHandleSelect(e);
+      if (
+        !(e.target instanceof HTMLTextAreaElement) &&
+        !(e.target instanceof HTMLInputElement)
+      ) {
+        return;
+      }
+
+      const start = e.target.selectionStart ?? 0;
+      const selection = {
+        start: start,
+        end: e.target.selectionEnd ?? start,
+      };
+
+      if (
+        !prevSelectionRef.current ||
+        !SelectionRange.isEqual(prevSelectionRef.current, selection)
+      ) {
+        prevSelectionRef.current = selection;
+
+        const collabServiceSelection = editor.getCollabServiceSelection(selection);
+        void updateOpenNoteSelectionRange({
+          noteId,
+          revision: service.headRevision,
+          selectionRange: collabServiceSelection,
+        });
+      }
+    },
+    [htmlInputHandleSelect, updateOpenNoteSelectionRange, noteId, service, editor]
+  );
+
   return {
     inputRef,
     value,
     onSelect: handleSelect,
-    onInput: handleInput,
-    onKeyDown: handleKeyDown,
+    onInput: htmlInput.handleInput,
+    onKeyDown: htmlInput.handleKeyDown,
   };
 }

@@ -1,76 +1,69 @@
 import { ApolloLink, Operation, NextLink, FetchResult } from '@apollo/client';
-import { Observable, Observer, getMainDefinition } from '@apollo/client/utilities';
+import {
+  Observable,
+  Observer,
+  getMainDefinition,
+  getOperationName,
+} from '@apollo/client/utilities';
 import { OperationTypeNode, Kind } from 'graphql';
 import mitt, { Emitter } from 'mitt';
 
+import { CountMap } from '~utils/map/count-map';
 import { DefinedMap } from '~utils/map/defined-map';
-import { ReadonlyDeep } from '~utils/types';
 
 import { getOperationOrRequestUserId } from './current-user';
 
-interface OperationStats {
-  ongoing: number;
-  total: number;
+interface StatsOngoingEvents {
+  byType: {
+    type: OperationTypeNode;
+    ongoingCount: number;
+  };
+  byName: {
+    operationName: string;
+    ongoingCount: number;
+  };
 }
 
-export type AllOperationStats = Record<OperationTypeNode, OperationStats>;
-export type UserAllOperationStats = Record<string, AllOperationStats>;
+interface StatsOngoing {
+  byType(type: OperationTypeNode): number;
+  getTypes(): OperationTypeNode[];
+
+  byName(operationName: string): number;
+  getNames(): string[];
+}
 
 /**
- * Keeps track of how many operations are ongoing and how many
- * have been run in total.
+ * Keeps track of ongoing operations by type and name
  */
 export class StatsLink extends ApolloLink {
-  private readonly globalStatsData;
-  private readonly statsDataByUser;
-  private readonly definedStatsDataByUser;
+  private readonly globalOngoing;
+  private readonly ongoingByUser;
+  private readonly definedOngoingByUser;
 
   constructor() {
     super();
-    this.globalStatsData = new StatsData();
-    this.statsDataByUser = new Map<string, StatsData>();
-    this.definedStatsDataByUser = new DefinedMap(
-      this.statsDataByUser,
-      () => new StatsData()
+    this.globalOngoing = new OngoingData();
+    this.ongoingByUser = new Map<string, OngoingData>();
+    this.definedOngoingByUser = new DefinedMap(
+      this.ongoingByUser,
+      () => new OngoingData()
     );
   }
 
-  getGlobalEventBus(): Pick<Emitter<AllOperationStats>, 'on' | 'off'> {
-    return this.globalStatsData.eventBus;
+  getGlobalOngoing(): StatsOngoing {
+    return this.globalOngoing;
   }
 
-  getGlobalStats(): ReadonlyDeep<AllOperationStats> {
-    return this.globalStatsData.byType;
+  getGlobalEventBus(): Pick<Emitter<StatsOngoingEvents>, 'on' | 'off'> {
+    return this.globalOngoing.eventBus;
   }
 
-  getUserEventBus(userId?: string): Pick<Emitter<AllOperationStats>, 'on' | 'off'> {
-    return this.definedStatsDataByUser.get(userId ?? '').eventBus;
+  getUserOngoing(userId?: string): StatsOngoing {
+    return this.definedOngoingByUser.get(userId ?? '');
   }
 
-  getUserStats(userId?: string): ReadonlyDeep<AllOperationStats> {
-    return this.definedStatsDataByUser.get(userId ?? '').byType;
-  }
-
-  /**
-   * @returns Ongoing operations count. Excluding subscriptions.
-   */
-  getOngoingCount(userId?: string) {
-    const globalStats = this.getUserStats();
-    const userStats = this.getUserStats(userId);
-
-    return (
-      globalStats.query.ongoing +
-      globalStats.mutation.ongoing +
-      userStats.query.ongoing +
-      userStats.mutation.ongoing
-    );
-  }
-
-  getOngoingQueriesCount(userId?: string) {
-    const globalStats = this.getUserStats();
-    const userStats = this.getUserStats(userId);
-
-    return globalStats.query.ongoing + userStats.query.ongoing;
+  getUserEventBus(userId?: string): Pick<Emitter<StatsOngoingEvents>, 'on' | 'off'> {
+    return this.definedOngoingByUser.get(userId ?? '').eventBus;
   }
 
   public override request(
@@ -86,30 +79,61 @@ export class StatsLink extends ApolloLink {
       return forward(operation);
     }
     const type = definition.operation;
+    const operationName = getOperationName(operation.query) ?? 'unknown';
+
     const userId = getOperationOrRequestUserId(operation) ?? '';
+    const userOngoing = this.definedOngoingByUser.get(userId);
 
-    const userStatsData = this.definedStatsDataByUser.get(userId);
-    const userStats = userStatsData.byType[type];
-    userStats.ongoing++;
-    userStats.total++;
+    userOngoing.byTypeMap[type]++;
+    userOngoing.operationCountMap.increment(operationName);
+    this.globalOngoing.byTypeMap[type]++;
+    this.globalOngoing.operationCountMap.increment(operationName);
 
-    const globalStats = this.globalStatsData.byType[type];
-    globalStats.ongoing++;
-    globalStats.total++;
+    userOngoing.eventBus.emit('byType', {
+      type,
+      ongoingCount: userOngoing.byTypeMap[type],
+    });
+    userOngoing.eventBus.emit('byName', {
+      operationName,
+      ongoingCount: userOngoing.operationCountMap.get(operationName),
+    });
 
-    this.globalStatsData.eventBus.emit(type, { ...userStats });
-    userStatsData.eventBus.emit(type, { ...userStats });
+    this.globalOngoing.eventBus.emit('byType', {
+      type,
+      ongoingCount: this.globalOngoing.byTypeMap[type],
+    });
+    this.globalOngoing.eventBus.emit('byName', {
+      operationName,
+      ongoingCount: this.globalOngoing.operationCountMap.get(operationName),
+    });
 
     const observable = forward(operation);
 
     return new Observable<FetchResult>((observer: Observer<FetchResult>) => {
       const sub = observable.subscribe(observer);
       return () => {
-        userStats.ongoing--;
-        globalStats.ongoing--;
+        userOngoing.byTypeMap[type]--;
+        userOngoing.operationCountMap.decrement(operationName);
+        this.globalOngoing.byTypeMap[type]--;
+        this.globalOngoing.operationCountMap.decrement(operationName);
 
-        this.globalStatsData.eventBus.emit(type, { ...userStats });
-        userStatsData.eventBus.emit(type, { ...userStats });
+        userOngoing.eventBus.emit('byType', {
+          type,
+          ongoingCount: userOngoing.byTypeMap[type],
+        });
+        userOngoing.eventBus.emit('byName', {
+          operationName,
+          ongoingCount: userOngoing.operationCountMap.get(operationName),
+        });
+
+        this.globalOngoing.eventBus.emit('byType', {
+          type,
+          ongoingCount: this.globalOngoing.byTypeMap[type],
+        });
+        this.globalOngoing.eventBus.emit('byName', {
+          operationName,
+          ongoingCount: this.globalOngoing.operationCountMap.get(operationName),
+        });
 
         sub.unsubscribe();
       };
@@ -117,20 +141,34 @@ export class StatsLink extends ApolloLink {
   }
 }
 
-class StatsData {
-  readonly eventBus = mitt<AllOperationStats>();
-  readonly byType: AllOperationStats = {
-    query: {
-      ongoing: 0,
-      total: 0,
-    },
-    mutation: {
-      ongoing: 0,
-      total: 0,
-    },
-    subscription: {
-      ongoing: 0,
-      total: 0,
-    },
+class OngoingData implements StatsOngoing {
+  readonly eventBus = mitt<StatsOngoingEvents>();
+
+  private readonly _operationCountMap = new Map<string, number>();
+  readonly operationCountMap = new CountMap(this._operationCountMap);
+  readonly byTypeMap: Record<OperationTypeNode, number> = {
+    query: 0,
+    mutation: 0,
+    subscription: 0,
   };
+
+  byType(type: OperationTypeNode): number {
+    return this.byTypeMap[type];
+  }
+
+  getTypes(): OperationTypeNode[] {
+    return [
+      OperationTypeNode.QUERY,
+      OperationTypeNode.MUTATION,
+      OperationTypeNode.SUBSCRIPTION,
+    ];
+  }
+
+  byName(operationName: string): number {
+    return this._operationCountMap.get(operationName) ?? 0;
+  }
+
+  getNames(): string[] {
+    return [...this._operationCountMap.keys()];
+  }
 }

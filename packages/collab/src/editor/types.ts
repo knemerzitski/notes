@@ -31,6 +31,11 @@ export interface SimpleText {
     selection: SelectionRange,
     options?: SimpleTextOperationOptions
   ): void;
+
+  /**
+   * Selection that applies to CollabService text
+   */
+  getCollabServiceSelection(selection: SelectionRange): SelectionRange;
 }
 
 export interface SimpleTextOperationOptions {

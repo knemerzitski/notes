@@ -38,8 +38,10 @@ export function createErrorLink({
     const unauthenticatedReasons = new Set(
       graphQLErrors
         .map((err) => {
-          const code = err.extensions.code;
-          const reason = err.extensions.reason;
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          const code = err.extensions?.code;
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          const reason = err.extensions?.reason;
 
           if (code != null) {
             return reason as AuthenticationFailedReason;
@@ -83,8 +85,9 @@ export function createErrorLink({
     }
 
     // By default write message to cache and then it will be shown to user
-    graphQLErrors.forEach(({ message, extensions: { code } }) => {
-      if (code !== GraphQLErrorCode.UNAUTHENTICATED) {
+    graphQLErrors.forEach(({ message, extensions }) => {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      if (extensions?.code !== GraphQLErrorCode.UNAUTHENTICATED) {
         addUserMessages(
           userId,
           [

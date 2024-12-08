@@ -56,6 +56,28 @@ export const Query: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
         },
         merge: false,
       },
+      note: {
+        keyArgs: false,
+        read(_existing, { args, toReference }) {
+          // Read using NoteByInput (argument by)
+          if (!args || !isObjectLike(args)) {
+            throwNoteNotFoundError();
+          }
+          const by = args.by;
+          if (!isObjectLike(by)) {
+            throwNoteNotFoundError();
+          }
+
+          if (typeof by.id !== 'string') {
+            throwNoteNotFoundError(String(by.id));
+          }
+          return toReference({
+            __typename: 'Note',
+            id: by.id,
+          });
+        },
+        merge: false,
+      },
       userNoteLinkConnection: relayStylePagination(keyArgsWithUserId(ctx, ['category']), {
         read(
           existing = {
@@ -123,6 +145,10 @@ export const evictOptions: TaggedEvictOptionsList = [
       {
         id: 'ROOT_QUERY',
         fieldName: 'userNoteLink',
+      },
+      {
+        id: 'ROOT_QUERY',
+        fieldName: 'note',
       },
       // Evict all categories
       ...[

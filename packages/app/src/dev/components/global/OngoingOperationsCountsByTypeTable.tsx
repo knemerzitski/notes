@@ -7,6 +7,7 @@ import {
   TableHead,
   TableRow,
 } from '@mui/material';
+import { OperationTypeNode } from 'graphql';
 import { useEffect, useState } from 'react';
 
 import { useStatsLink } from '../../../graphql/context/stats-link';
@@ -14,20 +15,21 @@ import { useUserId } from '../../../user/context/user-id';
 
 function copyStats(statsLink: ReturnType<typeof useStatsLink>, userId: string) {
   return {
-    query: statsLink.getUserStats(userId).query.ongoing,
-    mutation: statsLink.getUserStats(userId).mutation.ongoing,
-    subscription: statsLink.getUserStats(userId).subscription.ongoing,
+    query: statsLink.getUserOngoing(userId).byType(OperationTypeNode.QUERY),
+    mutation: statsLink.getUserOngoing(userId).byType(OperationTypeNode.MUTATION),
+    subscription: statsLink.getUserOngoing(userId).byType(OperationTypeNode.SUBSCRIPTION),
   };
 }
 
-export function OngoingOperationsCountsTable() {
+export function OngoingOperationsCountsByTypeTable() {
   const statsLink = useStatsLink();
   const userId = useUserId();
 
   const [stats, setStats] = useState(() => copyStats(statsLink, userId));
 
   useEffect(() => {
-    return statsLink.getUserEventBus(userId).on('*', () => {
+    setStats(copyStats(statsLink, userId));
+    return statsLink.getUserEventBus(userId).on('byType', () => {
       setStats(copyStats(statsLink, userId));
     });
   }, [statsLink, userId]);

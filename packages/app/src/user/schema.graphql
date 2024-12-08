@@ -37,6 +37,23 @@ extend input SignedInUserByInput @oneOf {
   id: ID
 }
 
+"""
+TODO desc
+"""
+input PublicUserByInput @oneOf {
+  """
+  PublicUser.id
+  """
+  id: ID
+}
+
+extend type Query {
+  """
+  Find publicUser
+  """
+  publicUser(by: PublicUserByInput!): PublicUser
+}
+
 extend type Query {
   """
   List of all available users. Always includes localUser.
