@@ -1,6 +1,6 @@
 import { ClickAwayListener, css, Paper, styled } from '@mui/material';
 
-import { useState } from 'react';
+import { forwardRef, useState } from 'react';
 
 import { OnCloseProvider } from '../../utils/context/on-close';
 import { NoteIdProvider } from '../context/note-id';
@@ -90,7 +90,7 @@ function ExpandedWidget({
       touchEvent="onTouchStart"
       mouseEvent="onMouseDown"
     >
-      <BasePaperStyled variant="outlined">
+      <BasePaperDefaultPropsStyled>
         <CollabInputsColumn
           CollabInputsProps={{
             CollabTitleInputProps: {
@@ -103,7 +103,7 @@ function ExpandedWidget({
           }}
         />
         <RoundBottomNoteToolbar />
-      </BasePaperStyled>
+      </BasePaperDefaultPropsStyled>
     </ClickAwayListener>
   );
 }
@@ -116,7 +116,14 @@ const BasePaperStyled = styled(Paper)(
   `
 );
 
-const CollapsedPaperStyled = styled(BasePaperStyled)(
+const BasePaperDefaultPropsStyled = forwardRef<
+  HTMLDivElement,
+  Parameters<typeof BasePaperStyled>[0]
+>(function MyBasePaperStyled(props, ref) {
+  return <BasePaperStyled ref={ref} variant="outlined" {...props} />;
+});
+
+const CollapsedPaperStyled = styled(BasePaperDefaultPropsStyled)(
   ({ theme }) => css`
     padding: ${theme.spacing(2)};
   `
