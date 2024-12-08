@@ -31,6 +31,15 @@ import { createHttpWsLink } from './http-ws-link';
 import { createLinks } from './links';
 import { createMutationUpdaterFunctionMap } from './mutation-updater-map';
 import { addTypePolicies, createTypePolicies } from './type-policies';
+import { gql } from '../../__generated__';
+
+const CreateGraphQLService_Query = gql(`
+  query CreateGraphQLService_Query {
+    currentSignedInUser {
+      id
+    }
+  }
+`);
 
 export function createGraphQLService({
   httpUri,
@@ -138,6 +147,20 @@ export function createGraphQLService({
       )
     : undefined;
 
+  // Restart WebSocketClient when user changes
+  // Check must happen earlier than any React component so that subscriptions will not use invalid userId
+  const unsubUserIdChangedWatch = cache.watch({
+    query: CreateGraphQLService_Query,
+    optimistic: false,
+    immediate: false,
+    callback: (diff) => {
+      const userId = diff.result?.currentSignedInUser.id;
+      if (userId != null && wsClient?.userId != null && wsClient.userId !== userId) {
+        wsClient.restart();
+      }
+    },
+  });
+
   const links = createLinks({
     appContext,
     wsClient,
@@ -223,6 +246,7 @@ export function createGraphQLService({
     dispose: () => {
       apolloClient.stop();
       disposeOnlineGate();
+      unsubUserIdChangedWatch();
     },
   };
 
