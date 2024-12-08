@@ -34,7 +34,7 @@ import { fakeUserPopulateQueue } from '../helpers/mongodb/populate/user';
 
 const USER_EVENTS_SUBSCRIPTION = `#graphql
   fragment MySelectionRange on UpdateOpenNoteSelectionRangePayload {
-    collabTextState {
+    collabTextEditing {
       revision
       latestSelection {
         start
@@ -43,12 +43,6 @@ const USER_EVENTS_SUBSCRIPTION = `#graphql
     }
     note {
       id
-    }
-    user {
-      id
-      profile {
-        displayName
-      }
     }
   }
 
@@ -72,7 +66,7 @@ const USER_EVENTS_SUBSCRIPTION = `#graphql
 
 const NOTE_EVENTS_SUBSCRIPTION = `#graphql
   fragment MySelectionRange on UpdateOpenNoteSelectionRangePayload {
-    collabTextState {
+    collabTextEditing {
       revision
       latestSelection {
         start
@@ -81,12 +75,6 @@ const NOTE_EVENTS_SUBSCRIPTION = `#graphql
     }
     note {
       id
-    }
-    user {
-      id
-      profile {
-        displayName
-      }
     }
   }
 
@@ -105,7 +93,7 @@ const NOTE_EVENTS_SUBSCRIPTION = `#graphql
 const UPDATE_EDITOR = `#graphql
   mutation UpdateNoteEditorSelectionRange($input: UpdateOpenNoteSelectionRangeInput!) {
     updateOpenNoteSelectionRange(input: $input) {
-      collabTextState {
+      collabTextEditing {
         revision
         latestSelection {
           start
@@ -113,9 +101,6 @@ const UPDATE_EDITOR = `#graphql
         }
       }
       note {
-        id
-      }
-      user {
         id
       }
     }
@@ -264,7 +249,7 @@ function createEditorApi(op: ReturnType<typeof createGraphQLOperations>) {
   signedInEvents.on('UpdateOpenNoteSelectionRangePayload', (payload) => {
     events.push({
       type: 'initial_selection_updated',
-      start: payload.collabTextState.latestSelection.start,
+      start: payload.collabTextEditing.latestSelection.start,
     });
   });
   signedInEvents.on('error', () => {
@@ -295,7 +280,7 @@ function createEditorApi(op: ReturnType<typeof createGraphQLOperations>) {
     noteEvents.on('UpdateOpenNoteSelectionRangePayload', (payload) => {
       events.push({
         type: 'selection_updated',
-        start: payload.collabTextState.latestSelection.start,
+        start: payload.collabTextEditing.latestSelection.start,
       });
     });
   }

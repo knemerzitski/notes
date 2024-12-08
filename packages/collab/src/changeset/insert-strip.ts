@@ -42,7 +42,7 @@ export class InsertStrip extends Strip {
   /**
    * @returns InsertStrip with a sliced value.
    */
-  slice(start?: number, end?: number) {
+  slice(start: number, end: number) {
     return InsertStrip.create(this.value.slice(start, end));
   }
 

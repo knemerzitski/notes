@@ -3,26 +3,24 @@ import { createMapQueryFn } from '../../../../mongodb/query/query';
 import { wrapResolverPreExecuteCheck } from '../../../utils/wrap-resolver-pre-execute-check';
 import type { PublicUserNoteLinkResolvers } from '../../types.generated';
 
-export const PublicUserNoteLink: Pick<PublicUserNoteLinkResolvers, 'collabTextState'> = {
-  collabTextState: wrapResolverPreExecuteCheck(
-    async (parent) =>
-      (
-        await parent.query({
-          openNote: {
-            collabText: {
-              revision: 1,
-            },
-          },
-        })
-      )?.openNote?.collabText != null,
+export const PublicUserNoteLink: Pick<PublicUserNoteLinkResolvers, 'open'> = {
+  open: wrapResolverPreExecuteCheck(
+    async (parent) => {
+      const result = await parent.query({
+        openNote: {
+          expireAt: 1,
+        },
+      });
+      return result?.openNote?.expireAt != null;
+    },
     (parent, _arg, _ctx) => {
       return {
         query: createMapQueryFn(parent.query)<
-          NonNullable<NonNullable<QueryableNoteUser['openNote']>['collabText']>
+          NonNullable<NonNullable<QueryableNoteUser['openNote']>>
         >()(
-          (query) => ({ openNote: { collabText: query } }),
+          (query) => ({ openNote: query }),
           (result) => {
-            return result.openNote?.collabText;
+            return result.openNote;
           }
         ),
       };

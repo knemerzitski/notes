@@ -39,7 +39,7 @@ it('returns this for reference', () => {
 });
 
 it('slices string', () => {
-  expect(new InsertStrip('hello world').slice(6, -1)).toStrictEqual(
+  expect(new InsertStrip('hello world').slice(6, 10)).toStrictEqual(
     new InsertStrip('worl')
   );
 });

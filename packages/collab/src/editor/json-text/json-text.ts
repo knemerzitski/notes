@@ -1,9 +1,7 @@
 import { Changeset } from '../../changeset';
 import { CollabService, CollabServiceEvents } from '../../client/collab-service';
 import { SelectionRange } from '../../client/selection-range';
-import { SelectionChangeset } from '../../client/types';
-import { LimitedEmitter } from '../../utils/types';
-import { SimpleText, SimpleTextOperationOptions } from '../types';
+import { SelectionChangeset , LimitedEmitter , SimpleText, SimpleTextOperationOptions } from '../../types';
 
 import { KeySimpleText } from './key-simple-text';
 import { StructJsonFormatter } from './struct-json-formatter';

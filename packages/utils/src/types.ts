@@ -66,17 +66,17 @@ export type ExcludeNullable<T, Key extends keyof NonNullable<T>> = NonNullable<T
   [key in Key]-?: Exclude<NonNullable<T>[key], null | undefined>;
 };
 
-export type ReadonlyDeep<T, Stop = never> = Readonly<
-  T extends Stop
-    ? T
-    : T extends (infer U)[]
-      ? ReadonlyDeep<Readonly<U>, Stop>[]
-      : T extends object
-        ? {
-            [Key in keyof T]: ReadonlyDeep<T[Key], Stop>;
-          }
-        : T
->;
+export type ReadonlyDeep<T, Stop = never> = T extends Stop
+  ? T
+  : Readonly<
+      T extends (infer U)[]
+        ? ReadonlyDeep<Readonly<U>, Stop>[]
+        : T extends object
+          ? {
+              [Key in keyof T]: ReadonlyDeep<T[Key], Stop>;
+            }
+          : T
+    >;
 
 export type PickValue = 1;
 

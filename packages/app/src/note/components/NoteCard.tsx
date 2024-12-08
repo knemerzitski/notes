@@ -20,7 +20,9 @@ import { DeletedInDays } from './DeletedInDays';
 
 import { NoteAlwaysButtons } from './NoteAlwaysButtons';
 import { NoteMoreOptionsButton } from './NoteMoreOptionsButton';
+import { OpenedNoteUserAvatars } from './OpenedNoteUserAvatars';
 import { TitleTypography } from './TitleTypography';
+import { UserAvatarsCornerPosition } from './UserAvatarsCornerPosition';
 
 const _NoteCard_UserNoteLinkFragment = gql(`
   fragment NoteCard_UserNoteLinkFragment on UserNoteLink {
@@ -29,6 +31,7 @@ const _NoteCard_UserNoteLinkFragment = gql(`
     note {
       ...TitleTypography_NoteFragment
       ...ContentTypography_NoteFragment
+      ...OpenedNoteUserAvatars_NoteFragment
     }
   }
 `);
@@ -171,6 +174,15 @@ export const PureNoteCard = forwardRef<
       {slots?.prefix}
       {/* TODO create badge */}
       {import.meta.env.DEV && noteId}
+      <UserAvatarsCornerPosition>
+        <OpenedNoteUserAvatars
+          max={3}
+          spacing="small"
+          UserAvatarProps={{
+            size: 'small',
+          }}
+        />
+      </UserAvatarsCornerPosition>
       <TitleTypography />
       <ContentTypography />
       <DeletedInDaysStyled />

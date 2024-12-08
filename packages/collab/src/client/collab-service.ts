@@ -20,13 +20,19 @@ import {
 } from '~utils/ordered-message-buffer';
 
 import { Changeset } from '../changeset';
-import { SimpleTextOperationOptions } from '../editor/types';
+import {
+  CollabHistory,
+  CollabHistoryEvents,
+  CollabHistoryOptions,
+  CollabHistoryOptionsStruct,
+} from '../history/collab-history';
 import {
   RevisionChangeset,
   ServerRevisionRecordStruct,
   SubmittedRevisionRecord,
   SubmittedRevisionRecordStruct,
 } from '../records/record';
+import { SimpleTextOperationOptions , SelectionChangeset } from '../types';
 
 import {
   CollabClient,
@@ -34,14 +40,7 @@ import {
   CollabClientOptions,
   CollabClientOptionsStruct,
 } from './collab-client';
-import {
-  CollabHistory,
-  CollabHistoryOptions,
-  CollabHistoryOptionsStruct,
-  CollabHistoryEvents,
-} from './collab-history';
 import { SubmittedRecord } from './submitted-record';
-import { SelectionChangeset } from './types';
 import { UserRecords } from './user-records';
 
 export type CollabServiceEvents = CollabClientEvents &
@@ -138,7 +137,7 @@ const CollabServiceOptionsStruct = object({
   client: omit(CollabClientOptionsStruct, ['submitted']), // instead of omit make it optional?
   submittedRecord: nullable(SubmittedRevisionRecordStruct),
   recordsBuffer: optional(OrderedMessageBufferParamsStruct(UnprocessedRecordStruct)),
-  history: omit(CollabHistoryOptionsStruct, ['tailRevision']),
+  history: omit(CollabHistoryOptionsStruct, ['serverTailRevision']),
 });
 
 type UnprocessedRecordsBuffer = OrderedMessageBuffer<typeof UnprocessedRecordStruct>;
@@ -164,7 +163,7 @@ export interface CollabServiceOptions {
  * Composition of collab instances that are bound by events:
  * - CollabClient - Client collab state by changesets: server, submitted, local, view
  * - CollabHistory - Keeps track of local changeset changes and allows to redo/undo those changes.
- * - UserRecords - Facade for server records that enables fetching n-count of specific user records from server to restore older history entries.
+ * - UserRecords - Facade for server records that enables fetching n-count of specific user records from server to restore older history records.
  *
  * Single place to handle records received by server and to create a submittable record.
  */
@@ -234,7 +233,7 @@ export class CollabService {
     return this._client;
   }
 
-  get history(): Pick<CollabHistory, 'localIndex' | 'entries' | 'tailRevision'> {
+  get history(): Pick<CollabHistory, 'localIndex' | 'records' | 'serverTailRevision'> {
     return this._history;
   }
 
@@ -331,8 +330,8 @@ export class CollabService {
       options?.history instanceof CollabHistory
         ? options.history
         : new CollabHistory({
-            tailText: options?.history?.tailText ?? headText.changeset,
-            tailRevision: headText.revision,
+            recordsTailText: options?.history?.recordsTailText ?? headText.changeset,
+            serverTailRevision: headText.revision,
             ...options?.history,
             client: this._client,
           });
@@ -464,7 +463,7 @@ export class CollabService {
       server: headText.changeset,
     });
     this._history.reset({
-      tailRevision: headText.revision,
+      serverTailRevision: headText.revision,
     });
     this.recordsBuffer.setVersion(headText.revision);
 
@@ -549,7 +548,7 @@ export class CollabService {
   }
 
   /**
-   * Restores up to {@link desiredRestoreCount} history entries. Server records
+   * Restores up to {@link desiredRestoreCount} history records. Server records
    * must be available. Add them using method {@link addServerRecords}.
    */
   historyRestore(desiredRestoreCount: number): number | undefined {
@@ -567,7 +566,7 @@ export class CollabService {
   }
 
   private canRestoreHistory() {
-    return this._userRecords?.hasOwnOlderRecords(this._history.tailRevision);
+    return this._userRecords?.hasOwnOlderRecords(this._history.serverTailRevision);
   }
 
   undo() {
@@ -612,7 +611,7 @@ export class CollabService {
       },
       history: {
         ...options.history,
-        tailRevision: options.recordsBuffer?.version,
+        serverTailRevision: options.recordsBuffer?.version,
       },
       submittedRecord: options.submittedRecord
         ? new SubmittedRecord(options.submittedRecord)

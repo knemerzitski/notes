@@ -5,12 +5,17 @@ import { PublisherOptions } from '~lambda-graphql/pubsub/publish';
 import { isDefined } from '~utils/type-guards/is-defined';
 
 import { QueryableNoteUser } from '../../../../../mongodb/loaders/note/descriptions/note';
-import { createValueQueryFn } from '../../../../../mongodb/query/query';
+import { createMapQueryFn, createValueQueryFn } from '../../../../../mongodb/query/query';
+import { OpenNoteSchema } from '../../../../../mongodb/schema/open-note';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { withTransaction } from '../../../../../mongodb/utils/with-transaction';
 import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import { NoteNotFoundServiceError } from '../../../../../services/note/errors';
-import { findNoteUser, getNoteUsersIds } from '../../../../../services/note/note';
+import {
+  findNoteUser,
+  findNoteUserMaybe,
+  getNoteUsersIds,
+} from '../../../../../services/note/note';
 import {
   CollabText_id_fromNoteQueryFn,
   mapNoteToCollabTextQueryFn,
@@ -48,6 +53,10 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
           users: {
             _id: 1,
             openNote: {
+              clients: {
+                connectionId: 1,
+                subscriptionId: 1,
+              },
               collabText: {
                 revision: 1,
                 latestSelection: {
@@ -69,7 +78,7 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
         // Load will throw error if user has no access to note and subscription won't happen
         await loadNoteForSubscribe(currentUserId);
       },
-      async onAfterSubscribe() {
+      async onAfterSubscribe(subscriptionId) {
         assertAuthenticated(auth);
 
         const currentUserId = auth.session.userId;
@@ -81,7 +90,9 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
           throw new NoteNotFoundServiceError(noteId);
         }
 
-        const hasCurrentUserAlreadyOpenedNote = !!noteUser.openNote;
+        const hasCurrentConnectionAlreadyOpenedNote = !!noteUser.openNote?.clients.some(
+          (client) => client.connectionId === connectionId
+        );
 
         const userQuery = mongoDB.loaders.user.createQueryFn({
           userId: currentUserId,
@@ -91,8 +102,26 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
           userId: currentUserId,
         });
 
+        const userNoteQuery = createMapQueryFn(noteQuery)<QueryableNoteUser>()(
+          (query) => {
+            return {
+              users: {
+                ...query,
+                _id: 1,
+              },
+            };
+          },
+          (note) => {
+            return findNoteUserMaybe(currentUserId, note);
+          }
+        );
+
         const subscribedPayload: ResolversTypes['SignedInUserMutation'] = {
           __typename: 'OpenNoteUserSubscribedEvent',
+          publicUserNoteLink: {
+            noteId,
+            query: userNoteQuery,
+          },
           user: {
             query: userQuery,
           },
@@ -101,9 +130,46 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
           },
         };
 
+        const openNote: Omit<OpenNoteSchema, 'clients'> = {
+          noteId,
+          userId: currentUserId,
+          expireAt: new Date(
+            Date.now() + (ctx.options?.note?.openNoteDuration ?? 1000 * 60 * 60)
+          ),
+        };
+
+        // Prime with new expireAt
+        mongoDB.loaders.note.prime(
+          {
+            id: {
+              noteId,
+              userId: currentUserId,
+            },
+            query: {
+              _id: 1,
+              users: {
+                openNote: {
+                  expireAt: 1,
+                },
+              },
+            },
+          },
+          {
+            _id: note._id,
+            users: note.users.map((_noteUser) =>
+              _noteUser._id.equals(noteUser._id)
+                ? {
+                    ..._noteUser,
+                    openNote,
+                  }
+                : _noteUser
+            ),
+          }
+        );
+
         await Promise.all([
           // Only when opening note the first time
-          ...(!hasCurrentUserAlreadyOpenedNote
+          ...(!hasCurrentConnectionAlreadyOpenedNote
             ? [
                 // Remember that current user has opened the note
                 mongoDB.collections.openNotes.updateOne(
@@ -117,13 +183,13 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
                       userId: currentUserId,
                     },
                     $set: {
-                      expireAt: new Date(
-                        Date.now() +
-                          (ctx.options?.note?.openNoteDuration ?? 1000 * 60 * 60)
-                      ),
+                      expireAt: openNote.expireAt,
                     },
                     $addToSet: {
-                      connectionIds: connectionId,
+                      clients: {
+                        connectionId,
+                        subscriptionId,
+                      },
                     },
                   },
                   {
@@ -145,16 +211,25 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
               ...note.users
                 .map((noteUser) => {
                   if (!noteUser.openNote?.collabText) return;
-                  const openCollabText = noteUser.openNote.collabText;
+                  const openNote = noteUser.openNote;
 
                   return {
                     __typename: 'UpdateOpenNoteSelectionRangePayload' as const,
-                    collabTextState: {
+                    collabTextEditing: {
                       query: createValueQueryFn<
                         NonNullable<
                           NonNullable<QueryableNoteUser['openNote']>['collabText']
                         >
-                      >(() => openCollabText),
+                      >(() => openNote.collabText),
+                    },
+                    openedNote: {
+                      query: createValueQueryFn<
+                        NonNullable<NonNullable<QueryableNoteUser['openNote']>>
+                      >(() => openNote),
+                    },
+                    publicUserNoteLink: {
+                      noteId,
+                      query: userNoteQuery,
                     },
                     collabText: {
                       id: CollabText_id_fromNoteQueryFn(noteQuery),
@@ -179,7 +254,7 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
           ),
         ]);
       },
-      async onComplete() {
+      async onComplete(subscriptionId) {
         assertAuthenticated(auth);
 
         const currentUserId = auth.session.userId;
@@ -200,7 +275,10 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
                     users: {
                       _id: 1,
                       openNote: {
-                        connectionIds: 1,
+                        clients: {
+                          connectionId: 1,
+                          subscriptionId: 1,
+                        },
                       },
                     },
                   },
@@ -219,9 +297,15 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
             const openNote = noteUser.openNote;
             if (!openNote) return;
 
-            if (openNote.connectionIds.length > 1) {
-              // Have connectionIds in db and there is more than one
-              if (openNote.connectionIds.includes(connectionId)) {
+            if (openNote.clients.length > 1) {
+              // Have connections in db and there is more than one
+              if (
+                openNote.clients.some(
+                  (client) =>
+                    client.connectionId === connectionId &&
+                    client.subscriptionId === subscriptionId
+                )
+              ) {
                 // Must only remove current connectionId, user still has note open through another connection
                 await runSingleOperation((session) =>
                   mongoDB.collections.openNotes.updateOne(
@@ -231,7 +315,10 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
                     },
                     {
                       $pull: {
-                        connectionIds: connectionId,
+                        clients: {
+                          connectionId,
+                          subscriptionId,
+                        },
                       },
                     },
                     {
@@ -241,13 +328,36 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
                 );
               }
             } else {
-              // 1 or 0 connectionIds
+              // 1 or 0 connections
               if (
-                openNote.connectionIds.length === 0 ||
-                openNote.connectionIds.includes(connectionId)
+                openNote.clients.length === 0 ||
+                openNote.clients.some(
+                  (client) =>
+                    client.connectionId === connectionId &&
+                    client.subscriptionId === subscriptionId
+                )
               ) {
+                const noteQuery = mongoDB.loaders.note.createQueryFn({
+                  noteId,
+                  userId: currentUserId,
+                });
+
+                const userNoteQuery = createMapQueryFn(noteQuery)<QueryableNoteUser>()(
+                  (query) => ({
+                    users: {
+                      ...query,
+                      _id: 1,
+                    },
+                  }),
+                  (note) => findNoteUserMaybe(currentUserId, note)
+                );
+
                 const unsubscribedPayload: ResolversTypes['SignedInUserMutation'] = {
                   __typename: 'OpenNoteUserUnsubscribedEvent',
+                  publicUserNoteLink: {
+                    noteId,
+                    query: userNoteQuery,
+                  },
                   user: {
                     query: mongoDB.loaders.user.createQueryFn({
                       userId: currentUserId,

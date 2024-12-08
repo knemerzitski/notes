@@ -216,7 +216,7 @@ export function webSocketDisconnectHandler<
             ...createSubscriptionContext(),
             publish: createPublisher<TGraphQLContext, TDynamoDBGraphQLContext>({
               context,
-              getGraphQLContext: () => graphQLContext,
+              getGraphQLContext: () => graphQLContextValue,
               isCurrentConnection: (id: string) => connectionId === id,
             }),
           };
@@ -239,7 +239,7 @@ export function webSocketDisconnectHandler<
             onComplete: !!onComplete,
           });
           try {
-            await onComplete?.();
+            await onComplete?.(sub.id);
           } catch (err) {
             throw new SubscribeHookError('onComplete', exeContext, err);
           }

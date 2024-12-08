@@ -3,3 +3,4 @@ src/__generated__
 out
 coverage
 cypress/screenshots
+analyze.html

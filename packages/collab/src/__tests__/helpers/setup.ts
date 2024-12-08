@@ -1,10 +1,14 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/unbound-method */
 import util, { InspectOptionsStylized } from 'util';
 
-import { Strips, RetainStrip, InsertStrip, Changeset, Strip } from '../../changeset';
+import {
+  Strips,
+  RetainStrip,
+  InsertStrip,
+  DeleteStrip,
+  Changeset,
+  Strip,
+} from '../../changeset';
 
 /**
  * Display Changeset as a stylized string
@@ -51,7 +55,36 @@ RetainStrip.prototype[util.inspect.custom] = function (
 };
 
 // @ts-expect-error "Dynamic injection"
-Strip.EMPTY.__proto__[util.inspect.custom] = function (
+DeleteStrip.prototype[util.inspect.custom] = function (
+  _depth: number,
+  { stylize }: InspectOptionsStylized
+) {
+  return this.startIndex !== this.endIndex
+    ? `${stylize(String(this.startIndex), 'regexp')} - ${stylize(
+        String(this.endIndex),
+        'regexp'
+      )}`
+    : stylize(String(this.startIndex), 'regexp');
+};
+
+// @ts-expect-error "Dynamic injection"
+Strip.EMPTY[util.inspect.custom] = function (
+  _depth: number,
+  { stylize }: InspectOptionsStylized
+) {
+  return stylize(this.toString(), 'undefined');
+};
+
+// @ts-expect-error "Dynamic injection"
+Strips.EMPTY[util.inspect.custom] = function (
+  _depth: number,
+  { stylize }: InspectOptionsStylized
+) {
+  return stylize(this.toString(), 'undefined');
+};
+
+// @ts-expect-error "Dynamic injection"
+Changeset.EMPTY[util.inspect.custom] = function (
   _depth: number,
   { stylize }: InspectOptionsStylized
 ) {

@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import { wrapRetryOnErrorAsync } from '~utils/wrap-retry-on-error';
+import { wrapRetryOnError } from '~utils/retry-on-error';
 
 import {
   retryOnMongoError,
@@ -127,7 +127,7 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
   };
 };
 
-export const signIn = wrapRetryOnErrorAsync(
+export const signIn = wrapRetryOnError(
   _signIn,
   retryOnMongoError({
     maxRetries: 3,

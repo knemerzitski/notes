@@ -18,6 +18,7 @@ import {
   createMockApiGatewayParams,
   createMockDynamoDBParams,
   createMockMongoDBContext,
+  createMockPingPongParams,
   createMockSubscriptionGraphQLParams,
 } from '../parameters';
 
@@ -37,6 +38,9 @@ export function mockWebSocketHandlerDefaultParamsOptions(
       createDynamoDBParams: createMockDynamoDBParams,
       createApiGatewayParams: () => createMockApiGatewayParams(options?.sockets),
     },
+    pingPongParams: options?.sockets
+      ? createMockPingPongParams(options.sockets)
+      : undefined,
   };
 }
 

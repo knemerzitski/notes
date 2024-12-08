@@ -18,6 +18,7 @@ interface SchemaProps {
 interface Schema {
   connections: SchemaProps;
   subscriptions: SchemaProps;
+  completedSubscriptions: SchemaProps;
 }
 
 /**
@@ -63,6 +64,17 @@ const schema: Schema = {
         },
       },
     ],
+  },
+  completedSubscriptions: {
+    table: {
+      billingMode: BillingMode.PAY_PER_REQUEST,
+      partitionKey: {
+        name: 'id',
+        type: AttributeType.STRING,
+      },
+      timeToLiveAttribute: 'ttl',
+      removalPolicy: RemovalPolicy.DESTROY,
+    },
   },
 };
 

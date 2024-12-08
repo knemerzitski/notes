@@ -62,8 +62,8 @@ export const UserNoteLink: UserNoteLinkResolvers = {
       query: createMapQueryFn(parent.query)<QueryableNoteUser>()(
         (query) => ({
           users: {
-            _id: 1,
             ...query,
+            _id: 1,
           },
         }),
         (note) => findNoteUserMaybe(parent.userId, note)

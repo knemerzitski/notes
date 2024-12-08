@@ -8,8 +8,10 @@ import {
 import { isQueryOperation } from '@apollo/client/utilities';
 import { CachePersistor, PersistentStorage } from 'apollo3-cache-persist';
 
+import { OperationTypeNode } from 'graphql';
 import { Maybe } from '~utils/types';
 
+import { gql } from '../../__generated__';
 import {
   AppContext,
   CacheReadyCallbacks,
@@ -31,6 +33,14 @@ import { createHttpWsLink } from './http-ws-link';
 import { createLinks } from './links';
 import { createMutationUpdaterFunctionMap } from './mutation-updater-map';
 import { addTypePolicies, createTypePolicies } from './type-policies';
+
+const CreateGraphQLService_Query = gql(`
+  query CreateGraphQLService_Query {
+    currentSignedInUser {
+      id
+    }
+  }
+`);
 
 export function createGraphQLService({
   httpUri,
@@ -138,6 +148,23 @@ export function createGraphQLService({
       )
     : undefined;
 
+  // Restart WebSocketClient when user changes
+  // Check must happen earlier than any React component so that subscriptions will not use invalid userId
+  const unsubUserIdChangedWatch = cache.watch({
+    query: CreateGraphQLService_Query,
+    optimistic: false,
+    immediate: false,
+    callback: (diff) => {
+      if (!wsClient || wsClient.connectedCount === 0) {
+        return;
+      }
+      const userId = diff.result?.currentSignedInUser.id;
+      if (userId != null && wsClient.userId !== userId) {
+        wsClient.restart();
+      }
+    },
+  });
+
   const links = createLinks({
     appContext,
     wsClient,
@@ -158,7 +185,8 @@ export function createGraphQLService({
   });
   queryGate.close();
   const offQueryGateOpen = links.pick.statsLink.getGlobalEventBus().on('*', () => {
-    const hasNoMutations = links.pick.statsLink.getGlobalStats().mutation.ongoing == 0;
+    const hasNoMutations =
+      links.pick.statsLink.getGlobalOngoing().byType(OperationTypeNode.MUTATION) == 0;
     if (hasNoMutations) {
       // No longer need to listen to stats events
       offQueryGateOpen();
@@ -223,6 +251,7 @@ export function createGraphQLService({
     dispose: () => {
       apolloClient.stop();
       disposeOnlineGate();
+      unsubUserIdChangedWatch();
     },
   };
 

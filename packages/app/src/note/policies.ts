@@ -13,18 +13,25 @@ import { DeleteShareNote } from './mutations/DeleteShareNote';
 import { DeleteShareNotePayload } from './mutations/DeleteShareNotePayload';
 import { MoveUserNoteLink } from './mutations/MoveUserNoteLink';
 import { MoveUserNoteLinkPayload } from './mutations/MoveUserNoteLinkPayload';
+import { OpenNoteUserSubscribedEvent } from './mutations/OpenNoteUserSubscribedEvent';
+import { OpenNoteUserUnsubscribedEvent } from './mutations/OpenNoteUserUnsubscribedEvent';
 import { ShareNote } from './mutations/ShareNote';
 import { ShareNotePayload } from './mutations/ShareNotePayload';
 import { TrashUserNoteLink } from './mutations/TrashUserNoteLink';
 import { TrashUserNoteLinkPayload } from './mutations/TrashUserNoteLinkPayload';
 import { UpdateNoteInsertRecord } from './mutations/UpdateNoteInsertRecord';
 import { UpdateNoteInsertRecordPayload } from './mutations/UpdateNoteInsertRecordPayload';
+import { UpdateOpenNoteSelectionRange } from './mutations/UpdateOpenNoteSelectionRange';
+import { UpdateOpenNoteSelectionRangePayload } from './mutations/UpdateOpenNoteSelectionRangePayload';
 import { CollabText } from './policies/CollabText';
+import { CollabTextEditing } from './policies/CollabTextEditing';
 import { CollabTextRecord } from './policies/CollabTextRecord';
 import { CollabTextRecordConnection } from './policies/CollabTextRecordConnection';
 import { LocalSignedInUser } from './policies/LocalSignedInUser';
 import { Note } from './policies/Note';
 import { NoteTextField } from './policies/NoteTextField';
+import { OpenedNote } from './policies/OpenedNote';
+import { PublicUserNoteLink } from './policies/PublicUserNoteLink';
 import { evictOptions as Query_evictOptions, Query } from './policies/Query';
 import { RevisionChangeset } from './policies/RevisionChangeset';
 import { UserNoteLink } from './policies/UserNoteLink';
@@ -42,6 +49,9 @@ export const notePolicies: CreateTypePoliciesFn = function (ctx) {
     CollabTextRecordConnection: CollabTextRecordConnection(ctx),
     UserNoteLinkConnection: UserNoteLinkConnection(ctx),
     LocalSignedInUser: LocalSignedInUser(ctx),
+    PublicUserNoteLink: PublicUserNoteLink(ctx),
+    OpenedNote: OpenedNote(ctx),
+    CollabTextEditing: CollabTextEditing(ctx),
   };
 };
 
@@ -70,6 +80,10 @@ export const noteMutationDefinitions: MutationDefinitions = [
   DeleteShareNotePayload,
   CreateNoteLinkByShareAccess,
   CreateNoteLinkByShareAccessPayload,
+  OpenNoteUserSubscribedEvent,
+  OpenNoteUserUnsubscribedEvent,
+  UpdateOpenNoteSelectionRange,
+  UpdateOpenNoteSelectionRangePayload,
 ];
 
 export const noteEvictOptions: TaggedEvictOptionsList = [...Query_evictOptions];

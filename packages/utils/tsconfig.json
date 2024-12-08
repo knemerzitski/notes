@@ -2,9 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     /* Modules */
-    "paths": {
-      "~/*": ["./src/*"]
-    }
+    "paths": {}
   },
   "include": ["src"]
 }

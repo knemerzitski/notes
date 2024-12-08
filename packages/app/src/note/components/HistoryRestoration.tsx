@@ -82,7 +82,7 @@ export function HistoryRestoration({
         triggerEntriesRemaining - historyEntriesRemaining + 1;
 
       const haveEnoughEntries = userRecords.hasOwnOlderRecords(
-        collabService.history.tailRevision,
+        collabService.history.serverTailRevision,
         requiredEntriesInCacheCount
       );
 
@@ -92,7 +92,7 @@ export function HistoryRestoration({
 
       isFetchingRef.current = true;
       try {
-        const recordsBeforeRevision = collabService.history.tailRevision + 1;
+        const recordsBeforeRevision = collabService.history.serverTailRevision + 1;
         const minRecordsAfterRevision = Math.max(
           0,
           recordsBeforeRevision - fetchEntriesCount - 1

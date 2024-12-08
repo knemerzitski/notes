@@ -5,6 +5,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import { CircularProgress, IconButton, Tooltip } from '@mui/material';
 
 import { useNavigate } from '@tanstack/react-router';
+import { OperationTypeNode } from 'graphql';
 import { useEffect, useRef } from 'react';
 
 import { gql } from '../../__generated__';
@@ -42,13 +43,22 @@ export function AppStatusRefreshButton() {
   const isLocalOnlyUser = data?.signedInUser?.localOnly ?? false;
 
   // Prevent refetching queries from spam click
-  const fetcingQueriesRef = useRef(statsLink.getOngoingQueriesCount(userId) > 0);
+  const fetcingQueriesRef = useRef(getOngoingQueryCount(userId, statsLink) > 0);
 
   useEffect(() => {
-    fetcingQueriesRef.current = statsLink.getOngoingQueriesCount(userId) > 0;
-    return statsLink.getUserEventBus(userId).on('*', () => {
-      fetcingQueriesRef.current = statsLink.getOngoingQueriesCount(userId) > 0;
+    fetcingQueriesRef.current = getOngoingQueryCount(userId, statsLink) > 0;
+
+    const noUserUnsub = statsLink.getUserEventBus().on('byType', () => {
+      fetcingQueriesRef.current = getOngoingQueryCount(userId, statsLink) > 0;
     });
+    const userUnsub = statsLink.getUserEventBus(userId).on('byType', () => {
+      fetcingQueriesRef.current = getOngoingQueryCount(userId, statsLink) > 0;
+    });
+
+    return () => {
+      noUserUnsub();
+      userUnsub();
+    };
   }, [statsLink, userId]);
 
   // Local user cannot fetch from server
@@ -105,4 +115,20 @@ export function AppStatusRefreshButton() {
       </Tooltip>
     </IconButton>
   );
+}
+
+function getOngoingQueryCount(
+  userId: string | undefined,
+  statsLink: ReturnType<typeof useStatsLink>
+) {
+  let count = 0;
+  const noUser = statsLink.getUserOngoing(userId);
+  count += noUser.byType(OperationTypeNode.QUERY);
+
+  if (userId && userId !== '') {
+    const user = statsLink.getUserOngoing(userId);
+    count += user.byType(OperationTypeNode.QUERY);
+  }
+
+  return count;
 }

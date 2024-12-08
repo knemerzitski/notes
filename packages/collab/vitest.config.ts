@@ -5,7 +5,10 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
-    include: ['!src/**/*.int.test.ts', 'src/**/*.test.ts'],
+    coverage: {
+      provider: 'v8',
+    },
+    include: ['src/**/*.test.ts'],
     setupFiles: ['src/__tests__/helpers/setup.ts'],
   },
 });

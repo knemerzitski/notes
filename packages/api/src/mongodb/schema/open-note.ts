@@ -45,9 +45,14 @@ export const OpenNoteSchema = object({
    */
   expireAt: date(),
   /**
-   * An array of unique connection ids. User can open note using multiple connections at the same time.
+   * Note can be opened by multiple clients and every client can start multiple subscriptions.
    */
-  connectionIds: array(string()),
+  clients: array(
+    object({
+      connectionId: string(),
+      subscriptionId: string(),
+    })
+  ),
 });
 
 export type DBOpenNoteSchema = InferRaw<typeof OpenNoteSchema>;

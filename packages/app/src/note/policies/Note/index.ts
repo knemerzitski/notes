@@ -1,8 +1,10 @@
 import { Reference } from '@apollo/client';
 import { CollabService } from '~collab/client/collab-service';
 
+
 import { NoteTextFieldName } from '../../../__generated__/graphql';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../../graphql/types';
+import { fieldArrayToMap } from '../../../graphql/utils/field-array-to-map';
 import { isLocalId } from '../../../utils/is-local-id';
 import { readNoteRef } from '../../utils/read-note-ref';
 
@@ -47,6 +49,11 @@ export const Note: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return existing;
       },
+      users: fieldArrayToMap('id', {
+        read(existing = {}) {
+          return existing;
+        },
+      }),
     },
   };
 };

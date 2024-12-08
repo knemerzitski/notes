@@ -4,15 +4,15 @@ import { assert, expect } from 'vitest';
 import { OrderedMessageBuffer } from '~utils/ordered-message-buffer';
 
 import { CollabClient } from '../../client/collab-client';
-import { CollabHistory } from '../../client/collab-history';
 import { CollabService, CollabServiceOptions } from '../../client/collab-service';
 import { UserRecords } from '../../client/user-records';
 import { SimpleTextEditor } from '../../editor/simple-text';
-import { SimpleTextOperationOptions } from '../../editor/types';
+import { CollabHistory } from '../../history/collab-history';
 import { processRecordInsertion } from '../../records/process-record-insertion';
 import { ServerRevisionRecord } from '../../records/record';
 
 import { RevisionRecords } from '../../records/revision-records';
+import { SimpleTextOperationOptions } from '../../types';
 
 import { newSelectionRange } from './collab-service-selection-range';
 import { LocalServerRecords, LocalServerRecordsParams } from './server-records';
@@ -119,7 +119,7 @@ function createClientHelper<TName extends string>(
     historyOptions instanceof CollabHistory
       ? historyOptions
       : new CollabHistory({
-          tailRevision:
+          serverTailRevision:
             editorOptions.recordsBuffer instanceof OrderedMessageBuffer
               ? editorOptions.recordsBuffer.currentVersion
               : editorOptions.recordsBuffer?.version,

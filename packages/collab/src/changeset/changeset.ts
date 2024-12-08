@@ -8,6 +8,7 @@ import {
   Strips,
   ChangesetCreateError,
   ChangesetOperationError,
+  DeleteStrip,
 } from '.';
 
 /**
@@ -16,7 +17,12 @@ import {
  * Changeset is immutable.
  */
 export class Changeset {
-  static readonly EMPTY: Changeset = new this();
+  static readonly EMPTY: Changeset = new (class extends Changeset {
+    readonly EMPTY = true;
+    override isEqual(other: Changeset): boolean {
+      return other === this;
+    }
+  })();
 
   /**
    * Convinience method to create Changeset from spread syntax.
@@ -66,71 +72,89 @@ export class Changeset {
   }
 
   /**
-   * Composition between changeset A and B is denoted as A * B
+   * Throws error if this changeset is not composable on {@link B}.
+   */
+  assertIsComposable(B: Changeset) {
+    if (B === Changeset.EMPTY) {
+      return;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const A = this;
+
+    if (A.strips.length <= B.strips.maxIndex) {
+      throw new ChangesetOperationError(
+        `Unable to compose A${String(this)} * B${String(
+          B
+        )}. ${A.strips.length} !== ${B.strips.maxIndex + 1} in A${A.inputOutputSizeString()} * ${B.inputOutputSizeString()}`
+      );
+    }
+  }
+
+  /**
+   * Composition between changeset A(x->y) and B(y->z) is denoted as A * B(x->z)
    * @returns A new changeset that is a compostion of this and other.
    * E.g. ['hello'] * [[0, 4], ' world'] = ['hello world']
    */
-  compose(other: Changeset): Changeset {
+  compose(B: Changeset): Changeset {
+    if (B === Changeset.EMPTY) {
+      return Changeset.EMPTY;
+    }
+
+    this.assertIsComposable(B);
+
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const A = this;
+
     return new Changeset(
-      new Strips(
-        other.strips.values.flatMap((strip) => {
-          const refStrips = strip.reference(this.strips);
-          if (refStrips.length !== strip.length) {
-            throw new ChangesetOperationError(
-              `Unable to compose ${String(this)} * ${String(
-                other
-              )}. Cannot index '${String(strip)}' in ${String(this.strips)}.`
-            );
-          }
-          return refStrips.values;
-        })
-      )
+      new Strips(B.strips.values.flatMap((strip) => strip.reference(A.strips).values))
     );
   }
 
   /**
    *
-   * Given changesets: \
-   * X - base/tail changeset \
-   * A - this, X * A (A is composable on X) \
-   * B - other, X *B (B is composable on X) \
-   * Follow computes a new changeset B' that is composable on X * A * B'
-   * so that intention of B is kept:
-   * - A inserted characters are kept.
-   * - A and B intersection of retained characters are kept.
+   * Given:
+   * X * A,  X * B \
+   * A.follow(B) = B' or f(A,B) \
    *
-   * Follow has commutative property with previous change: \
+   * Follow computes a new changeset B so that X * A * B'.\
+   * Intention of B is kept in B':
+   * - A inserted characters are retained
+   * - B inserted characters are inserted
+   * - A and B intersection of retained characters are kept (delete whatever either deleted)
+   *
+   * Follow is commutative:
    * X * A* f(A,B) = X * B * f(B,A) \
-   * This property is ensured by ordering changes at same position lexicographically.
+   * This is ensured by using lexicographical ordering for insertions in the same position.
    */
-  follow(other: Changeset): Changeset {
+  follow(B: Changeset): Changeset {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const A = this;
     const resultStrips: Strip[] = [];
 
-    let index = 0;
-    let otherIndex = 0;
-    let pos = 0;
-    let otherPos = 0;
+    let A_index = 0;
+    let B_index = 0;
+    let A_pos = 0;
+    let B_pos = 0;
 
-    const strips = [...this.strips.values.filter((strip) => !strip.isEqual(Strip.EMPTY))];
-    const otherStrips = [
-      ...other.strips.values.filter((strip) => !strip.isEqual(Strip.EMPTY)),
-    ];
+    const A_strips = [...A.strips.values.filter((strip) => !strip.isEqual(Strip.EMPTY))];
+    const B_strips = [...B.strips.values.filter((strip) => !strip.isEqual(Strip.EMPTY))];
 
-    while (index < strips.length && otherIndex < otherStrips.length) {
-      const strip = strips[index];
-      const otherStrip = otherStrips[otherIndex];
+    while (A_index < A_strips.length && B_index < B_strips.length) {
+      const a_strip = A_strips[A_index];
+      const b_strip = B_strips[B_index];
 
-      if (strip && otherStrip) {
+      if (a_strip && b_strip) {
         // Retain whatever characters are retained in both, indices are translated according to this strips
-        if (strip instanceof RetainStrip && otherStrip instanceof RetainStrip) {
+        if (a_strip instanceof RetainStrip && b_strip instanceof RetainStrip) {
           if (
-            strip.endIndex >= otherStrip.startIndex &&
-            otherStrip.endIndex >= strip.startIndex
+            a_strip.endIndex >= b_strip.startIndex &&
+            b_strip.endIndex >= a_strip.startIndex
           ) {
-            const leftIntersect = Math.max(strip.startIndex, otherStrip.startIndex);
-            const rightIntersect = Math.min(strip.endIndex, otherStrip.endIndex);
+            const leftIntersect = Math.max(a_strip.startIndex, b_strip.startIndex);
+            const rightIntersect = Math.min(a_strip.endIndex, b_strip.endIndex);
 
-            const translateOffset = pos - strip.startIndex;
+            const translateOffset = A_pos - a_strip.startIndex;
             const intersectStrip = new RetainStrip(
               leftIntersect + translateOffset,
               rightIntersect + translateOffset
@@ -138,62 +162,62 @@ export class Changeset {
             resultStrips.push(intersectStrip);
 
             // To intersect right remainder slice will be checked again
-            if (rightIntersect < strip.endIndex) {
-              // [part otherStrip] [intersect] [part strip]<
-              const sliceStrip = new RetainStrip(rightIntersect + 1, strip.endIndex);
-              strips.splice(index, 1, sliceStrip);
-              pos += strip.length - sliceStrip.length;
-              otherIndex++;
-              otherPos += otherStrip.length;
-            } else if (rightIntersect < otherStrip.endIndex) {
-              // [part strip] [intersect] [part otherStrip]<
-              const sliceStrip = new RetainStrip(rightIntersect + 1, otherStrip.endIndex);
-              otherStrips.splice(otherIndex, 1, sliceStrip);
-              index++;
-              pos += strip.length;
-              otherPos += otherStrip.length - sliceStrip.length;
+            if (rightIntersect < a_strip.endIndex) {
+              // [part b_strip] [intersect] [part a_strip]<
+              const sliceStrip = new RetainStrip(rightIntersect + 1, a_strip.endIndex);
+              A_strips.splice(A_index, 1, sliceStrip);
+              A_pos += a_strip.length - sliceStrip.length;
+              B_index++;
+              B_pos += b_strip.length;
+            } else if (rightIntersect < b_strip.endIndex) {
+              // [part a_strip] [intersect] [part b_strip]<
+              const sliceStrip = new RetainStrip(rightIntersect + 1, b_strip.endIndex);
+              B_strips.splice(B_index, 1, sliceStrip);
+              A_index++;
+              A_pos += a_strip.length;
+              B_pos += b_strip.length - sliceStrip.length;
             } else {
-              // [part strip/part otherStrip] [intersect] [EMPTY]<
-              index++;
-              otherIndex++;
-              pos += strip.length;
-              otherPos += otherStrip.length;
+              // [part a_strip/part b_strip] [intersect] [EMPTY]<
+              A_index++;
+              B_index++;
+              A_pos += a_strip.length;
+              B_pos += b_strip.length;
             }
-          } else if (strip.endIndex < otherStrip.startIndex) {
-            // No intersection, strip is to the left => ignore it
-            index++;
-            pos += strip.length;
+          } else if (a_strip.endIndex < b_strip.startIndex) {
+            // No intersection, a_strip is to the left => ignore it
+            A_index++;
+            A_pos += a_strip.length;
           } else {
-            // No intersection, otherStrip is to the left => ignore it
-            otherIndex++;
-            otherPos += otherStrip.length;
+            // No intersection, b_strip is to the left => ignore it
+            B_index++;
+            B_pos += b_strip.length;
           }
         } else {
           // Use temporary array to reverse insertion order later if needed
           const tmpInsertStrips = [];
 
-          // Reverse if other insert is later or
-          // positions are same and other is lexicographically ordered smaller
+          // Reverse if b_strip insert is later or
+          // positions are same and b_strip is lexicographically ordered smaller
           // This ensures follow has commutative property an merge m(A,B) = m(B,A)
           const reverseInsert =
-            otherPos < pos ||
-            (pos === otherPos &&
-              strip instanceof InsertStrip &&
-              otherStrip instanceof InsertStrip &&
-              otherStrip.value < strip.value);
+            B_pos < A_pos ||
+            (A_pos === B_pos &&
+              a_strip instanceof InsertStrip &&
+              b_strip instanceof InsertStrip &&
+              b_strip.value < a_strip.value);
 
-          // Insertions in this become retained characters
-          if (strip instanceof InsertStrip) {
-            tmpInsertStrips.push(strip.retain(pos));
-            index++;
-            pos += strip.length;
+          // Insertions in a_strip become retained characters
+          if (a_strip instanceof InsertStrip) {
+            tmpInsertStrips.push(a_strip.retain(A_pos));
+            A_index++;
+            A_pos += a_strip.length;
           }
 
-          // Insertions in other become insertions
-          if (otherStrip instanceof InsertStrip) {
-            tmpInsertStrips.push(otherStrip);
-            otherIndex++;
-            otherPos += otherStrip.length;
+          // Insertions in b_strip become insertions
+          if (b_strip instanceof InsertStrip) {
+            tmpInsertStrips.push(b_strip);
+            B_index++;
+            B_pos += b_strip.length;
           }
 
           if (reverseInsert) {
@@ -201,33 +225,33 @@ export class Changeset {
           }
           resultStrips.push(...tmpInsertStrips);
         }
-      } else if (!strip) {
-        index++;
-      } else if (!otherStrip) {
-        otherIndex++;
+      } else if (!a_strip) {
+        A_index++;
+      } else if (!b_strip) {
+        B_index++;
       } else {
         break;
       }
     }
 
     // Add remaining insert strips
-    for (; index < strips.length; index++) {
-      const strip = strips[index];
+    for (; A_index < A_strips.length; A_index++) {
+      const strip = A_strips[A_index];
       if (strip) {
         if (strip instanceof InsertStrip) {
-          resultStrips.push(strip.retain(pos));
+          resultStrips.push(strip.retain(A_pos));
         }
-        pos += strip.length;
+        A_pos += strip.length;
       }
     }
 
-    for (; otherIndex < otherStrips.length; otherIndex++) {
-      const otherStrip = otherStrips[otherIndex];
-      if (otherStrip) {
-        if (otherStrip instanceof InsertStrip) {
-          resultStrips.push(otherStrip);
+    for (; B_index < B_strips.length; B_index++) {
+      const b_strip = B_strips[B_index];
+      if (b_strip) {
+        if (b_strip instanceof InsertStrip) {
+          resultStrips.push(b_strip);
         }
-        otherPos++;
+        B_pos++;
       }
     }
 
@@ -241,159 +265,6 @@ export class Changeset {
    */
   merge(other: Changeset): Changeset {
     return this.compose(this.follow(other));
-  }
-
-  /**
-   * Finds second change that is applied after the first when
-   * they're swapped. \
-   * Given that AXY = AY'X' => X' = X.{@link findSwapNewSecondChange}(Y,Y')
-   * @param this X
-   * @param oldSecond Y
-   * @param newFirst Y'
-   * @returns X'
-   */
-  findSwapNewSecondChange(oldSecond: Changeset, newFirst: Changeset): Changeset {
-    const resultStrips: Strip[] = [];
-
-    let newFirstInsertPos = 0;
-    let newFirstInsertIndex = 0;
-    let insertionSearchIndex: number | undefined = undefined;
-
-    let newFirstRetainPos = 0;
-    let newFirstRetainIndex = 0;
-
-    for (const strip of oldSecond.strips.values) {
-      if (strip instanceof InsertStrip) {
-        let foundMatch = false;
-        for (
-          ;
-          newFirstInsertIndex < newFirst.strips.values.length;
-          newFirstInsertIndex++
-        ) {
-          const insertionStrip = newFirst.strips.values[newFirstInsertIndex];
-          if (!insertionStrip) {
-            throw new ChangesetOperationError(
-              `Unexpected missing strip in newFirst '${String(
-                newFirst
-              )}' at index ${newFirstInsertIndex}`
-            );
-          }
-
-          if (insertionStrip instanceof InsertStrip) {
-            const index = insertionStrip.value.indexOf(strip.value, insertionSearchIndex);
-            if (index !== -1) {
-              const startIndex = newFirstInsertPos + index;
-              resultStrips.push(
-                RetainStrip.create(startIndex, startIndex + strip.length - 1)
-              );
-              insertionSearchIndex = index + 1;
-              foundMatch = true;
-              break;
-            }
-          }
-
-          insertionSearchIndex = undefined;
-          newFirstInsertPos += insertionStrip.length;
-        }
-        if (!foundMatch) {
-          throw new ChangesetOperationError(
-            `Strip '${String(strip)}' not found in ${String(newFirst)}`
-          );
-        }
-      } else if (strip instanceof RetainStrip) {
-        const refStrips = strip.reference(this.strips);
-        if (refStrips.length !== strip.length) {
-          throw new ChangesetOperationError(
-            `Cannot index '${String(strip)}' in ${String(this.strips)}.`
-          );
-        }
-
-        for (const refStrip of refStrips.values) {
-          if (refStrip instanceof InsertStrip) {
-            resultStrips.push(refStrip);
-          } else if (refStrip instanceof RetainStrip) {
-            let foundLength = 0;
-            for (
-              ;
-              newFirstRetainIndex < newFirst.strips.values.length;
-              newFirstRetainIndex++
-            ) {
-              const retainStrip = newFirst.strips.values[newFirstRetainIndex];
-              if (!retainStrip) {
-                throw new ChangesetOperationError(
-                  `Unexpected missing strip in newFirst '${String(
-                    newFirst
-                  )}' at index ${newFirstRetainIndex}`
-                );
-              }
-
-              if (retainStrip instanceof RetainStrip) {
-                const isLeftOuter = refStrip.endIndex < retainStrip.startIndex;
-                if (isLeftOuter) {
-                  break;
-                }
-
-                const intersectionStartIndex = Math.max(
-                  refStrip.startIndex,
-                  retainStrip.startIndex
-                );
-                const intersectionEndIndex = Math.min(
-                  refStrip.endIndex,
-                  retainStrip.endIndex
-                );
-                if (intersectionStartIndex <= intersectionEndIndex) {
-                  const offset = intersectionStartIndex - retainStrip.startIndex;
-                  const len = intersectionEndIndex - intersectionStartIndex + 1;
-
-                  const startIndex = newFirstRetainPos + offset;
-
-                  resultStrips.push(RetainStrip.create(startIndex, startIndex + len - 1));
-
-                  foundLength += len;
-                }
-
-                const hasRetainRemainder = refStrip.endIndex < retainStrip.endIndex;
-                if (hasRetainRemainder) {
-                  break;
-                }
-              }
-
-              newFirstRetainPos += retainStrip.length;
-            }
-            if (foundLength !== refStrip.length) {
-              throw new ChangesetOperationError(
-                `Strip '${String(refStrip)}' referenced from '${String(
-                  strip
-                )}' not found in ${String(newFirst)}`
-              );
-            }
-          }
-        }
-      }
-    }
-
-    return new Changeset(resultStrips);
-  }
-
-  /**
-   * Swap order of two latest changes that have yet to be applied to this changeset (tail).
-   * Given composition AXY, finds changes Y' and X' so that
-   * AXY = AY'X' (composed text is same)
-   * @param this A (base text)
-   * @param firstChange X - Changeset that is composable on base text
-   * @param secondChange Y - Changeset that is composable on X
-   * @returns [Y', X'] Y' - is composable on base text A, X' - is compoable on Y'
-   */
-  swapChanges(firstChange: Changeset, secondChange: Changeset): [Changeset, Changeset] {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const A = this;
-    const X = firstChange;
-    const Y = secondChange;
-
-    const undoX = X.inverse(A);
-    const Y_ = undoX.follow(Y);
-    const X_ = X.findSwapNewSecondChange(Y, Y_);
-    return [Y_, X_];
   }
 
   /**
@@ -515,6 +386,31 @@ export class Changeset {
   }
 
   /**
+   * Adds DeleteStrips between RetainStrip gaps.
+   * @param length Total length of text that this strips applies to.
+   * @returns Strip array which includes DeleteStrip between RetainStrip
+   */
+  stripsWithDeleteStrips(length: number): Strip[] {
+    let nextDeleteStart = 0;
+
+    const result: Strip[] = [];
+
+    for (const strip of this.strips.values) {
+      if (strip instanceof RetainStrip) {
+        const nextDeleteEnd = strip.startIndex - 1;
+        result.push(DeleteStrip.create(nextDeleteStart, nextDeleteEnd));
+        nextDeleteStart = strip.endIndex + 1;
+      }
+
+      result.push(strip);
+    }
+
+    result.push(DeleteStrip.create(nextDeleteStart, length - 1));
+
+    return result;
+  }
+
+  /**
    * @returns This changeset is identity to other changeset.
    * In other words {@link other}.compose(this) = other.
    */
@@ -564,8 +460,12 @@ export class Changeset {
     return this.strips.isEqual(other.strips);
   }
 
+  private inputOutputSizeString() {
+    return `(${this.strips.maxIndex + 1} -> ${this.strips.length})`;
+  }
+
   toString() {
-    return `(${this.strips.maxIndex + 1} -> ${this.strips.length})${String(this.strips)}`;
+    return `${this.inputOutputSizeString()}${String(this.strips)}`;
   }
 
   serialize() {

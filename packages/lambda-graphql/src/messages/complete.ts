@@ -32,10 +32,17 @@ export function createCompleteHandler<
       connectionId,
     });
     try {
+      const subscriptionId = `${connectionId}:${message.id}`;
       const subscription = await context.models.subscriptions.get({
-        id: `${connectionId}:${message.id}`,
+        id: subscriptionId,
       });
       if (!subscription) {
+        // Mark subscription as completed
+        // If subscribe is in progress then onComplete will be called from subscribe instead
+        await context.models.completedSubscription.put({
+          id: subscriptionId,
+          ttl: context.completedSubscription.ttl,
+        });
         return;
       }
 
@@ -71,7 +78,7 @@ export function createCompleteHandler<
       const { onComplete } = await getSubscribeFieldResult(execContext);
 
       context.logger.info('messages:onComplete', { onComplete: !!onComplete });
-      await onComplete?.();
+      await onComplete?.(subscription.id);
 
       await context.models.subscriptions.delete({ id: `${connectionId}:${message.id}` });
     } catch (err) {

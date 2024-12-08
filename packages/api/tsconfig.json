@@ -3,7 +3,6 @@
   "compilerOptions": {
     /* Modules */
     "paths": {
-      "~/*": ["./src/*"],
       "~api/*": ["../api/src/*"],
       "~api-app-shared/*": ["../api-app-shared/src/*"],
       "~lambda-graphql/*": ["../lambda-graphql/src/*"],

@@ -4,6 +4,7 @@ import {
   ScanCommand,
 } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
+import { retryOnError } from '~utils/retry-on-error';
 
 export function createDynamoDBContext() {
   const client = new DynamoDBClient({
@@ -39,24 +40,8 @@ interface ErrorAction {
  * Ensures that DynamoDB is ready to accept commands and wont
  * throw errors `socket hang up` or `read ECONNRESET`
  */
-export async function assertDynamoDBIsReachable(
-  client: DynamoDBDocumentClient,
-  options?: {
-    /**
-     * @default 10
-     */
-    maxAttempts?: number;
-    /**
-     * Milliseconds
-     * @default 1000
-     */
-    retryDelay?: number;
-    errorActions?: ErrorAction[];
-  }
-) {
-  const maxAttempts = options?.maxAttempts ?? 10;
-  const retryDelay = options?.retryDelay ?? 1000; // ms
-  const errorActions: ErrorAction[] = options?.errorActions ?? [
+export async function assertDynamoDBIsReachable(client: DynamoDBDocumentClient) {
+  const errorActions: ErrorAction[] = [
     {
       instance: Error,
       messages: ['socket hang up', 'read ECONNRESET'],
@@ -69,35 +54,41 @@ export async function assertDynamoDBIsReachable(
     },
   ];
 
-  let attemptNr = 0;
-  rootLoop: while (attemptNr++ < maxAttempts) {
-    try {
-      await client.send(
+  let isOK = false;
+  await retryOnError(
+    () => {
+      if (isOK) {
+        return;
+      }
+
+      return client.send(
         new ScanCommand({
           TableName: 'random',
           Limit: 0,
           Select: 'COUNT',
         })
       );
-      break;
-    } catch (error) {
-      for (const errorHandle of errorActions) {
-        if (
-          error instanceof errorHandle.instance &&
-          errorHandle.messages.includes(error.message)
-        ) {
-          if (errorHandle.action === 'retry') {
-            await new Promise((res) => {
-              setTimeout(res, retryDelay);
-            });
-            continue rootLoop;
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-          } else if (errorHandle.action === 'ok') {
-            break rootLoop;
+    },
+    {
+      maxAttempts: 10,
+      retryDelay: 1000,
+      retryErrorCond: (error) => {
+        for (const errorHandle of errorActions) {
+          if (
+            error instanceof errorHandle.instance &&
+            errorHandle.messages.includes(error.message)
+          ) {
+            if (errorHandle.action === 'retry') {
+              return true;
+              // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            } else if (errorHandle.action === 'ok') {
+              isOK = true;
+              return true;
+            }
           }
         }
-      }
-      throw error;
+        return false;
+      },
     }
-  }
+  );
 }

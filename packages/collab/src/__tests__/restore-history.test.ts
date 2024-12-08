@@ -1,23 +1,18 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { Changeset } from '../changeset';
-import { Entry } from '../client/collab-history';
 
+import { ReadonlyHistoryRecord } from '../history/collab-history';
 import { RevisionRecords } from '../records/revision-records';
 
 import { fakeServerRevisionRecord } from './helpers/populate';
 import { createHelperCollabEditingEnvironment } from './helpers/server-client';
 
-function historyEntriesInfo(entries: readonly Entry[]) {
-  return entries.map((e) => ({
-    execute: {
-      changeset: e.execute.changeset.toString(),
-      selection: e.execute.selection,
-    },
-    undo: {
-      changeset: e.undo.changeset.toString(),
-      selection: e.undo.selection,
-    },
+function historyEntriesInfo(records: readonly ReadonlyHistoryRecord[]) {
+  return records.map((e) => ({
+    changeset: e.changeset.toString(),
+    afterSelection: e.afterSelection,
+    beforeSelection: e.beforeSelection,
   }));
 }
 
@@ -65,10 +60,10 @@ describe('persist history in revision records', () => {
       },
     });
     const restoredServiceB = clientB2.service;
-    restoredServiceB.historyRestore(client.B.service.history.entries.length);
+    restoredServiceB.historyRestore(client.B.service.history.records.length);
 
-    expect(historyEntriesInfo(client.B.service.history.entries)).toStrictEqual(
-      historyEntriesInfo(restoredServiceB.history.entries)
+    expect(historyEntriesInfo(client.B.service.history.records)).toStrictEqual(
+      historyEntriesInfo(restoredServiceB.history.records)
     );
   });
 
@@ -99,10 +94,10 @@ describe('persist history in revision records', () => {
     });
 
     const restoredServiceB = clientB2.service;
-    restoredServiceB.historyRestore(client.B.service.history.entries.length);
+    restoredServiceB.historyRestore(client.B.service.history.records.length);
 
-    expect(historyEntriesInfo(restoredServiceB.history.entries)).toStrictEqual(
-      historyEntriesInfo(client.B.service.history.entries)
+    expect(historyEntriesInfo(restoredServiceB.history.records)).toStrictEqual(
+      historyEntriesInfo(client.B.service.history.records)
     );
   });
 });

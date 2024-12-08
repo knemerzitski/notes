@@ -1,7 +1,9 @@
 import { DashCard } from './DashCard';
 import { CacheGcButton } from './global/CacheGcButton';
+import { CurrentUserId } from './global/CurrentUserId';
 import { ExcludedConnectionNotesTable } from './global/ExcludedConnectionNotesTable';
-import { OngoingOperationsCountsTable } from './global/OngoingOperationsCountsTable';
+import { OngoingOperationsByNameList } from './global/OngoingOperationsByNameList';
+import { OngoingOperationsCountsByTypeTable } from './global/OngoingOperationsCountsByTypeTable';
 import { PendingNotesTable } from './global/PendingNotesTable';
 import { SimulateOfflineToggleButton } from './global/SimulateOfflineToggleButton';
 import { UnsavedCollabServiceNotesTable } from './global/UnsavedCollabServiceNotesTable';
@@ -10,6 +12,10 @@ import { UnsavedCollabServiceNotesTable } from './global/UnsavedCollabServiceNot
 export function GlobalDashCards() {
   return (
     <>
+      <DashCard label="User Id">
+        <CurrentUserId />
+      </DashCard>
+
       <DashCard label="GraphQL Gate">
         <SimulateOfflineToggleButton />
       </DashCard>
@@ -19,7 +25,8 @@ export function GlobalDashCards() {
       </DashCard>
 
       <DashCard label="Ongoing Operations">
-        <OngoingOperationsCountsTable />
+        <OngoingOperationsCountsByTypeTable />
+        <OngoingOperationsByNameList />
       </DashCard>
 
       <DashCard label="Unsaved CollabServices">

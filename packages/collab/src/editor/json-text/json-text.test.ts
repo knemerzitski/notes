@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   afterEach,
   assert,
@@ -9,7 +10,7 @@ import {
   vi,
 } from 'vitest';
 
-import { Changeset } from '../../changeset';
+import { Changeset, InsertStrip, RetainStrip } from '../../changeset';
 import { CollabService } from '../../client/collab-service';
 
 import { defineCreateJsonTextFromService } from './create-service-json-text';
@@ -535,9 +536,220 @@ describe('two texts', () => {
 
     expect(errorSpy).toHaveBeenCalledOnce();
   });
+
+  it('emits correct handledExternalChanges with retained newline character', () => {
+    enum TextType {
+      CONTENT = 'CONTENT',
+      TITLE = 'TITLE',
+    }
+    const createMultiJsonTextByService = defineCreateJsonTextFromService<TextType>(
+      Object.values(TextType)
+    );
+
+    const service = new CollabService();
+    service.replaceHeadText({
+      revision: 1,
+      changeset: Changeset.fromInsertion('{"CONTENT":"\\nabc","TITLE":""}'),
+    });
+
+    const multiJsonText = createMultiJsonTextByService(service);
+    const contentText = multiJsonText.getText(TextType.CONTENT);
+
+    const contentEvents = vi.fn();
+    contentText.eventBus.on('*', contentEvents);
+
+    expect(contentText.value).toStrictEqual('\nabc');
+
+    service.handleExternalChange({
+      revision: 2,
+      changeset: Changeset.from(
+        RetainStrip.create(0, 13),
+        InsertStrip.create('A'),
+        RetainStrip.create(13, 29)
+      ),
+    });
+
+    expect(contentEvents.mock.calls).toStrictEqual([
+      ['valueChanged', '\nAabc'],
+      [
+        'handledExternalChanges',
+        [{ changeset: Changeset.parseValue([0, 'A', [1, 3]]), revision: 2 }],
+      ],
+    ]);
+  });
+
+  it('emits correct handledExternalChanges with retained more newline characters', () => {
+    enum TextType {
+      CONTENT = 'CONTENT',
+      TITLE = 'TITLE',
+    }
+    const createMultiJsonTextByService = defineCreateJsonTextFromService<TextType>(
+      Object.values(TextType)
+    );
+
+    const service = new CollabService();
+    service.replaceHeadText({
+      revision: 1,
+      changeset: Changeset.fromInsertion('{"CONTENT":"\\n\\na\\nbc","TITLE":""}'),
+    });
+
+    const multiJsonText = createMultiJsonTextByService(service);
+    const contentText = multiJsonText.getText(TextType.CONTENT);
+
+    const contentEvents = vi.fn();
+    contentText.eventBus.on('*', contentEvents);
+
+    expect(contentText.value).toStrictEqual('\n\na\nbc');
+
+    service.handleExternalChange({
+      revision: 2,
+      changeset: Changeset.from(
+        RetainStrip.create(0, 15),
+        InsertStrip.create('A'),
+        RetainStrip.create(16, 18),
+        InsertStrip.create('B'),
+        RetainStrip.create(19, 33)
+      ),
+    });
+
+    expect(contentEvents.mock.calls).toStrictEqual([
+      ['valueChanged', '\n\nAa\nBbc'],
+      [
+        'handledExternalChanges',
+        [
+          {
+            changeset: Changeset.parseValue([[0, 1], 'A', [2, 3], 'B', [4, 5]]),
+            revision: 2,
+          },
+        ],
+      ],
+    ]);
+  });
+
+  it('emits correct handledExternalChanges when deleting newline character', () => {
+    enum TextType {
+      CONTENT = 'CONTENT',
+      TITLE = 'TITLE',
+    }
+    const createMultiJsonTextByService = defineCreateJsonTextFromService<TextType>(
+      Object.values(TextType)
+    );
+
+    const service = new CollabService();
+    service.replaceHeadText({
+      revision: 1,
+      changeset: Changeset.fromInsertion('{"CONTENT":"\\n\\nabc\\n","TITLE":""}'),
+    });
+
+    const multiJsonText = createMultiJsonTextByService(service);
+    const contentText = multiJsonText.getText(TextType.CONTENT);
+
+    const contentEvents = vi.fn();
+    contentText.eventBus.on('*', contentEvents);
+
+    expect(contentText.value).toStrictEqual('\n\nabc\n');
+
+    service.handleExternalChange({
+      revision: 2,
+      changeset: Changeset.from(RetainStrip.create(0, 11), RetainStrip.create(14, 33)),
+    });
+
+    expect(contentEvents.mock.calls).toStrictEqual([
+      ['valueChanged', '\nabc\n'],
+      [
+        'handledExternalChanges',
+        [{ changeset: Changeset.parseValue([[1, 5]]), revision: 2 }],
+      ],
+    ]);
+  });
+
+  it('handles submit changes and  external changes', () => {
+    enum TextType {
+      CONTENT = 'CONTENT',
+      TITLE = 'TITLE',
+    }
+    const createMultiJsonTextByService = defineCreateJsonTextFromService<TextType>(
+      Object.values(TextType)
+    );
+
+    const service = new CollabService();
+    service.replaceHeadText({
+      revision: 1,
+      changeset: Changeset.fromInsertion('{"CONTENT":"\\n\\nabc","TITLE":""}'),
+    });
+
+    const multiJsonText = createMultiJsonTextByService(service);
+    const contentText = multiJsonText.getText(TextType.CONTENT);
+    expect(service.client.server.toString()).toMatchInlineSnapshot(
+      `"(0 -> 32)["{"CONTENT":"\\n\\nabc","TITLE":""}"]"`
+    );
+
+    contentText.insert('A', { start: 3, end: 3 });
+    const submittedRecord = service.submitChanges()!;
+    service.submittedChangesAcknowledged({
+      ...submittedRecord,
+      revision: 2,
+    });
+    expect(service.client.server.toString()).toMatchInlineSnapshot(
+      `"(0 -> 33)["{"CONTENT":"\\n\\naAbc","TITLE":""}"]"`
+    );
+
+    contentText.insert('A', { start: 4, end: 4 });
+
+    service.handleExternalChange({
+      revision: 3,
+      changeset: Changeset.from(
+        RetainStrip.create(0, 18),
+        InsertStrip.create('B'),
+        RetainStrip.create(19, 32)
+      ),
+    });
+
+    expect(service.client.server.toString()).toMatchInlineSnapshot(
+      `"(0 -> 34)["{"CONTENT":"\\n\\naAbBc","TITLE":""}"]"`
+    );
+
+    expect(service.serialize(true)).toStrictEqual({
+      client: {
+        local: [[0, 17], 'A', [18, 33]],
+        server: ['{"CONTENT":"\\n\\naAbBc","TITLE":""}'],
+      },
+      history: {
+        records: [
+          {
+            afterSelection: {
+              start: 18,
+            },
+            beforeSelection: {
+              start: 17,
+            },
+            changeset: [[0, 16], 'A', [17, 32]],
+          },
+          {
+            afterSelection: {
+              start: 19,
+            },
+            changeset: [[0, 17], 'A', [18, 33]],
+          },
+        ],
+        lastExecutedIndex: {
+          local: 1,
+          server: 0,
+          submitted: 0,
+        },
+        serverTailTextTransformToRecordsTailText: [[0, 17], 'B', [18, 31]],
+        recordsTailText: ['{"CONTENT":"\\n\\nabBc","TITLE":""}'],
+      },
+      recordsBuffer: {
+        messages: [],
+        version: 3,
+      },
+      submittedRecord: null,
+    });
+  });
 });
 
-it('serialize/parseValue multiJsonText without errors', () => {
+it('serialize service modified by multiJsonText without errors', () => {
   enum TextType {
     CONTENT = 'c',
     TITLE = 't',
@@ -562,95 +774,37 @@ it('serialize/parseValue multiJsonText without errors', () => {
     start: 3,
     end: 3,
   });
-  expect(service2.serialize()).toMatchInlineSnapshot(`
-    {
-      "client": {
-        "local": [
-          "{"c":"foobar","t":""}",
-        ],
-        "server": undefined,
-      },
-      "history": {
-        "entries": [
-          {
-            "execute": {
-              "changeset": [
-                [
-                  0,
-                  5,
-                ],
-                "foo",
-                [
-                  6,
-                  14,
-                ],
-              ],
-              "selection": {
-                "start": 9,
-              },
-            },
-            "undo": {
-              "changeset": [
-                [
-                  0,
-                  5,
-                ],
-                [
-                  9,
-                  17,
-                ],
-              ],
-              "selection": {
-                "start": 6,
-              },
-            },
+
+  expect(service2.serialize()).toEqual({
+    client: {
+      local: ['{"c":"foobar","t":""}'],
+    },
+    history: {
+      records: [
+        {
+          afterSelection: {
+            start: 9,
           },
-          {
-            "execute": {
-              "changeset": [
-                [
-                  0,
-                  8,
-                ],
-                "bar",
-                [
-                  9,
-                  17,
-                ],
-              ],
-              "selection": {
-                "start": 12,
-              },
-            },
-            "undo": {
-              "changeset": [
-                [
-                  0,
-                  8,
-                ],
-                [
-                  12,
-                  20,
-                ],
-              ],
-              "selection": {
-                "start": 9,
-              },
-            },
+          beforeSelection: {
+            start: 6,
           },
-        ],
-        "lastExecutedIndex": {
-          "local": 1,
-          "server": -1,
-          "submitted": -1,
+          changeset: [[0, 5], 'foo', [6, 14]],
         },
-        "tailComposition": null,
-        "tailText": [
-          "{"c":"","t":""}",
-        ],
+        {
+          afterSelection: {
+            start: 12,
+          },
+          changeset: [[0, 8], 'bar', [9, 17]],
+        },
+      ],
+      lastExecutedIndex: {
+        local: 1,
+        server: -1,
+        submitted: -1,
       },
-      "recordsBuffer": undefined,
-      "submittedRecord": null,
-    }
-  `);
+      serverTailTextTransformToRecordsTailText: null,
+      recordsTailText: ['{"c":"","t":""}'],
+    },
+    submittedRecord: null,
+  });
 });

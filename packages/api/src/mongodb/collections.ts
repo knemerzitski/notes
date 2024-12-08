@@ -7,6 +7,8 @@ import {
   SearchIndexDescription,
 } from 'mongodb';
 
+import { retryOnError } from '~utils/retry-on-error';
+
 import {
   noteDescription,
   DBNoteSchema,
@@ -99,12 +101,26 @@ export function createAllIndexes(
           Promise<[CollectionName, string[] | undefined]>
         >(async ([rawKey, description]) => {
           const colName = rawKey as CollectionName;
-          if (!description.indexSpecs || description.indexSpecs.length === 0)
+          if (!description.indexSpecs || description.indexSpecs.length === 0) {
             return [colName, undefined];
+          }
+
+          const indexSpecs = description.indexSpecs;
 
           const collection = collections[colName];
-          const result = await collection.createIndexes(description.indexSpecs);
-          return [colName, result];
+
+          return retryOnError(
+            async () => {
+              const result = await collection.createIndexes(indexSpecs);
+              return [colName, result];
+            },
+            {
+              maxAttempts: 10,
+              retryDelay: 1000,
+              retryErrorCond: (err) =>
+                err instanceof MongoServerError && err.codeName === 'NotWritablePrimary',
+            }
+          );
         })
       : []),
 
@@ -119,30 +135,20 @@ export function createAllIndexes(
 
           const collection = collections[colName];
 
-          const maxAttempts = 10;
-          const retryDelay = 1000;
-
-          let attemptNr = 0;
-          while (attemptNr++ < maxAttempts) {
-            try {
+          return retryOnError(
+            async () => {
               const result = await collection.createSearchIndexes(searchDescriptions);
               return [colName, result];
-            } catch (err) {
-              if (err instanceof MongoServerError) {
-                if (err.codeName === 'NamespaceNotFound') {
-                  // Retry after a delay on NamespaceNotFound
-                  await new Promise((res) => {
-                    setTimeout(res, retryDelay);
-                  });
-                  continue;
-                }
-              }
-              throw err;
+            },
+            {
+              maxAttempts: 10,
+              retryDelay: 1000,
+              retryErrorCond: (err) =>
+                err instanceof MongoServerError &&
+                (err.codeName === 'NamespaceNotFound' ||
+                  err.codeName == 'NotWritablePrimary' ||
+                  err.errmsg == 'Error connecting to Search Index Management service.'),
             }
-          }
-
-          throw new Error(
-            `Failed to createSearchIndexes after ${maxAttempts} attempts on "${colName}" (NamespaceNotFound)`
           );
         })
       : []),

@@ -4,6 +4,8 @@ import { forwardRef } from 'react';
 
 import { CollabInputsColumn } from './CollabInputsColumn';
 import { NoteToolbar } from './NoteToolbar';
+import { OpenSharingUserAvatars } from './OpenSharingUserAvatars';
+import { UserAvatarsCornerPosition } from './UserAvatarsCornerPosition';
 
 export const NoteDialog = forwardRef<HTMLDivElement, Parameters<typeof DialogStyled>[0]>(
   function NoteDialog(
@@ -21,8 +23,12 @@ export const NoteDialog = forwardRef<HTMLDivElement, Parameters<typeof DialogSty
           elevation: 0,
           ...PaperProps,
         }}
+        closeAfterTransition={false}
         {...restProps}
       >
+        <UserAvatarsCornerPosition>
+          <OpenSharingUserAvatars />
+        </UserAvatarsCornerPosition>
         <CollabInputsColumn />
         <NoteToolbar />
       </DialogStyled>
@@ -35,6 +41,7 @@ const DialogStyled = styled(Dialog)(
     .MuiDialog-container > .MuiPaper-root {
       border-radius: ${theme.shape.borderRadius * 2}px;
       border: ${theme.palette.mode === 'light' ? 'transparent' : undefined};
+      overflow: unset;
     }
   `
 );

@@ -1,13 +1,13 @@
 import mitt, { Emitter } from 'mitt';
 
-import { CollabService, CollabServiceEvents } from '../client/collab-service';
-import { SelectionRange } from '../client/selection-range';
+import { CollabService, CollabServiceEvents } from '../../client/collab-service';
+import { SelectionRange } from '../../client/selection-range';
 
-import { deleteCountToSelectionChangeset } from '../utils/delete-count-to-selection-changeset';
-import { insertToSelectionChangeset } from '../utils/insert-to-selection-changeset';
-import { LimitedEmitter } from '../utils/types';
+import { LimitedEmitter , SimpleText, SimpleTextEvents, SimpleTextOperationOptions } from '../../types';
 
-import { SimpleText, SimpleTextEvents, SimpleTextOperationOptions } from './types';
+import { deleteCountToSelectionChangeset } from './delete-count-to-selection-changeset';
+import { insertToSelectionChangeset } from './insert-to-selection-changeset';
+
 
 export class SimpleTextEditor implements SimpleText {
   private readonly _eventBus: Emitter<SimpleTextEvents>;
@@ -57,6 +57,10 @@ export class SimpleTextEditor implements SimpleText {
         );
       }),
     ];
+  }
+
+  getCollabServiceSelection(selection: SelectionRange): SelectionRange {
+    return selection;
   }
 
   cleanUp() {
