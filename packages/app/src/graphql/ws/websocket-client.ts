@@ -17,6 +17,11 @@ export class WebSocketClient {
 
   private readonly context;
 
+  private _connectedCount = 0;
+  get connectedCount() {
+    return this._connectedCount;
+  }
+
   private socket: WebSocket | null = null;
   private restartRequested = false;
 
@@ -104,6 +109,8 @@ export class WebSocketClient {
   }
 
   private connected(socket: unknown) {
+    this._connectedCount++;
+
     if (socket instanceof WebSocket) {
       this.socket = socket;
 

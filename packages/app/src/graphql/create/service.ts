@@ -154,8 +154,11 @@ export function createGraphQLService({
     optimistic: false,
     immediate: false,
     callback: (diff) => {
+      if (!wsClient || wsClient.connectedCount === 0) {
+        return;
+      }
       const userId = diff.result?.currentSignedInUser.id;
-      if (userId != null && wsClient?.userId != null && wsClient.userId !== userId) {
+      if (userId != null && wsClient.userId !== userId) {
         wsClient.restart();
       }
     },
