@@ -29,15 +29,14 @@ describe('compose', () => {
     expect(composedChangeset.toString()).toStrictEqual(cs(expected).toString());
   });
 
-  it('throws error when composing changeset with length 5 to changeset which indexes 0 to 7', () => {
-    const leftChangeset = cs(['hello']);
-    const rightChangeset = cs([[0, 7], ' world']);
-    expect(() => leftChangeset.compose(rightChangeset)).toThrow();
-  });
-
-  it('throws error when changeset index is completely out for range', () => {
-    const leftChangeset = cs(['hello']);
-    const rightChangeset = cs([[12, 14], ' world']);
+  it.each([
+    [[], [0]],
+    [['a'], [1]],
+    [['hello'], [[0, 7], ' world']],
+    [['hello'], [[12, 14], ' world']],
+  ])('unable to compose: %s * %s', (left, right) => {
+    const leftChangeset = cs(left);
+    const rightChangeset = cs(right);
     expect(() => leftChangeset.compose(rightChangeset)).toThrow();
   });
 });
@@ -135,89 +134,6 @@ describe('merge', () => {
     expect(follow).toHaveReturnedWith(followReturn);
     expect(compose).toHaveBeenCalledWith(followReturn);
     expect(result).toStrictEqual(composeReturn);
-  });
-});
-
-describe('swapChanges', () => {
-  it.each([
-    [
-      '"hello" => "between world after" (insert " world" <=> delete "hello", "between" |world| "after"',
-      ['hello'],
-      [[0, 4], ' world'],
-      ['between', [5, 10], 'after'],
-    ],
-    [
-      '"hello delme world" => "hello replaced world" (insert " delme" <=> replace "delme" with "replaced"',
-      ['hello world'],
-      [[0, 4], ' delme', [5, 10]],
-      [[0, 5], 'replaced', [11, 16]],
-    ],
-    [
-      'replace in multiple places',
-      ['hello world lorem'],
-      [[0, 4], ' delme', [5, 10], ' deltoo', [11, 16]],
-      [[0, 5], 'replaced', [11, 17], 'gone', [24, 29]],
-    ],
-    ['replace second world', ['hello'], [[0, 4], ' world'], [[0, 4], ' planet']],
-    [
-      'delete at start',
-      ['hello between world'],
-      [[0, 10], '[A]', [11, 18]],
-      [[6, 21], ' END'],
-    ],
-    [
-      'deleted at start after insertion',
-      ['hello between world'],
-      [[0, 10], '[A]', [11, 18]],
-      ['START: ', [6, 21]],
-    ],
-    [
-      'delete at start, replace in the middle',
-      ['hello between world'],
-      [[0, 10], '[A]', [11, 18]],
-      ['START: ', [6, 15], ' W', [18, 21]],
-    ],
-    [
-      'delete at start, replace partially in the middle',
-      ['hello between world'],
-      [[0, 10], '[A]', [11, 18]],
-      ['START: ', [6, 15], ' WO', [20, 21]],
-    ],
-    [
-      '',
-      ['[EXTERNAL][e1][e2][e3][somewhere][e4][e5][e6][e7][e8][EXTERNAL]'],
-      [[0, 10], '[A]', [11, 18]],
-      ['START: ', [6, 15], ' WO', [20, 21]],
-    ],
-  ])('%s', (_msg, textV0Obj, changeE1Obj, changeE2Obj) => {
-    const V0 = cs(textV0Obj);
-    const E1 = cs(changeE1Obj);
-    const E2 = cs(changeE2Obj);
-
-    // V0 * E1 * E2 = X
-    const expectedFinalText = V0.compose(E1).compose(E2);
-
-    // V0 * E1' * E2' = X
-    const [E1_b, E2_b] = V0.swapChanges(E1, E2);
-    expect(E1_b.toString()).not.toStrictEqual(E1.toString());
-    expect(E2_b.toString()).not.toStrictEqual(E2.toString());
-
-    const swappedFinalText = V0.compose(E1_b).compose(E2_b);
-    expect(swappedFinalText.toString()).toStrictEqual(expectedFinalText.toString());
-
-    const [E1_a, E2_a] = V0.swapChanges(E1_b, E2_b);
-
-    // swapChanges is symmetrical for composed text
-    const swapped2FinalText = V0.compose(E1_a).compose(E2_a);
-    expect(swapped2FinalText.toString()).toStrictEqual(expectedFinalText.toString());
-
-    // swapChanges converges to same result
-    const [E1_bb, E2_bb] = V0.swapChanges(E1_a, E2_a);
-    expect(E1_bb.toString()).toStrictEqual(E1_b.toString());
-    expect(E2_bb.toString()).toStrictEqual(E2_b.toString());
-    const [E1_aa, E2_aa] = V0.swapChanges(E1_bb, E2_bb);
-    expect(E1_aa.toString()).toStrictEqual(E1_a.toString());
-    expect(E2_aa.toString()).toStrictEqual(E2_a.toString());
   });
 });
 

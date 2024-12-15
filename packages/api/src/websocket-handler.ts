@@ -79,7 +79,9 @@ export function createWebSocketHandlerDefaultParams(
     pingpong: options?.pingPongParams,
     parseDynamoDBGraphQLContext: parseDynamoDBBaseGraphQLContext,
     connection: createDynamoDBConnectionTtlContext(apiOptions),
-
+    completedSubscription: {
+      ttl: apiOptions.completedSubscriptions.duration ?? 1000 * 5, // 5 seconds
+    },
     async onConnect({ event }) {
       if (!mongoDB) {
         mongoDB = await (options?.override?.createMongoDBContext?.(logger) ??

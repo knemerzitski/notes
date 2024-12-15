@@ -1,6 +1,6 @@
 import { CollabService, CollabServiceEvents } from '../../client/collab-service';
 
-import { LimitedEmitter } from '../../utils/types';
+import { LimitedEmitter } from '../../types';
 
 import { StructJsonFormatter } from './struct-json-formatter';
 import { StringRecordStruct } from './types';

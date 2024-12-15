@@ -42,7 +42,7 @@ export function createPingPongContext(params: PingPongContextParams): PingPongCo
         connectionId,
         domainName,
         stage,
-        seconds: params.delay,
+        seconds: params.timeout,
       };
 
       await client.send(

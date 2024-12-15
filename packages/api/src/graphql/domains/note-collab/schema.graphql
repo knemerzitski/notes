@@ -74,20 +74,25 @@ extend type Mutation {
 
 extend union SignedInUserMutation = UpdateNoteInsertRecordPayload
 
-################################ UserCollabTextState ################################
+################################ OpenedNote ################################
 
 """
-TODO desc
+A note that has been opened
 """
-type UserCollabTextState {
+type OpenedNote {
   """
-  latestSelection applies to text at this revision
+  Time when note is automatically closed due to not receiving any updates.
   """
-  revision: NonNegativeInt!
+  closedAt: DateTime!
+}
+
+
+extend type PublicUserNoteLink {
   """
-  Latest updated selection range
+  Information about this note being opened. Is null if note is not open.
+  Note is opened when subscribing to `openNoteEvents`.
   """
-  latestSelection: CollabTextSelectionRange!
+  open: OpenedNote
 }
 
 ################################ Subscription openNoteEvents ################################
@@ -113,15 +118,6 @@ extend type Subscription {
   openNoteEvents(noteId: ObjectID!): OpenNoteEventsPayload! @auth
 }
 
-################################ PublicUserNoteLink ################################
-
-extend type PublicUserNoteLink {
-  """
-  Defined when is currently subscribed to openNoteEvents and is viewing note
-  """
-  collabTextState: UserCollabTextState
-}
-
 ################################ Events User Subscribed/Unsubscribed ################################
 
 """
@@ -129,7 +125,11 @@ TODO desc
 """
 type OpenNoteUserSubscribedEvent {
   """
-  This user is subscribed to open note events
+  User link to subscribed note
+  """
+  publicUserNoteLink: PublicUserNoteLink!
+  """
+  This user is subscribed to open note events. `publicUserNoteLink.user`
   """
   user: PublicUser!
   """
@@ -143,6 +143,10 @@ TODO desc
 """
 type OpenNoteUserUnsubscribedEvent {
   """
+  User link to subscribed note
+  """
+  publicUserNoteLink: PublicUserNoteLink!
+  """
   This user is no longer subscribed to open note events.
   """
   user: PublicUser!
@@ -155,6 +159,29 @@ type OpenNoteUserUnsubscribedEvent {
 extend union SignedInUserMutation =
   | OpenNoteUserSubscribedEvent
   | OpenNoteUserUnsubscribedEvent
+
+################################ CollabTextEditing ################################
+
+"""
+A state thats needed when CollabText is being edited by a user
+"""
+type CollabTextEditing {
+  """
+  latestSelection applies to text at this revision
+  """
+  revision: NonNegativeInt!
+  """
+  Latest updated selection range
+  """
+  latestSelection: CollabTextSelectionRange!
+}
+
+extend type OpenedNote {
+  """
+  User CollabText editing state when note is opened.
+  """
+  collabTextEditing: CollabTextEditing
+}
 
 ################################ Mutation updateOpenNoteSelectionRange ################################
 
@@ -181,9 +208,17 @@ TODO desc
 """
 type UpdateOpenNoteSelectionRangePayload {
   """
-  User CollabText state
+  Updated CollabTextEditing. `openedNote.collabTextEditing`
   """
-  collabTextState: UserCollabTextState!
+  collabTextEditing: CollabTextEditing!
+  """
+  Opened note that's been updated. `publicUserNoteLink.open`.
+  """
+  openedNote: OpenedNote!
+  """
+  Self-descriptive. Item in `note.users`
+  """
+  publicUserNoteLink: PublicUserNoteLink!
   """
   Self-descriptive
   """
@@ -192,15 +227,11 @@ type UpdateOpenNoteSelectionRangePayload {
   The open note
   """
   note: Note!
-  """
-  CollabText state applies to this user
-  """
-  user: PublicUser!
 }
 
 extend type Mutation {
   """
-  TODO desc
+  Update selection of opened note
   """
   updateOpenNoteSelectionRange(
     input: UpdateOpenNoteSelectionRangeInput!

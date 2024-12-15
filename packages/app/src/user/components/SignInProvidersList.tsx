@@ -3,9 +3,9 @@ import { List, ListItem, ListProps } from '@mui/material';
 
 import { PickDeep } from '~utils/types';
 
-import { SignedInUser } from '~/__generated__/graphql';
-
 import { gql } from '../../__generated__';
+import { SignedInUser } from '../../__generated__/graphql';
+
 import { useOnClose } from '../../utils/context/on-close';
 import { useUserId } from '../context/user-id';
 

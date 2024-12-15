@@ -104,13 +104,13 @@ describe('single client', () => {
     );
   });
 
-  it('merges history entries with option set', () => {
+  it('merges history records with option set', () => {
     const { client } = helper;
 
     client.A.insertText('hello world');
     client.A.insertText(' one', { merge: true });
     expect(client.A.valueWithSelection()).toStrictEqual('hello world one>');
-    expect(client.A.service.history.entries).toHaveLength(1);
+    expect(client.A.service.history.records).toHaveLength(1);
     client.A.service.undo();
     expect(client.A.valueWithSelection()).toStrictEqual('>');
   });

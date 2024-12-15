@@ -56,8 +56,8 @@ export function CollabServiceStatus() {
             <TableCell>{collabService.headRevision}</TableCell>
           </TableRow>
           <TableRow>
-            <TableCell>History Entries</TableCell>
-            <TableCell>{collabService.history.entries.length}</TableCell>
+            <TableCell>History Records</TableCell>
+            <TableCell>{collabService.history.records.length}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Server</TableCell>

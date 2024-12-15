@@ -4,7 +4,7 @@ import { isDefined } from '~utils/type-guards/is-defined';
 import { Changeset, InsertStrip, RetainStrip, Strip } from '../../changeset';
 import { CollabService, CollabServiceEvents } from '../../client/collab-service';
 import { SelectionRange } from '../../client/selection-range';
-import { SimpleText, SimpleTextEvents, SimpleTextOperationOptions } from '../types';
+import { SimpleText, SimpleTextEvents, SimpleTextOperationOptions } from '../../types';
 
 import { StructJsonFormatter } from './struct-json-formatter';
 import { KeyViewText } from './types';
@@ -59,6 +59,26 @@ export class KeySimpleText implements SimpleText {
     }
   }
 
+  getCollabServiceSelection(selection: SelectionRange): SelectionRange {
+    // Text to JSON
+    const selectionStartJson = this.formatter.stringifyString(
+      this.view.value.slice(0, selection.start)
+    );
+    const selectedJson = this.formatter.stringifyString(
+      this.view.value.slice(selection.start, selection.end)
+    );
+
+    selection = SelectionRange.clamp(selection, this.view.value.length);
+    const start = this.view.jsonValueOffset + selectionStartJson.length;
+    selection = {
+      start,
+      end: start + selectedJson.length,
+    };
+    selection = SelectionRange.clamp(selection, this.service.viewText.length);
+
+    return selection;
+  }
+
   serviceSelectionChanged(selection: SelectionRange) {
     if (selection.start < this.view.jsonValueOffset) {
       return;
@@ -104,10 +124,13 @@ export class KeySimpleText implements SimpleText {
           )
           .shrink(1, 1);
 
+        let localJsonValueOffset = -1;
         const localViewComposable = new Changeset(
           slicedViewComposable.values.map((strip) => {
             if (strip instanceof InsertStrip) {
-              return new InsertStrip(this.formatter.parseString(strip.value));
+              const parsedInsertText = this.formatter.parseString(strip.value);
+
+              return new InsertStrip(parsedInsertText);
             } else if (strip instanceof RetainStrip) {
               const retainText = beforeView.value.slice(
                 strip.startIndex,
@@ -115,12 +138,41 @@ export class KeySimpleText implements SimpleText {
               );
               const parsedRetainText = this.formatter.parseString(retainText);
 
-              return RetainStrip.create(
-                strip.startIndex - beforeView.jsonValueOffset,
+              const offset = retainText.length - parsedRetainText.length;
+
+              // Initialize localJsonValueOffset
+              if (localJsonValueOffset === -1) {
+                // Check RetainStrip from beginning to current strip (excluding start)
+                const initialRetainStrip = RetainStrip.create(
+                  beforeView.jsonValueOffset,
+                  strip.startIndex - 1
+                );
+                if (initialRetainStrip instanceof RetainStrip) {
+                  const firstRetainText = beforeView.value.slice(
+                    initialRetainStrip.startIndex,
+                    initialRetainStrip.endIndex + 1
+                  );
+                  const initialParsedRetainText =
+                    this.formatter.parseString(firstRetainText);
+
+                  const initialOffset =
+                    firstRetainText.length - initialParsedRetainText.length;
+
+                  localJsonValueOffset = initialOffset;
+                } else {
+                  localJsonValueOffset = 0;
+                }
+              }
+
+              const resultStrip = RetainStrip.create(
+                strip.startIndex - beforeView.jsonValueOffset - localJsonValueOffset,
                 strip.endIndex -
-                  beforeView.jsonValueOffset -
-                  (retainText.length - parsedRetainText.length)
+                  (beforeView.jsonValueOffset + localJsonValueOffset + offset)
               );
+
+              localJsonValueOffset += offset;
+
+              return resultStrip;
             }
             return Strip.EMPTY;
           })
@@ -146,20 +198,7 @@ export class KeySimpleText implements SimpleText {
     options?: SimpleTextOperationOptions
   ): void {
     // Text to JSON
-    const selectionStartJson = this.formatter.stringifyString(
-      this.view.value.slice(0, selection.start)
-    );
-    const selectedJson = this.formatter.stringifyString(
-      this.view.value.slice(selection.start, selection.end)
-    );
-
-    selection = SelectionRange.clamp(selection, this.view.value.length);
-    const start = this.view.jsonValueOffset + selectionStartJson.length;
-    selection = {
-      start,
-      end: start + selectedJson.length,
-    };
-    selection = SelectionRange.clamp(selection, this.service.viewText.length);
+    selection = this.getCollabServiceSelection(selection);
 
     insertText = this.formatter.stringifyString(insertText);
 

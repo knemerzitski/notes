@@ -4,11 +4,22 @@ import { CollabServiceStatus } from './active-note/CollabServiceStatus';
 import { CurrentNoteId } from './active-note/CurrentNoteId';
 import { DevNoteHeadAndTailText } from './active-note/DevNoteHeadAndTailText';
 import { DevNoteRecordsTable } from './active-note/DevNoteRecordsTable';
+import { DevNoteUsers } from './active-note/DevNoteUsers';
 import { PrintLogCollabService } from './active-note/PrintLogCollabService';
 
 export function ActiveNoteDashCards() {
   return (
     <>
+      <DashRow>
+        <DevNoteUsers />
+      </DashRow>
+
+      <DashRow>
+        <DashCard label="Note Id">
+          <CurrentNoteId />
+        </DashCard>
+      </DashRow>
+
       <DashRow>
         <DashCard label="Collab Service Status">
           <CollabServiceStatus />
@@ -16,10 +27,6 @@ export function ActiveNoteDashCards() {
       </DashRow>
 
       <DashRow>
-        <DashCard label="Note Id">
-          <CurrentNoteId />
-        </DashCard>
-
         <DashCard label="Log Collab Service">
           <PrintLogCollabService />
         </DashCard>

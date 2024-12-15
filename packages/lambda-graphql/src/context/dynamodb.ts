@@ -3,6 +3,11 @@ import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { Logger } from '~utils/logging';
 
 import {
+  CompletedSubscriptionTable,
+  newCompletedSubscriptionModel,
+} from '../dynamodb/models/completed-subscription';
+
+import {
   ConnectionTable,
   DynamoDBRecord,
   newConnectionModel as newConnectionModel,
@@ -17,6 +22,7 @@ export interface DynamoDBContextParams {
   tableNames: {
     connections: string;
     subscriptions: string;
+    completedSubscriptions: string;
   };
   logger: Logger;
 }
@@ -24,6 +30,7 @@ export interface DynamoDBContextParams {
 export interface DynamoDBContext<TDynamoDBGraphQLContext extends DynamoDBRecord> {
   connections: ConnectionTable<TDynamoDBGraphQLContext>;
   subscriptions: SubscriptionTable<TDynamoDBGraphQLContext>;
+  completedSubscriptions: CompletedSubscriptionTable;
 }
 
 export function createDynamoDBContext<TDynamoDBGraphQLContext extends DynamoDBRecord>(
@@ -48,6 +55,11 @@ export function createDynamoDBContext<TDynamoDBGraphQLContext extends DynamoDBRe
     subscriptions: newSubscriptionModel<TDynamoDBGraphQLContext>({
       documentClient,
       tableName: params.tableNames.subscriptions,
+      logger: params.logger,
+    }),
+    completedSubscriptions: newCompletedSubscriptionModel({
+      documentClient,
+      tableName: params.tableNames.completedSubscriptions,
       logger: params.logger,
     }),
   };

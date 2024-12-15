@@ -36,6 +36,9 @@ export function createDefaultApiOptions(): ApiOptions {
         refreshThreshold: 1 / 3, // 1 hour
       },
     },
+    completedSubscriptions: {
+      duration: 1000 * 5, // 5 seconds
+    },
     note: {
       trashDuration: 1000 * 60 * 60 * 24 * 30, // 30 days
       openNoteDuration: 1000 * 60 * 60, // 1 hour
@@ -150,6 +153,8 @@ export function createDefaultDynamoDBParams(logger: Logger): DynamoDBContextPara
       connections: process.env.DYNAMODB_CONNECTIONS_TABLE_NAME!,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       subscriptions: process.env.DYNAMODB_SUBSCRIPTIONS_TABLE_NAME!,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      completedSubscriptions: process.env.DYNAMODB_COMPLETED_SUBSCRIPTIONS_TABLE_NAME!,
     },
   };
 }

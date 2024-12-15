@@ -1,68 +1,27 @@
-import { useQuery } from '@apollo/client';
-
-import PersonIcon from '@mui/icons-material/Person';
-import { Avatar } from '@mui/material';
+import { forwardRef } from 'react';
 
 import { gql } from '../../__generated__';
-import { FirstLetter } from '../../utils/components/FirstLetter';
-import { LargeAvatar } from '../../utils/components/LargeAvatar';
-import { LargePersonIcon } from '../../utils/components/LargePersionIcon';
-import { LargeTextBackgroundAvatar } from '../../utils/components/LargeTextBackgroundAvatar';
-import { TextBackgroundAvatar } from '../../utils/components/TextBackgroundAvatar';
-import { useUserId } from '../context/user-id';
+import { useIsLocalOnlyUser } from '../hooks/useIsLocalOnlyUser';
 
-const UserAvatar_Query = gql(`
-  query UserAvatar_Query($id: ID!) {
-    signedInUser(by: { id: $id }) @client {
-      id
-      public {
-        id
-        profile {
-          displayName
-        }
-      }
-      localOnly
-    }
+import { LocalUserAvatar, LocalUserAvatarProps } from './LocalUserAvatar';
+import { RemoteUserAvatar, RemoteUserAvatarProps } from './RemoteUserAvatar';
+
+const _UserAvatar_PublicUserFragment = gql(`
+  fragment UserAvatar_PublicUserFragment on PublicUser {
+    ...RemoteUserAvatar_PublicUserFragment
   }
 `);
 
-export function UserAvatar({ size = 'normal' }: { size?: 'normal' | 'large' }) {
-  const userId = useUserId();
+export type UserAvatarProps = LocalUserAvatarProps & RemoteUserAvatarProps;
 
-  const { data } = useQuery(UserAvatar_Query, {
-    variables: {
-      id: userId,
-    },
-  });
+export const UserAvatar = forwardRef<HTMLDivElement, UserAvatarProps>(
+  function UserAvatar(props, ref) {
+    const isLocalOnlyUser = useIsLocalOnlyUser();
 
-  const user = data?.signedInUser;
-  if (!user) return null;
-
-  const name = user.public.profile.displayName;
-
-  if (user.localOnly) {
-    switch (size) {
-      case 'large':
-        return (
-          <LargeAvatar>
-            <LargePersonIcon />
-          </LargeAvatar>
-        );
-      default:
-        return (
-          <Avatar>
-            <PersonIcon />
-          </Avatar>
-        );
+    if (isLocalOnlyUser) {
+      return <LocalUserAvatar ref={ref} {...props} />;
+    } else {
+      return <RemoteUserAvatar ref={ref} {...props} />;
     }
   }
-
-  const SizeTextBackgroundAvatar =
-    size == 'large' ? LargeTextBackgroundAvatar : TextBackgroundAvatar;
-
-  return (
-    <SizeTextBackgroundAvatar bgColorText={name}>
-      <FirstLetter text={name} />
-    </SizeTextBackgroundAvatar>
-  );
-}
+);

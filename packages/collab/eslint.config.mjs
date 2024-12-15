@@ -5,6 +5,9 @@ import globals from 'globals';
 export default [
   ...rootConfig,
   {
+    ignores: ['coverage'],
+  },
+  {
     languageOptions: {
       globals: globals.node,
     },

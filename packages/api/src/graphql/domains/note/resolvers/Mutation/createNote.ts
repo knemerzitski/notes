@@ -1,4 +1,4 @@
-import { wrapRetryOnErrorAsync } from '~utils/wrap-retry-on-error';
+import { wrapRetryOnError } from '~utils/retry-on-error';
 
 import { QueryableRevisionRecord } from '../../../../../mongodb/loaders/note/descriptions/revision-record';
 import { createValueQueryFn } from '../../../../../mongodb/query/query';
@@ -81,7 +81,7 @@ const _createNote: NonNullable<MutationResolvers['createNote']> = async (
   return payload;
 };
 
-export const createNote = wrapRetryOnErrorAsync(
+export const createNote = wrapRetryOnError(
   _createNote,
   retryOnMongoError({
     maxRetries: 3,

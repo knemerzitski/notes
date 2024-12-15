@@ -38,8 +38,7 @@ export class MockApiGatewayManagementApiClient extends ApiGatewayManagementApiCl
       if (!ConnectionId) return Promise.resolve();
 
       const ws = this.getSocket(ConnectionId);
-
-      ws.close();
+      ws.terminate();
       // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       delete this.sockets[ConnectionId];
     } else {

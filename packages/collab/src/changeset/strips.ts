@@ -1,12 +1,35 @@
 import { rangeRelation } from '~utils/range-relation';
 
-import { Strip, RetainStrip, InsertStrip, StripsStruct } from '.';
+import { getDefaultStripLength } from './strip-length';
+
+import { Strip, RetainStrip, InsertStrip, DeleteStrip, StripsStruct } from '.';
+
+type SliceOptions = Parameters<Strips['slice']>[2];
+
+function simpleCheckIsCompact(strips: readonly Strip[]) {
+  if (strips.length === 0) {
+    return true;
+  }
+
+  if (strips.length === 1) {
+    if (strips[0] instanceof InsertStrip || strips[0] instanceof RetainStrip) {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 /**
  * A strip array with convinience methods.
  */
 export class Strips {
-  static readonly EMPTY: Strips = new this();
+  static readonly EMPTY: Strips = new (class extends Strips {
+    readonly EMPTY = true;
+    override isEqual(other: Strips): boolean {
+      return other === this;
+    }
+  })();
 
   /**
    * Convinience method to create Strips from spread syntax.
@@ -31,8 +54,7 @@ export class Strips {
 
   constructor(values: readonly Strip[] = []) {
     this.values = values;
-    this.isCompact =
-      values.length === 0 || (values.length === 1 && values[0] !== Strip.EMPTY);
+    this.isCompact = simpleCheckIsCompact(values);
     this.length = this.values.map((strip) => strip.length).reduce((a, b) => a + b, 0);
     this.maxIndex = this.values
       .map((strip) => (strip instanceof RetainStrip ? strip.endIndex : -1))
@@ -46,7 +68,15 @@ export class Strips {
    * @param end The index to the end. Is exclusive - end index is not included.
    * Unspecified value continues until the end.
    */
-  slice(start = 0, end = this.length): Strips {
+  slice(
+    start = 0,
+    end = this.length,
+    options?: {
+      getLength: typeof getDefaultStripLength;
+    }
+  ): Strips {
+    const getLength = options?.getLength ?? getDefaultStripLength;
+
     if (start < 0) {
       start += this.length;
     }
@@ -58,7 +88,7 @@ export class Strips {
     const result: Strip[] = [];
     let pos = 0;
     for (const strip of this.values) {
-      const nextPos = pos + strip.length;
+      const nextPos = pos + getLength(strip);
       // Strip is past start
       if (nextPos > start) {
         const absStart = Math.max(start, pos);
@@ -135,15 +165,15 @@ export class Strips {
   }
 
   /**
-   * Returns the strip at specified index.
+   * Returns the strip with length of 1 at specified index.
    * @param index The zero-based index of the desired strip.
    * A negative index will count back from the last strip.
    */
-  at(index: number): Strip | undefined {
+  at(index: number, options?: SliceOptions): Strip | undefined {
     if (index < 0) {
       index += this.length;
     }
-    const { values } = this.slice(index, index + 1);
+    const { values } = this.slice(index, index + 1, options);
     if (values.length === 1) {
       return values[0];
     }
@@ -164,6 +194,9 @@ export class Strips {
     if (this.isCompact) return this;
 
     const newValues = this.values.reduce<Strip[]>((compactedStrips, strip) => {
+      if (strip instanceof DeleteStrip) {
+        return compactedStrips;
+      }
       if (compactedStrips.length === 0) {
         compactedStrips.push(strip);
       } else {
@@ -189,7 +222,7 @@ export class Strips {
   }
 
   /**
-   * @returns Indices are ordered ascending.
+   * @returns Indexes are ordered ascending.
    */
   isRetainIndexesOrdered() {
     let prevEndIndex = -1;

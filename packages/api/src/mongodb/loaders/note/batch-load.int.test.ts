@@ -292,7 +292,7 @@ it('loads users.openNote', async () => {
         start: 12,
       },
     },
-    connectionIds: [],
+    clients: [],
     expireAt: new Date(Date.now() + 100000),
   });
 

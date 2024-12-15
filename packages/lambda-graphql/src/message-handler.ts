@@ -28,6 +28,7 @@ import {
   PingPongContextParams,
   createPingPongContext,
 } from './context/pingpong';
+import { CompletedSubscriptionTable } from './dynamodb/models/completed-subscription';
 import {
   ConnectionTable,
   ConnectionTtlContext,
@@ -48,6 +49,9 @@ interface DirectParams<
   TDynamoDBGraphQLContext extends DynamoDBRecord,
 > {
   connection: ConnectionTtlContext;
+  completedSubscription: {
+    ttl: number;
+  };
   logger: Logger;
 
   onConnectionInit?: (args: {
@@ -126,6 +130,7 @@ export interface WebSocketMessageHandlerContext<
   models: {
     connections: ConnectionTable<TDynamoDBGraphQLContext>;
     subscriptions: SubscriptionTable<TDynamoDBGraphQLContext>;
+    completedSubscription: CompletedSubscriptionTable;
   };
   socketApi: WebSocketApi;
   startPingPong?: PingPongContext['startPingPong'];
@@ -246,6 +251,7 @@ export function createWebSocketMessageHandler<
     models: {
       connections: dynamoDB.connections,
       subscriptions: dynamoDB.subscriptions,
+      completedSubscription: dynamoDB.completedSubscriptions,
     },
     socketApi: apiGateway.socketApi,
     startPingPong: pingpong?.startPingPong,

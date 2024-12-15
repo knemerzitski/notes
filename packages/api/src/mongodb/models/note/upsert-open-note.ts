@@ -10,11 +10,14 @@ export async function upsertOpenNote({
     runSingleOperation?: TransactionContext['runSingleOperation'];
     collections: Pick<MongoDBCollections, CollectionName.OPEN_NOTES>;
   };
-  openNote: OpenNoteSchema | DBOpenNoteSchema;
+  openNote: Omit<OpenNoteSchema | DBOpenNoteSchema, 'clients'>;
 }) {
   const runSingleOperation = mongoDB.runSingleOperation ?? ((run) => run());
 
-  openNote = OpenNoteSchema.createRaw(openNote);
+  openNote = OpenNoteSchema.createRaw({
+    clients: [],
+    ...openNote,
+  });
 
   return runSingleOperation((session) =>
     mongoDB.collections.openNotes.updateOne(
@@ -31,11 +34,9 @@ export async function upsertOpenNote({
           expireAt: openNote.expireAt,
           collabText: openNote.collabText,
         },
-        $addToSet: {
-          connectionIds: { $each: openNote.connectionIds },
-        },
       },
       {
+        ignoreUndefined: true,
         session,
         upsert: true,
       }

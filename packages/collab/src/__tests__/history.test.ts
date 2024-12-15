@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { Changeset } from '../changeset';
 import { CollabClient } from '../client/collab-client';
-import { CollabHistory } from '../client/collab-history';
+import { CollabHistory } from '../history/collab-history';
 
 import { createHelperCollabEditingEnvironment } from './helpers/server-client';
 
@@ -34,7 +34,7 @@ describe('single client', () => {
     expect(client.A.valueWithSelection()).toStrictEqual('hello > world');
   });
 
-  describe('text external change entries modification', () => {
+  describe('text external change records modification', () => {
     let history: CollabHistory;
     let client: CollabClient;
 
@@ -53,7 +53,7 @@ describe('single client', () => {
     function expectHistoryUndoRedoRestoreValue() {
       let expected = textValueWithSelection();
       let i = 0;
-      for (; i < history.entries.length; i++) {
+      for (; i < history.records.length; i++) {
         history.undo();
         const undoValue = textValueWithSelection();
         if (undoValue === expected) break;
@@ -73,7 +73,7 @@ describe('single client', () => {
 
     function expectHistoryBaseValue(expectedValue: string) {
       let i = 0;
-      for (; i < history.entries.length; i++) {
+      for (; i < history.records.length; i++) {
         history.undo();
       }
       expect(textValueWithSelection()).toStrictEqual(expectedValue);
@@ -121,7 +121,7 @@ describe('single client', () => {
       expectHistoryBaseValue('[EXTERNAL]>[EXTERNAL]');
     });
 
-    it('local and external delete same value with more entries and between', () => {
+    it('local and external delete same value with more records and between', () => {
       helper.client.A.insertText('[e0]');
       helper.client.A.insertText('[e1]');
       helper.client.A.insertText('[e2]');

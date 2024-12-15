@@ -9,7 +9,6 @@
 
     /* Modules */
     "paths": {
-      "~/*": ["./src/*"],
       "~api-app-shared/*": ["../api-app-shared/src/*"],
       "~collab/*": ["../collab/src/*"],
       "~utils/*": ["../utils/src/*"]

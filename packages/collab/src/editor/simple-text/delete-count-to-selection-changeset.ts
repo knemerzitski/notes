@@ -1,6 +1,6 @@
-import { RetainStrip, Changeset } from '../changeset';
-import { SelectionRange } from '../client/selection-range';
-import { SelectionChangeset } from '../client/types';
+import { RetainStrip, Changeset } from '../../changeset';
+import { SelectionRange } from '../../client/selection-range';
+import { SelectionChangeset } from '../../types';
 
 /**
  * Delete based on current position towards left (Same as pressing backspace on a keyboard).

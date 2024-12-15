@@ -25,6 +25,13 @@ export interface ApiOptions {
      */
     webSocket?: SessionDurationConfig;
   };
+  completedSubscriptions: {
+    /**
+     * How long to store info that a subscription completed before it's been fully processed/subscribed.
+     * @default 1000 * 5  // seconds
+     */
+    duration?: number;
+  };
   note?: {
     /**
      * How long note is kept in trash in milliseconds.

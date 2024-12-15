@@ -8,7 +8,6 @@ import { CacheRestorerProvider } from '../context/cache-restorer';
 import { GetMutationUpdaterFnProvider } from '../context/get-mutation-updater-fn';
 import { PersistLinkProvider } from '../context/persist-link';
 import { StatsLinkProvider } from '../context/stats-link';
-import { WebSocketClientProvider } from '../context/websocket-client';
 import { GraphQLService } from '../types';
 
 import { ConfirmLeaveOnPendingPersistCache } from './ConfirmLeaveOnPendingPersistCache';
@@ -35,9 +34,7 @@ export function GraphQLServiceProvider({
                 <ConfirmLeaveOnPendingPersistCache triggerPersist={true} />
                 <RestorePersistedCache fallback={restoringCacheFallback}>
                   <ResumePersistedOngoingOperations />
-                  <WebSocketClientProvider wsClient={service.wsClient}>
-                    {children}
-                  </WebSocketClientProvider>
+                  {children}
                 </RestorePersistedCache>
               </CacheRestorerProvider>
             </CachePersistorProvider>

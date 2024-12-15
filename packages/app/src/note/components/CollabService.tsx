@@ -8,6 +8,7 @@ import { useIsLocalOnlyNote } from '../hooks/useIsLocalOnlyNote';
 
 import { HistoryRestoration } from './HistoryRestoration';
 import { LocalChangesToSubmittedRecordDebounced } from './LocalChangesToSubmittedRecordDebounced';
+import { OpenNoteSubscription } from './OpenNoteSubscription';
 import { PersistCollabServiceChanges } from './PersistCollabServiceChanges';
 import { SubmittedRecordMutation } from './SubmittedRecordMutation';
 
@@ -106,6 +107,7 @@ function Remote() {
       <SyncHeadText />
       <SyncMissingRecords />
       <HistoryRestoration />
+      <OpenNoteSubscription />
     </>
   );
 }

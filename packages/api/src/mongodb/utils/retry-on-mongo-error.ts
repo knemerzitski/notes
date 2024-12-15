@@ -1,6 +1,6 @@
 import { MongoServerError } from 'mongodb';
 
-import { RetryOnErrorFn } from '~utils/wrap-retry-on-error';
+import { RetryErrorCondFn } from '~utils/retry-on-error';
 
 export enum MongoErrorCodes {
   DUPLICATE_KEY_E11000 = '11000',
@@ -11,7 +11,7 @@ interface RetryOnMongoErrorOptions {
   codes?: MongoErrorCodes[];
 }
 
-export function retryOnMongoError(options?: RetryOnMongoErrorOptions): RetryOnErrorFn {
+export function retryOnMongoError(options?: RetryOnMongoErrorOptions): RetryErrorCondFn {
   let retriesRemaining = options?.maxRetries;
 
   const codeSet = new Set(options?.codes?.map((code) => String(code)));

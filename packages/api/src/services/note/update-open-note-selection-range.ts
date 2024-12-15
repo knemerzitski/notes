@@ -54,7 +54,9 @@ export async function updateOpenNoteSelectionRange({
       users: {
         _id: 1,
         openNote: {
-          connectionIds: 1,
+          clients: {
+            connectionId: 1,
+          },
         },
       },
       collabText: {
@@ -73,7 +75,9 @@ export async function updateOpenNoteSelectionRange({
     throw new NoteNotFoundServiceError(noteId);
   }
 
-  if (!noteUser.openNote?.connectionIds.includes(connectionId)) {
+  if (
+    !noteUser.openNote?.clients.some((client) => client.connectionId === connectionId)
+  ) {
     throw new NoteNotOpenedServiceError(userId, noteId, connectionId);
   }
 
@@ -100,18 +104,52 @@ export async function updateOpenNoteSelectionRange({
     latestSelection: selection,
   };
 
-  const openNote: OpenNoteSchema = {
+  const openNote: Omit<OpenNoteSchema, 'clients'> = {
     noteId,
     userId,
     expireAt: new Date(Date.now() + (openNoteDuration ?? 1000 * 60 * 60)),
     collabText: openCollabText,
-    connectionIds: [connectionId],
   };
 
   await upsertOpenNote({
     mongoDB,
     openNote,
   });
+
+  mongoDB.loaders.note.prime(
+    {
+      id: {
+        noteId,
+        userId,
+      },
+      query: {
+        _id: 1,
+        users: {
+          openNote: {
+            collabText: {
+              revision: 1,
+              latestSelection: {
+                start: 1,
+                end: 1,
+              },
+            },
+            expireAt: 1,
+          },
+        },
+      },
+    },
+    {
+      _id: note._id,
+      users: note.users.map((_noteUser) =>
+        _noteUser._id.equals(noteUser._id)
+          ? {
+              ..._noteUser,
+              openNote,
+            }
+          : _noteUser
+      ),
+    }
+  );
 
   return {
     type: 'success' as const,

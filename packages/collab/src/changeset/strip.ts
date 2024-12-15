@@ -6,6 +6,8 @@ import { Strips, EmptyStripStruct, StripStruct } from '.';
  */
 export abstract class Strip {
   static readonly EMPTY = new (class extends Strip {
+    readonly EMPTY = true;
+
     length = 0;
 
     reference() {
@@ -24,11 +26,11 @@ export abstract class Strip {
       return strip === this;
     }
     toString() {
-      return '(EMPTY)';
+      return '∅';
     }
-    serialize() {
+    serialize: () => unknown = () => {
       return EmptyStripStruct.createRaw(this);
-    }
+    };
     parseValue: (value: unknown) => Strip = (value) => {
       return EmptyStripStruct.create(value);
     };
@@ -45,9 +47,8 @@ export abstract class Strip {
    * Returns a section of the strip.
    * @param start The index to the beginning.
    * @param end The index to the end. Is exclusive - end index is not included.
-   * Unspecified value continues to the end of strip.
    */
-  abstract slice(start?: number, end?: number): Strip;
+  abstract slice(start: number, end: number): Strip;
 
   /**
    * Add together both strips. Effect of both strips is retained and represented in returned value.
@@ -59,6 +60,8 @@ export abstract class Strip {
   abstract isEqual(other: Strip): boolean;
 
   abstract toString(): string;
+
+  abstract serialize(): unknown;
 
   static parseValue: (value: unknown) => Strip = (value) => {
     return StripStruct.create(value);

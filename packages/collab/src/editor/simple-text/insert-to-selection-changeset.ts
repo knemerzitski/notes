@@ -1,6 +1,6 @@
-import { RetainStrip, InsertStrip, Changeset } from '../changeset';
-import { SelectionRange } from '../client/selection-range';
-import { SelectionChangeset } from '../client/types';
+import { RetainStrip, InsertStrip, Changeset } from '../../changeset';
+import { SelectionRange } from '../../client/selection-range';
+import { SelectionChangeset } from '../../types';
 
 /**
  * Insert text after selection start position.

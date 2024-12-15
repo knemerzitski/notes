@@ -26,8 +26,8 @@ describe('EMPTY', () => {
     expect(Strip.EMPTY.isEqual(mock<Strip>())).toBeFalsy();
   });
 
-  it('toString returns (EMPTY)', () => {
-    expect(Strip.EMPTY.toString()).toStrictEqual('(EMPTY)');
+  it('toString returns ∅', () => {
+    expect(Strip.EMPTY.toString()).toStrictEqual('∅');
   });
 
   it('serializes to null', () => {

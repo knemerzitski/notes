@@ -46,6 +46,7 @@ export function useIsExecutingOperation<TVariables extends Record<string, any>>(
   useEffect(() => {
     const observable = client.watchQuery({
       query: UseIsExecutingOperation_Query,
+      fetchPolicy: 'cache-only',
     });
 
     const sub = observable.subscribe((value) => {

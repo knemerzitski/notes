@@ -1,14 +1,22 @@
-import { Strip, Strips, RetainStripStruct, ChangesetCreateError } from '.';
+import { Strip, RetainStripStruct, DeleteStrip, RangeStrip } from '.';
 
 /**
  * Represents retained characters range in a text.
  * RetainStrip is immutable.
  */
-export class RetainStrip extends Strip {
-  static create: (startIndex: number, endIndex: number) => RetainStrip | Strip = (
-    startIndex,
-    endIndex
-  ) => {
+export class RetainStrip extends RangeStrip<RetainStrip> {
+  /**
+   * Creates a new strip without throwing errors.
+   * Returns empty strip on any invalid value.
+   */
+  static create: (
+    startIndex: number,
+    endIndex?: number
+  ) => RetainStrip | typeof Strip.EMPTY = (startIndex, endIndex) => {
+    if (endIndex == null) {
+      return new RetainStrip(startIndex, startIndex);
+    }
+
     if (endIndex < startIndex || endIndex < 0) {
       return Strip.EMPTY;
     }
@@ -23,107 +31,15 @@ export class RetainStrip extends Strip {
     return strip instanceof RetainStrip;
   };
 
-  readonly startIndex: number;
-
-  /**
-   * Is inclusive - this index is included in retain strip.
-   */
-  readonly endIndex: number;
-
-  /**
-   * Length of the strip as in how many characters are retained.
-   */
-  readonly length: number;
-
-  /**
-   *
-   * @param startIndex Start index of retained strip
-   * @param endIndex Must be greater or equal to {@link startIndex}. Is inclusive
-   */
-  constructor(startIndex: number, endIndex: number = startIndex) {
-    super();
-    if (startIndex < 0) {
-      throw new ChangesetCreateError(
-        `startIndex must be non-negative (0 <= ${startIndex})`
-      );
+  protected override newInstance(startIndex: number, endIndex: number = startIndex) {
+    if (this.startIndex === startIndex && this.endIndex == endIndex) {
+      return this;
     }
-    if (endIndex < startIndex) {
-      throw new ChangesetCreateError(
-        `endIndex must be greater or equal to startIndex (${startIndex} <= ${endIndex})`
-      );
-    }
-
-    this.startIndex = startIndex;
-    this.endIndex = endIndex;
-
-    this.length = this.endIndex - this.startIndex + 1;
+    return new RetainStrip(startIndex, endIndex);
   }
 
-  /**
-   * @returns Sliced Strips from {@link startIndex} to {@link endIndex} (exclusive)
-   */
-  reference(strips: Strips): Strips {
-    return strips.slice(this.startIndex, this.endIndex + 1);
-  }
-
-  /**
-   * Returns a section of the strip range.
-   * @param start The index to the beginning.
-   * @param end The index to the end. Is exclusive - end index is not included.
-   * Unspecified value continues to the end of strip.
-   */
-  slice(start = 0, end = this.length) {
-    if (start < 0) {
-      start = (start % this.length) + this.length;
-    }
-    if (end && end < 0) {
-      end = (end % this.length) + this.length;
-    }
-
-    if (end <= start) return Strip.EMPTY;
-
-    const newStartIndex = this.startIndex + start;
-    if (newStartIndex > this.endIndex) {
-      return Strip.EMPTY;
-    }
-
-    const newEndIndex = Math.min(this.startIndex + end - 1, this.endIndex);
-
-    return new RetainStrip(newStartIndex, newEndIndex);
-  }
-
-  concat(other: Strip): Strips {
-    if (other === Strip.EMPTY) return Strips.from(this);
-
-    if (other instanceof RetainStrip && this.endIndex + 1 === other.startIndex) {
-      // E.g. [2,5] + [6,10] = [2,10]
-      return Strips.from(new RetainStrip(this.startIndex, other.endIndex));
-    }
-
-    return new Strips([this, other]);
-  }
-
-  offset(offset: number): Strip {
-    if (offset === 0) return this;
-    return new RetainStrip(this.startIndex + offset, this.endIndex + offset);
-  }
-
-  /**
-   * Strips are equal is both are RetainStrip with same indexes or
-   * both strips have zero length (empty).
-   */
-  isEqual(other: Strip): boolean {
-    return (
-      other instanceof RetainStrip &&
-      other.startIndex === this.startIndex &&
-      other.endIndex === this.endIndex
-    );
-  }
-
-  toString() {
-    return this.startIndex !== this.endIndex
-      ? `${this.startIndex} - ${this.endIndex}`
-      : String(this.startIndex);
+  toDeleteStrip() {
+    return new DeleteStrip(this.startIndex, this.endIndex);
   }
 
   serialize() {

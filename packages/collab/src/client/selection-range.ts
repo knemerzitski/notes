@@ -1,4 +1,4 @@
-import { coerce, Infer, number, object, optional } from 'superstruct';
+import { coerce, define, Infer, number, object, optional, union } from 'superstruct';
 import { Maybe, PartialBy } from '~utils/types';
 
 import { Changeset } from '../changeset';
@@ -19,6 +19,12 @@ export const SelectionRangeStruct = coerce(
   (value) => SelectionRange.expandSame(value),
   (value) => SelectionRange.collapseSame(value)
 );
+
+const OptionalStruct = define<undefined>(
+  'Undefined',
+  (value) => typeof value === 'undefined'
+);
+export const OptionalSelectionRange = union([OptionalStruct, SelectionRangeStruct]);
 
 export type SelectionRange = Infer<typeof ExpandedSelectionRangeStruct>;
 

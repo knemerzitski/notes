@@ -66,6 +66,10 @@ export class NotesStack extends Stack {
         'DYNAMODB_SUBSCRIPTIONS_TABLE_NAME',
         webSocketDynamoDB.tables.subscriptions.tableName
       );
+      lambda.addEnvironment(
+        'DYNAMODB_COMPLETED_SUBSCRIPTIONS_TABLE_NAME',
+        webSocketDynamoDB.tables.completedSubscriptions.tableName
+      );
     });
     webSocketDynamoDB.tables.connections.grantReadData(handlers.http);
     webSocketDynamoDB.tables.subscriptions.grantReadData(handlers.http);

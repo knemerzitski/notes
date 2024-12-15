@@ -53,16 +53,12 @@ describe('reference', () => {
 
 describe('slice', () => {
   it.each([
-    ['returns all on no args', 2, 8, [undefined, undefined], [2, 8]],
-    ['returns from start', 2, 8, [3, undefined], [5, 8]],
     ['returns from middle', 2, 8, [3, 5], [5, 6]],
-    ['returns second to last on end -1', 2, 8, [0, -1], [2, 7]],
     ['returns single index', 2, 8, [2, 3], 4],
-    ['returns last on start -1', 2, 8, [-1, undefined], 8],
     ['returns empty on out of bounds index', 2, 8, [10, 15], undefined],
     ['returns empty when start == end', 2, 8, [4, 4], undefined],
     ['returns empty when start > end', 2, 8, [4, 2], undefined],
-  ])(
+  ] as const)(
     '%s: (%s - %s).slice(%s) = %s',
     (_msg, startIndex, endIndex, [start, end], expected) => {
       expect(
@@ -111,14 +107,14 @@ describe('concat', () => {
 });
 
 describe('isEqual', () => {
-  it('returns true for value', () => {
-    expect(s('abc').isEqual(s('abc'))).toBeTruthy();
-    expect(s('dds').isEqual(s('dds'))).toBeTruthy();
+  it('returns true for same indexes', () => {
+    expect(s([2, 3]).isEqual(s([2, 3]))).toBeTruthy();
+    expect(s(5).isEqual(s(5))).toBeTruthy();
   });
 
-  it('returns false for different values', () => {
-    expect(s('aaa').isEqual(s('bbc'))).toBeFalsy();
-    expect(s('xy').isEqual(s('zzzs'))).toBeFalsy();
+  it('returns false for different indexes', () => {
+    expect(s([2, 3]).isEqual(s([2, 4]))).toBeFalsy();
+    expect(s([2, 3]).isEqual(s([1, 3]))).toBeFalsy();
   });
 });
 

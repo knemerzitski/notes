@@ -17,6 +17,11 @@ export class WebSocketClient {
 
   private readonly context;
 
+  private _connectedCount = 0;
+  get connectedCount() {
+    return this._connectedCount;
+  }
+
   private socket: WebSocket | null = null;
   private restartRequested = false;
 
@@ -65,11 +70,10 @@ export class WebSocketClient {
 
   restart() {
     this._userId = null;
-    this.userIdDeferred = null;
 
     const userId = this.context.userId;
-    if (isLocalId(userId)) {
-      // Don't restart if user is local
+    if (!userId || isLocalId(userId)) {
+      // Don't restart if user is local or not defined
       return;
     }
 
@@ -87,10 +91,13 @@ export class WebSocketClient {
   private connectionParams() {
     // Send authentication in connection init
     const userId = this.context.userId;
-    if (!userId || isLocalId(userId)) return;
+    if (!userId || isLocalId(userId)) {
+      return;
+    }
 
     this._userId = userId;
     this.userIdDeferred?.resolve(userId);
+    this.userIdDeferred = null;
 
     const payload: ConnectionInitMessage['payload'] = {
       headers: {
@@ -102,6 +109,8 @@ export class WebSocketClient {
   }
 
   private connected(socket: unknown) {
+    this._connectedCount++;
+
     if (socket instanceof WebSocket) {
       this.socket = socket;
 
