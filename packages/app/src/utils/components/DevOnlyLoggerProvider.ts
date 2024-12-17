@@ -1,4 +1,5 @@
 import { lazy } from 'react';
+
 import { Passthrough } from './Passthrough';
 
 export const DevOnlyLoggerProvider = import.meta.env.PROD

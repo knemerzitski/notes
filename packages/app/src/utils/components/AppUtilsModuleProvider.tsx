@@ -6,10 +6,10 @@ import { GlobalCountProvider } from '../context/global-count';
 import { SerialModalsProvider } from '../context/serial-modals';
 import { SnackbarAlertProvider } from '../context/snackbar-alert';
 
+import { DevOnlyLoggerProvider } from './DevOnlyLoggerProvider';
 import { ShowConfirmDialogProvider } from './ShowConfirmDialogProvider';
 import { ShowSnackbarMessageProvider } from './ShowSnackbarMessageProvider';
 import { SnackbarUndoActionProvider } from './SnackbarUndoActionProvider';
-import { DevOnlyLoggerProvider } from './DevOnlyLoggerProvider';
 
 const GLOBAL_COUNT_IDS = [Fab];
 

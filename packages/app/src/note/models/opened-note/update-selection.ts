@@ -1,4 +1,5 @@
 import { ApolloCache } from '@apollo/client';
+
 import { gql, makeFragmentData } from '../../../__generated__';
 import {
   PublicUserNoteLink,

@@ -1,7 +1,7 @@
 import { useQuery } from '@apollo/client';
 
-import RemoveIcon from '@mui/icons-material/Remove';
 import CheckIcon from '@mui/icons-material/Check';
+import RemoveIcon from '@mui/icons-material/Remove';
 import {
   TableContainer,
   Paper,

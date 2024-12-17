@@ -1,7 +1,9 @@
 import { TextField } from '@mui/material';
-import { useLocalStorage } from '../../hooks/useLocalStorage';
+
 import debug from 'debug';
 import { useEffect } from 'react';
+
+import { useLocalStorage } from '../../hooks/useLocalStorage';
 
 export function DebugStorageField() {
   const [debugValue = '*', setDebugValue] = useLocalStorage<string>('debug', '*');

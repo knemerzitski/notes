@@ -11,6 +11,7 @@ import {
   literal,
   nullable,
 } from 'superstruct';
+import { Logger } from '~utils/logging';
 import {
   OrderedMessageBuffer,
   OrderedMessageBufferParams,
@@ -42,7 +43,6 @@ import {
 } from './collab-client';
 import { SubmittedRecord } from './submitted-record';
 import { UserRecords } from './user-records';
-import { Logger } from '~utils/logging';
 
 export type CollabServiceEvents = CollabClientEvents &
   Omit<OrderedMessageBufferEvents<UnprocessedRecord>, 'processingMessages'> &

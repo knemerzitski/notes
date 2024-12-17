@@ -1,9 +1,13 @@
-import { RefObject } from 'react';
-import { gql } from '../../__generated__';
 import { useQuery } from '@apollo/client';
-import { UserCollabEditingCaret } from './UserCollabEditingCaret';
-import { useNoteId } from '../context/note-id';
+import { RefObject } from 'react';
+
+import { gql } from '../../__generated__';
+
 import { UserIdProvider, useUserId } from '../../user/context/user-id';
+import { useNoteId } from '../context/note-id';
+
+import { UserCollabEditingCaret } from './UserCollabEditingCaret';
+
 
 const CollabInputUsersEditingCarets_Query = gql(`
   query CollabInputUsersEditingCarets_Query($by: NoteByInput!) {

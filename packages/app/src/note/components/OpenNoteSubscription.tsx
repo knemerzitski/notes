@@ -9,8 +9,8 @@ import { apolloClientSubscribe } from '../../graphql/utils/apollo-client-subscri
 import { useUserId } from '../../user/context/user-id';
 import { useNoteId } from '../context/note-id';
 import { useIsLocalOnlyNote } from '../hooks/useIsLocalOnlyNote';
-import { getUserNoteLinkId } from '../utils/id';
 import { setOpenedNoteActive } from '../models/opened-note/set-active';
+import { getUserNoteLinkId } from '../utils/id';
 
 export const openNoteSubscriptionOperationName = 'OpenNoteSubscription_Subscription';
 

@@ -1,5 +1,6 @@
 import { ReactNode } from '@tanstack/react-router';
 import { createLogger } from '~utils/logging';
+
 import { LoggerProvider } from '../context/logger';
 
 const logger = createLogger('react');

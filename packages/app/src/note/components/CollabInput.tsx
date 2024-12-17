@@ -1,14 +1,19 @@
+import { useQuery } from '@apollo/client';
+import { Box } from '@mui/material';
 import { ComponentType } from 'react';
 
-import { CollabInputQueryQuery, NoteTextFieldName } from '../../__generated__/graphql';
-import { SubmitSelectionChangeDebounced } from './SubmitSelectionChangeDebounced';
-import { Box } from '@mui/material';
-import { CollabInputUsersEditingCarets } from './CollabInputUsersEditingCarets';
-import { NoteTextFieldNameProvider } from '../context/note-text-field-name';
 import { gql } from '../../__generated__';
-import { useCollabHtmlInput } from '../hooks/useCollabHtmlInput';
+import { CollabInputQueryQuery, NoteTextFieldName } from '../../__generated__/graphql';
+
 import { useNoteId } from '../context/note-id';
-import { useQuery } from '@apollo/client';
+import { NoteTextFieldNameProvider } from '../context/note-text-field-name';
+
+import { useCollabHtmlInput } from '../hooks/useCollabHtmlInput';
+
+import { CollabInputUsersEditingCarets } from './CollabInputUsersEditingCarets';
+import { SubmitSelectionChangeDebounced } from './SubmitSelectionChangeDebounced';
+
+
 
 const CollabInput_Query = gql(`
   query CollabInput_Query($id: ObjectID!, $fieldName: NoteTextFieldName!) {
@@ -68,7 +73,7 @@ function NoteDefined<TInputProps>({
 
   return (
     <>
-      <SubmitSelectionChangeDebounced />
+      <SubmitSelectionChangeDebounced wait={0} />
       <Box position="relative">
         {/* @ts-expect-error Safe to spread props in normal use */}
         <Input {...InputProps} {...collabHtmlInput} />

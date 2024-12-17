@@ -1,16 +1,19 @@
+import { useApolloClient } from '@apollo/client';
 import { useEffect, useRef } from 'react';
-import { SelectionRange } from '~collab/client/selection-range';
-import { useUpdateOpenNoteSelectionRange } from '../hooks/useUpdateOpenNoteSelectionRange';
+
 import { Options, useDebouncedCallback } from 'use-debounce';
+import { SelectionRange } from '~collab/client/selection-range';
+
+import { gql } from '../../__generated__';
 import { useStatsLink } from '../../graphql/context/stats-link';
 import { useUserId } from '../../user/context/user-id';
-import { openNoteSubscriptionOperationName } from './OpenNoteSubscription';
-import { gql } from '../../__generated__';
-import { useApolloClient } from '@apollo/client';
-import { getUserNoteLinkId } from '../utils/id';
 import { useNoteId } from '../context/note-id';
-import { useNoteTextFieldEditor } from '../hooks/useNoteTextFieldEditor';
 import { useCollabService } from '../hooks/useCollabService';
+import { useNoteTextFieldEditor } from '../hooks/useNoteTextFieldEditor';
+import { useUpdateOpenNoteSelectionRange } from '../hooks/useUpdateOpenNoteSelectionRange';
+import { getUserNoteLinkId } from '../utils/id';
+
+import { openNoteSubscriptionOperationName } from './OpenNoteSubscription';
 
 const SubmitSelectionChangeDebounced_PublicUserNoteLinkFragment = gql(`
   fragment SubmitSelectionChangeDebounced_PublicUserNoteLinkFragment on PublicUserNoteLink {

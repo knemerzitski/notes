@@ -2,12 +2,12 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { Changeset } from '../changeset';
 
+import { CollabService } from '../client/collab-service';
 import { ReadonlyHistoryRecord } from '../history/collab-history';
 import { RevisionRecords } from '../records/revision-records';
 
 import { fakeServerRevisionRecord } from './helpers/populate';
 import { createHelperCollabEditingEnvironment } from './helpers/server-client';
-import { CollabService } from '../client/collab-service';
 
 function historyEntriesInfo(records: readonly ReadonlyHistoryRecord[]) {
   return records.map((e) => ({

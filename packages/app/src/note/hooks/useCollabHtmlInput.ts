@@ -1,11 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Options, useDebouncedCallback } from 'use-debounce';
 
+import { CollabService } from '~collab/client/collab-service';
 import { SelectionRange } from '~collab/client/selection-range';
 
-import { useHtmlInput } from './useHtmlInput';
-import { CollabService } from '~collab/client/collab-service';
 import { NoteTextFieldEditor } from '../external-state/note';
+
+import { useHtmlInput } from './useHtmlInput';
 
 interface UseHTMLInputCollabEditorOptions {
   merge?: {

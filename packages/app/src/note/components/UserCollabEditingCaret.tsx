@@ -1,16 +1,22 @@
 import { useApolloClient, useFragment } from '@apollo/client';
-import { gql } from '../../__generated__';
-import { useNoteId } from '../context/note-id';
-import { useUserId } from '../../user/context/user-id';
-import { getUserNoteLinkId } from '../utils/id';
+
 import { RefObject, useState, useRef, useEffect } from 'react';
+
 import { SelectionRange } from '~collab/client/selection-range';
+
+import { gql } from '../../__generated__';
+import { useUserId } from '../../user/context/user-id';
+import { useLogger } from '../../utils/context/logger';
 import { stringToColor } from '../../utils/string-to-color';
-import { getCollabTextRecords } from '../models/record-connection/get';
-import { InputCaret } from './InputCaret';
+import { useNoteId } from '../context/note-id';
 import { useCollabService } from '../hooks/useCollabService';
 import { useNoteTextFieldEditor } from '../hooks/useNoteTextFieldEditor';
-import { useLogger } from '../../utils/context/logger';
+import { getCollabTextRecords } from '../models/record-connection/get';
+import { getUserNoteLinkId } from '../utils/id';
+
+
+import { InputCaret } from './InputCaret';
+
 
 const UserCollabEditingCaret_PublicUserNoteLinkFragment = gql(`
   fragment UserCollabEditingCaret_PublicUserNoteLinkFragment on PublicUserNoteLink {

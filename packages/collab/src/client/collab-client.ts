@@ -2,9 +2,10 @@ import mitt, { Emitter } from 'mitt';
 
 import { object } from 'superstruct';
 
+import { Logger } from '~utils/logging';
+
 import { Changeset } from '../changeset';
 import { OptionalChangesetStruct } from '../changeset/struct';
-import { Logger } from '~utils/logging';
 
 export interface CollabClientEvents {
   viewChanged: Readonly<{

@@ -1,4 +1,3 @@
-import getCaretCoordinates from 'textarea-caret';
 import { Box, BoxProps, css, styled } from '@mui/material';
 import {
   forwardRef,
@@ -8,6 +7,8 @@ import {
   useRef,
   useState,
 } from 'react';
+import getCaretCoordinates from 'textarea-caret';
+
 import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
 
 /**

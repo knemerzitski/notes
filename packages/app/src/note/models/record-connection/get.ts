@@ -1,4 +1,5 @@
 import { ApolloCache } from '@apollo/client';
+
 import { getFragmentData, gql } from '../../../__generated__';
 import {
   GetCollabTextRecordsQueryQueryVariables,

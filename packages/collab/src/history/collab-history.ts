@@ -12,6 +12,7 @@ import {
   unknown,
 } from 'superstruct';
 
+import { Logger } from '~utils/logging';
 import { Maybe, ReadonlyDeep } from '~utils/types';
 
 import { Changeset, ChangesetStruct } from '../changeset';
@@ -30,7 +31,6 @@ import { SimpleTextOperationOptions, SelectionChangeset } from '../types';
 
 import { processExternalChange } from './process-external-change';
 import { processRecordsUnshift } from './process-records-unshift';
-import { Logger } from '~utils/logging';
 
 export interface CollabHistoryEvents {
   appliedTypingOperation: ReadonlyDeep<
