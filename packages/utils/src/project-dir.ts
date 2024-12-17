@@ -3,6 +3,11 @@ import { join } from 'node:path';
 
 const thisOrTranspiledFileDir = import.meta.dirname;
 
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+if (thisOrTranspiledFileDir === undefined) {
+  throw new Error(`Please use Node v22.0.0 or higher. Run command "nvm use""`);
+}
+
 /**
  * Looks for nearest ancestor with `.git` directory
  * @returns Absolute path to project ROOT directory
