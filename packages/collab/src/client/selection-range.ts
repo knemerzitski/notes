@@ -148,7 +148,7 @@ export namespace SelectionRange {
   export function isEqual(a?: Partial<SelectionRange>, b?: Partial<SelectionRange>) {
     if (!a && !b) return true;
     if (a && b) {
-      return a.start === b.start && (a.end ?? a.start) === (b.end && b.start);
+      return a.start === b.start && (a.end ?? a.start) === (b.end ?? b.start);
     }
     return false;
   }
