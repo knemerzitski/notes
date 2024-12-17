@@ -1,11 +1,11 @@
-import { Changeset } from '../changeset';
+import { Logger } from '~utils/logging';
+import { Changeset, ChangesetOperationError } from '../changeset';
 import { swapChangesets } from '../changeset/swap-changesets';
 import { CollabClient } from '../client/collab-client';
 import { SelectionRange } from '../client/selection-range';
 import { TextMemoRecords } from '../records/text-memo-records';
 
 import { ReadonlyHistoryRecord } from './collab-history';
-
 
 export interface CollabHistoryContext {
   readonly serverIndex: number;
@@ -33,7 +33,10 @@ export interface CollabHistoryContext {
  */
 export function processExternalChange(
   changeset: Changeset,
-  history: CollabHistoryContext
+  history: CollabHistoryContext,
+  options?: {
+    logger?: Logger;
+  }
 ) {
   // [0, serverIndex]
   const newBeforeRecords: ReadonlyHistoryRecord[] = [];
@@ -47,6 +50,7 @@ export function processExternalChange(
   const serverIndex = history.serverIndex;
   if (serverIndex >= 0) {
     let swapChangeset = changeset;
+    const logRecords: string[] = [];
     for (let i = serverIndex; i >= 0; i--) {
       const record = history.records.at(i);
       if (!record) {
@@ -75,6 +79,12 @@ export function processExternalChange(
       );
 
       swapChangeset = nextSwapChangeset;
+
+      if (options?.logger) {
+        logRecords.push(
+          `${record.changeset.toString()} => ${modifiedRecordValue.changeset.toString()}`
+        );
+      }
     }
 
     newBeforeRecords.reverse();
@@ -82,9 +92,25 @@ export function processExternalChange(
     const currentTransform = history.serverTailTextTransformToRecordsTailText;
 
     newTailText = history.records.tailText.compose(swapChangeset);
-    newServerTailTextTransformToRecordsTailText = currentTransform
-      ? currentTransform.compose(swapChangeset)
-      : swapChangeset;
+
+    try {
+      newServerTailTextTransformToRecordsTailText = currentTransform
+        ? currentTransform.compose(swapChangeset)
+        : swapChangeset;
+    } catch (err) {
+      if (err instanceof ChangesetOperationError && options?.logger) {
+        console.error(err.message);
+        
+        options.logger.error('processExternalChange.invalidTransform', {
+          changeset: changeset.toString(),
+          records: logRecords,
+          currentTransform: currentTransform?.toString(),
+          swapChangeset: swapChangeset.toString(),
+        });
+      } else {
+        throw err;
+      }
+    }
   } else {
     newTailText = history.client.server;
   }
