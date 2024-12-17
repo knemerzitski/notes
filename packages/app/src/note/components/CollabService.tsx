@@ -16,6 +16,14 @@ import { SyncHeadText } from './SyncHeadText';
 import { SyncMissingRecords } from './SyncMissingRecords';
 import { UnsavedCollabServiceTracker } from './UnsavedCollabServiceTracker';
 
+interface CollabServiceProps {
+  /**
+   * Note is visibly open
+   * @default false
+   */
+  visible?: boolean;
+}
+
 /**
  * Run events related to CollabService:
  * - Keep track if CollabService is out of date.
@@ -24,31 +32,40 @@ import { UnsavedCollabServiceTracker } from './UnsavedCollabServiceTracker';
  * - Fetch missing records
  * - Restore history
  */
-export function CollabService() {
+export function CollabService(props: CollabServiceProps) {
   return (
     <NoteSingleton>
-      <Run />
+      <Run {...props} />
     </NoteSingleton>
   );
 }
 
-function Run() {
+function Run(props: CollabServiceProps) {
   const isLocalOnlyUser = useIsLocalOnlyUser();
   const isLocalOnlyNote = useIsLocalOnlyNote();
 
   const isLocalOnly = isLocalOnlyUser || isLocalOnlyNote;
 
+  const isVisible = props.visible ?? false;
+
   return (
     <>
       <Base />
-      {isLocalOnly ? <Local /> : <Remote />}
+      {isLocalOnly ? (
+        <Local />
+      ) : (
+        <>
+          <Remote />
+          {isVisible && <RemoteOpen />}
+        </>
+      )}
     </>
   );
 }
 
-const renderNoteIds = new Set();
+const lockedNoteIds = new Set();
 const eventBus = mitt<{
-  rerender: true;
+  lockReleased: true;
 }>();
 
 /**
@@ -56,29 +73,44 @@ const eventBus = mitt<{
  */
 function NoteSingleton({ children }: { children: ReactNode }) {
   const noteId = useNoteId();
-  const [_, renderCounter] = useState(0);
+  const [hasLock, setHasLock] = useState(false);
 
+  // Acquire lock
   useEffect(() => {
-    const eventBusOff = eventBus.on('rerender', () => {
-      renderCounter((prev) => prev + 1);
-    });
+    function acquireLock() {
+      if (lockedNoteIds.has(noteId)) {
+        return false;
+      }
 
-    if (renderNoteIds.has(noteId)) {
-      return () => {
-        eventBusOff();
-      };
+      lockedNoteIds.add(noteId);
+      setHasLock(true);
+      return true;
     }
 
-    renderNoteIds.add(noteId);
+    acquireLock();
 
-    return () => {
-      eventBusOff();
-      renderNoteIds.delete(noteId);
-      eventBus.emit('rerender', true);
-    };
+    return eventBus.on('lockReleased', () => {
+      acquireLock();
+    });
   }, [noteId]);
 
-  if (renderNoteIds.has(noteId)) {
+  // Release lock
+  useEffect(() => {
+    if (!hasLock) {
+      return;
+    }
+
+    function releaseLock() {
+      lockedNoteIds.delete(noteId);
+      eventBus.emit('lockReleased', true);
+    }
+
+    return () => {
+      releaseLock();
+    };
+  }, [noteId, hasLock]);
+
+  if (!hasLock) {
     return null;
   }
 
@@ -107,6 +139,16 @@ function Remote() {
       <SyncHeadText />
       <SyncMissingRecords />
       <HistoryRestoration />
+    </>
+  );
+}
+
+/**
+ * Logic when note is visibly open
+ */
+function RemoteOpen() {
+  return (
+    <>
       <OpenNoteSubscription />
     </>
   );
