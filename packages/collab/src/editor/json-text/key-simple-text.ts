@@ -4,7 +4,12 @@ import { isDefined } from '~utils/type-guards/is-defined';
 import { Changeset, InsertStrip, RetainStrip, Strip } from '../../changeset';
 import { CollabService, CollabServiceEvents } from '../../client/collab-service';
 import { SelectionRange } from '../../client/selection-range';
-import { SimpleText, SimpleTextEvents, SimpleTextOperationOptions } from '../../types';
+import {
+  SharedSimpleTextEvents,
+  SimpleText,
+  SimpleTextEvents,
+  SimpleTextOperationOptions,
+} from '../../types';
 
 import { StructJsonFormatter } from './struct-json-formatter';
 import { KeyViewText } from './types';
@@ -14,6 +19,8 @@ export class KeySimpleText implements SimpleText {
   get eventBus(): Pick<Emitter<SimpleTextEvents>, 'on' | 'off'> {
     return this._eventBus;
   }
+
+  readonly sharedEventBus: Emitter<SharedSimpleTextEvents> = mitt();
 
   private readonly service;
 
@@ -94,20 +101,36 @@ export class KeySimpleText implements SimpleText {
     }
 
     // JSON to text
-    const selectionStartText = this.formatter.parseString(
-      this.service.viewText.slice(this.view.jsonValueOffset, selection.start)
-    );
-    const selectedText = this.formatter.parseString(
-      this.service.viewText.slice(selection.start, selection.end)
-    );
+    try {
+      const selectionStartText = this.formatter.parseString(
+        this.service.viewText.slice(this.view.jsonValueOffset, selection.start)
+      );
+      const selectedText = this.formatter.parseString(
+        this.service.viewText.slice(selection.start, selection.end)
+      );
 
-    const start = selectionStartText.length;
+      const start = selectionStartText.length;
       selection = {
-      start,
-      end: start + selectedText.length,
+        start,
+        end: start + selectedText.length,
       };
 
       return selection;
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        // Parsing viewText failed most likely due to slicing newline character in between \\n (2 chars)
+        // In that case log error and return no selection.
+        console.error(err, {
+          viewText: this.service.viewText,
+          slice: this.service.viewText.slice(this.view.jsonValueOffset, selection.start),
+          args: {
+            selection,
+          },
+        });
+        return;
+      }
+      throw err;
+    }
   }
 
   serviceSelectionChanged(selection: SelectionRange) {
@@ -118,7 +141,11 @@ export class KeySimpleText implements SimpleText {
 
     this._eventBus.emit('selectionChanged', editorSelection);
 
-
+    this.sharedEventBus.emit('selectionChanged', {
+      editor: this,
+      selection: editorSelection,
+      source: 'mutable',
+    });
   }
 
   serviceHandledExternalChange(payload: CollabServiceEvents['handledExternalChanges']) {
