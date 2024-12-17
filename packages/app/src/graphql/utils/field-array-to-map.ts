@@ -72,7 +72,6 @@ export function fieldArrayToMap<
               from: incomingEntry,
               fieldName: keyName,
             });
-            console.log('readKey', readKey);
             if (!readKey) return;
             // eslint-disable-next-line @typescript-eslint/no-base-to-string
             keyValue = String(readKey) as TKeyValue;

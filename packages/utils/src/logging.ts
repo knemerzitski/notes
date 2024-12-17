@@ -2,7 +2,8 @@ import debug, { Debugger } from 'debug';
 
 import { isObjectLike } from './type-guards/is-object-like';
 
-function getProcess() {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getProcess(): any {
   if (typeof process !== 'undefined') {
     return process;
   }
@@ -20,7 +21,8 @@ function createLoggerContext() {
     delimiter: ':',
     plain: '%s',
     withObjectData:
-      (getProcess().env.DEBUG_FORMAT ?? 'json') === 'object' ? '%s %O' : '%s %j',
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      (getProcess()?.env?.DEBUG_FORMAT ?? 'json') === 'object' ? '%s %O' : '%s %j',
     withPlainData: '%s %s',
   } as const;
 }

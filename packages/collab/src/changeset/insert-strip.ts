@@ -86,8 +86,7 @@ export class InsertStrip extends Strip {
   }
 
   toString() {
-    // ' better for JSON.stringify, less escaped characters
-    return `'${this.value}'`;
+    return `"${this.value}"`;
   }
 
   serialize() {
