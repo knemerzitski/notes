@@ -9,23 +9,26 @@ import { SnackbarAlertProvider } from '../context/snackbar-alert';
 import { ShowConfirmDialogProvider } from './ShowConfirmDialogProvider';
 import { ShowSnackbarMessageProvider } from './ShowSnackbarMessageProvider';
 import { SnackbarUndoActionProvider } from './SnackbarUndoActionProvider';
+import { DevOnlyLoggerProvider } from './DevOnlyLoggerProvider';
 
 const GLOBAL_COUNT_IDS = [Fab];
 
 export function AppUtilsModuleProvider({ children }: { children: ReactNode }) {
   return (
-    <GlobalCountProvider ids={GLOBAL_COUNT_IDS}>
-      <SerialModalsProvider>
-        <SnackbarAlertProvider>
-          <ShowSnackbarMessageProvider>
-            <SnackbarUndoActionProvider>
-              <ShowConfirmDialogProvider>
-                <BlockUiProvider>{children}</BlockUiProvider>
-              </ShowConfirmDialogProvider>
-            </SnackbarUndoActionProvider>
-          </ShowSnackbarMessageProvider>
-        </SnackbarAlertProvider>
-      </SerialModalsProvider>
-    </GlobalCountProvider>
+    <DevOnlyLoggerProvider>
+      <GlobalCountProvider ids={GLOBAL_COUNT_IDS}>
+        <SerialModalsProvider>
+          <SnackbarAlertProvider>
+            <ShowSnackbarMessageProvider>
+              <SnackbarUndoActionProvider>
+                <ShowConfirmDialogProvider>
+                  <BlockUiProvider>{children}</BlockUiProvider>
+                </ShowConfirmDialogProvider>
+              </SnackbarUndoActionProvider>
+            </ShowSnackbarMessageProvider>
+          </SnackbarAlertProvider>
+        </SerialModalsProvider>
+      </GlobalCountProvider>
+    </DevOnlyLoggerProvider>
   );
 }
