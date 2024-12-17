@@ -1,6 +1,7 @@
 import { DashCard } from './DashCard';
 import { CacheGcButton } from './global/CacheGcButton';
 import { CurrentUserId } from './global/CurrentUserId';
+import { DebugStorageField } from './global/DebugStorageField';
 import { ExcludedConnectionNotesTable } from './global/ExcludedConnectionNotesTable';
 import { OngoingOperationsByNameList } from './global/OngoingOperationsByNameList';
 import { OngoingOperationsCountsByTypeTable } from './global/OngoingOperationsCountsByTypeTable';
@@ -12,6 +13,10 @@ import { UnsavedCollabServiceNotesTable } from './global/UnsavedCollabServiceNot
 export function GlobalDashCards() {
   return (
     <>
+      <DashCard label="Debug Logging">
+        <DebugStorageField />
+      </DashCard>
+
       <DashCard label="User Id">
         <CurrentUserId />
       </DashCard>
