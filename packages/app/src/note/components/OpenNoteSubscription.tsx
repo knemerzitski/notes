@@ -2,7 +2,6 @@ import { useApolloClient } from '@apollo/client';
 
 import { useEffect } from 'react';
 
-
 import { gql } from '../../__generated__';
 import { useGetMutationUpdaterFn } from '../../graphql/context/get-mutation-updater-fn';
 import { GlobalOperationVariables } from '../../graphql/types';
@@ -10,8 +9,10 @@ import { apolloClientSubscribe } from '../../graphql/utils/apollo-client-subscri
 import { useUserId } from '../../user/context/user-id';
 import { useNoteId } from '../context/note-id';
 import { useIsLocalOnlyNote } from '../hooks/useIsLocalOnlyNote';
-import { evictOpenedNote } from '../models/note/evict-open';
 import { getUserNoteLinkId } from '../utils/id';
+import { setOpenedNoteActive } from '../models/opened-note/set-active';
+
+export const openNoteSubscriptionOperationName = 'OpenNoteSubscription_Subscription';
 
 const OpenNoteSubscription_Subscription = gql(`
   subscription OpenNoteSubscription_Subscription($noteId: ObjectID!) {
@@ -84,7 +85,7 @@ function Subscription() {
         subscription.unsubscribe();
       });
 
-      evictOpenedNote(getUserNoteLinkId(noteId, userId), client.cache);
+      setOpenedNoteActive(getUserNoteLinkId(noteId, userId), false, client.cache);
     };
   }, [client, getMutationUpdaterFn, noteId, userId]);
 

@@ -11,7 +11,7 @@ export function CollabInputs({
 }) {
   return (
     <>
-      <CollabService />
+      <CollabService visible={true} />
       <CollabTitleInput {...CollabTitleInputProps} />
       <CollabContentInput {...CollabContentInputProps} />
     </>
