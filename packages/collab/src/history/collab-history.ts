@@ -26,11 +26,11 @@ import { UserRecords } from '../client/user-records';
 import { ComposableRecordsFacade } from '../records/composable-records-facade';
 import { RevisionChangeset, SubmittedRevisionRecord } from '../records/record';
 import { TextMemoRecords } from '../records/text-memo-records';
-import { SimpleTextOperationOptions , SelectionChangeset } from '../types';
+import { SimpleTextOperationOptions, SelectionChangeset } from '../types';
 
 import { processExternalChange } from './process-external-change';
 import { processRecordsUnshift } from './process-records-unshift';
-
+import { Logger } from '~utils/logging';
 
 export interface CollabHistoryEvents {
   appliedTypingOperation: ReadonlyDeep<
@@ -59,7 +59,6 @@ export interface CollabHistoryEvents {
   }>;
 }
 
- 
 const HistoryRecordStruct = object({
   changeset: ChangesetStruct,
   afterSelection: SelectionRangeStruct,
@@ -155,6 +154,7 @@ export type HistoryRestoreEntry =
     } & ReadonlyHistoryRecord);
 
 export interface CollabHistoryOptions {
+  logger?: Logger;
   eventBus?: Emitter<CollabHistoryEvents>;
   client?: CollabClient;
   records?: ReadonlyHistoryRecord[];
@@ -165,6 +165,8 @@ export interface CollabHistoryOptions {
 }
 
 export class CollabHistory {
+  private readonly logger;
+
   private readonly _eventBus: Emitter<CollabHistoryEvents>;
   get eventBus(): Pick<Emitter<CollabHistoryEvents>, 'on' | 'off'> {
     return this._eventBus;
@@ -215,6 +217,8 @@ export class CollabHistory {
   private readonly eventsOff: (() => void)[];
 
   constructor(options?: CollabHistoryOptions) {
+    this.logger = options?.logger;
+
     this._eventBus = options?.eventBus ?? mitt();
     this.client = options?.client ?? new CollabClient();
 
@@ -226,7 +230,9 @@ export class CollabHistory {
       records: options?.records,
       tailText: options?.recordsTailText ?? this.client.server,
     });
-    this.modifyRecords = new ComposableRecordsFacade(this.readonlyRecords);
+    this.modifyRecords = new ComposableRecordsFacade(this.readonlyRecords, {
+      logger: options?.logger?.extend('modifyRecords'),
+    });
 
     this._serverTailRevision = options?.serverTailRevision ?? 0;
 
@@ -239,14 +245,25 @@ export class CollabHistory {
     this.eventsOff = [
       this.client.eventBus.on('submitChanges', () => {
         this.lastExecutedIndex.submitted = this.lastExecutedIndex.local;
+        this.logger?.info('event:submitChanges', {
+          lastExecutedIndex: this.lastExecutedIndex,
+        });
       }),
       this.client.eventBus.on('submittedChangesAcknowledged', () => {
         this.lastExecutedIndex.server = this.lastExecutedIndex.submitted;
+        this.logger?.info('event:submittedChangesAcknowledged', {
+          lastExecutedIndex: this.lastExecutedIndex,
+        });
       }),
       this.client.eventBus.on('handledExternalChange', ({ externalChange }) => {
+        this.logger?.info('event:handledExternalChange', {
+          externalChange: externalChange.toString(),
+        });
         this.processExternalChange(externalChange);
       }),
     ];
+
+    this.logState('constructor');
   }
 
   reset(options?: Pick<CollabHistoryOptions, 'serverTailRevision'>) {
@@ -261,6 +278,8 @@ export class CollabHistory {
       submitted: -1,
       local: -1,
     };
+
+    this.logState('reset');
   }
 
   /**
@@ -370,6 +389,12 @@ export class CollabHistory {
         this.mergeRecords(localIndex, afterLocalIndex);
       }
     }
+
+    this.logState('pushSelectionChangeset', {
+      args: {
+        changeset: value.changeset.toString(),
+      },
+    });
   }
 
   restoreFromUserRecords(
@@ -440,6 +465,19 @@ export class CollabHistory {
    * @param entries Text entries.
    */
   private recordsUnshift(tailText: RevisionChangeset, entries: HistoryRestoreEntry[]) {
+    this.logState('recordsUnshift:before', {
+      args: {
+        tailText: {
+          revision: tailText.revision,
+          changeset: tailText.changeset.toString(),
+        },
+        entries: entries.map((e) => ({
+          type: e.type,
+          changeset: e.changeset.toString(),
+        })),
+      },
+    });
+
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const _this = this;
     const beforeRecordsCount = this.readonlyRecords.length;
@@ -469,6 +507,8 @@ export class CollabHistory {
     this.lastExecutedIndex.server += addedEntriesCount;
     this.lastExecutedIndex.submitted += addedEntriesCount;
     this.lastExecutedIndex.local += addedEntriesCount;
+
+    this.logState('recordsUnshift:after');
 
     return addedEntriesCount;
   }
@@ -534,6 +574,12 @@ export class CollabHistory {
   }
 
   private processExternalChange(changeset: Changeset) {
+    this.logState('processExternalChange:before', {
+      args: {
+        changeset: changeset.toString(),
+      },
+    });
+
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const _this = this;
     processExternalChange(changeset, {
@@ -561,6 +607,8 @@ export class CollabHistory {
     });
 
     this.deleteIdentityRecords();
+
+    this.logState('processExternalChange:after');
   }
 
   private entryAtIndexDeleted(index: number) {
@@ -611,6 +659,13 @@ export class CollabHistory {
       this.entryAtIndexDeleted(i);
     }
 
+    this.logState('mergeRecords', {
+      args: {
+        startIndex,
+        endIndex,
+      },
+    });
+
     return true;
   }
 
@@ -636,6 +691,12 @@ export class CollabHistory {
     for (let i = count - 1; i >= 0; i--) {
       this.entryAtIndexDeleted(i);
     }
+
+    this.logState('mergeToRecordsTailText', {
+      args: {
+        count,
+      },
+    });
   }
   /**
    * Deletes identity records. A record is considered identity if composing it does nothing.
@@ -667,6 +728,12 @@ export class CollabHistory {
         lastExecutedIndex: this.lastExecutedIndex,
       });
 
+      this.logState('serialize', {
+        args: {
+          keepServerRecords,
+        },
+        output: result,
+      });
 
       return result;
     }
@@ -687,8 +754,29 @@ export class CollabHistory {
         local: this.lastExecutedIndex.local - keepRecordIndex,
       },
     });
+
+    this.logState('serialize', {
+      args: {
+        keepServerRecords,
+      },
+      output: result,
+    });
+
     return result;
   }
+
+  private logState(message: string, data?: Record<string, unknown>) {
+    this.logger?.info(message, {
+      ...data,
+      state: {
+        serverTailRevision: this._serverTailRevision,
+        lastExecutedIndex: this.lastExecutedIndex,
+        tailText: this.readonlyRecords.tailText.toString(),
+        records: this.readonlyRecords.items.map((r) => r.changeset.toString()),
+        serverTailTextTransformToRecordsTailText:
+          this.serverTailTextTransformToRecordsTailText?.toString(),
+      },
+    });
   }
 
   static parseValue(

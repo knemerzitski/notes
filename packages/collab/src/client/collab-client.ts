@@ -4,6 +4,7 @@ import { object } from 'superstruct';
 
 import { Changeset } from '../changeset';
 import { OptionalChangesetStruct } from '../changeset/struct';
+import { Logger } from '~utils/logging';
 
 export interface CollabClientEvents {
   viewChanged: Readonly<{
@@ -64,6 +65,8 @@ export const CollabClientOptionsStruct = object({
 });
 
 export interface CollabClientOptions {
+  logger?: Logger;
+
   eventBus?: Emitter<CollabClientEvents>;
 
   server?: Changeset;
@@ -73,6 +76,8 @@ export interface CollabClientOptions {
 }
 
 export class CollabClient {
+  private readonly logger;
+
   private readonly _eventBus: Emitter<CollabClientEvents>;
   get eventBus(): Pick<Emitter<CollabClientEvents>, 'on' | 'off'> {
     return this._eventBus;
@@ -99,6 +104,8 @@ export class CollabClient {
   }
 
   constructor(options?: CollabClientOptions) {
+    this.logger = options?.logger;
+
     this._eventBus = options?.eventBus ?? mitt();
 
     this.reset(options);
@@ -116,6 +123,8 @@ export class CollabClient {
       change: this._server,
       source: ChangeSource.RESET,
     });
+
+    this.logState('reset');
   }
 
   private getSubmittedView() {
@@ -150,6 +159,11 @@ export class CollabClient {
       if (!hadLocalChanges && this.haveLocalChanges()) {
         this._eventBus.emit('haveLocalChanges', { local: newLocal });
       }
+      this.logState('composeLocalChange', {
+        args: {
+          change: change.toString(),
+        },
+      });
     }
   }
 
@@ -179,6 +193,8 @@ export class CollabClient {
 
     this._eventBus.emit('submitChanges');
 
+    this.logState('submitChanges');
+
     return true;
   }
 
@@ -193,6 +209,9 @@ export class CollabClient {
     this._submitted = this._server.getIdentity();
 
     this._eventBus.emit('submittedChangesAcknowledged');
+
+    this.logState('submittedChangesAcknowledged');
+
     return true;
   }
 
@@ -247,6 +266,12 @@ export class CollabClient {
 
     this._eventBus.emit('handledExternalChange', event);
 
+    this.logState('handleExternalChange', {
+      args: {
+        external: external.toString(),
+      },
+    });
+
     return event;
   }
 
@@ -260,5 +285,15 @@ export class CollabClient {
 
   static parseValue(value: unknown): CollabClientOptions {
     return CollabClientOptionsStruct.create(value);
+  }
+
+  private logState(message: string, data?: Record<string, unknown>) {
+    this.logger?.info(message, {
+      ...data,
+      server: this._server.toString(),
+      submitted: this._submitted.toString(),
+      local: this._local.toString(),
+      view: this._view.toString(),
+    });
   }
 }
