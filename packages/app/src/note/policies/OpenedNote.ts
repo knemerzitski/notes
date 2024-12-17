@@ -13,6 +13,11 @@ export const OpenedNote: CreateTypePolicyFn = function (_ctx: TypePoliciesContex
         },
         merge: true,
       },
+      active(existing, { readField }) {
+        const closedAt = readField('closedAt');
+        existing = existing ?? closedAt != null;
+        return existing;
+      },
     },
   };
 };

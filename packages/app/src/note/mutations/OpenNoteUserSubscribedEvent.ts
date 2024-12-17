@@ -1,6 +1,7 @@
 import { gql } from '../../__generated__';
 import { mutationDefinition } from '../../graphql/utils/mutation-definition';
 import { addUserToNote } from '../models/note/add-user';
+import { setOpenedNoteActive } from '../models/opened-note/set-active';
 
 export const OpenNoteUserSubscribedEvent = mutationDefinition(
   gql(`
@@ -34,5 +35,8 @@ export const OpenNoteUserSubscribedEvent = mutationDefinition(
       },
       cache
     );
+
+    // Note opened note flag
+    setOpenedNoteActive(data.publicUserNoteLink.id, true, cache);
   }
 );
