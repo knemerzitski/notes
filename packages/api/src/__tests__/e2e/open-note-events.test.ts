@@ -324,15 +324,23 @@ it('subscribes to noteEditorEvents and receives initial selection and updates', 
   await user2.setSelectionStart(4);
 
   expect(user1.events).toStrictEqual([
-    { type: 'subscribed', userId: objectIdToStr(opApi1.user._id) },
-    { type: 'subscribed', userId: objectIdToStr(opApi2.user._id) },
+    // user 1 subscribed 
+    { type: 'subscribed', userId: objectIdToStr(opApi1.user._id) }, // self
+    // user 2 subscribed
+    { type: 'subscribed', userId: objectIdToStr(opApi2.user._id) }, // global
+    // selection change
     { type: 'selection_updated', start: 2 },
+    // selection change
     { type: 'selection_updated', start: 4 },
   ]);
   expect(user2.events).toStrictEqual([
-    { type: 'subscribed', userId: objectIdToStr(opApi1.user._id) },
-    { type: 'subscribed', userId: objectIdToStr(opApi2.user._id) },
-    { type: 'initial_selection_updated', start: 1 },
+    // user 1 subscribed
+    { type: 'subscribed', userId: objectIdToStr(opApi1.user._id) }, // global
+    // user 2 subscribed, state of all connected users
+    { type: 'subscribed', userId: objectIdToStr(opApi2.user._id) }, // self
+    { type: 'subscribed', userId: objectIdToStr(opApi1.user._id) }, // other
+    { type: 'initial_selection_updated', start: 1 }, // other
+    // selection change
     { type: 'selection_updated', start: 3 },
   ]);
 });

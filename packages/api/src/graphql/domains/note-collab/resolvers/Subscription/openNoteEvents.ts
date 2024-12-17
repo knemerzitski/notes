@@ -5,7 +5,7 @@ import { PublisherOptions } from '~lambda-graphql/pubsub/publish';
 import { isDefined } from '~utils/type-guards/is-defined';
 
 import { QueryableNoteUser } from '../../../../../mongodb/loaders/note/descriptions/note';
-import { createMapQueryFn, createValueQueryFn } from '../../../../../mongodb/query/query';
+import { createMapQueryFn } from '../../../../../mongodb/query/query';
 import { OpenNoteSchema } from '../../../../../mongodb/schema/open-note';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { withTransaction } from '../../../../../mongodb/utils/with-transaction';
@@ -53,6 +53,7 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
           users: {
             _id: 1,
             openNote: {
+              expireAt: 1,
               clients: {
                 connectionId: 1,
                 subscriptionId: 1,
@@ -168,7 +169,7 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
         );
 
         await Promise.all([
-          // Only when opening note the first time
+          // Only when opening note for the first time
           ...(!hasCurrentConnectionAlreadyOpenedNote
             ? [
                 // Remember that current user has opened the note
@@ -196,54 +197,123 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
                     upsert: true,
                   }
                 ),
-                // Let every other user know that current user has opened the note
-                ...getNoteUsersIds(note).map((userId) =>
-                  publishSignedInUserMutation(userId, subscribedPayload, ctx)
-                ),
+                // Let all users know that current user has opened the note, except current user
+                // Mutations published to current user are below
+                ...getNoteUsersIds(note).map((userId) => {
+                  if (userId.equals(currentUserId)) {
+                    return;
+                  }
+                  return publishSignedInUserMutation(userId, subscribedPayload, ctx);
+                }),
               ]
             : []),
           // Send all other users open note state to current user
           publishSignedInUserMutations(
             currentUserId,
             [
-              // Let user know that subscription has been processed
+              // TODO "fix(api): openNoteEvents send current user others info"
+              // Let current user know that subscription has been processed
               subscribedPayload,
+              // Let current user know who else has opened the note and their state
               ...note.users
-                .map((noteUser) => {
-                  if (!noteUser.openNote?.collabText) return;
+                .flatMap((noteUser) => {
+                  if (noteUser._id.equals(currentUserId)) {
+                    return;
+                  }
+
+                  const userId = noteUser._id;
                   const openNote = noteUser.openNote;
 
-                  return {
-                    __typename: 'UpdateOpenNoteSelectionRangePayload' as const,
-                    collabTextEditing: {
-                      query: createValueQueryFn<
-                        NonNullable<
-                          NonNullable<QueryableNoteUser['openNote']>['collabText']
-                        >
-                      >(() => openNote.collabText),
+                  if (!openNote) {
+                    return;
+                  }
+
+                  const otherUserQuery = mongoDB.loaders.user.createQueryFn({
+                    userId,
+                  });
+
+                  const otherUserNoteQuery = createMapQueryFn(
+                    noteQuery
+                  )<QueryableNoteUser>()(
+                    (query) => {
+                      return {
+                        users: {
+                          ...query,
+                          _id: 1,
+                        },
+                      };
                     },
-                    openedNote: {
-                      query: createValueQueryFn<
-                        NonNullable<NonNullable<QueryableNoteUser['openNote']>>
-                      >(() => openNote),
+                    (note) => {
+                      return findNoteUserMaybe(userId, note);
+                    }
+                  );
+
+                  const openedNoteQuery = createMapQueryFn(otherUserNoteQuery)<
+                    QueryableNoteUser['openNote']
+                  >()(
+                    (query) => {
+                      return {
+                        openNote: {
+                          ...query,
+                        },
+                        _id: 1,
+                      };
                     },
-                    publicUserNoteLink: {
-                      noteId,
-                      query: userNoteQuery,
+                    (noteUser) => noteUser.openNote
+                  );
+
+                  const collabTextEditingQuery = createMapQueryFn(openedNoteQuery)<
+                    NonNullable<QueryableNoteUser['openNote']>['collabText']
+                  >()(
+                    (query) => {
+                      return {
+                        collabText: {
+                          ...query,
+                        },
+                      };
                     },
-                    collabText: {
-                      id: CollabText_id_fromNoteQueryFn(noteQuery),
-                      query: mapNoteToCollabTextQueryFn(noteQuery),
-                    },
-                    user: {
-                      query: mongoDB.loaders.user.createQueryFn({
-                        userId: noteUser._id,
-                      }),
-                    },
-                    note: {
-                      query: noteQuery,
-                    },
-                  };
+                    (openNote) => openNote.collabText
+                  );
+
+                  return [
+                    {
+                      __typename: 'OpenNoteUserSubscribedEvent',
+                      publicUserNoteLink: {
+                        noteId,
+                        query: otherUserNoteQuery,
+                      },
+                      user: {
+                        query: otherUserQuery,
+                      },
+                      note: {
+                        query: noteQuery,
+                      },
+                    } satisfies ResolversTypes['SignedInUserMutation'],
+                    ...(openNote.collabText
+                      ? [
+                          {
+                            __typename: 'UpdateOpenNoteSelectionRangePayload',
+                            collabTextEditing: {
+                              query: collabTextEditingQuery,
+                            },
+                            openedNote: {
+                              query: openedNoteQuery,
+                            },
+                            publicUserNoteLink: {
+                              noteId,
+                              query: otherUserNoteQuery,
+                            },
+                            collabText: {
+                              id: CollabText_id_fromNoteQueryFn(noteQuery),
+                              query: mapNoteToCollabTextQueryFn(noteQuery),
+                            },
+                            note: {
+                              query: noteQuery,
+                            },
+                          } satisfies ResolversTypes['UpdateOpenNoteSelectionRangePayload'],
+                        ]
+                      : []),
+                  ];
                 })
                 .filter(isDefined),
             ],
