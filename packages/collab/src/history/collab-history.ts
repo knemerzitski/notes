@@ -654,39 +654,41 @@ export class CollabHistory {
     }
   }
 
-  serialize(keepServerEntries = false) {
-    let records = this.readonlyRecords.slice();
-    let lastExecutedIndex = this.lastExecutedIndex;
-    if (!keepServerEntries) {
-      const offset = this.lastExecutedIndex.server + 1;
-      records = records.slice(offset);
-      lastExecutedIndex = {
-        server: -1,
-        submitted: this.lastExecutedIndex.submitted - offset,
-        local: this.lastExecutedIndex.local - offset,
-      };
+  serialize(keepServerRecords = false) {
+    if (keepServerRecords) {
+      const result = CollabHistoryOptionsStruct.createRaw({
+        records: this.readonlyRecords.items,
+        serverTailRevision: this._serverTailRevision,
+        recordsTailText: !this.readonlyRecords.tailText.isEqual(this.client.server)
+          ? this.readonlyRecords.tailText
+          : undefined,
+        serverTailTextTransformToRecordsTailText:
+          this.serverTailTextTransformToRecordsTailText,
+        lastExecutedIndex: this.lastExecutedIndex,
+      });
+
+
+      return result;
     }
 
-    return CollabHistoryOptionsStruct.createRaw({
-      records,
+    // Serialize without records already available in server
+    // Those records can be fetched later when history is restored
+    const tailTextIndex = this.lastExecutedIndex.server;
+    const keepRecordIndex = this.lastExecutedIndex.server + 1;
+
+    const result = CollabHistoryOptionsStruct.createRaw({
+      records: this.readonlyRecords.slice(keepRecordIndex),
       serverTailRevision: this._serverTailRevision,
-      recordsTailText: this.getTailTextForSerialize(keepServerEntries),
-      serverTailTextTransformToRecordsTailText:
-        this.serverTailTextTransformToRecordsTailText,
-      lastExecutedIndex,
+      recordsTailText: this.readonlyRecords.getTextAt(tailTextIndex),
+      serverTailTextTransformToRecordsTailText: null,
+      lastExecutedIndex: {
+        server: -1,
+        submitted: this.lastExecutedIndex.submitted - keepRecordIndex,
+        local: this.lastExecutedIndex.local - keepRecordIndex,
+      },
     });
+    return result;
   }
-
-  private getTailTextForSerialize(keepServerEntries = false) {
-    if (this.readonlyRecords.tailText.isEqual(this.client.server)) {
-      return;
-    }
-
-    if (this.lastExecutedIndex.server < 0 || keepServerEntries) {
-      return this.readonlyRecords.tailText;
-    }
-
-    return;
   }
 
   static parseValue(
