@@ -59,7 +59,10 @@ export class KeySimpleText implements SimpleText {
     }
   }
 
-  getCollabServiceSelection(selection: SelectionRange): SelectionRange {
+  /**
+   * Transfrom selection Editor -> CollabService
+   */
+  transformToServiceSelection(selection: SelectionRange): SelectionRange {
     // Text to JSON
     const selectionStartJson = this.formatter.stringifyString(
       this.view.value.slice(0, selection.start)
@@ -79,7 +82,10 @@ export class KeySimpleText implements SimpleText {
     return selection;
   }
 
-  serviceSelectionChanged(selection: SelectionRange) {
+  /**
+   * Transfrom selection CollabService -> Editor
+   */
+  transformToEditorSelection(selection: SelectionRange) {
     if (selection.start < this.view.jsonValueOffset) {
       return;
     }
@@ -96,10 +102,23 @@ export class KeySimpleText implements SimpleText {
     );
 
     const start = selectionStartText.length;
-    this._eventBus.emit('selectionChanged', {
+      selection = {
       start,
       end: start + selectedText.length,
-    });
+      };
+
+      return selection;
+  }
+
+  serviceSelectionChanged(selection: SelectionRange) {
+    const editorSelection = this.transformToEditorSelection(selection);
+    if (!editorSelection) {
+      return;
+    }
+
+    this._eventBus.emit('selectionChanged', editorSelection);
+
+
   }
 
   serviceHandledExternalChange(payload: CollabServiceEvents['handledExternalChanges']) {
@@ -197,8 +216,7 @@ export class KeySimpleText implements SimpleText {
     selection: SelectionRange,
     options?: SimpleTextOperationOptions
   ): void {
-    // Text to JSON
-    selection = this.getCollabServiceSelection(selection);
+    selection = this.transformToServiceSelection(selection);
 
     insertText = this.formatter.stringifyString(insertText);
 
@@ -226,21 +244,7 @@ export class KeySimpleText implements SimpleText {
       selection.start - (count - (selection.start !== selection.end ? 1 : 0))
     );
 
-    // Text to JSON
-    const selectionStartJson = this.formatter.stringifyString(
-      this.view.value.slice(0, selection.start)
-    );
-    const selectedJson = this.formatter.stringifyString(
-      this.view.value.slice(selection.start, selection.end)
-    );
-
-    selection = SelectionRange.clamp(selection, this.view.value.length);
-    const start = this.view.jsonValueOffset + selectionStartJson.length;
-    selection = {
-      start,
-      end: start + selectedJson.length,
-    };
-    selection = SelectionRange.clamp(selection, this.service.viewText.length);
+    selection = this.transformToServiceSelection(selection);
 
     const before = RetainStrip.create(0, selection.start - 1);
     const after = RetainStrip.create(selection.end, this.service.viewText.length - 1);

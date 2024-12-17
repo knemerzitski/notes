@@ -59,7 +59,11 @@ export class SimpleTextEditor implements SimpleText {
     ];
   }
 
-  getCollabServiceSelection(selection: SelectionRange): SelectionRange {
+  transformToServiceSelection(selection: SelectionRange): SelectionRange {
+    return selection;
+  }
+
+  transformToEditorSelection(selection: SelectionRange): SelectionRange | undefined {
     return selection;
   }
 

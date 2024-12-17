@@ -51,9 +51,16 @@ export interface SimpleText {
   ): void;
 
   /**
-   * Selection that applies to CollabService text
+   * @param selection This editor selection
+   * @returns Selection that applies to CollabService text
    */
-  getCollabServiceSelection(selection: SelectionRange): SelectionRange;
+  transformToServiceSelection(selection: SelectionRange): SelectionRange;
+
+  /**
+   * @param selection CollabService selection
+   * @returns Selection that applies to this editor if defined
+   */
+  transformToEditorSelection(selection: SelectionRange): SelectionRange | undefined;
 }
 
 export interface SimpleTextOperationOptions {
