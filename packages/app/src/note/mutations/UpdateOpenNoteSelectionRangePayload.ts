@@ -7,18 +7,22 @@ export const UpdateOpenNoteSelectionRangePayload = mutationDefinition(
   gql(`
   fragment UpdateOpenNoteSelectionRangePayload on UpdateOpenNoteSelectionRangePayload {
     publicUserNoteLink {
-      id
-      open {
-        collabTextEditing {
-          revision
-          latestSelection {
-            start
-            end
-          }
+      ...UpdateOpenNoteSelectionRangePayload_PublicUserNoteLinkFragment
+    }
+  }
+
+  fragment UpdateOpenNoteSelectionRangePayload_PublicUserNoteLinkFragment on PublicUserNoteLink {
+    id
+     open {
+      collabTextEditing {
+        revision
+        latestSelection {
+          start
+          end
         }
       }
     }
-  }
+  }  
 `),
   (_cache, { data }) => {
     if (!data) {

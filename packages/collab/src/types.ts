@@ -27,8 +27,21 @@ export interface SimpleTextEvents {
   selectionChanged: Readonly<SelectionRange>;
 }
 
+export interface SharedSimpleTextEvents {
+  selectionChanged: {
+    editor: SimpleText;
+    selection: SelectionRange;
+    /**
+     * - mutable: Value was changed. For example `appliedTypingOperation` event
+     * - immutable: Value was not changed. For example user simply click on a part of text.
+     */
+    source: 'immutable' | 'mutable';
+  };
+}
+
 export interface SimpleText {
   readonly eventBus: Pick<Emitter<SimpleTextEvents>, 'on' | 'off'>;
+  readonly sharedEventBus: Emitter<SharedSimpleTextEvents>;
 
   readonly value: string;
 
@@ -51,9 +64,16 @@ export interface SimpleText {
   ): void;
 
   /**
-   * Selection that applies to CollabService text
+   * @param selection This editor selection
+   * @returns Selection that applies to CollabService text
    */
-  getCollabServiceSelection(selection: SelectionRange): SelectionRange;
+  transformToServiceSelection(selection: SelectionRange): SelectionRange;
+
+  /**
+   * @param selection CollabService selection
+   * @returns Selection that applies to this editor if defined
+   */
+  transformToEditorSelection(selection: SelectionRange): SelectionRange | undefined;
 }
 
 export interface SimpleTextOperationOptions {

@@ -1,15 +1,12 @@
 import { gql } from '../../__generated__';
 import { mutationDefinition } from '../../graphql/utils/mutation-definition';
-import { evictOpenedNote } from '../models/note/evict-open';
+import { setOpenedNoteActive } from '../models/opened-note/set-active';
 
 export const OpenNoteUserUnsubscribedEvent = mutationDefinition(
   gql(`
   fragment OpenNoteUserUnsubscribedEvent on OpenNoteUserUnsubscribedEvent {
     publicUserNoteLink {
       id
-      open {
-        closedAt
-      }
     }
   }
 `),
@@ -18,6 +15,6 @@ export const OpenNoteUserUnsubscribedEvent = mutationDefinition(
       return;
     }
 
-    evictOpenedNote(data.publicUserNoteLink.id, cache);
+    setOpenedNoteActive(data.publicUserNoteLink.id, false, cache);
   }
 );

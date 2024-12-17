@@ -2,7 +2,9 @@ import { getFragmentData, gql } from '../../__generated__';
 import { MapRecordCollabTextRecordFragmentFragmentDoc } from '../../__generated__/graphql';
 import { mutationDefinition } from '../../graphql/utils/mutation-definition';
 import { getCollabService } from '../models/note/get-collab-service';
+import { updateOpenNoteSelectionRange } from '../models/opened-note/update-selection';
 import { addRecordToConnection } from '../models/record-connection/add';
+import { getUserNoteLinkId } from '../utils/id';
 import { cacheRecordToCollabServiceRecord } from '../utils/map-record';
 
 export const UpdateNoteInsertRecordPayload = mutationDefinition(
@@ -41,5 +43,15 @@ export const UpdateNoteInsertRecordPayload = mutationDefinition(
     } else {
       service.submittedChangesAcknowledged(cacheRecordToCollabServiceRecord(newRecord));
     }
+
+    // Update open note selection from record
+    updateOpenNoteSelectionRange(
+      getUserNoteLinkId(note.id, newRecord.creatorUser.id),
+      {
+        revision: newRecord.change.revision,
+        selectionRange: newRecord.afterSelection,
+      },
+      cache
+    );
   }
 );

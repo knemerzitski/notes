@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { Changeset } from '../changeset';
 
+import { CollabService } from '../client/collab-service';
 import { ReadonlyHistoryRecord } from '../history/collab-history';
 import { RevisionRecords } from '../records/revision-records';
 
@@ -99,6 +100,92 @@ describe('persist history in revision records', () => {
     expect(historyEntriesInfo(restoredServiceB.history.records)).toStrictEqual(
       historyEntriesInfo(client.B.service.history.records)
     );
+  });
+
+  it('restores serialized history by fetching server records', () => {
+    const { client } = helper;
+
+    client.A.insertText('a');
+    client.A.insertText('b');
+    client.A.insertText('c');
+
+    client.B.insertText('X');
+    client.B.submitChangesInstant();
+
+    client.A.submitChangesInstant();
+
+    client.B.insertText('Y');
+    client.B.submitChangesInstant();
+
+    client.B.setCaretPosition(5);
+    client.B.insertText('2');
+    client.B.submitChangesInstant();
+
+    client.A.insertText('d');
+
+    client.B.setCaretPosition(5);
+    client.B.insertText('1');
+    client.B.submitChangesInstant();
+
+    const clientA2 = helper.addNewClient(
+      'A2',
+      client.A.name,
+      CollabService.parseValue(client.A.service.serialize(false))
+    );
+
+    const restoredServiceA = clientA2.service;
+    restoredServiceA.historyRestore(2);
+
+    expect(clientA2.history.serialize(true)).toMatchInlineSnapshot(`
+      {
+        "lastExecutedIndex": {
+          "local": 1,
+          "server": 0,
+          "submitted": 0,
+        },
+        "records": [
+          {
+            "afterSelection": {
+              "start": 5,
+            },
+            "beforeSelection": {
+              "start": 0,
+            },
+            "changeset": [
+              [
+                0,
+                1,
+              ],
+              "abc",
+              [
+                2,
+                3,
+              ],
+            ],
+          },
+          {
+            "afterSelection": {
+              "start": 7,
+            },
+            "changeset": [
+              [
+                0,
+                5,
+              ],
+              "d",
+              6,
+            ],
+          },
+        ],
+        "recordsTailText": [
+          "XY12",
+        ],
+        "serverTailRevision": 0,
+        "serverTailTextTransformToRecordsTailText": [
+          "XY12",
+        ],
+      }
+    `);
   });
 });
 

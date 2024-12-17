@@ -11,7 +11,11 @@ export const Query: CreateTypePolicyFn = function () {
           id: args?.id,
         });
       },
-      ongoingOperations: fieldArrayToMap('id'),
+      ongoingOperations: fieldArrayToMap('id', {
+        read(existing = {}) {
+          return existing;
+        },
+      }),
     },
   };
 };

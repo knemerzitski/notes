@@ -2,18 +2,34 @@ import debug, { Debugger } from 'debug';
 
 import { isObjectLike } from './type-guards/is-object-like';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getProcess(): any {
+  if (typeof process !== 'undefined') {
+    return process;
+  }
+
+  // In browser
+  return {
+    env: {
+      DEBUG_FORMAT: 'object',
+    },
+  };
+}
+
 function createLoggerContext() {
   return {
     delimiter: ':',
     plain: '%s',
-    withObjectData: (process.env.DEBUG_FORMAT ?? 'json') === 'object' ? '%s %O' : '%s %j',
+    withObjectData:
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      (getProcess()?.env?.DEBUG_FORMAT ?? 'json') === 'object' ? '%s %O' : '%s %j',
     withPlainData: '%s %s',
   } as const;
 }
 
 type LoggerContext = ReturnType<typeof createLoggerContext>;
 
-enum LogLevel {
+export enum LogLevel {
   DEBUG = 'DEBUG',
   INFO = 'INFO',
   WARNING = 'WARNING',

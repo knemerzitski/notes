@@ -67,6 +67,7 @@ new TestNotesStack(app, 'TESTINGONLYNotesStack', {
         DYNAMODB_ENDPOINT: dockerDynamoDBEndpoint,
         VITE_GRAPHQL_HTTP_URL: env.VITE_GRAPHQL_HTTP_URL,
         VITE_MOCK_GOOGLE_AUTH: env.VITE_MOCK_GOOGLE_AUTH,
+        LAMBDA: '1',
       },
     },
     api: {

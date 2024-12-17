@@ -13,6 +13,13 @@ export const OpenedNote: CreateTypePolicyFn = function (_ctx: TypePoliciesContex
         },
         merge: true,
       },
+      active(existing, { readField }) {
+        const closedAt = readField('closedAt');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        existing = existing ?? closedAt != null;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return existing;
+      },
     },
   };
 };

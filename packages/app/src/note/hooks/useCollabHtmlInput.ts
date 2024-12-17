@@ -1,23 +1,12 @@
-import {
-  // FormEventHandler,
-  // useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Options, useDebouncedCallback } from 'use-debounce';
 
 import { CollabService } from '~collab/client/collab-service';
 import { SelectionRange } from '~collab/client/selection-range';
 
-// import { useNoteId } from '../context/note-id';
-import { RevisionChangeset } from '~collab/records/record';
-
 import { NoteTextFieldEditor } from '../external-state/note';
 
 import { useHtmlInput } from './useHtmlInput';
-// import { useUpdateOpenNoteSelectionRange } from './useUpdateOpenNoteSelectionRange';
 
 interface UseHTMLInputCollabEditorOptions {
   merge?: {
@@ -45,13 +34,10 @@ export function useCollabHtmlInput(
     end: 0,
   });
 
-  // console.log('useCollabHtmlInput.render', service.headRevision);
-
-  const externalChangesSinceLastRenderRef = useRef<RevisionChangeset[]>([]);
-  externalChangesSinceLastRenderRef.current = [];
-
   const latestSelectionRef = useRef<SelectionRange | null>(null);
   latestSelectionRef.current = null;
+
+  const isForceSelectionChangeRef = useRef<boolean>(false);
 
   function updateLatestSelection(newSelection: SelectionRange) {
     latestSelectionRef.current = newSelection;
@@ -59,6 +45,8 @@ export function useCollabHtmlInput(
       if (SelectionRange.isEqual(prev, newSelection)) {
         return prev;
       }
+
+      isForceSelectionChangeRef.current = true;
       return newSelection;
     });
   }
@@ -91,8 +79,6 @@ export function useCollabHtmlInput(
     }
 
     return editor.eventBus.on('handledExternalChanges', (changes) => {
-      // console.log('useCollabHtmlInput.handledExternalChanges', changes.length);
-      externalChangesSinceLastRenderRef.current.push(...changes);
       if (changes.length === 0) return;
 
       const latestSelection = getLatestSelection();
@@ -149,23 +135,7 @@ export function useCollabHtmlInput(
 
   const htmlInput = useHtmlInput({
     onInsert({ beforeSelection, insertValue }) {
-      // Adjust selection to external changes
-      let adjustedSelection = beforeSelection;
-      for (const { changeset } of externalChangesSinceLastRenderRef.current) {
-        adjustedSelection = SelectionRange.closestRetainedPosition(
-          adjustedSelection,
-          changeset
-        );
-      }
-
-      // console.log('useCollabHtmlInput.onInsert', {
-      //   insertValue,
-      //   external: externalChangesSinceLastRenderRef.current,
-      //   beforeSelection,
-      //   latestSelection: latestSelectionRef.current,
-      //   adjustedSelection,
-      // });
-
+      // TODO is this selection in correct spot, or it needs adjustment?
       editor.insert(insertValue, latestSelectionRef.current ?? beforeSelection, {
         merge: isMergeChangesRef.current,
       });
@@ -177,6 +147,21 @@ export function useCollabHtmlInput(
       });
       startDebouncedMerge();
     },
+    onSelect(newSelection) {
+      if (
+        isForceSelectionChangeRef.current &&
+        SelectionRange.isEqual(selection, newSelection)
+      ) {
+        isForceSelectionChangeRef.current = false;
+      } else {
+        // User changed selection without modifying value
+        editor.sharedEventBus.emit('selectionChanged', {
+          source: 'immutable',
+          editor,
+          selection: newSelection,
+        });
+      }
+    },
     onUndo() {
       service.undo();
     },
@@ -185,49 +170,9 @@ export function useCollabHtmlInput(
     },
   });
 
-  // const updateOpenNoteSelectionRange = useUpdateOpenNoteSelectionRange();
-  // also a separate component!!
-  // TODO debounce selection update, ignore when selection is on same index, external change??
-  // const noteId = useNoteId();
-  // const prevSelectionRef = useRef<SelectionRange | null>(null);
-  // const htmlInputHandleSelect = htmlInput.handleSelect;
-  // const handleSelect: FormEventHandler<HTMLInputElement> = useCallback(
-  //   (e) => {
-  //     htmlInputHandleSelect(e);
-  //     if (
-  //       !(e.target instanceof HTMLTextAreaElement) &&
-  //       !(e.target instanceof HTMLInputElement)
-  //     ) {
-  //       return;
-  //     }
-
-  //     const start = e.target.selectionStart ?? 0;
-  //     const selection = {
-  //       start: start,
-  //       end: e.target.selectionEnd ?? start,
-  //     };
-
-  //     if (
-  //       !prevSelectionRef.current ||
-  //       !SelectionRange.isEqual(prevSelectionRef.current, selection)
-  //     ) {
-  //       prevSelectionRef.current = selection;
-
-  //       const collabServiceSelection = editor.getCollabServiceSelection(selection);
-  //       void updateOpenNoteSelectionRange({
-  //         noteId,
-  //         revision: service.headRevision,
-  //         selectionRange: collabServiceSelection,
-  //       });
-  //     }
-  //   },
-  //   [htmlInputHandleSelect, updateOpenNoteSelectionRange, noteId, service, editor]
-  // );
-
   return {
     inputRef,
     value,
-    // onSelect: handleSelect,
     onSelect: htmlInput.handleSelect,
     onInput: htmlInput.handleInput,
     onKeyDown: htmlInput.handleKeyDown,

@@ -39,13 +39,21 @@ export namespace SelectionRange {
     return { start: a.start + b.start, end: a.end + b.end };
   }
 
-  export function from(start?: number, end?: number): SelectionRange;
+  export function from(start?: number, end?: Maybe<number>): SelectionRange;
   export function from(
-    selection?: Readonly<PartialBy<SelectionRange, 'end'>>
+    selection?: Readonly<{
+      start: number;
+      end?: Maybe<number>;
+    }>
   ): SelectionRange;
   export function from(
-    selection: Readonly<PartialBy<SelectionRange, 'end'>> | number = 0,
-    end?: number
+    selection:
+      | Readonly<{
+          start: number;
+          end?: Maybe<number>;
+        }>
+      | number = 0,
+    end?: Maybe<number>
   ): SelectionRange {
     if (typeof selection === 'number') {
       return { start: selection, end: end ?? selection };
@@ -140,7 +148,7 @@ export namespace SelectionRange {
   export function isEqual(a?: Partial<SelectionRange>, b?: Partial<SelectionRange>) {
     if (!a && !b) return true;
     if (a && b) {
-      return a.start === b.start && (a.end ?? a.start) === (b.end && b.start);
+      return a.start === b.start && (a.end ?? a.start) === (b.end ?? b.start);
     }
     return false;
   }

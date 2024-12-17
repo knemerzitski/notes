@@ -63,13 +63,19 @@ export function fieldArrayToMap<
       incoming.forEach((incomingEntry) => {
         let keyValue: TKeyValue;
         if (isReference(incomingEntry)) {
-          const readKey = readField({
-            from: incomingEntry,
-            fieldName: keyName,
-          });
-          if (!readKey) return;
-          // eslint-disable-next-line @typescript-eslint/no-base-to-string
-          keyValue = String(readKey) as TKeyValue;
+          if (keyName === '__ref') {
+            // Using __ref directly as unique key instead of readField(keyName, incomingEntry)
+            // since readField is not guaranteed to return a value in merge fn
+            keyValue = incomingEntry.__ref as TKeyValue;
+          } else {
+            const readKey = readField({
+              from: incomingEntry,
+              fieldName: keyName,
+            });
+            if (!readKey) return;
+            // eslint-disable-next-line @typescript-eslint/no-base-to-string
+            keyValue = String(readKey) as TKeyValue;
+          }
         } else {
           const entry = incomingEntry as Record<TKeyName, TKeyValue>;
           keyValue = entry[keyName];

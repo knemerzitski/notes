@@ -1,5 +1,6 @@
 import { useQuery } from '@apollo/client';
 
+import CheckIcon from '@mui/icons-material/Check';
 import RemoveIcon from '@mui/icons-material/Remove';
 import {
   TableContainer,
@@ -31,7 +32,7 @@ const DevNoteUsers_Query = gql(`
           }
         }
         open {
-          closedAt
+          active @client
           collabTextEditing {
             revision
             latestSelection {
@@ -73,16 +74,19 @@ export function DevNoteUsers() {
       <Table size="small">
         <TableHead>
           <TableRow>
+            <TableCell>Open</TableCell>
             <TableCell>Name</TableCell>
             <TableCell>Revision</TableCell>
             <TableCell>Selection Start</TableCell>
             <TableCell>Selection End</TableCell>
-            <TableCell>Closed At</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {noteUsers.map((noteUser, index) => (
             <TableRow key={noteUser?.id ?? index}>
+              <TableCell>
+                {(noteUser?.open?.active ?? false) ? <CheckIcon /> : <RemoveIcon />}
+              </TableCell>
               <TableCell>
                 {noteUser?.user?.profile?.displayName ?? <RemoveIcon />}
               </TableCell>
@@ -98,9 +102,6 @@ export function DevNoteUsers() {
                 {noteUser?.open?.collabTextEditing?.latestSelection?.end ?? (
                   <RemoveIcon />
                 )}
-              </TableCell>
-              <TableCell>
-                {noteUser?.open?.closedAt?.toLocaleTimeString() ?? <RemoveIcon />}
               </TableCell>
             </TableRow>
           ))}

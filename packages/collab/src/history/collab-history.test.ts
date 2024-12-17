@@ -9,11 +9,7 @@ import { UserRecords } from '../client/user-records';
 
 import { RevisionRecords } from '../records/revision-records';
 
-import {
-  CollabHistory,
-  HistoryRecord,
-  HistoryRecordArrayStruct,
-} from './collab-history';
+import { CollabHistory, HistoryRecord, HistoryRecordArrayStruct } from './collab-history';
 
 it('restores records from user records while having external change', () => {
   const userRecords = new UserRecords({

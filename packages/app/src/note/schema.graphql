@@ -179,3 +179,13 @@ type MoveNoteUserOperation implements UserOperation {
   """
   location: NoteLocation
 }
+
+################################ OpenedNote ################################
+
+extend type OpenedNote {
+  """
+  OpenedNote is active when user is present.
+  Using OpenedNote type to store last known selection even when note is not open.
+  """
+  active: Boolean!
+}

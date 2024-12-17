@@ -1,3 +1,5 @@
+import { Logger } from '~utils/logging';
+
 import { Changeset } from '../changeset';
 
 export interface BaseComposableRecord {
@@ -19,7 +21,16 @@ export interface ComposableRecords<
  * Ensures that any records passing through this facade will be composable
  */
 export class ComposableRecordsFacade<TRecord extends BaseComposableRecord> {
-  constructor(private readonly records: ComposableRecords<TRecord>) {
+  private readonly logger;
+
+  constructor(
+    private readonly records: ComposableRecords<TRecord>,
+    options?: {
+      logger?: Logger;
+    }
+  ) {
+    this.logger = options?.logger;
+
     if (records.tailText.hasRetainStrips()) {
       throw new Error(`Invalid tailText ${String(records.tailText)}`);
     }
@@ -36,6 +47,8 @@ export class ComposableRecordsFacade<TRecord extends BaseComposableRecord> {
         r0.changeset.assertIsComposable(r1.changeset);
       }
     }
+
+    this.logState('constructor');
   }
 
   push(record: TRecord) {
@@ -45,6 +58,11 @@ export class ComposableRecordsFacade<TRecord extends BaseComposableRecord> {
     }
 
     this.records.push(record);
+    this.logState('push', {
+      args: {
+        record,
+      },
+    });
   }
 
   /**
@@ -64,13 +82,19 @@ export class ComposableRecordsFacade<TRecord extends BaseComposableRecord> {
         recordBeforeDelete.changeset.assertIsComposable(record.changeset);
       }
 
-      // +1 or not?
       this.records.splice(
         deleteStartIndex,
         this.records.length - deleteStartIndex,
         record
       );
     }
+
+    this.logState('deleteFromThenPush', {
+      args: {
+        deleteStartIndex,
+        recordChangeset: record.changeset.toString(),
+      },
+    });
   }
 
   replaceTailText(tailText: Changeset) {
@@ -84,6 +108,12 @@ export class ComposableRecordsFacade<TRecord extends BaseComposableRecord> {
     }
 
     this.records.tailText = tailText;
+
+    this.logState('replaceTailText', {
+      args: {
+        tailText,
+      },
+    });
   }
 
   replaceTailTextAndSplice(
@@ -100,6 +130,13 @@ export class ComposableRecordsFacade<TRecord extends BaseComposableRecord> {
     if (firstRecord) {
       tailText.assertIsComposable(firstRecord.changeset);
     }
+
+    this.logState('replaceTailTextAndSplice', {
+      args: {
+        tailText,
+        note: 'look for splice entry for more info',
+      },
+    });
 
     this.splice(start, deleteCount, ...records);
     this.records.tailText = tailText;
@@ -128,6 +165,14 @@ export class ComposableRecordsFacade<TRecord extends BaseComposableRecord> {
     }
 
     this.records.splice(start, deleteCount, ...records);
+
+    this.logState('splice', {
+      args: {
+        start,
+        deleteCount,
+        records: records.map((r) => r.changeset.toString()),
+      },
+    });
   }
 
   clear(tailText: Changeset) {
@@ -137,5 +182,30 @@ export class ComposableRecordsFacade<TRecord extends BaseComposableRecord> {
 
     this.records.tailText = tailText;
     this.records.clear();
+
+    this.logState('clear', {
+      args: {
+        tailText: tailText.toString(),
+      },
+    });
+  }
+
+  private logState(message: string, data?: Record<string, unknown>) {
+    this.logger?.info(message, {
+      ...data,
+      tailText: this.records.tailText.toString(),
+      record: this.getRecordsForLogging(),
+    });
+  }
+
+  private getRecordsForLogging() {
+    const result: string[] = [];
+    for (let i = 0; i < this.records.length; i++) {
+      const record = this.records.at(i);
+      if (record) {
+        result.push(record.changeset.toString());
+      }
+    }
+    return result;
   }
 }

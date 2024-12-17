@@ -1,19 +1,17 @@
 import { useApolloClient } from '@apollo/client';
 import { useCallback } from 'react';
 
-
 import { makeFragmentData } from '../../__generated__';
 import {
   UpdateOpenNoteSelectionRangeInput,
   UpdateOpenNoteSelectionRangePayloadFragmentDoc,
+  UpdateOpenNoteSelectionRangePayloadPublicUserNoteLinkFragmentFragmentDoc,
 } from '../../__generated__/graphql';
 import { useMutation } from '../../graphql/hooks/useMutation';
 import { useUserId } from '../../user/context/user-id';
 import { isLocalOnlyNote } from '../models/local-note/is-local-only';
 import { UpdateOpenNoteSelectionRange } from '../mutations/UpdateOpenNoteSelectionRange';
 import { getUserNoteLinkId } from '../utils/id';
-
-// TODO prevent/queue if sub is not running...
 
 export function useUpdateOpenNoteSelectionRange() {
   const client = useApolloClient();
@@ -44,19 +42,25 @@ export function useUpdateOpenNoteSelectionRange() {
                 __typename: 'UpdateOpenNoteSelectionRangePayload',
                 publicUserNoteLink: {
                   __typename: 'PublicUserNoteLink',
-                  id: getUserNoteLinkId(noteId, userId),
-                  open: {
-                    __typename: 'OpenedNote',
-                    collabTextEditing: {
-                      __typename: 'CollabTextEditing',
-                      revision: input.revision,
-                      latestSelection: {
-                        __typename: 'CollabTextSelectionRange',
-                        start: input.selectionRange.start,
-                        end: input.selectionRange.end,
+                  ...makeFragmentData(
+                    {
+                      __typename: 'PublicUserNoteLink',
+                      id: getUserNoteLinkId(noteId, userId),
+                      open: {
+                        __typename: 'OpenedNote',
+                        collabTextEditing: {
+                          __typename: 'CollabTextEditing',
+                          revision: input.revision,
+                          latestSelection: {
+                            __typename: 'CollabTextSelectionRange',
+                            start: input.selectionRange.start,
+                            end: input.selectionRange.end,
+                          },
+                        },
                       },
                     },
-                  },
+                    UpdateOpenNoteSelectionRangePayloadPublicUserNoteLinkFragmentFragmentDoc
+                  ),
                 },
               },
               UpdateOpenNoteSelectionRangePayloadFragmentDoc

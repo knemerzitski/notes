@@ -20,11 +20,13 @@ export type DeleteEvent = SelectionEvent;
 export function useHtmlInput({
   onInsert,
   onDelete,
+  onSelect,
   onUndo,
   onRedo,
 }: {
   onInsert?: (event: InsertEvent) => void;
   onDelete?: (event: DeleteEvent) => void;
+  onSelect?: (selection: SelectionRange) => void;
   onUndo?: () => void;
   onRedo?: () => void;
 }) {
@@ -38,6 +40,9 @@ export function useHtmlInput({
 
   const onDeleteRef = useRef(onDelete);
   onDeleteRef.current = onDelete;
+
+  const onSelectRef = useRef(onSelect);
+  onSelectRef.current = onSelect;
 
   const onUndoRef = useRef(onUndo);
   onUndoRef.current = onUndo;
@@ -58,6 +63,8 @@ export function useHtmlInput({
       start: start,
       end: e.target.selectionEnd ?? start,
     };
+
+    onSelectRef.current?.(selectionRef.current);
   }, []);
 
   const handleInput: FormEventHandler<HTMLDivElement> = useCallback((e) => {

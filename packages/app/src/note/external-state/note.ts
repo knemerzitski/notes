@@ -3,9 +3,23 @@ import { coerce, instance, type, unknown } from 'superstruct';
 import { CollabServiceOptions, CollabService } from '~collab/client/collab-service';
 import { defineCreateJsonTextFromService } from '~collab/editor/json-text';
 
+import { createLogger } from '~utils/logging';
+
 import { NoteTextFieldName } from '../../__generated__/graphql';
 
 import { NoteFieldExternalState } from './note-field';
+
+function getLogger(options: Pick<CollabServiceOptions, 'logger'> | undefined) {
+  if (import.meta.env.PROD) {
+    return;
+  }
+
+  if (options?.logger) {
+    return options.logger;
+  }
+
+  return createLogger('collab-service');
+}
 
 const createJsonTextFromService = defineCreateJsonTextFromService(
   Object.values(NoteTextFieldName)
@@ -25,7 +39,10 @@ export class NoteExternalState {
   readonly fields: Record<NoteTextFieldName, NoteFieldExternalState>;
 
   constructor(options?: NoteExternalStateOptions) {
-    this.service = new CollabService(options?.service);
+    this.service = new CollabService({
+      ...options?.service,
+      logger: getLogger(options?.service),
+    });
 
     this.multiText = createJsonTextFromService(this.service);
 

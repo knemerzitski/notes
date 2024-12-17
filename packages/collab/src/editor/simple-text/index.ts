@@ -3,17 +3,24 @@ import mitt, { Emitter } from 'mitt';
 import { CollabService, CollabServiceEvents } from '../../client/collab-service';
 import { SelectionRange } from '../../client/selection-range';
 
-import { LimitedEmitter , SimpleText, SimpleTextEvents, SimpleTextOperationOptions } from '../../types';
+import {
+  LimitedEmitter,
+  SharedSimpleTextEvents,
+  SimpleText,
+  SimpleTextEvents,
+  SimpleTextOperationOptions,
+} from '../../types';
 
 import { deleteCountToSelectionChangeset } from './delete-count-to-selection-changeset';
 import { insertToSelectionChangeset } from './insert-to-selection-changeset';
-
 
 export class SimpleTextEditor implements SimpleText {
   private readonly _eventBus: Emitter<SimpleTextEvents>;
   get eventBus(): Pick<Emitter<SimpleTextEvents>, 'on' | 'off'> {
     return this._eventBus;
   }
+
+  readonly sharedEventBus: Emitter<SharedSimpleTextEvents> = mitt();
 
   private readonly service;
 
@@ -46,6 +53,11 @@ export class SimpleTextEditor implements SimpleText {
       }),
       service.eventBus.on('appliedTypingOperation', ({ operation }) => {
         this._eventBus.emit('selectionChanged', operation.selection);
+        this.sharedEventBus.emit('selectionChanged', {
+          editor: this,
+          selection: operation.selection,
+          source: 'mutable',
+        });
       }),
       service.eventBus.on('handledExternalChanges', (events) => {
         this._eventBus.emit(
@@ -59,7 +71,11 @@ export class SimpleTextEditor implements SimpleText {
     ];
   }
 
-  getCollabServiceSelection(selection: SelectionRange): SelectionRange {
+  transformToServiceSelection(selection: SelectionRange): SelectionRange {
+    return selection;
+  }
+
+  transformToEditorSelection(selection: SelectionRange): SelectionRange | undefined {
     return selection;
   }
 

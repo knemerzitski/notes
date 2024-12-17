@@ -11,6 +11,7 @@ import {
   literal,
   nullable,
 } from 'superstruct';
+import { Logger } from '~utils/logging';
 import {
   OrderedMessageBuffer,
   OrderedMessageBufferParams,
@@ -32,7 +33,7 @@ import {
   SubmittedRevisionRecord,
   SubmittedRevisionRecordStruct,
 } from '../records/record';
-import { SimpleTextOperationOptions , SelectionChangeset } from '../types';
+import { SimpleTextOperationOptions, SelectionChangeset } from '../types';
 
 import {
   CollabClient,
@@ -148,6 +149,7 @@ type UnprocessedRecordsBufferOptions = Omit<
 >;
 
 export interface CollabServiceOptions {
+  logger?: Logger;
   eventBus?: Emitter<CollabServiceEvents>;
   generateSubmitId?: () => string;
   userRecords?: UserRecords;
@@ -168,6 +170,8 @@ export interface CollabServiceOptions {
  * Single place to handle records received by server and to create a submittable record.
  */
 export class CollabService {
+  public readonly logger;
+
   private readonly _eventBus: Emitter<CollabServiceEvents>;
   get eventBus(): Pick<Emitter<CollabServiceEvents>, 'on' | 'off'> {
     return this._eventBus;
@@ -272,6 +276,8 @@ export class CollabService {
   private readonly eventsOff: (() => void)[];
 
   constructor(options?: CollabServiceOptions) {
+    this.logger = options?.logger;
+
     const headText: RevisionChangeset = {
       changeset: options?.client?.server ?? Changeset.EMPTY,
       revision:
@@ -288,7 +294,10 @@ export class CollabService {
     this._client =
       options?.client instanceof CollabClient
         ? options.client
-        : new CollabClient(options?.client);
+        : new CollabClient({
+            ...options?.client,
+            logger: options?.logger?.extend('client'),
+          });
     this.eventsOff.push(
       this._client.eventBus.on('viewChanged', () => {
         this._viewText = null;
@@ -330,6 +339,7 @@ export class CollabService {
       options?.history instanceof CollabHistory
         ? options.history
         : new CollabHistory({
+            logger: options?.logger?.extend('history'),
             recordsTailText: options?.history?.recordsTailText ?? headText.changeset,
             serverTailRevision: headText.revision,
             ...options?.history,
