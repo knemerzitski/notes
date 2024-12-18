@@ -8,6 +8,7 @@ import { NoteIdProvider } from '../context/note-id';
 import { useNoteIds } from '../context/note-ids';
 
 import { NoteCard } from './NoteCard';
+import { useIsLoading } from '../../utils/context/is-loading';
 
 const _NotesCardGrid_UserNoteLinkFragment = gql(`
   fragment NotesCardGrid_UserNoteLinkFragment on UserNoteLink {
@@ -29,9 +30,10 @@ export const NotesCardGrid = forwardRef(function NotesCardGrid(
   },
   ref
 ) {
-  const noteIds = useNoteIds(true);
+  const isLoading = useIsLoading();
+  const noteIds = useNoteIds(true) ?? [];
 
-  if (!noteIds) {
+  if (isLoading) {
     return (
       <BoxStyled>
         {[...new Array<undefined>(defaultLoadingCount)].map((_value, index) => (
