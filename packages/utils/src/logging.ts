@@ -1,6 +1,16 @@
 import debug, { Debugger } from 'debug';
 
 import { isObjectLike } from './type-guards/is-object-like';
+import { isPlainObject } from './type-guards/is-plain-object';
+
+export enum LogLevel {
+  DEBUG = 'DEBUG',
+  INFO = 'INFO',
+  WARNING = 'WARNING',
+  ERROR = 'ERROR',
+}
+
+const rootLog = debug(`logging:${LogLevel.INFO}`);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getProcess(): any {
@@ -17,24 +27,21 @@ function getProcess(): any {
 }
 
 function createLoggerContext() {
-  return {
+  const debugFormat = getProcess()?.env?.DEBUG_FORMAT ?? 'json';
+
+  const result = {
     delimiter: ':',
     plain: '%s',
-    withObjectData:
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      (getProcess()?.env?.DEBUG_FORMAT ?? 'json') === 'object' ? '%s %O' : '%s %j',
+    withObjectData: debugFormat === 'object' ? '%s %O' : '%s %j',
     withPlainData: '%s %s',
   } as const;
+
+  rootLog(result.withObjectData, 'createLoggerContext', result);
+
+  return result;
 }
 
 type LoggerContext = ReturnType<typeof createLoggerContext>;
-
-export enum LogLevel {
-  DEBUG = 'DEBUG',
-  INFO = 'INFO',
-  WARNING = 'WARNING',
-  ERROR = 'ERROR',
-}
 
 type LogFn = (message: string, data?: LogData) => void;
 
@@ -95,7 +102,7 @@ function jsonFormatterReplacer(_key: string, value: unknown) {
       if (key === 'stack') {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         error[key] = val?.toString().split('\n');
-      } else {
+      } else if (isPlainObject(val) || typeof val !== 'object') {
         error[key] = val;
       }
     }
