@@ -54,6 +54,7 @@ const mongoDB: NotesStackProps['customProps']['mongoDB'] = {
 const commonLambdaEnvironment = {
   NODE_ENV,
   DEBUG: process.env.LAMBDA_DEBUG_ARG ?? '*',
+  DEBUG_FORMAT: process.env.DEBUG_FORMAT ?? 'json',
 };
 
 const runtimeLambdaEnvironment = {
