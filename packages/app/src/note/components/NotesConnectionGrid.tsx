@@ -94,7 +94,7 @@ export function NotesConnectionGrid({
   }
 
   if (!noteIds) {
-    return <NotesCardGrid noteCard={<SortableNoteCard />} />;
+    return <NotesCardGrid />;
   }
 
   if (noteIds.length === 0 && emptyElement) {
@@ -119,39 +119,6 @@ export function NotesConnectionGrid({
           first: perPageCount,
           after: pageInfo.endCursor,
           category,
-        },
-        // Merge result to existing
-        updateQuery: (previousResult, { fetchMoreResult }) => {
-          const prevUserNoteLinkConnection = getFragmentData(
-            NotesConnectionGrid_UserNoteLinkConnectionFragment,
-            previousResult.userNoteLinkConnection
-          );
-
-          const moreUserNoteLinkConnection = getFragmentData(
-            NotesConnectionGrid_UserNoteLinkConnectionFragment,
-            fetchMoreResult.userNoteLinkConnection
-          );
-
-          const incomingIds = new Set(
-            moreUserNoteLinkConnection.edges.map((edge) => edge.node.id)
-          );
-
-          return {
-            ...previousResult,
-            ...fetchMoreResult,
-            userNoteLinkConnection: {
-              ...prevUserNoteLinkConnection,
-              ...moreUserNoteLinkConnection,
-              edges: [
-                // Remove any previous duplicates
-                ...prevUserNoteLinkConnection.edges.filter(
-                  (edge) => !incomingIds.has(edge.node.id)
-                ),
-                ...moreUserNoteLinkConnection.edges,
-              ],
-              pageInfo: moreUserNoteLinkConnection.pageInfo,
-            },
-          };
         },
       });
     } finally {
