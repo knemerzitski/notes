@@ -47,13 +47,22 @@ export function ShowCachedUserMessages() {
       return;
     }
 
+    function removeMessage() {
+      if (!nextMessage) {
+        return;
+      }
+
+      removeUserMessages(userId, [nextMessage.id], client.cache);
+    }
+
     showMessage(nextMessage.text, {
       severity: mapSeverity(nextMessage.type),
-      onDone() {
-        // remove also when have shown long enoudh
-        removeUserMessages(userId, [nextMessage.id], client.cache);
+      onShowing() {
+        removeMessage();
       },
-      // TODO callback when showing message for some time?
+      onDone() {
+        removeMessage();
+      },
     });
   }, [client, messages, userId, showMessage]);
 

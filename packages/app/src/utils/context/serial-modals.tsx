@@ -50,12 +50,15 @@ export interface ShowModalOptions {
    */
   maxShowCount?: number;
   /**
+   * Invoked when modal is visible to the user
+   */
+  onShowing?: () => void;
+  /**
    * Invoked when modal is a duplicate and won't be shown
    */
   onDuplicate?: () => void;
-
   /**
-   * Invoked when modal is removed from queue.. IS invoked regardless if modal was shown or not.
+   * Invoked when modal is removed from queue. Is invoked regardless if modal was shown or not.
    */
   onRemoved?: () => void;
 }
@@ -74,6 +77,8 @@ interface ModalState {
   readonly key?: string;
   readonly ignoreOnRemoved?: boolean;
   readonly onRemoved?: () => void;
+  readonly onShowing?: () => void;
+  readonly onInterrupted?: () => void;
 }
 
 /**
@@ -93,6 +98,9 @@ export function SerialModalsProvider({
 }) {
   const [queue, setQueue] = useState<readonly ModalState[]>([]);
 
+  const active = queue[0];
+  const open = active?.status === 'showing';
+
   useEffect(() => {
     const first = queue[0];
     if (!first) {
@@ -104,6 +112,14 @@ export function SerialModalsProvider({
       setQueue((prev) => updateStatusShowing(prev, defaultMaxShowCount));
     }
   }, [queue, defaultMaxShowCount]);
+
+  useEffect(() => {
+    if (!active) {
+      return;
+    }
+
+    active.onShowing?.();
+  }, [active]);
 
   const handleModalClose = useCallback(() => {
     // Starts modal closing animation
@@ -132,6 +148,7 @@ export function SerialModalsProvider({
             uninterruptible: options?.uninterruptible ?? false,
             immediate: options?.immediate ?? false,
             key: options?.key,
+            onShowing: options?.onShowing,
             onRemoved: options?.onRemoved,
           },
           prev
@@ -151,9 +168,6 @@ export function SerialModalsProvider({
     },
     [defaultMaxShowCount]
   );
-
-  const active = queue[0];
-  const open = active?.status === 'showing';
 
   return (
     <>
