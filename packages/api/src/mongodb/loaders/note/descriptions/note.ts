@@ -47,13 +47,18 @@ export const queryableNoteDescription: DescriptionDeep<
   users: {
     // Lookup UserSchema: Note.users._id = UserSchema._id
     user: {
-      $addStages({ customContext, subStages, subLastProject }) {
+      $addStages({ customContext, subStages, subLastProject, fields }) {
+        const parentRelativePath = fields.map((field) => field.parentRelativePath)[0];
+        if (!parentRelativePath) {
+          return;
+        }
+
         return [
           {
             $lookup: {
               from: customContext.collections.users.collectionName,
               foreignField: '_id',
-              localField: 'users._id',
+              localField: `${parentRelativePath}._id`,
               as: '_users_user',
               pipeline: [
                 ...subStages(),
@@ -68,9 +73,9 @@ export const queryableNoteDescription: DescriptionDeep<
           },
           {
             $set: {
-              users: {
+              [parentRelativePath]: {
                 $map: {
-                  input: '$users',
+                  input: `$${parentRelativePath}`,
                   in: {
                     $mergeObjects: [
                       '$$this',
@@ -105,13 +110,18 @@ export const queryableNoteDescription: DescriptionDeep<
     },
     // Lookup OpenNoteSchema: Note.users._id = OpenNoteSchema.userId and Note._id = OpenNoteSchema.noteId
     openNote: {
-      $addStages({ customContext, subStages, subLastProject }) {
+      $addStages({ customContext, subStages, subLastProject, fields }) {
+        const parentRelativePath = fields.map((field) => field.parentRelativePath)[0];
+        if (!parentRelativePath) {
+          return;
+        }
+
         return [
           {
             $lookup: {
               from: customContext.collections.openNotes.collectionName,
               let: {
-                userId: '$users._id',
+                userId: `$${parentRelativePath}._id`,
                 noteId: '$_id',
               },
               as: '_users_openNote',
@@ -138,9 +148,9 @@ export const queryableNoteDescription: DescriptionDeep<
           },
           {
             $set: {
-              users: {
+              [parentRelativePath]: {
                 $map: {
-                  input: '$users',
+                  input: `$${parentRelativePath}`,
                   in: {
                     $mergeObjects: [
                       '$$this',
