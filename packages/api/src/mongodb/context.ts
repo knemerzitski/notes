@@ -28,6 +28,18 @@ export async function createMongoDBContext<TCollections>(
 
   try {
     const client = new MongoClient(params.uri, params.options);
+
+    const commandLogger = params.logger.extend('command');
+    client.addListener('commandStarted', (e) => {
+      commandLogger.info('commandStarted', e);
+    });
+    client.addListener('commandSucceeded', (e) => {
+      commandLogger.info('commandSucceeded', e);
+    });
+    client.addListener('commandFailed', (e) => {
+      commandLogger.error('commandFailed', e);
+    });
+
     await client.connect();
 
     const db = client.db();

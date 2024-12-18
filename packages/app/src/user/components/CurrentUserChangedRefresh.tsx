@@ -27,7 +27,7 @@ export function CurrentUserChangedRefresh() {
 
   useEffect(() => {
     function userChanged() {
-      void navigate({ to: '.' });
+      void navigate({ to: '.', search: (prev) => prev });
     }
 
     const observable = client.watchQuery({

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
@@ -56,7 +58,8 @@ async function fetchSignIn(): Promise<User> {
     }),
   });
 
-  await res.json();
+  const graphQLResponse = await res.json();
+  expectNoErrors(graphQLResponse);
 
   const cookie = res.headers.getSetCookie();
   const userId = cookie[0]?.substring(9, cookie[0].indexOf(':'));
@@ -97,7 +100,8 @@ async function fetchCreateNote(user: User, content: string): Promise<User> {
     }),
   });
 
-  await res.json();
+  const graphQLResponse = await res.json();
+  expectNoErrors(graphQLResponse);
 
   const cookie = res.headers.getSetCookie();
   const userId = cookie[0]?.substring(9, cookie[0].indexOf(':'));
@@ -147,7 +151,14 @@ async function fetchNotes(user: User) {
     }),
   });
 
-  return res.json();
+  const graphQLResponse = await res.json();
+  expectNoErrors(graphQLResponse);
+
+  return graphQLResponse;
+}
+
+function expectNoErrors(response: any) {
+  expect(response.errors, JSON.stringify(response.errors, null, 2)).toBeUndefined();
 }
 
 it(

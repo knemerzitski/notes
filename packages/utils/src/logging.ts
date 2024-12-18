@@ -100,6 +100,8 @@ function jsonFormatterReplacer(_key: string, value: unknown) {
       }
     }
     return error;
+  } else if (typeof value === 'bigint') {
+    return value.toString();
   }
 
   return value;

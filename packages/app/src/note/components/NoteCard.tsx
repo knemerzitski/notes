@@ -81,9 +81,10 @@ export const NoteCard = forwardRef<HTMLDivElement, PaperProps>(
       // TODO depends if mobile or not when shows dialog
       void navigate({
         to: '.',
-        search: {
+        search: (prev) => ({
+          ...prev,
           noteId,
-        },
+        }),
         mask: {
           to: '/note/$noteId',
           params: {

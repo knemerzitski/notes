@@ -62,6 +62,32 @@ const QUERY = `#graphql
   }
 `;
 
+const QUERY_USER_LOOKUP = `#graphql
+  query($searchText: String! $after: String, $first: NonNegativeInt, $before: String, $last: NonNegativeInt) {
+    userNoteLinkSearchConnection(searchText: $searchText, after: $after, first: $first, before: $before, last: $last){
+      edges {
+        node {
+          note {
+            id
+            users {
+              id
+              user {
+                id
+                profile {
+                  displayName
+                }
+              }
+              open {
+                closedAt
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
 let populateResult: ReturnType<typeof populateNotes>;
 let user: DBUserSchema;
 
@@ -266,5 +292,55 @@ it('invalid cursor returns empty array', async () => {
     hasPreviousPage: false,
     startCursor: null,
     endCursor: null,
+  });
+});
+
+it('queries user schema that requires lookup', async () => {
+  const response = await apolloServer.executeOperation<
+    {
+      userNoteLinkSearchConnection: UserNoteLinkConnection;
+    },
+    Variables
+  >(
+    {
+      query: QUERY_USER_LOOKUP,
+      variables: {
+        searchText: 'foo',
+        first: 1,
+      },
+    },
+    {
+      contextValue: createGraphQLResolversContext({
+        user,
+      }),
+    }
+  );
+
+  const data = expectGraphQLResponseData(response);
+
+  expect(data).toEqual({
+    userNoteLinkSearchConnection: {
+      edges: [
+        {
+          node: {
+            note: {
+              id: expect.any(String),
+              users: [
+                {
+                  id: expect.any(String),
+                  open: null,
+                  user: {
+                    id: expect.any(String),
+                    profile: {
+                      displayName: expect.any(String),
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        },
+      ],
+    },
   });
 });

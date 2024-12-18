@@ -13,8 +13,6 @@ import { useCollabHtmlInput } from '../hooks/useCollabHtmlInput';
 import { CollabInputUsersEditingCarets } from './CollabInputUsersEditingCarets';
 import { SubmitSelectionChangeDebounced } from './SubmitSelectionChangeDebounced';
 
-
-
 const CollabInput_Query = gql(`
   query CollabInput_Query($id: ObjectID!, $fieldName: NoteTextFieldName!) {
     userNoteLink(by: { noteId: $id }) @client {
@@ -73,7 +71,7 @@ function NoteDefined<TInputProps>({
 
   return (
     <>
-      <SubmitSelectionChangeDebounced wait={0} />
+      <SubmitSelectionChangeDebounced />
       <Box position="relative">
         {/* @ts-expect-error Safe to spread props in normal use */}
         <Input {...InputProps} {...collabHtmlInput} />

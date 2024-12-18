@@ -6,8 +6,12 @@ export interface ShowMessageOptions {
    */
   severity?: 'success' | 'info' | 'warning' | 'error';
   /**
-   * Called when message is no longer shown to user.
-   * User might never see the message if it was a duplicate.
+   * Invoked when message is visible to user.
+   */
+  onShowing?: () => void;
+  /**
+   * Invoked when message is no longer shown to user.
+   * Message might have not been shown if it was a duplicated.
    */
   onDone?: () => void;
 }

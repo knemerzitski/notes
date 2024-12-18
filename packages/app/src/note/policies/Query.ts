@@ -134,6 +134,26 @@ export const Query: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
         },
         isOrderedSet: true,
       }),
+      userNoteLinkSearchConnection: relayStylePagination(
+        keyArgsWithUserId(ctx, ['searchText']),
+        {
+          read(
+            existing = {
+              __typename: 'UserNoteLinkConnection',
+              edges: [],
+              pageInfo: {
+                hasPreviousPage: false,
+                hasNextPage: false,
+                startCursor: null,
+                endCursor: null,
+              },
+            }
+          ) {
+            return existing;
+          },
+          isOrderedSet: true,
+        }
+      ),
     },
   };
 };

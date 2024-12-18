@@ -36,6 +36,9 @@ export function ShowSnackbarMessageProvider({ children }: { children: ReactNode 
         modalOptions: {
           immediate: severity === 'error',
           key: `${id}:${severity}:${message}`,
+          onShowing() {
+            options?.onShowing?.();
+          },
           onDuplicate: () => {
             options?.onDone?.();
           },

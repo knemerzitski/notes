@@ -1,5 +1,7 @@
 import './load-env';
 
+import { inspect } from 'util';
+
 import WebSocket from 'ws';
 import { createApolloHttpHandlerDefaultParams } from '~api/apollo-http-handler';
 import { DynamoDBBaseGraphQLContext, GraphQLResolversContext } from '~api/graphql/types';
@@ -25,6 +27,13 @@ import {
   waitForDynamoDBPort,
 } from './utils/lambda-graphql-dynamodb';
 import { waitForMongoDBPort } from './utils/mongodb';
+
+// Inspect default options
+inspect.defaultOptions = {
+  showHidden: false,
+  colors: true,
+  depth: 8,
+};
 
 const logger = createLogger('mock:lambda-graphql-server');
 

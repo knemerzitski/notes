@@ -3,18 +3,16 @@ import { Alert, Box, css, styled } from '@mui/material';
 import { ReactNode, useMemo, useState } from 'react';
 
 import { getFragmentData, gql } from '../../__generated__';
-import { Maybe, NoteCategory } from '../../__generated__/graphql';
+import { Maybe } from '../../__generated__/graphql';
 import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
+import { useIsLoading } from '../../utils/context/is-loading';
 import { NoteIdsProvider } from '../context/note-ids';
-import { toMovableNoteCategory } from '../utils/note-category';
 
 import { LoadMoreButton } from './LoadMoreButton';
 import { NotesCardGrid } from './NotesCardGrid';
-import { SortableNoteCard } from './SortableNoteCard';
-import { SortableNotesContext } from './SortableNotesContext';
 
-const NotesConnectionGrid_UserNoteLinkConnectionFragment = gql(`
-  fragment NotesConnectionGrid_UserNoteLinkConnectionFragment on UserNoteLinkConnection {
+const NotesSearchConnectionGrid_UserNoteLinkConnectionFragment = gql(`
+  fragment NotesSearchConnectionGrid_UserNoteLinkConnectionFragment on UserNoteLinkConnection {
     edges {
       node {
         id
@@ -33,47 +31,50 @@ const NotesConnectionGrid_UserNoteLinkConnectionFragment = gql(`
   }
 `);
 
-const NotesConnectionGrid_Query = gql(`
-  query NotesConnectionGrid_Query($first: NonNegativeInt, $after: ObjectID, $category: NoteCategory) {
-    userNoteLinkConnection(first: $first, after: $after, category: $category) {
-      ...NotesConnectionGrid_UserNoteLinkConnectionFragment
+const NotesSearchConnectionGrid_Query = gql(`
+  query NotesSearchConnectionGrid_Query($searchText: String!, $first: NonNegativeInt, $after: String) {
+    userNoteLinkSearchConnection(searchText: $searchText, first: $first, after: $after) {
+      ...NotesSearchConnectionGrid_UserNoteLinkConnectionFragment
     }  
   }
 `);
 
-export function NotesConnectionGrid({
+export function NotesSearchConnectionGrid({
+  searchText,
   perPageCount = 20,
-  category = NoteCategory.DEFAULT,
   emptyElement = 'empty',
+  loadingElement,
 }: {
+  searchText?: string;
   /**
    * @default 20
    */
   perPageCount?: Maybe<number>;
   /**
-   * @default Default
-   */
-  category?: NoteCategory;
-  /**
    * Element that is rendered when notes list is empty.
    */
   emptyElement?: ReactNode;
+  /**
+   * Element that is rendered when loading notes.
+   */
+  loadingElement?: ReactNode;
 }) {
+  const isLoading = useIsLoading();
   const isLocalOnlyUser = useIsLocalOnlyUser();
 
   const [isFetchingMore, setIsFetchingMore] = useState(false);
 
-  const { data, error, fetchMore } = useQuery(NotesConnectionGrid_Query, {
+  const { data, error, fetchMore } = useQuery(NotesSearchConnectionGrid_Query, {
     variables: {
       first: perPageCount,
-      category,
+      searchText: searchText ?? '',
     },
-    fetchPolicy: 'cache-only',
+    fetchPolicy: isLoading ? 'standby' : 'cache-only',
   });
 
   const fragmentData = getFragmentData(
-    NotesConnectionGrid_UserNoteLinkConnectionFragment,
-    data?.userNoteLinkConnection
+    NotesSearchConnectionGrid_UserNoteLinkConnectionFragment,
+    data?.userNoteLinkSearchConnection
   );
 
   const noteIds = useMemo(
@@ -94,7 +95,7 @@ export function NotesConnectionGrid({
   }
 
   if (!noteIds) {
-    return <NotesCardGrid />;
+    return loadingElement ?? <NotesCardGrid />;
   }
 
   if (noteIds.length === 0 && emptyElement) {
@@ -115,10 +116,11 @@ export function NotesConnectionGrid({
     setIsFetchingMore(true);
     try {
       await fetchMore({
+        // pass this to parent, which in turn will give props for later?
         variables: {
           first: perPageCount,
           after: pageInfo.endCursor,
-          category,
+          searchText,
         },
       });
     } finally {
@@ -135,26 +137,16 @@ export function NotesConnectionGrid({
     fragmentData?.pageInfo.hasNextPage &&
     fragmentData.pageInfo.endCursor != null;
 
-  const isSortableCategory = !!toMovableNoteCategory(category);
-
-  const sortableInnerElement = (
-    <RootBoxStyled>
-      <NotesCardGrid noteCard={isSortableCategory ? <SortableNoteCard /> : undefined} />
-      {canFetchMore && (
-        <LoadMoreButtonStyled isLoading={isFetchingMore} onLoad={handleClickLoadMore} />
-      )}
-    </RootBoxStyled>
+  return (
+    <NoteIdsProvider noteIds={noteIds}>
+      <RootBoxStyled>
+        <NotesCardGrid />
+        {canFetchMore && (
+          <LoadMoreButtonStyled isLoading={isFetchingMore} onLoad={handleClickLoadMore} />
+        )}
+      </RootBoxStyled>
+    </NoteIdsProvider>
   );
-
-  const sortableContextElement = isSortableCategory ? (
-    <SortableNotesContext category={category}>
-      {sortableInnerElement}
-    </SortableNotesContext>
-  ) : (
-    sortableInnerElement
-  );
-
-  return <NoteIdsProvider noteIds={noteIds}>{sortableContextElement}</NoteIdsProvider>;
 }
 
 const RootBoxStyled = styled(Box)(

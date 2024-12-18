@@ -3,6 +3,7 @@ import { Box, css, Skeleton, styled } from '@mui/material';
 import { forwardRef, ReactNode } from 'react';
 
 import { gql } from '../../__generated__';
+import { useIsLoading } from '../../utils/context/is-loading';
 import { NoteIdProvider } from '../context/note-id';
 
 import { useNoteIds } from '../context/note-ids';
@@ -29,9 +30,10 @@ export const NotesCardGrid = forwardRef(function NotesCardGrid(
   },
   ref
 ) {
-  const noteIds = useNoteIds(true);
+  const isLoading = useIsLoading();
+  const noteIds = useNoteIds(true) ?? [];
 
-  if (!noteIds) {
+  if (isLoading) {
     return (
       <BoxStyled>
         {[...new Array<undefined>(defaultLoadingCount)].map((_value, index) => (

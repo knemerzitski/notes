@@ -1,10 +1,9 @@
 import { Struct } from 'superstruct';
 
-export interface JsonFormatter {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  parse(value: string): any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  stringify(value: any): string;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface JsonFormatter<T = any> {
+  parse(value: string): T;
+  stringify(value: T): string;
   parseString(value: string): string;
   stringifyString(value: string): string;
 }

@@ -26,8 +26,8 @@ export function TrashNotesConnectionGrid(props: {
       emptyElement={
         <>
           {props.slots?.emptyElementPrefix}
-          {props.slots?.emptyElementSuffix}
           <EmptyTrashInfo />
+          {props.slots?.emptyElementSuffix}
         </>
       }
     />
