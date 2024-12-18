@@ -27,6 +27,7 @@ function getProcess(): any {
 }
 
 function createLoggerContext() {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
   const debugFormat = getProcess()?.env?.DEBUG_FORMAT ?? 'json';
 
   const result = {
