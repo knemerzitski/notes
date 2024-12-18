@@ -1,3 +1,4 @@
+import SearchIcon from '@mui/icons-material/Search';
 import {
   css,
   IconButton,
@@ -10,7 +11,6 @@ import {
   Tooltip,
   useTheme,
 } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
 import { forwardRef } from 'react';
 
 export type SearchNoteProps = Parameters<typeof SearchNotes>[0];

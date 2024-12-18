@@ -3,12 +3,12 @@ import { Box, css, Skeleton, styled } from '@mui/material';
 import { forwardRef, ReactNode } from 'react';
 
 import { gql } from '../../__generated__';
+import { useIsLoading } from '../../utils/context/is-loading';
 import { NoteIdProvider } from '../context/note-id';
 
 import { useNoteIds } from '../context/note-ids';
 
 import { NoteCard } from './NoteCard';
-import { useIsLoading } from '../../utils/context/is-loading';
 
 const _NotesCardGrid_UserNoteLinkFragment = gql(`
   fragment NotesCardGrid_UserNoteLinkFragment on UserNoteLink {

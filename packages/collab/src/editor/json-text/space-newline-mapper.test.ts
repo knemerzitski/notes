@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { spaceNewlineMapper } from './space-newline-mapper';
 
 describe('mapper is symmetrical', () => {

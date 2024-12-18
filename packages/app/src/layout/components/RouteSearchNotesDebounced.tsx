@@ -1,8 +1,9 @@
-import { forwardRef, useEffect, useState } from 'react';
-import { SearchNoteProps, SearchNotes } from './SearchNotes';
 import { useNavigate, useRouter, ParsedLocation } from '@tanstack/react-router';
+import { forwardRef, useEffect, useState } from 'react';
 import { Options, useDebouncedCallback } from 'use-debounce';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
+
+import { SearchNoteProps, SearchNotes } from './SearchNotes';
 
 type RouteSearchNotesDebouncedProps = Omit<SearchNoteProps, 'InputBaseProps'> & {
   InputBaseProps?: Omit<SearchNoteProps['InputBaseProps'], 'value' | 'onInput'>;

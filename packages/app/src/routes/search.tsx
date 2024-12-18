@@ -1,9 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { optional, string, type } from 'superstruct';
-import { routeFetchPolicy } from '../utils/route-fetch-policy';
+
 import { gql } from '../__generated__';
 import { SearchMain } from '../note/components/SearchMain';
 import { IsLoadingProvider } from '../utils/context/is-loading';
+import { routeFetchPolicy } from '../utils/route-fetch-policy';
 
 const RouteSearch_Query = gql(`
   query RouteSearch_Query($searchText: String!, $first: NonNegativeInt, $after: String) {

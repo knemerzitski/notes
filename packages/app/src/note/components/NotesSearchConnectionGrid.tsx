@@ -5,11 +5,11 @@ import { ReactNode, useMemo, useState } from 'react';
 import { getFragmentData, gql } from '../../__generated__';
 import { Maybe } from '../../__generated__/graphql';
 import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
+import { useIsLoading } from '../../utils/context/is-loading';
 import { NoteIdsProvider } from '../context/note-ids';
 
 import { LoadMoreButton } from './LoadMoreButton';
 import { NotesCardGrid } from './NotesCardGrid';
-import { useIsLoading } from '../../utils/context/is-loading';
 
 const NotesSearchConnectionGrid_UserNoteLinkConnectionFragment = gql(`
   fragment NotesSearchConnectionGrid_UserNoteLinkConnectionFragment on UserNoteLinkConnection {

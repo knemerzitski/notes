@@ -6,8 +6,8 @@ import { AppStatusRefreshButton } from '../../utils/components/AppStatusRefreshB
 import { IconButtonsRow } from '../../utils/components/IconButtonsRow';
 import { SettingsButton } from '../../utils/components/SettingsButton';
 
-import { ToggleAppDrawerButton } from './ToggleAppDrawerButton';
 import { RouteSearchNotesDebounced } from './RouteSearchNotesDebounced';
+import { ToggleAppDrawerButton } from './ToggleAppDrawerButton';
 
 export function HeaderToolbar() {
   return (

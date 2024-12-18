@@ -1,9 +1,9 @@
 import { gql } from '@apollo/client';
+import { Box, CircularProgress } from '@mui/material';
 import { ReactNode } from 'react';
 
 import { EmptySearchInfo } from './EmptySearchInfo';
 import { NotesSearchConnectionGrid } from './NotesSearchConnectionGrid';
-import { Box, CircularProgress } from '@mui/material';
 
 const _SearchNotesConnectionGrid_QueryFragment = gql(`
   fragment SearchNotesConnectionGrid_QueryFragment on Query { 

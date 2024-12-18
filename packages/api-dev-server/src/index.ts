@@ -1,5 +1,7 @@
 import './load-env';
 
+import { inspect } from 'util';
+
 import WebSocket from 'ws';
 import { createApolloHttpHandlerDefaultParams } from '~api/apollo-http-handler';
 import { DynamoDBBaseGraphQLContext, GraphQLResolversContext } from '~api/graphql/types';
@@ -25,7 +27,6 @@ import {
   waitForDynamoDBPort,
 } from './utils/lambda-graphql-dynamodb';
 import { waitForMongoDBPort } from './utils/mongodb';
-import { inspect } from 'util';
 
 // Inspect default options
 inspect.defaultOptions = {
