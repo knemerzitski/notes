@@ -108,7 +108,7 @@ function jsonFormatterReplacer(_key: string, value: unknown) {
 }
 
 debug.formatters.j = (value) => {
-  return JSON.stringify(value, jsonFormatterReplacer, 2);
+  return JSON.stringify(value, jsonFormatterReplacer);
 };
 
 export function createLogger(namespace: string): Logger {
