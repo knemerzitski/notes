@@ -96,7 +96,7 @@ describe('one text', () => {
       end: 0,
     });
 
-    expect(service.viewText).toMatchInlineSnapshot(`"{"c":"\\n"}"`);
+    expect(service.viewText).toMatchInlineSnapshot(`"{"c":"\\n "}"`);
     expect(text.value).toMatchInlineSnapshot(`
       "
       "
@@ -122,7 +122,7 @@ describe('one text', () => {
     });
     expect(text.value).toStrictEqual('start\n\nr\neplaced\n\nend');
     expect(service.viewText).toMatchInlineSnapshot(
-      `"{"c":"start\\n\\nr\\neplaced\\n\\nend"}"`
+      `"{"c":"start\\n \\n r\\n eplaced\\n \\n end"}"`
     );
   });
 
@@ -144,7 +144,9 @@ describe('one text', () => {
     });
 
     expect(text.value).toStrictEqual('\n\nstart\n\n\nend');
-    expect(service.viewText).toMatchInlineSnapshot(`"{"c":"\\n\\nstart\\n\\n\\nend"}"`);
+    expect(service.viewText).toMatchInlineSnapshot(
+      `"{"c":"\\n \\n start\\n \\n \\n end"}"`
+    );
   });
 
   it('emits external change json with escaped characters', () => {
@@ -166,11 +168,11 @@ describe('one text', () => {
     });
 
     service.handleExternalChange({
-      changeset: Changeset.parseValue([[0, 7], 'a', [8, 9]]),
+      changeset: Changeset.parseValue([[0, 8], 'a', [9, 10]]),
       revision: service.headRevision + 1,
     });
 
-    expect(service.viewText).toMatchInlineSnapshot(`"{"c":"\\na"}"`);
+    expect(service.viewText).toMatchInlineSnapshot(`"{"c":"\\n a"}"`);
     expect(content.value).toMatchInlineSnapshot(`
       "
       a"
@@ -206,11 +208,11 @@ describe('one text', () => {
     });
 
     service.handleExternalChange({
-      changeset: Changeset.parseValue([[0, 9], 'a\\nb', [10, 11]]),
+      changeset: Changeset.parseValue([[0, 11], 'a\\n b', [12, 13]]),
       revision: service.headRevision + 1,
     });
 
-    expect(service.viewText).toMatchInlineSnapshot(`"{"c":"\\n\\na\\nb"}"`);
+    expect(service.viewText).toMatchInlineSnapshot(`"{"c":"\\n \\n a\\n b"}"`);
     expect(content.value).toMatchInlineSnapshot(`
       "
 
@@ -549,7 +551,7 @@ describe('two texts', () => {
     const service = new CollabService();
     service.replaceHeadText({
       revision: 1,
-      changeset: Changeset.fromInsertion('{"CONTENT":"\\nabc","TITLE":""}'),
+      changeset: Changeset.fromInsertion('{"CONTENT":"\\n abc","TITLE":""}'),
     });
 
     const multiJsonText = createMultiJsonTextByService(service);
@@ -563,9 +565,9 @@ describe('two texts', () => {
     service.handleExternalChange({
       revision: 2,
       changeset: Changeset.from(
-        RetainStrip.create(0, 13),
+        RetainStrip.create(0, 14),
         InsertStrip.create('A'),
-        RetainStrip.create(13, 29)
+        RetainStrip.create(14, 30)
       ),
     });
 
@@ -590,7 +592,7 @@ describe('two texts', () => {
     const service = new CollabService();
     service.replaceHeadText({
       revision: 1,
-      changeset: Changeset.fromInsertion('{"CONTENT":"\\n\\na\\nbc","TITLE":""}'),
+      changeset: Changeset.fromInsertion('{"CONTENT":"\\n \\n a\\n bc","TITLE":""}'),
     });
 
     const multiJsonText = createMultiJsonTextByService(service);
@@ -604,11 +606,11 @@ describe('two texts', () => {
     service.handleExternalChange({
       revision: 2,
       changeset: Changeset.from(
-        RetainStrip.create(0, 15),
+        RetainStrip.create(0, 17),
         InsertStrip.create('A'),
-        RetainStrip.create(16, 18),
+        RetainStrip.create(18, 21),
         InsertStrip.create('B'),
-        RetainStrip.create(19, 33)
+        RetainStrip.create(22, 36)
       ),
     });
 
@@ -638,7 +640,7 @@ describe('two texts', () => {
     const service = new CollabService();
     service.replaceHeadText({
       revision: 1,
-      changeset: Changeset.fromInsertion('{"CONTENT":"\\n\\nabc\\n","TITLE":""}'),
+      changeset: Changeset.fromInsertion('{"CONTENT":"\\n \\n abc\\n ","TITLE":""}'),
     });
 
     const multiJsonText = createMultiJsonTextByService(service);
@@ -651,7 +653,7 @@ describe('two texts', () => {
 
     service.handleExternalChange({
       revision: 2,
-      changeset: Changeset.from(RetainStrip.create(0, 11), RetainStrip.create(14, 33)),
+      changeset: Changeset.from(RetainStrip.create(0, 11), RetainStrip.create(15, 36)),
     });
 
     expect(contentEvents.mock.calls).toStrictEqual([
@@ -663,7 +665,7 @@ describe('two texts', () => {
     ]);
   });
 
-  it('handles submit changes and  external changes', () => {
+  it('handles submit changes and external changes', () => {
     enum TextType {
       CONTENT = 'CONTENT',
       TITLE = 'TITLE',
@@ -675,13 +677,13 @@ describe('two texts', () => {
     const service = new CollabService();
     service.replaceHeadText({
       revision: 1,
-      changeset: Changeset.fromInsertion('{"CONTENT":"\\n\\nabc","TITLE":""}'),
+      changeset: Changeset.fromInsertion('{"CONTENT":"\\n \\n abc","TITLE":""}'),
     });
 
     const multiJsonText = createMultiJsonTextByService(service);
     const contentText = multiJsonText.getText(TextType.CONTENT);
     expect(service.client.server.toString()).toMatchInlineSnapshot(
-      `"(0 -> 32)["{"CONTENT":"\\n\\nabc","TITLE":""}"]"`
+      `"(0 -> 34)["{"CONTENT":"\\n \\n abc","TITLE":""}"]"`
     );
 
     contentText.insert('A', { start: 3, end: 3 });
@@ -691,7 +693,7 @@ describe('two texts', () => {
       revision: 2,
     });
     expect(service.client.server.toString()).toMatchInlineSnapshot(
-      `"(0 -> 33)["{"CONTENT":"\\n\\naAbc","TITLE":""}"]"`
+      `"(0 -> 35)["{"CONTENT":"\\n \\n aAbc","TITLE":""}"]"`
     );
 
     contentText.insert('A', { start: 4, end: 4 });
@@ -699,37 +701,37 @@ describe('two texts', () => {
     service.handleExternalChange({
       revision: 3,
       changeset: Changeset.from(
-        RetainStrip.create(0, 18),
+        RetainStrip.create(0, 20),
         InsertStrip.create('B'),
-        RetainStrip.create(19, 32)
+        RetainStrip.create(21, 34)
       ),
     });
 
     expect(service.client.server.toString()).toMatchInlineSnapshot(
-      `"(0 -> 34)["{"CONTENT":"\\n\\naAbBc","TITLE":""}"]"`
+      `"(0 -> 36)["{"CONTENT":"\\n \\n aAbBc","TITLE":""}"]"`
     );
 
     expect(service.serialize(true)).toStrictEqual({
       client: {
-        local: [[0, 17], 'A', [18, 33]],
-        server: ['{"CONTENT":"\\n\\naAbBc","TITLE":""}'],
+        local: [[0, 19], 'A', [20, 35]],
+        server: ['{"CONTENT":"\\n \\n aAbBc","TITLE":""}'],
       },
       history: {
         records: [
           {
             afterSelection: {
-              start: 18,
+              start: 20,
             },
             beforeSelection: {
-              start: 17,
+              start: 19,
             },
-            changeset: [[0, 16], 'A', [17, 32]],
+            changeset: [[0, 18], 'A', [19, 34]],
           },
           {
             afterSelection: {
-              start: 19,
+              start: 21,
             },
-            changeset: [[0, 17], 'A', [18, 33]],
+            changeset: [[0, 19], 'A', [20, 35]],
           },
         ],
         lastExecutedIndex: {
@@ -737,8 +739,8 @@ describe('two texts', () => {
           server: 0,
           submitted: 0,
         },
-        serverTailTextTransformToRecordsTailText: [[0, 17], 'B', [18, 31]],
-        recordsTailText: ['{"CONTENT":"\\n\\nabBc","TITLE":""}'],
+        serverTailTextTransformToRecordsTailText: [[0, 19], 'B', [20, 33]],
+        recordsTailText: ['{"CONTENT":"\\n \\n abBc","TITLE":""}'],
       },
       recordsBuffer: {
         messages: [],
