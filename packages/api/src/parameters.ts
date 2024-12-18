@@ -130,7 +130,9 @@ export async function createDefaultMongoDBContext(logger: Logger) {
       retryWrites: true,
       serverApi: {
         version: ServerApiVersion.v1,
-        strict: true,
+        // $search is not allowed with 'apiStrict: true' in API Version 1
+        // Strict false to use Atlas Search
+        strict: false,
         deprecationErrors: true,
       },
       connectTimeoutMS: timeout,
