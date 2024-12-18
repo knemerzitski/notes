@@ -72,9 +72,13 @@ export class NotesStack extends Stack {
       );
     });
     webSocketDynamoDB.tables.connections.grantReadData(handlers.http);
-    webSocketDynamoDB.tables.subscriptions.grantReadData(handlers.http);
     webSocketDynamoDB.tables.connections.grantReadWriteData(handlers.webSocket);
+    webSocketDynamoDB.tables.subscriptions.grantReadData(handlers.http);
     webSocketDynamoDB.tables.subscriptions.grantReadWriteData(handlers.webSocket);
+    webSocketDynamoDB.tables.completedSubscriptions.grantReadData(handlers.http);
+    webSocketDynamoDB.tables.completedSubscriptions.grantReadWriteData(
+      handlers.webSocket
+    );
 
     // MongoDB
     const mongoDBRole = new Role(this, 'MongoDBAtlasAuthRole', {
