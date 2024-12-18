@@ -66,6 +66,7 @@ export async function createMockMongoDBContext(): ReturnType<
       socketTimeoutMS: timeout,
       waitQueueTimeoutMS: timeout,
       serverSelectionTimeoutMS: timeout,
+      monitorCommands: true,
     },
   });
 }

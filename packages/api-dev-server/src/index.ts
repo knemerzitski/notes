@@ -25,6 +25,14 @@ import {
   waitForDynamoDBPort,
 } from './utils/lambda-graphql-dynamodb';
 import { waitForMongoDBPort } from './utils/mongodb';
+import { inspect } from 'util';
+
+// Inspect default options
+inspect.defaultOptions = {
+  showHidden: false,
+  colors: true,
+  depth: 8,
+};
 
 const logger = createLogger('mock:lambda-graphql-server');
 
