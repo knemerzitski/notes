@@ -1,4 +1,9 @@
-import { Outlet, createRootRouteWithContext, defer } from '@tanstack/react-router';
+import {
+  ErrorComponentProps,
+  Outlet,
+  createRootRouteWithContext,
+  defer,
+} from '@tanstack/react-router';
 
 import { coerce, number, optional, string, type } from 'superstruct';
 
@@ -12,6 +17,9 @@ import { RouteUserModuleProvider } from '../user/components/RouteUserModuleProvi
 import { routeFetchPolicy } from '../utils/route-fetch-policy';
 import { NoteIdProvider } from '../note/context/note-id';
 import { RedirectNoteNotFound } from '../note/components/RedirectNoteNotFound';
+import { AppBarDrawerLayout } from '../layout/components/AppBarDrawerLayout';
+import { NotFoundTypography } from '../utils/components/NotFoundTypography';
+import { ErrorComponent } from '../utils/components/ErrorComponent';
 
 const RouteRoot_Query = gql(`
   query RouteRoot_Query($noteId: ObjectID!) {
@@ -35,11 +43,13 @@ const searchSchema = type({
 });
 
 export const Route = createRootRouteWithContext<RouterContext>()({
+  component: Root,
+  pendingComponent: Root,
+  notFoundComponent: RootNotFound,
+  errorComponent: RootError,
   pendingMinMs: 0,
   pendingMs: 0,
   validateSearch: (search) => searchSchema.create(search),
-  component: Root,
-  pendingComponent: Root,
   loaderDeps: ({ search: { noteId, sharingNoteId } }) => {
     return {
       noteId,
@@ -114,5 +124,21 @@ function Root() {
 
       <RouteDevModuleProvider />
     </>
+  );
+}
+
+function RootNotFound() {
+  return (
+    <AppBarDrawerLayout>
+      <NotFoundTypography>404 Not Found</NotFoundTypography>
+    </AppBarDrawerLayout>
+  );
+}
+
+function RootError({ error }: ErrorComponentProps) {
+  return (
+    <AppBarDrawerLayout>
+      <ErrorComponent error={error} />
+    </AppBarDrawerLayout>
   );
 }
