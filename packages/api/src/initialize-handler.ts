@@ -3,8 +3,9 @@ import { Handler } from 'aws-lambda';
 import 'source-map-support/register.js';
 import { createLogger, Logger } from '~utils/logging';
 
-import { createAllIndexes } from './mongodb/collections';
+import { createAllIndexes, MongoDBCollections } from './mongodb/collections';
 import { createDefaultMongoDBContext } from './parameters';
+import { MongoDBContext } from './mongodb/context';
 
 const TIER = process.env.MONGODB_TIER;
 const hasAtlasSearch = TIER === 'enterprise';
@@ -19,7 +20,9 @@ export interface CreateInitializeHandlerOptions {
 export function createInitializeHandler(
   options?: CreateInitializeHandlerOptions
 ): Handler {
-  return async (event: unknown, context: unknown) => {
+  let mongoDB: MongoDBContext<MongoDBCollections> | undefined;
+
+  return async (event: unknown, context) => {
     const logger = options?.override?.logger ?? createLogger('initialize-handler');
     try {
       logger.info('started', {
@@ -27,8 +30,10 @@ export function createInitializeHandler(
         context,
       });
 
-      const mongoDB = await (options?.override?.createMongoDBContext?.(logger) ??
-        createDefaultMongoDBContext(logger));
+      if (!mongoDB) {
+        mongoDB = await (options?.override?.createMongoDBContext?.(logger) ??
+          createDefaultMongoDBContext(logger));
+      }
 
       logger.info('createAllIndexes');
       await createAllIndexes(mongoDB.collections, {
