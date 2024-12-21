@@ -53,7 +53,6 @@ export function deleteNote({
             users: {
               _id: 1,
               isOwner: 1,
-              createdAt: 1,
               categoryName: 1,
             },
           },
