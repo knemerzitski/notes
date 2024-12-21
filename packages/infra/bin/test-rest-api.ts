@@ -11,7 +11,7 @@ import { logNodeInfo } from '~utils/node';
 import { getProjectRootDir } from '~utils/project-dir';
 
 import { assertDynamoDBIsRunning } from '../../utils/src/running-processes';
-import { TestNotesStack } from '../test/stacks/test-notes-stack';
+import { RestApiStack } from '../test/stacks/rest-api-stack';
 
 /**
  * DO NOT DEPLOY, ONLY FOR TESTING APP
@@ -56,7 +56,7 @@ await createLambdaGraphQLDynamoDBTables({
   endpoint: env.DYNAMODB_ENDPOINT,
 });
 
-new TestNotesStack(app, 'TESTINGONLYNotesStack', {
+new RestApiStack(app, 'TESTINGONLYRestApiStack', {
   customProps: {
     apolloHttpLambda: {
       codePath: join(rootDir, 'packages/api-dev-server/out/mock-apollo-http-handler'),

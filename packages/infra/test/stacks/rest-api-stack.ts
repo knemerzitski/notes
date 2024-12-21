@@ -14,7 +14,7 @@ export interface NotesStackProps extends StackProps {
   };
 }
 
-export class TestNotesStack extends Stack {
+export class RestApiStack extends Stack {
   constructor(scope: Construct, id: string, props: NotesStackProps) {
     super(scope, id, props);
     const customProps = props.customProps;
