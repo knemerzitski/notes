@@ -10,6 +10,8 @@ import { RouteNoteSharingDialog } from '../note/components/RouteNoteSharingDialo
 import { RouterContext } from '../router';
 import { RouteUserModuleProvider } from '../user/components/RouteUserModuleProvider';
 import { routeFetchPolicy } from '../utils/route-fetch-policy';
+import { NoteIdProvider } from '../note/context/note-id';
+import { RedirectNoteNotFound } from '../note/components/RedirectNoteNotFound';
 
 const RouteRoot_Query = gql(`
   query RouteRoot_Query($noteId: ObjectID!) {
@@ -90,7 +92,21 @@ function Root() {
 
       <Outlet />
 
-      {noteId && <RouteNoteDialog noteId={noteId} />}
+      {noteId && (
+        <NoteIdProvider noteId={noteId}>
+          <RedirectNoteNotFound
+            navigateOptions={{
+              to: '.',
+              search: (prev) => ({
+                ...prev,
+                noteId: undefined,
+              }),
+            }}
+          >
+            <RouteNoteDialog />
+          </RedirectNoteNotFound>
+        </NoteIdProvider>
+      )}
 
       {sharingNoteId && <RouteNoteSharingDialog noteId={sharingNoteId} />}
 
