@@ -6,11 +6,11 @@
     "clean": "rimraf out/* cdk.out/* .eslintcache",
     "assert-aws-cdk": "vite-node ./scripts/assert-aws-cdk.ts",
     "synth:test": "NODE_ENV=test && npm run synth:test:restapi",
-    "synth:test:restapi": "cdk synth -a 'vite-node bin/test-rest-api.ts' --no-staging -q",
+    "synth:test:restapi": "cdk synth -a 'vite-node bin/test-rest-api.ts' -o cdk.out/test/restapi --no-staging -q",
     "test:unit": "vitest run -c ./vitest.config.unit.ts",
     "test:unit:w": "vitest watch -c ./vitest.config.unit.ts",
-    "start": "sam local start-api --warm-containers EAGER --host localhost -p $PORT --docker-network sam-api-network -t cdk.out/TESTINGONLYRestApiStack.template.json",
-    "start:detached": "sam local start-api --skip-pull-image --warm-containers EAGER --host localhost -p $PORT --docker-network sam-api-network -t cdk.out/TESTINGONLYRestApiStack.template.json > server.log 2>&1 & wait-port $PORT -t 15000",
+    "start": "sam local start-api --warm-containers EAGER --host localhost -p $PORT --docker-network sam-api-network -t cdk.out/test/restapi/TESTINGONLYRestApiStack.template.json",
+    "start:detached": "sam local start-api --skip-pull-image --warm-containers EAGER --host localhost -p $PORT --docker-network sam-api-network -t cdk.out/test/restapi/TESTINGONLYRestApiStack.template.json > server.log 2>&1 & wait-port $PORT -t 15000",
     "stop": "kill-port $PORT",
     "test:int": "npm run assert-aws-cdk 2> /dev/null && (bash -c \"export NODE_ENV=test PORT=3010; npm run synth:test && npm run start:detached && npm run test:int:run; npm run stop\")  || echo 'AWS_CDK not set. Skipped integration tests'",
     "test:int:w": "bash -c \"export NODE_ENV=test PORT=3010; npm run synth:test && npm run start:detached && npm run test:int:run:w; npm run stop\"",
@@ -22,8 +22,8 @@
     "type-check": "tsc --noEmit --project tsconfig.tsc.json",
     "lint": "npm run type-check && npm run eslint",
     "cdk": "NODE_ENV=production cdk",
-    "synth": "NODE_ENV=production cdk synth",
-    "deploy": "NODE_ENV=production cdk deploy"
+    "synth": "NODE_ENV=production cdk synth -o cdk.out/app",
+    "deploy": "NODE_ENV=production cdk deploy -o cdk.out/app"
   },
   "dependencies": {
     "@types/node": "^20.12.7",
