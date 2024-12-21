@@ -142,5 +142,7 @@ export function userAddNote(
     };
     user.note.categories[categoryName] = categoryMeta;
   }
-  categoryMeta.noteIds.push(note._id);
+  if (!categoryMeta.noteIds.includes(note._id)) {
+    categoryMeta.noteIds.push(note._id);
+  }
 }

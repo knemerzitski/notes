@@ -30,7 +30,6 @@ export function useTrashNote() {
 
       // Assume in 30 days
       const deletedAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
-      // TODO for local note, create component that checks deletedAt..
 
       return trashNoteMutation({
         local: isLocalOnlyNote({ noteId }, client.cache),

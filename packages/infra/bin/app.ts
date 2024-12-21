@@ -79,6 +79,10 @@ new NotesStack(app, 'NotesStack', {
       codePath: join(rootDir, 'packages/api/out/initialize-handler'),
       environment: commonLambdaEnvironment,
     },
+    scheduled: {
+      codePath: join(rootDir, 'packages/api/out/scheduled-handler'),
+      environment: commonLambdaEnvironment,
+    },
     lambda: {
       apolloHttp: {
         codePath: join(rootDir, 'packages/api/out/apollo-http-handler'),

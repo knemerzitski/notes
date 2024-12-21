@@ -15,10 +15,12 @@ import { StateMongoDB, StateMongoDBProps } from '../database/state-mongodb';
 import { WebSocketDynamoDB } from '../database/websocket-dynamodb';
 import { Domains, DomainsProps } from '../dns/domains';
 import { AppStaticFiles } from '../storage/app-static-files';
+import { ScheduledFunction, ScheduledFunctionProps } from '../compute/scheduled-handler';
 
 export interface NotesStackProps extends StackProps {
   customProps: {
     postDeployment: PostDeploymentFunctionProps;
+    scheduled: ScheduledFunctionProps;
     lambda: LambdaHandlersProps;
     mongoDB: Omit<StateMongoDBProps, 'role'>;
     api: {
@@ -54,6 +56,13 @@ export class NotesStack extends Stack {
       customProps.postDeployment
     );
     mongoDBHandlers.push(postDeployHandler.function);
+
+    const scheduledHandler = new ScheduledFunction(
+      this,
+      'Scheduled',
+      customProps.scheduled
+    );
+    mongoDBHandlers.push(scheduledHandler.function);
 
     // DynamoDB
     const webSocketDynamoDB = new WebSocketDynamoDB(this, 'WebSocketDynamo');

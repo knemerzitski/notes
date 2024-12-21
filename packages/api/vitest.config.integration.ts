@@ -22,5 +22,8 @@ export default defineConfig({
       },
     },
     watch: true,
+    benchmark: {
+      include: ['src/**/*.int.bench.ts'],
+    },
   },
 });

@@ -27,6 +27,8 @@ import {
   waitForDynamoDBPort,
 } from './utils/lambda-graphql-dynamodb';
 import { waitForMongoDBPort } from './utils/mongodb';
+import { createScheduledHandler } from '~api/scheduled-handler';
+import { mockCreateScheduledHandlerOptions } from './handlers/mock-scheduled-handler';
 
 // Inspect default options
 inspect.defaultOptions = {
@@ -54,7 +56,7 @@ void (async () => {
     }
 
     if (!noDBMode) {
-      // Run initialize handler once at the start
+      // Initialize handler once at the start
       const initalizeHandler = createInitializeHandler(
         mockCreateInitializeHandlerOptions()
       );
@@ -67,6 +69,29 @@ void (async () => {
           logger.error('Initialize failed', err);
         });
       }
+
+      // Scheduled handler on a interval
+      const SCHEDULED_INTERVAL = 30000;
+      const scheduledHandler = createScheduledHandler(
+        mockCreateScheduledHandlerOptions()
+      );
+
+      async function repeatInvokeScheduledHandler() {
+        try {
+          const result = scheduledHandler(undefined, createLambdaContext(), () => {
+            return;
+          });
+          if (result instanceof Promise) {
+            await result;
+          }
+        } finally {
+          setTimeout(() => {
+            void repeatInvokeScheduledHandler();
+          }, SCHEDULED_INTERVAL);
+        }
+      }
+
+      void repeatInvokeScheduledHandler();
     }
 
     if (!noDBMode) {
