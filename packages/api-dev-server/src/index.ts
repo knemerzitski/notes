@@ -6,6 +6,7 @@ import WebSocket from 'ws';
 import { createApolloHttpHandlerDefaultParams } from '~api/apollo-http-handler';
 import { DynamoDBBaseGraphQLContext, GraphQLResolversContext } from '~api/graphql/types';
 import { createInitializeHandler } from '~api/initialize-handler';
+import { createScheduledHandler } from '~api/scheduled-handler';
 import { createWebSocketHandlerDefaultParams } from '~api/websocket-handler';
 import {
   createApolloHttpHandler,
@@ -19,6 +20,7 @@ import { isEnvironmentVariableTruthy } from '~utils/string/is-environment-variab
 
 import { mockApolloHttpHandlerDefaultParamsOptions } from './handlers/mock-apollo-http-handler';
 import { mockCreateInitializeHandlerOptions } from './handlers/mock-initialize-handler';
+import { mockCreateScheduledHandlerOptions } from './handlers/mock-scheduled-handler';
 import { mockWebSocketHandlerDefaultParamsOptions } from './handlers/mock-websocket-handler';
 import { createLambdaServer } from './lambda-server';
 import { createLambdaContext } from './utils/lambda-context';
@@ -54,7 +56,7 @@ void (async () => {
     }
 
     if (!noDBMode) {
-      // Run initialize handler once at the start
+      // Initialize handler once at the start
       const initalizeHandler = createInitializeHandler(
         mockCreateInitializeHandlerOptions()
       );
@@ -67,6 +69,29 @@ void (async () => {
           logger.error('Initialize failed', err);
         });
       }
+
+      // Scheduled handler on a interval
+      const SCHEDULED_INTERVAL = 30000;
+      const scheduledHandler = createScheduledHandler(
+        mockCreateScheduledHandlerOptions()
+      );
+
+      async function repeatInvokeScheduledHandler() {
+        try {
+          const result = scheduledHandler(undefined, createLambdaContext(), () => {
+            return;
+          });
+          if (result instanceof Promise) {
+            await result;
+          }
+        } finally {
+          setTimeout(() => {
+            void repeatInvokeScheduledHandler();
+          }, SCHEDULED_INTERVAL);
+        }
+      }
+
+      void repeatInvokeScheduledHandler();
     }
 
     if (!noDBMode) {
