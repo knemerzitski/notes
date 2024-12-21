@@ -1,23 +1,27 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
+ 
+ 
+ 
+ 
+import { faker } from '@faker-js/faker';
 import { beforeEach, expect, it } from 'vitest';
-import {
-  TestNoteCategory,
-  userAddNote,
-} from '../../../__tests__/helpers/mongodb/populate/populate';
-import { populateExecuteAll } from '../../../__tests__/helpers/mongodb/populate/populate-queue';
+
 import {
   mongoClient,
   mongoCollections,
   mongoCollectionStats,
   resetDatabase,
 } from '../../../__tests__/helpers/mongodb/mongodb';
-import { faker } from '@faker-js/faker';
-import { batchDeleteExpiredNotes } from './batch-delete-expired-notes';
-import { fakeUserPopulateQueue } from '../../../__tests__/helpers/mongodb/populate/user';
 import { fakeNotePopulateQueue } from '../../../__tests__/helpers/mongodb/populate/note';
+import {
+  TestNoteCategory,
+  userAddNote,
+} from '../../../__tests__/helpers/mongodb/populate/populate';
+import { populateExecuteAll } from '../../../__tests__/helpers/mongodb/populate/populate-queue';
+
+import { fakeUserPopulateQueue } from '../../../__tests__/helpers/mongodb/populate/user';
+
+import { batchDeleteExpiredNotes } from './batch-delete-expired-notes';
+
 
 beforeEach(async () => {
   faker.seed(876876);

@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { spawn } from 'node:child_process';
+
 import { faker } from '@faker-js/faker';
 import { beforeEach, expect, it } from 'vitest';
 import { resetDatabase } from '~api/__tests__/helpers/mongodb/mongodb';
 import { TestNoteCategory } from '~api/__tests__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '~api/__tests__/helpers/mongodb/populate/populate-queue';
 import { generateTrashedNotes } from '~api/__tests__/helpers/mongodb/populate/trashed-notes';
-import { spawn } from 'node:child_process';
 import { createDeferred } from '~utils/deferred';
 
 beforeEach(async () => {

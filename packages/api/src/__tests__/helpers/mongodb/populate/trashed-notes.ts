@@ -1,11 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { ReadonlyDeep } from '~utils/types';
-import { fakeUserPopulateQueue } from './user';
-import { fakeNotePopulateQueue } from './note';
-import { DBUserSchema } from '../../../../mongodb/schema/user';
-import { DBNoteSchema } from '../../../../mongodb/schema/note';
 import { faker } from '@faker-js/faker';
+import { ReadonlyDeep } from '~utils/types';
+
+import { DBNoteSchema } from '../../../../mongodb/schema/note';
+import { DBUserSchema } from '../../../../mongodb/schema/user';
+
+import { fakeNotePopulateQueue } from './note';
+
 import { TestNoteCategory, userAddNote } from './populate';
+import { fakeUserPopulateQueue } from './user';
 
 export function generateTrashedNotes(
   config: ReadonlyDeep<{

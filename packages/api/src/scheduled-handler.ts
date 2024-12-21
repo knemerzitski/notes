@@ -3,11 +3,11 @@ import { Handler } from 'aws-lambda';
 import 'source-map-support/register.js';
 import { createLogger, Logger } from '~utils/logging';
 
-import { MongoDBCollections } from './mongodb/collections';
-import { createDefaultMongoDBContext } from './parameters';
-import { batchDeleteExpiredNotes } from './mongodb/models/note/batch-delete-expired-notes';
-import { MongoDBContext } from './mongodb/context';
 import { NoteCategory } from './graphql/domains/types.generated';
+import { MongoDBCollections } from './mongodb/collections';
+import { MongoDBContext } from './mongodb/context';
+import { batchDeleteExpiredNotes } from './mongodb/models/note/batch-delete-expired-notes';
+import { createDefaultMongoDBContext } from './parameters';
 
 export interface CreateScheduledHandlerOptions {
   override?: {

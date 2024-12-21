@@ -11,11 +11,11 @@ import {
   PostDeploymentFunction,
   PostDeploymentFunctionProps,
 } from '../compute/post-deployment-function';
+import { ScheduledFunction, ScheduledFunctionProps } from '../compute/scheduled-handler';
 import { StateMongoDB, StateMongoDBProps } from '../database/state-mongodb';
 import { WebSocketDynamoDB } from '../database/websocket-dynamodb';
 import { Domains, DomainsProps } from '../dns/domains';
 import { AppStaticFiles } from '../storage/app-static-files';
-import { ScheduledFunction, ScheduledFunctionProps } from '../compute/scheduled-handler';
 
 export interface NotesStackProps extends StackProps {
   customProps: {

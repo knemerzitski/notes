@@ -1,11 +1,13 @@
 import { AnyBulkWriteOperation, MongoClient, ObjectId } from 'mongodb';
-import { notesArrayPath } from '../user/utils/notes-array-path';
-import { CollectionName, MongoDBCollections } from '../../collections';
-import { DBUserSchema } from '../../schema/user';
-import { DBNoteSchema, NoteSchema } from '../../schema/note';
+
 import { Logger } from '~utils/logging';
+
+import { CollectionName, MongoDBCollections } from '../../collections';
 import { QueryDeep, QueryResultDeep } from '../../query/query';
+import { DBNoteSchema, NoteSchema } from '../../schema/note';
+import { DBUserSchema } from '../../schema/user';
 import { withTransaction } from '../../utils/with-transaction';
+import { notesArrayPath } from '../user/utils/notes-array-path';
 
 type IdPullsRecord = Record<string, { id: ObjectId; pullIds: ObjectId[] }>;
 

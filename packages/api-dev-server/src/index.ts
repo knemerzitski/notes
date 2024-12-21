@@ -6,6 +6,7 @@ import WebSocket from 'ws';
 import { createApolloHttpHandlerDefaultParams } from '~api/apollo-http-handler';
 import { DynamoDBBaseGraphQLContext, GraphQLResolversContext } from '~api/graphql/types';
 import { createInitializeHandler } from '~api/initialize-handler';
+import { createScheduledHandler } from '~api/scheduled-handler';
 import { createWebSocketHandlerDefaultParams } from '~api/websocket-handler';
 import {
   createApolloHttpHandler,
@@ -19,6 +20,7 @@ import { isEnvironmentVariableTruthy } from '~utils/string/is-environment-variab
 
 import { mockApolloHttpHandlerDefaultParamsOptions } from './handlers/mock-apollo-http-handler';
 import { mockCreateInitializeHandlerOptions } from './handlers/mock-initialize-handler';
+import { mockCreateScheduledHandlerOptions } from './handlers/mock-scheduled-handler';
 import { mockWebSocketHandlerDefaultParamsOptions } from './handlers/mock-websocket-handler';
 import { createLambdaServer } from './lambda-server';
 import { createLambdaContext } from './utils/lambda-context';
@@ -27,8 +29,6 @@ import {
   waitForDynamoDBPort,
 } from './utils/lambda-graphql-dynamodb';
 import { waitForMongoDBPort } from './utils/mongodb';
-import { createScheduledHandler } from '~api/scheduled-handler';
-import { mockCreateScheduledHandlerOptions } from './handlers/mock-scheduled-handler';
 
 // Inspect default options
 inspect.defaultOptions = {

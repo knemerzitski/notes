@@ -4,8 +4,8 @@ import 'source-map-support/register.js';
 import { createLogger, Logger } from '~utils/logging';
 
 import { createAllIndexes, MongoDBCollections } from './mongodb/collections';
-import { createDefaultMongoDBContext } from './parameters';
 import { MongoDBContext } from './mongodb/context';
+import { createDefaultMongoDBContext } from './parameters';
 
 const TIER = process.env.MONGODB_TIER;
 const hasAtlasSearch = TIER === 'enterprise';

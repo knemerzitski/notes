@@ -1,11 +1,11 @@
 import { Duration } from 'aws-cdk-lib';
+import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
+import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
 import { Code, FunctionOptions } from 'aws-cdk-lib/aws-lambda';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Construct } from 'constructs';
 
 import { commonProps } from './common-props';
-import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
 
 export interface ScheduledFunctionProps {
   codePath: string;
