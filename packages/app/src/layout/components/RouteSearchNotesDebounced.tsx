@@ -4,6 +4,7 @@ import { Options, useDebouncedCallback } from 'use-debounce';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 
 import { SearchNoteProps, SearchNotes } from './SearchNotes';
+import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
 
 type RouteSearchNotesDebouncedProps = Omit<SearchNoteProps, 'InputBaseProps'> & {
   InputBaseProps?: Omit<SearchNoteProps['InputBaseProps'], 'value' | 'onInput'>;
@@ -29,6 +30,7 @@ export const RouteSearchNotesDebounced = forwardRef<
   HTMLDivElement,
   RouteSearchNotesDebouncedProps
 >(function RouteSearchNotesDebounced({ wait = 500, options, ...restProps }, ref) {
+  const isLocalOnlyUser = useIsLocalOnlyUser();
   const navigate = useNavigate();
   const router = useRouter();
 
@@ -102,9 +104,11 @@ export const RouteSearchNotesDebounced = forwardRef<
       InputBaseProps={{
         value,
         onInput: handleInput,
+        disabled: isLocalOnlyUser,
       }}
       IconButtonProps={{
         onClick: handleClickSearch,
+        disabled: isLocalOnlyUser,
       }}
       ref={ref}
     />
