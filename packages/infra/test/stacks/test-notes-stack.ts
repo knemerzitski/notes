@@ -1,8 +1,11 @@
 import { Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
-import { HttpRestApi, HttpRestApiProps } from '../api/http-rest-api';
-import { ApolloHttpLambda, ApolloHttpLambdaProps } from '../compute/apollo-http-lambda';
+import { HttpRestApi, HttpRestApiProps } from '../../lib/api/http-rest-api';
+import {
+  ApolloHttpLambda,
+  ApolloHttpLambdaProps,
+} from '../../lib/compute/apollo-http-lambda';
 
 export interface NotesStackProps extends StackProps {
   customProps: {

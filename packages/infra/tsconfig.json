@@ -29,6 +29,7 @@
   "include": [
     "lib",
     "bin",
+    "test",
     "__tests__",
     "../utils/src",
     "../api-app-shared/src",

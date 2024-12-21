@@ -11,7 +11,7 @@ import { logNodeInfo } from '~utils/node';
 import { getProjectRootDir } from '~utils/project-dir';
 
 import { assertDynamoDBIsRunning } from '../../utils/src/running-processes';
-import { TestNotesStack } from '../lib/stacks/test-notes-stack';
+import { TestNotesStack } from '../test/stacks/test-notes-stack';
 
 /**
  * DO NOT DEPLOY, ONLY FOR TESTING APP
@@ -63,6 +63,7 @@ new TestNotesStack(app, 'TESTINGONLYNotesStack', {
       environment: {
         NODE_ENV,
         DEBUG: process.env.LAMBDA_DEBUG_ARG ?? '*',
+        DEBUG_FORMAT: process.env.DEBUG_FORMAT ?? 'object',
         MONGODB_URI: dockerMongoDBUri,
         DYNAMODB_ENDPOINT: dockerDynamoDBEndpoint,
         VITE_GRAPHQL_HTTP_URL: env.VITE_GRAPHQL_HTTP_URL,
