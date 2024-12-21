@@ -1,13 +1,10 @@
-import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { createFileRoute, Navigate } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/_root_layout/')({
   component: Index,
 });
 
 function Index() {
-  return (
-    <>
-      Root Index <Outlet />
-    </>
-  );
+  // Root index redirect to notes
+  return <Navigate to="/notes" />;
 }
