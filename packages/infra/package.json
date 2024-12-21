@@ -5,7 +5,8 @@
   "scripts": {
     "clean": "rimraf out/* cdk.out/* .eslintcache",
     "assert-aws-cdk": "vite-node ./scripts/assert-aws-cdk.ts",
-    "synth:test": "NODE_ENV=test cdk synth -a 'vite-node bin/test-rest-api.ts' --no-staging --quiet",
+    "synth:test": "NODE_ENV=test && npm run synth:test:restapi",
+    "synth:test:restapi": "cdk synth -a 'vite-node bin/test-rest-api.ts' --no-staging -q",
     "test:unit": "vitest run -c ./vitest.config.unit.ts",
     "test:unit:w": "vitest watch -c ./vitest.config.unit.ts",
     "start": "sam local start-api --warm-containers EAGER --host localhost -p $PORT --docker-network sam-api-network -t cdk.out/TESTINGONLYRestApiStack.template.json",
