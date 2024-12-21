@@ -1,6 +1,5 @@
 import 'source-map-support/register.js';
 import { APIGatewayProxyWebsocketHandlerV2 } from 'aws-lambda';
-import WebSocket from 'ws';
 
 import {
   createInitializeHandler,
@@ -9,10 +8,6 @@ import {
 import { createLogger } from '~utils/logging';
 
 import { createMockMongoDBContext } from '../parameters';
-
-export interface MockWebSocketHandlerDefaultParamsOptions {
-  sockets?: Record<string, WebSocket>;
-}
 
 export function mockCreateInitializeHandlerOptions(): CreateInitializeHandlerOptions {
   return {
