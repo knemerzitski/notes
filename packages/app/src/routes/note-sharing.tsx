@@ -1,6 +1,6 @@
 import { createFileRoute, Navigate } from '@tanstack/react-router';
 
-export const Route = createFileRoute('/_root_layout/note/sharing/$noteId')({
+export const Route = createFileRoute('/note/sharing/$noteId')({
   component: NoteSharing,
 });
 

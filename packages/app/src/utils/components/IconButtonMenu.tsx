@@ -1,4 +1,15 @@
-import { IconButton, IconButtonProps, Menu, MenuProps } from '@mui/material';
+import {
+  css,
+  Dialog,
+  IconButton,
+  IconButtonProps,
+  Menu,
+  MenuList,
+  MenuProps,
+  Slide,
+  styled,
+} from '@mui/material';
+import { TransitionProps } from '@mui/material/transitions';
 import {
   useId,
   useState,
@@ -7,8 +18,11 @@ import {
   useCallback,
   ElementType,
   useRef,
+  forwardRef,
+  ReactElement,
 } from 'react';
 
+import { useIsMobile } from '../../theme/context/is-mobile';
 import { OnCloseProvider } from '../context/on-close';
 
 export function IconButtonMenu({
@@ -46,6 +60,8 @@ export function IconButtonMenu({
   const IconButtonSlot = slots?.iconButton ?? IconButton;
   const MenuSlot = slots?.menu ?? Menu;
 
+  const isMobile = useIsMobile();
+
   const buttonId = useId();
   const menuId = useId();
 
@@ -78,6 +94,10 @@ export function IconButtonMenu({
     e.stopPropagation();
   }
 
+  function handleClickMenuDialog(e: MouseEvent<HTMLDivElement>): void {
+    handleClickMenu(e);
+  }
+
   return (
     <>
       <IconButtonSlot
@@ -90,21 +110,54 @@ export function IconButtonMenu({
         onClick={handleOpen}
       />
 
-      <MenuSlot
-        {...slotProps?.menu}
-        id={menuId}
-        anchorEl={anchorEl}
-        open={menuOpen}
-        onClose={handleClose}
-        MenuListProps={{
-          ...slotProps?.menu?.MenuListProps,
-          'aria-labelledby': anchorEl?.id,
-        }}
-        disableScrollLock
-        onClick={handleClickMenu}
-      >
-        <OnCloseProvider onClose={handleClose}>{children}</OnCloseProvider>
-      </MenuSlot>
+      {isMobile ? (
+        <MenuDialogStyled
+          id={menuId}
+          open={menuOpen}
+          onClose={handleClose}
+          TransitionComponent={SlideUpTransition}
+          disableScrollLock
+          onClick={handleClickMenuDialog}
+        >
+          <MenuList {...slotProps?.menu?.MenuListProps} aria-labelledby={anchorEl?.id}>
+            {children}
+          </MenuList>
+        </MenuDialogStyled>
+      ) : (
+        <MenuSlot
+          {...slotProps?.menu}
+          id={menuId}
+          anchorEl={anchorEl}
+          open={menuOpen}
+          onClose={handleClose}
+          MenuListProps={{
+            ...slotProps?.menu?.MenuListProps,
+            'aria-labelledby': anchorEl?.id,
+          }}
+          disableScrollLock
+          onClick={handleClickMenu}
+        >
+          <OnCloseProvider onClose={handleClose}>{children}</OnCloseProvider>
+        </MenuSlot>
+      )}
     </>
   );
 }
+
+const MenuDialogStyled = styled(Dialog)(css`
+  & .MuiPaper-root {
+    position: absolute;
+    width: 100%;
+    max-width: 100%;
+    bottom: 0;
+    margin: 0;
+    border-radius: 0;
+  }
+`);
+
+const SlideUpTransition = forwardRef<
+  unknown,
+  TransitionProps & { children: ReactElement }
+>(function SlideUpTransition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});

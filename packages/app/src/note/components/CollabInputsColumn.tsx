@@ -1,27 +1,31 @@
 import { Box, BoxProps, css, styled } from '@mui/material';
 
+import { forwardRef } from 'react';
+
 import { CollabInputs } from './CollabInputs';
 
-export function CollabInputsColumn({
-  BoxProps,
-  CollabInputsProps,
-}: {
-  BoxProps?: BoxProps;
-  CollabInputsProps?: Parameters<typeof CollabInputs>[0];
-}) {
+export const CollabInputsColumn = forwardRef<
+  HTMLDivElement,
+  BoxProps & {
+    CollabInputsProps?: Parameters<typeof CollabInputs>[0];
+  }
+>(function CollabInputsColumn({ CollabInputsProps, ...restProps }, ref) {
   return (
-    <CollabInputsColumnStyled {...BoxProps}>
+    <BoxStyled {...restProps} ref={ref}>
       <CollabInputs {...CollabInputsProps} />
-    </CollabInputsColumnStyled>
+    </BoxStyled>
   );
-}
+});
 
-const CollabInputsColumnStyled = styled(Box)(
+const BoxStyled = styled(Box)(
   ({ theme }) => css`
     display: flex;
     flex-direction: column;
-    gap: ${theme.spacing(2)};
-    padding: ${theme.spacing(2)};
+    gap: ${theme.spacing(1)};
+    padding-top: ${theme.spacing(2)};
+    padding-left: ${theme.spacing(2)};
+    padding-right: ${theme.spacing(2)};
     overflow: auto;
+    scroll-padding-bottom: 2px;
   `
 );

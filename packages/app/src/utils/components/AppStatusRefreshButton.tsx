@@ -2,11 +2,11 @@ import { useQuery } from '@apollo/client';
 import CloudDoneIcon from '@mui/icons-material/CloudDone';
 import CloudOffIcon from '@mui/icons-material/CloudOff';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import { CircularProgress, IconButton, Tooltip } from '@mui/material';
+import { CircularProgress, IconButton, IconButtonProps, Tooltip } from '@mui/material';
 
 import { useNavigate } from '@tanstack/react-router';
 import { OperationTypeNode } from 'graphql';
-import { useEffect, useRef } from 'react';
+import { forwardRef, useEffect, useRef } from 'react';
 
 import { gql } from '../../__generated__';
 import { useStatsLink } from '../../graphql/context/stats-link';
@@ -26,7 +26,10 @@ const AppStatusRefreshButton_Query = gql(`
   }
 `);
 
-export function AppStatusRefreshButton() {
+export const AppStatusRefreshButton = forwardRef<
+  HTMLButtonElement,
+  Omit<IconButtonProps, 'disableRipple' | 'onClick' | 'aria-label'>
+>(function AppStatusRefreshButton(props, ref) {
   const status = useAppStatus();
   const fetchedRoutes = useFetchedRoutes();
 
@@ -82,6 +85,8 @@ export function AppStatusRefreshButton() {
 
   return (
     <IconButton
+      ref={ref}
+      {...props}
       disableRipple={status !== 'refresh'}
       onClick={handleClickRefetchQueries}
       aria-label={`status ${status}`}
@@ -115,7 +120,7 @@ export function AppStatusRefreshButton() {
       </Tooltip>
     </IconButton>
   );
-}
+});
 
 function getOngoingQueryCount(
   userId: string | undefined,

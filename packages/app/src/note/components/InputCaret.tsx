@@ -156,7 +156,7 @@ const BoxStyled = styled(Box, {
   color.style,
   enableBlink.style,
   css`
-    width: 1px;
+    width: 2px;
 
     position: absolute;
     user-select: none;

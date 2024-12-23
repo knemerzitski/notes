@@ -1,5 +1,5 @@
 import { useQuery } from '@apollo/client';
-import { Box } from '@mui/material';
+import { Box, BoxProps } from '@mui/material';
 import { ComponentType } from 'react';
 
 import { gql } from '../../__generated__';
@@ -27,6 +27,10 @@ const CollabInput_Query = gql(`
     }
   }
 `);
+
+export type CollabInputProps<TInputProps> = Parameters<
+  typeof CollabInput<TInputProps>
+>[0];
 
 export function CollabInput<TInputProps>({
   fieldName,
@@ -59,25 +63,34 @@ type CollabHtmlInputProps = ReturnType<typeof useCollabHtmlInput>;
 
 function NoteDefined<TInputProps>({
   note,
-  Input,
-  InputProps,
+  slots,
+  slotProps,
 }: {
-  Input: ComponentType<TInputProps>;
-  InputProps?: Omit<TInputProps, keyof CollabHtmlInputProps>;
+  slots: {
+    root?: ComponentType<BoxProps>;
+    input: ComponentType<TInputProps>;
+  };
+  slotProps?: {
+    root?: Omit<BoxProps, 'position'>;
+    input?: Omit<TInputProps, keyof CollabHtmlInputProps>;
+  };
   note: CollabInputQueryQuery['userNoteLink']['note'];
 }) {
   const collabHtmlInput = useCollabHtmlInput(note.textField.editor, note.collabService);
   const inputRef = collabHtmlInput.inputRef;
 
+  const InputSlot = slots.input;
+  const RootSlot = slots.root ?? Box;
+
   return (
     <>
       <SubmitSelectionChangeDebounced />
-      <Box position="relative">
+      <RootSlot {...slotProps?.root} position="relative">
         {/* @ts-expect-error Safe to spread props in normal use */}
-        <Input {...InputProps} {...collabHtmlInput} />
+        <InputSlot {...slotProps?.input} {...collabHtmlInput} />
         {/* Uses inputRef to render caret in correct position */}
         <CollabInputUsersEditingCarets inputRef={inputRef} />
-      </Box>
+      </RootSlot>
     </>
   );
 }

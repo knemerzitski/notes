@@ -1,5 +1,6 @@
 import { ApolloCache } from '@apollo/client';
 
+import { nanoid } from 'nanoid';
 import { DistributivePartialBy } from '~utils/types';
 
 import { gql } from '../../../__generated__';
@@ -65,7 +66,7 @@ export function addUserOperations(
           __typename: 'LocalSignedInUser',
           id: userId,
           operations: operations.map<Operation>((op) => ({
-            id: op.id ?? crypto.randomUUID(),
+            id: op.id ?? nanoid(),
             ...op,
           })),
         },

@@ -1,14 +1,28 @@
-import { Outlet, createRootRouteWithContext, defer } from '@tanstack/react-router';
+import {
+  ErrorComponentProps,
+  Outlet,
+  createRootRouteWithContext,
+  defer,
+  useRouter,
+} from '@tanstack/react-router';
 
+import { useEffect, useState } from 'react';
 import { coerce, number, optional, string, type } from 'superstruct';
 
 import { gql } from '../__generated__';
 import { RouteDevModuleProvider } from '../dev/components/RouteDevModuleProvider';
+import { AppBarDrawerLayout } from '../layout/components/AppBarDrawerLayout';
 import { RedirectLinkSharedNote } from '../note/components/RedirectLinkSharedNote';
+import { RedirectNoteNotFound } from '../note/components/RedirectNoteNotFound';
+import { RedirectToMobileNote } from '../note/components/RedirectToMobileNote';
 import { RouteNoteDialog } from '../note/components/RouteNoteDialog';
 import { RouteNoteSharingDialog } from '../note/components/RouteNoteSharingDialog';
+import { NoteIdProvider } from '../note/context/note-id';
 import { RouterContext } from '../router';
+import { useIsMobile } from '../theme/context/is-mobile';
 import { RouteUserModuleProvider } from '../user/components/RouteUserModuleProvider';
+import { ErrorComponent } from '../utils/components/ErrorComponent';
+import { NotFoundTypography } from '../utils/components/NotFoundTypography';
 import { routeFetchPolicy } from '../utils/route-fetch-policy';
 
 const RouteRoot_Query = gql(`
@@ -33,11 +47,13 @@ const searchSchema = type({
 });
 
 export const Route = createRootRouteWithContext<RouterContext>()({
+  component: Root,
+  pendingComponent: Root,
+  notFoundComponent: RootNotFound,
+  errorComponent: RootError,
   pendingMinMs: 0,
   pendingMs: 0,
   validateSearch: (search) => searchSchema.create(search),
-  component: Root,
-  pendingComponent: Root,
   loaderDeps: ({ search: { noteId, sharingNoteId } }) => {
     return {
       noteId,
@@ -84,19 +100,67 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 function Root() {
   const { noteId, sharingNoteId, share } = Route.useSearch();
 
+  const router = useRouter();
+  const isMobile = useIsMobile();
+
+  // Force render all modals together when changing between mobile and desktop
+  // Otherwise modals appear in a unpredictable order
+  const [dialogKey, setDialogKey] = useState(() => JSON.stringify({ isMobile }));
+  useEffect(() => {
+    setDialogKey(JSON.stringify({ isMobile }));
+  }, [isMobile]);
+
+  if (noteId && isMobile) {
+    const originalPathname = router.state.location.pathname;
+    // On mobile redirect search ?note=$noteId to note page route
+    return <RedirectToMobileNote noteId={noteId} originalPathname={originalPathname} />;
+  }
+
+  if (share) {
+    return <RedirectLinkSharedNote shareId={share} />;
+  }
+
   return (
     <>
       <RouteUserModuleProvider />
 
       <Outlet />
 
-      {noteId && <RouteNoteDialog noteId={noteId} />}
+      {noteId && (
+        <NoteIdProvider noteId={noteId}>
+          <RedirectNoteNotFound
+            navigateOptions={{
+              to: '.',
+              search: (prev) => ({
+                ...prev,
+                noteId: undefined,
+              }),
+            }}
+          >
+            <RouteNoteDialog key={dialogKey} />
+          </RedirectNoteNotFound>
+        </NoteIdProvider>
+      )}
 
-      {sharingNoteId && <RouteNoteSharingDialog noteId={sharingNoteId} />}
-
-      {share && <RedirectLinkSharedNote shareId={share} />}
+      {sharingNoteId && <RouteNoteSharingDialog key={dialogKey} noteId={sharingNoteId} />}
 
       <RouteDevModuleProvider />
     </>
+  );
+}
+
+function RootNotFound() {
+  return (
+    <AppBarDrawerLayout>
+      <NotFoundTypography>404 Not Found</NotFoundTypography>
+    </AppBarDrawerLayout>
+  );
+}
+
+function RootError({ error }: ErrorComponentProps) {
+  return (
+    <AppBarDrawerLayout>
+      <ErrorComponent error={error} />
+    </AppBarDrawerLayout>
   );
 }
