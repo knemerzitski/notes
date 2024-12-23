@@ -1,17 +1,24 @@
 import { css, Dialog, styled } from '@mui/material';
 
-import { forwardRef } from 'react';
+import { forwardRef, useState } from 'react';
 
 import { CollabInputsColumn } from './CollabInputsColumn';
 import { NoteToolbar } from './NoteToolbar';
 import { OpenSharingUserAvatars } from './OpenSharingUserAvatars';
 import { UserAvatarsCornerPosition } from './UserAvatarsCornerPosition';
+import { useIsElementScrollEnd } from '../../utils/hooks/useIsElementScrollEnd';
+import { scrollEndShadow } from '../../utils/styles/scroll-end-shadow';
+import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
 
 export const NoteDialog = forwardRef<HTMLDivElement, Parameters<typeof DialogStyled>[0]>(
   function NoteDialog(
     { open = true, maxWidth = 'sm', fullWidth = true, PaperProps, ...restProps },
     ref
   ) {
+    const [inputsBoxEl, setInputsBoxEl] = useState<HTMLElement>();
+
+    const isScrollEnd = useIsElementScrollEnd(inputsBoxEl) ?? false;
+
     return (
       <DialogStyled
         ref={ref}
@@ -29,8 +36,14 @@ export const NoteDialog = forwardRef<HTMLDivElement, Parameters<typeof DialogSty
         <UserAvatarsCornerPosition>
           <OpenSharingUserAvatars />
         </UserAvatarsCornerPosition>
-        <CollabInputsColumn />
-        <NoteToolbar />
+        <CollabInputsColumn
+          ref={(el) => {
+            if (el) {
+              setInputsBoxEl(el);
+            }
+          }}
+        />
+        <NoteToolbarStyled isScrollEnd={isScrollEnd} />
       </DialogStyled>
     );
   }
@@ -45,3 +58,7 @@ const DialogStyled = styled(Dialog)(
     }
   `
 );
+
+const NoteToolbarStyled = styled(NoteToolbar, {
+  shouldForwardProp: mergeShouldForwardProp(scrollEndShadow.props),
+})<{ isScrollEnd?: boolean }>(scrollEndShadow.style);
