@@ -41,7 +41,7 @@ const SpaceBetweenBox = styled(Box)(css`
 const ButtonsBox = styled(Box)(
   ({ theme }) => css`
     display: flex;
-    padding: ${theme.spacing(1)};
     gap: ${theme.spacing(1)};
+    padding: ${theme.spacing(1)};
   `
 );
