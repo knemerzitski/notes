@@ -149,7 +149,8 @@ function Remote() {
 function RemoteOpen() {
   return (
     <>
-      <OpenNoteSubscription />
+      {/* Delay set to 1 to prevent resubscribing when components get remounted somewhere else */}
+      <OpenNoteSubscription unsubscribeDelay={1} />
     </>
   );
 }

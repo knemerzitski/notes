@@ -24,17 +24,21 @@ const OpenNoteSubscription_Subscription = gql(`
   }  
 `);
 
-export function OpenNoteSubscription() {
+export function OpenNoteSubscription({
+  unsubscribeDelay = 0,
+}: {
+  unsubscribeDelay?: number;
+}) {
   const isLocalOnlyNote = useIsLocalOnlyNote();
 
   if (isLocalOnlyNote) {
     return null;
   }
 
-  return <Subscription />;
+  return <Subscription delay={unsubscribeDelay} />;
 }
 
-function Subscription() {
+function Subscription({ delay }: { delay: number }) {
   const client = useApolloClient();
   const getMutationUpdaterFn = useGetMutationUpdaterFn();
   const noteId = useNoteId();
@@ -83,11 +87,11 @@ function Subscription() {
       subscriptionStopped = true;
       setTimeout(() => {
         subscription.unsubscribe();
-      });
+      }, delay);
 
       setOpenedNoteActive(getUserNoteLinkId(noteId, userId), false, client.cache);
     };
-  }, [client, getMutationUpdaterFn, noteId, userId]);
+  }, [client, getMutationUpdaterFn, noteId, userId, delay]);
 
   return null;
 }
