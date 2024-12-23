@@ -1,13 +1,12 @@
 import { css, Divider, styled, Toolbar } from '@mui/material';
 
-import { UsersInfoPopoverButton } from '../../user/components/UsersInfoPopoverButton';
-
 import { AppStatusRefreshButton } from '../../utils/components/AppStatusRefreshButton';
 import { IconButtonsRow } from '../../utils/components/IconButtonsRow';
 import { SettingsButton } from '../../utils/components/SettingsButton';
 
 import { RouteSearchNotesDebounced } from './RouteSearchNotesDebounced';
 import { ToggleAppDrawerButton } from './ToggleAppDrawerButton';
+import { TopRightUsersInfoPopoverButton } from '../../user/components/TopRightUsersInfoPopoverButton';
 
 export function HeaderToolbar() {
   return (
@@ -22,22 +21,7 @@ export function HeaderToolbar() {
       <IconButtonsRow>
         <AppStatusRefreshButton />
         <SettingsButton />
-        <UsersInfoPopoverButton
-          ButtonProps={{
-            edge: 'end',
-          }}
-          PopoverProps={{
-            keepMounted: true,
-            transformOrigin: {
-              vertical: 'top',
-              horizontal: 'right',
-            },
-            anchorOrigin: {
-              vertical: 'bottom',
-              horizontal: 'right',
-            },
-          }}
-        />
+        <TopRightUsersInfoPopoverButton />
       </IconButtonsRow>
     </ToolbarStyled>
   );
