@@ -5,9 +5,16 @@ import { noteSharingDialogId } from '../../utils/element-id';
 import { useNoteId } from '../context/note-id';
 import { useIsNoteSharingOpen } from '../hooks/useIsNoteSharingOpen';
 
-import { OpenedNoteUserAvatars } from './OpenedNoteUserAvatars';
+import {
+  OpenedNoteUserAvatars,
+  OpenedNoteUserAvatarsProps,
+} from './OpenedNoteUserAvatars';
 
-export function OpenSharingUserAvatars() {
+export function OpenSharingUserAvatars({
+  OpenedNoteUserAvatarsProps,
+}: {
+  OpenedNoteUserAvatarsProps?: OpenedNoteUserAvatarsProps;
+}) {
   const noteId = useNoteId();
   const navigate = useNavigate();
 
@@ -34,6 +41,7 @@ export function OpenSharingUserAvatars() {
       <Box>
         <OpenedNoteUserAvatarsStyled
           max={5}
+          {...OpenedNoteUserAvatarsProps}
           aria-label="open note sharing dialog"
           aria-controls={isNoteSharingOpen ? noteSharingDialogId(noteId) : undefined}
           aria-expanded={isNoteSharingOpen}

@@ -29,6 +29,8 @@ const OpenedNoteUserAvatars_NoteFragment = gql(`
   }
 `);
 
+export type OpenedNoteUserAvatarsProps = Parameters<typeof OpenedNoteUserAvatars>[0];
+
 export const OpenedNoteUserAvatars = forwardRef<
   HTMLDivElement,
   { UserAvatarProps?: Pick<UserAvatarProps, 'size'> } & AvatarGroupProps

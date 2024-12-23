@@ -160,7 +160,6 @@ export const PureNoteCard = forwardRef<
   return (
     <PaperStyled {...restProps} elevation={elevation} variant={variant} ref={ref}>
       {slots?.prefix}
-      {/* TODO create badge */}
       {import.meta.env.DEV && noteId}
       <UserAvatarsCornerPosition>
         <OpenedNoteUserAvatars
