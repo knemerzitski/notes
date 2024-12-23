@@ -65,9 +65,13 @@ function CollapsedWidget({
   return (
     <CollapsedPaperStyled>
       <CollabContentInput
-        placeholder="Take a note..."
-        onFocus={handleFocus}
-        onChange={onChange}
+        slotProps={{
+          input: {
+            placeholder: 'Take a note...',
+            onFocus: handleFocus,
+            onChange,
+          },
+        }}
       />
     </CollapsedPaperStyled>
   );
@@ -94,11 +98,19 @@ function ExpandedWidget({
         <CollabInputsColumn
           CollabInputsProps={{
             CollabTitleInputProps: {
-              onChange,
+              slotProps: {
+                input: {
+                  onChange,
+                },
+              },
             },
             CollabContentInputProps: {
-              autoFocus: true,
-              onChange,
+              slotProps: {
+                input: {
+                  autoFocus: true,
+                  onChange,
+                },
+              },
             },
           }}
         />

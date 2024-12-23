@@ -1,22 +1,22 @@
 import { Box, BoxProps, css, styled } from '@mui/material';
 
 import { CollabInputs } from './CollabInputs';
+import { forwardRef } from 'react';
 
-export function CollabInputsColumn({
-  BoxProps,
-  CollabInputsProps,
-}: {
-  BoxProps?: BoxProps;
+export const CollabInputsColumn = forwardRef<
+  HTMLDivElement,
+  BoxProps & {
   CollabInputsProps?: Parameters<typeof CollabInputs>[0];
-}) {
+  }
+>(function CollabInputsColumn({ CollabInputsProps, ...restProps }, ref) {
   return (
-    <CollabInputsColumnStyled {...BoxProps}>
+    <BoxStyled {...restProps} ref={ref}>
       <CollabInputs {...CollabInputsProps} />
-    </CollabInputsColumnStyled>
+    </BoxStyled>
   );
-}
+});
 
-const CollabInputsColumnStyled = styled(Box)(
+const BoxStyled = styled(Box)(
   ({ theme }) => css`
     display: flex;
     flex-direction: column;

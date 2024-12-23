@@ -2,17 +2,22 @@ import { InputProps } from '@mui/material';
 
 import { NoteTextFieldName } from '../../__generated__/graphql';
 
-import { CollabInput } from './CollabInput';
+import { CollabInput, CollabInputProps } from './CollabInput';
 import { TitleInput } from './TitleInput';
 
 export function CollabTitleInput(
-  props?: Parameters<typeof CollabInput<InputProps>>[0]['InputProps']
+  props?: Pick<CollabInputProps<InputProps>, 'slotProps'> & {
+    slots?: Omit<CollabInputProps<InputProps>['slots'], 'input'>;
+  }
 ) {
   return (
     <CollabInput
       fieldName={NoteTextFieldName.TITLE}
-      Input={TitleInput}
-      InputProps={props}
+      {...props}
+      slots={{
+        ...props?.slots,
+        input: TitleInput,
+      }}
     />
   );
 }
