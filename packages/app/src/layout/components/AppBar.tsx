@@ -1,54 +1,27 @@
-import {
-  useScrollTrigger,
-  Slide,
-  AppBarProps,
-  styled,
-  AppBar as MuiAppBar,
-  Theme,
-  css,
-} from '@mui/material';
+import { useScrollTrigger, styled, AppBar as MuiAppBar, Theme, css } from '@mui/material';
 
-import { ReactNode } from 'react';
+import { forwardRef } from 'react';
 
-import { useIsMobile } from '../../theme/context/is-mobile';
 import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
-import { useIsAppDrawerOpen } from '../context/app-drawer-state';
 
-export function AppBar({
-  AppBarProps,
-  children,
-}: {
-  AppBarProps?: Omit<AppBarProps, 'children' | 'elevation' | 'position'>;
-  children: ReactNode;
-}) {
-  const isMobile = useIsMobile();
+export const AppBar = forwardRef<HTMLElement, Parameters<typeof AppBarStyled>[0]>(
+  function AppBar(props, ref) {
+    const isNotAtTop = useScrollTrigger({
+      disableHysteresis: true,
+      threshold: 0,
+    });
 
-  const isNotAtTop = useScrollTrigger({
-    disableHysteresis: true,
-    threshold: 0,
-  });
-
-  const isScrollingDown = useScrollTrigger();
-
-  const isAppDrawerOpen = useIsAppDrawerOpen();
-
-  return (
-    <Slide
-      appear={false}
-      direction="down"
-      in={!isMobile || !isScrollingDown || isAppDrawerOpen}
-    >
+    return (
       <AppBarStyled
-        {...AppBarProps}
         position="fixed"
         elevation={0}
         showBoxShadow={isNotAtTop}
-      >
-        {children}
-      </AppBarStyled>
-    </Slide>
-  );
-}
+        {...props}
+        ref={ref}
+      />
+    );
+  }
+);
 
 const darkModeStyle = ({ theme }: { theme: Theme }) => {
   if (theme.palette.mode !== 'dark') {
@@ -64,11 +37,15 @@ const shadowTransition = {
   style: ({
     showBoxShadow,
     theme,
+    shadow = theme.shadows[showBoxShadow ? 5 : 0],
   }: {
     showBoxShadow?: boolean;
+    shadow?: string | ((theme: Theme) => string);
   } & { theme: Theme }) => {
+    const shadowValue = typeof shadow === 'function' ? shadow(theme) : shadow;
+
     return css`
-      box-shadow: ${theme.shadows[showBoxShadow ? 5 : 0]};
+      box-shadow: ${showBoxShadow ? shadowValue : theme.shadows[0]};
       transition: ${(theme.transitions.create('box-shadow'),
       {
         duration: theme.transitions.duration.shortest,
@@ -76,9 +53,12 @@ const shadowTransition = {
       })};
     `;
   },
-  props: ['showBoxShadow'],
+  props: ['showBoxShadow', 'shadow'],
 };
 
 const AppBarStyled = styled(MuiAppBar, {
   shouldForwardProp: mergeShouldForwardProp(shadowTransition.props),
-})<{ showBoxShadow?: boolean }>(darkModeStyle, shadowTransition.style);
+})<{ showBoxShadow?: boolean; shadow?: string | ((theme: Theme) => string) }>(
+  darkModeStyle,
+  shadowTransition.style
+);
