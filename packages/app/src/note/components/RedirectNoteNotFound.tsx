@@ -1,6 +1,4 @@
 import { ReactNode } from 'react';
-import { gql } from '../../__generated__';
-import { useQuery } from '@apollo/client';
 import { useNoteId } from '../context/note-id';
 import {
   AnyRouter,
@@ -8,14 +6,7 @@ import {
   NavigateOptions,
   RegisteredRouter,
 } from '@tanstack/react-router';
-
-const RedirectNoteNotFound_Query = gql(`
-  query RedirectNoteNotFound_Query($by: UserNoteLinkByInput!){
-    userNoteLink(by: $by){
-      id
-    }
-  }
-`);
+import { useNoteExists } from '../hooks/useNoteExists';
 
 /**
  * Navigates to provided path when noteId in context doesn't exists.
@@ -36,20 +27,13 @@ export function RedirectNoteNotFound<
 }) {
   const noteId = useNoteId();
 
-  const { data, loading } = useQuery(RedirectNoteNotFound_Query, {
-    fetchPolicy: 'cache-only',
-    variables: {
-      by: {
-        noteId,
-      },
-    },
-  });
+  const noteExists = useNoteExists(noteId);
 
-  if (loading) {
+  if (noteExists === null) {
     return null;
   }
 
-  if (!data) {
+  if (!noteExists) {
     // @ts-expect-error Type hints work outside this component
     return <Navigate {...navigateOptions} />;
   }
