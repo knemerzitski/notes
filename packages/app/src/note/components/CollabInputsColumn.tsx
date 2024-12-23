@@ -20,8 +20,10 @@ const BoxStyled = styled(Box)(
   ({ theme }) => css`
     display: flex;
     flex-direction: column;
-    gap: ${theme.spacing(2)};
-    padding: ${theme.spacing(2)};
+    gap: ${theme.spacing(1)};
+    padding-top: ${theme.spacing(2)};
+    padding-left: ${theme.spacing(2)};
+    padding-right: ${theme.spacing(2)};
     overflow: auto;
   `
 );
