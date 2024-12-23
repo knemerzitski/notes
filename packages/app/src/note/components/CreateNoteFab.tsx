@@ -1,6 +1,7 @@
+import AddIcon from '@mui/icons-material/Add';
 import { css, Fab, FabProps, styled } from '@mui/material';
 import { forwardRef, MouseEvent } from 'react';
-import AddIcon from '@mui/icons-material/Add';
+
 import { GlobalCountIncrement } from '../../utils/context/global-count';
 import { useCreateNote } from '../hooks/useCreateNote';
 import { useNavigateToNote } from '../hooks/useNavigateToNote';

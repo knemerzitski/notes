@@ -11,6 +11,7 @@ import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
 import { useNoteId } from '../context/note-id';
 import { useIsNoteOpen } from '../hooks/useIsNoteOpen';
 
+import { useNavigateToNote } from '../hooks/useNavigateToNote';
 import { getCategoryName } from '../models/note/category-name';
 
 import { ContentTypography } from './ContentTypography';
@@ -22,7 +23,6 @@ import { NoteMoreOptionsButton } from './NoteMoreOptionsButton';
 import { OpenedNoteUserAvatars } from './OpenedNoteUserAvatars';
 import { TitleTypography } from './TitleTypography';
 import { UserAvatarsCornerPosition } from './UserAvatarsCornerPosition';
-import { useNavigateToNote } from '../hooks/useNavigateToNote';
 
 const _NoteCard_UserNoteLinkFragment = gql(`
   fragment NoteCard_UserNoteLinkFragment on UserNoteLink {

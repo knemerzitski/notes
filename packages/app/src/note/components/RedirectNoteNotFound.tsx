@@ -1,11 +1,12 @@
-import { ReactNode } from 'react';
-import { useNoteId } from '../context/note-id';
 import {
   AnyRouter,
   Navigate,
   NavigateOptions,
   RegisteredRouter,
 } from '@tanstack/react-router';
+import { ReactNode } from 'react';
+
+import { useNoteId } from '../context/note-id';
 import { useNoteExists } from '../hooks/useNoteExists';
 
 /**

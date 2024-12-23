@@ -1,7 +1,8 @@
 import { Box, BoxProps, css, styled } from '@mui/material';
 
-import { CollabInputs } from './CollabInputs';
 import { forwardRef } from 'react';
+
+import { CollabInputs } from './CollabInputs';
 
 export const CollabInputsColumn = forwardRef<
   HTMLDivElement,

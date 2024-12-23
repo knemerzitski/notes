@@ -3,8 +3,9 @@ import { forwardRef, useEffect, useState } from 'react';
 import { Options, useDebouncedCallback } from 'use-debounce';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 
-import { SearchNoteProps, SearchNotes } from './SearchNotes';
 import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
+
+import { SearchNoteProps, SearchNotes } from './SearchNotes';
 
 type RouteSearchNotesDebouncedProps = Omit<SearchNoteProps, 'InputBaseProps'> & {
   InputBaseProps?: Omit<SearchNoteProps['InputBaseProps'], 'value' | 'onInput'>;

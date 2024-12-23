@@ -1,10 +1,13 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useCallback } from 'react';
+
 import { useIsMobile } from '../../theme/context/is-mobile';
 import { OnCloseProvider } from '../../utils/context/on-close';
-import { RedirectToDesktopNote } from './RedirectToDesktopNote';
-import { EditNotePage, EditNotePageProps } from './EditNotePage';
+
 import { useNoteId } from '../context/note-id';
+
+import { EditNotePage, EditNotePageProps } from './EditNotePage';
+import { RedirectToDesktopNote } from './RedirectToDesktopNote';
 
 export function RouteEditNotePage({
   originalPathname,

@@ -6,24 +6,24 @@ import {
   useRouter,
 } from '@tanstack/react-router';
 
+import { useEffect, useState } from 'react';
 import { coerce, number, optional, string, type } from 'superstruct';
 
 import { gql } from '../__generated__';
 import { RouteDevModuleProvider } from '../dev/components/RouteDevModuleProvider';
+import { AppBarDrawerLayout } from '../layout/components/AppBarDrawerLayout';
 import { RedirectLinkSharedNote } from '../note/components/RedirectLinkSharedNote';
+import { RedirectNoteNotFound } from '../note/components/RedirectNoteNotFound';
+import { RedirectToMobileNote } from '../note/components/RedirectToMobileNote';
 import { RouteNoteDialog } from '../note/components/RouteNoteDialog';
 import { RouteNoteSharingDialog } from '../note/components/RouteNoteSharingDialog';
-import { RouterContext } from '../router';
-import { RouteUserModuleProvider } from '../user/components/RouteUserModuleProvider';
-import { routeFetchPolicy } from '../utils/route-fetch-policy';
 import { NoteIdProvider } from '../note/context/note-id';
-import { RedirectNoteNotFound } from '../note/components/RedirectNoteNotFound';
-import { AppBarDrawerLayout } from '../layout/components/AppBarDrawerLayout';
-import { NotFoundTypography } from '../utils/components/NotFoundTypography';
-import { ErrorComponent } from '../utils/components/ErrorComponent';
+import { RouterContext } from '../router';
 import { useIsMobile } from '../theme/context/is-mobile';
-import { RedirectToMobileNote } from '../note/components/RedirectToMobileNote';
-import { useEffect, useState } from 'react';
+import { RouteUserModuleProvider } from '../user/components/RouteUserModuleProvider';
+import { ErrorComponent } from '../utils/components/ErrorComponent';
+import { NotFoundTypography } from '../utils/components/NotFoundTypography';
+import { routeFetchPolicy } from '../utils/route-fetch-policy';
 
 const RouteRoot_Query = gql(`
   query RouteRoot_Query($noteId: ObjectID!) {

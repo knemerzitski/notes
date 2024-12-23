@@ -1,5 +1,6 @@
-import { gql } from '../../__generated__';
 import { useQuery } from '@apollo/client';
+
+import { gql } from '../../__generated__';
 import { Note } from '../../__generated__/graphql';
 
 const UseNoteExists_Query = gql(`

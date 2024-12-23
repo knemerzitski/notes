@@ -9,6 +9,7 @@ import {
   Slide,
   styled,
 } from '@mui/material';
+import { TransitionProps } from '@mui/material/transitions';
 import {
   useId,
   useState,
@@ -21,9 +22,8 @@ import {
   ReactElement,
 } from 'react';
 
-import { OnCloseProvider } from '../context/on-close';
 import { useIsMobile } from '../../theme/context/is-mobile';
-import { TransitionProps } from '@mui/material/transitions';
+import { OnCloseProvider } from '../context/on-close';
 
 export function IconButtonMenu({
   children,

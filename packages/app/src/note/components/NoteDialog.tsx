@@ -2,13 +2,15 @@ import { css, Dialog, styled } from '@mui/material';
 
 import { forwardRef, useState } from 'react';
 
+import { useIsElementScrollEnd } from '../../utils/hooks/useIsElementScrollEnd';
+
+import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
+import { scrollEndShadow } from '../../utils/styles/scroll-end-shadow';
+
 import { CollabInputsColumn } from './CollabInputsColumn';
 import { NoteToolbar } from './NoteToolbar';
 import { OpenSharingUserAvatars } from './OpenSharingUserAvatars';
 import { UserAvatarsCornerPosition } from './UserAvatarsCornerPosition';
-import { useIsElementScrollEnd } from '../../utils/hooks/useIsElementScrollEnd';
-import { scrollEndShadow } from '../../utils/styles/scroll-end-shadow';
-import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
 
 export const NoteDialog = forwardRef<HTMLDivElement, Parameters<typeof DialogStyled>[0]>(
   function NoteDialog(

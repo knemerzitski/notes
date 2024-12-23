@@ -1,4 +1,5 @@
 import { forwardRef } from 'react';
+
 import { AppBar } from './AppBar';
 
 export const ScrollEndShadowAppBar = forwardRef<

@@ -1,10 +1,12 @@
+import { css, styled } from '@mui/material';
 import { forwardRef } from 'react';
 
 import { useIsScrollEnd } from '../../utils/hooks/useIsScrollEnd';
-import { MobileNoteToolbar } from './MobileNoteToolbar';
+
 import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
-import { css, styled } from '@mui/material';
 import { scrollEndShadow } from '../../utils/styles/scroll-end-shadow';
+
+import { MobileNoteToolbar } from './MobileNoteToolbar';
 
 export const ScrollEndShadowMobileNoteToolbar = forwardRef<
   HTMLDivElement,

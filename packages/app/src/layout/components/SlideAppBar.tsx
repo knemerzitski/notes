@@ -4,6 +4,7 @@ import { ReactNode } from 'react';
 
 import { useIsMobile } from '../../theme/context/is-mobile';
 import { useIsAppDrawerOpen } from '../context/app-drawer-state';
+
 import { AppBar } from './AppBar';
 
 export function SlideAppBar({

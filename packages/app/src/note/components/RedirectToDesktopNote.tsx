@@ -1,4 +1,5 @@
 import { Navigate } from '@tanstack/react-router';
+
 import { Note } from '../../__generated__/graphql';
 
 export function RedirectToDesktopNote({

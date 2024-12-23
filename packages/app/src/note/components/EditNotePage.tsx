@@ -1,10 +1,13 @@
 import { Box, Toolbar, styled, css } from '@mui/material';
+
 import { EditingHeaderToolbar } from '../../layout/components/EditingHeaderToolbar';
 import { ScrollEndShadowAppBar } from '../../layout/components/ScrollEndShadowAppBar';
-import { ScrollEndShadowMobileNoteToolbar } from './ScrollEndShadowMobileNoteToolbar';
-import { CollabInputsColumn } from './CollabInputsColumn';
-import { toolbarHeight } from '../../utils/toolbar-height';
+
 import { ToolbarScrollPaddingBottom } from '../../utils/components/ToolbarScrollPaddingBottom';
+import { toolbarHeight } from '../../utils/toolbar-height';
+
+import { CollabInputsColumn } from './CollabInputsColumn';
+import { ScrollEndShadowMobileNoteToolbar } from './ScrollEndShadowMobileNoteToolbar';
 
 export type EditNotePageProps = Parameters<typeof EditNotePage>[0];
 

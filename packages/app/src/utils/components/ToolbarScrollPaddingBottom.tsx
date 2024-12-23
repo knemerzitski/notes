@@ -1,4 +1,5 @@
 import { GlobalStyles, useTheme } from '@mui/material';
+
 import { toolbarHeight } from '../toolbar-height';
 
 /**

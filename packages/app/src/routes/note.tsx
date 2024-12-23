@@ -1,15 +1,17 @@
+import { useApolloClient } from '@apollo/client';
 import { createFileRoute } from '@tanstack/react-router';
+import { useEffect, useRef } from 'react';
 import { boolean, optional, string, type } from 'superstruct';
-import { NoteIdProvider } from '../note/context/note-id';
+
+import { Note, NotePendingStatus } from '../__generated__/graphql';
 import { RedirectNoteNotFound } from '../note/components/RedirectNoteNotFound';
 import { RouteEditNotePage } from '../note/components/RouteEditNotePage';
-import { useApolloClient } from '@apollo/client';
-import { Note, NotePendingStatus } from '../__generated__/graphql';
-import { getNotePendingStatus } from '../note/models/local-note/get-status';
+import { NoteIdProvider } from '../note/context/note-id';
 import { useCreateNote } from '../note/hooks/useCreateNote';
-import { useEffect, useRef } from 'react';
+
 import { useNavigateToNote } from '../note/hooks/useNavigateToNote';
 import { clearExcludeNoteFromConnection } from '../note/models/local-note/clear-exclude';
+import { getNotePendingStatus } from '../note/models/local-note/get-status';
 import { addNoteToConnection } from '../note/models/note-connection/add';
 
 const searchSchema = type({

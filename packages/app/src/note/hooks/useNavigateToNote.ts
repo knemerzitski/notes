@@ -1,6 +1,7 @@
-import { useCallback } from 'react';
-import { Note } from '../../__generated__/graphql';
 import { useNavigate, useRouter } from '@tanstack/react-router';
+import { useCallback } from 'react';
+
+import { Note } from '../../__generated__/graphql';
 import { useIsMobile } from '../../theme/context/is-mobile';
 
 export function useNavigateToNote() {
