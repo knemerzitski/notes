@@ -4,6 +4,7 @@ import { DistributivePartialBy } from '~utils/types';
 
 import { gql } from '../../../__generated__';
 import { AddUserOperationQueryQuery, SignedInUser } from '../../../__generated__/graphql';
+import { nanoid } from 'nanoid';
 
 const AddUserOperation_Query = gql(`
   query AddUserOperation_Query($id: ID!) {
@@ -65,7 +66,7 @@ export function addUserOperations(
           __typename: 'LocalSignedInUser',
           id: userId,
           operations: operations.map<Operation>((op) => ({
-            id: op.id ?? crypto.randomUUID(),
+            id: op.id ?? nanoid(),
             ...op,
           })),
         },
