@@ -1,10 +1,17 @@
-import { createFileRoute, Navigate } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 
-export const Route = createFileRoute('/_root_layout/')({
+export const Route = createFileRoute('/')({
   component: Index,
+  beforeLoad() {
+    // eslint-disable-next-line @typescript-eslint/only-throw-error
+    throw redirect({
+      to: '/notes',
+      replace: true,
+    });
+  },
 });
 
 function Index() {
-  // Root index redirect to notes
-  return <Navigate to="/notes" />;
+  // Will be redirected in beforeLoad
+  return null;
 }

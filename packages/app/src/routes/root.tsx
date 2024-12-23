@@ -3,6 +3,7 @@ import {
   Outlet,
   createRootRouteWithContext,
   defer,
+  useRouter,
 } from '@tanstack/react-router';
 
 import { coerce, number, optional, string, type } from 'superstruct';
@@ -20,6 +21,9 @@ import { RedirectNoteNotFound } from '../note/components/RedirectNoteNotFound';
 import { AppBarDrawerLayout } from '../layout/components/AppBarDrawerLayout';
 import { NotFoundTypography } from '../utils/components/NotFoundTypography';
 import { ErrorComponent } from '../utils/components/ErrorComponent';
+import { useIsMobile } from '../theme/context/is-mobile';
+import { RedirectToMobileNote } from '../note/components/RedirectToMobileNote';
+import { useEffect, useState } from 'react';
 
 const RouteRoot_Query = gql(`
   query RouteRoot_Query($noteId: ObjectID!) {
@@ -96,6 +100,26 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 function Root() {
   const { noteId, sharingNoteId, share } = Route.useSearch();
 
+  const router = useRouter();
+  const isMobile = useIsMobile();
+
+  // Force render all modals together when changing between mobile and desktop
+  // Otherwise modals appear in a unpredictable order
+  const [dialogKey, setDialogKey] = useState(() => JSON.stringify({ isMobile }));
+  useEffect(() => {
+    setDialogKey(JSON.stringify({ isMobile }));
+  }, [isMobile]);
+
+  if (noteId && isMobile) {
+    const originalPathname = router.state.location.pathname;
+    // On mobile redirect search ?note=$noteId to note page route
+    return <RedirectToMobileNote noteId={noteId} originalPathname={originalPathname} />;
+  }
+
+  if (share) {
+    return <RedirectLinkSharedNote shareId={share} />;
+  }
+
   return (
     <>
       <RouteUserModuleProvider />
@@ -113,14 +137,12 @@ function Root() {
               }),
             }}
           >
-            <RouteNoteDialog />
+            <RouteNoteDialog key={dialogKey} />
           </RedirectNoteNotFound>
         </NoteIdProvider>
       )}
 
-      {sharingNoteId && <RouteNoteSharingDialog noteId={sharingNoteId} />}
-
-      {share && <RedirectLinkSharedNote shareId={share} />}
+      {sharingNoteId && <RouteNoteSharingDialog key={dialogKey} noteId={sharingNoteId} />}
 
       <RouteDevModuleProvider />
     </>

@@ -6,7 +6,7 @@ import { forwardRef } from 'react';
 export const CollabInputsColumn = forwardRef<
   HTMLDivElement,
   BoxProps & {
-  CollabInputsProps?: Parameters<typeof CollabInputs>[0];
+    CollabInputsProps?: Parameters<typeof CollabInputs>[0];
   }
 >(function CollabInputsColumn({ CollabInputsProps, ...restProps }, ref) {
   return (
@@ -25,5 +25,6 @@ const BoxStyled = styled(Box)(
     padding-left: ${theme.spacing(2)};
     padding-right: ${theme.spacing(2)};
     overflow: auto;
+    scroll-padding-bottom: 2px;
   `
 );
