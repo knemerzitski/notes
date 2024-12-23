@@ -54,6 +54,16 @@ export function useAppStatus(options?: {
           setStatusRefreshDebounced.cancel();
           return 'loading';
         } else {
+          const haveNoReasonForDebounceSynchronized =
+            prevUserHasUnsavedNotes === userHasUnsavedNotesRef.current &&
+            prevOngoingCount === ongoingCountRef.current &&
+            prev === 'refresh';
+          if (haveNoReasonForDebounceSynchronized) {
+            prevUserHasUnsavedNotes = userHasUnsavedNotesRef.current;
+            prevOngoingCount = ongoingCountRef.current;
+            return prev;
+          }
+
           setStatusRefreshDebounced();
           return 'synchronized';
         }
@@ -67,6 +77,7 @@ export function useAppStatus(options?: {
       (client.readQuery({
         query: UseAppStatus_Query,
       })?.currentSignedInUser.local.unsavedCollabServices.length ?? 0) > 0;
+    let prevUserHasUnsavedNotes = userHasUnsavedNotesRef.current;
 
     const queryObservable = client.watchQuery({
       query: UseAppStatus_Query,
@@ -82,6 +93,7 @@ export function useAppStatus(options?: {
     });
 
     ongoingCountRef.current = getOngoingQueryAndMutationCount(userId, statsLink);
+    let prevOngoingCount = ongoingCountRef.current;
 
     const noUserUnsub = noUserEventBus.on('byType', () => {
       ongoingCountRef.current = getOngoingQueryAndMutationCount(userId, statsLink);
