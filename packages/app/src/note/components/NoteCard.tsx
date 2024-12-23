@@ -1,6 +1,5 @@
 import { useApolloClient } from '@apollo/client';
 import { alpha, Box, css, Paper, PaperProps, styled, Theme } from '@mui/material';
-import { useNavigate } from '@tanstack/react-router';
 import { forwardRef, ReactNode, useRef, useState } from 'react';
 
 import { gql } from '../../__generated__';
@@ -23,6 +22,7 @@ import { NoteMoreOptionsButton } from './NoteMoreOptionsButton';
 import { OpenedNoteUserAvatars } from './OpenedNoteUserAvatars';
 import { TitleTypography } from './TitleTypography';
 import { UserAvatarsCornerPosition } from './UserAvatarsCornerPosition';
+import { useNavigateToNote } from '../hooks/useNavigateToNote';
 
 const _NoteCard_UserNoteLinkFragment = gql(`
   fragment NoteCard_UserNoteLinkFragment on UserNoteLink {
@@ -42,7 +42,7 @@ export const NoteCard = forwardRef<HTMLDivElement, PaperProps>(
     const client = useApolloClient();
     const paperElRef = useRef<HTMLDivElement | null>(null);
 
-    const navigate = useNavigate();
+    const navigateToNote = useNavigateToNote();
 
     const isNoteOpen = useIsNoteOpen(noteId);
 
@@ -78,20 +78,7 @@ export const NoteCard = forwardRef<HTMLDivElement, PaperProps>(
         return;
       }
 
-      // TODO depends if mobile or not when shows dialog
-      void navigate({
-        to: '.',
-        search: (prev) => ({
-          ...prev,
-          noteId,
-        }),
-        mask: {
-          to: '/note/$noteId',
-          params: {
-            noteId,
-          },
-        },
-      }).finally(() => {
+      void navigateToNote(noteId).finally(() => {
         updateIsActive();
       });
     };
