@@ -4,6 +4,7 @@ import { optional, string, type } from 'superstruct';
 import { gql } from '../__generated__';
 import { SearchMain } from '../note/components/SearchMain';
 import { IsLoadingProvider } from '../utils/context/is-loading';
+import { useIsOnline } from '../utils/hooks/useIsOnline';
 import { routeFetchPolicy } from '../utils/route-fetch-policy';
 
 const RouteSearch_Query = gql(`
@@ -56,6 +57,13 @@ export const Route = createFileRoute('/_root_layout/search')({
 });
 
 function SearchPending() {
+  const isOnline = useIsOnline();
+
+  if (!isOnline) {
+    // Fallback to normal/cache search when offline
+    return <Search />;
+  }
+
   return (
     <IsLoadingProvider isLoading={true}>
       <SearchMain searchText="" />

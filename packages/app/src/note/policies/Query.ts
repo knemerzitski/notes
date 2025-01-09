@@ -1,5 +1,7 @@
 import { isReference } from '@apollo/client';
+import Fuse from 'fuse.js';
 import { objectValueArrayPermutationsValues } from '~utils/object/object-value-array-permutations';
+import { isDefined } from '~utils/type-guards/is-defined';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 
 import { Note, NoteCategory } from '../../__generated__/graphql';
@@ -8,6 +10,8 @@ import { keyArgsWithUserId } from '../../graphql/utils/key-args-with-user-id';
 import { relayStylePagination } from '../../graphql/utils/relay-style-pagination';
 import { EvictTag, TaggedEvictOptionsList } from '../../graphql/utils/tagged-evict';
 import { getUserNoteLinkId } from '../utils/id';
+
+import { readNoteExternalState } from './Note/_external';
 
 function throwNoteNotFoundError(noteId?: Note['id']): never {
   if (noteId) {
@@ -147,9 +151,93 @@ export const Query: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
                 startCursor: null,
                 endCursor: null,
               },
-            }
+            },
+            options
           ) {
-            return existing;
+            const { args, readField } = options;
+
+            const searchText = args?.searchText ? String(args.searchText) : '';
+            if (searchText.length === 0) {
+              return existing;
+            }
+
+            // Gather text of every edge for Fuse
+            // It's okay to recreate Fuse instance for small datasets
+            // Might have to reuse the instance if it's going to have a performance impact
+            const itemsForFuse = [
+              ...objectValueArrayPermutationsValues({
+                category: Object.values(NoteCategory),
+              }),
+            ]
+              // Collect edges
+              .flatMap((args) => {
+                const userNoteLinkConnection = readField({
+                  fieldName: 'userNoteLinkConnection',
+                  args,
+                });
+
+                // Is obj with property `edges`
+                if (
+                  !isObjectLike(userNoteLinkConnection) ||
+                  !('edges' in userNoteLinkConnection)
+                ) {
+                  return;
+                }
+
+                // `edges` is array
+                if (!Array.isArray(userNoteLinkConnection.edges)) {
+                  return;
+                }
+
+                return userNoteLinkConnection.edges as unknown[];
+              })
+              // Add text
+              .map((userNoteLinkEdge) => {
+                if (!isObjectLike(userNoteLinkEdge)) {
+                  return;
+                }
+
+                if (!('node' in userNoteLinkEdge)) {
+                  return;
+                }
+
+                const userNoteLinkRef = userNoteLinkEdge.node;
+                if (!isReference(userNoteLinkRef)) {
+                  return;
+                }
+
+                const noteRef = readField('note', userNoteLinkRef);
+                if (!isReference(noteRef)) {
+                  return;
+                }
+
+                const externalState = readNoteExternalState(noteRef, options);
+                const text = externalState.service.viewText;
+
+                return {
+                  text,
+                  node: userNoteLinkRef,
+                };
+              })
+              .filter(isDefined);
+
+            // Use fuse.js fuzzy search
+            const fuse = new Fuse(itemsForFuse, {
+              keys: ['text'],
+            });
+            const searchResult = fuse.search(searchText);
+            searchResult.reverse();
+
+            return {
+              __typename: 'UserNoteLinkConnection',
+              edges: searchResult.map(({ item }) => item),
+              pageInfo: {
+                hasPreviousPage: false,
+                hasNextPage: false,
+                startCursor: null,
+                endCursor: null,
+              },
+            };
           },
           isOrderedSet: true,
         }

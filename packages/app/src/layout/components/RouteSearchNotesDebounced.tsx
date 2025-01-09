@@ -3,8 +3,6 @@ import { forwardRef, useEffect, useState } from 'react';
 import { Options, useDebouncedCallback } from 'use-debounce';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 
-import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
-
 import { SearchNoteProps, SearchNotes } from './SearchNotes';
 
 type RouteSearchNotesDebouncedProps = Omit<SearchNoteProps, 'InputBaseProps'> & {
@@ -31,7 +29,6 @@ export const RouteSearchNotesDebounced = forwardRef<
   HTMLDivElement,
   RouteSearchNotesDebouncedProps
 >(function RouteSearchNotesDebounced({ wait = 500, options, ...restProps }, ref) {
-  const isLocalOnlyUser = useIsLocalOnlyUser();
   const navigate = useNavigate();
   const router = useRouter();
 
@@ -105,11 +102,9 @@ export const RouteSearchNotesDebounced = forwardRef<
       InputBaseProps={{
         value,
         onInput: handleInput,
-        disabled: isLocalOnlyUser,
       }}
       IconButtonProps={{
         onClick: handleClickSearch,
-        disabled: isLocalOnlyUser,
       }}
       ref={ref}
     />
