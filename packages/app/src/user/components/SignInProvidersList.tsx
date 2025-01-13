@@ -12,7 +12,7 @@ import { useUserId } from '../context/user-id';
 import { GoogleLoginButton } from './GoogleLoginButton';
 
 const SignInProvidersList_Query = gql(`
-  query SignInProvidersList_Query($id: ID!) {
+  query SignInProvidersList_Query($id: ObjectID!) {
     signedInUser(by: { id: $id }) @client {
       id
       authProviderUser(type: GOOGLE) {

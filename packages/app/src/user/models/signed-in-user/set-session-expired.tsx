@@ -4,7 +4,7 @@ import { gql } from '../../../__generated__';
 import { SignedInUser } from '../../../__generated__/graphql';
 
 const SetUserSessionExpired_Query = gql(`
-  query SetUserSessionExpired_Query($id: ID!) {
+  query SetUserSessionExpired_Query($id: ObjectID!) {
     signedInUser(by: { id: $id }) {
       id
       local {

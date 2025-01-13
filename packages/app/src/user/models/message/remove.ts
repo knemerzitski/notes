@@ -4,7 +4,7 @@ import { gql } from '../../../__generated__';
 import { SignedInUser, UserMessage } from '../../../__generated__/graphql';
 
 const RemoveUserMessages_Query = gql(`
-  query RemoveUserMessages_Query($id: ID!) {
+  query RemoveUserMessages_Query($id: ObjectID!) {
     signedInUser(by: { id: $id }) {
       id
       local {

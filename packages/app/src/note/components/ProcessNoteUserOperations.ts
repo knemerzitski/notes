@@ -11,7 +11,7 @@ import { useMoveNote } from '../hooks/useMoveNote';
 import { useTrashNote } from '../hooks/useTrashNote';
 
 const ProcessNoteUserOperations_Query = gql(`
-  query ProcessNoteUserOperations_Query($id: ID!) {
+  query ProcessNoteUserOperations_Query($id: ObjectID!) {
     signedInUser(by: { id: $id }) {
       id
       local {

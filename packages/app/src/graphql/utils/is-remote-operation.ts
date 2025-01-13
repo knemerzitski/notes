@@ -7,7 +7,7 @@ import { gql } from '../../__generated__';
 import { hasNoAuthDirective } from '../link/current-user';
 
 const IsRemoteOperation_Query = gql(`
-  query IsRemoteOperation_Query($id: ID!) {
+  query IsRemoteOperation_Query($id: ObjectID!) {
     signedInUser(by: { id: $id }) @client {
       id
       localOnly

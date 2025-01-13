@@ -4,7 +4,7 @@ import { gql } from '../../__generated__';
 import { useUserId } from '../context/user-id';
 
 const UseIsLocalOnlyUser_Query = gql(`
-  query UseIsLocalOnlyUser_Query($id: ID!) {
+  query UseIsLocalOnlyUser_Query($id: ObjectID!) {
     signedInUser(by: { id: $id }) @client {
       id
       localOnly

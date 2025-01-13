@@ -11,7 +11,7 @@ import { useRemoveUser } from '../hooks/useRemoveUser';
 import { confirmUnsavedChanges } from '../utils/confirm-unsaved-changes';
 
 const ForgetUserMenuItem_Query = gql(`
-  query ForgetUserMenuItem_Query($id: ID!) {
+  query ForgetUserMenuItem_Query($id: ObjectID!) {
     signedInUser(by: { id: $id }) @client {
       id
       public {

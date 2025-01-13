@@ -18,7 +18,7 @@ import { useAppStatus } from '../hooks/useAppStatus';
 import { CrossFade } from './CrossFade';
 
 const AppStatusRefreshButton_Query = gql(`
-  query AppStatusRefreshButton_Query($id: ID!) {
+  query AppStatusRefreshButton_Query($id: ObjectID!) {
     signedInUser(by: { id: $id }) @client {
       id
       localOnly

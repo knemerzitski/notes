@@ -15,7 +15,7 @@ const SetNotePendingStatus_Query = gql(`
 `);
 
 const SetNotePendingStatusList_Query = gql(`
-  query SetNotePendingStatusList_Query($userId: ID!) {
+  query SetNotePendingStatusList_Query($userId: ObjectID!) {
     signedInUser(by: { id: $userId }) {
       id
       local {

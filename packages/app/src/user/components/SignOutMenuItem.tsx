@@ -12,7 +12,7 @@ import { useSignOutMutation } from '../hooks/useSignOutMutation';
 import { confirmUnsavedChanges } from '../utils/confirm-unsaved-changes';
 
 const SignOutMenuItem_Query = gql(`
-  query SignOutMenuItem_Query($id: ID!) {
+  query SignOutMenuItem_Query($id: ObjectID!) {
     signedInUser(by: { id: $id }) @client {
       id
       public {

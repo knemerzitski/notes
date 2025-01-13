@@ -7,7 +7,7 @@ import { useOpenSignInModal } from '../context/sign-in-modal';
 import { useUserId } from '../context/user-id';
 
 const SignInMenuItem_Query = gql(`
-  query SignInMenuItem_Query($id: ID!) {
+  query SignInMenuItem_Query($id: ObjectID!) {
     signedInUser(by: { id: $id }) @client {
       id
       local {
