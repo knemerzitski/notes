@@ -18,12 +18,12 @@ import { ApiGraphQLContext, GraphQLResolversContext } from '../../../graphql/typ
 import { MongoDBCollections } from '../../../mongodb/collections';
 import { MongoDBContext } from '../../../mongodb/context';
 import { createMongoDBLoaders } from '../../../mongodb/loaders';
+import { DBSessionSchema } from '../../../mongodb/schema/session';
 import { DBUserSchema } from '../../../mongodb/schema/user';
 import { MongoPartialDeep } from '../../../mongodb/types';
 import { objectIdToStr } from '../../../mongodb/utils/objectid';
 import { Cookies } from '../../../services/http/cookies';
 import { mongoCollections, mongoClient } from '../mongodb/mongodb';
-import { DBSessionSchema } from '../../../mongodb/schema/session';
 
 export interface CreateGraphQLResolversContextOptions {
   user?: Partial<DBUserSchema>;

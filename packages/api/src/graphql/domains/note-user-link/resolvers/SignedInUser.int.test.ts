@@ -16,12 +16,12 @@ import {
 import { fakeNotePopulateQueue } from '../../../../__tests__/helpers/mongodb/populate/note';
 import { userAddNote } from '../../../../__tests__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../__tests__/helpers/mongodb/populate/populate-queue';
+import { fakeSessionPopulateQueue } from '../../../../__tests__/helpers/mongodb/populate/session';
 import { fakeUserPopulateQueue } from '../../../../__tests__/helpers/mongodb/populate/user';
 import { DBNoteSchema } from '../../../../mongodb/schema/note';
+import { DBSessionSchema } from '../../../../mongodb/schema/session';
 import { DBUserSchema } from '../../../../mongodb/schema/user';
 import { UserNoteLink } from '../../types.generated';
-import { DBSessionSchema } from '../../../../mongodb/schema/session';
-import { fakeSessionPopulateQueue } from '../../../../__tests__/helpers/mongodb/populate/session';
 
 interface Variables {
   userId: ObjectId;
