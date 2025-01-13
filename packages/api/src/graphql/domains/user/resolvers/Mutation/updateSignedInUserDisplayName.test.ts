@@ -57,17 +57,19 @@ it('returns UpdateSignedInUserDisplayNamePayload with query', async () => {
   const createQueryFn = mongoDB.loaders.user.createQueryFn;
   createQueryFn.mockReturnValueOnce(query);
 
+  const auth = {
+    session: {
+      userId,
+    },
+  };
+
   const result = await resolveUpdateSignedInUserDisplayName(
     undefined,
     {
       input: { displayName },
     },
     mockDeep<GraphQLResolversContext>({
-      auth: {
-        session: {
-          userId,
-        },
-      },
+      auth,
       mongoDB,
     })
   );
@@ -76,6 +78,7 @@ it('returns UpdateSignedInUserDisplayNamePayload with query', async () => {
     __typename: 'UpdateSignedInUserDisplayNamePayload',
     displayName,
     signedInUser: {
+      auth,
       query: query,
     },
   });
