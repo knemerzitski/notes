@@ -44,6 +44,7 @@ it(
         'local',
         'invoke',
         'ScheduledFnB0AA6235',
+        '--skip-pull-image',
         '--docker-network',
         'sam-api-network',
         '-t',
