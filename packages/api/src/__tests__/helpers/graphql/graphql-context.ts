@@ -23,9 +23,11 @@ import { MongoPartialDeep } from '../../../mongodb/types';
 import { objectIdToStr } from '../../../mongodb/utils/objectid';
 import { Cookies } from '../../../services/http/cookies';
 import { mongoCollections, mongoClient } from '../mongodb/mongodb';
+import { DBSessionSchema } from '../../../mongodb/schema/session';
 
 export interface CreateGraphQLResolversContextOptions {
   user?: Partial<DBUserSchema>;
+  session?: Partial<DBSessionSchema>;
   createPublisher?: (ctx: Omit<GraphQLResolversContext, 'publish'>) => Publisher;
   mongoDB?: PartialBy<ApiGraphQLContext['mongoDB'], 'loaders'>;
   override?: MongoPartialDeep<GraphQLResolversContext>;
@@ -46,6 +48,7 @@ export function createGraphQLResolversContext(
       ? {
           session: {
             userId: user._id,
+            ...options.session,
           },
         }
       : null,
@@ -54,7 +57,9 @@ export function createGraphQLResolversContext(
       ...mongoDBContext,
     },
     cookies: new Cookies({
-      sessions: user?._id ? { [objectIdToStr(user._id)]: 'unknown' } : {},
+      sessions: user?._id
+        ? { [objectIdToStr(user._id)]: options?.session?.cookieId ?? 'unknown' }
+        : {},
     }),
     response: {
       multiValueHeaders: {},
