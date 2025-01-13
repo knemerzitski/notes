@@ -1,37 +1,39 @@
 import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
 
-import { CollectionName } from '../../mongodb/collections';
-import { QueryableSessionLoader } from '../../mongodb/loaders/session/loader';
+import { CollectionName, MongoDBCollections } from '../../mongodb/collections';
+import { MongoDBLoaders } from '../../mongodb/loaders';
 import { SessionDurationConfig, SessionDuration } from '../session/duration';
 import { findByCookieId } from '../session/find-by-cookie-id';
 import { tryRefreshExpireAt } from '../session/try-refresh-expire-at';
 
 import { AuthenticatedContext, AuthenticatedFailedError } from './authentication-context';
 
-export interface FindRefreshSessionByCookieIdParams {
-  loader: QueryableSessionLoader;
-  /**
-   * Set null to not refresh session
-   */
-  sessionDurationConfig?: SessionDurationConfig | null;
-}
-
 // TODO test
 /**
  * Get session info from database using provided cookieId.
  * Can refresh session if it's about to expire.
+ * Leave option undefined not not refresh session.
  */
 export async function findRefreshSessionByCookieId(
   cookieId: string,
-  { loader, sessionDurationConfig }: FindRefreshSessionByCookieIdParams
+  {
+    mongoDB,
+    options,
+  }: {
+    mongoDB: {
+      collections: Pick<MongoDBCollections, CollectionName.SESSIONS>;
+      loaders: Pick<MongoDBLoaders, 'session'>;
+    };
+    options?: {
+      sessions?: {
+        user?: SessionDurationConfig;
+      };
+    };
+  }
 ): Promise<AuthenticatedContext['session']> {
   const session = await findByCookieId({
     cookieId,
-    mongoDB: {
-      loaders: {
-        session: loader,
-      },
-    },
+    mongoDB,
   });
 
   // Session not found in db or expireAt time has passed
@@ -39,22 +41,17 @@ export async function findRefreshSessionByCookieId(
     throw new AuthenticatedFailedError(AuthenticationFailedReason.SESSION_EXPIRED);
   }
 
-  if (!sessionDurationConfig) {
+  if (!options?.sessions?.user) {
     return session;
   }
+
+  const sessionDurationConfig = options.sessions.user;
 
   // Refresh session
   const newSession = await tryRefreshExpireAt({
     session,
     sessionDuration: new SessionDuration(sessionDurationConfig),
-    mongoDB: {
-      collections: {
-        [CollectionName.SESSIONS]: loader.context.collections.sessions,
-      },
-      loaders: {
-        session: loader,
-      },
-    },
+    mongoDB,
   });
 
   return newSession;
