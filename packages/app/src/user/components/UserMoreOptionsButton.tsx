@@ -13,7 +13,7 @@ import { SignInMenuItem } from './SignInMenuItem';
 import { SignOutMenuItem } from './SignOutMenuItem';
 
 const UserMoreOptionsButton_Query = gql(`
-  query UserMoreOptionsButton_Query($id: ID!) {
+  query UserMoreOptionsButton_Query($id: ObjectID!) {
     signedInUser(by: { id: $id }) @client {
       id
       localOnly

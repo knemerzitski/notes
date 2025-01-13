@@ -4,7 +4,7 @@ import { gql } from '../../../__generated__';
 import { SignedInUser, UserOperation } from '../../../__generated__/graphql';
 
 const RemoveUserOperation_Query = gql(`
-  query RemoveUserOperation_Query($id: ID!) {
+  query RemoveUserOperation_Query($id: ObjectID!) {
     signedInUser(by: { id: $id }) {
       id
       local {

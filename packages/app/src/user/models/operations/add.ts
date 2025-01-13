@@ -7,7 +7,7 @@ import { gql } from '../../../__generated__';
 import { AddUserOperationQueryQuery, SignedInUser } from '../../../__generated__/graphql';
 
 const AddUserOperation_Query = gql(`
-  query AddUserOperation_Query($id: ID!) {
+  query AddUserOperation_Query($id: ObjectID!) {
     signedInUser(by: { id: $id }) {
       id
       local {

@@ -15,7 +15,7 @@ import { gql } from '../../../__generated__';
 import { useUserId } from '../../../user/context/user-id';
 
 const PendingNotesTable_Query = gql(`
-  query PendingNotesTable_Query($id: ID!){
+  query PendingNotesTable_Query($id: ObjectID!){
     signedInUser(by: { id: $id }) {
       id
       local {

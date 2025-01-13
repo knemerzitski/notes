@@ -26,7 +26,7 @@ import { DisplayNameTitle } from './DisplayNameTitle';
 import { DisplayNameTitleTextField } from './DisplayNameTitleTextField';
 
 const EditableDisplayName_Query = gql(`
-  query EditableDisplayName_Query($id: ID!) {
+  query EditableDisplayName_Query($id: ObjectID!) {
     signedInUser(by: { id: $id }) @client {
       ...EditableDisplayName_SignedInUserFragment
     }

@@ -30,13 +30,6 @@ extend type SignedInUser {
   localOnly: Boolean!
 }
 
-extend input SignedInUserByInput @oneOf {
-  """
-  Get user by id
-  """
-  id: ID
-}
-
 """
 TODO desc
 """

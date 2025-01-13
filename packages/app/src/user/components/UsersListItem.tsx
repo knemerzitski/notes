@@ -26,7 +26,7 @@ import { UserAvatar } from './UserAvatar';
 import { UserMoreOptionsButton } from './UserMoreOptionsButton';
 
 const UserListItem_Query = gql(`
-  query UserListItem_Query($id: ID!) {
+  query UserListItem_Query($id: ObjectID!) {
     signedInUser(by: { id: $id }) @client {
       id
       public {

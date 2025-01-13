@@ -8,7 +8,7 @@ import { NoteIdProvider } from '../context/note-id';
 import { CollabService } from './CollabService';
 
 const UnsavedCollabServices_Query = gql(`
-  query UnsavedCollabServices_Query($id: ID!) {
+  query UnsavedCollabServices_Query($id: ObjectID!) {
     signedInUser(by: { id: $id }) @client {
       id
       local {

@@ -9,7 +9,7 @@ import { useUserId } from '../context/user-id';
 import { removeUserMessages } from '../models/message/remove';
 
 const ShowCachedMessages_Query = gql(`
-  query ShowCachedMessages_Query($id: ID!) {
+  query ShowCachedMessages_Query($id: ObjectID!) {
     signedInUser(by: { id: $id }) @client {
       id
       local {

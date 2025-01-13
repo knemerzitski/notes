@@ -4,7 +4,7 @@ import { gql } from '../../../__generated__';
 import { SignedInUser } from '../../../__generated__/graphql';
 
 const IsLocalOnlyUser_Query = gql(`
-  query IsLocalOnlyUser_Query($id: ID!) {
+  query IsLocalOnlyUser_Query($id: ObjectID!) {
     signedInUser(by: { id: $id }) {
       id
       localOnly

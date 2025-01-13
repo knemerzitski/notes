@@ -1,6 +1,6 @@
 import type { SignedInUserResolvers } from './../../types.generated';
 
-export const SignedInUser: SignedInUserResolvers = {
+export const SignedInUser: Pick<SignedInUserResolvers, 'id' | 'public'> = {
   id: async (parent, _arg, _ctx) => {
     return (await parent.query({ _id: 1 }))?._id;
   },

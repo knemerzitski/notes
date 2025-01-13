@@ -10,7 +10,7 @@ import { setNotePendingStatus } from '../models/local-note/set-status';
 import { addNoteToConnection } from '../models/note-connection/add';
 
 const ProcessPendingNotesOnce_Query = gql(`
-  query ProcessPendingNotesOnce_Query($id: ID!) {
+  query ProcessPendingNotesOnce_Query($id: ObjectID!) {
     signedInUser(by: { id: $id }) {
       id
       local {

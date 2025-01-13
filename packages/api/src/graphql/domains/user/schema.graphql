@@ -45,10 +45,9 @@ Contains no fields. Used by client schema for extending.
 """
 input SignedInUserByInput @oneOf {
   """
-  Placeholder to define the input. Never used.
+  Get user by id
   """
-  # eslint-disable-next-line @graphql-eslint/naming-convention
-  _: Boolean
+  id: ObjectID
 }
 
 extend type Query {

@@ -9,7 +9,7 @@ import {
 import { getUserNoteLinkIdFromByInput, parseUserNoteLinkByInput } from '../utils/id';
 
 const UpdateUnsavedCollabService = gql(`
-  query AddUnsavedNote_Query($id: ID!) {
+  query AddUnsavedNote_Query($id: ObjectID!) {
     signedInUser(by: { id: $id }) {
       id
       local {
