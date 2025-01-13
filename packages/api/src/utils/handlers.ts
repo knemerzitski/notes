@@ -18,7 +18,7 @@ import {
 } from '../graphql/types';
 
 import { isAuthenticated } from '../services/auth/is-authenticated';
-import { parseAuthenticationContextFromHeaders } from '../services/auth/parse-authentication-context-from-headers';
+import { fromHeaders as parseAuthFromHeaders } from '../services/auth/parse-authentication-context';
 import { SessionDuration } from '../services/session/duration';
 
 export function createErrorBaseSubscriptionResolversContext(
@@ -55,11 +55,8 @@ export const handleConnectionInitAuthenticate: WebSocketMessageHandlerParams<
   BaseSubscriptionResolversContext,
   BaseGraphQLContext,
   DynamoDBBaseGraphQLContext
->['onConnectionInit'] = async ({
-  message,
-  context,
-  baseGraphQLContext: { auth, cookies, ...restCtx },
-}) => {
+>['onConnectionInit'] = async ({ message, context, baseGraphQLContext }) => {
+  const { auth } = baseGraphQLContext;
   if (isAuthenticated(auth) || auth.reason !== AuthenticationFailedReason.USER_UNDEFINED)
     return;
 
@@ -73,21 +70,16 @@ export const handleConnectionInitAuthenticate: WebSocketMessageHandlerParams<
     Object.entries(anyHeaders).map(([key, value]) => [key, String(value)])
   );
 
-  const newAuth = await parseAuthenticationContextFromHeaders({
-    headers,
-    cookies,
-    sessionParams: {
-      loader: context.graphQLContext.mongoDB.loaders.session,
-      sessionDurationConfig: context.graphQLContext.options?.sessions?.user,
-    },
+  const newAuth = await parseAuthFromHeaders(headers, {
+    ...context.graphQLContext,
+    ...baseGraphQLContext,
   });
 
   if (!isAuthenticated(newAuth)) return;
 
   return serializeBaseGraphQLContext({
-    ...restCtx,
+    ...baseGraphQLContext,
     auth: newAuth,
-    cookies: cookies,
   });
 };
 

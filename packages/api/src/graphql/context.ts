@@ -5,8 +5,7 @@ import {
   serializeAuthenticationContext,
   parseAuthenticationContext,
 } from '../services/auth/authentication-context';
-import { FindRefreshSessionByCookieIdParams } from '../services/auth/find-refresh-session-by-cookie-id';
-import { parseAuthenticationContextFromHeaders } from '../services/auth/parse-authentication-context-from-headers';
+import { fromHeaders as parseAuthFromHeaders } from '../services/auth/parse-authentication-context';
 import { Cookies } from '../services/http/cookies';
 
 import {
@@ -18,19 +17,18 @@ import {
 
 export interface CreateBaseGraphQLContextParams {
   headers: Readonly<Record<string, string | undefined>> | undefined;
-  sessionParams: FindRefreshSessionByCookieIdParams;
+  ctx: Omit<Parameters<typeof parseAuthFromHeaders>[1], 'cookies'>;
 }
 
 export async function createBaseGraphQLContext({
   headers,
-  sessionParams,
+  ctx,
 }: CreateBaseGraphQLContextParams): Promise<BaseGraphQLContext> {
   const cookies = Cookies.parseFromHeaders(headers);
 
-  const auth = await parseAuthenticationContextFromHeaders({
-    headers,
+  const auth = await parseAuthFromHeaders(headers, {
+    ...ctx,
     cookies,
-    sessionParams,
   });
 
   return {
@@ -86,10 +84,7 @@ export async function headersToSerializedBaseGraphQLContext(
 ): Promise<DynamoDBBaseGraphQLContext> {
   const baseContext = await createBaseGraphQLContext({
     headers,
-    sessionParams: {
-      loader: ctx.mongoDB.loaders.session,
-      sessionDurationConfig: ctx.options?.sessions?.user,
-    },
+    ctx,
   });
 
   return serializeBaseGraphQLContext(baseContext);

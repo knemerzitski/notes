@@ -74,10 +74,7 @@ export function createApolloHttpHandlerDefaultParams(
 
       const baseContext = await createBaseGraphQLContext({
         headers: event.headers,
-        sessionParams: {
-          loader: apiContext.mongoDB.loaders.session,
-          sessionDurationConfig: apiContext.options?.sessions?.user,
-        },
+        ctx: apiContext,
       });
 
       return {
