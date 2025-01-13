@@ -169,6 +169,13 @@ extend type Query {
   ): UserNoteLinkConnection! @auth
 }
 
+extend type SignedInUser {
+  """
+  Link between user and note
+  """
+  noteLink(by: UserNoteLinkByInput!): UserNoteLink!
+}
+
 ################################ Mutation updateUserNoteLinkReadOnly ################################
 
 """
