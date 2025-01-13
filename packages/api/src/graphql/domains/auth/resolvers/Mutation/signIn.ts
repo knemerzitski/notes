@@ -83,6 +83,7 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
       return {
         __typename: 'AlreadySignedInResult',
         signedInUser: {
+          auth: ctx.auth,
           query: mongoDB.loaders.user.createQueryFn({
             userId: currentUserId,
           }),
@@ -114,6 +115,7 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
   return {
     __typename: 'JustSignedInResult',
     signedInUser: {
+      auth: ctx.auth,
       query: mongoDB.loaders.user.createQueryFn({
         userId: signedInUserId,
       }),

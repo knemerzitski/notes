@@ -25,6 +25,7 @@ export const updateSignedInUserDisplayName: NonNullable<
     __typename: 'UpdateSignedInUserDisplayNamePayload',
     displayName: input.displayName,
     signedInUser: {
+      auth,
       query: mongoDB.loaders.user.createQueryFn({
         userId: currentUserId,
       }),
