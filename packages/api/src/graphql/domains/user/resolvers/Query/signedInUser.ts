@@ -13,6 +13,7 @@ export const signedInUser: NonNullable<QueryResolvers['signedInUser']> = (
   const currentUserId = auth.session.userId;
 
   return {
+    auth,
     query: mongoDB.loaders.user.createQueryFn({
       userId: currentUserId,
     }),
