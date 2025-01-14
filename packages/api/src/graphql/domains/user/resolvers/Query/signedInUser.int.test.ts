@@ -16,14 +16,16 @@ import {
   mongoCollectionStats,
 } from '../../../../../__tests__/helpers/mongodb/mongodb';
 import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/populate/populate-queue';
+import { fakeSessionPopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/session';
 import { fakeUserPopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/user';
+import { DBSessionSchema } from '../../../../../mongodb/schema/session';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { SignedInUser } from '../../../types.generated';
 
 const QUERY = `#graphql
-query  {
-  signedInUser {
+query($id: ObjectID!)  {
+  signedInUser(by: {id: $id}) {
     id
     public {
       profile {
@@ -35,12 +37,18 @@ query  {
 `;
 
 let user: DBUserSchema;
+let session: DBSessionSchema;
 
 beforeAll(async () => {
   faker.seed(987786);
   await resetDatabase();
 
   user = fakeUserPopulateQueue();
+  session = fakeSessionPopulateQueue({
+    override: {
+      userId: user._id,
+    },
+  });
 
   await populateExecuteAll();
 });
@@ -62,6 +70,9 @@ async function executeOperation(
   }>(
     {
       query,
+      variables: {
+        id: options?.user?._id,
+      },
     },
     {
       contextValue,
@@ -70,7 +81,7 @@ async function executeOperation(
 }
 
 it('returns authenticated user', async () => {
-  const response = await executeOperation({ user });
+  const response = await executeOperation({ user, session });
 
   const data = expectGraphQLResponseData(response);
 
@@ -85,11 +96,11 @@ it('returns authenticated user', async () => {
     },
   });
 
-  expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(1);
+  expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(2);
 });
 
 it('returns error if not authenticated', async () => {
-  const response = await executeOperation();
+  const response = await executeOperation({ user });
 
   expectGraphQLResponseError(response, GraphQLErrorCode.UNAUTHENTICATED);
 });
