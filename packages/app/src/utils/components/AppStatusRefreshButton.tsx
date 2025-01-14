@@ -43,7 +43,7 @@ export const AppStatusRefreshButton = forwardRef<
     },
   });
 
-  const isLocalOnlyUser = data?.signedInUser?.localOnly ?? false;
+  const isLocalOnlyUser = data?.signedInUser.localOnly ?? false;
 
   // Prevent refetching queries from spam click
   const fetcingQueriesRef = useRef(getOngoingQueryCount(userId, statsLink) > 0);

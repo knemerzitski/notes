@@ -45,11 +45,7 @@ export function UnsavedCollabServiceNotesTable() {
     return null;
   }
 
-  const unsavedCollabServices = data.signedInUser?.local.unsavedCollabServices;
-
-  if (!unsavedCollabServices) {
-    return null;
-  }
+  const unsavedCollabServices = data.signedInUser.local.unsavedCollabServices;
 
   return (
     <TableContainer

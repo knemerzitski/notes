@@ -52,10 +52,9 @@ input SignedInUserByInput @oneOf {
 
 extend type Query {
   """
-  Get currently signed in user
-  Optionally provide by input to get specific user instead
+  Self-descriptive
   """
-  signedInUser(by: SignedInUserByInput): SignedInUser @auth
+  signedInUser(by: SignedInUserByInput!): SignedInUser!
 }
 
 ################################ Subscription signedInUserEvents ################################
