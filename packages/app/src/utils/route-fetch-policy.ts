@@ -15,7 +15,7 @@ export function routeFetchPolicy(
     fetchedRoutes: FetchedRoutes;
   }
 ): FetchPolicy | undefined {
-  const userId = getCurrentUserId(cache) ?? null;
+  const userId = getCurrentUserId(cache);
   const isLocalOnly = !userId || isLocalOnlyUser(userId, cache);
   if (isLocalOnly) {
     return;

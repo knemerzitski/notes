@@ -41,9 +41,6 @@ export function getUserNoteLinkIdFromByInput(
     return by.userNoteLinkId;
   } else {
     const userId = getCurrentUserId(cache);
-    if (!userId) {
-      throw new Error('Expected current userId to be defined');
-    }
     return getUserNoteLinkId(by.noteId, userId);
   }
 }
@@ -58,9 +55,6 @@ export function parseUserNoteLinkByInput(
     return parseUserNoteLinkId(by.userNoteLinkId);
   } else {
     const userId = getCurrentUserId(cache);
-    if (!userId) {
-      throw new Error('Expected current userId to be defined');
-    }
     return parseUserNoteLinkId(getUserNoteLinkId(by.noteId, userId));
   }
 }

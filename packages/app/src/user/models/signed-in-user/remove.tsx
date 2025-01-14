@@ -34,10 +34,8 @@ export function removeUsers(
 ) {
   // Clear currentUserId if it's in array or array is undefined
   const currentUserId = getCurrentUserId(cache);
-  if (currentUserId) {
-    if (!removeUserIds || removeUserIds.includes(currentUserId)) {
-      setCurrentUser(null, cache);
-    }
+  if (!removeUserIds || removeUserIds.includes(currentUserId)) {
+    setCurrentUser(null, cache);
   }
 
   const data = cache.updateQuery(

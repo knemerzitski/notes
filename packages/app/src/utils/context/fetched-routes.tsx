@@ -39,7 +39,7 @@ export function FetchedRoutesProvider({ children }: { children: ReactNode }) {
 
   const add = useCallback(
     (routeId: string) => {
-      const userId = getCurrentUserId(client.cache) ?? null;
+      const userId = getCurrentUserId(client.cache);
 
       let fetchedRoutes = fetchedRoutesByUserRef.current.get(userId);
       if (!fetchedRoutes) {
@@ -53,7 +53,7 @@ export function FetchedRoutesProvider({ children }: { children: ReactNode }) {
   );
 
   const clear = useCallback(
-    (userId = getCurrentUserId(client.cache) ?? null) => {
+    (userId = getCurrentUserId(client.cache)) => {
       const fetchedRoutes = fetchedRoutesByUserRef.current.get(userId);
       fetchedRoutes?.clear();
     },
@@ -66,7 +66,7 @@ export function FetchedRoutesProvider({ children }: { children: ReactNode }) {
 
   const has = useCallback(
     (routeId: string) => {
-      const userId = getCurrentUserId(client.cache) ?? null;
+      const userId = getCurrentUserId(client.cache);
 
       const fetchedRoutes = fetchedRoutesByUserRef.current.get(userId);
       return fetchedRoutes?.has(routeId) ?? false;
