@@ -18,10 +18,7 @@ export function useUpdateDisplayNameMutation() {
   return useCallback(
     (displayName: PublicUserProfile['displayName']) => {
       const userId = getCurrentUserId(client.cache);
-      if (!userId) {
-        throw new Error('Cannot update displayName without current userId');
-      }
-
+      
       return updateDisplayNameMutation({
         variables: {
           input: {

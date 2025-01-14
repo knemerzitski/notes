@@ -3,8 +3,6 @@ import { useApolloClient } from '@apollo/client';
 import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useRef } from 'react';
 
-import { Maybe } from '~utils/types';
-
 import { gql } from '../../__generated__';
 import { getCurrentUserId } from '../models/signed-in-user/get-current';
 
@@ -22,7 +20,7 @@ const CurrentUserChangedRefresh_Query = gql(`
  */
 export function CurrentUserChangedRefresh() {
   const client = useApolloClient();
-  const latestUserIdRef = useRef<Maybe<string>>(getCurrentUserId(client.cache));
+  const latestUserIdRef = useRef(getCurrentUserId(client.cache));
   const navigate = useNavigate();
 
   useEffect(() => {

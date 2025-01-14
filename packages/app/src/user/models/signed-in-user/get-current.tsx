@@ -11,10 +11,8 @@ const GetCurrentUserId_Query = gql(`
   }
 `);
 
-export function getCurrentUserId(
-  cache: Pick<ApolloCache<unknown>, 'readQuery'>
-): Maybe<string> {
-  if (userIdOverride.override) {
+export function getCurrentUserId(cache: Pick<ApolloCache<unknown>, 'readQuery'>): string {
+  if (userIdOverride.override && userIdOverride.userId) {
     return userIdOverride.userId;
   }
 
@@ -22,7 +20,11 @@ export function getCurrentUserId(
     query: GetCurrentUserId_Query,
   });
 
-  return data?.currentSignedInUser.id;
+  if (!data) {
+    throw new Error('Unexpected failed getCurrentUserId');
+  }
+
+  return data.currentSignedInUser.id;
 }
 
 const userIdOverride = {

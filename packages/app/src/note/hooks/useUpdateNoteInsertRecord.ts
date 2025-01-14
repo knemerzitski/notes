@@ -27,9 +27,6 @@ export function useUpdateNoteInsertRecord() {
       }
 
       const userId = getCurrentUserId(client.cache);
-      if (!userId) {
-        throw new Error('Cannot trash note without current userId');
-      }
 
       return updateNoteInsertRecord({
         // This mutation will never be called with a local note
