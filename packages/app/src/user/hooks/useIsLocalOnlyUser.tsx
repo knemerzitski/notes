@@ -21,5 +21,5 @@ export function useIsLocalOnlyUser() {
     fetchPolicy: 'cache-only',
   });
 
-  return data?.signedInUser?.localOnly ?? false;
+  return data?.signedInUser.localOnly ?? false;
 }

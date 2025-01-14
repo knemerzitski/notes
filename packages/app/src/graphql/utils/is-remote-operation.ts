@@ -46,7 +46,7 @@ export function isRemoteOperation(
       },
     });
 
-    localOnly = data?.signedInUser?.localOnly;
+    localOnly = data?.signedInUser.localOnly;
   } else {
     localOnly = objOrLocalOnly;
   }

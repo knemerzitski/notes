@@ -48,11 +48,7 @@ export function PendingNotesTable() {
     return null;
   }
 
-  const pendingNotes = data.signedInUser?.local.pendingNotes;
-
-  if (!pendingNotes) {
-    return null;
-  }
+  const pendingNotes = data.signedInUser.local.pendingNotes;
 
   return (
     <TableContainer

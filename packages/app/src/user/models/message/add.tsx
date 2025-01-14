@@ -4,8 +4,8 @@ import { gql } from '../../../__generated__';
 import { AddUserMessagesQueryQuery, SignedInUser } from '../../../__generated__/graphql';
 
 const AddUserMessages_Query = gql(`
-  query AddUserMessages_Query {
-    signedInUser {
+  query AddUserMessages_Query($id: ObjectID!) {
+    signedInUser(by: { id: $id }) {
       id
       local {
         id
@@ -30,6 +30,9 @@ export function addUserMessages(
 ) {
   return cache.writeQuery({
     query: AddUserMessages_Query,
+    variables: {
+      id: userId,
+    },
     data: {
       __typename: 'Query',
       signedInUser: {

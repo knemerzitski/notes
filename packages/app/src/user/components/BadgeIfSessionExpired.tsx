@@ -28,7 +28,7 @@ export function BadgeIfSessionExpired({ children }: { children: ReactElement }) 
     },
   });
 
-  if (!data?.signedInUser?.local.sessionExpired) return children;
+  if (!data?.signedInUser.local.sessionExpired) return children;
 
   return <WarningBadge>{children}</WarningBadge>;
 }

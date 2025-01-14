@@ -2,10 +2,19 @@ import { Reference } from '@apollo/client';
 
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 
+import { SignedInUser } from '../../__generated__/graphql';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
 import { fieldArrayToMap } from '../../graphql/utils/field-array-to-map';
 import { keyArgsWithUserId } from '../../graphql/utils/key-args-with-user-id';
 import { EvictTag, TaggedEvictOptionsList } from '../../graphql/utils/tagged-evict';
+
+function throwUserNotFoundError(userId?: SignedInUser['id']): never {
+  if (userId) {
+    throw new Error(`Note "${userId}" not found`);
+  } else {
+    throw new Error('Query is missing user id');
+  }
+}
 
 export const Query: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
   return {
@@ -14,23 +23,22 @@ export const Query: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
         keyArgs: keyArgsWithUserId(ctx),
         read(_existing, { args, toReference }) {
           if (!args || !isObjectLike(args)) {
-            // redirect to currentUser if no args?
-            return null;
+            throwUserNotFoundError();
           }
 
           const by = args.by;
           if (!isObjectLike(by)) {
-            return null;
+            throwUserNotFoundError();
           }
 
-          if (typeof by.id === 'string') {
-            return toReference({
-              __typename: 'SignedInUser',
-              id: by.id,
-            });
+          if (typeof by.id !== 'string') {
+            throwUserNotFoundError(String(by.id));
           }
 
-          return null;
+          return toReference({
+            __typename: 'SignedInUser',
+            id: by.id,
+          });
         },
       },
       signedInUsers: fieldArrayToMap('id', {

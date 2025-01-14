@@ -70,9 +70,6 @@ export function ProcessNoteUserOperations() {
 
     const sub = observable.subscribe(({ data }) => {
       const user = data.signedInUser;
-      if (!user) {
-        return;
-      }
 
       const deleteIds: string[] = [];
 

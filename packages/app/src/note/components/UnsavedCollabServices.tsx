@@ -33,7 +33,7 @@ export function UnsavedCollabServices() {
   });
 
   return (
-    data?.signedInUser?.local.unsavedCollabServices.map(({ note }) => (
+    data?.signedInUser.local.unsavedCollabServices.map(({ note }) => (
       <NoteIdProvider key={note.id} noteId={note.id}>
         <CollabService />
       </NoteIdProvider>

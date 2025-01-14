@@ -36,7 +36,7 @@ export function ShowCachedUserMessages() {
 
   const showMessage = useShowMessage();
 
-  const messages = data?.signedInUser?.local.messages;
+  const messages = data?.signedInUser.local.messages;
 
   useEffect(() => {
     if (!messages) {

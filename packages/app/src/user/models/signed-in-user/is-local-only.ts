@@ -23,5 +23,5 @@ export function isLocalOnlyUser(
     },
   });
 
-  return data?.signedInUser?.localOnly ?? false;
+  return data?.signedInUser.localOnly ?? false;
 }

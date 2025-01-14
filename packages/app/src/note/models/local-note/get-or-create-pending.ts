@@ -70,7 +70,7 @@ export function getOrCreatePendingNote(
     },
   });
 
-  const firstEmptyNoteLink = data?.signedInUser?.local.pendingNotes.find(
+  const firstEmptyNoteLink = data?.signedInUser.local.pendingNotes.find(
     (noteLink) => noteLink.pendingStatus === NotePendingStatus.EMPTY
   );
   if (firstEmptyNoteLink) {

@@ -53,7 +53,7 @@ export function SignInProvidersList({
     },
   });
 
-  const login_hint = data?.signedInUser?.authProviderUser?.id;
+  const login_hint = data?.signedInUser.authProviderUser?.id;
 
   function handleSuccess() {
     onSuccess?.();
