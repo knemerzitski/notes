@@ -1,19 +1,23 @@
 import { ObjectId } from 'mongodb';
-import { object, instance, string, date, coerce, number, InferRaw } from 'superstruct';
+import {
+  object,
+  instance,
+  string,
+  date,
+  coerce,
+  number,
+  InferRaw,
+  Infer,
+  union,
+  enums,
+  defaulted,
+  type,
+} from 'superstruct';
 import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
 
-import { QueryableSession } from '../../mongodb/loaders/session/description';
+import { objectIdToStr, strToObjectId } from '../../mongodb/utils/objectid';
 
-import { isAuthenticated } from './is-authenticated';
-
-export type AuthenticationContext = AuthenticatedContext | UnauthenticatedContext;
-
-const base64ObjectId = coerce(
-  instance(ObjectId),
-  string(),
-  (base64Str) => ObjectId.createFromBase64(base64Str),
-  (objId) => objId.toString('base64')
-);
+const strObjectId = coerce(instance(ObjectId), string(), strToObjectId, objectIdToStr);
 
 const timeDate = coerce(
   date(),
@@ -22,25 +26,36 @@ const timeDate = coerce(
   (date) => date.getTime()
 );
 
-const SerializedQueryableSession = object({
-  _id: base64ObjectId,
+const SerializableQueryableSession = object({
+  _id: strObjectId,
   cookieId: string(),
-  userId: base64ObjectId,
+  userId: strObjectId,
   expireAt: timeDate,
 });
 
-export type SerializedQueryableSession = InferRaw<typeof SerializedQueryableSession>;
-
-export interface AuthenticatedContext {
+const AuthenticatedContext = object({
   /**
    * Current active session
    */
-  session: QueryableSession;
-}
+  session: SerializableQueryableSession,
+});
 
-export interface UnauthenticatedContext {
-  reason: AuthenticationFailedReason;
-}
+export type AuthenticatedContext = Infer<typeof AuthenticatedContext>;
+
+const UnauthenticatedContext = object({
+  reason: enums(Object.values(AuthenticationFailedReason)),
+});
+
+export type UnauthenticatedContext = Infer<typeof UnauthenticatedContext>;
+
+export const AuthenticationContext = union([
+  AuthenticatedContext,
+  defaulted(UnauthenticatedContext, () => ({
+    reason: AuthenticationFailedReason.USER_UNDEFINED,
+  })),
+]);
+
+export type AuthenticationContext = Infer<typeof AuthenticationContext>;
 
 export class AuthenticatedFailedError extends Error {
   readonly reason: AuthenticationFailedReason;
@@ -51,39 +66,8 @@ export class AuthenticatedFailedError extends Error {
   }
 }
 
+export type SerializedAuthenticatedContext = InferRaw<typeof AuthenticatedContext>;
+
 export type SerializedAuthenticationContext =
   | SerializedAuthenticatedContext
   | UnauthenticatedContext;
-
-export type SerializedAuthenticatedContext = Omit<AuthenticatedContext, 'session'> & {
-  session: SerializedQueryableSession;
-};
-
-// TODO test
-export function serializeAuthenticationContext(
-  auth: AuthenticationContext
-): SerializedAuthenticationContext {
-  if (!isAuthenticated(auth)) return auth;
-
-  return {
-    ...auth,
-    session: SerializedQueryableSession.createRaw(auth.session),
-  };
-}
-
-export function parseAuthenticationContext(
-  auth: SerializedAuthenticationContext | undefined
-): AuthenticationContext {
-  if (!auth) {
-    return {
-      reason: AuthenticationFailedReason.USER_UNDEFINED,
-    };
-  }
-
-  if ('reason' in auth) return auth;
-
-  return {
-    ...auth,
-    session: SerializedQueryableSession.create(auth.session),
-  };
-}

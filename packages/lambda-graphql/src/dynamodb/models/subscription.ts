@@ -2,22 +2,17 @@ import { APIGatewayEventWebsocketRequestContextV2 } from 'aws-lambda';
 
 import { NewModelParams, Table, newModel } from '../model';
 
-import { DynamoDBRecord } from './connection';
-
 interface SubscriptionKey {
   // Id format `${connectionId}:${subscriptionId}`
   id: string;
 }
 
-export interface Subscription<
-  TDynamoDBGraphQLContext extends DynamoDBRecord = DynamoDBRecord,
-> extends SubscriptionKey {
+export interface Subscription extends SubscriptionKey {
   topic: string;
   createdAt: number;
   connectionId: string;
   subscriptionId: string;
   filter?: Record<string, unknown>;
-  connectionGraphQLContext?: TDynamoDBGraphQLContext;
   requestContext: APIGatewayEventWebsocketRequestContextV2;
   subscription: {
     query: string;
@@ -28,25 +23,17 @@ export interface Subscription<
   ttl: number;
 }
 
-export interface SubscriptionTable<
-  TDynamoDBGraphQLContext extends DynamoDBRecord = DynamoDBRecord,
-> extends Table<SubscriptionKey, Subscription<TDynamoDBGraphQLContext>> {
-  queryAllByTopic(topic: string): Promise<Subscription<TDynamoDBGraphQLContext>[]>;
+export interface SubscriptionTable extends Table<SubscriptionKey, Subscription> {
+  queryAllByTopic(topic: string): Promise<Subscription[]>;
   queryAllByTopicFilter(
     topic: string,
     filter: Record<string, unknown>
-  ): Promise<Subscription<TDynamoDBGraphQLContext>[]>;
-  queryAllByConnectionId(
-    connectionId: string
-  ): Promise<Subscription<TDynamoDBGraphQLContext>[]>;
+  ): Promise<Subscription[]>;
+  queryAllByConnectionId(connectionId: string): Promise<Subscription[]>;
 }
 
-export function newSubscriptionModel<TDynamoDBGraphQLContext extends DynamoDBRecord>(
-  newTableArgs: NewModelParams
-): SubscriptionTable<TDynamoDBGraphQLContext> {
-  const table = newModel<SubscriptionKey, Subscription<TDynamoDBGraphQLContext>>(
-    newTableArgs
-  );
+export function newSubscriptionModel(newTableArgs: NewModelParams): SubscriptionTable {
+  const table = newModel<SubscriptionKey, Subscription>(newTableArgs);
 
   return {
     ...table,

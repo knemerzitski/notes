@@ -1,19 +1,12 @@
 /* eslint-disable unicorn/filename-case */
 import { MessageType } from 'graphql-ws';
 
-import { DynamoDBRecord } from '../dynamodb/models/connection';
 import { MessageHandler } from '../message-handler';
 
 export function createConnectionInitHandler<
   TGraphQLContext,
   TBaseGraphQLContext,
-  TDynamoDBGraphQLContext extends DynamoDBRecord,
->(): MessageHandler<
-  MessageType.ConnectionInit,
-  TGraphQLContext,
-  TBaseGraphQLContext,
-  TDynamoDBGraphQLContext
-> {
+>(): MessageHandler<MessageType.ConnectionInit, TGraphQLContext, TBaseGraphQLContext> {
   return async (args) => {
     const { event, context } = args;
 
@@ -26,22 +19,23 @@ export function createConnectionInitHandler<
         throw new Error('Missing connection record in DB');
       }
 
-      const baseGraphQLContext = context.parseDynamoDBGraphQLContext(
-        connection.graphQLContext
+      const baseGraphQLContext = context.baseGraphQLContextTransformer.parse(
+        connection.baseGraphQLContext
       );
 
-      const newDynamoDBGraphQLContext = await context.onConnectionInit({
+      const newBaseGraphQLContext = await context.onConnectionInit({
         ...args,
         baseGraphQLContext,
       });
 
-      if (newDynamoDBGraphQLContext) {
+      if (newBaseGraphQLContext) {
         await context.models.connections.update(
           {
             id: event.requestContext.connectionId,
           },
           {
-            graphQLContext: newDynamoDBGraphQLContext,
+            baseGraphQLContext:
+              context.baseGraphQLContextTransformer.serialize(newBaseGraphQLContext),
           }
         );
       }

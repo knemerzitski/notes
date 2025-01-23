@@ -1,18 +1,11 @@
 import { MessageType } from 'graphql-ws';
 
-import { DynamoDBRecord } from '../dynamodb/models/connection';
 import { MessageHandler } from '../message-handler';
 
 export function createPingHandler<
   TGraphQLContext,
   TBaseGraphQLContext = unknown,
-  TDynamoDBGraphQLContext extends DynamoDBRecord = DynamoDBRecord,
->(): MessageHandler<
-  MessageType.Ping,
-  TGraphQLContext,
-  TBaseGraphQLContext,
-  TDynamoDBGraphQLContext
-> {
+>(): MessageHandler<MessageType.Ping, TGraphQLContext, TBaseGraphQLContext> {
   return async ({ context, event, message }) => {
     await context.onPing?.({ context, event, message });
 

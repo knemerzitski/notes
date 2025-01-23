@@ -10,15 +10,15 @@ import { createLogger, Logger } from '~utils/logging';
 
 import {
   createApiGraphQLContext,
-  headersToSerializedBaseGraphQLContext,
+  createBaseGraphQLContext,
   parseDynamoDBBaseGraphQLContext,
+  serializeBaseGraphQLContext,
 } from './graphql/context';
 import { formatError } from './graphql/errors';
 import {
   ApiGraphQLContext,
   BaseGraphQLContext,
   BaseSubscriptionResolversContext,
-  DynamoDBBaseGraphQLContext,
 } from './graphql/types';
 import {
   createDefaultApiGatewayParams,
@@ -47,11 +47,7 @@ export interface CreateWebSocketHandlerDefaultParamsOptions {
 
 export function createWebSocketHandlerDefaultParams(
   options?: CreateWebSocketHandlerDefaultParamsOptions
-): WebSocketHandlerParams<
-  BaseSubscriptionResolversContext,
-  BaseGraphQLContext,
-  DynamoDBBaseGraphQLContext
-> {
+): WebSocketHandlerParams<BaseSubscriptionResolversContext, BaseGraphQLContext> {
   const name = 'ws-handler';
   const logger = options?.override?.logger ?? createLogger(name);
 
@@ -77,7 +73,10 @@ export function createWebSocketHandlerDefaultParams(
 
     onConnectionInit: handleConnectionInitAuthenticate,
     pingpong: options?.pingPongParams,
-    parseDynamoDBGraphQLContext: parseDynamoDBBaseGraphQLContext,
+    baseGraphQLContextTransformer: {
+      serialize: serializeBaseGraphQLContext,
+      parse: parseDynamoDBBaseGraphQLContext,
+    },
     connection: createDynamoDBConnectionTtlContext(apiOptions),
     completedSubscription: {
       ttl: apiOptions.completedSubscriptions.duration ?? 1000 * 5, // 5 seconds
@@ -96,7 +95,10 @@ export function createWebSocketHandlerDefaultParams(
         connectionId: event.requestContext.connectionId,
       };
 
-      return headersToSerializedBaseGraphQLContext(event.headers, apiContext);
+      return createBaseGraphQLContext({
+        headers: event.headers,
+        ctx: apiContext,
+      });
     },
 
     async createGraphQLContext(_ctx, event) {
@@ -119,6 +121,5 @@ export function createWebSocketHandlerDefaultParams(
 
 export const handler: APIGatewayProxyWebsocketHandlerV2 = createWebSocketHandler<
   BaseSubscriptionResolversContext,
-  BaseGraphQLContext,
-  DynamoDBBaseGraphQLContext
+  BaseGraphQLContext
 >(createWebSocketHandlerDefaultParams());

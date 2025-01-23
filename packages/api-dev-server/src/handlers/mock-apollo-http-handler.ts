@@ -5,7 +5,7 @@ import {
   CreateApolloHttpHandlerDefaultParamsOptions,
   createApolloHttpHandlerDefaultParams,
 } from '~api/apollo-http-handler';
-import { DynamoDBBaseGraphQLContext, GraphQLResolversContext } from '~api/graphql/types';
+import { GraphQLResolversContext } from '~api/graphql/types';
 import {
   createApolloHttpHandler,
   ApolloHttpGraphQLContext,
@@ -38,6 +38,5 @@ export function mockApolloHttpHandlerDefaultParamsOptions(
 }
 
 export const handler = createApolloHttpHandler<
-  Omit<GraphQLResolversContext, keyof ApolloHttpGraphQLContext>,
-  DynamoDBBaseGraphQLContext
+  Omit<GraphQLResolversContext, keyof ApolloHttpGraphQLContext>
 >(createApolloHttpHandlerDefaultParams(mockApolloHttpHandlerDefaultParamsOptions()));

@@ -20,7 +20,7 @@ import {
 } from './context/apigateway';
 import { DynamoDBContextParams, createDynamoDBContext } from './context/dynamodb';
 import { GraphQLContextParams, createGraphQLContext } from './context/graphql';
-import { ConnectionTable, DynamoDBRecord } from './dynamodb/models/connection';
+import { ConnectionTable } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
 import {
   FormatError,
@@ -34,66 +34,49 @@ import {
   createSubscriptionContext,
   getSubscribeFieldResult,
 } from './pubsub/subscribe';
+import { BaseGraphQLContextTransformer } from './types';
 
-interface DirectParams<
-  TGraphQLContext,
-  TBaseGraphQLContext,
-  TDynamoDBGraphQLContext extends DynamoDBRecord,
-> {
+interface DirectParams<TGraphQLContext, TBaseGraphQLContext> {
   createGraphQLContext: (
     context: Omit<
-      WebSocketDisconnectHandlerContext<
-        TGraphQLContext,
-        TBaseGraphQLContext,
-        TDynamoDBGraphQLContext
-      >,
+      WebSocketDisconnectHandlerContext<TGraphQLContext, TBaseGraphQLContext>,
       'graphQLContext' | 'createGraphQLContext'
     >,
     event: APIGatewayProxyWebsocketEventV2
   ) => Promise<TGraphQLContext> | TGraphQLContext;
   apiGateway: ApiGatewayContextParams;
   logger: Logger;
-  parseDynamoDBGraphQLContext: (
-    value: TDynamoDBGraphQLContext | undefined
-  ) => TBaseGraphQLContext;
+  baseGraphQLContextTransformer: Pick<
+    BaseGraphQLContextTransformer<TBaseGraphQLContext>,
+    'parse'
+  >;
   onDisconnect?: (args: {
-    context: WebSocketDisconnectHandlerContext<
-      TGraphQLContext,
-      TBaseGraphQLContext,
-      TDynamoDBGraphQLContext
-    >;
+    context: WebSocketDisconnectHandlerContext<TGraphQLContext, TBaseGraphQLContext>;
     event: WebSocketConnectEvent;
-  }) => Maybe<MaybePromise<TDynamoDBGraphQLContext>>;
+  }) => Maybe<MaybePromise<TBaseGraphQLContext>>;
   formatError?: FormatError;
   formatErrorOptions?: FormatErrorOptions;
 }
 
-export interface WebSocketDisconnectHandlerParams<
-  TGraphQLContext,
-  TBaseGraphQLContext,
-  TDynamoDBGraphQLContext extends DynamoDBRecord,
-> extends DirectParams<TGraphQLContext, TBaseGraphQLContext, TDynamoDBGraphQLContext> {
+export interface WebSocketDisconnectHandlerParams<TGraphQLContext, TBaseGraphQLContext>
+  extends DirectParams<TGraphQLContext, TBaseGraphQLContext> {
   graphQL: GraphQLContextParams<TGraphQLContext>;
   dynamoDB: DynamoDBContextParams;
 }
 
-export interface WebSocketDisconnectHandlerContext<
-  TGraphQLContext,
-  TBaseGraphQLContext,
-  TDynamoDBGraphQLContext extends DynamoDBRecord,
-> extends DirectParams<TGraphQLContext, TBaseGraphQLContext, TDynamoDBGraphQLContext> {
+export interface WebSocketDisconnectHandlerContext<TGraphQLContext, TBaseGraphQLContext>
+  extends DirectParams<TGraphQLContext, TBaseGraphQLContext> {
   schema: GraphQLSchema;
   graphQLContext: TGraphQLContext;
   models: {
-    connections: ConnectionTable<TDynamoDBGraphQLContext>;
-    subscriptions: SubscriptionTable<TDynamoDBGraphQLContext>;
+    connections: ConnectionTable;
+    subscriptions: SubscriptionTable;
   };
   socketApi: WebSocketApi;
   formatError: FormatError;
   createGraphQLContext: WebSocketDisconnectHandlerParams<
     TGraphQLContext,
-    TBaseGraphQLContext,
-    TDynamoDBGraphQLContext
+    TBaseGraphQLContext
   >['createGraphQLContext'];
 }
 
@@ -123,27 +106,18 @@ const defaultResponse: APIGatewayProxyResultV2 = {
 export function createWebSocketDisconnectHandler<
   TGraphQLContext extends WebSocketDisconnectGraphQLContext,
   TBaseGraphQLContext,
-  TDynamoDBGraphQLContext extends DynamoDBRecord,
 >(
-  params: WebSocketDisconnectHandlerParams<
-    TGraphQLContext,
-    TBaseGraphQLContext,
-    TDynamoDBGraphQLContext
-  >
+  params: WebSocketDisconnectHandlerParams<TGraphQLContext, TBaseGraphQLContext>
 ): WebSocketDisconnectHandler {
   const { logger } = params;
   logger.info('createWebSocketDisconnectHandler');
 
   const graphQL = createGraphQLContext(params.graphQL);
-  const dynamoDB = createDynamoDBContext<TDynamoDBGraphQLContext>(params.dynamoDB);
+  const dynamoDB = createDynamoDBContext(params.dynamoDB);
   const apiGateway = createApiGatewayContext(params.apiGateway);
 
   const context: Omit<
-    WebSocketDisconnectHandlerContext<
-      TGraphQLContext,
-      TBaseGraphQLContext,
-      TDynamoDBGraphQLContext
-    >,
+    WebSocketDisconnectHandlerContext<TGraphQLContext, TBaseGraphQLContext>,
     'graphQLContext'
   > = {
     ...params,
@@ -162,14 +136,9 @@ export function createWebSocketDisconnectHandler<
 export function webSocketDisconnectHandler<
   TGraphQLContext extends Omit<WebSocketDisconnectGraphQLContext, 'publish'>,
   TBaseGraphQLContext,
-  TDynamoDBGraphQLContext extends DynamoDBRecord,
 >(
   context: Omit<
-    WebSocketDisconnectHandlerContext<
-      TGraphQLContext,
-      TBaseGraphQLContext,
-      TDynamoDBGraphQLContext
-    >,
+    WebSocketDisconnectHandlerContext<TGraphQLContext, TBaseGraphQLContext>,
     'graphQLContext'
   >
 ): WebSocketDisconnectHandler {
@@ -197,16 +166,20 @@ export function webSocketDisconnectHandler<
         event,
       });
 
-      const connectionSubscriptions =
-        await context.models.subscriptions.queryAllByConnectionId(connectionId);
+      const [connection, connectionSubscriptions] = await Promise.all([
+        context.models.connections.get({
+          id: connectionId,
+        }),
+        context.models.subscriptions.queryAllByConnectionId(connectionId),
+      ]);
+
+      const baseGraphQLContext = context.baseGraphQLContextTransformer.parse(
+        connection?.baseGraphQLContext
+      );
 
       const subscriptionDeletions = connectionSubscriptions.map(async (sub) => {
         try {
           // Call resolver onComplete
-          const baseGraphQLContext = context.parseDynamoDBGraphQLContext(
-            sub.connectionGraphQLContext
-          );
-
           const graphQLContextValue: SubscriptionContext &
             TGraphQLContext &
             TBaseGraphQLContext = {
@@ -214,7 +187,7 @@ export function webSocketDisconnectHandler<
             ...graphQLContext,
             ...baseGraphQLContext,
             ...createSubscriptionContext(),
-            publish: createPublisher<TGraphQLContext, TDynamoDBGraphQLContext>({
+            publish: createPublisher<TGraphQLContext>({
               context,
               getGraphQLContext: () => graphQLContextValue,
               isCurrentConnection: (id: string) => connectionId === id,

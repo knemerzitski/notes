@@ -4,7 +4,6 @@ import { GraphQLError, parse } from 'graphql/index.js';
 import { MessageType } from 'graphql-ws';
 import { isArray } from '~utils/array/is-array';
 
-import { DynamoDBRecord } from '../dynamodb/models/connection';
 import { MessageHandler } from '../message-handler';
 import { createPublisher } from '../pubsub/publish';
 import {
@@ -19,13 +18,7 @@ import {
 export function createCompleteHandler<
   TGraphQLContext,
   TBaseGraphQLContext = unknown,
-  TDynamoDBGraphQLContext extends DynamoDBRecord = DynamoDBRecord,
->(): MessageHandler<
-  MessageType.Complete,
-  TGraphQLContext,
-  TBaseGraphQLContext,
-  TDynamoDBGraphQLContext
-> {
+>(): MessageHandler<MessageType.Complete, TGraphQLContext, TBaseGraphQLContext> {
   return async ({ context, event, message }) => {
     const { connectionId } = event.requestContext;
     context.logger.info('messages:complete', {
@@ -33,10 +26,15 @@ export function createCompleteHandler<
     });
     try {
       const subscriptionId = `${connectionId}:${message.id}`;
-      const subscription = await context.models.subscriptions.get({
-        id: subscriptionId,
-      });
-      if (!subscription) {
+      const [connection, subscription] = await Promise.all([
+        context.models.connections.get({
+          id: connectionId,
+        }),
+        context.models.subscriptions.get({
+          id: subscriptionId,
+        }),
+      ]);
+      if (!connection || !subscription) {
         // Mark subscription as completed
         // If subscribe is in progress then onComplete will be called from subscribe instead
         await context.models.completedSubscription.put({
@@ -46,8 +44,8 @@ export function createCompleteHandler<
         return;
       }
 
-      const baseGraphQLContext = context.parseDynamoDBGraphQLContext(
-        subscription.connectionGraphQLContext
+      const baseGraphQLContext = context.baseGraphQLContextTransformer.parse(
+        connection.baseGraphQLContext
       );
 
       const graphQLContextValue: SubscriptionContext &
@@ -56,7 +54,7 @@ export function createCompleteHandler<
         ...context.graphQLContext,
         ...baseGraphQLContext,
         ...createSubscriptionContext(),
-        publish: createPublisher<TGraphQLContext, TDynamoDBGraphQLContext>({
+        publish: createPublisher<TGraphQLContext>({
           context,
           getGraphQLContext: () => graphQLContextValue,
           isCurrentConnection: (id: string) => connectionId === id,

@@ -29,11 +29,7 @@ import {
   createPingPongContext,
 } from './context/pingpong';
 import { CompletedSubscriptionTable } from './dynamodb/models/completed-subscription';
-import {
-  ConnectionTable,
-  ConnectionTtlContext,
-  DynamoDBRecord,
-} from './dynamodb/models/connection';
+import { ConnectionTable, ConnectionTtlContext } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
 import { FormatError, FormatErrorOptions } from './graphql/format-unknown-error';
 import { createCompleteHandler } from './messages/complete';
@@ -42,12 +38,9 @@ import { createPingHandler } from './messages/ping';
 import { createPongHandler } from './messages/pong';
 import { createSubscribeHandler } from './messages/subscribe';
 import { Publisher } from './pubsub/publish';
+import { BaseGraphQLContextTransformer } from './types';
 
-interface DirectParams<
-  TGraphQLContext,
-  TBaseGraphQLContext,
-  TDynamoDBGraphQLContext extends DynamoDBRecord,
-> {
+interface DirectParams<TGraphQLContext, TBaseGraphQLContext> {
   connection: ConnectionTtlContext;
   completedSubscription: {
     ttl: number;
@@ -55,61 +48,36 @@ interface DirectParams<
   logger: Logger;
 
   onConnectionInit?: (args: {
-    context: WebSocketMessageHandlerContext<
-      TGraphQLContext,
-      TBaseGraphQLContext,
-      TDynamoDBGraphQLContext
-    >;
+    context: WebSocketMessageHandlerContext<TGraphQLContext, TBaseGraphQLContext>;
     event: APIGatewayProxyWebsocketEventV2;
     message: ConnectionInitMessage;
     baseGraphQLContext: TBaseGraphQLContext;
-  }) => MaybePromise<TDynamoDBGraphQLContext | void>;
+  }) => MaybePromise<TBaseGraphQLContext | void>;
   onPing?: (args: {
-    context: WebSocketMessageHandlerContext<
-      TGraphQLContext,
-      TBaseGraphQLContext,
-      TDynamoDBGraphQLContext
-    >;
+    context: WebSocketMessageHandlerContext<TGraphQLContext, TBaseGraphQLContext>;
     event: APIGatewayProxyWebsocketEventV2;
     message: PingMessage;
   }) => MaybePromise<void>;
   onPong?: (args: {
-    context: WebSocketMessageHandlerContext<
-      TGraphQLContext,
-      TBaseGraphQLContext,
-      TDynamoDBGraphQLContext
-    >;
+    context: WebSocketMessageHandlerContext<TGraphQLContext, TBaseGraphQLContext>;
     event: APIGatewayProxyWebsocketEventV2;
     message: PongMessage;
   }) => MaybePromise<void>;
   onError?: (args: {
     error: unknown;
-    context: WebSocketMessageHandlerContext<
-      TGraphQLContext,
-      TBaseGraphQLContext,
-      TDynamoDBGraphQLContext
-    >;
+    context: WebSocketMessageHandlerContext<TGraphQLContext, TBaseGraphQLContext>;
     event: APIGatewayProxyWebsocketEventV2;
   }) => MaybePromise<void>;
-  parseDynamoDBGraphQLContext: (
-    value: TDynamoDBGraphQLContext | undefined
-  ) => TBaseGraphQLContext;
   formatError?: FormatError;
   formatErrorOptions?: FormatErrorOptions;
+  baseGraphQLContextTransformer: BaseGraphQLContextTransformer<TBaseGraphQLContext>;
 }
 
-export interface WebSocketMessageHandlerParams<
-  TGraphQLContext,
-  TBaseGraphQLContext,
-  TDynamoDBGraphQLContext extends DynamoDBRecord,
-> extends DirectParams<TGraphQLContext, TBaseGraphQLContext, TDynamoDBGraphQLContext> {
+export interface WebSocketMessageHandlerParams<TGraphQLContext, TBaseGraphQLContext>
+  extends DirectParams<TGraphQLContext, TBaseGraphQLContext> {
   createGraphQLContext: (
     context: Omit<
-      WebSocketMessageHandlerContext<
-        TGraphQLContext,
-        TBaseGraphQLContext,
-        TDynamoDBGraphQLContext
-      >,
+      WebSocketMessageHandlerContext<TGraphQLContext, TBaseGraphQLContext>,
       'graphQLContext' | 'createGraphQLContext'
     >,
     event: APIGatewayProxyWebsocketEventV2
@@ -120,30 +88,22 @@ export interface WebSocketMessageHandlerParams<
   pingpong?: PingPongContextParams;
 }
 
-export interface WebSocketMessageHandlerContext<
-  TGraphQLContext,
-  TBaseGraphQLContext,
-  TDynamoDBGraphQLContext extends DynamoDBRecord,
-> extends DirectParams<TGraphQLContext, TBaseGraphQLContext, TDynamoDBGraphQLContext> {
+export interface WebSocketMessageHandlerContext<TGraphQLContext, TBaseGraphQLContext>
+  extends DirectParams<TGraphQLContext, TBaseGraphQLContext> {
   schema: GraphQLSchema;
   graphQLContext: TGraphQLContext;
   models: {
-    connections: ConnectionTable<TDynamoDBGraphQLContext>;
-    subscriptions: SubscriptionTable<TDynamoDBGraphQLContext>;
+    connections: ConnectionTable;
+    subscriptions: SubscriptionTable;
     completedSubscription: CompletedSubscriptionTable;
   };
   socketApi: WebSocketApi;
   startPingPong?: PingPongContext['startPingPong'];
-  messageHandlers: MessageHandlers<
-    TGraphQLContext,
-    TBaseGraphQLContext,
-    TDynamoDBGraphQLContext
-  >;
+  messageHandlers: MessageHandlers<TGraphQLContext, TBaseGraphQLContext>;
   formatError: FormatError;
   createGraphQLContext: WebSocketMessageHandlerParams<
     TGraphQLContext,
-    TBaseGraphQLContext,
-    TDynamoDBGraphQLContext
+    TBaseGraphQLContext
   >['createGraphQLContext'];
 }
 
@@ -165,13 +125,8 @@ export type MessageHandler<
   T extends MessageType,
   TGraphQLContext = unknown,
   TBaseGraphQLContext = unknown,
-  SerializedTOnConnectGraphQLContext extends DynamoDBRecord = DynamoDBRecord,
 > = (args: {
-  context: WebSocketMessageHandlerContext<
-    TGraphQLContext,
-    TBaseGraphQLContext,
-    SerializedTOnConnectGraphQLContext
-  >;
+  context: WebSocketMessageHandlerContext<TGraphQLContext, TBaseGraphQLContext>;
   event: APIGatewayProxyWebsocketEventV2;
   message: Message<T>;
 }) => Promise<APIGatewayProxyStructuredResultV2 | undefined>;
@@ -179,28 +134,20 @@ export type MessageHandler<
 export type MessageHandlers<
   TGraphQLContext = unknown,
   TBaseGraphQLContext = unknown,
-  TDynamoDBGraphQLContext extends DynamoDBRecord = DynamoDBRecord,
 > = Record<
   MessageType,
-  MessageHandler<
-    MessageType,
-    TGraphQLContext,
-    TBaseGraphQLContext,
-    TDynamoDBGraphQLContext
-  >
+  MessageHandler<MessageType, TGraphQLContext, TBaseGraphQLContext>
 >;
 
 export function createMessageHandlers<
   TGraphQLContext = unknown,
   TBaseGraphQLContext = unknown,
-  TDynamoDBGraphQLContext extends DynamoDBRecord = DynamoDBRecord,
->(): MessageHandlers<TGraphQLContext, TBaseGraphQLContext, TDynamoDBGraphQLContext> {
+>(): MessageHandlers<TGraphQLContext, TBaseGraphQLContext> {
   return {
     [MessageType.ConnectionInit]: createConnectionInitHandler(),
     [MessageType.Subscribe]: createSubscribeHandler<
       TGraphQLContext,
-      TBaseGraphQLContext,
-      TDynamoDBGraphQLContext
+      TBaseGraphQLContext
     >(),
     [MessageType.Complete]: createCompleteHandler(),
     [MessageType.Ping]: createPingHandler(),
@@ -220,29 +167,20 @@ export function createMessageHandlers<
 export function createWebSocketMessageHandler<
   TGraphQLContext extends Omit<WebSocketMessageGraphQLContext, 'publish'>,
   TBaseGraphQLContext,
-  TDynamoDBGraphQLContext extends DynamoDBRecord,
 >(
-  params: WebSocketMessageHandlerParams<
-    TGraphQLContext,
-    TBaseGraphQLContext,
-    TDynamoDBGraphQLContext
-  >
+  params: WebSocketMessageHandlerParams<TGraphQLContext, TBaseGraphQLContext>
 ): WebSocketMessageHandler {
   const { logger } = params;
 
   logger.info('createWebSocketMessageHandler');
 
   const graphQL = createGraphQLContext(params.graphQL);
-  const dynamoDB = createDynamoDBContext<TDynamoDBGraphQLContext>(params.dynamoDB);
+  const dynamoDB = createDynamoDBContext(params.dynamoDB);
   const apiGateway = createApiGatewayContext(params.apiGateway);
   const pingpong = params.pingpong ? createPingPongContext(params.pingpong) : undefined;
 
   const context: Omit<
-    WebSocketMessageHandlerContext<
-      TGraphQLContext,
-      TBaseGraphQLContext,
-      TDynamoDBGraphQLContext
-    >,
+    WebSocketMessageHandlerContext<TGraphQLContext, TBaseGraphQLContext>,
     'graphQLContext'
   > = {
     ...params,
@@ -255,31 +193,18 @@ export function createWebSocketMessageHandler<
     },
     socketApi: apiGateway.socketApi,
     startPingPong: pingpong?.startPingPong,
-    messageHandlers: createMessageHandlers<
-      TGraphQLContext,
-      TBaseGraphQLContext,
-      TDynamoDBGraphQLContext
-    >(),
+    messageHandlers: createMessageHandlers<TGraphQLContext, TBaseGraphQLContext>(),
   };
 
-  return webSocketMessageHandler<
-    TGraphQLContext,
-    TBaseGraphQLContext,
-    TDynamoDBGraphQLContext
-  >(context);
+  return webSocketMessageHandler<TGraphQLContext, TBaseGraphQLContext>(context);
 }
 
 export function webSocketMessageHandler<
   TGraphQLContext extends Omit<WebSocketMessageGraphQLContext, 'publish'>,
   TBaseGraphQLContext,
-  TDynamoDBGraphQLContext extends DynamoDBRecord,
 >(
   context: Omit<
-    WebSocketMessageHandlerContext<
-      TGraphQLContext,
-      TBaseGraphQLContext,
-      TDynamoDBGraphQLContext
-    >,
+    WebSocketMessageHandlerContext<TGraphQLContext, TBaseGraphQLContext>,
     'graphQLContext'
   >
 ): WebSocketMessageHandler {

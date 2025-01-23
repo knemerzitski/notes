@@ -3,7 +3,6 @@ import { OperationTypeNode, parse } from 'graphql/index.js';
 import { MessageType } from 'graphql-ws';
 import { isArray } from '~utils/array/is-array';
 
-import { DynamoDBRecord } from '../dynamodb/models/connection';
 import { Subscription } from '../dynamodb/models/subscription';
 import { formatUnknownError } from '../graphql/format-unknown-error';
 import { validateQuery } from '../graphql/validate-query';
@@ -19,13 +18,7 @@ import {
 export function createSubscribeHandler<
   TGraphQLContext,
   TBaseGraphQLContext,
-  TDynamoDBGraphQLContext extends DynamoDBRecord,
->(): MessageHandler<
-  MessageType.Subscribe,
-  TGraphQLContext,
-  TBaseGraphQLContext,
-  TDynamoDBGraphQLContext
-> {
+>(): MessageHandler<MessageType.Subscribe, TGraphQLContext, TBaseGraphQLContext> {
   return async ({ context, event, message }) => {
     const { connectionId } = event.requestContext;
     context.logger.info('messages:subscribe', {
@@ -80,17 +73,17 @@ export function createSubscribeHandler<
         });
       }
 
-      const connectionGraphQLContext = context.parseDynamoDBGraphQLContext(
-        connection.graphQLContext
+      const baseGraphQLContext = context.baseGraphQLContextTransformer.parse(
+        connection.baseGraphQLContext
       );
 
       const graphQLContextValue: SubscriptionContext &
         TGraphQLContext &
         TBaseGraphQLContext = {
         ...context.graphQLContext,
-        ...connectionGraphQLContext,
+        ...baseGraphQLContext,
         ...createSubscriptionContext(),
-        publish: createPublisher<TGraphQLContext, TDynamoDBGraphQLContext>({
+        publish: createPublisher<TGraphQLContext>({
           context,
           getGraphQLContext: () => graphQLContextValue,
           isCurrentConnection: (id: string) => connectionId === id,
@@ -143,13 +136,12 @@ export function createSubscribeHandler<
         throw new SubscribeHookError('onSubscribe', exeContext, err);
       }
 
-      const subscription: Subscription<TDynamoDBGraphQLContext> = {
+      const subscription: Subscription = {
         id: `${connection.id}:${message.id}`,
         topic,
         subscriptionId: message.id,
         subscription: message.payload,
         filter: filter,
-        connectionGraphQLContext: connection.graphQLContext,
         connectionId: connection.id,
         requestContext: event.requestContext,
         createdAt: Date.now(),

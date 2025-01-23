@@ -4,7 +4,7 @@ import { inspect } from 'util';
 
 import WebSocket from 'ws';
 import { createApolloHttpHandlerDefaultParams } from '~api/apollo-http-handler';
-import { DynamoDBBaseGraphQLContext, GraphQLResolversContext } from '~api/graphql/types';
+import { GraphQLResolversContext } from '~api/graphql/types';
 import { createInitializeHandler } from '~api/initialize-handler';
 import { createScheduledHandler } from '~api/scheduled-handler';
 import { createWebSocketHandlerDefaultParams } from '~api/websocket-handler';
@@ -113,8 +113,7 @@ void (async () => {
         )
       ),
       apolloHttpHandler: createApolloHttpHandler<
-        Omit<GraphQLResolversContext, keyof ApolloHttpGraphQLContext>,
-        DynamoDBBaseGraphQLContext
+        Omit<GraphQLResolversContext, keyof ApolloHttpGraphQLContext>
       >(
         createApolloHttpHandlerDefaultParams(
           mockApolloHttpHandlerDefaultParamsOptions({

@@ -10,11 +10,7 @@ import {
 import { createLogger, Logger } from '~utils/logging';
 
 import { createApiGraphQLContext, createBaseGraphQLContext } from './graphql/context';
-import {
-  GraphQLResolversContext,
-  DynamoDBBaseGraphQLContext,
-  ApiGraphQLContext,
-} from './graphql/types';
+import { GraphQLResolversContext, ApiGraphQLContext } from './graphql/types';
 import {
   createDefaultApiGatewayParams,
   createDefaultApiOptions,
@@ -37,8 +33,7 @@ export interface CreateApolloHttpHandlerDefaultParamsOptions {
 export function createApolloHttpHandlerDefaultParams(
   options?: CreateApolloHttpHandlerDefaultParamsOptions
 ): CreateApolloHttpHandlerParams<
-  Omit<GraphQLResolversContext, keyof ApolloHttpGraphQLContext>,
-  DynamoDBBaseGraphQLContext
+  Omit<GraphQLResolversContext, keyof ApolloHttpGraphQLContext>
 > {
   const name = 'apollo-http-handler';
   const logger = options?.override?.logger ?? createLogger(name);
