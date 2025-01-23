@@ -1,18 +1,11 @@
 import { MessageType } from 'graphql-ws';
 
-import { DynamoDBRecord } from '../dynamodb/models/connection';
 import { MessageHandler } from '../message-handler';
 
 export function createPongHandler<
   TGraphQLContext,
   TBaseGraphQLContext = unknown,
-  TDynamoDBGraphQLContext extends DynamoDBRecord = DynamoDBRecord,
->(): MessageHandler<
-  MessageType.Pong,
-  TGraphQLContext,
-  TBaseGraphQLContext,
-  TDynamoDBGraphQLContext
-> {
+>(): MessageHandler<MessageType.Pong, TGraphQLContext, TBaseGraphQLContext> {
   return async ({ context, event, message }) => {
     await context.onPong?.({ context, event, message });
 

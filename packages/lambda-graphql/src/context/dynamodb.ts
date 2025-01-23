@@ -9,7 +9,6 @@ import {
 
 import {
   ConnectionTable,
-  DynamoDBRecord,
   newConnectionModel as newConnectionModel,
 } from '../dynamodb/models/connection';
 import {
@@ -27,15 +26,13 @@ export interface DynamoDBContextParams {
   logger: Logger;
 }
 
-export interface DynamoDBContext<TDynamoDBGraphQLContext extends DynamoDBRecord> {
-  connections: ConnectionTable<TDynamoDBGraphQLContext>;
-  subscriptions: SubscriptionTable<TDynamoDBGraphQLContext>;
+export interface DynamoDBContext {
+  connections: ConnectionTable;
+  subscriptions: SubscriptionTable;
   completedSubscriptions: CompletedSubscriptionTable;
 }
 
-export function createDynamoDBContext<TDynamoDBGraphQLContext extends DynamoDBRecord>(
-  params: DynamoDBContextParams
-): DynamoDBContext<TDynamoDBGraphQLContext> {
+export function createDynamoDBContext(params: DynamoDBContextParams): DynamoDBContext {
   params.logger.info('buildDynamoDBContext:new', {
     params: params.clientConfig,
   });
@@ -46,13 +43,14 @@ export function createDynamoDBContext<TDynamoDBGraphQLContext extends DynamoDBRe
       removeUndefinedValues: true,
     },
   });
+
   return {
-    connections: newConnectionModel<TDynamoDBGraphQLContext>({
+    connections: newConnectionModel({
       documentClient,
       tableName: params.tableNames.connections,
       logger: params.logger,
     }),
-    subscriptions: newSubscriptionModel<TDynamoDBGraphQLContext>({
+    subscriptions: newSubscriptionModel({
       documentClient,
       tableName: params.tableNames.subscriptions,
       logger: params.logger,

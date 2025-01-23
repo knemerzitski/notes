@@ -1,12 +1,12 @@
+import { object } from 'superstruct';
+import { Maybe } from '~utils/types';
+
 import { MongoDBCollections } from '../mongodb/collections';
 import { MongoDBContext } from '../mongodb/context';
 import { createMongoDBLoaders } from '../mongodb/loaders';
-import {
-  serializeAuthenticationContext,
-  parseAuthenticationContext,
-} from '../services/auth/authentication-context';
+import { AuthenticationContext } from '../services/auth/authentication-context';
 import { fromHeaders as parseAuthFromHeaders } from '../services/auth/parse-authentication-context';
-import { Cookies } from '../services/http/cookies';
+import { Cookies, CookiesStruct } from '../services/http/cookies';
 
 import {
   ApiGraphQLContext,
@@ -57,35 +57,17 @@ export function createApiGraphQLContext({
   };
 }
 
+const BaseGraphQLContextStruct = object({
+  cookies: CookiesStruct,
+  auth: AuthenticationContext,
+});
+
 export function serializeBaseGraphQLContext(
-  context: BaseGraphQLContext
+  context: Maybe<BaseGraphQLContext>
 ): DynamoDBBaseGraphQLContext {
-  return {
-    ...context,
-    cookies: context.cookies.serialize(),
-    auth: serializeAuthenticationContext(context.auth),
-  };
+  return BaseGraphQLContextStruct.createRaw(context);
 }
 
-export function parseDynamoDBBaseGraphQLContext(
-  value: DynamoDBBaseGraphQLContext | undefined
-) {
-  return {
-    auth: parseAuthenticationContext(value?.auth),
-    cookies: new Cookies({
-      sessions: value?.cookies.sessions ?? {},
-    }),
-  };
-}
-
-export async function headersToSerializedBaseGraphQLContext(
-  headers: Readonly<Record<string, string | undefined>> | undefined,
-  ctx: ApiGraphQLContext
-): Promise<DynamoDBBaseGraphQLContext> {
-  const baseContext = await createBaseGraphQLContext({
-    headers,
-    ctx,
-  });
-
-  return serializeBaseGraphQLContext(baseContext);
+export function parseDynamoDBBaseGraphQLContext(value: Maybe<unknown>) {
+  return BaseGraphQLContextStruct.create(value);
 }

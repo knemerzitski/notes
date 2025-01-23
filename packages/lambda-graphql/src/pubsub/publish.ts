@@ -4,7 +4,6 @@ import { MessageType, NextMessage } from 'graphql-ws';
 import { Logger } from '~utils/logging';
 
 import { WebSocketApi } from '../context/apigateway';
-import { DynamoDBRecord } from '../dynamodb/models/connection';
 import { Subscription, SubscriptionTable } from '../dynamodb/models/subscription';
 
 import {
@@ -15,14 +14,11 @@ import {
 
 import { PubSubEvent } from './subscribe';
 
-interface CreatePublisherParams<
-  TGraphQLContext,
-  TDynamoDBGraphQLContext extends DynamoDBRecord,
-> {
+interface CreatePublisherParams<TGraphQLContext> {
   context: {
     logger: Logger;
     models: {
-      subscriptions: SubscriptionTable<TDynamoDBGraphQLContext>;
+      subscriptions: SubscriptionTable;
     };
     schema: GraphQLSchema;
     socketApi: WebSocketApi;
@@ -59,14 +55,11 @@ export type Publisher = (
   options?: PublisherOptions
 ) => Promise<PromiseSettledResult<undefined>[]>;
 
-export function createPublisher<
-  TGraphQLContext,
-  TDynamoDBGraphQLContext extends DynamoDBRecord,
->({
+export function createPublisher<TGraphQLContext>({
   context,
   getGraphQLContext,
   isCurrentConnection = () => false,
-}: CreatePublisherParams<TGraphQLContext, TDynamoDBGraphQLContext>): Publisher {
+}: CreatePublisherParams<TGraphQLContext>): Publisher {
   const { logger, models, schema, socketApi } = context;
   return async (topic, payload, options) => {
     logger.info('pubsub:publish', {
@@ -90,7 +83,7 @@ export function createPublisher<
     /**
      * Filter out subscription tied to current connection if set in options
      */
-    function isRelevantSubscription(sub: Subscription<TDynamoDBGraphQLContext>) {
+    function isRelevantSubscription(sub: Subscription) {
       if (!publishToCurrentConnection) {
         return !isCurrentConnection(sub.connectionId);
       }

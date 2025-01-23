@@ -1,5 +1,7 @@
 import { ObjectId } from 'mongodb';
 
+import { coerce, instance, object, optional, record, string } from 'superstruct';
+
 import { objectIdToStr } from '../../mongodb/utils/objectid';
 
 const SECURE_SET_COOKIE = process.env.NODE_ENV === 'production' ? '; Secure' : '';
@@ -131,6 +133,18 @@ export class Cookies {
     }
   }
 }
+
+export const CookiesStruct = coerce(
+  instance(Cookies),
+  object({
+    sessions: optional(record(string(), string())),
+  }),
+  (value) =>
+    new Cookies({
+      sessions: value.sessions ?? {},
+    }),
+  (cookies) => cookies.serialize()
+);
 
 /**
  * @param key

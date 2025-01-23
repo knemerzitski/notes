@@ -7,14 +7,11 @@ import {
 import { ConnectionTtlContext } from '~lambda-graphql/dynamodb/models/connection';
 import { WebSocketMessageHandlerParams } from '~lambda-graphql/message-handler';
 
-import { serializeBaseGraphQLContext } from '../graphql/context';
-
 import {
   ApiGraphQLContext,
   ApiOptions,
   BaseGraphQLContext,
   BaseSubscriptionResolversContext,
-  DynamoDBBaseGraphQLContext,
 } from '../graphql/types';
 
 import { isAuthenticated } from '../services/auth/is-authenticated';
@@ -53,8 +50,7 @@ export function createErrorBaseSubscriptionResolversContext(
 
 export const handleConnectionInitAuthenticate: WebSocketMessageHandlerParams<
   BaseSubscriptionResolversContext,
-  BaseGraphQLContext,
-  DynamoDBBaseGraphQLContext
+  BaseGraphQLContext
 >['onConnectionInit'] = async ({ message, context, baseGraphQLContext }) => {
   const { auth } = baseGraphQLContext;
   if (isAuthenticated(auth) || auth.reason !== AuthenticationFailedReason.USER_UNDEFINED)
@@ -77,20 +73,18 @@ export const handleConnectionInitAuthenticate: WebSocketMessageHandlerParams<
 
   if (!isAuthenticated(newAuth)) return;
 
-  return serializeBaseGraphQLContext({
+  return {
     ...baseGraphQLContext,
     auth: newAuth,
-  });
+  };
 };
 
-export const createIsCurrentConnection: CreateApolloHttpHandlerParams<
-  BaseGraphQLContext,
-  DynamoDBBaseGraphQLContext
->['createIsCurrentConnection'] = (_ctx, event) => {
-  const wsConnectionId = event.headers[CustomHeaderName.WS_CONNECTION_ID];
-  if (!wsConnectionId) return;
-  return (connectionId: string) => wsConnectionId === connectionId;
-};
+export const createIsCurrentConnection: CreateApolloHttpHandlerParams<BaseGraphQLContext>['createIsCurrentConnection'] =
+  (_ctx, event) => {
+    const wsConnectionId = event.headers[CustomHeaderName.WS_CONNECTION_ID];
+    if (!wsConnectionId) return;
+    return (connectionId: string) => wsConnectionId === connectionId;
+  };
 
 export function createDynamoDBConnectionTtlContext(
   options?: ApiOptions

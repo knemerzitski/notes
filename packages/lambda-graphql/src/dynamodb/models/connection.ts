@@ -7,14 +7,12 @@ interface ConnectionKey {
   id: string;
 }
 
-export type DynamoDBRecord = Record<string, unknown>;
-
-export interface Connection<TDynamoDBGraphQLContext extends DynamoDBRecord>
-  extends ConnectionKey {
+export interface Connection extends ConnectionKey {
   createdAt: number;
   // requestContext from $connect event
   requestContext: APIGatewayEventWebsocketRequestContextV2;
-  graphQLContext?: TDynamoDBGraphQLContext;
+  // Merged into GraphQL context during query execution
+  baseGraphQLContext?: object;
   hasPonged: boolean;
   // Time to live in seconds, after which record is deleted
   ttl: number;
@@ -25,17 +23,10 @@ export interface ConnectionTtlContext {
   tryRefreshTtl: (ttl: number) => number;
 }
 
-export type ConnectionTable<TDynamoDBGraphQLContext extends DynamoDBRecord> = Table<
-  ConnectionKey,
-  Connection<TDynamoDBGraphQLContext>
->;
+export type ConnectionTable = Table<ConnectionKey, Connection>;
 
-export function newConnectionModel<TDynamoDBGraphQLContext extends DynamoDBRecord>(
-  newTableArgs: NewModelParams
-): ConnectionTable<TDynamoDBGraphQLContext> {
-  const table = newModel<ConnectionKey, Connection<TDynamoDBGraphQLContext>>(
-    newTableArgs
-  );
+export function newConnectionModel(newTableArgs: NewModelParams): ConnectionTable {
+  const table = newModel<ConnectionKey, Connection>(newTableArgs);
 
   return table;
 }

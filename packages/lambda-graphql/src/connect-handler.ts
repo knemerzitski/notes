@@ -11,17 +11,11 @@ import { Maybe, MaybePromise } from '~utils/types';
 
 import { lowercaseHeaderKeys } from './apigateway-proxy-event/lowercase-header-keys';
 import { DynamoDBContextParams, createDynamoDBContext } from './context/dynamodb';
-import {
-  ConnectionTable,
-  ConnectionTtlContext,
-  DynamoDBRecord,
-} from './dynamodb/models/connection';
+import { ConnectionTable, ConnectionTtlContext } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
+import { BaseGraphQLContextTransformer } from './types';
 
-interface DirectParams<
-  TBaseGraphQLContext,
-  TDynamoDBGraphQLContext extends DynamoDBRecord,
-> {
+interface DirectParams<TBaseGraphQLContext> {
   connection: ConnectionTtlContext;
   logger: Logger;
 
@@ -32,28 +26,25 @@ interface DirectParams<
    * Throw error to disconnect.
    */
   onConnect?: (args: {
-    context: WebSocketConnectHandlerContext<TBaseGraphQLContext, TDynamoDBGraphQLContext>;
+    context: WebSocketConnectHandlerContext<TBaseGraphQLContext>;
     event: WebSocketConnectEvent;
-  }) => Maybe<MaybePromise<TDynamoDBGraphQLContext>>;
-  parseDynamoDBGraphQLContext: (
-    value: TDynamoDBGraphQLContext | undefined
-  ) => TBaseGraphQLContext;
+  }) => Maybe<MaybePromise<TBaseGraphQLContext>>;
+  baseGraphQLContextTransformer: Pick<
+    BaseGraphQLContextTransformer<TBaseGraphQLContext>,
+    'serialize'
+  >;
 }
 
-export interface WebSocketConnectHandlerParams<
-  TBaseGraphQLContext,
-  TDynamoDBGraphQLContext extends DynamoDBRecord,
-> extends DirectParams<TBaseGraphQLContext, TDynamoDBGraphQLContext> {
+export interface WebSocketConnectHandlerParams<TBaseGraphQLContext>
+  extends DirectParams<TBaseGraphQLContext> {
   dynamoDB: DynamoDBContextParams;
 }
 
-export interface WebSocketConnectHandlerContext<
-  TBaseGraphQLContext,
-  TDynamoDBGraphQLContext extends DynamoDBRecord,
-> extends DirectParams<TBaseGraphQLContext, TDynamoDBGraphQLContext> {
+export interface WebSocketConnectHandlerContext<TBaseGraphQLContext>
+  extends DirectParams<TBaseGraphQLContext> {
   models: {
-    connections: ConnectionTable<TDynamoDBGraphQLContext>;
-    subscriptions: SubscriptionTable<TDynamoDBGraphQLContext>;
+    connections: ConnectionTable;
+    subscriptions: SubscriptionTable;
   };
 }
 
@@ -71,22 +62,16 @@ export type WebSocketConnectHandler<T = never> = Handler<
   APIGatewayProxyResultV2<T>
 >;
 
-export function createWebSocketConnectHandler<
-  TBaseGraphQLContext,
-  TDynamoDBGraphQLContext extends DynamoDBRecord,
->(
-  params: WebSocketConnectHandlerParams<TBaseGraphQLContext, TDynamoDBGraphQLContext>
+export function createWebSocketConnectHandler<TBaseGraphQLContext>(
+  params: WebSocketConnectHandlerParams<TBaseGraphQLContext>
 ): WebSocketConnectHandler {
   const { logger } = params;
 
   logger.info('createWebSocketConnectHandler');
 
-  const dynamoDB = createDynamoDBContext<TDynamoDBGraphQLContext>(params.dynamoDB);
+  const dynamoDB = createDynamoDBContext(params.dynamoDB);
 
-  const context: WebSocketConnectHandlerContext<
-    TBaseGraphQLContext,
-    TDynamoDBGraphQLContext
-  > = {
+  const context: WebSocketConnectHandlerContext<TBaseGraphQLContext> = {
     ...params,
     models: {
       connections: dynamoDB.connections,
@@ -97,11 +82,8 @@ export function createWebSocketConnectHandler<
   return webSocketConnectHandler(context);
 }
 
-export function webSocketConnectHandler<
-  TBaseGraphQLContext,
-  TDynamoDBGraphQLContext extends DynamoDBRecord,
->(
-  context: WebSocketConnectHandlerContext<TBaseGraphQLContext, TDynamoDBGraphQLContext>
+export function webSocketConnectHandler<TBaseGraphQLContext>(
+  context: WebSocketConnectHandlerContext<TBaseGraphQLContext>
 ): WebSocketConnectHandler {
   return async (event) => {
     try {
@@ -117,13 +99,14 @@ export function webSocketConnectHandler<
         headers: event.headers,
       });
 
-      const dynamoDBGraphQLContext = await context.onConnect?.({ context, event });
+      const baseGraphQLContext = await context.onConnect?.({ context, event });
 
       await context.models.connections.put({
         id: connectionId,
         createdAt: Date.now(),
         requestContext: event.requestContext,
-        graphQLContext: dynamoDBGraphQLContext ?? undefined,
+        baseGraphQLContext:
+          context.baseGraphQLContextTransformer.serialize(baseGraphQLContext),
         hasPonged: false,
         ttl: context.connection.defaultTtl(),
       });

@@ -25,7 +25,6 @@ import {
   WebSocketDisconnectHandlerParams,
   webSocketDisconnectHandler,
 } from './disconnect-handler';
-import { DynamoDBRecord } from './dynamodb/models/connection';
 import {
   WebSocketMessageGraphQLContext,
   WebSocketMessageHandlerContext,
@@ -47,39 +46,17 @@ export type WebSocketHandler<T = never> = Handler<
   APIGatewayProxyResultV2<T>
 >;
 
-export type WebSocketHandlerParams<
-  TGraphQLContext,
-  TBaseGraphQLContext,
-  TDynamoDBGraphQLContext extends DynamoDBRecord,
-> = WebSocketConnectHandlerParams<TBaseGraphQLContext, TDynamoDBGraphQLContext> &
-  WebSocketMessageHandlerParams<
-    TGraphQLContext,
-    TBaseGraphQLContext,
-    TDynamoDBGraphQLContext
-  > &
-  WebSocketDisconnectHandlerParams<
-    TGraphQLContext,
-    TBaseGraphQLContext,
-    TDynamoDBGraphQLContext
-  >;
+export type WebSocketHandlerParams<TGraphQLContext, TBaseGraphQLContext> =
+  WebSocketConnectHandlerParams<TBaseGraphQLContext> &
+    WebSocketMessageHandlerParams<TGraphQLContext, TBaseGraphQLContext> &
+    WebSocketDisconnectHandlerParams<TGraphQLContext, TBaseGraphQLContext>;
 
-export type WebSocketHandlerContext<
-  TGraphQLContext,
-  TBaseGraphQLContext,
-  TDynamoDBGraphQLContext extends DynamoDBRecord,
-> = WebSocketConnectHandlerContext<TBaseGraphQLContext, TDynamoDBGraphQLContext> &
-  WebSocketMessageHandlerContext<
-    TGraphQLContext,
-    TBaseGraphQLContext,
-    TDynamoDBGraphQLContext
-  > &
-  WebSocketDisconnectHandlerContext<
-    TGraphQLContext,
-    TBaseGraphQLContext,
-    TDynamoDBGraphQLContext
-  > & {
-    eventHandlers: ReturnType<typeof createEventHandlers>;
-  };
+export type WebSocketHandlerContext<TGraphQLContext, TBaseGraphQLContext> =
+  WebSocketConnectHandlerContext<TBaseGraphQLContext> &
+    WebSocketMessageHandlerContext<TGraphQLContext, TBaseGraphQLContext> &
+    WebSocketDisconnectHandlerContext<TGraphQLContext, TBaseGraphQLContext> & {
+      eventHandlers: ReturnType<typeof createEventHandlers>;
+    };
 
 export type WebSocketGraphQLContext = WebSocketMessageGraphQLContext &
   WebSocketDisconnectGraphQLContext;
@@ -87,14 +64,9 @@ export type WebSocketGraphQLContext = WebSocketMessageGraphQLContext &
 export function createEventHandlers<
   TGraphQLContext extends WebSocketGraphQLContext,
   TBaseGraphQLContext,
-  TDynamoDBGraphQLContext extends DynamoDBRecord,
 >(
   context: Omit<
-    WebSocketHandlerContext<
-      TGraphQLContext,
-      TBaseGraphQLContext,
-      TDynamoDBGraphQLContext
-    >,
+    WebSocketHandlerContext<TGraphQLContext, TBaseGraphQLContext>,
     'graphQLContext' | 'eventHandlers'
   >
 ) {
@@ -108,29 +80,20 @@ export function createEventHandlers<
 export function createWebSocketHandler<
   TGraphQLContext extends WebSocketGraphQLContext,
   TBaseGraphQLContext,
-  TDynamoDBGraphQLContext extends DynamoDBRecord,
 >(
-  params: WebSocketHandlerParams<
-    TGraphQLContext,
-    TBaseGraphQLContext,
-    TDynamoDBGraphQLContext
-  >
+  params: WebSocketHandlerParams<TGraphQLContext, TBaseGraphQLContext>
 ): WebSocketHandler {
   const { logger } = params;
 
   logger.info('createWebSocketHandler');
 
   const graphQL = createGraphQLContext(params.graphQL);
-  const dynamoDB = createDynamoDBContext<TDynamoDBGraphQLContext>(params.dynamoDB);
+  const dynamoDB = createDynamoDBContext(params.dynamoDB);
   const apiGateway = createApiGatewayContext(params.apiGateway);
   const pingpong = params.pingpong ? createPingPongContext(params.pingpong) : undefined;
 
   const context: Omit<
-    WebSocketHandlerContext<
-      TGraphQLContext,
-      TBaseGraphQLContext,
-      TDynamoDBGraphQLContext
-    >,
+    WebSocketHandlerContext<TGraphQLContext, TBaseGraphQLContext>,
     'graphQLContext' | 'eventHandlers'
   > = {
     ...params,
@@ -143,11 +106,7 @@ export function createWebSocketHandler<
     },
     socketApi: apiGateway.socketApi,
     startPingPong: pingpong?.startPingPong,
-    messageHandlers: createMessageHandlers<
-      TGraphQLContext,
-      TBaseGraphQLContext,
-      TDynamoDBGraphQLContext
-    >(),
+    messageHandlers: createMessageHandlers<TGraphQLContext, TBaseGraphQLContext>(),
   };
 
   const eventHandlers = createEventHandlers(context);
@@ -161,14 +120,9 @@ export function createWebSocketHandler<
 export function webSocketHandler<
   TGraphQLContext extends WebSocketGraphQLContext,
   TBaseGraphQLContext,
-  TDynamoDBGraphQLContext extends DynamoDBRecord,
 >(
   context: Omit<
-    WebSocketHandlerContext<
-      TGraphQLContext,
-      TBaseGraphQLContext,
-      TDynamoDBGraphQLContext
-    >,
+    WebSocketHandlerContext<TGraphQLContext, TBaseGraphQLContext>,
     'graphQLContext'
   >
 ): WebSocketHandler {
