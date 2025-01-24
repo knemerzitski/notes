@@ -25,26 +25,26 @@ interface DirectParams {
 
 export interface CreateApolloHttpHandlerParams<TGraphQLContext extends BaseContext>
   extends DirectParams {
-  createGraphQLContext: (
+  readonly createGraphQLContext: (
     context: ApolloHttpHandlerContext,
     event: APIGatewayProxyEvent
   ) => Promise<TGraphQLContext> | TGraphQLContext;
-  createIsCurrentConnection?: (
+  readonly createIsCurrentConnection?: (
     context: ApolloHttpHandlerContext,
     event: APIGatewayProxyEvent
   ) => ((connectionId: string) => boolean) | undefined;
-  graphQL: ApolloGraphQLContextParams<TGraphQLContext>;
-  dynamoDB: DynamoDBContextParams;
-  apiGateway: ApiGatewayContextParams;
+  readonly graphQL: ApolloGraphQLContextParams<TGraphQLContext>;
+  readonly dynamoDB: DynamoDBContextParams;
+  readonly apiGateway: ApiGatewayContextParams;
 }
 
 export interface ApolloHttpHandlerContext extends DirectParams {
-  schema: GraphQLSchema;
-  models: {
-    connections: ConnectionTable;
-    subscriptions: SubscriptionTable;
+  readonly schema: GraphQLSchema;
+  readonly models: {
+    readonly connections: ConnectionTable;
+    readonly subscriptions: SubscriptionTable;
   };
-  socketApi: WebSocketApi;
+  readonly socketApi: WebSocketApi;
 }
 
 export interface ApolloHttpGraphQLContext extends BaseContext {
@@ -52,9 +52,9 @@ export interface ApolloHttpGraphQLContext extends BaseContext {
     readonly headers: Readonly<Record<string, string | undefined>>;
     readonly multiValueHeaders: Readonly<Record<string, string[] | undefined>>;
   };
-  response: {
-    headers: Record<string, string | number | boolean>;
-    multiValueHeaders: Record<string, (boolean | number | string)[]>;
+  readonly response: {
+    readonly headers: Record<string, string | number | boolean>;
+    readonly multiValueHeaders: Record<string, (boolean | number | string)[]>;
   };
   readonly logger: Logger;
   readonly publish: Publisher;
