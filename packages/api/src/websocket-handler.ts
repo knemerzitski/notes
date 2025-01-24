@@ -74,7 +74,7 @@ export function createWebSocketHandlerDefaultParams(
 
     onConnectionInit: handleConnectionInitAuthenticate,
     pingpong: options?.pingPongParams,
-    baseGraphQLContextTransformer: {
+    persistGraphQLContext: {
       serialize: serializeBaseGraphQLContext,
       parse: parseDynamoDBBaseGraphQLContext,
       merge: mergePersistGraphQLContext,

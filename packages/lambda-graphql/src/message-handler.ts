@@ -38,7 +38,7 @@ import { createPingHandler } from './messages/ping';
 import { createPongHandler } from './messages/pong';
 import { createSubscribeHandler } from './messages/subscribe';
 import { Publisher } from './pubsub/publish';
-import { BaseGraphQLContextTransformer } from './types';
+import { PersistGraphQLContext } from './types';
 
 interface DirectParams<TGraphQLContext, TPersistGraphQLContext> {
   connection: ConnectionTtlContext;
@@ -51,7 +51,7 @@ interface DirectParams<TGraphQLContext, TPersistGraphQLContext> {
     context: WebSocketMessageHandlerContext<TGraphQLContext, TPersistGraphQLContext>;
     event: APIGatewayProxyWebsocketEventV2;
     message: ConnectionInitMessage;
-    baseGraphQLContext: TPersistGraphQLContext;
+    persistGraphQLContext: TPersistGraphQLContext;
   }) => MaybePromise<TPersistGraphQLContext | void>;
   onPing?: (args: {
     context: WebSocketMessageHandlerContext<TGraphQLContext, TPersistGraphQLContext>;
@@ -70,7 +70,7 @@ interface DirectParams<TGraphQLContext, TPersistGraphQLContext> {
   }) => MaybePromise<void>;
   formatError?: FormatError;
   formatErrorOptions?: FormatErrorOptions;
-  baseGraphQLContextTransformer: BaseGraphQLContextTransformer<
+  persistGraphQLContext: PersistGraphQLContext<
     TGraphQLContext,
     TPersistGraphQLContext
   >;

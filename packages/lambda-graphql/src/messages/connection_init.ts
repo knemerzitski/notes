@@ -10,7 +10,7 @@ export function createConnectionInitHandler<
   return async (args) => {
     const { event, context } = args;
 
-    // Trigger onConnectionInit callback which can modify baseGraphQLContext
+    // Trigger onConnectionInit callback which can modify persistGraphQLContext
     if (context.onConnectionInit) {
       const connection = await context.models.connections.get({
         id: event.requestContext.connectionId,
@@ -19,13 +19,13 @@ export function createConnectionInitHandler<
         throw new Error('Missing connection record in DB');
       }
 
-      const baseGraphQLContext = context.baseGraphQLContextTransformer.parse(
-        connection.baseGraphQLContext
+      const persistGraphQLContext = context.persistGraphQLContext.parse(
+        connection.persistGraphQLContext
       );
 
       const newBaseGraphQLContext = await context.onConnectionInit({
         ...args,
-        baseGraphQLContext,
+        persistGraphQLContext,
       });
 
       if (newBaseGraphQLContext) {
@@ -34,8 +34,8 @@ export function createConnectionInitHandler<
             id: event.requestContext.connectionId,
           },
           {
-            baseGraphQLContext:
-              context.baseGraphQLContextTransformer.serialize(newBaseGraphQLContext),
+            persistGraphQLContext:
+              context.persistGraphQLContext.serialize(newBaseGraphQLContext),
           }
         );
       }

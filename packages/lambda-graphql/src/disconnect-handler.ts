@@ -34,7 +34,7 @@ import {
   createSubscriptionContext,
   getSubscribeFieldResult,
 } from './pubsub/subscribe';
-import { BaseGraphQLContextTransformer } from './types';
+import { PersistGraphQLContext } from './types';
 
 interface DirectParams<TGraphQLContext, TPersistGraphQLContext> {
   createGraphQLContext: (
@@ -46,8 +46,8 @@ interface DirectParams<TGraphQLContext, TPersistGraphQLContext> {
   ) => Promise<TGraphQLContext> | TGraphQLContext;
   apiGateway: ApiGatewayContextParams;
   logger: Logger;
-  baseGraphQLContextTransformer: Pick<
-    BaseGraphQLContextTransformer<TGraphQLContext, TPersistGraphQLContext>,
+  persistGraphQLContext: Pick<
+    PersistGraphQLContext<TGraphQLContext, TPersistGraphQLContext>,
     'parse' | 'merge'
   >;
   onDisconnect?: (args: {
@@ -175,8 +175,8 @@ export function webSocketDisconnectHandler<
         context.models.subscriptions.queryAllByConnectionId(connectionId),
       ]);
 
-      const baseGraphQLContext = context.baseGraphQLContextTransformer.parse(
-        connection?.baseGraphQLContext
+      const persistGraphQLContext = context.persistGraphQLContext.parse(
+        connection?.persistGraphQLContext
       );
 
       const subscriptionDeletions = connectionSubscriptions.map(async (sub) => {
@@ -186,10 +186,7 @@ export function webSocketDisconnectHandler<
             TGraphQLContext &
             TPersistGraphQLContext = {
             ...context,
-            ...context.baseGraphQLContextTransformer.merge(
-              graphQLContext,
-              baseGraphQLContext
-            ),
+            ...context.persistGraphQLContext.merge(graphQLContext, persistGraphQLContext),
             ...createSubscriptionContext(),
             publish: createPublisher<TGraphQLContext>({
               context,
