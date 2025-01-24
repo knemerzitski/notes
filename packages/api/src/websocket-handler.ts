@@ -10,15 +10,15 @@ import { createLogger, Logger } from '~utils/logging';
 
 import {
   createApiGraphQLContext,
-  createBaseGraphQLContext,
+  createPersistGraphQLContext,
   mergePersistGraphQLContext,
-  parseDynamoDBBaseGraphQLContext,
-  serializeBaseGraphQLContext,
+  parsePersistGraphQLContext,
+  serializePersistGraphQLContext,
 } from './graphql/context';
 import { formatError } from './graphql/errors';
 import {
   ApiGraphQLContext,
-  BaseGraphQLContext,
+  PersistGraphQLContext,
   BaseSubscriptionResolversContext,
 } from './graphql/types';
 import {
@@ -48,7 +48,7 @@ export interface CreateWebSocketHandlerDefaultParamsOptions {
 
 export function createWebSocketHandlerDefaultParams(
   options?: CreateWebSocketHandlerDefaultParamsOptions
-): WebSocketHandlerParams<BaseSubscriptionResolversContext, BaseGraphQLContext> {
+): WebSocketHandlerParams<BaseSubscriptionResolversContext, PersistGraphQLContext> {
   const name = 'ws-handler';
   const logger = options?.override?.logger ?? createLogger(name);
 
@@ -75,8 +75,8 @@ export function createWebSocketHandlerDefaultParams(
     onConnectionInit: handleConnectionInitAuthenticate,
     pingpong: options?.pingPongParams,
     persistGraphQLContext: {
-      serialize: serializeBaseGraphQLContext,
-      parse: parseDynamoDBBaseGraphQLContext,
+      serialize: serializePersistGraphQLContext,
+      parse: parsePersistGraphQLContext,
       merge: mergePersistGraphQLContext,
     },
     connection: createDynamoDBConnectionTtlContext(apiOptions),
@@ -97,7 +97,7 @@ export function createWebSocketHandlerDefaultParams(
         connectionId: event.requestContext.connectionId,
       };
 
-      return createBaseGraphQLContext({
+      return createPersistGraphQLContext({
         headers: event.headers,
         ctx: apiContext,
       });
@@ -123,5 +123,5 @@ export function createWebSocketHandlerDefaultParams(
 
 export const handler: APIGatewayProxyWebsocketHandlerV2 = createWebSocketHandler<
   BaseSubscriptionResolversContext,
-  BaseGraphQLContext
+  PersistGraphQLContext
 >(createWebSocketHandlerDefaultParams());

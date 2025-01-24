@@ -23,19 +23,20 @@ export function createConnectionInitHandler<
         connection.persistGraphQLContext
       );
 
-      const newBaseGraphQLContext = await context.onConnectionInit({
+      const newPersistGraphQLContext = await context.onConnectionInit({
         ...args,
         persistGraphQLContext,
       });
 
-      if (newBaseGraphQLContext) {
+      if (newPersistGraphQLContext) {
         await context.models.connections.update(
           {
             id: event.requestContext.connectionId,
           },
           {
-            persistGraphQLContext:
-              context.persistGraphQLContext.serialize(newBaseGraphQLContext),
+            persistGraphQLContext: context.persistGraphQLContext.serialize(
+              newPersistGraphQLContext
+            ),
           }
         );
       }

@@ -9,7 +9,11 @@ import {
 } from '~lambda-graphql/apollo-http-handler';
 import { createLogger, Logger } from '~utils/logging';
 
-import { createApiGraphQLContext, createBaseGraphQLContext } from './graphql/context';
+import {
+  createApiGraphQLContext,
+  createPersistGraphQLContext,
+  mergePersistGraphQLContext,
+} from './graphql/context';
 import { GraphQLResolversContext, ApiGraphQLContext } from './graphql/types';
 import {
   createDefaultApiGatewayParams,
@@ -67,14 +71,13 @@ export function createApolloHttpHandlerDefaultParams(
         connectionId: event.headers[CustomHeaderName.WS_CONNECTION_ID],
       };
 
-      const baseContext = await createBaseGraphQLContext({
+      const persistContext = await createPersistGraphQLContext({
         headers: event.headers,
         ctx: apiContext,
       });
 
       return {
-        ...baseContext,
-        ...apiContext,
+        ...mergePersistGraphQLContext(apiContext, persistContext),
         subscribe: () => {
           throw new Error(`Subscribe should never be called in ${name}`);
         },

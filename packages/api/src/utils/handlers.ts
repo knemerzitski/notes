@@ -10,7 +10,7 @@ import { WebSocketMessageHandlerParams } from '~lambda-graphql/message-handler';
 import {
   ApiGraphQLContext,
   ApiOptions,
-  BaseGraphQLContext,
+  PersistGraphQLContext,
   BaseSubscriptionResolversContext,
 } from '../graphql/types';
 
@@ -50,9 +50,9 @@ export function createErrorBaseSubscriptionResolversContext(
 
 export const handleConnectionInitAuthenticate: WebSocketMessageHandlerParams<
   BaseSubscriptionResolversContext,
-  BaseGraphQLContext
->['onConnectionInit'] = async ({ message, context, baseGraphQLContext }) => {
-  const { auth } = baseGraphQLContext;
+  PersistGraphQLContext
+>['onConnectionInit'] = async ({ message, context, persistGraphQLContext }) => {
+  const { auth } = persistGraphQLContext;
   if (isAuthenticated(auth) || auth.reason !== AuthenticationFailedReason.USER_UNDEFINED)
     return;
 
@@ -68,18 +68,18 @@ export const handleConnectionInitAuthenticate: WebSocketMessageHandlerParams<
 
   const newAuth = await parseAuthFromHeaders(headers, {
     ...context.graphQLContext,
-    ...baseGraphQLContext,
+    ...persistGraphQLContext,
   });
 
   if (!isAuthenticated(newAuth)) return;
 
   return {
-    ...baseGraphQLContext,
+    ...persistGraphQLContext,
     auth: newAuth,
   };
 };
 
-export const createIsCurrentConnection: CreateApolloHttpHandlerParams<BaseGraphQLContext>['createIsCurrentConnection'] =
+export const createIsCurrentConnection: CreateApolloHttpHandlerParams<PersistGraphQLContext>['createIsCurrentConnection'] =
   (_ctx, event) => {
     const wsConnectionId = event.headers[CustomHeaderName.WS_CONNECTION_ID];
     if (!wsConnectionId) return;
