@@ -11,20 +11,20 @@ import { Cookies, CookiesStruct } from '../services/http/cookies';
 import {
   ApiGraphQLContext,
   ApiOptions,
-  BaseGraphQLContext,
+  PersistGraphQLContext,
   BaseSubscriptionResolversContext,
-  DynamoDBBaseGraphQLContext,
+  SerializedPersistGraphQLContext,
 } from './types';
 
-export interface CreateBaseGraphQLContextParams {
+export interface CreatePersistGraphQLContextParams {
   headers: Readonly<Record<string, string | undefined>> | undefined;
   ctx: Omit<Parameters<typeof parseAuthFromHeaders>[1], 'cookies'>;
 }
 
-export async function createBaseGraphQLContext({
+export async function createPersistGraphQLContext({
   headers,
   ctx,
-}: CreateBaseGraphQLContextParams): Promise<BaseGraphQLContext> {
+}: CreatePersistGraphQLContextParams): Promise<PersistGraphQLContext> {
   const cookies = Cookies.parseFromHeaders(headers);
 
   const auth = await parseAuthFromHeaders(headers, {
@@ -58,25 +58,35 @@ export function createApiGraphQLContext({
   };
 }
 
-const BaseGraphQLContextStruct = object({
+const PersistGraphQLContextStruct = object({
   cookies: CookiesStruct,
   auth: AuthenticationContext,
 });
 
-export function serializeBaseGraphQLContext(
-  context: Maybe<BaseGraphQLContext>
-): DynamoDBBaseGraphQLContext {
-  return BaseGraphQLContextStruct.createRaw(context);
+export function serializePersistGraphQLContext(
+  context: Maybe<PersistGraphQLContext>
+): SerializedPersistGraphQLContext {
+  return PersistGraphQLContextStruct.createRaw(context);
 }
 
-export function parseDynamoDBBaseGraphQLContext(value: Maybe<unknown>) {
-  return BaseGraphQLContextStruct.create(value);
+export function parsePersistGraphQLContext(value: Maybe<unknown>) {
+  return PersistGraphQLContextStruct.create(value);
 }
 
 export function mergePersistGraphQLContext(
+  ctx: Readonly<ApiGraphQLContext>,
+  persist: Readonly<PersistGraphQLContext>
+): Readonly<ApiGraphQLContext & PersistGraphQLContext>;
+export function mergePersistGraphQLContext(
   ctx: Readonly<BaseSubscriptionResolversContext>,
-  persist: Readonly<BaseGraphQLContext>
-): Readonly<BaseSubscriptionResolversContext & BaseGraphQLContext> {
+  persist: Readonly<PersistGraphQLContext>
+): Readonly<BaseSubscriptionResolversContext & PersistGraphQLContext>;
+export function mergePersistGraphQLContext(
+  ctx: Readonly<ApiGraphQLContext | BaseSubscriptionResolversContext>,
+  persist: Readonly<PersistGraphQLContext>
+): Readonly<
+  (ApiGraphQLContext | BaseSubscriptionResolversContext) & PersistGraphQLContext
+> {
   return {
     ...ctx,
     ...persist,

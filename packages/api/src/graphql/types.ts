@@ -54,9 +54,9 @@ export interface ApiOptions {
 }
 
 /**
- * Base GraphQL context can be serialized and stored for later use
+ * Persist GraphQL context is serialized and restored during WebSocket connections
  */
-export interface BaseGraphQLContext {
+export interface PersistGraphQLContext {
   cookies: Cookies;
   auth: AuthenticationContext;
 }
@@ -66,7 +66,7 @@ export interface BaseGraphQLContext {
  * DynamoDB entry.
  * Class instances are not supported.
  */
-export interface DynamoDBBaseGraphQLContext extends Record<string, unknown> {
+export interface SerializedPersistGraphQLContext {
   cookies: SerializedCookies;
   auth: SerializedAuthenticationContext;
 }
@@ -89,12 +89,12 @@ export interface ApiGraphQLContext {
 }
 
 export type GraphQLResolversContext = ApolloHttpGraphQLContext &
-  BaseGraphQLContext &
+  PersistGraphQLContext &
   ApiGraphQLContext &
   SubscriptionContext;
 
 /**
- * This type is used to define everything that websocket-graphql-handlers don't
+ * This type is used to define everything that websocket-handler doesn't
  * define by default.
  *
  * ApiGraphQLContext
@@ -108,5 +108,5 @@ export type GraphQLResolversContext = ApolloHttpGraphQLContext &
  */
 export type BaseSubscriptionResolversContext = Omit<
   GraphQLResolversContext,
-  keyof BaseGraphQLContext | keyof SubscriptionContext
+  keyof PersistGraphQLContext | keyof SubscriptionContext
 >;

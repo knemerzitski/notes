@@ -2,7 +2,10 @@ import 'source-map-support/register.js';
 import { APIGatewayProxyWebsocketHandlerV2 } from 'aws-lambda';
 import WebSocket from 'ws';
 
-import { BaseGraphQLContext, BaseSubscriptionResolversContext } from '~api/graphql/types';
+import {
+  PersistGraphQLContext,
+  BaseSubscriptionResolversContext,
+} from '~api/graphql/types';
 import {
   CreateWebSocketHandlerDefaultParamsOptions,
   createWebSocketHandlerDefaultParams,
@@ -42,5 +45,5 @@ export function mockWebSocketHandlerDefaultParamsOptions(
 
 export const handler: APIGatewayProxyWebsocketHandlerV2 = createWebSocketHandler<
   BaseSubscriptionResolversContext,
-  BaseGraphQLContext
+  PersistGraphQLContext
 >(createWebSocketHandlerDefaultParams(mockWebSocketHandlerDefaultParamsOptions()));
