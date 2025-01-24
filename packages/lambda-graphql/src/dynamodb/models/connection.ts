@@ -12,6 +12,7 @@ export interface Connection extends ConnectionKey {
   // requestContext from $connect event
   requestContext: APIGatewayEventWebsocketRequestContextV2;
   // Merged into GraphQL context during query execution
+  // TODO rename to persistGraphQLContext
   baseGraphQLContext?: object;
   hasPonged: boolean;
   // Time to live in seconds, after which record is deleted

@@ -5,8 +5,8 @@ import { MessageHandler } from '../message-handler';
 
 export function createConnectionInitHandler<
   TGraphQLContext,
-  TBaseGraphQLContext,
->(): MessageHandler<MessageType.ConnectionInit, TGraphQLContext, TBaseGraphQLContext> {
+  TPersistGraphQLContext,
+>(): MessageHandler<MessageType.ConnectionInit, TGraphQLContext, TPersistGraphQLContext> {
   return async (args) => {
     const { event, context } = args;
 

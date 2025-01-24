@@ -4,8 +4,8 @@ import { MessageHandler } from '../message-handler';
 
 export function createPongHandler<
   TGraphQLContext,
-  TBaseGraphQLContext = unknown,
->(): MessageHandler<MessageType.Pong, TGraphQLContext, TBaseGraphQLContext> {
+  TPersistGraphQLContext = unknown,
+>(): MessageHandler<MessageType.Pong, TGraphQLContext, TPersistGraphQLContext> {
   return async ({ context, event, message }) => {
     await context.onPong?.({ context, event, message });
 
