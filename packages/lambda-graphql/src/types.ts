@@ -1,10 +1,14 @@
 import { Maybe } from '~utils/types';
 
-export interface BaseGraphQLContextTransformer<T> {
-  serialize: (value: Maybe<T>) => object;
-  parse: (value: Maybe<object>) => T;
+export interface BaseGraphQLContextTransformer<TContext, TPersistContext> {
+  serialize: (value: Maybe<TPersistContext>) => object;
+  parse: (value: Maybe<object>) => TPersistContext;
+  merge: (
+    ctx: Readonly<TContext>,
+    persist: Readonly<TPersistContext>
+  ) => Readonly<TPersistContext & TContext>;
 }
 
-export interface CommonWebSocketDirectParams<TPersistGraphQLContext> {
-  baseGraphQLContextTransformer: BaseGraphQLContextTransformer<TPersistGraphQLContext>;
+export interface CommonWebSocketDirectParams<TContext, TPersistContext> {
+  baseGraphQLContextTransformer: BaseGraphQLContextTransformer<TContext, TPersistContext>;
 }

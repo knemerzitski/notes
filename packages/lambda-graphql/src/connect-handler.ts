@@ -15,7 +15,7 @@ import { ConnectionTable, ConnectionTtlContext } from './dynamodb/models/connect
 import { SubscriptionTable } from './dynamodb/models/subscription';
 import { BaseGraphQLContextTransformer } from './types';
 
-interface DirectParams<TPersistGraphQLContext> {
+interface DirectParams<TGraphQLContext, TPersistGraphQLContext> {
   connection: ConnectionTtlContext;
   logger: Logger;
 
@@ -26,22 +26,22 @@ interface DirectParams<TPersistGraphQLContext> {
    * Throw error to disconnect.
    */
   onConnect?: (args: {
-    context: WebSocketConnectHandlerContext<TPersistGraphQLContext>;
+    context: WebSocketConnectHandlerContext<TGraphQLContext, TPersistGraphQLContext>;
     event: WebSocketConnectEvent;
   }) => Maybe<MaybePromise<TPersistGraphQLContext>>;
   baseGraphQLContextTransformer: Pick<
-    BaseGraphQLContextTransformer<TPersistGraphQLContext>,
+    BaseGraphQLContextTransformer<TGraphQLContext, TPersistGraphQLContext>,
     'serialize'
   >;
 }
 
-export interface WebSocketConnectHandlerParams<TPersistGraphQLContext>
-  extends DirectParams<TPersistGraphQLContext> {
+export interface WebSocketConnectHandlerParams<TGraphQLContext, TPersistGraphQLContext>
+  extends DirectParams<TGraphQLContext, TPersistGraphQLContext> {
   dynamoDB: DynamoDBContextParams;
 }
 
-export interface WebSocketConnectHandlerContext<TPersistGraphQLContext>
-  extends DirectParams<TPersistGraphQLContext> {
+export interface WebSocketConnectHandlerContext<TGraphQLContext, TPersistGraphQLContext>
+  extends DirectParams<TGraphQLContext, TPersistGraphQLContext> {
   models: {
     connections: ConnectionTable;
     subscriptions: SubscriptionTable;
@@ -62,8 +62,8 @@ export type WebSocketConnectHandler<T = never> = Handler<
   APIGatewayProxyResultV2<T>
 >;
 
-export function createWebSocketConnectHandler<TPersistGraphQLContext>(
-  params: WebSocketConnectHandlerParams<TPersistGraphQLContext>
+export function createWebSocketConnectHandler<TGraphQLContext, TPersistGraphQLContext>(
+  params: WebSocketConnectHandlerParams<TGraphQLContext, TPersistGraphQLContext>
 ): WebSocketConnectHandler {
   const { logger } = params;
 
@@ -71,19 +71,20 @@ export function createWebSocketConnectHandler<TPersistGraphQLContext>(
 
   const dynamoDB = createDynamoDBContext(params.dynamoDB);
 
-  const context: WebSocketConnectHandlerContext<TPersistGraphQLContext> = {
-    ...params,
-    models: {
-      connections: dynamoDB.connections,
-      subscriptions: dynamoDB.subscriptions,
-    },
-  };
+  const context: WebSocketConnectHandlerContext<TGraphQLContext, TPersistGraphQLContext> =
+    {
+      ...params,
+      models: {
+        connections: dynamoDB.connections,
+        subscriptions: dynamoDB.subscriptions,
+      },
+    };
 
   return webSocketConnectHandler(context);
 }
 
-export function webSocketConnectHandler<TPersistGraphQLContext>(
-  context: WebSocketConnectHandlerContext<TPersistGraphQLContext>
+export function webSocketConnectHandler<TGraphQLContext, TPersistGraphQLContext>(
+  context: WebSocketConnectHandlerContext<TGraphQLContext, TPersistGraphQLContext>
 ): WebSocketConnectHandler {
   return async (event) => {
     try {

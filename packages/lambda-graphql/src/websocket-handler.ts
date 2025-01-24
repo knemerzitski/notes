@@ -47,12 +47,12 @@ export type WebSocketHandler<T = never> = Handler<
 >;
 
 export type WebSocketHandlerParams<TGraphQLContext, TPersistGraphQLContext> =
-  WebSocketConnectHandlerParams<TPersistGraphQLContext> &
+  WebSocketConnectHandlerParams<TGraphQLContext, TPersistGraphQLContext> &
     WebSocketMessageHandlerParams<TGraphQLContext, TPersistGraphQLContext> &
     WebSocketDisconnectHandlerParams<TGraphQLContext, TPersistGraphQLContext>;
 
 export type WebSocketHandlerContext<TGraphQLContext, TPersistGraphQLContext> =
-  WebSocketConnectHandlerContext<TPersistGraphQLContext> &
+  WebSocketConnectHandlerContext<TGraphQLContext, TPersistGraphQLContext> &
     WebSocketMessageHandlerContext<TGraphQLContext, TPersistGraphQLContext> &
     WebSocketDisconnectHandlerContext<TGraphQLContext, TPersistGraphQLContext> & {
       eventHandlers: ReturnType<typeof createEventHandlers>;
