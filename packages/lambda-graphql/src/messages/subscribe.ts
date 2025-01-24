@@ -73,16 +73,16 @@ export function createSubscribeHandler<
         });
       }
 
-      const baseGraphQLContext = context.baseGraphQLContextTransformer.parse(
-        connection.baseGraphQLContext
+      const persistGraphQLContext = context.persistGraphQLContext.parse(
+        connection.persistGraphQLContext
       );
 
       const graphQLContextValue: SubscriptionContext &
         TGraphQLContext &
         TPersistGraphQLContext = {
-        ...context.baseGraphQLContextTransformer.merge(
+        ...context.persistGraphQLContext.merge(
           context.graphQLContext,
-          baseGraphQLContext
+          persistGraphQLContext
         ),
         ...createSubscriptionContext(),
         publish: createPublisher<TGraphQLContext>({

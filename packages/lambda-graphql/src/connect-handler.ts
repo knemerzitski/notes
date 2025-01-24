@@ -13,7 +13,7 @@ import { lowercaseHeaderKeys } from './apigateway-proxy-event/lowercase-header-k
 import { DynamoDBContextParams, createDynamoDBContext } from './context/dynamodb';
 import { ConnectionTable, ConnectionTtlContext } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
-import { BaseGraphQLContextTransformer } from './types';
+import { PersistGraphQLContext } from './types';
 
 interface DirectParams<TGraphQLContext, TPersistGraphQLContext> {
   connection: ConnectionTtlContext;
@@ -29,8 +29,8 @@ interface DirectParams<TGraphQLContext, TPersistGraphQLContext> {
     context: WebSocketConnectHandlerContext<TGraphQLContext, TPersistGraphQLContext>;
     event: WebSocketConnectEvent;
   }) => Maybe<MaybePromise<TPersistGraphQLContext>>;
-  baseGraphQLContextTransformer: Pick<
-    BaseGraphQLContextTransformer<TGraphQLContext, TPersistGraphQLContext>,
+  persistGraphQLContext: Pick<
+    PersistGraphQLContext<TGraphQLContext, TPersistGraphQLContext>,
     'serialize'
   >;
 }
@@ -100,15 +100,14 @@ export function webSocketConnectHandler<TGraphQLContext, TPersistGraphQLContext>
         headers: event.headers,
       });
 
-      // TODO rename to persistGraphQLContext
-      const baseGraphQLContext = await context.onConnect?.({ context, event });
+      const persistGraphQLContext = await context.onConnect?.({ context, event });
 
       await context.models.connections.put({
         id: connectionId,
         createdAt: Date.now(),
         requestContext: event.requestContext,
-        baseGraphQLContext:
-          context.baseGraphQLContextTransformer.serialize(baseGraphQLContext),
+        persistGraphQLContext:
+          context.persistGraphQLContext.serialize(persistGraphQLContext),
         hasPonged: false,
         ttl: context.connection.defaultTtl(),
       });
