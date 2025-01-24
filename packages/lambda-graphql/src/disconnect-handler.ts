@@ -36,10 +36,10 @@ import {
 } from './pubsub/subscribe';
 import { BaseGraphQLContextTransformer } from './types';
 
-interface DirectParams<TGraphQLContext, TBaseGraphQLContext> {
+interface DirectParams<TGraphQLContext, TPersistGraphQLContext> {
   createGraphQLContext: (
     context: Omit<
-      WebSocketDisconnectHandlerContext<TGraphQLContext, TBaseGraphQLContext>,
+      WebSocketDisconnectHandlerContext<TGraphQLContext, TPersistGraphQLContext>,
       'graphQLContext' | 'createGraphQLContext'
     >,
     event: APIGatewayProxyWebsocketEventV2
@@ -47,25 +47,25 @@ interface DirectParams<TGraphQLContext, TBaseGraphQLContext> {
   apiGateway: ApiGatewayContextParams;
   logger: Logger;
   baseGraphQLContextTransformer: Pick<
-    BaseGraphQLContextTransformer<TBaseGraphQLContext>,
+    BaseGraphQLContextTransformer<TPersistGraphQLContext>,
     'parse'
   >;
   onDisconnect?: (args: {
-    context: WebSocketDisconnectHandlerContext<TGraphQLContext, TBaseGraphQLContext>;
+    context: WebSocketDisconnectHandlerContext<TGraphQLContext, TPersistGraphQLContext>;
     event: WebSocketConnectEvent;
-  }) => Maybe<MaybePromise<TBaseGraphQLContext>>;
+  }) => Maybe<MaybePromise<TPersistGraphQLContext>>;
   formatError?: FormatError;
   formatErrorOptions?: FormatErrorOptions;
 }
 
-export interface WebSocketDisconnectHandlerParams<TGraphQLContext, TBaseGraphQLContext>
-  extends DirectParams<TGraphQLContext, TBaseGraphQLContext> {
+export interface WebSocketDisconnectHandlerParams<TGraphQLContext, TPersistGraphQLContext>
+  extends DirectParams<TGraphQLContext, TPersistGraphQLContext> {
   graphQL: GraphQLContextParams<TGraphQLContext>;
   dynamoDB: DynamoDBContextParams;
 }
 
-export interface WebSocketDisconnectHandlerContext<TGraphQLContext, TBaseGraphQLContext>
-  extends DirectParams<TGraphQLContext, TBaseGraphQLContext> {
+export interface WebSocketDisconnectHandlerContext<TGraphQLContext, TPersistGraphQLContext>
+  extends DirectParams<TGraphQLContext, TPersistGraphQLContext> {
   schema: GraphQLSchema;
   graphQLContext: TGraphQLContext;
   models: {
@@ -76,7 +76,7 @@ export interface WebSocketDisconnectHandlerContext<TGraphQLContext, TBaseGraphQL
   formatError: FormatError;
   createGraphQLContext: WebSocketDisconnectHandlerParams<
     TGraphQLContext,
-    TBaseGraphQLContext
+    TPersistGraphQLContext
   >['createGraphQLContext'];
 }
 
@@ -105,9 +105,9 @@ const defaultResponse: APIGatewayProxyResultV2 = {
 
 export function createWebSocketDisconnectHandler<
   TGraphQLContext extends WebSocketDisconnectGraphQLContext,
-  TBaseGraphQLContext,
+  TPersistGraphQLContext,
 >(
-  params: WebSocketDisconnectHandlerParams<TGraphQLContext, TBaseGraphQLContext>
+  params: WebSocketDisconnectHandlerParams<TGraphQLContext, TPersistGraphQLContext>
 ): WebSocketDisconnectHandler {
   const { logger } = params;
   logger.info('createWebSocketDisconnectHandler');
@@ -117,7 +117,7 @@ export function createWebSocketDisconnectHandler<
   const apiGateway = createApiGatewayContext(params.apiGateway);
 
   const context: Omit<
-    WebSocketDisconnectHandlerContext<TGraphQLContext, TBaseGraphQLContext>,
+    WebSocketDisconnectHandlerContext<TGraphQLContext, TPersistGraphQLContext>,
     'graphQLContext'
   > = {
     ...params,
@@ -135,10 +135,10 @@ export function createWebSocketDisconnectHandler<
 
 export function webSocketDisconnectHandler<
   TGraphQLContext extends Omit<WebSocketDisconnectGraphQLContext, 'publish'>,
-  TBaseGraphQLContext,
+  TPersistGraphQLContext,
 >(
   context: Omit<
-    WebSocketDisconnectHandlerContext<TGraphQLContext, TBaseGraphQLContext>,
+    WebSocketDisconnectHandlerContext<TGraphQLContext, TPersistGraphQLContext>,
     'graphQLContext'
   >
 ): WebSocketDisconnectHandler {
@@ -182,7 +182,7 @@ export function webSocketDisconnectHandler<
           // Call resolver onComplete
           const graphQLContextValue: SubscriptionContext &
             TGraphQLContext &
-            TBaseGraphQLContext = {
+            TPersistGraphQLContext = {
             ...context,
             ...graphQLContext,
             ...baseGraphQLContext,

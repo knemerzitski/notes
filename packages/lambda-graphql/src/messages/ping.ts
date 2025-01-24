@@ -4,8 +4,8 @@ import { MessageHandler } from '../message-handler';
 
 export function createPingHandler<
   TGraphQLContext,
-  TBaseGraphQLContext = unknown,
->(): MessageHandler<MessageType.Ping, TGraphQLContext, TBaseGraphQLContext> {
+  TPersistGraphQLContext = unknown,
+>(): MessageHandler<MessageType.Ping, TGraphQLContext, TPersistGraphQLContext> {
   return async ({ context, event, message }) => {
     await context.onPing?.({ context, event, message });
 

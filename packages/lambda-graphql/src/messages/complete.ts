@@ -17,8 +17,8 @@ import {
  */
 export function createCompleteHandler<
   TGraphQLContext,
-  TBaseGraphQLContext = unknown,
->(): MessageHandler<MessageType.Complete, TGraphQLContext, TBaseGraphQLContext> {
+  TPersistGraphQLContext = unknown,
+>(): MessageHandler<MessageType.Complete, TGraphQLContext, TPersistGraphQLContext> {
   return async ({ context, event, message }) => {
     const { connectionId } = event.requestContext;
     context.logger.info('messages:complete', {
@@ -50,7 +50,7 @@ export function createCompleteHandler<
 
       const graphQLContextValue: SubscriptionContext &
         TGraphQLContext &
-        TBaseGraphQLContext = {
+        TPersistGraphQLContext = {
         ...context.graphQLContext,
         ...baseGraphQLContext,
         ...createSubscriptionContext(),

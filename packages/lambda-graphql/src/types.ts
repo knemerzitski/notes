@@ -5,6 +5,6 @@ export interface BaseGraphQLContextTransformer<T> {
   parse: (value: Maybe<unknown>) => T;
 }
 
-export interface CommonWebSocketDirectParams<TBaseGraphQLContext> {
-  baseGraphQLContextTransformer: BaseGraphQLContextTransformer<TBaseGraphQLContext>;
+export interface CommonWebSocketDirectParams<TPersistGraphQLContext> {
+  baseGraphQLContextTransformer: BaseGraphQLContextTransformer<TPersistGraphQLContext>;
 }
