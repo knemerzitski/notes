@@ -15,41 +15,41 @@ import { Cookies, SerializedCookies } from '../services/http/cookies';
 import { SessionDurationConfig } from '../services/session/duration';
 
 export interface ApiOptions {
-  sessions?: {
+  readonly sessions?: {
     /**
      * User sessions stored in MongoDB Sessions collection
      */
-    user?: SessionDurationConfig;
+    readonly user?: SessionDurationConfig;
     /**
      * Subscriptions stored in DynamoDB tables
      */
-    webSocket?: SessionDurationConfig;
+    readonly webSocket?: SessionDurationConfig;
   };
-  completedSubscriptions: {
+  readonly completedSubscriptions: {
     /**
      * How long to store info that a subscription completed before it's been fully processed/subscribed.
      * @default 1000 * 5  // seconds
      */
-    duration?: number;
+    readonly duration?: number;
   };
-  note?: {
+  readonly note?: {
     /**
      * How long note is kept in trash in milliseconds.
      * @default 1000 * 60 * 60 * 24 * 30 // 30 days
      */
-    trashDuration?: number;
+    readonly trashDuration?: number;
     /**
      * How long open note document is stored in milliseconds
      * @default 1000 * 60 * 60 // 1 hour
      */
-    openNoteDuration?: number;
+    readonly openNoteDuration?: number;
   };
-  collabText?: {
+  readonly collabText?: {
     /**
      * Records array max length. If not defined then array will keep growing.
      * @default 500
      */
-    maxRecordsCount?: number;
+    readonly maxRecordsCount?: number;
   };
 }
 
@@ -57,7 +57,7 @@ export interface ApiOptions {
  * Persist GraphQL context is serialized and restored during WebSocket connections
  */
 export interface PersistGraphQLContext {
-  cookies: Cookies;
+  readonly cookies: Cookies;
   auth: AuthenticationContext;
 }
 
@@ -75,17 +75,17 @@ export interface SerializedPersistGraphQLContext {
  * GraphQL context is created before request is handled and is not serializable
  */
 export interface ApiGraphQLContext {
-  mongoDB: {
-    client: MongoClient;
-    collections: MongoDBCollections;
-    loaders: MongoDBLoaders;
+  readonly mongoDB: {
+    readonly client: MongoClient;
+    readonly collections: MongoDBCollections;
+    readonly loaders: MongoDBLoaders;
   };
-  options?: ApiOptions;
+  readonly options?: ApiOptions;
   /**
    * Current user connectionId.
    * Same user might send requests using different connectionId's at the same time.
    */
-  connectionId: string | undefined;
+  readonly connectionId: string | undefined;
 }
 
 export type GraphQLResolversContext = ApolloHttpGraphQLContext &
