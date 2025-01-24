@@ -16,8 +16,8 @@ import { SubscriptionTable } from './dynamodb/models/subscription';
 import { PersistGraphQLContext } from './types';
 
 interface DirectParams<TGraphQLContext, TPersistGraphQLContext> {
-  connection: ConnectionTtlContext;
-  logger: Logger;
+  readonly connection: ConnectionTtlContext;
+  readonly logger: Logger;
 
   /**
    *
@@ -25,11 +25,11 @@ interface DirectParams<TGraphQLContext, TPersistGraphQLContext> {
    * Context is persisted in DynamoDB connection table while connection is alive.
    * Throw error to disconnect.
    */
-  onConnect?: (args: {
+  readonly onConnect?: (args: {
     context: WebSocketConnectHandlerContext<TGraphQLContext, TPersistGraphQLContext>;
     event: WebSocketConnectEvent;
   }) => Maybe<MaybePromise<TPersistGraphQLContext>>;
-  persistGraphQLContext: Pick<
+  readonly persistGraphQLContext: Pick<
     PersistGraphQLContext<TGraphQLContext, TPersistGraphQLContext>,
     'serialize'
   >;
@@ -37,14 +37,14 @@ interface DirectParams<TGraphQLContext, TPersistGraphQLContext> {
 
 export interface WebSocketConnectHandlerParams<TGraphQLContext, TPersistGraphQLContext>
   extends DirectParams<TGraphQLContext, TPersistGraphQLContext> {
-  dynamoDB: DynamoDBContextParams;
+  readonly dynamoDB: DynamoDBContextParams;
 }
 
 export interface WebSocketConnectHandlerContext<TGraphQLContext, TPersistGraphQLContext>
   extends DirectParams<TGraphQLContext, TPersistGraphQLContext> {
-  models: {
-    connections: ConnectionTable;
-    subscriptions: SubscriptionTable;
+  readonly models: {
+    readonly connections: ConnectionTable;
+    readonly subscriptions: SubscriptionTable;
   };
 }
 

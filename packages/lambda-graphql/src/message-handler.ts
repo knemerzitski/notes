@@ -41,36 +41,36 @@ import { Publisher } from './pubsub/publish';
 import { PersistGraphQLContext } from './types';
 
 interface DirectParams<TGraphQLContext, TPersistGraphQLContext> {
-  connection: ConnectionTtlContext;
-  completedSubscription: {
-    ttl: number;
+  readonly connection: ConnectionTtlContext;
+  readonly completedSubscription: {
+    readonly ttl: number;
   };
-  logger: Logger;
+  readonly logger: Logger;
 
-  onConnectionInit?: (args: {
+  readonly onConnectionInit?: (args: {
     context: WebSocketMessageHandlerContext<TGraphQLContext, TPersistGraphQLContext>;
     event: APIGatewayProxyWebsocketEventV2;
     message: ConnectionInitMessage;
     persistGraphQLContext: TPersistGraphQLContext;
   }) => MaybePromise<TPersistGraphQLContext | void>;
-  onPing?: (args: {
+  readonly onPing?: (args: {
     context: WebSocketMessageHandlerContext<TGraphQLContext, TPersistGraphQLContext>;
     event: APIGatewayProxyWebsocketEventV2;
     message: PingMessage;
   }) => MaybePromise<void>;
-  onPong?: (args: {
+  readonly onPong?: (args: {
     context: WebSocketMessageHandlerContext<TGraphQLContext, TPersistGraphQLContext>;
     event: APIGatewayProxyWebsocketEventV2;
     message: PongMessage;
   }) => MaybePromise<void>;
-  onError?: (args: {
+  readonly onError?: (args: {
     error: unknown;
     context: WebSocketMessageHandlerContext<TGraphQLContext, TPersistGraphQLContext>;
     event: APIGatewayProxyWebsocketEventV2;
   }) => MaybePromise<void>;
-  formatError?: FormatError;
-  formatErrorOptions?: FormatErrorOptions;
-  persistGraphQLContext: PersistGraphQLContext<
+  readonly formatError?: FormatError;
+  readonly formatErrorOptions?: FormatErrorOptions;
+  readonly persistGraphQLContext: PersistGraphQLContext<
     TGraphQLContext,
     TPersistGraphQLContext
   >;

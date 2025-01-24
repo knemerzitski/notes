@@ -13,20 +13,20 @@ import { PingPongContextParams, PingPongMachineInput } from './context/pingpong'
 import { ConnectionTable } from './dynamodb/models/connection';
 
 interface DirectParams {
-  logger: Logger;
-  pingpong: Pick<PingPongContextParams, 'delay' | 'timeout'>;
+  readonly logger: Logger;
+  readonly pingpong: Pick<PingPongContextParams, 'delay' | 'timeout'>;
 }
 
 export interface PingPongHandlerParams extends DirectParams {
-  dynamoDB: DynamoDBContextParams;
-  apiGateway: ApiGatewayContextParams;
+  readonly dynamoDB: DynamoDBContextParams;
+  readonly apiGateway: ApiGatewayContextParams;
 }
 
 export interface PingPongHandlerContext extends DirectParams {
-  models: {
-    connections: ConnectionTable;
+  readonly models: {
+    readonly connections: ConnectionTable;
   };
-  socketApi: WebSocketApi;
+  readonly socketApi: WebSocketApi;
 }
 
 export type PingPongHandler = Handler<

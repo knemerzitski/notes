@@ -37,25 +37,25 @@ import {
 import { PersistGraphQLContext } from './types';
 
 interface DirectParams<TGraphQLContext, TPersistGraphQLContext> {
-  createGraphQLContext: (
+  readonly createGraphQLContext: (
     context: Omit<
       WebSocketDisconnectHandlerContext<TGraphQLContext, TPersistGraphQLContext>,
       'graphQLContext' | 'createGraphQLContext'
     >,
     event: APIGatewayProxyWebsocketEventV2
   ) => Promise<TGraphQLContext> | TGraphQLContext;
-  apiGateway: ApiGatewayContextParams;
-  logger: Logger;
-  persistGraphQLContext: Pick<
+  readonly apiGateway: ApiGatewayContextParams;
+  readonly logger: Logger;
+  readonly persistGraphQLContext: Pick<
     PersistGraphQLContext<TGraphQLContext, TPersistGraphQLContext>,
     'parse' | 'merge'
   >;
-  onDisconnect?: (args: {
+  readonly onDisconnect?: (args: {
     context: WebSocketDisconnectHandlerContext<TGraphQLContext, TPersistGraphQLContext>;
     event: WebSocketConnectEvent;
   }) => Maybe<MaybePromise<TPersistGraphQLContext>>;
-  formatError?: FormatError;
-  formatErrorOptions?: FormatErrorOptions;
+  readonly formatError?: FormatError;
+  readonly formatErrorOptions?: FormatErrorOptions;
 }
 
 export interface WebSocketDisconnectHandlerParams<TGraphQLContext, TPersistGraphQLContext>

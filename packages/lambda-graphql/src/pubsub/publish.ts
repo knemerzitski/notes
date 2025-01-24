@@ -15,15 +15,15 @@ import {
 import { PubSubEvent } from './subscribe';
 
 interface CreatePublisherParams<TGraphQLContext> {
-  context: {
-    logger: Logger;
-    models: {
-      subscriptions: SubscriptionTable;
+  readonly context: {
+    readonly logger: Logger;
+    readonly models: {
+      readonly subscriptions: SubscriptionTable;
     };
-    schema: GraphQLSchema;
-    socketApi: WebSocketApi;
-    formatError: FormatError;
-    formatErrorOptions?: FormatErrorOptions;
+    readonly schema: GraphQLSchema;
+    readonly socketApi: WebSocketApi;
+    readonly formatError: FormatError;
+    readonly formatErrorOptions?: FormatErrorOptions;
   };
   getGraphQLContext: () => TGraphQLContext;
   /**
