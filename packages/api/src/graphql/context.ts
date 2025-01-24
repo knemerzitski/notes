@@ -12,6 +12,7 @@ import {
   ApiGraphQLContext,
   ApiOptions,
   BaseGraphQLContext,
+  BaseSubscriptionResolversContext,
   DynamoDBBaseGraphQLContext,
 } from './types';
 
@@ -70,4 +71,14 @@ export function serializeBaseGraphQLContext(
 
 export function parseDynamoDBBaseGraphQLContext(value: Maybe<unknown>) {
   return BaseGraphQLContextStruct.create(value);
+}
+
+export function mergePersistGraphQLContext(
+  ctx: Readonly<BaseSubscriptionResolversContext>,
+  persist: Readonly<BaseGraphQLContext>
+): Readonly<BaseSubscriptionResolversContext & BaseGraphQLContext> {
+  return {
+    ...ctx,
+    ...persist,
+  };
 }

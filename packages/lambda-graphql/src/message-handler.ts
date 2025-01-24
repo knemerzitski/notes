@@ -70,7 +70,10 @@ interface DirectParams<TGraphQLContext, TPersistGraphQLContext> {
   }) => MaybePromise<void>;
   formatError?: FormatError;
   formatErrorOptions?: FormatErrorOptions;
-  baseGraphQLContextTransformer: BaseGraphQLContextTransformer<TPersistGraphQLContext>;
+  baseGraphQLContextTransformer: BaseGraphQLContextTransformer<
+    TGraphQLContext,
+    TPersistGraphQLContext
+  >;
 }
 
 export interface WebSocketMessageHandlerParams<TGraphQLContext, TPersistGraphQLContext>

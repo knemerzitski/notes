@@ -51,8 +51,10 @@ export function createCompleteHandler<
       const graphQLContextValue: SubscriptionContext &
         TGraphQLContext &
         TPersistGraphQLContext = {
-        ...context.graphQLContext,
-        ...baseGraphQLContext,
+        ...context.baseGraphQLContextTransformer.merge(
+          context.graphQLContext,
+          baseGraphQLContext
+        ),
         ...createSubscriptionContext(),
         publish: createPublisher<TGraphQLContext>({
           context,

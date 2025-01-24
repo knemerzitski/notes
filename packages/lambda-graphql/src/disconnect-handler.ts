@@ -47,8 +47,8 @@ interface DirectParams<TGraphQLContext, TPersistGraphQLContext> {
   apiGateway: ApiGatewayContextParams;
   logger: Logger;
   baseGraphQLContextTransformer: Pick<
-    BaseGraphQLContextTransformer<TPersistGraphQLContext>,
-    'parse'
+    BaseGraphQLContextTransformer<TGraphQLContext, TPersistGraphQLContext>,
+    'parse' | 'merge'
   >;
   onDisconnect?: (args: {
     context: WebSocketDisconnectHandlerContext<TGraphQLContext, TPersistGraphQLContext>;
@@ -64,8 +64,10 @@ export interface WebSocketDisconnectHandlerParams<TGraphQLContext, TPersistGraph
   dynamoDB: DynamoDBContextParams;
 }
 
-export interface WebSocketDisconnectHandlerContext<TGraphQLContext, TPersistGraphQLContext>
-  extends DirectParams<TGraphQLContext, TPersistGraphQLContext> {
+export interface WebSocketDisconnectHandlerContext<
+  TGraphQLContext,
+  TPersistGraphQLContext,
+> extends DirectParams<TGraphQLContext, TPersistGraphQLContext> {
   schema: GraphQLSchema;
   graphQLContext: TGraphQLContext;
   models: {
@@ -184,8 +186,10 @@ export function webSocketDisconnectHandler<
             TGraphQLContext &
             TPersistGraphQLContext = {
             ...context,
-            ...graphQLContext,
-            ...baseGraphQLContext,
+            ...context.baseGraphQLContextTransformer.merge(
+              graphQLContext,
+              baseGraphQLContext
+            ),
             ...createSubscriptionContext(),
             publish: createPublisher<TGraphQLContext>({
               context,

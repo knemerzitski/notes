@@ -11,6 +11,7 @@ import { createLogger, Logger } from '~utils/logging';
 import {
   createApiGraphQLContext,
   createBaseGraphQLContext,
+  mergePersistGraphQLContext,
   parseDynamoDBBaseGraphQLContext,
   serializeBaseGraphQLContext,
 } from './graphql/context';
@@ -76,6 +77,7 @@ export function createWebSocketHandlerDefaultParams(
     baseGraphQLContextTransformer: {
       serialize: serializeBaseGraphQLContext,
       parse: parseDynamoDBBaseGraphQLContext,
+      merge: mergePersistGraphQLContext,
     },
     connection: createDynamoDBConnectionTtlContext(apiOptions),
     completedSubscription: {
