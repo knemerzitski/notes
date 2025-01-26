@@ -5,6 +5,7 @@ type Event<K, V> =
   | {
       type: 'delete';
       key: K;
+      deletedValue: V | undefined;
     };
 
 export class ObservableMap<K, V> {
@@ -34,11 +35,13 @@ export class ObservableMap<K, V> {
   }
 
   delete(key: K) {
+    const deleteValue = this.map.get(key);
+
     const result = this.map.delete(key);
 
     if (result) {
       this.observers.forEach((observer) => {
-        observer.next({ type: 'delete', key });
+        observer.next({ type: 'delete', key, deletedValue: deleteValue });
       });
     }
 
