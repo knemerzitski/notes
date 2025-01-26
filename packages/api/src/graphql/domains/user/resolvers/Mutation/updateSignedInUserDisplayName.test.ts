@@ -7,6 +7,8 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { mock, mockDeep } from 'vitest-mock-extended';
 
 import { mockResolver } from '../../../../../__tests__/helpers/graphql/mock-resolver';
+import { QueryableSession } from '../../../../../mongodb/loaders/session/description';
+import { SingleUserAuthenticationService } from '../../../../../services/auth/types';
 import { updateDisplayName } from '../../../../../services/user/update-display-name';
 
 import { GraphQLResolversContext } from '../../../../types';
@@ -32,10 +34,16 @@ it('calls updateDisplayName', async () => {
       input: { displayName },
     },
     mockDeep<GraphQLResolversContext>({
-      auth: {
-        session: {
-          userId,
-        },
+      services: {
+        requestHeaderAuth: mockDeep<SingleUserAuthenticationService>({
+          getAuth() {
+            return Promise.resolve({
+              session: {
+                userId,
+              } as QueryableSession,
+            });
+          },
+        }),
       },
       mongoDB,
     })
@@ -60,7 +68,7 @@ it('returns UpdateSignedInUserDisplayNamePayload with query', async () => {
   const auth = {
     session: {
       userId,
-    },
+    } as QueryableSession,
   };
 
   const result = await resolveUpdateSignedInUserDisplayName(
@@ -69,7 +77,13 @@ it('returns UpdateSignedInUserDisplayNamePayload with query', async () => {
       input: { displayName },
     },
     mockDeep<GraphQLResolversContext>({
-      auth,
+      services: {
+        requestHeaderAuth: mockDeep<SingleUserAuthenticationService>({
+          getAuth() {
+            return Promise.resolve(auth);
+          },
+        }),
+      },
       mongoDB,
     })
   );
@@ -95,6 +109,13 @@ it('accesses mongoDB once for createQueryFn', async () => {
     mock<any>(),
     mock<any>(),
     mockDeep<GraphQLResolversContext>({
+      services: {
+        requestHeaderAuth: mockDeep<SingleUserAuthenticationService>({
+          getAuth() {
+            return mockDeep();
+          },
+        }),
+      },
       mongoDB,
     })
   );

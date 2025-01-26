@@ -1,4 +1,3 @@
-import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import { deleteShareLinks } from '../../../../../services/note/delete-share-links';
 import { getNoteUsersIds } from '../../../../../services/note/note';
 import type { MutationResolvers, ResolversTypes } from '../../../types.generated';
@@ -9,8 +8,8 @@ export const deleteShareNote: NonNullable<MutationResolvers['deleteShareNote']> 
   arg,
   ctx
 ) => {
-  const { auth, mongoDB } = ctx;
-  assertAuthenticated(auth);
+  const { services, mongoDB } = ctx;
+  const auth = await services.requestHeaderAuth.getAuth();
 
   const { input } = arg;
 

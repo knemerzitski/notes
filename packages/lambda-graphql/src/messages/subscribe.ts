@@ -6,20 +6,21 @@ import { isArray } from '~utils/array/is-array';
 import { Subscription } from '../dynamodb/models/subscription';
 import { formatUnknownError } from '../graphql/format-unknown-error';
 import { validateQuery } from '../graphql/validate-query';
-import { MessageHandler } from '../message-handler';
+import { MessageHandler, WebSocketMessageGraphQLContext } from '../message-handler';
 import { createPublisher } from '../pubsub/publish';
 import {
   SubscribeHookError,
-  SubscriptionContext,
+  SubscriptionGraphQLContext,
   createSubscriptionContext,
   getSubscribeFieldResult,
 } from '../pubsub/subscribe';
 
-export function createSubscribeHandler<
-  TGraphQLContext,
-  TPersistGraphQLContext,
->(): MessageHandler<MessageType.Subscribe, TGraphQLContext, TPersistGraphQLContext> {
-  return async ({ context, event, message }) => {
+export function createSubscribeHandler<TGraphQLContext>(): MessageHandler<
+  MessageType.Subscribe,
+  TGraphQLContext
+> {
+  return async (args) => {
+    const { context, event, message } = args;
     const { connectionId } = event.requestContext;
     context.logger.info('messages:subscribe', {
       connectionId,
@@ -28,12 +29,7 @@ export function createSubscribeHandler<
     });
 
     try {
-      const connection = await context.models.connections.get({
-        id: connectionId,
-      });
-      if (!connection) {
-        throw new Error('Missing connection record in DB');
-      }
+      const connection = await context.getCurrentConnection();
 
       // Refresh TTL if it will expire soon
       const ttl = context.connection.tryRefreshTtl(connection.ttl);
@@ -73,18 +69,12 @@ export function createSubscribeHandler<
         });
       }
 
-      const persistGraphQLContext = context.persistGraphQLContext.parse(
-        connection.persistGraphQLContext
-      );
-
-      const graphQLContextValue: SubscriptionContext &
-        TGraphQLContext &
-        TPersistGraphQLContext = {
-        ...context.persistGraphQLContext.merge(
-          context.graphQLContext,
-          persistGraphQLContext
-        ),
+      const graphQLContextValue: SubscriptionGraphQLContext &
+        WebSocketMessageGraphQLContext &
+        TGraphQLContext = {
+        ...(await context.createGraphQLContext()),
         ...createSubscriptionContext(),
+        logger: context.logger,
         publish: createPublisher<TGraphQLContext>({
           context,
           getGraphQLContext: () => graphQLContextValue,

@@ -1,4 +1,3 @@
-import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import { insertUserByShareLink } from '../../../../../services/note/insert-user-by-share-link';
 import {
   NoteCategory,
@@ -10,8 +9,8 @@ import { publishSignedInUserMutation } from '../../../user/resolvers/Subscriptio
 export const createNoteLinkByShareAccess: NonNullable<
   MutationResolvers['createNoteLinkByShareAccess']
 > = async (_parent, arg, ctx) => {
-  const { auth, mongoDB } = ctx;
-  assertAuthenticated(auth);
+  const { services, mongoDB } = ctx;
+  const auth = await services.requestHeaderAuth.getAuth();
 
   const { input } = arg;
 

@@ -11,8 +11,8 @@ export interface Connection extends ConnectionKey {
   createdAt: number;
   // requestContext from $connect event
   requestContext: APIGatewayEventWebsocketRequestContextV2;
-  // Merged into GraphQL context during query execution
-  persistGraphQLContext?: object;
+  // Custom data provided by package user
+  customData?: unknown;
   hasPonged: boolean;
   // Time to live in seconds, after which record is deleted
   ttl: number;

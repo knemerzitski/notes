@@ -1,16 +1,16 @@
-import { ServiceError } from '../errors';
+import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
 
-import { UnauthenticatedContext } from './authentication-context';
+import { ServiceError } from '../errors';
 
 export type AuthServiceErrorCode = 'UNAUTHENTICATED';
 
 export class AuthServiceError extends ServiceError<AuthServiceErrorCode> {}
 
 export class UnauthenticatedServiceError extends AuthServiceError {
-  readonly context: UnauthenticatedContext | undefined;
+  readonly reason: AuthenticationFailedReason | undefined;
 
-  constructor(context: UnauthenticatedContext | undefined) {
+  constructor(reason: AuthenticationFailedReason | undefined) {
     super('UNAUTHENTICATED', 'User is not authenticated');
-    this.context = context;
+    this.reason = reason;
   }
 }

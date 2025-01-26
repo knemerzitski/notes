@@ -46,27 +46,24 @@ export type WebSocketHandler<T = never> = Handler<
   APIGatewayProxyResultV2<T>
 >;
 
-export type WebSocketHandlerParams<TGraphQLContext, TPersistGraphQLContext> =
-  WebSocketConnectHandlerParams<TGraphQLContext, TPersistGraphQLContext> &
-    WebSocketMessageHandlerParams<TGraphQLContext, TPersistGraphQLContext> &
-    WebSocketDisconnectHandlerParams<TGraphQLContext, TPersistGraphQLContext>;
+export type WebSocketHandlerParams<TGraphQLContext> =
+  WebSocketConnectHandlerParams<TGraphQLContext> &
+    WebSocketMessageHandlerParams<TGraphQLContext> &
+    WebSocketDisconnectHandlerParams<TGraphQLContext>;
 
-export type WebSocketHandlerContext<TGraphQLContext, TPersistGraphQLContext> =
-  WebSocketConnectHandlerContext<TGraphQLContext, TPersistGraphQLContext> &
-    WebSocketMessageHandlerContext<TGraphQLContext, TPersistGraphQLContext> &
-    WebSocketDisconnectHandlerContext<TGraphQLContext, TPersistGraphQLContext> & {
+export type WebSocketHandlerContext<TGraphQLContext> =
+  WebSocketConnectHandlerContext<TGraphQLContext> &
+    WebSocketMessageHandlerContext<TGraphQLContext> &
+    WebSocketDisconnectHandlerContext<TGraphQLContext> & {
       eventHandlers: ReturnType<typeof createEventHandlers>;
     };
 
 export type WebSocketGraphQLContext = WebSocketMessageGraphQLContext &
   WebSocketDisconnectGraphQLContext;
 
-export function createEventHandlers<
-  TGraphQLContext extends WebSocketGraphQLContext,
-  TPersistGraphQLContext,
->(
+export function createEventHandlers<TGraphQLContext>(
   context: Omit<
-    WebSocketHandlerContext<TGraphQLContext, TPersistGraphQLContext>,
+    WebSocketHandlerContext<TGraphQLContext>,
     'graphQLContext' | 'eventHandlers'
   >
 ) {
@@ -77,11 +74,8 @@ export function createEventHandlers<
   };
 }
 
-export function createWebSocketHandler<
-  TGraphQLContext extends WebSocketGraphQLContext,
-  TPersistGraphQLContext,
->(
-  params: WebSocketHandlerParams<TGraphQLContext, TPersistGraphQLContext>
+export function createWebSocketHandler<TGraphQLContext>(
+  params: WebSocketHandlerParams<TGraphQLContext>
 ): WebSocketHandler {
   const { logger } = params;
 
@@ -93,7 +87,7 @@ export function createWebSocketHandler<
   const pingpong = params.pingpong ? createPingPongContext(params.pingpong) : undefined;
 
   const context: Omit<
-    WebSocketHandlerContext<TGraphQLContext, TPersistGraphQLContext>,
+    WebSocketHandlerContext<TGraphQLContext>,
     'graphQLContext' | 'eventHandlers'
   > = {
     ...params,
@@ -106,7 +100,7 @@ export function createWebSocketHandler<
     },
     socketApi: apiGateway.socketApi,
     startPingPong: pingpong?.startPingPong,
-    messageHandlers: createMessageHandlers<TGraphQLContext, TPersistGraphQLContext>(),
+    messageHandlers: createMessageHandlers<TGraphQLContext>(),
   };
 
   const eventHandlers = createEventHandlers(context);
@@ -117,14 +111,8 @@ export function createWebSocketHandler<
   });
 }
 
-export function webSocketHandler<
-  TGraphQLContext extends WebSocketGraphQLContext,
-  TPersistGraphQLContext,
->(
-  context: Omit<
-    WebSocketHandlerContext<TGraphQLContext, TPersistGraphQLContext>,
-    'graphQLContext'
-  >
+export function webSocketHandler<TGraphQLContext>(
+  context: Omit<WebSocketHandlerContext<TGraphQLContext>, 'graphQLContext'>
 ): WebSocketHandler {
   return (event, requestContext, callback) => {
     const { eventType } = event.requestContext;

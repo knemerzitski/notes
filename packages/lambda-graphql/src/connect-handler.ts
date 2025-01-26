@@ -7,17 +7,22 @@ import {
 } from 'aws-lambda';
 import { GRAPHQL_TRANSPORT_WS_PROTOCOL } from 'graphql-ws';
 import { Logger } from '~utils/logging';
-import { Maybe, MaybePromise } from '~utils/types';
+import { MaybePromise } from '~utils/types';
 
 import { lowercaseHeaderKeys } from './apigateway-proxy-event/lowercase-header-keys';
 import { DynamoDBContextParams, createDynamoDBContext } from './context/dynamodb';
-import { ConnectionTable, ConnectionTtlContext } from './dynamodb/models/connection';
+import {
+  Connection,
+  ConnectionTable,
+  ConnectionTtlContext,
+} from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
-import { PersistGraphQLContext } from './types';
 
-interface DirectParams<TGraphQLContext, TPersistGraphQLContext> {
+interface DirectParams<TGraphQLContext> {
   readonly connection: ConnectionTtlContext;
   readonly logger: Logger;
+
+  // always have access to custom data when needed? and can modify it?
 
   /**
    *
@@ -26,22 +31,22 @@ interface DirectParams<TGraphQLContext, TPersistGraphQLContext> {
    * Throw error to disconnect.
    */
   readonly onConnect?: (args: {
-    context: WebSocketConnectHandlerContext<TGraphQLContext, TPersistGraphQLContext>;
+    context: WebSocketConnectHandlerContext<TGraphQLContext>;
     event: WebSocketConnectEvent;
-  }) => Maybe<MaybePromise<TPersistGraphQLContext>>;
-  readonly persistGraphQLContext: Pick<
-    PersistGraphQLContext<TGraphQLContext, TPersistGraphQLContext>,
-    'serialize'
-  >;
+    /**
+     * Connection that will be stored in DynamoDB.
+     */
+    connection: Connection;
+  }) => MaybePromise<void>;
 }
 
-export interface WebSocketConnectHandlerParams<TGraphQLContext, TPersistGraphQLContext>
-  extends DirectParams<TGraphQLContext, TPersistGraphQLContext> {
+export interface WebSocketConnectHandlerParams<TGraphQLContext>
+  extends DirectParams<TGraphQLContext> {
   readonly dynamoDB: DynamoDBContextParams;
 }
 
-export interface WebSocketConnectHandlerContext<TGraphQLContext, TPersistGraphQLContext>
-  extends DirectParams<TGraphQLContext, TPersistGraphQLContext> {
+export interface WebSocketConnectHandlerContext<TGraphQLContext>
+  extends DirectParams<TGraphQLContext> {
   readonly models: {
     readonly connections: ConnectionTable;
     readonly subscriptions: SubscriptionTable;
@@ -62,8 +67,8 @@ export type WebSocketConnectHandler<T = never> = Handler<
   APIGatewayProxyResultV2<T>
 >;
 
-export function createWebSocketConnectHandler<TGraphQLContext, TPersistGraphQLContext>(
-  params: WebSocketConnectHandlerParams<TGraphQLContext, TPersistGraphQLContext>
+export function createWebSocketConnectHandler<TGraphQLContext>(
+  params: WebSocketConnectHandlerParams<TGraphQLContext>
 ): WebSocketConnectHandler {
   const { logger } = params;
 
@@ -71,20 +76,19 @@ export function createWebSocketConnectHandler<TGraphQLContext, TPersistGraphQLCo
 
   const dynamoDB = createDynamoDBContext(params.dynamoDB);
 
-  const context: WebSocketConnectHandlerContext<TGraphQLContext, TPersistGraphQLContext> =
-    {
-      ...params,
-      models: {
-        connections: dynamoDB.connections,
-        subscriptions: dynamoDB.subscriptions,
-      },
-    };
+  const context: WebSocketConnectHandlerContext<TGraphQLContext> = {
+    ...params,
+    models: {
+      connections: dynamoDB.connections,
+      subscriptions: dynamoDB.subscriptions,
+    },
+  };
 
   return webSocketConnectHandler(context);
 }
 
-export function webSocketConnectHandler<TGraphQLContext, TPersistGraphQLContext>(
-  context: WebSocketConnectHandlerContext<TGraphQLContext, TPersistGraphQLContext>
+export function webSocketConnectHandler<TGraphQLContext>(
+  context: WebSocketConnectHandlerContext<TGraphQLContext>
 ): WebSocketConnectHandler {
   return async (event) => {
     try {
@@ -100,17 +104,21 @@ export function webSocketConnectHandler<TGraphQLContext, TPersistGraphQLContext>
         headers: event.headers,
       });
 
-      const persistGraphQLContext = await context.onConnect?.({ context, event });
-
-      await context.models.connections.put({
+      const connection: Connection = {
         id: connectionId,
         createdAt: Date.now(),
         requestContext: event.requestContext,
-        persistGraphQLContext:
-          context.persistGraphQLContext.serialize(persistGraphQLContext),
         hasPonged: false,
         ttl: context.connection.defaultTtl(),
+      };
+
+      await context.onConnect?.({
+        context,
+        event,
+        connection,
       });
+
+      await context.models.connections.put(connection);
 
       const response = {
         statusCode: 200,

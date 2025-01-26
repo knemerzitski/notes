@@ -1,9 +1,6 @@
-import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
+import { isDefined } from '~utils/type-guards/is-defined';
 
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
-import { deleteAllSessionsInCookies } from '../../../../../services/auth/delete-all-sessions-in-cookies';
-import { deleteSessionWithCookies } from '../../../../../services/auth/delete-session-with-cookies';
-import { isAuthenticated } from '../../../../../services/auth/is-authenticated';
 
 import type { MutationResolvers } from './../../../types.generated';
 
@@ -12,53 +9,40 @@ export const signOut: NonNullable<MutationResolvers['signOut']> = async (
   arg,
   ctx
 ) => {
-  const { mongoDB, cookies, response } = ctx;
+  const { services } = ctx;
 
   const { input } = arg;
 
   let signedOutUserIds: string[] = [];
   if (input?.allUsers) {
     // Sign out all users
-    signedOutUserIds = cookies.getAvailableSessionUserIds();
+    signedOutUserIds = services.auth
+      .getAvailableUserIds()
+      .map(objectIdToStr)
+      .filter(isDefined);
 
-    await deleteAllSessionsInCookies({
-      cookies,
-      mongoDB,
-    });
+    await services.auth.deleteAllAuth();
   } else {
     if (input?.userId) {
+      // Sign out specified user
       signedOutUserIds = [objectIdToStr(input.userId)];
 
-      // Sign out specified user
-      await deleteSessionWithCookies({
-        userId: input.userId,
-        cookieId: cookies.getSessionCookieId(input.userId),
-        cookies,
-        mongoDB,
-      });
-    } else if (isAuthenticated(ctx.auth)) {
-      signedOutUserIds = [objectIdToStr(ctx.auth.session.userId)];
-
+      await services.auth.deleteAuthByUserId(input.userId);
+    } else if (await ctx.services.requestHeaderAuth.isAuthenticated()) {
       // Sign out authenticated user
-      await deleteSessionWithCookies({
-        userId: ctx.auth.session.userId,
-        cookieId: ctx.auth.session.cookieId,
-        cookies,
-        mongoDB,
-      });
+      const auth = await ctx.services.requestHeaderAuth.getAuth();
+
+      signedOutUserIds = [objectIdToStr(auth.session.userId)];
+
+      await ctx.services.auth.deleteAuthByUserId(auth.session.userId);
     }
   }
 
-  if (isAuthenticated(ctx.auth)) {
-    ctx.auth = {
-      reason: AuthenticationFailedReason.USER_NO_SESSION,
-    };
-  }
-
-  cookies.putCookiesToHeaders(response.multiValueHeaders);
-
   return {
     signedOutUserIds,
-    availableUserIds: cookies.getAvailableSessionUserIds(),
+    availableUserIds: services.auth
+      .getAvailableUserIds()
+      .map(objectIdToStr)
+      .filter(isDefined),
   };
 };

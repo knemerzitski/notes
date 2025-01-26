@@ -1,6 +1,5 @@
 import { QueryableNoteUser } from '../../../../../mongodb/loaders/note/descriptions/note';
 import { createMapQueryFn, createValueQueryFn } from '../../../../../mongodb/query/query';
-import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import { findNoteUserMaybe } from '../../../../../services/note/note';
 import {
   CollabText_id_fromNoteQueryFn,
@@ -13,8 +12,8 @@ import { publishOpenNoteMutation } from '../Subscription/openNoteEvents';
 export const updateOpenNoteSelectionRange: NonNullable<
   MutationResolvers['updateOpenNoteSelectionRange']
 > = async (_parent, arg, ctx) => {
-  const { auth, mongoDB, connectionId } = ctx;
-  assertAuthenticated(auth);
+  const { services, mongoDB, connectionId } = ctx;
+  const auth = await services.requestHeaderAuth.getAuth();
 
   const { input } = arg;
 

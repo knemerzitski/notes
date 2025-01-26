@@ -1,7 +1,13 @@
 import { BaseContext, ApolloServer } from '@apollo/server';
-import { APIGatewayProxyEvent, APIGatewayProxyHandler } from 'aws-lambda';
+import {
+  APIGatewayProxyEvent,
+  APIGatewayProxyHandler,
+  APIGatewayProxyResult,
+} from 'aws-lambda';
 import { GraphQLSchema } from 'graphql/index.js';
 import { Logger } from '~utils/logging';
+
+import { MaybePromise } from '~utils/types';
 
 import { lowercaseHeaderKeys } from './apigateway-proxy-event/lowercase-header-keys';
 import { parseGraphQLRequestEvent } from './apigateway-proxy-event/parse-graphql-request-event';
@@ -25,18 +31,30 @@ interface DirectParams {
 
 export interface CreateApolloHttpHandlerParams<TGraphQLContext extends BaseContext>
   extends DirectParams {
-  readonly createGraphQLContext: (
-    context: ApolloHttpHandlerContext,
-    event: APIGatewayProxyEvent
-  ) => Promise<TGraphQLContext> | TGraphQLContext;
-  readonly createIsCurrentConnection?: (
-    context: ApolloHttpHandlerContext,
-    event: APIGatewayProxyEvent
-  ) => ((connectionId: string) => boolean) | undefined;
+  readonly requestDidStart: (args: {
+    readonly context: ApolloHttpHandlerContext;
+    readonly event: APIGatewayProxyEvent;
+  }) => MaybePromise<{
+    readonly createGraphQLContext: () => MaybePromise<TGraphQLContext>;
+    readonly createIsCurrentConnection?: () =>
+      | ((connectionId: string) => boolean)
+      | undefined;
+    readonly willSendResponse?: (
+      response: APIGatewayProxyNonNullableResult
+    ) => MaybePromise<void>;
+  }>;
   readonly graphQL: ApolloGraphQLContextParams<TGraphQLContext>;
   readonly dynamoDB: DynamoDBContextParams;
   readonly apiGateway: ApiGatewayContextParams;
 }
+
+type APIGatewayProxyNonNullableResult = Omit<
+  APIGatewayProxyResult,
+  'multiValueHeaders'
+> & {
+  readonly headers: NonNullable<APIGatewayProxyResult['headers']>;
+  readonly multiValueHeaders: NonNullable<APIGatewayProxyResult['multiValueHeaders']>;
+};
 
 export interface ApolloHttpHandlerContext extends DirectParams {
   readonly schema: GraphQLSchema;
@@ -70,7 +88,7 @@ export function createApolloHttpHandler<TGraphQLContext extends BaseContext>(
   const dynamoDB = createDynamoDBContext(params.dynamoDB);
   const apiGateway = createApiGatewayContext(params.apiGateway);
 
-  const context: ApolloHttpHandlerContext = {
+  const handlerContext: ApolloHttpHandlerContext = {
     ...params,
     schema: graphQL.schema,
     models: {
@@ -106,8 +124,11 @@ export function createApolloHttpHandler<TGraphQLContext extends BaseContext>(
       const responseMultiValueHeadersFromResolvers: ApolloHttpGraphQLContext['response']['multiValueHeaders'] =
         {};
 
+      const { createGraphQLContext, createIsCurrentConnection, willSendResponse } =
+        await params.requestDidStart({ context: handlerContext, event });
+
       const graphQLContext: GraphQLContext = {
-        ...(await params.createGraphQLContext(context, event)),
+        ...(await createGraphQLContext()),
         request: {
           headers: event.headers,
           multiValueHeaders: event.multiValueHeaders,
@@ -118,37 +139,43 @@ export function createApolloHttpHandler<TGraphQLContext extends BaseContext>(
         },
         logger,
         publish: createPublisher<GraphQLContext>({
-          context: {
-            ...context,
+          context: { 
+            ...handlerContext,
             formatError,
             formatErrorOptions: {
               includeStacktrace: includeStacktraceInErrorResponses,
             },
           },
           getGraphQLContext: () => graphQLContext,
-          isCurrentConnection: params.createIsCurrentConnection?.(context, event),
+          isCurrentConnection: createIsCurrentConnection?.(),
         }),
       };
 
-      const res = await apollo.executeHTTPGraphQLRequest({
+      const graphQLResponse = await apollo.executeHTTPGraphQLRequest({
         httpGraphQLRequest,
         context: () => Promise.resolve(graphQLContext),
       });
 
-      if (res.body.kind !== 'complete') {
-        throw new Error(`Only complete body type supported. Is "${res.body.kind}"`);
+      if (graphQLResponse.body.kind !== 'complete') {
+        throw new Error(
+          `Only complete body type supported. Is "${graphQLResponse.body.kind}"`
+        );
       }
 
-      return {
-        statusCode: res.status ?? 200,
+      const result: APIGatewayProxyNonNullableResult = {
+        statusCode: graphQLResponse.status ?? 200,
         headers: {
-          ...Object.fromEntries(res.headers),
+          ...Object.fromEntries(graphQLResponse.headers),
           ...responseHeadersFromResolvers,
-          'content-length': Buffer.byteLength(res.body.string).toString(),
+          'content-length': Buffer.byteLength(graphQLResponse.body.string).toString(),
         },
         multiValueHeaders: responseMultiValueHeadersFromResolvers,
-        body: res.body.string,
+        body: graphQLResponse.body.string,
       };
+
+      await willSendResponse?.(result);
+
+      return result;
     } catch (err) {
       logger.error('apolloHttpHandler', { err, event });
       throw err;

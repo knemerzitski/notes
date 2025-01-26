@@ -1,6 +1,5 @@
 import { QueryableRevisionRecord } from '../../../../../mongodb/loaders/note/descriptions/revision-record';
 import { createValueQueryFn } from '../../../../../mongodb/query/query';
-import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import { insertCollabRecord } from '../../../../../services/note/insert-collab-record';
 import { getNoteUsersIds } from '../../../../../services/note/note';
 import {
@@ -13,8 +12,8 @@ import { publishSignedInUserMutation } from '../../../user/resolvers/Subscriptio
 export const updateNoteInsertRecord: NonNullable<
   MutationResolvers['updateNoteInsertRecord']
 > = async (_parent, arg, ctx) => {
-  const { auth, mongoDB } = ctx;
-  assertAuthenticated(auth);
+  const { services, mongoDB } = ctx;
+  const auth = await services.requestHeaderAuth.getAuth();
 
   const { input } = arg;
   const { insertRecord } = input;

@@ -11,6 +11,10 @@ export function deleteManyByCookieIds({
   };
   cookieIds: string[];
 }) {
+  if (cookieIds.length === 0) {
+    return;
+  }
+
   const runSingleOperation = mongoDB.runSingleOperation ?? ((run) => run());
 
   return runSingleOperation((mongoSession) =>

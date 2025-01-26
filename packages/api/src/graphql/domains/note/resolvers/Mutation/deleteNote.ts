@@ -2,7 +2,6 @@ import { ObjectId } from 'mongodb';
 
 import { WithRequired } from '~utils/types';
 
-import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import { deleteNote as service_deleteNote } from '../../../../../services/note/delete-note';
 import { UserNoteLink_id } from '../../../../../services/note/user-note-link-id';
 import { DeleteNotePayload, type MutationResolvers } from '../../../types.generated';
@@ -13,8 +12,8 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
   arg,
   ctx
 ) => {
-  const { auth, mongoDB } = ctx;
-  assertAuthenticated(auth);
+  const { services, mongoDB } = ctx;
+  const auth = await services.requestHeaderAuth.getAuth();
 
   const { input } = arg;
 

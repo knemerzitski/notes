@@ -27,6 +27,7 @@ import { createMongoDBContext } from './mongodb/context';
 export function createDefaultApiOptions(): ApiOptions {
   return {
     sessions: {
+      cookieKey: 'Sessions',
       user: {
         duration: 1000 * 60 * 60 * 24 * 14, // 14 days,
         refreshThreshold: 0.5, // 7 days

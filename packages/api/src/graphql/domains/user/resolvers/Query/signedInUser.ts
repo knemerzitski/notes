@@ -1,7 +1,3 @@
-import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
-
-import { fromUserId as parseAuthfromUserId } from '../../../../../services/auth/parse-authentication-context';
-
 import type { QueryResolvers } from './../../../types.generated';
 
 export const signedInUser: NonNullable<QueryResolvers['signedInUser']> = async (
@@ -9,12 +5,11 @@ export const signedInUser: NonNullable<QueryResolvers['signedInUser']> = async (
   arg,
   ctx
 ) => {
-  const { mongoDB } = ctx;
+  const { mongoDB, services } = ctx;
 
   const { by } = arg;
 
-  const auth = await parseAuthfromUserId(by.id, ctx);
-  assertAuthenticated(auth);
+  const auth = await services.auth.getAuth(by.id);
 
   return {
     auth,

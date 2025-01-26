@@ -1,6 +1,6 @@
 import { MongoQueryFn } from '../../../mongodb/query/query';
 import { UserSchema } from '../../../mongodb/schema/user';
-import { AuthenticatedContext } from '../../../services/auth/authentication-context';
+import { AuthenticatedContext } from '../../../services/auth/types';
 
 export interface SignedInUserMapper {
   /**

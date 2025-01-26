@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+import { ObjectId } from 'mongodb';
 import { beforeAll, beforeEach, expect, it } from 'vitest';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
@@ -22,6 +23,10 @@ import { DBSessionSchema } from '../../../../../mongodb/schema/session';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { SignedInUser } from '../../../types.generated';
+
+interface Variables {
+  id: ObjectId;
+}
 
 const QUERY = `#graphql
 query($id: ObjectID!)  {
@@ -60,6 +65,7 @@ beforeEach(() => {
 });
 
 async function executeOperation(
+  userId: Variables['id'],
   options?: CreateGraphQLResolversContextOptions,
   query: string = QUERY
 ) {
@@ -71,7 +77,7 @@ async function executeOperation(
     {
       query,
       variables: {
-        id: options?.user?._id,
+        id: userId,
       },
     },
     {
@@ -81,7 +87,7 @@ async function executeOperation(
 }
 
 it('returns authenticated user', async () => {
-  const response = await executeOperation({ user, session });
+  const response = await executeOperation(user._id, { user, session });
 
   const data = expectGraphQLResponseData(response);
 
@@ -96,11 +102,11 @@ it('returns authenticated user', async () => {
     },
   });
 
-  expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(2);
+  expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(1);
 });
 
 it('returns error if not authenticated', async () => {
-  const response = await executeOperation({ user });
+  const response = await executeOperation(user._id);
 
   expectGraphQLResponseError(response, GraphQLErrorCode.UNAUTHENTICATED);
 });

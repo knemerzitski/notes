@@ -31,15 +31,15 @@ export default [
           basePath: `${import.meta.dirname}/src`,
           zones: [
             {
-              target: 'mongodb/**',
+              target: ['mongodb/**', 'models/**'],
               from: ['services/**', 'graphql/**'],
               message:
-                'Do not import from "services" or "graphql" layer in "mongodb" layer',
+                'Do not import from ["services","graphql"] layer in ["mongodb","models"] layer',
             },
             {
               target: 'services/**',
               from: ['graphql/**'],
-              message: 'Do not import from "graphql" layer in "mongodb" layer',
+              message: 'Do not import from "graphql" layer in "services" layer',
             },
           ],
         },

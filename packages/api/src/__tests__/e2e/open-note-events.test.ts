@@ -17,7 +17,7 @@ import {
 } from '../../graphql/domains/types.generated';
 import { DBNoteSchema } from '../../mongodb/schema/note';
 import { objectIdToStr } from '../../mongodb/utils/objectid';
-import { Cookies } from '../../services/http/cookies';
+import { createDefaultApiOptions } from '../../parameters';
 import { fetchGraphQL } from '../helpers/e2e/fetch-graphql';
 import { HttpSession } from '../helpers/e2e/http-session';
 import { createGraphQLWebSocket } from '../helpers/e2e/websocket';
@@ -125,10 +125,12 @@ function createDBdata(note?: DBNoteSchema) {
 }
 
 async function createHttpOperations(db: ReturnType<typeof createDBdata>) {
+  const sessionsCookieKey = createDefaultApiOptions().sessions?.cookieKey ?? 'Sessions';
+
   const httpSession = new HttpSession();
   httpSession.setHeader(CustomHeaderName.USER_ID, objectIdToStr(db.session.userId));
   httpSession.setCookie(
-    Cookies.SESSIONS_KEY,
+    sessionsCookieKey,
     [objectIdToStr(db.session.userId), db.session.cookieId].join(':')
   );
   const ws = await createGraphQLWebSocket({
@@ -324,7 +326,7 @@ it('subscribes to noteEditorEvents and receives initial selection and updates', 
   await user2.setSelectionStart(4);
 
   expect(user1.events).toStrictEqual([
-    // user 1 subscribed 
+    // user 1 subscribed
     { type: 'subscribed', userId: objectIdToStr(opApi1.user._id) }, // self
     // user 2 subscribed
     { type: 'subscribed', userId: objectIdToStr(opApi2.user._id) }, // global

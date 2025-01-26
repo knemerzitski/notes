@@ -1,6 +1,5 @@
 import { QueryableNoteUser } from '../../../../../mongodb/loaders/note/descriptions/note';
 import { createMapQueryFn } from '../../../../../mongodb/query/query';
-import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import { findNoteUserMaybe, getNoteUsersIds } from '../../../../../services/note/note';
 import { updateReadOnly } from '../../../../../services/note/update-read-only';
 import type { MutationResolvers, ResolversTypes } from '../../../types.generated';
@@ -9,8 +8,8 @@ import { publishSignedInUserMutation } from '../../../user/resolvers/Subscriptio
 export const updateUserNoteLinkReadOnly: NonNullable<
   MutationResolvers['updateUserNoteLinkReadOnly']
 > = async (_parent, arg, ctx) => {
-  const { auth, mongoDB } = ctx;
-  assertAuthenticated(auth);
+  const { services, mongoDB } = ctx;
+  const auth = await services.requestHeaderAuth.getAuth();
 
   const { input } = arg;
 

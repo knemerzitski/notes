@@ -1,4 +1,3 @@
-import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import { updateDisplayName } from '../../../../../services/user/update-display-name';
 import { publishSignedInUserMutation } from '../Subscription/signedInUserEvents';
 
@@ -7,8 +6,8 @@ import type { MutationResolvers, ResolversTypes } from './../../../types.generat
 export const updateSignedInUserDisplayName: NonNullable<
   MutationResolvers['updateSignedInUserDisplayName']
 > = async (_parent, arg, ctx) => {
-  const { auth, mongoDB } = ctx;
-  assertAuthenticated(auth);
+  const { services, mongoDB } = ctx;
+  const auth = await services.requestHeaderAuth.getAuth();
 
   const { input } = arg;
 

@@ -14,6 +14,7 @@ import {
   validateMessage,
 } from 'graphql-ws';
 import { Logger } from '~utils/logging';
+import { memoize } from '~utils/memoize';
 import { MaybePromise } from '~utils/types';
 
 import {
@@ -29,7 +30,11 @@ import {
   createPingPongContext,
 } from './context/pingpong';
 import { CompletedSubscriptionTable } from './dynamodb/models/completed-subscription';
-import { ConnectionTable, ConnectionTtlContext } from './dynamodb/models/connection';
+import {
+  Connection,
+  ConnectionTable,
+  ConnectionTtlContext,
+} from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
 import { FormatError, FormatErrorOptions } from './graphql/format-unknown-error';
 import { createCompleteHandler } from './messages/complete';
@@ -38,63 +43,60 @@ import { createPingHandler } from './messages/ping';
 import { createPongHandler } from './messages/pong';
 import { createSubscribeHandler } from './messages/subscribe';
 import { Publisher } from './pubsub/publish';
-import { PersistGraphQLContext } from './types';
 
-interface DirectParams<TGraphQLContext, TPersistGraphQLContext> {
+interface DirectParams<TGraphQLContext> {
   readonly connection: ConnectionTtlContext;
   readonly completedSubscription: {
     readonly ttl: number;
   };
   readonly logger: Logger;
 
+  /**
+   *
+   * @returns Connection if it was modified
+   */
   readonly onConnectionInit?: (args: {
-    context: WebSocketMessageHandlerContext<TGraphQLContext, TPersistGraphQLContext>;
+    context: WebSocketMessageHandlerEventContext<TGraphQLContext>;
     event: APIGatewayProxyWebsocketEventV2;
     message: ConnectionInitMessage;
-    persistGraphQLContext: TPersistGraphQLContext;
-  }) => MaybePromise<TPersistGraphQLContext | void>;
+  }) => MaybePromise<void>;
   readonly onPing?: (args: {
-    context: WebSocketMessageHandlerContext<TGraphQLContext, TPersistGraphQLContext>;
+    context: WebSocketMessageHandlerEventContext<TGraphQLContext>;
     event: APIGatewayProxyWebsocketEventV2;
     message: PingMessage;
   }) => MaybePromise<void>;
   readonly onPong?: (args: {
-    context: WebSocketMessageHandlerContext<TGraphQLContext, TPersistGraphQLContext>;
+    context: WebSocketMessageHandlerEventContext<TGraphQLContext>;
     event: APIGatewayProxyWebsocketEventV2;
     message: PongMessage;
   }) => MaybePromise<void>;
   readonly onError?: (args: {
     error: unknown;
-    context: WebSocketMessageHandlerContext<TGraphQLContext, TPersistGraphQLContext>;
+    context: WebSocketMessageHandlerEventContext<TGraphQLContext>;
     event: APIGatewayProxyWebsocketEventV2;
   }) => MaybePromise<void>;
   readonly formatError?: FormatError;
   readonly formatErrorOptions?: FormatErrorOptions;
-  readonly persistGraphQLContext: PersistGraphQLContext<
-    TGraphQLContext,
-    TPersistGraphQLContext
-  >;
+  readonly requestDidStart: (args: {
+    readonly context: WebSocketMessageHandlerPreEventContext<TGraphQLContext>;
+    readonly event: APIGatewayProxyWebsocketEventV2;
+  }) => MaybePromise<{
+    readonly createGraphQLContext: () => MaybePromise<TGraphQLContext>;
+    readonly willSendResponse?: (response: APIGatewayProxyResultV2) => void;
+  }>;
 }
 
-export interface WebSocketMessageHandlerParams<TGraphQLContext, TPersistGraphQLContext>
-  extends DirectParams<TGraphQLContext, TPersistGraphQLContext> {
-  createGraphQLContext: (
-    context: Omit<
-      WebSocketMessageHandlerContext<TGraphQLContext, TPersistGraphQLContext>,
-      'graphQLContext' | 'createGraphQLContext'
-    >,
-    event: APIGatewayProxyWebsocketEventV2
-  ) => Promise<TGraphQLContext> | TGraphQLContext;
+export interface WebSocketMessageHandlerParams<TGraphQLContext>
+  extends DirectParams<TGraphQLContext> {
   graphQL: GraphQLContextParams<TGraphQLContext>;
   dynamoDB: DynamoDBContextParams;
   apiGateway: ApiGatewayContextParams;
   pingpong?: PingPongContextParams;
 }
 
-export interface WebSocketMessageHandlerContext<TGraphQLContext, TPersistGraphQLContext>
-  extends DirectParams<TGraphQLContext, TPersistGraphQLContext> {
+export interface WebSocketMessageHandlerContext<TGraphQLContext>
+  extends DirectParams<TGraphQLContext> {
   schema: GraphQLSchema;
-  graphQLContext: TGraphQLContext;
   models: {
     connections: ConnectionTable;
     subscriptions: SubscriptionTable;
@@ -102,13 +104,23 @@ export interface WebSocketMessageHandlerContext<TGraphQLContext, TPersistGraphQL
   };
   socketApi: WebSocketApi;
   startPingPong?: PingPongContext['startPingPong'];
-  messageHandlers: MessageHandlers<TGraphQLContext, TPersistGraphQLContext>;
+  messageHandlers: MessageHandlers<TGraphQLContext>;
   formatError: FormatError;
-  createGraphQLContext: WebSocketMessageHandlerParams<
-    TGraphQLContext,
-    TPersistGraphQLContext
-  >['createGraphQLContext'];
 }
+
+export interface WebSocketMessageHandlerEventContext<TGraphQLContext>
+  extends WebSocketMessageHandlerContext<TGraphQLContext> {
+  /**
+   * Connection model for current connectionId. Can be memoized.
+   */
+  readonly getCurrentConnection: () => Promise<Connection>;
+  readonly createGraphQLContext: () => Promise<TGraphQLContext> | TGraphQLContext;
+}
+
+type WebSocketMessageHandlerPreEventContext<TGraphQLContext> = Omit<
+  WebSocketMessageHandlerEventContext<TGraphQLContext>,
+  'createGraphQLContext'
+>;
 
 export interface WebSocketMessageGraphQLContext {
   readonly logger: Logger;
@@ -124,34 +136,23 @@ const defaultResponse: APIGatewayProxyResultV2 = {
   statusCode: 200,
 };
 
-export type MessageHandler<
-  T extends MessageType,
-  TGraphQLContext = unknown,
-  TPersistGraphQLContext = unknown,
-> = (args: {
-  context: WebSocketMessageHandlerContext<TGraphQLContext, TPersistGraphQLContext>;
+export type MessageHandler<T extends MessageType, TGraphQLContext = unknown> = (args: {
+  context: WebSocketMessageHandlerEventContext<TGraphQLContext>;
   event: APIGatewayProxyWebsocketEventV2;
   message: Message<T>;
 }) => Promise<APIGatewayProxyStructuredResultV2 | undefined>;
 
-export type MessageHandlers<
-  TGraphQLContext = unknown,
-  TPersistGraphQLContext = unknown,
-> = Record<
+export type MessageHandlers<TGraphQLContext = unknown> = Record<
   MessageType,
-  MessageHandler<MessageType, TGraphQLContext, TPersistGraphQLContext>
+  MessageHandler<MessageType, TGraphQLContext>
 >;
 
 export function createMessageHandlers<
   TGraphQLContext = unknown,
-  TPersistGraphQLContext = unknown,
->(): MessageHandlers<TGraphQLContext, TPersistGraphQLContext> {
+>(): MessageHandlers<TGraphQLContext> {
   return {
     [MessageType.ConnectionInit]: createConnectionInitHandler(),
-    [MessageType.Subscribe]: createSubscribeHandler<
-      TGraphQLContext,
-      TPersistGraphQLContext
-    >(),
+    [MessageType.Subscribe]: createSubscribeHandler<TGraphQLContext>(),
     [MessageType.Complete]: createCompleteHandler(),
     [MessageType.Ping]: createPingHandler(),
     [MessageType.Pong]: createPongHandler(),
@@ -167,11 +168,8 @@ export function createMessageHandlers<
   };
 }
 
-export function createWebSocketMessageHandler<
-  TGraphQLContext extends Omit<WebSocketMessageGraphQLContext, 'publish'>,
-  TPersistGraphQLContext,
->(
-  params: WebSocketMessageHandlerParams<TGraphQLContext, TPersistGraphQLContext>
+export function createWebSocketMessageHandler<TGraphQLContext>(
+  params: WebSocketMessageHandlerParams<TGraphQLContext>
 ): WebSocketMessageHandler {
   const { logger } = params;
 
@@ -182,10 +180,7 @@ export function createWebSocketMessageHandler<
   const apiGateway = createApiGatewayContext(params.apiGateway);
   const pingpong = params.pingpong ? createPingPongContext(params.pingpong) : undefined;
 
-  const context: Omit<
-    WebSocketMessageHandlerContext<TGraphQLContext, TPersistGraphQLContext>,
-    'graphQLContext'
-  > = {
+  const context: WebSocketMessageHandlerContext<TGraphQLContext> = {
     ...params,
     formatError: params.formatError ?? ((err) => err),
     schema: graphQL.schema,
@@ -196,22 +191,16 @@ export function createWebSocketMessageHandler<
     },
     socketApi: apiGateway.socketApi,
     startPingPong: pingpong?.startPingPong,
-    messageHandlers: createMessageHandlers<TGraphQLContext, TPersistGraphQLContext>(),
+    messageHandlers: createMessageHandlers<TGraphQLContext>(),
   };
 
-  return webSocketMessageHandler<TGraphQLContext, TPersistGraphQLContext>(context);
+  return webSocketMessageHandler<TGraphQLContext>(context);
 }
 
-export function webSocketMessageHandler<
-  TGraphQLContext extends Omit<WebSocketMessageGraphQLContext, 'publish'>,
-  TPersistGraphQLContext,
->(
-  context: Omit<
-    WebSocketMessageHandlerContext<TGraphQLContext, TPersistGraphQLContext>,
-    'graphQLContext'
-  >
+export function webSocketMessageHandler<TGraphQLContext>(
+  handlerContext: WebSocketMessageHandlerContext<TGraphQLContext>
 ): WebSocketMessageHandler {
-  const messageHandlers = context.messageHandlers;
+  const messageHandlers = handlerContext.messageHandlers;
 
   return async (event) => {
     try {
@@ -221,7 +210,7 @@ export function webSocketMessageHandler<
       }
       const message = validateMessage(event.body != null ? JSON.parse(event.body) : null);
 
-      context.logger.info('event:MESSAGE', {
+      handlerContext.logger.info('event:MESSAGE', {
         connectionId,
         type: message.type,
       });
@@ -230,39 +219,58 @@ export function webSocketMessageHandler<
         throw new Error(`Unsupported message type ${message.type}`);
       }
 
-      const graphQLContext: TGraphQLContext = await context.createGraphQLContext(
-        context,
-        event
-      );
-
       const messageHandler = messageHandlers[message.type];
 
-      try {
-        return (
-          (await messageHandler({
-            context: {
-              ...context,
-              graphQLContext,
-            },
-            event,
-            message,
-          })) ?? defaultResponse
-        );
-      } catch (err) {
-        await context.onError?.({
-          error: err,
-          context: {
-            ...context,
-            graphQLContext,
-          },
+      const preEventContext: WebSocketMessageHandlerPreEventContext<TGraphQLContext> = {
+        ...handlerContext,
+        getCurrentConnection: memoize(async () => {
+          const connection = await handlerContext.models.connections.get({
+            id: connectionId,
+          });
+
+          if (!connection) {
+            throw new Error(`Missing connection "${connectionId}" record in DB`);
+          }
+
+          return connection;
+        }),
+      };
+
+      const { createGraphQLContext, willSendResponse } =
+        await handlerContext.requestDidStart({
+          context: preEventContext,
           event,
         });
-        await context.socketApi.delete(event.requestContext);
+
+      const eventContext: WebSocketMessageHandlerEventContext<TGraphQLContext> = {
+        ...preEventContext,
+        createGraphQLContext,
+      };
+
+      let result: APIGatewayProxyResultV2;
+      try {
+        result =
+          (await messageHandler({
+            context: eventContext,
+            event,
+            message,
+          })) ?? defaultResponse;
+      } catch (err) {
+        await handlerContext.onError?.({
+          error: err,
+          context: eventContext,
+          event,
+        });
+        await handlerContext.socketApi.delete(event.requestContext);
       }
 
-      return defaultResponse;
+      result = defaultResponse;
+
+      willSendResponse?.(result);
+
+      return result;
     } catch (err) {
-      context.logger.error('event:MESSAGE', { err, event });
+      handlerContext.logger.error('event:MESSAGE', { err, event });
       throw err;
     }
   };

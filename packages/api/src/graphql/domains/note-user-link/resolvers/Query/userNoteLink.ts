@@ -1,17 +1,16 @@
 import { ObjectId } from 'mongodb';
 
-import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import { NoteUnauthorizedUserError } from '../../../../errors/note';
 
 import type { QueryResolvers } from './../../../types.generated';
 
-export const userNoteLink: NonNullable<QueryResolvers['userNoteLink']> = (
+export const userNoteLink: NonNullable<QueryResolvers['userNoteLink']> = async (
   _parent,
   arg,
   ctx
 ) => {
-  const { auth, mongoDB } = ctx;
-  assertAuthenticated(auth);
+  const { services, mongoDB } = ctx;
+  const auth = await services.requestHeaderAuth.getAuth();
 
   const currentUserId = auth.session.userId;
 

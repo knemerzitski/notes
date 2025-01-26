@@ -5,7 +5,6 @@ import { QueryableUser_NotesCategory } from '../../../../../mongodb/loaders/user
 import { CursorPagination } from '../../../../../mongodb/pagination/cursor-struct';
 import { createMapQueryFn } from '../../../../../mongodb/query/query';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
-import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import { Note_id_fromQueryFn } from '../../../../../services/note/note-id';
 import {
   PreFetchedArrayGetItemFn,
@@ -19,10 +18,10 @@ const MAX_LIMIT = 30;
 
 export const userNoteLinkConnection: NonNullable<
   QueryResolvers['userNoteLinkConnection']
-> = (_parent, arg, ctx) => {
-  const { auth, mongoDB } = ctx;
+> = async (_parent, arg, ctx) => {
+  const { services, mongoDB } = ctx;
+  const auth = await services.requestHeaderAuth.getAuth();
 
-  assertAuthenticated(auth);
   const currentUserId = auth.session.userId;
 
   const first = arg.first != null ? Math.min(MAX_LIMIT, arg.first) : DEFAULT_LIMIT;

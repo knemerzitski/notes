@@ -2,25 +2,16 @@ import 'source-map-support/register.js';
 import { APIGatewayProxyWebsocketHandlerV2 } from 'aws-lambda';
 
 import { PingPongContextParams } from '~lambda-graphql/context/pingpong';
+import { Connection } from '~lambda-graphql/dynamodb/models/connection';
 import {
   WebSocketHandlerParams,
   createWebSocketHandler,
 } from '~lambda-graphql/websocket-handler';
 import { createLogger, Logger } from '~utils/logging';
 
-import {
-  createApiGraphQLContext,
-  createPersistGraphQLContext,
-  mergePersistGraphQLContext,
-  parsePersistGraphQLContext,
-  serializePersistGraphQLContext,
-} from './graphql/context';
 import { formatError } from './graphql/errors';
-import {
-  ApiGraphQLContext,
-  PersistGraphQLContext,
-  BaseSubscriptionResolversContext,
-} from './graphql/types';
+import { WebSocketHandlerGraphQLResolversContext } from './graphql/types';
+import { createMongoDBLoaders } from './mongodb/loaders';
 import {
   createDefaultApiGatewayParams,
   createDefaultApiOptions,
@@ -29,10 +20,19 @@ import {
   createDefaultSubscriptionGraphQLParams,
 } from './parameters';
 import {
-  createErrorBaseSubscriptionResolversContext,
-  createDynamoDBConnectionTtlContext,
-  handleConnectionInitAuthenticate,
-} from './utils/handlers';
+  CookiesMongoDBDynamoDBAuthenticationService,
+  CookiesMongoDBDynamoDBSingleUserAuthenticationService,
+} from './services/auth/auth-service';
+import { SessionsCookie } from './services/http/sessions-cookie';
+import { SessionDuration } from './services/session/duration';
+import {
+  ConnectionCustomData,
+  parseConnectionCustomData,
+  serializeConnectionCustomData,
+} from './utils/connection-custom-data';
+import { createErrorProxy } from './utils/error-proxy';
+import { onConnect } from './utils/on-connect';
+import { onConnectionInit } from './utils/on-connection-init';
 
 export interface CreateWebSocketHandlerDefaultParamsOptions {
   override?: {
@@ -48,7 +48,7 @@ export interface CreateWebSocketHandlerDefaultParamsOptions {
 
 export function createWebSocketHandlerDefaultParams(
   options?: CreateWebSocketHandlerDefaultParamsOptions
-): WebSocketHandlerParams<BaseSubscriptionResolversContext, PersistGraphQLContext> {
+): WebSocketHandlerParams<WebSocketHandlerGraphQLResolversContext> {
   const name = 'ws-handler';
   const logger = options?.override?.logger ?? createLogger(name);
 
@@ -71,57 +71,142 @@ export function createWebSocketHandlerDefaultParams(
     dynamoDB:
       options?.override?.createDynamoDBParams?.(logger) ??
       createDefaultDynamoDBParams(logger),
-
-    onConnectionInit: handleConnectionInitAuthenticate,
     pingpong: options?.pingPongParams,
-    persistGraphQLContext: {
-      serialize: serializePersistGraphQLContext,
-      parse: parsePersistGraphQLContext,
-      merge: mergePersistGraphQLContext,
-    },
-    connection: createDynamoDBConnectionTtlContext(apiOptions),
+    connection: (() => {
+      const sessionDuration = new SessionDuration(
+        apiOptions.sessions?.webSocket ?? {
+          duration: 1000 * 60 * 60 * 3, // 3 hours
+          refreshThreshold: 1 / 3, // 1 hour
+        }
+      );
+
+      return {
+        defaultTtl: sessionDuration.new.bind(sessionDuration),
+        tryRefreshTtl: sessionDuration.tryRefresh.bind(sessionDuration),
+      };
+    })(),
     completedSubscription: {
       ttl: apiOptions.completedSubscriptions.duration ?? 1000 * 5, // 5 seconds
     },
-    async onConnect({ event }) {
-      if (!mongoDB) {
-        mongoDB = await (options?.override?.createMongoDBContext?.(logger) ??
-          createDefaultMongoDBContext(logger));
-      }
+    onConnect,
+    onConnectionInit,
+    requestDidStart({ event, context }) {
+      const eventType = event.requestContext.eventType;
+      const connectionId = event.requestContext.connectionId;
 
-      const apiContext: ApiGraphQLContext = {
-        ...createApiGraphQLContext({
-          mongoDB,
-          options: apiOptions,
-        }),
-        connectionId: event.requestContext.connectionId,
-      };
+      const isConnectionDeleteEvent = eventType === 'DISCONNECT';
 
-      return createPersistGraphQLContext({
-        headers: event.headers,
-        ctx: apiContext,
-      });
-    },
+      let ws:
+        | {
+            connection: Connection;
+            customData: ConnectionCustomData;
+            isAuthModelModified: boolean;
+          }
+        | undefined;
 
-    async createGraphQLContext(_ctx, event) {
-      if (!mongoDB) {
-        mongoDB = await (options?.override?.createMongoDBContext?.(logger) ??
-          createDefaultMongoDBContext(logger));
-      }
       return {
-        ...createErrorBaseSubscriptionResolversContext(name),
-        logger: options?.override?.gqlContextLogger ?? createLogger('ws-gql-context'),
-        ...createApiGraphQLContext({
-          mongoDB,
-          options: apiOptions,
-        }),
-        connectionId: event.requestContext.connectionId,
+        async createGraphQLContext() {
+          if (!mongoDB) {
+            mongoDB = await (options?.override?.createMongoDBContext?.(logger) ??
+              createDefaultMongoDBContext(logger));
+          }
+          const mongoDBLoaders = createMongoDBLoaders(mongoDB);
+
+          const connection = await context.getCurrentConnection();
+
+          if (!connection) {
+            throw new Error(
+              'Cannot invoke createGraphQLContext since connection is missing'
+            );
+          }
+
+          ws = {
+            connection,
+            customData: parseConnectionCustomData(connection.customData),
+            isAuthModelModified: false,
+          };
+          if (!isConnectionDeleteEvent) {
+            // Remember if auth model is modified, update connection before response is sent
+            ws.customData.authenticatedContexts.eventBus.on('*', () => {
+              if (!ws) {
+                return;
+              }
+
+              ws.isAuthModelModified = true;
+            });
+          }
+
+          // Cookies, Sessions
+          const sessionsCookie = new SessionsCookie(
+            {
+              model: ws.customData.sessionsCookie,
+            },
+            {
+              key: apiOptions.sessions?.cookieKey,
+            }
+          );
+
+          // Auth Service
+          const authService = new CookiesMongoDBDynamoDBAuthenticationService(
+            {
+              mongoDB: {
+                ...mongoDB,
+                loaders: mongoDBLoaders,
+              },
+              sessionsCookie,
+            },
+            ws.customData.authenticatedContexts
+          );
+
+          const requestHeaderAuthService =
+            new CookiesMongoDBDynamoDBSingleUserAuthenticationService(
+              authService,
+              ws.customData.currentUser
+            );
+
+          return {
+            logger: options?.override?.gqlContextLogger ?? createLogger('ws-gql-context'),
+            mongoDB: {
+              ...mongoDB,
+              loaders: mongoDBLoaders,
+            },
+            services: {
+              auth: authService,
+              requestHeaderAuth: requestHeaderAuthService,
+            },
+            // pub and services
+            options: apiOptions,
+            connectionId,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            get request() {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+              return createErrorProxy('request', name);
+            },
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            get response() {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+              return createErrorProxy('response', name);
+            },
+          };
+        },
+        async willSendResponse() {
+          // event type pass it along?
+          if (!isConnectionDeleteEvent && ws?.isAuthModelModified) {
+            await context.models.connections.update(
+              {
+                id: ws.connection.id,
+              },
+              {
+                customData: serializeConnectionCustomData(ws.customData),
+              }
+            );
+          }
+        },
       };
     },
   };
 }
 
-export const handler: APIGatewayProxyWebsocketHandlerV2 = createWebSocketHandler<
-  BaseSubscriptionResolversContext,
-  PersistGraphQLContext
->(createWebSocketHandlerDefaultParams());
+export const handler: APIGatewayProxyWebsocketHandlerV2 = createWebSocketHandler(
+  createWebSocketHandlerDefaultParams()
+);
