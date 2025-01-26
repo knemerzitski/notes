@@ -10,7 +10,8 @@ import { GraphQLSchema, parse } from 'graphql/index.js';
 import { MessageType } from 'graphql-ws';
 import { isArray } from '~utils/array/is-array';
 import { Logger } from '~utils/logging';
-import { Maybe, MaybePromise } from '~utils/types';
+import { memoize } from '~utils/memoize';
+import { MaybePromise } from '~utils/types';
 
 import { WebSocketConnectEvent } from './connect-handler';
 import {
@@ -20,7 +21,7 @@ import {
 } from './context/apigateway';
 import { DynamoDBContextParams, createDynamoDBContext } from './context/dynamodb';
 import { GraphQLContextParams, createGraphQLContext } from './context/graphql';
-import { ConnectionTable } from './dynamodb/models/connection';
+import { Connection, ConnectionTable } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
 import {
   FormatError,
@@ -30,59 +31,58 @@ import {
 import { Publisher, createPublisher } from './pubsub/publish';
 import {
   SubscribeHookError,
-  SubscriptionContext,
+  SubscriptionGraphQLContext,
   createSubscriptionContext,
   getSubscribeFieldResult,
 } from './pubsub/subscribe';
-import { PersistGraphQLContext } from './types';
 
-interface DirectParams<TGraphQLContext, TPersistGraphQLContext> {
-  readonly createGraphQLContext: (
-    context: Omit<
-      WebSocketDisconnectHandlerContext<TGraphQLContext, TPersistGraphQLContext>,
-      'graphQLContext' | 'createGraphQLContext'
-    >,
-    event: APIGatewayProxyWebsocketEventV2
-  ) => Promise<TGraphQLContext> | TGraphQLContext;
+interface DirectParams<TGraphQLContext> {
   readonly apiGateway: ApiGatewayContextParams;
   readonly logger: Logger;
-  readonly persistGraphQLContext: Pick<
-    PersistGraphQLContext<TGraphQLContext, TPersistGraphQLContext>,
-    'parse' | 'merge'
-  >;
   readonly onDisconnect?: (args: {
-    context: WebSocketDisconnectHandlerContext<TGraphQLContext, TPersistGraphQLContext>;
+    context: WebSocketDisconnectHandlerEventContext<TGraphQLContext>;
     event: WebSocketConnectEvent;
-  }) => Maybe<MaybePromise<TPersistGraphQLContext>>;
+  }) => MaybePromise<void>;
   readonly formatError?: FormatError;
   readonly formatErrorOptions?: FormatErrorOptions;
+  readonly requestDidStart: (args: {
+    readonly context: WebSocketDisconnectHandlerPreEventContext<TGraphQLContext>;
+    readonly event: APIGatewayProxyWebsocketEventV2;
+  }) => MaybePromise<{
+    readonly createGraphQLContext: () => MaybePromise<TGraphQLContext>;
+    readonly willSendResponse?: (response: APIGatewayProxyResultV2) => void;
+  }>;
 }
 
-export interface WebSocketDisconnectHandlerParams<TGraphQLContext, TPersistGraphQLContext>
-  extends DirectParams<TGraphQLContext, TPersistGraphQLContext> {
+export interface WebSocketDisconnectHandlerParams<TGraphQLContext>
+  extends DirectParams<TGraphQLContext> {
   graphQL: GraphQLContextParams<TGraphQLContext>;
   dynamoDB: DynamoDBContextParams;
 }
 
-export interface WebSocketDisconnectHandlerContext<
-  TGraphQLContext,
-  TPersistGraphQLContext,
-> extends DirectParams<TGraphQLContext, TPersistGraphQLContext> {
+export interface WebSocketDisconnectHandlerContext<TGraphQLContext>
+  extends DirectParams<TGraphQLContext> {
   schema: GraphQLSchema;
-  graphQLContext: TGraphQLContext;
   models: {
     connections: ConnectionTable;
     subscriptions: SubscriptionTable;
   };
   socketApi: WebSocketApi;
   formatError: FormatError;
-  createGraphQLContext: WebSocketDisconnectHandlerParams<
-    TGraphQLContext,
-    TPersistGraphQLContext
-  >['createGraphQLContext'];
 }
 
-export interface WebSocketDisconnectGraphQLContext extends Record<string, unknown> {
+export interface WebSocketDisconnectHandlerEventContext<TGraphQLContext>
+  extends WebSocketDisconnectHandlerContext<TGraphQLContext> {
+  readonly getCurrentConnection: () => Promise<Connection | undefined>;
+  readonly createGraphQLContext: () => Promise<TGraphQLContext> | TGraphQLContext;
+}
+
+type WebSocketDisconnectHandlerPreEventContext<TGraphQLContext> = Omit<
+  WebSocketDisconnectHandlerEventContext<TGraphQLContext>,
+  'createGraphQLContext'
+>;
+
+export interface WebSocketDisconnectGraphQLContext {
   readonly logger: Logger;
   readonly publish: Publisher;
 }
@@ -105,11 +105,8 @@ const defaultResponse: APIGatewayProxyResultV2 = {
   statusCode: 200,
 };
 
-export function createWebSocketDisconnectHandler<
-  TGraphQLContext extends WebSocketDisconnectGraphQLContext,
-  TPersistGraphQLContext,
->(
-  params: WebSocketDisconnectHandlerParams<TGraphQLContext, TPersistGraphQLContext>
+export function createWebSocketDisconnectHandler<TGraphQLContext>(
+  params: WebSocketDisconnectHandlerParams<TGraphQLContext>
 ): WebSocketDisconnectHandler {
   const { logger } = params;
   logger.info('createWebSocketDisconnectHandler');
@@ -119,7 +116,7 @@ export function createWebSocketDisconnectHandler<
   const apiGateway = createApiGatewayContext(params.apiGateway);
 
   const context: Omit<
-    WebSocketDisconnectHandlerContext<TGraphQLContext, TPersistGraphQLContext>,
+    WebSocketDisconnectHandlerContext<TGraphQLContext>,
     'graphQLContext'
   > = {
     ...params,
@@ -135,12 +132,9 @@ export function createWebSocketDisconnectHandler<
   return webSocketDisconnectHandler(context);
 }
 
-export function webSocketDisconnectHandler<
-  TGraphQLContext extends Omit<WebSocketDisconnectGraphQLContext, 'publish'>,
-  TPersistGraphQLContext,
->(
-  context: Omit<
-    WebSocketDisconnectHandlerContext<TGraphQLContext, TPersistGraphQLContext>,
+export function webSocketDisconnectHandler<TGraphQLContext>(
+  handlerContext: Omit<
+    WebSocketDisconnectHandlerContext<TGraphQLContext>,
     'graphQLContext'
   >
 ): WebSocketDisconnectHandler {
@@ -151,52 +145,73 @@ export function webSocketDisconnectHandler<
         throw new Error(`Invalid event type. Expected DISCONNECT but is ${eventType}`);
       }
 
-      context.logger.info('event:DISCONNECT', {
+      handlerContext.logger.info('event:DISCONNECT', {
         connectionId,
       });
 
-      const graphQLContext: TGraphQLContext = await context.createGraphQLContext(
-        context,
-        event
-      );
+      let isConnectionDeleted = false;
+      const preEventContext: WebSocketDisconnectHandlerPreEventContext<TGraphQLContext> =
+        {
+          ...handlerContext,
+          getCurrentConnection: memoize(async () => {
+            if (isConnectionDeleted) {
+              return;
+            }
 
-      context.logger.info('messages:disconnect:onDisconnect', {
-        onDisconnect: !!context.onDisconnect,
+            const connection = await handlerContext.models.connections.get({
+              id: connectionId,
+            });
+
+            if (!connection) {
+              throw new Error(`Missing connection "${connectionId}" record in DB`);
+            }
+
+            return connection;
+          }),
+        };
+
+      const { createGraphQLContext, willSendResponse } =
+        await handlerContext.requestDidStart({
+          context: preEventContext,
+          event,
+        });
+
+      const eventContext: WebSocketDisconnectHandlerEventContext<TGraphQLContext> = {
+        ...preEventContext,
+        createGraphQLContext,
+      };
+
+      const graphQLContext: TGraphQLContext = await createGraphQLContext();
+
+      handlerContext.logger.info('messages:disconnect:onDisconnect', {
+        onDisconnect: !!handlerContext.onDisconnect,
       });
-      await context.onDisconnect?.({
-        context: { ...context, graphQLContext },
+      await handlerContext.onDisconnect?.({
+        context: eventContext,
         event,
       });
 
-      const [connection, connectionSubscriptions] = await Promise.all([
-        context.models.connections.get({
-          id: connectionId,
-        }),
-        context.models.subscriptions.queryAllByConnectionId(connectionId),
-      ]);
-
-      const persistGraphQLContext = context.persistGraphQLContext.parse(
-        connection?.persistGraphQLContext
-      );
+      const connectionSubscriptions =
+        await handlerContext.models.subscriptions.queryAllByConnectionId(connectionId);
 
       const subscriptionDeletions = connectionSubscriptions.map(async (sub) => {
         try {
           // Call resolver onComplete
-          const graphQLContextValue: SubscriptionContext &
-            TGraphQLContext &
-            TPersistGraphQLContext = {
-            ...context,
-            ...context.persistGraphQLContext.merge(graphQLContext, persistGraphQLContext),
+          const graphQLContextValue: SubscriptionGraphQLContext &
+            WebSocketDisconnectGraphQLContext &
+            TGraphQLContext = {
+            ...graphQLContext,
             ...createSubscriptionContext(),
+            logger: handlerContext.logger,
             publish: createPublisher<TGraphQLContext>({
-              context,
+              context: handlerContext,
               getGraphQLContext: () => graphQLContextValue,
               isCurrentConnection: (id: string) => connectionId === id,
             }),
           };
 
           const exeContext = buildExecutionContext({
-            schema: context.schema,
+            schema: handlerContext.schema,
             document: parse(sub.subscription.query),
             contextValue: graphQLContextValue,
             variableValues: sub.subscription.variables,
@@ -209,7 +224,7 @@ export function webSocketDisconnectHandler<
 
           const { onComplete } = await getSubscribeFieldResult(exeContext);
 
-          context.logger.info('event:DISCONNECT:onComplete', {
+          handlerContext.logger.info('event:DISCONNECT:onComplete', {
             onComplete: !!onComplete,
           });
           try {
@@ -221,20 +236,20 @@ export function webSocketDisconnectHandler<
           const { exeContext, hookName, cause } = SubscribeHookError.unwrap(err);
           const postError = cause ?? err;
 
-          context.logger.error('event:DISCONNECT:complete', {
+          handlerContext.logger.error('event:DISCONNECT:complete', {
             err: postError,
             connectionId,
             subscription: sub,
           });
 
-          return context.socketApi.post({
+          return handlerContext.socketApi.post({
             ...event.requestContext,
             message: {
               type: MessageType.Error,
               id: sub.subscriptionId,
               payload: [
-                formatUnknownError(postError, context.formatError, {
-                  ...context.formatErrorOptions,
+                formatUnknownError(postError, handlerContext.formatError, {
+                  ...handlerContext.formatErrorOptions,
                   exeContext,
                   extraPath: hookName,
                 }),
@@ -243,16 +258,23 @@ export function webSocketDisconnectHandler<
           });
         }
 
-        await context.models.subscriptions.delete({ id: sub.id });
+        await handlerContext.models.subscriptions.delete({ id: sub.id });
       });
 
-      const connectionDeletion = context.models.connections.delete({ id: connectionId });
+      const connectionDeletion = handlerContext.models.connections.delete({
+        id: connectionId,
+      });
 
+      isConnectionDeleted = true;
       await Promise.allSettled([connectionDeletion, ...subscriptionDeletions]);
 
-      return defaultResponse;
+      const result = defaultResponse;
+
+      willSendResponse?.(result);
+
+      return result;
     } catch (err) {
-      context.logger.error('event:DISCONNECT', { err, event });
+      handlerContext.logger.error('event:DISCONNECT', { err, event });
       throw err;
     }
   };

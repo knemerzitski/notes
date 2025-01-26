@@ -1,4 +1,3 @@
-import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import { updateTrashNote } from '../../../../../services/note/update-trash-note';
 import {
   NoteCategory,
@@ -10,8 +9,8 @@ import { publishSignedInUserMutation } from '../../../user/resolvers/Subscriptio
 export const trashUserNoteLink: NonNullable<
   MutationResolvers['trashUserNoteLink']
 > = async (_parent, arg, ctx) => {
-  const { auth, mongoDB } = ctx;
-  assertAuthenticated(auth);
+  const { services, mongoDB } = ctx;
+  const auth = await services.requestHeaderAuth.getAuth();
 
   const { input } = arg;
 

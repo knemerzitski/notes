@@ -10,6 +10,7 @@ import { expectGraphQLResponseData } from '../../../../../__tests__/helpers/grap
 import { SessionSchema } from '../../../../../mongodb/schema/session';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { Cookies } from '../../../../../services/http/cookies';
+import { SessionsCookie } from '../../../../../services/http/sessions-cookie';
 import {
   SyncSessionCookiesInput,
   SyncSessionCookiesPayload,
@@ -55,22 +56,23 @@ it('removes userIds in cookies not known to client', async () => {
   const cookieId = SessionSchema.schema.cookieId.create(undefined);
 
   const cookies = new Cookies();
-  cookies.setSession(userId, cookieId);
-  cookies.setSession(new ObjectId(), SessionSchema.schema.cookieId.create(undefined));
+  const sessionsCookie = new SessionsCookie({
+    cookies,
+  });
 
-  const multiValueHeaders: Record<string, (string | number | boolean)[]> = {};
+  sessionsCookie.update(userId, cookieId);
+  sessionsCookie.update(new ObjectId(), SessionSchema.schema.cookieId.create(undefined));
+
+  const context = createGraphQLResolversContext({
+    sessionsCookie,
+  });
 
   const response = await executeOperation(
     {
       availableUserIds: [objectIdToStr(userId)],
     },
     {
-      override: {
-        cookies,
-        response: {
-          multiValueHeaders,
-        },
-      },
+      contextValue: context,
     }
   );
 
@@ -81,13 +83,13 @@ it('removes userIds in cookies not known to client', async () => {
     },
   });
 
-  expect(cookies.getAvailableSessionUserIds()).toStrictEqual([objectIdToStr(userId)]);
+  expect(context.services.auth.getAvailableUserIds().map(objectIdToStr)).toStrictEqual([
+    objectIdToStr(userId),
+  ]);
 
-  expect(multiValueHeaders).toEqual({
-    'Set-Cookie': [
-      `Sessions=${objectIdToStr(userId)}:${cookieId}; HttpOnly; SameSite=Strict; Path=/`,
-    ],
-  });
+  expect(cookies.getMultiValueHeadersSetCookies()).toStrictEqual([
+    `Sessions=${objectIdToStr(userId)}:${cookieId}; HttpOnly; SameSite=Strict; Path=/`,
+  ]);
 });
 
 it('ignores unknown client userIds not in cookies', async () => {
@@ -96,21 +98,22 @@ it('ignores unknown client userIds not in cookies', async () => {
   const cookieId = SessionSchema.schema.cookieId.create(undefined);
 
   const cookies = new Cookies();
-  cookies.setSession(userId, cookieId);
+  const sessionsCookie = new SessionsCookie({
+    cookies,
+  });
 
-  const multiValueHeaders: Record<string, (string | number | boolean)[]> = {};
+  sessionsCookie.update(userId, cookieId);
+
+  const context = createGraphQLResolversContext({
+    sessionsCookie,
+  });
 
   const response = await executeOperation(
     {
       availableUserIds: [objectIdToStr(userId), objectIdToStr(unknownUserId)],
     },
     {
-      override: {
-        cookies,
-        response: {
-          multiValueHeaders,
-        },
-      },
+      contextValue: context,
     }
   );
 
@@ -121,11 +124,11 @@ it('ignores unknown client userIds not in cookies', async () => {
     },
   });
 
-  expect(cookies.getAvailableSessionUserIds()).toStrictEqual([objectIdToStr(userId)]);
+  expect(context.services.auth.getAvailableUserIds().map(objectIdToStr)).toStrictEqual([
+    objectIdToStr(userId),
+  ]);
 
-  expect(multiValueHeaders).toEqual({
-    'Set-Cookie': [
-      `Sessions=${objectIdToStr(userId)}:${cookieId}; HttpOnly; SameSite=Strict; Path=/`,
-    ],
-  });
+  expect(cookies.getMultiValueHeadersSetCookies()).toStrictEqual([
+    `Sessions=${objectIdToStr(userId)}:${cookieId}; HttpOnly; SameSite=Strict; Path=/`,
+  ]);
 });

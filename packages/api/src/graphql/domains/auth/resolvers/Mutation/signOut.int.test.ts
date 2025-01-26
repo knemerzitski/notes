@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { afterEach, beforeAll, beforeEach, expect, it, MockInstance, vi } from 'vitest';
+import { beforeEach, expect, it, vi } from 'vitest';
 
 import { apolloServer } from '../../../../../__tests__/helpers/graphql/apollo-server';
 import {
@@ -17,9 +17,8 @@ import { fakeUserPopulateQueue } from '../../../../../__tests__/helpers/mongodb/
 import { DBSessionSchema } from '../../../../../mongodb/schema/session';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
-import * as delete_all_session_in_cookies from '../../../../../services/auth/delete-all-sessions-in-cookies';
-import * as delete_session_with_cookies from '../../../../../services/auth/delete-session-with-cookies';
 import { Cookies } from '../../../../../services/http/cookies';
+import { SessionsCookie } from '../../../../../services/http/sessions-cookie';
 import { SignOutInput, SignOutPayload } from '../../../types.generated';
 
 interface Variables {
@@ -35,28 +34,8 @@ const MUTATION = `#graphql
   }
 `;
 
-let spyDeleteSessionWithCookies: MockInstance<
-  (params: delete_session_with_cookies.DeleteSessionWithCookiesParams) => Promise<void>
->;
-let spyDeleteAllSessionsInCookies: MockInstance<
-  (
-    params: delete_all_session_in_cookies.DeleteAllSessionsInCookiesParams
-  ) => Promise<void>
->;
-
 let user: DBUserSchema;
 let session: DBSessionSchema;
-
-beforeAll(() => {
-  spyDeleteSessionWithCookies = vi.spyOn(
-    delete_session_with_cookies,
-    'deleteSessionWithCookies'
-  );
-  spyDeleteAllSessionsInCookies = vi.spyOn(
-    delete_all_session_in_cookies,
-    'deleteAllSessionsInCookies'
-  );
-});
 
 beforeEach(async () => {
   faker.seed(7657);
@@ -75,17 +54,12 @@ beforeEach(async () => {
   mongoCollectionStats.mockClear();
 });
 
-afterEach(() => {
-  spyDeleteSessionWithCookies.mockClear();
-  spyDeleteAllSessionsInCookies.mockClear();
-});
-
 async function executeOperation(
   input: Variables['input'],
   options?: CreateGraphQLResolversContextOptions,
   query: string = MUTATION
 ) {
-  return await apolloServer.executeOperation<
+  const response = await apolloServer.executeOperation<
     {
       signOut: SignOutPayload;
     },
@@ -101,20 +75,29 @@ async function executeOperation(
       contextValue: createGraphQLResolversContext(options),
     }
   );
+
+  return response;
 }
 
 it('signs out specific user', async () => {
   const cookies = new Cookies();
-  cookies.setSession(user._id, session.cookieId);
+  const sessionsCookie = new SessionsCookie({
+    cookies,
+  });
+  sessionsCookie.update(user._id, session.cookieId);
+
+  const context = createGraphQLResolversContext({
+    sessionsCookie,
+  });
+
+  const deleteAuthByUserIdSpy = vi.spyOn(context.services.auth, 'deleteAuthByUserId');
 
   const response = await executeOperation(
     {
       userId: user._id,
     },
     {
-      override: {
-        cookies,
-      },
+      contextValue: context,
     }
   );
 
@@ -126,18 +109,24 @@ it('signs out specific user', async () => {
     },
   });
 
-  expect(spyDeleteSessionWithCookies).toHaveBeenCalledWith(
-    expect.objectContaining({
-      userId: user._id,
-      cookieId: session.cookieId,
-      cookies,
-    })
-  );
+  expect(deleteAuthByUserIdSpy).toHaveBeenCalledWith(user._id);
 });
 
 it('signs out all users', async () => {
   const cookies = new Cookies();
-  cookies.setSession(user._id, session.cookieId);
+  const sessionsCookie = new SessionsCookie({
+    cookies,
+  });
+
+  sessionsCookie.update(user._id, session.cookieId);
+
+  const context = createGraphQLResolversContext({
+    sessionsCookie,
+  });
+
+  await context.services.auth.createAuth(user._id);
+
+  const deleteAllAuthSpy = vi.spyOn(context.services.auth, 'deleteAllAuth');
 
   const response = await executeOperation(
     {
@@ -145,9 +134,7 @@ it('signs out all users', async () => {
       userId: user._id, // is ignored
     },
     {
-      override: {
-        cookies,
-      },
+      contextValue: context,
     }
   );
 
@@ -159,9 +146,5 @@ it('signs out all users', async () => {
     },
   });
 
-  expect(spyDeleteAllSessionsInCookies).toHaveBeenCalledWith(
-    expect.objectContaining({
-      cookies,
-    })
-  );
+  expect(deleteAllAuthSpy).toHaveBeenCalled();
 });

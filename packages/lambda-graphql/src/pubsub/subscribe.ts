@@ -63,11 +63,11 @@ type Subscriber<T extends PubSubEvent> = (
   options?: SubscribeOptions<T>
 ) => AsyncIterable<never> & SubscriberResult<T>;
 
-export interface SubscriptionContext<T extends PubSubEvent = PubSubEvent> {
+export interface SubscriptionGraphQLContext<T extends PubSubEvent = PubSubEvent> {
   /**
    * Subscribe to a topic with options.
    */
-  subscribe: Subscriber<T>;
+  readonly subscribe: Subscriber<T>;
 }
 
 export type SubscriptionIterable<T extends PubSubEvent = PubSubEvent> = ReturnType<
@@ -76,7 +76,7 @@ export type SubscriptionIterable<T extends PubSubEvent = PubSubEvent> = ReturnTy
 
 export function createSubscriptionContext<
   T extends PubSubEvent = PubSubEvent,
->(): SubscriptionContext<T> {
+>(): SubscriptionGraphQLContext<T> {
   const neverAsyncIteratorSymbol = {
     [Symbol.asyncIterator]() {
       return {

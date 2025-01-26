@@ -2,7 +2,6 @@ import { QueryableNote } from '../../../../../mongodb/loaders/note/descriptions/
 import { QueryableSearchNote } from '../../../../../mongodb/loaders/notes-search/description';
 import { CursorPagination } from '../../../../../mongodb/pagination/cursor-struct';
 import { createMapQueryFn, MongoQueryFn } from '../../../../../mongodb/query/query';
-import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import {
   PreFetchedArrayGetItemFn,
   withPreExecuteList,
@@ -15,10 +14,10 @@ const MAX_LIMIT = 30;
 
 export const userNoteLinkSearchConnection: NonNullable<
   QueryResolvers['userNoteLinkSearchConnection']
-> = (_parent, arg, ctx) => {
-  const { auth, mongoDB } = ctx;
+> = async (_parent, arg, ctx) => {
+  const { services, mongoDB } = ctx;
+  const auth = await services.requestHeaderAuth.getAuth();
 
-  assertAuthenticated(auth);
   const currentUserId = auth.session.userId;
 
   const first = arg.first != null ? Math.min(MAX_LIMIT, arg.first) : DEFAULT_LIMIT;

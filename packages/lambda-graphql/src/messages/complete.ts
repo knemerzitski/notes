@@ -4,10 +4,10 @@ import { GraphQLError, parse } from 'graphql/index.js';
 import { MessageType } from 'graphql-ws';
 import { isArray } from '~utils/array/is-array';
 
-import { MessageHandler } from '../message-handler';
+import { MessageHandler, WebSocketMessageGraphQLContext } from '../message-handler';
 import { createPublisher } from '../pubsub/publish';
 import {
-  SubscriptionContext,
+  SubscriptionGraphQLContext,
   createSubscriptionContext,
   getSubscribeFieldResult,
 } from '../pubsub/subscribe';
@@ -15,10 +15,10 @@ import {
 /**
  * Removes subscription item from DynamoDB table; id `${connectionId}:${message.id}`
  */
-export function createCompleteHandler<
-  TGraphQLContext,
-  TPersistGraphQLContext = unknown,
->(): MessageHandler<MessageType.Complete, TGraphQLContext, TPersistGraphQLContext> {
+export function createCompleteHandler<TGraphQLContext>(): MessageHandler<
+  MessageType.Complete,
+  TGraphQLContext
+> {
   return async ({ context, event, message }) => {
     const { connectionId } = event.requestContext;
     context.logger.info('messages:complete', {
@@ -44,18 +44,12 @@ export function createCompleteHandler<
         return;
       }
 
-      const persistGraphQLContext = context.persistGraphQLContext.parse(
-        connection.persistGraphQLContext
-      );
-
-      const graphQLContextValue: SubscriptionContext &
-        TGraphQLContext &
-        TPersistGraphQLContext = {
-        ...context.persistGraphQLContext.merge(
-          context.graphQLContext,
-          persistGraphQLContext
-        ),
+      const graphQLContextValue: SubscriptionGraphQLContext &
+        WebSocketMessageGraphQLContext &
+        TGraphQLContext = {
+        ...(await context.createGraphQLContext()),
         ...createSubscriptionContext(),
+        logger: context.logger,
         publish: createPublisher<TGraphQLContext>({
           context,
           getGraphQLContext: () => graphQLContextValue,

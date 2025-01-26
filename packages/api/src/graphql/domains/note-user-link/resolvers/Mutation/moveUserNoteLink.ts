@@ -1,4 +1,3 @@
-import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import { updateMoveCategory } from '../../../../../services/note/update-move-category';
 import {
   ListAnchorPosition,
@@ -14,8 +13,8 @@ import { publishSignedInUserMutation } from '../../../user/resolvers/Subscriptio
 export const moveUserNoteLink: NonNullable<
   MutationResolvers['moveUserNoteLink']
 > = async (_parent, arg, ctx) => {
-  const { auth, mongoDB } = ctx;
-  assertAuthenticated(auth);
+  const { services, mongoDB } = ctx;
+  const auth = await services.requestHeaderAuth.getAuth();
 
   const { input } = arg;
 

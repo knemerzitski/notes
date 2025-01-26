@@ -1,14 +1,14 @@
 import { ObjectId } from 'mongodb';
 import { wrapRetryOnError } from '~utils/retry-on-error';
 
+import { isDefined } from '~utils/type-guards/is-defined';
+
+import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import {
   retryOnMongoError,
   MongoErrorCodes,
 } from '../../../../../mongodb/utils/retry-on-mongo-error';
 import { verifyCredentialToken } from '../../../../../services/auth/google/oauth2';
-import { isAuthenticated } from '../../../../../services/auth/is-authenticated';
-import { SessionDuration } from '../../../../../services/session/duration';
-import { insertSession } from '../../../../../services/session/insert-session';
 import { findUserByGoogleUserId } from '../../../../../services/user/find-user-by-google-user-id';
 import { insertUserWithGoogleUser } from '../../../../../services/user/insert-user-with-google-user';
 import { GraphQLResolversContext } from '../../../../types';
@@ -21,7 +21,7 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
   ctx,
   info
 ) => {
-  const { mongoDB, cookies, response } = ctx;
+  const { mongoDB, services } = ctx;
 
   const { input } = arg;
 
@@ -77,50 +77,41 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
     signedInUserId = existingUser._id;
   }
 
-  if (isAuthenticated(ctx.auth)) {
-    const currentUserId = ctx.auth.session.userId;
+  if (await services.requestHeaderAuth.isAuthenticated()) {
+    const auth = await services.requestHeaderAuth.getAuth();
+
+    const currentUserId = auth.session.userId;
     if (currentUserId.equals(signedInUserId)) {
       return {
         __typename: 'AlreadySignedInResult',
         signedInUser: {
-          auth: ctx.auth,
+          auth,
           query: mongoDB.loaders.user.createQueryFn({
             userId: currentUserId,
           }),
         },
-        availableUserIds: cookies.getAvailableSessionUserIds(),
+        availableUserIds: services.auth
+          .getAvailableUserIds()
+          .map(objectIdToStr)
+          .filter(isDefined),
       };
     }
   }
 
-  const newSession = await insertSession({
-    mongoDB,
-    userId: signedInUserId,
-    duration: new SessionDuration(
-      ctx.options?.sessions?.user ?? {
-        duration: 1000 * 60 * 60 * 24 * 14, // 14 days,
-        refreshThreshold: 0.5, // 7 days
-      }
-    ),
-  });
-
-  cookies.setSession(signedInUserId, newSession.cookieId);
-  cookies.putCookiesToHeaders(response.multiValueHeaders);
-
-  // Set auth after sign in
-  ctx.auth = {
-    session: newSession,
-  };
+  const auth = await services.auth.createAuth(signedInUserId);
 
   return {
     __typename: 'JustSignedInResult',
     signedInUser: {
-      auth: ctx.auth,
+      auth,
       query: mongoDB.loaders.user.createQueryFn({
         userId: signedInUserId,
       }),
     },
-    availableUserIds: cookies.getAvailableSessionUserIds(),
+    availableUserIds: services.auth
+      .getAvailableUserIds()
+      .map(objectIdToStr)
+      .filter(isDefined),
     authProviderUser: {
       __typename: 'GoogleAuthProviderUser',
       id: googleUserId,

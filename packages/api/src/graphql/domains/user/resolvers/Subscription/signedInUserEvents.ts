@@ -4,7 +4,6 @@ import { PublisherOptions } from '~lambda-graphql/pubsub/publish';
 
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 
-import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import { SubscriptionTopicPrefix } from '../../../../subscriptions';
 
 import { GraphQLResolversContext } from '../../../../types';
@@ -18,9 +17,9 @@ export function signedInUserTopic(userId: ObjectId) {
 export const signedInUserEvents: NonNullable<
   SubscriptionResolvers['signedInUserEvents']
 > = {
-  subscribe: (_parent, _arg, ctx) => {
-    const { auth, subscribe } = ctx;
-    assertAuthenticated(auth);
+  subscribe: async (_parent, _arg, ctx) => {
+    const { services, subscribe } = ctx;
+    const auth = await services.requestHeaderAuth.getAuth();
 
     const currentUserId = auth.session.userId;
     return subscribe(signedInUserTopic(currentUserId));

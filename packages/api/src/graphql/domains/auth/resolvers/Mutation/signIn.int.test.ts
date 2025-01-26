@@ -28,6 +28,7 @@ import { DBSessionSchema } from '../../../../../mongodb/schema/session';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { verifyCredentialToken } from '../../../../../services/auth/google/__mocks__/oauth2';
+import { Cookies } from '../../../../../services/http/cookies';
 import { SessionDuration } from '../../../../../services/session/duration';
 import * as insert_session from '../../../../../services/session/insert-session';
 import * as insert_user_with_google_user from '../../../../../services/user/insert-user-with-google-user';
@@ -133,6 +134,8 @@ it('creates new user and session on first sign in with google', async () => {
 
   const multiValueHeaders: Record<string, (string | number | boolean)[]> = {};
 
+  const cookies = new Cookies();
+
   const response = await executeOperation(
     {
       auth: {
@@ -142,6 +145,7 @@ it('creates new user and session on first sign in with google', async () => {
       },
     },
     {
+      cookies,
       override: {
         response: {
           multiValueHeaders,
@@ -191,13 +195,11 @@ it('creates new user and session on first sign in with google', async () => {
   assert(newSessionResult?.type == 'return');
   const newSession = await newSessionResult.value;
 
-  expect(multiValueHeaders).toEqual({
-    'Set-Cookie': [
-      `Sessions=${objectIdToStr(newSession.userId)}:${
-        newSession.cookieId
-      }; HttpOnly; SameSite=Strict; Path=/`,
-    ],
-  });
+  expect(cookies.getMultiValueHeadersSetCookies()).toStrictEqual([
+    `Sessions=${objectIdToStr(newSession.userId)}:${
+      newSession.cookieId
+    }; HttpOnly; SameSite=Strict; Path=/`,
+  ]);
 
   expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(3);
 });

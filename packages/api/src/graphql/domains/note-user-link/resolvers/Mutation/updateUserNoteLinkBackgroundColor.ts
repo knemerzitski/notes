@@ -1,4 +1,3 @@
-import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import { updateBackgroundColor } from '../../../../../services/note/update-background-color';
 import type { MutationResolvers, ResolversTypes } from '../../../types.generated';
 import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';
@@ -6,8 +5,8 @@ import { publishSignedInUserMutation } from '../../../user/resolvers/Subscriptio
 export const updateUserNoteLinkBackgroundColor: NonNullable<
   MutationResolvers['updateUserNoteLinkBackgroundColor']
 > = async (_parent, arg, ctx) => {
-  const { auth, mongoDB } = ctx;
-  assertAuthenticated(auth);
+  const { services, mongoDB } = ctx;
+  const auth = await services.requestHeaderAuth.getAuth();
 
   const { input } = arg;
 

@@ -9,7 +9,6 @@ import { createMapQueryFn } from '../../../../../mongodb/query/query';
 import { OpenNoteSchema } from '../../../../../mongodb/schema/open-note';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { withTransaction } from '../../../../../mongodb/utils/with-transaction';
-import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import { NoteNotFoundServiceError } from '../../../../../services/note/errors';
 import {
   findNoteUser,
@@ -34,7 +33,7 @@ export function openNoteTopic(noteId: ObjectId) {
 
 export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']> = {
   subscribe: (_parent, arg, ctx) => {
-    const { auth, subscribe, mongoDB, connectionId } = ctx;
+    const { services, subscribe, mongoDB, connectionId } = ctx;
 
     const noteId = arg.noteId;
 
@@ -73,14 +72,14 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
 
     return subscribe(openNoteTopic(noteId), {
       async onSubscribe() {
-        assertAuthenticated(auth);
+        const auth = await services.requestHeaderAuth.getAuth();
         const currentUserId = auth.session.userId;
 
         // Load will throw error if user has no access to note and subscription won't happen
         await loadNoteForSubscribe(currentUserId);
       },
       async onAfterSubscribe(subscriptionId) {
-        assertAuthenticated(auth);
+        const auth = await services.requestHeaderAuth.getAuth();
 
         const currentUserId = auth.session.userId;
 
@@ -325,7 +324,7 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
         ]);
       },
       async onComplete(subscriptionId) {
-        assertAuthenticated(auth);
+        const auth = await services.requestHeaderAuth.getAuth();
 
         const currentUserId = auth.session.userId;
 

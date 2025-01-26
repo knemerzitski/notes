@@ -153,8 +153,8 @@ it('returns note', async () => {
 
   expect(mongoCollectionStats.allStats()).toStrictEqual(
     expect.objectContaining({
-      readAndModifyCount: 2,
-      readCount: 2,
+      readAndModifyCount: 1,
+      readCount: 1,
     })
   );
 });

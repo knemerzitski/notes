@@ -6,7 +6,6 @@ import {
   retryOnMongoError,
   MongoErrorCodes,
 } from '../../../../../mongodb/utils/retry-on-mongo-error';
-import { assertAuthenticated } from '../../../../../services/auth/assert-authenticated';
 import { insertNote } from '../../../../../services/note/insert-note';
 import {
   CollabText_id_fromNoteQueryFn,
@@ -25,8 +24,8 @@ const _createNote: NonNullable<MutationResolvers['createNote']> = async (
   arg,
   ctx
 ) => {
-  const { auth, mongoDB } = ctx;
-  assertAuthenticated(auth);
+  const { services, mongoDB } = ctx;
+  const auth = await services.requestHeaderAuth.getAuth();
 
   const { input } = arg;
 

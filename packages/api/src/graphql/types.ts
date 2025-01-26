@@ -1,21 +1,26 @@
 import { MongoClient } from 'mongodb';
 
 import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
-import { SubscriptionContext } from '~lambda-graphql/pubsub/subscribe';
+import { SubscriptionGraphQLContext } from '~lambda-graphql/pubsub/subscribe';
+
+import { WebSocketGraphQLContext } from '~lambda-graphql/websocket-handler';
 
 import { MongoDBCollections } from '../mongodb/collections';
 
 import { MongoDBLoaders } from '../mongodb/loaders';
 
 import {
-  AuthenticationContext,
-  SerializedAuthenticationContext,
-} from '../services/auth/authentication-context';
-import { Cookies, SerializedCookies } from '../services/http/cookies';
+  AuthenticationService,
+  SingleUserAuthenticationService,
+} from '../services/auth/types';
 import { SessionDurationConfig } from '../services/session/duration';
 
 export interface ApiOptions {
   readonly sessions?: {
+    /**
+     * @default "Sessions"
+     */
+    readonly cookieKey?: string;
     /**
      * User sessions stored in MongoDB Sessions collection
      */
@@ -54,27 +59,18 @@ export interface ApiOptions {
 }
 
 /**
- * Persist GraphQL context is serialized and restored during WebSocket connections
- */
-export interface PersistGraphQLContext {
-  readonly cookies: Cookies;
-  auth: AuthenticationContext;
-}
-
-/**
- * Must only contain primitive values so it can be marshalled properly into
- * DynamoDB entry.
- * Class instances are not supported.
- */
-export interface SerializedPersistGraphQLContext {
-  cookies: SerializedCookies;
-  auth: SerializedAuthenticationContext;
-}
-
-/**
  * GraphQL context is created before request is handled and is not serializable
  */
-export interface ApiGraphQLContext {
+export interface GraphQLContext {
+  readonly services: {
+    readonly auth: AuthenticationService;
+    /**
+     * Auth by using request headers
+     *
+     * @deprecated use `services.auth` instead
+     */
+    readonly requestHeaderAuth: SingleUserAuthenticationService;
+  };
   readonly mongoDB: {
     readonly client: MongoClient;
     readonly collections: MongoDBCollections;
@@ -88,25 +84,19 @@ export interface ApiGraphQLContext {
   readonly connectionId: string | undefined;
 }
 
-export type GraphQLResolversContext = ApolloHttpGraphQLContext &
-  PersistGraphQLContext &
-  ApiGraphQLContext &
-  SubscriptionContext;
+export type GraphQLResolversContext = GraphQLContext &
+  SubscriptionGraphQLContext &
+  ApolloHttpGraphQLContext &
+  WebSocketGraphQLContext;
 
 /**
- * This type is used to define everything that websocket-handler doesn't
- * define by default.
- *
- * ApiGraphQLContext
- * mongodb
- *
- * ApolloHttpGraphQLContext
- * request
- * response
- * publish
- *
+ * Type for apollo-http-handler
  */
-export type BaseSubscriptionResolversContext = Omit<
-  GraphQLResolversContext,
-  keyof PersistGraphQLContext | keyof SubscriptionContext
->;
+export type ApolloHttpHandlerGraphQLResolversContext = GraphQLContext &
+  Omit<WebSocketGraphQLContext, keyof ApolloHttpGraphQLContext>;
+
+/**
+ * Type for websocket-handler
+ */
+export type WebSocketHandlerGraphQLResolversContext = GraphQLContext &
+  Omit<ApolloHttpGraphQLContext, keyof WebSocketGraphQLContext>;

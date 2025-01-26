@@ -1,15 +1,17 @@
 import { GraphQLError } from 'graphql/index.js';
-import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+import {
+  AuthenticationFailedReason,
+  GraphQLErrorCode,
+} from '~api-app-shared/graphql/error-codes';
 
-import { UnauthenticatedContext } from '../../services/auth/authentication-context';
 import { UnauthenticatedServiceError } from '../../services/auth/errors';
 
 class UnauthenticatedError extends GraphQLError {
-  constructor(context: UnauthenticatedContext | undefined) {
+  constructor(reason: AuthenticationFailedReason | undefined) {
     super('You must be signed in to perform this action.', {
       extensions: {
         code: GraphQLErrorCode.UNAUTHENTICATED,
-        reason: context?.reason,
+        reason: reason,
       },
     });
   }
@@ -17,7 +19,7 @@ class UnauthenticatedError extends GraphQLError {
 
 export function formatError(error: unknown) {
   if (error instanceof UnauthenticatedServiceError) {
-    return new UnauthenticatedError(error.context);
+    return new UnauthenticatedError(error.reason);
   }
 
   return;

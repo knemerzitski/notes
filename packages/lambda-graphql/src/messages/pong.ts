@@ -2,10 +2,10 @@ import { MessageType } from 'graphql-ws';
 
 import { MessageHandler } from '../message-handler';
 
-export function createPongHandler<
-  TGraphQLContext,
-  TPersistGraphQLContext = unknown,
->(): MessageHandler<MessageType.Pong, TGraphQLContext, TPersistGraphQLContext> {
+export function createPongHandler<TGraphQLContext>(): MessageHandler<
+  MessageType.Pong,
+  TGraphQLContext
+> {
   return async ({ context, event, message }) => {
     await context.onPong?.({ context, event, message });
 

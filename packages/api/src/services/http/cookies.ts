@@ -1,182 +1,105 @@
-import { ObjectId } from 'mongodb';
-
-import { coerce, instance, object, optional, record, string } from 'superstruct';
-
-import { objectIdToStr } from '../../mongodb/utils/objectid';
-
 const SECURE_SET_COOKIE = process.env.NODE_ENV === 'production' ? '; Secure' : '';
 
-interface CookiesOptions {
-  sessions: Record<string, string>;
+interface ModifiedValue {
+  /**
+   * Null value signifies a deleted cookie
+   */
+  value: string | null;
+  secure: boolean;
 }
 
-export interface SerializedCookies {
-  sessions?: Cookies['sessions'];
+interface UpdateResponseOptions {
+  /**
+   * Set cookie with HttpOnly and Strict option
+   * @default false
+   */
+  secure?: boolean;
 }
 
 /**
- * Parsed client cookies as a context. Normally parsed from request headers.
+ * Read or modify cookies
  */
 export class Cookies {
-  static readonly SESSIONS_KEY = 'Sessions';
+  private readonly modifiedCookies: Record<string, ModifiedValue> = {};
 
-  static parse(cookiesRecord: Readonly<Record<string, string>>) {
-    return new Cookies({
-      sessions: Object.fromEntries(
-        cookiesRecord[this.SESSIONS_KEY]
-          ?.split(',')
-          .map((session) => {
-            const [userPublicId = '', cookieId = ''] = session.split(':', 2);
-            return [userPublicId, cookieId];
-          })
-          .filter(isNonEmptyStringPair) ?? []
-      ),
-    });
-  }
-
-  static parseFromHeaders(
-    headers: Readonly<Record<string, string | undefined>> | undefined
-  ) {
-    return this.parse(parseCookiesFromHeaders(headers));
-  }
-
-  serialize() {
-    return {
-      sessions: this.sessions,
-    };
-  }
-
+  private _isModified = false;
   /**
-   * All available sessions for current client.
-   *
-   * Key is User.id \
-   * Value is Session.cookieId (NEVER send this in a response body).
+   * Cookies have been modified
    */
-  private sessions: Record<string, string>;
-
-  constructor(params?: CookiesOptions) {
-    this.sessions = { ...params?.sessions };
+  get isModified() {
+    return this._isModified;
   }
 
-  private getSessionKey(userId: ObjectId | string) {
-    return userId instanceof ObjectId ? objectIdToStr(userId) : userId;
+  constructor(private readonly cookies: Readonly<Record<string, string>> = {}) {}
+
+  private modify(key: string, value: string | null, options?: UpdateResponseOptions) {
+    if (value === null && !(key in this.cookies)) {
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+      delete this.modifiedCookies[key];
+    } else if (this.get(key) !== value) {
+      this.modifiedCookies[key] = {
+        value,
+        secure: options?.secure ?? false,
+      };
+    } else {
+      return;
+    }
+
+    this._isModified = true;
   }
 
-  setSession(userId: ObjectId | string, cookieId: string) {
-    this.sessions[this.getSessionKey(userId)] = cookieId;
+  update(key: string, value: string, options?: UpdateResponseOptions) {
+    this.modify(key, value, options);
   }
 
-  deleteSessionCookieId(userId: ObjectId | string) {
-    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-    delete this.sessions[this.getSessionKey(userId)];
+  delete(key: string, options?: UpdateResponseOptions) {
+    this.modify(key, null, options);
   }
 
-  /**
-   * User.id
-   */
-  getAvailableSessionUserIds() {
-    return Object.keys(this.sessions);
+  get(key: string): string | undefined {
+    // Modified values have priority
+    const modifiedValue = this.modifiedCookies[key];
+    if (modifiedValue) {
+      return modifiedValue.value ?? undefined;
+    }
+
+    return this.cookies[key];
   }
 
-  /**
-   * Session.cookieId (NEVER send this in a response body)
-   */
-  getAvailableSessionCookieIds() {
-    return Object.values(this.sessions);
-  }
+  getHeaderValue(): string {
+    const cookies = { ...this.cookies };
 
-  getSessionCookieId(userId: ObjectId | string) {
-    return this.sessions[this.getSessionKey(userId)];
-  }
-
-  clearSessions() {
-    this.sessions = {};
-  }
-
-  hasNoSessions() {
-    return Object.keys(this.sessions).length === 0;
-  }
-
-  /**
-   * Only keep sessions defined in {@link userIds}.
-   */
-  filterSessionsByUserId(userIds: string[]) {
-    for (const existingUserId of Object.keys(this.sessions)) {
-      if (!userIds.includes(existingUserId)) {
+    for (const [key, { value }] of Object.entries(this.modifiedCookies)) {
+      if (value != null) {
+        cookies[key] = value;
+      } else {
         // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-        delete this.sessions[existingUserId];
+        delete cookies[key];
       }
     }
+
+    return Object.entries(cookies)
+      .map(([key, value]) => `${key}=${value}`)
+      .join(';');
   }
 
-  /**
-   * Remembers session in http-only cookie. \
-   * Assigns 'Set-Cookie' values to {@link multiValueHeaders} to match {@link sessions}. \
-   * If {@link sessions} is empty then session 'Set-Cookie' is set as expired to clear session value.
-   */
-  putCookiesToHeaders(multiValueHeaders: Record<string, unknown[]>) {
-    if (!('Set-Cookie' in multiValueHeaders)) {
-      multiValueHeaders['Set-Cookie'] = [];
-    }
+  getMultiValueHeadersSetCookies(): string[] {
+    return Object.entries(this.modifiedCookies).map(([key, { value, secure }]) => {
+      let setCookieValue = `${key}=${value ?? ''}`;
 
-    const sessionEntries = Object.entries(this.sessions);
-    if (sessionEntries.length > 0) {
-      multiValueHeaders['Set-Cookie'].push(
-        `${Cookies.SESSIONS_KEY}=${Object.entries(this.sessions)
-          .map(([key, id]) => `${key}:${id}`)
-          .join(',')}; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}; Path=/`
-      );
-    } else {
-      multiValueHeaders['Set-Cookie'].push(
-        `${Cookies.SESSIONS_KEY}=; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}; Expires=Thu, 01 Jan 1970 00:00:00 GMT`
-      );
-    }
+      if (secure) {
+        setCookieValue += `; HttpOnly; SameSite=Strict${SECURE_SET_COOKIE}`;
+
+        const isUpdateCookieValue = value != null;
+        if (isUpdateCookieValue) {
+          setCookieValue += '; Path=/';
+        } else {
+          // Deleted
+          setCookieValue += '; Expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        }
+      }
+
+      return setCookieValue;
+    });
   }
-}
-
-export const CookiesStruct = coerce(
-  instance(Cookies),
-  object({
-    sessions: optional(record(string(), string())),
-  }),
-  (value) =>
-    new Cookies({
-      sessions: value.sessions ?? {},
-    }),
-  (cookies) => cookies.serialize()
-);
-
-/**
- * @param key
- * @default "cookie"
- */
-export function parseCookiesFromHeaders(
-  headers: Readonly<Record<string, string | undefined>> | undefined,
-  key = 'cookie'
-) {
-  if (!headers) return {};
-
-  const cookies = headers[key];
-  if (!cookies) {
-    return {};
-  }
-
-  const result: Record<string, string> = {};
-  for (const cookie of cookies.split(';')) {
-    const [name, value] = cookie.split('=', 2);
-    if (name && value) {
-      result[name.trim()] = value.trim();
-    }
-  }
-
-  return result;
-}
-
-function isNonEmptyStringPair(arr: string[]): arr is [string, string] {
-  return (
-    typeof arr[0] === 'string' &&
-    arr[0].length > 0 &&
-    typeof arr[1] === 'string' &&
-    arr[1].length > 0
-  );
 }

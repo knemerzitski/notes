@@ -2,11 +2,12 @@ import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes'
 
 import { CollectionName, MongoDBCollections } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
+import { QueryableSession } from '../../mongodb/loaders/session/description';
 import { SessionDurationConfig, SessionDuration } from '../session/duration';
 import { findByCookieId } from '../session/find-by-cookie-id';
 import { tryRefreshExpireAt } from '../session/try-refresh-expire-at';
 
-import { AuthenticatedContext, AuthenticatedFailedError } from './authentication-context';
+import { UnauthenticatedServiceError } from './errors';
 
 // TODO test
 /**
@@ -30,7 +31,7 @@ export async function findRefreshSessionByCookieId(
       };
     };
   }
-): Promise<AuthenticatedContext['session']> {
+): Promise<QueryableSession> {
   const session = await findByCookieId({
     cookieId,
     mongoDB,
@@ -38,7 +39,7 @@ export async function findRefreshSessionByCookieId(
 
   // Session not found in db or expireAt time has passed
   if (!session || session.expireAt.getTime() <= Date.now()) {
-    throw new AuthenticatedFailedError(AuthenticationFailedReason.SESSION_EXPIRED);
+    throw new UnauthenticatedServiceError(AuthenticationFailedReason.SESSION_EXPIRED);
   }
 
   if (!options?.sessions?.user) {
