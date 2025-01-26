@@ -120,11 +120,8 @@ export function createMockApiGatewayParams(
 export function createMockPingPongParams(
   sockets: Record<string, WebSocket>
 ): PingPongContextParams {
-  // TODO use commented values
-  const delay = 5;
-  const timeout = 2;
-  // const delay = 60;
-  // const timeout = 10;
+  const delay = 60;
+  const timeout = 10;
   const logger = createLogger('mock:pingpong');
 
   const handler = createPingPongHandler({
