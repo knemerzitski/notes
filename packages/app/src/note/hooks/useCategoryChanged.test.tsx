@@ -61,20 +61,31 @@ it('runs callback on category change', async () => {
     cache.writeQuery({
       query: gql`
         query Test($id: ObjectID!) {
-          userNoteLink(by: { noteId: $id }) {
-            categoryName
+          signedInUser(by: $userBy) {
+            noteLink(by: $noteBy) {
+              categoryName
+            }
           }
         }
       `,
       variables: {
-        id: noteId,
+        userBy: {
+          id: userId,
+        },
+        noteBy: {
+          id: noteId,
+        },
       },
       data: {
         __typename: 'Query',
-        userNoteLink: {
-          __typename: 'UserNoteLink',
-          id: getUserNoteLinkId(noteId, userId),
-          categoryName,
+        signedInUser: {
+          __typename: 'SignedInUser',
+          id: userId,
+          noteLink: {
+            __typename: 'UserNoteLink',
+            id: getUserNoteLinkId(noteId, userId),
+            categoryName,
+          },
         },
       },
     });

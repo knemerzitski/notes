@@ -6,16 +6,19 @@ import {
   NoteCategory,
   UserNoteLinkByInput,
 } from '../../../__generated__/graphql';
-import { getUserNoteLinkIdFromByInput } from '../../utils/id';
+import { getUserNoteLinkIdFromByInput, parseUserNoteLinkByInput } from '../../utils/id';
 import { getCategoryName } from '../note/category-name';
 import { noteExists } from '../note/exists';
 
 const AddNoteToConnection_Query = gql(`
-  query AddNoteToConnection_Query($by: UserNoteLinkByInput!, $category: NoteCategory!) {
-    userNoteLink(by: $by){
+  query AddNoteToConnection_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!, $category: NoteCategory!) {
+    signedInUser(by: $userBy) {
       id
+      noteLink(by: $noteBy) {
+        id
       categoryName
       connectionCategoryName
+      }
     }
 
     userNoteLinkConnection(category: $category) {
@@ -45,7 +48,7 @@ export function addNoteToConnection(
   const categoryName = getCategoryName(by, cache) ?? NoteCategory.DEFAULT;
 
   const newEdge: AddNoteToConnectionQueryQuery['userNoteLinkConnection']['edges'][0] & {
-    node: AddNoteToConnectionQueryQuery['userNoteLink'];
+    node: AddNoteToConnectionQueryQuery['signedInUser']['noteLink'];
   } = {
     __typename: 'UserNoteLinkEdge' as const,
     node: {
@@ -56,11 +59,18 @@ export function addNoteToConnection(
     },
   };
 
+  const { userId, noteId } = parseUserNoteLinkByInput(by, cache);
+
   cache.updateQuery(
     {
       query: AddNoteToConnection_Query,
       variables: {
-        by,
+        userBy: {
+          id: userId,
+        },
+        noteBy: {
+          id: noteId,
+        },
         category: categoryName,
       },
       overwrite: true,
@@ -78,7 +88,10 @@ export function addNoteToConnection(
 
       return {
         ...data,
-        userNoteLink: newEdge.node,
+        signedInUser: {
+          ...data.signedInUser,
+          noteLink: newEdge.node,
+        },
         userNoteLinkConnection: {
           ...data.userNoteLinkConnection,
           edges: [newEdge, ...data.userNoteLinkConnection.edges],

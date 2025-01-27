@@ -3,22 +3,20 @@ import { useEffect } from 'react';
 
 import { getFragmentData, gql } from '../../__generated__';
 import { MapRecordCollabTextRecordFragmentFragmentDoc } from '../../__generated__/graphql';
-import { useUserNoteLinkId } from '../context/user-note-link-id';
 import { cacheRecordToCollabServiceRecord } from '../utils/map-record';
+import { useNoteId } from '../context/note-id';
+import { useUserId } from '../../user/context/user-id';
 
 const SyncHeadTextWatch_Query = gql(`
-  query SyncHeadTextWatch_Query($by: UserNoteLinkByInput!) {
-    userNoteLink(by: $by) {
+  query SyncHeadTextWatch_Query($by: NoteByInput!) {
+    note(by: $by) {
       id
-      note {
+      collabService
+      collabText {
         id
-        collabService
-        collabText {
-          id
-          headText {
-            revision
-            changeset
-          }
+        headText {
+          revision
+          changeset
         }
       }
     }
@@ -26,10 +24,10 @@ const SyncHeadTextWatch_Query = gql(`
 `);
 
 const SyncHeadText_Query = gql(`
-  query SyncHeadText_Query($by: UserNoteLinkByInput!, $after: NonNegativeInt!, $first: PositiveInt!) {
-    userNoteLink(by: $by) {
+  query SyncHeadText_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!, $after: NonNegativeInt!, $first: PositiveInt!) {
+    signedInUser(by: $userBy) {
       id
-      note {
+      note(by: $noteBy) {
         id
         collabText {
           id
@@ -58,14 +56,15 @@ const SyncHeadText_Query = gql(`
  */
 export function SyncHeadText() {
   const client = useApolloClient();
-  const userNoteLinkId = useUserNoteLinkId();
+  const userId = useUserId();
+  const noteId = useNoteId();
 
   useEffect(() => {
     const observable = client.watchQuery({
       query: SyncHeadTextWatch_Query,
       variables: {
         by: {
-          userNoteLinkId,
+          id: noteId,
         },
       },
       fetchPolicy: 'cache-only',
@@ -76,7 +75,7 @@ export function SyncHeadText() {
         return;
       }
 
-      const note = value.data.userNoteLink.note;
+      const note = value.data.note;
       const collabText = note.collabText;
       const collabService = note.collabService;
 
@@ -90,15 +89,18 @@ export function SyncHeadText() {
             .query({
               query: SyncHeadText_Query,
               variables: {
-                by: {
-                  userNoteLinkId,
+                userBy: {
+                  id: userId,
+                },
+                noteBy: {
+                  id: noteId,
                 },
                 after: collabService.headRevision,
                 first: cacheHeadRevision - collabService.headRevision,
               },
             })
             .then(({ data }) => {
-              data.userNoteLink.note.collabText.recordConnection.edges.forEach((edge) => {
+              data.signedInUser.note.collabText.recordConnection.edges.forEach((edge) => {
                 const record = getFragmentData(
                   MapRecordCollabTextRecordFragmentFragmentDoc,
                   edge.node
@@ -119,7 +121,7 @@ export function SyncHeadText() {
     return () => {
       sub.unsubscribe();
     };
-  }, [client, userNoteLinkId]);
+  }, [client, userId, noteId]);
 
   return null;
 }

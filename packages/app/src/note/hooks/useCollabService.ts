@@ -8,13 +8,10 @@ import { gql } from '../../__generated__';
 import { useNoteId } from '../context/note-id';
 
 const UseCollabService_Query = gql(`
-  query UseCollabService_Query($by: UserNoteLinkByInput!) {
-    userNoteLink(by: $by) @client {
+  query UseCollabService_Query($by: NoteByInput!) {
+    note(by: $by) {
       id
-      note {
-        id
-        collabService
-      }
+      collabService
     }
   }
 `);
@@ -26,14 +23,15 @@ export function useCollabService(nullable?: boolean): Maybe<CollabService> {
   const { data } = useQuery(UseCollabService_Query, {
     variables: {
       by: {
-        noteId,
+        id: noteId,
       },
     },
+    fetchPolicy: 'cache-only',
   });
 
   if (!data && !nullable) {
     throw new Error(`Failed to query CollabService for note "${noteId}"`);
   }
 
-  return data?.userNoteLink.note.collabService;
+  return data?.note.collabService;
 }

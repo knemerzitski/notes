@@ -24,12 +24,13 @@ import { RouteUserModuleProvider } from '../user/components/RouteUserModuleProvi
 import { ErrorComponent } from '../utils/components/ErrorComponent';
 import { NotFoundTypography } from '../utils/components/NotFoundTypography';
 import { routeFetchPolicy } from '../utils/route-fetch-policy';
+import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
 
 const RouteRoot_Query = gql(`
-  query RouteRoot_Query($noteId: ObjectID!) {
-    noteSharingDialog: userNoteLink(by: {noteId: $noteId}) {
+  query RouteRoot_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!) {
+    noteSharingDialog: signedInUser(by: $userBy) {
       id
-      note {
+      note(by: $noteBy) {
         id
         ...RouteNoteSharingDialog_NoteFragment
       }
@@ -81,7 +82,14 @@ export const Route = createRootRouteWithContext<RouterContext>()({
             .query({
               query: RouteRoot_Query,
               variables: {
-                noteId: ctx.deps.sharingNoteId,
+                // get userid from where?
+                // userBy
+                userBy: {
+                  id: getCurrentUserId(apolloClient.cache),
+                },
+                noteBy: {
+                  id: ctx.deps.sharingNoteId,
+                },
               },
               fetchPolicy,
             })

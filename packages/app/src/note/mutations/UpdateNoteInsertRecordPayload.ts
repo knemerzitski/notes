@@ -36,7 +36,7 @@ export const UpdateNoteInsertRecordPayload = mutationDefinition(
     // Add record to recordConnection
     addRecordToConnection(collabText.id, newRecord, cache);
 
-    const service = getCollabService({ noteId: note.id }, cache);
+    const service = getCollabService({ id: note.id }, cache);
 
     if (context?.isSubscriptionOperation) {
       service.handleExternalChange(cacheRecordToCollabServiceRecord(newRecord));

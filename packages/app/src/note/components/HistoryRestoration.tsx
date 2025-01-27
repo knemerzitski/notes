@@ -11,12 +11,12 @@ import { useCollabService } from '../hooks/useCollabService';
 import { CacheRecordsFacade } from '../utils/cache-records-facade';
 
 const HistoryRestoration_Query = gql(`
-  query HistoryRestoration_Query($by: UserNoteLinkByInput!, 
+  query HistoryRestoration_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!, 
                             $recordsBeforeRevision: NonNegativeInt!, $recordsLast: PositiveInt!, $skipRecords: Boolean!
-                            $tailRevision: NonNegativeInt! $skipTailRevision: Boolean!, ){
-    userNoteLink(by: $by) {
+                            $tailRevision: NonNegativeInt! $skipTailRevision: Boolean!){
+    signedInUser(by: $userBy) {
       id
-      note {
+      note(by: $noteBy) {
         id
         collabText {
           id
@@ -124,8 +124,11 @@ export function HistoryRestoration({
         await client.query({
           query: HistoryRestoration_Query,
           variables: {
-            by: {
-              noteId,
+            userBy: {
+              id: userId,
+            },
+            noteBy: {
+              id: noteId,
             },
             recordsBeforeRevision,
             recordsLast: skipRecords ? 1 : recordsLast,

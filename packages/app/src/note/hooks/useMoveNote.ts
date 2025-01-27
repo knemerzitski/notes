@@ -44,7 +44,7 @@ export function useMoveNote() {
       updateConnectionCategoryName({ noteId }, client.cache);
 
       return moveNoteMutation({
-        local: isLocalOnlyNote({ noteId }, client.cache),
+        local: isLocalOnlyNote({ id: noteId }, client.cache),
         variables: {
           input: {
             noteId,

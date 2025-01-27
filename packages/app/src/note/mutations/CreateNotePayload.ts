@@ -92,7 +92,7 @@ export const CreateNotePayload = mutationDefinition(
 
     addRecordToConnection(data.userNoteLink.note.collabText.id, firstRecord, cache);
 
-    const service = getCollabService({ userNoteLinkId: data.userNoteLink.id }, cache);
+    const service = getCollabService({ id: data.userNoteLink.note.id }, cache);
 
     if (options.context?.isSubscriptionOperation) {
       service.replaceHeadText(data.userNoteLink.note.collabText.headText);

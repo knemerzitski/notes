@@ -14,15 +14,12 @@ import { CollabInputUsersEditingCarets } from './CollabInputUsersEditingCarets';
 import { SubmitSelectionChangeDebounced } from './SubmitSelectionChangeDebounced';
 
 const CollabInput_Query = gql(`
-  query CollabInput_Query($id: ObjectID!, $fieldName: NoteTextFieldName!) {
-    userNoteLink(by: { noteId: $id }) @client {
+  query CollabInput_Query($noteBy: NoteByInput!, $fieldName: NoteTextFieldName!) {
+    note(by: $noteBy) {
       id
-      note {
-        id
-        collabService
-        textField(name: $fieldName) {
-          editor
-        }
+      collabService
+      textField(name: $fieldName) {
+        editor
       }
     }
   }
@@ -43,9 +40,12 @@ export function CollabInput<TInputProps>({
 
   const { data } = useQuery(CollabInput_Query, {
     variables: {
-      id: noteId,
+      noteBy: {
+        id: noteId,
+      },
       fieldName,
     },
+    fetchPolicy: 'cache-only',
   });
 
   if (!data) {
@@ -54,7 +54,7 @@ export function CollabInput<TInputProps>({
 
   return (
     <NoteTextFieldNameProvider textFieldName={fieldName}>
-      <NoteDefined<TInputProps> {...restProps} note={data.userNoteLink.note} />
+      <NoteDefined<TInputProps> {...restProps} note={data.note} />
     </NoteTextFieldNameProvider>
   );
 }
@@ -74,7 +74,7 @@ function NoteDefined<TInputProps>({
     root?: Omit<BoxProps, 'position'>;
     input?: Omit<TInputProps, keyof CollabHtmlInputProps>;
   };
-  note: CollabInputQueryQuery['userNoteLink']['note'];
+  note: CollabInputQueryQuery['note'];
 }) {
   const collabHtmlInput = useCollabHtmlInput(note.textField.editor, note.collabService);
   const inputRef = collabHtmlInput.inputRef;

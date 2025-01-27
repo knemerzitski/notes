@@ -7,31 +7,42 @@ import { MovableNoteCategory } from '../../__generated__/graphql';
 import { useNoteId } from '../context/note-id';
 import { useArchiveNoteWithUndo } from '../hooks/useArchiveNoteWithUndo';
 import { toMovableNoteCategory } from '../utils/note-category';
+import { useUserId } from '../../user/context/user-id';
 
 const ArchiveButton_Query = gql(`
-  query ArchiveButton_Query($id: ObjectID!) {
-    userNoteLink(by: { noteId: $id }) @client {
+  query ArchiveButton_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!) {
+    signedInUser(by: $userBy) {
       id
-      categoryName
+      noteLink(by: $noteBy) {
+        id
+        categoryName
+      }
     }
   }
 `);
 
 export function ArchiveButton() {
+  const userId = useUserId();
   const noteId = useNoteId();
   const archiveNoteWithUndo = useArchiveNoteWithUndo();
 
   const { data } = useQuery(ArchiveButton_Query, {
     variables: {
-      id: noteId,
+      userBy: {
+        id: userId,
+      },
+      noteBy: {
+        id: noteId,
+      },
     },
+    fetchPolicy: 'cache-only',
   });
 
   if (!data) {
     return null;
   }
 
-  const category = toMovableNoteCategory(data.userNoteLink.categoryName);
+  const category = toMovableNoteCategory(data.signedInUser.noteLink.categoryName);
 
   if (!category || category === MovableNoteCategory.ARCHIVE) {
     return null;

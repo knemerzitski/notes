@@ -1,23 +1,8 @@
-import { useQuery } from '@apollo/client';
 import { useEffect, useRef } from 'react';
 
-import { gql } from '../../__generated__';
 import { useNoteId } from '../context/note-id';
 import { useUpdateNoteInsertRecord } from '../hooks/useUpdateNoteInsertRecord';
-
-// TODO fragment for for loader
-
-const SubmittedRecordMutation_Query = gql(`
-  query SubmittedRecordMutation_Query($id: ObjectID!) {
-    userNoteLink(by: { noteId: $id }) @client {
-      id
-      note {
-        id
-        collabService
-      }
-    }
-  }
-`);
+import { useCollabService } from '../hooks/useCollabService';
 
 /**
  * Watches CollabService.submittedRecord and submits it to the server
@@ -27,13 +12,7 @@ export function SubmittedRecordMutation() {
   const submittingRef = useRef(false);
 
   const noteId = useNoteId();
-  const { data } = useQuery(SubmittedRecordMutation_Query, {
-    variables: {
-      id: noteId,
-    },
-  });
-
-  const maybeService = data?.userNoteLink.note.collabService;
+  const maybeService = useCollabService(true);
 
   useEffect(() => {
     if (!maybeService) {

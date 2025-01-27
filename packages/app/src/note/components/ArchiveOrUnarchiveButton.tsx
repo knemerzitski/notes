@@ -7,30 +7,41 @@ import { toMovableNoteCategory } from '../utils/note-category';
 
 import { ArchiveButton } from './ArchiveButton';
 import { UnarchiveButton } from './UnarchiveButton';
+import { useUserId } from '../../user/context/user-id';
 
 const ArchiveOrUnarchiveButton_Query = gql(`
-  query ArchiveOrUnarchiveButton_Query($id: ObjectID!) {
-    userNoteLink(by: { noteId: $id }) @client {
+  query ArchiveOrUnarchiveButton_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!) {
+    signedInUser(by: $userBy) {
       id
-      categoryName
+      noteLink(by: $noteBy) {
+        id
+        categoryName
+      }
     }
   }
 `);
 
 export function ArchiveOrUnarchiveButton() {
+  const userId = useUserId();
   const noteId = useNoteId();
 
   const { data } = useQuery(ArchiveOrUnarchiveButton_Query, {
     variables: {
-      id: noteId,
+      userBy: {
+        id: userId,
+      },
+      noteBy: {
+        id: noteId,
+      },
     },
+    fetchPolicy: 'cache-only',
   });
 
   if (!data) {
     return null;
   }
 
-  const category = toMovableNoteCategory(data.userNoteLink.categoryName);
+  const category = toMovableNoteCategory(data.signedInUser.noteLink.categoryName);
 
   if (!category) {
     return null;

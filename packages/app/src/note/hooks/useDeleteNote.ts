@@ -21,7 +21,7 @@ export function useDeleteNote() {
       const { userId, noteId } = parseUserNoteLinkByInput(by, client.cache);
 
       return deleteNoteMutation({
-        local: isLocalOnlyNote({ noteId }, client.cache),
+        local: isLocalOnlyNote({ id: noteId }, client.cache),
         variables: {
           input: {
             noteId,

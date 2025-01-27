@@ -2,13 +2,17 @@ import { ApolloCache } from '@apollo/client';
 
 import { gql } from '../../../__generated__';
 import { UserNoteLinkByInput } from '../../../__generated__/graphql';
+import { parseUserNoteLinkByInput } from '../../utils/id';
 
 const ConnectionCategoryName_Query = gql(`
-  query ConnectionCategoryName_Query($by: UserNoteLinkByInput!) {
-    userNoteLink(by: $by) {
+  query ConnectionCategoryName_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!) {
+    signedInUser(by: $userBy) {
       id
-      categoryName
-      connectionCategoryName
+      noteLink(by: $noteBy) {
+        id
+        categoryName
+        connectionCategoryName
+      }
     }
   }
 `);
@@ -17,14 +21,21 @@ export function getConnectionCategoryName(
   by: UserNoteLinkByInput,
   cache: Pick<ApolloCache<unknown>, 'readQuery'>
 ) {
+  const { userId, noteId } = parseUserNoteLinkByInput(by, cache);
+
   const data = cache.readQuery({
     query: ConnectionCategoryName_Query,
     variables: {
-      by,
+      userBy: {
+        id: userId,
+      },
+      noteBy: {
+        id: noteId,
+      },
     },
   });
 
-  return data?.userNoteLink.connectionCategoryName;
+  return data?.signedInUser.noteLink.connectionCategoryName;
 }
 
 /**
@@ -32,13 +43,20 @@ export function getConnectionCategoryName(
  */
 export function updateConnectionCategoryName(
   by: UserNoteLinkByInput,
-  cache: Pick<ApolloCache<unknown>, 'updateQuery'>
+  cache: Pick<ApolloCache<unknown>, 'updateQuery' | 'readQuery'>
 ) {
+  const { userId, noteId } = parseUserNoteLinkByInput(by, cache);
+
   cache.updateQuery(
     {
       query: ConnectionCategoryName_Query,
       variables: {
-        by,
+        userBy: {
+          id: userId,
+        },
+        noteBy: {
+          id: noteId,
+        },
       },
     },
     (data) => {
@@ -48,10 +66,14 @@ export function updateConnectionCategoryName(
 
       return {
         ...data,
-        userNoteLink: {
-          ...data.userNoteLink,
-          connectionCategoryName:
-            data.userNoteLink.connectionCategoryName ?? data.userNoteLink.categoryName,
+        signedInUser: {
+          ...data.signedInUser,
+          noteLink: {
+            ...data.signedInUser.noteLink,
+            connectionCategoryName:
+              data.signedInUser.noteLink.connectionCategoryName ??
+              data.signedInUser.noteLink.categoryName,
+          },
         },
       };
     }

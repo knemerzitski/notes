@@ -36,6 +36,7 @@ import { evictOptions as Query_evictOptions, Query } from './policies/Query';
 import { RevisionChangeset } from './policies/RevisionChangeset';
 import { UserNoteLink } from './policies/UserNoteLink';
 import { UserNoteLinkConnection } from './policies/UserNoteLinkConnection';
+import { SignedInUser } from './policies/SignedInUser';
 
 export const notePolicies: CreateTypePoliciesFn = function (ctx) {
   return {
@@ -52,6 +53,7 @@ export const notePolicies: CreateTypePoliciesFn = function (ctx) {
     PublicUserNoteLink: PublicUserNoteLink(ctx),
     OpenedNote: OpenedNote(ctx),
     CollabTextEditing: CollabTextEditing(ctx),
+    SignedInUser: SignedInUser(ctx),
   };
 };
 

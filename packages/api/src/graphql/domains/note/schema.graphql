@@ -10,6 +10,23 @@ type Note {
   id: ObjectID!
 }
 
+"""
+TODO desc
+"""
+input NoteByInput @oneOf {
+  """
+  Note.id
+  """
+  id: ObjectID
+}
+
+extend type SignedInUser {
+  """
+  Direct access to note without link
+  """
+  note(by: NoteByInput!): Note!
+}
+
 ################################ Mutation createNote ################################
 
 """

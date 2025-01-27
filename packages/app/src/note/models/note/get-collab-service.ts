@@ -3,22 +3,19 @@ import { ApolloCache } from '@apollo/client';
 import { CollabService } from '~collab/client/collab-service';
 
 import { gql } from '../../../__generated__';
-import { UserNoteLinkByInput } from '../../../__generated__/graphql';
+import { NoteByInput } from '../../../__generated__/graphql';
 
 const GetCollabService_Query = gql(`
-  query GetCollabService_Query($by: UserNoteLinkByInput!) {
-    userNoteLink(by: $by) {
+  query GetCollabService_Query($by: NoteByInput!) {
+    note(by: $by) {
       id
-      note {
-        id
-        collabService
-      }
+      collabService
     }
   }
 `);
 
 export function getCollabService(
-  by: UserNoteLinkByInput,
+  by: NoteByInput,
   cache: Pick<ApolloCache<unknown>, 'readQuery'>
 ): CollabService {
   const data = cache.readQuery({
@@ -29,8 +26,8 @@ export function getCollabService(
   });
 
   if (!data) {
-    throw new Error(`Note "${by.noteId ?? by.id ?? by.userNoteLinkId}" not found`);
+    throw new Error(`Note "${by.id}" not found`);
   }
 
-  return data.userNoteLink.note.collabService;
+  return data.note.collabService;
 }

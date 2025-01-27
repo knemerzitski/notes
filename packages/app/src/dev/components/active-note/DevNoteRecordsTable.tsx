@@ -19,23 +19,20 @@ import { DevNoteRecordsTableQueryQuery } from '../../../__generated__/graphql';
 import { useNoteId } from '../../../note/context/note-id';
 
 const DevNoteRecordsTable_Query = gql(`
-  query DevNoteRecordsTable_Query($by: UserNoteLinkByInput!) {
-    userNoteLink(by: $by){
+  query DevNoteRecordsTable_Query($by: NoteByInput!) {
+    note(by: $by){
       id
-      note {
+      collabText {
         id
-        collabText {
-          id
-          recordConnection {
-            edges {
-              node {
-                id
-                change {
-                  revision
-                  changeset
-                }
-                createdAt
+        recordConnection {
+          edges {
+            node {
+              id
+              change {
+                revision
+                changeset
               }
+              createdAt
             }
           }
         }
@@ -46,13 +43,14 @@ const DevNoteRecordsTable_Query = gql(`
 
 export function DevNoteRecordsTable() {
   const noteId = useNoteId();
+
   const { data } = useQuery(DevNoteRecordsTable_Query, {
-    fetchPolicy: 'cache-only',
     variables: {
       by: {
-        noteId,
+        id: noteId,
       },
     },
+    fetchPolicy: 'cache-only',
     returnPartialData: true,
   });
 
@@ -62,7 +60,7 @@ export function DevNoteRecordsTable() {
     return null;
   }
 
-  const collabText = partialData.userNoteLink?.note?.collabText;
+  const collabText = partialData.note?.collabText;
 
   return (
     <TableContainer

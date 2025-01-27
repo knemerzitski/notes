@@ -8,14 +8,11 @@ import { useNoteTextFieldName } from '../context/note-text-field-name';
 import { NoteTextFieldEditor } from '../external-state/note';
 
 const UseNoteTextFieldEditor_Query = gql(`
-  query UseNoteTextFieldEditor_Query($by: UserNoteLinkByInput!, $name: NoteTextFieldName!) {
-    userNoteLink(by: $by) {
+  query UseNoteTextFieldEditor_Query($by: NoteByInput!, $name: NoteTextFieldName!) {
+    note(by: $by) {
       id
-      note {
-        id
-        textField(name: $name) {
-          editor
-        }
+      textField(name: $name) {
+        editor
       }
     }
   }
@@ -29,7 +26,7 @@ export function useNoteTextFieldEditor(nullable?: boolean): Maybe<NoteTextFieldE
   const { data } = useQuery(UseNoteTextFieldEditor_Query, {
     variables: {
       by: {
-        noteId,
+        id: noteId,
       },
       name: fieldName,
     },
@@ -40,5 +37,5 @@ export function useNoteTextFieldEditor(nullable?: boolean): Maybe<NoteTextFieldE
     throw new Error(`Failed to query editor for note "${noteId}" field "${fieldName}"`);
   }
 
-  return data?.userNoteLink.note.textField.editor;
+  return data?.note.textField.editor;
 }

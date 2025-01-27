@@ -28,7 +28,7 @@ export function useUpdateOpenNoteSelectionRange() {
       const noteId = input.noteId;
 
       return updateOpenNoteSelectionRangeMutation({
-        local: isLocalOnlyNote({ noteId }, client.cache),
+        local: isLocalOnlyNote({ id: noteId }, client.cache),
         variables: {
           input,
         },

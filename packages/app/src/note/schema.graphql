@@ -16,16 +16,6 @@ enum NoteTextFieldName {
   TITLE
 }
 
-"""
-TODO desc
-"""
-input NoteByInput @oneOf {
-  """
-  Note.id
-  """
-  id: ObjectID
-}
-
 extend type Query {
   """
   Find note

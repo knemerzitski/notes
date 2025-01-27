@@ -32,7 +32,7 @@ interface Variables {
 const QUERY = `#graphql
   query($userId: ObjectID!, $noteId: ObjectID!, $recordsLast: PositiveInt){
     signedInUser(by: {id: $userId}) {
-      noteLink(by: {noteId: $noteId}){
+      noteLink(by: {id: $noteId}){
         note {
           collabText {
             headText {
