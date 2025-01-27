@@ -7,12 +7,13 @@ import { MapRecordCollabTextRecordFragmentFragmentDoc } from '../../__generated_
 import { useNoteId } from '../context/note-id';
 import { useCollabService } from '../hooks/useCollabService';
 import { cacheRecordToCollabServiceRecord } from '../utils/map-record';
+import { useUserId } from '../../user/context/user-id';
 
 const SyncMissingRecords_Query = gql(`
-  query SyncMissingRecords_Query($by: UserNoteLinkByInput!, $after: NonNegativeInt!, $first: PositiveInt!) {
-    userNoteLink(by: $by) {
+  query SyncMissingRecords_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!, $after: NonNegativeInt!, $first: PositiveInt!) {
+    signedInUser(by: $userBy) {
       id
-      note {
+      note(by: $noteBy) {
         id
         collabText {
           id
@@ -48,6 +49,7 @@ export function SyncMissingRecords({
   fetchDelay?: number;
 }) {
   const client = useApolloClient();
+  const userId = useUserId();
   const noteId = useNoteId();
   const collabService = useCollabService();
 
@@ -83,15 +85,18 @@ export function SyncMissingRecords({
           .query({
             query: SyncMissingRecords_Query,
             variables: {
-              by: {
-                noteId,
+              userBy: {
+                id: userId,
+              },
+              noteBy: {
+                id: noteId,
               },
               after: start - 1,
               first: end - start + 1,
             },
           })
           .then(({ data }) => {
-            data.userNoteLink.note.collabText.recordConnection.edges.forEach((edge) => {
+            data.signedInUser.note.collabText.recordConnection.edges.forEach((edge) => {
               const record = getFragmentData(
                 MapRecordCollabTextRecordFragmentFragmentDoc,
                 edge.node
@@ -117,7 +122,7 @@ export function SyncMissingRecords({
     return collabService.eventBus.on('missingRevisions', () => {
       void fetchMissingRecords();
     });
-  }, [client, noteId, collabService, fetchDelay]);
+  }, [client, userId, noteId, collabService, fetchDelay]);
 
   return null;
 }

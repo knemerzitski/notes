@@ -32,7 +32,7 @@ export function useTrashNote() {
       const deletedAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
 
       return trashNoteMutation({
-        local: isLocalOnlyNote({ noteId }, client.cache),
+        local: isLocalOnlyNote({ id: noteId }, client.cache),
         variables: {
           input: {
             noteId,

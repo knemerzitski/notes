@@ -9,16 +9,19 @@ import {
   ListAnchorPosition,
   UserNoteLinkByInput,
 } from '../../../__generated__/graphql';
-import { getUserNoteLinkIdFromByInput } from '../../utils/id';
+import { getUserNoteLinkIdFromByInput, parseUserNoteLinkByInput } from '../../utils/id';
 import { getConnectionCategoryName } from '../note/connection-category-name';
 import { noteExists } from '../note/exists';
 
 const MoveNoteInConnection_Query = gql(`
-  query MoveNoteInConnection_Query($by: UserNoteLinkByInput!, $oldCategory: NoteCategory, $newCategory: NoteCategory) {
-    userNoteLink(by: $by) {
+  query MoveNoteInConnection_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!, $oldCategory: NoteCategory, $newCategory: NoteCategory) {
+    signedInUser(by: $userBy) {
       id
-      categoryName
-      connectionCategoryName
+      noteLink(by: $noteBy) {
+        id
+        categoryName
+        connectionCategoryName
+      }
     }
 
     oldConnection: userNoteLinkConnection(category: $oldCategory) {
@@ -75,11 +78,18 @@ export function moveNoteInConnection(
     },
   };
 
+  const { userId, noteId } = parseUserNoteLinkByInput(by, cache);
+
   cache.updateQuery(
     {
       query: MoveNoteInConnection_Query,
       variables: {
-        by,
+        userBy: {
+          id: userId,
+        },
+        noteBy: {
+          id: noteId,
+        },
         oldCategory: oldCategoryName,
         newCategory: newCategoryName,
       },
@@ -129,7 +139,10 @@ export function moveNoteInConnection(
 
           return {
             ...data,
-            userNoteLink: newEdge.node,
+            signedInUser: {
+              ...data.signedInUser,
+              noteLink: newEdge.node,
+            },
             newConnection: {
               ...data.newConnection,
               edges: newEdges,
@@ -140,7 +153,10 @@ export function moveNoteInConnection(
             anchorToIndex + (position === ListAnchorPosition.AFTER ? 1 : 0);
           return {
             ...data,
-            userNoteLink: newEdge.node,
+            signedInUser: {
+              ...data.signedInUser,
+              noteLink: newEdge.node,
+            },
             oldConnection: {
               ...data.oldConnection,
               edges: [
@@ -165,7 +181,10 @@ export function moveNoteInConnection(
 
         return {
           ...data,
-          userNoteLink: newEdge.node,
+          signedInUser: {
+            ...data.signedInUser,
+            noteLink: newEdge.node,
+          },
           // Add at anchor
           newConnection: {
             ...data.newConnection,
@@ -187,7 +206,10 @@ export function moveNoteInConnection(
           // No/invalid anchor, insert at 0
           return {
             ...data,
-            userNoteLink: newEdge.node,
+            signedInUser: {
+              ...data.signedInUser,
+              noteLink: newEdge.node,
+            },
             // Remove from old
             oldConnection: {
               ...data.oldConnection,
@@ -207,7 +229,10 @@ export function moveNoteInConnection(
           // No/invalid anchor, insert at 0
           return {
             ...data,
-            userNoteLink: newEdge.node,
+            signedInUser: {
+              ...data.signedInUser,
+              noteLink: newEdge.node,
+            },
             // Add to new at 0
             newConnection: {
               ...data.newConnection,

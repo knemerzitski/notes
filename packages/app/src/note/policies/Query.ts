@@ -4,7 +4,7 @@ import { objectValueArrayPermutationsValues } from '~utils/object/object-value-a
 import { isDefined } from '~utils/type-guards/is-defined';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 
-import { Note, NoteCategory } from '../../__generated__/graphql';
+import { NoteCategory } from '../../__generated__/graphql';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
 import { keyArgsWithUserId } from '../../graphql/utils/key-args-with-user-id';
 import { relayStylePagination } from '../../graphql/utils/relay-style-pagination';
@@ -12,14 +12,7 @@ import { EvictTag, TaggedEvictOptionsList } from '../../graphql/utils/tagged-evi
 import { getUserNoteLinkId } from '../utils/id';
 
 import { readNoteExternalState } from './Note/_external';
-
-function throwNoteNotFoundError(noteId?: Note['id']): never {
-  if (noteId) {
-    throw new Error(`Note "${noteId}" not found`);
-  } else {
-    throw new Error('Query is missing note id');
-  }
-}
+import { throwNoteNotFoundError } from '../utils/errors';
 
 export const Query: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
   return {

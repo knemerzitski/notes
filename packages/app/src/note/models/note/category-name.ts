@@ -1,30 +1,38 @@
 import { ApolloCache } from '@apollo/client';
 
 import { gql } from '../../../__generated__';
-import {
-  GetCategoryNameQueryQueryVariables,
-  NoteCategory,
-} from '../../../__generated__/graphql';
+import { NoteCategory, UserNoteLinkByInput } from '../../../__generated__/graphql';
+import { parseUserNoteLinkByInput } from '../../utils/id';
 
 const GetCategoryName_Query = gql(`
-  query GetCategoryName_Query($by: UserNoteLinkByInput!) {
-    userNoteLink(by: $by) {
+  query GetCategoryName_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!) {
+    signedInUser(by: $userBy) {
       id
-      categoryName
+      noteLink(by: $noteBy) {
+        id
+        categoryName
+      }
     }
   }
 `);
 
 export function getCategoryName(
-  by: GetCategoryNameQueryQueryVariables['by'],
+  by: UserNoteLinkByInput,
   cache: Pick<ApolloCache<unknown>, 'readQuery'>
 ): NoteCategory | undefined {
+  const { userId, noteId } = parseUserNoteLinkByInput(by, cache);
+
   const data = cache.readQuery({
     query: GetCategoryName_Query,
     variables: {
-      by,
+      userBy: {
+        id: userId,
+      },
+      noteBy: {
+        id: noteId,
+      },
     },
   });
 
-  return data?.userNoteLink.categoryName;
+  return data?.signedInUser.noteLink.categoryName;
 }

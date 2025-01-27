@@ -2,14 +2,17 @@ import { ApolloCache } from '@apollo/client';
 
 import { gql } from '../../../__generated__';
 import { NotePendingStatus, UserNoteLinkByInput } from '../../../__generated__/graphql';
-import { getUserNoteLinkIdFromByInput, parseUserNoteLinkByInput } from '../../utils/id';
+import { getUserNoteLinkId, parseUserNoteLinkByInput } from '../../utils/id';
 import { noteExists } from '../note/exists';
 
 const SetNotePendingStatus_Query = gql(`
-  query SetNotePendingStatus_Query($by: UserNoteLinkByInput!) {
-    userNoteLink(by: $by) {
+  query SetNotePendingStatus_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!) {
+    signedInUser(by: $userBy) {
       id
-      pendingStatus
+      noteLink(by: $noteBy) {
+        id
+        pendingStatus
+      }
     }
   }
 `);
@@ -36,22 +39,31 @@ export function setNotePendingStatus(
     'updateQuery' | 'writeQuery' | 'readQuery' | 'evict' | 'identify'
   >
 ) {
-  const userNoteLinkId = getUserNoteLinkIdFromByInput(by, cache);
-  const { userId } = parseUserNoteLinkByInput(by, cache);
+  const { userId, noteId } = parseUserNoteLinkByInput(by, cache);
+  const userNoteLinkId = getUserNoteLinkId(noteId, userId);
 
   if (noteExists(by, cache) && pendingStatus != null) {
     // Update status
     cache.writeQuery({
       query: SetNotePendingStatus_Query,
       variables: {
-        by,
+        userBy: {
+          id: userId,
+        },
+        noteBy: {
+          id: noteId,
+        },
       },
       data: {
         __typename: 'Query',
-        userNoteLink: {
-          __typename: 'UserNoteLink',
-          id: getUserNoteLinkIdFromByInput(by, cache),
-          pendingStatus,
+        signedInUser: {
+          __typename: 'SignedInUser',
+          id: userId,
+          noteLink: {
+            __typename: 'UserNoteLink',
+            id: userNoteLinkId,
+            pendingStatus,
+          },
         },
       },
     });

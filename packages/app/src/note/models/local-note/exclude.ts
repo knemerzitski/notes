@@ -2,13 +2,16 @@ import { ApolloCache } from '@apollo/client';
 
 import { gql } from '../../../__generated__';
 import { UserNoteLinkByInput } from '../../../__generated__/graphql';
-import { getUserNoteLinkIdFromByInput } from '../../utils/id';
+import { getUserNoteLinkId, parseUserNoteLinkByInput } from '../../utils/id';
 
 const ExcludeNoteFromConnection_Query = gql(`
-  query ExcludeNoteFromConnection_Query($by: UserNoteLinkByInput!) {
-    userNoteLink(by: $by) {
+  query ExcludeNoteFromConnection_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!) {
+    signedInUser(by: $userBy) {
       id
-      excludeFromConnection
+      noteLink(by: $noteBy) {
+        id
+        excludeFromConnection
+      }
     }
   }
 `);
@@ -17,17 +20,28 @@ export function excludeNoteFromConnection(
   by: UserNoteLinkByInput,
   cache: Pick<ApolloCache<unknown>, 'writeQuery' | 'readQuery'>
 ) {
+  const { userId, noteId } = parseUserNoteLinkByInput(by, cache);
+
   return cache.writeQuery({
     query: ExcludeNoteFromConnection_Query,
     variables: {
-      by,
+      userBy: {
+        id: userId,
+      },
+      noteBy: {
+        id: noteId,
+      },
     },
     data: {
       __typename: 'Query',
-      userNoteLink: {
-        __typename: 'UserNoteLink',
-        id: getUserNoteLinkIdFromByInput(by, cache),
-        excludeFromConnection: true,
+      signedInUser: {
+        __typename: 'SignedInUser',
+        id: userId,
+        noteLink: {
+          __typename: 'UserNoteLink',
+          id: getUserNoteLinkId(noteId, userId),
+          excludeFromConnection: true,
+        },
       },
     },
   });

@@ -6,13 +6,17 @@ import {
   NoteCategory,
   UserNoteLinkByInput,
 } from '../../../__generated__/graphql';
+import { parseUserNoteLinkByInput } from '../../utils/id';
 
 const OriginalCategoryName_Query = gql(`
-  query OriginalCategoryName_Query($by: UserNoteLinkByInput!) {
-    userNoteLink(by: $by) {
+  query OriginalCategoryName_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!) {
+    signedInUser(by: $userBy) {
       id
-      categoryName
-      originalCategoryName
+      noteLink(by: $noteBy) {
+        id
+        categoryName
+        originalCategoryName
+      }
     }
   }
 `);
@@ -21,10 +25,17 @@ export function getOriginalCategoryName(
   by: UserNoteLinkByInput,
   cache: Pick<ApolloCache<unknown>, 'readQuery'>
 ): MovableNoteCategory | undefined {
+  const { userId, noteId } = parseUserNoteLinkByInput(by, cache);
+
   const data = cache.readQuery({
     query: OriginalCategoryName_Query,
     variables: {
-      by,
+      userBy: {
+        id: userId,
+      },
+      noteBy: {
+        id: noteId,
+      },
     },
   });
 
@@ -32,12 +43,12 @@ export function getOriginalCategoryName(
     return;
   }
 
-  if (data.userNoteLink.originalCategoryName) {
-    return data.userNoteLink.originalCategoryName;
+  if (data.signedInUser.noteLink.originalCategoryName) {
+    return data.signedInUser.noteLink.originalCategoryName;
   }
 
-  if (data.userNoteLink.categoryName !== NoteCategory.TRASH) {
-    return data.userNoteLink.categoryName as unknown as MovableNoteCategory;
+  if (data.signedInUser.noteLink.categoryName !== NoteCategory.TRASH) {
+    return data.signedInUser.noteLink.categoryName as unknown as MovableNoteCategory;
   }
 
   return;
@@ -49,13 +60,20 @@ export function getOriginalCategoryName(
  */
 export function updateOriginalCategoryName(
   by: UserNoteLinkByInput,
-  cache: Pick<ApolloCache<unknown>, 'updateQuery'>
+  cache: Pick<ApolloCache<unknown>, 'updateQuery' | 'readQuery'>
 ) {
+  const { userId, noteId } = parseUserNoteLinkByInput(by, cache);
+
   cache.updateQuery(
     {
       query: OriginalCategoryName_Query,
       variables: {
-        by,
+        userBy: {
+          id: userId,
+        },
+        noteBy: {
+          id: noteId,
+        },
       },
     },
     (data) => {
@@ -63,15 +81,15 @@ export function updateOriginalCategoryName(
         return;
       }
 
-      if (data.userNoteLink.categoryName === NoteCategory.TRASH) {
+      if (data.signedInUser.noteLink.categoryName === NoteCategory.TRASH) {
         return;
       }
 
       return {
         ...data,
         userNoteLink: {
-          ...data.userNoteLink,
-          originalCategoryName: data.userNoteLink
+          ...data.signedInUser.noteLink,
+          originalCategoryName: data.signedInUser.noteLink
             .categoryName as unknown as MovableNoteCategory,
         },
       };

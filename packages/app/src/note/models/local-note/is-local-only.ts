@@ -1,22 +1,19 @@
 import { ApolloCache } from '@apollo/client';
 
 import { gql } from '../../../__generated__';
-import { UserNoteLinkByInput } from '../../../__generated__/graphql';
+import { NoteByInput } from '../../../__generated__/graphql';
 
 const IsLocalOnlyNote_Query = gql(`
-  query IsLocalOnlyNote_Query($by: UserNoteLinkByInput!) {
-    userNoteLink(by: $by) {
+  query IsLocalOnlyNote_Query($by: NoteByInput!) {
+    note(by: $by) {
       id
-      note {
-        id
-        localOnly
-      }
+      localOnly
     }
   }
 `);
 
 export function isLocalOnlyNote(
-  by: UserNoteLinkByInput,
+  by: NoteByInput,
   cache: Pick<ApolloCache<unknown>, 'readQuery'>
 ) {
   return (
@@ -25,6 +22,6 @@ export function isLocalOnlyNote(
       variables: {
         by,
       },
-    })?.userNoteLink.note.localOnly ?? false
+    })?.note.localOnly ?? false
   );
 }

@@ -19,21 +19,18 @@ import { DebugNoteHeadTextQueryQuery } from '../../../__generated__/graphql';
 import { useNoteId } from '../../../note/context/note-id';
 
 const DebugNoteHeadText_Query = gql(`
-  query DebugNoteHeadText_Query($by: UserNoteLinkByInput!) {
-    userNoteLink(by: $by){
+  query DebugNoteHeadText_Query($by: NoteByInput!) {
+    note(by: $by){
       id
-      note {
+      collabText {
         id
-        collabText {
-          id
-          headText {
-            revision
-            changeset
-          }
-          tailText {
-            revision
-            changeset
-          }
+        headText {
+          revision
+          changeset
+        }
+        tailText {
+          revision
+          changeset
         }
       }
     }
@@ -42,22 +39,24 @@ const DebugNoteHeadText_Query = gql(`
 
 export function DevNoteHeadAndTailText() {
   const noteId = useNoteId();
+
   const { data } = useQuery(DebugNoteHeadText_Query, {
-    fetchPolicy: 'cache-only',
     variables: {
       by: {
-        noteId,
+        id: noteId,
       },
     },
+    fetchPolicy: 'cache-only',
     returnPartialData: true,
   });
+
   const partialData: PartialDeep<DebugNoteHeadTextQueryQuery, Changeset> | undefined =
     data;
   if (!partialData) {
     return null;
   }
 
-  const collabText = partialData.userNoteLink?.note?.collabText;
+  const collabText = partialData.note?.collabText;
   const headText = collabText?.headText;
   const tailText = collabText?.tailText;
 

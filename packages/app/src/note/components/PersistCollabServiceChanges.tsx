@@ -1,23 +1,9 @@
-import { useQuery } from '@apollo/client';
 import { useEffect } from 'react';
 import { useDebouncedCallback, Options } from 'use-debounce';
 
-import { gql } from '../../__generated__';
 import { useCachePersistor } from '../../graphql/context/cache-persistor';
 import { useBeforeUnload } from '../../utils/hooks/useBeforeUnload';
-import { useNoteId } from '../context/note-id';
-
-const PersistCollabServiceChanges_Query = gql(`
-  query PersistCollabServiceChanges_Query($id: ObjectID!) {
-    userNoteLink(by: { noteId: $id }) @client {
-      id
-      note {
-        id
-        collabService
-      }
-    }
-  }
-`);
+import { useCollabService } from '../hooks/useCollabService';
 
 export function PersistCollabServiceChanges({
   wait = 1500,
@@ -33,14 +19,7 @@ export function PersistCollabServiceChanges({
 }) {
   const cachePersistor = useCachePersistor();
 
-  const noteId = useNoteId();
-  const { data } = useQuery(PersistCollabServiceChanges_Query, {
-    variables: {
-      id: noteId,
-    },
-  });
-
-  const maybeService = data?.userNoteLink.note.collabService;
+  const maybeService = useCollabService(true);
 
   const debouncedPersist = useDebouncedCallback(
     async () => {

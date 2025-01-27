@@ -1,48 +1,29 @@
-import { useQuery } from '@apollo/client';
 import RedoIcon from '@mui/icons-material/Redo';
 import { IconButton, IconButtonProps, Tooltip } from '@mui/material';
 import { useEffect, useState } from 'react';
 
-import { gql } from '../../__generated__';
-import { RedoButtonQueryQuery } from '../../__generated__/graphql';
-import { useNoteId } from '../context/note-id';
+import { useCollabService } from '../hooks/useCollabService';
+import { CollabService } from '~collab/client/collab-service';
 
-const RedoButton_Query = gql(`
-  query RedoButton_Query($id: ObjectID!) {
-    userNoteLink(by: { noteId: $id }) @client {
-      id
-      note {
-        id
-        collabService 
-      }
-    }
-  }
-`);
+export function RedoButton(
+  props: Omit<Parameters<typeof CollabServiceDefined>[0], 'service'>
+) {
+  const collabService = useCollabService(true);
 
-export function RedoButton(props: Omit<Parameters<typeof NoteDefined>[0], 'note'>) {
-  const noteId = useNoteId();
-  const { data } = useQuery(RedoButton_Query, {
-    variables: {
-      id: noteId,
-    },
-  });
-
-  if (!data) {
+  if (!collabService) {
     return null;
   }
 
-  return <NoteDefined {...props} note={data.userNoteLink.note} />;
+  return <CollabServiceDefined {...props} service={collabService} />;
 }
 
-function NoteDefined({
-  note,
+function CollabServiceDefined({
+  service,
   IconButtonProps,
 }: {
-  note: RedoButtonQueryQuery['userNoteLink']['note'];
+  service: CollabService;
   IconButtonProps?: Omit<IconButtonProps, 'disabled' | 'aria-label' | 'onClick'>;
 }) {
-  const service = note.collabService;
-
   const [canRedo, setCanRedo] = useState(service.canRedo());
 
   function handleClickRedo() {

@@ -19,14 +19,11 @@ const _UseTextFieldValue_NoteFragment = gql(`
 `);
 
 const UseTextFieldValue_Query = gql(`
-  query UseTextFieldValue_Query($id: ObjectID!, $name: NoteTextFieldName!) {
-    userNoteLink(by: { noteId: $id }) @client {
+  query UseTextFieldValue_Query($by: NoteByInput!, $name: NoteTextFieldName!) {
+    note(by: $by) {
       id
-      note {
-        id
-        textField(name: $name) {
-          value
-        }
+      textField(name: $name) {
+        value
       }
     }
   }
@@ -37,14 +34,17 @@ export function useTextFieldValue(fieldName: NoteTextFieldName) {
 
   const { data } = useQuery(UseTextFieldValue_Query, {
     variables: {
-      id: noteId,
+      by: {
+        id: noteId,
+      },
       name: fieldName,
     },
+    fetchPolicy: 'cache-only',
   });
 
   if (!data) {
     return null;
   }
 
-  return data.userNoteLink.note.textField.value;
+  return data.note.textField.value;
 }

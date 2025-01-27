@@ -2,24 +2,33 @@ import { useQuery } from '@apollo/client';
 
 import { gql } from '../../__generated__';
 import { Note } from '../../__generated__/graphql';
+import { useUserId } from '../../user/context/user-id';
 
 const UseNoteExists_Query = gql(`
-  query UseNoteExists_Query($by: UserNoteLinkByInput!){
-    userNoteLink(by: $by){
+  query UseNoteExists_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!){
+    signedInUser(by: $userBy) {
       id
+      noteLink(by: $noteBy) {
+        id
+      }
     }
   }
 `);
 
 /**
- * @returns Boolean note exists, null if not known yet.
+ * @returns Boolean note exists for current user, null if not known yet.
  */
 export function useNoteExists(noteId: Note['id']) {
+  const userId = useUserId();
+
   const { data, loading } = useQuery(UseNoteExists_Query, {
     fetchPolicy: 'cache-only',
     variables: {
-      by: {
-        noteId,
+      userBy: {
+        id: userId,
+      },
+      noteBy: {
+        id: noteId,
       },
     },
   });

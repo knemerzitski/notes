@@ -175,7 +175,7 @@ extend type SignedInUser {
   """
   Link between user and note
   """
-  noteLink(by: UserNoteLinkByInput!): UserNoteLink!
+  noteLink(by: NoteByInput!): UserNoteLink!
 }
 
 ################################ Mutation updateUserNoteLinkReadOnly ################################
