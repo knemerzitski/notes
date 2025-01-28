@@ -144,12 +144,6 @@ input UserNoteLinkByInput @oneOf {
 
 extend type Query {
   """
-  Find UserNoteLink by Note.id
-  """
-  userNoteLink(by: UserNoteLinkByInput!): UserNoteLink!
-    @auth
-    @deprecated(reason: "Use 'signedInUser.noteLink' instead")
-  """
   Paginate UserNoteLinks by category. Default is NoteCategory.DEFAULT
   """
   userNoteLinkConnection(
