@@ -63,17 +63,20 @@ function addNoteToList(
   categoryName: string,
   cacheObj: NormalizedCacheObject
 ) {
-  let ROOT_QUERY = cacheObj.ROOT_QUERY;
-  if (!ROOT_QUERY) {
-    ROOT_QUERY = {
-      __typename: 'Query',
+  const signedInUserKey = `SignedInUser:${userId}`;
+  let signedInUser: any = cacheObj[signedInUserKey];
+  if (!signedInUser) {
+    signedInUser = {
+      __typename: 'SignedInUser',
+      id: userId,
     };
-    cacheObj.ROOT_QUERY = ROOT_QUERY;
   }
-  const key = `userNoteLinkConnection:{"category":"${categoryName}"}-{"userId":"${userId}"}`;
-  let connection: any = ROOT_QUERY[key];
-  if (!connection) {
-    connection = {
+  cacheObj[signedInUserKey] = signedInUser;
+
+  const noteLinkConnectionKey = `noteLinkConnection:{"category":"${categoryName}"}`;
+  let noteLinkConnection: any = signedInUser[noteLinkConnectionKey];
+  if (!noteLinkConnection) {
+    noteLinkConnection = {
       __typename: 'UserNoteLinkConnection',
       edges: [],
       pageInfo: {
@@ -82,10 +85,11 @@ function addNoteToList(
       },
     };
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    ROOT_QUERY[key] = connection;
+    signedInUser[noteLinkConnectionKey] = noteLinkConnection;
   }
+
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-  connection.edges.push({
+  noteLinkConnection.edges.push({
     __typename: 'UserNoteLinkEdge',
     node: {
       __ref: `UserNoteLink:${getUserNoteLinkId(noteId, userId)}`,
@@ -111,13 +115,16 @@ function getCacheNoteIds(categoryName: string): string[] {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const data: any = cache.readQuery({
     query: gql(`
-      query {
-        userNoteLinkConnection(category: $category) {
-          edges {
-            node {
-              id
-              note {
+      query($userId: ObjectID!) {
+        signedInUser(by: {id: $userId}) {
+          id
+          noteLinkConnection(category: $category) {
+            edges {
+              node {
                 id
+                note {
+                  id
+                }
               }
             }
           }
@@ -125,12 +132,13 @@ function getCacheNoteIds(categoryName: string): string[] {
       }
     `),
     variables: {
+      userId,
       category: categoryName,
     },
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-  return data.userNoteLinkConnection.edges.map((edge: any) => edge.node.note.id);
+  return data.signedInUser.noteLinkConnection.edges.map((edge: any) => edge.node.note.id);
 }
 
 describe('same category', () => {

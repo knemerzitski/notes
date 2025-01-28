@@ -5,14 +5,18 @@ import { useEffect } from 'react';
 import { gql } from '../../__generated__';
 import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
 import { removeNoteFromConnection } from '../models/note-connection/remove';
+import { useUserId } from '../../user/context/user-id';
 
 const DeleteExpiredNotes_Query = gql(`
-  query DeleteExpiredNotes_Query {
-    userNoteLinkConnection(category: TRASH) {
-      edges {
-        node {
-          id
-          deletedAt
+  query DeleteExpiredNotes_Query($userBy: SignedInUserByInput!) {
+    signedInUser(by: $userBy) {
+      id
+      noteLinkConnection(category: TRASH) {
+        edges {
+          node {
+            id
+            deletedAt
+          }
         }
       }
     }
@@ -30,7 +34,14 @@ export function DeleteExpiredNotes({
 }) {
   const client = useApolloClient();
   const isLocalOnlyUser = useIsLocalOnlyUser();
+  const userId = useUserId();
+
   const { data } = useQuery(DeleteExpiredNotes_Query, {
+    variables: {
+      userBy: {
+        id: userId,
+      },
+    },
     fetchPolicy: 'cache-only',
   });
 
@@ -41,7 +52,7 @@ export function DeleteExpiredNotes({
 
     const currentDate = new Date();
 
-    data?.userNoteLinkConnection.edges.forEach((edge) => {
+    data?.signedInUser.noteLinkConnection.edges.forEach((edge) => {
       const noteLink = edge.node;
       const deletedAt = noteLink.deletedAt;
       if (!deletedAt) {

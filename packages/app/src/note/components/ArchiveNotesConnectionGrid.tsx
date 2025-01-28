@@ -6,11 +6,12 @@ import { NoteCategory } from '../../__generated__/graphql';
 import { EmptyArchiveInfo } from './EmptyArchiveInfo';
 import { NotesConnectionGrid } from './NotesConnectionGrid';
 
-const _ArchiveNotesConnectionGrid_QueryFragment = gql(`
-  fragment ArchiveNotesConnectionGrid_QueryFragment on Query {
-    archive_UserNoteLinkConnection: userNoteLinkConnection(first: $archive_first, after: $archive_after, category: ARCHIVE) {
+const _ArchiveNotesConnectionGrid_SignedInUserFragment = gql(`
+  fragment ArchiveNotesConnectionGrid_SignedInUserFragment on SignedInUser {
+    id
+    archive_UserNoteLinkConnection: noteLinkConnection(first: $archive_first, after: $archive_after, category: ARCHIVE) {
       ...NotesConnectionGrid_UserNoteLinkConnectionFragment
-    }  
+    }
   }
 `);
 

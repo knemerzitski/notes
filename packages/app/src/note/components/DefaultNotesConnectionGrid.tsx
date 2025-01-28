@@ -4,11 +4,12 @@ import { NoteCategory } from '../../__generated__/graphql';
 import { EmptyNotesInfo } from './EmptyNotesInfo';
 import { NotesConnectionGrid } from './NotesConnectionGrid';
 
-const _DefaultNotesConnectionGrid_QueryFragment = gql(`
-  fragment DefaultNotesConnectionGrid_QueryFragment on Query {
-    default_UserNoteLinkConnection: userNoteLinkConnection(first: $default_first, after: $default_after, category: DEFAULT) {
+const _DefaultNotesConnectionGrid_SignedInUserFragment = gql(`
+  fragment DefaultNotesConnectionGrid_SignedInUserFragment on SignedInUser {
+    id
+    default_noteLinkConnection: noteLinkConnection(first: $default_first, after: $default_after, category: DEFAULT) {
       ...NotesConnectionGrid_UserNoteLinkConnectionFragment
-    }  
+    }
   }
 `);
 

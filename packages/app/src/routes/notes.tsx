@@ -3,11 +3,13 @@ import { createFileRoute, defer } from '@tanstack/react-router';
 import { gql } from '../__generated__';
 import { NotesMain } from '../note/components/NotesMain';
 import { routeFetchPolicy } from '../utils/route-fetch-policy';
+import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
 
 const RouteNotes_Query = gql(`
-  query RouteNotes_Query(
-    $default_first: NonNegativeInt, $default_after: ObjectID) {
-    ...NoteMain_QueryFragment
+  query RouteNotes_Query($userBy: SignedInUserByInput!, $default_first: NonNegativeInt, $default_after: ObjectID) {
+    signedInUser(by: $userBy){
+      ...NoteMain_SignedInUserFragment
+    }
   }
 `);
 
@@ -25,12 +27,17 @@ export const Route = createFileRoute('/_root_layout/notes')({
       return;
     }
 
+    const userId = getCurrentUserId(apolloClient.cache);
+
     return {
       deferredQuery: defer(
         apolloClient
           .query({
             query: RouteNotes_Query,
             variables: {
+              userBy: {
+                id: userId,
+              },
               default_first: 20,
             },
             fetchPolicy,

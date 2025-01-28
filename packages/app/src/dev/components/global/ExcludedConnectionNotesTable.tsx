@@ -11,28 +11,38 @@ import {
 } from '@mui/material';
 
 import { gql } from '../../../__generated__';
+import { useUserId } from '../../../user/context/user-id';
 
 const ExcludedConnectionNotesTable_Query = gql(`
-  query ExcludedConnectionNotesTable_Query {
-    userNoteLinkConnection(category: DEFAULT) {
-      edges {
-        node {
-          id
-          excludeFromConnection
-          categoryName
-          pendingStatus
-          note {
+  query ExcludedConnectionNotesTable_Query($userBy: SignedInUserByInput!) {
+    signedInUser(by: $userBy) {
+      id
+      noteLinkConnection(category: DEFAULT) {
+        edges {
+          node {
             id
+            excludeFromConnection
+            categoryName
+            pendingStatus
+            note {
+              id
+            }
           }
         }
       }
-
     }
   }
 `);
 
 export function ExcludedConnectionNotesTable() {
+  const userId = useUserId();
+
   const { data } = useQuery(ExcludedConnectionNotesTable_Query, {
+    variables: {
+      userBy: {
+        id: userId,
+      },
+    },
     fetchPolicy: 'cache-only',
   });
 
@@ -40,7 +50,7 @@ export function ExcludedConnectionNotesTable() {
     return null;
   }
 
-  const edges = data.userNoteLinkConnection.edges.filter(
+  const edges = data.signedInUser.noteLinkConnection.edges.filter(
     (edge) => edge.node.excludeFromConnection
   );
 

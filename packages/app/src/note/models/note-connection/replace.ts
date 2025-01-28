@@ -18,14 +18,17 @@ import { moveNoteInConnection } from './move';
 import { removeNoteFromConnection } from './remove';
 
 const ReplaceNoteInConnection_Query = gql(`
-  query ReplaceNoteInConnection_Query($category: NoteCategory!) {
-    userNoteLinkConnection(category: $category) {
-      edges {
-        node {
-          id
-          note {
+  query ReplaceNoteInConnection_Query($userBy: SignedInUserByInput!, $category: NoteCategory!) {
+    signedInUser(by: $userBy) {
+      id
+      noteLinkConnection(category: $category) {
+        edges {
+          node {
             id
-            localOnly
+            note {
+              id
+              localOnly
+            }
           }
         }
       }
@@ -33,7 +36,8 @@ const ReplaceNoteInConnection_Query = gql(`
   }
 `);
 
-type Edge = ReplaceNoteInConnectionQueryQuery['userNoteLinkConnection']['edges'][0];
+type Edge =
+  ReplaceNoteInConnectionQueryQuery['signedInUser']['noteLinkConnection']['edges'][0];
 
 /**
  * Locally moves new note to match location of old note.
@@ -50,7 +54,7 @@ export function replaceNoteInConnection(
   const categoryName = getConnectionCategoryName(oldBy, cache) ?? NoteCategory.DEFAULT;
   const oldUserNoteLinkId = getUserNoteLinkIdFromByInput(oldBy, cache);
   const newUserNoteLinkId = getUserNoteLinkIdFromByInput(newBy, cache);
-  const { noteId: newNoteId } = parseUserNoteLinkByInput(newBy, cache);
+  const { userId, noteId: newNoteId } = parseUserNoteLinkByInput(newBy, cache);
 
   // Move new note next to old one
   moveNoteInConnection(
@@ -72,6 +76,9 @@ export function replaceNoteInConnection(
   const data = cache.readQuery({
     query: ReplaceNoteInConnection_Query,
     variables: {
+      userBy: {
+        id: userId,
+      },
       category: categoryName,
     },
   });
@@ -80,7 +87,7 @@ export function replaceNoteInConnection(
     return;
   }
 
-  const edges = data.userNoteLinkConnection.edges;
+  const edges = data.signedInUser.noteLinkConnection.edges;
   const newIndex = edges.findIndex((edge) => edge.node.id === newUserNoteLinkId);
   if (newIndex < 0) {
     return;

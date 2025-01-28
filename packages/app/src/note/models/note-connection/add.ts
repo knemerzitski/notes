@@ -16,20 +16,20 @@ const AddNoteToConnection_Query = gql(`
       id
       noteLink(by: $noteBy) {
         id
-      categoryName
-      connectionCategoryName
+        categoryName
+        connectionCategoryName
       }
-    }
 
-    userNoteLinkConnection(category: $category) {
-      edges {
-        node {
-          id
+      noteLinkConnection(category: $category) {
+        edges {
+          node {
+            id
+          }
         }
-      }
-      pageInfo {
-        hasPreviousPage
-        hasNextPage
+        pageInfo {
+          hasPreviousPage
+          hasNextPage
+        }
       }
     }
   }
@@ -47,7 +47,7 @@ export function addNoteToConnection(
 
   const categoryName = getCategoryName(by, cache) ?? NoteCategory.DEFAULT;
 
-  const newEdge: AddNoteToConnectionQueryQuery['userNoteLinkConnection']['edges'][0] & {
+  const newEdge: AddNoteToConnectionQueryQuery['signedInUser']['noteLinkConnection']['edges'][0] & {
     node: AddNoteToConnectionQueryQuery['signedInUser']['noteLink'];
   } = {
     __typename: 'UserNoteLinkEdge' as const,
@@ -81,7 +81,9 @@ export function addNoteToConnection(
       }
 
       if (
-        data.userNoteLinkConnection.edges.some((edge) => edge.node.id === newEdge.node.id)
+        data.signedInUser.noteLinkConnection.edges.some(
+          (edge) => edge.node.id === newEdge.node.id
+        )
       ) {
         return;
       }
@@ -91,10 +93,10 @@ export function addNoteToConnection(
         signedInUser: {
           ...data.signedInUser,
           noteLink: newEdge.node,
-        },
-        userNoteLinkConnection: {
-          ...data.userNoteLinkConnection,
-          edges: [newEdge, ...data.userNoteLinkConnection.edges],
+          noteLinkConnection: {
+            ...data.signedInUser.noteLinkConnection,
+            edges: [newEdge, ...data.signedInUser.noteLinkConnection.edges],
+          },
         },
       };
     }

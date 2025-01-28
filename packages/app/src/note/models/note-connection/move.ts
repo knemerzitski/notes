@@ -22,28 +22,28 @@ const MoveNoteInConnection_Query = gql(`
         categoryName
         connectionCategoryName
       }
-    }
-
-    oldConnection: userNoteLinkConnection(category: $oldCategory) {
-      edges {
-        node {
-          id
+      
+      oldConnection: noteLinkConnection(category: $oldCategory) {
+        edges {
+          node {
+            id
+          }
+        }
+        pageInfo {
+          hasPreviousPage
+          hasNextPage
         }
       }
-      pageInfo {
-        hasPreviousPage
-        hasNextPage
-      }
-    }
-    newConnection: userNoteLinkConnection(category: $newCategory) {
-      edges {
-        node {
-          id
+      newConnection: noteLinkConnection(category: $newCategory) {
+        edges {
+          node {
+            id
+          }
         }
-      }
-      pageInfo {
-        hasPreviousPage
-        hasNextPage
+        pageInfo {
+          hasPreviousPage
+          hasNextPage
+        }
       }
     }
   }
@@ -99,8 +99,8 @@ export function moveNoteInConnection(
       if (!data) {
         return;
       }
-      const oldList = data.oldConnection.edges;
-      const newList = data.newConnection.edges;
+      const oldList = data.signedInUser.oldConnection.edges;
+      const newList = data.signedInUser.newConnection.edges;
 
       const oldFromIndex = oldList.findIndex((edge) => edge.node.id === newEdge.node.id);
 
@@ -142,10 +142,10 @@ export function moveNoteInConnection(
             signedInUser: {
               ...data.signedInUser,
               noteLink: newEdge.node,
-            },
-            newConnection: {
-              ...data.newConnection,
-              edges: newEdges,
+              newConnection: {
+                ...data.signedInUser.newConnection,
+                edges: newEdges,
+              },
             },
           };
         } else {
@@ -156,21 +156,21 @@ export function moveNoteInConnection(
             signedInUser: {
               ...data.signedInUser,
               noteLink: newEdge.node,
-            },
-            oldConnection: {
-              ...data.oldConnection,
-              edges: [
-                ...oldList.slice(0, oldFromIndex),
-                ...oldList.slice(oldFromIndex + 1),
-              ],
-            },
-            newConnection: {
-              ...data.newConnection,
-              edges: [
-                ...newList.slice(0, finalIndex),
-                newEdge,
-                ...newList.slice(finalIndex),
-              ],
+              oldConnection: {
+                ...data.signedInUser.oldConnection,
+                edges: [
+                  ...oldList.slice(0, oldFromIndex),
+                  ...oldList.slice(oldFromIndex + 1),
+                ],
+              },
+              newConnection: {
+                ...data.signedInUser.newConnection,
+                edges: [
+                  ...newList.slice(0, finalIndex),
+                  newEdge,
+                  ...newList.slice(finalIndex),
+                ],
+              },
             },
           };
         }
@@ -184,15 +184,15 @@ export function moveNoteInConnection(
           signedInUser: {
             ...data.signedInUser,
             noteLink: newEdge.node,
-          },
-          // Add at anchor
-          newConnection: {
-            ...data.newConnection,
-            edges: [
-              ...newList.slice(0, finalIndex),
-              newEdge,
-              ...newList.slice(finalIndex),
-            ],
+            // Add at anchor
+            newConnection: {
+              ...data.signedInUser.newConnection,
+              edges: [
+                ...newList.slice(0, finalIndex),
+                newEdge,
+                ...newList.slice(finalIndex),
+              ],
+            },
           },
         };
       } else {
@@ -209,19 +209,19 @@ export function moveNoteInConnection(
             signedInUser: {
               ...data.signedInUser,
               noteLink: newEdge.node,
-            },
-            // Remove from old
-            oldConnection: {
-              ...data.oldConnection,
-              edges: [
-                ...oldList.slice(0, oldFromIndex),
-                ...oldList.slice(oldFromIndex + 1),
-              ],
-            },
-            // Add to new at 0
-            newConnection: {
-              ...data.newConnection,
-              edges: [newEdge, ...newList],
+              // Remove from old
+              oldConnection: {
+                ...data.signedInUser.oldConnection,
+                edges: [
+                  ...oldList.slice(0, oldFromIndex),
+                  ...oldList.slice(oldFromIndex + 1),
+                ],
+              },
+              // Add to new at 0
+              newConnection: {
+                ...data.signedInUser.newConnection,
+                edges: [newEdge, ...newList],
+              },
             },
           };
         } else {
@@ -232,11 +232,11 @@ export function moveNoteInConnection(
             signedInUser: {
               ...data.signedInUser,
               noteLink: newEdge.node,
-            },
-            // Add to new at 0
-            newConnection: {
-              ...data.newConnection,
-              edges: [newEdge, ...newList],
+              // Add to new at 0
+              newConnection: {
+                ...data.signedInUser.newConnection,
+                edges: [newEdge, ...newList],
+              },
             },
           };
         }

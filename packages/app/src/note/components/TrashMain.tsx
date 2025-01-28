@@ -5,9 +5,9 @@ import { FullWidthCenterRow } from '../../layout/components/FullWidthCenterRow';
 import { EmptyInfoTopMargin } from './EmptyInfoTopMargin';
 import { TrashNotesConnectionGrid } from './TrashNotesConnectionGrid';
 
-const _TrashMain_QueryFragment = gql(`
-  fragment TrashMain_QueryFragment on Query {
-    ...TrashNotesConnectionGrid_QueryFragment
+const _TrashMain_SignedInUserFragment = gql(`
+  fragment TrashMain_SignedInUserFragment on SignedInUser {
+    ...TrashNotesConnectionGrid_SignedInUserFragment
   }
 `);
 

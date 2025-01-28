@@ -3,11 +3,13 @@ import { createFileRoute, defer } from '@tanstack/react-router';
 import { gql } from '../__generated__';
 import { ArchiveMain } from '../note/components/ArchiveMain';
 import { routeFetchPolicy } from '../utils/route-fetch-policy';
+import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
 
 const RouteArchive_Query = gql(`
-  query RouteArchive_Query(
-    $archive_first: NonNegativeInt, $archive_after: ObjectID) {
-    ...ArchiveMain_QueryFragment
+  query RouteArchive_Query($userBy: SignedInUserByInput!, $archive_first: NonNegativeInt, $archive_after: ObjectID) {
+    signedInUser(by: $userBy){
+      ...ArchiveMain_SignedInUserFragment
+    }
   }
 `);
 
@@ -25,12 +27,17 @@ export const Route = createFileRoute('/_root_layout/archive')({
       return;
     }
 
+    const userId = getCurrentUserId(apolloClient.cache);
+
     return {
       deferredQuery: defer(
         apolloClient
           .query({
             query: RouteArchive_Query,
             variables: {
+              userBy: {
+                id: userId,
+              },
               archive_first: 20,
             },
             fetchPolicy,
