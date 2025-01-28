@@ -4,7 +4,7 @@ export const UserNoteLinkConnection: UserNoteLinkConnectionResolvers = {
   edges: (parent, _arg, ctx, info) => {
     return parent.edges(ctx, info);
   },
-  userNoteLinks: (parent, _arg, ctx, info) => {
-    return parent.userNoteLinks(ctx, info);
+  noteLinks: (parent, _arg, ctx, info) => {
+    return parent.noteLinks(ctx, info);
   },
 };

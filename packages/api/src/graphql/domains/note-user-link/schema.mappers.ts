@@ -25,7 +25,7 @@ export interface NotePreferencesMapper {
 }
 
 export interface UserNoteLinkConnectionMapper {
-  readonly userNoteLinks: (
+  readonly noteLinks: (
     ctx: GraphQLResolversContext,
     info: GraphQLResolveInfo
   ) => ResolverTypeWrapper<UserNoteLinkMapper[]>;

@@ -99,7 +99,7 @@ type UserNoteLinkConnection implements Connection {
   """
   Notes directly without edges
   """
-  userNoteLinks: [UserNoteLink!]!
+  noteLinks: [UserNoteLink!]!
   """
   Self descriptive
   """

@@ -37,7 +37,7 @@ interface Variables {
 const QUERY = `#graphql
   query($after: ObjectID, $first: NonNegativeInt, $before: ObjectID, $last: NonNegativeInt, $category: NoteCategory) {
     userNoteLinkConnection(after: $after, first: $first, before: $before, last: $last, category: $category){
-      userNoteLinks {
+      noteLinks {
         note {
           id
         }
@@ -176,7 +176,7 @@ it('returns last 2 notes, after: 2, first 4 => 1,0 (10 notes total)', async () =
 
   expect(data).toEqual({
     userNoteLinkConnection: {
-      userNoteLinks: notes
+      noteLinks: notes
         .slice(0, 2)
         .reverse()
         .map((noteId) => ({
@@ -222,7 +222,7 @@ it('returns nothing when cursor does not match a note', async () => {
 
   expect(data).toEqual({
     userNoteLinkConnection: {
-      userNoteLinks: [],
+      noteLinks: [],
       edges: [],
       pageInfo: {
         hasPreviousPage: false,
@@ -251,7 +251,7 @@ it('returns notes from different archive category', async () => {
 
   expect(data).toEqual({
     userNoteLinkConnection: {
-      userNoteLinks: [...notesArchive].reverse().map((noteId) => ({
+      noteLinks: [...notesArchive].reverse().map((noteId) => ({
         note: {
           id: objectIdToStr(noteId),
         },
