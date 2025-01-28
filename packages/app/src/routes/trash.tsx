@@ -3,11 +3,13 @@ import { createFileRoute, defer } from '@tanstack/react-router';
 import { gql } from '../__generated__';
 import { TrashMain } from '../note/components/TrashMain';
 import { routeFetchPolicy } from '../utils/route-fetch-policy';
+import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
 
 const RouteTrash_Query = gql(`
-  query RouteTrash_Query(
-    $trash_first: NonNegativeInt, $trash_after: ObjectID) {
-    ...TrashMain_QueryFragment
+  query RouteTrash_Query($userBy: SignedInUserByInput!, $trash_first: NonNegativeInt, $trash_after: ObjectID) {
+    signedInUser(by: $userBy){
+      ...TrashMain_SignedInUserFragment
+    }
   }
 `);
 
@@ -25,12 +27,17 @@ export const Route = createFileRoute('/_root_layout/trash')({
       return;
     }
 
+    const userId = getCurrentUserId(apolloClient.cache);
+
     return {
       deferredQuery: defer(
         apolloClient
           .query({
             query: RouteTrash_Query,
             variables: {
+              userBy: {
+                id: userId,
+              },
               trash_first: 20,
             },
             fetchPolicy,

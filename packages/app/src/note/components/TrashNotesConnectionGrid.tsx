@@ -6,11 +6,12 @@ import { NoteCategory } from '../../__generated__/graphql';
 import { EmptyTrashInfo } from './EmptyTrashInfo';
 import { NotesConnectionGrid } from './NotesConnectionGrid';
 
-const _TrashNotesConnectionGrid_QueryFragment = gql(`
-  fragment TrashNotesConnectionGrid_QueryFragment on Query {
-    trash_UserNoteLinkConnection: userNoteLinkConnection(first: $trash_first, after: $trash_after, category: TRASH) {
+const _TrashNotesConnectionGrid_SignedInUserFragment = gql(`
+  fragment TrashNotesConnectionGrid_SignedInUserFragment on SignedInUser {
+    id
+    trash_noteLinkConnection: noteLinkConnection(first: $trash_first, after: $trash_after, category: TRASH) {
       ...NotesConnectionGrid_UserNoteLinkConnectionFragment
-    }  
+    }
   }
 `);
 

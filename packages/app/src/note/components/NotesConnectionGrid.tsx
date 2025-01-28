@@ -12,6 +12,7 @@ import { LoadMoreButton } from './LoadMoreButton';
 import { NotesCardGrid } from './NotesCardGrid';
 import { SortableNoteCard } from './SortableNoteCard';
 import { SortableNotesContext } from './SortableNotesContext';
+import { useUserId } from '../../user/context/user-id';
 
 const NotesConnectionGrid_UserNoteLinkConnectionFragment = gql(`
   fragment NotesConnectionGrid_UserNoteLinkConnectionFragment on UserNoteLinkConnection {
@@ -34,10 +35,13 @@ const NotesConnectionGrid_UserNoteLinkConnectionFragment = gql(`
 `);
 
 const NotesConnectionGrid_Query = gql(`
-  query NotesConnectionGrid_Query($first: NonNegativeInt, $after: ObjectID, $category: NoteCategory) {
-    userNoteLinkConnection(first: $first, after: $after, category: $category) {
-      ...NotesConnectionGrid_UserNoteLinkConnectionFragment
-    }  
+  query NotesConnectionGrid_Query($userBy: SignedInUserByInput!, $first: NonNegativeInt, $after: ObjectID, $category: NoteCategory) {
+    signedInUser(by: $userBy) {
+      id
+      noteLinkConnection(first: $first, after: $after, category: $category) {
+        ...NotesConnectionGrid_UserNoteLinkConnectionFragment
+      }   
+    }
   }
 `);
 
@@ -59,12 +63,16 @@ export function NotesConnectionGrid({
    */
   emptyElement?: ReactNode;
 }) {
+  const userId = useUserId();
   const isLocalOnlyUser = useIsLocalOnlyUser();
 
   const [isFetchingMore, setIsFetchingMore] = useState(false);
 
   const { data, error, fetchMore } = useQuery(NotesConnectionGrid_Query, {
     variables: {
+      userBy: {
+        id: userId,
+      },
       first: perPageCount,
       category,
     },
@@ -73,7 +81,7 @@ export function NotesConnectionGrid({
 
   const fragmentData = getFragmentData(
     NotesConnectionGrid_UserNoteLinkConnectionFragment,
-    data?.userNoteLinkConnection
+    data?.signedInUser.noteLinkConnection
   );
 
   const noteIds = useMemo(

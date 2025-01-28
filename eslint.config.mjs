@@ -164,6 +164,12 @@ export default [
           FieldDefinition: true,
         },
       ],
+      '@graphql-eslint/selection-set-depth': [
+        'error',
+        {
+          maxDepth: 8,
+        },
+      ],
     },
   },
   configPrettier,

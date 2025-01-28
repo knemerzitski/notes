@@ -10,7 +10,7 @@ import { EvictTag, TaggedEvictOptionsList } from '../../graphql/utils/tagged-evi
 
 function throwUserNotFoundError(userId?: SignedInUser['id']): never {
   if (userId) {
-    throw new Error(`Note "${userId}" not found`);
+    throw new Error(`User "${userId}" not found`);
   } else {
     throw new Error('Query is missing user id');
   }
