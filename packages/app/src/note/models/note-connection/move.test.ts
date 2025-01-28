@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ApolloCache, gql, NormalizedCacheObject } from '@apollo/client';
@@ -84,11 +87,9 @@ function addNoteToList(
         hasNextPage: false,
       },
     };
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     signedInUser[noteLinkConnectionKey] = noteLinkConnection;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   noteLinkConnection.edges.push({
     __typename: 'UserNoteLinkEdge',
     node: {
