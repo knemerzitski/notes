@@ -152,7 +152,9 @@ extend type Query {
     last: NonNegativeInt
     before: ObjectID
     category: NoteCategory
-  ): UserNoteLinkConnection! @auth
+  ): UserNoteLinkConnection!
+    @auth
+    @deprecated(reason: "Use signedInUser.noteLinkConnection instead")
   """
   Search for UserNoteLinks by text
   """
