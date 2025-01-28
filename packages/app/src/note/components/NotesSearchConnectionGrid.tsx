@@ -10,6 +10,7 @@ import { NoteIdsProvider } from '../context/note-ids';
 
 import { LoadMoreButton } from './LoadMoreButton';
 import { NotesCardGrid } from './NotesCardGrid';
+import { useUserId } from '../../user/context/user-id';
 
 const NotesSearchConnectionGrid_UserNoteLinkConnectionFragment = gql(`
   fragment NotesSearchConnectionGrid_UserNoteLinkConnectionFragment on UserNoteLinkConnection {
@@ -32,10 +33,13 @@ const NotesSearchConnectionGrid_UserNoteLinkConnectionFragment = gql(`
 `);
 
 const NotesSearchConnectionGrid_Query = gql(`
-  query NotesSearchConnectionGrid_Query($searchText: String!, $first: NonNegativeInt, $after: String) {
-    userNoteLinkSearchConnection(searchText: $searchText, first: $first, after: $after) {
+  query NotesSearchConnectionGrid_Query($userBy: SignedInUserByInput!, $searchText: String!, $first: NonNegativeInt, $after: String) {
+    signedInUser(by: $userBy) {
+      id
+      noteLinkSearchConnection(searchText: $searchText, first: $first, after: $after) {
       ...NotesSearchConnectionGrid_UserNoteLinkConnectionFragment
-    }  
+      }  
+    }
   }
 `);
 
@@ -59,6 +63,7 @@ export function NotesSearchConnectionGrid({
    */
   loadingElement?: ReactNode;
 }) {
+  const userId = useUserId();
   const isLoading = useIsLoading();
   const isLocalOnlyUser = useIsLocalOnlyUser();
 
@@ -66,6 +71,9 @@ export function NotesSearchConnectionGrid({
 
   const { data, error, fetchMore } = useQuery(NotesSearchConnectionGrid_Query, {
     variables: {
+      userBy: {
+        id: userId,
+      },
       first: perPageCount,
       searchText: searchText ?? '',
     },
@@ -74,7 +82,7 @@ export function NotesSearchConnectionGrid({
 
   const fragmentData = getFragmentData(
     NotesSearchConnectionGrid_UserNoteLinkConnectionFragment,
-    data?.userNoteLinkSearchConnection
+    data?.signedInUser.noteLinkSearchConnection
   );
 
   const noteIds = useMemo(

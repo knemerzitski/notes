@@ -6,10 +6,13 @@ import { SearchMain } from '../note/components/SearchMain';
 import { IsLoadingProvider } from '../utils/context/is-loading';
 import { useIsOnline } from '../utils/hooks/useIsOnline';
 import { routeFetchPolicy } from '../utils/route-fetch-policy';
+import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
 
 const RouteSearch_Query = gql(`
-  query RouteSearch_Query($searchText: String!, $first: NonNegativeInt, $after: String) {
-    ...SearchMain_QueryFragment
+  query RouteSearch_Query($userBy: SignedInUserByInput!, $searchText: String!, $first: NonNegativeInt, $after: String) {
+    signedInUser(by: $userBy) {
+      ...SearchMain_SignedInUserFragment
+    }
   }
 `);
 
@@ -39,11 +42,16 @@ export const Route = createFileRoute('/_root_layout/search')({
       return;
     }
 
+    const userId = getCurrentUserId(apolloClient.cache);
+
     if (ctx.deps.q) {
       await apolloClient
         .query({
           query: RouteSearch_Query,
           variables: {
+            userBy: {
+              id: userId,
+            },
             searchText: ctx.deps.q,
             first: 20,
           },
