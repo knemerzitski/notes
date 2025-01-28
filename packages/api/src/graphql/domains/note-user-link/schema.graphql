@@ -90,7 +90,7 @@ extend type DeleteNotePayload {
   publicUserNoteLinkId: String
 }
 
-################################ Query SignedInUser[noteLink,noteLinkConnection],userNoteLinkSearchConnection ################################
+################################ Query SignedInUser[noteLink,noteLinkConnection,noteLinkSearchConnection] ################################
 
 """
 TODO desc
@@ -140,21 +140,6 @@ input UserNoteLinkByInput @oneOf {
   userNoteLink.note.id
   """
   noteId: ObjectID
-}
-
-extend type Query {
-  """
-  Search for UserNoteLinks by text
-  """
-  userNoteLinkSearchConnection(
-    searchText: String!
-    first: NonNegativeInt
-    after: String
-    last: NonNegativeInt
-    before: String
-  ): UserNoteLinkConnection!
-    @auth
-    @deprecated(reason: "Use signedInUser.noteLinkSearchConnection instead")
 }
 
 extend type SignedInUser {
