@@ -152,7 +152,9 @@ extend type Query {
     after: String
     last: NonNegativeInt
     before: String
-  ): UserNoteLinkConnection! @auth
+  ): UserNoteLinkConnection!
+    @auth
+    @deprecated(reason: "Use signedInUser.noteLinkSearchConnection instead")
 }
 
 extend type SignedInUser {
@@ -169,6 +171,16 @@ extend type SignedInUser {
     last: NonNegativeInt
     before: ObjectID
     category: NoteCategory
+  ): UserNoteLinkConnection!
+  """
+  Search for note links by text
+  """
+  noteLinkSearchConnection(
+    searchText: String!
+    first: NonNegativeInt
+    after: String
+    last: NonNegativeInt
+    before: String
   ): UserNoteLinkConnection!
 }
 
