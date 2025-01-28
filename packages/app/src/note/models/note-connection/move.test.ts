@@ -113,7 +113,7 @@ function createNotesAndAddToList(
 }
 
 function getCacheNoteIds(categoryName: string): string[] {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+   
   const data: any = cache.readQuery({
     query: gql(`
       query($userId: ObjectID!) {
@@ -138,7 +138,7 @@ function getCacheNoteIds(categoryName: string): string[] {
     },
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return data.signedInUser.noteLinkConnection.edges.map((edge: any) => edge.node.note.id);
 }
 
