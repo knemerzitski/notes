@@ -123,7 +123,7 @@ const SUBSCRIPTION = `#graphql
 `;
 
 async function executeOperation(
-  input?: CreateNoteInput,
+  input?: Omit<CreateNoteInput, 'user'>,
   options?: CreateGraphQLResolversContextOptions,
   query: string = MUTATION_ALL
 ) {
@@ -136,7 +136,12 @@ async function executeOperation(
     {
       query,
       variables: {
-        input,
+        input: {
+          ...input,
+          user: {
+            id: options?.user?._id ?? new ObjectId(),
+          },
+        },
       },
     },
     {
