@@ -21,10 +21,10 @@ import { NoteIdProvider } from '../note/context/note-id';
 import { RouterContext } from '../router';
 import { useIsMobile } from '../theme/context/is-mobile';
 import { RouteUserModuleProvider } from '../user/components/RouteUserModuleProvider';
+import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
 import { ErrorComponent } from '../utils/components/ErrorComponent';
 import { NotFoundTypography } from '../utils/components/NotFoundTypography';
 import { routeFetchPolicy } from '../utils/route-fetch-policy';
-import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
 
 const RouteRoot_Query = gql(`
   query RouteRoot_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!) {

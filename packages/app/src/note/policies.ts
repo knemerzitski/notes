@@ -34,9 +34,9 @@ import { OpenedNote } from './policies/OpenedNote';
 import { PublicUserNoteLink } from './policies/PublicUserNoteLink';
 import { evictOptions as Query_evictOptions, Query } from './policies/Query';
 import { RevisionChangeset } from './policies/RevisionChangeset';
+import { SignedInUser } from './policies/SignedInUser';
 import { UserNoteLink } from './policies/UserNoteLink';
 import { UserNoteLinkConnection } from './policies/UserNoteLinkConnection';
-import { SignedInUser } from './policies/SignedInUser';
 
 export const notePolicies: CreateTypePoliciesFn = function (ctx) {
   return {

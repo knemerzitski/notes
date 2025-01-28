@@ -4,10 +4,10 @@ import { IconButton, IconButtonProps, Tooltip } from '@mui/material';
 
 import { gql } from '../../__generated__';
 import { MovableNoteCategory } from '../../__generated__/graphql';
+import { useUserId } from '../../user/context/user-id';
 import { useNoteId } from '../context/note-id';
 import { useArchiveNoteWithUndo } from '../hooks/useArchiveNoteWithUndo';
 import { toMovableNoteCategory } from '../utils/note-category';
-import { useUserId } from '../../user/context/user-id';
 
 const ArchiveButton_Query = gql(`
   query ArchiveButton_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!) {

@@ -2,12 +2,12 @@ import { useQuery } from '@apollo/client';
 
 import { gql } from '../../__generated__';
 import { MovableNoteCategory } from '../../__generated__/graphql';
+import { useUserId } from '../../user/context/user-id';
 import { useNoteId } from '../context/note-id';
 import { toMovableNoteCategory } from '../utils/note-category';
 
 import { ArchiveButton } from './ArchiveButton';
 import { UnarchiveButton } from './UnarchiveButton';
-import { useUserId } from '../../user/context/user-id';
 
 const ArchiveOrUnarchiveButton_Query = gql(`
   query ArchiveOrUnarchiveButton_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!) {

@@ -2,8 +2,8 @@ import { createFileRoute, defer } from '@tanstack/react-router';
 
 import { gql } from '../__generated__';
 import { NotesMain } from '../note/components/NotesMain';
-import { routeFetchPolicy } from '../utils/route-fetch-policy';
 import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
+import { routeFetchPolicy } from '../utils/route-fetch-policy';
 
 const RouteNotes_Query = gql(`
   query RouteNotes_Query($userBy: SignedInUserByInput!, $default_first: NonNegativeInt, $default_after: ObjectID) {

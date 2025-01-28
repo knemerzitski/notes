@@ -1,13 +1,18 @@
+import { isReference } from '@apollo/client';
+import Fuse from 'fuse.js';
+import { objectValueArrayPermutationsValues } from '~utils/object/object-value-array-permutations';
+import { isDefined } from '~utils/type-guards/is-defined';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
+
+import { NoteCategory } from '../../__generated__/graphql';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
+import { relayStylePagination } from '../../graphql/utils/relay-style-pagination';
 import { throwNoteNotFoundError } from '../utils/errors';
 import { getUserNoteLinkId } from '../utils/id';
-import { isReference } from '@apollo/client';
-import { relayStylePagination } from '../../graphql/utils/relay-style-pagination';
-import { objectValueArrayPermutationsValues } from '~utils/object/object-value-array-permutations';
-import { NoteCategory } from '../../__generated__/graphql';
-import Fuse from 'fuse.js';
-import { isDefined } from '~utils/type-guards/is-defined';
+
+
+
+
 import { readNoteExternalState } from './Note/_external';
 
 export const SignedInUser: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {

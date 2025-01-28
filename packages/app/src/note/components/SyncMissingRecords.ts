@@ -4,10 +4,10 @@ import { useEffect } from 'react';
 
 import { getFragmentData, gql } from '../../__generated__';
 import { MapRecordCollabTextRecordFragmentFragmentDoc } from '../../__generated__/graphql';
+import { useUserId } from '../../user/context/user-id';
 import { useNoteId } from '../context/note-id';
 import { useCollabService } from '../hooks/useCollabService';
 import { cacheRecordToCollabServiceRecord } from '../utils/map-record';
-import { useUserId } from '../../user/context/user-id';
 
 const SyncMissingRecords_Query = gql(`
   query SyncMissingRecords_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!, $after: NonNegativeInt!, $first: PositiveInt!) {

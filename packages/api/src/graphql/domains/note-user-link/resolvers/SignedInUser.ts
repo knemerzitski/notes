@@ -1,5 +1,7 @@
 import { ObjectId } from 'mongodb';
+
 import { QueryableNote } from '../../../../mongodb/loaders/note/descriptions/note';
+import { QueryableSearchNote } from '../../../../mongodb/loaders/notes-search/description';
 import { QueryableUser_NotesCategory } from '../../../../mongodb/loaders/user/description';
 import { CursorPagination } from '../../../../mongodb/pagination/cursor-struct';
 import { createMapQueryFn, MongoQueryFn } from '../../../../mongodb/query/query';
@@ -7,8 +9,8 @@ import { objectIdToStr } from '../../../../mongodb/utils/objectid';
 import { Note_id_fromQueryFn } from '../../../../services/note/note-id';
 import { PreFetchedArrayGetItemFn, withPreExecuteList } from '../../../utils/pre-execute';
 import { UserNoteLinkMapper } from '../schema.mappers';
+
 import { NoteCategory, type SignedInUserResolvers } from './../../types.generated';
-import { QueryableSearchNote } from '../../../../mongodb/loaders/notes-search/description';
 
 export const SignedInUser: Pick<
   SignedInUserResolvers,

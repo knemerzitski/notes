@@ -3,10 +3,10 @@ import { optional, string, type } from 'superstruct';
 
 import { gql } from '../__generated__';
 import { SearchMain } from '../note/components/SearchMain';
+import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
 import { IsLoadingProvider } from '../utils/context/is-loading';
 import { useIsOnline } from '../utils/hooks/useIsOnline';
 import { routeFetchPolicy } from '../utils/route-fetch-policy';
-import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
 
 const RouteSearch_Query = gql(`
   query RouteSearch_Query($userBy: SignedInUserByInput!, $searchText: String!, $first: NonNegativeInt, $after: String) {

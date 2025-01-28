@@ -3,9 +3,9 @@ import { useEffect } from 'react';
 
 import { getFragmentData, gql } from '../../__generated__';
 import { MapRecordCollabTextRecordFragmentFragmentDoc } from '../../__generated__/graphql';
-import { cacheRecordToCollabServiceRecord } from '../utils/map-record';
-import { useNoteId } from '../context/note-id';
 import { useUserId } from '../../user/context/user-id';
+import { useNoteId } from '../context/note-id';
+import { cacheRecordToCollabServiceRecord } from '../utils/map-record';
 
 const SyncHeadTextWatch_Query = gql(`
   query SyncHeadTextWatch_Query($by: NoteByInput!) {
