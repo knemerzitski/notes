@@ -3,8 +3,8 @@ import { isObjectLike } from '~utils/type-guards/is-object-like';
 
 // import { NoteCategory } from '../../__generated__/graphql';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
-import { throwNoteNotFoundError } from '../utils/errors';
 import { TaggedEvictOptionsList, EvictTag } from '../../graphql/utils/tagged-evict';
+import { throwNoteNotFoundError } from '../utils/errors';
 
 export const Query: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
   return {

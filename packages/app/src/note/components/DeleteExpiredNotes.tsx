@@ -3,9 +3,9 @@ import { useApolloClient, useQuery } from '@apollo/client';
 import { useEffect } from 'react';
 
 import { gql } from '../../__generated__';
+import { useUserId } from '../../user/context/user-id';
 import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
 import { removeNoteFromConnection } from '../models/note-connection/remove';
-import { useUserId } from '../../user/context/user-id';
 
 const DeleteExpiredNotes_Query = gql(`
   query DeleteExpiredNotes_Query($userBy: SignedInUserByInput!) {

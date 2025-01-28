@@ -4,6 +4,9 @@ import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
+import { Changeset } from '~collab/changeset';
+import { Maybe } from '~utils/types';
+
 import { apolloServer } from '../../../../__tests__/helpers/graphql/apollo-server';
 import {
   createGraphQLResolversContext,
@@ -13,6 +16,7 @@ import {
   expectGraphQLResponseData,
   expectGraphQLResponseError,
 } from '../../../../__tests__/helpers/graphql/response';
+import { dropAndCreateSearchIndexes } from '../../../../__tests__/helpers/mongodb/indexes';
 import {
   mongoCollectionStats,
   resetDatabase,
@@ -27,16 +31,14 @@ import { populateExecuteAll } from '../../../../__tests__/helpers/mongodb/popula
 import { fakeUserPopulateQueue } from '../../../../__tests__/helpers/mongodb/populate/user';
 import { DBNoteSchema } from '../../../../mongodb/schema/note';
 import { DBUserSchema } from '../../../../mongodb/schema/user';
+import { objectIdToStr, strToObjectId } from '../../../../mongodb/utils/objectid';
+import { UserNoteLink_id } from '../../../../services/note/user-note-link-id';
 import {
   NoteCategory,
   UserNoteLink,
   UserNoteLinkConnection,
 } from '../../types.generated';
-import { UserNoteLink_id } from '../../../../services/note/user-note-link-id';
-import { objectIdToStr, strToObjectId } from '../../../../mongodb/utils/objectid';
-import { Maybe } from '~utils/types';
-import { Changeset } from '~collab/changeset';
-import { dropAndCreateSearchIndexes } from '../../../../__tests__/helpers/mongodb/indexes';
+
 
 describe('noteLink', () => {
   interface Variables {

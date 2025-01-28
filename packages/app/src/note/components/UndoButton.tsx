@@ -3,6 +3,7 @@ import { IconButton, IconButtonProps, Tooltip } from '@mui/material';
 import { useEffect, useState } from 'react';
 
 import { CollabService } from '~collab/client/collab-service';
+
 import { useCollabService } from '../hooks/useCollabService';
 
 export function UndoButton(

@@ -4,6 +4,7 @@ import { ReactNode, useMemo, useState } from 'react';
 
 import { getFragmentData, gql } from '../../__generated__';
 import { Maybe, NoteCategory } from '../../__generated__/graphql';
+import { useUserId } from '../../user/context/user-id';
 import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
 import { NoteIdsProvider } from '../context/note-ids';
 import { toMovableNoteCategory } from '../utils/note-category';
@@ -12,7 +13,6 @@ import { LoadMoreButton } from './LoadMoreButton';
 import { NotesCardGrid } from './NotesCardGrid';
 import { SortableNoteCard } from './SortableNoteCard';
 import { SortableNotesContext } from './SortableNotesContext';
-import { useUserId } from '../../user/context/user-id';
 
 const NotesConnectionGrid_UserNoteLinkConnectionFragment = gql(`
   fragment NotesConnectionGrid_UserNoteLinkConnectionFragment on UserNoteLinkConnection {

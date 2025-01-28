@@ -2,8 +2,9 @@ import RedoIcon from '@mui/icons-material/Redo';
 import { IconButton, IconButtonProps, Tooltip } from '@mui/material';
 import { useEffect, useState } from 'react';
 
-import { useCollabService } from '../hooks/useCollabService';
 import { CollabService } from '~collab/client/collab-service';
+
+import { useCollabService } from '../hooks/useCollabService';
 
 export function RedoButton(
   props: Omit<Parameters<typeof CollabServiceDefined>[0], 'service'>

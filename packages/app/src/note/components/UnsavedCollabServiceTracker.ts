@@ -4,8 +4,8 @@ import { useEffect } from 'react';
 import { CollabService } from '~collab/client/collab-service';
 
 import { useUserNoteLinkId } from '../context/user-note-link-id';
-import { updateUnsavedCollabService } from '../models/update-unsaved-collab-service';
 import { useCollabService } from '../hooks/useCollabService';
+import { updateUnsavedCollabService } from '../models/update-unsaved-collab-service';
 
 function isServiceUpToDate(service: CollabService) {
   return !service.haveSubmittedChanges() && !service.haveLocalChanges();

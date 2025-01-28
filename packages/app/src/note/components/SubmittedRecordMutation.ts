@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 
 import { useNoteId } from '../context/note-id';
-import { useUpdateNoteInsertRecord } from '../hooks/useUpdateNoteInsertRecord';
 import { useCollabService } from '../hooks/useCollabService';
+import { useUpdateNoteInsertRecord } from '../hooks/useUpdateNoteInsertRecord';
 
 /**
  * Watches CollabService.submittedRecord and submits it to the server
