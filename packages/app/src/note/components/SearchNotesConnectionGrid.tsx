@@ -5,9 +5,10 @@ import { ReactNode } from 'react';
 import { EmptySearchInfo } from './EmptySearchInfo';
 import { NotesSearchConnectionGrid } from './NotesSearchConnectionGrid';
 
-const _SearchNotesConnectionGrid_QueryFragment = gql(`
-  fragment SearchNotesConnectionGrid_QueryFragment on Query { 
-    search_UserNoteLinkConnection: userNoteLinkSearchConnection(searchText: $searchText, first: $first, after: $after) {
+const _SearchNotesConnectionGrid_SignedInUserFragment = gql(`
+  fragment SearchNotesConnectionGrid_SignedInUserFragment on SignedInUser { 
+    id
+    search_UserNoteLinkConnection: noteLinkSearchConnection(searchText: $searchText, first: $first, after: $after) {
       ...NotesSearchConnectionGrid_UserNoteLinkConnectionFragment
     }
   }
