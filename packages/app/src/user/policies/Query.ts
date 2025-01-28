@@ -5,7 +5,6 @@ import { isObjectLike } from '~utils/type-guards/is-object-like';
 import { SignedInUser } from '../../__generated__/graphql';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
 import { fieldArrayToMap } from '../../graphql/utils/field-array-to-map';
-import { keyArgsWithUserId } from '../../graphql/utils/key-args-with-user-id';
 import { EvictTag, TaggedEvictOptionsList } from '../../graphql/utils/tagged-evict';
 
 function throwUserNotFoundError(userId?: SignedInUser['id']): never {
@@ -16,11 +15,11 @@ function throwUserNotFoundError(userId?: SignedInUser['id']): never {
   }
 }
 
-export const Query: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
+export const Query: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
   return {
     fields: {
       signedInUser: {
-        keyArgs: keyArgsWithUserId(ctx),
+        keyArgs: false,
         read(_existing, { args, toReference }) {
           if (!args || !isObjectLike(args)) {
             throwUserNotFoundError();
