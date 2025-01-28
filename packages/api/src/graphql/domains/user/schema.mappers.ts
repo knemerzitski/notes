@@ -4,7 +4,8 @@ import { AuthenticatedContext } from '../../../services/auth/types';
 
 export interface SignedInUserMapper {
   /**
-   * Authentication context of current SignedInUser type
+   * Requiring `AuthenticatedContext` instead of directly`userId` ensures
+   * that access to `SignedInUser` is authorized.
    */
   readonly auth: AuthenticatedContext;
 
