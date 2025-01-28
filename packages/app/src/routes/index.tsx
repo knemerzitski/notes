@@ -6,6 +6,7 @@ export const Route = createFileRoute('/')({
     // eslint-disable-next-line @typescript-eslint/only-throw-error
     throw redirect({
       to: '/notes',
+      search: (prev) => prev,
       replace: true,
     });
   },
