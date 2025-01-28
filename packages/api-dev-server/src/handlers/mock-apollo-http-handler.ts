@@ -5,11 +5,7 @@ import {
   CreateApolloHttpHandlerDefaultParamsOptions,
   createApolloHttpHandlerDefaultParams,
 } from '~api/apollo-http-handler';
-import { GraphQLResolversContext } from '~api/graphql/types';
-import {
-  createApolloHttpHandler,
-  ApolloHttpGraphQLContext,
-} from '~lambda-graphql/apollo-http-handler';
+import { createApolloHttpHandler } from '~lambda-graphql/apollo-http-handler';
 import { createLogger } from '~utils/logging';
 
 import {
@@ -37,6 +33,6 @@ export function mockApolloHttpHandlerDefaultParamsOptions(
   };
 }
 
-export const handler = createApolloHttpHandler<
-  Omit<GraphQLResolversContext, keyof ApolloHttpGraphQLContext>
->(createApolloHttpHandlerDefaultParams(mockApolloHttpHandlerDefaultParamsOptions()));
+export const handler = createApolloHttpHandler(
+  createApolloHttpHandlerDefaultParams(mockApolloHttpHandlerDefaultParamsOptions())
+);

@@ -3,10 +3,6 @@ import { APIGatewayProxyWebsocketHandlerV2 } from 'aws-lambda';
 import WebSocket from 'ws';
 
 import {
-  PersistGraphQLContext,
-  BaseSubscriptionResolversContext,
-} from '~api/graphql/types';
-import {
   CreateWebSocketHandlerDefaultParamsOptions,
   createWebSocketHandlerDefaultParams,
 } from '~api/websocket-handler';
@@ -43,7 +39,6 @@ export function mockWebSocketHandlerDefaultParamsOptions(
   };
 }
 
-export const handler: APIGatewayProxyWebsocketHandlerV2 = createWebSocketHandler<
-  BaseSubscriptionResolversContext,
-  PersistGraphQLContext
->(createWebSocketHandlerDefaultParams(mockWebSocketHandlerDefaultParamsOptions()));
+export const handler: APIGatewayProxyWebsocketHandlerV2 = createWebSocketHandler(
+  createWebSocketHandlerDefaultParams(mockWebSocketHandlerDefaultParamsOptions())
+);
