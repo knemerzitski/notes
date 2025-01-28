@@ -64,6 +64,7 @@ export function useMutation<
 
   const isRemoteOperation = useIsRemoteOperation(definition.document);
 
+  // TODO remove extra variable from mutations
   // Add hidden variable userId if operation doesn't have directive @noauth
   const extraVariables = useMemo(
     () =>

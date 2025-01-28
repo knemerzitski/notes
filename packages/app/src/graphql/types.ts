@@ -40,6 +40,9 @@ declare module '@apollo/client' {
   }
 }
 
+/**
+ * @deprecated Don't rely on hidden variables. Instead change API to include it in input variables
+ */
 export enum GlobalOperationVariables {
   USER_ID = '_userId',
 }

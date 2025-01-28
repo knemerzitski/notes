@@ -67,8 +67,7 @@ export interface GraphQLContext {
     /**
      * Auth by using request headers
      *
-     * TODO mark deprecated
-     * deprecated use `services.auth` instead
+     * @deprecated use `services.auth` instead
      */
     readonly requestHeaderAuth: SingleUserAuthenticationService;
   };

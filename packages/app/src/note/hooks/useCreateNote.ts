@@ -98,6 +98,9 @@ export function useCreateNote(): {
     return createNoteMutation({
       variables: {
         input: {
+          user: {
+            id: userId,
+          },
           collabText: {
             initialText: submittedRecord?.changeset.joinInsertions() ?? '',
           },
@@ -122,7 +125,7 @@ export function useCreateNote(): {
 
       return true;
     });
-  }, [client, noteId, createNoteMutation, isLocalOnlyUser]);
+  }, [client, noteId, userId, createNoteMutation, isLocalOnlyUser]);
 
   const complete = useCallback(() => {
     const currentStatus = getNotePendingStatus({ noteId }, client.cache);
