@@ -33,6 +33,12 @@ extend type SignedInUser {
 TODO desc
 """
 input CreateNoteInput
+# input CreateNoteInput {
+#   """
+#   Note is created for this user
+#   """
+#   userId: ObjectID!
+# }
 
 """
 TODO desc
@@ -49,6 +55,7 @@ extend type Mutation {
   Create a new note
   """
   createNote(input: CreateNoteInput!): CreateNotePayload! @auth
+  #createNote(input: CreateNoteInput!): CreateNotePayload!
 }
 
 extend union SignedInUserMutation = CreateNotePayload

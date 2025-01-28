@@ -2,6 +2,7 @@
 
 """
 Identifier for UserNoteLink.id, serializes to string
+TODO delete this scalar
 """
 scalar UserNoteLinkID
 
