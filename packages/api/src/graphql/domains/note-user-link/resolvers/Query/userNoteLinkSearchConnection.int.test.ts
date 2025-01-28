@@ -34,7 +34,7 @@ interface Variables {
 const QUERY = `#graphql
   query($searchText: String! $after: String, $first: NonNegativeInt, $before: String, $last: NonNegativeInt) {
     userNoteLinkSearchConnection(searchText: $searchText, after: $after, first: $first, before: $before, last: $last){
-      userNoteLinks {
+      noteLinks {
         note {
           id
           collabText {
@@ -140,8 +140,8 @@ async function executeOperation(
 }
 
 function getTexts(data: { userNoteLinkSearchConnection: UserNoteLinkConnection }) {
-  return data.userNoteLinkSearchConnection.userNoteLinks.map((userNoteLink) =>
-    Changeset.parseValue(userNoteLink.note.collabText.headText.changeset).joinInsertions()
+  return data.userNoteLinkSearchConnection.noteLinks.map((noteLink) =>
+    Changeset.parseValue(noteLink.note.collabText.headText.changeset).joinInsertions()
   );
 }
 

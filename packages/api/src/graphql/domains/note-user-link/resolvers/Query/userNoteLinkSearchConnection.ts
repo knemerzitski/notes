@@ -91,7 +91,7 @@ export const userNoteLinkSearchConnection: NonNullable<
   });
 
   return {
-    userNoteLinks: (ctx, info) => {
+    noteLinks: (ctx, info) => {
       return withPreExecuteList(createUserNoteLinkMapper, ctx, info);
     },
     edges: (ctx, info) => {
