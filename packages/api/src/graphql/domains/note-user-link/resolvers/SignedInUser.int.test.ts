@@ -20,6 +20,7 @@ import {
 import { fakeNotePopulateQueue } from '../../../../__tests__/helpers/mongodb/populate/note';
 import {
   populateNotes,
+  populateNotesWithText,
   userAddNote,
 } from '../../../../__tests__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../__tests__/helpers/mongodb/populate/populate-queue';
@@ -34,6 +35,8 @@ import {
 import { UserNoteLink_id } from '../../../../services/note/user-note-link-id';
 import { objectIdToStr, strToObjectId } from '../../../../mongodb/utils/objectid';
 import { Maybe } from '~utils/types';
+import { Changeset } from '~collab/changeset';
+import { dropAndCreateSearchIndexes } from '../../../../__tests__/helpers/mongodb/indexes';
 
 describe('noteLink', () => {
   interface Variables {
@@ -700,5 +703,349 @@ describe('noteLinkConnection', () => {
     expectSliceInReverse(await paginator.paginate(), 0, 4);
     expectSliceInReverse(await paginator.paginate(), 4, 8);
     expectSliceInReverse(await paginator.paginate(), 8, 10);
+  });
+});
+
+describe('noteLinkSearchConnection', () => {
+  interface Variables {
+    searchText: string;
+    after?: string | number | null;
+    before?: string | number | null;
+    first?: number;
+    last?: number;
+  }
+
+  const QUERY = `#graphql
+    query($userId: ObjectID!, $searchText: String! $after: String, $first: NonNegativeInt, $before: String, $last: NonNegativeInt) {
+      signedInUser(by: {id: $userId}) {
+        noteLinkSearchConnection(searchText: $searchText, after: $after, first: $first, before: $before, last: $last) {
+          noteLinks {
+            note {
+              id
+              collabText {
+                headText {
+                  changeset
+                }
+              }
+            }
+          }
+          edges {
+            node {
+              note {
+                id
+              }
+            }
+            cursor
+          }
+          pageInfo {
+            hasPreviousPage
+            hasNextPage
+            startCursor
+            endCursor
+          }
+        }
+      }
+    }
+  `;
+
+  const QUERY_USER_LOOKUP = `#graphql
+    query($userId: ObjectID!, $searchText: String! $after: String, $first: NonNegativeInt, $before: String, $last: NonNegativeInt) {
+      signedInUser(by: {id: $userId}) {
+        noteLinkSearchConnection(searchText: $searchText, after: $after, first: $first, before: $before, last: $last){
+          edges {
+            node {
+              note {
+                id
+                users {
+                  id
+                  user {
+                    id
+                    profile {
+                      displayName
+                    }
+                  }
+                  open {
+                    closedAt
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  let populateResult: ReturnType<typeof populateNotes>;
+  let user: DBUserSchema;
+
+  beforeAll(async () => {
+    faker.seed(42347);
+    await resetDatabase();
+
+    populateResult = populateNotesWithText([
+      'bar bar',
+      'foo foo',
+      'bar',
+      'foo foo foo',
+      'bar bar bar',
+      'foo',
+    ]);
+
+    user = populateResult.user;
+
+    await populateExecuteAll();
+
+    await dropAndCreateSearchIndexes();
+  });
+
+  beforeEach(() => {
+    mongoCollectionStats.mockClear();
+  });
+
+  async function executeOperation(
+    variables: Variables,
+    options?: CreateGraphQLResolversContextOptions,
+    query: string = QUERY
+  ) {
+    return await apolloServer.executeOperation<
+      {
+        signedInUser: {
+          noteLinkSearchConnection: UserNoteLinkConnection;
+        };
+      },
+      Variables & {
+        userId: ObjectId;
+      }
+    >(
+      {
+        query,
+        variables: {
+          ...variables,
+          userId: user._id,
+        },
+      },
+      {
+        contextValue: createGraphQLResolversContext({
+          user,
+          ...options,
+        }),
+      }
+    );
+  }
+
+  function getTexts(data: {
+    signedInUser: { noteLinkSearchConnection: UserNoteLinkConnection };
+  }) {
+    return data.signedInUser.noteLinkSearchConnection.noteLinks.map((noteLink) =>
+      Changeset.parseValue(noteLink.note.collabText.headText.changeset).joinInsertions()
+    );
+  }
+
+  it('paginates notes from start to end', async () => {
+    // [(foo foo foo),foo foo,foo]
+    let response = await executeOperation({
+      searchText: 'foo',
+      first: 1,
+    });
+    let data = expectGraphQLResponseData(response);
+
+    expect(mongoCollectionStats.allStats()).toStrictEqual(
+      expect.objectContaining({
+        readAndModifyCount: 1,
+        readCount: 1,
+      })
+    );
+
+    expect(getTexts(data)).toStrictEqual(['foo foo foo']);
+    expect(data.signedInUser.noteLinkSearchConnection.pageInfo).toEqual({
+      hasNextPage: true,
+      hasPreviousPage: false,
+      startCursor: expect.any(String),
+      endCursor: expect.any(String),
+    });
+
+    // [foo foo foo,(foo foo),foo]
+    response = await executeOperation({
+      searchText: 'foo',
+      first: 1,
+      after: data.signedInUser.noteLinkSearchConnection.pageInfo.endCursor,
+    });
+    data = expectGraphQLResponseData(response);
+
+    expect(getTexts(data)).toStrictEqual(['foo foo']);
+    expect(data.signedInUser.noteLinkSearchConnection.pageInfo).toEqual({
+      hasNextPage: true,
+      hasPreviousPage: true,
+      startCursor: expect.any(String),
+      endCursor: expect.any(String),
+    });
+
+    // [foo foo foo,foo foo,(foo)]
+    response = await executeOperation({
+      searchText: 'foo',
+      first: 1,
+      after: data.signedInUser.noteLinkSearchConnection.pageInfo.endCursor,
+    });
+    data = expectGraphQLResponseData(response);
+
+    expect(getTexts(data)).toStrictEqual(['foo']);
+    expect(data.signedInUser.noteLinkSearchConnection.pageInfo).toEqual({
+      hasNextPage: false,
+      hasPreviousPage: true,
+      startCursor: expect.any(String),
+      endCursor: expect.any(String),
+    });
+
+    // [foo foo foo,foo foo,foo,()]
+    response = await executeOperation({
+      searchText: 'foo',
+      first: 1,
+      after: data.signedInUser.noteLinkSearchConnection.pageInfo.endCursor,
+    });
+    data = expectGraphQLResponseData(response);
+
+    expect(getTexts(data)).toStrictEqual([]);
+    expect(data.signedInUser.noteLinkSearchConnection.pageInfo).toEqual({
+      hasNextPage: false,
+      hasPreviousPage: false,
+      startCursor: null,
+      endCursor: null,
+    });
+  });
+
+  it('paginates notes from end to start', async () => {
+    let response = await executeOperation({
+      searchText: 'foo',
+      last: 1,
+    });
+    let data = expectGraphQLResponseData(response);
+
+    expect(getTexts(data)).toStrictEqual(['foo']);
+    expect(data.signedInUser.noteLinkSearchConnection.pageInfo).toEqual({
+      hasNextPage: false,
+      hasPreviousPage: true,
+      startCursor: expect.any(String),
+      endCursor: expect.any(String),
+    });
+
+    response = await executeOperation({
+      searchText: 'foo',
+      last: 1,
+      before: data.signedInUser.noteLinkSearchConnection.pageInfo.startCursor,
+    });
+    data = expectGraphQLResponseData(response);
+
+    expect(getTexts(data)).toStrictEqual(['foo foo']);
+    expect(data.signedInUser.noteLinkSearchConnection.pageInfo).toEqual({
+      hasNextPage: true,
+      hasPreviousPage: true,
+      startCursor: expect.any(String),
+      endCursor: expect.any(String),
+    });
+
+    response = await executeOperation({
+      searchText: 'foo',
+      last: 1,
+      before: data.signedInUser.noteLinkSearchConnection.pageInfo.startCursor,
+    });
+    data = expectGraphQLResponseData(response);
+
+    expect(getTexts(data)).toStrictEqual(['foo foo foo']);
+    expect(data.signedInUser.noteLinkSearchConnection.pageInfo).toEqual({
+      hasNextPage: true,
+      hasPreviousPage: false,
+      startCursor: expect.any(String),
+      endCursor: expect.any(String),
+    });
+
+    response = await executeOperation({
+      searchText: 'foo',
+      last: 1,
+      before: data.signedInUser.noteLinkSearchConnection.pageInfo.startCursor,
+    });
+    data = expectGraphQLResponseData(response);
+
+    expect(getTexts(data)).toStrictEqual([]);
+    expect(data.signedInUser.noteLinkSearchConnection.pageInfo).toEqual({
+      hasNextPage: false,
+      hasPreviousPage: false,
+      startCursor: null,
+      endCursor: null,
+    });
+  });
+
+  it('invalid cursor returns empty array', async () => {
+    const response = await executeOperation({
+      searchText: 'bar',
+      first: 1,
+      after: 'CAIlvsvKPg==',
+    });
+    const data = expectGraphQLResponseData(response);
+
+    expect(getTexts(data)).toStrictEqual([]);
+    expect(data.signedInUser.noteLinkSearchConnection.pageInfo).toMatchObject({
+      hasNextPage: false,
+      hasPreviousPage: false,
+      startCursor: null,
+      endCursor: null,
+    });
+  });
+
+  it('queries user schema that requires lookup', async () => {
+    const response = await apolloServer.executeOperation<
+      {
+        signedInUser: {
+          noteLinkSearchConnection: UserNoteLinkConnection;
+        };
+      },
+      Variables & {
+        userId: ObjectId;
+      }
+    >(
+      {
+        query: QUERY_USER_LOOKUP,
+        variables: {
+          userId: user._id,
+          searchText: 'foo',
+          first: 1,
+        },
+      },
+      {
+        contextValue: createGraphQLResolversContext({
+          user,
+        }),
+      }
+    );
+
+    const data = expectGraphQLResponseData(response);
+
+    expect(data).toEqual({
+      signedInUser: {
+        noteLinkSearchConnection: {
+          edges: [
+            {
+              node: {
+                note: {
+                  id: expect.any(String),
+                  users: [
+                    {
+                      id: expect.any(String),
+                      open: null,
+                      user: {
+                        id: expect.any(String),
+                        profile: {
+                          displayName: expect.any(String),
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+        },
+      },
+    });
   });
 });
