@@ -4,14 +4,10 @@ import { inspect } from 'util';
 
 import WebSocket from 'ws';
 import { createApolloHttpHandlerDefaultParams } from '~api/apollo-http-handler';
-import { GraphQLResolversContext } from '~api/graphql/types';
 import { createInitializeHandler } from '~api/initialize-handler';
 import { createScheduledHandler } from '~api/scheduled-handler';
 import { createWebSocketHandlerDefaultParams } from '~api/websocket-handler';
-import {
-  createApolloHttpHandler,
-  ApolloHttpGraphQLContext,
-} from '~lambda-graphql/apollo-http-handler';
+import { createApolloHttpHandler } from '~lambda-graphql/apollo-http-handler';
 import { createWebSocketHandler } from '~lambda-graphql/websocket-handler';
 import { assertGetEnvironmentVariables } from '~utils/env';
 import { createLogger } from '~utils/logging';
@@ -112,9 +108,7 @@ void (async () => {
           })
         )
       ),
-      apolloHttpHandler: createApolloHttpHandler<
-        Omit<GraphQLResolversContext, keyof ApolloHttpGraphQLContext>
-      >(
+      apolloHttpHandler: createApolloHttpHandler(
         createApolloHttpHandlerDefaultParams(
           mockApolloHttpHandlerDefaultParamsOptions({
             sockets,
