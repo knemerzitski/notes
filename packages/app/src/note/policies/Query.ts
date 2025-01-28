@@ -1,7 +1,7 @@
-import { objectValueArrayPermutationsValues } from '~utils/object/object-value-array-permutations';
+// import { objectValueArrayPermutationsValues } from '~utils/object/object-value-array-permutations';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 
-import { NoteCategory } from '../../__generated__/graphql';
+// import { NoteCategory } from '../../__generated__/graphql';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
 import { throwNoteNotFoundError } from '../utils/errors';
 import { TaggedEvictOptionsList, EvictTag } from '../../graphql/utils/tagged-evict';
@@ -39,24 +39,24 @@ export const evictOptions: TaggedEvictOptionsList = [
   {
     tag: EvictTag.CURRENT_USER,
     options: [
-      {
-        id: 'ROOT_QUERY',
-        fieldName: 'userNoteLink',
-      },
+      // {
+      //   id: 'ROOT_QUERY',
+      //   fieldName: 'userNoteLink',
+      // },
       {
         id: 'ROOT_QUERY',
         fieldName: 'note',
       },
       // Evict all categories
-      ...[
-        ...objectValueArrayPermutationsValues({
-          category: Object.values(NoteCategory),
-        }),
-      ].map((args) => ({
-        id: 'ROOT_QUERY',
-        fieldName: 'userNoteLinkConnection',
-        args,
-      })),
+      // ...[
+      //   ...objectValueArrayPermutationsValues({
+      //     category: Object.values(NoteCategory),
+      //   }),
+      // ].map((args) => ({
+      //   id: 'ROOT_QUERY',
+      //   fieldName: 'userNoteLinkConnection',
+      //   args,
+      // })),
     ],
   },
 ];

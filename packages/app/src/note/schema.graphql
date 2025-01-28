@@ -18,7 +18,9 @@ enum NoteTextFieldName {
 
 extend type Query {
   """
-  Find note
+  Direct access to a note without user.
+  
+  Usable only on client side.
   """
   note(by: NoteByInput!): Note!
 }
@@ -103,6 +105,19 @@ extend type UserNoteLink {
   """
   excludeFromConnection: Boolean!
 }
+
+# extend type UserNoteLinkEdge {
+#   """
+#   Edge location in array is unknown and needs to be queried.
+#   It could also have been deleted or moved to another category.
+#   """
+#   locationUnknown: Boolean!
+#   """
+#   Edge is hidden due to latest query first/last arg not including this item
+#   Note should be displayed when app goes offline.
+#   """
+#   hidden: Boolean!
+# }
 
 extend type LocalSignedInUser {
   """

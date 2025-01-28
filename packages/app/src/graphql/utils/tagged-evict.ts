@@ -1,6 +1,7 @@
 import { ApolloCache, Cache } from '@apollo/client';
 
 export enum EvictTag {
+  // rename to USER_SPECIFIC?
   CURRENT_USER,
 }
 
