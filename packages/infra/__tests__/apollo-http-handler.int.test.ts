@@ -124,22 +124,25 @@ async function fetchNotes(user: User) {
     body: JSON.stringify({
       operationName: 'Notes_Query',
       variables: {
+        userId: user.headers[CustomHeaderName.USER_ID],
         first: 100,
       },
       query: `#graphql
-        query Notes_Query($first: NonNegativeInt) {
-          userNoteLinkConnection(first: $first) {
-            edges {
-              node {
-                id
-                categoryName
-                note {
+        query Notes_Query($userId: ObjectID!, $first: NonNegativeInt) {
+          signedInUser(by: {id: $userId}) {
+            noteLinkConnection(first: $first) {
+              edges {
+                node {
                   id
-                  collabText {
+                  categoryName
+                  note {
                     id
-                    headText {
-                      revision
-                      changeset
+                    collabText {
+                      id
+                      headText {
+                        revision
+                        changeset
+                      }
                     }
                   }
                 }
@@ -175,25 +178,27 @@ it(
 
     expect(notes).toStrictEqual({
       data: {
-        userNoteLinkConnection: {
-          edges: [
-            {
-              node: {
-                categoryName: 'DEFAULT',
-                id: expect.any(String),
-                note: {
-                  collabText: {
-                    headText: {
-                      changeset: ['hello new note'],
-                      revision: 1,
+        signedInUser: {
+          noteLinkConnection: {
+            edges: [
+              {
+                node: {
+                  categoryName: 'DEFAULT',
+                  id: expect.any(String),
+                  note: {
+                    collabText: {
+                      headText: {
+                        changeset: ['hello new note'],
+                        revision: 1,
+                      },
+                      id: expect.any(String),
                     },
                     id: expect.any(String),
                   },
-                  id: expect.any(String),
                 },
               },
-            },
-          ],
+            ],
+          },
         },
       },
     });
