@@ -48,7 +48,8 @@ export interface AuthenticationService {
 
 /**
  * Authentication service for a single user
- * @deprecated Use {@link AuthenticationService} instead
+ * TODO mark deprecated
+ * deprecated Use {@link AuthenticationService} instead
  */
 export interface SingleUserAuthenticationService {
   getUserId(): ObjectId | undefined;
