@@ -170,6 +170,16 @@ extend type SignedInUser {
   Link between user and note
   """
   noteLink(by: NoteByInput!): UserNoteLink!
+  """
+  Paginate note links by category. Default category is NoteCategory.DEFAULT
+  """
+  noteLinkConnection(
+    first: NonNegativeInt
+    after: ObjectID
+    last: NonNegativeInt
+    before: ObjectID
+    category: NoteCategory
+  ): UserNoteLinkConnection!
 }
 
 ################################ Mutation updateUserNoteLinkReadOnly ################################
