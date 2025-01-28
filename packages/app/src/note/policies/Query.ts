@@ -9,7 +9,6 @@ import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
 import { keyArgsWithUserId } from '../../graphql/utils/key-args-with-user-id';
 import { relayStylePagination } from '../../graphql/utils/relay-style-pagination';
 import { EvictTag, TaggedEvictOptionsList } from '../../graphql/utils/tagged-evict';
-import { getUserNoteLinkId } from '../utils/id';
 
 import { readNoteExternalState } from './Note/_external';
 import { throwNoteNotFoundError } from '../utils/errors';
@@ -17,42 +16,6 @@ import { throwNoteNotFoundError } from '../utils/errors';
 export const Query: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
   return {
     fields: {
-      userNoteLink: {
-        keyArgs: false,
-        read(_existing, { args, toReference }) {
-          // Read using UserNoteLinkByInput (argument by)
-          if (!args || !isObjectLike(args)) {
-            throwNoteNotFoundError();
-          }
-          const by = args.by;
-          if (!isObjectLike(by)) {
-            throwNoteNotFoundError();
-          }
-
-          if (typeof by.noteId === 'string') {
-            const userId = ctx.appContext.userId;
-            if (userId == null) {
-              throwNoteNotFoundError(by.noteId);
-            }
-
-            return toReference({
-              __typename: 'UserNoteLink',
-              id: getUserNoteLinkId(by.noteId, userId),
-            });
-          }
-
-          const id = by.id ?? by.userNoteLinkId;
-          if (typeof id !== 'string') {
-            throwNoteNotFoundError(String(id));
-          }
-
-          return toReference({
-            __typename: 'UserNoteLink',
-            id,
-          });
-        },
-        merge: false,
-      },
       note: {
         keyArgs: false,
         read(_existing, { args, toReference }) {
