@@ -11,9 +11,7 @@ import { createLogger, Logger } from '~utils/logging';
 
 import { ApolloHttpHandlerGraphQLResolversContext } from './graphql/types';
 import { AuthenticatedContextsModel } from './models/auth/authenticated-contexts';
-import { CurrentUserModel } from './models/auth/current-user';
 import { createMongoDBLoaders } from './mongodb/loaders';
-import { strToObjectId } from './mongodb/utils/objectid';
 import {
   createDefaultApiGatewayParams,
   createDefaultApiOptions,
@@ -21,10 +19,7 @@ import {
   createDefaultGraphQLParams,
   createDefaultMongoDBContext,
 } from './parameters';
-import {
-  CookiesMongoDBDynamoDBAuthenticationService,
-  CookiesMongoDBDynamoDBSingleUserAuthenticationService,
-} from './services/auth/auth-service';
+import { CookiesMongoDBDynamoDBAuthenticationService } from './services/auth/auth-service';
 import { trackAuthServiceModel } from './services/auth/utils/track-auth-service-model';
 import { Cookies } from './services/http/cookies';
 import { SessionsCookie } from './services/http/sessions-cookie';
@@ -71,11 +66,14 @@ export function createApolloHttpHandlerDefaultParams(
 
       // Cookies, Sessions
       const cookies = new Cookies(parseCookiesFromHeaders(event.headers));
-      const sessionsCookie = new SessionsCookie({
-        cookies,
-      }, {
-        key: apiOptions.sessions?.cookieKey
-      });
+      const sessionsCookie = new SessionsCookie(
+        {
+          cookies,
+        },
+        {
+          key: apiOptions.sessions?.cookieKey,
+        }
+      );
       sessionsCookie.updateModelFromCookies();
 
       // Auth model
@@ -140,12 +138,6 @@ export function createApolloHttpHandlerDefaultParams(
             authModel
           );
 
-          const requestHeaderAuthService =
-            new CookiesMongoDBDynamoDBSingleUserAuthenticationService(
-              authService,
-              new CurrentUserModel(strToObjectId(event.headers[CustomHeaderName.USER_ID]))
-            );
-
           return {
             options: apiOptions,
             mongoDB: {
@@ -154,7 +146,6 @@ export function createApolloHttpHandlerDefaultParams(
             },
             services: {
               auth: authService,
-              requestHeaderAuth: requestHeaderAuthService,
             },
             connectionId: wsConnectionId,
           };

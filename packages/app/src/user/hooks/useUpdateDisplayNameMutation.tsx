@@ -7,8 +7,8 @@ import {
 } from '../../__generated__/graphql';
 import { useMutation } from '../../graphql/hooks/useMutation';
 import { userSerializationKey_fieldDisplayName } from '../../graphql/utils/serialization-key';
-import { UpdateSignedInUserDisplayName } from '../mutations/UpdateSignedInUserDisplayName';
 import { useUserId } from '../context/user-id';
+import { UpdateSignedInUserDisplayName } from '../mutations/UpdateSignedInUserDisplayName';
 
 export function useUpdateDisplayNameMutation() {
   const userId = useUserId();

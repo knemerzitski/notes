@@ -9,10 +9,7 @@ import { MongoDBCollections } from '../mongodb/collections';
 
 import { MongoDBLoaders } from '../mongodb/loaders';
 
-import {
-  AuthenticationService,
-  SingleUserAuthenticationService,
-} from '../services/auth/types';
+import { AuthenticationService } from '../services/auth/types';
 import { SessionDurationConfig } from '../services/session/duration';
 
 export interface ApiOptions {
@@ -64,12 +61,6 @@ export interface ApiOptions {
 export interface GraphQLContext {
   readonly services: {
     readonly auth: AuthenticationService;
-    /**
-     * Auth by using request headers
-     *
-     * @deprecated use `services.auth` instead
-     */
-    readonly requestHeaderAuth: SingleUserAuthenticationService;
   };
   readonly mongoDB: {
     readonly client: MongoClient;

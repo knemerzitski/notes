@@ -8,7 +8,6 @@ import { mock, mockDeep } from 'vitest-mock-extended';
 
 import { mockResolver } from '../../../../../__tests__/helpers/graphql/mock-resolver';
 import { QueryableSession } from '../../../../../mongodb/loaders/session/description';
-import { SingleUserAuthenticationService } from '../../../../../services/auth/types';
 import { updateDisplayName } from '../../../../../services/user/update-display-name';
 
 import { GraphQLResolversContext } from '../../../../types';
@@ -112,16 +111,16 @@ it('accesses mongoDB once for createQueryFn', async () => {
   await resolveUpdateSignedInUserDisplayName(
     mock<any>(),
     mockDeep<any>(),
-    mockDeep<GraphQLResolversContext>({
+    mockDeep({
       services: {
-        auth: mockDeep<SingleUserAuthenticationService>({
+        auth: mockDeep({
           getAuth() {
             return mockDeep();
           },
         }),
       },
       mongoDB,
-    })
+    } as any)
   );
 
   expect(mongoDB).toHaveBeenCalledTimesDeep(1);

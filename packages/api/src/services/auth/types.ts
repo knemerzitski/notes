@@ -45,14 +45,3 @@ export interface AuthenticationService {
    */
   getAvailableUserIds(): ObjectId[];
 }
-
-/**
- * Authentication service for a single user
- *
- * @deprecated Use {@link AuthenticationService} instead
- */
-export interface SingleUserAuthenticationService {
-  getUserId(): ObjectId | undefined;
-  isAuthenticated(): Promise<boolean>;
-  getAuth(): Promise<AuthenticatedContext>;
-}

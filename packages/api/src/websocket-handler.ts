@@ -19,10 +19,7 @@ import {
   createDefaultMongoDBContext,
   createDefaultSubscriptionGraphQLParams,
 } from './parameters';
-import {
-  CookiesMongoDBDynamoDBAuthenticationService,
-  CookiesMongoDBDynamoDBSingleUserAuthenticationService,
-} from './services/auth/auth-service';
+import { CookiesMongoDBDynamoDBAuthenticationService } from './services/auth/auth-service';
 import { SessionsCookie } from './services/http/sessions-cookie';
 import { SessionDuration } from './services/session/duration';
 import {
@@ -158,12 +155,6 @@ export function createWebSocketHandlerDefaultParams(
             ws.customData.authenticatedContexts
           );
 
-          const requestHeaderAuthService =
-            new CookiesMongoDBDynamoDBSingleUserAuthenticationService(
-              authService,
-              ws.customData.currentUser
-            );
-
           return {
             logger: options?.override?.gqlContextLogger ?? createLogger('ws-gql-context'),
             mongoDB: {
@@ -172,7 +163,6 @@ export function createWebSocketHandlerDefaultParams(
             },
             services: {
               auth: authService,
-              requestHeaderAuth: requestHeaderAuthService,
             },
             // pub and services
             options: apiOptions,

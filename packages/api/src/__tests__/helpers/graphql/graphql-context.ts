@@ -16,7 +16,6 @@ import { typeDefs } from '../../../graphql/domains/typeDefs.generated';
 import { GraphQLContext, GraphQLResolversContext } from '../../../graphql/types';
 
 import { AuthenticatedContextsModel } from '../../../models/auth/authenticated-contexts';
-import { CurrentUserModel } from '../../../models/auth/current-user';
 import { MongoDBCollections } from '../../../mongodb/collections';
 import { MongoDBContext } from '../../../mongodb/context';
 import { createMongoDBLoaders } from '../../../mongodb/loaders';
@@ -25,10 +24,7 @@ import { DBSessionSchema } from '../../../mongodb/schema/session';
 import { DBUserSchema } from '../../../mongodb/schema/user';
 import { MongoPartialDeep } from '../../../mongodb/types';
 import { objectIdToStr } from '../../../mongodb/utils/objectid';
-import {
-  CookiesMongoDBDynamoDBAuthenticationService,
-  CookiesMongoDBDynamoDBSingleUserAuthenticationService,
-} from '../../../services/auth/auth-service';
+import { CookiesMongoDBDynamoDBAuthenticationService } from '../../../services/auth/auth-service';
 import { Cookies } from '../../../services/http/cookies';
 import { SessionsCookie } from '../../../services/http/sessions-cookie';
 import { mongoCollections, mongoClient } from '../mongodb/mongodb';
@@ -92,12 +88,6 @@ export function createGraphQLResolversContext(
     });
   }
 
-  const requestHeaderAuthService =
-    new CookiesMongoDBDynamoDBSingleUserAuthenticationService(
-      authService,
-      new CurrentUserModel(options?.user?._id)
-    );
-
   const ctx = {
     mongoDB,
     response: {
@@ -105,7 +95,6 @@ export function createGraphQLResolversContext(
     },
     services: {
       auth: authService,
-      requestHeaderAuth: requestHeaderAuthService,
       ...options?.override?.services,
     },
     ...options?.override,

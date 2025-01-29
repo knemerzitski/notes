@@ -1,8 +1,8 @@
 // TODO @auth directive is not used but remains here as documentation
-import { GraphQLSchema } from 'graphql/index.js';
+// import { GraphQLSchema } from 'graphql/index.js';
 
-import { transformSchemaDirectiveResolver } from '../../../utils/transform-schema-directive-resolver';
-import type { DirectiveResolvers } from '../../types.generated';
+// import { transformSchemaDirectiveResolver } from '../../../utils/transform-schema-directive-resolver';
+// import type { DirectiveResolvers } from '../../types.generated';
 
 
 /*
@@ -19,19 +19,19 @@ enum Role {
 }
 */
 
-export const auth: NonNullable<DirectiveResolvers['auth']> = async (
-  next,
-  _parent,
-  _args,
-  _ctx
-) => {
-  // TODO uncomment to enable auth
-  // await ctx.services.requestHeaderAuth.getAuth();
+// export const auth: NonNullable<DirectiveResolvers['auth']> = async (
+//   next,
+//   _parent,
+//   _args,
+//   ctx
+// ) => {
+//   // TODO uncomment to enable auth
+//   await ctx.services.requestHeaderAuth.getAuth();
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return next();
-};
+//   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+//   return next();
+// };
 
-export function authTransform(schema: GraphQLSchema): GraphQLSchema {
-  return transformSchemaDirectiveResolver(schema, 'auth', auth);
-}
+// export function authTransform(schema: GraphQLSchema): GraphQLSchema {
+//   return transformSchemaDirectiveResolver(schema, 'auth', auth);
+// }
