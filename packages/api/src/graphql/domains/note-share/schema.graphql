@@ -28,9 +28,13 @@ TODO desc
 """
 input ShareNoteInput {
   """
-  Note to be shared, Note.id
+  Authenticated user who is sharing the note.
   """
-  noteId: ObjectID!
+  authUser: SignedInUserByInput!
+  """
+  Note to be shared
+  """
+  note: NoteByInput!
   """
   Make access to note read-only
   """
@@ -55,7 +59,7 @@ extend type Mutation {
   """
   Share existing note
   """
-  shareNote(input: ShareNoteInput!): ShareNotePayload! @auth
+  shareNote(input: ShareNoteInput!): ShareNotePayload!
 }
 
 extend union SignedInUserMutation = ShareNotePayload

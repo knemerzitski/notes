@@ -18,7 +18,12 @@ export function useShareNote() {
       return shareNoteMutation({
         variables: {
           input: {
-            noteId,
+            authUser: {
+              id: userId,
+            },
+            note: {
+              id: noteId,
+            },
             readOnly: false,
           },
         },

@@ -15,7 +15,7 @@ export const ShareNote = mutationDefinition(
     if (!variables) {
       throw new Error('Expected variables to be defined for mutation "ShareNote"');
     }
-    const noteId = variables.input.noteId;
+    const noteId = variables.input.note.id;
     if (handleNoteError(noteId, cache, errors, options)) {
       return;
     }
