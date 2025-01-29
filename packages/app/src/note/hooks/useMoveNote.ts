@@ -47,7 +47,12 @@ export function useMoveNote() {
         local: isLocalOnlyNote({ id: noteId }, client.cache),
         variables: {
           input: {
-            noteId,
+            authUser: {
+              id: userId,
+            },
+            note: {
+              id: noteId,
+            },
             location,
           },
         },

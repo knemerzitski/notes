@@ -423,9 +423,13 @@ TODO desc
 """
 input MoveUserNoteLinkInput {
   """
+  Authenticated user whose note is moved
+  """
+  authUser: SignedInUserByInput!
+  """
   Note to be moved by Note.id
   """
-  noteId: ObjectID!
+  note: NoteByInput!
   """
   Specify how to move the note. Null location can be used to move note out of trash back to original category.
   """
@@ -450,7 +454,7 @@ extend type Mutation {
   """
   Move note between categories or reorder within categories
   """
-  moveUserNoteLink(input: MoveUserNoteLinkInput!): MoveUserNoteLinkPayload! @auth
+  moveUserNoteLink(input: MoveUserNoteLinkInput!): MoveUserNoteLinkPayload!
 }
 
 extend union SignedInUserMutation = MoveUserNoteLinkPayload

@@ -14,15 +14,16 @@ export const moveUserNoteLink: NonNullable<
   MutationResolvers['moveUserNoteLink']
 > = async (_parent, arg, ctx) => {
   const { services, mongoDB } = ctx;
-  const auth = await services.requestHeaderAuth.getAuth();
-
   const { input } = arg;
+
+  const auth = await services.auth.getAuth(input.authUser.id);
+  const noteId = input.note.id;
 
   const currentUserId = auth.session.userId;
 
   const moveResult = await updateMoveCategory({
     mongoDB,
-    noteId: input.noteId,
+    noteId,
     userId: currentUserId,
     categoryName: input.location?.categoryName,
     anchor: getAnchor(arg),
@@ -47,7 +48,7 @@ export const moveUserNoteLink: NonNullable<
       userId: currentUserId,
       query: mongoDB.loaders.note.createQueryFn({
         userId: currentUserId,
-        noteId: input.noteId,
+        noteId,
       }),
     },
   };

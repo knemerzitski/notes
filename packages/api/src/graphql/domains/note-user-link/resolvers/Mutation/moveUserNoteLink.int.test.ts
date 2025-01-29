@@ -127,7 +127,9 @@ beforeEach(async () => {
 });
 
 async function executeOperation(
-  input?: MoveUserNoteLinkInput,
+  input: Omit<MoveUserNoteLinkInput, 'authUser' | 'note'> & {
+    noteId: ObjectId;
+  },
   options?: CreateGraphQLResolversContextOptions,
   query: string = MUTATION
 ) {
@@ -140,7 +142,15 @@ async function executeOperation(
     {
       query,
       variables: {
-        input,
+        input: {
+          authUser: {
+            id: options?.user?._id ?? new ObjectId(),
+          },
+          note: {
+            id: input.noteId,
+          },
+          location: input.location,
+        },
       },
     },
     {
@@ -774,7 +784,12 @@ describe('note in normal categories', () => {
       {},
       {
         input: {
-          noteId: note._id,
+          authUser: {
+            id: user._id,
+          },
+          note: {
+            id: note._id,
+          },
           location: {
             categoryName: 'randomCategory' as MovableNoteCategory,
           },
