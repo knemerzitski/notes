@@ -19,6 +19,7 @@ import { ShareNoteLinkSchema } from '../../../../../mongodb/schema/share-note-li
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { DeleteShareNoteInput, DeleteShareNotePayload } from '../../../types.generated';
+import { ObjectId } from 'mongodb';
 
 const MUTATION = `#graphql
   mutation($input: DeleteShareNoteInput!){
@@ -51,7 +52,9 @@ beforeEach(async () => {
 });
 
 async function executeOperation(
-  input?: DeleteShareNoteInput,
+  input: Omit<DeleteShareNoteInput, 'authUser' | 'note'> & {
+    noteId: ObjectId;
+  },
   options?: CreateGraphQLResolversContextOptions,
   query: string = MUTATION
 ) {
@@ -64,7 +67,14 @@ async function executeOperation(
     {
       query,
       variables: {
-        input,
+        input: {
+          authUser: {
+            id: options?.user?._id ?? new ObjectId(),
+          },
+          note: {
+            id: input.noteId,
+          },
+        },
       },
     },
     {

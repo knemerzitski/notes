@@ -22,7 +22,12 @@ export function useDeleteShareNote() {
       return deleteShareNoteMutation({
         variables: {
           input: {
-            noteId,
+            authUser: {
+              id: userId,
+            },
+            note: {
+              id: noteId,
+            },
           },
         },
         errorPolicy: 'all',

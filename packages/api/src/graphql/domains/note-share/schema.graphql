@@ -71,9 +71,13 @@ TODO desc
 """
 input DeleteShareNoteInput {
   """
+  Authenticated user who is deleting note sharing
+  """
+  authUser: SignedInUserByInput!
+  """
   Note to to stop sharing, Note.id
   """
-  noteId: ObjectID!
+  note: NoteByInput!
 }
 
 """
@@ -94,7 +98,7 @@ extend type Mutation {
   """
   Stop new access to note. Existing users can still access the note.
   """
-  deleteShareNote(input: DeleteShareNoteInput!): DeleteShareNotePayload! @auth
+  deleteShareNote(input: DeleteShareNoteInput!): DeleteShareNotePayload!
 }
 
 extend union SignedInUserMutation = DeleteShareNotePayload

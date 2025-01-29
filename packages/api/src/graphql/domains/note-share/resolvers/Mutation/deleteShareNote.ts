@@ -9,21 +9,22 @@ export const deleteShareNote: NonNullable<MutationResolvers['deleteShareNote']> 
   ctx
 ) => {
   const { services, mongoDB } = ctx;
-  const auth = await services.requestHeaderAuth.getAuth();
-
   const { input } = arg;
+
+  const auth = await services.auth.getAuth(input.authUser.id);
+  const noteId = input.note.id;
 
   const currentUserId = auth.session.userId;
 
   const deleteResult = await deleteShareLinks({
     mongoDB,
-    noteId: input.noteId,
+    noteId,
     userId: currentUserId,
   });
 
   const noteQuery = mongoDB.loaders.note.createQueryFn({
     userId: currentUserId,
-    noteId: input.noteId,
+    noteId,
   });
 
   const payload: ResolversTypes['SignedInUserMutation'] = {
