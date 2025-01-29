@@ -34,9 +34,9 @@ TODO desc
 """
 input CreateNoteInput {
   """
-  User who will own and have access to the note.
+  Authenticated user who will own and have access to the note.
   """
-  user: SignedInUserByInput!
+  authUser: SignedInUserByInput!
 }
 
 """
