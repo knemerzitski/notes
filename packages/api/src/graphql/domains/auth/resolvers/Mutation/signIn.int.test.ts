@@ -43,6 +43,7 @@ interface Variables {
 const MUTATION = `#graphql
   mutation SignIn($input: SignInInput!) {
     signIn(input: $input) {
+      __typename
       ... on SignInResult {
         signedInUser {
           id
@@ -172,6 +173,7 @@ it('creates new user and session on first sign in with google', async () => {
 
   expect(data).toEqual({
     signIn: {
+      __typename: 'JustSignedInResult',
       signedInUser: {
         id: objectIdToStr(newUser._id),
         public: {
@@ -223,6 +225,7 @@ it('signs in with existing user by creating new session', async () => {
   const data = expectGraphQLResponseData(response);
   expect(data).toEqual({
     signIn: {
+      __typename: 'JustSignedInResult',
       signedInUser: {
         id: objectIdToStr(user._id),
         public: {
@@ -272,6 +275,7 @@ it('returns already signed in result with existing auth', async () => {
   const data = expectGraphQLResponseData(response);
   expect(data).toEqual({
     signIn: {
+      __typename: 'AlreadySignedInResult',
       signedInUser: {
         id: objectIdToStr(user._id),
         public: {
@@ -313,6 +317,7 @@ it('signs in new user while already authenticated with another user', async () =
   const data = expectGraphQLResponseData(response);
   expect(data).toEqual({
     signIn: {
+      __typename: 'JustSignedInResult',
       authProviderUser: {
         id: authProviderUser.id,
         email: authProviderUser.email,
