@@ -107,7 +107,9 @@ beforeEach(async () => {
 });
 
 async function executeOperation(
-  input?: UpdateUserNoteLinkBackgroundColorInput,
+  input: Omit<UpdateUserNoteLinkBackgroundColorInput, 'note' | 'authUser'> & {
+    noteId: ObjectId
+  },
   options?: CreateGraphQLResolversContextOptions,
   query: string = MUTATION
 ) {
@@ -120,7 +122,15 @@ async function executeOperation(
     {
       query,
       variables: {
-        input,
+        input: {
+          note: {
+            id: input.noteId,
+          },
+          authUser: {
+            id: options?.user?._id ?? new ObjectId()
+          },
+          backgroundColor: input.backgroundColor,
+        },
       },
     },
     {
