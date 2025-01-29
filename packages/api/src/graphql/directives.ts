@@ -1,10 +1,10 @@
 import { GraphQLSchema } from 'graphql/index.js';
 
-import { authTransform } from './domains/base/directives/auth';
+// import { authTransform } from './domains/base/directives/auth';
 import { lengthTransform } from './domains/base/directives/length';
 
 const transforms: ((schema: GraphQLSchema) => GraphQLSchema)[] = [
-  authTransform,
+  // authTransform,
   lengthTransform,
 ];
 
