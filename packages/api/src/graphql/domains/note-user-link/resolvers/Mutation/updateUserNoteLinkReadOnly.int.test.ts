@@ -117,7 +117,7 @@ async function executeOperation(
 ) {
   return await apolloServer.executeOperation<
     {
-      updateUserNoteLinkBackgroundColor: UpdateUserNoteLinkReadOnlyPayload;
+      updateUserNoteLinkReadOnly: UpdateUserNoteLinkReadOnlyPayload;
     },
     { input?: UpdateUserNoteLinkReadOnlyInput }
   >(
