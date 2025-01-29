@@ -77,25 +77,23 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
     signedInUserId = existingUser._id;
   }
 
-  if (await services.requestHeaderAuth.isAuthenticated()) {
-    const auth = await services.requestHeaderAuth.getAuth();
-
+  if (await services.auth.isAuthenticated(signedInUserId)) {
+    const auth = await services.auth.getAuth(signedInUserId);
     const currentUserId = auth.session.userId;
-    if (currentUserId.equals(signedInUserId)) {
-      return {
-        __typename: 'AlreadySignedInResult',
-        signedInUser: {
-          auth,
-          query: mongoDB.loaders.user.createQueryFn({
-            userId: currentUserId,
-          }),
-        },
-        availableUserIds: services.auth
-          .getAvailableUserIds()
-          .map(objectIdToStr)
-          .filter(isDefined),
-      };
-    }
+
+    return {
+      __typename: 'AlreadySignedInResult',
+      signedInUser: {
+        auth,
+        query: mongoDB.loaders.user.createQueryFn({
+          userId: currentUserId,
+        }),
+      },
+      availableUserIds: services.auth
+        .getAvailableUserIds()
+        .map(objectIdToStr)
+        .filter(isDefined),
+    };
   }
 
   const auth = await services.auth.createAuth(signedInUserId);
