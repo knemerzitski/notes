@@ -1,4 +1,3 @@
-import { useApolloClient } from '@apollo/client';
 import { useCallback } from 'react';
 
 import { makeFragmentData } from '../../__generated__';
@@ -8,20 +7,21 @@ import {
 } from '../../__generated__/graphql';
 import { useMutation } from '../../graphql/hooks/useMutation';
 import { userSerializationKey_fieldDisplayName } from '../../graphql/utils/serialization-key';
-import { getCurrentUserId } from '../models/signed-in-user/get-current';
 import { UpdateSignedInUserDisplayName } from '../mutations/UpdateSignedInUserDisplayName';
+import { useUserId } from '../context/user-id';
 
 export function useUpdateDisplayNameMutation() {
-  const client = useApolloClient();
+  const userId = useUserId();
   const [updateDisplayNameMutation] = useMutation(UpdateSignedInUserDisplayName);
 
   return useCallback(
     (displayName: PublicUserProfile['displayName']) => {
-      const userId = getCurrentUserId(client.cache);
-      
       return updateDisplayNameMutation({
         variables: {
           input: {
+            authUser: {
+              id: userId,
+            },
             displayName,
           },
         },
@@ -54,6 +54,6 @@ export function useUpdateDisplayNameMutation() {
         },
       });
     },
-    [updateDisplayNameMutation, client]
+    [updateDisplayNameMutation, userId]
   );
 }
