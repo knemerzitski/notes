@@ -6,16 +6,17 @@ export const updateUserNoteLinkBackgroundColor: NonNullable<
   MutationResolvers['updateUserNoteLinkBackgroundColor']
 > = async (_parent, arg, ctx) => {
   const { services, mongoDB } = ctx;
-  const auth = await services.requestHeaderAuth.getAuth();
-
   const { input } = arg;
+
+  const noteId = input.note.id;
+  const auth = await services.auth.getAuth(input.authUser.id);
 
   const currentUserId = auth.session.userId;
 
   const { type: bgResultType } = await updateBackgroundColor({
     backgroundColor: input.backgroundColor,
     mongoDB,
-    noteId: input.noteId,
+    noteId,
     userId: currentUserId,
   });
 
@@ -26,7 +27,7 @@ export const updateUserNoteLinkBackgroundColor: NonNullable<
       userId: currentUserId,
       query: mongoDB.loaders.note.createQueryFn({
         userId: currentUserId,
-        noteId: input.noteId,
+        noteId,
       }),
     },
   };

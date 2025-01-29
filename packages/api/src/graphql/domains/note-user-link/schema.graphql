@@ -257,9 +257,13 @@ TODO desc
 """
 input UpdateUserNoteLinkBackgroundColorInput {
   """
-  UserNoteLink to be updated by Note.id
+  Authenticated user whose note background color is updated
   """
-  noteId: ObjectID!
+  authUser: SignedInUserByInput!
+  """
+  Target note
+  """
+  note: NoteByInput!
   """
   New background color value
   """
@@ -286,7 +290,7 @@ extend type Mutation {
   """
   updateUserNoteLinkBackgroundColor(
     input: UpdateUserNoteLinkBackgroundColorInput!
-  ): UpdateUserNoteLinkBackgroundColorPayload! @auth
+  ): UpdateUserNoteLinkBackgroundColorPayload!
 }
 
 extend union SignedInUserMutation = UpdateUserNoteLinkBackgroundColorPayload
