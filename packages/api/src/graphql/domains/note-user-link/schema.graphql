@@ -76,9 +76,10 @@ extend type CreateNotePayload {
 
 extend input DeleteNoteInput {
   """
-  Delete note from specified user. If not defined then current user is used. Current user must be note owner.
+  Delete note from this user.
+  If `userId` is not defined then `authUser` is used instead.
   """
-  userId: ObjectID
+  deleteUserId: ObjectID
 }
 
 extend type DeleteNotePayload {

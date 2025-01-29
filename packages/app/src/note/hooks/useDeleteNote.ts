@@ -24,8 +24,12 @@ export function useDeleteNote() {
         local: isLocalOnlyNote({ id: noteId }, client.cache),
         variables: {
           input: {
-            noteId,
-            userId,
+            authUser: {
+              id: userId,
+            },
+            note: {
+              id: noteId,
+            },
           },
         },
         context: {

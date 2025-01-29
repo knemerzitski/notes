@@ -65,9 +65,13 @@ TODO desc
 """
 input DeleteNoteInput {
   """
-  Note to be deleted by Note.id
+  Authenticated user whose permissions are used to delete the note
   """
-  noteId: ObjectID!
+  authUser: SignedInUserByInput!
+  """
+  Note to be deleted
+  """
+  note: NoteByInput!
 }
 
 """
@@ -82,9 +86,9 @@ type DeleteNotePayload {
 
 extend type Mutation {
   """
-  Deletes note for oldest user (cannot be undone). Newer users can only unlink the note.
+  Permanently deletes note if user is the only owner. Any other user only unlinks from the note.
   """
-  deleteNote(input: DeleteNoteInput!): DeleteNotePayload! @auth
+  deleteNote(input: DeleteNoteInput!): DeleteNotePayload!
 }
 
 extend union SignedInUserMutation = DeleteNotePayload
