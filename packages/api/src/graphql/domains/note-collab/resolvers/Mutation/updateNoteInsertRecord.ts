@@ -13,16 +13,17 @@ export const updateNoteInsertRecord: NonNullable<
   MutationResolvers['updateNoteInsertRecord']
 > = async (_parent, arg, ctx) => {
   const { services, mongoDB } = ctx;
-  const auth = await services.requestHeaderAuth.getAuth();
-
   const { input } = arg;
-  const { insertRecord } = input;
+
+  const auth = await services.auth.getAuth(input.authUser.id);
+  const noteId = input.note.id;
+  const insertRecord = input.insertRecord;
 
   const currentUserId = auth.session.userId;
 
   const insertionResult = await insertCollabRecord({
     mongoDB,
-    noteId: input.noteId,
+    noteId,
     userId: currentUserId,
     maxRecordsCount: ctx.options?.collabText?.maxRecordsCount,
     insertRecord: {
@@ -42,7 +43,7 @@ export const updateNoteInsertRecord: NonNullable<
 
   const noteQuery = mongoDB.loaders.note.createQueryFn({
     userId: currentUserId,
-    noteId: input.noteId,
+    noteId,
   });
   const collabTextIdQuery = CollabText_id_fromNoteQueryFn(noteQuery);
 

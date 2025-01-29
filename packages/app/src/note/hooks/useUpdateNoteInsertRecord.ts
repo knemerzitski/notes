@@ -8,13 +8,15 @@ import { useMutation } from '../../graphql/hooks/useMutation';
 import { PersistLink } from '../../graphql/link/persist';
 import { hasOngoingOperation } from '../../graphql/link/persist/has';
 import { noteSerializationKey_fieldText } from '../../graphql/utils/serialization-key';
-import { getCurrentUserId } from '../../user/models/signed-in-user/get-current';
 import { UpdateNoteInsertRecord } from '../mutations/UpdateNoteInsertRecord';
 import { getCollabTextId } from '../utils/id';
 import { submittedRecordToCollabTextRecordInput } from '../utils/map-record';
+import { useUserId } from '../../user/context/user-id';
 
 export function useUpdateNoteInsertRecord() {
   const client = useApolloClient();
+  const userId = useUserId();
+
   const [updateNoteInsertRecord] = useMutation(UpdateNoteInsertRecord);
 
   return useCallback(
@@ -26,13 +28,16 @@ export function useUpdateNoteInsertRecord() {
         return false;
       }
 
-      const userId = getCurrentUserId(client.cache);
-
       return updateNoteInsertRecord({
         // This mutation will never be called with a local note
         variables: {
           input: {
-            noteId,
+            authUser: {
+              id: userId,
+            },
+            note: {
+              id: noteId,
+            },
             insertRecord: submittedRecordToCollabTextRecordInput(submittedRecord),
           },
         },
@@ -43,6 +48,6 @@ export function useUpdateNoteInsertRecord() {
         errorPolicy: 'all',
       });
     },
-    [updateNoteInsertRecord, client]
+    [updateNoteInsertRecord, client, userId]
   );
 }

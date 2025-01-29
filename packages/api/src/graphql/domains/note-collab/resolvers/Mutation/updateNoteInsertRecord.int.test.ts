@@ -178,7 +178,9 @@ beforeEach(async () => {
 });
 
 async function executeOperation(
-  input?: UpdateNoteInsertRecordInput,
+  input: Omit<UpdateNoteInsertRecordInput, 'note' | 'authUser'> & {
+    noteId: ObjectId;
+  },
   options?: CreateGraphQLResolversContextOptions,
   query: string = MUTATION
 ) {
@@ -191,7 +193,15 @@ async function executeOperation(
     {
       query,
       variables: {
-        input,
+        input: {
+          insertRecord: input.insertRecord,
+          note: {
+            id: input.noteId,
+          },
+          authUser: {
+            id: options?.user?._id ?? new ObjectId(),
+          },
+        },
       },
     },
     {
