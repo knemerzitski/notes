@@ -11,22 +11,23 @@ export const shareNote: NonNullable<MutationResolvers['shareNote']> = async (
   ctx
 ) => {
   const { services, mongoDB } = ctx;
-  const auth = await services.requestHeaderAuth.getAuth();
-
   const { input } = arg;
+
+  const auth = await services.auth.getAuth(input.authUser.id);
+  const noteId = input.note.id;
 
   const currentUserId = auth.session.userId;
 
   const shareLinkResult = await insertShareLink({
     mongoDB,
-    noteId: input.noteId,
+    noteId,
     userId: currentUserId,
     readOnly: input.readOnly,
   });
 
   const noteQuery = mongoDB.loaders.note.createQueryFn({
     userId: currentUserId,
-    noteId: input.noteId,
+    noteId,
   });
 
   const payload: ResolversTypes['SignedInUserMutation'] = {
