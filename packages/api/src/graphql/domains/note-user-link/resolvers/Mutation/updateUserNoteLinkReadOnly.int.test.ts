@@ -112,7 +112,9 @@ beforeEach(async () => {
 });
 
 async function executeOperation(
-  input?: UpdateUserNoteLinkReadOnlyInput,
+  input: Omit<UpdateUserNoteLinkReadOnlyInput, 'note' | 'authUser'> & {
+    noteId: ObjectId
+  },
   options?: CreateGraphQLResolversContextOptions,
   query: string = MUTATION
 ) {
@@ -125,7 +127,16 @@ async function executeOperation(
     {
       query,
       variables: {
-        input,
+        input: {
+          readOnly: input.readOnly,
+          userId: input.userId,
+          authUser: {
+            id: options?.user?._id ?? new ObjectId(),
+          },
+          note: {
+            id: input.noteId,
+          },
+        },
       },
     },
     {
