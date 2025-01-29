@@ -10,8 +10,8 @@ import { useUserId } from '../context/user-id';
 import { useIsLocalOnlyUser } from '../hooks/useIsLocalOnlyUser';
 
 const SignedInUserEventsSubscription_Subscription = gql(`
-  subscription SignedInUserEventsSubscription_Subscription {
-    signedInUserEvents {
+  subscription SignedInUserEventsSubscription_Subscription($input: SignedInUserEventsInput!) {
+    signedInUserEvents(input: $input) {
       mutations {
         ...UpdateSignedInUserDisplayNamePayload
         ...CreateNotePayload
@@ -49,6 +49,11 @@ function Subscription() {
     const observable = apolloClientSubscribe(client, {
       query: SignedInUserEventsSubscription_Subscription,
       variables: {
+        input: {
+          authUser: {
+            id: userId,
+          },
+        },
         // Force a new subscription when user changes
         // @ts-expect-error Is is a valid variable locally
         [GlobalOperationVariables.USER_ID]: userId,

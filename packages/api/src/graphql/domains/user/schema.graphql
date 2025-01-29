@@ -64,6 +64,17 @@ TODO desc
 """
 union SignedInUserMutation
 
+
+"""
+TODO desc
+"""
+input SignedInUserEventsInput {
+  """
+  Authenticated user whose events are being subscribed to
+  """
+  authUser: SignedInUserByInput!
+}
+
 """
 TODO desc
 """
@@ -76,9 +87,9 @@ type SignedInUserEventsPayload {
 
 extend type Subscription {
   """
-  Subscribe to all events that are related to currently signed in user
+  Subscribe to all events related to a specific signed in user
   """
-  signedInUserEvents: SignedInUserEventsPayload! @auth
+  signedInUserEvents(input: SignedInUserEventsInput!): SignedInUserEventsPayload!
 }
 
 ################################ Mutation updateUserDisplayName ################################

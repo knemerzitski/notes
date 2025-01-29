@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/unbound-method */
 import { faker } from '@faker-js/faker';
@@ -79,8 +80,8 @@ const MUTATION = `#graphql
 `;
 
 const SUBSCRIPTION = `#graphql
-  subscription {
-    signedInUserEvents {
+  subscription ($input: SignedInUserEventsInput!) {
+    signedInUserEvents(input: $input) {
       mutations {
         __typename
         ... on UpdateNoteInsertRecordPayload {
@@ -753,6 +754,13 @@ describe('subscription', () => {
       {
         subscription: {
           query: SUBSCRIPTION,
+          variables: {
+            input: {
+              authUser: {
+                id: user._id,
+              },
+            },
+          } as any,
         },
       } as Subscription,
     ]);
@@ -866,6 +874,13 @@ describe('subscription', () => {
       {
         subscription: {
           query: SUBSCRIPTION,
+          variables: {
+            input: {
+              authUser: {
+                id: user._id,
+              },
+            },
+          } as any,
         },
       } as Subscription,
     ]);

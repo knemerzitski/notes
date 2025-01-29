@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -67,26 +68,26 @@ const MUTATION = `#graphql
 `;
 
 const SUBSCRIPTION = `#graphql
-  subscription {
-  signedInUserEvents {
-    mutations {
-      __typename
-      ... on MoveUserNoteLinkPayload {
-        location {
-        categoryName
-        anchorUserNoteLink {
-          id
-        }
-        anchorPosition
-        }
-        userNoteLink {
-          id
+  subscription ($input: SignedInUserEventsInput!) {
+    signedInUserEvents(input: $input) {
+      mutations {
+        __typename
+        ... on MoveUserNoteLinkPayload {
+          location {
           categoryName
-          deletedAt
+          anchorUserNoteLink {
+            id
+          }
+          anchorPosition
+          }
+          userNoteLink {
+            id
+            categoryName
+            deletedAt
+          }
         }
       }
-    }
-  }   
+    }   
   }
 `;
 
@@ -725,6 +726,13 @@ describe('note in normal categories', () => {
       {
         subscription: {
           query: SUBSCRIPTION,
+          variables: {
+            input: {
+              authUser: {
+                id: user._id,
+              },
+            },
+          } as any,
         },
       } as Subscription,
     ]);
@@ -1041,6 +1049,13 @@ describe('note is trashed', () => {
       {
         subscription: {
           query: SUBSCRIPTION,
+          variables: {
+            input: {
+              authUser: {
+                id: user._id,
+              },
+            },
+          } as any,
         },
       } as Subscription,
     ]);

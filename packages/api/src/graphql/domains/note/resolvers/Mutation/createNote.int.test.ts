@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/unbound-method */
 import { faker } from '@faker-js/faker';
@@ -104,8 +105,8 @@ const MUTATION_ALL = `#graphql
 `;
 
 const SUBSCRIPTION = `#graphql
-  subscription {
-    signedInUserEvents {
+  subscription ($input: SignedInUserEventsInput!) {
+    signedInUserEvents(input: $input) {
       mutations {
         ... on CreateNotePayload {
           note {
@@ -452,6 +453,13 @@ describe('no existing notes', () => {
         {
           subscription: {
             query: SUBSCRIPTION,
+            variables: {
+              input: {
+                authUser: {
+                  id: user._id,
+                },
+              },
+            } as any,
           },
         } as Subscription,
       ]);

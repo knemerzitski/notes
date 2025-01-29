@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
@@ -59,8 +60,8 @@ const MUTATION = `#graphql
 `;
 
 const SUBSCRIPTION = `#graphql
-  subscription {
-    signedInUserEvents {
+  subscription ($input: SignedInUserEventsInput!) {
+    signedInUserEvents(input: $input) {
       mutations {
         __typename
         ... on TrashUserNoteLinkPayload {
@@ -363,6 +364,13 @@ it('publishes user note trashing only for current user', async () => {
     {
       subscription: {
         query: SUBSCRIPTION,
+        variables: {
+          input: {
+            authUser: {
+              id: userNotOwner._id,
+            },
+          },
+        } as any,
       },
     } as Subscription,
   ]);

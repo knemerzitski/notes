@@ -81,16 +81,23 @@ it('creates new user, updates displayName and publishes it to websocket', async 
   ws.subscribe(
     {
       query: `#graphql
-      subscription UserEvents {
-        signedInUserEvents {
-          mutations {
-            ... on UpdateSignedInUserDisplayNamePayload {
-              displayName
+        subscription UserEvents($input: SignedInUserEventsInput!) {
+          signedInUserEvents(input: $input) {
+            mutations {
+              ... on UpdateSignedInUserDisplayNamePayload {
+                displayName
+              }
             }
           }
         }
-      }
-    `,
+      `,
+      variables: {
+        input: {
+          authUser: {
+            id: userIdStr,
+          },
+        },
+      },
     },
     wsNextUpdateDisplayNameFn
   );

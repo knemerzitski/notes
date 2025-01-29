@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
@@ -57,8 +58,8 @@ const MUTATION = `#graphql
 `;
 
 const SUBSCRIPTION = `#graphql
-  subscription {
-    signedInUserEvents {
+  subscription ($input: SignedInUserEventsInput!) {
+    signedInUserEvents(input: $input) {
       mutations {
         __typename
         ... on UpdateUserNoteLinkReadOnlyPayload {
@@ -240,6 +241,13 @@ it('publishes readOnly correclty', async () => {
     {
       subscription: {
         query: SUBSCRIPTION,
+        variables: {
+          input: {
+            authUser: {
+              id: userOwner._id,
+            },
+          },
+        } as any,
       },
     } as Subscription,
   ]);
