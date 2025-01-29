@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
 import { beforeEach, expect, it, vi } from 'vitest';
@@ -122,6 +123,9 @@ it('creates new user, updates displayName and publishes it to websocket', async 
       `,
       variables: {
         input: {
+          authUser: {
+            id: userIdStr as any,
+          },
           displayName: 'Bar Name',
         },
       },

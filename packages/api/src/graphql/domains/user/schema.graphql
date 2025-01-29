@@ -64,7 +64,6 @@ TODO desc
 """
 union SignedInUserMutation
 
-
 """
 TODO desc
 """
@@ -99,6 +98,10 @@ TODO desc
 """
 input UpdateSignedInUserDisplayNameInput {
   """
+  Authenticated user whose display name is changed
+  """
+  authUser: SignedInUserByInput!
+  """
   New display name
   """
   displayName: String! @length(max: 20)
@@ -124,7 +127,7 @@ extend type Mutation {
   """
   updateSignedInUserDisplayName(
     input: UpdateSignedInUserDisplayNameInput!
-  ): UpdateSignedInUserDisplayNamePayload! @auth
+  ): UpdateSignedInUserDisplayNamePayload!
 }
 
 extend union SignedInUserMutation = UpdateSignedInUserDisplayNamePayload

@@ -31,11 +31,11 @@ it('calls updateDisplayName', async () => {
   await resolveUpdateSignedInUserDisplayName(
     undefined,
     {
-      input: { displayName },
+      input: { authUser: { id: userId }, displayName },
     },
     mockDeep<GraphQLResolversContext>({
       services: {
-        requestHeaderAuth: mockDeep<SingleUserAuthenticationService>({
+        auth: mockDeep({
           getAuth() {
             return Promise.resolve({
               session: {
@@ -74,13 +74,17 @@ it('returns UpdateSignedInUserDisplayNamePayload with query', async () => {
   const result = await resolveUpdateSignedInUserDisplayName(
     undefined,
     {
-      input: { displayName },
+      input: { authUser: { id: userId }, displayName },
     },
     mockDeep<GraphQLResolversContext>({
       services: {
-        requestHeaderAuth: mockDeep<SingleUserAuthenticationService>({
+        auth: mockDeep({
           getAuth() {
-            return Promise.resolve(auth);
+            return Promise.resolve({
+              session: {
+                userId,
+              } as QueryableSession,
+            });
           },
         }),
       },
@@ -107,10 +111,10 @@ it('accesses mongoDB once for createQueryFn', async () => {
 
   await resolveUpdateSignedInUserDisplayName(
     mock<any>(),
-    mock<any>(),
+    mockDeep<any>(),
     mockDeep<GraphQLResolversContext>({
       services: {
-        requestHeaderAuth: mockDeep<SingleUserAuthenticationService>({
+        auth: mockDeep<SingleUserAuthenticationService>({
           getAuth() {
             return mockDeep();
           },

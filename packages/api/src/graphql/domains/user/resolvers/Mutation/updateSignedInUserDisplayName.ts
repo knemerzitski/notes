@@ -7,9 +7,9 @@ export const updateSignedInUserDisplayName: NonNullable<
   MutationResolvers['updateSignedInUserDisplayName']
 > = async (_parent, arg, ctx) => {
   const { services, mongoDB } = ctx;
-  const auth = await services.requestHeaderAuth.getAuth();
-
   const { input } = arg;
+
+  const auth = await services.auth.getAuth(input.authUser.id);
 
   const currentUserId = auth.session.userId;
 

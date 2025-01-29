@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 
 import { faker } from '@faker-js/faker';
-import { UpdateResult } from 'mongodb';
+import { ObjectId, UpdateResult } from 'mongodb';
 import { MockInstance, beforeAll, vi, afterEach, beforeEach, it, expect } from 'vitest';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
@@ -36,7 +36,7 @@ import {
 import { signedInUserTopic } from '../Subscription/signedInUserEvents';
 
 interface Variables {
-  input: UpdateSignedInUserDisplayNameInput;
+  input: Omit<UpdateSignedInUserDisplayNameInput, 'authUser'>;
 }
 
 const MUTATION = `#graphql
@@ -118,12 +118,19 @@ async function executeOperation(
     {
       updateSignedInUserDisplayName: UpdateSignedInUserDisplayNamePayload;
     },
-    Variables
+    {
+      input: UpdateSignedInUserDisplayNameInput;
+    }
   >(
     {
       query,
       variables: {
-        input,
+        input: {
+          authUser: {
+            id: options?.user?._id ?? new ObjectId(),
+          },
+          displayName: input.displayName
+        }
       },
     },
     {
