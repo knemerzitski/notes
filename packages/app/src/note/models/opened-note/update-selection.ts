@@ -15,7 +15,7 @@ const UpdateOpenNoteSelectionRange_PublicUserNoteLinkFragment = gql(`
 
 export function updateOpenNoteSelectionRange(
   id: PublicUserNoteLink['id'],
-  input: Omit<UpdateOpenNoteSelectionRangeInput, 'noteId'>,
+  input: Omit<UpdateOpenNoteSelectionRangeInput, 'note' | 'authUser'>,
   cache: Pick<ApolloCache<unknown>, 'writeFragment'>
 ) {
   cache.writeFragment({

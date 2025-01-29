@@ -24,13 +24,18 @@ export function useUpdateOpenNoteSelectionRange() {
   // prevent if less then 1 sec left
 
   return useCallback(
-    (input: UpdateOpenNoteSelectionRangeInput) => {
-      const noteId = input.noteId;
+    (input: Omit<UpdateOpenNoteSelectionRangeInput, 'authUser'>) => {
+      const noteId = input.note.id;
 
       return updateOpenNoteSelectionRangeMutation({
         local: isLocalOnlyNote({ id: noteId }, client.cache),
         variables: {
-          input,
+          input: {
+            ...input,
+            authUser: {
+              id: userId,
+            },
+          },
         },
         errorPolicy: 'all',
         optimisticResponse: {

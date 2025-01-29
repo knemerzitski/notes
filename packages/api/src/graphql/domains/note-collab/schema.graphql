@@ -207,9 +207,13 @@ TODO desc
 """
 input UpdateOpenNoteSelectionRangeInput {
   """
-  Note.id
+  Authenticated use who is updating the selection range
   """
-  noteId: ObjectID!
+  authUser: SignedInUserByInput!
+  """
+  Target note
+  """
+  note: NoteByInput!
   """
   Selection applies to this revision of text
   """
@@ -252,7 +256,7 @@ extend type Mutation {
   """
   updateOpenNoteSelectionRange(
     input: UpdateOpenNoteSelectionRangeInput!
-  ): UpdateOpenNoteSelectionRangePayload! @auth
+  ): UpdateOpenNoteSelectionRangePayload!
 }
 
 extend union OpenNoteMutation = UpdateOpenNoteSelectionRangePayload
