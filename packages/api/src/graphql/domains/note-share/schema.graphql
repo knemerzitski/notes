@@ -110,6 +110,10 @@ TODO desc
 """
 input CreateNoteLinkByShareAccessInput {
   """
+  Authenticated user who is attempting to access note by share link
+  """
+  authUser: SignedInUserByInput!
+  """
   Create NoteUserLink by NoteShareAccess.id
   """
   shareAccessId: ObjectID!
@@ -131,7 +135,7 @@ extend type Mutation {
   """
   createNoteLinkByShareAccess(
     input: CreateNoteLinkByShareAccessInput!
-  ): CreateNoteLinkByShareAccessPayload! @auth
+  ): CreateNoteLinkByShareAccessPayload!
 }
 
 extend union SignedInUserMutation = CreateNoteLinkByShareAccessPayload

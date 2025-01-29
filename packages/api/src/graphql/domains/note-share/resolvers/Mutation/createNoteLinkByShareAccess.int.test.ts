@@ -26,6 +26,7 @@ import {
   CreateNoteLinkByShareAccessPayload,
   NoteCategory,
 } from '../../../types.generated';
+import { ObjectId } from 'mongodb';
 
 const MUTATION = `#graphql
   mutation($input: CreateNoteLinkByShareAccessInput!){
@@ -78,7 +79,7 @@ beforeEach(async () => {
 });
 
 async function executeOperation(
-  input?: CreateNoteLinkByShareAccessInput,
+  input: Omit<CreateNoteLinkByShareAccessInput, 'authUser'>,
   options?: CreateGraphQLResolversContextOptions,
   query: string = MUTATION
 ) {
@@ -91,7 +92,12 @@ async function executeOperation(
     {
       query,
       variables: {
-        input,
+        input: {
+          ...input,
+          authUser: {
+            id: options?.user?._id ?? new ObjectId(),
+          },
+        },
       },
     },
     {
