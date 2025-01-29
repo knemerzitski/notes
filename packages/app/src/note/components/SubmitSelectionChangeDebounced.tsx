@@ -107,7 +107,9 @@ export function SubmitSelectionChangeDebounced({
       submittedEditorSelectionRef.current = editorSelectionRef.current;
 
       void updateOpenNoteSelectionRange({
-        noteId,
+        note: {
+          id: noteId,
+        },
         revision: service.headRevision,
         selectionRange: submitServiceSelection,
       }).finally(() => {

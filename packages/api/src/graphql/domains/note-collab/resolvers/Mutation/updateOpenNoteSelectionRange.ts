@@ -13,16 +13,17 @@ export const updateOpenNoteSelectionRange: NonNullable<
   MutationResolvers['updateOpenNoteSelectionRange']
 > = async (_parent, arg, ctx) => {
   const { services, mongoDB, connectionId } = ctx;
-  const auth = await services.requestHeaderAuth.getAuth();
 
   const { input } = arg;
+  const auth = await services.auth.getAuth(input.authUser.id);
+  const noteId = input.note.id;
 
   const currentUserId = auth.session.userId;
 
   const { openNote } = await service_updateOpenNoteSelectionRange({
     mongoDB,
     connectionId,
-    noteId: input.noteId,
+    noteId,
     userId: currentUserId,
     revision: input.revision,
     selection: {
@@ -33,7 +34,7 @@ export const updateOpenNoteSelectionRange: NonNullable<
   });
 
   const noteQuery = mongoDB.loaders.note.createQueryFn({
-    noteId: input.noteId,
+    noteId,
     userId: currentUserId,
   });
 
@@ -60,7 +61,7 @@ export const updateOpenNoteSelectionRange: NonNullable<
       ),
     },
     publicUserNoteLink: {
-      noteId: input.noteId,
+      noteId,
       query: userNoteQuery,
     },
     collabText: {
@@ -72,7 +73,7 @@ export const updateOpenNoteSelectionRange: NonNullable<
     },
   };
 
-  await publishOpenNoteMutation(input.noteId, payload, ctx);
+  await publishOpenNoteMutation(noteId, payload, ctx);
 
   return payload;
 };

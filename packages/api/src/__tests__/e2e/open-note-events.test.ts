@@ -208,7 +208,7 @@ function createGraphQLOperations(http: Awaited<ReturnType<typeof createHttpOpera
   }
 
   async function updateNoteEditorSelectionRange(
-    input: Omit<UpdateOpenNoteSelectionRangeInput, 'noteId'>
+    input: Omit<UpdateOpenNoteSelectionRangeInput, 'note' | 'authUser'>
   ) {
     return fetchGraphQL<{
       updateNoteEditorSelectionRange: UpdateOpenNoteSelectionRangePayload;
@@ -218,8 +218,13 @@ function createGraphQLOperations(http: Awaited<ReturnType<typeof createHttpOpera
         variables: {
           input: {
             ...input,
-            noteId: objectIdToStr(http.note._id) as any,
-          },
+            authUser: {
+              id: objectIdToStr(http.user._id) as any,
+            },
+            note: {
+              id: objectIdToStr(http.note._id) as any,
+            },
+          } satisfies UpdateOpenNoteSelectionRangeInput,
         },
       },
       http.fetch
