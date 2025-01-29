@@ -119,15 +119,15 @@ type GoogleAuthProviderUser implements AuthProviderUser {
 """
 TODO desc
 """
-input SignOutInput {
+input SignOutInput @oneOf {
   """
-  Sign out all known users. Field 'userId' is ignored when 'allUsers' is true
+  Sign out all known users
   """
   allUsers: Boolean
   """
-  Sign out a specific user by SignedInUser.id. If userId is not specified currently authenticated user is signed out.
+  Sign out a specific user
   """
-  userId: ObjectID
+  user: SignedInUserByInput
 }
 
 """
@@ -148,7 +148,7 @@ extend type Mutation {
   """
   Sign out a user
   """
-  signOut(input: SignOutInput): SignOutPayload!
+  signOut(input: SignOutInput!): SignOutPayload!
 }
 
 ################################ Mutation syncSessionCookies ################################
