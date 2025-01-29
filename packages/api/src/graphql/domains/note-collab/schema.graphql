@@ -32,9 +32,13 @@ TODO desc
 """
 input UpdateNoteInsertRecordInput {
   """
-  Note to be updated by Note.id
+  Authenticated user who is inserting the record
   """
-  noteId: ObjectID!
+  authUser: SignedInUserByInput!
+  """
+  Note to be updated
+  """
+  note: NoteByInput!
   """
   New record to be inserted
   """
@@ -69,7 +73,7 @@ extend type Mutation {
   """
   updateNoteInsertRecord(
     input: UpdateNoteInsertRecordInput!
-  ): UpdateNoteInsertRecordPayload! @auth
+  ): UpdateNoteInsertRecordPayload!
 }
 
 extend union SignedInUserMutation = UpdateNoteInsertRecordPayload
@@ -85,7 +89,6 @@ type OpenedNote {
   """
   closedAt: DateTime!
 }
-
 
 extend type PublicUserNoteLink {
   """
