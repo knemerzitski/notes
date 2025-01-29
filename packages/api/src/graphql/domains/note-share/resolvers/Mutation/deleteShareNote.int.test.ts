@@ -57,7 +57,7 @@ async function executeOperation(
 ) {
   return await apolloServer.executeOperation<
     {
-      shareNote: DeleteShareNotePayload;
+      deleteShareNote: DeleteShareNotePayload;
     },
     { input?: DeleteShareNoteInput }
   >(
