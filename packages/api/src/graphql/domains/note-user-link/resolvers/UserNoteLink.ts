@@ -9,6 +9,13 @@ export const UserNoteLink: UserNoteLinkResolvers = {
   id: async (parent, _arg, _ctx) => {
     return UserNoteLink_id_fromQueryFn(parent.query, parent.userId);
   },
+  /*
+  TODO merge UserNoteLink with PublicUserNoteLink
+    restrict access to private fields with following directive:
+      @auth(field: ["userId"]):
+    which will do following check
+      await services.auth.getAuth(parent.userId)
+  */
   categoryName: async (parent, _arg, _ctx) => {
     return findNoteUserMaybe(
       parent.userId,
