@@ -98,7 +98,7 @@ export function useCreateNote(): {
     return createNoteMutation({
       variables: {
         input: {
-          user: {
+          authUser: {
             id: userId,
           },
           collabText: {

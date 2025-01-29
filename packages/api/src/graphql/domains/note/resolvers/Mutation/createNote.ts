@@ -29,7 +29,7 @@ const _createNote: NonNullable<MutationResolvers['createNote']> = async (
   const { input } = arg;
 
   // Ensure user is signed in before creating the note
-  const auth = await services.auth.getAuth(input.user.id);
+  const auth = await services.auth.getAuth(input.authUser.id);
 
   const currentUserId = auth.session.userId;
 
