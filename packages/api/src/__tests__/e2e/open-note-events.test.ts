@@ -78,8 +78,8 @@ const NOTE_EVENTS_SUBSCRIPTION = `#graphql
     }
   }
 
-  subscription NoteEvents($noteId: ObjectID!) {
-    openNoteEvents(noteId: $noteId) {
+  subscription NoteEvents($input: OpenNoteEventsInput!) {
+    openNoteEvents(input: $input) {
       mutations {
         __typename
         ... on UpdateOpenNoteSelectionRangePayload {
@@ -182,7 +182,14 @@ function createGraphQLOperations(http: Awaited<ReturnType<typeof createHttpOpera
       {
         query: NOTE_EVENTS_SUBSCRIPTION,
         variables: {
-          noteId: objectIdToStr(http.note._id),
+          input: {
+            authUser: {
+              id: objectIdToStr(http.user._id),
+            },
+            note: {
+              id: objectIdToStr(http.note._id),
+            },
+          },
         },
       },
       (data) => {

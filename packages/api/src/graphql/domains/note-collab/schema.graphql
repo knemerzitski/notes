@@ -107,6 +107,20 @@ union OpenNoteMutation
 """
 TODO desc
 """
+input OpenNoteEventsInput {
+  """
+  Authenticated user who is subscribing to open note events
+  """
+  authUser: SignedInUserByInput!
+  """
+  Target note of the events
+  """
+  note: NoteByInput!
+}
+
+"""
+TODO desc
+"""
 type OpenNoteEventsPayload {
   """
   Self-descriptive
@@ -118,7 +132,7 @@ extend type Subscription {
   """
   Subscribe to all events that are relevant to a opened note
   """
-  openNoteEvents(noteId: ObjectID!): OpenNoteEventsPayload! @auth
+  openNoteEvents(input: OpenNoteEventsInput!): OpenNoteEventsPayload!
 }
 
 ################################ Events User Subscribed/Unsubscribed ################################

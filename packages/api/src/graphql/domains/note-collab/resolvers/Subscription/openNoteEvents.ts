@@ -34,8 +34,9 @@ export function openNoteTopic(noteId: ObjectId) {
 export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']> = {
   subscribe: (_parent, arg, ctx) => {
     const { services, subscribe, mongoDB, connectionId } = ctx;
+    const { input } = arg;
 
-    const noteId = arg.noteId;
+    const noteId = input.note.id;
 
     if (!connectionId) {
       throw new Error('connectionId is not defined in subscribe GraphQL context');
@@ -72,14 +73,15 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
 
     return subscribe(openNoteTopic(noteId), {
       async onSubscribe() {
-        const auth = await services.requestHeaderAuth.getAuth();
+        const auth = await services.auth.getAuth(input.authUser.id);
+
         const currentUserId = auth.session.userId;
 
         // Load will throw error if user has no access to note and subscription won't happen
         await loadNoteForSubscribe(currentUserId);
       },
       async onAfterSubscribe(subscriptionId) {
-        const auth = await services.requestHeaderAuth.getAuth();
+        const auth = await services.auth.getAuth(input.authUser.id);
 
         const currentUserId = auth.session.userId;
 
@@ -324,7 +326,7 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
         ]);
       },
       async onComplete(subscriptionId) {
-        const auth = await services.requestHeaderAuth.getAuth();
+        const auth = await services.auth.getAuth(input.authUser.id);
 
         const currentUserId = auth.session.userId;
 

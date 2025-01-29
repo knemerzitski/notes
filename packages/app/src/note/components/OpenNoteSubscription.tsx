@@ -15,8 +15,8 @@ import { getUserNoteLinkId } from '../utils/id';
 export const openNoteSubscriptionOperationName = 'OpenNoteSubscription_Subscription';
 
 const OpenNoteSubscription_Subscription = gql(`
-  subscription OpenNoteSubscription_Subscription($noteId: ObjectID!) {
-    openNoteEvents(noteId: $noteId) {
+  subscription OpenNoteSubscription_Subscription($input: OpenNoteEventsInput!) {
+    openNoteEvents(input: $input) {
       mutations {
         ...UpdateOpenNoteSelectionRangePayload
       }
@@ -48,7 +48,14 @@ function Subscription({ delay }: { delay: number }) {
     const observable = apolloClientSubscribe(client, {
       query: OpenNoteSubscription_Subscription,
       variables: {
-        noteId,
+        input: {
+          authUser: {
+            id: userId,
+          },
+          note: {
+            id: noteId
+          }
+        },
         // Force a new subscription when user changes
         [GlobalOperationVariables.USER_ID]: userId,
       },
