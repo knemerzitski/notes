@@ -4,8 +4,8 @@
 Identifier for UserNoteLink.id, serializes to string
 TODO delete this scalar
 """
-# eslint-disable-next-line @graphql-eslint/no-unreachable-types
-scalar UserNoteLinkID
+scalar # eslint-disable-next-line @graphql-eslint/no-unreachable-types
+UserNoteLinkID
 
 """
 Link (edge) between signed in user and note.
@@ -130,8 +130,8 @@ type UserNoteLinkEdge implements Edge {
 """
 TODO desc
 """
-# eslint-disable-next-line @graphql-eslint/no-unreachable-types
-input UserNoteLinkByInput @oneOf {
+input # eslint-disable-next-line @graphql-eslint/no-unreachable-types
+UserNoteLinkByInput @oneOf {
   """
   UserNoteLink.id
   """
@@ -180,11 +180,16 @@ TODO desc
 """
 input UpdateUserNoteLinkReadOnlyInput {
   """
+  Authenticated user who updates noteLink readOnly.
+  User must own the note.
+  """
+  authUser: SignedInUserByInput!
+  """
   Target Note.id
   """
-  noteId: ObjectID!
+  note: NoteByInput!
   """
-  Specified note user. If not defined then current user is used. Current user must be note owner.
+  User whose note `readOnly` value is updated. If not defined then `authUser` is used.
   """
   userId: ObjectID
   """

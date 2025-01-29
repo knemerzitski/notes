@@ -9,9 +9,10 @@ export const updateUserNoteLinkReadOnly: NonNullable<
   MutationResolvers['updateUserNoteLinkReadOnly']
 > = async (_parent, arg, ctx) => {
   const { services, mongoDB } = ctx;
-  const auth = await services.requestHeaderAuth.getAuth();
-
   const { input } = arg;
+
+  const auth = await services.auth.getAuth(input.authUser.id);
+  const noteId = input.note.id;
 
   const currentUserId = auth.session.userId;
 
@@ -19,7 +20,7 @@ export const updateUserNoteLinkReadOnly: NonNullable<
 
   const { type: readOnlyResultType, note } = await updateReadOnly({
     mongoDB,
-    noteId: input.noteId,
+    noteId,
     scopeUserId: currentUserId,
     targetUserId,
     readOnly: input.readOnly,
@@ -27,14 +28,14 @@ export const updateUserNoteLinkReadOnly: NonNullable<
 
   const noteQuery = mongoDB.loaders.note.createQueryFn({
     userId: currentUserId,
-    noteId: input.noteId,
+    noteId,
   });
 
   const payload: ResolversTypes['SignedInUserMutation'] = {
     __typename: 'UpdateUserNoteLinkReadOnlyPayload',
     readOnly: input.readOnly,
     publicUserNoteLink: {
-      noteId: input.noteId,
+      noteId,
       query: createMapQueryFn(noteQuery)<QueryableNoteUser>()(
         (query) => ({ users: { ...query, _id: 1 } }),
         (note) => findNoteUserMaybe(targetUserId, note)
