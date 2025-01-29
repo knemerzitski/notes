@@ -17,7 +17,7 @@ export const UpdateNoteInsertRecord = mutationDefinition(
         'Expected variables to be defined for mutation "UpdateNoteInsertRecord"'
       );
     }
-    const noteId = variables.input.noteId;
+    const noteId = variables.input.note.id;
     if (handleNoteError(noteId, cache, errors, options)) {
       return;
     }
