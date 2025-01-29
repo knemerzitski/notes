@@ -165,12 +165,11 @@ export const SignedInUser: Pick<
       },
     };
   },
-  noteLinkSearchConnection: async (_parent, arg, ctx) => {
+  noteLinkSearchConnection: ({ auth }, arg, ctx) => {
     const DEFAULT_LIMIT = 20;
     const MAX_LIMIT = 30;
 
-    const { services, mongoDB } = ctx;
-    const auth = await services.requestHeaderAuth.getAuth();
+    const { mongoDB } = ctx;
 
     const currentUserId = auth.session.userId;
 
