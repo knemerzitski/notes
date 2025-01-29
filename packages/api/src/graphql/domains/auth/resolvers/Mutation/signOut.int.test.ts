@@ -94,7 +94,9 @@ it('signs out specific user', async () => {
 
   const response = await executeOperation(
     {
-      userId: user._id,
+      user: {
+        id: user._id,
+      },
     },
     {
       contextValue: context,
@@ -131,7 +133,6 @@ it('signs out all users', async () => {
   const response = await executeOperation(
     {
       allUsers: true,
-      userId: user._id, // is ignored
     },
     {
       contextValue: context,
