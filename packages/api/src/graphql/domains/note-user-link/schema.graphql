@@ -309,9 +309,13 @@ TODO desc
 """
 input TrashUserNoteLinkInput {
   """
+  Authenticated user whose note is trashed
+  """
+  authUser: SignedInUserByInput!
+  """
   Note to be trashed by Note.id
   """
-  noteId: ObjectID!
+  note: NoteByInput!
 }
 
 """
@@ -332,7 +336,7 @@ extend type Mutation {
   """
   Trash note by Note.id. It can still be recovered by moving it out of trash
   """
-  trashUserNoteLink(input: TrashUserNoteLinkInput!): TrashUserNoteLinkPayload! @auth
+  trashUserNoteLink(input: TrashUserNoteLinkInput!): TrashUserNoteLinkPayload!
 }
 
 extend union SignedInUserMutation = TrashUserNoteLinkPayload

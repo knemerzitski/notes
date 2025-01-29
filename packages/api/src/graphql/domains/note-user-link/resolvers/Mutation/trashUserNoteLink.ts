@@ -10,16 +10,17 @@ export const trashUserNoteLink: NonNullable<
   MutationResolvers['trashUserNoteLink']
 > = async (_parent, arg, ctx) => {
   const { services, mongoDB } = ctx;
-  const auth = await services.requestHeaderAuth.getAuth();
-
   const { input } = arg;
+
+  const auth = await services.auth.getAuth(input.authUser.id);
+  const noteId = input.note.id;
 
   const currentUserId = auth.session.userId;
 
   const trashResult = await updateTrashNote({
     mongoDB,
     trashCategoryName: NoteCategory.TRASH,
-    noteId: input.noteId,
+    noteId,
     userId: currentUserId,
     trashDuration: ctx.options?.note?.trashDuration,
   });
@@ -31,7 +32,7 @@ export const trashUserNoteLink: NonNullable<
       userId: currentUserId,
       query: mongoDB.loaders.note.createQueryFn({
         userId: currentUserId,
-        noteId: input.noteId,
+        noteId,
       }),
     },
   };
