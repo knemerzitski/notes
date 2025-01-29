@@ -1,6 +1,8 @@
 export enum CustomHeaderName {
   /**
    * Used as a key for selecting current session from http-only cookies.
+   * 
+   * @deprecated Use operation `authUser` variable instead
    */
   USER_ID = 'x-user-id',
   /**
