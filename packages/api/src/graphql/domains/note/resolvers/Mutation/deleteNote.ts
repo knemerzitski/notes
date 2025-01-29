@@ -13,17 +13,18 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
   ctx
 ) => {
   const { services, mongoDB } = ctx;
-  const auth = await services.requestHeaderAuth.getAuth();
-
   const { input } = arg;
+
+  const auth = await services.auth.getAuth(input.authUser.id);
+  const noteId = input.note.id;
 
   const currentUserId = auth.session.userId; // scopeUserId
 
-  const targetUserId = input.userId ?? currentUserId;
+  const targetUserId = input.deleteUserId ?? currentUserId;
 
   const { type: noteDeleteType, note } = await service_deleteNote({
     mongoDB,
-    noteId: input.noteId,
+    noteId,
     scopeUserId: currentUserId,
     targetUserId,
   });
@@ -33,13 +34,13 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
       note.users.map((noteUser) =>
         publishSignedInUserMutation(
           noteUser._id,
-          createDeleteNoteCompletelyPayload(input.noteId, noteUser._id),
+          createDeleteNoteCompletelyPayload(noteId, noteUser._id),
           ctx
         )
       )
     );
 
-    return createDeleteNoteCompletelyPayload(input.noteId, currentUserId);
+    return createDeleteNoteCompletelyPayload(noteId, currentUserId);
   } else {
     //unlinked_target_user
     await Promise.all(
@@ -47,17 +48,17 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
         publishSignedInUserMutation(
           noteUser._id,
           targetUserId.equals(noteUser._id)
-            ? createUnlinkSelfUserNoteNotePayload(input.noteId, targetUserId)
-            : createUnlinkOtherUserNoteNotePayload(input.noteId, targetUserId),
+            ? createUnlinkSelfUserNoteNotePayload(noteId, targetUserId)
+            : createUnlinkOtherUserNoteNotePayload(noteId, targetUserId),
           ctx
         )
       )
     );
 
     if (targetUserId.equals(currentUserId)) {
-      return createUnlinkSelfUserNoteNotePayload(input.noteId, targetUserId);
+      return createUnlinkSelfUserNoteNotePayload(noteId, targetUserId);
     } else {
-      return createUnlinkOtherUserNoteNotePayload(input.noteId, targetUserId);
+      return createUnlinkOtherUserNoteNotePayload(noteId, targetUserId);
     }
   }
 };

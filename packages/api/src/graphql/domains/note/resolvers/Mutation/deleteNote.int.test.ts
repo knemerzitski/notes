@@ -108,7 +108,10 @@ beforeEach(async () => {
 });
 
 async function executeOperation(
-  input?: DeleteNoteInput,
+  input: {
+    noteId: ObjectId;
+    deleteUserId?: ObjectId;
+  },
   options?: CreateGraphQLResolversContextOptions,
   query: string = MUTATION
 ) {
@@ -121,7 +124,15 @@ async function executeOperation(
     {
       query,
       variables: {
-        input,
+        input: {
+          note: {
+            id: input.noteId,
+          },
+          authUser: {
+            id: options?.user?._id ?? new ObjectId(),
+          },
+          deleteUserId: input.deleteUserId,
+        },
       },
     },
     {
@@ -258,7 +269,7 @@ it('owner user deletes other user note', async () => {
   const response = await executeOperation(
     {
       noteId: note._id,
-      userId: userNotOwner._id,
+      deleteUserId: userNotOwner._id,
     },
     { user: userOwner }
   );
@@ -565,7 +576,7 @@ describe('subscription', () => {
     const response = await executeOperation(
       {
         noteId: note._id,
-        userId: userNotOwner._id,
+        deleteUserId: userNotOwner._id,
       },
       {
         user: userOwner,
