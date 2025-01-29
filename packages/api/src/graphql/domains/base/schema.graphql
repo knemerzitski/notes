@@ -46,21 +46,9 @@ MongoDB ObjectId
 scalar ObjectID
 
 """
-Requires user to be authenticated and with access to specific role
-"""
-directive @auth(requires: Role = USER) on OBJECT | FIELD_DEFINITION
-
-"""
 Limits the length of a field
 """
 directive @length(max: NonNegativeInt) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
-
-"""
-TODO desc
-"""
-enum Role {
-  USER
-}
 
 """
 GraphQL Cursor Connections Specification PageInfo
