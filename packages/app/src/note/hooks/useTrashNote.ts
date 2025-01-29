@@ -35,7 +35,12 @@ export function useTrashNote() {
         local: isLocalOnlyNote({ id: noteId }, client.cache),
         variables: {
           input: {
-            noteId,
+            authUser: {
+              id: userId,
+            },
+            note: {
+              id: noteId,
+            },
           },
         },
         errorPolicy: 'all',
