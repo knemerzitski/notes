@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/unbound-method */
 
@@ -55,8 +56,8 @@ const MUTATION = `#graphql
 `;
 
 const SUBSCRIPTION = `#graphql
-  subscription {
-    signedInUserEvents {
+  subscription ($input: SignedInUserEventsInput!) {
+    signedInUserEvents(input: $input) {
       mutations {
         __typename
         ... on UpdateSignedInUserDisplayNamePayload {
@@ -172,6 +173,13 @@ it('publishes displayName payload', async () => {
     {
       subscription: {
         query: SUBSCRIPTION,
+        variables: {
+          input: {
+            authUser: {
+              id: user._id,
+            },
+          },
+        } as any,
       },
     } as Subscription,
   ]);

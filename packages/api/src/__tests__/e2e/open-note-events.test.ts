@@ -12,6 +12,7 @@ import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 import { createDeferred } from '~utils/deferred';
 
 import {
+  SignedInUserEventsInput,
   UpdateOpenNoteSelectionRangeInput,
   UpdateOpenNoteSelectionRangePayload,
 } from '../../graphql/domains/types.generated';
@@ -46,8 +47,8 @@ const USER_EVENTS_SUBSCRIPTION = `#graphql
     }
   }
 
-  subscription UserEvents {
-    signedInUserEvents {
+  subscription UserEvents($input: SignedInUserEventsInput!) {
+    signedInUserEvents(input: $input) {
       mutations {
         __typename
         ... on OpenNoteUserSubscribedEvent {
@@ -156,6 +157,13 @@ function createGraphQLOperations(http: Awaited<ReturnType<typeof createHttpOpera
     http.subscribe(
       {
         query: USER_EVENTS_SUBSCRIPTION,
+        variables: {
+          input: {
+            authUser: {
+              id: objectIdToStr(http.user._id) as any,
+            },
+          } satisfies SignedInUserEventsInput,
+        },
       },
       (data) => {
         if (data.type === 'error') {

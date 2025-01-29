@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
@@ -53,8 +54,8 @@ const MUTATION = `#graphql
 `;
 
 const SUBSCRIPTION = `#graphql
-  subscription {
-    signedInUserEvents {
+  subscription ($input: SignedInUserEventsInput!) {
+    signedInUserEvents(input: $input) {
       mutations {
         __typename
         ... on UpdateUserNoteLinkBackgroundColorPayload {
@@ -108,7 +109,7 @@ beforeEach(async () => {
 
 async function executeOperation(
   input: Omit<UpdateUserNoteLinkBackgroundColorInput, 'note' | 'authUser'> & {
-    noteId: ObjectId
+    noteId: ObjectId;
   },
   options?: CreateGraphQLResolversContextOptions,
   query: string = MUTATION
@@ -127,7 +128,7 @@ async function executeOperation(
             id: input.noteId,
           },
           authUser: {
-            id: options?.user?._id ?? new ObjectId()
+            id: options?.user?._id ?? new ObjectId(),
           },
           backgroundColor: input.backgroundColor,
         },
@@ -256,6 +257,13 @@ it('publishes backgroundColor only to current user', async () => {
     {
       subscription: {
         query: SUBSCRIPTION,
+        variables: {
+          input: {
+            authUser: {
+              id: user._id,
+            },
+          },
+        } as any,
       },
     } as Subscription,
   ]);
