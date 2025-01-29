@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+import { ObjectId } from 'mongodb';
 import { assert, beforeEach, expect, it } from 'vitest';
 
 import { apolloServer } from '../../../../../__tests__/helpers/graphql/apollo-server';
@@ -19,7 +20,6 @@ import { ShareNoteLinkSchema } from '../../../../../mongodb/schema/share-note-li
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { DeleteShareNoteInput, DeleteShareNotePayload } from '../../../types.generated';
-import { ObjectId } from 'mongodb';
 
 const MUTATION = `#graphql
   mutation($input: DeleteShareNoteInput!){

@@ -134,7 +134,7 @@ export function convertLocalToRemoteNote(
           __typename: 'MoveNoteUserOperation',
           userNoteLink: {
             __typename: 'UserNoteLink',
-            id: getUserNoteLinkId(input.noteId, userId),
+            id: getUserNoteLinkId(input.note.id, userId),
           },
           ...(input.location && {
             location: {
@@ -162,7 +162,7 @@ export function convertLocalToRemoteNote(
           __typename: 'TrashNoteUserOperation',
           userNoteLink: {
             __typename: 'UserNoteLink',
-            id: getUserNoteLinkId(input.noteId, userId),
+            id: getUserNoteLinkId(input.note.id, userId),
           },
         },
       ],

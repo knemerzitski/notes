@@ -8,10 +8,10 @@ import { useMutation } from '../../graphql/hooks/useMutation';
 import { PersistLink } from '../../graphql/link/persist';
 import { hasOngoingOperation } from '../../graphql/link/persist/has';
 import { noteSerializationKey_fieldText } from '../../graphql/utils/serialization-key';
+import { useUserId } from '../../user/context/user-id';
 import { UpdateNoteInsertRecord } from '../mutations/UpdateNoteInsertRecord';
 import { getCollabTextId } from '../utils/id';
 import { submittedRecordToCollabTextRecordInput } from '../utils/map-record';
-import { useUserId } from '../../user/context/user-id';
 
 export function useUpdateNoteInsertRecord() {
   const client = useApolloClient();

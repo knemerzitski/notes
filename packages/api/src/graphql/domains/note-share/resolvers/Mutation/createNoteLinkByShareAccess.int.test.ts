@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
+import { ObjectId } from 'mongodb';
 import { assert, beforeEach, expect, it } from 'vitest';
 
 import { apolloServer } from '../../../../../__tests__/helpers/graphql/apollo-server';
@@ -26,7 +27,6 @@ import {
   CreateNoteLinkByShareAccessPayload,
   NoteCategory,
 } from '../../../types.generated';
-import { ObjectId } from 'mongodb';
 
 const MUTATION = `#graphql
   mutation($input: CreateNoteLinkByShareAccessInput!){

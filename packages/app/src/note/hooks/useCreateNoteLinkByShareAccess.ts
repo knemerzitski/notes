@@ -2,8 +2,8 @@ import { useCallback } from 'react';
 
 import { NoteShareAccess } from '../../__generated__/graphql';
 import { useMutation } from '../../graphql/hooks/useMutation';
-import { CreateNoteLinkByShareAccess } from '../mutations/CreateNoteLinkByShareAccess';
 import { useUserId } from '../../user/context/user-id';
+import { CreateNoteLinkByShareAccess } from '../mutations/CreateNoteLinkByShareAccess';
 
 export function useCreateNoteLinkByShareAccess() {
   const userId = useUserId();

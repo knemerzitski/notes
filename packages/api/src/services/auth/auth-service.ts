@@ -1,4 +1,3 @@
-
 import { ObjectId } from 'mongodb';
 
 import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
@@ -7,7 +6,6 @@ import { wrapArray } from '~utils/array/wrap-array';
 import { isDefined } from '~utils/type-guards/is-defined';
 
 import { AuthenticatedContextsModel } from '../../models/auth/authenticated-contexts';
-import { CurrentUserModel } from '../../models/auth/current-user';
 import { CollectionName, MongoDBCollections } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
 import { deleteManyByCookieIds } from '../../mongodb/models/session/delete-many-by-cookie-ids';
@@ -18,18 +16,9 @@ import { insertSession } from '../session/insert-session';
 
 import { UnauthenticatedServiceError } from './errors';
 
-
 import { findRefreshSessionByCookieId } from './find-refresh-session-by-cookie-id';
 
-
-
-
-
-import {
-  AuthenticatedContext,
-  AuthenticationService,
-  SingleUserAuthenticationService,
-} from './types';
+import { AuthenticatedContext, AuthenticationService } from './types';
 
 /**
  * Authentication service based on request cookie headers.
@@ -190,34 +179,5 @@ export class CookiesMongoDBDynamoDBAuthenticationService
     ]
       .map(strToObjectId)
       .filter(isDefined);
-  }
-}
-
-export class CookiesMongoDBDynamoDBSingleUserAuthenticationService
-  implements SingleUserAuthenticationService
-{
-  constructor(
-    private readonly service: AuthenticationService,
-    private readonly model = new CurrentUserModel()
-  ) {}
-
-  getUserId(): ObjectId | undefined {
-    return this.model.userId;
-  }
-
-  isAuthenticated(): Promise<boolean> {
-    if (!this.model.userId) {
-      return Promise.resolve(false);
-    }
-
-    return this.service.isAuthenticated(this.model.userId);
-  }
-
-  getAuth(): Promise<AuthenticatedContext> {
-    if (!this.model.userId) {
-      throw new UnauthenticatedServiceError(AuthenticationFailedReason.USER_UNDEFINED);
-    }
-
-    return this.service.getAuth(this.model.userId);
   }
 }
