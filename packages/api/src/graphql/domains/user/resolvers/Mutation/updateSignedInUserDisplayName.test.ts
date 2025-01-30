@@ -64,12 +64,6 @@ it('returns UpdateSignedInUserDisplayNamePayload with query', async () => {
   const createQueryFn = mongoDB.loaders.user.createQueryFn;
   createQueryFn.mockReturnValueOnce(query);
 
-  const auth = {
-    session: {
-      userId,
-    } as QueryableSession,
-  };
-
   const result = await resolveUpdateSignedInUserDisplayName(
     undefined,
     {
@@ -95,7 +89,7 @@ it('returns UpdateSignedInUserDisplayNamePayload with query', async () => {
     __typename: 'UpdateSignedInUserDisplayNamePayload',
     displayName,
     signedInUser: {
-      auth,
+      userId,
       query: query,
     },
   });

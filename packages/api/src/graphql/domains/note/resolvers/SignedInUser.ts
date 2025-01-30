@@ -1,8 +1,7 @@
 import type { SignedInUserResolvers } from './../../types.generated';
 
 export const SignedInUser: Pick<SignedInUserResolvers, 'note'> = {
-  note: ({ auth }, { by }, { mongoDB }) => {
-    const userId = auth.session.userId;
+  note: ({ userId }, { by }, { mongoDB }) => {
     const noteId = by.id;
 
     return {

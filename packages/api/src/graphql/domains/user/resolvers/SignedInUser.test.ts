@@ -16,7 +16,7 @@ describe('id', () => {
 
   it('returns undefined with empty object', async () => {
     const id = await resolveId({
-      auth: {} as any,
+      userId: {} as any,
       query: createPartialValueQueryFn<Pick<UserSchema, '_id' | 'profile'>>(() => {
         return {};
       }),
@@ -27,7 +27,7 @@ describe('id', () => {
   it('returns provided _id', async () => {
     const _id = new ObjectId();
     const id = await resolveId({
-      auth: {} as any,
+      userId: {} as any,
       query: createPartialValueQueryFn<Pick<UserSchema, '_id' | 'profile'>>(() => {
         return {
           _id,
@@ -45,7 +45,7 @@ describe('public', () => {
     const queryFn = vi.fn();
     const _public = await maybeCallFn(
       resolvePublic({
-        auth: {} as any,
+        userId: {} as any,
         query: queryFn,
       })
     );
