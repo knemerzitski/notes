@@ -20,9 +20,14 @@ import { MaybePromise } from '~utils/types';
 import { GraphQLResolversContext } from '../../../types';
 import type { authDirectiveArgs, NextResolverFn } from '../../types.generated';
 
-
 export const auth: AuthDirectiveResolver = async (next, parent, args, ctx) => {
   const userIdDesc = args.directive.userId;
+
+  // If no userId specified, find first available
+  if (!userIdDesc) {
+    await ctx.services.auth.getFirstAuth();
+    return next();
+  }
 
   let targetObj: unknown;
   let targetPath: string;
@@ -33,11 +38,11 @@ export const auth: AuthDirectiveResolver = async (next, parent, args, ctx) => {
     targetObj = args.field;
     targetPath = userIdDesc.args;
   } else {
+    await ctx.services.auth.getFirstAuth();
     return next();
   }
 
   const userId = findMaybeUserIdBy(traverseObject(targetObj, targetPath.split('.')));
-
   if (!isUserId(userId)) {
     throw new Error(
       `@auth directive failed to find user id for authentication. ` +
@@ -48,7 +53,6 @@ export const auth: AuthDirectiveResolver = async (next, parent, args, ctx) => {
   // Actual logic for authentication
   await ctx.services.auth.getAuth(userId);
 
-   
   return next();
 };
 
