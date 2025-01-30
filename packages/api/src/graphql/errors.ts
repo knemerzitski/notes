@@ -4,23 +4,25 @@ import { GraphQLError, GraphQLFormattedError } from 'graphql/index.js';
 import { formatError as auth_formatError } from './errors/auth';
 import { formatError as note_formatError } from './errors/note';
 
-type ErrorFormatter = (error: unknown) => Error | undefined;
+export type ErrorFormatterFn = (error: unknown) => Error | undefined;
 
-const errorFormatters: ErrorFormatter[] = [auth_formatError, note_formatError];
+const errorFormatters: ErrorFormatterFn[] = [auth_formatError, note_formatError];
 
 export function formatError(
   formattedError: GraphQLFormattedError,
   error: unknown
 ): GraphQLFormattedError {
   const originalError = unwrapResolverError(error);
+  // If original error is already GraphQLError then don't need to format it any further
   if (originalError instanceof GraphQLError) {
     return formattedError;
   }
 
+  // Loop custom list of formatters until a GraphQLError is received
   for (const formatErr of errorFormatters) {
     const modifiedError = formatErr(originalError);
-    if (modifiedError) {
-      return wrapResolverError(modifiedError, formattedError);
+    if (modifiedError instanceof GraphQLError) {
+      return mergeWithInitialFormattedError(modifiedError, formattedError);
     }
   }
 
@@ -30,29 +32,17 @@ export function formatError(
   };
 }
 
-/**
- * Restore GraphQLError options from initial error if it's undefined
- */
-function wrapResolverError(
-  targetError: Error,
+function mergeWithInitialFormattedError(
+  targetError: GraphQLError,
   formattedError: GraphQLFormattedError
-): Error {
-  if (
-    !(targetError instanceof GraphQLError) ||
-    !(formattedError instanceof GraphQLError)
-  ) {
-    return targetError;
-  }
-
-  return new GraphQLError(targetError.message, {
-    nodes: targetError.nodes ?? formattedError.nodes,
-    source: targetError.source ?? formattedError.source,
-    positions: targetError.positions ?? formattedError.positions,
-    path: targetError.path ?? formattedError.path,
-    originalError: targetError.originalError ?? formattedError.originalError,
+): GraphQLFormattedError {
+  const formattedTargetError = targetError.toJSON();
+  return {
+    ...formattedError,
+    ...formattedTargetError,
     extensions: {
       ...formattedError.extensions,
-      ...targetError.extensions,
+      ...formattedTargetError.extensions,
     },
-  });
+  };
 }
