@@ -5,6 +5,7 @@ import {
 } from '~api-app-shared/graphql/error-codes';
 
 import { UnauthenticatedServiceError } from '../../services/auth/errors';
+import { ErrorFormatterFn } from '../errors';
 
 class UnauthenticatedError extends GraphQLError {
   constructor(reason: AuthenticationFailedReason | undefined) {
@@ -17,10 +18,10 @@ class UnauthenticatedError extends GraphQLError {
   }
 }
 
-export function formatError(error: unknown) {
+export const formatError: ErrorFormatterFn = function (error) {
   if (error instanceof UnauthenticatedServiceError) {
     return new UnauthenticatedError(error.reason);
   }
 
   return;
-}
+};

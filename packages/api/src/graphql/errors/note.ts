@@ -21,6 +21,8 @@ import {
   NoteUserNotFoundServiceError,
 } from '../../services/note/errors';
 
+import { ErrorFormatterFn } from '../errors';
+
 import { ErrorMapper } from './utils/error-mapper';
 
 class NoteNotFoundError extends GraphQLError {
@@ -125,8 +127,8 @@ function newNoteErrorMapper() {
   return mapper;
 }
 
-export function formatError(error: unknown) {
+export const formatError: ErrorFormatterFn = function (error) {
   const mapper = newNoteErrorMapper();
 
   return mapper.get(error);
-}
+};
