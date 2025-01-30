@@ -12,13 +12,12 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
   arg,
   ctx
 ) => {
-  const { services, mongoDB } = ctx;
+  const { mongoDB } = ctx;
   const { input } = arg;
 
-  const auth = await services.auth.getAuth(input.authUser.id);
   const noteId = input.note.id;
 
-  const currentUserId = auth.session.userId; // scopeUserId
+  const currentUserId = input.authUser.id; // scopeUserId
 
   const targetUserId = input.deleteUserId ?? currentUserId;
 

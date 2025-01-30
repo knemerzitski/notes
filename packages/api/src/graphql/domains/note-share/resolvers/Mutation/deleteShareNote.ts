@@ -8,13 +8,11 @@ export const deleteShareNote: NonNullable<MutationResolvers['deleteShareNote']> 
   arg,
   ctx
 ) => {
-  const { services, mongoDB } = ctx;
+  const { mongoDB } = ctx;
   const { input } = arg;
 
-  const auth = await services.auth.getAuth(input.authUser.id);
+  const currentUserId = input.authUser.id;
   const noteId = input.note.id;
-
-  const currentUserId = auth.session.userId;
 
   const deleteResult = await deleteShareLinks({
     mongoDB,

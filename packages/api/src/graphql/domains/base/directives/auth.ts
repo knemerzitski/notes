@@ -1,37 +1,155 @@
-// TODO @auth directive is not used but remains here as documentation
-// import { GraphQLSchema } from 'graphql/index.js';
+import {
+  NamedTypeMapper,
+  getDirective,
+  GenericFieldMapper,
+  mapSchema,
+  MapperKind,
+} from '@graphql-tools/utils';
+import {
+  defaultFieldResolver,
+  GraphQLFieldConfig,
+  GraphQLResolveInfo,
+  GraphQLSchema,
+} from 'graphql/index.js';
 
-// import { transformSchemaDirectiveResolver } from '../../../utils/transform-schema-directive-resolver';
-// import type { DirectiveResolvers } from '../../types.generated';
+import { ObjectId } from 'mongodb';
+import { isObjectLike } from '~utils/type-guards/is-object-like';
+
+import { MaybePromise } from '~utils/types';
+
+import { GraphQLResolversContext } from '../../../types';
+import type { authDirectiveArgs, NextResolverFn } from '../../types.generated';
 
 
-/*
-"""
-Requires user to be authenticated and with access to specific role
-"""
-directive @auth(requires: Role = USER) on OBJECT | FIELD_DEFINITION
+export const auth: AuthDirectiveResolver = async (next, parent, args, ctx) => {
+  const userIdDesc = args.directive.userId;
 
-"""
-TODO desc
-"""
-enum Role {
-  USER
+  let targetObj: unknown;
+  let targetPath: string;
+  if (userIdDesc.parent) {
+    targetObj = parent;
+    targetPath = userIdDesc.parent;
+  } else if (userIdDesc.args) {
+    targetObj = args.field;
+    targetPath = userIdDesc.args;
+  } else {
+    return next();
+  }
+
+  const userId = findMaybeUserIdBy(traverseObject(targetObj, targetPath.split('.')));
+
+  if (!isUserId(userId)) {
+    throw new Error(
+      `@auth directive failed to find user id for authentication. ` +
+        `Path "${targetPath}" in value "${JSON.stringify(targetObj)}"`
+    );
+  }
+
+  // Actual logic for authentication
+  await ctx.services.auth.getAuth(userId);
+
+   
+  return next();
+};
+
+type AuthDirectiveResolver<
+  TResult = unknown,
+  TParent = unknown,
+  TContext = GraphQLResolversContext,
+  TArgs = {
+    field: unknown;
+    directive: authDirectiveArgs;
+  },
+> = (
+  next: NextResolverFn<TResult>,
+  parent: TParent,
+  args: TArgs,
+  ctx: TContext,
+  info: GraphQLResolveInfo
+) => MaybePromise<TResult>;
+
+export function authTransform(schema: GraphQLSchema): GraphQLSchema {
+  const directiveName = 'auth';
+  const directiveResolver = auth;
+
+  const typeDirectiveArgumentMaps: Record<string, Record<string, unknown>> = {};
+
+  const typeMapper: NamedTypeMapper = (type) => {
+    const directive = getDirective(schema, type, directiveName)?.[0];
+    if (directive) {
+      typeDirectiveArgumentMaps[type.name] = directive;
+    }
+    return type;
+  };
+
+  const objectFieldMapper: GenericFieldMapper<
+    GraphQLFieldConfig<unknown, GraphQLResolversContext, unknown>
+  > = (fieldConfig, _fieldName, typeName) => {
+    const directiveArgs = (getDirective(schema, fieldConfig, directiveName)?.[0] ??
+      typeDirectiveArgumentMaps[typeName]) as authDirectiveArgs | undefined;
+
+    if (!directiveArgs) {
+      return fieldConfig;
+    }
+
+    const { resolve = defaultFieldResolver } = fieldConfig;
+
+    fieldConfig.resolve = (source, args, ctx, info) => {
+      const next: NextResolverFn<unknown> = async () => {
+        return Promise.resolve(resolve(source, args, ctx, info));
+      };
+
+      return directiveResolver(
+        next,
+        source,
+        {
+          field: args,
+          directive: directiveArgs,
+        },
+        ctx,
+        info
+      );
+    };
+
+    return fieldConfig;
+  };
+
+  return mapSchema(schema, {
+    [MapperKind.TYPE]: typeMapper,
+    [MapperKind.OBJECT_FIELD]: objectFieldMapper,
+  });
 }
-*/
 
-// export const auth: NonNullable<DirectiveResolvers['auth']> = async (
-//   next,
-//   _parent,
-//   _args,
-//   ctx
-// ) => {
-//   // TODO uncomment to enable auth
-//   await ctx.services.requestHeaderAuth.getAuth();
+function traverseObject(obj: unknown, path: string[]): unknown {
+  const key = path[0];
+  if (key === undefined) {
+    return obj;
+  }
 
-//   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-//   return next();
-// };
+  if (!isObjectLike(obj)) {
+    return;
+  }
 
-// export function authTransform(schema: GraphQLSchema): GraphQLSchema {
-//   return transformSchemaDirectiveResolver(schema, 'auth', auth);
-// }
+  return traverseObject(obj[key], path.slice(1));
+}
+
+function isUserId(value: unknown): value is string | ObjectId {
+  return typeof value === 'string' || value instanceof ObjectId;
+}
+
+function findMaybeUserIdBy(value: unknown) {
+  if (isUserId(value)) {
+    return value;
+  }
+
+  if (isObjectLike(value)) {
+    const firstKey = Object.keys(value)[0];
+    if (!firstKey) {
+      return;
+    }
+
+    return value[firstKey];
+  }
+
+  return;
+}

@@ -5,13 +5,11 @@ import { publishSignedInUserMutation } from '../../../user/resolvers/Subscriptio
 export const updateUserNoteLinkBackgroundColor: NonNullable<
   MutationResolvers['updateUserNoteLinkBackgroundColor']
 > = async (_parent, arg, ctx) => {
-  const { services, mongoDB } = ctx;
+  const { mongoDB } = ctx;
   const { input } = arg;
 
+  const currentUserId = input.authUser.id;
   const noteId = input.note.id;
-  const auth = await services.auth.getAuth(input.authUser.id);
-
-  const currentUserId = auth.session.userId;
 
   const { type: bgResultType } = await updateBackgroundColor({
     backgroundColor: input.backgroundColor,

@@ -6,12 +6,10 @@ import type { MutationResolvers, ResolversTypes } from './../../../types.generat
 export const updateSignedInUserDisplayName: NonNullable<
   MutationResolvers['updateSignedInUserDisplayName']
 > = async (_parent, arg, ctx) => {
-  const { services, mongoDB } = ctx;
+  const { mongoDB } = ctx;
   const { input } = arg;
 
-  const auth = await services.auth.getAuth(input.authUser.id);
-
-  const currentUserId = auth.session.userId;
+  const currentUserId = input.authUser.id;
 
   await updateDisplayName({
     mongoDB,
@@ -24,7 +22,7 @@ export const updateSignedInUserDisplayName: NonNullable<
     __typename: 'UpdateSignedInUserDisplayNamePayload',
     displayName: input.displayName,
     signedInUser: {
-      auth,
+      userId: currentUserId,
       query: mongoDB.loaders.user.createQueryFn({
         userId: currentUserId,
       }),

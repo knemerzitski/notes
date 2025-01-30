@@ -3,9 +3,8 @@
 """
 Identifier for UserNoteLink.id, serializes to string
 TODO delete this scalar
-"""
-scalar # eslint-disable-next-line @graphql-eslint/no-unreachable-types
-UserNoteLinkID
+""" # eslint-disable-next-line @graphql-eslint/no-unreachable-types
+scalar UserNoteLinkID
 
 """
 Link (edge) between signed in user and note.
@@ -129,9 +128,8 @@ type UserNoteLinkEdge implements Edge {
 
 """
 TODO desc
-"""
-input # eslint-disable-next-line @graphql-eslint/no-unreachable-types
-UserNoteLinkByInput @oneOf {
+""" # eslint-disable-next-line @graphql-eslint/no-unreachable-types
+input UserNoteLinkByInput @oneOf {
   """
   UserNoteLink.id
   """
@@ -222,7 +220,7 @@ extend type Mutation {
   """
   updateUserNoteLinkReadOnly(
     input: UpdateUserNoteLinkReadOnlyInput!
-  ): UpdateUserNoteLinkReadOnlyPayload!
+  ): UpdateUserNoteLinkReadOnlyPayload! @auth(userId: { args: "input.authUser" })
 }
 
 extend union SignedInUserMutation = UpdateUserNoteLinkReadOnlyPayload
@@ -295,7 +293,7 @@ extend type Mutation {
   """
   updateUserNoteLinkBackgroundColor(
     input: UpdateUserNoteLinkBackgroundColorInput!
-  ): UpdateUserNoteLinkBackgroundColorPayload!
+  ): UpdateUserNoteLinkBackgroundColorPayload! @auth(userId: { args: "input.authUser" })
 }
 
 extend union SignedInUserMutation = UpdateUserNoteLinkBackgroundColorPayload
@@ -342,6 +340,7 @@ extend type Mutation {
   Trash note by Note.id. It can still be recovered by moving it out of trash
   """
   trashUserNoteLink(input: TrashUserNoteLinkInput!): TrashUserNoteLinkPayload!
+    @auth(userId: { args: "input.authUser" })
 }
 
 extend union SignedInUserMutation = TrashUserNoteLinkPayload
@@ -460,6 +459,7 @@ extend type Mutation {
   Move note between categories or reorder within categories
   """
   moveUserNoteLink(input: MoveUserNoteLinkInput!): MoveUserNoteLinkPayload!
+    @auth(userId: { args: "input.authUser" })
 }
 
 extend union SignedInUserMutation = MoveUserNoteLinkPayload

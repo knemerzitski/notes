@@ -73,7 +73,7 @@ extend type Mutation {
   """
   updateNoteInsertRecord(
     input: UpdateNoteInsertRecordInput!
-  ): UpdateNoteInsertRecordPayload!
+  ): UpdateNoteInsertRecordPayload! @auth(userId: { args: "input.authUser" })
 }
 
 extend union SignedInUserMutation = UpdateNoteInsertRecordPayload
@@ -133,6 +133,7 @@ extend type Subscription {
   Subscribe to all events that are relevant to a opened note
   """
   openNoteEvents(input: OpenNoteEventsInput!): OpenNoteEventsPayload!
+    @auth(userId: { args: "input.authUser" })
 }
 
 ################################ Events User Subscribed/Unsubscribed ################################

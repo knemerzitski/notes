@@ -78,15 +78,14 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
   }
 
   if (await services.auth.isAuthenticated(signedInUserId)) {
-    const auth = await services.auth.getAuth(signedInUserId);
-    const currentUserId = auth.session.userId;
+    await services.auth.getAuth(signedInUserId);
 
     return {
       __typename: 'AlreadySignedInResult',
       signedInUser: {
-        auth,
+        userId: signedInUserId,
         query: mongoDB.loaders.user.createQueryFn({
-          userId: currentUserId,
+          userId: signedInUserId,
         }),
       },
       availableUserIds: services.auth
@@ -96,12 +95,12 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
     };
   }
 
-  const auth = await services.auth.createAuth(signedInUserId);
+  await services.auth.createAuth(signedInUserId);
 
   return {
     __typename: 'JustSignedInResult',
     signedInUser: {
-      auth,
+      userId: signedInUserId,
       query: mongoDB.loaders.user.createQueryFn({
         userId: signedInUserId,
       }),

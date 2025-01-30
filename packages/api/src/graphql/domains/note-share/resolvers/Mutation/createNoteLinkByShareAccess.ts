@@ -9,12 +9,10 @@ import { publishSignedInUserMutation } from '../../../user/resolvers/Subscriptio
 export const createNoteLinkByShareAccess: NonNullable<
   MutationResolvers['createNoteLinkByShareAccess']
 > = async (_parent, arg, ctx) => {
-  const { services, mongoDB } = ctx;
+  const { mongoDB } = ctx;
   const { input } = arg;
 
-  const auth = await services.auth.getAuth(input.authUser.id);
-
-  const currentUserId = auth.session.userId;
+  const currentUserId = input.authUser.id;
 
   const insertResult = await insertUserByShareLink({
     mongoDB,

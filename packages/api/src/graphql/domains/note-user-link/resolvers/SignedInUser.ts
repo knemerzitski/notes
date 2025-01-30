@@ -16,8 +16,7 @@ export const SignedInUser: Pick<
   SignedInUserResolvers,
   'noteLink' | 'noteLinkConnection' | 'noteLinkSearchConnection'
 > = {
-  noteLink: ({ auth }, { by }, { mongoDB }) => {
-    const userId = auth.session.userId;
+  noteLink: ({ userId }, { by }, { mongoDB }) => {
     const noteId = by.id;
 
     return {
@@ -28,13 +27,11 @@ export const SignedInUser: Pick<
       }),
     };
   },
-  noteLinkConnection: ({ auth }, arg, ctx) => {
+  noteLinkConnection: ({ userId: currentUserId }, arg, ctx) => {
     const DEFAULT_LIMIT = 20;
     const MAX_LIMIT = 30;
 
     const { mongoDB } = ctx;
-
-    const currentUserId = auth.session.userId;
 
     const first = arg.first != null ? Math.min(MAX_LIMIT, arg.first) : DEFAULT_LIMIT;
     const last = arg.last != null ? Math.min(MAX_LIMIT, arg.last) : DEFAULT_LIMIT;
@@ -165,13 +162,11 @@ export const SignedInUser: Pick<
       },
     };
   },
-  noteLinkSearchConnection: ({ auth }, arg, ctx) => {
+  noteLinkSearchConnection: ({ userId: currentUserId }, arg, ctx) => {
     const DEFAULT_LIMIT = 20;
     const MAX_LIMIT = 30;
 
     const { mongoDB } = ctx;
-
-    const currentUserId = auth.session.userId;
 
     const first = arg.first != null ? Math.min(MAX_LIMIT, arg.first) : DEFAULT_LIMIT;
     const last = arg.last != null ? Math.min(MAX_LIMIT, arg.last) : DEFAULT_LIMIT;
