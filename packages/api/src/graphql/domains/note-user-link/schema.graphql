@@ -16,8 +16,9 @@ type UserNoteLink implements Node {
   id: ID!
   """
   Note that the user can access
+  TODO merge UserNoteLink with PublicUserNoteLink
   """
-  note: Note!
+  note: Note! @auth(userId: { parent: "userId" })
   """
   UserNoteLink data that might be accessed by other users
   """
