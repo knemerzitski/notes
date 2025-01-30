@@ -1,20 +1,17 @@
 import type { QueryResolvers } from './../../../types.generated';
 
-export const signedInUser: NonNullable<QueryResolvers['signedInUser']> = async (
+export const signedInUser: NonNullable<QueryResolvers['signedInUser']> = (
   _parent,
   arg,
   ctx
 ) => {
-  const { mongoDB, services } = ctx;
-
+  const { mongoDB } = ctx;
   const { by } = arg;
 
-  const auth = await services.auth.getAuth(by.id);
-
   return {
-    auth,
+    userId: by.id,
     query: mongoDB.loaders.user.createQueryFn({
-      userId: auth.session.userId,
+      userId: by.id,
     }),
   };
 };

@@ -17,14 +17,12 @@ export function signedInUserTopic(userId: ObjectId) {
 export const signedInUserEvents: NonNullable<
   SubscriptionResolvers['signedInUserEvents']
 > = {
-  subscribe: async (_parent, arg, ctx) => {
-    const { services, subscribe } = ctx;
+  subscribe: (_parent, arg, ctx) => {
+    const { subscribe } = ctx;
 
     const { input } = arg;
 
-    const auth = await services.auth.getAuth(input.authUser.id);
-
-    const currentUserId = auth.session.userId;
+    const currentUserId = input.authUser.id;
 
     return subscribe(signedInUserTopic(currentUserId));
   },

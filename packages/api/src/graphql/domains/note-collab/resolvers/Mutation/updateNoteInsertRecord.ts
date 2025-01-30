@@ -12,14 +12,13 @@ import { publishSignedInUserMutation } from '../../../user/resolvers/Subscriptio
 export const updateNoteInsertRecord: NonNullable<
   MutationResolvers['updateNoteInsertRecord']
 > = async (_parent, arg, ctx) => {
-  const { services, mongoDB } = ctx;
+  const { mongoDB } = ctx;
   const { input } = arg;
 
-  const auth = await services.auth.getAuth(input.authUser.id);
   const noteId = input.note.id;
   const insertRecord = input.insertRecord;
 
-  const currentUserId = auth.session.userId;
+  const currentUserId = input.authUser.id;
 
   const insertionResult = await insertCollabRecord({
     mongoDB,

@@ -54,6 +54,7 @@ extend type Mutation {
   Create a new note
   """
   createNote(input: CreateNoteInput!): CreateNotePayload!
+    @auth(userId: { args: "input.authUser" })
 }
 
 extend union SignedInUserMutation = CreateNotePayload
@@ -89,6 +90,7 @@ extend type Mutation {
   Permanently deletes note if user is the only owner. Any other user only unlinks from the note.
   """
   deleteNote(input: DeleteNoteInput!): DeleteNotePayload!
+    @auth(userId: { args: "input.authUser" })
 }
 
 extend union SignedInUserMutation = DeleteNotePayload

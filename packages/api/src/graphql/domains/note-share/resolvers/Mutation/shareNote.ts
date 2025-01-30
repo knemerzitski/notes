@@ -10,13 +10,11 @@ export const shareNote: NonNullable<MutationResolvers['shareNote']> = async (
   arg,
   ctx
 ) => {
-  const { services, mongoDB } = ctx;
+  const { mongoDB } = ctx;
   const { input } = arg;
 
-  const auth = await services.auth.getAuth(input.authUser.id);
+  const currentUserId = input.authUser.id;
   const noteId = input.note.id;
-
-  const currentUserId = auth.session.userId;
 
   const shareLinkResult = await insertShareLink({
     mongoDB,

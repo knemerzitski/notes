@@ -60,6 +60,7 @@ extend type Mutation {
   Share existing note
   """
   shareNote(input: ShareNoteInput!): ShareNotePayload!
+    @auth(userId: { args: "input.authUser" })
 }
 
 extend union SignedInUserMutation = ShareNotePayload
@@ -99,6 +100,7 @@ extend type Mutation {
   Stop new access to note. Existing users can still access the note.
   """
   deleteShareNote(input: DeleteShareNoteInput!): DeleteShareNotePayload!
+    @auth(userId: { args: "input.authUser" })
 }
 
 extend union SignedInUserMutation = DeleteShareNotePayload
@@ -135,7 +137,7 @@ extend type Mutation {
   """
   createNoteLinkByShareAccess(
     input: CreateNoteLinkByShareAccessInput!
-  ): CreateNoteLinkByShareAccessPayload!
+  ): CreateNoteLinkByShareAccessPayload! @auth(userId: { args: "input.authUser" })
 }
 
 extend union SignedInUserMutation = CreateNoteLinkByShareAccessPayload

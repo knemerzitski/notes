@@ -54,7 +54,7 @@ extend type Query {
   """
   Self-descriptive
   """
-  signedInUser(by: SignedInUserByInput!): SignedInUser!
+  signedInUser(by: SignedInUserByInput!): SignedInUser! @auth(userId: { args: "by" })
 }
 
 ################################ Subscription signedInUserEvents ################################
@@ -89,6 +89,7 @@ extend type Subscription {
   Subscribe to all events related to a specific signed in user
   """
   signedInUserEvents(input: SignedInUserEventsInput!): SignedInUserEventsPayload!
+    @auth(userId: { args: "input.authUser" })
 }
 
 ################################ Mutation updateUserDisplayName ################################
@@ -127,7 +128,7 @@ extend type Mutation {
   """
   updateSignedInUserDisplayName(
     input: UpdateSignedInUserDisplayNameInput!
-  ): UpdateSignedInUserDisplayNamePayload!
+  ): UpdateSignedInUserDisplayNamePayload! @auth(userId: { args: "input.authUser" })
 }
 
 extend union SignedInUserMutation = UpdateSignedInUserDisplayNamePayload

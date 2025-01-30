@@ -33,7 +33,7 @@ export function openNoteTopic(noteId: ObjectId) {
 
 export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']> = {
   subscribe: (_parent, arg, ctx) => {
-    const { services, subscribe, mongoDB, connectionId } = ctx;
+    const { subscribe, mongoDB, connectionId } = ctx;
     const { input } = arg;
 
     const noteId = input.note.id;
@@ -73,17 +73,13 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
 
     return subscribe(openNoteTopic(noteId), {
       async onSubscribe() {
-        const auth = await services.auth.getAuth(input.authUser.id);
-
-        const currentUserId = auth.session.userId;
+        const currentUserId = input.authUser.id;
 
         // Load will throw error if user has no access to note and subscription won't happen
         await loadNoteForSubscribe(currentUserId);
       },
       async onAfterSubscribe(subscriptionId) {
-        const auth = await services.auth.getAuth(input.authUser.id);
-
-        const currentUserId = auth.session.userId;
+        const currentUserId = input.authUser.id;
 
         const note = await loadNoteForSubscribe(currentUserId);
 
@@ -326,9 +322,7 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
         ]);
       },
       async onComplete(subscriptionId) {
-        const auth = await services.auth.getAuth(input.authUser.id);
-
-        const currentUserId = auth.session.userId;
+        const currentUserId = input.authUser.id;
 
         // Delete openNote for current connectionId
         await withTransaction(

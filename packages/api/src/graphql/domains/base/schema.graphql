@@ -50,6 +50,47 @@ Limits the length of a field
 """
 directive @length(max: NonNegativeInt) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 
+################################ Authentication Directive ################################
+
+"""
+Requires user to be authenticated and with access to a specific role
+"""
+directive @auth(
+  """
+  How to find userId value for authentication
+  """
+  userId: AuthenticationUserId!
+  requires: Role
+) on OBJECT | FIELD_DEFINITION
+
+"""
+TODO desc
+"""
+input AuthenticationUserId @oneOf {
+  """
+  Find userId in parent object.
+  Uses dot notation for path separation (field1.field2.field3)
+  """
+  parent: String
+  """
+  Find userId in arguments.
+  Uses dot notation for path separation (field1.field2.field3)
+  """
+  args: String
+}
+
+"""
+Role for grouping access permission
+"""
+enum Role {
+  """
+  Any authenticated user
+  """
+  USER
+}
+
+################################ GraphQL Cursor Connections Specification ################################
+
 """
 GraphQL Cursor Connections Specification PageInfo
 

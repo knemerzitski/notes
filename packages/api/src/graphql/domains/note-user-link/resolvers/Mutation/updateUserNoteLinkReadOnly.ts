@@ -8,13 +8,11 @@ import { publishSignedInUserMutation } from '../../../user/resolvers/Subscriptio
 export const updateUserNoteLinkReadOnly: NonNullable<
   MutationResolvers['updateUserNoteLinkReadOnly']
 > = async (_parent, arg, ctx) => {
-  const { services, mongoDB } = ctx;
+  const { mongoDB } = ctx;
   const { input } = arg;
 
-  const auth = await services.auth.getAuth(input.authUser.id);
+  const currentUserId = input.authUser.id;
   const noteId = input.note.id;
-
-  const currentUserId = auth.session.userId;
 
   const targetUserId = input.userId ?? currentUserId;
 
