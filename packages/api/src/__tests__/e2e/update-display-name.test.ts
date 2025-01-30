@@ -154,12 +154,19 @@ it('creates new user, updates displayName and publishes it to websocket', async 
   >(
     {
       query: `#graphql
-        mutation SignOut {
-          signOut {
+        mutation SignOut($input: SignOutInput!) {
+          signOut(input: $input) {
             availableUserIds
           }
         }
       `,
+      variables: {
+        input: {
+          user: {
+            id: userIdStr as any,
+          },
+        },
+      },
     },
     fetchFn
   );
