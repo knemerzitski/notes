@@ -170,6 +170,20 @@ export class CookiesMongoDBDynamoDBAuthenticationService
     return auth;
   }
 
+  async getFirstAuth(): Promise<AuthenticatedContext> {
+    const firstAuth = this.model.values()[0];
+    if(firstAuth){
+      return firstAuth;
+    }
+
+    const firstUserIdStr = this.ctx.sessionsCookie?.getUserIds()[0];
+    if(!firstUserIdStr){
+      throw new UnauthenticatedServiceError(AuthenticationFailedReason.USER_NO_SESSION);
+    }
+
+    return this.getAuth(firstUserIdStr);
+  }
+
   getAvailableUserIds(): ObjectId[] {
     return [
       ...new Set([

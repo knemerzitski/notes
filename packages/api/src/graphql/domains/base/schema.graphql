@@ -57,9 +57,10 @@ Requires user to be authenticated and with access to a specific role
 """
 directive @auth(
   """
-  How to find userId value for authentication
+  How to find userId value for authentication.
+  Defaults to first available authentication context.
   """
-  userId: AuthenticationUserId!
+  userId: AuthenticationUserId
   requires: Role
 ) on OBJECT | FIELD_DEFINITION
 

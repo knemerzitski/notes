@@ -36,9 +36,14 @@ export interface AuthenticationService {
   /**
    * Returns a authenticated context. Throws error if unable
    * to retrieve authenticated context for any reason.
-   *
    */
   getAuth(userId: UserId): Promise<AuthenticatedContext>;
+
+  /**
+   * Returns first available authenticated context. Throws error if unable
+   * to retrieve authenticated context for any reason.
+   */
+  getFirstAuth(): Promise<AuthenticatedContext>;
 
   /**
    * List of all available userIds that have a authentication context
