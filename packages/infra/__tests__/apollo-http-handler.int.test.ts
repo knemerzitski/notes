@@ -83,6 +83,9 @@ async function fetchCreateNote(user: User, content: string): Promise<User> {
       operationName: 'CreateNote',
       variables: {
         input: {
+          authUser: {
+            id: user.headers[CustomHeaderName.USER_ID],
+          },
           collabText: {
             initialText: content,
           },
@@ -90,7 +93,7 @@ async function fetchCreateNote(user: User, content: string): Promise<User> {
       },
       query: `#graphql
         mutation CreateNote($input: CreateNoteInput!) {
-          createNote(input:$input) {
+          createNote(input: $input) {
             userNoteLink {
               id
             }
