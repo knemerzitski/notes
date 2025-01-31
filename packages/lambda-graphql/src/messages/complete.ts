@@ -11,6 +11,7 @@ import {
   createSubscriptionContext,
   getSubscribeFieldResult,
 } from '../pubsub/subscribe';
+import { BaseGraphQLContext } from '../type';
 
 /**
  * Removes subscription item from DynamoDB table; id `${connectionId}:${message.id}`
@@ -44,11 +45,13 @@ export function createCompleteHandler<TGraphQLContext>(): MessageHandler<
         return;
       }
 
-      const graphQLContextValue: SubscriptionGraphQLContext &
+      const graphQLContextValue: BaseGraphQLContext &
+        SubscriptionGraphQLContext &
         WebSocketMessageGraphQLContext &
         TGraphQLContext = {
         ...(await context.createGraphQLContext()),
         ...createSubscriptionContext(),
+        eventType: 'subscription',
         logger: context.logger,
         publish: createPublisher<TGraphQLContext>({
           context,

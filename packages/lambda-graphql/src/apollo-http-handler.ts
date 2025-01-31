@@ -24,6 +24,7 @@ import {
 import { ConnectionTable } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
 import { Publisher, createPublisher } from './pubsub/publish';
+import { BaseGraphQLContext } from './type';
 
 interface DirectParams {
   logger: Logger;
@@ -103,7 +104,7 @@ export function createApolloHttpHandler<TGraphQLContext extends BaseContext>(
     process.env.NODE_ENV === 'development';
   const formatError = graphQL.apolloServerOptions.formatError ?? ((err) => err);
 
-  type GraphQLContext = ApolloHttpGraphQLContext & TGraphQLContext;
+  type GraphQLContext = BaseGraphQLContext & ApolloHttpGraphQLContext & TGraphQLContext;
   const apollo = new ApolloServer<GraphQLContext>({
     ...graphQL.apolloServerOptions,
     schema: graphQL.schema,
@@ -129,6 +130,7 @@ export function createApolloHttpHandler<TGraphQLContext extends BaseContext>(
 
       const graphQLContext: GraphQLContext = {
         ...(await createGraphQLContext()),
+        eventType: 'request',
         request: {
           headers: event.headers,
           multiValueHeaders: event.multiValueHeaders,
@@ -139,7 +141,7 @@ export function createApolloHttpHandler<TGraphQLContext extends BaseContext>(
         },
         logger,
         publish: createPublisher<GraphQLContext>({
-          context: { 
+          context: {
             ...handlerContext,
             formatError,
             formatErrorOptions: {

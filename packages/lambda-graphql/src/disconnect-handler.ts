@@ -35,6 +35,7 @@ import {
   createSubscriptionContext,
   getSubscribeFieldResult,
 } from './pubsub/subscribe';
+import { BaseGraphQLContext } from './type';
 
 interface DirectParams<TGraphQLContext> {
   readonly apiGateway: ApiGatewayContextParams;
@@ -197,11 +198,13 @@ export function webSocketDisconnectHandler<TGraphQLContext>(
       const subscriptionDeletions = connectionSubscriptions.map(async (sub) => {
         try {
           // Call resolver onComplete
-          const graphQLContextValue: SubscriptionGraphQLContext &
+          const graphQLContextValue: BaseGraphQLContext &
+            SubscriptionGraphQLContext &
             WebSocketDisconnectGraphQLContext &
             TGraphQLContext = {
             ...graphQLContext,
             ...createSubscriptionContext(),
+            eventType: 'subscription',
             logger: handlerContext.logger,
             publish: createPublisher<TGraphQLContext>({
               context: handlerContext,
