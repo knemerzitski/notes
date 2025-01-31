@@ -2,7 +2,6 @@ import { ObjectId } from 'mongodb';
 
 import { QueryableSession } from '../../mongodb/loaders/session/description';
 import { objectIdToStr } from '../../mongodb/utils/objectid';
-
 export interface AuthenticatedContext {
   session: QueryableSession;
 }
@@ -14,39 +13,36 @@ type UserId = NonNullable<Parameters<typeof objectIdToStr>[0]>;
  */
 export interface AuthenticationService {
   /**
-   * Creates new AuthenticatedContext for a given user
+   * Adds user to list of authenticated users
    */
-  createAuth(userId: UserId): Promise<AuthenticatedContext>;
+  addUser(userId: UserId): Promise<AuthenticatedContext>;
 
   /**
-   * Delete authentication contexts by userId
+   * Remove user or users from list of authenticated users
    */
-  deleteAuthByUserId(userId: UserId | UserId[]): Promise<void>;
+  removeUser(userId: UserId | UserId[]): Promise<void>;
 
   /**
-   * Deletes all known authentication contexts
+   * Deletes all known authenticated users
    */
-  deleteAllAuth(): Promise<void>;
+  clearAllUsers(): Promise<void>;
 
   /**
-   * @returns `true` when user is authenticated and {@link getAuth} will return a valid context
+   * If userId is not specified then tries to find first authenticated user.
+   *
+   * @returns `true` when user is authenticated.
    */
-  isAuthenticated(userId: UserId): Promise<boolean>;
+  isAuthenticated(userId?: UserId): Promise<boolean>;
 
   /**
-   * Returns a authenticated context. Throws error if unable
-   * to retrieve authenticated context for any reason.
+   * Throws error if user is noth authenticated.
+   *
+   * If user is not specified then checks for any authenticated users.
    */
-  getAuth(userId: UserId): Promise<AuthenticatedContext>;
+  assertAuthenticated(userId?: UserId): Promise<AuthenticatedContext>;
 
   /**
-   * Returns first available authenticated context. Throws error if unable
-   * to retrieve authenticated context for any reason.
-   */
-  getFirstAuth(): Promise<AuthenticatedContext>;
-
-  /**
-   * List of all available userIds that have a authentication context
+   * List of all possibly authenticated users.
    */
   getAvailableUserIds(): ObjectId[];
 }

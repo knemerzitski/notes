@@ -21,12 +21,12 @@ export const signOut: NonNullable<MutationResolvers['signOut']> = async (
       .map(objectIdToStr)
       .filter(isDefined);
 
-    await services.auth.deleteAllAuth();
+    await services.auth.clearAllUsers();
   } else if (input.user) {
     // Sign out specified user
     signedOutUserIds = [objectIdToStr(input.user.id)];
 
-    await services.auth.deleteAuthByUserId(input.user.id);
+    await services.auth.removeUser(input.user.id);
   }
 
   return {

@@ -90,7 +90,7 @@ it('signs out specific user', async () => {
     sessionsCookie,
   });
 
-  const deleteAuthByUserIdSpy = vi.spyOn(context.services.auth, 'deleteAuthByUserId');
+  const removeUserSpy = vi.spyOn(context.services.auth, 'removeUser');
 
   const response = await executeOperation(
     {
@@ -111,7 +111,7 @@ it('signs out specific user', async () => {
     },
   });
 
-  expect(deleteAuthByUserIdSpy).toHaveBeenCalledWith(user._id);
+  expect(removeUserSpy).toHaveBeenCalledWith(user._id);
 });
 
 it('signs out all users', async () => {
@@ -126,9 +126,9 @@ it('signs out all users', async () => {
     sessionsCookie,
   });
 
-  await context.services.auth.createAuth(user._id);
+  await context.services.auth.addUser(user._id);
 
-  const deleteAllAuthSpy = vi.spyOn(context.services.auth, 'deleteAllAuth');
+  const clearAllUsersSpy = vi.spyOn(context.services.auth, 'clearAllUsers');
 
   const response = await executeOperation(
     {
@@ -147,5 +147,5 @@ it('signs out all users', async () => {
     },
   });
 
-  expect(deleteAllAuthSpy).toHaveBeenCalled();
+  expect(clearAllUsersSpy).toHaveBeenCalled();
 });

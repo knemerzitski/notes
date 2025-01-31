@@ -25,7 +25,7 @@ export const auth: AuthDirectiveResolver = async (next, parent, args, ctx) => {
 
   // If no userId specified, find first available
   if (!userIdDesc) {
-    await ctx.services.auth.getFirstAuth();
+    await ctx.services.auth.assertAuthenticated();
     return next();
   }
 
@@ -38,7 +38,7 @@ export const auth: AuthDirectiveResolver = async (next, parent, args, ctx) => {
     targetObj = args.field;
     targetPath = userIdDesc.args;
   } else {
-    await ctx.services.auth.getFirstAuth();
+    await ctx.services.auth.assertAuthenticated();
     return next();
   }
 
@@ -51,7 +51,7 @@ export const auth: AuthDirectiveResolver = async (next, parent, args, ctx) => {
   }
 
   // Actual logic for authentication
-  await ctx.services.auth.getAuth(userId);
+  await ctx.services.auth.assertAuthenticated(userId);
 
   return next();
 };

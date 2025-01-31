@@ -17,7 +17,7 @@ export const syncSessionCookies: NonNullable<
     return !isValidUserId;
   });
 
-  await services.auth.deleteAuthByUserId(deleteUserIds);
+  await services.auth.removeUser(deleteUserIds);
 
   return {
     availableUserIds: services.auth
