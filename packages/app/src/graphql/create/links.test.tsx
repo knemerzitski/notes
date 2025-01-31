@@ -92,6 +92,9 @@ it('does not serialize different user same mutations', async () => {
 
   void result.current('A');
   setCurrentUser(B_userId, cache);
+
+  await new Promise(process.nextTick.bind(process));
+
   void result.current('B');
   void result.current('B2');
 
