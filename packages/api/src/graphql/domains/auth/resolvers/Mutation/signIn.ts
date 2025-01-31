@@ -78,7 +78,7 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
   }
 
   if (await services.auth.isAuthenticated(signedInUserId)) {
-    await services.auth.getAuth(signedInUserId);
+    await services.auth.assertAuthenticated(signedInUserId);
 
     return {
       __typename: 'AlreadySignedInResult',
@@ -95,7 +95,7 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
     };
   }
 
-  await services.auth.createAuth(signedInUserId);
+  await services.auth.addUser(signedInUserId);
 
   return {
     __typename: 'JustSignedInResult',

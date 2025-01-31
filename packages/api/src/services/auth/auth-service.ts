@@ -44,7 +44,7 @@ export class CookiesMongoDBDynamoDBAuthenticationService
     private readonly model = new AuthenticatedContextsModel()
   ) {}
 
-  async createAuth(userId: string | ObjectId): Promise<AuthenticatedContext> {
+  async addUser(userId: string | ObjectId): Promise<AuthenticatedContext> {
     const userIdStr = objectIdToStr(userId);
 
     // Update MongoDB (persist in DB)
@@ -72,9 +72,7 @@ export class CookiesMongoDBDynamoDBAuthenticationService
     return auth;
   }
 
-  async deleteAuthByUserId(
-    userId: string | ObjectId | (string | ObjectId)[]
-  ): Promise<void> {
+  async removeUser(userId: string | ObjectId | (string | ObjectId)[]): Promise<void> {
     const userIdStrs = wrapArray(userId).map(objectIdToStr).filter(isDefined);
     const auths = userIdStrs.map((userId) => this.model.get(userId)).filter(isDefined);
     const cookieIds = auths.map((auth) => auth.session.cookieId);
@@ -94,7 +92,7 @@ export class CookiesMongoDBDynamoDBAuthenticationService
     });
   }
 
-  async deleteAllAuth(): Promise<void> {
+  async clearAllUsers(): Promise<void> {
     const auths = this.model.values();
     const cookieIds = auths.map((auth) => auth.session.cookieId);
 
@@ -111,15 +109,18 @@ export class CookiesMongoDBDynamoDBAuthenticationService
     this.model.clear();
   }
 
-  async isAuthenticated(userId: string | ObjectId): Promise<boolean> {
-    const userIdStr = objectIdToStr(userId);
-    const auth = this.model.get(userIdStr);
+  async isAuthenticated(userId?: string | ObjectId): Promise<boolean> {
+    const userIdStr = userId ? objectIdToStr(userId) : this.findFirstSessionsUserId();
+    if (!userIdStr) {
+      return false;
+    }
 
+    const auth = this.model.get(userIdStr);
     if (auth) {
       return true;
     }
 
-    const cookieId = this.ctx.sessionsCookie?.get(userId);
+    const cookieId = this.ctx.sessionsCookie?.get(userIdStr);
     if (!cookieId) {
       return false;
     }
@@ -145,12 +146,15 @@ export class CookiesMongoDBDynamoDBAuthenticationService
     }
   }
 
-  async getAuth(userId: string | ObjectId): Promise<AuthenticatedContext> {
-    const userIdStr = objectIdToStr(userId);
+  async assertAuthenticated(userId?: string | ObjectId): Promise<AuthenticatedContext> {
+    const userIdStr = userId ? objectIdToStr(userId) : this.findFirstSessionsUserId();
+    if (!userIdStr) {
+      throw new UnauthenticatedServiceError(AuthenticationFailedReason.USER_UNDEFINED);
+    }
     let auth = this.model.get(userIdStr);
 
     if (!auth) {
-      const cookieId = this.ctx.sessionsCookie?.get(userId);
+      const cookieId = this.ctx.sessionsCookie?.get(userIdStr);
       if (!cookieId) {
         throw new UnauthenticatedServiceError(AuthenticationFailedReason.USER_NO_SESSION);
       }
@@ -170,18 +174,8 @@ export class CookiesMongoDBDynamoDBAuthenticationService
     return auth;
   }
 
-  async getFirstAuth(): Promise<AuthenticatedContext> {
-    const firstAuth = this.model.values()[0];
-    if(firstAuth){
-      return firstAuth;
-    }
-
-    const firstUserIdStr = this.ctx.sessionsCookie?.getUserIds()[0];
-    if(!firstUserIdStr){
-      throw new UnauthenticatedServiceError(AuthenticationFailedReason.USER_NO_SESSION);
-    }
-
-    return this.getAuth(firstUserIdStr);
+  private findFirstSessionsUserId(): string | undefined {
+    return this.ctx.sessionsCookie?.getUserIds()[0];
   }
 
   getAvailableUserIds(): ObjectId[] {
