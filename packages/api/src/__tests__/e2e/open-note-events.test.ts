@@ -171,6 +171,10 @@ function createGraphQLOperations(http: Awaited<ReturnType<typeof createHttpOpera
           console.error(data);
           throw new Error('Subscribe received error');
         }
+
+        const firstError = data.payload.errors?.[0];
+        expect(firstError).toBeUndefined();
+
         for (const mutation of data.payload.data.signedInUserEvents.mutations) {
           eventBus.emit(mutation.__typename, mutation);
         }
@@ -206,6 +210,10 @@ function createGraphQLOperations(http: Awaited<ReturnType<typeof createHttpOpera
           console.error(data);
           throw new Error('Subscribe received error');
         }
+
+        const firstError = data.payload.errors?.[0];
+        expect(firstError).toBeUndefined();
+
         for (const mutation of data.payload.data.openNoteEvents.mutations) {
           eventBus.emit(mutation.__typename, mutation);
         }
