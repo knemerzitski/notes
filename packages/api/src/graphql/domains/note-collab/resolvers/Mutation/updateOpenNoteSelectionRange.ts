@@ -12,13 +12,12 @@ import { publishOpenNoteMutation } from '../Subscription/openNoteEvents';
 export const updateOpenNoteSelectionRange: NonNullable<
   MutationResolvers['updateOpenNoteSelectionRange']
 > = async (_parent, arg, ctx) => {
-  const { services, mongoDB, connectionId } = ctx;
+  const { mongoDB, connectionId } = ctx;
 
   const { input } = arg;
-  const auth = await services.auth.getAuth(input.authUser.id);
   const noteId = input.note.id;
 
-  const currentUserId = auth.session.userId;
+  const currentUserId = input.authUser.id;
 
   const { openNote } = await service_updateOpenNoteSelectionRange({
     mongoDB,
