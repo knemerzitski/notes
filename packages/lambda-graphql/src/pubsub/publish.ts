@@ -12,8 +12,9 @@ import {
   formatUnknownError,
 } from '../graphql/format-unknown-error';
 
-import { PubSubEvent } from './subscribe';
 import { BaseGraphQLContext } from '../type';
+
+import { PubSubEvent } from './subscribe';
 
 interface CreatePublisherParams<TGraphQLContext> {
   readonly context: {
