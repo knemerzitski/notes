@@ -14,7 +14,7 @@ export function useSignOutMutation() {
     (userId?: SignedInUser['id']) => {
       return signOutMutation({
         variables: {
-          input: userId ? { userId } : { allUsers: true },
+          input: userId ? { user: { id: userId } } : { allUsers: true },
         },
         optimisticResponse: {
           __typename: 'Mutation',

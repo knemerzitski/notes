@@ -107,7 +107,12 @@ export function replaceNoteInConnection(
       return {
         type: 'TrashUserNoteLinkInput',
         input: {
-          noteId: newNoteId,
+          authUser: {
+            id: userId,
+          },
+          note: {
+            id: newNoteId,
+          },
         },
       };
     }
@@ -117,7 +122,12 @@ export function replaceNoteInConnection(
   return {
     type: 'MoveUserNoteLinkInput',
     input: {
-      noteId: newNoteId,
+      authUser: {
+        id: userId,
+      },
+      note: {
+        id: newNoteId,
+      },
       location: {
         anchorNoteId,
         categoryName: movableCategoryName,
