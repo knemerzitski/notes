@@ -13,6 +13,7 @@ import {
 } from '../graphql/format-unknown-error';
 
 import { PubSubEvent } from './subscribe';
+import { BaseGraphQLContext } from '../type';
 
 interface CreatePublisherParams<TGraphQLContext> {
   readonly context: {
@@ -91,7 +92,10 @@ export function createPublisher<TGraphQLContext>({
       return true;
     }
 
-    const contextValue = getGraphQLContext();
+    const contextValue: BaseGraphQLContext & TGraphQLContext = {
+      ...getGraphQLContext(),
+      eventType: 'publish',
+    };
 
     const subcriptionPostPromises = subscriptions
       .filter(isRelevantSubscription)

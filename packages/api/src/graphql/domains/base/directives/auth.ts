@@ -21,6 +21,13 @@ import { GraphQLResolversContext } from '../../../types';
 import type { authDirectiveArgs, NextResolverFn } from '../../types.generated';
 
 export const auth: AuthDirectiveResolver = async (next, parent, args, ctx) => {
+  if (ctx.eventType === 'publish') {
+    // Authentication happens in `subscription` event phase.
+    // During publish, user has already been authenticated
+    // and context might not contain token for current user publishing.
+    return next();
+  }
+
   const userIdDesc = args.directive.userId;
 
   // If no userId specified, find first available

@@ -14,6 +14,7 @@ import {
   createSubscriptionContext,
   getSubscribeFieldResult,
 } from '../pubsub/subscribe';
+import { BaseGraphQLContext } from '../type';
 
 export function createSubscribeHandler<TGraphQLContext>(): MessageHandler<
   MessageType.Subscribe,
@@ -69,11 +70,13 @@ export function createSubscribeHandler<TGraphQLContext>(): MessageHandler<
         });
       }
 
-      const graphQLContextValue: SubscriptionGraphQLContext &
+      const graphQLContextValue: BaseGraphQLContext &
+        SubscriptionGraphQLContext &
         WebSocketMessageGraphQLContext &
         TGraphQLContext = {
         ...(await context.createGraphQLContext()),
         ...createSubscriptionContext(),
+        eventType: 'subscription',
         logger: context.logger,
         publish: createPublisher<TGraphQLContext>({
           context,
