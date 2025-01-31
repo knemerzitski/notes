@@ -55,7 +55,6 @@ function Subscription() {
           },
         },
         // Force a new subscription when user changes
-        // @ts-expect-error Is is a valid variable locally
         [GlobalOperationVariables.USER_ID]: userId,
       },
     });
