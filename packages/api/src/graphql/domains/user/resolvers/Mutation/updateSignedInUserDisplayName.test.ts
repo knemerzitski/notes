@@ -7,7 +7,6 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { mock, mockDeep } from 'vitest-mock-extended';
 
 import { mockResolver } from '../../../../../__tests__/helpers/graphql/mock-resolver';
-import { QueryableSession } from '../../../../../mongodb/loaders/session/description';
 import { updateDisplayName } from '../../../../../services/user/update-display-name';
 
 import { GraphQLResolversContext } from '../../../../types';
@@ -33,17 +32,6 @@ it('calls updateDisplayName', async () => {
       input: { authUser: { id: userId }, displayName },
     },
     mockDeep<GraphQLResolversContext>({
-      services: {
-        auth: mockDeep({
-          getAuth() {
-            return Promise.resolve({
-              session: {
-                userId,
-              } as QueryableSession,
-            });
-          },
-        }),
-      },
       mongoDB,
     })
   );
@@ -70,17 +58,6 @@ it('returns UpdateSignedInUserDisplayNamePayload with query', async () => {
       input: { authUser: { id: userId }, displayName },
     },
     mockDeep<GraphQLResolversContext>({
-      services: {
-        auth: mockDeep({
-          getAuth() {
-            return Promise.resolve({
-              session: {
-                userId,
-              } as QueryableSession,
-            });
-          },
-        }),
-      },
       mongoDB,
     })
   );
