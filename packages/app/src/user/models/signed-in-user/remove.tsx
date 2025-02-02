@@ -6,7 +6,7 @@ import { getAllUserOngoingOperationsIds } from '../../../graphql/link/persist/ge
 import { removeOngoingOperations } from '../../../graphql/link/persist/remove';
 import { cacheGc } from '../../../graphql/utils/cache-gc';
 import { TaggedEvict } from '../../../graphql/utils/tagged-evict';
-import { evictByUser } from '../../utils/evict-by-user';
+import { evictUserSpecific } from '../../utils/evict-user-specific';
 
 import { getCurrentUserId } from './get-current';
 import { setCurrentUser } from './set-current';
@@ -65,12 +65,10 @@ export function removeUsers(
     removeUserIds ?? data?.signedInUsers.map((user) => user.id) ?? [];
 
   if (taggedEvict) {
-    for (const userId of actualRemovedUserIds) {
-      evictByUser(userId, {
-        cache,
-        taggedEvict,
-      });
-    }
+    evictUserSpecific({
+      cache,
+      taggedEvict,
+    });
   }
 
   // Remove persisted operations related to removed users
