@@ -1,8 +1,13 @@
 import { ApolloCache, Cache } from '@apollo/client';
 
 export enum EvictTag {
-  // rename to USER_SPECIFIC?
-  CURRENT_USER,
+  /**
+   * User specific fields that needs to be evicted when user is removed.
+   *
+   * If user specific fields are not evicted then garbage collection will not
+   * remove all fields related to user that has already been removed.
+   */
+  USER_SPECIFIC,
 }
 
 interface TaggedEvictOptions {

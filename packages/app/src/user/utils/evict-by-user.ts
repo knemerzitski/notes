@@ -13,7 +13,7 @@ export function evictByUser(
 ) {
   withOverrideCurrentUserId(userId, () => {
     options.taggedEvict.evictByTag(
-      EvictTag.CURRENT_USER,
+      EvictTag.USER_SPECIFIC,
       options.cache,
       options.evictOptions
     );
