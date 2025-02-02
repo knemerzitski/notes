@@ -45,17 +45,17 @@ extend type Query {
   Find publicUser
   """
   publicUser(by: PublicUserByInput!): PublicUser
-}
 
-extend type Query {
   """
   List of all available users. Always includes localUser.
   """
   signedInUsers(localOnly: Boolean): [SignedInUser!]!
+
   """
   Currently selected user. All operations are executed using scope of this user. Defaults to localUser.
   """
   currentSignedInUser: SignedInUser!
+
   """
   Always available local user
   """

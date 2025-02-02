@@ -16,6 +16,7 @@ export const Query: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
           if (!args || !isObjectLike(args)) {
             throwNoteNotFoundError();
           }
+
           const by = args.by;
           if (!isObjectLike(by)) {
             throwNoteNotFoundError();
@@ -24,6 +25,7 @@ export const Query: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
           if (typeof by.id !== 'string') {
             throwNoteNotFoundError(String(by.id));
           }
+
           return toReference({
             __typename: 'Note',
             id: by.id,
@@ -35,28 +37,15 @@ export const Query: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
   };
 };
 
+const userSpecificFields: string[] = ['note'];
+
 export const evictOptions: TaggedEvictOptionsList = [
   {
     tag: EvictTag.USER_SPECIFIC,
     options: [
-      // {
-      //   id: 'ROOT_QUERY',
-      //   fieldName: 'userNoteLink',
-      // },
-      {
-        id: 'ROOT_QUERY',
-        fieldName: 'note',
-      },
-      // Evict all categories
-      // ...[
-      //   ...objectValueArrayPermutationsValues({
-      //     category: Object.values(NoteCategory),
-      //   }),
-      // ].map((args) => ({
-      //   id: 'ROOT_QUERY',
-      //   fieldName: 'userNoteLinkConnection',
-      //   args,
-      // })),
+      ...userSpecificFields.map((fieldName) => ({
+        fieldName,
+      })),
     ],
   },
 ];
