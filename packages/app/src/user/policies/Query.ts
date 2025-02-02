@@ -138,7 +138,7 @@ export const Query: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
 
 export const evictOptions: TaggedEvictOptionsList = [
   {
-    tag: EvictTag.CURRENT_USER,
+    tag: EvictTag.USER_SPECIFIC,
     options: [
       {
         id: 'ROOT_QUERY',
