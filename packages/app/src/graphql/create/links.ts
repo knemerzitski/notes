@@ -6,23 +6,17 @@ import apolloLogger from 'apollo-link-logger';
 import SerializingLink from 'apollo-link-serialize';
 
 import { ClearRootSubscriptionLink } from '../link/clear-root-subscription';
-import { CurrentUserLink } from '../link/current-user';
 import { GateLink } from '../link/gate';
 import { passthrough } from '../link/passthrough';
 import { PersistLink } from '../link/persist';
+import { RemoteDirectiveLink } from '../link/remote-directive';
 import { StatsLink } from '../link/stats';
 import { WaitLink } from '../link/wait';
-import { AppContext } from '../types';
-import { WebSocketClient } from '../ws/websocket-client';
 
 export function createLinks({
-  appContext,
-  wsClient,
   cache,
   options,
 }: {
-  appContext: Pick<AppContext, 'userId'>;
-  wsClient?: WebSocketClient;
   cache: InMemoryCache;
   options?: {
     persist?: ConstructorParameters<typeof PersistLink>[1];
@@ -40,7 +34,7 @@ export function createLinks({
   };
 }) {
   const clearRootSubscripionLink = new ClearRootSubscriptionLink();
-  const currentUserLink = new CurrentUserLink(appContext, wsClient);
+  const remoteDirectiveLink = new RemoteDirectiveLink();
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const loggerLink = options?.debug?.logging ? apolloLogger : passthrough();
   const statsLink = new StatsLink();
@@ -59,7 +53,7 @@ export function createLinks({
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     link: ApolloLink.from([
       clearRootSubscripionLink,
-      currentUserLink,
+      remoteDirectiveLink,
       loggerLink,
       statsLink,
       // Persist operations in case app is closed
@@ -75,7 +69,7 @@ export function createLinks({
     ]),
     pick: {
       clearRootSubscripionLink,
-      currentUserLink,
+      remoteDirectiveLink,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       loggerLink,
       statsLink,

@@ -7,7 +7,7 @@ import { setUserSessionExpired } from '../models/signed-in-user/set-session-expi
 
 export const SyncSessionCookies = mutationDefinition(
   gql(`
-  mutation SyncSessionCookies($input: SyncSessionCookiesInput!) @noauth {
+  mutation SyncSessionCookies($input: SyncSessionCookiesInput!) @remote {
     syncSessionCookies(input: $input) {
       availableUserIds
     }

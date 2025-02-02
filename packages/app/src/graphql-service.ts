@@ -25,7 +25,6 @@ import {
   notePolicies,
   notePossibleTypes,
 } from './note/policies';
-import { getCurrentUserId } from './user/models/signed-in-user/get-current';
 import {
   userEvictOptions,
   userCacheReadyCallback,
@@ -88,9 +87,6 @@ export function createDefaultGraphQLServiceParams(): Parameters<
     mutationDefinitions: MUTATION_DEFINITIONS,
     storageKey: localStorageKey(LocalStoragePrefix.APOLLO, 'cache'),
     storage: new LocalStorageWrapper(window.localStorage),
-    context: {
-      getUserId: getCurrentUserId,
-    },
     linkOptions: {
       persist: {
         persistErrorCodes: [GraphQLErrorCode.UNAUTHENTICATED],

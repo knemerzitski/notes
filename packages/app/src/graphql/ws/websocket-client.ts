@@ -5,17 +5,10 @@ import {
   Message,
   MessageType,
 } from 'graphql-ws';
-import { CustomHeaderName } from '~api-app-shared/custom-headers';
-import { createDeferred, Deferred } from '~utils/deferred';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
-
-import { isLocalId } from '../../utils/is-local-id';
-import { AppContext } from '../types';
 
 export class WebSocketClient {
   readonly client;
-
-  private readonly context;
 
   private _connectedCount = 0;
   get connectedCount() {
@@ -30,19 +23,7 @@ export class WebSocketClient {
     return this._connectionId;
   }
 
-  /**
-   * Current userId that was sent during connection_init
-   * Server assumes that this is current user
-   */
-  private _userId: string | null = null;
-  get userId() {
-    return this._userId;
-  }
-
-  private userIdDeferred: Deferred<string> | null = null;
-
-  constructor(context: Pick<AppContext, 'userId'>, options: ClientOptions) {
-    this.context = context;
+  constructor(options: ClientOptions) {
     this.client = createClient({
       lazy: false,
       retryAttempts: Infinity,
@@ -57,26 +38,7 @@ export class WebSocketClient {
     });
   }
 
-  asyncUserId(): Promise<string> {
-    if (!this._userId) {
-      if (!this.userIdDeferred) {
-        this.userIdDeferred = createDeferred<string>();
-      }
-      return this.userIdDeferred.promise;
-    }
-
-    return Promise.resolve(this._userId);
-  }
-
   restart() {
-    this._userId = null;
-
-    const userId = this.context.userId;
-    if (!userId || isLocalId(userId)) {
-      // Don't restart if user is local or not defined
-      return;
-    }
-
     if (this.socket != null) {
       this.restartRequested = false;
       if (this.socket.readyState === WebSocket.OPEN) {
@@ -89,21 +51,7 @@ export class WebSocketClient {
   }
 
   private connectionParams() {
-    // Send authentication in connection init
-    const userId = this.context.userId;
-    if (!userId || isLocalId(userId)) {
-      return;
-    }
-
-    this._userId = userId;
-    this.userIdDeferred?.resolve(userId);
-    this.userIdDeferred = null;
-
-    const payload: ConnectionInitMessage['payload'] = {
-      headers: {
-        [CustomHeaderName.USER_ID]: userId,
-      },
-    };
+    const payload: ConnectionInitMessage['payload'] = {};
 
     return payload;
   }

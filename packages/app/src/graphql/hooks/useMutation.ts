@@ -13,12 +13,9 @@ import {
   MutationResult,
 } from '@apollo/client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 
-import { useUserId } from '../../user/context/user-id';
 import { useGetMutationUpdaterFn } from '../context/get-mutation-updater-fn';
-import { hasNoAuthDirective } from '../link/current-user';
-import { GlobalOperationVariables } from '../types';
 import { MutationDefinition } from '../utils/mutation-definition';
 import { optimisticResponseMutation } from '../utils/optimistic-response-mutation';
 
@@ -60,21 +57,8 @@ export function useMutation<
 ] {
   const client = useApolloClient();
   const getMutationUpdaterFn = useGetMutationUpdaterFn();
-  const userId = useUserId(true);
 
   const isRemoteOperation = useIsRemoteOperation(definition.document);
-
-  // TODO remove extra variable from mutations
-  // Add hidden variable userId if operation doesn't have directive @noauth
-  const extraVariables = useMemo(
-    () =>
-      hasNoAuthDirective(definition.document)
-        ? {}
-        : {
-            [GlobalOperationVariables.USER_ID]: userId,
-          },
-    [definition, userId]
-  );
 
   const [remoteMutation, remoteResult] = useApolloMutation<
     TData,
@@ -83,10 +67,6 @@ export function useMutation<
     TCache
   >(definition.document, {
     ...options,
-    variables: {
-      ...options?.variables,
-      ...extraVariables,
-    } as TVariables,
     update: getMutationUpdaterFn(definition.document) as MutationUpdaterFunction<
       TData,
       TVariables,
@@ -105,12 +85,8 @@ export function useMutation<
             options?.mutation ?? definition.document
           ) as MutationUpdaterFunction<TData, TVariables, TContext, TCache>,
           ...options,
-          variables: {
-            ...options?.variables,
-            ...extraVariables,
-          } as TVariables,
         }),
-      [client, definition, getMutationUpdaterFn, extraVariables]
+      [client, definition, getMutationUpdaterFn]
     );
 
   const mutation: (

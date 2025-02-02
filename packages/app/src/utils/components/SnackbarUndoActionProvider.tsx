@@ -32,7 +32,7 @@ export function SnackbarUndoActionProvider({ children }: { children: ReactNode }
               {message}
               <Button
                 aria-label={`undo ${message}`}
-                color="primary"
+                color="inherit"
                 variant="text"
                 onClick={handleClickUndo}
               >

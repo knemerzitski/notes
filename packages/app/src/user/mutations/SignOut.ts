@@ -4,7 +4,7 @@ import { removeUsers } from '../models/signed-in-user/remove';
 
 export const SignOut = mutationDefinition(
   gql(`
-    mutation SignOut($input: SignOutInput!) @noauth {
+    mutation SignOut($input: SignOutInput!) @remote {
       signOut(input: $input) {
         signedOutUserIds
       }
