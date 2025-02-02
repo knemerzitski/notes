@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
 import { beforeEach, expect, it, vi } from 'vitest';
-import { CustomHeaderName } from '~api-app-shared/custom-headers';
 
 import {
   SignInInput,
@@ -70,9 +69,6 @@ it('creates new user, updates displayName and publishes it to websocket', async 
   const signInData = expectGraphQLResponseData(signInResponse);
   const userId = signInData.signIn.signedInUser.id;
   const userIdStr = String(userId);
-
-  // Set user for subsequent requests
-  httpSession.setHeader(CustomHeaderName.USER_ID, userIdStr);
 
   // Start WebSocket subscription
   const ws = await createGraphQLWebSocket({
