@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from 'react';
 import { gql } from '../../__generated__';
 import { ApolloOperation, Maybe, SignedInUser } from '../../__generated__/graphql';
 import { useUserId } from '../../user/context/user-id';
-import { setOperationUserId } from '../link/current-user';
 import { getAllOngoingOperations } from '../link/persist/get-all';
 
 const UseIsExecutingOperation_Query = gql(`
@@ -99,8 +98,6 @@ function isSameOperation(
   const checkOperation = {
     variables: cond.variables,
   };
-
-  setOperationUserId(checkOperation, cond.userId);
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const ongoingVariables = JSON.parse(ongoingOperation.variables);

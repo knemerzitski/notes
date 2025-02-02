@@ -6,15 +6,12 @@ import {
   GraphQLErrorCode,
 } from '~api-app-shared/graphql/error-codes';
 
-import { isDefined } from '~utils/type-guards/is-defined';
-
 import { UserMessageType } from '../../__generated__/graphql';
 import { addUserMessages } from '../../user/models/message/add';
 import { setUserSessionExpired } from '../../user/models/signed-in-user/set-session-expired';
 import { SyncSessionCookies } from '../../user/mutations/SyncSessionCookies';
-import { getOperationOrRequestUserId } from '../link/current-user';
 import { GateController } from '../link/gate';
-import { AppContext } from '../types';
+import { findOperationUserIds } from '../utils/find-operation-user-id';
 import { mutate } from '../utils/mutate';
 
 import { MutationUpdaterFunctionMap } from './mutation-updater-map';
@@ -22,44 +19,63 @@ import { MutationUpdaterFunctionMap } from './mutation-updater-map';
 export function createErrorLink({
   client,
   mutationUpdaterFnMap,
-  appContext,
   getUserGate,
   generateMessageId = nanoid,
 }: {
   client: ApolloClient<object>;
   mutationUpdaterFnMap: Pick<MutationUpdaterFunctionMap, 'get'>;
-  appContext: Pick<AppContext, 'userId'>;
   getUserGate: (userId: string) => Pick<GateController, 'open' | 'close'>;
   generateMessageId?: () => string;
 }) {
   return onError(({ graphQLErrors = [], operation, forward }) => {
-    const operationUserId = getOperationOrRequestUserId(operation);
+    const unauthenticatedUserIds = new Set<string>();
+    const unauthenticatedReasons = new Set<AuthenticationFailedReason>();
+    graphQLErrors.forEach((err) => {
+      const userIdsAffectedByError = findOperationUserIds(operation, err.path);
 
-    const unauthenticatedReasons = new Set(
-      graphQLErrors
-        .map((err) => {
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-          const code = err.extensions?.code;
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-          const reason = err.extensions?.reason;
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      const code = err.extensions?.code;
+      if (code === GraphQLErrorCode.UNAUTHENTICATED) {
+        userIdsAffectedByError.forEach((userId) => {
+          unauthenticatedUserIds.add(userId);
+        });
 
-          if (code != null) {
-            return reason as AuthenticationFailedReason;
-          }
-          return;
-        })
-        .filter(isDefined)
-    );
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        const reason = err.extensions?.reason;
+        if (reason) {
+          unauthenticatedReasons.add(reason as AuthenticationFailedReason);
+        }
+      } else {
+        if (userIdsAffectedByError.length === 0) {
+          throw new Error('Expected find userId in operation to show GraphQL errors');
+        }
 
-    const hasUnauthenticatedError = unauthenticatedReasons.size > 0;
-    // Prevent user from fetching on unauthentication error
-    if (hasUnauthenticatedError && operationUserId != null) {
-      const gate = getUserGate(operationUserId);
+        // By default write message to cache and then it will be shown to user
+
+        userIdsAffectedByError.forEach((userId) => {
+          addUserMessages(
+            userId,
+            [
+              {
+                type: UserMessageType.ERROR,
+                id: generateMessageId(),
+                text: err.message,
+              },
+            ],
+            client.cache
+          );
+        });
+      }
+    });
+
+    for (const sessionExpireUserId of unauthenticatedUserIds.values()) {
+      // Prevent user from fetching on unauthentication error
+      const gate = getUserGate(sessionExpireUserId);
       gate.close();
 
-      setUserSessionExpired(operationUserId, true, client.cache);
+      setUserSessionExpired(sessionExpireUserId, true, client.cache);
       addUserMessages(
-        operationUserId,
+        sessionExpireUserId,
         [
           {
             id: generateMessageId(),
@@ -79,31 +95,13 @@ export function createErrorLink({
       });
     }
 
-    const userId = operationUserId ?? appContext.userId;
-    if (!userId) {
-      throw new Error('Expected userId to be defined to show GraphQL errors');
+    const hasUserWithUnauthenticatedErrors =
+      unauthenticatedReasons.size > 0 && unauthenticatedUserIds.size > 0;
+
+    if (hasUserWithUnauthenticatedErrors) {
+      return forward(operation);
     }
 
-    // By default write message to cache and then it will be shown to user
-    graphQLErrors.forEach(({ message, extensions }) => {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      if (extensions?.code !== GraphQLErrorCode.UNAUTHENTICATED) {
-        addUserMessages(
-          userId,
-          [
-            {
-              type: UserMessageType.ERROR,
-              id: generateMessageId(),
-              text: message,
-            },
-          ],
-          client.cache
-        );
-      }
-    });
-
-    return hasUnauthenticatedError && operationUserId != null
-      ? forward(operation)
-      : undefined;
+    return;
   });
 }

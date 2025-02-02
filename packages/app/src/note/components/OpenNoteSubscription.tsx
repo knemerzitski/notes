@@ -4,7 +4,6 @@ import { useEffect } from 'react';
 
 import { gql } from '../../__generated__';
 import { useGetMutationUpdaterFn } from '../../graphql/context/get-mutation-updater-fn';
-import { GlobalOperationVariables } from '../../graphql/types';
 import { apolloClientSubscribe } from '../../graphql/utils/apollo-client-subscribe';
 import { useUserId } from '../../user/context/user-id';
 import { useNoteId } from '../context/note-id';
@@ -53,11 +52,9 @@ function Subscription({ delay }: { delay: number }) {
             id: userId,
           },
           note: {
-            id: noteId
-          }
+            id: noteId,
+          },
         },
-        // Force a new subscription when user changes
-        [GlobalOperationVariables.USER_ID]: userId,
       },
     });
 

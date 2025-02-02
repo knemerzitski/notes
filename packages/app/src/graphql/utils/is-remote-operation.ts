@@ -4,7 +4,7 @@ import { isObjectLike } from '~utils/type-guards/is-object-like';
 import { Maybe } from '~utils/types';
 
 import { gql } from '../../__generated__';
-import { hasNoAuthDirective } from '../link/current-user';
+import { hasRemoteDirective } from '../link/remote-directive';
 
 const IsRemoteOperation_Query = gql(`
   query IsRemoteOperation_Query($id: ObjectID!) {
@@ -51,9 +51,13 @@ export function isRemoteOperation(
     localOnly = objOrLocalOnly;
   }
 
-  if (localOnly === true && !hasNoAuthDirective(document)) {
-    return false;
+  if (!localOnly) {
+    return true;
   }
 
-  return true;
+  if (hasRemoteDirective(document)) {
+    return true;
+  }
+
+  return false;
 }

@@ -2,8 +2,9 @@ import { ApolloCache } from '@apollo/client';
 import { DefinedMap } from '~utils/map/defined-map';
 
 import { gql } from '../../__generated__';
-import { getOperationOrRequestUserId } from '../link/current-user';
 import { GateController, GateLink } from '../link/gate';
+
+import { findOperationUserIds } from './find-operation-user-id';
 
 const InitUsersGates_Query = gql(`
   query InitUsersGates_Query{
@@ -26,8 +27,8 @@ export function createUsersGates(link: Pick<GateLink, 'create'>) {
   const gateByUserId = new Map<string, GateController>();
   const definedGateByUserId = new DefinedMap(gateByUserId, (userId) =>
     link.create((op) => {
-      const opUserId = getOperationOrRequestUserId(op);
-      return opUserId === userId;
+      const opUserIds = findOperationUserIds(op);
+      return opUserIds.includes(userId);
     })
   );
 

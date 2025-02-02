@@ -11,7 +11,7 @@ import mitt, { Emitter } from 'mitt';
 import { CountMap } from '~utils/map/count-map';
 import { DefinedMap } from '~utils/map/defined-map';
 
-import { getOperationOrRequestUserId } from './current-user';
+import { findOperationUserIds } from '../utils/find-operation-user-id';
 
 interface StatsOngoingEvents {
   byType: {
@@ -81,22 +81,35 @@ export class StatsLink extends ApolloLink {
     const type = definition.operation;
     const operationName = getOperationName(operation.query) ?? 'unknown';
 
-    const userId = getOperationOrRequestUserId(operation) ?? '';
-    const userOngoing = this.definedOngoingByUser.get(userId);
+    const userIds: string[] = [];
+    try {
+      userIds.push(...findOperationUserIds(operation));
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+    if (userIds.length === 0) {
+      // Operation without user is marked with empty string
+      userIds.push('');
+    }
 
-    userOngoing.byTypeMap[type]++;
-    userOngoing.operationCountMap.increment(operationName);
-    this.globalOngoing.byTypeMap[type]++;
-    this.globalOngoing.operationCountMap.increment(operationName);
+    for (const userId of userIds) {
+      const userOngoing = this.definedOngoingByUser.get(userId);
 
-    userOngoing.eventBus.emit('byType', {
-      type,
-      ongoingCount: userOngoing.byTypeMap[type],
-    });
-    userOngoing.eventBus.emit('byName', {
-      operationName,
-      ongoingCount: userOngoing.operationCountMap.get(operationName),
-    });
+      userOngoing.byTypeMap[type]++;
+      userOngoing.operationCountMap.increment(operationName);
+      this.globalOngoing.byTypeMap[type]++;
+      this.globalOngoing.operationCountMap.increment(operationName);
+
+      userOngoing.eventBus.emit('byType', {
+        type,
+        ongoingCount: userOngoing.byTypeMap[type],
+      });
+      userOngoing.eventBus.emit('byName', {
+        operationName,
+        ongoingCount: userOngoing.operationCountMap.get(operationName),
+      });
+    }
 
     this.globalOngoing.eventBus.emit('byType', {
       type,
@@ -112,19 +125,23 @@ export class StatsLink extends ApolloLink {
     return new Observable<FetchResult>((observer: Observer<FetchResult>) => {
       const sub = observable.subscribe(observer);
       return () => {
-        userOngoing.byTypeMap[type]--;
-        userOngoing.operationCountMap.decrement(operationName);
-        this.globalOngoing.byTypeMap[type]--;
-        this.globalOngoing.operationCountMap.decrement(operationName);
+        for (const userId of userIds) {
+          const userOngoing = this.definedOngoingByUser.get(userId);
 
-        userOngoing.eventBus.emit('byType', {
-          type,
-          ongoingCount: userOngoing.byTypeMap[type],
-        });
-        userOngoing.eventBus.emit('byName', {
-          operationName,
-          ongoingCount: userOngoing.operationCountMap.get(operationName),
-        });
+          userOngoing.byTypeMap[type]--;
+          userOngoing.operationCountMap.decrement(operationName);
+          this.globalOngoing.byTypeMap[type]--;
+          this.globalOngoing.operationCountMap.decrement(operationName);
+
+          userOngoing.eventBus.emit('byType', {
+            type,
+            ongoingCount: userOngoing.byTypeMap[type],
+          });
+          userOngoing.eventBus.emit('byName', {
+            operationName,
+            ongoingCount: userOngoing.operationCountMap.get(operationName),
+          });
+        }
 
         this.globalOngoing.eventBus.emit('byType', {
           type,

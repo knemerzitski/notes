@@ -19,7 +19,7 @@ export const TrashUserNoteLink = mutationDefinition(
     }
 
     const noteId = variables.input.note.id;
-    if (handleNoteError(noteId, cache, errors, options)) {
+    if (handleNoteError(variables.input.authUser.id, noteId, cache, errors)) {
       return;
     }
   }

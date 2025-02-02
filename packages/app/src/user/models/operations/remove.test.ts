@@ -12,7 +12,6 @@ const userId = 'a';
 
 beforeEach(() => {
   const params = createDefaultGraphQLServiceParams();
-  params.context.getUserId = () => userId;
   const service = createGraphQLService(params);
   cache = service.client.cache;
 });

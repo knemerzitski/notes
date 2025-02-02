@@ -9,13 +9,9 @@ import { isQueryOperation } from '@apollo/client/utilities';
 import { CachePersistor, PersistentStorage } from 'apollo3-cache-persist';
 
 import { OperationTypeNode } from 'graphql';
-import { Maybe } from '~utils/types';
 
-import { gql } from '../../__generated__';
 import {
-  AppContext,
   CacheReadyCallbacks,
-  GlobalOperationVariables,
   GraphQLServiceAction,
   MutationDefinitions,
   TypePoliciesList,
@@ -34,14 +30,6 @@ import { createLinks } from './links';
 import { createMutationUpdaterFunctionMap } from './mutation-updater-map';
 import { addTypePolicies, createTypePolicies } from './type-policies';
 
-const CreateGraphQLService_Query = gql(`
-  query CreateGraphQLService_Query {
-    currentSignedInUser {
-      id
-    }
-  }
-`);
-
 export function createGraphQLService({
   httpUri,
   wsUrl,
@@ -53,7 +41,6 @@ export function createGraphQLService({
   mutationDefinitions,
   storageKey,
   storage,
-  context,
   skipRestoreCache = false,
   purgeCache = false,
   linkOptions,
@@ -80,19 +67,10 @@ export function createGraphQLService({
    * @default false
    */
   purgeCache?: boolean;
-  context: {
-    getUserId(cache: InMemoryCache): Maybe<string>;
-  };
   linkOptions?: Parameters<typeof createLinks>[0]['options'];
   actions?: GraphQLServiceAction[];
 }) {
   const mutationUpdaterFnMap = createMutationUpdaterFunctionMap(mutationDefinitions);
-
-  const appContext: AppContext = {
-    get userId() {
-      return context.getUserId(cache);
-    },
-  };
 
   const cache = new InMemoryCache({
     gcExplicitWrites: true,
@@ -123,51 +101,19 @@ export function createGraphQLService({
     cache,
   });
 
-  const typePolicies = createTypePolicies(typePoliciesList, {
-    appContext,
-    variablesUserIdKey: GlobalOperationVariables.USER_ID,
-    get isCacheLocked() {
-      return restorer.status !== 'done';
-    },
-  });
+  const typePolicies = createTypePolicies(typePoliciesList, {});
 
   addTypePolicies(typePolicies, cache);
 
   const taggedEvict = new TaggedEvict(evictOptionsList);
 
   const wsClient = wsUrl
-    ? new WebSocketClient(
-        {
-          get userId() {
-            return appContext.userId;
-          },
-        },
-        {
-          url: wsUrl,
-        }
-      )
+    ? new WebSocketClient({
+        url: wsUrl,
+      })
     : undefined;
 
-  // Restart WebSocketClient when user changes
-  // Check must happen earlier than any React component so that subscriptions will not use invalid userId
-  const unsubUserIdChangedWatch = cache.watch({
-    query: CreateGraphQLService_Query,
-    optimistic: false,
-    immediate: false,
-    callback: (diff) => {
-      if (!wsClient || wsClient.connectedCount === 0) {
-        return;
-      }
-      const userId = diff.result?.currentSignedInUser.id;
-      if (userId != null && wsClient.userId !== userId) {
-        wsClient.restart();
-      }
-    },
-  });
-
   const links = createLinks({
-    appContext,
-    wsClient,
     cache,
     options: linkOptions,
   });
@@ -219,7 +165,6 @@ export function createGraphQLService({
   });
 
   const errorLink = createErrorLink({
-    appContext,
     client: apolloClient,
     mutationUpdaterFnMap,
     getUserGate,
@@ -251,7 +196,6 @@ export function createGraphQLService({
     dispose: () => {
       apolloClient.stop();
       disposeOnlineGate();
-      unsubUserIdChangedWatch();
     },
   };
 

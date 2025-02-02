@@ -39,7 +39,6 @@ function createNote(
 it('runs callback on category change', async () => {
   const params = createDefaultGraphQLServiceParams();
   params.terminatingLink = new MockLink([]);
-  params.context.getUserId = () => userId;
   const service = createGraphQLService(params);
   const cache = service.client.cache;
 

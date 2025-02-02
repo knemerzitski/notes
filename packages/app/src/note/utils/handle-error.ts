@@ -3,10 +3,7 @@ import { GraphQLError } from 'graphql';
 
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
-import { Note } from '../../__generated__/graphql';
-import { getOperationOrRequestUserId } from '../../graphql/link/current-user';
-
-import { getOperationUserId } from '../../graphql/utils/get-operation-user-id';
+import { Note, SignedInUser } from '../../__generated__/graphql';
 import { isErrorCode } from '../../graphql/utils/is-error-code';
 
 import { deleteNote } from '../models/note/delete';
@@ -17,20 +14,15 @@ import { getUserNoteLinkId } from './id';
  * Deletes note from cache if recevied error `NOT_FOUND`.
  */
 export function handleNoteError(
+  userId: SignedInUser['id'],
   noteId: Note['id'],
   cache: Pick<
     ApolloCache<unknown>,
     'readQuery' | 'updateQuery' | 'identify' | 'gc' | 'evict' | 'modify' | 'writeQuery'
   >,
-  errors: readonly GraphQLError[] | undefined,
-  operation: Parameters<typeof getOperationOrRequestUserId>[0] | undefined
+  errors: readonly GraphQLError[] | undefined
 ): boolean {
-  if (!errors || !operation) {
-    return false;
-  }
-
   if (isErrorCode(errors, GraphQLErrorCode.NOT_FOUND)) {
-    const userId = getOperationUserId(operation);
     deleteNote({ userNoteLinkId: getUserNoteLinkId(noteId, userId) }, cache);
     return true;
   }

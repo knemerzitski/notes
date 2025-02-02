@@ -5,7 +5,7 @@ import { addUserAuthProvider } from '../models/signed-in-user/add-auth-provider'
 
 export const SignIn = mutationDefinition(
   gql(`
-  mutation SignIn($input: SignInInput!) @noauth {
+  mutation SignIn($input: SignInInput!) @remote {
     signIn(input: $input) {
       __typename
       ... on SignInResult {

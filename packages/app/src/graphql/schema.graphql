@@ -9,11 +9,11 @@ The @persist directive will persist operation in cache until it has received a r
 When app is reopened, all unfinished mutations are resumed.
 """
 directive @persist on MUTATION
-
 """
-Operations with @noauth directive will not be tied to any user. They will be sent as if user is not signed in.
+Operations with @remote directive will be sent to server regardless if user is local. 
+Used for sign in or sign out operations.
 """
-directive @noauth on MUTATION
+directive @remote on MUTATION
 
 """
 Any primitive: Int | Float | String | Boolean | ID
