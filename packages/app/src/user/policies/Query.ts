@@ -109,7 +109,7 @@ export const Query: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return existing;
       },
-      note: {
+      publicUser: {
         keyArgs: false,
         read(_existing, { args, toReference }) {
           if (!args || !isObjectLike(args)) {
@@ -136,22 +136,15 @@ export const Query: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
   };
 };
 
+const userSpecificFields: string[] = ['currentSignedInUser', 'signedInUser'];
+
 export const evictOptions: TaggedEvictOptionsList = [
   {
     tag: EvictTag.USER_SPECIFIC,
     options: [
-      {
-        id: 'ROOT_QUERY',
-        fieldName: 'currentSignedInUser',
-      },
-      {
-        id: 'ROOT_QUERY',
-        fieldName: 'signedInUser',
-      },
-      {
-        id: 'ROOT_QUERY',
-        fieldName: 'note',
-      },
+      ...userSpecificFields.map((fieldName) => ({
+        fieldName,
+      })),
     ],
   },
 ];
