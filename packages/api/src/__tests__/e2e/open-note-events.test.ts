@@ -129,7 +129,6 @@ async function createHttpOperations(db: ReturnType<typeof createDBdata>) {
   const sessionsCookieKey = createDefaultApiOptions().sessions?.cookieKey ?? 'Sessions';
 
   const httpSession = new HttpSession();
-  httpSession.setHeader(CustomHeaderName.USER_ID, objectIdToStr(db.session.userId));
   httpSession.setCookie(
     sessionsCookieKey,
     [objectIdToStr(db.session.userId), db.session.cookieId].join(':')

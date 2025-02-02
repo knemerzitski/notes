@@ -8,7 +8,6 @@
 import { beforeEach, expect, it } from 'vitest';
 
 import { resetDatabase } from '~api/__tests__/helpers/mongodb/mongodb';
-import { CustomHeaderName } from '~api-app-shared/custom-headers';
 
 // TODO use api e2e test helpers
 
@@ -20,8 +19,8 @@ beforeEach(async () => {
 });
 
 interface User {
+  userId: string;
   headers: {
-    [CustomHeaderName.USER_ID]: string;
     Cookie: string[];
   };
 }
@@ -62,17 +61,17 @@ async function fetchSignIn(): Promise<User> {
   expectNoErrors(graphQLResponse);
 
   const cookie = res.headers.getSetCookie();
-  const userId = cookie[0]?.substring(9, cookie[0].indexOf(':'));
+  const userId = cookie[0]!.substring(9, cookie[0]!.indexOf(':'));
 
   return {
+    userId,
     headers: {
-      [CustomHeaderName.USER_ID]: userId ?? '',
       Cookie: cookie,
     },
   };
 }
 
-async function fetchCreateNote(user: User, content: string): Promise<User> {
+async function fetchCreateNote(user: User, content: string): Promise<void> {
   const res = await fetch(fetchUrl, {
     method: 'POST',
     headers: {
@@ -84,7 +83,7 @@ async function fetchCreateNote(user: User, content: string): Promise<User> {
       variables: {
         input: {
           authUser: {
-            id: user.headers[CustomHeaderName.USER_ID],
+            id: user.userId,
           },
           collabText: {
             initialText: content,
@@ -105,16 +104,6 @@ async function fetchCreateNote(user: User, content: string): Promise<User> {
 
   const graphQLResponse = await res.json();
   expectNoErrors(graphQLResponse);
-
-  const cookie = res.headers.getSetCookie();
-  const userId = cookie[0]?.substring(9, cookie[0].indexOf(':'));
-
-  return {
-    headers: {
-      [CustomHeaderName.USER_ID]: userId ?? '',
-      Cookie: cookie,
-    },
-  };
 }
 
 async function fetchNotes(user: User) {
@@ -127,7 +116,7 @@ async function fetchNotes(user: User) {
     body: JSON.stringify({
       operationName: 'Notes_Query',
       variables: {
-        userId: user.headers[CustomHeaderName.USER_ID],
+        userId: user.userId,
         first: 100,
       },
       query: `#graphql
