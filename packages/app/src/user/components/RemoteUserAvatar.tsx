@@ -9,8 +9,8 @@ import { SmallTextBackgroundAvatar } from '../../utils/components/SmallTextBackg
 import { TextBackgroundAvatar } from '../../utils/components/TextBackgroundAvatar';
 import { useUserId } from '../context/user-id';
 
-const RemoteUserAvatar_PublicUserFragment = gql(`
-  fragment RemoteUserAvatar_PublicUserFragment on PublicUser {
+const RemoteUserAvatar_UserFragment = gql(`
+  fragment RemoteUserAvatar_UserFragment on User {
     id
     profile {
       displayName
@@ -30,10 +30,10 @@ export const RemoteUserAvatar = forwardRef<HTMLDivElement, RemoteUserAvatarProps
     const userId = useUserId();
 
     const { complete, data: user } = useFragment({
-      fragment: RemoteUserAvatar_PublicUserFragment,
-      fragmentName: 'RemoteUserAvatar_PublicUserFragment',
+      fragment: RemoteUserAvatar_UserFragment,
+      fragmentName: 'RemoteUserAvatar_UserFragment',
       from: {
-        __typename: 'PublicUser',
+        __typename: 'User',
         id: userId,
       },
     });

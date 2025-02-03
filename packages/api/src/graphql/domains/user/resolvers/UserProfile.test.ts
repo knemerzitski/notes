@@ -5,10 +5,10 @@ import { mockResolver } from '../../../../__tests__/helpers/graphql/mock-resolve
 import { createPartialValueQueryFn } from '../../../../mongodb/query/query';
 import { UserSchema } from '../../../../mongodb/schema/user';
 
-import { PublicUserProfile } from './PublicUserProfile';
+import { UserProfile } from './UserProfile';
 
 describe('displayName', () => {
-  const resolveDisplayName = mockResolver(PublicUserProfile.displayName!);
+  const resolveDisplayName = mockResolver(UserProfile.displayName!);
 
   it('returns undefined without query', async () => {
     const displayName = await resolveDisplayName({

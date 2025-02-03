@@ -14,11 +14,8 @@ const ForgetUserMenuItem_Query = gql(`
   query ForgetUserMenuItem_Query($id: ObjectID!) {
     signedInUser(by: { id: $id }) @client {
       id
-      public {
-        id
-        profile {
-          displayName
-        }
+      profile {
+        displayName
       }
       local {
         id
@@ -53,7 +50,7 @@ export function ForgetUserMenuItem() {
     closeMenu();
 
     confirmUnsavedChanges({
-      title: `Forget "${user.public.profile.displayName}"?`,
+      title: `Forget "${user.profile.displayName}"?`,
       condition: hasUserOngoingOperations([userId], client.cache),
       onSuccess: () => {
         removeUser(userId);

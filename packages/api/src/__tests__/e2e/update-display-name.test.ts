@@ -40,10 +40,8 @@ it('creates new user, updates displayName and publishes it to websocket', async 
             ... on SignInResult {
               signedInUser {
                 id
-                public {
-                  profile {
-                    displayName
-                  }
+                profile {
+                  displayName
                 }
               }
             }

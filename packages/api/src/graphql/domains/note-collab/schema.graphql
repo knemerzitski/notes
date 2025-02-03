@@ -149,7 +149,7 @@ type OpenNoteUserSubscribedEvent {
   """
   This user is subscribed to open note events. `publicUserNoteLink.user`
   """
-  user: PublicUser!
+  user: User!
   """
   Affected Note
   """
@@ -167,7 +167,7 @@ type OpenNoteUserUnsubscribedEvent {
   """
   This user is no longer subscribed to open note events.
   """
-  user: PublicUser!
+  user: User!
   """
   Affected Note
   """

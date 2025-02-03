@@ -11,13 +11,9 @@ export function generateLocalUser(
   return {
     __typename: 'User',
     id,
-    public: {
-      __typename: 'PublicUser',
-      id,
-      profile: {
-        __typename: 'PublicUserProfile',
-        displayName: 'Local Account',
-      },
+    profile: {
+      __typename: 'UserProfile',
+      displayName: 'Local Account',
     },
     local: {
       __typename: 'LocalSignedInUser',

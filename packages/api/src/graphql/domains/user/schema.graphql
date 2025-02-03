@@ -1,4 +1,4 @@
-################################ User, PublicUser ################################
+################################ User ################################
 
 """
 User info that current user itself can access
@@ -9,29 +9,15 @@ type User {
   """
   id: ObjectID!
   """
-  User data that might be accessed by other users
-  """
-  public: PublicUser!
-}
-
-"""
-TODO desc
-"""
-type PublicUser {
-  """
-  Same value as User.id
-  """
-  id: ObjectID!
-  """
   Self-descriptive
   """
-  profile: PublicUserProfile!
+  profile: UserProfile!
 }
 
 """
 TODO desc
 """
-type PublicUserProfile {
+type UserProfile {
   """
   Text to be displayed in UI to distinguish this user. Can be anything set by the user.
   """

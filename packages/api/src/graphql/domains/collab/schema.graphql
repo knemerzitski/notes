@@ -70,7 +70,7 @@ type CollabTextRecord implements Node {
   """
   User who created this record
   """
-  creatorUser: PublicUser!
+  creatorUser: User!
   """
   Changes this record makes to the text
   """

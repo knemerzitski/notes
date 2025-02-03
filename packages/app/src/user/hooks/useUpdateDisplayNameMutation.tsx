@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 
 import { makeFragmentData } from '../../__generated__';
 import {
-  PublicUserProfile,
+  UserProfile,
   UpdateSignedInUserDisplayNamePayloadFragmentDoc,
 } from '../../__generated__/graphql';
 import { useMutation } from '../../graphql/hooks/useMutation';
@@ -15,7 +15,7 @@ export function useUpdateDisplayNameMutation() {
   const [updateDisplayNameMutation] = useMutation(UpdateSignedInUserDisplayName);
 
   return useCallback(
-    (displayName: PublicUserProfile['displayName']) => {
+    (displayName: UserProfile['displayName']) => {
       return updateDisplayNameMutation({
         variables: {
           input: {
@@ -38,13 +38,9 @@ export function useUpdateDisplayNameMutation() {
                 signedInUser: {
                   __typename: 'User',
                   id: userId,
-                  public: {
-                    id: userId,
-                    __typename: 'PublicUser',
-                    profile: {
-                      __typename: 'PublicUserProfile',
-                      displayName,
-                    },
+                  profile: {
+                    __typename: 'UserProfile',
+                    displayName,
                   },
                 },
               },

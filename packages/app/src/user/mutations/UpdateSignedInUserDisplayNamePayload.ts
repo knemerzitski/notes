@@ -6,11 +6,8 @@ export const UpdateSignedInUserDisplayNamePayload = mutationDefinition(
     fragment UpdateSignedInUserDisplayNamePayload on UpdateSignedInUserDisplayNamePayload {
       signedInUser {
         id
-        public {
-          id
-          profile {
-            displayName
-          }
+        profile {
+          displayName
         }
       }
     }  

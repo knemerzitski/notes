@@ -7,11 +7,8 @@ const WriteLocalUser_Query = gql(`
   query WriteLocalUser_Query {
     localUser {
       id
-      public {
-        id
-        profile {
-          displayName
-        }
+      profile {
+        displayName
       }
       local {
         id

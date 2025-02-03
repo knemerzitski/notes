@@ -2,8 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { ObjectId } from 'mongodb';
-import { describe, it, expect, vi } from 'vitest';
-import { maybeCallFn } from '~utils/maybe-call-fn';
+import { describe, it, expect } from 'vitest';
 
 import { mockResolver } from '../../../../__tests__/helpers/graphql/mock-resolver';
 import { createPartialValueQueryFn } from '../../../../mongodb/query/query';
@@ -35,21 +34,5 @@ describe('id', () => {
       }),
     });
     expect(id).toStrictEqual(_id);
-  });
-});
-
-describe('public', () => {
-  const resolvePublic = mockResolver(User.public!);
-
-  it('returns parent query', async () => {
-    const queryFn = vi.fn();
-    const _public = await maybeCallFn(
-      resolvePublic({
-        userId: {} as any,
-        query: queryFn,
-      })
-    );
-
-    expect(_public?.query).toStrictEqual(queryFn);
   });
 });

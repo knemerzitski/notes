@@ -15,11 +15,8 @@ const SignOutMenuItem_Query = gql(`
   query SignOutMenuItem_Query($id: ObjectID!) {
     signedInUser(by: { id: $id }) @client {
       id
-      public {
-        id
-        profile {
-          displayName
-        }
+      profile {
+        displayName
       }
       local {
         id
@@ -55,7 +52,7 @@ export function SignOutMenuItem() {
     closeMenu();
 
     confirmUnsavedChanges({
-      title: `Sign out "${user.public.profile.displayName}"?`,
+      title: `Sign out "${user.profile.displayName}"?`,
       condition: hasUserOngoingOperations([userId], client.cache),
       onSuccess: () => {
         void signOutMutation(userId).finally(() => {

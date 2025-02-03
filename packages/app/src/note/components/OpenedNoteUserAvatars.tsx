@@ -23,7 +23,7 @@ const OpenedNoteUserAvatars_NoteFragment = gql(`
       }
       user {
         id
-        ...UserAvatar_PublicUserFragment
+        ...UserAvatar_UserFragment
       }
     }
   }

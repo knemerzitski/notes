@@ -33,20 +33,13 @@ it('does not serialize different user same mutations', async () => {
   const cache = service.client.cache;
 
   cache.restore({
-    'PublicUser:bHwDFcR58o66Q1': {
-      __typename: 'PublicUser',
-      id: 'bHwDFcR58o66Q1',
-      profile: {
-        __typename: 'PublicUserProfile',
-        displayName: 'Local Account',
-      },
-    },
     'User:bHwDFcR58o66Q1': {
       __typename: 'User',
       id: 'bHwDFcR58o66Q1',
       localOnly: true,
-      public: {
-        __ref: 'PublicUser:bHwDFcR58o66Q1',
+      profile: {
+        __typename: 'UserProfile',
+        displayName: 'Local Account',
       },
     },
     ROOT_QUERY: {

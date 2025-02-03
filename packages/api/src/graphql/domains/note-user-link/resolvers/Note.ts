@@ -8,6 +8,14 @@ export const Note: Pick<NoteResolvers, 'users'> = {
     return withPreExecuteList(
       (index, updateSize) => {
         return {
+          userId: async () =>
+            (
+              await parent.query({
+                users: {
+                  _id: 1,
+                },
+              })
+            )?.users[index]?._id,
           noteId: async () =>
             (
               await parent.query({

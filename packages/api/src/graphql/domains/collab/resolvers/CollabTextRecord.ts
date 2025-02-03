@@ -48,6 +48,14 @@ export const CollabTextRecord: CollabTextRecordResolvers = {
   },
   creatorUser: (parent) => {
     return {
+      userId: async () =>
+        (
+          await parent.query({
+            creatorUser: {
+              _id: 1,
+            },
+          })
+        )?.creatorUser._id,
       query: createMapQueryFn(parent.query)<Pick<UserSchema, '_id' | 'profile'>>()(
         (query) => ({ creatorUser: query }),
         (result) => result.creatorUser
