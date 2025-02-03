@@ -5,8 +5,8 @@ import { ReactNode } from 'react';
 import { EmptySearchInfo } from './EmptySearchInfo';
 import { NotesSearchConnectionGrid } from './NotesSearchConnectionGrid';
 
-const _SearchNotesConnectionGrid_SignedInUserFragment = gql(`
-  fragment SearchNotesConnectionGrid_SignedInUserFragment on SignedInUser { 
+const _SearchNotesConnectionGrid_UserFragment = gql(`
+  fragment SearchNotesConnectionGrid_UserFragment on User { 
     id
     search_UserNoteLinkConnection: noteLinkSearchConnection(searchText: $searchText, first: $first, after: $after) {
       ...NotesSearchConnectionGrid_UserNoteLinkConnectionFragment

@@ -10,7 +10,7 @@ import { useCollabService } from '../hooks/useCollabService';
 import { cacheRecordToCollabServiceRecord } from '../utils/map-record';
 
 const SyncMissingRecords_Query = gql(`
-  query SyncMissingRecords_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!, $after: NonNegativeInt!, $first: PositiveInt!) {
+  query SyncMissingRecords_Query($userBy: UserByInput!, $noteBy: NoteByInput!, $after: NonNegativeInt!, $first: PositiveInt!) {
     signedInUser(by: $userBy) {
       id
       note(by: $noteBy) {

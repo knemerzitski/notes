@@ -6,7 +6,7 @@ import { useNoteId } from '../context/note-id';
 import { isNoteEditable } from '../utils/is-note-editable';
 
 const UseIsNoteEditable_Query = gql(`
-  query UseIsNoteEditable_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!) {
+  query UseIsNoteEditable_Query($userBy: UserByInput!, $noteBy: NoteByInput!) {
     signedInUser(by: $userBy) {
       id
       noteLink(by: $noteBy) {

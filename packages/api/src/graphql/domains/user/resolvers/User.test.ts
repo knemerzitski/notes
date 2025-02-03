@@ -9,10 +9,10 @@ import { mockResolver } from '../../../../__tests__/helpers/graphql/mock-resolve
 import { createPartialValueQueryFn } from '../../../../mongodb/query/query';
 import { UserSchema } from '../../../../mongodb/schema/user';
 
-import { SignedInUser } from './SignedInUser';
+import { User } from './User';
 
 describe('id', () => {
-  const resolveId = mockResolver(SignedInUser.id!);
+  const resolveId = mockResolver(User.id!);
 
   it('returns undefined with empty object', async () => {
     const id = await resolveId({
@@ -39,7 +39,7 @@ describe('id', () => {
 });
 
 describe('public', () => {
-  const resolvePublic = mockResolver(SignedInUser.public!);
+  const resolvePublic = mockResolver(User.public!);
 
   it('returns parent query', async () => {
     const queryFn = vi.fn();

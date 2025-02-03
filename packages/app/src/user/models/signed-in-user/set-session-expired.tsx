@@ -1,7 +1,7 @@
 import { ApolloCache } from '@apollo/client';
 
 import { gql } from '../../../__generated__';
-import { SignedInUser } from '../../../__generated__/graphql';
+import { User } from '../../../__generated__/graphql';
 
 const SetUserSessionExpired_Query = gql(`
   query SetUserSessionExpired_Query($id: ObjectID!) {
@@ -17,7 +17,7 @@ const SetUserSessionExpired_Query = gql(`
 
 // TODO test
 export function setUserSessionExpired(
-  userId: SignedInUser['id'],
+  userId: User['id'],
   sessionExpired: boolean,
   cache: Pick<ApolloCache<unknown>, 'writeQuery'>
 ) {
@@ -26,7 +26,7 @@ export function setUserSessionExpired(
     data: {
       __typename: 'Query',
       signedInUser: {
-        __typename: 'SignedInUser',
+        __typename: 'User',
         id: userId,
         local: {
           __typename: 'LocalSignedInUser',

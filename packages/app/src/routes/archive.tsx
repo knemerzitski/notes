@@ -6,9 +6,9 @@ import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
 import { routeFetchPolicy } from '../utils/route-fetch-policy';
 
 const RouteArchive_Query = gql(`
-  query RouteArchive_Query($userBy: SignedInUserByInput!, $archive_first: NonNegativeInt, $archive_after: ObjectID) {
-    signedInUser(by: $userBy){
-      ...ArchiveMain_SignedInUserFragment
+  query RouteArchive_Query($userBy: UserByInput!, $archive_first: NonNegativeInt, $archive_after: ObjectID) {
+    signedInUser(by: $userBy) {
+      ...ArchiveMain_UserFragment
     }
   }
 `);

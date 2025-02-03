@@ -1,9 +1,9 @@
-################################ SignedInUser, PublicUser ################################
+################################ User, PublicUser ################################
 
 """
 User info that current user itself can access
 """
-type SignedInUser {
+type User {
   """
   Self-descriptive
   """
@@ -19,7 +19,7 @@ TODO desc
 """
 type PublicUser {
   """
-  Same value as SignedInUser.id
+  Same value as User.id
   """
   id: ObjectID!
   """
@@ -43,7 +43,7 @@ type PublicUserProfile {
 """
 Contains no fields. Used by client schema for extending.
 """
-input SignedInUserByInput @oneOf {
+input UserByInput @oneOf {
   """
   Get user by id
   """
@@ -54,7 +54,7 @@ extend type Query {
   """
   Self-descriptive
   """
-  signedInUser(by: SignedInUserByInput!): SignedInUser! @auth(userId: { args: "by" })
+  signedInUser(by: UserByInput!): User! @auth(userId: { args: "by" })
 }
 
 ################################ Subscription signedInUserEvents ################################
@@ -71,7 +71,7 @@ input SignedInUserEventsInput {
   """
   Authenticated user whose events are being subscribed to
   """
-  authUser: SignedInUserByInput!
+  authUser: UserByInput!
 }
 
 """
@@ -101,7 +101,7 @@ input UpdateSignedInUserDisplayNameInput {
   """
   Authenticated user whose display name is changed
   """
-  authUser: SignedInUserByInput!
+  authUser: UserByInput!
   """
   New display name
   """
@@ -119,7 +119,7 @@ type UpdateSignedInUserDisplayNamePayload {
   """
   User after setting new display name
   """
-  signedInUser: SignedInUser!
+  signedInUser: User!
 }
 
 extend type Mutation {

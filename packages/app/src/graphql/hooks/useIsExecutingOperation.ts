@@ -4,7 +4,7 @@ import isEqual from 'lodash.isequal';
 import { useEffect, useRef, useState } from 'react';
 
 import { gql } from '../../__generated__';
-import { ApolloOperation, Maybe, SignedInUser } from '../../__generated__/graphql';
+import { ApolloOperation, Maybe, User } from '../../__generated__/graphql';
 import { useUserId } from '../../user/context/user-id';
 import { getAllOngoingOperations } from '../link/persist/get-all';
 
@@ -79,7 +79,7 @@ function isSameOperation(
   cond: {
     operationName: Maybe<Operation['operationName']>;
     variables?: Operation['variables'];
-    userId?: Maybe<SignedInUser['id']>;
+    userId?: Maybe<User['id']>;
   },
   ongoingOperation: Pick<ApolloOperation, 'operationName' | 'variables'>
 ) {

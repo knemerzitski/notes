@@ -2,12 +2,12 @@ import { ApolloCache } from '@apollo/client';
 
 import { gql } from '../../../__generated__';
 import {
-  AddUserAuthProviderSignedInUserFragmentFragment,
-  SignedInUser,
+  AddUserAuthProviderUserFragmentFragment,
+  User,
 } from '../../../__generated__/graphql';
 
-const AddUserAuthProvider_SignedInUserFragment = gql(`
-  fragment AddUserAuthProvider_SignedInUserFragment on SignedInUser {
+const AddUserAuthProvider_UserFragment = gql(`
+  fragment AddUserAuthProvider_UserFragment on User {
     id
     authProviderUsers {
       id
@@ -17,18 +17,18 @@ const AddUserAuthProvider_SignedInUserFragment = gql(`
 `);
 
 export function addUserAuthProvider(
-  userId: SignedInUser['id'],
-  authProvider: AddUserAuthProviderSignedInUserFragmentFragment['authProviderUsers'][0],
+  userId: User['id'],
+  authProvider: AddUserAuthProviderUserFragmentFragment['authProviderUsers'][0],
   cache: ApolloCache<unknown>
 ) {
   cache.writeFragment({
-    fragment: AddUserAuthProvider_SignedInUserFragment,
+    fragment: AddUserAuthProvider_UserFragment,
     id: cache.identify({
-      __typename: 'SignedInUser',
+      __typename: 'User',
       id: userId,
     }),
     data: {
-      __typename: 'SignedInUser',
+      __typename: 'User',
       id: userId,
       authProviderUsers: [authProvider],
     },

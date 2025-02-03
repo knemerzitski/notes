@@ -5,7 +5,7 @@ import { Note } from '../../__generated__/graphql';
 import { useUserId } from '../../user/context/user-id';
 
 const UseNoteExists_Query = gql(`
-  query UseNoteExists_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!){
+  query UseNoteExists_Query($userBy: UserByInput!, $noteBy: NoteByInput!){
     signedInUser(by: $userBy) {
       id
       noteLink(by: $noteBy) {

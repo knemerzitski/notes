@@ -4,7 +4,7 @@ import { nanoid } from 'nanoid';
 import { DistributivePartialBy } from '~utils/types';
 
 import { gql } from '../../../__generated__';
-import { AddUserOperationQueryQuery, SignedInUser } from '../../../__generated__/graphql';
+import { AddUserOperationQueryQuery, User } from '../../../__generated__/graphql';
 
 const AddUserOperation_Query = gql(`
   query AddUserOperation_Query($id: ObjectID!) {
@@ -47,7 +47,7 @@ type Operation = NonNullable<
 >['local']['operations'][0];
 
 export function addUserOperations(
-  userId: SignedInUser['id'],
+  userId: User['id'],
   operations: DistributivePartialBy<Operation, 'id'>[],
   cache: Pick<ApolloCache<unknown>, 'writeQuery'>
 ) {
@@ -60,7 +60,7 @@ export function addUserOperations(
     data: {
       __typename: 'Query',
       signedInUser: {
-        __typename: 'SignedInUser',
+        __typename: 'User',
         id: userId,
         local: {
           __typename: 'LocalSignedInUser',

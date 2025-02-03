@@ -13,5 +13,5 @@ export function generateSignedInUserId(
     }
   }
 
-  throw new Error('Failed to generate id for SignedInUser. This should never happend!');
+  throw new Error('Failed to generate id for User. This should never happend!');
 }

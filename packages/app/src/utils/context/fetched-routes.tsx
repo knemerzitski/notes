@@ -8,13 +8,13 @@ import {
   useRef,
 } from 'react';
 
-import { SignedInUser } from '../../__generated__/graphql';
+import { User } from '../../__generated__/graphql';
 import { getCurrentUserId } from '../../user/models/signed-in-user/get-current';
 
 export interface FetchedRoutes {
   add: (routeId: string) => void;
   has: (routeId: string) => boolean;
-  clear: (userId?: SignedInUser['id']) => void;
+  clear: (userId?: User['id']) => void;
   /**
    * Clear routes for all users
    */
@@ -32,7 +32,7 @@ export function useFetchedRoutes(): FetchedRoutes {
 }
 
 export function FetchedRoutesProvider({ children }: { children: ReactNode }) {
-  const fetchedRoutesByUserRef = useRef<Map<SignedInUser['id'] | null, Set<string>>>(
+  const fetchedRoutesByUserRef = useRef<Map<User['id'] | null, Set<string>>>(
     new Map()
   );
   const client = useApolloClient();

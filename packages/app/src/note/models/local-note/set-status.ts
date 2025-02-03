@@ -6,7 +6,7 @@ import { getUserNoteLinkId, parseUserNoteLinkByInput } from '../../utils/id';
 import { noteExists } from '../note/exists';
 
 const SetNotePendingStatus_Query = gql(`
-  query SetNotePendingStatus_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!) {
+  query SetNotePendingStatus_Query($userBy: UserByInput!, $noteBy: NoteByInput!) {
     signedInUser(by: $userBy) {
       id
       noteLink(by: $noteBy) {
@@ -57,7 +57,7 @@ export function setNotePendingStatus(
       data: {
         __typename: 'Query',
         signedInUser: {
-          __typename: 'SignedInUser',
+          __typename: 'User',
           id: userId,
           noteLink: {
             __typename: 'UserNoteLink',

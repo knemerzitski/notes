@@ -33,9 +33,9 @@ interface SignInResult {
   """
   Signed in user
   """
-  signedInUser: SignedInUser!
+  signedInUser: User!
   """
-  SignedInUser.id's
+  User.id's
   """
   availableUserIds: [String!]!
 }
@@ -47,9 +47,9 @@ type JustSignedInResult implements SignInResult {
   """
   Just signed in user
   """
-  signedInUser: SignedInUser!
+  signedInUser: User!
   """
-  Available SignedInUser.id's after sign in
+  Available User.id's after sign in
   """
   availableUserIds: [String!]!
   """
@@ -65,9 +65,9 @@ type AlreadySignedInResult implements SignInResult {
   """
   Current already signed in user
   """
-  signedInUser: SignedInUser!
+  signedInUser: User!
   """
-  Current available SignedInUser.id's
+  Current available User.id's
   """
   availableUserIds: [String!]!
 }
@@ -127,7 +127,7 @@ input SignOutInput @oneOf {
   """
   Sign out a specific user
   """
-  user: SignedInUserByInput
+  user: UserByInput
 }
 
 """
@@ -135,11 +135,11 @@ TODO desc
 """
 type SignOutPayload {
   """
-  SignedInUser.id's that were signed out.
+  User.id's that were signed out.
   """
   signedOutUserIds: [String!]!
   """
-  Available SignedInUser.id's after sign out.
+  Available User.id's after sign out.
   """
   availableUserIds: [String!]!
 }

@@ -18,7 +18,7 @@ import { moveNoteInConnection } from './move';
 import { removeNoteFromConnection } from './remove';
 
 const ReplaceNoteInConnection_Query = gql(`
-  query ReplaceNoteInConnection_Query($userBy: SignedInUserByInput!, $category: NoteCategory!) {
+  query ReplaceNoteInConnection_Query($userBy: UserByInput!, $category: NoteCategory!) {
     signedInUser(by: $userBy) {
       id
       noteLinkConnection(category: $category) {

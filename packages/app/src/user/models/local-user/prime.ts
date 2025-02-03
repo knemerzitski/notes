@@ -5,7 +5,7 @@ import { hasLocalUser } from './has';
 import { writeLocalUser } from './write';
 
 /**
- * Generates a local SignedInUser and writes it to cache if it doesn't exist
+ * Generates a local User and writes it to cache if it doesn't exist
  */
 export function primeLocalUser(
   cache: Pick<

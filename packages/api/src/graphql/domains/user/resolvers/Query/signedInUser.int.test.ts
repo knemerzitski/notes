@@ -22,7 +22,7 @@ import { fakeUserPopulateQueue } from '../../../../../__tests__/helpers/mongodb/
 import { DBSessionSchema } from '../../../../../mongodb/schema/session';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
-import { SignedInUser } from '../../../types.generated';
+import { User } from '../../../types.generated';
 
 interface Variables {
   id: ObjectId;
@@ -72,7 +72,7 @@ async function executeOperation(
   contextValue = createGraphQLResolversContext(options);
 
   return await apolloServer.executeOperation<{
-    signedInUser: SignedInUser;
+    signedInUser: User;
   }>(
     {
       query,

@@ -14,7 +14,7 @@ import { gql } from '../../../__generated__';
 import { useUserId } from '../../../user/context/user-id';
 
 const ExcludedConnectionNotesTable_Query = gql(`
-  query ExcludedConnectionNotesTable_Query($userBy: SignedInUserByInput!) {
+  query ExcludedConnectionNotesTable_Query($userBy: UserByInput!) {
     signedInUser(by: $userBy) {
       id
       noteLinkConnection(category: DEFAULT) {

@@ -66,11 +66,11 @@ function addNoteToList(
   categoryName: string,
   cacheObj: NormalizedCacheObject
 ) {
-  const signedInUserKey = `SignedInUser:${userId}`;
+  const signedInUserKey = `User:${userId}`;
   let signedInUser: any = cacheObj[signedInUserKey];
   if (!signedInUser) {
     signedInUser = {
-      __typename: 'SignedInUser',
+      __typename: 'User',
       id: userId,
     };
   }

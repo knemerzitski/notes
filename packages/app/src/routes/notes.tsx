@@ -6,9 +6,9 @@ import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
 import { routeFetchPolicy } from '../utils/route-fetch-policy';
 
 const RouteNotes_Query = gql(`
-  query RouteNotes_Query($userBy: SignedInUserByInput!, $default_first: NonNegativeInt, $default_after: ObjectID) {
-    signedInUser(by: $userBy){
-      ...NoteMain_SignedInUserFragment
+  query RouteNotes_Query($userBy: UserByInput!, $default_first: NonNegativeInt, $default_after: ObjectID) {
+    signedInUser(by: $userBy) {
+      ...NoteMain_UserFragment
     }
   }
 `);

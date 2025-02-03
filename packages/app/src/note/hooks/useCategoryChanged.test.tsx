@@ -78,7 +78,7 @@ it('runs callback on category change', async () => {
       data: {
         __typename: 'Query',
         signedInUser: {
-          __typename: 'SignedInUser',
+          __typename: 'User',
           id: userId,
           noteLink: {
             __typename: 'UserNoteLink',

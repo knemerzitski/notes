@@ -22,7 +22,7 @@ function readDisplayName(
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const user: any = cache.readFragment({
     fragment: gql(`
-      fragment f on SignedInUser {
+      fragment f on User {
         public {
           profile {
             displayName
@@ -30,7 +30,7 @@ function readDisplayName(
         }
       }  
     `),
-    id: `SignedInUser:${userId}`,
+    id: `User:${userId}`,
     optimistic,
   });
 
@@ -102,7 +102,7 @@ it('remembers displayName mutation when app goes offline and resumes when online
               },
               __typename: 'PublicUser',
             },
-            __typename: 'SignedInUser',
+            __typename: 'User',
           },
           __typename: 'UpdateSignedInUserDisplayNamePayload',
         },
@@ -254,7 +254,7 @@ it('remembers displayName mutation when session expires', async () => {
                 },
                 __typename: 'PublicUser',
               },
-              __typename: 'SignedInUser',
+              __typename: 'User',
             },
             __typename: 'UpdateSignedInUserDisplayNamePayload',
           },

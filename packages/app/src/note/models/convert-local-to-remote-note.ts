@@ -1,6 +1,6 @@
 import { ApolloCache, makeReference } from '@apollo/client';
 
-import { Maybe, SignedInUser, UserNoteLinkByInput } from '../../__generated__/graphql';
+import { Maybe, User, UserNoteLinkByInput } from '../../__generated__/graphql';
 
 import { addUserOperations } from '../../user/models/operations/add';
 import { getCurrentUserId } from '../../user/models/signed-in-user/get-current';
@@ -30,7 +30,7 @@ export function convertLocalToRemoteNote(
     /**
      * Use who runs required mutations
      */
-    userId?: Maybe<SignedInUser['id']>;
+    userId?: Maybe<User['id']>;
     cache: Pick<
       ApolloCache<unknown>,
       | 'readQuery'

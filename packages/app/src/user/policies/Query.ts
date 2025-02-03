@@ -2,12 +2,12 @@ import { Reference } from '@apollo/client';
 
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 
-import { SignedInUser } from '../../__generated__/graphql';
+import { User } from '../../__generated__/graphql';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
 import { fieldArrayToMap } from '../../graphql/utils/field-array-to-map';
 import { EvictTag, TaggedEvictOptionsList } from '../../graphql/utils/tagged-evict';
 
-function throwUserNotFoundError(userId?: SignedInUser['id']): never {
+function throwUserNotFoundError(userId?: User['id']): never {
   if (userId) {
     throw new Error(`User "${userId}" not found`);
   } else {
@@ -35,7 +35,7 @@ export const Query: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
           }
 
           return toReference({
-            __typename: 'SignedInUser',
+            __typename: 'User',
             id: by.id,
           });
         },

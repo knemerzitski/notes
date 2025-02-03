@@ -5,9 +5,9 @@ import { FullWidthCenterRow } from '../../layout/components/FullWidthCenterRow';
 import { ArchiveNotesConnectionGrid } from './ArchiveNotesConnectionGrid';
 import { EmptyInfoTopMargin } from './EmptyInfoTopMargin';
 
-const _ArchiveMain_SignedInUserFragment = gql(`
-  fragment ArchiveMain_SignedInUserFragment on SignedInUser {
-    ...ArchiveNotesConnectionGrid_SignedInUserFragment
+const _ArchiveMain_UserFragment = gql(`
+  fragment ArchiveMain_UserFragment on User {
+    ...ArchiveNotesConnectionGrid_UserFragment
   }
 `);
 

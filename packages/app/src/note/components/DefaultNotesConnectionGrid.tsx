@@ -4,8 +4,8 @@ import { NoteCategory } from '../../__generated__/graphql';
 import { EmptyNotesInfo } from './EmptyNotesInfo';
 import { NotesConnectionGrid } from './NotesConnectionGrid';
 
-const _DefaultNotesConnectionGrid_SignedInUserFragment = gql(`
-  fragment DefaultNotesConnectionGrid_SignedInUserFragment on SignedInUser {
+const _DefaultNotesConnectionGrid_UserFragment = gql(`
+  fragment DefaultNotesConnectionGrid_UserFragment on User {
     id
     default_noteLinkConnection: noteLinkConnection(first: $default_first, after: $default_after, category: DEFAULT) {
       ...NotesConnectionGrid_UserNoteLinkConnectionFragment

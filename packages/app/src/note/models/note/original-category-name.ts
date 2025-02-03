@@ -9,7 +9,7 @@ import {
 import { parseUserNoteLinkByInput } from '../../utils/id';
 
 const OriginalCategoryName_Query = gql(`
-  query OriginalCategoryName_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!) {
+  query OriginalCategoryName_Query($userBy: UserByInput!, $noteBy: NoteByInput!) {
     signedInUser(by: $userBy) {
       id
       noteLink(by: $noteBy) {

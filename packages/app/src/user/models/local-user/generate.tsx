@@ -9,7 +9,7 @@ export function generateLocalUser(
 ) {
   const id = generateSignedInUserId(cache);
   return {
-    __typename: 'SignedInUser',
+    __typename: 'User',
     id,
     public: {
       __typename: 'PublicUser',

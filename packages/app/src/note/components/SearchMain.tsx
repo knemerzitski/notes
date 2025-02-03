@@ -5,9 +5,9 @@ import { FullWidthCenterRow } from '../../layout/components/FullWidthCenterRow';
 import { EmptyInfoTopMargin } from './EmptyInfoTopMargin';
 import { SearchNotesConnectionGrid } from './SearchNotesConnectionGrid';
 
-const _SearchMain_SignedInUserFragment = gql(`
-  fragment SearchMain_SignedInUserFragment on SignedInUser {
-    ...SearchNotesConnectionGrid_SignedInUserFragment
+const _SearchMain_UserFragment = gql(`
+  fragment SearchMain_UserFragment on User {
+    ...SearchNotesConnectionGrid_UserFragment
   }
 `);
 

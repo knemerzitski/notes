@@ -1,6 +1,6 @@
-import type { SignedInUserResolvers } from './../../types.generated';
+import type { UserResolvers } from '../../types.generated';
 
-export const SignedInUser: Pick<SignedInUserResolvers, 'note'> = {
+export const User: Pick<UserResolvers, 'note'> = {
   note: ({ userId }, { by }, { mongoDB }) => {
     const noteId = by.id;
 

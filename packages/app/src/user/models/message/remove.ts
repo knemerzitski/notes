@@ -1,7 +1,7 @@
 import { ApolloCache } from '@apollo/client';
 
 import { gql } from '../../../__generated__';
-import { SignedInUser, UserMessage } from '../../../__generated__/graphql';
+import { User, UserMessage } from '../../../__generated__/graphql';
 
 const RemoveUserMessages_Query = gql(`
   query RemoveUserMessages_Query($id: ObjectID!) {
@@ -23,7 +23,7 @@ const RemoveUserMessages_Query = gql(`
  * @param cache
  */
 export function removeUserMessages(
-  userId: SignedInUser['id'],
+  userId: User['id'],
   messageIds: UserMessage['id'][],
   cache: Pick<
     ApolloCache<unknown>,

@@ -2,7 +2,7 @@ import { ApolloCache } from '@apollo/client';
 
 import {
   Note,
-  SignedInUser,
+  User,
   UserNoteLink,
   UserNoteLinkByInput,
 } from '../../__generated__/graphql';
@@ -10,10 +10,10 @@ import { getCurrentUserId } from '../../user/models/signed-in-user/get-current';
 
 interface ParsedUserNoteLinkId {
   noteId: Note['id'];
-  userId: SignedInUser['id'];
+  userId: User['id'];
 }
 
-export function getUserNoteLinkId(noteId: Note['id'], userId: SignedInUser['id']) {
+export function getUserNoteLinkId(noteId: Note['id'], userId: User['id']) {
   return `${noteId}:${userId}`;
 }
 

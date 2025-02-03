@@ -2,8 +2,8 @@ import { ApolloCache } from '@apollo/client';
 
 import { gql } from '../../../__generated__';
 
-const HasUserFragment_SignedInUserFragment = gql(`
-  fragment HasUserFragment_SignedInUserFragment on SignedInUser {
+const HasUserFragment_UserFragment = gql(`
+  fragment HasUserFragment_UserFragment on User {
     id
   }  
 `);
@@ -13,9 +13,9 @@ export function hasUserFragment(
   cache: Pick<ApolloCache<unknown>, 'readFragment' | 'identify'>
 ) {
   const signedInUser = cache.readFragment({
-    fragment: HasUserFragment_SignedInUserFragment,
+    fragment: HasUserFragment_UserFragment,
     id: cache.identify({
-      __typename: 'SignedInUser',
+      __typename: 'User',
       id: userId,
     }),
   });
