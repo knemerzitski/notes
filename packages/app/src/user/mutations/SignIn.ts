@@ -11,11 +11,8 @@ export const SignIn = mutationDefinition(
       ... on SignInResult {
         signedInUser {
           id
-          public {
-            id
-            profile {
-              displayName
-            }
+          profile {
+            displayName
           }
         }
       }

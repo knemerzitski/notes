@@ -19,11 +19,8 @@ const SignInModal_Query = gql(`
   query SignInModal_Query($id: ObjectID!) {
     signedInUser(by: { id: $id }) @client {
       id
-      public {
-        id
-        profile {
-          displayName
-        }
+      profile {
+        displayName
       }
       local {
         id
@@ -61,7 +58,7 @@ export function SignInModal({
       <DialogTitle>Sign In</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          {user?.public.profile.displayName}
+          {user?.profile.displayName}
           {user?.local.sessionExpired && (
             <>
               <Break />

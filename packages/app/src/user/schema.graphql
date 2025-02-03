@@ -30,22 +30,7 @@ extend type User {
   localOnly: Boolean!
 }
 
-"""
-TODO desc
-"""
-input PublicUserByInput @oneOf {
-  """
-  PublicUser.id
-  """
-  id: ID
-}
-
 extend type Query {
-  """
-  Find publicUser
-  """
-  publicUser(by: PublicUserByInput!): PublicUser
-
   """
   List of all available users. Always includes localUser.
   """

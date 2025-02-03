@@ -24,7 +24,7 @@ extend type User {
   """
   Direct access to note without link
   """
-  note(by: NoteByInput!): Note!
+  note(by: NoteByInput!): Note! @auth(userId: { parent: "userId" })
 }
 
 ################################ Mutation createNote ################################

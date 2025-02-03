@@ -29,11 +29,8 @@ const UserListItem_Query = gql(`
   query UserListItem_Query($id: ObjectID!) {
     signedInUser(by: { id: $id }) @client {
       id
-      public {
-        id
-        profile {
-          displayName
-        }
+      profile {
+        displayName
       }
       email
       local {
@@ -59,7 +56,7 @@ export function UserListItem(props?: Parameters<typeof ActivableListItem>[0]) {
   const user = data?.signedInUser;
   if (!user) return null;
 
-  const name = user.public.profile.displayName;
+  const name = user.profile.displayName;
 
   function handleClickUser() {
     setCurrentUser(userId, client.cache);

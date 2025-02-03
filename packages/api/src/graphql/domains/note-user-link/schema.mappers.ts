@@ -11,11 +11,12 @@ import { GraphQLResolversContext } from '../../types';
 import { ResolverTypeWrapper, ResolversTypes } from '../types.generated';
 
 export interface UserNoteLinkMapper {
-  readonly userId: ObjectId;
+  readonly userId: ResolverTypeWrapper<ObjectId>;
   readonly query: MongoQueryFn<QueryableNote>;
 }
 
 export interface PublicUserNoteLinkMapper {
+  readonly userId: ResolverTypeWrapper<ObjectId>;
   readonly noteId: ResolverTypeWrapper<ObjectId>;
   readonly query: MongoQueryFn<QueryableNoteUser>;
 }

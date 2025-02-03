@@ -42,6 +42,7 @@ export const PublicUserNoteLink: Pick<
   },
   user: (parent, _arg, _ctx) => {
     return {
+      userId: parent.userId,
       query: createMapQueryFn(parent.query)<Pick<UserSchema, '_id' | 'profile'>>()(
         (query) => {
           const { _id, ...restQuery } = query;

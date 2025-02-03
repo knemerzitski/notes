@@ -8,14 +8,6 @@ export function createUserForCache({
   localOnly?: boolean;
 }) {
   return {
-    [`PublicUser:${id}`]: {
-      __typename: 'PublicUser',
-      id: id,
-      profile: {
-        __typename: 'PublicUserProfile',
-        displayName,
-      },
-    },
     [`LocalSignedInUser:${id}`]: {
       __typename: 'LocalSignedInUser',
       id: id,
@@ -24,8 +16,9 @@ export function createUserForCache({
       __typename: 'User',
       id: id,
       localOnly,
-      public: {
-        __ref: `PublicUser:${id}`,
+      profile: {
+        __typename: 'UserProfile',
+        displayName,
       },
       local: {
         __ref: `LocalSignedInUser:${id}`,

@@ -8,6 +8,7 @@ import { createMapQueryFn, MongoQueryFn } from '../../../../mongodb/query/query'
 import { objectIdToStr } from '../../../../mongodb/utils/objectid';
 import { Note_id_fromQueryFn } from '../../../../services/note/note-id';
 import { PreFetchedArrayGetItemFn, withPreExecuteList } from '../../../utils/pre-execute';
+import { unwrapResolver } from '../../../utils/unwrap-resolver';
 import { NoteCategory, type UserResolvers } from '../../types.generated';
 import { UserNoteLinkMapper } from '../schema.mappers';
 
@@ -15,8 +16,10 @@ export const User: Pick<
   UserResolvers,
   'noteLink' | 'noteLinkConnection' | 'noteLinkSearchConnection'
 > = {
-  noteLink: ({ userId }, { by }, { mongoDB }) => {
+  noteLink: async ({ userId: userIdResolver }, { by }, { mongoDB }) => {
     const noteId = by.id;
+
+    const userId = await unwrapResolver(userIdResolver);
 
     return {
       userId,
@@ -26,7 +29,7 @@ export const User: Pick<
       }),
     };
   },
-  noteLinkConnection: ({ userId: currentUserId }, arg, ctx) => {
+  noteLinkConnection: async ({ userId: userIdResolver }, arg, ctx) => {
     const DEFAULT_LIMIT = 20;
     const MAX_LIMIT = 30;
 
@@ -53,6 +56,8 @@ export const User: Pick<
     }
 
     const categoryName = arg.category ?? NoteCategory.DEFAULT;
+
+    const currentUserId = await unwrapResolver(userIdResolver);
 
     const userQueryFn = mongoDB.loaders.user.createQueryFn({
       userId: currentUserId,
@@ -161,7 +166,7 @@ export const User: Pick<
       },
     };
   },
-  noteLinkSearchConnection: ({ userId: currentUserId }, arg, ctx) => {
+  noteLinkSearchConnection: async ({ userId: userIdResolver }, arg, ctx) => {
     const DEFAULT_LIMIT = 20;
     const MAX_LIMIT = 30;
 
@@ -206,6 +211,8 @@ export const User: Pick<
     function getSearchLength(searchResultSize: number) {
       return Math.min(searchResultSize, basePaginationLength);
     }
+
+    const currentUserId = await unwrapResolver(userIdResolver);
 
     const notesSearchQueryFn = mongoDB.loaders.notesSearch.createQueryFn({
       userId: currentUserId,

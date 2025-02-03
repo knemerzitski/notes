@@ -83,7 +83,7 @@ export function createMapQueryFn<From>(fromQuery: MongoQueryFn<From>) {
       mapQuery: (query: PickTo) => PickFrom,
       mapResult: (
         result: QueryResultDeep<From, PickFrom>
-      ) => Maybe<QueryResultDeep<To, PickTo>>
+      ) => MaybePromise<Maybe<QueryResultDeep<To, PickTo>>>
     ): MongoQueryFn<To> =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async (query): Promise<any> => {

@@ -6,9 +6,9 @@ import { useIsLocalOnlyUser } from '../hooks/useIsLocalOnlyUser';
 import { LocalUserAvatar, LocalUserAvatarProps } from './LocalUserAvatar';
 import { RemoteUserAvatar, RemoteUserAvatarProps } from './RemoteUserAvatar';
 
-const _UserAvatar_PublicUserFragment = gql(`
-  fragment UserAvatar_PublicUserFragment on PublicUser {
-    ...RemoteUserAvatar_PublicUserFragment
+const _UserAvatar_UserFragment = gql(`
+  fragment UserAvatar_UserFragment on User {
+    ...RemoteUserAvatar_UserFragment
   }
 `);
 

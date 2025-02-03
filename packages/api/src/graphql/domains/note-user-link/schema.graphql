@@ -36,7 +36,7 @@ type PublicUserNoteLink {
   """
   Public user who can access the note
   """
-  user: PublicUser!
+  user: User!
   """
   User is owner of the note
   """
@@ -149,7 +149,7 @@ extend type User {
   """
   Link between user and note
   """
-  noteLink(by: NoteByInput!): UserNoteLink!
+  noteLink(by: NoteByInput!): UserNoteLink! @auth(userId: { parent: "userId" })
   """
   Paginate note links by category. Default category is NoteCategory.DEFAULT
   """
@@ -159,7 +159,7 @@ extend type User {
     last: NonNegativeInt
     before: ObjectID
     category: NoteCategory
-  ): UserNoteLinkConnection!
+  ): UserNoteLinkConnection! @auth(userId: { parent: "userId" })
   """
   Search for note links by text
   """
@@ -169,7 +169,7 @@ extend type User {
     after: String
     last: NonNegativeInt
     before: String
-  ): UserNoteLinkConnection!
+  ): UserNoteLinkConnection! @auth(userId: { parent: "userId" })
 }
 
 ################################ Mutation updateUserNoteLinkReadOnly ################################
@@ -192,7 +192,7 @@ input UpdateUserNoteLinkReadOnlyInput {
   """
   userId: ObjectID
   """
-  New PublicUserNoteLink.readOnly value for PublicUser.id
+  New PublicUserNoteLink.readOnly value for User.id
   """
   readOnly: Boolean!
 }

@@ -60,6 +60,7 @@ export const updateOpenNoteSelectionRange: NonNullable<
       ),
     },
     publicUserNoteLink: {
+      userId: currentUserId,
       noteId,
       query: userNoteQuery,
     },

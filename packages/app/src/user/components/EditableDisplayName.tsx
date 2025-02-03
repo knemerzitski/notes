@@ -34,11 +34,8 @@ const EditableDisplayName_Query = gql(`
 
   fragment EditableDisplayName_UserFragment on User {
     id
-    public {
-      id
-      profile {
-        displayName
-      }
+    profile {
+      displayName
     }
   }
 `);
@@ -63,7 +60,7 @@ export function EditableDisplayName() {
 
   const user = getFragmentData(EditableDisplayNameUserFragmentFragmentDoc, _user);
 
-  const name = user.public.profile.displayName;
+  const name = user.profile.displayName;
 
   function validateEditName() {
     const s = editName.trim();

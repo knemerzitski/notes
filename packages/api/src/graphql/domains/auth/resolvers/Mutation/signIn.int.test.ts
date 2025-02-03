@@ -47,10 +47,8 @@ const MUTATION = `#graphql
       ... on SignInResult {
         signedInUser {
           id
-          public {
-            profile {
-              displayName
-            }
+          profile {
+            displayName
           }
         }
         availableUserIds
@@ -176,9 +174,7 @@ it('creates new user and session on first sign in with google', async () => {
       __typename: 'JustSignedInResult',
       signedInUser: {
         id: objectIdToStr(newUser._id),
-        public: {
-          profile: { displayName: authProviderUser.name },
-        },
+        profile: { displayName: authProviderUser.name },
       },
       authProviderUser: { id: authProviderUser.id, email: authProviderUser.email },
       availableUserIds: [objectIdToStr(newUser._id)],
@@ -228,9 +224,7 @@ it('signs in with existing user by creating new session', async () => {
       __typename: 'JustSignedInResult',
       signedInUser: {
         id: objectIdToStr(user._id),
-        public: {
-          profile: { displayName: user.profile.displayName },
-        },
+        profile: { displayName: user.profile.displayName },
       },
       authProviderUser: { id: authProviderUser.id, email: authProviderUser.email },
       availableUserIds: [objectIdToStr(user._id)],
@@ -278,9 +272,7 @@ it('returns already signed in result with existing auth', async () => {
       __typename: 'AlreadySignedInResult',
       signedInUser: {
         id: objectIdToStr(user._id),
-        public: {
-          profile: { displayName: user.profile.displayName },
-        },
+        profile: { displayName: user.profile.displayName },
       },
       availableUserIds: [objectIdToStr(user._id)],
     },
@@ -324,9 +316,7 @@ it('signs in new user while already authenticated with another user', async () =
       },
       signedInUser: {
         id: expect.any(String),
-        public: {
-          profile: { displayName: 'second' },
-        },
+        profile: { displayName: 'second' },
       },
       availableUserIds: [objectIdToStr(user._id), expect.any(String)],
     },

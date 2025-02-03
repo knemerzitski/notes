@@ -109,29 +109,6 @@ export const Query: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return existing;
       },
-      publicUser: {
-        keyArgs: false,
-        read(_existing, { args, toReference }) {
-          if (!args || !isObjectLike(args)) {
-            return null;
-          }
-
-          const by = args.by;
-          if (!isObjectLike(by)) {
-            return null;
-          }
-
-          if (typeof by.id === 'string') {
-            return toReference({
-              __typename: 'PublicUser',
-              id: by.id,
-            });
-          }
-
-          return null;
-        },
-        merge: false,
-      },
     },
   };
 };

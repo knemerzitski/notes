@@ -117,10 +117,12 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
         const subscribedPayload: ResolversTypes['SignedInUserMutation'] = {
           __typename: 'OpenNoteUserSubscribedEvent',
           publicUserNoteLink: {
+            userId: currentUserId,
             noteId,
             query: userNoteQuery,
           },
           user: {
+            userId: currentUserId,
             query: userQuery,
           },
           note: {
@@ -276,10 +278,12 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
                     {
                       __typename: 'OpenNoteUserSubscribedEvent',
                       publicUserNoteLink: {
+                        userId,
                         noteId,
                         query: otherUserNoteQuery,
                       },
                       user: {
+                        userId,
                         query: otherUserQuery,
                       },
                       note: {
@@ -297,6 +301,7 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
                               query: openedNoteQuery,
                             },
                             publicUserNoteLink: {
+                              userId,
                               noteId,
                               query: otherUserNoteQuery,
                             },
@@ -420,10 +425,12 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
                 const unsubscribedPayload: ResolversTypes['SignedInUserMutation'] = {
                   __typename: 'OpenNoteUserUnsubscribedEvent',
                   publicUserNoteLink: {
+                    userId: currentUserId,
                     noteId,
                     query: userNoteQuery,
                   },
                   user: {
+                    userId: currentUserId,
                     query: mongoDB.loaders.user.createQueryFn({
                       userId: currentUserId,
                     }),
