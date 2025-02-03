@@ -4,7 +4,7 @@ import { List, ListItem, ListProps } from '@mui/material';
 import { PickDeep } from '~utils/types';
 
 import { gql } from '../../__generated__';
-import { SignedInUser } from '../../__generated__/graphql';
+import { User } from '../../__generated__/graphql';
 
 import { useOnClose } from '../../utils/context/on-close';
 import { useUserId } from '../context/user-id';
@@ -33,7 +33,7 @@ export function SignInProvidersList({
    * Hint which session is being logged into.
    */
   userHint?: PickDeep<
-    SignedInUser,
+    User,
     {
       __typename: 1;
       authProviderUsers: {

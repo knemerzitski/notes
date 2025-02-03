@@ -30,7 +30,7 @@ input ShareNoteInput {
   """
   Authenticated user who is sharing the note.
   """
-  authUser: SignedInUserByInput!
+  authUser: UserByInput!
   """
   Note to be shared
   """
@@ -74,7 +74,7 @@ input DeleteShareNoteInput {
   """
   Authenticated user who is deleting note sharing
   """
-  authUser: SignedInUserByInput!
+  authUser: UserByInput!
   """
   Note to to stop sharing, Note.id
   """
@@ -114,7 +114,7 @@ input CreateNoteLinkByShareAccessInput {
   """
   Authenticated user who is attempting to access note by share link
   """
-  authUser: SignedInUserByInput!
+  authUser: UserByInput!
   """
   Create NoteUserLink by NoteShareAccess.id
   """

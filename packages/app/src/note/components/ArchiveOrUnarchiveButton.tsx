@@ -10,7 +10,7 @@ import { ArchiveButton } from './ArchiveButton';
 import { UnarchiveButton } from './UnarchiveButton';
 
 const ArchiveOrUnarchiveButton_Query = gql(`
-  query ArchiveOrUnarchiveButton_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!) {
+  query ArchiveOrUnarchiveButton_Query($userBy: UserByInput!, $noteBy: NoteByInput!) {
     signedInUser(by: $userBy) {
       id
       noteLink(by: $noteBy) {

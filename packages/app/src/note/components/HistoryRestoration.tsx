@@ -11,7 +11,7 @@ import { useCollabService } from '../hooks/useCollabService';
 import { CacheRecordsFacade } from '../utils/cache-records-facade';
 
 const HistoryRestoration_Query = gql(`
-  query HistoryRestoration_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!, 
+  query HistoryRestoration_Query($userBy: UserByInput!, $noteBy: NoteByInput!, 
                             $recordsBeforeRevision: NonNegativeInt!, $recordsLast: PositiveInt!, $skipRecords: Boolean!
                             $tailRevision: NonNegativeInt! $skipTailRevision: Boolean!){
     signedInUser(by: $userBy) {

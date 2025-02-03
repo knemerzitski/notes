@@ -27,7 +27,7 @@ import { NotFoundTypography } from '../utils/components/NotFoundTypography';
 import { routeFetchPolicy } from '../utils/route-fetch-policy';
 
 const RouteRoot_Query = gql(`
-  query RouteRoot_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!) {
+  query RouteRoot_Query($userBy: UserByInput!, $noteBy: NoteByInput!) {
     noteSharingDialog: signedInUser(by: $userBy) {
       id
       note(by: $noteBy) {

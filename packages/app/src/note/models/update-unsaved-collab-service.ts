@@ -2,7 +2,7 @@ import { ApolloCache } from '@apollo/client';
 
 import { gql } from '../../__generated__';
 import {
-  SignedInUser,
+  User,
   UserNoteLink,
   UserNoteLinkByInput,
 } from '../../__generated__/graphql';
@@ -38,7 +38,7 @@ export function updateUnsavedCollabService(
 }
 
 function add(
-  userId: SignedInUser['id'],
+  userId: User['id'],
   userNoteLinkId: UserNoteLink['id'],
   cache: Pick<ApolloCache<unknown>, 'writeQuery'>
 ) {
@@ -47,7 +47,7 @@ function add(
     data: {
       __typename: 'Query',
       signedInUser: {
-        __typename: 'SignedInUser',
+        __typename: 'User',
         id: userId,
         local: {
           __typename: 'LocalSignedInUser',
@@ -65,7 +65,7 @@ function add(
 }
 
 function remove(
-  userId: SignedInUser['id'],
+  userId: User['id'],
   userNoteLinkId: UserNoteLink['id'],
   cache: Pick<ApolloCache<unknown>, 'updateQuery'>
 ) {

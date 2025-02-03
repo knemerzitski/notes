@@ -24,7 +24,7 @@ const SyncHeadTextWatch_Query = gql(`
 `);
 
 const SyncHeadText_Query = gql(`
-  query SyncHeadText_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!, $after: NonNegativeInt!, $first: PositiveInt!) {
+  query SyncHeadText_Query($userBy: UserByInput!, $noteBy: NoteByInput!, $after: NonNegativeInt!, $first: PositiveInt!) {
     signedInUser(by: $userBy) {
       id
       note(by: $noteBy) {

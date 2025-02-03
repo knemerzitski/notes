@@ -41,8 +41,8 @@ it('does not serialize different user same mutations', async () => {
         displayName: 'Local Account',
       },
     },
-    'SignedInUser:bHwDFcR58o66Q1': {
-      __typename: 'SignedInUser',
+    'User:bHwDFcR58o66Q1': {
+      __typename: 'User',
       id: 'bHwDFcR58o66Q1',
       localOnly: true,
       public: {
@@ -52,26 +52,26 @@ it('does not serialize different user same mutations', async () => {
     ROOT_QUERY: {
       __typename: 'Query',
       localUser: {
-        __ref: 'SignedInUser:bHwDFcR58o66Q1',
+        __ref: 'User:bHwDFcR58o66Q1',
       },
       signedInUsers: {
         [A_userId]: {
-          __ref: `SignedInUser:${A_userId}`,
+          __ref: `User:${A_userId}`,
         },
         [B_userId]: {
-          __ref: `SignedInUser:${B_userId}`,
+          __ref: `User:${B_userId}`,
         },
       },
       currentSignedInUser: {
-        __ref: `SignedInUser:${A_userId}`,
+        __ref: `User:${A_userId}`,
       },
     },
-    [`SignedInUser:${B_userId}`]: {
-      __typename: 'SignedInUser',
+    [`User:${B_userId}`]: {
+      __typename: 'User',
       id: B_userId,
     },
-    [`SignedInUser:${A_userId}`]: {
-      __typename: 'SignedInUser',
+    [`User:${A_userId}`]: {
+      __typename: 'User',
       id: A_userId,
     },
   });

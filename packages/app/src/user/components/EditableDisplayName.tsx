@@ -15,7 +15,7 @@ import {
 import { useState } from 'react';
 
 import { getFragmentData, gql } from '../../__generated__';
-import { EditableDisplayNameSignedInUserFragmentFragmentDoc } from '../../__generated__/graphql';
+import { EditableDisplayNameUserFragmentFragmentDoc } from '../../__generated__/graphql';
 import { useUndoAction } from '../../utils/context/undo-action';
 import { useUserId } from '../context/user-id';
 
@@ -28,11 +28,11 @@ import { DisplayNameTitleTextField } from './DisplayNameTitleTextField';
 const EditableDisplayName_Query = gql(`
   query EditableDisplayName_Query($id: ObjectID!) {
     signedInUser(by: { id: $id }) @client {
-      ...EditableDisplayName_SignedInUserFragment
+      ...EditableDisplayName_UserFragment
     }
   }
 
-  fragment EditableDisplayName_SignedInUserFragment on SignedInUser {
+  fragment EditableDisplayName_UserFragment on User {
     id
     public {
       id
@@ -61,7 +61,7 @@ export function EditableDisplayName() {
   const _user = data?.signedInUser;
   if (!_user) return null;
 
-  const user = getFragmentData(EditableDisplayNameSignedInUserFragmentFragmentDoc, _user);
+  const user = getFragmentData(EditableDisplayNameUserFragmentFragmentDoc, _user);
 
   const name = user.public.profile.displayName;
 

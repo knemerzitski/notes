@@ -35,7 +35,7 @@ const NotesConnectionGrid_UserNoteLinkConnectionFragment = gql(`
 `);
 
 const NotesConnectionGrid_Query = gql(`
-  query NotesConnectionGrid_Query($userBy: SignedInUserByInput!, $first: NonNegativeInt, $after: ObjectID, $category: NoteCategory) {
+  query NotesConnectionGrid_Query($userBy: UserByInput!, $first: NonNegativeInt, $after: ObjectID, $category: NoteCategory) {
     signedInUser(by: $userBy) {
       id
       noteLinkConnection(first: $first, after: $after, category: $category) {

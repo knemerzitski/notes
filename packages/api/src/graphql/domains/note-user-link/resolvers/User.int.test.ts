@@ -39,7 +39,6 @@ import {
   UserNoteLinkConnection,
 } from '../../types.generated';
 
-
 describe('noteLink', () => {
   interface Variables {
     userId: ObjectId;

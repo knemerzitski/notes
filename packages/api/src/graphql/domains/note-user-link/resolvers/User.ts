@@ -8,12 +8,11 @@ import { createMapQueryFn, MongoQueryFn } from '../../../../mongodb/query/query'
 import { objectIdToStr } from '../../../../mongodb/utils/objectid';
 import { Note_id_fromQueryFn } from '../../../../services/note/note-id';
 import { PreFetchedArrayGetItemFn, withPreExecuteList } from '../../../utils/pre-execute';
+import { NoteCategory, type UserResolvers } from '../../types.generated';
 import { UserNoteLinkMapper } from '../schema.mappers';
 
-import { NoteCategory, type SignedInUserResolvers } from './../../types.generated';
-
-export const SignedInUser: Pick<
-  SignedInUserResolvers,
+export const User: Pick<
+  UserResolvers,
   'noteLink' | 'noteLinkConnection' | 'noteLinkSearchConnection'
 > = {
   noteLink: ({ userId }, { by }, { mongoDB }) => {

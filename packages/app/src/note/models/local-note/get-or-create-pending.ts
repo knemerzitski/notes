@@ -117,7 +117,7 @@ function add(
     data: {
       __typename: 'Query',
       signedInUser: {
-        __typename: 'SignedInUser',
+        __typename: 'User',
         id: userId,
         local: {
           __typename: 'LocalSignedInUser',

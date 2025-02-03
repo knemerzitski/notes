@@ -22,11 +22,11 @@ export function createUsersForCache({
       __typename: 'Query',
       ...(localUser && {
         localUser: {
-          __ref: `SignedInUser:${localUser.id}`,
+          __ref: `User:${localUser.id}`,
         },
       }),
       signedInUsers: Object.fromEntries(
-        remoteUsers.map((user) => [user.id, { __ref: `SignedInUser:${user.id}` }])
+        remoteUsers.map((user) => [user.id, { __ref: `User:${user.id}` }])
       ),
     },
   });

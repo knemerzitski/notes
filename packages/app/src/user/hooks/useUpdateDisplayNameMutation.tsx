@@ -36,7 +36,7 @@ export function useUpdateDisplayNameMutation() {
               {
                 __typename: 'UpdateSignedInUserDisplayNamePayload',
                 signedInUser: {
-                  __typename: 'SignedInUser',
+                  __typename: 'User',
                   id: userId,
                   public: {
                     id: userId,

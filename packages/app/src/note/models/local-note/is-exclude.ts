@@ -5,7 +5,7 @@ import { UserNoteLinkByInput } from '../../../__generated__/graphql';
 import { parseUserNoteLinkByInput } from '../../utils/id';
 
 const IsExcludeNoteFromConnection_Query = gql(`
-  query IsExcludeNoteFromConnection_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!) {
+  query IsExcludeNoteFromConnection_Query($userBy: UserByInput!, $noteBy: NoteByInput!) {
     signedInUser(by: $userBy) {
       id
       noteLink(by: $noteBy) {

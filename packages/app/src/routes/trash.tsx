@@ -6,9 +6,9 @@ import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
 import { routeFetchPolicy } from '../utils/route-fetch-policy';
 
 const RouteTrash_Query = gql(`
-  query RouteTrash_Query($userBy: SignedInUserByInput!, $trash_first: NonNegativeInt, $trash_after: ObjectID) {
+  query RouteTrash_Query($userBy: UserByInput!, $trash_first: NonNegativeInt, $trash_after: ObjectID) {
     signedInUser(by: $userBy){
-      ...TrashMain_SignedInUserFragment
+      ...TrashMain_UserFragment
     }
   }
 `);

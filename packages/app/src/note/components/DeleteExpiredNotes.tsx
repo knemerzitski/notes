@@ -8,7 +8,7 @@ import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
 import { removeNoteFromConnection } from '../models/note-connection/remove';
 
 const DeleteExpiredNotes_Query = gql(`
-  query DeleteExpiredNotes_Query($userBy: SignedInUserByInput!) {
+  query DeleteExpiredNotes_Query($userBy: UserByInput!) {
     signedInUser(by: $userBy) {
       id
       noteLinkConnection(category: TRASH) {

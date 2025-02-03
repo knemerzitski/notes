@@ -1,7 +1,7 @@
 import { ApolloCache } from '@apollo/client';
 
 import { gql } from '../../../__generated__';
-import { AddUserMessagesQueryQuery, SignedInUser } from '../../../__generated__/graphql';
+import { AddUserMessagesQueryQuery, User } from '../../../__generated__/graphql';
 
 const AddUserMessages_Query = gql(`
   query AddUserMessages_Query($id: ObjectID!) {
@@ -21,7 +21,7 @@ const AddUserMessages_Query = gql(`
 `);
 
 export function addUserMessages(
-  userId: SignedInUser['id'],
+  userId: User['id'],
   messages: Omit<
     NonNullable<AddUserMessagesQueryQuery['signedInUser']>['local']['messages'][0],
     '__typename'
@@ -36,7 +36,7 @@ export function addUserMessages(
     data: {
       __typename: 'Query',
       signedInUser: {
-        __typename: 'SignedInUser',
+        __typename: 'User',
         id: userId,
         local: {
           id: userId,

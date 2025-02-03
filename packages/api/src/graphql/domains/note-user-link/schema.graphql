@@ -93,7 +93,7 @@ extend type DeleteNotePayload {
   publicUserNoteLinkId: String
 }
 
-################################ Query SignedInUser[noteLink,noteLinkConnection,noteLinkSearchConnection] ################################
+################################ Query User[noteLink,noteLinkConnection,noteLinkSearchConnection] ################################
 
 """
 TODO desc
@@ -145,7 +145,7 @@ input UserNoteLinkByInput @oneOf {
   noteId: ObjectID
 }
 
-extend type SignedInUser {
+extend type User {
   """
   Link between user and note
   """
@@ -182,7 +182,7 @@ input UpdateUserNoteLinkReadOnlyInput {
   Authenticated user who updates noteLink readOnly.
   User must own the note.
   """
-  authUser: SignedInUserByInput!
+  authUser: UserByInput!
   """
   Target Note.id
   """
@@ -263,7 +263,7 @@ input UpdateUserNoteLinkBackgroundColorInput {
   """
   Authenticated user whose note background color is updated
   """
-  authUser: SignedInUserByInput!
+  authUser: UserByInput!
   """
   Target note
   """
@@ -315,7 +315,7 @@ input TrashUserNoteLinkInput {
   """
   Authenticated user whose note is trashed
   """
-  authUser: SignedInUserByInput!
+  authUser: UserByInput!
   """
   Note to be trashed by Note.id
   """
@@ -430,7 +430,7 @@ input MoveUserNoteLinkInput {
   """
   Authenticated user whose note is moved
   """
-  authUser: SignedInUserByInput!
+  authUser: UserByInput!
   """
   Note to be moved by Note.id
   """

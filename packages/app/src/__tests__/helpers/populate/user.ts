@@ -20,8 +20,8 @@ export function createUserForCache({
       __typename: 'LocalSignedInUser',
       id: id,
     },
-    [`SignedInUser:${id}`]: {
-      __typename: 'SignedInUser',
+    [`User:${id}`]: {
+      __typename: 'User',
       id: id,
       localOnly,
       public: {

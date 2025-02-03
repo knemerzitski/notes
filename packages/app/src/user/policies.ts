@@ -12,13 +12,13 @@ import { UpdateSignedInUserDisplayName } from './mutations/UpdateSignedInUserDis
 import { UpdateSignedInUserDisplayNamePayload } from './mutations/UpdateSignedInUserDisplayNamePayload';
 import { LocalSignedInUser } from './policies/LocalSignedInUser';
 import { evictOptions as Query_evictOptions, Query } from './policies/Query';
-import { SignedInUser } from './policies/SignedInUser';
+import { User } from './policies/User';
 import { UserOperation } from './policies/UserOperation';
 
 export const userPolicies: CreateTypePoliciesFn = function (ctx) {
   return {
     Query: Query(ctx),
-    SignedInUser: SignedInUser(ctx),
+    User: User(ctx),
     LocalSignedInUser: LocalSignedInUser(ctx),
     UserOperation: UserOperation(ctx),
   };

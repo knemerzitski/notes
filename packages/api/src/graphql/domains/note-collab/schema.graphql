@@ -34,7 +34,7 @@ input UpdateNoteInsertRecordInput {
   """
   Authenticated user who is inserting the record
   """
-  authUser: SignedInUserByInput!
+  authUser: UserByInput!
   """
   Note to be updated
   """
@@ -111,7 +111,7 @@ input OpenNoteEventsInput {
   """
   Authenticated user who is subscribing to open note events
   """
-  authUser: SignedInUserByInput!
+  authUser: UserByInput!
   """
   Target note of the events
   """
@@ -210,7 +210,7 @@ input UpdateOpenNoteSelectionRangeInput {
   """
   Authenticated use who is updating the selection range
   """
-  authUser: SignedInUserByInput!
+  authUser: UserByInput!
   """
   Target note
   """

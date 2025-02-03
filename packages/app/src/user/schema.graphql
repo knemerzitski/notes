@@ -1,4 +1,4 @@
-################################ SignedInUser ################################
+################################ User ################################
 
 """
 TODO desc
@@ -7,9 +7,9 @@ enum AuthProviderUserType {
   GOOGLE
 }
 
-extend type SignedInUser {
+extend type User {
   """
-  Always mutable subtype of SignedInUser even when it has data from optimistic response
+  Always mutable subtype of User even when it has data from optimistic response
   """
   local: LocalSignedInUser!
   """
@@ -49,28 +49,28 @@ extend type Query {
   """
   List of all available users. Always includes localUser.
   """
-  signedInUsers(localOnly: Boolean): [SignedInUser!]!
+  signedInUsers(localOnly: Boolean): [User!]!
 
   """
   Currently selected user. All operations are executed using scope of this user. Defaults to localUser.
   """
-  currentSignedInUser: SignedInUser!
+  currentSignedInUser: User!
 
   """
   Always available local user
   """
-  localUser: SignedInUser!
+  localUser: User!
 }
 
 ################################ LocalSignedInUser ################################
 
 """
-SignedInUser state that can always be modified with writeQuery/writeFragemt and
+User state that can always be modified with writeQuery/writeFragemt and
 it will be reflected in UI regardless of optimistic responses.
 """
 type LocalSignedInUser {
   """
-  SignedInUser.id
+  User.id
   """
   id: ID!
   """

@@ -1,13 +1,13 @@
 import { createContext, ReactNode, useContext } from 'react';
 import { Maybe } from '~utils/types';
 
-import { SignedInUser } from '../../__generated__/graphql';
+import { User } from '../../__generated__/graphql';
 
-const UserIdContext = createContext<SignedInUser['id'] | null>(null);
+const UserIdContext = createContext<User['id'] | null>(null);
 
-export function useUserId(nullable: true): Maybe<SignedInUser['id']>;
-export function useUserId(nullable?: false): SignedInUser['id'];
-export function useUserId(nullable?: boolean): Maybe<SignedInUser['id']> {
+export function useUserId(nullable: true): Maybe<User['id']>;
+export function useUserId(nullable?: false): User['id'];
+export function useUserId(nullable?: boolean): Maybe<User['id']> {
   const ctx = useContext(UserIdContext);
   if (ctx === null && !nullable) {
     throw new Error('useUserId() requires context <UserIdProvider>');
@@ -19,7 +19,7 @@ export function UserIdProvider({
   userId,
   children,
 }: {
-  userId?: SignedInUser['id'];
+  userId?: User['id'];
   children: ReactNode;
 }) {
   if (!userId) {

@@ -133,7 +133,7 @@ function processArguments(
   return;
 }
 
-// look for type SignedInUserByInput... instead of anything else?
+// look for type UserByInput... instead of anything else?
 
 function processArgument(
   arg: ArgumentNode,

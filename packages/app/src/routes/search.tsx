@@ -9,9 +9,9 @@ import { useIsOnline } from '../utils/hooks/useIsOnline';
 import { routeFetchPolicy } from '../utils/route-fetch-policy';
 
 const RouteSearch_Query = gql(`
-  query RouteSearch_Query($userBy: SignedInUserByInput!, $searchText: String!, $first: NonNegativeInt, $after: String) {
+  query RouteSearch_Query($userBy: UserByInput!, $searchText: String!, $first: NonNegativeInt, $after: String) {
     signedInUser(by: $userBy) {
-      ...SearchMain_SignedInUserFragment
+      ...SearchMain_UserFragment
     }
   }
 `);

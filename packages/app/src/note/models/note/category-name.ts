@@ -5,7 +5,7 @@ import { NoteCategory, UserNoteLinkByInput } from '../../../__generated__/graphq
 import { parseUserNoteLinkByInput } from '../../utils/id';
 
 const GetCategoryName_Query = gql(`
-  query GetCategoryName_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!) {
+  query GetCategoryName_Query($userBy: UserByInput!, $noteBy: NoteByInput!) {
     signedInUser(by: $userBy) {
       id
       noteLink(by: $noteBy) {

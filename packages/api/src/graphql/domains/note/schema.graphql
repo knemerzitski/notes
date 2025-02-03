@@ -20,7 +20,7 @@ input NoteByInput @oneOf {
   id: ObjectID
 }
 
-extend type SignedInUser {
+extend type User {
   """
   Direct access to note without link
   """
@@ -36,7 +36,7 @@ input CreateNoteInput {
   """
   Authenticated user who will own and have access to the note.
   """
-  authUser: SignedInUserByInput!
+  authUser: UserByInput!
 }
 
 """
@@ -68,7 +68,7 @@ input DeleteNoteInput {
   """
   Authenticated user whose permissions are used to delete the note
   """
-  authUser: SignedInUserByInput!
+  authUser: UserByInput!
   """
   Note to be deleted
   """

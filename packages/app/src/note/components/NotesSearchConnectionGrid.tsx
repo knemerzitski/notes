@@ -33,7 +33,7 @@ const NotesSearchConnectionGrid_UserNoteLinkConnectionFragment = gql(`
 `);
 
 const NotesSearchConnectionGrid_Query = gql(`
-  query NotesSearchConnectionGrid_Query($userBy: SignedInUserByInput!, $searchText: String!, $first: NonNegativeInt, $after: String) {
+  query NotesSearchConnectionGrid_Query($userBy: UserByInput!, $searchText: String!, $first: NonNegativeInt, $after: String) {
     signedInUser(by: $userBy) {
       id
       noteLinkSearchConnection(searchText: $searchText, first: $first, after: $after) {

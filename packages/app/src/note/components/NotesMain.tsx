@@ -8,9 +8,9 @@ import { CreateNoteFab } from './CreateNoteFab';
 import { CreateNoteWidget } from './CreateNoteWidget';
 import { DefaultNotesConnectionGrid } from './DefaultNotesConnectionGrid';
 
-const _NoteMain_SignedInUserFragment = gql(`
-  fragment NoteMain_SignedInUserFragment on SignedInUser {
-    ...DefaultNotesConnectionGrid_SignedInUserFragment
+const _NoteMain_UserFragment = gql(`
+  fragment NoteMain_UserFragment on User {
+    ...DefaultNotesConnectionGrid_UserFragment
   }
 `);
 

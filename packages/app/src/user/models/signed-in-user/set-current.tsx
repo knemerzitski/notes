@@ -3,7 +3,7 @@ import { ApolloCache } from '@apollo/client';
 import { Maybe } from '~utils/types';
 
 import { gql } from '../../../__generated__';
-import { SignedInUser } from '../../../__generated__/graphql';
+import { User } from '../../../__generated__/graphql';
 
 const SetCurrentUser_Query = gql(`
   query SetCurrentUser_Query {
@@ -14,7 +14,7 @@ const SetCurrentUser_Query = gql(`
 `);
 
 export function setCurrentUser(
-  userId: Maybe<SignedInUser['id']>,
+  userId: Maybe<User['id']>,
   cache: Pick<ApolloCache<unknown>, 'writeQuery'>
 ) {
   // TODO reload queries, need client for that?
@@ -25,7 +25,7 @@ export function setCurrentUser(
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       currentSignedInUser: userId
         ? {
-            __typename: 'SignedInUser',
+            __typename: 'User',
             id: userId,
           }
         : // Allow setting currentSignedInUser to null, field policy will guarantee a valid value

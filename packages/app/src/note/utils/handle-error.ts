@@ -3,7 +3,7 @@ import { GraphQLError } from 'graphql';
 
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
-import { Note, SignedInUser } from '../../__generated__/graphql';
+import { Note, User } from '../../__generated__/graphql';
 import { isErrorCode } from '../../graphql/utils/is-error-code';
 
 import { deleteNote } from '../models/note/delete';
@@ -14,7 +14,7 @@ import { getUserNoteLinkId } from './id';
  * Deletes note from cache if recevied error `NOT_FOUND`.
  */
 export function handleNoteError(
-  userId: SignedInUser['id'],
+  userId: User['id'],
   noteId: Note['id'],
   cache: Pick<
     ApolloCache<unknown>,

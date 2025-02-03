@@ -1,7 +1,7 @@
 import { ApolloCache } from '@apollo/client';
 
 import { gql } from '../../../__generated__';
-import { SignedInUser } from '../../../__generated__/graphql';
+import { User } from '../../../__generated__/graphql';
 
 const IsLocalOnlyUser_Query = gql(`
   query IsLocalOnlyUser_Query($id: ObjectID!) {
@@ -13,7 +13,7 @@ const IsLocalOnlyUser_Query = gql(`
 `);
 
 export function isLocalOnlyUser(
-  userId: SignedInUser['id'],
+  userId: User['id'],
   cache: Pick<ApolloCache<unknown>, 'readQuery'>
 ) {
   const data = cache.readQuery({

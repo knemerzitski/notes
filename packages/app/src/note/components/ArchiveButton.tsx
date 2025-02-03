@@ -10,7 +10,7 @@ import { useArchiveNoteWithUndo } from '../hooks/useArchiveNoteWithUndo';
 import { toMovableNoteCategory } from '../utils/note-category';
 
 const ArchiveButton_Query = gql(`
-  query ArchiveButton_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!) {
+  query ArchiveButton_Query($userBy: UserByInput!, $noteBy: NoteByInput!) {
     signedInUser(by: $userBy) {
       id
       noteLink(by: $noteBy) {

@@ -1,7 +1,7 @@
 import { ApolloCache } from '@apollo/client';
 
 import { gql } from '../../../__generated__';
-import { SignedInUser, UserOperation } from '../../../__generated__/graphql';
+import { User, UserOperation } from '../../../__generated__/graphql';
 
 const RemoveUserOperation_Query = gql(`
   query RemoveUserOperation_Query($id: ObjectID!) {
@@ -18,7 +18,7 @@ const RemoveUserOperation_Query = gql(`
 `);
 
 export function removeUserOperations(
-  userId: SignedInUser['id'],
+  userId: User['id'],
   operationIds: UserOperation['id'][],
   cache: Pick<ApolloCache<unknown>, 'updateQuery'>
 ) {

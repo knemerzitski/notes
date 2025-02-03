@@ -5,7 +5,7 @@ import { UserNoteLinkByInput } from '../../../__generated__/graphql';
 import { getUserNoteLinkId, parseUserNoteLinkByInput } from '../../utils/id';
 
 const ExcludeNoteFromConnection_Query = gql(`
-  query ExcludeNoteFromConnection_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!) {
+  query ExcludeNoteFromConnection_Query($userBy: UserByInput!, $noteBy: NoteByInput!) {
     signedInUser(by: $userBy) {
       id
       noteLink(by: $noteBy) {
@@ -35,7 +35,7 @@ export function excludeNoteFromConnection(
     data: {
       __typename: 'Query',
       signedInUser: {
-        __typename: 'SignedInUser',
+        __typename: 'User',
         id: userId,
         noteLink: {
           __typename: 'UserNoteLink',

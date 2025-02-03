@@ -7,7 +7,7 @@ const AUTH_PROVIDER_MAPPING: Record<string, string> = {
   [AuthProviderUserType.GOOGLE]: 'GoogleAuthProviderUser',
 };
 
-export const SignedInUser: CreateTypePolicyFn = function () {
+export const User: CreateTypePolicyFn = function () {
   return {
     fields: {
       local(_existing, { readField, toReference }) {

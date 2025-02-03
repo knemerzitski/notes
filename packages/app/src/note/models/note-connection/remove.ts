@@ -6,7 +6,7 @@ import { getUserNoteLinkId, parseUserNoteLinkByInput } from '../../utils/id';
 import { getConnectionCategoryName } from '../note/connection-category-name';
 
 const RemoveNoteFromConnection_Query = gql(`
-  query RemoveNoteFromConnection_Query($userBy: SignedInUserByInput!, $category: NoteCategory!) {
+  query RemoveNoteFromConnection_Query($userBy: UserByInput!, $category: NoteCategory!) {
     signedInUser(by: $userBy) {
       id
       noteLinkConnection(category: $category) {

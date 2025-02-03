@@ -5,10 +5,10 @@ import { FullWidthCenterRow } from '../../layout/components/FullWidthCenterRow';
 import { EmptyInfoTopMargin } from './EmptyInfoTopMargin';
 import { TrashNotesConnectionGrid } from './TrashNotesConnectionGrid';
 
-const _TrashMain_SignedInUserFragment = gql(`
-  fragment TrashMain_SignedInUserFragment on SignedInUser {
-    ...TrashNotesConnectionGrid_SignedInUserFragment
-  }
+const _TrashMain_UserFragment = gql(`
+  fragment TrashMain_UserFragment on User {
+    ...TrashNotesConnectionGrid_UserFragment
+  } 
 `);
 
 export function TrashMain() {

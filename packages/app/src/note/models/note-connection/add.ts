@@ -11,7 +11,7 @@ import { getCategoryName } from '../note/category-name';
 import { noteExists } from '../note/exists';
 
 const AddNoteToConnection_Query = gql(`
-  query AddNoteToConnection_Query($userBy: SignedInUserByInput!, $noteBy: NoteByInput!, $category: NoteCategory!) {
+  query AddNoteToConnection_Query($userBy: UserByInput!, $noteBy: NoteByInput!, $category: NoteCategory!) {
     signedInUser(by: $userBy) {
       id
       noteLink(by: $noteBy) {

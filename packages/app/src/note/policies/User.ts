@@ -10,12 +10,9 @@ import { relayStylePagination } from '../../graphql/utils/relay-style-pagination
 import { throwNoteNotFoundError } from '../utils/errors';
 import { getUserNoteLinkId } from '../utils/id';
 
-
-
-
 import { readNoteExternalState } from './Note/_external';
 
-export const SignedInUser: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
+export const User: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
   return {
     fields: {
       noteLink: {
@@ -164,10 +161,7 @@ export const SignedInUser: CreateTypePolicyFn = function (_ctx: TypePoliciesCont
               });
 
               // Is obj with property `edges`
-              if (
-                !isObjectLike(noteLinkConnection) ||
-                !('edges' in noteLinkConnection)
-              ) {
+              if (!isObjectLike(noteLinkConnection) || !('edges' in noteLinkConnection)) {
                 return;
               }
 

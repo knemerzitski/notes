@@ -152,7 +152,7 @@ describe('simple two mutations', () => {
 describe('field name contains signedinuser and argument by', () => {
   const operation: Pick<Operation, 'query' | 'variables'> = {
     query: gql(`
-      query RouteNotes_Query($other: String, $random: SignedInUserByInput!) {
+      query RouteNotes_Query($other: String, $random: UserByInput!) {
         signedInUser(by: $random){
           name
         }

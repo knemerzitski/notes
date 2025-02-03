@@ -34,7 +34,7 @@ import { OpenedNote } from './policies/OpenedNote';
 import { PublicUserNoteLink } from './policies/PublicUserNoteLink';
 import { evictOptions as Query_evictOptions, Query } from './policies/Query';
 import { RevisionChangeset } from './policies/RevisionChangeset';
-import { SignedInUser } from './policies/SignedInUser';
+import { User } from './policies/User';
 import { UserNoteLink } from './policies/UserNoteLink';
 import { UserNoteLinkConnection } from './policies/UserNoteLinkConnection';
 
@@ -53,7 +53,7 @@ export const notePolicies: CreateTypePoliciesFn = function (ctx) {
     PublicUserNoteLink: PublicUserNoteLink(ctx),
     OpenedNote: OpenedNote(ctx),
     CollabTextEditing: CollabTextEditing(ctx),
-    SignedInUser: SignedInUser(ctx),
+    User: User(ctx),
   };
 };
 
