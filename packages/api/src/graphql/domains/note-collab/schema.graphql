@@ -90,7 +90,7 @@ type OpenedNote {
   closedAt: DateTime!
 }
 
-extend type PublicUserNoteLink {
+extend type UserNoteLink {
   """
   Information about this note being opened. Is null if note is not open.
   Note is opened when subscribing to `openNoteEvents`.
@@ -145,9 +145,9 @@ type OpenNoteUserSubscribedEvent {
   """
   User link to subscribed note
   """
-  publicUserNoteLink: PublicUserNoteLink!
+  userNoteLink: UserNoteLink!
   """
-  This user is subscribed to open note events. `publicUserNoteLink.user`
+  This user is subscribed to open note events. `userNoteLink.user`
   """
   user: User!
   """
@@ -163,7 +163,7 @@ type OpenNoteUserUnsubscribedEvent {
   """
   User link to subscribed note
   """
-  publicUserNoteLink: PublicUserNoteLink!
+  userNoteLink: UserNoteLink!
   """
   This user is no longer subscribed to open note events.
   """
@@ -234,13 +234,13 @@ type UpdateOpenNoteSelectionRangePayload {
   """
   collabTextEditing: CollabTextEditing!
   """
-  Opened note that's been updated. `publicUserNoteLink.open`.
+  Opened note that's been updated. `userNoteLink.open`.
   """
   openedNote: OpenedNote!
   """
   Self-descriptive. Item in `note.users`
   """
-  publicUserNoteLink: PublicUserNoteLink!
+  userNoteLink: UserNoteLink!
   """
   Self-descriptive
   """

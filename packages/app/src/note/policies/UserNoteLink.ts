@@ -30,6 +30,13 @@ export const UserNoteLink: CreateTypePolicyFn = function (_ctx: TypePoliciesCont
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return existing;
       },
+      open: {
+        read(existing = null) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+          return existing;
+        },
+        merge: true,
+      },
     },
   };
 };

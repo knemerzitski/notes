@@ -15,26 +15,11 @@ type UserNoteLink implements Node {
   """
   id: ID!
   """
-  Note that the user can access
-  TODO merge UserNoteLink with PublicUserNoteLink
+  Self-descriptive
   """
   note: Note! @auth(userId: { parent: "userId" })
   """
-  UserNoteLink data that might be accessed by other users
-  """
-  public: PublicUserNoteLink!
-}
-
-"""
-TODO desc
-"""
-type PublicUserNoteLink {
-  """
   Self-descriptive
-  """
-  id: ID!
-  """
-  Public user who can access the note
   """
   user: User!
   """
@@ -42,16 +27,16 @@ type PublicUserNoteLink {
   """
   isOwner: Boolean!
   """
-  Access to note is read-only. User cannot modify note.
+  Access to note is read-only. User cannot modify the note.
   """
   readOnly: Boolean!
 }
 
 extend type Note {
   """
-  All users who can access the note.
+  All users who can access the note
   """
-  users: [PublicUserNoteLink!]!
+  users: [UserNoteLink!]!
 }
 
 ################################ Mutation createNote ################################
@@ -87,10 +72,6 @@ extend type DeleteNotePayload {
   Deleted UserNoteLink.id
   """
   userNoteLinkId: String
-  """
-  Deleted PublicUserNoteLink.id
-  """
-  publicUserNoteLinkId: String
 }
 
 ################################ Query User[noteLink,noteLinkConnection,noteLinkSearchConnection] ################################
@@ -192,7 +173,7 @@ input UpdateUserNoteLinkReadOnlyInput {
   """
   userId: ObjectID
   """
-  New PublicUserNoteLink.readOnly value for User.id
+  New UserNoteLink.readOnly value for User.id
   """
   readOnly: Boolean!
 }
@@ -202,13 +183,13 @@ TODO desc
 """
 type UpdateUserNoteLinkReadOnlyPayload {
   """
-  New PublicUserNoteLink.readOnly value
+  New UserNoteLink.readOnly value
   """
   readOnly: Boolean!
   """
-  Affected PublicUserNoteLink
+  Affected UserNoteLink
   """
-  publicUserNoteLink: PublicUserNoteLink!
+  userNoteLink: UserNoteLink!
   """
   Related Note
   """

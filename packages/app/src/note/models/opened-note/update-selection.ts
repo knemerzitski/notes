@@ -2,30 +2,30 @@ import { ApolloCache } from '@apollo/client';
 
 import { gql, makeFragmentData } from '../../../__generated__';
 import {
-  PublicUserNoteLink,
+  UserNoteLink,
   UpdateOpenNoteSelectionRangeInput,
-  UpdateOpenNoteSelectionRangePayloadPublicUserNoteLinkFragmentFragmentDoc,
+  UpdateOpenNoteSelectionRangePayloadUserNoteLinkFragmentFragmentDoc,
 } from '../../../__generated__/graphql';
 
-const UpdateOpenNoteSelectionRange_PublicUserNoteLinkFragment = gql(`
-   fragment UpdateOpenNoteSelectionRange_PublicUserNoteLinkFragment on PublicUserNoteLink {
-    ...UpdateOpenNoteSelectionRangePayload_PublicUserNoteLinkFragment
+const UpdateOpenNoteSelectionRange_UserNoteLinkFragment = gql(`
+   fragment UpdateOpenNoteSelectionRange_UserNoteLinkFragment on UserNoteLink {
+    ...UpdateOpenNoteSelectionRangePayload_UserNoteLinkFragment
    }
 `);
 
 export function updateOpenNoteSelectionRange(
-  id: PublicUserNoteLink['id'],
+  id: UserNoteLink['id'],
   input: Omit<UpdateOpenNoteSelectionRangeInput, 'note' | 'authUser'>,
   cache: Pick<ApolloCache<unknown>, 'writeFragment'>
 ) {
   cache.writeFragment({
-    fragment: UpdateOpenNoteSelectionRange_PublicUserNoteLinkFragment,
-    fragmentName: 'UpdateOpenNoteSelectionRange_PublicUserNoteLinkFragment',
+    fragment: UpdateOpenNoteSelectionRange_UserNoteLinkFragment,
+    fragmentName: 'UpdateOpenNoteSelectionRange_UserNoteLinkFragment',
     data: {
-      __typename: 'PublicUserNoteLink',
+      __typename: 'UserNoteLink',
       ...makeFragmentData(
         {
-          __typename: 'PublicUserNoteLink',
+          __typename: 'UserNoteLink',
           id,
           open: {
             __typename: 'OpenedNote',
@@ -40,7 +40,7 @@ export function updateOpenNoteSelectionRange(
             },
           },
         },
-        UpdateOpenNoteSelectionRangePayloadPublicUserNoteLinkFragmentFragmentDoc
+        UpdateOpenNoteSelectionRangePayloadUserNoteLinkFragmentFragmentDoc
       ),
     },
   });

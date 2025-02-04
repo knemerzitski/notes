@@ -1,10 +1,10 @@
 import { ApolloCache } from '@apollo/client';
 
 import { gql } from '../../../__generated__';
-import { PublicUserNoteLink } from '../../../__generated__/graphql';
+import { UserNoteLink } from '../../../__generated__/graphql';
 
-const SetOpenedNoteActive_PublicUserNoteLinkFragment = gql(`
-   fragment SetOpenedNoteActive_PublicUserNoteLinkFragment on PublicUserNoteLink {
+const SetOpenedNoteActive_UserNoteLinkFragment = gql(`
+   fragment SetOpenedNoteActive_UserNoteLinkFragment on UserNoteLink {
     id
      open {
       active
@@ -13,14 +13,14 @@ const SetOpenedNoteActive_PublicUserNoteLinkFragment = gql(`
 `);
 
 export function setOpenedNoteActive(
-  id: PublicUserNoteLink['id'],
+  id: UserNoteLink['id'],
   active: boolean,
   cache: Pick<ApolloCache<unknown>, 'writeFragment'>
 ) {
   cache.writeFragment({
-    fragment: SetOpenedNoteActive_PublicUserNoteLinkFragment,
+    fragment: SetOpenedNoteActive_UserNoteLinkFragment,
     data: {
-      __typename: 'PublicUserNoteLink',
+      __typename: 'UserNoteLink',
       id,
       open: {
         __typename: 'OpenedNote',

@@ -15,8 +15,8 @@ import { getUserNoteLinkId } from '../utils/id';
 
 import { openNoteSubscriptionOperationName } from './OpenNoteSubscription';
 
-const SubmitSelectionChangeDebounced_PublicUserNoteLinkFragment = gql(`
-  fragment SubmitSelectionChangeDebounced_PublicUserNoteLinkFragment on PublicUserNoteLink {
+const SubmitSelectionChangeDebounced_UserNoteLinkFragment = gql(`
+  fragment SubmitSelectionChangeDebounced_UserNoteLinkFragment on UserNoteLink {
     id
     open {
       active
@@ -84,14 +84,14 @@ export function SubmitSelectionChangeDebounced({
         }
 
         // Ensure note is open in cache
-        const publicUserNoteLink = client.cache.readFragment({
-          fragment: SubmitSelectionChangeDebounced_PublicUserNoteLinkFragment,
+        const userNoteLink = client.cache.readFragment({
+          fragment: SubmitSelectionChangeDebounced_UserNoteLinkFragment,
           id: client.cache.identify({
-            __typename: 'PublicUserNoteLink',
+            __typename: 'UserNoteLink',
             id: getUserNoteLinkId(noteId, userId),
           }),
         });
-        if (!publicUserNoteLink?.open?.active) {
+        if (!userNoteLink?.open?.active) {
           // Note is not subscribed or user is not present
           return false;
         }
@@ -142,9 +142,9 @@ export function SubmitSelectionChangeDebounced({
   // Submit when note is open
   useEffect(() => {
     const obs = client.cache.watchFragment({
-      fragment: SubmitSelectionChangeDebounced_PublicUserNoteLinkFragment,
+      fragment: SubmitSelectionChangeDebounced_UserNoteLinkFragment,
       from: {
-        __typename: 'PublicUserNoteLink',
+        __typename: 'UserNoteLink',
         id: getUserNoteLinkId(noteId, userId),
       },
       optimistic: false,

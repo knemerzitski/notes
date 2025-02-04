@@ -58,11 +58,8 @@ const MUTATION_ALL = `#graphql
         preferences {
           backgroundColor
         }
-        public {
-          id
-          isOwner
-          readOnly
-        }
+        isOwner
+        readOnly
       }
       note {
         id
@@ -178,11 +175,8 @@ describe('no existing notes', () => {
           preferences: {
             backgroundColor: null,
           },
-          public: {
-            id: expect.any(String),
-            isOwner: true,
-            readOnly: false,
-          },
+          isOwner: true,
+          readOnly: false,
         },
         note: {
           id: expect.any(String),
@@ -269,11 +263,8 @@ describe('no existing notes', () => {
           preferences: {
             backgroundColor: '#cacc52',
           },
-          public: {
-            id: expect.any(String),
-            isOwner: true,
-            readOnly: false,
-          },
+          isOwner: true,
+          readOnly: false,
         },
         note: {
           id: expect.any(String),

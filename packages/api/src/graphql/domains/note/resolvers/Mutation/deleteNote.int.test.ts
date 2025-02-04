@@ -48,7 +48,6 @@ const MUTATION = `#graphql
     deleteNote(input: $input) {
       noteId
       userNoteLinkId
-      publicUserNoteLinkId
     }
   }
 `;
@@ -61,7 +60,6 @@ const SUBSCRIPTION = `#graphql
         ... on DeleteNotePayload {
           noteId
           userNoteLinkId
-          publicUserNoteLinkId
         }
       }
     }
@@ -157,7 +155,6 @@ it('only owner user deletes note for everyone', async () => {
     deleteNote: {
       noteId: objectIdToStr(note._id),
       userNoteLinkId: UserNoteLink_id(note._id, userOwner._id),
-      publicUserNoteLinkId: UserNoteLink_id(note._id, userOwner._id),
     },
   });
 
@@ -215,7 +212,6 @@ it('other user deletes note only for self', async () => {
     deleteNote: {
       noteId: null,
       userNoteLinkId: UserNoteLink_id(note._id, userNotOwner._id),
-      publicUserNoteLinkId: UserNoteLink_id(note._id, userNotOwner._id),
     },
   });
 
@@ -281,8 +277,7 @@ it('owner user deletes other user note', async () => {
   expect(data).toEqual({
     deleteNote: {
       noteId: null,
-      userNoteLinkId: null,
-      publicUserNoteLinkId: UserNoteLink_id(note._id, userNotOwner._id),
+      userNoteLinkId: UserNoteLink_id(note._id, userNotOwner._id),
     },
   });
 
@@ -471,7 +466,6 @@ describe('subscription', () => {
                   __typename: 'DeleteNotePayload',
                   noteId: objectIdToStr(note._id),
                   userNoteLinkId: UserNoteLink_id(note._id, userOwner._id),
-                  publicUserNoteLinkId: UserNoteLink_id(note._id, userOwner._id),
                 },
               ],
             },
@@ -490,7 +484,6 @@ describe('subscription', () => {
                   __typename: 'DeleteNotePayload',
                   noteId: objectIdToStr(note._id),
                   userNoteLinkId: UserNoteLink_id(note._id, userNotOwner._id),
-                  publicUserNoteLinkId: UserNoteLink_id(note._id, userNotOwner._id),
                 },
               ],
             },
@@ -548,8 +541,7 @@ describe('subscription', () => {
                 {
                   __typename: 'DeleteNotePayload',
                   noteId: null,
-                  userNoteLinkId: null,
-                  publicUserNoteLinkId: UserNoteLink_id(note._id, userNotOwner._id),
+                  userNoteLinkId: UserNoteLink_id(note._id, userNotOwner._id),
                 },
               ],
             },
@@ -568,7 +560,6 @@ describe('subscription', () => {
                   __typename: 'DeleteNotePayload',
                   noteId: null,
                   userNoteLinkId: UserNoteLink_id(note._id, userNotOwner._id),
-                  publicUserNoteLinkId: UserNoteLink_id(note._id, userNotOwner._id),
                 },
               ],
             },
@@ -627,8 +618,7 @@ describe('subscription', () => {
                 {
                   __typename: 'DeleteNotePayload',
                   noteId: null,
-                  userNoteLinkId: null,
-                  publicUserNoteLinkId: UserNoteLink_id(note._id, userNotOwner._id),
+                  userNoteLinkId: UserNoteLink_id(note._id, userNotOwner._id),
                 },
               ],
             },
@@ -647,7 +637,6 @@ describe('subscription', () => {
                   __typename: 'DeleteNotePayload',
                   noteId: null,
                   userNoteLinkId: UserNoteLink_id(note._id, userNotOwner._id),
-                  publicUserNoteLinkId: UserNoteLink_id(note._id, userNotOwner._id),
                 },
               ],
             },

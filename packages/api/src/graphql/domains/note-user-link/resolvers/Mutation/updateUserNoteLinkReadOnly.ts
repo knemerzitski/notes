@@ -1,6 +1,4 @@
-import { QueryableNoteUser } from '../../../../../mongodb/loaders/note/descriptions/note';
-import { createMapQueryFn } from '../../../../../mongodb/query/query';
-import { findNoteUserMaybe, getNoteUsersIds } from '../../../../../services/note/note';
+import { getNoteUsersIds } from '../../../../../services/note/note';
 import { updateReadOnly } from '../../../../../services/note/update-read-only';
 import type { MutationResolvers, ResolversTypes } from '../../../types.generated';
 import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';
@@ -32,13 +30,9 @@ export const updateUserNoteLinkReadOnly: NonNullable<
   const payload: ResolversTypes['SignedInUserMutation'] = {
     __typename: 'UpdateUserNoteLinkReadOnlyPayload',
     readOnly: input.readOnly,
-    publicUserNoteLink: {
-      userId: currentUserId,
-      noteId,
-      query: createMapQueryFn(noteQuery)<QueryableNoteUser>()(
-        (query) => ({ users: { ...query, _id: 1 } }),
-        (note) => findNoteUserMaybe(targetUserId, note)
-      ),
+    userNoteLink: {
+      userId: targetUserId,
+      query: noteQuery,
     },
     note: {
       query: noteQuery,

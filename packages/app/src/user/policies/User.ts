@@ -72,9 +72,6 @@ export const User: CreateTypePolicyFn = function () {
         const id = readField('id');
         return isLocalId(id);
       },
-      public: {
-        merge: true,
-      },
     },
   };
 };

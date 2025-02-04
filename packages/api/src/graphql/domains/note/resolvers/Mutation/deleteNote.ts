@@ -33,70 +33,37 @@ export const deleteNote: NonNullable<MutationResolvers['deleteNote']> = async (
       note.users.map((noteUser) =>
         publishSignedInUserMutation(
           noteUser._id,
-          createDeleteNoteCompletelyPayload(noteId, noteUser._id),
+          createDeleteNotePayload(noteId, noteUser._id, true),
           ctx
         )
       )
     );
 
-    return createDeleteNoteCompletelyPayload(noteId, currentUserId);
+    return createDeleteNotePayload(noteId, currentUserId, true);
   } else {
     //unlinked_target_user
     await Promise.all(
       note.users.map((noteUser) =>
         publishSignedInUserMutation(
           noteUser._id,
-          targetUserId.equals(noteUser._id)
-            ? createUnlinkSelfUserNoteNotePayload(noteId, targetUserId)
-            : createUnlinkOtherUserNoteNotePayload(noteId, targetUserId),
+          createDeleteNotePayload(noteId, targetUserId, false),
           ctx
         )
       )
     );
 
-    if (targetUserId.equals(currentUserId)) {
-      return createUnlinkSelfUserNoteNotePayload(noteId, targetUserId);
-    } else {
-      return createUnlinkOtherUserNoteNotePayload(noteId, targetUserId);
-    }
+    return createDeleteNotePayload(noteId, targetUserId, false);
   }
 };
 
-/**
- * Note is deleted for user
- */
-function createDeleteNoteCompletelyPayload(
+function createDeleteNotePayload(
   noteId: ObjectId,
-  userId: ObjectId
+  userId: ObjectId,
+  isNoteDeleted: boolean
 ): WithRequired<DeleteNotePayload, '__typename'> {
   return {
     __typename: 'DeleteNotePayload',
-    noteId,
+    noteId: isNoteDeleted ? noteId : null,
     userNoteLinkId: UserNoteLink_id(noteId, userId),
-    publicUserNoteLinkId: UserNoteLink_id(noteId, userId),
-  };
-}
-
-function createUnlinkSelfUserNoteNotePayload(
-  noteId: ObjectId,
-  userId: ObjectId
-): WithRequired<DeleteNotePayload, '__typename'> {
-  return {
-    __typename: 'DeleteNotePayload',
-    userNoteLinkId: UserNoteLink_id(noteId, userId),
-    publicUserNoteLinkId: UserNoteLink_id(noteId, userId),
-  };
-}
-
-/**
- * Only other user note is deleted
- */
-function createUnlinkOtherUserNoteNotePayload(
-  noteId: ObjectId,
-  userId: ObjectId
-): WithRequired<DeleteNotePayload, '__typename'> {
-  return {
-    __typename: 'DeleteNotePayload',
-    publicUserNoteLinkId: UserNoteLink_id(noteId, userId),
   };
 }

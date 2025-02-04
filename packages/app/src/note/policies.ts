@@ -31,7 +31,6 @@ import { LocalSignedInUser } from './policies/LocalSignedInUser';
 import { Note } from './policies/Note';
 import { NoteTextField } from './policies/NoteTextField';
 import { OpenedNote } from './policies/OpenedNote';
-import { PublicUserNoteLink } from './policies/PublicUserNoteLink';
 import { evictOptions as Query_evictOptions, Query } from './policies/Query';
 import { RevisionChangeset } from './policies/RevisionChangeset';
 import { User } from './policies/User';
@@ -50,7 +49,6 @@ export const notePolicies: CreateTypePoliciesFn = function (ctx) {
     CollabTextRecordConnection: CollabTextRecordConnection(ctx),
     UserNoteLinkConnection: UserNoteLinkConnection(ctx),
     LocalSignedInUser: LocalSignedInUser(ctx),
-    PublicUserNoteLink: PublicUserNoteLink(ctx),
     OpenedNote: OpenedNote(ctx),
     CollabTextEditing: CollabTextEditing(ctx),
     User: User(ctx),

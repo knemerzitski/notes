@@ -1,7 +1,7 @@
 import { ApolloCache } from '@apollo/client';
 
 import { gql } from '../../../__generated__';
-import { NoteByInput, PublicUserNoteLink } from '../../../__generated__/graphql';
+import { NoteByInput, UserNoteLink } from '../../../__generated__/graphql';
 import { parseUserNoteLinkId } from '../../utils/id';
 
 const AddUserToNote_Query = gql(`
@@ -16,7 +16,7 @@ const AddUserToNote_Query = gql(`
 `);
 
 export function addUserToNote(
-  publicUserNoteLinkId: PublicUserNoteLink['id'],
+  userNoteLinkId: UserNoteLink['id'],
   by: NoteByInput,
   cache: ApolloCache<unknown>
 ) {
@@ -29,11 +29,11 @@ export function addUserToNote(
       __typename: 'Query',
       note: {
         __typename: 'Note',
-        id: parseUserNoteLinkId(publicUserNoteLinkId).noteId,
+        id: parseUserNoteLinkId(userNoteLinkId).noteId,
         users: [
           {
-            __typename: 'PublicUserNoteLink',
-            id: publicUserNoteLinkId,
+            __typename: 'UserNoteLink',
+            id: userNoteLinkId,
           },
         ],
       },
