@@ -12,8 +12,6 @@ import {
   formatUnknownError,
 } from '../graphql/format-unknown-error';
 
-import { BaseGraphQLContext } from '../type';
-
 import { PubSubEvent } from './subscribe';
 import { ObjectLoader } from '../dynamodb/loader';
 
@@ -31,7 +29,7 @@ interface CreatePublisherParams<TGraphQLContext> {
     readonly formatError: FormatError;
     readonly formatErrorOptions?: FormatErrorOptions;
   };
-  getGraphQLContext: () => TGraphQLContext;
+  getGraphQLContext: (connectionId?: string) => Promise<TGraphQLContext>;
   /**
    * @returns {boolean} {@link connectionId} belongs to client of current request.
    */
@@ -97,11 +95,6 @@ export function createPublisher<TGraphQLContext>({
       return true;
     }
 
-    const contextValue: BaseGraphQLContext & TGraphQLContext = {
-      ...getGraphQLContext(),
-      eventType: 'publish',
-    };
-
     const subcriptionPostPromises = subscriptions
       .filter(isRelevantSubscription)
       .map(async (sub) => {
@@ -111,7 +104,10 @@ export function createPublisher<TGraphQLContext>({
             schema: schema,
             document: parse(sub.subscription.query),
             rootValue: payload,
-            contextValue,
+            contextValue: {
+              ...(await getGraphQLContext(sub.connectionId)),
+              eventType: 'publish',
+            },
             variableValues: sub.subscription.variables,
             operationName: sub.subscription.operationName,
           });

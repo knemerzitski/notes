@@ -126,10 +126,10 @@ export function createMockedPublisher(ctx: Omit<GraphQLResolversContext, 'publis
       socketApi: mockSocketApi,
       logger: mockDeep(),
       formatError: (err) => err,
-      models: {
+      loaders: {
         subscriptions: mockSubscriptionsModel,
       },
     },
-    getGraphQLContext: () => mockDeep(),
+    getGraphQLContext: () => Promise.resolve(mockDeep()),
   });
 }

@@ -25,6 +25,7 @@ import { ConnectionTable } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
 import { Publisher, createPublisher } from './pubsub/publish';
 import { BaseGraphQLContext } from './type';
+import { createObjectLoader, ObjectLoader } from './dynamodb/loader';
 
 interface DirectParams {
   logger: Logger;
@@ -33,10 +34,12 @@ interface DirectParams {
 export interface CreateApolloHttpHandlerParams<TGraphQLContext extends BaseContext>
   extends DirectParams {
   readonly requestDidStart: (args: {
-    readonly context: ApolloHttpHandlerContext;
+    readonly context: ApolloHttpHandlerEventContext;
     readonly event: APIGatewayProxyEvent;
   }) => MaybePromise<{
-    readonly createGraphQLContext: () => MaybePromise<TGraphQLContext>;
+    readonly createGraphQLContext: (
+      connectionId?: string
+    ) => MaybePromise<TGraphQLContext>;
     readonly createIsCurrentConnection?: () =>
       | ((connectionId: string) => boolean)
       | undefined;
@@ -64,6 +67,16 @@ export interface ApolloHttpHandlerContext extends DirectParams {
     readonly subscriptions: SubscriptionTable;
   };
   readonly socketApi: WebSocketApi;
+}
+
+export interface ApolloHttpHandlerEventContext extends ApolloHttpHandlerContext {
+  loaders: {
+    connections: ObjectLoader<ConnectionTable, 'get'>;
+    subscriptions: ObjectLoader<
+      SubscriptionTable,
+      'queryAllByTopic' | 'queryAllByTopicFilter'
+    >;
+  };
 }
 
 export interface ApolloHttpGraphQLContext extends BaseContext {
@@ -125,18 +138,19 @@ export function createApolloHttpHandler<TGraphQLContext extends BaseContext>(
       const responseMultiValueHeadersFromResolvers: ApolloHttpGraphQLContext['response']['multiValueHeaders'] =
         {};
 
-      const { createGraphQLContext, createIsCurrentConnection, willSendResponse } =
-        await params.requestDidStart({ context: handlerContext, event });
-
-      const preEventContext = {
+      const preEventContext: ApolloHttpHandlerEventContext = {
         ...handlerContext,
         loaders: {
+          connections: createObjectLoader(handlerContext.models.connections, ['get']),
           subscriptions: createObjectLoader(handlerContext.models.subscriptions, [
             'queryAllByTopic',
             'queryAllByTopicFilter',
           ]),
         },
       };
+
+      const { createGraphQLContext, createIsCurrentConnection, willSendResponse } =
+        await params.requestDidStart({ context: preEventContext, event });
 
       const graphQLContext: GraphQLContext = {
         ...(await createGraphQLContext()),
@@ -158,7 +172,11 @@ export function createApolloHttpHandler<TGraphQLContext extends BaseContext>(
               includeStacktrace: includeStacktraceInErrorResponses,
             },
           },
-          getGraphQLContext: () => graphQLContext,
+
+          getGraphQLContext: async (connectionId) => ({
+            ...graphQLContext,
+            ...(await createGraphQLContext(connectionId)),
+          }),
           isCurrentConnection: createIsCurrentConnection?.(),
         }),
       };

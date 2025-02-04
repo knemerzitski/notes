@@ -79,13 +79,16 @@ export function createSubscribeHandler<TGraphQLContext>(): MessageHandler<
         SubscriptionGraphQLContext &
         WebSocketMessageGraphQLContext &
         TGraphQLContext = {
-        ...(await context.createGraphQLContext()),
+        ...(await context.createGraphQLContext(connectionId)),
         ...createSubscriptionContext(),
         eventType: 'subscription',
         logger: context.logger,
         publish: createPublisher<TGraphQLContext>({
           context,
-          getGraphQLContext: () => graphQLContextValue,
+          getGraphQLContext: async (connectionId) => ({
+            ...graphQLContextValue,
+            ...(await context.createGraphQLContext(connectionId)),
+          }),
           isCurrentConnection: (id: string) => connectionId === id,
         }),
       };

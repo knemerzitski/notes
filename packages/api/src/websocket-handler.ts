@@ -2,7 +2,6 @@ import 'source-map-support/register.js';
 import { APIGatewayProxyWebsocketHandlerV2 } from 'aws-lambda';
 
 import { PingPongContextParams } from '~lambda-graphql/context/pingpong';
-import { Connection } from '~lambda-graphql/dynamodb/models/connection';
 import {
   WebSocketHandlerParams,
   createWebSocketHandler,
@@ -19,17 +18,12 @@ import {
   createDefaultMongoDBContext,
   createDefaultSubscriptionGraphQLParams,
 } from './parameters';
-import { CookiesMongoDBDynamoDBAuthenticationService } from './services/auth/auth-service';
-import { SessionsCookie } from './services/http/sessions-cookie';
 import { SessionDuration } from './services/session/duration';
-import {
-  ConnectionCustomData,
-  parseConnectionCustomData,
-  serializeConnectionCustomData,
-} from './utils/connection-custom-data';
+import { serializeConnectionCustomData } from './utils/connection-custom-data';
 import { createErrorProxy } from './utils/error-proxy';
 import { onConnect } from './utils/on-connect';
 import { onConnectionInit } from './utils/on-connection-init';
+import { ConnectionsAuthenticationServiceCache } from './utils/auth-cache';
 
 export interface CreateWebSocketHandlerDefaultParamsOptions {
   override?: {
@@ -87,88 +81,41 @@ export function createWebSocketHandlerDefaultParams(
     },
     onConnect,
     onConnectionInit,
-    requestDidStart({ event, context }) {
+    async requestDidStart({ event, context }) {
       const eventType = event.requestContext.eventType;
-      const connectionId = event.requestContext.connectionId;
+      const requestConnectionId = event.requestContext.connectionId;
 
       const isConnectionDeleteEvent = eventType === 'DISCONNECT';
 
-      let ws:
-        | {
-            connection: Connection;
-            customData: ConnectionCustomData;
-            isAuthModelModified: boolean;
-          }
-        | undefined;
+      // MongoDB
+      if (!mongoDB) {
+        mongoDB = await (options?.override?.createMongoDBContext?.(logger) ??
+          createDefaultMongoDBContext(logger));
+      }
+      const mongoDBContext = {
+        ...mongoDB,
+        loaders: createMongoDBLoaders(mongoDB),
+      };
+
+      const authCache = new ConnectionsAuthenticationServiceCache({
+        connections: context.loaders.connections,
+        mongoDB: mongoDBContext,
+        apiOptions,
+      });
 
       return {
-        async createGraphQLContext() {
-          if (!mongoDB) {
-            mongoDB = await (options?.override?.createMongoDBContext?.(logger) ??
-              createDefaultMongoDBContext(logger));
-          }
-          const mongoDBLoaders = createMongoDBLoaders(mongoDB);
-
-            const connection = await context.loaders.connections.get({
-              id: connectionId,
-            });
-
-          if (!connection) {
-            throw new Error(
-              'Cannot invoke createGraphQLContext since connection is missing'
-            );
-          }
-
-          ws = {
-            connection,
-            customData: parseConnectionCustomData(connection.customData),
-            isAuthModelModified: false,
-          };
-          if (!isConnectionDeleteEvent) {
-            // Remember if auth model is modified, update connection before response is sent
-            ws.customData.authenticatedContexts.eventBus.on('*', () => {
-              if (!ws) {
-                return;
-              }
-
-              ws.isAuthModelModified = true;
-            });
-          }
-
-          // Cookies, Sessions
-          const sessionsCookie = new SessionsCookie(
-            {
-              model: ws.customData.sessionsCookie,
-            },
-            {
-              key: apiOptions.sessions?.cookieKey,
-            }
-          );
-
-          // Auth Service
-          const authService = new CookiesMongoDBDynamoDBAuthenticationService(
-            {
-              mongoDB: {
-                ...mongoDB,
-                loaders: mongoDBLoaders,
-              },
-              sessionsCookie,
-            },
-            ws.customData.authenticatedContexts
-          );
+        async createGraphQLContext(graphQLContextConnectionId = requestConnectionId) {
+          const authService = await authCache.get(graphQLContextConnectionId);
 
           return {
             logger: options?.override?.gqlContextLogger ?? createLogger('ws-gql-context'),
-            mongoDB: {
-              ...mongoDB,
-              loaders: mongoDBLoaders,
-            },
+            mongoDB: mongoDBContext,
             services: {
               auth: authService,
             },
             // pub and services
             options: apiOptions,
-            connectionId,
+            connectionId: graphQLContextConnectionId,
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             get request() {
               // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -182,15 +129,18 @@ export function createWebSocketHandlerDefaultParams(
           };
         },
         async willSendResponse() {
-          // event type pass it along?
-          if (!isConnectionDeleteEvent && ws?.isAuthModelModified) {
-            await context.models.connections.update(
-              {
-                id: ws.connection.id,
-              },
-              {
-                customData: serializeConnectionCustomData(ws.customData),
-              }
+          if (!isConnectionDeleteEvent) {
+            await Promise.allSettled(
+              authCache.changedCustomDatas.map(({ connectionId, customData }) =>
+                context.models.connections.update(
+                  {
+                    id: connectionId,
+                  },
+                  {
+                    customData: serializeConnectionCustomData(customData),
+                  }
+                )
+              )
             );
           }
         },

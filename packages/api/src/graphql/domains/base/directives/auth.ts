@@ -18,16 +18,10 @@ import { isObjectLike } from '~utils/type-guards/is-object-like';
 import { MaybePromise } from '~utils/types';
 
 import { GraphQLResolversContext } from '../../../types';
+import { unwrapResolverMaybe } from '../../../utils/unwrap-resolver';
 import type { authDirectiveArgs, NextResolverFn } from '../../types.generated';
 
 export const auth: AuthDirectiveResolver = async (next, parent, args, ctx) => {
-  if (ctx.eventType === 'publish') {
-    // Authentication happens in `subscription` event phase.
-    // During publish, user has already been authenticated
-    // and context might not contain token for current user publishing.
-    return next();
-  }
-
   const userIdDesc = args.directive.userId;
 
   // If no userId specified, find first available
@@ -49,7 +43,9 @@ export const auth: AuthDirectiveResolver = async (next, parent, args, ctx) => {
     return next();
   }
 
-  const userId = findMaybeUserIdBy(traverseObject(targetObj, targetPath.split('.')));
+  const userId = await unwrapResolverMaybe(
+    findMaybeUserIdBy(traverseObject(targetObj, targetPath.split('.')))
+  );
   if (!isUserId(userId)) {
     throw new Error(
       `@auth directive failed to find user id for authentication. ` +
