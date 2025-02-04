@@ -10,7 +10,6 @@ import { GraphQLSchema, parse } from 'graphql/index.js';
 import { MessageType } from 'graphql-ws';
 import { isArray } from '~utils/array/is-array';
 import { Logger } from '~utils/logging';
-import { memoize } from '~utils/memoize';
 import { MaybePromise } from '~utils/types';
 
 import { WebSocketConnectEvent } from './connect-handler';
@@ -21,7 +20,7 @@ import {
 } from './context/apigateway';
 import { DynamoDBContextParams, createDynamoDBContext } from './context/dynamodb';
 import { GraphQLContextParams, createGraphQLContext } from './context/graphql';
-import { Connection, ConnectionTable } from './dynamodb/models/connection';
+import { ConnectionTable } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
 import {
   FormatError,
@@ -36,6 +35,7 @@ import {
   getSubscribeFieldResult,
 } from './pubsub/subscribe';
 import { BaseGraphQLContext } from './type';
+import { createObjectLoader, ObjectLoader } from './dynamodb/loader';
 
 interface DirectParams<TGraphQLContext> {
   readonly apiGateway: ApiGatewayContextParams;
@@ -74,8 +74,15 @@ export interface WebSocketDisconnectHandlerContext<TGraphQLContext>
 
 export interface WebSocketDisconnectHandlerEventContext<TGraphQLContext>
   extends WebSocketDisconnectHandlerContext<TGraphQLContext> {
-  readonly getCurrentConnection: () => Promise<Connection | undefined>;
+  isConnectionDeleted: boolean;
   readonly createGraphQLContext: () => Promise<TGraphQLContext> | TGraphQLContext;
+  loaders: {
+    connections: ObjectLoader<ConnectionTable, 'get'>;
+    subscriptions: ObjectLoader<
+      SubscriptionTable,
+      'get' | 'queryAllByConnectionId' | 'queryAllByTopic' | 'queryAllByTopicFilter'
+    >;
+  };
 }
 
 type WebSocketDisconnectHandlerPreEventContext<TGraphQLContext> = Omit<
@@ -150,25 +157,19 @@ export function webSocketDisconnectHandler<TGraphQLContext>(
         connectionId,
       });
 
-      let isConnectionDeleted = false;
       const preEventContext: WebSocketDisconnectHandlerPreEventContext<TGraphQLContext> =
         {
           ...handlerContext,
-          getCurrentConnection: memoize(async () => {
-            if (isConnectionDeleted) {
-              return;
-            }
-
-            const connection = await handlerContext.models.connections.get({
-              id: connectionId,
-            });
-
-            if (!connection) {
-              throw new Error(`Missing connection "${connectionId}" record in DB`);
-            }
-
-            return connection;
-          }),
+          isConnectionDeleted: false,
+          loaders: {
+            connections: createObjectLoader(handlerContext.models.connections, ['get']),
+            subscriptions: createObjectLoader(handlerContext.models.subscriptions, [
+              'get',
+              'queryAllByConnectionId',
+              'queryAllByTopic',
+              'queryAllByTopicFilter',
+            ]),
+          },
         };
 
       const { createGraphQLContext, willSendResponse } =
@@ -193,7 +194,7 @@ export function webSocketDisconnectHandler<TGraphQLContext>(
       });
 
       const connectionSubscriptions =
-        await handlerContext.models.subscriptions.queryAllByConnectionId(connectionId);
+        await preEventContext.loaders.subscriptions.queryAllByConnectionId(connectionId);
 
       const subscriptionDeletions = connectionSubscriptions.map(async (sub) => {
         try {
@@ -207,7 +208,7 @@ export function webSocketDisconnectHandler<TGraphQLContext>(
             eventType: 'subscription',
             logger: handlerContext.logger,
             publish: createPublisher<TGraphQLContext>({
-              context: handlerContext,
+              context: eventContext,
               getGraphQLContext: () => graphQLContextValue,
               isCurrentConnection: (id: string) => connectionId === id,
             }),
@@ -268,7 +269,7 @@ export function webSocketDisconnectHandler<TGraphQLContext>(
         id: connectionId,
       });
 
-      isConnectionDeleted = true;
+      preEventContext.isConnectionDeleted = true;
       await Promise.allSettled([connectionDeletion, ...subscriptionDeletions]);
 
       const result = defaultResponse;

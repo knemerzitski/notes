@@ -14,7 +14,6 @@ import {
   validateMessage,
 } from 'graphql-ws';
 import { Logger } from '~utils/logging';
-import { memoize } from '~utils/memoize';
 import { MaybePromise } from '~utils/types';
 
 import {
@@ -30,11 +29,7 @@ import {
   createPingPongContext,
 } from './context/pingpong';
 import { CompletedSubscriptionTable } from './dynamodb/models/completed-subscription';
-import {
-  Connection,
-  ConnectionTable,
-  ConnectionTtlContext,
-} from './dynamodb/models/connection';
+import { ConnectionTable, ConnectionTtlContext } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
 import { FormatError, FormatErrorOptions } from './graphql/format-unknown-error';
 import { createCompleteHandler } from './messages/complete';
@@ -43,6 +38,7 @@ import { createPingHandler } from './messages/ping';
 import { createPongHandler } from './messages/pong';
 import { createSubscribeHandler } from './messages/subscribe';
 import { Publisher } from './pubsub/publish';
+import { createObjectLoader, ObjectLoader } from './dynamodb/loader';
 
 interface DirectParams<TGraphQLContext> {
   readonly connection: ConnectionTtlContext;
@@ -110,11 +106,13 @@ export interface WebSocketMessageHandlerContext<TGraphQLContext>
 
 export interface WebSocketMessageHandlerEventContext<TGraphQLContext>
   extends WebSocketMessageHandlerContext<TGraphQLContext> {
-  /**
-   * Connection model for current connectionId. Can be memoized.
-   */
-  readonly getCurrentConnection: () => Promise<Connection>;
-  readonly createGraphQLContext: () => Promise<TGraphQLContext> | TGraphQLContext;
+  loaders: {
+    connections: ObjectLoader<ConnectionTable, 'get'>;
+    subscriptions: ObjectLoader<
+      SubscriptionTable,
+      'get' | 'queryAllByConnectionId' | 'queryAllByTopic' | 'queryAllByTopicFilter'
+    >;
+  };
 }
 
 type WebSocketMessageHandlerPreEventContext<TGraphQLContext> = Omit<
@@ -223,17 +221,15 @@ export function webSocketMessageHandler<TGraphQLContext>(
 
       const preEventContext: WebSocketMessageHandlerPreEventContext<TGraphQLContext> = {
         ...handlerContext,
-        getCurrentConnection: memoize(async () => {
-          const connection = await handlerContext.models.connections.get({
-            id: connectionId,
-          });
-
-          if (!connection) {
-            throw new Error(`Missing connection "${connectionId}" record in DB`);
-          }
-
-          return connection;
-        }),
+        loaders: {
+          connections: createObjectLoader(handlerContext.models.connections, ['get']),
+          subscriptions: createObjectLoader(handlerContext.models.subscriptions, [
+            'get',
+            'queryAllByConnectionId',
+            'queryAllByTopic',
+            'queryAllByTopicFilter',
+          ]),
+        },
       };
 
       const { createGraphQLContext, willSendResponse } =

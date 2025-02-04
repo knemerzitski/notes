@@ -28,10 +28,10 @@ export function createCompleteHandler<TGraphQLContext>(): MessageHandler<
     try {
       const subscriptionId = `${connectionId}:${message.id}`;
       const [connection, subscription] = await Promise.all([
-        context.models.connections.get({
+        context.loaders.connections.get({
           id: connectionId,
         }),
-        context.models.subscriptions.get({
+        context.loaders.subscriptions.get({
           id: subscriptionId,
         }),
       ]);
