@@ -29,7 +29,9 @@ const MUTATION = `#graphql
   mutation SignOut($input: SignOutInput!) {
     signOut(input: $input) {
       signedOutUserIds
-      availableUserIds
+      availableUsers {
+        id
+      }
     }
   }
 `;
@@ -107,7 +109,7 @@ it('signs out specific user', async () => {
   expect(data).toEqual({
     signOut: {
       signedOutUserIds: [objectIdToStr(user._id)],
-      availableUserIds: [],
+      availableUsers: [],
     },
   });
 
@@ -143,7 +145,7 @@ it('signs out all users', async () => {
   expect(data).toEqual({
     signOut: {
       signedOutUserIds: [objectIdToStr(user._id)],
-      availableUserIds: [],
+      availableUsers: [],
     },
   });
 

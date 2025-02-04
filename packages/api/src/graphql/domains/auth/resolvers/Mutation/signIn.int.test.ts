@@ -51,7 +51,9 @@ const MUTATION = `#graphql
             displayName
           }
         }
-        availableUserIds
+        availableUsers {
+          id
+        }
       }
       ... on JustSignedInResult {
         authProviderUser {
@@ -177,7 +179,7 @@ it('creates new user and session on first sign in with google', async () => {
         profile: { displayName: authProviderUser.name },
       },
       authProviderUser: { id: authProviderUser.id, email: authProviderUser.email },
-      availableUserIds: [objectIdToStr(newUser._id)],
+      availableUsers: [{ id: objectIdToStr(newUser._id) }],
     },
   });
 
@@ -227,7 +229,7 @@ it('signs in with existing user by creating new session', async () => {
         profile: { displayName: user.profile.displayName },
       },
       authProviderUser: { id: authProviderUser.id, email: authProviderUser.email },
-      availableUserIds: [objectIdToStr(user._id)],
+      availableUsers: [{ id: objectIdToStr(user._id) }],
     },
   });
 
@@ -274,7 +276,11 @@ it('returns already signed in result with existing auth', async () => {
         id: objectIdToStr(user._id),
         profile: { displayName: user.profile.displayName },
       },
-      availableUserIds: [objectIdToStr(user._id)],
+      availableUsers: [
+        {
+          id: objectIdToStr(user._id),
+        },
+      ],
     },
   });
 
@@ -318,7 +324,7 @@ it('signs in new user while already authenticated with another user', async () =
         id: expect.any(String),
         profile: { displayName: 'second' },
       },
-      availableUserIds: [objectIdToStr(user._id), expect.any(String)],
+      availableUsers: [{ id: objectIdToStr(user._id) }, { id: expect.any(String) }],
     },
   });
 });

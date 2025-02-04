@@ -1,5 +1,5 @@
-import { ObjectId } from 'mongodb';
-import { expect, it } from 'vitest';
+import { faker } from '@faker-js/faker';
+import { beforeEach, expect, it } from 'vitest';
 
 import { apolloServer } from '../../../../../__tests__/helpers/graphql/apollo-server';
 import {
@@ -7,6 +7,9 @@ import {
   createGraphQLResolversContext,
 } from '../../../../../__tests__/helpers/graphql/graphql-context';
 import { expectGraphQLResponseData } from '../../../../../__tests__/helpers/graphql/response';
+import { resetDatabase } from '../../../../../__tests__/helpers/mongodb/mongodb';
+import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/populate/populate-queue';
+import { fakeUserPopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/user';
 import { SessionSchema } from '../../../../../mongodb/schema/session';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import { Cookies } from '../../../../../services/http/cookies';
@@ -23,7 +26,9 @@ interface Variables {
 const MUTATION = `#graphql
   mutation SignOut($input: SyncSessionCookiesInput!) {
     syncSessionCookies(input: $input) {
-      availableUserIds
+      availableUsers {
+        id
+      }
     }
   }
 `;
@@ -51,8 +56,17 @@ async function executeOperation(
   );
 }
 
+beforeEach(async () => {
+  faker.seed(532532);
+  await resetDatabase();
+});
+
 it('removes userIds in cookies not known to client', async () => {
-  const userId = new ObjectId();
+  const user1 = fakeUserPopulateQueue();
+  const user2 = fakeUserPopulateQueue();
+  await populateExecuteAll();
+
+  const userId = user1._id;
   const cookieId = SessionSchema.schema.cookieId.create(undefined);
 
   const cookies = new Cookies();
@@ -61,7 +75,7 @@ it('removes userIds in cookies not known to client', async () => {
   });
 
   sessionsCookie.update(userId, cookieId);
-  sessionsCookie.update(new ObjectId(), SessionSchema.schema.cookieId.create(undefined));
+  sessionsCookie.update(user2._id, SessionSchema.schema.cookieId.create(undefined));
 
   const context = createGraphQLResolversContext({
     sessionsCookie,
@@ -69,7 +83,7 @@ it('removes userIds in cookies not known to client', async () => {
 
   const response = await executeOperation(
     {
-      availableUserIds: [objectIdToStr(userId)],
+      availableUserIds: [userId],
     },
     {
       contextValue: context,
@@ -79,7 +93,7 @@ it('removes userIds in cookies not known to client', async () => {
   const data = expectGraphQLResponseData(response);
   expect(data).toEqual({
     syncSessionCookies: {
-      availableUserIds: [objectIdToStr(userId)],
+      availableUsers: [{ id: objectIdToStr(userId) }],
     },
   });
 
@@ -93,8 +107,12 @@ it('removes userIds in cookies not known to client', async () => {
 });
 
 it('ignores unknown client userIds not in cookies', async () => {
-  const userId = new ObjectId();
-  const unknownUserId = new ObjectId();
+  const user1 = fakeUserPopulateQueue();
+  const user2 = fakeUserPopulateQueue();
+  await populateExecuteAll();
+
+  const userId = user1._id;
+  const unknownUserId = user2._id;
   const cookieId = SessionSchema.schema.cookieId.create(undefined);
 
   const cookies = new Cookies();
@@ -110,7 +128,7 @@ it('ignores unknown client userIds not in cookies', async () => {
 
   const response = await executeOperation(
     {
-      availableUserIds: [objectIdToStr(userId), objectIdToStr(unknownUserId)],
+      availableUserIds: [userId, unknownUserId],
     },
     {
       contextValue: context,
@@ -120,7 +138,11 @@ it('ignores unknown client userIds not in cookies', async () => {
   const data = expectGraphQLResponseData(response);
   expect(data).toEqual({
     syncSessionCookies: {
-      availableUserIds: [objectIdToStr(userId)],
+      availableUsers: [
+        {
+          id: objectIdToStr(userId),
+        },
+      ],
     },
   });
 

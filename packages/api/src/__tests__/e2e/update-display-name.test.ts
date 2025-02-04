@@ -150,7 +150,9 @@ it('creates new user, updates displayName and publishes it to websocket', async 
       query: `#graphql
         mutation SignOut($input: SignOutInput!) {
           signOut(input: $input) {
-            availableUserIds
+            availableUsers {
+
+            }
           }
         }
       `,
@@ -165,7 +167,7 @@ it('creates new user, updates displayName and publishes it to websocket', async 
     fetchFn
   );
   const signOutData = expectGraphQLResponseData(signOutResponse);
-  expect(signOutData.signOut.availableUserIds).toHaveLength(0);
+  expect(signOutData.signOut.availableUsers).toHaveLength(0);
 
   // Validate database actually has user with changed displayName
   const dbUser = await mongoCollections.users.findOne({

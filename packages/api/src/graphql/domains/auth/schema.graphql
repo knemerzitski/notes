@@ -35,9 +35,9 @@ interface SignInResult {
   """
   signedInUser: User!
   """
-  User.id's
+  Available users after sign in
   """
-  availableUserIds: [String!]!
+  availableUsers: [User!]!
 }
 
 """
@@ -49,9 +49,9 @@ type JustSignedInResult implements SignInResult {
   """
   signedInUser: User!
   """
-  Available User.id's after sign in
+  Available users after sign in
   """
-  availableUserIds: [String!]!
+  availableUsers: [User!]!
   """
   User info from auth provider
   """
@@ -67,9 +67,9 @@ type AlreadySignedInResult implements SignInResult {
   """
   signedInUser: User!
   """
-  Current available User.id's
+  Current available users
   """
-  availableUserIds: [String!]!
+  availableUsers: [User!]!
 }
 
 """
@@ -139,9 +139,9 @@ type SignOutPayload {
   """
   signedOutUserIds: [String!]!
   """
-  Available User.id's after sign out.
+  Available users after sign out.
   """
-  availableUserIds: [String!]!
+  availableUsers: [User!]!
 }
 
 extend type Mutation {
@@ -158,9 +158,9 @@ TODO desc
 """
 input SyncSessionCookiesInput {
   """
-  Available user ids provided by the client
+  Available users provided by the client
   """
-  availableUserIds: [String!]!
+  availableUserIds: [ObjectID!]!
 }
 
 """
@@ -170,7 +170,7 @@ type SyncSessionCookiesPayload {
   """
   User ids available in http-only cookies. Any other user id is expired.
   """
-  availableUserIds: [String!]!
+  availableUsers: [User!]!
 }
 
 extend type Mutation {

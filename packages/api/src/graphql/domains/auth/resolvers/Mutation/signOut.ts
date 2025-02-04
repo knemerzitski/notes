@@ -9,7 +9,7 @@ export const signOut: NonNullable<MutationResolvers['signOut']> = async (
   arg,
   ctx
 ) => {
-  const { services } = ctx;
+  const { services, mongoDB } = ctx;
 
   const { input } = arg;
 
@@ -31,9 +31,11 @@ export const signOut: NonNullable<MutationResolvers['signOut']> = async (
 
   return {
     signedOutUserIds,
-    availableUserIds: services.auth
-      .getAvailableUserIds()
-      .map(objectIdToStr)
-      .filter(isDefined),
+    availableUsers: services.auth.getAvailableUserIds().map((userId) => ({
+      userId,
+      query: mongoDB.loaders.user.createQueryFn({
+        userId,
+      }),
+    })),
   };
 };
