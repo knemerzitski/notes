@@ -30,7 +30,12 @@ export function createSubscribeHandler<TGraphQLContext>(): MessageHandler<
     });
 
     try {
-      const connection = await context.getCurrentConnection();
+      const connection = await context.loaders.connections.get({
+        id: connectionId,
+      });
+      if (!connection) {
+        throw new Error('Missing connection record in DB');
+      }
 
       // Refresh TTL if it will expire soon
       const ttl = context.connection.tryRefreshTtl(connection.ttl);

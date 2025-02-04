@@ -109,7 +109,9 @@ export function createWebSocketHandlerDefaultParams(
           }
           const mongoDBLoaders = createMongoDBLoaders(mongoDB);
 
-          const connection = await context.getCurrentConnection();
+            const connection = await context.loaders.connections.get({
+              id: connectionId,
+            });
 
           if (!connection) {
             throw new Error(

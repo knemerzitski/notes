@@ -15,12 +15,16 @@ import {
 import { BaseGraphQLContext } from '../type';
 
 import { PubSubEvent } from './subscribe';
+import { ObjectLoader } from '../dynamodb/loader';
 
 interface CreatePublisherParams<TGraphQLContext> {
   readonly context: {
     readonly logger: Logger;
-    readonly models: {
-      readonly subscriptions: SubscriptionTable;
+    readonly loaders: {
+      readonly subscriptions: ObjectLoader<
+        SubscriptionTable,
+        'queryAllByTopic' | 'queryAllByTopicFilter'
+      >;
     };
     readonly schema: GraphQLSchema;
     readonly socketApi: WebSocketApi;
@@ -62,7 +66,7 @@ export function createPublisher<TGraphQLContext>({
   getGraphQLContext,
   isCurrentConnection = () => false,
 }: CreatePublisherParams<TGraphQLContext>): Publisher {
-  const { logger, models, schema, socketApi } = context;
+  const { logger, loaders, schema, socketApi } = context;
   return async (topic, payload, options) => {
     logger.info('pubsub:publish', {
       topic,
@@ -73,8 +77,8 @@ export function createPublisher<TGraphQLContext>({
     const publishToCurrentConnection = options?.publishToCurrentConnection ?? false;
 
     const subscriptions = await (options?.filterPayload
-      ? models.subscriptions.queryAllByTopicFilter(topic, payload)
-      : models.subscriptions.queryAllByTopic(topic));
+      ? loaders.subscriptions.queryAllByTopicFilter(topic, payload)
+      : loaders.subscriptions.queryAllByTopic(topic));
     logger.info('pubsub:publish', {
       subscriptions: subscriptions.map(({ connectionId, subscription }) => ({
         connectionId,

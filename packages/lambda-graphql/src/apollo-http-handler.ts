@@ -128,6 +128,16 @@ export function createApolloHttpHandler<TGraphQLContext extends BaseContext>(
       const { createGraphQLContext, createIsCurrentConnection, willSendResponse } =
         await params.requestDidStart({ context: handlerContext, event });
 
+      const preEventContext = {
+        ...handlerContext,
+        loaders: {
+          subscriptions: createObjectLoader(handlerContext.models.subscriptions, [
+            'queryAllByTopic',
+            'queryAllByTopicFilter',
+          ]),
+        },
+      };
+
       const graphQLContext: GraphQLContext = {
         ...(await createGraphQLContext()),
         eventType: 'request',
@@ -142,7 +152,7 @@ export function createApolloHttpHandler<TGraphQLContext extends BaseContext>(
         logger,
         publish: createPublisher<GraphQLContext>({
           context: {
-            ...handlerContext,
+            ...preEventContext,
             formatError,
             formatErrorOptions: {
               includeStacktrace: includeStacktraceInErrorResponses,
