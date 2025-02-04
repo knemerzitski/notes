@@ -9,7 +9,9 @@ export const SyncSessionCookies = mutationDefinition(
   gql(`
   mutation SyncSessionCookies($input: SyncSessionCookiesInput!) @remote {
     syncSessionCookies(input: $input) {
-      availableUserIds
+      availableUsers {
+        id
+      }
     }
   }
 `),
@@ -18,7 +20,9 @@ export const SyncSessionCookies = mutationDefinition(
     if (!data) return;
 
     const currentUserIds = getUserIds(cache);
-    const availableUserIds = data.syncSessionCookies.availableUserIds;
+    const availableUserIds = data.syncSessionCookies.availableUsers.map(
+      (user) => user.id
+    );
     for (const userId of currentUserIds) {
       if (!availableUserIds.includes(userId)) {
         // Mark user session expired if's no longer available

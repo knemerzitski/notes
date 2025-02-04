@@ -1,9 +1,6 @@
 import { ObjectId } from 'mongodb';
 import { wrapRetryOnError } from '~utils/retry-on-error';
 
-import { isDefined } from '~utils/type-guards/is-defined';
-
-import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import {
   retryOnMongoError,
   MongoErrorCodes,
@@ -88,10 +85,12 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
           userId: signedInUserId,
         }),
       },
-      availableUserIds: services.auth
-        .getAvailableUserIds()
-        .map(objectIdToStr)
-        .filter(isDefined),
+      availableUsers: services.auth.getAvailableUserIds().map((userId) => ({
+        userId,
+        query: mongoDB.loaders.user.createQueryFn({
+          userId,
+        }),
+      })),
     };
   }
 
@@ -105,10 +104,12 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
         userId: signedInUserId,
       }),
     },
-    availableUserIds: services.auth
-      .getAvailableUserIds()
-      .map(objectIdToStr)
-      .filter(isDefined),
+    availableUsers: services.auth.getAvailableUserIds().map((userId) => ({
+      userId,
+      query: mongoDB.loaders.user.createQueryFn({
+        userId,
+      }),
+    })),
     authProviderUser: {
       __typename: 'GoogleAuthProviderUser',
       id: googleUserId,
