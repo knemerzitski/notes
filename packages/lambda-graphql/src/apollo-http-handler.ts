@@ -21,11 +21,11 @@ import {
   ApolloGraphQLContextParams,
   createApolloGraphQLContext,
 } from './context/graphql';
+import { createObjectLoader, ObjectLoader } from './dynamodb/loader';
 import { ConnectionTable } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
 import { Publisher, createPublisher } from './pubsub/publish';
 import { BaseGraphQLContext } from './type';
-import { createObjectLoader, ObjectLoader } from './dynamodb/loader';
 
 interface DirectParams {
   logger: Logger;

@@ -1,7 +1,7 @@
 import DataLoader from 'dataloader';
 
-import { sortObject } from '~utils/object/sort-object';
 import { DefinedMap } from '~utils/map/defined-map';
+import { sortObject } from '~utils/object/sort-object';
 import { OmitUndefined } from '~utils/types';
 
 export type ObjectLoader<
