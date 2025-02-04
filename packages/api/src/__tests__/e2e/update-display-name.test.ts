@@ -151,7 +151,7 @@ it('creates new user, updates displayName and publishes it to websocket', async 
         mutation SignOut($input: SignOutInput!) {
           signOut(input: $input) {
             availableUsers {
-
+              id
             }
           }
         }
