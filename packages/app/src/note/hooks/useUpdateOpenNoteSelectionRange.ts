@@ -5,7 +5,7 @@ import { makeFragmentData } from '../../__generated__';
 import {
   UpdateOpenNoteSelectionRangeInput,
   UpdateOpenNoteSelectionRangePayloadFragmentDoc,
-  UpdateOpenNoteSelectionRangePayloadPublicUserNoteLinkFragmentFragmentDoc,
+  UpdateOpenNoteSelectionRangePayloadUserNoteLinkFragmentFragmentDoc,
 } from '../../__generated__/graphql';
 import { useMutation } from '../../graphql/hooks/useMutation';
 import { useUserId } from '../../user/context/user-id';
@@ -45,11 +45,11 @@ export function useUpdateOpenNoteSelectionRange() {
             ...makeFragmentData(
               {
                 __typename: 'UpdateOpenNoteSelectionRangePayload',
-                publicUserNoteLink: {
-                  __typename: 'PublicUserNoteLink',
+                userNoteLink: {
+                  __typename: 'UserNoteLink',
                   ...makeFragmentData(
                     {
-                      __typename: 'PublicUserNoteLink',
+                      __typename: 'UserNoteLink',
                       id: getUserNoteLinkId(noteId, userId),
                       open: {
                         __typename: 'OpenedNote',
@@ -64,7 +64,7 @@ export function useUpdateOpenNoteSelectionRange() {
                         },
                       },
                     },
-                    UpdateOpenNoteSelectionRangePayloadPublicUserNoteLinkFragmentFragmentDoc
+                    UpdateOpenNoteSelectionRangePayloadUserNoteLinkFragmentFragmentDoc
                   ),
                 },
               },

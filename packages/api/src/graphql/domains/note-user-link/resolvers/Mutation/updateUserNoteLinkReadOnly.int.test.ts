@@ -43,7 +43,7 @@ const MUTATION = `#graphql
   mutation($input: UpdateUserNoteLinkReadOnlyInput!){
     updateUserNoteLinkReadOnly(input: $input) {
       readOnly
-      publicUserNoteLink {
+      userNoteLink {
         id
         readOnly
         user {
@@ -64,7 +64,7 @@ const SUBSCRIPTION = `#graphql
         __typename
         ... on UpdateUserNoteLinkReadOnlyPayload {
           readOnly
-          publicUserNoteLink {
+          userNoteLink {
             id
             readOnly
             user {
@@ -163,7 +163,7 @@ it('owner user changes other user readOnly', async () => {
   expect(data).toEqual({
     updateUserNoteLinkReadOnly: {
       readOnly: false,
-      publicUserNoteLink: {
+      userNoteLink: {
         id: UserNoteLink_id(note._id, userReadOnly._id),
         readOnly: false,
         user: {
@@ -203,7 +203,7 @@ it('owner user changes own readOnly', async () => {
   expect(data).toEqual({
     updateUserNoteLinkReadOnly: {
       readOnly: true,
-      publicUserNoteLink: {
+      userNoteLink: {
         id: UserNoteLink_id(note._id, userOwner._id),
         readOnly: true,
         user: {
@@ -294,7 +294,7 @@ it('publishes readOnly correclty', async () => {
               {
                 __typename: 'UpdateUserNoteLinkReadOnlyPayload',
                 readOnly: true,
-                publicUserNoteLink: {
+                userNoteLink: {
                   id: UserNoteLink_id(note._id, userOwner._id),
                   readOnly: true,
                   user: {

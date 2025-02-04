@@ -9,10 +9,6 @@ export interface UserMapper {
   readonly query: MongoQueryFn<Pick<UserSchema, '_id' | 'profile'>>;
 }
 
-export interface PublicUserMapper {
-  readonly query: MongoQueryFn<Pick<UserSchema, '_id' | 'profile'>>;
-}
-
 export interface UserProfileMapper {
   readonly query: MongoQueryFn<UserSchema['profile']>;
 }

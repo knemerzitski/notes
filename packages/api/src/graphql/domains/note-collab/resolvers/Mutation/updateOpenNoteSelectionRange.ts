@@ -1,6 +1,5 @@
 import { QueryableNoteUser } from '../../../../../mongodb/loaders/note/descriptions/note';
-import { createMapQueryFn, createValueQueryFn } from '../../../../../mongodb/query/query';
-import { findNoteUserMaybe } from '../../../../../services/note/note';
+import { createValueQueryFn } from '../../../../../mongodb/query/query';
 import {
   CollabText_id_fromNoteQueryFn,
   mapNoteToCollabTextQueryFn,
@@ -37,16 +36,6 @@ export const updateOpenNoteSelectionRange: NonNullable<
     userId: currentUserId,
   });
 
-  const userNoteQuery = createMapQueryFn(noteQuery)<QueryableNoteUser>()(
-    (query) => ({
-      users: {
-        ...query,
-        _id: 1,
-      },
-    }),
-    (note) => findNoteUserMaybe(currentUserId, note)
-  );
-
   const payload: ResolversTypes['OpenNoteMutation'] = {
     __typename: 'UpdateOpenNoteSelectionRangePayload',
     collabTextEditing: {
@@ -59,10 +48,9 @@ export const updateOpenNoteSelectionRange: NonNullable<
         () => openNote
       ),
     },
-    publicUserNoteLink: {
+    userNoteLink: {
       userId: currentUserId,
-      noteId,
-      query: userNoteQuery,
+      query: noteQuery,
     },
     collabText: {
       id: CollabText_id_fromNoteQueryFn(noteQuery),

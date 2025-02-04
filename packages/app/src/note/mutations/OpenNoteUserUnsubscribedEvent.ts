@@ -5,7 +5,7 @@ import { setOpenedNoteActive } from '../models/opened-note/set-active';
 export const OpenNoteUserUnsubscribedEvent = mutationDefinition(
   gql(`
   fragment OpenNoteUserUnsubscribedEvent on OpenNoteUserUnsubscribedEvent {
-    publicUserNoteLink {
+    userNoteLink {
       id
     }
   }
@@ -15,6 +15,6 @@ export const OpenNoteUserUnsubscribedEvent = mutationDefinition(
       return;
     }
 
-    setOpenedNoteActive(data.publicUserNoteLink.id, false, cache);
+    setOpenedNoteActive(data.userNoteLink.id, false, cache);
   }
 );

@@ -18,8 +18,8 @@ import { getUserNoteLinkId } from '../utils/id';
 import { InputCaret } from './InputCaret';
 
 
-const UserCollabEditingCaret_PublicUserNoteLinkFragment = gql(`
-  fragment UserCollabEditingCaret_PublicUserNoteLinkFragment on PublicUserNoteLink {
+const UserCollabEditingCaret_UserNoteLinkFragment = gql(`
+  fragment UserCollabEditingCaret_UserNoteLinkFragment on UserNoteLink {
     id
     user {
       id
@@ -62,10 +62,10 @@ export function UserCollabEditingCaret({ inputRef }: { inputRef: RefObject<unkno
 
   const noteId = useNoteId();
   const userId = useUserId();
-  const { complete, data: publicUserNoteLink } = useFragment({
-    fragment: UserCollabEditingCaret_PublicUserNoteLinkFragment,
+  const { complete, data: userNoteLink } = useFragment({
+    fragment: UserCollabEditingCaret_UserNoteLinkFragment,
     from: {
-      __typename: 'PublicUserNoteLink',
+      __typename: 'UserNoteLink',
       id: getUserNoteLinkId(noteId, userId),
     },
   });
@@ -75,7 +75,7 @@ export function UserCollabEditingCaret({ inputRef }: { inputRef: RefObject<unkno
   }
 
   // No openNote field
-  const openNote = publicUserNoteLink.open;
+  const openNote = userNoteLink.open;
   if (!openNote) {
     return null;
   }
@@ -95,7 +95,7 @@ export function UserCollabEditingCaret({ inputRef }: { inputRef: RefObject<unkno
     openNote.collabTextEditing;
 
   // Name for color
-  const displayName = publicUserNoteLink.user.profile.displayName;
+  const displayName = userNoteLink.user.profile.displayName;
 
   const revisionOffset = service.headRevision - selectionRevision;
 

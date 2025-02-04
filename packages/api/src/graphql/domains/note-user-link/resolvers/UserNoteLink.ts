@@ -1,22 +1,39 @@
 import { QueryableNoteUser } from '../../../../mongodb/loaders/note/descriptions/note';
 import { createMapQueryFn } from '../../../../mongodb/query/query';
 import { NoteUserSchema } from '../../../../mongodb/schema/note-user';
+import { UserSchema } from '../../../../mongodb/schema/user';
 import { findNoteUserMaybe } from '../../../../services/note/note';
 import { UserNoteLink_id_fromQueryFn } from '../../../../services/note/user-note-link-id';
 import { unwrapResolver } from '../../../utils/unwrap-resolver';
 import type { NoteCategory, UserNoteLinkResolvers } from '../../types.generated';
+import { UserNoteLinkMapper } from '../schema.mappers';
 
-export const UserNoteLink: UserNoteLinkResolvers = {
+function createNoteUserQuery(parent: UserNoteLinkMapper) {
+  return createMapQueryFn(parent.query)<QueryableNoteUser>()(
+    (query) => ({
+      users: {
+        ...query,
+        _id: 1,
+      },
+    }),
+    async (note) => findNoteUserMaybe(await unwrapResolver(parent.userId), note)
+  );
+}
+
+export const UserNoteLink: Pick<
+  UserNoteLinkResolvers,
+  | 'categoryName'
+  | 'deletedAt'
+  | 'id'
+  | 'isOwner'
+  | 'note'
+  | 'preferences'
+  | 'readOnly'
+  | 'user'
+> = {
   id: async (parent, _arg, _ctx) => {
     return UserNoteLink_id_fromQueryFn(parent.query, await unwrapResolver(parent.userId));
   },
-  /*
-  TODO merge UserNoteLink with PublicUserNoteLink
-    restrict access to private fields with following directive:
-      @auth(field: ["userId"]):
-    which will do following check
-      await services.auth.getAuth(parent.userId)
-  */
   categoryName: async (parent, _arg, _ctx) => {
     return findNoteUserMaybe(
       await unwrapResolver(parent.userId),
@@ -60,23 +77,47 @@ export const UserNoteLink: UserNoteLinkResolvers = {
       ),
     };
   },
-  public: (parent, _arg, _ctx) => {
+  isOwner: async (parent, _arg, _ctx) => {
+    const queryNoteUser = createNoteUserQuery(parent);
+
+    return (
+      (
+        await queryNoteUser({
+          isOwner: 1,
+        })
+      )?.isOwner ?? false
+    );
+  },
+  readOnly: async (parent, _arg, _ctx) => {
+    const queryNoteUser = createNoteUserQuery(parent);
+
+    return (
+      (
+        await queryNoteUser({
+          readOnly: 1,
+        })
+      )?.readOnly ?? false
+    );
+  },
+  user: (parent, _arg, _ctx) => {
+    const queryNoteUser = createNoteUserQuery(parent);
+
     return {
       userId: parent.userId,
-      noteId: async () =>
-        (
-          await parent.query({
-            _id: 1,
-          })
-        )?._id,
-      query: createMapQueryFn(parent.query)<QueryableNoteUser>()(
-        (query) => ({
-          users: {
-            ...query,
-            _id: 1,
-          },
-        }),
-        async (note) => findNoteUserMaybe(await unwrapResolver(parent.userId), note)
+      query: createMapQueryFn(queryNoteUser)<Pick<UserSchema, '_id' | 'profile'>>()(
+        (query) => {
+          const { _id, ...restQuery } = query;
+          return {
+            _id,
+            user: restQuery,
+          };
+        },
+        (noteUser) => {
+          return {
+            _id: noteUser._id,
+            ...noteUser.user,
+          };
+        }
       ),
     };
   },

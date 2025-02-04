@@ -1,10 +1,7 @@
 import { GraphQLResolveInfo } from 'graphql/index.js';
 import { ObjectId } from 'mongodb';
 
-import {
-  QueryableNote,
-  QueryableNoteUser,
-} from '../../../mongodb/loaders/note/descriptions/note';
+import { QueryableNote } from '../../../mongodb/loaders/note/descriptions/note';
 import { MongoQueryFn } from '../../../mongodb/query/query';
 import { NoteUserSchema } from '../../../mongodb/schema/note-user';
 import { GraphQLResolversContext } from '../../types';
@@ -13,12 +10,6 @@ import { ResolverTypeWrapper, ResolversTypes } from '../types.generated';
 export interface UserNoteLinkMapper {
   readonly userId: ResolverTypeWrapper<ObjectId>;
   readonly query: MongoQueryFn<QueryableNote>;
-}
-
-export interface PublicUserNoteLinkMapper {
-  readonly userId: ResolverTypeWrapper<ObjectId>;
-  readonly noteId: ResolverTypeWrapper<ObjectId>;
-  readonly query: MongoQueryFn<QueryableNoteUser>;
 }
 
 export interface NotePreferencesMapper {

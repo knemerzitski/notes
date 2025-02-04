@@ -100,26 +100,11 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
           userId: currentUserId,
         });
 
-        const userNoteQuery = createMapQueryFn(noteQuery)<QueryableNoteUser>()(
-          (query) => {
-            return {
-              users: {
-                ...query,
-                _id: 1,
-              },
-            };
-          },
-          (note) => {
-            return findNoteUserMaybe(currentUserId, note);
-          }
-        );
-
         const subscribedPayload: ResolversTypes['SignedInUserMutation'] = {
           __typename: 'OpenNoteUserSubscribedEvent',
-          publicUserNoteLink: {
+          userNoteLink: {
             userId: currentUserId,
-            noteId,
-            query: userNoteQuery,
+            query: noteQuery,
           },
           user: {
             userId: currentUserId,
@@ -277,10 +262,9 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
                   return [
                     {
                       __typename: 'OpenNoteUserSubscribedEvent',
-                      publicUserNoteLink: {
+                      userNoteLink: {
                         userId,
-                        noteId,
-                        query: otherUserNoteQuery,
+                        query: noteQuery,
                       },
                       user: {
                         userId,
@@ -300,10 +284,9 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
                             openedNote: {
                               query: openedNoteQuery,
                             },
-                            publicUserNoteLink: {
+                            userNoteLink: {
                               userId,
-                              noteId,
-                              query: otherUserNoteQuery,
+                              query: noteQuery,
                             },
                             collabText: {
                               id: CollabText_id_fromNoteQueryFn(noteQuery),
@@ -412,22 +395,11 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
                   userId: currentUserId,
                 });
 
-                const userNoteQuery = createMapQueryFn(noteQuery)<QueryableNoteUser>()(
-                  (query) => ({
-                    users: {
-                      ...query,
-                      _id: 1,
-                    },
-                  }),
-                  (note) => findNoteUserMaybe(currentUserId, note)
-                );
-
                 const unsubscribedPayload: ResolversTypes['SignedInUserMutation'] = {
                   __typename: 'OpenNoteUserUnsubscribedEvent',
-                  publicUserNoteLink: {
+                  userNoteLink: {
                     userId: currentUserId,
-                    noteId,
-                    query: userNoteQuery,
+                    query: noteQuery,
                   },
                   user: {
                     userId: currentUserId,

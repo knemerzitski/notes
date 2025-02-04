@@ -6,14 +6,14 @@ import { mutationDefinition } from '../../graphql/utils/mutation-definition';
 export const UpdateOpenNoteSelectionRangePayload = mutationDefinition(
   gql(`
   fragment UpdateOpenNoteSelectionRangePayload on UpdateOpenNoteSelectionRangePayload {
-    publicUserNoteLink {
-      ...UpdateOpenNoteSelectionRangePayload_PublicUserNoteLinkFragment
+    userNoteLink {
+      ...UpdateOpenNoteSelectionRangePayload_UserNoteLinkFragment
     }
   }
 
-  fragment UpdateOpenNoteSelectionRangePayload_PublicUserNoteLinkFragment on PublicUserNoteLink {
+  fragment UpdateOpenNoteSelectionRangePayload_UserNoteLinkFragment on UserNoteLink {
     id
-     open {
+    open {
       collabTextEditing {
         revision
         latestSelection {
