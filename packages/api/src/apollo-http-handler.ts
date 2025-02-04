@@ -6,7 +6,6 @@ import {
   createApolloHttpHandler,
   CreateApolloHttpHandlerParams,
 } from '~lambda-graphql/apollo-http-handler';
-import { Connection } from '~lambda-graphql/dynamodb/models/connection';
 import { createLogger, Logger } from '~utils/logging';
 
 import { ApolloHttpHandlerGraphQLResolversContext } from './graphql/types';
@@ -20,15 +19,12 @@ import {
   createDefaultMongoDBContext,
 } from './parameters';
 import { CookiesMongoDBDynamoDBAuthenticationService } from './services/auth/auth-service';
-import { trackAuthServiceModel } from './services/auth/utils/track-auth-service-model';
 import { Cookies } from './services/http/cookies';
 import { SessionsCookie } from './services/http/sessions-cookie';
 import { parseCookiesFromHeaders } from './services/http/utils/parse-cookies-from-headers';
-import {
-  ConnectionCustomData,
-  parseConnectionCustomData,
-  serializeConnectionCustomData,
-} from './utils/connection-custom-data';
+import { serializeConnectionCustomData } from './utils/connection-custom-data';
+import { ConnectionsAuthenticationServiceCache } from './utils/auth-cache';
+import { objectIdToStr } from './mongodb/utils/objectid';
 
 export interface CreateApolloHttpHandlerDefaultParamsOptions {
   override?: {
@@ -59,14 +55,30 @@ export function createApolloHttpHandlerDefaultParams(
     dynamoDB:
       options?.override?.createDynamoDBParams?.(logger) ??
       createDefaultDynamoDBParams(logger),
-    requestDidStart({ event, context }) {
-      const wsConnectionId = event.headers[CustomHeaderName.WS_CONNECTION_ID];
-
+    async requestDidStart({ event, context }) {
       const apiOptions = createDefaultApiOptions();
+      const requestWsConnectionId = event.headers[CustomHeaderName.WS_CONNECTION_ID];
+
+      // MongoDB
+      if (!mongoDB) {
+        mongoDB = await (options?.override?.createMongoDBContext?.(logger) ??
+          createDefaultMongoDBContext(logger));
+      }
+      const mongoDBContext = {
+        ...mongoDB,
+        loaders: createMongoDBLoaders(mongoDB),
+      };
+
+      // Cache Auth service for every possible connection (mainly needed during subscription publish)
+      const connectionsAuthCache = new ConnectionsAuthenticationServiceCache({
+        connections: context.loaders.connections,
+        mongoDB: mongoDBContext,
+        apiOptions,
+      });
 
       // Cookies, Sessions
       const cookies = new Cookies(parseCookiesFromHeaders(event.headers));
-      const sessionsCookie = new SessionsCookie(
+      const currentRequestSessionsCookie = new SessionsCookie(
         {
           cookies,
         },
@@ -74,80 +86,73 @@ export function createApolloHttpHandlerDefaultParams(
           key: apiOptions.sessions?.cookieKey,
         }
       );
-      sessionsCookie.updateModelFromCookies();
+      currentRequestSessionsCookie.updateModelFromCookies();
 
       // Auth model
-      const authModel = new AuthenticatedContextsModel();
+      const currentRequestAuthModel = new AuthenticatedContextsModel();
 
-      // When auth model is modified, match change in websocket connection
-      let ws:
-        | {
-            connection: Connection;
-            customData: ConnectionCustomData;
-          }
-        | undefined;
-      const { promises: waitAuthModelTrackPromise } = trackAuthServiceModel({
-        sourceModel: authModel,
-        getTargetModel: async () => {
-          if (!wsConnectionId) {
-            return;
-          }
+      const ongoingPromises: Promise<unknown>[] = [];
 
-          if (!ws) {
-            const connection = await context.models.connections.get({
-              id: wsConnectionId,
-            });
-            if (!connection) {
+      // When request auth changes, update connection one too
+      currentRequestAuthModel.eventBus.on('*', (type, event) => {
+        if (!requestWsConnectionId) {
+          return;
+        }
+
+        const auth = event.auth;
+
+        ongoingPromises.push(
+          connectionsAuthCache.getCustomData(requestWsConnectionId).then((value) => {
+            if (!value) {
               return;
             }
 
-            ws = {
-              connection,
-              customData: parseConnectionCustomData(connection.customData),
-            };
-          }
+            const model = value.authenticatedContexts;
+            const key = objectIdToStr(auth.session.userId);
 
-          return ws.customData.authenticatedContexts;
-        },
+            if (type === 'set') {
+              model.set(key, auth);
+            } else {
+              // deleted
+              model.delete(key);
+            }
+          })
+        );
       });
+      // when this changes, also update other one auth context..
+
+      // Auth service
+      const currentRequestAuthService = new CookiesMongoDBDynamoDBAuthenticationService(
+        {
+          mongoDB: mongoDBContext,
+          sessionsCookie: currentRequestSessionsCookie,
+        },
+        currentRequestAuthModel
+      );
 
       return {
         createIsCurrentConnection: () => {
-          if (!wsConnectionId) {
+          if (!requestWsConnectionId) {
             return;
           }
-          return (connectionId: string) => wsConnectionId === connectionId;
+          return (connectionId: string) => requestWsConnectionId === connectionId;
         },
-        async createGraphQLContext() {
-          // MongoDB
-          if (!mongoDB) {
-            mongoDB = await (options?.override?.createMongoDBContext?.(logger) ??
-              createDefaultMongoDBContext(logger));
-          }
-          const mongoDBLoaders = createMongoDBLoaders(mongoDB);
-
-          // Auth Service
-          const authService = new CookiesMongoDBDynamoDBAuthenticationService(
-            {
-              mongoDB: {
-                ...mongoDB,
-                loaders: mongoDBLoaders,
-              },
-              sessionsCookie,
-            },
-            authModel
-          );
+        createGraphQLContext: async (
+          graphQLContextConnectionId = requestWsConnectionId
+        ) => {
+          const authService =
+            !graphQLContextConnectionId ||
+            graphQLContextConnectionId === requestWsConnectionId
+              ? currentRequestAuthService
+              : await connectionsAuthCache.get(graphQLContextConnectionId);
 
           return {
             options: apiOptions,
-            mongoDB: {
-              ...mongoDB,
-              loaders: mongoDBLoaders,
-            },
+            mongoDB: mongoDBContext,
             services: {
               auth: authService,
             },
-            connectionId: wsConnectionId,
+            connectionId: graphQLContextConnectionId,
           };
         },
         async willSendResponse(response) {
@@ -161,19 +166,21 @@ export function createApolloHttpHandlerDefaultParams(
             setCookieArr.push(...cookies.getMultiValueHeadersSetCookies());
           }
 
-          if (ws) {
-            // Persist auth changes in DynamoDB connection custom data
-            await waitAuthModelTrackPromise();
+          // Wait for previous Promise events to be done before checking `changedCustomDatas`
+          await Promise.allSettled(ongoingPromises);
 
-            await context.models.connections.update(
-              {
-                id: ws.connection.id,
-              },
-              {
-                customData: serializeConnectionCustomData(ws.customData),
-              }
-            );
-          }
+          await Promise.allSettled(
+            connectionsAuthCache.changedCustomDatas.map(({ connectionId, customData }) =>
+              context.models.connections.update(
+                {
+                  id: connectionId,
+                },
+                {
+                  customData: serializeConnectionCustomData(customData),
+                }
+              )
+            )
+          );
         },
       };
     },

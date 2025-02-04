@@ -77,7 +77,9 @@ interface DirectParams<TGraphQLContext> {
     readonly context: WebSocketMessageHandlerPreEventContext<TGraphQLContext>;
     readonly event: APIGatewayProxyWebsocketEventV2;
   }) => MaybePromise<{
-    readonly createGraphQLContext: () => MaybePromise<TGraphQLContext>;
+    readonly createGraphQLContext: (
+      connectionId?: string
+    ) => MaybePromise<TGraphQLContext>;
     readonly willSendResponse?: (response: APIGatewayProxyResultV2) => void;
   }>;
 }
@@ -106,6 +108,9 @@ export interface WebSocketMessageHandlerContext<TGraphQLContext>
 
 export interface WebSocketMessageHandlerEventContext<TGraphQLContext>
   extends WebSocketMessageHandlerContext<TGraphQLContext> {
+  readonly createGraphQLContext: (
+    connectionId?: string
+  ) => Promise<TGraphQLContext> | TGraphQLContext;
   loaders: {
     connections: ObjectLoader<ConnectionTable, 'get'>;
     subscriptions: ObjectLoader<

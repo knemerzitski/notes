@@ -50,7 +50,9 @@ interface DirectParams<TGraphQLContext> {
     readonly context: WebSocketDisconnectHandlerPreEventContext<TGraphQLContext>;
     readonly event: APIGatewayProxyWebsocketEventV2;
   }) => MaybePromise<{
-    readonly createGraphQLContext: () => MaybePromise<TGraphQLContext>;
+    readonly createGraphQLContext: (
+      connectionId?: string
+    ) => MaybePromise<TGraphQLContext>;
     readonly willSendResponse?: (response: APIGatewayProxyResultV2) => void;
   }>;
 }
@@ -75,7 +77,9 @@ export interface WebSocketDisconnectHandlerContext<TGraphQLContext>
 export interface WebSocketDisconnectHandlerEventContext<TGraphQLContext>
   extends WebSocketDisconnectHandlerContext<TGraphQLContext> {
   isConnectionDeleted: boolean;
-  readonly createGraphQLContext: () => Promise<TGraphQLContext> | TGraphQLContext;
+  readonly createGraphQLContext: (
+    connectionId?: string
+  ) => Promise<TGraphQLContext> | TGraphQLContext;
   loaders: {
     connections: ObjectLoader<ConnectionTable, 'get'>;
     subscriptions: ObjectLoader<
@@ -183,8 +187,6 @@ export function webSocketDisconnectHandler<TGraphQLContext>(
         createGraphQLContext,
       };
 
-      const graphQLContext: TGraphQLContext = await createGraphQLContext();
-
       handlerContext.logger.info('messages:disconnect:onDisconnect', {
         onDisconnect: !!handlerContext.onDisconnect,
       });
@@ -203,13 +205,16 @@ export function webSocketDisconnectHandler<TGraphQLContext>(
             SubscriptionGraphQLContext &
             WebSocketDisconnectGraphQLContext &
             TGraphQLContext = {
-            ...graphQLContext,
+            ...(await createGraphQLContext()),
             ...createSubscriptionContext(),
             eventType: 'subscription',
             logger: handlerContext.logger,
             publish: createPublisher<TGraphQLContext>({
               context: eventContext,
-              getGraphQLContext: () => graphQLContextValue,
+              getGraphQLContext: async (connectionId) => ({
+                ...graphQLContextValue,
+                ...(await createGraphQLContext(connectionId)),
+              }),
               isCurrentConnection: (id: string) => connectionId === id,
             }),
           };

@@ -49,13 +49,16 @@ export function createCompleteHandler<TGraphQLContext>(): MessageHandler<
         SubscriptionGraphQLContext &
         WebSocketMessageGraphQLContext &
         TGraphQLContext = {
-        ...(await context.createGraphQLContext()),
+        ...(await context.createGraphQLContext(connection.id)),
         ...createSubscriptionContext(),
         eventType: 'subscription',
         logger: context.logger,
         publish: createPublisher<TGraphQLContext>({
           context,
-          getGraphQLContext: () => graphQLContextValue,
+          getGraphQLContext: async (connectionId) => ({
+            ...graphQLContextValue,
+            ...(await context.createGraphQLContext(connectionId)),
+          }),
           isCurrentConnection: (id: string) => connectionId === id,
         }),
       };
