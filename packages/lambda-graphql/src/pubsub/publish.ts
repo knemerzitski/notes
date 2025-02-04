@@ -4,6 +4,7 @@ import { MessageType, NextMessage } from 'graphql-ws';
 import { Logger } from '~utils/logging';
 
 import { WebSocketApi } from '../context/apigateway';
+import { ObjectLoader } from '../dynamodb/loader';
 import { Subscription, SubscriptionTable } from '../dynamodb/models/subscription';
 
 import {
@@ -13,7 +14,6 @@ import {
 } from '../graphql/format-unknown-error';
 
 import { PubSubEvent } from './subscribe';
-import { ObjectLoader } from '../dynamodb/loader';
 
 interface CreatePublisherParams<TGraphQLContext> {
   readonly context: {

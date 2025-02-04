@@ -19,11 +19,11 @@ import {
   createDefaultSubscriptionGraphQLParams,
 } from './parameters';
 import { SessionDuration } from './services/session/duration';
+import { ConnectionsAuthenticationServiceCache } from './utils/auth-cache';
 import { serializeConnectionCustomData } from './utils/connection-custom-data';
 import { createErrorProxy } from './utils/error-proxy';
 import { onConnect } from './utils/on-connect';
 import { onConnectionInit } from './utils/on-connection-init';
-import { ConnectionsAuthenticationServiceCache } from './utils/auth-cache';
 
 export interface CreateWebSocketHandlerDefaultParamsOptions {
   override?: {

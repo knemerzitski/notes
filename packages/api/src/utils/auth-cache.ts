@@ -1,8 +1,10 @@
 import { ConnectionTable } from '~lambda-graphql/dynamodb/models/connection';
+
 import { ApiOptions } from '../graphql/types';
 import { CookiesMongoDBDynamoDBAuthenticationService } from '../services/auth/auth-service';
 import { AuthenticationService } from '../services/auth/types';
 import { SessionsCookie } from '../services/http/sessions-cookie';
+
 import {
   ConnectionCustomData,
   parseConnectionCustomData,

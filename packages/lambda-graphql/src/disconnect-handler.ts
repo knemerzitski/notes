@@ -20,6 +20,7 @@ import {
 } from './context/apigateway';
 import { DynamoDBContextParams, createDynamoDBContext } from './context/dynamodb';
 import { GraphQLContextParams, createGraphQLContext } from './context/graphql';
+import { createObjectLoader, ObjectLoader } from './dynamodb/loader';
 import { ConnectionTable } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
 import {
@@ -35,7 +36,6 @@ import {
   getSubscribeFieldResult,
 } from './pubsub/subscribe';
 import { BaseGraphQLContext } from './type';
-import { createObjectLoader, ObjectLoader } from './dynamodb/loader';
 
 interface DirectParams<TGraphQLContext> {
   readonly apiGateway: ApiGatewayContextParams;

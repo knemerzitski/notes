@@ -11,6 +11,7 @@ import { createLogger, Logger } from '~utils/logging';
 import { ApolloHttpHandlerGraphQLResolversContext } from './graphql/types';
 import { AuthenticatedContextsModel } from './models/auth/authenticated-contexts';
 import { createMongoDBLoaders } from './mongodb/loaders';
+import { objectIdToStr } from './mongodb/utils/objectid';
 import {
   createDefaultApiGatewayParams,
   createDefaultApiOptions,
@@ -22,9 +23,8 @@ import { CookiesMongoDBDynamoDBAuthenticationService } from './services/auth/aut
 import { Cookies } from './services/http/cookies';
 import { SessionsCookie } from './services/http/sessions-cookie';
 import { parseCookiesFromHeaders } from './services/http/utils/parse-cookies-from-headers';
-import { serializeConnectionCustomData } from './utils/connection-custom-data';
 import { ConnectionsAuthenticationServiceCache } from './utils/auth-cache';
-import { objectIdToStr } from './mongodb/utils/objectid';
+import { serializeConnectionCustomData } from './utils/connection-custom-data';
 
 export interface CreateApolloHttpHandlerDefaultParamsOptions {
   override?: {

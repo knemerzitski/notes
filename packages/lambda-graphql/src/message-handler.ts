@@ -28,6 +28,7 @@ import {
   PingPongContextParams,
   createPingPongContext,
 } from './context/pingpong';
+import { createObjectLoader, ObjectLoader } from './dynamodb/loader';
 import { CompletedSubscriptionTable } from './dynamodb/models/completed-subscription';
 import { ConnectionTable, ConnectionTtlContext } from './dynamodb/models/connection';
 import { SubscriptionTable } from './dynamodb/models/subscription';
@@ -38,7 +39,6 @@ import { createPingHandler } from './messages/ping';
 import { createPongHandler } from './messages/pong';
 import { createSubscribeHandler } from './messages/subscribe';
 import { Publisher } from './pubsub/publish';
-import { createObjectLoader, ObjectLoader } from './dynamodb/loader';
 
 interface DirectParams<TGraphQLContext> {
   readonly connection: ConnectionTtlContext;
