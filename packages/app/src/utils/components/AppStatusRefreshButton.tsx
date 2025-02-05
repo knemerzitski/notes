@@ -91,7 +91,7 @@ export const AppStatusRefreshButton = forwardRef<
       onClick={handleClickRefetchQueries}
       aria-label={`status ${status}`}
     >
-      <Tooltip title="Refresh">
+      <Tooltip title={status === 'offline' ? 'Offline' : 'Refresh'}>
         <span>
           <CrossFade
             elements={[
