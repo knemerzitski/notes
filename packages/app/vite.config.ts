@@ -65,6 +65,19 @@ export default ({ mode }: { mode: string }) => {
           resolveTempFolder: () => './dev-out',
         },
       }),
+      {
+        name: 'check-bad-env-vars',
+        closeBundle: () => {
+          const v = process.env.VITE_WARNING_BUILD_PRODUCTION_ONLY_FOR_LOCALHOST;
+          if (v === 'true' || v === '1') {
+            console.log();
+            console.error(
+              '\x1b[31m ATTENTION DEVELOPER! Environment varialbe "VITE_WARNING_BUILD_PRODUCTION_ONLY_FOR_LOCALHOST" is truthy. DO NOT deploy this build!!!!!!!\x1b[0m'
+            );
+            console.log();
+          }
+        },
+      },
     ],
     build: {
       outDir: 'out',

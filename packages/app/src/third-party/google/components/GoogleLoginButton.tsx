@@ -1,10 +1,17 @@
 import { LinearProgress, useTheme } from '@mui/material';
 import { lazy, Suspense, useEffect, useRef } from 'react';
 
+import { isEnvironmentVariableTruthy } from '~utils/string/is-environment-variable-truthy';
+
 import { GOOGLE } from '../../../third-party';
 import { useGoogleAuth } from '../context/google-auth';
 
-const MockGoogleLoginButton = import.meta.env.PROD
+const IS_REAL_PRODUCTION_BUILD =
+  !isEnvironmentVariableTruthy(
+    import.meta.env.VITE_WARNING_BUILD_PRODUCTION_ONLY_FOR_LOCALHOST
+  ) && import.meta.env.PROD;
+
+const MockGoogleLoginButton = IS_REAL_PRODUCTION_BUILD
   ? () => null
   : lazy(() =>
       import('./MockGoogleLoginButton').then((res) => ({
