@@ -1,6 +1,16 @@
 # Generated
 src/__generated__
 out
+dev-out
 coverage
 cypress/screenshots
 analyze.html
+
+# PWA generated assets
+public/apple-touch-icon-180x180.png
+public/favicon.ico
+public/icon-512.png
+public/maskable-icon-512x512.png
+public/pwa-64x64.png
+public/pwa-192x192.png
+public/pwa-512x512.png
