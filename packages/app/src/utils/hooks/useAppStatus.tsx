@@ -36,7 +36,9 @@ export function useAppStatus(options?: {
   const ongoingCountRef = useRef(0);
   const userHasUnsavedNotesRef = useRef(false);
 
-  const [status, setStatus] = useState<Status>('refresh');
+  const [status, setStatus] = useState<Status>(
+    window.navigator.onLine ? 'refresh' : 'offline'
+  );
 
   const setStatusRefreshDebounced = useDebouncedCallback(() => {
     setStatus('refresh');
