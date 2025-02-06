@@ -66,13 +66,12 @@ export default ({ mode }: { mode: string }) => {
         },
       }),
       {
-        name: 'check-bad-env-vars',
+        name: 'warn-not-production',
         closeBundle: () => {
-          const v = process.env.VITE_WARNING_BUILD_PRODUCTION_ONLY_FOR_LOCALHOST;
-          if (v === 'true' || v === '1') {
+          if (process.env.NODE_ENV !== 'production') {
             console.log();
             console.error(
-              '\x1b[31m ATTENTION DEVELOPER! Environment varialbe "VITE_WARNING_BUILD_PRODUCTION_ONLY_FOR_LOCALHOST" is truthy. DO NOT deploy this build!!!!!!!\x1b[0m'
+              '\x1b[31m ATTENTION DEVELOPER! This is not a production build. DO NOT deploy!!!!!!!\x1b[0m'
             );
             console.log();
           }
