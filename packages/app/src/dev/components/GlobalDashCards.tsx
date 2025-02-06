@@ -21,7 +21,7 @@ export function GlobalDashCards() {
         <CurrentUserId />
       </DashCard>
 
-      <DashCard label="GraphQL Gate">
+      <DashCard label="Simulate Offline Mode">
         <SimulateOfflineToggleButton />
       </DashCard>
 
