@@ -1,5 +1,5 @@
 import { ApolloLink, Operation, FetchResult, NextLink } from '@apollo/client/link/core';
-import { Observable, Observer } from '@apollo/client/utilities';
+import { isSubscriptionOperation, Observable, Observer } from '@apollo/client/utilities';
 import { Subscription } from 'zen-observable-ts';
 
 interface OperationEntry {
@@ -186,14 +186,13 @@ export class GateLink extends ApolloLink {
       return forward(operation);
     }
 
-    let closeCount = 0;
-    for (const gate of this.gates) {
-      if (!gate.isOpen(operation)) {
-        closeCount++;
-      }
-    }
+    const getCloseCount = () =>
+      [...this.gates].reduce((sum, gate) => sum + (gate.isOpen(operation) ? 0 : 1), 0);
 
-    if (closeCount === 0) {
+    const closeCount = getCloseCount();
+
+    // Subscription is long living so gate must still be checked
+    if (closeCount === 0 && !isSubscriptionOperation(operation.query)) {
       return forward(operation);
     }
 
@@ -207,17 +206,29 @@ export class GateLink extends ApolloLink {
     this.entryByOperation.set(operation, entry);
 
     return new Observable<FetchResult>((observer: Observer<FetchResult>) => {
+      const nextGatedObserver: Observer<FetchResult> = {
+        start: observer.start?.bind(observer),
+        complete: observer.complete?.bind(observer),
+        error: observer.error?.bind(observer),
+        next(value) {
+          // Check again when receiving subscription data
+          if (getCloseCount() === 0) {
+            observer.next?.(value);
+          }
+        },
+      };
+
       if (entry.observable) {
-        const sub = entry.observable.subscribe(observer);
+        const sub = entry.observable.subscribe(nextGatedObserver);
         return () => {
           sub.unsubscribe();
         };
       }
 
-      entry.observers.set(observer, null);
+      entry.observers.set(nextGatedObserver, null);
       return () => {
-        entry.observers.get(observer)?.unsubscribe();
-        entry.observers.delete(observer);
+        entry.observers.get(nextGatedObserver)?.unsubscribe();
+        entry.observers.delete(nextGatedObserver);
       };
     });
   }
