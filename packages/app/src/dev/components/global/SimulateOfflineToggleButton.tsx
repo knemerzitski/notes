@@ -16,7 +16,6 @@ class OnlineOverride {
   constructor() {
     this.overrideIsOnline = null;
     this.eventIsOnline = window.navigator.onLine;
-    console.log(Object.getOwnPropertyDescriptor(window.navigator, 'onLine'));
     if (!Object.getOwnPropertyDescriptor(window.navigator, 'onLine')) {
       Object.defineProperty(window.navigator, 'onLine', {
         get: () => this.overrideIsOnline ?? this.eventIsOnline,
