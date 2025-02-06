@@ -56,7 +56,7 @@ export const simulateOfflineGraphQLServiceAction: GraphQLServiceAction = (servic
   onlineOverride = new OnlineOverride();
   if (readDevIsOnline() === false) {
     offlineController.close();
-    onlineOverride.setOverrideOnline(true);
+    onlineOverride.setOverrideOnline(false);
   }
 };
 
