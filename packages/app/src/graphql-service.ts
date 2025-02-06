@@ -4,8 +4,6 @@ import { PossibleTypesMap } from '@apollo/client';
 import { LocalStorageWrapper } from 'apollo3-cache-persist';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
-import { isEnvironmentVariableTruthy } from '~utils/string/is-environment-variable-truthy';
-
 import generatedPossibleTypes from './__generated__/possible-types.json';
 import { bootstrapCache } from './bootstrap';
 import { localStorageKey, LocalStoragePrefix } from './bootstrap/utils/local-storage-key';
@@ -40,16 +38,11 @@ const APOLLO_CACHE_VERSION = '2';
 // Any future cache breaking change must have a update/rollback to adjust cache
 const PURGE_APOLLO_CACHE = !processCacheVersion(bootstrapCache, APOLLO_CACHE_VERSION);
 
-const IS_REAL_PRODUCTION_BUILD =
-  !isEnvironmentVariableTruthy(
-    import.meta.env.VITE_WARNING_BUILD_PRODUCTION_ONLY_FOR_LOCALHOST
-  ) && import.meta.env.MODE === 'production';
-
-const HTTP_URL = IS_REAL_PRODUCTION_BUILD
+const HTTP_URL = import.meta.env.PROD
   ? import.meta.env.VITE_GRAPHQL_HTTP_URL
   : `${location.origin}/graphql`;
 
-const WS_URL = IS_REAL_PRODUCTION_BUILD
+const WS_URL = import.meta.env.PROD
   ? import.meta.env.VITE_GRAPHQL_WS_URL
   : `ws://${location.host}/graphql-ws`;
 

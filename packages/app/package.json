@@ -20,6 +20,8 @@
     "vite:preview": "vite preview --host",
     "vite:analyze": "vite-bundle-visualizer --output analyze.html",
     "dev": "npm run graphql:w & npm run vite:dev",
+    "dev:build": "NODE_ENV=development npm run build",
+    "dev:build:preview": "npm run dev:build && npm run vite:preview -- --mode development",
     "cypress": "cypress open",
     "prettify": "prettier --write --ignore-unknown src cypress",
     "eslint": "eslint . --cache --max-warnings 0",

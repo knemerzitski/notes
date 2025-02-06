@@ -7,14 +7,10 @@ const CLIENT_ID = process.env.VITE_GOOGLE_CLIENT_ID!;
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
 
-const IS_REAL_PRODUCTION_BUILD =
-  !isEnvironmentVariableTruthy(
-    process.env.VITE_WARNING_BUILD_PRODUCTION_ONLY_FOR_LOCALHOST
-  ) && process.env.NODE_ENV === 'production';
-
-const MOCK = IS_REAL_PRODUCTION_BUILD
-  ? false
-  : isEnvironmentVariableTruthy(process.env.VITE_MOCK_GOOGLE_AUTH);
+const MOCK =
+  process.env.NODE_ENV === 'production'
+    ? false
+    : isEnvironmentVariableTruthy(process.env.VITE_MOCK_GOOGLE_AUTH);
 
 export interface Result {
   id: string;
