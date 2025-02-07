@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/filename-case */
 import { ApolloProvider } from '@apollo/client';
 import { ReactNode } from 'react';
 
