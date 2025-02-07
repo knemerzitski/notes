@@ -8,7 +8,16 @@ import cypressPlugin from 'eslint-plugin-cypress/flat';
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   ...rootConfig,
-  { ignores: ['src/__generated__', 'coverage', 'scripts', 'codegen.ts', '__EXCLUDE', 'dev-out'] },
+  {
+    ignores: [
+      'src/__generated__',
+      'coverage',
+      'scripts',
+      'codegen.ts',
+      '__EXCLUDE',
+      'dev-out',
+    ],
+  },
   { files: ['**/*.ts?(x)'] },
   {
     languageOptions: {
@@ -96,6 +105,7 @@ export default [
         'error',
         {
           case: 'pascalCase',
+          ignore: [/graphql/i, /qrcode/i],
         },
       ],
     },

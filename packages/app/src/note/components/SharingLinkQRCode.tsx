@@ -1,12 +1,11 @@
-/* eslint-disable unicorn/filename-case */
 import { useFragment } from '@apollo/client';
+
+import { Box, css, styled } from '@mui/material';
+import QRCode from 'react-qr-code';
 
 import { gql } from '../../__generated__';
 import { useNoteId } from '../context/note-id';
 import { getShareUrl } from '../utils/get-share-url';
-
-import QRCode from 'react-qr-code';
-import { Box, css, styled } from '@mui/material';
 
 const SharingLinkQRCode_NoteFragment = gql(`
   fragment SharingLinkQRCode_NoteFragment on Note {

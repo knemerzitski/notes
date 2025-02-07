@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/filename-case */
 import { ReactNode } from 'react';
 
 import { createDefaultGraphQLService } from '../../graphql-service';
