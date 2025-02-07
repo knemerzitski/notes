@@ -18,6 +18,7 @@ import { SharingCopyLinkButton } from './SharingCopyLinkButton';
 import { SharingLinkTextField } from './SharingLinkTextField';
 import { SharingStatusTypography } from './SharingStatusTypography';
 import { ToggleSharingSwitch } from './ToggleSharingSwitch';
+import { SharingLinkQRCode } from './SharingLinkQRCode';
 
 const _NoteSharingDialog_NoteFragment = gql(`
   fragment NoteSharingDialog_NoteFragment on Note {
@@ -25,6 +26,7 @@ const _NoteSharingDialog_NoteFragment = gql(`
     ...SharingStatusTypography_NoteFragment
     ...SharingLinkTextField_NoteFragment
     ...SharingCopyLinkButton_NoteFragment
+    ...SharingLinkQRCode_NoteFragment
   }
 `);
 
@@ -74,6 +76,10 @@ export const NoteSharingDialog = forwardRef<
             <SharingCopyLinkButton />
           </TextFieldButtonRow>
 
+          <QRCodeRow>
+            <SharingLinkQRCode />
+          </QRCodeRow>
+
           <DialogContentText>
             Anyone with the link gains access to read and modify this note.
           </DialogContentText>
@@ -112,3 +118,9 @@ const TextFieldButtonRow = styled(Box)(
     }
   `
 );
+
+const QRCodeRow = styled(Box)(css`
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+`);
