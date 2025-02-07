@@ -171,10 +171,41 @@ export class GateLink extends ApolloLink {
 
     entry.observable = forward(operation);
     for (const observer of observers.keys()) {
-      observers.set(observer, entry.observable.subscribe(observer));
+      if (isSubscriptionOperation(operation.query)) {
+        observers.set(
+          observer,
+          entry.observable.subscribe(this.toGatedObserver(observer, operation))
+        );
+      } else {
+        observers.set(observer, entry.observable.subscribe(observer));
+      }
     }
 
     this.entryByOperation.delete(operation);
+  }
+
+  private toGatedObserver(
+    observer: Observer<FetchResult>,
+    operation: Operation
+  ): Observer<FetchResult> {
+    return {
+      start: observer.start?.bind(observer),
+      complete: observer.complete?.bind(observer),
+      error: observer.error?.bind(observer),
+      next: (value) => {
+        // Check if gate is closed when receiving subscription data
+        if (this.getCloseCount(operation) === 0) {
+          observer.next?.(value);
+        }
+      },
+    };
+  }
+
+  private getCloseCount(operation: Operation) {
+    return [...this.gates].reduce(
+      (sum, gate) => sum + (gate.isOpen(operation) ? 0 : 1),
+      0
+    );
   }
 
   public override request(operation: Operation, forward?: NextLink) {
@@ -186,14 +217,24 @@ export class GateLink extends ApolloLink {
       return forward(operation);
     }
 
-    const getCloseCount = () =>
-      [...this.gates].reduce((sum, gate) => sum + (gate.isOpen(operation) ? 0 : 1), 0);
+    const closeCount = this.getCloseCount(operation);
 
-    const closeCount = getCloseCount();
+    if (closeCount === 0) {
+      if (isSubscriptionOperation(operation.query)) {
+        // Subscription is long living so gate must still be checked
+        const observable = forward(operation);
 
-    // Subscription is long living so gate must still be checked
-    if (closeCount === 0 && !isSubscriptionOperation(operation.query)) {
-      return forward(operation);
+        return new Observable<FetchResult>((observer: Observer<FetchResult>) => {
+          const sub = observable.subscribe(this.toGatedObserver(observer, operation));
+
+          return () => {
+            sub.unsubscribe();
+          };
+        });
+      } else {
+        // Pass query or mutation
+        return forward(operation);
+      }
     }
 
     const entry: OperationEntry = {
@@ -206,29 +247,17 @@ export class GateLink extends ApolloLink {
     this.entryByOperation.set(operation, entry);
 
     return new Observable<FetchResult>((observer: Observer<FetchResult>) => {
-      const nextGatedObserver: Observer<FetchResult> = {
-        start: observer.start?.bind(observer),
-        complete: observer.complete?.bind(observer),
-        error: observer.error?.bind(observer),
-        next(value) {
-          // Check again when receiving subscription data
-          if (getCloseCount() === 0) {
-            observer.next?.(value);
-          }
-        },
-      };
-
       if (entry.observable) {
-        const sub = entry.observable.subscribe(nextGatedObserver);
+        const sub = entry.observable.subscribe(observer);
         return () => {
           sub.unsubscribe();
         };
       }
 
-      entry.observers.set(nextGatedObserver, null);
+      entry.observers.set(observer, null);
       return () => {
-        entry.observers.get(nextGatedObserver)?.unsubscribe();
-        entry.observers.delete(nextGatedObserver);
+        entry.observers.get(observer)?.unsubscribe();
+        entry.observers.delete(observer);
       };
     });
   }
