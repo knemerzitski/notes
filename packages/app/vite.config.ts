@@ -61,7 +61,7 @@ export default ({ mode }: { mode: string }) => {
           ],
         },
         devOptions: {
-          enabled: true,
+          enabled: false,
           resolveTempFolder: () => './dev-out',
         },
       }),
