@@ -32,7 +32,7 @@ import {
   userPolicies,
 } from './user/policies';
 
-const APOLLO_CACHE_VERSION = '2';
+const APOLLO_CACHE_VERSION = '3';
 
 // DESTRUCTIVE, CACHE VERSION MISMATCH
 // Any future cache breaking change must have a update/rollback to adjust cache
