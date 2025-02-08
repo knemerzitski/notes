@@ -55,7 +55,7 @@
     "ci:deploy": "npm run ci:synth && npm run deploy"
   },
   "validate-branch-name": {
-    "pattern": "^main$|^[\\w]+\\/\\S+$",
+    "pattern": "^main$|^[\\w]+\\/[\\w]+$",
     "errorMsg": "Example valid branchname: feat/awesomeFeature"
   },
   "dependencies": {
