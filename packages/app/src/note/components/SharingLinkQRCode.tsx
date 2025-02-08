@@ -1,12 +1,12 @@
 import { useFragment } from '@apollo/client';
 
-import { Box, Collapse, css, styled } from '@mui/material';
+import { Box, css, styled, Theme } from '@mui/material';
 import QRCode from 'react-qr-code';
 
 import { gql } from '../../__generated__';
 import { useNoteId } from '../context/note-id';
 import { getShareUrl } from '../utils/get-share-url';
-import { useRef } from 'react';
+import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
 
 const SharingLinkQRCode_NoteFragment = gql(`
   fragment SharingLinkQRCode_NoteFragment on Note {
@@ -18,8 +18,6 @@ const SharingLinkQRCode_NoteFragment = gql(`
 `);
 
 export function SharingLinkQRCode() {
-  const prevSharingLinkRef = useRef<string | null>(null);
-
   const noteId = useNoteId();
   const { data: note } = useFragment({
     fragment: SharingLinkQRCode_NoteFragment,
@@ -29,43 +27,43 @@ export function SharingLinkQRCode() {
     },
   });
 
-  function calcState() {
-    if (!note.shareAccess) {
-      if (prevSharingLinkRef.current) {
-        return {
-          link: prevSharingLinkRef.current,
-          collapseIn: false,
-        };
-      }
+  const isDisabled = note.shareAccess == null;
 
-      return {
-        collapseIn: false,
-      };
-    }
-
-    const sharingLink = getShareUrl(note.shareAccess.id);
-
-    prevSharingLinkRef.current = sharingLink;
-
-    return {
-      link: sharingLink,
-      collapseIn: true,
-    };
-  }
-
-  const { link, collapseIn } = calcState();
+  const sharingLink = note.shareAccess
+    ? getShareUrl(note.shareAccess.id)
+    : location.origin;
 
   return (
-    <Collapse in={collapseIn}>
-      <WrapperBox>{link && <QRCode value={link} size={164} />}</WrapperBox>
-    </Collapse>
+    <WrapperBox disabled={isDisabled}>
+      <QRCode value={sharingLink} size={164} />
+    </WrapperBox>
   );
 }
 
-const WrapperBox = styled(Box)(
+export const disabled = {
+  style: ({ disabled = false, theme }: { disabled?: boolean } & { theme: Theme }) => {
+    if (!disabled) {
+      return css`
+        box-shadow: ${theme.shadows[2]};
+      `;
+    }
+
+    return css`
+      opacity: 0.25;
+    `;
+  },
+  props: ['disabled'],
+};
+
+const WrapperBox = styled(Box, {
+  shouldForwardProp: mergeShouldForwardProp(disabled.props),
+})<{ disabled?: boolean }>(
   ({ theme }) => css`
     border: ${theme.spacing(2)} solid ${theme.palette.common.white};
     border-radius: ${theme.shape.borderRadius * 1}px;
-    box-shadow: ${theme.shadows[2]};
-  `
+    transition: ${theme.transitions.create(['opacity', 'box-shadow'], {
+      duration: theme.transitions.duration.standard,
+    })};
+  `,
+  disabled.style
 );
