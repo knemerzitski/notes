@@ -23,6 +23,7 @@
     "codegen.ts",
     "cypress.config.ts",
     "virtual-routes.config.ts",
+    "cypress/types.ts",
     "../utils/src"
   ],
   "exclude": ["scripts"]
