@@ -3,53 +3,19 @@ import { defineConfig } from 'cypress';
 import { loadEnvironmentVariables } from '../utils/src/env';
 import { MongoClient, ObjectId } from 'mongodb';
 import { WebSocket } from 'ws';
-import { GRAPHQL_TRANSPORT_WS_PROTOCOL, ConnectionInitMessage } from 'graphql-ws';
+import { GRAPHQL_TRANSPORT_WS_PROTOCOL } from 'graphql-ws';
 import { nanoid } from 'nanoid';
-
-export interface GetNoteCollabTextRevisionOptions {
-  noteId: string;
-}
-
-export interface GetNoteCollabTextRevisionResult {
-  revision: number;
-}
-
-export interface WsConnectOptions {
-  connectionInitPayload?: ConnectionInitMessage['payload'];
-  headers?: Record<string, string>;
-}
-
-export interface WsConnectResult {
-  webSocketId: string;
-  connectionId: string;
-}
-
-export interface WsSubscribeOptions<TVariables> {
-  webSocketId: string;
-  subscription: {
-    operationName?: string;
-    query?: string;
-    variables?: TVariables;
-  };
-}
-
-export interface WsSubscribeResult {
-  subscriptionId: string;
-}
-
-export interface WsGetSubscriptionDataOptions {
-  webSocketId: string;
-  subscriptionId: string;
-}
-
-export interface WsGetSubscriptionDataResult {
-  data: any[];
-}
-
-interface WebSocketContext {
-  ws: WebSocket;
-  receivedDataById: Record<string, any[]>;
-}
+import {
+  WebSocketContext,
+  GetNoteCollabTextRevisionOptions,
+  GetNoteCollabTextRevisionResult,
+  WsConnectOptions,
+  WsConnectResult,
+  WsSubscribeOptions,
+  WsSubscribeResult,
+  WsGetSubscriptionDataOptions,
+  WsGetSubscriptionDataResult,
+} from './cypress/types';
 
 loadEnvironmentVariables();
 
