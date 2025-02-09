@@ -19,14 +19,6 @@ import {
 
 loadEnvironmentVariables();
 
-const VITE_APP_PORT = process.env.VITE_APP_PORT ?? 6173;
-
-const API_URL = process.env.VITE_GRAPHQL_HTTP_URL;
-
-const DB_URI = process.env.MONGODB_URI;
-const WS_URL = process.env.VITE_GRAPHQL_WS_URL;
-
-// eslint-disable-next-line import/no-default-export
 export default defineConfig({
   component: {
     specPattern: 'src/**/*.cy.{js,jsx,ts,tsx}',
@@ -36,19 +28,16 @@ export default defineConfig({
     },
   },
   e2e: {
-    baseUrl: `http://localhost:${VITE_APP_PORT}`,
+    baseUrl: `http://localhost:${process.env.VITE_APP_PORT ?? 6173}`,
     env: {
-      API_URL,
+      API_URL: process.env.VITE_GRAPHQL_HTTP_URL,
     },
     setupNodeEvents(on, _config) {
       const wsCtxById: Record<string, WebSocketContext> = {};
 
       on('task', {
         async resetDatabase() {
-          if (!DB_URI) {
-            throw new Error('DB_URI not set');
-          }
-          const mongoClient = new MongoClient(DB_URI);
+          const mongoClient = new MongoClient(process.env.MONGODB_URI ?? '');
           await mongoClient.connect();
 
           const mongoDB = mongoClient.db();
@@ -64,10 +53,7 @@ export default defineConfig({
         async getNoteCollabTextRevision(
           options: GetNoteCollabTextRevisionOptions
         ): Promise<GetNoteCollabTextRevisionResult> {
-          if (!DB_URI) {
-            throw new Error('DB_URL not set');
-          }
-          const mongoClient = new MongoClient(DB_URI);
+          const mongoClient = new MongoClient(process.env.MONGODB_URI ?? '');
           await mongoClient.connect();
 
           const mongoDB = mongoClient.db();
@@ -92,10 +78,7 @@ export default defineConfig({
         },
         async wsConnect(options?: WsConnectOptions): Promise<WsConnectResult> {
           const webSocketId = nanoid();
-          if (!WS_URL) {
-            throw new Error('WS_URL not set');
-          }
-          const ws = new WebSocket(WS_URL, {
+          const ws = new WebSocket(process.env.VITE_GRAPHQL_WS_URL ?? '', {
             protocol: GRAPHQL_TRANSPORT_WS_PROTOCOL,
             headers: options?.headers,
           });
