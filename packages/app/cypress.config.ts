@@ -23,8 +23,8 @@ const VITE_APP_PORT = process.env.VITE_APP_PORT ?? 6173;
 
 const API_URL = process.env.VITE_GRAPHQL_HTTP_URL;
 
-const DB_URI = process.env.MONGODB_URI!;
-const WS_URL = process.env.VITE_GRAPHQL_WS_URL!;
+const DB_URI = process.env.MONGODB_URI;
+const WS_URL = process.env.VITE_GRAPHQL_WS_URL;
 
 // eslint-disable-next-line import/no-default-export
 export default defineConfig({
@@ -45,6 +45,9 @@ export default defineConfig({
 
       on('task', {
         async resetDatabase() {
+          if (!DB_URI) {
+            throw new Error('DB_URI not set');
+          }
           const mongoClient = new MongoClient(DB_URI);
           await mongoClient.connect();
 
@@ -61,6 +64,9 @@ export default defineConfig({
         async getNoteCollabTextRevision(
           options: GetNoteCollabTextRevisionOptions
         ): Promise<GetNoteCollabTextRevisionResult> {
+          if (!DB_URI) {
+            throw new Error('DB_URL not set');
+          }
           const mongoClient = new MongoClient(DB_URI);
           await mongoClient.connect();
 
@@ -86,6 +92,9 @@ export default defineConfig({
         },
         async wsConnect(options?: WsConnectOptions): Promise<WsConnectResult> {
           const webSocketId = nanoid();
+          if (!WS_URL) {
+            throw new Error('WS_URL not set');
+          }
           const ws = new WebSocket(WS_URL, {
             protocol: GRAPHQL_TRANSPORT_WS_PROTOCOL,
             headers: options?.headers,

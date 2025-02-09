@@ -14,17 +14,16 @@
 // https://on.cypress.io/configuration
 // ***********************************************************
 
+// Import commands.js using ES2015 syntax:
 import {
-  GetNoteCollabTextRevisionOptions,
   GetNoteCollabTextRevisionResult,
-  WsConnectOptions,
   WsConnectResult,
-  WsGetSubscriptionDataResult,
   WsSubscribeOptions,
   WsSubscribeResult,
-} from '../../cypress.config';
-
-// Import commands.js using ES2015 syntax:
+  WsGetSubscriptionDataResult,
+  GetNoteCollabTextRevisionOptions,
+  WsConnectOptions,
+} from '../types';
 import './commands';
 
 // Alternatively you can use CommonJS syntax:
