@@ -21,7 +21,7 @@ export function NotesMain() {
     <>
       <FullWidthCenterMain>
         {!isMobile && (
-          <FullWidthCenterRow justifyItems="center">
+          <FullWidthCenterRow display="flex" justifyContent="center">
             <CreateNoteWidget />
           </FullWidthCenterRow>
         )}

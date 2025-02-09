@@ -1,5 +1,65 @@
 import { defineConfig } from 'cypress';
 
+import { loadEnvironmentVariables } from '../utils/src/env';
+import { MongoClient, ObjectId } from 'mongodb';
+import { WebSocket } from 'ws';
+import { GRAPHQL_TRANSPORT_WS_PROTOCOL, ConnectionInitMessage } from 'graphql-ws';
+import { nanoid } from 'nanoid';
+
+export interface GetNoteCollabTextRevisionOptions {
+  noteId: string;
+}
+
+export interface GetNoteCollabTextRevisionResult {
+  revision: number;
+}
+
+export interface WsConnectOptions {
+  connectionInitPayload?: ConnectionInitMessage['payload'];
+  headers?: Record<string, string>;
+}
+
+export interface WsConnectResult {
+  webSocketId: string;
+  connectionId: string;
+}
+
+export interface WsSubscribeOptions<TVariables> {
+  webSocketId: string;
+  subscription: {
+    operationName?: string;
+    query?: string;
+    variables?: TVariables;
+  };
+}
+
+export interface WsSubscribeResult {
+  subscriptionId: string;
+}
+
+export interface WsGetSubscriptionDataOptions {
+  webSocketId: string;
+  subscriptionId: string;
+}
+
+export interface WsGetSubscriptionDataResult {
+  data: any[];
+}
+
+interface WebSocketContext {
+  ws: WebSocket;
+  receivedDataById: Record<string, any[]>;
+}
+
+loadEnvironmentVariables();
+
+const VITE_APP_PORT = process.env.VITE_APP_PORT ?? 6173;
+
+const API_URL = process.env.VITE_GRAPHQL_HTTP_URL;
+
+const DB_URI = process.env.MONGODB_URI!;
+const WS_URL = process.env.VITE_GRAPHQL_WS_URL!;
+
 // eslint-disable-next-line import/no-default-export
 export default defineConfig({
   component: {
@@ -9,11 +69,134 @@ export default defineConfig({
       bundler: 'vite',
     },
   },
-
   e2e: {
-    baseUrl: 'http://localhost:5173',
-    setupNodeEvents(_on, _config) {
-      // implement node event listeners here
+    baseUrl: `http://localhost:${VITE_APP_PORT}`,
+    env: {
+      API_URL,
+    },
+    setupNodeEvents(on, _config) {
+      const wsCtxById: Record<string, WebSocketContext> = {};
+
+      on('task', {
+        async resetDatabase() {
+          const mongoClient = new MongoClient(DB_URI);
+          await mongoClient.connect();
+
+          const mongoDB = mongoClient.db();
+
+          const collectionNames = ['sessions', 'users', 'notes', 'openNotes'];
+
+          await Promise.all(
+            collectionNames.map((name) => mongoDB.collection(name).deleteMany())
+          );
+
+          return null;
+        },
+        async getNoteCollabTextRevision(
+          options: GetNoteCollabTextRevisionOptions
+        ): Promise<GetNoteCollabTextRevisionResult> {
+          const mongoClient = new MongoClient(DB_URI);
+          await mongoClient.connect();
+
+          const mongoDB = mongoClient.db();
+
+          const noteDoc = await mongoDB.collection('notes').findOne<{ revision: number }>(
+            {
+              _id: ObjectId.createFromBase64(options.noteId),
+            },
+            {
+              projection: {
+                revision: '$collabText.headText.revision',
+              },
+            }
+          );
+          if (!noteDoc) {
+            throw new Error(`Note not found ${options.noteId}`);
+          }
+
+          return {
+            revision: noteDoc.revision,
+          };
+        },
+        async wsConnect(options?: WsConnectOptions): Promise<WsConnectResult> {
+          const webSocketId = nanoid();
+          const ws = new WebSocket(WS_URL, {
+            protocol: GRAPHQL_TRANSPORT_WS_PROTOCOL,
+            headers: options?.headers,
+          });
+
+          const wsCtx: WebSocketContext = {
+            ws,
+            receivedDataById: {},
+          };
+          wsCtxById[webSocketId] = wsCtx;
+
+          return new Promise<WsConnectResult>((res) => {
+            ws.on('message', (rawData) => {
+              const data = JSON.parse(String(rawData));
+              if (data.type === 'connected') {
+                ws.send(
+                  JSON.stringify({
+                    type: 'connection_init',
+                    payload: options?.connectionInitPayload,
+                  })
+                );
+              } else if (data.type === 'connection_ack') {
+                if (!data.payload.connectionId) {
+                  throw new Error('Expected "connectionId" in "connection_ack" payload');
+                }
+                res({
+                  webSocketId,
+                  connectionId: data.payload.connectionId,
+                });
+              } else if (typeof data.id === 'string') {
+                let dataArr = wsCtx.receivedDataById[data.id];
+                if (!dataArr) {
+                  dataArr = [];
+                  wsCtx.receivedDataById[data.id] = dataArr;
+                }
+                dataArr.push(data);
+              }
+            });
+          });
+        },
+        wsSubscribe<TVariables>(
+          options: WsSubscribeOptions<TVariables>
+        ): WsSubscribeResult {
+          const wsCtx = wsCtxById[options.webSocketId];
+          if (!wsCtx) {
+            throw new Error(`Unknown WebSocket id ${options.webSocketId}`);
+          }
+
+          const subscriptionId = nanoid();
+
+          wsCtx.ws.send(
+            JSON.stringify({
+              id: subscriptionId,
+              type: 'subscribe',
+              payload: options.subscription,
+            })
+          );
+
+          return {
+            subscriptionId,
+          };
+        },
+        wsGetSubscriptionData(
+          options: WsGetSubscriptionDataOptions
+        ): WsGetSubscriptionDataResult {
+          const wsCtx = wsCtxById[options.webSocketId];
+          if (!wsCtx) {
+            throw new Error(`Unknown WebSocket id ${options.webSocketId}`);
+          }
+
+          const data = wsCtx.receivedDataById[options.subscriptionId] ?? [];
+
+          return {
+            data,
+          };
+        },
+      });
     },
   },
 });

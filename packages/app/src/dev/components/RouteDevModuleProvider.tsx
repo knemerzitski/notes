@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 
+import { isDevToolsEnabled } from '../utils/dev-tools';
+
 import { DevTools } from './DevTools';
 import { TanStackRouterDevtools } from './TanStackRouterDevTools';
 
@@ -15,4 +17,4 @@ function Content() {
   );
 }
 
-export const RouteDevModuleProvider = import.meta.env.PROD ? () => null : Content;
+export const RouteDevModuleProvider = isDevToolsEnabled() ? Content : () => null;

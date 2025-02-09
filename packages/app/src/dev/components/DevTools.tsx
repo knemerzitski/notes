@@ -4,11 +4,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useSafeState } from '../hooks/useSafeState';
 
+import { isDevToolsEnabled } from '../utils/dev-tools';
+
 import { DevToolsContent } from './DevToolsContent';
 
-export const DevTools = import.meta.env.PROD
-  ? () => null // Render nothing in production
-  : FloatingDevTools;
+export const DevTools = isDevToolsEnabled() ? FloatingDevTools : () => null;
 
 function FloatingDevTools() {
   const [rootEl, setRootEl] = useState<HTMLElement | null>(null);

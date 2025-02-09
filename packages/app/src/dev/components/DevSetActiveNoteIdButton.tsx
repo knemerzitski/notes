@@ -3,10 +3,11 @@ import { IconButton, IconButtonProps } from '@mui/material';
 
 import { useNoteId } from '../../note/context/note-id';
 import { devNoteIdVar } from '../reactive-vars';
+import { isDevToolsEnabled } from '../utils/dev-tools';
 
-export const DevSetActiveNoteIdButton = import.meta.env.PROD
-  ? () => null // Render nothing in production
-  : MyDevSetActiveNoteIdButton;
+export const DevSetActiveNoteIdButton = isDevToolsEnabled()
+  ? MyDevSetActiveNoteIdButton
+  : () => null;
 
 function MyDevSetActiveNoteIdButton() {
   const noteId = useNoteId();

@@ -1,3 +1,0 @@
-it('example', () => {
-  cy.visit('/');
-});

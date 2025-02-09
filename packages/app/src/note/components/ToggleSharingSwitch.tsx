@@ -46,6 +46,7 @@ export function ToggleSharingSwitch() {
 
   return (
     <Switch
+      aria-label={isSharingEnabled ? 'delete share link' : 'create share link'}
       disabled={!complete || isCreatingShareLink}
       checked={isSharingEnabled || isCreatingShareLink}
       onChange={handleToggleSharing}

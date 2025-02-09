@@ -25,5 +25,9 @@ export function SharingStatusTypography() {
 
   const isSharingEnabled = note.shareAccess != null;
 
-  return <Typography>Sharing is {isSharingEnabled ? 'enabled' : 'disabled'}</Typography>;
+  return (
+    <Typography aria-label="sharing-status">
+      Sharing is {isSharingEnabled ? 'enabled' : 'disabled'}
+    </Typography>
+  );
 }

@@ -1,7 +1,9 @@
 # Generated
 src/__generated__
 out
-dev-out
+out-test
+out-dev
+out-dev-pwa
 coverage
 cypress/screenshots
 analyze.html

@@ -36,7 +36,7 @@ declare global {
 Cypress.Commands.add('mount', mount);
 Cypress.Commands.add('mountSandbox', mountSandbox);
 
-if (import.meta.env.MODE !== 'production') {
+if (import.meta.env.DEV) {
   loadDevMessages();
   loadErrorMessages();
 }
