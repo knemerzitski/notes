@@ -87,6 +87,7 @@ jobs:
           path: |
             packages/api/out/**
             packages/app/out/**
+            packages/app/out-test/**
             packages/api-dev-server/out/**
           retention-days: 2
   lint:
@@ -233,7 +234,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        package: [api]
+        package: [api, app]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -261,15 +262,25 @@ jobs:
       - name: Start DynamoDB container
         run: npm run dynamodb:start
 
-      # Artifact packages/api-dev-server/server.log
       - name: Run end-to-end tests
         run: npm run -w ${{ matrix.package }} test:e2e
 
+      # Artifact packages/api-dev-server/server.log
       - name: Upload server logs
-        if: ${{ !cancelled() }}
+        if: ${{ matrix.package == 'api' && !cancelled()  }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.package }}-dev_server_log
           path: |
             packages/api-dev-server/server.log
+          retention-days: 2
+
+      # Artifact packages/app/app.log
+      - name: Upload app logs
+        if: ${{ matrix.package == 'app' && !cancelled()  }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.package }}-log
+          path: |
+            packages/app/app.log
           retention-days: 2

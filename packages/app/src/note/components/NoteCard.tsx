@@ -4,11 +4,13 @@ import { forwardRef, ReactNode, useRef, useState } from 'react';
 
 import { gql } from '../../__generated__';
 import { NoteCategory } from '../../__generated__/graphql';
+import { isDevToolsEnabled } from '../../dev/utils/dev-tools';
 import { noteEditDialogId } from '../../utils/element-id';
 import { isElHover } from '../../utils/is-el-hover';
 import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
 
 import { useNoteId } from '../context/note-id';
+import { useIsLocalOnlyNote } from '../hooks/useIsLocalOnlyNote';
 import { useIsNoteOpen } from '../hooks/useIsNoteOpen';
 
 import { useNavigateToNote } from '../hooks/useNavigateToNote';
@@ -39,6 +41,8 @@ const _NoteCard_UserNoteLinkFragment = gql(`
 export const NoteCard = forwardRef<HTMLDivElement, PaperProps>(
   function NoteCard(props, ref) {
     const noteId = useNoteId();
+    const localOnly = useIsLocalOnlyNote();
+
     const client = useApolloClient();
     const paperElRef = useRef<HTMLDivElement | null>(null);
 
@@ -114,6 +118,8 @@ export const NoteCard = forwardRef<HTMLDivElement, PaperProps>(
           paperElRef.current = el;
         }}
         aria-label="open note dialog"
+        data-note-id={noteId}
+        data-is-local={localOnly}
         aria-haspopup={true}
         {...props}
         onMouseEnter={handleMouseEnter}
@@ -160,7 +166,7 @@ export const PureNoteCard = forwardRef<
   return (
     <PaperStyled {...restProps} elevation={elevation} variant={variant} ref={ref}>
       {slots?.prefix}
-      {import.meta.env.DEV && noteId}
+      {isDevToolsEnabled() && noteId}
       <UserAvatarsCornerPosition>
         <OpenedNoteUserAvatars
           max={3}

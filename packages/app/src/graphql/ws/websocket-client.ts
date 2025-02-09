@@ -29,6 +29,7 @@ export class WebSocketClient {
       retryAttempts: Infinity,
       connectionParams: this.connectionParams.bind(this),
       on: {
+        opened: this.opened.bind(this),
         connected: this.connected.bind(this),
         message: this.message.bind(this),
         closed: this.closed.bind(this),
@@ -54,6 +55,37 @@ export class WebSocketClient {
     const payload: ConnectionInitMessage['payload'] = {};
 
     return payload;
+  }
+
+  private opened(socket: unknown) {
+    if (!(socket instanceof WebSocket)) {
+      return;
+    }
+
+    /**
+     * During testing, server will send message with type: "connected".
+     * Must ignore it or socket will be closed.
+     */
+    if (import.meta.env.DEV) {
+      const skipMessageTypes = ['connected'];
+      const original_onmessage = socket.onmessage?.bind(socket);
+      socket.onmessage = (ev) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const { data } = ev;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
+        const parsedData = JSON.parse(data);
+        if (isObjectLike(parsedData)) {
+          const type = parsedData.type;
+          if (typeof type === 'string' && skipMessageTypes.includes(type)) {
+            // Ignore message
+            return;
+          }
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return original_onmessage?.(ev);
+      };
+    }
   }
 
   private connected(socket: unknown) {

@@ -89,13 +89,12 @@ export function createDefaultGraphQLServiceParams(): Parameters<
       persist: {
         persistErrorCodes: [GraphQLErrorCode.UNAUTHENTICATED],
       },
-      debug:
-        import.meta.env.MODE !== 'production'
-          ? {
-              throttle: 0,
-              logging: true,
-            }
-          : undefined,
+      debug: import.meta.env.DEV
+        ? {
+            throttle: 0,
+            logging: true,
+          }
+        : undefined,
     },
     actions: SERVICE_ACTIONS,
     purgeCache: PURGE_APOLLO_CACHE,

@@ -4,9 +4,9 @@ import { Box, css, styled, Theme } from '@mui/material';
 import QRCode from 'react-qr-code';
 
 import { gql } from '../../__generated__';
+import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
 import { useNoteId } from '../context/note-id';
 import { getShareUrl } from '../utils/get-share-url';
-import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
 
 const SharingLinkQRCode_NoteFragment = gql(`
   fragment SharingLinkQRCode_NoteFragment on Note {

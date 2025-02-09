@@ -7,7 +7,7 @@ import { SimpleTextEditor } from '~collab/editor/simple-text';
 
 import { NoteExternalState } from '../note/external-state/note';
 
-if (!import.meta.env.PROD) {
+if (import.meta.env.DEV) {
   loadDevMessages();
   loadErrorMessages();
 

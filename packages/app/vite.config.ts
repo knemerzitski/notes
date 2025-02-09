@@ -12,7 +12,7 @@ const envDir = '../../';
 // https://vitejs.dev/config/
 // eslint-disable-next-line import/no-default-export
 export default ({ mode }: { mode: string }) => {
-  process.env = { ...process.env, ...loadEnv(mode, envDir) };
+  process.env = { ...process.env, ...loadEnv(process.env.NODE_ENV ?? mode, envDir) };
 
   return defineConfig({
     plugins: [
@@ -26,6 +26,7 @@ export default ({ mode }: { mode: string }) => {
        * @see {@link https://vite-pwa-org.netlify.app/guide/}
        */
       VitePWA({
+        disable: process.env.NODE_ENV !== 'production',
         registerType: 'autoUpdate',
         injectRegister: 'inline',
         manifest: {
@@ -62,27 +63,16 @@ export default ({ mode }: { mode: string }) => {
         },
         devOptions: {
           enabled: false,
-          resolveTempFolder: () => './dev-out',
+          resolveTempFolder: () => './out-dev-pwa',
         },
       }),
-      {
-        name: 'warn-not-production',
-        closeBundle: () => {
-          if (process.env.NODE_ENV !== 'production') {
-            console.log();
-            console.error(
-              '\x1b[31m ATTENTION DEVELOPER! This is not a production build. DO NOT deploy!!!!!!!\x1b[0m'
-            );
-            console.log();
-          }
-        },
-      },
     ],
     build: {
-      outDir: 'out',
+      outDir: process.env.VITE_APP_OUT_DIR ?? 'out',
     },
     envDir,
     server: {
+      port: process.env.VITE_APP_PORT ? Number(process.env.VITE_APP_PORT) : undefined,
       proxy: {
         '/graphql': {
           target: process.env.VITE_GRAPHQL_HTTP_URL,

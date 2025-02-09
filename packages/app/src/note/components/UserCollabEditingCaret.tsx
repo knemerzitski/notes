@@ -171,6 +171,7 @@ export function UserCollabEditingCaret({ inputRef }: { inputRef: RefObject<unkno
   return (
     <InputCaret
       aria-label={`caret-${displayName}`}
+      data-selection={editorSelection.end}
       caret={{
         inputRef,
         selection: editorSelection.end,

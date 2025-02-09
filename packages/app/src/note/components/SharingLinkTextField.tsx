@@ -28,11 +28,15 @@ export function SharingLinkTextField() {
 
   const isCreatingShareLink = useSmoothValue(useIsCreatingShareLink(noteId));
 
+  const hasShareLink = note.shareAccess?.id != null && !isCreatingShareLink;
+
   const sharingLink = getShareUrl(note.shareAccess?.id);
 
   return (
     <RootBoxStyled>
       <TextField
+        aria-label="share note link"
+        data-has-link={hasShareLink}
         variant="outlined"
         disabled
         value={isCreatingShareLink ? '' : sharingLink}
