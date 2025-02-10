@@ -19,6 +19,14 @@ import {
 
 loadEnvironmentVariables();
 
+const VITE_APP_PORT = process.env.VITE_APP_PORT ?? 6173;
+
+const API_URL = process.env.VITE_GRAPHQL_HTTP_URL;
+
+const DB_URI = process.env.MONGODB_URI!;
+const WS_URL = process.env.VITE_GRAPHQL_WS_URL!;
+
+// eslint-disable-next-line import/no-default-export
 export default defineConfig({
   component: {
     specPattern: 'src/**/*.cy.{js,jsx,ts,tsx}',
@@ -28,16 +36,16 @@ export default defineConfig({
     },
   },
   e2e: {
-    baseUrl: `http://localhost:${process.env.VITE_APP_PORT ?? 6173}`,
+    baseUrl: `http://localhost:${VITE_APP_PORT}`,
     env: {
-      API_URL: process.env.VITE_GRAPHQL_HTTP_URL,
+      API_URL,
     },
     setupNodeEvents(on, _config) {
       const wsCtxById: Record<string, WebSocketContext> = {};
 
       on('task', {
         async resetDatabase() {
-          const mongoClient = new MongoClient(process.env.MONGODB_URI ?? '');
+          const mongoClient = new MongoClient(DB_URI);
           await mongoClient.connect();
 
           const mongoDB = mongoClient.db();
@@ -53,7 +61,7 @@ export default defineConfig({
         async getNoteCollabTextRevision(
           options: GetNoteCollabTextRevisionOptions
         ): Promise<GetNoteCollabTextRevisionResult> {
-          const mongoClient = new MongoClient(process.env.MONGODB_URI ?? '');
+          const mongoClient = new MongoClient(DB_URI);
           await mongoClient.connect();
 
           const mongoDB = mongoClient.db();
@@ -78,7 +86,7 @@ export default defineConfig({
         },
         async wsConnect(options?: WsConnectOptions): Promise<WsConnectResult> {
           const webSocketId = nanoid();
-          const ws = new WebSocket(process.env.VITE_GRAPHQL_WS_URL ?? '', {
+          const ws = new WebSocket(WS_URL, {
             protocol: GRAPHQL_TRANSPORT_WS_PROTOCOL,
             headers: options?.headers,
           });
