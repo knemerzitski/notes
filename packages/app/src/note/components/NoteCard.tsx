@@ -127,8 +127,8 @@ export const NoteCard = forwardRef<HTMLDivElement, PaperProps>(
         onClick={handleClick}
         active={isActive}
         slots={{
-          suffix: (
-            <ToolbarBox active={isActive}>
+          toolbar: (
+            <>
               <NoteAlwaysButtons />
               <NoteMoreOptionsButton
                 IconButtonMenuProps={{
@@ -142,30 +142,46 @@ export const NoteCard = forwardRef<HTMLDivElement, PaperProps>(
                   },
                 }}
               />
-            </ToolbarBox>
+            </>
           ),
+        }}
+        slotProps={{
+          toolbar: {
+            active: isActive,
+          },
         }}
       />
     );
   }
 );
 
+/**
+ * NoteCard without complex rerender logic. Used as drag and drop component.
+ */
 export const PureNoteCard = forwardRef<
   HTMLDivElement,
   Parameters<typeof PaperStyled>[0] & {
     slots?: {
-      prefix?: ReactNode;
-      suffix?: ReactNode;
+      toolbar?: ReactNode;
+    };
+    slotProps?: {
+      toolbar: Parameters<typeof ToolbarBox>[0];
     };
   }
 >(function PureNoteCard(
-  { slots, elevation = 0, variant = 'outlined', ...restProps },
+  { slots, slotProps, elevation = 0, variant = 'outlined', ...restProps },
   ref
 ) {
+  const isToolbarActive = slotProps?.toolbar.active ?? false;
+
+  const hasToolbarBeenActiveRef = useRef(isToolbarActive);
+  hasToolbarBeenActiveRef.current = hasToolbarBeenActiveRef.current || isToolbarActive;
+
+  const isRenderingToolbar = hasToolbarBeenActiveRef.current;
+
   const noteId = useNoteId();
   return (
     <PaperStyled {...restProps} elevation={elevation} variant={variant} ref={ref}>
-      {slots?.prefix}
       {isDevToolsEnabled() && noteId}
       <UserAvatarsCornerPosition>
         <OpenedNoteUserAvatars
@@ -179,7 +195,9 @@ export const PureNoteCard = forwardRef<
       <TitleTypography />
       <ContentTypography />
       <DeletedInDaysStyled />
-      {slots?.suffix}
+      <ToolbarBox {...slotProps?.toolbar}>
+        {isRenderingToolbar && slots?.toolbar}
+      </ToolbarBox>
     </PaperStyled>
   );
 });
@@ -250,6 +268,7 @@ const ToolbarBox = styled(Box, {
       duration: theme.transitions.duration.shortest,
     })};
     gap: ${theme.spacing(1)};
+    min-height: ${theme.spacing(5)};
   `,
   toolbarActive.style
 );
