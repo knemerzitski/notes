@@ -12,7 +12,12 @@ export class HttpSession {
     this.headers = { ...options?.headers };
   }
 
-  async fetch(input: string | URL | Request, init?: RequestInit): Promise<Response> {
+  async fetch(
+    input: string | URL | Request,
+    init?: Omit<RequestInit, 'headers'> & {
+      readonly headers: Record<string, string>;
+    }
+  ): Promise<Response> {
     const headers = {
       ...init?.headers,
       ...this.getHeaders(),

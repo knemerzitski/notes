@@ -6,7 +6,12 @@ import { FormattedExecutionResult } from 'graphql/index.js';
 
 const HTTP_URL = process.env.VITE_GRAPHQL_HTTP_URL!;
 
-type FetchFn = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
+type FetchFn = (
+  input: string | URL | Request,
+  init?: Omit<RequestInit, 'headers'> & {
+    readonly headers: Record<string, string>;
+  }
+) => Promise<Response>;
 
 export async function fetchGraphQL<
   TData = Record<string, unknown>,

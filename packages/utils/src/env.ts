@@ -40,7 +40,6 @@ export function assertGetEnvironmentVariables<TKey extends string>(
       map[name] = value;
       return map;
     },
-    // eslint-disable-next-line @typescript-eslint/prefer-reduce-type-parameter
     {} as Record<TKey, string>
   );
 }

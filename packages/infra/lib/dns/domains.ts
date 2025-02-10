@@ -79,6 +79,7 @@ export function parseDomains(
         }));
   if (!isNonEmptyMutableArray(parsedDomains)) {
     throw new Error(
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string
       `No valid domains found in "${domains.toString()}". Domain must be in format: [zoneName],[zoneId],[primaryName],[...aliases];...`
     );
   }

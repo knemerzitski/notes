@@ -17,7 +17,6 @@ export function groupBy<T, TKey extends string | number | symbol>(
       }
       return map;
     },
-    // eslint-disable-next-line @typescript-eslint/prefer-reduce-type-parameter
     {} as Record<TKey, T[]>
   );
 }
@@ -38,7 +37,6 @@ export function groupByFirst<T, TKey extends string | number | symbol>(
       }
       return map;
     },
-    // eslint-disable-next-line @typescript-eslint/prefer-reduce-type-parameter
     {} as Record<TKey, T>
   );
 }

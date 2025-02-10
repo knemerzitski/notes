@@ -131,6 +131,7 @@ function createClientHelper<TName extends string>(
     ...editorOptions,
     recordsBuffer: {
       version: server.tailText.revision,
+      // eslint-disable-next-line @typescript-eslint/no-misused-spread
       ...editorOptions.recordsBuffer,
     },
 
