@@ -15,7 +15,7 @@ import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
 import { useNoteId } from '../context/note-id';
 
 import { DragOverlayNoteCard } from './DragOverlayNoteCard';
-import { NoteCard } from './NoteCard';
+import { NoteCard, PureNoteCard } from './NoteCard';
 
 export const SortableNoteCard = forwardRef<
   HTMLDivElement,
@@ -40,33 +40,53 @@ export const SortableNoteCard = forwardRef<
     return data;
   }, [noteId]);
 
-  const { setNodeRef, attributes, listeners, isDragging, transform, transition } =
-    useSortable({
-      id: getNoteDndId(noteId),
-      data: dndData,
-    });
+  const {
+    setNodeRef,
+    attributes,
+    listeners,
+    isDragging,
+    transform,
+    transition,
+    isSorting,
+  } = useSortable({
+    id: getNoteDndId(noteId),
+    data: dndData,
+  });
+
+  function refFn(el: HTMLDivElement | null) {
+    if (typeof ref === 'function') {
+      ref(el);
+    } else if (ref) {
+      ref.current = el;
+    }
+    setNodeRef(el);
+  }
+
+  if (isSorting) {
+    return (
+      <PureNoteCardStyled
+        ref={refFn}
+        style={{
+          ...props.style,
+          transform: CSS.Transform.toString(transform),
+          transition,
+        }}
+        {...attributes}
+        {...listeners}
+        {...props}
+        isDragging={isDragging}
+      />
+    );
+  }
 
   return (
     <NoteCardStyled
-      ref={(el) => {
-        if (typeof ref === 'function') {
-          ref(el);
-        } else if (ref) {
-          ref.current = el;
-        }
-        setNodeRef(el);
-      }}
-      style={{
-        ...props.style,
-        transform: CSS.Transform.toString(transform),
-        transition,
-      }}
-      isMobile={isMobile}
-      isDragging={isDragging}
+      ref={refFn}
       {...attributes}
       {...listeners}
       tabIndex={0}
       {...props}
+      isMobile={isMobile}
     />
   );
 });
@@ -85,7 +105,7 @@ export const mobileManipulation = {
 };
 
 export const draggingHidden = {
-  style: ({ isDragging }: { isDragging: boolean }) => {
+  style: ({ isDragging = false }: { isDragging?: boolean }) => {
     if (isDragging) {
       return css`
         visibility: hidden;
@@ -98,11 +118,9 @@ export const draggingHidden = {
 };
 
 const NoteCardStyled = styled(NoteCard, {
-  shouldForwardProp: mergeShouldForwardProp(
-    mobileManipulation.props,
-    draggingHidden.props
-  ),
-})<{ isDragging: boolean; isMobile: boolean }>(
-  mobileManipulation.style,
-  draggingHidden.style
-);
+  shouldForwardProp: mergeShouldForwardProp(mobileManipulation.props),
+})<{ isDragging?: boolean; isMobile: boolean }>(mobileManipulation.style);
+
+const PureNoteCardStyled = styled(PureNoteCard, {
+  shouldForwardProp: mergeShouldForwardProp(draggingHidden.props),
+})<{ isDragging?: boolean }>(draggingHidden.style);
