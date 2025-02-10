@@ -23,6 +23,7 @@ export function UsersInfoPopover({
           ...restProps.slotProps,
           paper: {
             elevation: 10,
+            // eslint-disable-next-line @typescript-eslint/no-misused-spread
             ...restProps.slotProps?.paper,
           },
         }}

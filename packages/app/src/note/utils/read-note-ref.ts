@@ -24,6 +24,7 @@ export function readNoteRef({
   } else {
     const noteRef = readField('noteRef');
     if (!isReference(noteRef)) {
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string
       throw new Error(` ${String(__typename)}.noteRef to be a reference`);
     }
 

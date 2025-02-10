@@ -30,6 +30,7 @@
   "dependencies": {
     "@apollo/server": "^4.9.5",
     "@aws-sdk/client-apigatewaymanagementapi": "^3.451.0",
+    "@aws-sdk/client-sts": "^3.744.0",
     "@eddeee888/gcg-typescript-resolver-files": "^0.7.1",
     "@faker-js/faker": "^8.3.1",
     "@graphql-tools/schema": "^10.0.7",

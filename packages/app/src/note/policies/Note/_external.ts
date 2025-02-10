@@ -86,6 +86,7 @@ export function readNoteExternalState(
   const inst = readField(FIELD_NAME, noteRef);
   if (!(inst instanceof NoteExternalState)) {
     throw new Error(
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string
       `Failed to read note external state field. Expect and instance but is "${String(inst)}"`
     );
   }

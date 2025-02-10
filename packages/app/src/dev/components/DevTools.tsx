@@ -189,6 +189,7 @@ function TopResizeHandle({
           backgroundColor: (theme) => theme.palette.primary.main,
           cursor: 'row-resize',
         }),
+        // eslint-disable-next-line @typescript-eslint/no-misused-spread
         ...parentProps?.sx,
       }}
     >
@@ -205,6 +206,7 @@ function TopResizeHandle({
           left: 0,
           right: 30,
           height: '100%',
+          // eslint-disable-next-line @typescript-eslint/no-misused-spread
           ...innerProps?.sx,
         }}
       />
@@ -223,6 +225,7 @@ function OpenDevToolsButton(props?: ButtonProps) {
         borderRadius: 0.5,
         px: 1,
         py: 0.5,
+        // eslint-disable-next-line @typescript-eslint/no-misused-spread
         ...props?.sx,
       }}
     >
@@ -246,6 +249,7 @@ function CloseDevToolsButton(props?: ButtonProps) {
         backgroundImage:
           'linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1))',
         minWidth: 0,
+        // eslint-disable-next-line @typescript-eslint/no-misused-spread
         ...props?.sx,
       }}
     >
