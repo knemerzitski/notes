@@ -204,9 +204,12 @@ jobs:
             packages/infra/server.log
           retention-days: 2
   test_comp:
-    name: App component tests
+    name: Component tests
     needs: build
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: [app]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -227,7 +230,7 @@ jobs:
         run: npm ci
 
       - name: Run component tests
-        run: npm run -w app test:comp
+        run: npm run -w ${{ matrix.package }} test:comp
   test_e2e:
     name: End-to-end tests
     needs: build
