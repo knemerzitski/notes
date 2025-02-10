@@ -28,7 +28,6 @@ const WS_URL = process.env.VITE_GRAPHQL_WS_URL!;
 
 // eslint-disable-next-line import/no-default-export
 export default defineConfig({
-  modifyObstructiveCode: false,
   component: {
     specPattern: 'src/**/*.cy.{js,jsx,ts,tsx}',
     devServer: {
