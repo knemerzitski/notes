@@ -10,6 +10,7 @@
     "test": "npm run test:unit",
     "prettify": "prettier --write --ignore-unknown src",
     "eslint": "eslint . --cache --max-warnings 0",
+    "eslint:lint-staged": "eslint --fix --max-warnings 0 --no-warn-ignored",
     "type-check": "tsc --noEmit --project tsconfig.tsc.json",
     "lint": "npm run type-check && npm run eslint"
   },
