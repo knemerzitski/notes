@@ -17,11 +17,11 @@ export function App() {
           <AppThirdPartyModuleProvider>
             <AppUtilsModuleProvider>
               <AppUserModuleProvider>
-                <AppDndModuleProvider>
-                  <AppNoteModuleProvider>
+                <AppNoteModuleProvider>
+                  <AppDndModuleProvider>
                     <AppRoutesModuleProvider />
-                  </AppNoteModuleProvider>
-                </AppDndModuleProvider>
+                  </AppDndModuleProvider>
+                </AppNoteModuleProvider>
               </AppUserModuleProvider>
             </AppUtilsModuleProvider>
           </AppThirdPartyModuleProvider>

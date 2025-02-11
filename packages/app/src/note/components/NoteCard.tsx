@@ -25,6 +25,10 @@ import { NoteMoreOptionsButton } from './NoteMoreOptionsButton';
 import { OpenedNoteUserAvatars } from './OpenedNoteUserAvatars';
 import { TitleTypography } from './TitleTypography';
 import { UserAvatarsCornerPosition } from './UserAvatarsCornerPosition';
+import { IsDesktop } from '../../utils/components/IsDesktop';
+import { useSelectNoteTrigger } from '../hooks/useSelectNoteTrigger';
+import { useIsNoteSelected } from '../hooks/useIsNoteSelected';
+import { useIsAnyNoteSelected } from '../hooks/useIsAnyNoteSelected';
 
 const _NoteCard_UserNoteLinkFragment = gql(`
   fragment NoteCard_UserNoteLinkFragment on UserNoteLink {
@@ -49,6 +53,9 @@ export const NoteCard = forwardRef<HTMLDivElement, PaperProps>(
     const navigateToNote = useNavigateToNote();
 
     const isNoteOpen = useIsNoteOpen(noteId);
+
+    const selectNoteTrigger = useSelectNoteTrigger(noteId);
+    const isAnyNoteSelected = useIsAnyNoteSelected();
 
     // Paper is active when hovering or more options menu is open
     const [isActive, setIsActive] = useState(false);
@@ -82,9 +89,26 @@ export const NoteCard = forwardRef<HTMLDivElement, PaperProps>(
         return;
       }
 
+      // Don't open note when any note is selected
+      if (isAnyNoteSelected) {
+        return;
+      }
+
       void navigateToNote(noteId).finally(() => {
         updateIsActive();
       });
+    };
+
+    const handlePointerDown: PaperProps['onPointerDown'] = (e) => {
+      selectNoteTrigger.onPointerDown(e);
+    };
+
+    const handlePointerMove: PaperProps['onPointerMove'] = (e) => {
+      selectNoteTrigger.onPointerMove(e);
+    };
+
+    const handlePointerUp: PaperProps['onPointerUp'] = (e) => {
+      selectNoteTrigger.onPointerUp(e);
     };
 
     const handleMouseEnter: PaperProps['onMouseEnter'] = (e) => {
@@ -124,6 +148,9 @@ export const NoteCard = forwardRef<HTMLDivElement, PaperProps>(
         {...props}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
         onClick={handleClick}
         active={isActive}
         slots={{
@@ -147,7 +174,7 @@ export const NoteCard = forwardRef<HTMLDivElement, PaperProps>(
         }}
         slotProps={{
           toolbar: {
-            active: isActive,
+            active: isActive && !isAnyNoteSelected,
           },
         }}
       />
@@ -172,6 +199,9 @@ export const PureNoteCard = forwardRef<
   { slots, slotProps, elevation = 0, variant = 'outlined', ...restProps },
   ref
 ) {
+  const noteId = useNoteId();
+  const isSelected = useIsNoteSelected(noteId);
+
   const isToolbarActive = slotProps?.toolbar.active ?? false;
 
   const hasToolbarBeenActiveRef = useRef(isToolbarActive);
@@ -179,9 +209,14 @@ export const PureNoteCard = forwardRef<
 
   const isRenderingToolbar = hasToolbarBeenActiveRef.current;
 
-  const noteId = useNoteId();
   return (
-    <PaperStyled {...restProps} elevation={elevation} variant={variant} ref={ref}>
+    <PaperStyled
+      selected={isSelected}
+      {...restProps}
+      elevation={elevation}
+      variant={variant}
+      ref={ref}
+    >
       {isDevToolsEnabled() && noteId}
       <UserAvatarsCornerPosition>
         <OpenedNoteUserAvatars
@@ -195,9 +230,11 @@ export const PureNoteCard = forwardRef<
       <TitleTypography />
       <ContentTypography />
       <DeletedInDaysStyled />
-      <ToolbarBox {...slotProps?.toolbar}>
-        {isRenderingToolbar && slots?.toolbar}
-      </ToolbarBox>
+      <IsDesktop>
+        <ToolbarBox {...slotProps?.toolbar}>
+          {isRenderingToolbar && slots?.toolbar}
+        </ToolbarBox>
+      </IsDesktop>
     </PaperStyled>
   );
 });
@@ -246,9 +283,33 @@ const darkModeActive = {
   props: ['active'],
 };
 
+const selected = {
+  style: ({ selected = false, theme }: { selected?: boolean } & { theme: Theme }) => {
+    if (!selected) {
+      return;
+    }
+
+    return css`
+      border-color: transparent;
+      outline: 2px solid ${theme.palette.primary.main};
+      outline-offset: -1px;
+    `;
+  },
+  props: ['selected'],
+};
+
 const PaperStyled = styled(Paper, {
-  shouldForwardProp: mergeShouldForwardProp(baseActive.props, darkModeActive.props),
-})<{ active?: boolean }>(baseStyle, baseActive.style, darkModeActive.style);
+  shouldForwardProp: mergeShouldForwardProp(
+    baseActive.props,
+    darkModeActive.props,
+    selected.props
+  ),
+})<{ active?: boolean; selected?: boolean }>(
+  baseStyle,
+  baseActive.style,
+  darkModeActive.style,
+  selected.style
+);
 
 const toolbarActive = {
   style: ({ active = false }: { active?: boolean }) => css`
