@@ -7,6 +7,7 @@ export const virtualRouteConfig = rootRoute('root.tsx', [
     route('/archive', 'archive.tsx'),
     route('/trash', 'trash.tsx'),
     route('/search', 'search.tsx'),
+    route('/settings', 'settings.tsx'),
     route('/about', 'about.tsx'),
   ]),
   route('/note/$noteId', 'note.tsx'),

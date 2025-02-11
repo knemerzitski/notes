@@ -1,11 +1,16 @@
+import { forwardRef } from 'react';
+
 import { UsersInfoPopoverButton } from './UsersInfoPopoverButton';
 
-export function TopRightUsersInfoPopoverButton() {
+export const TopRightUsersInfoPopoverButton = forwardRef<
+  HTMLButtonElement,
+  Parameters<typeof UsersInfoPopoverButton>[0]
+>(function TopRightUsersInfoPopoverButton(props, ref) {
   return (
     <UsersInfoPopoverButton
-      ButtonProps={{
-        edge: 'end',
-      }}
+      ref={ref}
+      edge="end"
+      {...props}
       PopoverProps={{
         keepMounted: true,
         transformOrigin: {
@@ -16,7 +21,8 @@ export function TopRightUsersInfoPopoverButton() {
           vertical: 'bottom',
           horizontal: 'right',
         },
+        ...props.PopoverProps,
       }}
     />
   );
-}
+});

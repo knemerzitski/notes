@@ -1,8 +1,5 @@
 import { useQuery } from '@apollo/client';
-import CloudDoneIcon from '@mui/icons-material/CloudDone';
-import CloudOffIcon from '@mui/icons-material/CloudOff';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import { CircularProgress, IconButton, IconButtonProps, Tooltip } from '@mui/material';
+import { IconButton, IconButtonProps, Tooltip } from '@mui/material';
 
 import { useNavigate } from '@tanstack/react-router';
 import { OperationTypeNode } from 'graphql';
@@ -15,7 +12,7 @@ import { useUserId } from '../../user/context/user-id';
 import { useFetchedRoutes } from '../context/fetched-routes';
 import { useAppStatus } from '../hooks/useAppStatus';
 
-import { CrossFade } from './CrossFade';
+import { AppStatusIcon } from './AppStatusIcon';
 
 const AppStatusRefreshButton_Query = gql(`
   query AppStatusRefreshButton_Query($id: ObjectID!) {
@@ -93,29 +90,7 @@ export const AppStatusRefreshButton = forwardRef<
     >
       <Tooltip title={status === 'offline' ? 'Offline' : 'Refresh'}>
         <span>
-          <CrossFade
-            elements={[
-              {
-                in: status === 'offline',
-                element: <CloudOffIcon fontSize="inherit" />,
-              },
-              {
-                in: status === 'loading',
-                element: <CircularProgress size="1em" />,
-              },
-              {
-                in: status === 'synchronized',
-                element: <CloudDoneIcon fontSize="inherit" />,
-              },
-              {
-                in: status === 'refresh',
-                element: <RefreshIcon fontSize="inherit" />,
-                FadeProps: {
-                  appear: false,
-                },
-              },
-            ]}
-          />
+          <AppStatusIcon />
         </span>
       </Tooltip>
     </IconButton>

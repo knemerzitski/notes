@@ -21,7 +21,7 @@ const UseAppStatus_Query = gql(`
   }
 `);
 
-type Status = 'offline' | 'loading' | 'synchronized' | 'refresh';
+export type AppStatus = 'offline' | 'loading' | 'synchronized' | 'refresh';
 
 export function useAppStatus(options?: {
   /**
@@ -29,14 +29,14 @@ export function useAppStatus(options?: {
    * @default 1500
    */
   synchronizedDuration?: number;
-}): Status {
+}): AppStatus {
   const client = useApolloClient();
   const statsLink = useStatsLink();
   const userId = useUserId();
   const ongoingCountRef = useRef(0);
   const userHasUnsavedNotesRef = useRef(false);
 
-  const [status, setStatus] = useState<Status>(
+  const [status, setStatus] = useState<AppStatus>(
     window.navigator.onLine ? 'refresh' : 'offline'
   );
 
