@@ -12,6 +12,7 @@ import { NoteIdsProvider, useNoteIds } from '../context/note-ids';
 import { useMoveNote } from '../hooks/useMoveNote';
 
 import { toMovableNoteCategory } from '../utils/note-category';
+import { useSelectedNoteIdsModel } from '../context/selected-note-ids';
 
 export function SortableNotesContext({
   category,
@@ -36,11 +37,15 @@ export function SortableNotesContext({
     [noteIds]
   );
 
+  const selectedNoteIdsModel = useSelectedNoteIdsModel();
+
   useDndMonitor({
     onDragEnd({ active, over }) {
       if (active.id === over?.id) {
         return;
       }
+
+      selectedNoteIdsModel.clear();
 
       const movableCategory = toMovableNoteCategory(category);
       if (!movableCategory) {

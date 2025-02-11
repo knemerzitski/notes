@@ -6,6 +6,7 @@ import { useIsMobile } from '../../theme/context/is-mobile';
 import { useIsAppDrawerOpen } from '../context/app-drawer-state';
 
 import { AppBar } from './AppBar';
+import { useIsAnyNoteSelected } from '../../note/hooks/useIsAnyNoteSelected';
 
 export function SlideAppBar({
   AppBarProps,
@@ -20,11 +21,13 @@ export function SlideAppBar({
 
   const isAppDrawerOpen = useIsAppDrawerOpen();
 
+  const isAnyNoteSelected = useIsAnyNoteSelected();
+
   return (
     <Slide
       appear={false}
       direction="down"
-      in={!isMobile || !isScrollingDown || isAppDrawerOpen}
+      in={!isMobile || !isScrollingDown || isAppDrawerOpen || isAnyNoteSelected}
     >
       <AppBar {...AppBarProps} position="fixed" elevation={0}>
         {children}

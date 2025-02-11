@@ -12,7 +12,7 @@ export function DragOverlayNoteCard({ noteId }: { noteId: Note['id'] }) {
 
   return (
     <NoteIdProvider noteId={noteId}>
-      <PureNoteCardStyled isMobile={isMobile} active={true} />
+      <PureNoteCardStyled isMobile={isMobile} selected={true} />
     </NoteIdProvider>
   );
 }

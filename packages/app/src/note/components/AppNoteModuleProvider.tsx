@@ -4,6 +4,7 @@ import { DeleteExpiredNotes } from './DeleteExpiredNotes';
 import { ProcessNoteUserOperations } from './ProcessNoteUserOperations';
 import { ProcessPendingNotesOnce } from './ProcessPendingNotesOnce';
 import { UnsavedCollabServices } from './UnsavedCollabServices';
+import { SelectedNoteIdsProvider } from '../context/selected-note-ids';
 
 export function AppNoteModuleProvider({ children }: { children: ReactNode }) {
   return (
@@ -12,7 +13,7 @@ export function AppNoteModuleProvider({ children }: { children: ReactNode }) {
       <UnsavedCollabServices />
       <ProcessNoteUserOperations />
       <ProcessPendingNotesOnce />
-      {children}
+      <SelectedNoteIdsProvider>{children}</SelectedNoteIdsProvider>
     </>
   );
 }
