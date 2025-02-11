@@ -1,24 +1,23 @@
 import { IconButtonProps } from '@mui/material';
-import { useId, useState, MouseEvent } from 'react';
+import { useId, useState, MouseEvent, forwardRef } from 'react';
 
 import { OnCloseProvider } from '../../utils/context/on-close';
 
 import { CurrentUserButton } from './CurrentUserButton';
 import { UsersInfoPopover } from './UsersInfoPopover';
 
-export function UsersInfoPopoverButton({
-  ButtonProps,
-  PopoverProps,
-}: {
-  ButtonProps?: Omit<
+export const UsersInfoPopoverButton = forwardRef<
+  HTMLButtonElement,
+  Omit<
     IconButtonProps,
     'id' | 'aria-label' | 'aria-controls' | 'aria-haspopup' | 'aria-expanded' | 'onClick'
-  >;
-  PopoverProps?: Omit<
-    Parameters<typeof UsersInfoPopover>[0],
-    'open' | 'onClose' | 'anchorEl'
-  >;
-}) {
+  > & {
+    PopoverProps?: Omit<
+      Parameters<typeof UsersInfoPopover>[0],
+      'open' | 'onClose' | 'anchorEl'
+    >;
+  }
+>(function UsersInfoPopoverButton({ PopoverProps, ...restProps }, ref) {
   const buttonId = useId();
   const menuId = useId();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -36,7 +35,8 @@ export function UsersInfoPopoverButton({
   return (
     <>
       <CurrentUserButton
-        {...ButtonProps}
+        ref={ref}
+        {...restProps}
         id={buttonId}
         aria-label="show accounts"
         aria-controls={menuOpen ? menuId : undefined}
@@ -55,4 +55,4 @@ export function UsersInfoPopoverButton({
       </OnCloseProvider>
     </>
   );
-}
+});

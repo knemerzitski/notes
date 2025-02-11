@@ -6,7 +6,7 @@ import { useSetAppDrawerOpen } from '../context/app-drawer-state';
 export function ToggleAppDrawerButton({
   IconButtonProps,
 }: {
-  IconButtonProps?: Omit<IconButtonProps, 'color' | 'aria-label' | 'size' | 'onClick'>;
+  IconButtonProps?: Omit<IconButtonProps, 'color' | 'aria-label' | 'onClick'>;
 }) {
   const setOpen = useSetAppDrawerOpen();
 
@@ -16,9 +16,9 @@ export function ToggleAppDrawerButton({
 
   return (
     <IconButton
+      size="large"
       {...IconButtonProps}
       aria-label="navigation menu"
-      size="large"
       onClick={handleClick}
     >
       <Tooltip title="Navigation Menu">

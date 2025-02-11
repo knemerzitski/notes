@@ -10,21 +10,7 @@ import {
 import { ColorMode } from '../../__generated__/graphql';
 import { useSelectNavigableMenu } from '../../utils/context/navigable-menu';
 import { useColorMode } from '../hooks/useColorMode';
-
-export const colorModes = [
-  {
-    text: 'Use device theme',
-    value: ColorMode.SYSTEM,
-  },
-  {
-    text: 'Light theme',
-    value: ColorMode.LIGHT,
-  },
-  {
-    text: 'Dark theme',
-    value: ColorMode.DARK,
-  },
-] as const;
+import { colorModes } from '../utils/color-modes';
 
 export function ColorModeMenuList() {
   const [colorMode, setColorMode] = useColorMode();

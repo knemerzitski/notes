@@ -11,6 +11,7 @@ import {
   Tooltip,
   useTheme,
 } from '@mui/material';
+import { ReactNode } from '@tanstack/react-router';
 import { forwardRef } from 'react';
 
 export type SearchNoteProps = Parameters<typeof SearchNotes>[0];
@@ -20,14 +21,27 @@ export const SearchNotes = forwardRef<
   PaperProps & {
     InputBaseProps?: InputBaseProps;
     IconButtonProps?: IconButtonProps;
+    /**
+     * Disable search icon on the right side of input
+     * @default false
+     */
+    searchIconDisabled?: boolean;
+    slots?: {
+      prefix?: ReactNode;
+      suffix?: ReactNode;
+    };
   }
->(function SearchNotes({ InputBaseProps, IconButtonProps, ...restProps }, ref) {
+>(function SearchNotes(
+  { InputBaseProps, IconButtonProps, slots, searchIconDisabled, ...restProps },
+  ref
+) {
   const theme = useTheme();
 
   const elevation = theme.palette.mode === 'dark' ? 1 : 0;
 
   return (
     <PaperStyled {...restProps} ref={ref} elevation={elevation}>
+      {slots?.prefix}
       <InputBaseStyled
         placeholder="Search notes"
         {...InputBaseProps}
@@ -36,11 +50,14 @@ export const SearchNotes = forwardRef<
           ...InputBaseProps?.inputProps,
         }}
       />
-      <SearchIconButtonStyled aria-label="search" {...IconButtonProps}>
-        <Tooltip title="Search">
-          <SearchIcon />
-        </Tooltip>
-      </SearchIconButtonStyled>
+      {!searchIconDisabled && (
+        <SearchIconButtonStyled aria-label="search" {...IconButtonProps}>
+          <Tooltip title="Search">
+            <SearchIcon />
+          </Tooltip>
+        </SearchIconButtonStyled>
+      )}
+      {slots?.suffix}
     </PaperStyled>
   );
 });
