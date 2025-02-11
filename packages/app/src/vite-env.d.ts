@@ -6,6 +6,8 @@ interface ImportMetaEnv {
   readonly VITE_GOOGLE_CLIENT_ID: string;
   readonly VITE_MOCK_GOOGLE_AUTH: string;
   readonly VITE_DEV_TOOLS: string;
+  readonly VITE_BUILD_HASH: string;
+  readonly VITE_BUILD_MODE: string;
 }
 
 interface ImportMeta {
