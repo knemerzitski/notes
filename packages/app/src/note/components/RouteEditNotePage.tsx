@@ -25,6 +25,7 @@ export function RouteEditNotePage({
   const handleClose = useCallback(() => {
     void navigate({
       to: originalPathname ?? '/notes',
+      replace: true,
     });
   }, [navigate, originalPathname]);
 
