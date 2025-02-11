@@ -5,14 +5,33 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 import { VitePWA } from 'vite-plugin-pwa';
 
 import { virtualRouteConfig } from './virtual-routes.config';
+import child_process from 'node:child_process';
+import { promisify } from 'node:util';
+
+const exec = promisify(child_process.exec);
 
 // Project root directory
 const envDir = '../../';
 
 // https://vitejs.dev/config/
 // eslint-disable-next-line import/no-default-export
-export default ({ mode }: { mode: string }) => {
+export default async ({ mode }: { mode: string }) => {
   process.env = { ...process.env, ...loadEnv(process.env.NODE_ENV ?? mode, envDir) };
+
+  function nodeEnvToBuildMode(nodeEnv: string | undefined) {
+    switch (nodeEnv) {
+      case 'production':
+        return 'prod';
+      case 'test':
+        return 'test';
+      default:
+        return 'dev';
+    }
+  }
+  process.env.VITE_BUILD_MODE = nodeEnvToBuildMode(process.env.NODE_ENV);
+  process.env.VITE_BUILD_HASH =
+    (await exec('git rev-parse --short HEAD')).stdout ?? '????';
+  process.env.VITE_BUILD_HASH = process.env.VITE_BUILD_HASH.trim();
 
   return defineConfig({
     plugins: [
