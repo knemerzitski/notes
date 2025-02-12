@@ -50,7 +50,7 @@ export function ArchiveButton() {
 
   const handleClick: IconButtonProps['onClick'] = (e) => {
     e.stopPropagation();
-    archiveNoteWithUndo();
+    archiveNoteWithUndo(noteId);
   };
 
   return (
