@@ -5,6 +5,7 @@ import { ListItemIcon, ListItemText, MenuItem } from '@mui/material';
 import { gql } from '../../__generated__';
 import { NoteCategory } from '../../__generated__/graphql';
 import { useOnClose } from '../../utils/context/on-close';
+import { useNoteId } from '../context/note-id';
 import { useUserNoteLinkId } from '../context/user-note-link-id';
 import { useTrashNoteWithUndo } from '../hooks/useTrashNoteWithUndo';
 
@@ -18,6 +19,7 @@ const TrashDeleteNoteMenuItem_UserNoteLinkFragment = gql(`
 export function TrashDeleteNoteMenuItem() {
   const closeMenu = useOnClose();
   const trashNoteWithUndo = useTrashNoteWithUndo();
+  const noteId = useNoteId();
 
   const userNoteLinkId = useUserNoteLinkId();
   const { complete, data: userNoteLink } = useFragment({
@@ -37,7 +39,7 @@ export function TrashDeleteNoteMenuItem() {
   }
 
   function handleClick() {
-    trashNoteWithUndo();
+    trashNoteWithUndo(noteId);
     closeMenu();
   }
 
