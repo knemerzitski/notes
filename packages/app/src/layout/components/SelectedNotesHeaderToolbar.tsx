@@ -1,3 +1,4 @@
+import { useApolloClient } from '@apollo/client';
 import CloseIcon from '@mui/icons-material/Close';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import {
@@ -12,14 +13,19 @@ import {
   Tooltip,
 } from '@mui/material';
 
-import { useId, useState, useCallback, MouseEvent } from 'react';
+import { useId, useState, useCallback, MouseEvent, useEffect } from 'react';
 
+import { Maybe } from '~utils/types';
+
+import { NoteCategory } from '../../__generated__/graphql';
 import { useSelectedNoteIdsModel } from '../../note/context/selected-note-ids';
 import { useArchiveNoteWithUndo } from '../../note/hooks/useArchiveNoteWithUndo';
 import { useSelectedNoteIds } from '../../note/hooks/useSelectedNoteIds';
 
 import { useTrashNoteWithUndo } from '../../note/hooks/useTrashNoteWithUndo';
+import { getCategoryName } from '../../note/models/note/category-name';
 import { OnCloseProvider } from '../../utils/context/on-close';
+
 
 export function SelectedNotesHeaderToolbar() {
   return (
@@ -59,6 +65,8 @@ function SelectedNotesCount() {
 }
 
 function NotesMoreOptionsButton() {
+  const client = useApolloClient();
+
   const buttonId = useId();
   const menuId = useId();
 
@@ -69,6 +77,35 @@ function NotesMoreOptionsButton() {
   const selectedNoteIdsModel = useSelectedNoteIdsModel();
   const archiveNoteWithUndo = useArchiveNoteWithUndo();
   const trashNoteWithUndo = useTrashNoteWithUndo();
+
+  const [firstSelectedNoteCategory, setFirstSelectedNoteCategory] =
+    useState<Maybe<NoteCategory>>(null);
+
+  // Keep track of first selected note category
+  useEffect(() => {
+    function updateFirstSelectedNoteCategory() {
+      const firstNoteId = selectedNoteIdsModel.getAll()[0];
+      if (!firstNoteId) {
+        setFirstSelectedNoteCategory(null);
+      } else {
+        setFirstSelectedNoteCategory(
+          getCategoryName(
+            {
+              noteId: firstNoteId,
+            },
+            client.cache
+          )
+        );
+      }
+    }
+
+    updateFirstSelectedNoteCategory();
+
+    return selectedNoteIdsModel.eventBus.on(
+      ['added', 'removed'],
+      updateFirstSelectedNoteCategory
+    );
+  }, [selectedNoteIdsModel, client]);
 
   function handleMouseDown(e: MouseEvent<HTMLElement>) {
     e.stopPropagation();
@@ -87,16 +124,31 @@ function NotesMoreOptionsButton() {
     e.stopPropagation();
   }
 
+  function getSameCategoryNoteIds() {
+    if (!firstSelectedNoteCategory) {
+      return [];
+    }
+
+    return selectedNoteIdsModel.getAll().filter((noteId) => {
+      const categoryName = getCategoryName(
+        {
+          noteId,
+        },
+        client.cache
+      );
+
+      return firstSelectedNoteCategory === categoryName;
+    });
+  }
+
   function handleArchiveNotes() {
-    const noteIds = selectedNoteIdsModel.getAll();
-    archiveNoteWithUndo(noteIds);
+    archiveNoteWithUndo(getSameCategoryNoteIds());
     handleClose();
     selectedNoteIdsModel.clear();
   }
 
   function handleTrashNotes() {
-    const noteIds = selectedNoteIdsModel.getAll();
-    trashNoteWithUndo(noteIds);
+    trashNoteWithUndo(getSameCategoryNoteIds());
     handleClose();
     selectedNoteIdsModel.clear();
   }
@@ -129,12 +181,51 @@ function NotesMoreOptionsButton() {
         onClick={handleClickMenu}
       >
         <OnCloseProvider onClose={handleClose}>
-          <MenuItem aria-label="archive selected notes" onClick={handleArchiveNotes}>
-            <ListItemText>Archive</ListItemText>
-          </MenuItem>
-          <MenuItem aria-label="delete selected notes" onClick={handleTrashNotes}>
-            <ListItemText>Delete</ListItemText>
-          </MenuItem>
+          {firstSelectedNoteCategory !== NoteCategory.TRASH ? (
+            <>
+              {firstSelectedNoteCategory !== NoteCategory.ARCHIVE ? (
+                <MenuItem
+                  aria-label="archive selected notes"
+                  onClick={handleArchiveNotes}
+                >
+                  <ListItemText>Archive</ListItemText>
+                </MenuItem>
+              ) : (
+                // In archive
+                <MenuItem
+                  aria-label="unarchive note"
+                  onClick={() => {
+                    console.log('TODO implement');
+                  }}
+                >
+                  <ListItemText>Unarchive</ListItemText>
+                </MenuItem>
+              )}
+              <MenuItem aria-label="delete selected notes" onClick={handleTrashNotes}>
+                <ListItemText>Delete</ListItemText>
+              </MenuItem>
+            </>
+          ) : (
+            // In trash
+            <>
+              <MenuItem
+                aria-label="restore note"
+                onClick={() => {
+                  console.log('TODO implement');
+                }}
+              >
+                <ListItemText>Restore</ListItemText>
+              </MenuItem>
+              <MenuItem
+                aria-label="delete note forever"
+                onClick={() => {
+                  console.log('TODO implement');
+                }}
+              >
+                <ListItemText>Delete forever</ListItemText>
+              </MenuItem>
+            </>
+          )}
         </OnCloseProvider>
       </Menu>
     </>

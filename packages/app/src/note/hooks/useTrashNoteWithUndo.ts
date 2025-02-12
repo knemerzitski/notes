@@ -30,6 +30,9 @@ export function useTrashNoteWithUndo() {
   return useCallback(
     (noteId: Note['id'] | readonly Note['id'][]) => {
       const noteIds = wrapArray(noteId);
+      if (noteIds.length === 0) {
+        return;
+      }
 
       const watchFragmentSubs = noteIds.map((noteId) => {
         // Mutation
