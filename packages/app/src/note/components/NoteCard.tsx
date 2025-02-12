@@ -337,9 +337,17 @@ const PaperStyled = styled(Paper, {
 );
 
 const toolbarActive = {
-  style: ({ active = false }: { active?: boolean }) => css`
-    opacity: ${active ? 1 : 0};
-  `,
+  style: ({ active = false }: { active?: boolean }) => {
+    if (active) {
+      return css`
+        opacity: 1;
+      `;
+    }
+    return css`
+      pointer-events: none;
+      opacity: 0;
+    `;
+  },
   props: ['active'],
 };
 
