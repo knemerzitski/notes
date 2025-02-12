@@ -19,7 +19,7 @@ export const NoteDialog = forwardRef<HTMLDivElement, Parameters<typeof DialogSty
   ) {
     const [inputsBoxEl, setInputsBoxEl] = useState<HTMLElement>();
 
-    const isScrollEnd = useIsElementScrollEnd(inputsBoxEl) ?? false;
+    const isScrollEnd = useIsElementScrollEnd(inputsBoxEl) ?? true;
 
     return (
       <DialogStyled

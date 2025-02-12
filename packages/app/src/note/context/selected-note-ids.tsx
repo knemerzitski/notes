@@ -1,3 +1,4 @@
+import mitt, { Emitter } from 'mitt';
 import {
   createContext,
   ReactNode,
@@ -8,7 +9,6 @@ import {
 } from 'react';
 
 import { Note } from '../../__generated__/graphql';
-import mitt, { Emitter } from 'mitt';
 
 interface SelectedNodeIdsEvents {
   added: {
@@ -22,6 +22,7 @@ interface SelectedNodeIdsEvents {
 interface SelectedNoteIdsModel {
   add: (id: Note['id']) => void;
   remove: (id: Note['id']) => void;
+  has: (id: Note['id']) => boolean;
   clear: () => void;
   getAll: () => readonly Note['id'][];
   eventBus: Pick<Emitter<SelectedNodeIdsEvents>, 'on' | 'off'>;
@@ -62,6 +63,11 @@ export function SelectedNoteIdsProvider({ children }: { children: ReactNode }) {
     eventBusRef.current.emit('removed', { id });
   }, []);
 
+  const has: SelectedNoteIdsModel['has'] = useCallback(
+    (id) => noteIdsRef.current.includes(id),
+    []
+  );
+
   const getAll: SelectedNoteIdsModel['getAll'] = useCallback(
     () => noteIdsRef.current,
     []
@@ -80,11 +86,12 @@ export function SelectedNoteIdsProvider({ children }: { children: ReactNode }) {
     () => ({
       add,
       remove,
+      has,
       getAll,
       clear,
       eventBus: eventBusRef.current,
     }),
-    [add, remove, getAll, clear]
+    [add, remove, has, getAll, clear]
   );
 
   return (
