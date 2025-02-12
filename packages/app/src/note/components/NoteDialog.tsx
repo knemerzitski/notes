@@ -32,6 +32,7 @@ export const NoteDialog = forwardRef<HTMLDivElement, Parameters<typeof DialogSty
           elevation: 0,
           ...PaperProps,
         }}
+        closeAfterTransition={true}
         {...restProps}
       >
         <UserAvatarsCornerPosition>
