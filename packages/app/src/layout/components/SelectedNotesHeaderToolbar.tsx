@@ -1,4 +1,5 @@
 import CloseIcon from '@mui/icons-material/Close';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import {
   Box,
   css,
@@ -10,10 +11,14 @@ import {
   Toolbar,
   Tooltip,
 } from '@mui/material';
-import { useSelectedNoteIds } from '../../note/hooks/useSelectedNoteIds';
-import { useSelectedNoteIdsModel } from '../../note/context/selected-note-ids';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+
 import { useId, useState, useCallback, MouseEvent } from 'react';
+
+import { useSelectedNoteIdsModel } from '../../note/context/selected-note-ids';
+import { useArchiveNoteWithUndo } from '../../note/hooks/useArchiveNoteWithUndo';
+import { useSelectedNoteIds } from '../../note/hooks/useSelectedNoteIds';
+
+import { useTrashNoteWithUndo } from '../../note/hooks/useTrashNoteWithUndo';
 import { OnCloseProvider } from '../../utils/context/on-close';
 
 export function SelectedNotesHeaderToolbar() {
@@ -46,7 +51,11 @@ function CloseIconButton() {
 function SelectedNotesCount() {
   const noteIds = useSelectedNoteIds();
 
-  return noteIds.length;
+  return (
+    <Tooltip title="Selected notes count">
+      <span>{noteIds.length}</span>
+    </Tooltip>
+  );
 }
 
 function NotesMoreOptionsButton() {
@@ -56,6 +65,10 @@ function NotesMoreOptionsButton() {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
   const menuOpen = anchorEl != null;
+
+  const selectedNoteIdsModel = useSelectedNoteIdsModel();
+  const archiveNoteWithUndo = useArchiveNoteWithUndo();
+  const trashNoteWithUndo = useTrashNoteWithUndo();
 
   function handleMouseDown(e: MouseEvent<HTMLElement>) {
     e.stopPropagation();
@@ -74,6 +87,20 @@ function NotesMoreOptionsButton() {
     e.stopPropagation();
   }
 
+  function handleArchiveNotes() {
+    const noteIds = selectedNoteIdsModel.getAll();
+    archiveNoteWithUndo(noteIds);
+    handleClose();
+    selectedNoteIdsModel.clear();
+  }
+
+  function handleTrashNotes() {
+    const noteIds = selectedNoteIdsModel.getAll();
+    trashNoteWithUndo(noteIds);
+    handleClose();
+    selectedNoteIdsModel.clear();
+  }
+
   return (
     <>
       <IconButton
@@ -85,7 +112,6 @@ function NotesMoreOptionsButton() {
         onMouseDown={handleMouseDown}
         onClick={handleOpen}
       >
-        {' '}
         <Tooltip title="More options">
           <MoreVertIcon />
         </Tooltip>
@@ -94,10 +120,6 @@ function NotesMoreOptionsButton() {
       <Menu
         id={menuId}
         anchorEl={anchorEl}
-        anchorOrigin={{
-          horizontal: 'right',
-          vertical: 'top',
-        }}
         open={menuOpen}
         onClose={handleClose}
         MenuListProps={{
@@ -107,20 +129,10 @@ function NotesMoreOptionsButton() {
         onClick={handleClickMenu}
       >
         <OnCloseProvider onClose={handleClose}>
-          <MenuItem
-            aria-label="archive selected notes"
-            onClick={() => {
-              console.log('TODO implement');
-            }}
-          >
+          <MenuItem aria-label="archive selected notes" onClick={handleArchiveNotes}>
             <ListItemText>Archive</ListItemText>
           </MenuItem>
-          <MenuItem
-            aria-label="delete selected notes"
-            onClick={() => {
-              console.log('TODO implement');
-            }}
-          >
+          <MenuItem aria-label="delete selected notes" onClick={handleTrashNotes}>
             <ListItemText>Delete</ListItemText>
           </MenuItem>
         </OnCloseProvider>
