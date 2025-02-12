@@ -115,12 +115,12 @@ export const NoteCard = forwardRef<HTMLDivElement, PaperProps>(
       selectNoteTrigger.onPointerUp(e);
     };
 
-    const handlePointerEnter: PaperProps['onMouseEnter'] = (e) => {
+    const handleMouseEnter: PaperProps['onMouseEnter'] = (e) => {
       props.onMouseEnter?.(e);
       setIsActive(true);
     };
 
-    const handlePointerLeave: PaperProps['onMouseLeave'] = (e) => {
+    const handleMouseLeave: PaperProps['onMouseLeave'] = (e) => {
       props.onMouseLeave?.(e);
       setIsActive(false);
     };
@@ -150,8 +150,8 @@ export const NoteCard = forwardRef<HTMLDivElement, PaperProps>(
         data-is-local={localOnly}
         aria-haspopup={true}
         {...props}
-        onPointerEnter={handlePointerEnter}
-        onPointerLeave={handlePointerLeave}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}

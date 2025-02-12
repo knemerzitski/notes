@@ -1,4 +1,4 @@
-import { useDndMonitor } from '@dnd-kit/core';
+import { UniqueIdentifier, useDndMonitor } from '@dnd-kit/core';
 import { arrayMove, rectSortingStrategy, SortableContext } from '@dnd-kit/sortable';
 import { ReactNode } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
@@ -9,10 +9,11 @@ import { DndType } from '../../dnd/types';
 import { getDndData } from '../../dnd/utils/dnd-data';
 import { getNoteDndId } from '../../dnd/utils/id';
 import { NoteIdsProvider, useNoteIds } from '../context/note-ids';
+import { useSelectedNoteIdsModel } from '../context/selected-note-ids';
+import { useIsAnyNoteSelected } from '../hooks/useIsAnyNoteSelected';
 import { useMoveNote } from '../hooks/useMoveNote';
 
 import { toMovableNoteCategory } from '../utils/note-category';
-import { useSelectedNoteIdsModel } from '../context/selected-note-ids';
 
 export function SortableNotesContext({
   category,
@@ -39,13 +40,49 @@ export function SortableNotesContext({
 
   const selectedNoteIdsModel = useSelectedNoteIdsModel();
 
+  const [isDraggingNote, setIsDraggingNote] = useState(false);
+
+  function isValidNoteDndId(id: UniqueIdentifier) {
+    return noteDndIds.includes(String(id));
+  }
+
   useDndMonitor({
-    onDragEnd({ active, over }) {
-      if (active.id === over?.id) {
-        return;
+    onDragPending: ({ id }) => {
+      if (isValidNoteDndId(id)) {
+        setIsDraggingNote(true);
+      }
+    },
+    onDragAbort: ({ id }) => {
+      if (isValidNoteDndId(id)) {
+        setIsDraggingNote(false);
+      }
+    },
+    onDragEnd({ active, over, delta }) {
+      if (isValidNoteDndId(active.id)) {
+        setIsDraggingNote(false);
       }
 
-      selectedNoteIdsModel.clear();
+      const activeNoteDndData = getDndData(active.data);
+      if (activeNoteDndData?.type !== DndType.NOTE) {
+        // Active not note
+        return;
+      }
+      const { noteId: activeNoteId } = activeNoteDndData;
+
+      if (active.id === over?.id) {
+        const didDrag = delta.x > 0 || delta.y > 0;
+        if (didDrag) {
+          const isOnlyActiveSelected =
+            selectedNoteIdsModel.has(activeNoteId) &&
+            selectedNoteIdsModel.getAll().length === 1;
+          if (isOnlyActiveSelected) {
+            // Clear select when over nothing and drag has ended
+            selectedNoteIdsModel.clear();
+          }
+        }
+
+        return;
+      }
 
       const movableCategory = toMovableNoteCategory(category);
       if (!movableCategory) {
@@ -54,9 +91,10 @@ export function SortableNotesContext({
       }
 
       if (!over) {
-        // Not over anything
         return;
       }
+
+      selectedNoteIdsModel.clear();
 
       const overNoteDndData = getDndData(over.data);
       if (overNoteDndData?.type !== DndType.NOTE) {
@@ -70,13 +108,6 @@ export function SortableNotesContext({
         // Over note is not in this list
         return;
       }
-
-      const activeNoteDndData = getDndData(active.data);
-      if (activeNoteDndData?.type !== DndType.NOTE) {
-        // Active not note
-        return;
-      }
-      const { noteId: activeNoteId } = activeNoteDndData;
 
       const activeIndex = noteIds.indexOf(activeNoteId);
       if (activeIndex === -1) {
@@ -108,8 +139,35 @@ export function SortableNotesContext({
   });
 
   return (
-    <SortableContext items={noteDndIds} strategy={rectSortingStrategy}>
+    <SortableContextDisabledWhenAnyNoteIsSelected
+      noteDndIds={noteDndIds}
+      isDraggingNote={isDraggingNote}
+    >
       <NoteIdsProvider noteIds={noteIds}>{children}</NoteIdsProvider>
+    </SortableContextDisabledWhenAnyNoteIsSelected>
+  );
+}
+
+function SortableContextDisabledWhenAnyNoteIsSelected({
+  children,
+  noteDndIds,
+  isDraggingNote,
+}: {
+  isDraggingNote: boolean;
+  noteDndIds: string[];
+  children: ReactNode;
+}) {
+  const isAnyNoteSelected = useIsAnyNoteSelected();
+
+  const disableDnd = isAnyNoteSelected && !isDraggingNote;
+
+  return (
+    <SortableContext
+      items={noteDndIds}
+      strategy={rectSortingStrategy}
+      disabled={disableDnd}
+    >
+      {children}
     </SortableContext>
   );
 }
