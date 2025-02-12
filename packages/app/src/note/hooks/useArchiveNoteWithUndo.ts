@@ -30,6 +30,9 @@ export function useArchiveNoteWithUndo() {
   return useCallback(
     (noteId: Note['id'] | readonly Note['id'][]) => {
       const noteIds = wrapArray(noteId);
+      if (noteIds.length === 0) {
+        return;
+      }
 
       const noteIdsData = noteIds
         .map((noteId) => {
@@ -99,7 +102,7 @@ export function useArchiveNoteWithUndo() {
         }
       );
 
-      return true;
+      return;
     },
     [moveNote, undoAction, client, userId]
   );
