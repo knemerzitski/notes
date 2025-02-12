@@ -25,6 +25,7 @@ const BoxStyled = styled(Box)(
     padding-top: ${theme.spacing(2)};
     padding-left: ${theme.spacing(2)};
     padding-right: ${theme.spacing(2)};
+    padding-bottom: ${theme.spacing(0.5)};
     overflow: auto;
     scroll-padding-bottom: 2px;
   `
