@@ -228,7 +228,12 @@ export const PureNoteCard = forwardRef<
         />
       </UserAvatarsCornerPosition>
       <TitleTypography />
-      <ContentTypography />
+      <ContentTypography
+        bottomGradient={{
+          color: (theme) => theme.palette.background.paper,
+          height: 2,
+        }}
+      />
       <DeletedInDaysStyled />
       <IsDesktop>
         <ToolbarBox {...slotProps?.toolbar}>
