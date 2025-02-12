@@ -5,15 +5,19 @@ import { forwardRef, ReactNode, useRef, useState } from 'react';
 import { gql } from '../../__generated__';
 import { NoteCategory } from '../../__generated__/graphql';
 import { isDevToolsEnabled } from '../../dev/utils/dev-tools';
+import { useIsMobile } from '../../theme/context/is-mobile';
 import { noteEditDialogId } from '../../utils/element-id';
 import { isElHover } from '../../utils/is-el-hover';
 import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
 
 import { useNoteId } from '../context/note-id';
+import { useIsAnyNoteSelected } from '../hooks/useIsAnyNoteSelected';
 import { useIsLocalOnlyNote } from '../hooks/useIsLocalOnlyNote';
 import { useIsNoteOpen } from '../hooks/useIsNoteOpen';
 
+import { useIsNoteSelected } from '../hooks/useIsNoteSelected';
 import { useNavigateToNote } from '../hooks/useNavigateToNote';
+import { useSelectNoteTrigger } from '../hooks/useSelectNoteTrigger';
 import { getCategoryName } from '../models/note/category-name';
 
 import { ContentTypography } from './ContentTypography';
@@ -25,10 +29,6 @@ import { NoteMoreOptionsButton } from './NoteMoreOptionsButton';
 import { OpenedNoteUserAvatars } from './OpenedNoteUserAvatars';
 import { TitleTypography } from './TitleTypography';
 import { UserAvatarsCornerPosition } from './UserAvatarsCornerPosition';
-import { IsDesktop } from '../../utils/components/IsDesktop';
-import { useSelectNoteTrigger } from '../hooks/useSelectNoteTrigger';
-import { useIsNoteSelected } from '../hooks/useIsNoteSelected';
-import { useIsAnyNoteSelected } from '../hooks/useIsAnyNoteSelected';
 
 const _NoteCard_UserNoteLinkFragment = gql(`
   fragment NoteCard_UserNoteLinkFragment on UserNoteLink {
@@ -82,6 +82,10 @@ export const NoteCard = forwardRef<HTMLDivElement, PaperProps>(
     }
 
     const handleClick: PaperProps['onClick'] = (e) => {
+      if (selectNoteTrigger.getIsControlled()) {
+        return;
+      }
+
       props.onClick?.(e);
 
       if (getCategoryName({ noteId }, client.cache) === NoteCategory.TRASH) {
@@ -111,12 +115,12 @@ export const NoteCard = forwardRef<HTMLDivElement, PaperProps>(
       selectNoteTrigger.onPointerUp(e);
     };
 
-    const handleMouseEnter: PaperProps['onMouseEnter'] = (e) => {
+    const handlePointerEnter: PaperProps['onMouseEnter'] = (e) => {
       props.onMouseEnter?.(e);
       setIsActive(true);
     };
 
-    const handleMouseLeave: PaperProps['onMouseLeave'] = (e) => {
+    const handlePointerLeave: PaperProps['onMouseLeave'] = (e) => {
       props.onMouseLeave?.(e);
       setIsActive(false);
     };
@@ -146,8 +150,8 @@ export const NoteCard = forwardRef<HTMLDivElement, PaperProps>(
         data-is-local={localOnly}
         aria-haspopup={true}
         {...props}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        onPointerEnter={handlePointerEnter}
+        onPointerLeave={handlePointerLeave}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -199,6 +203,7 @@ export const PureNoteCard = forwardRef<
   { slots, slotProps, elevation = 0, variant = 'outlined', ...restProps },
   ref
 ) {
+  const isMobile = useIsMobile();
   const noteId = useNoteId();
   const isSelected = useIsNoteSelected(noteId);
 
@@ -212,6 +217,7 @@ export const PureNoteCard = forwardRef<
   return (
     <PaperStyled
       selected={isSelected}
+      renderingToolbar={!isMobile}
       {...restProps}
       elevation={elevation}
       variant={variant}
@@ -235,11 +241,11 @@ export const PureNoteCard = forwardRef<
         }}
       />
       <DeletedInDaysStyled />
-      <IsDesktop>
+      {!isMobile && (
         <ToolbarBox {...slotProps?.toolbar}>
           {isRenderingToolbar && slots?.toolbar}
         </ToolbarBox>
-      </IsDesktop>
+      )}
     </PaperStyled>
   );
 });
@@ -260,6 +266,18 @@ function baseStyle({ theme }: { theme: Theme }) {
     user-select: none;
   `;
 }
+
+const basePaddingBottom = {
+  style: ({
+    renderingToolbar = false,
+    theme,
+  }: { renderingToolbar?: boolean } & { theme: Theme }) => {
+    return css`
+      padding-bottom: ${theme.spacing(renderingToolbar ? 1 : 2)};
+    `;
+  },
+  props: ['renderingToolbar'],
+};
 
 const baseActive = {
   style: ({ active = false, theme }: { active?: boolean } & { theme: Theme }) => {
@@ -305,12 +323,14 @@ const selected = {
 
 const PaperStyled = styled(Paper, {
   shouldForwardProp: mergeShouldForwardProp(
+    basePaddingBottom.props,
     baseActive.props,
     darkModeActive.props,
     selected.props
   ),
-})<{ active?: boolean; selected?: boolean }>(
+})<{ active?: boolean; selected?: boolean; renderingToolbar?: boolean }>(
   baseStyle,
+  basePaddingBottom.style,
   baseActive.style,
   darkModeActive.style,
   selected.style
