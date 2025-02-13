@@ -1,5 +1,6 @@
 import { ReactNode, Suspense } from 'react';
 
+import { IsDesktop } from '../../utils/components/IsDesktop';
 import { isDevToolsEnabled } from '../utils/dev-tools';
 
 import { DevTools } from './DevTools';
@@ -10,11 +11,13 @@ function DevModule({ children }: { children: ReactNode }) {
     <>
       {children}
 
-      <Suspense>
-        <TanStackRouterDevtools />
-      </Suspense>
+      <IsDesktop>
+        <Suspense>
+          <TanStackRouterDevtools />
+        </Suspense>
 
-      <DevTools />
+        <DevTools />
+      </IsDesktop>
     </>
   );
 }
