@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+
 import { Note } from '../../__generated__/graphql';
 import { useSelectedNoteIdsModel } from '../context/selected-note-ids';
 
