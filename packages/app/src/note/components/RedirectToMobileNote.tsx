@@ -1,13 +1,14 @@
 import { Navigate } from '@tanstack/react-router';
 
 import { Note } from '../../__generated__/graphql';
+import { OriginalLocation } from '../../routes/note';
 
 export function RedirectToMobileNote({
   noteId,
-  originalPathname,
+  originalLocation,
 }: {
   noteId: Note['id'];
-  originalPathname?: string;
+  originalLocation?: OriginalLocation;
 }) {
   return (
     <Navigate
@@ -20,7 +21,7 @@ export function RedirectToMobileNote({
         return {
           ...prev,
           noteId: undefined,
-          originalPathname,
+          originalLocation,
         };
       }}
       mask={{

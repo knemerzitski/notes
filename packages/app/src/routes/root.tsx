@@ -123,9 +123,16 @@ function Root() {
   }, [isMobile]);
 
   if (noteId && isMobile) {
-    const originalPathname = router.state.location.pathname;
     // On mobile redirect search ?note=$noteId to note page route
-    return <RedirectToMobileNote noteId={noteId} originalPathname={originalPathname} />;
+    return (
+      <RedirectToMobileNote
+        noteId={noteId}
+        originalLocation={{
+          pathname: router.state.location.pathname,
+          search: router.state.location.search,
+        }}
+      />
+    );
   }
 
   if (share) {
