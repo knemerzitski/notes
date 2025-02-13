@@ -21,6 +21,7 @@ import { NoteCategory } from '../../__generated__/graphql';
 import { useSelectedNoteIdsModel } from '../../note/context/selected-note-ids';
 import { useArchiveNoteWithUndo } from '../../note/hooks/useArchiveNoteWithUndo';
 import { useDeleteNoteWithConfirm } from '../../note/hooks/useDeleteNoteWithConfirm';
+import { useRestoreNoteWithUndo } from '../../note/hooks/useRestoreNoteWithUndo';
 import { useSelectedNoteIds } from '../../note/hooks/useSelectedNoteIds';
 
 import { useTrashNoteWithUndo } from '../../note/hooks/useTrashNoteWithUndo';
@@ -79,6 +80,7 @@ function NotesMoreOptionsButton() {
   const archiveNoteWithUndo = useArchiveNoteWithUndo();
   const unarchiveNoteWithUndo = useUnarchiveNoteWithUndo();
   const trashNoteWithUndo = useTrashNoteWithUndo();
+  const restoreNoteWithUndo = useRestoreNoteWithUndo();
   const deleteNoteWithConfirm = useDeleteNoteWithConfirm();
 
   const [firstSelectedNoteCategory, setFirstSelectedNoteCategory] =
@@ -164,6 +166,11 @@ function NotesMoreOptionsButton() {
     closeAndClearSelection();
   }
 
+  function handleRestoreNotes() {
+    restoreNoteWithUndo(getSameCategoryNoteIds());
+    closeAndClearSelection();
+  }
+
   function handleDeleteNotes() {
     void deleteNoteWithConfirm(getSameCategoryNoteIds()).then(() => {
       closeAndClearSelection();
@@ -209,7 +216,10 @@ function NotesMoreOptionsButton() {
                 </MenuItem>
               ) : (
                 // In archive
-                <MenuItem aria-label="unarchive note" onClick={handleUnarchiveNotes}>
+                <MenuItem
+                  aria-label="unarchive selected notes"
+                  onClick={handleUnarchiveNotes}
+                >
                   <ListItemText>Unarchive</ListItemText>
                 </MenuItem>
               )}
@@ -220,15 +230,13 @@ function NotesMoreOptionsButton() {
           ) : (
             // In trash
             <>
-              <MenuItem
-                aria-label="restore note"
-                onClick={() => {
-                  console.log('TODO implement');
-                }}
-              >
+              <MenuItem aria-label="restore selected notes" onClick={handleRestoreNotes}>
                 <ListItemText>Restore</ListItemText>
               </MenuItem>
-              <MenuItem aria-label="delete note forever" onClick={handleDeleteNotes}>
+              <MenuItem
+                aria-label="delete selected notes forever"
+                onClick={handleDeleteNotes}
+              >
                 <ListItemText>Delete forever</ListItemText>
               </MenuItem>
             </>

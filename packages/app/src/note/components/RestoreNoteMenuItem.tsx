@@ -6,6 +6,7 @@ import { gql } from '../../__generated__';
 
 import { NoteCategory } from '../../__generated__/graphql';
 import { useOnClose } from '../../utils/context/on-close';
+import { useNoteId } from '../context/note-id';
 import { useUserNoteLinkId } from '../context/user-note-link-id';
 import { useRestoreNoteWithUndo } from '../hooks/useRestoreNoteWithUndo';
 
@@ -20,6 +21,7 @@ export function RestoreNoteMenuItem() {
   const closeMenu = useOnClose();
   const restoreNoteWithUndo = useRestoreNoteWithUndo();
 
+  const noteId = useNoteId();
   const userNoteLinkId = useUserNoteLinkId();
 
   const { complete, data: userNoteLink } = useFragment({
@@ -39,7 +41,7 @@ export function RestoreNoteMenuItem() {
   }
 
   function handleClick() {
-    restoreNoteWithUndo();
+    restoreNoteWithUndo(noteId);
     closeMenu();
   }
 
