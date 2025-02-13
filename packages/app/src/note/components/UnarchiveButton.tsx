@@ -50,7 +50,7 @@ export function UnarchiveButton() {
 
   const handleClick: IconButtonProps['onClick'] = (e) => {
     e.stopPropagation();
-    unarchiveNoteWithUndo();
+    unarchiveNoteWithUndo(noteId);
   };
 
   return (

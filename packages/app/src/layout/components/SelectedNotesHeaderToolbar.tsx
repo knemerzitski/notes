@@ -23,9 +23,9 @@ import { useArchiveNoteWithUndo } from '../../note/hooks/useArchiveNoteWithUndo'
 import { useSelectedNoteIds } from '../../note/hooks/useSelectedNoteIds';
 
 import { useTrashNoteWithUndo } from '../../note/hooks/useTrashNoteWithUndo';
+import { useUnarchiveNoteWithUndo } from '../../note/hooks/useUnarchiveNoteWithUndo';
 import { getCategoryName } from '../../note/models/note/category-name';
 import { OnCloseProvider } from '../../utils/context/on-close';
-
 
 export function SelectedNotesHeaderToolbar() {
   return (
@@ -76,6 +76,7 @@ function NotesMoreOptionsButton() {
 
   const selectedNoteIdsModel = useSelectedNoteIdsModel();
   const archiveNoteWithUndo = useArchiveNoteWithUndo();
+  const unarchiveNoteWithUndo = useUnarchiveNoteWithUndo();
   const trashNoteWithUndo = useTrashNoteWithUndo();
 
   const [firstSelectedNoteCategory, setFirstSelectedNoteCategory] =
@@ -141,16 +142,24 @@ function NotesMoreOptionsButton() {
     });
   }
 
-  function handleArchiveNotes() {
-    archiveNoteWithUndo(getSameCategoryNoteIds());
+  function close() {
     handleClose();
     selectedNoteIdsModel.clear();
   }
 
+  function handleArchiveNotes() {
+    archiveNoteWithUndo(getSameCategoryNoteIds());
+    close();
+  }
+
+  function handleUnarchiveNotes() {
+    unarchiveNoteWithUndo(getSameCategoryNoteIds());
+    close();
+  }
+
   function handleTrashNotes() {
     trashNoteWithUndo(getSameCategoryNoteIds());
-    handleClose();
-    selectedNoteIdsModel.clear();
+    close();
   }
 
   return (
@@ -192,12 +201,7 @@ function NotesMoreOptionsButton() {
                 </MenuItem>
               ) : (
                 // In archive
-                <MenuItem
-                  aria-label="unarchive note"
-                  onClick={() => {
-                    console.log('TODO implement');
-                  }}
-                >
+                <MenuItem aria-label="unarchive note" onClick={handleUnarchiveNotes}>
                   <ListItemText>Unarchive</ListItemText>
                 </MenuItem>
               )}

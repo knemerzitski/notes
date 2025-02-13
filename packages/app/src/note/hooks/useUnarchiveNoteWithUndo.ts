@@ -1,11 +1,14 @@
 import { useApolloClient } from '@apollo/client';
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
+
+import { wrapArray } from '~utils/array/wrap-array';
+
+import { isDefined } from '~utils/type-guards/is-defined';
 
 import { gql } from '../../__generated__';
-import { MovableNoteCategory } from '../../__generated__/graphql';
+import { MovableNoteCategory, Note } from '../../__generated__/graphql';
 import { useUserId } from '../../user/context/user-id';
 import { useUndoAction } from '../../utils/context/undo-action';
-import { useNoteId } from '../context/note-id';
 import { getCategoryName } from '../models/note/category-name';
 import { getUserNoteLinkId } from '../utils/id';
 import { toMovableNoteCategory } from '../utils/note-category';
@@ -20,72 +23,87 @@ const UseUnarchiveNoteWithUndo_UserNoteLinkFragment = gql(`
 
 export function useUnarchiveNoteWithUndo() {
   const client = useApolloClient();
-  const noteId = useNoteId();
   const userId = useUserId();
   const moveNote = useMoveNote();
   const undoAction = useUndoAction();
 
-  const userNoteLinkObservable = useMemo(
-    () =>
-      client.watchFragment({
-        fragment: UseUnarchiveNoteWithUndo_UserNoteLinkFragment,
-        from: {
-          __typename: 'UserNoteLink',
-          id: getUserNoteLinkId(noteId, userId),
-        },
-      }),
-    [noteId, userId, client]
-  );
-
-  return useCallback(() => {
-    const oldCategoryName = getCategoryName({ noteId }, client.cache);
-    if (!oldCategoryName) {
-      return false;
-    }
-
-    const oldMovableCategoryName = toMovableNoteCategory(oldCategoryName);
-    if (!oldMovableCategoryName) {
-      return false;
-    }
-
-    if (oldMovableCategoryName === MovableNoteCategory.DEFAULT) {
-      return true;
-    }
-
-    void moveNote(
-      { noteId },
-      {
-        categoryName: MovableNoteCategory.DEFAULT,
+  return useCallback(
+    (noteId: Note['id'] | readonly Note['id'][]) => {
+      const noteIds = wrapArray(noteId);
+      if (noteIds.length === 0) {
+        return;
       }
-    );
 
-    const deletedSub = userNoteLinkObservable.subscribe((value) => {
-      if (!value.complete) {
-        // Note is deleted, close undo action
-        closeUndoAction();
-      }
-    });
-
-    const closeUndoAction = undoAction(
-      'Note unarchived',
-      () => {
-        void moveNote(
-          {
-            noteId,
-          },
-          {
-            categoryName: oldMovableCategoryName,
+      const noteIdsData = noteIds
+        .map((noteId) => {
+          const oldCategoryName = getCategoryName({ noteId }, client.cache);
+          if (!oldCategoryName) {
+            return;
           }
-        );
-      },
-      {
-        key: `Note:${noteId}-move`,
-        onRemoved: () => {
-          deletedSub.unsubscribe();
-        },
-      }
-    );
 
-    return true;
-  }, [moveNote, noteId, undoAction, client, userNoteLinkObservable]);
+          const oldMovableCategoryName = toMovableNoteCategory(oldCategoryName);
+          if (!oldMovableCategoryName) {
+            return;
+          }
+
+          if (oldMovableCategoryName === MovableNoteCategory.DEFAULT) {
+            return;
+          }
+
+          void moveNote(
+            { noteId },
+            {
+              categoryName: MovableNoteCategory.DEFAULT,
+            }
+          );
+
+          return {
+            noteId,
+            oldMovableCategoryName,
+            sub: client
+              .watchFragment({
+                fragment: UseUnarchiveNoteWithUndo_UserNoteLinkFragment,
+                from: {
+                  __typename: 'UserNoteLink',
+                  id: getUserNoteLinkId(noteId, userId),
+                },
+              })
+              .subscribe((value) => {
+                if (!value.complete) {
+                  // If any of the archived note is deleted, close undo action
+                  closeUndoAction();
+                }
+              }),
+          };
+        })
+        .filter(isDefined);
+
+      const closeUndoAction = undoAction(
+        noteIds.length > 1 ? 'Notes unarchived' : 'Note unarchived',
+        () => {
+          noteIdsData.forEach(({ noteId, oldMovableCategoryName }) => {
+            void moveNote(
+              {
+                noteId,
+              },
+              {
+                categoryName: oldMovableCategoryName,
+              }
+            );
+          });
+        },
+        {
+          key: `Note:${noteIds.join(',')}-move`,
+          onRemoved: () => {
+            noteIdsData.forEach(({ sub }) => {
+              sub.unsubscribe();
+            });
+          },
+        }
+      );
+
+      return true;
+    },
+    [moveNote, undoAction, client, userId]
+  );
 }
