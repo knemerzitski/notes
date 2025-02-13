@@ -5,6 +5,7 @@ import { forwardRef, useState } from 'react';
 import { OnCloseProvider } from '../../utils/context/on-close';
 import { NoteIdProvider } from '../context/note-id';
 
+import { useSelectedNoteIdsModel } from '../context/selected-note-ids';
 import { useCreateNote } from '../hooks/useCreateNote';
 
 import { useOnNoteNotEditable } from '../hooks/useOnNoteNotEditable';
@@ -15,6 +16,8 @@ import { CollabInputsColumn } from './CollabInputsColumn';
 import { NoteToolbar } from './NoteToolbar';
 
 export function CreateNoteWidget() {
+  const selectedNoteIdsModel = useSelectedNoteIdsModel();
+
   const createNote = useCreateNote();
 
   const noteId = createNote.noteId;
@@ -26,6 +29,7 @@ export function CreateNoteWidget() {
   });
 
   function handleExpand() {
+    selectedNoteIdsModel.clear();
     setIsExpanded(true);
   }
 
