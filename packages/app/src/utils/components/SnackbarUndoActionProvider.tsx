@@ -1,4 +1,4 @@
-import { Box, Button, css, styled } from '@mui/material';
+import { Box, Button, css, styled, useTheme } from '@mui/material';
 import { ReactNode, useCallback, useId } from 'react';
 
 import { useShowSnackbarAlert } from '../context/snackbar-alert';
@@ -7,6 +7,7 @@ import { UndoActionClosure, UndoActionProvider } from '../context/undo-action';
 export function SnackbarUndoActionProvider({ children }: { children: ReactNode }) {
   const id = useId();
   const showSnackbarAlert = useShowSnackbarAlert();
+  const theme = useTheme();
 
   const handleUndoAction: UndoActionClosure = useCallback(
     (message, undo, options) => {
@@ -32,7 +33,7 @@ export function SnackbarUndoActionProvider({ children }: { children: ReactNode }
               {message}
               <Button
                 aria-label={`undo ${message}`}
-                color="inherit"
+                color={theme.palette.mode === 'dark' ? 'primary' : 'inherit'}
                 variant="text"
                 onClick={handleClickUndo}
               >
@@ -49,7 +50,7 @@ export function SnackbarUndoActionProvider({ children }: { children: ReactNode }
 
       return closeSnackbar;
     },
-    [showSnackbarAlert, id]
+    [showSnackbarAlert, id, theme]
   );
 
   return (
