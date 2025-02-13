@@ -2,11 +2,11 @@ import { useScrollTrigger, Slide, AppBarProps } from '@mui/material';
 
 import { ReactNode } from 'react';
 
+import { useIsAnyNoteSelected } from '../../note/hooks/useIsAnyNoteSelected';
 import { useIsMobile } from '../../theme/context/is-mobile';
 import { useIsAppDrawerOpen } from '../context/app-drawer-state';
 
 import { AppBar } from './AppBar';
-import { useIsAnyNoteSelected } from '../../note/hooks/useIsAnyNoteSelected';
 
 export function SlideAppBar({
   AppBarProps,
