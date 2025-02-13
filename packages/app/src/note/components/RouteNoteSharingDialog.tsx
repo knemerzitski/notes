@@ -1,4 +1,4 @@
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate, useRouter } from '@tanstack/react-router';
 import { useState, useCallback } from 'react';
 
 import { gql } from '../../__generated__';
@@ -22,16 +22,21 @@ const _RouteNoteSharingDialog_NoteFragment = gql(`
 export function RouteNoteSharingDialog({ noteId }: { noteId: string }) {
   const [open, setOpen] = useState(true);
   const navigate = useNavigate();
+  const router = useRouter();
 
   const handleClose = useCallback(() => {
     setOpen(false);
   }, []);
 
   function handleExited() {
-    void navigate({
-      to: '.',
-      search: (prev) => ({ ...prev, sharingNoteId: undefined }),
-    });
+    if (router.history.canGoBack()) {
+      router.history.back();
+    } else {
+      void navigate({
+        to: '.',
+        search: (prev) => ({ ...prev, sharingNoteId: undefined }),
+      });
+    }
   }
 
   // Close dialog when note can no longer be edited

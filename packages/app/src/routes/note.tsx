@@ -1,7 +1,7 @@
 import { useApolloClient } from '@apollo/client';
 import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useRef } from 'react';
-import { boolean, optional, string, type } from 'superstruct';
+import { boolean, Infer, object, optional, string, type, unknown } from 'superstruct';
 
 import { Note, NotePendingStatus } from '../__generated__/graphql';
 import { RedirectNoteNotFound } from '../note/components/RedirectNoteNotFound';
@@ -15,9 +15,16 @@ import { getNotePendingStatus } from '../note/models/local-note/get-status';
 import { addNoteToConnection } from '../note/models/note-connection/add';
 
 const searchSchema = type({
-  originalPathname: optional(string()),
+  originalLocation: optional(
+    object({
+      pathname: string(),
+      search: unknown(),
+    })
+  ),
   focus: optional(boolean()),
 });
+
+export type OriginalLocation = Infer<typeof searchSchema.schema.originalLocation>;
 
 export const Route = createFileRoute('/note/$noteId')({
   component: NoteRouteComponent,
@@ -100,7 +107,7 @@ function NoteNewCreatingRedirect() {
 }
 
 function Edit({ noteId }: { noteId: Note['id'] }) {
-  const { originalPathname, focus } = Route.useSearch({});
+  const { originalLocation, focus } = Route.useSearch({});
 
   return (
     <NoteIdProvider noteId={noteId}>
@@ -110,7 +117,7 @@ function Edit({ noteId }: { noteId: Note['id'] }) {
         }}
       >
         <RouteEditNotePage
-          originalPathname={originalPathname}
+          originalLocation={originalLocation}
           EditNotePageProps={{
             focus,
           }}

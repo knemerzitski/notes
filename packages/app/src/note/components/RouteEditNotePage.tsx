@@ -1,6 +1,7 @@
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate, useRouter } from '@tanstack/react-router';
 import { useCallback } from 'react';
 
+import { OriginalLocation } from '../../routes/note';
 import { useIsMobile } from '../../theme/context/is-mobile';
 import { OnCloseProvider } from '../../utils/context/on-close';
 
@@ -10,10 +11,10 @@ import { EditNotePage, EditNotePageProps } from './EditNotePage';
 import { RedirectToDesktopNote } from './RedirectToDesktopNote';
 
 export function RouteEditNotePage({
-  originalPathname,
+  originalLocation,
   EditNotePageProps,
 }: {
-  originalPathname?: string;
+  originalLocation?: OriginalLocation;
   EditNotePageProps?: EditNotePageProps;
 }) {
   const noteId = useNoteId();
@@ -22,16 +23,31 @@ export function RouteEditNotePage({
 
   const isMobile = useIsMobile();
 
+  const router = useRouter();
+
   const handleClose = useCallback(() => {
-    void navigate({
-      to: originalPathname ?? '/notes',
-      replace: true,
-    });
-  }, [navigate, originalPathname]);
+    if (router.history.canGoBack()) {
+      router.history.back();
+    } else {
+      if (originalLocation) {
+        void navigate({
+          to: originalLocation.pathname,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+          search: originalLocation.search as any,
+          replace: true,
+        });
+      } else {
+        void navigate({
+          to: '/notes',
+          replace: true,
+        });
+      }
+    }
+  }, [navigate, originalLocation, router]);
 
   if (!isMobile) {
     // On desktop show a modal instead: ...?noteId=$noteId
-    return <RedirectToDesktopNote noteId={noteId} originalPathname={originalPathname} />;
+    return <RedirectToDesktopNote noteId={noteId} originalLocation={originalLocation} />;
   }
 
   return (

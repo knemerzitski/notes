@@ -2,6 +2,7 @@ import { useNavigate, useRouter } from '@tanstack/react-router';
 import { useCallback } from 'react';
 
 import { Note } from '../../__generated__/graphql';
+import { OriginalLocation } from '../../routes/note';
 import { useIsMobile } from '../../theme/context/is-mobile';
 
 export function useNavigateToNote() {
@@ -18,7 +19,11 @@ export function useNavigateToNote() {
         focus?: boolean;
       }
     ) => {
-      const originalPathname = router.state.location.pathname;
+      const originalLocation: OriginalLocation = {
+        pathname: router.state.location.pathname,
+        search: router.state.location.search,
+      };
+
       const maskNoteId = options?.maskNoteId ?? noteId;
 
       if (isMobile) {
@@ -30,8 +35,8 @@ export function useNavigateToNote() {
             noteId,
           },
           search: {
-            // Remember originalPathname in case screen is resized and modal needs to be reshown
-            originalPathname,
+            // Remember originalLocation in case screen is resized and modal needs to be reshown
+            originalLocation,
             focus: options?.focus,
           },
           mask: {

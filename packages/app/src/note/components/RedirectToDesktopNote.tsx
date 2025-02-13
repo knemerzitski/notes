@@ -1,22 +1,23 @@
 import { Navigate } from '@tanstack/react-router';
 
 import { Note } from '../../__generated__/graphql';
+import { OriginalLocation } from '../../routes/note';
 
 export function RedirectToDesktopNote({
   noteId,
-  originalPathname,
+  originalLocation,
 }: {
   noteId: Note['id'];
-  originalPathname?: string;
+  originalLocation?: OriginalLocation;
 }) {
   return (
     <Navigate
-      to={originalPathname ?? '/notes'}
+      to={originalLocation?.pathname ?? '/notes'}
       replace={true}
       search={(prev) => {
         return {
           ...prev,
-          originalPathname: undefined,
+          originalLocation: undefined,
           noteId,
         };
       }}
