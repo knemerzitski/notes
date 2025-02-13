@@ -22,4 +22,8 @@ function DevModule({ children }: { children: ReactNode }) {
   );
 }
 
-export const RootRouteDevModuleProvider = isDevToolsEnabled() ? DevModule : () => null;
+function PassChildren({ children }: { children: ReactNode }) {
+  return children;
+}
+
+export const RootRouteDevModuleProvider = isDevToolsEnabled() ? DevModule : PassChildren;
