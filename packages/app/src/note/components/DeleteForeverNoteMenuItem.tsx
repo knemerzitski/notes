@@ -5,10 +5,9 @@ import { ListItemIcon, ListItemText, MenuItem } from '@mui/material';
 import { gql } from '../../__generated__';
 import { NoteCategory } from '../../__generated__/graphql';
 import { useOnClose } from '../../utils/context/on-close';
-import { useShowConfirm } from '../../utils/context/show-confirm';
 import { useNoteId } from '../context/note-id';
 import { useUserNoteLinkId } from '../context/user-note-link-id';
-import { useDeleteNote } from '../hooks/useDeleteNote';
+import { useDeleteNoteWithConfirm } from '../hooks/useDeleteNoteWithConfirm';
 
 const DeleteForeverNoteMenuItem_UserNoteLinkFragment = gql(`
   fragment DeleteForeverNoteMenuItem_UserNoteLinkFragment on UserNoteLink {
@@ -19,8 +18,7 @@ const DeleteForeverNoteMenuItem_UserNoteLinkFragment = gql(`
 
 export function DeleteForeverNoteMenuItem() {
   const closeMenu = useOnClose();
-  const deleteNote = useDeleteNote();
-  const showConfirm = useShowConfirm();
+  const deleteNoteWithConfirm = useDeleteNoteWithConfirm();
   const noteId = useNoteId();
 
   const userNoteLinkId = useUserNoteLinkId();
@@ -42,13 +40,7 @@ export function DeleteForeverNoteMenuItem() {
 
   function handleClick() {
     closeMenu();
-    showConfirm('Delete note forever?', {
-      onSuccess() {
-        void deleteNote({
-          noteId,
-        });
-      },
-    });
+    void deleteNoteWithConfirm(noteId);
   }
 
   return (

@@ -20,6 +20,7 @@ import { Maybe } from '~utils/types';
 import { NoteCategory } from '../../__generated__/graphql';
 import { useSelectedNoteIdsModel } from '../../note/context/selected-note-ids';
 import { useArchiveNoteWithUndo } from '../../note/hooks/useArchiveNoteWithUndo';
+import { useDeleteNoteWithConfirm } from '../../note/hooks/useDeleteNoteWithConfirm';
 import { useSelectedNoteIds } from '../../note/hooks/useSelectedNoteIds';
 
 import { useTrashNoteWithUndo } from '../../note/hooks/useTrashNoteWithUndo';
@@ -78,6 +79,7 @@ function NotesMoreOptionsButton() {
   const archiveNoteWithUndo = useArchiveNoteWithUndo();
   const unarchiveNoteWithUndo = useUnarchiveNoteWithUndo();
   const trashNoteWithUndo = useTrashNoteWithUndo();
+  const deleteNoteWithConfirm = useDeleteNoteWithConfirm();
 
   const [firstSelectedNoteCategory, setFirstSelectedNoteCategory] =
     useState<Maybe<NoteCategory>>(null);
@@ -142,24 +144,30 @@ function NotesMoreOptionsButton() {
     });
   }
 
-  function close() {
+  function closeAndClearSelection() {
     handleClose();
     selectedNoteIdsModel.clear();
   }
 
   function handleArchiveNotes() {
     archiveNoteWithUndo(getSameCategoryNoteIds());
-    close();
+    closeAndClearSelection();
   }
 
   function handleUnarchiveNotes() {
     unarchiveNoteWithUndo(getSameCategoryNoteIds());
-    close();
+    closeAndClearSelection();
   }
 
   function handleTrashNotes() {
     trashNoteWithUndo(getSameCategoryNoteIds());
-    close();
+    closeAndClearSelection();
+  }
+
+  function handleDeleteNotes() {
+    void deleteNoteWithConfirm(getSameCategoryNoteIds()).then(() => {
+      closeAndClearSelection();
+    });
   }
 
   return (
@@ -220,12 +228,7 @@ function NotesMoreOptionsButton() {
               >
                 <ListItemText>Restore</ListItemText>
               </MenuItem>
-              <MenuItem
-                aria-label="delete note forever"
-                onClick={() => {
-                  console.log('TODO implement');
-                }}
-              >
+              <MenuItem aria-label="delete note forever" onClick={handleDeleteNotes}>
                 <ListItemText>Delete forever</ListItemText>
               </MenuItem>
             </>
