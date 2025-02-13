@@ -6,11 +6,10 @@ import {
   useRouter,
 } from '@tanstack/react-router';
 
-import { useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { coerce, number, optional, string, type } from 'superstruct';
 
 import { gql } from '../__generated__';
-import { RouteDevModuleProvider } from '../dev/components/RouteDevModuleProvider';
 import { AppBarDrawerLayout } from '../layout/components/AppBarDrawerLayout';
 import { RedirectLinkSharedNote } from '../note/components/RedirectLinkSharedNote';
 import { RedirectNoteNotFound } from '../note/components/RedirectNoteNotFound';
@@ -20,10 +19,10 @@ import { RouteNoteSharingDialog } from '../note/components/RouteNoteSharingDialo
 import { NoteIdProvider } from '../note/context/note-id';
 import { RouterContext } from '../router';
 import { useIsMobile } from '../theme/context/is-mobile';
-import { RouteUserModuleProvider } from '../user/components/RouteUserModuleProvider';
 import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
 import { ErrorComponent } from '../utils/components/ErrorComponent';
 import { NotFoundTypography } from '../utils/components/NotFoundTypography';
+import { RootRouteModuleProvider } from '../utils/components/RootRouteModuleProvider';
 import { routeFetchPolicy } from '../utils/route-fetch-policy';
 
 const RouteRoot_Query = gql(`
@@ -52,6 +51,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   pendingComponent: Root,
   notFoundComponent: RootNotFound,
   errorComponent: RootError,
+
   pendingMinMs: 0,
   pendingMs: 0,
   validateSearch: (search) => searchSchema.create(search),
@@ -105,6 +105,10 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   },
 });
 
+function Modules({ children }: { children: ReactNode }) {
+  return <RootRouteModuleProvider>{children}</RootRouteModuleProvider>;
+}
+
 function Root() {
   const { noteId, sharingNoteId, share } = Route.useSearch();
 
@@ -129,9 +133,7 @@ function Root() {
   }
 
   return (
-    <>
-      <RouteUserModuleProvider />
-
+    <Modules>
       <Outlet />
 
       {noteId && (
@@ -151,24 +153,26 @@ function Root() {
       )}
 
       {sharingNoteId && <RouteNoteSharingDialog key={dialogKey} noteId={sharingNoteId} />}
-
-      <RouteDevModuleProvider />
-    </>
+    </Modules>
   );
 }
 
 function RootNotFound() {
   return (
-    <AppBarDrawerLayout>
-      <NotFoundTypography>404 Not Found</NotFoundTypography>
-    </AppBarDrawerLayout>
+    <Modules>
+      <AppBarDrawerLayout>
+        <NotFoundTypography>404 Not Found</NotFoundTypography>
+      </AppBarDrawerLayout>
+    </Modules>
   );
 }
 
 function RootError({ error }: ErrorComponentProps) {
   return (
-    <AppBarDrawerLayout>
-      <ErrorComponent error={error} />
-    </AppBarDrawerLayout>
+    <Modules>
+      <AppBarDrawerLayout>
+        <ErrorComponent error={error} />
+      </AppBarDrawerLayout>
+    </Modules>
   );
 }
