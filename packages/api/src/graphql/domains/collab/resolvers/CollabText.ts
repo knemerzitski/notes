@@ -5,7 +5,7 @@ import { QueryableCollabRecord } from '../../../../mongodb/loaders/note/descript
 import { applyLimit } from '../../../../mongodb/pagination/cursor-array-pagination';
 import { CursorBoundPagination } from '../../../../mongodb/pagination/cursor-struct';
 import { createMapQueryFn, createValueQueryFn } from '../../../../mongodb/query/query';
-import { RevisionChangesetSchema } from '../../../../mongodb/schema/collab-text';
+import { RevisionChangesetSchema } from '../../../../mongodb/schema/changeset';
 import { PreFetchedArrayGetItemFn } from '../../../utils/pre-execute';
 import type { CollabTextResolvers } from '../../types.generated';
 import { CollabTextRecordMapper } from '../schema.mappers';

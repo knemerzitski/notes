@@ -1,10 +1,8 @@
 import { maybeCallFn } from '~utils/maybe-call-fn';
 
 import { createMapQueryFn } from '../../../../mongodb/query/query';
-import {
-  RevisionChangesetSchema,
-  SelectionRangeSchema,
-} from '../../../../mongodb/schema/collab-text';
+import { RevisionChangesetSchema } from '../../../../mongodb/schema/changeset';
+import { SelectionRangeSchema } from '../../../../mongodb/schema/collab-record';
 import { UserSchema } from '../../../../mongodb/schema/user';
 import type { CollabTextRecordResolvers } from '../../types.generated';
 

@@ -2,10 +2,8 @@ import { QueryableCollabText } from '../../../mongodb/loaders/note/descriptions/
 import { QueryableCollabRecord } from '../../../mongodb/loaders/note/descriptions/revision-record';
 import { CursorBoundPagination } from '../../../mongodb/pagination/cursor-struct';
 import { MongoQueryFn } from '../../../mongodb/query/query';
-import {
-  RevisionChangesetSchema,
-  SelectionRangeSchema,
-} from '../../../mongodb/schema/collab-text';
+import { RevisionChangesetSchema } from '../../../mongodb/schema/changeset';
+import { SelectionRangeSchema } from '../../../mongodb/schema/collab-record';
 import { PreFetchedArrayGetItemFn } from '../../utils/pre-execute';
 import { ResolverTypeWrapper, ResolversTypes } from '../types.generated';
 

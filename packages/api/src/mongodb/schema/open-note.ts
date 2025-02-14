@@ -14,7 +14,7 @@ import {
 
 import { CollectionDescription } from '../collections';
 
-import { SelectionRangeSchema } from './collab-text';
+import { SelectionRangeSchema } from './collab-record';
 
 export const OpenNoteSchema = object({
   /**

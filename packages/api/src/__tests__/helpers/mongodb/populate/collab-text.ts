@@ -4,10 +4,8 @@ import { Changeset } from '~collab/changeset';
 
 import { isDefined } from '~utils/type-guards/is-defined';
 
-import {
-  DBCollabTextSchema,
-  DBCollabRecordSchema,
-} from '../../../../mongodb/schema/collab-text';
+import { DBCollabRecordSchema } from '../../../../mongodb/schema/collab-record';
+import { DBCollabTextSchema } from '../../../../mongodb/schema/collab-text';
 import { MongoPartialDeep } from '../../../../mongodb/types';
 
 export interface FakeCollabTextOptions {

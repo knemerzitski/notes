@@ -4,11 +4,10 @@ import { createRaw } from 'superstruct';
 
 import { MongoDBCollections, CollectionName } from '../../collections';
 import {
-  DBRevisionChangesetSchema,
-  DBCollabRecordSchema,
   RevisionChangesetSchema,
-  CollabRecordSchema,
-} from '../../schema/collab-text';
+  DBRevisionChangesetSchema,
+} from '../../schema/changeset';
+import { CollabRecordSchema, DBCollabRecordSchema } from '../../schema/collab-record';
 import { TransactionContext } from '../../utils/with-transaction';
 
 interface InsertRecordParams {
