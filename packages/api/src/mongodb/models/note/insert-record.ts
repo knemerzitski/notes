@@ -5,9 +5,9 @@ import { createRaw } from 'superstruct';
 import { MongoDBCollections, CollectionName } from '../../collections';
 import {
   DBRevisionChangesetSchema,
-  DBRevisionRecordSchema,
+  DBCollabRecordSchema,
   RevisionChangesetSchema,
-  RevisionRecordSchema,
+  CollabRecordSchema,
 } from '../../schema/collab-text';
 import { TransactionContext } from '../../utils/with-transaction';
 
@@ -22,7 +22,7 @@ interface InsertRecordParams {
     tailText: RevisionChangesetSchema | DBRevisionChangesetSchema;
     recordsCount: number;
   };
-  newRecord: RevisionRecordSchema | DBRevisionRecordSchema;
+  newRecord: CollabRecordSchema | DBCollabRecordSchema;
 }
 
 export async function insertRecord({
@@ -35,7 +35,7 @@ export async function insertRecord({
   const runSingleOperation = mongoDB.runSingleOperation ?? ((run) => run());
 
   headText = createRaw(headText, RevisionChangesetSchema);
-  newRecord = createRaw(newRecord, RevisionRecordSchema);
+  newRecord = createRaw(newRecord, CollabRecordSchema);
   if (composedTail) {
     composedTail = {
       ...composedTail,

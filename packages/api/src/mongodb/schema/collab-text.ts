@@ -52,7 +52,7 @@ export type DBSelectionRangeSchema = InferRaw<typeof SelectionRangeSchema>;
 
 export type SelectionRangeSchema = Infer<typeof SelectionRangeSchema>;
 
-export const RevisionRecordSchema = object({
+export const CollabRecordSchema = object({
   afterSelection: SelectionRangeSchema,
   beforeSelection: SelectionRangeSchema,
   changeset: ChangesetSchema,
@@ -67,14 +67,14 @@ export const RevisionRecordSchema = object({
   userGeneratedId: string(),
 });
 
-export type DBRevisionRecordSchema = InferRaw<typeof RevisionRecordSchema>;
+export type DBCollabRecordSchema = InferRaw<typeof CollabRecordSchema>;
 
-export type RevisionRecordSchema = Infer<typeof RevisionRecordSchema>;
+export type CollabRecordSchema = Infer<typeof CollabRecordSchema>;
 
 export const CollabTextSchema = object({
   headText: RevisionChangesetSchema,
   tailText: RevisionChangesetSchema,
-  records: array(RevisionRecordSchema),
+  records: array(CollabRecordSchema),
   /**
    * Time when text was last updated
    */

@@ -13,7 +13,7 @@ import { createCollabText } from '../../mongodb/models/note/create-collab-text';
 
 import { insertRecord as model_insertRecord } from '../../mongodb/models/note/insert-record';
 import { updateSetCollabText } from '../../mongodb/models/note/update-set-collab-text';
-import { RevisionRecordSchema } from '../../mongodb/schema/collab-text';
+import { CollabRecordSchema } from '../../mongodb/schema/collab-text';
 import { NoteSchema } from '../../mongodb/schema/note';
 
 import { MongoReadonlyDeep } from '../../mongodb/types';
@@ -28,10 +28,10 @@ import {
 import { findNoteUser } from './note';
 
 type ExistingRecord = Pick<
-  RevisionRecordSchema,
+  CollabRecordSchema,
   'afterSelection' | 'beforeSelection' | 'changeset' | 'revision' | 'userGeneratedId'
 > & {
-  creatorUser: Pick<RevisionRecordSchema['creatorUser'], '_id'>;
+  creatorUser: Pick<CollabRecordSchema['creatorUser'], '_id'>;
 };
 
 type InsertRecord = Omit<ExistingRecord, 'creatorUser'>;
@@ -275,7 +275,7 @@ export function insertCollabRecord({
           newRecord: toInsertionRecord(originalInsertRecord),
         });
 
-        const processedInsertRecord: RevisionRecordSchema = {
+        const processedInsertRecord: CollabRecordSchema = {
           ...fromInsertionRecord(insertion.record, originalInsertRecord),
           createdAt: new Date(),
         };
