@@ -1,5 +1,5 @@
+import { QueryableCollabRecord } from '../../../mongodb/loaders/note/descriptions/collab-record';
 import { QueryableCollabText } from '../../../mongodb/loaders/note/descriptions/collab-text';
-import { QueryableCollabRecord } from '../../../mongodb/loaders/note/descriptions/revision-record';
 import { CursorBoundPagination } from '../../../mongodb/pagination/cursor-struct';
 import { MongoQueryFn } from '../../../mongodb/query/query';
 import { RevisionChangesetSchema } from '../../../mongodb/schema/changeset';
