@@ -1,5 +1,5 @@
 import { createMapQueryFn } from '../../../../mongodb/query/query';
-import { SelectionRangeSchema } from '../../../../mongodb/schema/collab-text';
+import { SelectionRangeSchema } from '../../../../mongodb/schema/collab-record';
 
 import type { CollabTextEditingResolvers } from './../../types.generated';
 

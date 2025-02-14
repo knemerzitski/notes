@@ -4,7 +4,7 @@ import { assign, Infer, InferRaw, object, pick } from 'superstruct';
 import { CollectionName, MongoDBCollectionsOnlyNames } from '../../../collections';
 import { DescriptionDeep } from '../../../query/description';
 import { isQueryOnlyId } from '../../../query/utils/is-query-only-id';
-import { CollabRecordSchema } from '../../../schema/collab-text';
+import { CollabRecordSchema } from '../../../schema/collab-record';
 import { UserSchema } from '../../../schema/user';
 
 export const QueryableCollabRecord = assign(

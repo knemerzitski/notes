@@ -22,7 +22,9 @@ import {
 import { CursorPagination } from '../../../pagination/cursor-struct';
 import { DescriptionDeep } from '../../../query/description';
 import { PartialQueryResultDeep } from '../../../query/query';
-import { CollabTextSchema, CollabRecordSchema } from '../../../schema/collab-text';
+
+import { CollabRecordSchema } from '../../../schema/collab-record';
+import { CollabTextSchema } from '../../../schema/collab-text';
 
 import {
   QueryableCollabRecord,

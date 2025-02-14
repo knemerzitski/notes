@@ -6,8 +6,8 @@ import { MongoDBCollections, CollectionName } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
 
 import { upsertOpenNote } from '../../mongodb/models/note/upsert-open-note';
-import { SelectionRangeSchema } from '../../mongodb/schema/collab-text';
 
+import { SelectionRangeSchema } from '../../mongodb/schema/collab-record';
 import { DBOpenNoteSchema, OpenNoteSchema } from '../../mongodb/schema/open-note';
 
 import {

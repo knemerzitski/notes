@@ -13,7 +13,7 @@ import { createCollabText } from '../../mongodb/models/note/create-collab-text';
 
 import { insertRecord as model_insertRecord } from '../../mongodb/models/note/insert-record';
 import { updateSetCollabText } from '../../mongodb/models/note/update-set-collab-text';
-import { CollabRecordSchema } from '../../mongodb/schema/collab-text';
+import { CollabRecordSchema } from '../../mongodb/schema/collab-record';
 import { NoteSchema } from '../../mongodb/schema/note';
 
 import { MongoReadonlyDeep } from '../../mongodb/types';

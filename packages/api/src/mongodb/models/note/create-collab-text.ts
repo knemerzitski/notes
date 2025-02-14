@@ -2,11 +2,8 @@ import { Changeset } from '~collab/changeset';
 
 import { SelectionRange } from '~collab/client/selection-range';
 
-import {
-  CollabRecordSchema,
-  SelectionRangeSchema,
-  CollabTextSchema,
-} from '../../schema/collab-text';
+import { CollabRecordSchema, SelectionRangeSchema } from '../../schema/collab-record';
+import { CollabTextSchema } from '../../schema/collab-text';
 
 interface CreateCollabTextParams {
   creatorUserId: CollabRecordSchema['creatorUser']['_id'];
