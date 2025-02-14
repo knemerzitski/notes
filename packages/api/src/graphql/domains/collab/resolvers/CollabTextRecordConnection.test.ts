@@ -8,7 +8,7 @@ import { maybeCallFn } from '~utils/maybe-call-fn';
 
 import { mockResolver } from '../../../../__tests__/helpers/graphql/mock-resolver';
 import { STRUCT_NUMBER } from '../../../../mongodb/constants';
-import { QueryableCollabRecord } from '../../../../mongodb/loaders/note/descriptions/revision-record';
+import { QueryableCollabRecord } from '../../../../mongodb/loaders/note/descriptions/collab-record';
 import {
   CursorAfterPagination,
   CursorBoundPagination,

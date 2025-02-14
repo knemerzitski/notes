@@ -26,10 +26,7 @@ import { PartialQueryResultDeep } from '../../../query/query';
 import { CollabRecordSchema } from '../../../schema/collab-record';
 import { CollabTextSchema } from '../../../schema/collab-text';
 
-import {
-  QueryableCollabRecord,
-  queryableCollabRecordDescription,
-} from './revision-record';
+import { QueryableCollabRecord, queryableCollabRecordDescription } from './collab-record';
 
 type RecordsPaginationOperationOptions = Omit<
   CursorArrayPaginationInput<number>,

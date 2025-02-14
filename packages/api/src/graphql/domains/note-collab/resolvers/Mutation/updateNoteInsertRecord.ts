@@ -1,4 +1,4 @@
-import { QueryableCollabRecord } from '../../../../../mongodb/loaders/note/descriptions/revision-record';
+import { QueryableCollabRecord } from '../../../../../mongodb/loaders/note/descriptions/collab-record';
 import { createValueQueryFn } from '../../../../../mongodb/query/query';
 import { insertCollabRecord } from '../../../../../services/note/insert-collab-record';
 import { getNoteUsersIds } from '../../../../../services/note/note';
