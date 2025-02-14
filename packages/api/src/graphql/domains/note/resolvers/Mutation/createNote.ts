@@ -1,6 +1,6 @@
 import { wrapRetryOnError } from '~utils/retry-on-error';
 
-import { QueryableRevisionRecord } from '../../../../../mongodb/loaders/note/descriptions/revision-record';
+import { QueryableCollabRecord } from '../../../../../mongodb/loaders/note/descriptions/revision-record';
 import { createValueQueryFn } from '../../../../../mongodb/query/query';
 import {
   retryOnMongoError,
@@ -57,7 +57,7 @@ const _createNote: NonNullable<MutationResolvers['createNote']> = async (
     ...(note.collabText && {
       firstCollabTextRecord: {
         parentId: collabTextIdQuery,
-        query: createValueQueryFn<QueryableRevisionRecord>(
+        query: createValueQueryFn<QueryableCollabRecord>(
           () => note.collabText?.records[0]
         ),
       },

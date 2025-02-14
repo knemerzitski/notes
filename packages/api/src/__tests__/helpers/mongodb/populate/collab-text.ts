@@ -6,7 +6,7 @@ import { isDefined } from '~utils/type-guards/is-defined';
 
 import {
   DBCollabTextSchema,
-  DBRevisionRecordSchema,
+  DBCollabRecordSchema,
 } from '../../../../mongodb/schema/collab-text';
 import { MongoPartialDeep } from '../../../../mongodb/types';
 
@@ -18,11 +18,11 @@ export interface FakeCollabTextOptions {
   record?: (
     recordIndex: number,
     revision: number
-  ) => MongoPartialDeep<DBRevisionRecordSchema> | undefined;
+  ) => MongoPartialDeep<DBCollabRecordSchema> | undefined;
 }
 
 export function fakeCollabText(
-  creatorUserId: DBRevisionRecordSchema['creatorUser']['_id'],
+  creatorUserId: DBCollabRecordSchema['creatorUser']['_id'],
   options?: FakeCollabTextOptions
 ): DBCollabTextSchema {
   const revisionOffset = Math.max(options?.revisionOffset ?? 0, 0);
@@ -42,8 +42,8 @@ export function fakeCollabText(
   const headChangeset = Changeset.fromInsertion(initialText).serialize();
 
   function fakeRecord(
-    options?: MongoPartialDeep<DBRevisionRecordSchema>
-  ): DBRevisionRecordSchema {
+    options?: MongoPartialDeep<DBCollabRecordSchema>
+  ): DBCollabRecordSchema {
     return {
       userGeneratedId: faker.string.nanoid(6),
       revision: headRevision,

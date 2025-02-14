@@ -4,26 +4,26 @@ import { assign, Infer, InferRaw, object, pick } from 'superstruct';
 import { CollectionName, MongoDBCollectionsOnlyNames } from '../../../collections';
 import { DescriptionDeep } from '../../../query/description';
 import { isQueryOnlyId } from '../../../query/utils/is-query-only-id';
-import { RevisionRecordSchema } from '../../../schema/collab-text';
+import { CollabRecordSchema } from '../../../schema/collab-text';
 import { UserSchema } from '../../../schema/user';
 
-export const QueryableRevisionRecord = assign(
-  RevisionRecordSchema,
+export const QueryableCollabRecord = assign(
+  CollabRecordSchema,
   object({
     creatorUser: pick(UserSchema, ['_id', 'profile']),
   })
 );
 
-export type QueryableRevisionRecord = Infer<typeof QueryableRevisionRecord>;
+export type QueryableCollabRecord = Infer<typeof QueryableCollabRecord>;
 
-export interface QueryableRevisionRecordContext {
+export interface QueryableCollabRecordContext {
   collections: Pick<MongoDBCollectionsOnlyNames, CollectionName.USERS>;
 }
 
-export const queryableRevisionRecordDescription: DescriptionDeep<
-  InferRaw<typeof QueryableRevisionRecord>,
+export const queryableCollabRecordDescription: DescriptionDeep<
+  InferRaw<typeof QueryableCollabRecord>,
   unknown,
-  QueryableRevisionRecordContext
+  QueryableCollabRecordContext
 > = {
   creatorUser: {
     $addStages({ fields, customContext, subStages, subLastProject, relativeQuery }) {

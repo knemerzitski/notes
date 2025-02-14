@@ -3,13 +3,13 @@ import { Changeset } from '~collab/changeset';
 import { SelectionRange } from '~collab/client/selection-range';
 
 import {
-  RevisionRecordSchema,
+  CollabRecordSchema,
   SelectionRangeSchema,
   CollabTextSchema,
 } from '../../schema/collab-text';
 
 interface CreateCollabTextParams {
-  creatorUserId: RevisionRecordSchema['creatorUser']['_id'];
+  creatorUserId: CollabRecordSchema['creatorUser']['_id'];
   initialText: string;
   afterSelection?: SelectionRangeSchema;
 }

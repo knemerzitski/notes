@@ -1,7 +1,7 @@
 import { GraphQLError } from 'graphql/index.js';
 import { Changeset } from '~collab/changeset';
 
-import { QueryableRevisionRecord } from '../../../../mongodb/loaders/note/descriptions/revision-record';
+import { QueryableCollabRecord } from '../../../../mongodb/loaders/note/descriptions/revision-record';
 import { applyLimit } from '../../../../mongodb/pagination/cursor-array-pagination';
 import { CursorBoundPagination } from '../../../../mongodb/pagination/cursor-struct';
 import { createMapQueryFn, createValueQueryFn } from '../../../../mongodb/query/query';
@@ -112,7 +112,7 @@ export const CollabText: CollabTextResolvers = {
       updateSize
     ) => ({
       parentId: parent.id,
-      query: createMapQueryFn(parent.query)<QueryableRevisionRecord>()(
+      query: createMapQueryFn(parent.query)<QueryableCollabRecord>()(
         (query) => ({
           records: {
             $pagination: pagination,

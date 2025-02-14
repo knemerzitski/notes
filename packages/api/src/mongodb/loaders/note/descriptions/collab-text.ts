@@ -22,11 +22,11 @@ import {
 import { CursorPagination } from '../../../pagination/cursor-struct';
 import { DescriptionDeep } from '../../../query/description';
 import { PartialQueryResultDeep } from '../../../query/query';
-import { CollabTextSchema, RevisionRecordSchema } from '../../../schema/collab-text';
+import { CollabTextSchema, CollabRecordSchema } from '../../../schema/collab-text';
 
 import {
-  QueryableRevisionRecord,
-  queryableRevisionRecordDescription,
+  QueryableCollabRecord,
+  queryableCollabRecordDescription,
 } from './revision-record';
 
 type RecordsPaginationOperationOptions = Omit<
@@ -36,7 +36,7 @@ type RecordsPaginationOperationOptions = Omit<
   fieldPath?: string;
 };
 
-type RecordsPaginationResult<T = RevisionRecordSchema> =
+type RecordsPaginationResult<T = CollabRecordSchema> =
   CursorArrayPaginationAggregateResult<T>;
 
 function recordsPagination(options: RecordsPaginationOperationOptions) {
@@ -48,9 +48,7 @@ function recordsPagination(options: RecordsPaginationOperationOptions) {
 }
 
 function recordsPaginationMapAggregateResult<
-  T extends PartialQueryResultDeep<
-    Pick<InferRaw<typeof RevisionRecordSchema>, 'revision'>
-  >,
+  T extends PartialQueryResultDeep<Pick<InferRaw<typeof CollabRecordSchema>, 'revision'>>,
 >(
   pagination: NonNullable<CursorArrayPaginationInput<number>['paginations']>[0],
   result: CursorArrayPaginationAggregateResult<T>
@@ -59,9 +57,9 @@ function recordsPaginationMapAggregateResult<
 }
 
 function toCursor(
-  record: PartialQueryResultDeep<Pick<InferRaw<typeof RevisionRecordSchema>, 'revision'>>
+  record: PartialQueryResultDeep<Pick<InferRaw<typeof CollabRecordSchema>, 'revision'>>
 ) {
-  return QueryableRevisionRecord.schema.revision.create(record.revision);
+  return QueryableCollabRecord.schema.revision.create(record.revision);
 }
 
 export const QueryableCollabText = assign(
@@ -69,7 +67,7 @@ export const QueryableCollabText = assign(
   object({
     records: array(
       assign(
-        QueryableRevisionRecord,
+        QueryableCollabRecord,
         object({
           $pagination: optional(CursorPagination(number())),
         })
@@ -88,13 +86,13 @@ export const collabTextDescription: DescriptionDeep<
   InferRaw<typeof QueryableCollabText>,
   {
     records: RecordsPaginationResult<
-      PartialQueryResultDeep<InferRaw<typeof QueryableRevisionRecord>>
+      PartialQueryResultDeep<InferRaw<typeof QueryableCollabRecord>>
     >;
   },
   QueryableCollabTextContext
 > = {
   records: {
-    ...queryableRevisionRecordDescription,
+    ...queryableCollabRecordDescription,
     $addStages({ fields }) {
       return [
         {

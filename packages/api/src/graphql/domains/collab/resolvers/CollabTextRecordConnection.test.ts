@@ -8,7 +8,7 @@ import { maybeCallFn } from '~utils/maybe-call-fn';
 
 import { mockResolver } from '../../../../__tests__/helpers/graphql/mock-resolver';
 import { STRUCT_NUMBER } from '../../../../mongodb/constants';
-import { QueryableRevisionRecord } from '../../../../mongodb/loaders/note/descriptions/revision-record';
+import { QueryableCollabRecord } from '../../../../mongodb/loaders/note/descriptions/revision-record';
 import {
   CursorAfterPagination,
   CursorBoundPagination,
@@ -33,7 +33,7 @@ describe('pageInfo', () => {
     const tailRevision = 12;
     const recordCount = 8;
     const headRevision = tailRevision + recordCount;
-    const allRecords: PartialQueryResultDeep<QueryableRevisionRecord>[] = [
+    const allRecords: PartialQueryResultDeep<QueryableCollabRecord>[] = [
       ...new Array<undefined>(recordCount),
     ].map((_, i) => ({
       changeset: Changeset.parseValue([[0, 3 + i], 'a']),
@@ -49,7 +49,7 @@ describe('pageInfo', () => {
       );
     }
 
-    let paginationRecords: PartialQueryResultDeep<QueryableRevisionRecord>[];
+    let paginationRecords: PartialQueryResultDeep<QueryableCollabRecord>[];
     if (CursorFirstPagination.is(pagination)) {
       paginationRecords = allRecords.slice(0, pagination.first);
     } else if (CursorLastPagination.is(pagination)) {
@@ -69,7 +69,7 @@ describe('pageInfo', () => {
       getRecord(index): CollabTextRecordMapper {
         return {
           parentId: 'any',
-          query: createValueQueryFn<QueryableRevisionRecord>(
+          query: createValueQueryFn<QueryableCollabRecord>(
             () => paginationRecords[index]
           ),
         };

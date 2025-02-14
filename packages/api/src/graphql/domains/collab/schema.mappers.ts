@@ -1,5 +1,5 @@
 import { QueryableCollabText } from '../../../mongodb/loaders/note/descriptions/collab-text';
-import { QueryableRevisionRecord } from '../../../mongodb/loaders/note/descriptions/revision-record';
+import { QueryableCollabRecord } from '../../../mongodb/loaders/note/descriptions/revision-record';
 import { CursorBoundPagination } from '../../../mongodb/pagination/cursor-struct';
 import { MongoQueryFn } from '../../../mongodb/query/query';
 import {
@@ -16,7 +16,7 @@ export interface CollabTextMapper {
 
 export interface CollabTextRecordMapper {
   readonly parentId: ResolverTypeWrapper<string>;
-  readonly query: MongoQueryFn<QueryableRevisionRecord>;
+  readonly query: MongoQueryFn<QueryableCollabRecord>;
 }
 
 export interface RevisionChangesetMapper {
