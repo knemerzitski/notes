@@ -104,13 +104,15 @@ beforeEach(async () => {
   user = fakeUserPopulateQueue();
   userNotOwner = fakeUserPopulateQueue();
 
-  note = fakeNotePopulateQueue(user);
+  ({ note } = fakeNotePopulateQueue(user));
 
   const populateResult = populateNotes(6, {
     user,
-    noteUser(noteIndex) {
+    mapNoteUser(note, noteIndex) {
       return {
+        ...note,
         override: {
+          ...note.override,
           categoryName:
             noteIndex % 2 === 0
               ? MovableNoteCategory.DEFAULT

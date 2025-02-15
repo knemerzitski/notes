@@ -1,7 +1,3 @@
- 
- 
- 
- 
 import { faker } from '@faker-js/faker';
 import { beforeEach, expect, it } from 'vitest';
 
@@ -22,7 +18,6 @@ import { fakeUserPopulateQueue } from '../../../__tests__/helpers/mongodb/popula
 
 import { batchDeleteExpiredNotes } from './batch-delete-expired-notes';
 
-
 beforeEach(async () => {
   faker.seed(876876);
   await resetDatabase();
@@ -30,7 +25,7 @@ beforeEach(async () => {
 
 it('does not modify note user with no expireAt', async () => {
   const user = fakeUserPopulateQueue();
-  const note = fakeNotePopulateQueue(user, {
+  const { note } = fakeNotePopulateQueue(user, {
     override: {
       users: [
         {
@@ -64,11 +59,13 @@ it('does not modify note user with no expireAt', async () => {
       _id: user._id,
     })
   ).resolves.toStrictEqual(user);
+
+  await expect(mongoCollections.collabRecords.find().toArray()).resolves.toHaveLength(1);
 });
 
 it('does not modify note user with future expireAt', async () => {
   const user = fakeUserPopulateQueue();
-  const note = fakeNotePopulateQueue(user, {
+  const { note } = fakeNotePopulateQueue(user, {
     override: {
       users: [
         {
@@ -104,11 +101,13 @@ it('does not modify note user with future expireAt', async () => {
       _id: user._id,
     })
   ).resolves.toStrictEqual(user);
+
+  await expect(mongoCollections.collabRecords.find().toArray()).resolves.toHaveLength(1);
 });
 
 it('deletes note completely when owner has expired link', async () => {
   const ownerUser = fakeUserPopulateQueue();
-  const note = fakeNotePopulateQueue(ownerUser);
+  const { note } = fakeNotePopulateQueue(ownerUser);
 
   userAddNote(ownerUser, note, {
     override: {
@@ -135,7 +134,7 @@ it('deletes note completely when owner has expired link', async () => {
     trashCategoryName: TestNoteCategory.MAIN,
   });
 
-  expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(3);
+  expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(4);
 
   await expect(
     mongoCollections.notes.findOne({
@@ -158,11 +157,13 @@ it('deletes note completely when owner has expired link', async () => {
       })
       .then((user) => user?.note.categories[TestNoteCategory.MAIN]?.noteIds)
   ).resolves.toHaveLength(0);
+
+  await expect(mongoCollections.collabRecords.find().toArray()).resolves.toHaveLength(0);
 });
 
 it('unlinks note when other user has expired link', async () => {
   const ownerUser = fakeUserPopulateQueue();
-  const note = fakeNotePopulateQueue(ownerUser);
+  const { note } = fakeNotePopulateQueue(ownerUser);
 
   userAddNote(ownerUser, note);
   const otherUser = fakeUserPopulateQueue();
@@ -212,11 +213,13 @@ it('unlinks note when other user has expired link', async () => {
       })
       .then((user) => user?.note.categories[TestNoteCategory.MAIN]?.noteIds)
   ).resolves.toHaveLength(0);
+
+  await expect(mongoCollections.collabRecords.find().toArray()).resolves.toHaveLength(1);
 });
 
 it('unlinks owner expired note if have 2 owners', async () => {
   const ownerUser = fakeUserPopulateQueue();
-  const note = fakeNotePopulateQueue(ownerUser);
+  const { note } = fakeNotePopulateQueue(ownerUser);
 
   userAddNote(ownerUser, note);
   const ownerUser2 = fakeUserPopulateQueue();
@@ -266,4 +269,6 @@ it('unlinks owner expired note if have 2 owners', async () => {
       })
       .then((user) => user?.note.categories[TestNoteCategory.MAIN]?.noteIds)
   ).resolves.toHaveLength(0);
+
+  await expect(mongoCollections.collabRecords.find().toArray()).resolves.toHaveLength(1);
 });

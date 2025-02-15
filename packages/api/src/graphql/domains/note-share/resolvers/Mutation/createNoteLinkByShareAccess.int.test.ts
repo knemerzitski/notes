@@ -56,7 +56,7 @@ beforeEach(async () => {
   otherUser = fakeUserPopulateQueue();
 
   const populateResult = populateNotes(1, {
-    shareLink() {
+    mapShareLink() {
       return {
         override: {
           permissions: {

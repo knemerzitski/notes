@@ -1,5 +1,11 @@
+import { wrapRetryOnError } from '~utils/retry-on-error';
+
 import { QueryableCollabRecord } from '../../../../../mongodb/loaders/note/descriptions/collab-record';
 import { createValueQueryFn } from '../../../../../mongodb/query/query';
+import {
+  retryOnMongoError,
+  MongoErrorCodes,
+} from '../../../../../mongodb/utils/retry-on-mongo-error';
 import { insertCollabRecord } from '../../../../../services/note/insert-collab-record';
 import { getNoteUsersIds } from '../../../../../services/note/note';
 import {
@@ -9,7 +15,7 @@ import {
 import type { MutationResolvers, ResolversTypes } from '../../../types.generated';
 import { publishSignedInUserMutation } from '../../../user/resolvers/Subscription/signedInUserEvents';
 
-export const updateNoteInsertRecord: NonNullable<
+const _updateNoteInsertRecord: NonNullable<
   MutationResolvers['updateNoteInsertRecord']
 > = async (_parent, arg, ctx) => {
   const { mongoDB } = ctx;
@@ -71,3 +77,11 @@ export const updateNoteInsertRecord: NonNullable<
 
   return payload;
 };
+
+export const updateNoteInsertRecord = wrapRetryOnError(
+  _updateNoteInsertRecord,
+  retryOnMongoError({
+    maxRetries: 3,
+    codes: [MongoErrorCodes.DUPLICATE_KEY_E11000],
+  })
+);

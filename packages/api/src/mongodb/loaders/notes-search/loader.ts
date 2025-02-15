@@ -57,7 +57,10 @@ export type QueryableNotesSearchLoadContext = QueryLoaderContext<
 interface GlobalContext {
   collections: Pick<
     MongoDBContext<MongoDBCollections>['collections'],
-    CollectionName.NOTES | CollectionName.USERS | CollectionName.OPEN_NOTES
+    | CollectionName.NOTES
+    | CollectionName.USERS
+    | CollectionName.OPEN_NOTES
+    | CollectionName.COLLAB_RECORDS
   >;
 }
 

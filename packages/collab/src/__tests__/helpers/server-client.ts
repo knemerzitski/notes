@@ -215,6 +215,7 @@ function createCollabServiceAndRevisionTailRecordsHelper<TClientName extends str
       serverReceive: () => {
         const recordInsertion = processRecordInsertion({
           records: localRecords.records.items,
+          tailText: localRecords.tailText,
           newRecord: {
             ...submittedRecord,
             creatorUserId: userId,

@@ -67,7 +67,10 @@ export type QueryableUser = Infer<typeof QueryableUser>;
 export interface QueryableUserContext {
   collections: Pick<
     MongoDBCollectionsOnlyNames,
-    CollectionName.NOTES | CollectionName.USERS | CollectionName.OPEN_NOTES
+    | CollectionName.NOTES
+    | CollectionName.USERS
+    | CollectionName.OPEN_NOTES
+    | CollectionName.COLLAB_RECORDS
   >;
 }
 
@@ -130,7 +133,7 @@ export const queryableUserDescription: DescriptionDeep<
               // Lookup Notes
               {
                 $lookup: {
-                  from: customContext.collections.notes.collectionName,
+                  from: customContext.collections[CollectionName.NOTES].collectionName,
                   foreignField: '_id',
                   localField: `${concatUserNotesFieldPath}.array`,
                   as: `${concatUserNotesFieldPath}.array`,

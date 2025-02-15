@@ -132,7 +132,7 @@ export interface SliceBeforeInput<TCursor> {
   arrayFieldPath: string;
   /**
    * Optional path to array value in item. Used to find item in array.
-   * If undefined then after value itself is compared again array elements.
+   * If undefined then after value itself is compared against array elements.
    */
   itemPath?: string;
   sliceList: Readonly<
@@ -238,10 +238,23 @@ export type CursorArrayPaginationConfig = Required<
 export interface CursorArrayPaginationInput<TCursor> {
   arrayFieldPath: string;
   /**
-   * Optional path to array value in item. Used to find item in array.
-   * If undefined then after value itself is compared again array elements.
+   * Optional path to array item value if array consists of embedded documents.
+   * Defaults to array value itself.
    */
   arrayItemPath?: string;
+
+  expressions?: {
+    /**
+     * Aggragate expression that returns first value of array
+     */
+    firstValue: Document,
+        /**
+     * Aggragate expression that returns last value of array
+     */
+    lastValue: Document,
+  }
+
+
   defaultLimit?: number;
   maxLimit?: number;
   paginations?: CursorPagination<TCursor>[];

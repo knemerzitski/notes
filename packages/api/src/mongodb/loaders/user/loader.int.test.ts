@@ -35,15 +35,17 @@ beforeAll(async () => {
   faker.seed(32314);
 
   populateResult = populateNotes(10, {
-    collabText() {
+    mapCollabText() {
       return {
-        recordsCount: 3,
+        records: 3,
         initialText: 'head',
       };
     },
-    noteUser(noteIndex) {
+    mapNoteUser(noteUser, noteIndex) {
       return {
+        ...noteUser,
         override: {
+          ...noteUser.override,
           categoryName:
             noteIndex % 2 === 0 ? TestNoteCategory.MAIN : TestNoteCategory.OTHER,
         },

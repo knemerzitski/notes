@@ -27,6 +27,7 @@ type BaseRecord = ReadonlyDeep<ServerRevisionRecord, Changeset> &
  */
 export function processRecordInsertion<TRecord extends BaseRecord>(params: {
   records?: RevisionArray<TRecord> | readonly TRecord[];
+  tailText?: Readonly<RevisionChangeset>;
   newRecord: Readonly<TRecord>;
 }):
   | {
@@ -51,16 +52,15 @@ export function processRecordInsertion<TRecord extends BaseRecord>(params: {
       record: TRecord;
       headText: RevisionChangeset;
     };
-export function processRecordInsertion<
-  TRecord extends BaseRecord,
-  THeadText extends RevisionChangeset,
->({
+export function processRecordInsertion<TRecord extends BaseRecord>({
   records = [],
   headText,
+  tailText,
   newRecord,
 }: {
   records?: RevisionArray<TRecord> | readonly TRecord[];
-  headText?: Readonly<THeadText>;
+  tailText?: Readonly<RevisionChangeset>;
+  headText?: Readonly<RevisionChangeset>;
   newRecord: Readonly<TRecord>;
 }):
   | {
@@ -74,40 +74,61 @@ export function processRecordInsertion<
     } {
   records = records instanceof RevisionArray ? records : new RevisionArray(records);
 
-  const newestRevision = records.newestRevision ?? newRecord.revision;
-  if (newestRevision < newRecord.revision) {
-    throw new InsertRecordError(
-      'REVISION_INVALID',
-      `Cannot insert record with revision higher than newest revision. Newest revision: ${newestRevision}, Insert revision: ${newRecord.revision}`
-    );
-  }
-
   if (headText) {
-    if (records.newestRevision == null && newRecord.revision !== headText.revision) {
-      throw new InsertRecordError(
-        'REVISION_INVALID',
-        `Cannot insert record with revision higher than headText.revision. headText.revision: ${headText.revision}, Insert revision: ${newRecord.revision}`
-      );
-    }
-    if (newestRevision !== headText.revision) {
+    if (records.newestRevision != null && records.newestRevision !== headText.revision) {
       throw new Error(
-        `Unexpected headText and newest revision is not equal. Newest revision: ${newestRevision}, headText.revision: ${headText.revision}`
+        `Unexpected headText and newest revision is not equal. Newest revision: ${records.newestRevision}, headText.revision: ${headText.revision}`
       );
     }
   }
 
-  const deltaRevision = newRecord.revision - newestRevision;
-  const startRecordIndex = records.length + deltaRevision;
-  if (startRecordIndex < 0) {
-    throw new InsertRecordError(
-      'REVISION_OLD',
-      `Missing older records to insert new record. Oldest revision: ${records.oldestRevision}, Insert revision: ${newRecord.revision}`
-    );
+  if (tailText) {
+    if (
+      records.oldestRevision != null &&
+      records.oldestRevision !== tailText.revision + 1
+    ) {
+      throw new Error(
+        `Unexpected oldest revision is not after tailText. Oldest revision: ${records.oldestRevision}, tailText.revision: ${tailText.revision}`
+      );
+    }
+  }
+
+  const newestRevision =
+    headText?.revision ?? records.newestRevision ?? (newRecord.revision === 0 ? 0 : null);
+  const oldestRevision = tailText?.revision ?? records.oldestRevision ?? 0;
+
+  const targetRevision = newestRevision ?? oldestRevision;
+
+  const deltaRevision = newRecord.revision - targetRevision;
+  let startRecordIndex = records.length + deltaRevision;
+  if (!(0 <= startRecordIndex && startRecordIndex <= records.length)) {
+    if (headText?.revision === newRecord.revision) {
+      startRecordIndex = records.length;
+    } else if (tailText?.revision === newRecord.revision) {
+      startRecordIndex = 0;
+    } else {
+      const oldestRevision = records.oldestRevision ?? headText?.revision;
+      if (oldestRevision != null && newRecord.revision < oldestRevision) {
+        throw new InsertRecordError(
+          'REVISION_OLD',
+          `Missing older records to insert new record. Oldest revision: ${oldestRevision}, Insert revision: ${newRecord.revision}`
+        );
+      } else if (newestRevision != null && newestRevision < newRecord.revision) {
+        throw new InsertRecordError(
+          'REVISION_INVALID',
+          `Cannot insert record after headText. headText revision: ${newestRevision}, Insert revision: ${newRecord.revision}`
+        );
+      } else {
+        throw new Error(
+          `Unexpected missing records to insert record (no records). Insert revision ${newRecord.revision}`
+        );
+      }
+    }
   }
 
   const resultRecord: TRecord = {
     ...newRecord,
-    revision: newestRevision + 1,
+    revision: targetRevision + 1,
   };
 
   let expectedNextRevision = newRecord.revision + 1;

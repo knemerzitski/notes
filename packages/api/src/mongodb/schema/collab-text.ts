@@ -1,12 +1,15 @@
-import { array, date, Infer, InferRaw, object } from 'superstruct';
+import { date, Infer, InferRaw, object } from 'superstruct';
 
 import { RevisionChangesetSchema } from './changeset';
-import { CollabRecordSchema } from './collab-record';
 
 export const CollabTextSchema = object({
   headText: RevisionChangesetSchema,
   tailText: RevisionChangesetSchema,
-  records: array(CollabRecordSchema),
+  /**
+   * One to many relationship to CollabRecord document
+   * Records can be queried in range (tailText.revision, headText.revision]
+   */
+  // records: array(instance(ObjectId)),
   /**
    * Time when text was last updated
    */

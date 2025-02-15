@@ -17,7 +17,10 @@ import { findNoteUser, noteOwnersCount } from './note';
 interface DeleteNoteParams {
   mongoDB: {
     client: MongoClient;
-    collections: Pick<MongoDBCollections, CollectionName.NOTES | CollectionName.USERS>;
+    collections: Pick<
+      MongoDBCollections,
+      CollectionName.NOTES | CollectionName.USERS | CollectionName.COLLAB_RECORDS
+    >;
     loaders: Pick<MongoDBLoaders, 'note'>;
   };
   /**

@@ -1,5 +1,6 @@
 import { MongoClient, ObjectId } from 'mongodb';
 
+import { assign, object, array } from 'superstruct';
 import { ChangesetError } from '~collab/changeset';
 import { SelectionRange } from '~collab/client/selection-range';
 import { processRecordInsertion } from '~collab/records/process-record-insertion';
@@ -9,11 +10,13 @@ import { RevisionRecords } from '~collab/records/revision-records';
 
 import { CollectionName, MongoDBCollections } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
-import { createCollabText } from '../../mongodb/models/note/create-collab-text';
-
 import { insertRecord as model_insertRecord } from '../../mongodb/models/note/insert-record';
 import { updateSetCollabText } from '../../mongodb/models/note/update-set-collab-text';
+import { createCollabRecord } from '../../mongodb/models/note/utils/create-collab-record';
+import { createInitialCollabText } from '../../mongodb/models/note/utils/create-initial-collab-text';
+
 import { CollabRecordSchema } from '../../mongodb/schema/collab-record';
+import { CollabTextSchema } from '../../mongodb/schema/collab-text';
 import { NoteSchema } from '../../mongodb/schema/note';
 
 import { MongoReadonlyDeep } from '../../mongodb/types';
@@ -27,6 +30,7 @@ import {
 } from './errors';
 import { findNoteUser } from './note';
 
+
 type ExistingRecord = Pick<
   CollabRecordSchema,
   'afterSelection' | 'beforeSelection' | 'changeset' | 'revision' | 'userGeneratedId'
@@ -39,7 +43,10 @@ type InsertRecord = Omit<ExistingRecord, 'creatorUser'>;
 interface InsertCollabRecordParams {
   mongoDB: {
     client: MongoClient;
-    collections: Pick<MongoDBCollections, CollectionName.NOTES>;
+    collections: Pick<
+      MongoDBCollections,
+      CollectionName.NOTES | CollectionName.COLLAB_RECORDS
+    >;
     loaders: Pick<MongoDBLoaders, 'note'>;
   };
   /**
@@ -205,7 +212,8 @@ export function insertCollabRecord({
 
       // collabText has note been created, create and return it
       if (!collabText) {
-        const newCollabText = createCollabText({
+        const newCollabText = createInitialCollabText({
+          collabTextId: noteId,
           initialText: insertRecord.changeset.joinInsertions(),
           creatorUserId: userId,
           afterSelection: insertRecord.afterSelection,
@@ -217,10 +225,11 @@ export function insertCollabRecord({
             collections: mongoDB.collections,
           },
           noteId,
-          collabText: newCollabText,
+          collabText: newCollabText.collabText,
+          collabRecords: [newCollabText.collabRecord],
         });
 
-        const newRecord = newCollabText.records[0];
+        const newRecord = newCollabText.collabRecord;
 
         mongoDB.loaders.note.prime(
           {
@@ -231,11 +240,24 @@ export function insertCollabRecord({
           },
           {
             _id: noteId,
-            collabText: newCollabText,
+            collabText: {
+              ...newCollabText.collabText,
+              records: [newCollabText.collabRecord],
+            },
           },
           {
             valueToQueryOptions: {
-              fillStruct: NoteSchema,
+              fillStruct: assign(
+                NoteSchema,
+                object({
+                  collabText: assign(
+                    CollabTextSchema,
+                    object({
+                      records: array(CollabRecordSchema),
+                    })
+                  ),
+                })
+              ),
               visitorFn: ({ addPermutationsByPath }) => {
                 addPermutationsByPath('collabText.records', [
                   {
@@ -275,16 +297,14 @@ export function insertCollabRecord({
           newRecord: toInsertionRecord(originalInsertRecord),
         });
 
-        const processedInsertRecord: CollabRecordSchema = {
+        const processedInsertRecord: CollabRecordSchema = createCollabRecord({
           ...fromInsertionRecord(insertion.record, originalInsertRecord),
-          createdAt: new Date(),
-        };
+          collabTextId: noteId,
+        });
 
         if (insertion.type === 'new') {
           // Compose tailText, deleting older records
-          let newComposedTail:
-            | { tailText: RevisionChangeset; recordsCount: number }
-            | undefined;
+          let newTailText: RevisionChangeset | undefined;
           const collabTextForTailCompose = noteForTailText?.collabText;
           if (collabTextForTailCompose) {
             const tailRevisionRecords = new RevisionRecords({
@@ -292,17 +312,8 @@ export function insertCollabRecord({
               records: collabTextForTailCompose.records,
             });
 
-            const beforeTailRevision = tailRevisionRecords.tailRevision;
-
             tailRevisionRecords.mergeToTail(tailRevisionRecords.items.length);
-            const newTailText = tailRevisionRecords.tailText;
-
-            if (newTailText.revision > beforeTailRevision) {
-              newComposedTail = {
-                tailText: newTailText,
-                recordsCount: insertion.headText.revision - newTailText.revision,
-              };
-            }
+            newTailText = tailRevisionRecords.tailText;
           }
 
           await model_insertRecord({
@@ -312,7 +323,7 @@ export function insertCollabRecord({
             },
             noteId,
             headText: insertion.headText,
-            composedTail: newComposedTail,
+            tailText: newTailText,
             newRecord: processedInsertRecord,
           });
 
@@ -327,8 +338,8 @@ export function insertCollabRecord({
               _id: noteId,
               collabText: {
                 headText: insertion.headText,
-                ...(newComposedTail && {
-                  tailText: newComposedTail.tailText,
+                ...(newTailText && {
+                  tailText: newTailText,
                 }),
               },
             }
@@ -348,7 +359,17 @@ export function insertCollabRecord({
             },
             {
               valueToQueryOptions: {
-                fillStruct: NoteSchema,
+                fillStruct: assign(
+                  NoteSchema,
+                  object({
+                    collabText: assign(
+                      CollabTextSchema,
+                      object({
+                        records: array(CollabRecordSchema),
+                      })
+                    ),
+                  })
+                ),
                 visitorFn: ({ addPermutationsByPath }) => {
                   addPermutationsByPath('collabText.records', [
                     {

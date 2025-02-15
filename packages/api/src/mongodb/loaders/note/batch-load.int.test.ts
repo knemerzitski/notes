@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
-import { beforeAll, it, assert, expect } from 'vitest';
+import { beforeAll, it, assert, expect, beforeEach } from 'vitest';
 
 import { Changeset } from '~collab/changeset';
 
 import {
   resetDatabase,
   mongoCollections,
+  mongoCollectionStats,
 } from '../../../__tests__/helpers/mongodb/mongodb';
 import {
   populateUserAddNote,
@@ -15,6 +16,7 @@ import {
 } from '../../../__tests__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../__tests__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../__tests__/helpers/mongodb/populate/user';
+import { CursorPagination } from '../../pagination/cursor-struct';
 import { DBNoteSchema } from '../../schema/note';
 
 import { DBUserSchema } from '../../schema/user';
@@ -33,18 +35,25 @@ beforeAll(async () => {
   faker.seed(73452);
 
   populateResult = populateNotes(3, {
-    collabText() {
+    mapCollabText() {
       return {
-        recordsCount: 10,
+        records: 10,
         initialText: 'head',
-        record(_recordIndex, revision) {
+        mapRecord(record) {
           return {
-            changeset: Changeset.fromInsertion(`r_${revision}`).serialize(),
+            ...record,
+            override: {
+              ...record.override,
+              changeset: Changeset.fromInsertion(
+                `r_${record.override?.revision ?? 'unknown'}`
+              ).serialize(),
+            },
           };
         },
       };
     },
   });
+
   user = populateResult.user;
   const firstNote = populateResult.data[0]?.note;
   assert(firstNote != null);
@@ -60,6 +69,10 @@ beforeAll(async () => {
   context = {
     collections: mongoCollections,
   };
+});
+
+beforeEach(() => {
+  mongoCollectionStats.mockClear();
 });
 
 it('loads a simple note', async () => {
@@ -334,4 +347,91 @@ it('loads users.openNote', async () => {
       ]),
     }),
   ]);
+});
+
+it('loads multiple records paginations', async () => {
+  // [1,2,3,4,5,6,7,8,9,10]
+  const testSet: { pagination: CursorPagination<number>; revisions: number[] }[] = [
+    {
+      pagination: {
+        first: 2,
+      },
+      revisions: [1, 2],
+    },
+    {
+      pagination: {
+        last: 3,
+      },
+      revisions: [8, 9, 10],
+    },
+    {
+      pagination: {
+        after: 5,
+        first: 1,
+      },
+      revisions: [6],
+    },
+    {
+      pagination: {
+        before: 4,
+        last: 1,
+      },
+      revisions: [3],
+    },
+    {
+      pagination: {
+        before: 4,
+      },
+      revisions: [1, 2, 3],
+    },
+    {
+      pagination: {
+        after: 7,
+      },
+      revisions: [8, 9, 10],
+    },
+  ];
+
+  function paginateRecords(
+    pagination: CursorPagination<number>
+  ): Parameters<typeof batchLoad>[0][0] {
+    return {
+      id: {
+        noteId: note._id,
+      },
+      query: {
+        collabText: {
+          records: {
+            $pagination: pagination,
+            revision: 1,
+          },
+        },
+      },
+    };
+  }
+
+  function getRevisions(value: Awaited<ReturnType<typeof batchLoad>>[0] | undefined) {
+    if (!value) {
+      return;
+    }
+
+    if (value instanceof Error) {
+      throw value;
+    }
+
+    return value.collabText?.records?.map((r) => r?.revision ?? -1) ?? [];
+  }
+
+  const results = await batchLoad(
+    testSet.map(({ pagination }) => paginateRecords(pagination)),
+    {
+      global: context,
+      request: undefined,
+    }
+  );
+
+  for (let i = 0; i < testSet.length; i++) {
+    const result = results[i];
+    expect(getRevisions(result)).toStrictEqual(testSet[i]?.revisions);
+  }
 });

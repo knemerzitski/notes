@@ -18,8 +18,7 @@ export interface BinarySearchIndexOfResult {
  */
 export function binarySearchIndexOf<T>(
   arr: readonly T[],
-  item: T,
-  compareFn: (a: T, b: T) => number,
+  compareFn: (a: T) => number,
   left = 0,
   right = arr.length - 1
 ): BinarySearchIndexOfResult {
@@ -28,13 +27,13 @@ export function binarySearchIndexOf<T>(
   }
   const mid = Math.floor((right + left) / 2);
 
-  const cmpResult = compareFn(arr[mid]!, item);
+  const cmpResult = compareFn(arr[mid]!);
   if (cmpResult < 0) {
     // Mid is smaller
-    return binarySearchIndexOf(arr, item, compareFn, mid + 1, right);
+    return binarySearchIndexOf(arr, compareFn, mid + 1, right);
   } else if (cmpResult > 0) {
     // Mid is bigger
-    return binarySearchIndexOf(arr, item, compareFn, left, mid - 1);
+    return binarySearchIndexOf(arr, compareFn, left, mid - 1);
   } else {
     return { index: mid, exists: true };
   }

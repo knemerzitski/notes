@@ -17,7 +17,9 @@ export function mergeOrderedSet<T>(
   const leftItem = insertSet[0]!;
 
   if (insertSet.length === 1) {
-    const { index, exists } = binarySearchIndexOf(targetSet, leftItem, compareFn);
+    const { index, exists } = binarySearchIndexOf(targetSet, (a) =>
+      compareFn(a, leftItem)
+    );
     if (exists) {
       targetSet[index] = mergeFn(targetSet[index]!, leftItem);
     } else {
@@ -30,7 +32,9 @@ export function mergeOrderedSet<T>(
     return;
   }
 
-  const { index: leftIndex } = binarySearchIndexOf(targetSet, leftItem, compareFn);
+  const { index: leftIndex } = binarySearchIndexOf(targetSet, (a) =>
+    compareFn(a, leftItem)
+  );
   if (leftIndex === targetSet.length) {
     targetSet.push(...insertSet);
     return;
@@ -39,8 +43,7 @@ export function mergeOrderedSet<T>(
   const rightItem = insertSet[insertSet.length - 1]!;
   let { index: rightIndex } = binarySearchIndexOf(
     targetSet,
-    rightItem,
-    compareFn,
+    (a) => compareFn(a, rightItem),
     leftIndex
   );
 

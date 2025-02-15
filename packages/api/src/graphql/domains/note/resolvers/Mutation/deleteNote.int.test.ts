@@ -78,14 +78,14 @@ beforeEach(async () => {
   await resetDatabase();
 
   userOwner = fakeUserPopulateQueue();
-  note = fakeNotePopulateQueue(userOwner);
+  ({ note } = fakeNotePopulateQueue(userOwner));
   userAddNote(userOwner, note, {
     override: {
       categoryName: NoteCategory.DEFAULT,
     },
   });
 
-  noteSecond = fakeNotePopulateQueue(userOwner);
+  ({ note: noteSecond } = fakeNotePopulateQueue(userOwner));
   userAddNote(userOwner, noteSecond, {
     override: {
       categoryName: NoteCategory.DEFAULT,
@@ -158,7 +158,7 @@ it('only owner user deletes note for everyone', async () => {
     },
   });
 
-  expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(3);
+  expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(4);
 
   // Database, User
   const dbUsers = await mongoCollections.users
@@ -195,6 +195,11 @@ it('only owner user deletes note for everyone', async () => {
     _id: note._id,
   });
   expect(dbNote).toBeNull();
+
+  const dbCollabRecords = await mongoCollections.collabRecords.findOne({
+    collabTextId: note._id,
+  });
+  expect(dbCollabRecords).toBeNull();
 });
 
 it('other user deletes note only for self', async () => {
@@ -363,7 +368,7 @@ it('new other note user is added while note is being deleted: note user will not
 
   expectGraphQLResponseData(response);
 
-  expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(7);
+  expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(9);
 
   // Database, User
   const dbUsers = await mongoCollections.users

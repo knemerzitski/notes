@@ -4,6 +4,7 @@ import { Logger } from '~utils/logging';
 
 import { CollectionName, MongoDBCollections } from '../../collections';
 import { QueryDeep, QueryResultDeep } from '../../query/query';
+import { DBCollabRecordSchema } from '../../schema/collab-record';
 import { DBNoteSchema, NoteSchema } from '../../schema/note';
 import { DBUserSchema } from '../../schema/user';
 import { withTransaction } from '../../utils/with-transaction';
@@ -23,6 +24,10 @@ interface StatsInfo {
       calls: number;
       deletedCount: number;
       usersUnlinkedCount: number;
+    };
+    [CollectionName.COLLAB_RECORDS]: {
+      calls: number;
+      deletedIdsCount: number;
     };
   };
   status: 'in_progress' | 'interrupted' | 'done';
@@ -52,7 +57,10 @@ export async function batchDeleteExpiredNotes({
 }: {
   mongoDB: {
     client: MongoClient;
-    collections: Pick<MongoDBCollections, CollectionName.NOTES | CollectionName.USERS>;
+    collections: Pick<
+      MongoDBCollections,
+      CollectionName.NOTES | CollectionName.USERS | CollectionName.COLLAB_RECORDS
+    >;
   };
   /**
    * User notes array trash category name
@@ -126,6 +134,10 @@ export async function batchDeleteExpiredNotes({
         deletedCount: 0,
         usersUnlinkedCount: 0,
       },
+      [CollectionName.COLLAB_RECORDS]: {
+        calls: 0,
+        deletedIdsCount: 0,
+      },
     },
   };
 
@@ -175,6 +187,22 @@ export async function batchDeleteExpiredNotes({
       })),
     ];
 
+    const collabRecordBulkWrites: AnyBulkWriteOperation<DBCollabRecordSchema>[] = [
+      ...(note_deleteIds.length > 0
+        ? [
+            {
+              deleteMany: {
+                filter: {
+                  collabTextId: {
+                    $in: note_deleteIds,
+                  },
+                },
+              },
+            },
+          ]
+        : []),
+    ];
+
     const userBulkWrites: AnyBulkWriteOperation<DBUserSchema>[] = Object.values(
       user_pullNoteIdsByUserId
     ).map(({ id, pullIds }) => ({
@@ -209,18 +237,22 @@ export async function batchDeleteExpiredNotes({
 
     return {
       noteBulkWrites,
+      collabRecordBulkWrites,
       userBulkWrites,
       updateStats: (info: StatsInfo) => {
         info.dbStats[CollectionName.USERS].notesUnlinkedCount += users_notesUnlinkedCount;
 
         info.dbStats[CollectionName.NOTES].deletedCount += notes_deletedCount;
         info.dbStats[CollectionName.NOTES].usersUnlinkedCount += notes_usersUnlinkedCount;
+
+        info.dbStats[CollectionName.COLLAB_RECORDS].deletedIdsCount += notes_deletedCount;
       },
     };
   }
 
   async function sendBulkWriteCommands({
     noteBulkWrites,
+    collabRecordBulkWrites,
     userBulkWrites,
     updateStats,
   }: ReturnType<typeof cachedToBulkWriteInput>) {
@@ -229,6 +261,13 @@ export async function batchDeleteExpiredNotes({
         noteBulkWrites.length > 0 &&
           runSingleOperation((session) => {
             return mongoDB.collections.notes.bulkWrite(noteBulkWrites, {
+              session,
+              ordered: false,
+            });
+          }),
+        collabRecordBulkWrites.length > 0 &&
+          runSingleOperation((session) => {
+            return mongoDB.collections.collabRecords.bulkWrite(collabRecordBulkWrites, {
               session,
               ordered: false,
             });

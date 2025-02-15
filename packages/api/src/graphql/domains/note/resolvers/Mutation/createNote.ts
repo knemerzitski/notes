@@ -32,7 +32,7 @@ const _createNote: NonNullable<MutationResolvers['createNote']> = async (
 
   const collabInitialText = input.collabText?.initialText;
 
-  const note = await insertNote({
+  const { note, collabRecords } = await insertNote({
     mongoDB,
     userId: currentUserId,
     categoryName: input.userNoteLink?.categoryName ?? NoteCategory.DEFAULT,
@@ -57,9 +57,7 @@ const _createNote: NonNullable<MutationResolvers['createNote']> = async (
     ...(note.collabText && {
       firstCollabTextRecord: {
         parentId: collabTextIdQuery,
-        query: createValueQueryFn<QueryableCollabRecord>(
-          () => note.collabText?.records[0]
-        ),
+        query: createValueQueryFn<QueryableCollabRecord>(() => collabRecords[0]),
       },
       collabText: {
         id: collabTextIdQuery,

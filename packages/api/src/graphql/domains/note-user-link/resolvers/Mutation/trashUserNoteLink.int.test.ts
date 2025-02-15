@@ -99,7 +99,7 @@ beforeEach(async () => {
   user = fakeUserPopulateQueue();
   userNotOwner = fakeUserPopulateQueue();
   userNoAccess = fakeUserPopulateQueue();
-  note = fakeNotePopulateQueue(user);
+  ({note} = fakeNotePopulateQueue(user));
 
   userAddNote(user, note, {
     override: {

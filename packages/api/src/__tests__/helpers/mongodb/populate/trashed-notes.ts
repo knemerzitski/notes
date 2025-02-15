@@ -38,7 +38,7 @@ export function generateTrashedNotes(
   const users: DBUserSchema[] = [];
 
   function createNote(user: DBUserSchema) {
-    const note = fakeNotePopulateQueue(user);
+    const { note } = fakeNotePopulateQueue(user);
     notes.push(note);
     return note;
   }
