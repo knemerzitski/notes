@@ -31,10 +31,12 @@ import { fakeNotePopulateQueue } from '../../../../../__tests__/helpers/mongodb/
 import { userAddNote } from '../../../../../__tests__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/user';
+import { DBCollabRecordSchema } from '../../../../../mongodb/schema/collab-record';
 import { DBNoteSchema } from '../../../../../mongodb/schema/note';
 import { DBUserSchema } from '../../../../../mongodb/schema/user';
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 import {
+  Maybe,
   NoteCategory,
   UpdateNoteInsertRecordInput,
   UpdateNoteInsertRecordPayload,
@@ -123,36 +125,37 @@ beforeEach(async () => {
   user = fakeUserPopulateQueue();
   userReadOnly = fakeUserPopulateQueue();
   userNoAccess = fakeUserPopulateQueue();
-  note = fakeNotePopulateQueue(user, {
+  ({ note } = fakeNotePopulateQueue(user, {
     collabText: {
       // Random records with revisions [11,12,13,14]
       initialText: 'head',
-      recordsCount: 4,
+      records: 4,
       revisionOffset: 10,
     },
-  });
-  noteFixedRecords = fakeNotePopulateQueue(user, {
+  }));
+
+  ({ note: noteFixedRecords } = fakeNotePopulateQueue(user, {
     collabText: {
       override: {
         headText: {
           revision: 5,
           changeset: ['abcdef'],
         },
-        // Records with appending characters from "a" to "abcdef"
-        records: [
-          ['a'],
-          [0, 'b'],
-          [[0, 1], 'c'],
-          [[0, 2], 'd'],
-          [[0, 3], 'e'],
-          [[0, 4], 'f'],
-        ].map((changeset, index) => ({
-          revision: index,
-          changeset,
-        })),
       },
+      // Records with appending characters from "a" to "abcdef"
+      records: [
+        ['a'],
+        [0, 'b'],
+        [[0, 1], 'c'],
+        [[0, 2], 'd'],
+        [[0, 3], 'e'],
+        [[0, 4], 'f'],
+      ].map((changeset, index) => ({
+        revision: index,
+        changeset,
+      })),
     },
-  });
+  }));
 
   userAddNote(user, note, {
     override: {
@@ -209,6 +212,21 @@ async function executeOperation(
       contextValue: createGraphQLResolversContext(options),
     }
   );
+}
+
+async function getCollabTextRecords(
+  note: Maybe<DBNoteSchema>
+): Promise<DBCollabRecordSchema[]> {
+  if (note == null) {
+    return [];
+  }
+  const collabRecords = await mongoCollections.collabRecords
+    .find({
+      collabTextId: note._id,
+    })
+    .toArray();
+
+  return collabRecords;
 }
 
 it('inserts record on headText revision (newRecord = headText)', async () => {
@@ -274,12 +292,14 @@ it('inserts record on headText revision (newRecord = headText)', async () => {
     },
   });
 
-  expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(2);
+  // Database
+  expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(3);
 
-  // Database, Note
   const dbNote = await mongoCollections.notes.findOne({
     _id: note._id,
   });
+
+  // Note
   expect(dbNote).toStrictEqual(
     expect.objectContaining({
       collabText: {
@@ -291,29 +311,34 @@ it('inserts record on headText revision (newRecord = headText)', async () => {
           changeset: Changeset.EMPTY.serialize(),
           revision: 10,
         },
-        records: expect.arrayContaining([
-          expect.objectContaining({ revision: 14 }),
-          {
-            // Inserted after 14
-            revision: 15,
-            creatorUser: {
-              _id: user._id,
-            },
-            changeset: [[0, 3], '. after head'],
-            userGeneratedId: 'random',
-            createdAt: expect.any(Date),
-            beforeSelection: {
-              start: 4,
-            },
-            afterSelection: {
-              start: 16,
-            },
-          },
-        ]),
         updatedAt: expect.any(Date),
       },
     })
   );
+
+  // CollabRecords
+  expect((await getCollabTextRecords(dbNote)).slice(-2)).toStrictEqual([
+    expect.objectContaining({
+      revision: 14,
+    }),
+    {
+      _id: expect.any(ObjectId),
+      collabTextId: note._id,
+      revision: 15,
+      creatorUser: {
+        _id: user._id,
+      },
+      changeset: [[0, 3], '. after head'],
+      userGeneratedId: 'random',
+      createdAt: expect.any(Date),
+      beforeSelection: {
+        start: 4,
+      },
+      afterSelection: {
+        start: 16,
+      },
+    },
+  ]);
 });
 
 it('inserts record on older revision (tailText < newRecord < headText)', async () => {
@@ -379,12 +404,14 @@ it('inserts record on older revision (tailText < newRecord < headText)', async (
     },
   });
 
-  expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(2);
+  // Database
+  expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(3);
 
-  // Database, Note
   const dbNote = await mongoCollections.notes.findOne({
     _id: note._id,
   });
+
+  // Note
   expect(dbNote).toStrictEqual(
     expect.objectContaining({
       collabText: {
@@ -396,29 +423,35 @@ it('inserts record on older revision (tailText < newRecord < headText)', async (
           changeset: Changeset.EMPTY.serialize(),
           revision: 10,
         },
-        records: expect.arrayContaining([
-          expect.objectContaining({ revision: 14 }),
-          {
-            // Inserted after 14
-            revision: 15,
-            creatorUser: {
-              _id: user._id,
-            },
-            changeset: [[0, 3], 'text on 12'],
-            userGeneratedId: 'aa',
-            createdAt: expect.any(Date),
-            beforeSelection: {
-              start: 0,
-            },
-            afterSelection: {
-              start: 14,
-            },
-          },
-        ]),
         updatedAt: expect.any(Date),
       },
     })
   );
+
+  // CollabRecords
+  expect((await getCollabTextRecords(dbNote)).slice(-2)).toStrictEqual([
+    expect.objectContaining({
+      revision: 14,
+    }),
+    // New record inserted after 14 (followed from 12)
+    {
+      _id: expect.any(ObjectId),
+      collabTextId: note._id,
+      revision: 15,
+      creatorUser: {
+        _id: user._id,
+      },
+      changeset: [[0, 3], 'text on 12'],
+      userGeneratedId: 'aa',
+      createdAt: expect.any(Date),
+      beforeSelection: {
+        start: 0,
+      },
+      afterSelection: {
+        start: 14,
+      },
+    },
+  ]);
 });
 
 it('returns existing record when new record is a duplicate of a previous one (idempotence)', async () => {
@@ -489,10 +522,12 @@ it('returns existing record when new record is a duplicate of a previous one (id
     },
   });
 
-  // Database, Note
+  // Database
   const dbNote = await mongoCollections.notes.findOne({
     _id: note._id,
   });
+
+  // Note
   expect(dbNote).toStrictEqual(
     expect.objectContaining({
       collabText: {
@@ -504,29 +539,35 @@ it('returns existing record when new record is a duplicate of a previous one (id
           changeset: Changeset.EMPTY.serialize(),
           revision: 10,
         },
-        records: expect.arrayContaining([
-          expect.objectContaining({ revision: 14 }),
-          {
-            // Inserted after 14
-            revision: 15,
-            creatorUser: {
-              _id: user._id,
-            },
-            changeset: [[0, 3], '. after head'],
-            userGeneratedId: 'will_be_dup',
-            createdAt: expect.any(Date),
-            beforeSelection: {
-              start: 4,
-            },
-            afterSelection: {
-              start: 16,
-            },
-          },
-        ]),
         updatedAt: expect.any(Date),
       },
     })
   );
+
+  // CollabRecords
+  expect((await getCollabTextRecords(dbNote)).slice(-2)).toStrictEqual([
+    expect.objectContaining({
+      revision: 14,
+    }),
+    {
+      _id: expect.any(ObjectId),
+      collabTextId: note._id,
+      // Inserted after 14
+      revision: 15,
+      creatorUser: {
+        _id: user._id,
+      },
+      changeset: [[0, 3], '. after head'],
+      userGeneratedId: 'will_be_dup',
+      createdAt: expect.any(Date),
+      beforeSelection: {
+        start: 4,
+      },
+      afterSelection: {
+        start: 16,
+      },
+    },
+  ]);
 });
 
 it('api options maxRecordsCount limits records exactly when new record is composed on headText', async () => {
@@ -561,10 +602,12 @@ it('api options maxRecordsCount limits records exactly when new record is compos
 
   expectGraphQLResponseData(response);
 
-  // Database, Note
+  // Database
   const dbNote = await mongoCollections.notes.findOne({
     _id: note._id,
   });
+
+  // Note
   expect(dbNote).toStrictEqual(
     expect.objectContaining({
       collabText: {
@@ -576,15 +619,17 @@ it('api options maxRecordsCount limits records exactly when new record is compos
           changeset: ['head'],
           revision: 12,
         },
-        records: [
-          expect.objectContaining({ revision: 13 }),
-          expect.objectContaining({ revision: 14 }),
-          expect.objectContaining({ revision: 15 }),
-        ],
         updatedAt: expect.any(Date),
       },
     })
   );
+
+  // CollabRecords
+  expect(await getCollabTextRecords(dbNote)).toStrictEqual([
+    expect.objectContaining({ revision: 13 }),
+    expect.objectContaining({ revision: 14 }),
+    expect.objectContaining({ revision: 15 }),
+  ]);
 });
 
 it('api options maxRecordsCount keeps 1 extra record when new record is composed on older revision', async () => {
@@ -619,10 +664,12 @@ it('api options maxRecordsCount keeps 1 extra record when new record is composed
 
   expectGraphQLResponseData(response);
 
-  // Database, Note
+  // Database
   const dbNote = await mongoCollections.notes.findOne({
     _id: note._id,
   });
+
+  // Note
   expect(dbNote).toStrictEqual(
     expect.objectContaining({
       collabText: {
@@ -634,14 +681,16 @@ it('api options maxRecordsCount keeps 1 extra record when new record is composed
           changeset: ['head'],
           revision: 13,
         },
-        records: [
-          expect.objectContaining({ revision: 14 }),
-          expect.objectContaining({ revision: 15 }),
-        ],
         updatedAt: expect.any(Date),
       },
     })
   );
+
+  // CollabRecords
+  expect(await getCollabTextRecords(dbNote)).toStrictEqual([
+    expect.objectContaining({ revision: 14 }),
+    expect.objectContaining({ revision: 15 }),
+  ]);
 });
 
 describe('with other MongoDB context', () => {
@@ -707,13 +756,14 @@ describe('with other MongoDB context', () => {
         ),
       ]);
 
-      expect(mongoCollectionStats.readAndModifyCount()).lessThanOrEqual(4);
+      expect(mongoCollectionStats.readAndModifyCount()).lessThanOrEqual(6);
 
-      // Database, Note
+      // Database
       const dbNote = await mongoCollections.notes.findOne({
         _id: noteFixedRecords._id,
       });
 
+      // Note
       expect(dbNote).toStrictEqual(
         expect.objectContaining({
           collabText: expect.objectContaining({
@@ -740,7 +790,7 @@ describe('with other MongoDB context', () => {
           { changeset: [[0, 5], 'A', 6], revision: 7 },
         ],
       ]).toContainEqual(
-        dbNote?.collabText?.records
+        (await getCollabTextRecords(dbNote))
           .slice(6)
           .map(({ changeset, revision }) => ({ changeset, revision }))
       );

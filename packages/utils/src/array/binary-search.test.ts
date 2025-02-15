@@ -16,7 +16,7 @@ describe('exact', () => {
     [[1, 2, 3, 4], 3, 2],
     [[1, 2, 3, 4], 4, 3],
   ])('(%s,%s) => %s', (arr, item, expectedIndex) => {
-    expect(binarySearchIndexOf(arr, item, cmp)).toStrictEqual({
+    expect(binarySearchIndexOf(arr, (a: number) => cmp(a, item))).toStrictEqual({
       index: expectedIndex,
       exists: true,
     });
@@ -37,7 +37,7 @@ describe('insertion index', () => {
     [[1, 2, 3, 4, 6], 5, 4],
     [[1, 2, 3, 4, 5], 6, 5],
   ])('(%s,%s) => %s', (arr, item, expectedIndex) => {
-    const searchResult = binarySearchIndexOf(arr, item, cmp);
+    const searchResult = binarySearchIndexOf(arr, (a: number) => cmp(a, item));
     expect(searchResult).toStrictEqual({
       index: expectedIndex,
       exists: false,
@@ -59,7 +59,7 @@ describe('insertion index reversed', () => {
     [[5, 3, 2, 1], 4, 1],
     [[4, 3, 2, 1], 5, 0],
   ])('(%s,%s) => %s', (arr, item, expectedIndex) => {
-    const searchResult = binarySearchIndexOf(arr, item, cmpReversed);
+    const searchResult = binarySearchIndexOf(arr, (a: number) => cmpReversed(a, item));
     expect(searchResult).toStrictEqual({
       index: expectedIndex,
       exists: false,

@@ -33,7 +33,10 @@ export type QueryableNote = Infer<typeof QueryableNote>;
 export interface QueryableNoteContext {
   collections: Pick<
     MongoDBCollectionsOnlyNames,
-    CollectionName.NOTES | CollectionName.USERS | CollectionName.OPEN_NOTES
+    | CollectionName.NOTES
+    | CollectionName.USERS
+    | CollectionName.OPEN_NOTES
+    | CollectionName.COLLAB_RECORDS
   >;
 }
 

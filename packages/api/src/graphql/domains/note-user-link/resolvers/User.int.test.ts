@@ -84,11 +84,11 @@ describe('noteLink', () => {
     user = fakeUserPopulateQueue();
     userReadOnly = fakeUserPopulateQueue();
     userNoAccess = fakeUserPopulateQueue();
-    note = fakeNotePopulateQueue(user, {
+    ({ note } = fakeNotePopulateQueue(user, {
       collabText: {
-        recordsCount: 2,
+        records: 2,
       },
-    });
+    }));
     userAddNote(user, note);
 
     userAddNote(userReadOnly, note, {
@@ -434,12 +434,12 @@ describe('noteLinkConnection', () => {
     await resetDatabase();
 
     const populateResult = populateNotes(10, {
-      collabText() {
+      mapCollabText() {
         return {
-          recordsCount: 2,
+          records: 2,
         };
       },
-      noteUser() {
+      mapNoteUser() {
         return {
           override: {
             categoryName: NoteCategory.DEFAULT,
@@ -452,7 +452,7 @@ describe('noteLinkConnection', () => {
 
     const populateResultArchive = populateNotes(3, {
       user,
-      noteUser() {
+      mapNoteUser() {
         return {
           override: {
             categoryName: NoteCategory.ARCHIVE,

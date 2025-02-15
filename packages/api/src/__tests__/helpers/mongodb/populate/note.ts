@@ -2,6 +2,7 @@ import { ObjectId } from 'mongodb';
 
 import { isDefined } from '~utils/type-guards/is-defined';
 
+import { DBCollabRecordSchema } from '../../../../mongodb/schema/collab-record';
 import { DBNoteSchema } from '../../../../mongodb/schema/note';
 import { DBUserSchema } from '../../../../mongodb/schema/user';
 import { MongoPartialDeep } from '../../../../mongodb/types';
@@ -20,41 +21,64 @@ export interface FakeNoteOptions {
 export function fakeNote(
   fallbackUser: Pick<DBUserSchema, '_id'>,
   options?: FakeNoteOptions
-): DBNoteSchema {
+): { note: DBNoteSchema; collabRecords: DBCollabRecordSchema[] } {
+  const noteId = options?.override?._id ?? new ObjectId();
+
+  const { collabText, collabRecords } = fakeCollabText(fallbackUser._id, {
+    ...options?.collabText,
+    mapRecord(record, index) {
+      record = {
+        ...record,
+        override: {
+          ...record.override,
+          collabTextId: noteId,
+        },
+      };
+
+      return options?.collabText?.mapRecord?.(record, index) ?? record;
+    },
+  });
+
   return {
-    _id: new ObjectId(),
-    ...options?.override,
-    users:
-      options?.override?.users?.filter(isDefined).map((noteUser) => {
-        const defaultNoteUser = fakeNoteUser(fallbackUser);
+    note: {
+      _id: noteId,
+      ...options?.override,
+      users:
+        options?.override?.users?.filter(isDefined).map((noteUser) => {
+          const defaultNoteUser = fakeNoteUser(fallbackUser);
 
-        const { trashed, ...noteUserRest } = noteUser;
+          const { trashed, ...noteUserRest } = noteUser;
 
-        return {
-          ...defaultNoteUser,
-          ...noteUserRest,
-          ...(noteUser.trashed != null && {
-            trashed: fakeNoteUserTrashed({
-              override: noteUser.trashed,
+          return {
+            ...defaultNoteUser,
+            ...noteUserRest,
+            ...(noteUser.trashed != null && {
+              trashed: fakeNoteUserTrashed({
+                override: noteUser.trashed,
+              }),
             }),
-          }),
-        };
-      }) ?? [],
-    collabText: fakeCollabText(fallbackUser._id, options?.collabText),
-    shareLinks:
-      options?.override?.shareLinks?.filter(isDefined).map((shareNoteLink) => ({
-        ...fakeShareNoteLink(fallbackUser),
-        ...shareNoteLink,
-      })) ?? [],
+          };
+        }) ?? [],
+      collabText,
+      shareLinks:
+        options?.override?.shareLinks?.filter(isDefined).map((shareNoteLink) => ({
+          ...fakeShareNoteLink(fallbackUser),
+          ...shareNoteLink,
+        })) ?? [],
+    },
+    collabRecords,
   };
 }
 
 export const fakeNotePopulateQueue: typeof fakeNote = (ownerUser, options) => {
-  const note = fakeNote(ownerUser, options);
+  const { note, collabRecords } = fakeNote(ownerUser, options);
 
   populateQueue(async () => {
-    await mongoCollections.notes.insertOne(note);
+    await Promise.all([
+      mongoCollections.notes.insertOne(note),
+      mongoCollections.collabRecords.insertMany(collabRecords),
+    ]);
   });
 
-  return note;
+  return { note, collabRecords };
 };

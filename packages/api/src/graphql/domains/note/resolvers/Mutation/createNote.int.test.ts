@@ -232,8 +232,10 @@ describe('no existing notes', () => {
           createdAt: expect.any(Date),
         },
       ],
-      collabText: null,
     });
+
+    // No records were inserted
+    expect(await mongoCollections.collabRecords.find().toArray()).toHaveLength(0);
   });
 
   it('creates note with all inputs', async () => {
@@ -304,7 +306,7 @@ describe('no existing notes', () => {
         },
       },
     });
-    expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(2);
+    expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(3);
 
     // Database, User
     const dbUser = await mongoCollections.users.findOne({
@@ -351,25 +353,29 @@ describe('no existing notes', () => {
           changeset: Changeset.EMPTY.serialize(),
           revision: 0,
         },
-        records: [
-          {
-            changeset: Changeset.fromInsertion('initial content').serialize(),
-            revision: 1,
-            creatorUser: {
-              _id: user._id,
-            },
-            userGeneratedId: expect.any(String),
-            beforeSelection: {
-              start: 0,
-            },
-            afterSelection: {
-              start: 15,
-            },
-            createdAt: expect.any(Date),
-          },
-        ],
       },
     });
+
+    const dbCollabRecords = await mongoCollections.collabRecords.find().toArray();
+    expect(dbCollabRecords).toStrictEqual([
+      {
+        _id: expect.any(ObjectId),
+        collabTextId: dbNote?._id,
+        changeset: Changeset.fromInsertion('initial content').serialize(),
+        revision: 1,
+        creatorUser: {
+          _id: user._id,
+        },
+        userGeneratedId: expect.any(String),
+        beforeSelection: {
+          start: 0,
+        },
+        afterSelection: {
+          start: 15,
+        },
+        createdAt: expect.any(Date),
+      },
+    ]);
   });
 
   describe('errors', () => {
@@ -504,7 +510,7 @@ describe('no existing notes', () => {
 describe('have existing note', () => {
   let existingNote: DBNoteSchema;
   beforeEach(async () => {
-    existingNote = fakeNotePopulateQueue(user);
+    ({ note: existingNote } = fakeNotePopulateQueue(user));
 
     userAddNote(user, existingNote, {
       override: {

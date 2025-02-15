@@ -75,7 +75,7 @@ let userDb2: Awaited<ReturnType<typeof createDBdata>>;
 function createDBdata(note?: DBNoteSchema) {
   const user = fakeUserPopulateQueue();
   if (!note) {
-    note = fakeNotePopulateQueue(user);
+    ({note} = fakeNotePopulateQueue(user));
   }
   userAddNote(user, note);
   const session = fakeSessionPopulateQueue({

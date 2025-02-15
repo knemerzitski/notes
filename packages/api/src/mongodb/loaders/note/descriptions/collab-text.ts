@@ -1,24 +1,13 @@
-import {
-  array,
-  assign,
-  Infer,
-  InferRaw,
-  number,
-  object,
-  omit,
-  optional,
-} from 'superstruct';
+import { array, assign, Infer, InferRaw, number, object, optional } from 'superstruct';
+import { isEmptyDeep } from '~utils/object/is-empty-deep';
 import { isDefined } from '~utils/type-guards/is-defined';
 
 import { CollectionName, MongoDBCollectionsOnlyNames } from '../../../collections';
 import {
-  consecutiveIntArrayPagination,
-  consecutiveIntArrayPaginationMapAggregateResult,
+  consecutiveIntPaginationExpressionMapAggregateResult,
+  consecutiveIntPaginationsToExpression,
 } from '../../../pagination/consecutive-int-array-pagination';
-import {
-  CursorArrayPaginationAggregateResult,
-  CursorArrayPaginationInput,
-} from '../../../pagination/cursor-array-pagination';
+import { CursorArrayPaginationInput } from '../../../pagination/cursor-array-pagination';
 import { CursorPagination } from '../../../pagination/cursor-struct';
 import { DescriptionDeep } from '../../../query/description';
 import { PartialQueryResultDeep } from '../../../query/query';
@@ -35,24 +24,27 @@ type RecordsPaginationOperationOptions = Omit<
   fieldPath?: string;
 };
 
-type RecordsPaginationResult<T = CollabRecordSchema> =
-  CursorArrayPaginationAggregateResult<T>;
-
-function recordsPagination(options: RecordsPaginationOperationOptions) {
-  return consecutiveIntArrayPagination({
-    arrayFieldPath: options.fieldPath ?? 'records',
-    arrayItemPath: 'revision',
-    ...options,
-  });
+function recordsPagination(
+  paginations: RecordsPaginationOperationOptions['paginations']
+) {
+  return consecutiveIntPaginationsToExpression({
+    paginations,
+    fields: {
+      itemValue: '$revision',
+      firstValue: '$$tailRevision',
+      lastValue: '$$headRevision',
+    },
+  }).$expr;
 }
 
 function recordsPaginationMapAggregateResult<
   T extends PartialQueryResultDeep<Pick<InferRaw<typeof CollabRecordSchema>, 'revision'>>,
->(
-  pagination: NonNullable<CursorArrayPaginationInput<number>['paginations']>[0],
-  result: CursorArrayPaginationAggregateResult<T>
-): T[] {
-  return consecutiveIntArrayPaginationMapAggregateResult(pagination, result, toCursor);
+>(pagination: CursorPagination<number>, result: T[]): T[] {
+  return consecutiveIntPaginationExpressionMapAggregateResult(
+    pagination,
+    result,
+    toCursor
+  );
 }
 
 function toCursor(
@@ -62,7 +54,7 @@ function toCursor(
 }
 
 export const QueryableCollabText = assign(
-  omit(CollabTextSchema, ['records']),
+  CollabTextSchema,
   object({
     records: array(
       assign(
@@ -78,56 +70,84 @@ export const QueryableCollabText = assign(
 export type QueryableCollabText = Infer<typeof QueryableCollabText>;
 
 export interface QueryableCollabTextContext {
-  collections: Pick<MongoDBCollectionsOnlyNames, CollectionName.USERS>;
+  collections: Pick<
+    MongoDBCollectionsOnlyNames,
+    CollectionName.USERS | CollectionName.COLLAB_RECORDS
+  >;
 }
 
 export const collabTextDescription: DescriptionDeep<
   InferRaw<typeof QueryableCollabText>,
   {
-    records: RecordsPaginationResult<
-      PartialQueryResultDeep<InferRaw<typeof QueryableCollabRecord>>
-    >;
+    records: PartialQueryResultDeep<InferRaw<typeof QueryableCollabRecord>>[];
   },
   QueryableCollabTextContext
 > = {
   records: {
     ...queryableCollabRecordDescription,
-    $addStages({ fields }) {
+    $addStages({ fields, subStages, subLastProject, customContext }) {
+      // Support only first field, no dynamic keyed records
+      const firstField = fields[0];
+      if (!firstField) {
+        return;
+      }
+
+      // Skip record lookup if nothing is projected
+      const recordProject = subLastProject();
+      if (isEmptyDeep(recordProject)) {
+        return;
+      }
+
+      const { query, relativePath, parentRelativePath } = firstField;
+
       return [
         {
-          $set: Object.fromEntries(
-            fields.map(({ query, relativePath, parentRelativePath }) => [
-              `${parentRelativePath}._records`,
-              recordsPagination({
-                fieldPath: relativePath,
-                paginations: query.$args?.map((arg) => arg.$pagination).filter(isDefined),
-              }),
-            ])
-          ),
-        },
-        {
-          $set: Object.fromEntries(
-            fields.map(({ relativePath, parentRelativePath }) => [
-              relativePath,
-              `$${parentRelativePath}._records`,
-            ])
-          ),
+          $lookup: {
+            from: customContext.collections[CollectionName.COLLAB_RECORDS].collectionName,
+            let: {
+              collabTextId: '$_id',
+              tailRevision: `$${parentRelativePath}.tailText.revision`,
+              headRevision: `$${parentRelativePath}.headText.revision`,
+            },
+            as: relativePath,
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      {
+                        $eq: ['$collabTextId', '$$collabTextId'],
+                      },
+                      recordsPagination(
+                        query.$args?.map((arg) => arg.$pagination).filter(isDefined)
+                      ),
+                    ],
+                  },
+                },
+              },
+              {
+                $sort: {
+                  revision: 1,
+                },
+              },
+              ...subStages(),
+              {
+                $project: recordProject,
+              },
+            ],
+          },
         },
       ];
     },
-    $mapLastProject({ projectValue }) {
+    $mapLastProject() {
       return {
-        $replace: true,
-        array: {
-          ...projectValue,
-          revision: 1,
-        },
-        sizes: 1,
+        // Revision is required to sort through paginations in $mapAggregateResult
+        revision: 1,
       };
     },
     $mapAggregateResult({ query, result }) {
       if (!query.$pagination) {
-        return result.array;
+        return result;
       }
 
       return recordsPaginationMapAggregateResult(query.$pagination, result);

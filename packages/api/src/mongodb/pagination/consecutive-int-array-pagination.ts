@@ -1,5 +1,8 @@
 import { Document } from 'mongodb';
 
+import { binarySearchIndexOf } from '~utils/array/binary-search';
+import { binarySearchConsecutiveOrderedSubset } from '~utils/ordered-set/consecutive-ordered-set';
+
 import { STRUCT_NUMBER } from '../constants';
 
 import {
@@ -16,7 +19,194 @@ import {
   CursorAfterBoundPagination,
   CursorBeforeBoundPagination,
   CursorPagination,
+  CursorAfterPagination,
+  CursorBeforePagination,
 } from './cursor-struct';
+
+export function consecutiveIntPaginationsToExpression(
+  input: Pick<
+    CursorArrayPaginationInput<number>,
+    'paginations' | 'defaultLimit' | 'maxLimit' | 'defaultSlice'
+  > & {
+    fields: {
+      itemValue: unknown;
+      firstValue: unknown;
+      lastValue: unknown;
+    };
+  }
+): { $expr: Document } {
+  if (input.paginations && input.paginations.length > 0) {
+    const limitedPaginations =
+      input.defaultLimit != null || input.maxLimit != null
+        ? input.paginations.map((p) => {
+            if ('first' in p && p.first != null) {
+              const pCpy = { ...p };
+              pCpy.first =
+                input.maxLimit != null ? Math.min(p.first, input.maxLimit) : p.first;
+              return pCpy;
+            } else if ('last' in p && p.last != null) {
+              const pCpy = { ...p };
+              pCpy.last =
+                input.maxLimit != null ? Math.min(p.last, input.maxLimit) : p.last;
+              return pCpy;
+            }
+
+            return p;
+          })
+        : input.paginations;
+
+    const maxFirst = calcMaxFirst(limitedPaginations);
+    const maxLast = calcMaxLast(limitedPaginations);
+    const minAfterUnbound = calcMinAfterUnbound(limitedPaginations);
+    const maxBeforeUnbound = calcMaxBeforeUnbound(limitedPaginations);
+    const uniqueBoundPaginations = calcUniqueBoundPaginations(limitedPaginations);
+
+    return {
+      $expr: {
+        $or: [
+          {
+            $lte: [input.fields.itemValue, { $add: [input.fields.firstValue, maxFirst] }],
+          },
+          {
+            $gt: [
+              input.fields.itemValue,
+              { $subtract: [input.fields.lastValue, maxLast] },
+            ],
+          },
+          ...(minAfterUnbound !== Infinity
+            ? [
+                {
+                  $gt: [input.fields.itemValue, minAfterUnbound],
+                },
+              ]
+            : []),
+          ...(maxBeforeUnbound !== -Infinity
+            ? [
+                {
+                  $lt: [input.fields.itemValue, maxBeforeUnbound],
+                },
+              ]
+            : []),
+          ...uniqueBoundPaginations.map((pagination) => ({
+            $and: [
+              {
+                $gt: [input.fields.itemValue, pagination.after],
+              },
+              {
+                $lte: [input.fields.itemValue, pagination.after + pagination.first],
+              },
+            ],
+          })),
+        ],
+      },
+    };
+  } else {
+    const limit = input.defaultLimit ?? input.maxLimit;
+
+    if (limit) {
+      if (input.defaultSlice === 'end') {
+        return {
+          $expr: {
+            $gt: [input.fields.itemValue, { $subtract: [input.fields.lastValue, limit] }],
+          },
+        };
+      } else {
+        return {
+          $expr: {
+            $lte: [input.fields.itemValue, { $add: [input.fields.firstValue, limit] }],
+          },
+        };
+      }
+    }
+
+    return {
+      $expr: {
+        $and: [
+          {
+            $gt: [input.fields.itemValue, input.fields.firstValue],
+          },
+          {
+            $lte: [input.fields.itemValue, input.fields.lastValue],
+          },
+        ],
+      },
+    };
+  }
+}
+
+export function consecutiveIntPaginationExpressionMapAggregateResult<TItem>(
+  pagination: CursorPagination<number>,
+  output: TItem[],
+  toCursor: (item: TItem) => number
+): TItem[] {
+  if (output.length === 0) {
+    return [];
+  }
+
+  if (CursorFirstPagination.is(pagination)) {
+    const range = binarySearchConsecutiveOrderedSubset(
+      output,
+      toCursor,
+      'start',
+      0,
+      pagination.first
+    );
+    return output.slice(range.start, range.end);
+  } else if (CursorLastPagination.is(pagination)) {
+    const range = binarySearchConsecutiveOrderedSubset(
+      output,
+      toCursor,
+      'end',
+      Math.max(0, output.length - pagination.last),
+      output.length
+    );
+    return output.slice(range.start, range.end);
+  } else if (CursorAfterPagination(STRUCT_NUMBER).is(pagination)) {
+    const startSearch = binarySearchIndexOf(
+      output,
+      (item) => toCursor(item) - (pagination.after + 1)
+    );
+    if (!startSearch.exists) {
+      return [];
+    }
+    const endIndex = CursorAfterBoundPagination(STRUCT_NUMBER).is(pagination)
+      ? startSearch.index + pagination.first
+      : output.length;
+
+    const range = binarySearchConsecutiveOrderedSubset(
+      output,
+      toCursor,
+      'end',
+      startSearch.index,
+      endIndex
+    );
+    return output.slice(range.start, range.end);
+  } else if (CursorBeforePagination(STRUCT_NUMBER).is(pagination)) {
+    const endSearch = binarySearchIndexOf(
+      output,
+      (item) => toCursor(item) - (pagination.before - 1)
+    );
+    if (!endSearch.exists) {
+      return [];
+    }
+
+    const startIndex = CursorBeforeBoundPagination(STRUCT_NUMBER).is(pagination)
+      ? endSearch.index + 1 - pagination.last
+      : 0;
+
+    const range = binarySearchConsecutiveOrderedSubset(
+      output,
+      toCursor,
+      'end',
+      startIndex,
+      endSearch.index + 1
+    );
+
+    return output.slice(range.start, range.end);
+  }
+
+  return [];
+}
 
 /**
  * Consecutive increasing ordered non-repeating array: [4,5,6,7,8,9], [-2,-1,0,1].
@@ -58,8 +248,8 @@ export function consecutiveIntArrayPagination(
     return {
       $let: {
         vars: {
-          firstValue: { $first: `$${arrayField}` },
-          lastValue: { $last: `$${arrayField}` },
+          firstValue: input.expressions?.firstValue ?? { $first: `$${arrayField}` },
+          lastValue: input.expressions?.lastValue ?? { $last: `$${arrayField}` },
           size: { $size: { $ifNull: [`$${input.arrayFieldPath}`, []] } },
         },
         in: {

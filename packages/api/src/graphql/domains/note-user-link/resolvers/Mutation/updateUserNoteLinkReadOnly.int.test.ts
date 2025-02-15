@@ -92,7 +92,7 @@ beforeEach(async () => {
   userOwner = fakeUserPopulateQueue();
   userReadOnly = fakeUserPopulateQueue();
   userNoAccess = fakeUserPopulateQueue();
-  note = fakeNotePopulateQueue(userOwner);
+  ({ note } = fakeNotePopulateQueue(userOwner));
 
   userAddNote(userOwner, note, {
     override: {
@@ -113,7 +113,7 @@ beforeEach(async () => {
 
 async function executeOperation(
   input: Omit<UpdateUserNoteLinkReadOnlyInput, 'note' | 'authUser'> & {
-    noteId: ObjectId
+    noteId: ObjectId;
   },
   options?: CreateGraphQLResolversContextOptions,
   query: string = MUTATION

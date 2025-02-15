@@ -14,8 +14,12 @@ interface Edge {
   };
 }
 
+function compareRecordsUni(a: Edge, revision: number) {
+  return a.node.change.revision - revision;
+}
+
 function compareRecords(a: Edge, b: Edge) {
-  return a.node.change.revision - b.node.change.revision;
+  return compareRecordsUni(a, b.node.change.revision);
 }
 
 function rankRecord(a: Edge) {
@@ -48,10 +52,8 @@ export const CollabTextRecordConnection: CreateTypePolicyFn = function (
             }
 
             // Start of records
-            const { index: start, exists } = binarySearchIndexOf<Edge>(
-              existing,
-              { node: { change: { revision: after + 1 } } },
-              compareRecords
+            const { index: start, exists } = binarySearchIndexOf<Edge>(existing, (a) =>
+              compareRecordsUni(a, after + 1)
             );
             if (!exists) {
               return;
@@ -90,10 +92,8 @@ export const CollabTextRecordConnection: CreateTypePolicyFn = function (
             }
 
             // Start of records
-            const { index: endIndex, exists } = binarySearchIndexOf<Edge>(
-              existing,
-              { node: { change: { revision: before - 1 } } },
-              compareRecords
+            const { index: endIndex, exists } = binarySearchIndexOf<Edge>(existing, (a) =>
+              compareRecordsUni(a, before - 1)
             );
             if (!exists) {
               return;

@@ -9,6 +9,7 @@ import {
 
 import { retryOnError } from '~utils/retry-on-error';
 
+import { collabRecordDescription, DBCollabRecordSchema } from './schema/collab-record';
 import {
   noteDescription,
   DBNoteSchema,
@@ -29,6 +30,7 @@ export enum CollectionName {
   SESSIONS = 'sessions',
   USERS = 'users',
   NOTES = 'notes',
+  COLLAB_RECORDS = 'collabRecords',
   OPEN_NOTES = 'openNotes',
 }
 
@@ -42,6 +44,9 @@ interface CollectionDefinitions {
   [CollectionName.NOTES]: {
     schema: Collection<DBNoteSchema>;
   };
+  [CollectionName.COLLAB_RECORDS]: {
+    schema: Collection<DBCollabRecordSchema>;
+  };
   [CollectionName.OPEN_NOTES]: {
     schema: Collection<DBOpenNoteSchema>;
   };
@@ -53,6 +58,7 @@ export const collectionDescriptions: Partial<
   [CollectionName.SESSIONS]: sessionDescription,
   [CollectionName.USERS]: userDescription,
   [CollectionName.NOTES]: noteDescription,
+  [CollectionName.COLLAB_RECORDS]: collabRecordDescription,
   [CollectionName.OPEN_NOTES]: openNoteDescription,
 };
 

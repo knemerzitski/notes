@@ -1,3 +1,4 @@
+import { DBCollabRecordSchema } from '../../../../mongodb/schema/collab-record';
 import { DBNoteSchema } from '../../../../mongodb/schema/note';
 import { DBUserSchema } from '../../../../mongodb/schema/user';
 
@@ -24,35 +25,53 @@ export interface PopulateNotesOptions {
   /**
    * @default [CollabTextKey]
    */
-  noteUser?: (noteIndex: number) => FakeNoteUserOptions | undefined;
-  note?: (noteIndex: number) => FakeNoteOptions | undefined;
-  collabText?: (noteIndex: number) => FakeCollabTextOptions | undefined;
-  shareLink?: (noteIndex: number) => FakeShareNoteLinkOptions | undefined;
+  mapNoteUser?: (
+    noteUser: FakeNoteUserOptions,
+    index: number
+  ) => FakeNoteUserOptions | undefined;
+  mapNote?: (note: FakeNoteOptions, index: number) => FakeNoteOptions | undefined;
+  mapCollabText?: (
+    collabText: FakeCollabTextOptions,
+    index: number
+  ) => FakeCollabTextOptions | undefined;
+  mapShareLink?: (
+    shareLink: FakeShareNoteLinkOptions,
+    index: number
+  ) => FakeShareNoteLinkOptions | undefined;
 }
 
 export function populateNotes(count: number, options?: PopulateNotesOptions) {
   const user = options?.user ?? fakeUser();
 
   const notes: DBNoteSchema[] = [];
+  const collabRecordsList: DBCollabRecordSchema[] = [];
 
   const data = [...new Array<undefined>(count)].map((_, noteIndex) => {
     const shareLink = !options?.skipInsert
-      ? fakeShareNoteLink(user, options?.shareLink?.(noteIndex))
+      ? fakeShareNoteLink(user, options?.mapShareLink?.({}, noteIndex))
       : undefined;
 
-    const noteUser = fakeNoteUser(user, options?.noteUser?.(noteIndex));
+    const noteUser = fakeNoteUser(user, options?.mapNoteUser?.({}, noteIndex));
 
-    const noteOptions = options?.note?.(noteIndex);
-    const note = fakeNote(user, {
-      collabText: options?.collabText?.(noteIndex),
-      ...noteOptions,
-      override: {
-        users: [noteUser],
-        shareLinks: shareLink ? [shareLink] : undefined,
-        ...noteOptions?.override,
-      },
-    });
+    const noteOptions = options?.mapNote?.({}, noteIndex);
+    const { note, collabRecords } = fakeNote(
+      user,
+      (() => {
+        const collabText = options?.mapCollabText?.({}, noteIndex) ?? {};
+
+        return {
+          collabText,
+          ...noteOptions,
+          override: {
+            users: [noteUser],
+            shareLinks: shareLink ? [shareLink] : undefined,
+            ...noteOptions?.override,
+          },
+        };
+      })()
+    );
     notes.push(note);
+    collabRecordsList.push(...collabRecords);
 
     userAddNote(user, note);
 
@@ -60,6 +79,7 @@ export function populateNotes(count: number, options?: PopulateNotesOptions) {
       note,
       noteUser,
       shareNoteLink: shareLink,
+      collabRecords,
     };
   });
 
@@ -67,6 +87,7 @@ export function populateNotes(count: number, options?: PopulateNotesOptions) {
     Promise.all([
       !options?.user && mongoCollections.users.insertOne(user),
       mongoCollections.notes.insertMany(notes),
+      mongoCollections.collabRecords.insertMany(collabRecordsList),
     ])
   );
 
@@ -83,8 +104,8 @@ export interface PopulateNotesWithTextParams {
 export function populateNotesWithText(texts: string[], options?: PopulateNotesOptions) {
   return populateNotes(texts.length, {
     ...options,
-    collabText(noteIndex) {
-      const collabTextOptions = options?.collabText?.(noteIndex);
+    mapCollabText(collabText, noteIndex) {
+      const collabTextOptions = options?.mapCollabText?.(collabText, noteIndex);
       return {
         initialText: texts[noteIndex],
         ...collabTextOptions,

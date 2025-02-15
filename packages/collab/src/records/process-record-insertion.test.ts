@@ -175,6 +175,6 @@ it('throws error if record insertion requires non-existang future revisions', ()
       }),
     })
   ).toThrow(
-    `Cannot insert record with revision higher than newest revision. Newest revision: 7, Insert revision: 8`
+    `Cannot insert record after headText. headText revision: 7, Insert revision: 8`
   );
 });

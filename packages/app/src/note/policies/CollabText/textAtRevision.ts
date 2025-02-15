@@ -53,8 +53,7 @@ export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesC
       const { index, exists } = binarySearchIndexOf(
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         existing,
-        { revision },
-        compareRevisions
+        (a: OnlyRevision) => compareRevisionsUni(a, revision)
       );
 
       if (exists) {
@@ -97,11 +96,8 @@ export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesC
 
       // Find closest older revision
       const { index, exists } = binarySearchIndexOf(
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        existing,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-        { revision: incoming.revision },
-        compareRevisions
+        existing as readonly OnlyRevision[],
+        (a: OnlyRevision) => compareRevisionsUni(a, (incoming as OnlyRevision).revision)
       );
 
       // Cannot read sibling fields in merge function
@@ -140,8 +136,8 @@ export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesC
   };
 };
 
-function compareRevisions(a: OnlyRevision, b: OnlyRevision) {
-  return a.revision - b.revision;
+function compareRevisionsUni(a: OnlyRevision, revision: number) {
+  return a.revision - revision;
 }
 
 function readRecords(

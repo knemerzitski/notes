@@ -1,10 +1,13 @@
 import { MongoClient, ObjectId } from 'mongodb';
+import { array, assign, object } from 'superstruct';
 import { Maybe } from '~utils/types';
 
 import { MongoDBCollections, CollectionName } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
-import { createCollabText } from '../../mongodb/models/note/create-collab-text';
 import { insertNote as model_insertNote } from '../../mongodb/models/note/insert-note';
+import { createInitialCollabText } from '../../mongodb/models/note/utils/create-initial-collab-text';
+import { CollabRecordSchema } from '../../mongodb/schema/collab-record';
+import { CollabTextSchema } from '../../mongodb/schema/collab-text';
 import { NoteSchema } from '../../mongodb/schema/note';
 import { NoteUserSchema } from '../../mongodb/schema/note-user';
 import { withTransaction } from '../../mongodb/utils/with-transaction';
@@ -12,7 +15,10 @@ import { withTransaction } from '../../mongodb/utils/with-transaction';
 interface InsertNoteParams {
   mongoDB: {
     client: MongoClient;
-    collections: Pick<MongoDBCollections, CollectionName.NOTES | CollectionName.USERS>;
+    collections: Pick<
+      MongoDBCollections,
+      CollectionName.NOTES | CollectionName.USERS | CollectionName.COLLAB_RECORDS
+    >;
     loaders: Pick<MongoDBLoaders, 'note'>;
   };
   userId: ObjectId;
@@ -45,14 +51,18 @@ export async function insertNote({
         ...(preferences && { preferences }),
       },
     ],
-    collabText:
-      collabText?.initialText != null
-        ? createCollabText({
-            creatorUserId: userId,
-            initialText: collabText.initialText,
-          })
-        : undefined,
   };
+
+  const collabRecords: CollabRecordSchema[] = [];
+  if (collabText?.initialText != null) {
+    const initialCollabText = createInitialCollabText({
+      collabTextId: note._id,
+      creatorUserId: userId,
+      initialText: collabText.initialText,
+    });
+    note.collabText = initialCollabText.collabText;
+    collabRecords.push(initialCollabText.collabRecord);
+  }
 
   await withTransaction(mongoDB.client, ({ runSingleOperation }) =>
     model_insertNote({
@@ -61,6 +71,7 @@ export async function insertNote({
         collections: mongoDB.collections,
       },
       note,
+      collabRecords,
     })
   );
 
@@ -71,10 +82,34 @@ export async function insertNote({
         userId,
       },
     },
-    note,
+    {
+      ...note,
+      // Set records in note
+      ...(note.collabText
+        ? {
+            collabText: {
+              ...note.collabText,
+              records: collabRecords,
+            },
+          }
+        : {
+            collabText: undefined,
+          }),
+    },
     {
       valueToQueryOptions: {
-        fillStruct: NoteSchema,
+        fillStruct: assign(
+          NoteSchema,
+          object({
+            collabText: assign(
+              CollabTextSchema,
+              object({
+                records: array(CollabRecordSchema),
+              })
+            ),
+          })
+        ),
+
         visitorFn: ({ addPermutationsByPath }) => {
           addPermutationsByPath('collabText.records', [
             {
@@ -93,5 +128,8 @@ export async function insertNote({
     }
   );
 
-  return note;
+  return {
+    note,
+    collabRecords,
+  };
 }

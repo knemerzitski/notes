@@ -87,4 +87,9 @@ export const queryableCollabRecordDescription: DescriptionDeep<
       });
     },
   },
+  $mapLastProject({ projectValue }) {
+    return {
+      _id: projectValue._id ?? 0,
+    };
+  },
 };
