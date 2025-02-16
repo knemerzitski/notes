@@ -1,6 +1,7 @@
 import { useNavigate, useRouter } from '@tanstack/react-router';
 import { useState, useCallback } from 'react';
 
+import { useGetCanGoBack } from '../../utils/context/get-can-go-back';
 import { OnCloseProvider } from '../../utils/context/on-close';
 import { noteEditDialogId } from '../../utils/element-id';
 import { useNoteId } from '../context/note-id';
@@ -18,18 +19,20 @@ export function RouteNoteDialog() {
   const [open, setOpen] = useState(true);
   const navigate = useNavigate();
   const router = useRouter();
+  const getCanGoBack = useGetCanGoBack();
 
   const handleClose = useCallback(() => {
     setOpen(false);
   }, []);
 
   function handleExited() {
-    if (router.history.canGoBack()) {
+    if (getCanGoBack()) {
       router.history.back();
     } else {
       void navigate({
         to: '.',
         search: (prev) => ({ ...prev, noteId: undefined }),
+        replace: true,
       });
     }
   }

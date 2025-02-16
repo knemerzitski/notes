@@ -4,11 +4,15 @@ import { RootRouteDevModuleProvider } from '../../dev/components/RootRouteDevMod
 import { RootRouteNoteModuleProvider } from '../../note/components/RootRouteNoteModuleProvider';
 import { RootRouteUserModuleProvider } from '../../user/components/RootRouteUserModuleProvider';
 
+import { RootRouteRoutesModuleProvider } from './RootRouteRoutesModuleProvider';
+
 export function RootRouteModuleProvider({ children }: { children: ReactNode }) {
   return (
     <RootRouteUserModuleProvider>
       <RootRouteNoteModuleProvider>
-        <RootRouteDevModuleProvider>{children}</RootRouteDevModuleProvider>
+        <RootRouteDevModuleProvider>
+          <RootRouteRoutesModuleProvider>{children}</RootRouteRoutesModuleProvider>
+        </RootRouteDevModuleProvider>
       </RootRouteNoteModuleProvider>
     </RootRouteUserModuleProvider>
   );

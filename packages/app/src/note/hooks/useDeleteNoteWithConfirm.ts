@@ -13,7 +13,6 @@ export function useDeleteNoteWithConfirm() {
 
   return useCallback(
     (noteId: Note['id'] | readonly Note['id'][]) => {
-      console.log(noteId);
       const noteIds = wrapArray(noteId);
       if (noteIds.length === 0) {
         return Promise.resolve(true);
