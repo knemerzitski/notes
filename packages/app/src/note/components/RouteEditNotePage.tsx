@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 
 import { OriginalLocation } from '../../routes/note';
 import { useIsMobile } from '../../theme/context/is-mobile';
+import { useGetCanGoBack } from '../../utils/context/get-can-go-back';
 import { OnCloseProvider } from '../../utils/context/on-close';
 
 import { useNoteId } from '../context/note-id';
@@ -24,9 +25,10 @@ export function RouteEditNotePage({
   const isMobile = useIsMobile();
 
   const router = useRouter();
+  const getCanGoBack = useGetCanGoBack();
 
   const handleClose = useCallback(() => {
-    if (router.history.canGoBack()) {
+    if (getCanGoBack()) {
       router.history.back();
     } else {
       if (originalLocation) {
@@ -43,7 +45,7 @@ export function RouteEditNotePage({
         });
       }
     }
-  }, [navigate, originalLocation, router]);
+  }, [navigate, originalLocation, router, getCanGoBack]);
 
   if (!isMobile) {
     // On desktop show a modal instead: ...?noteId=$noteId

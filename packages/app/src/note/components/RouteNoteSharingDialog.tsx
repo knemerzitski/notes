@@ -1,7 +1,9 @@
-import { useNavigate, useRouter } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router';
 import { useState, useCallback } from 'react';
 
 import { gql } from '../../__generated__';
+import { router } from '../../router';
+import { useGetCanGoBack } from '../../utils/context/get-can-go-back';
 import { OnCloseProvider } from '../../utils/context/on-close';
 import { noteSharingDialogId } from '../../utils/element-id';
 import { NoteIdProvider } from '../context/note-id';
@@ -22,19 +24,20 @@ const _RouteNoteSharingDialog_NoteFragment = gql(`
 export function RouteNoteSharingDialog({ noteId }: { noteId: string }) {
   const [open, setOpen] = useState(true);
   const navigate = useNavigate();
-  const router = useRouter();
+  const getCanGoBack = useGetCanGoBack();
 
   const handleClose = useCallback(() => {
     setOpen(false);
   }, []);
 
   function handleExited() {
-    if (router.history.canGoBack()) {
+    if (getCanGoBack()) {
       router.history.back();
     } else {
       void navigate({
         to: '.',
         search: (prev) => ({ ...prev, sharingNoteId: undefined }),
+        replace: true,
       });
     }
   }
