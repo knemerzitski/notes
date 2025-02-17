@@ -158,7 +158,9 @@ it('sign in, create note, share link and collab edit with another user', () => {
       }
       // Open note dialog and generate share note link
       cy.get('[aria-label="open note dialog"]').click();
-      cy.get('[aria-label="Collaboration"]').click();
+
+      cy.get('[role=dialog] [aria-label="Collaboration"]').click();
+
       cy.get('[aria-label="create share link"]').click();
       cy.get('[data-has-link="true"] input')
         .invoke('val')

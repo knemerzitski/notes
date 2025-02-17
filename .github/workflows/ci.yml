@@ -293,3 +293,13 @@ jobs:
           path: |
             packages/app/app.log
           retention-days: 2
+
+      # Artifact packages/app/cypress/screenshots
+      - name: Upload app Cypress screenshots
+        if: ${{ matrix.package == 'app' && !cancelled()  }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.package }}-cypress-screenshots
+          path: |
+            packages/app/cypress/screenshots/**
+          retention-days: 2
