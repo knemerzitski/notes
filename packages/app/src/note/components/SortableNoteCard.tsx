@@ -15,56 +15,46 @@ import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
 import { useNoteId } from '../context/note-id';
 
 import { DragOverlayNoteCard } from './DragOverlayNoteCard';
-import { NoteCard, PureNoteCard } from './NoteCard';
+import { NoteCard, NoteCardProps } from './NoteCard';
 
-export const SortableNoteCard = forwardRef<
-  HTMLDivElement,
-  Parameters<typeof NoteCard>[0]
->(function SortableNoteCard(props, ref) {
-  const noteId = useNoteId();
-  const isMobile = useIsMobile();
+export const SortableNoteCard = forwardRef<HTMLDivElement, NoteCardProps>(
+  function SortableNoteCard(props, ref) {
+    const noteId = useNoteId();
+    const isMobile = useIsMobile();
 
-  const dndData = useMemo(() => {
-    let data = setDragOverlayInDndData({
-      element: <DragOverlayNoteCard noteId={noteId} />,
-    });
+    const dndData = useMemo(() => {
+      let data = setDragOverlayInDndData({
+        element: <DragOverlayNoteCard noteId={noteId} />,
+      });
 
-    data = setDndData(
-      {
-        type: DndType.NOTE,
-        noteId,
-      },
-      data
-    );
+      data = setDndData(
+        {
+          type: DndType.NOTE,
+          noteId,
+        },
+        data
+      );
 
-    return data;
-  }, [noteId]);
+      return data;
+    }, [noteId]);
 
-  const {
-    setNodeRef,
-    attributes,
-    listeners,
-    isDragging,
-    transform,
-    transition,
-    isSorting,
-  } = useSortable({
-    id: getNoteDndId(noteId),
-    data: dndData,
-  });
+    const { setNodeRef, attributes, listeners, isDragging, transform, transition } =
+      useSortable({
+        id: getNoteDndId(noteId),
+        data: dndData,
+      });
 
-  function refFn(el: HTMLDivElement | null) {
-    if (typeof ref === 'function') {
-      ref(el);
-    } else if (ref) {
-      ref.current = el;
+    function refFn(el: HTMLDivElement | null) {
+      if (typeof ref === 'function') {
+        ref(el);
+      } else if (ref) {
+        ref.current = el;
+      }
+      setNodeRef(el);
     }
-    setNodeRef(el);
-  }
 
-  if (isSorting) {
     return (
-      <PureNoteCardStyled
+      <NoteCardStyled
         ref={refFn}
         style={{
           ...props.style,
@@ -73,23 +63,14 @@ export const SortableNoteCard = forwardRef<
         }}
         {...attributes}
         {...listeners}
+        tabIndex={0}
         {...props}
+        isMobile={isMobile}
         isDragging={isDragging}
       />
     );
   }
-
-  return (
-    <NoteCardStyled
-      ref={refFn}
-      {...attributes}
-      {...listeners}
-      tabIndex={0}
-      {...props}
-      isMobile={isMobile}
-    />
-  );
-});
+);
 
 export const mobileManipulation = {
   style: ({ isMobile }: { isMobile: boolean }) => {
@@ -118,9 +99,11 @@ export const draggingHidden = {
 };
 
 const NoteCardStyled = styled(NoteCard, {
-  shouldForwardProp: mergeShouldForwardProp(mobileManipulation.props),
-})<{ isDragging?: boolean; isMobile: boolean }>(mobileManipulation.style);
-
-const PureNoteCardStyled = styled(PureNoteCard, {
-  shouldForwardProp: mergeShouldForwardProp(draggingHidden.props),
-})<{ isDragging?: boolean }>(draggingHidden.style);
+  shouldForwardProp: mergeShouldForwardProp(
+    mobileManipulation.props,
+    draggingHidden.props
+  ),
+})<{ isDragging?: boolean; isMobile: boolean }>(
+  mobileManipulation.style,
+  draggingHidden.style
+);

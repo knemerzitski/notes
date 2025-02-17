@@ -1,12 +1,11 @@
 import { useApolloClient } from '@apollo/client';
 import { alpha, Box, css, Paper, PaperProps, styled, Theme } from '@mui/material';
-import { forwardRef, ReactNode, useRef, useState } from 'react';
+import { forwardRef, memo, ReactNode, useCallback, useRef, useState } from 'react';
 
 import { gql } from '../../__generated__';
 import { NoteCategory } from '../../__generated__/graphql';
 import { isDevToolsEnabled } from '../../dev/utils/dev-tools';
-import { useIsMobile } from '../../theme/context/is-mobile';
-import { noteEditDialogId } from '../../utils/element-id';
+import { IsDesktop } from '../../utils/components/IsDesktop';
 import { isElHover } from '../../utils/is-el-hover';
 import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
 
@@ -42,188 +41,221 @@ const _NoteCard_UserNoteLinkFragment = gql(`
   }
 `);
 
-export const NoteCard = forwardRef<HTMLDivElement, PaperProps>(
-  function NoteCard(props, ref) {
-    const noteId = useNoteId();
-    const localOnly = useIsLocalOnlyNote();
+export interface NoteCardProps extends NoteCardWithToolbarPaperProps {
+  /**
+   * Render a lightweight version of the component without event listeners
+   * that is suitable for drag and drop.
+   * @default false
+   */
+  lightweight?: boolean;
+}
 
-    const client = useApolloClient();
-    const paperElRef = useRef<HTMLDivElement | null>(null);
+export const NoteCard = forwardRef<HTMLDivElement, NoteCardProps>(function NoteCard(
+  { lightweight = false, ...restProps },
+  ref
+) {
+  const Component = lightweight ? NoteCardPaper : HoverableNoteCardWithToolbarPaper;
 
-    const navigateToNote = useNavigateToNote();
+  return <Component ref={ref} {...restProps} />;
+});
 
-    const isNoteOpen = useIsNoteOpen(noteId);
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+interface NoteCardWithToolbarPaperProps extends NodeCardPaperProps {
+  //
+}
 
-    const selectNoteTrigger = useSelectNoteTrigger(noteId);
-    const isAnyNoteSelected = useIsAnyNoteSelected();
+const HoverableNoteCardWithToolbarPaper = forwardRef<
+  HTMLDivElement,
+  NoteCardWithToolbarPaperProps
+>(function HoverableNoteCardWithToolbarPaper(props, ref) {
+  const { onClick, onMouseEnter, onMouseLeave, ...restProps } = props;
 
-    // Paper is active when hovering or more options menu is open
-    const [isActive, setIsActive] = useState(false);
+  const noteId = useNoteId();
+  const localOnly = useIsLocalOnlyNote();
 
-    if (isNoteOpen) {
-      // Hide card when note is opened in a dialog
-      return (
-        <Box
-          aria-label="hidden opened note"
-          aria-controls={noteEditDialogId(noteId)}
-          aria-expanded={true}
-          {...props}
-        />
-      );
+  const client = useApolloClient();
+  const paperElRef = useRef<HTMLDivElement | null>(null);
+
+  const navigateToNote = useNavigateToNote();
+
+  const selectNoteTrigger = useSelectNoteTrigger(noteId);
+  const isAnyNoteSelected = useIsAnyNoteSelected();
+
+  const isSelected = useIsNoteSelected(noteId);
+  const isNoteOpen = useIsNoteOpen(noteId);
+
+  // Paper is active when hovering or more options menu is open
+  const [isActive, setIsActive] = useState(false);
+
+  const isPaperHover = useCallback(() => {
+    const el = paperElRef.current;
+    if (!el) {
+      return false;
     }
 
-    function isPaperHover() {
-      const el = paperElRef.current;
-      if (!el) {
-        return false;
-      }
+    return isElHover(el);
+  }, []);
 
-      return isElHover(el);
+  const updateIsActive = useCallback(() => {
+    requestAnimationFrame(() => {
+      setIsActive(isPaperHover());
+    });
+  }, [isPaperHover]);
+
+  const handleExitedMoreOptionsMenu = useCallback(() => {
+    updateIsActive();
+  }, [updateIsActive]);
+
+  const handleClick: PaperProps['onClick'] = (e) => {
+    if (selectNoteTrigger.getIsControlled()) {
+      return;
     }
 
-    const handleClick: PaperProps['onClick'] = (e) => {
-      if (selectNoteTrigger.getIsControlled()) {
-        return;
-      }
+    onClick?.(e);
 
-      props.onClick?.(e);
-
-      if (getCategoryName({ noteId }, client.cache) === NoteCategory.TRASH) {
-        // Prevent editing trashed note
-        return;
-      }
-
-      // Don't open note when any note is selected
-      if (isAnyNoteSelected) {
-        return;
-      }
-
-      void navigateToNote(noteId).finally(() => {
-        updateIsActive();
-      });
-    };
-
-    const handlePointerDown: PaperProps['onPointerDown'] = (e) => {
-      selectNoteTrigger.onPointerDown(e);
-    };
-
-    const handlePointerMove: PaperProps['onPointerMove'] = (e) => {
-      selectNoteTrigger.onPointerMove(e);
-    };
-
-    const handlePointerUp: PaperProps['onPointerUp'] = (e) => {
-      selectNoteTrigger.onPointerUp(e);
-    };
-
-    const handleMouseEnter: PaperProps['onMouseEnter'] = (e) => {
-      props.onMouseEnter?.(e);
-      setIsActive(true);
-    };
-
-    const handleMouseLeave: PaperProps['onMouseLeave'] = (e) => {
-      props.onMouseLeave?.(e);
-      setIsActive(false);
-    };
-
-    function updateIsActive() {
-      requestAnimationFrame(() => {
-        setIsActive(isPaperHover());
-      });
+    if (getCategoryName({ noteId }, client.cache) === NoteCategory.TRASH) {
+      // Prevent editing trashed note
+      return;
     }
 
-    function handleExitedMoreOptionsMenu() {
+    // Don't open note when any note is selected
+    if (isAnyNoteSelected) {
+      return;
+    }
+
+    void navigateToNote(noteId).finally(() => {
       updateIsActive();
-    }
+    });
+  };
+
+  const handlePointerDown: PaperProps['onPointerDown'] = (e) => {
+    selectNoteTrigger.onPointerDown(e);
+  };
+
+  const handlePointerMove: PaperProps['onPointerMove'] = (e) => {
+    selectNoteTrigger.onPointerMove(e);
+  };
+
+  const handlePointerUp: PaperProps['onPointerUp'] = (e) => {
+    selectNoteTrigger.onPointerUp(e);
+  };
+
+  const handleMouseEnter: PaperProps['onMouseEnter'] = (e) => {
+    onMouseEnter?.(e);
+    setIsActive(true);
+  };
+
+  const handleMouseLeave: PaperProps['onMouseLeave'] = (e) => {
+    onMouseLeave?.(e);
+    setIsActive(false);
+  };
+
+  return (
+    <NoteCardPaper
+      ref={(el) => {
+        if (typeof ref === 'function') {
+          ref(el);
+        } else if (ref) {
+          ref.current = el;
+        }
+        paperElRef.current = el;
+      }}
+      aria-label="open note dialog"
+      data-note-id={noteId}
+      data-is-local={localOnly}
+      aria-haspopup={true}
+      {...restProps}
+      selected={isSelected}
+      hidden={isNoteOpen}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onClick={handleClick}
+      active={isActive}
+      ToolbarBoxProps={{
+        active: isActive && !isAnyNoteSelected,
+        children: (
+          <>
+            <MemoizedNoteAlwaysButtons />
+            <MemoizedNoteMoreOptionsButton
+              onTransitionExited={handleExitedMoreOptionsMenu}
+            />
+          </>
+        ),
+      }}
+    />
+  );
+});
+
+const MemoizedNoteAlwaysButtons = memo(NoteAlwaysButtons);
+const MemoizedNoteMoreOptionsButton = memo(function MemoizedNoteMoreOptionsButton({
+  onTransitionExited,
+}: {
+  onTransitionExited?: () => void;
+}) {
+  return (
+    <NoteMoreOptionsButton
+      IconButtonMenuProps={{
+        slotProps: {
+          iconButton: {
+            edge: 'end',
+          },
+          menu: {
+            onTransitionExited,
+          },
+        },
+      }}
+    />
+  );
+});
+
+type NodeCardPaperProps = PaperStyledProps & {
+  ToolbarBoxProps?: ToolbarBoxProps;
+};
+
+const NoteCardPaper = forwardRef<HTMLDivElement, NodeCardPaperProps>(
+  function NoteCardPaper(props, ref) {
+    const { ToolbarBoxProps, ...restProps } = props;
 
     return (
-      <PureNoteCard
-        ref={(el) => {
-          if (typeof ref === 'function') {
-            ref(el);
-          } else if (ref) {
-            ref.current = el;
-          }
-          paperElRef.current = el;
-        }}
-        aria-label="open note dialog"
-        data-note-id={noteId}
-        data-is-local={localOnly}
-        aria-haspopup={true}
-        {...props}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onClick={handleClick}
-        active={isActive}
-        slots={{
-          toolbar: (
-            <>
-              <NoteAlwaysButtons />
-              <NoteMoreOptionsButton
-                IconButtonMenuProps={{
-                  slotProps: {
-                    iconButton: {
-                      edge: 'end',
-                    },
-                    menu: {
-                      onTransitionExited: handleExitedMoreOptionsMenu,
-                    },
-                  },
-                }}
-              />
-            </>
-          ),
-        }}
-        slotProps={{
-          toolbar: {
-            active: isActive && !isAnyNoteSelected,
-          },
-        }}
-      />
+      <DefaultNoteCardPaper ref={ref} {...restProps}>
+        <MainSection />
+        <IsDesktop>
+          <RenderOnActiveToolbarBox {...ToolbarBoxProps} />
+        </IsDesktop>
+      </DefaultNoteCardPaper>
     );
   }
 );
 
-/**
- * NoteCard without complex rerender logic. Used as drag and drop component.
- */
-export const PureNoteCard = forwardRef<
-  HTMLDivElement,
-  Parameters<typeof PaperStyled>[0] & {
-    slots?: {
-      toolbar?: ReactNode;
-    };
-    slotProps?: {
-      toolbar: Parameters<typeof ToolbarBox>[0];
-    };
+function IsDevToolsEnabled({ children }: { children: ReactNode }) {
+  if (!isDevToolsEnabled()) {
+    return null;
   }
->(function PureNoteCard(
-  { slots, slotProps, elevation = 0, variant = 'outlined', ...restProps },
-  ref
-) {
-  const isMobile = useIsMobile();
+
+  return children;
+}
+
+function NoteId() {
   const noteId = useNoteId();
-  const isSelected = useIsNoteSelected(noteId);
 
-  const isToolbarActive = slotProps?.toolbar.active ?? false;
+  return noteId;
+}
 
-  const hasToolbarBeenActiveRef = useRef(isToolbarActive);
-  hasToolbarBeenActiveRef.current = hasToolbarBeenActiveRef.current || isToolbarActive;
-
-  const isRenderingToolbar = hasToolbarBeenActiveRef.current;
-
+function DevRenderNoteId() {
   return (
-    <PaperStyled
-      selected={isSelected}
-      renderingToolbar={!isMobile}
-      {...restProps}
-      elevation={elevation}
-      variant={variant}
-      ref={ref}
-    >
-      {isDevToolsEnabled() && noteId}
+    <IsDevToolsEnabled>
+      <NoteId />
+    </IsDevToolsEnabled>
+  );
+}
+
+const MainSection = memo(function MainSection() {
+  return (
+    <>
+      <DevRenderNoteId />
       <UserAvatarsCornerPosition>
         <OpenedNoteUserAvatars
           max={3}
@@ -241,24 +273,37 @@ export const PureNoteCard = forwardRef<
         }}
       />
       <DeletedInDaysStyled />
-      {!isMobile && (
-        <ToolbarBox {...slotProps?.toolbar}>
-          {isRenderingToolbar && slots?.toolbar}
-        </ToolbarBox>
-      )}
-    </PaperStyled>
+    </>
   );
 });
+
+function RenderOnActiveToolbarBox(props: ToolbarBoxProps) {
+  const { active = false, children } = props;
+
+  const hasToolbarBeenActiveRef = useRef(active);
+  hasToolbarBeenActiveRef.current = hasToolbarBeenActiveRef.current || active;
+
+  const renderToolbarChildren = hasToolbarBeenActiveRef.current;
+
+  return <ToolbarBox {...props}>{renderToolbarChildren && children}</ToolbarBox>;
+}
+
+const DefaultNoteCardPaper = forwardRef<HTMLDivElement, PaperStyledProps>(
+  function DefaultNoteCardPaper(props, ref) {
+    const { elevation = 0, variant = 'outlined', ...restProps } = props;
+
+    return (
+      <PaperStyled ref={ref} {...restProps} elevation={elevation} variant={variant} />
+    );
+  }
+);
 
 function baseStyle({ theme }: { theme: Theme }) {
   return css`
     position: relative;
     display: flex;
     flex-direction: column;
-    padding-left: ${theme.spacing(2)};
-    padding-right: ${theme.spacing(2)};
-    padding-top: ${theme.spacing(2)};
-    padding-bottom: ${theme.spacing(1)};
+    padding: ${theme.spacing(2)};
     border-radius: ${theme.shape.borderRadius * 2}px;
     gap: ${theme.spacing(2)};
     height: 100%;
@@ -267,20 +312,12 @@ function baseStyle({ theme }: { theme: Theme }) {
   `;
 }
 
-const basePaddingBottom = {
-  style: ({
-    renderingToolbar = false,
-    theme,
-  }: { renderingToolbar?: boolean } & { theme: Theme }) => {
-    return css`
-      padding-bottom: ${theme.spacing(renderingToolbar ? 1 : 2)};
-    `;
-  },
-  props: ['renderingToolbar'],
-};
+interface ActiveStyleProps {
+  active?: boolean;
+}
 
 const baseActive = {
-  style: ({ active = false, theme }: { active?: boolean } & { theme: Theme }) => {
+  style: ({ active = false, theme }: ActiveStyleProps & { theme: Theme }) => {
     if (!active) {
       return;
     }
@@ -294,7 +331,7 @@ const baseActive = {
 };
 
 const darkModeActive = {
-  style: ({ active = false, theme }: { active?: boolean } & { theme: Theme }) => {
+  style: ({ active = false, theme }: ActiveStyleProps & { theme: Theme }) => {
     if (!active || theme.palette.mode !== 'dark') {
       return;
     }
@@ -306,8 +343,29 @@ const darkModeActive = {
   props: ['active'],
 };
 
+interface HiddenStyleProps {
+  hidden?: boolean;
+}
+
+const hidden = {
+  style: ({ hidden = false }: HiddenStyleProps) => {
+    if (hidden) {
+      return css`
+        visibility: hidden;
+        pointer-events: none;
+      `;
+    }
+    return;
+  },
+  props: ['hidden'],
+};
+
+interface SelectedStyleProps {
+  selected?: boolean;
+}
+
 const selected = {
-  style: ({ selected = false, theme }: { selected?: boolean } & { theme: Theme }) => {
+  style: ({ selected = false, theme }: SelectedStyleProps & { theme: Theme }) => {
     if (!selected) {
       return;
     }
@@ -321,23 +379,29 @@ const selected = {
   props: ['selected'],
 };
 
+type PaperStyledProps = Parameters<typeof PaperStyled>[0];
+
 const PaperStyled = styled(Paper, {
   shouldForwardProp: mergeShouldForwardProp(
-    basePaddingBottom.props,
     baseActive.props,
     darkModeActive.props,
-    selected.props
+    selected.props,
+    hidden.props
   ),
-})<{ active?: boolean; selected?: boolean; renderingToolbar?: boolean }>(
+})<ActiveStyleProps & SelectedStyleProps & HiddenStyleProps>(
   baseStyle,
-  basePaddingBottom.style,
   baseActive.style,
   darkModeActive.style,
-  selected.style
+  selected.style,
+  hidden.style
 );
 
+interface ToolbarActiveStyleProps {
+  active?: boolean;
+}
+
 const toolbarActive = {
-  style: ({ active = false }: { active?: boolean }) => {
+  style: ({ active = false }: ToolbarActiveStyleProps) => {
     if (active) {
       return css`
         opacity: 1;
@@ -351,9 +415,11 @@ const toolbarActive = {
   props: ['active'],
 };
 
+type ToolbarBoxProps = Parameters<typeof ToolbarBox>[0];
+
 const ToolbarBox = styled(Box, {
   shouldForwardProp: mergeShouldForwardProp(toolbarActive.props),
-})(
+})<ToolbarActiveStyleProps>(
   ({ theme }) => css`
     display: flex;
     justify-content: flex-end;
@@ -363,6 +429,7 @@ const ToolbarBox = styled(Box, {
     })};
     gap: ${theme.spacing(1)};
     min-height: ${theme.spacing(5)};
+    margin-bottom: -${theme.spacing(1)};
   `,
   toolbarActive.style
 );

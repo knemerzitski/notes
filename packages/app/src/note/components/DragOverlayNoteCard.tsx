@@ -1,18 +1,15 @@
 import { css, styled } from '@mui/material';
 
 import { Note } from '../../__generated__/graphql';
-import { useIsMobile } from '../../theme/context/is-mobile';
 import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
 import { NoteIdProvider } from '../context/note-id';
 
-import { PureNoteCard } from './NoteCard';
+import { NoteCard } from './NoteCard';
 
 export function DragOverlayNoteCard({ noteId }: { noteId: Note['id'] }) {
-  const isMobile = useIsMobile();
-
   return (
     <NoteIdProvider noteId={noteId}>
-      <PureNoteCardStyled isMobile={isMobile} selected={true} />
+      <NoteCardStyled selected={true} hidden={false} lightweight={true} />
     </NoteIdProvider>
   );
 }
@@ -30,6 +27,6 @@ const mobileBorderWidth = {
   props: ['isMobile'],
 };
 
-const PureNoteCardStyled = styled(PureNoteCard, {
+const NoteCardStyled = styled(NoteCard, {
   shouldForwardProp: mergeShouldForwardProp(mobileBorderWidth.props),
 })(mobileBorderWidth.style);
