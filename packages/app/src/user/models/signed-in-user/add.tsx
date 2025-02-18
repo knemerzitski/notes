@@ -24,7 +24,7 @@ export function addUser(userId: string, cache: Pick<ApolloCache<unknown>, 'write
           __typename: 'User',
           id: userId,
           local: {
-            __typename: 'LocalSignedInUser',
+            __typename: 'LocalUser',
             id: userId,
             sessionExpired: false,
           },
