@@ -29,7 +29,7 @@ export const NotesCardGrid = forwardRef(function NotesCardGrid(
      * @default 0
      */
     loadingCount?: number;
-    loadingNoteIds?: string[];
+    loadingNoteIds?: readonly string[];
   },
   ref
 ) {

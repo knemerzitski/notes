@@ -9,6 +9,7 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 
 import { Maybe } from '~utils/types';
@@ -19,6 +20,7 @@ import { IsDevToolsEnabled } from '../../dev/components/IsDevToolsEnabled';
 import { useUserId } from '../../user/context/user-id';
 import { useIsLoading } from '../../utils/context/is-loading';
 import { useLogger } from '../../utils/context/logger';
+import { useIsOnline } from '../../utils/hooks/useIsOnline';
 import { useOnIntersecting } from '../../utils/hooks/useOnIntersecting';
 import { useNoteId } from '../context/note-id';
 import { NoteIdsProvider } from '../context/note-ids';
@@ -62,6 +64,9 @@ const NotesConnectionGrid_Query = gql(`
 
 // TODO reuse logic in NotesSearchConnection
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const EMPTY_LIST: readonly any[] = [];
+
 export function NotesConnectionGrid({
   perPageCount,
   category = NoteCategory.DEFAULT,
@@ -94,7 +99,15 @@ export function NotesConnectionGrid({
 
   const userId = useUserId();
 
+  const [isFetching, setIsFetching] = useState(false);
+
+  const isOnline = useIsOnline();
+
   const fetchMoreStateRef = useRef<{
+    bind: {
+      userId: string;
+      category: NoteCategory;
+    };
     intersectedNoteIds: Set<string>;
     isFetching: boolean;
     hasRequestedMore: boolean;
@@ -102,13 +115,43 @@ export function NotesConnectionGrid({
       triggerNoteId: string;
       endCursor: string | number;
     } | null;
+    firstTimeTriggered: boolean;
+    lastTriggerTime: number;
   }>({
+    bind: {
+      userId,
+      category,
+    },
     intersectedNoteIds: new Set(),
     isFetching: false,
     hasRequestedMore: false,
     fetchMore: null,
+    firstTimeTriggered: false,
+    lastTriggerTime: Date.now(),
   });
-  const hasTriggeredFirstTimeFetchMoreRef = useRef(false);
+
+  // Reset state when category or userId changed
+  useEffect(() => {
+    const state = fetchMoreStateRef.current;
+    if (state.bind.userId === userId && state.bind.category === category) {
+      return;
+    }
+
+    logger?.debug('state:reset');
+
+    fetchMoreStateRef.current = {
+      bind: {
+        userId,
+        category,
+      },
+      intersectedNoteIds: new Set(),
+      isFetching: false,
+      hasRequestedMore: false,
+      fetchMore: null,
+      firstTimeTriggered: false,
+      lastTriggerTime: Date.now(),
+    };
+  }, [category, userId, logger]);
 
   const { data, error, fetchMore } = useQuery(NotesConnectionGrid_Query, {
     variables: {
@@ -152,14 +195,31 @@ export function NotesConnectionGrid({
       }
 
       if (state.isFetching) {
-        logger?.debug('safeFetchMore:pending.requesting');
+        logger?.debug('safeFetchMore:pending.isRequestingMore');
         state.hasRequestedMore = true;
         return;
       }
 
-      logger?.debug('safeFetchMore:triggered');
-
       state.isFetching = true;
+      setIsFetching(true);
+
+      const delay = Math.max(
+        0,
+        infiniteLoadingDelay - (Date.now() - state.lastTriggerTime)
+      );
+      logger?.debug('safeFetchMore:waitDelay', delay);
+      await new Promise((res) => {
+        setTimeout(() => {
+          logger?.debug('safeFetchMore:delayElapsed');
+          res(true);
+        }, delay);
+      });
+
+      logger?.debug('safeFetchMore:triggered', {
+        trigger: state.fetchMore.triggerNoteId,
+        end: state.fetchMore.endCursor,
+      });
+
       try {
         const { data } = await fetchMore({
           variables: {
@@ -168,6 +228,8 @@ export function NotesConnectionGrid({
             category,
           },
         });
+        logger?.debug('safeFetchMore:result:clearFetchMore');
+        state.lastTriggerTime = Date.now();
         state.fetchMore = null;
 
         const fragmentData = getFragmentData(
@@ -192,11 +254,18 @@ export function NotesConnectionGrid({
           .filter((noteLink) => !noteLink.excludeFromConnection)
           .map((edge) => edge.note.id);
 
+        logger?.debug('safeFetchMore:result', { newNoteIds, nextEndCursor });
+
         const lastNoteId = newNoteIds[newNoteIds.length - 1];
         if (lastNoteId == null) {
           logger?.debug('safeFetchMore:result:noLastNoteId');
           return;
         }
+
+        logger?.debug('safeFetchMore:result:updateFetchMore', {
+          triggerNoteId: lastNoteId,
+          endCursor: nextEndCursor,
+        });
 
         state.fetchMore = {
           triggerNoteId: lastNoteId,
@@ -204,16 +273,13 @@ export function NotesConnectionGrid({
         };
         state.hasRequestedMore = true;
       } finally {
-        setTimeout(() => {
-          state.isFetching = false;
-          if (state.hasRequestedMore) {
-            state.hasRequestedMore = false;
-            if (state.fetchMore) {
-              logger?.debug('safeFetchMore:delayElapsed');
-              void safeFetchMore();
-            }
-          }
-        }, infiniteLoadingDelay);
+        setIsFetching(false);
+        state.isFetching = false;
+
+        if (state.hasRequestedMore) {
+          state.hasRequestedMore = false;
+          void safeFetchMore();
+        }
       }
     },
     [category, definedPerPageCount, fetchMore, infiniteLoadingDelay, logger]
@@ -222,19 +288,25 @@ export function NotesConnectionGrid({
   const handleIntersectingOnceNoteId = useCallback(
     (noteId: Note['id']) => {
       fetchMoreStateRef.current.intersectedNoteIds.add(noteId);
+      logger?.debug('handleIntersectingOnceNoteId', noteId);
       void safeFetchMore();
     },
-    [safeFetchMore]
+    [safeFetchMore, logger]
   );
 
   // Run fetchMore once after first query
   useEffect(() => {
-    if (hasTriggeredFirstTimeFetchMoreRef.current) {
+    // Dont run first fetchMore until parent has finished loading
+    if (isParentLoading) {
+      logger?.debug('firstTimeFetchMore:parentStillLoading');
       return;
     }
 
-    logger?.debug('firstTimeFetchMore');
     const state = fetchMoreStateRef.current;
+
+    if (state.firstTimeTriggered) {
+      return;
+    }
 
     if (!data) {
       logger?.debug('firstTimeFetchMore:noData');
@@ -265,12 +337,20 @@ export function NotesConnectionGrid({
       .filter((noteLink) => !noteLink.excludeFromConnection)
       .map((edge) => edge.note.id);
 
+    logger?.debug('firstTimeFetchMore:result', { newNoteIds, nextEndCursor });
+
     const lastNoteId = newNoteIds[newNoteIds.length - 1];
     if (lastNoteId == null) {
+      logger?.debug('firstTimeFetchMore:noLastId');
       return;
     }
 
-    hasTriggeredFirstTimeFetchMoreRef.current = true;
+    state.firstTimeTriggered = true;
+
+    logger?.debug('firstTimeFetchMore:updateFetchMore', {
+      triggerNoteId: lastNoteId,
+      endCursor: nextEndCursor,
+    });
 
     state.fetchMore = {
       triggerNoteId: lastNoteId,
@@ -278,7 +358,14 @@ export function NotesConnectionGrid({
     };
 
     void safeFetchMore();
-  }, [data, definedPerPageCount, logger, safeFetchMore]);
+  }, [
+    data,
+    definedPerPageCount,
+    logger,
+    safeFetchMore,
+    isParentLoading,
+    infiniteLoadingDelay,
+  ]);
 
   if (error) {
     return (
@@ -290,46 +377,64 @@ export function NotesConnectionGrid({
 
   function calcLoading() {
     const state = fetchMoreStateRef.current;
-    if (state.isFetching) {
-      const more = state.fetchMore;
-      if (more && noteIds) {
-        const triggerIndex = noteIds.indexOf(more.triggerNoteId);
-        if (triggerIndex >= 0) {
-          const startIndex = triggerIndex + 1;
-          const endIndex = startIndex + definedPerPageCount;
+    if (isFetching && state.fetchMore != null && noteIds != null) {
+      const triggerIndex = noteIds.indexOf(state.fetchMore.triggerNoteId);
+      if (triggerIndex >= 0) {
+        const startIndex = triggerIndex + 1;
+        const endIndex = startIndex + definedPerPageCount;
 
-          const result = {
-            loadingCount: Math.max(0, endIndex - noteIds.length),
-            loadingNoteIds: noteIds.slice(startIndex, endIndex),
-          };
+        const result = {
+          loadingCount: Math.max(0, endIndex - noteIds.length),
+          loadingNoteIds: noteIds.slice(startIndex, endIndex),
+        };
 
-          logger?.debug('calcLoading:advanced', result);
+        logger?.debug('calcLoading:fetchMore:advanced', {
+          result,
+          fetchMore: { ...state.fetchMore },
+          noteIds: [...noteIds],
+        });
 
-          return result;
-        }
+        return result;
       }
     }
 
     // Default loading from parent
     if (isParentLoading) {
-      logger?.debug('calcLoading:fromParent');
-      return {
-        loadingCount: definedPerPageCount,
-        loadingNoteIds: [],
+      if (!noteIds) {
+        logger?.debug('calcLoading:fromParent:simple', { definedPerPageCount });
+
+        return {
+          loadingCount: definedPerPageCount,
+          loadingNoteIds: EMPTY_LIST,
+        };
+      }
+
+      const startIndex = 0;
+      const endIndex = startIndex + definedPerPageCount;
+
+      const result = {
+        loadingCount: Math.max(0, endIndex - noteIds.length),
+        loadingNoteIds: noteIds.slice(startIndex, endIndex),
       };
+
+      logger?.debug('calcLoading:fromParent:advanced', result);
+
+      return result;
     }
 
     logger?.debug('calcLoading:default');
 
     return {
       loadingCount: 0,
-      loadingNoteIds: [],
+      loadingNoteIds: EMPTY_LIST,
     };
   }
 
   const { loadingCount, loadingNoteIds } = calcLoading();
 
-  const isLoadingSomething = loadingCount > 0 || loadingNoteIds.length > 0;
+  const isLoadingSomething = isOnline
+    ? loadingCount > 0 || loadingNoteIds.length > 0
+    : false;
 
   if (!isLoadingSomething && noteIds != null && noteIds.length === 0 && emptyElement) {
     return emptyElement;
@@ -341,8 +446,8 @@ export function NotesConnectionGrid({
     <RootBoxStyled>
       <DevClearListButton category={category} />
       <NotesCardGrid
-        loadingCount={loadingCount}
-        loadingNoteIds={loadingNoteIds}
+        loadingCount={isOnline ? loadingCount : 0}
+        loadingNoteIds={isOnline ? loadingNoteIds : EMPTY_LIST}
         noteCard={
           <IntersectOnceNoteCard
             sortable={isSortableCategory}
@@ -362,7 +467,9 @@ export function NotesConnectionGrid({
   );
 
   return (
-    <NoteIdsProvider noteIds={noteIds ?? []}>{maybeSortableElement}</NoteIdsProvider>
+    <NoteIdsProvider noteIds={noteIds ?? EMPTY_LIST}>
+      {maybeSortableElement}
+    </NoteIdsProvider>
   );
 }
 
