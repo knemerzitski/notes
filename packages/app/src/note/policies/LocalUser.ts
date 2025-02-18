@@ -9,6 +9,11 @@ export const LocalUser: CreateTypePolicyFn = function () {
           return existing;
         },
       }),
+      outdatedNotes: fieldArrayToMap('id', {
+        read(existing = {}) {
+          return existing;
+        },
+      }),
       unsavedCollabServices: fieldArrayToMap('id', {
         read(existing = {}) {
           return existing;

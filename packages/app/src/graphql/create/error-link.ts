@@ -50,21 +50,25 @@ export function createErrorLink({
           throw new Error('Expected find userId in operation to show GraphQL errors');
         }
 
-        // By default write message to cache and then it will be shown to user
+        const context = operation.getContext();
+        const skipMessage = context.skipAddUserMessageOnError ?? false;
 
-        userIdsAffectedByError.forEach((userId) => {
-          addUserMessages(
-            userId,
-            [
-              {
-                type: UserMessageType.ERROR,
-                id: generateMessageId(),
-                text: err.message,
-              },
-            ],
-            client.cache
-          );
-        });
+        if (!skipMessage) {
+          // By default write message to cache and then it will be shown to user
+          userIdsAffectedByError.forEach((userId) => {
+            addUserMessages(
+              userId,
+              [
+                {
+                  type: UserMessageType.ERROR,
+                  id: generateMessageId(),
+                  text: err.message,
+                },
+              ],
+              client.cache
+            );
+          });
+        }
       }
     });
 

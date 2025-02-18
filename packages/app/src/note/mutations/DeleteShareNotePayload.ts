@@ -1,6 +1,6 @@
 import { gql } from '../../__generated__';
 import { mutationDefinition } from '../../graphql/utils/mutation-definition';
-import { deleteNoteShareAccess } from '../models/note/set-share-id';
+import { deleteNoteShareAccess } from '../models/note/delete-note-share-access';
 
 export const DeleteShareNotePayload = mutationDefinition(
   gql(`

@@ -36,6 +36,14 @@ declare module '@apollo/client' {
      * Current operation response is from a subscription
      */
     isSubscriptionOperation?: boolean;
+
+    /**
+     * Skip adding error to user message.
+     * Set this to `true` if error is expected and shouldn't be displayed to user.
+     * Doesn't work on `UNAUTHENTICATED` errors.
+     * @default false
+     */
+    skipAddUserMessageOnError?: boolean;
   }
 }
 

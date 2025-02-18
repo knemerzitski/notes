@@ -338,20 +338,37 @@ export function relayStylePagination<TNode extends Reference = Reference>(
 
       // Preserve edges unknown by args
       if (rootGetCursor && preserveEdgesUnknownByArgs([], options)) {
-        const missingEdges = existingEdges.filter(
-          (existingEdge) =>
-            !edges.find(
-              (resultEdge) =>
-                (resultEdge.cursor ?? rootGetCursor(resultEdge, options)) ===
-                (existingEdge.cursor ?? rootGetCursor(existingEdge, options))
-            )
-        );
-        if (preserveEdgesUnknownByArgs(missingEdges, options)) {
+        const definedRootGetCursor = rootGetCursor;
+        function isEqualEdge(a: TRelayEdge<TNode>, b: TRelayEdge<TNode>) {
+          return (
+            (a.cursor ?? definedRootGetCursor(a, options)) ===
+            (b.cursor ?? definedRootGetCursor(b, options))
+          );
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const limit: Maybe<number> = args?.first ?? args?.last;
+        const boundedMissingEdges =
+          limit != null
+            ? existingEdges
+                .slice(0, limit)
+                .filter(
+                  (existingEdge) =>
+                    !edges.find((resultEdge) => isEqualEdge(existingEdge, resultEdge))
+                )
+            : [];
+        const remainingMissingEdges = existingEdges
+          .slice(limit ?? 0)
+          .filter(
+            (existingEdge) =>
+              !edges.find((resultEdge) => isEqualEdge(existingEdge, resultEdge))
+          );
+        if (preserveEdgesUnknownByArgs(boundedMissingEdges, options)) {
           const push = args?.after != null || args?.first != null;
           if (push) {
-            edges.push(...missingEdges);
+            edges.push(...boundedMissingEdges, ...remainingMissingEdges);
           } else {
-            edges.unshift(...missingEdges);
+            edges.unshift(...boundedMissingEdges, ...remainingMissingEdges);
           }
         }
       }
