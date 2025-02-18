@@ -4,7 +4,6 @@ import { forwardRef, memo, ReactNode, useCallback, useRef, useState } from 'reac
 
 import { gql } from '../../__generated__';
 import { NoteCategory } from '../../__generated__/graphql';
-import { isDevToolsEnabled } from '../../dev/utils/dev-tools';
 import { IsDesktop } from '../../utils/components/IsDesktop';
 import { isElHover } from '../../utils/is-el-hover';
 import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
@@ -28,6 +27,7 @@ import { NoteMoreOptionsButton } from './NoteMoreOptionsButton';
 import { OpenedNoteUserAvatars } from './OpenedNoteUserAvatars';
 import { TitleTypography } from './TitleTypography';
 import { UserAvatarsCornerPosition } from './UserAvatarsCornerPosition';
+import { IsDevToolsEnabled } from '../../dev/components/IsDevToolsEnabled';
 
 const _NoteCard_UserNoteLinkFragment = gql(`
   fragment NoteCard_UserNoteLinkFragment on UserNoteLink {
@@ -229,14 +229,6 @@ const NoteCardPaper = forwardRef<HTMLDivElement, NodeCardPaperProps>(
     );
   }
 );
-
-function IsDevToolsEnabled({ children }: { children: ReactNode }) {
-  if (!isDevToolsEnabled()) {
-    return null;
-  }
-
-  return children;
-}
 
 function NoteId() {
   const noteId = useNoteId();
