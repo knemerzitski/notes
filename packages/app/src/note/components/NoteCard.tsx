@@ -14,7 +14,9 @@ import { forwardRef, memo, useCallback, useMemo, useRef, useState } from 'react'
 
 import { gql } from '../../__generated__';
 import { NoteCategory } from '../../__generated__/graphql';
+import { IsDevToolsEnabled } from '../../dev/components/IsDevToolsEnabled';
 import { IsDesktop } from '../../utils/components/IsDesktop';
+import { IsLoading } from '../../utils/components/IsLoading';
 import { isElHover } from '../../utils/is-el-hover';
 import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
 
@@ -35,11 +37,9 @@ import { DeletedInDays } from './DeletedInDays';
 import { NoteAlwaysButtons } from './NoteAlwaysButtons';
 import { NoteMoreOptionsButton } from './NoteMoreOptionsButton';
 import { OpenedNoteUserAvatars } from './OpenedNoteUserAvatars';
+import { SyncOutdatedNote } from './SyncOutdatedNote';
 import { TitleTypography } from './TitleTypography';
 import { UserAvatarsCornerPosition } from './UserAvatarsCornerPosition';
-import { IsLoading } from '../../utils/components/IsLoading';
-import { IsDevToolsEnabled } from '../../dev/components/IsDevToolsEnabled';
-import { SyncOutdatedNote } from './SyncOutdatedNote';
 
 const _NoteCard_UserNoteLinkFragment = gql(`
   fragment NoteCard_UserNoteLinkFragment on UserNoteLink {

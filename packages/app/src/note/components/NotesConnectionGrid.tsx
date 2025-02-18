@@ -1,4 +1,5 @@
 import { useApolloClient, useQuery } from '@apollo/client';
+import BugReportIcon from '@mui/icons-material/BugReport';
 import { Alert, Box, Button, css, styled } from '@mui/material';
 import {
   forwardRef,
@@ -10,23 +11,23 @@ import {
   useRef,
 } from 'react';
 
+import { Maybe } from '~utils/types';
+
 import { getFragmentData, gql, makeFragmentData } from '../../__generated__';
 import { Note, NoteCategory } from '../../__generated__/graphql';
+import { IsDevToolsEnabled } from '../../dev/components/IsDevToolsEnabled';
 import { useUserId } from '../../user/context/user-id';
+import { useIsLoading } from '../../utils/context/is-loading';
+import { useLogger } from '../../utils/context/logger';
+import { useOnIntersecting } from '../../utils/hooks/useOnIntersecting';
+import { useNoteId } from '../context/note-id';
 import { NoteIdsProvider } from '../context/note-ids';
 import { toMovableNoteCategory } from '../utils/note-category';
 
+import { NoteCard } from './NoteCard';
 import { NotesCardGrid } from './NotesCardGrid';
 import { SortableNoteCard } from './SortableNoteCard';
 import { SortableNotesContext } from './SortableNotesContext';
-import { NoteCard } from './NoteCard';
-import { useOnIntersecting } from '../../utils/hooks/useOnIntersecting';
-import { useNoteId } from '../context/note-id';
-import { Maybe } from '~utils/types';
-import { useIsLoading } from '../../utils/context/is-loading';
-import { useLogger } from '../../utils/context/logger';
-import { IsDevToolsEnabled } from '../../dev/components/IsDevToolsEnabled';
-import BugReportIcon from '@mui/icons-material/BugReport';
 
 const NotesConnectionGrid_UserNoteLinkConnectionFragment = gql(`
   fragment NotesConnectionGrid_UserNoteLinkConnectionFragment on UserNoteLinkConnection {

@@ -1,4 +1,5 @@
 import { Maybe } from '~utils/types';
+
 import { NoteCategory } from '../../__generated__/graphql';
 import { DateTimeNullable } from '../../graphql/scalars/DateTime';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
