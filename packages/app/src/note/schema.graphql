@@ -69,7 +69,7 @@ type NoteTextField {
   editor: NoteTextFieldEditor!
 }
 
-################################ LocalSignedInUser.pendingNotes ################################
+################################ LocalUser.pendingNotes ################################
 
 """
 TODO desc
@@ -119,7 +119,7 @@ extend type UserNoteLink {
 #   hidden: Boolean!
 # }
 
-extend type LocalSignedInUser {
+extend type LocalUser {
   """
   A list of notes tied to creating new notes.
   Each note should have non-null field `pendingStatus`.
@@ -127,9 +127,9 @@ extend type LocalSignedInUser {
   pendingNotes: [UserNoteLink!]!
 }
 
-################################ LocalSignedInUser.unsavedCollabServices ################################
+################################ LocalUser.unsavedCollabServices ################################
 
-extend type LocalSignedInUser {
+extend type LocalUser {
   """
   List of notes that has CollabService with either local or unsubmitted changes.
   These notes must be synchronized with the server.

@@ -31,7 +31,7 @@ it('adds operation', () => {
     cache
   );
 
-  expect(cache.extract()[`LocalSignedInUser:${userId}`]?.operations)
+  expect(cache.extract()[`LocalUser:${userId}`]?.operations)
     .toMatchInlineSnapshot(`
     {
       "someOpId": {

@@ -10,7 +10,7 @@ import { SignIn } from './mutations/SignIn';
 import { SignOut } from './mutations/SignOut';
 import { UpdateSignedInUserDisplayName } from './mutations/UpdateSignedInUserDisplayName';
 import { UpdateSignedInUserDisplayNamePayload } from './mutations/UpdateSignedInUserDisplayNamePayload';
-import { LocalSignedInUser } from './policies/LocalSignedInUser';
+import { LocalUser } from './policies/LocalUser';
 import { evictOptions as Query_evictOptions, Query } from './policies/Query';
 import { User } from './policies/User';
 import { UserOperation } from './policies/UserOperation';
@@ -19,7 +19,7 @@ export const userPolicies: CreateTypePoliciesFn = function (ctx) {
   return {
     Query: Query(ctx),
     User: User(ctx),
-    LocalSignedInUser: LocalSignedInUser(ctx),
+    LocalUser: LocalUser(ctx),
     UserOperation: UserOperation(ctx),
   };
 };

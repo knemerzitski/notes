@@ -63,7 +63,7 @@ export function addUserOperations(
         __typename: 'User',
         id: userId,
         local: {
-          __typename: 'LocalSignedInUser',
+          __typename: 'LocalUser',
           id: userId,
           operations: operations.map<Operation>((op) => ({
             id: op.id ?? nanoid(),

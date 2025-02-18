@@ -17,7 +17,7 @@ export const User: CreateTypePolicyFn = function () {
         }
 
         return toReference({
-          __typename: 'LocalSignedInUser',
+          __typename: 'LocalUser',
           id,
         });
       },
