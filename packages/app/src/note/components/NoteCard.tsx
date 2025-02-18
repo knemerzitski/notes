@@ -1,5 +1,15 @@
 import { useApolloClient } from '@apollo/client';
-import { alpha, Box, css, Paper, PaperProps, styled, Theme } from '@mui/material';
+import {
+  alpha,
+  Box,
+  CircularProgress,
+  css,
+  Paper,
+  PaperProps,
+  styled,
+  Theme,
+  Tooltip,
+} from '@mui/material';
 import { forwardRef, memo, useCallback, useMemo, useRef, useState } from 'react';
 
 import { gql } from '../../__generated__';
@@ -27,6 +37,7 @@ import { NoteMoreOptionsButton } from './NoteMoreOptionsButton';
 import { OpenedNoteUserAvatars } from './OpenedNoteUserAvatars';
 import { TitleTypography } from './TitleTypography';
 import { UserAvatarsCornerPosition } from './UserAvatarsCornerPosition';
+import { IsLoading } from '../../utils/components/IsLoading';
 import { IsDevToolsEnabled } from '../../dev/components/IsDevToolsEnabled';
 
 const _NoteCard_UserNoteLinkFragment = gql(`
@@ -248,6 +259,7 @@ function DevRenderNoteId() {
 const MainSection = memo(function MainSection() {
   return (
     <>
+      <DuringLoadingNoteRefreshingProgress />
       <DevRenderNoteId />
       <UserAvatarsCornerPosition>
         <OpenedNoteUserAvatars
@@ -270,6 +282,30 @@ const MainSection = memo(function MainSection() {
   );
 });
 
+function DuringLoadingNoteRefreshingProgress() {
+  return (
+    <IsLoading>
+      <NoteRefreshingProgress />
+    </IsLoading>
+  );
+}
+
+const NoteRefreshingProgress = memo(function NoteRefreshingProgress() {
+  return (
+    <Tooltip title="Refreshing">
+      <TopRightProgress size="3em" />
+    </Tooltip>
+  );
+});
+
+const TopRightProgress = styled(CircularProgress)(
+  ({ theme }) => css`
+    position: absolute;
+    right: ${theme.spacing(0.5)};
+    top: ${theme.spacing(0.5)};
+    font-size: 0.5em;
+  `
+);
 
 const MemoizedDesktopOnActiveToolbarBox = memo(function MemoizedDesktopOnActiveToolbarBox(
   props: Parameters<typeof RenderOnActiveToolbarBox>[0]
