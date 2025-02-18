@@ -1,15 +1,17 @@
 import { useApolloClient, useQuery } from '@apollo/client';
-import { gql } from '../../__generated__';
-import { useNoteId } from '../context/note-id';
-import { useUserId } from '../../user/context/user-id';
+
 import { useEffect, useRef } from 'react';
-import { handleNoteError } from '../utils/handle-error';
-import { getConnectionCategoryName } from '../models/note/connection-category-name';
-import { getUserNoteLinkId } from '../utils/id';
-import { moveNoteInConnection } from '../models/note-connection/move';
+
+import { gql } from '../../__generated__';
+import { useUserId } from '../../user/context/user-id';
 import { useLogger } from '../../utils/context/logger';
-import { updateUserNoteLinkOutdated } from '../models/note/outdated';
+import { useNoteId } from '../context/note-id';
 import { getCategoryName } from '../models/note/category-name';
+import { getConnectionCategoryName } from '../models/note/connection-category-name';
+import { updateUserNoteLinkOutdated } from '../models/note/outdated';
+import { moveNoteInConnection } from '../models/note-connection/move';
+import { handleNoteError } from '../utils/handle-error';
+import { getUserNoteLinkId } from '../utils/id';
 
 const SyncOutdatedNote_WatchQuery = gql(`
   query SyncOutdatedNote_WatchQuery($userBy: UserByInput!, $noteBy: NoteByInput!) {

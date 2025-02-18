@@ -3,8 +3,8 @@ import { createFileRoute } from '@tanstack/react-router';
 import { gql } from '../__generated__';
 import { NotesMain } from '../note/components/NotesMain';
 import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
-import { routeFetchPolicy } from '../utils/route-fetch-policy';
 import { IsLoadingProvider } from '../utils/context/is-loading';
+import { routeFetchPolicy } from '../utils/route-fetch-policy';
 
 const RouteNotes_Query = gql(`
   query RouteNotes_Query($userBy: UserByInput!, $default_first: NonNegativeInt, $default_after: ObjectID) {

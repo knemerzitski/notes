@@ -7,11 +7,11 @@ import { isObjectLike } from '~utils/type-guards/is-object-like';
 import { NoteCategory } from '../../__generated__/graphql';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
 import { relayStylePagination } from '../../graphql/utils/relay-style-pagination';
+import { updateUserNoteLinkOutdated } from '../models/note/outdated';
 import { throwNoteNotFoundError } from '../utils/errors';
 import { getUserNoteLinkId } from '../utils/id';
 
 import { readNoteExternalState } from './Note/_external';
-import { updateUserNoteLinkOutdated } from '../models/note/outdated';
 
 export const User: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
   return {
