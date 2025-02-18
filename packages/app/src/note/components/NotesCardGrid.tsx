@@ -3,12 +3,13 @@ import { Box, css, Skeleton, styled } from '@mui/material';
 import { forwardRef, ReactNode } from 'react';
 
 import { gql } from '../../__generated__';
-import { useIsLoading } from '../../utils/context/is-loading';
+import { IsLoadingProvider } from '../../utils/context/is-loading';
 import { NoteIdProvider } from '../context/note-id';
 
 import { useNoteIds } from '../context/note-ids';
 
 import { NoteCard } from './NoteCard';
+import { Note } from '../../__generated__/graphql';
 
 const _NotesCardGrid_UserNoteLinkFragment = gql(`
   fragment NotesCardGrid_UserNoteLinkFragment on UserNoteLink {
@@ -19,36 +20,35 @@ const _NotesCardGrid_UserNoteLinkFragment = gql(`
 export const NotesCardGrid = forwardRef(function NotesCardGrid(
   {
     noteCard = <NoteCard />,
-    defaultLoadingCount = 5,
+    loadingCount = 0,
+    loadingNoteIds = [],
   }: {
     noteCard?: ReactNode;
     /**
-     * Display skeleton cards instead of actual content.
-     * @default 5
+     * Display sketeton cards at the end
+     * @default 0
      */
-    defaultLoadingCount?: number;
+    loadingCount?: number;
+    loadingNoteIds?: string[];
   },
   ref
 ) {
-  const isLoading = useIsLoading();
   const noteIds = useNoteIds(true) ?? [];
 
-  if (isLoading) {
-    return (
-      <BoxStyled>
-        {[...new Array<undefined>(defaultLoadingCount)].map((_value, index) => (
-          <SkeletonStyled key={index} variant="rounded" animation="wave" />
-        ))}
-      </BoxStyled>
-    );
+  function noteCardElement(noteId: Note['id']) {
+    const isLoading = loadingNoteIds.includes(noteId);
+    return <IsLoadingProvider isLoading={isLoading}>{noteCard}</IsLoadingProvider>;
   }
 
   return (
     <BoxStyled ref={ref}>
       {noteIds.map((renderNoteId) => (
         <NoteIdProvider key={renderNoteId} noteId={renderNoteId}>
-          {noteCard}
+          {noteCardElement(renderNoteId)}
         </NoteIdProvider>
+      ))}
+      {[...new Array<undefined>(loadingCount)].map((_value, index) => (
+        <SkeletonStyled key={index} variant="rounded" animation="wave" />
       ))}
     </BoxStyled>
   );
