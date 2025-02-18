@@ -26,6 +26,7 @@ import { Maybe } from '~utils/types';
 import { useIsLoading } from '../../utils/context/is-loading';
 import { useLogger } from '../../utils/context/logger';
 import { IsDevToolsEnabled } from '../../dev/components/IsDevToolsEnabled';
+import BugReportIcon from '@mui/icons-material/BugReport';
 
 const NotesConnectionGrid_UserNoteLinkConnectionFragment = gql(`
   fragment NotesConnectionGrid_UserNoteLinkConnectionFragment on UserNoteLinkConnection {
@@ -410,7 +411,20 @@ function ClearListButton({ category }: { category: NoteCategory }) {
     });
   }
 
-  return <Button onClick={handleClearList}>Clear list</Button>;
+  return (
+    <Button
+      color="warning"
+      onClick={handleClearList}
+      variant="contained"
+      size="small"
+      sx={{
+        alignSelf: 'flex-end',
+      }}
+    >
+      <BugReportIcon fontSize="small" />
+      Dev Clear list
+    </Button>
+  );
 }
 
 const IntersectOnceNoteCard = memo(
