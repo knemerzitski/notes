@@ -2,6 +2,7 @@ import { Button, ButtonProps, CircularProgress, css, styled } from '@mui/materia
 
 import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
 
+// TODO will unused component after search refactor?
 export function LoadMoreButton({
   isLoading,
   onLoad,
