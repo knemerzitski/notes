@@ -84,7 +84,7 @@ export const User: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
           return existing;
         },
         // Preserve local edges (when merging incoming from server) by checking node.note.localOnly
-        preserveEdge(edge, { readField }) {
+        preserveEdgeInPosition(edge, { readField }) {
           const node = readField('node', edge);
           if (!isReference(node)) {
             return false;
@@ -96,6 +96,11 @@ export const User: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
           }
 
           return !!readField('localOnly', note);
+        },
+        // Never remove any edges
+        preserveEdgesUnknownByArgs(_missingEdges, _options) {
+          // TODO mark note: location unknown
+          return true;
         },
         /**
          * Currently noteLinkConnection cursors are derived from Note.id

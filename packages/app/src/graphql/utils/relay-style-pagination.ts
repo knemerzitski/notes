@@ -4,7 +4,6 @@
  * Added customization options RelayStylePaginationOptions
  */
 
- 
 import { FieldFunctionOptions, FieldPolicy, Reference } from '@apollo/client';
 import { SafeReadonly } from '@apollo/client/cache/core/types/common';
 import { mergeDeep } from '@apollo/client/utilities';
@@ -61,11 +60,16 @@ export interface RelayStylePaginationOptions<TNode> {
     existing: SafeReadonly<TExistingRelay<TNode> | null> | undefined,
     options: FieldFunctionOptions
   ) => TExistingRelay<TNode> | null | undefined;
+
   /**
    * Any edges that pass this predicate are always preserved
-   * regardless of incoming data.
+   * at its current position regardless of incoming data.
    */
-  preserveEdge?: (edge: TRelayEdge<TNode>, options: FieldFunctionOptions) => boolean;
+  preserveEdgeInPosition?: (
+    edge: TRelayEdge<TNode>,
+    options: FieldFunctionOptions
+  ) => boolean;
+
   /**
    * Optional function to get cursor from any edge
    */
@@ -73,6 +77,7 @@ export interface RelayStylePaginationOptions<TNode> {
     edge: TRelayEdge<TNode> | undefined,
     options: FieldFunctionOptions
   ) => string | undefined;
+
   /**
    * Treat edges as a ordered set. Does not allow duplicates.
    * Incoming will delete from existing before merging.
@@ -82,6 +87,36 @@ export interface RelayStylePaginationOptions<TNode> {
    * @default false
    */
   isOrderedSet?: boolean;
+
+  /**
+   * Preserve edges which state is unknown according to provided arguments.
+   *
+   * E.g. existing [1,2,3,4], incoming [1,2], args {first: 2} => preserving [3,4],
+   * end result stays [1,2,3,4]
+   *
+   * E.g. existing [1,2,3], incoming [1,3], args {first: 2} => push [2] to end,
+   * End result is [1,3,2].
+   *
+   * @param movedEdges List of edges that had their order changed to respect provided arguments.
+   * @default false
+   */
+  preserveEdgesUnknownByArgs?:
+    | ((
+        missingEdges: readonly TRelayEdge<TNode>[],
+        options: FieldFunctionOptions
+      ) => boolean)
+    | boolean;
+}
+
+function preserveEdgesUnknownByArgsToFunction<TNode>(
+  fnOrBool: RelayStylePaginationOptions<TNode>['preserveEdgesUnknownByArgs']
+) {
+  if (typeof fnOrBool === 'function') {
+    return fnOrBool;
+  } else if (typeof fnOrBool === 'boolean') {
+    return () => fnOrBool;
+  }
+  return () => false;
 }
 
 // As proof of the flexibility of field policies, this function generates
@@ -93,8 +128,11 @@ export function relayStylePagination<TNode extends Reference = Reference>(
 ): RelayFieldPolicy<TNode> {
   const rootRead = rootOptions?.read;
   const isOrderedSet = rootOptions?.isOrderedSet ?? false;
-  const rootPreserveEdge = rootOptions?.preserveEdge;
+  const rootPreserveEdgeInPosition = rootOptions?.preserveEdgeInPosition;
   const rootGetCursor = rootOptions?.getCursor;
+  const preserveEdgesUnknownByArgs = preserveEdgesUnknownByArgsToFunction(
+    rootOptions?.preserveEdgesUnknownByArgs
+  );
   return {
     keyArgs,
     read(existing, options) {
@@ -160,8 +198,10 @@ export function relayStylePagination<TNode extends Reference = Reference>(
         existing = makeEmptyData();
       }
 
-      const preserveEdge: ((node: TRelayEdge<TNode>) => boolean) | undefined =
-        rootPreserveEdge ? (item) => !rootPreserveEdge(item, options) : undefined;
+      const canReplaceEdge: ((node: TRelayEdge<TNode>) => boolean) | undefined =
+        rootPreserveEdgeInPosition
+          ? (item) => !rootPreserveEdgeInPosition(item, options)
+          : undefined;
 
       if (!incoming) {
         return existing;
@@ -215,7 +255,7 @@ export function relayStylePagination<TNode extends Reference = Reference>(
       let prefix = existingEdges;
       let suffix: typeof prefix = [];
 
-      if (!preserveEdge) {
+      if (!canReplaceEdge) {
         if (args?.after != null) {
           // This comparison does not need to use readField("cursor", edge),
           // because we stored the cursor field of any Reference edges as an
@@ -243,7 +283,7 @@ export function relayStylePagination<TNode extends Reference = Reference>(
             incomingEdges = weavedReplace(
               incomingEdges,
               existingEdges.slice(index + 1),
-              preserveEdge
+              canReplaceEdge
             );
             // suffix = []; // already true
           }
@@ -255,7 +295,7 @@ export function relayStylePagination<TNode extends Reference = Reference>(
             incomingEdges = weavedReplace(
               incomingEdges,
               existingEdges.slice(0, index),
-              preserveEdge
+              canReplaceEdge
             );
           } else {
             suffix = prefix;
@@ -263,7 +303,11 @@ export function relayStylePagination<TNode extends Reference = Reference>(
           }
         } else if (incoming.edges) {
           prefix = [];
-          incomingEdges = weavedReplace(incomingEdges, [...existingEdges], preserveEdge);
+          incomingEdges = weavedReplace(
+            incomingEdges,
+            [...existingEdges],
+            canReplaceEdge
+          );
           // suffix = []; // already true
         }
       }
@@ -291,6 +335,26 @@ export function relayStylePagination<TNode extends Reference = Reference>(
       }
 
       const edges = [...prefix, ...incomingEdges, ...suffix];
+
+      // Preserve edges unknown by args
+      if (rootGetCursor && preserveEdgesUnknownByArgs([], options)) {
+        const missingEdges = existingEdges.filter(
+          (existingEdge) =>
+            !edges.find(
+              (resultEdge) =>
+                (resultEdge.cursor ?? rootGetCursor(resultEdge, options)) ===
+                (existingEdge.cursor ?? rootGetCursor(existingEdge, options))
+            )
+        );
+        if (preserveEdgesUnknownByArgs(missingEdges, options)) {
+          const push = args?.after != null || args?.first != null;
+          if (push) {
+            edges.push(...missingEdges);
+          } else {
+            edges.unshift(...missingEdges);
+          }
+        }
+      }
 
       const pageInfo: Partial<TRelayPageInfo> = {
         // The ordering of these two ...spreads may be surprising, but it
