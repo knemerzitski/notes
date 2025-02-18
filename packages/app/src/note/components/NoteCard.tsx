@@ -39,6 +39,7 @@ import { TitleTypography } from './TitleTypography';
 import { UserAvatarsCornerPosition } from './UserAvatarsCornerPosition';
 import { IsLoading } from '../../utils/components/IsLoading';
 import { IsDevToolsEnabled } from '../../dev/components/IsDevToolsEnabled';
+import { SyncOutdatedNote } from './SyncOutdatedNote';
 
 const _NoteCard_UserNoteLinkFragment = gql(`
   fragment NoteCard_UserNoteLinkFragment on UserNoteLink {
@@ -259,6 +260,7 @@ function DevRenderNoteId() {
 const MainSection = memo(function MainSection() {
   return (
     <>
+      <SyncOutdatedNote />
       <DuringLoadingNoteRefreshingProgress />
       <DevRenderNoteId />
       <UserAvatarsCornerPosition>

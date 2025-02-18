@@ -11,6 +11,7 @@ import { throwNoteNotFoundError } from '../utils/errors';
 import { getUserNoteLinkId } from '../utils/id';
 
 import { readNoteExternalState } from './Note/_external';
+import { updateUserNoteLinkOutdated } from '../models/note/outdated';
 
 export const User: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
   return {
@@ -98,8 +99,22 @@ export const User: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
           return !!readField('localOnly', note);
         },
         // Never remove any edges
-        preserveEdgesUnknownByArgs(_missingEdges, _options) {
-          // TODO mark note: location unknown
+        preserveEdgesUnknownByArgs(missingEdges, { readField, cache }) {
+          // Mark note outdated
+          missingEdges.forEach((edge) => {
+            const node = readField('node', edge);
+            if (!isReference(node)) {
+              return;
+            }
+
+            const id = readField('id', node);
+            if (typeof id !== 'string') {
+              return;
+            }
+
+            updateUserNoteLinkOutdated(id, true, cache);
+          });
+
           return true;
         },
         /**

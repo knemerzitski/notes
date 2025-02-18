@@ -18,11 +18,17 @@ enum NoteTextFieldName {
 
 extend type Query {
   """
-  Direct access to a note without user.
-  
+  Direct access to Note type.
+
   Usable only on client side.
   """
   note(by: NoteByInput!): Note!
+  """
+  Direct access to a UserNoteLink type.
+
+  Usable only on client side.
+  """
+  userNoteLink(by: UserNoteLinkByInput!): UserNoteLink!
 }
 
 extend type UserNoteLink {
@@ -34,6 +40,11 @@ extend type UserNoteLink {
   Connection where note is stored
   """
   connectionCategoryName: NoteCategory
+  """
+  An outdated note might have been deleted or moved to another category.
+  Oudated note is kept in last known category (`connectionCategoryName`) until more information is available.
+  """
+  outdated: Boolean!
 }
 
 extend type Note {
@@ -125,6 +136,12 @@ extend type LocalUser {
   Each note should have non-null field `pendingStatus`.
   """
   pendingNotes: [UserNoteLink!]!
+  """
+  A outdated note might have been deleted or moved to another category.
+  Oudated note is kept in last known category until more information is available.
+  These notes need to be
+  """
+  outdatedNotes: [UserNoteLink!]!
 }
 
 ################################ LocalUser.unsavedCollabServices ################################
