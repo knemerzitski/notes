@@ -11,7 +11,8 @@ import {
 } from '../../../__generated__/graphql';
 import { getUserNoteLinkIdFromByInput, parseUserNoteLinkByInput } from '../../utils/id';
 import { toMovableNoteCategory } from '../../utils/note-category';
-import { getConnectionCategoryName } from '../note/connection-category-name';
+
+import { getCategoryName } from '../note/category-name';
 
 import { moveNoteInConnection } from './move';
 
@@ -51,7 +52,7 @@ export function replaceNoteInConnection(
   | { type: 'MoveUserNoteLinkInput'; input: MoveUserNoteLinkInput }
   | { type: 'TrashUserNoteLinkInput'; input: TrashUserNoteLinkInput }
   | undefined {
-  const categoryName = getConnectionCategoryName(oldBy, cache) ?? NoteCategory.DEFAULT;
+  const categoryName = getCategoryName(oldBy, cache);
   const oldUserNoteLinkId = getUserNoteLinkIdFromByInput(oldBy, cache);
   const newUserNoteLinkId = getUserNoteLinkIdFromByInput(newBy, cache);
   const { userId, noteId: newNoteId } = parseUserNoteLinkByInput(newBy, cache);
@@ -60,13 +61,14 @@ export function replaceNoteInConnection(
   moveNoteInConnection(
     newBy,
     {
-      categoryName: categoryName,
+      categoryName,
       anchorUserNoteLink: {
         id: oldUserNoteLinkId,
       },
       anchorPosition: ListAnchorPosition.AFTER,
     },
-    cache
+    cache,
+    categoryName
   );
 
   // Remove old note from connection

@@ -25,9 +25,6 @@ export function isUserNoteLinkOutdated(
   return data?.userNoteLink.outdated ?? false;
 }
 
-/**
- * Update field `connectionCategoryName` with value from `categoryName` if it's not defined
- */
 export function updateUserNoteLinkOutdated(
   userNoteLinkId: string,
   outdated: boolean,

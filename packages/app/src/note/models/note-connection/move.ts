@@ -10,7 +10,7 @@ import {
   UserNoteLinkByInput,
 } from '../../../__generated__/graphql';
 import { getUserNoteLinkIdFromByInput, parseUserNoteLinkByInput } from '../../utils/id';
-import { getConnectionCategoryName } from '../note/connection-category-name';
+import { getCategoryName } from '../note/category-name';
 import { noteExists } from '../note/exists';
 
 const MoveNoteInConnection_Query = gql(`
@@ -20,7 +20,6 @@ const MoveNoteInConnection_Query = gql(`
       noteLink(by: $noteBy) {
         id
         categoryName
-        connectionCategoryName
       }
       
       oldConnection: noteLinkConnection(category: $oldCategory) {
@@ -57,7 +56,8 @@ export function moveNoteInConnection(
     >;
     categoryName: NoteCategory | MovableNoteCategory;
   },
-  cache: Pick<ApolloCache<unknown>, 'readQuery' | 'updateQuery'>
+  cache: Pick<ApolloCache<unknown>, 'readQuery' | 'updateQuery'>,
+  oldCategoryName = getCategoryName(by, cache)
 ) {
   if (!noteExists(by, cache)) {
     return false;
@@ -65,7 +65,6 @@ export function moveNoteInConnection(
 
   const userNoteLinkId = getUserNoteLinkIdFromByInput(by, cache);
 
-  const oldCategoryName = getConnectionCategoryName(by, cache) ?? NoteCategory.DEFAULT;
   const newCategoryName = location.categoryName as NoteCategory;
 
   const newEdge = {
@@ -73,7 +72,6 @@ export function moveNoteInConnection(
     node: {
       __typename: 'UserNoteLink' as const,
       id: userNoteLinkId,
-      connectionCategoryName: newCategoryName,
       categoryName: newCategoryName,
     },
   };

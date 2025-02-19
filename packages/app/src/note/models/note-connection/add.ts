@@ -3,7 +3,6 @@ import { ApolloCache } from '@apollo/client';
 import { gql } from '../../../__generated__';
 import {
   AddNoteToConnectionQueryQuery,
-  NoteCategory,
   UserNoteLinkByInput,
 } from '../../../__generated__/graphql';
 import { getUserNoteLinkIdFromByInput, parseUserNoteLinkByInput } from '../../utils/id';
@@ -17,7 +16,6 @@ const AddNoteToConnection_Query = gql(`
       noteLink(by: $noteBy) {
         id
         categoryName
-        connectionCategoryName
       }
 
       noteLinkConnection(category: $category) {
@@ -45,7 +43,7 @@ export function addNoteToConnection(
 
   const userNoteLinkId = getUserNoteLinkIdFromByInput(by, cache);
 
-  const categoryName = getCategoryName(by, cache) ?? NoteCategory.DEFAULT;
+  const categoryName = getCategoryName(by, cache);
 
   const newEdge: AddNoteToConnectionQueryQuery['signedInUser']['noteLinkConnection']['edges'][0] & {
     node: AddNoteToConnectionQueryQuery['signedInUser']['noteLink'];
@@ -54,8 +52,7 @@ export function addNoteToConnection(
     node: {
       __typename: 'UserNoteLink' as const,
       id: userNoteLinkId,
-      connectionCategoryName: categoryName,
-      categoryName: categoryName,
+      categoryName,
     },
   };
 

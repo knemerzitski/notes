@@ -7,7 +7,6 @@ import { useUserId } from '../../user/context/user-id';
 import { useLogger } from '../../utils/context/logger';
 import { useNoteId } from '../context/note-id';
 import { getCategoryName } from '../models/note/category-name';
-import { getConnectionCategoryName } from '../models/note/connection-category-name';
 import { updateUserNoteLinkOutdated } from '../models/note/outdated';
 import { moveNoteInConnection } from '../models/note-connection/move';
 import { handleNoteError } from '../utils/handle-error';
@@ -105,19 +104,12 @@ function OutdatedSubscription() {
         logger?.debug('syncing', noteId);
         const userNoteLinkId = getUserNoteLinkId(noteId, userId);
 
-        const cachedCategoryName =
-          getConnectionCategoryName(
-            {
-              userNoteLinkId,
-            },
-            client.cache
-          ) ??
-          getCategoryName(
-            {
-              userNoteLinkId,
-            },
-            client.cache
-          );
+        const cachedCategoryName = getCategoryName(
+          {
+            userNoteLinkId,
+          },
+          client.cache
+        );
 
         const { data, errors } = await client.query({
           query: SyncOutdatedNote_Query,
@@ -144,17 +136,7 @@ function OutdatedSubscription() {
 
         const serverCategoryName = data.signedInUser.noteLink.categoryName;
 
-        // Move note to correct category
-        const latestConnectionCategoryName = getConnectionCategoryName(
-          {
-            userNoteLinkId,
-          },
-          client.cache
-        );
-        const isNoteStillInIncorrectCategory =
-          latestConnectionCategoryName == null ||
-          serverCategoryName !== latestConnectionCategoryName;
-        if (serverCategoryName !== cachedCategoryName && isNoteStillInIncorrectCategory) {
+        if (serverCategoryName !== cachedCategoryName) {
           logger?.debug('moving', { noteId, cachedCategoryName, serverCategoryName });
           moveNoteInConnection(
             {
@@ -163,7 +145,8 @@ function OutdatedSubscription() {
             {
               categoryName: serverCategoryName,
             },
-            client.cache
+            client.cache,
+            cachedCategoryName
           );
         }
       } finally {
