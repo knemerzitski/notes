@@ -134,16 +134,31 @@ interface PrepLoggerWithNamespaceContext {
   ctx: LoggerContext;
 }
 
+const CONSOLE = {
+  debug: console.debug.bind(console),
+  info: console.info.bind(console),
+  warn: console.warn.bind(console),
+  error: console.error.bind(console),
+};
+
 function _prepLoggerWithNamespace(
   mainNamespace: string,
   ctx: PrepLoggerWithNamespaceContext
 ): Logger {
-  function logEntryLogger(subNamespace: string): LogFn {
+  function lazyCreate(
+    subNamespace: string,
+    options?: {
+      log?: Debugger['log'];
+    }
+  ): LogFn {
     const logNamespace = extendNamespace(mainNamespace, subNamespace, ctx.ctx);
     let log = ctx.byNamespace[logNamespace];
     return (message, data) => {
       if (!log) {
         log = debug(logNamespace);
+        if (options?.log) {
+          log.log = options.log;
+        }
         ctx.byNamespace[logNamespace] = log;
       }
       logEntry(
@@ -158,10 +173,18 @@ function _prepLoggerWithNamespace(
   }
 
   return {
-    debug: logEntryLogger(LogLevel.DEBUG),
-    info: logEntryLogger(LogLevel.INFO),
-    warning: logEntryLogger(LogLevel.WARNING),
-    error: logEntryLogger(LogLevel.ERROR),
+    debug: lazyCreate(LogLevel.DEBUG, {
+      log: CONSOLE.debug,
+    }),
+    info: lazyCreate(LogLevel.INFO, {
+      log: CONSOLE.info,
+    }),
+    warning: lazyCreate(LogLevel.WARNING, {
+      log: CONSOLE.warn,
+    }),
+    error: lazyCreate(LogLevel.ERROR, {
+      log: CONSOLE.error,
+    }),
     extend: (namespace) =>
       _prepLoggerWithNamespace(extendNamespace(mainNamespace, namespace, ctx.ctx), ctx),
     namespace: mainNamespace,
