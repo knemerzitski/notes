@@ -1,5 +1,6 @@
 import { updateTrashNote } from '../../../../../services/note/update-trash-note';
 import {
+  MovableNoteCategory,
   NoteCategory,
   ResolversTypes,
   type MutationResolvers,
@@ -26,6 +27,7 @@ export const trashUserNoteLink: NonNullable<
   const payload: ResolversTypes['SignedInUserMutation'] = {
     __typename: 'TrashUserNoteLinkPayload',
     deletedAt: trashResult.expireAt,
+    originalCategoryName: trashResult.originalCategoryName as MovableNoteCategory,
     userNoteLink: {
       userId: currentUserId,
       query: mongoDB.loaders.note.createQueryFn({

@@ -308,6 +308,10 @@ TODO desc
 """
 type TrashUserNoteLinkPayload {
   """
+  Note category before it was trashed
+  """
+  originalCategoryName: MovableNoteCategory!
+  """
   Time when note is permanently deleted from trash
   """
   deletedAt: DateTime!
