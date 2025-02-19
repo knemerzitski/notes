@@ -24,6 +24,7 @@ import { useIsOnline } from '../../utils/hooks/useIsOnline';
 import { useOnIntersecting } from '../../utils/hooks/useOnIntersecting';
 import { useNoteId } from '../context/note-id';
 import { NoteIdsProvider } from '../context/note-ids';
+import { removeNoteFromConnection } from '../models/note-connection/remove';
 import { toMovableNoteCategory } from '../utils/note-category';
 
 import { NoteCard } from './NoteCard';
@@ -91,17 +92,16 @@ export function NotesConnectionGrid({
    */
   infiniteLoadingDelay?: number;
 }) {
-  const logger = useLogger('NotesConnectionGrid');
-
-  const isParentLoading = useIsLoading();
-
   const definedPerPageCount = perPageCount ?? 20;
 
+  const logger = useLogger('NotesConnectionGrid');
+
+  const client = useApolloClient();
+  const isParentLoading = useIsLoading();
   const userId = useUserId();
+  const isOnline = useIsOnline();
 
   const [isFetching, setIsFetching] = useState(false);
-
-  const isOnline = useIsOnline();
 
   const fetchMoreStateRef = useRef<{
     bind: {
@@ -169,14 +169,42 @@ export function NotesConnectionGrid({
     data?.signedInUser.noteLinkConnection
   );
 
-  const noteIds = useMemo(
-    () =>
-      fragmentData?.edges
-        .map((edge) => edge.node)
-        .filter((noteLink) => !noteLink.excludeFromConnection)
-        .map((edge) => edge.note.id),
-    [fragmentData?.edges]
-  );
+  const noteIds = useMemo(() => {
+    const seenIds = new Set<string>();
+    return fragmentData?.edges
+      .map((edge) => edge.node)
+      .filter((noteLink) => !noteLink.excludeFromConnection)
+      .filter((noteLink) => {
+        const isInCorrectCategory = noteLink.categoryName == category;
+        if (!isInCorrectCategory) {
+          logger?.debug('noteLink:removeFromWrongConnectionCategory', {
+            noteLink,
+            category,
+          });
+
+          removeNoteFromConnection(
+            {
+              userNoteLinkId: noteLink.id,
+            },
+            client.cache,
+            category
+          );
+
+          return false;
+        }
+        return true;
+      })
+      .map((edge) => edge.note.id)
+      .filter((noteId) => {
+        if (seenIds.has(noteId)) {
+          logger?.error('noteLink:filteredDuplicateId', {
+            noteId,
+          });
+          return false;
+        }
+        return true;
+      });
+  }, [fragmentData?.edges, category, logger, client]);
 
   const safeFetchMore = useCallback(
     async function safeFetchMore() {
