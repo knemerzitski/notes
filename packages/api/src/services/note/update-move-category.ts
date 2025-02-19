@@ -112,6 +112,7 @@ export async function updateMoveCategory({
       return {
         type: 'already_category_name' as const,
         categoryName: noteUser.categoryName,
+        oldCategoryName: noteUser.categoryName,
       };
     }
 
@@ -161,6 +162,7 @@ export async function updateMoveCategory({
       return {
         type: 'already_category_name' as const,
         categoryName: desiredCategoryName,
+        oldCategoryName: currentCategoryName,
       };
     }
 
@@ -245,6 +247,7 @@ export async function updateMoveCategory({
       type: 'success' as const,
       note,
       categoryName: desiredCategoryName,
+      oldCategoryName: currentCategoryName,
       anchor: resultAnchor,
     };
   });

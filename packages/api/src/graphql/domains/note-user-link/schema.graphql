@@ -431,6 +431,10 @@ TODO desc
 """
 type MoveUserNoteLinkPayload {
   """
+  Note category before it was moved
+  """
+  prevCategoryName: NoteCategory!
+  """
   How note was moved
   """
   location: NoteLocation!

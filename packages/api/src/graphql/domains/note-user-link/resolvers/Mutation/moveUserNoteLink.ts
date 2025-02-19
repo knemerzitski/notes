@@ -4,6 +4,7 @@ import {
   Maybe,
   MovableNoteCategory,
   MutationmoveUserNoteLinkArgs,
+  NoteCategory,
   RequireFields,
   ResolversTypes,
   type MutationResolvers,
@@ -42,6 +43,7 @@ export const moveUserNoteLink: NonNullable<
           }
         : null,
     },
+    prevCategoryName: moveResult.oldCategoryName as NoteCategory,
     userNoteLink: {
       userId: currentUserId,
       query: mongoDB.loaders.note.createQueryFn({
