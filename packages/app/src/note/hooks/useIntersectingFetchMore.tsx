@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { useLogger } from '../../utils/context/logger';
+
 import { useIsLoading } from '../../utils/context/is-loading';
+import { useLogger } from '../../utils/context/logger';
 import { useIsOnline } from '../../utils/hooks/useIsOnline';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

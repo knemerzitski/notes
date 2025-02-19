@@ -1,9 +1,11 @@
 import { useApolloClient, useQuery } from '@apollo/client';
+import BugReportIcon from '@mui/icons-material/BugReport';
 import { Alert, Box, Button, css, styled } from '@mui/material';
 import { ReactNode, useMemo, useState } from 'react';
 
 import { getFragmentData, gql, makeFragmentData } from '../../__generated__';
 import { Maybe } from '../../__generated__/graphql';
+import { IsDevToolsEnabled } from '../../dev/components/IsDevToolsEnabled';
 import { useUserId } from '../../user/context/user-id';
 import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
 import { useIsLoading } from '../../utils/context/is-loading';
@@ -11,8 +13,6 @@ import { NoteIdsProvider } from '../context/note-ids';
 
 import { LoadMoreButton } from './LoadMoreButton';
 import { NotesCardGrid } from './NotesCardGrid';
-import { IsDevToolsEnabled } from '../../dev/components/IsDevToolsEnabled';
-import BugReportIcon from '@mui/icons-material/BugReport';
 
 const SearchNotesConnectionGrid_UserNoteLinkConnectionFragment = gql(`
   fragment SearchNotesConnectionGrid_UserNoteLinkConnectionFragment on UserNoteLinkConnection {
