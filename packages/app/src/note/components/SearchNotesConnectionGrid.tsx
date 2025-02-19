@@ -1,8 +1,8 @@
-import { useQuery } from '@apollo/client';
-import { Alert, Box, css, styled } from '@mui/material';
+import { useApolloClient, useQuery } from '@apollo/client';
+import { Alert, Box, Button, css, styled } from '@mui/material';
 import { ReactNode, useMemo, useState } from 'react';
 
-import { getFragmentData, gql } from '../../__generated__';
+import { getFragmentData, gql, makeFragmentData } from '../../__generated__';
 import { Maybe } from '../../__generated__/graphql';
 import { useUserId } from '../../user/context/user-id';
 import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
@@ -11,6 +11,8 @@ import { NoteIdsProvider } from '../context/note-ids';
 
 import { LoadMoreButton } from './LoadMoreButton';
 import { NotesCardGrid } from './NotesCardGrid';
+import { IsDevToolsEnabled } from '../../dev/components/IsDevToolsEnabled';
+import BugReportIcon from '@mui/icons-material/BugReport';
 
 const SearchNotesConnectionGrid_UserNoteLinkConnectionFragment = gql(`
   fragment SearchNotesConnectionGrid_UserNoteLinkConnectionFragment on UserNoteLinkConnection {
@@ -148,12 +150,75 @@ export function SearchNotesConnectionGrid({
   return (
     <NoteIdsProvider noteIds={noteIds}>
       <RootBoxStyled>
+        <DevClearListButton searchText={searchText ?? ''} />
         <NotesCardGrid />
         {canFetchMore && (
           <LoadMoreButtonStyled isLoading={isFetchingMore} onLoad={handleClickLoadMore} />
         )}
       </RootBoxStyled>
     </NoteIdsProvider>
+  );
+}
+
+function DevClearListButton(props: Parameters<typeof ClearListButton>[0]) {
+  return (
+    <IsDevToolsEnabled>
+      <ClearListButton {...props} />
+    </IsDevToolsEnabled>
+  );
+}
+
+function ClearListButton({ searchText }: { searchText: string }) {
+  const client = useApolloClient();
+  const userId = useUserId();
+
+  function handleClearList() {
+    client.cache.writeQuery({
+      query: SearchNotesConnectionGrid_Query,
+      overwrite: true,
+      variables: {
+        userBy: {
+          id: userId,
+        },
+        searchText,
+      },
+      data: {
+        __typename: 'Query',
+        signedInUser: {
+          __typename: 'User',
+          id: userId,
+          noteLinkSearchConnection: {
+            __typename: 'UserNoteLinkConnection',
+            ...makeFragmentData(
+              {
+                __typename: 'UserNoteLinkConnection',
+                edges: [],
+                pageInfo: {
+                  __typename: 'PageInfo',
+                  hasNextPage: false,
+                },
+              },
+              SearchNotesConnectionGrid_UserNoteLinkConnectionFragment
+            ),
+          },
+        },
+      },
+    });
+  }
+
+  return (
+    <Button
+      color="warning"
+      onClick={handleClearList}
+      variant="contained"
+      size="small"
+      sx={{
+        alignSelf: 'flex-end',
+      }}
+    >
+      <BugReportIcon fontSize="small" />
+      Dev Clear list
+    </Button>
   );
 }
 
