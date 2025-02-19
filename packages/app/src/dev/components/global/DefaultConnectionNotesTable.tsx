@@ -23,7 +23,6 @@ const DefaultConnectionNotesTable_Query = gql(`
             id
             excludeFromConnection
             categoryName
-            connectionCategoryName
             originalCategoryName
             pendingStatus
             note {
@@ -79,7 +78,6 @@ export function DefaultConnectionNotesTable() {
               <TableCell>{edge.node.note.id}</TableCell>
               <TableCell>{edge.node.pendingStatus ?? <RemoveIcon />}</TableCell>
               <TableCell>{edge.node.categoryName}</TableCell>
-              <TableCell>{edge.node.connectionCategoryName ?? <RemoveIcon />}</TableCell>
               <TableCell>{edge.node.originalCategoryName ?? <RemoveIcon />}</TableCell>
             </TableRow>
           ))}

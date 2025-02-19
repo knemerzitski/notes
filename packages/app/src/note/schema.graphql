@@ -37,12 +37,8 @@ extend type UserNoteLink {
   """
   originalCategoryName: MovableNoteCategory
   """
-  Connection where note is stored
-  """
-  connectionCategoryName: NoteCategory
-  """
   An outdated note might have been deleted or moved to another category.
-  Oudated note is kept in last known category (`connectionCategoryName`) until more information is available.
+  Note is still kept until app is online.
   """
   outdated: Boolean!
 }

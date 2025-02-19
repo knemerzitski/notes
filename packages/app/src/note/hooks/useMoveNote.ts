@@ -12,16 +12,14 @@ import {
 import { useMutation } from '../../graphql/hooks/useMutation';
 import { noteSerializationKey_orderMatters } from '../../graphql/utils/serialization-key';
 import { isLocalOnlyNote } from '../models/local-note/is-local-only';
-import {
-  getConnectionCategoryName,
-  updateConnectionCategoryName,
-} from '../models/note/connection-category-name';
+import { getCategoryName } from '../models/note/category-name';
 import { MoveUserNoteLink } from '../mutations/MoveUserNoteLink';
 import {
   getUserNoteLinkId,
   getUserNoteLinkIdFromByInput,
   parseUserNoteLinkByInput,
 } from '../utils/id';
+import { toNoteCategory } from '../utils/note-category';
 
 export function useMoveNote() {
   const client = useApolloClient();
@@ -35,13 +33,14 @@ export function useMoveNote() {
         return Promise.resolve(false);
       }
 
-      const currentCategory = getConnectionCategoryName({ noteId }, client.cache);
-      if (currentCategory === location?.categoryName && location?.anchorNoteId == null) {
+      const currentCategory = getCategoryName({ noteId }, client.cache);
+      if (
+        location != null &&
+        currentCategory === toNoteCategory(location.categoryName) &&
+        location.anchorNoteId == null
+      ) {
         return Promise.resolve(false);
       }
-
-      // Before changing field `categoryName`, remember connection category
-      updateConnectionCategoryName({ noteId }, client.cache);
 
       return moveNoteMutation({
         local: isLocalOnlyNote({ id: noteId }, client.cache),
@@ -67,6 +66,7 @@ export function useMoveNote() {
             ...makeFragmentData(
               {
                 __typename: 'MoveUserNoteLinkPayload',
+                prevCategoryName: currentCategory,
                 location: {
                   __typename: 'NoteLocation',
                   categoryName: location?.categoryName ?? MovableNoteCategory.DEFAULT,
