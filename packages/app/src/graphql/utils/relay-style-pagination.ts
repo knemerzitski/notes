@@ -9,6 +9,7 @@ import { SafeReadonly } from '@apollo/client/cache/core/types/common';
 import { mergeDeep } from '@apollo/client/utilities';
 import { __rest } from 'tslib';
 import { weavedReplace } from '~utils/array/weaved-replace';
+import { isDefined } from '~utils/type-guards/is-defined';
 
 import { Maybe } from '~utils/types';
 
@@ -62,6 +63,14 @@ export interface RelayStylePaginationOptions<TNode> {
   ) => TExistingRelay<TNode> | null | undefined;
 
   /**
+   * Replace incoming with new data
+   */
+  mergeMapIncoming?: (
+    incoming: Readonly<TIncomingRelay<TNode>> | null,
+    options: FieldFunctionOptions
+  ) => Readonly<TIncomingRelay<TNode>> | null | undefined;
+
+  /**
    * Any edges that pass this predicate are always preserved
    * at its current position regardless of incoming data.
    */
@@ -89,7 +98,7 @@ export interface RelayStylePaginationOptions<TNode> {
   isOrderedSet?: boolean;
 
   /**
-   * Preserve edges which state is unknown according to provided arguments.
+   * Preserve edges which index is unknown according to provided arguments.
    *
    * E.g. existing [1,2,3,4], incoming [1,2], args {first: 2} => preserving [3,4],
    * end result stays [1,2,3,4]
@@ -100,7 +109,7 @@ export interface RelayStylePaginationOptions<TNode> {
    * @param movedEdges List of edges that had their order changed to respect provided arguments.
    * @default false
    */
-  preserveEdgesUnknownByArgs?:
+  preserveUnknownIndexEdges?:
     | ((
         missingEdges: readonly TRelayEdge<TNode>[],
         options: FieldFunctionOptions
@@ -108,8 +117,8 @@ export interface RelayStylePaginationOptions<TNode> {
     | boolean;
 }
 
-function preserveEdgesUnknownByArgsToFunction<TNode>(
-  fnOrBool: RelayStylePaginationOptions<TNode>['preserveEdgesUnknownByArgs']
+function preserveUnknownIndexEdgesToFunction<TNode>(
+  fnOrBool: RelayStylePaginationOptions<TNode>['preserveUnknownIndexEdges']
 ) {
   if (typeof fnOrBool === 'function') {
     return fnOrBool;
@@ -130,8 +139,8 @@ export function relayStylePagination<TNode extends Reference = Reference>(
   const isOrderedSet = rootOptions?.isOrderedSet ?? false;
   const rootPreserveEdgeInPosition = rootOptions?.preserveEdgeInPosition;
   const rootGetCursor = rootOptions?.getCursor;
-  const preserveEdgesUnknownByArgs = preserveEdgesUnknownByArgsToFunction(
-    rootOptions?.preserveEdgesUnknownByArgs
+  const preserveUnknownIndexEdges = preserveUnknownIndexEdgesToFunction(
+    rootOptions?.preserveUnknownIndexEdges
   );
   return {
     keyArgs,
@@ -197,6 +206,8 @@ export function relayStylePagination<TNode extends Reference = Reference>(
       if (!existing) {
         existing = makeEmptyData();
       }
+
+      incoming = rootOptions?.mergeMapIncoming?.(incoming, options) ?? incoming;
 
       const canReplaceEdge: ((node: TRelayEdge<TNode>) => boolean) | undefined =
         rootPreserveEdgeInPosition
@@ -312,63 +323,71 @@ export function relayStylePagination<TNode extends Reference = Reference>(
         }
       }
 
-      if (isOrderedSet && (prefix.length > 0 || suffix.length > 0)) {
-        // Remove everything from prefix and suffix that is also in incoming
-        const incomingSet = new Set(
-          incomingEdges.map((edge) => {
-            const node = readField('node', edge);
-            if (!isReference(node)) {
-              return;
-            }
-            return node.__ref;
-          })
-        );
+      let edges: TRelayEdge<TNode>[] = [];
 
-        const filterFn: (edge: TRelayEdge<TNode>) => boolean = (edge) => {
+      // Ensure no duplicate references
+      if (isOrderedSet) {
+        const seenRefSet = new Set<string>();
+        function filterEdge(edge: TRelayEdge<TNode>) {
           const node = readField('node', edge);
-          // Keep edge if it's not a reference or not in incoming
-          return !isReference(node) || !incomingSet.has(node.__ref);
-        };
+          if (!isReference(node)) {
+            return true;
+          }
 
-        prefix = prefix.filter(filterFn);
-        suffix = suffix.filter(filterFn);
+          const ref = node.__ref;
+          if (seenRefSet.has(ref)) {
+            return false;
+          }
+
+          seenRefSet.add(ref);
+          return true;
+        }
+        // Must filter incomingEdges first to retain correct edge order
+        const uniqueIncomingEdges = incomingEdges.filter(filterEdge);
+        edges = [
+          ...prefix.filter(filterEdge),
+          ...uniqueIncomingEdges,
+          ...suffix.filter(filterEdge),
+        ];
+      } else {
+        edges = [...prefix, ...incomingEdges, ...suffix];
       }
 
-      const edges = [...prefix, ...incomingEdges, ...suffix];
+      // Preserve edges that would otherwise be removed
+      if (preserveUnknownIndexEdges([], options)) {
+        const nodesRefSet = new Set(
+          edges
+            .map((edge) => {
+              const node = readField('node', edge);
+              if (!isReference(node)) {
+                return;
+              }
+              return node.__ref;
+            })
+            .filter(isDefined)
+        );
 
-      // Preserve edges unknown by args
-      if (rootGetCursor && preserveEdgesUnknownByArgs([], options)) {
-        const definedRootGetCursor = rootGetCursor;
-        function isEqualEdge(a: TRelayEdge<TNode>, b: TRelayEdge<TNode>) {
-          return (
-            (a.cursor ?? definedRootGetCursor(a, options)) ===
-            (b.cursor ?? definedRootGetCursor(b, options))
-          );
+        function isEdgeMissing(edge: TRelayEdge<TNode>) {
+          const node = readField('node', edge);
+          if (!isReference(node)) {
+            return false;
+          }
+
+          return !nodesRefSet.has(node.__ref);
         }
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const limit: Maybe<number> = args?.first ?? args?.last;
-        const boundedMissingEdges =
-          limit != null
-            ? existingEdges
-                .slice(0, limit)
-                .filter(
-                  (existingEdge) =>
-                    !edges.find((resultEdge) => isEqualEdge(existingEdge, resultEdge))
-                )
-            : [];
-        const remainingMissingEdges = existingEdges
-          .slice(limit ?? 0)
-          .filter(
-            (existingEdge) =>
-              !edges.find((resultEdge) => isEqualEdge(existingEdge, resultEdge))
-          );
-        if (preserveEdgesUnknownByArgs(boundedMissingEdges, options)) {
-          const push = args?.after != null || args?.first != null;
-          if (push) {
-            edges.push(...boundedMissingEdges, ...remainingMissingEdges);
+        const limit: number = args?.first ?? args?.last ?? 0;
+
+        const boundedMissingEdges = existingEdges.slice(0, limit).filter(isEdgeMissing);
+        const remainingMissingEdges = existingEdges.slice(limit).filter(isEdgeMissing);
+
+        if (preserveUnknownIndexEdges(boundedMissingEdges, options)) {
+          const isForward = args?.after != null || args?.first != null;
+          if (isForward) {
+            edges = [...edges, ...boundedMissingEdges, ...remainingMissingEdges];
           } else {
-            edges.unshift(...boundedMissingEdges, ...remainingMissingEdges);
+            edges = [...boundedMissingEdges, ...remainingMissingEdges, ...edges];
           }
         }
       }
