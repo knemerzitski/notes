@@ -20,6 +20,7 @@ import { useIsOnline } from '../../utils/hooks/useIsOnline';
 import { useOnIntersecting } from '../../utils/hooks/useOnIntersecting';
 import { useNoteId } from '../context/note-id';
 import { NoteIdsProvider } from '../context/note-ids';
+import { useIntersectingFetchMore } from '../hooks/useIntersectingFetchMore';
 import { removeNoteFromConnection } from '../models/note-connection/remove';
 import { toMovableNoteCategory } from '../utils/note-category';
 
@@ -27,7 +28,6 @@ import { NoteCard } from './NoteCard';
 import { NotesCardGrid } from './NotesCardGrid';
 import { SortableNoteCard } from './SortableNoteCard';
 import { SortableNotesContext } from './SortableNotesContext';
-import { useIntersectingFetchMore } from '../hooks/useIntersectingFetchMore';
 
 const NotesConnectionGrid_UserNoteLinkConnectionFragment = gql(`
   fragment NotesConnectionGrid_UserNoteLinkConnectionFragment on UserNoteLinkConnection {
