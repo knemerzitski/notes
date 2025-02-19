@@ -766,7 +766,7 @@ export class CollabHistory {
   }
 
   private logState(message: string, data?: Record<string, unknown>) {
-    this.logger?.info(message, {
+    this.logger?.debug(message, {
       ...data,
       state: {
         serverTailRevision: this._serverTailRevision,
