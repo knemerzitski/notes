@@ -3,7 +3,7 @@
 """
 Identifier for UserNoteLink.id, serializes to string
 TODO delete this scalar
-""" # eslint-disable-next-line @graphql-eslint/no-unreachable-types
+"""
 scalar UserNoteLinkID
 
 """
@@ -110,7 +110,7 @@ type UserNoteLinkEdge implements Edge {
 
 """
 TODO desc
-""" # eslint-disable-next-line @graphql-eslint/no-unreachable-types
+"""
 input UserNoteLinkByInput @oneOf {
   """
   UserNoteLink.id
