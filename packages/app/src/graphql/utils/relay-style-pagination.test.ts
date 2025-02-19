@@ -487,9 +487,17 @@ describe('isOrderedSet', () => {
     [
       [1, 2, 3, 4, 5],
       [5, 6, 7, 2, 3, 3],
-      [1, 4, 5, 6, 7, 2, 3, 3],
+      [1, 4, 5, 6, 7, 2, 3],
       {
         after: '4',
+      },
+    ],
+    [
+      [0, 1, 2, 3, 4, 5],
+      [2, 1, 3, 0],
+      [2, 1, 3, 0, 4, 5],
+      {
+        before: '4',
       },
     ],
   ])('%s + %s => %s', (existingDesc, incomingDesc, expectedResultDesc, args) => {
@@ -516,10 +524,7 @@ describe('isOrderedSet', () => {
 
 describe('preserveExistingEdges', () => {
   const policy = relayStylePagination(false, {
-    getCursor(edge) {
-      return edge?.cursor;
-    },
-    preserveEdgesUnknownByArgs: () => true,
+    preserveUnknownIndexEdges: () => true,
   });
 
   const merge = policy.merge;

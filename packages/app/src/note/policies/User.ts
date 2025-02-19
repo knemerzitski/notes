@@ -99,7 +99,7 @@ export const User: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
           return !!readField('localOnly', note);
         },
         // Never remove any edges
-        preserveEdgesUnknownByArgs(missingEdges, { readField, cache }) {
+        preserveUnknownIndexEdges(missingEdges, { readField, cache }) {
           // Mark note outdated
           missingEdges.forEach((edge) => {
             const node = readField('node', edge);
