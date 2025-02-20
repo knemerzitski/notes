@@ -1,8 +1,11 @@
-import { css } from '@emotion/react';
-import { Box, styled } from '@mui/material';
+import { ReactNode } from 'react';
+import { NoListResultsSpacing } from './NoListResultsSpacing';
 
-export const NoListResultsTopSpacing = styled(Box)(
-  ({ theme }) => css`
-    margin-top: ${theme.spacing(12)};
-  `
-);
+export function NoListResultsTopSpacing({ children }: { children: ReactNode }) {
+  return (
+    <>
+      <NoListResultsSpacing />
+      {children}
+    </>
+  );
+}

@@ -17,7 +17,7 @@ export function DefaultNotesConnectionGrid() {
   return (
     <NotesConnectionGrid
       category={NoteCategory.DEFAULT}
-      emptyElement={<EmptyNotesIconText />}
+      emptyListElement={<EmptyNotesIconText />}
     />
   );
 }

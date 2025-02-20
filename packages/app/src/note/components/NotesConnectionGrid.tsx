@@ -66,7 +66,7 @@ const EMPTY_LIST: readonly any[] = [];
 export function NotesConnectionGrid({
   fetchMoreOptions,
   category = NoteCategory.DEFAULT,
-  emptyElement = 'empty',
+  emptyListElement = null,
 }: {
   fetchMoreOptions?: Pick<
     Parameters<typeof useIntersectingFetchMore>[0],
@@ -77,9 +77,9 @@ export function NotesConnectionGrid({
    */
   category?: NoteCategory;
   /**
-   * Element that is rendered when notes list is empty.
+   * Element that is rendered when no notes are found
    */
-  emptyElement?: ReactNode;
+  emptyListElement?: ReactNode;
 }) {
   const logger = useLogger('NotesConnectionGrid');
 
@@ -263,8 +263,8 @@ export function NotesConnectionGrid({
     );
   }
 
-  if (!isLoading && noteIds != null && noteIds.length === 0 && emptyElement) {
-    return emptyElement;
+  if (!isLoading && noteIds != null && noteIds.length === 0) {
+    return emptyListElement;
   }
 
   const isSortableCategory = !!toMovableNoteCategory(category);
