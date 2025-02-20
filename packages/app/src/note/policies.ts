@@ -27,7 +27,7 @@ import { CollabText } from './policies/CollabText';
 import { CollabTextEditing } from './policies/CollabTextEditing';
 import { CollabTextRecord } from './policies/CollabTextRecord';
 import { CollabTextRecordConnection } from './policies/CollabTextRecordConnection';
-import { LocalSignedInUser } from './policies/LocalSignedInUser';
+import { LocalUser } from './policies/LocalUser';
 import { Note } from './policies/Note';
 import { NoteTextField } from './policies/NoteTextField';
 import { OpenedNote } from './policies/OpenedNote';
@@ -48,7 +48,7 @@ export const notePolicies: CreateTypePoliciesFn = function (ctx) {
     CollabTextRecord: CollabTextRecord(ctx),
     CollabTextRecordConnection: CollabTextRecordConnection(ctx),
     UserNoteLinkConnection: UserNoteLinkConnection(ctx),
-    LocalSignedInUser: LocalSignedInUser(ctx),
+    LocalUser: LocalUser(ctx),
     OpenedNote: OpenedNote(ctx),
     CollabTextEditing: CollabTextEditing(ctx),
     User: User(ctx),

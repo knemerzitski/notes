@@ -50,7 +50,7 @@ function add(
         __typename: 'User',
         id: userId,
         local: {
-          __typename: 'LocalSignedInUser',
+          __typename: 'LocalUser',
           id: userId,
           unsavedCollabServices: [
             {

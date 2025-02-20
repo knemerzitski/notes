@@ -191,7 +191,7 @@ export class ComposableRecordsFacade<TRecord extends BaseComposableRecord> {
   }
 
   private logState(message: string, data?: Record<string, unknown>) {
-    this.logger?.info(message, {
+    this.logger?.debug(message, {
       ...data,
       tailText: this.records.tailText.toString(),
       record: this.getRecordsForLogging(),

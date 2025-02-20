@@ -98,7 +98,7 @@ function addNoteToList(
   });
 
   const noteLink = cacheObj[`UserNoteLink:${getUserNoteLinkId(noteId, userId)}`]!;
-  noteLink.connectionCategoryName = categoryName;
+  noteLink.categoryName = categoryName;
 }
 
 function createNotesAndAddToList(
@@ -155,7 +155,7 @@ describe('same category', () => {
         },
         anchorPosition: ListAnchorPosition.AFTER,
       },
-      cache
+      cache,
     );
 
     expect(getCacheNoteIds('default')).toStrictEqual(['2', '3', '1', '4']);

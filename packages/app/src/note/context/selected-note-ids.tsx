@@ -49,18 +49,16 @@ export function SelectedNoteIdsProvider({ children }: { children: ReactNode }) {
     const prev = noteIdsRef.current;
     if (!prev.includes(id)) {
       noteIdsRef.current = [...prev, id];
+      eventBusRef.current.emit('added', { id });
     }
-
-    eventBusRef.current.emit('added', { id });
   }, []);
 
   const remove: SelectedNoteIdsModel['remove'] = useCallback((id) => {
     const prev = noteIdsRef.current;
     if (prev.includes(id)) {
       noteIdsRef.current = prev.filter((prevId) => prevId !== id);
+      eventBusRef.current.emit('removed', { id });
     }
-
-    eventBusRef.current.emit('removed', { id });
   }, []);
 
   const has: SelectedNoteIdsModel['has'] = useCallback(

@@ -25,7 +25,6 @@ const PendingNotesTable_Query = gql(`
           pendingStatus
           excludeFromConnection
           categoryName
-          connectionCategoryName
           note {
             id
           }
@@ -76,7 +75,6 @@ export function PendingNotesTable() {
                 {noteLink.excludeFromConnection ? <CheckIcon /> : <RemoveIcon />}
               </TableCell>
               <TableCell>{noteLink.categoryName}</TableCell>
-              <TableCell>{noteLink.connectionCategoryName ?? <RemoveIcon />}</TableCell>
             </TableRow>
           ))}
         </TableBody>

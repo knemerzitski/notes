@@ -1,3 +1,5 @@
+import { Maybe } from '~utils/types';
+
 import { NoteCategory } from '../../__generated__/graphql';
 import { DateTimeNullable } from '../../graphql/scalars/DateTime';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
@@ -10,10 +12,6 @@ export const UserNoteLink: CreateTypePolicyFn = function (_ctx: TypePoliciesCont
         return existing;
       },
       originalCategoryName(existing = null) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        return existing;
-      },
-      connectionCategoryName(existing = null) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return existing;
       },
@@ -36,6 +34,9 @@ export const UserNoteLink: CreateTypePolicyFn = function (_ctx: TypePoliciesCont
           return existing;
         },
         merge: true,
+      },
+      outdated(existing: Maybe<boolean> = false) {
+        return existing;
       },
     },
   };

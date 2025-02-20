@@ -18,11 +18,17 @@ enum NoteTextFieldName {
 
 extend type Query {
   """
-  Direct access to a note without user.
-  
+  Direct access to Note type.
+
   Usable only on client side.
   """
   note(by: NoteByInput!): Note!
+  """
+  Direct access to a UserNoteLink type.
+
+  Usable only on client side.
+  """
+  userNoteLink(by: UserNoteLinkByInput!): UserNoteLink!
 }
 
 extend type UserNoteLink {
@@ -31,9 +37,10 @@ extend type UserNoteLink {
   """
   originalCategoryName: MovableNoteCategory
   """
-  Connection where note is stored
+  An outdated note might have been deleted or moved to another category.
+  Note is still kept until app is online.
   """
-  connectionCategoryName: NoteCategory
+  outdated: Boolean!
 }
 
 extend type Note {
@@ -69,7 +76,14 @@ type NoteTextField {
   editor: NoteTextFieldEditor!
 }
 
-################################ LocalSignedInUser.pendingNotes ################################
+extend input UserNoteLinkSearchConnectionExtendInput {
+  """
+  Query for offline results
+  """
+  offline: Boolean
+}
+
+################################ LocalUser.pendingNotes ################################
 
 """
 TODO desc
@@ -119,17 +133,23 @@ extend type UserNoteLink {
 #   hidden: Boolean!
 # }
 
-extend type LocalSignedInUser {
+extend type LocalUser {
   """
   A list of notes tied to creating new notes.
   Each note should have non-null field `pendingStatus`.
   """
   pendingNotes: [UserNoteLink!]!
+  """
+  A outdated note might have been deleted or moved to another category.
+  Oudated note is kept in last known category until more information is available.
+  These notes need to be
+  """
+  outdatedNotes: [UserNoteLink!]!
 }
 
-################################ LocalSignedInUser.unsavedCollabServices ################################
+################################ LocalUser.unsavedCollabServices ################################
 
-extend type LocalSignedInUser {
+extend type LocalUser {
   """
   List of notes that has CollabService with either local or unsubmitted changes.
   These notes must be synchronized with the server.

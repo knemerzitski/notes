@@ -3,7 +3,7 @@ import { ApolloCache } from '@apollo/client';
 import { gql } from '../../../__generated__';
 import { UserNoteLinkByInput } from '../../../__generated__/graphql';
 import { getUserNoteLinkId, parseUserNoteLinkByInput } from '../../utils/id';
-import { getConnectionCategoryName } from '../note/connection-category-name';
+import { getCategoryName } from '../note/category-name';
 
 const RemoveNoteFromConnection_Query = gql(`
   query RemoveNoteFromConnection_Query($userBy: UserByInput!, $category: NoteCategory!) {
@@ -26,13 +26,9 @@ const RemoveNoteFromConnection_Query = gql(`
 
 export function removeNoteFromConnection(
   by: UserNoteLinkByInput,
-  cache: Pick<ApolloCache<unknown>, 'readQuery' | 'updateQuery' | 'evict' | 'identify'>
+  cache: Pick<ApolloCache<unknown>, 'readQuery' | 'updateQuery' | 'evict' | 'identify'>,
+  categoryName = getCategoryName(by, cache)
 ) {
-  const categoryName = getConnectionCategoryName(by, cache);
-  if (!categoryName) {
-    return;
-  }
-
   const { noteId, userId } = parseUserNoteLinkByInput(by, cache);
   const userNoteLinkId = getUserNoteLinkId(noteId, userId);
 
@@ -74,12 +70,4 @@ export function removeNoteFromConnection(
       };
     }
   );
-
-  cache.evict({
-    fieldName: 'connectionCategoryName',
-    id: cache.identify({
-      __typename: 'UserNoteLink',
-      id: userNoteLinkId,
-    }),
-  });
 }

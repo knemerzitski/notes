@@ -1,6 +1,7 @@
 import { gql } from '../../__generated__';
 import { UserNoteLinkByInput } from '../../__generated__/graphql';
 import { mutationDefinition } from '../../graphql/utils/mutation-definition';
+import { updateOriginalCategoryName } from '../models/note/original-category-name';
 import { moveNoteInConnection } from '../models/note-connection/move';
 
 export const TrashUserNoteLinkPayload = mutationDefinition(
@@ -11,6 +12,7 @@ export const TrashUserNoteLinkPayload = mutationDefinition(
         deletedAt
         categoryName
       }
+      originalCategoryName
     }
   `),
   (cache, { data }) => {
@@ -22,6 +24,9 @@ export const TrashUserNoteLinkPayload = mutationDefinition(
     const noteBy: UserNoteLinkByInput = {
       id: noteLink.id,
     };
+
+    // Remember category if its restored later
+    updateOriginalCategoryName(noteBy, cache, data.originalCategoryName);
 
     moveNoteInConnection(
       noteBy,

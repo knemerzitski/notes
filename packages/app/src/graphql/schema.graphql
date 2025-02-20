@@ -5,12 +5,19 @@ These fields are not sent to the GraphQL server.
 directive @client on FIELD | QUERY
 
 """
+The @clientArgs directive allows you to resolve client-only arguments alongside your server data.
+These arguments are not sent to the GraphQL server.
+Nested object paths are separated by dot.
+"""
+directive @clientArgs(paths: [String!]!) on FIELD
+
+"""
 The @persist directive will persist operation in cache until it has received a response from server.
 When app is reopened, all unfinished mutations are resumed.
 """
 directive @persist on MUTATION
 """
-Operations with @remote directive will be sent to server regardless if user is local. 
+Operations with @remote directive will be sent to server regardless if user is local.
 Used for sign in or sign out operations.
 """
 directive @remote on MUTATION

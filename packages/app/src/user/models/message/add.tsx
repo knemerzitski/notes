@@ -40,7 +40,7 @@ export function addUserMessages(
         id: userId,
         local: {
           id: userId,
-          __typename: 'LocalSignedInUser',
+          __typename: 'LocalUser',
           messages: messages.map((message) => ({
             ...message,
             __typename: 'UserMessage' as const,

@@ -31,11 +31,12 @@ export function RouteEditNotePage({
     if (getCanGoBack()) {
       router.history.back();
     } else {
+      // must not have search on mobile
       if (originalLocation) {
         void navigate({
           to: originalLocation.pathname,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
-          search: originalLocation.search as any,
+          search: !isMobile && (originalLocation.search as any),
           replace: true,
         });
       } else {
@@ -45,7 +46,7 @@ export function RouteEditNotePage({
         });
       }
     }
-  }, [navigate, originalLocation, router, getCanGoBack]);
+  }, [navigate, originalLocation, router, getCanGoBack, isMobile]);
 
   if (!isMobile) {
     // On desktop show a modal instead: ...?noteId=$noteId

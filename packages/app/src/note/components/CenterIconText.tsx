@@ -1,7 +1,7 @@
 import { Box, css, styled, Typography } from '@mui/material';
 import { ReactNode } from 'react';
 
-export function EmptyListInfo({ icon, text }: { icon: ReactNode; text: string }) {
+export function CenterIconText({ icon, text }: { icon: ReactNode; text: string }) {
   return (
     <BoxStyled>
       {icon}

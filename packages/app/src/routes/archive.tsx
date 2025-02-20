@@ -1,8 +1,9 @@
-import { createFileRoute, defer } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 
 import { gql } from '../__generated__';
 import { ArchiveMain } from '../note/components/ArchiveMain';
 import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
+import { IsLoadingProvider } from '../utils/context/is-loading';
 import { routeFetchPolicy } from '../utils/route-fetch-policy';
 
 const RouteArchive_Query = gql(`
@@ -15,8 +16,8 @@ const RouteArchive_Query = gql(`
 
 export const Route = createFileRoute('/_root_layout/archive')({
   component: Archive,
-  pendingComponent: Archive,
-  loader(ctx) {
+  pendingComponent: ArchivePending,
+  async loader(ctx) {
     const {
       context: { apolloClient, fetchedRoutes },
     } = ctx;
@@ -29,27 +30,31 @@ export const Route = createFileRoute('/_root_layout/archive')({
 
     const userId = getCurrentUserId(apolloClient.cache);
 
-    return {
-      deferredQuery: defer(
-        apolloClient
-          .query({
-            query: RouteArchive_Query,
-            variables: {
-              userBy: {
-                id: userId,
-              },
-              archive_first: 20,
-            },
-            fetchPolicy,
-          })
-          .then(() => {
-            fetchedRoutes.add(routeId);
-          })
-      ),
-    };
+    await apolloClient
+      .query({
+        query: RouteArchive_Query,
+        variables: {
+          userBy: {
+            id: userId,
+          },
+          archive_first: 20,
+        },
+        fetchPolicy,
+      })
+      .then(() => {
+        fetchedRoutes.add(routeId);
+      });
   },
 });
 
 function Archive() {
   return <ArchiveMain />;
+}
+
+function ArchivePending() {
+  return (
+    <IsLoadingProvider isLoading={true}>
+      <ArchiveMain />
+    </IsLoadingProvider>
+  );
 }

@@ -37,9 +37,6 @@ export function useUnarchiveNoteWithUndo() {
       const noteIdsData = noteIds
         .map((noteId) => {
           const oldCategoryName = getCategoryName({ noteId }, client.cache);
-          if (!oldCategoryName) {
-            return;
-          }
 
           const oldMovableCategoryName = toMovableNoteCategory(oldCategoryName);
           if (!oldMovableCategoryName) {

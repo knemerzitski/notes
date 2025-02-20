@@ -289,7 +289,7 @@ export class CollabClient {
   }
 
   private logState(message: string, data?: Record<string, unknown>) {
-    this.logger?.info(message, {
+    this.logger?.debug(message, {
       ...data,
       server: this._server.toString(),
       submitted: this._submitted.toString(),

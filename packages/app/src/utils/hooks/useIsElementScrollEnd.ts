@@ -1,48 +1,62 @@
 import { useCallback, useEffect, useState } from 'react';
 
-function calcIsScrollEnd(el?: HTMLElement) {
-  if (!el) {
-    return null;
+function calcIsScrollEnd(node?: Element) {
+  if (!node) {
+    return;
   }
 
-  return el.scrollTop >= el.scrollHeight - el.clientHeight;
+  return node.scrollTop >= node.scrollHeight - node.clientHeight;
 }
 
-export function useIsElementScrollEnd(el?: HTMLElement) {
-  const [isScrollEnd, setIsScrollEnd] = useState<boolean | null>(calcIsScrollEnd(el));
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
+export function useIsElementScrollEnd<T extends Element>(): {
+  isScrollEnd?: boolean;
+  ref: (node: T) => void;
+} {
+  const [node, setNode] = useState<T>();
+
+  const ref = useCallback((node: T) => {
+    setIsScrollEnd(calcIsScrollEnd(node));
+    setNode(node);
+  }, []);
+
+  const [isScrollEnd, setIsScrollEnd] = useState<boolean>();
 
   const updateIsScrollEnd = useCallback(() => {
-    if (!el) return;
+    if (!node) return;
 
-    setIsScrollEnd(calcIsScrollEnd(el));
-  }, [el]);
+    setIsScrollEnd(calcIsScrollEnd(node));
+  }, [node]);
 
   useEffect(() => {
-    if (!el) return;
+    if (!node) return;
 
     updateIsScrollEnd();
 
-    el.addEventListener('scroll', updateIsScrollEnd);
-    el.addEventListener('touchmove', updateIsScrollEnd);
+    node.addEventListener('scroll', updateIsScrollEnd);
+    node.addEventListener('touchmove', updateIsScrollEnd);
     return () => {
-      el.removeEventListener('scroll', updateIsScrollEnd);
-      el.removeEventListener('touchmove', updateIsScrollEnd);
+      node.removeEventListener('scroll', updateIsScrollEnd);
+      node.removeEventListener('touchmove', updateIsScrollEnd);
     };
-  }, [el, updateIsScrollEnd]);
+  }, [node, updateIsScrollEnd]);
 
   useEffect(() => {
-    if (!el) return;
+    if (!node) return;
 
-    const parentEl = el.parentElement;
-    if (!parentEl) return;
+    const parentNode = node.parentElement;
+    if (!parentNode) return;
 
     const resizeObserver = new ResizeObserver(updateIsScrollEnd);
 
-    resizeObserver.observe(parentEl);
+    resizeObserver.observe(parentNode);
     return () => {
       resizeObserver.disconnect();
     };
-  }, [el, updateIsScrollEnd]);
+  }, [node, updateIsScrollEnd]);
 
-  return isScrollEnd;
+  return {
+    isScrollEnd,
+    ref: ref,
+  };
 }

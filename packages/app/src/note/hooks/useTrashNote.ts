@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 
 import { makeFragmentData } from '../../__generated__';
 import {
+  MovableNoteCategory,
   NoteCategory,
   TrashUserNoteLinkPayloadFragmentDoc,
   UserNoteLinkByInput,
@@ -10,10 +11,10 @@ import {
 import { useMutation } from '../../graphql/hooks/useMutation';
 import { noteSerializationKey_orderMatters } from '../../graphql/utils/serialization-key';
 import { isLocalOnlyNote } from '../models/local-note/is-local-only';
-import { updateConnectionCategoryName } from '../models/note/connection-category-name';
-import { updateOriginalCategoryName } from '../models/note/original-category-name';
+import { getCategoryName } from '../models/note/category-name';
 import { TrashUserNoteLink } from '../mutations/TrashUserNoteLink';
 import { getUserNoteLinkId, parseUserNoteLinkByInput } from '../utils/id';
+import { toMovableNoteCategory } from '../utils/note-category';
 
 export function useTrashNote() {
   const client = useApolloClient();
@@ -22,11 +23,6 @@ export function useTrashNote() {
   return useCallback(
     (by: UserNoteLinkByInput) => {
       const { userId, noteId } = parseUserNoteLinkByInput(by, client.cache);
-
-      // Before changing field `categoryName`, remember connection category where note is kept
-      updateConnectionCategoryName({ noteId }, client.cache);
-      // Remember category if its restored later
-      updateOriginalCategoryName({ noteId }, client.cache);
 
       // Assume in 30 days
       const deletedAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
@@ -54,6 +50,9 @@ export function useTrashNote() {
             ...makeFragmentData(
               {
                 __typename: 'TrashUserNoteLinkPayload',
+                originalCategoryName:
+                  toMovableNoteCategory(getCategoryName(by, client.cache)) ??
+                  MovableNoteCategory.DEFAULT,
                 userNoteLink: {
                   __typename: 'UserNoteLink',
                   id: getUserNoteLinkId(noteId, userId),

@@ -19,7 +19,7 @@ const GetCategoryName_Query = gql(`
 export function getCategoryName(
   by: UserNoteLinkByInput,
   cache: Pick<ApolloCache<unknown>, 'readQuery'>
-): NoteCategory | undefined {
+): NoteCategory {
   const { userId, noteId } = parseUserNoteLinkByInput(by, cache);
 
   const data = cache.readQuery({
@@ -34,5 +34,9 @@ export function getCategoryName(
     },
   });
 
-  return data?.signedInUser.noteLink.categoryName;
+  if (!data) {
+    throw new Error(`Unexpected failed to get category for note "${noteId}"`);
+  }
+
+  return data.signedInUser.noteLink.categoryName;
 }

@@ -1,6 +1,6 @@
 import { css, Dialog, styled } from '@mui/material';
 
-import { forwardRef, useState } from 'react';
+import { forwardRef } from 'react';
 
 import { useIsElementScrollEnd } from '../../utils/hooks/useIsElementScrollEnd';
 
@@ -17,9 +17,8 @@ export const NoteDialog = forwardRef<HTMLDivElement, Parameters<typeof DialogSty
     { open = true, maxWidth = 'sm', fullWidth = true, PaperProps, ...restProps },
     ref
   ) {
-    const [inputsBoxEl, setInputsBoxEl] = useState<HTMLElement>();
-
-    const isScrollEnd = useIsElementScrollEnd(inputsBoxEl) ?? true;
+    const { isScrollEnd = true, ref: collabInputsColumnRef } =
+      useIsElementScrollEnd<HTMLDivElement>();
 
     return (
       <DialogStyled
@@ -38,13 +37,7 @@ export const NoteDialog = forwardRef<HTMLDivElement, Parameters<typeof DialogSty
         <UserAvatarsCornerPosition>
           <OpenSharingUserAvatars />
         </UserAvatarsCornerPosition>
-        <CollabInputsColumn
-          ref={(el) => {
-            if (el) {
-              setInputsBoxEl(el);
-            }
-          }}
-        />
+        <CollabInputsColumn ref={collabInputsColumnRef} />
         <NoteToolbarStyled isScrollEnd={isScrollEnd} />
       </DialogStyled>
     );

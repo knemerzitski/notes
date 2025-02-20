@@ -7,6 +7,7 @@ import { isObjectLike } from '~utils/type-guards/is-object-like';
 import { NoteCategory } from '../../__generated__/graphql';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
 import { relayStylePagination } from '../../graphql/utils/relay-style-pagination';
+import { updateUserNoteLinkOutdated } from '../models/note/outdated';
 import { throwNoteNotFoundError } from '../utils/errors';
 import { getUserNoteLinkId } from '../utils/id';
 
@@ -84,7 +85,7 @@ export const User: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
           return existing;
         },
         // Preserve local edges (when merging incoming from server) by checking node.note.localOnly
-        preserveEdge(edge, { readField }) {
+        preserveEdgeInPosition(edge, { readField }) {
           const node = readField('node', edge);
           if (!isReference(node)) {
             return false;
@@ -96,6 +97,25 @@ export const User: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
           }
 
           return !!readField('localOnly', note);
+        },
+        // Never remove any edges
+        preserveUnknownIndexEdges(missingEdges, { readField, cache }) {
+          // Mark note outdated
+          missingEdges.forEach((edge) => {
+            const node = readField('node', edge);
+            if (!isReference(node)) {
+              return;
+            }
+
+            const id = readField('id', node);
+            if (typeof id !== 'string') {
+              return;
+            }
+
+            updateUserNoteLinkOutdated(id, true, cache);
+          });
+
+          return true;
         },
         /**
          * Currently noteLinkConnection cursors are derived from Note.id
@@ -138,6 +158,16 @@ export const User: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
           },
           options
         ) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          const extend = options.args?.extend ?? {};
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          const isOffline = !!extend.offline;
+
+          // Don't search locally while online
+          if (!isOffline) {
+            return existing;
+          }
+
           const { args, readField } = options;
 
           const searchText = args?.searchText ? String(args.searchText) : '';
@@ -209,9 +239,20 @@ export const User: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
           const searchResult = fuse.search(searchText);
           searchResult.reverse();
 
+          const seenIds = new Set<string>();
+
           return {
             __typename: 'UserNoteLinkConnection',
-            edges: searchResult.map(({ item }) => item),
+            edges: searchResult
+              .map(({ item }) => item)
+              // Filter out duplicate results
+              .filter(({ node }) => {
+                if (seenIds.has(node.__ref)) {
+                  return false;
+                }
+                seenIds.add(node.__ref);
+                return true;
+              }),
             pageInfo: {
               hasPreviousPage: false,
               hasNextPage: false,

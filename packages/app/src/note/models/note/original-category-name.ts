@@ -8,6 +8,10 @@ import {
 } from '../../../__generated__/graphql';
 import { parseUserNoteLinkByInput } from '../../utils/id';
 
+import { toMovableNoteCategory } from '../../utils/note-category';
+
+import { getCategoryName } from './category-name';
+
 const OriginalCategoryName_Query = gql(`
   query OriginalCategoryName_Query($userBy: UserByInput!, $noteBy: NoteByInput!) {
     signedInUser(by: $userBy) {
@@ -60,7 +64,8 @@ export function getOriginalCategoryName(
  */
 export function updateOriginalCategoryName(
   by: UserNoteLinkByInput,
-  cache: Pick<ApolloCache<unknown>, 'updateQuery' | 'readQuery'>
+  cache: Pick<ApolloCache<unknown>, 'updateQuery' | 'readQuery'>,
+  originalCategoryName?: MovableNoteCategory
 ) {
   const { userId, noteId } = parseUserNoteLinkByInput(by, cache);
 
@@ -85,12 +90,17 @@ export function updateOriginalCategoryName(
         return;
       }
 
+      const resultOriginalCategoryName =
+        originalCategoryName ?? toMovableNoteCategory(getCategoryName(by, cache));
+      if (!resultOriginalCategoryName) {
+        return;
+      }
+
       return {
         ...data,
         userNoteLink: {
           ...data.signedInUser.noteLink,
-          originalCategoryName: data.signedInUser.noteLink
-            .categoryName as unknown as MovableNoteCategory,
+          originalCategoryName: resultOriginalCategoryName,
         },
       };
     }

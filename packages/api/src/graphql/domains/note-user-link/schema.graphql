@@ -3,7 +3,7 @@
 """
 Identifier for UserNoteLink.id, serializes to string
 TODO delete this scalar
-""" # eslint-disable-next-line @graphql-eslint/no-unreachable-types
+"""
 scalar UserNoteLinkID
 
 """
@@ -110,7 +110,7 @@ type UserNoteLinkEdge implements Edge {
 
 """
 TODO desc
-""" # eslint-disable-next-line @graphql-eslint/no-unreachable-types
+"""
 input UserNoteLinkByInput @oneOf {
   """
   UserNoteLink.id
@@ -124,6 +124,17 @@ input UserNoteLinkByInput @oneOf {
   userNoteLink.note.id
   """
   noteId: ObjectID
+}
+
+"""
+Used for extending arguments of field User.noteLinkSearchConnection
+"""
+input UserNoteLinkSearchConnectionExtendInput {
+  """
+  Don't use this field. Only used to pass specification requirements.
+  """
+  # eslint-disable-next-line @graphql-eslint/naming-convention
+  _: Boolean
 }
 
 extend type User {
@@ -150,6 +161,7 @@ extend type User {
     after: String
     last: NonNegativeInt
     before: String
+    extend: UserNoteLinkSearchConnectionExtendInput
   ): UserNoteLinkConnection! @auth(userId: { parent: "userId" })
 }
 
@@ -308,6 +320,10 @@ TODO desc
 """
 type TrashUserNoteLinkPayload {
   """
+  Note category before it was trashed
+  """
+  originalCategoryName: MovableNoteCategory!
+  """
   Time when note is permanently deleted from trash
   """
   deletedAt: DateTime!
@@ -426,6 +442,10 @@ input MoveUserNoteLinkInput {
 TODO desc
 """
 type MoveUserNoteLinkPayload {
+  """
+  Note category before it was moved
+  """
+  prevCategoryName: NoteCategory!
   """
   How note was moved
   """

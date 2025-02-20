@@ -364,9 +364,9 @@ describe('copied tests from @apollo/client/utilities/policies/pagination', () =>
   });
 });
 
-describe('preserveEdge', () => {
+describe('preserveEdgeInPosition', () => {
   const policy = relayStylePagination(false, {
-    preserveEdge(edge, { readField }) {
+    preserveEdgeInPosition(edge, { readField }) {
       const node = readField<Reference>('node', edge);
       if (!node) {
         return false;
@@ -487,9 +487,17 @@ describe('isOrderedSet', () => {
     [
       [1, 2, 3, 4, 5],
       [5, 6, 7, 2, 3, 3],
-      [1, 4, 5, 6, 7, 2, 3, 3],
+      [1, 4, 5, 6, 7, 2, 3],
       {
         after: '4',
+      },
+    ],
+    [
+      [0, 1, 2, 3, 4, 5],
+      [2, 1, 3, 0],
+      [2, 1, 3, 0, 4, 5],
+      {
+        before: '4',
       },
     ],
   ])('%s + %s => %s', (existingDesc, incomingDesc, expectedResultDesc, args) => {
@@ -511,5 +519,117 @@ describe('isOrderedSet', () => {
 
     const resultEdges = result?.edges.map((edge: any) => edge.node.id);
     expect(resultEdges).toStrictEqual(expectedResultDesc);
+  });
+});
+
+describe('preserveExistingEdges', () => {
+  const policy = relayStylePagination(false, {
+    preserveUnknownIndexEdges: () => true,
+  });
+
+  const merge = policy.merge;
+  // The merge function should exist, make TS aware
+  if (typeof merge !== 'function') {
+    throw new Error('Expecting merge function');
+  }
+
+  const options: FieldFunctionOptions = {
+    args: null,
+    fieldName: 'fake',
+    storeFieldName: 'fake',
+    field: null,
+    isReference: isReference,
+    toReference: () => undefined,
+    storage: {},
+    cache: new InMemoryCache(),
+    //@ts-expect-error Works for testing
+    readField: (field, obj) => {
+      //@ts-expect-error Works for testing
+      return obj[field];
+    },
+    canRead: () => false,
+    mergeObjects: (existing, _incoming) => existing,
+  };
+
+  function createEdges(ids: (string | number)[]) {
+    return ids.map((id) => ({ cursor: String(id), node: { id, __ref: `N:${id}` } }));
+  }
+
+  it.each([
+    {
+      existing: [1, 2, 3],
+      incoming: [1, 2],
+      expectedResult: [1, 2, 3],
+      args: {
+        first: 2,
+      },
+    },
+    {
+      existing: [1, 2, 3],
+      incoming: [1, 3],
+      expectedResult: [1, 3, 2],
+      args: {
+        first: 2,
+      },
+    },
+    {
+      existing: [1, 2, 3, 4],
+      incoming: [1, 3],
+      expectedResult: [1, 3, 2, 4],
+      args: {
+        first: 2,
+      },
+    },
+    {
+      existing: [1, 2, 3, 4],
+      incoming: [4],
+      expectedResult: [1, 2, 4, 3],
+      args: {
+        after: '2',
+      },
+    },
+    {
+      existing: [1, 2, 3, 4, 5, 6, 7, 8],
+      incoming: [6, 5, 4],
+      expectedResult: [1, 2, 3, 6, 5, 4, 7, 8],
+      args: {
+        after: '3',
+      },
+    },
+    {
+      existing: [1, 2, 3, 4, 5, 6, 7, 8],
+      incoming: [6, 4],
+      expectedResult: [1, 2, 3, 6, 4, 5, 7, 8],
+      args: {
+        after: '3',
+      },
+    },
+    {
+      existing: [1, 2, 3, 4],
+      incoming: [1],
+      expectedResult: [2, 1, 3, 4],
+      args: {
+        before: '3',
+      },
+    },
+  ])('%s', ({ existing, incoming, expectedResult, args }) => {
+    const existingEdges = createEdges(existing);
+    const incomingEdges = createEdges(incoming);
+
+    const result = merge(
+      {
+        edges: existingEdges,
+      } as any,
+      {
+        edges: incomingEdges,
+      },
+      {
+        ...options,
+        args,
+      }
+    );
+
+    const resultEdges = result?.edges.map((edge: any) => edge.node.id);
+    expect(resultEdges).toStrictEqual(expectedResult);
   });
 });

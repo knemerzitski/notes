@@ -8,8 +8,8 @@ export function createUserForCache({
   localOnly?: boolean;
 }) {
   return {
-    [`LocalSignedInUser:${id}`]: {
-      __typename: 'LocalSignedInUser',
+    [`LocalUser:${id}`]: {
+      __typename: 'LocalUser',
       id: id,
     },
     [`User:${id}`]: {
@@ -21,7 +21,7 @@ export function createUserForCache({
         displayName,
       },
       local: {
-        __ref: `LocalSignedInUser:${id}`,
+        __ref: `LocalUser:${id}`,
       },
     },
   };

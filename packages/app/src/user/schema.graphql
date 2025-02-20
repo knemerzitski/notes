@@ -11,7 +11,7 @@ extend type User {
   """
   Always mutable subtype of User even when it has data from optimistic response
   """
-  local: LocalSignedInUser!
+  local: LocalUser!
   """
   User email. This is stored only on client-side during sign-in and not in the server.
   """
@@ -47,13 +47,13 @@ extend type Query {
   localUser: User!
 }
 
-################################ LocalSignedInUser ################################
+################################ LocalUser ################################
 
 """
 User state that can always be modified with writeQuery/writeFragemt and
 it will be reflected in UI regardless of optimistic responses.
 """
-type LocalSignedInUser {
+type LocalUser {
   """
   User.id
   """
@@ -64,7 +64,7 @@ type LocalSignedInUser {
   sessionExpired: Boolean!
 }
 
-################################ LocalSignedInUser.messages ################################
+################################ LocalUser.messages ################################
 
 """
 TODO desc
@@ -92,14 +92,14 @@ type UserMessage {
   text: String!
 }
 
-extend type LocalSignedInUser {
+extend type LocalUser {
   """
   TODO desc
   """
   messages: [UserMessage!]!
 }
 
-################################ LocalSignedInUser.operations ################################
+################################ LocalUser.operations ################################
 
 """
 TODO desc
@@ -111,7 +111,7 @@ interface UserOperation {
   id: ID!
 }
 
-extend type LocalSignedInUser {
+extend type LocalUser {
   """
   Operations that need to be processed.
   """

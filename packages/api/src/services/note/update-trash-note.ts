@@ -58,6 +58,7 @@ export async function updateTrashNote({
               categoryName: 1,
               trashed: {
                 expireAt: 1,
+                originalCategoryName: 1,
               },
             },
           },
@@ -73,12 +74,16 @@ export async function updateTrashNote({
       throw new NoteNotFoundServiceError(noteId);
     }
 
+    const originalCategoryName =
+      noteUser.trashed?.originalCategoryName ?? noteUser.categoryName;
+
     const existingExpireAt = noteUser.trashed?.expireAt;
     if (existingExpireAt != null) {
       // Return early since note is already trashed
       return {
         type: 'already_trashed' as const,
         expireAt: existingExpireAt,
+        originalCategoryName,
       };
     }
 
@@ -132,6 +137,7 @@ export async function updateTrashNote({
 
     return {
       type: 'success' as const,
+      originalCategoryName,
       expireAt,
     };
   });

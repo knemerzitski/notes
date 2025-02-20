@@ -1,11 +1,22 @@
 import { useApolloClient } from '@apollo/client';
-import { alpha, Box, css, Paper, PaperProps, styled, Theme } from '@mui/material';
-import { forwardRef, memo, ReactNode, useCallback, useRef, useState } from 'react';
+import {
+  alpha,
+  Box,
+  CircularProgress,
+  css,
+  Paper,
+  PaperProps,
+  styled,
+  Theme,
+  Tooltip,
+} from '@mui/material';
+import { forwardRef, memo, useCallback, useMemo, useRef, useState } from 'react';
 
 import { gql } from '../../__generated__';
 import { NoteCategory } from '../../__generated__/graphql';
-import { isDevToolsEnabled } from '../../dev/utils/dev-tools';
+import { IsDevToolsEnabled } from '../../dev/components/IsDevToolsEnabled';
 import { IsDesktop } from '../../utils/components/IsDesktop';
+import { IsLoading } from '../../utils/components/IsLoading';
 import { isElHover } from '../../utils/is-el-hover';
 import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
 
@@ -26,6 +37,7 @@ import { DeletedInDays } from './DeletedInDays';
 import { NoteAlwaysButtons } from './NoteAlwaysButtons';
 import { NoteMoreOptionsButton } from './NoteMoreOptionsButton';
 import { OpenedNoteUserAvatars } from './OpenedNoteUserAvatars';
+import { SyncOutdatedNote } from './SyncOutdatedNote';
 import { TitleTypography } from './TitleTypography';
 import { UserAvatarsCornerPosition } from './UserAvatarsCornerPosition';
 
@@ -150,6 +162,16 @@ const HoverableNoteCardWithToolbarPaper = forwardRef<
     setIsActive(false);
   };
 
+  const toolbarBoxChildren = useMemo(
+    () => (
+      <>
+        <MemoizedNoteAlwaysButtons />
+        <MemoizedNoteMoreOptionsButton onTransitionExited={handleExitedMoreOptionsMenu} />
+      </>
+    ),
+    [handleExitedMoreOptionsMenu]
+  );
+
   return (
     <NoteCardPaper
       ref={(el) => {
@@ -176,14 +198,7 @@ const HoverableNoteCardWithToolbarPaper = forwardRef<
       active={isActive}
       ToolbarBoxProps={{
         active: isActive && !isAnyNoteSelected,
-        children: (
-          <>
-            <MemoizedNoteAlwaysButtons />
-            <MemoizedNoteMoreOptionsButton
-              onTransitionExited={handleExitedMoreOptionsMenu}
-            />
-          </>
-        ),
+        children: toolbarBoxChildren,
       }}
     />
   );
@@ -222,21 +237,11 @@ const NoteCardPaper = forwardRef<HTMLDivElement, NodeCardPaperProps>(
     return (
       <DefaultNoteCardPaper ref={ref} {...restProps}>
         <MainSection />
-        <IsDesktop>
-          <RenderOnActiveToolbarBox {...ToolbarBoxProps} />
-        </IsDesktop>
+        <MemoizedDesktopOnActiveToolbarBox {...ToolbarBoxProps} />
       </DefaultNoteCardPaper>
     );
   }
 );
-
-function IsDevToolsEnabled({ children }: { children: ReactNode }) {
-  if (!isDevToolsEnabled()) {
-    return null;
-  }
-
-  return children;
-}
 
 function NoteId() {
   const noteId = useNoteId();
@@ -255,6 +260,8 @@ function DevRenderNoteId() {
 const MainSection = memo(function MainSection() {
   return (
     <>
+      <SyncOutdatedNote />
+      <DuringLoadingNoteRefreshingProgress />
       <DevRenderNoteId />
       <UserAvatarsCornerPosition>
         <OpenedNoteUserAvatars
@@ -277,7 +284,44 @@ const MainSection = memo(function MainSection() {
   );
 });
 
-function RenderOnActiveToolbarBox(props: ToolbarBoxProps) {
+function DuringLoadingNoteRefreshingProgress() {
+  return (
+    <IsLoading>
+      <NoteRefreshingProgress />
+    </IsLoading>
+  );
+}
+
+const NoteRefreshingProgress = memo(function NoteRefreshingProgress() {
+  return (
+    <Tooltip title="Refreshing">
+      <TopRightProgress size="3em" />
+    </Tooltip>
+  );
+});
+
+const TopRightProgress = styled(CircularProgress)(
+  ({ theme }) => css`
+    position: absolute;
+    right: ${theme.spacing(0.5)};
+    top: ${theme.spacing(0.5)};
+    font-size: 0.5em;
+  `
+);
+
+const MemoizedDesktopOnActiveToolbarBox = memo(function MemoizedDesktopOnActiveToolbarBox(
+  props: Parameters<typeof RenderOnActiveToolbarBox>[0]
+) {
+  return (
+    <IsDesktop>
+      <RenderOnActiveToolbarBox {...props} />
+    </IsDesktop>
+  );
+});
+
+const RenderOnActiveToolbarBox = function RenderOnActiveToolbarBox(
+  props: ToolbarBoxProps
+) {
   const { active = false, children } = props;
 
   const hasToolbarBeenActiveRef = useRef(active);
@@ -286,7 +330,7 @@ function RenderOnActiveToolbarBox(props: ToolbarBoxProps) {
   const renderToolbarChildren = hasToolbarBeenActiveRef.current;
 
   return <ToolbarBox {...props}>{renderToolbarChildren && children}</ToolbarBox>;
-}
+};
 
 const DefaultNoteCardPaper = forwardRef<HTMLDivElement, PaperStyledProps>(
   function DefaultNoteCardPaper(props, ref) {

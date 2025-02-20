@@ -3,7 +3,7 @@ import { FullWidthCenterMain } from '../../layout/components/FullWidthCenterMain
 import { FullWidthCenterRow } from '../../layout/components/FullWidthCenterRow';
 
 import { ArchiveNotesConnectionGrid } from './ArchiveNotesConnectionGrid';
-import { EmptyInfoTopMargin } from './EmptyInfoTopMargin';
+import { NoListResultsTopSpacing } from './NoListResultsTopSpacing';
 
 const _ArchiveMain_UserFragment = gql(`
   fragment ArchiveMain_UserFragment on User {
@@ -15,11 +15,7 @@ export function ArchiveMain() {
   return (
     <FullWidthCenterMain>
       <FullWidthCenterRow>
-        <ArchiveNotesConnectionGrid
-          slots={{
-            emptyElementPrefix: <EmptyInfoTopMargin />,
-          }}
-        />
+        <ArchiveNotesConnectionGrid EmptyListComponent={NoListResultsTopSpacing} />
       </FullWidthCenterRow>
     </FullWidthCenterMain>
   );

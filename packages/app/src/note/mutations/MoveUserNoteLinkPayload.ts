@@ -13,6 +13,7 @@ export const MoveUserNoteLinkPayload = mutationDefinition(
       }
       anchorPosition
     }
+    prevCategoryName
     userNoteLink {
       id
       deletedAt
@@ -30,6 +31,6 @@ export const MoveUserNoteLinkPayload = mutationDefinition(
       id: noteLink.id,
     };
 
-    moveNoteInConnection(noteBy, data.location, cache);
+    moveNoteInConnection(noteBy, data.location, cache, data.prevCategoryName);
   }
 );
