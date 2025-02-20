@@ -3,9 +3,10 @@ import { ComponentType, ReactNode } from 'react';
 import { gql } from '../../__generated__';
 import { NoteCategory } from '../../__generated__/graphql';
 
+import { PassChildren } from '../../utils/components/PassChildren';
+
 import { EmptyArchiveIconText } from './EmptyArchiveIconText';
 import { NotesConnectionGrid } from './NotesConnectionGrid';
-import { PassChildren } from '../../utils/components/PassChildren';
 
 const _ArchiveNotesConnectionGrid_UserFragment = gql(`
   fragment ArchiveNotesConnectionGrid_UserFragment on User {
