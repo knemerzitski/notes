@@ -11,7 +11,14 @@ export function useIntersectingFetchMore<T>({
   ids,
   fetchMore,
   firstFetchMore,
+  /**
+   * @default 20
+   */
   perPageCount = 20,
+  /**
+   * Wait time beween fetching more notes during infinite scrolling
+   * @default 500 milliseconds
+   */
   infiniteLoadingDelay = 500,
 }: {
   ids: readonly T[] | undefined;
