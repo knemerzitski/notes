@@ -29,7 +29,7 @@ import { NotesCardGrid } from './NotesCardGrid';
 import { SortableNoteCard } from './SortableNoteCard';
 import { SortableNotesContext } from './SortableNotesContext';
 
-const NotesConnectionGrid_UserNoteLinkConnectionFragment = gql(`
+export const NotesConnectionGrid_UserNoteLinkConnectionFragment = gql(`
   fragment NotesConnectionGrid_UserNoteLinkConnectionFragment on UserNoteLinkConnection {
     edges {
       node {
@@ -64,15 +64,14 @@ const NotesConnectionGrid_Query = gql(`
 const EMPTY_LIST: readonly any[] = [];
 
 export function NotesConnectionGrid({
-  perPageCount = 20,
+  fetchMoreOptions,
   category = NoteCategory.DEFAULT,
   emptyElement = 'empty',
-  infiniteLoadingDelay = 500,
 }: {
-  /**
-   * @default 20
-   */
-  perPageCount?: number;
+  fetchMoreOptions?: Pick<
+    Parameters<typeof useIntersectingFetchMore>[0],
+    'infiniteLoadingDelay' | 'perPageCount'
+  >;
   /**
    * @default Default
    */
@@ -81,11 +80,6 @@ export function NotesConnectionGrid({
    * Element that is rendered when notes list is empty.
    */
   emptyElement?: ReactNode;
-  /**
-   * Wait time beween fetching more notes during infinite scrolling
-   * @default 500 milliseconds
-   */
-  infiniteLoadingDelay?: number;
 }) {
   const logger = useLogger('NotesConnectionGrid');
 
@@ -103,7 +97,7 @@ export function NotesConnectionGrid({
       userBy: {
         id: userId,
       },
-      first: perPageCount,
+      first: fetchMoreOptions?.perPageCount ?? 20,
       category,
     },
     fetchPolicy: 'cache-only',
@@ -158,6 +152,7 @@ export function NotesConnectionGrid({
     onIntersectingId: onIntersectingNoteId,
     reset,
   } = useIntersectingFetchMore({
+    ...fetchMoreOptions,
     ids: noteIds,
     fetchMore: useCallback(
       async ({ perPageCount, endCursor }) => {
@@ -245,8 +240,6 @@ export function NotesConnectionGrid({
       },
       [logger, fragmentData]
     ),
-    perPageCount,
-    infiniteLoadingDelay,
   });
 
   // Reset fetchMore when category or userId has changed
