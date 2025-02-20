@@ -1,100 +1,221 @@
 import { useApolloClient, useQuery } from '@apollo/client';
 import BugReportIcon from '@mui/icons-material/BugReport';
-import { Alert, Box, Button, css, styled } from '@mui/material';
-import { ReactNode, useMemo, useState } from 'react';
+import { Alert, Box, Button, CircularProgress, css, styled } from '@mui/material';
+import {
+  ComponentType,
+  forwardRef,
+  memo,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
 
 import { getFragmentData, gql, makeFragmentData } from '../../__generated__';
-import { Maybe } from '../../__generated__/graphql';
+import { Note } from '../../__generated__/graphql';
 import { IsDevToolsEnabled } from '../../dev/components/IsDevToolsEnabled';
 import { useUserId } from '../../user/context/user-id';
-import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
-import { useIsLoading } from '../../utils/context/is-loading';
 import { NoteIdsProvider } from '../context/note-ids';
 
-import { LoadMoreButton } from './LoadMoreButton';
 import { NotesCardGrid } from './NotesCardGrid';
-
-const SearchNotesConnectionGrid_UserNoteLinkConnectionFragment = gql(`
-  fragment SearchNotesConnectionGrid_UserNoteLinkConnectionFragment on UserNoteLinkConnection {
-    edges {
-      node {
-        id
-        note {
-          id
-        }
-        excludeFromConnection @client
-        categoryName
-        ...NotesCardGrid_UserNoteLinkFragment
-      }
-    }
-    pageInfo {
-      hasNextPage
-      endCursor
-    }    
-  }
-`);
+import { useIntersectingFetchMore } from '../hooks/useIntersectingFetchMore';
+import { useOnIntersecting } from '../../utils/hooks/useOnIntersecting';
+import { useNoteId } from '../context/note-id';
+import { NoteCard } from './NoteCard';
+import { useLogger } from '../../utils/context/logger';
+import { NotesConnectionGrid_UserNoteLinkConnectionFragment } from './NotesConnectionGrid';
+import { SearchResultIconText } from './SearchResultIconText';
+import { useIsLoading } from '../../utils/context/is-loading';
+import { useIsOnline } from '../../utils/hooks/useIsOnline';
+import { PassChildren } from '../../utils/components/PassChildren';
+import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
 
 const SearchNotesConnectionGrid_Query = gql(`
-  query SearchNotesConnectionGrid_Query($userBy: UserByInput!, $searchText: String!, $first: NonNegativeInt, $after: String) {
+  query SearchNotesConnectionGrid_Query($userBy: UserByInput!, $searchText: String!, $first: NonNegativeInt, $after: String, $offline: Boolean) {
     signedInUser(by: $userBy) {
       id
-      noteLinkSearchConnection(searchText: $searchText, first: $first, after: $after) {
-      ...SearchNotesConnectionGrid_UserNoteLinkConnectionFragment
-      }  
+      noteLinkSearchConnection(searchText: $searchText, first: $first, after: $after, extend: { offline: $offline }) @clientArgs(paths: ["extend.offline"]) {
+      ...NotesConnectionGrid_UserNoteLinkConnectionFragment
+      }
     }
   }
 `);
 
 export function SearchNotesConnectionGrid({
+  fetchMoreOptions,
   searchText,
-  perPageCount = 20,
-  emptyElement = 'empty',
-  loadingElement,
+  NoListComponent = PassChildren,
 }: {
+  fetchMoreOptions?: Pick<
+    Parameters<typeof useIntersectingFetchMore>[0],
+    'infiniteLoadingDelay' | 'perPageCount'
+  >;
   searchText?: string;
   /**
-   * @default 20
+   * Component that is used when not rendering search result
    */
-  perPageCount?: Maybe<number>;
-  /**
-   * Element that is rendered when notes list is empty.
-   */
-  emptyElement?: ReactNode;
-  /**
-   * Element that is rendered when loading notes.
-   */
-  loadingElement?: ReactNode;
+  NoListComponent?: ComponentType<{ children: ReactNode }>;
 }) {
+  const logger = useLogger('SearchNotesConnectionGrid');
+
   const userId = useUserId();
-  const isLoading = useIsLoading();
+  const isOnline = useIsOnline();
+  const isParentLoading = useIsLoading();
   const isLocalOnlyUser = useIsLocalOnlyUser();
 
-  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const resetRef = useRef({
+    userId,
+    searchText,
+  });
+
+  // TODO button toggle between offline and online results?
+  const queryForOfflineResults = isLocalOnlyUser || !isOnline;
 
   const { data, error, fetchMore } = useQuery(SearchNotesConnectionGrid_Query, {
     variables: {
       userBy: {
         id: userId,
       },
-      first: perPageCount,
+      first: fetchMoreOptions?.perPageCount ?? 20,
       searchText: searchText ?? '',
+      offline: queryForOfflineResults,
     },
-    fetchPolicy: isLoading ? 'standby' : 'cache-only',
   });
 
   const fragmentData = getFragmentData(
-    SearchNotesConnectionGrid_UserNoteLinkConnectionFragment,
+    NotesConnectionGrid_UserNoteLinkConnectionFragment,
     data?.signedInUser.noteLinkSearchConnection
   );
 
-  const noteIds = useMemo(
-    () =>
-      fragmentData?.edges
-        .map((edge) => edge.node)
-        .filter((noteLink) => !noteLink.excludeFromConnection)
-        .map((edge) => edge.note.id),
-    [fragmentData?.edges]
-  );
+  const noteIds = useMemo(() => {
+    const seenIds = new Set<string>();
+    return fragmentData?.edges
+      .map((edge) => edge.node)
+      .filter((noteLink) => !noteLink.excludeFromConnection)
+      .map((edge) => edge.note.id)
+      .filter((noteId) => {
+        if (seenIds.has(noteId)) {
+          logger?.error('noteLink:filteredDuplicateId', {
+            noteId,
+          });
+          return false;
+        }
+        seenIds.add(noteId);
+        return true;
+      });
+  }, [fragmentData?.edges, logger]);
+
+  const {
+    loadingCount,
+    onIntersectingId: onIntersectingNoteId,
+    reset,
+  } = useIntersectingFetchMore({
+    ...fetchMoreOptions,
+    ids: noteIds,
+    fetchMore: useCallback(
+      async ({ perPageCount, endCursor }) => {
+        const { data } = await fetchMore({
+          variables: {
+            first: perPageCount,
+            after: endCursor,
+            searchText,
+          },
+        });
+
+        const fragmentData = getFragmentData(
+          NotesConnectionGrid_UserNoteLinkConnectionFragment,
+          data.signedInUser.noteLinkSearchConnection
+        );
+
+        const hasNextPage = fragmentData.pageInfo.hasNextPage;
+        if (!hasNextPage) {
+          logger?.debug('fetchMore:noNextPage');
+          return;
+        }
+
+        const nextEndCursor = fragmentData.pageInfo.endCursor;
+        if (nextEndCursor == null) {
+          logger?.debug('fetchMore:noEndCursor');
+          return;
+        }
+
+        const newNoteIds = fragmentData.edges
+          .map((edge) => edge.node)
+          .filter((noteLink) => !noteLink.excludeFromConnection)
+          .map((edge) => edge.note.id);
+
+        const lastNoteId = newNoteIds[newNoteIds.length - 1];
+        if (lastNoteId == null) {
+          logger?.debug('fetchMore:noLastNoteId');
+          return;
+        }
+
+        return {
+          triggerId: lastNoteId,
+          endCursor: nextEndCursor,
+        };
+      },
+      [searchText, fetchMore, logger]
+    ),
+    firstFetchMore: useCallback(
+      ({ perPageCount }) => {
+        if (!fragmentData) {
+          logger?.debug('firstFetchMore:noFragmentData');
+          return;
+        }
+
+        const hasNextPage = fragmentData.pageInfo.hasNextPage;
+        if (!hasNextPage) {
+          logger?.debug('firstFetchMore:noNextPage', { fragmentData });
+          return;
+        }
+
+        const nextEndCursor = fragmentData.pageInfo.endCursor;
+        if (nextEndCursor == null) {
+          logger?.debug('firstFetchMore:noEndCursor');
+          return;
+        }
+
+        // Only include notes limited by definedPerPageCount
+        const newNoteIds = fragmentData.edges
+          .slice(0, perPageCount)
+          .map((edge) => edge.node)
+          .filter((noteLink) => !noteLink.excludeFromConnection)
+          .map((edge) => edge.note.id);
+
+        logger?.debug('firstTimeFetchMore:result', { newNoteIds, nextEndCursor });
+
+        const lastNoteId = newNoteIds[newNoteIds.length - 1];
+        if (lastNoteId == null) {
+          logger?.debug('firstTimeFetchMore:noLastId');
+          return;
+        }
+
+        return {
+          triggerId: lastNoteId,
+          endCursor: nextEndCursor,
+        };
+      },
+      [logger, fragmentData]
+    ),
+  });
+
+  // Reset fetchMore when searchText or userId has changed
+  useEffect(() => {
+    if (
+      resetRef.current.userId === userId &&
+      resetRef.current.searchText === searchText
+    ) {
+      return;
+    }
+    resetRef.current = {
+      userId,
+      searchText,
+    };
+
+    reset();
+  }, [searchText, userId, reset]);
 
   if (error) {
     return (
@@ -104,57 +225,45 @@ export function SearchNotesConnectionGrid({
     );
   }
 
-  if (!noteIds) {
-    return loadingElement ?? <NotesCardGrid />;
+  if (searchText == null || searchText === '') {
+    logger?.debug('startTyping');
+    return (
+      <NoListComponent>
+        <SearchResultIconText text="Start typing to search notes" />
+      </NoListComponent>
+    );
   }
 
-  if (noteIds.length === 0 && emptyElement) {
-    return emptyElement;
+  if (isOnline && isParentLoading) {
+    logger?.debug('parentLoading');
+    return (
+      <NoListComponent>
+        <CenterCircularProgress />
+      </NoListComponent>
+    );
   }
 
-  async function safeFetchMore() {
-    if (isFetchingMore) {
-      return;
-    }
-
-    if (!fragmentData) {
-      return;
-    }
-
-    const pageInfo = fragmentData.pageInfo;
-
-    setIsFetchingMore(true);
-    try {
-      await fetchMore({
-        // pass this to parent, which in turn will give props for later?
-        variables: {
-          first: perPageCount,
-          after: pageInfo.endCursor,
-          searchText,
-        },
-      });
-    } finally {
-      setIsFetchingMore(false);
-    }
+  if (!noteIds || noteIds.length === 0) {
+    logger?.debug('noMatch');
+    return (
+      <NoListComponent>
+        <SearchResultIconText text={'No matching notes'} />
+      </NoListComponent>
+    );
   }
 
-  function handleClickLoadMore() {
-    void safeFetchMore();
+  if (loadingCount > 0) {
+    logger?.debug('loadingCount', loadingCount);
   }
-
-  const canFetchMore =
-    !isLocalOnlyUser &&
-    fragmentData?.pageInfo.hasNextPage &&
-    fragmentData.pageInfo.endCursor != null;
 
   return (
     <NoteIdsProvider noteIds={noteIds}>
       <RootBoxStyled>
-        <DevClearListButton searchText={searchText ?? ''} />
-        <NotesCardGrid />
-        {canFetchMore && (
-          <LoadMoreButtonStyled isLoading={isFetchingMore} onLoad={handleClickLoadMore} />
-        )}
+        <DevClearListButton searchText={searchText} />
+        <NotesCardGrid
+          loadingCount={queryForOfflineResults ? 0 : loadingCount}
+          noteCard={<IntersectOnceNoteCard onIntersectingOnce={onIntersectingNoteId} />}
+        />
       </RootBoxStyled>
     </NoteIdsProvider>
   );
@@ -198,7 +307,7 @@ function ClearListButton({ searchText }: { searchText: string }) {
                   hasNextPage: false,
                 },
               },
-              SearchNotesConnectionGrid_UserNoteLinkConnectionFragment
+              NotesConnectionGrid_UserNoteLinkConnectionFragment
             ),
           },
         },
@@ -222,6 +331,38 @@ function ClearListButton({ searchText }: { searchText: string }) {
   );
 }
 
+const IntersectOnceNoteCard = memo(
+  forwardRef<HTMLDivElement, { onIntersectingOnce: (noteId: Note['id']) => void }>(
+    function IntersectOnceNoteCard({ onIntersectingOnce }, ref) {
+      const noteId = useNoteId();
+
+      ref = useOnIntersecting(
+        ref,
+        () => {
+          onIntersectingOnce(noteId);
+        },
+        {
+          intersectionLimit: 1,
+        }
+      );
+
+      return <NoteCard ref={ref} />;
+    }
+  )
+);
+
+function CenterCircularProgress() {
+  return (
+    <BoxCenter>
+      <CircularProgress />
+    </BoxCenter>
+  );
+}
+
+const BoxCenter = styled(Box)(css`
+  justify-self: center;
+`);
+
 const RootBoxStyled = styled(Box)(
   ({ theme }) => css`
     display: flex;
@@ -229,7 +370,3 @@ const RootBoxStyled = styled(Box)(
     gap: ${theme.spacing(3)};
   `
 );
-
-const LoadMoreButtonStyled = styled(LoadMoreButton)(css`
-  align-self: center;
-`);

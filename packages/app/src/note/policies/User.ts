@@ -158,6 +158,16 @@ export const User: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
           },
           options
         ) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          const extend = options.args?.extend ?? {};
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          const isOffline = !!extend.offline;
+
+          // Don't search locally while online
+          if (!isOffline) {
+            return existing;
+          }
+
           const { args, readField } = options;
 
           const searchText = args?.searchText ? String(args.searchText) : '';
@@ -229,9 +239,20 @@ export const User: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
           const searchResult = fuse.search(searchText);
           searchResult.reverse();
 
+          const seenIds = new Set<string>();
+
           return {
             __typename: 'UserNoteLinkConnection',
-            edges: searchResult.map(({ item }) => item),
+            edges: searchResult
+              .map(({ item }) => item)
+              // Filter out duplicate results
+              .filter(({ node }) => {
+                if (seenIds.has(node.__ref)) {
+                  return false;
+                }
+                seenIds.add(node.__ref);
+                return true;
+              }),
             pageInfo: {
               hasPreviousPage: false,
               hasNextPage: false,

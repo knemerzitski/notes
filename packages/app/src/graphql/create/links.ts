@@ -12,6 +12,7 @@ import { PersistLink } from '../link/persist';
 import { RemoteDirectiveLink } from '../link/remote-directive';
 import { StatsLink } from '../link/stats';
 import { WaitLink } from '../link/wait';
+import { ClientArgsLink } from '../link/client-args';
 
 export function createLinks({
   cache,
@@ -34,6 +35,7 @@ export function createLinks({
   };
 }) {
   const clearRootSubscripionLink = new ClearRootSubscriptionLink();
+  const clientArgsLink = new ClientArgsLink();
   const remoteDirectiveLink = new RemoteDirectiveLink();
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const loggerLink = options?.debug?.logging ? apolloLogger : passthrough();
@@ -53,6 +55,7 @@ export function createLinks({
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     link: ApolloLink.from([
       clearRootSubscripionLink,
+      clientArgsLink,
       remoteDirectiveLink,
       loggerLink,
       statsLink,
@@ -69,6 +72,7 @@ export function createLinks({
     ]),
     pick: {
       clearRootSubscripionLink,
+      clientArgsLink,
       remoteDirectiveLink,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       loggerLink,

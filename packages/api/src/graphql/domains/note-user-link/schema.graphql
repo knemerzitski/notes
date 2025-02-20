@@ -126,6 +126,17 @@ input UserNoteLinkByInput @oneOf {
   noteId: ObjectID
 }
 
+"""
+Used for extending arguments of field User.noteLinkSearchConnection
+"""
+input UserNoteLinkSearchConnectionExtendInput {
+  """
+  Don't use this field. Only used to pass specification requirements.
+  """
+  # eslint-disable-next-line @graphql-eslint/naming-convention
+  _: Boolean
+}
+
 extend type User {
   """
   Link between user and note
@@ -150,6 +161,7 @@ extend type User {
     after: String
     last: NonNegativeInt
     before: String
+    extend: UserNoteLinkSearchConnectionExtendInput
   ): UserNoteLinkConnection! @auth(userId: { parent: "userId" })
 }
 

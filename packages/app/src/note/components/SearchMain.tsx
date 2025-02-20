@@ -17,10 +17,7 @@ export function SearchMain({ searchText }: { searchText: string | undefined }) {
       <FullWidthCenterRow>
         <DefaultSearchNotesConnectionGrid
           searchText={searchText}
-          slots={{
-            emptyElementPrefix: <NoListResultsTopSpacing />,
-            loadingElementPrefix: <NoListResultsTopSpacing />,
-          }}
+          NoListComponent={NoListResultsTopSpacing}
         />
       </FullWidthCenterRow>
     </FullWidthCenterMain>
