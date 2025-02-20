@@ -141,6 +141,7 @@ export function NotesConnectionGrid({
           });
           return false;
         }
+        seenIds.add(noteId);
         return true;
       });
   }, [fragmentData?.edges, category, logger, client]);
