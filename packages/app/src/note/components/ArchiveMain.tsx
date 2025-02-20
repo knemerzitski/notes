@@ -15,11 +15,7 @@ export function ArchiveMain() {
   return (
     <FullWidthCenterMain>
       <FullWidthCenterRow>
-        <ArchiveNotesConnectionGrid
-          slots={{
-            emptyElementPrefix: <NoListResultsTopSpacing />,
-          }}
-        />
+        <ArchiveNotesConnectionGrid EmptyListComponent={NoListResultsTopSpacing} />
       </FullWidthCenterRow>
     </FullWidthCenterMain>
   );

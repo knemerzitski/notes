@@ -1,10 +1,11 @@
 import { gql } from '@apollo/client';
-import { ReactNode } from 'react';
+import { ComponentType, ReactNode } from 'react';
 
 import { NoteCategory } from '../../__generated__/graphql';
 
 import { EmptyTrashIconText } from './EmptyTrashIconText';
 import { NotesConnectionGrid } from './NotesConnectionGrid';
+import { PassChildren } from '../../utils/components/PassChildren';
 
 const _TrashNotesConnectionGrid_UserFragment = gql(`
   fragment TrashNotesConnectionGrid_UserFragment on User {
@@ -15,21 +16,18 @@ const _TrashNotesConnectionGrid_UserFragment = gql(`
   }
 `);
 
-export function TrashNotesConnectionGrid(props: {
-  slots?: {
-    emptyElementPrefix?: ReactNode;
-    emptyElementSuffix?: ReactNode;
-  };
+export function TrashNotesConnectionGrid({
+  EmptyListComponent = PassChildren,
+}: {
+  EmptyListComponent?: ComponentType<{ children: ReactNode }>;
 }) {
   return (
     <NotesConnectionGrid
       category={NoteCategory.TRASH}
-      emptyElement={
-        <>
-          {props.slots?.emptyElementPrefix}
+      emptyListElement={
+        <EmptyListComponent>
           <EmptyTrashIconText />
-          {props.slots?.emptyElementSuffix}
-        </>
+        </EmptyListComponent>
       }
     />
   );

@@ -1,10 +1,11 @@
-import { ReactNode } from 'react';
+import { ComponentType, ReactNode } from 'react';
 
 import { gql } from '../../__generated__';
 import { NoteCategory } from '../../__generated__/graphql';
 
 import { EmptyArchiveIconText } from './EmptyArchiveIconText';
 import { NotesConnectionGrid } from './NotesConnectionGrid';
+import { PassChildren } from '../../utils/components/PassChildren';
 
 const _ArchiveNotesConnectionGrid_UserFragment = gql(`
   fragment ArchiveNotesConnectionGrid_UserFragment on User {
@@ -15,21 +16,18 @@ const _ArchiveNotesConnectionGrid_UserFragment = gql(`
   }
 `);
 
-export function ArchiveNotesConnectionGrid(props: {
-  slots?: {
-    emptyElementPrefix?: ReactNode;
-    emptyElementSuffix?: ReactNode;
-  };
+export function ArchiveNotesConnectionGrid({
+  EmptyListComponent = PassChildren,
+}: {
+  EmptyListComponent?: ComponentType<{ children: ReactNode }>;
 }) {
   return (
     <NotesConnectionGrid
       category={NoteCategory.ARCHIVE}
-      emptyElement={
-        <>
-          {props.slots?.emptyElementPrefix}
-          {props.slots?.emptyElementSuffix}
+      emptyListElement={
+        <EmptyListComponent>
           <EmptyArchiveIconText />
-        </>
+        </EmptyListComponent>
       }
     />
   );
