@@ -2,7 +2,7 @@ import { gql } from '../../__generated__';
 import { FullWidthCenterMain } from '../../layout/components/FullWidthCenterMain';
 import { FullWidthCenterRow } from '../../layout/components/FullWidthCenterRow';
 
-import { EmptyInfoTopMargin } from './EmptyInfoTopMargin';
+import { NoListResultsTopSpacing } from './NoListResultsTopSpacing';
 import { TrashNotesConnectionGrid } from './TrashNotesConnectionGrid';
 
 const _TrashMain_UserFragment = gql(`
@@ -17,7 +17,7 @@ export function TrashMain() {
       <FullWidthCenterRow>
         <TrashNotesConnectionGrid
           slots={{
-            emptyElementPrefix: <EmptyInfoTopMargin />,
+            emptyElementPrefix: <NoListResultsTopSpacing />,
           }}
         />
       </FullWidthCenterRow>

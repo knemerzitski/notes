@@ -3,7 +3,7 @@ import { ReactNode } from 'react';
 import { gql } from '../../__generated__';
 import { NoteCategory } from '../../__generated__/graphql';
 
-import { EmptyArchiveInfo } from './EmptyArchiveInfo';
+import { EmptyArchiveIconText } from './EmptyArchiveIconText';
 import { NotesConnectionGrid } from './NotesConnectionGrid';
 
 const _ArchiveNotesConnectionGrid_UserFragment = gql(`
@@ -28,7 +28,7 @@ export function ArchiveNotesConnectionGrid(props: {
         <>
           {props.slots?.emptyElementPrefix}
           {props.slots?.emptyElementSuffix}
-          <EmptyArchiveInfo />
+          <EmptyArchiveIconText />
         </>
       }
     />
