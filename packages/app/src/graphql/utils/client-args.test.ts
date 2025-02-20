@@ -1,7 +1,8 @@
-import { expect, it } from 'vitest';
-import { ClientArgsTransform } from './client-args';
 import { gql } from '@apollo/client';
 import { print } from 'graphql';
+import { expect, it } from 'vitest';
+
+import { ClientArgsTransform } from './client-args';
 
 it('removes single argument along with directive', () => {
   expect(

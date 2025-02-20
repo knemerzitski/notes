@@ -11,8 +11,8 @@ import { useRestoreNoteWithUndo } from '../../note/hooks/useRestoreNoteWithUndo'
 import { useTrashNoteWithUndo } from '../../note/hooks/useTrashNoteWithUndo';
 import { useUnarchiveNoteWithUndo } from '../../note/hooks/useUnarchiveNoteWithUndo';
 import { getCategoryName } from '../../note/models/note/category-name';
-import { OnCloseProvider } from '../../utils/context/on-close';
 import { useLogger } from '../../utils/context/logger';
+import { OnCloseProvider } from '../../utils/context/on-close';
 
 export function SelectedNotesMoreOptionsButton() {
   const logger = useLogger('SelectedNotesMoreOptionsButton');

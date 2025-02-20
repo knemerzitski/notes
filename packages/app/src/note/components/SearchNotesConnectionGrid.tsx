@@ -16,20 +16,24 @@ import { getFragmentData, gql, makeFragmentData } from '../../__generated__';
 import { Note } from '../../__generated__/graphql';
 import { IsDevToolsEnabled } from '../../dev/components/IsDevToolsEnabled';
 import { useUserId } from '../../user/context/user-id';
-import { NoteIdsProvider } from '../context/note-ids';
-
-import { NotesCardGrid } from './NotesCardGrid';
-import { useIntersectingFetchMore } from '../hooks/useIntersectingFetchMore';
+import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
+import { PassChildren } from '../../utils/components/PassChildren';
+import { useIsLoading } from '../../utils/context/is-loading';
+import { useLogger } from '../../utils/context/logger';
+import { useIsOnline } from '../../utils/hooks/useIsOnline';
 import { useOnIntersecting } from '../../utils/hooks/useOnIntersecting';
 import { useNoteId } from '../context/note-id';
+import { NoteIdsProvider } from '../context/note-ids';
+
+import { useIntersectingFetchMore } from '../hooks/useIntersectingFetchMore';
+
 import { NoteCard } from './NoteCard';
-import { useLogger } from '../../utils/context/logger';
+import { NotesCardGrid } from './NotesCardGrid';
+
+
 import { NotesConnectionGrid_UserNoteLinkConnectionFragment } from './NotesConnectionGrid';
 import { SearchResultIconText } from './SearchResultIconText';
-import { useIsLoading } from '../../utils/context/is-loading';
-import { useIsOnline } from '../../utils/hooks/useIsOnline';
-import { PassChildren } from '../../utils/components/PassChildren';
-import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
+
 
 const SearchNotesConnectionGrid_Query = gql(`
   query SearchNotesConnectionGrid_Query($userBy: UserByInput!, $searchText: String!, $first: NonNegativeInt, $after: String, $offline: Boolean) {

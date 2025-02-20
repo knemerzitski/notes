@@ -3,9 +3,10 @@ import { ComponentType, ReactNode } from 'react';
 
 import { NoteCategory } from '../../__generated__/graphql';
 
+import { PassChildren } from '../../utils/components/PassChildren';
+
 import { EmptyTrashIconText } from './EmptyTrashIconText';
 import { NotesConnectionGrid } from './NotesConnectionGrid';
-import { PassChildren } from '../../utils/components/PassChildren';
 
 const _TrashNotesConnectionGrid_UserFragment = gql(`
   fragment TrashNotesConnectionGrid_UserFragment on User {

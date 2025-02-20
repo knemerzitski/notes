@@ -6,13 +6,13 @@ import apolloLogger from 'apollo-link-logger';
 import SerializingLink from 'apollo-link-serialize';
 
 import { ClearRootSubscriptionLink } from '../link/clear-root-subscription';
+import { ClientArgsLink } from '../link/client-args';
 import { GateLink } from '../link/gate';
 import { passthrough } from '../link/passthrough';
 import { PersistLink } from '../link/persist';
 import { RemoteDirectiveLink } from '../link/remote-directive';
 import { StatsLink } from '../link/stats';
 import { WaitLink } from '../link/wait';
-import { ClientArgsLink } from '../link/client-args';
 
 export function createLinks({
   cache,
