@@ -1,10 +1,9 @@
 import { useApolloClient } from '@apollo/client';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { IconButton, Tooltip, Menu, MenuItem, ListItemText } from '@mui/material';
-import { useId, useState, useEffect, useCallback, MouseEvent } from 'react';
-import { Maybe } from '~utils/types';
+import { useId, useState, useEffect, useCallback, MouseEvent, useRef } from 'react';
 
-import { NoteCategory } from '../../__generated__/graphql';
+import { Note, NoteCategory } from '../../__generated__/graphql';
 import { useSelectedNoteIdsModel } from '../../note/context/selected-note-ids';
 import { useArchiveNoteWithUndo } from '../../note/hooks/useArchiveNoteWithUndo';
 import { useDeleteNoteWithConfirm } from '../../note/hooks/useDeleteNoteWithConfirm';
@@ -13,8 +12,11 @@ import { useTrashNoteWithUndo } from '../../note/hooks/useTrashNoteWithUndo';
 import { useUnarchiveNoteWithUndo } from '../../note/hooks/useUnarchiveNoteWithUndo';
 import { getCategoryName } from '../../note/models/note/category-name';
 import { OnCloseProvider } from '../../utils/context/on-close';
+import { useLogger } from '../../utils/context/logger';
 
 export function SelectedNotesMoreOptionsButton() {
+  const logger = useLogger('SelectedNotesMoreOptionsButton');
+
   const client = useApolloClient();
 
   const buttonId = useId();
@@ -31,34 +33,81 @@ export function SelectedNotesMoreOptionsButton() {
   const restoreNoteWithUndo = useRestoreNoteWithUndo();
   const deleteNoteWithConfirm = useDeleteNoteWithConfirm();
 
-  const [firstSelectedNoteCategory, setFirstSelectedNoteCategory] =
-    useState<Maybe<NoteCategory>>(null);
+  const [selectedCategories, setSelectedCategories] = useState<NoteCategory[]>([]);
+  const selectedCountByCategoryRef = useRef<Record<NoteCategory, number>>(
+    createCategoryCounter()
+  );
 
-  // Keep track of first selected note category
+  const validActions = actionsConditions.getValidActions(selectedCategories);
+
+  logger?.debug('categoriesUpdate', {
+    selectedCategories,
+    validActions,
+  });
+
   useEffect(() => {
-    function updateFirstSelectedNoteCategory() {
-      const firstNoteId = selectedNoteIdsModel.getAll()[0];
-      if (!firstNoteId) {
-        setFirstSelectedNoteCategory(null);
-      } else {
-        setFirstSelectedNoteCategory(
-          getCategoryName(
-            {
-              noteId: firstNoteId,
-            },
-            client.cache
-          )
+    function handleSelectionChanged(
+      noteIds: readonly Note['id'][],
+      op: 'add' | 'remove'
+    ) {
+      noteIds.forEach((id) => {
+        const name = getCategoryName(
+          {
+            noteId: id,
+          },
+          client.cache
         );
-      }
+
+        selectedCountByCategoryRef.current[name] += op === 'add' ? 1 : -1;
+      });
+
+      setSelectedCategories((prev) => {
+        const next = Object.entries(selectedCountByCategoryRef.current)
+          .filter(([_, count]) => count > 0)
+          .map(([category]) => category as NoteCategory);
+
+        if (prev.length !== next.length) {
+          logger?.debug('selectionChange.lengthDiff', {
+            prev,
+            next,
+          });
+          return next;
+        }
+
+        if (next.some((category) => !prev.includes(category))) {
+          logger?.debug('selectionChange.contentsDiff', {
+            prev,
+            next,
+          });
+          return next;
+        }
+
+        logger?.debug('selectionChange.noDiff');
+
+        return prev;
+      });
     }
 
-    updateFirstSelectedNoteCategory();
+    handleSelectionChanged(selectedNoteIdsModel.getAll(), 'add');
 
-    return selectedNoteIdsModel.eventBus.on(
-      ['added', 'removed'],
-      updateFirstSelectedNoteCategory
-    );
-  }, [selectedNoteIdsModel, client]);
+    // TODO modify mitt package: emitter to return payload type
+    const eventOffs = [
+      selectedNoteIdsModel.eventBus.on('added', ({ id }) => {
+        handleSelectionChanged([id], 'add');
+      }),
+      selectedNoteIdsModel.eventBus.on('removed', ({ id }) => {
+        handleSelectionChanged([id], 'remove');
+      }),
+    ];
+
+    return () => {
+      eventOffs.forEach((eventOff) => {
+        eventOff();
+      });
+
+      handleSelectionChanged(selectedNoteIdsModel.getAll(), 'remove');
+    };
+  }, [selectedNoteIdsModel, client, logger]);
 
   function handleMouseDown(e: MouseEvent<HTMLElement>) {
     e.stopPropagation();
@@ -77,21 +126,8 @@ export function SelectedNotesMoreOptionsButton() {
     e.stopPropagation();
   }
 
-  function getSameCategoryNoteIds() {
-    if (!firstSelectedNoteCategory) {
-      return [];
-    }
-
-    return selectedNoteIdsModel.getAll().filter((noteId) => {
-      const categoryName = getCategoryName(
-        {
-          noteId,
-        },
-        client.cache
-      );
-
-      return firstSelectedNoteCategory === categoryName;
-    });
+  function getSelectedNoteIds() {
+    return selectedNoteIdsModel.getAll();
   }
 
   function closeAndClearSelection() {
@@ -100,27 +136,27 @@ export function SelectedNotesMoreOptionsButton() {
   }
 
   function handleArchiveNotes() {
-    archiveNoteWithUndo(getSameCategoryNoteIds());
+    archiveNoteWithUndo(getSelectedNoteIds());
     closeAndClearSelection();
   }
 
   function handleUnarchiveNotes() {
-    unarchiveNoteWithUndo(getSameCategoryNoteIds());
+    unarchiveNoteWithUndo(getSelectedNoteIds());
     closeAndClearSelection();
   }
 
   function handleTrashNotes() {
-    trashNoteWithUndo(getSameCategoryNoteIds());
+    trashNoteWithUndo(getSelectedNoteIds());
     closeAndClearSelection();
   }
 
   function handleRestoreNotes() {
-    restoreNoteWithUndo(getSameCategoryNoteIds());
+    restoreNoteWithUndo(getSelectedNoteIds());
     closeAndClearSelection();
   }
 
   function handleDeleteNotes() {
-    void deleteNoteWithConfirm(getSameCategoryNoteIds()).then(() => {
+    void deleteNoteWithConfirm(getSelectedNoteIds()).then(() => {
       closeAndClearSelection();
     });
   }
@@ -135,6 +171,7 @@ export function SelectedNotesMoreOptionsButton() {
         aria-expanded={menuOpen ? true : undefined}
         onMouseDown={handleMouseDown}
         onClick={handleOpen}
+        disabled={validActions.length === 0}
       >
         <Tooltip title="More options">
           <MoreVertIcon />
@@ -153,44 +190,138 @@ export function SelectedNotesMoreOptionsButton() {
         onClick={handleClickMenu}
       >
         <OnCloseProvider onClose={handleClose}>
-          {firstSelectedNoteCategory !== NoteCategory.TRASH ? (
-            <>
-              {firstSelectedNoteCategory !== NoteCategory.ARCHIVE ? (
-                <MenuItem
-                  aria-label="archive selected notes"
-                  onClick={handleArchiveNotes}
-                >
-                  <ListItemText>Archive</ListItemText>
-                </MenuItem>
-              ) : (
-                // In archive
-                <MenuItem
-                  aria-label="unarchive selected notes"
-                  onClick={handleUnarchiveNotes}
-                >
-                  <ListItemText>Unarchive</ListItemText>
-                </MenuItem>
-              )}
-              <MenuItem aria-label="delete selected notes" onClick={handleTrashNotes}>
-                <ListItemText>Delete</ListItemText>
-              </MenuItem>
-            </>
-          ) : (
-            // In trash
-            <>
-              <MenuItem aria-label="restore selected notes" onClick={handleRestoreNotes}>
-                <ListItemText>Restore</ListItemText>
-              </MenuItem>
-              <MenuItem
-                aria-label="delete selected notes forever"
-                onClick={handleDeleteNotes}
-              >
-                <ListItemText>Delete forever</ListItemText>
-              </MenuItem>
-            </>
+          {validActions.includes('archive') && (
+            <MenuItem aria-label="archive selected notes" onClick={handleArchiveNotes}>
+              <ListItemText>Archive</ListItemText>
+            </MenuItem>
+          )}
+
+          {validActions.includes('unarchive') && (
+            <MenuItem
+              aria-label="unarchive selected notes"
+              onClick={handleUnarchiveNotes}
+            >
+              <ListItemText>Unarchive</ListItemText>
+            </MenuItem>
+          )}
+
+          {validActions.includes('delete') && (
+            <MenuItem aria-label="delete selected notes" onClick={handleTrashNotes}>
+              <ListItemText>Delete</ListItemText>
+            </MenuItem>
+          )}
+
+          {validActions.includes('restore') && (
+            <MenuItem aria-label="restore selected notes" onClick={handleRestoreNotes}>
+              <ListItemText>Restore</ListItemText>
+            </MenuItem>
+          )}
+
+          {validActions.includes('deleteForever') && (
+            <MenuItem
+              aria-label="delete selected notes forever"
+              onClick={handleDeleteNotes}
+            >
+              <ListItemText>Delete forever</ListItemText>
+            </MenuItem>
           )}
         </OnCloseProvider>
       </Menu>
     </>
   );
 }
+
+function createCategoryCounter(): Record<NoteCategory, number> {
+  return Object.values(NoteCategory).reduce<Record<string, number>>((obj, name) => {
+    obj[name] = 0;
+    return obj;
+  }, {});
+}
+
+type ExpressionValue = NoteCategory;
+interface AndOperation {
+  and: Expression[];
+}
+interface NotOperation {
+  not: Expression;
+}
+
+interface OnlyExpression {
+  only: ExpressionValue;
+}
+
+type Expression = ExpressionValue | AndOperation | NotOperation | OnlyExpression;
+
+type Action = 'archive' | 'unarchive' | 'delete' | 'restore' | 'deleteForever';
+
+class ActionsConditions {
+  private readonly schema: { action: Action; cond: Expression }[] = [
+    {
+      action: 'archive',
+      // !trash && !archived
+      cond: {
+        and: [
+          {
+            not: NoteCategory.TRASH,
+          },
+          {
+            not: NoteCategory.ARCHIVE,
+          },
+        ],
+      },
+    },
+    {
+      action: 'unarchive',
+      // only archived
+      cond: {
+        only: NoteCategory.ARCHIVE,
+      },
+    },
+    {
+      action: 'delete',
+      // !trash
+      cond: {
+        not: NoteCategory.TRASH,
+      },
+    },
+    {
+      action: 'restore',
+      // only trash
+      cond: {
+        only: NoteCategory.TRASH,
+      },
+    },
+    {
+      action: 'deleteForever',
+      // only trash
+      cond: {
+        only: NoteCategory.TRASH,
+      },
+    },
+  ];
+
+  getValidActions(categories: readonly NoteCategory[]): Action[] {
+    const r = this.schema
+      .filter((rule) => this.evalCond(categories, rule.cond))
+      .map((rule) => rule.action);
+    return r;
+  }
+
+  private evalCond(input: readonly NoteCategory[], expr: Expression): boolean {
+    if (typeof expr === 'string') {
+      return input.includes(expr);
+    }
+
+    if ('and' in expr) {
+      return expr.and.every((e) => this.evalCond(input, e));
+    } else if ('not' in expr) {
+      return !this.evalCond(input, expr.not);
+    } else if ('only' in expr) {
+      return input.length === 1 && input.includes(expr.only);
+    }
+
+    return false;
+  }
+}
+
+const actionsConditions = new ActionsConditions();
