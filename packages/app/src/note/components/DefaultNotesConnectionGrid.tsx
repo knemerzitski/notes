@@ -1,7 +1,7 @@
 import { gql } from '../../__generated__';
 import { NoteCategory } from '../../__generated__/graphql';
 
-import { EmptyNotesInfo } from './EmptyNotesInfo';
+import { EmptyNotesIconText } from './EmptyNotesIconText';
 import { NotesConnectionGrid } from './NotesConnectionGrid';
 
 const _DefaultNotesConnectionGrid_UserFragment = gql(`
@@ -17,7 +17,7 @@ export function DefaultNotesConnectionGrid() {
   return (
     <NotesConnectionGrid
       category={NoteCategory.DEFAULT}
-      emptyElement={<EmptyNotesInfo />}
+      emptyElement={<EmptyNotesIconText />}
     />
   );
 }

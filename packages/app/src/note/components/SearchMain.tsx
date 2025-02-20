@@ -3,7 +3,7 @@ import { FullWidthCenterMain } from '../../layout/components/FullWidthCenterMain
 import { FullWidthCenterRow } from '../../layout/components/FullWidthCenterRow';
 
 import { DefaultSearchNotesConnectionGrid } from './DefaultSearchNotesConnectionGrid';
-import { EmptyInfoTopMargin } from './EmptyInfoTopMargin';
+import { NoListResultsTopSpacing } from './NoListResultsTopSpacing';
 
 const _SearchMain_UserFragment = gql(`
   fragment SearchMain_UserFragment on User {
@@ -18,8 +18,8 @@ export function SearchMain({ searchText }: { searchText: string | undefined }) {
         <DefaultSearchNotesConnectionGrid
           searchText={searchText}
           slots={{
-            emptyElementPrefix: <EmptyInfoTopMargin />,
-            loadingElementPrefix: <EmptyInfoTopMargin />,
+            emptyElementPrefix: <NoListResultsTopSpacing />,
+            loadingElementPrefix: <NoListResultsTopSpacing />,
           }}
         />
       </FullWidthCenterRow>

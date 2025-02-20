@@ -3,7 +3,7 @@ import { ReactNode } from 'react';
 
 import { NoteCategory } from '../../__generated__/graphql';
 
-import { EmptyTrashInfo } from './EmptyTrashInfo';
+import { EmptyTrashIconText } from './EmptyTrashIconText';
 import { NotesConnectionGrid } from './NotesConnectionGrid';
 
 const _TrashNotesConnectionGrid_UserFragment = gql(`
@@ -27,7 +27,7 @@ export function TrashNotesConnectionGrid(props: {
       emptyElement={
         <>
           {props.slots?.emptyElementPrefix}
-          <EmptyTrashInfo />
+          <EmptyTrashIconText />
           {props.slots?.emptyElementSuffix}
         </>
       }
