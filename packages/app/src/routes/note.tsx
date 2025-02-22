@@ -10,9 +10,9 @@ import { NoteIdProvider } from '../note/context/note-id';
 import { useCreateNote } from '../note/hooks/useCreateNote';
 
 import { useNavigateToNote } from '../note/hooks/useNavigateToNote';
-import { clearHideInList } from '../note/models/local-note/clear-hide-in-list';
 import { getNotePendingStatus } from '../note/models/local-note/get-status';
 import { addNoteToConnection } from '../note/models/note-connection/add';
+import { clearNoteHiddenInList } from '../note/models/local-note/hidden-in-list';
 
 const searchSchema = type({
   originalLocation: optional(
@@ -76,7 +76,7 @@ function NoteNewCreatingRedirect() {
     void create();
 
     // Add to connection
-    clearHideInList(
+    clearNoteHiddenInList(
       {
         noteId,
       },

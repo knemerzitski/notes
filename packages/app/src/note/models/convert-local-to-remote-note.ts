@@ -12,8 +12,7 @@ import {
   parseUserNoteLinkByInput,
 } from '../utils/id';
 
-import { hideNoteInList } from './local-note/hide-in-list';
-import { isHiddenInList } from './local-note/is-hide-in-list';
+import { hideNoteInList, isNoteHiddenInList } from './local-note/hidden-in-list';
 import { noteExists } from './note/exists';
 import { replaceNoteInConnection } from './note-connection/replace';
 
@@ -108,7 +107,7 @@ export function convertLocalToRemoteNote(
 
   // Copy hiddenInList
   if (
-    isHiddenInList(
+    isNoteHiddenInList(
       {
         noteId: localNoteId,
       },
