@@ -1,5 +1,4 @@
 import { isReference } from '@apollo/client';
-import Fuse from 'fuse.js';
 import { objectValueArrayPermutationsValues } from '~utils/object/object-value-array-permutations';
 import { isDefined } from '~utils/type-guards/is-defined';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
@@ -10,8 +9,6 @@ import { relayStylePagination } from '../../graphql/utils/relay-style-pagination
 import { updateUserNoteLinkOutdated } from '../models/note/outdated';
 import { throwNoteNotFoundError } from '../utils/errors';
 import { getUserNoteLinkId } from '../utils/id';
-
-import { readNoteExternalState } from './Note/_external';
 
 export const User: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
   return {
@@ -155,114 +152,72 @@ export const User: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
               startCursor: null,
               endCursor: null,
             },
-          },
-          options
+          }
         ) {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-          const extend = options.args?.extend ?? {};
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          const isOffline = !!extend.offline;
-
-          // Don't search locally while online
-          if (!isOffline) {
-            return existing;
-          }
-
-          const { args, readField } = options;
-
-          const searchText = args?.searchText ? String(args.searchText) : '';
-          if (searchText.length === 0) {
-            return existing;
-          }
-
-          // Gather text of every edge for Fuse
-          // It's okay to recreate Fuse instance for small datasets
-          // Might have to reuse the instance if it's going to have a performance impact
-          const itemsForFuse = [
-            ...objectValueArrayPermutationsValues({
-              category: Object.values(NoteCategory),
-            }),
-          ]
-            // Collect edges
-            .flatMap((args) => {
-              const noteLinkConnection = readField({
-                fieldName: 'noteLinkConnection',
-                args,
-              });
-
-              // Is obj with property `edges`
-              if (!isObjectLike(noteLinkConnection) || !('edges' in noteLinkConnection)) {
-                return;
-              }
-
-              // `edges` is array
-              if (!Array.isArray(noteLinkConnection.edges)) {
-                return;
-              }
-
-              return noteLinkConnection.edges as unknown[];
-            })
-            // Add text
-            .map((userNoteLinkEdge) => {
-              if (!isObjectLike(userNoteLinkEdge)) {
-                return;
-              }
-
-              if (!('node' in userNoteLinkEdge)) {
-                return;
-              }
-
-              const userNoteLinkRef = userNoteLinkEdge.node;
-              if (!isReference(userNoteLinkRef)) {
-                return;
-              }
-
-              const noteRef = readField('note', userNoteLinkRef);
-              if (!isReference(noteRef)) {
-                return;
-              }
-
-              const externalState = readNoteExternalState(noteRef, options);
-              const text = externalState.service.viewText;
-
-              return {
-                text,
-                node: userNoteLinkRef,
-              };
-            })
-            .filter(isDefined);
-
-          // Use fuse.js fuzzy search
-          const fuse = new Fuse(itemsForFuse, {
-            keys: ['text'],
-          });
-          const searchResult = fuse.search(searchText);
-          searchResult.reverse();
-
-          const seenIds = new Set<string>();
-
-          return {
-            __typename: 'UserNoteLinkConnection',
-            edges: searchResult
-              .map(({ item }) => item)
-              // Filter out duplicate results
-              .filter(({ node }) => {
-                if (seenIds.has(node.__ref)) {
-                  return false;
-                }
-                seenIds.add(node.__ref);
-                return true;
-              }),
-            pageInfo: {
-              hasPreviousPage: false,
-              hasNextPage: false,
-              startCursor: null,
-              endCursor: null,
-            },
-          };
+          return existing;
         },
         isOrderedSet: true,
       }),
+      allNoteLinks: {
+        keyArgs: false,
+        read(_existing, { readField }) {
+          const seenRefs = new Set<string>();
+
+          // Go through every single category and concat arrays
+          return (
+            [
+              ...objectValueArrayPermutationsValues({
+                category: Object.values(NoteCategory),
+              }),
+            ]
+              // Collect edges
+              .flatMap((args) => {
+                const noteLinkConnection = readField({
+                  fieldName: 'noteLinkConnection',
+                  args,
+                });
+
+                // Is obj with property `edges`
+                if (
+                  !isObjectLike(noteLinkConnection) ||
+                  !('edges' in noteLinkConnection)
+                ) {
+                  return;
+                }
+
+                // `edges` is array
+                if (!Array.isArray(noteLinkConnection.edges)) {
+                  return;
+                }
+
+                return noteLinkConnection.edges as unknown[];
+              })
+              .map((userNoteLinkEdge) => {
+                if (!isObjectLike(userNoteLinkEdge)) {
+                  return;
+                }
+
+                if (!('node' in userNoteLinkEdge)) {
+                  return;
+                }
+
+                const userNoteLink = userNoteLinkEdge.node;
+                if (!isReference(userNoteLink)) {
+                  return;
+                }
+
+                // Filter duplicated
+                if (seenRefs.has(userNoteLink.__ref)) {
+                  return;
+                }
+                seenRefs.add(userNoteLink.__ref);
+
+                return userNoteLink;
+              })
+              .filter(isDefined)
+          );
+        },
+      },
     },
   };
 };

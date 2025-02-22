@@ -6,7 +6,6 @@ import apolloLogger from 'apollo-link-logger';
 import SerializingLink from 'apollo-link-serialize';
 
 import { ClearRootSubscriptionLink } from '../link/clear-root-subscription';
-import { ClientArgsLink } from '../link/client-args';
 import { GateLink } from '../link/gate';
 import { passthrough } from '../link/passthrough';
 import { PersistLink } from '../link/persist';
@@ -35,7 +34,6 @@ export function createLinks({
   };
 }) {
   const clearRootSubscripionLink = new ClearRootSubscriptionLink();
-  const clientArgsLink = new ClientArgsLink();
   const remoteDirectiveLink = new RemoteDirectiveLink();
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const loggerLink = options?.debug?.logging ? apolloLogger : passthrough();
@@ -55,7 +53,6 @@ export function createLinks({
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     link: ApolloLink.from([
       clearRootSubscripionLink,
-      clientArgsLink,
       remoteDirectiveLink,
       loggerLink,
       statsLink,
@@ -72,7 +69,6 @@ export function createLinks({
     ]),
     pick: {
       clearRootSubscripionLink,
-      clientArgsLink,
       remoteDirectiveLink,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       loggerLink,
