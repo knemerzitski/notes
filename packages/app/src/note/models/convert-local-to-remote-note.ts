@@ -12,8 +12,8 @@ import {
   parseUserNoteLinkByInput,
 } from '../utils/id';
 
-import { excludeNoteFromConnection } from './local-note/exclude';
-import { isExcludeNoteFromConnection } from './local-note/is-exclude';
+import { hideNoteInList } from './local-note/hide-in-list';
+import { isHiddenInList } from './local-note/is-hide-in-list';
 import { noteExists } from './note/exists';
 import { replaceNoteInConnection } from './note-connection/replace';
 
@@ -106,16 +106,16 @@ export function convertLocalToRemoteNote(
   const targetNoteRef = makeReference(targetNoteId);
   const service = setNoteExternalStateFromOtherNote(sourceNoteRef, targetNoteRef, cache);
 
-  // Copy excludeFromConnection
+  // Copy hiddenInList
   if (
-    isExcludeNoteFromConnection(
+    isHiddenInList(
       {
         noteId: localNoteId,
       },
       cache
     )
   ) {
-    excludeNoteFromConnection(
+    hideNoteInList(
       {
         id: remoteUserNoteLinkId,
       },
@@ -172,7 +172,7 @@ export function convertLocalToRemoteNote(
 
   // On next tick, delete local note since it has been replaced by remote one
   // Use timeout to give time to process any immediate change (e.g NotePendingStatus.CONVERTING)
-  excludeNoteFromConnection(
+  hideNoteInList(
     {
       noteId: localNoteId,
     },

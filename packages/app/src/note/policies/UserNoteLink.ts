@@ -20,8 +20,7 @@ export const UserNoteLink: CreateTypePolicyFn = function (_ctx: TypePoliciesCont
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return existing;
       },
-      // TODO rename to excludeInList
-      excludeFromConnection(existing = false) {
+      hiddenInList(existing = false) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return existing;
       },

@@ -24,13 +24,13 @@ function filterNoteLinkInList(
 ): boolean {
   let keepNoteLink = true;
 
-  const excludeFromConnection = readField('excludeFromConnection', noteLink);
-  if (typeof excludeFromConnection === 'boolean') {
-    keepNoteLink = !excludeFromConnection;
+  const hiddenInList = readField('hiddenInList', noteLink);
+  if (typeof hiddenInList === 'boolean') {
+    keepNoteLink = !hiddenInList;
   }
 
   if (!keepNoteLink) {
-    logger?.debug('excludeFromConnection', noteLink.__ref);
+    logger?.debug('hiddenInList', noteLink.__ref);
   }
 
   return keepNoteLink;

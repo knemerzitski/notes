@@ -12,7 +12,7 @@ import {
 import { useMutation } from '../../graphql/hooks/useMutation';
 import { useUserId } from '../../user/context/user-id';
 import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
-import { clearExcludeNoteFromConnection } from '../models/local-note/clear-exclude';
+import { clearHideInList } from '../models/local-note/clear-hide-in-list';
 import { getOrCreatePendingNote } from '../models/local-note/get-or-create-pending';
 import { getNotePendingStatus } from '../models/local-note/get-status';
 import { setNotePendingStatus } from '../models/local-note/set-status';
@@ -64,7 +64,7 @@ export function useCreateNote(): {
       if (currentStatus !== NotePendingStatus.EMPTY) {
         if (!isNoteDeleted) {
           setTimeout(() => {
-            clearExcludeNoteFromConnection(
+            clearHideInList(
               {
                 userNoteLinkId: getUserNoteLinkId(noteId, userId),
               },
@@ -131,7 +131,7 @@ export function useCreateNote(): {
     const currentStatus = getNotePendingStatus({ noteId }, client.cache);
 
     if (currentStatus !== NotePendingStatus.EMPTY) {
-      clearExcludeNoteFromConnection(
+      clearHideInList(
         {
           noteId,
         },
