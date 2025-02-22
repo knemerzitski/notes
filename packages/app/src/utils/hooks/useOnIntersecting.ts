@@ -14,6 +14,10 @@ export interface UseOnIntersectingOptions {
    * @default Infinity
    */
   intersectionLimit?: number;
+  /**
+   * Reset intersection limit
+   */
+  provideReset?: (reset: () => void) => void;
 }
 
 export function useOnIntersecting<T extends Element>(
@@ -27,6 +31,9 @@ export function useOnIntersecting<T extends Element>(
   callbackRef.current = callback;
 
   const [node, setNode] = useState<T | null>(null);
+
+  const provideResetRef = useRef(options?.provideReset);
+  provideResetRef.current = options?.provideReset;
 
   const stateRef = useRef({
     intersectionCount: 0,
@@ -56,9 +63,16 @@ export function useOnIntersecting<T extends Element>(
         callbackRef.current();
 
         if (stateRef.current.intersectionCount >= intersectionLimit) {
-          observer.disconnect();
+          observer.unobserve(node);
         }
       }
+    });
+
+    provideResetRef.current?.(() => {
+      if (stateRef.current.intersectionCount >= intersectionLimit) {
+        observer.observe(node);
+      }
+      stateRef.current.intersectionCount = 0;
     });
 
     observer.observe(node);

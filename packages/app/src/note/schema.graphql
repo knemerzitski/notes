@@ -76,11 +76,11 @@ type NoteTextField {
   editor: NoteTextFieldEditor!
 }
 
-extend input UserNoteLinkSearchConnectionExtendInput {
+extend type User {
   """
-  Query for offline results
+  All locally available notes
   """
-  offline: Boolean
+  allNoteLinks: [UserNoteLink!]!
 }
 
 ################################ LocalUser.pendingNotes ################################
