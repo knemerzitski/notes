@@ -19,9 +19,9 @@ const RouteSearch_Query = gql(`
 `);
 
 const searchSchema = type({
-  // query
+  // TODO rename to text
   q: optional(string()),
-  // local
+  // TODO rename to offline
   l: optional(boolean()),
 });
 
