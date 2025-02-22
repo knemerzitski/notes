@@ -44,7 +44,6 @@ export const NotesConnectionGrid_UserNoteLinkConnectionFragment = gql(`
         note {
           id
         }
-        excludeFromConnection @client
         categoryName
         ...NotesCardGrid_UserNoteLinkFragment
       }
@@ -253,43 +252,39 @@ export function NotesConnectionGrid({
 
   const noteIds = useMemo(() => {
     const seenIds = new Set<string>();
-    return (
-      fragmentData?.edges
-        .map((edge) => edge.node)
-        //  TODO reusable util for excluding...
-        .filter((noteLink) => !noteLink.excludeFromConnection)
-        .filter((noteLink) => {
-          const isInCorrectCategory = noteLink.categoryName == category;
-          if (!isInCorrectCategory) {
-            logger?.debug('noteLink:removeWrongCategory', {
-              noteLink,
-              category,
-            });
+    return fragmentData?.edges
+      .filter((edge) => {
+        const noteLink = edge.node;
+        const isInCorrectCategory = noteLink.categoryName == category;
+        if (!isInCorrectCategory) {
+          logger?.debug('noteLink:removeWrongCategory', {
+            noteLink,
+            category,
+          });
 
-            removeNoteFromConnection(
-              {
-                userNoteLinkId: noteLink.id,
-              },
-              client.cache,
-              category
-            );
+          removeNoteFromConnection(
+            {
+              userNoteLinkId: noteLink.id,
+            },
+            client.cache,
+            category
+          );
 
-            return false;
-          }
-          return true;
-        })
-        .map((edge) => edge.note.id)
-        .filter((noteId) => {
-          if (seenIds.has(noteId)) {
-            logger?.error('noteLink:filteredDuplicateId', {
-              noteId,
-            });
-            return false;
-          }
-          seenIds.add(noteId);
-          return true;
-        })
-    );
+          return false;
+        }
+        return true;
+      })
+      .map((edge) => edge.node.note.id)
+      .filter((noteId) => {
+        if (seenIds.has(noteId)) {
+          logger?.error('noteLink:filteredDuplicateId', {
+            noteId,
+          });
+          return false;
+        }
+        seenIds.add(noteId);
+        return true;
+      });
   }, [fragmentData?.edges, category, logger, client]);
 
   if (fetchMoreStateRef.current.firstRenderHadNoNotes === null) {
@@ -432,9 +427,7 @@ function getNextFetchInfo(
   // Only include notes limited by perPageCount
   const newNoteIds = noteLinkConnection.edges
     .slice(0, limit)
-    .map((edge) => edge.node)
-    .filter((noteLink) => !noteLink.excludeFromConnection)
-    .map((edge) => edge.note.id);
+    .map((edge) => edge.node.note.id);
 
   const lastNoteId = newNoteIds[newNoteIds.length - 1];
   if (lastNoteId == null) {

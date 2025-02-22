@@ -24,7 +24,6 @@ const SearchLocalNotes_Query = gql(`
           id
           collabService
         }
-        excludeFromConnection
         ...NotesCardGrid_UserNoteLinkFragment
       }
     }
@@ -60,17 +59,14 @@ export function SearchLocalNotes({
     if (!data) {
       return;
     }
-    const itemsForFuse = data.signedInUser.allNoteLinks
-      //  TODO reusable util for excluding...
-      .filter((noteLink) => !noteLink.excludeFromConnection)
-      .map((noteLink) => {
-        const text = noteLink.note.collabService.viewText;
+    const itemsForFuse = data.signedInUser.allNoteLinks.map((noteLink) => {
+      const text = noteLink.note.collabService.viewText;
 
-        return {
-          text,
-          noteId: noteLink.note.id,
-        };
-      });
+      return {
+        text,
+        noteId: noteLink.note.id,
+      };
+    });
 
     const fuse = new Fuse(itemsForFuse, {
       keys: ['text'],

@@ -2,13 +2,12 @@ import { DashCard } from './DashCard';
 import { CacheGcButton } from './global/CacheGcButton';
 import { CurrentUserId } from './global/CurrentUserId';
 import { DebugStorageField } from './global/DebugStorageField';
-import { ExcludedConnectionNotesTable } from './global/ExcludedConnectionNotesTable';
+import { DefaultConnectionNotesTable } from './global/DefaultConnectionNotesTable';
 import { OngoingOperationsByNameList } from './global/OngoingOperationsByNameList';
 import { OngoingOperationsCountsByTypeTable } from './global/OngoingOperationsCountsByTypeTable';
 import { PendingNotesTable } from './global/PendingNotesTable';
 import { SimulateOfflineToggleButton } from './global/SimulateOfflineToggleButton';
 import { UnsavedCollabServiceNotesTable } from './global/UnsavedCollabServiceNotesTable';
-// import { DefaultConnectionNotesTable } from './DefaultConnectionNotesTable';
 
 export function GlobalDashCards() {
   return (
@@ -42,13 +41,9 @@ export function GlobalDashCards() {
         <PendingNotesTable />
       </DashCard>
 
-      <DashCard label="Excluded Connection Notes">
-        <ExcludedConnectionNotesTable />
-      </DashCard>
-
-      {/* <DashCard label="Default Connection Notes">
+      <DashCard label="Default Connection Notes">
         <DefaultConnectionNotesTable />
-      </DashCard> */}
+      </DashCard>
     </>
   );
 }

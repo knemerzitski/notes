@@ -1,4 +1,9 @@
-import { isReference } from '@apollo/client';
+import {
+  FieldFunctionOptions,
+  isReference,
+  Reference,
+  StoreObject,
+} from '@apollo/client';
 import { objectValueArrayPermutationsValues } from '~utils/object/object-value-array-permutations';
 import { isDefined } from '~utils/type-guards/is-defined';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
@@ -10,7 +15,51 @@ import { updateUserNoteLinkOutdated } from '../models/note/outdated';
 import { throwNoteNotFoundError } from '../utils/errors';
 import { getUserNoteLinkId } from '../utils/id';
 
-export const User: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
+function filterNoteLinkInList(
+  noteLink: StoreObject | Reference,
+  {
+    readField,
+    logger,
+  }: Pick<FieldFunctionOptions, 'readField'> & Pick<TypePoliciesContext, 'logger'>
+): boolean {
+  let keepNoteLink = true;
+
+  const excludeFromConnection = readField('excludeFromConnection', noteLink);
+  if (typeof excludeFromConnection === 'boolean') {
+    keepNoteLink = !excludeFromConnection;
+  }
+
+  if (!keepNoteLink) {
+    logger?.debug('excludeFromConnection', noteLink.__ref);
+  }
+
+  return keepNoteLink;
+}
+
+function getEdgeNode(
+  edge: StoreObject | Reference,
+  { readField }: Pick<FieldFunctionOptions, 'readField'>
+): Reference | undefined {
+  const node = readField('node', edge);
+  if (isReference(node)) {
+    return node;
+  }
+
+  return;
+}
+
+function filterEdge(
+  edge: StoreObject | Reference,
+  options: Pick<FieldFunctionOptions, 'readField'> & Pick<TypePoliciesContext, 'logger'>
+) {
+  const noteLink = getEdgeNode(edge, options);
+  if (!noteLink) {
+    return true;
+  }
+  return filterNoteLinkInList(noteLink, options);
+}
+
+export const User: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
   return {
     fields: {
       noteLink: {
@@ -77,9 +126,19 @@ export const User: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
               startCursor: null,
               endCursor: null,
             },
-          }
+          },
+          options
         ) {
-          return existing;
+          if (!existing) {
+            return existing;
+          }
+
+          return {
+            ...existing,
+            edges: existing.edges.filter((edge) =>
+              filterEdge(edge, { ...options, logger: ctx.logger })
+            ),
+          };
         },
         // Preserve local edges (when merging incoming from server) by checking node.note.localOnly
         preserveEdgeInPosition(edge, { readField }) {
@@ -152,15 +211,27 @@ export const User: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
               startCursor: null,
               endCursor: null,
             },
-          }
+          },
+          options
         ) {
-          return existing;
+          if (!existing) {
+            return existing;
+          }
+
+          return {
+            ...existing,
+            edges: existing.edges.filter((edge) =>
+              filterEdge(edge, { ...options, logger: ctx.logger })
+            ),
+          };
         },
         isOrderedSet: true,
       }),
       allNoteLinks: {
         keyArgs: false,
-        read(_existing, { readField }) {
+        read(_existing, options) {
+          const { readField } = options;
+
           const seenRefs = new Set<string>();
 
           // Go through every single category and concat arrays
@@ -211,6 +282,12 @@ export const User: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
                   return;
                 }
                 seenRefs.add(userNoteLink.__ref);
+
+                if (
+                  !filterNoteLinkInList(userNoteLink, { ...options, logger: ctx.logger })
+                ) {
+                  return;
+                }
 
                 return userNoteLink;
               })

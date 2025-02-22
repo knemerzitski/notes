@@ -63,7 +63,6 @@ export function PendingNotesTable() {
             <TableCell>Status</TableCell>
             <TableCell>Excluded</TableCell>
             <TableCell>Category</TableCell>
-            <TableCell>Connection Category</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
