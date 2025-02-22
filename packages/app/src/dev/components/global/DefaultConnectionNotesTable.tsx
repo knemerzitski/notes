@@ -21,7 +21,6 @@ const DefaultConnectionNotesTable_Query = gql(`
         edges {
           node {
             id
-            excludeFromConnection
             categoryName
             originalCategoryName
             pendingStatus
@@ -51,9 +50,7 @@ export function DefaultConnectionNotesTable() {
     return null;
   }
 
-  const edges = data.signedInUser.noteLinkConnection.edges.filter(
-    (edge) => !edge.node.excludeFromConnection
-  );
+  const edges = data.signedInUser.noteLinkConnection.edges;
 
   return (
     <TableContainer
@@ -68,7 +65,6 @@ export function DefaultConnectionNotesTable() {
             <TableCell>Note.ID</TableCell>
             <TableCell>Status</TableCell>
             <TableCell>Category</TableCell>
-            <TableCell>Connection Category</TableCell>
             <TableCell>Original Category</TableCell>
           </TableRow>
         </TableHead>

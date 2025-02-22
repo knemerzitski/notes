@@ -220,23 +220,18 @@ export function SearchNotesConnectionGrid({
 
   const noteIds = useMemo(() => {
     const seenIds = new Set<string>();
-    return (
-      fragmentData?.edges
-        .map((edge) => edge.node)
-        // TODO reuse hook for getting noteIds for connection
-        .filter((noteLink) => !noteLink.excludeFromConnection)
-        .map((edge) => edge.note.id)
-        .filter((noteId) => {
-          if (seenIds.has(noteId)) {
-            logger?.error('noteLink:filteredDuplicateId', {
-              noteId,
-            });
-            return false;
-          }
-          seenIds.add(noteId);
-          return true;
-        })
-    );
+    return fragmentData?.edges
+      .map((edge) => edge.node.note.id)
+      .filter((noteId) => {
+        if (seenIds.has(noteId)) {
+          logger?.error('noteLink:filteredDuplicateId', {
+            noteId,
+          });
+          return false;
+        }
+        seenIds.add(noteId);
+        return true;
+      });
   }, [fragmentData?.edges, logger]);
 
   (function initialFetchMore() {
@@ -374,10 +369,7 @@ function getNextFetchInfo(
   // Only include notes limited by perPageCount
   const newNoteIds = noteLinkConnection.edges
     .slice(0, limit)
-    .map((edge) => edge.node)
-    .filter((noteLink) => !noteLink.excludeFromConnection)
-    .map((edge) => edge.note.id);
-
+    .map((edge) => edge.node.note.id);
   const lastNoteId = newNoteIds[newNoteIds.length - 1];
   if (lastNoteId == null) {
     logger?.debug('getNextFetchInfo:noNotes');
