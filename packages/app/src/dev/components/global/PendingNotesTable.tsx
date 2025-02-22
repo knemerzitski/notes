@@ -23,7 +23,7 @@ const PendingNotesTable_Query = gql(`
         pendingNotes {
           id
           pendingStatus
-          excludeFromConnection
+          hiddenInList
           categoryName
           note {
             id
@@ -61,7 +61,7 @@ export function PendingNotesTable() {
           <TableRow>
             <TableCell>Note.ID</TableCell>
             <TableCell>Status</TableCell>
-            <TableCell>Excluded</TableCell>
+            <TableCell>Hidden</TableCell>
             <TableCell>Category</TableCell>
           </TableRow>
         </TableHead>
@@ -71,7 +71,7 @@ export function PendingNotesTable() {
               <TableCell>{noteLink.note.id}</TableCell>
               <TableCell>{noteLink.pendingStatus ?? <RemoveIcon />}</TableCell>
               <TableCell>
-                {noteLink.excludeFromConnection ? <CheckIcon /> : <RemoveIcon />}
+                {noteLink.hiddenInList ? <CheckIcon /> : <RemoveIcon />}
               </TableCell>
               <TableCell>{noteLink.categoryName}</TableCell>
             </TableRow>

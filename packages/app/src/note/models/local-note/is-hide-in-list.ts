@@ -4,26 +4,27 @@ import { gql } from '../../../__generated__';
 import { UserNoteLinkByInput } from '../../../__generated__/graphql';
 import { parseUserNoteLinkByInput } from '../../utils/id';
 
-const IsExcludeNoteFromConnection_Query = gql(`
-  query IsExcludeNoteFromConnection_Query($userBy: UserByInput!, $noteBy: NoteByInput!) {
+const IsHiddenInList_Query = gql(`
+  query IsHiddenInList_Query($userBy: UserByInput!, $noteBy: NoteByInput!) {
     signedInUser(by: $userBy) {
       id
       noteLink(by: $noteBy) {
         id
-        excludeFromConnection
+        hiddenInList
       }
     }
   }
 `);
 
-export function isExcludeNoteFromConnection(
+// TODO rename to isHiddenInList
+export function isHiddenInList(
   by: UserNoteLinkByInput,
   cache: Pick<ApolloCache<unknown>, 'readQuery'>
 ) {
   const { userId, noteId } = parseUserNoteLinkByInput(by, cache);
 
   const data = cache.readQuery({
-    query: IsExcludeNoteFromConnection_Query,
+    query: IsHiddenInList_Query,
     variables: {
       userBy: {
         id: userId,
@@ -34,5 +35,5 @@ export function isExcludeNoteFromConnection(
     },
   });
 
-  return data?.signedInUser.noteLink.excludeFromConnection ?? false;
+  return data?.signedInUser.noteLink.hiddenInList ?? false;
 }

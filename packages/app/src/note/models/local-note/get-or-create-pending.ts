@@ -39,7 +39,7 @@ const GetOrCreatePendingNoteAdd_Query = gql(`
         pendingNotes {
           id
           pendingStatus
-          excludeFromConnection
+          hiddenInList
           note {
             id
             collabText {
@@ -96,7 +96,7 @@ function add(
     __typename: 'UserNoteLink',
     id: userNoteLinkId,
     pendingStatus: NotePendingStatus.EMPTY,
-    excludeFromConnection: true,
+    hiddenInList: true,
     note: {
       __typename: 'Note',
       id: noteId,

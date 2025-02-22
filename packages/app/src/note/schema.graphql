@@ -115,9 +115,9 @@ extend type UserNoteLink {
   """
   pendingStatus: NotePendingStatus
   """
-  Note is excluded from being show in connection
+  Note is in the list to retain its position but not displayed to the user.
   """
-  excludeFromConnection: Boolean!
+  hiddenInList: Boolean!
 }
 
 # extend type UserNoteLinkEdge {

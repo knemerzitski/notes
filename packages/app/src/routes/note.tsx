@@ -10,7 +10,7 @@ import { NoteIdProvider } from '../note/context/note-id';
 import { useCreateNote } from '../note/hooks/useCreateNote';
 
 import { useNavigateToNote } from '../note/hooks/useNavigateToNote';
-import { clearExcludeNoteFromConnection } from '../note/models/local-note/clear-exclude';
+import { clearHideInList } from '../note/models/local-note/clear-hide-in-list';
 import { getNotePendingStatus } from '../note/models/local-note/get-status';
 import { addNoteToConnection } from '../note/models/note-connection/add';
 
@@ -76,7 +76,7 @@ function NoteNewCreatingRedirect() {
     void create();
 
     // Add to connection
-    clearExcludeNoteFromConnection(
+    clearHideInList(
       {
         noteId,
       },
