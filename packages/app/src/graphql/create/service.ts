@@ -29,6 +29,7 @@ import { createHttpWsLink } from './http-ws-link';
 import { createLinks } from './links';
 import { createMutationUpdaterFunctionMap } from './mutation-updater-map';
 import { addTypePolicies, createTypePolicies } from './type-policies';
+import { Logger } from '~utils/logging';
 
 export function createGraphQLService({
   httpUri,
@@ -45,6 +46,7 @@ export function createGraphQLService({
   purgeCache = false,
   linkOptions,
   actions,
+  logger,
 }: {
   httpUri: string;
   wsUrl: string | undefined;
@@ -69,7 +71,11 @@ export function createGraphQLService({
   purgeCache?: boolean;
   linkOptions?: Parameters<typeof createLinks>[0]['options'];
   actions?: GraphQLServiceAction[];
+  logger?: Logger;
 }) {
+  logger?.debug('create');
+
+
   const mutationUpdaterFnMap = createMutationUpdaterFunctionMap(mutationDefinitions);
 
   const cache = new InMemoryCache({
@@ -101,7 +107,9 @@ export function createGraphQLService({
     cache,
   });
 
-  const typePolicies = createTypePolicies(typePoliciesList, {});
+  const typePolicies = createTypePolicies(typePoliciesList, {
+    logger: logger?.extend('policy'),
+  });
 
   addTypePolicies(typePolicies, cache);
 

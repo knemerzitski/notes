@@ -31,6 +31,7 @@ import {
   userMutationDefinitions,
   userPolicies,
 } from './user/policies';
+import { createLogger } from '~utils/logging';
 
 const APOLLO_CACHE_VERSION = '4';
 
@@ -98,6 +99,7 @@ export function createDefaultGraphQLServiceParams(): Parameters<
     },
     actions: SERVICE_ACTIONS,
     purgeCache: PURGE_APOLLO_CACHE,
+    logger: createLogger('GraphQLService'),
   };
 }
 

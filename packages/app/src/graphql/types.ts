@@ -12,6 +12,7 @@ import { GateController, GateLink } from './link/gate';
 import { PersistLink } from './link/persist';
 import { MutationDefinition } from './utils/mutation-definition';
 import { TaggedEvict } from './utils/tagged-evict';
+import { Logger } from '~utils/logging';
 
 declare module '@apollo/client' {
   interface DefaultContext {
@@ -51,7 +52,9 @@ export type TypePoliciesList = (CreateTypePoliciesFn | TypePolicies)[];
 
 // Context required to create type policies
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface TypePoliciesContext {}
+export interface TypePoliciesContext {
+  logger?: Logger;
+}
 
 export type CreateTypePoliciesFn = (context: TypePoliciesContext) => TypePolicies;
 export type CreateTypePolicyFn = (context: TypePoliciesContext) => TypePolicy;
