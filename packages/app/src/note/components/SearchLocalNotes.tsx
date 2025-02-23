@@ -1,5 +1,6 @@
 import { useQuery } from '@apollo/client';
 import { Alert } from '@mui/material';
+import Fuse from 'fuse.js';
 import { ComponentType, ReactNode, useMemo } from 'react';
 
 import { gql } from '../../__generated__';
@@ -10,9 +11,8 @@ import { NoteIdsProvider } from '../context/note-ids';
 
 import { NoteCard } from './NoteCard';
 import { NotesCardGrid } from './NotesCardGrid';
-import Fuse from 'fuse.js';
-import { SearchStartTypingIconText } from './SearchStartTypingIconText';
 import { SearchNoMatchIconText } from './SearchNoMatchIconText';
+import { SearchStartTypingIconText } from './SearchStartTypingIconText';
 
 const SearchLocalNotes_Query = gql(`
   query SearchLocalNotes_Query($userBy: UserByInput!) {

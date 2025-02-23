@@ -1,9 +1,11 @@
 import { gql } from '@apollo/client';
 
-import { SearchNotesConnectionGrid } from './SearchNotesConnectionGrid';
-import { SearchLocalNotes } from './SearchLocalNotes';
 import { useSearch } from '@tanstack/react-router';
+
 import { useDefaultIsSearchOffline } from '../hooks/useDefaultIsSearchOffline';
+
+import { SearchLocalNotes } from './SearchLocalNotes';
+import { SearchNotesConnectionGrid } from './SearchNotesConnectionGrid';
 
 const _RouteSearchNotes_UserFragment = gql(`
   fragment RouteSearchNotes_UserFragment on User { 

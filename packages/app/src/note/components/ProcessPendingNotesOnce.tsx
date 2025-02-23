@@ -5,9 +5,9 @@ import { useEffect } from 'react';
 import { gql } from '../../__generated__';
 import { NotePendingStatus } from '../../__generated__/graphql';
 import { useUserId } from '../../user/context/user-id';
+import { clearNoteHiddenInList } from '../models/local-note/hidden-in-list';
 import { setNotePendingStatus } from '../models/local-note/set-status';
 import { addNoteToConnection } from '../models/note-connection/add';
-import { clearNoteHiddenInList } from '../models/local-note/hidden-in-list';
 
 const ProcessPendingNotesOnce_Query = gql(`
   query ProcessPendingNotesOnce_Query($id: ObjectID!) {

@@ -1,9 +1,11 @@
 import { gql, useApolloClient } from '@apollo/client';
+import BugReportIcon from '@mui/icons-material/BugReport';
 import { Box, Button, ButtonProps, css, styled } from '@mui/material';
+
+import { forwardRef } from 'react';
+
 import { NoteCategory } from '../../__generated__/graphql';
 import { useUserId } from '../../user/context/user-id';
-import BugReportIcon from '@mui/icons-material/BugReport';
-import { forwardRef } from 'react';
 
 const ClearNotesConnectionCategoryButton_Query = gql(`
   query ClearNotesConnectionCategoryButton_Query($userBy: UserByInput!, $category: NoteCategory) {

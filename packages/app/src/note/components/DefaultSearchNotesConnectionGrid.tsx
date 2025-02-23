@@ -1,7 +1,8 @@
 import { gql } from '@apollo/client';
 import { css, styled } from '@mui/material';
-import { RouteSearchOnlineToggle } from './RouteSearchOnlineToggle';
+
 import { RouteSearchNotes } from './RouteSearchNotes';
+import { RouteSearchOnlineToggle } from './RouteSearchOnlineToggle';
 
 const _DefaultSearchNotesConnectionGrid_UserFragment = gql(`
   fragment DefaultSearchNotesConnectionGrid_UserFragment on User { 

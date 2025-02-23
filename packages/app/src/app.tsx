@@ -2,11 +2,11 @@ import { AppBootstrapModuleProvider } from './bootstrap/components/AppBootstrapM
 import { AppDndModuleProvider } from './dnd/components/AppDndModuleProvider';
 import { AppGraphQLModuleProvider } from './graphql/components/AppGraphQLModuleProvider';
 import { AppNoteModuleProvider } from './note/components/AppNoteModuleProvider';
+import { AppRouterModuleProvider } from './router/components/AppRouterModuleProvider';
 import { AppThemeModuleProvider } from './theme/components/AppThemeModuleProvider';
 import { AppThirdPartyModuleProvider } from './third-party/components/AppThirdPartyModuleProvider';
 import { AppUserModuleProvider } from './user/components/AppUserModuleProvider';
 import { AppFallbackRestoringCache } from './utils/components/AppFallbackRestoringCache';
-import { AppRouterModuleProvider } from './router/components/AppRouterModuleProvider';
 import { AppUtilsModuleProvider } from './utils/components/AppUtilsModuleProvider';
 
 export function App() {

@@ -2,9 +2,9 @@ import { createFileRoute } from '@tanstack/react-router';
 
 import { gql } from '../__generated__';
 import { TrashMain } from '../note/components/TrashMain';
+import { routeFetchPolicy } from '../router/utils/route-fetch-policy';
 import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
 import { IsLoadingProvider } from '../utils/context/is-loading';
-import { routeFetchPolicy } from '../router/utils/route-fetch-policy';
 
 const RouteTrash_Query = gql(`
   query RouteTrash_Query($userBy: UserByInput!, $trash_first: NonNegativeInt, $trash_after: ObjectID) {

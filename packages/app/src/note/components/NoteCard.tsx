@@ -41,13 +41,13 @@ import { ContentTypography } from './ContentTypography';
 
 import { DeletedInDays } from './DeletedInDays';
 
+import { DevNoteId } from './DevNoteId';
 import { NoteAlwaysButtons } from './NoteAlwaysButtons';
 import { NoteMoreOptionsButton } from './NoteMoreOptionsButton';
 import { OpenedNoteUserAvatars } from './OpenedNoteUserAvatars';
 import { SyncOutdatedNote } from './SyncOutdatedNote';
 import { TitleTypography } from './TitleTypography';
 import { UserAvatarsCornerPosition } from './UserAvatarsCornerPosition';
-import { DevNoteId } from './DevNoteId';
 
 const _NoteCard_UserNoteLinkFragment = gql(`
   fragment NoteCard_UserNoteLinkFragment on UserNoteLink {

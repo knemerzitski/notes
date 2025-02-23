@@ -7,9 +7,9 @@ import { forwardRef, useEffect, useRef } from 'react';
 
 import { gql } from '../../__generated__';
 import { useStatsLink } from '../../graphql/context/stats-link';
+import { useFetchedRoutes } from '../../router/context/fetched-routes';
 import { useUserId } from '../../user/context/user-id';
 
-import { useFetchedRoutes } from '../../router/context/fetched-routes';
 import { useAppStatus } from '../hooks/useAppStatus';
 
 import { AppStatusIcon } from './AppStatusIcon';

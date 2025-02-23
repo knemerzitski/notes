@@ -11,8 +11,8 @@ import { useCreateNote } from '../note/hooks/useCreateNote';
 
 import { useNavigateToNote } from '../note/hooks/useNavigateToNote';
 import { getNotePendingStatus } from '../note/models/local-note/get-status';
-import { addNoteToConnection } from '../note/models/note-connection/add';
 import { clearNoteHiddenInList } from '../note/models/local-note/hidden-in-list';
+import { addNoteToConnection } from '../note/models/note-connection/add';
 
 const searchSchema = type({
   originalLocation: optional(

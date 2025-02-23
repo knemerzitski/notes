@@ -14,6 +14,7 @@ import { useUserId } from '../../user/context/user-id';
 import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
 import { getOrCreatePendingNote } from '../models/local-note/get-or-create-pending';
 import { getNotePendingStatus } from '../models/local-note/get-status';
+import { clearNoteHiddenInList } from '../models/local-note/hidden-in-list';
 import { setNotePendingStatus } from '../models/local-note/set-status';
 import { getCollabService } from '../models/note/get-collab-service';
 import { addNoteToConnection } from '../models/note-connection/add';
@@ -22,7 +23,6 @@ import { CreateNote } from '../mutations/CreateNote';
 import { getUserNoteLinkId } from '../utils/id';
 
 import { useCategoryChanged } from './useCategoryChanged';
-import { clearNoteHiddenInList } from '../models/local-note/hidden-in-list';
 
 export function useCreateNote(): {
   noteId: Note['id'];

@@ -1,8 +1,10 @@
 import { gql, useApolloClient } from '@apollo/client';
-import { Box, Button, ButtonProps, css, styled } from '@mui/material';
-import { useUserId } from '../../user/context/user-id';
 import BugReportIcon from '@mui/icons-material/BugReport';
+import { Box, Button, ButtonProps, css, styled } from '@mui/material';
+
 import { forwardRef } from 'react';
+
+import { useUserId } from '../../user/context/user-id';
 
 const ClearNotesSearchButton_Query = gql(`
   query ClearNotesSearchButton_Query($userBy: UserByInput!, $searchText: String!) {

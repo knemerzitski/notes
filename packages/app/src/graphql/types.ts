@@ -7,12 +7,13 @@ import {
 } from '@apollo/client';
 import SerializingLink from 'apollo-link-serialize';
 
+import { Logger } from '~utils/logging';
+
 import { createGraphQLService } from './create/service';
 import { GateController, GateLink } from './link/gate';
 import { PersistLink } from './link/persist';
 import { MutationDefinition } from './utils/mutation-definition';
 import { TaggedEvict } from './utils/tagged-evict';
-import { Logger } from '~utils/logging';
 
 declare module '@apollo/client' {
   interface DefaultContext {
@@ -51,7 +52,7 @@ declare module '@apollo/client' {
 export type TypePoliciesList = (CreateTypePoliciesFn | TypePolicies)[];
 
 // Context required to create type policies
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+ 
 export interface TypePoliciesContext {
   logger?: Logger;
 }

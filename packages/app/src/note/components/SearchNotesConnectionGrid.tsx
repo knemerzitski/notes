@@ -13,6 +13,8 @@ import {
   useState,
 } from 'react';
 
+import { Logger } from '~utils/logging';
+
 import { getFragmentData, gql } from '../../__generated__';
 import { Note, SearchNotesConnectionGridQueryQuery } from '../../__generated__/graphql';
 import { useUserId } from '../../user/context/user-id';
@@ -23,14 +25,13 @@ import { useOnIntersecting } from '../../utils/hooks/useOnIntersecting';
 import { useNoteId } from '../context/note-id';
 import { NoteIdsProvider } from '../context/note-ids';
 
+import { DevClearNotesSearchButton } from './DevClearNotesSearchButton';
 import { NoteCard } from './NoteCard';
 import { NotesCardGrid } from './NotesCardGrid';
 
 import { NotesConnectionGrid_UserNoteLinkConnectionFragment } from './NotesConnectionGrid';
-import { Logger } from '~utils/logging';
-import { DevClearNotesSearchButton } from './DevClearNotesSearchButton';
-import { SearchStartTypingIconText } from './SearchStartTypingIconText';
 import { SearchNoMatchIconText } from './SearchNoMatchIconText';
+import { SearchStartTypingIconText } from './SearchStartTypingIconText';
 
 const SearchNotesConnectionGrid_Query = gql(`
   query SearchNotesConnectionGrid_Query($userBy: UserByInput!, $searchText: String!, $first: NonNegativeInt, $after: String) {
