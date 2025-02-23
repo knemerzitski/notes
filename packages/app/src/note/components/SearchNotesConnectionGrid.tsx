@@ -5,6 +5,7 @@ import {
   forwardRef,
   memo,
   ReactNode,
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -313,15 +314,17 @@ export function SearchNotesConnectionGrid({
 
   return (
     <NoteIdsProvider noteIds={noteIds}>
-      <DevClearNotesSearchButton
-        searchText={searchText}
-        sx={{
-          mb: 2,
-          ml: 'auto',
-          display: 'block',
-          alignSelf: 'center',
-        }}
-      />
+      <Suspense>
+        <DevClearNotesSearchButton
+          searchText={searchText}
+          sx={{
+            mb: 2,
+            ml: 'auto',
+            display: 'block',
+            alignSelf: 'center',
+          }}
+        />
+      </Suspense>
       <NotesCardGrid
         loadingCount={loadingCount}
         noteCard={

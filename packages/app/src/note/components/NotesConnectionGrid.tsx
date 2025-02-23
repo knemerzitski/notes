@@ -4,6 +4,7 @@ import {
   forwardRef,
   memo,
   ReactNode,
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -358,17 +359,18 @@ export function NotesConnectionGrid({
   const isSortableCategory = !!toMovableNoteCategory(category);
 
   const maybeSortableNotesGrid = (
-    // TODO keep stying outside this component
     <>
-      <DevClearNotesConnectionCategoryButton
-        category={category}
-        sx={{
-          mb: 2,
-          ml: 'auto',
-          display: 'block',
-          alignSelf: 'center',
-        }}
-      />
+      <Suspense>
+        <DevClearNotesConnectionCategoryButton
+          category={category}
+          sx={{
+            mb: 2,
+            ml: 'auto',
+            display: 'block',
+            alignSelf: 'center',
+          }}
+        />
+      </Suspense>
       <NotesCardGrid
         loadingCount={isOnline ? loadingCount : 0}
         loadingNoteIds={isOnline ? loadingNoteIds : EMPTY_ARRAY}

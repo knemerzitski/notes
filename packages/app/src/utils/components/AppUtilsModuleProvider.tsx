@@ -1,5 +1,5 @@
 import { Fab } from '@mui/material';
-import { ReactNode } from 'react';
+import { ReactNode, Suspense } from 'react';
 
 import { BlockUiProvider } from '../context/block-ui';
 import { GlobalCountProvider } from '../context/global-count';
@@ -14,21 +14,29 @@ import { SnackbarUndoActionProvider } from './SnackbarUndoActionProvider';
 const GLOBAL_COUNT_IDS = [Fab];
 
 export function AppUtilsModuleProvider({ children }: { children: ReactNode }) {
+  const modules = <Modules>{children}</Modules>;
+
   return (
-    <DevOnlyLoggerProvider>
-      <GlobalCountProvider ids={GLOBAL_COUNT_IDS}>
-        <SerialModalsProvider>
-          <SnackbarAlertProvider>
-            <ShowSnackbarMessageProvider>
-              <SnackbarUndoActionProvider>
-                <ShowConfirmDialogProvider>
-                  <BlockUiProvider>{children}</BlockUiProvider>
-                </ShowConfirmDialogProvider>
-              </SnackbarUndoActionProvider>
-            </ShowSnackbarMessageProvider>
-          </SnackbarAlertProvider>
-        </SerialModalsProvider>
-      </GlobalCountProvider>
-    </DevOnlyLoggerProvider>
+    <Suspense fallback={modules}>
+      <DevOnlyLoggerProvider>{modules}</DevOnlyLoggerProvider>
+    </Suspense>
+  );
+}
+
+export function Modules({ children }: { children: ReactNode }) {
+  return (
+    <GlobalCountProvider ids={GLOBAL_COUNT_IDS}>
+      <SerialModalsProvider>
+        <SnackbarAlertProvider>
+          <ShowSnackbarMessageProvider>
+            <SnackbarUndoActionProvider>
+              <ShowConfirmDialogProvider>
+                <BlockUiProvider>{children}</BlockUiProvider>
+              </ShowConfirmDialogProvider>
+            </SnackbarUndoActionProvider>
+          </ShowSnackbarMessageProvider>
+        </SnackbarAlertProvider>
+      </SerialModalsProvider>
+    </GlobalCountProvider>
   );
 }
