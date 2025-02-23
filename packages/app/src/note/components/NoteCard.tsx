@@ -10,7 +10,15 @@ import {
   Theme,
   Tooltip,
 } from '@mui/material';
-import { forwardRef, memo, useCallback, useMemo, useRef, useState } from 'react';
+import {
+  forwardRef,
+  memo,
+  Suspense,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import { gql } from '../../__generated__';
 import { NoteCategory } from '../../__generated__/graphql';
@@ -248,7 +256,9 @@ const MainSection = memo(function MainSection() {
     <>
       <SyncOutdatedNote />
       <DuringLoadingNoteRefreshingProgress />
-      <DevNoteId />
+      <Suspense>
+        <DevNoteId />
+      </Suspense>
       <UserAvatarsCornerPosition>
         <OpenedNoteUserAvatars
           max={3}
