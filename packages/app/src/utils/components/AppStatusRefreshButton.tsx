@@ -9,7 +9,7 @@ import { gql } from '../../__generated__';
 import { useStatsLink } from '../../graphql/context/stats-link';
 import { useUserId } from '../../user/context/user-id';
 
-import { useFetchedRoutes } from '../context/fetched-routes';
+import { useFetchedRoutes } from '../../router/context/fetched-routes';
 import { useAppStatus } from '../hooks/useAppStatus';
 
 import { AppStatusIcon } from './AppStatusIcon';

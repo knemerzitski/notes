@@ -4,9 +4,12 @@ import { RouterProvider } from '@tanstack/react-router';
 import { useMemo } from 'react';
 
 import { createRouterContext, router } from '../../router';
-import { FetchedRoutesProvider, useFetchedRoutes } from '../context/fetched-routes';
+import {
+  FetchedRoutesProvider,
+  useFetchedRoutes,
+} from '../context/fetched-routes';
 
-export function AppRoutesModuleProvider() {
+export function AppRouterModuleProvider() {
   return (
     <FetchedRoutesProvider>
       <InnerProvider />

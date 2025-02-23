@@ -1,7 +1,7 @@
 import { useNavigate, useRouter } from '@tanstack/react-router';
 import { useState, useCallback } from 'react';
 
-import { useGetCanGoBack } from '../../utils/context/get-can-go-back';
+import { useGetCanGoBack } from '../../router/context/get-can-go-back';
 import { OnCloseProvider } from '../../utils/context/on-close';
 import { noteEditDialogId } from '../../utils/element-id';
 import { useNoteId } from '../context/note-id';

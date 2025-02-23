@@ -1,9 +1,9 @@
 import { ApolloCache, FetchPolicy } from '@apollo/client';
 
-import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
-import { isLocalOnlyUser } from '../user/models/signed-in-user/is-local-only';
+import { getCurrentUserId } from '../../user/models/signed-in-user/get-current';
+import { isLocalOnlyUser } from '../../user/models/signed-in-user/is-local-only';
 
-import { FetchedRoutes } from './context/fetched-routes';
+import { FetchedRoutes } from '../context/fetched-routes';
 
 export function routeFetchPolicy(
   routeId: string,

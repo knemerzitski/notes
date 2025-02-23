@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react';
 
 import { gql } from '../../__generated__';
 import { router } from '../../router';
-import { useGetCanGoBack } from '../../utils/context/get-can-go-back';
+import { useGetCanGoBack } from '../../router/context/get-can-go-back';
 import { OnCloseProvider } from '../../utils/context/on-close';
 import { noteSharingDialogId } from '../../utils/element-id';
 import { NoteIdProvider } from '../context/note-id';
