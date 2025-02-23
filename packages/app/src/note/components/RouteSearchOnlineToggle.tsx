@@ -1,7 +1,9 @@
 import { Typography, Switch, Stack, StackProps, styled, css } from '@mui/material';
-import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
+
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { forwardRef } from 'react';
+
+import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
 import { useDefaultIsSearchOffline } from '../hooks/useDefaultIsSearchOffline';
 
 export const RouteSearchOnlineToggle = forwardRef<HTMLDivElement, StackProps>(

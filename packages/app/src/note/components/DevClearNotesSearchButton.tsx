@@ -1,4 +1,5 @@
 import { lazy } from 'react';
+
 import { isDevToolsEnabled } from '../../dev/utils/dev-tools';
 
 export const DevClearNotesSearchButton = isDevToolsEnabled()

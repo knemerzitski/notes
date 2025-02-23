@@ -5,13 +5,13 @@ import {
 } from '../../__generated__/graphql';
 import { mutationDefinition } from '../../graphql/utils/mutation-definition';
 import { convertLocalToRemoteNote } from '../models/convert-local-to-remote-note';
+import { isNoteHiddenInList } from '../models/local-note/hidden-in-list';
 import { setNotePendingStatus } from '../models/local-note/set-status';
 import { getCollabService } from '../models/note/get-collab-service';
 import { addNoteToConnection } from '../models/note-connection/add';
 import { addRecordToConnection } from '../models/record-connection/add';
 import { parseUserNoteLinkId } from '../utils/id';
 import { cacheRecordToCollabServiceRecord } from '../utils/map-record';
-import { isNoteHiddenInList } from '../models/local-note/hidden-in-list';
 
 /**
  * Will acknowledge submitted changes in service

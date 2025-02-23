@@ -3,10 +3,10 @@ import { boolean, optional, string, type } from 'superstruct';
 
 import { gql } from '../__generated__';
 import { SearchMain } from '../note/components/SearchMain';
+import { routeFetchPolicy } from '../router/utils/route-fetch-policy';
 import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
 import { IsLoadingProvider } from '../utils/context/is-loading';
 import { useLogger } from '../utils/context/logger';
-import { routeFetchPolicy } from '../router/utils/route-fetch-policy';
 
 const RouteSearch_Query = gql(`
   query RouteSearch_Query($userBy: UserByInput!, $searchText: String!, $first: NonNegativeInt, $after: String) {

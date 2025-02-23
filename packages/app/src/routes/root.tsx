@@ -17,13 +17,13 @@ import { RedirectToMobileNote } from '../note/components/RedirectToMobileNote';
 import { RouteNoteDialog } from '../note/components/RouteNoteDialog';
 import { RouteNoteSharingDialog } from '../note/components/RouteNoteSharingDialog';
 import { NoteIdProvider } from '../note/context/note-id';
+import { RootRoute } from '../root-route';
 import { RouterContext } from '../router';
+import { routeFetchPolicy } from '../router/utils/route-fetch-policy';
 import { useIsMobile } from '../theme/context/is-mobile';
 import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
 import { ErrorComponent } from '../utils/components/ErrorComponent';
 import { NotFoundTypography } from '../utils/components/NotFoundTypography';
-import { RootRoute } from '../root-route';
-import { routeFetchPolicy } from '../router/utils/route-fetch-policy';
 
 const RouteRoot_Query = gql(`
   query RouteRoot_Query($userBy: UserByInput!, $noteBy: NoteByInput!) {

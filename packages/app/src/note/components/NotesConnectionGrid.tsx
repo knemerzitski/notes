@@ -12,6 +12,9 @@ import {
   useState,
 } from 'react';
 
+import { EMPTY_ARRAY } from '~utils/array/empty';
+import { Logger } from '~utils/logging';
+
 import { getFragmentData, gql } from '../../__generated__';
 import {
   Note,
@@ -19,6 +22,7 @@ import {
   NotesConnectionGridQueryQuery,
 } from '../../__generated__/graphql';
 import { useUserId } from '../../user/context/user-id';
+import { useIsLoading } from '../../utils/context/is-loading';
 import { useLogger } from '../../utils/context/logger';
 import { useIsOnline } from '../../utils/hooks/useIsOnline';
 import { useOnIntersecting } from '../../utils/hooks/useOnIntersecting';
@@ -27,14 +31,12 @@ import { NoteIdsProvider } from '../context/note-ids';
 import { removeNoteFromConnection } from '../models/note-connection/remove';
 import { toMovableNoteCategory } from '../utils/note-category';
 
+import { DevClearNotesConnectionCategoryButton } from './DevClearNotesConnectionCategoryButton';
 import { NoteCard } from './NoteCard';
 import { NotesCardGrid } from './NotesCardGrid';
 import { SortableNoteCard } from './SortableNoteCard';
 import { SortableNotesContext } from './SortableNotesContext';
-import { useIsLoading } from '../../utils/context/is-loading';
-import { Logger } from '~utils/logging';
-import { EMPTY_ARRAY } from '~utils/array/empty';
-import { DevClearNotesConnectionCategoryButton } from './DevClearNotesConnectionCategoryButton';
+
 
 export const NotesConnectionGrid_UserNoteLinkConnectionFragment = gql(`
   fragment NotesConnectionGrid_UserNoteLinkConnectionFragment on UserNoteLinkConnection {

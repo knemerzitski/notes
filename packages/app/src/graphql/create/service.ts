@@ -10,6 +10,8 @@ import { CachePersistor, PersistentStorage } from 'apollo3-cache-persist';
 
 import { OperationTypeNode } from 'graphql';
 
+import { Logger } from '~utils/logging';
+
 import {
   CacheReadyCallbacks,
   GraphQLServiceAction,
@@ -29,7 +31,6 @@ import { createHttpWsLink } from './http-ws-link';
 import { createLinks } from './links';
 import { createMutationUpdaterFunctionMap } from './mutation-updater-map';
 import { addTypePolicies, createTypePolicies } from './type-policies';
-import { Logger } from '~utils/logging';
 
 export function createGraphQLService({
   httpUri,

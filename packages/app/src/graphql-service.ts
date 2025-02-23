@@ -4,6 +4,8 @@ import { PossibleTypesMap } from '@apollo/client';
 import { LocalStorageWrapper } from 'apollo3-cache-persist';
 import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
+import { createLogger } from '~utils/logging';
+
 import generatedPossibleTypes from './__generated__/possible-types.json';
 import { bootstrapCache } from './bootstrap';
 import { localStorageKey, LocalStoragePrefix } from './bootstrap/utils/local-storage-key';
@@ -31,7 +33,6 @@ import {
   userMutationDefinitions,
   userPolicies,
 } from './user/policies';
-import { createLogger } from '~utils/logging';
 
 const APOLLO_CACHE_VERSION = '4';
 

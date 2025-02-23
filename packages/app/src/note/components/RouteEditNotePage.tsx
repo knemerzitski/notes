@@ -1,9 +1,9 @@
 import { useNavigate, useRouter } from '@tanstack/react-router';
 import { useCallback } from 'react';
 
+import { useGetCanGoBack } from '../../router/context/get-can-go-back';
 import { OriginalLocation } from '../../routes/note';
 import { useIsMobile } from '../../theme/context/is-mobile';
-import { useGetCanGoBack } from '../../router/context/get-can-go-back';
 import { OnCloseProvider } from '../../utils/context/on-close';
 
 import { useNoteId } from '../context/note-id';
