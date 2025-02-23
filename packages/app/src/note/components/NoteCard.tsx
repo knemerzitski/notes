@@ -14,7 +14,6 @@ import { forwardRef, memo, useCallback, useMemo, useRef, useState } from 'react'
 
 import { gql } from '../../__generated__';
 import { NoteCategory } from '../../__generated__/graphql';
-import { IsDevToolsEnabled } from '../../dev/components/IsDevToolsEnabled';
 import { IsDesktop } from '../../utils/components/IsDesktop';
 import { IsLoading } from '../../utils/components/IsLoading';
 import { isElHover } from '../../utils/is-el-hover';
@@ -40,6 +39,7 @@ import { OpenedNoteUserAvatars } from './OpenedNoteUserAvatars';
 import { SyncOutdatedNote } from './SyncOutdatedNote';
 import { TitleTypography } from './TitleTypography';
 import { UserAvatarsCornerPosition } from './UserAvatarsCornerPosition';
+import { DevNoteId } from './DevNoteId';
 
 const _NoteCard_UserNoteLinkFragment = gql(`
   fragment NoteCard_UserNoteLinkFragment on UserNoteLink {
@@ -243,26 +243,12 @@ const NoteCardPaper = forwardRef<HTMLDivElement, NodeCardPaperProps>(
   }
 );
 
-function NoteId() {
-  const noteId = useNoteId();
-
-  return noteId;
-}
-
-function DevRenderNoteId() {
-  return (
-    <IsDevToolsEnabled>
-      <NoteId />
-    </IsDevToolsEnabled>
-  );
-}
-
 const MainSection = memo(function MainSection() {
   return (
     <>
       <SyncOutdatedNote />
       <DuringLoadingNoteRefreshingProgress />
-      <DevRenderNoteId />
+      <DevNoteId />
       <UserAvatarsCornerPosition>
         <OpenedNoteUserAvatars
           max={3}
