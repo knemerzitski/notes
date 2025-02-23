@@ -3,10 +3,16 @@ import { forwardRef, useEffect, useState } from 'react';
 import { Options, useDebouncedCallback } from 'use-debounce';
 import { isObjectLike } from '~utils/type-guards/is-object-like';
 
-import { SearchNoteProps, SearchNotes } from './SearchNotes';
+import { RouteSearchNotesInputProps, RouteSearchNotesInput } from './SearchNotesInput';
 
-type RouteSearchNotesDebouncedProps = Omit<SearchNoteProps, 'InputBaseProps'> & {
-  InputBaseProps?: Omit<SearchNoteProps['InputBaseProps'], 'value' | 'onInput'>;
+type RouteSearchNotesInputDebouncedProps = Omit<
+  RouteSearchNotesInputProps,
+  'InputBaseProps'
+> & {
+  InputBaseProps?: Omit<
+    RouteSearchNotesInputProps['InputBaseProps'],
+    'value' | 'onInput'
+  >;
 } & {
   /**
    * @default 500 milliseconds
@@ -25,10 +31,10 @@ function mapSearchQuery(searchText: string): string | undefined {
   return searchText;
 }
 
-export const RouteSearchNotesDebounced = forwardRef<
+export const RouteSearchNotesInputDebounced = forwardRef<
   HTMLDivElement,
-  RouteSearchNotesDebouncedProps
->(function RouteSearchNotesDebounced({ wait = 500, options, ...restProps }, ref) {
+  RouteSearchNotesInputDebouncedProps
+>(function RouteSearchNotesInputDebounced({ wait = 500, options, ...restProps }, ref) {
   const navigate = useNavigate();
   const router = useRouter();
 
@@ -97,7 +103,7 @@ export const RouteSearchNotesDebounced = forwardRef<
   }
 
   return (
-    <SearchNotes
+    <RouteSearchNotesInput
       {...restProps}
       InputBaseProps={{
         value,
