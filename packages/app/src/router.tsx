@@ -3,7 +3,7 @@ import { createRouter } from '@tanstack/react-router';
 
 import { routeTree } from './__generated__/routeTree.gen';
 import { createRouteMasks } from './route-masks';
-import { FetchedRoutes } from './utils/context/fetched-routes';
+import { FetchedRoutes } from './router/context/fetched-routes';
 
 export interface RouterContext {
   apolloClient: ApolloClient<object>;

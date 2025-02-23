@@ -4,7 +4,7 @@ import { gql } from '../__generated__';
 import { ArchiveMain } from '../note/components/ArchiveMain';
 import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
 import { IsLoadingProvider } from '../utils/context/is-loading';
-import { routeFetchPolicy } from '../utils/route-fetch-policy';
+import { routeFetchPolicy } from '../router/utils/route-fetch-policy';
 
 const RouteArchive_Query = gql(`
   query RouteArchive_Query($userBy: UserByInput!, $archive_first: NonNegativeInt, $archive_after: ObjectID) {

@@ -22,8 +22,8 @@ import { useIsMobile } from '../theme/context/is-mobile';
 import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
 import { ErrorComponent } from '../utils/components/ErrorComponent';
 import { NotFoundTypography } from '../utils/components/NotFoundTypography';
-import { RootRouteModuleProvider } from '../utils/components/RootRouteModuleProvider';
-import { routeFetchPolicy } from '../utils/route-fetch-policy';
+import { RootRoute } from '../root-route';
+import { routeFetchPolicy } from '../router/utils/route-fetch-policy';
 
 const RouteRoot_Query = gql(`
   query RouteRoot_Query($userBy: UserByInput!, $noteBy: NoteByInput!) {
@@ -106,7 +106,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function Modules({ children }: { children: ReactNode }) {
-  return <RootRouteModuleProvider>{children}</RootRouteModuleProvider>;
+  return <RootRoute>{children}</RootRoute>;
 }
 
 function Root() {

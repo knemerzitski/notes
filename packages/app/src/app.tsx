@@ -6,7 +6,7 @@ import { AppThemeModuleProvider } from './theme/components/AppThemeModuleProvide
 import { AppThirdPartyModuleProvider } from './third-party/components/AppThirdPartyModuleProvider';
 import { AppUserModuleProvider } from './user/components/AppUserModuleProvider';
 import { AppFallbackRestoringCache } from './utils/components/AppFallbackRestoringCache';
-import { AppRoutesModuleProvider } from './utils/components/AppRoutesModuleProvider';
+import { AppRouterModuleProvider } from './router/components/AppRouterModuleProvider';
 import { AppUtilsModuleProvider } from './utils/components/AppUtilsModuleProvider';
 
 export function App() {
@@ -19,7 +19,7 @@ export function App() {
               <AppUserModuleProvider>
                 <AppNoteModuleProvider>
                   <AppDndModuleProvider>
-                    <AppRoutesModuleProvider />
+                    <AppRouterModuleProvider />
                   </AppDndModuleProvider>
                 </AppNoteModuleProvider>
               </AppUserModuleProvider>

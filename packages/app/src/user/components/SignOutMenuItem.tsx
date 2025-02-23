@@ -3,7 +3,7 @@ import { MenuItem } from '@mui/material';
 
 import { gql } from '../../__generated__';
 import { hasUserOngoingOperations } from '../../graphql/link/persist/has-user';
-import { useFetchedRoutes } from '../../utils/context/fetched-routes';
+import { useFetchedRoutes } from '../../router/context/fetched-routes';
 import { useOnClose } from '../../utils/context/on-close';
 import { useShowConfirm } from '../../utils/context/show-confirm';
 import { useIsOnline } from '../../utils/hooks/useIsOnline';

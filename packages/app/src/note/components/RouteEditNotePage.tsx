@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 
 import { OriginalLocation } from '../../routes/note';
 import { useIsMobile } from '../../theme/context/is-mobile';
-import { useGetCanGoBack } from '../../utils/context/get-can-go-back';
+import { useGetCanGoBack } from '../../router/context/get-can-go-back';
 import { OnCloseProvider } from '../../utils/context/on-close';
 
 import { useNoteId } from '../context/note-id';

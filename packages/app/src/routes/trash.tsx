@@ -4,7 +4,7 @@ import { gql } from '../__generated__';
 import { TrashMain } from '../note/components/TrashMain';
 import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
 import { IsLoadingProvider } from '../utils/context/is-loading';
-import { routeFetchPolicy } from '../utils/route-fetch-policy';
+import { routeFetchPolicy } from '../router/utils/route-fetch-policy';
 
 const RouteTrash_Query = gql(`
   query RouteTrash_Query($userBy: UserByInput!, $trash_first: NonNegativeInt, $trash_after: ObjectID) {

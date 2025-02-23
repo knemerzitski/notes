@@ -6,7 +6,7 @@ import { SearchMain } from '../note/components/SearchMain';
 import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
 import { IsLoadingProvider } from '../utils/context/is-loading';
 import { useLogger } from '../utils/context/logger';
-import { routeFetchPolicy } from '../utils/route-fetch-policy';
+import { routeFetchPolicy } from '../router/utils/route-fetch-policy';
 
 const RouteSearch_Query = gql(`
   query RouteSearch_Query($userBy: UserByInput!, $searchText: String!, $first: NonNegativeInt, $after: String) {
