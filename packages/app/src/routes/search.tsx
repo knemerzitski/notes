@@ -19,10 +19,8 @@ const RouteSearch_Query = gql(`
 `);
 
 const searchSchema = type({
-  // TODO rename to text
-  q: optional(string()),
-  // TODO rename to offline
-  l: optional(boolean()),
+  text: optional(string()),
+  offline: optional(boolean()),
 });
 
 export const Route = createFileRoute('/_root_layout/search')({
@@ -31,10 +29,9 @@ export const Route = createFileRoute('/_root_layout/search')({
   pendingComponent: SearchPending,
   pendingMinMs: 500,
   pendingMs: 100,
-  loaderDeps: ({ search: { q, l } }) => {
+  loaderDeps: ({ search: { text } }) => {
     return {
-      q,
-      l,
+      text,
     };
   },
   loader: async (ctx) => {
@@ -48,30 +45,28 @@ export const Route = createFileRoute('/_root_layout/search')({
       return;
     }
 
-    if (ctx.deps.l) {
+    if (!ctx.deps.text) {
       // Local no query api
       return;
     }
 
     const userId = getCurrentUserId(apolloClient.cache);
 
-    if (ctx.deps.q) {
-      await apolloClient
-        .query({
-          query: RouteSearch_Query,
-          variables: {
-            userBy: {
-              id: userId,
-            },
-            searchText: ctx.deps.q,
-            first: 20,
+    await apolloClient
+      .query({
+        query: RouteSearch_Query,
+        variables: {
+          userBy: {
+            id: userId,
           },
-          fetchPolicy,
-        })
-        .then(() => {
-          fetchedRoutes.add(routeId);
-        });
-    }
+          searchText: ctx.deps.text,
+          first: 20,
+        },
+        fetchPolicy,
+      })
+      .then(() => {
+        fetchedRoutes.add(routeId);
+      });
   },
 });
 
@@ -87,8 +82,8 @@ function Search() {
   const { searchText, offline } = Route.useSearch({
     select(state) {
       return {
-        searchText: state.q,
-        offline: state.l,
+        searchText: state.text,
+        offline: state.offline,
       };
     },
   });
@@ -100,15 +95,15 @@ function SearchPending() {
   const logger = useLogger('route.SearchPending');
   logger?.debug('render');
 
-  const searchQuery = Route.useSearch({
+  const searchText = Route.useSearch({
     select(state) {
-      return state.q;
+      return state.text;
     },
   });
 
   return (
     <IsLoadingProvider isLoading={true}>
-      <SearchMain searchText={searchQuery} />
+      <SearchMain searchText={searchText} />
     </IsLoadingProvider>
   );
 }

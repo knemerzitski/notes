@@ -21,7 +21,7 @@ export function DefaultSearchNotesConnectionGrid(
       offline?: boolean;
     }
 ) {
-  const searchLocally = props.offline ?? false;
+  const searchOffline = props.offline ?? false;
 
   const navigate = useNavigate();
   const isLocalOnlyUser = useIsLocalOnlyUser();
@@ -35,7 +35,7 @@ export function DefaultSearchNotesConnectionGrid(
       to: '/search',
       search: (prev) => ({
         ...prev,
-        l: !searchLocally ? true : undefined,
+        offline: !searchOffline ? true : undefined,
       }),
     });
   }
@@ -45,16 +45,16 @@ export function DefaultSearchNotesConnectionGrid(
       {canSearchOnline && (
         <SwitchStack direction="row" alignContent="flex-end" width="100%">
           <Typography>
-            {searchLocally ? 'Searching offline' : 'Searching online'}
+            {searchOffline ? 'Searching offline' : 'Searching online'}
           </Typography>
           <Switch
-            aria-label={searchLocally ? 'search local notes' : 'search online notes'}
-            checked={!searchLocally}
+            aria-label={searchOffline ? 'search offline notes' : 'search online notes'}
+            checked={!searchOffline}
             onChange={handleToggleSearch}
           />
         </SwitchStack>
       )}
-      {searchLocally ? (
+      {searchOffline ? (
         <SearchLocalNotes {...props} />
       ) : (
         <SearchNotesConnectionGrid {...props} />
