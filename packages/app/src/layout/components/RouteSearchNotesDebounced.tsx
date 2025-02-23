@@ -18,11 +18,11 @@ type RouteSearchNotesDebouncedProps = Omit<SearchNoteProps, 'InputBaseProps'> & 
 /**
  * Modify search query before it's sent to location
  */
-function mapSearchQuery(searchQuery: string): string | undefined {
-  searchQuery = searchQuery.trim();
-  searchQuery = searchQuery.toLowerCase();
+function mapSearchQuery(searchText: string): string | undefined {
+  searchText = searchText.trim();
+  searchText = searchText.toLowerCase();
 
-  return searchQuery;
+  return searchText;
 }
 
 export const RouteSearchNotesDebounced = forwardRef<
@@ -35,18 +35,18 @@ export const RouteSearchNotesDebounced = forwardRef<
   const [overrideValue, setOverrideValue] = useState<string | null>(null);
 
   // Cannot use hook useSearch since search field can be visible in other routes
-  const [searchQuery, setSearchQuery] = useState<string | null>(null);
+  const [searchText, setSearchText] = useState<string | null>(null);
 
   useEffect(() => {
     function processLocation(location: ParsedLocation) {
       if (
         location.pathname === '/search' &&
         isObjectLike(location.search) &&
-        typeof location.search.q === 'string'
+        typeof location.search.text === 'string'
       ) {
-        setSearchQuery(location.search.q);
+        setSearchText(location.search.text);
       } else {
-        setSearchQuery(null);
+        setSearchText(null);
       }
     }
 
@@ -57,27 +57,27 @@ export const RouteSearchNotesDebounced = forwardRef<
     });
   }, [router]);
 
-  const navigateDebounced = useDebouncedCallback<(newSearchQuery: string) => void>(
-    (newSearchQuery) => {
-      newSearchQuery = mapSearchQuery(newSearchQuery) ?? newSearchQuery;
+  const navigateDebounced = useDebouncedCallback<(newSearchText: string) => void>(
+    (newSearchText) => {
+      newSearchText = mapSearchQuery(newSearchText) ?? newSearchText;
 
       void navigate({
         to: '/search',
         search: (prev) => ({
           ...prev,
-          q: newSearchQuery,
+          text: newSearchText,
         }),
       }).then(() => {
         // Clear override if it matches search query
         // Otherwise navigating back will not update search input
-        setOverrideValue((prev) => (prev === newSearchQuery ? null : prev));
+        setOverrideValue((prev) => (prev === newSearchText ? null : prev));
       });
     },
     wait,
     options
   );
 
-  const value = overrideValue ?? searchQuery ?? '';
+  const value = overrideValue ?? searchText ?? '';
 
   function handleInput(e: React.FormEvent<HTMLDivElement>) {
     if (!(e.target instanceof HTMLInputElement)) {
