@@ -10,9 +10,9 @@ import { NoteIdsProvider } from '../context/note-ids';
 
 import { NoteCard } from './NoteCard';
 import { NotesCardGrid } from './NotesCardGrid';
-
-import { SearchResultIconText } from './SearchResultIconText';
 import Fuse from 'fuse.js';
+import { SearchStartTypingIconText } from './SearchStartTypingIconText';
+import { SearchNoMatchIconText } from './SearchNoMatchIconText';
 
 const SearchLocalNotes_Query = gql(`
   query SearchLocalNotes_Query($userBy: UserByInput!) {
@@ -100,7 +100,6 @@ export function SearchLocalNotes({
   }, [fuse, searchText, logger]);
 
   if (error) {
-    // TODO reuse
     return (
       <Alert severity="error" elevation={0}>
         {error.message}
@@ -110,20 +109,18 @@ export function SearchLocalNotes({
 
   if (searchText === '') {
     logger?.debug('startTyping');
-    // TODO reuse
     return (
       <NoListComponent>
-        <SearchResultIconText text="Start typing to search notes" />
+        <SearchStartTypingIconText />
       </NoListComponent>
     );
   }
 
   if (noteIds.length === 0) {
-    // TODO reuse
     logger?.debug('noMatch');
     return (
       <NoListComponent>
-        <SearchResultIconText text={'No matching notes'} />
+        <SearchNoMatchIconText />
       </NoListComponent>
     );
   }

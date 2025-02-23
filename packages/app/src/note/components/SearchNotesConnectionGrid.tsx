@@ -26,9 +26,10 @@ import { NoteCard } from './NoteCard';
 import { NotesCardGrid } from './NotesCardGrid';
 
 import { NotesConnectionGrid_UserNoteLinkConnectionFragment } from './NotesConnectionGrid';
-import { SearchResultIconText } from './SearchResultIconText';
 import { Logger } from '~utils/logging';
 import { DevClearNotesSearchButton } from './DevClearNotesSearchButton';
+import { SearchStartTypingIconText } from './SearchStartTypingIconText';
+import { SearchNoMatchIconText } from './SearchNoMatchIconText';
 
 const SearchNotesConnectionGrid_Query = gql(`
   query SearchNotesConnectionGrid_Query($userBy: UserByInput!, $searchText: String!, $first: NonNegativeInt, $after: String) {
@@ -285,17 +286,15 @@ export function SearchNotesConnectionGrid({
 
   if (searchText == null || searchText === '') {
     logger?.debug('startTyping');
-    // TODO reuse component
     return (
       <NoListComponent>
-        <SearchResultIconText text="Start typing to search notes" />
+        <SearchStartTypingIconText />
       </NoListComponent>
     );
   }
 
   if (isParentLoading) {
     logger?.debug('parentLoading');
-    // TODO reuse component
     return (
       <NoListComponent>
         <CenterCircularProgress />
@@ -305,10 +304,9 @@ export function SearchNotesConnectionGrid({
 
   if (!noteIds || noteIds.length === 0) {
     logger?.debug('noMatch');
-    // TODO reuse component
     return (
       <NoListComponent>
-        <SearchResultIconText text={'No matching notes'} />
+        <SearchNoMatchIconText />
       </NoListComponent>
     );
   }
