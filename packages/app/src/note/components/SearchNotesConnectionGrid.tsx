@@ -313,19 +313,24 @@ export function SearchNotesConnectionGrid({
 
   return (
     <NoteIdsProvider noteIds={noteIds}>
-      {/* TODO keep stying outside this component */}
-      <RootBoxStyled>
-        <DevClearNotesSearchButton searchText={searchText} />
-        <NotesCardGrid
-          loadingCount={loadingCount}
-          noteCard={
-            <IntersectOnceNoteCard
-              onIntersectingOnce={handleIntersectingNoteId}
-              provideResetIntersecting={provideResetIntersectingNoteId}
-            />
-          }
-        />
-      </RootBoxStyled>
+      <DevClearNotesSearchButton
+        searchText={searchText}
+        sx={{
+          mb: 2,
+          ml: 'auto',
+          display: 'block',
+          alignSelf: 'center',
+        }}
+      />
+      <NotesCardGrid
+        loadingCount={loadingCount}
+        noteCard={
+          <IntersectOnceNoteCard
+            onIntersectingOnce={handleIntersectingNoteId}
+            provideResetIntersecting={provideResetIntersectingNoteId}
+          />
+        }
+      />
     </NoteIdsProvider>
   );
 }
@@ -458,11 +463,3 @@ function CenterCircularProgress() {
 const BoxCenter = styled(Box)(css`
   justify-self: center;
 `);
-
-const RootBoxStyled = styled(Box)(
-  ({ theme }) => css`
-    display: flex;
-    flex-flow: column nowrap;
-    gap: ${theme.spacing(3)};
-  `
-);
