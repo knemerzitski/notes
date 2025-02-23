@@ -1,6 +1,5 @@
 import { useApolloClient, useQuery } from '@apollo/client';
-import BugReportIcon from '@mui/icons-material/BugReport';
-import { Alert, Box, Button, css, styled } from '@mui/material';
+import { Alert, Box, css, styled } from '@mui/material';
 import {
   forwardRef,
   memo,
@@ -12,13 +11,12 @@ import {
   useState,
 } from 'react';
 
-import { getFragmentData, gql, makeFragmentData } from '../../__generated__';
+import { getFragmentData, gql } from '../../__generated__';
 import {
   Note,
   NoteCategory,
   NotesConnectionGridQueryQuery,
 } from '../../__generated__/graphql';
-import { IsDevToolsEnabled } from '../../dev/components/IsDevToolsEnabled';
 import { useUserId } from '../../user/context/user-id';
 import { useLogger } from '../../utils/context/logger';
 import { useIsOnline } from '../../utils/hooks/useIsOnline';
@@ -35,6 +33,7 @@ import { SortableNotesContext } from './SortableNotesContext';
 import { useIsLoading } from '../../utils/context/is-loading';
 import { Logger } from '~utils/logging';
 import { EMPTY_ARRAY } from '~utils/array/empty';
+import { DevClearNotesConnectionCategoryButton } from './DevClearNotesConnectionCategoryButton';
 
 export const NotesConnectionGrid_UserNoteLinkConnectionFragment = gql(`
   fragment NotesConnectionGrid_UserNoteLinkConnectionFragment on UserNoteLinkConnection {
@@ -361,7 +360,7 @@ export function NotesConnectionGrid({
   const maybeSortableNotesGrid = (
     // TODO keep stying outside this component
     <RootBoxStyled>
-      <DevClearListButton category={category} />
+      <DevClearNotesConnectionCategoryButton category={category} />
       <NotesCardGrid
         loadingCount={isOnline ? loadingCount : 0}
         loadingNoteIds={isOnline ? loadingNoteIds : EMPTY_ARRAY}
@@ -496,68 +495,6 @@ function getLoadingInfo({
     loadingCount: 0,
     loadingIds: EMPTY_ARRAY,
   };
-}
-
-function DevClearListButton(props: Parameters<typeof ClearListButton>[0]) {
-  return (
-    <IsDevToolsEnabled>
-      <ClearListButton {...props} />
-    </IsDevToolsEnabled>
-  );
-}
-
-function ClearListButton({ category }: { category: NoteCategory }) {
-  const client = useApolloClient();
-  const userId = useUserId();
-
-  function handleClearList() {
-    client.cache.writeQuery({
-      query: NotesConnectionGrid_Query,
-      overwrite: true,
-      variables: {
-        userBy: {
-          id: userId,
-        },
-        category,
-      },
-      data: {
-        __typename: 'Query',
-        signedInUser: {
-          __typename: 'User',
-          id: userId,
-          noteLinkConnection: {
-            __typename: 'UserNoteLinkConnection',
-            ...makeFragmentData(
-              {
-                __typename: 'UserNoteLinkConnection',
-                edges: [],
-                pageInfo: {
-                  __typename: 'PageInfo',
-                  hasNextPage: false,
-                },
-              },
-              NotesConnectionGrid_UserNoteLinkConnectionFragment
-            ),
-          },
-        },
-      },
-    });
-  }
-
-  return (
-    <Button
-      color="warning"
-      onClick={handleClearList}
-      variant="contained"
-      size="small"
-      sx={{
-        alignSelf: 'flex-end',
-      }}
-    >
-      <BugReportIcon fontSize="small" />
-      Dev Clear list
-    </Button>
-  );
 }
 
 const IntersectOnceNoteCard = memo(
