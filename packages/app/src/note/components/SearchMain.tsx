@@ -11,21 +11,11 @@ const _SearchMain_UserFragment = gql(`
   }
 `);
 
-export function SearchMain({
-  searchText = '',
-  offline = false,
-}: {
-  searchText?: string;
-  offline?: boolean;
-}) {
+export function SearchMain() {
   return (
     <FullWidthCenterMain>
       <FullWidthCenterRow>
-        <DefaultSearchNotesConnectionGrid
-          searchText={searchText}
-          offline={offline}
-          NoListComponent={NoListResultsTopSpacing}
-        />
+        <DefaultSearchNotesConnectionGrid NoListComponent={NoListResultsTopSpacing} />
       </FullWidthCenterRow>
     </FullWidthCenterMain>
   );
