@@ -1,8 +1,9 @@
 import { gql, useApolloClient } from '@apollo/client';
-import { Button } from '@mui/material';
+import { Box, Button, ButtonProps, css, styled } from '@mui/material';
 import { NoteCategory } from '../../__generated__/graphql';
 import { useUserId } from '../../user/context/user-id';
 import BugReportIcon from '@mui/icons-material/BugReport';
+import { forwardRef } from 'react';
 
 const ClearNotesConnectionCategoryButton_Query = gql(`
   query ClearNotesConnectionCategoryButton_Query($userBy: UserByInput!, $category: NoteCategory) {
@@ -20,11 +21,13 @@ const ClearNotesConnectionCategoryButton_Query = gql(`
   }
 `);
 
-export function ClearNotesConnectionCategoryButton({
-  category,
-}: {
-  category: NoteCategory;
-}) {
+
+export const ClearNotesConnectionCategoryButton = forwardRef<
+  HTMLButtonElement,
+  ButtonProps & {
+    category: NoteCategory;
+  }
+>(function ClearNotesConnectionCategoryButton({ category, ...restProps }, ref) {
   const client = useApolloClient();
   const userId = useUserId();
 
@@ -58,16 +61,21 @@ export function ClearNotesConnectionCategoryButton({
 
   return (
     <Button
+      ref={ref}
       color="warning"
-      onClick={handleClearList}
       variant="contained"
       size="small"
-      sx={{
-        alignSelf: 'flex-end',
-      }}
+      {...restProps}
+      onClick={handleClearList}
     >
-      <BugReportIcon fontSize="small" />
-      Dev Clear list
+      <BoxStyled>
+        <BugReportIcon fontSize="small" />
+        Dev Clear list
+      </BoxStyled>
     </Button>
   );
-}
+});
+
+const BoxStyled = styled(Box)(css`
+  display: flex;
+`);

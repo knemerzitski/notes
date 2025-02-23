@@ -1,7 +1,8 @@
 import { gql, useApolloClient } from '@apollo/client';
-import { Button } from '@mui/material';
+import { Box, Button, ButtonProps, css, styled } from '@mui/material';
 import { useUserId } from '../../user/context/user-id';
 import BugReportIcon from '@mui/icons-material/BugReport';
+import { forwardRef } from 'react';
 
 const ClearNotesSearchButton_Query = gql(`
   query ClearNotesSearchButton_Query($userBy: UserByInput!, $searchText: String!) {
@@ -19,7 +20,12 @@ const ClearNotesSearchButton_Query = gql(`
   }
 `);
 
-export function ClearNotesSearchButton({ searchText }: { searchText: string }) {
+export const ClearNotesSearchButton = forwardRef<
+  HTMLButtonElement,
+  ButtonProps & {
+    searchText: string;
+  }
+>(function ClearNotesSearchButton({ searchText, ...restProps }, ref) {
   const client = useApolloClient();
   const userId = useUserId();
 
@@ -53,16 +59,21 @@ export function ClearNotesSearchButton({ searchText }: { searchText: string }) {
 
   return (
     <Button
+      ref={ref}
       color="warning"
-      onClick={handleClearList}
       variant="contained"
       size="small"
-      sx={{
-        alignSelf: 'flex-end',
-      }}
+      {...restProps}
+      onClick={handleClearList}
     >
-      <BugReportIcon fontSize="small" />
-      Dev Clear list
+      <BoxStyled>
+        <BugReportIcon fontSize="small" />
+        Dev Clear list
+      </BoxStyled>
     </Button>
   );
-}
+});
+
+const BoxStyled = styled(Box)(css`
+  display: flex;
+`);

@@ -1,5 +1,5 @@
 import { useApolloClient, useQuery } from '@apollo/client';
-import { Alert, Box, css, styled } from '@mui/material';
+import { Alert } from '@mui/material';
 import {
   forwardRef,
   memo,
@@ -359,8 +359,16 @@ export function NotesConnectionGrid({
 
   const maybeSortableNotesGrid = (
     // TODO keep stying outside this component
-    <RootBoxStyled>
-      <DevClearNotesConnectionCategoryButton category={category} />
+    <>
+      <DevClearNotesConnectionCategoryButton
+        category={category}
+        sx={{
+          mb: 2,
+          ml: 'auto',
+          display: 'block',
+          alignSelf: 'center',
+        }}
+      />
       <NotesCardGrid
         loadingCount={isOnline ? loadingCount : 0}
         loadingNoteIds={isOnline ? loadingNoteIds : EMPTY_ARRAY}
@@ -372,7 +380,7 @@ export function NotesConnectionGrid({
           />
         }
       />
-    </RootBoxStyled>
+    </>
   );
 
   const maybeSortableElement = isSortableCategory ? (
@@ -526,12 +534,4 @@ const IntersectOnceNoteCard = memo(
 
     return <NoteCardComponent ref={ref} />;
   })
-);
-
-const RootBoxStyled = styled(Box)(
-  ({ theme }) => css`
-    display: flex;
-    flex-flow: column nowrap;
-    gap: ${theme.spacing(3)};
-  `
 );
