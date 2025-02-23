@@ -1,6 +1,5 @@
-import { useApolloClient, useQuery } from '@apollo/client';
-import BugReportIcon from '@mui/icons-material/BugReport';
-import { Alert, Box, Button, CircularProgress, css, styled } from '@mui/material';
+import { useQuery } from '@apollo/client';
+import { Alert, Box, CircularProgress, css, styled } from '@mui/material';
 import {
   ComponentType,
   forwardRef,
@@ -13,9 +12,8 @@ import {
   useState,
 } from 'react';
 
-import { getFragmentData, gql, makeFragmentData } from '../../__generated__';
+import { getFragmentData, gql } from '../../__generated__';
 import { Note, SearchNotesConnectionGridQueryQuery } from '../../__generated__/graphql';
-import { IsDevToolsEnabled } from '../../dev/components/IsDevToolsEnabled';
 import { useUserId } from '../../user/context/user-id';
 import { PassChildren } from '../../utils/components/PassChildren';
 import { useIsLoading } from '../../utils/context/is-loading';
@@ -30,6 +28,7 @@ import { NotesCardGrid } from './NotesCardGrid';
 import { NotesConnectionGrid_UserNoteLinkConnectionFragment } from './NotesConnectionGrid';
 import { SearchResultIconText } from './SearchResultIconText';
 import { Logger } from '~utils/logging';
+import { DevClearNotesSearchButton } from './DevClearNotesSearchButton';
 
 const SearchNotesConnectionGrid_Query = gql(`
   query SearchNotesConnectionGrid_Query($userBy: UserByInput!, $searchText: String!, $first: NonNegativeInt, $after: String) {
@@ -318,7 +317,7 @@ export function SearchNotesConnectionGrid({
     <NoteIdsProvider noteIds={noteIds}>
       {/* TODO keep stying outside this component */}
       <RootBoxStyled>
-        <DevClearListButton searchText={searchText} />
+        <DevClearNotesSearchButton searchText={searchText} />
         <NotesCardGrid
           loadingCount={loadingCount}
           noteCard={
@@ -420,68 +419,6 @@ function getLoadingCount({
   }
 
   return 0;
-}
-
-function DevClearListButton(props: Parameters<typeof ClearListButton>[0]) {
-  return (
-    <IsDevToolsEnabled>
-      <ClearListButton {...props} />
-    </IsDevToolsEnabled>
-  );
-}
-
-function ClearListButton({ searchText }: { searchText: string }) {
-  const client = useApolloClient();
-  const userId = useUserId();
-
-  function handleClearList() {
-    client.cache.writeQuery({
-      query: SearchNotesConnectionGrid_Query,
-      overwrite: true,
-      variables: {
-        userBy: {
-          id: userId,
-        },
-        searchText,
-      },
-      data: {
-        __typename: 'Query',
-        signedInUser: {
-          __typename: 'User',
-          id: userId,
-          noteLinkSearchConnection: {
-            __typename: 'UserNoteLinkConnection',
-            ...makeFragmentData(
-              {
-                __typename: 'UserNoteLinkConnection',
-                edges: [],
-                pageInfo: {
-                  __typename: 'PageInfo',
-                  hasNextPage: false,
-                },
-              },
-              NotesConnectionGrid_UserNoteLinkConnectionFragment
-            ),
-          },
-        },
-      },
-    });
-  }
-
-  return (
-    <Button
-      color="warning"
-      onClick={handleClearList}
-      variant="contained"
-      size="small"
-      sx={{
-        alignSelf: 'flex-end',
-      }}
-    >
-      <BugReportIcon fontSize="small" />
-      Dev Clear list
-    </Button>
-  );
 }
 
 const IntersectOnceNoteCard = memo(
