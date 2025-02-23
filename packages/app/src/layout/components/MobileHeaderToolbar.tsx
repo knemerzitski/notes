@@ -4,13 +4,13 @@ import { TopRightUsersInfoPopoverButton } from '../../user/components/TopRightUs
 
 import { AppStatusIcon } from '../../utils/components/AppStatusIcon';
 
-import { RouteSearchNotesDebounced } from './RouteSearchNotesDebounced';
+import { RouteSearchNotesInputDebounced } from './RouteSearchNotesDebounced';
 import { ToggleAppDrawerButton } from './ToggleAppDrawerButton';
 
 export function MobileHeaderToolbar() {
   return (
     <ToolbarStyled disableGutters={true}>
-      <RouteSearchNotesDebounced
+      <RouteSearchNotesInputDebounced
         searchIconDisabled={true}
         slots={{
           prefix: (

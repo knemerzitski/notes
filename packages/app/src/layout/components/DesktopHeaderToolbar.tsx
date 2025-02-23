@@ -5,7 +5,7 @@ import { AppStatusRefreshButton } from '../../utils/components/AppStatusRefreshB
 import { IconButtonsRow } from '../../utils/components/IconButtonsRow';
 import { SettingsButton } from '../../utils/components/SettingsButton';
 
-import { RouteSearchNotesDebounced } from './RouteSearchNotesDebounced';
+import { RouteSearchNotesInputDebounced } from './RouteSearchNotesDebounced';
 import { ToggleAppDrawerButton } from './ToggleAppDrawerButton';
 
 export function DesktopHeaderToolbar() {
@@ -27,7 +27,7 @@ export function DesktopHeaderToolbar() {
   );
 }
 
-const RouteSearchNotesStyled = styled(RouteSearchNotesDebounced)(
+const RouteSearchNotesStyled = styled(RouteSearchNotesInputDebounced)(
   ({ theme }) => css`
     margin-left: ${theme.spacing(0.5)};
   `

@@ -14,9 +14,9 @@ import {
 import { ReactNode } from '@tanstack/react-router';
 import { forwardRef } from 'react';
 
-export type SearchNoteProps = Parameters<typeof SearchNotes>[0];
+export type RouteSearchNotesInputProps = Parameters<typeof RouteSearchNotesInput>[0];
 
-export const SearchNotes = forwardRef<
+export const RouteSearchNotesInput = forwardRef<
   HTMLDivElement,
   PaperProps & {
     InputBaseProps?: InputBaseProps;
@@ -31,7 +31,7 @@ export const SearchNotes = forwardRef<
       suffix?: ReactNode;
     };
   }
->(function SearchNotes(
+>(function SearchNotesInput(
   { InputBaseProps, IconButtonProps, slots, searchIconDisabled, ...restProps },
   ref
 ) {
