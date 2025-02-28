@@ -2,9 +2,10 @@ import { ReactNode } from '@tanstack/react-router';
 import { createLogger } from '~utils/logging';
 
 import { LoggerProvider } from '../context/logger';
-
-const logger = createLogger('react');
+import { useState } from 'react';
 
 export function DefaultLoggerProvider({ children }: { children: ReactNode }) {
+  const [logger] = useState(() => createLogger('react'));
+
   return <LoggerProvider logger={logger}>{children}</LoggerProvider>;
 }
