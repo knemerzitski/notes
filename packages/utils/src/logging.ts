@@ -2,6 +2,7 @@ import debug, { Debugger } from 'debug';
 
 import { isObjectLike } from './type-guards/is-object-like';
 import { isPlainObject } from './type-guards/is-plain-object';
+import { memoize1Plain } from './memoize1';
 
 export enum LogLevel {
   DEBUG = 'DEBUG',
@@ -185,8 +186,9 @@ function _prepLoggerWithNamespace(
     error: lazyCreate(LogLevel.ERROR, {
       log: CONSOLE.error,
     }),
-    extend: (namespace) =>
-      _prepLoggerWithNamespace(extendNamespace(mainNamespace, namespace, ctx.ctx), ctx),
+    extend: memoize1Plain((namespace) =>
+      _prepLoggerWithNamespace(extendNamespace(mainNamespace, namespace, ctx.ctx), ctx)
+    ),
     namespace: mainNamespace,
   };
 }
