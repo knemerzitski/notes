@@ -1,5 +1,6 @@
 import { FormEventHandler, KeyboardEventHandler, useCallback, useRef } from 'react';
 import { SelectionRange } from '~collab/client/selection-range';
+
 import { useLogger } from '../../utils/context/logger';
 
 export interface SelectionEvent {

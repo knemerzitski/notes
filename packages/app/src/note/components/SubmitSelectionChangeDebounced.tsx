@@ -4,24 +4,27 @@ import { RefObject, useCallback, useEffect, useRef } from 'react';
 import { Options, useDebouncedCallback } from 'use-debounce';
 import { SelectionRange } from '~collab/client/selection-range';
 
+import { RevisionChangeset } from '~collab/records/record';
+
+import { EMPTY_ARRAY } from '~utils/array/empty';
+
 import { gql } from '../../__generated__';
 import { useStatsLink } from '../../graphql/context/stats-link';
 import { useUserId } from '../../user/context/user-id';
+import { useLogger } from '../../utils/context/logger';
 import { useNoteId } from '../context/note-id';
 import { useCollabService } from '../hooks/useCollabService';
 import { useNoteTextFieldEditor } from '../hooks/useNoteTextFieldEditor';
 import { useUpdateOpenNoteSelectionRange } from '../hooks/useUpdateOpenNoteSelectionRange';
 import { getUserNoteLinkId } from '../utils/id';
 
-import { openNoteSubscriptionOperationName } from './OpenNoteSubscription';
-import { useLogger } from '../../utils/context/logger';
 import {
   editorSelectionToHeadTextSelection,
   getUserHeadTextSelection,
   RevisionSelectionRange,
 } from '../utils/selection';
-import { RevisionChangeset } from '~collab/records/record';
-import { EMPTY_ARRAY } from '~utils/array/empty';
+
+import { openNoteSubscriptionOperationName } from './OpenNoteSubscription';
 
 const SubmitSelectionChangeDebounced_UserNoteLinkFragment = gql(`
   fragment SubmitSelectionChangeDebounced_UserNoteLinkFragment on UserNoteLink {

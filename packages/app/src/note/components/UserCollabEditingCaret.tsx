@@ -6,18 +6,19 @@ import { SelectionRange } from '~collab/client/selection-range';
 
 import { gql } from '../../__generated__';
 import { useUserId } from '../../user/context/user-id';
+import { useLogger } from '../../utils/context/logger';
 import { stringToColor } from '../../utils/string-to-color';
 import { useNoteId } from '../context/note-id';
 import { useCollabService } from '../hooks/useCollabService';
 import { useNoteTextFieldEditor } from '../hooks/useNoteTextFieldEditor';
 import { getUserNoteLinkId } from '../utils/id';
 
-import { InputCaret } from './InputCaret';
 import {
   getUserHeadTextSelection,
   headTextSelectionToEditorSelection,
 } from '../utils/selection';
-import { useLogger } from '../../utils/context/logger';
+
+import { InputCaret } from './InputCaret';
 
 const UserCollabEditingCaret_UserNoteLinkFragment = gql(`
   fragment UserCollabEditingCaret_UserNoteLinkFragment on UserNoteLink {

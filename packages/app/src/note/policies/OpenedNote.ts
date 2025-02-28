@@ -1,4 +1,5 @@
 import { Reference, StoreObject } from '@apollo/client';
+
 import { DateTime } from '../../graphql/scalars/DateTime';
 
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';

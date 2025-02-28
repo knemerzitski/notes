@@ -1,8 +1,8 @@
 import debug, { Debugger } from 'debug';
 
+import { memoize1Plain } from './memoize1';
 import { isObjectLike } from './type-guards/is-object-like';
 import { isPlainObject } from './type-guards/is-plain-object';
-import { memoize1Plain } from './memoize1';
 
 export enum LogLevel {
   DEBUG = 'DEBUG',

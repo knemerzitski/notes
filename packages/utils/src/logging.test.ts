@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { createLogger } from './logging';
 
 describe('extend', () => {

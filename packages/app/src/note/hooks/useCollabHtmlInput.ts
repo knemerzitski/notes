@@ -4,12 +4,13 @@ import { Options, useDebouncedCallback } from 'use-debounce';
 import { CollabService } from '~collab/client/collab-service';
 import { SelectionRange } from '~collab/client/selection-range';
 
+import { RevisionChangeset } from '~collab/records/record';
+import { EMPTY_ARRAY } from '~utils/array/empty';
+
+import { useLogger } from '../../utils/context/logger';
 import { NoteTextFieldEditor } from '../external-state/note';
 
 import { useHtmlInput } from './useHtmlInput';
-import { useLogger } from '../../utils/context/logger';
-import { EMPTY_ARRAY } from '~utils/array/empty';
-import { RevisionChangeset } from '~collab/records/record';
 
 interface UseHTMLInputCollabEditorOptions {
   merge?: {
