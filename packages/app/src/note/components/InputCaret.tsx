@@ -95,9 +95,13 @@ export const InputCaret = forwardRef<
 
     update();
 
+    const resizeObserver = new ResizeObserver(update);
+
     inputEl.addEventListener('input', update);
+    resizeObserver.observe(inputEl);
     return () => {
       inputEl.removeEventListener('input', update);
+      resizeObserver.disconnect();
     };
   }, [inputRef, selection]);
 
