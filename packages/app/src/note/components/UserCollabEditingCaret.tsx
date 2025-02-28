@@ -6,17 +6,18 @@ import { SelectionRange } from '~collab/client/selection-range';
 
 import { gql } from '../../__generated__';
 import { useUserId } from '../../user/context/user-id';
-import { useLogger } from '../../utils/context/logger';
 import { stringToColor } from '../../utils/string-to-color';
 import { useNoteId } from '../context/note-id';
 import { useCollabService } from '../hooks/useCollabService';
 import { useNoteTextFieldEditor } from '../hooks/useNoteTextFieldEditor';
-import { getCollabTextRecords } from '../models/record-connection/get';
 import { getUserNoteLinkId } from '../utils/id';
 
-
 import { InputCaret } from './InputCaret';
-
+import {
+  getUserHeadTextSelection,
+  headTextSelectionToEditorSelection,
+} from '../utils/selection';
+import { useLogger } from '../../utils/context/logger';
 
 const UserCollabEditingCaret_UserNoteLinkFragment = gql(`
   fragment UserCollabEditingCaret_UserNoteLinkFragment on UserNoteLink {
@@ -49,7 +50,7 @@ export function UserCollabEditingCaret({ inputRef }: { inputRef: RefObject<unkno
   const [_rerenderCounter, setRerenderCounter] = useState(0);
   const resetBlinkRef = useRef(-1);
 
-  const prevCollabEditingRef = useRef<{
+  const prevRevisionSelectionRef = useRef<{
     revision: number;
     selection: SelectionRange;
   }>();
@@ -71,107 +72,83 @@ export function UserCollabEditingCaret({ inputRef }: { inputRef: RefObject<unkno
   });
 
   if (!complete) {
-    return;
+    logger?.debug('notComplete');
+    return null;
   }
 
   // No openNote field
   const openNote = userNoteLink.open;
   if (!openNote) {
+    logger?.debug('notOpen');
     return null;
   }
 
   // User is not present
   if (!openNote.active) {
+    logger?.debug('notActive');
     return null;
   }
 
   // Not editing field
   if (!openNote.collabTextEditing) {
+    logger?.debug('noField:collabTextEditing');
     return null;
   }
 
-  // Caret position and revision
-  const { latestSelection: probablyPastSelection, revision: selectionRevision } =
-    openNote.collabTextEditing;
-
-  // Name for color
-  const displayName = userNoteLink.user.profile.displayName;
-
-  const revisionOffset = service.headRevision - selectionRevision;
-
-  if (revisionOffset < 0) {
-    // Selection is in the future, cannot transform
+  const headTextSelection = getUserHeadTextSelection(noteId, userId, {
+    cache: client.cache,
+    service,
+    logger,
+  });
+  if (!headTextSelection) {
+    logger?.debug('getUserHeadTextSelection:noHeadTextSelection');
+    // Selection for user is not known
+    return null;
+  }
+  if (headTextSelection.revision !== service.headRevision) {
+    logger?.debug('headTextSelection:invalidRevision');
     return null;
   }
 
-  // Get required records for transformation from cache
-  const transformChangesets = [];
-  if (revisionOffset >= 1) {
-    const needRecordsCount = revisionOffset;
-    const records = getCollabTextRecords(
-      noteId,
-      {
-        after: selectionRevision,
-        first: needRecordsCount,
-      },
-      client
-    );
-    if (!records) {
-      // Missing records, can't transform selection to match current view
-      return null;
+  const editorSelection = headTextSelectionToEditorSelection(
+    headTextSelection.selection,
+    {
+      service,
+      editor,
     }
-    transformChangesets.push(...records.map((record) => record.change.changeset));
-  }
-
-  if (revisionOffset >= 0) {
-    transformChangesets.push(service.client.submitted, service.client.local);
-  }
-
-  // Transform selection to match local view
-  const initialSelection = SelectionRange.from(probablyPastSelection);
-
-  // When selection moves, reset blink start animation
-  const selectionChanged =
-    prevCollabEditingRef.current &&
-    (prevCollabEditingRef.current.revision !== selectionRevision ||
-      !SelectionRange.isEqual(initialSelection, prevCollabEditingRef.current.selection));
-  if (selectionChanged) {
-    resetBlinkRef.current += 1;
-  }
-  prevCollabEditingRef.current = {
-    revision: selectionRevision,
-    selection: initialSelection,
-  };
-
-  const currentServiceSelection = transformChangesets.reduce(
-    SelectionRange.closestRetainedPosition,
-    initialSelection
   );
-
-  if (logger) {
-    logger.info('transformToEditorSelection:before', {
-      editorValue: editor.value,
-      input: {
-        revision: selectionRevision,
-        selection: initialSelection,
-      },
-      transformChangesets: transformChangesets.map((c) => c.toString()),
-      transformedSelection: currentServiceSelection,
-    });
-  }
-
-  // Transform selection to match editor
-  const editorSelection = editor.transformToEditorSelection(currentServiceSelection);
-
   if (!editorSelection) {
+    logger?.debug('noEditorSelection', headTextSelection);
     // Selection is not inside editor
     return null;
   }
 
+  // When selection moves, reset blink start animation
+  const latestRevision = openNote.collabTextEditing.revision;
+  const latestSelection = SelectionRange.from(openNote.collabTextEditing.latestSelection);
+  const selectionChanged =
+    prevRevisionSelectionRef.current &&
+    (prevRevisionSelectionRef.current.revision !== latestRevision ||
+      !SelectionRange.isEqual(
+        latestSelection,
+        prevRevisionSelectionRef.current.selection
+      ));
+  if (selectionChanged) {
+    resetBlinkRef.current += 1;
+  }
+  prevRevisionSelectionRef.current = {
+    revision: latestRevision,
+    selection: latestSelection,
+  };
+
+  // Name for color
+  const displayName = userNoteLink.user.profile.displayName;
+
   return (
     <InputCaret
-      aria-label={`caret-${displayName}`}
-      data-selection={editorSelection.end}
+      aria-label="other user caret"
+      data-user={displayName}
+      data-index={editorSelection.end}
       caret={{
         inputRef,
         selection: editorSelection.end,

@@ -268,6 +268,7 @@ const MainSection = memo(function MainSection() {
           }}
         />
       </UserAvatarsCornerPosition>
+      {/* TODO overflow title size, limit card size.. */}
       <TitleTypography />
       <ContentTypography
         bottomGradient={{

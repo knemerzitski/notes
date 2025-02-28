@@ -1,5 +1,6 @@
 import { FormEventHandler, KeyboardEventHandler, useCallback, useRef } from 'react';
 import { SelectionRange } from '~collab/client/selection-range';
+import { useLogger } from '../../utils/context/logger';
 
 export interface SelectionEvent {
   /**
@@ -30,6 +31,8 @@ export function useHtmlInput({
   onUndo?: () => void;
   onRedo?: () => void;
 }) {
+  const logger = useLogger('useHtmlInput');
+
   const selectionRef = useRef<SelectionRange>({
     start: 0,
     end: 0,
@@ -50,59 +53,139 @@ export function useHtmlInput({
   const onRedoRef = useRef(onRedo);
   onRedoRef.current = onRedo;
 
-  const handleSelect: FormEventHandler<HTMLInputElement> = useCallback((e) => {
-    if (
-      !(e.target instanceof HTMLTextAreaElement) &&
-      !(e.target instanceof HTMLInputElement)
-    ) {
-      return;
-    }
+  const handleSelect: FormEventHandler<HTMLInputElement> = useCallback(
+    (e) => {
+      if (
+        !(e.target instanceof HTMLTextAreaElement) &&
+        !(e.target instanceof HTMLInputElement)
+      ) {
+        return;
+      }
 
-    const start = e.target.selectionStart ?? 0;
-    selectionRef.current = {
-      start: start,
-      end: e.target.selectionEnd ?? start,
-    };
-
-    onSelectRef.current?.(selectionRef.current);
-  }, []);
-
-  const handleInput: FormEventHandler<HTMLDivElement> = useCallback((e) => {
-    if (
-      (!(e.target instanceof HTMLTextAreaElement) &&
-        !(e.target instanceof HTMLInputElement)) ||
-      !(e.nativeEvent instanceof InputEvent)
-    ) {
-      return;
-    }
-
-    const beforeSelection = selectionRef.current;
-    const type = e.nativeEvent.inputType;
-
-    if (/insert/i.exec(type) != null || e.nativeEvent.data) {
-      e.preventDefault();
       const start = e.target.selectionStart ?? 0;
-      const value = e.target.value;
-      onInsertRef.current?.({
-        beforeSelection,
-        insertValue: value.substring(beforeSelection.start, start),
-      });
-    } else if (
-      /delete/i.exec(type) != null ||
-      (e.nativeEvent instanceof KeyboardEvent && e.nativeEvent.code === 'Backspace')
-    ) {
-      e.preventDefault();
-      onDeleteRef.current?.({
-        beforeSelection,
-      });
-    } else if (/undo/i.exec(type)) {
-      e.preventDefault();
-      onUndoRef.current?.();
-    } else if (/redo/i.exec(type)) {
-      e.preventDefault();
-      onRedoRef.current?.();
-    }
-  }, []);
+      selectionRef.current = {
+        start: start,
+        end: e.target.selectionEnd ?? start,
+      };
+
+      logger?.debug('handleSelect', selectionRef.current);
+
+      onSelectRef.current?.(selectionRef.current);
+    },
+    [logger]
+  );
+
+  const handleBeforeInput: FormEventHandler<HTMLDivElement> = useCallback(
+    (e) => {
+      if (
+        (!(e.target instanceof HTMLTextAreaElement) &&
+          !(e.target instanceof HTMLInputElement)) ||
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        !(e.nativeEvent instanceof TextEvent)
+      ) {
+        return;
+      }
+
+      const start = e.target.selectionStart ?? 0;
+      selectionRef.current = {
+        start: start,
+        end: e.target.selectionEnd ?? start,
+      };
+
+      logger?.debug('handleBeforeInput', selectionRef.current);
+    },
+    [logger]
+  );
+
+  const handleInput: FormEventHandler<HTMLDivElement> = useCallback(
+    (e) => {
+      if (
+        (!(e.target instanceof HTMLTextAreaElement) &&
+          !(e.target instanceof HTMLInputElement)) ||
+        !(e.nativeEvent instanceof InputEvent)
+      ) {
+        return;
+      }
+
+      const previousEventSelection = selectionRef.current;
+      const type = e.nativeEvent.inputType;
+
+      if (/insert/i.exec(type) != null || e.nativeEvent.data) {
+        e.preventDefault();
+        const start = e.target.selectionStart ?? 0;
+        const value = e.target.value;
+        const insertValueFromSelection = value.substring(
+          previousEventSelection.start,
+          start
+        );
+
+        const debugData = {
+          previousEventSelection,
+          type,
+          insertValueFromSelection,
+          start,
+          value,
+          e,
+          nativeEvent: e.nativeEvent,
+          nativeEventData: e.nativeEvent.data,
+        };
+
+        let insertValue: string;
+        let beforeSelection: SelectionRange;
+        if (
+          e.nativeEvent.data != null &&
+          e.nativeEvent.data !== insertValueFromSelection
+        ) {
+          // TODO remove error logging
+          logger?.error(
+            'handleInput:insert nativeEvent.data does not match insertValue',
+            debugData
+          );
+
+          insertValue = e.nativeEvent.data;
+          const beforeStart = start - insertValue.length;
+          beforeSelection = {
+            start: beforeStart,
+            end: beforeStart,
+          };
+        } else {
+          logger?.debug('handleInput:insert', debugData);
+          insertValue = insertValueFromSelection;
+          beforeSelection = previousEventSelection;
+        }
+
+        onInsertRef.current?.({
+          beforeSelection,
+          insertValue,
+        });
+      } else if (
+        /delete/i.exec(type) != null ||
+        (e.nativeEvent instanceof KeyboardEvent && e.nativeEvent.code === 'Backspace')
+      ) {
+        logger?.debug('handleInput:delete', {
+          beforeSelection: previousEventSelection,
+          type,
+          e,
+          nativeEvent: e.nativeEvent,
+        });
+        e.preventDefault();
+        onDeleteRef.current?.({
+          beforeSelection: previousEventSelection,
+        });
+      } else if (/undo/i.exec(type)) {
+        logger?.debug('handleInput:undo');
+        e.preventDefault();
+        onUndoRef.current?.();
+      } else if (/redo/i.exec(type)) {
+        logger?.debug('handleInput:redo');
+        e.preventDefault();
+        onRedoRef.current?.();
+      } else {
+        logger?.error('handleInput:unknown', e);
+      }
+    },
+    [logger]
+  );
 
   const handleKeyDown: KeyboardEventHandler<HTMLInputElement | HTMLTextAreaElement> =
     useCallback((e) => {
@@ -122,8 +205,9 @@ export function useHtmlInput({
     }, []);
 
   return {
-    handleSelect,
-    handleInput,
-    handleKeyDown,
+    onSelect: handleSelect,
+    onBeforeInput: handleBeforeInput,
+    onInput: handleInput,
+    onKeyDown: handleKeyDown,
   };
 }

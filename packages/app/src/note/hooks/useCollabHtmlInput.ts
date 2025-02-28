@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Options, useDebouncedCallback } from 'use-debounce';
 
 import { CollabService } from '~collab/client/collab-service';
@@ -7,6 +7,9 @@ import { SelectionRange } from '~collab/client/selection-range';
 import { NoteTextFieldEditor } from '../external-state/note';
 
 import { useHtmlInput } from './useHtmlInput';
+import { useLogger } from '../../utils/context/logger';
+import { EMPTY_ARRAY } from '~utils/array/empty';
+import { RevisionChangeset } from '~collab/records/record';
 
 interface UseHTMLInputCollabEditorOptions {
   merge?: {
@@ -26,92 +29,133 @@ export function useCollabHtmlInput(
   service: Pick<CollabService, 'undo' | 'redo' | 'headRevision'>,
   options?: UseHTMLInputCollabEditorOptions
 ) {
+  const logger = useLogger('useCollabHtmlInput');
+
+  // Counter only for rerendering purposes
+  const [renderCounter, setRenderCounter] = useState(0);
+
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [value, setValue] = useState(editor.value);
-  const [selection, setSelection] = useState<SelectionRange>({
-    start: 0,
-    end: 0,
-  });
+  const forceSelectionRef = useRef<SelectionRange | null>(null);
+  const latestTypingSelectionRef = useRef<SelectionRange | null>(null);
 
-  const latestSelectionRef = useRef<SelectionRange | null>(null);
-  latestSelectionRef.current = null;
+  const externalChangesSinceLastRenderRef =
+    useRef<readonly RevisionChangeset[]>(EMPTY_ARRAY);
+  externalChangesSinceLastRenderRef.current = EMPTY_ARRAY;
 
-  const isForceSelectionChangeRef = useRef<boolean>(false);
+  const value = editor.value;
 
-  function updateLatestSelection(newSelection: SelectionRange) {
-    latestSelectionRef.current = newSelection;
-    setSelection((prev) => {
-      if (SelectionRange.isEqual(prev, newSelection)) {
-        return prev;
-      }
+  const adjustSelectionToExternalChanges = useCallback(
+    (selection: SelectionRange | undefined) =>
+      selection
+        ? externalChangesSinceLastRenderRef.current.reduce(
+            (sel, { changeset }) =>
+              SelectionRange.closestRetainedPosition(sel, changeset),
+            selection
+          )
+        : undefined,
+    []
+  );
 
-      isForceSelectionChangeRef.current = true;
-      return newSelection;
-    });
-  }
-
-  // Reset state when editor changes
-  useEffect(() => {
-    setValue(editor.value);
-    setSelection({
-      start: 0,
-      end: 0,
-    });
-    latestSelectionRef.current = null;
-  }, [editor]);
-
-  // Keep selection in place after external change
-  useEffect(() => {
-    function getLatestSelection() {
-      return latestSelectionRef.current ?? getInputSelection();
-    }
-
-    function getInputSelection() {
-      const input = inputRef.current;
-      if (input?.selectionStart != null && input.selectionEnd != null) {
-        return {
-          start: input.selectionStart,
-          end: input.selectionEnd,
-        };
-      }
+  const getInputSelection = useCallback(() => {
+    if (!inputRef.current) {
       return;
     }
 
-    return editor.eventBus.on('handledExternalChanges', (changes) => {
-      if (changes.length === 0) return;
+    const start = inputRef.current.selectionStart ?? 0;
 
-      const latestSelection = getLatestSelection();
-      if (!latestSelection) return;
+    return {
+      start,
+      end: inputRef.current.selectionEnd ?? start,
+    };
+  }, []);
 
-      let newSelection = latestSelection;
-      for (const { changeset } of changes) {
-        newSelection = SelectionRange.closestRetainedPosition(newSelection, changeset);
+  const forceSetSelection = useCallback(
+    (selection: SelectionRange | undefined) => {
+      if (!selection) {
+        return;
       }
 
-      updateLatestSelection(newSelection);
-    });
+      if (
+        forceSelectionRef.current &&
+        SelectionRange.isEqual(forceSelectionRef.current, selection)
+      ) {
+        return;
+      }
+      logger?.debug('forceSetSelection', {
+        selection,
+      });
+
+      forceSelectionRef.current = selection;
+      setRenderCounter((prev) => prev + 1);
+    },
+    [logger]
+  );
+
+  // Reset state when editor changes
+  useEffect(() => {
+    setRenderCounter(0);
+    forceSelectionRef.current = null;
+    externalChangesSinceLastRenderRef.current = EMPTY_ARRAY;
   }, [editor]);
+
+  // Adjust selection to external changes
+  useEffect(() => {
+    return editor.eventBus.on('handledExternalChanges', (changes) => {
+      externalChangesSinceLastRenderRef.current = [
+        ...externalChangesSinceLastRenderRef.current,
+        ...changes,
+      ];
+      logger?.debug(
+        'eventBus.handledExternalChanges',
+        externalChangesSinceLastRenderRef.current
+      );
+
+      forceSetSelection(adjustSelectionToExternalChanges(getInputSelection()));
+    });
+  }, [
+    editor,
+    logger,
+    forceSetSelection,
+    getInputSelection,
+    adjustSelectionToExternalChanges,
+  ]);
 
   // Update value after view changed
   useEffect(() => {
     return editor.eventBus.on('valueChanged', (value) => {
-      setValue(value);
+      logger?.debug('eventBus.valueChanged', JSON.stringify(value));
+
+      setRenderCounter((prev) => prev + 1);
     });
-  }, [editor]);
+  }, [editor, logger]);
 
   // User typed/deleted something or undo/redo
   useEffect(() => {
     return editor.eventBus.on('selectionChanged', (selection) => {
-      updateLatestSelection(selection);
+      logger?.debug('eventBus.selectionChanged', selection.start);
+      latestTypingSelectionRef.current = selection;
+      forceSetSelection(selection);
     });
-  }, [editor]);
+  }, [editor, logger, forceSetSelection]);
 
+  // Apply forceSelection on input
   useLayoutEffect(() => {
     const input = inputRef.current;
-    if (input == null) return;
-    input.setSelectionRange(selection.start, selection.end);
-  }, [selection, value]);
+    if (input == null || forceSelectionRef.current == null) {
+      return;
+    }
+
+    logger?.debug('setSelectionRange', {
+      selection: forceSelectionRef.current,
+      inputValue: input.value,
+    });
+    input.setSelectionRange(
+      forceSelectionRef.current.start,
+      forceSelectionRef.current.end
+    );
+    forceSelectionRef.current = null;
+  }, [renderCounter, logger]);
 
   // Merge changes made in a short duration
   const isMergeChangesRef = useRef(false);
@@ -135,32 +179,73 @@ export function useCollabHtmlInput(
 
   const htmlInput = useHtmlInput({
     onInsert({ beforeSelection, insertValue }) {
-      // TODO is this selection in correct spot, or it needs adjustment?
-      editor.insert(insertValue, latestSelectionRef.current ?? beforeSelection, {
+      const adjustedBeforeSelection =
+        adjustSelectionToExternalChanges(beforeSelection) ?? beforeSelection;
+
+      logger?.debug('onInsert', {
+        insertValue,
+        beforeSelection,
+        adjustedBeforeSelection,
+        value: inputRef.current?.value,
+        externalChanges: externalChangesSinceLastRenderRef.current.map(
+          ({ changeset, revision }) => `${revision}@${changeset.toString()}`
+        ),
+      });
+
+      editor.insert(insertValue, adjustedBeforeSelection, {
         merge: isMergeChangesRef.current,
       });
       startDebouncedMerge();
     },
     onDelete({ beforeSelection }) {
-      editor.delete(1, latestSelectionRef.current ?? beforeSelection, {
+      const adjustedBeforeSelection =
+        adjustSelectionToExternalChanges(beforeSelection) ?? beforeSelection;
+
+      logger?.debug('onDelete', {
+        beforeSelection,
+        adjustedBeforeSelection,
+        value: inputRef.current?.value,
+        externalChanges: externalChangesSinceLastRenderRef.current.map(
+          ({ changeset, revision }) => `${revision}@${changeset.toString()}`
+        ),
+      });
+
+      editor.delete(1, adjustedBeforeSelection, {
         merge: isMergeChangesRef.current,
       });
       startDebouncedMerge();
     },
-    onSelect(newSelection) {
-      if (
-        isForceSelectionChangeRef.current &&
-        SelectionRange.isEqual(selection, newSelection)
-      ) {
-        isForceSelectionChangeRef.current = false;
-      } else {
-        // User changed selection without modifying value
-        editor.sharedEventBus.emit('selectionChanged', {
-          source: 'immutable',
-          editor,
-          selection: newSelection,
-        });
+    onSelect(selection) {
+      if (latestTypingSelectionRef.current) {
+        const latestTypingSelection = latestTypingSelectionRef.current;
+        latestTypingSelectionRef.current = null;
+
+        if (SelectionRange.isEqual(latestTypingSelection, selection)) {
+          logger?.debug('onSelect:ignoreFromTyping');
+          return;
+        }
       }
+
+      let newSelection: SelectionRange;
+      if (externalChangesSinceLastRenderRef.current.length > 0) {
+        // If have external changes, must adjust selection accordingly
+        newSelection = adjustSelectionToExternalChanges(selection) ?? selection;
+        logger?.debug('onSelect:adjusted', newSelection.start);
+        forceSetSelection(newSelection);
+      } else {
+        newSelection = selection;
+        logger?.debug('onSelect:default', newSelection.start);
+        // Clear force set selection since user is overwriting it
+        forceSelectionRef.current = null;
+      }
+
+      //!! new record should update selection too
+
+      editor.sharedEventBus.emit('selectionChanged', {
+        source: 'immutable',
+        editor,
+        selection: newSelection,
+      });
     },
     onUndo() {
       service.undo();
@@ -171,10 +256,8 @@ export function useCollabHtmlInput(
   });
 
   return {
+    ...htmlInput,
     inputRef,
     value,
-    onSelect: htmlInput.handleSelect,
-    onInput: htmlInput.handleInput,
-    onKeyDown: htmlInput.handleKeyDown,
   };
 }

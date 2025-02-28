@@ -1,5 +1,5 @@
 import { useApolloClient } from '@apollo/client';
-import { useEffect, useRef } from 'react';
+import { RefObject, useCallback, useEffect, useRef } from 'react';
 
 import { Options, useDebouncedCallback } from 'use-debounce';
 import { SelectionRange } from '~collab/client/selection-range';
@@ -14,6 +14,14 @@ import { useUpdateOpenNoteSelectionRange } from '../hooks/useUpdateOpenNoteSelec
 import { getUserNoteLinkId } from '../utils/id';
 
 import { openNoteSubscriptionOperationName } from './OpenNoteSubscription';
+import { useLogger } from '../../utils/context/logger';
+import {
+  editorSelectionToHeadTextSelection,
+  getUserHeadTextSelection,
+  RevisionSelectionRange,
+} from '../utils/selection';
+import { RevisionChangeset } from '~collab/records/record';
+import { EMPTY_ARRAY } from '~utils/array/empty';
 
 const SubmitSelectionChangeDebounced_UserNoteLinkFragment = gql(`
   fragment SubmitSelectionChangeDebounced_UserNoteLinkFragment on UserNoteLink {
@@ -25,15 +33,19 @@ const SubmitSelectionChangeDebounced_UserNoteLinkFragment = gql(`
 `);
 
 export function SubmitSelectionChangeDebounced({
+  inputRef,
   wait = 500,
   options,
 }: {
+  inputRef: RefObject<HTMLInputElement>;
   /**
    * @default 500 milliseconds
    */
   wait?: number;
   options?: Options;
 }) {
+  const logger = useLogger('SubmitSelectionChangeDebounced');
+
   const noteId = useNoteId();
   const service = useCollabService();
   const editor = useNoteTextFieldEditor();
@@ -44,80 +56,154 @@ export function SubmitSelectionChangeDebounced({
   const statsLink = useStatsLink();
 
   const isSubmittingRef = useRef(false);
+  const hasRequestedSubmitRef = useRef(false);
 
-  const editorSelectionRef = useRef<SelectionRange | null>(null);
-  const submittedEditorSelectionRef = useRef<SelectionRange | null>(null);
+  const externalChangesSinceLastRenderRef =
+    useRef<readonly RevisionChangeset[]>(EMPTY_ARRAY);
+  externalChangesSinceLastRenderRef.current = EMPTY_ARRAY;
+
+  useEffect(() => {
+    return editor.eventBus.on('handledExternalChanges', (changes) => {
+      externalChangesSinceLastRenderRef.current = [
+        ...externalChangesSinceLastRenderRef.current,
+        ...changes,
+      ];
+    });
+  }, [editor]);
+
+  const adjustSelectionToExternalChanges = useCallback(
+    (selection: SelectionRange) =>
+      externalChangesSinceLastRenderRef.current.reduce(
+        (sel, { changeset }) => SelectionRange.closestRetainedPosition(sel, changeset),
+        selection
+      ),
+    []
+  );
 
   const debouncedSubmitSelection = useDebouncedCallback(
     () => {
-      if (!editorSelectionRef.current) {
+      if (isSubmittingRef.current) {
+        logger?.debug('alreadySubmitting');
+        hasRequestedSubmitRef.current = true;
         return;
       }
 
-      const submitServiceSelection = editor.transformToServiceSelection(
-        editorSelectionRef.current
-      );
-
-      function canSubmitSelection() {
-        if (isSubmittingRef.current || !editorSelectionRef.current) {
-          return false;
+      function getInputSelection(): SelectionRange | undefined {
+        const input = inputRef.current;
+        if (!input) {
+          logger?.debug('noInputElement');
+          return;
         }
 
-        // Check against last submitted value
-        const alreadySubmittedThisValue =
-          submittedEditorSelectionRef.current &&
-          SelectionRange.isEqual(
-            submittedEditorSelectionRef.current,
-            editorSelectionRef.current
-          );
-        if (alreadySubmittedThisValue) {
-          return false;
+        if (document.activeElement !== input) {
+          logger?.debug('notFocused');
+          return;
         }
 
-        // Ensure user is subscribed to `openNoteEvents`
-        const isSubscribed =
-          statsLink.getUserOngoing(userId).byName(openNoteSubscriptionOperationName) > 0;
-        // TODO wait for a bit to sub to be ready, opennotesub will respond, so in cache will have open value..
-        if (!isSubscribed) {
-          // Will retry when subscribed
-          return false;
+        if (input.selectionStart == null) {
+          logger?.debug('selectionNull');
+          return;
         }
 
-        // Ensure note is open in cache
-        const userNoteLink = client.cache.readFragment({
-          fragment: SubmitSelectionChangeDebounced_UserNoteLinkFragment,
-          id: client.cache.identify({
-            __typename: 'UserNoteLink',
-            id: getUserNoteLinkId(noteId, userId),
-          }),
+        return SelectionRange.from({
+          start: input.selectionStart,
+          end: input.selectionEnd,
         });
-        if (!userNoteLink?.open?.active) {
-          // Note is not subscribed or user is not present
-          return false;
-        }
-
-        return true;
       }
 
-      if (!canSubmitSelection()) {
+      const inputSelection = getInputSelection();
+      // No selection to submit
+      if (!inputSelection) {
+        logger?.debug('noSelection');
+        return;
+      }
+
+      const adjustedInputSelection = adjustSelectionToExternalChanges(inputSelection);
+
+      if (!SelectionRange.isEqual(inputSelection, adjustedInputSelection)) {
+        logger?.debug('adjustedInputSelection', {
+          inputSelection,
+          adjustedInputSelection,
+        });
+      }
+
+      const inputAsHeadTextSelection = editorSelectionToHeadTextSelection(
+        adjustedInputSelection,
+        {
+          service,
+          editor,
+        }
+      );
+
+      const latestHeadTextSelection = getUserHeadTextSelection(noteId, userId, {
+        cache: client.cache,
+        service,
+      });
+      if (latestHeadTextSelection != null) {
+        if (
+          RevisionSelectionRange.isEqual(
+            inputAsHeadTextSelection,
+            latestHeadTextSelection
+          )
+        ) {
+          logger?.debug('duplicateSelection');
+          return;
+        }
+      }
+
+      // Ensure user is subscribed to `openNoteEvents`
+      const isSubscribed =
+        statsLink.getUserOngoing(userId).byName(openNoteSubscriptionOperationName) > 0;
+      // TODO wait for a bit for sub to be ready, opennotesub will respond, so in cache will have open value..
+      if (!isSubscribed) {
+        // Will retry when subscribed
+        logger?.debug('notSubscribed');
+        return;
+      }
+
+      // Ensure note is open in cache
+      const userNoteLink = client.cache.readFragment({
+        fragment: SubmitSelectionChangeDebounced_UserNoteLinkFragment,
+        id: client.cache.identify({
+          __typename: 'UserNoteLink',
+          id: getUserNoteLinkId(noteId, userId),
+        }),
+      });
+      if (!userNoteLink?.open?.active) {
+        // Note is not subscribed or user is not present
+        logger?.debug('notActive');
         return;
       }
 
       isSubmittingRef.current = true;
-      submittedEditorSelectionRef.current = editorSelectionRef.current;
+
+      logger?.info('submitSelection', {
+        inputSelection,
+        adjustedInputSelection,
+        inputAsHeadTextSelection,
+        latestHeadTextSelection,
+        client: {
+          local: service.client.local.toString(),
+          submitted: service.client.submitted.toString(),
+          server: service.client.server.toString(),
+        },
+      });
 
       void updateOpenNoteSelectionRange({
         note: {
           id: noteId,
         },
-        revision: service.headRevision,
-        selectionRange: submitServiceSelection,
+        revision: inputAsHeadTextSelection.revision,
+        selectionRange: inputAsHeadTextSelection.selection,
       }).finally(() => {
         isSubmittingRef.current = false;
-        if (canSubmitSelection()) {
+        if (hasRequestedSubmitRef.current) {
+          hasRequestedSubmitRef.current = false;
           debouncedSubmitSelection();
         }
       });
+
+      return;
     },
     wait,
     options
@@ -172,36 +258,21 @@ export function SubmitSelectionChangeDebounced({
     };
   }, [client, userId, noteId, debouncedSubmitSelection]);
 
+  // Submit when selection has changed since last record submission
+  useEffect(() => {
+    return service.eventBus.on('submittedChangesAcknowledged', () => {
+      debouncedSubmitSelection();
+    });
+  }, [service, debouncedSubmitSelection, editor, logger]);
+
+  // Attempt to submit when selection is directly changed by the user, no insert/deletion of text
   useEffect(() => {
     return editor.sharedEventBus.on('selectionChanged', (event) => {
       if (event.source === 'immutable') {
-        editorSelectionRef.current = event.selection;
         debouncedSubmitSelection();
       }
     });
   }, [editor, debouncedSubmitSelection]);
 
-  useEffect(() => {
-    return editor.eventBus.on('handledExternalChanges', (changes) => {
-      if (changes.length === 0) {
-        return;
-      }
-
-      // Adjust saved selections
-      const selectionRefs = [editorSelectionRef, submittedEditorSelectionRef];
-      selectionRefs.forEach((ref) => {
-        if (!ref.current) {
-          return;
-        }
-
-        let newSelection = ref.current;
-        for (const { changeset } of changes) {
-          newSelection = SelectionRange.closestRetainedPosition(newSelection, changeset);
-        }
-
-        ref.current = newSelection;
-      });
-    });
-  }, [editor, service]);
   return null;
 }

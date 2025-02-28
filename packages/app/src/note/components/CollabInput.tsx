@@ -12,6 +12,7 @@ import { useCollabHtmlInput } from '../hooks/useCollabHtmlInput';
 
 import { CollabInputUsersEditingCarets } from './CollabInputUsersEditingCarets';
 import { SubmitSelectionChangeDebounced } from './SubmitSelectionChangeDebounced';
+import { LoggerProvider, useLogger } from '../../utils/context/logger';
 
 const CollabInput_Query = gql(`
   query CollabInput_Query($noteBy: NoteByInput!, $fieldName: NoteTextFieldName!) {
@@ -36,6 +37,8 @@ export function CollabInput<TInputProps>({
   Parameters<typeof NoteDefined<TInputProps>>[0],
   'note'
 >) {
+  const logger = useLogger('CollabInput');
+
   const noteId = useNoteId();
 
   const { data } = useQuery(CollabInput_Query, {
@@ -54,7 +57,9 @@ export function CollabInput<TInputProps>({
 
   return (
     <NoteTextFieldNameProvider textFieldName={fieldName}>
-      <NoteDefined<TInputProps> {...restProps} note={data.note} />
+      <LoggerProvider logger={logger?.extend(fieldName)}>
+        <NoteDefined<TInputProps> {...restProps} note={data.note} />
+      </LoggerProvider>
     </NoteTextFieldNameProvider>
   );
 }
@@ -77,19 +82,18 @@ function NoteDefined<TInputProps>({
   note: CollabInputQueryQuery['note'];
 }) {
   const collabHtmlInput = useCollabHtmlInput(note.textField.editor, note.collabService);
-  const inputRef = collabHtmlInput.inputRef;
 
   const InputSlot = slots.input;
   const RootSlot = slots.root ?? Box;
 
   return (
     <>
-      <SubmitSelectionChangeDebounced />
+      <SubmitSelectionChangeDebounced inputRef={collabHtmlInput.inputRef} />
       <RootSlot {...slotProps?.root} position="relative">
         {/* @ts-expect-error Safe to spread props in normal use */}
         <InputSlot {...slotProps?.input} {...collabHtmlInput} />
         {/* Uses inputRef to render caret in correct position */}
-        <CollabInputUsersEditingCarets inputRef={inputRef} />
+        <CollabInputUsersEditingCarets inputRef={collabHtmlInput.inputRef} />
       </RootSlot>
     </>
   );
