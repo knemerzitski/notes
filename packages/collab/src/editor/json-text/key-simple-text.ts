@@ -120,6 +120,7 @@ export class KeySimpleText implements SimpleText {
       if (err instanceof SyntaxError) {
         // Parsing viewText failed most likely due to slicing newline character in between \\n (2 chars)
         // In that case log error and return no selection.
+        // TODO fix this bug
         console.error(err, {
           viewText: this.service.viewText,
           slice: this.service.viewText.slice(this.view.jsonValueOffset, selection.start),

@@ -61,6 +61,13 @@ function insertText(value: string) {
   });
 }
 
+function setSelection(selection: number) {
+  return cy.get('input').then((input) => {
+    const el = input.get(0);
+    el.setSelectionRange(selection, selection);
+  });
+}
+
 // function deleteTextCount(count: number) {
 //   cy.get('input').type('{backspace}'.repeat(count));
 // }
@@ -76,65 +83,137 @@ function inputShouldHaveValue(value: string) {
 }
 
 describe('selection adjustment with external change', () => {
-  it('caret after change', () => {
+  beforeEach(() => {
     insertText('s'); // ">"
     inputShouldHaveSelection(1);
     inputShouldHaveValue('s');
 
-    // add 5, then
-
     cy.then(() => {
       submitLocalChanges(); // "s>"
-      addExternalChange(Changeset.parseValue([[0, 11], 'e', [12, 25]])); // "es>"
-      addExternalChange(Changeset.parseValue([[0, 11], 'e2', [12, 26]])); // "e2es>"
-      inputShouldHaveSelection(4);
-      inputShouldHaveValue('e2es');
-      //se2e
     });
   });
 
-  it('caret after change, while typing', () => {
-    insertText('s'); // ">"
-    inputShouldHaveSelection(1);
-    inputShouldHaveValue('s');
+  it('insert', () => {
+    insertText('b'); // "sb>"
 
-    cy.then(() => {
-      submitLocalChanges(); // "s>"
-
-      addExternalChange(Changeset.parseValue([[0, 11], 'e', [12, 25]])); // "es>"
-      addExternalChange(Changeset.parseValue([[0, 11], 'e2', [12, 26]])); // "e2es>"
-      insertText('b'); // "e2esb>"
-      inputShouldHaveValue('e2esb');
-      inputShouldHaveSelection(5);
-    });
+    inputShouldHaveSelection(2);
+    inputShouldHaveValue('sb');
   });
 
-  it('caret before change', () => {
-    insertText('s'); // ">"
-    inputShouldHaveSelection(1);
-    inputShouldHaveValue('s');
+  it('externalBefore', () => {
+    addExternalChange(Changeset.parseValue([[0, 11], 'e', [12, 25]])); // "es>"
 
-    cy.then(() => {
-      submitLocalChanges(); // "s>"
-      addExternalChange(Changeset.parseValue([[0, 12], 'e', [13, 25]])); // "s>e"
-      addExternalChange(Changeset.parseValue([[0, 13], 'e2', [14, 26]])); // "s>ee2"
-      inputShouldHaveSelection(1);
-      inputShouldHaveValue('see2');
-    });
+    inputShouldHaveSelection(2);
+    inputShouldHaveValue('es');
   });
 
-  it('caret before change, while typing', () => {
-    insertText('s'); // ">"
-    inputShouldHaveSelection(1);
-    inputShouldHaveValue('s');
+  it('externalBefore, insert', () => {
+    addExternalChange(Changeset.parseValue([[0, 11], 'e', [12, 25]])); // "es>"
+    insertText('b'); // "esb>"
 
-    cy.then(() => {
-      submitLocalChanges(); // "s>"
-      addExternalChange(Changeset.parseValue([[0, 12], 'e', [13, 25]])); // "s>e"
-      addExternalChange(Changeset.parseValue([[0, 13], 'e2', [14, 26]])); // "s>ee2"
-      insertText('b'); // "sb>ee2"
-      inputShouldHaveSelection(2);
-      inputShouldHaveValue('sbee2');
+    inputShouldHaveValue('esb');
+    inputShouldHaveSelection(3);
+  });
+
+  it('externalBefore, externalBefore', () => {
+    addExternalChange(Changeset.parseValue([[0, 11], 'e', [12, 25]])); // "es>"
+    addExternalChange(Changeset.parseValue([[0, 11], 'e2', [12, 26]])); // "e2es>"
+
+    inputShouldHaveSelection(4);
+    inputShouldHaveValue('e2es');
+  });
+
+  it('externalBefore, externalBefore, insert', () => {
+    addExternalChange(Changeset.parseValue([[0, 11], 'e', [12, 25]])); // "es>"
+    addExternalChange(Changeset.parseValue([[0, 11], 'e2', [12, 26]])); // "e2es>"
+    insertText('b'); // "e2esb>"
+
+    inputShouldHaveValue('e2esb');
+    inputShouldHaveSelection(5);
+  });
+
+  it('externalBefore, externalBefore, insert, insert', () => {
+    addExternalChange(Changeset.parseValue([[0, 11], 'e', [12, 25]])); // "es>"
+    addExternalChange(Changeset.parseValue([[0, 11], 'e2', [12, 26]])); // "e2es>"
+    insertText('a'); // "e2esa>"
+    insertText('b'); // "e2esab>"
+
+    inputShouldHaveValue('e2esab');
+    inputShouldHaveSelection(6);
+  });
+
+  it('externalAfter, insert', () => {
+    addExternalChange(Changeset.parseValue([[0, 12], 'e', [13, 25]])); // "s>e"
+    insertText('b'); // "sb>e"
+
+    inputShouldHaveSelection(2);
+    inputShouldHaveValue('sbe');
+  });
+
+  it('externalAfter, externalAfter', () => {
+    addExternalChange(Changeset.parseValue([[0, 12], 'e', [13, 25]])); // "s>e"
+    addExternalChange(Changeset.parseValue([[0, 13], 'e2', [14, 26]])); // "s>ee2"
+
+    inputShouldHaveSelection(1);
+    inputShouldHaveValue('see2');
+  });
+
+  it('externalAfter, externalAfter, insert', () => {
+    addExternalChange(Changeset.parseValue([[0, 12], 'e', [13, 25]])); // "s>e"
+    addExternalChange(Changeset.parseValue([[0, 13], 'e2', [14, 26]])); // "s>ee2"
+    insertText('b'); // "sb>ee2"
+
+    inputShouldHaveSelection(2);
+    inputShouldHaveValue('sbee2');
+  });
+
+  it('externalAfter, externalAfter, insert, insert', () => {
+    addExternalChange(Changeset.parseValue([[0, 12], 'e', [13, 25]])); // "s>e"
+    addExternalChange(Changeset.parseValue([[0, 13], 'e2', [14, 26]])); // "s>ee2"
+    insertText('a'); // "sa>ee2"
+    insertText('b'); // "sab>ee2"
+
+    inputShouldHaveSelection(3);
+    inputShouldHaveValue('sabee2');
+  });
+
+  it('select', () => {
+    setSelection(0);
+
+    inputShouldHaveSelection(0);
+  });
+
+  it('externalBefore, select', () => {
+    setSelection(0).then(() => {
+      addExternalChange(Changeset.parseValue([[0, 11], 'e', [12, 25]])); // "e>s"
     });
+
+    inputShouldHaveSelection(1);
+  });
+
+  it('externalBefore, externalBefore, select', () => {
+    setSelection(0).then(() => {
+      addExternalChange(Changeset.parseValue([[0, 11], 'e', [12, 25]])); // "e>s"
+      addExternalChange(Changeset.parseValue([[0, 11], 'e2', [12, 26]])); // "e2e>s"
+    });
+
+    inputShouldHaveSelection(3);
+  });
+
+  it('externalAfter, select', () => {
+    setSelection(0).then(() => {
+      addExternalChange(Changeset.parseValue([[0, 12], 'e', [13, 25]])); // ">se"
+    });
+
+    inputShouldHaveSelection(0);
+  });
+
+  it('externalAfter, externalAfter, select', () => {
+    setSelection(0).then(() => {
+      addExternalChange(Changeset.parseValue([[0, 12], 'e', [13, 25]])); // ">se"
+      addExternalChange(Changeset.parseValue([[0, 13], 'e2', [14, 26]])); // ">see2"
+    });
+
+    inputShouldHaveSelection(0);
   });
 });
