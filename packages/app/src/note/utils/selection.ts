@@ -1,12 +1,16 @@
 import { ApolloCache } from '@apollo/client';
-import { gql } from '../../__generated__';
-import { Maybe, Note, User } from '../../__generated__/graphql';
-import { getUserNoteLinkId } from './id';
+
 import { CollabService } from '~collab/client/collab-service';
-import { getCollabTextRecords } from '../models/record-connection/get';
+
 import { SelectionRange } from '~collab/client/selection-range';
 import { SimpleText } from '~collab/types';
 import { Logger } from '~utils/logging';
+
+import { gql } from '../../__generated__';
+import { Maybe, Note, User } from '../../__generated__/graphql';
+import { getCollabTextRecords } from '../models/record-connection/get';
+
+import { getUserNoteLinkId } from './id';
 
 const GetTmp_UserNoteLinkFragment = gql(`
   fragment GetTmp_UserNoteLinkFragment on UserNoteLink {
