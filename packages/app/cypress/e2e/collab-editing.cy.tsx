@@ -249,7 +249,11 @@ it('sign in, create note, share link and collab edit with another user', () => {
   cy.get('[placeholder="Title"]').should('have.value', 'foo title');
   cy.get('[placeholder="Note"]').should('have.value', 'foo BOO content');
   // User 1 has selection after inserted " BOO"
-  cy.get('[aria-label="caret-1 User"]').should('have.data', 'selection', 7);
+  cy.get('[aria-label="other user caret"][data-user="1 User"]').should(
+    'have.data',
+    'index',
+    7
+  );
 
   // User 2 selection stays after " BOO"
   cy.get('[placeholder="Note"]').click();
