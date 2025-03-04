@@ -1,4 +1,5 @@
-import './cypress/tasks/load-env';
+// Load environment variables before anything else
+import './cypress.config.init';
 
 import { defineConfig } from 'cypress';
 
