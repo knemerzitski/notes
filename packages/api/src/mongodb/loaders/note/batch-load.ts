@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongodb';
+import { ObjectId, Document } from 'mongodb';
 import { InferRaw } from 'superstruct';
 
 import { groupBy } from '../../../../../utils/src/array/group-by';

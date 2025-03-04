@@ -1,6 +1,6 @@
 import isEqual from 'lodash.isequal';
+import { Document } from 'mongodb';
 import { Struct } from 'superstruct';
-
 
 import { isNonEmptyArray } from '../../../../utils/src/array/is-non-empty-array';
 import { isObjectLike } from '../../../../utils/src/type-guards/is-object-like';
@@ -248,13 +248,12 @@ export interface CursorArrayPaginationInput<TCursor> {
     /**
      * Aggragate expression that returns first value of array
      */
-    firstValue: Document,
-        /**
+    firstValue: Document;
+    /**
      * Aggragate expression that returns last value of array
      */
-    lastValue: Document,
-  }
-
+    lastValue: Document;
+  };
 
   defaultLimit?: number;
   maxLimit?: number;

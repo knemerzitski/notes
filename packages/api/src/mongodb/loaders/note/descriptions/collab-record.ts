@@ -1,4 +1,5 @@
 import mapObject from 'map-obj';
+import { Document } from 'mongodb';
 import { assign, Infer, InferRaw, object, pick } from 'superstruct';
 
 import { CollectionName, MongoDBCollectionsOnlyNames } from '../../../collections';
