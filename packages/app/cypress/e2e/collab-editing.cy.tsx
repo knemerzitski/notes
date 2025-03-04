@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
@@ -83,7 +84,7 @@ function requestSignIn(options: { userId: string }) {
     })
     .then((res) => {
       const userId = res.body.data.signIn.signedInUser.id as string;
-      const sessionId = res.headers['set-cookie']?.[0]?.match(/:(.+?);/)?.[1]!;
+      const sessionId = /:(.+?);/.exec(res.headers['set-cookie']![0] as string)?.[1]!;
 
       return {
         userId,
