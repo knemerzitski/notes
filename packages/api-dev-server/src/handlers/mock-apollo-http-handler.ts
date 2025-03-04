@@ -2,11 +2,11 @@ import 'source-map-support/register.js';
 import WebSocket from 'ws';
 
 import {
-  CreateApolloHttpHandlerDefaultParamsOptions,
   createApolloHttpHandlerDefaultParams,
-} from '~api/apollo-http-handler';
-import { createApolloHttpHandler } from '~lambda-graphql/apollo-http-handler';
-import { createLogger } from '~utils/logging';
+  CreateApolloHttpHandlerDefaultParamsOptions,
+} from '../../../api/src/apollo-http-handler';
+import { createApolloHttpHandler } from '../../../lambda-graphql/src/apollo-http-handler';
+import { createLogger } from '../../../utils/src/logging';
 
 import {
   createMockGraphQLParams,

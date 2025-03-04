@@ -5,7 +5,8 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import express from 'express';
 import { WebSocketServer, WebSocket } from 'ws';
-import { Logger } from '~utils/logging';
+
+import { Logger } from '../../utils/src/logging';
 
 import { apiGatewayProxyHandlerMiddleware } from './api-gateway/express-middleware-handler';
 import {

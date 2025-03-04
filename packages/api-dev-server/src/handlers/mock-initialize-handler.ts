@@ -2,10 +2,10 @@ import 'source-map-support/register.js';
 import { APIGatewayProxyWebsocketHandlerV2 } from 'aws-lambda';
 
 import {
-  createInitializeHandler,
   CreateInitializeHandlerOptions,
-} from '~api/initialize-handler';
-import { createLogger } from '~utils/logging';
+  createInitializeHandler,
+} from '../../../api/src/initialize-handler';
+import { createLogger } from '../../../utils/src/logging';
 
 import { createMockMongoDBContext } from '../parameters';
 

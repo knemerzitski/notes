@@ -1,22 +1,25 @@
 import WebSocket from 'ws';
-import { createCollectionInstances, MongoDBCollections } from '~api/mongodb/collections';
-import { createMongoDBContext } from '~api/mongodb/context';
+
+import {
+  MongoDBCollections,
+  createCollectionInstances,
+} from '../../api/src/mongodb/collections';
+import { createMongoDBContext } from '../../api/src/mongodb/context';
 import {
   createDefaultGraphQLParams,
   createDefaultSubscriptionGraphQLParams,
-} from '~api/parameters';
-import { ApiGatewayContextParams } from '~lambda-graphql/context/apigateway';
-import { DynamoDBContextParams } from '~lambda-graphql/context/dynamodb';
+} from '../../api/src/parameters';
+import { ApiGatewayContextParams } from '../../lambda-graphql/src/context/apigateway';
+import { DynamoDBContextParams } from '../../lambda-graphql/src/context/dynamodb';
 import {
   ApolloGraphQLContextParams,
   GraphQLContextParams,
-} from '~lambda-graphql/context/graphql';
-import { PingPongContextParams } from '~lambda-graphql/context/pingpong';
-import { createPingPongHandler } from '~lambda-graphql/ping-pong-handler';
-import { assertGetEnvironmentVariables } from '~utils/env';
-import { createLogger } from '~utils/logging';
-
-import { isEnvironmentVariableTruthy } from '~utils/string/is-environment-variable-truthy';
+} from '../../lambda-graphql/src/context/graphql';
+import { PingPongContextParams } from '../../lambda-graphql/src/context/pingpong';
+import { createPingPongHandler } from '../../lambda-graphql/src/ping-pong-handler';
+import { assertGetEnvironmentVariables } from '../../utils/src/env';
+import { createLogger } from '../../utils/src/logging';
+import { isEnvironmentVariableTruthy } from '../../utils/src/string/is-environment-variable-truthy';
 
 import {
   MockApiGatewayManagementApiClient,

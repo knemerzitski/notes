@@ -9,13 +9,16 @@ import {
 import { WebSocket } from 'ws';
 
 import {
-  WebSocketConnectEvent,
   WebSocketConnectHandler,
-} from '~lambda-graphql/connect-handler';
-import { WebSocketDisconnectHandler } from '~lambda-graphql/disconnect-handler';
-import { WebSocketHandler } from '~lambda-graphql/websocket-handler';
-import { isArray } from '~utils/array/is-array';
-import { Logger } from '~utils/logging';
+  WebSocketConnectEvent,
+} from '../../../lambda-graphql/src/connect-handler';
+
+import { WebSocketDisconnectHandler } from '../../../lambda-graphql/src/disconnect-handler';
+
+import { WebSocketHandler } from '../../../lambda-graphql/src/websocket-handler';
+
+import { isArray } from '../../../utils/src/array/is-array';
+import { Logger } from '../../../utils/src/logging';
 
 import fixtureWebSocketEventConnect from '../../fixtures/websocket/CONNECT.json';
 import fixtureWebSocketEventDisconnect from '../../fixtures/websocket/DISCONNECT.json';

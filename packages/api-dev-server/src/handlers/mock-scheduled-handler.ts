@@ -2,10 +2,10 @@ import 'source-map-support/register.js';
 import { APIGatewayProxyWebsocketHandlerV2 } from 'aws-lambda';
 
 import {
-  createScheduledHandler,
   CreateScheduledHandlerOptions,
-} from '~api/scheduled-handler';
-import { createLogger } from '~utils/logging';
+  createScheduledHandler,
+} from '../../../api/src/scheduled-handler';
+import { createLogger } from '../../../utils/src/logging';
 
 import { createMockMongoDBContext } from '../parameters';
 

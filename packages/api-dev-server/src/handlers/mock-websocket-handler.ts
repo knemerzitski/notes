@@ -3,11 +3,11 @@ import { APIGatewayProxyWebsocketHandlerV2 } from 'aws-lambda';
 import WebSocket from 'ws';
 
 import {
-  CreateWebSocketHandlerDefaultParamsOptions,
   createWebSocketHandlerDefaultParams,
-} from '~api/websocket-handler';
-import { createWebSocketHandler } from '~lambda-graphql/websocket-handler';
-import { createLogger } from '~utils/logging';
+  CreateWebSocketHandlerDefaultParamsOptions,
+} from '../../../api/src/websocket-handler';
+import { createWebSocketHandler } from '../../../lambda-graphql/src/websocket-handler';
+import { createLogger } from '../../../utils/src/logging';
 
 import {
   createMockApiGatewayParams,
