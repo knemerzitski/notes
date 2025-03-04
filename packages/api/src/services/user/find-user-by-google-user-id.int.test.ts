@@ -2,9 +2,9 @@
 import { faker } from '@faker-js/faker';
 import { it, expect, beforeEach } from 'vitest';
 
+import { mongoCollectionStats } from '../../__tests__/helpers/mongodb/mongo-collection-stats';
 import {
   mongoCollections,
-  mongoCollectionStats,
   resetDatabase,
 } from '../../__tests__/helpers/mongodb/mongodb';
 

@@ -21,9 +21,9 @@ import {
   expectGraphQLResponseError,
   expectGraphQLResponseData,
 } from '../../../../../__tests__/helpers/graphql/response';
+import { mongoCollectionStats } from '../../../../../__tests__/helpers/mongodb/mongo-collection-stats';
 import {
   resetDatabase,
-  mongoCollectionStats,
   mongoCollections,
   createMongoDBContext,
 } from '../../../../../__tests__/helpers/mongodb/mongodb';

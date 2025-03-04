@@ -10,9 +10,9 @@ import {
   CreateGraphQLResolversContextOptions,
 } from '../../../../../__tests__/helpers/graphql/graphql-context';
 import { expectGraphQLResponseData } from '../../../../../__tests__/helpers/graphql/response';
+import { mongoCollectionStats } from '../../../../../__tests__/helpers/mongodb/mongo-collection-stats';
 import {
   mongoCollections,
-  mongoCollectionStats,
   resetDatabase,
 } from '../../../../../__tests__/helpers/mongodb/mongodb';
 import { populateNotes } from '../../../../../__tests__/helpers/mongodb/populate/populate';
