@@ -13,8 +13,10 @@ import {
   PongMessage,
   validateMessage,
 } from 'graphql-ws';
-import { Logger } from '~utils/logging';
-import { MaybePromise } from '~utils/types';
+
+import { Logger } from '../../utils/src/logging';
+
+import { MaybePromise } from '../../utils/src/types';
 
 import {
   ApiGatewayContextParams,

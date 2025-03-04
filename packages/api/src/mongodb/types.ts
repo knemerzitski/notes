@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
-import { Changeset } from '~collab/changeset';
 
-import { PartialDeep, Primitive, ReadonlyDeep } from '~utils/types';
+import { Changeset } from '../../../collab/src/changeset';
+import { Primitive, PartialDeep, ReadonlyDeep } from '../../../utils/src/types';
 
 /**
  * This interface conforms to $arrayToObject \

@@ -1,5 +1,6 @@
 import { coerce, define, Infer, number, object, optional, union } from 'superstruct';
-import { Maybe, PartialBy } from '~utils/types';
+
+import { Maybe, PartialBy } from '../../../utils/src/types';
 
 import { Changeset } from '../changeset';
 

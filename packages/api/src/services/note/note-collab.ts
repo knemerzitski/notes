@@ -1,6 +1,6 @@
 import { Infer } from 'superstruct';
 
-import { Changeset } from '~collab/changeset';
+import { Changeset } from '../../../../collab/src/changeset';
 
 import { QueryableCollabText } from '../../mongodb/loaders/note/descriptions/collab-text';
 import { QueryableNote } from '../../mongodb/loaders/note/descriptions/note';

@@ -1,7 +1,7 @@
 import { Document } from 'mongodb';
 
-import { binarySearchIndexOf } from '~utils/array/binary-search';
-import { binarySearchConsecutiveOrderedSubset } from '~utils/ordered-set/consecutive-ordered-set';
+import { binarySearchIndexOf } from '../../../../utils/src/array/binary-search';
+import { binarySearchConsecutiveOrderedSubset } from '../../../../utils/src/ordered-set/consecutive-ordered-set';
 
 import { STRUCT_NUMBER } from '../constants';
 

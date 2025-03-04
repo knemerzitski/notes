@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { faker } from '@faker-js/faker';
-import { ReadonlyDeep } from '~utils/types';
+
+import { ReadonlyDeep } from '../../../../../../utils/src/types';
 
 import { DBNoteSchema } from '../../../../mongodb/schema/note';
 import { DBUserSchema } from '../../../../mongodb/schema/user';

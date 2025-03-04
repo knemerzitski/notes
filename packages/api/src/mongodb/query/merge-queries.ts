@@ -1,9 +1,9 @@
 import mapObject, { mapObjectSkip } from 'map-obj';
-import { getOrCreateArray } from '~utils/array/got-or-create-array';
-import { getOrCreateObject } from '~utils/object/get-or-create-object';
-import { isObjectLike } from '~utils/type-guards/is-object-like';
 
-import { PickStartsWith, OmitStartsWith, PickValue } from '~utils/types';
+import { getOrCreateArray } from '../../../../utils/src/array/got-or-create-array';
+import { getOrCreateObject } from '../../../../utils/src/object/get-or-create-object';
+import { isObjectLike } from '../../../../utils/src/type-guards/is-object-like';
+import { PickValue, OmitStartsWith, PickStartsWith } from '../../../../utils/src/types';
 
 import { MongoPrimitive } from '../types';
 

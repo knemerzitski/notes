@@ -6,10 +6,9 @@ import { faker } from '@faker-js/faker';
 import mitt from 'mitt';
 import { beforeEach, expect, it } from 'vitest';
 
-import { CustomHeaderName } from '~api-app-shared/custom-headers';
-
-import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
-import { createDeferred } from '~utils/deferred';
+import { CustomHeaderName } from '../../../../api-app-shared/src/custom-headers';
+import { GraphQLErrorCode } from '../../../../api-app-shared/src/graphql/error-codes';
+import { createDeferred } from '../../../../utils/src/deferred';
 
 import {
   SignedInUserEventsInput,

@@ -1,5 +1,6 @@
 import { GraphQLError } from 'graphql/index.js';
-import { isObjectLike } from '~utils/type-guards/is-object-like';
+
+import { isObjectLike } from '../../../../../utils/src/type-guards/is-object-like';
 
 export class ErrorMapper {
   private readonly map = new Map();

@@ -5,9 +5,9 @@ import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 import { beforeEach, it, expect, describe, beforeAll } from 'vitest';
 
-import { Changeset } from '~collab/changeset';
-import { RevisionChangeset } from '~collab/records/record';
-import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
+import { Changeset } from '../../../../../../../collab/src/changeset';
+import { RevisionChangeset } from '../../../../../../../collab/src/records/record';
+import { Subscription } from '../../../../../../../lambda-graphql/src/dynamodb/models/subscription';
 
 import { apolloServer } from '../../../../../__tests__/helpers/graphql/apollo-server';
 import {

@@ -1,6 +1,7 @@
 import { array, assign, Infer, InferRaw, number, object, optional } from 'superstruct';
-import { isEmptyDeep } from '~utils/object/is-empty-deep';
-import { isDefined } from '~utils/type-guards/is-defined';
+
+import { isEmptyDeep } from '../../../../../../utils/src/object/is-empty-deep';
+import { isDefined } from '../../../../../../utils/src/type-guards/is-defined';
 
 import { CollectionName, MongoDBCollectionsOnlyNames } from '../../../collections';
 import {

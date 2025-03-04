@@ -4,8 +4,8 @@ import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import { Changeset } from '~collab/changeset';
-import { Maybe } from '~utils/types';
+import { Changeset } from '../../../../../../collab/src/changeset';
+import { Maybe } from '../../../../../../utils/src/types';
 
 import { apolloServer } from '../../../../__tests__/helpers/graphql/apollo-server';
 import {

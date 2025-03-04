@@ -13,9 +13,9 @@ import {
 } from 'graphql/index.js';
 
 import { ObjectId } from 'mongodb';
-import { isObjectLike } from '~utils/type-guards/is-object-like';
 
-import { MaybePromise } from '~utils/types';
+import { isObjectLike } from '../../../../../../utils/src/type-guards/is-object-like';
+import { MaybePromise } from '../../../../../../utils/src/types';
 
 import { GraphQLResolversContext } from '../../../types';
 import { unwrapResolverMaybe } from '../../../utils/unwrap-resolver';

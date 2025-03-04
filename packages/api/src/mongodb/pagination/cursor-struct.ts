@@ -1,5 +1,6 @@
 import { object, number, optional, never, Infer, Struct, union } from 'superstruct';
-import { memoize1 } from '~utils/memoize1';
+
+import { memoize1 } from '../../../../utils/src/memoize1';
 
 // #################### first, after ######################
 

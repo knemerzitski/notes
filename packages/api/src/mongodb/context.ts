@@ -1,5 +1,6 @@
 import { Db, MongoClient, MongoClientOptions } from 'mongodb';
-import { Logger } from '~utils/logging';
+
+import { Logger } from '../../../utils/src/logging';
 
 export interface MongoDBContextParams<TCollections> {
   uri: string;

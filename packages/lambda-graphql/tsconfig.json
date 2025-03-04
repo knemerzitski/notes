@@ -2,9 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     /* Modules */
-    "paths": {
-      "~utils/*": ["../utils/src/*"]
-    }
+    "paths": {}
   },
   "include": ["src", "../utils/src"]
 }

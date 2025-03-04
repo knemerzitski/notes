@@ -1,7 +1,7 @@
 import { GraphQLResponse } from '@apollo/server';
 import { assert, expect } from 'vitest';
 
-import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+import { GraphQLErrorCode } from '../../../../../api-app-shared/src/graphql/error-codes';
 
 import { expectp } from '../expectp';
 

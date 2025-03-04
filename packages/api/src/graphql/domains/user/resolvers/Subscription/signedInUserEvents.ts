@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb';
 
-import { PublisherOptions } from '~lambda-graphql/pubsub/publish';
+import { PublisherOptions } from '../../../../../../../lambda-graphql/src/pubsub/publish';
 
 import { objectIdToStr } from '../../../../../mongodb/utils/objectid';
 

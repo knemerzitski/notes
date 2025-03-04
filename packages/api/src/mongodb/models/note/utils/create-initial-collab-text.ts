@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
-import { Changeset } from '~collab/changeset';
 
-import { SelectionRange } from '~collab/client/selection-range';
+import { Changeset } from '../../../../../../collab/src/changeset';
+import { SelectionRange } from '../../../../../../collab/src/client/selection-range';
 
 import { CollabRecordSchema, SelectionRangeSchema } from '../../../schema/collab-record';
 import { CollabTextSchema } from '../../../schema/collab-text';

@@ -1,7 +1,7 @@
 import { execute, GraphQLSchema, parse } from 'graphql/index.js';
 import { MessageType, NextMessage } from 'graphql-ws';
 
-import { Logger } from '~utils/logging';
+import { Logger } from '../../../utils/src/logging';
 
 import { WebSocketApi } from '../context/apigateway';
 import { ObjectLoader } from '../dynamodb/loader';

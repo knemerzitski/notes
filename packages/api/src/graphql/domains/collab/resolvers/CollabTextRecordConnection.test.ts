@@ -2,9 +2,8 @@
 import { ObjectId } from 'mongodb';
 import { describe, expect, it } from 'vitest';
 
-import { Changeset } from '~collab/changeset';
-
-import { maybeCallFn } from '~utils/maybe-call-fn';
+import { Changeset } from '../../../../../../collab/src/changeset';
+import { maybeCallFn } from '../../../../../../utils/src/maybe-call-fn';
 
 import { mockResolver } from '../../../../__tests__/helpers/graphql/mock-resolver';
 import { STRUCT_NUMBER } from '../../../../mongodb/constants';

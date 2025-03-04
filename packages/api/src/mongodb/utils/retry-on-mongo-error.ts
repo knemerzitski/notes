@@ -1,6 +1,6 @@
 import { MongoServerError } from 'mongodb';
 
-import { RetryErrorCondFn } from '~utils/retry-on-error';
+import { RetryErrorCondFn } from '../../../../utils/src/retry-on-error';
 
 export enum MongoErrorCodes {
   DUPLICATE_KEY_E11000 = '11000',

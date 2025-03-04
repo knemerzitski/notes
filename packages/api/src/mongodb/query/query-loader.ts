@@ -2,11 +2,12 @@ import DataLoader, { CacheMap } from 'dataloader';
 
 import { Emitter } from 'mitt';
 import { Infer, InferRaw, Struct } from 'superstruct';
-import { zip } from '~utils/array/zip';
-import { callFnGrouped } from '~utils/call-fn-grouped';
-import { splitObject } from '~utils/object/split-object';
-import { isObjectLike } from '~utils/type-guards/is-object-like';
-import { Maybe, MaybePromise } from '~utils/types';
+
+import { zip } from '../../../../utils/src/array/zip';
+import { callFnGrouped } from '../../../../utils/src/call-fn-grouped';
+import { splitObject } from '../../../../utils/src/object/split-object';
+import { isObjectLike } from '../../../../utils/src/type-guards/is-object-like';
+import { Maybe, MaybePromise } from '../../../../utils/src/types';
 
 import { isQueryArgField } from './merge-queries';
 import {

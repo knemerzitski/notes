@@ -1,5 +1,6 @@
 import { ObjectId } from 'mongodb';
-import { wrapRetryOnError } from '~utils/retry-on-error';
+
+import { wrapRetryOnError } from '../../../../../../../utils/src/retry-on-error';
 
 import {
   retryOnMongoError,

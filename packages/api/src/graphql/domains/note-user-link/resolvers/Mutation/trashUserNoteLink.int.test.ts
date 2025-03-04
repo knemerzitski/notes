@@ -14,7 +14,7 @@ import {
   vi,
 } from 'vitest';
 
-import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
+import { Subscription } from '../../../../../../../lambda-graphql/src/dynamodb/models/subscription';
 
 import { apolloServer } from '../../../../../__tests__/helpers/graphql/apollo-server';
 import {
@@ -46,6 +46,8 @@ import {
   TrashUserNoteLinkPayload,
 } from '../../../types.generated';
 import { signedInUserTopic } from '../../../user/resolvers/Subscription/signedInUserEvents';
+
+
 
 const MUTATION = `#graphql
   mutation($input: TrashUserNoteLinkInput!){

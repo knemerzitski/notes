@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb';
 
-import { ChangesetError } from '~collab/changeset';
+import { ChangesetError } from '../../../../collab/src/changeset';
 
 import { objectIdToStr } from '../../mongodb/utils/objectid';
 import { ServiceError } from '../errors';

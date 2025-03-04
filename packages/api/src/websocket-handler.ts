@@ -1,12 +1,14 @@
 import 'source-map-support/register.js';
 import { APIGatewayProxyWebsocketHandlerV2 } from 'aws-lambda';
 
-import { PingPongContextParams } from '~lambda-graphql/context/pingpong';
+import { PingPongContextParams } from '../../lambda-graphql/src/context/pingpong';
+
 import {
   WebSocketHandlerParams,
   createWebSocketHandler,
-} from '~lambda-graphql/websocket-handler';
-import { createLogger, Logger } from '~utils/logging';
+} from '../../lambda-graphql/src/websocket-handler';
+
+import { Logger, createLogger } from '../../utils/src/logging';
 
 import { formatError } from './graphql/errors';
 import { WebSocketHandlerGraphQLResolversContext } from './graphql/types';

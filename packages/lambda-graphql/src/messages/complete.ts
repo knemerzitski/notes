@@ -2,7 +2,8 @@ import AggregateError from 'aggregate-error';
 import { buildExecutionContext } from 'graphql/execution/execute.js';
 import { GraphQLError, parse } from 'graphql/index.js';
 import { MessageType } from 'graphql-ws';
-import { isArray } from '~utils/array/is-array';
+
+import { isArray } from '../../../utils/src/array/is-array';
 
 import { MessageHandler, WebSocketMessageGraphQLContext } from '../message-handler';
 import { createPublisher } from '../pubsub/publish';

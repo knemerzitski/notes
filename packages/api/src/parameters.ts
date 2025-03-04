@@ -7,13 +7,14 @@ import { ApiGatewayManagementApiClient } from '@aws-sdk/client-apigatewaymanagem
 import { STSClient, AssumeRoleCommand } from '@aws-sdk/client-sts';
 import { ServerApiVersion } from 'mongodb';
 
-import { ApiGatewayContextParams } from '~lambda-graphql/context/apigateway';
-import { DynamoDBContextParams } from '~lambda-graphql/context/dynamodb';
+import { ApiGatewayContextParams } from '../../lambda-graphql/src/context/apigateway';
+import { DynamoDBContextParams } from '../../lambda-graphql/src/context/dynamodb';
 import {
   ApolloGraphQLContextParams,
   GraphQLContextParams,
-} from '~lambda-graphql/context/graphql';
-import { Logger } from '~utils/logging';
+} from '../../lambda-graphql/src/context/graphql';
+
+import { Logger } from '../../utils/src/logging';
 
 import { applyDirectives } from './graphql/directives';
 import { resolvers } from './graphql/domains/resolvers.generated';

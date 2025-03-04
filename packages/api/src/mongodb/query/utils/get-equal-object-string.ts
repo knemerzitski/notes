@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
-import { memoize1 } from '~utils/memoize1';
 
-import { sortObject } from '~utils/object/sort-object';
+import { memoize1 } from '../../../../../utils/src/memoize1';
+import { sortObject } from '../../../../../utils/src/object/sort-object';
 
 export const memoizedGetEqualObjectString = memoize1(getEqualObjectString);
 

@@ -1,8 +1,9 @@
 import { GraphQLError } from 'graphql/index.js';
+
 import {
   AuthenticationFailedReason,
   GraphQLErrorCode,
-} from '~api-app-shared/graphql/error-codes';
+} from '../../../../api-app-shared/src/graphql/error-codes';
 
 import { UnauthenticatedServiceError } from '../../services/auth/errors';
 import { ErrorFormatterFn } from '../errors';

@@ -1,4 +1,4 @@
-import { WebSocketHandlerParams } from '~lambda-graphql/websocket-handler';
+import { WebSocketHandlerParams } from '../../../lambda-graphql/src/websocket-handler';
 
 import { WebSocketHandlerGraphQLResolversContext } from '../graphql/types';
 

@@ -1,5 +1,6 @@
 import { ObjectId } from 'mongodb';
-import { Maybe } from '~utils/types';
+
+import { Maybe } from '../../../../utils/src/types';
 
 import { PartialQueryResultDeep } from '../../mongodb/query/query';
 import { DBNoteSchema } from '../../mongodb/schema/note';

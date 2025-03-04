@@ -16,8 +16,8 @@ import {
   vi,
 } from 'vitest';
 
-import { Changeset } from '~collab/changeset';
-import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
+import { Changeset } from '../../../../../../../collab/src/changeset';
+import { Subscription } from '../../../../../../../lambda-graphql/src/dynamodb/models/subscription';
 
 import { apolloServer } from '../../../../../__tests__/helpers/graphql/apollo-server';
 import {

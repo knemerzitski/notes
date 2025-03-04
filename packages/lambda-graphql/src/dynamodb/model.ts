@@ -8,7 +8,8 @@ import {
   QueryCommandInput,
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
-import { Logger } from '~utils/logging';
+
+import { Logger } from '../../../utils/src/logging';
 
 // import { ReturnValue } from @aws-sdk/client-dynamodb is not available in AWS Lambda
 enum ReturnValue {

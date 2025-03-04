@@ -1,6 +1,7 @@
 import { AnyBulkWriteOperation, MongoClient, ObjectId } from 'mongodb';
 
-import { Logger } from '~utils/logging';
+
+import { Logger } from '../../../../../utils/src/logging';
 
 import { CollectionName, MongoDBCollections } from '../../collections';
 import { QueryDeep, QueryResultDeep } from '../../query/query';

@@ -11,14 +11,16 @@ import {
   literal,
   nullable,
 } from 'superstruct';
-import { Logger } from '~utils/logging';
+
+import { Logger } from '../../../utils/src/logging';
+
 import {
+  OrderedMessageBufferEvents,
+  ProcessingEvents,
+  OrderedMessageBufferParamsStruct,
   OrderedMessageBuffer,
   OrderedMessageBufferParams,
-  OrderedMessageBufferParamsStruct,
-  ProcessingEvents,
-  OrderedMessageBufferEvents,
-} from '~utils/ordered-message-buffer';
+} from '../../../utils/src/ordered-message-buffer';
 
 import { Changeset } from '../changeset';
 import {

@@ -1,6 +1,6 @@
 import { ApolloServer } from '@apollo/server';
 
-import { createGraphQLContext } from '~lambda-graphql/context/graphql';
+import { createGraphQLContext } from '../../../../../lambda-graphql/src/context/graphql';
 
 import { applyDirectives } from '../../../graphql/directives';
 import { resolvers } from '../../../graphql/domains/resolvers.generated';

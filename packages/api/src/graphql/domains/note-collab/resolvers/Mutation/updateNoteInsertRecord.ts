@@ -1,4 +1,4 @@
-import { wrapRetryOnError } from '~utils/retry-on-error';
+import { wrapRetryOnError } from '../../../../../../../utils/src/retry-on-error';
 
 import { QueryableCollabRecord } from '../../../../../mongodb/loaders/note/descriptions/collab-record';
 import { createValueQueryFn } from '../../../../../mongodb/query/query';

@@ -1,4 +1,3 @@
- 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -7,9 +6,8 @@ import { faker } from '@faker-js/faker';
 import mitt from 'mitt';
 import { beforeEach, expect, it } from 'vitest';
 
-import { CustomHeaderName } from '~api-app-shared/custom-headers';
-
-import { createDeferred } from '~utils/deferred';
+import { CustomHeaderName } from '../../../../api-app-shared/src/custom-headers';
+import { createDeferred } from '../../../../utils/src/deferred';
 
 import { SignedInUserEventsInput } from '../../graphql/domains/types.generated';
 import { DBNoteSchema } from '../../mongodb/schema/note';
@@ -75,7 +73,7 @@ let userDb2: Awaited<ReturnType<typeof createDBdata>>;
 function createDBdata(note?: DBNoteSchema) {
   const user = fakeUserPopulateQueue();
   if (!note) {
-    ({note} = fakeNotePopulateQueue(user));
+    ({ note } = fakeNotePopulateQueue(user));
   }
   userAddNote(user, note);
   const session = fakeSessionPopulateQueue({

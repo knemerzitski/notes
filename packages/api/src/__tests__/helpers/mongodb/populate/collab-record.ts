@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 
-import { Changeset } from '~collab/changeset';
+import { Changeset } from '../../../../../../collab/src/changeset';
 
 import { DBCollabRecordSchema } from '../../../../mongodb/schema/collab-record';
 import { MongoPartialDeep } from '../../../../mongodb/types';

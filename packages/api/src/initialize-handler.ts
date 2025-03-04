@@ -1,7 +1,7 @@
 import { Handler } from 'aws-lambda';
 
 import 'source-map-support/register.js';
-import { createLogger, Logger } from '~utils/logging';
+import { createLogger, Logger } from '../../utils/src/logging';
 
 import { createAllIndexes, MongoDBCollections } from './mongodb/collections';
 import { MongoDBContext } from './mongodb/context';

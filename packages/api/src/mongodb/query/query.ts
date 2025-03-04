@@ -1,10 +1,6 @@
-import {
-  Maybe,
-  MaybePromise,
-  PartialDeep,
-  PickStartsWith,
-  PickValue,
-} from '~utils/types';
+import { MaybePromise, Maybe } from '@graphql-tools/utils';
+
+import { PickValue, PickStartsWith, PartialDeep } from '../../../../utils/src/types';
 
 import { MongoPrimitive } from '../types';
 

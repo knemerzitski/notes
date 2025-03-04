@@ -1,4 +1,4 @@
-import { isObjectLike } from '~utils/type-guards/is-object-like';
+import { isObjectLike } from '../../../../../utils/src/type-guards/is-object-like';
 
 import { FieldDescription } from '../description';
 

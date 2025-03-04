@@ -1,6 +1,7 @@
 import { DynamoDBClient, DynamoDBClientConfig } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
-import { Logger } from '~utils/logging';
+
+import { Logger } from '../../../utils/src/logging';
 
 import {
   CompletedSubscriptionTable,
