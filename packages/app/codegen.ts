@@ -1,6 +1,7 @@
 import { CodegenConfig } from '@graphql-codegen/cli';
 import { ClientPresetConfig } from '@graphql-codegen/client-preset';
 
+
 const config: CodegenConfig = {
   schema: '../api/src/graphql/domains/*/schema.graphql',
   documents: ['./src/**/!(*.(test|cy)).{ts,tsx}'],

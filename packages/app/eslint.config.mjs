@@ -23,16 +23,7 @@ const rootRestrictedImports = rootConfig
 export default [
   ...rootConfig,
   {
-    ignores: [
-      'src/__generated__',
-      'coverage',
-      'scripts',
-      'codegen.ts',
-      '__EXCLUDE',
-      'out-dev',
-      'out-test',
-      'out-dev-pwa',
-    ],
+    ignores: ['src/__generated__', 'coverage', 'out-dev', 'out-test', 'out-dev-pwa'],
   },
   { files: ['**/*.ts?(x)'] },
   {

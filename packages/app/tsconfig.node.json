@@ -24,8 +24,6 @@
     "codegen.ts",
     "cypress.config.ts",
     "cypress.config.init.ts",
-    "virtual-routes.config.ts",
-    "../utils/src"
-  ],
-  "exclude": ["scripts"]
+    "virtual-routes.config.ts"
+  ]
 }
