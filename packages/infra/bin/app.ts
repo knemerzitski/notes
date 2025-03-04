@@ -3,11 +3,14 @@ import { join } from 'node:path';
 
 import { App } from 'aws-cdk-lib';
 
-import { assertGetEnvironmentVariables, loadEnvironmentVariables } from '~utils/env';
-import { createLogger } from '~utils/logging';
-import { logNodeInfo } from '~utils/node';
-import { getProjectRootDir } from '~utils/project-dir';
-import { isEnvironmentVariableTruthy } from '~utils/string/is-environment-variable-truthy';
+import {
+  loadEnvironmentVariables,
+  assertGetEnvironmentVariables,
+} from '../../utils/src/env';
+import { createLogger } from '../../utils/src/logging';
+import { logNodeInfo } from '../../utils/src/node';
+import { getProjectRootDir } from '../../utils/src/project-dir';
+import { isEnvironmentVariableTruthy } from '../../utils/src/string/is-environment-variable-truthy';
 
 import { NotesStack, NotesStackProps } from '../lib/stacks/notes-stack';
 

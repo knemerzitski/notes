@@ -3,10 +3,13 @@ import { join } from 'node:path';
 
 import { App } from 'aws-cdk-lib';
 
-import { loadEnvironmentVariables, assertGetEnvironmentVariables } from '~utils/env';
-import { createLogger } from '~utils/logging';
-import { logNodeInfo } from '~utils/node';
-import { getProjectRootDir } from '~utils/project-dir';
+import {
+  loadEnvironmentVariables,
+  assertGetEnvironmentVariables,
+} from '../../utils/src/env';
+import { createLogger } from '../../utils/src/logging';
+import { logNodeInfo } from '../../utils/src/node';
+import { getProjectRootDir } from '../../utils/src/project-dir';
 
 import { ScheduledHandlerStack } from '../test/stacks/scheduled-handler-stack';
 

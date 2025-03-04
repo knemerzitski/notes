@@ -8,23 +8,13 @@
     /* Modules */
     "baseUrl": ".",
     "moduleResolution": "Node",
-    "paths": {
-      "~utils/*": ["../utils/src/*"],
-      "~api-app-shared/*": ["../api-app-shared/src/*"],
-      "~lambda-graphql/*": ["../lambda-graphql/src/*"],
-      "~api-dev-server/*": ["../api-dev-server/src/*"],
-      "~api/*": ["../api/src/*"],
-      "~collab/*": ["../collab/src/*"]
-    },
+    "paths": {},
 
     /* Emit */
     "declarationMap": true,
     "inlineSourceMap": false,
     "sourceMap": true,
     "outDir": "out"
-  },
-  "ts-node": {
-    "require": ["tsconfig-paths/register"]
   },
   "include": [
     "lib",

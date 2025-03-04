@@ -1,6 +1,6 @@
 import { IResource } from 'aws-cdk-lib/aws-apigateway';
 
-import { isNonEmptyArray } from '~utils/array/is-non-empty-array';
+import { isNonEmptyArray } from '../../../utils/src/array/is-non-empty-array';
 
 export function getOrCreateResource(resource: IResource, path: string[]) {
   if (!isNonEmptyArray(path)) return resource;
