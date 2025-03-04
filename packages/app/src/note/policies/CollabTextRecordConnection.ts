@@ -1,9 +1,9 @@
-import { binarySearchIndexOf } from '~utils/array/binary-search';
+import { binarySearchIndexOf } from '../../../../utils/src/array/binary-search';
+import { binarySearchConsecutiveOrderedSubset } from '../../../../utils/src/ordered-set/consecutive-ordered-set';
+import { mergeOrderedSet } from '../../../../utils/src/ordered-set/merge-ordered-set';
+import { Maybe } from '../../../../utils/src/types';
 
-import { binarySearchConsecutiveOrderedSubset } from '~utils/ordered-set/consecutive-ordered-set';
-import { mergeOrderedSet } from '~utils/ordered-set/merge-ordered-set';
-
-import { CollabTextRecord, Maybe, PageInfo } from '../../__generated__/graphql';
+import { CollabTextRecord, PageInfo } from '../../__generated__/graphql';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
 
 interface Edge {

@@ -1,7 +1,8 @@
 import { NormalizedCacheObject } from '@apollo/client';
 import { CachePersistor } from 'apollo3-cache-persist';
 import { createContext, ReactNode, useContext } from 'react';
-import { Maybe } from '~utils/types';
+
+import { Maybe } from '../../../../utils/src/types';
 
 type ProvidedCachePersistor = Pick<
   CachePersistor<NormalizedCacheObject>,

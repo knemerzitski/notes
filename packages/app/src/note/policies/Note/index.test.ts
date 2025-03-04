@@ -3,7 +3,8 @@ import { gql } from '@apollo/client';
 import { MockLink } from '@apollo/client/testing';
 
 import { expect, it } from 'vitest';
-import { CollabService } from '~collab/client/collab-service';
+
+import { CollabService } from '../../../../../collab/src/client/collab-service';
 
 import { createGraphQLService } from '../../../graphql/create/service';
 import { createDefaultGraphQLServiceParams } from '../../../graphql-service';

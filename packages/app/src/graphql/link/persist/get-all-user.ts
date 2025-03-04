@@ -1,6 +1,6 @@
 import { ApolloCache } from '@apollo/client';
 
-import { isDefined } from '~utils/type-guards/is-defined';
+import { isDefined } from '../../../../../utils/src/type-guards/is-defined';
 
 import { findOperationUserIds } from '../../utils/find-operation-user-id';
 

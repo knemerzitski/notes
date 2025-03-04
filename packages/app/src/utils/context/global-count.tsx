@@ -9,10 +9,11 @@ import {
   useState,
 } from 'react';
 import { Observable, SubscriptionObserver } from 'zen-observable-ts';
-import { CountMap } from '~utils/map/count-map';
-import { DefinedMap } from '~utils/map/defined-map';
-import { ObservableMap } from '~utils/map/observable-map';
-import { Maybe } from '~utils/types';
+
+import { CountMap } from '../../../../utils/src/map/count-map';
+import { DefinedMap } from '../../../../utils/src/map/defined-map';
+import { ObservableMap } from '../../../../utils/src/map/observable-map';
+import { Maybe } from '../../../../utils/src/types';
 
 type Id = unknown;
 

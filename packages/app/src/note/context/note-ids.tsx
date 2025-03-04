@@ -1,6 +1,8 @@
 import { createContext, ReactNode, useContext } from 'react';
 
-import { Maybe, Note } from '../../__generated__/graphql';
+import { Maybe } from '../../../../utils/src/types';
+
+import { Note } from '../../__generated__/graphql';
 
 const NoteIdsContext = createContext<readonly Note['id'][] | null>(null);
 

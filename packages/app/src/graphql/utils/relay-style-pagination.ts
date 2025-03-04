@@ -8,10 +8,10 @@ import { FieldFunctionOptions, FieldPolicy, Reference } from '@apollo/client';
 import { SafeReadonly } from '@apollo/client/cache/core/types/common';
 import { mergeDeep } from '@apollo/client/utilities';
 import { __rest } from 'tslib';
-import { weavedReplace } from '~utils/array/weaved-replace';
-import { isDefined } from '~utils/type-guards/is-defined';
 
-import { Maybe } from '~utils/types';
+import { weavedReplace } from '../../../../utils/src/array/weaved-replace';
+import { isDefined } from '../../../../utils/src/type-guards/is-defined';
+import { Maybe } from '../../../../utils/src/types';
 
 type KeyArgs = FieldPolicy['keyArgs'];
 

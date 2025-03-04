@@ -12,8 +12,9 @@ import {
   useState,
 } from 'react';
 
-import { EMPTY_ARRAY } from '~utils/array/empty';
-import { Logger } from '~utils/logging';
+import { EMPTY_ARRAY } from '../../../../utils/src/array/empty';
+
+import { Logger } from '../../../../utils/src/logging';
 
 import { getFragmentData, gql } from '../../__generated__';
 import {

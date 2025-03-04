@@ -15,15 +15,17 @@
     "composite": true,
 
     /* Interop Constraints */
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": "."
   },
   "include": [
+    "src/__generated__",
+    "cypress",
     "vite.config.ts",
     "vitest.config.ts",
     "codegen.ts",
     "cypress.config.ts",
     "virtual-routes.config.ts",
-    "cypress/types.ts",
     "../utils/src"
   ],
   "exclude": ["scripts"]

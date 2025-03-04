@@ -1,5 +1,6 @@
 import { defaultStringifySearch } from '@tanstack/react-router';
-import { Maybe } from '~utils/types';
+
+import { Maybe } from '../../../../utils/src/types';
 
 import { NoteShareAccess } from '../../__generated__/graphql';
 

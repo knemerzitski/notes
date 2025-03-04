@@ -2,7 +2,7 @@ import { useApolloClient } from '@apollo/client';
 
 import { useEffect, useRef } from 'react';
 
-import { UserRecords } from '~collab/client/user-records';
+import { UserRecords } from '../../../../collab/src/client/user-records';
 
 import { gql } from '../../__generated__';
 import { useUserId } from '../../user/context/user-id';

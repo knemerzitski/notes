@@ -7,7 +7,7 @@ import {
   OperationVariables,
 } from '@apollo/client';
 
-import { Maybe } from '~utils/types';
+import { Maybe } from '../../../../utils/src/types';
 
 import { MutationUpdaterFunctionMap } from '../create/mutation-updater-map';
 

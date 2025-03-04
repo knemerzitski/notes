@@ -1,7 +1,5 @@
-// import { objectValueArrayPermutationsValues } from '~utils/object/object-value-array-permutations';
-import { isObjectLike } from '~utils/type-guards/is-object-like';
+import { isObjectLike } from '../../../../utils/src/type-guards/is-object-like';
 
-// import { NoteCategory } from '../../__generated__/graphql';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
 import { TaggedEvictOptionsList, EvictTag } from '../../graphql/utils/tagged-evict';
 import { throwNoteNotFoundError, throwUserNoteLinkNotFoundError } from '../utils/errors';

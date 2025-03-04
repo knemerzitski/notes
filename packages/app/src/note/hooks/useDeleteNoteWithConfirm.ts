@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 
-import { wrapArray } from '~utils/array/wrap-array';
+import { wrapArray } from '../../../../utils/src/array/wrap-array';
 
 import { Note } from '../../__generated__/graphql';
 import { useShowConfirm } from '../../utils/context/show-confirm';

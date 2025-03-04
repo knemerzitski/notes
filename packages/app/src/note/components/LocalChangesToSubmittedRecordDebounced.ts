@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useDebouncedCallback, Options } from 'use-debounce';
 
-import { CollabService } from '~collab/client/collab-service';
+import { CollabService } from '../../../../collab/src/client/collab-service';
 
 import { useCollabService } from '../hooks/useCollabService';
 

@@ -1,6 +1,6 @@
-import { Changeset } from '~collab/changeset';
 
-import { CollabService } from '~collab/client/collab-service';
+import { Changeset } from '../../../../collab/src/changeset';
+import { CollabService } from '../../../../collab/src/client/collab-service';
 
 import { NoteTextFieldName } from '../../__generated__/graphql';
 import { NoteExternalState, NoteTextFieldEditor } from '../external-state/note';

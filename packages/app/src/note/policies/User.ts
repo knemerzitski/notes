@@ -4,9 +4,10 @@ import {
   Reference,
   StoreObject,
 } from '@apollo/client';
-import { objectValueArrayPermutationsValues } from '~utils/object/object-value-array-permutations';
-import { isDefined } from '~utils/type-guards/is-defined';
-import { isObjectLike } from '~utils/type-guards/is-object-like';
+
+import { objectValueArrayPermutationsValues } from '../../../../utils/src/object/object-value-array-permutations';
+import { isDefined } from '../../../../utils/src/type-guards/is-defined';
+import { isObjectLike } from '../../../../utils/src/type-guards/is-object-like';
 
 import { NoteCategory } from '../../__generated__/graphql';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';

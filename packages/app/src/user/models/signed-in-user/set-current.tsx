@@ -1,6 +1,6 @@
 import { ApolloCache } from '@apollo/client';
 
-import { Maybe } from '~utils/types';
+import { Maybe } from '../../../../../utils/src/types';
 
 import { gql } from '../../../__generated__';
 import { User } from '../../../__generated__/graphql';

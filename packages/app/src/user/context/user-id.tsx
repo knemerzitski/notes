@@ -1,5 +1,6 @@
 import { createContext, ReactNode, useContext } from 'react';
-import { Maybe } from '~utils/types';
+
+import { Maybe } from '../../../../utils/src/types';
 
 import { User } from '../../__generated__/graphql';
 

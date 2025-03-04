@@ -1,7 +1,7 @@
 import { ApolloCache } from '@apollo/client';
 import { GraphQLError } from 'graphql';
 
-import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+import { GraphQLErrorCode } from '../../../../api-app-shared/src/graphql/error-codes';
 
 import { Note, User } from '../../__generated__/graphql';
 import { isErrorCode } from '../../graphql/utils/is-error-code';

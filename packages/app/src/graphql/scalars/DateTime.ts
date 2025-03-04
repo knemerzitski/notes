@@ -1,5 +1,6 @@
 import { FieldPolicy } from '@apollo/client';
-import { Maybe } from '~utils/types';
+
+import { Maybe } from '../../../../utils/src/types';
 
 function parseDate(value: Maybe<number | string | Date>) {
   if (value == null) {

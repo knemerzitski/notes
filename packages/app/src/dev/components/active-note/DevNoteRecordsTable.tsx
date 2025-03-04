@@ -10,9 +10,12 @@ import {
   TableCell,
   TableBody,
 } from '@mui/material';
-import { Changeset } from '~collab/changeset';
-import { isDefined } from '~utils/type-guards/is-defined';
-import { PartialDeep } from '~utils/types';
+
+import { Changeset } from '../../../../../collab/src/changeset';
+
+import { isDefined } from '../../../../../utils/src/type-guards/is-defined';
+
+import { PartialDeep } from '../../../../../utils/src/types';
 
 import { gql } from '../../../__generated__';
 import { DevNoteRecordsTableQueryQuery } from '../../../__generated__/graphql';

@@ -1,5 +1,6 @@
 import { createContext, ReactNode, useContext } from 'react';
-import { Logger } from '~utils/logging';
+
+import { Logger } from '../../../../utils/src/logging';
 
 const LoggerContext = createContext<Logger | null>(null);
 

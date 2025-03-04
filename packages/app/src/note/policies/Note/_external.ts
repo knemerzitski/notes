@@ -5,9 +5,9 @@ import {
   Reference,
 } from '@apollo/client';
 
-import { CollabService } from '~collab/client/collab-service';
-import { RevisionChangesetStruct } from '~collab/records/record';
-import { isObjectLike } from '~utils/type-guards/is-object-like';
+import { CollabService } from '../../../../../collab/src/client/collab-service';
+import { RevisionChangesetStruct } from '../../../../../collab/src/records/record';
+import { isObjectLike } from '../../../../../utils/src/type-guards/is-object-like';
 
 import { CreateFieldPolicyFn, TypePoliciesContext } from '../../../graphql/types';
 import { NoteExternalState } from '../../external-state/note';

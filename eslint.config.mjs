@@ -122,6 +122,19 @@ export default [
           },
         },
       ],
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['graphql/jsutils/Maybe', '**/__generated__/graphql'],
+              importNames: ['Maybe'],
+              message:
+                'Please use Maybe from utils package instead ./packages/utils/src/types',
+            },
+          ],
+        },
+      ],
       'import/no-default-export': ['error'],
     },
   },

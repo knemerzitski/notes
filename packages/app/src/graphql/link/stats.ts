@@ -8,8 +8,8 @@ import {
 import { OperationTypeNode, Kind } from 'graphql';
 import mitt, { Emitter } from 'mitt';
 
-import { CountMap } from '~utils/map/count-map';
-import { DefinedMap } from '~utils/map/defined-map';
+import { CountMap } from '../../../../utils/src/map/count-map';
+import { DefinedMap } from '../../../../utils/src/map/defined-map';
 
 import { findOperationUserIds } from '../utils/find-operation-user-id';
 

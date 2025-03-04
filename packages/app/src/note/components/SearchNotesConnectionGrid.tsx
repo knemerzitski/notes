@@ -13,7 +13,7 @@ import {
   useState,
 } from 'react';
 
-import { Logger } from '~utils/logging';
+import { Logger } from '../../../../utils/src/logging';
 
 import { getFragmentData, gql } from '../../__generated__';
 import { Note, SearchNotesConnectionGridQueryQuery } from '../../__generated__/graphql';

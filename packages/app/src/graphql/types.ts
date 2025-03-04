@@ -7,7 +7,7 @@ import {
 } from '@apollo/client';
 import SerializingLink from 'apollo-link-serialize';
 
-import { Logger } from '~utils/logging';
+import { Logger } from '../../../utils/src/logging';
 
 import { createGraphQLService } from './create/service';
 import { GateController, GateLink } from './link/gate';
@@ -52,7 +52,7 @@ declare module '@apollo/client' {
 export type TypePoliciesList = (CreateTypePoliciesFn | TypePolicies)[];
 
 // Context required to create type policies
- 
+
 export interface TypePoliciesContext {
   logger?: Logger;
 }

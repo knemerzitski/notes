@@ -1,6 +1,6 @@
 import { Reference } from '@apollo/client';
 
-import { isObjectLike } from '~utils/type-guards/is-object-like';
+import { isObjectLike } from '../../../../utils/src/type-guards/is-object-like';
 
 import { User } from '../../__generated__/graphql';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';

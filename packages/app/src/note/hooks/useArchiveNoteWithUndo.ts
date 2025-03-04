@@ -1,9 +1,9 @@
 import { useApolloClient } from '@apollo/client';
 import { useCallback } from 'react';
 
-import { wrapArray } from '~utils/array/wrap-array';
+import { wrapArray } from '../../../../utils/src/array/wrap-array';
 
-import { isDefined } from '~utils/type-guards/is-defined';
+import { isDefined } from '../../../../utils/src/type-guards/is-defined';
 
 import { gql } from '../../__generated__';
 import { MovableNoteCategory, Note } from '../../__generated__/graphql';
