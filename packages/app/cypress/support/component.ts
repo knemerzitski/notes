@@ -1,8 +1,10 @@
+/// <reference types="vite/client" />
+
 import { loadErrorMessages, loadDevMessages } from '@apollo/client/dev';
 import { mount } from 'cypress/react18';
 
 import './commands';
-import { mountSandbox } from './mount-sandbox';
+import { mountInTheme } from './mount-in-theme';
 
 // ***********************************************************
 // This example support/component.ts is processed and
@@ -28,13 +30,13 @@ declare global {
   namespace Cypress {
     interface Chainable {
       mount: typeof mount;
-      mountSandbox: typeof mount;
+      mountInTheme: typeof mount;
     }
   }
 }
 
 Cypress.Commands.add('mount', mount);
-Cypress.Commands.add('mountSandbox', mountSandbox);
+Cypress.Commands.add('mountInTheme', mountInTheme);
 
 if (import.meta.env.DEV) {
   loadDevMessages();
