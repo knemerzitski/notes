@@ -26,6 +26,8 @@ import {
 } from '../types';
 import './commands';
 
+import { Task_ResetDatabase } from '../tasks/e2e';
+
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
 
@@ -59,11 +61,15 @@ Cypress.Commands.add('wsConnect', (options) => {
 
 declare global {
   namespace Cypress {
+    type ChainableFn<T> = T extends (...args: (infer TArgs)[]) => infer TReturn
+      ? (...args: TArgs[]) => Chainable<Awaited<TReturn>>
+      : never;
+
     interface Chainable {
       /**
-       * Resets database deleting all collections/tables/rows/documents.
+       * Resets database deleting all collections/tables/rows/documents
        */
-      resetDatabase(): Chainable<void>;
+      resetDatabase: ChainableFn<Task_ResetDatabase>;
       getNoteCollabTextRevision(
         options: GetNoteCollabTextRevisionOptions
       ): Chainable<GetNoteCollabTextRevisionResult>;

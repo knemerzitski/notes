@@ -1,3 +1,5 @@
+import './cypress/tasks/load-env';
+
 import { defineConfig } from 'cypress';
 
 import { loadEnvironmentVariables } from '../utils/src/env';
@@ -17,7 +19,7 @@ import {
   WsGetSubscriptionDataResult,
 } from './cypress/types';
 
-loadEnvironmentVariables();
+import { component_setupNodeEvents, e2e_setupNodeEvents } from './cypress/tasks';
 
 const VITE_APP_PORT = process.env.VITE_APP_PORT ?? 6173;
 
@@ -34,30 +36,21 @@ export default defineConfig({
       framework: 'react',
       bundler: 'vite',
     },
+    setupNodeEvents(on, config) {
+      component_setupNodeEvents(on, config);
+    },
   },
   e2e: {
     baseUrl: `http://localhost:${VITE_APP_PORT}`,
     env: {
       API_URL,
     },
-    setupNodeEvents(on, _config) {
+    setupNodeEvents(on, config) {
+      e2e_setupNodeEvents(on, config);
+
       const wsCtxById: Record<string, WebSocketContext> = {};
 
       on('task', {
-        async resetDatabase() {
-          const mongoClient = new MongoClient(DB_URI);
-          await mongoClient.connect();
-
-          const mongoDB = mongoClient.db();
-
-          const collectionNames = ['sessions', 'users', 'notes', 'openNotes'];
-
-          await Promise.all(
-            collectionNames.map((name) => mongoDB.collection(name).deleteMany())
-          );
-
-          return null;
-        },
         async getNoteCollabTextRevision(
           options: GetNoteCollabTextRevisionOptions
         ): Promise<GetNoteCollabTextRevisionResult> {
