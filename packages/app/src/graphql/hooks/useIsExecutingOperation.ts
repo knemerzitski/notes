@@ -3,8 +3,10 @@ import { Operation, useApolloClient } from '@apollo/client';
 import isEqual from 'lodash.isequal';
 import { useEffect, useRef, useState } from 'react';
 
+import { Maybe } from '../../../../utils/src/types';
+
 import { gql } from '../../__generated__';
-import { ApolloOperation, Maybe, User } from '../../__generated__/graphql';
+import { ApolloOperation, User } from '../../__generated__/graphql';
 import { useUserId } from '../../user/context/user-id';
 import { getAllOngoingOperations } from '../link/persist/get-all';
 

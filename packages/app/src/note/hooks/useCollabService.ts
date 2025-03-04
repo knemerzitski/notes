@@ -1,8 +1,7 @@
 import { useQuery } from '@apollo/client';
 
-import { CollabService } from '~collab/client/collab-service';
-
-import { Maybe } from '~utils/types';
+import { CollabService } from '../../../../collab/src/client/collab-service';
+import { Maybe } from '../../../../utils/src/types';
 
 import { gql } from '../../__generated__';
 import { useNoteId } from '../context/note-id';

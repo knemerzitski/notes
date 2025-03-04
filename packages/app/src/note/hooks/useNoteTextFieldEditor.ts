@@ -1,6 +1,6 @@
 import { useQuery } from '@apollo/client';
 
-import { Maybe } from '~utils/types';
+import { Maybe } from '../../../../utils/src/types';
 
 import { gql } from '../../__generated__';
 import { useNoteId } from '../context/note-id';

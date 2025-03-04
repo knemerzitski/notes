@@ -1,9 +1,9 @@
 import { loadDevMessages, loadErrorMessages } from '@apollo/client/dev';
 import { maybeExcludeClone, maybeExcludeFreeze } from '@apollo/client/utilities';
 
-import { CollabService } from '~collab/client/collab-service';
-import { KeySimpleText } from '~collab/editor/json-text';
-import { SimpleTextEditor } from '~collab/editor/simple-text';
+import { CollabService } from '../../../collab/src/client/collab-service';
+import { KeySimpleText } from '../../../collab/src/editor/json-text';
+import { SimpleTextEditor } from '../../../collab/src/editor/simple-text';
 
 import { NoteExternalState } from '../note/external-state/note';
 

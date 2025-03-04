@@ -1,5 +1,6 @@
 import { FieldPolicy } from '@apollo/client';
-import { Changeset as CollabChangeset } from '~collab/changeset';
+
+import { Changeset as CollabChangeset } from '../../../../collab/src/changeset';
 
 function parseChangeset(value: unknown) {
   if (value == null) {

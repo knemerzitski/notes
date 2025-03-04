@@ -1,5 +1,6 @@
 import { FormEventHandler, KeyboardEventHandler, useCallback, useRef } from 'react';
-import { SelectionRange } from '~collab/client/selection-range';
+
+import { SelectionRange } from '../../../../collab/src/client/selection-range';
 
 import { useLogger } from '../../utils/context/logger';
 

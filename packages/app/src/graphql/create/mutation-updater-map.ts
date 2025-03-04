@@ -7,7 +7,7 @@ import {
 import { getMainDefinition } from '@apollo/client/utilities';
 import { DocumentNode, Kind } from 'graphql/index';
 
-import { isDefined } from '~utils/type-guards/is-defined';
+import { isDefined } from '../../../../utils/src/type-guards/is-defined';
 
 import { MutationDefinitions } from '../types';
 import { operationDefinitionFragmentPaths } from '../utils/fragments-paths';

@@ -1,5 +1,6 @@
 import { setContext } from '@apollo/client/link/context';
-import { CustomHeaderName } from '~api-app-shared/custom-headers';
+
+import { CustomHeaderName } from '../../../../../api-app-shared/src/custom-headers';
 
 import { WebSocketClient } from '../../ws/websocket-client';
 

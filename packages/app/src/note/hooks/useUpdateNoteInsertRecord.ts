@@ -1,7 +1,8 @@
 import { useApolloClient } from '@apollo/client';
 import { useCallback } from 'react';
 
-import { SubmittedRecord } from '~collab/client/submitted-record';
+
+import { SubmittedRecord } from '../../../../collab/src/client/submitted-record';
 
 import { Note } from '../../__generated__/graphql';
 import { useMutation } from '../../graphql/hooks/useMutation';

@@ -1,8 +1,8 @@
 import { ApolloError } from '@apollo/client';
 import { GraphQLError } from 'graphql';
 
-import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
-import { isArray } from '~utils/array/is-array';
+import { GraphQLErrorCode } from '../../../../api-app-shared/src/graphql/error-codes';
+import { isArray } from '../../../../utils/src/array/is-array';
 
 export function isErrorCode(
   err:

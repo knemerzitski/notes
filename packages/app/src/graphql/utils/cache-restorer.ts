@@ -1,6 +1,7 @@
 import { NormalizedCacheObject } from '@apollo/client';
 import { CachePersistor } from 'apollo3-cache-persist';
-import { createDeferred } from '~utils/deferred';
+
+import { createDeferred } from '../../../../utils/src/deferred';
 
 export class CacheRestorer {
   private _status: 'init' | 'restoring' | 'done' = 'init';

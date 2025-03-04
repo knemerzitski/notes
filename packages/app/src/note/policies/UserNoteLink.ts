@@ -1,4 +1,4 @@
-import { Maybe } from '~utils/types';
+import { Maybe } from '../../../../utils/src/types';
 
 import { NoteCategory } from '../../__generated__/graphql';
 import { DateTimeNullable } from '../../graphql/scalars/DateTime';

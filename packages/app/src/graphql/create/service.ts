@@ -10,7 +10,7 @@ import { CachePersistor, PersistentStorage } from 'apollo3-cache-persist';
 
 import { OperationTypeNode } from 'graphql';
 
-import { Logger } from '~utils/logging';
+import { Logger } from '../../../../utils/src/logging';
 
 import {
   CacheReadyCallbacks,
@@ -75,7 +75,6 @@ export function createGraphQLService({
   logger?: Logger;
 }) {
   logger?.debug('create');
-
 
   const mutationUpdaterFnMap = createMutationUpdaterFunctionMap(mutationDefinitions);
 

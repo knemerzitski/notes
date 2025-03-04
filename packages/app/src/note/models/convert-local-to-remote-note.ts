@@ -1,6 +1,8 @@
 import { ApolloCache, makeReference } from '@apollo/client';
 
-import { Maybe, User, UserNoteLinkByInput } from '../../__generated__/graphql';
+import { Maybe } from '../../../../utils/src/types';
+
+import { User, UserNoteLinkByInput } from '../../__generated__/graphql';
 
 import { addUserOperations } from '../../user/models/operations/add';
 import { getCurrentUserId } from '../../user/models/signed-in-user/get-current';

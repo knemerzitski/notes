@@ -6,13 +6,9 @@
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "useDefineForClassFields": true,
     "jsx": "react-jsx",
-
+    "baseUrl": ".",
     /* Modules */
-    "paths": {
-      "~api-app-shared/*": ["../api-app-shared/src/*"],
-      "~collab/*": ["../collab/src/*"],
-      "~utils/*": ["../utils/src/*"]
-    }
+    "paths": {}
   },
   "include": ["src", "cypress", "../api-app-shared/src", "../collab/src", "../utils/src"],
   "references": [{ "path": "./tsconfig.node.json" }]

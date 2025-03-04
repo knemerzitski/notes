@@ -12,8 +12,9 @@ import {
   TableBody,
 } from '@mui/material';
 
-import { Changeset } from '~collab/changeset';
-import { PartialDeep } from '~utils/types';
+import { Changeset } from '../../../../../collab/src/changeset';
+
+import { PartialDeep } from '../../../../../utils/src/types';
 
 import { gql } from '../../../__generated__';
 import { DevNoteUsersQueryQuery } from '../../../__generated__/graphql';

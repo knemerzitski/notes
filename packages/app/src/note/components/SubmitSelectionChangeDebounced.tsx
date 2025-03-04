@@ -2,11 +2,11 @@ import { useApolloClient } from '@apollo/client';
 import { RefObject, useCallback, useEffect, useRef } from 'react';
 
 import { Options, useDebouncedCallback } from 'use-debounce';
-import { SelectionRange } from '~collab/client/selection-range';
 
-import { RevisionChangeset } from '~collab/records/record';
+import { SelectionRange } from '../../../../collab/src/client/selection-range';
+import { RevisionChangeset } from '../../../../collab/src/records/record';
 
-import { EMPTY_ARRAY } from '~utils/array/empty';
+import { EMPTY_ARRAY } from '../../../../utils/src/array/empty';
 
 import { gql } from '../../__generated__';
 import { useStatsLink } from '../../graphql/context/stats-link';

@@ -1,7 +1,8 @@
 import { ApolloCache } from '@apollo/client';
 
 import { nanoid } from 'nanoid';
-import { DistributivePartialBy } from '~utils/types';
+
+import { DistributivePartialBy } from '../../../../../utils/src/types';
 
 import { gql } from '../../../__generated__';
 import { AddUserOperationQueryQuery, User } from '../../../__generated__/graphql';

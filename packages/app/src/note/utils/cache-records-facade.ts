@@ -1,12 +1,10 @@
 import { ApolloCache } from '@apollo/client';
 import mitt, { Emitter } from 'mitt';
-import { CollabServiceRecord } from '~collab/client/collab-service';
-import {
-  ServerRecordsFacade,
-  ServerRecordsFacadeEvents,
-} from '~collab/client/user-records';
 
-import { RevisionChangeset } from '~collab/records/record';
+import { CollabServiceRecord } from '../../../../collab/src/client/collab-service';
+import { ServerRecordsFacade, ServerRecordsFacadeEvents } from '../../../../collab/src/client/user-records';
+
+import { RevisionChangeset } from '../../../../collab/src/records/record';
 
 import { getFragmentData, gql } from '../../__generated__';
 

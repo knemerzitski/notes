@@ -1,6 +1,6 @@
 import { ApolloCache } from '@apollo/client';
 
-import { isObjectLike } from '~utils/type-guards/is-object-like';
+import { isObjectLike } from '../../../../../utils/src/type-guards/is-object-like';
 
 import { ApolloOperation } from '../../../__generated__/graphql';
 

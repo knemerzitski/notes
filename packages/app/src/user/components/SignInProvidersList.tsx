@@ -1,7 +1,7 @@
 import { useQuery } from '@apollo/client';
 import { List, ListItem, ListProps } from '@mui/material';
 
-import { PickDeep } from '~utils/types';
+import { PickDeep } from '../../../../utils/src/types';
 
 import { gql } from '../../__generated__';
 import { User } from '../../__generated__/graphql';

@@ -2,9 +2,10 @@ import './graphql/dev';
 
 import { PossibleTypesMap } from '@apollo/client';
 import { LocalStorageWrapper } from 'apollo3-cache-persist';
-import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
 
-import { createLogger } from '~utils/logging';
+import { GraphQLErrorCode } from '../../api-app-shared/src/graphql/error-codes';
+
+import { createLogger } from '../../utils/src/logging';
 
 import generatedPossibleTypes from './__generated__/possible-types.json';
 import { bootstrapCache } from './bootstrap';

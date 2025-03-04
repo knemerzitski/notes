@@ -1,13 +1,14 @@
 import { ApolloCache } from '@apollo/client';
 
-import { CollabService } from '~collab/client/collab-service';
+import { CollabService } from '../../../../collab/src/client/collab-service';
+import { SelectionRange } from '../../../../collab/src/client/selection-range';
 
-import { SelectionRange } from '~collab/client/selection-range';
-import { SimpleText } from '~collab/types';
-import { Logger } from '~utils/logging';
+import { SimpleText } from '../../../../collab/src/types';
+import { Logger } from '../../../../utils/src/logging';
+import { Maybe } from '../../../../utils/src/types';
 
 import { gql } from '../../__generated__';
-import { Maybe, Note, User } from '../../__generated__/graphql';
+import { Note, User } from '../../__generated__/graphql';
 import { getCollabTextRecords } from '../models/record-connection/get';
 
 import { getUserNoteLinkId } from './id';

@@ -1,6 +1,7 @@
 import { DocumentNode, Operation } from '@apollo/client';
 import { hasDirectives, removeDirectivesFromDocument } from '@apollo/client/utilities';
-import { memoize1 } from '~utils/memoize1';
+
+import { memoize1 } from '../../../../utils/src/memoize1';
 
 export class DirectiveFlag {
   private readonly transformRemove;

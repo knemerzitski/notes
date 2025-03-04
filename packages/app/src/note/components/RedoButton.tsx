@@ -2,7 +2,7 @@ import RedoIcon from '@mui/icons-material/Redo';
 import { IconButton, IconButtonProps, Tooltip } from '@mui/material';
 import { useEffect, useState } from 'react';
 
-import { CollabService } from '~collab/client/collab-service';
+import { CollabService } from '../../../../collab/src/client/collab-service';
 
 import { useCollabService } from '../hooks/useCollabService';
 

@@ -1,5 +1,6 @@
 import { DefaultContext, ApolloCache, MutationUpdaterFunction } from '@apollo/client';
-import { isObjectLike } from '~utils/type-guards/is-object-like';
+
+import { isObjectLike } from '../../../../utils/src/type-guards/is-object-like';
 
 /**
  * Takes a mutation update function and and transforms it.

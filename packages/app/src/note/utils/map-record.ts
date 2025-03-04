@@ -1,6 +1,6 @@
-import { Changeset } from '~collab/changeset';
-import { CollabServiceRecord } from '~collab/client/collab-service';
-import { SubmittedRecord } from '~collab/client/submitted-record';
+import { Changeset } from '../../../../collab/src/changeset';
+import { CollabServiceRecord } from '../../../../collab/src/client/collab-service';
+import { SubmittedRecord } from '../../../../collab/src/client/submitted-record';
 
 import { gql } from '../../__generated__';
 import {

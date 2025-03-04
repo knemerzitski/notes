@@ -1,9 +1,10 @@
 import mapObject from 'map-obj';
 import { coerce, instance, type, unknown } from 'superstruct';
-import { CollabServiceOptions, CollabService } from '~collab/client/collab-service';
-import { defineCreateJsonTextFromService } from '~collab/editor/json-text';
 
-import { createLogger } from '~utils/logging';
+import { CollabService, CollabServiceOptions } from '../../../../collab/src/client/collab-service';
+
+import { defineCreateJsonTextFromService } from '../../../../collab/src/editor/json-text';
+import { createLogger } from '../../../../utils/src/logging';
 
 import { NoteTextFieldName } from '../../__generated__/graphql';
 

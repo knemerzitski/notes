@@ -1,7 +1,8 @@
 import { Data, DataRef } from '@dnd-kit/core';
 import { ReactNode } from 'react';
-import { isObjectLike } from '~utils/type-guards/is-object-like';
-import { Maybe } from '~utils/types';
+
+import { isObjectLike } from '../../../../utils/src/type-guards/is-object-like';
+import { Maybe } from '../../../../utils/src/types';
 
 const DATA_KEY = 'dragOverlay';
 

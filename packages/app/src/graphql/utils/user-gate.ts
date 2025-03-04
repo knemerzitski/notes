@@ -1,5 +1,6 @@
 import { ApolloCache } from '@apollo/client';
-import { DefinedMap } from '~utils/map/defined-map';
+
+import { DefinedMap } from '../../../../utils/src/map/defined-map';
 
 import { gql } from '../../__generated__';
 import { GateController, GateLink } from '../link/gate';

@@ -1,7 +1,8 @@
 import { ApolloCache, DocumentNode } from '@apollo/client';
 
-import { isObjectLike } from '~utils/type-guards/is-object-like';
-import { Maybe } from '~utils/types';
+import { isObjectLike } from '../../../../utils/src/type-guards/is-object-like';
+
+import { Maybe } from '../../../../utils/src/types';
 
 import { gql } from '../../__generated__';
 import { hasRemoteDirective } from '../link/remote-directive';

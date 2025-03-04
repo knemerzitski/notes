@@ -13,7 +13,8 @@ import {
 import { isMutationOperation } from '@apollo/client/utilities';
 
 import { nanoid } from 'nanoid';
-import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
+
+import { GraphQLErrorCode } from '../../../../../api-app-shared/src/graphql/error-codes';
 
 import { DirectiveFlag } from '../../utils/directive-flag';
 

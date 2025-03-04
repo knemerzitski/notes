@@ -5,7 +5,8 @@ import {
   DroppableContainer,
   KeyboardCoordinateGetter,
 } from '@dnd-kit/core';
-import { Maybe } from '~utils/types';
+
+import { Maybe } from '../../../../utils/src/types';
 
 const directions: string[] = [
   KeyboardCode.Down,
