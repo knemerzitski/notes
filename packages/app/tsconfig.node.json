@@ -28,6 +28,7 @@
     "vitest.config.ts",
     "codegen.ts",
     "cypress.config.ts",
+    "cypress.config.init.ts",
     "virtual-routes.config.ts",
     "../utils/src"
   ],
