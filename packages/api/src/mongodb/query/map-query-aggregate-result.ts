@@ -1,6 +1,6 @@
-import { isDefined } from '~utils/type-guards/is-defined';
+import { isDefined } from '../../../../utils/src/type-guards/is-defined';
 
-import { isObjectLike } from '~utils/type-guards/is-object-like';
+import { isObjectLike } from '../../../../utils/src/type-guards/is-object-like';
 
 import { DescriptionDeep, FieldDescription } from './description';
 import { MergedQueryDeep } from './merge-queries';

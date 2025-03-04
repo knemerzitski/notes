@@ -1,6 +1,7 @@
 import { MongoClient, ObjectId } from 'mongodb';
 import { array, assign, object } from 'superstruct';
-import { Maybe } from '~utils/types';
+
+import { Maybe } from '../../../../utils/src/types';
 
 import { MongoDBCollections, CollectionName } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';

@@ -12,8 +12,9 @@ import {
   unknown,
 } from 'superstruct';
 
-import { Logger } from '~utils/logging';
-import { Maybe, ReadonlyDeep } from '~utils/types';
+import { Logger } from '../../../utils/src/logging';
+
+import { ReadonlyDeep, Maybe } from '../../../utils/src/types';
 
 import { Changeset, ChangesetStruct } from '../changeset';
 import { OptionalChangesetStruct } from '../changeset/struct';

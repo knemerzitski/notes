@@ -1,10 +1,9 @@
 import { MongoClient } from 'mongodb';
 
-import { ApolloHttpGraphQLContext } from '~lambda-graphql/apollo-http-handler';
-import { SubscriptionGraphQLContext } from '~lambda-graphql/pubsub/subscribe';
-
-import { BaseGraphQLContext } from '~lambda-graphql/type';
-import { WebSocketGraphQLContext } from '~lambda-graphql/websocket-handler';
+import { ApolloHttpGraphQLContext } from '../../../lambda-graphql/src/apollo-http-handler';
+import { SubscriptionGraphQLContext } from '../../../lambda-graphql/src/pubsub/subscribe';
+import { BaseGraphQLContext } from '../../../lambda-graphql/src/type';
+import { WebSocketGraphQLContext } from '../../../lambda-graphql/src/websocket-handler';
 
 import { MongoDBCollections } from '../mongodb/collections';
 

@@ -1,4 +1,4 @@
-import { maybeCallFn } from '~utils/maybe-call-fn';
+import { maybeCallFn } from '../../../../../../utils/src/maybe-call-fn';
 
 import { STRUCT_NUMBER } from '../../../../mongodb/constants';
 import { CursorForwardsPagination } from '../../../../mongodb/pagination/cursor-struct';

@@ -1,7 +1,7 @@
 import mapObject, { mapObjectSkip } from 'map-obj';
 import { assert, expect } from 'vitest';
 
-import { OrderedMessageBuffer } from '~utils/ordered-message-buffer';
+import { OrderedMessageBuffer } from '../../../../utils/src/ordered-message-buffer';
 
 import { CollabClient } from '../../client/collab-client';
 import { CollabService, CollabServiceOptions } from '../../client/collab-service';

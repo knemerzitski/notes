@@ -3,8 +3,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, expect, it } from 'vitest';
 
-import { Changeset } from '~collab/changeset';
-import { maybeCallFn } from '~utils/maybe-call-fn';
+import { Changeset } from '../../../../../../collab/src/changeset';
+import { maybeCallFn } from '../../../../../../utils/src/maybe-call-fn';
 
 import { mockResolver } from '../../../../__tests__/helpers/graphql/mock-resolver';
 import { QueryableCollabText } from '../../../../mongodb/loaders/note/descriptions/collab-text';

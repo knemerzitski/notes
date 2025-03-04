@@ -5,7 +5,7 @@ import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
+import { Subscription } from '../../../../../../../lambda-graphql/src/dynamodb/models/subscription';
 
 import { apolloServer } from '../../../../../__tests__/helpers/graphql/apollo-server';
 import {
@@ -84,7 +84,7 @@ beforeEach(async () => {
   user = fakeUserPopulateQueue();
   userReadOnly = fakeUserPopulateQueue();
   userNoAccess = fakeUserPopulateQueue();
-  ({note} = fakeNotePopulateQueue(user));
+  ({ note } = fakeNotePopulateQueue(user));
 
   userAddNote(user, note, {
     override: {

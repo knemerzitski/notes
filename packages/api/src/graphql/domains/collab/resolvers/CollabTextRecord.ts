@@ -1,4 +1,4 @@
-import { maybeCallFn } from '~utils/maybe-call-fn';
+import { maybeCallFn } from '../../../../../../utils/src/maybe-call-fn';
 
 import { createMapQueryFn } from '../../../../mongodb/query/query';
 import { RevisionChangesetSchema } from '../../../../mongodb/schema/changeset';

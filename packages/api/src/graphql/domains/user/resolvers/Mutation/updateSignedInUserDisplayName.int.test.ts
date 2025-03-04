@@ -5,8 +5,9 @@
 import { faker } from '@faker-js/faker';
 import { ObjectId, UpdateResult } from 'mongodb';
 import { MockInstance, beforeAll, vi, afterEach, beforeEach, it, expect } from 'vitest';
-import { GraphQLErrorCode } from '~api-app-shared/graphql/error-codes';
-import { Subscription } from '~lambda-graphql/dynamodb/models/subscription';
+
+import { GraphQLErrorCode } from '../../../../../../../api-app-shared/src/graphql/error-codes';
+import { Subscription } from '../../../../../../../lambda-graphql/src/dynamodb/models/subscription';
 
 import { apolloServer } from '../../../../../__tests__/helpers/graphql/apollo-server';
 import {
@@ -34,6 +35,8 @@ import {
   UpdateSignedInUserDisplayNamePayload,
 } from '../../../types.generated';
 import { signedInUserTopic } from '../Subscription/signedInUserEvents';
+
+
 
 interface Variables {
   input: Omit<UpdateSignedInUserDisplayNameInput, 'authUser'>;

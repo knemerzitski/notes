@@ -1,4 +1,4 @@
-import { wrapArray } from '~utils/array/wrap-array';
+import { wrapArray } from '../../../../utils/src/array/wrap-array';
 
 import { SessionsCookieModel } from '../../models/http/sessions-cookie';
 import { objectIdToStr } from '../../mongodb/utils/objectid';

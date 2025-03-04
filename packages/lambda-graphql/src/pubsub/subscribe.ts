@@ -1,5 +1,6 @@
 import { ExecutionContext } from 'graphql/execution/execute.js';
-import { MaybePromise } from '~utils/types';
+
+import { MaybePromise } from '../../../utils/src/types';
 
 import { getResolverArgs } from '../graphql/get-resolver-args';
 

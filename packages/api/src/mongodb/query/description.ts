@@ -1,4 +1,4 @@
-import { OmitStartsWith } from '~utils/types';
+import { OmitStartsWith } from '../../../../utils/src/types';
 
 import { MongoPrimitive } from '../types';
 

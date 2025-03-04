@@ -1,4 +1,4 @@
-import { Logger } from '~utils/logging';
+import { Logger } from '../../../utils/src/logging';
 
 import { Changeset, ChangesetOperationError } from '../changeset';
 import { swapChangesets } from '../changeset/swap-changesets';
@@ -101,7 +101,7 @@ export function processExternalChange(
     } catch (err) {
       if (err instanceof ChangesetOperationError && options?.logger) {
         console.error(err.message);
-        
+
         options.logger.error('processExternalChange.invalidTransform', {
           changeset: changeset.toString(),
           records: logRecords,

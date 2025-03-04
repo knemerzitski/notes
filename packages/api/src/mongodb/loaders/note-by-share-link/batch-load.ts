@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { InferRaw } from 'superstruct';
 
-import { groupBy } from '~utils/array/group-by';
+import { groupBy } from '../../../../../utils/src/array/group-by';
 
 import { mapQueryAggregateResult } from '../../query/map-query-aggregate-result';
 import { MergedQueryDeep, mergeQueries } from '../../query/merge-queries';

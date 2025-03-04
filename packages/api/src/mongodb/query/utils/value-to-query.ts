@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { isObjectLike } from '@graphql-tools/utils';
 import { Struct } from 'superstruct';
-import { mergedObjects } from '~utils/object/merge-objects';
-import { isObjectLike } from '~utils/type-guards/is-object-like';
 
-import { PickByPath } from '~utils/types';
+import { mergedObjects } from '../../../../../utils/src/object/merge-objects';
+import { PickByPath } from '../../../../../utils/src/types';
 
 import { QueryDeep } from '../query';
 

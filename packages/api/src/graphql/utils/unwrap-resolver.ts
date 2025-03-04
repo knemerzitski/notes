@@ -1,6 +1,5 @@
-import { maybeCallFn } from '~utils/maybe-call-fn';
-
-import { Maybe } from '~utils/types';
+import { maybeCallFn } from '../../../../utils/src/maybe-call-fn';
+import { Maybe } from '../../../../utils/src/types';
 
 import { ResolverTypeWrapper } from '../domains/types.generated';
 

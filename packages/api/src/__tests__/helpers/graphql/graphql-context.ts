@@ -1,15 +1,14 @@
 import { beforeEach, vi } from 'vitest';
 import { mockDeep } from 'vitest-mock-extended';
 
-import { WebSocketApi } from '~lambda-graphql/context/apigateway';
-import { createGraphQLContext } from '~lambda-graphql/context/graphql';
-import { SubscriptionTable } from '~lambda-graphql/dynamodb/models/subscription';
+import { WebSocketApi } from '../../../../../lambda-graphql/src/context/apigateway';
+import { createGraphQLContext } from '../../../../../lambda-graphql/src/context/graphql';
+import { SubscriptionTable } from '../../../../../lambda-graphql/src/dynamodb/models/subscription';
 import {
   Publisher,
   createPublisher as _createPublisher,
-} from '~lambda-graphql/pubsub/publish';
-
-import { PartialBy } from '~utils/types';
+} from '../../../../../lambda-graphql/src/pubsub/publish';
+import { PartialBy } from '../../../../../utils/src/types';
 
 import { resolvers } from '../../../graphql/domains/resolvers.generated';
 import { typeDefs } from '../../../graphql/domains/typeDefs.generated';

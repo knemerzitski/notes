@@ -1,12 +1,14 @@
 import 'source-map-support/register.js';
 import { APIGatewayProxyHandler } from 'aws-lambda';
 
-import { CustomHeaderName } from '~api-app-shared/custom-headers';
+import { CustomHeaderName } from '../../api-app-shared/src/custom-headers';
+
 import {
   createApolloHttpHandler,
   CreateApolloHttpHandlerParams,
-} from '~lambda-graphql/apollo-http-handler';
-import { createLogger, Logger } from '~utils/logging';
+} from '../../lambda-graphql/src/apollo-http-handler';
+
+import { createLogger, Logger } from '../../utils/src/logging';
 
 import { ApolloHttpHandlerGraphQLResolversContext } from './graphql/types';
 import { AuthenticatedContextsModel } from './models/auth/authenticated-contexts';

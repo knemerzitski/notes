@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { expect, it } from 'vitest';
 
-import { Changeset } from '~collab/changeset';
+import { Changeset } from '../../../../collab/src/changeset';
 
 import {
   mongoClient,

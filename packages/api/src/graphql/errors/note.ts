@@ -1,13 +1,13 @@
 import { GraphQLError } from 'graphql/index.js';
 import { ObjectId } from 'mongodb';
+
 import {
   GraphQLErrorCode,
-  InputType,
   ResourceType,
-} from '~api-app-shared/graphql/error-codes';
-
-import { ChangesetOperationError } from '~collab/changeset';
-import { InsertRecordError } from '~collab/records/process-record-insertion';
+  InputType,
+} from '../../../../api-app-shared/src/graphql/error-codes';
+import { ChangesetOperationError } from '../../../../collab/src/changeset';
+import { InsertRecordError } from '../../../../collab/src/records/process-record-insertion';
 
 import { NoteNotFoundQueryLoaderError } from '../../mongodb/loaders/note/loader';
 import { objectIdToStr } from '../../mongodb/utils/objectid';

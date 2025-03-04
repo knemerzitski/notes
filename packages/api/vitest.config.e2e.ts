@@ -1,4 +1,3 @@
-import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
 import {
@@ -14,7 +13,7 @@ const envDir = '../../';
 
 // eslint-disable-next-line import/no-default-export
 export default defineConfig({
-  plugins: [tsconfigPaths()],
+  plugins: [],
   envDir,
   test: {
     include: ['src/__tests__/e2e/**/*.test.ts'],

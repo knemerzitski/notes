@@ -1,7 +1,8 @@
 import { ObjectId, Document } from 'mongodb';
 import { InferRaw } from 'superstruct';
-import { groupBy } from '~utils/array/group-by';
-import { isDefined } from '~utils/type-guards/is-defined';
+
+import { groupBy } from '../../../../../utils/src/array/group-by';
+import { isDefined } from '../../../../../utils/src/type-guards/is-defined';
 
 import { mapQueryAggregateResult } from '../../query/map-query-aggregate-result';
 import { mergeQueries, MergedQueryDeep } from '../../query/merge-queries';

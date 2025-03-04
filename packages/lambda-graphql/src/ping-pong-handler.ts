@@ -1,7 +1,9 @@
 import { Handler } from 'aws-lambda';
 import { MessageType } from 'graphql-ws';
-import { Logger } from '~utils/logging';
-import { MaybePromise } from '~utils/types';
+
+import { Logger } from '../../utils/src/logging';
+
+import { MaybePromise } from '../../utils/src/types';
 
 import {
   ApiGatewayContextParams,

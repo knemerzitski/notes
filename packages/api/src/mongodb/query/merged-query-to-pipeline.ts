@@ -1,10 +1,9 @@
 import { Document } from 'mongodb';
 
-import { mergeObjects } from '~utils/object/merge-objects';
-import { stringPathToNestedObject } from '~utils/string/string-path-to-nested-object';
-import { isDefined } from '~utils/type-guards/is-defined';
-
-import { isObjectLike } from '~utils/type-guards/is-object-like';
+import { mergeObjects } from '../../../../utils/src/object/merge-objects';
+import { stringPathToNestedObject } from '../../../../utils/src/string/string-path-to-nested-object';
+import { isDefined } from '../../../../utils/src/type-guards/is-defined';
+import { isObjectLike } from '../../../../utils/src/type-guards/is-object-like';
 
 import { DescriptionDeep, FieldDescription } from './description';
 import { isMergedQueryArgField, MergedQueryDeep } from './merge-queries';

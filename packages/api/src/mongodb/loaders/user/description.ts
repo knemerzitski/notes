@@ -13,9 +13,10 @@ import {
   record,
   string,
 } from 'superstruct';
-import { isEmptyDeep } from '~utils/object/is-empty-deep';
-import { isDefined } from '~utils/type-guards/is-defined';
-import { isObjectLike } from '~utils/type-guards/is-object-like';
+
+import { isEmptyDeep } from '../../../../../utils/src/object/is-empty-deep';
+import { isDefined } from '../../../../../utils/src/type-guards/is-defined';
+import { isObjectLike } from '../../../../../utils/src/type-guards/is-object-like';
 
 import { MongoDBCollectionsOnlyNames, CollectionName } from '../../collections';
 import {

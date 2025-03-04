@@ -1,4 +1,3 @@
-import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
 import { assertMongoDBIsRunning } from '../utils/src/running-processes';
@@ -7,7 +6,7 @@ assertMongoDBIsRunning();
 
 // eslint-disable-next-line import/no-default-export
 export default defineConfig({
-  plugins: [tsconfigPaths()],
+  plugins: [],
   envDir: '../../',
   test: {
     include: ['src/**/*.int.test.ts'],

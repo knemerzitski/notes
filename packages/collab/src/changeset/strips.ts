@@ -1,4 +1,4 @@
-import { rangeRelation } from '~utils/range-relation';
+import { rangeRelation } from '../../../utils/src/range-relation';
 
 import { getDefaultStripLength } from './strip-length';
 

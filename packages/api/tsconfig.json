@@ -2,13 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     /* Modules */
-    "paths": {
-      "~api/*": ["../api/src/*"],
-      "~api-app-shared/*": ["../api-app-shared/src/*"],
-      "~lambda-graphql/*": ["../lambda-graphql/src/*"],
-      "~collab/*": ["../collab/src/*"],
-      "~utils/*": ["../utils/src/*"]
-    }
+    "paths": {}
   },
   "include": [
     "src",

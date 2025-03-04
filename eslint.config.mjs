@@ -12,12 +12,7 @@ import configPrettier from 'eslint-config-prettier';
 export default [
   // Ignores
   {
-    ignores: [
-      '**/out',
-      '**/dist',
-      '**/*.config*.{mjs,ts}',
-      '**/.prettierrc.cjs',
-    ],
+    ignores: ['**/out', '**/dist', '**/*.config*.{mjs,ts}', '**/.prettierrc.cjs'],
   },
   {
     languageOptions: {
@@ -113,7 +108,9 @@ export default [
         {
           pathGroups: [
             {
-              pattern: '~*/**',
+              // Group external importing from another monorepo package
+              // Repeating parent directory into src: **/{,..,../.., ... }/*/src/**
+              pattern: `**/{${[...new Array(10)].map((_, i) => [...new Array(i)].map(() => '..').join('/'))}}/*/src/**`,
               group: 'external',
               position: 'after',
             },

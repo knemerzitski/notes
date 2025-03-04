@@ -1,4 +1,4 @@
-import { ReadonlyDeep } from '~utils/types';
+import { ReadonlyDeep } from '../../../utils/src/types';
 
 import { Changeset, ChangesetOperationError } from '../changeset';
 import { SelectionRange } from '../client/selection-range';

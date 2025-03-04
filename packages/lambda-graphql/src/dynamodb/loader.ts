@@ -1,8 +1,8 @@
 import DataLoader from 'dataloader';
 
-import { DefinedMap } from '~utils/map/defined-map';
-import { sortObject } from '~utils/object/sort-object';
-import { OmitUndefined } from '~utils/types';
+import { DefinedMap } from '../../../utils/src/map/defined-map';
+import { sortObject } from '../../../utils/src/object/sort-object';
+import { OmitUndefined } from '../../../utils/src/types';
 
 export type ObjectLoader<
   TObject extends object,

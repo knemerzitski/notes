@@ -1,12 +1,12 @@
 import { MongoClient, ObjectId } from 'mongodb';
 
 import { assign, object, array } from 'superstruct';
-import { ChangesetError } from '~collab/changeset';
-import { SelectionRange } from '~collab/client/selection-range';
-import { processRecordInsertion } from '~collab/records/process-record-insertion';
 
-import { RevisionChangeset, ServerRevisionRecord } from '~collab/records/record';
-import { RevisionRecords } from '~collab/records/revision-records';
+import { ChangesetError } from '../../../../collab/src/changeset';
+import { SelectionRange } from '../../../../collab/src/client/selection-range';
+import { processRecordInsertion } from '../../../../collab/src/records/process-record-insertion';
+import { RevisionChangeset, ServerRevisionRecord } from '../../../../collab/src/records/record';
+import { RevisionRecords } from '../../../../collab/src/records/revision-records';
 
 import { CollectionName, MongoDBCollections } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';

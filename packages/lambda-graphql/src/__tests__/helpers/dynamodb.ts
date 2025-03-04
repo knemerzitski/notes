@@ -4,7 +4,8 @@ import {
   ScanCommand,
 } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
-import { retryOnError } from '~utils/retry-on-error';
+
+import { retryOnError } from '../../../../utils/src/retry-on-error';
 
 export function createDynamoDBContext() {
   const client = new DynamoDBClient({

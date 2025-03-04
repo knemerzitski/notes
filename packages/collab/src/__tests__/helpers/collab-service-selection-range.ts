@@ -1,6 +1,6 @@
 import mitt, { Emitter } from 'mitt';
 
-import { ReadonlyDeep } from '~utils/types';
+import { ReadonlyDeep } from '../../../../utils/src/types';
 
 import { Changeset } from '../../changeset';
 import { CollabService } from '../../client/collab-service';

@@ -1,8 +1,7 @@
 import { ObjectId } from 'mongodb';
 
-import { PublisherOptions } from '~lambda-graphql/pubsub/publish';
-
-import { isDefined } from '~utils/type-guards/is-defined';
+import { PublisherOptions } from '../../../../../../../lambda-graphql/src/pubsub/publish';
+import { isDefined } from '../../../../../../../utils/src/type-guards/is-defined';
 
 import { QueryableNoteUser } from '../../../../../mongodb/loaders/note/descriptions/note';
 import { createMapQueryFn } from '../../../../../mongodb/query/query';

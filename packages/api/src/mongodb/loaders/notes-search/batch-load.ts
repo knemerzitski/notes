@@ -1,5 +1,6 @@
 import { InferRaw } from 'superstruct';
-import { groupBy } from '~utils/array/group-by';
+
+import { groupBy } from '../../../../../utils/src/array/group-by';
 
 import { STRUCT_STRING } from '../../constants';
 import {

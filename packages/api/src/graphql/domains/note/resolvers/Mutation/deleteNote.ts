@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb';
 
-import { WithRequired } from '~utils/types';
+import { WithRequired } from '../../../../../../../utils/src/types';
 
 import { deleteNote as service_deleteNote } from '../../../../../services/note/delete-note';
 import { UserNoteLink_id } from '../../../../../services/note/user-note-link-id';

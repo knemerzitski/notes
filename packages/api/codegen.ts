@@ -7,7 +7,7 @@ const config: CodegenConfig = {
     './src/graphql/domains': defineConfig({
       add: {
         './types.generated.ts': {
-          content: "import { MaybeValue } from '~utils/types';",
+          content: "import { MaybeValue } from '../../../../utils/src/types';",
         },
       },
       scalarsOverrides: {
@@ -20,7 +20,7 @@ const config: CodegenConfig = {
           type: '../../services/note/user-note-link-id#UserNoteLinkId',
         },
         Changeset: {
-          type: '~collab/changeset#Changeset',
+          type: '../../../../collab/src/changeset#Changeset',
         },
         Cursor: {
           type: 'string | number',

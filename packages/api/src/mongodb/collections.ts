@@ -7,7 +7,7 @@ import {
   SearchIndexDescription,
 } from 'mongodb';
 
-import { retryOnError } from '~utils/retry-on-error';
+import { retryOnError } from '../../../utils/src/retry-on-error';
 
 import { collabRecordDescription, DBCollabRecordSchema } from './schema/collab-record';
 import {

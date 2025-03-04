@@ -1,4 +1,4 @@
-import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
+import { AuthenticationFailedReason } from '../../../../api-app-shared/src/graphql/error-codes';
 
 import { CollectionName, MongoDBCollections } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';

@@ -1,6 +1,6 @@
 import { OAuth2Client } from 'google-auth-library';
 
-import { isEnvironmentVariableTruthy } from '~utils/string/is-environment-variable-truthy';
+import { isEnvironmentVariableTruthy } from '../../../../../utils/src/string/is-environment-variable-truthy';
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const CLIENT_ID = process.env.VITE_GOOGLE_CLIENT_ID!;

@@ -8,9 +8,12 @@ import {
 import { buildExecutionContext } from 'graphql/execution/execute.js';
 import { GraphQLSchema, parse } from 'graphql/index.js';
 import { MessageType } from 'graphql-ws';
-import { isArray } from '~utils/array/is-array';
-import { Logger } from '~utils/logging';
-import { MaybePromise } from '~utils/types';
+
+import { isArray } from '../../utils/src/array/is-array';
+
+import { Logger } from '../../utils/src/logging';
+
+import { MaybePromise } from '../../utils/src/types';
 
 import { WebSocketConnectEvent } from './connect-handler';
 import {

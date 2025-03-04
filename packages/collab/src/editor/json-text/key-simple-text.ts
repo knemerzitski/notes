@@ -1,5 +1,6 @@
 import mitt, { Emitter } from 'mitt';
-import { isDefined } from '~utils/type-guards/is-defined';
+
+import { isDefined } from '../../../../utils/src/type-guards/is-defined';
 
 import { Changeset, InsertStrip, RetainStrip, Strip } from '../../changeset';
 import { CollabService, CollabServiceEvents } from '../../client/collab-service';

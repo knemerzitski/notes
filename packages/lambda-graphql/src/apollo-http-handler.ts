@@ -5,9 +5,10 @@ import {
   APIGatewayProxyResult,
 } from 'aws-lambda';
 import { GraphQLSchema } from 'graphql/index.js';
-import { Logger } from '~utils/logging';
 
-import { MaybePromise } from '~utils/types';
+import { Logger } from '../../utils/src/logging';
+
+import { MaybePromise } from '../../utils/src/types';
 
 import { lowercaseHeaderKeys } from './apigateway-proxy-event/lowercase-header-keys';
 import { parseGraphQLRequestEvent } from './apigateway-proxy-event/parse-graphql-request-event';

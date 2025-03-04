@@ -1,7 +1,8 @@
 import { buildExecutionContext } from 'graphql/execution/execute.js';
 import { OperationTypeNode, parse } from 'graphql/index.js';
 import { MessageType } from 'graphql-ws';
-import { isArray } from '~utils/array/is-array';
+
+import { isArray } from '../../../utils/src/array/is-array';
 
 import { Subscription } from '../dynamodb/models/subscription';
 import { formatUnknownError } from '../graphql/format-unknown-error';

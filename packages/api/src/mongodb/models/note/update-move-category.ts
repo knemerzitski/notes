@@ -1,6 +1,6 @@
 import { ObjectId, UpdateFilter } from 'mongodb';
 
-import { Maybe } from '~utils/types';
+import { Maybe } from '../../../../../utils/src/types';
 
 import { MongoDBCollections, CollectionName } from '../../collections';
 import { MongoReadonlyDeep } from '../../types';

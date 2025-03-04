@@ -11,7 +11,7 @@ import {
   string,
 } from 'superstruct';
 
-import { SelectionRange } from '~collab/client/selection-range';
+import { SelectionRange } from '../../../../collab/src/client/selection-range';
 
 import { CollectionDescription } from '../collections';
 

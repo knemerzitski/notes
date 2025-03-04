@@ -1,4 +1,4 @@
-import { consecutiveOrderedSetIndexOf } from '~utils/ordered-set/consecutive-ordered-set';
+import { consecutiveOrderedSetIndexOf } from '../../../utils/src/ordered-set/consecutive-ordered-set';
 
 import { Revision } from './record';
 

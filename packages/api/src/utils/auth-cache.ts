@@ -1,4 +1,4 @@
-import { ConnectionTable } from '~lambda-graphql/dynamodb/models/connection';
+import { ConnectionTable } from '../../../lambda-graphql/src/dynamodb/models/connection';
 
 import { ApiOptions } from '../graphql/types';
 import { CookiesMongoDBDynamoDBAuthenticationService } from '../services/auth/auth-service';

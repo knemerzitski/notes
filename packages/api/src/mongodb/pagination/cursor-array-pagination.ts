@@ -1,8 +1,9 @@
 import isEqual from 'lodash.isequal';
 import { Struct } from 'superstruct';
 
-import { isNonEmptyArray } from '~utils/array/is-non-empty-array';
-import { isObjectLike } from '~utils/type-guards/is-object-like';
+
+import { isNonEmptyArray } from '../../../../utils/src/array/is-non-empty-array';
+import { isObjectLike } from '../../../../utils/src/type-guards/is-object-like';
 
 import {
   CursorAfterPagination,

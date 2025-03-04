@@ -1,9 +1,8 @@
 import { ObjectId } from 'mongodb';
 
-import { AuthenticationFailedReason } from '~api-app-shared/graphql/error-codes';
-
-import { wrapArray } from '~utils/array/wrap-array';
-import { isDefined } from '~utils/type-guards/is-defined';
+import { AuthenticationFailedReason } from '../../../../api-app-shared/src/graphql/error-codes';
+import { wrapArray } from '../../../../utils/src/array/wrap-array';
+import { isDefined } from '../../../../utils/src/type-guards/is-defined';
 
 import { AuthenticatedContextsModel } from '../../models/auth/authenticated-contexts';
 import { CollectionName, MongoDBCollections } from '../../mongodb/collections';

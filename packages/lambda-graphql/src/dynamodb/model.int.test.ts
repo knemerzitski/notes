@@ -14,7 +14,7 @@ import { beforeAll, it, expect, beforeEach } from 'vitest';
 
 import { mock } from 'vitest-mock-extended';
 
-import { Logger } from '~utils/logging';
+import { Logger } from '../../../utils/src/logging';
 
 import { dynamoDBDocumentClient } from '../__tests__/helpers/dynamodb';
 

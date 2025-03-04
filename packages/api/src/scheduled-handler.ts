@@ -1,7 +1,7 @@
 import { Handler } from 'aws-lambda';
 
 import 'source-map-support/register.js';
-import { createLogger, Logger } from '~utils/logging';
+import { createLogger, Logger } from '../../utils/src/logging';
 
 import { NoteCategory } from './graphql/domains/types.generated';
 import { MongoDBCollections } from './mongodb/collections';
