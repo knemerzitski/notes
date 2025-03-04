@@ -1,3 +1,5 @@
+import path from 'node:path';
+
 import globals from 'globals';
 
 import {
