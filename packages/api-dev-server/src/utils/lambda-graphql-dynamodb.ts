@@ -6,9 +6,10 @@ import {
 } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import waitPort from 'wait-port';
-import { assertDynamoDBIsReachable } from '~lambda-graphql/__tests__/helpers/dynamodb';
-import { createTableCommandInputs } from '~lambda-graphql/dynamodb/schema';
-import { Logger } from '~utils/logging';
+
+import { assertDynamoDBIsReachable } from '../../../lambda-graphql/src/__tests__/helpers/dynamodb';
+import { createTableCommandInputs } from '../../../lambda-graphql/src/dynamodb/schema';
+import { Logger } from '../../../utils/src/logging';
 
 export async function waitForDynamoDBPort(endpoint: string, logger: Logger) {
   logger.info('waitForDynamoDBPort', 'Connecting...');

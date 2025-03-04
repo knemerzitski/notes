@@ -1,5 +1,6 @@
 import waitPort from 'wait-port';
-import { Logger } from '~utils/logging';
+
+import { Logger } from '../../../utils/src/logging';
 
 export async function waitForMongoDBPort(uri: string, logger: Logger) {
   logger.info('waitForMongoDBPort', 'Connecting...');

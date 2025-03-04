@@ -4,8 +4,9 @@ import {
   APIGatewayProxyResult,
 } from 'aws-lambda';
 import express from 'express';
-import { isArray } from '~utils/array/is-array';
-import { Logger } from '~utils/logging';
+
+import { isArray } from '../../../utils/src/array/is-array';
+import { Logger } from '../../../utils/src/logging';
 
 import apiGatewayProxyEventFixture from '../../fixtures/apiGatewayProxyEvent.json';
 import { getDistinctMultiValueHeaders } from '../utils/headers';

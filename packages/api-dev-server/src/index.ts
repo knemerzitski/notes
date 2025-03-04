@@ -3,16 +3,16 @@ import './load-env';
 import { inspect } from 'util';
 
 import WebSocket from 'ws';
-import { createApolloHttpHandlerDefaultParams } from '~api/apollo-http-handler';
-import { createInitializeHandler } from '~api/initialize-handler';
-import { createScheduledHandler } from '~api/scheduled-handler';
-import { createWebSocketHandlerDefaultParams } from '~api/websocket-handler';
-import { createApolloHttpHandler } from '~lambda-graphql/apollo-http-handler';
-import { createWebSocketHandler } from '~lambda-graphql/websocket-handler';
-import { assertGetEnvironmentVariables } from '~utils/env';
-import { createLogger } from '~utils/logging';
 
-import { isEnvironmentVariableTruthy } from '~utils/string/is-environment-variable-truthy';
+import { createApolloHttpHandlerDefaultParams } from '../../api/src/apollo-http-handler';
+import { createInitializeHandler } from '../../api/src/initialize-handler';
+import { createScheduledHandler } from '../../api/src/scheduled-handler';
+import { createWebSocketHandlerDefaultParams } from '../../api/src/websocket-handler';
+import { createApolloHttpHandler } from '../../lambda-graphql/src/apollo-http-handler';
+import { createWebSocketHandler } from '../../lambda-graphql/src/websocket-handler';
+import { assertGetEnvironmentVariables } from '../../utils/src/env';
+import { createLogger } from '../../utils/src/logging';
+import { isEnvironmentVariableTruthy } from '../../utils/src/string/is-environment-variable-truthy';
 
 import { mockApolloHttpHandlerDefaultParamsOptions } from './handlers/mock-apollo-http-handler';
 import { mockCreateInitializeHandlerOptions } from './handlers/mock-initialize-handler';

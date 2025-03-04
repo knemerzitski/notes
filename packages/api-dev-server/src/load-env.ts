@@ -1,6 +1,6 @@
-import { loadEnvironmentVariables } from '~utils/env';
-import { createLogger } from '~utils/logging';
-import { logNodeInfo } from '~utils/node';
+import { loadEnvironmentVariables } from '../../utils/src/env';
+import { createLogger } from '../../utils/src/logging';
+import { logNodeInfo } from '../../utils/src/node';
 
 const logger = createLogger('load-env');
 
