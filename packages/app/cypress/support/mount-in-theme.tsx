@@ -1,13 +1,13 @@
+import { MockLink } from '@apollo/client/testing';
 import { Box, Card } from '@mui/material';
 import { mount } from 'cypress/react18';
 import { ReactNode } from 'react';
 
 import './commands';
-import { AppThemeModuleProvider } from '../../src/theme/components/AppThemeModuleProvider';
 import { GraphQLServiceProvider } from '../../src/graphql/components/GraphQLServiceProvider';
 import { createGraphQLService } from '../../src/graphql/create/service';
-import { MockLink } from '@apollo/client/testing';
 import { createDefaultGraphQLServiceParams } from '../../src/graphql-service';
+import { AppThemeModuleProvider } from '../../src/theme/components/AppThemeModuleProvider';
 
 /**
  * Mount in a experimental sandbox to tinker with components.

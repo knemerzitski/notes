@@ -1,9 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
-    /* Language and Environment */
-    "jsx": "react-jsx",
-
     /* Modules */
     "module": "ESNext",
     "moduleResolution": "bundler",
@@ -22,8 +19,6 @@
     "baseUrl": "."
   },
   "include": [
-    "src",
-    "cypress",
     "vite.config.ts",
     "vitest.config.ts",
     "codegen.ts",
