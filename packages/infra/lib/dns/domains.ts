@@ -3,7 +3,7 @@ import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { CloudFrontTarget, Route53RecordTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { Construct } from 'constructs';
 
-import { isNonEmptyMutableArray } from '~utils/array/is-non-empty-array';
+import { isNonEmptyMutableArray } from '../../../utils/src/array/is-non-empty-array';
 
 export interface DomainsProps {
   definitions: string | DomainDefinition[];

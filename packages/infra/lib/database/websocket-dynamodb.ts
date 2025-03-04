@@ -1,5 +1,6 @@
 import { Construct } from 'constructs';
-import { createCdkTableConstructs } from '~lambda-graphql/dynamodb/schema';
+
+import { createCdkTableConstructs } from '../../../lambda-graphql/src/dynamodb/schema';
 
 export class WebSocketDynamoDB extends Construct {
   readonly tables: ReturnType<typeof createCdkTableConstructs>;

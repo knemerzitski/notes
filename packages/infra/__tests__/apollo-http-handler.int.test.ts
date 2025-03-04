@@ -7,7 +7,7 @@
 
 import { beforeEach, expect, it } from 'vitest';
 
-import { resetDatabase } from '~api/__tests__/helpers/mongodb/mongodb';
+import { resetDatabase } from '../../api/src/__tests__/helpers/mongodb/mongodb';
 
 // TODO use api e2e test helpers
 

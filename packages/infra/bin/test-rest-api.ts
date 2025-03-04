@@ -3,14 +3,16 @@ import { join } from 'node:path';
 
 import { App } from 'aws-cdk-lib';
 
-import { createLambdaGraphQLDynamoDBTables } from '~api-dev-server/utils/lambda-graphql-dynamodb';
-
-import { loadEnvironmentVariables, assertGetEnvironmentVariables } from '~utils/env';
-import { createLogger } from '~utils/logging';
-import { logNodeInfo } from '~utils/node';
-import { getProjectRootDir } from '~utils/project-dir';
-
+import { createLambdaGraphQLDynamoDBTables } from '../../api-dev-server/src/utils/lambda-graphql-dynamodb';
+import {
+  loadEnvironmentVariables,
+  assertGetEnvironmentVariables,
+} from '../../utils/src/env';
+import { createLogger } from '../../utils/src/logging';
+import { logNodeInfo } from '../../utils/src/node';
+import { getProjectRootDir } from '../../utils/src/project-dir';
 import { assertDynamoDBIsRunning } from '../../utils/src/running-processes';
+
 import { RestApiStack } from '../test/stacks/rest-api-stack';
 
 /**
