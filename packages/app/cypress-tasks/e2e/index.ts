@@ -2,8 +2,6 @@ import { defineConfig } from 'cypress';
 
 import { resetDatabase } from './mongodb';
 
-export type Task_ResetDatabase = typeof resetDatabase;
-
 type SetupNodeEventsFn = NonNullable<
   Parameters<typeof defineConfig>[0]['setupNodeEvents']
 >;
@@ -17,3 +15,7 @@ export const setupNodeEvents: SetupNodeEventsFn = (on, _config) => {
     resetDatabase,
   });
 };
+
+export interface Tasks {
+  resetDatabase: typeof resetDatabase;
+}

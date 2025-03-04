@@ -17,8 +17,8 @@
 import './commands';
 
 // Import commands.js using ES2015 syntax:
-import { Task_ResetDatabase } from '../tasks/e2e';
 import {
+  e2e_Tasks,
   GetNoteCollabTextRevisionResult,
   WsConnectResult,
   WsSubscribeOptions,
@@ -26,8 +26,7 @@ import {
   WsGetSubscriptionDataResult,
   GetNoteCollabTextRevisionOptions,
   WsConnectOptions,
-} from '../types';
-
+} from '../../cypress-tasks';
 
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
@@ -70,7 +69,7 @@ declare global {
       /**
        * Resets database deleting all collections/tables/rows/documents
        */
-      resetDatabase: ChainableFn<Task_ResetDatabase>;
+      resetDatabase: ChainableFn<e2e_Tasks['resetDatabase']>;
       getNoteCollabTextRevision(
         options: GetNoteCollabTextRevisionOptions
       ): Chainable<GetNoteCollabTextRevisionResult>;

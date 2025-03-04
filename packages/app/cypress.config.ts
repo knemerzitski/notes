@@ -3,12 +3,14 @@ import './cypress.config.init';
 
 import { defineConfig } from 'cypress';
 
-import { loadEnvironmentVariables } from '../utils/src/env';
 import { MongoClient, ObjectId } from 'mongodb';
 import { WebSocket } from 'ws';
 import { GRAPHQL_TRANSPORT_WS_PROTOCOL } from 'graphql-ws';
 import { nanoid } from 'nanoid';
+
 import {
+  component_setupNodeEvents,
+  e2e_setupNodeEvents,
   WebSocketContext,
   GetNoteCollabTextRevisionOptions,
   GetNoteCollabTextRevisionResult,
@@ -18,9 +20,7 @@ import {
   WsSubscribeResult,
   WsGetSubscriptionDataOptions,
   WsGetSubscriptionDataResult,
-} from './cypress/types';
-
-import { component_setupNodeEvents, e2e_setupNodeEvents } from './cypress/tasks';
+} from './cypress-tasks';
 
 const VITE_APP_PORT = process.env.VITE_APP_PORT ?? 6173;
 

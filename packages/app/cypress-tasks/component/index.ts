@@ -7,3 +7,8 @@ type SetupNodeEventsFn = NonNullable<
 export const setupNodeEvents: SetupNodeEventsFn = (_on, _config) => {
   //
 };
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface Tasks {
+  //
+}

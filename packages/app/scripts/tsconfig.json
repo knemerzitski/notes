@@ -1,0 +1,9 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    /* Language and Environment */
+    "module": "ESNext",
+    "target": "ESNext"
+  },
+  "include": ["."]
+}

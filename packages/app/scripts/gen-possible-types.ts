@@ -1,10 +1,15 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { execSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+
 import dotenv from 'dotenv';
 import { format as prettierFormat } from 'prettier';
-import { execSync } from 'node:child_process';
 
 const FILENAME = 'possible-types.json';
 
@@ -39,7 +44,9 @@ async function generatePossibleTypes({
   const port = new URL(fetchUrl).port;
 
   console.log(`Starting a temporary GraphQL server on port ${port}...`);
-  execSync(`export PORT=${port} NO_DB_MODE=1 DEBUG=*:ERROR,*:INFO; npm run -w dev-server start:detached`);
+  execSync(
+    `export PORT=${port} NO_DB_MODE=1 DEBUG=*:ERROR,*:INFO; npm run -w dev-server start:detached`
+  );
 
   try {
     const res = await fetch(fetchUrl, {

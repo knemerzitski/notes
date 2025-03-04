@@ -1,6 +1,20 @@
 import { ConnectionInitMessage } from 'graphql-ws';
 import { WebSocket } from 'ws';
 
+import {
+  setupNodeEvents as _component_setupNodeEvents,
+  Tasks as _component_Tasks,
+} from './component';
+import { setupNodeEvents as _e2e_setupNodeEvents, Tasks as _e2e_Tasks } from './e2e';
+
+export const e2e_setupNodeEvents = _e2e_setupNodeEvents;
+export type e2e_Tasks = _e2e_Tasks;
+
+export const component_setupNodeEvents = _component_setupNodeEvents;
+export type component_Tasks = _component_Tasks;
+
+// ##################################################
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface GetNoteCollabTextRevisionOptions {
   noteId: string;
