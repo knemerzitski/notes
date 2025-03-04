@@ -2,9 +2,9 @@ import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 import { beforeEach, it, expect } from 'vitest';
 
+import { mongoCollectionStats } from '../../../__tests__/helpers/mongodb/mongo-collection-stats';
 import {
   resetDatabase,
-  mongoCollectionStats,
   mongoCollections,
 } from '../../../__tests__/helpers/mongodb/mongodb';
 import { DBUserSchema, UserSchema } from '../../schema/user';

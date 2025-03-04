@@ -1,10 +1,10 @@
 import { faker } from '@faker-js/faker';
 import { beforeEach, expect, it } from 'vitest';
 
+import { mongoCollectionStats } from '../../__tests__/helpers/mongodb/mongo-collection-stats';
 import {
   createMongoDBApiContext,
   mongoCollections,
-  mongoCollectionStats,
   resetDatabase,
 } from '../../__tests__/helpers/mongodb/mongodb';
 

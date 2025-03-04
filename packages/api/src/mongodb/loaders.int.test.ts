@@ -3,11 +3,11 @@ import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 import { afterEach, assert, beforeAll, beforeEach, expect, it, vi } from 'vitest';
 
+import { mongoCollectionStats } from '../__tests__/helpers/mongodb/mongo-collection-stats';
 import {
   resetDatabase,
   mongoCollections,
   mongoClient,
-  mongoCollectionStats,
 } from '../__tests__/helpers/mongodb/mongodb';
 import {
   populateNotes,

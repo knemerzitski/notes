@@ -7,9 +7,9 @@ import {
   createGraphQLResolversContext,
 } from '../../../../../__tests__/helpers/graphql/graphql-context';
 import { expectGraphQLResponseData } from '../../../../../__tests__/helpers/graphql/response';
+import { mongoCollectionStats } from '../../../../../__tests__/helpers/mongodb/mongo-collection-stats';
 import {
   resetDatabase,
-  mongoCollectionStats,
 } from '../../../../../__tests__/helpers/mongodb/mongodb';
 import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/populate/populate-queue';
 import { fakeSessionPopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/session';

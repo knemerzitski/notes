@@ -4,10 +4,10 @@ import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 import { beforeAll, it, expect, beforeEach } from 'vitest';
 
+import { mongoCollectionStats } from '../../../__tests__/helpers/mongodb/mongo-collection-stats';
 import {
   resetDatabase,
   mongoCollections,
-  mongoCollectionStats,
 } from '../../../__tests__/helpers/mongodb/mongodb';
 import {
   TestNoteCategory,

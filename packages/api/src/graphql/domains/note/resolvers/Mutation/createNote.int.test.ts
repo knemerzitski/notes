@@ -31,9 +31,9 @@ import {
   expectGraphQLResponseData,
   expectGraphQLResponseError,
 } from '../../../../../__tests__/helpers/graphql/response';
+import { mongoCollectionStats } from '../../../../../__tests__/helpers/mongodb/mongo-collection-stats';
 import {
   mongoCollections,
-  mongoCollectionStats,
   resetDatabase,
 } from '../../../../../__tests__/helpers/mongodb/mongodb';
 import { fakeNotePopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/note';

@@ -5,10 +5,10 @@ import { beforeAll, it, assert, expect, beforeEach } from 'vitest';
 
 import { Changeset } from '../../../../../collab/src/changeset';
 
+import { mongoCollectionStats } from '../../../__tests__/helpers/mongodb/mongo-collection-stats';
 import {
   resetDatabase,
   mongoCollections,
-  mongoCollectionStats,
 } from '../../../__tests__/helpers/mongodb/mongodb';
 import {
   populateUserAddNote,
