@@ -11,7 +11,9 @@ export interface Entry<Key, Value> {
   value: Value;
 }
 
-// @source https://stackoverflow.com/questions/57103834/typescript-omit-a-property-from-all-interfaces-in-a-union-but-keep-the-union-s
+/**
+ * @source {@link https://stackoverflow.com/questions/57103834/typescript-omit-a-property-from-all-interfaces-in-a-union-but-keep-the-union-s}
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type DistributiveOmit<T, K extends keyof any> = T extends any ? Omit<T, K> : never;
 
@@ -111,7 +113,7 @@ export type PickDeep<T, V extends PickerDeep<T, P>, P = Primitive> = T extends P
       : never;
 
 /**
- * @source https://stackoverflow.com/questions/74852202/typescript-pick-only-properties-key-that-starts-with-a-target-string
+ * @source {@link https://stackoverflow.com/questions/74852202/typescript-pick-only-properties-key-that-starts-with-a-target-string}
  */
 export type PickStartsWith<T extends object, S extends string> = {
   [K in keyof T as K extends `${S}${infer _R}` ? K : never]: T[K];

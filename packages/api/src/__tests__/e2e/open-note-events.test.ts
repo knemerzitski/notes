@@ -241,7 +241,9 @@ function createGraphQLOperations(http: Awaited<ReturnType<typeof createHttpOpera
           } satisfies UpdateOpenNoteSelectionRangeInput,
         },
       },
-      http.fetch
+      {
+        fetchFn: http.fetch,
+      }
     );
   }
 

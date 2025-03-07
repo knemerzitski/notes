@@ -12,7 +12,10 @@ export type FetchFn = (options: {
   readonly status?: number;
 }>;
 
-export interface GraphQLRequest<TVariables> {
+export interface GraphQLRequest<
+  // eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style, @typescript-eslint/no-explicit-any
+  TVariables extends { [name: string]: any } = { [name: string]: any },
+> {
   operationName?: string;
   query?: string;
   variables?: TVariables;

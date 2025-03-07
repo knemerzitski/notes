@@ -1,15 +1,17 @@
- 
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
+ 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { CollectionName } from '../../../api/src/mongodb/collection-names';
+
 import {
   SignInInput,
   OpenNoteEventsInput,
   UpdateNoteInsertRecordInput,
   CollabTextRecordInput,
 } from '../../src/__generated__/graphql';
+import { Unchainable } from '../support/types';
 
 const SIGN_IN = `#graphql
   mutation SignIn($input: SignInInput!){
@@ -60,68 +62,59 @@ const NOTE_EVENTS_SUBSCRIPTION = `#graphql
   }
 `;
 
-function requestSignIn(options: { userId: string }) {
-  return cy
+export type ChainableGraphQLSession = Unchainable<ReturnType<typeof cy.graphQLSession>>;
+
+function requestSignIn(
+  options: {
+    googleUserId: string;
+  },
+  ctx: {
+    graphQLSession: ChainableGraphQLSession;
+  }
+) {
+  return ctx.graphQLSession
     .request({
-      url: Cypress.env('API_URL'),
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        operationName: 'SignIn',
-        variables: {
-          input: {
-            auth: {
-              google: {
-                token: `{"id":"${options.userId}","name":"User 1","email":"test@test"}`,
-              },
-            },
-          } satisfies SignInInput,
-        },
-        query: SIGN_IN,
-      }),
-    })
-    .then((res) => {
-      const userId = res.body.data.signIn.signedInUser.id as string;
-      const sessionId = /:(.+?);/.exec(res.headers['set-cookie']![0]!)?.[1]!;
-
-      return {
-        userId,
-        sessionId,
-        headers: {
-          Cookies: `Sessions=${userId}:${sessionId}`,
-        },
-      };
-    });
-}
-
-function requestInsertRecord(options: {
-  userId: string;
-  noteId: string;
-  record: CollabTextRecordInput;
-}) {
-  return cy.request({
-    url: Cypress.env('API_URL'),
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      operationName: 'InsertRecord',
+      operationName: 'SignIn',
       variables: {
         input: {
-          authUser: {
-            id: options.userId,
+          auth: {
+            google: {
+              token: `{"id":"${options.googleUserId}","name":"User 1","email":"test@test"}`,
+            },
           },
-          note: {
-            id: options.noteId,
-          },
-          insertRecord: options.record,
-        } satisfies UpdateNoteInsertRecordInput,
+        } satisfies SignInInput,
       },
-      query: INSERT_RECORD,
-    }),
+      query: SIGN_IN,
+    })
+    .then((res) => ({
+      userId: res.body.data!.signIn.signedInUser.id,
+    }));
+}
+
+function requestInsertRecord(
+  options: {
+    userId: string;
+    noteId: string;
+    record: CollabTextRecordInput;
+  },
+  ctx: {
+    graphQLSession: ChainableGraphQLSession;
+  }
+) {
+  return ctx.graphQLSession.request({
+    operationName: 'InsertRecord',
+    variables: {
+      input: {
+        authUser: {
+          id: options.userId,
+        },
+        note: {
+          id: options.noteId,
+        },
+        insertRecord: options.record,
+      } satisfies UpdateNoteInsertRecordInput,
+    },
+    query: INSERT_RECORD,
   });
 }
 
@@ -190,16 +183,21 @@ it('sign in, create note, share link and collab edit with another user', () => {
           cy.visit(shareNoteUrl);
           cy.get(`[id="note-edit-dialog-${noteId}"]`).should('be.visible');
 
-          // Programatically sign in with user 1 and open the note
-          requestSignIn({
-            userId: '1',
-          }).then(({ userId, headers }) => {
-            cy.wsConnect({
-              headers,
-            }).then((ws) => {
+          // Programatically sign in with user 1 (different from user visible in UI) and open the note
+          cy.graphQLSession().then((graphQLSession) => {
+            requestSignIn(
+              {
+                googleUserId: '1',
+              },
+              {
+                graphQLSession,
+              }
+            ).then(({ userId }) => {
               // Subscribe to note events so that caret will be visible
-              ws.subscribe({
-                subscription: {
+              cy.graphQLWebSocket({
+                headers: graphQLSession.session.getHeaders(),
+              }).then((ws) => {
+                ws.subscribe({
                   query: NOTE_EVENTS_SUBSCRIPTION,
                   variables: {
                     input: {
@@ -211,36 +209,44 @@ it('sign in, create note, share link and collab edit with another user', () => {
                       },
                     } satisfies OpenNoteEventsInput,
                   },
-                },
+                });
               });
-            });
 
-            cy.get('[placeholder="Title"]').should('have.value', 'foo title');
-            cy.get('[placeholder="Note"]').should('have.value', 'foo content');
+              cy.get('[placeholder="Title"]').should('have.value', 'foo title');
+              cy.get('[placeholder="Note"]').should('have.value', 'foo content');
 
-            // Revision might be different depending on how fast text is typed
-            cy.getNoteCollabTextRevision({
-              noteId,
-            }).then(({ revision }) => {
-              requestInsertRecord({
-                userId,
-                noteId,
-                record: {
-                  change: {
-                    revision,
-                    // {"CONTENT":"foo content","TITLE":"foo title"}
-                    changeset: [[0, 14], ' BOO', [15, 44]] as any,
+              // Revision might be different depending on how fast text is typed
+              // Find from db to stabilize the test
+              cy.dbFindOne({
+                collectionName: CollectionName.NOTES,
+                id: noteId,
+              }).then((note) => {
+                const revision = note.collabText!.headText.revision;
+                requestInsertRecord(
+                  {
+                    userId,
+                    noteId,
+                    record: {
+                      change: {
+                        revision,
+                        // {"CONTENT":"foo content","TITLE":"foo title"}
+                        changeset: [[0, 14], ' BOO', [15, 44]] as any,
+                      },
+                      afterSelection: {
+                        start: 19,
+                        end: 19,
+                      },
+                      beforeSelection: {
+                        start: 15,
+                        end: 15,
+                      },
+                      generatedId: 'aa',
+                    },
                   },
-                  afterSelection: {
-                    start: 19,
-                    end: 19,
-                  },
-                  beforeSelection: {
-                    start: 15,
-                    end: 15,
-                  },
-                  generatedId: 'aa',
-                },
+                  {
+                    graphQLSession,
+                  }
+                );
               });
             });
           });
