@@ -15,12 +15,17 @@
     "lint": "npm run type-check && npm run eslint"
   },
   "dependencies": {
+    "@apollo/server": "^4.11.3",
     "@types/debug": "^4.1.12",
     "debug": "^4.3.4",
     "dotenv": "^16.4.7",
+    "graphql": "npm:@knemerzitski/graphql@16.9.1",
+    "graphql-ws": "^6.0.4",
     "map-obj": "^5.0.2",
+    "nanoid": "^5.1.2",
     "superstruct": "npm:@knemerzitski/superstruct@^2.2.5",
     "vitest": "^2.1.4",
+    "ws": "^8.18.1",
     "zen-observable-ts": "^1.2.5"
   }
 }
