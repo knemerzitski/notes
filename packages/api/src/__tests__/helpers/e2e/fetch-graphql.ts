@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/consistent-indexed-object-style */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { GraphQLResponse, HeaderMap } from '@apollo/server';
-import { FormattedExecutionResult } from 'graphql/index.js';
+import { apolloFetchGraphQL } from '../../../../../utils/src/testing/apollo-fetch-graphql';
+import { nodeFetch } from '../../../../../utils/src/testing/node-fetch';
+import { PartialBy } from '../../../../../utils/src/types';
 
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const HTTP_URL = process.env.VITE_GRAPHQL_HTTP_URL!;
 
 type FetchFn = (
@@ -15,39 +14,17 @@ type FetchFn = (
 
 export async function fetchGraphQL<
   TData = Record<string, unknown>,
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters, @typescript-eslint/consistent-indexed-object-style, @typescript-eslint/no-explicit-any
   TVariables extends { [name: string]: any } = { [name: string]: any },
 >(
-  request: {
-    operationName?: string;
-    query?: string;
-    variables?: TVariables;
-  },
-  fetchFn: FetchFn = fetch
+  request: Parameters<typeof apolloFetchGraphQL<TData, TVariables>>[0],
+  ctx: PartialBy<
+    Omit<Parameters<typeof apolloFetchGraphQL<TData, TVariables>>[1], 'url'>,
+    'fetchFn'
+  >
 ) {
-  const httpResponse = await fetchFn(HTTP_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      operationName: request.operationName,
-      variables: request.variables,
-      query: request.query,
-    }),
+  return apolloFetchGraphQL<TData, TVariables>(request, {
+    fetchFn: ctx.fetchFn ?? nodeFetch,
+    url: HTTP_URL,
   });
-
-  return {
-    graphQLResponse: {
-      body: {
-        kind: 'single',
-        singleResult: (await httpResponse.json()) as FormattedExecutionResult<TData>,
-      },
-      http: {
-        headers: new HeaderMap(httpResponse.headers.entries()),
-        status: httpResponse.status,
-      },
-    } satisfies GraphQLResponse<TData>,
-    httpResponse,
-  };
 }
