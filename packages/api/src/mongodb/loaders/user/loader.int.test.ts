@@ -7,8 +7,7 @@ import { beforeAll, it, expect, beforeEach } from 'vitest';
 import {
   resetDatabase,
   mongoCollections,
-} from '../../../__tests__/helpers/mongodb/instance';
-import { mongoCollectionStats } from '../../../__tests__/helpers/mongodb/mongo-collection-stats';
+ mongoCollectionStats } from '../../../__tests__/helpers/mongodb/instance';
 import {
   TestNoteCategory,
   populateNotes,

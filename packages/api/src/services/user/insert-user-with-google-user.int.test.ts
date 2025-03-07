@@ -4,8 +4,7 @@ import { beforeEach, expect, it } from 'vitest';
 import {
   mongoCollections,
   resetDatabase,
-} from '../../__tests__/helpers/mongodb/instance';
-import { mongoCollectionStats } from '../../__tests__/helpers/mongodb/mongo-collection-stats';
+ mongoCollectionStats } from '../../__tests__/helpers/mongodb/instance';
 import { createMongoDBApiContext } from '../../__tests__/helpers/mongodb/mongodb';
 
 import { insertUserWithGoogleUser } from './insert-user-with-google-user';
