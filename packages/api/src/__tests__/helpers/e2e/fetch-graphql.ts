@@ -2,15 +2,19 @@ import { apolloFetchGraphQL } from '../../../../../utils/src/testing/apollo-fetc
 import { nodeFetch } from '../../../../../utils/src/testing/node-fetch';
 import { PartialBy } from '../../../../../utils/src/types';
 
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-const HTTP_URL = process.env.VITE_GRAPHQL_HTTP_URL!;
-
-type FetchFn = (
-  input: string | URL | Request,
-  init?: Omit<RequestInit, 'headers'> & {
-    readonly headers: Record<string, string>;
-  }
-) => Promise<Response>;
+export type FetchFn = (options: {
+  url: string;
+  method: string;
+  headers?: Record<string, string>;
+  body: string | null;
+}) => Promise<{
+  json: () => Promise<unknown>;
+  headers: {
+    entries: readonly [string, string][];
+    getSetCookie: () => string[];
+  };
+  status?: number;
+}>;
 
 export async function fetchGraphQL<
   TData = Record<string, unknown>,
@@ -25,6 +29,7 @@ export async function fetchGraphQL<
 ) {
   return apolloFetchGraphQL<TData, TVariables>(request, {
     fetchFn: ctx.fetchFn ?? nodeFetch,
-    url: HTTP_URL,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    url: process.env.VITE_GRAPHQL_HTTP_URL!,
   });
 }
