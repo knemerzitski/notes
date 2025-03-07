@@ -1,6 +1,7 @@
 import { ObjectId } from 'mongodb';
 
-import { CollectionName, MongoDBCollections } from '../../collections';
+import { CollectionName } from '../../collection-names';
+import { MongoDBCollections } from '../../collections';
 import { TransactionContext } from '../../utils/with-transaction';
 
 export interface UpdateExpireAtParams {

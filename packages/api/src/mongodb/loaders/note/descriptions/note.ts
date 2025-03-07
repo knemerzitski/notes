@@ -1,6 +1,7 @@
 import { array, assign, Infer, InferRaw, object, omit, optional } from 'superstruct';
 
-import { CollectionName, MongoDBCollectionsOnlyNames } from '../../../collections';
+import { CollectionName } from '../../../collection-names';
+import { MongoDBCollectionsOnlyNames } from '../../../collections';
 import { DescriptionDeep } from '../../../query/description';
 import { NoteSchema } from '../../../schema/note';
 import { NoteUserSchema } from '../../../schema/note-user';

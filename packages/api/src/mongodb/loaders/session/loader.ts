@@ -3,7 +3,8 @@ import { AggregateOptions } from 'mongodb';
 
 import { Infer } from 'superstruct';
 
-import { CollectionName, MongoDBCollections } from '../../collections';
+import { CollectionName } from '../../collection-names';
+import { MongoDBCollections } from '../../collections';
 import { MongoDBContext } from '../../context';
 import { LoaderEvents } from '../../loaders';
 import { QueryDeep } from '../../query/query';

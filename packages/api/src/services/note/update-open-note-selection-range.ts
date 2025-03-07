@@ -2,7 +2,8 @@
 
 import { ObjectId } from 'mongodb';
 
-import { MongoDBCollections, CollectionName } from '../../mongodb/collections';
+import { CollectionName } from '../../mongodb/collection-names';
+import { MongoDBCollections } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
 
 import { upsertOpenNote } from '../../mongodb/models/note/upsert-open-note';

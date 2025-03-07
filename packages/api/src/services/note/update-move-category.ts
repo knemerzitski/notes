@@ -2,7 +2,8 @@ import { MongoClient, ObjectId } from 'mongodb';
 
 import { Maybe } from '../../../../utils/src/types';
 
-import { MongoDBCollections, CollectionName } from '../../mongodb/collections';
+import { CollectionName } from '../../mongodb/collection-names';
+import { MongoDBCollections } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
 import { updateMoveCategory as model_updateMoveCategory } from '../../mongodb/models/note/update-move-category';
 import { notesArrayPath } from '../../mongodb/models/user/utils/notes-array-path';

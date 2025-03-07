@@ -1,6 +1,7 @@
 import { ObjectId } from 'mongodb';
 
-import { CollectionName, MongoDBCollections } from '../../mongodb/collections';
+import { CollectionName } from '../../mongodb/collection-names';
+import { MongoDBCollections } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
 import { insertUser as model_insertUser } from '../../mongodb/models/user/insert-user';
 import { UserSchema } from '../../mongodb/schema/user';

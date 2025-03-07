@@ -18,7 +18,8 @@ import { isEmptyDeep } from '../../../../../utils/src/object/is-empty-deep';
 import { isDefined } from '../../../../../utils/src/type-guards/is-defined';
 import { isObjectLike } from '../../../../../utils/src/type-guards/is-object-like';
 
-import { MongoDBCollectionsOnlyNames, CollectionName } from '../../collections';
+import { CollectionName } from '../../collection-names';
+import { MongoDBCollectionsOnlyNames } from '../../collections';
 import {
   cursorArrayPagination,
   cursorMultiArrayConcat,

@@ -1,6 +1,7 @@
 import { Infer, InferRaw } from 'superstruct';
 
-import { CollectionName, MongoDBCollectionsOnlyNames } from '../../collections';
+import { CollectionName } from '../../collection-names';
+import { MongoDBCollectionsOnlyNames } from '../../collections';
 import { DescriptionDeep } from '../../query/description';
 import { SessionSchema } from '../../schema/session';
 

@@ -1,4 +1,5 @@
-import { MongoDBCollections, CollectionName } from '../../collections';
+import { CollectionName } from '../../collection-names';
+import { MongoDBCollections } from '../../collections';
 import { CollabRecordSchema, DBCollabRecordSchema } from '../../schema/collab-record';
 import { DBNoteSchema, NoteSchema } from '../../schema/note';
 import { TransactionContext } from '../../utils/with-transaction';

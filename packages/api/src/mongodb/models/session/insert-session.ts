@@ -1,4 +1,5 @@
-import { MongoDBCollections, CollectionName } from '../../collections';
+import { CollectionName } from '../../collection-names';
+import { MongoDBCollections } from '../../collections';
 import { DBSessionSchema, SessionSchema } from '../../schema/session';
 import { TransactionContext } from '../../utils/with-transaction';
 

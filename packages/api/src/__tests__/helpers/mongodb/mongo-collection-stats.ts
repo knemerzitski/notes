@@ -1,6 +1,6 @@
 import { Collection } from 'mongodb';
 
-import { CollectionName } from '../../../mongodb/collections';
+import { CollectionName } from '../../../mongodb/collection-names';
 
 import { CollectionsStats } from './collection-stats';
 import { mongoCollections } from './mongodb';

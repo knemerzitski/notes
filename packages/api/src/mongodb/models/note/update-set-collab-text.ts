@@ -1,6 +1,7 @@
 import { ObjectId } from 'mongodb';
 
-import { MongoDBCollections, CollectionName } from '../../collections';
+import { CollectionName } from '../../collection-names';
+import { MongoDBCollections } from '../../collections';
 import { CollabRecordSchema, DBCollabRecordSchema } from '../../schema/collab-record';
 import { CollabTextSchema, DBCollabTextSchema } from '../../schema/collab-text';
 import { TransactionContext } from '../../utils/with-transaction';

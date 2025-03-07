@@ -5,7 +5,8 @@ import { wrapArray } from '../../../../utils/src/array/wrap-array';
 import { isDefined } from '../../../../utils/src/type-guards/is-defined';
 
 import { AuthenticatedContextsModel } from '../../models/auth/authenticated-contexts';
-import { CollectionName, MongoDBCollections } from '../../mongodb/collections';
+import { CollectionName } from '../../mongodb/collection-names';
+import { MongoDBCollections } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
 import { deleteManyByCookieIds } from '../../mongodb/models/session/delete-many-by-cookie-ids';
 import { objectIdToStr, strToObjectId } from '../../mongodb/utils/objectid';

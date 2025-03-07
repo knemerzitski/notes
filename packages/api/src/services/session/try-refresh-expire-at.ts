@@ -1,4 +1,5 @@
-import { CollectionName, MongoDBCollections } from '../../mongodb/collections';
+import { CollectionName } from '../../mongodb/collection-names';
+import { MongoDBCollections } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
 import { updateExpireAt } from '../../mongodb/models/session/update-expire-at';
 import { SessionSchema } from '../../mongodb/schema/session';

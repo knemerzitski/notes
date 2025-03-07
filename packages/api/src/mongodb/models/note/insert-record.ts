@@ -2,7 +2,8 @@ import { ObjectId } from 'mongodb';
 
 import { createRaw } from 'superstruct';
 
-import { MongoDBCollections, CollectionName } from '../../collections';
+import { CollectionName } from '../../collection-names';
+import { MongoDBCollections } from '../../collections';
 import {
   RevisionChangesetSchema,
   DBRevisionChangesetSchema,

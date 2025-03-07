@@ -1,6 +1,7 @@
 import { AuthenticationFailedReason } from '../../../../api-app-shared/src/graphql/error-codes';
 
-import { CollectionName, MongoDBCollections } from '../../mongodb/collections';
+import { CollectionName } from '../../mongodb/collection-names';
+import { MongoDBCollections } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
 import { QueryableSession } from '../../mongodb/loaders/session/description';
 import { SessionDurationConfig, SessionDuration } from '../session/duration';
