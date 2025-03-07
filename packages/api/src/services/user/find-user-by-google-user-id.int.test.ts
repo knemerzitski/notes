@@ -5,8 +5,7 @@ import { it, expect, beforeEach } from 'vitest';
 import {
   mongoCollections,
   resetDatabase,
-} from '../../__tests__/helpers/mongodb/instance';
-import { mongoCollectionStats } from '../../__tests__/helpers/mongodb/mongo-collection-stats';
+ mongoCollectionStats } from '../../__tests__/helpers/mongodb/instance';
 
 import { populateExecuteAll } from '../../__tests__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../__tests__/helpers/mongodb/populate/user';

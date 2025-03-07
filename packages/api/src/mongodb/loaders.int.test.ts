@@ -7,8 +7,7 @@ import {
   resetDatabase,
   mongoCollections,
   mongoClient,
-} from '../__tests__/helpers/mongodb/instance';
-import { mongoCollectionStats } from '../__tests__/helpers/mongodb/mongo-collection-stats';
+ mongoCollectionStats } from '../__tests__/helpers/mongodb/instance';
 import {
   populateNotes,
   TestNoteCategory,

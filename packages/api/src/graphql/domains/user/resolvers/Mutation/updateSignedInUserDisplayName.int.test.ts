@@ -21,8 +21,7 @@ import {
   expectGraphQLResponseData,
   expectGraphQLResponseError,
 } from '../../../../../__tests__/helpers/graphql/response';
-import { resetDatabase } from '../../../../../__tests__/helpers/mongodb/instance';
-import { mongoCollectionStats } from '../../../../../__tests__/helpers/mongodb/mongo-collection-stats';
+import { resetDatabase , mongoCollectionStats } from '../../../../../__tests__/helpers/mongodb/instance';
 import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/user';
 import * as update_display_name from '../../../../../mongodb/models/user/update-display-name';
