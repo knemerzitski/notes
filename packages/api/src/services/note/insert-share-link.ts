@@ -1,6 +1,7 @@
 import { MongoClient, ObjectId } from 'mongodb';
 
-import { MongoDBCollections, CollectionName } from '../../mongodb/collections';
+import { CollectionName } from '../../mongodb/collection-names';
+import { MongoDBCollections } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
 
 import { insertShareLink as model_insertShareLink } from '../../mongodb/models/note/insert-share-link';

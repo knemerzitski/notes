@@ -2,7 +2,8 @@ import { ObjectId, UpdateFilter } from 'mongodb';
 
 import { Maybe } from '../../../../../utils/src/types';
 
-import { MongoDBCollections, CollectionName } from '../../collections';
+import { CollectionName } from '../../collection-names';
+import { MongoDBCollections } from '../../collections';
 import { MongoReadonlyDeep } from '../../types';
 import { TransactionContext } from '../../utils/with-transaction';
 import { notesArrayPath } from '../user/utils/notes-array-path';

@@ -9,6 +9,7 @@ import {
 
 import { retryOnError } from '../../../utils/src/retry-on-error';
 
+import { CollectionName } from './collection-names';
 import { collabRecordDescription, DBCollabRecordSchema } from './schema/collab-record';
 import {
   noteDescription,
@@ -23,57 +24,36 @@ export interface CollectionDescription {
   indexSpecs?: IndexDescription[];
 }
 
-/**
- * Values are actual names of collections in MongoDB Database.
- */
-export enum CollectionName {
-  SESSIONS = 'sessions',
-  USERS = 'users',
-  NOTES = 'notes',
-  COLLAB_RECORDS = 'collabRecords',
-  OPEN_NOTES = 'openNotes',
-}
-
-interface CollectionDefinitions {
-  [CollectionName.SESSIONS]: {
-    schema: Collection<DBSessionSchema>;
-  };
-  [CollectionName.USERS]: {
-    schema: Collection<DBUserSchema>;
-  };
-  [CollectionName.NOTES]: {
-    schema: Collection<DBNoteSchema>;
-  };
-  [CollectionName.COLLAB_RECORDS]: {
-    schema: Collection<DBCollabRecordSchema>;
-  };
-  [CollectionName.OPEN_NOTES]: {
-    schema: Collection<DBOpenNoteSchema>;
-  };
+export interface DBSchema {
+  [CollectionName.SESSIONS]: DBSessionSchema;
+  [CollectionName.USERS]: DBUserSchema;
+  [CollectionName.NOTES]: DBNoteSchema;
+  [CollectionName.COLLAB_RECORDS]: DBCollabRecordSchema;
+  [CollectionName.OPEN_NOTES]: DBOpenNoteSchema;
 }
 
 export const collectionDescriptions: Partial<
   Record<CollectionName, CollectionDescription>
 > = {
-  [CollectionName.SESSIONS]: sessionDescription,
-  [CollectionName.USERS]: userDescription,
-  [CollectionName.NOTES]: noteDescription,
-  [CollectionName.COLLAB_RECORDS]: collabRecordDescription,
-  [CollectionName.OPEN_NOTES]: openNoteDescription,
+  sessions: sessionDescription,
+  users: userDescription,
+  notes: noteDescription,
+  collabRecords: collabRecordDescription,
+  openNotes: openNoteDescription,
 };
 
 export const collectionSearchIndexDescriptions: Partial<
   Record<CollectionName, SearchIndexDescription[]>
 > = {
-  [CollectionName.NOTES]: noteSearchIndexDescriptions,
+  notes: noteSearchIndexDescriptions,
 };
 
 export type MongoDBCollections = {
-  [Key in CollectionName]: CollectionDefinitions[Key]['schema'];
+  [Key in keyof DBSchema]: Collection<DBSchema[Key]>;
 };
 
 export type MongoDBCollectionsOnlyNames = {
-  [Key in CollectionName]: Pick<MongoDBCollections[Key], 'collectionName'>;
+  [Key in keyof MongoDBCollections]: Pick<MongoDBCollections[Key], 'collectionName'>;
 };
 
 export function createCollectionInstances(mongoDB: Db): MongoDBCollections {

@@ -1,7 +1,8 @@
 import mitt, { Emitter } from 'mitt';
 import { AggregateOptions, ObjectId } from 'mongodb';
 
-import { CollectionName, MongoDBCollections } from '../../collections';
+import { CollectionName } from '../../collection-names';
+import { MongoDBCollections } from '../../collections';
 import { MongoDBContext } from '../../context';
 import { LoaderEvents } from '../../loaders';
 import { MongoQueryFn, QueryDeep } from '../../query/query';

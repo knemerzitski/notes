@@ -3,7 +3,8 @@ import { array, assign, object } from 'superstruct';
 
 import { Maybe } from '../../../../utils/src/types';
 
-import { MongoDBCollections, CollectionName } from '../../mongodb/collections';
+import { CollectionName } from '../../mongodb/collection-names';
+import { MongoDBCollections } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
 import { insertNote as model_insertNote } from '../../mongodb/models/note/insert-note';
 import { createInitialCollabText } from '../../mongodb/models/note/utils/create-initial-collab-text';

@@ -1,6 +1,7 @@
 import { MongoClient } from 'mongodb';
 
-import { CollectionName, createCollectionInstances } from '../../../mongodb/collections';
+import { CollectionName } from '../../../mongodb/collection-names';
+import { createCollectionInstances } from '../../../mongodb/collections';
 
 import { createMongoDBLoaders } from '../../../mongodb/loaders';
 

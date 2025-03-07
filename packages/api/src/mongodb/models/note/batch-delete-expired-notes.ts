@@ -1,9 +1,9 @@
 import { AnyBulkWriteOperation, MongoClient, ObjectId } from 'mongodb';
 
-
 import { Logger } from '../../../../../utils/src/logging';
 
-import { CollectionName, MongoDBCollections } from '../../collections';
+import { CollectionName } from '../../collection-names';
+import { MongoDBCollections } from '../../collections';
 import { QueryDeep, QueryResultDeep } from '../../query/query';
 import { DBCollabRecordSchema } from '../../schema/collab-record';
 import { DBNoteSchema, NoteSchema } from '../../schema/note';

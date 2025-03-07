@@ -2,7 +2,8 @@ import mapObject from 'map-obj';
 import { Document } from 'mongodb';
 import { assign, Infer, InferRaw, object, pick } from 'superstruct';
 
-import { CollectionName, MongoDBCollectionsOnlyNames } from '../../../collections';
+import { CollectionName } from '../../../collection-names';
+import { MongoDBCollectionsOnlyNames } from '../../../collections';
 import { DescriptionDeep } from '../../../query/description';
 import { isQueryOnlyId } from '../../../query/utils/is-query-only-id';
 import { CollabRecordSchema } from '../../../schema/collab-record';

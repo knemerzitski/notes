@@ -1,4 +1,5 @@
-import { MongoDBCollections, CollectionName } from '../../collections';
+import { CollectionName } from '../../collection-names';
+import { MongoDBCollections } from '../../collections';
 import { DBUserSchema, UserSchema } from '../../schema/user';
 import { TransactionContext } from '../../utils/with-transaction';
 
