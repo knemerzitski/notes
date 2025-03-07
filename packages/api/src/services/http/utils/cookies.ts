@@ -7,19 +7,28 @@ export function parseCookiesFromHeaders(
    * @default 'cookie'
    */
   key = 'cookie'
-): Cookies {
+) {
   const cookies = headers[key];
   if (!cookies) {
     return {};
   }
+  return parseCookieValue(cookies);
+}
 
+export function parseCookieValue(value: string): Cookies {
   const result: Record<string, string> = {};
-  for (const cookie of cookies.split(';')) {
-    const [name, value] = cookie.split('=', 2);
+  for (const cookieEntryStr of value.split(';')) {
+    const [name, value] = cookieEntryStr.split('=', 2);
     if (name && value) {
       result[name.trim()] = value.trim();
     }
   }
 
   return result;
+}
+
+export function serializeCookieValue(cookies: Cookies): string {
+  return Object.entries(cookies)
+    .map(([key, value]) => `${key}=${value}`)
+    .join(';');
 }
