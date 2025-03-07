@@ -1,11 +1,11 @@
 import { faker } from '@faker-js/faker';
 import { beforeEach, expect, it } from 'vitest';
 
-import { createMongoDBApiContext } from '../../__tests__/helpers/mongodb/context';
 import {
   mongoCollections,
   resetDatabase,
   mongoCollectionStats,
+  createMongoDBApiInstanceContext,
 } from '../../__tests__/helpers/mongodb/instance';
 
 import { insertUserWithGoogleUser } from './insert-user-with-google-user';
@@ -21,7 +21,7 @@ it('inserts new user with displayName', async () => {
   const newUser = await insertUserWithGoogleUser({
     id: '1234',
     displayName: 'aaa',
-    mongoDB: createMongoDBApiContext(),
+    mongoDB: createMongoDBApiInstanceContext(),
   });
   expect(mongoCollectionStats.readAndModifyCount()).toStrictEqual(1);
 

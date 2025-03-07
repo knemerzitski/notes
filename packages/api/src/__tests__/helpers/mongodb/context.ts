@@ -1,11 +1,12 @@
 import { MongoClient } from 'mongodb';
 
 import { CollectionName } from '../../../mongodb/collection-names';
-import { createCollectionInstances } from '../../../mongodb/collections';
+import {
+  createCollectionInstances,
+  MongoDBCollections,
+} from '../../../mongodb/collections';
 
 import { createMongoDBLoaders } from '../../../mongodb/loaders';
-
-import { mongoCollections, mongoClient } from './instance';
 
 export async function createMongoDBContext(options?: { uri?: string }) {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -32,12 +33,18 @@ export async function createMongoDBContext(options?: { uri?: string }) {
   };
 }
 
-export function createMongoDBApiContext(collections = mongoCollections) {
+export function createMongoDBApiContext({
+  collections,
+  mongoClient,
+}: {
+  mongoClient: MongoClient;
+  collections: MongoDBCollections;
+}) {
   return {
     collections,
     loaders: createMongoDBLoaders({
       client: mongoClient,
-      collections: mongoCollections,
+      collections: collections,
     }),
   };
 }
