@@ -3,7 +3,7 @@ import { Collection } from 'mongodb';
 import { CollectionName } from '../../../mongodb/collection-names';
 
 import { CollectionsStats } from './collection-stats';
-import { createMongoDBContext } from './mongodb';
+import { createMongoDBContext } from './context';
 
 export const { mongoClient, mongoDB, mongoCollections, resetDatabase } =
   await createMongoDBContext();
