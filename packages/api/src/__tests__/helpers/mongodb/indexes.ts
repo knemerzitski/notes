@@ -7,7 +7,7 @@ import {
   MongoDBCollections,
 } from '../../../mongodb/collections';
 
-import { mongoCollections } from './mongodb';
+import { mongoCollections } from './instance';
 
 const TIER = process.env.MONGODB_TIER;
 const hasAtlasSearch = TIER === 'enterprise';

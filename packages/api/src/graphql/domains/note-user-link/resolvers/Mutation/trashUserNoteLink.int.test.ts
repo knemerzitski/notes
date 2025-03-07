@@ -28,11 +28,11 @@ import {
   expectGraphQLResponseData,
   expectGraphQLResponseError,
 } from '../../../../../__tests__/helpers/graphql/response';
-import { mongoCollectionStats } from '../../../../../__tests__/helpers/mongodb/mongo-collection-stats';
 import {
   mongoCollections,
   resetDatabase,
-} from '../../../../../__tests__/helpers/mongodb/mongodb';
+} from '../../../../../__tests__/helpers/mongodb/instance';
+import { mongoCollectionStats } from '../../../../../__tests__/helpers/mongodb/mongo-collection-stats';
 import { fakeNotePopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/note';
 import { userAddNote } from '../../../../../__tests__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/populate/populate-queue';
@@ -46,8 +46,6 @@ import {
   TrashUserNoteLinkPayload,
 } from '../../../types.generated';
 import { signedInUserTopic } from '../../../user/resolvers/Subscription/signedInUserEvents';
-
-
 
 const MUTATION = `#graphql
   mutation($input: TrashUserNoteLinkInput!){
@@ -101,7 +99,7 @@ beforeEach(async () => {
   user = fakeUserPopulateQueue();
   userNotOwner = fakeUserPopulateQueue();
   userNoAccess = fakeUserPopulateQueue();
-  ({note} = fakeNotePopulateQueue(user));
+  ({ note } = fakeNotePopulateQueue(user));
 
   userAddNote(user, note, {
     override: {
@@ -123,7 +121,7 @@ beforeEach(async () => {
 
 async function executeOperation(
   input: Omit<TrashUserNoteLinkInput, 'authUser' | 'note'> & {
-    noteId: ObjectId
+    noteId: ObjectId;
   },
   options?: CreateGraphQLResolversContextOptions,
   query: string = MUTATION
@@ -142,8 +140,8 @@ async function executeOperation(
             id: options?.user?._id ?? new ObjectId(),
           },
           note: {
-            id: input.noteId
-          }
+            id: input.noteId,
+          },
         },
       },
     },

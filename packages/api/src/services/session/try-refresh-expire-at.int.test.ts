@@ -1,11 +1,11 @@
 import { faker } from '@faker-js/faker';
 import { beforeEach, it, expect, vi } from 'vitest';
 
-import { mongoCollectionStats } from '../../__tests__/helpers/mongodb/mongo-collection-stats';
 import {
   resetDatabase,
   mongoCollections,
-} from '../../__tests__/helpers/mongodb/mongodb';
+} from '../../__tests__/helpers/mongodb/instance';
+import { mongoCollectionStats } from '../../__tests__/helpers/mongodb/mongo-collection-stats';
 import { populateExecuteAll } from '../../__tests__/helpers/mongodb/populate/populate-queue';
 import { fakeSessionPopulateQueue } from '../../__tests__/helpers/mongodb/populate/session';
 

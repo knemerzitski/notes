@@ -21,11 +21,11 @@ import {
   expectGraphQLResponseData,
   expectGraphQLResponseError,
 } from '../../../../../__tests__/helpers/graphql/response';
-import { mongoCollectionStats } from '../../../../../__tests__/helpers/mongodb/mongo-collection-stats';
 import {
   mongoCollections,
   resetDatabase,
-} from '../../../../../__tests__/helpers/mongodb/mongodb';
+} from '../../../../../__tests__/helpers/mongodb/instance';
+import { mongoCollectionStats } from '../../../../../__tests__/helpers/mongodb/mongo-collection-stats';
 import { fakeNotePopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/note';
 import {
   populateNotes,
@@ -47,7 +47,6 @@ import {
 import { signedInUserTopic } from '../../../user/resolvers/Subscription/signedInUserEvents';
 
 import { moveUserNoteLink } from './moveUserNoteLink';
-
 
 const MUTATION = `#graphql
   mutation($input: MoveUserNoteLinkInput!){

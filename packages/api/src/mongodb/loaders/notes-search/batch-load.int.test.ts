@@ -8,7 +8,7 @@ import { dropAndCreateSearchIndexes } from '../../../__tests__/helpers/mongodb/i
 import {
   resetDatabase,
   mongoCollections,
-} from '../../../__tests__/helpers/mongodb/mongodb';
+} from '../../../__tests__/helpers/mongodb/instance';
 import {
   populateNotes,
   populateNotesWithText,

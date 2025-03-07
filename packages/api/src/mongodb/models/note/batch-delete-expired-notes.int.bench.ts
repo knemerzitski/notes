@@ -1,7 +1,3 @@
- 
- 
- 
- 
 import { faker } from '@faker-js/faker';
 import { bench, describe } from 'vitest';
 
@@ -9,14 +5,13 @@ import {
   mongoClient,
   mongoCollections,
   resetDatabase,
-} from '../../../__tests__/helpers/mongodb/mongodb';
+} from '../../../__tests__/helpers/mongodb/instance';
 import { TestNoteCategory } from '../../../__tests__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../__tests__/helpers/mongodb/populate/populate-queue';
 
 import { generateTrashedNotes } from '../../../__tests__/helpers/mongodb/populate/trashed-notes';
 
 import { batchDeleteExpiredNotes } from './batch-delete-expired-notes';
-
 
 async function rootBeforeBench() {
   faker.seed(213134);

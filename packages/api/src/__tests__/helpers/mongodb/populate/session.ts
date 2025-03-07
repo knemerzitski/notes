@@ -4,7 +4,7 @@ import { ObjectId } from 'mongodb';
 import { DBSessionSchema, SessionSchema } from '../../../../mongodb/schema/session';
 import { MongoPartialDeep } from '../../../../mongodb/types';
 
-import { mongoCollections } from '../mongodb';
+import { mongoCollections } from '../instance';
 
 import { populateQueue } from './populate-queue';
 

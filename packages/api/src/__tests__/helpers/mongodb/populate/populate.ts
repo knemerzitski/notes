@@ -2,7 +2,7 @@ import { DBCollabRecordSchema } from '../../../../mongodb/schema/collab-record';
 import { DBNoteSchema } from '../../../../mongodb/schema/note';
 import { DBUserSchema } from '../../../../mongodb/schema/user';
 
-import { mongoCollections } from '../mongodb';
+import { mongoCollections } from '../instance';
 
 import { FakeCollabTextOptions } from './collab-text';
 import { fakeNote, FakeNoteOptions } from './note';

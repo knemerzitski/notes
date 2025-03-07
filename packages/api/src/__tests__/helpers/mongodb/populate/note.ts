@@ -6,7 +6,7 @@ import { DBCollabRecordSchema } from '../../../../mongodb/schema/collab-record';
 import { DBNoteSchema } from '../../../../mongodb/schema/note';
 import { DBUserSchema } from '../../../../mongodb/schema/user';
 import { MongoPartialDeep } from '../../../../mongodb/types';
-import { mongoCollections } from '../mongodb';
+import { mongoCollections } from '../instance';
 
 import { fakeCollabText, FakeCollabTextOptions } from './collab-text';
 import { fakeNoteUser, fakeNoteUserTrashed } from './note-user';
