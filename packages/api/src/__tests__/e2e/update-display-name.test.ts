@@ -17,7 +17,7 @@ import { fetchGraphQL } from '../helpers/e2e/fetch-graphql';
 import { HttpSession } from '../helpers/e2e/http-session';
 import { createGraphQLWebSocket } from '../helpers/e2e/websocket';
 import { expectGraphQLResponseData } from '../helpers/graphql/response';
-import { mongoCollections, resetDatabase } from '../helpers/mongodb/mongodb';
+import { mongoCollections, resetDatabase } from '../helpers/mongodb/instance';
 
 beforeEach(async () => {
   faker.seed(76572);

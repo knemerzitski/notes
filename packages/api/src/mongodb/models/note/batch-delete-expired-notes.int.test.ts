@@ -1,12 +1,12 @@
 import { faker } from '@faker-js/faker';
 import { beforeEach, expect, it } from 'vitest';
 
-import { mongoCollectionStats } from '../../../__tests__/helpers/mongodb/mongo-collection-stats';
 import {
   mongoClient,
   mongoCollections,
   resetDatabase,
-} from '../../../__tests__/helpers/mongodb/mongodb';
+} from '../../../__tests__/helpers/mongodb/instance';
+import { mongoCollectionStats } from '../../../__tests__/helpers/mongodb/mongo-collection-stats';
 import { fakeNotePopulateQueue } from '../../../__tests__/helpers/mongodb/populate/note';
 import {
   TestNoteCategory,

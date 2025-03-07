@@ -21,12 +21,12 @@ import {
   expectGraphQLResponseError,
   expectGraphQLResponseData,
 } from '../../../../../__tests__/helpers/graphql/response';
-import { mongoCollectionStats } from '../../../../../__tests__/helpers/mongodb/mongo-collection-stats';
 import {
   resetDatabase,
   mongoCollections,
-  createMongoDBContext,
-} from '../../../../../__tests__/helpers/mongodb/mongodb';
+} from '../../../../../__tests__/helpers/mongodb/instance';
+import { mongoCollectionStats } from '../../../../../__tests__/helpers/mongodb/mongo-collection-stats';
+import { createMongoDBContext } from '../../../../../__tests__/helpers/mongodb/mongodb';
 import { fakeNotePopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/note';
 import { userAddNote } from '../../../../../__tests__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/populate/populate-queue';

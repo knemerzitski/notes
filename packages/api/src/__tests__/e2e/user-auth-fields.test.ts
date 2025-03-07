@@ -15,7 +15,7 @@ import { objectIdToStr } from '../../mongodb/utils/objectid';
 import { createDefaultApiOptions } from '../../parameters';
 import { HttpSession } from '../helpers/e2e/http-session';
 import { createGraphQLWebSocket } from '../helpers/e2e/websocket';
-import { resetDatabase } from '../helpers/mongodb/mongodb';
+import { resetDatabase } from '../helpers/mongodb/instance';
 import { fakeNotePopulateQueue } from '../helpers/mongodb/populate/note';
 import { userAddNote } from '../helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../helpers/mongodb/populate/populate-queue';

@@ -5,7 +5,7 @@ import { Changeset } from '../../../../../../collab/src/changeset';
 
 import { DBCollabRecordSchema } from '../../../../mongodb/schema/collab-record';
 import { MongoPartialDeep } from '../../../../mongodb/types';
-import { mongoCollections } from '../mongodb';
+import { mongoCollections } from '../instance';
 
 import { populateQueue } from './populate-queue';
 

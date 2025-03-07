@@ -13,10 +13,8 @@ import {
   expectGraphQLResponseData,
   expectGraphQLResponseError,
 } from '../../../../../__tests__/helpers/graphql/response';
+import { resetDatabase } from '../../../../../__tests__/helpers/mongodb/instance';
 import { mongoCollectionStats } from '../../../../../__tests__/helpers/mongodb/mongo-collection-stats';
-import {
-  resetDatabase,
-} from '../../../../../__tests__/helpers/mongodb/mongodb';
 import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/populate/populate-queue';
 import { fakeSessionPopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/session';
 import { fakeUserPopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/user';

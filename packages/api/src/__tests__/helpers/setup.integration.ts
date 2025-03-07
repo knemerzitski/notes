@@ -3,7 +3,7 @@ import { afterAll, beforeAll } from 'vitest';
 
 import { createAllIndexes } from '../../mongodb/collections';
 
-import { mongoClient, mongoCollections } from './mongodb/mongodb';
+import { mongoClient, mongoCollections } from './mongodb/instance';
 import './extend';
 
 beforeAll(async () => {

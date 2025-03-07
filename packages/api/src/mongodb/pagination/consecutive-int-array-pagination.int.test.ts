@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { assert, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import { mongoDB } from '../../__tests__/helpers/mongodb/mongodb';
+import { mongoDB } from '../../__tests__/helpers/mongodb/instance';
 
 import {
   BoundPaginationUnion,

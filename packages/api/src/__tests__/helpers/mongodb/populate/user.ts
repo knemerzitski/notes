@@ -6,7 +6,7 @@ import { isDefined } from '../../../../../../utils/src/type-guards/is-defined';
 
 import { DBUserSchema } from '../../../../mongodb/schema/user';
 import { MongoPartialDeep } from '../../../../mongodb/types';
-import { mongoCollections } from '../mongodb';
+import { mongoCollections } from '../instance';
 
 import { populateQueue } from './populate-queue';
 

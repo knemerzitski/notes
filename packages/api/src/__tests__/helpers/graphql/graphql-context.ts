@@ -26,7 +26,7 @@ import { objectIdToStr } from '../../../mongodb/utils/objectid';
 import { CookiesMongoDBDynamoDBAuthenticationService } from '../../../services/auth/auth-service';
 import { Cookies } from '../../../services/http/cookies';
 import { SessionsCookie } from '../../../services/http/sessions-cookie';
-import { mongoCollections, mongoClient } from '../mongodb/mongodb';
+import { mongoCollections, mongoClient } from '../mongodb/instance';
 
 export interface CreateGraphQLResolversContextOptions {
   user?: Partial<DBUserSchema>;

@@ -5,11 +5,13 @@ import { createCollectionInstances } from '../../../mongodb/collections';
 
 import { createMongoDBLoaders } from '../../../mongodb/loaders';
 
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-const DB_URI = process.env.MONGODB_URI!;
+import { mongoCollections, mongoClient } from './instance';
 
-export async function createMongoDBContext() {
-  const mongoClient = new MongoClient(DB_URI, {});
+export async function createMongoDBContext(options?: { uri?: string }) {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const uri = options?.uri ?? process.env.MONGODB_URI!;
+
+  const mongoClient = new MongoClient(uri, {});
   await mongoClient.connect();
 
   const mongoDB = mongoClient.db();
@@ -29,9 +31,6 @@ export async function createMongoDBContext() {
     resetDatabase,
   };
 }
-
-export const { mongoClient, mongoDB, mongoCollections, resetDatabase } =
-  await createMongoDBContext();
 
 export function createMongoDBApiContext(collections = mongoCollections) {
   return {

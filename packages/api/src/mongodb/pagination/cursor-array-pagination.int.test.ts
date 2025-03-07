@@ -2,10 +2,9 @@
 import { ObjectId } from 'mongodb';
 import { assert, beforeAll, describe, expect, it } from 'vitest';
 
-
 import { isNonEmptyArray } from '../../../../utils/src/array/is-non-empty-array';
 
-import { mongoDB } from '../../__tests__/helpers/mongodb/mongodb';
+import { mongoDB } from '../../__tests__/helpers/mongodb/instance';
 
 import {
   CursorArrayPaginationInput,

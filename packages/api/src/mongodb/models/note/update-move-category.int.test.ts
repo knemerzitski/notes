@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   mongoCollections,
   resetDatabase,
-} from '../../../__tests__/helpers/mongodb/mongodb';
+} from '../../../__tests__/helpers/mongodb/instance';
 import { populateExecuteAll } from '../../../__tests__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../__tests__/helpers/mongodb/populate/user';
 import { DBUserSchema } from '../../schema/user';
