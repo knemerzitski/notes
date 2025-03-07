@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-base-to-string */
@@ -5,20 +6,32 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-parameters */
 import { GRAPHQL_TRANSPORT_WS_PROTOCOL, ConnectionInitMessage } from 'graphql-ws';
 import { nanoid } from 'nanoid';
+
+import { createDeferred, Deferred } from '../deferred';
+
 import { GenericWebSocket, GenericWebSocketFactory } from './types';
 
 export interface SimpleGraphQLWebSocket {
   ws: GenericWebSocket;
   connectionId: string;
-  subscribe: <TVariables>(
-    sub: {
-      operationName?: string;
-      query?: string;
-      variables?: TVariables;
-    },
-    onNext: (data: any) => void
-  ) => void;
+  subscribe: SubscribeFn;
 }
+
+export type SubscribeFn = <TData = any, TVariables = any>(
+  sub: {
+    operationName?: string;
+    query?: string;
+    variables?: TVariables;
+  },
+  onNext?: (data: any) => void
+) => Subscription<TData>;
+
+export interface Subscription<TData = any> {
+  getNext: () => Promise<TData>;
+  onNext: (listener: SubscriptionListener) => () => void;
+}
+
+export type SubscriptionListener = (data: any) => void;
 
 export async function createSimpleGraphQLWebSocket(
   options: {
@@ -41,7 +54,7 @@ export async function createSimpleGraphQLWebSocket(
     console.error(error);
   });
 
-  const listeners: Record<string, (data: any) => void> = {};
+  const listenerById: Record<string, SubscriptionListener> = {};
 
   return new Promise<SimpleGraphQLWebSocket>((res) => {
     ws.addEventListener('message', ({ data }) => {
@@ -60,17 +73,28 @@ export async function createSimpleGraphQLWebSocket(
         res({
           ws,
           connectionId: parsedData.payload.connectionId,
-          subscribe: <TVariables>(
-            sub: {
-              operationName?: string;
-              query?: string;
-              variables?: TVariables;
-            },
-            onNext: (data: any) => void
-          ) => {
-            const id = nanoid();
+          subscribe: (sub, onNext) => {
+            const subListeners = new Set<SubscriptionListener>();
+            if (onNext) {
+              subListeners.add(onNext);
+            }
 
-            listeners[id] = onNext;
+            const deferredDataQueue: any[] = [];
+            let nextDeferredData: Deferred<any> | null = null;
+
+            const id = nanoid();
+            listenerById[id] = function (data: any) {
+              if (nextDeferredData != null) {
+                nextDeferredData.resolve(data);
+                nextDeferredData = null;
+              } else {
+                deferredDataQueue.push(data);
+              }
+
+              subListeners.forEach((listener) => {
+                listener(data);
+              });
+            };
 
             ws.send(
               JSON.stringify({
@@ -83,10 +107,28 @@ export async function createSimpleGraphQLWebSocket(
                 },
               })
             );
+
+            return {
+              getNext: async () => {
+                const data = deferredDataQueue.shift();
+                if (data !== undefined) {
+                  return data;
+                }
+
+                nextDeferredData = nextDeferredData ?? createDeferred();
+                return await nextDeferredData.promise;
+              },
+              onNext: (listener: SubscriptionListener) => {
+                subListeners.add(listener);
+                return () => {
+                  subListeners.delete(listener);
+                };
+              },
+            };
           },
         });
       } else if (typeof parsedData.id === 'string') {
-        listeners[parsedData.id]?.(parsedData);
+        listenerById[parsedData.id]?.(parsedData);
       }
       // TODO respond to ping?
     });

@@ -6,7 +6,7 @@ import { spawn } from 'node:child_process';
 import { faker } from '@faker-js/faker';
 import { beforeEach, expect, it } from 'vitest';
 
-import { resetDatabase } from '../../api/src/__tests__/helpers/mongodb/mongodb';
+import { resetDatabase } from '../../api/src/__tests__/helpers/mongodb/instance';
 import { TestNoteCategory } from '../../api/src/__tests__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../api/src/__tests__/helpers/mongodb/populate/populate-queue';
 import { generateTrashedNotes } from '../../api/src/__tests__/helpers/mongodb/populate/trashed-notes';

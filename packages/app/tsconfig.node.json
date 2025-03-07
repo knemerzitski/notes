@@ -1,29 +1,23 @@
+/* Type checking for config files */
 {
-  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     /* Modules */
-    "module": "ESNext",
-    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": false,
 
-    /* Completeness */
-    "skipLibCheck": true,
-
-    /* Type Checking */
-    "strictNullChecks": true,
+    /* Emit */
+    "noEmit": false,
 
     /* Projects */
-    "composite": true,
-
-    /* Interop Constraints */
-    "allowSyntheticDefaultImports": true,
-    "baseUrl": "."
+    "composite": true
   },
   "include": [
     "vite.config.ts",
     "vitest.config.ts",
     "codegen.ts",
+    "virtual-routes.config.ts",
     "cypress.config.ts",
-    "cypress.config.init.ts",
-    "virtual-routes.config.ts"
+    "cypress/support/e2e",
+    "../utils/src"
   ]
 }

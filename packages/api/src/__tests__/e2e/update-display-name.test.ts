@@ -62,7 +62,9 @@ it('creates new user, updates displayName and publishes it to websocket', async 
         },
       },
     },
-    fetchFn
+    {
+      fetchFn,
+    }
   );
   const signInData = expectGraphQLResponseData(signInResponse);
   const userId = signInData.signIn.signedInUser.id;
@@ -124,7 +126,9 @@ it('creates new user, updates displayName and publishes it to websocket', async 
         },
       },
     },
-    fetchFn
+    {
+      fetchFn,
+    }
   );
 
   const updateDisplayNameData = expectGraphQLResponseData(updateDisplayNameResponse);
@@ -164,7 +168,9 @@ it('creates new user, updates displayName and publishes it to websocket', async 
         },
       },
     },
-    fetchFn
+    {
+      fetchFn,
+    }
   );
   const signOutData = expectGraphQLResponseData(signOutResponse);
   expect(signOutData.signOut.availableUsers).toHaveLength(0);

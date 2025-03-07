@@ -3,18 +3,26 @@ import { Box, Card } from '@mui/material';
 import { mount } from 'cypress/react18';
 import { ReactNode } from 'react';
 
-import './commands';
-import { GraphQLServiceProvider } from '../../src/graphql/components/GraphQLServiceProvider';
-import { createGraphQLService } from '../../src/graphql/create/service';
-import { createDefaultGraphQLServiceParams } from '../../src/graphql-service';
-import { AppThemeModuleProvider } from '../../src/theme/components/AppThemeModuleProvider';
+import { GraphQLServiceProvider } from '../../../src/graphql/components/GraphQLServiceProvider';
+import { createGraphQLService } from '../../../src/graphql/create/service';
+import { createDefaultGraphQLServiceParams } from '../../../src/graphql-service';
+import { AppThemeModuleProvider } from '../../../src/theme/components/AppThemeModuleProvider';
+
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Cypress {
+    interface Chainable {
+      mountInTheme: typeof mount;
+    }
+  }
+}
 
 /**
  * Mount in a experimental sandbox to tinker with components.
  * Uses app theme and mounts the component at the center of the
  * window in Mui Card.
  */
-export const mountInTheme: typeof mount = (children: ReactNode, ...restArgs) => {
+const mountInTheme: typeof mount = (children: ReactNode, ...restArgs) => {
   const params = createDefaultGraphQLServiceParams();
   const service = createGraphQLService({
     ...params,
@@ -49,3 +57,4 @@ export const mountInTheme: typeof mount = (children: ReactNode, ...restArgs) => 
     ...restArgs
   );
 };
+Cypress.Commands.add('mountInTheme', mountInTheme);

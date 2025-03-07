@@ -1,4 +1,5 @@
 import { WebSocket } from 'ws';
+
 import { createSimpleGraphQLWebSocket } from './simple-graphql-websocket';
 import {
   BufferLike,
