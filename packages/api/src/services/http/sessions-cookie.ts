@@ -9,6 +9,8 @@ import { parseSimpleRecord, serializeSimpleRecord } from './utils/simple-str-rec
 type UserId = NonNullable<Parameters<typeof objectIdToStr>[0]>;
 type CookieId = string;
 
+export const DEFAULT_KEY = 'Sessions';
+
 /**
  * Sessions that are stored in a cookie
  * Cookie is updated whenever a session changes
@@ -34,7 +36,7 @@ export class SessionsCookie {
       key?: string;
     }
   ) {
-    this.key = options?.key ?? 'Sessions';
+    this.key = options?.key ?? DEFAULT_KEY;
 
     this.cookies = cookies;
     this.model = model ?? new SessionsCookieModel();

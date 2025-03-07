@@ -1,3 +1,5 @@
+import { serializeCookieValue } from './utils/cookies';
+
 const SECURE_SET_COOKIE = process.env.NODE_ENV === 'production' ? '; Secure' : '';
 
 interface ModifiedValue {
@@ -78,9 +80,7 @@ export class Cookies {
       }
     }
 
-    return Object.entries(cookies)
-      .map(([key, value]) => `${key}=${value}`)
-      .join(';');
+    return serializeCookieValue(cookies);
   }
 
   getMultiValueHeadersSetCookies(): string[] {

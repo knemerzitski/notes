@@ -24,7 +24,7 @@ import {
 import { CookiesMongoDBDynamoDBAuthenticationService } from './services/auth/auth-service';
 import { Cookies } from './services/http/cookies';
 import { SessionsCookie } from './services/http/sessions-cookie';
-import { parseCookiesFromHeaders } from './services/http/utils/parse-cookies-from-headers';
+import { parseCookiesFromHeaders } from './services/http/utils/cookies';
 import { ConnectionsAuthenticationServiceCache } from './utils/auth-cache';
 import { serializeConnectionCustomData } from './utils/connection-custom-data';
 

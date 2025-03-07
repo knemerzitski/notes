@@ -7,7 +7,7 @@ import { SessionsCookieModel } from '../models/http/sessions-cookie';
 import { createDefaultApiOptions } from '../parameters';
 import { Cookies } from '../services/http/cookies';
 import { SessionsCookie } from '../services/http/sessions-cookie';
-import { parseCookiesFromHeaders } from '../services/http/utils/parse-cookies-from-headers';
+import { parseCookiesFromHeaders } from '../services/http/utils/cookies';
 
 import { serializeConnectionCustomData } from './connection-custom-data';
 
