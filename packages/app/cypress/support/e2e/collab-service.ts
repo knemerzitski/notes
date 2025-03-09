@@ -1,0 +1,3 @@
+/*
+Create CollabService instance in the background for a specific user.
+*/

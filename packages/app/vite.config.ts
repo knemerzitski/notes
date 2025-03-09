@@ -28,8 +28,10 @@ export default async ({ mode }: { mode: string }) => {
     }
   }
   process.env.VITE_BUILD_MODE = nodeEnvToBuildMode(process.env.NODE_ENV);
-  process.env.VITE_BUILD_HASH =
-    (await exec('git rev-parse --short HEAD')).stdout ?? '????';
+  process.env.VITE_BUILD_HASH = (await exec('git rev-parse --short HEAD')).stdout;
+  if (typeof process.env.VITE_BUILD_HASH !== 'string') {
+    process.env.VITE_BUILD_HASH = '????';
+  }
   process.env.VITE_BUILD_HASH = process.env.VITE_BUILD_HASH.trim();
 
   return defineConfig({

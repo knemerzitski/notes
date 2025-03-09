@@ -57,6 +57,7 @@
     "apollo-link-serialize": "npm:@knemerzitski/apollo-link-serialize@^5.1.1",
     "apollo3-cache-persist": "npm:@knemerzitski/apollo3-cache-persist@^0.16.0",
     "cypress": "^13.6.3",
+    "cypress-vite": "^1.6.0",
     "debug": "^4.4.0",
     "eslint-plugin-cypress": "^4.0.0",
     "eslint-plugin-react": "^7.37.2",

@@ -142,7 +142,7 @@ export function EditableDisplayName() {
             error={hasError}
           />
         ) : (
-          <DisplayNameTitle>{name}</DisplayNameTitle>
+          <DisplayNameTitle aria-label="name">{name}</DisplayNameTitle>
         )}
         <IconButton
           onClick={isEditing ? handleCommitNameChange : handleStartEditName}

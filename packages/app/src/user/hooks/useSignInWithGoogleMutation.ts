@@ -8,15 +8,15 @@ import { SignIn } from '../mutations/SignIn';
 
 export function useSignInWithGoogleMutation() {
   const client = useApolloClient();
-  const blockUi = useBlockUi();
+  const blockUi = useBlockUi(true);
 
   const [signInMutation] = useMutation(SignIn);
 
   return useCallback(
-    async (response: google.accounts.id.CredentialResponse) => {
+    async (response: Pick<google.accounts.id.CredentialResponse, 'credential'>) => {
       const controller = new AbortController();
 
-      const unblock = blockUi({
+      const unblock = blockUi?.({
         message: 'Signing in with Google',
         onCancel: () => {
           controller.abort(new Error('User aborted'));
@@ -51,7 +51,7 @@ export function useSignInWithGoogleMutation() {
 
         return true;
       } finally {
-        unblock();
+        unblock?.();
       }
     },
     [signInMutation, client, blockUi]

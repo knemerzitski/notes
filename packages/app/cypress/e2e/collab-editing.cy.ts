@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
- 
+
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CollectionName } from '../../../api/src/mongodb/collection-names';
@@ -184,6 +184,9 @@ it('sign in, create note, share link and collab edit with another user', () => {
           cy.get(`[id="note-edit-dialog-${noteId}"]`).should('be.visible');
 
           // Programatically sign in with user 1 (different from user visible in UI) and open the note
+
+          // TODO programmatic sign in and insert record with reusable commands
+
           cy.graphQLSession().then((graphQLSession) => {
             requestSignIn(
               {

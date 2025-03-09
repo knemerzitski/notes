@@ -1,7 +1,9 @@
+import path from 'node:path';
 import { defineConfig } from 'cypress';
 
 import { setupNodeEvents as e2e_setupNodeEvents } from './cypress/support/e2e/setup';
 import { loadEnvironmentVariables } from '../utils/src/env';
+import vitePreprocessor from 'cypress-vite';
 
 loadEnvironmentVariables();
 
@@ -21,7 +23,10 @@ export default defineConfig({
       WS_URL: process.env.VITE_GRAPHQL_WS_URL!,
       DB_URI: process.env.MONGODB_URI,
     },
+
     setupNodeEvents(on, config) {
+      on('file:preprocessor', vitePreprocessor());
+
       e2e_setupNodeEvents(on, config);
     },
   },

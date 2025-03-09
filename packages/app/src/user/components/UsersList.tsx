@@ -27,7 +27,7 @@ export function UsersList({ listProps }: { listProps?: ListProps }) {
   const selectedUserId = data.currentSignedInUser.id;
 
   return (
-    <ColumnList disablePadding {...listProps}>
+    <ColumnList disablePadding {...listProps} aria-label="accounts list">
       {userIds.map((userId) => (
         <UserIdProvider key={userId} userId={userId}>
           <UserListItem

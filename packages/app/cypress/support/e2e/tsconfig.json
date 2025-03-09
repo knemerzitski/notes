@@ -1,5 +1,5 @@
 {
-  "extends": "../../../../../tsconfig.base.json",
+  "extends": "../../../tsconfig.json",
   /* Allow api package in e2e test support */
-  "include": [".", "../../../../utils/src", "../../../../api/src"]
+  "include": [".", "../../../src", "../../../../utils/src", "../../../../api/src"]
 }

@@ -9,6 +9,8 @@ import {
 } from '@mui/material';
 import { createContext, ReactNode, useCallback, useContext, useId } from 'react';
 
+import { Maybe } from '../../../../utils/src/types';
+
 import { BlockUiBackdrop } from '../components/BlockUiBackdrop';
 
 import { useSmoothOpen } from '../hooks/useSmoothOpen';
@@ -36,9 +38,11 @@ type BlockUiClosure = (options: BlockUiOptions) => UnblockUiClosure;
 
 const BlockUiContext = createContext<BlockUiClosure | null>(null);
 
-export function useBlockUi(): BlockUiClosure {
+export function useBlockUi(nullable: true): Maybe<BlockUiClosure>;
+export function useBlockUi(nullable?: false): BlockUiClosure;
+export function useBlockUi(nullable?: boolean): Maybe<BlockUiClosure> {
   const ctx = useContext(BlockUiContext);
-  if (ctx === null) {
+  if (ctx === null && !nullable) {
     throw new Error('useBlockUi() requires context <BlockUiProvider>');
   }
   return ctx;
