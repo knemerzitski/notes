@@ -6,10 +6,9 @@ import { GraphQLServiceProvider } from '../../../../src/graphql/components/Graph
 import { CurrentUserIdProvider } from '../../../../src/user/components/CurrentUserIdProvider';
 import { useSignInWithGoogleMutation } from '../../../../src/user/hooks/useSignInWithGoogleMutation';
 
-
 import { getCurrentUserId } from '../../../../src/user/models/signed-in-user/get-current';
 
-import { GraphQLServiceContext } from './graphql-service';
+import { GraphQLService } from '../../../../src/graphql/types';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -21,6 +20,7 @@ declare global {
 }
 
 interface SignInOptions {
+  graphQLService: GraphQLService;
   googleUserId: string;
   displayName?: string;
 }
@@ -31,22 +31,21 @@ interface SignInResult {
 
 Cypress.Commands.add(
   'signIn',
-  { prevSubject: true },
-  ({ service }: GraphQLServiceContext, { googleUserId, displayName }: SignInOptions) => {
-    return cy.then(async () => {
+  ({ graphQLService, googleUserId, displayName }: SignInOptions) => {
+    return cy.then(() => {
       const {
         result: { current: signInWithGoogleMutation },
       } = renderHook(() => useSignInWithGoogleMutation(), {
         wrapper: ({ children }: { children: ReactNode }) => {
           return (
-            <GraphQLServiceProvider service={service}>
+            <GraphQLServiceProvider service={graphQLService}>
               <CurrentUserIdProvider>{children}</CurrentUserIdProvider>
             </GraphQLServiceProvider>
           );
         },
       });
 
-      await signInWithGoogleMutation({
+      const signInPromise = signInWithGoogleMutation({
         credential: JSON.stringify({
           id: googleUserId,
           name: displayName ?? `${googleUserId} User`,
@@ -54,9 +53,13 @@ Cypress.Commands.add(
         }),
       });
 
-      return {
-        userId: getCurrentUserId(service.client.cache),
-      } satisfies SignInResult;
+      return cy.then(async () => {
+        await signInPromise;
+
+        return {
+          userId: getCurrentUserId(graphQLService.client.cache),
+        } satisfies SignInResult;
+      });
     });
   }
 );

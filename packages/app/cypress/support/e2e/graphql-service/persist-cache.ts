@@ -1,18 +1,17 @@
-import { GraphQLServiceContext } from './graphql-service';
-
+import { GraphQLService } from '../../../../src/graphql/types';
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
-      persistCache: () => Chainable<void>;
+      persistCache: (options: PersistCacheOptions) => Chainable<void>;
     }
   }
 }
 
-Cypress.Commands.add(
-  'persistCache',
-  { prevSubject: true },
-  ({ service }: GraphQLServiceContext) => {
-    return cy.then(() => service.persistor.persist());
-  }
-);
+interface PersistCacheOptions {
+  graphQLService: GraphQLService;
+}
+
+Cypress.Commands.add('persistCache', ({ graphQLService }: PersistCacheOptions) => {
+  return cy.then(() => graphQLService.persistor.persist());
+});

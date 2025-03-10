@@ -1,5 +1,6 @@
 import { FetchFn } from '../../../../../utils/src/testing/types';
 
+// TODO reuse ./cy-fetch?
 export const cyRequestFetchFn: FetchFn = function (options) {
   return new Promise((resolve, reject) => {
     cy.request(options).then((response) => {

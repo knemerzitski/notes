@@ -109,6 +109,8 @@ function read(
   return note[FIELD_NAME] as NoteExternalState;
 }
 
+export const __unstable_readNoteExternalState = read;
+
 function write(
   noteRef: Reference,
   externalState: NoteExternalState,

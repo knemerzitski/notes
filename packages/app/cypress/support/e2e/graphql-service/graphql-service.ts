@@ -6,6 +6,8 @@ import {
   APOLLO_CACHE_VERSION,
   createDefaultGraphQLServiceParams,
 } from '../../../../src/graphql-service';
+import { HttpLink } from '@apollo/client';
+import { cyFetch } from '../http/cy-fetch';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -16,8 +18,13 @@ declare global {
   }
 }
 
-export interface GraphQLServiceContext {
+interface Controller {
+  useCyRequest: boolean;
+}
+
+export interface GraphQLServiceResult {
   service: GraphQLService;
+  controller: Controller;
 }
 
 function graphQLService(options?: {
@@ -31,6 +38,10 @@ function graphQLService(options?: {
     // Ensure cache is not pruged
     processCacheVersion(bootstrapCache, APOLLO_CACHE_VERSION);
 
+    const controller: Controller = {
+      useCyRequest: false,
+    };
+
     const params = createDefaultGraphQLServiceParams();
     const service = createGraphQLService({
       ...params,
@@ -42,6 +53,10 @@ function graphQLService(options?: {
           logging: false,
         },
       },
+      // Use cy.request for fetching
+      terminatingLink: new HttpLink({
+        fetch: (...args) => (controller.useCyRequest ? cyFetch(...args) : fetch(...args)),
+      }),
     });
 
     // Wait for cache to be ready
@@ -49,7 +64,8 @@ function graphQLService(options?: {
 
     return {
       service,
-    } satisfies GraphQLServiceContext;
+      controller,
+    } satisfies GraphQLServiceResult;
   });
 }
 Cypress.Commands.add('graphQLService', graphQLService);

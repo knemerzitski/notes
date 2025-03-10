@@ -1,19 +1,31 @@
+import { GraphQLService } from '../../src/graphql/types';
+
+let graphQLService: GraphQLService;
+
 beforeEach(() => {
   cy.resetDatabase();
+
+  // Init GraphQLService
+  cy.graphQLService().then((value) => {
+    graphQLService = value.service;
+  });
 });
 
 it('signs out all users', () => {
   // Programmatic: sign in with two users
-  cy.graphQLService().then((parent) => {
-    cy.wrap(parent).signIn({
-      googleUserId: '1',
-      displayName: 'First',
-    });
-    cy.wrap(parent).signIn({
-      googleUserId: '2',
-      displayName: 'Second',
-    });
-    cy.wrap(parent).persistCache();
+  cy.signIn({
+    graphQLService,
+    googleUserId: '1',
+    displayName: 'First',
+  });
+  cy.signIn({
+    graphQLService,
+    googleUserId: '2',
+    displayName: 'Second',
+  });
+  // Ensures cache is read when visiting
+  cy.persistCache({
+    graphQLService,
   });
 
   cy.visit('/');
