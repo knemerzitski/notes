@@ -6,6 +6,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 import { virtualRouteConfig } from './virtual-routes.config';
 import child_process from 'node:child_process';
 import { promisify } from 'node:util';
+import { isEnvironmentVariableTruthy } from '../utils/src/string/is-environment-variable-truthy';
 
 const exec = promisify(child_process.exec);
 
@@ -34,57 +35,64 @@ export default async ({ mode }: { mode: string }) => {
   }
   process.env.VITE_BUILD_HASH = process.env.VITE_BUILD_HASH.trim();
 
+  const isCypress = isEnvironmentVariableTruthy(process.env.CYPRESS);
+
   return defineConfig({
     plugins: [
       react(),
-      TanStackRouterVite({
-        virtualRouteConfig,
-        generatedRouteTree: 'src/__generated__/routeTree.gen.ts',
-      }),
-      /**
-       * @see {@link https://vite-pwa-org.netlify.app/guide/}
-       */
-      VitePWA({
-        disable: process.env.NODE_ENV !== 'production',
-        registerType: 'autoUpdate',
-        injectRegister: 'inline',
-        manifest: {
-          name: 'Notes',
-          short_name: 'Notes',
-          description: 'Collaborative note taking app',
-          start_url: '/',
-          theme_color: '#92fde1',
-          background_color: '#ffffff',
-          display: 'standalone',
-          icons: [
-            {
-              src: 'pwa-64x64.png',
-              sizes: '64x64',
-              type: 'image/png',
-            },
-            {
-              src: 'pwa-192x192.png',
-              sizes: '192x192',
-              type: 'image/png',
-            },
-            {
-              src: 'pwa-512x512.png',
-              sizes: '512x512',
-              type: 'image/png',
-            },
-            {
-              src: 'maskable-icon-512x512.png',
-              sizes: '512x512',
-              type: 'image/png',
-              purpose: 'maskable',
-            },
-          ],
-        },
-        devOptions: {
-          enabled: false,
-          resolveTempFolder: () => './out-dev-pwa',
-        },
-      }),
+      ...(!isCypress
+        ? [
+            // Use generate plugins only when not running Cypress E2E tests
+            TanStackRouterVite({
+              virtualRouteConfig,
+              generatedRouteTree: 'src/__generated__/routeTree.gen.ts',
+            }),
+            /**
+             * @see {@link https://vite-pwa-org.netlify.app/guide/}
+             */
+            VitePWA({
+              disable: process.env.NODE_ENV !== 'production',
+              registerType: 'autoUpdate',
+              injectRegister: 'inline',
+              manifest: {
+                name: 'Notes',
+                short_name: 'Notes',
+                description: 'Collaborative note taking app',
+                start_url: '/',
+                theme_color: '#92fde1',
+                background_color: '#ffffff',
+                display: 'standalone',
+                icons: [
+                  {
+                    src: 'pwa-64x64.png',
+                    sizes: '64x64',
+                    type: 'image/png',
+                  },
+                  {
+                    src: 'pwa-192x192.png',
+                    sizes: '192x192',
+                    type: 'image/png',
+                  },
+                  {
+                    src: 'pwa-512x512.png',
+                    sizes: '512x512',
+                    type: 'image/png',
+                  },
+                  {
+                    src: 'maskable-icon-512x512.png',
+                    sizes: '512x512',
+                    type: 'image/png',
+                    purpose: 'maskable',
+                  },
+                ],
+              },
+              devOptions: {
+                enabled: false,
+                resolveTempFolder: () => './out-dev-pwa',
+              },
+            }),
+          ]
+        : []),
     ],
     build: {
       outDir: process.env.VITE_APP_OUT_DIR ?? 'out',
