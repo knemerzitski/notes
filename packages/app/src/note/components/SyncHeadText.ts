@@ -6,12 +6,12 @@ import { MapRecordCollabTextRecordFragmentFragmentDoc } from '../../__generated_
 import { useUserId } from '../../user/context/user-id';
 import { useNoteId } from '../context/note-id';
 import { cacheRecordToCollabServiceRecord } from '../utils/map-record';
+import { getCollabService } from '../models/note/get-collab-service';
 
 const SyncHeadTextWatch_Query = gql(`
   query SyncHeadTextWatch_Query($by: NoteByInput!) {
     note(by: $by) {
       id
-      collabService
       collabText {
         id
         headText {
@@ -77,7 +77,7 @@ export function SyncHeadText() {
 
       const note = value.data.note;
       const collabText = note.collabText;
-      const collabService = note.collabService;
+      const collabService = getCollabService(note, client.cache);
 
       const cacheHeadRevision = collabText.headText.revision;
 
