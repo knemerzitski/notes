@@ -7,6 +7,8 @@ import { useGetMutationUpdaterFn } from '../../graphql/context/get-mutation-upda
 import { apolloClientSubscribe } from '../../graphql/utils/apollo-client-subscribe';
 import { useUserId } from '../context/user-id';
 import { useIsLocalOnlyUser } from '../hooks/useIsLocalOnlyUser';
+import { SignedInUserEventsSubscriptionSubscriptionSubscription } from '../../__generated__/graphql';
+import { Listener } from '../../../../utils/src/async-event-queue';
 
 const SignedInUserEventsSubscription_Subscription = gql(`
   subscription SignedInUserEventsSubscription_Subscription($input: SignedInUserEventsInput!) {
@@ -29,17 +31,27 @@ const SignedInUserEventsSubscription_Subscription = gql(`
   }  
 `);
 
-export function SignedInUserEventsSubscription() {
+export function SignedInUserEventsSubscription(
+  props: Parameters<typeof Subscription>[0]
+) {
   const isLocalOnlyUser = useIsLocalOnlyUser();
 
   if (isLocalOnlyUser) {
     return null;
   }
 
-  return <Subscription />;
+  return <Subscription {...props} />;
 }
 
-function Subscription() {
+function Subscription({
+  listener: mutationListener,
+}: {
+  listener?: Listener<
+    NonNullable<
+      SignedInUserEventsSubscriptionSubscriptionSubscription['signedInUserEvents']['mutations']
+    >[0]
+  >;
+}) {
   const client = useApolloClient();
   const userId = useUserId();
   const getMutationUpdaterFn = useGetMutationUpdaterFn();
@@ -69,6 +81,12 @@ function Subscription() {
         }
 
         for (const mutation of mutations) {
+          try {
+            mutationListener?.(mutation);
+          } catch (err) {
+            console.error(err);
+          }
+
           const update = getMutationUpdaterFn(mutation.__typename);
           update?.(
             client.cache,
@@ -92,7 +110,7 @@ function Subscription() {
         subscription.unsubscribe();
       });
     };
-  }, [client, getMutationUpdaterFn, userId]);
+  }, [client, getMutationUpdaterFn, userId, mutationListener]);
 
   return null;
 }

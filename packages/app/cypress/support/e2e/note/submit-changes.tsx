@@ -29,7 +29,7 @@ interface SubmitChangesOptions {
 Cypress.Commands.add(
   'submitChanges',
   ({ noteId, graphQLService, collabService }: SubmitChangesOptions) => {
-    return cy.then(() => {
+    return cy.then(async () => {
       const {
         result: { current: insertRecord },
       } = renderHook(() => useUpdateNoteInsertRecord(), {
@@ -50,11 +50,7 @@ Cypress.Commands.add(
         return;
       }
 
-      const insertRecordPromise = insertRecord(noteId, submittedRecord);
-
-      return cy.then(async () => {
-        await insertRecordPromise;
-      });
+      await insertRecord(noteId, submittedRecord);
     });
   }
 );

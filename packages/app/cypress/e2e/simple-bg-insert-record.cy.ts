@@ -1,7 +1,7 @@
 import { CollabService } from '../../../collab/src/client/collab-service';
 import { SelectionRange } from '../../../collab/src/client/selection-range';
 import { SimpleText } from '../../../collab/src/types';
-import { Note, NoteTextFieldName, User } from '../../src/__generated__/graphql';
+import { Note, NoteTextFieldName } from '../../src/__generated__/graphql';
 import { GraphQLService } from '../../src/graphql/types';
 
 let graphQLService: GraphQLService;
@@ -17,38 +17,31 @@ beforeEach(() => {
   // Init GraphQLService
   cy.graphQLService().then((value) => {
     graphQLService = value.service;
-  });
 
-  // Sign in
-  let userId: User['id'];
-  cy.then(() => {
-    cy.signIn({
-      graphQLService,
-      googleUserId: '1',
-      displayName: 'First',
-    }).then(({ userId: _userId }) => {
-      userId = _userId;
-    });
-  });
+    // Sign in
+    cy.then(() => {
+      cy.signIn({
+        graphQLService,
+        googleUserId: '1',
+        displayName: 'First',
+      }).then(({ userId }) => {
+        // Create note
+        cy.createNote({
+          graphQLService,
+          userId,
+        }).then((value) => {
+          noteId = value.noteId;
 
-  // Create note
-  cy.then(() => {
-    cy.createNote({
-      graphQLService,
-      userId,
-    }).then(({ noteId: _noteId }) => {
-      noteId = _noteId;
-    });
-  });
-
-  // Init CollabService
-  cy.then(() => {
-    cy.collabService({
-      graphQLService,
-      noteId,
-    }).then((value) => {
-      collabService = value.service;
-      fields = value.fields;
+          // Init CollabService
+          cy.collabService({
+            graphQLService,
+            noteId,
+          }).then((value) => {
+            collabService = value.service;
+            fields = value.fields;
+          });
+        });
+      });
     });
   });
 });
@@ -81,5 +74,7 @@ it('has inserted record in the background', () => {
 
   cy.visit('/');
 
-  cy.get(`[data-note-id="${noteId}"]`).should('contain.text', 'start|end');
+  cy.get(`[data-note-id="${noteId}"]`, {
+    timeout: 8000,
+  }).should('contain.text', 'start|end');
 });

@@ -6,8 +6,6 @@ import {
   APOLLO_CACHE_VERSION,
   createDefaultGraphQLServiceParams,
 } from '../../../../src/graphql-service';
-import { HttpLink } from '@apollo/client';
-import { cyFetch } from '../http/cy-fetch';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -18,13 +16,8 @@ declare global {
   }
 }
 
-interface Controller {
-  useCyRequest: boolean;
-}
-
 export interface GraphQLServiceResult {
   service: GraphQLService;
-  controller: Controller;
 }
 
 function graphQLService(options?: {
@@ -33,14 +26,14 @@ function graphQLService(options?: {
    * @default false
    */
   storageKey?: string;
+  /**
+   * @default false
+   */
+  logging?: boolean;
 }) {
   return cy.then(async () => {
     // Ensure cache is not pruged
     processCacheVersion(bootstrapCache, APOLLO_CACHE_VERSION);
-
-    const controller: Controller = {
-      useCyRequest: false,
-    };
 
     const params = createDefaultGraphQLServiceParams();
     const service = createGraphQLService({
@@ -50,13 +43,9 @@ function graphQLService(options?: {
         ...params.linkOptions,
         debug: {
           ...params.linkOptions?.debug,
-          logging: false,
+          logging: options?.logging,
         },
       },
-      // Use cy.request for fetching
-      terminatingLink: new HttpLink({
-        fetch: (...args) => (controller.useCyRequest ? cyFetch(...args) : fetch(...args)),
-      }),
     });
 
     // Wait for cache to be ready
@@ -64,7 +53,6 @@ function graphQLService(options?: {
 
     return {
       service,
-      controller,
     } satisfies GraphQLServiceResult;
   });
 }

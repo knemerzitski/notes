@@ -10,6 +10,8 @@ import { useNoteId } from '../context/note-id';
 import { useIsLocalOnlyNote } from '../hooks/useIsLocalOnlyNote';
 import { setOpenedNoteActive } from '../models/opened-note/set-active';
 import { getUserNoteLinkId } from '../utils/id';
+import { Listener } from '../../../../utils/src/async-event-queue';
+import { OpenNoteSubscriptionSubscriptionSubscription } from '../../__generated__/graphql';
 
 export const openNoteSubscriptionOperationName = 'OpenNoteSubscription_Subscription';
 
@@ -23,21 +25,27 @@ const OpenNoteSubscription_Subscription = gql(`
   }  
 `);
 
-export function OpenNoteSubscription({
-  unsubscribeDelay = 0,
-}: {
-  unsubscribeDelay?: number;
-}) {
+export function OpenNoteSubscription(props: Parameters<typeof Subscription>[0]) {
   const isLocalOnlyNote = useIsLocalOnlyNote();
 
   if (isLocalOnlyNote) {
     return null;
   }
 
-  return <Subscription delay={unsubscribeDelay} />;
+  return <Subscription {...props} />;
 }
 
-function Subscription({ delay }: { delay: number }) {
+function Subscription({
+  unsubscribeDelay,
+  listener: mutationListener,
+}: {
+  unsubscribeDelay?: number;
+  listener?: Listener<
+    NonNullable<
+      OpenNoteSubscriptionSubscriptionSubscription['openNoteEvents']['mutations']
+    >[0]
+  >;
+}) {
   const client = useApolloClient();
   const getMutationUpdaterFn = useGetMutationUpdaterFn();
   const noteId = useNoteId();
@@ -70,6 +78,12 @@ function Subscription({ delay }: { delay: number }) {
         }
 
         for (const mutation of mutations) {
+          try {
+            mutationListener?.(mutation);
+          } catch (err) {
+            console.error(err);
+          }
+
           const update = getMutationUpdaterFn(mutation.__typename);
           update?.(
             client.cache,
@@ -91,11 +105,11 @@ function Subscription({ delay }: { delay: number }) {
       subscriptionStopped = true;
       setTimeout(() => {
         subscription.unsubscribe();
-      }, delay);
+      }, unsubscribeDelay);
 
       setOpenedNoteActive(getUserNoteLinkId(noteId, userId), false, client.cache);
     };
-  }, [client, getMutationUpdaterFn, noteId, userId, delay]);
+  }, [client, getMutationUpdaterFn, noteId, userId, unsubscribeDelay, mutationListener]);
 
   return null;
 }

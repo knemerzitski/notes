@@ -1,5 +1,5 @@
-import './http/commands';
 import './mongodb/commands';
 import './websocket/commands';
 import './graphql-service/commands';
+import './user/commands';
 import './note/commands';

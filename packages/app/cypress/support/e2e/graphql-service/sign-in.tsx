@@ -32,7 +32,7 @@ interface SignInResult {
 Cypress.Commands.add(
   'signIn',
   ({ graphQLService, googleUserId, displayName }: SignInOptions) => {
-    return cy.then(() => {
+    return cy.then(async () => {
       const {
         result: { current: signInWithGoogleMutation },
       } = renderHook(() => useSignInWithGoogleMutation(), {
@@ -45,7 +45,7 @@ Cypress.Commands.add(
         },
       });
 
-      const signInPromise = signInWithGoogleMutation({
+      await signInWithGoogleMutation({
         credential: JSON.stringify({
           id: googleUserId,
           name: displayName ?? `${googleUserId} User`,
@@ -53,13 +53,9 @@ Cypress.Commands.add(
         }),
       });
 
-      return cy.then(async () => {
-        await signInPromise;
-
-        return {
-          userId: getCurrentUserId(graphQLService.client.cache),
-        } satisfies SignInResult;
-      });
+      return {
+        userId: getCurrentUserId(graphQLService.client.cache),
+      } satisfies SignInResult;
     });
   }
 );

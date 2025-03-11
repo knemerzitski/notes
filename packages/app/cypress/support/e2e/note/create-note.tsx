@@ -30,7 +30,7 @@ interface CreateNoteResult {
 }
 
 Cypress.Commands.add('createNote', ({ graphQLService, userId }: CreateNoteOptions) => {
-  return cy.then(() => {
+  return cy.then(async () => {
     const {
       result: {
         current: [createNote],
@@ -45,7 +45,7 @@ Cypress.Commands.add('createNote', ({ graphQLService, userId }: CreateNoteOption
       },
     });
 
-    const createNotePromise = createNote({
+    const { data } = await createNote({
       variables: {
         input: {
           authUser: {
@@ -58,20 +58,16 @@ Cypress.Commands.add('createNote', ({ graphQLService, userId }: CreateNoteOption
       },
     });
 
-    return cy.then(async () => {
-      const { data } = await createNotePromise;
+    if (!data) {
+      throw new Error('No data, is user signed in?');
+    }
 
-      if (!data) {
-        throw new Error('No data');
-      }
+    const payload = getFragmentData(CreateNotePayloadFragmentDoc, data.createNote);
 
-      const payload = getFragmentData(CreateNotePayloadFragmentDoc, data.createNote);
+    const noteId = payload.userNoteLink.note.id;
 
-      const noteId = payload.userNoteLink.note.id;
-
-      return {
-        noteId,
-      } satisfies CreateNoteResult;
-    });
+    return {
+      noteId,
+    } satisfies CreateNoteResult;
   });
 });
