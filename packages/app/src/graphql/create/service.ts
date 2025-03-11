@@ -2,6 +2,7 @@ import {
   ApolloClient,
   ApolloLink,
   DefaultContext,
+  HttpOptions,
   InMemoryCache,
   PossibleTypesMap,
 } from '@apollo/client';
@@ -36,6 +37,7 @@ export function createGraphQLService({
   httpUri,
   wsUrl,
   terminatingLink,
+  httpOptions,
   possibleTypesList,
   typePoliciesList,
   cacheReadyCallbacks,
@@ -51,7 +53,17 @@ export function createGraphQLService({
 }: {
   httpUri: string;
   wsUrl: string | undefined;
+  /**
+   * Specify terminating link to use
+   */
   terminatingLink?: ApolloLink;
+  /**
+   * Specify terminating link to use only for HTTP requests.
+   * Subscriptions use default link.
+   *
+   * This option has no effect when {@link terminatingLink} is defined
+   */
+  httpOptions?: Omit<HttpOptions, 'uri'>;
   possibleTypesList?: PossibleTypesMap[];
   typePoliciesList: TypePoliciesList;
   cacheReadyCallbacks: CacheReadyCallbacks;
@@ -181,7 +193,10 @@ export function createGraphQLService({
   const httpWsLink =
     terminatingLink ??
     createHttpWsLink({
-      httpUri,
+      httpOptions: {
+        ...httpOptions,
+        uri: httpUri,
+      },
       wsClient,
     });
 
