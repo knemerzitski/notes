@@ -49,9 +49,6 @@ export const CreateNotePayload = mutationDefinition(
       MapRecordCollabTextRecordFragmentFragmentDoc,
       data.firstCollabTextRecord
     );
-    if (!firstRecord) {
-      throw new Error('Create note unexpected missing first collab record');
-    }
 
     const { userId } = parseUserNoteLinkId(data.userNoteLink.id);
 
@@ -90,14 +87,20 @@ export const CreateNotePayload = mutationDefinition(
       );
     }
 
-    addRecordToConnection(data.userNoteLink.note.collabText.id, firstRecord, cache);
+    if (firstRecord) {
+      addRecordToConnection(data.userNoteLink.note.collabText.id, firstRecord, cache);
+    }
 
     const service = getCollabService({ id: data.userNoteLink.note.id }, cache);
 
     if (options.context?.isSubscriptionOperation) {
       service.replaceHeadText(data.userNoteLink.note.collabText.headText);
     } else {
-      service.submittedChangesAcknowledged(cacheRecordToCollabServiceRecord(firstRecord));
+      if (firstRecord) {
+        service.submittedChangesAcknowledged(
+          cacheRecordToCollabServiceRecord(firstRecord)
+        );
+      }
     }
   }
 );
