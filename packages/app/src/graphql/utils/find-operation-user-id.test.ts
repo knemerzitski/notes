@@ -1,4 +1,3 @@
- 
 import { gql, Operation } from '@apollo/client';
 import { describe, expect, it } from 'vitest';
 
@@ -33,6 +32,27 @@ describe('query inline argument', () => {
       expect(findOperationUserIdByPath(operation, path)).toStrictEqual(expectedUserId);
     }
   );
+});
+
+describe('query inline variable argument', () => {
+  const operation: Pick<Operation, 'query' | 'variables'> = {
+    query: gql(`
+      query($auser: String!) {
+        foo {
+          user(userBy: { id: $auser }) {
+            items
+          }
+        }
+      }
+    `),
+    variables: {
+      auser: 'foo',
+    },
+  };
+
+  it.each([[['foo', 'user', 'items'], 'foo']])('%s', (path, expectedUserId) => {
+    expect(findOperationUserIdByPath(operation, path)).toStrictEqual(expectedUserId);
+  });
 });
 
 describe('mutation inline argument', () => {

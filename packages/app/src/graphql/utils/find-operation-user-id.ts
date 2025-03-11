@@ -154,7 +154,13 @@ function processArgument(
 
       return userId;
     } else {
-      return findInlineValue(value, ['authUser', 'id']);
+      const inlineValue = findInlineValue(value, ['authUser', 'id']);
+      if (inlineValue.kind === Kind.VARIABLE) {
+        const variableValue: unknown = ctx.operation.variables[inlineValue.value];
+        return findVariableStringArgument(variableValue);
+      } else {
+        return inlineValue.value;
+      }
     }
   } else if (
     isQueryOperation(ctx.operation.query) &&
@@ -170,7 +176,13 @@ function processArgument(
 
       return userId;
     } else {
-      return findInlineValue(value, ['id']);
+      const inlineValue = findInlineValue(value, ['id']);
+      if (inlineValue.kind === Kind.VARIABLE) {
+        const variableValue: unknown = ctx.operation.variables[inlineValue.value];
+        return findVariableStringArgument(variableValue);
+      } else {
+        return inlineValue.value;
+      }
     }
   }
 
@@ -178,15 +190,21 @@ function processArgument(
   return;
 }
 
-function findInlineValue(value: ValueNode, path: string[]): string | undefined {
+function findInlineValue(
+  value: ValueNode,
+  path: string[]
+): { kind: Kind.STRING | Kind.VARIABLE; value: string } {
   if (value.kind === Kind.STRING) {
-    return value.value;
+    return {
+      kind: value.kind,
+      value: value.value,
+    };
   }
 
   if (value.kind === Kind.OBJECT) {
     const key = path[0];
     if (!key) {
-      throw new Error(`Unexpectd missing path for value ${JSON.stringify(value)}`);
+      throw new Error(`Unexpected missing path for value ${JSON.stringify(value)}`);
     }
 
     for (const field of value.fields) {
@@ -200,7 +218,24 @@ function findInlineValue(value: ValueNode, path: string[]): string | undefined {
     );
   }
 
+  if (value.kind === Kind.VARIABLE) {
+    return {
+      kind: value.kind,
+      value: value.name.value,
+    };
+  }
+
   throw new Error('Not implemented');
+}
+
+const StringStruct = string();
+function findVariableStringArgument(value: unknown): string {
+  const [error, validatedValue] = StringStruct.validate(value);
+  if (error) {
+    throw error;
+  }
+
+  return validatedValue;
 }
 
 const QueryUserByStruct = type({
