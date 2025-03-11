@@ -5,17 +5,15 @@ import { CustomHeaderName } from '../../../../../api-app-shared/src/custom-heade
 import { WebSocketClient } from '../../ws/websocket-client';
 
 export function createHeaderWsConnectionIdLink(
-  wsClient: Pick<WebSocketClient, 'connectionId'>
+  wsClient: Pick<WebSocketClient, 'getConnectionIdDeferred'>
 ) {
-  return setContext((_request, previousContext) => {
-    if (!wsClient.connectionId) return previousContext;
-
+  return setContext(async (_request, previousContext) => {
     return {
       ...previousContext,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       headers: {
         ...previousContext.headers,
-        [CustomHeaderName.WS_CONNECTION_ID]: wsClient.connectionId,
+        [CustomHeaderName.WS_CONNECTION_ID]: await wsClient.getConnectionIdDeferred(),
       },
     };
   });

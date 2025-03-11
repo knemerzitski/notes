@@ -7,6 +7,7 @@ import {
 } from 'graphql-ws';
 
 import { isObjectLike } from '../../../../utils/src/type-guards/is-object-like';
+import { createDeferred, Deferred } from '../../../../utils/src/deferred';
 
 export class WebSocketClient {
   readonly client;
@@ -19,6 +20,7 @@ export class WebSocketClient {
   private socket: WebSocket | null = null;
   private restartRequested = false;
 
+  private deferredConnectionId: Deferred<string> | null = null;
   private _connectionId: string | null = null;
   get connectionId() {
     return this._connectionId;
@@ -46,6 +48,7 @@ export class WebSocketClient {
       if (this.socket.readyState === WebSocket.OPEN) {
         this.socket.close(4499, 'Terminated');
       }
+      this._connectionId = null;
     } else {
       this.client.terminate();
       this.restartRequested = true;
@@ -111,8 +114,28 @@ export class WebSocketClient {
       const connectionId = payload.connectionId;
       if (typeof connectionId === 'string' && connectionId.length > 0) {
         this._connectionId = connectionId;
+        if (this.deferredConnectionId) {
+          this.deferredConnectionId.resolve(connectionId);
+          this.deferredConnectionId = null;
+        }
       }
     }
+  }
+
+  /**
+   *
+   * @returns A promise that will eventually resolve to `connectionId`
+   */
+  getConnectionIdDeferred(): Promise<string> {
+    if (this._connectionId != null) {
+      return Promise.resolve(this._connectionId);
+    }
+
+    if (!this.deferredConnectionId) {
+      this.deferredConnectionId = createDeferred();
+    }
+
+    return this.deferredConnectionId.promise;
   }
 
   private closed() {
