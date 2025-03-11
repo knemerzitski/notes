@@ -7,9 +7,8 @@
 import { GRAPHQL_TRANSPORT_WS_PROTOCOL, ConnectionInitMessage } from 'graphql-ws';
 import { nanoid } from 'nanoid';
 
-import { createDeferred, Deferred } from '../deferred';
-
 import { GenericWebSocket, GenericWebSocketFactory } from './types';
+import { AsyncEventQueue } from '../async-event-queue';
 
 export interface SimpleGraphQLWebSocket {
   ws: GenericWebSocket;
@@ -27,8 +26,8 @@ export type SubscribeFn = <TData = any, TVariables = any>(
 ) => Subscription<TData>;
 
 export interface Subscription<TData = any> {
-  getNext: () => Promise<TData>;
-  onNext: (listener: SubscriptionListener) => () => void;
+  getNext: AsyncEventQueue<TData>['getNext'];
+  onNext: AsyncEventQueue<TData>['onNext'];
 }
 
 export type SubscriptionListener = (data: any) => void;
@@ -74,26 +73,14 @@ export async function createSimpleGraphQLWebSocket(
           ws,
           connectionId: parsedData.payload.connectionId,
           subscribe: (sub, onNext) => {
-            const subListeners = new Set<SubscriptionListener>();
+            const dataQueue = new AsyncEventQueue<any>();
             if (onNext) {
-              subListeners.add(onNext);
+              dataQueue.onNext(onNext);
             }
-
-            const deferredDataQueue: any[] = [];
-            let nextDeferredData: Deferred<any> | null = null;
 
             const id = nanoid();
             listenerById[id] = function (data: any) {
-              if (nextDeferredData != null) {
-                nextDeferredData.resolve(data);
-                nextDeferredData = null;
-              } else {
-                deferredDataQueue.push(data);
-              }
-
-              subListeners.forEach((listener) => {
-                listener(data);
-              });
+              dataQueue.next(data);
             };
 
             ws.send(
@@ -109,21 +96,8 @@ export async function createSimpleGraphQLWebSocket(
             );
 
             return {
-              getNext: async () => {
-                const data = deferredDataQueue.shift();
-                if (data !== undefined) {
-                  return data;
-                }
-
-                nextDeferredData = nextDeferredData ?? createDeferred();
-                return await nextDeferredData.promise;
-              },
-              onNext: (listener: SubscriptionListener) => {
-                subListeners.add(listener);
-                return () => {
-                  subListeners.delete(listener);
-                };
-              },
+              getNext: dataQueue.getNext.bind(dataQueue),
+              onNext: dataQueue.onNext.bind(dataQueue),
             };
           },
         });
