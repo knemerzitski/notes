@@ -28,7 +28,7 @@ export function UsersInfoPopover({
           },
         }}
       >
-        <TopCornerCloseButton aria-label="close account options" onClick={onClose} />
+        <TopCornerCloseButton aria-label="close user options" onClick={onClose} />
         <UsersInfo />
       </RootPopoverStyled>
     </>

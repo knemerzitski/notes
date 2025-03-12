@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
@@ -9,17 +10,58 @@ beforeEach(() => {
   cy.resetDatabase();
 });
 
+function currentUserButton() {
+  return cy.get('[aria-label="current user button"]');
+}
+
+function signOutAllUsersButton() {
+  return cy.get('[aria-label="sign out all users"]');
+}
+
+function notesList() {
+  return cy.get(`[aria-label="notes list"]`);
+}
+
+function notesListItem(index: number, local = false) {
+  return notesList().find(`> li[data-is-local="${local}"]`).eq(index);
+}
+
+function noteCard(noteId: string, local = false) {
+  return notesList().find(
+    `[aria-label="note card"][data-note-id="${noteId}"][data-is-local="${local}"]`
+  );
+}
+
+function noteDialog(noteId: string, options?: Parameters<typeof cy.get>[1]) {
+  return cy.get(`[aria-label="note dialog"][data-note-id="${noteId}"]`, options);
+}
+
+function noteSharingDialog(noteId: string) {
+  return cy.get(`[aria-label="note sharing dialog"][data-note-id="${noteId}"]`);
+}
+
+function shouldUserCaretBeIndex(
+  noteId: string,
+  field: 'title' | 'content',
+  displayName: string,
+  index: number
+) {
+  noteDialog(noteId)
+    .find(`[aria-label="${field}"] [aria-label="caret"][data-user-name="${displayName}"]`)
+    .should('have.data', 'index', index);
+}
+
 it('sign in, create note, share link and collab edit with another user', () => {
   cy.visit('/');
 
   // Sign in with user 1
-  cy.get('[aria-label="open accounts"]').click();
+  currentUserButton().click();
   cy.contains('Sign in with Google').click();
   cy.get('[name="id"]').type('1');
   cy.get('[name="name"]').type('1 User');
   cy.contains('Sign In').click();
 
-  cy.get('[aria-label="open accounts"]').should('contain.text', '1');
+  currentUserButton().should('include.text', '1');
 
   // Create a new note and type in it
   cy.get('[placeholder="Take a note..."]').click();
@@ -29,49 +71,48 @@ it('sign in, create note, share link and collab edit with another user', () => {
   cy.focused().type('foo content');
   cy.contains('Close').click();
 
-  // Get note id
-  cy.get('[data-is-local="false"]');
-  cy.get('[data-note-id]')
+  notesListItem(0, false)
     .invoke('attr', 'data-note-id')
     .then((maybeNoteId) => {
+      expect(maybeNoteId).to.not.be.undefined;
       if (typeof maybeNoteId !== 'string') {
         return;
       }
       const noteId = maybeNoteId;
 
       // Open note dialog and generate share note link
-      cy.get('[aria-label="open note dialog"]').click();
+      noteCard(noteId).click();
+      noteDialog(noteId).find('[aria-label="open note sharing dialog"]').click();
+      noteSharingDialog(noteId).find('[aria-label="create share link"]').click();
 
-      cy.get('[role=dialog] [aria-label="Collaboration"]').click();
-
-      cy.get('[aria-label="create share link"]').click();
-      cy.get('[data-has-link="true"] input')
+      noteSharingDialog(noteId)
+        .find('[aria-label="share note link field"][data-has-link="true"] input')
         .invoke('val')
         .then((shareNoteUrl) => {
+          expect(shareNoteUrl).to.not.be.undefined;
           if (typeof shareNoteUrl !== 'string') {
             return;
           }
 
-          cy.get('[aria-label="close sharing dialog"]').click();
-          cy.contains('Close').click();
+          noteSharingDialog(noteId).find('[aria-label="close dialog"]').click();
+          noteDialog(noteId).find('[aria-label="close"]').click();
 
           // Sign out
-          cy.get('[aria-label="open accounts"]').click();
-          cy.contains('Sign out all accounts').click();
+          currentUserButton().click();
+          signOutAllUsersButton().click();
 
           // Sign in with user 2
-          cy.get('[aria-label="open accounts"]').click();
+          currentUserButton().click();
           cy.contains('Sign in with Google').click();
           cy.get('[name="id"]').type('2');
           cy.get('[name="name"]').type('2 User');
           cy.contains('Sign In').click();
 
-          cy.get('[aria-label="open accounts"]').should('contain.text', '2');
+          currentUserButton().should('include.text', '2');
 
           // Access note via share url using user 2
           cy.visit(shareNoteUrl);
-          cy.get(`[id="note-edit-dialog-${noteId}"]`, {
-            // Visit can be slow
+          noteDialog(noteId, {
             timeout: 8000,
           }).should('be.visible');
 
@@ -123,19 +164,18 @@ it('sign in, create note, share link and collab edit with another user', () => {
             });
           });
         });
+
+      noteDialog(noteId).find('[placeholder="Title"]').should('have.value', 'foo title');
+      noteDialog(noteId)
+        .find('[placeholder="Note"]')
+        .should('have.value', 'foo BOO content');
+      // User 1 has selection after inserted " BOO"
+
+      shouldUserCaretBeIndex(noteId, 'content', '1 User', 7);
+
+      // User 2 selection stays after " BOO"
+      cy.get('[placeholder="Note"]').click();
+      cy.focused().type('{moveToStart}START:');
+      cy.get('[placeholder="Note"]').should('have.value', 'START:foo BOO content');
     });
-
-  cy.get('[placeholder="Title"]').should('have.value', 'foo title');
-  cy.get('[placeholder="Note"]').should('have.value', 'foo BOO content');
-  // User 1 has selection after inserted " BOO"
-  cy.get('[aria-label="other user caret"][data-user="1 User"]').should(
-    'have.data',
-    'index',
-    7
-  );
-
-  // User 2 selection stays after " BOO"
-  cy.get('[placeholder="Note"]').click();
-  cy.focused().type('{moveToStart}START:');
-  cy.get('[placeholder="Note"]').should('have.value', 'START:foo BOO content');
 });

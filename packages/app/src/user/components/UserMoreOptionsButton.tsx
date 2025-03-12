@@ -51,7 +51,7 @@ export function UserMoreOptionsButton({
 
   return (
     <IconButtonMenu
-      aria-label="account more options"
+      aria-label="user more options"
       {...iconButtonMenuProps}
       slotProps={{
         ...iconButtonMenuProps?.slotProps,

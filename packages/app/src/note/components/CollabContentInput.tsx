@@ -18,6 +18,13 @@ export function CollabContentInput(
         ...props?.slots,
         input: ContentInput,
       }}
+      slotProps={{
+        ...props?.slotProps,
+        root: {
+          'aria-label': 'content',
+          ...props?.slotProps?.root,
+        },
+      }}
     />
   );
 }

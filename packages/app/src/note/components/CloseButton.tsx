@@ -17,7 +17,13 @@ export const CloseButton = forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     return (
-      <Button ref={ref} size={size} {...restProps} onClick={handleClick}>
+      <Button
+        ref={ref}
+        size={size}
+        aria-label="close"
+        {...restProps}
+        onClick={handleClick}
+      >
         {children}
       </Button>
     );

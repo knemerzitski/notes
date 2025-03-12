@@ -35,7 +35,7 @@ export function SharingLinkTextField() {
   return (
     <RootBoxStyled>
       <TextField
-        aria-label="share note link"
+        aria-label="share note link field"
         data-has-link={hasShareLink}
         variant="outlined"
         disabled

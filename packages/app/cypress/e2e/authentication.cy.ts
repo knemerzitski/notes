@@ -11,6 +11,30 @@ beforeEach(() => {
   });
 });
 
+function currentUserButton() {
+  return cy.get('[aria-label="current user button"]');
+}
+
+function usersInfo() {
+  return cy.get('[aria-label="users info"]');
+}
+
+function usersList() {
+  return usersInfo().find('[aria-label="users list"]');
+}
+
+function usersListItem(index: number) {
+  return usersList().find('> li').eq(index);
+}
+
+function currentUserInfo() {
+  return usersInfo().find('[aria-label="current user"]');
+}
+
+function signOutAllUsersButton() {
+  return cy.get('[aria-label="sign out all users"]');
+}
+
 it('signs out all users', () => {
   // Programmatic: sign in with two users
   cy.signIn({
@@ -30,16 +54,21 @@ it('signs out all users', () => {
 
   cy.visit('/');
 
-  cy.get('[aria-label="open accounts"]').click();
-  cy.get('[aria-label="accounts info"]').should('include.text', 'First');
-  cy.get('[aria-label="accounts info"]').should('include.text', 'Second');
-  cy.contains('Sign out all accounts').click();
+  currentUserButton().should('include.text', 'S');
+  currentUserButton().click();
 
-  cy.get('[aria-label="open accounts"]').click();
+  currentUserInfo().should('include.text', 'Second');
 
-  // Ensure only local account is present
-  cy.get('[aria-label="accounts info"]').should('not.include.text', 'First');
-  cy.get('[aria-label="accounts info"]').should('not.include.text', 'Second');
-  cy.get('[aria-label="current account"] [aria-label="name"]').contains('Local Account');
-  cy.get('[aria-label="accounts list"]').should('have.length', 1);
+  usersListItem(1).should('include.text', 'First');
+  usersListItem(2).should('include.text', 'Second');
+
+  //sign out all users
+  signOutAllUsersButton().click();
+
+  currentUserButton().get('[data-is-local="true"]');
+  currentUserButton().click();
+
+  currentUserInfo().should('include.text', 'Local Account');
+
+  usersList().should('have.length', 1);
 });

@@ -51,7 +51,7 @@ export function SignOutAllUsersButton() {
       color="inherit"
       variant="text"
       onClick={handleSignOut}
-      aria-label="sign out all accounts"
+      aria-label="sign out all users"
     >
       <LogoutIcon />
       Sign out all accounts

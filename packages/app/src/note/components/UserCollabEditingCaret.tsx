@@ -147,8 +147,9 @@ export function UserCollabEditingCaret({ inputRef }: { inputRef: RefObject<unkno
 
   return (
     <InputCaret
-      aria-label="other user caret"
-      data-user={displayName}
+      aria-label="caret"
+      data-user-name={displayName}
+      data-user-id={userNoteLink.user.id}
       data-index={editorSelection.end}
       caret={{
         inputRef,

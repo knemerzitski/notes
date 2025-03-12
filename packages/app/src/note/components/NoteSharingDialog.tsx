@@ -19,6 +19,7 @@ import { SharingLinkQRCode } from './SharingLinkQRCode';
 import { SharingLinkTextField } from './SharingLinkTextField';
 import { SharingStatusTypography } from './SharingStatusTypography';
 import { ToggleSharingSwitch } from './ToggleSharingSwitch';
+import { useNoteId } from '../context/note-id';
 
 const _NoteSharingDialog_NoteFragment = gql(`
   fragment NoteSharingDialog_NoteFragment on Note {
@@ -37,6 +38,8 @@ export const NoteSharingDialog = forwardRef<
   { open = true, fullWidth = true, PaperProps, onClose, ...restProps },
   ref
 ) {
+  const noteId = useNoteId();
+
   function handleClickClose() {
     onClose?.();
   }
@@ -51,6 +54,8 @@ export const NoteSharingDialog = forwardRef<
       PaperProps={{
         variant: 'outlined',
         elevation: 0,
+        'aria-label': 'note sharing dialog',
+        'data-note-id': noteId,
         ...PaperProps,
       }}
     >
@@ -60,10 +65,7 @@ export const NoteSharingDialog = forwardRef<
           Share via link
         </DialogTitleBox>
       </DialogTitle>
-      <TopCornerCloseButton
-        aria-label="close sharing dialog"
-        onClick={handleClickClose}
-      />
+      <TopCornerCloseButton aria-label="close dialog" onClick={handleClickClose} />
       <DialogContent>
         <Stack spacing={2}>
           <Stack direction="row" alignItems="center">

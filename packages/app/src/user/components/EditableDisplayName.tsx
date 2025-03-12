@@ -140,9 +140,10 @@ export function EditableDisplayName() {
             inputProps={{ maxLength: MAX_LENGTH }}
             helperText={helperText}
             error={hasError}
+            aria-label="display name field"
           />
         ) : (
-          <DisplayNameTitle aria-label="name">{name}</DisplayNameTitle>
+          <DisplayNameTitle aria-label="display name">{name}</DisplayNameTitle>
         )}
         <IconButton
           onClick={isEditing ? handleCommitNameChange : handleStartEditName}

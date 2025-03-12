@@ -10,8 +10,8 @@ import { UsersList } from './UsersList';
 
 export function UsersInfo() {
   return (
-    <UsersInfoColumn aria-label="accounts info">
-      <UserInfoTitleRow aria-label="current account">
+    <UsersInfoColumn aria-label="users info">
+      <UserInfoTitleRow aria-label="current user">
         <CurrentUserInfo />
       </UserInfoTitleRow>
 

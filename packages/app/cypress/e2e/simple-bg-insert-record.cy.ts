@@ -46,6 +46,14 @@ beforeEach(() => {
   });
 });
 
+function notesList() {
+  return cy.get(`[aria-label="notes list"]`);
+}
+
+function noteCard(noteId: string, options?: Parameters<typeof cy.get>[1]) {
+  return notesList().find(`[aria-label="note card"][data-note-id="${noteId}"]`, options);
+}
+
 it('has inserted record in the background', () => {
   cy.then(() => {
     fields.TITLE.insert('start', SelectionRange.from(0));
@@ -74,7 +82,7 @@ it('has inserted record in the background', () => {
 
   cy.visit('/');
 
-  cy.get(`[data-note-id="${noteId}"]`, {
+  noteCard(noteId, {
     timeout: 8000,
   }).should('contain.text', 'start|end');
 });

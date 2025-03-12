@@ -38,7 +38,6 @@ import { NotesCardGrid } from './NotesCardGrid';
 import { SortableNoteCard } from './SortableNoteCard';
 import { SortableNotesContext } from './SortableNotesContext';
 
-
 export const NotesConnectionGrid_UserNoteLinkConnectionFragment = gql(`
   fragment NotesConnectionGrid_UserNoteLinkConnectionFragment on UserNoteLinkConnection {
     edges {

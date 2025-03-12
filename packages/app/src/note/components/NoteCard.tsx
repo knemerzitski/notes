@@ -190,7 +190,8 @@ const HoverableNoteCardWithToolbarPaper = forwardRef<
         }
         paperElRef.current = el;
       }}
-      aria-label="open note dialog"
+      component="li"
+      aria-label="note card"
       data-note-id={noteId}
       data-is-local={localOnly}
       aria-haspopup={true}
@@ -420,7 +421,7 @@ const selected = {
   props: ['selected'],
 };
 
-type PaperStyledProps = Parameters<typeof PaperStyled>[0];
+type PaperStyledProps = Parameters<typeof PaperStyled>[0] & PaperProps;
 
 const PaperStyled = styled(Paper, {
   shouldForwardProp: mergeShouldForwardProp(

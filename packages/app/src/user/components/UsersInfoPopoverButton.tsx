@@ -38,7 +38,7 @@ export const UsersInfoPopoverButton = forwardRef<
         ref={ref}
         {...restProps}
         id={buttonId}
-        aria-label="show accounts"
+        aria-label="show users"
         aria-controls={menuOpen ? menuId : undefined}
         aria-haspopup={true}
         aria-expanded={menuOpen ? true : undefined}

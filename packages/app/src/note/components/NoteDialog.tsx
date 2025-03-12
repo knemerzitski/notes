@@ -11,12 +11,15 @@ import { CollabInputsColumn } from './CollabInputsColumn';
 import { NoteToolbar } from './NoteToolbar';
 import { OpenSharingUserAvatars } from './OpenSharingUserAvatars';
 import { UserAvatarsCornerPosition } from './UserAvatarsCornerPosition';
+import { useNoteId } from '../context/note-id';
 
 export const NoteDialog = forwardRef<HTMLDivElement, Parameters<typeof DialogStyled>[0]>(
   function NoteDialog(
     { open = true, maxWidth = 'sm', fullWidth = true, PaperProps, ...restProps },
     ref
   ) {
+    const noteId = useNoteId();
+
     const { isScrollEnd = true, ref: collabInputsColumnRef } =
       useIsElementScrollEnd<HTMLDivElement>();
 
@@ -29,6 +32,8 @@ export const NoteDialog = forwardRef<HTMLDivElement, Parameters<typeof DialogSty
         PaperProps={{
           variant: 'outlined',
           elevation: 0,
+          'aria-label': 'note dialog',
+          'data-note-id': noteId,
           ...PaperProps,
         }}
         closeAfterTransition={true}

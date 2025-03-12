@@ -41,7 +41,7 @@ export const NotesCardGrid = forwardRef(function NotesCardGrid(
   }
 
   return (
-    <BoxStyled ref={ref}>
+    <BoxStyled ref={ref} aria-label="notes list" component="ol">
       {noteIds.map((renderNoteId) => (
         <NoteIdProvider key={renderNoteId} noteId={renderNoteId}>
           {noteCardElement(renderNoteId)}
