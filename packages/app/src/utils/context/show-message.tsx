@@ -19,20 +19,29 @@ export interface ShowMessageOptions {
 export type ShowMessageClosure<T = ShowMessageOptions> = (
   message: string,
   options?: T
-) => void;
+) => () => void;
 
 const ShowMessageContext = createContext<ShowMessageClosure>(() => {
   // do nothing
+  return () => {
+    //
+  };
 });
 const ShowErrorContext = createContext<
   ShowMessageClosure<Omit<ShowMessageOptions, 'severity'>>
 >(() => {
   // do nothing
+  return () => {
+    //
+  };
 });
 const ShowWarningContext = createContext<
   ShowMessageClosure<Omit<ShowMessageOptions, 'severity'>>
 >(() => {
   // do nothing
+  return () => {
+    //
+  };
 });
 
 export function useShowMessage(): ShowMessageClosure {
@@ -55,22 +64,20 @@ export function ShowMessageProvider({
   children: ReactNode;
 }) {
   const handleError: ShowMessageClosure = useCallback(
-    (message, options) => {
+    (message, options) =>
       onMessage(message, {
         ...options,
         severity: 'error',
-      });
-    },
+      }),
     [onMessage]
   );
 
   const handleWarning: ShowMessageClosure = useCallback(
-    (message, options) => {
+    (message, options) =>
       onMessage(message, {
         ...options,
         severity: 'warning',
-      });
-    },
+      }),
     [onMessage]
   );
 

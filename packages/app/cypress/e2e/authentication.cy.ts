@@ -236,7 +236,7 @@ it('refreshes user expired session', () => {
 
   cy.visit('/');
 
-  cy.contains('Current session has expired! Please sign in.');
+  cy.contains('Current session has expired! Please sign in.').should('be.visible');
 
   currentUserButton().find('[aria-label="session expired"]').should('exist');
   currentUserButton().click();
@@ -335,6 +335,8 @@ it('forgets user with expired session', () => {
 
   cy.visit('/');
 
+  cy.contains('Current session has expired! Please sign in.').should('be.visible');
+
   currentUserButton().find('[aria-label="session expired"]').should('exist');
   currentUserButton().click();
 
@@ -342,8 +344,9 @@ it('forgets user with expired session', () => {
   usersListItem(1).find('[aria-label="more options"]').click();
   userMoreOptionsMenu().find('[aria-label="forget"]').click();
 
-  // TODO fix bug Toast should disappear when user is no longer present
-  // cy.get('Current session has expired! Please sign in.').should('not.exist');
+  cy.contains('Current session has expired! Please sign in.', {
+    timeout: 1000,
+  }).should('not.exist');
 
   currentUserInfo().should('include.text', 'Local Account');
   usersList().should('have.length', 1);

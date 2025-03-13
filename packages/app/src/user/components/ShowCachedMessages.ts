@@ -1,9 +1,9 @@
 import { useApolloClient, useQuery } from '@apollo/client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { gql } from '../../__generated__';
-import { UserMessageType } from '../../__generated__/graphql';
+import { User, UserMessageType } from '../../__generated__/graphql';
 import { ShowMessageOptions, useShowMessage } from '../../utils/context/show-message';
 import { useUserId } from '../context/user-id';
 import { removeUserMessages } from '../models/message/remove';
@@ -34,11 +34,25 @@ export function ShowCachedUserMessages() {
     },
   });
 
+  const lastOpenedMessageRef = useRef<{
+    userId: User['id'];
+    closeMessage: () => void;
+  } | null>(null);
+
   const showMessage = useShowMessage();
 
   const messages = data?.signedInUser.local.messages;
 
   useEffect(() => {
+    // If user changes while displaying a message, close it
+    if (lastOpenedMessageRef.current) {
+      const userChanged = lastOpenedMessageRef.current.userId !== userId;
+      if (userChanged) {
+        lastOpenedMessageRef.current.closeMessage();
+        lastOpenedMessageRef.current = null;
+      }
+    }
+
     if (!messages) {
       return;
     }
@@ -55,15 +69,21 @@ export function ShowCachedUserMessages() {
       removeUserMessages(userId, [nextMessage.id], client.cache);
     }
 
-    showMessage(nextMessage.text, {
+    const closeMessage = showMessage(nextMessage.text, {
       severity: mapSeverity(nextMessage.type),
       onShowing() {
         removeMessage();
       },
       onDone() {
         removeMessage();
+        lastOpenedMessageRef.current = null;
       },
     });
+
+    lastOpenedMessageRef.current = {
+      userId,
+      closeMessage,
+    };
   }, [client, messages, userId, showMessage]);
 
   return null;

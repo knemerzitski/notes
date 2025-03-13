@@ -12,7 +12,7 @@ export function ShowSnackbarMessageProvider({ children }: { children: ReactNode 
   const handleShowMessage: ShowMessageClosure = useCallback(
     (message, options) => {
       const severity = options?.severity ?? 'info';
-      showSnackbarAlert({
+      return showSnackbarAlert({
         onClose: (reason) => {
           if (severity === 'error' && reason === 'clickaway') {
             return false;
@@ -44,8 +44,6 @@ export function ShowSnackbarMessageProvider({ children }: { children: ReactNode 
           },
         },
       });
-
-      return;
     },
     [showSnackbarAlert, id]
   );
