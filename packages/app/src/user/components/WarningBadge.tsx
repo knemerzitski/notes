@@ -1,10 +1,5 @@
-import { Badge } from '@mui/material';
-import { ReactElement } from 'react';
+import { Badge, BadgeProps } from '@mui/material';
 
-export function WarningBadge({ children }: { children: ReactElement }) {
-  return (
-    <Badge badgeContent="!" color="warning">
-      {children}
-    </Badge>
-  );
+export function WarningBadge(props: BadgeProps) {
+  return <Badge badgeContent="!" color="warning" {...props} />;
 }

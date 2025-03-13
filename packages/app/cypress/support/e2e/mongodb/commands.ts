@@ -8,6 +8,7 @@ declare global {
     interface Chainable {
       resetDatabase: typeof resetDatabase;
       dbFindOne: typeof dbFindOne;
+      expireUserSessions: typeof expireUserSessions;
     }
   }
 }
@@ -21,3 +22,11 @@ function dbFindOne<T extends CollectionName>(options: Parameters<DBFindOneFn<T>>
   return cy.task<Awaited<ReturnType<DBFindOneFn<T>>>>('dbFindOne', options);
 }
 Cypress.Commands.add('dbFindOne', dbFindOne);
+
+function expireUserSessions(options: Parameters<MongoDBTasks['expireUserSessions']>[0]) {
+  return cy.task<Awaited<ReturnType<MongoDBTasks['expireUserSessions']>>>(
+    'expireUserSessions',
+    options
+  );
+}
+Cypress.Commands.add('expireUserSessions', expireUserSessions);

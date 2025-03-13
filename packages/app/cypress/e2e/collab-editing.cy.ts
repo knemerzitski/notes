@@ -112,9 +112,7 @@ it('sign in, create note, share link and collab edit with another user', () => {
 
           // Access note via share url using user 2
           cy.visit(shareNoteUrl);
-          noteDialog(noteId, {
-            timeout: 8000,
-          }).should('be.visible');
+          noteDialog(noteId).should('be.visible');
 
           // Sign in with user 1 in the background and insert record
           cy.graphQLService({

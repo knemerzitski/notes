@@ -63,5 +63,9 @@ export function SignOutMenuItem() {
     });
   }
 
-  return <MenuItem onClick={handleSignOut}>Sign out</MenuItem>;
+  return (
+    <MenuItem aria-label="sign out" onClick={handleSignOut}>
+      Sign out
+    </MenuItem>
+  );
 }

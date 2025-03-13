@@ -30,5 +30,5 @@ export function BadgeIfSessionExpired({ children }: { children: ReactElement }) 
 
   if (!data?.signedInUser.local.sessionExpired) return children;
 
-  return <WarningBadge>{children}</WarningBadge>;
+  return <WarningBadge aria-label="session expired">{children}</WarningBadge>;
 }

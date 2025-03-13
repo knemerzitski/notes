@@ -8,8 +8,13 @@ import { CurrentUserIdProvider } from '../../../../src/user/components/CurrentUs
 import { CreateNote } from '../../../../src/note/mutations/CreateNote';
 import { useMutation } from '../../../../src/graphql/hooks/useMutation';
 import { getFragmentData } from '../../../../src/__generated__';
-import { CreateNotePayloadFragmentDoc } from '../../../../src/__generated__/graphql';
+import {
+  CreateNotePayloadFragmentDoc,
+  NoteTextFieldName,
+} from '../../../../src/__generated__/graphql';
 import { GraphQLService } from '../../../../src/graphql/types';
+import { NoteExternalState } from '../../../../src/note/external-state/note';
+import { SelectionRange } from '../../../../../collab/src/client/selection-range';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -23,51 +28,65 @@ declare global {
 interface CreateNoteOptions {
   graphQLService: GraphQLService;
   userId: string;
+  initialText?: Partial<Record<NoteTextFieldName, string>>;
 }
 
 interface CreateNoteResult {
   noteId: string;
 }
 
-Cypress.Commands.add('createNote', ({ graphQLService, userId }: CreateNoteOptions) => {
-  return cy.then(async () => {
-    const {
-      result: {
-        current: [createNote],
-      },
-    } = renderHook(() => useMutation(CreateNote), {
-      wrapper: ({ children }: { children: ReactNode }) => {
-        return (
-          <GraphQLServiceProvider service={graphQLService}>
-            <CurrentUserIdProvider>{children}</CurrentUserIdProvider>
-          </GraphQLServiceProvider>
-        );
-      },
-    });
+Cypress.Commands.add(
+  'createNote',
+  ({ graphQLService, userId, initialText }: CreateNoteOptions) => {
+    return cy.then(async () => {
+      const {
+        result: {
+          current: [createNote],
+        },
+      } = renderHook(() => useMutation(CreateNote), {
+        wrapper: ({ children }: { children: ReactNode }) => {
+          return (
+            <GraphQLServiceProvider service={graphQLService}>
+              <CurrentUserIdProvider>{children}</CurrentUserIdProvider>
+            </GraphQLServiceProvider>
+          );
+        },
+      });
 
-    const { data } = await createNote({
-      variables: {
-        input: {
-          authUser: {
-            id: userId,
-          },
-          collabText: {
-            initialText: '{}',
+      const externalState = new NoteExternalState();
+      if (initialText) {
+        Object.entries(initialText).forEach(([key, value]) => {
+          externalState.fields[key as NoteTextFieldName].editor.insert(
+            value,
+            SelectionRange.from(0)
+          );
+        });
+      }
+
+      const { data } = await createNote({
+        variables: {
+          input: {
+            authUser: {
+              id: userId,
+            },
+            collabText: {
+              initialText: externalState.service.viewText,
+            },
           },
         },
-      },
+      });
+
+      if (!data) {
+        throw new Error('No data, is user signed in?');
+      }
+
+      const payload = getFragmentData(CreateNotePayloadFragmentDoc, data.createNote);
+
+      const noteId = payload.userNoteLink.note.id;
+
+      return {
+        noteId,
+      } satisfies CreateNoteResult;
     });
-
-    if (!data) {
-      throw new Error('No data, is user signed in?');
-    }
-
-    const payload = getFragmentData(CreateNotePayloadFragmentDoc, data.createNote);
-
-    const noteId = payload.userNoteLink.note.id;
-
-    return {
-      noteId,
-    } satisfies CreateNoteResult;
-  });
-});
+  }
+);

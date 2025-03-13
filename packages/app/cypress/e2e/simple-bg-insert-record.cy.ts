@@ -76,13 +76,11 @@ it('has inserted record in the background', () => {
   });
 
   // Ensures cache is read when visiting
-  cy.persistCache({
+  cy.restoreCache({
     graphQLService,
   });
 
   cy.visit('/');
 
-  noteCard(noteId, {
-    timeout: 8000,
-  }).should('contain.text', 'start|end');
+  noteCard(noteId).should('contain.text', 'start|end');
 });

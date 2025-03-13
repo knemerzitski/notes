@@ -17,7 +17,7 @@ export function TitleTypography() {
     return null;
   }
 
-  return <TypographyStyled>{value}</TypographyStyled>;
+  return <TypographyStyled aria-label="title">{value}</TypographyStyled>;
 }
 
 const TypographyStyled = styled(Typography)(({ theme }) => ({

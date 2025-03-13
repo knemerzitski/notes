@@ -59,5 +59,9 @@ export function ForgetUserMenuItem() {
     });
   }
 
-  return <MenuItem onClick={handleForgetUser}>Forget</MenuItem>;
+  return (
+    <MenuItem aria-label="forget" onClick={handleForgetUser}>
+      Forget
+    </MenuItem>
+  );
 }

@@ -51,17 +51,28 @@ export function UserMoreOptionsButton({
 
   return (
     <IconButtonMenu
-      aria-label="user more options"
       {...iconButtonMenuProps}
       slotProps={{
         ...iconButtonMenuProps?.slotProps,
         iconButton: {
+          'aria-label': 'more options',
           ...iconButtonMenuProps?.slotProps?.iconButton,
           children: (
             <Tooltip title="More options">
               <MoreHorizIcon />
             </Tooltip>
           ),
+        },
+        menu: {
+          ...iconButtonMenuProps?.slotProps?.menu,
+          slotProps: {
+            ...iconButtonMenuProps?.slotProps?.menu?.slotProps,
+            paper: {
+              'aria-label': 'user more options menu',
+              // eslint-disable-next-line @typescript-eslint/no-misused-spread
+              ...iconButtonMenuProps?.slotProps?.menu?.slotProps?.paper,
+            },
+          },
         },
       }}
     >

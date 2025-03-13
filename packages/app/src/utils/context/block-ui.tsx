@@ -87,6 +87,7 @@ function UncloseableContextDialog({ options }: { options: BlockUiOptions }) {
 
   return (
     <Dialog
+      aria-label="block ui dialog"
       open={open}
       TransitionProps={{
         onExited: handleExited,

@@ -54,7 +54,15 @@ export function SignInModal({
   }
 
   return (
-    <Dialog open={open} onClose={handleClose} {...DialogProps}>
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      {...DialogProps}
+      PaperProps={{
+        'aria-label': 'sign in modal',
+        ...DialogProps?.PaperProps,
+      }}
+    >
       <DialogTitle>Sign In</DialogTitle>
       <DialogContent>
         <DialogContentText>

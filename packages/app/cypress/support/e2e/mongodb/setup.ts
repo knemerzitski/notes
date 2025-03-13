@@ -19,6 +19,7 @@ export class MongoDBTasks {
     on('task', {
       resetDatabase: this.resetDatabase.bind(this),
       dbFindOne: this.dbFindOne.bind(this),
+      expireUserSessions: this.expireUserSessions.bind(this),
     });
   }
 
@@ -64,5 +65,13 @@ export class MongoDBTasks {
     }
 
     return document as DBSchema[T];
+  }
+
+  async expireUserSessions({ userId }: { userId: string }) {
+    await this.mongoDBCtx.mongoCollections.sessions.deleteMany({
+      userId: strToObjectId(userId),
+    });
+
+    return null;
   }
 }

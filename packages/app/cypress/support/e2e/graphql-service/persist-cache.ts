@@ -13,5 +13,8 @@ interface PersistCacheOptions {
 }
 
 Cypress.Commands.add('persistCache', ({ graphQLService }: PersistCacheOptions) => {
-  return cy.then(() => graphQLService.persistor.persist());
+  return cy.then(async () => {
+    cy.log('persistCache', graphQLService.client.cache.extract());
+    await graphQLService.persistor.persist();
+  });
 });

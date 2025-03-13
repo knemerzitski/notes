@@ -35,7 +35,7 @@ export function MockGoogleLoginButton({
 
   return (
     <>
-      <Button size="small" onClick={handleClickOpen}>
+      <Button size="small" onClick={handleClickOpen} aria-label="sign in with google">
         Sign in with Google
       </Button>
 
@@ -43,6 +43,7 @@ export function MockGoogleLoginButton({
         open={open}
         onClose={handleClose}
         PaperProps={{
+          'aria-label': 'sign in with google dialog',
           component: 'form',
           onSubmit: (e: FormEvent<HTMLFormElement>) => {
             e.preventDefault();
@@ -89,7 +90,9 @@ export function MockGoogleLoginButton({
         <DialogActions>
           <Button onClick={handleSendError}>Send error</Button>
           <Button onClick={handleClose}>Cancel</Button>
-          <Button type="submit">Sign In</Button>
+          <Button type="submit" aria-label="sign in">
+            Sign In
+          </Button>
         </DialogActions>
       </Dialog>
     </>

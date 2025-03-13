@@ -22,7 +22,9 @@ export function ContentTypography(props: TypographyStyledProps) {
   const value = useTextFieldValue(NoteTextFieldName.CONTENT) ?? '';
 
   return (
-    <TypographyStyled bottomGradient={props.bottomGradient}>{value}</TypographyStyled>
+    <TypographyStyled aria-label="content" bottomGradient={props.bottomGradient}>
+      {value}
+    </TypographyStyled>
   );
 }
 

@@ -64,7 +64,7 @@ export function UserListItem(props?: Parameters<typeof ActivableListItem>[0]) {
   }
 
   return (
-    <ActivableListItem {...props}>
+    <ActivableListItem data-user-id={userId} {...props}>
       <ListItemButton onClick={handleClickUser}>
         <ListItemAvatar>
           <UserAvatar />

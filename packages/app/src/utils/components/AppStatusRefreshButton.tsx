@@ -86,7 +86,8 @@ export const AppStatusRefreshButton = forwardRef<
       {...props}
       disableRipple={status !== 'refresh'}
       onClick={handleClickRefetchQueries}
-      aria-label={`status ${status}`}
+      aria-label="app status"
+      data-status={status}
     >
       <Tooltip title={status === 'offline' ? 'Offline' : 'Refresh'}>
         <span>

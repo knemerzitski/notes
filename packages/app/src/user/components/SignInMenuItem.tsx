@@ -42,7 +42,7 @@ export function SignInMenuItem(props: Omit<MenuItemProps, 'onClick'>) {
   }
 
   return (
-    <MenuItem {...props} onClick={handleSignIn}>
+    <MenuItem aria-label="sign in" {...props} onClick={handleSignIn}>
       Sign in
     </MenuItem>
   );
