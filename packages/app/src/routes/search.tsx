@@ -64,7 +64,7 @@ export const Route = createFileRoute('/_root_layout/search')({
         fetchPolicy,
       })
       .then(() => {
-        fetchedRoutes.add(routeId);
+        fetchedRoutes.add(userId, routeId);
       });
   },
 });

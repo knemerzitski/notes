@@ -310,9 +310,6 @@ it('switches to a user with expired session and shows notes', () => {
   });
 
   cy.visit('/');
-  // TODO fix bug when switching user too quickly, new query for that user is not executed, only old one is
-  shouldAppStatusEqual('synchronized'); // this line shouldn't be required
-
   currentUserButton().click();
   usersListItem(1).click();
 

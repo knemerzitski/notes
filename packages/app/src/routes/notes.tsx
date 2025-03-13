@@ -42,7 +42,7 @@ export const Route = createFileRoute('/_root_layout/notes')({
         fetchPolicy,
       })
       .then(() => {
-        fetchedRoutes.add(routeId);
+        fetchedRoutes.add(userId, routeId);
       });
   },
 });

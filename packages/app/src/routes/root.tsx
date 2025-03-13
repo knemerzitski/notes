@@ -76,16 +76,16 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       // TODO load anything that's needed when note is open
     }
 
+    const userId = getCurrentUserId(apolloClient.cache);
+
     const sharingDefer = ctx.deps.sharingNoteId
       ? defer(
           apolloClient
             .query({
               query: RouteRoot_Query,
               variables: {
-                // get userid from where?
-                // userBy
                 userBy: {
-                  id: getCurrentUserId(apolloClient.cache),
+                  id: userId,
                 },
                 noteBy: {
                   id: ctx.deps.sharingNoteId,
@@ -94,7 +94,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
               fetchPolicy,
             })
             .then(() => {
-              fetchedRoutes.add(routeId);
+              fetchedRoutes.add(userId, routeId);
             })
         )
       : null;

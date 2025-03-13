@@ -1,4 +1,3 @@
-import { useApolloClient } from '@apollo/client';
 import {
   createContext,
   ReactNode,
@@ -9,12 +8,11 @@ import {
 } from 'react';
 
 import { User } from '../../__generated__/graphql';
-import { getCurrentUserId } from '../../user/models/signed-in-user/get-current';
 
 export interface FetchedRoutes {
-  add: (routeId: string) => void;
-  has: (routeId: string) => boolean;
-  clear: (userId?: User['id']) => void;
+  add: (userId: User['id'], routeId: string) => void;
+  has: (userId: User['id'], routeId: string) => boolean;
+  clear: (userId: User['id']) => void;
   /**
    * Clear routes for all users
    */
@@ -32,47 +30,31 @@ export function useFetchedRoutes(): FetchedRoutes {
 }
 
 export function FetchedRoutesProvider({ children }: { children: ReactNode }) {
-  const fetchedRoutesByUserRef = useRef<Map<User['id'] | null, Set<string>>>(
-    new Map()
-  );
-  const client = useApolloClient();
+  const fetchedRoutesByUserRef = useRef<Map<User['id'] | null, Set<string>>>(new Map());
 
-  const add = useCallback(
-    (routeId: string) => {
-      const userId = getCurrentUserId(client.cache);
+  const add = useCallback((userId: User['id'], routeId: string) => {
+    let fetchedRoutes = fetchedRoutesByUserRef.current.get(userId);
+    if (!fetchedRoutes) {
+      fetchedRoutes = new Set();
+      fetchedRoutesByUserRef.current.set(userId, fetchedRoutes);
+    }
 
-      let fetchedRoutes = fetchedRoutesByUserRef.current.get(userId);
-      if (!fetchedRoutes) {
-        fetchedRoutes = new Set();
-        fetchedRoutesByUserRef.current.set(userId, fetchedRoutes);
-      }
+    fetchedRoutes.add(routeId);
+  }, []);
 
-      fetchedRoutes.add(routeId);
-    },
-    [client]
-  );
-
-  const clear = useCallback(
-    (userId = getCurrentUserId(client.cache)) => {
-      const fetchedRoutes = fetchedRoutesByUserRef.current.get(userId);
-      fetchedRoutes?.clear();
-    },
-    [client]
-  );
+  const clear = useCallback((userId: User['id']) => {
+    const fetchedRoutes = fetchedRoutesByUserRef.current.get(userId);
+    fetchedRoutes?.clear();
+  }, []);
 
   const clearAll = useCallback(() => {
     fetchedRoutesByUserRef.current.clear();
   }, []);
 
-  const has = useCallback(
-    (routeId: string) => {
-      const userId = getCurrentUserId(client.cache);
-
-      const fetchedRoutes = fetchedRoutesByUserRef.current.get(userId);
-      return fetchedRoutes?.has(routeId) ?? false;
-    },
-    [client]
-  );
+  const has = useCallback((userId: User['id'], routeId: string) => {
+    const fetchedRoutes = fetchedRoutesByUserRef.current.get(userId);
+    return fetchedRoutes?.has(routeId) ?? false;
+  }, []);
 
   const fetchedRoutesInterface: FetchedRoutes = useMemo(
     () => ({

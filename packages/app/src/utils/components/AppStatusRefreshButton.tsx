@@ -73,7 +73,7 @@ export const AppStatusRefreshButton = forwardRef<
 
     async function fetch() {
       // Clear fetched routes flag and then refresh the route/page
-      fetchedRoutes.clear();
+      fetchedRoutes.clear(userId);
       await navigate({ to: '.', search: (prev) => prev });
     }
 

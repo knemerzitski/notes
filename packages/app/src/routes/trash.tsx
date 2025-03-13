@@ -42,7 +42,7 @@ export const Route = createFileRoute('/_root_layout/trash')({
         fetchPolicy,
       })
       .then(() => {
-        fetchedRoutes.add(routeId);
+        fetchedRoutes.add(userId, routeId);
       });
   },
 });
