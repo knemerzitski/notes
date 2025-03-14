@@ -5,8 +5,7 @@ import { useEffect, useRef } from 'react';
 
 import { gql } from '../../__generated__';
 import { getCurrentUserId } from '../models/signed-in-user/get-current';
-import { useStatsLink } from '../../graphql/context/stats-link';
-import { OperationTypeNode } from 'graphql';
+import { User } from '../../__generated__/graphql';
 
 const CurrentUserChangedRefresh_Query = gql(`
     query CurrentUserChangedRefresh_Query {
@@ -25,11 +24,21 @@ export function CurrentUserChangedRefresh() {
   const latestUserIdRef = useRef(getCurrentUserId(client.cache));
   const navigate = useNavigate();
 
-  const statsLink = useStatsLink();
-
   useEffect(() => {
-    function userChanged() {
-      void navigate({ to: '.', search: (prev) => prev });
+    function userChanged(userId: User['id']) {
+      void navigate({
+        to: '.',
+        search: (prev) => ({
+          ...prev,
+          // Trigger route loader by inclduing switchUserId
+          switchUserId: userId,
+        }),
+        // Don't display switchUserId
+        mask: {
+          to: '.',
+          search: ({ switchUserId, ...restPrev }) => restPrev,
+        },
+      });
     }
 
     const observable = client.watchQuery({
@@ -44,40 +53,16 @@ export function CurrentUserChangedRefresh() {
         if (latestUserIdRef.current === user.id) {
           return;
         }
-        const latestUserId = latestUserIdRef.current;
+
         latestUserIdRef.current = user.id;
-
-        if (!window.navigator.onLine) {
-          // TODO what if onLine changes, most reliable is to listen to gateLink
-          userChanged();
-        } else {
-          const latestUserQueriesCount = statsLink
-            .getUserOngoing(latestUserId)
-            .byType(OperationTypeNode.QUERY);
-
-          if (latestUserQueriesCount <= 0) {
-            userChanged();
-          } else {
-            // Wait for previous user queries to finish before navigating
-            const eventOff = statsLink
-              .getUserEventBus(latestUserId)
-              .on('byType', ({ ongoingCount, type }) => {
-                if (type === OperationTypeNode.QUERY && ongoingCount === 0) {
-                  if (latestUserIdRef.current === user.id) {
-                    setTimeout(userChanged);
-                  }
-                  eventOff();
-                }
-              });
-          }
-        }
+        userChanged(user.id);
       },
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [client, navigate, statsLink]);
+  }, [client, navigate]);
 
   return null;
 }

@@ -1,11 +1,12 @@
 import { ApolloCache, FetchPolicy } from '@apollo/client';
 
-import { getCurrentUserId } from '../../user/models/signed-in-user/get-current';
 import { isLocalOnlyUser } from '../../user/models/signed-in-user/is-local-only';
 
 import { FetchedRoutes } from '../context/fetched-routes';
+import { User } from '../../__generated__/graphql';
 
 export function routeFetchPolicy(
+  userId: User['id'],
   routeId: string,
   {
     apolloClient: { cache },
@@ -15,13 +16,12 @@ export function routeFetchPolicy(
     fetchedRoutes: FetchedRoutes;
   }
 ): FetchPolicy | undefined {
-  const userId = getCurrentUserId(cache);
   const isLocalOnly = !userId || isLocalOnlyUser(userId, cache);
   if (isLocalOnly) {
     return;
   }
 
-  const haveFetchedRoute = fetchedRoutes.has(routeId);
+  const haveFetchedRoute = fetchedRoutes.has(userId, routeId);
   if (haveFetchedRoute) {
     return;
   }

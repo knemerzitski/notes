@@ -38,6 +38,10 @@ const RouteRoot_Query = gql(`
 `);
 
 const searchSchema = type({
+  /**
+   * Used to notify loader of user change using loaderDeps
+   */
+  switchUserId: optional(coerce(string(), number(), (v) => String(v))),
   noteId: optional(coerce(string(), number(), (v) => String(v))),
   sharingNoteId: optional(coerce(string(), number(), (v) => String(v))),
   /**
@@ -55,8 +59,9 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   pendingMinMs: 0,
   pendingMs: 0,
   validateSearch: (search) => searchSchema.create(search),
-  loaderDeps: ({ search: { noteId, sharingNoteId } }) => {
+  loaderDeps: ({ search: { noteId, sharingNoteId, switchUserId } }) => {
     return {
+      userId: switchUserId,
       noteId,
       sharingNoteId,
     };
@@ -66,8 +71,10 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       context: { apolloClient, fetchedRoutes },
     } = ctx;
 
+    const userId = ctx.deps.userId ?? getCurrentUserId(apolloClient.cache);
+
     const routeId = `${ctx.route.id}-${JSON.stringify(ctx.deps)}`;
-    const fetchPolicy = routeFetchPolicy(routeId, ctx.context);
+    const fetchPolicy = routeFetchPolicy(userId, routeId, ctx.context);
     if (!fetchPolicy) {
       return;
     }
@@ -75,8 +82,6 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     if (ctx.deps.noteId != null) {
       // TODO load anything that's needed when note is open
     }
-
-    const userId = getCurrentUserId(apolloClient.cache);
 
     const sharingDefer = ctx.deps.sharingNoteId
       ? defer(

@@ -27,8 +27,9 @@ export const Route = createFileRoute('/_root_layout/search')({
   pendingComponent: SearchPending,
   pendingMinMs: 500,
   pendingMs: 100,
-  loaderDeps: ({ search: { text, offline } }) => {
+  loaderDeps: ({ search: { text, offline, switchUserId } }) => {
     return {
+      userId: switchUserId,
       text,
       offline,
     };
@@ -38,8 +39,10 @@ export const Route = createFileRoute('/_root_layout/search')({
       context: { apolloClient, fetchedRoutes },
     } = ctx;
 
+    const userId = ctx.deps.userId ?? getCurrentUserId(apolloClient.cache);
+
     const routeId = `${ctx.route.id}-${JSON.stringify(ctx.deps)}`;
-    const fetchPolicy = routeFetchPolicy(routeId, ctx.context);
+    const fetchPolicy = routeFetchPolicy(userId, routeId, ctx.context);
     if (!fetchPolicy) {
       return;
     }
@@ -48,8 +51,6 @@ export const Route = createFileRoute('/_root_layout/search')({
       // Local no query api
       return;
     }
-
-    const userId = getCurrentUserId(apolloClient.cache);
 
     await apolloClient
       .query({

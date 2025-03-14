@@ -17,18 +17,23 @@ const RouteTrash_Query = gql(`
 export const Route = createFileRoute('/_root_layout/trash')({
   component: Trash,
   pendingComponent: TrashPending,
+  loaderDeps({ search: { switchUserId } }) {
+    return {
+      userId: switchUserId,
+    };
+  },
   async loader(ctx) {
     const {
       context: { apolloClient, fetchedRoutes },
     } = ctx;
 
+    const userId = ctx.deps.userId ?? getCurrentUserId(apolloClient.cache);
+
     const routeId = ctx.route.id;
-    const fetchPolicy = routeFetchPolicy(routeId, ctx.context);
+    const fetchPolicy = routeFetchPolicy(userId, routeId, ctx.context);
     if (!fetchPolicy) {
       return;
     }
-
-    const userId = getCurrentUserId(apolloClient.cache);
 
     await apolloClient
       .query({
