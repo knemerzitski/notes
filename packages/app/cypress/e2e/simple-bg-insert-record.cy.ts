@@ -76,7 +76,7 @@ it('has inserted record in the background', () => {
   });
 
   // Ensures cache is read when visiting
-  cy.restoreCache({
+  cy.persistCache({
     graphQLService,
   });
 

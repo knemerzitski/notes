@@ -40,6 +40,26 @@ function noteSharingDialog(noteId: string) {
   return cy.get(`[aria-label="note sharing dialog"][data-note-id="${noteId}"]`);
 }
 
+function createNoteWidget() {
+  return cy.get('[aria-label="create note widget"]').filter(':visible');
+}
+
+function signInWithGoogleDialog() {
+  return cy.get('[aria-label="sign in with google dialog"]');
+}
+
+function usersInfo() {
+  return cy.get('[aria-label="users info"]');
+}
+
+function signInWithGoogleButton() {
+  return usersInfo().find('[aria-label="sign in with google"]');
+}
+
+function shouldNotBlockUi() {
+  return cy.get('[aria-label="block ui dialog"]').should('not.exist');
+}
+
 function shouldUserCaretBeIndex(
   noteId: string,
   field: 'title' | 'content',
@@ -56,20 +76,20 @@ it('sign in, create note, share link and collab edit with another user', () => {
 
   // Sign in with user 1
   currentUserButton().click();
-  cy.contains('Sign in with Google').click();
-  cy.get('[name="id"]').type('1');
-  cy.get('[name="name"]').type('1 User');
-  cy.contains('Sign In').click();
+  signInWithGoogleButton().click();
+  signInWithGoogleDialog().find('input[name="id"]').type('1');
+  signInWithGoogleDialog().find('input[name="name"]').type('1 User');
+  signInWithGoogleDialog().find('button[type="submit"][aria-label="sign in"]').click();
 
   currentUserButton().should('include.text', '1');
 
+  shouldNotBlockUi();
+
   // Create a new note and type in it
-  cy.get('[placeholder="Take a note..."]').click();
-  cy.get('[placeholder="Title"]').click();
-  cy.focused().type('foo title');
-  cy.get('[placeholder="Note"]').click();
-  cy.focused().type('foo content');
-  cy.contains('Close').click();
+  createNoteWidget().click();
+  createNoteWidget().find('[aria-label="content"]').type('foo content');
+  createNoteWidget().find('[aria-label="title"]').type('foo title');
+  createNoteWidget().find('[aria-label="close"]').click();
 
   notesListItem(0, false)
     .invoke('attr', 'data-note-id')
@@ -163,17 +183,21 @@ it('sign in, create note, share link and collab edit with another user', () => {
           });
         });
 
-      noteDialog(noteId).find('[placeholder="Title"]').should('have.value', 'foo title');
       noteDialog(noteId)
-        .find('[placeholder="Note"]')
+        .find('[aria-label="title"] input')
+        .should('have.value', 'foo title');
+      noteDialog(noteId)
+        .find('[aria-label="content"] textarea')
         .should('have.value', 'foo BOO content');
       // User 1 has selection after inserted " BOO"
 
       shouldUserCaretBeIndex(noteId, 'content', '1 User', 7);
 
       // User 2 selection stays after " BOO"
-      cy.get('[placeholder="Note"]').click();
+      noteDialog(noteId).find('[aria-label="content"]').click();
       cy.focused().type('{moveToStart}START:');
-      cy.get('[placeholder="Note"]').should('have.value', 'START:foo BOO content');
+      noteDialog(noteId)
+        .find('[aria-label="content"] textarea')
+        .should('have.value', 'START:foo BOO content');
     });
 });

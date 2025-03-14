@@ -67,10 +67,11 @@ function CollapsedWidget({
   }
 
   return (
-    <CollapsedPaperStyled>
+    <CollapsedPaperStyled aria-label="create note widget" data-collapsed={true}>
       <CollabContentInput
         slotProps={{
           input: {
+            'aria-label': 'create note input',
             placeholder: 'Take a note...',
             onFocus: handleFocus,
             onChange,
@@ -98,7 +99,7 @@ function ExpandedWidget({
       touchEvent="onTouchStart"
       mouseEvent="onMouseDown"
     >
-      <BasePaperDefaultPropsStyled>
+      <BasePaperDefaultPropsStyled aria-label="create note widget" data-collapsed={false}>
         <CollabInputsColumn
           CollabInputsProps={{
             CollabTitleInputProps: {

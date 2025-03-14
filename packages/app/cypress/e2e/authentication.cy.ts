@@ -57,8 +57,8 @@ function noteDialog() {
   return cy.get(`[aria-label="note dialog"]`);
 }
 
-function signingInDialog() {
-  return cy.get('[aria-label="block ui dialog"]').contains('Signing in with Google');
+function shouldNotBlockUi() {
+  return cy.get('[aria-label="block ui dialog"]').should('not.exist');
 }
 
 function userMoreOptionsMenu() {
@@ -96,7 +96,7 @@ it('first time signs in user', () => {
 
   signInWithGoogleDialog().find('button[type="submit"][aria-label="sign in"]').click();
 
-  signingInDialog().should('be.visible');
+  shouldNotBlockUi();
 
   currentUserButton().should('include.text', '1');
   currentUserButton().click();
@@ -118,6 +118,10 @@ it('first time signs in second user', () => {
     });
   });
 
+  cy.persistCache({
+    graphQLService,
+  });
+
   cy.visit('/');
 
   notesList().should('have.length', 1);
@@ -129,8 +133,6 @@ it('first time signs in second user', () => {
   signInWithGoogleDialog().find('input[name="name"]').type('2 User');
 
   signInWithGoogleDialog().find('button[type="submit"][aria-label="sign in"]').click();
-
-  signingInDialog().should('not.be.visible');
 
   notesList().should('have.length', 0);
 
@@ -172,6 +174,10 @@ it('switches users updating notes list', () => {
     });
   });
 
+  cy.persistCache({
+    graphQLService,
+  });
+
   cy.visit('/');
 
   notesList().should('have.length', 1);
@@ -203,6 +209,10 @@ it('refreshes user expired session', () => {
         CONTENT: 'initial',
       },
     }).then(({ noteId }) => {
+      cy.persistCache({
+        graphQLService,
+      });
+
       // Visit before inserting change that won't be known due to expired session
       cy.visit('/');
 
@@ -234,6 +244,10 @@ it('refreshes user expired session', () => {
     });
   });
 
+  cy.persistCache({
+    graphQLService,
+  });
+
   cy.visit('/');
 
   cy.contains('Current session has expired! Please sign in.').should('be.visible');
@@ -250,7 +264,7 @@ it('refreshes user expired session', () => {
 
   signInWithGoogleDialog().find('button[type="submit"][aria-label="sign in"]').click();
 
-  signingInDialog().should('be.visible');
+  shouldNotBlockUi();
 
   currentUserButton().find('[aria-label="session expired"]').should('not.exist');
 
@@ -274,6 +288,10 @@ it('switches to a user with expired session and shows notes', () => {
       initialText: {
         CONTENT: 'first',
       },
+    });
+
+    cy.persistCache({
+      graphQLService,
     });
 
     // Load page once to cache note
@@ -330,6 +348,10 @@ it('forgets user with expired session', () => {
     });
   });
 
+  cy.persistCache({
+    graphQLService,
+  });
+
   cy.visit('/');
 
   cy.contains('Current session has expired! Please sign in.').should('be.visible');
@@ -360,6 +382,11 @@ it('signs out specific user', () => {
     googleUserId: '2',
     displayName: 'Second',
   });
+
+  cy.persistCache({
+    graphQLService,
+  });
+
   cy.visit('/');
 
   currentUserButton().click();
@@ -384,6 +411,11 @@ it('signs out all users', () => {
     googleUserId: '2',
     displayName: 'Second',
   });
+
+  cy.persistCache({
+    graphQLService,
+  });
+
   cy.visit('/');
 
   currentUserButton().should('include.text', 'S');
