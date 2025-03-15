@@ -27,15 +27,7 @@ export const router = createRouter({
   defaultPreloadStaleTime: 0,
 });
 
-export function createRouterContext({
-  apolloClient,
-  fetchedRoutes,
-}: {
-  apolloClient: ApolloClient<object>;
-  fetchedRoutes: FetchedRoutes;
-}): RouterContext {
-  return {
-    apolloClient,
-    fetchedRoutes,
-  };
+export function createRouterContext(ctx: RouterContext): RouterContext {
+  // Middleware when router context is created or changed
+  return ctx;
 }

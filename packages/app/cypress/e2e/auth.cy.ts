@@ -29,6 +29,10 @@ function usersList() {
   return usersInfo().find('[aria-label="users list"]');
 }
 
+function shouldHaveUsersCount(count: number) {
+  usersInfo().find('[aria-label="users list"] > li').should('have.length', count);
+}
+
 function usersListItem(index: number) {
   return usersList().find('> li').eq(index);
 }
@@ -45,8 +49,16 @@ function signInWithGoogleDialog() {
   return cy.get('[aria-label="sign in with google dialog"]');
 }
 
+function notesListEmpty() {
+  return cy.get('[aria-label="notes list empty"]');
+}
+
 function notesList() {
   return cy.get('[aria-label="notes list"]');
+}
+
+function shouldHaveNotesCount(count: number) {
+  return cy.get('[aria-label="notes list"] > li').should('have.length', count);
 }
 
 function notesListItem(index: number, local = false) {
@@ -68,13 +80,15 @@ function userMoreOptionsMenu() {
 /**
  * @see {@link https://github.com/cypress-io/cypress/issues/5655#issuecomment-734629040}
  */
-function haveData(name: string, value: string) {
+function haveData(name: string, value: string[] | string) {
   return ($el: JQuery) => {
-    expect($el[0]?.getAttribute(`data-${name}`)).to.be.equal(value);
+    expect($el[0]?.getAttribute(`data-${name}`)).to.be.oneOf(
+      Array.isArray(value) ? value : [value]
+    );
   };
 }
 
-function shouldAppStatusEqual(value: AppStatus) {
+function shouldAppStatusEqual(value: AppStatus[] | AppStatus) {
   return cy.get('[aria-label="app status"]').should(haveData('status', value));
 }
 
@@ -110,7 +124,7 @@ it('first time signs in second user', () => {
   cy.signIn({
     graphQLService,
     googleUserId: '1',
-    displayName: 'First',
+    displayName: 'First05',
   }).then(({ userId }) => {
     cy.createNote({
       graphQLService,
@@ -124,7 +138,7 @@ it('first time signs in second user', () => {
 
   cy.visit('/');
 
-  notesList().should('have.length', 1);
+  shouldHaveNotesCount(1);
 
   currentUserButton().click();
   signInWithGoogleButton().click();
@@ -134,22 +148,22 @@ it('first time signs in second user', () => {
 
   signInWithGoogleDialog().find('button[type="submit"][aria-label="sign in"]').click();
 
-  notesList().should('have.length', 0);
+  shouldHaveNotesCount(0);
 
   currentUserButton().should('include.text', '2');
   currentUserButton().click();
 
   currentUserInfo().should('include.text', '2 User');
 
-  usersListItem(1).should('include.text', 'First');
+  usersListItem(1).should('include.text', 'First05');
   usersListItem(2).should('include.text', '2 User');
 });
 
-it('switches users updating notes list', () => {
+it('updates notes list when swiching user', () => {
   cy.signIn({
     graphQLService,
     googleUserId: '1',
-    displayName: 'First',
+    displayName: 'First10',
   }).then(({ userId }) => {
     cy.createNote({
       graphQLService,
@@ -163,7 +177,7 @@ it('switches users updating notes list', () => {
   cy.signIn({
     graphQLService,
     googleUserId: '2',
-    displayName: 'Second',
+    displayName: 'Second10',
   }).then(({ userId }) => {
     cy.createNote({
       graphQLService,
@@ -180,27 +194,29 @@ it('switches users updating notes list', () => {
 
   cy.visit('/');
 
-  notesList().should('have.length', 1);
+  shouldHaveNotesCount(1);
   notesList().should('include.text', 'second');
 
   currentUserButton().click();
 
   usersListItem(1).click();
 
-  notesList().should('have.length', 1);
+  notesListEmpty().should('not.exist');
+
+  shouldHaveNotesCount(1);
   notesList().should('include.text', 'first');
 
   currentUserButton().should('include.text', 'F');
   currentUserButton().click();
 
-  currentUserInfo().should('include.text', 'First');
+  currentUserInfo().should('include.text', 'First10');
 });
 
 it('refreshes user expired session', () => {
   cy.signIn({
     graphQLService,
     googleUserId: '1',
-    displayName: 'First',
+    displayName: 'First15',
   }).then(({ userId }) => {
     cy.createNote({
       graphQLService,
@@ -268,7 +284,7 @@ it('refreshes user expired session', () => {
 
   currentUserButton().find('[aria-label="session expired"]').should('not.exist');
 
-  notesList().should('have.length', 1);
+  shouldHaveNotesCount(1);
   // Open note dialog to update it text value
   notesListItem(0).click();
   noteDialog().find('[aria-label="close"]').click();
@@ -310,7 +326,7 @@ it('switches to a user with expired session and shows notes', () => {
   cy.signIn({
     graphQLService,
     googleUserId: '2',
-    displayName: 'Second',
+    displayName: 'Second20',
   }).then(({ userId }) => {
     cy.createNote({
       graphQLService,
@@ -333,7 +349,7 @@ it('switches to a user with expired session and shows notes', () => {
 
   currentUserButton().find('[aria-label="session expired"]').should('exist');
 
-  notesList().should('have.length', 1);
+  shouldHaveNotesCount(1);
   notesList().should('include.text', 'first');
 });
 
@@ -341,7 +357,7 @@ it('forgets user with expired session', () => {
   cy.signIn({
     graphQLService,
     googleUserId: '1',
-    displayName: 'First',
+    displayName: 'Forget me',
   }).then(({ userId }) => {
     cy.expireUserSessions({
       userId,
@@ -359,6 +375,8 @@ it('forgets user with expired session', () => {
   currentUserButton().find('[aria-label="session expired"]').should('exist');
   currentUserButton().click();
 
+  shouldHaveUsersCount(2);
+
   usersListItem(1).should('contain.text', 'Session expired');
   usersListItem(1).find('[aria-label="more options"]').click();
   userMoreOptionsMenu().find('[aria-label="forget"]').click();
@@ -368,19 +386,19 @@ it('forgets user with expired session', () => {
   }).should('not.exist');
 
   currentUserInfo().should('include.text', 'Local Account');
-  usersList().should('have.length', 1);
+  shouldHaveUsersCount(1);
 });
 
 it('signs out specific user', () => {
   cy.signIn({
     graphQLService,
     googleUserId: '1',
-    displayName: 'First',
+    displayName: 'First30',
   });
   cy.signIn({
     graphQLService,
     googleUserId: '2',
-    displayName: 'Second',
+    displayName: 'Second30',
   });
 
   cy.persistCache({
@@ -396,7 +414,7 @@ it('signs out specific user', () => {
   userMoreOptionsMenu().find('[aria-label="sign out"]').click();
 
   usersListItem(0).should('include.text', 'Local Account');
-  usersListItem(1).should('include.text', 'First');
+  usersListItem(1).should('include.text', 'First30');
   usersListItem(2).should('not.exist');
 });
 
@@ -404,12 +422,17 @@ it('signs out all users', () => {
   cy.signIn({
     graphQLService,
     googleUserId: '1',
-    displayName: 'First',
+    displayName: 'aaa',
   });
   cy.signIn({
     graphQLService,
     googleUserId: '2',
-    displayName: 'Second',
+    displayName: 'bbb',
+  });
+  cy.signIn({
+    graphQLService,
+    googleUserId: '3',
+    displayName: 'ccc',
   });
 
   cy.persistCache({
@@ -418,21 +441,25 @@ it('signs out all users', () => {
 
   cy.visit('/');
 
-  currentUserButton().should('include.text', 'S');
   currentUserButton().click();
 
-  currentUserInfo().should('include.text', 'Second');
+  currentUserButton().should('include.text', 'c');
+  currentUserInfo().should('include.text', 'ccc');
 
-  usersListItem(1).should('include.text', 'First');
-  usersListItem(2).should('include.text', 'Second');
+  shouldHaveUsersCount(4);
+  usersListItem(1).should('include.text', 'aaa');
+  usersListItem(1).should('not.contain.text', 'Session expired');
+  usersListItem(2).should('include.text', 'bbb');
+  usersListItem(2).should('not.contain.text', 'Session expired');
+  usersListItem(3).should('include.text', 'ccc');
+  usersListItem(3).should('not.contain.text', 'Session expired');
 
-  //sign out all users
   signOutAllUsersButton().click();
 
-  currentUserButton().get('[data-is-local="true"]');
   currentUserButton().click();
+  currentUserButton().get('[data-is-local="true"]');
 
   currentUserInfo().should('include.text', 'Local Account');
 
-  usersList().should('have.length', 1);
+  shouldHaveUsersCount(1);
 });

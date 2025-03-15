@@ -19,11 +19,10 @@ import { RouteNoteSharingDialog } from '../note/components/RouteNoteSharingDialo
 import { NoteIdProvider } from '../note/context/note-id';
 import { RootRoute } from '../root-route';
 import { RouterContext } from '../router';
-import { routeFetchPolicy } from '../router/utils/route-fetch-policy';
 import { useIsMobile } from '../theme/context/is-mobile';
-import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
 import { ErrorComponent } from '../utils/components/ErrorComponent';
 import { NotFoundTypography } from '../utils/components/NotFoundTypography';
+import { loaderUserFetchLogic } from '../router/utils/loader-user-fetch-logic';
 
 const RouteRoot_Query = gql(`
   query RouteRoot_Query($userBy: UserByInput!, $noteBy: NoteByInput!) {
@@ -38,10 +37,6 @@ const RouteRoot_Query = gql(`
 `);
 
 const searchSchema = type({
-  /**
-   * Used to notify loader of user change using loaderDeps
-   */
-  switchUserId: optional(coerce(string(), number(), (v) => String(v))),
   noteId: optional(coerce(string(), number(), (v) => String(v))),
   sharingNoteId: optional(coerce(string(), number(), (v) => String(v))),
   /**
@@ -59,22 +54,18 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   pendingMinMs: 0,
   pendingMs: 0,
   validateSearch: (search) => searchSchema.create(search),
-  loaderDeps: ({ search: { noteId, sharingNoteId, switchUserId } }) => {
+  loaderDeps: ({ search: { noteId, sharingNoteId } }) => {
     return {
-      userId: switchUserId,
       noteId,
       sharingNoteId,
     };
   },
   loader: (ctx) => {
     const {
-      context: { apolloClient, fetchedRoutes },
+      context: { apolloClient },
     } = ctx;
 
-    const userId = ctx.deps.userId ?? getCurrentUserId(apolloClient.cache);
-
-    const routeId = `${ctx.route.id}-${JSON.stringify(ctx.deps)}`;
-    const fetchPolicy = routeFetchPolicy(userId, routeId, ctx.context);
+    const { fetchPolicy, userId, setIsSucessfullyFetched } = loaderUserFetchLogic(ctx);
     if (!fetchPolicy) {
       return;
     }
@@ -98,9 +89,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
               },
               fetchPolicy,
             })
-            .then(() => {
-              fetchedRoutes.add(userId, routeId);
-            })
+            .then(setIsSucessfullyFetched)
         )
       : null;
 

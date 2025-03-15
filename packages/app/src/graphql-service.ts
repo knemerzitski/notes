@@ -102,6 +102,8 @@ export function createDefaultGraphQLServiceParams(): Parameters<
     actions: SERVICE_ACTIONS,
     purgeCache: PURGE_APOLLO_CACHE,
     logger: createLogger('GraphQLService'),
+    ...(!import.meta.env.PROD &&
+      window.appEnvironment?.overrideDefaultGraphQLServiceParams),
   };
 }
 

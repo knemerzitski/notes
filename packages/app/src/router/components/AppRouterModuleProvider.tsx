@@ -1,13 +1,11 @@
 import { useApolloClient } from '@apollo/client';
 import { RouterProvider } from '@tanstack/react-router';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { createRouterContext, router } from '../../router';
-import {
-  FetchedRoutesProvider,
-  useFetchedRoutes,
-} from '../context/fetched-routes';
+import { FetchedRoutesProvider, useFetchedRoutes } from '../context/fetched-routes';
+import { useUserId } from '../../user/context/user-id';
 
 export function AppRouterModuleProvider() {
   return (
@@ -30,5 +28,27 @@ function InnerProvider() {
     [apolloClient, fetchedRoutes]
   );
 
-  return <RouterProvider router={router} context={context} />;
+  return (
+    <>
+      <UserChangedRouterInvalidate />
+      <RouterProvider router={router} context={context} />
+    </>
+  );
+}
+
+function UserChangedRouterInvalidate() {
+  const userId = useUserId(true);
+
+  useEffect(() => {
+    // Invalidate router to rerun all relevant loaders after user has changed
+    void router
+      .invalidate({
+        sync: true,
+      })
+      .then(() => {
+        void router.navigate({ to: '.', search: (prev) => prev });
+      });
+  }, [userId]);
+
+  return null;
 }

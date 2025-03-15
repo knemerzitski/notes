@@ -49,6 +49,9 @@
     "allowJs": false,
 
     /* Projects */
-    "incremental": true
+    "incremental": true,
+
+    /* Output Formatting */
+    "noErrorTruncation": false
   }
 }

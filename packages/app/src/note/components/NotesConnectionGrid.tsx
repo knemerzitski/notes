@@ -37,6 +37,7 @@ import { NoteCard } from './NoteCard';
 import { NotesCardGrid } from './NotesCardGrid';
 import { SortableNoteCard } from './SortableNoteCard';
 import { SortableNotesContext } from './SortableNotesContext';
+import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
 
 export const NotesConnectionGrid_UserNoteLinkConnectionFragment = gql(`
   fragment NotesConnectionGrid_UserNoteLinkConnectionFragment on UserNoteLinkConnection {
@@ -101,6 +102,7 @@ export function NotesConnectionGrid({
 
   const client = useApolloClient();
   const userId = useUserId();
+  const isLocalOnlyUser = useIsLocalOnlyUser();
   const isParentLoading = useIsLoading();
   const isOnline = useIsOnline();
 
@@ -352,7 +354,8 @@ export function NotesConnectionGrid({
     loadingNoteIds,
   });
 
-  const isLoading = isOnline ? loadingCount > 0 || loadingNoteIds.length > 0 : false;
+  const isLoading =
+    !isLocalOnlyUser && isOnline ? loadingCount > 0 || loadingNoteIds.length > 0 : false;
 
   if (!isLoading && noteIds != null && noteIds.length === 0) {
     return emptyListElement;
@@ -486,7 +489,7 @@ function getLoadingInfo({
 
   // Default loading from parent component
   if (isParentLoading) {
-    if (!ids) {
+    if (!ids || firstRenderNoIds) {
       return {
         loadingCount: perPageCount,
         loadingIds: EMPTY_ARRAY,
@@ -494,13 +497,11 @@ function getLoadingInfo({
     }
 
     // Initally had no ids and parent filled it, loading by parent is done
-    if (!firstRenderNoIds) {
-      // Loading all in a page
-      return {
-        loadingCount: Math.max(0, perPageCount - ids.length),
-        loadingIds: ids.slice(0, perPageCount),
-      };
-    }
+    // Loading all in a page
+    return {
+      loadingCount: Math.max(0, perPageCount - ids.length),
+      loadingIds: ids.slice(0, perPageCount),
+    };
   }
 
   return {

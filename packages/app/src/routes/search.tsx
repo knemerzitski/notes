@@ -3,10 +3,9 @@ import { boolean, optional, string, type } from 'superstruct';
 
 import { gql } from '../__generated__';
 import { SearchMain } from '../note/components/SearchMain';
-import { routeFetchPolicy } from '../router/utils/route-fetch-policy';
-import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
 import { IsLoadingProvider } from '../utils/context/is-loading';
 import { useLogger } from '../utils/context/logger';
+import { loaderUserFetchLogic } from '../router/utils/loader-user-fetch-logic';
 
 const RouteSearch_Query = gql(`
   query RouteSearch_Query($userBy: UserByInput!, $searchText: String!, $first: NonNegativeInt, $after: String) {
@@ -27,22 +26,18 @@ export const Route = createFileRoute('/_root_layout/search')({
   pendingComponent: SearchPending,
   pendingMinMs: 500,
   pendingMs: 100,
-  loaderDeps: ({ search: { text, offline, switchUserId } }) => {
+  loaderDeps: ({ search: { text, offline } }) => {
     return {
-      userId: switchUserId,
       text,
       offline,
     };
   },
   loader: async (ctx) => {
     const {
-      context: { apolloClient, fetchedRoutes },
+      context: { apolloClient },
     } = ctx;
 
-    const userId = ctx.deps.userId ?? getCurrentUserId(apolloClient.cache);
-
-    const routeId = `${ctx.route.id}-${JSON.stringify(ctx.deps)}`;
-    const fetchPolicy = routeFetchPolicy(userId, routeId, ctx.context);
+    const { fetchPolicy, userId, setIsSucessfullyFetched } = loaderUserFetchLogic(ctx);
     if (!fetchPolicy) {
       return;
     }
@@ -64,9 +59,7 @@ export const Route = createFileRoute('/_root_layout/search')({
         },
         fetchPolicy,
       })
-      .then(() => {
-        fetchedRoutes.add(userId, routeId);
-      });
+      .then(setIsSucessfullyFetched);
   },
 });
 

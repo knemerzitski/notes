@@ -1,6 +1,6 @@
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react-swc';
-import { defineConfig, loadEnv } from 'vite';
+import { ConfigEnv, defineConfig, loadEnv } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 import { virtualRouteConfig } from './virtual-routes.config';
@@ -15,7 +15,7 @@ const envDir = '../../';
 
 // https://vitejs.dev/config/
 // eslint-disable-next-line import/no-default-export
-export default async ({ mode }: { mode: string }) => {
+export default async ({ mode, isPreview }: ConfigEnv) => {
   process.env = { ...process.env, ...loadEnv(process.env.NODE_ENV ?? mode, envDir) };
 
   function nodeEnvToBuildMode(nodeEnv: string | undefined) {
@@ -37,10 +37,14 @@ export default async ({ mode }: { mode: string }) => {
 
   const isCypress = isEnvironmentVariableTruthy(process.env.CYPRESS);
 
+  const enableGeneratePlugins = !isCypress && !isPreview;
+
+  const port = process.env.VITE_APP_PORT ? Number(process.env.VITE_APP_PORT) : undefined;
+
   return defineConfig({
     plugins: [
       react(),
-      ...(!isCypress
+      ...(enableGeneratePlugins
         ? [
             // Use generate plugins only when not running Cypress E2E tests
             TanStackRouterVite({
@@ -97,9 +101,12 @@ export default async ({ mode }: { mode: string }) => {
     build: {
       outDir: process.env.VITE_APP_OUT_DIR ?? 'out',
     },
+    preview: {
+      port,
+    },
     envDir,
     server: {
-      port: process.env.VITE_APP_PORT ? Number(process.env.VITE_APP_PORT) : undefined,
+      port,
       proxy: {
         '/graphql': {
           target: process.env.VITE_GRAPHQL_HTTP_URL,

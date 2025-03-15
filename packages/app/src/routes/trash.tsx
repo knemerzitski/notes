@@ -2,9 +2,8 @@ import { createFileRoute } from '@tanstack/react-router';
 
 import { gql } from '../__generated__';
 import { TrashMain } from '../note/components/TrashMain';
-import { routeFetchPolicy } from '../router/utils/route-fetch-policy';
-import { getCurrentUserId } from '../user/models/signed-in-user/get-current';
 import { IsLoadingProvider } from '../utils/context/is-loading';
+import { loaderUserFetchLogic } from '../router/utils/loader-user-fetch-logic';
 
 const RouteTrash_Query = gql(`
   query RouteTrash_Query($userBy: UserByInput!, $trash_first: NonNegativeInt, $trash_after: ObjectID) {
@@ -17,20 +16,12 @@ const RouteTrash_Query = gql(`
 export const Route = createFileRoute('/_root_layout/trash')({
   component: Trash,
   pendingComponent: TrashPending,
-  loaderDeps({ search: { switchUserId } }) {
-    return {
-      userId: switchUserId,
-    };
-  },
   async loader(ctx) {
     const {
-      context: { apolloClient, fetchedRoutes },
+      context: { apolloClient },
     } = ctx;
 
-    const userId = ctx.deps.userId ?? getCurrentUserId(apolloClient.cache);
-
-    const routeId = ctx.route.id;
-    const fetchPolicy = routeFetchPolicy(userId, routeId, ctx.context);
+    const { fetchPolicy, userId, setIsSucessfullyFetched } = loaderUserFetchLogic(ctx);
     if (!fetchPolicy) {
       return;
     }
@@ -46,9 +37,7 @@ export const Route = createFileRoute('/_root_layout/trash')({
         },
         fetchPolicy,
       })
-      .then(() => {
-        fetchedRoutes.add(userId, routeId);
-      });
+      .then(setIsSucessfullyFetched);
   },
 });
 
