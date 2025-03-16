@@ -4,8 +4,8 @@ import { boolean, optional, string, type } from 'superstruct';
 import { gql } from '../__generated__';
 import { SearchMain } from '../note/components/SearchMain';
 import { IsLoadingProvider } from '../utils/context/is-loading';
-import { useLogger } from '../utils/context/logger';
 import { loaderUserFetchLogic } from '../router/utils/loader-user-fetch-logic';
+import { useIsRouteLoaded } from '../router/hooks/useIsRouteLoaded';
 
 const RouteSearch_Query = gql(`
   query RouteSearch_Query($userBy: UserByInput!, $searchText: String!, $first: NonNegativeInt, $after: String) {
@@ -23,7 +23,6 @@ const searchSchema = type({
 export const Route = createFileRoute('/_root_layout/search')({
   validateSearch: (search) => searchSchema.create(search),
   component: Search,
-  pendingComponent: SearchPending,
   pendingMinMs: 500,
   pendingMs: 100,
   loaderDeps: ({ search: { text, offline } }) => {
@@ -32,50 +31,48 @@ export const Route = createFileRoute('/_root_layout/search')({
       offline,
     };
   },
-  loader: async (ctx) => {
+  loader: (ctx) => {
     const {
       context: { apolloClient },
     } = ctx;
 
     const { fetchPolicy, userId, setIsSucessfullyFetched } = loaderUserFetchLogic(ctx);
     if (!fetchPolicy) {
-      return;
+      return {
+        query: Promise.resolve(),
+      };
     }
 
     if (!ctx.deps.text || ctx.deps.offline) {
       // Local no query api
-      return;
+      return {
+        query: Promise.resolve(),
+      };
     }
 
-    await apolloClient
-      .query({
-        query: RouteSearch_Query,
-        variables: {
-          userBy: {
-            id: userId,
+    return {
+      query: apolloClient
+        .query({
+          query: RouteSearch_Query,
+          variables: {
+            userBy: {
+              id: userId,
+            },
+            searchText: ctx.deps.text,
+            first: 20,
           },
-          searchText: ctx.deps.text,
-          first: 20,
-        },
-        fetchPolicy,
-      })
-      .then(setIsSucessfullyFetched);
+          fetchPolicy,
+        })
+        .then(setIsSucessfullyFetched),
+    };
   },
 });
 
 function Search() {
-  const logger = useLogger('route.Search');
-  logger?.debug('render');
-
-  return <SearchMain />;
-}
-
-function SearchPending() {
-  const logger = useLogger('route.SearchPending');
-  logger?.debug('render');
+  const isRouteLoaded = useIsRouteLoaded(Route, 'query');
 
   return (
-    <IsLoadingProvider isLoading={true}>
+    <IsLoadingProvider isLoading={!isRouteLoaded}>
       <SearchMain />
     </IsLoadingProvider>
   );

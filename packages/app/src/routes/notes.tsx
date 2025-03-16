@@ -2,8 +2,9 @@ import { createFileRoute } from '@tanstack/react-router';
 
 import { gql } from '../__generated__';
 import { NotesMain } from '../note/components/NotesMain';
-import { IsLoadingProvider } from '../utils/context/is-loading';
 import { loaderUserFetchLogic } from '../router/utils/loader-user-fetch-logic';
+import { useIsRouteLoaded } from '../router/hooks/useIsRouteLoaded';
+import { IsLoadingProvider } from '../utils/context/is-loading';
 
 const RouteNotes_Query = gql(`
   query RouteNotes_Query($userBy: UserByInput!, $default_first: NonNegativeInt, $default_after: ObjectID) {
@@ -15,39 +16,40 @@ const RouteNotes_Query = gql(`
 
 export const Route = createFileRoute('/_root_layout/notes')({
   component: Notes,
-  pendingComponent: NotesPending,
-  async loader(ctx) {
+  loader(ctx) {
     const {
       context: { apolloClient },
     } = ctx;
 
     const { fetchPolicy, userId, setIsSucessfullyFetched } = loaderUserFetchLogic(ctx);
     if (!fetchPolicy) {
-      return;
+      return {
+        query: Promise.resolve(),
+      };
     }
 
-    await apolloClient
-      .query({
-        query: RouteNotes_Query,
-        variables: {
-          userBy: {
-            id: userId,
+    return {
+      query: apolloClient
+        .query({
+          query: RouteNotes_Query,
+          variables: {
+            userBy: {
+              id: userId,
+            },
+            default_first: 20,
           },
-          default_first: 20,
-        },
-        fetchPolicy,
-      })
-      .then(setIsSucessfullyFetched);
+          fetchPolicy,
+        })
+        .then(setIsSucessfullyFetched),
+    };
   },
 });
 
 function Notes() {
-  return <NotesMain />;
-}
+  const isRouteLoaded = useIsRouteLoaded(Route, 'query');
 
-function NotesPending() {
   return (
-    <IsLoadingProvider isLoading={true}>
+    <IsLoadingProvider isLoading={!isRouteLoaded}>
       <NotesMain />
     </IsLoadingProvider>
   );

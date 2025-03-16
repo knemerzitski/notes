@@ -4,6 +4,7 @@ import { gql } from '../__generated__';
 import { ArchiveMain } from '../note/components/ArchiveMain';
 import { IsLoadingProvider } from '../utils/context/is-loading';
 import { loaderUserFetchLogic } from '../router/utils/loader-user-fetch-logic';
+import { useIsRouteLoaded } from '../router/hooks/useIsRouteLoaded';
 
 const RouteArchive_Query = gql(`
   query RouteArchive_Query($userBy: UserByInput!, $archive_first: NonNegativeInt, $archive_after: ObjectID) {
@@ -15,39 +16,40 @@ const RouteArchive_Query = gql(`
 
 export const Route = createFileRoute('/_root_layout/archive')({
   component: Archive,
-  pendingComponent: ArchivePending,
-  async loader(ctx) {
+  loader(ctx) {
     const {
       context: { apolloClient },
     } = ctx;
 
     const { fetchPolicy, userId, setIsSucessfullyFetched } = loaderUserFetchLogic(ctx);
     if (!fetchPolicy) {
-      return;
+      return {
+        query: Promise.resolve(),
+      };
     }
 
-    await apolloClient
-      .query({
-        query: RouteArchive_Query,
-        variables: {
-          userBy: {
-            id: userId,
+    return {
+      query: apolloClient
+        .query({
+          query: RouteArchive_Query,
+          variables: {
+            userBy: {
+              id: userId,
+            },
+            archive_first: 20,
           },
-          archive_first: 20,
-        },
-        fetchPolicy,
-      })
-      .then(setIsSucessfullyFetched);
+          fetchPolicy,
+        })
+        .then(setIsSucessfullyFetched),
+    };
   },
 });
 
 function Archive() {
-  return <ArchiveMain />;
-}
+  const isRouteLoaded = useIsRouteLoaded(Route, 'query');
 
-function ArchivePending() {
   return (
-    <IsLoadingProvider isLoading={true}>
+    <IsLoadingProvider isLoading={!isRouteLoaded}>
       <ArchiveMain />
     </IsLoadingProvider>
   );

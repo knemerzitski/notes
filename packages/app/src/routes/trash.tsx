@@ -4,6 +4,7 @@ import { gql } from '../__generated__';
 import { TrashMain } from '../note/components/TrashMain';
 import { IsLoadingProvider } from '../utils/context/is-loading';
 import { loaderUserFetchLogic } from '../router/utils/loader-user-fetch-logic';
+import { useIsRouteLoaded } from '../router/hooks/useIsRouteLoaded';
 
 const RouteTrash_Query = gql(`
   query RouteTrash_Query($userBy: UserByInput!, $trash_first: NonNegativeInt, $trash_after: ObjectID) {
@@ -15,39 +16,40 @@ const RouteTrash_Query = gql(`
 
 export const Route = createFileRoute('/_root_layout/trash')({
   component: Trash,
-  pendingComponent: TrashPending,
-  async loader(ctx) {
+  loader(ctx) {
     const {
       context: { apolloClient },
     } = ctx;
 
     const { fetchPolicy, userId, setIsSucessfullyFetched } = loaderUserFetchLogic(ctx);
     if (!fetchPolicy) {
-      return;
+      return {
+        query: Promise.resolve(),
+      };
     }
 
-    await apolloClient
-      .query({
-        query: RouteTrash_Query,
-        variables: {
-          userBy: {
-            id: userId,
+    return {
+      query: apolloClient
+        .query({
+          query: RouteTrash_Query,
+          variables: {
+            userBy: {
+              id: userId,
+            },
+            trash_first: 20,
           },
-          trash_first: 20,
-        },
-        fetchPolicy,
-      })
-      .then(setIsSucessfullyFetched);
+          fetchPolicy,
+        })
+        .then(setIsSucessfullyFetched),
+    };
   },
 });
 
 function Trash() {
-  return <TrashMain />;
-}
+  const isRouteLoaded = useIsRouteLoaded(Route, 'query');
 
-function TrashPending() {
   return (
-    <IsLoadingProvider isLoading={true}>
+    <IsLoadingProvider isLoading={!isRouteLoaded}>
       <TrashMain />
     </IsLoadingProvider>
   );

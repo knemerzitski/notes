@@ -2,7 +2,6 @@ import {
   ErrorComponentProps,
   Outlet,
   createRootRouteWithContext,
-  defer,
   useRouter,
 } from '@tanstack/react-router';
 
@@ -47,7 +46,6 @@ const searchSchema = type({
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   component: Root,
-  pendingComponent: Root,
   notFoundComponent: RootNotFound,
   errorComponent: RootError,
 
@@ -75,23 +73,21 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     }
 
     const sharingDefer = ctx.deps.sharingNoteId
-      ? defer(
-          apolloClient
-            .query({
-              query: RouteRoot_Query,
-              variables: {
-                userBy: {
-                  id: userId,
-                },
-                noteBy: {
-                  id: ctx.deps.sharingNoteId,
-                },
+      ? apolloClient
+          .query({
+            query: RouteRoot_Query,
+            variables: {
+              userBy: {
+                id: userId,
               },
-              fetchPolicy,
-            })
-            .then(setIsSucessfullyFetched)
-        )
-      : null;
+              noteBy: {
+                id: ctx.deps.sharingNoteId,
+              },
+            },
+            fetchPolicy,
+          })
+          .then(setIsSucessfullyFetched)
+      : Promise.resolve();
 
     return {
       sharingDefer,
