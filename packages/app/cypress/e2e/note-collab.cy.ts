@@ -296,8 +296,6 @@ describe('with initial text', () => {
   it('receives selection from user 2', () => {
     cy.visit(noteRoute());
 
-    user2.editor.CONTENT.select(7);
-    user2.submitSelection();
     user2.editor.CONTENT.select(8);
     user2.submitSelection();
 
