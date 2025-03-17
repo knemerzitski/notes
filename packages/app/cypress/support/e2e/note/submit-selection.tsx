@@ -5,25 +5,26 @@ import { ReactNode } from 'react';
 import { GraphQLServiceProvider } from '../../../../src/graphql/components/GraphQLServiceProvider';
 import { CurrentUserIdProvider } from '../../../../src/user/components/CurrentUserIdProvider';
 
-import { useUpdateNoteInsertRecord } from '../../../../src/note/hooks/useUpdateNoteInsertRecord';
-import { CollabService } from '../../../../../collab/src/client/collab-service';
 import { GraphQLService } from '../../../../src/graphql/types';
 import { NoteIdProvider } from '../../../../src/note/context/note-id';
+import { useUpdateOpenNoteSelectionRange } from '../../../../src/note/hooks/useUpdateOpenNoteSelectionRange';
+import { SelectionRange } from '../../../../../collab/src/client/selection-range';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      submitChanges: (options: SubmitChangesOptions) => any;
+      submitSelection: (options: SubmitSelectionOptions) => any;
     }
   }
 }
 
-interface SubmitChangesOptions {
+interface SubmitSelectionOptions {
   noteId: string;
   graphQLService: GraphQLService;
-  collabService: CollabService;
+  selectionRange: SelectionRange;
+  revision: number;
   /**
    * Skip waiting for insert response
    */
@@ -31,12 +32,18 @@ interface SubmitChangesOptions {
 }
 
 Cypress.Commands.add(
-  'submitChanges',
-  ({ noteId, graphQLService, collabService, skipSync }: SubmitChangesOptions) => {
+  'submitSelection',
+  ({
+    noteId,
+    graphQLService,
+    revision,
+    selectionRange,
+    skipSync,
+  }: SubmitSelectionOptions) => {
     return cy.then(async () => {
       const {
-        result: { current: insertRecord },
-      } = renderHook(() => useUpdateNoteInsertRecord(), {
+        result: { current: updateOpenNoteSelectionRange },
+      } = renderHook(() => useUpdateOpenNoteSelectionRange(), {
         wrapper: ({ children }: { children: ReactNode }) => {
           return (
             <GraphQLServiceProvider service={graphQLService}>
@@ -48,15 +55,16 @@ Cypress.Commands.add(
         },
       });
 
-      collabService.submitChanges();
-      const submittedRecord = collabService.submittedRecord;
-      if (!submittedRecord) {
-        return;
-      }
+      const updatePromise = updateOpenNoteSelectionRange({
+        note: {
+          id: noteId,
+        },
+        revision,
+        selectionRange,
+      });
 
-      const insertPromise = insertRecord(noteId, submittedRecord);
       if (!skipSync) {
-        await insertPromise;
+        await updatePromise;
       }
     });
   }

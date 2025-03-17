@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { renderHook } from '@testing-library/react';
 
 import { ReactNode } from 'react';
@@ -28,6 +29,7 @@ interface ShareNoteOptions {
 
 interface ShareNoteResult {
   sharingLink: string;
+  shareAccessId: string;
 }
 
 Cypress.Commands.add(
@@ -51,13 +53,16 @@ Cypress.Commands.add(
       });
 
       if (!data) {
-        throw new Error('No data, is user signed in?');
+        throw new Error('shareNote: no response data');
       }
 
       const payload = getFragmentData(ShareNotePayloadFragmentDoc, data.shareNote);
 
+      const shareAccessId = payload.note.shareAccess!.id;
+
       return {
-        sharingLink: getShareUrl(payload.note.shareAccess?.id),
+        sharingLink: getShareUrl(shareAccessId),
+        shareAccessId,
       } satisfies ShareNoteResult;
     });
   }

@@ -35,7 +35,7 @@ beforeEach(() => {
 });
 
 function noteRoute() {
-  return `/note/${noteId}`;
+  return `/note/${encodeURIComponent(noteId)}`;
 }
 
 function noteDialog() {

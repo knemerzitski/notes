@@ -77,7 +77,7 @@ Cypress.Commands.add(
       });
 
       if (!data) {
-        throw new Error('No data, is user signed in?');
+        throw new Error('createNote: no response data');
       }
 
       const payload = getFragmentData(CreateNotePayloadFragmentDoc, data.createNote);
