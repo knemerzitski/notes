@@ -12,6 +12,13 @@ import { NoteToolbar } from './NoteToolbar';
 import { OpenSharingUserAvatars } from './OpenSharingUserAvatars';
 import { UserAvatarsCornerPosition } from './UserAvatarsCornerPosition';
 import { useNoteId } from '../context/note-id';
+import { gql } from '../../__generated__';
+
+const _NoteDialog_NoteFragment = gql(`
+  fragment NoteDialog_NoteFragment on Note {
+    ...CollabInputsColumn_NoteFragment
+  }
+`);
 
 export const NoteDialog = forwardRef<HTMLDivElement, Parameters<typeof DialogStyled>[0]>(
   function NoteDialog(

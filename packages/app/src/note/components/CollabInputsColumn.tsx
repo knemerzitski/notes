@@ -3,6 +3,13 @@ import { Box, BoxProps, css, styled } from '@mui/material';
 import { forwardRef } from 'react';
 
 import { CollabInputs } from './CollabInputs';
+import { gql } from '../../__generated__';
+
+const _CollabInputsColumn_NoteFragment = gql(`
+  fragment CollabInputsColumn_NoteFragment on Note {
+    ...CollabInputs_NoteFragment
+  }
+`);
 
 export const CollabInputsColumn = forwardRef<
   HTMLDivElement,

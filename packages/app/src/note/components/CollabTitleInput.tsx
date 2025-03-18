@@ -4,6 +4,13 @@ import { NoteTextFieldName } from '../../__generated__/graphql';
 
 import { CollabInput, CollabInputProps } from './CollabInput';
 import { TitleInput } from './TitleInput';
+import { gql } from '../../__generated__';
+
+const _CollabTitleInput_NoteFragment = gql(`
+  fragment CollabTitleInput_NoteFragment on Note {
+    ...CollabInput_NoteFragment
+  }
+`);
 
 export function CollabTitleInput(
   props?: Pick<CollabInputProps<InputProps>, 'slotProps'> & {

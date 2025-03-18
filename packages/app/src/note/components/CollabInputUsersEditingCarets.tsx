@@ -8,6 +8,16 @@ import { useNoteId } from '../context/note-id';
 
 import { UserCollabEditingCaret } from './UserCollabEditingCaret';
 
+//UserCollabEditingCaret
+
+const _CollabInputUsersEditingCarets_NoteFragment = gql(`
+  fragment CollabInputUsersEditingCarets_NoteFragment on Note {
+    id
+    users {
+      ...UserCollabEditingCaret_UserNoteLinkFragment
+    }
+  }
+`);
 
 const CollabInputUsersEditingCarets_Query = gql(`
   query CollabInputUsersEditingCarets_Query($by: NoteByInput!) {

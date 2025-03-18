@@ -9,6 +9,13 @@ import { useNoteId } from '../context/note-id';
 import { useOnNoteNotEditable } from '../hooks/useOnNoteNotEditable';
 
 import { NoteDialog } from './NoteDialog';
+import { gql } from '../../__generated__';
+
+const _RouteNoteDialog_NoteFragment = gql(`
+  fragment RouteNoteDialog_NoteFragment on Note {
+    ...NoteDialog_NoteFragment
+  }
+`);
 
 /**
  * Note dialog that is based on query search ?noteId=...

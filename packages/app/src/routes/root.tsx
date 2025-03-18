@@ -24,11 +24,19 @@ import { NotFoundTypography } from '../utils/components/NotFoundTypography';
 import { loaderUserFetchLogic } from '../router/utils/loader-user-fetch-logic';
 
 const RouteRoot_Query = gql(`
-  query RouteRoot_Query($userBy: UserByInput!, $noteBy: NoteByInput!) {
-    noteSharingDialog: signedInUser(by: $userBy) {
+  query RouteRoot_Query($userBy: UserByInput!, 
+    $dialogNoteBy: NoteByInput!, $ifDialog: Boolean!,
+    $sharingNoteBy: NoteByInput!, $ifSharing: Boolean!
+  ) {
+    noteDialog: signedInUser(by: $userBy) @include(if: $ifDialog) {
       id
-      note(by: $noteBy) {
-        id
+      note(by: $dialogNoteBy) {
+        ...RouteNoteDialog_NoteFragment
+      }
+    }
+    noteSharingDialog: signedInUser(by: $userBy) @include(if: $ifSharing) {
+      id
+      note(by: $sharingNoteBy) {
         ...RouteNoteSharingDialog_NoteFragment
       }
     }
@@ -68,29 +76,37 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       return;
     }
 
-    if (ctx.deps.noteId != null) {
-      // TODO load anything that's needed when note is open
+    const ifDialog = ctx.deps.noteId != null;
+    const ifSharing = ctx.deps.sharingNoteId != null;
+
+    const mustQuery = ifDialog || ifSharing;
+
+    if (!mustQuery) {
+      return;
     }
 
-    const sharingDefer = ctx.deps.sharingNoteId
-      ? apolloClient
-          .query({
-            query: RouteRoot_Query,
-            variables: {
-              userBy: {
-                id: userId,
-              },
-              noteBy: {
-                id: ctx.deps.sharingNoteId,
-              },
-            },
-            fetchPolicy,
-          })
-          .then(setIsSucessfullyFetched)
-      : Promise.resolve();
-
     return {
-      sharingDefer,
+      query: apolloClient
+        .query({
+          query: RouteRoot_Query,
+          variables: {
+            userBy: {
+              id: userId,
+            },
+            dialogNoteBy: {
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              id: (ctx.deps.noteId ?? ctx.deps.sharingNoteId)!,
+            },
+            sharingNoteBy: {
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              id: (ctx.deps.sharingNoteId ?? ctx.deps.noteId)!,
+            },
+            ifDialog,
+            ifSharing,
+          },
+          fetchPolicy,
+        })
+        .then(setIsSucessfullyFetched),
     };
   },
 });

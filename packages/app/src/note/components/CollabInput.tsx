@@ -14,6 +14,12 @@ import { useCollabHtmlInput } from '../hooks/useCollabHtmlInput';
 import { CollabInputUsersEditingCarets } from './CollabInputUsersEditingCarets';
 import { SubmitSelectionChangeDebounced } from './SubmitSelectionChangeDebounced';
 
+const _CollabInput_NoteFragment = gql(`
+  fragment CollabInput_NoteFragment on Note {
+    ...CollabInputUsersEditingCarets_NoteFragment
+  }
+`);
+
 const CollabInput_Query = gql(`
   query CollabInput_Query($noteBy: NoteByInput!, $fieldName: NoteTextFieldName!) {
     note(by: $noteBy) {
