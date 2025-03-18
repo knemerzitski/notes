@@ -22,6 +22,9 @@ Cypress.Commands.add(
     }
 
     const inputEl = el as HTMLInputElement | HTMLTextAreaElement;
-    inputEl.setSelectionRange(start, end);
+
+    // Must focus or setSelectionRange will have no effect
+    inputEl.focus();
+    inputEl.setSelectionRange(start, end, 'forward');
   }
 );
