@@ -5,6 +5,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SelectionRange } from '../../../collab/src/client/selection-range';
+import { GraphQLService } from '../../src/graphql/types';
+import { createGraphQLService } from '../support/utils/graphql/create-graphql-service';
+import { createCollabService } from '../support/utils/note/create-collab-service';
+import { openNoteSubscription } from '../support/utils/note/open-note-subscription';
+import { submitChanges } from '../support/utils/note/submit-changes';
+import { syncHeadText } from '../support/utils/note/sync-head-text';
+import { signIn } from '../support/utils/user/sign-in';
+import { userSubscription } from '../support/utils/user/user-subscription';
 
 beforeEach(() => {
   cy.resetDatabase();
@@ -134,47 +142,52 @@ it('sign in, create note, share link and collab edit with another user', () => {
           cy.visit(shareNoteUrl);
           noteDialog(noteId).should('be.visible');
 
-          // Sign in with user 1 in the background and insert record
-          cy.graphQLService({
-            // Ensures user 2 cache is not overwritten since same localStorage is used
-            storageKey: 'user1',
-            logging: true,
-          }).then(({ service: graphQLService }) => {
-            cy.signIn({
-              graphQLService,
-              googleUserId: '1',
-            });
+          cy.then(() => {
+            let graphQLService: GraphQLService;
+            cy.then(async () => {
+              // Sign in with user 1 in the background and insert record
+              graphQLService = await createGraphQLService({
+                // Ensures user 2 cache is not overwritten since same localStorage is used
+                storageKey: 'user1',
+                logging: true,
+              });
 
-            // Open note so that user 1 caret will be visible to user 2
-            cy.openNoteSubscription({
-              graphQLService,
-              noteId,
-            });
+              await signIn({
+                graphQLService,
+                signInUserId: '1',
+              });
 
-            // User 1 listens to new records
-            cy.userSubscription({
-              graphQLService,
-            });
+              // Open note so that user 1 caret will be visible to user 2
+              openNoteSubscription({
+                graphQLService,
+                noteId,
+              });
 
-            // Ensure user 1 has up to date headText
-            cy.syncHeadText({
-              graphQLService,
-              noteId,
+              // User 1 listens to new records
+              userSubscription({
+                graphQLService,
+              });
+
+              // Ensure user 1 has up to date headText
+              await syncHeadText({
+                graphQLService,
+                noteId,
+              });
             });
 
             cy.get('[placeholder="Title"]').should('have.value', 'foo title');
             cy.get('[placeholder="Note"]').should('have.value', 'foo content');
 
-            cy.collabService({
-              graphQLService,
-              noteId,
-            }).then(({ fields, service: collabService }) => {
-              cy.then(() => {
-                // "foo content" =>  "foo BOO content"
-                fields.CONTENT.insert(' BOO', SelectionRange.from(3));
+            cy.then(async () => {
+              const { fields, collabService } = createCollabService({
+                graphQLService,
+                noteId,
               });
 
-              cy.submitChanges({
+              // "foo content" =>  "foo BOO content"
+              fields.CONTENT.insert(' BOO', SelectionRange.from(3));
+
+              await submitChanges({
                 collabService,
                 graphQLService,
                 noteId,

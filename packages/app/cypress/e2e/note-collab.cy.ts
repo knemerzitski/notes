@@ -15,8 +15,8 @@ interface UserContext {
     fields: Record<NoteTextFieldName, SimpleText>;
   };
   editor: Record<NoteTextFieldName, FieldEditor>;
-  submitChanges: (async?: boolean) => void;
-  submitSelection: (async?: boolean) => void;
+  submitChanges: () => Promise<void>;
+  submitSelection: () => Promise<void>;
 }
 
 interface FieldEditor {
@@ -45,19 +45,15 @@ class SimpleTextField implements FieldEditor {
   }
 
   insert(value: string) {
-    cy.then(() => {
       this.field.insert(value, this.selection);
-    });
   }
 
   delete(count: number) {
     cy.then(() => {
       this.field.delete(count, this.selection);
-    });
   }
 
   select(start: number, end?: number) {
-    cy.then(() => {
       const newSelection = SelectionRange.from(start, end);
       if (SelectionRange.isEqual(this.selection, newSelection)) {
         return;
@@ -67,34 +63,24 @@ class SimpleTextField implements FieldEditor {
       this._eventBus.emit('selectionChanged', {
         localSelection: newSelection,
         serviceSelection: this.field.transformToServiceSelection(newSelection),
-      });
     });
   }
 }
 
 class CyElementField implements FieldEditor {
-  private chainableEl: Cypress.Chainable<JQuery> | undefined;
-
   constructor(private readonly getChainableEl: () => Cypress.Chainable<JQuery>) {}
 
-  private get() {
-    if (!this.chainableEl) {
-      this.chainableEl = this.getChainableEl();
-    }
-    return this.chainableEl;
-  }
-
   insert(value: string) {
-    this.get().type(value);
+    this.getChainableEl().type(value);
   }
 
   delete(count: number) {
-    this.get().type('{backspace}'.repeat(count));
+    this.getChainableEl().type('{backspace}'.repeat(count));
   }
 
   select(start: number, end?: number) {
     const selection = SelectionRange.from(start, end);
-    this.get().setSelectionRange(selection.start, selection.end);
+    this.getChainableEl().setSelectionRange(selection.start, selection.end);
   }
 }
 
@@ -110,14 +96,17 @@ let nextStorageKeyCounter = 0;
 beforeEach(() => {
   cy.resetDatabase();
 
+  cy.then(async () => {
   // Init user 1, who will be displayed in UI
-  cy.graphQLService().then(({ service: graphQLService }) => {
+    const graphQLService = await createGraphQLService();
+
     // Sign in
-    cy.signIn({
+    const { userId } = await signIn({
       graphQLService,
-      googleUserId: '1',
+      signInUserId: '1',
       displayName: '1ab',
-    }).then(({ userId }) => {
+    });
+
       user1 = {
         userId,
         editor: {
@@ -127,56 +116,56 @@ beforeEach(() => {
       };
 
       // Create note
-      cy.createNote({
+    ({ noteId } = await createNote({
         graphQLService,
         userId,
-      }).then((value) => {
-        noteId = value.noteId;
+    }));
 
         // Create link to share note
-        cy.shareNote({
+    ({ shareAccessId } = await shareNote({
           userId,
           noteId,
           graphQLService,
-          // }).then(({ shareAccessId }) => {
-        }).then((value) => {
-          shareAccessId = value.shareAccessId;
+    }));
+
           // Init user 2, who will be programmatically controlled in the background
-          cy.graphQLService({
+    await createGraphQLService({
             storageKey: `apollo:cache:test:user2:${nextStorageKeyCounter++}`,
-          }).then(({ service: graphQLService }) => {
-            cy.signIn({
+    }).then(async (graphQLService) => {
+      const { userId } = await signIn({
               graphQLService,
-              googleUserId: '2',
+        signInUserId: '2',
               displayName: '2tppp',
-            }).then(({ userId }) => {
-              cy.accessSharedNote({
+      });
+
+      await createNoteLinkByShareAccess({
                 graphQLService,
                 shareAccessId,
                 userId,
               });
 
               // Open note so that carets will be displayed
-              cy.openNoteSubscription({
+      openNoteSubscription({
                 graphQLService,
                 noteId,
               });
 
               // Listens to new records
-              cy.userSubscription({
+      userSubscription({
                 graphQLService,
               });
 
               // Ensure user2 has up to date headText
-              cy.syncHeadText({
+      await syncHeadText({
                 graphQLService,
                 noteId,
               });
 
-              cy.collabService({
+      const { fields, collabService } = createCollabService({
                 graphQLService,
                 noteId,
-              }).then(({ service: collabService, fields }) => {
+      });
+
                 const testEditorByName = mapObject(fields, (key, value) => [
                   key,
                   new SimpleTextField(value),
@@ -211,36 +200,25 @@ beforeEach(() => {
                     fields,
                   },
                   editor: testEditorByName,
-                  submitChanges: (async = false) => {
-                    cy.submitChanges({
+        submitChanges: async () => {
+          await submitChanges({
                       collabService,
                       graphQLService,
                       noteId,
-                      skipSync: async,
                     });
                   },
-                  submitSelection: (async = false) => {
-                    cy.then(() => {
-                      cy.submitSelection({
+        submitSelection: async () => {
+          await updateOpenNoteSelectionRange({
                         graphQLService,
                         noteId,
                         selectionRange: latestSelection.selection,
                         revision: latestSelection.revision,
-                        skipSync: async,
-                      });
                     });
                   },
                 };
-              });
-            });
-          });
-        });
-      });
     });
 
-    cy.persistCache({
-      graphQLService,
-    });
+    await persistCache(graphQLService);
   });
 });
 
@@ -279,25 +257,31 @@ describe('with empty text', () => {
   it('receives text from user 2', () => {
     cy.visit(noteRoute());
 
+    cy.then(() => {
     user2.editor.CONTENT.insert('foobar');
-    user2.submitChanges();
+      void user2.submitChanges();
+    });
 
     shouldContentHaveValue('foobar');
   });
 });
 
 describe('with initial text', () => {
-  beforeEach(() => {
+  const contentValue = '[above]\n\n[below]\n';
+
+  beforeEach(async () => {
     user2.editor.TITLE.insert('lorem ipsum title');
-    user2.editor.CONTENT.insert('[above]\n\n[below]\n');
-    user2.submitChanges();
+    user2.editor.CONTENT.insert(contentValue);
+    await user2.submitChanges();
   });
 
   it('receives selection from user 2', () => {
     cy.visit(noteRoute());
 
+    cy.then(() => {
     user2.editor.CONTENT.select(8);
-    user2.submitSelection();
+      void user2.submitSelection();
+    });
 
     shouldContentHaveValue('[above]\n\n[below]\n');
     shouldUser2CaretBeIndex('content', 8);

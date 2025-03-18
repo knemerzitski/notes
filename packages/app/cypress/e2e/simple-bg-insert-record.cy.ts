@@ -3,6 +3,12 @@ import { SelectionRange } from '../../../collab/src/client/selection-range';
 import { SimpleText } from '../../../collab/src/types';
 import { Note, NoteTextFieldName } from '../../src/__generated__/graphql';
 import { GraphQLService } from '../../src/graphql/types';
+import { createGraphQLService } from '../support/utils/graphql/create-graphql-service';
+import { persistCache } from '../support/utils/graphql/persist-cache';
+import { createCollabService } from '../support/utils/note/create-collab-service';
+import { createNote } from '../support/utils/note/create-note';
+import { submitChanges } from '../support/utils/note/submit-changes';
+import { signIn } from '../support/utils/user/sign-in';
 
 let graphQLService: GraphQLService;
 
@@ -14,35 +20,28 @@ let noteId: Note['id'];
 beforeEach(() => {
   cy.resetDatabase();
 
-  // Init GraphQLService
-  cy.graphQLService().then((value) => {
-    graphQLService = value.service;
+  cy.then(async () => {
+    // Init GraphQLService
+    graphQLService = await createGraphQLService();
 
     // Sign in
-    cy.then(() => {
-      cy.signIn({
-        graphQLService,
-        googleUserId: '1',
-        displayName: 'First',
-      }).then(({ userId }) => {
-        // Create note
-        cy.createNote({
-          graphQLService,
-          userId,
-        }).then((value) => {
-          noteId = value.noteId;
-
-          // Init CollabService
-          cy.collabService({
-            graphQLService,
-            noteId,
-          }).then((value) => {
-            collabService = value.service;
-            fields = value.fields;
-          });
-        });
-      });
+    const { userId } = await signIn({
+      graphQLService,
+      signInUserId: '1',
+      displayName: 'First',
     });
+
+    // Create note
+    ({ noteId } = await createNote({
+      graphQLService,
+      userId,
+    }));
+
+    // Init CollabService
+    ({ fields, collabService } = createCollabService({
+      graphQLService,
+      noteId,
+    }));
   });
 });
 
@@ -55,29 +54,25 @@ function noteCard(noteId: string, options?: Parameters<typeof cy.get>[1]) {
 }
 
 it('has inserted record in the background', () => {
-  cy.then(() => {
+  cy.then(async () => {
     fields.TITLE.insert('start', SelectionRange.from(0));
-  });
 
-  cy.submitChanges({
-    collabService,
-    graphQLService,
-    noteId,
-  });
+    await submitChanges({
+      collabService,
+      graphQLService,
+      noteId,
+    });
 
-  cy.then(() => {
     fields.TITLE.insert('|end', SelectionRange.from(5));
-  });
 
-  cy.submitChanges({
-    collabService,
-    graphQLService,
-    noteId,
-  });
+    await submitChanges({
+      collabService,
+      graphQLService,
+      noteId,
+    });
 
-  // Ensures cache is read when visiting
-  cy.persistCache({
-    graphQLService,
+    // Ensures cache is read when visiting
+    await persistCache(graphQLService);
   });
 
   cy.visit('/');

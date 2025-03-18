@@ -1,24 +1,25 @@
 import { GraphQLService } from '../../src/graphql/types';
+import { createGraphQLService } from '../support/utils/graphql/create-graphql-service';
+import { persistCache } from '../support/utils/graphql/persist-cache';
+import { signIn } from '../support/utils/user/sign-in';
 
 let graphQLService: GraphQLService;
 
 beforeEach(() => {
   cy.resetDatabase();
 
-  // Init GraphQLService
-  cy.graphQLService().then((value) => {
-    graphQLService = value.service;
+  cy.then(async () => {
+    // Init GraphQLService
+    graphQLService = await createGraphQLService();
 
     // Sign in
-    cy.signIn({
+    await signIn({
       graphQLService,
-      googleUserId: 'a',
+      signInUserId: 'a',
       displayName: 'FooUser',
     });
 
-    cy.persistCache({
-      graphQLService,
-    });
+    await persistCache(graphQLService);
   });
 });
 

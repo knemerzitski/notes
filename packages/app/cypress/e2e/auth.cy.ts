@@ -1,15 +1,21 @@
 import { SelectionRange } from '../../../collab/src/client/selection-range';
 import { GraphQLService } from '../../src/graphql/types';
 import { AppStatus } from '../../src/utils/hooks/useAppStatus';
+import { createGraphQLService } from '../support/utils/graphql/create-graphql-service';
+import { persistCache } from '../support/utils/graphql/persist-cache';
+import { restoreCache } from '../support/utils/graphql/restore-cache';
+import { createCollabService } from '../support/utils/note/create-collab-service';
+import { createNote } from '../support/utils/note/create-note';
+import { submitChanges } from '../support/utils/note/submit-changes';
+import { signIn } from '../support/utils/user/sign-in';
 
 let graphQLService: GraphQLService;
 
 beforeEach(() => {
   cy.resetDatabase();
 
-  // Init GraphQLService
-  cy.graphQLService().then((value) => {
-    graphQLService = value.service;
+  cy.then(async () => {
+    graphQLService = await createGraphQLService();
   });
 });
 
@@ -121,19 +127,19 @@ it('first time signs in user', () => {
 });
 
 it('first time signs in second user', () => {
-  cy.signIn({
-    graphQLService,
-    googleUserId: '1',
-    displayName: 'First05',
-  }).then(({ userId }) => {
-    cy.createNote({
+  cy.then(async () => {
+    const { userId } = await signIn({
+      graphQLService,
+      signInUserId: '1',
+      displayName: 'First05',
+    });
+
+    await createNote({
       graphQLService,
       userId,
     });
-  });
 
-  cy.persistCache({
-    graphQLService,
+    await persistCache(graphQLService);
   });
 
   cy.visit('/');
@@ -159,37 +165,38 @@ it('first time signs in second user', () => {
   usersListItem(2).should('include.text', '2 User');
 });
 
-it('updates notes list when swiching user', () => {
-  cy.signIn({
-    graphQLService,
-    googleUserId: '1',
-    displayName: 'First10',
-  }).then(({ userId }) => {
-    cy.createNote({
+it('updates notes list when switching user', () => {
+  cy.then(async () => {
+    await signIn({
       graphQLService,
-      userId,
-      initialText: {
-        CONTENT: 'first',
-      },
+      signInUserId: '1',
+      displayName: 'First10',
+    }).then(async ({ userId }) => {
+      await createNote({
+        graphQLService,
+        userId,
+        initialText: {
+          CONTENT: 'first',
+        },
+      });
     });
-  });
 
-  cy.signIn({
-    graphQLService,
-    googleUserId: '2',
-    displayName: 'Second10',
-  }).then(({ userId }) => {
-    cy.createNote({
+    // Can't sign in two users at the same time since Set-Cookie replaces all sessions
+    await signIn({
       graphQLService,
-      userId,
-      initialText: {
-        CONTENT: 'second',
-      },
+      signInUserId: '2',
+      displayName: 'Second10',
+    }).then(async ({ userId }) => {
+      await createNote({
+        graphQLService,
+        userId,
+        initialText: {
+          CONTENT: 'second',
+        },
+      });
     });
-  });
 
-  cy.persistCache({
-    graphQLService,
+    await persistCache(graphQLService);
   });
 
   cy.visit('/');
@@ -213,55 +220,56 @@ it('updates notes list when swiching user', () => {
 });
 
 it('refreshes user expired session', () => {
-  cy.signIn({
-    graphQLService,
-    googleUserId: '1',
-    displayName: 'First15',
-  }).then(({ userId }) => {
-    cy.createNote({
-      graphQLService,
-      userId,
-      initialText: {
-        CONTENT: 'initial',
-      },
-    }).then(({ noteId }) => {
-      cy.persistCache({
+  cy.then(() => {
+    let userId: string, noteId: string;
+    cy.then(async () => {
+      ({ userId } = await signIn({
         graphQLService,
-      });
+        signInUserId: '1',
+        displayName: 'First15',
+      }));
 
-      // Visit before inserting change that won't be known due to expired session
-      cy.visit('/');
+      ({ noteId } = await createNote({
+        graphQLService,
+        userId,
+        initialText: {
+          CONTENT: 'initial',
+        },
+      }));
+
+      await persistCache(graphQLService);
+    });
+
+    // Visit before inserting change that won't be known due to expired session
+    cy.visit('/');
+
+    cy.then(async () => {
+      const graphQLService2 = await createGraphQLService({
+        storageKey: 'user2',
+      });
 
       // Insert change to note in the background in separate cache right before expiring session
-      cy.graphQLService({
-        storageKey: 'user2',
-      }).then(({ service: graphQLService2 }) => {
-        graphQLService2.client.restore(graphQLService.client.extract());
+      graphQLService2.client.restore(graphQLService.client.extract());
 
-        cy.collabService({
-          graphQLService: graphQLService2,
-          noteId,
-        }).then(({ fields, service: collabService }) => {
-          cy.then(() => {
-            fields.CONTENT.insert(' updated', SelectionRange.from(7));
-          });
-
-          cy.submitChanges({
-            collabService,
-            graphQLService: graphQLService2,
-            noteId,
-          });
-        });
+      const { fields, collabService } = createCollabService({
+        graphQLService: graphQLService2,
+        noteId,
       });
 
+      fields.CONTENT.insert(' updated', SelectionRange.from(7));
+
+      await submitChanges({
+        collabService,
+        graphQLService: graphQLService2,
+        noteId,
+      });
+    });
+
+    cy.then(() => {
       cy.expireUserSessions({
         userId,
       });
     });
-  });
-
-  cy.persistCache({
-    graphQLService,
   });
 
   cy.visit('/');
@@ -293,12 +301,15 @@ it('refreshes user expired session', () => {
 
 it('switches to a user with expired session and shows notes', () => {
   let expireUserId: string;
-  cy.signIn({
-    graphQLService,
-    googleUserId: '1',
-    displayName: 'First',
-  }).then(({ userId }) => {
-    cy.createNote({
+
+  cy.then(async () => {
+    const { userId } = await signIn({
+      graphQLService,
+      signInUserId: '1',
+      displayName: 'First',
+    });
+
+    await createNote({
       graphQLService,
       userId,
       initialText: {
@@ -306,29 +317,30 @@ it('switches to a user with expired session and shows notes', () => {
       },
     });
 
-    cy.persistCache({
-      graphQLService,
-    });
-
-    // Load page once to cache note
-    cy.visit('/');
+    await persistCache(graphQLService);
 
     expireUserId = userId;
   });
 
+  // Load page once to cache created note
+  cy.visit('/');
+
   shouldAppStatusEqual('refresh');
 
   // Restore cache from visiting the page
-  cy.restoreCache({
-    graphQLService,
+  cy.then(async () => {
+    await restoreCache(graphQLService);
   });
 
-  cy.signIn({
-    graphQLService,
-    googleUserId: '2',
-    displayName: 'Second20',
-  }).then(({ userId }) => {
-    cy.createNote({
+  // Create another note that won't be shown due to expired session
+  cy.then(async () => {
+    const { userId } = await signIn({
+      graphQLService,
+      signInUserId: '2',
+      displayName: 'Second20',
+    });
+
+    await createNote({
       graphQLService,
       userId,
       initialText: {
@@ -354,18 +366,20 @@ it('switches to a user with expired session and shows notes', () => {
 });
 
 it('forgets user with expired session', () => {
-  cy.signIn({
-    graphQLService,
-    googleUserId: '1',
-    displayName: 'Forget me',
-  }).then(({ userId }) => {
-    cy.expireUserSessions({
-      userId,
+  cy.then(async () => {
+    const { userId } = await signIn({
+      graphQLService,
+      signInUserId: '1',
+      displayName: 'Forget me',
     });
-  });
 
-  cy.persistCache({
-    graphQLService,
+    cy.then(() => {
+      cy.expireUserSessions({
+        userId,
+      });
+    });
+
+    await persistCache(graphQLService);
   });
 
   cy.visit('/');
@@ -390,19 +404,19 @@ it('forgets user with expired session', () => {
 });
 
 it('signs out specific user', () => {
-  cy.signIn({
-    graphQLService,
-    googleUserId: '1',
-    displayName: 'First30',
-  });
-  cy.signIn({
-    graphQLService,
-    googleUserId: '2',
-    displayName: 'Second30',
-  });
+  cy.then(async () => {
+    await signIn({
+      graphQLService,
+      signInUserId: '1',
+      displayName: 'First30',
+    });
+    await signIn({
+      graphQLService,
+      signInUserId: '2',
+      displayName: 'Second30',
+    });
 
-  cy.persistCache({
-    graphQLService,
+    await persistCache(graphQLService);
   });
 
   cy.visit('/');
@@ -419,24 +433,24 @@ it('signs out specific user', () => {
 });
 
 it('signs out all users', () => {
-  cy.signIn({
-    graphQLService,
-    googleUserId: '1',
-    displayName: 'aaa',
-  });
-  cy.signIn({
-    graphQLService,
-    googleUserId: '2',
-    displayName: 'bbb',
-  });
-  cy.signIn({
-    graphQLService,
-    googleUserId: '3',
-    displayName: 'ccc',
-  });
+  cy.then(async () => {
+    await signIn({
+      graphQLService,
+      signInUserId: '1',
+      displayName: 'aaa',
+    });
+    await signIn({
+      graphQLService,
+      signInUserId: '2',
+      displayName: 'bbb',
+    });
+    await signIn({
+      graphQLService,
+      signInUserId: '3',
+      displayName: 'ccc',
+    });
 
-  cy.persistCache({
-    graphQLService,
+    await persistCache(graphQLService);
   });
 
   cy.visit('/');

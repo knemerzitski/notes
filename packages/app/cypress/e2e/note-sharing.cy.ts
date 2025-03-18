@@ -1,4 +1,9 @@
 import { GraphQLService } from '../../src/graphql/types';
+import { createGraphQLService } from '../support/utils/graphql/create-graphql-service';
+import { persistCache } from '../support/utils/graphql/persist-cache';
+import { createNote } from '../support/utils/note/create-note';
+import { shareNote } from '../support/utils/note/share-note';
+import { signIn } from '../support/utils/user/sign-in';
 
 let graphQLService: GraphQLService;
 let userId: string;
@@ -7,30 +12,26 @@ let noteId: string;
 beforeEach(() => {
   cy.resetDatabase();
 
-  // Init GraphQLService
-  cy.graphQLService().then((value) => {
-    graphQLService = value.service;
+  cy.then(async () => {
+    // Init GraphQLService
+    graphQLService = await createGraphQLService();
 
     // Sign in
-    cy.signIn({
+    ({ userId } = await signIn({
       graphQLService,
-      googleUserId: 'a',
+      signInUserId: 'a',
       displayName: 'FooUser',
-    }).then((value) => {
-      userId = value.userId;
+    }));
 
-      // Create note
-      cy.createNote({
-        graphQLService,
-        userId,
-        initialText: {
-          TITLE: 'foo',
-          CONTENT: 'bar',
-        },
-      }).then((value) => {
-        noteId = value.noteId;
-      });
-    });
+    // Create note
+    ({ noteId } = await createNote({
+      graphQLService,
+      userId,
+      initialText: {
+        TITLE: 'foo',
+        CONTENT: 'bar',
+      },
+    }));
   });
 });
 
@@ -61,10 +62,8 @@ function noteSharingLinkInput() {
 }
 
 describe('no sharing link', () => {
-  beforeEach(() => {
-    cy.persistCache({
-      graphQLService,
-    });
+  beforeEach(async () => {
+    await persistCache(graphQLService);
   });
 
   it('can create share note link', () => {
@@ -93,30 +92,24 @@ describe('no sharing link', () => {
 describe('share link created', () => {
   let shareNoteUrl: string;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // Share note by root beforeEach user
-    cy.shareNote({
+    ({ sharingLink: shareNoteUrl } = await shareNote({
       graphQLService,
       noteId,
       userId,
-    }).then((value) => {
-      shareNoteUrl = value.sharingLink;
-    });
+    }));
 
     // Overwrite graphQLService with a new user context
-    cy.graphQLService().then((value) => {
-      graphQLService = value.service;
-
+    await createGraphQLService().then(async (graphQLService) => {
       // Access shared note as another user
-      cy.signIn({
+      await signIn({
         graphQLService,
-        googleUserId: 'b',
+        signInUserId: 'b',
         displayName: 'BarUser',
       });
 
-      cy.persistCache({
-        graphQLService,
-      });
+      await persistCache(graphQLService);
     });
   });
 
