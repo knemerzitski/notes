@@ -3,16 +3,24 @@ import { MongoDBCollections } from '../../collections';
 import { DBOpenNoteSchema, OpenNoteSchema } from '../../schema/open-note';
 import { TransactionContext } from '../../utils/with-transaction';
 
-export async function upsertOpenNote({
-  mongoDB,
-  openNote,
-}: {
-  mongoDB: {
-    runSingleOperation?: TransactionContext['runSingleOperation'];
-    collections: Pick<MongoDBCollections, CollectionName.OPEN_NOTES>;
-  };
-  openNote: Omit<OpenNoteSchema | DBOpenNoteSchema, 'clients'>;
-}) {
+export async function updateOpenNote(
+  {
+    mongoDB,
+    openNote,
+  }: {
+    mongoDB: {
+      runSingleOperation?: TransactionContext['runSingleOperation'];
+      collections: Pick<MongoDBCollections, CollectionName.OPEN_NOTES>;
+    };
+    openNote: Omit<OpenNoteSchema | DBOpenNoteSchema, 'clients'>;
+  },
+  options?: {
+    /**
+     * @default false
+     */
+    upsert?: boolean;
+  }
+) {
   const runSingleOperation = mongoDB.runSingleOperation ?? ((run) => run());
 
   openNote = OpenNoteSchema.createRaw({
@@ -39,7 +47,7 @@ export async function upsertOpenNote({
       {
         ignoreUndefined: true,
         session,
-        upsert: true,
+        upsert: options?.upsert ?? false,
       }
     )
   );

@@ -44,6 +44,8 @@ const _updateNoteInsertRecord: NonNullable<
       },
       userGeneratedId: insertRecord.generatedId,
     },
+    connectionId: ctx.connectionId,
+    openNoteDuration: ctx.options?.note?.openNoteDuration,
   });
 
   const noteQuery = mongoDB.loaders.note.createQueryFn({

@@ -6,7 +6,7 @@ import { CollectionName } from '../../mongodb/collection-names';
 import { MongoDBCollections } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
 
-import { upsertOpenNote } from '../../mongodb/models/note/upsert-open-note';
+import { updateOpenNote } from '../../mongodb/models/note/update-open-note';
 
 import { SelectionRangeSchema } from '../../mongodb/schema/collab-record';
 import { DBOpenNoteSchema, OpenNoteSchema } from '../../mongodb/schema/open-note';
@@ -17,6 +17,9 @@ import {
   NoteNotOpenedServiceError,
 } from './errors';
 import { findNoteUser } from './note';
+import { PickDeep } from '../../../../utils/src/types';
+import { QueryableNote } from '../../mongodb/loaders/note/descriptions/note';
+import { MongoReadonlyDeep } from '../../mongodb/types';
 
 export async function updateOpenNoteSelectionRange({
   mongoDB,
@@ -105,22 +108,101 @@ export async function updateOpenNoteSelectionRange({
     latestSelection: selection,
   };
 
+  const openNote = await updateOpenNoteAndPrime({
+    connectionId,
+    mongoDB,
+    note: {
+      _id: note._id,
+      users: note.users,
+    },
+    openCollabText,
+    userId,
+    openNoteDuration,
+    upsertOpenNote: true,
+  });
+
+  return {
+    type: 'success' as const,
+    note,
+    noteUser,
+    openNote,
+  };
+}
+
+export async function updateOpenNoteAndPrime({
+  openCollabText,
+  connectionId,
+  userId,
+  note,
+  openNoteDuration,
+  mongoDB,
+  upsertOpenNote,
+}: {
+  openCollabText: DBOpenNoteSchema['collabText'];
+  connectionId: string;
+  userId: ObjectId;
+  note: MongoReadonlyDeep<
+    PickDeep<
+      QueryableNote,
+      {
+        _id: 1;
+        users: {
+          _id: 1;
+          openNote: {
+            clients: {
+              connectionId: 1;
+            };
+          };
+        };
+      }
+    >
+  >;
+  openNoteDuration?: number;
+  mongoDB: {
+    collections: Pick<MongoDBCollections, CollectionName.OPEN_NOTES>;
+    loaders: Pick<MongoDBLoaders, 'note'>;
+  };
+  /**
+   * @default false
+   */
+  upsertOpenNote: boolean;
+}) {
+  const noteUser = findNoteUser(userId, note);
+  if (!noteUser) {
+    return false;
+  }
+
+  const hasCurrentConnectionOpenedNote = noteUser.openNote?.clients.some(
+    (client) => client.connectionId === connectionId
+  );
+  if (!hasCurrentConnectionOpenedNote) {
+    return false;
+  }
+
   const openNote: Omit<OpenNoteSchema, 'clients'> = {
-    noteId,
+    noteId: note._id,
     userId,
     expireAt: new Date(Date.now() + (openNoteDuration ?? 1000 * 60 * 60)),
     collabText: openCollabText,
   };
 
-  await upsertOpenNote({
-    mongoDB,
-    openNote,
-  });
+  // Update DB
+  await updateOpenNote(
+    {
+      mongoDB,
+      openNote,
+    },
+    {
+      // Only update if openNote exists
+      upsert: upsertOpenNote,
+    }
+  );
 
+  // Update cache
   mongoDB.loaders.note.prime(
     {
       id: {
-        noteId,
+        noteId: note._id,
         userId,
       },
       query: {
@@ -152,10 +234,5 @@ export async function updateOpenNoteSelectionRange({
     }
   );
 
-  return {
-    type: 'success' as const,
-    note,
-    noteUser,
-    openNote,
-  };
+  return openNote;
 }

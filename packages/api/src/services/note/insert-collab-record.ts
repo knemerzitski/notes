@@ -33,6 +33,7 @@ import {
   NoteReadOnlyServiceError,
 } from './errors';
 import { findNoteUser } from './note';
+import { updateOpenNoteAndPrime } from './update-open-note-selection-range';
 
 type ExistingRecord = Pick<
   CollabRecordSchema,
@@ -48,7 +49,7 @@ interface InsertCollabRecordParams {
     client: MongoClient;
     collections: Pick<
       MongoDBCollections,
-      CollectionName.NOTES | CollectionName.COLLAB_RECORDS
+      CollectionName.NOTES | CollectionName.COLLAB_RECORDS | CollectionName.OPEN_NOTES
     >;
     loaders: Pick<MongoDBLoaders, 'note'>;
   };
@@ -68,6 +69,8 @@ interface InsertCollabRecordParams {
    * Limit the records array by deleting older records
    */
   maxRecordsCount?: number;
+  openNoteDuration?: number;
+  connectionId?: string;
 }
 
 function toInsertionRecord(
@@ -103,6 +106,8 @@ export function insertCollabRecord({
   noteId,
   insertRecord,
   maxRecordsCount,
+  openNoteDuration,
+  connectionId,
 }: InsertCollabRecordParams) {
   return withTransaction(
     mongoDB.client,
@@ -161,6 +166,14 @@ export function insertCollabRecord({
                     afterSelection: {
                       start: 1,
                       end: 1,
+                    },
+                  },
+                },
+                users: {
+                  _id: 1,
+                  openNote: {
+                    clients: {
+                      connectionId: 1,
                     },
                   },
                 },
@@ -319,16 +332,37 @@ export function insertCollabRecord({
             newTailText = tailRevisionRecords.tailText;
           }
 
-          await model_insertRecord({
-            mongoDB: {
-              runSingleOperation,
-              collections: mongoDB.collections,
-            },
-            noteId,
-            headText: insertion.headText,
-            tailText: newTailText,
-            newRecord: processedInsertRecord,
-          });
+          await Promise.all([
+            model_insertRecord({
+              mongoDB: {
+                runSingleOperation,
+                collections: mongoDB.collections,
+              },
+              noteId,
+              headText: insertion.headText,
+              tailText: newTailText,
+              newRecord: processedInsertRecord,
+            }),
+            ...(connectionId
+              ? [
+                  updateOpenNoteAndPrime({
+                    openCollabText: {
+                      revision: processedInsertRecord.revision,
+                      latestSelection: processedInsertRecord.afterSelection,
+                    },
+                    connectionId,
+                    openNoteDuration,
+                    mongoDB,
+                    userId,
+                    note: {
+                      _id: noteId,
+                      users: noteForInsertion.users,
+                    },
+                    upsertOpenNote: false,
+                  }),
+                ]
+              : []),
+          ]);
 
           mongoDB.loaders.note.prime(
             {
