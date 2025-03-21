@@ -43,7 +43,7 @@ function CollabServiceDefined({
   return (
     <IconButton
       onClick={handleClickUndo}
-      aria-label="note history undo"
+      aria-label="history undo"
       disabled={!canUndo}
       {...IconButtonProps}
     >

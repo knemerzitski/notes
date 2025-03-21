@@ -27,9 +27,6 @@ interface UserContext {
     service: CollabService;
     fields: Record<NoteTextFieldName, SimpleText>;
   };
-  editor: Record<NoteTextFieldName, FieldEditor>;
-  submitChanges: () => Promise<void>;
-  submitSelection: () => Promise<void>;
 }
 
 interface FieldEditor {
@@ -175,9 +172,17 @@ class CyElementField implements FieldEditor {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-let user1: Pick<UserContext, 'userId' | 'editor'>;
+let user1: UserContext & {
+  editor: Record<NoteTextFieldName, FieldEditor>;
+  bgEditor: Record<NoteTextFieldName, FieldEditor>;
+  submitChanges: () => Promise<void>;
+};
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-let user2: UserContext;
+let user2: UserContext & {
+  editor: Record<NoteTextFieldName, FieldEditor>;
+  submitChanges: () => Promise<void>;
+  submitSelection: () => Promise<void>;
+};
 let noteId: string;
 let shareAccessId: string;
 
@@ -197,19 +202,47 @@ beforeEach(() => {
       displayName: '1ab',
     });
 
+    // Create note
+    ({ noteId } = await createNote({
+      graphQLService,
+      userId,
+    }));
+
+    await syncHeadText({
+      graphQLService,
+      noteId,
+    });
+
+    const { fields, collabService } = createCollabService({
+      graphQLService,
+      noteId,
+    });
+
+    const _submitChanges = async () => {
+      await submitChanges({
+        collabService,
+        graphQLService,
+        noteId,
+      });
+    };
+
     user1 = {
       userId,
       editor: {
         [NoteTextFieldName.TITLE]: new CyElementField(titleField),
         [NoteTextFieldName.CONTENT]: new CyElementField(contentField),
       },
-    };
-
-    // Create note
-    ({ noteId } = await createNote({
+      bgEditor: mapObject(fields, (key, value) => [
+        key,
+        new SimpleTextField(value, collabService, _submitChanges),
+      ]),
+      submitChanges: _submitChanges,
       graphQLService,
-      userId,
-    }));
+      collabService: {
+        service: collabService,
+        fields,
+      },
+    };
 
     // Create link to share note
     ({ shareAccessId } = await shareNote({
@@ -321,6 +354,15 @@ function titleField() {
 
 function contentField() {
   return noteDialog().find('[aria-label="content"] textarea').eq(0);
+}
+
+function undoButton() {
+  return noteDialog().find('[aria-label="history undo"]');
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function redoButton() {
+  return noteDialog().find('[aria-label="history redo"]');
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -550,5 +592,61 @@ describe('with initial text', () => {
         }
       });
     });
+  });
+});
+
+describe('with history', () => {
+  beforeEach(() => {
+    cy.then(async () => {
+      user1.bgEditor.CONTENT.insert('[before]\n\n[history]\n\n\n[after]\n');
+      await user1.submitChanges();
+
+      user1.bgEditor.CONTENT.select(20);
+      user1.bgEditor.CONTENT.insert('[t1]');
+      await user1.submitChanges();
+
+      user1.bgEditor.CONTENT.insert('[t2]');
+      await user1.submitChanges();
+
+      user1.bgEditor.CONTENT.insert('[t3]');
+      await user1.submitChanges();
+      // [before]\n\n[history]\n[t1][t2][t3]\n\n[after]\n
+    });
+  });
+
+  it('can undo x1 while receiving changes from user2', () => {
+    cy.visit(noteRoute());
+
+    shouldHaveNoOngoingQueries();
+
+    cy.then(() => {
+      user2.editor.CONTENT.select(9);
+      user2.editor.CONTENT.type('12345');
+    });
+
+    undoButton().should('not.be.disabled');
+    undoButton().click();
+
+    shouldContentHaveValue('[before]\n12345\n[history]\n[t1][t2]\n\n[after]\n');
+  });
+
+  it('can undo x3 while receiving changes from user2', () => {
+    cy.visit(noteRoute());
+
+    shouldHaveNoOngoingQueries();
+
+    cy.then(() => {
+      user2.editor.CONTENT.select(9);
+      user2.editor.CONTENT.type('1234567');
+    });
+
+    undoButton().should('not.be.disabled');
+    undoButton().click();
+    undoButton().should('not.be.disabled');
+    undoButton().click();
+    undoButton().should('not.be.disabled');
+    undoButton().click();
+
+    shouldContentHaveValue('[before]\n1234567\n[history]\n\n\n[after]\n');
   });
 });
