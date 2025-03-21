@@ -6,17 +6,13 @@ import {
   createDefaultGraphQLServiceParams,
 } from '../../../../src/graphql-service';
 
-export async function createGraphQLService(options?: {
-  /**
-   * localStorage key where cache is persisted
-   * @default false
-   */
-  storageKey?: string;
-  /**
-   * @default false
-   */
-  logging?: boolean;
-}) {
+export async function createGraphQLService(
+  options?: Partial<Pick<Parameters<typeof app_createGraphQLService>[0], 'storageKey'>> &
+    Pick<
+      NonNullable<Parameters<typeof app_createGraphQLService>[0]['linkOptions']>,
+      'debug'
+    >
+) {
   // Ensure cache is not pruged
   processCacheVersion(bootstrapCache, APOLLO_CACHE_VERSION);
 
@@ -28,7 +24,7 @@ export async function createGraphQLService(options?: {
       ...params.linkOptions,
       debug: {
         ...params.linkOptions?.debug,
-        logging: options?.logging,
+        ...options?.debug,
       },
     },
   });
