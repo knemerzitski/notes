@@ -30,7 +30,10 @@ export interface ServerRecordsFacade<TRecord> {
    */
   getTextAt(revision: number): Readonly<RevisionChangeset>;
 
-  // run this fun to let know have new records?
+  /**
+   * @returns true if server has more records
+   */
+  hasMoreRecords(): boolean;
 }
 
 export interface UserRecordsEvents {
@@ -72,6 +75,10 @@ export class UserRecords {
     this.eventsOff.forEach((off) => {
       off();
     });
+  }
+
+  hasMoreRecords() {
+    return this.serverRecords.hasMoreRecords();
   }
 
   getTextAt(revision: number) {

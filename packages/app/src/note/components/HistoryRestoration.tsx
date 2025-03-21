@@ -9,6 +9,7 @@ import { useUserId } from '../../user/context/user-id';
 import { useNoteId } from '../context/note-id';
 import { useCollabService } from '../hooks/useCollabService';
 import { CacheRecordsFacade } from '../utils/cache-records-facade';
+import { useLogger } from '../../utils/context/logger';
 
 const HistoryRestoration_Query = gql(`
   query HistoryRestoration_Query($userBy: UserByInput!, $noteBy: NoteByInput!, 
@@ -29,6 +30,9 @@ const HistoryRestoration_Query = gql(`
               node {
                 ...MapRecord_CollabTextRecordFragment
               }
+            }
+            pageInfo {
+              hasPreviousPage
             }
           }
         }
@@ -52,6 +56,7 @@ export function HistoryRestoration({
    */
   triggerEntriesRemaining?: number;
 }) {
+  const logger = useLogger('HistoryRestoration');
   const client = useApolloClient();
   const noteId = useNoteId();
   const userId = useUserId();
@@ -60,6 +65,13 @@ export function HistoryRestoration({
   const isFetchingRef = useRef(false);
 
   useEffect(() => {
+    if (collabService.userRecords != null) {
+      logger?.warning(
+        'Could not start history restoration. userRecords is already defined'
+      );
+      return;
+    }
+
     const cacheRecordsFacade = new CacheRecordsFacade({
       cache: client.cache,
       noteId,
@@ -165,7 +177,7 @@ export function HistoryRestoration({
         collabService.userRecords = null;
       }
     };
-  }, [client, noteId, userId, collabService, fetchEntriesCount, triggerEntriesRemaining]);
+  }, [client, noteId, userId, collabService, fetchEntriesCount, triggerEntriesRemaining, logger]);
 
   return null;
 }

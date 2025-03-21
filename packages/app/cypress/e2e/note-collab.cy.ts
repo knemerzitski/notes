@@ -630,7 +630,6 @@ describe('with history', () => {
       user2.editor.CONTENT.type('12345');
     });
 
-    undoButton().should('not.be.disabled');
     undoButton().click();
 
     shouldContentHaveValue('[before]\n12345\n[history]\n[t1][t2]\n\n[after]\n');
@@ -646,11 +645,8 @@ describe('with history', () => {
       user2.editor.CONTENT.type('1234567');
     });
 
-    undoButton().should('not.be.disabled');
     undoButton().click();
-    undoButton().should('not.be.disabled');
     undoButton().click();
-    undoButton().should('not.be.disabled');
     undoButton().click();
 
     shouldContentHaveValue('[before]\n1234567\n[history]\n\n\n[after]\n');

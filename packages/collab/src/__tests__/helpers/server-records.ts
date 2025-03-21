@@ -32,6 +32,11 @@ export class LocalServerRecords<TRecord extends RevisionRecord>
     this.records = records;
   }
 
+  hasMoreRecords(): boolean {
+    // newestRecordsIterable will always return all records
+    return false;
+  }
+
   newestRecordsIterable(headRevision: number): Iterable<Readonly<TRecord>> {
     const headIndex = this.records.revisionToIndex(headRevision);
     let index = headIndex;

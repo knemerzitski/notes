@@ -2,7 +2,10 @@ import { ApolloCache } from '@apollo/client';
 import mitt, { Emitter } from 'mitt';
 
 import { CollabServiceRecord } from '../../../../collab/src/client/collab-service';
-import { ServerRecordsFacade, ServerRecordsFacadeEvents } from '../../../../collab/src/client/user-records';
+import {
+  ServerRecordsFacade,
+  ServerRecordsFacadeEvents,
+} from '../../../../collab/src/client/user-records';
 
 import { RevisionChangeset } from '../../../../collab/src/records/record';
 
@@ -48,7 +51,13 @@ const CacheRecordsFacadeWatch_CollabTextFragment = gql(`
       edges {
         node {
           id
+          change {
+            revision
+          }
         }
+      }
+      pageInfo {
+        hasPreviousPage
       }
     }
   }
@@ -113,6 +122,30 @@ export class CacheRecordsFacade implements ServerRecordsFacade<CollabServiceReco
         source: this,
       });
     });
+  }
+
+  hasMoreRecords(): boolean {
+    const collabText = this.cache.readFragment({
+      id: this.collabTextDataId,
+      fragment: CacheRecordsFacadeWatch_CollabTextFragment,
+    });
+
+    const recordConnection = collabText?.recordConnection;
+
+    // Assume server has more records until queried
+    if (!recordConnection) {
+      return true;
+    }
+
+    const firstRecord = recordConnection.edges[0]?.node;
+    if (!firstRecord) {
+      return false;
+    }
+
+    const isFirstEverRecord = firstRecord.change.revision <= 1;
+    const serverHasMoreRecords = recordConnection.pageInfo.hasPreviousPage;
+
+    return !isFirstEverRecord && serverHasMoreRecords;
   }
 
   cleanUp() {
