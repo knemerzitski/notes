@@ -27,25 +27,42 @@ function getProcess(): any {
   };
 }
 
-function createLoggerContext() {
+function isBrowser() {
+  // @ts-expect-error Might not be browser
+  return typeof window !== 'undefined';
+}
+
+const CONSOLE = {
+  debug: console.debug.bind(console),
+  info: console.info.bind(console),
+  warn: console.warn.bind(console),
+  error: console.error.bind(console),
+};
+
+function createLoggerContext(options?: { console: Readonly<typeof CONSOLE> }) {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
   const debugFormat = getProcess()?.env?.DEBUG_FORMAT ?? 'json';
 
+  const plain = '%s';
+  const objectData = debugFormat === 'object' ? '%O' : '%j';
+
   const result = {
     delimiter: ':',
-    plain: '%s',
-    withObjectData: debugFormat === 'object' ? '%s %O' : '%s %j',
-    withPlainData: '%s %s',
+    plain,
+    objectData,
+    plainObjectData: `${plain} ${objectData}`,
+    plainPlain: `${plain} ${plain}`,
+    console: options?.console ?? CONSOLE,
   } as const;
 
-  rootLog(result.withObjectData, 'createLoggerContext', result);
+  rootLog(result.plainObjectData, 'createLoggerContext', result);
 
   return result;
 }
 
 type LoggerContext = ReturnType<typeof createLoggerContext>;
 
-type LogFn = (message: string, data?: LogData) => void;
+type LogFn = (message: unknown, data?: LogData) => void;
 
 type LogData = unknown;
 
@@ -79,12 +96,22 @@ export interface Logger {
 
 function logEntry(log: Debugger, entry: LogEntry, ctx: LoggerContext) {
   if (entry.data === undefined) {
-    log(ctx.plain, entry.message);
+    if (entry.message !== '') {
+      log(ctx.plain, entry.message);
+    }
   } else {
     if (isObjectLike(entry.data)) {
-      log(ctx.withObjectData, entry.message, entry.data);
+      if (entry.message === '') {
+        log(ctx.objectData, entry.data);
+      } else {
+        log(ctx.plainObjectData, entry.message, entry.data);
+      }
     } else {
-      log(ctx.withPlainData, entry.message, entry.data);
+      if (entry.message === '') {
+        log(ctx.plain, entry.data);
+      } else {
+        log(ctx.plainPlain, entry.message, entry.data);
+      }
     }
   }
 }
@@ -93,6 +120,9 @@ function extendNamespace(mainNamespace: string, namespace: string, ctx: LoggerCo
   return mainNamespace + ctx.delimiter + namespace;
 }
 
+/**
+ * Extracts stack from error as a plain string for serializable logging
+ */
 function jsonFormatterReplacer(_key: string, value: unknown) {
   // All Error properties (including non-enumerable)
   if (value instanceof Error) {
@@ -116,14 +146,20 @@ function jsonFormatterReplacer(_key: string, value: unknown) {
   return value;
 }
 
-debug.formatters.j = (value) => {
-  return JSON.stringify(value, jsonFormatterReplacer);
-};
+if (!isBrowser()) {
+  // Serialize errors only in node
+  debug.formatters.j = (value) => {
+    return JSON.stringify(value, jsonFormatterReplacer);
+  };
+}
 
-export function createLogger(namespace: string): Logger {
+export function createLogger(
+  namespace: string,
+  options?: Pick<NonNullable<Parameters<typeof createLoggerContext>[0]>, 'console'>
+): Logger {
   return _prepLoggerWithNamespace(namespace, {
     byNamespace: {},
-    ctx: createLoggerContext(),
+    loggerContext: createLoggerContext(options),
   });
 }
 
@@ -132,15 +168,69 @@ interface PrepLoggerWithNamespaceContext {
    * Existing logger by namespace memo
    */
   byNamespace: Record<string, Debugger>;
-  ctx: LoggerContext;
+  loggerContext: LoggerContext;
 }
 
-const CONSOLE = {
-  debug: console.debug.bind(console),
-  info: console.info.bind(console),
-  warn: console.warn.bind(console),
-  error: console.error.bind(console),
-};
+function findKeyForError(value: object) {
+  const name = 'error';
+  const prefix = '_';
+
+  let count = 0;
+  let currentKey = name;
+  const overflowBreak = 100;
+  while (currentKey in value) {
+    if (count >= overflowBreak) {
+      throw new Error('Failed to find unused property key to set error object');
+    }
+    currentKey = prefix.repeat(++count) + name;
+  }
+
+  return currentKey;
+}
+
+function extractMessageAndData(message: unknown, data?: LogData) {
+  if (typeof message === 'string') {
+    return { message, data };
+  } else if (message instanceof Error) {
+    if (isObjectLike(data)) {
+      const errorKey = findKeyForError(data);
+      return {
+        message: message.message,
+        data: {
+          ...data,
+          [errorKey]: message,
+        },
+      };
+    } else if (data !== undefined) {
+      return {
+        message: message.message,
+        data: {
+          data,
+          error: message,
+        },
+      };
+    } else {
+      return {
+        message: message.message,
+        data: message,
+      };
+    }
+  } else if (typeof message === 'object') {
+    return {
+      message: '',
+      data: {
+        message,
+        data,
+      },
+    };
+  } else {
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string
+      message: String(message),
+      data,
+    };
+  }
+}
 
 function _prepLoggerWithNamespace(
   mainNamespace: string,
@@ -152,7 +242,7 @@ function _prepLoggerWithNamespace(
       log?: Debugger['log'];
     }
   ): LogFn {
-    const logNamespace = extendNamespace(mainNamespace, subNamespace, ctx.ctx);
+    const logNamespace = extendNamespace(mainNamespace, subNamespace, ctx.loggerContext);
     let log = ctx.byNamespace[logNamespace];
     return (message, data) => {
       if (!log) {
@@ -162,32 +252,28 @@ function _prepLoggerWithNamespace(
         }
         ctx.byNamespace[logNamespace] = log;
       }
-      logEntry(
-        log,
-        {
-          message,
-          data,
-        },
-        ctx.ctx
-      );
+      logEntry(log, extractMessageAndData(message, data), ctx.loggerContext);
     };
   }
 
   return {
     debug: lazyCreate(LogLevel.DEBUG, {
-      log: CONSOLE.debug,
+      log: ctx.loggerContext.console.debug,
     }),
     info: lazyCreate(LogLevel.INFO, {
-      log: CONSOLE.info,
+      log: ctx.loggerContext.console.info,
     }),
     warning: lazyCreate(LogLevel.WARNING, {
-      log: CONSOLE.warn,
+      log: ctx.loggerContext.console.warn,
     }),
     error: lazyCreate(LogLevel.ERROR, {
-      log: CONSOLE.error,
+      log: ctx.loggerContext.console.error,
     }),
     extend: memoize1Plain((namespace) =>
-      _prepLoggerWithNamespace(extendNamespace(mainNamespace, namespace, ctx.ctx), ctx)
+      _prepLoggerWithNamespace(
+        extendNamespace(mainNamespace, namespace, ctx.loggerContext),
+        ctx
+      )
     ),
     namespace: mainNamespace,
   };
