@@ -5,6 +5,11 @@ import { swapChangesets } from '../changeset/swap-changesets';
 import { CollabClient } from '../client/collab-client';
 import { SelectionRange } from '../client/selection-range';
 import { TextMemoRecords } from '../records/text-memo-records';
+import {
+  getOrChangeset,
+  getOrRevision,
+  OrRevisionChangeset,
+} from '../utils/revision-changeset';
 
 import { ReadonlyHistoryRecord } from './collab-history';
 
@@ -18,6 +23,7 @@ export interface CollabHistoryContext {
   > & {
     readonly tailText: Changeset;
   };
+  setServerTailRevision?: (value: number) => void;
   recordsReplaceTailTextAndSplice(
     tailText: Changeset,
     start: number,
@@ -33,12 +39,13 @@ export interface CollabHistoryContext {
  * If external change deletes everything, whole history is lost.
  */
 export function processExternalChange(
-  changeset: Changeset,
+  orRevisionChangeset: OrRevisionChangeset,
   history: CollabHistoryContext,
   options?: {
     logger?: Logger;
   }
 ) {
+  const changeset = getOrChangeset(orRevisionChangeset);
   // [0, serverIndex]
   const newBeforeRecords: ReadonlyHistoryRecord[] = [];
 
@@ -153,5 +160,12 @@ export function processExternalChange(
   if (newServerTailTextTransformToRecordsTailText !== undefined) {
     history.serverTailTextTransformToRecordsTailText =
       newServerTailTextTransformToRecordsTailText;
+  }
+
+  if (history.setServerTailRevision != null) {
+    const revision = getOrRevision(orRevisionChangeset);
+    if (revision != null && history.serverTailTextTransformToRecordsTailText == null) {
+      history.setServerTailRevision(revision);
+    }
   }
 }

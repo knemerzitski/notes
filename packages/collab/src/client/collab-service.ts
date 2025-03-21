@@ -46,7 +46,7 @@ import {
 import { SubmittedRecord } from './submitted-record';
 import { UserRecords } from './user-records';
 
-export type CollabServiceEvents = CollabClientEvents &
+export type CollabServiceEvents = Omit<CollabClientEvents, 'handledExternalChange'> &
   Omit<OrderedMessageBufferEvents<UnprocessedRecord>, 'processingMessages'> &
   CollabHistoryEvents &
   CustomCollabServiceEvents;
@@ -86,6 +86,10 @@ interface CustomCollabServiceEvents {
   processingMessages: Readonly<{
     eventBus: Emitter<CollabServiceProcessingEvents>;
   }>;
+  handledExternalChange: CollabClientEvents['handledExternalChange'] &
+    Readonly<{
+      revision: number;
+    }>;
   handledExternalChanges: readonly Readonly<{
     event: CollabClientEvents['handledExternalChange'];
     revision: number;
@@ -159,7 +163,7 @@ export interface CollabServiceOptions {
     | UnprocessedRecordsBuffer
     | Omit<UnprocessedRecordsBufferOptions, 'messageMapper'>;
   client?: CollabClient | CollabClientOptions;
-  history?: CollabHistory | Omit<CollabHistoryOptions, 'client'>;
+  history?: CollabHistory | Omit<CollabHistoryOptions, 'client' | 'service'>;
   submittedRecord?: SubmittedRecord;
 }
 
@@ -336,6 +340,9 @@ export class CollabService {
       })
     );
 
+    // Link events
+    this._eventBus = options?.eventBus ?? mitt();
+
     // History for selection and local changeset
     this._history =
       options?.history instanceof CollabHistory
@@ -345,18 +352,26 @@ export class CollabService {
             recordsTailText: options?.history?.recordsTailText ?? headText.changeset,
             serverTailRevision: headText.revision,
             ...options?.history,
+            service: {
+              eventBus: this._eventBus,
+            },
             client: this._client,
           });
-
-    // Link events
-    this._eventBus = options?.eventBus ?? mitt();
 
     // Records of a specific user
     this.userRecords = options?.userRecords ?? null;
 
     this.eventsOff.push(
       this._client.eventBus.on('*', (type, e) => {
-        this._eventBus.emit(type, e);
+        if (type !== 'handledExternalChange') {
+          // @ts-expect-error Event payload type cannot be inferred
+          this._eventBus.emit(type, e);
+        } else {
+          this._eventBus.emit(type, {
+            ...(e as CollabClientEvents['handledExternalChange']),
+            revision: this.recordsBuffer.currentVersion,
+          });
+        }
       })
     );
 

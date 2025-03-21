@@ -335,4 +335,50 @@ describe('two clients', () => {
     client.A.service.redo();
     expect(client.A.valueWithSelection()).toStrictEqual('ALL: hello between >world');
   });
+
+  it('can undo (with history restore) after receiving external changes', () => {
+    const { client } = helper;
+
+    client.A.insertText('[B][A][C]');
+    client.A.submitChangesInstant();
+    client.A.selectionRange.set(6);
+    client.A.insertText('[a1]');
+    client.A.submitChangesInstant();
+
+    client.A.resetHistory();
+
+    client.B.selectionRange.set(3);
+    client.B.insertText('[b1]');
+    client.B.submitChangesInstant();
+
+    client.A.service.undo();
+
+    expect(client.A.valueWithSelection()).toStrictEqual('[B][b1][A]>[C]');
+  });
+
+  it('can undo (with history restore) between receiving external changes', () => {
+    const { client } = helper;
+
+    client.A.insertText('[B][A][C]');
+    client.A.submitChangesInstant();
+    client.A.selectionRange.set(6);
+    client.A.insertText('[a1]');
+    client.A.submitChangesInstant();
+    client.A.insertText('[a2]');
+    client.A.submitChangesInstant();
+    client.A.resetHistory();
+
+    client.B.selectionRange.set(3);
+    client.B.insertText('[b1]');
+    client.B.submitChangesInstant();
+
+    client.A.service.undo();
+
+    client.B.insertText('[b2]');
+    client.B.submitChangesInstant();
+
+    client.A.service.undo();
+
+    expect(client.A.valueWithSelection()).toStrictEqual('[B][b1][b2][A]>[C]');
+  });
 });

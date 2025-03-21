@@ -28,10 +28,16 @@ import { UserRecords } from '../client/user-records';
 import { ComposableRecordsFacade } from '../records/composable-records-facade';
 import { RevisionChangeset, SubmittedRevisionRecord } from '../records/record';
 import { TextMemoRecords } from '../records/text-memo-records';
-import { SimpleTextOperationOptions, SelectionChangeset } from '../types';
+import { SimpleTextOperationOptions, SelectionChangeset, LimitedEmitter } from '../types';
 
 import { processExternalChange } from './process-external-change';
 import { processRecordsUnshift } from './process-records-unshift';
+import { CollabServiceEvents } from '../client/collab-service';
+import {
+  getOrChangeset,
+  getOrRevision,
+  OrRevisionChangeset,
+} from '../utils/revision-changeset';
 
 export interface CollabHistoryEvents {
   appliedTypingOperation: ReadonlyDeep<
@@ -157,6 +163,12 @@ export type HistoryRestoreEntry =
 export interface CollabHistoryOptions {
   logger?: Logger;
   eventBus?: Emitter<CollabHistoryEvents>;
+  service?: {
+    eventBus: Pick<
+      LimitedEmitter<Pick<CollabServiceEvents, 'handledExternalChange'>>,
+      'on'
+    >;
+  };
   client?: CollabClient;
   records?: ReadonlyHistoryRecord[];
   serverTailRevision?: number;
@@ -256,12 +268,30 @@ export class CollabHistory {
           lastExecutedIndex: this.lastExecutedIndex,
         });
       }),
+      ...(options?.service?.eventBus
+        ? [
+            options.service.eventBus.on(
+              'handledExternalChange',
+              ({ externalChange, revision }) => {
+                this.logger?.info('event:handledExternalChange', {
+                  externalChange: externalChange.toString(),
+                  revision,
+                });
+                this.processExternalChange({
+                  changeset: externalChange,
+                  revision,
+                });
+              }
+            ),
+          ]
+        : [
       this.client.eventBus.on('handledExternalChange', ({ externalChange }) => {
         this.logger?.info('event:handledExternalChange', {
           externalChange: externalChange.toString(),
         });
         this.processExternalChange(externalChange);
       }),
+          ]),
     ];
 
     this.logState('constructor');
@@ -574,22 +604,24 @@ export class CollabHistory {
     return false;
   }
 
-  private processExternalChange(changeset: Changeset) {
+  private processExternalChange(externalChange: OrRevisionChangeset) {
     this.logState('processExternalChange:before', {
-      args: {
-        changeset: changeset.toString(),
-      },
+      revision: getOrRevision(externalChange),
+      changeset: getOrChangeset(externalChange).toString(),
     });
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const _this = this;
-    processExternalChange(changeset, {
+    processExternalChange(externalChange, {
       client: this.client,
       get serverTailTextTransformToRecordsTailText() {
         return _this.serverTailTextTransformToRecordsTailText;
       },
       set serverTailTextTransformToRecordsTailText(value) {
         _this.serverTailTextTransformToRecordsTailText = value;
+      },
+      setServerTailRevision(value) {
+        _this._serverTailRevision = value;
       },
       records: {
         at: this.readonlyRecords.at.bind(this.readonlyRecords),

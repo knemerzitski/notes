@@ -4,7 +4,11 @@ import { assert, expect } from 'vitest';
 import { OrderedMessageBuffer } from '../../../../utils/src/ordered-message-buffer';
 
 import { CollabClient } from '../../client/collab-client';
-import { CollabService, CollabServiceOptions } from '../../client/collab-service';
+import {
+  CollabService,
+  CollabServiceEvents,
+  CollabServiceOptions,
+} from '../../client/collab-service';
 import { UserRecords } from '../../client/user-records';
 import { SimpleTextEditor } from '../../editor/simple-text';
 import { CollabHistory } from '../../history/collab-history';
@@ -20,6 +24,7 @@ import {
   getValueWithSelection,
   parseTextWithMultipleSelections,
 } from './text-with-selection';
+import mitt from 'mitt';
 
 export function createHelperCollabEditingEnvironment<TClientName extends string>(
   options: {
@@ -115,6 +120,9 @@ function createClientHelper<TName extends string>(
           server: server.tailText.changeset,
           ...clientOptions,
         });
+
+  const serviceEventBus = editorOptions.eventBus ?? mitt<CollabServiceEvents>();
+
   const history =
     historyOptions instanceof CollabHistory
       ? historyOptions
@@ -125,10 +133,14 @@ function createClientHelper<TName extends string>(
               : editorOptions.recordsBuffer?.version,
           ...historyOptions,
           client,
+          service: {
+            eventBus: serviceEventBus,
+          },
         });
 
   const service = new CollabService({
     ...editorOptions,
+    eventBus: serviceEventBus,
     recordsBuffer: {
       version: server.tailText.revision,
       // eslint-disable-next-line @typescript-eslint/no-misused-spread
@@ -155,6 +167,11 @@ function createClientHelper<TName extends string>(
       server,
       getOtherServices
     ),
+    resetHistory() {
+      history.reset({
+        serverTailRevision: service.headRevision,
+      });
+    },
   };
 }
 
