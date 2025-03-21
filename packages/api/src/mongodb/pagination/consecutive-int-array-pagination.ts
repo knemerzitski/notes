@@ -191,7 +191,7 @@ export function consecutiveIntPaginationExpressionMapAggregateResult<TItem>(
     }
 
     const startIndex = CursorBeforeBoundPagination(STRUCT_NUMBER).is(pagination)
-      ? endSearch.index + 1 - pagination.last
+      ? Math.max(endSearch.index + 1 - pagination.last, 0)
       : 0;
 
     const range = binarySearchConsecutiveOrderedSubset(
