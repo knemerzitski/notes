@@ -5,7 +5,6 @@ import { SelectionRange } from '../../../collab/src/client/selection-range';
 import { SimpleText } from '../../../collab/src/types';
 import { NoteTextFieldName } from '../../src/__generated__/graphql';
 import { GraphQLService } from '../../src/graphql/types';
-import { AppStatus } from '../../src/utils/hooks/useAppStatus';
 import { createGraphQLService } from '../support/utils/graphql/create-graphql-service';
 import { signIn } from '../support/utils/user/sign-in';
 import { createNote } from '../support/utils/note/create-note';
@@ -406,12 +405,10 @@ function haveData(name: string, value: string[] | string) {
   };
 }
 
-function shouldAppStatusEqual(value: AppStatus[] | AppStatus) {
-  return cy.get('[aria-label="app status"]').should(haveData('status', value));
-}
-
-function shouldHaveNoOngoingQueries() {
-  shouldAppStatusEqual(['refresh', 'synchronized']);
+function shouldHaveRevision(revision: number) {
+  noteDialog()
+    .find('[aria-label="collab-service"]')
+    .should(haveData('revision', String(revision)));
 }
 
 describe('with empty text', () => {
@@ -428,6 +425,8 @@ describe('with empty text', () => {
 });
 
 describe('with initial text', () => {
+  let initialHeadRevision = 0;
+
   const contentValue = '[above]\n\n[below]\n';
 
   beforeEach(() => {
@@ -435,6 +434,8 @@ describe('with initial text', () => {
       user2.editor.TITLE.insert('lorem ipsum title');
       user2.editor.CONTENT.insert(contentValue);
       await user2.submitChanges();
+
+      initialHeadRevision = user2.collabService.service.headRevision;
     });
   });
 
@@ -550,7 +551,7 @@ describe('with initial text', () => {
       it(`userUI: "${userUI.insert}"@${userUI.select}~${userUI.delay}, userBG: "${userBG.insert}"@${userBG.select}`, () => {
         cy.visit(noteRoute());
 
-        shouldHaveNoOngoingQueries();
+        shouldHaveRevision(initialHeadRevision);
 
         cy.then(() => {
           user2.editor.CONTENT.select(userBG.select);
@@ -596,6 +597,8 @@ describe('with initial text', () => {
 });
 
 describe('with history', () => {
+  let initialHeadRevision = 0;
+
   beforeEach(() => {
     cy.then(async () => {
       user1.bgEditor.CONTENT.insert('[before]\n\n[history]\n\n\n[after]\n');
@@ -610,6 +613,9 @@ describe('with history', () => {
 
       user1.bgEditor.CONTENT.insert('[t3]');
       await user1.submitChanges();
+
+      initialHeadRevision = user1.collabService.service.headRevision;
+
       // [before]\n\n[history]\n[t1][t2][t3]\n\n[after]\n
     });
   });
@@ -617,7 +623,7 @@ describe('with history', () => {
   it('can undo x1 while receiving changes from user2', () => {
     cy.visit(noteRoute());
 
-    shouldHaveNoOngoingQueries();
+    shouldHaveRevision(initialHeadRevision);
 
     cy.then(() => {
       user2.editor.CONTENT.select(9);
@@ -633,7 +639,7 @@ describe('with history', () => {
   it('can undo x3 while receiving changes from user2', () => {
     cy.visit(noteRoute());
 
-    shouldHaveNoOngoingQueries();
+    shouldHaveRevision(initialHeadRevision);
 
     cy.then(() => {
       user2.editor.CONTENT.select(9);
