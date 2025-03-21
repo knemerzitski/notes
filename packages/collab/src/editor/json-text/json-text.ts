@@ -1,7 +1,13 @@
+import { Logger } from '../../../../utils/src/logging';
 import { Changeset } from '../../changeset';
 import { CollabService, CollabServiceEvents } from '../../client/collab-service';
 import { SelectionRange } from '../../client/selection-range';
-import { SelectionChangeset , LimitedEmitter , SimpleText, SimpleTextOperationOptions } from '../../types';
+import {
+  SelectionChangeset,
+  LimitedEmitter,
+  SimpleText,
+  SimpleTextOperationOptions,
+} from '../../types';
 
 import { KeySimpleText } from './key-simple-text';
 import { StructJsonFormatter } from './struct-json-formatter';
@@ -12,6 +18,8 @@ import { ViewTextMemo } from './view-text-memo';
 import { ViewTextMemosCache } from './view-text-memos-cache';
 
 export class JsonText<K extends string, S extends StringRecordStruct> {
+  private readonly logger: Logger | undefined;
+
   private readonly viewsCache;
   private readonly service;
 
@@ -41,12 +49,19 @@ export class JsonText<K extends string, S extends StringRecordStruct> {
         >,
         'on'
       >;
+    },
+    options?: {
+      logger?: Logger;
     }
   ) {
+    this.logger = options?.logger;
+
     const keys = formatter.keys;
 
     this.service = service;
-    this.viewsCache = new ViewTextMemosCache<K, S>(formatter, service);
+    this.viewsCache = new ViewTextMemosCache<K, S>(formatter, service, {
+      logger: this.logger?.extend('ViewTextMemosCache'),
+    });
 
     const keySimpleTextParent: ConstructorParameters<typeof KeySimpleText>[0]['service'] =
       {
@@ -59,30 +74,43 @@ export class JsonText<K extends string, S extends StringRecordStruct> {
     this.textViewsMap = Object.fromEntries(
       keys.map((key) => [
         key,
-        new KeySimpleText({
-          service: keySimpleTextParent,
-          view: new ViewTextKeyView(this.viewsCache, key),
-          prevView: new ViewTextKeyPrevView(this.viewsCache, key),
-          getClosestOlderRevisionView: (revision) => {
-            const revisionView = this.viewsCache.getClosestOlderRevisionView(revision);
-            if (!revisionView) {
-              return;
-            }
+        new KeySimpleText(
+          {
+            service: keySimpleTextParent,
+            view: new ViewTextKeyView(this.viewsCache, key),
+            prevView: new ViewTextKeyPrevView(this.viewsCache, key),
+            getClosestOlderRevisionView: (revision) => {
+              const revisionView = this.viewsCache.getClosestOlderRevisionView(revision);
+              if (!revisionView) {
+                return;
+              }
 
-            return {
-              value: revisionView.viewText,
-              jsonValueOffset: revisionView.positionByKey[key].index,
-              jsonValueLength: revisionView.positionByKey[key].length,
-            };
+              return {
+                value: revisionView.viewText,
+                jsonValueOffset: revisionView.positionByKey[key].index,
+                jsonValueLength: revisionView.positionByKey[key].length,
+              };
+            },
+            formatter,
           },
-          formatter,
-        }),
+          {
+            logger: this.logger?.extend(key),
+          }
+        ),
       ])
     ) as Record<K, KeySimpleText>;
     const textViewsList = Object.values<KeySimpleText>(this.textViewsMap);
 
     this.eventsOff = [
-      service.eventBus.on('viewChanged', () => {
+      service.eventBus.on('viewChanged', (event) => {
+        this.logger?.debug('viewChanged', {
+          viewText: service.viewText,
+          event: {
+            change: event.change?.toString(),
+            source: event.source,
+            view: event.view.toString(),
+          },
+        });
         const view = this.viewsCache.newView(this.localPushCounter > 0);
         if (this.localPushCounter === 0) {
           // Change happened outside this context, must ensure text is in sync with object structure
@@ -148,6 +176,10 @@ export class JsonText<K extends string, S extends StringRecordStruct> {
 
   private syncView(view: ViewTextMemo<K, S>, merge = false) {
     if (this.service.viewText !== view.viewText) {
+      this.logger?.debug('syncView', {
+        view,
+        merge,
+      });
       this.syncDuringProcessingMessages = true;
       this.pushSelectionChangeset(
         {

@@ -2,6 +2,7 @@ import { Infer, InferRaw } from 'superstruct';
 
 import { StructJsonFormatter } from './struct-json-formatter';
 import { StringRecordStruct } from './types';
+import { Logger } from '../../../../utils/src/logging';
 
 interface JsonValuePosition {
   /**
@@ -19,6 +20,8 @@ interface JsonValuePosition {
 }
 
 export class ViewTextMemo<K extends string, S extends StringRecordStruct> {
+  private readonly logger;
+
   readonly viewText;
 
   private readonly formatter;
@@ -29,8 +32,13 @@ export class ViewTextMemo<K extends string, S extends StringRecordStruct> {
   constructor(
     formatter: StructJsonFormatter<K, S>,
     viewText: InferRaw<S>,
-    isFormatted = false
+    isFormatted = false,
+    options?: {
+      logger?: Logger;
+    }
   ) {
+    this.logger = options?.logger;
+
     this.formatter = formatter;
 
     if (!isFormatted) {
@@ -43,6 +51,8 @@ export class ViewTextMemo<K extends string, S extends StringRecordStruct> {
 
   get viewTextObject() {
     if (this._viewTextObject === null) {
+      this.logger?.debug('viewTextObject', this.viewText);
+
       this._viewTextObject = this.formatter.parse(this.viewText);
     }
     return this._viewTextObject;
@@ -68,6 +78,7 @@ export class ViewTextMemo<K extends string, S extends StringRecordStruct> {
           }
         )
       ) as Record<K, JsonValuePosition>;
+      this.logger?.debug('positionByKey', this._positionByKey);
     }
     return this._positionByKey;
   }

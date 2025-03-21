@@ -19,3 +19,8 @@ export interface KeyViewText {
   jsonValueOffset: number;
   jsonValueLength: number;
 }
+
+export interface JsonTextEvents {
+  error: unknown
+}
+

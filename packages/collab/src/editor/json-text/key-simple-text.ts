@@ -14,8 +14,11 @@ import {
 
 import { StructJsonFormatter } from './struct-json-formatter';
 import { KeyViewText } from './types';
+import { Logger } from '../../../../utils/src/logging';
 
 export class KeySimpleText implements SimpleText {
+  private readonly logger;
+
   private readonly _eventBus: Emitter<SimpleTextEvents>;
   get eventBus(): Pick<Emitter<SimpleTextEvents>, 'on' | 'off'> {
     return this._eventBus;
@@ -34,22 +37,29 @@ export class KeySimpleText implements SimpleText {
     return this.view.value;
   }
 
-  constructor({
-    service,
-    view,
-    prevView,
-    getClosestOlderRevisionView,
-    formatter,
-  }: {
-    service: {
-      viewText: CollabService['viewText'];
-      pushSelectionChangeset: CollabService['pushSelectionChangeset'];
-    };
-    view: KeyViewText;
-    prevView: KeyViewText;
-    getClosestOlderRevisionView: (revision: number) => KeyViewText | undefined;
-    formatter: StructJsonFormatter;
-  }) {
+  constructor(
+    {
+      service,
+      view,
+      prevView,
+      getClosestOlderRevisionView,
+      formatter,
+    }: {
+      service: {
+        viewText: CollabService['viewText'];
+        pushSelectionChangeset: CollabService['pushSelectionChangeset'];
+      };
+      view: KeyViewText;
+      prevView: KeyViewText;
+      getClosestOlderRevisionView: (revision: number) => KeyViewText | undefined;
+      formatter: StructJsonFormatter;
+    },
+    options?: {
+      logger?: Logger;
+    }
+  ) {
+    this.logger = options?.logger;
+
     this.service = service;
 
     this.view = view;
@@ -121,8 +131,7 @@ export class KeySimpleText implements SimpleText {
       if (err instanceof SyntaxError) {
         // Parsing viewText failed most likely due to slicing newline character in between \\n (2 chars)
         // In that case log error and return no selection.
-        // TODO fix this bug
-        console.error(err, {
+        this.logger?.error(err, {
           viewText: this.service.viewText,
           slice: this.service.viewText.slice(this.view.jsonValueOffset, selection.start),
           args: {

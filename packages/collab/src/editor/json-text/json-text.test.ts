@@ -1,19 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import {
-  afterEach,
-  assert,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  MockInstance,
-  vi,
-} from 'vitest';
+import { afterEach, assert, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Changeset, InsertStrip, RetainStrip } from '../../changeset';
 import { CollabService } from '../../client/collab-service';
 
 import { defineCreateJsonTextFromService } from './create-service-json-text';
+import mitt from 'mitt';
+import { JsonTextEvents } from './types';
 
 function setServiceText(service: CollabService, value: string) {
   service.pushSelectionChangeset(
@@ -253,21 +246,24 @@ describe('two texts', () => {
     CONTENT = 'c',
     TITLE = 't',
   }
+
+  const eventBus = mitt<JsonTextEvents>();
+  const errorSpy = vi.fn();
+  eventBus.on('error', errorSpy);
+
   const createMultiJsonTextByService = defineCreateJsonTextFromService<TextType>(
-    Object.values(TextType)
+    Object.values(TextType),
+    {
+      eventBus,
+    }
   );
 
   let service: CollabService;
   let multiJsonText: ReturnType<typeof createMultiJsonTextByService>;
-  let errorSpy: MockInstance;
 
   beforeEach(() => {
     service = new CollabService();
     multiJsonText = createMultiJsonTextByService(service);
-    errorSpy = vi.spyOn(console, 'error');
-    errorSpy.mockImplementation(() => {
-      // do nothing
-    });
   });
 
   afterEach(() => {
@@ -339,11 +335,6 @@ describe('two texts', () => {
       expect(errorSpy).toHaveBeenCalledOnce();
     });
     it('invalid json', () => {
-      const errorSpy = vi.spyOn(console, 'error');
-      errorSpy.mockImplementation(() => {
-        // do nothing
-      });
-
       const title = multiJsonText.getText(TextType.TITLE);
       setServiceText(service, '{c:"val"}');
       title.insert('ok', { start: 0, end: 0 });

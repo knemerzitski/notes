@@ -1,3 +1,4 @@
+import { Logger } from '../../../../utils/src/logging';
 import { CollabService, CollabServiceEvents } from '../../client/collab-service';
 
 import { LimitedEmitter } from '../../types';
@@ -12,6 +13,8 @@ interface ViewTextAtRevision<K extends string, S extends StringRecordStruct> {
 }
 
 export class ViewTextMemosCache<K extends string, S extends StringRecordStruct> {
+  private readonly logger;
+
   private readonly formatter;
   private readonly service;
 
@@ -36,8 +39,13 @@ export class ViewTextMemosCache<K extends string, S extends StringRecordStruct> 
         LimitedEmitter<Pick<CollabServiceEvents, 'headRevisionChanged'>>,
         'on'
       >;
+    },
+    options?: {
+      logger?: Logger;
     }
   ) {
+    this.logger = options?.logger;
+
     this.formatter = formatter;
     this.service = service;
 
@@ -48,6 +56,12 @@ export class ViewTextMemosCache<K extends string, S extends StringRecordStruct> 
       service.eventBus.on('headRevisionChanged', ({ revision }) => {
         // Remove unused revisions
         const index = this.views.findLastIndex((item) => item.revision === revision);
+
+        this.logger?.debug('removeUnusedRevisions', {
+          headRevision: revision,
+          splice: [0, index],
+        });
+
         if (index > 0) {
           this.views.splice(0, index);
         }
@@ -62,7 +76,9 @@ export class ViewTextMemosCache<K extends string, S extends StringRecordStruct> 
   }
 
   newView(isFormatted = false) {
-    return new ViewTextMemo<K, S>(this.formatter, this.service.viewText, isFormatted);
+    return new ViewTextMemo<K, S>(this.formatter, this.service.viewText, isFormatted, {
+      logger: this.logger?.extend('ViewTextMemo'),
+    });
   }
 
   pushView(view: ViewTextMemo<K, S>) {
@@ -74,8 +90,10 @@ export class ViewTextMemosCache<K extends string, S extends StringRecordStruct> 
 
     const last = this.views[this.views.length - 1];
     if (last && last.revision === revision) {
+      this.logger?.debug('pushView.replaceLast', item);
       this.views[this.views.length - 1] = item;
     } else {
+      this.logger?.debug('pushView.push', item);
       this.views.push(item);
     }
 

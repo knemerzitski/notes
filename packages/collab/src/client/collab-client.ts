@@ -54,9 +54,9 @@ export interface CollabClientEvents {
 }
 
 export enum ChangeSource {
-  LOCAL,
-  EXTERNAL,
-  RESET,
+  LOCAL = 'local',
+  EXTERNAL = 'external',
+  RESET = 'reset',
 }
 
 export const CollabClientOptionsStruct = object({
@@ -137,11 +137,17 @@ export class CollabClient {
    * local changeset.
    */
   composeLocalChange(change: Changeset) {
-    let newLocal = this._local.compose(change);
+    const local_change = this._local.compose(change);
 
     // Remove redundant insertions by changing them to retained characters
     const submittedView = this.getSubmittedView();
-    newLocal = submittedView.insertionsToRetained(newLocal);
+    const newLocal = submittedView.insertionsToRetained(local_change);
+
+    this.logState('composeLocalChange', {
+      change: change.toString(),
+      newLocal: newLocal.toString(),
+      newView: this._view.compose(change).toString(),
+    });
 
     if (!this._local.isEqual(newLocal)) {
       const newView = this._view.compose(change);
@@ -160,7 +166,7 @@ export class CollabClient {
       if (!hadLocalChanges && this.haveLocalChanges()) {
         this._eventBus.emit('haveLocalChanges', { local: newLocal });
       }
-      this.logState('composeLocalChange', {
+      this.logState('composeLocalChange:after', {
         args: {
           change: change.toString(),
         },

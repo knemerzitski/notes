@@ -285,12 +285,12 @@ export class CollabHistory {
             ),
           ]
         : [
-      this.client.eventBus.on('handledExternalChange', ({ externalChange }) => {
-        this.logger?.info('event:handledExternalChange', {
-          externalChange: externalChange.toString(),
-        });
-        this.processExternalChange(externalChange);
-      }),
+            this.client.eventBus.on('handledExternalChange', ({ externalChange }) => {
+              this.logger?.info('event:handledExternalChange', {
+                externalChange: externalChange.toString(),
+              });
+              this.processExternalChange(externalChange);
+            }),
           ]),
     ];
 
@@ -436,6 +436,10 @@ export class CollabHistory {
   ): number | undefined {
     if (desiredRestoreCount <= 0) return 0;
 
+    this.logState('restoreFromUserRecords', {
+      desiredRestoreCount,
+    });
+
     const { records: relevantRecords, ownCount: potentialRestoreCount } =
       userRecords.sliceOlderRecordsUntilDesiredOwnCount(
         this._serverTailRevision,
@@ -556,6 +560,16 @@ export class CollabHistory {
       const inverseChangeset = record.changeset.inverse(
         this.readonlyRecords.getTextAt(this.lastExecutedIndex.local)
       );
+
+      this.logState('undo', {
+        recordChangeset: record.changeset.toString(),
+        inverseTextAt: this.readonlyRecords
+          .getTextAt(this.lastExecutedIndex.local)
+          .toString(),
+        inverseChangeset: inverseChangeset.toString(),
+        inverseChangesetComposed: this.client.view.compose(inverseChangeset).toString(),
+      });
+
       this.client.composeLocalChange(inverseChangeset);
       this._eventBus.emit('appliedTypingOperation', {
         operation: {
@@ -583,6 +597,10 @@ export class CollabHistory {
     const record = this.readonlyRecords.at(this.lastExecutedIndex.local + 1);
     if (record) {
       this.lastExecutedIndex.local++;
+
+      this.logState('redo', {
+        changeset: record.changeset.toString(),
+      });
 
       this.client.composeLocalChange(record.changeset);
       this._eventBus.emit('appliedTypingOperation', {
@@ -808,6 +826,13 @@ export class CollabHistory {
         records: this.readonlyRecords.items.map((r) => r.changeset.toString()),
         serverTailTextTransformToRecordsTailText:
           this.serverTailTextTransformToRecordsTailText?.toString(),
+        headText: this.getHeadText().toString(),
+        client: {
+          server: this.client.server.toString(),
+          submitted: this.client.submitted.toString(),
+          local: this.client.local.toString(),
+          view: this.client.view.toString(),
+        },
       },
     });
   }

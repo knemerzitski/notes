@@ -1,6 +1,8 @@
 import { coerce, defaulted, Infer, InferRaw, string, type } from 'superstruct';
 
-import { JsonFormatter, StringRecordStruct } from './types';
+import { JsonFormatter, JsonTextEvents, StringRecordStruct } from './types';
+import { Logger } from '../../../../utils/src/logging';
+import { Emitter } from 'mitt';
 
 export interface StructJsonMapper {
   preStringify(value: string): string;
@@ -12,6 +14,8 @@ export class StructJsonFormatter<
   S extends StringRecordStruct = StringRecordStruct,
 > implements JsonFormatter<Infer<S>>
 {
+  private readonly logger;
+
   private readonly struct;
 
   private readonly mapper;
@@ -20,16 +24,28 @@ export class StructJsonFormatter<
     readonly keys: readonly K[],
     options?: {
       mapper?: StructJsonMapper;
+      logger?: Logger;
+      eventBus?: Pick<Emitter<JsonTextEvents>, 'emit'>;
     }
   ) {
-    this.struct = createStringRecordStruct(keys, {
-      parse: JSON.parse,
-      stringify: JSON.stringify,
-    });
+    this.logger = options?.logger;
+
+    this.struct = createStringRecordStruct(
+      keys,
+      {
+        parse: JSON.parse,
+        stringify: JSON.stringify,
+      },
+      {
+        logger: this.logger,
+        eventBus: options?.eventBus,
+      }
+    );
     this.mapper = options?.mapper;
   }
 
   parse(value: InferRaw<S>): Infer<S> {
+    this.logger?.debug('parse', value);
     const parsed = this.struct.create(value);
 
     if (this.mapper?.postParse) {
@@ -41,10 +57,13 @@ export class StructJsonFormatter<
       }
     }
 
+    this.logger?.debug('parse:result', parsed);
+
     return parsed;
   }
 
   stringify(value: Infer<S>): InferRaw<S> {
+    this.logger?.debug('stringify', value);
     if (this.mapper?.preStringify) {
       value = { ...value };
       for (const key of this.keys) {
@@ -55,25 +74,38 @@ export class StructJsonFormatter<
       }
     }
 
-    return this.struct.createRaw(value);
+    const result = this.struct.createRaw(value);
+
+    this.logger?.debug('stringify:result', result);
+
+    return result;
   }
 
   parseString(value: string): string {
+    this.logger?.debug('parseString', value);
     let parsed = JSON.parse(`"${value}"`) as string;
 
     if (this.mapper?.postParse) {
       parsed = this.mapper.postParse(parsed);
     }
 
+    this.logger?.debug('parseString:result', parsed);
+
     return parsed;
   }
 
   stringifyString(value: string): string {
+    this.logger?.debug('stringifyString', value);
+
     if (this.mapper?.preStringify) {
       value = this.mapper.preStringify(value);
     }
 
-    return JSON.stringify(value).slice(1, -1);
+    const result = JSON.stringify(value).slice(1, -1);
+
+    this.logger?.debug('stringifyString:result', result);
+
+    return result;
   }
 }
 
@@ -82,8 +114,13 @@ function createStringRecordStruct<K extends string>(
   params: {
     parse: typeof JSON.parse;
     stringify: typeof JSON.stringify;
+  },
+  options?: {
+    logger?: Logger;
+    eventBus?: Pick<Emitter<JsonTextEvents>, 'emit'>;
   }
 ): StringRecordStruct {
+  const logger = options?.logger;
   return coerce(
     defaulted(
       type(Object.fromEntries(keys.map((key) => [key, defaulted(string(), () => '')]))),
@@ -105,7 +142,19 @@ function createStringRecordStruct<K extends string>(
         }
         return jsonValue;
       } catch (err) {
-        console.error(err);
+        logger?.error('params.parse', {
+          value,
+          err,
+        });
+
+        options?.eventBus?.emit(
+          'error',
+          new Error('params.parse', {
+            cause: err,
+          })
+        );
+
+        // Retain whole value in first key
         if (keys[0]) {
           return {
             [keys[0]]: value,
