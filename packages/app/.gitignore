@@ -6,6 +6,7 @@ out-dev
 out-dev-pwa
 coverage
 cypress/screenshots
+cypress/videos
 analyze.html
 
 # PWA generated assets
