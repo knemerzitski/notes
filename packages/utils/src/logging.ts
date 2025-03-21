@@ -39,9 +39,12 @@ const CONSOLE = {
   error: console.error.bind(console),
 };
 
-function createLoggerContext(options?: { console: Readonly<typeof CONSOLE> }) {
+function createLoggerContext(options?: {
+  console?: Readonly<typeof CONSOLE>;
+  format?: 'object' | 'json';
+}) {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-  const debugFormat = getProcess()?.env?.DEBUG_FORMAT ?? 'json';
+  const debugFormat = options?.format ?? getProcess()?.env?.DEBUG_FORMAT ?? 'json';
 
   const plain = '%s';
   const objectData = debugFormat === 'object' ? '%O' : '%j';
@@ -155,7 +158,10 @@ if (!isBrowser()) {
 
 export function createLogger(
   namespace: string,
-  options?: Pick<NonNullable<Parameters<typeof createLoggerContext>[0]>, 'console'>
+  options?: Pick<
+    NonNullable<Parameters<typeof createLoggerContext>[0]>,
+    'console' | 'format'
+  >
 ): Logger {
   return _prepLoggerWithNamespace(namespace, {
     byNamespace: {},
