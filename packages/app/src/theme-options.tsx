@@ -128,6 +128,11 @@ export const themeOptions: MultiThemeOptions = {
             },
           },
         },
+        MuiCircularProgress: {
+          defaultProps: {
+            color: 'inherit',
+          },
+        },
       },
       zIndex: {
         drawer: 1100,
