@@ -13,7 +13,6 @@ import {
   NoteTextFieldName,
 } from '../../../../src/__generated__/graphql';
 import { GraphQLService } from '../../../../src/graphql/types';
-import { NoteExternalState } from '../../../../src/note/external-state/note';
 import { SelectionRange } from '../../../../../collab/src/client/selection-range';
 
 export async function createNote({
@@ -39,7 +38,8 @@ export async function createNote({
     },
   });
 
-  const externalState = new NoteExternalState();
+  const externalState =
+    graphQLService.typePoliciesContext.custom.note.externalState.newValue();
   if (initialText) {
     Object.entries(initialText).forEach(([key, value]) => {
       externalState.fields[key as NoteTextFieldName].editor.insert(

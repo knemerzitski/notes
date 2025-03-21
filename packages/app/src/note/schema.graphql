@@ -57,6 +57,10 @@ extend type Note {
   """
   textField(name: NoteTextFieldName!): NoteTextField!
   """
+  All note text fields derived from collabText
+  """
+  textFields: [NoteTextField!]!
+  """
   Note is only used on the device locally. No network requests are made.
   """
   localOnly: Boolean!
@@ -66,6 +70,10 @@ extend type Note {
 TODO desc
 """
 type NoteTextField {
+  """
+  Self-descriptive
+  """
+  name: NoteTextFieldName!
   """
   Read-only text value
   """

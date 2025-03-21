@@ -9,7 +9,8 @@ import { CollabService } from '../../../../../collab/src/client/collab-service';
 import { createGraphQLService } from '../../../graphql/create/service';
 import { createDefaultGraphQLServiceParams } from '../../../graphql-service';
 
-import { NoteTextFieldEditor } from '../../external-state/note';
+import { NoteTextFieldEditor } from '../../utils/external-state';
+import { NoteTextFieldName } from '../../../__generated__/graphql';
 
 it('writes NoteExternalState to cache on first read and allows modifications', () => {
   const params = createDefaultGraphQLServiceParams();
@@ -51,8 +52,9 @@ it('writes NoteExternalState to cache on first read and allows modifications', (
     `),
     id: 'Note:1',
   });
+
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  const editor = note.textField.editor as NoteTextFieldEditor;
+  const editor = note.textField.editor as NoteTextFieldEditor<NoteTextFieldName>;
   editor.insert('hello', {
     start: 0,
     end: 3,

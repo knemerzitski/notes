@@ -15,8 +15,10 @@ import { Logger } from '../../../../utils/src/logging';
 
 import {
   CacheReadyCallbacks,
+  CustomTypePoliciesInitContext,
   GraphQLServiceAction,
   MutationDefinitions,
+  TypePoliciesContext,
   TypePoliciesList,
 } from '../types';
 import { CacheRestorer } from '../utils/cache-restorer';
@@ -32,6 +34,7 @@ import { createHttpWsLink } from './http-ws-link';
 import { createLinks } from './links';
 import { createMutationUpdaterFunctionMap } from './mutation-updater-map';
 import { addTypePolicies, createTypePolicies } from './type-policies';
+import { CustomTypePoliciesContextInitializer } from '../../graphql-service';
 
 export function createGraphQLService({
   httpUri,
@@ -39,6 +42,7 @@ export function createGraphQLService({
   terminatingLink,
   httpOptions,
   possibleTypesList,
+  customTypePoliciesContextInitializer,
   typePoliciesList,
   cacheReadyCallbacks,
   evictOptionsList,
@@ -65,6 +69,7 @@ export function createGraphQLService({
    */
   httpOptions?: Omit<HttpOptions, 'uri'>;
   possibleTypesList?: PossibleTypesMap[];
+  customTypePoliciesContextInitializer: CustomTypePoliciesContextInitializer;
   typePoliciesList: TypePoliciesList;
   cacheReadyCallbacks: CacheReadyCallbacks;
   evictOptionsList: TaggedEvictOptionsList;
@@ -119,9 +124,23 @@ export function createGraphQLService({
     cache,
   });
 
-  const typePolicies = createTypePolicies(typePoliciesList, {
+  const typePoliciesInitContext: CustomTypePoliciesInitContext = {
     logger: logger?.extend('policy'),
-  });
+  };
+
+  const typePoliciesContext: TypePoliciesContext = {
+    ...typePoliciesInitContext,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    custom: Object.fromEntries(
+      Object.entries(customTypePoliciesContextInitializer).map(([key, init]) => [
+        key,
+        init(typePoliciesInitContext),
+      ])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ) as any,
+  };
+
+  const typePolicies = createTypePolicies(typePoliciesList, typePoliciesContext);
 
   addTypePolicies(typePolicies, cache);
 
@@ -204,6 +223,7 @@ export function createGraphQLService({
 
   const result = {
     client: apolloClient,
+    typePoliciesContext,
     persistor,
     restorer,
     wsClient,

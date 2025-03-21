@@ -5,7 +5,7 @@ import { CollabService } from '../../../collab/src/client/collab-service';
 import { KeySimpleText } from '../../../collab/src/editor/json-text';
 import { SimpleTextEditor } from '../../../collab/src/editor/simple-text';
 
-import { NoteExternalState } from '../note/external-state/note';
+import { NoteExternalState } from '../note/utils/external-state';
 
 if (import.meta.env.DEV) {
   loadDevMessages();

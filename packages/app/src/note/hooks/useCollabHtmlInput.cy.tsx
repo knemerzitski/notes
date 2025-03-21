@@ -1,19 +1,30 @@
-
 import { Changeset } from '../../../../collab/src/changeset';
 import { CollabService } from '../../../../collab/src/client/collab-service';
 
-import { NoteTextFieldName } from '../../__generated__/graphql';
-import { NoteExternalState, NoteTextFieldEditor } from '../external-state/note';
+import {
+  createNoteExternalStateContext,
+  NoteExternalState,
+  NoteTextFieldEditor,
+} from '../utils/external-state';
 
 import { useCollabHtmlInput } from './useCollabHtmlInput';
 
-let noteState: NoteExternalState;
-let editor: NoteTextFieldEditor;
+enum FieldName {
+  CONTENT = 'content',
+  TITLE = 'title',
+}
+
+let noteState: NoteExternalState<FieldName>;
+let editor: NoteTextFieldEditor<FieldName>;
 let service: CollabService;
 
 beforeEach(() => {
-  noteState = new NoteExternalState();
-  editor = noteState.fields[NoteTextFieldName.CONTENT].editor;
+  const externalStateContext = createNoteExternalStateContext({
+    keys: Object.values(FieldName),
+  });
+
+  noteState = externalStateContext.newValue();
+  editor = noteState.fields[FieldName.CONTENT].editor;
   service = noteState.service;
 
   cy.mount(<InputEditing />);

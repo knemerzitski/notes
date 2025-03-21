@@ -1,7 +1,6 @@
 import { CodegenConfig } from '@graphql-codegen/cli';
 import { ClientPresetConfig } from '@graphql-codegen/client-preset';
 
-
 const config: CodegenConfig = {
   schema: '../api/src/graphql/domains/*/schema.graphql',
   documents: ['./src/**/!(*.(test|cy)).{ts,tsx}'],
@@ -25,7 +24,7 @@ const config: CodegenConfig = {
           ObjectID: 'string',
           UserNoteLinkID: 'string',
           CollabService: '../../../collab/src/client/collab-service#CollabService',
-          NoteTextFieldEditor: '../note/external-state/note#NoteTextFieldEditor',
+          NoteTextFieldEditor: '../note/types#NoteTextFieldEditor',
           SerializeKey: 'string | number | boolean',
         },
         // TODO use enumValues for NoteTextFieldName

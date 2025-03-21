@@ -17,20 +17,32 @@ function readFieldName({
   return fieldName as NoteTextFieldName;
 }
 
-export const NoteTextField: CreateTypePolicyFn = function (_ctx: TypePoliciesContext) {
+export const NoteTextField: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
   return {
     fields: {
       value(_existing, options) {
-        const externalState = readNoteExternalState(readNoteRef(options), options);
+        const externalState = readNoteExternalState(
+          readNoteRef(options),
+          options,
+          ctx.custom.note.externalState
+        );
         const field = externalState.fields[readFieldName(options)];
 
         return field.valueVar();
       },
       editor(_existing, options) {
-        const externalState = readNoteExternalState(readNoteRef(options), options);
+        const externalState = readNoteExternalState(
+          readNoteRef(options),
+          options,
+          ctx.custom.note.externalState
+        );
         const field = externalState.fields[readFieldName(options)];
 
         return field.editor;
+      },
+      name(_existing, { readField }) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return readField('fieldName');
       },
     },
   };

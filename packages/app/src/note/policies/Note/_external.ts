@@ -10,7 +10,7 @@ import { RevisionChangesetStruct } from '../../../../../collab/src/records/recor
 import { isObjectLike } from '../../../../../utils/src/type-guards/is-object-like';
 
 import { CreateFieldPolicyFn, TypePoliciesContext } from '../../../graphql/types';
-import { NoteExternalState } from '../../external-state/note';
+import { NoteExternalState } from '../../types';
 import { readNoteRef } from '../../utils/read-note-ref';
 
 const FIELD_NAME = '_external';
@@ -35,13 +35,15 @@ const _External_NoteFragment = {
  * External field contains state that is managed outside cache but
  * still belongs to Note type.
  */
-export const _external: CreateFieldPolicyFn = function (_ctx: TypePoliciesContext) {
+export const _external: CreateFieldPolicyFn = function (ctx: TypePoliciesContext) {
+  const externalState = ctx.custom.note.externalState;
+
   return {
     read(existing, options) {
       const { cache, readField, isReference } = options;
       // External state is already an instance
 
-      if (existing instanceof NoteExternalState) {
+      if (externalState.isInstance(existing)) {
         return existing;
       }
 
@@ -49,7 +51,7 @@ export const _external: CreateFieldPolicyFn = function (_ctx: TypePoliciesContex
 
       // External state is serialized, must parse it first
       if (isObjectLike(existing)) {
-        const inst = NoteExternalState.parseValue(existing);
+        const inst = externalState.parseValue(existing);
         // Replace serialized with parsed class instance
         write(noteRef, inst, cache);
 
@@ -67,7 +69,7 @@ export const _external: CreateFieldPolicyFn = function (_ctx: TypePoliciesContex
         throw new Error('Expected CollabText.headText to be defined');
       }
 
-      const inst = new NoteExternalState({
+      const inst = externalState.newValue({
         service: CollabService.headTextAsOptions(
           RevisionChangesetStruct.create(headText)
         ),
@@ -81,10 +83,11 @@ export const _external: CreateFieldPolicyFn = function (_ctx: TypePoliciesContex
 
 export function readNoteExternalState(
   noteRef: Reference,
-  { readField }: FieldFunctionOptions
+  { readField }: FieldFunctionOptions,
+  externalState: TypePoliciesContext['custom']['note']['externalState']
 ): NoteExternalState {
   const inst = readField(FIELD_NAME, noteRef);
-  if (!(inst instanceof NoteExternalState)) {
+  if (!externalState.isInstance(inst)) {
     throw new Error(
       // eslint-disable-next-line @typescript-eslint/no-base-to-string
       `Failed to read note external state field. Expect and instance but is "${String(inst)}"`
@@ -108,8 +111,6 @@ function read(
 
   return note[FIELD_NAME] as NoteExternalState;
 }
-
-export const __unstable_readNoteExternalState = read;
 
 function write(
   noteRef: Reference,

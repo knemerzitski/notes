@@ -5,7 +5,7 @@ import { Maybe } from '../../../../utils/src/types';
 import { gql } from '../../__generated__';
 import { useNoteId } from '../context/note-id';
 import { useNoteTextFieldName } from '../context/note-text-field-name';
-import { NoteTextFieldEditor } from '../external-state/note';
+import { NoteTextFieldEditor } from '../types';
 
 const UseNoteTextFieldEditor_Query = gql(`
   query UseNoteTextFieldEditor_Query($by: NoteByInput!, $name: NoteTextFieldName!) {

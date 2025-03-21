@@ -14,6 +14,7 @@ import { GateController, GateLink } from './link/gate';
 import { PersistLink } from './link/persist';
 import { MutationDefinition } from './utils/mutation-definition';
 import { TaggedEvict } from './utils/tagged-evict';
+import { CustomTypePoliciesContext } from '../graphql-service';
 
 declare module '@apollo/client' {
   interface DefaultContext {
@@ -51,11 +52,12 @@ declare module '@apollo/client' {
 
 export type TypePoliciesList = (CreateTypePoliciesFn | TypePolicies)[];
 
-// Context required to create type policies
-
 export interface TypePoliciesContext {
   logger?: Logger;
+  custom: CustomTypePoliciesContext;
 }
+
+export type CustomTypePoliciesInitContext = Omit<TypePoliciesContext, 'custom'>;
 
 export type CreateTypePoliciesFn = (context: TypePoliciesContext) => TypePolicies;
 export type CreateTypePolicyFn = (context: TypePoliciesContext) => TypePolicy;

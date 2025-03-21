@@ -1,6 +1,10 @@
 import { PossibleTypesMap } from '@apollo/client';
 
-import { CreateTypePoliciesFn, MutationDefinitions } from '../graphql/types';
+import {
+  CreateTypePoliciesFn,
+  CustomTypePoliciesInitContext,
+  MutationDefinitions,
+} from '../graphql/types';
 import { TaggedEvictOptionsList } from '../graphql/utils/tagged-evict';
 
 import { CreateNote } from './mutations/CreateNote';
@@ -36,6 +40,23 @@ import { RevisionChangeset } from './policies/RevisionChangeset';
 import { User } from './policies/User';
 import { UserNoteLink } from './policies/UserNoteLink';
 import { UserNoteLinkConnection } from './policies/UserNoteLinkConnection';
+import { createNoteExternalStateContext } from './utils/external-state';
+import { NoteTextFieldName } from '../__generated__/graphql';
+
+export const noteContext = function (ctx: CustomTypePoliciesInitContext) {
+  const externalState = createNoteExternalStateContext<NoteTextFieldName>(
+    {
+      keys: Object.values(NoteTextFieldName),
+    },
+    {
+      logger: ctx.logger,
+    }
+  );
+
+  return {
+    externalState,
+  };
+};
 
 export const notePolicies: CreateTypePoliciesFn = function (ctx) {
   return {

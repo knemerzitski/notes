@@ -23,6 +23,7 @@ import {
 import { processCacheVersion } from './graphql/utils/process-cache-version';
 import { TaggedEvictOptionsList } from './graphql/utils/tagged-evict';
 import {
+  noteContext,
   noteEvictOptions,
   noteMutationDefinitions,
   notePolicies,
@@ -48,6 +49,18 @@ const HTTP_URL = import.meta.env.PROD
 const WS_URL = import.meta.env.PROD
   ? import.meta.env.VITE_GRAPHQL_WS_URL
   : `ws://${location.host}/graphql-ws`;
+
+const CUSTOM_TYPE_POLICIES_CONTEXT_INITIALIZERS = {
+  note: noteContext,
+};
+
+export type CustomTypePoliciesContextInitializer = typeof CUSTOM_TYPE_POLICIES_CONTEXT_INITIALIZERS;
+
+export type CustomTypePoliciesContext = {
+  [Key in keyof CustomTypePoliciesContextInitializer]: ReturnType<
+    CustomTypePoliciesContextInitializer[Key]
+  >;
+};
 
 const TYPE_POLICIES_LIST: TypePoliciesList = [
   devicePreferencesPolicies,
@@ -82,6 +95,7 @@ export function createDefaultGraphQLServiceParams(): Parameters<
     httpUri: HTTP_URL,
     wsUrl: WS_URL,
     possibleTypesList: POSSIBLE_TYPES_LIST,
+    customTypePoliciesContextInitializer: CUSTOM_TYPE_POLICIES_CONTEXT_INITIALIZERS,
     typePoliciesList: TYPE_POLICIES_LIST,
     cacheReadyCallbacks: CACHE_READY_CALLBACKS,
     evictOptionsList: EVICT_OPTIONS_LIST,

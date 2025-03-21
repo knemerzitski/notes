@@ -8,7 +8,7 @@ import { RevisionChangeset } from '../../../../collab/src/records/record';
 import { EMPTY_ARRAY } from '../../../../utils/src/array/empty';
 
 import { useLogger } from '../../utils/context/logger';
-import { NoteTextFieldEditor } from '../external-state/note';
+import { NoteTextFieldEditor } from '../types';
 
 import { useHtmlInput } from './useHtmlInput';
 

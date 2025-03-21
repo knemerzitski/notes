@@ -22,7 +22,11 @@ export const Note: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
     fields: {
       _external: _external(ctx),
       collabService(_existing, options): CollabService {
-        return readNoteExternalState(readNoteRef(options), options).service;
+        return readNoteExternalState(
+          readNoteRef(options),
+          options,
+          ctx.custom.note.externalState
+        ).service;
       },
       textField(_existing, options): TextFieldsResult {
         const { readField, args } = options;
@@ -40,6 +44,17 @@ export const Note: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
           noteRef: readNoteRef(options),
           fieldName: name as NoteTextFieldName,
         };
+      },
+      textFields(_existing, options): TextFieldsResult[] {
+        const { readField } = options;
+
+        return ctx.custom.note.externalState.fieldNames.map((fieldName) => ({
+          __typename: 'NoteTextField',
+          // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+          id: readField('id') as string,
+          noteRef: readNoteRef(options),
+          fieldName,
+        }));
       },
       localOnly(_existing, { readField }) {
         const id = readField('id');
