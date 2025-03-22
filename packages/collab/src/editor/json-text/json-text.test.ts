@@ -15,7 +15,7 @@ function setServiceText(service: CollabService, value: string) {
       afterSelection: { start: 0, end: 0 },
     },
     {
-      merge: true,
+      type: 'merge',
     }
   );
 }

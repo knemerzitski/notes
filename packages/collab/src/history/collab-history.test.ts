@@ -333,7 +333,7 @@ it('does not merge record at serverIndex', () => {
       beforeSelection: SelectionRange.from(0),
     },
     {
-      merge: true,
+      type: 'merge',
     }
   );
   // 0abcde

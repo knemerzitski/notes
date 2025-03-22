@@ -78,10 +78,10 @@ export interface SimpleText {
 
 export interface SimpleTextOperationOptions {
   /**
-   * Merge value with existing
-   * @default false
+   * `merge` - Merge text with previous text. Undo will revert both texts at once. \
+   * `permanent` - Make this text permanent. It can never be reverted by undo.
    */
-  merge?: boolean;
+  type?: 'merge' | 'permanent';
 }
 
 export interface LimitedEmitter<Events extends BaseEvents> {

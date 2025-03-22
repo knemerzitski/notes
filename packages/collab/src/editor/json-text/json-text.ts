@@ -187,7 +187,7 @@ export class JsonText<K extends string, S extends StringRecordStruct> {
           afterSelection: SelectionRange.ZERO,
         },
         {
-          merge,
+          type: merge ? 'merge' : undefined,
         }
       );
       return true;

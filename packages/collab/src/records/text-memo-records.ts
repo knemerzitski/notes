@@ -11,7 +11,7 @@ interface Item<TRecord> {
 
 export interface TextMemoRecordsOptions<TRecord extends BaseRecord> {
   tailText?: Changeset;
-  records?: TRecord[];
+  records?: readonly TRecord[];
 }
 
 function createItem<TRecord>(record: TRecord): Item<TRecord> {

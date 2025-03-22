@@ -38,6 +38,7 @@ import {
   OrRevisionChangeset,
 } from '../utils/revision-changeset';
 import { ServerRecordsFacade, UserRecords } from '../client/user-records';
+import { permanentChangeModification } from './mod-permanent-change';
 
 export interface CollabHistoryEvents {
   appliedTypingOperation: ReadonlyDeep<
@@ -392,7 +393,35 @@ export class CollabHistory {
       return;
     }
 
-    const merge = options?.merge ?? false;
+    this.logState('pushSelectionChangeset', {
+      value: {
+        ...value,
+        changeset: value.changeset.toString(),
+      },
+      options,
+    });
+
+    if (options?.type === 'permanent') {
+      // eslint-disable-next-line @typescript-eslint/no-this-alias
+      const _this = this;
+      permanentChangeModification(value.changeset, {
+        records: this.readonlyRecords,
+        get serverTailTextTransformToRecordsTailText() {
+          return _this.serverTailTextTransformToRecordsTailText;
+        },
+        modification: this.modification.bind(this),
+      });
+
+      this.client.composeLocalChange(value.changeset);
+      this._eventBus.emit('appliedTypingOperation', {
+        operation: {
+          changeset: value.changeset,
+          // TODO this makes no sense, make it optional?
+          selection: value.afterSelection,
+        },
+      });
+    } else {
+      const merge = options?.type === 'merge';
     const localIndex = this.lastExecutedIndex.local;
     const localRecord = this.readonlyRecords.at(this.lastExecutedIndex.local);
 

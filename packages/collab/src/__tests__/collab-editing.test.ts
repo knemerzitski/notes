@@ -108,7 +108,7 @@ describe('single client', () => {
     const { client } = helper;
 
     client.A.insertText('hello world');
-    client.A.insertText(' one', { merge: true });
+    client.A.insertText(' one', { type: 'merge' });
     expect(client.A.valueWithSelection()).toStrictEqual('hello world one>');
     expect(client.A.service.history.records).toHaveLength(1);
     client.A.service.undo();
