@@ -37,7 +37,8 @@ import {
   getOrRevision,
   OrRevisionChangeset,
 } from '../utils/revision-changeset';
-import { ServerRecordsFacade, UserRecords } from '../client/user-records';
+import { UserRecords } from '../client/user-records';
+import { ServerRecordsFacade } from '../types';
 import { permanentChangeModification } from './mod-permanent-change';
 
 export interface CollabHistoryEvents {

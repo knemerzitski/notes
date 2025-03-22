@@ -1,9 +1,7 @@
 import mitt, { Emitter } from 'mitt';
 
-import {
-  ServerRecordsFacade,
-  ServerRecordsFacadeEvents,
-} from '../../client/user-records';
+import { ServerRecordsFacadeEvents } from '../../types';
+import { ServerRecordsFacade } from '../../types';
 import { RevisionChangeset, RevisionRecord } from '../../records/record';
 import { RevisionRecords } from '../../records/revision-records';
 

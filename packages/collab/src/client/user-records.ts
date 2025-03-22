@@ -1,40 +1,7 @@
 import mitt, { Emitter } from 'mitt';
 
-import { RevisionChangeset } from '../records/record';
-
 import { CollabServiceRecord } from './collab-service';
-
-export interface ServerRecordsFacadeEvents<TRecord> {
-  recordsUpdated: {
-    source: ServerRecordsFacade<TRecord>;
-  };
-}
-
-/**
- * Simple facade for querying server records.
- */
-export interface ServerRecordsFacade<TRecord> {
-  readonly eventBus: Pick<Emitter<ServerRecordsFacadeEvents<TRecord>>, 'on' | 'off'>;
-  /**
-   * tailText is a composition of all previous records before oldest record.
-   */
-  readonly tailText: Readonly<RevisionChangeset>;
-
-  /**
-   * Iterates through records from newest (headRevision) to oldest
-   */
-  newestRecordsIterable(headRevision: number): Iterable<Readonly<TRecord>>;
-
-  /**
-   * Get text at specific revision
-   */
-  getTextAt(revision: number): Readonly<RevisionChangeset>;
-
-  /**
-   * @returns true if server has more records
-   */
-  hasMoreRecords(): boolean;
-}
+import { ServerRecordsFacade } from '../types';
 
 export interface UserRecordsEvents {
   recordsUpdated: {
