@@ -20,6 +20,7 @@ import { identifyOrError } from '../../graphql/utils/identify';
 import { getCollabTextId } from './id';
 
 import { cacheRecordToCollabServiceRecord } from './map-record';
+import { Changeset } from '../../../../collab/src/changeset';
 
 const CacheRecordsFacadeTextAtRevision_CollabTextFragment = gql(`
   fragment CacheRecordsFacadeTextAtRevision_CollabTextFragment on CollabText {
@@ -225,6 +226,13 @@ export class CacheRecordsFacade implements ServerRecordsFacade<CollabServiceReco
   }
 
   getTextAt(revision: number): Readonly<RevisionChangeset> {
+    if (revision <= 0) {
+      return {
+        revision: 0,
+        changeset: Changeset.EMPTY,
+      };
+    }
+
     const revisionChangeset = this.readTextAtRevision(revision);
     if (!revisionChangeset) {
       throw new Error(

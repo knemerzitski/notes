@@ -4,7 +4,11 @@ import { Changeset } from '../changeset';
 
 import { ComposableRecordsFacade } from '../records/composable-records-facade';
 
-import { processRecordsUnshift, HistoryUnshiftEntry } from './process-records-unshift';
+import {
+  processRecordsUnshift,
+  HistoryUnshiftEntry,
+  CollabHistoryContext,
+} from './process-records-unshift';
 
 function createEntry(changeset: unknown, external?: boolean): HistoryUnshiftEntry {
   if (external) {
@@ -140,18 +144,38 @@ describe('calcHistoryRecordsUnshift', () => {
       },
     });
 
-    const history: Parameters<typeof processRecordsUnshift>[1] = {
-      serverTailTextTransformToRecordsTailText: null,
-      recordsReplaceTailTextAndSplice:
-        recordsFacade.replaceTailTextAndSplice.bind(recordsFacade),
+    let serverTailTextTransformToRecordsTailText: Changeset | null = null;
+
+    const historyContext: CollabHistoryContext = {
+      serverTailTextTransformToRecordsTailText,
+      modification(changes) {
+        if (changes.serverTailTextTransformToRecordsTailText !== undefined) {
+          serverTailTextTransformToRecordsTailText =
+            changes.serverTailTextTransformToRecordsTailText;
+        }
+        if (
+          changes.recordsTailText !== undefined &&
+          changes.recordsSplice !== undefined
+        ) {
+          recordsFacade.replaceTailTextAndSplice(
+            changes.recordsTailText,
+            changes.recordsSplice.start,
+            changes.recordsSplice.deleteCount,
+            ...changes.recordsSplice.records
+          );
+        }
+      },
     };
 
     processRecordsUnshift(
       {
-        newRecordsTailText: Changeset.parseValue(unshift.newTail),
+        newRecordsTailText: {
+          changeset: Changeset.parseValue(unshift.newTail),
+          revision: 0,
+        },
         newEntries: unshift.entries.map(({ cs, external }) => createEntry(cs, external)),
       },
-      history
+      historyContext
     );
 
     // Tail match

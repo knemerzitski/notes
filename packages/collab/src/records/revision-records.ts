@@ -84,6 +84,13 @@ export class RevisionRecords<TRecord extends Readonly<RevisionRecord> = Revision
   }
 
   getTextAt(revision: number) {
+    if (revision <= 0) {
+      return {
+        revision: 0,
+        changeset: Changeset.EMPTY,
+      };
+    }
+
     if (revision === this.tailRevision) {
       return this.tailText;
     }

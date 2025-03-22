@@ -1,9 +1,15 @@
+import { Logger } from '../../../utils/src/logging';
 import { Changeset } from '../changeset';
 import { swapChangesets } from '../changeset/swap-changesets';
 import { SelectionRange } from '../client/selection-range';
+import { RevisionChangeset } from '../records/record';
 import { TextMemoRecords } from '../records/text-memo-records';
 
-import { HistoryRecord, ReadonlyHistoryRecord } from './collab-history';
+import {
+  CollabHistoryModification,
+  HistoryRecord,
+  ReadonlyHistoryRecord,
+} from './collab-history';
 
 export type HistoryUnshiftEntry =
   | {
@@ -14,14 +20,9 @@ export type HistoryUnshiftEntry =
       type: 'local';
     } & ReadonlyHistoryRecord);
 
-interface CollabHistoryContext {
-  serverTailTextTransformToRecordsTailText: Changeset | null;
-  recordsReplaceTailTextAndSplice(
-    tailText: Changeset,
-    start: number,
-    deleteCount: number,
-    ...records: ReadonlyHistoryRecord[]
-  ): void;
+export interface CollabHistoryContext {
+  readonly serverTailTextTransformToRecordsTailText: Changeset | null;
+  readonly modification: (changes: CollabHistoryModification) => void;
 }
 
 /**
@@ -32,13 +33,18 @@ export function processRecordsUnshift(
     newRecordsTailText,
     newEntries,
   }: {
-    newRecordsTailText: Changeset;
+    newRecordsTailText: RevisionChangeset;
     newEntries: HistoryUnshiftEntry[];
   },
-  history: CollabHistoryContext
+  history: CollabHistoryContext,
+  options?: {
+    logger?: Logger;
+  }
 ) {
+  const logger = options?.logger;
+
   const newEntriesMemo = new TextMemoRecords<HistoryUnshiftEntry>({
-    tailText: newRecordsTailText,
+    tailText: newRecordsTailText.changeset,
     records: newEntries,
   });
 
@@ -88,6 +94,10 @@ export function processRecordsUnshift(
         currentTransform = nextTransform;
       }
 
+      logger?.debug('entry', {
+        index: i,
+        update: `${entry.changeset.toString()} => ${newRecord.changeset.toString()}`,
+      });
       resultNewRecords.unshift(newRecord);
     }
   }
@@ -95,11 +105,14 @@ export function processRecordsUnshift(
     newEntriesMemo.tailText = newEntriesMemo.tailText.compose(currentTransform);
   }
 
-  history.recordsReplaceTailTextAndSplice(
-    newEntriesMemo.tailText,
-    0,
-    0,
-    ...resultNewRecords
-  );
-  history.serverTailTextTransformToRecordsTailText = currentTransform;
+  history.modification({
+    serverTailRevision: newRecordsTailText.revision,
+    serverTailTextTransformToRecordsTailText: currentTransform,
+    recordsTailText: newEntriesMemo.tailText,
+    recordsSplice: {
+      start: 0,
+      deleteCount: 0,
+      records: resultNewRecords,
+    },
+  });
 }

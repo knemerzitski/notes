@@ -11,25 +11,19 @@ import {
   OrRevisionChangeset,
 } from '../utils/revision-changeset';
 
-import { ReadonlyHistoryRecord } from './collab-history';
+import { CollabHistoryModification, ReadonlyHistoryRecord } from './collab-history';
 
 export interface CollabHistoryContext {
   readonly serverIndex: number;
   readonly client: Pick<CollabClient, 'server'>;
-  serverTailTextTransformToRecordsTailText: Changeset | null;
+  readonly serverTailTextTransformToRecordsTailText: Changeset | null;
   readonly records: Pick<
     TextMemoRecords<ReadonlyHistoryRecord>,
     'at' | 'getTextAt' | 'length'
   > & {
     readonly tailText: Changeset;
   };
-  setServerTailRevision?: (value: number) => void;
-  recordsReplaceTailTextAndSplice(
-    tailText: Changeset,
-    start: number,
-    deleteCount: number,
-    ...records: ReadonlyHistoryRecord[]
-  ): void;
+  readonly modification: (changes: CollabHistoryModification) => void;
 }
 
 /**
@@ -45,20 +39,23 @@ export function processExternalChange(
     logger?: Logger;
   }
 ) {
+  const logger = options?.logger;
+
   const changeset = getOrChangeset(orRevisionChangeset);
+
   // [0, serverIndex]
   const newBeforeRecords: ReadonlyHistoryRecord[] = [];
-
   // [serverIndex + 1, history.records.length - 1]
   const newAfterRecords: ReadonlyHistoryRecord[] = [];
 
   let newTailText: Changeset;
-  let newServerTailTextTransformToRecordsTailText: Changeset | undefined;
+  let newServerTailRevision: number | undefined;
+  let newServerTailTextTransformToRecordsTailText: Changeset | undefined | null;
 
   const serverIndex = history.serverIndex;
+  logger?.debug('serverIndex', serverIndex);
   if (serverIndex >= 0) {
     let swapChangeset = changeset;
-    const logRecords: string[] = [];
     for (let i = serverIndex; i >= 0; i--) {
       const record = history.records.at(i);
       if (!record) {
@@ -88,11 +85,11 @@ export function processExternalChange(
 
       swapChangeset = nextSwapChangeset;
 
-      if (options?.logger) {
-        logRecords.push(
-          `${record.changeset.toString()} => ${modifiedRecordValue.changeset.toString()}`
-        );
-      }
+      logger?.debug('beforeServerIndex', {
+        index: i,
+        update: `${record.changeset.toString()} => ${modifiedRecordValue.changeset.toString()}`,
+        swapChangeset: swapChangeset.toString(),
+      });
     }
 
     newBeforeRecords.reverse();
@@ -105,13 +102,24 @@ export function processExternalChange(
       newServerTailTextTransformToRecordsTailText = currentTransform
         ? currentTransform.compose(swapChangeset)
         : swapChangeset;
+      if (currentTransform) {
+        logger?.debug('newServerTailTextTransformToRecordsTailText', {
+          newServerTailTextTransformToRecordsTailText:
+            newServerTailTextTransformToRecordsTailText.toString(),
+          currentTransform: currentTransform.toString(),
+          composed: currentTransform.compose(swapChangeset).toString(),
+        });
+      } else {
+        logger?.debug('newServerTailTextTransformToRecordsTailText', {
+          newServerTailTextTransformToRecordsTailText:
+            newServerTailTextTransformToRecordsTailText.toString(),
+          swapChangeset: swapChangeset.toString(),
+        });
+      }
     } catch (err) {
-      if (err instanceof ChangesetOperationError && options?.logger) {
-        console.error(err.message);
-
-        options.logger.error('processExternalChange.invalidTransform', {
+      if (err instanceof ChangesetOperationError) {
+        logger?.error('processExternalChange.invalidTransform', {
           changeset: changeset.toString(),
-          records: logRecords,
           currentTransform: currentTransform?.toString(),
           swapChangeset: swapChangeset.toString(),
         });
@@ -121,6 +129,11 @@ export function processExternalChange(
     }
   } else {
     newTailText = history.client.server;
+    const revision = getOrRevision(orRevisionChangeset);
+    if (revision != null) {
+      newServerTailRevision = revision;
+      newServerTailTextTransformToRecordsTailText = null;
+    }
   }
 
   let followComposition = changeset;
@@ -148,24 +161,21 @@ export function processExternalChange(
     );
 
     followComposition = nextFollowComposition;
+
+    logger?.debug('afterServerIndex', {
+      index: i,
+      update: `${record.changeset.toString()} => ${modifiedRecordValue.changeset.toString()}`,
+    });
   }
 
-  history.recordsReplaceTailTextAndSplice(
-    newTailText,
-    0,
-    history.records.length,
-    ...newBeforeRecords,
-    ...newAfterRecords
-  );
-  if (newServerTailTextTransformToRecordsTailText !== undefined) {
-    history.serverTailTextTransformToRecordsTailText =
-      newServerTailTextTransformToRecordsTailText;
-  }
-
-  if (history.setServerTailRevision != null) {
-    const revision = getOrRevision(orRevisionChangeset);
-    if (revision != null && history.serverTailTextTransformToRecordsTailText == null) {
-      history.setServerTailRevision(revision);
-    }
-  }
+  history.modification({
+    serverTailRevision: newServerTailRevision,
+    serverTailTextTransformToRecordsTailText: newServerTailTextTransformToRecordsTailText,
+    recordsTailText: newTailText,
+    recordsSplice: {
+      start: 0,
+      deleteCount: history.records.length,
+      records: [...newBeforeRecords, ...newAfterRecords],
+    },
+  });
 }

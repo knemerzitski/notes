@@ -6,7 +6,7 @@ import { ComposableRecordsFacade } from '../records/composable-records-facade';
 import { TextMemoRecords } from '../records/text-memo-records';
 
 import { ReadonlyHistoryRecord } from './collab-history';
-import { processExternalChange } from './process-external-change';
+import { CollabHistoryContext, processExternalChange } from './process-external-change';
 
 function createRecord(rawChangeset: unknown): ReadonlyHistoryRecord {
   return {
@@ -23,7 +23,7 @@ function createRecord(rawChangeset: unknown): ReadonlyHistoryRecord {
 }
 
 describe('processExternalChange', () => {
-  function createHistoryContext({
+  function createHistory({
     records,
     serverIndex,
     tailText = Changeset.EMPTY,
@@ -42,24 +42,37 @@ describe('processExternalChange', () => {
     const safeRecords = new ComposableRecordsFacade(memoRecords);
 
     return {
-      serverIndex,
-      client: {
-        server: clientChangeset,
-      },
+      context: {
+        serverIndex,
+        client: {
+          server: clientChangeset,
+        },
+        records: memoRecords,
+        serverTailTextTransformToRecordsTailText,
+        modification(changes) {
+          if (changes.serverTailTextTransformToRecordsTailText !== undefined) {
+            serverTailTextTransformToRecordsTailText =
+              changes.serverTailTextTransformToRecordsTailText;
+          }
+          if (changes.recordsSplice && changes.recordsTailText) {
+            safeRecords.replaceTailTextAndSplice(
+              changes.recordsTailText,
+              changes.recordsSplice.start,
+              changes.recordsSplice.deleteCount,
+              ...changes.recordsSplice.records
+            );
+          }
+        },
+      } satisfies CollabHistoryContext,
+      records: memoRecords,
       get serverTailTextTransformToRecordsTailText() {
         return serverTailTextTransformToRecordsTailText;
       },
-      set serverTailTextTransformToRecordsTailText(value) {
-        serverTailTextTransformToRecordsTailText = value;
-      },
-      records: memoRecords,
-      recordsReplaceTailTextAndSplice:
-        safeRecords.replaceTailTextAndSplice.bind(safeRecords),
     };
   }
 
   it('inserts at start on middle target index', () => {
-    const history = createHistoryContext({
+    const history = createHistory({
       records: [
         ['cd'],
         ['ab', [0, 1]],
@@ -77,7 +90,10 @@ describe('processExternalChange', () => {
         .toString()
     ).toMatchInlineSnapshot(`"(0 -> 14)["_Bcde_GHijklmn"]"`);
 
-    processExternalChange(Changeset.parseValue(['[before cd]', [0, 14]]), history);
+    processExternalChange(
+      Changeset.parseValue(['[before cd]', [0, 14]]),
+      history.context
+    );
 
     expect(history.records.tailText.toString()).toStrictEqual('(0 -> 11)["[before cd]"]');
 
@@ -100,7 +116,7 @@ describe('processExternalChange', () => {
   });
 
   it('deletes middle on middle target index', () => {
-    const history = createHistoryContext({
+    const history = createHistory({
       records: [
         ['cd'],
         ['ab', [0, 1]],
@@ -118,7 +134,10 @@ describe('processExternalChange', () => {
         .toString()
     ).toMatchInlineSnapshot(`"(0 -> 14)["_Bcde_GHijklmn"]"`);
 
-    processExternalChange(Changeset.parseValue(['[del ij]', [0, 8], [11, 14]]), history);
+    processExternalChange(
+      Changeset.parseValue(['[del ij]', [0, 8], [11, 14]]),
+      history.context
+    );
 
     expect(history.records.tailText.toString()).toStrictEqual('(0 -> 8)["[del ij]"]');
 
@@ -141,7 +160,7 @@ describe('processExternalChange', () => {
   });
 
   it('removes a record that is no longer meaningful', () => {
-    const history = createHistoryContext({
+    const history = createHistory({
       records: [
         ['cd'],
         ['ab', [0, 1]],
@@ -154,7 +173,7 @@ describe('processExternalChange', () => {
     });
 
     // remove "ab", keep "cd" on entry 1
-    processExternalChange(Changeset.parseValue([[2, 3]]), history);
+    processExternalChange(Changeset.parseValue([[2, 3]]), history.context);
 
     expect(history.records.tailText.toString()).toStrictEqual('(0 -> 0)[]');
 
@@ -177,7 +196,7 @@ describe('processExternalChange', () => {
   });
 
   it('removes all older records', () => {
-    const history = createHistoryContext({
+    const history = createHistory({
       records: [
         ['cd'],
         ['ab', [0, 1]],
@@ -190,7 +209,7 @@ describe('processExternalChange', () => {
     });
 
     // from entry 4, delete everything
-    processExternalChange(Changeset.parseValue([]), history);
+    processExternalChange(Changeset.parseValue([]), history.context);
 
     expect(history.records.tailText.toString()).toStrictEqual('(0 -> 0)[]');
 
@@ -217,7 +236,7 @@ describe('processExternalChange', () => {
   });
 
   it('replaces tailText', () => {
-    const history = createHistoryContext({
+    const history = createHistory({
       records: [
         ['cd'],
         ['ab', [0, 1]],
@@ -230,7 +249,10 @@ describe('processExternalChange', () => {
       clientChangeset: Changeset.parseValue(['[new start bla]']),
     });
 
-    processExternalChange(Changeset.parseValue([[0, 4], 'start', [5, 9]]), history);
+    processExternalChange(
+      Changeset.parseValue([[0, 4], 'start', [5, 9]]),
+      history.context
+    );
 
     expect(history.records.tailText.toString()).toStrictEqual(
       '(0 -> 15)["[new start bla]"]'
@@ -253,5 +275,4 @@ describe('processExternalChange', () => {
         .toString()
     ).toStrictEqual('(0 -> 19)["_Bcde_GHijklmnstart"]');
   });
-
 });

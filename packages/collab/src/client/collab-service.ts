@@ -220,6 +220,8 @@ export class CollabService {
       );
     }
 
+    this._history.serverRecords = newUserRecord;
+
     this._eventBus.emit('userRecordsUpdated', {
       userRecords: newUserRecord,
     });

@@ -25,6 +25,7 @@ import {
   parseTextWithMultipleSelections,
 } from './text-with-selection';
 import mitt from 'mitt';
+import { createLogger } from '../../../../utils/src/logging';
 
 export function createHelperCollabEditingEnvironment<TClientName extends string>(
   options: {
@@ -118,6 +119,9 @@ function createClientHelper<TName extends string>(
       ? clientOptions
       : new CollabClient({
           server: server.tailText.changeset,
+          logger: createLogger(`${name}:client`, {
+            format: 'object',
+          }),
           ...clientOptions,
         });
 
@@ -131,6 +135,9 @@ function createClientHelper<TName extends string>(
             editorOptions.recordsBuffer instanceof OrderedMessageBuffer
               ? editorOptions.recordsBuffer.currentVersion
               : editorOptions.recordsBuffer?.version,
+          logger: createLogger(`${name}:history`, {
+            format: 'object',
+          }),
           ...historyOptions,
           client,
           service: {
@@ -139,6 +146,9 @@ function createClientHelper<TName extends string>(
         });
 
   const service = new CollabService({
+    logger: createLogger(`${name}:service`, {
+      format: 'object',
+    }),
     ...editorOptions,
     eventBus: serviceEventBus,
     recordsBuffer: {
