@@ -144,9 +144,9 @@ export class CollabClient {
     const newLocal = submittedView.insertionsToRetained(local_change);
 
     this.logState('composeLocalChange', {
-      change: change.toString(),
-      newLocal: newLocal.toString(),
-      newView: this._view.compose(change).toString(),
+      args: {
+        change: change.toString(),
+      },
     });
 
     if (!this._local.isEqual(newLocal)) {
