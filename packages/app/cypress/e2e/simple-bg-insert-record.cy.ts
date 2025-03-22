@@ -56,7 +56,7 @@ function noteCard(noteId: string, options?: Parameters<typeof cy.get>[1]) {
 
 it('has inserted record in the background', () => {
   cy.then(async () => {
-    fields.TITLE.insert('start', SelectionRange.from(0));
+    fields[NoteTextFieldName.TITLE].insert('start', SelectionRange.from(0));
 
     await submitChanges({
       collabService,
@@ -64,7 +64,7 @@ it('has inserted record in the background', () => {
       noteId,
     });
 
-    fields.TITLE.insert('|end', SelectionRange.from(5));
+    fields[NoteTextFieldName.TITLE].insert('|end', SelectionRange.from(5));
 
     await submitChanges({
       collabService,

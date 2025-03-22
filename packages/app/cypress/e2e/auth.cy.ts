@@ -1,6 +1,7 @@
 import { SelectionRange } from '../../../collab/src/client/selection-range';
 
 import { GraphQLService } from '../../src/graphql/types';
+import { NoteTextFieldName } from '../../src/note/types';
 import { AppStatus } from '../../src/utils/hooks/useAppStatus';
 import { createGraphQLService } from '../support/utils/graphql/create-graphql-service';
 import { persistCache } from '../support/utils/graphql/persist-cache';
@@ -177,7 +178,7 @@ it('updates notes list when switching user', () => {
         graphQLService,
         userId,
         initialText: {
-          CONTENT: 'first',
+          [NoteTextFieldName.CONTENT]: 'first',
         },
       });
     });
@@ -192,7 +193,7 @@ it('updates notes list when switching user', () => {
         graphQLService,
         userId,
         initialText: {
-          CONTENT: 'second',
+          [NoteTextFieldName.CONTENT]: 'second',
         },
       });
     });
@@ -234,7 +235,7 @@ it('refreshes user expired session', () => {
         graphQLService,
         userId,
         initialText: {
-          CONTENT: 'initial',
+          [NoteTextFieldName.CONTENT]: 'initial',
         },
       }));
 
@@ -257,7 +258,7 @@ it('refreshes user expired session', () => {
         noteId,
       });
 
-      fields.CONTENT.insert(' updated', SelectionRange.from(7));
+      fields[NoteTextFieldName.CONTENT].insert(' updated', SelectionRange.from(7));
 
       await submitChanges({
         collabService,
@@ -314,7 +315,7 @@ it('switches to a user with expired session and shows notes', () => {
       graphQLService,
       userId,
       initialText: {
-        CONTENT: 'first',
+        [NoteTextFieldName.CONTENT]: 'first',
       },
     });
 
@@ -345,7 +346,7 @@ it('switches to a user with expired session and shows notes', () => {
       graphQLService,
       userId,
       initialText: {
-        CONTENT: 'second',
+        [NoteTextFieldName.CONTENT]: 'second',
       },
     });
   });

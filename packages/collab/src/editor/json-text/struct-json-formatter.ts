@@ -24,7 +24,7 @@ export class StructJsonFormatter<
   constructor(
     readonly keys: readonly [K, ...K[]],
     options?: {
-      defaultKey?: K,
+      defaultKey?: K;
       mapper?: StructJsonMapper;
       logger?: Logger;
       eventBus?: Pick<Emitter<JsonTextEvents>, 'emit'>;

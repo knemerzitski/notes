@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import mapObject from 'map-obj';
-
 import mitt from 'mitt';
 
 import { CollabService } from '../../../collab/src/client/collab-service';
@@ -173,14 +171,16 @@ class CyElementField implements FieldEditor {
   }
 }
 
+type Field = 'title' | 'content';
+
 let user1: UserContext & {
-  editor: Record<NoteTextFieldName, FieldEditor>;
-  bgEditor: Record<NoteTextFieldName, FieldEditor>;
+  editor: Record<Field, FieldEditor>;
+  bgEditor: Record<Field, FieldEditor>;
   submitChanges: () => Promise<void>;
 };
 
 let user2: UserContext & {
-  editor: Record<NoteTextFieldName, FieldEditor>;
+  editor: Record<Field, FieldEditor>;
   submitChanges: () => Promise<void>;
   submitSelection: () => Promise<void>;
 };
@@ -230,13 +230,21 @@ beforeEach(() => {
     user1 = {
       userId,
       editor: {
-        [NoteTextFieldName.TITLE]: new CyElementField(titleField),
-        [NoteTextFieldName.CONTENT]: new CyElementField(contentField),
+        title: new CyElementField(titleField),
+        content: new CyElementField(contentField),
       },
-      bgEditor: mapObject(fields, (key, value) => [
-        key,
-        new SimpleTextField(value, collabService, _submitChanges),
-      ]),
+      bgEditor: {
+        title: new SimpleTextField(
+          fields[NoteTextFieldName.TITLE],
+          collabService,
+          _submitChanges
+        ),
+        content: new SimpleTextField(
+          fields[NoteTextFieldName.CONTENT],
+          collabService,
+          _submitChanges
+        ),
+      },
       submitChanges: _submitChanges,
       graphQLService,
       collabService: {
@@ -298,10 +306,18 @@ beforeEach(() => {
         });
       };
 
-      const testEditorByName = mapObject(fields, (key, value) => [
-        key,
-        new SimpleTextField(value, collabService, _submitChanges),
-      ]);
+      const testEditorByName = {
+        title: new SimpleTextField(
+          fields[NoteTextFieldName.TITLE],
+          collabService,
+          _submitChanges
+        ),
+        content: new SimpleTextField(
+          fields[NoteTextFieldName.CONTENT],
+          collabService,
+          _submitChanges
+        ),
+      };
 
       let lastSelectedTestEditor: SimpleTextField | null;
       Object.values(testEditorByName).forEach((testEditor) => {
@@ -418,7 +434,7 @@ describe('with empty text', () => {
     cy.visit(noteRoute());
 
     cy.then(() => {
-      user2.editor.CONTENT.insert('foobar');
+      user2.editor.content.insert('foobar');
       void user2.submitChanges();
     });
 
@@ -433,8 +449,8 @@ describe('with initial text', () => {
 
   beforeEach(() => {
     cy.then(async () => {
-      user2.editor.TITLE.insert('lorem ipsum title');
-      user2.editor.CONTENT.insert(contentValue);
+      user2.editor.title.insert('lorem ipsum title');
+      user2.editor.content.insert(contentValue);
       await user2.submitChanges();
 
       initialHeadRevision = user2.collabService.service.headRevision;
@@ -445,7 +461,7 @@ describe('with initial text', () => {
     cy.visit(noteRoute());
 
     cy.then(() => {
-      user2.editor.CONTENT.select(8);
+      user2.editor.content.select(8);
       void user2.submitSelection();
     });
 
@@ -458,8 +474,8 @@ describe('with initial text', () => {
 
     cy.then(() => {
       // [above]>\n\n[below]\n
-      user2.editor.CONTENT.select(8);
-      user2.editor.CONTENT.insert('a');
+      user2.editor.content.select(8);
+      user2.editor.content.insert('a');
       void user2.submitChanges();
       // [above]a>\n\n[below]\n
     });
@@ -556,14 +572,14 @@ describe('with initial text', () => {
         shouldHaveRevision(initialHeadRevision);
 
         cy.then(() => {
-          user2.editor.CONTENT.select(userBG.select);
-          user2.editor.CONTENT.type(userBG.insert, {
+          user2.editor.content.select(userBG.select);
+          user2.editor.content.type(userBG.insert, {
             delay: userBG.delay,
           });
         });
 
-        user1.editor.CONTENT.select(userUI.select);
-        user1.editor.CONTENT.type(userUI.insert, {
+        user1.editor.content.select(userUI.select);
+        user1.editor.content.type(userUI.insert, {
           delay: userUI.delay,
         });
 
@@ -603,17 +619,17 @@ describe('with history', () => {
 
   beforeEach(() => {
     cy.then(async () => {
-      user1.bgEditor.CONTENT.insert('[before]\n\n[history]\n\n\n[after]\n');
+      user1.bgEditor.content.insert('[before]\n\n[history]\n\n\n[after]\n');
       await user1.submitChanges();
 
-      user1.bgEditor.CONTENT.select(20);
-      user1.bgEditor.CONTENT.insert('[t1]');
+      user1.bgEditor.content.select(20);
+      user1.bgEditor.content.insert('[t1]');
       await user1.submitChanges();
 
-      user1.bgEditor.CONTENT.insert('[t2]');
+      user1.bgEditor.content.insert('[t2]');
       await user1.submitChanges();
 
-      user1.bgEditor.CONTENT.insert('[t3]');
+      user1.bgEditor.content.insert('[t3]');
       await user1.submitChanges();
 
       initialHeadRevision = user1.collabService.service.headRevision;
@@ -628,8 +644,8 @@ describe('with history', () => {
     shouldHaveRevision(initialHeadRevision);
 
     cy.then(() => {
-      user2.editor.CONTENT.select(9);
-      user2.editor.CONTENT.type('12345');
+      user2.editor.content.select(9);
+      user2.editor.content.type('12345');
     });
 
     undoButton().click();
@@ -643,8 +659,8 @@ describe('with history', () => {
     shouldHaveRevision(initialHeadRevision);
 
     cy.then(() => {
-      user2.editor.CONTENT.select(9);
-      user2.editor.CONTENT.type('1234567');
+      user2.editor.content.select(9);
+      user2.editor.content.type('1234567');
     });
 
     undoButton().click();
@@ -660,8 +676,8 @@ describe('with history', () => {
     shouldHaveRevision(initialHeadRevision);
 
     cy.then(() => {
-      user2.editor.CONTENT.select(9);
-      user2.editor.CONTENT.type('12345');
+      user2.editor.content.select(9);
+      user2.editor.content.type('12345');
     });
 
     undoButton().click();

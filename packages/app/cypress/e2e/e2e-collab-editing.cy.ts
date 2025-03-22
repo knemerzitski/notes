@@ -3,6 +3,7 @@
 import { SelectionRange } from '../../../collab/src/client/selection-range';
 
 import { GraphQLService } from '../../src/graphql/types';
+import { NoteTextFieldName } from '../../src/note/types';
 import { createGraphQLService } from '../support/utils/graphql/create-graphql-service';
 import { createCollabService } from '../support/utils/note/create-collab-service';
 import { openNoteSubscription } from '../support/utils/note/open-note-subscription';
@@ -146,7 +147,6 @@ it('sign in, create note, share link and collab edit with another user', () => {
               graphQLService = await createGraphQLService({
                 // Ensures user 2 cache is not overwritten since same localStorage is used
                 storageKey: 'user1',
-                logging: true,
               });
 
               await signIn({
@@ -182,7 +182,7 @@ it('sign in, create note, share link and collab edit with another user', () => {
               });
 
               // "foo content" =>  "foo BOO content"
-              fields.CONTENT.insert(' BOO', SelectionRange.from(3));
+              fields[NoteTextFieldName.CONTENT].insert(' BOO', SelectionRange.from(3));
 
               await submitChanges({
                 collabService,
