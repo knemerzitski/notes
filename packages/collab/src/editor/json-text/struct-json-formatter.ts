@@ -22,7 +22,7 @@ export class StructJsonFormatter<
   private readonly mapper;
 
   constructor(
-    readonly keys: readonly [K, ...K[]],
+    readonly keys: readonly K[],
     options?: {
       defaultKey?: K;
       mapper?: StructJsonMapper;
@@ -113,7 +113,7 @@ export class StructJsonFormatter<
 }
 
 function createStringRecordStruct<K extends string>(
-  keys: readonly [K, ...K[]],
+  keys: readonly K[],
   params: {
     parse: typeof JSON.parse;
     stringify: typeof JSON.stringify;
@@ -126,7 +126,7 @@ function createStringRecordStruct<K extends string>(
 ): StringRecordStruct {
   const logger = options?.logger;
 
-  const defaultKey = options?.defaultKey ?? keys[0];
+  const defaultKey = options?.defaultKey ?? keys[0] ?? 'default';
 
   return coerce(
     defaulted(

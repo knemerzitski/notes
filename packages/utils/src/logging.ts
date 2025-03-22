@@ -28,7 +28,8 @@ function getProcess(): any {
 }
 
 function isBrowser() {
-  // @ts-expect-error Might not be browser
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore Ignore Cannot find name 'window'.ts(2304)
   return typeof window !== 'undefined';
 }
 

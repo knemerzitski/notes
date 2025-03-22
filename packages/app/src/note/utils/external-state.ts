@@ -11,7 +11,7 @@ import { defineCreateJsonTextFromService } from '../../../../collab/src/editor/j
 import { Logger } from '../../../../utils/src/logging';
 
 export function createNoteExternalStateContext<TKey extends string>(
-  { keys }: { keys: [TKey, ...TKey[]] },
+  { keys }: { keys: TKey[] },
   options?: {
     defaultKey?: TKey;
     logger?: Logger;

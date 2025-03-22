@@ -1,4 +1,5 @@
 import { GraphQLService } from '../../src/graphql/types';
+import { NoteTextFieldName } from '../../src/note/types';
 import { createGraphQLService } from '../support/utils/graphql/create-graphql-service';
 import { persistCache } from '../support/utils/graphql/persist-cache';
 import { createNote } from '../support/utils/note/create-note';
@@ -28,8 +29,8 @@ beforeEach(() => {
       graphQLService,
       userId,
       initialText: {
-        TITLE: 'foo',
-        CONTENT: 'bar',
+        [NoteTextFieldName.TITLE]: 'foo',
+        [NoteTextFieldName.CONTENT]: 'bar',
       },
     }));
   });
