@@ -13,7 +13,7 @@ import {
 
 import { CollabHistoryModification, ReadonlyHistoryRecord } from './collab-history';
 
-export interface CollabHistoryContext {
+export interface ExternalChangeModificationContext {
   readonly serverIndex: number;
   readonly client: Pick<CollabClient, 'server'>;
   readonly serverTailTextTransformToRecordsTailText: Changeset | null;
@@ -34,7 +34,7 @@ export interface CollabHistoryContext {
  */
 export function externalChangeModification(
   orRevisionChangeset: OrRevisionChangeset,
-  history: CollabHistoryContext,
+  history: ExternalChangeModificationContext,
   options?: {
     logger?: Logger;
   }

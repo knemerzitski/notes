@@ -6,7 +6,7 @@ import { ComposableRecordsFacade } from '../records/composable-records-facade';
 import { TextMemoRecords } from '../records/text-memo-records';
 
 import { ReadonlyHistoryRecord } from './collab-history';
-import { CollabHistoryContext, externalChangeModification } from './mod-external-change';
+import { ExternalChangeModificationContext, externalChangeModification } from './mod-external-change';
 
 function createRecord(rawChangeset: unknown): ReadonlyHistoryRecord {
   return {
@@ -63,7 +63,7 @@ describe('externalChangeModification', () => {
             );
           }
         },
-      } satisfies CollabHistoryContext,
+      } satisfies ExternalChangeModificationContext,
       records: memoRecords,
       get serverTailTextTransformToRecordsTailText() {
         return serverTailTextTransformToRecordsTailText;
