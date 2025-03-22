@@ -414,13 +414,16 @@ export class CollabHistory {
       });
 
       this.client.composeLocalChange(value.changeset);
+      const newestRecord = this.readonlyRecords.at(this.localIndex);
+      if (newestRecord) {
+        // TODO is it valid to emit last record?
       this._eventBus.emit('appliedTypingOperation', {
         operation: {
-          changeset: value.changeset,
-          // TODO this makes no sense, make it optional?
-          selection: value.afterSelection,
+            changeset: newestRecord.changeset,
+            selection: newestRecord.afterSelection,
         },
       });
+      }
     } else {
       const merge = options?.type === 'merge';
     const localIndex = this.lastExecutedIndex.local;
