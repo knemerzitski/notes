@@ -197,7 +197,7 @@ export class CollabHistory {
 
   /**
    * Transforms serverTailText to a changeset compatible with local records.
-   * serverTailText * serverTailTextTransformToRecordsTailText = _records.tailText
+   * serverTailText * serverTailTextTransformToRecordsTailText = readonlyRecords.tailText
    */
   private serverTailTextTransformToRecordsTailText: Changeset | null;
 

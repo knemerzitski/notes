@@ -17,6 +17,9 @@ import {
  * Changeset is immutable.
  */
 export class Changeset {
+  /**
+   * EMPTY * A => error if A has any retained characters
+   */
   static readonly EMPTY: Changeset = new (class extends Changeset {
     readonly EMPTY = true;
     constructor() {
@@ -117,7 +120,7 @@ export class Changeset {
    * E.g. ['hello'] * [[0, 4], ' world'] = ['hello world']
    */
   compose(B: Changeset): Changeset {
-    if (B === Changeset.EMPTY) {
+    if (B.isEmpty()) {
       return Changeset.EMPTY;
     }
 
