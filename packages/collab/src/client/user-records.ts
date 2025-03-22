@@ -1,12 +1,13 @@
 import mitt, { Emitter } from 'mitt';
 
 import { CollabServiceRecord } from './collab-service';
-import { ServerRecordsFacade } from '../types';
+import { ServerRecordsFacade, ServerRecordsFacadeEvents } from '../types';
 
 export interface UserRecordsEvents {
   recordsUpdated: {
     source: UserRecords;
   };
+  filterNewestRecordIterable: ServerRecordsFacadeEvents<CollabServiceRecord>['filterNewestRecordIterable'];
 }
 
 export class UserRecords {
@@ -34,6 +35,9 @@ export class UserRecords {
         this._eventBus.emit('recordsUpdated', {
           source: this,
         });
+      }),
+      this.serverRecords.eventBus.on('filterNewestRecordIterable', (filter) => {
+        this._eventBus.emit('filterNewestRecordIterable', filter);
       })
     );
   }
@@ -46,6 +50,10 @@ export class UserRecords {
 
   hasMoreRecords() {
     return this.serverRecords.hasMoreRecords();
+  }
+
+  getTextAtMaybe(revision: number) {
+    return this.serverRecords.getTextAtMaybe(revision);
   }
 
   getTextAt(revision: number) {

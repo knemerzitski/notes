@@ -3,6 +3,7 @@ import { BaseEvents, Emitter, Handler } from 'mitt';
 import { Changeset } from './changeset';
 import { SelectionRange } from './client/selection-range';
 import { RevisionChangeset } from './records/record';
+import { Maybe } from '../../utils/src/types';
 
 /**
  * Simple facade for querying server records.
@@ -25,6 +26,8 @@ export interface ServerRecordsFacade<TRecord> {
    */
   getTextAt(revision: number): Readonly<RevisionChangeset>;
 
+  getTextAtMaybe(revision: number): Maybe<Readonly<RevisionChangeset>>;
+
   /**
    * @returns true if server has more records
    */
@@ -34,6 +37,13 @@ export interface ServerRecordsFacade<TRecord> {
 export interface ServerRecordsFacadeEvents<TRecord> {
   recordsUpdated: {
     source: ServerRecordsFacade<TRecord>;
+  };
+  filterNewestRecordIterable: {
+    /**
+     * Next record that is returned in iterable.
+     * Set null to stop iterating and not return this record.
+     */
+    resultRecord: Readonly<TRecord> | null;
   };
 }
 

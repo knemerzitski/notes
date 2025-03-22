@@ -21,6 +21,7 @@ import {
   ServerRecordsFacade,
   ServerRecordsFacadeEvents,
 } from '../../../../collab/src/types';
+import { Maybe } from '../../../../utils/src/types';
 
 const CacheRecordsFacadeTextAtRevision_CollabTextFragment = gql(`
   fragment CacheRecordsFacadeTextAtRevision_CollabTextFragment on CollabText {
@@ -213,19 +214,33 @@ export class CacheRecordsFacade implements ServerRecordsFacade<CollabServiceReco
         next: () => {
           const value = records[index--];
           if (value != null) {
+            const filter: ServerRecordsFacadeEvents<CollabServiceRecord>['filterNewestRecordIterable'] =
+              {
+                resultRecord: cacheRecordToCollabServiceRecord(value),
+              };
+            this._eventBus.emit('filterNewestRecordIterable', filter);
+
+            const record = filter.resultRecord;
+            if (!record) {
+              return {
+                done: true,
+                value: null,
+              };
+            }
+
             return {
               done: false,
-              value: cacheRecordToCollabServiceRecord(value),
+              value: record,
             };
           } else {
-            return { done: true, value };
+            return { done: true, value: null };
           }
         },
       }),
     };
   }
 
-  getTextAt(revision: number): Readonly<RevisionChangeset> {
+  getTextAtMaybe(revision: number): Maybe<Readonly<RevisionChangeset>> {
     if (revision <= 0) {
       return {
         revision: 0,
@@ -233,7 +248,11 @@ export class CacheRecordsFacade implements ServerRecordsFacade<CollabServiceReco
       };
     }
 
-    const revisionChangeset = this.readTextAtRevision(revision);
+    return this.readTextAtRevision(revision);
+  }
+
+  getTextAt(revision: number): Readonly<RevisionChangeset> {
+    const revisionChangeset = this.getTextAtMaybe(revision);
     if (!revisionChangeset) {
       throw new Error(
         `Failed to get note "${this.noteId}" text at revision "${revision}"`

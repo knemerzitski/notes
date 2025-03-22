@@ -45,6 +45,7 @@ export class JsonText<K extends string, S extends StringRecordStruct> {
             | 'handledExternalChanges'
             | 'processingMessages'
             | 'headRevisionChanged'
+            | 'userRecordsFilterNewestRecordIterable'
           >
         >,
         'on'
@@ -62,6 +63,8 @@ export class JsonText<K extends string, S extends StringRecordStruct> {
     this.viewsCache = new ViewTextMemosCache<K, S>(formatter, service, {
       logger: this.logger?.extend('ViewTextMemosCache'),
     });
+
+    const emptyView = formatter.stringify(formatter.parse(''));
 
     const keySimpleTextParent: ConstructorParameters<typeof KeySimpleText>[0]['service'] =
       {
@@ -143,9 +146,27 @@ export class JsonText<K extends string, S extends StringRecordStruct> {
           textView.serviceHandledExternalChange(payload);
         });
       }),
+      service.eventBus.on('userRecordsFilterNewestRecordIterable', (filter) => {
+        const record = filter.resultRecord;
+        if (!record) {
+          return;
+        }
+
+        // Prevent iterating any records past empty view
+        if (
+          record.changeset.hasOnlyInsertions() &&
+          record.changeset.joinInsertions() === emptyView
+        ) {
+          this.logger?.debug(
+            'newestRecordIterable.prevent',
+            filter.resultRecord?.changeset.toString()
+          );
+          filter.resultRecord = null;
+        }
+      }),
     ];
 
-    this.syncView(this.viewsCache.view, true);
+    this.syncView(this.viewsCache.view);
   }
 
   /**
@@ -174,11 +195,10 @@ export class JsonText<K extends string, S extends StringRecordStruct> {
     }
   }
 
-  private syncView(view: ViewTextMemo<K, S>, merge = false) {
+  private syncView(view: ViewTextMemo<K, S>) {
     if (this.service.viewText !== view.viewText) {
       this.logger?.debug('syncView', {
         view,
-        merge,
       });
       this.syncDuringProcessingMessages = true;
       this.pushSelectionChangeset(
@@ -187,7 +207,7 @@ export class JsonText<K extends string, S extends StringRecordStruct> {
           afterSelection: SelectionRange.ZERO,
         },
         {
-          type: merge ? 'merge' : undefined,
+          type: 'permanent',
         }
       );
       return true;

@@ -4,6 +4,7 @@ import { ServerRecordsFacadeEvents } from '../../types';
 import { ServerRecordsFacade } from '../../types';
 import { RevisionChangeset, RevisionRecord } from '../../records/record';
 import { RevisionRecords } from '../../records/revision-records';
+import { Maybe } from '../../../../utils/src/types';
 
 export interface LocalServerRecordsParams<TRecord extends RevisionRecord> {
   records: RevisionRecords<TRecord>;
@@ -58,6 +59,15 @@ export class LocalServerRecords<TRecord extends RevisionRecord>
 
   getHeadText() {
     return this.records.getHeadText();
+  }
+
+  getTextAtMaybe(revision: number): Maybe<Readonly<RevisionChangeset>> {
+    try {
+      return this.getTextAt(revision);
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
   }
 
   getTextAt(revision: number): Readonly<RevisionChangeset> {

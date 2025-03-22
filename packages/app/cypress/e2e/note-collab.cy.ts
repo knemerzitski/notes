@@ -651,4 +651,23 @@ describe('with history', () => {
 
     shouldContentHaveValue('[before]\n1234567\n[history]\n\n\n[after]\n');
   });
+
+  it('can undo all changes while receiving changes from user2', () => {
+    cy.visit(noteRoute());
+
+    shouldHaveRevision(initialHeadRevision);
+
+    cy.then(() => {
+      user2.editor.CONTENT.select(9);
+      user2.editor.CONTENT.type('12345');
+    });
+
+    undoButton().click();
+    undoButton().click();
+    undoButton().click();
+    undoButton().click();
+
+    undoButton().should('be.disabled');
+    shouldContentHaveValue('12345');
+  });
 });

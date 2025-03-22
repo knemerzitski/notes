@@ -44,7 +44,7 @@ import {
   CollabClientOptionsStruct,
 } from './collab-client';
 import { SubmittedRecord } from './submitted-record';
-import { UserRecords } from './user-records';
+import { UserRecords, UserRecordsEvents } from './user-records';
 
 export type CollabServiceEvents = Omit<CollabClientEvents, 'handledExternalChange'> &
   Omit<OrderedMessageBufferEvents<UnprocessedRecord>, 'processingMessages'> &
@@ -83,6 +83,7 @@ interface CustomCollabServiceEvents {
      */
     userRecords: UserRecords | null;
   }>;
+  userRecordsFilterNewestRecordIterable: UserRecordsEvents['filterNewestRecordIterable'];
   processingMessages: Readonly<{
     eventBus: Emitter<CollabServiceProcessingEvents>;
   }>;
@@ -216,6 +217,9 @@ export class CollabService {
           this._eventBus.emit('userRecordsUpdated', {
             userRecords: value,
           });
+        }),
+        newUserRecord.eventBus.on('filterNewestRecordIterable', (filter) => {
+          this._eventBus.emit('userRecordsFilterNewestRecordIterable', filter);
         })
       );
     }
